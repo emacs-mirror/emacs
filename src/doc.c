@@ -25,17 +25,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>	/* Must be after sys/types.h for USG*/
 #include <ctype.h>
 #include <setjmp.h>
-
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifndef O_RDONLY
-#define O_RDONLY 0
 #endif
 
 #include "lisp.h"

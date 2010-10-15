@@ -1,3 +1,386 @@
+2010-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (tiff_load): Cast 3rd argument to avoid compiler warning.
+
+2010-10-15  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* Makefile.in (really-oldXMenu): Fix typo in variable name that
+	made building the X menu fail.
+	(really-oldXMenu): Fix my previous fix.
+
+2010-10-14  Damyan Pepper  <damyanp@gmail.com>
+
+	Fix handling of font properties on Windows (bug#6303).
+	* font.c (font_filter_properties): New function, refactored from
+	ftfont_filter_properties.
+	* font.h (font_filter_properties): Declare.
+	* ftfont.c (ftfont_filter_properties): Use font_filter_properties.
+	* w32font.c (w32font_booleans, w32font_non_booleans): New variables.
+	(w32font_filter_properties): New function.
+	(w32font_driver): Add w32font_filter_properties.
+
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Ffont_variation_glyphs):
+	* ccl.c (Fccl_execute_on_string): Fix typo in docstring.
+
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (w32_wnd_proc, file_dialog_callback):
+	* w32font.c (w32_generic_family):
+	* w32inevt.c (key_event):
+	* w32menu.c (fill_in_menu):
+	* w32proc.c (reader_thread, w32_executable_type, compare_env)
+	(merge_and_sort_env, int_from_hex, enum_locale_fn, enum_codepage_fn):
+	* w32term.c (w32_read_socket): Make static.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (DEF_IMGLIB_FN): Add argument to adapt to strict
+	prototypes; all callers changed.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (TLIB2): Rename from TLIBW32.
+	(OBJ2): New macro.
+	(WIN32OBJ, FONTOBJ): Remove.
+	(OBJ1): Redistribute object files with OBJ2.
+	(LIBS, $(TEMACS)): Use TLIB2.
+	(make-buildobj-CMD, make-buildobj-SH): Use OBJ2.
+	($(TLIB2), TAGS, TAGS-LISP, TAGS-gmake): Depend on OBJ2.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (Vdynamic_library_alist)
+	(syms_of_emacs) <dynamic-library-alist>: Move from image.c and rename.
+	Doc fix.
+
+	* lisp.h (Vdynamic_library_alist): Declare extern.
+
+	* image.c (Vimage_library_alist)
+	(syms_of_image) <image-library-alist>: Move to emacs.c and rename.
+	(lookup_image_type): Use Vdynamic_library_alist.
+	(Finit_image_library): Doc fix.
+
+2010-10-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (lispsource, libsrc, etc, oldxmenudir, lwlibdir)
+	(lispdir): Remove trailing /, update all uses.
+
+2010-10-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (Qleft): Declare.
+	(ns_right_alternate_modifier): New variable
+	(NSRightAlternateKeyMask): New define.
+	(EV_MODIFIERS): Parse NSRightAlternateKeyMask if
+	ns_right_alternate_modifier isn't Qleft.
+	(keyDown): If ns_right_alternate_modifier isn't Qleft, use it
+	as emacs modifier for NSRightAlternateKeyMask.
+	(syms_of_nsterm): DEFVAR_LISP ns-right-alternate-modifier.
+
+2010-10-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_write): If we're trying to write before
+	gnutls is ready, return EAGAIN as the errno.
+
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vm-limit.c:
+	* unexhp9k800.c:
+	* unexelf.c:
+	* unexaix.c:
+	* termcap.c: Remove #ifdef emacs / #ifndef emacs code, unused.
+
+	* Makefile.in (temacs): Use $(ALL_CFLAGS) on the link line.
+	(PROFILING_LDFLAGS): Remove, not needed anymore.
+
+	* Makefile.in: Use $(...) everywhere instead of ${...}
+	(CRT_DIR): Move near potential user.
+	(START_FILE): Move near CRT_DIR, it might use it.
+
+	* sysdep.c (LPASS8): Remove, unused.
+	(emacs_ospeed): Change from being a global to a local in the only
+	user: init_baud_rate.
+
+2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (syms_of_gnutls): All the bootprops are keywords.
+	(emacs_gnutls_write): Remove the debuggin fsync call.
+	(emacs_gnutls_read): Return -1 if we got an error from
+	gnutls_read.  This allows us to actually read lots of data from
+	the GnuTLS stream.
+	(emacs_gnutls_write): Check for GNUTLS_E_AGAIN and not EINTR.
+	According to the documentation, this is correct, and it seems to
+	make things work.
+
+2010-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_draw_relief_rect): Clear corner pixels.
+
+2010-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* keyboard.c: Revert last change; it was not intended to be
+	synchronized with the trunk.
+
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (complement_process_encoding_system): Fix previous change.
+
+2010-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Move putenv call ...
+	(Fdbus_init_bus): ... here.  (Bug#7113)
+
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (before-change-functions, after-change-functions):
+	Three-year overdue doc fix following 2007-08-13 change.
+
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_inherit_eol_type): If parent doesn't specify
+	eol-format, inherit from the system's default.
+	(complement_process_encoding_system): Make a new coding system
+	inherit the original eol-format.
+
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (complement_process_encoding_system): New function.
+
+	* coding.h (complement_process_encoding_system): Extern it.
+
+	* callproc.c (Fcall_process): Complement the coding system for
+	encoding arguments.
+	(Fcall_process_region): Complement the coding system for encoding
+	the input to the process.
+
+	* process.c (Fstart_process): Complement the coding system for
+	encoding arguments.
+	(send_process): Complement the coding system for encoding what
+	sent to the process.
+
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_open): Fix setting of font->average_width from
+	:avgwidth property (Bug#7123).
+
+2010-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Use putenv instead of setenv, it
+	is more portable.
+
+	* keyboard.c (gobble_input): Move call of xd_read_queued_messages ...
+	(kbd_buffer_get_event): ... here. This is needed for cygwin, which
+	has not defined SIGIO.
+
+2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_draw_relief_rect): If box width is larger than 1,
+	draw the outermost line using the black relief, for legibility.
+	Omit drawing the four corner pixels.
+
+2010-10-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (echo_prompt): Function moved into read_key_sequence.
+	(read_key_sequence): Inline echo_prompt.
+	(echo_dash): Add a dash only if key is continued (Bug#7137).
+
+2010-10-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove O_RDONLY, O_WRONLY definitions, not needed.
+	* unexcoff.c:
+	* lread.c:
+	* fileio.c:
+	* doc.c:
+	* callproc.c:
+	* alloc.c:
+	* termcap.c: Remove O_RDONLY O_WRONLY definitions.
+
+2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.h (GNUTLS_LOG2): Convenience macro.
+
+	* gnutls.c: Add property list symbol holders.
+	(emacs_gnutls_handshake): Clarify how sockets are passed to
+	GnuTLS.
+	(gnutls_log_function2): Convenience function using GNUTLS_LOG2.
+	(Fgnutls_boot): Get all parameters from a plist.  Require trustfiles
+	and keyfiles to be a list of file names.  Default to "NORMAL" for
+	the priority string.  Improve logging.
+
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Vdirectory_sep_char): Remove.
+
+2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* termhooks.h: Remove #ifdef CONSP.
+
+	* xterm.c (NO_INLINE, noinline): Move definitions to ../configure.in.
+
+	Include <fcntl.h> unconditionally.
+	* termcap.c:
+	* sysdep.c:
+	* lread.c:
+	* keyboard.c:
+	* filelock.c:
+	* fileio.c:
+	* doc.c:
+	* callproc.c:
+	* alloc.c: Remove include guards for <fcntl.h>, process.c already
+	does it.
+
+	* process.c: Do not include <sys/wait.h>, syswait.h does it.
+
+	* sysdep.c (flush_pending_output): Remove code, does not do
+	anything on any platform.
+
+	Remove unused code.
+	* sysdep.c (select_alarm, sys_select, read_input_waiting): Remove
+	select emulation, all systems support select.
+	(set_exclusive_use): Remove, the only user is in an #if 0 block.
+	* process.c (create_process): Remove #if 0 code.
+
+	Remove unused arguments for unexec.
+	The third one is never used, and the last two are always passed as zero.
+	* emacs.c (unexec): Add declaration.
+	(Fdump_emacs): Only pass the first two arguments to unexec.
+	Simplify #ifdef.
+	* unexw32.c (unexec):
+	* unexsol.c (unexec):
+	* unexhp9k800.c (unexec):
+	* unexcw.c (unexec): Remove the last 3 arguments, unused.
+	* unexelf.c (unexec): Remove the last 3 arguments, unused.
+	(find_section): Use const.
+	* unexmacosx.c (unexec): Remove the last 3 arguments, unused.
+	(unexec_error): Declare it NO_RETURN.
+	* unexcoff.c (make_hdr): Assume bss_start is always zero, remove
+	it as an argument, remove data_start and entry_address arguments, unused.
+	(unexec): Remove bss_start, data_start and
+	entry_address arguments.
+	* unexaix.c (make_hdr): Assume bss_start is always zero, remove
+	it as an argument, remove data_start and entry_address arguments, unused.
+	(unexec): Remove bss_start, data_start and
+	entry_address arguments.
+
+2010-10-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (TAGS, TAGS-LISP, TAGS-gmake): Add $(FONTOBJ).
+
+	* gnutls.c (emacs_gnutls_handshake, gnutls_make_error)
+	(gnutls_emacs_global_init, gnutls_emacs_global_deinit): Make static.
+	(Fgnutls_get_initstage, Fgnutls_deinit, Fgnutls_boot, Fgnutls_bye):
+	Fix typos in docstrings.
+	(Fgnutls_error_fatalp, Fgnutls_error_string): Doc fixes.
+	(Fgnutls_errorp): Doc fix; use ERR for the argument name.
+
+2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1): Make sure the mark is really alive
+	before using it (Bug#7044).
+
+2010-10-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (tags): Rename target to full-tags.
+
+2010-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main): Remove !WINDOWSNT conditional.
+	(Fkill_emacs): Don't mention exemption on MS-Windows.
+
+2010-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* character.c (Fchar_bytes): Remove obsolete function.
+	(syms_of_character): Remove Schar_bytes.
+
+	* emacs.c (fatal_error_signal): Also run Fkill_emacs on SIGINT.
+	(main) [!WINDOWSNT]: Handle SIGINT with fatal_error_signal
+	in batch-mode.
+	(Fkill_emacs): Doc fix.  Also run the hook in batch mode.
+	(kill-emacs-hook): Doc fix.
+
+2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (Flibxml_parse_xml_region, Flibxml_parse_html_region)
+	(parse_region): Reworked to take regions instead of strings, and
+	renamed to reflect that these are the libxml functions.
+
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (init_tty) [DOS_NT]: Don't call Wcm_clear after setting
+	screen dimensions in tty->Wcm.
+
+	* xdisp.c (set_cursor_from_row): When the row is truncated and
+	point is outside the range of displayed characters, position the
+	cursor inside the scroll margin.  (Bug#6349)
+
+2010-10-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Do not include stdlib.h and string.h, config.h does it.
+	* xfont.c:
+	* w32term.c:
+	* w32reg.c:
+	* w32inevt.c:
+	* w32heap.c:
+	* w32console.c:
+	* w16select.c:
+	* unexsol.c:
+	* term.c:
+	* sound.c:
+	* scroll.c (m):
+	* gtkutil.c:
+	* font.c:
+	* filelock.c:
+	* fileio.c:
+	* dosfns.c:
+	* dbusbind.c:
+	* bidi.c:
+	* callproc.c:
+	* process.c:
+	* msdos.c:
+	* charset.c: Do not include stdlib.h and string.h, config.h does it.
+
+	* callproc.c (SIGCHLD): Remove conditional definition, syssignal.h defines it.
+
+	* process.c: Move #include <pty.h> earlier.
+	(SIGCHLD): Remove conditional definition, syssignal.h defines it.
+	(pty_name): Move definition later.
+
+	* nsselect.m (syms_of_nsselect):
+	* nsmenu.m (syms_of_nsmenu):
+	* nsfns.m (syms_of_nsfns):
+	* msdos.c (syms_of_msdos):
+
+	* image.c (syms_of_image):
+	* charset.c (syms_of_charset): Use intern_c_string instead of intern.
+
+	* point.h: Remove, unused.
+
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (TAGS, frc, TAGS-LISP, ../nt/TAGS, tags)
+	(TAGS-gmake, TAGS-nmake, TAGS-LISP-gmake, TAGS-LISP-nmake)
+	(nt-TAGS-gmake, nt-TAGS-nmake): New targets.
+
+2010-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xml.c (parse_string): Use const.
+
+2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eval.c (Fbacktrace): Don't overwrite print-level on exit.  Also
+	only override Vprint_level if it isn't already bound, and increase
+	the level to 8 to produce more useful backtraces for bug reports.
+
+2010-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in: ecrt0.c does not exist anymore, do not mention it.
+
+2010-09-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32console.c (vga_stdcolor_name): Remove unused function;
+	presumed dead after revno 82799 (2007-11-30).
+
 2010-09-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnutls.c (emacs_gnutls_handshake): Made into internal function.

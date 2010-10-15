@@ -1072,7 +1072,7 @@ syms_of_w32select (void)
 When sending or receiving text via cut_buffer, selection, and
 clipboard, the text is encoded or decoded by this coding system.
 The default value is the current system default encoding on 9x/Me and
-`utf-16le-dos' (Unicode) on NT/W2K/XP. */);
+`utf-16le-dos' (Unicode) on NT/W2K/XP.  */);
   /* The actual value is set dynamically in the dumped Emacs, see
      below. */
   Vselection_coding_system = Qnil;

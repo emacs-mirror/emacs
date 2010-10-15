@@ -142,22 +142,27 @@ Lisp_Object ns_input_spi_name, ns_input_spi_arg;
 Lisp_Object Vx_toolkit_scroll_bars;
 static Lisp_Object Qmodifier_value;
 Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper, Qnone;
-extern Lisp_Object Qcursor_color, Qcursor_type, Qns;
+extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the Alternate modifer.  May be Qnone or any of the modifier lisp symbols. */
+   the Alternate modifier.  May be Qnone or any of the modifier lisp symbols. */
 Lisp_Object ns_alternate_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the Command modifer.  May be any of the modifier lisp symbols. */
+   the right Alternate modifier.  Has same values as ns_alternate_modifier plus
+   the value Qleft which means whatever value ns_alternate_modifier has.  */
+Lisp_Object ns_right_alternate_modifier;
+
+/* Specifies which emacs modifier should be generated when NS receives
+   the Command modifier.  May be any of the modifier lisp symbols. */
 Lisp_Object ns_command_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the Control modifer.  May be any of the modifier lisp symbols. */
+   the Control modifier.  May be any of the modifier lisp symbols. */
 Lisp_Object ns_control_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the Function modifer (laptops).  May be any of the modifier lisp symbols. */
+   the Function modifier (laptops).  May be any of the modifier lisp symbols. */
 Lisp_Object ns_function_modifier;
 
 /* Control via default 'GSFontAntiAlias' on OS X and GNUstep. */
@@ -218,12 +223,17 @@ static BOOL inNsSelect = 0;
 
 /* Convert modifiers in a NeXTSTEP event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
+#define NSRightAlternateKeyMask (0x000040 | NSAlternateKeyMask)
 #define EV_MODIFIERS(e)                               \
     ((([e modifierFlags] & NSHelpKeyMask) ?           \
            hyper_modifier : 0)                        \
-     | (([e modifierFlags] & NSAlternateKeyMask) ?    \
+     | (!EQ (ns_right_alternate_modifier, Qleft) && \
+        (([e modifierFlags] & NSRightAlternateKeyMask) \
+         == NSRightAlternateKeyMask) ? \
+           parse_solitary_modifier (ns_right_alternate_modifier) : 0) \
+     | (([e modifierFlags] & NSAlternateKeyMask) ?                 \
            parse_solitary_modifier (ns_alternate_modifier) : 0)   \
-     | (([e modifierFlags] & NSShiftKeyMask) ?        \
+     | (([e modifierFlags] & NSShiftKeyMask) ?     \
            shift_modifier : 0)                        \
      | (([e modifierFlags] & NSControlKeyMask) ?      \
            parse_solitary_modifier (ns_control_modifier) : 0)     \
@@ -4440,7 +4450,13 @@ ns_term_shutdown (int sig)
           emacs_event->modifiers |=
             parse_solitary_modifier (ns_function_modifier);
 
-      if (flags & NSAlternateKeyMask) /* default = meta */
+      if (!EQ (ns_right_alternate_modifier, Qleft)
+          && ((flags & NSRightAlternateKeyMask) == NSRightAlternateKeyMask)) 
+	{
+	  emacs_event->modifiers |= parse_solitary_modifier
+            (ns_right_alternate_modifier);
+	}
+      else if (flags & NSAlternateKeyMask) /* default = meta */
         {
           if ((NILP (ns_alternate_modifier) || EQ (ns_alternate_modifier, Qnone))
               && !fnKeysym)
@@ -6202,6 +6218,14 @@ Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to none means that the alternate / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
   ns_alternate_modifier = Qmeta;
+
+  DEFVAR_LISP ("ns-right-alternate-modifier", &ns_right_alternate_modifier,
+               "This variable describes the behavior of the right alternate or option key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to left means be the same key as `ns-alternate-modifier'.\n\
+Set to none means that the alternate / option key is not interpreted by Emacs\n\
+at all, allowing it to be used at a lower level for accented character entry.");
+  ns_right_alternate_modifier = Qleft;
 
   DEFVAR_LISP ("ns-command-modifier", &ns_command_modifier,
                "This variable describes the behavior of the command key.\n\

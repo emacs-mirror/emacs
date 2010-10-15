@@ -336,16 +336,6 @@ If the multibyte character does not represent a byte, return -1.  */)
     }
 }
 
-DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
-       doc: /* Return 1 regardless of the argument CHAR.
-This is now an obsolete function.  We keep it just for backward compatibility.
-usage: (char-bytes CHAR)  */)
-  (Lisp_Object ch)
-{
-  CHECK_CHARACTER (ch);
-  return make_number (1);
-}
-
 DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
        doc: /* Return width of CHAR when displayed in the current buffer.
 The width is measured by how many columns it occupies on the screen.
@@ -1073,7 +1063,6 @@ syms_of_character (void)
   defsubr (&Scharacterp);
   defsubr (&Sunibyte_char_to_multibyte);
   defsubr (&Smultibyte_char_to_unibyte);
-  defsubr (&Schar_bytes);
   defsubr (&Schar_width);
   defsubr (&Sstring_width);
   defsubr (&Schar_direction);

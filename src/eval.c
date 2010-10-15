@@ -186,7 +186,7 @@ init_eval_once (void)
   specpdl = (struct specbinding *) xmalloc (specpdl_size * sizeof (struct specbinding));
   specpdl_ptr = specpdl;
   /* Don't forget to update docs (lispref node "Local Variables").  */
-  max_specpdl_size = 1000;
+  max_specpdl_size = 1200; /* 1000 is not enough for CEDET's c-by.el.  */
   max_lisp_eval_depth = 500;
 
   Vrun_hooks = Qnil;
@@ -3717,8 +3717,10 @@ Output stream used is value of `standard-output'.  */)
   Lisp_Object tail;
   Lisp_Object tem;
   struct gcpro gcpro1;
+  Lisp_Object old_print_level = Vprint_level;
 
-  XSETFASTINT (Vprint_level, 3);
+  if (NILP (Vprint_level))
+    XSETFASTINT (Vprint_level, 8);
 
   tail = Qnil;
   GCPRO1 (tail);
@@ -3759,7 +3761,7 @@ Output stream used is value of `standard-output'.  */)
       backlist = backlist->next;
     }
 
-  Vprint_level = Qnil;
+  Vprint_level = old_print_level;
   UNGCPRO;
   return Qnil;
 }

@@ -1178,7 +1178,7 @@ Preserves old cursor, marks/flags, hidden-p."
 The positions have the form (BUFFER-POSITION WINDOW-POSITIONS).
 
 BUFFER-POSITION is the point position in the current dired buffer.
-The buffer position have the form (BUFFER DIRED-FILENAME BUFFER-POINT).
+It has the form (BUFFER DIRED-FILENAME BUFFER-POINT).
 
 WINDOW-POSITIONS are current positions in all windows displaying
 this dired buffer.  The window positions have the form (WINDOW

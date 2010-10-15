@@ -1,7 +1,7 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -1387,20 +1387,6 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
     (require 'easymenu))		; to avoid compilation gripes
 
   (eval-and-compile
-    (cond
-     ;; GNU Emacs 20
-     ((< emacs-major-version 21)
-      (defun pr-global-menubar (pr-menu-spec)
-	(require 'easymenu)
-	(easy-menu-change '("tools") "Printing" pr-menu-spec pr-menu-print-item)
-	(when pr-menu-print-item
-	  (easy-menu-remove-item nil '("tools") pr-menu-print-item)
-	  (setq pr-menu-print-item nil
-		pr-menu-bar (vector 'menu-bar 'tools
-				    (pr-get-symbol "Printing")))))
-      )
-     ;; GNU Emacs 21 & 22
-     (t
       (defun pr-global-menubar (pr-menu-spec)
 	(require 'easymenu)
 	(let ((menu-file (if (= emacs-major-version 21)
@@ -1422,8 +1408,7 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
 	   (t
 	    (easy-menu-add-item global-map menu-file
 				(easy-menu-create-menu "Print" pr-menu-spec)))
-	   )))
-      )))
+	   ))))
 
   (eval-and-compile
     (cond

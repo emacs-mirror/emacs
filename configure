@@ -749,7 +749,6 @@ build_os
 build_vendor
 build_cpu
 build
-PROFILING_LDFLAGS
 PROFILING_CFLAGS
 MAINT
 GZIP_INFO
@@ -3038,12 +3037,9 @@ fi
 
 if test x$ac_enable_profiling != x ; then
    PROFILING_CFLAGS="-DPROFILING=1 -pg"
-   PROFILING_LDFLAGS="-pg"
 else
    PROFILING_CFLAGS=
-   PROFILING_LDFLAGS=
 fi
-
 
 
 # Check whether --enable-autodepend was given.
@@ -7679,19 +7675,19 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-TEMACS_LDFLAGS2="\${LDFLAGS} \${PROFILING_LDFLAGS}"
+TEMACS_LDFLAGS2="\${LDFLAGS}"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app/
-     ns_appbindir=${ns_appdir}Contents/MacOS/
-     ns_appresdir=${ns_appdir}Contents/Resources
+     ns_appdir=`pwd`/nextstep/Emacs.app
+     ns_appbindir=${ns_appdir}/Contents/MacOS/
+     ns_appresdir=${ns_appdir}/Contents/Resources
      ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app/
+     ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}
-     ns_appresdir=${ns_appdir}Resources
+     ns_appresdir=${ns_appdir}/Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
           GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
@@ -7755,7 +7751,7 @@ if test "${HAVE_NS}" = yes; then
   fi
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
-  NS_SUPPORT="\${lispsource}emacs-lisp/easymenu.elc \${lispsource}term/ns-win.elc"
+  NS_SUPPORT="\${lispsource}/emacs-lisp/easymenu.elc \${lispsource}/term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
@@ -8058,7 +8054,6 @@ int
 main ()
 {
   char *data, *data2, *data3;
-  const char *cdata2;
   int i, pagesize;
   int fd, fd2;
 
@@ -8083,10 +8078,10 @@ main ()
   fd2 = open ("conftest.txt", O_RDWR | O_CREAT | O_TRUNC, 0600);
   if (fd2 < 0)
     return 4;
-  cdata2 = "";
-  if (write (fd2, cdata2, 1) != 1)
+  data2 = "";
+  if (write (fd2, data2, 1) != 1)
     return 5;
-  data2 = (char *) mmap (0, pagesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0L);
+  data2 = mmap (0, pagesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0L);
   if (data2 == MAP_FAILED)
     return 6;
   for (i = 0; i < pagesize; ++i)
@@ -9509,7 +9504,8 @@ $as_echo "no" >&6; }
   fi
 
   if test "${HAVE_GNUTLS}" = "yes"; then
-    $as_echo "#define HAVE_GNUTLS 1" >>confdefs.h
+
+$as_echo "#define HAVE_GNUTLS 1" >>confdefs.h
 
   fi
 fi
@@ -14700,9 +14696,9 @@ $as_echo "#define HAVE_X11 1" >>confdefs.h
 
 
   if test "$USE_X_TOOLKIT" = "none"; then
-    OLDXMENU="\${oldXMenudir}libXMenu11.a"
+    OLDXMENU="\${oldXMenudir}/libXMenu11.a"
   else
-    OLDXMENU="\${lwlibdir}liblw.a"
+    OLDXMENU="\${lwlibdir}/liblw.a"
   fi
   LIBXMENU="\$(OLDXMENU)"
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
@@ -14913,7 +14909,7 @@ $as_echo "#define HAVE_WINDOW_SYSTEM 1" >>confdefs.h
 $as_echo "#define HAVE_MOUSE 1" >>confdefs.h
 
   MOUSE_SUPPORT="\$(REAL_MOUSE_SUPPORT)"
-  TOOLTIP_SUPPORT="\${lispsource}mouse.elc"
+  TOOLTIP_SUPPORT="\${lispsource}/mouse.elc"
 
   WINDOW_SUPPORT="\$(BASE_WINDOW_SUPPORT)"
   test "$HAVE_X_WINDOWS" = "yes" && \

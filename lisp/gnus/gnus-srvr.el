@@ -301,9 +301,7 @@ The following commands are available:
   "Initialize the server buffer."
   (unless (get-buffer gnus-server-buffer)
     (with-current-buffer (gnus-get-buffer-create gnus-server-buffer)
-      (gnus-server-mode)
-      (when gnus-carpal
-	(gnus-carpal-setup-buffer 'server)))))
+      (gnus-server-mode))))
 
 (defun gnus-server-prepare ()
   (gnus-set-format 'server-mode)
@@ -571,8 +569,9 @@ The following commands are available:
 
 (defun gnus-server-add-server (how where)
   (interactive
-   (list (intern (completing-read "Server method: "
-				  gnus-valid-select-methods nil t))
+   (list (intern (gnus-completing-read "Server method"
+                                       (mapcar 'car gnus-valid-select-methods)
+                                       t))
 	 (read-string "Server name: ")))
   (when (assq where gnus-server-alist)
     (error "Server with that name already defined"))
@@ -582,7 +581,7 @@ The following commands are available:
 (defun gnus-server-goto-server (server)
   "Jump to a server line."
   (interactive
-   (list (completing-read "Goto server: " gnus-server-alist nil t)))
+   (list (gnus-completing-read "Goto server" (mapcar 'car gnus-server-alist) t)))
   (let ((to (text-property-any (point-min) (point-max)
 			       'gnus-server (intern server))))
     (when to
@@ -805,8 +804,6 @@ claim them."
 	    (funcall gnus-group-prepare-function
 		     gnus-level-killed 'ignore 1 'ignore))
 	(gnus-get-buffer-create gnus-browse-buffer)
-	(when gnus-carpal
-	  (gnus-carpal-setup-buffer 'browse))
 	(gnus-configure-windows 'browse)
 	(buffer-disable-undo)
 	(let ((buffer-read-only nil))

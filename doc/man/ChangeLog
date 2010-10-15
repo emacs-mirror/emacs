@@ -1,3 +1,15 @@
+2010-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.1: Small fixes.
+
+2010-10-12  Ulrich Mueller  <ulm@gentoo.org>
+
+	* emacs.1: Update license description.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* b2m.1: Remove file.
+
 2010-09-25  Ulrich Mueller  <ulm@gentoo.org>
 
 	* etags.1: xz compression is now supported.

@@ -1321,10 +1321,6 @@ Directory Client; and @code{eshell}, a command shell implemented
 entirely in Emacs Lisp.  He also contributed to Org mode (q.v.@:).
 
 @item
-Ed Wilkinson wrote @file{b2m.c}, a program to convert mail files from
-RMAIL format to Unix @code{mbox} format.
-
-@item
 Mike Williams wrote @file{mouse-sel.el}, providing enhanced mouse
 selection; and @file{thingatpt.el}, a library of functions for finding
 the ``thing'' (word, line, s-expression) containing point.
@@ -1418,7 +1414,3 @@ Detlev Zundel wrote @file{re-builder.el}, a package for building regexps
 with visual feedback.
 
 @end itemize
-
-@ignore
-   arch-tag: bb1d0fa4-0240-4992-b5d4-8602d1e3d4ba
-@end ignore

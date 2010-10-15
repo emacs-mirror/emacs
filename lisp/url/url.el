@@ -121,7 +121,7 @@ than the one returned initially by `url-retrieve'.  In this case, it sets this
 variable in the original buffer as a forwarding pointer.")
 
 ;;;###autoload
-(defun url-retrieve (url callback &optional cbargs)
+(defun url-retrieve (url callback &optional cbargs silent)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
 URL is either a string or a parsed URL.
 
@@ -143,7 +143,9 @@ the callback is not called).
 The variables `url-request-data', `url-request-method' and
 `url-request-extra-headers' can be dynamically bound around the
 request; dynamic binding of other variables doesn't necessarily
-take effect."
+take effect.
+
+If SILENT, then don't message progress reports and the like."
 ;;; XXX: There is code in Emacs that does dynamic binding
 ;;; of the following variables around url-retrieve:
 ;;; url-standalone-mode, url-gateway-unplugged, w3-honor-stylesheets,
@@ -154,12 +156,14 @@ take effect."
 ;;; webmail.el; the latter should be updated.  Is
 ;;; url-cookie-multiple-line needed anymore?  The other url-cookie-*
 ;;; are (for now) only used in synchronous retrievals.
-  (url-retrieve-internal url callback (cons nil cbargs)))
+  (url-retrieve-internal url callback (cons nil cbargs) silent))
 
-(defun url-retrieve-internal (url callback cbargs)
+(defun url-retrieve-internal (url callback cbargs &optional silent)
   "Internal function; external interface is `url-retrieve'.
 CBARGS is what the callback will actually receive - the first item is
-the list of events, as described in the docstring of `url-retrieve'."
+the list of events, as described in the docstring of `url-retrieve'.
+
+If SILENT, don't message progress reports and the like."
   (url-do-setup)
   (url-gc-dead-buffers)
   (if (stringp url)
@@ -170,6 +174,7 @@ the list of events, as described in the docstring of `url-retrieve'."
       (error "Must provide a callback function to url-retrieve"))
   (unless (url-type url)
     (error "Bad url: %s" (url-recreate-url url)))
+  (setf (url-silent url) silent)
   (let ((loader (url-scheme-get-property (url-type url) 'loader))
 	(url-using-proxy (if (url-host url)
 			     (url-find-proxy-for-url url (url-host url))))
@@ -179,7 +184,8 @@ the list of events, as described in the docstring of `url-retrieve'."
 	(setq asynch t
 	      loader 'url-proxy))
     (if asynch
-	(setq buffer (funcall loader url callback cbargs))
+	(let ((url-current-object url))
+	  (setq buffer (funcall loader url callback cbargs)))
       (setq buffer (funcall loader url))
       (if buffer
 	  (with-current-buffer buffer

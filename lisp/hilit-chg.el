@@ -921,24 +921,26 @@ changes are made, so \\[highlight-changes-next-change] and
 
 
 (defun hilit-chg-get-diff-info (buf-a file-a buf-b file-b)
-  (let ((e nil) x y)   ;; e is set by function hilit-chg-get-diff-list-hk
+   ;; hilit-e,x,y are set by function hilit-chg-get-diff-list-hk.
+  (let (hilit-e hilit-x hilit-y)
     (ediff-setup buf-a file-a buf-b file-b
 	       nil nil   ; buf-c file-C
 	       'hilit-chg-get-diff-list-hk
 	       (list (cons 'ediff-job-name 'something))
 	       )
-    (ediff-with-current-buffer e (ediff-really-quit nil))
-    (list x y)))
+    (ediff-with-current-buffer hilit-e (ediff-really-quit nil))
+    (list hilit-x hilit-y)))
 
 
 (defun hilit-chg-get-diff-list-hk ()
-  ;; x and y are dynamically bound by hilit-chg-get-diff-info
-  ;; which calls this function as a hook
-  (defvar x)  ;; placate the byte-compiler
-  (defvar y)
-  (setq e (current-buffer))
+  ;; hilit-e/x/y are dynamically bound by hilit-chg-get-diff-info
+  ;; which calls this function as a hook.
+  (defvar hilit-x)                      ; placate the byte-compiler
+  (defvar hilit-y)
+  (defvar hilit-e)
+  (setq hilit-e (current-buffer))
   (let ((n 0) extent p va vb a b)
-    (setq x nil y nil)    ;; x and y are bound by hilit-chg-get-diff-info
+    (setq hilit-x nil hilit-y nil)
     (while (< n ediff-number-of-differences)
       (ediff-make-fine-diffs n)
       (setq va (ediff-get-fine-diff-vector n 'A))
@@ -954,7 +956,7 @@ changes are made, so \\[highlight-changes-next-change] and
 	(setq extent (list (overlay-start (car p))
 			   (overlay-end (car p))))
 	(setq p (cdr p))
-	(setq x (append x (list extent) )));; while p
+	(setq hilit-x (append hilit-x (list extent) )));; while p
       ;;
       (setq vb (ediff-get-fine-diff-vector n 'B))
       ;; vb is a vector
@@ -969,7 +971,7 @@ changes are made, so \\[highlight-changes-next-change] and
 	(setq extent (list (overlay-start (car p))
 			   (overlay-end (car p))))
 	(setq p (cdr p))
-	(setq y (append y (list extent) )))
+	(setq hilit-y (append hilit-y (list extent) )))
       (setq n (1+ n)));; while
     ;; ediff-quit doesn't work here.
     ;; No point in returning a value, since this is a hook function.
@@ -1035,5 +1037,4 @@ This is called when `global-highlight-changes-mode' is turned on."
 
 (provide 'hilit-chg)
 
-;; arch-tag: de00301d-5bad-44da-aa82-e0e010b0c463
 ;;; hilit-chg.el ends here

@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'gravatar)
+(require 'gnus-art)
 
 (defgroup gnus-gravatar nil
   "Gnus Gravatar."
@@ -33,17 +34,22 @@
 (defcustom gnus-gravatar-size 32
   "How big should gravatars be displayed."
   :type 'integer
+  :version "24.1"
   :group 'gnus-gravatar)
 
-(defcustom gnus-gravatar-relief 1
-  "If non-nil, adds a shadow rectangle around the image. The
-value, relief, specifies the width of the shadow lines, in
-pixels. If relief is negative, shadows are drawn so that the
-image appears as a pressed button; otherwise, it appears as an
-unpressed button."
+(defcustom gnus-gravatar-properties '(:ascent center :relief 1)
+  "List of image properties applied to Gravatar images."
+  :type 'list
+  :version "24.1"
   :group 'gnus-gravatar)
 
-(defun gnus-gravatar-transform-address (header category)
+(defcustom gnus-gravatar-too-ugly gnus-article-x-face-too-ugly
+  "Regexp matching posters whose avatar shouldn't be shown automatically."
+  :type '(choice regexp (const nil))
+  :version "24.1"
+  :group 'gnus-gravatar)
+
+(defun gnus-gravatar-transform-address (header category &optional force)
   (gnus-with-article-headers
     (let ((addresses
            (mail-header-parse-addresses
@@ -53,67 +59,80 @@ unpressed button."
              (ignore-errors
                (mail-encode-encoded-word-string
                 (or (mail-fetch-field header) "")))
-             (mail-fetch-field header)))))
-      (let ((gravatar-size gnus-gravatar-size))
-        (dolist (address addresses)
-          (gravatar-retrieve
-           (car address)
-           'gnus-gravatar-insert
-           (list header address category)))))))
+             (mail-fetch-field header))))
+	  (gravatar-size gnus-gravatar-size)
+	  name)
+      (dolist (address addresses)
+	(when (and (setq name (cdr address))
+		   (string-match "\\`\\*+ " name)) ;; (X-)Faces exist.
+	  (setcdr address (setq name (substring name (match-end 0)))))
+	(when (or force
+		  (not (and gnus-gravatar-too-ugly
+			    (or (string-match gnus-gravatar-too-ugly
+					      (car address))
+				(and name
+				     (string-match gnus-gravatar-too-ugly
+						   name))))))
+	  (ignore-errors
+	    (gravatar-retrieve
+	     (car address)
+	     'gnus-gravatar-insert
+	     (list header address category))))))))
 
 (defun gnus-gravatar-insert (gravatar header address category)
   "Insert GRAVATAR for ADDRESS in HEADER in current article buffer.
 Set image category to CATEGORY."
   (unless (eq gravatar 'error)
     (gnus-with-article-headers
-      (gnus-article-goto-header header)
-      (mail-header-narrow-to-field)
-      (let ((real-name (cdr address))
-            (mail-address (car address)))
-        (when (if real-name             ; have a realname, go for it!
-                  (and (search-forward real-name nil t)
-                       (search-backward real-name nil t))
-                (and (search-forward mail-address nil t)
-                     (search-backward mail-address nil t)))
-          (goto-char (1- (point)))
-          ;; If we're on the " quoting the name, go backward
-          (when (looking-at "\"")
-            (goto-char (1- (point))))
-          ;; Do not do anything if there's already a gravatar. This can
-          ;; happens if the buffer has been regenerated in the mean time, for
-          ;; example we were fetching someaddress, and then we change to
-          ;; another mail with the same someaddress.
-          (unless (memq 'gnus-gravatar (text-properties-at (point)))
-            (let ((inhibit-read-only t)
-                  (point (point))
-                  (gravatar (append
-                             gravatar
-                             `(:ascent center :relief ,gnus-gravatar-relief))))
-              (gnus-put-image gravatar nil category)
-              (put-text-property point (point) 'gnus-gravatar address)
-              (gnus-add-wash-type category)
-              (gnus-add-image category gravatar))))))))
+      ;; The buffer can be gone at this time
+      (when (buffer-live-p (current-buffer))
+        (gnus-article-goto-header header)
+        (mail-header-narrow-to-field)
+        (let ((real-name (cdr address))
+              (mail-address (car address)))
+          (when (if real-name             ; have a realname, go for it!
+                    (and (search-forward real-name nil t)
+                         (search-backward real-name nil t))
+                  (and (search-forward mail-address nil t)
+                       (search-backward mail-address nil t)))
+            (goto-char (1- (point)))
+            ;; If we're on the " quoting the name, go backward
+            (when (looking-at "[\"<]")
+              (goto-char (1- (point))))
+            ;; Do not do anything if there's already a gravatar. This can
+            ;; happens if the buffer has been regenerated in the mean time, for
+            ;; example we were fetching someaddress, and then we change to
+            ;; another mail with the same someaddress.
+            (unless (memq 'gnus-gravatar (text-properties-at (point)))
+              (let ((inhibit-read-only t)
+                    (point (point)))
+                (unless (featurep 'xemacs)
+                  (setq gravatar (append gravatar gnus-gravatar-properties)))
+                (gnus-put-image gravatar nil category)
+                (put-text-property point (point) 'gnus-gravatar address)
+                (gnus-add-wash-type category)
+                (gnus-add-image category gravatar)))))))))
 
 ;;;###autoload
-(defun gnus-treat-from-gravatar ()
+(defun gnus-treat-from-gravatar (&optional force)
   "Display gravatar in the From header.
 If gravatar is already displayed, remove it."
-  (interactive)
+  (interactive (list t)) ;; When type `W D g'
   (gnus-with-article-buffer
     (if (memq 'from-gravatar gnus-article-wash-types)
-        (gnus-delete-images 'from-gravatar)
-      (gnus-gravatar-transform-address "from" 'from-gravatar))))
+	(gnus-delete-images 'from-gravatar)
+      (gnus-gravatar-transform-address "from" 'from-gravatar force))))
 
 ;;;###autoload
-(defun gnus-treat-mail-gravatar ()
+(defun gnus-treat-mail-gravatar (&optional force)
   "Display gravatars in the Cc and To headers.
 If gravatars are already displayed, remove them."
-  (interactive)
+  (interactive (list t)) ;; When type `W D h'
     (gnus-with-article-buffer
       (if (memq 'mail-gravatar gnus-article-wash-types)
           (gnus-delete-images 'mail-gravatar)
-        (gnus-gravatar-transform-address "cc" 'mail-gravatar)
-        (gnus-gravatar-transform-address "to" 'mail-gravatar))))
+	(gnus-gravatar-transform-address "cc" 'mail-gravatar force)
+	(gnus-gravatar-transform-address "to" 'mail-gravatar force))))
 
 (provide 'gnus-gravatar)
 

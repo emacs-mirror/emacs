@@ -1,7 +1,8 @@
 ;;; viper-util.el --- Utilities used by viper.el
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -77,7 +78,7 @@
 (defalias 'viper-int-to-char
   (if (featurep 'xemacs) 'int-to-char 'identity))
 (defalias 'viper-get-face
-  (if (featurep 'xemacs) 'get-face 'internal-get-face))
+  (if (featurep 'xemacs) 'get-face 'facep))
 (defalias 'viper-color-defined-p
   (if (featurep 'xemacs) 'valid-color-name-p 'x-color-defined-p))
 (defalias 'viper-iconify

@@ -100,7 +100,6 @@
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
 (cc-bytecomp-defun set-keymap-parents)	; XEmacs
 (cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1
-(cc-bytecomp-obsolete-fun make-local-hook) ; Marked obsolete in Emacs 21.1.
 
 ;; We set these variables during mode init, yet we don't require
 ;; font-lock.
@@ -600,9 +599,10 @@ that requires a literal mode spec at compile time."
 
   ;; Install the functions that ensure that various internal caches
   ;; don't become invalid due to buffer changes.
-  (make-local-hook 'before-change-functions)
+  (when (featurep 'xemacs)
+    (make-local-hook 'before-change-functions)
+    (make-local-hook 'after-change-functions))
   (add-hook 'before-change-functions 'c-before-change nil t)
-  (make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'c-after-change nil t)
   (set (make-local-variable 'font-lock-extend-after-change-region-function)
  	'c-extend-after-change-region))	; Currently (2009-05) used by all
@@ -1113,8 +1113,8 @@ This does not load the font-lock package.  Use after
 	  c-beginning-of-syntax
 	  (font-lock-mark-block-function
 	   . c-mark-function)))
-
-  (make-local-hook 'font-lock-mode-hook)
+  (if (featurep 'xemacs)
+      (make-local-hook 'font-lock-mode-hook))
   (add-hook 'font-lock-mode-hook 'c-after-font-lock-init nil t))
 
 (defun c-extend-after-change-region (beg end old-len)

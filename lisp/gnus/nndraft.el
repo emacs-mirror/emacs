@@ -224,7 +224,7 @@ are generated if and only if they are also in `message-draft-headers'.")
   (let* ((nnmh-allow-delete-final t)
 	 (nnmail-expiry-target
 	  (or (gnus-group-find-parameter
-	       (gnus-group-prefixed-name "nndraft" (list 'nndraft server))
+	       (gnus-group-prefixed-name group (list 'nndraft server))
 	       'expiry-target t)
 	      nnmail-expiry-target))
 	 (res (nnoo-parent-function 'nndraft

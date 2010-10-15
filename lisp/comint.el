@@ -2296,8 +2296,6 @@ Does not delete the prompt."
 	(delete-region pmark (point))))
     ;; Output message and put back prompt
     (comint-output-filter proc replacement)))
-(define-obsolete-function-alias 'comint-kill-output
-  'comint-delete-output "21.1")
 
 (defun comint-write-output (filename &optional append mustbenew)
   "Write output from interpreter since last input to FILENAME.

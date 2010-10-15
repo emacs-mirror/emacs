@@ -2742,7 +2742,9 @@ The current mail message becomes the message displayed."
 						 nil t 'unibyte)
 		  (message "Malformed MIME quoted-printable message")))
 	     ((and (string= character-coding "base64") is-text-message)
-	      (base64-decode-region (point-min) (point-max)))
+	      (condition-case err
+		  (base64-decode-region (point-min) (point-max))
+		(error (message "%s" (cdr err)))))
 	     ((eq character-coding 'uuencode)
 	      (error "uuencoded messages are not supported yet"))
 	     (t))
@@ -3838,9 +3840,7 @@ The message should be narrowed to just the headers."
 			   (1- (point))
 			 (point-max)))))))
 
-(declare-function mail-sendmail-delimit-header "sendmail" ())
-(declare-function mail-header-end "sendmail" ())
-(declare-function mail-position-on-field "sendmail" (field &optional soft))
+(autoload 'mail-position-on-field "sendmail")
 
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
@@ -3926,18 +3926,19 @@ specifying headers which should not be copied into the new message."
 	  ;; Insert original text as initial text of new draft message.
 	  ;; Bind inhibit-read-only since the header delimiter
 	  ;; of the previous message was probably read-only.
-	  (let ((inhibit-read-only t))
+	  (let ((inhibit-read-only t)
+		eoh)
 	    (erase-buffer)
 	    (insert-buffer-substring rmail-this-buffer
 				     bounce-start bounce-end)
 	    (goto-char (point-min))
 	    (if bounce-indent
 		(indent-rigidly (point-min) (point-max) bounce-indent))
-	    ;; FIXME better to replace sendmail functions.
-	    (require 'sendmail)
-	    (mail-sendmail-delimit-header)
+	    (rfc822-goto-eoh)
+	    (setq eoh (point))
+	    (insert mail-header-separator)
 	    (save-restriction
-	      (narrow-to-region (point-min) (mail-header-end))
+	      (narrow-to-region (point-min) eoh)
 	      (rmail-delete-headers rmail-retry-ignored-headers)
 	      (rmail-delete-headers "^\\(sender\\|return-path\\|received\\):")
 	      (setq resending (mail-fetch-field "resent-to"))
@@ -4456,5 +4457,4 @@ following the containing message.
 
 (provide 'rmail)
 
-;; arch-tag: 65d257d3-c281-4a65-9c38-e61af95af2f0
 ;;; rmail.el ends here

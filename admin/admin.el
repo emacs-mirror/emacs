@@ -1,7 +1,7 @@
 ;;; admin.el --- utilities for Emacs administration
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -70,27 +70,12 @@ Root must be the root of an Emacs source tree."
 		       (rx (and "AC_INIT" (1+ (not (in ?,)))
                                 ?, (0+ space)
                                 (submatch (1+ (in "0-9."))))))
-  (set-version-in-file root "doc/emacs/emacs.texi" version
+  (set-version-in-file root "doc/emacs/emacsver.texi" version
 		       (rx (and "EMACSVER" (1+ space)
-				(submatch (1+ (in "0-9."))))))
-  (set-version-in-file root "doc/lispref/elisp.texi" version
-		       (rx (and "EMACSVER" (1+ space)
-				(submatch (1+ (in "0-9."))))))
-  (set-version-in-file root "doc/lispref/vol1.texi" version
-		       (rx (and "EMACSVER" (1+ space)
-				(submatch (1+ (in "0-9."))))))
-  (set-version-in-file root "doc/lispref/vol2.texi" version
-		       (rx (and "EMACSVER" (1+ space)
-				(submatch (1+ (in "0-9."))))))
-  (set-version-in-file root "doc/lispref/book-spine.texinfo" version
-		       (rx (and "Emacs Version" (1+ space)
 				(submatch (1+ (in "0-9."))))))
   (set-version-in-file root "doc/man/emacs.1" version
 		       (rx (and ".TH EMACS" (1+ not-newline)
                                 "GNU Emacs" (1+ space)
-				(submatch (1+ (in "0-9."))))))
-  (set-version-in-file root "doc/misc/faq.texi" version
-		       (rx (and "VER" (1+ space)
 				(submatch (1+ (in "0-9."))))))
   (set-version-in-file root "lib-src/makefile.w32-in" version
 		       (rx (and "VERSION" (0+ space) "=" (0+ space)
@@ -218,5 +203,4 @@ Root must be the root of an Emacs source tree."
 
 (provide 'admin)
 
-;; arch-tag: 4ea83636-2293-408b-884e-ad64f22a3bf5
 ;;; admin.el ends here

@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile (require 'cl))
@@ -680,7 +680,7 @@ are supported for %s."
       ((string= fstring "%d")
        (setq dontinsert t)
        (if insert
-	   (list `(princ ,(car flist)))
+	   `(insert (int-to-string ,(car flist)))
 	 (list `(int-to-string ,(car flist)))))
       ;; Just lots of chars and strings.
       ((string-match "\\`\\(%[cs]\\)+\\'" fstring)

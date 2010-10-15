@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -77,7 +77,8 @@ this variable to the list of fields to be ignored.")
 (defvar nnrss-group-alist '()
   "List of RSS addresses.")
 
-(defvar nnrss-use-local nil)
+(defvar nnrss-use-local nil
+  "If non-nil nnrss will read the feeds from local files in nnrss-directory.")
 
 (defvar nnrss-description-field 'X-Gnus-Description
   "Field name used for DESCRIPTION.
@@ -702,9 +703,6 @@ which RSS 2.0 allows."
 	    (push (list group nnrss-group-max url) nnrss-server-data)))
 	(setq changed t))
       (setq xml (nnrss-fetch url)))
-    ;; See
-    ;; http://feeds.archive.org/validator/docs/howto/declare_namespaces.html
-    ;; for more RSS namespaces.
     (setq dc-ns (nnrss-get-namespace-prefix xml "http://purl.org/dc/elements/1.1/")
 	  rdf-ns (nnrss-get-namespace-prefix xml "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
 	  rss-ns (nnrss-get-namespace-prefix xml "http://purl.org/rss/1.0/")
@@ -965,7 +963,7 @@ whether they are `offsite' or `onsite'."
 
 (defun nnrss-discover-feed (url)
   "Given a page, find an RSS feed using Mark Pilgrim's
-`ultra-liberal rss locator' (URL `http://diveintomark.org/2002/08/15.html')."
+`ultra-liberal rss locator'."
 
   (let ((parsed-page (nnrss-fetch url)))
 
@@ -1048,9 +1046,9 @@ whether they are `offsite' or `onsite'."
 				    (cdr (assoc "feedid" listinfo)))))
 			   feedinfo)))
 	      (cdr (assoc
-		    (completing-read
-		     "Multiple feeds found.  Select one: "
-		     selection nil t) urllist)))))))))
+		    (gnus-completing-read
+		     "Multiple feeds found. Select one"
+		     selection t) urllist)))))))))
 
 (defun nnrss-rss-p (data)
   "Test if DATA is an RSS feed.

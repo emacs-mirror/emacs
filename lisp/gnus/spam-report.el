@@ -256,6 +256,7 @@ This is initialized based on `user-mail-address'."
 		 80))
 	  (error "Could not open connection to %s" host))
       (set-marker (process-mark tcp-connection) (point-min))
+      (gnus-set-process-query-on-exit-flag tcp-connection nil)
       (process-send-string
        tcp-connection
        (format "GET %s HTTP/1.1\nUser-Agent: %s\nHost: %s\n\n"

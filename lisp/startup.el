@@ -1563,23 +1563,21 @@ a face or button specification."
 		 (kill-buffer "*GNU Emacs*")))
        "  ")
       (when (or user-init-file custom-file)
-	(let ((checked (create-image "\300\300\141\143\067\076\034\030"
-				     'xbm t :width 8 :height 8 :background "grey75"
-				     :foreground "black" :relief -2 :ascent 'center))
-	      (unchecked (create-image (make-string 8 0)
-				       'xbm t :width 8 :height 8 :background "grey75"
-				       :foreground "black" :relief -2 :ascent 'center)))
-	  (insert-button
-	   " " :on-glyph checked :off-glyph unchecked 'checked nil
-	   'display unchecked 'follow-link t
-	   'action (lambda (button)
-		     (if (overlay-get button 'checked)
-			 (progn (overlay-put button 'checked nil)
-				(overlay-put button 'display (overlay-get button :off-glyph))
-				(setq startup-screen-inhibit-startup-screen nil))
-		       (overlay-put button 'checked t)
-		       (overlay-put button 'display (overlay-get button :on-glyph))
-		       (setq startup-screen-inhibit-startup-screen t)))))
+	(insert-button
+	 " "
+	 :on-glyph image-checkbox-checked
+	 :off-glyph image-checkbox-unchecked
+	 'checked nil 'display image-checkbox-unchecked 'follow-link t
+	 'action (lambda (button)
+		   (if (overlay-get button 'checked)
+		       (progn (overlay-put button 'checked nil)
+			      (overlay-put button 'display
+					   (overlay-get button :off-glyph))
+			      (setq startup-screen-inhibit-startup-screen nil))
+		     (overlay-put button 'checked t)
+		     (overlay-put button 'display
+				  (overlay-get button :on-glyph))
+		     (setq startup-screen-inhibit-startup-screen t))))
 	(fancy-splash-insert :face '(variable-pitch (:height 0.9))
 			     " Never show it again.")))))
 

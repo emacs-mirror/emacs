@@ -1,3 +1,15 @@
+2010-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* README: Remove information duplicated in AUTHORS.
+	Move historical information to new file ../etc/NEXTSTEP.
+	* AUTHORS: Merge into ./etc/NEXTSTEP and remove file.
+
+2010-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* FOR-RELEASE: Merge into ../etc/TODO.
+
+	* DEV-NOTES: Move to ../admin/notes/nextstep.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.
@@ -176,10 +188,9 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -195,5 +206,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;; arch-tag: 963ee08e-8e76-485f-9cfb-65a4333a073c

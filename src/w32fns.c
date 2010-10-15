@@ -245,7 +245,7 @@ struct MONITOR_INFO
 };
 
 /* Reportedly, VS 6 does not have this in its headers.  */
-#if defined(_MSC_VER) && _MSC_VER < 1300
+#if defined (_MSC_VER) && _MSC_VER < 1300
 DECLARE_HANDLE(HMONITOR);
 #endif
 
@@ -1870,7 +1870,6 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
     }
 }
 
-
 void
 x_set_scroll_bar_default_width (struct frame *f)
 {
@@ -1900,7 +1899,7 @@ w32_load_cursor (LPCTSTR name)
   return cursor;
 }
 
-extern LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
 
 static BOOL
 w32_init_class (HINSTANCE hinst)
@@ -2672,7 +2671,7 @@ post_character_message (HWND hwnd, UINT msg,
 
 /* Main window procedure */
 
-LRESULT CALLBACK
+static LRESULT CALLBACK
 w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   struct frame *f;
@@ -3918,7 +3917,6 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       return DefWindowProc (hwnd, msg, wParam, lParam);
     }
 
-
   /* The most common default return code for handled messages is 0.  */
   return 0;
 }
@@ -4358,7 +4356,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "leftFringe", "LeftFringe", RES_TYPE_NUMBER);
   x_default_parameter (f, parameters, Qright_fringe, Qnil,
 		       "rightFringe", "RightFringe", RES_TYPE_NUMBER);
-
 
   /* Init faces before x_default_parameter is called for scroll-bar
      parameters because that function calls x_set_scroll_bar_width,
@@ -5903,7 +5900,7 @@ extern Lisp_Object Qfile_name_history;
    read-only when "Directories" is selected in the filter.  This
    allows us to work around the fact that the standard Open File
    dialog does not support directories.  */
-UINT CALLBACK
+static UINT CALLBACK
 file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   if (msg == WM_NOTIFY)

@@ -213,7 +213,7 @@ of the text in the region.
 
 If it is a string, the elements are alternate characters.  In
 this case, TAB element has a special meaning.  If the first
-characer is TAB, the glyphs are displayed with left padding space
+character is TAB, the glyphs are displayed with left padding space
 so that no pixel overlaps with the previous column.  If the last
 character is TAB, the glyphs are displayed with right padding
 space so that no pixel overlaps with the following column.
@@ -754,23 +754,6 @@ See `auto-composition-mode' for more information on Auto-Composition mode."
   :variable (default-value 'auto-composition-mode))
 
 (defalias 'toggle-auto-composition 'auto-composition-mode)
-
-
-;; The following codes are only for backward compatibility with Emacs
-;; 20.4 and earlier.
-
-(defun decompose-composite-char (char &optional type with-composition-rule)
-  "Convert CHAR to string.
-
-If optional 2nd arg TYPE is non-nil, it is `string', `list', or
-`vector'.  In this case, CHAR is converted to string, list of CHAR, or
-vector of CHAR respectively.
-Optional 3rd arg WITH-COMPOSITION-RULE is ignored."
-  (cond ((or (null type) (eq type 'string)) (char-to-string char))
-	((eq type 'list) (list char))
-	(t (vector char))))
-
-(make-obsolete 'decompose-composite-char 'char-to-string "21.1")
 
 
 

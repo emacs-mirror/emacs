@@ -325,13 +325,10 @@ AC_ARG_ENABLE(profiling,
 [ac_enable_profiling="${enableval}"],[])
 if test x$ac_enable_profiling != x ; then
    PROFILING_CFLAGS="-DPROFILING=1 -pg"
-   PROFILING_LDFLAGS="-pg"
 else
    PROFILING_CFLAGS=
-   PROFILING_LDFLAGS=
 fi
 AC_SUBST(PROFILING_CFLAGS)
-AC_SUBST(PROFILING_LDFLAGS)
 
 AC_ARG_ENABLE(autodepend,
 [AS_HELP_STRING([--enable-autodepend],
@@ -850,14 +847,12 @@ fi
 
 dnl Add our options to ac_link now, after it is set up.
 
-if test x$GCC = xyes && test "x$GCC_LINK_TEST_OPTIONS" != x
-then
-  ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
-fi
-
-if test x$GCC = x && test "x$NON_GCC_LINK_TEST_OPTIONS" != x
-then
-  ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
+if test x$GCC = xyes; then
+  test "x$GCC_LINK_TEST_OPTIONS" != x && \
+    ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
+else
+  test "x$NON_GCC_LINK_TEST_OPTIONS" != x && \
+    ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
 fi
 
 dnl We need -znocombreloc if we're using a relatively recent GNU ld.
@@ -867,7 +862,7 @@ dnl Treat GCC specially since it just gives a non-fatal `unrecognized option'
 dnl if not built to support GNU ld.
 
 late_LDFLAGS=$LDFLAGS
-if test "$GCC" = yes; then
+if test x$GCC = xyes; then
   LDFLAGS="$LDFLAGS -Wl,-znocombreloc"
 else
   LDFLAGS="$LDFLAGS -znocombreloc"
@@ -1489,22 +1484,22 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-TEMACS_LDFLAGS2="\${LDFLAGS} \${PROFILING_LDFLAGS}"
+TEMACS_LDFLAGS2="\${LDFLAGS}"
 dnl I don't think it's especially important, but src/Makefile.in
 dnl (now the only user of ns_appdir) used to go to the trouble of adding a
 dnl trailing "/" to it, so now we do it here.
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app/
-     ns_appbindir=${ns_appdir}Contents/MacOS/
-     ns_appresdir=${ns_appdir}Contents/Resources
+     ns_appdir=`pwd`/nextstep/Emacs.app
+     ns_appbindir=${ns_appdir}/Contents/MacOS/
+     ns_appresdir=${ns_appdir}/Contents/Resources
      ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app/
+     ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}
-     ns_appresdir=${ns_appdir}Resources
+     ns_appresdir=${ns_appdir}/Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
      dnl FIXME sourcing this several times in subshells seems inefficient.
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
@@ -1551,7 +1546,7 @@ if test "${HAVE_NS}" = yes; then
   fi
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
-  NS_SUPPORT="\${lispsource}emacs-lisp/easymenu.elc \${lispsource}term/ns-win.elc"
+  NS_SUPPORT="\${lispsource}/emacs-lisp/easymenu.elc \${lispsource}/term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
@@ -3265,9 +3260,9 @@ if test "${HAVE_X11}" = "yes" ; then
 	     Otherwise, Emacs expects to use version 10.])
 
   if test "$USE_X_TOOLKIT" = "none"; then
-    OLDXMENU="\${oldXMenudir}libXMenu11.a"
+    OLDXMENU="\${oldXMenudir}/libXMenu11.a"
   else
-    OLDXMENU="\${lwlibdir}liblw.a"
+    OLDXMENU="\${lwlibdir}/liblw.a"
   fi
   LIBXMENU="\$(OLDXMENU)"
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
@@ -3473,7 +3468,7 @@ if test "$HAVE_X_WINDOWS" = "yes" || test "$HAVE_NS" = "yes"; then
   AC_DEFINE(HAVE_WINDOW_SYSTEM, 1, [Define if you have a window system.])
   AC_DEFINE(HAVE_MOUSE, 1, [Define if you have mouse support.])
   MOUSE_SUPPORT="\$(REAL_MOUSE_SUPPORT)"
-  TOOLTIP_SUPPORT="\${lispsource}mouse.elc"
+  TOOLTIP_SUPPORT="\${lispsource}/mouse.elc"
 
   WINDOW_SUPPORT="\$(BASE_WINDOW_SUPPORT)"
   test "$HAVE_X_WINDOWS" = "yes" && \
@@ -3540,17 +3535,14 @@ AH_BOTTOM([
 #include config_opsysfile
 #include config_machfile
 
-/* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
-  (There is probably a better place to do this, but right now the Cocoa
-   side does this in s/darwin.h and we cannot
-   parallel this exactly since GNUstep is multi-OS.  */
-#ifdef HAVE_NS
-# ifdef NS_IMPL_GNUSTEP
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
-SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
+   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
+  (There is probably a better place to do this, but right now the
+   Cocoa side does this in s/darwin.h and we cannot parallel this
+   exactly since GNUstep is multi-OS.  */
+#if defined HAVE_NS && defined NS_IMPL_GNUSTEP
 #  define SYSTEM_PURESIZE_EXTRA 30000
-# endif /* NS_IMPL_GNUSTEP */
-#endif /* HAVE_NS */
+#endif
 
 /* SIGTYPE is the macro we actually use.  */
 #ifndef SIGTYPE
@@ -3607,13 +3599,8 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
    not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
 #undef PROTOTYPES
 
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
@@ -3646,6 +3633,17 @@ typedef unsigned size_t;
 #define NO_RETURN	__attribute__ ((__noreturn__))
 #else
 #define NO_RETURN	/* nothing */
+#endif
+
+#if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
+#define NO_INLINE __attribute__((noinline))
+#else
+#define NO_INLINE
+#endif
+
+/* Some versions of GNU/Linux define noinline in their headers.  */
+#ifdef noinline
+#undef noinline
 #endif
 
 /* These won't be used automatically yet.  We also need to know, at least,
@@ -3787,6 +3785,3 @@ fi
 
 ], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPPFLAGS="$CPPFLAGS"])
 
-m4_if(dnl	Do not change this comment
-   arch-tag: 156a4dd5-bddc-4d18-96ac-f37742cf6a5e
-)dnl

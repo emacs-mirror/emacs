@@ -54,12 +54,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <locale.h>
 #endif /* HAVE_SETLOCALE */
 
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#ifndef O_RDONLY
-#define O_RDONLY 0
-#endif
 
 #ifdef HAVE_FSEEKO
 #define file_offset off_t

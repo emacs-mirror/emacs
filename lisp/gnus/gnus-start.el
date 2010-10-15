@@ -1465,7 +1465,7 @@ newsgroup."
 	  (push group bogus)))
       (if confirm
 	  (map-y-or-n-p
-	   "Remove bogus group %s? "
+	   (format "Remove bogus group %%s (of %d groups)? " (length bogus))
 	   (lambda (group)
 	     ;; Remove all bogus subscribed groups by first killing them, and
 	     ;; then removing them from the list of killed groups.
@@ -1674,6 +1674,7 @@ If SCAN, request a scan of that group as well."
 ;; and compute how many unread articles there are in each group.
 (defun gnus-get-unread-articles (&optional level)
   (setq gnus-server-method-cache nil)
+  (require 'gnus-agent)
   (let* ((newsrc (cdr gnus-newsrc-alist))
 	 (alevel (or level gnus-activate-level (1+ gnus-level-subscribed)))
 	 (foreign-level

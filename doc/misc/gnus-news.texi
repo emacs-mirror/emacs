@@ -356,6 +356,8 @@ moving articles to a group that has not turned auto-expire on.
 
 @item NoCeM support has been removed.
 
+@item Carpal mode has been removed.
+
 @end itemize
 
 @end itemize

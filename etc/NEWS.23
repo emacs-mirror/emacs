@@ -21,6 +21,9 @@ with a prefix argument or by typing C-u C-h C-n.
 
 * Changes in Emacs 23.3
 
+** The nextstep port can have different modifiers for the left and right
+alt/option key by customizing the value for ns-right-alternate-modifier.
+
 
 * Editing Changes in Emacs 23.3
 
@@ -30,6 +33,11 @@ with a prefix argument or by typing C-u C-h C-n.
 ---
 ** The appt-add command takes an optional argument for the warning time.
 This can be used in place of the default appt-message-warning-time.
+
+** Obsolete packages
+
++++
+*** lmenu.el and cl-compat.el are now obsolete.
 
 
 * New Modes and Packages in Emacs 23.3

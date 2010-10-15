@@ -131,19 +131,23 @@ Entries without port tokens default to DEFAULTPORT."
       ;; No machine name matches, so we look for default entries.
       (while rest
 	(when (assoc "default" (car rest))
-	  (push (car rest) result))
+	  (let ((elem (car rest)))
+	    (setq elem (delete (assoc "default" elem) elem))
+	    (push elem result)))
 	(pop rest)))
     (when result
       (setq result (nreverse result))
-      (while (and result
-		  (not (netrc-port-equal
-			(or port defaultport "nntp")
-			;; when port is not given in the netrc file,
-			;; it should mean "any port"
-			(or (netrc-get (car result) "port")
-			    defaultport port))))
-	(pop result))
-      (car result))))
+      (if (not port)
+	  (car result)
+	(while (and result
+		    (not (netrc-port-equal
+			  (or port defaultport "nntp")
+			  ;; when port is not given in the netrc file,
+			  ;; it should mean "any port"
+			  (or (netrc-get (car result) "port")
+			      defaultport port))))
+	  (pop result))
+	(car result)))))
 
 (defun netrc-machine-user-or-password (mode authinfo-file-or-list machines ports defaults)
   "Get the user name or password according to MODE from AUTHINFO-FILE-OR-LIST.
@@ -238,9 +242,11 @@ Port specifications will be prioritised in the order they are
 listed in the PORTS list."
   (let ((list (netrc-parse))
 	found)
-    (while (and ports
-		(not found))
-      (setq found (netrc-machine list machine (pop ports))))
+    (if (not ports)
+	(setq found (netrc-machine list machine))
+      (while (and ports
+		  (not found))
+	(setq found (netrc-machine list machine (pop ports)))))
     (when found
       (list (cdr (assoc "login" found))
 	    (cdr (assoc "password" found))))))

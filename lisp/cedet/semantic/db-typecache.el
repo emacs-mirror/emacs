@@ -403,7 +403,7 @@ TYPE is the datatype to find.
 PATH is the search path, which should be one table object.
 If FIND-FILE-MATCH is non-nil, then force the file belonging to the
 found tag to be loaded."
-  (if (not (and (featurep 'semanticdb) semanticdb-current-database))
+  (if (not (and (featurep 'semantic/db) semanticdb-current-database))
       nil ;; No DB, no search
     (save-excursion
       (semanticdb-typecache-find-method (or path semanticdb-current-table)

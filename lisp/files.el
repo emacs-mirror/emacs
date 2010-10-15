@@ -190,12 +190,27 @@ If the buffer is visiting a new file, the value is nil.")
 
 (defcustom temporary-file-directory
   (file-name-as-directory
+   ;; FIXME ? Should there be Ftemporary_file_directory to do the
+   ;; following more robustly (cf set_local_socket in emacsclient.c).
+   ;; It could be used elsewhere, eg Fcall_process_region, server-socket-dir.
+   ;; See bug#7135.
    (cond ((memq system-type '(ms-dos windows-nt))
 	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
+	 ((eq system-type 'darwin)
+	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
+	      (let ((tmp (ignore-errors (shell-command-to-string ; bug#7135
+					 "getconf DARWIN_USER_TEMP_DIR"))))
+		(and (stringp tmp)
+		     (setq tmp (replace-regexp-in-string "\n\\'" "" tmp))
+		     ;; This handles "getconf: Unrecognized variable..."
+		     (file-directory-p tmp)
+		     tmp))
+	      "/tmp"))
 	 (t
 	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
   "The directory for writing temporary files."
   :group 'files
+  ;; Darwin section added 24.1, does not seem worth :version bump.
   :initialize 'custom-initialize-delay
   :type 'directory)
 
@@ -933,6 +948,36 @@ to that remote system.
     (if handler
 	(funcall handler 'file-remote-p file identification connected)
       nil)))
+
+(defcustom remote-file-name-inhibit-cache 10
+  "Whether to use the remote file-name cache for read access.
+
+When `nil', always use the cached values.
+When `t', never use them.
+A number means use them for that amount of seconds since they were
+cached.
+
+File attributes of remote files are cached for better performance.
+If they are changed out of Emacs' control, the cached values
+become invalid, and must be invalidated.
+
+In case a remote file is checked regularly, it might be
+reasonable to let-bind this variable to a value less then the
+time period between two checks.
+Example:
+
+  \(defun display-time-file-nonempty-p \(file)
+    \(let \(\(remote-file-name-inhibit-cache \(- display-time-interval 5)))
+      \(and \(file-exists-p file)
+           \(< 0 \(nth 7 \(file-attributes \(file-chase-links file)))))))"
+  :group 'files
+  :version "24.1"
+  :type `(choice
+	  (const   :tag "Do not inhibit file name cache" nil)
+	  (const   :tag "Do not use file name cache" t)
+	  (integer :tag "Do not use file name cache"
+		   :format "Do not use file name cache older then %v seconds"
+		   :value 10)))
 
 (defun file-local-copy (file)
   "Copy the file FILE into a temporary file on this machine.

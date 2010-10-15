@@ -1,3 +1,11 @@
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc-xdcc.el (erc-xdcc-help-text): Fix typo in docstring.
+
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* erc-list.el (erc-list-menu-mode-map): Declare and define in one step.
+
 2010-08-14  Vivek Dasmohapatra  <vivek@etla.org>
 
 	* erc-join.el (erc-autojoin-timing, erc-autojoin-delay): New vars.

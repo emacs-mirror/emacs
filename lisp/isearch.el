@@ -1994,12 +1994,6 @@ Isearch mode."
 	   (setq char (unibyte-char-to-multibyte char)))
       (isearch-process-search-char char))))
 
-(defun isearch-return-char ()
-  "Convert return into newline for incremental search."
-  (interactive)
-  (isearch-process-search-char ?\n))
-(make-obsolete 'isearch-return-char 'isearch-printing-char "19.7")
-
 (defun isearch-printing-char ()
   "Add this ordinary printing character to the search string and search."
   (interactive)

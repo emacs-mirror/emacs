@@ -1,9 +1,10 @@
 ;;; lmenu.el --- emulate Lucid's menubar support
 
-;; Copyright (C) 1992, 1993, 1994, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1997, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Keywords: emulations obsolete
+;; Obsolete-since: 23.3
 
 ;; This file is part of GNU Emacs.
 
@@ -21,6 +22,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This file has been obsolete since Emacs 23.3.
 
 ;;; Code:
 
@@ -439,5 +442,4 @@ BEFORE, if provided, is the name of a menu before which this menu should
 
 (provide 'lmenu)
 
-;; arch-tag: 7051c396-2837-435a-ae11-b2d2e2af8fc1
 ;;; lmenu.el ends here

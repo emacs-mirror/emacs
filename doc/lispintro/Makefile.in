@@ -1,7 +1,8 @@
 #### Makefile for the Emacs Lisp Introduction manual
 
 # Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003,
-#   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+#   2004, 2005, 2006, 2007, 2008, 2009, 2010
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -18,60 +19,80 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-
-SHELL = @SHELL@
+SHELL = /bin/sh
 
 srcdir = @srcdir@
-VPATH = @srcdir@
+version=@version@
 
-infodir = ../../info
+infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
-INFO_SOURCES = ${srcdir}/emacs-lisp-intro.texi
-# The file name eintr must fit within 5 characters, to allow for
-# -NN extensions to fit into DOS 8+3 limits without clashing
-INFO_TARGETS = ${infodir}/eintr
-DVI_TARGETS = emacs-lisp-intro.dvi
-
-MAKEINFO = makeinfo
+MAKEINFO = makeinfo --force -I $(srcdir)
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
 
-.SUFFIXES: .dvi .ps .texi
+mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
-info: $(INFO_TARGETS)
+.PHONY: info dvi html pdf ps
 
-dvi: $(DVI_TARGETS)
+info: ${infodir}/eintr
 
-${infodir}/eintr: ${INFO_SOURCES}
-	cd $(srcdir); $(MAKEINFO) emacs-lisp-intro.texi -o $(infodir)/eintr
+dvi: emacs-lisp-intro.dvi
+html: emacs-lisp-intro.html
+pdf: emacs-lisp-intro.pdf
+ps: emacs-lisp-intro.ps
 
-emacs-lisp-intro.dvi: ${INFO_SOURCES}
-	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $(srcdir)/emacs-lisp-intro.texi
+# The file name eintr must fit within 5 characters, to allow for
+# -NN extensions to fit into DOS 8+3 limits without clashing.
+${infodir}/eintr: ${srcdir}/emacs-lisp-intro.texi
+	$(mkinfodir)
+	$(MAKEINFO) -o $@ $<
 
-emacs-lisp-intro.pdf: ${INFO_SOURCES}
-	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $(srcdir)/emacs-lisp-intro.texi
+emacs-lisp-intro.dvi: ${srcdir}/emacs-lisp-intro.texi
+	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $<
 
-emacs-lisp-intro.html: $(INFO_SOURCES)
-	$(MAKEINFO) --html -o $@ $(srcdir)/emacs-lisp-intro.texi
+emacs-lisp-intro.ps: emacs-lisp-intro.dvi
+	$(DVIPS) -o $@ $<
 
-.dvi.ps:
-	$(DVIPS) $< -o $@
+emacs-lisp-intro.pdf: ${srcdir}/emacs-lisp-intro.texi
+	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $<
+
+emacs-lisp-intro.html: ${srcdir}/emacs-lisp-intro.texi
+	$(MAKEINFO) --html -o $@ $<
+
+.PHONY: mostlyclean clean distclean maintainer-clean infoclean
 
 mostlyclean:
-	rm -f  *.log *.cp *.fn *.ky *.pg *.vr *.tp
+	rm -f *.aux *.log *.toc *.cp *.cps *.fn *.fns *.ky *.kys \
+	  *.op *.ops *.pg *.pgs *.tp *.tps *.vr *.vrs
 
 clean: mostlyclean
-	rm -f *.dvi
+	rm -f emacs-lisp-intro.dvi emacs-lisp-intro.pdf emacs-lisp-intro.ps
+	rm -rf emacs-lisp-intro.html/
+	rm -f emacs-lispintro-${version}.tar*
 
 distclean: clean
 
-maintainer-clean: distclean
-	rm -f *.aux *.cps *.fns *.kys *.pgs *.vrs *.toc
-	cd $(infodir); rm -f eintr eintr-[1-9]
+infoclean:
+	-cd $(infodir) && rm -f eintr eintr-[1-9]
 
-# Tell versions [3.59,3.63) of GNU make to not export all variables.
-# Otherwise a system limit (for SysV at least) may be exceeded.
-.NOEXPORT:
+maintainer-clean: distclean infoclean
+
+.PHONY: dist
+
+dist:
+	rm -rf emacs-lispintro-${version}
+	mkdir emacs-lispintro-${version}
+	cp ${srcdir}/*.texi ${srcdir}/*.eps ${srcdir}/*.pdf \
+	  ${texinfodir}/texinfo.tex \
+	  ${srcdir}/ChangeLog* ${srcdir}/README emacs-lispintro-${version}/
+	sed -e 's/@sr[c]dir@/./' -e 's/^\(texinfodir *=\).*/\1 ./' \
+	  -e 's/^\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
+	  -e "s/@ver[s]ion@/${version}/" \
+	  ${srcdir}/Makefile.in > emacs-lispintro-${version}/Makefile
+	tar -cf emacs-lispintro-${version}.tar emacs-lispintro-${version}
+	rm -rf emacs-lispintro-${version}
+
+### Makefile ends here

@@ -56,7 +56,7 @@ Your friends should issue \"/ctcp yournick XDCC list\" to see this."
      (erc-current-nick) " XDCC send #\" to get a particular file number."))
   "*Help text sent in response to XDCC help command.
 A list of messages, each consisting of strings and expressions, expressions
-being evaluated and should return stings."
+being evaluated and should return strings."
   :group 'erc-dcc
   :type '(repeat (repeat :tag "Message" (choice string sexp))))
 

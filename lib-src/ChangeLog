@@ -1,3 +1,48 @@
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (PROFILING_LDFLAGS): Remove, not needed.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* b2m.c, b2m.pl: Remove files.
+	* Makefile.in (INSTALLABLES): Remove b2m.
+	* makefile.w32-in ($(BLD)/b2m.$(O)): Remove.
+
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacsclient.c (set_local_socket) [DARWIN_OS]: Try as a fall-back
+	DARWIN_USER_TEMP_DIR.  (Bug#3992)
+
+2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* test-distrib.c (cool_read):
+	* movemail.c (main, concat):
+	* make-docfile.c (scan_file, write_c_args):
+	* emacsclient.c	(get_server_config): Fix -Wconversion warning.
+	(egetenv): Move conditional definition earlier.
+	(progname): Use const.
+	* sorted-doc.c (xstrdup): Use const.
+
+	* Makefile.in: Remove ^L, old makes choke on it.
+
+2010-10-02  Wolfgang Schnerring  <wosc@wosc.de>  (tiny change)
+
+	* emacsclient.c (main): Return EXIT_FAILURE if Emacs sends us an
+	error string (Bug#6963).
+
+2010-10-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (tags): Remove target.
+
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (tags, TAGS): New targets.
+
+2010-09-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (get_server_config): Don't read Emacs pid from
+	the authentication file.
+
 2010-09-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (../src/config.h): Remove target, it is stale.

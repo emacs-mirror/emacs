@@ -400,8 +400,8 @@ telling Microsoft that."
 	  (url-cookie-store (car cur) (cdr cur)
 			    expires domain localpart secure))))
      (t
-      (message "%s tried to set a cookie for domain %s - rejected."
-	       (url-host url-current-object) domain)))))
+      (url-lazy-message "%s tried to set a cookie for domain %s - rejected."
+			(url-host url-current-object) domain)))))
 
 (defvar url-cookie-timer nil)
 

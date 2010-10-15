@@ -724,9 +724,8 @@ copy_executable_and_dump_data (file_data *p_infile,
 
 
 /* Dump out .data and .bss sections into a new executable.  */
-void
-unexec (char *new_name, char *old_name, void *start_data, void *start_bss,
-	void *entry_address)
+int
+unexec (const char *new_name, const char *old_name)
 {
   file_data in_file, out_file;
   char out_filename[MAX_PATH], in_filename[MAX_PATH];
@@ -821,6 +820,8 @@ unexec (char *new_name, char *old_name, void *start_data, void *start_bss,
 
   close_file_data (&in_file);
   close_file_data (&out_file);
+
+  return 0;
 }
 
 /* eof */

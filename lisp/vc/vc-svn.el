@@ -84,9 +84,9 @@ want to force an empty list of arguments, use t."
   :version "22.1"
   :group 'vc)
 
-(defcustom vc-svn-header (or (cdr (assoc 'SVN vc-header-alist)) '("\$Id\$"))
+(defcustom vc-svn-header '("\$Id\$")
   "Header keywords to be inserted by `vc-insert-headers'."
-  :version "22.1"
+  :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :type '(repeat string)
   :group 'vc)
 
@@ -374,7 +374,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   (message "Merging changes into %s..." file)
   ;; (vc-file-setprop file 'vc-working-revision nil)
   (vc-file-setprop file 'vc-checkout-time 0)
-  (vc-svn-command nil 0 file "update")
+  (vc-svn-command nil 0 file "--non-interactive" "update") ; see bug#7152
   ;; Analyze the merge result reported by SVN, and set
   ;; file properties accordingly.
   (with-current-buffer (get-buffer "*vc*")

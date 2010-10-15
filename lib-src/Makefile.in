@@ -1,6 +1,7 @@
 # Makefile for lib-src subdirectory in GNU Emacs.
 # Copyright (C) 1985, 1987, 1988, 1993, 1994, 2001, 2002, 2003, 2004,
-#   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+#   2005, 2006, 2007, 2008, 2009, 2010
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -38,7 +39,6 @@ C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
 C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 C_WARNINGS_SWITCH = @C_WARNINGS_SWITCH@
 PROFILING_CFLAGS = @PROFILING_CFLAGS@
-PROFILING_LDFLAGS = @PROFILING_LDFLAGS@
 
 # Program name transformation.
 TRANSFORM = @program_transform_name@
@@ -111,7 +111,7 @@ INSTALL_STRIP =
 
 # Things that a user might actually run, which should be installed in bindir.
 INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} \
-               b2m${EXEEXT} ebrowse${EXEEXT}
+               ebrowse${EXEEXT}
 
 INSTALLABLE_SCRIPTS = rcs-checkin grep-changelog
 STAMP_INST_SCRIPTS = stamp-rcs-checkin stamp-grep-changelog
@@ -172,12 +172,11 @@ BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) ${C_WARNINGS_SWITCH} \
 	      -DHAVE_CONFIG_H -I. -I../src -I${srcdir} -I${srcdir}/../src
 
 ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
-LINK_CFLAGS = ${BASE_CFLAGS} ${PROFILING_LDFLAGS} ${LDFLAGS} ${CFLAGS}
+LINK_CFLAGS = ${BASE_CFLAGS} ${LDFLAGS} ${CFLAGS}
 CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 
 LOADLIBES=$(LIBS_SYSTEM)
 
-
 ## This is the default compilation command.
 ## But we should never rely on it, because some make version failed to
 ## find it for getopt.o.
@@ -359,10 +358,6 @@ digest-doc${EXEEXT}: ${srcdir}/digest-doc.c
 
 sorted-doc${EXEEXT}: ${srcdir}/sorted-doc.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c $(LOADLIBES) -o sorted-doc
-
-b2m${EXEEXT}: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
-	$(CC) ${ALL_CFLAGS} ${srcdir}/b2m.c  -DVERSION="\"${version}\"" \
-	   $(GETOPTOBJS) $(LOADLIBES) -o b2m
 
 movemail${EXEEXT}: movemail.o pop.o $(GETOPTDEPS)
 	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o \

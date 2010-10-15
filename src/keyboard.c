@@ -62,9 +62,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 
 /* This is to get the definitions of the XK_ symbols.  */
 #ifdef HAVE_X_WINDOWS
@@ -647,18 +645,6 @@ static int store_user_signal_events (void);
 static int cannot_suspend;
 
 
-/* Install the string STR as the beginning of the string of echoing,
-   so that it serves as a prompt for the next character.
-   Also start echoing.  */
-
-void
-echo_prompt (Lisp_Object str)
-{
-  current_kboard->echo_string = str;
-  current_kboard->echo_after_prompt = SCHARS (str);
-  echo_now ();
-}
-
 /* Add C to the echo string, if echoing is going on.
    C can be a character, which is printed prettily ("M-C-x" and all that
    jazz), or a symbol, whose name is printed.  */
@@ -755,6 +741,9 @@ echo_dash (void)
 {
   /* Do nothing if not echoing at all.  */
   if (NILP (current_kboard->echo_string))
+    return;
+
+  if (this_command_key_count == 0)
     return;
 
   if (!current_kboard->immediate_echo
@@ -1786,7 +1775,8 @@ command_loop_1 (void)
 	  this_single_command_key_start = 0;
 	}
 
-      if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
+      if (!NILP (current_buffer->mark_active)
+	  && !NILP (Vrun_hooks))
 	{
 	  /* In Emacs 22, setting transient-mark-mode to `only' was a
 	     way of turning it on for just one command.  This usage is
@@ -1805,6 +1795,9 @@ command_loop_1 (void)
 	      /* Even if not deactivating the mark, set PRIMARY if
 		 `select-active-regions' is non-nil.  */
 	      if (!NILP (Fwindow_system (Qnil))
+		  /* Even if mark_active is non-nil, the actual buffer
+		     marker may not have been set yet (Bug#7044).  */
+		  && XMARKER (current_buffer->mark)->buffer
 		  && (EQ (Vselect_active_regions, Qonly)
 		      ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
 		      : (!NILP (Vselect_active_regions)
@@ -9123,7 +9116,14 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
   if (INTERACTIVE)
     {
       if (!NILP (prompt))
-	echo_prompt (prompt);
+	{
+	  /* Install the string STR as the beginning of the string of
+	     echoing, so that it serves as a prompt for the next
+	     character.  */
+	  current_kboard->echo_string = prompt;
+	  current_kboard->echo_after_prompt = SCHARS (prompt);
+	  echo_now ();
+	}
       else if (cursor_in_echo_area
 	       && (FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
 	       && NILP (Fzerop (Vecho_keystrokes)))

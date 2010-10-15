@@ -173,10 +173,42 @@ The search priority is:
       (setq semantic-lex-spp-dynamic-macro-symbol-obarray-stack
 	    (make-vector 13 0))))
 
+(defun semantic-lex-spp-value-valid-p (value)
+  "Return non-nil if VALUE is valid."
+  (or (null value)
+      (stringp value)
+      (and (consp value)
+	   (or (semantic-lex-token-p (car value))
+	       (eq (car (car value)) 'spp-arg-list)))))
+
+(defvar semantic-lex-spp-debug-symbol nil
+  "A symbol to break on if it is being set somewhere.")
+
+(defun semantic-lex-spp-enable-debug-symbol (sym)
+  "Enable debugging for symbol SYM.
+Disable debugging by entering nothing."
+  (interactive "sSymbol: ")
+  (if (string= sym "")
+      (setq semantic-lex-spp-debug-symbol nil)
+    (setq semantic-lex-spp-debug-symbol sym)))
+
+(defmacro semantic-lex-spp-validate-value (name value)
+  "Validate the NAME and VALUE of a macro before it is set."
+;  `(progn
+;     (when (not (semantic-lex-spp-value-valid-p ,value))
+;       (error "Symbol \"%s\" with bogus value %S" ,name ,value))
+;     (when (and semantic-lex-spp-debug-symbol
+;		(string= semantic-lex-spp-debug-symbol name))
+;       (debug))
+;     )
+  nil
+  )
+
 (defun semantic-lex-spp-symbol-set (name value &optional obarray-in)
   "Set value of spp symbol with NAME to VALUE and return VALUE.
 If optional OBARRAY-IN is non-nil, then use that obarray instead of
 the dynamic map."
+  (semantic-lex-spp-validate-value name value)
   (if (and (stringp value) (string= value "")) (setq value nil))
   (set (intern name (or obarray-in
 			(semantic-lex-spp-dynamic-map)))
@@ -192,6 +224,7 @@ the dynamic map."
 (defun semantic-lex-spp-symbol-push (name value)
   "Push macro NAME with VALUE into the map.
 Reverse with `semantic-lex-spp-symbol-pop'."
+  (semantic-lex-spp-validate-value name value)
   (let* ((map (semantic-lex-spp-dynamic-map))
 	 (stack (semantic-lex-spp-dynamic-map-stack))
 	 (mapsym (intern name map))

@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <setjmp.h>
 #include <X11/Xlib.h>
 
@@ -842,7 +841,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 
       val = Ffont_get (font_object, QCavgwidth);
       if (INTEGERP (val))
-	font->average_width = XINT (val);
+	font->average_width = XINT (val) / 10;
       if (font->average_width < 0)
 	font->average_width = - font->average_width;
       if (font->average_width == 0

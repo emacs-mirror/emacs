@@ -139,6 +139,7 @@
 
 (eval-when-compile (require 'cl))
 (eval-and-compile
+  ;; For Emacs <22.2 and XEmacs.
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
   (autoload 'starttls-open-stream "starttls")
   (autoload 'starttls-negotiate "starttls")

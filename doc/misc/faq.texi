@@ -4,8 +4,7 @@
 @settitle GNU Emacs FAQ
 @c %**end of header
 
-@c This is used in many places
-@set VER 24.0.50
+@include emacsver.texi
 
 @c This file is maintained by Romain Francoise <rfrancoise@gnu.org>.
 @c Feel free to install changes without prior permission (but I'd
@@ -67,7 +66,7 @@ This FAQ is maintained as a part of GNU Emacs.  If you find any errors,
 or have any suggestions, please use @kbd{M-x report-emacs-bug} to report
 them.
 
-This is the version of the FAQ distributed with Emacs @value{VER}, and
+This is the version of the FAQ distributed with Emacs @value{EMACSVER}, and
 mainly describes that version.  Although there is some information on
 older versions, details about very old releases (now only of historical
 interest) have been removed.  If you are interested in this, consult
@@ -1010,7 +1009,7 @@ conventions}).
 @cindex Repository, Emacs
 @cindex Bazaar repository, Emacs
 
-Emacs @value{VER} is the current version as of this writing.  A version
+Emacs @value{EMACSVER} is the current version as of this writing.  A version
 number with two components (e.g. @samp{22.1}) indicates a released
 version; three components indicate a development
 version (e.g. @samp{23.0.50} is what will eventually become @samp{23.1}).
@@ -4479,7 +4478,3 @@ to the end of the @file{*Newsgroup*} buffer.
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: fee0d62d-06cf-43d8-ac21-123408eaf10f
-@end ignore

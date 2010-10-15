@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <setjmp.h>
 #include "lisp.h"
 #include "blockinput.h"
@@ -894,7 +893,7 @@ w32_set_terminal_modes (struct terminal *term)
 {
 }
 
-/* This is called when exiting or suspending Emacs. Exiting will make
+/* This is called when exiting or suspending Emacs.  Exiting will make
    the W32 windows go away, and suspending requires no action. */
 
 static void
@@ -3955,7 +3954,7 @@ static char dbcs_lead = 0;
    recursively with different messages by the system.
 */
 
-int
+static int
 w32_read_socket (struct terminal *terminal, int expected,
 		 struct input_event *hold_quit)
 {
@@ -4240,7 +4239,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 		      inev.frame_or_window = window;
 		    }
 
-		  last_window=window;
+		  last_window = window;
 		}
 	      if (!note_mouse_movement (f, &msg.msg))
 		help_echo_string = previous_help_echo_string;
@@ -5602,7 +5601,7 @@ x_make_frame_visible (struct frame *f)
 	  /* Adjust vertical window position in order to avoid being
 	     covered by a task bar placed at the bottom of the desktop. */
 	  SystemParametersInfo (SPI_GETWORKAREA, 0, &workarea_rect, 0);
-	  GetWindowRect (FRAME_W32_WINDOW(f), &window_rect);
+	  GetWindowRect (FRAME_W32_WINDOW (f), &window_rect);
 	  if (window_rect.bottom > workarea_rect.bottom
 	      && window_rect.top > workarea_rect.top)
 	    f->top_pos = max (window_rect.top

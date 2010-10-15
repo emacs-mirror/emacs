@@ -29,6 +29,7 @@
 
 ;;; Code:
 
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
@@ -283,7 +284,7 @@ This is a list of regexps and regexp matches."
   :link '(custom-manual "(message)Mail Headers")
   :type 'regexp)
 
-(defcustom message-ignored-supersedes-headers "^Path:\\|^Date\\|^NNTP-Posting-Host:\\|^Xref:\\|^Lines:\\|^Received:\\|^X-From-Line:\\|^X-Trace:\\|^X-ID:\\|^X-Complaints-To:\\|Return-Path:\\|^Supersedes:\\|^NNTP-Posting-Date:\\|^X-Trace:\\|^X-Complaints-To:\\|^Cancel-Lock:\\|^Cancel-Key:\\|^X-Hashcash:\\|^X-Payment:\\|^Approved:"
+(defcustom message-ignored-supersedes-headers "^Path:\\|^Date\\|^NNTP-Posting-Host:\\|^Xref:\\|^Lines:\\|^Received:\\|^X-From-Line:\\|^X-Trace:\\|^X-ID:\\|^X-Complaints-To:\\|Return-Path:\\|^Supersedes:\\|^NNTP-Posting-Date:\\|^X-Trace:\\|^X-Complaints-To:\\|^Cancel-Lock:\\|^Cancel-Key:\\|^X-Hashcash:\\|^X-Payment:\\|^Approved:\\|^Injection-Date:\\|^Injection-Info:"
   "*Header lines matching this regexp will be deleted before posting.
 It's best to delete old Path and Date headers before posting to avoid
 any confusion."
@@ -2151,7 +2152,6 @@ Leading \"Re: \" is not stripped by this function.  Use the function
 
 (defun message-change-subject (new-subject)
   "Ask for NEW-SUBJECT header, append (was: <Old Subject>)."
-  ;; <URL:http://www.landfield.com/usefor/drafts/draft-ietf-usefor-useage--1.02.unpaged>
   (interactive
    (list
     (read-from-minibuffer "New subject: ")))
@@ -5736,7 +5736,9 @@ subscribed address (and not the additional To and Cc header contents)."
 		(mapcar (lambda (rhs) (or (cadr (split-string rhs "@")) ""))
 			(mapcar 'downcase
 				(mapcar
-				 'cadr
+				 (lambda (elem)
+				   (or (cadr elem)
+				       ""))
 				 (mail-extract-address-components field t))))))
 	;; Note that `rhs' will be "" if the address does not have
 	;; the domain part, i.e., if it is a local user's address.
@@ -6049,6 +6051,7 @@ If the current line has `message-yank-prefix', insert it on the new line."
 When sending via news, also check that the REFERENCES are less
 than 988 characters long, and if they are not, trim them until
 they are."
+  ;; 21 is the number suggested by USEAGE.
   (let ((maxcount 21)
 	(count 0)
 	(cut 2)

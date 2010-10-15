@@ -31,7 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
-#include <stdlib.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -68,10 +67,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <bsdtty.h>
 #endif
 
-#ifdef HAVE_SYS_WAIT
-#include <sys/wait.h>
-#endif
-
 #ifdef HAVE_RES_INIT
 #include <netinet/in.h>
 #include <arpa/nameser.h>
@@ -80,6 +75,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_UTIL_H
 #include <util.h>
+#endif
+
+#ifdef HAVE_PTY_H
+#include <pty.h>
 #endif
 
 #endif	/* subprocesses */
@@ -115,6 +114,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
+
 extern int timers_run;
 
 Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
@@ -170,13 +170,6 @@ extern Lisp_Object QCfilter;
 
 /* Define first descriptor number available for subprocesses.  */
 #define FIRST_PROC_DESC 3
-
-/* Define SIGCHLD as an alias for SIGCLD.  There are many conditionals
-   testing SIGCHLD.  */
-
-#if !defined (SIGCHLD) && defined (SIGCLD)
-#define SIGCHLD SIGCLD
-#endif /* SIGCLD */
 
 extern const char *get_operating_system_release (void);
 
@@ -356,14 +349,6 @@ struct sockaddr_and_len {
 /* Maximum number of bytes to send to a pty without an eof.  */
 static int pty_max_bytes;
 
-#ifdef HAVE_PTYS
-#ifdef HAVE_PTY_H
-#include <pty.h>
-#endif
-/* The file name of the pty opened by allocate_pty.  */
-
-static char pty_name[24];
-#endif
 
 
 struct fd_callback_data
@@ -562,6 +547,9 @@ status_message (struct Lisp_Process *p)
 }
 
 #ifdef HAVE_PTYS
+
+/* The file name of the pty opened by allocate_pty.  */
+static char pty_name[24];
 
 /* Open an available pty, returning a file descriptor.
    Return -1 on failure.
@@ -1682,6 +1670,11 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	  val = XCDR (Vdefault_process_coding_system);
       }
     XPROCESS (proc)->encode_coding_system = val;
+    /* Note: At this momemnt, the above coding system may leave
+       text-conversion or eol-conversion unspecified.  They will be
+       decided after we read output from the process and decode it by
+       some coding system, or just before we actually send a text to
+       the process.  */
   }
 
 
@@ -1724,6 +1717,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	tem = Fsubstring (tem, make_number (2), Qnil);
 
       {
+	Lisp_Object arg_encoding = Qnil;
 	struct gcpro gcpro1;
 	GCPRO1 (tem);
 
@@ -1741,9 +1735,14 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	    tem = Fcons (args[i], tem);
 	    CHECK_STRING (XCAR (tem));
 	    if (STRING_MULTIBYTE (XCAR (tem)))
-	      XSETCAR (tem,
-		       code_convert_string_norecord
-		       (XCAR (tem), XPROCESS (proc)->encode_coding_system, 1));
+	      {
+		if (NILP (arg_encoding))
+		  arg_encoding = (complement_process_encoding_system
+				  (XPROCESS (proc)->encode_coding_system));
+		XSETCAR (tem,
+			 code_convert_string_norecord
+			 (XCAR (tem), arg_encoding, 1));
+	      }
 	  }
 
 	UNGCPRO;
@@ -1877,12 +1876,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	  report_file_error ("Setting file descriptor flags", Qnil);
 	}
     }
-#endif
-
-#if 0
-  /* Replaced by close_process_descs */
-  set_exclusive_use (inchannel);
-  set_exclusive_use (outchannel);
 #endif
 
 #ifdef O_NONBLOCK
@@ -5547,12 +5540,21 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 	  && !NILP (XBUFFER (object)->enable_multibyte_characters))
       || EQ (object, Qt))
     {
+      p->encode_coding_system
+	= complement_process_encoding_system (p->encode_coding_system);
       if (!EQ (Vlast_coding_system_used, p->encode_coding_system))
-	/* The coding system for encoding was changed to raw-text
-	   because we sent a unibyte text previously.  Now we are
-	   sending a multibyte text, thus we must encode it by the
-	   original coding system specified for the current process.  */
-	setup_coding_system (p->encode_coding_system, coding);
+	{
+	  /* The coding system for encoding was changed to raw-text
+	     because we sent a unibyte text previously.  Now we are
+	     sending a multibyte text, thus we must encode it by the
+	     original coding system specified for the current process.
+
+	     Another reason we comming here is that the coding system
+	     was just complemented and new one was returned by
+	     complement_process_encoding_system.  */
+	  setup_coding_system (p->encode_coding_system, coding);
+	  Vlast_coding_system_used = p->encode_coding_system;
+	}
       coding->src_multibyte = 1;
     }
   else

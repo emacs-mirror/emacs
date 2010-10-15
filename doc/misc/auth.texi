@@ -59,6 +59,7 @@ It is a way for multiple applications to share a single configuration
 * Help for users::              
 * Secret Service API::          
 * Help for developers::         
+* GnuPG and EasyPG Assistant Configuration::  
 * Index::                       
 * Function Index::              
 * Variable Index::              
@@ -176,16 +177,8 @@ for details.
 
 If you don't customize @code{auth-sources}, you'll have to live with
 the defaults: any host and any port are looked up in the netrc
-file @code{~/.authinfo.gpg}.  This is an encrypted file if and only if
-you set up EPA, which is strongly recommended.
-
-@lisp
-(require 'epa-file)
-(epa-file-enable)
-;;; VERY important if you want symmetric encryption
-;;; irrelevant if you don't
-(setq epa-file-cache-passphrase-for-symmetric-encryption t)
-@end lisp
+file @code{~/.authinfo.gpg}, which is a GnuPG encrypted file
+(@pxref{GnuPG and EasyPG Assistant Configuration}).
 
 The simplest working netrc line example is one without a port.
 
@@ -270,6 +263,56 @@ users' netrc files.
 @end example
 
 @end defun
+
+@node GnuPG and EasyPG Assistant Configuration
+@appendix GnuPG and EasyPG Assistant Configuration
+
+If you don't customize @code{auth-sources}, the auth-source library
+reads @code{~/.authinfo.gpg}, which is a GnuPG encrypted file.
+
+In Emacs 23 or later there is an option @code{auto-encryption-mode} to
+automatically decrypt @code{*.gpg} files.  It is enabled by default.
+If you are using earlier versions of Emacs, you will need:
+
+@lisp
+(require 'epa-file)
+(epa-file-enable)
+@end lisp
+
+If you want your GnuPG passwords to be cached, set up @code{gpg-agent}
+or EasyPG Assitant
+(@pxref{Caching Passphrases, , Caching Passphrases, epa}).
+
+To quick start, here are some questions:
+
+@enumerate
+@item
+Do you use GnuPG version 2 instead of GnuPG version 1?
+@item
+Do you use symmetric encryption rather than public key encryption?
+@item
+Do you want to use gpg-agent?
+@end enumerate
+
+Here are configurations depending on your answers:
+
+@multitable {111} {222} {333} {configuration configuration configuration}
+@item @b{1} @tab @b{2} @tab @b{3} @tab Configuration
+@item Yes @tab Yes @tab Yes @tab Set up gpg-agent.
+@item Yes @tab Yes @tab No @tab You can't, without gpg-agent.
+@item Yes @tab No @tab Yes @tab Set up gpg-agent.
+@item Yes @tab No @tab No @tab You can't, without gpg-agent.
+@item No @tab Yes @tab Yes @tab Set up elisp passphrase cache.
+@item No @tab Yes @tab No @tab Set up elisp passphrase cache.
+@item No @tab No @tab Yes @tab Set up gpg-agent.
+@item No @tab No @tab No @tab You can't, without gpg-agent.
+@end multitable
+
+To set up gpg-agent, follow the instruction in GnuPG manual
+(@pxref{Invoking GPG-AGENT, , Invoking GPG-AGENT, gnupg}).
+
+To set up elisp passphrase cache, set
+@code{epa-file-cache-passphrase-for-symmetric-encryption}.
 
 @node Index
 @chapter Index

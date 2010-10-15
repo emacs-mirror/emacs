@@ -640,6 +640,7 @@
 			     nnmbox-mbox-file t t))))
 	(mm-enable-multibyte)
 	(buffer-disable-undo)
+	(gnus-add-buffer)
 
 	;; Go through the group alist and compare against the mbox file.
 	(while alist

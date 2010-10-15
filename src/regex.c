@@ -4089,7 +4089,7 @@ analyse_first (const re_char *p, const re_char *pend, char *fastmap, const int m
 		   && match_any_multibyte_characters == false)
 	    {
 	      /* Set fastmap[I] to 1 where I is a leading code of each
-		 multibyte characer in the range table. */
+		 multibyte character in the range table. */
 	      int c, count;
 	      unsigned char lc1, lc2;
 

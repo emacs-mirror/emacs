@@ -787,16 +787,6 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
   "")
 
 
-(if (ediff-has-face-support-p)
-    (if (featurep 'xemacs)
-	(progn
-	  (defalias 'ediff-valid-color-p 'valid-color-name-p)
-	  (defalias 'ediff-get-face 'get-face))
-      (defalias 'ediff-valid-color-p (if (fboundp 'color-defined-p)
-					 'color-defined-p
-				       'x-color-defined-p))
-      (defalias 'ediff-get-face 'internal-get-face)))
-
 (if (ediff-window-display-p)
     (if (featurep 'xemacs)
 	(progn

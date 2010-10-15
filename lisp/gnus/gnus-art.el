@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
@@ -725,7 +725,7 @@ Each element is a regular expression."
   :group 'gnus-article-various)
 
 (make-obsolete-variable 'gnus-article-hide-pgp-hook nil
-			"Gnus 5.10 (Emacs-22.1)")
+			"Gnus 5.10 (Emacs 22.1)")
 
 (defface gnus-button
   '((t (:weight bold)))
@@ -1412,7 +1412,7 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :type gnus-article-treat-custom)
 
 (make-obsolete-variable 'gnus-treat-display-xface
-			'gnus-treat-display-x-face "22.1")
+			'gnus-treat-display-x-face "Emacs 22.1")
 
 (defcustom gnus-treat-display-x-face
   (and (not noninteractive)
@@ -1638,6 +1638,12 @@ This requires GNU Libidn, and by default only enabled if it is found."
   :version "22.1"
   :group 'gnus-article
   :type 'boolean)
+
+(defcustom gnus-blocked-images "."
+  "Images that have URLs matching this regexp will be blocked."
+  :version "24.1"
+  :group 'gnus-art
+  :type 'regexp)
 
 ;;; Internal variables
 
@@ -3958,7 +3964,7 @@ Directory to save to is default to `gnus-article-save-directory'."
 		  "Save %s in rmail file" filename
 		  gnus-rmail-save-name gnus-newsgroup-name
 		  gnus-current-headers 'gnus-newsgroup-last-rmail))
-  (gnus-eval-in-buffer-window gnus-save-article-buffer
+  (with-current-buffer gnus-save-article-buffer
     (save-excursion
       (save-restriction
 	(widen)
@@ -3976,7 +3982,7 @@ Directory to save to is default to `gnus-article-save-directory'."
 		  "Save %s in Unix mail file" filename
 		  gnus-mail-save-name gnus-newsgroup-name
 		  gnus-current-headers 'gnus-newsgroup-last-mail))
-  (gnus-eval-in-buffer-window gnus-save-article-buffer
+  (with-current-buffer gnus-save-article-buffer
     (save-excursion
       (save-restriction
 	(widen)
@@ -3997,7 +4003,7 @@ Directory to save to is default to `gnus-article-save-directory'."
 		  "Save %s in file" filename
 		  gnus-file-save-name gnus-newsgroup-name
 		  gnus-current-headers 'gnus-newsgroup-last-file))
-  (gnus-eval-in-buffer-window gnus-save-article-buffer
+  (with-current-buffer gnus-save-article-buffer
     (save-excursion
       (save-restriction
 	(widen)
@@ -4029,7 +4035,7 @@ The directory to save in defaults to `gnus-article-save-directory'."
 		  "Save %s body in file" filename
 		  gnus-file-save-name gnus-newsgroup-name
 		  gnus-current-headers 'gnus-newsgroup-last-file))
-  (gnus-eval-in-buffer-window gnus-save-article-buffer
+  (with-current-buffer gnus-save-article-buffer
     (save-excursion
       (save-restriction
 	(widen)
@@ -4108,7 +4114,7 @@ and the raw article including all headers will be piped."
       (if default
 	  (setq command default)
 	(error "A command is required")))
-    (gnus-eval-in-buffer-window save-buffer
+    (with-current-buffer save-buffer
       (save-restriction
 	(widen)
 	(shell-command-on-region (point-min) (point-max) command nil)))
@@ -4468,7 +4474,6 @@ commands:
   ;; face.
   (set (make-local-variable 'nobreak-char-display) nil)
   (setq cursor-in-non-selected-windows nil)
-  (setq truncate-lines gnus-article-truncate-lines)
   (gnus-set-default-directory)
   (buffer-disable-undo)
   (setq buffer-read-only t
@@ -4528,9 +4533,11 @@ Internal variable.")
 	  (setq gnus-button-marker-list nil)
 	  (unless (eq major-mode 'gnus-article-mode)
 	    (gnus-article-mode))
+	  (setq truncate-lines gnus-article-truncate-lines)
 	  (current-buffer))
       (with-current-buffer (gnus-get-buffer-create name)
 	(gnus-article-mode)
+	(setq truncate-lines gnus-article-truncate-lines)
 	(make-local-variable 'gnus-summary-buffer)
 	(setq gnus-summary-buffer
 	      (gnus-summary-buffer-name gnus-newsgroup-name))
@@ -5131,11 +5138,12 @@ available media-types."
   (unless mime-type
     (setq mime-type
 	  (let ((default (gnus-mime-view-part-as-type-internal)))
-	    (completing-read
-	     (format "View as MIME type (default %s): "
-		     (car default))
-	     (mapcar #'list (mailcap-mime-types))
-	     pred nil nil nil
+	    (gnus-completing-read
+	     "View as MIME type"
+	     (if pred
+		 (gnus-remove-if-not pred (mailcap-mime-types))
+	       (mailcap-mime-types))
+	     nil nil nil
 	     (car default)))))
   (gnus-article-check-buffer)
   (let ((handle (get-text-property (point) 'gnus-data)))
@@ -5374,7 +5382,7 @@ specified charset."
          (mm-enable-external t))
     (if (not (stringp method))
 	(gnus-mime-view-part-as-type
-	 nil (lambda (types) (stringp (mailcap-mime-info (car types)))))
+	 nil (lambda (type) (stringp (mailcap-mime-info type))))
       (when handle
 	(if (mm-handle-undisplayer handle)
 	    (mm-remove-part handle)
@@ -5395,7 +5403,7 @@ If no internal viewer is available, use an external viewer."
 	 (inhibit-read-only t))
     (if (not (mm-inlinable-p handle))
         (gnus-mime-view-part-as-type
-         nil (lambda (types) (mm-inlinable-p handle (car types))))
+         nil (lambda (type) (mm-inlinable-p handle type)))
       (when handle
 	(if (mm-handle-undisplayer handle)
 	    (mm-remove-part handle)
@@ -5404,7 +5412,7 @@ If no internal viewer is available, use an external viewer."
 (defun gnus-mime-action-on-part (&optional action)
   "Do something with the MIME attachment at \(point\)."
   (interactive
-   (list (completing-read "Action: " gnus-mime-action-alist nil t)))
+   (list (gnus-completing-read "Action" (mapcar 'car gnus-mime-action-alist) t)))
   (gnus-article-check-buffer)
   (let ((action-pair (assoc action gnus-mime-action-alist)))
     (if action-pair
@@ -8172,9 +8180,6 @@ url is put as the `gnus-button-url' overlay property on the button."
 
 (defvar gnus-next-page-map
   (let ((map (make-sparse-keymap)))
-    (unless (>= emacs-major-version 21)
-      ;; XEmacs doesn't care.
-      (set-keymap-parent map gnus-article-mode-map))
     (define-key map gnus-mouse-2 'gnus-button-next-page)
     (define-key map "\r" 'gnus-button-next-page)
     map))
@@ -8370,9 +8375,9 @@ For example:
   (interactive
    (list
     (or gnus-article-encrypt-protocol
-	(completing-read "Encrypt protocol: "
-			 gnus-article-encrypt-protocol-alist
-			 nil t))
+	(gnus-completing-read "Encrypt protocol"
+                              (mapcar 'car gnus-article-encrypt-protocol-alist)
+                              t))
     current-prefix-arg))
   ;; User might hit `K E' instead of `K e', so prompt once.
   (when (and gnus-article-encrypt-protocol

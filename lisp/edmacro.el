@@ -81,11 +81,11 @@
   "*Non-nil if `edit-kbd-macro' should leave 8-bit characters intact.
 Default nil means to write characters above \\177 in octal notation.")
 
-(defvar edmacro-mode-map nil)
-(unless edmacro-mode-map
-  (setq edmacro-mode-map (make-sparse-keymap))
-  (define-key edmacro-mode-map "\C-c\C-c" 'edmacro-finish-edit)
-  (define-key edmacro-mode-map "\C-c\C-q" 'edmacro-insert-key))
+(defvar edmacro-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'edmacro-finish-edit)
+    (define-key map "\C-c\C-q" 'edmacro-insert-key)
+    map))
 
 (defvar edmacro-store-hook)
 (defvar edmacro-finish-hook)

@@ -1519,7 +1519,7 @@ Return the tag found or nil if not found."
   (car (semantic-find-tags-by-class
         'function
         (or (semantic-find-tags-by-name name (current-buffer))
-            (and (featurep 'semanticdb)
+            (and (featurep 'semantic/db)
                  semanticdb-current-database
                  (cdar (semanticdb-find-tags-by-name name nil t)))))))
 

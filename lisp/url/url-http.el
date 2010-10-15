@@ -1,7 +1,7 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -643,7 +643,8 @@ should be shown to the user."
 		   (set (make-local-variable 'url-redirect-buffer)
 			(url-retrieve-internal
 			 redirect-uri url-callback-function
-			 url-callback-arguments))
+			 url-callback-arguments
+			 (url-silent url-current-object)))
 		   (url-mark-buffer-as-dead buffer))
 	       ;; We hit url-max-redirections, so issue an error and
 	       ;; stop redirecting.
@@ -873,13 +874,14 @@ should be shown to the user."
   (url-http-debug "url-http-end-of-document-sentinel in buffer (%s)"
 		  (process-buffer proc))
   (url-http-idle-sentinel proc why)
-  (with-current-buffer (process-buffer proc)
-    (goto-char (point-min))
-    (if (not (looking-at "HTTP/"))
-	;; HTTP/0.9 just gets passed back no matter what
-	(url-http-activate-callback)
-      (if (url-http-parse-headers)
-	  (url-http-activate-callback)))))
+  (when (buffer-name (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (goto-char (point-min))
+      (if (not (looking-at "HTTP/"))
+	  ;; HTTP/0.9 just gets passed back no matter what
+	  (url-http-activate-callback)
+	(if (url-http-parse-headers)
+	    (url-http-activate-callback))))))
 
 (defun url-http-simple-after-change-function (st nd length)
   ;; Function used when we do NOT know how long the document is going to be
@@ -1244,20 +1246,21 @@ CBARGS as the arguments."
   (declare (special url-callback-arguments))
   ;; We are performing an asynchronous connection, and a status change
   ;; has occurred.
-  (with-current-buffer (process-buffer proc)
-    (cond
-     (url-http-connection-opened
-      (url-http-end-of-document-sentinel proc why))
-     ((string= (substring why 0 4) "open")
-      (setq url-http-connection-opened t)
-      (process-send-string proc (url-http-create-request)))
-     (t
-      (setf (car url-callback-arguments)
-	    (nconc (list :error (list 'error 'connection-failed why
-				      :host (url-host (or url-http-proxy url-current-object))
-				      :service (url-port (or url-http-proxy url-current-object))))
-		   (car url-callback-arguments)))
-      (url-http-activate-callback)))))
+  (when (buffer-name (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (cond
+       (url-http-connection-opened
+	(url-http-end-of-document-sentinel proc why))
+       ((string= (substring why 0 4) "open")
+	(setq url-http-connection-opened t)
+	(process-send-string proc (url-http-create-request)))
+       (t
+	(setf (car url-callback-arguments)
+	      (nconc (list :error (list 'error 'connection-failed why
+					:host (url-host (or url-http-proxy url-current-object))
+					:service (url-port (or url-http-proxy url-current-object))))
+		     (car url-callback-arguments)))
+	(url-http-activate-callback))))))
 
 ;; Since Emacs 19/20 does not allow you to change the
 ;; `after-change-functions' hook in the midst of running them, we fake
@@ -1265,6 +1268,7 @@ CBARGS as the arguments."
 ;; the data ourselves.  This is slightly less efficient, but there
 ;; were tons of weird ways the after-change code was biting us in the
 ;; shorts.
+;; FIXME this can probably be simplified since the above is no longer true.
 (defun url-http-generic-filter (proc data)
   ;; Sometimes we get a zero-length data chunk after the process has
   ;; been changed to 'free', which means it has no buffer associated

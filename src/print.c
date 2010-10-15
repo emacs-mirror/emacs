@@ -1401,7 +1401,7 @@ static void print_check_string_charset_prop (INTERVAL interval, Lisp_Object stri
 #define PRINT_STRING_NON_CHARSET_FOUND 1
 #define PRINT_STRING_UNSAFE_CHARSET_FOUND 2
 
-/* Bitwize or of the abobe macros. */
+/* Bitwise or of the above macros. */
 static int print_check_string_result;
 
 static void

@@ -187,6 +187,9 @@ Lisp_Object Vprevious_system_time_locale;
    Lisp code.  */
 Lisp_Object Vemacs_copyright, Vemacs_version;
 
+/* Alist of external libraries and files implementing them.  */
+Lisp_Object Vdynamic_library_alist;
+
 /* If non-zero, emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
 int inhibit_window_system;
@@ -378,7 +381,7 @@ fatal_error_signal (int sig)
     {
       fatal_error_in_progress = 1;
 
-      if (sig == SIGTERM || sig == SIGHUP)
+      if (sig == SIGTERM || sig == SIGHUP || sig == SIGINT)
         Fkill_emacs (make_number (sig));
 
       shut_down_emacs (sig, 0, Qnil);
@@ -1240,6 +1243,12 @@ main (int argc, char **argv)
 #ifdef SIGSYS
       signal (SIGSYS, fatal_error_signal);
 #endif
+      /*  May need special treatment on MS-Windows. See
+          http://lists.gnu.org/archive/html/emacs-devel/2010-09/msg01062.html
+          Please update the doc of kill-emacs, kill-emacs-hook, and
+          NEWS if you change this.
+      */
+      if (noninteractive) signal (SIGINT, fatal_error_signal);
       signal (SIGTERM, fatal_error_signal);
 #ifdef SIGXCPU
       signal (SIGXCPU, fatal_error_signal);
@@ -1988,6 +1997,9 @@ DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
 If ARG is an integer, return ARG as the exit program code.
 If ARG is a string, stuff it as keyboard input.
 
+This function is called upon receipt of the signals SIGTERM
+or SIGHUP, and upon SIGINT in batch mode.
+
 The value of `kill-emacs-hook', if not void,
 is a list of functions (of no args),
 all of which are called before Emacs is actually killed.  */)
@@ -2000,7 +2012,7 @@ all of which are called before Emacs is actually killed.  */)
   if (feof (stdin))
     arg = Qt;
 
-  if (!NILP (Vrun_hooks) && !noninteractive)
+  if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, intern ("kill-emacs-hook"));
 
   UNGCPRO;
@@ -2109,6 +2121,10 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 
 #ifndef CANNOT_DUMP
 
+/* FIXME: maybe this should go into header file, config.h seems the
+   only one appropriate. */
+extern int unexec (const char *, const char *);
+
 DEFUN ("dump-emacs", Fdump_emacs, Sdump_emacs, 2, 2, 0,
        doc: /* Dump current state of Emacs into executable file FILENAME.
 Take symbols from SYMFILE (presumably the file you executed to run Emacs).
@@ -2176,13 +2192,13 @@ You must run Emacs in batch mode in order to dump it.  */)
      Meanwhile, my_edata is not valid on Windows.  */
   memory_warnings (my_edata, malloc_warning);
 #endif /* not WINDOWSNT */
-#endif
-#if !defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
+#if defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
   /* Pthread may call malloc before main, and then we will get an endless
      loop, because pthread_self (see alloc.c) calls malloc the first time
      it is called on some systems.  */
   reset_malloc_hooks ();
 #endif
+#endif /* not SYSTEM_MALLOC */
 #ifdef DOUG_LEA_MALLOC
   malloc_state_ptr = malloc_get_state ();
 #endif
@@ -2190,8 +2206,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 #ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (0);
 #endif
-  unexec (SDATA (filename),
-	  !NILP (symfile) ? SDATA (symfile) : 0, my_edata, 0, 0);
+  unexec (SDATA (filename), !NILP (symfile) ? SDATA (symfile) : 0);
 #ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (1);
 #endif
@@ -2421,7 +2436,8 @@ in other similar situations), functions placed on this hook should not
 expect to be able to interact with the user.  To ask for confirmation,
 see `kill-emacs-query-functions' instead.
 
-The hook is not run in batch mode, i.e., if `noninteractive' is non-nil.  */);
+Before Emacs 24.1, the hook was not run in batch mode, i.e., if
+`noninteractive' was non-nil.  */);
   Vkill_emacs_hook = Qnil;
 
   DEFVAR_INT ("emacs-priority", &emacs_priority,
@@ -2493,6 +2509,24 @@ This is nil during initialization.  */);
   DEFVAR_LISP ("emacs-version", &Vemacs_version,
 	       doc: /* Version numbers of this version of Emacs.  */);
   Vemacs_version = build_string (emacs_version);
+
+  DEFVAR_LISP ("dynamic-library-alist", &Vdynamic_library_alist,
+    doc: /* Alist of dynamic libraries vs external files implementing them.
+Each element is a list (LIBRARY FILE...), where the car is a symbol
+representing a supported external library, and the rest are strings giving
+alternate filenames for that library.
+
+Emacs tries to load the library from the files in the order they appear on
+the list; if none is loaded, the running session of Emacs won't have access
+to that library.
+
+Note that image types `pbm' and `xbm' do not need entries in this variable
+because they do not depend on external libraries and are always available.
+
+Also note that this is not a generic facility for accessing external
+libraries; only those already known by Emacs will be loaded.  */);
+  Vdynamic_library_alist = Qnil;
+  Fput (intern_c_string ("dynamic-library-alist"), Qrisky_local_variable, Qt);
 
   /* Make sure IS_DAEMON starts up as false.  */
   daemon_pipe[1] = 0;

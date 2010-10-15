@@ -319,42 +319,35 @@ SPEC itself is saved in FACE property `saved-face' and it is stored in
 FACE's list property `theme-face' \(using `custom-push-theme')."
   (custom-check-theme theme)
   (let ((immediate (get theme 'theme-immediate)))
-    (while args
-      (let ((entry (car args)))
-	(if (listp entry)
-	    (let ((face (nth 0 entry))
-		  (spec (nth 1 entry))
-		  (now (nth 2 entry))
-		  (comment (nth 3 entry))
-		  oldspec)
-	      ;; If FACE is actually an alias, customize the face it
-	      ;; is aliased to.
-	      (if (get face 'face-alias)
-		  (setq face (get face 'face-alias)))
-
-	      (setq oldspec (get face 'theme-face))
-	      (when (not (and oldspec (eq 'user (caar oldspec))))
-		(put face 'saved-face spec)
-		(put face 'saved-face-comment comment))
-
-	      (custom-push-theme 'theme-face face theme 'set spec)
-	      (when (or now immediate)
-		(put face 'force-face (if now 'rogue 'immediate)))
-	      (when (or now immediate (facep face))
-		(unless (facep face)
-		  (make-empty-face face))
-		(put face 'face-comment comment)
-		(put face 'face-override-spec nil)
-		(face-spec-set face spec t))
-	      (setq args (cdr args)))
-	  ;; Old format, a plist of FACE SPEC pairs.
-	  (let ((face (nth 0 args))
-		(spec (nth 1 args)))
-	    (if (get face 'face-alias)
-		(setq face (get face 'face-alias)))
-	    (put face 'saved-face spec)
-	    (custom-push-theme 'theme-face face theme 'set spec))
-	  (setq args (cdr (cdr args))))))))
+    (dolist (entry args)
+      (unless (listp entry)
+	(error "Incompatible Custom theme spec"))
+      (let ((face (car entry))
+	    (spec (nth 1 entry)))
+	;; If FACE is actually an alias, customize the face it
+	;; is aliased to.
+	(if (get face 'face-alias)
+	    (setq face (get face 'face-alias)))
+	(if custom--inhibit-theme-enable
+	    ;; Just update theme settings.
+	    (custom-push-theme 'theme-face face theme 'set spec)
+	  ;; Update theme settings and set the face spec.
+	  (let ((now (nth 2 entry))
+		(comment (nth 3 entry))
+		(oldspec (get face 'theme-face)))
+	    (when (not (and oldspec (eq 'user (caar oldspec))))
+	      (put face 'saved-face spec)
+	      (put face 'saved-face-comment comment))
+	    ;; Do this AFTER checking the `theme-face' property.
+	    (custom-push-theme 'theme-face face theme 'set spec)
+	    (when (or now immediate)
+	      (put face 'force-face (if now 'rogue 'immediate)))
+	    (when (or now immediate (facep face))
+	      (unless (facep face)
+		(make-empty-face face))
+	      (put face 'face-comment comment)
+	      (put face 'face-override-spec nil)
+	      (face-spec-set face spec t))))))))
 
 ;; XEmacs compability function.  In XEmacs, when you reset a Custom
 ;; Theme, you have to specify the theme to reset it to.  We just apply

@@ -433,10 +433,8 @@ directory, like `default-directory'."
 
     ;; immediate operations
     (define-key map (kbd "n") 'ibuffer-forward-line)
-    (define-key map (kbd "<down>") 'ibuffer-forward-line)
     (define-key map (kbd "SPC") 'forward-line)
     (define-key map (kbd "p") 'ibuffer-backward-line)
-    (define-key map (kbd "<up>") 'ibuffer-backward-line)
     (define-key map (kbd "M-}") 'ibuffer-forward-next-marked)
     (define-key map (kbd "M-{") 'ibuffer-backwards-next-marked)
     (define-key map (kbd "l") 'ibuffer-redisplay)
@@ -477,9 +475,9 @@ directory, like `default-directory'."
     (define-key map (kbd "/ /") 'ibuffer-filter-disable)
 
     (define-key map (kbd "M-n") 'ibuffer-forward-filter-group)
-    (define-key map (kbd "<right>") 'ibuffer-forward-filter-group)
+    (define-key map "\t" 'ibuffer-forward-filter-group)
     (define-key map (kbd "M-p") 'ibuffer-backward-filter-group)
-    (define-key map (kbd "<left>") 'ibuffer-backward-filter-group)
+    (define-key map [backtab] 'ibuffer-backward-filter-group)
     (define-key map (kbd "M-j") 'ibuffer-jump-to-filter-group)
     (define-key map (kbd "C-k") 'ibuffer-kill-line)
     (define-key map (kbd "C-y") 'ibuffer-yank)
@@ -1053,7 +1051,6 @@ If optional argument SINGLE is non-nil, then also ensure there is only
 one window."
   (interactive "P")
   (let ((buf (ibuffer-current-buffer t)))
-    (bury-buffer (current-buffer))
     (switch-to-buffer buf)
     (when single
       (delete-other-windows))))

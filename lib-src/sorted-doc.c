@@ -93,7 +93,7 @@ xmalloc (int size)
 }
 
 char *
-xstrdup (char *str)
+xstrdup (const char *str)
 {
   char *buf = xmalloc (strlen (str) + 1);
   (void) strcpy (buf, str);
