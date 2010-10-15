@@ -1,5 +1,8 @@
 2010-10-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* unexcoff.c (make_hdr): Fix prototype according to changes in
+	revno 101757.
+
 	* image.c (tiff_load): Cast 3rd argument to avoid compiler warning.
 
 2010-10-15  Tassilo Horn  <tassilo@member.fsf.org>
