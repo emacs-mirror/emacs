@@ -286,7 +286,7 @@ w32con_insert_glyphs (struct frame *f, register struct glyph *start, register in
     }
 }
 
-extern unsigned char *encode_terminal_code P_ ((struct glyph *, int, 
+extern unsigned char *encode_terminal_code P_ ((struct glyph *, int,
 						struct coding_system *));
 
 static void
@@ -438,7 +438,7 @@ w32con_reset_terminal_modes (struct terminal *t)
   FillConsoleOutputCharacter (cur_screen, ' ', n, dest, &r);
   /* Now that the screen is clear, put the cursor at the top.  */
   SetConsoleCursorPosition (cur_screen, dest);
-  
+
 #ifdef USE_SEPARATE_SCREEN
   SetConsoleActiveScreenBuffer (prev_screen);
 #else
@@ -562,19 +562,19 @@ initialize_w32_display (struct terminal *term)
 
   term->rif = 0; /* No window based redisplay on the console.  */
   term->cursor_to_hook		= w32con_move_cursor;
-  term->raw_cursor_to_hook		= w32con_move_cursor;
-  term->clear_to_end_hook		= w32con_clear_to_end;
-  term->clear_frame_hook		= w32con_clear_frame;
+  term->raw_cursor_to_hook	= w32con_move_cursor;
+  term->clear_to_end_hook	= w32con_clear_to_end;
+  term->clear_frame_hook	= w32con_clear_frame;
   term->clear_end_of_line_hook	= w32con_clear_end_of_line;
-  term->ins_del_lines_hook		= w32con_ins_del_lines;
-  term->insert_glyphs_hook		= w32con_insert_glyphs;
-  term->write_glyphs_hook		= w32con_write_glyphs;
-  term->delete_glyphs_hook		= w32con_delete_glyphs;
+  term->ins_del_lines_hook	= w32con_ins_del_lines;
+  term->insert_glyphs_hook	= w32con_insert_glyphs;
+  term->write_glyphs_hook	= w32con_write_glyphs;
+  term->delete_glyphs_hook	= w32con_delete_glyphs;
   term->ring_bell_hook		= w32_sys_ring_bell;
-  term->reset_terminal_modes_hook	= w32con_reset_terminal_modes;
+  term->reset_terminal_modes_hook = w32con_reset_terminal_modes;
   term->set_terminal_modes_hook	= w32con_set_terminal_modes;
-  term->set_terminal_window_hook	= w32con_set_terminal_window;
-  term->update_begin_hook		= w32con_update_begin;
+  term->set_terminal_window_hook = w32con_set_terminal_window;
+  term->update_begin_hook	= w32con_update_begin;
   term->update_end_hook		= w32con_update_end;
 
   term->read_socket_hook = w32_console_read_socket;
@@ -618,8 +618,8 @@ initialize_w32_display (struct terminal *term)
 
   /* Respect setting of LINES and COLUMNS environment variables.  */
   {
-    char * lines = getenv("LINES");
-    char * columns = getenv("COLUMNS");
+    char * lines = getenv ("LINES");
+    char * columns = getenv ("COLUMNS");
 
     if (lines != NULL && columns != NULL)
       {

@@ -315,8 +315,8 @@ is_windows_9x ()
   if (g_b_init_is_windows_9x == 0)
     {
       g_b_init_is_windows_9x = 1;
-      ZeroMemory(&os_ver, sizeof(OSVERSIONINFO));
-      os_ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+      ZeroMemory (&os_ver, sizeof (OSVERSIONINFO));
+      os_ver.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
       if (GetVersionEx (&os_ver))
         {
           s_b_ret = (os_ver.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS);
@@ -334,7 +334,7 @@ w32_get_internal_run_time ()
   if (get_process_times_fn)
     {
       FILETIME create, exit, kernel, user;
-      HANDLE proc = GetCurrentProcess();
+      HANDLE proc = GetCurrentProcess ();
       if ((*get_process_times_fn) (proc, &create, &exit, &kernel, &user))
         {
           LARGE_INTEGER user_int, kernel_int, total;
@@ -367,10 +367,10 @@ w32_get_internal_run_time ()
 
   /* ** The wrapper functions ** */
 
-BOOL WINAPI open_process_token (
-    HANDLE ProcessHandle,
-    DWORD DesiredAccess,
-    PHANDLE TokenHandle)
+BOOL WINAPI
+open_process_token (HANDLE ProcessHandle,
+		    DWORD DesiredAccess,
+		    PHANDLE TokenHandle)
 {
   static OpenProcessToken_Proc s_pfn_Open_Process_Token = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -397,12 +397,12 @@ BOOL WINAPI open_process_token (
       );
 }
 
-BOOL WINAPI get_token_information (
-    HANDLE TokenHandle,
-    TOKEN_INFORMATION_CLASS TokenInformationClass,
-    LPVOID TokenInformation,
-    DWORD TokenInformationLength,
-    PDWORD ReturnLength)
+BOOL WINAPI
+get_token_information (HANDLE TokenHandle,
+		       TOKEN_INFORMATION_CLASS TokenInformationClass,
+		       LPVOID TokenInformation,
+		       DWORD TokenInformationLength,
+		       PDWORD ReturnLength)
 {
   static GetTokenInformation_Proc s_pfn_Get_Token_Information = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -431,14 +431,14 @@ BOOL WINAPI get_token_information (
       );
 }
 
-BOOL WINAPI lookup_account_sid (
-    LPCTSTR lpSystemName,
-    PSID Sid,
-    LPTSTR Name,
-    LPDWORD cbName,
-    LPTSTR DomainName,
-    LPDWORD cbDomainName,
-    PSID_NAME_USE peUse)
+BOOL WINAPI
+lookup_account_sid (LPCTSTR lpSystemName,
+		    PSID Sid,
+		    LPTSTR Name,
+		    LPDWORD cbName,
+		    LPTSTR DomainName,
+		    LPDWORD cbDomainName,
+		    PSID_NAME_USE peUse)
 {
   static LookupAccountSid_Proc s_pfn_Lookup_Account_Sid = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -469,8 +469,8 @@ BOOL WINAPI lookup_account_sid (
       );
 }
 
-PSID_IDENTIFIER_AUTHORITY WINAPI get_sid_identifier_authority (
-    PSID pSid)
+PSID_IDENTIFIER_AUTHORITY WINAPI
+get_sid_identifier_authority (PSID pSid)
 {
   static GetSidIdentifierAuthority_Proc s_pfn_Get_Sid_Identifier_Authority = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -493,9 +493,8 @@ PSID_IDENTIFIER_AUTHORITY WINAPI get_sid_identifier_authority (
   return (s_pfn_Get_Sid_Identifier_Authority (pSid));
 }
 
-PDWORD WINAPI get_sid_sub_authority (
-    PSID pSid,
-    DWORD n)
+PDWORD WINAPI
+get_sid_sub_authority (PSID pSid, DWORD n)
 {
   static GetSidSubAuthority_Proc s_pfn_Get_Sid_Sub_Authority = NULL;
   static DWORD zero = 0U;
@@ -519,8 +518,8 @@ PDWORD WINAPI get_sid_sub_authority (
   return (s_pfn_Get_Sid_Sub_Authority (pSid, n));
 }
 
-PUCHAR WINAPI get_sid_sub_authority_count (
-    PSID pSid)
+PUCHAR WINAPI
+get_sid_sub_authority_count (PSID pSid)
 {
   static GetSidSubAuthorityCount_Proc s_pfn_Get_Sid_Sub_Authority_Count = NULL;
   static UCHAR zero = 0U;
@@ -544,12 +543,12 @@ PUCHAR WINAPI get_sid_sub_authority_count (
   return (s_pfn_Get_Sid_Sub_Authority_Count (pSid));
 }
 
-BOOL WINAPI get_file_security (
-    LPCTSTR lpFileName,
-    SECURITY_INFORMATION RequestedInformation,
-    PSECURITY_DESCRIPTOR pSecurityDescriptor,
-    DWORD nLength,
-    LPDWORD lpnLengthNeeded)
+BOOL WINAPI
+get_file_security (LPCTSTR lpFileName,
+		   SECURITY_INFORMATION RequestedInformation,
+		   PSECURITY_DESCRIPTOR pSecurityDescriptor,
+		   DWORD nLength,
+		   LPDWORD lpnLengthNeeded)
 {
   static GetFileSecurity_Proc s_pfn_Get_File_Security = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -574,10 +573,10 @@ BOOL WINAPI get_file_security (
 				   lpnLengthNeeded));
 }
 
-BOOL WINAPI get_security_descriptor_owner (
-    PSECURITY_DESCRIPTOR pSecurityDescriptor,
-    PSID *pOwner,
-    LPBOOL lpbOwnerDefaulted)
+BOOL WINAPI
+get_security_descriptor_owner (PSECURITY_DESCRIPTOR pSecurityDescriptor,
+			       PSID *pOwner,
+			       LPBOOL lpbOwnerDefaulted)
 {
   static GetSecurityDescriptorOwner_Proc s_pfn_Get_Security_Descriptor_Owner = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -601,10 +600,10 @@ BOOL WINAPI get_security_descriptor_owner (
 					       lpbOwnerDefaulted));
 }
 
-BOOL WINAPI get_security_descriptor_group (
-    PSECURITY_DESCRIPTOR pSecurityDescriptor,
-    PSID *pGroup,
-    LPBOOL lpbGroupDefaulted)
+BOOL WINAPI
+get_security_descriptor_group (PSECURITY_DESCRIPTOR pSecurityDescriptor,
+			       PSID *pGroup,
+			       LPBOOL lpbGroupDefaulted)
 {
   static GetSecurityDescriptorGroup_Proc s_pfn_Get_Security_Descriptor_Group = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -628,8 +627,8 @@ BOOL WINAPI get_security_descriptor_group (
 					       lpbGroupDefaulted));
 }
 
-BOOL WINAPI is_valid_sid (
-    PSID sid)
+BOOL WINAPI
+is_valid_sid (PSID sid)
 {
   static IsValidSid_Proc s_pfn_Is_Valid_Sid = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -652,9 +651,8 @@ BOOL WINAPI is_valid_sid (
   return (s_pfn_Is_Valid_Sid (sid));
 }
 
-BOOL WINAPI equal_sid (
-    PSID sid1,
-    PSID sid2)
+BOOL WINAPI
+equal_sid (PSID sid1, PSID sid2)
 {
   static EqualSid_Proc s_pfn_Equal_Sid = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -677,8 +675,8 @@ BOOL WINAPI equal_sid (
   return (s_pfn_Equal_Sid (sid1, sid2));
 }
 
-DWORD WINAPI get_length_sid (
-    PSID sid)
+DWORD WINAPI
+get_length_sid (PSID sid)
 {
   static GetLengthSid_Proc s_pfn_Get_Length_Sid = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -701,10 +699,8 @@ DWORD WINAPI get_length_sid (
   return (s_pfn_Get_Length_Sid (sid));
 }
 
-BOOL WINAPI copy_sid (
-    DWORD destlen,
-    PSID dest,
-    PSID src)
+BOOL WINAPI
+copy_sid (DWORD destlen, PSID dest, PSID src)
 {
   static CopySid_Proc s_pfn_Copy_Sid = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -733,8 +729,8 @@ BOOL WINAPI copy_sid (
   supported in Windows NT / 2k / XP
 */
 
-void WINAPI get_native_system_info (
-    LPSYSTEM_INFO lpSystemInfo)
+void WINAPI
+get_native_system_info (LPSYSTEM_INFO lpSystemInfo)
 {
   static GetNativeSystemInfo_Proc s_pfn_Get_Native_System_Info = NULL;
   if (is_windows_9x () != TRUE)
@@ -753,10 +749,10 @@ void WINAPI get_native_system_info (
     lpSystemInfo->dwNumberOfProcessors = -1;
 }
 
-BOOL WINAPI get_system_times(
-    LPFILETIME lpIdleTime,
-    LPFILETIME lpKernelTime,
-    LPFILETIME lpUserTime)
+BOOL WINAPI
+get_system_times (LPFILETIME lpIdleTime,
+		  LPFILETIME lpKernelTime,
+		  LPFILETIME lpUserTime)
 {
   static GetSystemTimes_Proc s_pfn_Get_System_times = NULL;
   if (is_windows_9x () == TRUE)
@@ -1691,7 +1687,7 @@ init_environment (char ** argv)
 	  for (p = modname; *p; p++)
 	    if (*p == '\\') *p = '/';
 
-	  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
+	  _snprintf (buf, sizeof (buf)-1, "emacs_dir=%s", modname);
 	  _putenv (strdup (buf));
 	}
       /* Handle running emacs from the build directory: src/oo-spd/i386/  */
@@ -1715,7 +1711,7 @@ init_environment (char ** argv)
 		  for (p = modname; *p; p++)
 		    if (*p == '\\') *p = '/';
 
-		  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
+		  _snprintf (buf, sizeof (buf)-1, "emacs_dir=%s", modname);
 		  _putenv (strdup (buf));
 		}
 	    }
@@ -1743,12 +1739,12 @@ init_environment (char ** argv)
 		char buf1[SET_ENV_BUF_SIZE], buf2[SET_ENV_BUF_SIZE];
 
 		if (dwType == REG_EXPAND_SZ)
-		  ExpandEnvironmentStrings ((LPSTR) lpval, buf1, sizeof(buf1));
+		  ExpandEnvironmentStrings ((LPSTR) lpval, buf1, sizeof (buf1));
 		else if (dwType == REG_SZ)
 		  strcpy (buf1, lpval);
 		if (dwType == REG_EXPAND_SZ || dwType == REG_SZ)
 		  {
-		    _snprintf (buf2, sizeof(buf2)-1, "%s=%s", env_vars[i].name,
+		    _snprintf (buf2, sizeof (buf2)-1, "%s=%s", env_vars[i].name,
 			       buf1);
 		    _putenv (strdup (buf2));
 		  }
@@ -2091,7 +2087,7 @@ GetCachedVolumeInformation (char * root_dir)
      involve network access, and so is extremely quick).  */
 
   /* Map drive letter to UNC if remote. */
-  if ( isalpha( root_dir[0] ) && !fixed[ DRIVE_INDEX( root_dir[0] ) ] )
+  if ( isalpha (root_dir[0]) && !fixed[ DRIVE_INDEX (root_dir[0]) ] )
     {
       char remote_name[ 256 ];
       char drive[3] = { root_dir[0], ':' };
@@ -2490,8 +2486,8 @@ open_unc_volume (const char *path)
   nr.lpComment = NULL;
   nr.lpProvider = NULL;
 
-  result = WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
-			RESOURCEUSAGE_CONNECTABLE, &nr, &henum);
+  result = WNetOpenEnum (RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
+			 RESOURCEUSAGE_CONNECTABLE, &nr, &henum);
 
   if (result == NO_ERROR)
     return henum;
@@ -2667,7 +2663,7 @@ sys_creat (const char * path, int mode)
 }
 
 FILE *
-sys_fopen(const char * path, const char * mode)
+sys_fopen (const char * path, const char * mode)
 {
   int fd;
   int oflag;
@@ -2754,7 +2750,7 @@ sys_link (const char * old, const char * new)
 
 	  data.wid.dwStreamId = BACKUP_LINK;
 	  data.wid.dwStreamAttributes = 0;
-	  data.wid.Size.LowPart = wlen * sizeof(WCHAR);
+	  data.wid.Size.LowPart = wlen * sizeof (WCHAR);
 	  data.wid.Size.HighPart = 0;
 	  data.wid.dwStreamNameSize = 0;
 
@@ -2980,7 +2976,7 @@ convert_time (FILETIME ft)
 
   if (!init)
     {
-      initialize_utc_base();
+      initialize_utc_base ();
       init = 1;
     }
 
@@ -3167,7 +3163,7 @@ get_name_and_id (PSECURITY_DESCRIPTOR psd, const char *fname,
   char name[UNLEN+1];
   DWORD name_len = sizeof (name);
   char domain[1024];
-  DWORD domain_len = sizeof(domain);
+  DWORD domain_len = sizeof (domain);
   char *mp = NULL;
   int use_dflt = 0;
   int result;
@@ -3213,10 +3209,9 @@ get_name_and_id (PSECURITY_DESCRIPTOR psd, const char *fname,
 }
 
 static void
-get_file_owner_and_group (
-    PSECURITY_DESCRIPTOR psd,
-    const char *fname,
-    struct stat *st)
+get_file_owner_and_group (PSECURITY_DESCRIPTOR psd,
+			  const char *fname,
+			  struct stat *st)
 {
   int dflt_usr = 0, dflt_grp = 0;
 
@@ -3642,9 +3637,8 @@ utime (const char *name, struct utimbuf *times)
 
 /* Helper wrapper functions.  */
 
-HANDLE WINAPI create_toolhelp32_snapshot(
-    DWORD Flags,
-    DWORD Ignored)
+HANDLE WINAPI
+create_toolhelp32_snapshot (DWORD Flags, DWORD Ignored)
 {
   static CreateToolhelp32Snapshot_Proc s_pfn_Create_Toolhelp32_Snapshot = NULL;
 
@@ -3662,9 +3656,8 @@ HANDLE WINAPI create_toolhelp32_snapshot(
   return (s_pfn_Create_Toolhelp32_Snapshot (Flags, Ignored));
 }
 
-BOOL WINAPI process32_first(
-    HANDLE hSnapshot,
-    LPPROCESSENTRY32 lppe)
+BOOL WINAPI
+process32_first (HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
 {
   static Process32First_Proc s_pfn_Process32_First = NULL;
 
@@ -3682,9 +3675,8 @@ BOOL WINAPI process32_first(
   return (s_pfn_Process32_First (hSnapshot, lppe));
 }
 
-BOOL WINAPI process32_next(
-    HANDLE hSnapshot,
-    LPPROCESSENTRY32 lppe)
+BOOL WINAPI
+process32_next (HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
 {
   static Process32Next_Proc s_pfn_Process32_Next = NULL;
 
@@ -3702,11 +3694,11 @@ BOOL WINAPI process32_next(
   return (s_pfn_Process32_Next (hSnapshot, lppe));
 }
 
-BOOL WINAPI open_thread_token (
-    HANDLE ThreadHandle,
-    DWORD DesiredAccess,
-    BOOL OpenAsSelf,
-    PHANDLE TokenHandle)
+BOOL WINAPI
+open_thread_token (HANDLE ThreadHandle,
+		   DWORD DesiredAccess,
+		   BOOL OpenAsSelf,
+		   PHANDLE TokenHandle)
 {
   static OpenThreadToken_Proc s_pfn_Open_Thread_Token = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -3736,8 +3728,8 @@ BOOL WINAPI open_thread_token (
       );
 }
 
-BOOL WINAPI impersonate_self (
-    SECURITY_IMPERSONATION_LEVEL ImpersonationLevel)
+BOOL WINAPI
+impersonate_self (SECURITY_IMPERSONATION_LEVEL ImpersonationLevel)
 {
   static ImpersonateSelf_Proc s_pfn_Impersonate_Self = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -3759,7 +3751,8 @@ BOOL WINAPI impersonate_self (
   return s_pfn_Impersonate_Self (ImpersonationLevel);
 }
 
-BOOL WINAPI revert_to_self (void)
+BOOL WINAPI
+revert_to_self (void)
 {
   static RevertToSelf_Proc s_pfn_Revert_To_Self = NULL;
   HMODULE hm_advapi32 = NULL;
@@ -3781,10 +3774,10 @@ BOOL WINAPI revert_to_self (void)
   return s_pfn_Revert_To_Self ();
 }
 
-BOOL WINAPI get_process_memory_info (
-    HANDLE h_proc,
-    PPROCESS_MEMORY_COUNTERS mem_counters,
-    DWORD bufsize)
+BOOL WINAPI
+get_process_memory_info (HANDLE h_proc,
+			 PPROCESS_MEMORY_COUNTERS mem_counters,
+			 DWORD bufsize)
 {
   static GetProcessMemoryInfo_Proc s_pfn_Get_Process_Memory_Info = NULL;
   HMODULE hm_psapi = NULL;
@@ -3807,10 +3800,8 @@ BOOL WINAPI get_process_memory_info (
   return s_pfn_Get_Process_Memory_Info (h_proc, mem_counters, bufsize);
 }
 
-BOOL WINAPI get_process_working_set_size (
-    HANDLE h_proc,
-    DWORD *minrss,
-    DWORD *maxrss)
+BOOL WINAPI
+get_process_working_set_size (HANDLE h_proc, DWORD *minrss, DWORD *maxrss)
 {
   static GetProcessWorkingSetSize_Proc
     s_pfn_Get_Process_Working_Set_Size = NULL;
@@ -3833,8 +3824,8 @@ BOOL WINAPI get_process_working_set_size (
   return s_pfn_Get_Process_Working_Set_Size (h_proc, minrss, maxrss);
 }
 
-BOOL WINAPI global_memory_status (
-    MEMORYSTATUS *buf)
+BOOL WINAPI
+global_memory_status (MEMORYSTATUS *buf)
 {
   static GlobalMemoryStatus_Proc s_pfn_Global_Memory_Status = NULL;
 
@@ -3856,8 +3847,8 @@ BOOL WINAPI global_memory_status (
   return s_pfn_Global_Memory_Status (buf);
 }
 
-BOOL WINAPI global_memory_status_ex (
-    MEMORY_STATUS_EX *buf)
+BOOL WINAPI
+global_memory_status_ex (MEMORY_STATUS_EX *buf)
 {
   static GlobalMemoryStatusEx_Proc s_pfn_Global_Memory_Status_Ex = NULL;
 
@@ -3992,8 +3983,8 @@ process_times (h_proc, ctime, etime, stime, utime, ttime, pcpu)
 
   if (!h_proc
       || !get_process_times_fn
-      || !(*get_process_times_fn)(h_proc, &ft_creation, &ft_exit,
-				  &ft_kernel, &ft_user))
+      || !(*get_process_times_fn) (h_proc, &ft_creation, &ft_exit,
+				   &ft_kernel, &ft_user))
     return 0;
 
   GetSystemTimeAsFileTime (&ft_current);
@@ -4435,34 +4426,34 @@ init_winsock (int load_now)
       if ((pfn_##fn = (void *) GetProcAddress (winsock_lib, #fn)) == NULL) \
         goto fail;
 
-      LOAD_PROC( WSAStartup );
-      LOAD_PROC( WSASetLastError );
-      LOAD_PROC( WSAGetLastError );
-      LOAD_PROC( WSAEventSelect );
-      LOAD_PROC( WSACreateEvent );
-      LOAD_PROC( WSACloseEvent );
-      LOAD_PROC( socket );
-      LOAD_PROC( bind );
-      LOAD_PROC( connect );
-      LOAD_PROC( ioctlsocket );
-      LOAD_PROC( recv );
-      LOAD_PROC( send );
-      LOAD_PROC( closesocket );
-      LOAD_PROC( shutdown );
-      LOAD_PROC( htons );
-      LOAD_PROC( ntohs );
-      LOAD_PROC( inet_addr );
-      LOAD_PROC( gethostname );
-      LOAD_PROC( gethostbyname );
-      LOAD_PROC( getservbyname );
-      LOAD_PROC( getpeername );
-      LOAD_PROC( WSACleanup );
-      LOAD_PROC( setsockopt );
-      LOAD_PROC( listen );
-      LOAD_PROC( getsockname );
-      LOAD_PROC( accept );
-      LOAD_PROC( recvfrom );
-      LOAD_PROC( sendto );
+      LOAD_PROC (WSAStartup);
+      LOAD_PROC (WSASetLastError);
+      LOAD_PROC (WSAGetLastError);
+      LOAD_PROC (WSAEventSelect);
+      LOAD_PROC (WSACreateEvent);
+      LOAD_PROC (WSACloseEvent);
+      LOAD_PROC (socket);
+      LOAD_PROC (bind);
+      LOAD_PROC (connect);
+      LOAD_PROC (ioctlsocket);
+      LOAD_PROC (recv);
+      LOAD_PROC (send);
+      LOAD_PROC (closesocket);
+      LOAD_PROC (shutdown);
+      LOAD_PROC (htons);
+      LOAD_PROC (ntohs);
+      LOAD_PROC (inet_addr);
+      LOAD_PROC (gethostname);
+      LOAD_PROC (gethostbyname);
+      LOAD_PROC (getservbyname);
+      LOAD_PROC (getpeername);
+      LOAD_PROC (WSACleanup);
+      LOAD_PROC (setsockopt);
+      LOAD_PROC (listen);
+      LOAD_PROC (getsockname);
+      LOAD_PROC (accept);
+      LOAD_PROC (recvfrom);
+      LOAD_PROC (sendto);
 #undef LOAD_PROC
 
       /* specify version 1.1 of winsock */
@@ -4607,7 +4598,7 @@ struct {
 };
 
 char *
-sys_strerror(int error_no)
+sys_strerror (int error_no)
 {
   int i;
   static char unknown_msg[40];
@@ -4619,7 +4610,7 @@ sys_strerror(int error_no)
     if (_wsa_errlist[i].errnum == error_no)
       return _wsa_errlist[i].msg;
 
-  sprintf(unknown_msg, "Unidentified error: %d", error_no);
+  sprintf (unknown_msg, "Unidentified error: %d", error_no);
   return unknown_msg;
 }
 
@@ -4638,7 +4629,7 @@ sys_strerror(int error_no)
 int socket_to_fd (SOCKET s);
 
 int
-sys_socket(int af, int type, int protocol)
+sys_socket (int af, int type, int protocol)
 {
   SOCKET s;
 
@@ -4841,7 +4832,7 @@ sys_gethostname (char * name, int namelen)
 }
 
 struct hostent *
-sys_gethostbyname(const char * name)
+sys_gethostbyname (const char * name)
 {
   struct hostent * host;
 
@@ -4859,7 +4850,7 @@ sys_gethostbyname(const char * name)
 }
 
 struct servent *
-sys_getservbyname(const char * name, const char * proto)
+sys_getservbyname (const char * name, const char * proto)
 {
   struct servent * serv;
 
@@ -5014,7 +5005,7 @@ sys_accept (int s, struct sockaddr * addr, int * addrlen)
 
 int
 sys_recvfrom (int s, char * buf, int len, int flags,
-	  struct sockaddr * from, int * fromlen)
+	      struct sockaddr * from, int * fromlen)
 {
   if (winsock_lib == NULL)
     {
@@ -5075,7 +5066,7 @@ fcntl (int s, int cmd, int options)
 	  unsigned long nblock = 1;
 	  int rc = pfn_ioctlsocket (SOCK_HANDLE (s), FIONBIO, &nblock);
 	  if (rc == SOCKET_ERROR)
-	    set_errno();
+	    set_errno ();
 	  /* Keep track of the fact that we set this to non-blocking.  */
 	  fd_info[s].flags |= FILE_NDELAY;
 	  return rc;
@@ -5512,8 +5503,8 @@ sys_read (int fd, char * buffer, unsigned int count)
 		  int res = pfn_recv (SOCK_HANDLE (fd), buffer, count, 0);
 		  if (res == SOCKET_ERROR)
 		    {
-		      DebPrint(("sys_read.recv failed with error %d on socket %ld\n",
-				pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
+		      DebPrint (("sys_read.recv failed with error %d on socket %ld\n",
+				 pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
 		      set_errno ();
 		      return -1;
 		    }
@@ -5669,8 +5660,8 @@ sys_write (int fd, const void * buffer, unsigned int count)
 
       if (nchars == SOCKET_ERROR)
         {
-	  DebPrint(("sys_write.send failed with error %d on socket %ld\n",
-		    pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
+	  DebPrint (("sys_write.send failed with error %d on socket %ld\n",
+		     pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
 	  set_errno ();
 	}
     }
@@ -5857,7 +5848,8 @@ init_ntproc ()
         shutdown_handler ensures that buffers' autosave files are
 	up to date when the user logs off, or the system shuts down.
 */
-BOOL WINAPI shutdown_handler(DWORD type)
+BOOL WINAPI
+shutdown_handler (DWORD type)
 {
   /* Ctrl-C and Ctrl-Break are already suppressed, so don't handle them.  */
   if (type == CTRL_CLOSE_EVENT        /* User closes console window.  */
@@ -5916,14 +5908,15 @@ globals_of_w32 ()
      console apps. This actually applies to Emacs in both console and
      GUI modes, since we had to fool windows into thinking emacs is a
      console application to get console mode to work.  */
-  SetConsoleCtrlHandler(shutdown_handler, TRUE);
+  SetConsoleCtrlHandler (shutdown_handler, TRUE);
 
   /* "None" is the default group name on standalone workstations.  */
   strcpy (dflt_group_name, "None");
 }
 
 /* For make-serial-process  */
-int serial_open (char *port)
+int
+serial_open (char *port)
 {
   HANDLE hnd;
   child_process *cp;
@@ -5962,8 +5955,7 @@ int serial_open (char *port)
 
 /* For serial-process-configure  */
 void
-serial_configure (struct Lisp_Process *p,
-		      Lisp_Object contact)
+serial_configure (struct Lisp_Process *p, Lisp_Object contact)
 {
   Lisp_Object childp2 = Qnil;
   Lisp_Object tem = Qnil;
