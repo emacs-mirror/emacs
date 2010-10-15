@@ -281,7 +281,7 @@ If you are using earlier versions of Emacs, you will need:
 
 If you want your GnuPG passwords to be cached, set up @code{gpg-agent}
 or EasyPG Assitant
-@xref{Caching Passphrases, , Caching Passphrases, epa}
+(@pxref{Caching Passphrases, , Caching Passphrases, epa}).
 
 To quick start, here are some questions:
 

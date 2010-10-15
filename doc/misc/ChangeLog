@@ -1,3 +1,8 @@
+2010-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* auth.texi (GnuPG and EasyPG Assistant Configuration): Fix last
+	change.
+
 2010-10-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* auth.texi (GnuPG and EasyPG Assistant Configuration): Fix up the
