@@ -421,64 +421,65 @@ Return a string with image data."
   (browse-url-url-encode-chars url "[)$ ]"))
 
 (defun shr-tag-img (cont)
-  (when (and (> (current-column) 0)
-	     (not (eq shr-state 'image)))
-    (insert "\n"))
-  (let ((alt (cdr (assq :alt cont)))
-        (url (cdr (assq :src cont)))
-        (width (cdr (assq :width cont))))
-    ;; Only respect align if width specified.
-    (when width
-      ;; Check that width is not larger than max width, otherwise ignore
-      ;; align
-      (let ((max-width (* shr-width (frame-char-width)))
-            (width (string-to-number width)))
-        (when (< width max-width)
-          (let ((align (cdr (assq :align cont))))
-            (cond
-	     ((string= align "right")
-	      (insert (propertize
-		       " " 'display
-		       `(space . (:align-to
-				  ,(list (- max-width width)))))))
-	     ((string= align "center")
-	      (insert (propertize
-		       " " 'display
-		       `(space . (:balign-to
-				  ,(list (- (/ max-width 2) width))))))))))))
-    (let ((start (point-marker)))
-      (when (zerop (length alt))
-        (setq alt "[img]"))
-      (cond
-       ((and (not shr-inhibit-images)
-             (string-match "\\`cid:" url))
-        (let ((url (substring url (match-end 0)))
-	      image)
-	  (if (or (not shr-content-function)
-		  (not (setq image (funcall shr-content-function url))))
-	      (insert alt)
-	    (shr-put-image image (point) alt))))
-       ((or shr-inhibit-images
-	    (and shr-blocked-images
-		 (string-match shr-blocked-images url)))
-	(setq shr-start (point))
-	(let ((shr-state 'space))
-	  (if (> (length alt) 8)
-	      (shr-insert (substring alt 0 8))
-	    (shr-insert alt))))
-       ((url-is-cached (shr-encode-url url))
-	(shr-put-image (shr-get-image-data url) (point) alt))
-       (t
-	(insert alt)
-	(ignore-errors
-	  (url-retrieve (shr-encode-url url) 'shr-image-fetched
-			(list (current-buffer) start (point-marker))
-			t))))
-      (insert " ")
-      (put-text-property start (point) 'keymap shr-map)
-      (put-text-property start (point) 'shr-alt alt)
-      (put-text-property start (point) 'shr-image url)
-      (setq shr-state 'image))))
+  (when cont
+    (when (and (> (current-column) 0)
+	       (not (eq shr-state 'image)))
+      (insert "\n"))
+    (let ((alt (cdr (assq :alt cont)))
+	  (url (cdr (assq :src cont)))
+	  (width (cdr (assq :width cont))))
+      ;; Only respect align if width specified.
+      (when width
+	;; Check that width is not larger than max width, otherwise ignore
+	;; align
+	(let ((max-width (* shr-width (frame-char-width)))
+	      (width (string-to-number width)))
+	  (when (< width max-width)
+	    (let ((align (cdr (assq :align cont))))
+	      (cond
+	       ((string= align "right")
+		(insert (propertize
+			 " " 'display
+			 `(space . (:align-to
+				    ,(list (- max-width width)))))))
+	       ((string= align "center")
+		(insert (propertize
+			 " " 'display
+			 `(space . (:balign-to
+				    ,(list (- (/ max-width 2) width))))))))))))
+      (let ((start (point-marker)))
+	(when (zerop (length alt))
+	  (setq alt "[img]"))
+	(cond
+	 ((and (not shr-inhibit-images)
+	       (string-match "\\`cid:" url))
+	  (let ((url (substring url (match-end 0)))
+		image)
+	    (if (or (not shr-content-function)
+		    (not (setq image (funcall shr-content-function url))))
+		(insert alt)
+	      (shr-put-image image (point) alt))))
+	 ((or shr-inhibit-images
+	      (and shr-blocked-images
+		   (string-match shr-blocked-images url)))
+	  (setq shr-start (point))
+	  (let ((shr-state 'space))
+	    (if (> (length alt) 8)
+		(shr-insert (substring alt 0 8))
+	      (shr-insert alt))))
+	 ((url-is-cached (shr-encode-url url))
+	  (shr-put-image (shr-get-image-data url) (point) alt))
+	 (t
+	  (insert alt)
+	  (ignore-errors
+	    (url-retrieve (shr-encode-url url) 'shr-image-fetched
+			  (list (current-buffer) start (point-marker))
+			  t))))
+	(insert " ")
+	(put-text-property start (point) 'keymap shr-map)
+	(put-text-property start (point) 'shr-alt alt)
+	(put-text-property start (point) 'shr-image url)
+	(setq shr-state 'image)))))
 
 (defun shr-tag-pre (cont)
   (let ((shr-folding-mode 'none))
