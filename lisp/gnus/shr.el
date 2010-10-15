@@ -218,19 +218,34 @@ redirects somewhere else."
 	;; starts.
 	(unless shr-start
 	  (setq shr-start (point)))
+	;; No space is needed before or after a breakable character or
+	;; at the beginning of a line.
+	(when (and (eq (preceding-char) ? )
+		   (or (= (line-beginning-position) (1- (point)))
+		       (aref fill-find-break-point-function-table
+			     (char-after (- (point) 2)))
+		       (aref fill-find-break-point-function-table
+			     (aref elem 0))))
+	  (delete-char -1))
 	(insert elem)
 	(while (> (current-column) shr-width)
-	  (if (not (shr-find-fill-point))
-	      (insert "\n")
-	    (delete-char 1)
-	    (insert "\n")
+	  (unless (prog1
+		      (shr-find-fill-point)
+		    (when (eq (preceding-char) ? )
+		      (delete-char -1))
+		    (insert "\n"))
 	    (put-text-property (1- (point)) (point) 'shr-break t)
-	    (when (> shr-indentation 0)
-	      (shr-indent))
-	    (end-of-line)))
+	    ;; No space is needed at the beginning of a line.
+	    (if (eq (following-char) ? )
+		(delete-char 1)))
+	  (when (> shr-indentation 0)
+	    (shr-indent))
+	  (end-of-line))
 	(insert " "))
       (unless (string-match "[ \t\n]\\'" text)
 	(delete-char -1))))))
+
+(eval-and-compile (autoload 'kinsoku-longer "kinsoku"))
 
 (defun shr-find-fill-point ()
   (let ((found nil))
@@ -240,10 +255,26 @@ redirects somewhere else."
 		     (aref fill-find-break-point-function-table
 			   (preceding-char)))
 		 (<= (current-column) shr-width))
-	(setq found (point)))
-      (backward-char 1))
-    (or found
-	(end-of-line))))
+	(setq found t))
+      (backward-char 1)
+      (when (bolp)
+	;; There's no breakable point, so we give it up.
+	(end-of-line)
+	(while (aref fill-find-break-point-function-table
+		     (preceding-char))
+	  (backward-char 1))
+	(setq found 'failed)))
+    (cond ((eq found t)
+	   ;; Don't put kinsoku-bol characters at the beginning of a line.
+	   (or (eobp)
+	       (kinsoku-longer)
+	       (not (aref fill-find-break-point-function-table
+			  (following-char)))
+	       (forward-char 1)))
+	  (found t)
+	  (t
+	   (end-of-line)
+	   nil))))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))

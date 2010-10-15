@@ -1,3 +1,11 @@
+2010-10-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-generic): Remove trailing space.
+	(shr-insert): Remove space inserted before or after a breakable
+	character or at the beginning or the end of a line.
+	(shr-find-fill-point): Do kinsoku; find the second best point or give
+	it up if there's no breakable point.
+
 2010-10-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-open-connection): Message when opening connection
