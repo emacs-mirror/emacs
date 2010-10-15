@@ -3709,9 +3709,7 @@ process to set up.  VEC specifies the connection."
 	;; because we're running on a non-MULE Emacs.  Let's try
 	;; stty, instead.
 	(tramp-send-command vec "stty -onlcr" t))))
-  ;; Dump stty settings in the traces.
-  (when (>= tramp-verbose 9)
-    (tramp-send-command vec "stty -a" t))
+
   (tramp-send-command vec "set +o vi +o emacs" t)
 
   ;; Check whether the output of "uname -sr" has been changed.  If
@@ -3782,11 +3780,20 @@ process to set up.  VEC specifies the connection."
   (when (string-match "^IRIX64" (tramp-get-connection-property vec "uname" ""))
     (tramp-send-command vec "set +H" t))
 
+  ;; On BSD-like systems, ?\t is expanded to spaces.  Suppress this.
+  (when (string-match "BSD\\|Darwin"
+		      (tramp-get-connection-property vec "uname" ""))
+    (tramp-send-command vec "stty -oxtabs" t))
+
   ;; Set `remote-tty' process property.
   (ignore-errors
     (let ((tty (tramp-send-command-and-read vec "echo \\\"`tty`\\\"")))
       (unless (zerop (length tty))
 	(tramp-compat-process-put proc 'remote-tty tty))))
+
+  ;; Dump stty settings in the traces.
+  (when (>= tramp-verbose 9)
+    (tramp-send-command vec "stty -a" t))
 
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")

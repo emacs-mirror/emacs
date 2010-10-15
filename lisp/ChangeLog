@@ -1,3 +1,8 @@
+2010-10-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):
+	Suppress expansion of tabs to spaces.
+
 2010-10-14  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmail.el (rmail-show-message-1): Catch an error of
