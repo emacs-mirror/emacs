@@ -2,6 +2,7 @@
 
 	* Makefile.in (really-oldXMenu): Fix typo in variable name that
 	made building the X menu fail.
+	(really-oldXMenu): Fix my previous fix.
 
 2010-10-14  Damyan Pepper  <damyanp@gmail.com>
 

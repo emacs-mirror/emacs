@@ -660,7 +660,7 @@ really-lwlib:
 .PHONY: really-lwlib
 
 really-oldXMenu:
-	cd $(oldxMenudir); $(MAKE) $(MFLAGS) \
+	cd $(oldXMenudir); $(MAKE) $(MFLAGS) \
     CC='$(CC)' CFLAGS='$(CFLAGS)' MAKE='$(MAKE)'
 	@true  # make -t should not create really-oldXMenu.
 .PHONY: really-oldXMenu
