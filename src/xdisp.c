@@ -24602,6 +24602,8 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
       int x0;
       struct glyph *end;
 
+      /* Kludge alert: mode_line_string takes X/Y in pixels, but
+	 returns them in row/column units!  */
       string = mode_line_string (w, area, &x, &y, &charpos,
 				 &object, &dx, &dy, &width, &height);
 
@@ -24627,6 +24629,8 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
   else
     {
       x -= WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w);
+      /* Kludge alert: marginal_area_string takes X/Y in pixels, but
+	 returns them in row/column units!  */
       string = marginal_area_string (w, area, &x, &y, &charpos,
 				     &object, &dx, &dy, &width, &height);
     }
@@ -24715,21 +24719,26 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	  int gpos;
 	  int gseq_length;
 	  int total_pixel_width;
-	  EMACS_INT ignore;
+	  EMACS_INT begpos, endpos, ignore;
 
 	  int vpos, hpos;
 
 	  b = Fprevious_single_property_change (make_number (charpos + 1),
 						Qmouse_face, string, Qnil);
 	  if (NILP (b))
-	    b = make_number (0);
+	    begpos = 0;
+	  else
+	    begpos = XINT (b);
 
 	  e = Fnext_single_property_change (pos, Qmouse_face, string, Qnil);
 	  if (NILP (e))
-	    e = make_number (SCHARS (string));
+	    endpos = SCHARS (string);
+	  else
+	    endpos = XINT (e);
 
 	  /* Calculate the glyph position GPOS of GLYPH in the
-	     displayed string.
+	     displayed string, relative to the beginning of the
+	     highlighted part of the string.
 
 	     Note: GPOS is different from CHARPOS.  CHARPOS is the
 	     position of GLYPH in the internal string object.  A mode
@@ -24737,71 +24746,89 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	     a flattened string by the Emacs Lisp interpreter.  The
 	     internal string is an element of those structures.  The
 	     displayed string is the flattened string.  */
-	  gpos = 0;
-	  if (glyph > row_start_glyph)
-	    {
-	      tmp_glyph = glyph - 1;
-	      while (tmp_glyph >= row_start_glyph
-		     && tmp_glyph->charpos >= XINT (b)
-		     && EQ (tmp_glyph->object, glyph->object))
-		{
-		  tmp_glyph--;
-		  gpos++;
-		}
-	    }
+	  tmp_glyph = row_start_glyph;
+	  while (tmp_glyph < glyph
+		 && (!(EQ (tmp_glyph->object, glyph->object)
+		       && begpos <= tmp_glyph->charpos
+		       && tmp_glyph->charpos < endpos)))
+	    tmp_glyph++;
+	  gpos = glyph - tmp_glyph;
 
-	  /* Calculate the glyph sequence length GSEQ_LENGTH of the
-	     displayed string to which GLYPH belongs.  Note:
-	     GSEQ_LENGTH is different from SCHARS (STRING), because
-	     the latter returns the length of the internal string.  */
-	  for (tmp_glyph = glyph, gseq_length = gpos;
-	       tmp_glyph->charpos < XINT (e);
-	       tmp_glyph++, gseq_length++)
-	      {
-		if (!EQ (tmp_glyph->object, glyph->object))
-		  break;
-	      }
+	  /* Calculate the length GSEQ_LENGTH of the glyph sequence of
+	     the highlighted part of the displayed string to which
+	     GLYPH belongs.  Note: GSEQ_LENGTH is different from
+	     SCHARS (STRING), because the latter returns the length of
+	     the internal string.  */
+	  for (tmp_glyph = row->glyphs[TEXT_AREA] + row->used[TEXT_AREA] - 1;
+	       tmp_glyph > glyph
+		 && (!(EQ (tmp_glyph->object, glyph->object)
+		       && begpos <= tmp_glyph->charpos
+		       && tmp_glyph->charpos < endpos));
+	       tmp_glyph--)
+	    ;
+	  gseq_length = gpos + (tmp_glyph - glyph) + 1;
 
+	  /* Calculate the total pixel width of all the glyphs between
+	     the beginning of the highlighted area and GLYPH.  */
 	  total_pixel_width = 0;
 	  for (tmp_glyph = glyph - gpos; tmp_glyph != glyph; tmp_glyph++)
 	    total_pixel_width += tmp_glyph->pixel_width;
 
-	  /* Pre calculation of re-rendering position.  */
+	  /* Pre calculation of re-rendering position.  Note: X is in
+	     column units here, after the call to mode_line_string or
+	     marginal_area_string.  */
 	  hpos = x - gpos;
 	  vpos = (area == ON_MODE_LINE
 		  ? (w->current_matrix)->nrows - 1
 		  : 0);
 
-	  /* If the re-rendering position is included in the last
-	     re-rendering area, we should do nothing.  */
+	  /* If GLYPH's position is included in the region that is
+	     already drawn in mouse face, we have nothing to do.  */
 	  if ( EQ (window, dpyinfo->mouse_face_window)
-	       && dpyinfo->mouse_face_beg_col <= hpos
-	       && hpos < dpyinfo->mouse_face_end_col
+	       && (!row->reversed_p
+		   ? (dpyinfo->mouse_face_beg_col <= hpos
+		      && hpos < dpyinfo->mouse_face_end_col)
+		   /* In R2L rows we swap BEG and END, see below.  */
+		   : (dpyinfo->mouse_face_end_col <= hpos
+		      && hpos < dpyinfo->mouse_face_beg_col))
 	       && dpyinfo->mouse_face_beg_row == vpos )
 	    return;
 
 	  if (clear_mouse_face (dpyinfo))
 	    cursor = No_Cursor;
 
-	  dpyinfo->mouse_face_beg_col = hpos;
-	  dpyinfo->mouse_face_beg_row = vpos;
+	  if (!row->reversed_p)
+	    {
+	      dpyinfo->mouse_face_beg_col = hpos;
+	      dpyinfo->mouse_face_beg_x   = original_x_pixel
+					    - (total_pixel_width + dx);
+	      dpyinfo->mouse_face_end_col = hpos + gseq_length;
+	      dpyinfo->mouse_face_end_x   = 0;
+	    }
+	  else
+	    {
+	      /* In R2L rows, show_mouse_face expects BEG and END
+		 coordinates to be swapped.  */
+	      dpyinfo->mouse_face_end_col = hpos;
+	      dpyinfo->mouse_face_end_x   = original_x_pixel
+					    - (total_pixel_width + dx);
+	      dpyinfo->mouse_face_beg_col = hpos + gseq_length;
+	      dpyinfo->mouse_face_beg_x   = 0;
+	    }
 
-	  dpyinfo->mouse_face_beg_x   = original_x_pixel - (total_pixel_width + dx);
-	  dpyinfo->mouse_face_beg_y   = 0;
-
-	  dpyinfo->mouse_face_end_col = hpos + gseq_length;
-	  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_beg_row;
-
-	  dpyinfo->mouse_face_end_x   = 0;
-	  dpyinfo->mouse_face_end_y   = 0;
-
+	  dpyinfo->mouse_face_beg_row  = vpos;
+	  dpyinfo->mouse_face_end_row  = dpyinfo->mouse_face_beg_row;
+	  dpyinfo->mouse_face_beg_y    = 0;
+	  dpyinfo->mouse_face_end_y    = 0;
 	  dpyinfo->mouse_face_past_end = 0;
-	  dpyinfo->mouse_face_window  = window;
+	  dpyinfo->mouse_face_window   = window;
 
 	  dpyinfo->mouse_face_face_id = face_at_string_position (w, string,
 								 charpos,
-								 0, 0, 0, &ignore,
-								 glyph->face_id, 1);
+								 0, 0, 0,
+								 &ignore,
+								 glyph->face_id,
+								 1);
 	  show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
 
 	  if (NILP (pointer))
