@@ -24324,6 +24324,11 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
 }
 
+/* The following function is not used anymore (replaced with
+   mouse_face_from_string_pos), but I leave it here for the time
+   being, in case someone would.  */
+
+#if 0	/* not used */
 
 /* Find the position of the glyph for position POS in OBJECT in
    window W's current matrix, and return in *X, *Y the pixel
@@ -24401,7 +24406,96 @@ fast_find_string_pos (struct window *w, EMACS_INT pos, Lisp_Object object,
 
   return best_glyph != NULL;
 }
+#endif	/* not used */
 
+/* Find the positions of the first and the last glyphs in window W's
+   current matrix that occlude positions [STARTPOS..ENDPOS) in OBJECT
+   (assumed to be a string), and return in DPYINFO's mouse_face
+   members the pixel and column/row coordinates of those glyphs.  */
+
+static void
+mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
+			    Lisp_Object object,
+			    EMACS_INT startpos, EMACS_INT endpos)
+{
+  int yb = window_text_bottom_y (w);
+  struct glyph_row *r;
+  struct glyph *g, *e;
+  int gx;
+  int found;
+
+  /* Find the glyph row with at least one position in the range
+     [STARTPOS..ENDPOS), and the leftmost glyph in that row whose
+     position belongs to that range.  */
+  for (r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+       r->enabled_p && r->y < yb;
+       ++r)
+    {
+      g = r->glyphs[TEXT_AREA];
+      e = g + r->used[TEXT_AREA];
+      for (gx = r->x; g < e; gx += g->pixel_width, ++g)
+	if (EQ (g->object, object)
+	    && startpos <= g->charpos && g->charpos < endpos)
+	  {
+	    dpyinfo->mouse_face_beg_row = r - w->current_matrix->rows;
+	    dpyinfo->mouse_face_beg_y = r->y;
+	    if (!r->reversed_p)
+	      {
+		dpyinfo->mouse_face_beg_col = g - r->glyphs[TEXT_AREA];
+		dpyinfo->mouse_face_beg_x = gx;
+	      }
+	    else
+	      {
+		/* R2L rows want BEG and END swapped, see
+		   show_mouse_face.  */
+		dpyinfo->mouse_face_end_col = g - r->glyphs[TEXT_AREA];
+		dpyinfo->mouse_face_end_x = gx;
+	      }
+	    break;
+	  }
+    }
+
+  /* Starting with the next row, look for the first row which does NOT
+     include any glyphs whose positions are in the range.  */
+  for (++r; r->enabled_p && r->y < yb; ++r)
+    {
+      g = r->glyphs[TEXT_AREA];
+      e = g + r->used[TEXT_AREA];
+      found = 0;
+      for ( ; g < e; ++g)
+	if (EQ (g->object, object)
+	    && startpos <= g->charpos && g->charpos < endpos)
+	  {
+	    found = 1;
+	    break;
+	  }
+      if (!found)
+	break;
+    }
+
+  if (!found)
+    r--;
+  dpyinfo->mouse_face_end_row = r - w->current_matrix->rows;
+  dpyinfo->mouse_face_end_y = r->y;
+
+  g = r->glyphs[TEXT_AREA];
+  e = g + r->used[TEXT_AREA];
+  for ( ; e > g; --e)
+    if (EQ ((e-1)->object, object)
+	&& startpos <= (e-1)->charpos && (e-1)->charpos < endpos)
+      break;
+  if (!r->reversed_p)
+    dpyinfo->mouse_face_end_col = e - g;
+  else
+    dpyinfo->mouse_face_beg_col = e - g;
+
+  for (gx = r->x; g < e; ++g)
+    gx += g->pixel_width;
+  if (!r->reversed_p)
+    dpyinfo->mouse_face_end_x = gx;
+  else
+    dpyinfo->mouse_face_beg_x = gx;
+}
 
 /* See if position X, Y is within a hot-spot of an image.  */
 
@@ -25103,17 +25197,8 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		b = make_number (0);
 	      if (NILP (e))
 		e = make_number (SCHARS (object) - 1);
-
-	      fast_find_string_pos (w, XINT (b), object,
-				    &dpyinfo->mouse_face_beg_col,
-				    &dpyinfo->mouse_face_beg_row,
-				    &dpyinfo->mouse_face_beg_x,
-				    &dpyinfo->mouse_face_beg_y, 0);
-	      fast_find_string_pos (w, XINT (e), object,
-				    &dpyinfo->mouse_face_end_col,
-				    &dpyinfo->mouse_face_end_row,
-				    &dpyinfo->mouse_face_end_x,
-				    &dpyinfo->mouse_face_end_y, 1);
+	      mouse_face_from_string_pos (w, dpyinfo, object,
+					  XINT (b), XINT (e));
 	      dpyinfo->mouse_face_past_end = 0;
 	      dpyinfo->mouse_face_window = window;
 	      dpyinfo->mouse_face_face_id

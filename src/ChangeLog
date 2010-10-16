@@ -1,5 +1,12 @@
 2010-10-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (fast_find_string_pos): #ifdef away, not used anymore.
+	(mouse_face_from_string_pos): New function, replaces
+	fast_find_string_pos.
+	(note_mouse_highlight): Call it instead of fast_find_string_pos.
+
+2010-10-16  Eli Zaretskii  <eliz@gnu.org>
+
 	* xdisp.c (note_mode_line_or_margin_highlight): Support
 	bidi-reordered strings and R2L glyph rows.  Fix more comments.
 
