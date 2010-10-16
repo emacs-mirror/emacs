@@ -1,3 +1,10 @@
+2010-10-16  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/reftex-cite.el
+	(reftex-extract-bib-entries-from-thebibliography): Do not move
+	point when searching for \bibitem entries.  Match entries with
+	spaces or tabs in front of arguments.
+
 2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-theme.el (customize-create-theme): Delete overlays after
