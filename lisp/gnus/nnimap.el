@@ -304,7 +304,8 @@ textual parts.")
 	       ((or (eq nnimap-stream 'network)
 		    (and (eq nnimap-stream 'starttls)
 			 (fboundp 'open-gnutls-stream)))
-		(message "Opening connection to %s..." nnimap-address)
+		(nnheader-message 7 "Opening connection to %s..."
+				  nnimap-address)
 		(open-network-stream
 		 "*nnimap*" (current-buffer) nnimap-address
 		 (setq port
@@ -314,13 +315,14 @@ textual parts.")
 			     "143"))))
 		'("143" "imap"))
 	       ((eq nnimap-stream 'shell)
-		(message "Opening connection to %s via shell..." nnimap-address)
+		(nnheader-message 7 "Opening connection to %s via shell..."
+				  nnimap-address)
 		(nnimap-open-shell-stream
 		 "*nnimap*" (current-buffer) nnimap-address
 		 (setq port (or nnimap-server-port "imap")))
 		'("imap"))
 	       ((eq nnimap-stream 'starttls)
-		(message "Opening connection to %s via starttls..."
+		(nnheader-message 7 "Opening connection to %s via starttls..."
 			 nnimap-address)
 		(let ((tls-program
 		       '("openssl s_client -connect %h:%p -no_ssl2 -ign_eof -starttls imap")))
@@ -329,7 +331,8 @@ textual parts.")
 		   (setq port (or nnimap-server-port "imap"))))
 		'("imap"))
 	       ((memq nnimap-stream '(ssl tls))
-		(message "Opening connection to %s via tls..." nnimap-address)
+		(nnheader-message 7 "Opening connection to %s via tls..."
+				  nnimap-address)
 		(funcall (if (fboundp 'open-gnutls-stream)
 			     'open-gnutls-stream
 			   'open-tls-stream)
@@ -734,7 +737,7 @@ textual parts.")
    ((and force
 	 (eq nnmail-expiry-target 'delete))
     (unless (nnimap-delete-article (gnus-compress-sequence articles))
-      (message "Article marked for deletion, but not expunged."))
+      (nnheader-message 7 "Article marked for deletion, but not expunged."))
     nil)
    (t
     (let ((deletable-articles
@@ -760,7 +763,7 @@ textual parts.")
       (let ((target nnmail-expiry-target))
 	(with-temp-buffer
 	  (when (nnimap-request-article article group server (current-buffer))
-	    (message "Expiring article %s:%d" group article)
+	    (nnheader-message 7 "Expiring article %s:%d" group article)
 	    (when (functionp target)
 	      (setq target (funcall target group)))
 	    (when (and target
@@ -830,7 +833,7 @@ textual parts.")
   (when (and (nnimap-possibly-change-group nil server)
 	     nnimap-inbox
 	     nnimap-split-methods)
-    (message "nnimap %s splitting mail..." server)
+    (nnheader-message 7 "nnimap %s splitting mail..." server)
     (nnimap-split-incoming-mail)))
 
 (defun nnimap-marks-to-flags (marks)
@@ -882,7 +885,7 @@ textual parts.")
 	(let ((result (nnimap-get-response sequence)))
 	  (if (not (car result))
 	      (progn
-		(message "%s" (nnheader-get-report-string 'nnimap))
+		(nnheader-message 7 "%s" (nnheader-get-report-string 'nnimap))
 		nil)
 	    (cons group
 		  (nnimap-find-article-by-message-id group message-id))))))))
@@ -1431,7 +1434,7 @@ textual parts.")
 			      (point-min))
 			    t)))
 	    (when messagep
-	      (message "nnimap read %dk" (/ (buffer-size) 1000)))
+	      (nnheader-message 7 "nnimap read %dk" (/ (buffer-size) 1000)))
 	    (nnheader-accept-process-output process)
 	    (goto-char (point-max)))
           openp)

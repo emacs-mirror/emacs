@@ -8830,6 +8830,7 @@ fetch what's specified by the `gnus-refer-thread-limit'
 variable."
   (interactive "P")
   (let ((id (mail-header-id (gnus-summary-article-header)))
+	(gnus-summary-ignore-duplicates t)
 	(limit (if limit (prefix-numeric-value limit)
 		 gnus-refer-thread-limit)))
     (if  (gnus-check-backend-function 'request-thread gnus-newsgroup-name)
