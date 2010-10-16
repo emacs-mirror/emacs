@@ -1,3 +1,8 @@
+2010-10-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (rows_from_pos_range, mouse_face_from_buffer_pos)
+	(note_mode_line_or_margin_highlight): Fix comments.
+
 2010-10-09  Eli Zaretskii  <eliz@gnu.org>
 
 	Finished work on mouse_face_from_buffer_pos for bidi-reordered

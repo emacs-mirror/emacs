@@ -23926,7 +23926,7 @@ rows_from_pos_range (struct window *w,
 	     glyphs it displays has a charpos from the range
 	     [START_CHARPOS..END_CHARPOS).
 
-	     This is not obvious because bidi reordering could have
+	     This is not obvious because bidi reordering could make
 	     buffer positions of a row be 1,2,3,102,101,100, and if we
 	     want to highlight characters in [50..60), we don't want
 	     this row, even though [50..60) does intersect [1..103),
@@ -24031,17 +24031,12 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   xassert (NILP (before_string) || STRINGP (before_string));
   xassert (NILP (after_string) || STRINGP (after_string));
 
-  /* FIXME: Sometimes the caller gets "wise" and gives us the window
-     start position instead of the real start of the mouse face
-     property.  This completely messes up the logic of finding the
-     beg_row and end_row.  */
-
   /* Find the rows corresponding to START_CHARPOS and END_CHARPOS.  */
   rows_from_pos_range (w, start_charpos, end_charpos, &r1, &r2);
   if (r1 == NULL)
     r1 = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
   /* If the before-string or display-string contains newlines,
-     row_containing_pos skips to its last row.  Move back.  */
+     rows_from_pos_range skips to its last row.  Move back.  */
   if (!NILP (before_string) || !NILP (display_string))
     {
       struct glyph_row *prev;
@@ -24614,7 +24609,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	     ? MATRIX_MODE_LINE_ROW (w->current_matrix)
 	     : MATRIX_HEADER_LINE_ROW (w->current_matrix));
 
-      /* Find glyph */
+      /* Find the glyph under the mouse pointer.  */
       if (row->mode_line_p && row->enabled_p)
 	{
 	  glyph = row_start_glyph = row->glyphs[TEXT_AREA];
@@ -24733,14 +24728,15 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	  if (NILP (e))
 	    e = make_number (SCHARS (string));
 
-	  /* Calculate the position(glyph position: GPOS) of GLYPH in
-	     displayed string. GPOS is different from CHARPOS.
+	  /* Calculate the glyph position GPOS of GLYPH in the
+	     displayed string.
 
-	     CHARPOS is the position of glyph in internal string
-	     object. A mode line string format has structures which
-	     is converted to a flatten by emacs lisp interpreter.
-	     The internal string is an element of the structures.
-	     The displayed string is the flatten string. */
+	     Note: GPOS is different from CHARPOS.  CHARPOS is the
+	     position of GLYPH in the internal string object.  A mode
+	     line string format has structures which are converted to
+	     a flattened string by the Emacs Lisp interpreter.  The
+	     internal string is an element of those structures.  The
+	     displayed string is the flattened string.  */
 	  gpos = 0;
 	  if (glyph > row_start_glyph)
 	    {
@@ -24754,11 +24750,10 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 		}
 	    }
 
-	  /* Calculate the lenght(glyph sequence length: GSEQ_LENGTH) of
-	     displayed string holding GLYPH.
-
-	     GSEQ_LENGTH is different from SCHARS (STRING).
-	     SCHARS (STRING) returns the length of the internal string. */
+	  /* Calculate the glyph sequence length GSEQ_LENGTH of the
+	     displayed string to which GLYPH belongs.  Note:
+	     GSEQ_LENGTH is different from SCHARS (STRING), because
+	     the latter returns the length of the internal string.  */
 	  for (tmp_glyph = glyph, gseq_length = gpos;
 	       tmp_glyph->charpos < XINT (e);
 	       tmp_glyph++, gseq_length++)
@@ -24771,14 +24766,14 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	  for (tmp_glyph = glyph - gpos; tmp_glyph != glyph; tmp_glyph++)
 	    total_pixel_width += tmp_glyph->pixel_width;
 
-	  /* Pre calculation of re-rendering position */
-	  hpos = (x - gpos);
+	  /* Pre calculation of re-rendering position.  */
+	  hpos = x - gpos;
 	  vpos = (area == ON_MODE_LINE
 		  ? (w->current_matrix)->nrows - 1
 		  : 0);
 
 	  /* If the re-rendering position is included in the last
-	     re-rendering area, we should do nothing. */
+	     re-rendering area, we should do nothing.  */
 	  if ( EQ (window, dpyinfo->mouse_face_window)
 	       && dpyinfo->mouse_face_beg_col <= hpos
 	       && hpos < dpyinfo->mouse_face_end_col
@@ -25137,7 +25132,10 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		     previous-single-property-change and
 		     next-single-property-change, because
 		     rows_from_pos_range needs the real start and end
-		     positions to DTRT in this case.  */
+		     positions to DTRT in this case.  That's because
+		     the first row visible in a window does not
+		     necessarily display the character whose position
+		     is the smallest.  */
 		  Lisp_Object lim1 =
 		    NILP (XBUFFER (buffer)->bidi_display_reordering)
 		    ? Fmarker_position (w->start)
