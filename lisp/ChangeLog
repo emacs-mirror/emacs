@@ -1,3 +1,17 @@
+2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el: Custom themes no longer use load-path.
+	(custom-theme-load-path): New option.  Change built-in theme
+	directory to etc/.
+	(custom-enabled-themes): Add custom-theme-load-path dependency.
+	(custom-theme--load-path): New function.
+	(load-theme, custom-available-themes): Use it.
+
+	* cus-theme.el (describe-theme-1): Use custom-theme--load-path.
+	(customize-themes): Link to custom-theme-load-path variable.
+
+	* themes/*.el: Moved to etc/.
+
 2010-10-16  Ralf Angeli  <angeli@caeruleus.net>
 
 	* textmodes/reftex-cite.el

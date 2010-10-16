@@ -316,7 +316,7 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
 
     (with-temp-buffer
       (emacs-lisp-mode)
-      (unless (file-exists-p custom-theme-directory)
+      (unless (file-directory-p custom-theme-directory)
 	(make-directory (file-name-as-directory custom-theme-directory) t))
       (setq buffer-file-name filename)
       (erase-buffer)
@@ -419,7 +419,7 @@ It includes all faces in list FACES."
   (prin1 theme)
   (princ " is a custom theme")
   (let ((fn (locate-file (concat (symbol-name theme) "-theme.el")
-			 (cons custom-theme-directory load-path)
+			 (custom-theme--load-path)
 			 '("" "c")))
 	doc)
     (when fn
@@ -508,26 +508,15 @@ omitted, a buffer named *Custom Themes* is used."
     "Type RET or click to enable/disable listed custom themes.
 Type \\[custom-describe-theme] to describe the theme at point.
 Theme files are named *-theme.el in `"))
-  (when (stringp custom-theme-directory)
-    (widget-create 'link :value custom-theme-directory
-		   :button-face 'custom-link
-		   :mouse-face 'highlight
-		   :pressed-face 'highlight
-		   :help-echo "Describe `custom-theme-directory'."
-		   :keymap custom-mode-link-map
-		   :follow-link 'mouse-face
-		   :action (lambda (widget &rest ignore)
-			     (describe-variable 'custom-theme-directory)))
-    (widget-insert "' or `"))
-  (widget-create 'link :value "load-path"
+  (widget-create 'link :value "custom-theme-load-path"
 		 :button-face 'custom-link
 		 :mouse-face 'highlight
 		 :pressed-face 'highlight
-		 :help-echo "Describe `load-path'."
+		 :help-echo "Describe `custom-theme-load-path'."
 		 :keymap custom-mode-link-map
 		 :follow-link 'mouse-face
 		 :action (lambda (widget &rest ignore)
-			   (describe-variable 'load-path)))
+			   (describe-variable 'custom-theme-load-path)))
   (widget-insert "'.\n\n")
 
   ;; If the user has made customizations, display a warning and

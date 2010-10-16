@@ -199,6 +199,11 @@ loaded, customize `package-load-list'.
 
 *** `M-x customize-themes' lists Custom themes which can be enabled.
 
+*** New option `custom-theme-load-path' is the load path for themes.
+Emacs no longer looks for custom themes in `load-path'.  The default
+is to search in `custom-theme-directory', followed by a built-in theme
+directory named "themes/" in `data-directory'.
+
 ** The user option `remote-file-name-inhibit-cache' controls whether
 the remote file-name cache is used for read access.
 

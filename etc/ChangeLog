@@ -1,3 +1,7 @@
+2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes: New directory for custom theme files, moved from lisp/.
+
 2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* tutorials/TUTORIAL.es: Fix typos.
