@@ -1066,10 +1066,11 @@ directory first---see `custom-theme-load-path'."
 Emacs commands for loading custom themes (e.g. `customize-themes'
 and `load-theme') search for custom theme files in the specified
 order.  Each element in the list should be one of the following:
-\(i) the symbol `custom-theme-directory', which means the value
-of that variable; (ii) the symbol t (the built-in Emacs theme
-directory, named \"themes\" in `data-directory'); or \(iii) a
-directory name (a string)."
+- the symbol `custom-theme-directory', meaning the value of
+  `custom-theme-directory'.
+- the symbol t, meaning the built-in theme directory (a directory
+  named \"themes\" in `data-directory').
+- a directory name (a string)."
   :type '(repeat (choice (const :tag "custom-theme-directory"
 				custom-theme-directory)
 			 (const :tag "Built-in theme directory" t)

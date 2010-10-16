@@ -1,5 +1,14 @@
 2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cus-edit.el (custom-variable, custom-face): Combine the
+	:inhibit-magic and :display-style properties into a single
+	:custom-style property.
+	(custom-toggle-hide-variable, custom-toggle-hide-face): New
+	functions.  If hiding an edited value, save it to :shown-value.
+	(custom-variable-value-create, custom-face-value-create): Use
+	them.
+	(custom-magic-reset): Allow magic property to be unset.
+
 	* custom.el: Custom themes no longer use load-path.
 	(custom-theme-load-path): New option.  Change built-in theme
 	directory to etc/.
@@ -9,6 +18,8 @@
 
 	* cus-theme.el (describe-theme-1): Use custom-theme--load-path.
 	(customize-themes): Link to custom-theme-load-path variable.
+	(custom-theme-add-var-1, custom-theme-add-face-1): Use the
+	:custom-style property.
 
 	* themes/*.el: Moved to etc/.
 

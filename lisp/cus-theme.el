@@ -41,7 +41,7 @@
     map)
   "Keymap for `custom-new-theme-mode'.")
 
-(define-derived-mode custom-new-theme-mode nil "Cus-Theme"
+(define-derived-mode custom-new-theme-mode nil "Custom-Theme"
   "Major mode for editing Custom themes.
 Do not call this mode function yourself.  It is meant for internal use."
   (use-local-map custom-new-theme-mode-map)
@@ -214,7 +214,7 @@ interactively, this defaults to the current value of VAR."
 			     :notify 'ignore
 			     :custom-level 0
 			     :custom-state 'hidden
-			     :inhibit-magic t))
+			     :custom-style 'simple))
 	custom-theme-variables)
   (widget-insert " "))
 
@@ -250,9 +250,8 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
 			     :documentation-shown t
 			     :value symbol
 			     :custom-state 'hidden
-			     :display-style 'concise
+			     :custom-style 'simple
 			     :shown-value spec
-			     :inhibit-magic t
 			     :sample-indent 34))
 	custom-theme-faces)
   (widget-insert " "))
@@ -476,7 +475,7 @@ It includes all faces in list FACES."
     map)
   "Keymap for `custom-theme-choose-mode'.")
 
-(define-derived-mode custom-theme-choose-mode nil "Cus-Theme"
+(define-derived-mode custom-theme-choose-mode nil "Themes"
   "Major mode for selecting Custom themes.
 Do not call this mode function yourself.  It is meant for internal use."
   (use-local-map custom-theme-choose-mode-map)

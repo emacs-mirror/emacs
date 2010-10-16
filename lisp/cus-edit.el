@@ -2077,7 +2077,8 @@ and `face'."
 (defun custom-magic-reset (widget)
   "Redraw the :custom-magic property of WIDGET."
   (let ((magic (widget-get widget :custom-magic)))
-    (widget-value-set magic (widget-value magic))))
+    (when magic
+      (widget-value-set magic (widget-value magic)))))
 
 ;;; The `custom' Widget.
 
@@ -2465,8 +2466,9 @@ The following properties have special meanings for this widget:
 :shown-value, if non-nil, should be a list whose `car' is the
   variable value to display in place of the current value.
 
-:inhibit-magic, if non-nil, inhibits creating the magic
-  custom-state widget."
+:custom-style describes the widget interface style; nil is the
+  default style, while `simple' means a simpler interface that
+  inhibits the magic custom-state widget."
   :format "%v"
   :help-echo "Set or reset this variable."
   :documentation-property #'custom-variable-documentation
@@ -2552,7 +2554,7 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  :on "Hide"
 		  :off-image "right"
 		  :off "Show Value"
-		  :action 'custom-toggle-parent
+		  :action 'custom-toggle-hide-variable
 		  nil)
 		 buttons)
 	   (insert " ")
@@ -2572,7 +2574,7 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  :off "Show"
 		  :on-image "down"
 		  :off-image "right"
-		  :action 'custom-toggle-parent
+		  :action 'custom-toggle-hide-variable
 		  t)
 		 buttons)
 	   (insert " ")
@@ -2602,7 +2604,7 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  :off "Show"
 		  :on-image "down"
 		  :off-image "right"
-		  :action 'custom-toggle-parent
+		  :action 'custom-toggle-hide-variable
 		  t)
 		 buttons)
 	   (insert " ")
@@ -2631,7 +2633,7 @@ try matching its doc string against `custom-guess-doc-alist'."
       (unless (eq (preceding-char) ?\n)
 	(widget-insert "\n"))
       ;; Create the magic button.
-      (unless (widget-get widget :inhibit-magic)
+      (unless (eq (widget-get widget :custom-style) 'simple)
 	(let ((magic (widget-create-child-and-convert
 		      widget 'custom-magic nil)))
 	  (widget-put widget :custom-magic magic)
@@ -2666,6 +2668,31 @@ try matching its doc string against `custom-guess-doc-alist'."
 	(when (eq (widget-get widget :custom-level) 1)
 	  (custom-add-parent-links widget))
 	(custom-add-see-also widget)))))
+
+(defun custom-toggle-hide-variable (visibility-widget &rest ignore)
+  "Toggle the visibility of a `custom-variable' parent widget.
+By default, this signals an error if the parent has unsaved
+changes.  If the parent has a `simple' :custom-style property,
+the present value is saved to its :shown-value property instead."
+  (let ((widget (widget-get visibility-widget :parent)))
+    (unless (eq (widget-type widget) 'custom-variable)
+      (error "Invalid widget type"))
+    (custom-load-widget widget)
+    (let ((state (widget-get widget :custom-state)))
+      (if (eq state 'hidden)
+	  (widget-put widget :custom-state 'unknown)
+	;; In normal interface, widget can't be hidden if modified.
+	(when (memq state '(invalid modified set))
+	  (if (eq (widget-get widget :custom-style) 'simple)
+	      (widget-put widget :shown-value
+			  (list (widget-value
+				 (car-safe
+				  (widget-get widget :children)))))
+	    (error "There are unsaved changes")))
+	(widget-put widget :documentation-shown nil)
+	(widget-put widget :custom-state 'hidden))
+      (custom-redraw widget)
+      (widget-setup))))
 
 (defun custom-tag-action (widget &rest args)
   "Pass :action to first child of WIDGET's parent."
@@ -3291,17 +3318,15 @@ The following properties have special meanings for this widget:
   Lisp sexp), or `mismatch' (should not happen); if nil, use
   the return value of `custom-face-default-form'.
 
-:display-style, if non-nil, describes the style of display to
-  use.  If the value is `concise', a neater interface is shown.
+:custom-style describes the widget interface style; nil is the
+  default style, while `simple' means a simpler interface that
+  inhibits the magic custom-state widget.
 
 :sample-indent, if non-nil, is the number of columns to which to
   indent the face sample (an integer).
 
 :shown-value, if non-nil, is the face spec to display as the value
-  of the widget, instead of the current face spec.
-
-:inhibit-magic, if non-nil, inhibits creating the magic
-  custom-state widget."
+  of the widget, instead of the current face spec."
   :sample-face 'custom-face-tag
   :help-echo "Set or reset this face."
   :documentation-property #'face-doc-string
@@ -3395,6 +3420,29 @@ WIDGET should be a `custom-face' widget."
 	(setq spec `((t ,(face-attr-construct face (selected-frame))))))
     (custom-pre-filter-face-spec spec)))
 
+(defun custom-toggle-hide-face (visibility-widget &rest ignore)
+  "Toggle the visibility of a `custom-face' parent widget.
+By default, this signals an error if the parent has unsaved
+changes.  If the parent has a `simple' :custom-style property,
+the present value is saved to its :shown-value property instead."
+  (let ((widget (widget-get visibility-widget :parent)))
+    (unless (eq (widget-type widget) 'custom-face)
+      (error "Invalid widget type"))
+    (custom-load-widget widget)
+    (let ((state (widget-get widget :custom-state)))
+      (if (eq state 'hidden)
+	  (widget-put widget :custom-state 'unknown)
+	;; In normal interface, widget can't be hidden if modified.
+	(when (memq state '(invalid modified set))
+	  (if (eq (widget-get widget :custom-style) 'simple)
+	      (widget-put widget :shown-value
+			  (custom-face-widget-to-spec widget))
+	    (error "There are unsaved changes")))
+	(widget-put widget :documentation-shown nil)
+	(widget-put widget :custom-state 'hidden))
+      (custom-redraw widget)
+      (widget-setup))))
+
 (defun custom-face-value-create (widget)
   "Create a list of the display specifications for WIDGET."
   (let* ((buttons (widget-get widget :buttons))
@@ -3402,7 +3450,7 @@ WIDGET should be a `custom-face' widget."
 	 (tag (or (widget-get widget :tag)
 		  (prin1-to-string symbol)))
 	 (hiddenp (eq (widget-get widget :custom-state) 'hidden))
-	 (style   (widget-get widget :display-style))
+	 (style   (widget-get widget :custom-style))
 	 children)
 
     (if (eq custom-buffer-style 'tree)
@@ -3425,7 +3473,7 @@ WIDGET should be a `custom-face' widget."
 	       :help-echo "Hide or show this face."
 	       :on "Hide" :off "Show"
 	       :on-image "down" :off-image "right"
-	       :action 'custom-toggle-parent
+	       :action 'custom-toggle-hide-face
 	       (not hiddenp))
 	      buttons)
 	;; Face name (tag).
@@ -3452,7 +3500,7 @@ WIDGET should be a `custom-face' widget."
       (insert "\n")
 
       ;; Magic.
-      (unless (widget-get widget :inhibit-magic)
+      (unless (eq (widget-get widget :custom-style) 'simple)
 	(let ((magic (widget-create-child-and-convert
 		      widget 'custom-magic nil)))
 	  (widget-put widget :custom-magic magic)
@@ -3462,7 +3510,7 @@ WIDGET should be a `custom-face' widget."
       (widget-put widget :buttons buttons)
 
       ;; Insert documentation.
-      (unless (and hiddenp (eq style 'concise))
+      (unless (and hiddenp (eq style 'simple))
 	(widget-put widget :documentation-indent 3)
 	(widget-add-documentation-string-button
 	 widget :visibility-widget 'custom-visibility)
