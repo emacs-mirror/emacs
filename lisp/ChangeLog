@@ -1,3 +1,23 @@
+2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el (customize-create-theme): Delete overlays after
+	erasing.  If given a THEME arg, display only the faces of that arg
+	instead of custom-theme--listed-faces.
+	(custom-theme-variable-menu, custom-theme-variable-action)
+	(custom-variable-reset-theme, custom-theme-delete-variable): Deleted.
+	(custom-theme-add-variable, custom-theme-add-face): Apply value
+	from the theme settings, instead of the current value.
+	(custom-theme-add-var-1, custom-theme-add-face-1): New functions.
+	(custom-theme-visit-theme): Allow calling outside theme buffers.
+	(custom-theme-merge-theme): Don't enable the theme when merging.
+	(custom-theme-write-variables, custom-theme-write-faces): Use the
+	:shown-value properties to save buffer values, not global ones.
+	(customize-themes): Display a warning about user customizations.
+
+	* cus-edit.el (custom-variable-value-create)
+	(custom-face-value-create): Obey new special properties
+	:shown-value and :inhibit-magic.
+
 2010-10-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):

@@ -2460,7 +2460,13 @@ The following properties have special meanings for this widget:
 :custom-form should be a symbol describing how to display and
   edit the variable---either `edit' (using edit widgets),
   `lisp' (as a Lisp sexp), or `mismatch' (should not happen);
-  if nil, use the return value of `custom-variable-default-form'."
+  if nil, use the return value of `custom-variable-default-form'.
+
+:shown-value, if non-nil, should be a list whose `car' is the
+  variable value to display in place of the current value.
+
+:inhibit-magic, if non-nil, inhibits creating the magic
+  custom-state widget."
   :format "%v"
   :help-echo "Set or reset this variable."
   :documentation-property #'custom-variable-documentation
@@ -2512,9 +2518,12 @@ try matching its doc string against `custom-guess-doc-alist'."
 	 (get (or (get symbol 'custom-get) 'default-value))
 	 (prefix (widget-get widget :custom-prefix))
 	 (last (widget-get widget :custom-last))
-	 (value (if (default-boundp symbol)
-		    (funcall get symbol)
-		  (widget-get conv :value)))
+	 (value (let ((shown-value (widget-get widget :shown-value)))
+		  (cond (shown-value
+			 (car shown-value))
+			((default-boundp symbol)
+			 (funcall get symbol))
+			(t (widget-get conv :value)))))
 	 (state (or (widget-get widget :custom-state)
 		    (if (memq (custom-variable-state symbol value)
 			      (widget-get widget :hidden-states))
@@ -2622,10 +2631,11 @@ try matching its doc string against `custom-guess-doc-alist'."
       (unless (eq (preceding-char) ?\n)
 	(widget-insert "\n"))
       ;; Create the magic button.
-      (let ((magic (widget-create-child-and-convert
-		    widget 'custom-magic nil)))
-	(widget-put widget :custom-magic magic)
-	(push magic buttons))
+      (unless (widget-get widget :inhibit-magic)
+	(let ((magic (widget-create-child-and-convert
+		      widget 'custom-magic nil)))
+	  (widget-put widget :custom-magic magic)
+	  (push magic buttons)))
       (widget-put widget :buttons buttons)
       ;; Insert documentation.
       (widget-put widget :documentation-indent 3)
@@ -3281,12 +3291,17 @@ The following properties have special meanings for this widget:
   Lisp sexp), or `mismatch' (should not happen); if nil, use
   the return value of `custom-face-default-form'.
 
-:display-style, if non-nil, should be a symbol describing the
-  style of display to use.  If the value is `concise', a more
-  concise interface is shown.
+:display-style, if non-nil, describes the style of display to
+  use.  If the value is `concise', a neater interface is shown.
 
-:sample-indent, if non-nil, should be an integer; this is the
-number of columns to which to indent the face sample."
+:sample-indent, if non-nil, is the number of columns to which to
+  indent the face sample (an integer).
+
+:shown-value, if non-nil, is the face spec to display as the value
+  of the widget, instead of the current face spec.
+
+:inhibit-magic, if non-nil, inhibits creating the magic
+  custom-state widget."
   :sample-face 'custom-face-tag
   :help-echo "Set or reset this face."
   :documentation-property #'face-doc-string
@@ -3429,14 +3444,19 @@ WIDGET should be a `custom-face' widget."
 	     (indent-to-column sample-indent)))
       (push (widget-create-child-and-convert
 	     widget 'item
-	     :format "[%{%t%}]" :sample-face symbol :tag "sample")
+	     :format "[%{%t%}]"
+	     :sample-face (let ((spec (widget-get widget :shown-value)))
+			    (if spec (face-spec-choose spec) symbol))
+	     :tag "sample")
 	    buttons)
-      ;; Magic.
       (insert "\n")
-      (let ((magic (widget-create-child-and-convert
-		    widget 'custom-magic nil)))
-	(widget-put widget :custom-magic magic)
-	(push magic buttons))
+
+      ;; Magic.
+      (unless (widget-get widget :inhibit-magic)
+	(let ((magic (widget-create-child-and-convert
+		      widget 'custom-magic nil)))
+	  (widget-put widget :custom-magic magic)
+	  (push magic buttons)))
 
       ;; Update buttons.
       (widget-put widget :buttons buttons)
@@ -3465,7 +3485,8 @@ WIDGET should be a `custom-face' widget."
 	(unless (widget-get widget :custom-form)
 	  (widget-put widget :custom-form custom-face-default-form))
 
-	(let* ((spec (custom-face-get-current-spec symbol))
+	(let* ((spec (or (widget-get widget :shown-value)
+			 (custom-face-get-current-spec symbol)))
 	       (form (widget-get widget :custom-form))
 	       (indent (widget-get widget :indent))
 	       face-alist face-entry spec-default spec-match editor)
