@@ -136,11 +136,10 @@ This means the number of non-shy regexp grouping constructs
   (require 'cl))
 
 (defun regexp-opt-group (strings &optional paren lax)
-  ;; Return a regexp to match a string in the sorted list STRINGS.
-  ;; If PAREN non-nil, output regexp parentheses around returned regexp.
-  ;; If LAX non-nil, don't output parentheses if it doesn't require them.
-  ;; Merges keywords to avoid backtracking in Emacs' regexp matcher.
-
+  "Return a regexp to match a string in the sorted list STRINGS.
+If PAREN non-nil, output regexp parentheses around returned regexp.
+If LAX non-nil, don't output parentheses if it doesn't require them.
+Merges keywords to avoid backtracking in Emacs' regexp matcher."
   ;; The basic idea is to find the shortest common prefix or suffix, remove it
   ;; and recurse.  If there is no prefix, we divide the list into two so that
   ;; \(at least) one half will have at least a one-character common prefix.
@@ -234,9 +233,7 @@ This means the number of non-shy regexp grouping constructs
 
 
 (defun regexp-opt-charset (chars)
-  ;;
-  ;; Return a regexp to match a character in CHARS.
-  ;;
+  "Return a regexp to match a character in CHARS."
   ;; The basic idea is to find character ranges.  Also we take care in the
   ;; position of character set meta characters in the character set regexp.
   ;;
