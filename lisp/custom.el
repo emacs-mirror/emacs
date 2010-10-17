@@ -1033,8 +1033,8 @@ see `custom-make-theme-feature' for more information."
   "Like `deftheme', but THEME is evaluated as a normal argument.
 FEATURE is the feature this theme provides.  Normally, this is a symbol
 created from THEME by `custom-make-theme-feature'."
-  (if (memq theme '(user changed))
-      (error "Custom theme cannot be named %S" theme))
+  (unless (custom-theme-name-valid-p theme)
+    (error "Custom theme cannot be named %S" theme))
   (add-to-list 'custom-known-themes theme)
   (put theme 'theme-feature feature)
   (when doc (put theme 'theme-documentation doc)))
@@ -1063,14 +1063,17 @@ directory first---see `custom-theme-load-path'."
 
 (defcustom custom-theme-load-path (list 'custom-theme-directory t)
   "List of directories to search for custom theme files.
-Emacs commands for loading custom themes (e.g. `customize-themes'
-and `load-theme') search for custom theme files in the specified
+When loading custom themes (e.g. in `customize-themes' and
+`load-theme'), Emacs searches for theme files in the specified
 order.  Each element in the list should be one of the following:
 - the symbol `custom-theme-directory', meaning the value of
   `custom-theme-directory'.
 - the symbol t, meaning the built-in theme directory (a directory
   named \"themes\" in `data-directory').
-- a directory name (a string)."
+- a directory name (a string).
+
+Each theme file is named NAME-theme.el, where THEME is the theme
+name."
   :type '(repeat (choice (const :tag "custom-theme-directory"
 				custom-theme-directory)
 			 (const :tag "Built-in theme directory" t)
@@ -1089,16 +1092,16 @@ argument is non-nil, and it affects `custom-theme-set-variables',
 This calls `provide' to provide the feature name stored in THEME's
 property `theme-feature' (which is usually a symbol created by
 `custom-make-theme-feature')."
-  (if (memq theme '(user changed))
-      (error "Custom theme cannot be named %S" theme))
+  (unless (custom-theme-name-valid-p theme)
+    (error "Custom theme cannot be named %S" theme))
   (custom-check-theme theme)
   (provide (get theme 'theme-feature))
   (unless custom--inhibit-theme-enable
-    ;; Loading a theme also enables it.
+    ;; By default, loading a theme also enables it.
     (push theme custom-enabled-themes)
     ;; `user' must always be the highest-precedence enabled theme.
-    ;; Make that remain true.  (This has the effect of making user settings
-    ;; override the ones just loaded, too.)
+    ;; Make that remain true.  (This has the effect of making user
+    ;; settings override the ones just loaded, too.)
     (let ((custom-enabling-themes t))
       (enable-theme 'user))))
 
@@ -1164,10 +1167,6 @@ NAME should be a symbol."
   (and (symbolp name)
        name
        (not (or (zerop (length (symbol-name name)))
-		;; There's a third-party package named color-theme.el.
-		;; Don't treat that as a theme.
-		(eq name 'color)
-		(eq name 'cus)
 		(eq name 'user)
 		(eq name 'changed)))))
 

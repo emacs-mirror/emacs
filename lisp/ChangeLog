@@ -1,5 +1,26 @@
 2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cus-theme.el (custom-theme--migrate-settings): New var.
+	(customize-create-theme): Allow editing the `user' theme.
+	(custom-theme-add-variable, custom-theme-add-var-1)
+	(custom-theme-add-face, custom-theme-add-face-1): Add a checkbox
+	to the front of each variable or face widget.
+	(custom-theme-write): Save theme settings in the correct order.
+	Optionally, remove saved settings from user customizations.
+	(custom-theme-write-variables, custom-theme-write-faces): Saved
+	only the checked widgets.
+	(customize-themes): Add a link for migrating custom settings.
+
+	* custom.el (custom-declare-theme, provide-theme): Use
+	custom-theme-name-valid-p.
+	(custom-theme-name-valid-p): Remove checks that are now
+	unnecessary since themes no longer obey load-path.
+
+	* cus-edit.el (custom-variable-value-create): For the simple
+	style, hide documentation string when hidden.
+
+2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
+
 	* cus-edit.el (custom-variable, custom-face): Combine the
 	:inhibit-magic and :display-style properties into a single
 	:custom-style property.

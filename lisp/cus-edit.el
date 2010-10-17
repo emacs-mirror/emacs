@@ -2520,6 +2520,7 @@ try matching its doc string against `custom-guess-doc-alist'."
 	 (get (or (get symbol 'custom-get) 'default-value))
 	 (prefix (widget-get widget :custom-prefix))
 	 (last (widget-get widget :custom-last))
+	 (style (widget-get widget :custom-style))
 	 (value (let ((shown-value (widget-get widget :shown-value)))
 		  (cond (shown-value
 			 (car shown-value))
@@ -2633,7 +2634,7 @@ try matching its doc string against `custom-guess-doc-alist'."
       (unless (eq (preceding-char) ?\n)
 	(widget-insert "\n"))
       ;; Create the magic button.
-      (unless (eq (widget-get widget :custom-style) 'simple)
+      (unless (eq style 'simple)
 	(let ((magic (widget-create-child-and-convert
 		      widget 'custom-magic nil)))
 	  (widget-put widget :custom-magic magic)
@@ -2641,8 +2642,10 @@ try matching its doc string against `custom-guess-doc-alist'."
       (widget-put widget :buttons buttons)
       ;; Insert documentation.
       (widget-put widget :documentation-indent 3)
-      (widget-add-documentation-string-button
-       widget :visibility-widget 'custom-visibility)
+      (unless (and (eq style 'simple)
+		   (eq state 'hidden))
+	(widget-add-documentation-string-button
+	 widget :visibility-widget 'custom-visibility))
 
       ;; The comment field
       (unless (eq state 'hidden)

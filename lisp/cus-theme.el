@@ -50,9 +50,12 @@ Do not call this mode function yourself.  It is meant for internal use."
 (put 'custom-new-theme-mode 'mode-class 'special)
 
 (defvar custom-theme-name nil)
+;; Each element has the form (VAR CHECKBOX-WIDGET VAR-WIDGET)
 (defvar custom-theme-variables nil)
+;; Each element has the form (FACE CHECKBOX-WIDGET FACE-WIDGET)
 (defvar custom-theme-faces nil)
 (defvar custom-theme-description nil)
+(defvar custom-theme--migrate-settings nil)
 (defvar custom-theme-insert-variable-marker nil)
 (defvar custom-theme-insert-face-marker nil)
 
@@ -78,7 +81,8 @@ Do not call this mode function yourself.  It is meant for internal use."
 ;;;###autoload
 (defun customize-create-theme (&optional theme buffer)
   "Create or edit a custom theme.
-THEME, if non-nil, should be an existing theme to edit.
+THEME, if non-nil, should be an existing theme to edit.  If THEME
+is `user', provide an option to remove these as custom settings.
 BUFFER, if non-nil, should be a buffer to use; the default is
 named *Custom Theme*."
   (interactive)
@@ -93,9 +97,15 @@ named *Custom Theme*."
   (set (make-local-variable 'custom-theme-faces) nil)
   (set (make-local-variable 'custom-theme-variables) nil)
   (set (make-local-variable 'custom-theme-description) "")
+  (set (make-local-variable 'custom-theme--migrate-settings) nil)
   (make-local-variable 'custom-theme-insert-face-marker)
   (make-local-variable 'custom-theme-insert-variable-marker)
   (make-local-variable 'custom-theme--listed-faces)
+
+  (if (eq theme 'user)
+      (widget-insert "This buffer contains all the Custom settings you have made.
+You can convert them into a new custom theme, and optionally
+remove them from your saved Custom file.\n\n"))
 
   (widget-create 'push-button
 		 :tag " Visit Theme "
@@ -109,26 +119,43 @@ named *Custom Theme*."
 		 :action (lambda (widget &optional event)
 			   (call-interactively 'custom-theme-merge-theme)))
   (widget-insert "  ")
-  (widget-create 'push-button :notify 'revert-buffer " Revert ")
+  (widget-create 'push-button
+		 :tag " Revert "
+		 :help-echo "Revert this buffer to its original state."
+		 :action (lambda (&rest ignored) (revert-buffer)))
 
   (widget-insert "\n\nTheme name : ")
   (setq custom-theme-name
 	(widget-create 'editable-field
-		       :value (if theme (symbol-name theme) "")))
+		       :value (if (and theme (not (eq theme 'user)))
+				  (symbol-name theme)
+				"")))
   (widget-insert "Description: ")
   (setq custom-theme-description
 	(widget-create 'text
 		       :value (format-time-string "Created %Y-%m-%d.")))
-  (widget-insert "             ")
   (widget-create 'push-button
      		 :notify (function custom-theme-write)
      		 " Save Theme ")
+  (when (eq theme 'user)
+    (setq custom-theme--migrate-settings t)
+    (widget-insert "  ")
+    (widget-create 'checkbox
+		   :value custom-theme--migrate-settings
+		   :action (lambda (widget &optional event)
+			     (when (widget-value widget)
+			       (widget-toggle-action widget event)
+			       (setq custom-theme--migrate-settings
+				     (widget-value widget)))))
+    (widget-insert (propertize " Remove these settings from the Custom save file."
+			       'face '(variable-pitch (:height 0.9)))))
 
   (let (vars values faces face-specs)
 
     ;; Load the theme settings.
     (when theme
-      (load-theme theme t)
+      (unless (eq theme 'user)
+	(load-theme theme t))
       (dolist (setting (get theme 'theme-settings))
 	(if (eq (car setting) 'theme-value)
 	    (progn (push (nth 1 setting) vars)
@@ -160,7 +187,9 @@ named *Custom Theme*."
     (widget-insert "\n\n  Theme variables:\n ")
     (if theme
 	(while vars
-	  (custom-theme-add-var-1 (pop vars) (pop values))))
+	  (if (eq (car vars) 'custom-enabled-themes)
+	      (progn (pop vars) (pop values))
+	    (custom-theme-add-var-1 (pop vars) (pop values)))))
     (setq custom-theme-insert-variable-marker (point-marker))
     (widget-insert " ")
     (widget-create 'push-button
@@ -190,8 +219,8 @@ interactively, this defaults to the current value of VAR."
   (interactive
    (let ((v (read-variable "Variable name: ")))
      (list v (symbol-value v))))
-  (let ((var-and-widget (assq var custom-theme-faces)))
-    (cond ((null var-and-widget)
+  (let ((entry (assq var custom-theme-variables)))
+    (cond ((null entry)
 	   ;; If VAR is not yet in the buffer, add it.
 	   (save-excursion
 	     (goto-char custom-theme-insert-variable-marker)
@@ -200,13 +229,18 @@ interactively, this defaults to the current value of VAR."
 	     (widget-setup)))
 	  ;; Otherwise, alter that var widget.
 	  (t
-	   (let ((widget (cdr var-and-widget)))
+	   (widget-value-set (nth 1 entry) t)
+	   (let ((widget (nth 2 entry)))
 	     (widget-put widget :shown-value (list value))
 	     (custom-redraw widget))))))
 
 (defun custom-theme-add-var-1 (symbol val)
   (widget-insert " ")
-  (push (cons symbol
+  (push (list symbol
+	      (prog1 (widget-create 'checkbox
+				    :value t
+				    :help-echo "Enable/disable this variable.")
+		(widget-insert " "))
 	      (widget-create 'custom-variable
 			     :tag (custom-unlispify-tag-name symbol)
 			     :value symbol
@@ -226,8 +260,8 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
   (interactive (list (read-face-name "Face name" nil nil) nil))
   (unless (or (facep face) spec)
     (error "`%s' has no face definition" face))
-  (let ((face-and-widget (assq face custom-theme-faces)))
-    (cond ((null face-and-widget)
+  (let ((entry (assq face custom-theme-faces)))
+    (cond ((null entry)
 	   ;; If FACE is not yet in the buffer, add it.
 	   (save-excursion
 	     (goto-char custom-theme-insert-face-marker)
@@ -236,7 +270,8 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
 	     (widget-setup)))
 	  ;; Otherwise, if SPEC is supplied, alter that face widget.
 	  (spec
-	   (let ((widget (cdr face-and-widget)))
+	   (widget-value-set (nth 1 entry) t)
+	   (let ((widget (nth 2 entry)))
 	     (widget-put widget :shown-value spec)
 	     (custom-redraw widget)))
 	  ((called-interactively-p 'interactive)
@@ -244,7 +279,12 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
 
 (defun custom-theme-add-face-1 (symbol spec)
   (widget-insert " ")
-  (push (cons symbol
+  (push (list symbol
+	      (prog1
+		  (widget-create 'checkbox
+				 :value t
+				 :help-echo "Enable/disable this face.")
+		(widget-insert " "))
 	      (widget-create 'custom-face
 			     :tag (custom-unlispify-tag-name symbol)
 			     :documentation-shown t
@@ -297,8 +337,8 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
   "Write the current custom theme to its theme file."
   (interactive)
   (let* ((name (widget-value custom-theme-name))
-	 (doc (widget-value custom-theme-description))
-	 (vars  custom-theme-variables)
+	 (doc  (widget-value custom-theme-description))
+	 (vars custom-theme-variables)
 	 (faces custom-theme-faces)
 	 filename)
     (when (string-equal name "")
@@ -322,19 +362,26 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
       (insert "(deftheme " name)
       (if doc (insert "\n  \"" doc "\""))
       (insert  ")\n")
-      (custom-theme-write-variables name vars)
-      (custom-theme-write-faces name faces)
+      (custom-theme-write-variables name (reverse vars))
+      (custom-theme-write-faces name (reverse faces))
       (insert "\n(provide-theme '" name ")\n")
       (save-buffer))
-    (dolist (var vars)
-      (when (widget-get (cdr var) :children)
-	(widget-put (cdr var) :custom-state 'saved)
-	(custom-redraw-magic (cdr var))))
-    (dolist (face custom-theme-faces)
-      (when (widget-get (cdr face) :children)
-	(widget-put (cdr face) :custom-state 'saved)
-	(custom-redraw-magic (cdr face))))
-    (message "Theme written to %s" filename)))
+    (message "Theme written to %s" filename)
+
+    (when custom-theme--migrate-settings
+      ;; Remove these settings from the Custom file.
+      (let ((custom-reset-standard-variables-list '(t))
+	    (custom-reset-standard-faces-list '(t)))
+	(dolist (var vars)
+	  (when (and (not (eq (car var) 'custom-enabled-themes))
+		     (widget-get (nth 1 var) :value))
+	    (widget-apply (nth 2 var) :custom-mark-to-reset-standard)))
+	(dolist (face faces)
+	  (when (widget-get (nth 1 face) :value)
+	    (widget-apply (nth 2 face) :custom-mark-to-reset-standard)))
+	(custom-save-all))
+      (let ((custom-theme-load-path (list 'custom-theme-directory)))
+	(load-theme (intern name))))))
 
 (defun custom-theme-write-variables (theme vars)
   "Write a `custom-theme-set-variables' command for THEME.
@@ -346,21 +393,22 @@ It includes all variables in list VARS."
       (princ theme)
       (princ "\n")
       (dolist (spec vars)
-	(let* ((symbol (car spec))
-	       (widget (cdr spec))
-	       (child (car-safe (widget-get widget :children)))
-	       (value (if child
-			  (widget-value child)
-			;; Child is null if the widget is closed (hidden).
-			(car (widget-get widget :shown-value)))))
-	  (when (boundp symbol)
-	    (unless (bolp)
-	      (princ "\n"))
-	    (princ " '(")
-	    (prin1 symbol)
-	    (princ " ")
-	    (prin1 (custom-quote value))
-	    (princ ")"))))
+	(when (widget-get (nth 1 spec) :value)
+	  (let* ((symbol (nth 0 spec))
+		 (widget (nth 2 spec))
+		 (child (car-safe (widget-get widget :children)))
+		 (value (if child
+			    (widget-value child)
+			  ;; Child is null if the widget is closed (hidden).
+			  (car (widget-get widget :shown-value)))))
+	    (when (boundp symbol)
+	      (unless (bolp)
+		(princ "\n"))
+	      (princ " '(")
+	      (prin1 symbol)
+	      (princ " ")
+	      (prin1 (custom-quote value))
+	      (princ ")")))))
       (if (bolp)
 	  (princ " "))
       (princ ")")
@@ -377,19 +425,20 @@ It includes all faces in list FACES."
       (princ theme)
       (princ "\n")
       (dolist (spec faces)
-	(let* ((symbol (car spec))
-	       (widget (cdr spec))
-	       (value
-		(if (car-safe (widget-get widget :children))
-		    (custom-face-widget-to-spec widget)
-		  ;; Child is null if the widget is closed (hidden).
-		  (widget-get widget :shown-value))))
-	  (when (and (facep symbol) value)
-	    (princ (if (bolp) " '(" "\n '("))
-	    (prin1 symbol)
-	    (princ " ")
-	    (prin1 value)
-	    (princ ")"))))
+	(when (widget-get (nth 1 spec) :value)
+	  (let* ((symbol (nth 0 spec))
+		 (widget (nth 2 spec))
+		 (value
+		  (if (car-safe (widget-get widget :children))
+		      (custom-face-widget-to-spec widget)
+		    ;; Child is null if the widget is closed (hidden).
+		    (widget-get widget :shown-value))))
+	    (when (and (facep symbol) value)
+	      (princ (if (bolp) " '(" "\n '("))
+	      (prin1 symbol)
+	      (princ " ")
+	      (prin1 value)
+	      (princ ")")))))
       (if (bolp) (princ " "))
       (princ ")")
       (unless (looking-at "\n")
@@ -525,10 +574,21 @@ Theme files are named *-theme.el in `"))
 		(and (null (cdr user-settings))
 		     (eq (caar user-settings) 'theme-value)
 		     (eq (cadr (car user-settings)) 'custom-enabled-themes)))
-      (widget-insert "Note: Your custom settings take precedence over theme settings.\n\n")
-      ;; FIXME: Provide some way to painlessly disable or migrate
-      ;; these settings.
-      ))
+      (widget-insert
+       (propertize
+	" Note: Your custom settings take precedence over theme settings.
+       To migrate your settings into a theme, click "
+	'face 'font-lock-warning-face))
+      (widget-create 'link :value "here"
+		     :button-face 'custom-link
+		     :mouse-face 'highlight
+		     :pressed-face 'highlight
+		     :help-echo "Migrate."
+		     :keymap custom-mode-link-map
+		     :follow-link 'mouse-face
+		     :action (lambda (widget &rest ignore)
+			       (customize-create-theme 'user)))
+      (widget-insert ".\n\n")))
 
   (widget-create 'push-button
 		 :tag " Save Theme Settings "
@@ -597,9 +657,8 @@ Theme files are named *-theme.el in `"))
 (defun custom-theme-selections-toggle (widget &optional event)
   (when (widget-value widget)
     ;; Deactivate multiple-selections.
-    (if (> (length (delq nil (mapcar (lambda (x) (widget-value (cdr x)))
-				     custom--listed-themes)))
-	   1)
+    (if (< 1 (length (delq nil (mapcar (lambda (x) (widget-value (cdr x)))
+				       custom--listed-themes))))
 	(error "More than one theme is currently selected")))
   (widget-toggle-action widget event)
   (setq custom-theme-allow-multiple-selections (widget-value widget)))
