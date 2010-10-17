@@ -147,7 +147,7 @@ remove them from your saved Custom file.\n\n"))
 			       (widget-toggle-action widget event)
 			       (setq custom-theme--migrate-settings
 				     (widget-value widget)))))
-    (widget-insert (propertize " Remove these settings from the Custom save file."
+    (widget-insert (propertize " Remove saved theme settings from Custom save file."
 			       'face '(variable-pitch (:height 0.9)))))
 
   (let (vars values faces face-specs)
