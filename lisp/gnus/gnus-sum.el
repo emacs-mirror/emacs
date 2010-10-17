@@ -8834,7 +8834,11 @@ variable."
 	(limit (if limit (prefix-numeric-value limit)
 		 gnus-refer-thread-limit)))
     (if  (gnus-check-backend-function 'request-thread gnus-newsgroup-name)
-	(gnus-request-thread id)
+	(setq gnus-newsgroup-headers
+	      (gnus-merge 'list
+			  gnus-newsgroup-headers
+			  (gnus-request-thread id)
+			  'gnus-article-sort-by-number))
       (unless (eq gnus-fetch-old-headers 'invisible)
 	(gnus-message 5 "Fetching headers for %s..." gnus-newsgroup-name)
 	;;	Retrieve the headers and read them in.

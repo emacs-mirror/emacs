@@ -1,3 +1,13 @@
+2010-10-16  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-sum.el (gnus-summary-refer-thread): Bug fix. Add the thread
+	headers to gnus-newsgroup-headers.
+
+2010-10-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-img): Don't align images -- since we're not
+	rescaling, this often leads to ugly displays.
+
 2010-10-15  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* gnus-sum.el (gnus-summary-refer-thread): unconditionally ignore
