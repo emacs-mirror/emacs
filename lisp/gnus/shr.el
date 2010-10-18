@@ -217,7 +217,8 @@ redirects somewhere else."
       (unless shr-start
 	(setq shr-start (point)))
       ;; No space is needed behind a wide character categorized as
-      ;; kinsoku-bol, or between characters both categorized as nospace.
+      ;; kinsoku-bol, between characters both categorized as nospace,
+      ;; or at the beginning of a line.
       (let (prev)
 	(when (and (eq (preceding-char) ? )
 		   (or (= (line-beginning-position) (1- (point)))
