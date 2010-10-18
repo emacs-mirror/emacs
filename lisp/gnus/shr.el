@@ -203,47 +203,48 @@ redirects somewhere else."
    ((eq shr-folding-mode 'none)
     (insert text))
    (t
-    (let ((first t)
-	  column)
-      (when (and (string-match "\\`[ \t\n]" text)
-		 (not (bolp))
-		 (not (eq (char-after (1- (point))) ? )))
-	(insert " "))
-      (dolist (elem (split-string text))
-	(when (and (bolp)
-		   (> shr-indentation 0))
-	  (shr-indent))
-	;; The shr-start is a special variable that is used to pass
-	;; upwards the first point in the buffer where the text really
-	;; starts.
-	(unless shr-start
-	  (setq shr-start (point)))
-	;; No space is needed before or after a breakable character or
-	;; at the beginning of a line.
+    (when (and (string-match "\\`[ \t\n]" text)
+	       (not (bolp))
+	       (not (eq (char-after (1- (point))) ? )))
+      (insert " "))
+    (dolist (elem (split-string text))
+      (when (and (bolp)
+		 (> shr-indentation 0))
+	(shr-indent))
+      ;; The shr-start is a special variable that is used to pass
+      ;; upwards the first point in the buffer where the text really
+      ;; starts.
+      (unless shr-start
+	(setq shr-start (point)))
+      ;; No space is needed behind a wide character categorized as
+      ;; kinsoku-bol, or between characters both categorized as nospace.
+      (let (prev)
 	(when (and (eq (preceding-char) ? )
 		   (or (= (line-beginning-position) (1- (point)))
-		       (aref fill-find-break-point-function-table
-			     (char-after (- (point) 2)))
-		       (aref fill-find-break-point-function-table
-			     (aref elem 0))))
-	  (delete-char -1))
-	(insert elem)
-	(while (> (current-column) shr-width)
-	  (unless (prog1
-		      (shr-find-fill-point)
-		    (when (eq (preceding-char) ? )
-		      (delete-char -1))
-		    (insert "\n"))
-	    (put-text-property (1- (point)) (point) 'shr-break t)
-	    ;; No space is needed at the beginning of a line.
-	    (if (eq (following-char) ? )
-		(delete-char 1)))
-	  (when (> shr-indentation 0)
-	    (shr-indent))
-	  (end-of-line))
-	(insert " "))
-      (unless (string-match "[ \t\n]\\'" text)
-	(delete-char -1))))))
+		       (and (aref fill-find-break-point-function-table
+				  (setq prev (char-after (- (point) 2))))
+			    (aref (char-category-set prev) ?>))
+		       (and (aref fill-nospace-between-words-table prev)
+			    (aref fill-nospace-between-words-table
+				  (aref elem 0)))))
+	  (delete-char -1)))
+      (insert elem)
+      (while (> (current-column) shr-width)
+	(unless (prog1
+		    (shr-find-fill-point)
+		  (when (eq (preceding-char) ? )
+		    (delete-char -1))
+		  (insert "\n"))
+	  (put-text-property (1- (point)) (point) 'shr-break t)
+	  ;; No space is needed at the beginning of a line.
+	  (if (eq (following-char) ? )
+	      (delete-char 1)))
+	(when (> shr-indentation 0)
+	  (shr-indent))
+	(end-of-line))
+      (insert " "))
+    (unless (string-match "[ \t\n]\\'" text)
+      (delete-char -1)))))
 
 (eval-and-compile (autoload 'kinsoku-longer "kinsoku"))
 

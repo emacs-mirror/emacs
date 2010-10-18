@@ -1,3 +1,9 @@
+2010-10-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-insert): Don't insert space behind a wide character
+	categorized as kinsoku-bol, or between characters both categorized as
+	nospace.
+
 2010-10-16  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* gnus-sum.el (gnus-summary-refer-thread): Bug fix. Add the thread
