@@ -1,3 +1,8 @@
+2010-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/unsafep.el: Don't mark functions that display
+	messages as safe.  Suggested by Johan Bockgård.
+
 2010-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--replace): Move point where it belongs
