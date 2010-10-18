@@ -1,5 +1,12 @@
 2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-agent.el (gnus-agent-toggle-plugged): Use the right minor mode
+	name in the mode line spec so that the mode line menu works
+	(bug #2431).
+
+	* message.el (message-get-reply-headers): If we're fed `to-address',
+	then always use that.
+
 	* gnus-art.el (gnus-article-make-menu-bar): The article/group menus
 	aren't so wide as to need to switch off the edit menu.
 

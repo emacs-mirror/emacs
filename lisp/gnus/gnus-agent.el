@@ -513,8 +513,8 @@ manipulated as follows:
     ;; Set up the menu.
     (when (gnus-visual-p 'agent-menu 'menu)
       (funcall (intern (format "gnus-agent-%s-make-menu-bar" buffer))))
-    (unless (assq 'gnus-agent-mode minor-mode-alist)
-      (push gnus-agent-mode-status minor-mode-alist))
+    (unless (assq mode minor-mode-alist)
+      (push (cons mode (cdr gnus-agent-mode-status)) minor-mode-alist))
     (unless (assq mode minor-mode-map-alist)
       (push (cons mode (symbol-value (intern (format "gnus-agent-%s-mode-map"
 						     buffer))))
