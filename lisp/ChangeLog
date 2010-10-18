@@ -1,3 +1,8 @@
+2010-10-17  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-aspell-find-dictionary): Fix
+	aspell data file searching (bug#7230).
+
 2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-theme.el (custom-theme--migrate-settings): New var.
