@@ -757,7 +757,6 @@ simple manner.")
        (symbol-value 'gnus-topic-mode)))
 
 (defun gnus-group-make-menu-bar ()
-  (gnus-turn-off-edit-menu 'group)
   (unless (boundp 'gnus-group-reading-menu)
 
     (easy-menu-define

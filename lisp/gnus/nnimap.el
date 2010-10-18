@@ -617,7 +617,13 @@ textual parts.")
     (nreverse parts)))
 
 (deffoo nnimap-request-group (group &optional server dont-check info)
-  (let ((result (nnimap-possibly-change-group group server))
+  (let ((result (nnimap-possibly-change-group
+		 ;; Don't SELECT the group if we're going to select it
+		 ;; later, anyway.
+		 (if dont-check
+		     nil
+		   group)
+		 server))
 	articles active marks high low)
     (with-current-buffer nntp-server-buffer
       (when result
@@ -634,6 +640,7 @@ textual parts.")
 		   (nnimap-send-command "SELECT %S" (utf7-encode group t)))
 		  (flag-sequence
 		   (nnimap-send-command "UID FETCH 1:* FLAGS")))
+	      (setf (nnimap-group nnimap-object) group)
 	      (nnimap-wait-for-response flag-sequence)
 	      (setq marks
 		    (nnimap-flags-to-marks
@@ -1105,12 +1112,13 @@ textual parts.")
 	(unless (eq permanent-flags 'not-scanned)
 	  (gnus-group-set-parameter
 	   info 'permanent-flags
-	   (if (memq '%* permanent-flags)
-	       t
-	     nil)))
+	   (and (or (memq '%* permanent-flags)
+		    (memq '%Seen permanent-flags))
+		permanent-flags)))
 	;; Update marks and read articles if this isn't a
 	;; read-only IMAP group.
-	(when (cdr (assq 'permanent-flags (gnus-info-params info)))
+	(when (setq permanent-flags
+		    (cdr (assq 'permanent-flags (gnus-info-params info))))
 	  (if (and highestmodseq
 		   (not start-article))
 	      ;; We've gotten the data by QRESYNCing.
@@ -1136,27 +1144,32 @@ textual parts.")
 			    (gnus-info-read info))
 			 (gnus-info-read info))
 		       read)))
-	      (gnus-info-set-read info read)
+	      (when (or (not (listp permanent-flags))
+			(memq '%Seen permanent-flags))
+		(gnus-info-set-read info read))
 	      ;; Update the marks.
 	      (setq marks (gnus-info-marks info))
 	      (dolist (type (cdr nnimap-mark-alist))
-		(let ((old-marks (assoc (car type) marks))
-		      (new-marks
-		       (gnus-compress-sequence
-			(cdr (or (assoc (caddr type) flags) ; %Flagged
-				 (assoc (intern (cadr type) obarray) flags)
-				 (assoc (cadr type) flags)))))) ; "\Flagged"
-		  (setq marks (delq old-marks marks))
-		  (pop old-marks)
-		  (when (and old-marks
-			     (> start-article 1))
-		    (setq old-marks (gnus-range-difference
-				     old-marks
-				     (cons start-article high)))
-		    (setq new-marks (gnus-range-nconcat old-marks new-marks)))
-		  (when new-marks
-		    (push (cons (car type) new-marks) marks)))
-		(gnus-info-set-marks info marks t)))))
+		(when (or (not (listp permanent-flags))
+			  (memq (assoc (caddr type) flags) permanent-flags)
+			  (memq '%* permanent-flags))
+		  (let ((old-marks (assoc (car type) marks))
+			(new-marks
+			 (gnus-compress-sequence
+			  (cdr (or (assoc (caddr type) flags) ; %Flagged
+				   (assoc (intern (cadr type) obarray) flags)
+				   (assoc (cadr type) flags)))))) ; "\Flagged"
+		    (setq marks (delq old-marks marks))
+		    (pop old-marks)
+		    (when (and old-marks
+			       (> start-article 1))
+		      (setq old-marks (gnus-range-difference
+				       old-marks
+				       (cons start-article high)))
+		      (setq new-marks (gnus-range-nconcat old-marks new-marks)))
+		    (when new-marks
+		      (push (cons (car type) new-marks) marks)))))
+	      (gnus-info-set-marks info marks t))))
 	;; Note the active level for the next run-through.
 	(gnus-group-set-parameter info 'active (gnus-active group))
 	(gnus-group-set-parameter info 'uidvalidity uidvalidity)

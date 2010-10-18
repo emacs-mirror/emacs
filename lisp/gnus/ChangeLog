@@ -1,3 +1,28 @@
+2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-make-menu-bar): The article/group menus
+	aren't so wide as to need to switch off the edit menu.
+
+	* gnus-delay.el (gnus-delay-article): Remove superfluous `group'
+	binding.  Suggested by Leo <sdl.web@gmail.com> (bug #6613).
+
+	* nnimap.el (nnimap-request-group): Don't SELECT the group twice on
+	`M-g'.
+	(nnimap-update-info): Update flags/read marks even if \* isn't part of
+	the permanent marks.
+
+2010-10-18  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-registry.el (gnus-registry-split-fancy-with-parent): Splitting
+	according to references/in-reply-to obeys the ignore-groups variable,
+	while splitting by sender and subject do not.
+
+2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-dumbquotes-map): Make into a char/string
+	alist, so that we can look for non-Unicode chars.
+	(article-translate-strings): Allow both character and string maps.
+
 2010-10-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-insert): Don't insert space behind a wide character

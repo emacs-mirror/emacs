@@ -1,3 +1,8 @@
+2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-coding.texi (Gnus Maintainance Guide): Update to mention Emacs
+	bzr/Gnus git sync.
+
 2010-10-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* auth.texi (GnuPG and EasyPG Assistant Configuration): Fix last

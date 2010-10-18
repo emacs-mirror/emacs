@@ -3938,7 +3938,9 @@ GROUP can also be an INFO structure."
 		    (not (eq (caar old-params) name)))
 	    (setq new-params (append new-params (list (car old-params)))))
 	  (setq old-params (cdr old-params)))
-	(gnus-group-set-info new-params (gnus-info-group info) 'params)))))
+	(if (listp group)
+	    (gnus-info-set-params info new-params t)
+	  (gnus-group-set-info new-params (gnus-info-group info) 'params))))))
 
 (defun gnus-group-remove-parameter (group name)
   "Remove parameter NAME from GROUP.
