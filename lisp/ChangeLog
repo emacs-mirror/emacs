@@ -1,3 +1,10 @@
+2010-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-theme-set-variables): Mark as a safe function.
+	(load-theme): Check forms using unsafep.
+
+	* cus-face.el (custom-theme-set-faces): Mark as a safe function.
+
 2010-10-17  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-aspell-find-dictionary): Fix

@@ -993,6 +993,8 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 	  (and (or now (default-boundp symbol))
 	       (put symbol 'variable-comment comment)))))))
 
+(put 'custom-theme-set-variables 'safe-function t)
+
 
 ;;; Defining themes.
 
@@ -1134,32 +1136,27 @@ the theme."
     (with-temp-buffer
       (insert-file-contents fn)
       (let ((custom--inhibit-theme-enable no-enable)
-	    sexp scar)
-	(while (setq sexp (let ((read-circle nil))
+	    form scar)
+	(while (setq form (let ((read-circle nil))
 			    (condition-case nil
 				(read (current-buffer))
 			      (end-of-file nil))))
-	  ;; Perform some checks on each sexp before evaluating it.
 	  (cond
-	   ((not (listp sexp)))
-	   ((eq (setq scar (car sexp)) 'deftheme)
-	    (unless (eq (cadr sexp) theme)
+	   ;; Check `deftheme' expressions.
+	   ((eq (setq scar (car form)) 'deftheme)
+	    (unless (eq (cadr form) theme)
 	      (error "Incorrect theme name in `deftheme'"))
-	    (and (symbolp (nth 1 sexp))
-		 (stringp (nth 2 sexp))
-		 (eval (list scar (nth 1 sexp) (nth 2 sexp)))))
-	   ((or (eq scar 'custom-theme-set-variables)
-		(eq scar 'custom-theme-set-faces))
-	    (unless (equal (nth 1 sexp) `(quote ,theme))
-	      (error "Incorrect theme name in theme settings"))
-	    (dolist (entry (cddr sexp))
-	      (unless (eq (car-safe entry) 'quote)
-		(error "Unsafe expression in theme settings")))
-	    (eval sexp))
+	    (and (symbolp (nth 1 form))
+		 (stringp (nth 2 form))
+		 (eval (list scar (nth 1 form) (nth 2 form)))))
+	   ;; Check `provide-theme' expressions.
 	   ((and (eq scar 'provide-theme)
-		 (equal (cadr sexp) `(quote ,theme))
-		 (= (length sexp) 2))
-	    (eval sexp))))))))
+		 (equal (cadr form) `(quote ,theme))
+		 (= (length form) 2))
+	    (eval form))
+	   ;; All other expressions need to be safe.
+	   ((not (unsafep form))
+	    (eval form))))))))
 
 (defun custom-theme-name-valid-p (name)
   "Return t if NAME is a valid name for a Custom theme, nil otherwise.
