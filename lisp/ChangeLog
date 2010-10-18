@@ -1,3 +1,8 @@
+2010-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (locate-file-completion-table): Strip non-matching elements
+	before checking length of list (bug#7238).
+
 2010-10-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.el (custom-theme-set-variables): Mark as a safe function.
@@ -7,8 +12,8 @@
 
 2010-10-17  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* textmodes/ispell.el (ispell-aspell-find-dictionary): Fix
-	aspell data file searching (bug#7230).
+	* textmodes/ispell.el (ispell-aspell-find-dictionary):
+	Fix aspell data file searching (bug#7230).
 
 2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -19,12 +24,12 @@
 	to the front of each variable or face widget.
 	(custom-theme-write): Save theme settings in the correct order.
 	Optionally, remove saved settings from user customizations.
-	(custom-theme-write-variables, custom-theme-write-faces): Saved
-	only the checked widgets.
+	(custom-theme-write-variables, custom-theme-write-faces):
+	Save only the checked widgets.
 	(customize-themes): Add a link for migrating custom settings.
 
-	* custom.el (custom-declare-theme, provide-theme): Use
-	custom-theme-name-valid-p.
+	* custom.el (custom-declare-theme, provide-theme):
+	Use custom-theme-name-valid-p.
 	(custom-theme-name-valid-p): Remove checks that are now
 	unnecessary since themes no longer obey load-path.
 
@@ -36,10 +41,9 @@
 	* cus-edit.el (custom-variable, custom-face): Combine the
 	:inhibit-magic and :display-style properties into a single
 	:custom-style property.
-	(custom-toggle-hide-variable, custom-toggle-hide-face): New
-	functions.  If hiding an edited value, save it to :shown-value.
-	(custom-variable-value-create, custom-face-value-create): Use
-	them.
+	(custom-toggle-hide-variable, custom-toggle-hide-face):
+	New functions.  If hiding an edited value, save it to :shown-value.
+	(custom-variable-value-create, custom-face-value-create): Use them.
 	(custom-magic-reset): Allow magic property to be unset.
 
 	* custom.el: Custom themes no longer use load-path.
@@ -69,7 +73,7 @@
 	erasing.  If given a THEME arg, display only the faces of that arg
 	instead of custom-theme--listed-faces.
 	(custom-theme-variable-menu, custom-theme-variable-action)
-	(custom-variable-reset-theme, custom-theme-delete-variable): Deleted.
+	(custom-variable-reset-theme, custom-theme-delete-variable): Delete.
 	(custom-theme-add-variable, custom-theme-add-face): Apply value
 	from the theme settings, instead of the current value.
 	(custom-theme-add-var-1, custom-theme-add-face-1): New functions.
@@ -93,8 +97,7 @@
 	* mail/rmail.el (rmail-show-message-1): Catch an error of
 	base64-decode-region and just show an error message (bug#7165).
 
-	* ps-mule.el (ps-mule-font-spec-list): Delete it.  Not used
-	anymore.
+	* ps-mule.el (ps-mule-font-spec-list): Delete it.  Not used anymore.
 	(ps-mule-begin-job): Fix for the case that only ENCODING is set in
 	a font-spec (bug#7197).
 
@@ -128,11 +131,11 @@
 
 2010-10-14  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-alg.el (math-var): Renamed from `var'.
+	* calc/calc-alg.el (math-var): Rename from `var'.
 	(math-is-polynomial, math-is-poly-rec): Replace `var'
 	with `math-var'.
 
-	* calc/calcalg2.el (math-var): Renamed from `var'.
+	* calc/calcalg2.el (math-var): Rename from `var'.
 	(calcFunc-table, math-scan-for-limits): Replace `var'
 	with `math-var'.
 
@@ -196,8 +199,8 @@
 	(custom-theme-allow-multiple-selections): New option.
 	(custom-theme-choose-mode): New major mode.
 
-	* custom.el (custom-theme-set-variables): Remove dead code.  Obey
-	custom--inhibit-theme-enable.
+	* custom.el (custom-theme-set-variables): Remove dead code.
+	Obey custom--inhibit-theme-enable.
 	(custom--inhibit-theme-enable): New var.
 	(provide-theme): Obey it.
 	(load-theme): Replace load with manual read/eval, in order to
@@ -208,8 +211,8 @@
 	* cus-edit.el (custom--initialize-widget-variables): New function.
 	(Custom-mode): Use it.
 
-	* cus-face.el (custom-theme-set-faces): Remove dead code.  Obey
-	custom--inhibit-theme-enable.
+	* cus-face.el (custom-theme-set-faces): Remove dead code.
+	Obey custom--inhibit-theme-enable.
 
 	* help-mode.el (help-theme-def, help-theme-edit): New buttons.
 
@@ -260,15 +263,14 @@
 	(custom-available-themes): New function.
 	(load-theme): Use it.
 
-	* cus-edit.el (custom-face-edit-fix-value): Use
-	custom-fix-face-spec.
+	* cus-edit.el (custom-face-edit-fix-value): Use custom-fix-face-spec.
 
 	* custom.el (custom-push-theme): Cleanup (use cond).
 	(disable-theme): Recompute the saved-face property.
 	(custom-theme-recalc-face): Follow face alias before setting prop.
 
-	* image.el (image-checkbox-checked, image-checkbox-unchecked): New
-	variables, containing checkbox images.
+	* image.el (image-checkbox-checked, image-checkbox-unchecked):
+	New variables, containing checkbox images.
 
 	* startup.el (fancy-startup-tail):
 	* wid-edit.el (checkbox): Use them.
@@ -303,8 +305,8 @@
 
 	* epa.el (epa-passphrase-callback-function): Display filename
 	passed as the 3rd arg.
-	* epa-file.el (epa-file-passphrase-callback-function): Pass
-	filename to epa-passphrase-callback-function.
+	* epa-file.el (epa-file-passphrase-callback-function):
+	Pass filename to epa-passphrase-callback-function.
 
 2010-10-09  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -332,8 +334,7 @@
 	* cc-engine.el (c-forward-type): New &optional param
 	"brace-block-too".
 	(c-forward-decl-or-cast-1): cdr of return value now indicates the
-	presence of either or both of a "struct"-like keyword and
-	"typedef".
+	presence of either or both of a "struct"-like keyword and "typedef".
 
 	* cc-fonts.el (c-complex-decl-matchers): Remove the heuristic
 	fontification of declarators which follow a "}".
@@ -355,8 +356,7 @@
 	querying the password for.
 
 	* ibuffer.el (ibuffer-visit-buffer): To mimick list-buffers
-	behaviour, don't bury the ibuffer buffer when visiting other
-	buffers.
+	behaviour, don't bury the ibuffer buffer when visiting other buffers.
 
 2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -364,12 +364,12 @@
 	(custom-magic-value-create): Pad button tags with spaces.
 	(custom-face-edit): New variable.
 	(custom-face-value-create): Determine whether to use the usual
-	face editor here, instead of using custom-face-selected.  Pass
-	face defaults to custom-face-edit widget.
+	face editor here, instead of using custom-face-selected.
+	Pass face defaults to custom-face-edit widget.
 	(custom-face-selected, custom-display-unselected): Delete widgets.
 	(custom-display-unselected-match): Function removed.
-	(custom-face-set, custom-face-mark-to-save): Accept
-	custom-face-edit widgets as the direct widget child.
+	(custom-face-set, custom-face-mark-to-save):
+	Accept custom-face-edit widgets as the direct widget child.
 
 	* wid-edit.el (widget--completing-widget): New var.
 	(widget-default-complete): Bind it when doing completion.
@@ -453,8 +453,8 @@
 	* cus-edit.el (custom-variable, custom-face): Doc fix.
 	(custom-face-edit): Add value-create attribute.
 	(custom-face-edit-value-create)
-	(custom-face-edit-value-visibility-action): New functions.  Hide
-	unused face attributes by default, and add a visibility toggle.
+	(custom-face-edit-value-visibility-action): New functions.
+	Hide unused face attributes by default, and add a visibility toggle.
 	(custom-face-edit-deactivate): Show empty values with shadow face.
 	(custom-face-selected): Only use this for face specs with default
 	attributes.
@@ -534,10 +534,9 @@
 	(tramp-handle-file-exists-p, tramp-handle-file-newer-than-file-p):
 	New defuns, taken from tramp-smb.el.
 	(tramp-coding-system-change-eol-conversion)
-	(tramp-set-process-query-on-exit-flag): Removed.
+	(tramp-set-process-query-on-exit-flag): Remove.
 
-	* net/tramp-compat.el (top): Do not check for byte-compiler
-	objects.
+	* net/tramp-compat.el (top): Do not check for byte-compiler objects.
 	(tramp-compat-coding-system-change-eol-conversion)
 	(tramp-compat-set-process-query-on-exit-flag): New defuns, taken
 	from tramp.el.
@@ -546,30 +545,30 @@
 	* net/tramp-gw.el: Replace `tramp-set-process-query-on-exit-flag'
 	by `tramp-compat-set-process-query-on-exit-flag'.
 
-	* net/tramp-imap.el (tramp-imap-file-name-handler-alist): Use
-	`tramp-handle-directory-files-and-attributes',
+	* net/tramp-imap.el (tramp-imap-file-name-handler-alist):
+	Use `tramp-handle-directory-files-and-attributes',
 	`tramp-handle-file-exists-p' and
 	`tramp-handle-file-newer-than-file-p'.
 	(tramp-imap-handle-file-exists-p)
 	(tramp-imap-handle-file-executable-p)
 	(tramp-imap-handle-file-readable-p)
 	(tramp-imap-handle-directory-files-and-attributes)
-	(tramp-imap-handle-file-newer-than-file-p): Removed.
+	(tramp-imap-handle-file-newer-than-file-p): Remove.
 
 	* net/tramp-sh.el: Replace `tramp-set-process-query-on-exit-flag'
 	by `tramp-compat-set-process-query-on-exit-flag' and
 	`tramp-coding-system-change-eol-conversion' by
 	`tramp-compat-coding-system-change-eol-conversion'.
 
-	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Use
-	`tramp-handle-directory-files-and-attributes',
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist):
+	Use `tramp-handle-directory-files-and-attributes',
 	`tramp-handle-file-exists-p' and
 	`tramp-handle-file-newer-than-file-p'.
 	(tramp-smb-handle-directory-files-and-attributes)
 	(tramp-smb-handle-file-exists-p)
-	(tramp-smb-handle-file-newer-than-file-p): Removed.
-	(tramp-smb-maybe-open-connection): Replace
-	`tramp-set-process-query-on-exit-flag' by
+	(tramp-smb-handle-file-newer-than-file-p): Remove.
+	(tramp-smb-maybe-open-connection):
+	Replace `tramp-set-process-query-on-exit-flag' by
 	`tramp-compat-set-process-query-on-exit-flag'.
 
 2010-10-05  Glenn Morris  <rgm@gnu.org>
@@ -596,7 +595,7 @@
 	(tramp-handle-substitute-in-file-name)
 	(tramp-handle-unhandled-file-name-directory)
 	(tramp-mode-string-to-int, tramp-local-host-p)
-	(tramp-make-tramp-temp-file): Moved from tramp-sh.el.
+	(tramp-make-tramp-temp-file): Move from tramp-sh.el.
 
 	* net/tramp-gvfs.el (top):
 	* net/tramp-smb.el (top): Do not require 'tramp-sh.
@@ -613,8 +612,8 @@
 
 	* net/gnutls.el: Improve docs.  Remove starttls and ssl emulation.
 	Provide only `open-gnutls-stream' (formerly `open-ssl-stream') and
-	`gnutls-negotiate' (formerly `starttls-negotiate').  Remove
-	trivial wrapper `starttls-open-stream'.
+	`gnutls-negotiate' (formerly `starttls-negotiate').
+	Remove trivial wrapper `starttls-open-stream'.
 
 2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -628,8 +627,8 @@
 2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/gnutls.el (starttls-negotiate): Use the plist interface to
-	`gnutls-boot'.  Make TYPE the only required parameter.  Allow
-	TRUSTFILES and KEYFILES to be lists.
+	`gnutls-boot'.  Make TYPE the only required parameter.
+	Allow TRUSTFILES and KEYFILES to be lists.
 	(open-ssl-stream): Use it.
 
 2010-10-03  Glenn Morris  <rgm@gnu.org>
@@ -650,8 +649,8 @@
 
 2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Remove
-	obsolete use of binary-overwrite-mode (Bug#7001).
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer):
+	Remove obsolete use of binary-overwrite-mode (Bug#7001).
 
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
@@ -686,18 +685,18 @@
 
 2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
-	* server.el (server-process-filter, server-return-error): Give
-	emacsclient time to shut down after receiving an error string.
+	* server.el (server-process-filter, server-return-error):
+	Give emacsclient time to shut down after receiving an error string.
 
 2010-10-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (remote-file-name-inhibit-cache): New defcustom.
 
-	* time.el (display-time-file-nonempty-p): Use
-	`remote-file-name-inhibit-cache'.
+	* time.el (display-time-file-nonempty-p):
+	Use `remote-file-name-inhibit-cache'.
 
-	* net/tramp.el (tramp-completion-reread-directory-timeout): Fix
-	docstring.
+	* net/tramp.el (tramp-completion-reread-directory-timeout):
+	Fix docstring.
 
 	* net/tramp-cache.el (tramp-cache-inhibit-cache): Remove.
 	(tramp-get-file-property): Replace `tramp-cache-inhibit-cache' by
@@ -718,10 +717,9 @@
 
 	* net/tramp-sh.el (tramp-handle-verify-visited-file-modtime)
 	(tramp-handle-file-name-all-completions)
-	(tramp-handle-vc-registered): Use
-	`remote-file-name-inhibit-cache'.
-	(tramp-open-connection-setup-interactive-shell): Call
-	`tramp-cleanup-connection' directly.
+	(tramp-handle-vc-registered): Use `remote-file-name-inhibit-cache'.
+	(tramp-open-connection-setup-interactive-shell):
+	Call `tramp-cleanup-connection' directly.
 
 2010-10-02  Glenn Morris  <rgm@gnu.org>
 
