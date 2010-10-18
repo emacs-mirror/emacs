@@ -4314,6 +4314,20 @@ frame_make_pointer_visible (void)
     }
 }
 
+DEFUN ("frame-pointer-visible-p", Fframe_pointer_visible_p,
+       Sframe_pointer_visible_p, 0, 1, 0,
+       doc: /* Return t if the mouse pointer displayed on FRAME is visible.
+Otherwise it returns nil.  FRAME omitted or nil means the
+selected frame.  This is useful when `make-pointer-invisible' is set.  */)
+  (Lisp_Object frame)
+{
+  if (NILP (frame))
+    frame = selected_frame;
+
+  CHECK_FRAME (frame);
+
+  return (XFRAME (frame)->pointer_invisible ? Qnil : Qt);
+}
 
 
 /***********************************************************************
@@ -4623,6 +4637,7 @@ automatically.  See also `mouse-autoselect-window'.  */);
   defsubr (&Sset_frame_width);
   defsubr (&Sset_frame_size);
   defsubr (&Sset_frame_position);
+  defsubr (&Sframe_pointer_visible_p);
 
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sx_get_resource);
