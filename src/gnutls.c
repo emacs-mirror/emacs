@@ -125,8 +125,13 @@ emacs_gnutls_read (int fildes, struct Lisp_Process *proc, char *buf,
   rtnval = gnutls_read (state, buf, nbyte);
   if (rtnval >= 0)
     return rtnval;
-  else
-    return -1;
+  else {
+    if (rtnval == GNUTLS_E_AGAIN ||
+	rtnval == GNUTLS_E_INTERRUPTED)
+      return -1;
+    else
+      return 0;
+  }
 }
 
 /* convert an integer error to a Lisp_Object; it will be either a

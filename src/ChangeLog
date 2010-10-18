@@ -1,3 +1,9 @@
+2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_read): Return 0 if we get a
+	non-"EAGAIN"-like error to signal to Emacs that the socket should
+	be closed.
+
 2010-10-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* unexcoff.c (make_hdr): Fix prototype according to changes in
