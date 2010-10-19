@@ -1686,13 +1686,17 @@ If RECURSIVE, search recursively."
 (declare-function libxml-parse-html-region "xml.c"
 		  (start end &optional base-url))
 (declare-function shr-insert-document "shr" (dom))
+(defvar shr-blocked-images)
 
 (defun mm-shr (handle)
   ;; Require since we bind its variables.
   (require 'shr)
   (let ((article-buffer (current-buffer))
-	(shr-blocked-images (with-current-buffer gnus-summary-buffer
-			      gnus-blocked-images))
+	(shr-blocked-images (if (and (boundp 'gnus-summary-buffer)
+				     (buffer-name gnus-summary-buffer))
+				(with-current-buffer gnus-summary-buffer
+				  gnus-blocked-images)
+			      shr-blocked-images))
 	(shr-content-function (lambda (id)
 				(let ((handle (mm-get-content-id id)))
 				  (when handle

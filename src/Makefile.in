@@ -46,12 +46,12 @@ version = @version@
 # LIBS = @LIBS@
 LIBOBJS = @LIBOBJS@
 
-lispsource = $(srcdir)/../lisp/
-libsrc = ../lib-src/
-etc = ../etc/
-oldXMenudir = ../oldXMenu/
-lwlibdir = ../lwlib/
-lispdir = ../lisp/
+lispsource = $(srcdir)/../lisp
+libsrc = ../lib-src
+etc = ../etc
+oldXMenudir = ../oldXMenu
+lwlibdir = ../lwlib
+lispdir = ../lisp
 
 # Configuration files for .o files to depend on.
 M_FILE = $(srcdir)/@machfile@
@@ -176,8 +176,8 @@ LIBXT_OTHER=@LIBXT_OTHER@
 OLDXMENU_TARGET=@OLDXMENU_TARGET@
 
 ## If !HAVE_X11 || USE_GTK, empty.
-## Else if USE_X_TOOLKIT, $(lwlibdir)liblw.a.
-## Else $(oldxmenudir)libXMenu11.a.
+## Else if USE_X_TOOLKIT, $(lwlibdir)/liblw.a.
+## Else $(oldxmenudir)/libXMenu11.a.
 ## (Actually, rather than being empty, it is set to "nothing".
 ## It is never actually used for anything in this case.
 ## This is done because there is a rule with target $(OLDXMENU) below,
@@ -237,9 +237,9 @@ CYGWIN_OBJ=@CYGWIN_OBJ@
 MSDOS_OBJ =
 ## w16select.o termcap.o if MSDOS && HAVE_X_WINDOWS.
 MSDOS_X_OBJ =
-MSDOS_SUPPORT_REAL = $(lispsource)ls-lisp.elc $(lispsource)disp-table.elc \
- $(lispsource)dos-fns.elc $(lispsource)dos-w32.elc $(lispsource)dos-vars.elc \
- $(lispsource)term/internal.elc $(lispsource)term/pc-win.elc
+MSDOS_SUPPORT_REAL = $(lispsource)/ls-lisp.elc $(lispsource)/disp-table.elc \
+ $(lispsource)/dos-fns.elc $(lispsource)/dos-w32.elc $(lispsource)/dos-vars.elc \
+ $(lispsource)/term/internal.elc $(lispsource)/term/pc-win.elc
 ## $MSDOS_SUPPORT_REAL if MSDOS.
 MSDOS_SUPPORT = 
 
@@ -258,23 +258,23 @@ GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
 FONT_OBJ=@FONT_OBJ@
 
 ## Used if HAVE_MOUSE.
-REAL_MOUSE_SUPPORT=$(lispsource)mouse.elc $(lispsource)select.elc \
-  $(lispsource)scroll-bar.elc
+REAL_MOUSE_SUPPORT=$(lispsource)/mouse.elc $(lispsource)/select.elc \
+  $(lispsource)/scroll-bar.elc
 ## Used if HAVE_GPM && !HAVE_MOUSE
-GPM_MOUSE_SUPPORT=$(lispsource)mouse.elc
+GPM_MOUSE_SUPPORT=$(lispsource)/mouse.elc
 LIBGPM = @LIBGPM@
 ## Either of the two preceding options, or empty.
 MOUSE_SUPPORT=@MOUSE_SUPPORT@
 
-## $(lispsource)tooltip.elc if HAVE_WINDOW_SYSTEM, else empty.
+## $(lispsource)/tooltip.elc if HAVE_WINDOW_SYSTEM, else empty.
 TOOLTIP_SUPPORT=@TOOLTIP_SUPPORT@
 
-BASE_WINDOW_SUPPORT=$(lispsource)fringe.elc $(lispsource)image.elc \
-  $(lispsource)international/fontset.elc $(lispsource)dnd.elc \
-  $(lispsource)tool-bar.elc $(lispsource)mwheel.elc
+BASE_WINDOW_SUPPORT=$(lispsource)/fringe.elc $(lispsource)/image.elc \
+  $(lispsource)/international/fontset.elc $(lispsource)/dnd.elc \
+  $(lispsource)/tool-bar.elc $(lispsource)/mwheel.elc
 
-X_WINDOW_SUPPORT=$(lispsource)x-dnd.elc $(lispsource)term/common-win.elc \
-  $(lispsource)term/x-win.elc $(lispsource)dynamic-setting.elc
+X_WINDOW_SUPPORT=$(lispsource)/x-dnd.elc $(lispsource)/term/common-win.elc \
+  $(lispsource)/term/x-win.elc $(lispsource)/dynamic-setting.elc
 
 ## If HAVE_X_WINDOWS, both the above
 ## else if HAVE_WINDOW_SYSTEM (ie, HAVE_NS) just the former; else empty.
@@ -397,93 +397,93 @@ otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
 ## Place loaddefs.el first, so it gets generated first, since it is on
 ## the critical path (relevant in parallel compilations).
 lisp= \
-	$(lispsource)loaddefs.el \
-	$(lispsource)abbrev.elc \
-	$(lispsource)buff-menu.elc \
-	$(lispsource)button.elc \
-	$(lispsource)emacs-lisp/byte-run.elc \
-	$(lispsource)composite.elc \
-	$(lispsource)cus-face.elc \
-	$(lispsource)cus-start.elc \
-	$(lispsource)custom.elc \
-	$(lispsource)emacs-lisp/backquote.elc \
-	$(lispsource)emacs-lisp/lisp-mode.elc \
-	$(lispsource)emacs-lisp/lisp.elc \
-	$(lispsource)env.elc \
-	$(lispsource)faces.elc \
-	$(lispsource)files.elc \
-	$(lispsource)format.elc \
-	$(lispsource)facemenu.elc \
+	$(lispsource)/loaddefs.el \
+	$(lispsource)/abbrev.elc \
+	$(lispsource)/buff-menu.elc \
+	$(lispsource)/button.elc \
+	$(lispsource)/emacs-lisp/byte-run.elc \
+	$(lispsource)/composite.elc \
+	$(lispsource)/cus-face.elc \
+	$(lispsource)/cus-start.elc \
+	$(lispsource)/custom.elc \
+	$(lispsource)/emacs-lisp/backquote.elc \
+	$(lispsource)/emacs-lisp/lisp-mode.elc \
+	$(lispsource)/emacs-lisp/lisp.elc \
+	$(lispsource)/env.elc \
+	$(lispsource)/faces.elc \
+	$(lispsource)/files.elc \
+	$(lispsource)/format.elc \
+	$(lispsource)/facemenu.elc \
 	$(MOUSE_SUPPORT) \
-	$(lispsource)emacs-lisp/float-sup.elc \
-	$(lispsource)frame.elc \
-	$(lispsource)help.elc \
-	$(lispsource)indent.elc \
-	$(lispsource)isearch.elc \
-	$(lispsource)rfn-eshadow.elc \
-	$(lispsource)loadup.el \
-	$(lispsource)bindings.elc \
-	$(lispsource)emacs-lisp/map-ynp.elc \
-	$(lispsource)menu-bar.elc \
-	$(lispsource)international/mule.elc \
-	$(lispsource)international/mule-conf.elc \
-	$(lispsource)international/mule-cmds.elc \
-	$(lispsource)international/characters.elc \
-	$(lispsource)international/charprop.el \
-	$(lispsource)case-table.elc \
-	$(lispsource)language/chinese.elc \
-	$(lispsource)language/cyrillic.elc \
-	$(lispsource)language/indian.elc \
-	$(lispsource)language/sinhala.el \
-	$(lispsource)language/english.el \
-	$(lispsource)language/ethiopic.elc \
-	$(lispsource)language/european.elc \
-	$(lispsource)language/czech.el \
-	$(lispsource)language/slovak.el \
-	$(lispsource)language/romanian.el \
-	$(lispsource)language/greek.el \
-	$(lispsource)language/hebrew.elc \
-	$(lispsource)language/japanese.el \
-	$(lispsource)language/korean.el \
-	$(lispsource)language/lao.el \
-	$(lispsource)language/cham.el \
-	$(lispsource)language/tai-viet.el \
-	$(lispsource)language/thai.el \
-	$(lispsource)language/tibetan.elc \
-	$(lispsource)language/vietnamese.elc \
-	$(lispsource)language/misc-lang.el \
-	$(lispsource)language/utf-8-lang.el \
-	$(lispsource)language/georgian.el \
-	$(lispsource)language/khmer.el \
-	$(lispsource)language/burmese.el \
-	$(lispsource)paths.el \
-	$(lispsource)register.elc \
-	$(lispsource)replace.elc \
-	$(lispsource)simple.elc \
-	$(lispsource)minibuffer.elc \
-	$(lispsource)startup.elc \
-	$(lispsource)subr.elc \
-	$(lispsource)term/tty-colors.elc \
-	$(lispsource)font-core.elc \
-	$(lispsource)emacs-lisp/syntax.elc \
-	$(lispsource)font-lock.elc \
-	$(lispsource)jit-lock.elc \
-	$(lispsource)textmodes/fill.elc \
-	$(lispsource)textmodes/page.elc \
-	$(lispsource)textmodes/paragraphs.elc \
-	$(lispsource)textmodes/text-mode.elc \
-	$(lispsource)emacs-lisp/timer.elc \
-	$(lispsource)jka-cmpr-hook.elc \
-	$(lispsource)vc/vc-hooks.elc \
-	$(lispsource)vc/ediff-hook.elc \
-	$(lispsource)epa-hook.elc \
+	$(lispsource)/emacs-lisp/float-sup.elc \
+	$(lispsource)/frame.elc \
+	$(lispsource)/help.elc \
+	$(lispsource)/indent.elc \
+	$(lispsource)/isearch.elc \
+	$(lispsource)/rfn-eshadow.elc \
+	$(lispsource)/loadup.el \
+	$(lispsource)/bindings.elc \
+	$(lispsource)/emacs-lisp/map-ynp.elc \
+	$(lispsource)/menu-bar.elc \
+	$(lispsource)/international/mule.elc \
+	$(lispsource)/international/mule-conf.elc \
+	$(lispsource)/international/mule-cmds.elc \
+	$(lispsource)/international/characters.elc \
+	$(lispsource)/international/charprop.el \
+	$(lispsource)/case-table.elc \
+	$(lispsource)/language/chinese.elc \
+	$(lispsource)/language/cyrillic.elc \
+	$(lispsource)/language/indian.elc \
+	$(lispsource)/language/sinhala.el \
+	$(lispsource)/language/english.el \
+	$(lispsource)/language/ethiopic.elc \
+	$(lispsource)/language/european.elc \
+	$(lispsource)/language/czech.el \
+	$(lispsource)/language/slovak.el \
+	$(lispsource)/language/romanian.el \
+	$(lispsource)/language/greek.el \
+	$(lispsource)/language/hebrew.elc \
+	$(lispsource)/language/japanese.el \
+	$(lispsource)/language/korean.el \
+	$(lispsource)/language/lao.el \
+	$(lispsource)/language/cham.el \
+	$(lispsource)/language/tai-viet.el \
+	$(lispsource)/language/thai.el \
+	$(lispsource)/language/tibetan.elc \
+	$(lispsource)/language/vietnamese.elc \
+	$(lispsource)/language/misc-lang.el \
+	$(lispsource)/language/utf-8-lang.el \
+	$(lispsource)/language/georgian.el \
+	$(lispsource)/language/khmer.el \
+	$(lispsource)/language/burmese.el \
+	$(lispsource)/paths.el \
+	$(lispsource)/register.elc \
+	$(lispsource)/replace.elc \
+	$(lispsource)/simple.elc \
+	$(lispsource)/minibuffer.elc \
+	$(lispsource)/startup.elc \
+	$(lispsource)/subr.elc \
+	$(lispsource)/term/tty-colors.elc \
+	$(lispsource)/font-core.elc \
+	$(lispsource)/emacs-lisp/syntax.elc \
+	$(lispsource)/font-lock.elc \
+	$(lispsource)/jit-lock.elc \
+	$(lispsource)/textmodes/fill.elc \
+	$(lispsource)/textmodes/page.elc \
+	$(lispsource)/textmodes/paragraphs.elc \
+	$(lispsource)/textmodes/text-mode.elc \
+	$(lispsource)/emacs-lisp/timer.elc \
+	$(lispsource)/jka-cmpr-hook.elc \
+	$(lispsource)/vc/vc-hooks.elc \
+	$(lispsource)/vc/ediff-hook.elc \
+	$(lispsource)/epa-hook.elc \
 	$(TOOLTIP_SUPPORT) \
 	$(MSDOS_SUPPORT) \
 	$(WINDOW_SUPPORT) \
 	$(NS_SUPPORT) \
-	$(lispsource)widget.elc \
-	$(lispsource)window.elc \
-	$(lispsource)version.el
+	$(lispsource)/widget.elc \
+	$(lispsource)/window.elc \
+	$(lispsource)/version.el
 
 ## List of relative names for those files from $lisp that are loaded
 ## unconditionally (i.e. on all platforms).  Files from $lisp that
@@ -610,7 +610,7 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 ## Does anyone ever pay attention to the load-path-shadows output here?
 ## The dumped Emacs is as functional and more efficient than
 ## bootstrap-emacs, so we replace the latter with the former.
-emacs$(EXEEXT): temacs$(EXEEXT) $(etc)DOC $(lisp)
+emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp)
 	if test "$(CANNOT_DUMP)" = "yes"; then \
 	  ln -f temacs$(EXEEXT) emacs$(EXEEXT); \
 	  EMACSLOADPATH=$(lispsource) ./emacs -q -batch \
@@ -634,12 +634,12 @@ emacs$(EXEEXT): temacs$(EXEEXT) $(etc)DOC $(lisp)
 ## the Makefile uses string equality to decide when we talk about identical
 ## files.  Apparently we pass $(shortlisp) rather than $(lisp) to make-docfile
 ## only in order to reduce the command line length.  --Stef
-$(etc)DOC: $(libsrc)make-docfile$(EXEEXT) $(obj) $(lisp) $(SOME_MACHINE_LISP)
-	-rm -f $(etc)DOC
-	$(libsrc)make-docfile -d $(srcdir) $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)DOC
-	$(libsrc)make-docfile -a $(etc)DOC -d $(srcdir) $(SOME_MACHINE_LISP) $(shortlisp)
+$(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp) $(SOME_MACHINE_LISP)
+	-rm -f $(etc)/DOC
+	$(libsrc)/make-docfile -d $(srcdir) $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
+	$(libsrc)/make-docfile -a $(etc)/DOC -d $(srcdir) $(SOME_MACHINE_LISP) $(shortlisp)
 
-$(libsrc)make-docfile$(EXEEXT):
+$(libsrc)/make-docfile$(EXEEXT):
 	cd $(libsrc); $(MAKE) $(MFLAGS) make-docfile$(EXEEXT)
 
 buildobj.h: Makefile
@@ -660,7 +660,7 @@ really-lwlib:
 .PHONY: really-lwlib
 
 really-oldXMenu:
-	cd $(oldxmenudir); $(MAKE) $(MFLAGS) \
+	cd $(oldXMenudir); $(MAKE) $(MFLAGS) \
     CC='$(CC)' CFLAGS='$(CFLAGS)' MAKE='$(MAKE)'
 	@true  # make -t should not create really-oldXMenu.
 .PHONY: really-oldXMenu
@@ -737,12 +737,12 @@ TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 frc:
 TAGS-LISP: frc
-	$(MAKE) -f $(lispdir)Makefile TAGS-LISP ETAGS=../lib-src/etags
+	$(MAKE) -f $(lispdir)/Makefile TAGS-LISP ETAGS=../lib-src/etags
 
-$(lwlibdir)TAGS:
-	(cd $(lwlibdir); $(MAKE) -f $(lwlibdir)Makefile tags ETAGS=../lib-src/etags)
+$(lwlibdir)/TAGS:
+	(cd $(lwlibdir); $(MAKE) -f $(lwlibdir)/Makefile tags ETAGS=../lib-src/etags)
 
-tags: TAGS TAGS-LISP $(lwlibdir)TAGS
+tags: TAGS TAGS-LISP $(lwlibdir)/TAGS
 .PHONY: tags
 
 
@@ -784,7 +784,7 @@ $(lisp) $(SOME_MACHINE_LISP): $(BOOTSTRAPEMACS)
 
 ## VCSWITNESS points to the file that holds info about the current checkout.
 ## We use it as a heuristic to decide when to rebuild loaddefs.el.
-$(lispsource)loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
+$(lispsource)/loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
 	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=$(bootstrap_exe)
 
 ## Dump an Emacs executable named bootstrap-emacs containing the

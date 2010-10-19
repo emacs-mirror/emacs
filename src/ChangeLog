@@ -1,3 +1,86 @@
+2010-10-18  Julien Danjou  <julien@danjou.info>
+
+	* frame.c (Fframe_pointer_visible_p):
+	Add `frame-pointer-visible-p' to get the pointer visibility.
+
+2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_read): Return 0 if we get a
+	non-"EAGAIN"-like error to signal to Emacs that the socket should
+	be closed.
+
+2010-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* unexcoff.c (make_hdr): Fix prototype according to changes in
+	revno 101757.
+
+	* image.c (tiff_load): Cast 3rd argument to avoid compiler warning.
+
+2010-10-15  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* Makefile.in (really-oldXMenu): Fix typo in variable name that
+	made building the X menu fail.
+	(really-oldXMenu): Fix my previous fix.
+
+2010-10-14  Damyan Pepper  <damyanp@gmail.com>
+
+	Fix handling of font properties on Windows (bug#6303).
+	* font.c (font_filter_properties): New function, refactored from
+	ftfont_filter_properties.
+	* font.h (font_filter_properties): Declare.
+	* ftfont.c (ftfont_filter_properties): Use font_filter_properties.
+	* w32font.c (w32font_booleans, w32font_non_booleans): New variables.
+	(w32font_filter_properties): New function.
+	(w32font_driver): Add w32font_filter_properties.
+
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Ffont_variation_glyphs):
+	* ccl.c (Fccl_execute_on_string): Fix typo in docstring.
+
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (w32_wnd_proc, file_dialog_callback):
+	* w32font.c (w32_generic_family):
+	* w32inevt.c (key_event):
+	* w32menu.c (fill_in_menu):
+	* w32proc.c (reader_thread, w32_executable_type, compare_env)
+	(merge_and_sort_env, int_from_hex, enum_locale_fn, enum_codepage_fn):
+	* w32term.c (w32_read_socket): Make static.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (DEF_IMGLIB_FN): Add argument to adapt to strict
+	prototypes; all callers changed.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (TLIB2): Rename from TLIBW32.
+	(OBJ2): New macro.
+	(WIN32OBJ, FONTOBJ): Remove.
+	(OBJ1): Redistribute object files with OBJ2.
+	(LIBS, $(TEMACS)): Use TLIB2.
+	(make-buildobj-CMD, make-buildobj-SH): Use OBJ2.
+	($(TLIB2), TAGS, TAGS-LISP, TAGS-gmake): Depend on OBJ2.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (Vdynamic_library_alist)
+	(syms_of_emacs) <dynamic-library-alist>: Move from image.c and rename.
+	Doc fix.
+
+	* lisp.h (Vdynamic_library_alist): Declare extern.
+
+	* image.c (Vimage_library_alist)
+	(syms_of_image) <image-library-alist>: Move to emacs.c and rename.
+	(lookup_image_type): Use Vdynamic_library_alist.
+	(Finit_image_library): Doc fix.
+
+2010-10-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (lispsource, libsrc, etc, oldxmenudir, lwlibdir)
+	(lispdir): Remove trailing /, update all uses.
+
 2010-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (Qleft): Declare.

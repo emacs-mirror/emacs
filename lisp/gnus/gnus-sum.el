@@ -8824,31 +8824,40 @@ Return the number of articles fetched."
 
 (defun gnus-summary-refer-thread (&optional limit)
   "Fetch all articles in the current thread.
-If LIMIT (the numerical prefix), fetch that many old headers instead
-of what's specified by the `gnus-refer-thread-limit' variable."
+If no backend-specific 'request-thread function is available
+fetch LIMIT (the numerical prefix) old headers. If LIMIT is nil
+fetch what's specified by the `gnus-refer-thread-limit'
+variable."
   (interactive "P")
   (let ((id (mail-header-id (gnus-summary-article-header)))
+	(gnus-summary-ignore-duplicates t)
 	(limit (if limit (prefix-numeric-value limit)
 		 gnus-refer-thread-limit)))
-    (unless (eq gnus-fetch-old-headers 'invisible)
-      (gnus-message 5 "Fetching headers for %s..." gnus-newsgroup-name)
-      ;; Retrieve the headers and read them in.
-      (if (eq (if (numberp limit)
-		  (gnus-retrieve-headers
-		   (list (min
-			  (+ (mail-header-number
-			      (gnus-summary-article-header))
-			     limit)
-			  gnus-newsgroup-end))
-		   gnus-newsgroup-name (* limit 2))
-		;; gnus-refer-thread-limit is t, i.e. fetch _all_
-		;; headers.
-		(gnus-retrieve-headers (list gnus-newsgroup-end)
-				       gnus-newsgroup-name limit))
-	      'nov)
-	  (gnus-build-all-threads)
-	(error "Can't fetch thread from back ends that don't support NOV"))
-      (gnus-message 5 "Fetching headers for %s...done" gnus-newsgroup-name))
+    (if  (gnus-check-backend-function 'request-thread gnus-newsgroup-name)
+	(setq gnus-newsgroup-headers
+	      (gnus-merge 'list
+			  gnus-newsgroup-headers
+			  (gnus-request-thread id)
+			  'gnus-article-sort-by-number))
+      (unless (eq gnus-fetch-old-headers 'invisible)
+	(gnus-message 5 "Fetching headers for %s..." gnus-newsgroup-name)
+	;;	Retrieve the headers and read them in.
+	(if (numberp limit)
+	    (gnus-retrieve-headers
+	     (list (min
+		    (+ (mail-header-number
+			(gnus-summary-article-header))
+		       limit)
+		    gnus-newsgroup-end))
+	     gnus-newsgroup-name (* limit 2))
+	  ;; gnus-refer-thread-limit is t, i.e. fetch _all_
+	  ;; headers.
+	  (gnus-retrieve-headers (list gnus-newsgroup-end)
+				 gnus-newsgroup-name limit)
+	  (gnus-message 5 "Fetching headers for %s...done"
+			gnus-newsgroup-name))))
+    (when (eq gnus-headers-retrieved-by 'nov)
+      (gnus-build-all-threads))
     (gnus-summary-limit-include-thread id)))
 
 (defun gnus-summary-refer-article (message-id)
@@ -10853,10 +10862,6 @@ If NO-EXPIRE, auto-expiry will be inhibited."
       (gnus-alist-pull article gnus-newsgroup-reads)
       t)))
 
-(defalias 'gnus-summary-mark-as-unread-forward
-  'gnus-summary-tick-article-forward)
-(make-obsolete 'gnus-summary-mark-as-unread-forward
-	       'gnus-summary-tick-article-forward "Emacs 20.4")
 (defun gnus-summary-tick-article-forward (n)
   "Tick N articles forwards.
 If N is negative, tick backwards instead.
@@ -10864,18 +10869,12 @@ The difference between N and the number of articles ticked is returned."
   (interactive "p")
   (gnus-summary-mark-forward n gnus-ticked-mark))
 
-(defalias 'gnus-summary-mark-as-unread-backward
-  'gnus-summary-tick-article-backward)
-(make-obsolete 'gnus-summary-mark-as-unread-backward
-	       'gnus-summary-tick-article-backward "Emacs 20.4")
 (defun gnus-summary-tick-article-backward (n)
   "Tick N articles backwards.
 The difference between N and the number of articles ticked is returned."
   (interactive "p")
   (gnus-summary-mark-forward (- n) gnus-ticked-mark))
 
-(defalias 'gnus-summary-mark-as-unread 'gnus-summary-tick-article)
-(make-obsolete 'gnus-summary-mark-as-unread 'gnus-summary-tick-article "Emacs 20.4")
 (defun gnus-summary-tick-article (&optional article clear-mark)
   "Mark current article as unread.
 Optional 1st argument ARTICLE specifies article number to be marked as unread.

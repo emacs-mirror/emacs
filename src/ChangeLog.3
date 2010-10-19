@@ -5146,7 +5146,7 @@
 	Change mouse movement events to be arranged like click events.
 	(format_modifiers): Note that the click modifier has no
 	written representation.
-	(modifier_names, modifer_symbols): New variables, used to
+	(modifier_names, modifier_symbols): New variables, used to
 	create the Qevent_symbol_elements property.
 	(modify_event_symbol): Change the format of the modified
 	symbol cache; there are too many modifier bits now to use a
@@ -5154,8 +5154,8 @@
 	Document the format of the cache.
 	Put the Qevent_symbol_elements property on each new symbol,
 	instead of a Qevent_unmodified property.
-	(symbols_of_keyboard): Put Qevent_symbol_elements properties on
-	the symbols specified in head_table, not Qevent_unmodifed properties.
+	(symbols_of_keyboard): Put Qevent_symbol_elements properties on the
+	symbols specified in head_table, not Qevent_unmodified properties.
 	Initialize and staticpro modifier_symbols, and staticpro the
 	window elements of button_down_location.
 
@@ -11207,7 +11207,7 @@
 	events to send the function key number instead of a symbol.
 	* keyboard.c (modify_event_symbol): Re-arranged to work well
 	with function key/mouse button numbers instead of symbols.
-	And if (MODIFIERS & up_modifer), prepend "U-" to the name of the
+	And if (MODIFIERS & up_modifier), prepend "U-" to the name of the
 	symbol being constructed.
 	(make_lispy_event): Use the new modify_event_symbol.
 

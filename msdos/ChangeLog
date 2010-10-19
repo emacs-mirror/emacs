@@ -1,3 +1,11 @@
+2010-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp: Use $(..) instead of ${..} in all edit commands.
+	Needed because of changes in revno 101897.
+
+	* sed6.inp (mkinfodir): Edit to avoid Unix shell-isms.  Needed
+	because of changes in revno 101876.
+
 2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* sed1v2.inp (PROFILING_LDFLAGS):

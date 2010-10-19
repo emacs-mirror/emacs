@@ -2970,7 +2970,7 @@ convert_time (FILETIME ft)
 
   if (!init)
     {
-      initialize_utc_base();
+      initialize_utc_base ();
       init = 1;
     }
 
@@ -5037,7 +5037,7 @@ fcntl (int s, int cmd, int options)
 	  unsigned long nblock = 1;
 	  int rc = pfn_ioctlsocket (SOCK_HANDLE (s), FIONBIO, &nblock);
 	  if (rc == SOCKET_ERROR)
-	    set_errno();
+	    set_errno ();
 	  /* Keep track of the fact that we set this to non-blocking.  */
 	  fd_info[s].flags |= FILE_NDELAY;
 	  return rc;
@@ -5935,8 +5935,7 @@ serial_open (char *port)
 
 /* For serial-process-configure  */
 void
-serial_configure (struct Lisp_Process *p,
-		  Lisp_Object contact)
+serial_configure (struct Lisp_Process *p, Lisp_Object contact)
 {
   Lisp_Object childp2 = Qnil;
   Lisp_Object tem = Qnil;

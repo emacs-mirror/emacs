@@ -330,14 +330,16 @@ Optional DATA-P non-nil means SOURCE is a string containing image data."
   type)
 
 
-(defvar image-library-alist)
+(define-obsolete-variable-alias
+    'image-library-alist
+    'dynamic-library-alist "24.1")
 
 ;;;###autoload
 (defun image-type-available-p (type)
   "Return non-nil if image type TYPE is available.
 Image types are symbols like `xbm' or `jpeg'."
   (and (fboundp 'init-image-library)
-       (init-image-library type image-library-alist)))
+       (init-image-library type dynamic-library-alist)))
 
 
 ;;;###autoload

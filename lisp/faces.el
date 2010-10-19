@@ -1507,12 +1507,11 @@ If SPEC is nil, return nil."
 
 (defun face-spec-reset-face (face &optional frame)
   "Reset all attributes of FACE on FRAME to unspecified."
-  (let ((attrs face-attribute-name-alist))
-    (while attrs
-      (let ((attr-and-name (car attrs)))
-	(set-face-attribute face frame (car attr-and-name) 'unspecified))
-      (setq attrs (cdr attrs)))))
-
+  (let (reset-args)
+    (dolist (attr-and-name face-attribute-name-alist)
+      (push 'unspecified reset-args)
+      (push (car attr-and-name) reset-args))
+    (apply 'set-face-attribute face frame reset-args)))
 
 (defun face-spec-set (face spec &optional for-defface)
   "Set FACE's face spec, which controls its appearance, to SPEC.
@@ -1578,8 +1577,8 @@ is used.  If nil or omitted, use the selected frame."
     (setq frame (selected-frame)))
   (let ((list face-attribute-name-alist)
 	(match t))
-    (while (and match (not (null list)))
-      (let* ((attr (car (car list)))
+    (while (and match list)
+      (let* ((attr (caar list))
 	     (specified-value
 	      (if (plist-member attrs attr)
 		  (plist-get attrs attr)
@@ -1589,7 +1588,7 @@ is used.  If nil or omitted, use the selected frame."
 	(setq list (cdr list))))
     match))
 
-(defun face-spec-match-p (face spec &optional frame)
+(defsubst face-spec-match-p (face spec &optional frame)
   "Return t if FACE, on FRAME, matches what SPEC says it should look like."
   (face-attr-match-p face (face-spec-choose spec frame) frame))
 
@@ -1837,10 +1836,13 @@ variable with `setq'; this won't have the expected effect."
 
 (defvar inhibit-frame-set-background-mode nil)
 
-(defun frame-set-background-mode (frame)
+(defun frame-set-background-mode (frame &optional keep-face-specs)
   "Set up display-dependent faces on FRAME.
 Display-dependent faces are those which have different definitions
-according to the `background-mode' and `display-type' frame parameters."
+according to the `background-mode' and `display-type' frame parameters.
+
+If optional arg KEEP-FACE-SPECS is non-nil, don't recalculate
+face specs for the new background mode."
   (unless inhibit-frame-set-background-mode
     (let* ((bg-resource
 	    (and (window-system frame)
@@ -1888,29 +1890,29 @@ according to the `background-mode' and `display-type' frame parameters."
 	(let ((locally-modified-faces nil)
 	      ;; Prevent face-spec-recalc from calling this function
 	      ;; again, resulting in a loop (bug#911).
-	      (inhibit-frame-set-background-mode t))
-	  ;; Before modifying the frame parameters, collect a list of
-	  ;; faces that don't match what their face-spec says they
-	  ;; should look like.  We then avoid changing these faces
-	  ;; below.  These are the faces whose attributes were
-	  ;; modified on FRAME.  We use a negative list on the
-	  ;; assumption that most faces will be unmodified, so we can
-	  ;; avoid consing in the common case.
-	  (dolist (face (face-list))
-	    (and (not (get face 'face-override-spec))
-		 (not (face-spec-match-p face
-					 (face-user-default-spec face)
-					 (selected-frame)))
-		 (push face locally-modified-faces)))
-	  ;; Now change to the new frame parameters
-	  (modify-frame-parameters frame
-				   (list (cons 'background-mode bg-mode)
-					 (cons 'display-type display-type)))
-	  ;; For all named faces, choose face specs matching the new frame
-	  ;; parameters, unless they have been locally modified.
-	  (dolist (face (face-list))
-	    (unless (memq face locally-modified-faces)
-	      (face-spec-recalc face frame))))))))
+	      (inhibit-frame-set-background-mode t)
+	      (params (list (cons 'background-mode bg-mode)
+			    (cons 'display-type display-type))))
+	  (if keep-face-specs
+	      (modify-frame-parameters frame params)
+	    ;; If we are recomputing face specs, first collect a list
+	    ;; of faces that don't match their face-specs.  These are
+	    ;; the faces modified on FRAME, and we avoid changing them
+	    ;; below.  Use a negative list to avoid consing (we assume
+	    ;; most faces are unmodified).
+	    (dolist (face (face-list))
+	      (and (not (get face 'face-override-spec))
+		   (not (face-spec-match-p face
+					   (face-user-default-spec face)
+					   (selected-frame)))
+		   (push face locally-modified-faces)))
+	    ;; Now change to the new frame parameters
+	    (modify-frame-parameters frame params)
+	    ;; For all unmodified named faces, choose face specs
+	    ;; matching the new frame parameters.
+	    (dolist (face (face-list))
+	      (unless (memq face locally-modified-faces)
+		(face-spec-recalc face frame)))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1990,7 +1992,7 @@ the X resource ``reverseVideo'' is present, handle that."
 	(progn
 	  (x-setup-function-keys frame)
 	  (x-handle-reverse-video frame parameters)
-	  (frame-set-background-mode frame)
+	  (frame-set-background-mode frame t)
 	  (face-set-after-frame-default frame parameters)
 	  (if (null visibility-spec)
 	      (make-frame-visible frame)
@@ -2006,20 +2008,21 @@ Calculate the face definitions using the face specs, custom theme
 settings, X resources, and `face-new-frame-defaults'.
 Finally, apply any relevant face attributes found amongst the
 frame parameters in PARAMETERS."
-  (dolist (face (nreverse (face-list))) ;Why reverse?  --Stef
-    (condition-case ()
-	(progn
-	  ;; Initialize faces from face spec and custom theme.
-	  (face-spec-recalc face frame)
-	  ;; X resouces for the default face are applied during
-	  ;; x-create-frame.
-	  (and (not (eq face 'default))
-	       (memq (window-system frame) '(x w32))
-	       (make-face-x-resource-internal face frame))
-	  ;; Apply attributes specified by face-new-frame-defaults
-	  (internal-merge-in-global-face face frame))
-      ;; Don't let invalid specs prevent frame creation.
-      (error nil)))
+  (let ((window-system-p (memq (window-system frame) '(x w32))))
+    (dolist (face (nreverse (face-list))) ;Why reverse?  --Stef
+      (condition-case ()
+	  (progn
+	    ;; Initialize faces from face spec and custom theme.
+	    (face-spec-recalc face frame)
+	    ;; X resouces for the default face are applied during
+	    ;; `x-create-frame'.
+	    (and (not (eq face 'default)) window-system-p
+		 (make-face-x-resource-internal face frame))
+	    ;; Apply attributes specified by face-new-frame-defaults
+	    (internal-merge-in-global-face face frame))
+	;; Don't let invalid specs prevent frame creation.
+	(error nil))))
+
   ;; Apply attributes specified by frame parameters.
   (let ((face-params '((foreground-color default :foreground)
   		       (background-color default :background)
@@ -2066,7 +2069,7 @@ If PARAMETERS contains a `reverse' parameter, handle that."
             (set-terminal-parameter frame 'terminal-initted t)
             (set-locale-environment nil frame)
             (tty-run-terminal-initialization frame))
-	  (frame-set-background-mode frame)
+	  (frame-set-background-mode frame t)
 	  (face-set-after-frame-default frame parameters)
 	  (setq success t))
       (unless success
@@ -2122,7 +2125,7 @@ terminal type to a different value."
 
 (defun tty-set-up-initial-frame-faces ()
   (let ((frame (selected-frame)))
-    (frame-set-background-mode frame)
+    (frame-set-background-mode frame t)
     (face-set-after-frame-default frame)))
 
 
@@ -2448,7 +2451,9 @@ used to display the prompt text."
   :group 'frames
   :group 'basic-faces)
 
-(defface cursor '((t nil))
+(defface cursor
+  '((((background light)) :background "black")
+    (((background dark))  :background "white"))
   "Basic face for the cursor color under X.
 Note: Other faces cannot inherit from the cursor face."
   :version "21.1"

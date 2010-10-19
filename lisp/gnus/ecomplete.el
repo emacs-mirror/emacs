@@ -147,7 +147,7 @@
     (save-restriction
       (narrow-to-region (point) (point-at-eol))
       (while (not (eobp))
-	;; Put the 'region face on any charactes on this line that
+	;; Put the 'region face on any characters on this line that
 	;; aren't already highlighted.
 	(unless (get-text-property (point) 'face)
 	  (put-text-property (point) (1+ (point)) 'face 'highlight))

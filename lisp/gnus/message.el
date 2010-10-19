@@ -6568,6 +6568,10 @@ The function is called with one parameter, a cons cell ..."
     (save-match-data
       ;; Build (textual) list of new recipient addresses.
       (cond
+       (to-address
+	(setq recipients (concat ", " to-address))
+	;; If the author explicitly asked for a copy, we don't deny it to them.
+	(if mct (setq recipients (concat recipients ", " mct))))
        ((not wide)
 	(setq recipients (concat ", " author)))
        (address-headers
@@ -6603,10 +6607,6 @@ responses here are directed to other addresses.
 You may customize the variable `message-use-mail-followup-to', if you
 want to get rid of this query permanently.")))
 	(setq recipients (concat ", " mft)))
-       (to-address
-	(setq recipients (concat ", " to-address))
-	;; If the author explicitly asked for a copy, we don't deny it to them.
-	(if mct (setq recipients (concat recipients ", " mct))))
        (t
 	(setq recipients (if never-mct "" (concat ", " author)))
 	(if to (setq recipients (concat recipients ", " to)))

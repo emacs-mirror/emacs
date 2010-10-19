@@ -983,19 +983,32 @@ Assumes that value contains no whitespace."
     (car (split-string (buffer-string)))))
 
 (defun ispell-aspell-find-dictionary (dict-name)
-  ;; This returns nil if the data file does not exist.
-  ;; Can someone please explain the return value format when the
-  ;; file does exist -- rms?
-  (let* ((lang ;; Strip out variant, etc.
-	  (and (string-match "^[[:alpha:]_]+" dict-name)
-	       (match-string 0 dict-name)))
+  "For aspell dictionary DICT-NAME, return a list of parameters if an
+  associated data file is found or nil otherwise.  List format is
+  that of `ispell-dictionary-base-alist' elements."
+  ;; Make sure `ispell-aspell-data-dir' is defined
+  (or ispell-aspell-data-dir
+      (setq ispell-aspell-data-dir
+	    (ispell-get-aspell-config-value "data-dir")))
+  ;; Try finding associated datafile
+  (let* ((datafile1
+	  (concat ispell-aspell-data-dir "/"
+		  ;; Strip out variant, country code, etc.
+		  (and (string-match "^[[:alpha:]]+" dict-name)
+		       (match-string 0 dict-name)) ".dat"))
+	 (datafile2
+	  (concat ispell-aspell-data-dir "/"
+		  ;; Strip out anything but xx_YY.
+		  (and (string-match "^[[:alpha:]_]+" dict-name)
+		       (match-string 0 dict-name)) ".dat"))
 	 (data-file
-	  (concat (or ispell-aspell-data-dir
-		      (setq ispell-aspell-data-dir
-			    (ispell-get-aspell-config-value "data-dir")))
-		  "/" lang ".dat"))
+	  (if (file-readable-p datafile1)
+	      datafile1
+	    (if (file-readable-p datafile2)
+		datafile2)))
 	 otherchars)
-    (condition-case ()
+
+    (if data-file
 	(with-temp-buffer
 	  (insert-file-contents data-file)
 	  ;; There is zero or one line with special characters declarations.
@@ -1023,9 +1036,7 @@ Assumes that value contains no whitespace."
 		;; Here we specify the encoding to use while communicating with
 		;; aspell.  This doesn't apply to command line arguments, so
 		;; just don't pass words to spellcheck as arguments...
-		'utf-8))
-      (file-error
-       nil))))
+		'utf-8)))))
 
 (defun ispell-aspell-add-aliases (alist)
   "Find aspell's dictionary aliases and add them to dictionary ALIST.

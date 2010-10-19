@@ -333,7 +333,7 @@ w32font_has_char (Lisp_Object entity, int c)
 }
 
 /* w32 implementation of encode_char for font backend.
-   Return a glyph code of FONT for characer C (Unicode code point).
+   Return a glyph code of FONT for character C (Unicode code point).
    If FONT doesn't have such a glyph, return FONT_INVALID_CODE.
 
    For speed, the gdi backend uses unicode (Emacs calls encode_char
@@ -1058,7 +1058,7 @@ w32_enumfont_pattern_entity (Lisp_Object frame,
 
 
 /* Convert generic families to the family portion of lfPitchAndFamily.  */
-BYTE
+static BYTE
 w32_generic_family (Lisp_Object name)
 {
   /* Generic families.  */
@@ -1798,7 +1798,7 @@ w32_decode_weight (int fnweight)
   if (fnweight >= FW_NORMAL)     return 100;
   if (fnweight >= FW_LIGHT)      return 50;
   if (fnweight >= FW_EXTRALIGHT) return 40;
-  if (fnweight > FW_THIN)        return 20;
+  if (fnweight >  FW_THIN)       return 20;
   return 0;
 }
 
@@ -1812,7 +1812,7 @@ w32_encode_weight (int n)
   if (n >= 100) return FW_NORMAL;
   if (n >= 50)  return FW_LIGHT;
   if (n >= 40)  return FW_EXTRALIGHT;
-  if (n >= 20)  return  FW_THIN;
+  if (n >= 20)  return FW_THIN;
   return 0;
 }
 
@@ -1822,9 +1822,9 @@ static Lisp_Object
 w32_to_fc_weight (int n)
 {
   if (n >= FW_EXTRABOLD) return intern ("black");
-  if (n >= FW_BOLD) return intern ("bold");
-  if (n >= FW_SEMIBOLD) return intern ("demibold");
-  if (n >= FW_NORMAL) return intern ("medium");
+  if (n >= FW_BOLD)      return intern ("bold");
+  if (n >= FW_SEMIBOLD)  return intern ("demibold");
+  if (n >= FW_NORMAL)    return intern ("medium");
   return intern ("light");
 }
 
@@ -1911,7 +1911,6 @@ fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
       if (family != FF_DONTCARE)
         logfont->lfPitchAndFamily = family | DEFAULT_PITCH;
     }
-
 
   /* Set pitch based on the spacing property.  */
   tmp = AREF (font_spec, FONT_SPACING_INDEX);
@@ -2378,6 +2377,23 @@ in the font selection dialog. */)
   return DECODE_SYSTEM (build_string (buf));
 }
 
+static const char *w32font_booleans [] = {
+  NULL,
+};
+
+static const char *w32font_non_booleans [] = {
+  ":script",
+  ":antialias",
+  ":style",
+  NULL,
+};
+
+static void
+w32font_filter_properties (Lisp_Object font, Lisp_Object alist)
+{
+  font_filter_properties (font, alist, w32font_booleans, w32font_non_booleans);
+}
+
 struct font_driver w32font_driver =
   {
     0, /* Qgdi */
@@ -2407,7 +2423,7 @@ struct font_driver w32font_driver =
     NULL, /* shape */
     NULL, /* check */
     NULL, /* get_variation_glyphs */
-    NULL, /* filter_properties */
+    w32font_filter_properties,
   };
 
 

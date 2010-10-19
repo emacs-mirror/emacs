@@ -480,7 +480,7 @@ Returns the number of articles marked as read."
 	 (or (cdr (assq modifier mod-to-header)) "subject")
 	 pattern
 	 (if (string-match "m" commands)
-	     '(gnus-summary-mark-as-unread nil " ")
+	     '(gnus-summary-tick-article nil " ")
 	   '(gnus-summary-mark-as-read nil "X"))
 	 nil t))
       (forward-line 1))))

@@ -145,24 +145,24 @@ Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper, Qnone;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the Alternate modifer.  May be Qnone or any of the modifier lisp symbols. */
+   the Alternate modifier.  May be Qnone or any of the modifier lisp symbols. */
 Lisp_Object ns_alternate_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the right Alternate modifer.  Has same values as ns_alternate_modifier plus
+   the right Alternate modifier.  Has same values as ns_alternate_modifier plus
    the value Qleft which means whatever value ns_alternate_modifier has.  */
 Lisp_Object ns_right_alternate_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the Command modifer.  May be any of the modifier lisp symbols. */
+   the Command modifier.  May be any of the modifier lisp symbols. */
 Lisp_Object ns_command_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the Control modifer.  May be any of the modifier lisp symbols. */
+   the Control modifier.  May be any of the modifier lisp symbols. */
 Lisp_Object ns_control_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the Function modifer (laptops).  May be any of the modifier lisp symbols. */
+   the Function modifier (laptops).  May be any of the modifier lisp symbols. */
 Lisp_Object ns_function_modifier;
 
 /* Control via default 'GSFontAntiAlias' on OS X and GNUstep. */

@@ -504,6 +504,12 @@ If BUFFER, insert the article in that group."
 	     article (gnus-group-real-name group)
 	     (nth 1 gnus-command-method) buffer)))
 
+(defun gnus-request-thread (id)
+  "Request the thread containing the article specified by Message-ID id."
+  (let ((gnus-command-method (gnus-find-method-for-group gnus-newsgroup-name)))
+    (funcall (gnus-get-function gnus-command-method 'request-thread)
+	     id)))
+
 (defun gnus-request-head (article group)
   "Request the head of ARTICLE in GROUP."
   (let* ((gnus-command-method (gnus-find-method-for-group group))

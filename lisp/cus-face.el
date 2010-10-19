@@ -328,15 +328,18 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 	;; is aliased to.
 	(if (get face 'face-alias)
 	    (setq face (get face 'face-alias)))
-	(custom-push-theme 'theme-face face theme 'set spec)
-	(unless custom--inhibit-theme-enable
-	  ;; Now set the face spec.
+	(if custom--inhibit-theme-enable
+	    ;; Just update theme settings.
+	    (custom-push-theme 'theme-face face theme 'set spec)
+	  ;; Update theme settings and set the face spec.
 	  (let ((now (nth 2 entry))
 		(comment (nth 3 entry))
 		(oldspec (get face 'theme-face)))
 	    (when (not (and oldspec (eq 'user (caar oldspec))))
 	      (put face 'saved-face spec)
 	      (put face 'saved-face-comment comment))
+	    ;; Do this AFTER checking the `theme-face' property.
+	    (custom-push-theme 'theme-face face theme 'set spec)
 	    (when (or now immediate)
 	      (put face 'force-face (if now 'rogue 'immediate)))
 	    (when (or now immediate (facep face))
@@ -345,6 +348,8 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 	      (put face 'face-comment comment)
 	      (put face 'face-override-spec nil)
 	      (face-spec-set face spec t))))))))
+
+(put 'custom-theme-set-faces 'safe-function t)
 
 ;; XEmacs compability function.  In XEmacs, when you reset a Custom
 ;; Theme, you have to specify the theme to reset it to.  We just apply

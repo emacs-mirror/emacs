@@ -2742,7 +2742,9 @@ The current mail message becomes the message displayed."
 						 nil t 'unibyte)
 		  (message "Malformed MIME quoted-printable message")))
 	     ((and (string= character-coding "base64") is-text-message)
-	      (base64-decode-region (point-min) (point-max)))
+	      (condition-case err
+		  (base64-decode-region (point-min) (point-max))
+		(error (message "%s" (cdr err)))))
 	     ((eq character-coding 'uuencode)
 	      (error "uuencoded messages are not supported yet"))
 	     (t))

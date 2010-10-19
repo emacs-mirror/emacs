@@ -1,3 +1,12 @@
+2010-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* os.texi (Dynamic Libraries): New node, with slightly modified
+	text deleted from "Image Formats".
+	(System Interface): Add @menu entry for "Dynamic Libraries".
+
+	* display.texi (Image Formats): Remove description of
+	image-library-alist.  (Renamed in revno 101949.)
+
 2010-10-12  Glenn Morris  <rgm@gnu.org>
 
 	* book-spine.texinfo: Rename to book-spine.texi.

@@ -196,10 +196,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   "Report an error when a suspend is attempted."
   (error "Suspending an Emacs running under W32 makes no sense"))
 
-(defvar image-library-alist)
+(defvar dynamic-library-alist)
 
-;;; Set default known names for image libraries
-(setq image-library-alist
+;;; Set default known names for external libraries
+(setq dynamic-library-alist
       '((xpm "libxpm.dll" "xpm4.dll" "libXpm-nox4.dll")
         (png "libpng12d.dll" "libpng12.dll" "libpng.dll"
 	 ;; these are libpng 1.2.8 from GTK+

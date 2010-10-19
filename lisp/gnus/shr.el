@@ -56,25 +56,27 @@ fit these criteria."
 (defcustom shr-table-line ?-
   "Character used to draw table line."
   :group 'shr
-  :type 'char)
+  :type 'character)
 
 (defcustom shr-table-corner ?+
   "Character used to draw table corner."
   :group 'shr
-  :type 'char)
+  :type 'character)
 
 (defcustom shr-hr-line ?-
   "Character used to draw hr line."
   :group 'shr
-  :type 'char)
+  :type 'character)
+
+(defcustom shr-width fill-column
+  "Frame width to use for rendering."
+  :type 'integer
+  :group 'shr)
 
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
 cid: URL as the argument.")
-
-(defvar shr-width 70
-  "Frame width to use for rendering.")
 
 ;;; Internal variables.
 
@@ -201,54 +203,80 @@ redirects somewhere else."
    ((eq shr-folding-mode 'none)
     (insert text))
    (t
-    (let ((first t)
-	  column)
-      (when (and (string-match "\\`[ \t\n]" text)
-		 (not (bolp))
-		 (not (eq (char-after (1- (point))) ? )))
-	(insert " "))
-      (dolist (elem (split-string text))
-	(when (and (bolp)
-		   (> shr-indentation 0))
+    (when (and (string-match "\\`[ \t\n]" text)
+	       (not (bolp))
+	       (not (eq (char-after (1- (point))) ? )))
+      (insert " "))
+    (dolist (elem (split-string text))
+      (when (and (bolp)
+		 (> shr-indentation 0))
+	(shr-indent))
+      ;; The shr-start is a special variable that is used to pass
+      ;; upwards the first point in the buffer where the text really
+      ;; starts.
+      (unless shr-start
+	(setq shr-start (point)))
+      ;; No space is needed behind a wide character categorized as
+      ;; kinsoku-bol, between characters both categorized as nospace,
+      ;; or at the beginning of a line.
+      (let (prev)
+	(when (and (eq (preceding-char) ? )
+		   (or (= (line-beginning-position) (1- (point)))
+		       (and (aref fill-find-break-point-function-table
+				  (setq prev (char-after (- (point) 2))))
+			    (aref (char-category-set prev) ?>))
+		       (and (aref fill-nospace-between-words-table prev)
+			    (aref fill-nospace-between-words-table
+				  (aref elem 0)))))
+	  (delete-char -1)))
+      (insert elem)
+      (while (> (current-column) shr-width)
+	(unless (prog1
+		    (shr-find-fill-point)
+		  (when (eq (preceding-char) ? )
+		    (delete-char -1))
+		  (insert "\n"))
+	  (put-text-property (1- (point)) (point) 'shr-break t)
+	  ;; No space is needed at the beginning of a line.
+	  (if (eq (following-char) ? )
+	      (delete-char 1)))
+	(when (> shr-indentation 0)
 	  (shr-indent))
-	;; The shr-start is a special variable that is used to pass
-	;; upwards the first point in the buffer where the text really
-	;; starts.
-	(unless shr-start
-	  (setq shr-start (point)))
-	(insert elem)
-	(when (> (shr-current-column) shr-width)
-	  (if (not (search-backward " " (line-beginning-position) t))
-	      (insert "\n")
-	    (delete-char 1)
-	    (insert "\n")
-	    (put-text-property (1- (point)) (point) 'shr-break t)
-	    (when (> shr-indentation 0)
-	      (shr-indent))
-	    (end-of-line)))
-	(insert " "))
-      (unless (string-match "[ \t\n]\\'" text)
-	(delete-char -1))))))
+	(end-of-line))
+      (insert " "))
+    (unless (string-match "[ \t\n]\\'" text)
+      (delete-char -1)))))
+
+(eval-and-compile (autoload 'kinsoku-longer "kinsoku"))
 
 (defun shr-find-fill-point ()
   (let ((found nil))
     (while (and (not found)
-		(not (bolp)))
-      (when (or (eq (preceding-char) ? )
-		(aref fill-find-break-point-function-table (preceding-char)))
-	(setq found (point)))
-      (backward-char 1))
-    (or found
-	(end-of-line))))
-
-(defun shr-current-column ()
-  (let ((column 0))
-    (save-excursion
-      (beginning-of-line)
-      (while (not (eolp))
-	(incf column (char-width (following-char)))
-	(forward-char 1)))
-    column))
+		(> (current-column) shr-indentation))
+      (when (and (or (eq (preceding-char) ? )
+		     (aref fill-find-break-point-function-table
+			   (preceding-char)))
+		 (<= (current-column) shr-width))
+	(setq found t))
+      (backward-char 1)
+      (when (bolp)
+	;; There's no breakable point, so we give it up.
+	(end-of-line)
+	(while (aref fill-find-break-point-function-table
+		     (preceding-char))
+	  (backward-char 1))
+	(setq found 'failed)))
+    (cond ((eq found t)
+	   ;; Don't put kinsoku-bol characters at the beginning of a line.
+	   (or (eobp)
+	       (kinsoku-longer)
+	       (not (aref fill-find-break-point-function-table
+			  (following-char)))
+	       (forward-char 1)))
+	  (found t)
+	  (t
+	   (end-of-line)
+	   nil))))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))
@@ -344,7 +372,7 @@ Return a string with image data."
   (with-temp-buffer
     (mm-disable-multibyte)
     (when (ignore-errors
-	    (url-cache-extract (url-cache-create-filename url))
+	    (url-cache-extract (url-cache-create-filename (shr-encode-url url)))
 	    t)
       (when (or (search-forward "\n\n" nil t)
 		(search-forward "\r\n\r\n" nil t))
@@ -384,50 +412,56 @@ Return a string with image data."
 	shr-start)
     (shr-generic cont)
     (widget-convert-button
-     'link (or shr-start start) (point)
-     :help-echo url)
-    (put-text-property (or shr-start start) (point) 'keymap shr-map)
+     'url-link (or shr-start start) (point)
+     :help-echo url
+     :keymap shr-map
+     url)
     (put-text-property (or shr-start start) (point) 'shr-url url)))
 
+(defun shr-encode-url (url)
+  "Encode URL."
+  (browse-url-url-encode-chars url "[)$ ]"))
+
 (defun shr-tag-img (cont)
-  (when (and (> (current-column) 0)
-	     (not (eq shr-state 'image)))
-    (insert "\n"))
-  (let ((start (point-marker)))
+  (when cont
+    (when (and (> (current-column) 0)
+	       (not (eq shr-state 'image)))
+      (insert "\n"))
     (let ((alt (cdr (assq :alt cont)))
 	  (url (cdr (assq :src cont))))
-      (when (zerop (length alt))
-	(setq alt "[img]"))
-      (cond
-       ((and (not shr-inhibit-images)
-	     (string-match "\\`cid:" url))
-	(let ((url (substring url (match-end 0)))
-	      image)
-	  (if (or (not shr-content-function)
-		  (not (setq image (funcall shr-content-function url))))
-	      (insert alt)
-	    (shr-put-image image (point) alt))))
-       ((or shr-inhibit-images
-	    (and shr-blocked-images
-		 (string-match shr-blocked-images url)))
-	(setq shr-start (point))
-	(let ((shr-state 'space))
-	  (if (> (length alt) 8)
-	      (shr-insert (substring alt 0 8))
-	    (shr-insert alt))))
-       ((url-is-cached (browse-url-url-encode-chars url "[&)$ ]"))
-	(shr-put-image (shr-get-image-data url) (point) alt))
-       (t
-	(insert alt)
-	(ignore-errors
-	  (url-retrieve url 'shr-image-fetched
-			(list (current-buffer) start (point-marker))
-			t))))
-      (insert " ")
-      (put-text-property start (point) 'keymap shr-map)
-      (put-text-property start (point) 'shr-alt alt)
-      (put-text-property start (point) 'shr-image url)
-      (setq shr-state 'image))))
+      (let ((start (point-marker)))
+	(when (zerop (length alt))
+	  (setq alt "[img]"))
+	(cond
+	 ((and (not shr-inhibit-images)
+	       (string-match "\\`cid:" url))
+	  (let ((url (substring url (match-end 0)))
+		image)
+	    (if (or (not shr-content-function)
+		    (not (setq image (funcall shr-content-function url))))
+		(insert alt)
+	      (shr-put-image image (point) alt))))
+	 ((or shr-inhibit-images
+	      (and shr-blocked-images
+		   (string-match shr-blocked-images url)))
+	  (setq shr-start (point))
+	  (let ((shr-state 'space))
+	    (if (> (length alt) 8)
+		(shr-insert (substring alt 0 8))
+	      (shr-insert alt))))
+	 ((url-is-cached (shr-encode-url url))
+	  (shr-put-image (shr-get-image-data url) (point) alt))
+	 (t
+	  (insert alt)
+	  (ignore-errors
+	    (url-retrieve (shr-encode-url url) 'shr-image-fetched
+			  (list (current-buffer) start (point-marker))
+			  t))))
+	(insert " ")
+	(put-text-property start (point) 'keymap shr-map)
+	(put-text-property start (point) 'shr-alt alt)
+	(put-text-property start (point) 'shr-image url)
+	(setq shr-state 'image)))))
 
 (defun shr-tag-pre (cont)
   (let ((shr-folding-mode 'none))
@@ -520,6 +554,11 @@ Return a string with image data."
 	 ;; unbreakable text).
 	 (sketch (shr-make-table cont suggested-widths))
 	 (sketch-widths (shr-table-widths sketch suggested-widths)))
+    ;; This probably won't work very well.
+    (when (> (1+ (loop for width across sketch-widths
+		       summing (1+ width)))
+	     (frame-width))
+      (setq truncate-lines t))
     ;; Then render the table again with these new "hard" widths.
     (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths))
   ;; Finally, insert all the images after the table.  The Emacs buffer

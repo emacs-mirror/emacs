@@ -2911,6 +2911,7 @@ gnus-registry.el will populate this if it's loaded.")
       gnus-start-date-timer gnus-stop-date-timer
       gnus-mime-view-all-parts)
      ("gnus-int" gnus-request-type)
+     ("gnus-html" gnus-html-show-images)
      ("gnus-start" gnus-newsrc-parse-options gnus-1 gnus-no-server-1
       gnus-dribble-enter gnus-read-init-file gnus-dribble-touch
       gnus-check-reasonable-setup)
@@ -3937,7 +3938,9 @@ GROUP can also be an INFO structure."
 		    (not (eq (caar old-params) name)))
 	    (setq new-params (append new-params (list (car old-params)))))
 	  (setq old-params (cdr old-params)))
-	(gnus-group-set-info new-params (gnus-info-group info) 'params)))))
+	(if (listp group)
+	    (gnus-info-set-params info new-params t)
+	  (gnus-group-set-info new-params (gnus-info-group info) 'params))))))
 
 (defun gnus-group-remove-parameter (group name)
   "Remove parameter NAME from GROUP.

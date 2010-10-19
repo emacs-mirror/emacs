@@ -128,6 +128,14 @@ It is necessary to work against a bug in certain clients."
   :type 'boolean
   :group 'message)
 
+(defcustom mml-enable-flowed t
+  "If non-nil, enable format=flowed usage when encoding a message.
+This is only performed when filling on text/plain with hard
+newlines in the text."
+  :version "24.1"
+  :type 'boolean
+  :group 'message)
+
 (defvar mml-tweak-type-alist nil
   "A list of (TYPE . FUNCTION) for tweaking MML parts.
 TYPE is a string containing a regexp to match the MIME type.  FUNCTION
@@ -546,7 +554,8 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		    ;; in the mml tag or it says "flowed" and there
 		    ;; actually are hard newlines in the text.
 		    (let (use-hard-newlines)
-		      (when (and (string= type "text/plain")
+		      (when (and mml-enable-flowed
+                                 (string= type "text/plain")
 				 (not (string= (cdr (assq 'sign cont)) "pgp"))
 				 (or (null (assq 'format cont))
 				     (string= (cdr (assq 'format cont))
