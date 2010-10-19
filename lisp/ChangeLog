@@ -1,3 +1,7 @@
+2010-10-18  Julien Danjou  <julien@danjou.info>
+
+	* bindings.el: Remove end dashes in default mode-line-format.
+
 2010-10-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* bindings.el (global-map): Bind C-d to delete-char and deletechar

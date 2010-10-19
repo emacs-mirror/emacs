@@ -318,7 +318,7 @@ Keymap to display on column and line numbers.")
 mouse-2: Make current window occupy the whole frame\n\
 mouse-3: Remove current window from display")
        (recursive-edit-help-echo "Recursive edit, type C-M-c to get out")
-       (dashes (propertize "--" 'help-echo help-echo))
+       (spaces (propertize " " 'help-echo help-echo))
        (standard-mode-line-format
 	(list
 	 "%e"
@@ -334,9 +334,10 @@ mouse-3: Remove current window from display")
 	 '(vc-mode vc-mode)
 	 (propertize "  " 'help-echo help-echo)
 	 'mode-line-modes
-	 `(which-func-mode ("" which-func-format ,dashes))
-	 `(global-mode-string ("" global-mode-string ,dashes))
-	 (propertize "-%-" 'help-echo help-echo)))
+	 `(which-func-mode ("" which-func-format ,spaces))
+	 `(global-mode-string ("" global-mode-string ,spaces))
+	 `(:eval (unless (display-graphic-p)
+		   ,(propertize "-%-" 'help-echo help-echo)))))
        (standard-mode-line-modes
 	(list
 	 (propertize "%[" 'help-echo recursive-edit-help-echo)
@@ -362,7 +363,7 @@ mouse-3: Toggle minor modes"
 				 'mouse-2 #'mode-line-widen))
 	 (propertize ")" 'help-echo help-echo)
 	 (propertize "%]" 'help-echo recursive-edit-help-echo)
-	 (propertize "--" 'help-echo help-echo)))
+	 spaces))
 
        (standard-mode-line-position
 	`((-3 ,(propertize
