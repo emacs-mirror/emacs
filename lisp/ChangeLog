@@ -1,3 +1,10 @@
+2010-10-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-file-attributes-with-stat)
+	(tramp-do-directory-files-and-attributes-with-stat): Use "e0" in
+	order to make stat results a float.  Patch by Andreas Schwab
+	<schwab@linux-m68k.org>.
+
 2010-10-18  Julien Danjou  <julien@danjou.info>
 
 	* avoid.el (mouse-avoidance-ignore-p): Ignore mouse when it is
@@ -95,7 +102,8 @@
 2010-10-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):
-	Suppress expansion of tabs to spaces.
+	Suppress expansion of tabs to spaces.  Reported by Dale Sedivec
+	<dale@codefu.org>.
 
 2010-10-14  Kenichi Handa  <handa@m17n.org>
 
