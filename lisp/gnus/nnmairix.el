@@ -188,17 +188,17 @@
 (defun nnmairix-summary-mode-hook ()
   "Nnmairix summary mode keymap."
   (define-key gnus-summary-mode-map
-    (kbd "$ t") 'nnmairix-search-thread-this-article)
+    (kbd "G G t") 'nnmairix-search-thread-this-article)
   (define-key gnus-summary-mode-map
-    (kbd "$ f") 'nnmairix-search-from-this-article)
+    (kbd "G G f") 'nnmairix-search-from-this-article)
   (define-key gnus-summary-mode-map
-    (kbd "$ m") 'nnmairix-widget-search-from-this-article)
+    (kbd "G G m") 'nnmairix-widget-search-from-this-article)
   (define-key gnus-summary-mode-map
-    (kbd "$ g") 'nnmairix-create-search-group-from-message)
+    (kbd "G G g") 'nnmairix-create-search-group-from-message)
   (define-key gnus-summary-mode-map
-    (kbd "$ o") 'nnmairix-goto-original-article)
+    (kbd "G G o") 'nnmairix-goto-original-article)
   (define-key gnus-summary-mode-map
-    (kbd "$ u") 'nnmairix-remove-tick-mark-original-article))
+    (kbd "G G u") 'nnmairix-remove-tick-mark-original-article))
 
 (add-hook 'gnus-group-mode-hook 'nnmairix-group-mode-hook)
 (add-hook 'gnus-summary-mode-hook 'nnmairix-summary-mode-hook)

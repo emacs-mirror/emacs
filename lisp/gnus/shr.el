@@ -410,6 +410,29 @@ Return a string with image data."
 (defun shr-tag-s (cont)
   (shr-fontize-cont cont 'strike-through))
 
+(defun shr-tag-span (cont)
+  (let ((start (point))
+	(color (cdr (assq 'color (shr-parse-style (cdr (assq :style cont)))))))
+    (shr-generic cont)
+    (when color
+      (let ((overlay (make-overlay start (point))))
+	(overlay-put overlay 'face (cons 'foreground-color color))))))
+
+(defun shr-parse-style (style)
+  (when style
+    (let ((plist nil))
+      (dolist (elem (split-string style ";"))
+	(when elem
+	  (setq elem (split-string elem ":"))
+	  (when (and (car elem)
+		     (cadr elem))
+	    (let ((name (replace-regexp-in-string "^ +\\| +$" "" (car elem)))
+		  (value (replace-regexp-in-string "^ +\\| +$" "" (cadr elem))))
+	      (push (cons (intern name obarray)
+			  value)
+		    plist)))))
+      plist)))
+
 (defun shr-tag-a (cont)
   (let ((url (cdr (assq :href cont)))
 	(start (point))

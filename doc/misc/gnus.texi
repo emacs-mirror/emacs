@@ -14872,7 +14872,7 @@ The address of the server, like @samp{imap.gmail.com}.
 
 @item nnimap-server-port
 If the server uses a non-standard port, that can be specified here.  A
-typical port would be @samp{imap} or @samp{imaps}.
+typical port would be @code{"imap"} or @code{"imaps"}.
 
 @item nnimap-stream
 How @code{nnimap} should connect to the server.  Possible values are:
