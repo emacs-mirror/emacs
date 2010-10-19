@@ -1,3 +1,9 @@
+2010-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnimap.el (nnimap-request-move-article, nnimap-parse-line)
+	(nnimap-process-expiry-targets): Use unibyte for buffers that hold
+	undecoded network data.
+
 2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-agent.el (gnus-agent-toggle-plugged): Use the right minor mode
@@ -20,9 +26,9 @@
 
 2010-10-18  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* gnus-registry.el (gnus-registry-split-fancy-with-parent): Splitting
-	according to references/in-reply-to obeys the ignore-groups variable,
-	while splitting by sender and subject do not.
+	* gnus-registry.el (gnus-registry-split-fancy-with-parent):
+	Splitting according to references/in-reply-to obeys the ignore-groups
+	variable, while splitting by sender and subject do not.
 
 2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -48,7 +54,7 @@
 
 2010-10-15  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* gnus-sum.el (gnus-summary-refer-thread): unconditionally ignore
+	* gnus-sum.el (gnus-summary-refer-thread): Unconditionally ignore
 	duplicates.
 
 2010-10-15  Kan-Ru Chen  <kanru@kanru.info>  (tiny change)

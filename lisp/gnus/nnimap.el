@@ -714,6 +714,7 @@ textual parts.")
 (deffoo nnimap-request-move-article (article group server accept-form
 					     &optional last internal-move-group)
   (with-temp-buffer
+    (mm-disable-multibyte)
     (when (nnimap-request-article article group server (current-buffer))
       ;; If the move is internal (on the same server), just do it the easy
       ;; way.
@@ -769,6 +770,7 @@ textual parts.")
     (dolist (article articles)
       (let ((target nnmail-expiry-target))
 	(with-temp-buffer
+          (mm-disable-multibyte)
 	  (when (nnimap-request-article article group server (current-buffer))
 	    (nnheader-message 7 "Expiring article %s:%d" group article)
 	    (when (functionp target)
@@ -1474,6 +1476,7 @@ textual parts.")
 (defun nnimap-parse-line (line)
   (let (char result)
     (with-temp-buffer
+      (mm-disable-multibyte)
       (insert line)
       (goto-char (point-min))
       (while (not (eobp))
