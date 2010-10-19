@@ -2,6 +2,7 @@
 
 	* gnus.texi (Customizing the IMAP Connection): The port strings are
 	strings.
+	(Document Groups): Mention git.
 
 2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

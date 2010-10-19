@@ -17969,6 +17969,10 @@ A @acronym{MIME} digest of messages.
 @item lanl-gov-announce
 Announcement messages from LANL Gov Announce.
 
+@cindex git commit messages
+@item git
+@code{git} commit messages.
+
 @cindex forwarded messages
 @item rfc822-forward
 A message forwarded according to RFC822.

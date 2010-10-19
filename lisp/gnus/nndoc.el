@@ -232,19 +232,22 @@ from the document.")
 	  (while articles
 	    (when (setq entry (cdr (assq (setq article (pop articles))
 					 nndoc-dissection-alist)))
-	      (insert (format "221 %d Article retrieved.\n" article))
-	      (if nndoc-generate-head-function
-		  (funcall nndoc-generate-head-function article)
-		(insert-buffer-substring
-		 nndoc-current-buffer (car entry) (nth 1 entry)))
-	      (goto-char (point-max))
-	      (unless (eq (char-after (1- (point))) ?\n)
-		(insert "\n"))
-	      (insert (format "Lines: %d\n" (nth 4 entry)))
-	      (insert ".\n")))
-
-	  (when nndoc-header-transform-function
-	    (funcall nndoc-header-transform-function))
+	      (let ((start (point)))
+		(insert (format "221 %d Article retrieved.\n" article))
+		(if nndoc-generate-head-function
+		    (funcall nndoc-generate-head-function article)
+		  (insert-buffer-substring
+		   nndoc-current-buffer (car entry) (nth 1 entry)))
+		(goto-char (point-max))
+		(unless (eq (char-after (1- (point))) ?\n)
+		  (insert "\n"))
+		(insert (format "Lines: %d\n" (nth 4 entry)))
+		(insert ".\n")
+		(when nndoc-header-transform-function
+		  (save-excursion
+		    (save-restriction
+		      (narrow-to-region start (point))
+		      (funcall nndoc-header-transform-function entry)))))))
 	  (nnheader-fold-continuation-lines)
 	  'headers)))))
 
@@ -671,10 +674,19 @@ from the document.")
   (when (re-search-forward "^Author: " nil t)
     (replace-match "From: " t t)))
 
-(defun nndoc-transform-git-headers ()
+(defun nndoc-transform-git-headers (entry)
   (goto-char (point-min))
-  (while (re-search-forward "^Author: " nil t)
-    (replace-match "From: " t t)))
+  (when (re-search-forward "^Author: " nil t)
+    (replace-match "From: " t t))
+  (let (subject)
+    (with-current-buffer nndoc-current-buffer
+      (goto-char (car entry))
+      (when (search-forward "\n\n" nil t)
+	(setq subject (buffer-substring (point) (line-end-position)))))
+    (when subject
+      (goto-char (point-min))
+      (forward-line 1)
+      (insert (format "Subject: %s\n" subject)))))
 
 (defun nndoc-lanl-gov-announce-type-p ()
   (when (let ((case-fold-search nil))

@@ -4,6 +4,7 @@
 	(nndoc-git-type-p): New function.
 	(nndoc-transform-git-article): Ditto.
 	(nndoc-transform-git-headers): Ditto.
+	(nndoc-transform-git-headers): Generate Subject headers.
 
 	* shr.el (shr-parse-style): New function.
 	(shr-tag-span): Ditto.
