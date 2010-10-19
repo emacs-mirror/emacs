@@ -32,6 +32,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'browse-url)
+(load "kinsoku" nil t)
 
 (defgroup shr nil
   "Simple HTML Renderer"
@@ -87,6 +88,7 @@ cid: URL as the argument.")
 (defvar shr-inhibit-images nil)
 (defvar shr-list-mode nil)
 (defvar shr-content-cache nil)
+(defvar shr-kinsoku-shorten nil)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -247,36 +249,37 @@ redirects somewhere else."
     (unless (string-match "[ \t\n]\\'" text)
       (delete-char -1)))))
 
-(eval-and-compile (autoload 'kinsoku-longer "kinsoku"))
-
 (defun shr-find-fill-point ()
-  (let ((found nil))
-    (while (and (not found)
-		(> (current-column) shr-indentation))
-      (when (and (or (eq (preceding-char) ? )
-		     (aref fill-find-break-point-function-table
-			   (preceding-char)))
-		 (<= (current-column) shr-width))
-	(setq found t))
-      (backward-char 1)
-      (when (bolp)
+  (when (> (move-to-column shr-width) shr-width)
+    (backward-char 1))
+  (let (failed)
+    (while (not
+	    (or (setq failed (= (current-column) shr-indentation))
+		(eq (preceding-char) ? )
+		(eq (following-char) ? )
+		(aref fill-find-break-point-function-table (preceding-char))))
+      (backward-char 1))
+    (if failed
 	;; There's no breakable point, so we give it up.
-	(end-of-line)
-	(while (aref fill-find-break-point-function-table
-		     (preceding-char))
-	  (backward-char 1))
-	(setq found 'failed)))
-    (cond ((eq found t)
-	   ;; Don't put kinsoku-bol characters at the beginning of a line.
-	   (or (eobp)
-	       (kinsoku-longer)
-	       (not (aref fill-find-break-point-function-table
-			  (following-char)))
-	       (forward-char 1)))
-	  (found t)
-	  (t
-	   (end-of-line)
-	   nil))))
+	(progn
+	  (end-of-line)
+	  (while (aref fill-find-break-point-function-table (preceding-char))
+	    (backward-char 1))
+	  nil)
+      (or (eolp)
+	  ;; Don't put kinsoku-bol characters at the beginning of a line,
+	  ;; or kinsoku-eol characters at the end of a line,
+	  (let ((count 4))
+	    (if shr-kinsoku-shorten
+		(while (and
+			(> count 0)
+			(or (aref (char-category-set (preceding-char)) ?<)
+			    (aref (char-category-set (following-char)) ?>)))
+		  (backward-char 1))
+	      (while (and (> count 0)
+			  (aref (char-category-set (following-char)) ?>))
+		(forward-char 1)))
+	    t)))))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))
@@ -545,6 +548,7 @@ Return a string with image data."
   (setq cont (or (cdr (assq 'tbody cont))
 		 cont))
   (let* ((shr-inhibit-images t)
+	 (shr-kinsoku-shorten t)
 	 ;; Find all suggested widths.
 	 (columns (shr-column-specs cont))
 	 ;; Compute how many characters wide each TD should be.
@@ -555,8 +559,9 @@ Return a string with image data."
 	 (sketch (shr-make-table cont suggested-widths))
 	 (sketch-widths (shr-table-widths sketch suggested-widths)))
     ;; This probably won't work very well.
-    (when (> (1+ (loop for width across sketch-widths
-		       summing (1+ width)))
+    (when (> (+ (loop for width across sketch-widths
+		      summing (1+ width))
+		shr-indentation 1)
 	     (frame-width))
       (setq truncate-lines t))
     ;; Then render the table again with these new "hard" widths.
@@ -607,12 +612,14 @@ Return a string with image data."
 	  ;; possibly.
 	  (dotimes (i (- height (length lines)))
 	    (end-of-line)
-	    (insert (make-string (length (car lines)) ? ) "|")
+	    (insert (make-string (string-width (car lines)) ? ) "|")
 	    (forward-line 1)))))
     (shr-insert-table-ruler widths)))
 
 (defun shr-insert-table-ruler (widths)
-  (shr-indent)
+  (when (and (bolp)
+	     (> shr-indentation 0))
+    (shr-indent))
   (insert shr-table-corner)
   (dotimes (i (length widths))
     (insert (make-string (aref widths i) shr-table-line) shr-table-corner))
