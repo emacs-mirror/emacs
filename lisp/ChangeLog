@@ -1,3 +1,22 @@
+2010-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* repeat.el (repeat): Use read-key (bug#6256).
+
+2010-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/unsafep.el: Don't mark functions that display
+	messages as safe.  Suggested by Johan Bockgård.
+
+2010-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--replace): Move point where it belongs
+	when there's a common suffix (bug#7215).
+
+2010-10-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Add category '|' (word breakable)
+	to fullwidth characters.
+
 2010-10-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-do-file-attributes-with-stat)
