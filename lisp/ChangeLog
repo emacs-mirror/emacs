@@ -1,3 +1,13 @@
+2010-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-face.el (custom-theme-set-faces): Revert 2010-10-18 change.
+	Don't mark as safe.
+
+	* custom.el (custom-theme-set-variables): Likewise.
+	(load-theme): Add custom-theme-set-faces and
+	custom-theme-set-variables to safe-functions while loading.
+	(custom-enabled-themes): Mark as risky.
+
 2010-10-18  Julien Danjou  <julien@danjou.info>
 
 	* bindings.el: Remove end dashes in default mode-line-format.
