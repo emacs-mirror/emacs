@@ -306,7 +306,11 @@ are found, but don't error if they are not their."
 	  (T2 (car expected)))
 
       (cond
-       ((semantic-tag-similar-p T1 T2 :default-value)
+       ((semantic-tag-similar-p T1 T2
+				:Default-Value
+				:Code
+				:Documentation ;; Todo - Can We Get This Removed?
+				)
 
 	(let ((mem1 (semantic-tag-components T1))
 	      (mem2 (semantic-tag-components T2)))
