@@ -1,3 +1,9 @@
+2010-10-19  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-before-change, c-after-change): Move the
+	setting of c-new-BEG and c-new-END from c-before-change to
+	c-after-change.
+
 2010-10-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-face.el (custom-theme-set-faces): Revert 2010-10-18 change.
