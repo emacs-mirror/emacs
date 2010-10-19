@@ -140,6 +140,8 @@ off by customizing x-gtk-use-system-tooltips.
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
 with Xft.
 
+** On graphical displays, the mode-line no longer ends in dashes.
+
 ** Basic SELinux support has been added.
 This requires Emacs to be linked with libselinux at build time.
 
