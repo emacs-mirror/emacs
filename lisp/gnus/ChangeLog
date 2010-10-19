@@ -1,5 +1,8 @@
 2010-10-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* shr.el (shr-find-fill-point): Don't leave blanks at the start of some
+	lines.
+
 	* nndoc.el (nndoc-type-alist): Add git support.
 	(nndoc-git-type-p): New function.
 	(nndoc-transform-git-article): Ditto.

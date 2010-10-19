@@ -241,8 +241,8 @@ redirects somewhere else."
 		  (insert "\n"))
 	  (put-text-property (1- (point)) (point) 'shr-break t)
 	  ;; No space is needed at the beginning of a line.
-	  (if (eq (following-char) ? )
-	      (delete-char 1)))
+	  (when (eq (following-char) ? )
+	    (delete-char 1)))
 	(when (> shr-indentation 0)
 	  (shr-indent))
 	(end-of-line))
@@ -280,6 +280,8 @@ redirects somewhere else."
 	      (while (and (> count 0)
 			  (aref (char-category-set (following-char)) ?>))
 		(forward-char 1)))
+	    (when (eq (following-char) ? )
+	      (forward-char 1))
 	    t)))))
 
 (defun shr-ensure-newline ()
