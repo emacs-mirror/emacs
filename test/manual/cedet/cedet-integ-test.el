@@ -323,7 +323,7 @@ are found, but don't error if they are not their."
 	)
 
 	;;it might be in a list of extra tags???
-       ((semantic-tag-similar-p T1 (car extra) :default-value)
+       ((semantic-tag-similar-p T1 (car extra) :default-value :members)
 
 	;; Don't check members.  These should be simple cases for now.
 	(setq extra (cdr extra))
