@@ -1,5 +1,9 @@
 2010-10-19  Alan Mackenzie  <acm@muc.de>
 
+	* progmodes/cc-langs.el (c-type-decl-prefix-key): C++ bit: move
+	"\(const\|throw\|volatile\)\>" nearer the start of the regexp, so
+	that these keywords aren't wrongly matched as identifiers.
+
 	* progmodes/cc-mode.el (c-before-change, c-after-change): Move the
 	setting of c-new-BEG and c-new-END from c-before-change to
 	c-after-change.
