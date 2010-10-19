@@ -32,7 +32,8 @@
 
 (eval-when-compile (require 'cl))
 (require 'browse-url)
-(load "kinsoku" nil t)
+(unless (aref (char-category-set (make-char 'japanese-jisx0208 33 35)) ?>)
+  (load "kinsoku" nil t))
 
 (defgroup shr nil
   "Simple HTML Renderer"

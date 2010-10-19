@@ -1,6 +1,6 @@
 2010-10-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* shr.el: Load kinsoku.
+	* shr.el: Load kinsoku if necessary.
 	(shr-kinsoku-shorten): New internal variable.
 	(shr-find-fill-point): Make kinsoku shorten text line if
 	shr-kinsoku-shorten is bound to non-nil.
