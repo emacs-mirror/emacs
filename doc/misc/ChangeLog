@@ -1,3 +1,8 @@
+2010-10-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing the IMAP Connection): The port strings are
+	strings.
+
 2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-coding.texi (Gnus Maintainance Guide): Update to mention Emacs
