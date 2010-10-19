@@ -1,3 +1,11 @@
+2010-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el (global-map): Bind C-d to delete-char and deletechar
+	to delete-forward-char.
+
+	* simple.el (normal-erase-is-backspace-mode): Remap delete to
+	deletechar, and hence delete-forward-char.
+
 2010-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* repeat.el (repeat): Use read-key (bug#6256).

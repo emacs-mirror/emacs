@@ -824,7 +824,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key global-map [?\C-\M--] 'negative-argument)
 
 (define-key global-map "\177" 'delete-backward-char)
-(define-key global-map "\C-d" 'delete-forward-char)
+(define-key global-map "\C-d" 'delete-char)
 
 (define-key global-map "\C-k" 'kill-line)
 (define-key global-map "\C-w" 'kill-region)
@@ -933,7 +933,7 @@ if `inhibit-field-text-motion' is non-nil."
 ;; (define-key global-map [clearline]	'function-key-error)
 (define-key global-map [insertline]	'open-line)
 (define-key global-map [deleteline]	'kill-line)
-(define-key global-map [deletechar]	'delete-char)
+(define-key global-map [deletechar]	'delete-forward-char)
 ;; (define-key global-map [backtab]	'function-key-error)
 ;; (define-key global-map [f1]		'function-key-error)
 ;; (define-key global-map [f2]		'function-key-error)

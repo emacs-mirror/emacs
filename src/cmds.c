@@ -230,7 +230,7 @@ Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).
 Interactively, N is the prefix arg, and KILLFLAG is set if
 N was explicitly specified.
 
-The command `delete-forward' is preferable for interactive use.  */)
+The command `delete-forward-char' is preferable for interactive use.  */)
   (Lisp_Object n, Lisp_Object killflag)
 {
   EMACS_INT pos;

@@ -6628,7 +6628,7 @@ See also `normal-erase-is-backspace'."
 
 	     (if enabled
 		 (progn
-		   (define-key local-function-key-map [delete] [?\C-d])
+		   (define-key local-function-key-map [delete] [deletechar])
 		   (define-key local-function-key-map [kp-delete] [?\C-d])
 		   (define-key local-function-key-map [backspace] [?\C-?])
                    (dolist (b bindings)
