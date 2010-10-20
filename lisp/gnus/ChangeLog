@@ -1,3 +1,7 @@
+2010-10-20  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-request-article): Fix BODYSTRUCTURE retrieval.
+
 2010-10-20  Andreas Seltenreich  <seltenreich@gmx.de>
 
 	* gnus-draft.el (gnus-draft-check-draft-articles): Don't unnecessarily

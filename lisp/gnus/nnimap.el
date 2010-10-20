@@ -477,7 +477,7 @@ textual parts.")
 				(let ((start (point)))
 				  (forward-sexp 1)
 				  (downcase-region start (point))
-				  (goto-char (point))
+				  (goto-char start)
 				  (read (current-buffer))))
 		    parts (nnimap-find-wanted-parts structure))))
 	  (when (if parts
