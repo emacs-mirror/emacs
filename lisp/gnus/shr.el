@@ -272,13 +272,19 @@ redirects somewhere else."
 	  ;; Don't put kinsoku-bol characters at the beginning of a line,
 	  ;; or kinsoku-eol characters at the end of a line,
 	  (let ((count 4))
-	    (if shr-kinsoku-shorten
+	    (if (or shr-kinsoku-shorten
+		    (and (aref (char-category-set (preceding-char)) ?<)
+			 (progn
+			   (setq count (1- count))
+			   (backward-char 1)
+			   t)))
 		(while (and
-			(> count 0)
+			(>= (setq count (1- count)) 0)
+			(not (memq (preceding-char) (list ?\C-@ ?\n ? )))
 			(or (aref (char-category-set (preceding-char)) ?<)
 			    (aref (char-category-set (following-char)) ?>)))
 		  (backward-char 1))
-	      (while (and (> count 0)
+	      (while (and (>= (setq count (1- count)) 0)
 			  (aref (char-category-set (following-char)) ?>))
 		(forward-char 1)))
 	    (when (eq (following-char) ? )
