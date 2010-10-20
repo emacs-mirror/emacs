@@ -1,3 +1,8 @@
+2010-10-20  Julien Danjou  <julien@danjou.info>
+
+	* emacs-mime.texi (Flowed text): Add a note about mml-enable-flowed
+	variable.
+
 2010-10-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Customizing the IMAP Connection): The port strings are

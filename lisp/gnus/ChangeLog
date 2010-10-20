@@ -1,3 +1,10 @@
+2010-10-20  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus-draft.el (gnus-draft-check-draft-articles): Don't unnecessarily
+	run file-truename on remote files.  This can be expensive and even
+	prevent one from editing drafts if some unrelated buffer has a stale
+	connection.
+
 2010-10-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-find-fill-point): Shorten line if the preceding char is
@@ -109,8 +116,8 @@
 
 2010-10-15  Julien Danjou  <julien@danjou.info>
 
-	* mml.el (mml-generate-mime-1): Add `mml-enable-flow' variable to add a
-	possibility to disable format=flow encoding when using hard newlines.
+	* mml.el (mml-generate-mime-1): Add `mml-enable-flowed' variable to add
+	a possibility to disable format=flow encoding when using hard newlines.
 
 2010-10-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
