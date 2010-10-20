@@ -5376,10 +5376,10 @@
 	(main): Improve usage message.
 	(error): Write to stderr, not stdout.
 
-	* b2m.c cvtmail.c digest-doc.c emacsclient.c emacsserver.c etags.c
-	fakemail.c hexl.c make-docfile.c profile.c sorted-doc.c test-distrib.c
-	timer.c wakeup.c yow.c: Eliminate some -Wall warnings from unused
-	variables and implicitly declared functions.
+	* b2m.c, cvtmail.c, digest-doc.c, emacsclient.c, emacsserver.c:
+	* etags.c, fakemail.c, hexl.c, make-docfile.c, profile.c, sorted-doc.c:
+	* test-distrib.c, timer.c, wakeup.c, yow.c: Eliminate some -Wall
+	warnings from unused variables and implicitly declared functions.
 
 1994-10-11  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
