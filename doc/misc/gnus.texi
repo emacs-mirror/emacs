@@ -9803,19 +9803,16 @@ If a prefix is given, a charset will be asked for.  If it is a number,
 the charset defined in @code{gnus-summary-show-article-charset-alist}
 (@pxref{Paging the Article}) will be used.
 
-@vindex gnus-article-wash-function
 The default is to use the function specified by
 @code{mm-text-html-renderer} (@pxref{Display Customization, ,Display
 Customization, emacs-mime, The Emacs MIME Manual}) to convert the
-@acronym{HTML}, but this is controlled by the
-@code{gnus-article-wash-function} variable.  Pre-defined functions you
-can use include:
+@acronym{HTML}.  Pre-defined functions you can use include:
 
 @table @code
-@item mm-shr
+@item shr
 Use Gnus simple html renderer.
 
-@item gnus-article-html
+@item gnus-w3m
 Use Gnus rendered based on w3m.
 
 @item w3
@@ -12462,15 +12459,20 @@ that's based on @code{w3m}.
 
 @item gnus-blocked-images
 @vindex gnus-blocked-images
-Images that have @acronym{URL}s that match this regexp won't be
-fetched and displayed.  For instance, do block all @acronym{URL}s that
-have the string ``ads'' in them, do the following:
+External images that have @acronym{URL}s that match this regexp won't
+be fetched and displayed.  For instance, do block all @acronym{URL}s
+that have the string ``ads'' in them, do the following:
 
 @lisp
 (setq gnus-blocked-images "ads")
 @end lisp
 
-The default is to block all external images.
+This can also be a function to be evaluated.  If so, it will be
+called with the group name as the parameter.  The default value is
+@code{gnus-block-private-groups}, which will return @samp{"."} for
+anything that isn't a newsgroup.  This means that no external images
+will be fetched as a result of reading mail, so that nobody can use
+web bugs (and the like) to track whether you've read email.
 
 @item gnus-html-cache-directory
 @vindex gnus-html-cache-directory

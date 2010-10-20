@@ -565,9 +565,9 @@ textual parts.")
 	(pop bstruc))
       (setq type (car bstruc))
       (setq bstruc (car (cdr bstruc)))
-      (when (and (stringp (car bstruc))
-		 (string= (downcase (car bstruc)) "boundary"))
-	(setq boundary (cadr bstruc))))
+      (let ((has-boundary (member "boundary" bstruc)))
+        (when has-boundary
+          (setq boundary (cadr has-boundary)))))
     (when subp
       (insert (format "Content-type: multipart/%s; boundary=%S\n\n"
 		      (downcase type) boundary)))

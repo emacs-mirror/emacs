@@ -105,8 +105,8 @@
 	 ,disposition ,description ,cache ,id))
 
 (defcustom mm-text-html-renderer
-  (cond ((fboundp 'libxml-parse-html-region) 'mm-shr)
-	((executable-find "w3m") 'gnus-article-html)
+  (cond ((fboundp 'libxml-parse-html-region) 'shr)
+	((executable-find "w3m") 'gnus-w3m)
 	((executable-find "links") 'links)
 	((executable-find "lynx") 'lynx)
 	((locate-library "w3") 'w3)
@@ -115,8 +115,8 @@
   "Render of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:
-`mm-shr': use Gnus simple HTML renderer;
-`gnus-article-html' : use Gnus renderer based on w3m;
+`shr': use Gnus simple HTML renderer;
+`gnus-w3m' : use Gnus renderer based on w3m;
 `w3m'  : use emacs-w3m;
 `w3m-standalone': use w3m;
 `links': use links;
@@ -125,8 +125,8 @@ The defined renderer types are:
 `html2text' : use html2text;
 nil    : use external viewer (default web browser)."
   :version "24.1"
-  :type '(choice (const mm-shr)
-                 (const gnus-article-html)
+  :type '(choice (const shr)
+                 (const gnus-w3m)
                  (const w3)
                  (const w3m :tag "emacs-w3m")
 		 (const w3m-standalone :tag "standalone w3m" )
@@ -136,10 +136,6 @@ nil    : use external viewer (default web browser)."
 		 (const nil :tag "External viewer")
 		 (function))
   :group 'mime-display)
-
-(defvar mm-inline-text-html-renderer nil
-  "Function used for rendering inline HTML contents.
-It is suggested to customize `mm-text-html-renderer' instead.")
 
 (defcustom mm-inline-text-html-with-images nil
   "If non-nil, Gnus will allow retrieving images in HTML contents with
@@ -245,8 +241,7 @@ before the external MIME handler is invoked."
     ("text/html"
      mm-inline-text-html
      (lambda (handle)
-       (or mm-inline-text-html-renderer
-	   mm-text-html-renderer)))
+       mm-text-html-renderer))
     ("text/x-vcard"
      mm-inline-text-vcard
      (lambda (handle)

@@ -1,6 +1,33 @@
+2010-10-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-tag-table): Remove useless nconc.
+
+2010-10-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-wash-html): Simplify and remove the charset
+	stuff.  Use the normal html rendering code instead of the special html
+	washing code.
+
+	* mm-view.el (mm-text-html-renderer-alist): Add the `shr' and
+	`gnus-w3m' symbols.
+	(mm-text-html-washer-alist): Removed.
+
+	* mm-decode.el (mm-inline-text-html-renderer): Removed.
+	(mm-inline-media-tests): Removed use.
+	(mm-text-html-renderer): Change default to the `shr' symbol.
+
+	* mm-view.el (mm-inline-text-html): Removed use.
+
+	* gnus-art.el (gnus-blocked-images): New function.  Allow the
+	`gnus-blocked-images' to be a function.
+	(gnus-article-wash-function): Removed.
+
 2010-10-20  Julien Danjou  <julien@danjou.info>
 
+	* spam.el (spam-list-of-processors): Mark as obsolete.
+
 	* nnimap.el (nnimap-request-article): Fix BODYSTRUCTURE retrieval.
+	(nnimap-insert-partial-structure): Fix boundary detection.
 
 2010-10-20  Andreas Seltenreich  <seltenreich@gmx.de>
 

@@ -205,8 +205,8 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
                  url
                  (if (buffer-live-p gnus-summary-buffer)
                      (with-current-buffer gnus-summary-buffer
-                       gnus-blocked-images)
-                   gnus-blocked-images))
+                       (gnus-blocked-images))
+                   (gnus-blocked-images)))
                 (progn
                   (widget-convert-button
                    'link start end
@@ -491,7 +491,7 @@ This only works if the article in question is HTML."
 (defun gnus-html-prefetch-images (summary)
   (when (buffer-live-p summary)
     (let ((blocked-images (with-current-buffer summary
-                            gnus-blocked-images)))
+                            (gnus-blocked-images))))
       (save-match-data
 	(while (re-search-forward "<img[^>]+src=[\"']\\([^\"']+\\)" nil t)
 	  (let ((url (gnus-html-encode-url (match-string 1))))

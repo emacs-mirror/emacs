@@ -1,3 +1,9 @@
+2010-10-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (HTML): Document the function value of
+	gnus-blocked-images.
+	(Article Washing): shr and gnus-w3m, not the direct function names.
+
 2010-10-20  Julien Danjou  <julien@danjou.info>
 
 	* emacs-mime.texi (Flowed text): Add a note about mml-enable-flowed

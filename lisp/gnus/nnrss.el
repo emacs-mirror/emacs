@@ -198,7 +198,6 @@ used to render text.  If it is nil, text will simply be folded.")
   t)
 
 (defvar mm-text-html-renderer)
-(defvar mm-text-html-washer-alist)
 
 (deffoo nnrss-request-article (article &optional group server buffer)
   (setq group (nnrss-decode-group-name group))
