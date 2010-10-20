@@ -2,6 +2,7 @@
 
 	* shr.el (shr-find-fill-point): Don't leave blanks at the start of some
 	lines.
+	(shr-save-contents): New command and keystroke.
 
 	* nndoc.el (nndoc-type-alist): Add git support.
 	(nndoc-git-type-p): New function.

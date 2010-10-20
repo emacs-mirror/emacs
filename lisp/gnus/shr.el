@@ -98,6 +98,7 @@ cid: URL as the argument.")
     (define-key map "I" 'shr-insert-image)
     (define-key map "u" 'shr-copy-url)
     (define-key map "v" 'shr-browse-url)
+    (define-key map "o" 'shr-save-contents)
     (define-key map "\r" 'shr-browse-url)
     map))
 
@@ -322,6 +323,23 @@ redirects somewhere else."
     (if (not url)
 	(message "No link under point")
       (browse-url url))))
+
+(defun shr-save-contents (directory)
+  "Save the contents from URL in a file."
+  (interactive "DSave contents of URL to directory: ")
+  (let ((url (get-text-property (point) 'shr-url)))
+    (if (not url)
+	(message "No link under point")
+      (url-retrieve (shr-encode-url url)
+		    'shr-store-contents (list url directory)))))
+
+(defun shr-store-contents (status url directory)
+  (unless (plist-get status :error)
+    (when (or (search-forward "\n\n" nil t)
+	      (search-forward "\r\n\r\n" nil t))
+      (write-region (point) (point-max)
+		    (expand-file-name (file-name-nondirectory url)
+				      directory)))))
 
 (defun shr-image-fetched (status buffer start end)
   (when (and (buffer-name buffer)
