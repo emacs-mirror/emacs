@@ -177,7 +177,7 @@ OLDXMENU_TARGET=@OLDXMENU_TARGET@
 
 ## If !HAVE_X11 || USE_GTK, empty.
 ## Else if USE_X_TOOLKIT, $(lwlibdir)/liblw.a.
-## Else $(oldxmenudir)/libXMenu11.a.
+## Else $(oldXMenudir)/libXMenu11.a.
 ## (Actually, rather than being empty, it is set to "nothing".
 ## It is never actually used for anything in this case.
 ## This is done because there is a rule with target $(OLDXMENU) below,
