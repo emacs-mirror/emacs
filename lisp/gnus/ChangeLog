@@ -2,6 +2,8 @@
 
 	* shr.el (shr-find-fill-point): Shorten line if the preceding char is
 	kinsoku-eol regardless of shr-kinsoku-shorten.
+	(shr-tag-table-1): Rename from shr-tag-table; make it a subroutine.
+	(shr-tag-table): Support caption, thead, and tfoot.
 
 2010-10-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

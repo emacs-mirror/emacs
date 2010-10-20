@@ -593,8 +593,7 @@ Return a string with image data."
 ;; main buffer).  Now we know how much space each TD really takes, so
 ;; we then render everything again with the new widths, and finally
 ;; insert all these boxes into the main buffer.
-(defun shr-tag-table (cont)
-  (shr-ensure-paragraph)
+(defun shr-tag-table-1 (cont)
   (setq cont (or (cdr (assq 'tbody cont))
 		 cont))
   (let* ((shr-inhibit-images t)
@@ -621,6 +620,56 @@ Return a string with image data."
   ;; into the tables.
   (dolist (elem (shr-find-elements cont 'img))
     (shr-tag-img (cdr elem))))
+
+(defun shr-tag-table (cont)
+  (shr-ensure-paragraph)
+  (let* ((caption (cdr (assq 'caption cont)))
+	 (header (cdr (assq 'thead cont)))
+	 (body (or (cdr (assq 'tbody cont)) cont))
+	 (footer (cdr (assq 'tfoot cont)))
+	 (nheader (if header (shr-max-columns header)))
+	 (nbody (if body (shr-max-columns body)))
+	 (nfooter (if footer (shr-max-columns footer))))
+    (shr-tag-table-1
+     (nconc
+      (if caption `((tr (td ,@caption))))
+      (if header
+	  (if footer
+	      ;; header + body + footer
+	      (if (= nheader nbody)
+		  (if (= nbody nfooter)
+		      `((tr (td (table (tbody ,@header ,@body ,@footer)))))
+		    (if (= nfooter 1)
+			`((tr (td (table (tbody ,@header ,@body))))
+			  ,@footer)
+		      `((tr (td (table (tbody ,@header ,@body))))
+			(tr (td (table (tbody ,@footer)))))))
+		(if (= nbody nfooter)
+		    `((tr (td (table (tbody ,@header))))
+		      (tr (td (table (tbody ,@body ,@footer)))))
+		  (if (= nfooter 1)
+		      `((tr (td (table (tbody ,@header))))
+			(tr (td (table (tbody ,@body))))
+			,@footer)
+		    `((tr (td (table (tbody ,@header))))
+		      (tr (td (table (tbody ,@body))))
+		      (tr (td (table (tbody ,@footer))))))))
+	    ;; header + body
+	    (if (= nheader nbody)
+		`((tr (td (table (tbody ,@header ,@body)))))
+	      (if (= nheader 1)
+		  `(,@header (tr (td (table (tbody ,@body)))))
+		`((tr (td (table (tbody ,@header))))
+		  (tr (td (table (tbody ,@body))))))))
+	(if footer
+	    ;; body + footer
+	    (if (= nbody nfooter)
+		`((tr (td (table (tbody ,@body ,@footer)))))
+	      (if (= nfooter 1)
+		  `((tr (td (table (tbody ,@body)))) ,@footer)
+		`((tr (td (table (tbody ,@body))))
+		  (tr (td (table (tbody ,@footer)))))))
+	  body))))))
 
 (defun shr-find-elements (cont type)
   (let (result)
