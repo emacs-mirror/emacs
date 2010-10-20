@@ -1,3 +1,7 @@
+2010-10-18  Ken Brown  <kbrown@cornell.edu>
+
+	* s/cygwin.h (SIGNALS_VIA_CHARACTERS): New define (bug#7225).
+
 2010-10-15  Kenichi Handa  <handa@m17n.org>
 
 	Fix incorrect font metrics when the same font is opened with

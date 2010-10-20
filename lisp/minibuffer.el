@@ -498,10 +498,11 @@ Moves point to the end of the new text."
       (setq suffix-len (1+ suffix-len)))
     (unless (zerop suffix-len)
       (setq end (- end suffix-len))
-      (setq newtext (substring newtext 0 (- suffix-len)))))
-  (goto-char beg)
-  (insert newtext)
-  (delete-region (point) (+ (point) (- end beg))))
+      (setq newtext (substring newtext 0 (- suffix-len))))
+    (goto-char beg)
+    (insert newtext)
+    (delete-region (point) (+ (point) (- end beg)))
+    (forward-char suffix-len)))
 
 (defun completion--do-completion (&optional try-completion-function)
   "Do the completion and return a summary of what happened.

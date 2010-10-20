@@ -2922,7 +2922,7 @@ target of the symlink differ."
    (format
     ;; On Opsware, pdksh (which is the true name of ksh there) doesn't
     ;; parse correctly the sequence "((".  Therefore, we add a space.
-    "( (%s %s || %s -h %s) && %s -c '( (\"%%N\") %%h %s %s %%X.0 %%Y.0 %%Z.0 %%s.0 \"%%A\" t %%i.0 -1)' %s || echo nil)"
+    "( (%s %s || %s -h %s) && %s -c '( (\"%%N\") %%h %s %s %%Xe0 %%Ye0 %%Ze0 %%se0 \"%%A\" t %%ie0 -1)' %s || echo nil)"
     (tramp-get-file-exists-command vec)
     (tramp-shell-quote-argument localname)
     (tramp-get-test-command vec)
@@ -3378,7 +3378,7 @@ value of `default-file-modes', without execute permissions."
      ;; but it does not work on all remote systems.  Therefore, we
      ;; quote the filenames via sed.
      "cd %s; echo \"(\"; (%s -a | sed -e s/\\$/\\\"/g -e s/^/\\\"/g | xargs "
-     "%s -c '(\"%%n\" (\"%%N\") %%h %s %s %%X.0 %%Y.0 %%Z.0 %%s.0 \"%%A\" t %%i.0 -1)'); "
+     "%s -c '(\"%%n\" (\"%%N\") %%h %s %s %%Xe0 %%Ye0 %%Ze0 %%se0 \"%%A\" t %%ie0 -1)'); "
      "echo \")\"")
     (tramp-shell-quote-argument localname)
     (tramp-get-ls-command vec)
@@ -7013,9 +7013,7 @@ process to set up.  VEC specifies the connection."
 	;; because we're running on a non-MULE Emacs.  Let's try
 	;; stty, instead.
 	(tramp-send-command vec "stty -onlcr" t))))
-  ;; Dump stty settings in the traces.
-  (when (>= tramp-verbose 9)
-    (tramp-send-command vec "stty -a" t))
+
   (tramp-send-command vec "set +o vi +o emacs" t)
 
   ;; Check whether the output of "uname -sr" has been changed.  If
@@ -7086,10 +7084,19 @@ process to set up.  VEC specifies the connection."
   (when (string-match "^IRIX64" (tramp-get-connection-property vec "uname" ""))
     (tramp-send-command vec "set +H" t))
 
+  ;; On BSD-like systems, ?\t is expanded to spaces.  Suppress this.
+  (when (string-match "BSD\\|Darwin"
+		      (tramp-get-connection-property vec "uname" ""))
+    (tramp-send-command vec "stty -oxtabs" t))
+
   ;; Set `remote-tty' process property.
   (ignore-errors
     (let ((tty (tramp-send-command-and-read vec "echo \\\"`tty`\\\"")))
       (unless (zerop (length tty)) (process-put proc 'remote-tty tty))))
+
+  ;; Dump stty settings in the traces.
+  (when (>= tramp-verbose 9)
+    (tramp-send-command vec "stty -a" t))
 
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")

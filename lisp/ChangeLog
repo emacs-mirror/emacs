@@ -3,6 +3,36 @@
 	* face-remap.el (text-scale-adjust): Call read-event with a proper
 	prompt.
 
+2010-10-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-file-attributes-with-stat)
+	(tramp-do-directory-files-and-attributes-with-stat): Use "e0" in
+	order to make stat results a float.  Patch by Andreas Schwab
+	<schwab@linux-m68k.org>.
+
+2010-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* repeat.el (repeat): Use read-key (bug#6256).
+
+2010-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/unsafep.el: Don't mark functions that display
+	messages as safe.  Suggested by Johan Bockgård.
+
+2010-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-group, regexp-opt-charset):
+	Turn comments into docstrings.
+
+	* minibuffer.el (completion--replace): Move point where it belongs
+	when there's a common suffix (bug#7215).
+
+2010-10-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-open-connection-setup-interactive-shell):
+	Suppress expansion of tabs to spaces.  Reported by Dale Sedivec
+	<dale@codefu.org>.
+
 2010-10-15  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Add category '|' (word breakable)
@@ -13,8 +43,7 @@
 	* mail/rmail.el (rmail-show-message-1): Catch an error of
 	base64-decode-region and just show an error message (bug#7165).
 
-	* ps-mule.el (ps-mule-font-spec-list): Delete it.  Not used
-	anymore.
+	* ps-mule.el (ps-mule-font-spec-list): Delete it.  Not used anymore.
 	(ps-mule-begin-job): Fix for the case that only ENCODING is set in
 	a font-spec (bug#7197).
 
