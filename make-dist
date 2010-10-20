@@ -270,18 +270,6 @@ then
   $EMACS -batch -f batch-byte-recompile-directory lisp leim
 fi
 
-## What is this file for?  It goes in srcdir, not the tarfile.
-## Why does it exclude term/ ?
-echo "Making lisp/MANIFEST"
-
-files=`find lisp -type f -name '*.el'`
-for file in $files; do
-   case "$file" in
-     */subdirs.el|*/default.el|*/loaddefs.el|*/term/*) continue ;;
-   esac
-   sed -n 's/^;;; //p; q' $file
-done | sort > lisp/MANIFEST
-
 echo "Creating staging directory: \`${tempparent}'"
 
 mkdir ${tempparent}

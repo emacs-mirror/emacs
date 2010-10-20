@@ -1,3 +1,7 @@
+2010-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: No longer create lisp/MANIFEST.
+
 2010-10-14  Glenn Morris  <rgm@gnu.org>
 
 	* BUGS, INSTALL.BZR, README: Updates.
