@@ -1,3 +1,7 @@
+2010-10-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-tag-table): Simplify.
+
 2010-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-html.el (gnus-html-prefetch-images): Only prefetch http images
