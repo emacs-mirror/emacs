@@ -1,3 +1,8 @@
+2010-10-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el (nnrss-wash-html-in-text-plain-parts): Remove.
+	(nnrss-request-article): Don't use special html washing code.
+
 2010-10-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-tag-table): Remove useless nconc.

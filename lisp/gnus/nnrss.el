@@ -114,11 +114,6 @@ The cdr of each element is used to decode data if it is available when
 the car is what the data specify as the encoding.  Or, the car is used
 for decoding when the cdr that the data specify is not available.")
 
-(defvar nnrss-wash-html-in-text-plain-parts nil
-  "*Non-nil means render text in text/plain parts as HTML.
-The function specified by the `mm-text-html-renderer' variable will be
-used to render text.  If it is nil, text will simply be folded.")
-
 (nnoo-define-basics nnrss)
 
 ;;; Interface functions
@@ -197,8 +192,6 @@ used to render text.  If it is nil, text will simply be folded.")
 (deffoo nnrss-close-group (group &optional server)
   t)
 
-(defvar mm-text-html-renderer)
-
 (deffoo nnrss-request-article (article &optional group server buffer)
   (setq group (nnrss-decode-group-name group))
   (when (stringp article)
@@ -239,46 +232,25 @@ used to render text.  If it is nil, text will simply be folded.")
 	    (when text
 	      (insert text)
 	      (goto-char body)
-	      (if (and nnrss-wash-html-in-text-plain-parts
-		       (progn
-			 (require 'mm-view)
-			 (setq fn (or (cdr (assq mm-text-html-renderer
-						 mm-text-html-washer-alist))
-				      mm-text-html-renderer))))
-		  (progn
-		    (narrow-to-region body (point-max))
-		    (if (functionp fn)
-			(funcall fn)
-		      (apply (car fn) (cdr fn)))
-		    (widen)
-		    (goto-char body)
-		    (re-search-forward "[^\t\n ]" nil t)
-		    (beginning-of-line)
-		    (delete-region body (point))
-		    (goto-char (point-max))
-		    (skip-chars-backward "\t\n ")
-		    (end-of-line)
-		    (delete-region (point) (point-max))
-		    (insert "\n"))
-		(while (re-search-forward "\n+" nil t)
-		  (replace-match " "))
-		(goto-char body)
-		;; See `nnrss-check-group', which inserts "<br /><br />".
-		(when (search-forward "<br /><br />" nil t)
-		  (if (eobp)
-		      (replace-match "\n")
-		    (replace-match "\n\n")))
-		(unless (eobp)
-		  (let ((fill-column (default-value 'fill-column))
-			(window (get-buffer-window nntp-server-buffer)))
-		    (when window
-		      (setq fill-column
-			    (max 1 (/ (* (window-width window) 7) 8))))
-		    (fill-region (point) (point-max))
-		    (goto-char (point-max))
-		    ;; XEmacs version of `fill-region' inserts newline.
-		    (unless (bolp)
-		      (insert "\n")))))
+	      (while (re-search-forward "\n+" nil t)
+		(replace-match " "))
+	      (goto-char body)
+	      ;; See `nnrss-check-group', which inserts "<br /><br />".
+	      (when (search-forward "<br /><br />" nil t)
+		(if (eobp)
+		    (replace-match "\n")
+		  (replace-match "\n\n")))
+	      (unless (eobp)
+		(let ((fill-column (default-value 'fill-column))
+		      (window (get-buffer-window nntp-server-buffer)))
+		  (when window
+		    (setq fill-column
+			  (max 1 (/ (* (window-width window) 7) 8))))
+		  (fill-region (point) (point-max))
+		  (goto-char (point-max))
+		  ;; XEmacs version of `fill-region' inserts newline.
+		  (unless (bolp)
+		    (insert "\n"))))
 	      (when (or link enclosure)
 		(insert "\n")))
 	    (when link
