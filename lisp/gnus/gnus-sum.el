@@ -10278,7 +10278,8 @@ groups."
 	  (insert (number-to-string lines))))))
   ;; Replace the article.
   (let ((buf (current-buffer))
-	(article (cdr gnus-article-current)))
+	(article (cdr gnus-article-current))
+	replace-result)
     (with-temp-buffer
       (insert-buffer-substring buf)
       (if (and (not read-only)
