@@ -1,3 +1,11 @@
+010-10-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-file-attributes-with-stat): Do not use
+	space in stat format string.
+	(tramp-send-command): Unset $PS1 when using here documents, in
+	order not to get several prompts.
+	(tramp-get-inline-coding): Return `nil' in case of errors.
+
 2010-10-21  Daiki Ueno  <ueno@unixuser.org>
 
 	* hexl.el (hexl-mode, hexl-mode-exit): Tweak
