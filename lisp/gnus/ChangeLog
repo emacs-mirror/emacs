@@ -1,12 +1,15 @@
 2010-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus.el (gnus-message-archive-group): Quote value.
+	(gnus-message-archive-group): Mark as changed.
+
 	* shr.el (shr-add-font): Don't put the font properties on the newline
 	or the indentation.
 
 	* message.el (message-fix-before-sending): Change options when sending
 	non-printable characters.
 
-	* gnus.el (gnus-update-message-archive-method): Change the default to
+	* gnus.el (gnus-message-archive-method): Change the default to
 	monthly outgoing groups.
 
 	* gnus-sum.el (gnus-summary-edit-article-done): Try to replace articles
