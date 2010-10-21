@@ -1690,7 +1690,7 @@ If RECURSIVE, search recursively."
 	(shr-blocked-images (if (and (boundp 'gnus-summary-buffer)
 				     (buffer-name gnus-summary-buffer))
 				(with-current-buffer gnus-summary-buffer
-				  gnus-blocked-images)
+				  (gnus-blocked-images))
 			      shr-blocked-images))
 	(shr-content-function (lambda (id)
 				(let ((handle (mm-get-content-id id)))

@@ -10257,7 +10257,7 @@ groups."
   "Make edits to the current article permanent."
   (interactive)
   (save-excursion
-   ;; The buffer restriction contains the entire article if it exists.
+    ;; The buffer restriction contains the entire article if it exists.
     (when (article-goto-body)
       (let ((lines (count-lines (point) (point-max)))
 	    (length (- (point-max) (point)))
@@ -10277,15 +10277,24 @@ groups."
 	  (delete-region (match-beginning 1) (match-end 1))
 	  (insert (number-to-string lines))))))
   ;; Replace the article.
-  (let ((buf (current-buffer)))
+  (let ((buf (current-buffer))
+	(article (cdr gnus-article-current)))
     (with-temp-buffer
       (insert-buffer-substring buf)
-
       (if (and (not read-only)
-	       (not (gnus-request-replace-article
-		     (cdr gnus-article-current) (car gnus-article-current)
-		     (current-buffer) t)))
+	       (not (setq replace-result
+			  (gnus-request-replace-article
+			   article (car gnus-article-current)
+			   (current-buffer) t))))
 	  (error "Couldn't replace article")
+	;; If we got a number back, then that's the new article number
+	;; for this article.  Otherwise, the article number didn't change.
+	(when (numberp replace-result)
+	  (with-current-buffer gnus-summary-buffer
+	    (setq gnus-newsgroup-limit (delq article gnus-newsgroup-limit))
+	    (gnus-summary-limit gnus-newsgroup-limit)
+	    (setq article replace-result)
+	    (gnus-summary-goto-subject article t)))
 	;; Update the summary buffer.
 	(if (and references
 		 (equal (message-tokenize-header references " ")
@@ -10299,38 +10308,29 @@ groups."
 			     (point-min) (point-max)))
 		      header)
 		  (with-temp-buffer
-		    (insert (format "211 %d Article retrieved.\n"
-				    (cdr gnus-article-current)))
+		    (insert (format "211 %d Article retrieved.\n" article))
 		    (insert head)
 		    (insert ".\n")
 		    (let ((nntp-server-buffer (current-buffer)))
-		      (setq header (car (gnus-get-newsgroup-headers
-					 nil t))))
+		      (setq header (car (gnus-get-newsgroup-headers nil t))))
 		    (with-current-buffer gnus-summary-buffer
-		      (gnus-data-set-header
-		       (gnus-data-find (cdr gnus-article-current))
-		       header)
-		      (gnus-summary-update-article-line
-		       (cdr gnus-article-current) header)
-		      (if (gnus-summary-goto-subject
-			   (cdr gnus-article-current) nil t)
-			  (gnus-summary-update-secondary-mark
-			   (cdr gnus-article-current))))))))
+		      (gnus-data-set-header (gnus-data-find article) header)
+		      (gnus-summary-update-article-line article header)
+		      (if (gnus-summary-goto-subject article nil t)
+			  (gnus-summary-update-secondary-mark article)))))))
 	  ;; Update threads.
 	  (set-buffer (or buffer gnus-summary-buffer))
-	  (gnus-summary-update-article (cdr gnus-article-current))
-	  (if (gnus-summary-goto-subject (cdr gnus-article-current) nil t)
-	      (gnus-summary-update-secondary-mark
-	       (cdr gnus-article-current))))
+	  (gnus-summary-update-article article)
+	  (if (gnus-summary-goto-subject article nil t)
+	      (gnus-summary-update-secondary-mark article)))
 	;; Prettify the article buffer again.
 	(unless no-highlight
 	  (with-current-buffer gnus-article-buffer
-	    ;;;!!! Fix this -- article should be rehighlighted.
-	    ;;;(gnus-run-hooks 'gnus-article-display-hook)
+	    ;;!!! Fix this -- article should be rehighlighted.
+	    ;;(gnus-run-hooks 'gnus-article-display-hook)
 	    (set-buffer gnus-original-article-buffer)
 	    (gnus-request-article
-	     (cdr gnus-article-current)
-	     (car gnus-article-current) (current-buffer))))
+	     article (car gnus-article-current) (current-buffer))))
 	;; Prettify the summary buffer line.
 	(when (gnus-visual-p 'summary-highlight 'highlight)
 	  (gnus-run-hooks 'gnus-visual-mark-article-hook))))))

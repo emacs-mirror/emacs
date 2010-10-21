@@ -881,7 +881,7 @@ textual parts.")
     (let ((message-id (message-field-value "message-id"))
 	  sequence message)
       (nnimap-add-cr)
-      (setq message (buffer-string))
+      (setq message (buffer-substring-no-properties (point-min) (point-max)))
       (with-current-buffer (nnimap-buffer)
 	(setq sequence (nnimap-send-command
 			"APPEND %S {%d}" (utf7-encode group t)
@@ -898,6 +898,17 @@ textual parts.")
 		nil)
 	    (cons group
 		  (nnimap-find-article-by-message-id group message-id))))))))
+
+(deffoo nnimap-request-replace-article (article group buffer)
+  (let (group-art)
+    (when (and (nnimap-possibly-change-group group nil)
+	       ;; Put the article into the group.
+	       (with-current-buffer buffer
+		 (setq group-art
+		       (nnimap-request-accept-article group nil t))))
+      (nnimap-delete-article (list article))
+      ;; Return the new article number.
+      (cdr group-art))))
 
 (defun nnimap-add-cr ()
   (goto-char (point-min))
