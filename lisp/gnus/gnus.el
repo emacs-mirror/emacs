@@ -1356,12 +1356,12 @@ updated if the value of this variable is nil, even if you change the
 value of `gnus-message-archive-method' afterward.  If you want the
 saved \"archive\" method to be updated whenever you change the value of
 `gnus-message-archive-method', set this variable to a non-nil value."
-  :version "23.1" ;; No Gnus
+  :version "24.1"
   :group 'gnus-server
   :group 'gnus-message
   :type 'boolean)
 
-(defcustom gnus-message-archive-group nil
+(defcustom gnus-message-archive-group ((format-time-string "sent.%Y-%m"))
   "*Name of the group in which to save the messages you've written.
 This can either be a string; a list of strings; or an alist
 of regexps/functions/forms to be evaluated to return a string (or a list
@@ -1383,6 +1383,9 @@ that case, just return a fully prefixed name of the group --
 \"nnml+private:mail.misc\", for instance."
   :group 'gnus-message
   :type '(choice (const :tag "none" nil)
+		 (const :tag "Weekly" ((format-time-string "sent.%Yw%U")))
+		 (const :tag "Monthly" ((format-time-string "sent.%Y-%m")))
+		 (const :tag "Yearly" ((format-time-string "sent.%Y")))
 		 function
 		 sexp
 		 string))
