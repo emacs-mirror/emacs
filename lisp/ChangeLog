@@ -1,3 +1,8 @@
+2010-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* newcomment.el (comment-dwim): Fix the intentation in the doc
+	string.
+
 010-10-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-do-file-attributes-with-stat): Do not use
