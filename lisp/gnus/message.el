@@ -4206,7 +4206,7 @@ conformance."
 		 (?r ,(format
 		       "Replace non-printable characters with \"%s\" and send"
 		       message-replacement-char))
-		 (?i "Ignore non-printable characters and send")
+		 (?s "Send as is without removing anything")
 		 (?e "Continue editing"))))
 	(if (eq choice ?e)
 	  (error "Non-printable characters"))

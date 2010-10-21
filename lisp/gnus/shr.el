@@ -318,9 +318,20 @@ redirects somewhere else."
     (dolist (type types)
       (shr-add-font (or shr-start (point)) (point) type))))
 
+;; Add an overlay in the region, but avoid putting the font properties
+;; on blank text at the start of the line, and the newline at the end,
+;; to avoid ugliness.
 (defun shr-add-font (start end type)
-  (let ((overlay (make-overlay start end)))
-    (overlay-put overlay 'face type)))
+  (save-excursion
+    (goto-char start)
+    (while (< (point) end)
+      (when (bolp)
+	(skip-chars-forward " "))
+      (let ((overlay (make-overlay (point) (min (line-end-position) end))))
+	(overlay-put overlay 'face type))
+      (if (< (line-end-position) end)
+	  (forward-line 1)
+	(goto-char end)))))
 
 (defun shr-browse-url ()
   "Browse the URL under point."
