@@ -1,3 +1,10 @@
+2010-10-21  Daiki Ueno  <ueno@unixuser.org>
+
+	* hexl.el (hexl-mode, hexl-mode-exit): Tweak
+	revert-buffer-function to inhibit auto-mode-alist (Bug#7252).
+	(hexl-revert-buffer-function): New function.
+	(hexl-before-revert-hook, hexl-after-revert-hook): Abolish.
+
 2010-10-19  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-langs.el (c-type-decl-prefix-key): C++ bit: move
