@@ -1451,7 +1451,7 @@ Allegedly.
 @item message-default-headers
 @vindex message-default-headers
 This string is inserted at the end of the headers in all message
-buffers.
+buffers.  If set to a function, the returned results is inserted.
 
 @item message-subject-re-regexp
 @vindex message-subject-re-regexp

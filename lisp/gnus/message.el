@@ -1139,9 +1139,10 @@ It is a vector of the following headers:
   :error "All header lines must be newline terminated")
 
 (defcustom message-default-headers ""
-  "*A string containing header lines to be inserted in outgoing messages.
-It is inserted before you edit the message, so you can edit or delete
-these lines."
+  "A string containing header lines to be inserted in outgoing messages.
+It is inserted before you edit the message, so you can edit or
+delete these lines.  If set to a function, it is called and its
+result is inserted."
   :version "23.2"
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
@@ -2639,7 +2640,6 @@ PGG manual, depending on the value of `mml2015-use'."
 
   (define-key message-mode-map "\C-a" 'message-beginning-of-line)
   (define-key message-mode-map "\t" 'message-tab)
-  (define-key message-mode-map "\M-;" 'comment-region)
 
   (define-key message-mode-map "\M-n" 'message-display-abbrev))
 
@@ -6363,7 +6363,10 @@ are not included."
    headers)
   (delete-region (point) (progn (forward-line -1) (point)))
   (when message-default-headers
-    (insert message-default-headers)
+    (insert
+     (if (functionp message-default-headers)
+         (funcall message-default-headers)
+       message-default-headers))
     (or (bolp) (insert ?\n)))
   (insert mail-header-separator "\n")
   (forward-line -1)

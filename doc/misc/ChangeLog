@@ -1,3 +1,8 @@
+2010-10-21  Julien Danjou  <julien@danjou.info>
+
+	* message.texi (Message Headers): Allow message-default-headers to be a
+	function.
+
 2010-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-news.texi: Mention new archive defaults.
