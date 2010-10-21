@@ -8578,54 +8578,57 @@ If no corresponding command is found, nil is returned.
 Otherwise, either a string is returned which contains a `%s' mark
 to be used for the respective input or output file; or a Lisp
 function cell is returned to be applied on a buffer."
-  (let ((coding
-	 (with-connection-property vec prop
-	   (tramp-find-inline-encoding vec)
-	   (tramp-get-connection-property vec prop nil)))
-	(prop1 (if (string-match "encoding" prop)
-		   "inline-compress" "inline-decompress"))
-	compress)
-    ;; The connection property might have been cached.  So we must send
-    ;; the script to the remote side - maybe.
-    (when (and coding (symbolp coding) (string-match "remote" prop))
-      (let ((name (symbol-name coding)))
-	(while (string-match (regexp-quote "-") name)
-	  (setq name (replace-match "_" nil t name)))
-	(tramp-maybe-send-script vec (symbol-value coding) name)
-	(setq coding name)))
-    (when coding
-      ;; Check for the `compress' command.
-      (setq compress (tramp-get-inline-compress vec prop1 size))
-      ;; Return the value.
-      (cond
-       ((and compress (symbolp coding))
-	(if (string-match "decompress" prop1)
+  ;; We must catch the errors, because we want to return `nil', when
+  ;; no inline coding is found.
+  (ignore-errors
+    (let ((coding
+	   (with-connection-property vec prop
+	     (tramp-find-inline-encoding vec)
+	     (tramp-get-connection-property vec prop nil)))
+	  (prop1 (if (string-match "encoding" prop)
+		     "inline-compress" "inline-decompress"))
+	  compress)
+      ;; The connection property might have been cached.  So we must
+      ;; send the script to the remote side - maybe.
+      (when (and coding (symbolp coding) (string-match "remote" prop))
+	(let ((name (symbol-name coding)))
+	  (while (string-match (regexp-quote "-") name)
+	    (setq name (replace-match "_" nil t name)))
+	  (tramp-maybe-send-script vec (symbol-value coding) name)
+	  (setq coding name)))
+      (when coding
+	;; Check for the `compress' command.
+	(setq compress (tramp-get-inline-compress vec prop1 size))
+	;; Return the value.
+	(cond
+	 ((and compress (symbolp coding))
+	  (if (string-match "decompress" prop1)
+	      `(lambda (beg end)
+		 (,coding beg end)
+		 (let ((coding-system-for-write 'binary)
+		       (coding-system-for-read 'binary))
+		   (apply
+		    'call-process-region (point-min) (point-max)
+		    (car (split-string ,compress)) t t nil
+		    (cdr (split-string ,compress)))))
 	    `(lambda (beg end)
-	       (,coding beg end)
 	       (let ((coding-system-for-write 'binary)
 		     (coding-system-for-read 'binary))
 		 (apply
-		  'call-process-region (point-min) (point-max)
+		  'call-process-region beg end
 		  (car (split-string ,compress)) t t nil
-		  (cdr (split-string ,compress)))))
-	  `(lambda (beg end)
-	     (let ((coding-system-for-write 'binary)
-		   (coding-system-for-read 'binary))
-	       (apply
-		'call-process-region beg end
-		(car (split-string ,compress)) t t nil
-		(cdr (split-string ,compress))))
-	     (,coding (point-min) (point-max)))))
-       ((symbolp coding)
-	coding)
-       ((and compress (string-match "decoding" prop))
-	(format "(%s | %s >%%s)" coding compress))
-       (compress
-	(format "(%s <%%s | %s)" compress coding))
-       ((string-match "decoding" prop)
-	(format "%s >%%s" coding))
-       (t
-	(format "%s <%%s" coding))))))
+		  (cdr (split-string ,compress))))
+	       (,coding (point-min) (point-max)))))
+	 ((symbolp coding)
+	  coding)
+	 ((and compress (string-match "decoding" prop))
+	  (format "(%s | %s >%%s)" coding compress))
+	 (compress
+	  (format "(%s <%%s | %s)" compress coding))
+	 ((string-match "decoding" prop)
+	  (format "%s >%%s" coding))
+	 (t
+	  (format "%s <%%s" coding)))))))
 
 (defun tramp-get-method-parameter (method param)
   "Return the method parameter PARAM.
