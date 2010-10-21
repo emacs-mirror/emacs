@@ -1,8 +1,9 @@
-2010-10-21  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* gnus-sum.el (gnus-summary-edit-article-done): Bind replace-result.
-
 2010-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-prefetch-images): Only prefetch http images
+	to avoid trying to snarf invalid stuff.
+
+	* gnus-sum.el (gnus-summary-edit-article-done): Bind free variable.
 
 	* gnus.el (gnus-message-archive-group): Quote value.
 	(gnus-message-archive-group): Mark as changed.
