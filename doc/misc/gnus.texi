@@ -17713,15 +17713,6 @@ If you set @code{nnrss-use-local} to @code{t}, @code{nnrss} will read
 the feeds from local files in @code{nnrss-directory}.  You can use
 the command @code{nnrss-generate-download-script} to generate a
 download script using @command{wget}.
-
-@item nnrss-wash-html-in-text-plain-parts
-Non-@code{nil} means that @code{nnrss} renders text in @samp{text/plain}
-parts as @acronym{HTML}.  The function specified by the
-@code{mm-text-html-renderer} variable (@pxref{Display Customization,
-,Display Customization, emacs-mime, The Emacs MIME Manual}) will be used
-to render text.  If it is @code{nil}, which is the default, text will
-simply be folded.  Leave it @code{nil} if you prefer to see
-@samp{text/html} parts.
 @end table
 
 The following code may be helpful, if you want to show the description in

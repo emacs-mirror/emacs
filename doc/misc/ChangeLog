@@ -1,3 +1,7 @@
+2010-10-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (RSS): Remove nnrss-wash-html-in-text-plain-parts.
+
 2010-10-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (HTML): Document the function value of
