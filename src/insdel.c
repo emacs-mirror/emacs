@@ -2051,6 +2051,7 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
 
   /* If `select-active-regions' is non-nil, save the region text.  */
   if (!NILP (current_buffer->mark_active)
+      && !inhibit_modification_hooks
       && XMARKER (current_buffer->mark)->buffer
       && NILP (Vsaved_region_selection)
       && (EQ (Vselect_active_regions, Qonly)
