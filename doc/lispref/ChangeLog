@@ -1,3 +1,8 @@
+2010-10-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Window Systems): Deprecate use of window-system as
+	a predicate.
+
 2010-09-05  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
 
 	* files.texi (Directory Names): Use \` rather than ^.

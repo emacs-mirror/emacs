@@ -1,3 +1,10 @@
+2010-10-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (Fframep, Fwindow_system): Deprecate use as a predicate.
+
+	* dispnew.c (syms_of_display) <initial-window-system, window-system>:
+	Deprecate use as a boolean flag.
+
 2010-10-18  Ken Brown  <kbrown@cornell.edu>
 
 	* s/cygwin.h (SIGNALS_VIA_CHARACTERS): New define (bug#7225).
