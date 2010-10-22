@@ -1,3 +1,13 @@
+2010-10-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-read-active-file-1): Don't add method to
+	gnus-have-read-active-file if it's already been in.
+
+2010-10-22  Tom Tromey  <tromey@redhat.com>
+
+	* gnus-group.el (gnus-group-unsubscribe-group): Fix args passed to
+	gnus-group-completing-read.
+
 2010-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* message.el (message-mode-map): Don't bind M-; to comment region, to
