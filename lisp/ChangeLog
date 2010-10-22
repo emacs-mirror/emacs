@@ -1,3 +1,8 @@
+2010-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (batch-update-autoloads): Update for
+	src/Makefile no longer being pre-processed.
+
 2010-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/find-func.el (find-library): Use test-completion.

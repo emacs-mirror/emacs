@@ -778,16 +778,17 @@ Calls `update-directory-autoloads' on the command line arguments."
 	  (with-temp-buffer
 	    (insert-file-contents mfile)
 	    (when (re-search-forward "^shortlisp= " nil t)
-	      (setq lim (line-end-position))
-	      (while (re-search-forward "\\.\\./lisp/\\([^ ]+\\.el\\)c?\\>"
-					lim t)
+	      (while (and (not lim)
+			  (re-search-forward "\\.\\./lisp/\\([^ ]+\\.el\\)c?\\>"
+					     nil t))
 		(push (expand-file-name (match-string 1) ldir)
-		      autoload-excludes))))))))
+		      autoload-excludes)
+		(skip-chars-forward " \t")
+		(if (eolp) (setq lim t)))))))))
   (let ((args command-line-args-left))
     (setq command-line-args-left nil)
     (apply 'update-directory-autoloads args)))
 
 (provide 'autoload)
 
-;; arch-tag: 00244766-98f4-4767-bf42-8a22103441c6
 ;;; autoload.el ends here
