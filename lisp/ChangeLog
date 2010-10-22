@@ -34,7 +34,7 @@
 
 	* progmodes/cc-mode.el (c-before-change, c-after-change): Move the
 	setting of c-new-BEG and c-new-END from c-before-change to
-	c-after-change.
+	c-after-change.  (Bug#7181)
 
 2010-10-19  Chong Yidong  <cyd@stupidchicken.com>
 
