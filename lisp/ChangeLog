@@ -1,7 +1,10 @@
+2010-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/find-func.el (find-library): Use test-completion.
+
 2010-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* newcomment.el (comment-dwim): Fix the intentation in the doc
-	string.
+	* newcomment.el (comment-dwim): Fix the intentation in the doc string.
 
 010-10-21  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -13,15 +16,15 @@
 
 2010-10-21  Daiki Ueno  <ueno@unixuser.org>
 
-	* hexl.el (hexl-mode, hexl-mode-exit): Tweak
-	revert-buffer-function to inhibit auto-mode-alist (Bug#7252).
+	* hexl.el (hexl-mode, hexl-mode-exit):
+	Tweak revert-buffer-function to inhibit auto-mode-alist (Bug#7252).
 	(hexl-revert-buffer-function): New function.
 	(hexl-before-revert-hook, hexl-after-revert-hook): Abolish.
 
 2010-10-19  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-langs.el (c-type-decl-prefix-key): C++ bit: move
-	"\(const\|throw\|volatile\)\>" nearer the start of the regexp, so
+	* progmodes/cc-langs.el (c-type-decl-prefix-key): C++ bit:
+	Move "\(const\|throw\|volatile\)\>" nearer the start of the regexp, so
 	that these keywords aren't wrongly matched as identifiers.
 
 	* progmodes/cc-mode.el (c-before-change, c-after-change): Move the
