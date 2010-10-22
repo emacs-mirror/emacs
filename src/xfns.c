@@ -99,6 +99,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
 #include <Xm/FileSB.h>
+#include <Xm/List.h>
+#include <Xm/TextF.h>
 #endif
 
 #ifdef USE_LUCID
@@ -5299,9 +5301,7 @@ DEFUN ("x-uses-old-gtk-dialog", Fx_uses_old_gtk_dialog,
 /* Callback for "OK" and "Cancel" on file selection dialog.  */
 
 static void
-file_dialog_cb (widget, client_data, call_data)
-     Widget widget;
-     XtPointer call_data, client_data;
+file_dialog_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   int *result = (int *) client_data;
   XmAnyCallbackStruct *cb = (XmAnyCallbackStruct *) call_data;
@@ -5315,17 +5315,14 @@ file_dialog_cb (widget, client_data, call_data)
    in this case.  */
 
 static void
-file_dialog_unmap_cb (widget, client_data, call_data)
-     Widget widget;
-     XtPointer call_data, client_data;
+file_dialog_unmap_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   int *result = (int *) client_data;
   *result = XmCR_CANCEL;
 }
 
 static Lisp_Object
-clean_up_file_dialog (arg)
-     Lisp_Object arg;
+clean_up_file_dialog (Lisp_Object arg)
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
   Widget dialog = (Widget) p->pointer;

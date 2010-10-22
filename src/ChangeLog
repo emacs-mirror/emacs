@@ -1,3 +1,14 @@
+2010-10-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xrdb.c: Include keyboard.h for MOTIF.
+
+	* xmenu.c: Revert 2010-07-27 change: lwlib.h is needed for
+	MOTIF (Bug#7263).
+
+	* xfns.c: Include Xm/TextF and Xm/List.
+	(file_dialog_cb, file_dialog_unmap_cb, clean_up_file_dialog): Make
+	ANSI prototypes.
+
 2010-10-22  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (SOME_MACHINE_LISP): Add w32-vars.
