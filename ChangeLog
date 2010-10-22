@@ -1,3 +1,8 @@
+2010-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Avoid listing .el files twice.  Don't try to run
+	autoconf if --no-update.
+
 2010-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: No longer create lisp/MANIFEST.
