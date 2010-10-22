@@ -1494,12 +1494,11 @@ or the `pop-to-buffer' function."
 	 (copy-sequence (if (message-news-p)
 			    message-required-news-headers
 			  message-required-mail-headers)))
-	(if (and (not article-editing)
-		 (re-search-forward
-		  (concat "^" (regexp-quote mail-header-separator) "\n")
-		  nil t))
-	    (replace-match "\n"))
-	(setq mail-header-separator "")
+	(unless article-editing
+	  (if (re-search-forward
+	       (concat "^" (regexp-quote mail-header-separator) "\n") nil t)
+	      (replace-match "\n"))
+	  (setq mail-header-separator ""))
 	(message-sort-headers)
 	(mml-to-mime))
       (if raw
