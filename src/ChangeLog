@@ -1,3 +1,8 @@
+2010-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SOME_MACHINE_LISP): Add w32-vars.
+	Remove ccl and duplicate mouse.
+
 2010-10-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* insdel.c (prepare_to_modify_buffer): Don't set
