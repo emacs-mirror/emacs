@@ -272,8 +272,6 @@ FRAME defaults to the currently selected frame.
 Use of this function as a predicate is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'
 predicates which report frame's specific UI-related capabilities.  */)
-
-FRAME defaults to the currently selected frame.  */)
   (frame)
      Lisp_Object frame;
 {
