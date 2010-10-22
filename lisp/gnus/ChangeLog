@@ -1,5 +1,7 @@
 2010-10-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* mml.el (mml-preview): Work properly when editing article.
+
 	* gnus-start.el (gnus-read-active-file-1): Don't add method to
 	gnus-have-read-active-file if it's already been in.
 

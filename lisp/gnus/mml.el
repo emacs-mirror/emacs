@@ -1466,6 +1466,7 @@ or the `pop-to-buffer' function."
   (require 'gnus-msg)		      ; for gnus-setup-posting-charset
   (save-excursion
     (let* ((buf (current-buffer))
+	   (article-editing (eq major-mode 'gnus-article-edit-mode))
 	   (message-options message-options)
 	   (message-this-is-mail (message-mail-p))
 	   (message-this-is-news (message-news-p))
@@ -1485,15 +1486,20 @@ or the `pop-to-buffer' function."
       (mml-preview-insert-mail-followup-to)
       (let ((message-deletable-headers (if (message-news-p)
 					   nil
-					 message-deletable-headers)))
+					 message-deletable-headers))
+	    (mail-header-separator (if article-editing
+				       ""
+				     mail-header-separator)))
 	(message-generate-headers
 	 (copy-sequence (if (message-news-p)
 			    message-required-news-headers
-			  message-required-mail-headers))))
-      (if (re-search-forward
-	   (concat "^" (regexp-quote mail-header-separator) "\n") nil t)
-	  (replace-match "\n"))
-      (let ((mail-header-separator ""));; mail-header-separator is removed.
+			  message-required-mail-headers)))
+	(if (and (not article-editing)
+		 (re-search-forward
+		  (concat "^" (regexp-quote mail-header-separator) "\n")
+		  nil t))
+	    (replace-match "\n"))
+	(setq mail-header-separator "")
 	(message-sort-headers)
 	(mml-to-mime))
       (if raw
