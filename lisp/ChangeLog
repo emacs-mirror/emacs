@@ -1,5 +1,15 @@
 2010-10-22  Glenn Morris  <rgm@gnu.org>
 
+	* loadup.el: Unconditionally load float-sup.
+	* paren.el (show-paren-delay):
+	* emacs-lisp/float-sup.el:
+	* emulation/cua-base.el (cua-prefix-override-inhibit-delay):
+	* obsolete/lazy-lock.el (lazy-lock-defer-time, lazy-lock-stealth-nice)
+	(lazy-lock-stealth-verbose): Assume float support.
+	* ps-print.el: Assume float support on Emacs.
+	* emacs-lisp/timer.el (timer-next-integral-multiple-of-time):
+	Remove non-float branch.
+
 	* emacs-lisp/autoload.el (batch-update-autoloads): Update for
 	src/Makefile no longer being pre-processed.
 
