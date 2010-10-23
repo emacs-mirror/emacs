@@ -5,6 +5,7 @@
 	our early if no row in the window belongs to the highlighted
 	string.  Always back up after exiting the second loop.
 	Fix off-by-one error when testing against ENDPOS.
+	Fix support for R2L lines.
 
 2010-10-16  Eli Zaretskii  <eliz@gnu.org>
 

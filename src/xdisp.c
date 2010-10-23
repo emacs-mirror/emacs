@@ -24425,35 +24425,48 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
   int found = 0;
 
   /* Find the glyph row with at least one position in the range
-     [STARTPOS..ENDPOS], and the leftmost glyph in that row whose
+     [STARTPOS..ENDPOS], and the first glyph in that row whose
      position belongs to that range.  */
   for (r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
        r->enabled_p && r->y < yb;
        ++r)
     {
-      g = r->glyphs[TEXT_AREA];
-      e = g + r->used[TEXT_AREA];
-      for (gx = r->x; g < e; gx += g->pixel_width, ++g)
-	if (EQ (g->object, object)
-	    && startpos <= g->charpos && g->charpos <= endpos)
-	  {
-	    dpyinfo->mouse_face_beg_row = r - w->current_matrix->rows;
-	    dpyinfo->mouse_face_beg_y = r->y;
-	    if (!r->reversed_p)
+      if (!r->reversed_p)
+	{
+	  g = r->glyphs[TEXT_AREA];
+	  e = g + r->used[TEXT_AREA];
+	  for (gx = r->x; g < e; gx += g->pixel_width, ++g)
+	    if (EQ (g->object, object)
+		&& startpos <= g->charpos && g->charpos <= endpos)
 	      {
+		dpyinfo->mouse_face_beg_row = r - w->current_matrix->rows;
+		dpyinfo->mouse_face_beg_y = r->y;
 		dpyinfo->mouse_face_beg_col = g - r->glyphs[TEXT_AREA];
 		dpyinfo->mouse_face_beg_x = gx;
+		found = 1;
+		break;
 	      }
-	    else
+	}
+      else
+	{
+	  struct glyph *g1;
+
+	  e = r->glyphs[TEXT_AREA];
+	  g = e + r->used[TEXT_AREA];
+	  for ( ; g > e; --g)
+	    if (EQ ((g-1)->object, object)
+		&& startpos <= (g-1)->charpos && (g-1)->charpos <= endpos)
 	      {
-		/* R2L rows want BEG and END swapped, see
-		   show_mouse_face.  */
-		dpyinfo->mouse_face_end_col = g - r->glyphs[TEXT_AREA];
-		dpyinfo->mouse_face_end_x = gx;
+		dpyinfo->mouse_face_beg_row = r - w->current_matrix->rows;
+		dpyinfo->mouse_face_beg_y = r->y;
+		dpyinfo->mouse_face_beg_col = g - r->glyphs[TEXT_AREA];
+		for (gx = r->x, g1 = r->glyphs[TEXT_AREA]; g1 < g; ++g1)
+		  gx += g1->pixel_width;
+		dpyinfo->mouse_face_beg_x = gx;
+		found = 1;
+		break;
 	      }
-	    found = 1;
-	    break;
-	  }
+	}
       if (found)
 	break;
     }
@@ -24486,25 +24499,36 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
   dpyinfo->mouse_face_end_row = r - w->current_matrix->rows;
   dpyinfo->mouse_face_end_y = r->y;
 
-  /* Compute and set the end column.  */
-  g = r->glyphs[TEXT_AREA];
-  e = g + r->used[TEXT_AREA];
-  for ( ; e > g; --e)
-    if (EQ ((e-1)->object, object)
-	&& startpos <= (e-1)->charpos && (e-1)->charpos <= endpos)
-      break;
+  /* Compute and set the end column and the end column's horizontal
+     pixel coordinate.  */
   if (!r->reversed_p)
-    dpyinfo->mouse_face_end_col = e - g;
-  else
-    dpyinfo->mouse_face_beg_col = e - g;
+    {
+      g = r->glyphs[TEXT_AREA];
+      e = g + r->used[TEXT_AREA];
+      for ( ; e > g; --e)
+	if (EQ ((e-1)->object, object)
+	    && startpos <= (e-1)->charpos && (e-1)->charpos <= endpos)
+	  break;
+      dpyinfo->mouse_face_end_col = e - g;
 
-  /* Compute and set the end column's horizontal pixel coordinate.  */
-  for (gx = r->x; g < e; ++g)
-    gx += g->pixel_width;
-  if (!r->reversed_p)
-    dpyinfo->mouse_face_end_x = gx;
+      for (gx = r->x; g < e; ++g)
+	gx += g->pixel_width;
+      dpyinfo->mouse_face_end_x = gx;
+    }
   else
-    dpyinfo->mouse_face_beg_x = gx;
+    {
+      e = r->glyphs[TEXT_AREA];
+      g = e + r->used[TEXT_AREA];
+      for (gx = r->x ; e < g; ++e)
+	{
+	  if (EQ (e->object, object)
+	      && startpos <= e->charpos && e->charpos <= endpos)
+	    break;
+	  gx += e->pixel_width;
+	}
+      dpyinfo->mouse_face_end_col = e - r->glyphs[TEXT_AREA];
+      dpyinfo->mouse_face_end_x = gx;
+    }
 }
 
 /* See if position X, Y is within a hot-spot of an image.  */
