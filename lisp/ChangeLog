@@ -1,3 +1,7 @@
+2010-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* help.el (finder-by-keyword): Remove unnecessary autoload.
+
 2010-10-22  Glenn Morris  <rgm@gnu.org>
 
 	* loadup.el: Unconditionally load float-sup.
