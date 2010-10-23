@@ -1,6 +1,7 @@
 2010-10-23  Glenn Morris  <rgm@gnu.org>
 
-	* frame.el (auto-hscroll-mode): Sync doc with C version.
+	* frame.el (auto-hscroll-mode, cursor-in-non-selected-windows):
+	Sync docs with C version.
 
 	* term/ns-win.el (xw-defined-colors):
 	* term/x-win.el (xw-defined-colors): Make docs identical to w32-win.

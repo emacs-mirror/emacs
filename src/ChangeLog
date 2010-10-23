@@ -1,6 +1,7 @@
 2010-10-23  Glenn Morris  <rgm@gnu.org>
 
-	* xdisp.c (syms_of_xdisp) <auto-hscroll-mode>: Sync doc with Lisp.
+	* buffer.c (syms_of_buffer) <cursor-in-non-selected-windows>:
+	* xdisp.c (syms_of_xdisp) <auto-hscroll-mode>: Sync docs with Lisp.
 
 2010-10-23  Eli Zaretskii  <eliz@gnu.org>
 
