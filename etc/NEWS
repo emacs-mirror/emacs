@@ -138,7 +138,9 @@ theme when Emacs is built with GTK.
 off by customizing x-gtk-use-system-tooltips.
 
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
-with Xft.
+with Xft.  To change font, use X resource faceName, for example:
+Emacs.pane.menubar.faceName:  Courier-12
+Set faceName to none and use font to use the old X fonts.
 
 ** On graphical displays, the mode-line no longer ends in dashes.
 
