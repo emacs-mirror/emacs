@@ -1195,7 +1195,7 @@ add things to `%s' instead."
                       (setq buffer (erc-open erc-session-server erc-session-port
                                              nick erc-session-user-full-name
                                              nil nil
-                                             erc-default-recipients chnl
+                                             (list chnl) chnl
                                              erc-server-process))
                       (when buffer
                         (set-buffer buffer)
