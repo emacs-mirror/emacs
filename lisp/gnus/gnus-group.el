@@ -1887,7 +1887,7 @@ If FIRST-TOO, the current line is also eligible as a target."
       (unless no-advance
 	(gnus-group-next-group 1))
       (decf n))
-    (gnus-summary-position-point)
+    (gnus-group-position-point)
     n))
 
 (defun gnus-group-unmark-group (n)
@@ -4009,7 +4009,7 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
       (goto-char beg))
     (when gnus-goto-next-group-when-activating
       (gnus-group-next-unread-group 1 t))
-    (gnus-summary-position-point)
+    (gnus-group-position-point)
     ret))
 
 (defun gnus-group-fetch-control (group)

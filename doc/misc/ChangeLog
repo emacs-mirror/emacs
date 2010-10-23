@@ -1,3 +1,9 @@
+2010-10-22  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* gnus.texi (Subscription Commands): Mention that you can also
+	subscribe to new groups via the Server buffer, which is probably more
+	convenient when subscribing to many groups.
+
 2010-10-21  Julien Danjou  <julien@danjou.info>
 
 	* message.texi (Message Headers): Allow message-default-headers to be a

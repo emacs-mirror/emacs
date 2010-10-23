@@ -487,7 +487,8 @@ Return a string with image data."
   (browse-url-url-encode-chars url "[)$ ]"))
 
 (defun shr-tag-img (cont)
-  (when cont
+  (when (and cont
+	     (cdr (assq :src cont)))
     (when (and (> (current-column) 0)
 	       (not (eq shr-state 'image)))
       (insert "\n"))

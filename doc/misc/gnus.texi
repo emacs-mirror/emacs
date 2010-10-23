@@ -2211,6 +2211,12 @@ selected.
 @section Subscription Commands
 @cindex subscription
 
+The following commands allow for managing your subscriptions in the
+Group buffer.  If you want to subscribe to many groups, it's probably
+more convenient to go to the @ref{Server Buffer}, and choose the
+server there using @kbd{RET} or @kbd{SPC}.  Then you'll have the
+commands listed in @ref{Browse Foreign Server} at hand.
+
 @table @kbd
 
 @item S t

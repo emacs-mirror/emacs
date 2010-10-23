@@ -1,3 +1,10 @@
+2010-10-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-img): Don't bug out on images that don't have a SRC.
+
+	* gnus-group.el (gnus-group-mark-group): Use gnus-group-position-point
+	instead of the summary one.
+
 2010-10-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mml.el (mml-preview): Work properly when editing article.
