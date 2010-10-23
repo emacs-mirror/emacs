@@ -1,7 +1,8 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
 ;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1483,7 +1484,7 @@ This is done in the face `trailing-whitespace'."
   :group 'frames)
 
 (defcustom auto-hscroll-mode t
-  "Allow or disallow automatic scrolling windows horizontally.
+  "Allow or disallow automatic horizontal scrolling of windows.
 If non-nil, windows are automatically scrolled horizontally to make
 point visible."
   :version "21.1"
@@ -1615,5 +1616,4 @@ Use Custom to set this variable to get the display updated."
 
 (provide 'frame)
 
-;; arch-tag: 82979c70-b8f2-4306-b2ad-ddbd6b328b56
 ;;; frame.el ends here
