@@ -1,5 +1,8 @@
 2010-10-23  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/flyspell.el (flyspell-mode): If there was an error,
+	say what it was.
+
 	* frame.el (auto-hscroll-mode, cursor-in-non-selected-windows):
 	Sync docs with C version.
 
