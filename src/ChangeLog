@@ -4,6 +4,7 @@
 	flag to zero, and exit the outer loop when it's non-zero.  Bail
 	our early if no row in the window belongs to the highlighted
 	string.  Always back up after exiting the second loop.
+	Fix off-by-one error when testing against ENDPOS.
 
 2010-10-16  Eli Zaretskii  <eliz@gnu.org>
 

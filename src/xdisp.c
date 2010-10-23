@@ -24409,7 +24409,7 @@ fast_find_string_pos (struct window *w, EMACS_INT pos, Lisp_Object object,
 #endif	/* not used */
 
 /* Find the positions of the first and the last glyphs in window W's
-   current matrix that occlude positions [STARTPOS..ENDPOS) in OBJECT
+   current matrix that occlude positions [STARTPOS..ENDPOS] in OBJECT
    (assumed to be a string), and return in DPYINFO's mouse_face
    members the pixel and column/row coordinates of those glyphs.  */
 
@@ -24425,7 +24425,7 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
   int found = 0;
 
   /* Find the glyph row with at least one position in the range
-     [STARTPOS..ENDPOS), and the leftmost glyph in that row whose
+     [STARTPOS..ENDPOS], and the leftmost glyph in that row whose
      position belongs to that range.  */
   for (r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
        r->enabled_p && r->y < yb;
@@ -24435,7 +24435,7 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
       e = g + r->used[TEXT_AREA];
       for (gx = r->x; g < e; gx += g->pixel_width, ++g)
 	if (EQ (g->object, object)
-	    && startpos <= g->charpos && g->charpos < endpos)
+	    && startpos <= g->charpos && g->charpos <= endpos)
 	  {
 	    dpyinfo->mouse_face_beg_row = r - w->current_matrix->rows;
 	    dpyinfo->mouse_face_beg_y = r->y;
@@ -24470,7 +24470,7 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
       found = 0;
       for ( ; g < e; ++g)
 	if (EQ (g->object, object)
-	    && startpos <= g->charpos && g->charpos < endpos)
+	    && startpos <= g->charpos && g->charpos <= endpos)
 	  {
 	    found = 1;
 	    break;
@@ -24478,22 +24478,27 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
       if (!found)
 	break;
     }
+
+  /* The highlighted region ends on the previous row.  */
   r--;
 
+  /* Set the end row and its vertical pixel coordinate.  */
   dpyinfo->mouse_face_end_row = r - w->current_matrix->rows;
   dpyinfo->mouse_face_end_y = r->y;
 
+  /* Compute and set the end column.  */
   g = r->glyphs[TEXT_AREA];
   e = g + r->used[TEXT_AREA];
   for ( ; e > g; --e)
     if (EQ ((e-1)->object, object)
-	&& startpos <= (e-1)->charpos && (e-1)->charpos < endpos)
+	&& startpos <= (e-1)->charpos && (e-1)->charpos <= endpos)
       break;
   if (!r->reversed_p)
     dpyinfo->mouse_face_end_col = e - g;
   else
     dpyinfo->mouse_face_beg_col = e - g;
 
+  /* Compute and set the end column's horizontal pixel coordinate.  */
   for (gx = r->x; g < e; ++g)
     gx += g->pixel_width;
   if (!r->reversed_p)
