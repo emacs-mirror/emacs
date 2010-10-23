@@ -1,5 +1,9 @@
 2010-10-23  Glenn Morris  <rgm@gnu.org>
 
+	* term/pc-win.el (x-select-enable-clipboard):
+	* term/x-win.el (x-select-enable-clipboard):
+	* w32-vars.el (x-select-enable-clipboard): Make doc-strings identical.
+
 	* comint.el (comint-password-prompt-regexp): Make it less vague.
 	Bump version.
 

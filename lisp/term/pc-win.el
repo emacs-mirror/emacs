@@ -1,7 +1,7 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is)
 
-;; Copyright (C) 1994, 1996, 1997, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1997, 1999, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Maintainer: FSF
@@ -203,9 +203,9 @@ the operating system.")
   "Non-nil means cutting and pasting uses the clipboard.
 This is in addition to, but in preference to, the primary selection.
 
-On MS-Windows, this is non-nil by default, since Windows does not
-support other types of selections.  \(The primary selection that is
-set by Emacs is not accessible to other programs on Windows.\)"
+Note that MS-Windows does not support selection types other than the
+clipboard.   \(The primary selection that is set by Emacs is not
+accessible to other programs on MS-Windows.\)"
   :type 'boolean
   :group 'killing)
 
@@ -408,5 +408,4 @@ Errors out because it is not supposed to be called, ever."
 
 (provide 'pc-win)
 
-;; arch-tag: 5cbdb455-b495-427b-95d0-e417d77d00b4
 ;;; pc-win.el ends here
