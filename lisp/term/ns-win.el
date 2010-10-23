@@ -1138,7 +1138,7 @@ For Nextstep, this is a list of non-PANTONE colors returned by
 the operating system.")
 
 (defun xw-defined-colors (&optional frame)
-  "Internal function called by `defined-colors'."
+  "Internal function called by `defined-colors', which see."
   (or frame (setq frame (selected-frame)))
   (let ((all-colors x-colors)
 	(this-color nil)
@@ -1263,5 +1263,4 @@ the operating system.")
 
 (provide 'ns-win)
 
-;; arch-tag: eb138a45-4e2e-4d68-b1c9-a39665731644
 ;;; ns-win.el ends here

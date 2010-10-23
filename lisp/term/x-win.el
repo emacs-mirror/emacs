@@ -255,7 +255,7 @@ exists."
 (defvar x-colors)
 
 (defun xw-defined-colors (&optional frame)
-  "Internal function called by `defined-colors'."
+  "Internal function called by `defined-colors', which see."
   (or frame (setq frame (selected-frame)))
   (let ((all-colors x-colors)
 	(this-color nil)
