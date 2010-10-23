@@ -26587,8 +26587,7 @@ cursor shapes.  */);
   display_hourglass_p = 1;
 
   DEFVAR_LISP ("hourglass-delay", &Vhourglass_delay,
-	       doc: /* *Seconds to wait before displaying an hourglass pointer.
-Value must be an integer or float.  */);
+	       doc: /* *Seconds to wait before displaying an hourglass pointer when Emacs is busy.  */);
   Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
 
   hourglass_atimer = NULL;
