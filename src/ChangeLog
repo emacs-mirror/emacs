@@ -1,6 +1,7 @@
 2010-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* buffer.c (syms_of_buffer) <cursor-in-non-selected-windows>:
+	* frame.c (syms_of_frame) <menu-bar-mode>:
 	* xdisp.c (syms_of_xdisp) <auto-hscroll-mode, display-hourglass>:
 	<hourglass-delay>: Sync docs with Lisp.
 

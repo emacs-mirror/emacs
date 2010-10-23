@@ -1,6 +1,8 @@
 /* Generic frame functions.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
-     2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
+  2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4552,7 +4554,11 @@ recursively).  */);
   staticpro (&Qdelete_frame_functions);
 
   DEFVAR_LISP ("menu-bar-mode", &Vmenu_bar_mode,
-               doc: /* Non-nil if Menu-Bar mode is enabled.  */);
+               doc: /* Non-nil if Menu-Bar mode is enabled.
+See the command `menu-bar-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `menu-bar-mode'.  */);
   Vmenu_bar_mode = Qt;
 
   DEFVAR_LISP ("tool-bar-mode", &Vtool_bar_mode,
@@ -4646,5 +4652,3 @@ automatically.  See also `mouse-autoselect-window'.  */);
 
 }
 
-/* arch-tag: 7dbf2c69-9aad-45f8-8296-db893d6dd039
-   (do not change this comment) */
