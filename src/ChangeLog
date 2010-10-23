@@ -1561,7 +1561,7 @@
 	non-MSDOS, non-WINDOWSNT code, it's only defined for such systems
 	anyway.
 
-2010-08-20  Eli Zaretskii  <eliz@gnu.org>
+2010-08-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (buffer_posn_from_coords): Fix off-by-one error in
 	mirroring pixel positions.
