@@ -209,6 +209,9 @@ directory named "themes/" in `data-directory'.
 ** The user option `remote-file-name-inhibit-cache' controls whether
 the remote file-name cache is used for read access.
 
+** The standalone programs lib-src/digest-doc and sorted-doc have been
+replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
+
 
 * Editing Changes in Emacs 24.1
 

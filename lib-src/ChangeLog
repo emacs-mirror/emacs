@@ -1,3 +1,13 @@
+2010-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* digest-doc.c, sorted-doc.c: Remove files.
+	* Makefile.in (UTILITIES): Remove digest-doc and sorted-doc.
+	(digest-doc${EXEEXT}, sorted-doc${EXEEXT}): Remove rules.
+	* makefile.w32-in (ALL): Remove digest-doc and sorted-doc.
+	($(BLD)/sorted-doc.exe, $(BLD)/digest-doc.exe, sorted-doc, digest-doc)
+	($(BLD)/digest-doc.$(O), $(BLD)/sorted-doc.$(O)): Remove rules.
+	(install): Don't install digest-doc.exe or sorted-doc.exe.
+
 2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (PROFILING_LDFLAGS): Remove, not needed.
