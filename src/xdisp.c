@@ -24422,7 +24422,7 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
   struct glyph_row *r;
   struct glyph *g, *e;
   int gx;
-  int found;
+  int found = 0;
 
   /* Find the glyph row with at least one position in the range
      [STARTPOS..ENDPOS), and the leftmost glyph in that row whose
@@ -24451,9 +24451,15 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
 		dpyinfo->mouse_face_end_col = g - r->glyphs[TEXT_AREA];
 		dpyinfo->mouse_face_end_x = gx;
 	      }
+	    found = 1;
 	    break;
 	  }
+      if (found)
+	break;
     }
+
+  if (!found)
+    return;
 
   /* Starting with the next row, look for the first row which does NOT
      include any glyphs whose positions are in the range.  */
@@ -24472,9 +24478,8 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
       if (!found)
 	break;
     }
+  r--;
 
-  if (!found)
-    r--;
   dpyinfo->mouse_face_end_row = r - w->current_matrix->rows;
   dpyinfo->mouse_face_end_y = r->y;
 

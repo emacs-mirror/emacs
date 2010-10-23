@@ -1,3 +1,10 @@
+2010-10-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (mouse_face_from_string_pos): Initialize the `found'
+	flag to zero, and exit the outer loop when it's non-zero.  Bail
+	our early if no row in the window belongs to the highlighted
+	string.  Always back up after exiting the second loop.
+
 2010-10-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (fast_find_string_pos): #ifdef away, not used anymore.
