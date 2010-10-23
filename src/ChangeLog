@@ -1,3 +1,36 @@
+2010-10-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement mouse highlight for bidi-reordered lines.
+
+	* xdisp.c (fast_find_string_pos): #ifdef away, not used anymore.
+	(mouse_face_from_string_pos): New function, replaces
+	fast_find_string_pos.
+	(note_mouse_highlight): Call it instead of fast_find_string_pos.
+	(note_mode_line_or_margin_highlight): Support bidi-reordered
+	strings and R2L glyph rows.  Fix comments.
+	(note_mouse_highlight): When bidi reordering is turned on in a
+	buffer, call next-single-property-change and
+	previous-single-property-change with last argument nil.  Clear
+	mouse highlight when mouse pointer is in a R2L row on the stretch
+	glyph that stands for no text beyond the line end.
+	(row_containing_pos): Don't return too early when CHARPOS is in a
+	bidi-reordered continued line.  Return immediately when the first
+	hit is found in a line that is not continued, or when an exact
+	match for CHARPOS is found.
+	(rows_from_pos_range): New function.
+	(mouse_face_from_buffer_pos): Use it instead of calling
+	row_containing_pos for START_CHARPOS and END_CHARPOS.  Rewrite the
+	function to support mouse highlight in bidi-reordered lines and
+	not to assume that START_CHARPOS is always in mouse_face_beg_row.
+	If necessary, swap mouse_face_beg_row and mouse_face_end_row so
+	that the former is always above the latter or identical to it.
+	(show_mouse_face): Support drawing highlighted R2L lines.
+	(coords_in_mouse_face_p): New function, bidi-aware.
+	(cursor_in_mouse_face_p, note_mouse_highlight, erase_phys_cursor):
+	Call it instead of comparing with mouse-face members of dpyinfo.
+	(note_mode_line_or_margin_highlight): Fix confusingly swapped
+	usage of hpos and vpos.
+
 2010-10-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xrdb.c: Include keyboard.h for MOTIF.
@@ -1528,7 +1561,7 @@
 	non-MSDOS, non-WINDOWSNT code, it's only defined for such systems
 	anyway.
 
-2010-08-21  Eli Zaretskii  <eliz@gnu.org>
+2010-08-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (buffer_posn_from_coords): Fix off-by-one error in
 	mirroring pixel positions.
