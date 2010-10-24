@@ -1,3 +1,10 @@
+2010-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* w32fns.c (Fx_synchronize, Fx_change_window_property)
+	(Fx_window_property, Fx_file_dialog):
+	* xfns.c (Fx_synchronize, Fx_change_window_property)
+	(Fx_window_property, Fx_file_dialog): Sync docs between w32 and X.
+
 2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_connection_closed): Kill Emacs unconditionally.
