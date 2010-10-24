@@ -1,11 +1,10 @@
 ;;; select.el --- lisp portion of standard selection support
 
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
+
 ;; Maintainer: FSF
 ;; Keywords: internal
-
-;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010 Free Software Foundation, Inc.
-;; Based partially on earlier release by Lucid.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,6 +22,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; Based partially on earlier release by Lucid.
 
 ;;; Code:
 
@@ -58,11 +59,11 @@ The default value is nil."
          (set symbol value)))
 
 (defvar next-selection-coding-system nil
-  "Coding system for the next communication with other X clients.
+  "Coding system for the next communication with other programs.
 Usually, `selection-coding-system' is used for communicating with
-other X clients.  But, if this variable is set, it is used for
-the next communication only.  After the communication, this
-variable is set to nil.")
+other programs (X Windows clients or MS Windows programs).  But, if this
+variable is set, it is used for the next communication only.
+After the communication, this variable is set to nil.")
 
 (declare-function x-get-selection-internal "xselect.c"
 		  (selection-symbol target-type &optional time-stamp))
@@ -380,5 +381,4 @@ This function returns the string \"emacs\"."
 
 (provide 'select)
 
-;; arch-tag: bb634f97-8a3b-4b0a-b940-f6e09982328c
 ;;; select.el ends here
