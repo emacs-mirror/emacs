@@ -1,6 +1,7 @@
 2010-10-24  Glenn Morris  <rgm@gnu.org>
 
-	* select.el (next-selection-coding-system): Sync doc with C versions.
+	* select.el (selection-coding-system, next-selection-coding-system):
+	Sync doc with C versions.
 
 	* w32-vars.el (x-select-enable-clipboard):
 	* term/x-win.el (x-select-enable-clipboard): Move to common-win.

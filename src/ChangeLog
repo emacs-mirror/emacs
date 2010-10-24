@@ -1,7 +1,9 @@
 2010-10-24  Glenn Morris  <rgm@gnu.org>
 
-	* w16select.c (syms_of_win16select) <next-selection-coding-system>:
-	* w32select.c (syms_of_w32select) <next-selection-coding-system>:
+	* w16select.c (syms_of_win16select) <selection-coding-system>:
+	<next-selection-coding-system>:
+	* w32select.c (syms_of_w32select) <selection-coding-system>:
+	<next-selection-coding-system>:
 	Sync docs with select.el.
 
 	* xfaces.c (syms_of_xfaces) <tty-defined-color-alist>: Sync doc with
