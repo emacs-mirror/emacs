@@ -1,3 +1,7 @@
+2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in: Remove the BROKEN annotation from gnutls.
+
 2010-10-22  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Avoid listing .el files twice.  Don't try to run
