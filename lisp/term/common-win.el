@@ -25,6 +25,17 @@
 
 ;;; Code:
 
+(defcustom x-select-enable-clipboard t
+  "Non-nil means cutting and pasting uses the clipboard.
+This is in addition to, but in preference to, the primary selection.
+
+Note that MS-Windows does not support selection types other than the
+clipboard.   \(The primary selection that is set by Emacs is not
+accessible to other programs on MS-Windows.\)"
+  :type 'boolean
+  :group 'killing
+  ;; The GNU/Linux version changed in 24.1, the MS-Windows version did not.
+  :version "24.1")
 
 (defvar x-invocation-args)
 
@@ -371,5 +382,4 @@ For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
 For Nextstep, this is a list of non-PANTONE colors returned by
 the operating system.")
 
-;; arch-tag: 2a128601-99cc-401e-9dff-0ee6a36102ef
 ;;; common-win.el ends here

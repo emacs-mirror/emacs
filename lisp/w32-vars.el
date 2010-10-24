@@ -148,16 +148,6 @@ menu if the variable `w32-use-w32-font-dialog' is nil."
 		      (string :tag "Font")))))))
     :group 'w32)
 
-(defcustom x-select-enable-clipboard t
-  "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to, but in preference to, the primary selection.
-
-Note that MS-Windows does not support selection types other than the
-clipboard.   \(The primary selection that is set by Emacs is not
-accessible to other programs on MS-Windows.\)"
-  :type 'boolean
-  :group 'killing)
-
 (provide 'w32-vars)
 
 ;;; w32-vars.el ends here

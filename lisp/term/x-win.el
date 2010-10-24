@@ -1206,17 +1206,6 @@ pasted text.")
   "The value of the PRIMARY X selection last time we selected or
 pasted text.")
 
-(defcustom x-select-enable-clipboard t
-  "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to, but in preference to, the primary selection.
-
-Note that MS-Windows does not support selection types other than the
-clipboard.   \(The primary selection that is set by Emacs is not
-accessible to other programs on MS-Windows.\)"
-  :type 'boolean
-  :group 'killing
-  :version "24.1")
-
 (defcustom x-select-enable-primary nil
   "Non-nil means cutting and pasting uses the primary selection."
   :type 'boolean

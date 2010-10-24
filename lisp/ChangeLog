@@ -1,5 +1,9 @@
 2010-10-24  Glenn Morris  <rgm@gnu.org>
 
+	* w32-vars.el (x-select-enable-clipboard):
+	* term/x-win.el (x-select-enable-clipboard): Move to common-win.
+	* term/common-win.el (x-select-enable-clipboard): Move here.
+
 	* term/tty-colors.el (tty-defined-color-alist): Remove duplicate
 	definition of C variable.
 
