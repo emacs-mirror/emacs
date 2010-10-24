@@ -1,3 +1,8 @@
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package--generate-package-list): Make the
+	*Packages* buffer read-only.
+
 2010-10-24  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Cache the

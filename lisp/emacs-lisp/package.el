@@ -1474,7 +1474,7 @@ A value of nil means to display all packages.")
   (package-initialize)
   (let ((inhibit-read-only t)
 	info-list name desc hold builtin)
-    (setq buffer-read-only nil)
+    (setq buffer-read-only t)
     (erase-buffer)
     ;; List installed packages
     (dolist (elt package-alist)
