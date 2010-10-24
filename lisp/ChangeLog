@@ -1,3 +1,8 @@
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-menu-mode-map): Inherit from
+	button-buffer-map.
+
 2010-10-24  Ralf Angeli  <angeli@caeruleus.net>
 
 	* emacs-lisp/package.el (package--generate-package-list): Make the
