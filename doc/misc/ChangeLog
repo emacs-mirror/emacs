@@ -1,3 +1,7 @@
+2010-10-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus.texi (Group Parameters, Buttons): Fix typos.
+
 2010-10-22  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* gnus.texi (Subscription Commands): Mention that you can also

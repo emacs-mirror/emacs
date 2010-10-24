@@ -1,3 +1,144 @@
+2010-10-24  Michael McNamara  <mac@mail.brushroad.com>
+
+	* verilog-mode.el (verilog-directive-re): Make this variable
+	auto-built for efficiency of execution and updating.
+	(verilog-extended-complete-re): Support 'pure' fucntion & task
+	declarations (these have no bodies).
+	(verilog-beg-of-statement): general cleanup to enable support of
+	'pure' fucntion & task declarations (these have no bodies).  These
+	efforts together fix Verilog bug210 from veripool; which was also
+	noticed by Steve Pearlmutter.
+	(verilog-directive-re, verilog-directive-begin, verilog-indent-re)
+	(verilog-directive-nest-re, verilog-set-auto-endcomments): Support
+	`elsif.  Reported by Shankar Giri.
+	(verilog-forward-ws&directives, verilog-in-attribute-p): Fixes for
+	attribute handling for lining up declarations and assignments.
+	(verilog-beg-of-statement-1): Fix issue where continued declaration
+	is indented differently if it is after a begin..end clock.
+	(verilog-in-attribute-p, verilog-skip-backward-comments)
+	(verilog-skip-forward-comment-p): Support proper treatment of
+	attributes by indent code. Reported by Jeff Steele.
+	(verilog-in-directive-p): Fix comment to correctly describe
+	function.
+	(verilog-backward-up-list, verilog-in-struct-region-p)
+	(verilog-backward-token, verilog-in-struct-p)
+	(verilog-in-coverage-p, verilog-do-indent)
+	(verilog-pretty-declarations): Use verilog-backward-up-list as
+	wrapper around backward-up-list inorder to properly skip comments.
+	Reported by David Rogoff.
+	(verilog-property-re, verilog-endcomment-reason-re)
+	(verilog-beg-of-statement, verilog-set-auto-endcomments)
+	(verilog-calc-1 ): Fix for assert a; else b; indentation (new form
+	of if). Reported by Max Bjurling and
+	(verilog-calc-1): Fix for clocking block in modport
+	declaration. Reported by Brian Hunter.
+
+2010-10-24  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* verilog-mode.el (verilog-auto-inst, verilog-gate-ios)
+	(verilog-gate-keywords, verilog-read-sub-decls)
+	(verilog-read-sub-decls-gate, verilog-read-sub-decls-gate-ios)
+	(verilog-read-sub-decls-line, verilog-read-sub-decls-sig): Support
+	AUTOINST for gate primitives, bug284.  Reported by Mark Johnson.
+	(verilog-read-decls): Fix spaces in V2K module parameters causing
+	mis-identification as interfaces, bug287.
+	(verilog-read-decls): Fix not treating "parameter string" as a
+	parameter in AUTOINSTPARAM.
+	(verilog-read-always-signals-recurse, verilog-read-decls): Fix not
+	treating `elsif similar to `endif inside AUTOSENSE.
+        (verilog-do-indent): Implement correct automatic or static task or
+	function end comment highlight. Reported by Steve Pearlmutter.
+	(verilog-font-lock-keywords-2): Fix highlighting of single
+	character pins, bug264.  Reported by Michael Laajanen.
+	(verilog-auto-inst, verilog-read-decls, verilog-read-sub-decls)
+	(verilog-read-sub-decls-in-interfaced, verilog-read-sub-decls-sig)
+	(verilog-subdecls-get-interfaced, verilog-subdecls-new): Support
+	interfaces with AUTOINST, bug270.  Reported by Luis Gutierrez.
+	(verilog-pretty-expr): Fix interactive arguments, bug272. Reported
+	by Mark Johnson.
+	(verilog-auto-tieoff, verilog-auto-tieoff-ignore-regexp): Add
+	'verilog-auto-tieoff-ignore-regexp' for AUTOTIEOFF,
+	bug269. Suggested by Gary Delp.
+	(verilog-mode-map, verilog-preprocess, verilog-preprocess-history)
+	(verilog-preprocessor, verilog-set-compile-command): Create
+	verilog-preprocess and verilog-preprocessor to show preprocessed
+	output.
+	(verilog-get-beg-of-line, verilog-get-end-of-line)
+	(verilog-modi-file-or-buffer, verilog-modi-name)
+	(verilog-modi-point, verilog-within-string): Move defmacro's
+	before first use to avoid warning. Reported by Steve Pearlmutter.
+	(verilog-colorize-buffer, verilog-colorize-include-files-buffer)
+	(verilog-colorize-region, verilog-highlight-buffer)
+	(verilog-highlight-includes, verilog-highlight-modules)
+	(verilog-highlight-region, verilog-mode): Rename colorize to
+	highlight to match other packages.  Disable module highlighting,
+	as received speed complaints, reenable for experimentation only
+	using new verilog-highlight-modules.
+	(verilog-read-decls): Fix regexp stack overflow in very large
+	AUTO_TEMPLATEs, bug250.
+	(verilog-auto, verilog-delete-auto, verilog-save-buffer-state)
+	(verilog-scan): Create verilog-save-buffer-state to standardize
+	making insignificant changes that shouldn't call hooks.
+	(verilog-save-no-change-functions, verilog-save-scan-cache)
+	(verilog-scan, verilog-scan-cache-ok-p, verilog-scan-region):
+	Create verilog-save-no-change-functions to wrap verilog-scan
+	preservation, and fix to work with nested preserved calls.
+	(verilog-auto-inst, verilog-auto-inst-dot-name): Support .name
+	port syntax for AUTOWIRE, and with new verilog-auto-inst-dot-name
+	generate .name with AUTOINST, bug245.  Suggested by David Rogoff.
+	(verilog-submit-bug-report): Update variable list to be complete.
+	(verilog-auto, verilog-colorize-region): Fix AUTO expansion
+	breaking on-the-fly font-locking.
+	(verilog-colorize-buffer, verilog-colorize-include-files)
+	(verilog-colorize-include-files-buffer, verilog-colorize-region)
+	(verilog-load-file-at-mouse, verilog-load-file-at-point)
+	(verilog-mode, verilog-read-inst-module-matcher): With point on a
+	AUTOINST cell instance name, middle mouse button now finds-file on
+	it.  Suggested by Brad Dobbie.
+	(verilog-alw-get-temps, verilog-auto-reset)
+	(verilog-auto-sense-sigs, verilog-read-always-signals)
+	(verilog-read-always-signals-recurse): Fix loop indexes being
+	AUTORESET. AUTORESET now assumes any variables in the
+	initialization section of a for() should be ignored.  Reported by
+	Dan Dever.
+	(verilog-error-font-lock-keywords)
+	(verilog-error-regexp-emacs-alist)
+	(verilog-error-regexp-xemacs-alist): Fix error detection of
+	Cadence HAL, reported by David Asher.  Repair drift between the
+	three similar error variables.
+	(verilog-modi-lookup, verilog-modi-lookup-cache)
+	(verilog-modi-lookup-last-current, verilog-modi-lookup-last-mod)
+	(verilog-modi-lookup-last-modi, verilog-modi-lookup-last-tick):
+	Fix slow verilog-auto expansion on very large files.
+	(verilog-read-sub-decls-expr, verilog-read-sub-decls-line): Fix
+	AUTOOUTPUT treating "1*2" as a signal name in submodule connection
+	"{1*2{...".  Broke in last revision.
+	(verilog-read-sub-decls-expr): Fix AUTOOUTPUT not detecting
+	submodule connections with replications "{#{a},#{b}}".
+
+2010-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/dcl-mode.el (dcl-electric-reindent-regexps):
+	Fix typo in docstring.
+
+2010-10-24  Kenichi Handa  <handa@m17n.org>
+
+	* face-remap.el (text-scale-adjust): Call read-event with a proper
+	prompt.
+
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/unsafep.el: Don't mark functions that display
+	messages as safe.  Suggested by Johan Bockgård.
+
+2010-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-group, regexp-opt-charset):
+	Turn comments into docstrings.
+
+	* minibuffer.el (completion--replace): Move point where it belongs
+	when there's a common suffix (bug#7215).
+
 2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	Merge read-color and facemenu-read-color (Bug#7242).

@@ -1,3 +1,8 @@
+2010-10-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Window Systems): Deprecate use of window-system as
+	a predicate.
+
 2010-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* help.texi (Documentation Basics): Remove mentions of digest-doc and

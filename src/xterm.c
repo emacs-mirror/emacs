@@ -7698,15 +7698,12 @@ x_connection_closed (Display *dpy, const char *error_message)
 #endif
 
 #ifdef USE_GTK
-      /* Due to bugs in some Gtk+ versions, just exit here if this
-         is the last display/terminal. */
-      if (terminal_list->next_terminal == NULL)
-        {
-          fprintf (stderr, "%s\n", error_msg);
-          Fkill_emacs (make_number (70));
-          /* NOTREACHED */
-        }
-      xg_display_close (dpyinfo->display);
+      /* Due to bugs in some Gtk+ versions, just exit here. */
+      {
+	fprintf (stderr, "%s\n", error_msg);
+	Fkill_emacs (make_number (70));
+	abort ();  /* NOTREACHED */
+      }
 #endif
 
       /* Indicate that this display is dead.  */
