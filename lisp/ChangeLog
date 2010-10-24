@@ -1,3 +1,9 @@
+2010-10-24  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Cache the
+	result of `c-beginning-of-decl-1' between invocations of a lambda
+	function (Bug #7265).
+
 2010-10-24  Daiki Ueno  <ueno@unixuser.org>
 
 	* epg-config.el (epg-gpg-program): Try to use "gpg2" if "gpg"

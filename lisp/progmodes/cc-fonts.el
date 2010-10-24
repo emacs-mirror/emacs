@@ -1045,6 +1045,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  ;; The position of the next token after the closing paren of
 	  ;; the last detected cast.
 	  last-cast-end
+	  ;; Start of containing declaration (if any); limit for searching
+	  ;; backwards for it.
+	  decl-start decl-search-lim
 	  ;; The result from `c-forward-decl-or-cast-1'.
 	  decl-or-cast
 	  ;; The maximum of the end positions of all the checked type
@@ -1184,20 +1187,29 @@ casts and declarations are fontified.  Used on level 2 and higher."
 				match-pos context last-cast-end))
 
 	    (if (not decl-or-cast)
-		;; Are we at a declarator?
-		;; Try to go back to the declaration to check this.
-		(let (paren-state bod-res lim encl-pos is-typedef)
+		;; Are we at a declarator?  Try to go back to the declaration
+		;; to check this.  Note that `c-beginning-of-decl-1' is slow,
+		;; so we cache its result between calls.
+		(let (paren-state bod-res encl-pos is-typedef)
 		  (goto-char start-pos)
 		  (save-excursion
-		    (setq lim (and (c-syntactic-skip-backward "^;" nil t)
-				   (point))))
+		    (unless (and decl-search-lim
+				 (eq decl-search-lim
+				     (save-excursion
+				       (c-syntactic-skip-backward "^;" nil t)
+				       (point))))
+		      (setq decl-search-lim
+			    (and (c-syntactic-skip-backward "^;" nil t) (point)))
+		      (setq bod-res (car (c-beginning-of-decl-1 decl-search-lim)))
+		      (if (and (eq bod-res 'same)
+			       (progn
+				 (c-backward-syntactic-ws)
+				 (eq (char-before) ?\})))
+			  (c-beginning-of-decl-1 decl-search-lim))
+		      (setq decl-start (point))))
+
 		  (save-excursion
-		    (setq bod-res (car (c-beginning-of-decl-1 lim)))
-		    (if (and (eq bod-res 'same)
-			     (progn
-			       (c-backward-syntactic-ws)
-			       (eq (char-before) ?\})))
-			(c-beginning-of-decl-1 lim))
+		    (goto-char decl-start)
 		    ;; We're now putatively at the declaration.
 		    (setq paren-state (c-parse-state))
 		    ;; At top level or inside a "{"?
