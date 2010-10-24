@@ -37,7 +37,9 @@
   :version "23.1"
   :group 'data)
 
-(defcustom epg-gpg-program "gpg"
+(defcustom epg-gpg-program (or (executable-find "gpg")
+			       (executable-find "gpg2")
+			       "gpg")
   "The `gpg' executable."
   :group 'epg
   :type 'string)

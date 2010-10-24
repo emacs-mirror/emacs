@@ -1,3 +1,8 @@
+2010-10-24  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg-config.el (epg-gpg-program): Try to use "gpg2" if "gpg"
+	executable is not available on the system (Bug#7268).
+
 2010-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* select.el (selection-coding-system, next-selection-coding-system):
