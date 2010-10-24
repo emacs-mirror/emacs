@@ -136,6 +136,16 @@ textual parts.")
 (defun nnimap-buffer ()
   (nnimap-find-process-buffer nntp-server-buffer))
 
+(defun nnimap-header-parameters ()
+  (format "(UID RFC822.SIZE BODYSTRUCTURE %s)"
+	  (format
+	   (if (nnimap-ver4-p)
+	       "BODY.PEEK[HEADER.FIELDS %s]"
+	     "RFC822.HEADER.LINES %s")
+	   (append '(Subject From Date Message-Id
+			     References In-Reply-To Xref)
+		   nnmail-extra-headers))))
+
 (deffoo nnimap-retrieve-headers (articles &optional group server fetch-old)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
@@ -146,14 +156,7 @@ textual parts.")
 	 (nnimap-send-command
 	  "UID FETCH %s %s"
 	  (nnimap-article-ranges (gnus-compress-sequence articles))
-	  (format "(UID RFC822.SIZE BODYSTRUCTURE %s)"
-		  (format
-		   (if (nnimap-ver4-p)
-		       "BODY.PEEK[HEADER.FIELDS %s]"
-		     "RFC822.HEADER.LINES %s")
-		   (append '(Subject From Date Message-Id
-				     References In-Reply-To Xref)
-			   nnmail-extra-headers))))
+	  (nnimap-header-parameters))
 	 t)
 	(nnimap-transform-headers))
       (insert-buffer-substring
@@ -171,7 +174,7 @@ textual parts.")
 	    (return)))
 	(setq article (match-string 1))
 	;; Unfold quoted {number} strings.
-	(while (re-search-forward "[^]] {\\([0-9]+\\)}\r\n"
+	(while (re-search-forward "[^]][ (]{\\([0-9]+\\)}\r\n"
 				  (1+ (line-end-position)) t)
 	  (setq size (string-to-number (match-string 1)))
 	  (delete-region (+ (match-beginning 0) 2) (point))
@@ -200,7 +203,8 @@ textual parts.")
 	  (insert (format "Chars: %s\n" size)))
 	(when lines
 	  (insert (format "Lines: %s\n" lines)))
-	(re-search-forward "^\r$")
+	(unless (re-search-forward "^\r$" nil t)
+	  (goto-char (point-max)))
 	(delete-region (line-beginning-position) (line-end-position))
 	(insert ".")
 	(forward-line 1)))))
@@ -490,12 +494,28 @@ textual parts.")
 		(nnheader-ms-strip-cr)
 		(cons group article)))))))))
 
-(defun nnimap-get-whole-article (article)
+(deffoo nnimap-request-head (article &optional group server to-buffer)
+  (when (nnimap-possibly-change-group group server)
+    (with-current-buffer (nnimap-buffer)
+      (when (stringp article)
+	(setq article (nnimap-find-article-by-message-id group article)))
+      (nnimap-get-whole-article
+       article (format "UID FETCH %%d %s"
+		       (nnimap-header-parameters)))
+      (let ((buffer (current-buffer)))
+	(with-current-buffer (or to-buffer nntp-server-buffer)
+	  (erase-buffer)
+	  (insert-buffer-substring buffer)
+	  (nnheader-ms-strip-cr)
+	  (cons group article))))))
+
+(defun nnimap-get-whole-article (article &optional command)
   (let ((result
 	 (nnimap-command
-	  (if (nnimap-ver4-p)
-	      "UID FETCH %d BODY.PEEK[]"
-	    "UID FETCH %d RFC822.PEEK")
+	  (or command
+	      (if (nnimap-ver4-p)
+		  "UID FETCH %d BODY.PEEK[]"
+		"UID FETCH %d RFC822.PEEK"))
 	  article)))
     ;; Check that we really got an article.
     (goto-char (point-min))
@@ -715,7 +735,10 @@ textual parts.")
 					     &optional last internal-move-group)
   (with-temp-buffer
     (mm-disable-multibyte)
-    (when (nnimap-request-article article group server (current-buffer))
+    (when (funcall (if internal-move-group
+		       'nnimap-request-head
+		     'nnimap-request-article)
+		   article group server (current-buffer))
       ;; If the move is internal (on the same server), just do it the easy
       ;; way.
       (let ((message-id (message-field-value "message-id")))
@@ -1025,12 +1048,7 @@ textual parts.")
 					       (utf7-encode group t))
 			  (nnimap-send-command "UID FETCH %d:* FLAGS" start)
 			  start group command)
-		    sequences)))
-	  ;; Some servers apparently can't have many outstanding
-	  ;; commands, so throttle them.
-	  (when (and (not nnimap-streaming)
-		     (car sequences))
-	    (nnimap-wait-for-response (caar sequences))))
+		    sequences))))
 	sequences))))
 
 (deffoo nnimap-finish-retrieve-group-infos (server infos sequences)
@@ -1408,6 +1426,10 @@ textual parts.")
 	    (if (nnimap-newlinep nnimap-object)
 		""
 	      "\r"))))
+  ;; Some servers apparently can't have many outstanding
+  ;; commands, so throttle them.
+  (unless nnimap-streaming
+    (nnimap-wait-for-response nnimap-sequence))
   nnimap-sequence)
 
 (defun nnimap-log-command (command)

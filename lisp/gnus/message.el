@@ -1139,14 +1139,17 @@ It is a vector of the following headers:
   :error "All header lines must be newline terminated")
 
 (defcustom message-default-headers ""
-  "A string containing header lines to be inserted in outgoing messages.
-It is inserted before you edit the message, so you can edit or
-delete these lines.  If set to a function, it is called and its
-result is inserted."
+  "Header lines to be inserted in outgoing messages.
+This can be set to a string containing or a function returning
+header lines to be inserted before you edit the message, so you
+can edit or delete these lines.  If set to a function, it is
+called and its result is inserted."
   :version "23.2"
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
-  :type 'message-header-lines)
+  :type '(choice
+          (message-header-lines :tag "String")
+          (function :tag "Function")))
 
 (defcustom message-default-mail-headers
   ;; Ease the transition from mail-mode to message-mode.  See bugs#4431, 5555.

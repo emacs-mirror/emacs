@@ -1,5 +1,19 @@
 2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-request-head): New function.
+	(nnimap-request-move-article): Try to be slighly faster by not
+	requesting the entire message when moving.
+	(nnimap-transform-headers): Don't bug out on bodiless articles.
+	(nnimap-send-command): Have no outstanding messages if the IMAP server
+	doesn't support streaming.
+	(nnimap-transform-headers): Fold {quoted} strings more sloppily.
+
+2010-10-24  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-default-headers): Fix type.
+
+2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* gnus-html.el (gnus-html-prefetch-images): Decode entities before
 	prefetching images.
 

@@ -655,7 +655,8 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	 (result (funcall (gnus-get-function gnus-command-method
 					     'request-move-article)
 			  article (gnus-group-real-name group)
-			  (nth 1 gnus-command-method) accept-function last move-is-internal)))
+			  (nth 1 gnus-command-method) accept-function
+			  last move-is-internal)))
     (when (and result gnus-agent
 	       (gnus-agent-method-p gnus-command-method))
       (gnus-agent-unfetch-articles group (list article)))
