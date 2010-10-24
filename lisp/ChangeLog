@@ -1,4 +1,4 @@
-2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+2010-10-24  Ralf Angeli  <angeli@caeruleus.net>
 
 	* emacs-lisp/package.el (package--generate-package-list): Make the
 	*Packages* buffer read-only.
