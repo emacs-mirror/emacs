@@ -1676,89 +1676,76 @@ If omitted or nil, that stands for the selected frame's display."
      (t
       (> (tty-color-gray-shades display) 2)))))
 
-(defun read-color (&optional prompt convert-to-RGB-p allow-empty-name-p msg-p)
-  "Read a color name or RGB hex value: #RRRRGGGGBBBB.
-Completion is available for color names, but not for RGB hex strings.
-If the user inputs an RGB hex string, it must have the form
-#XXXXXXXXXXXX or XXXXXXXXXXXX, where each X is a hex digit.  The
-number of Xs must be a multiple of 3, with the same number of Xs for
-each of red, green, and blue.  The order is red, green, blue.
+(defun read-color (&optional prompt convert-to-RGB allow-empty-name msg)
+  "Read a color name or RGB triplet of the form \"#RRRRGGGGBBBB\".
+Completion is available for color names, but not for RGB triplets.
 
-In addition to standard color names and RGB hex values, the following
-are available as color candidates.  In each case, the corresponding
-color is used.
+RGB triplets have the form #XXXXXXXXXXXX, where each X is a hex
+digit.  The number of Xs must be a multiple of 3, with the same
+number of Xs for each of red, green, and blue.  The order is red,
+green, blue.
+
+In addition to standard color names and RGB hex values, the
+following are available as color candidates.  In each case, the
+corresponding color is used.
 
  * `foreground at point'   - foreground under the cursor
  * `background at point'   - background under the cursor
 
-Checks input to be sure it represents a valid color.  If not, raises
-an error (but see exception for empty input with non-nil
-ALLOW-EMPTY-NAME-P).
+Optional arg PROMPT is the prompt; if nil, use a default prompt.
 
-Optional arg PROMPT is the prompt; if nil, uses a default prompt.
+Interactively, or with optional arg CONVERT-TO-RGB-P non-nil,
+convert an input color name to an RGB hex string.  Return the RGB
+hex string.
 
-Interactively, or with optional arg CONVERT-TO-RGB-P non-nil, converts
-an input color name to an RGB hex string.  Returns the RGB hex string.
+If optional arg ALLOW-EMPTY-NAME is non-nil, the user is allowed
+to enter an empty color name (the empty string).
 
-Optional arg ALLOW-EMPTY-NAME-P controls what happens if the user
-enters an empty color name (that is, just hits `RET').  If non-nil,
-then returns an empty color name, \"\".  If nil, then raises an error.
-Programs must test for \"\" if ALLOW-EMPTY-NAME-P is non-nil.  They
-can then perform an appropriate action in case of empty input.
-
-Interactively, or with optional arg MSG-P non-nil, echoes the color in
-a message."
+Interactively, or with optional arg MSG non-nil, print the
+resulting color name in the echo area."
   (interactive "i\np\ni\np")    ; Always convert to RGB interactively.
   (let* ((completion-ignore-case t)
-         (colors (append '("foreground at point" "background at point")
-			 (defined-colors)))
-         (color (completing-read (or prompt "Color (name or #R+G+B+): ")
-				 colors))
-         hex-string)
-    (cond ((string= "foreground at point" color)
-	   (setq color (foreground-color-at-point)))
-	  ((string= "background at point" color)
-	   (setq color (background-color-at-point))))
-    (unless color
-      (setq color ""))
-    (setq hex-string
-	  (string-match "^#?\\([a-fA-F0-9][a-fA-F0-9][a-fA-F0-9]\\)+$" color))
-    (if (and allow-empty-name-p (string= "" color))
-        ""
-      (when (and hex-string (not (eq (aref color 0) ?#)))
-        (setq color (concat "#" color))) ; No #; add it.
-      (unless hex-string
-        (when (or (string= "" color) (not (test-completion color colors)))
-          (error "No such color: %S" color))
-        (when convert-to-RGB-p
-          (let ((components (x-color-values color)))
-            (unless components (error "No such color: %S" color))
-            (unless (string-match "^#\\([a-fA-F0-9][a-fA-F0-9][a-fA-F0-9]\\)+$" color)
-              (setq color (format "#%04X%04X%04X"
-                                  (logand 65535 (nth 0 components))
-                                  (logand 65535 (nth 1 components))
-                                  (logand 65535 (nth 2 components))))))))
-      (when msg-p (message "Color: `%s'" color))
-      color)))
+	 (colors (or facemenu-color-alist
+		     (append '("foreground at point" "background at point")
+			     (if allow-empty-name '(""))
+			     (defined-colors))))
+	 (color (completing-read
+		 (or prompt "Color (name or #RGB triplet): ")
+		 ;; Completing function for reading colors, accepting
+		 ;; both color names and RGB triplets.
+		 (lambda (string pred flag)
+		   (cond
+		    ((null flag) ; Try completion.
+		     (or (try-completion string colors pred)
+			 (if (color-defined-p string)
+			     string)))
+		    ((eq flag t) ; List all completions.
+		     (or (all-completions string colors pred)
+			 (if (color-defined-p string)
+			     (list string))))
+		    ((eq flag 'lambda) ; Test completion.
+		     (or (memq string colors)
+			 (color-defined-p string)))))
+		 nil t))
+	 hex-string)
 
-;; Commented out because I decided it is better to include the
-;; duplicates in read-color's completion list.
+    ;; Process named colors.
+    (when (member color colors)
+      (cond ((string-equal color "foreground at point")
+	     (setq color (foreground-color-at-point)))
+	    ((string-equal color "background at point")
+	     (setq color (background-color-at-point))))
+      (when (and convert-to-RGB
+		 (not (string-equal color "")))
+	(let ((components (x-color-values color)))
+	  (unless (string-match "^#\\([a-fA-F0-9][a-fA-F0-9][a-fA-F0-9]\\)+$" color)
+	    (setq color (format "#%04X%04X%04X"
+				(logand 65535 (nth 0 components))
+				(logand 65535 (nth 1 components))
+				(logand 65535 (nth 2 components))))))))
+    (when msg (message "Color: `%s'" color))
+    color))
 
-;; (defun defined-colors-without-duplicates ()
-;;   "Return the list of defined colors, without the no-space versions.
-;; For each color name, we keep the variant that DOES have spaces."
-;;   (let ((result (copy-sequence (defined-colors)))
-;; 	   to-be-rejected)
-;;     (save-match-data
-;;       (dolist (this result)
-;; 	   (if (string-match " " this)
-;; 	       (push (replace-regexp-in-string " " ""
-;; 					       this)
-;; 		     to-be-rejected)))
-;;       (dolist (elt to-be-rejected)
-;; 	   (let ((as-found (car (member-ignore-case elt result))))
-;; 	     (setq result (delete as-found result)))))
-;;     result))
 
 (defun face-at-point ()
   "Return the face of the character after point.

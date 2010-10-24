@@ -1067,7 +1067,7 @@ See `modify-frame-parameters'."
   "Set the background color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current background color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Background color: ")))
+  (interactive (list (read-color "Background color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'background-color color-name)))
   (or window-system
@@ -1077,7 +1077,7 @@ To get the frame's current background color, use `frame-parameters'."
   "Set the foreground color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current foreground color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Foreground color: ")))
+  (interactive (list (read-color "Foreground color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'foreground-color color-name)))
   (or window-system
@@ -1087,7 +1087,7 @@ To get the frame's current foreground color, use `frame-parameters'."
   "Set the text cursor color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current cursor color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Cursor color: ")))
+  (interactive (list (read-color "Cursor color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'cursor-color color-name))))
 
@@ -1095,7 +1095,7 @@ To get the frame's current cursor color, use `frame-parameters'."
   "Set the color of the mouse pointer of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current mouse color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Mouse color: ")))
+  (interactive (list (read-color "Mouse color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'mouse-color
 				       (or color-name
@@ -1106,7 +1106,7 @@ To get the frame's current mouse color, use `frame-parameters'."
   "Set the color of the border of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current border color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Border color: ")))
+  (interactive (list (read-color "Border color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'border-color color-name))))
 

@@ -663,6 +663,12 @@ argument is supplied (see Trash changes, above).
 
 ** New completion style `substring'.
 
+** `facemenu-read-color' is now an alias for `read-color'.
+The command `read-color' now requires a match for a color name or RGB
+triplet, instead of signalling an error if the user provides a invalid
+input.
+
+
 ** Image API
 
 *** When the image type is one of listed in `image-animated-types'

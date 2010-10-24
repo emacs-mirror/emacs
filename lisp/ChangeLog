@@ -1,3 +1,18 @@
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	Merge read-color and facemenu-read-color (Bug#7242).
+
+	* faces.el (read-color): Use the completion code from
+	facemenu-read-color.  Require match in completion.  Doc fix.
+
+	* facemenu.el (facemenu-read-color): Alias for read-color.
+	(facemenu-set-foreground, facemenu-set-background): Use
+	read-color.
+
+	* frame.el (set-background-color, set-foreground-color)
+	(set-cursor-color, set-mouse-color, set-border-color): Use
+	read-color.
+
 2010-10-24  Leo <sdl.web@gmail.com>
 
 	* eshell/em-unix.el (eshell-remove-entries): Use the TRASH
