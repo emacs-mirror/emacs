@@ -1,7 +1,8 @@
 /* Implementation of GUI terminal on the Microsoft W32 API.
-   Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998,
-                 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -6348,12 +6349,14 @@ baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
-	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
+	       doc: /* Which toolkit scroll bars Emacs uses, if any.
+A value of nil means Emacs doesn't use toolkit scroll bars.
+With the X Window system, the value is a symbol describing the
+X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
+With MS Windows, the value is t.  */);
   Vx_toolkit_scroll_bars = Qt;
 
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 }
 
-/* arch-tag: 5fa70624-ab86-499c-8a85-473958ee4646
-   (do not change this comment) */

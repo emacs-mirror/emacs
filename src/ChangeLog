@@ -1,3 +1,8 @@
+2010-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* w32term.c (syms_of_w32term) <x-toolkit-scroll-bars>:
+	* xterm.c (syms_of_xterm) <x-toolkit-scroll-bars>: Sync docs.
+
 2010-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* buffer.c (syms_of_buffer) <cursor-in-non-selected-windows>:
