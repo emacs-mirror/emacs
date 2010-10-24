@@ -1,4 +1,10 @@
+2010-10-24  Leo <sdl.web@gmail.com>
+
+	* eshell/em-unix.el (eshell-remove-entries): Use the TRASH
+	argument of delete-file and delete-directory (Bug#7011).
+
 2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
 
 	* emacs-lisp/package.el (package-menu-mode-map): Inherit from
 	button-buffer-map.
