@@ -37,6 +37,67 @@ accessible to other programs on MS-Windows.\)"
   ;; The GNU/Linux version changed in 24.1, the MS-Windows version did not.
   :version "24.1")
 
+(defvar x-last-selected-text)		; w32-fns.el
+(declare-function w32-set-clipboard-data "w32select.c"
+		  (string &optional ignored))
+
+(defun x-select-text (text)
+  "Select TEXT, a string, according to the window system.
+
+On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
+clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
+the primary selection.
+
+On MS-Windows, make TEXT the current selection.  If
+`x-select-enable-clipboard' is non-nil, copy the text to the
+clipboard as well.
+
+On Nextstep, put TEXT in the pasteboard."
+  (if (eq system-type 'windows-nt)
+      (progn
+	(if x-select-enable-clipboard
+	    (w32-set-clipboard-data text))
+	(setq x-last-selected-text text))
+    ;; With multi-tty, this function may be called from a tty frame.
+    (when (eq (framep (selected-frame)) 'x)
+      (when x-select-enable-primary
+	(x-set-selection 'PRIMARY text)
+	(setq x-last-selected-text-primary text))
+      (when x-select-enable-clipboard
+	(x-set-selection 'CLIPBOARD text)
+	(setq x-last-selected-text-clipboard text)))))
+
+;;;; Function keys
+
+(defvar x-alternatives-map
+  (let ((map (make-sparse-keymap)))
+    ;; Map certain keypad keys into ASCII characters that people usually expect.
+    (define-key map [M-backspace] [?\M-\d])
+    (define-key map [M-delete] [?\M-\d])
+    (define-key map [M-tab] [?\M-\t])
+    (define-key map [M-linefeed] [?\M-\n])
+    (define-key map [M-clear] [?\M-\C-l])
+    (define-key map [M-return] [?\M-\C-m])
+    (define-key map [M-escape] [?\M-\e])
+    (define-key map [iso-lefttab] [backtab])
+    (define-key map [S-iso-lefttab] [backtab])
+    (and (eq system-type 'windows-nt)
+	 (define-key map [S-tab] [backtab]))
+    map)
+  "Keymap of possible alternative meanings for some keys.")
+
+(defun x-setup-function-keys (frame)
+  "Set up `function-key-map' on the graphical frame FRAME."
+  ;; Don't do this twice on the same display, or it would break
+  ;; normal-erase-is-backspace-mode.
+  (unless (terminal-parameter frame 'x-setup-function-keys)
+    ;; Map certain keypad keys into ASCII characters that people usually expect.
+    (with-selected-frame frame
+      (let ((map (copy-keymap x-alternatives-map)))
+        (set-keymap-parent map (keymap-parent local-function-key-map))
+        (set-keymap-parent local-function-key-map map)))
+    (set-terminal-parameter frame 'x-setup-function-keys t)))
+
 (defvar x-invocation-args)
 
 (defvar x-command-line-resources nil)
@@ -381,5 +442,18 @@ This function returns ARGS minus the arguments that have been processed."
 For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
 For Nextstep, this is a list of non-PANTONE colors returned by
 the operating system.")
+
+(defvar w32-color-map)
+
+(defun xw-defined-colors (&optional frame)
+  "Internal function called by `defined-colors', which see."
+  (or frame (setq frame (selected-frame)))
+  (let (defined-colors)
+    (dolist (this-color (if (eq system-type 'windows-nt)
+			    (or (mapcar 'car w32-color-map) x-colors)
+			  x-colors))
+      (and (color-supported-p this-color frame t)
+	   (setq defined-colors (cons this-color defined-colors))))
+    defined-colors))
 
 ;;; common-win.el ends here

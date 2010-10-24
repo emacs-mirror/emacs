@@ -1,3 +1,15 @@
+2010-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (x-select-text): Doc fix.
+	* w32-fns.el (x-alternatives-map, x-setup-function-keys)
+	(x-select-text): Move to term/common-win.
+	* term/w32-win.el (xw-defined-colors): Move to common-win.
+	* term/x-win.el (xw-defined-colors, x-alternatives-map)
+	(x-setup-function-keys, x-select-text): Move to common-win.
+	* term/common-win.el (x-select-text, x-alternatives-map)
+	(x-setup-function-keys, xw-defined-colors): Merge x- and w32-
+	definitions here.
+
 2010-10-24  "T.V. Raman" <tv.raman.tv@gmail.com>
 
 	* net/mairix.el (mairix-searches-mode-map):
@@ -159,13 +171,12 @@
 	(set-cursor-color, set-mouse-color, set-border-color): Use
 	read-color.
 
-2010-10-24  Leo <sdl.web@gmail.com>
+2010-10-24  Leo  <sdl.web@gmail.com>
 
 	* eshell/em-unix.el (eshell-remove-entries): Use the TRASH
 	argument of delete-file and delete-directory (Bug#7011).
 
 2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
-
 
 	* emacs-lisp/package.el (package-menu-mode-map): Inherit from
 	button-buffer-map.

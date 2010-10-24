@@ -1028,7 +1028,7 @@ On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
 clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
 the primary selection.
 
-On Windows, make TEXT the current selection.  If
+On MS-Windows, make TEXT the current selection.  If
 `x-select-enable-clipboard' is non-nil, copy the text to the
 clipboard as well.
 

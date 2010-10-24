@@ -32,34 +32,6 @@
 
 ;;;; Function keys
 
-(defvar x-alternatives-map
-  (let ((map (make-sparse-keymap)))
-    ;; Map certain keypad keys into ASCII characters that people usually expect.
-    (define-key map [M-backspace] [?\M-\d])
-    (define-key map [M-delete] [?\M-\d])
-    (define-key map [M-tab] [?\M-\t])
-    (define-key map [M-linefeed] [?\M-\n])
-    (define-key map [M-clear] [?\M-\C-l])
-    (define-key map [M-return] [?\M-\C-m])
-    (define-key map [M-escape] [?\M-\e])
-    (define-key map [iso-lefttab] [backtab])
-    (define-key map [S-iso-lefttab] [backtab])
-    (define-key map [S-tab] [backtab])
-    map)
-  "Keymap of possible alternative meanings for some keys.")
-
-(defun x-setup-function-keys (frame)
-  "Set up `function-key-map' on the graphical frame FRAME."
-  ;; Don't do this twice on the same display, or it would break
-  ;; normal-erase-is-backspace-mode.
-  (unless (terminal-parameter frame 'x-setup-function-keys)
-    ;; Map certain keypad keys into ASCII characters that people usually expect.
-    (with-selected-frame frame
-      (let ((map (copy-keymap x-alternatives-map)))
-        (set-keymap-parent map (keymap-parent local-function-key-map))
-        (set-keymap-parent local-function-key-map map)))
-    (set-terminal-parameter frame 'x-setup-function-keys t)))
-
 (declare-function set-message-beep "w32console.c")
 (declare-function w32-get-clipboard-data "w32select.c")
 (declare-function w32-get-locale-info "w32proc.c")
@@ -432,22 +404,6 @@ bit output with no translation."
 ;; from x-selection-value.
 (defvar x-last-selected-text nil)
 
-(defun x-select-text (text)
-  "Select TEXT, a string, according to the window system.
-
-On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
-clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
-the primary selection.
-
-On Windows, make TEXT the current selection.  If
-`x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.
-
-On Nextstep, put TEXT in the pasteboard."
-  (if x-select-enable-clipboard
-      (w32-set-clipboard-data text))
-  (setq x-last-selected-text text))
-
 (defun x-get-selection-value ()
   "Return the value of the current selection.
 Consult the selection.  Treat empty strings as if they were unset."
@@ -503,5 +459,4 @@ to include Sed, which is used by leim/Makefile.in to do the job."
   (delete-matching-lines "^$\\|^;")
   (save-buffers-kill-emacs t))
 
-;; arch-tag: c49b48cc-0f4f-454f-a274-c2dc34815e14
 ;;; w32-fns.el ends here
