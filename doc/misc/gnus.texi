@@ -3091,8 +3091,8 @@ The Sieve language is described in RFC 3028.  @xref{Top, Emacs Sieve,
 Top, sieve, Emacs Sieve}.
 
 @item (agent parameters)
-If the agent has been enabled, you can set any of the its parameters
-to control the behavior of the agent in individual groups. See Agent
+If the agent has been enabled, you can set any of its parameters to
+control the behavior of the agent in individual groups.  See Agent
 Parameters in @ref{Category Syntax}.  Most users will choose to set
 agent parameters in either an agent category or group topic to
 minimize the configuration effort.

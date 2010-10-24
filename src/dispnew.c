@@ -6583,13 +6583,29 @@ It is up to you to set this variable if your terminal can do that.  */);
 
   DEFVAR_LISP ("initial-window-system", &Vinitial_window_system,
 	       doc: /* Name of the window system that Emacs uses for the first frame.
-The value is a symbol--for instance, `x' for X windows.
-The value is nil if Emacs is using a text-only terminal.  */);
+The value is a symbol:
+ nil for a termcap frame (a character-only terminal),
+ 'x' for an Emacs frame that is really an X window,
+ 'w32' for an Emacs frame that is a window on MS-Windows display,
+ 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ 'pc' for a direct-write MS-DOS frame.
+
+Use of this variable as a boolean is deprecated.  Instead,
+use `display-graphic-p' or any of the other `display-*-p'
+predicates which report frame's specific UI-related capabilities.  */);
 
   DEFVAR_KBOARD ("window-system", Vwindow_system,
 		 doc: /* Name of window system through which the selected frame is displayed.
-The value is a symbol--for instance, `x' for X windows.
-The value is nil if the selected frame is on a text-only-terminal.  */);
+The value is a symbol:
+ nil for a termcap frame (a character-only terminal),
+ 'x' for an Emacs frame that is really an X window,
+ 'w32' for an Emacs frame that is a window on MS-Windows display,
+ 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ 'pc' for a direct-write MS-DOS frame.
+
+Use of this variable as a boolean is deprecated.  Instead,
+use `display-graphic-p' or any of the other `display-*-p'
+predicates which report frame's specific UI-related capabilities.  */);
 
   DEFVAR_LISP ("window-system-version", &Vwindow_system_version,
 	       doc: /* The version number of the window system in use.

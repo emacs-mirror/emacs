@@ -1508,7 +1508,7 @@ Also make each path-info component into a list.
   ;;   (topic)
   ;;   (topic (path-index) (path-index) ... )
   ;;   (topic (path-index filename) (path-index filename) ... )
-  ;; where the are no duplicates in the value lists.
+  ;; where there are no duplicates in the value lists.
   ;; Topic must match first `word' of filename, so ...
   (let ((topic-regexp
 	 (concat

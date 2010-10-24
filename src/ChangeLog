@@ -1,3 +1,14 @@
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_connection_closed): Kill Emacs unconditionally.
+
+2010-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (Fframep, Fwindow_system): Deprecate use as a predicate.
+
+	* dispnew.c (syms_of_display) <initial-window-system, window-system>:
+	Deprecate use as a boolean flag.
+
 2010-10-24  Jim Meyering  <jim@meyering.net>
 
 	* emacs.c (argmatch): Don't treat "--" as "--chdir".
