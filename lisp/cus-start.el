@@ -96,6 +96,11 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				       "21.1")
 	     (line-spacing display (choice (const :tag "none" nil) integer)
 			   "22.1")
+	     (cursor-in-non-selected-windows
+	      cursor boolean nil t :tag "Cursor In Non-selected Windows"
+	      :set #'(lambda (symbol value)
+		       (set-default symbol value)
+		       (force-mode-line-update t)))
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
@@ -327,6 +332,8 @@ since it could result in memory overflow and make Emacs crash."
 				  (other :tag "Always" t))
 				 "23.1")
 	     ;; xdisp.c
+	     (show-trailing-whitespace whitespace-faces boolean nil nil
+				       :safe booleanp)
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
 	     (scroll-margin windows integer)
@@ -362,6 +369,9 @@ since it could result in memory overflow and make Emacs crash."
 		      (const :tag "Text-image-horiz" :value text-image-horiz)
 		      (const :tag "System default" :value nil)) "23.3")
              (tool-bar-max-label-size frames integer "23.3")
+	     (auto-hscroll-mode scrolling boolean "21.1")
+	     (display-hourglass cursor boolean)
+	     (hourglass-delay cursor number)
 
 	     ;; xfaces.c
 	     (scalable-fonts-allowed display boolean "22.1")
@@ -379,7 +389,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-stretch-cursor display boolean "21.1")
 	     ;; xsettings.c
 	     (font-use-system-font font-selection boolean "23.2")))
-      this symbol group type standard version native-p
+      this symbol group type standard version native-p rest prop propval
       ;; This function turns a value
       ;; into an expression which produces that value.
       (quoter (lambda (sexp)
@@ -404,6 +414,7 @@ since it could result in memory overflow and make Emacs crash."
 		       (nth 4 this)
 		     (when (default-boundp symbol)
 		       (funcall quoter (default-value symbol))))
+	  rest (nthcdr 5 this)
 	  ;; Don't complain about missing variables which are
 	  ;; irrelevant to this platform.
 	  native-p (save-match-data
@@ -436,6 +447,11 @@ since it could result in memory overflow and make Emacs crash."
       ;; Save the standard value, unless we already did.
       (or (get symbol 'standard-value)
 	  (put symbol 'standard-value (list standard)))
+      ;; We need these properties independent of whether cus-start is loaded.
+      (if (setq prop (memq :safe rest))
+	  (put symbol 'safe-local-variable (cadr prop)))
+      (if (setq prop (memq :risky rest))
+	  (put symbol 'risky-local-variable (cadr prop)))
       ;; If this is NOT while dumping Emacs,
       ;; set up the rest of the customization info.
       (unless purify-flag
@@ -443,18 +459,25 @@ since it could result in memory overflow and make Emacs crash."
 	(custom-add-to-group group symbol 'custom-variable)
 	;; Set the type.
 	(put symbol 'custom-type type)
-	(put symbol 'custom-version version)))))
+	(put symbol 'custom-version version)
+	(while rest
+	  (setq prop (car rest)
+		propval (cadr rest)
+		rest (nthcdr 2 rest))
+	  (cond ((memq prop '(:risky :safe))) ; handled above
+		((eq prop :set)
+		 (put symbol 'custom-set propval))
+		((eq prop :tag)
+		 (put symbol 'custom-tag propval))))))))
 
 (custom-add-to-group 'iswitchb 'read-buffer-function 'custom-variable)
 (custom-add-to-group 'font-lock 'open-paren-in-column-0-is-defun-start
 		     'custom-variable)
 
-;; Record cus-start as loaded
-;; if we have set up all the info that we can set up.
-;; Don't record cus-start as loaded
-;; if we have set up only the standard values.
+;; Record cus-start as loaded if we have set up all the info that we can.
+;; Don't record it as loaded if we have only set up the standard values
+;; and safe/risky properties.
 (unless purify-flag
   (provide 'cus-start))
 
-;; arch-tag: 4502730d-bcb3-4f5e-99a3-a86f2d54af60
 ;;; cus-start.el ends here

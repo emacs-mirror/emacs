@@ -1,3 +1,13 @@
+2010-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* frame.el (show-trailing-whitespace, auto-hscroll-mode)
+	(display-hourglass, hourglass-delay, cursor-in-non-selected-windows):
+	Don't redefine things that are defined in C.
+	* cus-start.el: Also handle :risky, :safe, :set, and :tag.
+	(show-trailing-whitespace, auto-hscroll-mode)
+	(display-hourglass, hourglass-delay, cursor-in-non-selected-windows):
+	Set up the appropriate custom properties.
+
 2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	Bind "C-c ]" to ...

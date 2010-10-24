@@ -1467,14 +1467,6 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 
 (make-variable-buffer-local 'show-trailing-whitespace)
 
-(defcustom show-trailing-whitespace nil
-  "Non-nil means highlight trailing whitespace.
-This is done in the face `trailing-whitespace'."
-  :type 'boolean
-  :safe 'booleanp
-  :group 'whitespace-faces)
-
-
 
 ;; Scrolling
 
@@ -1483,13 +1475,6 @@ This is done in the face `trailing-whitespace'."
   :version "21.1"
   :group 'frames)
 
-(defcustom auto-hscroll-mode t
-  "Allow or disallow automatic horizontal scrolling of windows.
-If non-nil, windows are automatically scrolled horizontally to make
-point visible."
-  :version "21.1"
-  :type 'boolean
-  :group 'scrolling)
 (defvaralias 'automatic-hscrolling 'auto-hscroll-mode)
 
 
@@ -1576,35 +1561,6 @@ cursor display.  On a text-only terminal, this is not implemented."
                                'blink-cursor-start))))
 
 (define-obsolete-variable-alias 'blink-cursor 'blink-cursor-mode "22.1")
-
-;; Hourglass pointer
-
-(defcustom display-hourglass t
-  "Non-nil means show an hourglass pointer, when Emacs is busy.
-This feature only works when on a window system that can change
-cursor shapes."
-  :type 'boolean
-  :group 'cursor)
-
-(defcustom hourglass-delay 1
-  "Seconds to wait before displaying an hourglass pointer when Emacs is busy."
-  :type 'number
-  :group 'cursor)
-
-
-(defcustom cursor-in-non-selected-windows t
-  "Non-nil means show a cursor in non-selected windows.
-If nil, only shows a cursor in the selected window.
-If t, displays a cursor related to the usual cursor type
-\(a solid box becomes hollow, a bar becomes a narrower bar).
-You can also specify the cursor type as in the `cursor-type' variable.
-Use Custom to set this variable and update the display."
-  :tag "Cursor In Non-selected Windows"
-  :type 'boolean
-  :group 'cursor
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (force-mode-line-update t)))
 
 
 ;;;; Key bindings
