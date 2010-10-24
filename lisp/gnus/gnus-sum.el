@@ -6190,7 +6190,13 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	 (info (nth 2 entry))
 	 (active (gnus-active group))
 	 range)
-    (when entry
+    (if (not entry)
+	;; Group that Gnus doesn't know exists, but still allow the
+	;; backend to set marks.
+	(gnus-request-set-mark
+	 group (list (list (gnus-compress-sequence (sort articles #'<))
+			   'add '(read))))
+      ;; Normal, subscribed groups.
       (setq range (gnus-compute-read-articles group articles))
       (with-current-buffer gnus-group-buffer
 	(gnus-undo-register
@@ -6942,7 +6948,9 @@ displayed, no centering will be performed."
 ;; Various summary commands
 
 (defun gnus-summary-select-article-buffer ()
-  "Reconfigure windows to show the article buffer."
+  "Reconfigure windows to show the article buffer.
+If `gnus-widen-article-buffer' is set, show only the article
+buffer."
   (interactive)
   (if (not (gnus-buffer-live-p gnus-article-buffer))
       (error "There is no article buffer for this summary buffer")
@@ -7584,7 +7592,8 @@ be displayed."
 		       (null (get-buffer gnus-article-buffer))
 		       (not (eq article (cdr gnus-article-current)))
 		       (not (equal (car gnus-article-current)
-				   gnus-newsgroup-name))))
+				   gnus-newsgroup-name))
+		       (not (buffer-name gnus-original-article-buffer))))
 	      (and (not gnus-single-article-buffer)
 		   (or (null gnus-current-article)
 		       (not (eq gnus-current-article article))))

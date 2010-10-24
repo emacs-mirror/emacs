@@ -424,6 +424,18 @@ Return a string with image data."
   (apply #'shr-fontize-cont cont types)
   (shr-ensure-paragraph))
 
+(defun shr-urlify (start url)
+  (widget-convert-button
+   'url-link start (point)
+   :help-echo url
+   :keymap shr-map
+   url)
+  (put-text-property start (point) 'shr-url url))
+
+(defun shr-encode-url (url)
+  "Encode URL."
+  (browse-url-url-encode-chars url "[)$ ]"))
+
 ;;; Tag-specific rendering rules.
 
 (defun shr-tag-p (cont)
@@ -478,16 +490,14 @@ Return a string with image data."
 	(start (point))
 	shr-start)
     (shr-generic cont)
-    (widget-convert-button
-     'url-link (or shr-start start) (point)
-     :help-echo url
-     :keymap shr-map
-     url)
-    (put-text-property (or shr-start start) (point) 'shr-url url)))
+    (shr-urlify (or shr-start start) url)))
 
-(defun shr-encode-url (url)
-  "Encode URL."
-  (browse-url-url-encode-chars url "[)$ ]"))
+(defun shr-tag-object (cont)
+  (let ((url (cdr (assq :src (cdr (assq 'embed cont)))))
+	(start (point)))
+    (when url
+      (shr-insert " [multimedia] ")
+      (shr-urlify start url))))
 
 (defun shr-tag-img (cont)
   (when (and cont

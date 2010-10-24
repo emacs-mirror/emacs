@@ -1,3 +1,33 @@
+2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-prefetch-images): Decode entities before
+	prefetching images.
+
+	* gnus-sum.el (gnus-group-make-articles-read): Propagate marks to the
+	backend for unknown groups.  This is mainly useful for nnimap groups.
+
+	* gnus-agent.el (gnus-agent-fetch-group): Don't download stuff if the
+	group isn't covered by the agent.
+
+2010-10-22  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-method-default-engines): new variable.
+	(nnir-run-query): use it.
+	(nnir-group-mode-hook): remove key binding and move to gnus-group.el.
+	(gnus-summary-nnir-goto-thread): change group if needed.
+
+	* gnus-group.el (gnus-group-group-map): add key binding for
+	gnus-group-make-nnir-group.
+
+2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-object): Added.
+
+	* gnus-sum.el (gnus-summary-select-article): Make sure we have the
+	original article buffer live.
+	(gnus-summary-select-article-buffer): Mention
+	gnus-widen-article-buffer.
+
 2010-10-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-tag-strong): Added.

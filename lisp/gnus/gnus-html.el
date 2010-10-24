@@ -494,7 +494,8 @@ This only works if the article in question is HTML."
                             (gnus-blocked-images))))
       (save-match-data
 	(while (re-search-forward "<img[^>]+src=[\"']\\(http[^\"']+\\)" nil t)
-	  (let ((url (gnus-html-encode-url (match-string 1))))
+	  (let ((url (gnus-html-encode-url
+		      (mm-url-decode-entities-string (match-string 1)))))
 	    (unless (gnus-html-image-url-blocked-p url blocked-images)
               (when (gnus-html-cache-expired url gnus-html-image-cache-ttl)
                 (gnus-html-schedule-image-fetching nil
