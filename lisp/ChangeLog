@@ -1,5 +1,8 @@
 2010-10-24  Glenn Morris  <rgm@gnu.org>
 
+	* term/tty-colors.el (tty-defined-color-alist): Remove duplicate
+	definition of C variable.
+
 	* frame.el (show-trailing-whitespace, auto-hscroll-mode)
 	(display-hourglass, hourglass-delay, cursor-in-non-selected-windows):
 	Don't redefine things that are defined in C.

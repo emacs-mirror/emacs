@@ -1,7 +1,7 @@
 ;;; tty-colors.el --- color support for character terminals
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: FSF
@@ -768,11 +768,6 @@
     (yes . 8))
   "An alist of supported standard tty color modes and their aliases.")
 
-(defvar tty-defined-color-alist nil
-  "An alist of defined terminal colors and their RGB values.
-
-See the docstring of `tty-color-alist' for the details.")
-
 (defun tty-color-alist (&optional frame)
   "Return an alist of colors supported by FRAME's terminal.
 FRAME defaults to the selected frame.
@@ -1039,5 +1034,4 @@ A color is considered gray if the 3 components of its RGB value are equal."
       (setq colors (cdr colors)))
     count))
 
-;; arch-tag: 84d5c3ef-ae22-4754-99ac-e6350c0967ae
 ;;; tty-colors.el ends here
