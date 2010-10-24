@@ -1,3 +1,8 @@
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/checked.xpm:
+	* images/unchecked.xpm: New images.
+
 2010-10-20  Richard Stallman  <rms@gnu.org>
 
 	* DISTRIB: Update donation section.

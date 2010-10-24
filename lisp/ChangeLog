@@ -1,3 +1,14 @@
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (image-checkbox-checked, image-checkbox-unchecked):
+	Deleted (Bug#7222).
+
+	* startup.el (fancy-startup-tail): Instead of using inline images,
+	refer to image files from etc/.
+
+	* wid-edit.el (checkbox): Likewise.
+	(widget-image-find): Center image specs.
+
 2010-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el (x-select-text): Doc fix.
