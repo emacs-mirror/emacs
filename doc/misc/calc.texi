@@ -7,6 +7,8 @@
 @setchapternewpage odd
 @comment %**end of header (This is for running Texinfo on a region.)
 
+@include ../emacs/emacsver.texi
+
 @c The following macros are used for conditional output for single lines.
 @c @texline foo
 @c    `foo' will appear only in TeX output
@@ -88,7 +90,8 @@
 This file documents Calc, the GNU Emacs calculator.
 @end ifinfo
 @ifnotinfo
-This file documents Calc, the GNU Emacs calculator, included with GNU Emacs 23.1.
+This file documents Calc, the GNU Emacs calculator, included with 
+GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
 Copyright @copyright{} 1990, 1991, 2001, 2002, 2003, 2004,
