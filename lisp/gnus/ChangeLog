@@ -1,4 +1,11 @@
+2010-10-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-strong): Added.
+
 2010-10-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-completing-read): Remove all newlines from
+	group names.  They mess up the group buffer badly.
 
 	* shr.el (shr-tag-img): Don't bug out on images that don't have a SRC.
 
