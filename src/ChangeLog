@@ -1,3 +1,7 @@
+2010-10-24  Jim Meyering  <jim@meyering.net>
+
+	* emacs.c (argmatch): Don't treat "--" as "--chdir".
+
 2010-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* w16select.c (syms_of_win16select) <selection-coding-system>:

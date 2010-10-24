@@ -829,13 +829,14 @@ main (int argc, char **argv)
       printf ("see the file named COPYING.\n");
       exit (0);
     }
-  if (argmatch (argv, argc, "-chdir", "--chdir", 2, &ch_to_dir, &skip_args))
-      if (chdir (ch_to_dir) == -1)
-        {
-          fprintf (stderr, "%s: Can't chdir to %s: %s\n",
-                   argv[0], ch_to_dir, strerror (errno));
-          exit (1);
-        }
+
+  if (argmatch (argv, argc, "-chdir", "--chdir", 4, &ch_to_dir, &skip_args))
+    if (chdir (ch_to_dir) == -1)
+      {
+	fprintf (stderr, "%s: Can't chdir to %s: %s\n",
+		 argv[0], ch_to_dir, strerror (errno));
+	exit (1);
+      }
 
 
 #ifdef HAVE_PERSONALITY_LINUX32
