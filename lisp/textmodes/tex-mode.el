@@ -864,6 +864,7 @@ START is the position of the \\ and DELIM is the delimiter char."
 
     ;; Redundant keybindings, for consistency with SGML mode.
     (define-key map "\C-c\C-t" 'latex-insert-block)
+    (define-key map "\C-c]" 'latex-close-block)
     (define-key map "\C-c/" 'latex-close-block)
 
     (define-key map "\C-c\C-e" 'latex-close-block)

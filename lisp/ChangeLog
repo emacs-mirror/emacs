@@ -1,3 +1,11 @@
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	Bind "C-c ]" to ...
+	* progmodes/f90.el (f90-mode-map): ... f90-insert-end.
+	* nxml/nxml-mode.el (nxml-mode-map): ... nxml-finish-element.
+	* textmodes/tex-mode.el (tex-mode-map): ... latex-close-block.
+	* textmodes/sgml-mode.el (sgml-mode-map): ... sgml-close-tag.
+
 2010-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-mode): If there was an error,
