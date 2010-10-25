@@ -1,5 +1,12 @@
 2010-10-25  Glenn Morris  <rgm@gnu.org>
 
+	* term/common-win.el (x-handle-switch): Simplify with pop.
+	Optionally handle numeric switches.
+	(x-handle-numeric-switch): Just call x-handle-switch.
+	(x-handle-initial-switch, x-handle-xrm-switch, x-handle-geometry)
+	(x-handle-name-switch, x-handle-display, x-handle-args):
+	Simplify with pop.
+
 	* term/ns-win.el: Do not require easymenu.
 	(menu-bar-edit-menu) <copy, paste, paste-from-menu, separator-undo>:
 	<spell>: Move adjustments to menu-bar.el.

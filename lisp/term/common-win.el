@@ -103,48 +103,28 @@ On Nextstep, put TEXT in the pasteboard."
 (defvar x-command-line-resources nil)
 
 ;; Handler for switches of the form "-switch value" or "-switch".
-(defun x-handle-switch (switch)
+(defun x-handle-switch (switch &optional numeric)
   (let ((aelt (assoc switch command-line-x-option-alist)))
     (if aelt
-	(let ((param (nth 3 aelt))
-	      (value (nth 4 aelt)))
-	  (if value
-	      (setq default-frame-alist
-		    (cons (cons param value)
-			  default-frame-alist))
-	    (setq default-frame-alist
-		  (cons (cons param
-			      (car x-invocation-args))
-			default-frame-alist)
-		  x-invocation-args (cdr x-invocation-args)))))))
+	(setq default-frame-alist
+	      (cons (cons (nth 3 aelt)
+			  (if numeric
+			      (string-to-number (pop x-invocation-args))
+			    (or (nth 4 aelt) (pop x-invocation-args))))
+		    default-frame-alist)))))
 
 ;; Handler for switches of the form "-switch n"
 (defun x-handle-numeric-switch (switch)
-  (let ((aelt (assoc switch command-line-x-option-alist)))
-    (if aelt
-	(let ((param (nth 3 aelt)))
-	  (setq default-frame-alist
-		(cons (cons param
-			    (string-to-number (car x-invocation-args)))
-		      default-frame-alist)
-		x-invocation-args
-		(cdr x-invocation-args))))))
+  (x-handle-switch switch t))
 
 ;; Handle options that apply to initial frame only
 (defun x-handle-initial-switch (switch)
   (let ((aelt (assoc switch command-line-x-option-alist)))
     (if aelt
-	(let ((param (nth 3 aelt))
-	      (value (nth 4 aelt)))
-	  (if value
-	      (setq initial-frame-alist
-		    (cons (cons param value)
-			  initial-frame-alist))
-	    (setq initial-frame-alist
-		  (cons (cons param
-			      (car x-invocation-args))
-			initial-frame-alist)
-		  x-invocation-args (cdr x-invocation-args)))))))
+	(setq initial-frame-alist
+	      (cons (cons (nth 3 aelt)
+			  (or (nth 4 aelt) (pop x-invocation-args)))
+		    initial-frame-alist)))))
 
 ;; Make -iconic apply only to the initial frame!
 (defun x-handle-iconic (switch)
@@ -157,15 +137,14 @@ On Nextstep, put TEXT in the pasteboard."
     (error "%s: missing argument to `%s' option" (invocation-name) switch))
   (setq x-command-line-resources
 	(if (null x-command-line-resources)
-	    (car x-invocation-args)
-	  (concat x-command-line-resources "\n" (car x-invocation-args))))
-  (setq x-invocation-args (cdr x-invocation-args)))
+	    (pop x-invocation-args)
+	  (concat x-command-line-resources "\n" (pop x-invocation-args)))))
 
 (declare-function x-parse-geometry "frame.c" (string))
 
 ;; Handle the geometry option
 (defun x-handle-geometry (switch)
-  (let* ((geo (x-parse-geometry (car x-invocation-args)))
+  (let* ((geo (x-parse-geometry (pop x-invocation-args)))
 	 (left (assq 'left geo))
 	 (top (assq 'top geo))
 	 (height (assq 'height geo))
@@ -186,8 +165,7 @@ On Nextstep, put TEXT in the pasteboard."
 	      (append initial-frame-alist
 		      '((user-position . t))
 		      (if left (list left))
-		      (if top (list top)))))
-    (setq x-invocation-args (cdr x-invocation-args))))
+		      (if top (list top)))))))
 
 (defvar x-resource-name)
 
@@ -197,9 +175,8 @@ On Nextstep, put TEXT in the pasteboard."
 (defun x-handle-name-switch (switch)
   (or (consp x-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
-  (setq x-resource-name (car x-invocation-args)
-	x-invocation-args (cdr x-invocation-args))
-  (setq initial-frame-alist (cons (cons 'name x-resource-name)
+  (setq x-resource-name (pop x-invocation-args)
+	initial-frame-alist (cons (cons 'name x-resource-name)
 				  initial-frame-alist)))
 
 (defvar x-display-name nil
@@ -209,8 +186,7 @@ On X, the display name of individual X frames is recorded in the
 
 (defun x-handle-display (switch)
   "Handle -display DISPLAY option."
-  (setq x-display-name (car x-invocation-args)
-	x-invocation-args (cdr x-invocation-args))
+  (setq x-display-name (pop x-invocation-args))
   ;; Make subshell programs see the same DISPLAY value Emacs really uses.
   ;; Note that this isn't completely correct, since Emacs can use
   ;; multiple displays.  However, there is no way to tell an already
@@ -229,10 +205,9 @@ This function returns ARGS minus the arguments that have been processed."
 	args nil)
   (while (and x-invocation-args
 	      (not (equal (car x-invocation-args) "--")))
-    (let* ((this-switch (car x-invocation-args))
+    (let* ((this-switch (pop x-invocation-args))
 	   (orig-this-switch this-switch)
 	   completion argval aelt handler)
-      (setq x-invocation-args (cdr x-invocation-args))
       ;; Check for long options with attached arguments
       ;; and separate out the attached option argument into argval.
       (if (string-match "^--[^=]*=" this-switch)
