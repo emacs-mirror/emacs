@@ -23,18 +23,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary:
-
-;; TODO
-
-;; Use `walk-window-tree' instead of `window-list-1' wherever possible.
-;; Or maybe not because writing code with wwt is not very transparent.
-;; Or better, rewrite wwt as a macro.
-
-;; Use (pop-up-windows (or pop-up-windows t)) instead of (pop-up-windows
-;; t) wherever this is locally rebound (has some twenty hits in Elisp
-;; sources).
-
 ;;; Code:
 
 (eval-when-compile (require 'cl))
@@ -204,16 +192,57 @@ narrower, explictly specify the SIZE argument of that function."
   :version "24.1"
   :group 'windows)
 
+(defun window-iso-combination-p (&optional window horizontal)
+  "If WINDOW is a vertical combination return WINDOW's first child.
+WINDOW can be any window and defaults to the selected one.
+Optional argument HORIZONTAL non-nil means return WINDOW's first
+child if WINDOW is a horizontal combination."
+  (setq window (normalize-any-window window))
+  (if horizontal
+      (window-hchild window)
+    (window-vchild window)))
+
 (defsubst window-iso-combined-p (&optional window horizontal)
   "Return non-nil if and only if WINDOW is vertically combined.
 WINDOW can be any window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means return non-nil if and
 only if WINDOW is horizontally combined."
   (setq window (normalize-any-window window))
-  (when (window-parent window)
-    (if horizontal
-	(window-hchild (window-parent window))
-      (window-vchild (window-parent window)))))
+  (let ((parent (window-parent window)))
+    (and parent (window-iso-combination-p parent horizontal))))
+
+(defun window-iso-combinations (&optional window horizontal)
+  "Return largest number of vertically arranged subwindows of WINDOW.
+WINDOW can be any window and defaults to the selected one.
+Optional argument HORIZONTAL non-nil means to return the largest
+number of horizontally arranged subwindows of WINDOW."
+  (setq window (normalize-any-window window))
+  (cond
+   ((window-live-p window)
+    ;; If WINDOW is live, return 1.
+    1)
+   ((window-iso-combination-p window horizontal)
+    ;; If WINDOW is iso-combined, return the sum of the values for all
+    ;; subwindows of WINDOW.
+    (let ((child (window-child window))
+	  (count 0))
+      (while child
+	(setq count
+	      (+ (window-iso-combinations child horizontal)
+		 count))
+	(setq child (window-right child)))
+      count))
+   (t
+    ;; If WINDOW is not iso-combined, return the maximum value of any
+    ;; subwindow of WINDOW.
+    (let ((child (window-child window))
+	  (count 1))
+      (while child
+	(setq count
+	      (max (window-iso-combinations child horizontal)
+		   count))
+	(setq child (window-right child)))
+      count))))
 
 (defvar window-size-fixed nil
   "Non-nil in a buffer means windows displaying the buffer are fixed-size.
@@ -701,11 +730,11 @@ the minibuffer window only if the minibuffer is active.  Any
 other value means do not include the minibuffer window even if
 the minibuffer is active.
 
-ALL-FRAMES nil or omitted means consider all windows on WINDOW's
-frame, plus the minibuffer window if specified by the MINIBUF
-argument.  If the minibuffer counts, consider all windows on all
-frames that share that minibuffer too.  The following non-nil
-values of ALL-FRAMES have special meanings:
+ALL-FRAMES nil or omitted means consider all windows on the
+selected frame, plus the minibuffer window if specified by the
+MINIBUF argument.  If the minibuffer counts, consider all windows
+on all frames that share that minibuffer too.  The following
+non-nil values of ALL-FRAMES have special meanings:
 
 - t means consider all windows on all existing frames.
 
@@ -716,8 +745,8 @@ values of ALL-FRAMES have special meanings:
 
 - A frame means consider all windows on that frame only.
 
-Anything else means consider all windows on WINDOW's frame and no
-others.
+Anything else means consider all windows on the selected frame
+and no others.
 
 This function changes neither the order of recently selected
 windows nor the buffer list."
@@ -794,9 +823,11 @@ IGNORE, when non-nil means a window can be returned even if its
 			    (window-total-width window)
 			  (window-total-height window))))
 	 (posn-cons (nth 6 (posn-at-point (window-point window) window)))
+	 ;; The column / row value of `posn-at-point' can be nil for the
+	 ;; mini-window, guard against that.
 	 (posn (if hor
-		   (+ (cdr posn-cons) (window-top-line window))
-		 (+ (car posn-cons) (window-left-column window))))
+		   (+ (or (cdr posn-cons) 1) (window-top-line window))
+		 (+ (or (car posn-cons) 1) (window-left-column window))))
 	 (best-edge
 	  (cond
 	   ((eq direction 'below) (frame-height frame))
@@ -877,7 +908,7 @@ PREDICATE on each one of them with the window as its sole
 argument.  Return the first window for which PREDICATE returns
 non-nil.  If no window satisfies PREDICATE, return DEFAULT.
 
-ALL-FRAMES nil or omitted means consider all windows on WINDOW's
+ALL-FRAMES nil or omitted means consider all windows on the selected
 frame, plus the minibuffer window if specified by the MINIBUF
 argument.  If the minibuffer counts, consider all windows on all
 frames that share that minibuffer too.  The following non-nil
@@ -892,8 +923,8 @@ values of ALL-FRAMES have special meanings:
 
 - A frame means consider all windows on that frame only.
 
-Anything else means consider all windows on WINDOW's frame and no
-others."
+Anything else means consider all windows on the selected frame
+and no others."
   (catch 'found
     (dolist (window (window-list-1 nil minibuf all-frames))
       (when (funcall predicate window)
@@ -1045,11 +1076,11 @@ the minibuffer window only if the minibuffer is active.  Any
 other value means do not include the minibuffer window even if
 the minibuffer is active.
 
-ALL-FRAMES nil or omitted means consider all windows on WINDOW's
-frame, plus the minibuffer window if specified by the MINIBUF
-argument.  If the minibuffer counts, consider all windows on all
-frames that share that minibuffer too.  The following non-nil
-values of ALL-FRAMES have special meanings:
+ALL-FRAMES nil or omitted means consider all windows on the
+selected frame, plus the minibuffer window if specified by the
+MINIBUF argument.  If the minibuffer counts, consider all windows
+on all frames that share that minibuffer too.  The following
+non-nil values of ALL-FRAMES have special meanings:
 
 - t means consider all windows on all existing frames.
 
@@ -1060,8 +1091,8 @@ values of ALL-FRAMES have special meanings:
 
 - A frame means consider all windows on that frame only.
 
-Anything else means consider all windows on WINDOW's frame and no
-others."
+Anything else means consider all windows on the selected frame
+and no others."
   (let ((buffer (normalize-live-buffer buffer-or-name))
 	windows)
     (dolist (window (window-list-1 (frame-first-window) minibuf all-frames))
@@ -1103,6 +1134,33 @@ windows."
   (when (window-right window)
     (resize-window-reset-1 (window-right window) horizontal)))
 
+;; The following routine is needed to manually resize the minibuffer
+;; window and is currently used, for example, by ispell.el.
+(defun resize-mini-window (window delta)
+  "Resize minibuffer window WINDOW by DELTA lines.
+If WINDOW cannot be resized by DELTA lines make it as large \(or
+as small) as possible but don't signal an error."
+  (when (window-minibuffer-p window)
+    (let* ((frame (window-frame window))
+	   (root (frame-root-window frame))
+	   (height (window-total-size window))
+	   (min-delta
+	    (- (window-total-size root)
+	       (window-min-size root))))
+      ;; Sanitize DELTA.
+      (cond
+       ((<= (+ height delta) 0)
+	(setq delta (- (- height 1))))
+       ((> delta min-delta)
+	(setq delta min-delta)))
+      ;; Resize now.
+      (resize-window-reset frame)
+      (resize-this-window root (- delta) nil nil t)
+      (resize-window-total window (+ height delta))
+      ;; The following routine catches the case where we want to resize
+      ;; a minibuffer-only frame.
+      (resize-mini-window-internal window))))
+
 (defvar resize-window-safe-window nil
   "Internal variable bound by `resize-window'.")
 
@@ -1138,6 +1196,8 @@ instead."
     (cond
      ((eq window (frame-root-window frame))
       (error "Cannot resize root window of frame"))
+     ((window-minibuffer-p window)
+      (resize-mini-window window delta))
      ((window-resizable-p window delta horizontal ignore)
       (resize-window-reset frame horizontal)
       (resize-this-window window delta horizontal ignore t)
@@ -1697,20 +1757,6 @@ possible in the desired direction."
 	;; But do report an error it applying the changes fails.
 	(error "Failed adjusting window %s" window)))))
 
-(defun resize-mini-window (window delta)
-  "Resize minibuffer window WINDOW by DELTA lines."
-  (when (window-minibuffer-p window)
-    (let* ((frame (window-frame window))
-	   (root (frame-root-window frame))
-	   (height (window-total-size window)))
-      (unless (> (- height delta) 0)
-	(setq delta (- height 1)))
-      (when (window-sizable-p root delta)
-	(resize-window-reset frame)
-	(resize-this-window root delta nil nil t)
-	(resize-window-total window (- height delta))
-	(resize-mini-window-internal window)))))
-
 (defun enlarge-window (delta &optional horizontal)
   "Make selected window DELTA lines taller.
 Interactively, if no argument is given, make the selected window
@@ -2029,7 +2075,7 @@ when it is active.
 
 Optional argument ALL-FRAMES specifies the set of frames to
 consider, see also `next-window'.  ALL-FRAMES nil or omitted
-means consider windows on WINDOW's frame only, plus the
+means consider windows on the selected frame only, plus the
 minibuffer window if specified by the NOMINI argument.  If the
 minibuffer counts, consider all windows on all frames that share
 that minibuffer too.  The remaining non-nil values of ALL-FRAMES
@@ -2044,8 +2090,8 @@ with a special meaning are:
 
 - A frame means consider all windows on that frame only.
 
-Anything else means consider all windows on WINDOW's frame and no
-others."
+Anything else means consider all windows on the selected frame
+and no others."
   (let ((base-window (selected-window)))
     (if (and nomini (eq base-window (minibuffer-window)))
 	(setq base-window (next-window base-window)))
@@ -2866,15 +2912,6 @@ Optional argument HORFLAG non-nil means return minimum width."
       (max window-min-width window-safe-min-width)
     (max window-min-height window-safe-min-height)))
 
-(defun window-children-count (window)
-  "Return number of child windows of WINDOW."
-  (let ((count 0)
-	(sub (window-child window)))
-    (while sub
-      (setq count (1+ count))
-      (setq sub (window-right sub)))
-    count))
-
 (defun split-window (&optional window size horizontal)
   "Create a new window adjacent to WINDOW.
 WINDOW can be any window and defaults to the selected one.  If
@@ -2883,12 +2920,12 @@ selected.  Return the new window which is always a live window.
 
 Optional argument SIZE a positive number means make WINDOW SIZE
 lines/columns tall.  If SIZE is negative, make the new window
--SIZE lines/columns tall.  If and only if SIZE is negative, its
+-SIZE lines/columns tall.  If and only if SIZE is non-nil, its
 absolute value can be less than `window-min-height' or
 `window-min-width'; so this command can make a new window as
 small as one line or two columns.  SIZE defaults to half of
-WINDOW's size.  The variable `window-splits' determines how the
-size of other windows is affected by this function.
+WINDOW's size.  The variable `window-splits' determines whether
+the size of other windows is affected by this function.
 
 Optional third argument HORIZONTAL nil (or `below') specifies
 that the new window shall be located below WINDOW.  HORIZONTAL
@@ -2976,19 +3013,27 @@ window on WINDOW's frame."
 	    ;; We must nest since otherwise we might end up with a
 	    ;; window group having two dominating main windows.
 	    (setq window-splits 'nest)))))))
+
       ;; The following line is hopefully not needed ...
       ;; (setq window-splits (if (eq window root) 'nest window-splits))
       (let* ((frame (window-frame window))
 	     (parent (window-parent window))
 	     ;; Size calculations.
-	     (parent-size (window-total-size parent horflag))
+	     (parent-size
+	      (when parent (window-total-size parent horflag)))
 	     ;; Bind `old-size' to the current size of WINDOW and
 	     ;; `new-size' to the size of the new window.
 	     (old-size (window-total-size window horflag))
 	     (resize
 	      (and (eq window-splits 'resize)
 		   ;; Resize makes sense in iso-combinations only.
-		   (window-iso-combined-p window horflag)))
+		   (window-iso-combined-p window horflag)
+		   (or (not size) (< size 0) 
+		       ;; If SIZE is a non-negative integer, we cannot
+		       ;; resize, bind `window-splits' to 'nest instead
+		       ;; to make sure that subsequent window deletions
+		       ;; are handled correctly.
+		       (and (setq window-splits 'nest) nil))))
 	     (new-size
 	      (cond
 	       ((not size)
@@ -3000,36 +3045,60 @@ window on WINDOW's frame."
 			 (min (- parent-size
 				 (window-min-size parent horflag))
 			      (/ parent-size
-				 (1+ (window-children-count parent))))
+				 (1+ (window-iso-combinations parent horflag))))
 		       ;; Else try to give the new window half the size of
 		       ;; WINDOW.
 		       (/ old-size 2))))
 	       ((>= size 0)
 		;; SIZE non-negative specifies the new size of WINDOW.
+
+		;; Note: Specifying a non-negative SIZE is practically
+		;; always doen to have a workaround for making the new
+		;; window appear above or on the left of the new window
+		;; (the ispell window is a typical example of that).  In
+		;; all these cases the HORIZONTAL argument should be set
+		;; to 'above or 'left in order to support the 'resize
+		;; option.
 		(- old-size size))
 	       (t
 		;; SIZE negative specifies the size of the new window.
 		(- size))))
 	     (root (window-parameter window 'root)))
+	;; Check the sizes.
 	(cond
-	 ((and resize (not (window-sizable-p parent (- new-size) horflag))
-	       ;; Try agin with minimum acceptable size.
-	       (setq new-size
-		     (max new-size 
-			  (window-split-min-size horflag)))
-	       (not (window-sizable-p parent (- new-size) horflag)))
+	 ((not size)
+	  (cond
+	   (resize
+	    ;; Size unspecified, resizing.
+	    (when (and (not (window-sizable-p parent (- new-size) horflag))
+		      ;; Try agin with minimum acceptable size.
+		      (setq new-size
+			    (max new-size
+				 (window-split-min-size horflag)))
+		      (not (window-sizable-p parent (- new-size) horflag)))
+	      (error "Cannot resize %s" parent)))
+	   ((> (+ new-size (window-min-size window horflag)) old-size)
+	    ;; Size unspecified, no resizing.
+	    (error "Cannot resize %s" window))))
+	 ((and (>= size 0)
+	       (or (>= size old-size)
+		   (< new-size (if horflag
+				   window-safe-min-width
+				 window-safe-min-width))))
+	  ;; Size specified as new size of old window.  If the new size
+	  ;; is larger than the old size or the size of the new window
+	  ;; would be less than the safe minimum signal an error.
 	  (error "Cannot resize %s" window))
-	 ((and (not resize)
-	       (> (+ new-size (window-min-size window horflag))
-		  old-size))
-	  (error "Cannot resize %s" window))
-	 ((< new-size
-	     (if (and size (< size 0))
-		 ;; If SIZE explicitly specifies a negative value, respect
-		 ;; that.
-		 (if horflag window-safe-min-width window-safe-min-height)
-	       (if horflag window-min-width window-min-height)))
-	  (error "New window too small")))
+	 (resize
+	  ;; Size specified, resizing.
+	  (unless (window-sizable-p parent (- new-size) horflag)
+	    ;; If we cannot resize the parent give up.
+	    (error "Cannot resize %s" parent)))
+	 ((or (< new-size
+		 (if horflag window-safe-min-width window-safe-min-height))
+	      (< (- old-size new-size)
+		 (if horflag window-safe-min-width window-safe-min-height)))
+	  (error "Cannot resize %s" window)))
 
 	(resize-window-reset (window-frame window) horflag)
 	(cond

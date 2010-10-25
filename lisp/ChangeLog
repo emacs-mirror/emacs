@@ -1,3 +1,18 @@
+2010-10-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-iso-combination-p, window-iso-combinations):
+	New functions.
+	(walk-windows, get-window-with-predicate)
+	(get-buffer-window-list, one-window-p): Fix doc-string.
+	(window-in-direction): The column / row value of `posn-at-point'
+	can be nil for the mini-window, guard against that.
+	(resize-mini-window): Make this usable.  It's needed, for
+	example, by ispell.el.
+	(resize-window): Handle case where window argument denotes a
+	minibuffer window.
+	(window-children-count): Remove.
+	(split-window): Fix some broken size calculations.
+
 2010-10-25  Glenn Morris  <rgm@gnu.org>
 
 	* term/common-win.el (x-handle-switch): Simplify with pop.
