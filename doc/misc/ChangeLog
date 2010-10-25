@@ -2,7 +2,7 @@
 
 	* calc.texi:  Use emacsver.texi to determine Emacs version.
 
-2010-10-22  Juanma Barranquero  <lekktu@gmail.com>
+2010-10-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus.texi (Group Parameters, Buttons): Fix typos.
 

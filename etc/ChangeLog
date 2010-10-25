@@ -3,11 +3,11 @@
 	* images/checked.xpm:
 	* images/unchecked.xpm: New images.
 
-2010-10-20  Richard Stallman  <rms@gnu.org>
+2010-10-24  Richard Stallman  <rms@gnu.org>
 
 	* DISTRIB: Update donation section.
 
-2010-10-20  Glenn Morris  <rgm@gnu.org>
+2010-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* DISTRIB: Small updates.
 

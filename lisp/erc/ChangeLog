@@ -1,4 +1,4 @@
-2010-10-23  Julien Danjou  <julien@danjou.info>
+2010-10-24  Julien Danjou  <julien@danjou.info>
 
 	* erc-backend.el (erc-server-JOIN): Set the correct target list on join.
 

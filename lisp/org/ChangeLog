@@ -1,8 +1,3 @@
-2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
-
-	* org-agenda.el (org-prefix-category-length)
-	(org-prefix-category-max-length): Fix typos in docstrings.
-
 2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.el (org-refile-targets):
