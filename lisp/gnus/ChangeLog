@@ -1,3 +1,9 @@
+2010-10-25  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el: Remove `gnus-with-local-quit'.
+
+	* gnus-demon.el (gnus-demon-init): Use run-with-idle-timer function.
+
 2010-10-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-summary-select-article): Fix type error in checking
