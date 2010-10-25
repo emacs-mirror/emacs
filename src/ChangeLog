@@ -1,3 +1,9 @@
+2010-10-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_call_method_asynchronously)
+	(Fdbus_register_signal, Fdbus_register_method): Check, whether
+	`dbus-registered-objects-table' is initialized.
+
 2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_connection_closed): Kill Emacs unconditionally.
