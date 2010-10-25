@@ -65,8 +65,7 @@ extern struct direct *readdir (DIR *);
 
 #endif /* HAVE_DIRENT_H */
 
-/* Some versions of Cygwin don't have d_ino in `struct dirent'.  */
-#if defined(MSDOS) || defined(__CYGWIN__)
+#ifdef MSDOS
 #define DIRENTRY_NONEMPTY(p) ((p)->d_name[0] != 0)
 #else
 #define DIRENTRY_NONEMPTY(p) ((p)->d_ino)
@@ -83,7 +82,9 @@ extern struct direct *readdir (DIR *);
 #include "blockinput.h"
 
 /* Returns a search buffer, with a fastmap allocated and ready to go.  */
-extern struct re_pattern_buffer *compile_pattern (Lisp_Object, struct re_registers *, Lisp_Object, int, int);
+extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
+						  struct re_registers *,
+						  Lisp_Object, int, int);
 
 /* From filemode.c.  Can't go in Lisp.h because of `stat'.  */
 extern void filemodestring (struct stat *, char *);

@@ -1,10 +1,12 @@
 ;;; help.el --- help commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -92,6 +94,7 @@
     (define-key map "m" 'describe-mode)
     (define-key map "n" 'view-emacs-news)
     (define-key map "p" 'finder-by-keyword)
+    (define-key map "P" 'describe-package)
     (define-key map "r" 'info-emacs-manual)
     (define-key map "s" 'describe-syntax)
     (define-key map "t" 'help-with-tutorial)
@@ -105,9 +108,6 @@
 (define-key global-map [help] 'help-command)
 (define-key global-map [f1] 'help-command)
 (fset 'help-command help-map)
-
-(autoload 'finder-by-keyword "finder"
-  "Find packages matching a given keyword." t)
 
 ;; insert-button makes the action nil if it is not store somewhere
 (defvar help-button-cache nil)
@@ -1151,5 +1151,4 @@ Select help window if the actual value of the user option
 
 (provide 'help)
 
-;; arch-tag: cf427352-27e9-49b7-9a6f-741ebab02423
 ;;; help.el ends here

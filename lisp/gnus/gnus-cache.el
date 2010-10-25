@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -180,8 +180,7 @@ it's not cached."
 	;; Save the article in the cache.
 	(if (file-exists-p file)
 	    t				; The article already is saved.
-	  (save-excursion
-	    (set-buffer nntp-server-buffer)
+	  (with-current-buffer nntp-server-buffer
 	    (require 'gnus-art)
 	    (let ((gnus-use-cache nil)
 		  (gnus-article-decode-hook nil))
@@ -554,8 +553,7 @@ system for example was used.")
   (let ((cache-buf (gnus-get-buffer-create " *gnus-cache*"))
 	beg end)
     (gnus-cache-save-buffers)
-    (save-excursion
-      (set-buffer cache-buf)
+    (with-current-buffer cache-buf
       (erase-buffer)
       (let ((coding-system-for-read gnus-cache-overview-coding-system)
 	    (file-name-coding-system nnmail-pathname-coding-system))
@@ -605,7 +603,7 @@ system for example was used.")
 	(insert-file-contents (gnus-cache-file-name group entry)))
       (goto-char (point-min))
       (insert "220 ")
-      (princ (car cached) (current-buffer))
+      (princ (pop cached) (current-buffer))
       (insert " Article retrieved.\n")
       (search-forward "\n\n" nil 'move)
       (delete-region (point) (point-max))
@@ -844,8 +842,7 @@ supported."
 	    ,@body)
      (when (and gnus-cache-need-update-total-fetched-for
 		(not gnus-cache-inhibit-update-total-fetched-for))
-	(save-excursion
-	  (set-buffer gnus-group-buffer)
+	(with-current-buffer gnus-group-buffer
 	  (setq gnus-cache-need-update-total-fetched-for nil)
 	  (gnus-group-update-group ,group t)))))
 
@@ -868,7 +865,7 @@ supported."
 	   (while (setq file (pop files))
 	     (setq attrs (file-attributes file))
 	     (unless (nth 0 attrs)
-	       (incf size (float (nth 7 attrs)))))))	     
+	       (incf size (float (nth 7 attrs)))))))
 
        (setq gnus-cache-need-update-total-fetched-for t)
 
@@ -879,10 +876,10 @@ supported."
     (gnus-cache-with-refreshed-group
      group
      (let* ((entry (or (gnus-gethash group gnus-cache-total-fetched-hashtb)
-		       (gnus-sethash group (make-list 2 0) 
+		       (gnus-sethash group (make-list 2 0)
 				     gnus-cache-total-fetched-hashtb)))
 	    (file-name-coding-system nnmail-pathname-coding-system)
-	    (size (or (nth 7 (file-attributes 
+	    (size (or (nth 7 (file-attributes
 			      (or file
 				  (gnus-cache-file-name group ".overview"))))
 		      0)))
@@ -911,11 +908,10 @@ supported."
       (if entry
 	  (apply '+ entry)
 	(let ((gnus-cache-inhibit-update-total-fetched-for (not no-inhibit)))
-	  (+ 
+	  (+
 	   (gnus-cache-update-overview-total-fetched-for group nil)
 	   (gnus-cache-update-file-total-fetched-for     group nil)))))))
 
 (provide 'gnus-cache)
 
-;; arch-tag: 05a79442-8c58-4e65-bd0a-3cbb1b89a33a
 ;;; gnus-cache.el ends here

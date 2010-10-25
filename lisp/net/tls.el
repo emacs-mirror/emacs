@@ -75,8 +75,8 @@ and `gnutls-cli' (version 2.0.1) output."
   :type 'regexp
   :group 'tls)
 
-(defcustom tls-program '("gnutls-cli -p %p %h"
-			 "gnutls-cli -p %p %h --protocols ssl3"
+(defcustom tls-program '("gnutls-cli --insecure -p %p %h"
+			 "gnutls-cli --insecure -p %p %h --protocols ssl3"
 			 "openssl s_client -connect %h:%p -no_ssl2 -ign_eof")
   "List of strings containing commands to start TLS stream to a host.
 Each entry in the list is tried until a connection is successful.
@@ -238,6 +238,10 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	  (setq process (start-process
 			 name buffer shell-file-name shell-command-switch
 			 formatted-cmd))
+	  (funcall (if (fboundp 'set-process-query-on-exit-flag)
+		       'set-process-query-on-exit-flag
+		     'process-kill-without-query)
+		   process nil)
 	  (while (and process
 		      (memq (process-status process) '(open run))
 		      (progn
@@ -298,5 +302,4 @@ match `%s'. Connect anyway? " host))))))
 
 (provide 'tls)
 
-;; arch-tag: 5596d1c4-facc-4bc4-94a9-9863b928d7ac
 ;;; tls.el ends here

@@ -775,32 +775,30 @@ Return COLUMN."
 
 ;;; Array mode.
 
-(defvar array-mode-map nil
+(defvar array-mode-map
+  (let ((map (make-keymap)))
+    (define-key map "\M-ad"   'array-display-local-variables)
+    (define-key map "\M-am"   'array-make-template)
+    (define-key map "\M-ae"   'array-expand-rows)
+    (define-key map "\M-ar"   'array-reconfigure-rows)
+    (define-key map "\M-a="   'array-what-position)
+    (define-key map "\M-ag"   'array-goto-cell)
+    (define-key map "\M-af"   'array-fill-rectangle)
+    (define-key map "\C-n"    'array-next-row)
+    (define-key map "\C-p"    'array-previous-row)
+    (define-key map "\C-f"    'array-forward-column)
+    (define-key map "\C-b"    'array-backward-column)
+    (define-key map "\M-n"    'array-copy-down)
+    (define-key map "\M-p"    'array-copy-up)
+    (define-key map "\M-f"    'array-copy-forward)
+    (define-key map "\M-b"    'array-copy-backward)
+    (define-key map "\M-\C-n" 'array-copy-row-down)
+    (define-key map "\M-\C-p" 'array-copy-row-up)
+    (define-key map "\M-\C-f" 'array-copy-column-forward)
+    (define-key map "\M-\C-b" 'array-copy-column-backward)
+    map)
   "Keymap used in array mode.")
 
-(if array-mode-map
-    ()
-  (setq array-mode-map (make-keymap))
-  ;; Bind keys.
-  (define-key array-mode-map "\M-ad"   'array-display-local-variables)
-  (define-key array-mode-map "\M-am"   'array-make-template)
-  (define-key array-mode-map "\M-ae"   'array-expand-rows)
-  (define-key array-mode-map "\M-ar"   'array-reconfigure-rows)
-  (define-key array-mode-map "\M-a="   'array-what-position)
-  (define-key array-mode-map "\M-ag"   'array-goto-cell)
-  (define-key array-mode-map "\M-af"   'array-fill-rectangle)
-  (define-key array-mode-map "\C-n"    'array-next-row)
-  (define-key array-mode-map "\C-p"    'array-previous-row)
-  (define-key array-mode-map "\C-f"    'array-forward-column)
-  (define-key array-mode-map "\C-b"    'array-backward-column)
-  (define-key array-mode-map "\M-n"    'array-copy-down)
-  (define-key array-mode-map "\M-p"    'array-copy-up)
-  (define-key array-mode-map "\M-f"    'array-copy-forward)
-  (define-key array-mode-map "\M-b"    'array-copy-backward)
-  (define-key array-mode-map "\M-\C-n" 'array-copy-row-down)
-  (define-key array-mode-map "\M-\C-p" 'array-copy-row-up)
-  (define-key array-mode-map "\M-\C-f" 'array-copy-column-forward)
-  (define-key array-mode-map "\M-\C-b" 'array-copy-column-backward))
 
 (put 'array-mode 'mode-class 'special)
 

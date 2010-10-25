@@ -1,3 +1,199 @@
+2010-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Window Systems): Deprecate use of window-system as
+	a predicate.
+
+2010-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Documentation Basics): Remove mentions of digest-doc and
+	sorted-doc.
+
+2010-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* os.texi (Dynamic Libraries): New node, with slightly modified
+	text deleted from "Image Formats".
+	(System Interface): Add @menu entry for "Dynamic Libraries".
+
+	* display.texi (Image Formats): Remove description of
+	image-library-alist.  (Renamed in 2010-10-13T14:50:06Z!lekktu@gmail.com.)
+
+2010-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* book-spine.texinfo: Rename to book-spine.texi.
+
+2010-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MAKEINFO): Add explicit -I$srcdir.
+
+	* Makefile.in (DVIPS): New variable.
+	(.PHONY): Add html, ps.
+	(html, elisp.html, ps, elisp.ps): New targets.
+	(clean): Delete html, ps files.
+	($(infodir)/elisp): Remove unnecessary includes.
+
+2010-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (emacsdir): New variable.
+	(srcs): Add emacsver.texi.
+	($(infodir)/elisp, elisp.dvi): Add -I$(emacsdir).
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (VPATH): Remove.
+	(infodir): Make it absolute.
+	(mkinfodir, $(infodir)/elisp, infoclean): No need to cd $srcdir.
+
+	* Makefile.in (dist): Anchor regexps.
+
+	* Makefile.in (srcs): Put elisp.texi first.
+	($(infodir)/elisp, elisp.dvi, elisp.pdf): Use $<.
+
+	* Makefile.in (infoclean): Remove harmless, long-standing error.
+
+	* Makefile.in ($(infodir)): Delete rule.
+	(mkinfodir): New.
+	($(infodir)/elisp): Use $mkinfodir instead of infodir.
+
+	* Makefile.in (dist): Remove reference to emacsver.texi.in.
+	Also copy emacsver.texi, and edit $emacsdir.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacsdir): New variable.
+	(MAKEINFO): Add -I $emacsdir.
+	(dist): Copy emacsver.texi.
+	(srcs): Add emacsver.texi.
+
+	* book-spine.texinfo, elisp.texi, vol2.texi, vol1.texi:
+	Set EMACSVER by including emacsver.texi.
+
+	* Makefile.in (.PHONY): Declare info, dvi, pdf, dist.
+
+2010-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (version): New, set by configure.
+	(clean): Delete dist tar file.
+	(dist): Use version in tar name.
+
+2010-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Rearrange to more closely resemble doc/emacs/Makefile.
+	(INSTALL_INFO): Remove unused variable.
+	(mostlyclean, infoclean, dist): New rules.
+	(clean): Delete dvi and pdf files.
+	(maintainer-clean): Remove elisp.oaux, use infoclean.
+	($(infodir)): Add parallel build workaround.
+
+2010-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (dvi, pdf, $(infodir)): New targets.
+	($(infodir)/elisp): Ensure target directory exists.  Use $@.
+	Fix -I typo.
+	(clean): No 'make.out' or 'core' files.
+	(.PHONY): Declare clean rules.
+	(maintainer-clean): Delete pdf file.  Guard against cd failures.
+
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Name Components): Remove ignored section about
+	deleted variable directory-sep-char.
+
+2010-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): New defopt
+	remote-file-name-inhibit-cache.
+
+2010-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Killing Emacs): Hook now runs in batch mode.
+
+2010-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* text.texi (Special Properties): Clarify when modification-hooks run.
+
+2010-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.texi (Syntax Flags): Document new `c' flag.
+
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (ImageMagick Images): General cleanup.
+
+2010-09-06  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* files.texi (Directory Names): Use \` rather than ^.
+
+2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* text.texi (Low-Level Kill Ring):
+	* frames.texi (Window System Selections): Remove cut buffer
+	documentation.
+
+2010-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Fringe Size/Pos): Add a cross-reference to "Layout
+	Parameters", where the default fringe width is described.
+
+	* frames.texi (Window Frame Parameters, Basic Parameters)
+	(Position Parameters, Layout Parameters, Management Parameters)
+	(Cursor Parameters, Font and Color Parameters): Add indexing for
+	frame parameters.  (Bug#6929)
+
+2010-08-25  Tom Tromey  <tromey@redhat.com>
+
+	* vol2.texi (Top): Update.
+	* vol1.texi (Top): Update.
+	* tips.texi (Library Headers): Mention Package-Version and
+	Package-Requires.
+	* package.texi: New file.
+	* os.texi (System Interface): Update pointers.
+	* elisp.texi (Top): Link to new nodes.  Include package.texi.
+	* anti.texi (Antinews): Update pointers.
+
+2010-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (Filter Functions): Fix last change.
+
+2010-08-24  Markus Triska  <triska@gmx.at>
+
+	* processes.texi (Filter Functions): Use `buffer-live-p' instead
+	of `buffer-name' in the main text as well as in the example
+	(Bug#3098).
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Text Representations):
+	* loading.texi (Loading Non-ASCII):
+	* compile.texi (Byte Compilation): Don't mention obsolete
+	--unibyte command-line argument.
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Defining Minor Modes): Doc fix (Bug#6880).
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* objects.texi (Bool-Vector Type): Minor definition tweak (Bug#6878).
+
+2010-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Misc Events): Add cross-references to where
+	POSITION of a mouse event is described in detail.
+
+2010-08-08  Christoph  <cschol2112@googlemail.com>
+
+	* control.texi (Handling Errors) <error-message-string>: Fix arg name.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* modes.texi (Defining Minor Modes): Use C-backspace, not C-delete.
+	Suggested by Štěpán Němec <stepnem@gmail.com>.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.texi (High-Level Completion): Document args of
+	`read-buffer-function' (bug#5625).
+
 2010-07-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Buffers and Windows): Describe lists of previous
@@ -2400,6 +2596,12 @@
 2007-08-25  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Images): Delete redundant @findex.
+
+2007-08-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* text.texi (Change Hooks): (after|before)-change-functions are no
+	longer bound to nil while running; rather inhibit-modification-hooks
+	is t.
 
 2007-08-16  Richard Stallman  <rms@gnu.org>
 
@@ -8633,11 +8835,10 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-      2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+    2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -8653,5 +8854,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: 985ae0ce-df29-475b-b3f8-4bbcbf6f7fda

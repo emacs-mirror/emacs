@@ -563,7 +563,7 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 		       :coding 'raw-text-unix
 		       ;; The other args depend on the kind of socket used.
 		       (if server-use-tcp
-			   (list :family nil
+			   (list :family 'ipv4  ;; We're not ready for IPv6 yet
 				 :service t
 				 :host (or server-host 'local)
 				 :plist '(:authenticated nil))
@@ -577,7 +577,7 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 		   (loop
 		      ;; The auth key is a 64-byte string of random chars in the
 		      ;; range `!'..`~'.
-		      for i below 64
+		      repeat 64
 		      collect (+ 33 (random 94)) into auth
 		      finally return (concat auth))))
 	      (process-put server-process :auth-key auth-key)
@@ -586,7 +586,7 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 		(setq buffer-file-coding-system 'no-conversion)
 		(insert (format-network-address
 			 (process-contact server-process :local))
-			" " (int-to-string (emacs-pid))
+			" " (number-to-string (emacs-pid)) ; Kept for compatibility
 			"\n" auth-key)))))))))
 
 ;;;###autoload
@@ -706,9 +706,6 @@ Server mode runs a process that accepts commands from the
     ;; Display *scratch* by default.
     (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
 
-    ;; Reply with our pid.
-    (server-send-string proc (concat "-emacs-pid "
-                                     (number-to-string (emacs-pid)) "\n"))
     frame))
 
 (defun server-create-window-system-frame (display nowait proc parent-id)
@@ -862,7 +859,7 @@ The following commands are accepted by the client:
   returned by -eval.
 
 `-error DESCRIPTION'
-  Signal an error (but continue processing).
+  Signal an error and delete process PROC.
 
 `-suspend'
   Suspend this terminal, i.e., stop the client process.
@@ -879,6 +876,9 @@ The following commands are accepted by the client:
       (server-log "Authentication failed" proc)
       (server-send-string
        proc (concat "-error " (server-quote-arg "Authentication failed")))
+      ;; Before calling `delete-process', give emacsclient time to
+      ;; receive the error string and shut down on its own.
+      (sit-for 1)
       (delete-process proc)
       ;; We return immediately
       (return-from server-process-filter)))
@@ -889,6 +889,9 @@ The following commands are accepted by the client:
   (condition-case err
       (progn
 	(server-add-client proc)
+	;; Send our pid
+	(server-send-string proc (concat "-emacs-pid "
+					 (number-to-string (emacs-pid)) "\n"))
 	(if (not (string-match "\n" string))
             ;; Save for later any partial line that remains.
             (when (> (length string) 0)
@@ -1093,9 +1096,7 @@ The following commands are accepted by the client:
     (condition-case err
         (let* ((buffers
                 (when files
-                  (run-hooks 'pre-command-hook)
-                  (prog1 (server-visit-files files proc nowait)
-                    (run-hooks 'post-command-hook)))))
+                  (server-visit-files files proc nowait))))
 
           (mapc 'funcall (nreverse commands))
 
@@ -1131,6 +1132,9 @@ The following commands are accepted by the client:
      proc (concat "-error " (server-quote-arg
                              (error-message-string err))))
     (server-log (error-message-string err) proc)
+    ;; Before calling `delete-process', give emacsclient time to
+    ;; receive the error string and shut down on its own.
+    (sit-for 5)
     (delete-process proc)))
 
 (defun server-goto-line-column (line-col)
@@ -1166,8 +1170,13 @@ so don't mark these buffers specially, just visit them normally."
 	       (obuf (get-file-buffer filen)))
 	  (add-to-history 'file-name-history filen)
 	  (if (null obuf)
-              (set-buffer (find-file-noselect filen))
+	      (progn
+		(run-hooks 'pre-command-hook)  
+		(set-buffer (find-file-noselect filen)))
             (set-buffer obuf)
+	    ;; separately for each file, in sync with post-command hooks,
+	    ;; with the new buffer current:
+	    (run-hooks 'pre-command-hook)  
             (cond ((file-exists-p filen)
                    (when (not (verify-visited-file-modtime obuf))
                      (revert-buffer t nil)))
@@ -1179,7 +1188,9 @@ so don't mark these buffers specially, just visit them normally."
             (unless server-buffer-clients
               (setq server-existing-buffer t)))
           (server-goto-line-column (cdr file))
-          (run-hooks 'server-visit-hook))
+          (run-hooks 'server-visit-hook)
+	  ;; hooks may be specific to current buffer:
+	  (run-hooks 'post-command-hook)) 
 	(unless nowait
 	  ;; When the buffer is killed, inform the clients.
 	  (add-hook 'kill-buffer-hook 'server-kill-buffer nil t)

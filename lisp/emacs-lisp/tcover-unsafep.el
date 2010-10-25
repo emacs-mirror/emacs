@@ -5,6 +5,7 @@
 ;; Author: Jonathan Yavner <jyavner@engineer.com>
 ;; Maintainer: Jonathan Yavner <jyavner@engineer.com>
 ;; Keywords: safety lisp utility
+;; Package: testcover
 
 ;; This file is part of GNU Emacs.
 

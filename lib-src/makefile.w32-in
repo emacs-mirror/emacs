@@ -18,7 +18,7 @@
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 
-ALL = make-docfile hexl ctags etags movemail ebrowse sorted-doc digest-doc emacsclient
+ALL = make-docfile hexl ctags etags movemail ebrowse emacsclient
 
 .PHONY: $(ALL)
 
@@ -36,10 +36,6 @@ $(BLD)/hexl.exe:		$(BLD)/hexl.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/hexl.$(O) $(LIBS)
 $(BLD)/fakemail.exe: 		$(BLD)/fakemail.$(O) $(BLD)/ntlib.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/fakemail.$(O) $(BLD)/ntlib.$(O) $(LIBS)
-$(BLD)/sorted-doc.exe: 	$(BLD)/sorted-doc.$(O)
-		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/sorted-doc.$(O) $(LIBS)
-$(BLD)/digest-doc.exe: 	$(BLD)/digest-doc.$(O)
-		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/digest-doc.$(O) $(LIBS)
 $(BLD)/test-distrib.exe: $(BLD)/test-distrib.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/test-distrib.$(O) $(LIBS)
 
@@ -50,8 +46,6 @@ ebrowse:        stamp_BLD $(BLD)/ebrowse.exe
 hexl:		stamp_BLD $(BLD)/hexl.exe
 movemail:	stamp_BLD $(BLD)/movemail.exe
 fakemail:	stamp_BLD $(BLD)/fakemail.exe
-sorted-doc:	stamp_BLD $(BLD)/sorted-doc.exe
-digest-doc:	stamp_BLD $(BLD)/digest-doc.exe
 emacsclient:	stamp_BLD $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe
 
 test-distrib:	stamp_BLD $(BLD)/test-distrib.exe
@@ -195,7 +189,6 @@ OTHER_PLATFORM_SUPPORT = \
 	$(lispsource)term/pc-win.elc \
 	$(lispsource)x-dnd.elc \
 	$(lispsource)term/x-win.elc \
-	$(lispsource)emacs-lisp/easymenu.elc \
 	$(lispsource)term/ns-win.elc
 
 
@@ -335,8 +328,6 @@ install:	$(INSTALL_FILES)
 		$(CP) $(BLD)/ctags.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/hexl.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/movemail.exe $(INSTALL_DIR)/bin
-		$(CP) $(BLD)/sorted-doc.exe $(INSTALL_DIR)/bin
-		$(CP) $(BLD)/digest-doc.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/emacsclient.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/emacsclientw.exe $(INSTALL_DIR)/bin
 		- mkdir "$(INSTALL_DIR)/etc"
@@ -371,11 +362,17 @@ cleanall:	clean
 # Headers we would preprocess if we could.
 #
 ../src/config.h:	../nt/$(CONFIG_H)
+			$(DEL) $@
 			echo $(CONFIG_H) has changed.  Re-run configure.bat.
 			exit -1
 
 getopt.h:		getopt_.h
 			$(CP) $(ALL_DEPS) $@
+
+### TAGS ###
+
+TAGS: $(BLD)/etags.exe *.c *.h
+	$(BLD)/etags.exe *.c *.h
 
 ### DEPENDENCIES ###
 
@@ -389,12 +386,6 @@ $(BLD)/alloca.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(EMACS_ROOT)/src/blockinput.h
 
-$(BLD)/b2m.$(O) : \
-	$(SRC)/b2m.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h
-
 $(BLD)/ctags.$(O) : \
 	$(SRC)/ctags.c \
 	$(EMACS_ROOT)/nt/inc/sys/param.h \
@@ -403,9 +394,6 @@ $(BLD)/ctags.$(O) : \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(SRC)/ntlib.h \
 	$(SRC)/getopt.h
-
-$(BLD)/digest-doc.$(O) : \
-	$(SRC)/digest-doc.c
 
 $(BLD)/emacsclient.$(O) : \
 	$(SRC)/emacsclient.c \
@@ -496,12 +484,6 @@ $(BLD)/profile.$(O) : \
 $(BLD)/qsort.$(O) : \
 	$(SRC)/qsort.c
 
-$(BLD)/sorted-doc.$(O) : \
-	$(SRC)/sorted-doc.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/src/config.h
-
 $(BLD)/tcp.$(O) : \
 	$(SRC)/tcp.c
 
@@ -518,8 +500,6 @@ $(BLD)/timer.$(O) : \
 # we must make sure $(BLD) exists before any compilation starts.
 #
 $(BLD)/make-docfile.$(O) $(BLD)/hexl.$(O) $(BLD)/fakemail.$(O): stamp_BLD
-
-$(BLD)/sorted-doc.$(O) $(BLD)/digest-doc.$(O): stamp_BLD
 
 $(BLD)/test-distrib.$(O) $(GETOPTOBJS) $(MOVEMAILOBJS): stamp_BLD
 

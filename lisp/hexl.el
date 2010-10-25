@@ -97,7 +97,99 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 (defvar hexl-max-address 0
   "Maximum offset into hexl buffer.")
 
-(defvar hexl-mode-map nil)
+(defvar hexl-mode-map
+  (let ((map (make-keymap)))
+    ;; Make all self-inserting keys go through hexl-self-insert-command,
+    ;; because we need to convert them to unibyte characters before
+    ;; inserting them into the buffer.
+    (define-key map [remap self-insert-command] 'hexl-self-insert-command)
+
+    (define-key map "\C-m" 'hexl-self-insert-command)
+    (define-key map [left] 'hexl-backward-char)
+    (define-key map [right] 'hexl-forward-char)
+    (define-key map [up] 'hexl-previous-line)
+    (define-key map [down] 'hexl-next-line)
+    (define-key map [M-left] 'hexl-backward-short)
+    (define-key map [?\e left] 'hexl-backward-short)
+    (define-key map [M-right] 'hexl-forward-short)
+    (define-key map [?\e right] 'hexl-forward-short)
+    (define-key map [next] 'hexl-scroll-up)
+    (define-key map [prior] 'hexl-scroll-down)
+    (define-key map [home] 'hexl-beginning-of-line)
+    (define-key map [end] 'hexl-end-of-line)
+    (define-key map [C-home] 'hexl-beginning-of-buffer)
+    (define-key map [C-end] 'hexl-end-of-buffer)
+    (define-key map [deletechar] 'undefined)
+    (define-key map [deleteline] 'undefined)
+    (define-key map [insertline] 'undefined)
+    (define-key map [S-delete] 'undefined)
+    (define-key map "\177" 'undefined)
+
+    (define-key map "\C-a" 'hexl-beginning-of-line)
+    (define-key map "\C-b" 'hexl-backward-char)
+    (define-key map "\C-d" 'undefined)
+    (define-key map "\C-e" 'hexl-end-of-line)
+    (define-key map "\C-f" 'hexl-forward-char)
+
+    (if (not (memq (key-binding (char-to-string help-char))
+		   '(help-command ehelp-command)))
+	(define-key map (char-to-string help-char) 'undefined))
+
+    (define-key map "\C-k" 'undefined)
+    (define-key map "\C-n" 'hexl-next-line)
+    (define-key map "\C-o" 'undefined)
+    (define-key map "\C-p" 'hexl-previous-line)
+    (define-key map "\C-q" 'hexl-quoted-insert)
+    (define-key map "\C-t" 'undefined)
+    (define-key map "\C-v" 'hexl-scroll-up)
+    (define-key map "\C-w" 'undefined)
+    (define-key map "\C-y" 'undefined)
+
+    (fset 'hexl-ESC-prefix (copy-keymap 'ESC-prefix))
+    (define-key map "\e" 'hexl-ESC-prefix)
+    (define-key map "\e\C-a" 'hexl-beginning-of-512b-page)
+    (define-key map "\e\C-b" 'hexl-backward-short)
+    (define-key map "\e\C-d" 'hexl-insert-decimal-char)
+    (define-key map "\e\C-e" 'hexl-end-of-512b-page)
+    (define-key map "\e\C-f" 'hexl-forward-short)
+    (define-key map "\e\C-i" 'undefined)
+    (define-key map "\e\C-j" 'undefined)
+    (define-key map "\e\C-k" 'undefined)
+    (define-key map "\e\C-o" 'hexl-insert-octal-char)
+    (define-key map "\e\C-q" 'undefined)
+    (define-key map "\e\C-t" 'undefined)
+    (define-key map "\e\C-x" 'hexl-insert-hex-char)
+    (define-key map "\eb" 'hexl-backward-word)
+    (define-key map "\ec" 'undefined)
+    (define-key map "\ed" 'undefined)
+    (define-key map "\ef" 'hexl-forward-word)
+    (define-key map "\eg" 'hexl-goto-hex-address)
+    (define-key map "\ei" 'undefined)
+    (define-key map "\ej" 'hexl-goto-address)
+    (define-key map "\ek" 'undefined)
+    (define-key map "\el" 'undefined)
+    (define-key map "\eq" 'undefined)
+    (define-key map "\es" 'undefined)
+    (define-key map "\et" 'undefined)
+    (define-key map "\eu" 'undefined)
+    (define-key map "\ev" 'hexl-scroll-down)
+    (define-key map "\ey" 'undefined)
+    (define-key map "\ez" 'undefined)
+    (define-key map "\e<" 'hexl-beginning-of-buffer)
+    (define-key map "\e>" 'hexl-end-of-buffer)
+
+    (fset 'hexl-C-c-prefix (copy-keymap mode-specific-map))
+    (define-key map "\C-c" 'hexl-C-c-prefix)
+    (define-key map "\C-c\C-c" 'hexl-mode-exit)
+
+    (fset 'hexl-C-x-prefix (copy-keymap 'Control-X-prefix))
+    (define-key map "\C-x" 'hexl-C-x-prefix)
+    (define-key map "\C-x[" 'hexl-beginning-of-1k-page)
+    (define-key map "\C-x]" 'hexl-end-of-1k-page)
+    (define-key map "\C-x\C-p" 'undefined)
+    (define-key map "\C-x\C-s" 'hexl-save-buffer)
+    (define-key map "\C-x\C-t" 'undefined)
+    map))
 
 ;; Variable declarations for suppressing warnings from the byte-compiler.
 (defvar ruler-mode)
@@ -120,6 +212,7 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 (defvar hexl-mode-old-syntax-table)
 (defvar hexl-mode-old-font-lock-keywords)
 (defvar hexl-mode-old-eldoc-documentation-function)
+(defvar hexl-mode-old-revert-buffer-function)
 
 (defvar hexl-ascii-overlay nil
   "Overlay used to highlight ASCII element corresponding to current point.")
@@ -281,10 +374,9 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (setq hexl-mode-old-font-lock-keywords font-lock-defaults)
     (setq font-lock-defaults '(hexl-font-lock-keywords t))
 
-    ;; Add hooks to rehexlify or dehexlify on various events.
-    (add-hook 'before-revert-hook 'hexl-before-revert-hook nil t)
-    (add-hook 'after-revert-hook 'hexl-after-revert-hook nil t)
-
+    (make-local-variable 'hexl-mode-old-revert-buffer-function)
+    (setq hexl-mode-old-revert-buffer-function revert-buffer-function)
+    (setq revert-buffer-function 'hexl-revert-buffer-function)
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
 
     ;; Set a callback function for eldoc.
@@ -320,12 +412,6 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 	 bound noerror count))
     (let ((isearch-search-fun-function nil))
       (isearch-search-fun))))
-
-(defun hexl-before-revert-hook ()
-  (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t))
-
-(defun hexl-after-revert-hook ()
-  (hexl-mode))
 
 (defvar hexl-in-save-buffer nil)
 
@@ -372,6 +458,23 @@ and edit the file in `hexl-mode'."
   (if (not (eq major-mode 'hexl-mode))
       (hexl-mode)))
 
+(defun hexl-revert-buffer-function (ignore-auto noconfirm)
+  (let ((coding-system-for-read 'no-conversion)
+	revert-buffer-function)
+    ;; Call the original `revert-buffer' without code conversion; also
+    ;; prevent it from changing the major mode to normal-mode, which
+    ;; calls `set-auto-mode'.
+    (revert-buffer nil nil t)
+    ;; A couple of hacks are necessary here:
+    ;; 1. change the major-mode to one other than hexl-mode since the
+    ;; function `hexl-mode' does nothing if the current major-mode is
+    ;; already hexl-mode.
+    ;; 2. reset change-major-mode-hook in case that `hexl-mode'
+    ;; previously added hexl-maybe-dehexlify-buffer to it.
+    (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
+    (setq major-mode 'fundamental-mode)
+    (hexl-mode)))
+
 (defun hexl-mode-exit (&optional arg)
   "Exit Hexl mode, returning to previous mode.
 With arg, don't unhexlify buffer."
@@ -391,8 +494,6 @@ With arg, don't unhexlify buffer."
 	  (or (bobp) (setq original-point (1+ original-point))))
 	(goto-char original-point)))
 
-  (remove-hook 'before-revert-hook 'hexl-before-revert-hook t)
-  (remove-hook 'after-revert-hook 'hexl-after-revert-hook t)
   (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
   (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
   (setq hexl-ascii-overlay nil)
@@ -420,6 +521,7 @@ With arg, don't unhexlify buffer."
   (set-syntax-table hexl-mode-old-syntax-table)
   (setq font-lock-defaults hexl-mode-old-font-lock-keywords)
   (setq major-mode hexl-mode-old-major-mode)
+  (setq revert-buffer-function hexl-mode-old-revert-buffer-function)
   (force-mode-line-update))
 
 (defun hexl-maybe-dehexlify-buffer ()
@@ -1016,100 +1118,6 @@ This function is assumed to be used as callback function for `hl-line-mode'."
     s))
 
 ;; startup stuff.
-
-(if hexl-mode-map
-    nil
-  (setq hexl-mode-map (make-keymap))
-  ;; Make all self-inserting keys go through hexl-self-insert-command,
-  ;; because we need to convert them to unibyte characters before
-  ;; inserting them into the buffer.
-  (define-key hexl-mode-map [remap self-insert-command] 'hexl-self-insert-command)
-
-  (define-key hexl-mode-map "\C-m" 'hexl-self-insert-command)
-  (define-key hexl-mode-map [left] 'hexl-backward-char)
-  (define-key hexl-mode-map [right] 'hexl-forward-char)
-  (define-key hexl-mode-map [up] 'hexl-previous-line)
-  (define-key hexl-mode-map [down] 'hexl-next-line)
-  (define-key hexl-mode-map [M-left] 'hexl-backward-short)
-  (define-key hexl-mode-map [?\e left] 'hexl-backward-short)
-  (define-key hexl-mode-map [M-right] 'hexl-forward-short)
-  (define-key hexl-mode-map [?\e right] 'hexl-forward-short)
-  (define-key hexl-mode-map [next] 'hexl-scroll-up)
-  (define-key hexl-mode-map [prior] 'hexl-scroll-down)
-  (define-key hexl-mode-map [home] 'hexl-beginning-of-line)
-  (define-key hexl-mode-map [end] 'hexl-end-of-line)
-  (define-key hexl-mode-map [C-home] 'hexl-beginning-of-buffer)
-  (define-key hexl-mode-map [C-end] 'hexl-end-of-buffer)
-  (define-key hexl-mode-map [deletechar] 'undefined)
-  (define-key hexl-mode-map [deleteline] 'undefined)
-  (define-key hexl-mode-map [insertline] 'undefined)
-  (define-key hexl-mode-map [S-delete] 'undefined)
-  (define-key hexl-mode-map "\177" 'undefined)
-
-  (define-key hexl-mode-map "\C-a" 'hexl-beginning-of-line)
-  (define-key hexl-mode-map "\C-b" 'hexl-backward-char)
-  (define-key hexl-mode-map "\C-d" 'undefined)
-  (define-key hexl-mode-map "\C-e" 'hexl-end-of-line)
-  (define-key hexl-mode-map "\C-f" 'hexl-forward-char)
-
-  (if (not (memq (key-binding (char-to-string help-char))
-                 '(help-command ehelp-command)))
-      (define-key hexl-mode-map (char-to-string help-char) 'undefined))
-
-  (define-key hexl-mode-map "\C-k" 'undefined)
-  (define-key hexl-mode-map "\C-n" 'hexl-next-line)
-  (define-key hexl-mode-map "\C-o" 'undefined)
-  (define-key hexl-mode-map "\C-p" 'hexl-previous-line)
-  (define-key hexl-mode-map "\C-q" 'hexl-quoted-insert)
-  (define-key hexl-mode-map "\C-t" 'undefined)
-  (define-key hexl-mode-map "\C-v" 'hexl-scroll-up)
-  (define-key hexl-mode-map "\C-w" 'undefined)
-  (define-key hexl-mode-map "\C-y" 'undefined)
-
-  (fset 'hexl-ESC-prefix (copy-keymap 'ESC-prefix))
-  (define-key hexl-mode-map "\e" 'hexl-ESC-prefix)
-  (define-key hexl-mode-map "\e\C-a" 'hexl-beginning-of-512b-page)
-  (define-key hexl-mode-map "\e\C-b" 'hexl-backward-short)
-  (define-key hexl-mode-map "\e\C-d" 'hexl-insert-decimal-char)
-  (define-key hexl-mode-map "\e\C-e" 'hexl-end-of-512b-page)
-  (define-key hexl-mode-map "\e\C-f" 'hexl-forward-short)
-  (define-key hexl-mode-map "\e\C-i" 'undefined)
-  (define-key hexl-mode-map "\e\C-j" 'undefined)
-  (define-key hexl-mode-map "\e\C-k" 'undefined)
-  (define-key hexl-mode-map "\e\C-o" 'hexl-insert-octal-char)
-  (define-key hexl-mode-map "\e\C-q" 'undefined)
-  (define-key hexl-mode-map "\e\C-t" 'undefined)
-  (define-key hexl-mode-map "\e\C-x" 'hexl-insert-hex-char)
-  (define-key hexl-mode-map "\eb" 'hexl-backward-word)
-  (define-key hexl-mode-map "\ec" 'undefined)
-  (define-key hexl-mode-map "\ed" 'undefined)
-  (define-key hexl-mode-map "\ef" 'hexl-forward-word)
-  (define-key hexl-mode-map "\eg" 'hexl-goto-hex-address)
-  (define-key hexl-mode-map "\ei" 'undefined)
-  (define-key hexl-mode-map "\ej" 'hexl-goto-address)
-  (define-key hexl-mode-map "\ek" 'undefined)
-  (define-key hexl-mode-map "\el" 'undefined)
-  (define-key hexl-mode-map "\eq" 'undefined)
-  (define-key hexl-mode-map "\es" 'undefined)
-  (define-key hexl-mode-map "\et" 'undefined)
-  (define-key hexl-mode-map "\eu" 'undefined)
-  (define-key hexl-mode-map "\ev" 'hexl-scroll-down)
-  (define-key hexl-mode-map "\ey" 'undefined)
-  (define-key hexl-mode-map "\ez" 'undefined)
-  (define-key hexl-mode-map "\e<" 'hexl-beginning-of-buffer)
-  (define-key hexl-mode-map "\e>" 'hexl-end-of-buffer)
-
-  (fset 'hexl-C-c-prefix (copy-keymap mode-specific-map))
-  (define-key hexl-mode-map "\C-c" 'hexl-C-c-prefix)
-  (define-key hexl-mode-map "\C-c\C-c" 'hexl-mode-exit)
-
-  (fset 'hexl-C-x-prefix (copy-keymap 'Control-X-prefix))
-  (define-key hexl-mode-map "\C-x" 'hexl-C-x-prefix)
-  (define-key hexl-mode-map "\C-x[" 'hexl-beginning-of-1k-page)
-  (define-key hexl-mode-map "\C-x]" 'hexl-end-of-1k-page)
-  (define-key hexl-mode-map "\C-x\C-p" 'undefined)
-  (define-key hexl-mode-map "\C-x\C-s" 'hexl-save-buffer)
-  (define-key hexl-mode-map "\C-x\C-t" 'undefined))
 
 (easy-menu-define hexl-menu hexl-mode-map "Hexl Mode menu"
   `("Hexl"

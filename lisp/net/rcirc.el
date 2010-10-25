@@ -774,42 +774,64 @@ If SILENT is non-nil, do not print the message in any irc buffer."
     (setq rcirc-input-ring-index (1- rcirc-input-ring-index))
     (insert (rcirc-prev-input-string -1))))
 
-(defvar rcirc-nick-completions nil)
-(defvar rcirc-nick-completion-start-offset nil)
+(defvar rcirc-server-commands
+  '("/admin"   "/away"   "/connect" "/die"      "/error"   "/info"
+    "/invite"  "/ison"   "/join"    "/kick"     "/kill"    "/links"
+    "/list"    "/lusers" "/mode"    "/motd"     "/names"   "/nick"
+    "/notice"  "/oper"   "/part"    "/pass"     "/ping"    "/pong"
+    "/privmsg" "/quit"   "/rehash"  "/restart"  "/service" "/servlist"
+    "/server"  "/squery" "/squit"   "/stats"    "/summon"  "/time"
+    "/topic"   "/trace"  "/user"    "/userhost" "/users"   "/version"
+    "/wallops" "/who"    "/whois"   "/whowas")
+  "A list of user commands by IRC server.
+The value defaults to RFCs 1459 and 2812.")
 
-(defun rcirc-complete-nick ()
-  "Cycle through nick completions from list of nicks in channel."
+;; /me and /ctcp are not defined by `defun-rcirc-command'.
+(defvar rcirc-client-commands '("/me" "/ctcp")
+  "A list of user commands defined by IRC client rcirc.
+The list is updated automatically by `defun-rcirc-command'.")
+
+(defun rcirc-completion-at-point ()
+  "Function used for `completion-at-point-functions' in `rcirc-mode'."
+  (let* ((beg (save-excursion
+		(if (re-search-backward " " rcirc-prompt-end-marker t)
+		    (1+ (point))
+		  rcirc-prompt-end-marker)))
+	 (table (if (and (= beg rcirc-prompt-end-marker)
+			 (eq (char-after beg) ?/))
+		    (delete-dups
+		     (nconc
+		      (sort (copy-sequence rcirc-client-commands) 'string-lessp)
+		      (sort (copy-sequence rcirc-server-commands) 'string-lessp)))
+		  (rcirc-channel-nicks (rcirc-buffer-process) rcirc-target))))
+    (list beg (point) table)))
+
+(defvar rcirc-completions nil)
+(defvar rcirc-completion-start nil)
+
+(defun rcirc-complete ()
+  "Cycle through completions from list of nicks in channel or IRC commands.
+IRC command completion is performed only if '/' is the first input char."
   (interactive)
   (if (eq last-command this-command)
-      (setq rcirc-nick-completions
-            (append (cdr rcirc-nick-completions)
-                    (list (car rcirc-nick-completions))))
-    (setq rcirc-nick-completion-start-offset
-          (- (save-excursion
-               (if (re-search-backward " " rcirc-prompt-end-marker t)
-                   (1+ (point))
-                 rcirc-prompt-end-marker))
-             rcirc-prompt-end-marker))
-    (setq rcirc-nick-completions
-          (let ((completion-ignore-case t))
-            (all-completions
-	     (buffer-substring
-	      (+ rcirc-prompt-end-marker
-		 rcirc-nick-completion-start-offset)
-	      (point))
-	     (mapcar (lambda (x) (cons x nil))
-		     (rcirc-channel-nicks (rcirc-buffer-process)
-					  rcirc-target))))))
-  (let ((completion (car rcirc-nick-completions)))
+      (setq rcirc-completions
+	    (append (cdr rcirc-completions) (list (car rcirc-completions))))
+    (let ((completion-ignore-case t)
+	  (table (rcirc-completion-at-point)))
+      (setq rcirc-completion-start (car table))
+      (setq rcirc-completions
+	    (all-completions (buffer-substring rcirc-completion-start
+					       (cadr table))
+			     (nth 2 table)))))
+  (let ((completion (car rcirc-completions)))
     (when completion
-      (delete-region (+ rcirc-prompt-end-marker
-			rcirc-nick-completion-start-offset)
-		     (point))
-      (insert (concat completion
-                      (if (= (+ rcirc-prompt-end-marker
-                                rcirc-nick-completion-start-offset)
-                             rcirc-prompt-end-marker)
-                          ": "))))))
+      (delete-region rcirc-completion-start (point))
+      (insert
+       (concat completion
+	       (cond
+		((= (aref completion 0) ?/) " ")
+		((= rcirc-completion-start rcirc-prompt-end-marker) ": ")
+		(t "")))))))
 
 (defun set-rcirc-decode-coding-system (coding-system)
   "Set the decode coding system used in this channel."
@@ -827,7 +849,7 @@ If SILENT is non-nil, do not print the message in any irc buffer."
 (define-key rcirc-mode-map (kbd "RET") 'rcirc-send-input)
 (define-key rcirc-mode-map (kbd "M-p") 'rcirc-insert-prev-input)
 (define-key rcirc-mode-map (kbd "M-n") 'rcirc-insert-next-input)
-(define-key rcirc-mode-map (kbd "TAB") 'rcirc-complete-nick)
+(define-key rcirc-mode-map (kbd "TAB") 'rcirc-complete)
 (define-key rcirc-mode-map (kbd "C-c C-b") 'rcirc-browse-url)
 (define-key rcirc-mode-map (kbd "C-c C-c") 'rcirc-edit-multiline)
 (define-key rcirc-mode-map (kbd "C-c C-j") 'rcirc-cmd-join)
@@ -947,6 +969,9 @@ This number is independent of the number of lines in the buffer.")
 	(setq rcirc-buffer-alist (cons (cons target buffer)
 				       rcirc-buffer-alist))))
     (rcirc-update-short-buffer-names))
+
+  (add-hook 'completion-at-point-functions
+            'rcirc-completion-at-point nil 'local)
 
   (run-hooks 'rcirc-mode-hook))
 
@@ -1085,7 +1110,7 @@ Create the buffer if it doesn't exist."
     (goto-char (point-max))
     (when (not (equal 0 (- (point) rcirc-prompt-end-marker)))
       ;; delete a trailing newline
-      (when (bolp)
+      (when (eq (point) (point-at-bol))
 	(delete-char -1))
       (let ((input (buffer-substring-no-properties
 		    rcirc-prompt-end-marker (point))))
@@ -1342,6 +1367,12 @@ Logfiles are kept in `rcirc-log-directory'."
   :type 'integer
   :group 'rcirc)
 
+(defcustom rcirc-log-process-buffers nil
+  "Non-nil if rcirc process buffers should be logged to disk."
+  :group 'rcirc
+  :type 'boolean
+  :version "24.1")
+
 (defun rcirc-last-quit-line (process nick target)
   "Return the line number where NICK left TARGET.
 Returns nil if the information is not recorded."
@@ -1507,14 +1538,21 @@ record activity."
 				     (when (not (rcirc-channel-p rcirc-target))
 				       'nick)))
 
-	(when rcirc-log-flag
+	(when (and rcirc-log-flag
+		   (or target
+		       rcirc-log-process-buffers))
 	  (rcirc-log process sender response target text))
 
 	(sit-for 0)			; displayed text before hook
 	(run-hook-with-args 'rcirc-print-hooks
 			    process sender response target text)))))
 
-(defcustom rcirc-log-filename-function 'rcirc-generate-new-buffer-name
+(defun rcirc-generate-log-filename (process target)
+  (if target
+      (rcirc-generate-new-buffer-name process target)
+    (process-name process)))
+
+(defcustom rcirc-log-filename-function 'rcirc-generate-log-filename
   "A function to generate the filename used by rcirc's logging facility.
 
 It is called with two arguments, PROCESS and TARGET (see
@@ -1991,16 +2029,18 @@ activity.  Only run if the buffer is not visible and
 ;; containing the text following the /cmd.
 
 (defmacro defun-rcirc-command (command argument docstring interactive-form
-                                       &rest body)
+				       &rest body)
   "Define a command."
-  `(defun ,(intern (concat "rcirc-cmd-" (symbol-name command)))
-     (,@argument &optional process target)
-     ,(concat docstring "\n\nNote: If PROCESS or TARGET are nil, the values given"
-              "\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
-     ,interactive-form
-     (let ((process (or process (rcirc-buffer-process)))
-           (target (or target rcirc-target)))
-       ,@body)))
+  `(progn
+     (add-to-list 'rcirc-client-commands ,(concat "/" (symbol-name command)))
+     (defun ,(intern (concat "rcirc-cmd-" (symbol-name command)))
+       (,@argument &optional process target)
+       ,(concat docstring "\n\nNote: If PROCESS or TARGET are nil, the values given"
+		"\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
+       ,interactive-form
+       (let ((process (or process (rcirc-buffer-process)))
+	     (target (or target rcirc-target)))
+	 ,@body))))
 
 (defun-rcirc-command msg (message)
   "Send private MESSAGE to TARGET."
@@ -2138,12 +2178,13 @@ With a prefix arg, prompt for new topic."
   (rcirc-send-string process (format "PRIVMSG %s :\C-aACTION %s\C-a"
                                      target args)))
 
-(defun rcirc-add-or-remove (set &optional elt)
-  (if (and elt (not (string= "" elt)))
-      (if (member-ignore-case elt set)
-	  (delete elt set)
-	(cons elt set))
-    set))
+(defun rcirc-add-or-remove (set &rest elements)
+  (dolist (elt elements)
+    (if (and elt (not (string= "" elt)))
+	(setq set (if (member-ignore-case elt set)
+		      (delete elt set)
+		    (cons elt set)))))
+  set)
 
 (defun-rcirc-command ignore (nick)
   "Manage the ignore list.
@@ -2151,7 +2192,9 @@ Ignore NICK, unignore NICK if already ignored, or list ignored
 nicks when no NICK is given.  When listing ignored nicks, the
 ones added to the list automatically are marked with an asterisk."
   (interactive "sToggle ignoring of nick: ")
-  (setq rcirc-ignore-list (rcirc-add-or-remove rcirc-ignore-list nick))
+  (setq rcirc-ignore-list
+	(apply #'rcirc-add-or-remove rcirc-ignore-list
+	       (split-string nick nil t)))
   (rcirc-print process nil "IGNORE" target
 	       (mapconcat
 		(lambda (nick)
@@ -2163,14 +2206,18 @@ ones added to the list automatically are marked with an asterisk."
 (defun-rcirc-command bright (nick)
   "Manage the bright nick list."
   (interactive "sToggle emphasis of nick: ")
-  (setq rcirc-bright-nicks (rcirc-add-or-remove rcirc-bright-nicks nick))
+  (setq rcirc-bright-nicks
+	(apply #'rcirc-add-or-remove rcirc-bright-nicks
+	       (split-string nick nil t)))
   (rcirc-print process nil "BRIGHT" target
 	       (mapconcat 'identity rcirc-bright-nicks " ")))
 
 (defun-rcirc-command dim (nick)
   "Manage the dim nick list."
   (interactive "sToggle deemphasis of nick: ")
-  (setq rcirc-dim-nicks (rcirc-add-or-remove rcirc-dim-nicks nick))
+  (setq rcirc-dim-nicks
+	(apply #'rcirc-add-or-remove rcirc-dim-nicks
+	       (split-string nick nil t)))
   (rcirc-print process nil "DIM" target
 	       (mapconcat 'identity rcirc-dim-nicks " ")))
 
@@ -2179,7 +2226,9 @@ ones added to the list automatically are marked with an asterisk."
 Mark KEYWORD, unmark KEYWORD if already marked, or list marked
 keywords when no KEYWORD is given."
   (interactive "sToggle highlighting of keyword: ")
-  (setq rcirc-keywords (rcirc-add-or-remove rcirc-keywords keyword))
+  (setq rcirc-keywords
+	(apply #'rcirc-add-or-remove rcirc-keywords
+	       (split-string keyword nil t)))
   (rcirc-print process nil "KEYWORD" target
 	       (mapconcat 'identity rcirc-keywords " ")))
 

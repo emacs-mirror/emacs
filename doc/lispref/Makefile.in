@@ -19,26 +19,29 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+SHELL = /bin/sh
 
 # Standard configure variables.
 srcdir = @srcdir@
 
-# Tell make where to find source files; this is needed for the makefiles.
-VPATH=@srcdir@
+version=@version@
 
-infodir = ../../info
+infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
+# Directory with emacsver.texi.
+emacsdir =  $(srcdir)/../emacs
 
+MAKEINFO = makeinfo --force -I $(emacsdir) -I $(srcdir)
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
-SHELL = /bin/sh
-INSTALL_INFO = install-info
-MAKEINFO = makeinfo --force
+DVIPS = dvips
 
 # List of all the texinfo files in the manual:
 
 srcs = \
+  $(srcdir)/elisp.texi \
+  $(emacsdir)/emacsver.texi \
   $(srcdir)/abbrevs.texi \
   $(srcdir)/advice.texi \
   $(srcdir)/anti.texi \
@@ -52,7 +55,6 @@ srcs = \
   $(srcdir)/debugging.texi \
   $(srcdir)/display.texi \
   $(srcdir)/edebug.texi \
-  $(srcdir)/elisp.texi \
   $(srcdir)/errors.texi \
   $(srcdir)/eval.texi \
   $(srcdir)/files.texi \
@@ -92,28 +94,67 @@ srcs = \
   $(srcdir)/gpl.texi \
   $(srcdir)/doclicense.texi
 
+mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
-.PHONY: clean
+.PHONY: info dvi pdf ps
 
-# The info file is named `elisp'.
 info: $(infodir)/elisp
+dvi: elisp.dvi
+html: elisp.html
+pdf: elisp.pdf
+ps: elisp.ps
 
 $(infodir)/elisp: $(srcs)
-	cd $(srcdir); $(MAKEINFO) -I. -I$(infodir) elisp.texi -o $(infodir)/elisp
+	$(mkinfodir)
+	$(MAKEINFO) -o $@ $<
 
 elisp.dvi: $(srcs)
-	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $(srcdir)/elisp.texi
+	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $<
+
+elisp.html: $(srcs)
+	$(MAKEINFO) --html -o $@ $<
+
+elisp.ps: elisp.dvi
+	$(DVIPS) -o $@ $<
 
 elisp.pdf: $(srcs)
-	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $(srcdir)/elisp.texi
+	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $<
 
-clean:
-	rm -f *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
-              *.vr *.vrs *.pg *.pgs *.ky *.kys elisp[12]*
-	rm -f make.out core
+.PHONY: mostlyclean clean distclean maintainer-clean infoclean
+
+## [12] stuff is from two-volume.make.
+mostlyclean:
+	rm -f *.aux *.log *.toc *.cp *.cps *.fn *.fns *.ky *.kys \
+	  *.op *.ops *.pg *.pgs *.tp *.tps *.vr *.vrs
+	rm -f elisp[12]*
+
+clean: mostlyclean
+	rm -f elisp.dvi elisp.pdf elisp.ps vol[12].pdf
+	rm -rf elisp.html
+	rm -f emacs-lispref-${version}.tar*
 
 distclean: clean
 
-maintainer-clean: clean
-	rm -f elisp.dvi elisp.oaux
-	cd $(infodir); rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
+infoclean:
+	-cd $(infodir) && rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
+
+maintainer-clean: distclean infoclean
+
+.PHONY: dist
+
+## Note this excludes the two-volume stuff.
+dist:
+	rm -rf emacs-lispref-${version}
+	mkdir emacs-lispref-${version}
+	cp ${srcdir}/*.texi ${texinfodir}/texinfo.tex \
+	  $(emacsdir)/emacsver.texi ${srcdir}/ChangeLog* \
+	  ${srcdir}/README emacs-lispref-${version}/
+	sed -e 's/@sr[c]dir@/./' -e 's/^\(texinfodir *=\).*/\1 ./' \
+	  -e 's/^\(emacsdir *=\).*/\1 ./' \
+	  -e 's/^\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
+	  -e "s/@ver[s]ion@/${version}/" \
+	  ${srcdir}/Makefile.in > emacs-lispref-${version}/Makefile
+	tar -cf emacs-lispref-${version}.tar emacs-lispref-${version}
+	rm -rf emacs-lispref-${version}
+
+### Makefile ends here

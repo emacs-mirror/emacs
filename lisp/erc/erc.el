@@ -12,6 +12,7 @@
 ;;               David Edmondson (dme@dme.org)
 ;; Maintainer: Michael Olson (mwolson@gnu.org)
 ;; Keywords: IRC, chat, client, Internet
+;; Version: 5.3
 
 ;; This file is part of GNU Emacs.
 
@@ -2306,14 +2307,14 @@ If ARG is non-nil, show the *erc-protocol* buffer."
 	  (insert (erc-make-notice "This buffer displays all IRC protocol traffic exchanged with each server.\n"))
 	  (insert (erc-make-notice "Kill this buffer to terminate protocol logging.\n\n")))
 	(use-local-map (make-sparse-keymap))
-	(local-set-key (kbd "RET") 'erc-toggle-debug-irc-protocol))
+	(local-set-key (kbd "t") 'erc-toggle-debug-irc-protocol))
       (add-hook 'kill-buffer-hook
 		#'(lambda () (setq erc-debug-irc-protocol nil))
 		nil 'local)
       (goto-char (point-max))
       (let ((inhibit-read-only t))
 	(insert (erc-make-notice
-		 (format "IRC protocol logging %s at %s -- Press ENTER to toggle logging.\n"
+		 (format "IRC protocol logging %s at %s -- Press `t' to toggle logging.\n"
 			 (if erc-debug-irc-protocol "disabled" "enabled")
 			 (current-time-string))))))
     (setq erc-debug-irc-protocol (not erc-debug-irc-protocol))

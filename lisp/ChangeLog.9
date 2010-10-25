@@ -1034,8 +1034,8 @@
 2001-09-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired.el (dired-move-to-filename-regexp): Allow one digit in the
-	numeric month value, and allow the Kanji character after the it to
-	be missing (happens with ls-lisp's output on Japanese versions of
+	numeric month value, and allow the Kanji character after it to be
+	missing (happens with ls-lisp's output on Japanese versions of
 	MS-Windows).
 
 2001-09-18  Miles Bader  <miles@gnu.org>
@@ -5773,7 +5773,7 @@
 2001-02-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* isearch.el (isearch-forward): Add description about input method
-	in the docsting.
+	in the docstring.
 
 2001-02-04  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -8121,7 +8121,7 @@
 	* dired.el (dired-get-filename): Return filename verbatim if
 	LOCALP is `verbatim'.
 	* dired-aux.el (dired-add-entry): Call `dired-get-filename' with
-	`verbatim' so that we don't inadvertently delete a non-existant
+	`verbatim' so that we don't inadvertently delete a non-existent
 	directory name.
 
 2000-11-27  Kenichi Handa  <handa@etl.go.jp>
@@ -16606,7 +16606,7 @@
 	0.  Give correct argument to set-auto-coding-function.
 	(tar-expunge): For goto-char, use (point-min), not 0.
 	(tar-clear-modification-flags): For goto-char, use (point-min), not 1.
-	(tar-subfile-save-buffer): Likewize.
+	(tar-subfile-save-buffer): Likewise.
 
 	* international/mule.el
 	(after-insert-file-set-buffer-file-coding-system): Call
@@ -16910,7 +16910,7 @@
 	(ccl-decode-viscii): Use translate-character.
 	(ccl-encode-viscii, ccl-encode-viscii-font)
 	(ccl-decode-vscii, ccl-encode-vscii, ccl-encode-vscii-font):
-	Likewize.
+	Likewise.
 
 	* language/cyrillic.el: Remove eval-when-compile.
 	(cyrillic-koi8-r-nonascii-translation-table): Define it as a
@@ -16925,7 +16925,7 @@
 	table made from the reverse map of above.
 	(ccl-decode-alternativnyj): Use translate-character.
 	(ccl-encode-alternativnyj, ccl-encode-alternativnyj-font):
-	Likewize
+	Likewise.
 
 	* international/mule-diag.el (non-iso-charset-alist): Specify
 	translation table symbol instead of translation table itself.
@@ -18071,8 +18071,8 @@
 
 	* emacs-lisp/cl-macs.el: Doc fixes; mainly avoid duplicating arg
 	list in doc string.  Don't quote keyword symbols.
-	* emacs-lisp/cl.el: Likewise
-	* emacs-lisp/cl-seq.el: Likewise
+	* emacs-lisp/cl.el: Likewise.
+	* emacs-lisp/cl-seq.el: Likewise.
 
 2000-05-05  Gerd Moellmann  <gerd@gnu.org>
 
@@ -19040,7 +19040,7 @@
 	(fontset-default-styles): Likewise.
 	(x-modify-font-name): Function removed.
 	(create-fontset-from-fontset-spec): Ignore the argument STYLE-VARIANT.
-	(create-fontset-from-ascii-font): Docsting adjusted for the above
+	(create-fontset-from-ascii-font): Docstring adjusted for the above
 	change.
 	(instantiate-fontset, resolve-fontset-name): Functions removed.
 	(fontset-list): Now implemented by C code.

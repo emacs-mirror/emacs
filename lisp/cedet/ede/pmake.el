@@ -262,6 +262,18 @@ Execute BODY in a location where a value can be placed."
      (goto-char (point-max))))
 (put 'ede-pmake-insert-variable-shared 'lisp-indent-function 1)
 
+(defmacro ede-pmake-insert-variable-once (varname &rest body)
+  "Add VARNAME into the current Makefile if it doesn't exist.
+Execute BODY in a location where a value can be placed."
+  `(let ((addcr t) (v ,varname))
+     (unless (re-search-backward (concat "^" v "\\s-*=") nil t)
+       (insert v "=")
+       ,@body
+       (if addcr (insert "\n"))
+       (goto-char (point-max)))
+     ))
+(put 'ede-pmake-insert-variable-once 'lisp-indent-function 1)
+
 ;;; SOURCE VARIABLE NAME CONSTRUCTION
 
 (defsubst ede-pmake-varname (obj)
@@ -369,10 +381,14 @@ NOTE: Not yet in use!  This is part of an SRecode conversion of
 	  conf-table))
   (let* ((top "")
 	 (tmp this))
+    ;; Use relative paths for subdirs.
     (while (ede-parent-project tmp)
       (setq tmp (ede-parent-project tmp)
 	    top (concat "../" top)))
-    (insert "\ntop=" top))
+    ;; If this is the top, then use CURDIR.
+    (if (and (not (oref this metasubproject)) (string= top ""))
+	(insert "\ntop=\"$(CURDIR)\"/")
+      (insert "\ntop=" top)))
   (insert "\nede_FILES=" (file-name-nondirectory (oref this file)) " "
 	  (file-name-nondirectory (ede-proj-dist-makefile this)) "\n"))
 
@@ -425,14 +441,13 @@ sources variable."
 	(link (ede-proj-linkers this))
 	(name (ede-proj-makefile-target-name this))
 	(src (oref this source)))
+    (ede-proj-makefile-insert-object-variables (car comp) name src)
     (dolist (obj comp)
       (ede-compiler-only-once obj
 			      (ede-proj-makefile-insert-variables obj)))
-    (ede-proj-makefile-insert-object-variables (car comp) name src)
-    (while link
-      (ede-linker-only-once (car link)
-	(ede-proj-makefile-insert-variables (car link)))
-      (setq link (cdr link)))))
+    (dolist (linker link)
+      (ede-linker-only-once linker
+			    (ede-proj-makefile-insert-variables linker)))))
 
 (defmethod ede-proj-makefile-insert-automake-pre-variables
   ((this ede-proj-target))

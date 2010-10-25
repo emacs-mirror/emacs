@@ -102,42 +102,30 @@ Feature: This is an example for backtrace.
   Scenario: undefined step  # features/cucumber.feature:3
     Given this is undefined # features/cucumber.feature:4
 
-  Scenario: assertion false (Test::Unit)    # features/cucumber.feature:6
-    Given this will generate 'assert false' # features/step_definitions/default_steps.rb:1
+  Scenario: assertion false (Test::Unit)    # foo/bar.feature:6
+    Given this will generate 'assert false' # foo/bar.rb:1
       <false> is not true. (Test::Unit::AssertionFailedError)
-      /home/gusev/.rvm/rubies/ruby-1.8.7-p249/lib/ruby/1.8/test/unit/assertions.rb:48:in `assert_block'
-      /home/gusev/.rvm/rubies/ruby-1.8.7-p249/lib/ruby/1.8/test/unit/assertions.rb:500:in `_wrap_assertion'
-      /home/gusev/.rvm/rubies/ruby-1.8.7-p249/lib/ruby/1.8/test/unit/assertions.rb:46:in `assert_block'
-      /home/gusev/.rvm/rubies/ruby-1.8.7-p249/lib/ruby/1.8/test/unit/assertions.rb:63:in `assert'
-      /home/gusev/.rvm/rubies/ruby-1.8.7-p249/lib/ruby/1.8/test/unit/assertions.rb:495:in `_wrap_assertion'
-      /home/gusev/.rvm/rubies/ruby-1.8.7-p249/lib/ruby/1.8/test/unit/assertions.rb:61:in `assert'
-      ./features/step_definitions/default_steps.rb:2:in `/^this will generate 'assert false'$/'
+      /home/gusev/.rvm/foo/bar.rb:48:in `assert_block'
+      /home/gusev/.rvm/foo/bar.rb:500:in `_wrap_assertion'
       features/cucumber.feature:7:in `Given this will generate 'assert false''
 
-  Scenario: assertion false (RSpec)           # features/cucumber.feature:9
-    Given this will generate 'should be_true' # features/step_definitions/default_steps.rb:5
+  Scenario: assertion false (RSpec)           # foo/bar.feature:9
+    Given this will generate 'should be_true' # foo/bar.rb:5
       expected true to be false (Spec::Expectations::ExpectationNotMetError)
-      ./features/step_definitions/default_steps.rb:6:in `/^this will generate 'should be_true'$/'
-      features/cucumber.feature:10:in `Given this will generate 'should be_true''
+      ./foo/bar/baz.rb:6:in `/^this will generate 'should be_true'$/'
+      foo/bar.feature:10:in `Given this will generate 'should be_true''
 
-  Scenario: backtrace in step definition # features/cucumber.feature:12
-    Given this will generate backtrace   # features/step_definitions/default_steps.rb:9
+  Scenario: backtrace in step definition # foo/bar.feature:12
+    Given this will generate backtrace   # foo/sbar.rb:9
        (RuntimeError)
-      ./features/step_definitions/default_steps.rb:10:in `/^this will generate backtrace$/'
-      features/cucumber.feature:13:in `Given this will generate backtrace'
-
-  Scenario: deeep backtrace in step definition # features/cucumber.feature:15
-    Given this will generate deep backtrace    # features/step_definitions/default_steps.rb:13
-       (RuntimeError)
-      ./features/step_definitions/default_steps.rb:18:in `deep'
-      ./features/step_definitions/default_steps.rb:14:in `/^this will generate deep backtrace$/'
-      features/cucumber.feature:16:in `Given this will generate deep backtrace'
+      ./foo/bar.rb:10:in `/^this will generate backtrace$/'
+      foo/bar.feature:13:in `Given this will generate backtrace'
 
 Failing Scenarios:
-cucumber features/cucumber.feature:6 # Scenario: assertion false (Test::Unit)
-cucumber features/cucumber.feature:9 # Scenario: assertion false (RSpec)
-cucumber features/cucumber.feature:12 # Scenario: backtrace in step definition
-cucumber features/cucumber.feature:15 # Scenario: deeep backtrace in step definition
+cucumber foo/cucumber.feature:6 # Scenario: assertion false (Test::Unit)
+cucumber foo/cucumber.feature:9 # Scenario: assertion false (RSpec)
+cucumber foo/cucumber.feature:12 # Scenario: backtrace in step definition
+cucumber foo/cucumber.feature:15 # Scenario: deeep backtrace in step definition
 
 5 scenarios (4 failed, 1 undefined)
 5 steps (4 failed, 1 undefined)

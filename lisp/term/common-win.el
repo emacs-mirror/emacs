@@ -25,54 +25,106 @@
 
 ;;; Code:
 
+(defcustom x-select-enable-clipboard t
+  "Non-nil means cutting and pasting uses the clipboard.
+This is in addition to, but in preference to, the primary selection.
+
+Note that MS-Windows does not support selection types other than the
+clipboard.   \(The primary selection that is set by Emacs is not
+accessible to other programs on MS-Windows.\)"
+  :type 'boolean
+  :group 'killing
+  ;; The GNU/Linux version changed in 24.1, the MS-Windows version did not.
+  :version "24.1")
+
+(defvar x-last-selected-text)		; w32-fns.el
+(declare-function w32-set-clipboard-data "w32select.c"
+		  (string &optional ignored))
+
+(defun x-select-text (text)
+  "Select TEXT, a string, according to the window system.
+
+On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
+clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
+the primary selection.
+
+On MS-Windows, make TEXT the current selection.  If
+`x-select-enable-clipboard' is non-nil, copy the text to the
+clipboard as well.
+
+On Nextstep, put TEXT in the pasteboard."
+  (if (eq system-type 'windows-nt)
+      (progn
+	(if x-select-enable-clipboard
+	    (w32-set-clipboard-data text))
+	(setq x-last-selected-text text))
+    ;; With multi-tty, this function may be called from a tty frame.
+    (when (eq (framep (selected-frame)) 'x)
+      (when x-select-enable-primary
+	(x-set-selection 'PRIMARY text)
+	(setq x-last-selected-text-primary text))
+      (when x-select-enable-clipboard
+	(x-set-selection 'CLIPBOARD text)
+	(setq x-last-selected-text-clipboard text)))))
+
+;;;; Function keys
+
+(defvar x-alternatives-map
+  (let ((map (make-sparse-keymap)))
+    ;; Map certain keypad keys into ASCII characters that people usually expect.
+    (define-key map [M-backspace] [?\M-\d])
+    (define-key map [M-delete] [?\M-\d])
+    (define-key map [M-tab] [?\M-\t])
+    (define-key map [M-linefeed] [?\M-\n])
+    (define-key map [M-clear] [?\M-\C-l])
+    (define-key map [M-return] [?\M-\C-m])
+    (define-key map [M-escape] [?\M-\e])
+    (define-key map [iso-lefttab] [backtab])
+    (define-key map [S-iso-lefttab] [backtab])
+    (and (eq system-type 'windows-nt)
+	 (define-key map [S-tab] [backtab]))
+    map)
+  "Keymap of possible alternative meanings for some keys.")
+
+(defun x-setup-function-keys (frame)
+  "Set up `function-key-map' on the graphical frame FRAME."
+  ;; Don't do this twice on the same display, or it would break
+  ;; normal-erase-is-backspace-mode.
+  (unless (terminal-parameter frame 'x-setup-function-keys)
+    ;; Map certain keypad keys into ASCII characters that people usually expect.
+    (with-selected-frame frame
+      (let ((map (copy-keymap x-alternatives-map)))
+        (set-keymap-parent map (keymap-parent local-function-key-map))
+        (set-keymap-parent local-function-key-map map)))
+    (set-terminal-parameter frame 'x-setup-function-keys t)))
 
 (defvar x-invocation-args)
 
 (defvar x-command-line-resources nil)
 
 ;; Handler for switches of the form "-switch value" or "-switch".
-(defun x-handle-switch (switch)
+(defun x-handle-switch (switch &optional numeric)
   (let ((aelt (assoc switch command-line-x-option-alist)))
     (if aelt
-	(let ((param (nth 3 aelt))
-	      (value (nth 4 aelt)))
-	  (if value
-	      (setq default-frame-alist
-		    (cons (cons param value)
-			  default-frame-alist))
-	    (setq default-frame-alist
-		  (cons (cons param
-			      (car x-invocation-args))
-			default-frame-alist)
-		  x-invocation-args (cdr x-invocation-args)))))))
+	(setq default-frame-alist
+	      (cons (cons (nth 3 aelt)
+			  (if numeric
+			      (string-to-number (pop x-invocation-args))
+			    (or (nth 4 aelt) (pop x-invocation-args))))
+		    default-frame-alist)))))
 
 ;; Handler for switches of the form "-switch n"
 (defun x-handle-numeric-switch (switch)
-  (let ((aelt (assoc switch command-line-x-option-alist)))
-    (if aelt
-	(let ((param (nth 3 aelt)))
-	  (setq default-frame-alist
-		(cons (cons param
-			    (string-to-number (car x-invocation-args)))
-		      default-frame-alist)
-		x-invocation-args
-		(cdr x-invocation-args))))))
+  (x-handle-switch switch t))
 
 ;; Handle options that apply to initial frame only
 (defun x-handle-initial-switch (switch)
   (let ((aelt (assoc switch command-line-x-option-alist)))
     (if aelt
-	(let ((param (nth 3 aelt))
-	      (value (nth 4 aelt)))
-	  (if value
-	      (setq initial-frame-alist
-		    (cons (cons param value)
-			  initial-frame-alist))
-	    (setq initial-frame-alist
-		  (cons (cons param
-			      (car x-invocation-args))
-			initial-frame-alist)
-		  x-invocation-args (cdr x-invocation-args)))))))
+	(setq initial-frame-alist
+	      (cons (cons (nth 3 aelt)
+			  (or (nth 4 aelt) (pop x-invocation-args)))
+		    initial-frame-alist)))))
 
 ;; Make -iconic apply only to the initial frame!
 (defun x-handle-iconic (switch)
@@ -85,15 +137,14 @@
     (error "%s: missing argument to `%s' option" (invocation-name) switch))
   (setq x-command-line-resources
 	(if (null x-command-line-resources)
-	    (car x-invocation-args)
-	  (concat x-command-line-resources "\n" (car x-invocation-args))))
-  (setq x-invocation-args (cdr x-invocation-args)))
+	    (pop x-invocation-args)
+	  (concat x-command-line-resources "\n" (pop x-invocation-args)))))
 
 (declare-function x-parse-geometry "frame.c" (string))
 
 ;; Handle the geometry option
 (defun x-handle-geometry (switch)
-  (let* ((geo (x-parse-geometry (car x-invocation-args)))
+  (let* ((geo (x-parse-geometry (pop x-invocation-args)))
 	 (left (assq 'left geo))
 	 (top (assq 'top geo))
 	 (height (assq 'height geo))
@@ -114,8 +165,7 @@
 	      (append initial-frame-alist
 		      '((user-position . t))
 		      (if left (list left))
-		      (if top (list top)))))
-    (setq x-invocation-args (cdr x-invocation-args))))
+		      (if top (list top)))))))
 
 (defvar x-resource-name)
 
@@ -125,9 +175,8 @@
 (defun x-handle-name-switch (switch)
   (or (consp x-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
-  (setq x-resource-name (car x-invocation-args)
-	x-invocation-args (cdr x-invocation-args))
-  (setq initial-frame-alist (cons (cons 'name x-resource-name)
+  (setq x-resource-name (pop x-invocation-args)
+	initial-frame-alist (cons (cons 'name x-resource-name)
 				  initial-frame-alist)))
 
 (defvar x-display-name nil
@@ -137,8 +186,7 @@ On X, the display name of individual X frames is recorded in the
 
 (defun x-handle-display (switch)
   "Handle -display DISPLAY option."
-  (setq x-display-name (car x-invocation-args)
-	x-invocation-args (cdr x-invocation-args))
+  (setq x-display-name (pop x-invocation-args))
   ;; Make subshell programs see the same DISPLAY value Emacs really uses.
   ;; Note that this isn't completely correct, since Emacs can use
   ;; multiple displays.  However, there is no way to tell an already
@@ -157,10 +205,9 @@ This function returns ARGS minus the arguments that have been processed."
 	args nil)
   (while (and x-invocation-args
 	      (not (equal (car x-invocation-args) "--")))
-    (let* ((this-switch (car x-invocation-args))
+    (let* ((this-switch (pop x-invocation-args))
 	   (orig-this-switch this-switch)
 	   completion argval aelt handler)
-      (setq x-invocation-args (cdr x-invocation-args))
       ;; Check for long options with attached arguments
       ;; and separate out the attached option argument into argval.
       (if (string-match "^--[^=]*=" this-switch)
@@ -371,5 +418,17 @@ For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
 For Nextstep, this is a list of non-PANTONE colors returned by
 the operating system.")
 
-;; arch-tag: 2a128601-99cc-401e-9dff-0ee6a36102ef
+(defvar w32-color-map)
+
+(defun xw-defined-colors (&optional frame)
+  "Internal function called by `defined-colors', which see."
+  (or frame (setq frame (selected-frame)))
+  (let (defined-colors)
+    (dolist (this-color (if (eq system-type 'windows-nt)
+			    (or (mapcar 'car w32-color-map) x-colors)
+			  x-colors))
+      (and (color-supported-p this-color frame t)
+	   (setq defined-colors (cons this-color defined-colors))))
+    defined-colors))
+
 ;;; common-win.el ends here

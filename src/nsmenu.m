@@ -105,7 +105,7 @@ free_frame_menubar (struct frame *f)
 
 
 int
-popup_activated ()
+popup_activated (void)
 {
   return popup_activated_flag;
 }
@@ -509,8 +509,7 @@ set_frame_menubar (struct frame *f, int first_time, int deep_p)
 
 /* Utility (from macmenu.c): is this item a separator? */
 static int
-name_is_separator (name)
-     const char *name;
+name_is_separator ( const char *name)
 {
   const char *start = name;
 
@@ -601,9 +600,9 @@ name_is_separator (name)
    NSMenuItem get ignored.  For now we try to display a super-single letter
    combo, and return the others as strings to be appended to the item title.
    (This is signaled by setting keyEquivModMask to 0 for now.) */
--(NSString *)parseKeyEquiv: (char *)key
+-(NSString *)parseKeyEquiv: (const char *)key
 {
-  char *tpos = key;
+  const char *tpos = key;
   keyEquivModMask = NSCommandKeyMask;
 
   if (!key || !strlen (key))
@@ -720,7 +719,7 @@ name_is_separator (name)
 
 
 /* adds an empty submenu and returns it */
-- (EmacsMenu *)addSubmenuWithTitle: (char *)title forFrame: (struct frame *)f
+- (EmacsMenu *)addSubmenuWithTitle: (const char *)title forFrame: (struct frame *)f
 {
   NSString *titleStr = [NSString stringWithUTF8String: title];
   NSMenuItem *item = [self addItemWithTitle: titleStr
@@ -737,19 +736,21 @@ name_is_separator (name)
                  keymaps: (int)keymaps
 {
   EmacsView *view = FRAME_NS_VIEW (f);
+  NSEvent *e, *event;
+  long retVal;
+
 /*   p = [view convertPoint:p fromView: nil]; */
   p.y = NSHeight ([view frame]) - p.y;
-  NSEvent *e = [[view window] currentEvent];
-  NSEvent *event = [NSEvent mouseEventWithType: NSRightMouseDown
-                                      location: p
-                                 modifierFlags: 0
-                                     timestamp: [e timestamp]
-                                  windowNumber: [[view window] windowNumber]
-                                       context: [e context]
-                                   eventNumber: 0/*[e eventNumber] */
-                                    clickCount: 1
-                                      pressure: 0];
-  long retVal;
+  e = [[view window] currentEvent];
+   event = [NSEvent mouseEventWithType: NSRightMouseDown
+                              location: p
+                         modifierFlags: 0
+                             timestamp: [e timestamp]
+                          windowNumber: [[view window] windowNumber]
+                               context: [e context]
+                           eventNumber: 0/*[e eventNumber] */
+                            clickCount: 1
+                              pressure: 0];
 
   context_menu_value = -1;
   [NSMenu popUpContextMenu: self withEvent: event forView: view];
@@ -772,7 +773,7 @@ name_is_separator (name)
 
 Lisp_Object
 ns_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
-	      Lisp_Object title, char **error)
+	      Lisp_Object title, const char **error)
 {
   EmacsMenu *pmenu;
   NSPoint p;
@@ -835,7 +836,7 @@ ns_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
-	  char *pane_string;
+	  const char *pane_string;
 
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
@@ -1032,7 +1033,7 @@ update_frame_tool_bar (FRAME_PTR f)
       struct image *img;
       Lisp_Object image;
       Lisp_Object helpObj;
-      char *helpText;
+      const char *helpText;
 
       /* If image is a vector, choose the image according to the
 	 button state.  */
@@ -1152,7 +1153,7 @@ update_frame_tool_bar (FRAME_PTR f)
 }
 
 - (void) addDisplayItemWithImage: (EmacsImage *)img idx: (int)idx
-                        helpText: (char *)help enabled: (BOOL)enabled
+                        helpText: (const char *)help enabled: (BOOL)enabled
 {
   /* 1) come up w/identifier */
   NSString *identifier
@@ -1801,13 +1802,13 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
    ========================================================================== */
 
 void
-syms_of_nsmenu ()
+syms_of_nsmenu (void)
 {
   defsubr (&Sx_popup_dialog);
   defsubr (&Sns_reset_menu);
   defsubr (&Smenu_or_popup_active_p);
 
-  Qdebug_on_next_call = intern ("debug-on-next-call");
+  Qdebug_on_next_call = intern_c_string ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
 }
 

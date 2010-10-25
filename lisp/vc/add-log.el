@@ -37,9 +37,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'timezone))
-
 (defgroup change-log nil
   "Change log maintenance."
   :group 'tools
@@ -755,7 +752,17 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
     (if add-log-file-name-function
 	(funcall add-log-file-name-function buffer-file)
       (setq buffer-file
-            (file-relative-name buffer-file (file-name-directory log-file)))
+            (let* ((dir (file-name-directory log-file))
+                   (rel (file-relative-name buffer-file dir)))
+              ;; Sometimes with symlinks, the two buffers may have names that
+              ;; appear to belong to different directory trees.  So check the
+              ;; file-truenames, to see if we get a better result.
+              (if (not (string-match "\\`\\.\\./" rel))
+                  rel
+                (let ((new (file-relative-name (file-truename buffer-file)
+                                               (file-truename dir))))
+                  (if (< (length new) (length rel))
+                      new rel)))))
       ;; If we have a backup file, it's presumably because we're
       ;; comparing old and new versions (e.g. for deleted
       ;; functions) and we'll want to use the original name.
@@ -1242,19 +1249,18 @@ Has a preference of looking backwards."
 	  (change-log-get-method-definition-1 ""))
 	(concat change-log-get-method-definition-md "]"))))))
 
+(autoload 'timezone-make-date-sortable "timezone")
+
 (defun change-log-sortable-date-at ()
   "Return date of log entry in a consistent form for sorting.
 Point is assumed to be at the start of the entry."
-  (require 'timezone)
   (if (looking-at change-log-start-entry-re)
       (let ((date (match-string-no-properties 0)))
 	(if date
 	    (if (string-match "\\(....\\)-\\(..\\)-\\(..\\)\\s-+" date)
 		(concat (match-string 1 date) (match-string 2 date)
 			(match-string 3 date))
-	      (condition-case nil
-		  (timezone-make-date-sortable date)
-		(error nil)))))
+	      (ignore-errors (timezone-make-date-sortable date)))))
     (error "Bad date")))
 
 (defun change-log-resolve-conflict ()

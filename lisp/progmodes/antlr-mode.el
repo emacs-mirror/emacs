@@ -5,7 +5,7 @@
 
 ;; Author: Christoph.Wedler@sap.com
 ;; Keywords: languages, ANTLR, code generator
-;; Version: (see `antlr-version' below)
+;; Version: 2.2c
 ;; X-URL: http://antlr-mode.sourceforge.net/
 
 ;; This file is part of GNU Emacs.
@@ -951,7 +951,7 @@ group.  The string matched by the first group is highlighted with
       (3 antlr-keyword-face)
       (4 (if (member (match-string 4) '("Lexer" "Parser" "TreeParser"))
 	     antlr-keyword-face
-	   type-face)))
+	   font-lock-type-face)))
      (,(lambda (limit)
 	 (antlr-re-search-forward
 	  "\\<\\(header\\|options\\|tokens\\|exception\\|catch\\|returns\\)\\>"

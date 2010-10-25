@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern Lisp_Object Qkeymap, Qmenu_bar;
 extern Lisp_Object Qremap;
 extern Lisp_Object Qmenu_item;
+extern Lisp_Object meta_prefix_char;
 extern Lisp_Object Voverriding_local_map;
 extern Lisp_Object Voverriding_local_map_menu_flag;
 extern Lisp_Object current_global_map;
@@ -42,10 +43,10 @@ extern Lisp_Object get_keyelt (Lisp_Object, int);
 extern Lisp_Object get_keymap (Lisp_Object, int, int);
 EXFUN (Fset_keymap_parent, 2);
 extern void describe_map_tree (Lisp_Object, int, Lisp_Object, Lisp_Object,
-                               char *, int, int, int, int);
+                               const char *, int, int, int, int);
 extern int current_minor_maps (Lisp_Object **, Lisp_Object **);
-extern void initial_define_key (Lisp_Object, int, char *);
-extern void initial_define_lispy_key (Lisp_Object, char *, char *);
+extern void initial_define_key (Lisp_Object, int, const char *);
+extern void initial_define_lispy_key (Lisp_Object, const char *, const char *);
 extern void syms_of_keymap (void);
 extern void keys_of_keymap (void);
 

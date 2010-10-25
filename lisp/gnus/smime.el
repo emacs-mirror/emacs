@@ -1,7 +1,7 @@
 ;;; smime.el --- S/MIME support library
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: SMIME X.509 PEM OpenSSL
@@ -119,7 +119,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (require 'dig)
@@ -371,12 +371,9 @@ KEYFILE should contain a PEM encoded key and certificate."
 	     (if keyfile
 		 keyfile
 	       (smime-get-key-with-certs-by-email
-		(completing-read
-		 (concat "Sign using key"
-			 (if smime-keys
-			     (concat " (default " (caar smime-keys) "): ")
-			   ": "))
-		 smime-keys nil nil (car-safe (car-safe smime-keys))))))
+		(gnus-completing-read
+		 "Sign using key"
+		 smime-keys nil (car-safe (car-safe smime-keys))))))
       (error "Signing failed"))))
 
 (defun smime-encrypt-buffer (&optional certfiles buffer)
@@ -502,11 +499,9 @@ in the buffer specified by `smime-details-buffer'."
      (expand-file-name
       (or keyfile
 	  (smime-get-key-by-email
-	   (completing-read
-	    (concat "Decipher using key"
-		    (if smime-keys (concat " (default " (caar smime-keys) "): ")
-		      ": "))
-	    smime-keys nil nil (car-safe (car-safe smime-keys)))))))))
+	   (gnus-completing-read
+	    "Decipher using key"
+	    smime-keys nil (car-safe (car-safe smime-keys)))))))))
 
 ;; Various operations
 
@@ -596,9 +591,7 @@ A string or a list of strings is returned."
   "Get cetificate for MAIL from the ldap server at HOST."
   (let ((ldapresult
 	 (funcall
-	  (if (or (featurep 'xemacs)
-		  ;; For Emacs >= 22 we don't need smime-ldap.el
-		  (< emacs-major-version 22))
+	  (if (featurep 'xemacs)
 	      (progn
 		(require 'smime-ldap)
 		'smime-ldap-search)
@@ -660,6 +653,7 @@ A string or a list of strings is returned."
   (define-key smime-mode-map "f" 'smime-certificate-info))
 
 (autoload 'gnus-run-mode-hooks "gnus-util")
+(autoload 'gnus-completing-read "gnus-util")
 
 (defun smime-mode ()
   "Major mode for browsing, viewing and fetching certificates.
@@ -708,8 +702,7 @@ The following commands are available:
   "Go to the SMIME buffer."
   (interactive)
   (unless (get-buffer smime-buffer)
-    (save-excursion
-      (set-buffer (get-buffer-create smime-buffer))
+    (with-current-buffer (get-buffer-create smime-buffer)
       (smime-mode)))
   (smime-draw-buffer)
   (switch-to-buffer smime-buffer))
@@ -729,5 +722,4 @@ The following commands are available:
 
 (provide 'smime)
 
-;; arch-tag: e3f9b938-5085-4510-8a11-6625269c9a9e
 ;;; smime.el ends here

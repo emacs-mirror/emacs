@@ -1,12 +1,9 @@
 						-*- text -*-
-For an order form for all Emacs and FSF distributions deliverable from
-the USA, see http://www.gnu.org/order/order.html.
-
-	   GNU Emacs availability information, October 2000
+            GNU Emacs availability information
 
 Copyright (C) 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1995,
-  1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+  1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+  2010  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -29,30 +26,16 @@ are designed to make sure that everyone who has a copy of GNU Emacs
 (including modified versions) has the freedom to redistribute and
 change it.
 
-If you do not know anyone to get a copy of GNU Emacs from, you can
-order a cd-rom from the Free Software Foundation.  We distribute
-several Emacs versions.  We also distribute nicely typeset copies of
-the Emacs user manual, Emacs Lisp Reference Manual, the Emacs
-reference card, etc.  See http://www.gnu.org/order/order.html.
-
-If you have Internet access, you can copy the latest Emacs
-distribution from hosts, such as ftp.gnu.org.  There are several ways
-to do this; see http://www.gnu.org/software/software.html for more
-information.
+For information on how to get GNU software, see
+http://www.gnu.org/software/software.html.  Printed copies of GNU
+manuals, including the Emacs manual, are available from the FSF's
+online store at http://shop.fsf.org.
 
 Emacs has been run on GNU/Linux, FreeBSD, NetBSD, OpenBSD, and on many
 Unix systems, on a variety of types of cpu, as well as on MSDOS,
-Windows and MacOS.  It also formerly worked on VMS and on Apollo
-computers, though with some deficiencies that reflect problems in
-these operating systems.  See the file `MACHINES' in this directory
-(see above) for a full list of machines that GNU Emacs has been tested
+Windows and MacOS.  See the file `etc/MACHINES' in the Emacs
+distribution for a full list of machines that GNU Emacs has been tested
 on, with machine-specific installation notes and warnings.
-
-Note that there is significant variation between Unix systems
-supposedly running the same version of Unix; it is possible that what
-works in GNU Emacs for me does not work on your system due to such an
-incompatibility.  Since I must avoid reading Unix source code, I
-cannot even guess what such problems may exist.
 
 GNU Emacs is distributed with no warranty (see the General Public
 License for full details, in the file `COPYING' in this directory (see
@@ -62,14 +45,13 @@ of people who are willing to offer support and assistance for hire.
 See http://www.gnu.org/help/gethelp.html.
 
 However, we plan to continue to improve GNU Emacs and keep it
-reliable, so please send me any complaints and suggestions you have.
-I will probably fix anything that I consider a malfunction.  I may
-make improvements that are suggested, but I may choose not to.
+reliable, so please send us any complaints and suggestions you have.
+We will probably fix anything that we consider a malfunction.  We may
+make improvements that are suggested, but we may choose not to.
 
-If you are on the Internet, report bugs to bug-gnu-emacs@gnu.org.  You
-can use the Emacs command M-x report-bug RET to mail a bug report.
-Please read the Bugs section of the Emacs manual before reporting
-bugs.
+If you are on the Internet, report bugs to bug-gnu-emacs@gnu.org.
+You can use the Emacs command M-x report-bug RET to mail a bug report.
+Please read the Bugs section of the Emacs manual before reporting bugs.
 
 General questions about the GNU Project can be asked of gnu@gnu.org.
 
@@ -80,12 +62,14 @@ You should consider making a donation to help support the GNU project;
 if you estimate what it would cost to distribute some commercial
 product and divide it by five, that is a good amount.
 
-If you like GNU Emacs, please express your satisfaction with a
-donation: send me or the Foundation what you feel Emacs has been worth
-to you.  If you are glad that I developed GNU Emacs and distribute it
-as free software, rather than following the obstructive and antisocial
-practices typical of software developers, reward me.  If you would
-like the Foundation to develop more free software, contribute.
+If you like GNU Emacs, please express your satisfaction with a donation:
+send me (please email me about how) or the Foundation
+(https://my.fsf.org/donate) what you feel Emacs has been worth to you.
+If you are glad that I developed GNU Emacs and distribute it as free
+software, rather than following the obstructive and antisocial
+practices of proprietary software, you can reward me.  If you would
+like the Foundation to do more to forward the cause of free software,
+you can contribute.
 
 Your donations will help to support the development of additional GNU
 software.  GNU/Linux systems (variants of GNU, based on the kernel

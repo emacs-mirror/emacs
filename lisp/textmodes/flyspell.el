@@ -199,9 +199,9 @@ Ispell's ultimate default dictionary."
 
 (defcustom flyspell-check-tex-math-command nil
   "Non-nil means check even inside TeX math environment.
-TeX math environments are discovered by the TEXMATHP that implemented
-inside the texmathp.el Emacs package.  That package may be found at:
-http://strw.leidenuniv.nl/~dominik/Tools"
+TeX math environments are discovered by `texmathp', implemented
+inside AUCTeX package.  That package may be found at
+URL `http://www.gnu.org/software/auctex/'"
   :group 'flyspell
   :type 'boolean)
 
@@ -494,9 +494,9 @@ in your .emacs file.
   :keymap flyspell-mode-map
   :group 'flyspell
   (if flyspell-mode
-      (condition-case ()
+      (condition-case err
 	  (flyspell-mode-on)
-	(error (message "Enabling Flyspell mode gave an error")
+	(error (message "Error enabling Flyspell mode:\n%s" (cdr err))
 	       (flyspell-mode -1)))
     (flyspell-mode-off)))
 
@@ -2354,5 +2354,4 @@ This function is meant to be added to `flyspell-incorrect-hook'."
 
 (provide 'flyspell)
 
-;; arch-tag: 05d915b9-e9cf-44fb-9137-fc28f5eaab2a
 ;;; flyspell.el ends here

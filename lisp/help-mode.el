@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -254,6 +255,15 @@ The format is (FUNCTION ARGS...).")
   'help-function (lambda (file) (dired file))
   'help-echo (purecopy "mouse-2, RET: visit package directory"))
 
+(define-button-type 'help-theme-def
+  :supertype 'help-xref
+  'help-function 'find-file
+  'help-echo (purecopy "mouse-2, RET: visit theme file"))
+
+(define-button-type 'help-theme-edit
+  :supertype 'help-xref
+  'help-function 'customize-create-theme
+  'help-echo (purecopy "mouse-2, RET: edit this theme file"))
 
 ;;;###autoload
 (defun help-mode ()

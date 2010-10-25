@@ -1,10 +1,12 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
 ;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -906,15 +908,16 @@ Calls `suspend-emacs' if invoked from the controlling tty device,
      (t (suspend-emacs)))))
 
 (defun make-frame-names-alist ()
+  ;; Only consider the frames on the same display.
   (let* ((current-frame (selected-frame))
 	 (falist
 	  (cons
 	   (cons (frame-parameter current-frame 'name) current-frame) nil))
-	 (frame (next-frame nil t)))
+	 (frame (next-frame nil 0)))
     (while (not (eq frame current-frame))
       (progn
-	(setq falist (cons (cons (frame-parameter frame 'name) frame) falist))
-	(setq frame (next-frame frame t))))
+	(push (cons (frame-parameter frame 'name) frame) falist)
+	(setq frame (next-frame frame 0))))
     falist))
 
 (defvar frame-name-history nil)
@@ -1064,7 +1067,7 @@ See `modify-frame-parameters'."
   "Set the background color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current background color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Background color: ")))
+  (interactive (list (read-color "Background color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'background-color color-name)))
   (or window-system
@@ -1074,7 +1077,7 @@ To get the frame's current background color, use `frame-parameters'."
   "Set the foreground color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current foreground color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Foreground color: ")))
+  (interactive (list (read-color "Foreground color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'foreground-color color-name)))
   (or window-system
@@ -1084,7 +1087,7 @@ To get the frame's current foreground color, use `frame-parameters'."
   "Set the text cursor color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current cursor color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Cursor color: ")))
+  (interactive (list (read-color "Cursor color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'cursor-color color-name))))
 
@@ -1092,7 +1095,7 @@ To get the frame's current cursor color, use `frame-parameters'."
   "Set the color of the mouse pointer of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current mouse color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Mouse color: ")))
+  (interactive (list (read-color "Mouse color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'mouse-color
 				       (or color-name
@@ -1103,7 +1106,7 @@ To get the frame's current mouse color, use `frame-parameters'."
   "Set the color of the border of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current border color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Border color: ")))
+  (interactive (list (read-color "Border color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'border-color color-name))))
 
@@ -1209,8 +1212,7 @@ frame's display)."
 (defun display-selections-p (&optional display)
   "Return non-nil if DISPLAY supports selections.
 A selection is a way to transfer text or other data between programs
-via special system buffers called `selection' or `cut buffer' or
-`clipboard'.
+via special system buffers called `selection' or `clipboard'.
 DISPLAY can be a display name, a frame, or nil (meaning the selected
 frame's display)."
   (let ((frame-type (framep-on-display display)))
@@ -1431,23 +1433,6 @@ In the 3rd, 4th, and 6th examples, the returned value is relative to
 the opposite frame edge from the edge indicated in the input spec."
   (cons (car spec) (frame-geom-value-cons (car spec) (cdr spec))))
 
-;;;; Aliases for backward compatibility with Emacs 18.
-(define-obsolete-function-alias 'screen-height 'frame-height "19.7")
-(define-obsolete-function-alias 'screen-width 'frame-width "19.7")
-
-(defun set-screen-width (cols &optional pretend)
-  "Change the size of the screen to COLS columns.
-Optional second arg non-nil means that redisplay should use COLS columns
-but that the idea of the actual width of the frame should not be changed.
-This function is provided only for compatibility with Emacs 18."
-  (set-frame-width (selected-frame) cols pretend))
-
-(defun set-screen-height (lines &optional pretend)
-  "Change the height of the screen to LINES lines.
-Optional second arg non-nil means that redisplay should use LINES lines
-but that the idea of the actual height of the screen should not be changed.
-This function is provided only for compatibility with Emacs 18."
-  (set-frame-height (selected-frame) lines pretend))
 
 (defun delete-other-frames (&optional frame)
   "Delete all frames except FRAME.
@@ -1473,9 +1458,6 @@ left untouched.  FRAME nil or omitted means use the selected frame."
       (when (eq (frame-parameter frame 'minibuffer) 'only)
 	(delete-frame frame)))))
 
-(make-obsolete 'set-screen-width 'set-frame-width "19.7")
-(make-obsolete 'set-screen-height 'set-frame-height "19.7")
-
 ;; miscellaneous obsolescence declarations
 (define-obsolete-variable-alias 'delete-frame-hook
     'delete-frame-functions "22.1")
@@ -1485,14 +1467,6 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 
 (make-variable-buffer-local 'show-trailing-whitespace)
 
-(defcustom show-trailing-whitespace nil
-  "Non-nil means highlight trailing whitespace.
-This is done in the face `trailing-whitespace'."
-  :type 'boolean
-  :safe 'booleanp
-  :group 'whitespace-faces)
-
-
 
 ;; Scrolling
 
@@ -1501,13 +1475,6 @@ This is done in the face `trailing-whitespace'."
   :version "21.1"
   :group 'frames)
 
-(defcustom auto-hscroll-mode t
-  "Allow or disallow automatic scrolling windows horizontally.
-If non-nil, windows are automatically scrolled horizontally to make
-point visible."
-  :version "21.1"
-  :type 'boolean
-  :group 'scrolling)
 (defvaralias 'automatic-hscrolling 'auto-hscroll-mode)
 
 
@@ -1594,35 +1561,6 @@ cursor display.  On a text-only terminal, this is not implemented."
                                'blink-cursor-start))))
 
 (define-obsolete-variable-alias 'blink-cursor 'blink-cursor-mode "22.1")
-
-;; Hourglass pointer
-
-(defcustom display-hourglass t
-  "Non-nil means show an hourglass pointer, when Emacs is busy.
-This feature only works when on a window system that can change
-cursor shapes."
-  :type 'boolean
-  :group 'cursor)
-
-(defcustom hourglass-delay 1
-  "Seconds to wait before displaying an hourglass pointer when Emacs is busy."
-  :type 'number
-  :group 'cursor)
-
-
-(defcustom cursor-in-non-selected-windows t
-  "Non-nil means show a hollow box cursor in non-selected windows.
-If nil, don't show a cursor except in the selected window.
-If t, display a cursor related to the usual cursor type
- \(a solid box becomes hollow, a bar becomes a narrower bar).
-You can also specify the cursor type as in the `cursor-type' variable.
-Use Custom to set this variable to get the display updated."
-  :tag "Cursor In Non-selected Windows"
-  :type 'boolean
-  :group 'cursor
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (force-mode-line-update t)))
 
 
 ;;;; Key bindings
@@ -1634,5 +1572,4 @@ Use Custom to set this variable to get the display updated."
 
 (provide 'frame)
 
-;; arch-tag: 82979c70-b8f2-4306-b2ad-ddbd6b328b56
 ;;; frame.el ends here

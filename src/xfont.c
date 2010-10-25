@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <setjmp.h>
 #include <X11/Xlib.h>
 
@@ -154,8 +153,6 @@ struct font_driver xfont_driver =
     NULL, /* filter_properties */
   };
 
-extern Lisp_Object QCname;
-
 static Lisp_Object
 xfont_get_cache (FRAME_PTR f)
 {
@@ -163,8 +160,6 @@ xfont_get_cache (FRAME_PTR f)
 
   return (dpyinfo->name_list_element);
 }
-
-extern Lisp_Object Vface_alternative_font_registry_alist;
 
 static int
 compare_font_names (const void *name1, const void *name2)
@@ -289,8 +284,6 @@ static Lisp_Object xfont_scripts_cache;
 /* Re-usable vector to store characteristic font properites.   */
 static Lisp_Object xfont_scratch_props;
 
-extern Lisp_Object Qlatin;
-
 /* Return a list of scripts supported by the font of FONTNAME whose
    characteristic properties are in PROPS and whose encoding charset
    is ENCODING.  A caller must call BLOCK_INPUT in advance.  */
@@ -339,10 +332,8 @@ xfont_supported_scripts (Display *display, char *fontname, Lisp_Object props,
   return scripts;
 }
 
-extern Lisp_Object Vscalable_fonts_allowed;
-
 static Lisp_Object
-xfont_list_pattern (Display *display, char *pattern,
+xfont_list_pattern (Display *display, const char *pattern,
 		    Lisp_Object registry, Lisp_Object script)
 {
   Lisp_Object list = Qnil;
@@ -687,8 +678,6 @@ xfont_list_family (Lisp_Object frame)
   return list;
 }
 
-extern Lisp_Object QCavgwidth;
-
 static Lisp_Object
 xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 {
@@ -852,7 +841,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 
       val = Ffont_get (font_object, QCavgwidth);
       if (INTEGERP (val))
-	font->average_width = XINT (val);
+	font->average_width = XINT (val) / 10;
       if (font->average_width < 0)
 	font->average_width = - font->average_width;
       if (font->average_width == 0

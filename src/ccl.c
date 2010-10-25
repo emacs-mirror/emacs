@@ -448,7 +448,7 @@ Lisp_Object Vtranslation_hash_table_vector;
    Therefore, the instruction code range is 0..16384(0x3fff).
  */
 
-/* Read a multibyte characeter.
+/* Read a multibyte character.
    A code point is stored into reg[rrr].  A charset ID is stored into
    reg[RRR].  */
 
@@ -2044,7 +2044,7 @@ If R0..R7 are nil, they are initialized to 0.
 If IC is nil, it is initialized to head of the CCL program.
 
 If optional 4th arg CONTINUE is non-nil, keep IC on read operation
-when read buffer is exausted, else, IC is always set to the end of
+when read buffer is exhausted, else, IC is always set to the end of
 CCL-PROGRAM on exit.
 
 It returns the contents of write buffer as a string,
@@ -2061,10 +2061,10 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
   int i;
   int outbufsize;
   unsigned char *outbuf, *outp;
-  int str_chars, str_bytes;
+  EMACS_INT str_chars, str_bytes;
 #define CCL_EXECUTE_BUF_SIZE 1024
   int source[CCL_EXECUTE_BUF_SIZE], destination[CCL_EXECUTE_BUF_SIZE];
-  int consumed_chars, consumed_bytes, produced_chars;
+  EMACS_INT consumed_chars, consumed_bytes, produced_chars;
 
   if (setup_ccl_program (&ccl, ccl_prog) < 0)
     error ("Invalid CCL program");
@@ -2128,7 +2128,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	      if (outp - outbuf + MAX_MULTIBYTE_LENGTH * ccl.produced
 		  > outbufsize)
 		{
-		  int offset = outp - outbuf;
+		  EMACS_INT offset = outp - outbuf;
 		  outbufsize += MAX_MULTIBYTE_LENGTH * ccl.produced;
 		  outbuf = (unsigned char *) xrealloc (outbuf, outbufsize);
 		  outp = outbuf + offset;
@@ -2140,7 +2140,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	    {
 	      if (outp - outbuf + ccl.produced > outbufsize)
 		{
-		  int offset = outp - outbuf;
+		  EMACS_INT offset = outp - outbuf;
 		  outbufsize += ccl.produced;
 		  outbuf = (unsigned char *) xrealloc (outbuf, outbufsize);
 		  outp = outbuf + offset;

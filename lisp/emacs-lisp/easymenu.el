@@ -5,6 +5,7 @@
 
 ;; Keywords: emulations
 ;; Author: Richard Stallman <rms@gnu.org>
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -42,8 +43,6 @@ menus, turn this variable off, otherwise it is probably better to keep it on.")
 (defsubst easy-menu-intern (s)
   (if (stringp s) (intern s) s))
 
-;;;###autoload
-(put 'easy-menu-define 'lisp-indent-function 'defun)
 ;;;###autoload
 (defmacro easy-menu-define (symbol maps doc menu)
   "Define a menu bar submenu in maps MAPS, according to MENU.
@@ -150,6 +149,7 @@ unselectable text.  A string consisting solely of hyphens is displayed
 as a solid horizontal line.
 
 A menu item can be a list with the same format as MENU.  This is a submenu."
+  (declare (indent defun))
   `(progn
      ,(if symbol `(defvar ,symbol nil ,doc))
      (easy-menu-do-define (quote ,symbol) ,maps ,doc ,menu)))

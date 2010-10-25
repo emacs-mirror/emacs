@@ -735,23 +735,21 @@ VALUES may contain values for editable fields from current article."
 
 ;;;; Major mode for editing/deleting/saving searches
 
-(defvar mairix-searches-mode-map nil "'mairix-searches-mode' keymap.")
-
-;; Keymap
-(if (not mairix-searches-mode-map)
-    (let ((map (make-keymap)))
-      (define-key map [(return)] 'mairix-select-search)
-      (define-key map [(down)] 'mairix-next-search)
-      (define-key map [(up)] 'mairix-previous-search)
-      (define-key map [(right)] 'mairix-next-search)
-      (define-key map [(left)] 'mairix-previous-search)
-      (define-key map "\C-p" 'mairix-previous-search)
-      (define-key map "\C-n" 'mairix-next-search)
-      (define-key map [(q)] 'mairix-select-quit)
-      (define-key map [(e)] 'mairix-select-edit)
-      (define-key map [(d)] 'mairix-select-delete)
-      (define-key map [(s)] 'mairix-select-save)
-      (setq mairix-searches-mode-map map)))
+(defvar mairix-searches-mode-map
+  (let ((map (make-keymap)))
+    (define-key map [(return)] 'mairix-select-search)
+    (define-key map [(down)] 'mairix-next-search)
+    (define-key map [(up)] 'mairix-previous-search)
+    (define-key map [(right)] 'mairix-next-search)
+    (define-key map [(left)] 'mairix-previous-search)
+    (define-key map "\C-p" 'mairix-previous-search)
+    (define-key map "\C-n" 'mairix-next-search)
+    (define-key map [(q)] 'mairix-select-quit)
+    (define-key map [(e)] 'mairix-select-edit)
+    (define-key map [(d)] 'mairix-select-delete)
+    (define-key map [(s)] 'mairix-select-save)
+    map)
+  "'mairix-searches-mode' keymap.")
 
 (defvar mairix-searches-mode-font-lock-keywords)
 

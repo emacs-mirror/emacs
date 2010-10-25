@@ -1,3 +1,38 @@
+2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.el (org-refile-targets):
+	* org-agenda.el (org-agenda-hide-tags-regexp): Fix typos in docstrings.
+
+2010-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* org.el (org-outline-overlay-data, org-set-outline-overlay-data)
+	(org-save-outline-visibility): Move to org-macs.
+	* org-macs.el (org-outline-overlay-data, org-set-outline-overlay-data)
+	(org-save-outline-visibility): Move here from org.el.
+	(show-all): Autoload it.
+	* ob.el: Don't require org when compiling.
+
+2010-08-18  Glenn Morris  <rgm@gnu.org>
+
+	* ob.el: Require org when compiling.
+	(org-save-outline-visibility): Remove macro declaration.
+	* ob-emacs-lisp.el: Require ob-comint when compiling, for macros.
+	Remove unnecessary/macro declarations.
+	* org-docview.el: Require doc-view when compiling.
+	(doc-view-goto-page): Autoload rather than declaring.
+	(doc-view-current-page): Remove macro declaration.
+
+2010-08-17  Glenn Morris  <rgm@gnu.org>
+
+	* ob.el (tramp-compat-make-temp-file, org-edit-src-code)
+	(org-entry-get, org-table-import): Fix declarations.
+	(org-match-string-no-properties): Remove unnecessary declaration.
+	* ob-sh.el (org-babel-comint-in-buffer)
+	(org-babel-comint-wait-for-output, org-babel-comint-buffer-livep)
+	(org-babel-comint-with-output): Remove unnecessary declarations.
+	* ob-R.el (orgtbl-to-tsv): Fix declaration.
+	* org-list.el (org-entry-get): Fix declaration.
+
 2010-07-19  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob-C.el: New file.
@@ -338,7 +373,7 @@
 
 2010-07-19  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.el (org-confirm-shell-link-function):
+	* org.el (org-confirm-shell-link-function)
 	(org-confirm-elisp-link-function): Limit the values that can be set by
 	file variables.
 
@@ -356,8 +391,7 @@
 	* org-capture.el (org-capture-position-for-last-stored)
 	(org-capture-bookmark-last-stored-position): New functions.
 	(org-capture-place-table-line): Better error catching.
-	(org-capture-place-item):
-	(org-capture-place-entry):
+	(org-capture-place-item, org-capture-place-entry)
 	(org-capture-place-plain-text): Call
 	`org-capture-position-for-last-stored'.
 	(org-capture-finalize): Just call
@@ -414,7 +448,7 @@
 	* org-macs.el (org-not-nil): Return the value if not interpreted
 	as nil.
 
-	* org.el (org-entry-get):
+	* org.el (org-entry-get)
 	(org-entry-get-with-inheritance): Interpret the value "nil"
 	as nil for properties.
 
@@ -446,9 +480,7 @@
 	* org.el (org-timestamp-change): New optional argument UPDOWN.
 	Use this to identify calls from org-timestamp-up/down, so that we can
 	skip by rounding minutes in this case.
-	(org-timestamp-up):
-	(org-timestamp-down):
-	(org-timestamp-up-day):
+	(org-timestamp-up, org-timestamp-down, org-timestamp-up-day)
 	(org-timestamp-down-day): Call org-timestamp-change with the
 	updown argument.
 
@@ -511,7 +543,7 @@
 
 2010-07-19  Bastien Guerry  <bzg@altern.org>
 
-	* org-agenda.el (org-agenda-get-deadlines):
+	* org-agenda.el (org-agenda-get-deadlines)
 	(org-agenda-get-scheduled):
 	* org.el (org-time-string-to-seconds):
 	For deadline and scheduled agenda display ignore the cyclic repeater
@@ -1133,7 +1165,7 @@
 	(org-agenda-bulk-remove-overlays): Use the normal overlay API.
 
 	* org-freemind.el (org-freemind-from-org-mode-node)
-	(org-freemind-from-org-mode, )
+	(org-freemind-from-org-mode)
 	(org-freemind-from-org-sparse-tree, org-freemind-to-org-mode): Use
 	interactive-p instead of called-interactively, because this is
 	backward compatible with older Emacsen I still support..
@@ -2586,7 +2618,7 @@
 2010-02-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* org-freemind.el (org-freemind-from-org-mode-node)
-	(org-freemind-from-org-mode, )
+	(org-freemind-from-org-mode)
 	(org-freemind-from-org-sparse-tree, org-freemind-to-org-mode):
 	Pass arg to called-interactively-p.
 
@@ -5029,8 +5061,8 @@
 	* org.el (org-global-properties-fixed): Add default for
 	CLOCK_MODELINE_TOTAL.
 
-	* org-clock.el (org-clock-sum): Accept lists and strigs as tstart
-	andd tend.
+	* org-clock.el (org-clock-sum): Accept lists and strings as tstart
+	and tend.
 	(org-clock-sum-current-item): Optional argument TSTART, pass it to
 	org-clock-sum.
 	(org-clock-get-sum-start): New function.
@@ -7766,7 +7798,7 @@
 
 2008-10-26  James TD Smith  <ahktenzero@mohorovi.cc>
 
-	* org.el (org-add-log-setup): Only skip drawers if the are
+	* org.el (org-add-log-setup): Only skip drawers if they are
 	immediately after the scheduling keywords.
 
 	* org-clock.el (org-clock-in-switch-to-state): Allow this to be a
@@ -7994,7 +8026,7 @@
 	set-text-properties to remove text properties from the clipboard
 	value.
 
-	* lisp/org-clock.el (org-update-mode-line): Support limiting the
+	* org-clock.el (org-update-mode-line): Support limiting the
 	modeline clock string, and display the full todo value in the
 	tooltip.  Set a local keymap so mouse-3 on the clock string goes to
 	the currently clocked task.

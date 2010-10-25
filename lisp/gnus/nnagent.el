@@ -121,7 +121,7 @@
 (deffoo nnagent-request-set-mark (group action server)
   (mm-with-unibyte-buffer
     (insert "(gnus-agent-synchronize-group-flags \""
-	    group 
+	    group
 	    "\" '")
     (gnus-pp action)
     (insert " \""
@@ -151,7 +151,7 @@
       ;; Assume that articles with smaller numbers than the first one
       ;; Agent knows are gone.
       (setq first (caar gnus-agent-article-alist))
-      (when first 
+      (when first
 	(while (and arts (< (car arts) first))
 	  (pop arts)))
       (set-buffer nntp-server-buffer)
@@ -190,9 +190,9 @@
 (deffoo nnagent-request-expire-articles (articles group &optional server force)
   articles)
 
-(deffoo nnagent-request-group (group &optional server dont-check)
+(deffoo nnagent-request-group (group &optional server dont-check info)
   (nnoo-parent-function 'nnagent 'nnml-request-group
-			(list group (nnagent-server server) dont-check)))
+			(list group (nnagent-server server) dont-check info)))
 
 (deffoo nnagent-close-group (group &optional server)
   (nnoo-parent-function 'nnagent 'nnml-close-group
@@ -252,6 +252,9 @@
   (nnoo-parent-function 'nnagent 'nnml-request-regenerate
 			(list (nnagent-server server))))
 
+(deffoo nnagent-retrieve-group-data-early (server infos)
+  nil)
+
 ;; Use nnml functions for just about everything.
 (nnoo-import nnagent
   (nnml))
@@ -261,5 +264,4 @@
 
 (provide 'nnagent)
 
-;; arch-tag: af710b77-f816-4969-af31-6fd94fb42245
 ;;; nnagent.el ends here

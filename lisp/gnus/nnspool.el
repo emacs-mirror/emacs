@@ -109,8 +109,7 @@ there.")
 
 (deffoo nnspool-retrieve-headers (articles &optional group server fetch-old)
   "Retrieve the headers of ARTICLES."
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (when (nnspool-possibly-change-directory group)
       (let* ((number (length articles))
@@ -209,8 +208,7 @@ there.")
   (nnspool-possibly-change-directory group)
   (let ((res (nnspool-request-article id)))
     (when res
-      (save-excursion
-	(set-buffer nntp-server-buffer)
+      (with-current-buffer nntp-server-buffer
 	(goto-char (point-min))
 	(when (search-forward "\n\n" nil t)
 	  (delete-region (point-min) (point)))
@@ -221,15 +219,14 @@ there.")
   (nnspool-possibly-change-directory group)
   (let ((res (nnspool-request-article id)))
     (when res
-      (save-excursion
-	(set-buffer nntp-server-buffer)
+      (with-current-buffer nntp-server-buffer
 	(goto-char (point-min))
 	(when (search-forward "\n\n" nil t)
 	  (delete-region (1- (point)) (point-max)))
 	(nnheader-fold-continuation-lines)))
     res))
 
-(deffoo nnspool-request-group (group &optional server dont-check)
+(deffoo nnspool-request-group (group &optional server dont-check info)
   "Select news GROUP."
   (let ((pathname (nnspool-article-pathname group))
 	dir)
@@ -343,8 +340,7 @@ there.")
 ;;; Internal functions.
 
 (defun nnspool-inews-sentinel (proc status)
-  (save-excursion
-    (set-buffer (process-buffer proc))
+  (with-current-buffer (process-buffer proc)
     (goto-char (point-min))
     (if (or (zerop (buffer-size))
 	    (search-forward "spooled" nil t))
@@ -367,8 +363,7 @@ there.")
 	  last)
       (if (not (file-exists-p nov))
 	  ()
-	(save-excursion
-	  (set-buffer nntp-server-buffer)
+	(with-current-buffer nntp-server-buffer
 	  (erase-buffer)
 	  (if nnspool-sift-nov-with-sed
 	      (nnspool-sift-nov-with-sed articles nov)
@@ -458,5 +453,4 @@ there.")
 
 (provide 'nnspool)
 
-;; arch-tag: bdac8d27-2934-4eee-bad0-49e6b90c0d05
 ;;; nnspool.el ends here

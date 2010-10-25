@@ -34,7 +34,6 @@
 
 ;; - do something about the case where the syntax-table is changed.
 ;;   This typically happens with tex-mode and its `$' operator.
-;; - move font-lock-syntactic-keywords in here.  Then again, maybe not.
 ;; - new functions `syntax-state', ... to replace uses of parse-partial-state
 ;;   with something higher-level (similar to syntax-ppss-context).
 ;; - interaction with mmm-mode.
@@ -47,12 +46,287 @@
 
 (defvar font-lock-beginning-of-syntax-function)
 
+;;; Applying syntax-table properties where needed.
+
+(defvar syntax-propertize-function nil
+  ;; Rather than a -functions hook, this is a -function because it's easier
+  ;; to do a single scan than several scans: with multiple scans, one cannot
+  ;; assume that the text before point has been propertized, so syntax-ppss
+  ;; gives unreliable results (and stores them in its cache to boot, so we'd
+  ;; have to flush that cache between each function, and we couldn't use
+  ;; syntax-ppss-flush-cache since that would not only flush the cache but also
+  ;; reset syntax-propertize--done which should not be done in this case).
+  "Mode-specific function to apply the syntax-table properties.
+Called with 2 arguments: START and END.
+This function can call `syntax-ppss' on any position before END, but it
+should not call `syntax-ppss-flush-cache', which means that it should not
+call `syntax-ppss' on some position and later modify the buffer on some
+earlier position.")
+
+(defvar syntax-propertize-chunk-size 500)
+
+(defvar syntax-propertize-extend-region-functions
+  '(syntax-propertize-wholelines)
+  "Special hook run just before proceeding to propertize a region.
+This is used to allow major modes to help `syntax-propertize' find safe buffer
+positions as beginning and end of the propertized region.  Its most common use
+is to solve the problem of /identification/ of multiline elements by providing
+a function that tries to find such elements and move the boundaries such that
+they do not fall in the middle of one.
+Each function is called with two arguments (START and END) and it should return
+either a cons (NEW-START . NEW-END) or nil if no adjustment should be made.
+These functions are run in turn repeatedly until they all return nil.
+Put first the functions more likely to cause a change and cheaper to compute.")
+;; Mark it as a special hook which doesn't use any global setting
+;; (i.e. doesn't obey the element t in the buffer-local value).
+(make-variable-buffer-local 'syntax-propertize-extend-region-functions)
+
+(defun syntax-propertize-wholelines (start end)
+  (goto-char start)
+  (cons (line-beginning-position)
+        (progn (goto-char end)
+               (if (bolp) (point) (line-beginning-position 2)))))
+
+(defun syntax-propertize-multiline (beg end)
+  "Let `syntax-propertize' pay attention to the syntax-multiline property."
+  (when (and (> beg (point-min))
+	     (get-text-property (1- beg) 'syntax-multiline))
+    (setq beg (or (previous-single-property-change beg 'syntax-multiline)
+		  (point-min))))
+  ;;
+  (when (get-text-property end 'font-lock-multiline)
+    (setq end (or (text-property-any end (point-max)
+				     'syntax-multiline nil)
+		  (point-max))))
+  (cons beg end))
+
+(defvar syntax-propertize--done -1
+  "Position upto which syntax-table properties have been set.")
+(make-variable-buffer-local 'syntax-propertize--done)
+
+(defun syntax-propertize--shift-groups (re n)
+  (replace-regexp-in-string
+   "\\\\(\\?\\([0-9]+\\):"
+   (lambda (s)
+     (replace-match
+      (number-to-string (+ n (string-to-number (match-string 1 s))))
+      t t s 1))
+   re t t))
+
+(defmacro syntax-propertize-precompile-rules (&rest rules)
+  "Return a precompiled form of RULES to pass to `syntax-propertize-rules'.
+The arg RULES can be of the same form as in `syntax-propertize-rules'.
+The return value is an object that can be passed as a rule to
+`syntax-propertize-rules'.
+I.e. this is useful only when you want to share rules among several
+syntax-propertize-functions."
+  (declare (debug syntax-propertize-rules))
+  ;; Precompile?  Yeah, right!
+  ;; Seriously, tho, this is a macro for 2 reasons:
+  ;; - we could indeed do some pre-compilation at some point in the future,
+  ;;   e.g. fi/when we switch to a DFA-based implementation of
+  ;;   syntax-propertize-rules.
+  ;; - this lets Edebug properly annotate the expressions inside RULES.
+  `',rules)
+
+(defmacro syntax-propertize-rules (&rest rules)
+  "Make a function that applies RULES for use in `syntax-propertize-function'.
+The function will scan the buffer, applying the rules where they match.
+The buffer is scanned a single time, like \"lex\" would, rather than once
+per rule.
+
+Each RULE can be a symbol, in which case that symbol's value should be,
+at macro-expansion time, a precompiled set of rules, as returned
+by `syntax-propertize-precompile-rules'.
+
+Otherwise, RULE should have the form (REGEXP HIGHLIGHT1 ... HIGHLIGHTn), where
+REGEXP is an expression (evaluated at time of macro-expansion) that returns
+a regexp, and where HIGHLIGHTs have the form (NUMBER SYNTAX) which means to
+apply the property SYNTAX to the chars matched by the subgroup NUMBER
+of the regular expression, if NUMBER did match.
+SYNTAX is an expression that returns a value to apply as `syntax-table'
+property.  Some expressions are handled specially:
+- if SYNTAX is a string, then it is converted with `string-to-syntax';
+- if SYNTAX has the form (prog1 EXP . EXPS) then the value returned by EXP
+  will be applied to the buffer before running EXPS and if EXP is a string it
+  is also converted with `string-to-syntax'.
+The SYNTAX expression is responsible to save the `match-data' if needed
+for subsequent HIGHLIGHTs.
+Also SYNTAX is free to move point, in which case RULES may not be applied to
+some parts of the text or may be applied several times to other parts.
+
+Note: back-references in REGEXPs do not work."
+  (declare (debug (&rest &or symbolp    ;FIXME: edebug this eval step.
+                         (form &rest
+                               (numberp
+                                [&or stringp ;FIXME: Use &wrap
+                                     ("prog1" [&or stringp def-form] def-body)
+                                     def-form])))))
+  (let ((newrules nil))
+    (while rules
+      (if (symbolp (car rules))
+          (setq rules (append (symbol-value (pop rules)) rules))
+        (push (pop rules) newrules)))
+    (setq rules (nreverse newrules)))
+  (let* ((offset 0)
+         (branches '())
+         ;; We'd like to use a real DFA-based lexer, usually, but since Emacs
+         ;; doesn't have one yet, we fallback on building one large regexp
+         ;; and use groups to determine which branch of the regexp matched.
+         (re
+          (mapconcat
+           (lambda (rule)
+             (let* ((orig-re (eval (car rule)))
+                    (re orig-re))
+               (when (and (assq 0 rule) (cdr rules))
+                 ;; If there's more than 1 rule, and the rule want to apply
+                 ;; highlight to match 0, create an extra group to be able to
+                 ;; tell when *this* match 0 has succeeded.
+                 (incf offset)
+                 (setq re (concat "\\(" re "\\)")))
+               (setq re (syntax-propertize--shift-groups re offset))
+               (let ((code '())
+                     (condition
+                      (cond
+                       ((assq 0 rule) (if (zerop offset) t
+                                        `(match-beginning ,offset)))
+                       ((null (cddr rule))
+                        `(match-beginning ,(+ offset (car (cadr rule)))))
+                       (t
+                        `(or ,@(mapcar
+                                (lambda (case)
+                                  `(match-beginning ,(+ offset (car case))))
+                                (cdr rule))))))
+                     (nocode t)
+                     (offset offset))
+                 ;; If some of the subgroup rules include Elisp code, then we
+                 ;; need to set the match-data so it's consistent with what the
+                 ;; code expects.  If not, then we can simply use shifted
+                 ;; offset in our own code.
+                 (unless (zerop offset)
+                   (dolist (case (cdr rule))
+                     (unless (stringp (cadr case))
+                       (setq nocode nil)))
+                   (unless nocode
+                     (push `(let ((md (match-data 'ints)))
+                              ;; Keep match 0 as is, but shift everything else.
+                              (setcdr (cdr md) (nthcdr ,(* (1+ offset) 2) md))
+                              (set-match-data md))
+                           code)
+                     (setq offset 0)))
+                 ;; Now construct the code for each subgroup rules.
+                 (dolist (case (cdr rule))
+                   (assert (null (cddr case)))
+                   (let* ((gn (+ offset (car case)))
+                          (action (nth 1 case))
+                          (thiscode
+                           (cond
+                            ((stringp action)
+                             `((put-text-property
+                                (match-beginning ,gn) (match-end ,gn)
+                                'syntax-table
+                                ',(string-to-syntax action))))
+                            ((eq (car-safe action) 'ignore)
+                             (cdr action))
+                            ((eq (car-safe action) 'prog1)
+                             (if (stringp (nth 1 action))
+                                 `((put-text-property
+                                    (match-beginning ,gn) (match-end ,gn)
+                                    'syntax-table
+                                    ',(string-to-syntax (nth 1 action)))
+                                   ,@(nthcdr 2 action))
+                               `((let ((mb (match-beginning ,gn))
+                                       (me (match-end ,gn))
+                                       (syntax ,(nth 1 action)))
+                                   (if syntax
+                                       (put-text-property
+                                        mb me 'syntax-table syntax))
+                                   ,@(nthcdr 2 action)))))
+                            (t
+                             `((let ((mb (match-beginning ,gn))
+                                     (me (match-end ,gn))
+                                     (syntax ,action))
+                                 (if syntax
+                                     (put-text-property
+                                      mb me 'syntax-table syntax))))))))
+                               
+                     (if (or (not (cddr rule)) (zerop gn))
+                         (setq code (nconc (nreverse thiscode) code))
+                       (push `(if (match-beginning ,gn)
+                                  ;; Try and generate clean code with no
+                                  ;; extraneous progn.
+                                  ,(if (null (cdr thiscode))
+                                       (car thiscode)
+                                     `(progn ,@thiscode)))
+                             code))))
+                 (push (cons condition (nreverse code))
+                       branches))
+               (incf offset (regexp-opt-depth orig-re))
+               re))
+           rules
+           "\\|")))
+    `(lambda (start end)
+       (goto-char start)
+       (while (and (< (point) end)
+                   (re-search-forward ,re end t))
+         (cond ,@(nreverse branches))))))
+
+(defun syntax-propertize-via-font-lock (keywords)
+  "Propertize for syntax in START..END using font-lock syntax.
+KEYWORDS obeys the format used in `font-lock-syntactic-keywords'.
+The return value is a function suitable for `syntax-propertize-function'."
+  (lexical-let ((keywords keywords))
+    (lambda (start end)
+      (with-no-warnings
+        (let ((font-lock-syntactic-keywords keywords))
+          (font-lock-fontify-syntactic-keywords-region start end)
+          ;; In case it was eval'd/compiled.
+          (setq keywords font-lock-syntactic-keywords))))))
+
+(defun syntax-propertize (pos)
+  "Ensure that syntax-table properties are set upto POS."
+  (when (and syntax-propertize-function
+             (< syntax-propertize--done pos))
+    ;; (message "Needs to syntax-propertize from %s to %s"
+    ;;          syntax-propertize--done pos)
+    (set (make-local-variable 'parse-sexp-lookup-properties) t)
+    (save-excursion
+      (with-silent-modifications
+        (let* ((start (max syntax-propertize--done (point-min)))
+               (end (max pos
+                         (min (point-max)
+                              (+ start syntax-propertize-chunk-size))))
+               (funs syntax-propertize-extend-region-functions))
+          (while funs
+            (let ((new (funcall (pop funs) start end)))
+              (if (or (null new)
+                      (and (>= (car new) start) (<= (cdr new) end)))
+                  nil
+                (setq start (car new))
+                (setq end (cdr new))
+                ;; If there's been a change, we should go through the
+                ;; list again since this new position may
+                ;; warrant a different answer from one of the funs we've
+                ;; already seen.
+                (unless (eq funs
+                            (cdr syntax-propertize-extend-region-functions))
+                  (setq funs syntax-propertize-extend-region-functions)))))
+          ;; Move the limit before calling the function, so the function
+          ;; can use syntax-ppss.
+          (setq syntax-propertize--done end)
+          ;; (message "syntax-propertizing from %s to %s" start end)
+          (remove-text-properties start end
+                                  '(syntax-table nil syntax-multiline nil))
+          (funcall syntax-propertize-function start end))))))
+
+;;; Incrementally compute and memoize parser state.
+
 (defsubst syntax-ppss-depth (ppss)
   (nth 0 ppss))
 
 (defun syntax-ppss-toplevel-pos (ppss)
   "Get the latest syntactically outermost position found in a syntactic scan.
-PPSS is a scan state, as returned by `partial-parse-sexp' or `syntax-ppss'.
+PPSS is a scan state, as returned by `parse-partial-sexp' or `syntax-ppss'.
 An \"outermost position\" means one that it is outside of any syntactic entity:
 outside of any parentheses, comments, or strings encountered in the scan.
 If no such position is recorded in PPSS (because the end of the scan was
@@ -92,6 +366,8 @@ point (where the PPSS is equivalent to nil).")
 (defalias 'syntax-ppss-after-change-function 'syntax-ppss-flush-cache)
 (defun syntax-ppss-flush-cache (beg &rest ignored)
   "Flush the cache of `syntax-ppss' starting at position BEG."
+  ;; Set syntax-propertize to refontify anything past beg.
+  (setq syntax-propertize--done (min beg syntax-propertize--done))
   ;; Flush invalid cache entries.
   (while (and syntax-ppss-cache (> (caar syntax-ppss-cache) beg))
     (setq syntax-ppss-cache (cdr syntax-ppss-cache)))
@@ -128,6 +404,7 @@ the 2nd and 6th values of the returned state cannot be relied upon.
 Point is at POS when this function returns."
   ;; Default values.
   (unless pos (setq pos (point)))
+  (syntax-propertize pos)
   ;;
   (let ((old-ppss (cdr syntax-ppss-last))
 	(old-pos (car syntax-ppss-last))
@@ -209,7 +486,8 @@ Point is at POS when this function returns."
 				(funcall syntax-begin-function)
 				;; Make sure it's better.
 				(> (point) pt-best))
-			 ;; Simple sanity check.
+			 ;; Simple sanity checks.
+                         (< (point) pos) ; backward-paragraph can fail here.
 			 (not (memq (get-text-property (point) 'face)
 				    '(font-lock-string-face font-lock-doc-face
 				      font-lock-comment-face))))

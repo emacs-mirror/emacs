@@ -460,7 +460,7 @@ installed locations, with `make install'.  By default, Emacs's files
 are installed in the following directories:
 
 `/usr/local/bin' holds the executable programs users normally run -
-		`emacs', `etags', `ctags', `b2m', `emacsclient',
+		`emacs', `etags', `ctags', `emacsclient',
 		`grep-changelog', and `rcs-checkin'.
 
 `/usr/local/share/emacs/VERSION/lisp' holds the Emacs Lisp library;
@@ -676,8 +676,7 @@ the following steps.
 the paths to the values specified in `./Makefile'.
 
 2) Go to directory `./lib-src' and run `make'.  This creates
-executables named `ctags' and `etags' and `make-docfile' and
-`digest-doc' and `test-distrib'.  And others.
+executables named `etags', `make-docfile', and others.
 
 3) Go to directory `./src' and run `make'.  This refers to files in
 the `./lisp' and `./lib-src' subdirectories using names `../lisp' and
@@ -705,12 +704,10 @@ in `./lib-src' to their final destinations, as selected in `./src/epaths.h'.
 Strictly speaking, not all of the executables in `./lib-src' need be copied.
 - The programs `fakemail', `hexl', `movemail', `profile', `rcs2log',
     and `vcdiff' are used by Emacs; they do need to be copied.
-- The programs `etags', `ctags', `emacsclient', `b2m', and `rcs-checkin'
+- The programs `etags', `ctags', `emacsclient', and `rcs-checkin'
     are intended to be run by users; they are handled below.
 - The programs `make-docfile' and `test-distrib' were
     used in building Emacs, and are not needed any more.
-- The programs `digest-doc' and `sorted-doc' convert a `DOC' file into
-    a file for users to read.  There is no important reason to move them.
 
 2) Copy the files in `./info' to the place specified in
 `./lisp/site-init.el' or `./lisp/paths.el'.  Note that if the
@@ -727,9 +724,9 @@ of installing different versions.
 
 You can delete `./src/temacs'.
 
-4) Copy the programs `b2m', `emacsclient', `ctags', `etags', and
-`rcs-checkin' from `./lib-src' to `/usr/local/bin'.  These programs are
-intended for users to run.
+4) Copy the programs `emacsclient', `ctags', `etags', and `rcs-checkin'
+from `./lib-src' to `/usr/local/bin'.  These programs are intended for
+users to run.
 
 5) Copy the man pages in `./doc/man' into the appropriate man directory.
 

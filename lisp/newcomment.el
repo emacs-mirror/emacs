@@ -6,6 +6,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: comment uncomment
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -318,7 +319,8 @@ the variables are properly set."
 		   "+\\)[ \t]*")))
     (unless (and comment-end-skip
 		 ;; In case comment-end has changed since last time.
-		 (string-match comment-end-skip comment-end))
+		 (string-match comment-end-skip
+                               (if (string= "" comment-end) "\n" comment-end)))
       (let ((ce (if (string= "" comment-end) "\n"
 		  (comment-string-strip comment-end t t))))
 	(set (make-local-variable 'comment-end-skip)
@@ -945,12 +947,12 @@ indentation to be kept as it was before narrowing."
 		   (delete-char n)
 		   (setq ,bindent (- ,bindent n)))))))))))
 
-;; Compute the number of extra comment starter characters
-;; (extra semicolons in Lisp mode, extra stars in C mode, etc.)
-;; If ARG is non-nil, just follow ARG.
-;; If the comment-starter is multi-char, just follow ARG.
-;; Otherwise obey comment-add, and double it if EXTRA is non-nil.
 (defun comment-add (arg)
+  "Compute the number of extra comment starter characters
+\(extra semicolons in Lisp mode, extra stars in C mode, etc.)
+If ARG is non-nil, just follow ARG.
+If the comment starter is multi-char, just follow ARG.
+Otherwise obey `comment-add'."
   (if (and (null arg) (= (string-match "[ \t]*\\'" comment-start) 1))
       (* comment-add 1)
     (1- (prefix-numeric-value arg))))
@@ -1162,8 +1164,8 @@ is passed on to the respective function."
 (defun comment-dwim (arg)
   "Call the comment command you want (Do What I Mean).
 If the region is active and `transient-mark-mode' is on, call
-  `comment-region' (unless it only consists of comments, in which
-  case it calls `uncomment-region').
+`comment-region' (unless it only consists of comments, in which
+case it calls `uncomment-region').
 Else, if the current line is empty, call `comment-insert-comment-function'
 if it is defined, otherwise insert a comment and indent it.
 Else if a prefix ARG is specified, call `comment-kill'.

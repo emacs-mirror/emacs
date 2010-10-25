@@ -172,7 +172,17 @@ your primary spool is.  If this fails, set it to something like
 (defvar mspools-buffer "*spools*"
   "Name of buffer for displaying spool info.")
 
-(defvar mspools-mode-map nil
+(defvar mspools-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'mspools-visit-spool)
+    (define-key map "\C-m" 'mspools-visit-spool)
+    (define-key map " " 'mspools-visit-spool)
+    (define-key map "?" 'mspools-help)
+    (define-key map "q" 'mspools-quit)
+    (define-key map "n" 'next-line)
+    (define-key map "p" 'previous-line)
+    (define-key map "g" 'revert-buffer)
+    map)
   "Keymap for the *spools* buffer.")
 
 ;;; Code
@@ -319,21 +329,6 @@ Buffer is not displayed if SHOW is non-nil."
 				     (point))
 				   ))))
     (car (nth line-num mspools-files))))
-
-;;; Keymap
-
-(if mspools-mode-map
-    ()
-  (setq mspools-mode-map (make-sparse-keymap))
-
-  (define-key mspools-mode-map "\C-c\C-c" 'mspools-visit-spool)
-  (define-key mspools-mode-map "\C-m" 'mspools-visit-spool)
-  (define-key mspools-mode-map " " 'mspools-visit-spool)
-  (define-key mspools-mode-map "?" 'mspools-help)
-  (define-key mspools-mode-map "q" 'mspools-quit)
-  (define-key mspools-mode-map "n" 'next-line)
-  (define-key mspools-mode-map "p" 'previous-line)
-  (define-key mspools-mode-map "g" 'revert-buffer))
 
 ;;; Spools mode functions
 

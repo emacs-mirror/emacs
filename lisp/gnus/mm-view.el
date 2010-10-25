@@ -22,6 +22,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile (require 'cl))
@@ -31,6 +33,8 @@
 (require 'mm-decode)
 (require 'smime)
 
+(autoload 'gnus-completing-read "gnus-util")
+(autoload 'gnus-window-inside-pixel-edges "gnus-ems")
 (autoload 'gnus-article-prepare-display "gnus-art")
 (autoload 'vcard-parse-string "vcard")
 (autoload 'vcard-format-string "vcard")
@@ -46,33 +50,30 @@
 (defvar w3m-minor-mode-map)
 
 (defvar mm-text-html-renderer-alist
-  '((w3  . mm-inline-text-html-render-with-w3)
+  '((shr . mm-shr)
+    (w3 . mm-inline-text-html-render-with-w3)
     (w3m . mm-inline-text-html-render-with-w3m)
     (w3m-standalone . mm-inline-text-html-render-with-w3m-standalone)
+    (gnus-w3m . gnus-article-html)
     (links mm-inline-render-with-file
 	   mm-links-remove-leading-blank
 	   "links" "-dump" file)
-    (lynx  mm-inline-render-with-stdin nil
-	   "lynx" "-dump" "-force_html" "-stdin" "-nolist")
-    (html2text  mm-inline-render-with-function html2text))
+    (lynx mm-inline-render-with-stdin nil
+	  "lynx" "-dump" "-force_html" "-stdin" "-nolist")
+    (html2text mm-inline-render-with-function html2text))
   "The attributes of renderer types for text/html.")
-
-(defvar mm-text-html-washer-alist
-  '((w3  . gnus-article-wash-html-with-w3)
-    (w3m . gnus-article-wash-html-with-w3m)
-    (w3m-standalone . gnus-article-wash-html-with-w3m-standalone)
-    (links mm-inline-wash-with-file
-	   mm-links-remove-leading-blank
-	   "links" "-dump" file)
-    (lynx  mm-inline-wash-with-stdin nil
-	   "lynx" "-dump" "-force_html" "-stdin" "-nolist")
-    (html2text  html2text))
-  "The attributes of washer types for text/html.")
 
 (defcustom mm-fill-flowed t
   "If non-nil a format=flowed article will be displayed flowed."
   :type 'boolean
   :version "22.1"
+  :group 'mime-display)
+
+(defcustom mm-inline-large-images-proportion 0.9
+  "Maximum proportion of large image resized when
+`mm-inline-large-images' is set to resize."
+  :type 'float
+  :version "24.1"
   :group 'mime-display)
 
 ;;; Internal variables.
@@ -84,7 +85,18 @@
 (defun mm-inline-image-emacs (handle)
   (let ((b (point-marker))
 	(inhibit-read-only t))
-    (put-image (mm-get-image handle) b)
+    (put-image
+     (let ((image (mm-get-image handle)))
+       (if (eq mm-inline-large-images 'resize)
+           (gnus-rescale-image image
+                               (let ((edges (gnus-window-inside-pixel-edges
+                                             (get-buffer-window (current-buffer)))))
+                                 (cons (truncate (* mm-inline-large-images-proportion
+                                                    (- (nth 2 edges) (nth 0 edges))))
+                                       (truncate (* mm-inline-large-images-proportion
+                                                    (- (nth 3 edges) (nth 1 edges)))))))
+         image))
+     b)
     (insert "\n\n")
     (mm-handle-set-undisplayer
      handle
@@ -404,7 +416,7 @@
        (buffer-string)))))
 
 (defun mm-inline-text-html (handle)
-  (let* ((func (or mm-inline-text-html-renderer mm-text-html-renderer))
+  (let* ((func mm-text-html-renderer)
 	 (entry (assq func mm-text-html-renderer-alist))
 	 (inhibit-read-only t))
     (if entry
@@ -676,11 +688,9 @@
    (if (= (length smime-keys) 1)
        (cadar smime-keys)
      (smime-get-key-by-email
-      (completing-read
-       (concat "Decipher using key"
-	       (if smime-keys (concat "(default " (caar smime-keys) "): ")
-		 ": "))
-       smime-keys nil nil nil nil (car-safe (car-safe smime-keys))))))
+      (gnus-completing-read
+       "Decipher using key"
+       smime-keys nil nil nil (car-safe (car-safe smime-keys))))))
   (goto-char (point-min))
   (while (search-forward "\r\n" nil t)
     (replace-match "\n"))
@@ -688,5 +698,4 @@
 
 (provide 'mm-view)
 
-;; arch-tag: b60e749a-d05c-47f2-bccd-bdaa59327cb2
 ;;; mm-view.el ends here

@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -105,10 +105,8 @@
 	 ,disposition ,description ,cache ,id))
 
 (defcustom mm-text-html-renderer
-  (cond ((executable-find "w3m")
-	 (if (locate-library "w3m")
-	     'w3m
-	   'w3m-standalone))
+  (cond ((fboundp 'libxml-parse-html-region) 'shr)
+	((executable-find "w3m") 'gnus-w3m)
 	((executable-find "links") 'links)
 	((executable-find "lynx") 'lynx)
 	((locate-library "w3") 'w3)
@@ -117,6 +115,8 @@
   "Render of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:
+`shr': use Gnus simple HTML renderer;
+`gnus-w3m' : use Gnus renderer based on w3m;
 `w3m'  : use emacs-w3m;
 `w3m-standalone': use w3m;
 `links': use links;
@@ -124,9 +124,11 @@ The defined renderer types are:
 `w3'   : use Emacs/W3;
 `html2text' : use html2text;
 nil    : use external viewer (default web browser)."
-  :version "23.0" ;; No Gnus
-  :type '(choice (const w3)
-		 (const w3m :tag "emacs-w3m")
+  :version "24.1"
+  :type '(choice (const shr)
+                 (const gnus-w3m)
+                 (const w3)
+                 (const w3m :tag "emacs-w3m")
 		 (const w3m-standalone :tag "standalone w3m" )
 		 (const links)
 		 (const lynx)
@@ -134,10 +136,6 @@ nil    : use external viewer (default web browser)."
 		 (const nil :tag "External viewer")
 		 (function))
   :group 'mime-display)
-
-(defvar mm-inline-text-html-renderer nil
-  "Function used for rendering inline HTML contents.
-It is suggested to customize `mm-text-html-renderer' instead.")
 
 (defcustom mm-inline-text-html-with-images nil
   "If non-nil, Gnus will allow retrieving images in HTML contents with
@@ -243,8 +241,7 @@ before the external MIME handler is invoked."
     ("text/html"
      mm-inline-text-html
      (lambda (handle)
-       (or mm-inline-text-html-renderer
-	   mm-text-html-renderer)))
+       mm-text-html-renderer))
     ("text/x-vcard"
      mm-inline-text-vcard
      (lambda (handle)
@@ -369,8 +366,12 @@ enables you to choose manually one of two types those mails include."
   :group 'mime-display)
 
 (defcustom mm-inline-large-images nil
-  "If non-nil, then all images fit in the buffer."
-  :type 'boolean
+  "If t, then all images fit in the buffer.
+If 'resize, try to resize the images so they fit."
+  :type '(radio
+          (const :tag "Inline large images as they are." t)
+          (const :tag "Resize large images." resize)
+          (const :tag "Do not inline large images." nil))
   :group 'mime-display)
 
 (defcustom mm-file-name-rewrite-functions
@@ -1148,13 +1149,15 @@ in HANDLE."
   ;; time to adjust it, since we know at this point that it should
   ;; be unibyte.
   `(let* ((handle ,handle))
-     (with-temp-buffer
-       (mm-disable-multibyte)
-       (insert-buffer-substring (mm-handle-buffer handle))
-       (mm-decode-content-transfer-encoding
-	(mm-handle-encoding handle)
-	(mm-handle-media-type handle))
-       ,@forms)))
+     (when (and (mm-handle-buffer handle)
+		(buffer-name (mm-handle-buffer handle)))
+       (with-temp-buffer
+	 (mm-disable-multibyte)
+	 (insert-buffer-substring (mm-handle-buffer handle))
+	 (mm-decode-content-transfer-encoding
+	  (mm-handle-encoding handle)
+	  (mm-handle-media-type handle))
+	 ,@forms))))
 (put 'mm-with-part 'lisp-indent-function 1)
 (put 'mm-with-part 'edebug-form-spec '(body))
 
@@ -1247,9 +1250,15 @@ PROMPT overrides the default one used to ask user for a file name."
       (setq filename (gnus-map-function mm-file-name-rewrite-functions
 					(file-name-nondirectory filename))))
     (setq file
-          (read-file-name (or prompt "Save MIME part to: ")
+          (read-file-name (or prompt
+			      (format "Save MIME part to (default %s): "
+				      (or filename "")))
                           (or mm-default-directory default-directory)
-                          nil nil (or filename "")))
+			  (or filename "")))
+    (if (file-directory-p file)
+	(setq file (expand-file-name filename file))
+      (setq file (expand-file-name
+		  file (or mm-default-directory default-directory))))
     (setq mm-default-directory (file-name-directory file))
     (and (or (not (file-exists-p file))
 	     (yes-or-no-p (format "File %s already exists; overwrite? "
@@ -1318,11 +1327,11 @@ Use CMD as the process."
   "Display HANDLE using METHOD."
   (let* ((type (mm-handle-media-type handle))
 	 (methods
-	  (mapcar (lambda (i) (list (cdr (assoc 'viewer i))))
+	  (mapcar (lambda (i) (cdr (assoc 'viewer i)))
 		  (mailcap-mime-info type 'all)))
 	 (method (let ((minibuffer-local-completion-map
 			mm-viewer-completion-map))
-		   (completing-read "Viewer: " methods))))
+		   (gnus-completing-read "Viewer" methods))))
     (when (string= method "")
       (error "No method given"))
     (if (string-match "^[^% \t]+$" method)
@@ -1474,7 +1483,7 @@ be determined."
    ;; Handle XEmacs
    ((fboundp 'valid-image-instantiator-format-p)
     (valid-image-instantiator-format-p format))
-   ;; Handle Emacs 21
+   ;; Handle Emacs
    ((fboundp 'image-type-available-p)
     (and (display-graphic-p)
 	 (image-type-available-p format)))
@@ -1669,7 +1678,42 @@ If RECURSIVE, search recursively."
 	 (and (eq (mm-body-7-or-8) '7bit)
 	      (not (mm-long-lines-p 76))))))
 
+(declare-function libxml-parse-html-region "xml.c"
+		  (start end &optional base-url))
+(declare-function shr-insert-document "shr" (dom))
+(defvar shr-blocked-images)
+
+(defun mm-shr (handle)
+  ;; Require since we bind its variables.
+  (require 'shr)
+  (let ((article-buffer (current-buffer))
+	(shr-blocked-images (if (and (boundp 'gnus-summary-buffer)
+				     (buffer-name gnus-summary-buffer))
+				(with-current-buffer gnus-summary-buffer
+				  (gnus-blocked-images))
+			      shr-blocked-images))
+	(shr-content-function (lambda (id)
+				(let ((handle (mm-get-content-id id)))
+				  (when handle
+				    (mm-with-part handle
+				      (buffer-string))))))
+	charset)
+    (unless handle
+      (setq handle (mm-dissect-buffer t)))
+    (setq charset (mail-content-type-get (mm-handle-type handle) 'charset))
+    (save-restriction
+      (narrow-to-region (point) (point))
+      (shr-insert-document
+       (mm-with-part handle
+	 (when (and charset
+		    (setq charset (mm-charset-to-coding-system charset))
+		    (not (eq charset 'ascii)))
+	   (insert (prog1
+		       (mm-decode-coding-string (buffer-string) charset)
+		     (erase-buffer)
+		     (mm-enable-multibyte))))
+	 (libxml-parse-html-region (point-min) (point-max)))))))
+
 (provide 'mm-decode)
 
-;; arch-tag: 4f35d360-56b8-4030-9388-3ed82d359b9b
 ;;; mm-decode.el ends here

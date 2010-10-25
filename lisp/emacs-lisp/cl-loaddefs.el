@@ -10,7 +10,7 @@
 ;;;;;;  ceiling* floor* isqrt lcm gcd cl-progv-before cl-set-frame-visible-p
 ;;;;;;  cl-map-overlays cl-map-intervals cl-map-keymap-recursively
 ;;;;;;  notevery notany every some mapcon mapcan mapl maplist map
-;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "deb3495d75c36a222e5238eadb8e347c")
+;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "20c8c875ff1d11dd819e15a1f25afd73")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'coerce "cl-extra" "\
@@ -277,12 +277,12 @@ Not documented
 ;;;;;;  assert check-type typep deftype cl-struct-setf-expander defstruct
 ;;;;;;  define-modify-macro callf2 callf letf* letf rotatef shiftf
 ;;;;;;  remf cl-do-pop psetf setf get-setf-method defsetf define-setf-method
-;;;;;;  declare the locally multiple-value-setq multiple-value-bind
-;;;;;;  lexical-let* lexical-let symbol-macrolet macrolet labels
-;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
-;;;;;;  do* do loop return-from return block etypecase typecase ecase
-;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "36cafd5054969b5bb0b1ce6a21605fed")
+;;;;;;  declare locally multiple-value-setq multiple-value-bind lexical-let*
+;;;;;;  lexical-let symbol-macrolet macrolet labels flet progv psetq
+;;;;;;  do-all-symbols do-symbols dotimes dolist do* do loop return-from
+;;;;;;  return block etypecase typecase ecase case load-time-value
+;;;;;;  eval-when destructuring-bind function* defmacro* defun* gentemp
+;;;;;;  gensym) "cl-macs" "cl-macs.el" "c10b5cbebb5267291ef15c782c0271a6")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -535,11 +535,6 @@ Not documented
 
 \(fn &rest BODY)" nil (quote macro))
 
-(autoload 'the "cl-macs" "\
-Not documented
-
-\(fn TYPE FORM)" nil (quote macro))
-
 (autoload 'declare "cl-macs" "\
 Not documented
 
@@ -759,7 +754,7 @@ surrounded by (block NAME ...).
 ;;;;;;  find nsubstitute-if-not nsubstitute-if nsubstitute substitute-if-not
 ;;;;;;  substitute-if substitute delete-duplicates remove-duplicates
 ;;;;;;  delete-if-not delete-if delete* remove-if-not remove-if remove*
-;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "ec3ea1c77742734db8496272fe5721be")
+;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "7b7531276ddf8457abecdd487d3cf0b7")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'reduce "cl-seq" "\

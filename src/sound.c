@@ -86,8 +86,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* BEGIN: Windows Specific Includes */
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <limits.h>
 #include <windows.h>
 #include <mmsystem.h>
@@ -99,7 +97,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Symbols.  */
 
-extern Lisp_Object QCfile, QCdata;
 Lisp_Object QCvolume, QCdevice;
 Lisp_Object Qsound;
 Lisp_Object Qplay_sound_functions;
@@ -116,10 +113,10 @@ enum sound_attr
 };
 
 #ifdef HAVE_ALSA
-static void alsa_sound_perror (char *, int) NO_RETURN;
+static void alsa_sound_perror (const char *, int) NO_RETURN;
 #endif
-static void sound_perror (char *) NO_RETURN;
-static void sound_warning (char *);
+static void sound_perror (const char *) NO_RETURN;
+static void sound_warning (const char *);
 static int parse_sound (Lisp_Object, Lisp_Object *);
 
 /* END: Common Definitions */
@@ -330,7 +327,7 @@ static int do_play_sound (const char *, unsigned long);
 /* Like perror, but signals an error.  */
 
 static void
-sound_perror (char *msg)
+sound_perror (const char *msg)
 {
   int saved_errno = errno;
 
@@ -348,7 +345,7 @@ sound_perror (char *msg)
 /* Display a warning message.  */
 
 static void
-sound_warning (char *msg)
+sound_warning (const char *msg)
 {
   message (msg);
 }
@@ -482,7 +479,7 @@ sound_cleanup (Lisp_Object arg)
 static u_int32_t
 le2hl (u_int32_t value)
 {
-#ifdef WORDS_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
   unsigned char *p = (unsigned char *) &value;
   value = p[0] + (p[1] << 8) + (p[2] << 16) + (p[3] << 24);
 #endif
@@ -496,7 +493,7 @@ le2hl (u_int32_t value)
 static u_int16_t
 le2hs (u_int16_t value)
 {
-#ifdef WORDS_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
   unsigned char *p = (unsigned char *) &value;
   value = p[0] + (p[1] << 8);
 #endif
@@ -510,7 +507,7 @@ le2hs (u_int16_t value)
 static u_int32_t
 be2hl (u_int32_t value)
 {
-#ifndef WORDS_BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
   unsigned char *p = (unsigned char *) &value;
   value = p[3] + (p[2] << 8) + (p[1] << 16) + (p[0] << 24);
 #endif
@@ -526,7 +523,7 @@ be2hl (u_int32_t value)
 static u_int16_t
 be2hs (u_int16_t value)
 {
-#ifndef WORDS_BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
   unsigned char *p = (unsigned char *) &value;
   value = p[1] + (p[0] << 8);
 #endif
@@ -728,7 +725,7 @@ au_play (struct sound *s, struct sound_device *sd)
 static void
 vox_open (struct sound_device *sd)
 {
-  char *file;
+  const char *file;
 
   /* Open the sound device.  Default is /dev/dsp.  */
   if (sd->file)
@@ -873,7 +870,7 @@ vox_choose_format (struct sound_device *sd, struct sound *s)
 static int
 vox_init (struct sound_device *sd)
 {
-  char *file;
+  const char *file;
   int fd;
 
   /* Open the sound device.  Default is /dev/dsp.  */
@@ -916,7 +913,7 @@ vox_write (struct sound_device *sd, const char *buffer, int nbytes)
 /* This driver is available on GNU/Linux. */
 
 static void
-alsa_sound_perror (char *msg, int err)
+alsa_sound_perror (const char *msg, int err)
 {
   error ("%s: %s", msg, snd_strerror (err));
 }
@@ -935,7 +932,7 @@ struct alsa_params
 static void
 alsa_open (struct sound_device *sd)
 {
-  char *file;
+  const char *file;
   struct alsa_params *p;
   int err;
 
@@ -1057,7 +1054,7 @@ alsa_configure (struct sound_device *sd)
       int chn;
       snd_mixer_t *handle;
       snd_mixer_elem_t *e;
-      char *file = sd->file ? sd->file : DEFAULT_ALSA_SOUND_DEVICE;
+      const char *file = sd->file ? sd->file : DEFAULT_ALSA_SOUND_DEVICE;
 
       if (snd_mixer_open (&handle, 0) >= 0)
         {
@@ -1221,7 +1218,7 @@ snd_error_quiet (const char *file, int line, const char *function, int err,
 static int
 alsa_init (struct sound_device *sd)
 {
-  char *file;
+  const char *file;
   snd_pcm_t *handle;
   int err;
 

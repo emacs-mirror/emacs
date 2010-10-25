@@ -74,7 +74,7 @@ extern Lisp_Object Vthis_command;
 extern Lisp_Object unread_switch_frame;
 
 /* The value of point when the last command was started.  */
-extern int last_point_position;
+extern EMACS_INT last_point_position;
 
 /* The buffer that was current when the last command was started.  */
 extern Lisp_Object last_point_position_buffer;

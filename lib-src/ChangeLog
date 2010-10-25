@@ -1,3 +1,137 @@
+2010-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Remove easymenu.elc.
+
+2010-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* digest-doc.c, sorted-doc.c: Remove files.
+	* Makefile.in (UTILITIES): Remove digest-doc and sorted-doc.
+	(digest-doc${EXEEXT}, sorted-doc${EXEEXT}): Remove rules.
+	* makefile.w32-in (ALL): Remove digest-doc and sorted-doc.
+	($(BLD)/sorted-doc.exe, $(BLD)/digest-doc.exe, sorted-doc, digest-doc)
+	($(BLD)/digest-doc.$(O), $(BLD)/sorted-doc.$(O)): Remove rules.
+	(install): Don't install digest-doc.exe or sorted-doc.exe.
+
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (PROFILING_LDFLAGS): Remove, not needed.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* b2m.c, b2m.pl: Remove files.
+	* Makefile.in (INSTALLABLES): Remove b2m.
+	* makefile.w32-in ($(BLD)/b2m.$(O)): Remove.
+
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacsclient.c (set_local_socket) [DARWIN_OS]: Try as a fall-back
+	DARWIN_USER_TEMP_DIR.  (Bug#3992)
+
+2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* test-distrib.c (cool_read):
+	* movemail.c (main, concat):
+	* make-docfile.c (scan_file, write_c_args):
+	* emacsclient.c	(get_server_config): Fix -Wconversion warning.
+	(egetenv): Move conditional definition earlier.
+	(progname): Use const.
+	* sorted-doc.c (xstrdup): Use const.
+
+	* Makefile.in: Remove ^L, old makes choke on it.
+
+2010-10-02  Wolfgang Schnerring  <wosc@wosc.de>  (tiny change)
+
+	* emacsclient.c (main): Return EXIT_FAILURE if Emacs sends us an
+	error string (Bug#6963).
+
+2010-10-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (tags): Remove target.
+
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (tags, TAGS): New targets.
+
+2010-09-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (get_server_config): Don't read Emacs pid from
+	the authentication file.
+
+2010-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (../src/config.h): Remove target, it is stale.
+
+	* emacsclient.c (main): Remove unused variables.
+	(start_daemon_and_retry_set_socket): Use EXIT_FAILURE.
+
+2010-09-25  Ulrich Mueller  <ulm@gentoo.org>
+
+	* etags.c (compressors, print_language_names): Support xz compression.
+
+2010-08-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* fakemail.c: Include stdlib.h for getenv.  Remove declaration of
+	popen, fclose and pclose.
+	(my_name, fatal, error, put_line): Use const char*.
+	(main): Remove extern getenv, mail_program_name is const char*.
+
+	* update-game-score.c (get_prefix, write_scores, main): Use const char*.
+
+	* sorted-doc.c (error, fatal, states): Use const char *.
+
+	* pop.h (pop_multi_first): Use const char *.
+	(_ARGS): Remove.
+
+	* pop.c (pop_multi_first, socket_connection, sendline): Use const char*.
+
+	* movemail.c (fatal, error, concat): Use const char *.
+
+	* make-docfile.c (error, fatal, scan_c_file, scan_lisp_file): Use
+	const char *.
+
+	* etags.c (compressor, language, Ada_suffix, Ada_help, Asm_suffixes)
+	(Asm_help, default_C_suffixes, default_C_help, Cplusplus_suffixes)
+	(Cplusplus_help, Cjava_suffixes, Cobol_suffixes, Cstar_suffixes)
+	(Erlang_suffixes, Erlang_help, Forth_suffixes, Forth_help)
+	(Fortran_suffixes, Fortran_help, HTML_suffixes,  HTML_help)
+	(Lisp_suffixes, Lisp_help, Lua_suffixes, Lua_help)
+	(Makefile_filenames, Makefile_help, Objc_suffixes, Objc_help)
+	(Pascal_suffixes, Pascal_help, Perl_suffixes, Perl_interpreters)
+	(Perl_help, PHP_suffixes, PHP_help, plain_C_suffixses, PS_suffixes)
+	(PS_help, Prolog_suffixes, Prolog_help, Python_suffixes, Python_help)
+	(Scheme_suffixes, Scheme_help, TeX_suffixes, TeX_help, Texinfo_suffixes)
+	(Texinfo_help, Yacc_suffixes, Yacc_help, auto_help, none_help)
+	(no_lang_help, print_language_names)
+	(get_language_from_interpreter, get_language_from_filename)
+	(init, make_tag, struct C_stab_entry, write_classname, TEX_defenv)
+	(TEX_decode_env, nocase_tail, savestr, savenstr, fatal, pfatal)
+	(concat): Use const char*.
+
+	* emacsclient.c (message, sock_err_message, send_to_emacs)
+	(quote_argument, set_local_socket)
+	(start_daemon_and_retry_set_socket): Use const char*.
+
+	* ebrowse.c (struct member): filename, def_filename is const.
+	(struct sym): filename, sfilename is const.
+	(struct kw): name is const.
+	(add_sym, yyerror, token_string, insert_keyword, main): Use const char*.
+
+	* b2m.c (concat, fatal): Use const char*.
+	(main): Don't assign labels a string literal.
+
+2010-08-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ebrowse.c (usage, version, mark_virtual):
+	Remove duplicate declarations.
+
+2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c: Move socket related #includes together with the
+	rest of the #includes.  Move WINDOWSNT includes closer together.
+	(HAVE_CONFIG_H): Remove.
+	(NO_RETURN): Remove, defined in config.h.
+	(main): Convert definition to standard C.
+
 2010-07-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* make-docfile.c (write_c_args): Warn for old-style empty arglist ().
@@ -96,7 +230,7 @@
 	(fatal): Make static.
 	(error): Likewise.
 	(pfatal_with_name): Likewise.
-	(pfatal_and_delete). Likewise.
+	(pfatal_and_delete): Likewise.
 	(concat): Likewise.
 	(xmalloc): Likewise.
 	(popmail): Likewise.
@@ -5256,10 +5390,10 @@
 	(main): Improve usage message.
 	(error): Write to stderr, not stdout.
 
-	* b2m.c cvtmail.c digest-doc.c emacsclient.c emacsserver.c etags.c
-	fakemail.c hexl.c make-docfile.c profile.c sorted-doc.c test-distrib.c
-	timer.c wakeup.c yow.c: Eliminate some -Wall warnings from unused
-	variables and implicitly declared functions.
+	* b2m.c, cvtmail.c, digest-doc.c, emacsclient.c, emacsserver.c:
+	* etags.c, fakemail.c, hexl.c, make-docfile.c, profile.c, sorted-doc.c:
+	* test-distrib.c, timer.c, wakeup.c, yow.c: Eliminate some -Wall
+	warnings from unused variables and implicitly declared functions.
 
 1994-10-11  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 

@@ -12,8 +12,8 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    See cc-mode.el
-;; Keywords:   c languages oop
+;; Keywords:   c languages
+;; Package:    cc-mode
 
 ;; This file is part of GNU Emacs.
 
@@ -359,7 +359,7 @@ The syntax tables aren't stored directly since they're quite large."
        (let ((table (make-syntax-table)))
 	 (c-populate-syntax-table table)
 	 ;; Mode specific syntaxes.
-	 ,(cond ((c-major-mode-is 'objc-mode)
+	 ,(cond ((or (c-major-mode-is 'objc-mode) (c-major-mode-is 'java-mode))
 		 ;; Let '@' be part of symbols in ObjC to cope with
 		 ;; its compiler directives as single keyword tokens.
 		 ;; This is then necessary since it's assumed that
@@ -382,7 +382,7 @@ The syntax tables aren't stored directly since they're quite large."
   ;; '<' and '>' characters.  Therefore this syntax table might go
   ;; away when CC Mode handles templates correctly everywhere.
   t   nil
-  c++ `(lambda ()
+  (java c++) `(lambda ()
 	 (let ((table (funcall ,(c-lang-const c-make-mode-syntax-table))))
 	   (modify-syntax-entry ?< "(>" table)
 	   (modify-syntax-entry ?> ")<" table)
@@ -425,7 +425,7 @@ the new syntax, as accepted by `modify-syntax-entry'."
   ;; it as an indentifier character since it's often used in various
   ;; machine generated identifiers.
   t    '((?_ . "w") (?$ . "w"))
-  objc (append '((?@ . "w"))
+  (objc java) (append '((?@ . "w"))
 	       (c-lang-const c-identifier-syntax-modifications))
   awk  '((?_ . "w")))
 (c-lang-defvar c-identifier-syntax-modifications
@@ -502,9 +502,10 @@ parameters \(point-min), \(point-max) and <buffer size>."
 
 (c-lang-defconst c-symbol-start
   "Regexp that matches the start of a symbol, i.e. any identifier or
-keyword.  It's unspecified how far it matches.  Does not contain a \\|
+keyword.  It's unspecified how far it matches.	Does not contain a \\|
 operator at the top level."
   t    (concat "[" c-alpha "_]")
+  java (concat "[" c-alpha "_@]")
   objc (concat "[" c-alpha "@]")
   pike (concat "[" c-alpha "_`]"))
 (c-lang-defvar c-symbol-start (c-lang-const c-symbol-start))
@@ -859,7 +860,7 @@ since CC Mode treats every identifier as an expression."
 
       ;; Primary.
       ,@(c-lang-const c-identifier-ops)
-      ,@(cond ((c-major-mode-is 'c++-mode)
+      ,@(cond ((or (c-major-mode-is 'c++-mode) (c-major-mode-is 'java-mode))
 	       `((postfix-if-paren "<" ">"))) ; Templates.
 	      ((c-major-mode-is 'pike-mode)
 	       `((prefix "global" "predef")))
@@ -1118,6 +1119,7 @@ operators."
 		    t
 		    "\\`<."
 		    (lambda (op) (substring op 1)))))
+
 (c-lang-defvar c-<-op-cont-regexp (c-lang-const c-<-op-cont-regexp))
 
 (c-lang-defconst c->-op-cont-regexp
@@ -1127,7 +1129,13 @@ operators."
       (c-filter-ops (c-lang-const c-all-op-syntax-tokens)
 		    t
 		    "\\`>."
-		    (lambda (op) (substring op 1)))))
+		    (lambda (op) (substring op 1))))
+  java (c-make-keywords-re nil
+	 (c-filter-ops (c-lang-const c-all-op-syntax-tokens)
+		       t
+		       "\\`>[^>]\\|\\`>>[^>]"
+		       (lambda (op) (substring op 1)))))
+
 (c-lang-defvar c->-op-cont-regexp (c-lang-const c->-op-cont-regexp))
 
 (c-lang-defconst c-stmt-delim-chars
@@ -1557,6 +1565,17 @@ be a subset of `c-primitive-type-kwds'."
 	    ;; In CORBA PSDL:
 	    "strong"))
 
+(c-lang-defconst c-typedef-kwds
+  "Prefix keyword\(s\) like \"typedef\" which make a type declaration out
+of a variable declaration."
+  t        '("typedef")
+  (awk idl java) nil)
+
+(c-lang-defconst c-typedef-key
+  ;; Adorned regexp matching `c-typedef-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-typedef-kwds)))
+(c-lang-defvar c-typedef-key (c-lang-const c-typedef-key))
+
 (c-lang-defconst c-type-prefix-kwds
   "Keywords where the following name - if any - is a type name, and
 where the keyword together with the symbol works as a type in
@@ -1628,7 +1647,7 @@ following identifier as a type; the keyword must also be present on
   c++  '("class" "struct" "union")
   objc '("struct" "union"
 	 "@interface" "@implementation" "@protocol")
-  java '("class" "interface")
+  java '("class" "@interface" "interface")
   idl  '("component" "eventtype" "exception" "home" "interface" "struct"
 	 "union" "valuetype"
 	 ;; In CORBA PSDL:
@@ -1651,7 +1670,7 @@ If any of these also are on `c-type-list-kwds', `c-ref-list-kwds',
 `c-<>-type-kwds', or `c-<>-arglist-kwds' then the associated clauses
 will be handled."
   t    '("enum")
-  (java awk) nil)
+  (awk) nil)
 
 (c-lang-defconst c-brace-list-key
   ;; Regexp matching the start of declarations where the following
@@ -1723,6 +1742,10 @@ will be handled."
   ;; types in IDL since they only can occur in "raises" specs.
   idl  (delete "exception" (append (c-lang-const c-typedef-decl-kwds) nil)))
 
+(c-lang-defconst c-typedef-decl-key
+  t  (c-make-keywords-re t (c-lang-const c-typedef-decl-kwds)))
+(c-lang-defvar c-typedef-decl-key (c-lang-const c-typedef-decl-key))
+
 (c-lang-defconst c-typeless-decl-kwds
   "Keywords introducing declarations where the \(first) identifier
 \(declarator) follows directly after the keyword, without any type.
@@ -1772,7 +1795,7 @@ will be handled."
 	 "bindsTo" "delegatesTo" "implements" "proxy" "storedOn")
   ;; Note: "const" is not used in Java, but it's still a reserved keyword.
   java '("abstract" "const" "final" "native" "private" "protected" "public"
-	 "static" "strictfp" "synchronized" "transient" "volatile")
+	 "static" "strictfp" "synchronized" "transient" "volatile" "@[A-Za-z0-9]+")
   pike '("final" "inline" "local" "nomask" "optional" "private" "protected"
 	 "public" "static" "variant"))
 
@@ -1858,7 +1881,11 @@ one of `c-type-list-kwds', `c-ref-list-kwds',
 
 (c-lang-defconst c-prefix-spec-kwds-re
   ;; Adorned regexp of `c-prefix-spec-kwds'.
-  t (c-make-keywords-re t (c-lang-const c-prefix-spec-kwds)))
+  t (c-make-keywords-re t (c-lang-const c-prefix-spec-kwds))
+  java (replace-regexp-in-string
+     "\\\\\\[" "["
+     (replace-regexp-in-string "\\\\\\+" "+" (c-make-keywords-re t (c-lang-const c-prefix-spec-kwds)))))
+
 (c-lang-defvar c-prefix-spec-kwds-re (c-lang-const c-prefix-spec-kwds-re))
 
 (c-lang-defconst c-specifier-key
@@ -1950,7 +1977,7 @@ or variable identifier (that's being defined)."
   t    nil
   c++  '("operator")
   objc '("@class")
-  java '("import" "new" "extends" "implements" "throws")
+  java '("import" "new" "extends" "super" "implements" "throws")
   idl  '("manages" "native" "primarykey" "supports"
 	 ;; In CORBA PSDL:
 	 "as" "implements" "of" "scope")
@@ -2499,7 +2526,7 @@ more info."
   ;; in all languages except Java for when a cpp macro definition
   ;; begins with a declaration.
   t "\\([\{\}\(\);,]+\\)"
-  java "\\([\{\}\(;,]+\\)"
+  java "\\([\{\}\(;,<]+\\)"
   ;; Match "<" in C++ to get the first argument in a template arglist.
   ;; In that case there's an additional check in `c-find-decl-spots'
   ;; that it got open paren syntax.
@@ -2649,15 +2676,15 @@ Identifier syntax is in effect when this is matched \(see
   c++  (concat "\\("
 	       "[*\(&]"
 	       "\\|"
-	       (concat "\\("	; 2
+	       (c-lang-const c-type-decl-prefix-key)
+	       "\\|"
+	       (concat "\\("   ; 3
 		       ;; If this matches there's special treatment in
 		       ;; `c-font-lock-declarators' and
 		       ;; `c-font-lock-declarations' that check for a
 		       ;; complete name followed by ":: *".
 		       (c-lang-const c-identifier-start)
 		       "\\)")
-	       "\\|"
-	       (c-lang-const c-type-decl-prefix-key)
 	       "\\)"
 	       "\\([^=]\\|$\\)")
   pike "\\(\\*\\)\\([^=]\\|$\\)")
@@ -2759,7 +2786,7 @@ It's undefined whether identifier syntax (see `c-identifier-syntax-table')
 is in effect or not."
   t nil
   (c c++ objc pike) "\\(\\.\\.\\.\\)"
-  java (concat "\\(\\[" (c-lang-const c-simple-ws) "*\\]\\)"))
+  java (concat "\\(\\[" (c-lang-const c-simple-ws) "*\\]\\|\\.\\.\\.\\)"))
 (c-lang-defvar c-opt-type-suffix-key (c-lang-const c-opt-type-suffix-key))
 
 (c-lang-defvar c-known-type-key

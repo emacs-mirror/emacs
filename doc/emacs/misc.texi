@@ -786,8 +786,7 @@ pending in the shell buffer and not yet sent.
 @findex comint-delete-output
 Delete the last batch of output from a shell command
 (@code{comint-delete-output}).  This is useful if a shell command spews
-out lots of output that just gets in the way.  This command used to be
-called @code{comint-kill-output}.
+out lots of output that just gets in the way.
 
 @item C-c C-s
 @kindex C-c C-s @r{(Shell mode)}
@@ -2349,8 +2348,11 @@ sessions, or add this line in your init file (@pxref{Init File}):
 
 @findex desktop-change-dir
 @findex desktop-revert
+@vindex desktop-path
   If you turn on @code{desktop-save-mode} in your init file, then when
 Emacs starts, it looks for a saved desktop in the current directory.
+(More precisely, it looks in the directories specified by
+@var{desktop-path}, and uses the first desktop it finds.)
 Thus, you can have separate saved desktops in different directories,
 and the starting directory determines which one Emacs reloads.  You
 can save the current desktop and reload one saved in another directory
@@ -2784,6 +2786,10 @@ bored, try an argument of 9.  Sit back and watch.
   If you want a little more personal involvement, try @kbd{M-x gomoku},
 which plays the game Go Moku with you.
 
+@findex bubbles
+  @kbd{M-x bubbles} is a game in which the object is to remove as many
+bubbles as you can in the smallest number of moves.
+
 @findex blackbox
 @findex mpuz
 @findex 5x5
@@ -2831,6 +2837,11 @@ bats.
 @cindex solitaire
 @kbd{M-x solitaire} plays a game of solitaire in which you jump pegs
 across other pegs.
+
+@findex animate-birthday-present
+@cindex animate
+The @code{animate} package makes text dance.  For an example, try
+@kbd{M-x animate-birthday-present}.
 
 @findex studlify-region
 @cindex StudlyCaps

@@ -8,6 +8,7 @@
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; Package: ps-print
 
 ;; This file is part of GNU Emacs.
 
@@ -49,94 +50,24 @@
 (cond
  ((featurep 'xemacs)			; XEmacs
 
-
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; ps-bdf
 
   (defvar installation-directory nil)
   (defvar coding-system-for-read)
 
-
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; ps-mule
-
-  (defvar leading-code-private-22 157)
-
-  (or (fboundp 'charset-bytes)
-      (defun charset-bytes (charset) 1)) ; ascii
 
   (or (fboundp 'charset-dimension)
       (defun charset-dimension (charset) 1)) ; ascii
 
-  (or (fboundp 'charset-id)
-      (defun charset-id (charset) 0))	; ascii
-
-  (or (fboundp 'charset-width)
-      (defun charset-width (charset) 1)) ; ascii
-
-  (or (fboundp 'find-charset-region)
-      (defun find-charset-region (beg end &optional table)
-	(list 'ascii)))
-
   (or (fboundp 'char-width)
       (defun char-width (char) 1))	; ascii
-
-  (or (fboundp 'chars-in-region)
-      (defun chars-in-region (beg end)
-	(- (max beg end) (min beg end))))
-
-  (or (fboundp 'forward-point)
-      (defun forward-point (arg)
-	(save-excursion
-	  (let ((count (abs arg))
-		(step  (if (zerop arg)
-			   0
-			 (/ arg arg))))
-	    (while (and (> count 0)
-			(< (point-min) (point)) (< (point) (point-max)))
-	      (forward-char step)
-	      (setq count (1- count)))
-	    (+ (point) (* count step))))))
-
-  (or (fboundp 'decompose-composite-char)
-      (defun decompose-composite-char (char &optional type
-					    with-composition-rule)
-	nil))
-
-  (or (fboundp 'encode-coding-string)
-      (defun encode-coding-string (string coding-system &optional nocopy)
-	(if nocopy
-	    string
-	  (copy-sequence string))))
-
-  (or (fboundp 'coding-system-p)
-      (defun coding-system-p (obj) nil))
-
-  (or (fboundp 'ccl-execute-on-string)
-      (defun ccl-execute-on-string (ccl-prog status str
-					     &optional contin unibyte-p)
-	str))
-
-  (or (fboundp 'define-ccl-program)
-      (defmacro define-ccl-program (name ccl-program &optional doc)
-	`(defconst ,name nil ,doc)))
-
-  (or (fboundp 'multibyte-string-p)
-      (defun multibyte-string-p (str)
-	(let ((len (length str))
-	      (i 0)
-	      multibyte)
-	  (while (and (< i len) (not (setq multibyte (> (aref str i) 255))))
-	    (setq i (1+ i)))
-	  multibyte)))
-
-  (or (fboundp 'string-make-multibyte)
-      (defalias 'string-make-multibyte 'copy-sequence))
 
   (or (fboundp 'encode-char)
       (defun encode-char (ch ccs)
 	ch))
-
 
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; ps-print

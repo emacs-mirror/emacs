@@ -65,15 +65,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern POINTER_TYPE *sbrk ();
 #endif
 
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#ifndef O_WRONLY
-#define O_WRONLY 1
-#endif
 
 #ifdef WINDOWSNT
-#include <fcntl.h>
 #include "w32.h"
 #endif
 
@@ -213,16 +207,6 @@ int abort_on_gc;
 /* Nonzero means display messages at beginning and end of GC.  */
 
 int garbage_collection_messages;
-
-#ifndef VIRT_ADDR_VARIES
-extern
-#endif /* VIRT_ADDR_VARIES */
-int malloc_sbrk_used;
-
-#ifndef VIRT_ADDR_VARIES
-extern
-#endif /* VIRT_ADDR_VARIES */
-int malloc_sbrk_unused;
 
 /* Number of live and free conses etc.  */
 
@@ -448,7 +432,6 @@ static void *min_heap_address, *max_heap_address;
 static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
-static POINTER_TYPE *lisp_malloc (size_t, enum mem_type);
 static struct Lisp_Vector *allocate_vectorlike (EMACS_INT);
 static void lisp_free (POINTER_TYPE *);
 static void mark_stack (void);
@@ -1655,7 +1638,7 @@ static int total_strings, total_free_strings;
 
 /* Number of bytes used by live strings.  */
 
-static int total_string_size;
+static EMACS_INT total_string_size;
 
 /* Given a pointer to a Lisp_String S which is on the free-list
    string_free_list, return a pointer to its successor in the
@@ -1750,11 +1733,12 @@ static void check_sblock (struct sblock *);
 
 /* Like GC_STRING_BYTES, but with debugging check.  */
 
-int
-string_bytes (s)
-     struct Lisp_String *s;
+EMACS_INT
+string_bytes (struct Lisp_String *s)
 {
-  int nbytes = (s->size_byte < 0 ? s->size & ~ARRAY_MARK_FLAG : s->size_byte);
+  EMACS_INT nbytes =
+    (s->size_byte < 0 ? s->size & ~ARRAY_MARK_FLAG : s->size_byte);
+
   if (!PURE_POINTER_P (s)
       && s->data
       && nbytes != SDATA_NBYTES (SDATA_OF_STRING (s)))
@@ -1776,7 +1760,7 @@ check_sblock (b)
     {
       /* Compute the next FROM here because copying below may
 	 overwrite data we need to compute it.  */
-      int nbytes;
+      EMACS_INT nbytes;
 
       /* Check that the string size recorded in the string is the
 	 same as the one recorded in the sdata structure. */
@@ -1836,7 +1820,7 @@ check_string_free_list ()
   s = string_free_list;
   while (s != NULL)
     {
-      if ((unsigned)s < 1024)
+      if ((unsigned long)s < 1024)
 	abort();
       s = NEXT_FREE_LISP_STRING (s);
     }
@@ -1919,11 +1903,12 @@ allocate_string (void)
    S->data if it was initially non-null.  */
 
 void
-allocate_string_data (struct Lisp_String *s, int nchars, int nbytes)
+allocate_string_data (struct Lisp_String *s,
+		      EMACS_INT nchars, EMACS_INT nbytes)
 {
   struct sdata *data, *old_data;
   struct sblock *b;
-  int needed, old_nbytes;
+  EMACS_INT needed, old_nbytes;
 
   /* Determine the number of bytes needed to store NBYTES bytes
      of string data.  */
@@ -2165,7 +2150,7 @@ compact_small_strings (void)
 	{
 	  /* Compute the next FROM here because copying below may
 	     overwrite data we need to compute it.  */
-	  int nbytes;
+	  EMACS_INT nbytes;
 
 #ifdef GC_CHECK_STRING_BYTES
 	  /* Check that the string size recorded in the string is the
@@ -2243,7 +2228,8 @@ INIT must be an integer that represents a character.  */)
 {
   register Lisp_Object val;
   register unsigned char *p, *end;
-  int c, nbytes;
+  int c;
+  EMACS_INT nbytes;
 
   CHECK_NATNUM (length);
   CHECK_NUMBER (init);
@@ -2262,9 +2248,12 @@ INIT must be an integer that represents a character.  */)
     {
       unsigned char str[MAX_MULTIBYTE_LENGTH];
       int len = CHAR_STRING (c, str);
+      EMACS_INT string_len = XINT (length);
 
-      nbytes = len * XINT (length);
-      val = make_uninit_multibyte_string (XINT (length), nbytes);
+      if (string_len > MOST_POSITIVE_FIXNUM / len)
+	error ("Maximum string size exceeded");
+      nbytes = len * string_len;
+      val = make_uninit_multibyte_string (string_len, nbytes);
       p = SDATA (val);
       end = p + nbytes;
       while (p != end)
@@ -2287,7 +2276,8 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   register Lisp_Object val;
   struct Lisp_Bool_Vector *p;
   int real_init, i;
-  int length_in_chars, length_in_elts, bits_per_value;
+  EMACS_INT length_in_chars, length_in_elts;
+  int bits_per_value;
 
   CHECK_NATNUM (length);
 
@@ -2327,10 +2317,10 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
    multibyte, depending on the contents.  */
 
 Lisp_Object
-make_string (const char *contents, int nbytes)
+make_string (const char *contents, EMACS_INT nbytes)
 {
   register Lisp_Object val;
-  int nchars, multibyte_nbytes;
+  EMACS_INT nchars, multibyte_nbytes;
 
   parse_str_as_multibyte (contents, nbytes, &nchars, &multibyte_nbytes);
   if (nbytes == nchars || nbytes != multibyte_nbytes)
@@ -2346,7 +2336,7 @@ make_string (const char *contents, int nbytes)
 /* Make an unibyte string from LENGTH bytes at CONTENTS.  */
 
 Lisp_Object
-make_unibyte_string (const char *contents, int length)
+make_unibyte_string (const char *contents, EMACS_INT length)
 {
   register Lisp_Object val;
   val = make_uninit_string (length);
@@ -2360,7 +2350,8 @@ make_unibyte_string (const char *contents, int length)
    bytes at CONTENTS.  */
 
 Lisp_Object
-make_multibyte_string (const char *contents, int nchars, int nbytes)
+make_multibyte_string (const char *contents,
+		       EMACS_INT nchars, EMACS_INT nbytes)
 {
   register Lisp_Object val;
   val = make_uninit_multibyte_string (nchars, nbytes);
@@ -2373,7 +2364,8 @@ make_multibyte_string (const char *contents, int nchars, int nbytes)
    CONTENTS.  It is a multibyte string if NBYTES != NCHARS.  */
 
 Lisp_Object
-make_string_from_bytes (const char *contents, int nchars, int nbytes)
+make_string_from_bytes (const char *contents,
+			EMACS_INT nchars, EMACS_INT nbytes)
 {
   register Lisp_Object val;
   val = make_uninit_multibyte_string (nchars, nbytes);
@@ -2390,7 +2382,8 @@ make_string_from_bytes (const char *contents, int nchars, int nbytes)
    characters by itself.  */
 
 Lisp_Object
-make_specified_string (const char *contents, int nchars, int nbytes, int multibyte)
+make_specified_string (const char *contents,
+		       EMACS_INT nchars, EMACS_INT nbytes, int multibyte)
 {
   register Lisp_Object val;
 
@@ -2423,7 +2416,7 @@ build_string (const char *str)
    occupying LENGTH bytes.  */
 
 Lisp_Object
-make_uninit_string (int length)
+make_uninit_string (EMACS_INT length)
 {
   Lisp_Object val;
 
@@ -2439,7 +2432,7 @@ make_uninit_string (int length)
    which occupy NBYTES bytes.  */
 
 Lisp_Object
-make_uninit_multibyte_string (int nchars, int nbytes)
+make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
 {
   Lisp_Object string;
   struct Lisp_String *s;
@@ -2778,7 +2771,7 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
   (register Lisp_Object length, Lisp_Object init)
 {
   register Lisp_Object val;
-  register int size;
+  register EMACS_INT size;
 
   CHECK_NATNUM (length);
   size = XFASTINT (length);
@@ -2956,7 +2949,7 @@ See also the function `vector'.  */)
 {
   Lisp_Object vector;
   register EMACS_INT sizei;
-  register int index;
+  register EMACS_INT index;
   register struct Lisp_Vector *p;
 
   CHECK_NATNUM (length);
@@ -3796,7 +3789,7 @@ live_string_p (struct mem_node *m, void *p)
   if (m->type == MEM_TYPE_STRING)
     {
       struct string_block *b = (struct string_block *) m->start;
-      int offset = (char *) p - (char *) &b->strings[0];
+      ptrdiff_t offset = (char *) p - (char *) &b->strings[0];
 
       /* P must point to the start of a Lisp_String structure, and it
 	 must not be on the free-list.  */
@@ -3819,7 +3812,7 @@ live_cons_p (struct mem_node *m, void *p)
   if (m->type == MEM_TYPE_CONS)
     {
       struct cons_block *b = (struct cons_block *) m->start;
-      int offset = (char *) p - (char *) &b->conses[0];
+      ptrdiff_t offset = (char *) p - (char *) &b->conses[0];
 
       /* P must point to the start of a Lisp_Cons, not be
 	 one of the unused cells in the current cons block,
@@ -3845,7 +3838,7 @@ live_symbol_p (struct mem_node *m, void *p)
   if (m->type == MEM_TYPE_SYMBOL)
     {
       struct symbol_block *b = (struct symbol_block *) m->start;
-      int offset = (char *) p - (char *) &b->symbols[0];
+      ptrdiff_t offset = (char *) p - (char *) &b->symbols[0];
 
       /* P must point to the start of a Lisp_Symbol, not be
 	 one of the unused cells in the current symbol block,
@@ -3871,7 +3864,7 @@ live_float_p (struct mem_node *m, void *p)
   if (m->type == MEM_TYPE_FLOAT)
     {
       struct float_block *b = (struct float_block *) m->start;
-      int offset = (char *) p - (char *) &b->floats[0];
+      ptrdiff_t offset = (char *) p - (char *) &b->floats[0];
 
       /* P must point to the start of a Lisp_Float and not be
 	 one of the unused cells in the current float block.  */
@@ -3895,7 +3888,7 @@ live_misc_p (struct mem_node *m, void *p)
   if (m->type == MEM_TYPE_MISC)
     {
       struct marker_block *b = (struct marker_block *) m->start;
-      int offset = (char *) p - (char *) &b->markers[0];
+      ptrdiff_t offset = (char *) p - (char *) &b->markers[0];
 
       /* P must point to the start of a Lisp_Misc, not be
 	 one of the unused cells in the current misc block,
@@ -4602,9 +4595,10 @@ check_pure_size (void)
    address.  Return NULL if not found.  */
 
 static char *
-find_string_data_in_pure (const char *data, int nbytes)
+find_string_data_in_pure (const char *data, EMACS_INT nbytes)
 {
-  int i, skip, bm_skip[256], last_char_skip, infinity, start, start_max;
+  int i;
+  EMACS_INT skip, bm_skip[256], last_char_skip, infinity, start, start_max;
   const unsigned char *p;
   char *non_lisp_beg;
 
@@ -4671,7 +4665,8 @@ find_string_data_in_pure (const char *data, int nbytes)
    string; then the string is not protected from gc.  */
 
 Lisp_Object
-make_pure_string (const char *data, int nchars, int nbytes, int multibyte)
+make_pure_string (const char *data,
+		  EMACS_INT nchars, EMACS_INT nbytes, int multibyte)
 {
   Lisp_Object string;
   struct Lisp_String *s;
@@ -4699,7 +4694,7 @@ make_pure_c_string (const char *data)
 {
   Lisp_Object string;
   struct Lisp_String *s;
-  int nchars = strlen (data);
+  EMACS_INT nchars = strlen (data);
 
   s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
   s->size = nchars;
@@ -4789,7 +4784,7 @@ Does not copy symbols.  Copies strings without text properties.  */)
   else if (COMPILEDP (obj) || VECTORP (obj))
     {
       register struct Lisp_Vector *vec;
-      register int i;
+      register EMACS_INT i;
       EMACS_INT size;
 
       size = XVECTOR (obj)->size;
@@ -5238,8 +5233,8 @@ static int mark_object_loop_halt;
 static void
 mark_vectorlike (struct Lisp_Vector *ptr)
 {
-  register EMACS_INT size = ptr->size;
-  register int i;
+  register EMACS_UINT size = ptr->size;
+  register EMACS_UINT i;
 
   eassert (!VECTOR_MARKED_P (ptr));
   VECTOR_MARK (ptr);		/* Else mark it */
@@ -5261,8 +5256,8 @@ mark_vectorlike (struct Lisp_Vector *ptr)
 static void
 mark_char_table (struct Lisp_Vector *ptr)
 {
-  register EMACS_INT size = ptr->size & PSEUDOVECTOR_SIZE_MASK;
-  register int i;
+  register EMACS_UINT size = ptr->size & PSEUDOVECTOR_SIZE_MASK;
+  register EMACS_UINT i;
 
   eassert (!VECTOR_MARKED_P (ptr));
   VECTOR_MARK (ptr);
@@ -5391,8 +5386,8 @@ mark_object (Lisp_Object arg)
 	   recursion there.  */
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
-	  register EMACS_INT size = ptr->size;
-	  register int i;
+	  register EMACS_UINT size = ptr->size;
+	  register EMACS_UINT i;
 
 	  CHECK_LIVE (live_vector_p);
 	  VECTOR_MARK (ptr);	/* Else mark it */
@@ -6179,11 +6174,6 @@ init_alloc_once (void)
   consing_since_gc = 0;
   gc_cons_threshold = 100000 * sizeof (Lisp_Object);
   gc_relative_threshold = 0;
-
-#ifdef VIRT_ADDR_VARIES
-  malloc_sbrk_unused = 1<<22;	/* A large number */
-  malloc_sbrk_used = 100000;	/* as reasonable as any number */
-#endif /* VIRT_ADDR_VARIES */
 }
 
 void

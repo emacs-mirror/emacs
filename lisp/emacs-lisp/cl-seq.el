@@ -6,6 +6,7 @@
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
 ;; Keywords: extensions
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -47,6 +48,7 @@
 ;;; this file independent from cl-macs.
 
 (defmacro cl-parsing-keywords (kwords other-keys &rest body)
+  (declare (indent 2) (debug (sexp sexp &rest form)))
   (cons
    'let*
    (cons (mapcar
@@ -83,13 +85,13 @@
 					  (car cl-keys-temp)))
 			    '(setq cl-keys-temp (cdr (cdr cl-keys-temp)))))))
 	  body))))
-(put 'cl-parsing-keywords 'lisp-indent-function 2)
-(put 'cl-parsing-keywords 'edebug-form-spec '(sexp sexp &rest form))
 
 (defmacro cl-check-key (x)
+  (declare (debug edebug-forms))
   (list 'if 'cl-key (list 'funcall 'cl-key x) x))
 
 (defmacro cl-check-test-nokey (item x)
+  (declare (debug edebug-forms))
   (list 'cond
 	(list 'cl-test
 	      (list 'eq (list 'not (list 'funcall 'cl-test item x))
@@ -100,19 +102,16 @@
 		       (list 'equal item x) (list 'eq item x)))))
 
 (defmacro cl-check-test (item x)
+  (declare (debug edebug-forms))
   (list 'cl-check-test-nokey item (list 'cl-check-key x)))
 
 (defmacro cl-check-match (x y)
+  (declare (debug edebug-forms))
   (setq x (list 'cl-check-key x) y (list 'cl-check-key y))
   (list 'if 'cl-test
 	(list 'eq (list 'not (list 'funcall 'cl-test x y)) 'cl-test-not)
 	(list 'if (list 'numberp x)
 	      (list 'equal x y) (list 'eq x y))))
-
-(put 'cl-check-key 'edebug-form-spec 'edebug-forms)
-(put 'cl-check-test 'edebug-form-spec 'edebug-forms)
-(put 'cl-check-test-nokey 'edebug-form-spec 'edebug-forms)
-(put 'cl-check-match 'edebug-form-spec 'edebug-forms)
 
 (defvar cl-test) (defvar cl-test-not)
 (defvar cl-if) (defvar cl-if-not)

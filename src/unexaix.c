@@ -31,33 +31,17 @@ what you give them.   Help stamp out software-hoarding!  */
  * Mike Sperber <sperber@informatik.uni-tuebingen.de>
  *
  * Synopsis:
- *	unexec (new_name, a_name, data_start, bss_start, entry_address)
- *	char *new_name, *a_name;
- *	unsigned data_start, bss_start, entry_address;
+ *	unexec (const char *new_name, const *old_name);
  *
  * Takes a snapshot of the program and makes an a.out format file in the
  * file named by the string argument new_name.
  * If a_name is non-NULL, the symbol table will be taken from the given file.
  * On some machines, an existing a_name file is required.
  *
- * data_start and entry_address are ignored.
- *
- * bss_start indicates how much of the data segment is to be saved in the
- * a.out file and restored when the program is executed.  It gives the lowest
- * unsaved address, and is rounded up to a page boundary.  The default when 0
- * is given assumes that the entire data segment is to be stored, including
- * the previous data and bss as well as any additional storage allocated with
- * sbrk(2).
- *
  */
 
-#ifndef emacs
-#define PERROR(arg) perror (arg); return -1
-#else
 #include <config.h>
 #define PERROR(file) report_error (file, new)
-#endif
-
 #include <a.out.h>
 /* Define getpagesize () if the system does not.
    Note that this may depend on symbols defined in a.out.h
@@ -103,7 +87,6 @@ static int adjust_lnnoptrs (int, int, char *);
 
 static int pagemask;
 
-#ifdef emacs
 #include <setjmp.h>
 #include "lisp.h"
 
@@ -114,7 +97,6 @@ report_error (char *file, int fd)
     close (fd);
   report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
 }
-#endif /* emacs */
 
 #define ERROR0(msg) report_error_1 (new, msg, 0, 0); return -1
 #define ERROR1(msg,x) report_error_1 (new, msg, x, 0); return -1
@@ -124,12 +106,7 @@ static void
 report_error_1 (int fd, char *msg, int a1, int a2)
 {
   close (fd);
-#ifdef emacs
   error (msg, a1, a2);
-#else
-  fprintf (stderr, msg, a1, a2);
-  fprintf (stderr, "\n");
-#endif
 }
 
 static int make_hdr (int, int, unsigned, unsigned, unsigned, char *, char *);
@@ -143,10 +120,7 @@ static void write_segment (int, char *, char *);
  *
  * driving logic.
  */
-int unexec (char *new_name, char *a_name,
-	    unsigned data_start,
-	    unsigned bss_start,
-	    unsigned entry_address)
+int unexec (const char *new_name, const char *a_name)
 {
   int new = -1, a_out = -1;
 
@@ -159,8 +133,6 @@ int unexec (char *new_name, char *a_name,
       PERROR (new_name);
     }
   if (make_hdr (new, a_out,
-		data_start, bss_start,
-		entry_address,
 		a_name, new_name) < 0
       || copy_text_and_data (new) < 0
       || copy_sym (new, a_out, a_name, new_name) < 0
@@ -186,12 +158,11 @@ int unexec (char *new_name, char *a_name,
  */
 static int
 make_hdr (int new, int a_out,
-	  unsigned data_start, unsigned bss_start,
-	  unsigned entry_address,
 	  char *a_name, char *new_name)
 {
   int scns;
-  unsigned int bss_end;
+  unsigned int bss_start;
+  unsigned int data_start;
 
   struct scnhdr section[MAX_SECTIONS];
   struct scnhdr * f_thdr;		/* Text section header */
@@ -211,22 +182,8 @@ make_hdr (int new, int a_out,
 
   data_start = data_start & ~pagemask; /* (Down) to page boundary. */
 
-  bss_end = ADDR_CORRECT (sbrk (0)) + pagemask;
-  bss_end &= ~ pagemask;
-  /* Adjust data/bss boundary. */
-  if (bss_start != 0)
-    {
-      bss_start = (ADDR_CORRECT (bss_start) + pagemask);
-      /* (Up) to page bdry. */
-      bss_start &= ~ pagemask;
-      if (bss_start > bss_end)
-	{
-	  ERROR1 ("unexec: Specified bss_start (%u) is past end of program",
-		  bss_start);
-	}
-    }
-  else
-    bss_start = bss_end;
+  bss_start = ADDR_CORRECT (sbrk (0)) + pagemask;
+  bss_start &= ~ pagemask;
 
   if (data_start > bss_start)	/* Can't have negative data size. */
     {
@@ -311,7 +268,7 @@ make_hdr (int new, int a_out,
   f_hdr.f_flags |= (F_RELFLG | F_EXEC);
 
   f_ohdr.dsize = bss_start - f_ohdr.data_start;
-  f_ohdr.bsize = bss_end - bss_start;
+  f_ohdr.bsize = 0;
 
   f_dhdr->s_size = f_ohdr.dsize;
   f_bhdr->s_size = f_ohdr.bsize;

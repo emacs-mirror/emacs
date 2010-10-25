@@ -95,7 +95,7 @@
   (let* ((elems (cdr (assq type ecomplete-database)))
 	 (match (regexp-quote match))
 	 (candidates
-	  (sort 
+	  (sort
 	   (loop for (key count time text) in elems
 		 when (string-match match text)
 		 collect (list count time text))
@@ -147,7 +147,7 @@
     (save-restriction
       (narrow-to-region (point) (point-at-eol))
       (while (not (eobp))
-	;; Put the 'region face on any charactes on this line that
+	;; Put the 'region face on any characters on this line that
 	;; aren't already highlighted.
 	(unless (get-text-property (point) 'face)
 	  (put-text-property (point) (1+ (point)) 'face 'highlight))
@@ -156,5 +156,4 @@
 
 (provide 'ecomplete)
 
-;; arch-tag: 34622935-bb81-4711-a600-57b89c2ece72
 ;;; ecomplete.el ends here

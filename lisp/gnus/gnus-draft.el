@@ -310,6 +310,8 @@ Obeys the standard process/prefix convention."
 	  (while buffs
 	    (set-buffer (setq buff (pop buffs)))
 	    (if (and buffer-file-name
+		     (equal (file-remote-p file)
+			    (file-remote-p buffer-file-name))
 		     (string-equal (file-truename buffer-file-name)
 				   (file-truename file))
 		     (buffer-modified-p))
@@ -325,5 +327,4 @@ Obeys the standard process/prefix convention."
 
 (provide 'gnus-draft)
 
-;; arch-tag: 3d92af58-8c97-4a5c-9db4-a98e85198022
 ;;; gnus-draft.el ends here

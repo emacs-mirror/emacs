@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Note that the GTK port uses gdk to display the icon, so Emacs need
    not have XPM support compiled in.  */
 #if (defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)) || defined (USE_GTK)
-static char * gnu_xpm_bits[] = {
+static const char * gnu_xpm_bits[] = {
 /* width height ncolors chars_per_pixel */
 "32 32 255 2",
 /* colors */

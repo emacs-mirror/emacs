@@ -157,8 +157,8 @@ get_user_id (void)
   return buf->pw_name;
 }
 
-char *
-get_prefix (int running_suid, char *user_prefix)
+const char *
+get_prefix (int running_suid, const char *user_prefix)
 {
   if (!running_suid && user_prefix == NULL)
     lose ("Not using a shared game directory, and no prefix given.");
@@ -178,7 +178,8 @@ main (int argc, char **argv)
 {
   int c, running_suid;
   void *lockstate;
-  char *user_id, *scorefile, *prefix, *user_prefix = NULL;
+  char *user_id, *scorefile;
+  const char *prefix, *user_prefix = NULL;
   struct stat buf;
   struct score_entry *scores;
   int newscore, scorecount, reverse = 0, max = MAX_SCORES;
@@ -451,7 +452,7 @@ lock_file (const char *filename, void **state)
   int fd;
   struct stat buf;
   int attempts = 0;
-  char *lockext = ".lockfile";
+  const char *lockext = ".lockfile";
   char *lockpath = malloc (strlen (filename) + strlen (lockext) + 60);
   if (!lockpath)
     return -1;

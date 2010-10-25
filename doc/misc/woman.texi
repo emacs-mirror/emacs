@@ -1121,8 +1121,8 @@ A regular match expression used to match compressed man file extensions
 for which decompressors are available and handled by auto-compression
 mode.  It should begin with @code{\\.} and end with @code{\\'} and
 @emph{must not} be optional.  The default value is
-@code{"\\.\\(g?z\\|bz2\\)\\'"}, which matches the @code{gzip} and
-@code{bzip2} compression extensions.
+@code{"\\.\\(g?z\\|bz2\\|xz\\)\\'"}, which matches the @code{gzip},
+@code{bzip2}, and @code{xz} compression extensions.
 
 @emph{Do not change this unless you are sure you know what you are doing!}
 

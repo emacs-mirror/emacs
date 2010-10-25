@@ -282,6 +282,7 @@ attribute."
 	(plist-put props :short-name (symbol-name name)))
     (or (plist-get props :long-name)
 	(plist-put props :long-name (plist-get props :short-name)))
+    (plist-put props :base name)
     ;; We can probably get a worthwhile amount in purespace.
     (setq props
 	  (mapcar (lambda (elt)
@@ -325,8 +326,7 @@ Return t if file exists."
 	    (with-current-buffer buffer
               ;; So that we don't get completely screwed if the
               ;; file is encoded in some complicated character set,
-              ;; read it with real decoding, as a multibyte buffer,
-              ;; even if this is a --unibyte Emacs session.
+              ;; read it with real decoding, as a multibyte buffer.
               (set-buffer-multibyte t)
 	      ;; Don't let deactivate-mark remain set.
 	      (let (deactivate-mark)
@@ -345,12 +345,7 @@ Return t if file exists."
 	    (eval-buffer buffer nil
 			 ;; This is compatible with what `load' does.
 			 (if purify-flag file fullname)
-			 ;; If this Emacs is running with --unibyte,
-			 ;; convert multibyte strings to unibyte
-			 ;; after reading them.
-;;			 (not (default-value 'enable-multibyte-characters))
-			 nil t
-			 ))
+			 nil t))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
       (do-after-load-evaluation fullname)
@@ -640,18 +635,19 @@ VALUE must be a translation table to use on encoding.
 
 VALUE must be a function to call after some text is inserted and
 decoded by the coding system itself and before any functions in
-`after-insert-functions' are called.  The arguments to this function
-are the same as those of a function in `after-insert-file-functions',
-i.e. LENGTH of the text to be decoded with point at the head of it,
-and the function should leave point unchanged.
+`after-insert-functions' are called.  This function is passed one
+argument; the number of characters in the text to convert, with
+point at the start of the text.  The function should leave point
+the same, and return the new character count.
 
 `:pre-write-conversion'
 
 VALUE must be a function to call after all functions in
-`write-region-annotate-functions' and `buffer-file-format' are called,
-and before the text is encoded by the coding system itself.  The
-arguments to this function are the same as those of a function in
-`write-region-annotate-functions'.
+`write-region-annotate-functions' and `buffer-file-format' are
+called, and before the text is encoded by the coding system
+itself.  This function should convert the whole text in the
+current buffer.  For backward compatibility, this function is
+passed two arguments which can be ignored.
 
 `:default-char'
 
@@ -1465,7 +1461,9 @@ This function is provided for backward compatibility."
   '(("big5-0" big5 2 big5)
     ("ISO8859-14" iso-8859-14 1 latin-iso8859-14)
     ("ISO8859-15" iso-8859-15 1 latin-iso8859-15)
-    ("gbk-0" gbk 2 chinese-gbk)))
+    ("gbk-0" gbk 2 chinese-gbk)
+    ("koi8-r" koi8-r 1 koi8-r)
+    ("microsoft-cp1251" windows-1251 1 windows-1251)))
   "Alist of non-standard encoding names vs the corresponding usages in CTEXT.
 
 It controls how extended segments of a compound text are handled
@@ -1554,6 +1552,20 @@ Each element must be one of the names listed in the variable
       (goto-char (point-min))
       (- (point-max) (point)))))
 
+(defvar ctext-standard-encodings
+  '(ascii latin-jisx0201 katakana-jisx0201
+	  latin-iso8859-1 latin-iso8859-2 latin-iso8859-3 latin-iso8859-4
+	  greek-iso8859-7 arabic-iso8859-6 hebrew-iso8859-8 cyrillic-iso8859-5
+	  latin-iso8859-9
+	  chinese-gb2312 japanese-jisx0208 korean-ksc5601)
+  "List of approved standard encodings (i.e. charsets) of X's Compound Text.
+Coding-system `compound-text-with-extensions' encodes a character
+belonging to any of those charsets using the normal ISO2022
+designation sequence unless the current language environment or
+the variable `ctext-non-standard-encodings' decide to use an extended
+segment of CTEXT for that character.  See also the documentation
+of `ctext-non-standard-encodings-alist'.")
+
 ;; Return an alist of CHARSET vs CTEXT-USAGE-INFO generated from
 ;; `ctext-non-standard-encodings' and a list specified by the key
 ;; `ctext-non-standard-encodings' for the currrent language
@@ -1565,115 +1577,94 @@ Each element must be one of the names listed in the variable
 ;; is encoded using UTF-8 encoding extention.
 
 (defun ctext-non-standard-encodings-table ()
-  (let (table)
-    ;; Setup charsets specified by the key
-    ;; `ctext-non-standard-encodings' for the current language
-    ;; environment and in `ctext-non-standard-encodings'.
-    (dolist (encoding (append
-			(get-language-info current-language-environment
-					   'ctext-non-standard-encodings)
-			ctext-non-standard-encodings))
-      (let* ((slot (assoc encoding ctext-non-standard-encodings-alist))
+  (let* ((table (append ctext-non-standard-encodings
+			(copy-sequence
+			 (get-language-info current-language-environment
+					    'ctext-non-standard-encodings))))
+	 (tail table)
+	 elt)
+    (while tail
+      (setq elt (car tail))
+      (let* ((slot (assoc elt ctext-non-standard-encodings-alist))
 	     (charset (nth 3 slot)))
 	(if (charsetp charset)
-	    (push (cons charset slot) table)
-	  (dolist (cs charset)
-	    (push (cons cs slot) table)))))
-
-    ;; Next prepend charsets for ISO2022 designation sequence.
-    (dolist (charset charset-list)
-      (let ((final (plist-get (charset-plist charset) :iso-final-char)))
-	(if (and (integerp final)
-		 (>= final #x40) (<= final #x7e)
-		 ;; Exclude ascii and chinese-cns11643-X.
-		 (not (eq charset 'ascii))
-		 (not (string-match "cns11643" (symbol-name charset))))
-	    (push (cons charset nil) table))))
-
-    ;; Returned reversed list so that the charsets specified by the
-    ;; key `ctext-non-standard-encodings' for the current language
-    ;; have the highest priority.
-    (nreverse table)))
+	    (setcar tail
+		    (cons (plist-get (charset-plist charset) :base) slot))
+	  (setcar tail (cons (car charset) slot))
+	  (dolist (cs (cdr charset))
+	    (setcdr tail
+		    (cons (cons (plist-get (charset-plist (car cs)) :base) slot)
+			  (cdr tail)))
+	    (setq tail (cdr tail))))
+	(setq tail (cdr tail))))
+    table))
 
 (defun ctext-pre-write-conversion (from to)
   "Encode characters between FROM and TO as Compound Text w/Extended Segments.
 
-If FROM is a string, or if the current buffer is not the one set up for us
-by `encode-coding-string', generate a new temp buffer, insert the text,
-and convert it in the temporary buffer.  Otherwise, convert in-place."
+If FROM is a string, generate a new temp buffer, insert the text,
+and convert it in the temporary buffer.  Otherwise, convert
+in-place."
   (save-match-data
     ;; Setup a working buffer if necessary.
     (when (stringp from)
       (set-buffer (generate-new-buffer " *temp"))
       (set-buffer-multibyte (multibyte-string-p from))
-      (insert from))
-
-    ;; Now we can encode the whole buffer.
-    (let ((encoding-table (ctext-non-standard-encodings-table))
-	  last-coding-system-used
-	  last-pos last-encoding-info
-	  encoding-info end-pos ch)
-      (goto-char (setq last-pos (point-min)))
-      (setq end-pos (point-marker))
-      (while (re-search-forward "[^\000-\177]+" nil t)
-	;; Found a sequence of non-ASCII characters.
-	(setq last-pos (match-beginning 0)
-	      ch (char-after last-pos)
-	      last-encoding-info (catch 'tag
-				   (dolist (elt encoding-table)
-				     (if (encode-char ch (car elt))
-					 (throw 'tag (cdr elt))))
-				   'utf-8))
-	(set-marker end-pos (match-end 0))
-	(goto-char (1+ last-pos))
-	(catch 'tag
-	  (while t
-	    (setq encoding-info
-		  (if (< (point) end-pos)
-		      (catch 'tag
-			(setq ch (following-char))
-			(dolist (elt encoding-table)
-			  (if (encode-char ch (car elt))
-			      (throw 'tag (cdr elt))))
-			'utf-8)))
-	    (unless (eq last-encoding-info encoding-info)
-	      (cond ((consp last-encoding-info)
-		     ;; Encode the previous range using an extended
-		     ;; segment.
-		     (let ((encoding-name (car last-encoding-info))
-			   (coding-system (nth 1 last-encoding-info))
-			   (noctets (nth 2 last-encoding-info))
-			   len)
-		       (encode-coding-region last-pos (point) coding-system)
-		       (setq len (+ (length encoding-name) 1
-				    (- (point) last-pos)))
-		       ;; According to the spec of CTEXT, it is not
-		       ;; necessary to produce this extra designation
-		       ;; sequence, but some buggy application
-		       ;; (e.g. crxvt-gb) requires it.
-		       (insert "\e(B")
-		       (save-excursion
-			 (goto-char last-pos)
-			 (insert (format "\e%%/%d" noctets))
-			 (insert-byte (+ (/ len 128) 128) 1)
-			 (insert-byte (+ (% len 128) 128) 1)
-			 (insert encoding-name)
-			 (insert 2))))
-		    ((eq last-encoding-info 'utf-8)
-		     ;; Encode the previous range using UTF-8 encoding
-		     ;; extention.
-		     (encode-coding-region last-pos (point) 'mule-utf-8)
-		     (save-excursion
-		       (goto-char last-pos)
-		       (insert "\e%G"))
-		     (insert "\e%@")))
-	      (setq last-pos (point)
-		    last-encoding-info encoding-info))
-	    (if (< (point) end-pos)
-		(forward-char 1)
-	      (throw 'tag nil)))))
-      (set-marker end-pos nil)
-      (goto-char (point-min))))
+      (insert from)
+      (setq from 1 to (point-max)))
+    (save-restriction
+      (narrow-to-region from to)
+      (goto-char from)
+      (let ((encoding-table (ctext-non-standard-encodings-table))
+	    (charset-list (sort-charsets
+			   (copy-sequence ctext-standard-encodings)))
+	    (end-pos (make-marker))
+	    last-coding-system-used
+	    last-pos charset encoding-info)
+	(dolist (elt encoding-table)
+	  (push (car elt) charset-list))
+	(setq end-pos (point-marker))
+	(while (re-search-forward "[^\0-\177]+" nil t)
+	  ;; Found a sequence of non-ASCII characters.
+	  (set-marker end-pos (match-end 0))
+	  (goto-char (match-beginning 0))
+	  (setq last-pos (point)
+		charset (char-charset (following-char) charset-list))
+	  (forward-char 1)
+	  (while (and (< (point) end-pos)
+		      (eq charset (char-charset (following-char) charset-list)))
+	    (forward-char 1))
+	  (if charset
+	      (if (setq encoding-info (cdr (assq charset encoding-table)))
+		  ;; Encode this range using an extended segment.
+		  (let ((encoding-name (car encoding-info))
+			(coding-system (nth 1 encoding-info))
+			(noctets (nth 2 encoding-info))
+			len)
+		    (encode-coding-region last-pos (point) coding-system)
+		    (setq len (+ (length encoding-name) 1
+				 (- (point) last-pos)))
+		    ;; According to the spec of CTEXT, it is not
+		    ;; necessary to produce this extra designation
+		    ;; sequence, but some buggy application
+		    ;; (e.g. crxvt-gb) requires it.
+		    (insert "\e(B")
+		    (save-excursion
+		      (goto-char last-pos)
+		      (insert (format "\e%%/%d" noctets))
+		      (insert-byte (+ (/ len 128) 128) 1)
+		      (insert-byte (+ (% len 128) 128) 1)
+		      (insert encoding-name)
+		      (insert 2)))
+		;; Encode this range as characters in CHARSET.
+		(put-text-property last-pos (point) 'charset charset))
+	    ;; Encode this range using UTF-8 encoding extention.
+	    (encode-coding-region last-pos (point) 'mule-utf-8)
+	    (save-excursion
+	      (goto-char last-pos)
+	      (insert "\e%G"))
+	    (insert "\e%@")))
+	(goto-char (point-min)))))
   ;; Must return nil, as build_annotations_2 expects that.
   nil)
 
@@ -1689,7 +1680,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'"
      . no-conversion-multibyte)
     ("\\.\\(exe\\|EXE\\)\\'" . no-conversion)
     ("\\.\\(sx[dmicw]\\|odt\\|tar\\|tgz\\)\\'" . no-conversion)
-    ("\\.\\(gz\\|Z\\|bz\\|bz2\\|gpg\\)\\'" . no-conversion)
+    ("\\.\\(gz\\|Z\\|bz\\|bz2\\|xz\\|gpg\\)\\'" . no-conversion)
     ("\\.\\(jpe?g\\|png\\|gif\\|tiff?\\|p[bpgn]m\\)\\'" . no-conversion)
     ("\\.pdf\\'" . no-conversion)
     ("/#[^/]+#\\'" . emacs-mule)))
@@ -1700,6 +1691,7 @@ A file whose name matches REGEXP is decoded by CODING-SYSTEM on reading.
 The settings in this alist take priority over `coding:' tags
 in the file (see the function `set-auto-coding')
 and the contents of `file-coding-system-alist'."
+  :version "24.1"                       ; added xz
   :group 'files
   :group 'mule
   :type '(repeat (cons (regexp :tag "File name regexp")
@@ -2307,13 +2299,12 @@ It returns the number of characters changed."
 	(setq table val)))
   (translate-region-internal start end table))
 
-(put 'with-category-table 'lisp-indent-function 1)
-
 (defmacro with-category-table (table &rest body)
   "Execute BODY like `progn' with TABLE the current category table.
 The category table of the current buffer is saved, BODY is evaluated,
 then the saved table is restored, even in case of an abnormal exit.
 Value is what BODY returns."
+  (declare (indent 1) (debug t))
   (let ((old-table (make-symbol "old-table"))
 	(old-buffer (make-symbol "old-buffer")))
     `(let ((,old-table (category-table))

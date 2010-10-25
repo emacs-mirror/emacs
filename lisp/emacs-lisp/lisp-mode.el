@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -85,7 +86,7 @@
   (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
     (modify-syntax-entry ?\[ "_   " table)
     (modify-syntax-entry ?\] "_   " table)
-    (modify-syntax-entry ?# "' 14b" table)
+    (modify-syntax-entry ?# "' 14" table)
     (modify-syntax-entry ?| "\" 23bn" table)
     table)
   "Syntax table used in `lisp-mode'.")
@@ -1209,31 +1210,17 @@ This function also returns nil meaning don't specify the indentation."
 (put 'prog2 'lisp-indent-function 2)
 (put 'save-excursion 'lisp-indent-function 0)
 (put 'save-window-excursion 'lisp-indent-function 0)
-(put 'save-selected-window 'lisp-indent-function 0)
 (put 'save-restriction 'lisp-indent-function 0)
 (put 'save-match-data 'lisp-indent-function 0)
 (put 'save-current-buffer 'lisp-indent-function 0)
-(put 'with-current-buffer 'lisp-indent-function 1)
-(put 'combine-after-change-calls 'lisp-indent-function 0)
-(put 'with-output-to-string 'lisp-indent-function 0)
-(put 'with-temp-file 'lisp-indent-function 1)
-(put 'with-temp-buffer 'lisp-indent-function 0)
-(put 'with-temp-message 'lisp-indent-function 1)
-(put 'with-syntax-table 'lisp-indent-function 1)
 (put 'let 'lisp-indent-function 1)
 (put 'let* 'lisp-indent-function 1)
 (put 'while 'lisp-indent-function 1)
 (put 'if 'lisp-indent-function 2)
-(put 'read-if 'lisp-indent-function 2)
 (put 'catch 'lisp-indent-function 1)
 (put 'condition-case 'lisp-indent-function 2)
 (put 'unwind-protect 'lisp-indent-function 1)
 (put 'with-output-to-temp-buffer 'lisp-indent-function 1)
-(put 'eval-after-load 'lisp-indent-function 1)
-(put 'dolist 'lisp-indent-function 1)
-(put 'dotimes 'lisp-indent-function 1)
-(put 'when 'lisp-indent-function 1)
-(put 'unless 'lisp-indent-function 1)
 
 (defun indent-sexp (&optional endpos)
   "Indent each line of the list starting just after point.

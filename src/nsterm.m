@@ -142,22 +142,27 @@ Lisp_Object ns_input_spi_name, ns_input_spi_arg;
 Lisp_Object Vx_toolkit_scroll_bars;
 static Lisp_Object Qmodifier_value;
 Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper, Qnone;
-extern Lisp_Object Qcursor_color, Qcursor_type, Qns;
+extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the Alternate modifer.  May be Qnone or any of the modifier lisp symbols. */
+   the Alternate modifier.  May be Qnone or any of the modifier lisp symbols. */
 Lisp_Object ns_alternate_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the Command modifer.  May be any of the modifier lisp symbols. */
+   the right Alternate modifier.  Has same values as ns_alternate_modifier plus
+   the value Qleft which means whatever value ns_alternate_modifier has.  */
+Lisp_Object ns_right_alternate_modifier;
+
+/* Specifies which emacs modifier should be generated when NS receives
+   the Command modifier.  May be any of the modifier lisp symbols. */
 Lisp_Object ns_command_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the Control modifer.  May be any of the modifier lisp symbols. */
+   the Control modifier.  May be any of the modifier lisp symbols. */
 Lisp_Object ns_control_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
-   the Function modifer (laptops).  May be any of the modifier lisp symbols. */
+   the Function modifier (laptops).  May be any of the modifier lisp symbols. */
 Lisp_Object ns_function_modifier;
 
 /* Control via default 'GSFontAntiAlias' on OS X and GNUstep. */
@@ -218,12 +223,17 @@ static BOOL inNsSelect = 0;
 
 /* Convert modifiers in a NeXTSTEP event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
+#define NSRightAlternateKeyMask (0x000040 | NSAlternateKeyMask)
 #define EV_MODIFIERS(e)                               \
     ((([e modifierFlags] & NSHelpKeyMask) ?           \
            hyper_modifier : 0)                        \
-     | (([e modifierFlags] & NSAlternateKeyMask) ?    \
+     | (!EQ (ns_right_alternate_modifier, Qleft) && \
+        (([e modifierFlags] & NSRightAlternateKeyMask) \
+         == NSRightAlternateKeyMask) ? \
+           parse_solitary_modifier (ns_right_alternate_modifier) : 0) \
+     | (([e modifierFlags] & NSAlternateKeyMask) ?                 \
            parse_solitary_modifier (ns_alternate_modifier) : 0)   \
-     | (([e modifierFlags] & NSShiftKeyMask) ?        \
+     | (([e modifierFlags] & NSShiftKeyMask) ?     \
            shift_modifier : 0)                        \
      | (([e modifierFlags] & NSControlKeyMask) ?      \
            parse_solitary_modifier (ns_control_modifier) : 0)     \
@@ -296,7 +306,7 @@ append2 (Lisp_Object list, Lisp_Object item)
 
 
 void
-ns_init_paths ()
+ns_init_paths (void)
 /* --------------------------------------------------------------------------
    Used to allow emacs to find its resources under Emacs.app
    Called from emacs.c at startup.
@@ -479,7 +489,7 @@ ns_retain_object (void *obj)
 
 
 void *
-ns_alloc_autorelease_pool ()
+ns_alloc_autorelease_pool (void)
 /* --------------------------------------------------------------------------
      Allocate a pool for temporary objects (callable from C)
    -------------------------------------------------------------------------- */
@@ -790,7 +800,7 @@ ns_clip_to_row (struct window *w, struct glyph_row *row, int area, BOOL gc)
 
 
 static void
-ns_ring_bell ()
+ns_ring_bell (struct frame *f)
 /* --------------------------------------------------------------------------
      "Beep" routine
    -------------------------------------------------------------------------- */
@@ -1186,12 +1196,14 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
      difference between the real width and Emacs' imagined one.  For
      right-hand bars, don't worry about it since the extra is never used.
      (Obviously doesn't work for vertically split windows tho..) */
-  NSPoint origin = FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)
-    ? NSMakePoint (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)
-                  - NS_SCROLL_BAR_WIDTH (f), 0)
-    : NSMakePoint (0, 0);
-  [view setFrame: NSMakeRect (0, 0, pixelwidth, pixelheight)];
-  [view setBoundsOrigin: origin];
+  {
+    NSPoint origin = FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)
+      ? NSMakePoint (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)
+                     - NS_SCROLL_BAR_WIDTH (f), 0)
+      : NSMakePoint (0, 0);
+    [view setFrame: NSMakeRect (0, 0, pixelwidth, pixelheight)];
+    [view setBoundsOrigin: origin];
+  }
 
   change_frame_size (f, rows, cols, 0, 1, 0); /* pretend, delay, safe */
   FRAME_PIXEL_WIDTH (f) = pixelwidth;
@@ -1507,7 +1519,10 @@ ns_query_color(void *col, XColor *color_def, int setPixel)
 
 
 int
-ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
+ns_defined_color (struct frame *f,
+                  const char *name,
+                  XColor *color_def,
+                  int alloc,
                   char makeIndex)
 /* --------------------------------------------------------------------------
          Return 1 if named color found, and set color_def rgb accordingly.
@@ -1787,6 +1802,9 @@ ns_define_frame_cursor (struct frame *f, Cursor cursor)
       EmacsView *view = FRAME_NS_VIEW (f);
       FRAME_POINTER_TYPE (f) = cursor;
       [[view window] invalidateCursorRectsForView: view];
+      /* Redisplay assumes this function also draws the changed frame
+         cursor, but this function doesn't, so do it explicitly.  */
+      x_update_cursor (f, 1);
     }
 }
 
@@ -2184,9 +2202,8 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       int yAdjust = rowY - FRAME_INTERNAL_BORDER_WIDTH (f) < 5 ?
         -FRAME_INTERNAL_BORDER_WIDTH (f) : 0;
       int yIncr = FRAME_PIXEL_HEIGHT (f) - (p->by+yAdjust + p->ny) < 5 ?
-        FRAME_INTERNAL_BORDER_WIDTH (f) : 0;
-      if (yAdjust)
-        yIncr += FRAME_INTERNAL_BORDER_WIDTH (f);
+        FRAME_INTERNAL_BORDER_WIDTH (f) : 0
+        + (yAdjust ? FRAME_INTERNAL_BORDER_WIDTH (f) : 0);
       NSRect r = NSMakeRect (p->bx+xAdjust, p->by+yAdjust, p->nx, p->ny+yIncr);
       NSRectClip (r);
       [ns_lookup_indexed_color(face->background, f) set];
@@ -2244,6 +2261,11 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   struct frame *f = WINDOW_XFRAME (w);
   struct glyph *phys_cursor_glyph;
   int overspill;
+  struct glyph *cursor_glyph;
+
+  /* If cursor is out of bounds, don't draw garbage.  This can happen
+     in mini-buffer windows when switching between echo area glyphs
+     and mini-buffer.  */
 
   NSTRACE (dumpcursor);
 //fprintf(stderr, "drawcursor (%d,%d) activep = %d\tonp = %d\tc_type = %d\twidth = %d\n",x,y, active_p,on_p,cursor_type,cursor_width);
@@ -2321,6 +2343,13 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
     case BAR_CURSOR:
       s = r;
       s.size.width = min (cursor_width, 2); //FIXME(see above)
+
+      /* If the character under cursor is R2L, draw the bar cursor
+         on the right of its glyph, rather than on the left.  */
+      cursor_glyph = get_phys_cursor_glyph (w);
+      if ((cursor_glyph->resolved_level & 1) != 0)
+        s.origin.x += cursor_glyph->pixel_width - s.size.width;
+
       NSRectFill (s);
       break;
     }
@@ -2375,7 +2404,7 @@ show_hourglass (struct atimer *timer)
 
 
 void
-hide_hourglass ()
+hide_hourglass (void)
 {
   if (!hourglass_shown_p)
     return;
@@ -3406,16 +3435,14 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
    ========================================================================== */
 
 int
-x_display_pixel_height (dpyinfo)
-     struct ns_display_info *dpyinfo;
+x_display_pixel_height (struct ns_display_info *dpyinfo)
 {
   NSScreen *screen = [NSScreen mainScreen];
   return [screen frame].size.height;
 }
 
 int
-x_display_pixel_width (dpyinfo)
-     struct ns_display_info *dpyinfo;
+x_display_pixel_width (struct ns_display_info *dpyinfo)
 {
   NSScreen *screen = [NSScreen mainScreen];
   return [screen frame].size.width;
@@ -4423,7 +4450,13 @@ ns_term_shutdown (int sig)
           emacs_event->modifiers |=
             parse_solitary_modifier (ns_function_modifier);
 
-      if (flags & NSAlternateKeyMask) /* default = meta */
+      if (!EQ (ns_right_alternate_modifier, Qleft)
+          && ((flags & NSRightAlternateKeyMask) == NSRightAlternateKeyMask)) 
+	{
+	  emacs_event->modifiers |= parse_solitary_modifier
+            (ns_right_alternate_modifier);
+	}
+      else if (flags & NSAlternateKeyMask) /* default = meta */
         {
           if ((NILP (ns_alternate_modifier) || EQ (ns_alternate_modifier, Qnone))
               && !fnKeysym)
@@ -5743,9 +5776,10 @@ ns_term_shutdown (int sig)
   NSTRACE (judge);
   if (condemned)
     {
+      EmacsView *view;
       BLOCK_INPUT;
       /* ensure other scrollbar updates after deletion */
-      EmacsView *view = (EmacsView *)FRAME_NS_VIEW (frame);
+      view = (EmacsView *)FRAME_NS_VIEW (frame);
       if (view != nil)
         view->scrollbarsNeedingUpdate++;
       [self removeFromSuperview];
@@ -6122,7 +6156,7 @@ ns_xlfd_to_fontname (const char *xlfd)
 
 
 void
-syms_of_nsterm ()
+syms_of_nsterm (void)
 {
   NSTRACE (syms_of_nsterm);
 
@@ -6184,6 +6218,14 @@ Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to none means that the alternate / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
   ns_alternate_modifier = Qmeta;
+
+  DEFVAR_LISP ("ns-right-alternate-modifier", &ns_right_alternate_modifier,
+               "This variable describes the behavior of the right alternate or option key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to left means be the same key as `ns-alternate-modifier'.\n\
+Set to none means that the alternate / option key is not interpreted by Emacs\n\
+at all, allowing it to be used at a lower level for accented character entry.");
+  ns_right_alternate_modifier = Qleft;
 
   DEFVAR_LISP ("ns-command-modifier", &ns_command_modifier,
                "This variable describes the behavior of the command key.\n\

@@ -51,6 +51,10 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define XSync(d, b) do { gdk_window_process_all_updates (); \
                          XSync (d, b);  } while (0)
 
+/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
+#if GTK_MAJOR_VERSION > 2 || GTK_MINOR_VERSION > 13
+#define USE_GTK_TOOLTIP
+#endif
 
 #endif /* USE_GTK */
 
@@ -295,8 +299,6 @@ struct x_display_info
   /* Atom used in XEmbed client messages.  */
   Atom Xatom_XEMBED;
  
-  int cut_buffers_initialized; /* Whether we're sure they all exist */
-
   /* The frame (if any) which has the X window that has keyboard focus.
      Zero if none.  This is examined by Ffocus_frame in xfns.c.  Note
      that a mere EnterNotify event can set this; if you need to know the
@@ -502,7 +504,14 @@ struct x_output
   /* The last size hints set.  */
   GdkGeometry size_hints;
   long hint_flags;
-#endif
+
+#ifdef USE_GTK_TOOLTIP
+  GtkTooltip *ttip_widget;
+  GtkWidget *ttip_lbl;
+  GtkWindow *ttip_window;
+#endif /* USE_GTK_TOOLTIP */
+
+#endif /* USE_GTK */
 
   /* If >=0, a bitmap index.  The indicated bitmap is used for the
      icon. */
@@ -1047,10 +1056,11 @@ extern Lisp_Object x_property_data_to_lisp (struct frame *,
 /* Defined in xfns.c */
 
 extern struct x_display_info * check_x_display_info (Lisp_Object frame);
+extern Lisp_Object x_get_focus_frame (struct frame *);
 
 #ifdef USE_GTK
 extern int xg_set_icon (struct frame *, Lisp_Object);
-extern int xg_set_icon_from_xpm_data (struct frame *, char**);
+extern int xg_set_icon_from_xpm_data (struct frame *, const char**);
 #endif /* USE_GTK */
 
 extern void x_real_positions (struct frame *, int *, int *);
@@ -1157,6 +1167,7 @@ enum xembed_accelerator
 
 /* Defined in xterm.c */
 
+extern Lisp_Object Qx_gtk_map_stock;
 extern void xembed_set_info (struct frame *f, enum xembed_info flags);
 extern void xembed_send_message (struct frame *f, Time time,
                                  enum xembed_message message,

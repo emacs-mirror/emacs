@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -232,16 +233,13 @@
       (load "ls-lisp")
       (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
 (if (featurep 'ns)
-    (progn
-      (load "emacs-lisp/easymenu")  ;; for platform-related menu adjustments
-      (load "term/ns-win")))
+    (load "term/ns-win"))
 (if (fboundp 'x-create-frame)
     ;; Do it after loading term/foo-win.el since the value of the
     ;; mouse-wheel-*-event vars depends on those files being loaded or not.
     (load "mwheel"))
-(if (fboundp 'atan)	; preload some constants and
-    (progn		; floating pt. functions if we have float support.
-      (load "emacs-lisp/float-sup")))
+;; Preload some constants and floating point functions.
+(load "emacs-lisp/float-sup")
 
 (load "vc/vc-hooks")
 (load "vc/ediff-hook")
@@ -402,5 +400,4 @@
 ;; no-update-autoloads: t
 ;; End:
 
-;; arch-tag: 121e1dd4-36e1-45ac-860e-239f577a6335
 ;;; loadup.el ends here

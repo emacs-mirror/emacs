@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include <setjmp.h>
 
@@ -47,10 +46,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif /* HAVE_NS */
-
-#ifdef HAVE_NS
-extern Lisp_Object Qfontsize;
-#endif
 
 Lisp_Object Qopentype;
 
@@ -236,12 +231,12 @@ static int num_font_drivers;
    STR.  */
 
 Lisp_Object
-font_intern_prop (char *str, int len, int force_symbol)
+font_intern_prop (const char *str, int len, int force_symbol)
 {
   int i;
   Lisp_Object tem;
   Lisp_Object obarray;
-  int nbytes, nchars;
+  EMACS_INT nbytes, nchars;
 
   if (len == 1 && *str == '*')
     return Qnil;
@@ -393,11 +388,6 @@ font_style_symbolic (Lisp_Object font, enum font_property_index prop, int for_fa
   font_assert ((i & 0xF) + 1 < ASIZE (elt));
   return (for_face ? AREF (elt, 1) : AREF (elt, (i & 0xF) + 1));
 }
-
-extern Lisp_Object Vface_alternative_font_family_alist;
-
-extern Lisp_Object find_font_encoding (Lisp_Object);
-
 
 /* Return ENCODING or a cons of ENCODING and REPERTORY of the font
    FONTNAME.  ENCODING is a charset symbol that specifies the encoding
@@ -603,7 +593,7 @@ font_prop_validate_otf (Lisp_Object prop, Lisp_Object val)
 
 /* Structure of known font property keys and validater of the
    values.  */
-struct
+static const struct
 {
   /* Pointer to the key symbol.  */
   Lisp_Object *key;
@@ -708,7 +698,7 @@ font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
 
 /* Font name parser and unparser */
 
-static int parse_matrix (char *);
+static int parse_matrix (const char *);
 static int font_expand_wildcards (Lisp_Object *, int);
 static int font_parse_name (char *, Lisp_Object);
 
@@ -767,7 +757,7 @@ enum xlfd_field_mask
    -1.  */
 
 static int
-parse_matrix (char *p)
+parse_matrix (const char *p)
 {
   double matrix[4];
   char *end;
@@ -1580,7 +1570,7 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
   int i, len = 1;
   char *p;
   Lisp_Object styles[3];
-  char *style_names[3] = { "weight", "slant", "width" };
+  const char *style_names[3] = { "weight", "slant", "width" };
   char work[256];
 
   family = AREF (font, FONT_FAMILY_INDEX);
@@ -2137,9 +2127,6 @@ static unsigned font_score (Lisp_Object, Lisp_Object *);
 static int font_compare (const void *, const void *);
 static Lisp_Object font_sort_entities (Lisp_Object, Lisp_Object,
                                        Lisp_Object, int);
-
-/* Return a rescaling ratio of FONT_ENTITY.  */
-extern Lisp_Object Vface_font_rescale_alist;
 
 static double
 font_rescale_ratio (Lisp_Object font_entity)
@@ -2722,8 +2709,6 @@ static Lisp_Object scratch_font_spec, scratch_font_prefer;
      (1) matches with SPEC and SIZE if SPEC is not nil, and
      (2) doesn't match with any regexps in Vface_ignored_fonts (if non-nil).
 */
-
-extern Lisp_Object Vface_ignored_fonts;
 
 Lisp_Object
 font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
@@ -3520,7 +3505,7 @@ font_open_by_spec (FRAME_PTR f, Lisp_Object spec)
    found, return Qnil.  */
 
 Lisp_Object
-font_open_by_name (FRAME_PTR f, char *name)
+font_open_by_name (FRAME_PTR f, const char *name)
 {
   Lisp_Object args[2];
   Lisp_Object spec, ret;
@@ -3735,6 +3720,58 @@ font_get_frame_data (FRAME_PTR f, struct font_driver *driver)
   if (! list)
     return NULL;
   return list->data;
+}
+
+
+/* Sets attributes on a font.  Any properties that appear in ALIST and
+   BOOLEAN_PROPERTIES or NON_BOOLEAN_PROPERTIES are set on the font.
+   BOOLEAN_PROPERTIES and NON_BOOLEAN_PROPERTIES are NULL-terminated
+   arrays of strings.  This function is intended for use by the font
+   drivers to implement their specific font_filter_properties.  */
+void
+font_filter_properties (Lisp_Object font,
+			Lisp_Object alist,
+			const char *boolean_properties[],
+			const char *non_boolean_properties[])
+{
+  Lisp_Object it;
+  int i;
+
+  /* Set boolean values to Qt or Qnil */
+  for (i = 0; boolean_properties[i] != NULL; ++i)
+    for (it = alist; ! NILP (it); it = XCDR (it))
+      {
+        Lisp_Object key = XCAR (XCAR (it));
+        Lisp_Object val = XCDR (XCAR (it));
+        char *keystr = SDATA (SYMBOL_NAME (key));
+
+        if (strcmp (boolean_properties[i], keystr) == 0)
+          {
+            const char *str = INTEGERP (val) ? (XINT (val) ? "true" : "false")
+	      : SYMBOLP (val) ? (const char *) SDATA (SYMBOL_NAME (val))
+	      : "true";
+
+            if (strcmp ("false", str) == 0 || strcmp ("False", str) == 0
+                || strcmp ("FALSE", str) == 0 || strcmp ("FcFalse", str) == 0
+                || strcmp ("off", str) == 0 || strcmp ("OFF", str) == 0
+                || strcmp ("Off", str) == 0)
+              val = Qnil;
+	    else
+              val = Qt;
+
+            Ffont_put (font, key, val);
+          }
+      }
+
+  for (i = 0; non_boolean_properties[i] != NULL; ++i)
+    for (it = alist; ! NILP (it); it = XCDR (it))
+      {
+        Lisp_Object key = XCAR (XCAR (it));
+        Lisp_Object val = XCDR (XCAR (it));
+        char *keystr = SDATA (SYMBOL_NAME (key));
+        if (strcmp (non_boolean_properties[i], keystr) == 0)
+          Ffont_put (font, key, val);
+      }
 }
 
 
@@ -4501,7 +4538,7 @@ DEFUN ("font-variation-glyphs", Ffont_variation_glyphs, Sfont_variation_glyphs,
        doc: /* Return a list of variation glyphs for CHAR in FONT-OBJECT.
 Each element of the value is a cons (VARIATION-SELECTOR . GLYPH-ID),
 where
-  VARIATION-SELECTOR is a chracter code of variation selection
+  VARIATION-SELECTOR is a character code of variation selection
     (#xFE00..#xFE0F or #xE0100..#xE01EF)
   GLYPH-ID is a glyph code of the corresponding variation glyph.  */)
   (Lisp_Object font_object, Lisp_Object character)
@@ -5074,7 +5111,7 @@ static Lisp_Object Vfont_log_deferred;
    opening), ARG is the argument for the action, and RESULT is the
    result of the action.  */
 void
-font_add_log (char *action, Lisp_Object arg, Lisp_Object result)
+font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
 {
   Lisp_Object tail, val;
   int i;
@@ -5160,7 +5197,7 @@ font_add_log (char *action, Lisp_Object arg, Lisp_Object result)
    as font_add_log.  */
 
 void
-font_deferred_log (char *action, Lisp_Object arg, Lisp_Object result)
+font_deferred_log (const char *action, Lisp_Object arg, Lisp_Object result)
 {
   if (EQ (Vfont_log, Qt))
     return;
@@ -5168,15 +5205,6 @@ font_deferred_log (char *action, Lisp_Object arg, Lisp_Object result)
   ASET (Vfont_log_deferred, 1, arg);
   ASET (Vfont_log_deferred, 2, result);
 }
-
-extern void syms_of_ftfont (void);
-extern void syms_of_xfont (void);
-extern void syms_of_xftfont (void);
-extern void syms_of_ftxfont (void);
-extern void syms_of_bdffont (void);
-extern void syms_of_w32font (void);
-extern void syms_of_atmfont (void);
-extern void syms_of_nsfont (void);
 
 void
 syms_of_font (void)

@@ -6,6 +6,7 @@
 ;; Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 ;; Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 ;; Keywords: emulations
+;; Package: edt
 
 ;; This file is part of GNU Emacs.
 

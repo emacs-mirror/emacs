@@ -3,6 +3,7 @@
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG, mail, message
+;; Package: epa
 
 ;; This file is part of GNU Emacs.
 

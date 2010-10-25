@@ -725,9 +725,8 @@ If timer is not set, then set it to scan the files in
 	(setq bufname (cadr thiselt))
 	(setq buf (get-buffer bufname))
 	(if (buffer-live-p buf)
-	    (save-excursion
+	    (with-current-buffer bufname
 	      ;;(message "buffer %s live" bufname)
-	      (set-buffer bufname)
 	      (if whitespace-mode
 		  (progn
 		    ;;(message "checking for whitespace in %s" bufname)
@@ -788,7 +787,7 @@ This is meant to be added buffer-locally to `write-file-functions'."
 
 (defun whitespace-unload-function ()
   "Unload the whitespace library."
-  (if (unintern "whitespace-unload-hook")
+  (if (unintern "whitespace-unload-hook" obarray)
       ;; if whitespace-unload-hook is defined, let's get rid of it
       ;; and recursively call `unload-feature'
       (progn (unload-feature 'whitespace) t)

@@ -7,8 +7,9 @@
 ;;          Carsten Dominik <dominik@astro.uva.nl>
 ;;          Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
-;; Version: 6.1_em22
+;; Version: 6.1.22
 ;; Keywords: processes
+;; Package: idlwave
 
 ;; This file is part of GNU Emacs.
 

@@ -20,9 +20,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifdef emacs
 #include <config.h>
-#endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -50,37 +48,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 
+#ifdef USE_MOTIF
+/* For Vdouble_click_time.  */
+#include "keyboard.h"
+#endif
+
 extern char *getenv (const char *);
 
-/* This does cause trouble on AIX.  I'm going to take the comment at
-   face value.  */
-#if 0
-extern short getuid ();		/* If this causes portability problems,
-				   I think we should just delete it; it'll
-				   default to `int' anyway.  */
-#endif
-
-#ifdef DECLARE_GETPWUID_WITH_UID_T
 extern struct passwd *getpwuid (uid_t);
 extern struct passwd *getpwnam (const char *);
-#else
-extern struct passwd *getpwuid (uid_t);
-extern struct passwd *getpwnam (const char *);
-#endif
 
-extern char *get_system_name (void);
-
-/* Make sure not to #include anything after these definitions.  Let's
-   not step on anyone's prototypes.  */
-#ifdef emacs
-/* darwin.h may have already defined these.  */
-#undef malloc
-#undef realloc
-#undef free
-#define malloc xmalloc
-#define realloc xrealloc
-#define free xfree
-#endif
+extern const char *get_system_name (void);
 
 char *x_get_string_resource (XrmDatabase rdb, const char *name,
 			     const char *class);
@@ -114,7 +92,7 @@ x_get_customization_string (XrmDatabase db, const char *name, const char *class)
 
   if (result)
     {
-      char *copy = (char *) malloc (strlen (result) + 1);
+      char *copy = (char *) xmalloc (strlen (result) + 1);
       strcpy (copy, result);
       return copy;
     }
@@ -154,12 +132,12 @@ x_get_customization_string (XrmDatabase db, const char *name, const char *class)
    Return NULL otherwise.  */
 
 static char *
-magic_file_p (const char *string, int string_len, const char *class, const char *escaped_suffix, const char *suffix)
+magic_file_p (const char *string, EMACS_INT string_len, const char *class, const char *escaped_suffix, const char *suffix)
 {
   char *lang = getenv ("LANG");
 
   int path_size = 100;
-  char *path = (char *) malloc (path_size);
+  char *path = (char *) xmalloc (path_size);
   int path_len = 0;
 
   const char *p = string;
@@ -210,7 +188,7 @@ magic_file_p (const char *string, int string_len, const char *class, const char 
 	      case 'l':
 		if (! lang)
 		  {
-		    free (path);
+		    xfree (path);
 		    return NULL;
 		  }
 
@@ -220,7 +198,7 @@ magic_file_p (const char *string, int string_len, const char *class, const char 
 
 	      case 't':
 	      case 'c':
-		free (path);
+		xfree (path);
 		return NULL;
 	      }
 	}
@@ -231,7 +209,7 @@ magic_file_p (const char *string, int string_len, const char *class, const char 
       if (path_len + next_len + 1 > path_size)
 	{
 	  path_size = (path_len + next_len + 1) * 2;
-	  path = (char *) realloc (path, path_size);
+	  path = (char *) xrealloc (path, path_size);
 	}
 
       memcpy (path + path_len, next, next_len);
@@ -257,7 +235,7 @@ magic_file_p (const char *string, int string_len, const char *class, const char 
       if (path_len + suffix_len + 1 > path_size)
 	{
 	  path_size = (path_len + suffix_len + 1);
-	  path = (char *) realloc (path, path_size);
+	  path = (char *) xrealloc (path, path_size);
 	}
 
       memcpy (path + path_len, suffix, suffix_len);
@@ -268,7 +246,7 @@ magic_file_p (const char *string, int string_len, const char *class, const char 
 
   if (! file_p (path))
     {
-      free (path);
+      xfree (path);
       return NULL;
     }
 
@@ -298,7 +276,7 @@ gethomedir (void)
   if (ptr == NULL)
     return xstrdup ("/");
 
-  copy = (char *) malloc (strlen (ptr) + 2);
+  copy = (char *) xmalloc (strlen (ptr) + 2);
   strcpy (copy, ptr);
   strcat (copy, "/");
 
@@ -361,16 +339,17 @@ static XrmDatabase
 get_system_app (const char *class)
 {
   XrmDatabase db = NULL;
-  char *path;
+  const char *path;
+  char *p;
 
   path = getenv ("XFILESEARCHPATH");
   if (! path) path = PATH_X_DEFAULTS;
 
-  path = search_magic_path (path, class, 0, 0);
-  if (path)
+  p = search_magic_path (path, class, 0, 0);
+  if (p)
     {
-      db = XrmGetFileDatabase (path);
-      free (path);
+      db = XrmGetFileDatabase (p);
+      xfree (p);
     }
 
   return db;
@@ -387,7 +366,7 @@ get_fallback (Display *display)
 static XrmDatabase
 get_user_app (const char *class)
 {
-  char *path;
+  const char *path;
   char *file = 0;
   char *free_it = 0;
 
@@ -409,12 +388,12 @@ get_user_app (const char *class)
 	   || (file = search_magic_path (free_it, class, "%N", 0)))))
     {
       XrmDatabase db = XrmGetFileDatabase (file);
-      free (file);
-      free (free_it);
+      xfree (file);
+      xfree (free_it);
       return db;
     }
 
-  free (free_it);
+  xfree (free_it);
   return NULL;
 }
 
@@ -439,12 +418,12 @@ get_user_db (Display *display)
       char *xdefault;
 
       home = gethomedir ();
-      xdefault = (char *) malloc (strlen (home) + sizeof (".Xdefaults"));
+      xdefault = (char *) xmalloc (strlen (home) + sizeof (".Xdefaults"));
       strcpy (xdefault, home);
       strcat (xdefault, ".Xdefaults");
       db = XrmGetFileDatabase (xdefault);
-      free (home);
-      free (xdefault);
+      xfree (home);
+      xfree (xdefault);
     }
 
 #ifdef HAVE_XSCREENRESOURCESTRING
@@ -465,13 +444,14 @@ get_environ_db (void)
 {
   XrmDatabase db;
   char *p;
-  char *path = 0, *home = 0, *host;
+  char *path = 0, *home = 0;
+  const char *host;
 
   if ((p = getenv ("XENVIRONMENT")) == NULL)
     {
       home = gethomedir ();
       host = get_system_name ();
-      path = (char *) malloc (strlen (home)
+      path = (char *) xmalloc (strlen (home)
 			      + sizeof (".Xdefaults-")
 			      + strlen (host));
       sprintf (path, "%s%s%s", home, ".Xdefaults-", host);
@@ -480,8 +460,8 @@ get_environ_db (void)
 
   db = XrmGetFileDatabase (p);
 
-  free (path);
-  free (home);
+  xfree (path);
+  xfree (home);
 
   return db;
 }
@@ -586,7 +566,7 @@ x_load_resources (Display *display, const char *xrm_string,
 
   /* Figure out what the "customization string" is, so we can use it
      to decode paths.  */
-  free (x_customization_string);
+  xfree (x_customization_string);
   x_customization_string
     = x_get_customization_string (user_database, myname, myclass);
 

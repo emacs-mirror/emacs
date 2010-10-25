@@ -1,6 +1,7 @@
 ;;; iimage.el --- Inline image minor mode.
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: KOSEKI Yoshinori <kose@meadowy.org>
 ;; Maintainer: KOSEKI Yoshinori <kose@meadowy.org>
@@ -27,20 +28,16 @@
 ;; exists in the buffer.
 ;; http://www.netlaputa.ne.jp/~kose/Emacs/iimage.html
 ;;
-;; Add to your `~/.emacs':
-;; (autoload 'iimage-mode "iimage" "Support Inline image minor mode." t)
-;; (autoload 'turn-on-iimage-mode "iimage" "Turn on Inline image minor mode." t)
-;;
 ;; ** Display images in *Info* buffer.
 ;;
-;; (add-hook 'info-mode-hook 'turn-on-iimage-mode)
+;; (add-hook 'info-mode-hook 'iimage-mode)
 ;;
 ;; .texinfo:   @file{file://foo.png}
 ;; .info:      `file://foo.png'
 ;;
 ;; ** Display images in Wiki buffer.
 ;;
-;; (add-hook 'wiki-mode-hook 'turn-on-iimage-mode)
+;; (add-hook 'wiki-mode-hook 'iimage-mode)
 ;;
 ;; wiki-file:   [[foo.png]]
 
@@ -54,19 +51,10 @@
   :version "22.1"
   :group 'image)
 
-(defconst iimage-version "1.1")
-
-(defvar iimage-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-l" 'iimage-recenter)
-    map))
-
-(defun iimage-recenter (&optional arg)
-  "Re-draw images and recenter."
-  (interactive "P")
-  (iimage-mode-buffer nil)
-  (iimage-mode-buffer t)
-  (recenter arg))
+(defcustom iimage-mode-image-search-path nil
+  "List of directories to search for image files for iimage-mode."
+  :type '(choice (const nil) (repeat directory))
+  :group 'iimage)
 
 (defvar iimage-mode-image-filename-regex
   (concat "[-+./_0-9a-zA-Z]+\\."
@@ -75,23 +63,36 @@
 			     image-file-name-extensions)
 		      t)))
 
-(defvar iimage-mode-image-regex-alist
+(defcustom iimage-mode-image-regex-alist
   `((,(concat "\\(`?file://\\|\\[\\[\\|<\\|`\\)?"
 	      "\\(" iimage-mode-image-filename-regex "\\)"
 	      "\\(\\]\\]\\|>\\|'\\)?") . 2))
-  "*Alist of filename REGEXP vs NUM.
+  "Alist of filename REGEXP vs NUM.
 Each element looks like (REGEXP . NUM).
 NUM specifies which parenthesized expression in the regexp.
 
-Examples of image filename regexps:
+Examples of image filename patterns to match:
     file://foo.png
     `file://foo.png'
     \\[\\[foo.gif]]
     <foo.png>
-     foo.JPG")
+     foo.JPG
+"
+  :type '(alist :key-type regexp :value-type integer)
+  :group 'iimage)
 
-(defvar iimage-mode-image-search-path nil
-  "*List of directories to search for image files for `iimage-mode'.")
+(defvar iimage-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-l" 'iimage-recenter)
+    map)
+  "Keymap used in `iimage-mode'.")
+
+(defun iimage-recenter (&optional arg)
+  "Re-draw images and recenter."
+  (interactive "P")
+  (iimage-mode-buffer nil)
+  (iimage-mode-buffer t)
+  (recenter arg))
 
 ;;;###autoload
 (define-obsolete-function-alias 'turn-on-iimage-mode 'iimage-mode "24.1")
@@ -144,5 +145,4 @@ Examples of image filename regexps:
 
 (provide 'iimage)
 
-;; arch-tag: f6f8e29a-08f6-4a12-9496-51e67441ce65
 ;;; iimage.el ends here

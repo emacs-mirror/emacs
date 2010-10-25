@@ -52,9 +52,10 @@ char buf[300];
 
 /* Like `read' but keeps trying until it gets SIZE bytes or reaches eof.  */
 int
-cool_read (int fd, char *buf, int size)
+cool_read (int fd, char *buf, size_t size)
 {
-  int num, sofar = 0;
+  ssize_t num;
+  size_t sofar = 0;
 
   while (1)
     {

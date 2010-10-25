@@ -27,7 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #endif
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <windows.h>
 #include <setjmp.h>
@@ -289,7 +288,7 @@ static int faked_key = 0;
 
 /* return code -1 means that event_queue_ptr won't be incremented.
    In other word, this event makes two key codes.   (by himi)       */
-int
+static int
 key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 {
   static int mod_key_state = 0;

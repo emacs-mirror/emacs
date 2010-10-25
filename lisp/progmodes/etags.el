@@ -40,6 +40,7 @@ If you set this variable, do not also set `tags-table-list'.
 Use the `etags' program to make a tags table file.")
 ;; Make M-x set-variable tags-file-name like M-x visit-tags-table.
 ;;;###autoload (put 'tags-file-name 'variable-interactive (purecopy "fVisit tags table: "))
+;;;###autoload (put 'tags-file-name 'safe-local-variable 'stringp)
 
 (defgroup etags nil "Tags tables."
   :group 'tools)
@@ -67,12 +68,14 @@ Use the `etags' program to make a tags table file."
   :type '(repeat file))
 
 ;;;###autoload
-(defcustom tags-compression-info-list (purecopy '("" ".Z" ".bz2" ".gz" ".tgz"))
+(defcustom tags-compression-info-list
+  (purecopy '("" ".Z" ".bz2" ".gz" ".xz" ".tgz"))
   "*List of extensions tried by etags when jka-compr is used.
 An empty string means search the non-compressed file.
 These extensions will be tried only if jka-compr was activated
 \(i.e. via customize of `auto-compression-mode' or by calling the function
 `auto-compression-mode')."
+  :version "24.1"			; added xz
   :type  '(repeat string)
   :group 'etags)
 
@@ -471,7 +474,7 @@ Subroutine of `visit-tags-table-buffer'.
 Looks for a tags table that has such tags or that includes a table
 that has them.  Returns the name of the first such table.
 Non-nil CORE-ONLY means check only tags tables that are already in
-buffers.  Nil CORE-ONLY is ignored."
+buffers.  If CORE-ONLY is nil, it is ignored."
   (let ((tables tags-table-computed-list)
 	(found nil))
     ;; Loop over the list, looking for a table containing tags for THIS-FILE.

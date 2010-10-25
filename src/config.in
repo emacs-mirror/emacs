@@ -27,6 +27,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_CONFIG_H
 
 
+/* Define if building universal (internal helper macro) */
+#undef AC_APPLE_UNIVERSAL_BUILD
+
 /* Define to 1 if the mktime function is broken. */
 #undef BROKEN_MKTIME
 
@@ -252,6 +255,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have a gif (or ungif) library. */
 #undef HAVE_GIF
 
+/* Define if using GnuTLS. */
+#undef HAVE_GNUTLS
+
 /* Define to 1 if you have the gpm library (-lgpm). */
 #undef HAVE_GPM
 
@@ -290,6 +296,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
+
+/* Define to 1 if using imagemagick. */
+#undef HAVE_IMAGEMAGICK
 
 /* Define to 1 if you have inet sockets. */
 #undef HAVE_INET_SOCKETS
@@ -399,6 +408,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `Xext' library (-lXext). */
 #undef HAVE_LIBXEXT
 
+/* Define to 1 if you have the libxml library (-lxml2). */
+#undef HAVE_LIBXML2
+
 /* Define to 1 if you have the `Xmu' library (-lXmu). */
 #undef HAVE_LIBXMU
 
@@ -428,6 +440,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <mach/mach.h> header file. */
 #undef HAVE_MACH_MACH_H
+
+/* Define to 1 if you have the `MagickExportImagePixels' function. */
+#undef HAVE_MAGICKEXPORTIMAGEPIXELS
 
 /* Define to 1 if you have the <maillock.h> header file. */
 #undef HAVE_MAILLOCK_H
@@ -731,6 +746,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Define to 1 if you have the <util.h> header file. */
+#undef HAVE_UTIL_H
+
 /* Define to 1 if you have the `utimes' function. */
 #undef HAVE_UTIMES
 
@@ -973,6 +991,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using an X toolkit. */
 #undef USE_X_TOOLKIT
 
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+#  undef WORDS_BIGENDIAN
+# endif
+#endif
+
 /* Define this to check for malloc buffer overrun. */
 #undef XMALLOC_OVERRUN_CHECK
 
@@ -1134,13 +1164,8 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
    not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
 #undef PROTOTYPES
 
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
@@ -1173,6 +1198,17 @@ typedef unsigned size_t;
 #define NO_RETURN	__attribute__ ((__noreturn__))
 #else
 #define NO_RETURN	/* nothing */
+#endif
+
+#if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
+#define NO_INLINE __attribute__((noinline))
+#else
+#define NO_INLINE
+#endif
+
+/* Some versions of GNU/Linux define noinline in their headers.  */
+#ifdef noinline
+#undef noinline
 #endif
 
 /* These won't be used automatically yet.  We also need to know, at least,

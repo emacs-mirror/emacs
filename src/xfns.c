@@ -1,7 +1,8 @@
 /* Functions for the X window system.
-   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+  2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -99,6 +100,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
 #include <Xm/FileSB.h>
+#include <Xm/List.h>
+#include <Xm/TextF.h>
 #endif
 
 #ifdef USE_LUCID
@@ -161,6 +164,10 @@ int x_gtk_file_dialog_help_text;
 
 int x_gtk_whole_detached_tool_bar;
 
+/* If non-zero, use Gtk+ tooltips.  */
+
+static int x_gtk_use_system_tooltips;
+
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 
@@ -197,19 +204,6 @@ Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
-
-/* In dispnew.c */
-
-extern Lisp_Object Vwindow_system_version;
-
-/* In editfns.c */
-
-extern Lisp_Object Vsystem_name;
-
-/* The below are defined in frame.c.  */
-
-extern Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
-extern Lisp_Object Qtooltip;
 
 #if GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
@@ -510,7 +504,7 @@ void x_set_scroll_bar_background (struct frame *, Lisp_Object,
 static Lisp_Object x_default_scroll_bar_color_parameter (struct frame *,
                                                          Lisp_Object,
                                                          Lisp_Object,
-                                                         char *, char *,
+                                                         const char *, const char *,
                                                          int);
 
 
@@ -657,12 +651,16 @@ int
 x_defined_color (struct frame *f, const char *color_name,
 		 XColor *color, int alloc_p)
 {
-  int success_p;
+  int success_p = 0;
   Display *dpy = FRAME_X_DISPLAY (f);
   Colormap cmap = FRAME_X_COLORMAP (f);
 
   BLOCK_INPUT;
-  success_p = XParseColor (dpy, cmap, color_name, color);
+#ifdef USE_GTK
+  success_p = xg_check_special_colors (f, color_name, color);
+#endif
+  if (!success_p)
+    success_p = XParseColor (dpy, cmap, color_name, color);
   if (success_p && alloc_p)
     success_p = x_alloc_nearest_color (f, cmap, color);
   UNBLOCK_INPUT;
@@ -771,10 +769,10 @@ xg_set_icon (FRAME_PTR f, Lisp_Object file)
 }
 
 int
-xg_set_icon_from_xpm_data (FRAME_PTR f, char **data)
+xg_set_icon_from_xpm_data (FRAME_PTR f, const char **data)
 {
   int result = 0;
-  GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data ((const char **) data);
+  GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data (data);
 
   if (!pixbuf)
     return 0;
@@ -1780,7 +1778,7 @@ x_set_scroll_bar_default_width (struct frame *f)
 static Lisp_Object
 x_default_scroll_bar_color_parameter (struct frame *f,
 				      Lisp_Object alist, Lisp_Object prop,
-				      char *xprop, char *xclass,
+				      const char *xprop, const char *xclass,
 				      int foreground_p)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
@@ -2151,7 +2149,7 @@ xic_create_xfontset (struct frame *f)
 	}
       if (! xfs)
 	{
-	  char *last_resort = "-*-*-*-r-normal--*-*-*-*-*-*";
+	  const char *last_resort = "-*-*-*-r-normal--*-*-*-*-*-*";
 
 	  missing_list = NULL;
 	  xfs = XCreateFontSet (FRAME_X_DISPLAY (f), last_resort,
@@ -3024,7 +3022,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
   if (! FONTP (font) && ! STRINGP (font))
     {
-      char *names[]
+      const char *names[]
 	= {
 #ifdef HAVE_XFT
 	    /* This will find the normal Xft font.  */
@@ -3401,6 +3399,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "waitForWM", "WaitForWM", RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qfullscreen, Qnil,
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
+  x_default_parameter (f, parms, Qtool_bar_position,
+                       f->tool_bar_position, 0, 0, RES_TYPE_SYMBOL);
 
   /* Compute the size of the X window.  */
   window_prompting = x_figure_window_size (f, parms, 1);
@@ -3753,7 +3753,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
-  char *vendor = ServerVendor (dpyinfo->display);
+  const char *vendor = ServerVendor (dpyinfo->display);
 
   if (! vendor) vendor = "";
   return build_string (vendor);
@@ -3947,7 +3947,7 @@ x_screen_planes (register struct frame *f)
 
 static struct visual_class
 {
-  char *name;
+  const char *name;
   int class;
 }
 visual_classes[] =
@@ -4186,6 +4186,9 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
 
 DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
        doc: /* If ON is non-nil, report X errors as soon as the erring request is made.
+This function only has an effect on X Windows.  With MS Windows, it is
+defined but does nothing.
+
 If ON is nil, allow buffering of requests.
 Turning on synchronization prohibits the Xlib routines from buffering
 requests and seriously degrades performance, but makes debugging much
@@ -4220,12 +4223,12 @@ x_sync (FRAME_PTR f)
 DEFUN ("x-change-window-property", Fx_change_window_property,
        Sx_change_window_property, 2, 6, 0,
        doc: /* Change window property PROP to VALUE on the X window of FRAME.
-PROP must be a string.
-VALUE may be a string or a list of conses, numbers and/or strings.
-If an element in the list is a string, it is converted to
-an Atom and the value of the Atom is used.  If an element is a cons,
-it is converted to a 32 bit number where the car is the 16 top bits and the
-cdr is the lower 16 bits.
+PROP must be a string.  VALUE may be a string or a list of conses,
+numbers and/or strings.  If an element in the list is a string, it is
+converted to an atom and the value of the atom is used.  If an element
+is a cons, it is converted to a 32 bit number where the car is the 16
+top bits and the cdr is the lower 16 bits.
+
 FRAME nil or omitted means use the selected frame.
 If TYPE is given and non-nil, it is the name of the type of VALUE.
 If TYPE is not given or nil, the type is STRING.
@@ -4233,9 +4236,7 @@ FORMAT gives the size in bits of each element if VALUE is a list.
 It must be one of 8, 16 or 32.
 If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
 If OUTER_P is non-nil, the property is changed for the outer X window of
-FRAME.  Default is to change on the edit X window.
-
-Value is VALUE.  */)
+FRAME.  Default is to change on the edit X window.  */)
   (Lisp_Object prop, Lisp_Object value, Lisp_Object frame, Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
   struct frame *f = check_x_frame (frame);
@@ -4336,15 +4337,19 @@ DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
        1, 6, 0,
        doc: /* Value is the value of window property PROP on FRAME.
 If FRAME is nil or omitted, use the selected frame.
-If TYPE is nil or omitted, get the property as a string.  Otherwise TYPE
-is the name of the Atom that denotes the type expected.
+
+On MS Windows, this function only accepts the PROP and FRAME arguments.
+
+On X Windows, the following optional arguments are also accepted:
+If TYPE is nil or omitted, get the property as a string.
+Otherwise TYPE is the name of the atom that denotes the type expected.
 If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
 If DELETE_P is non-nil, delete the property after retreiving it.
 If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
-no value of TYPE.  */)
+no value of TYPE (always string in the MS Windows case).  */)
   (Lisp_Object prop, Lisp_Object frame, Lisp_Object type, Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
 {
   struct frame *f = check_x_frame (frame);
@@ -4614,7 +4619,9 @@ unwind_create_tip_frame (Lisp_Object frame)
    when this happens.  */
 
 static Lisp_Object
-x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms, Lisp_Object text)
+x_create_tip_frame (struct x_display_info *dpyinfo,
+                    Lisp_Object parms,
+                    Lisp_Object text)
 {
   struct frame *f;
   Lisp_Object frame, tem;
@@ -5041,6 +5048,27 @@ Text larger than the specified size is clipped.  */)
   else
     CHECK_NUMBER (dy);
 
+#ifdef USE_GTK
+  if (x_gtk_use_system_tooltips)
+    {
+      int ok; 
+
+      /* Hide a previous tip, if any.  */
+      Fx_hide_tip ();
+
+      BLOCK_INPUT;
+      if ((ok = xg_prepare_tooltip (f, string, &width, &height)) != 0)
+        {
+	  compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
+          xg_show_tooltip (f, root_x, root_y);
+          /* This is used in Fx_hide_tip.  */
+          XSETFRAME (tip_frame, f);
+        }
+      UNBLOCK_INPUT;
+      if (ok) goto start_timer;
+    }
+#endif /* USE_GTK */
+
   if (NILP (last_show_tip_args))
     last_show_tip_args = Fmake_vector (make_number (3), Qnil);
 
@@ -5201,6 +5229,7 @@ Value is t if tooltip was open, nil otherwise.  */)
   int count;
   Lisp_Object deleted, frame, timer;
   struct gcpro gcpro1, gcpro2;
+  struct frame *f;
 
   /* Return quickly if nothing to do.  */
   if (NILP (tip_timer) && NILP (tip_frame))
@@ -5218,6 +5247,14 @@ Value is t if tooltip was open, nil otherwise.  */)
   if (!NILP (timer))
     call1 (Qcancel_timer, timer);
 
+#ifdef USE_GTK
+  /* When using system tooltip, tip_frame is the Emacs frame on which
+     the tip is shown.  */
+  f = XFRAME (frame);
+  if (FRAME_LIVE_P (f) && xg_hide_tooltip (f))
+    frame = Qnil;
+#endif
+
   if (FRAMEP (frame))
     {
       delete_frame (frame, Qnil);
@@ -5228,8 +5265,9 @@ Value is t if tooltip was open, nil otherwise.  */)
 	 redisplay procedure is not called when a tip frame over menu
 	 items is unmapped.  Redisplay the menu manually...  */
       {
-	struct frame *f = SELECTED_FRAME ();
-	Widget w = f->output_data.x->menubar_widget;
+        Widget w;
+	f = SELECTED_FRAME ();
+	w = f->output_data.x->menubar_widget;
 
 	if (!DoesSaveUnders (FRAME_X_DISPLAY_INFO (f)->screen)
 	    && w != NULL)
@@ -5273,9 +5311,7 @@ DEFUN ("x-uses-old-gtk-dialog", Fx_uses_old_gtk_dialog,
 /* Callback for "OK" and "Cancel" on file selection dialog.  */
 
 static void
-file_dialog_cb (widget, client_data, call_data)
-     Widget widget;
-     XtPointer call_data, client_data;
+file_dialog_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   int *result = (int *) client_data;
   XmAnyCallbackStruct *cb = (XmAnyCallbackStruct *) call_data;
@@ -5289,17 +5325,14 @@ file_dialog_cb (widget, client_data, call_data)
    in this case.  */
 
 static void
-file_dialog_unmap_cb (widget, client_data, call_data)
-     Widget widget;
-     XtPointer call_data, client_data;
+file_dialog_unmap_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   int *result = (int *) client_data;
   *result = XmCR_CANCEL;
 }
 
 static Lisp_Object
-clean_up_file_dialog (arg)
-     Lisp_Object arg;
+clean_up_file_dialog (Lisp_Object arg)
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
   Widget dialog = (Widget) p->pointer;
@@ -5319,7 +5352,11 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
 Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
 selection box, if specified.  If MUSTMATCH is non-nil, the returned file
-or directory must exist.  ONLY-DIR-P is ignored."  */)
+or directory must exist.
+
+This function is only defined on MS Windows, and X Windows with the
+Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
+Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   int result;
@@ -5488,8 +5525,11 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
 Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
 selection box, if specified.  If MUSTMATCH is non-nil, the returned file
-or directory must exist.  If ONLY-DIR-P is non-nil, the user can only select
-directories.  */)
+or directory must exist.
+
+This function is only defined on MS Windows, and X Windows with the
+Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
+Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   FRAME_PTR f = SELECTED_FRAME ();
@@ -5578,7 +5618,7 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
   font_param = Ffont_get (font, intern (":name"));
   if (STRINGP (font_param))
     default_name = xstrdup (SDATA (font_param));
-  else 
+  else
     {
       font_param = Fframe_parameter (frame, Qfont_param);
       if (STRINGP (font_param))
@@ -5589,7 +5629,7 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
     default_name = xstrdup (x_last_font_name);
 
   /* Convert fontconfig names to Gtk names, i.e. remove - before number */
-  if (default_name) 
+  if (default_name)
     {
       char *p = strrchr (default_name, '-');
       if (p)
@@ -5850,8 +5890,8 @@ or when you set the mouse color.  */);
   Vx_cursor_fore_pixel = Qnil;
 
   DEFVAR_LISP ("x-max-tooltip-size", &Vx_max_tooltip_size,
-    doc: /* Maximum size for tooltips.  Value is a pair (COLUMNS . ROWS).
-Text larger than this is clipped.  */);
+    doc: /* Maximum size for tooltips.
+Value is a pair (COLUMNS . ROWS).  Text larger than this is clipped.  */);
   Vx_max_tooltip_size = Fcons (make_number (80), make_number (40));
 
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
@@ -5897,6 +5937,12 @@ to turn the additional text off.  */);
 The default is to just show an arrow and pressing on that arrow shows
 the tool bar buttons.  */);
   x_gtk_whole_detached_tool_bar = 0;
+
+  DEFVAR_BOOL ("x-gtk-use-system-tooltips", &x_gtk_use_system_tooltips,
+    doc: /* *If non-nil with a Gtk+ built Emacs, the Gtk+ toolip is used.
+Otherwise use Emacs own tooltip implementation.
+When using Gtk+ tooltips, the tooltip face is not used.  */);
+  x_gtk_use_system_tooltips = 1;
 
   Fprovide (intern_c_string ("x"), Qnil);
 
@@ -5987,5 +6033,3 @@ the tool bar buttons.  */);
 
 #endif /* HAVE_X_WINDOWS */
 
-/* arch-tag: 55040d02-5485-4d58-8b22-95a7a05f3288
-   (do not change this comment) */

@@ -6,6 +6,7 @@
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Maintainer: FSF
 ;; Keywords: frames
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -135,6 +136,14 @@ See `fringe-mode' for possible values and their effect."
       ;; Otherwise impose the user-specified value of fringe-mode.
       (custom-initialize-reset symbol value))))
 
+(defconst fringe-styles
+  '(("default" . nil)
+    ("no-fringes" . 0)
+    ("right-only" . (0 . nil))
+    ("left-only" . (nil . 0))
+    ("half-width" . (4 . 4))
+    ("minimal" . (1 . 1))))
+
 (defcustom fringe-mode nil
   "Specify appearance of fringes on all frames.
 This variable can be nil (the default) meaning the fringes should have
@@ -143,21 +152,27 @@ the width of both left and right fringe (where 0 means no fringe), or
 a cons cell where car indicates width of left fringe and cdr indicates
 width of right fringe (where again 0 can be used to indicate no
 fringe).
+Note that the actual width may be rounded up to ensure that the sum of
+the width of the left and right fringes is a multiple of the frame's
+character width.  However, a fringe width of 0 is never rounded.
 To set this variable in a Lisp program, use `set-fringe-mode' to make
 it take real effect.
 Setting the variable with a customization buffer also takes effect.
 If you only want to modify the appearance of the fringe in one frame,
 you can use the interactive function `set-fringe-style'."
-  :type '(choice (const :tag "Default width" nil)
-		 (const :tag "No fringes" 0)
-		 (const :tag "Only right" (0 . nil))
-		 (const :tag "Only left" (nil . 0))
-		 (const :tag "Half width" (5 . 5))
-		 (const :tag "Minimal" (1 . 1))
-		 (integer :tag "Specific width")
-		 (cons :tag "Different left/right sizes"
-		       (integer :tag "Left width")
-		       (integer :tag "Right width")))
+  :type `(choice
+          ,@ (mapcar (lambda (style)
+                      (let ((name
+                             (replace-regexp-in-string "-" " " (car style))))
+                        `(const :tag
+                                ,(concat (capitalize (substring name 0 1))
+                                         (substring name 1))
+                                ,(cdr style))))
+                    fringe-styles)
+          (integer :tag "Specific width")
+          (cons :tag "Different left/right sizes"
+                (integer :tag "Left width")
+                (integer :tag "Right width")))
   :group 'fringe
   :require 'fringe
   :initialize 'fringe-mode-initialize
@@ -174,27 +189,20 @@ If ALL-FRAMES, the negation of the fringe values in
 `default-frame-alist' is used when user enters the empty string.
 Otherwise the negation of the fringe value in the currently selected
 frame parameter is used."
-  (let ((mode (intern (completing-read
-		       (concat
-			"Select fringe mode for "
-			(if all-frames "all frames" "selected frame")
-			" (type ? for list): ")
-		       '(("none") ("default") ("left-only")
-			 ("right-only") ("half") ("minimal"))
-		       nil t))))
-    (cond ((eq mode 'none) 0)
-	  ((eq mode 'default) nil)
-	  ((eq mode 'left-only) '(nil . 0))
-	  ((eq mode 'right-only) '(0 . nil))
-	  ((eq mode 'half) '(5 . 5))
-	  ((eq mode 'minimal) '(1 . 1))
-	  ((eq mode (intern ""))
-	   (if (eq 0 (cdr (assq 'left-fringe
-				(if all-frames
-				    default-frame-alist
-				  (frame-parameters (selected-frame))))))
-	       nil
-	     0)))))
+  (let* ((mode (completing-read
+                (concat
+                 "Select fringe mode for "
+                 (if all-frames "all frames" "selected frame")
+                 " (type ? for list): ")
+                fringe-styles nil t))
+         (style (assoc (downcase mode) fringe-styles)))
+    (if style (cdr style)
+      (if (eq 0 (cdr (assq 'left-fringe
+                           (if all-frames
+                               default-frame-alist
+                             (frame-parameters (selected-frame))))))
+          nil
+        0))))
 
 (defun fringe-mode (&optional mode)
   "Set the default appearance of fringes on all frames.

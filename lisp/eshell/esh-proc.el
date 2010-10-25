@@ -1,7 +1,7 @@
 ;;; esh-proc.el --- process management
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -40,27 +40,27 @@ finish."
 ;;; User Variables:
 
 (defcustom eshell-proc-load-hook '(eshell-proc-initialize)
-  "*A hook that gets run when `eshell-proc' is loaded."
+  "A hook that gets run when `eshell-proc' is loaded."
   :type 'hook
   :group 'eshell-proc)
 
 (defcustom eshell-process-wait-seconds 0
-  "*The number of seconds to delay waiting for a synchronous process."
+  "The number of seconds to delay waiting for a synchronous process."
   :type 'integer
   :group 'eshell-proc)
 
 (defcustom eshell-process-wait-milliseconds 50
-  "*The number of milliseconds to delay waiting for a synchronous process."
+  "The number of milliseconds to delay waiting for a synchronous process."
   :type 'integer
   :group 'eshell-proc)
 
 (defcustom eshell-done-messages-in-minibuffer t
-  "*If non-nil, subjob \"Done\" messages will display in minibuffer."
+  "If non-nil, subjob \"Done\" messages will display in minibuffer."
   :type 'boolean
   :group 'eshell-proc)
 
 (defcustom eshell-delete-exited-processes t
-  "*If nil, process entries will stick around until `jobs' is run.
+  "If nil, process entries will stick around until `jobs' is run.
 This variable sets the buffer-local value of `delete-exited-processes'
 in Eshell buffers.
 
@@ -81,12 +81,12 @@ variable's value to take effect."
 
 (defcustom eshell-reset-signals
   "^\\(interrupt\\|killed\\|quit\\|stopped\\)"
-  "*If a termination signal matches this regexp, the terminal will be reset."
+  "If a termination signal matches this regexp, the terminal will be reset."
   :type 'regexp
   :group 'eshell-proc)
 
 (defcustom eshell-exec-hook nil
-  "*Called each time a process is exec'd by `eshell-gather-process-output'.
+  "Called each time a process is exec'd by `eshell-gather-process-output'.
 It is passed one argument, which is the process that was just started.
 It is useful for things that must be done each time a process is
 executed in a eshell mode buffer (e.g., `process-kill-without-query').
@@ -96,7 +96,7 @@ is created."
   :group 'eshell-proc)
 
 (defcustom eshell-kill-hook '(eshell-reset-after-proc)
-  "*Called when a process run by `eshell-gather-process-output' has ended.
+  "Called when a process run by `eshell-gather-process-output' has ended.
 It is passed two arguments: the process that was just ended, and the
 termination status (as a string).  Note that the first argument may be
 nil, in which case the user attempted to send a signal, but there was
@@ -418,12 +418,12 @@ If QUERY is non-nil, query the user with QUERY before calling FUNC."
     result))
 
 (defcustom eshell-kill-process-wait-time 5
-  "*Seconds to wait between sending termination signals to a subprocess."
+  "Seconds to wait between sending termination signals to a subprocess."
   :type 'integer
   :group 'eshell-proc)
 
 (defcustom eshell-kill-process-signals '(SIGINT SIGQUIT SIGKILL)
-  "*Signals used to kill processes when an Eshell buffer exits.
+  "Signals used to kill processes when an Eshell buffer exits.
 Eshell calls each of these signals in order when an Eshell buffer is
 killed; if the process is still alive afterwards, Eshell waits a
 number of seconds defined by `eshell-kill-process-wait-time', and
@@ -432,7 +432,7 @@ tries the next signal in the list."
   :group 'eshell-proc)
 
 (defcustom eshell-kill-processes-on-exit nil
-  "*If non-nil, kill active processes when exiting an Eshell buffer.
+  "If non-nil, kill active processes when exiting an Eshell buffer.
 Emacs will only kill processes owned by that Eshell buffer.
 
 If nil, ownership of background and foreground processes reverts to

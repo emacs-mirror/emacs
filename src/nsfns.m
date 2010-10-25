@@ -125,7 +125,7 @@ check_ns (void)
 
 /* Nonzero if we can use mouse menus. */
 int
-have_menus_p ()
+have_menus_p (void)
 {
   return NSApp != nil;
 }
@@ -240,8 +240,7 @@ ns_get_screen (Lisp_Object screen)
 /* Return the X display structure for the display named NAME.
    Open a new connection if necessary.  */
 struct ns_display_info *
-ns_display_info_for_name (name)
-     Lisp_Object name;
+ns_display_info_for_name (Lisp_Object name)
 {
   Lisp_Object names;
   struct ns_display_info *dpyinfo;
@@ -925,9 +924,7 @@ ns_cursor_type_to_lisp (int arg)
 
 /* This is the same as the xfns.c definition.  */
 void
-x_set_cursor_type (f, arg, oldval)
-     FRAME_PTR f;
-     Lisp_Object arg, oldval;
+x_set_cursor_type (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
 
@@ -949,7 +946,7 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 #define Xstr(x) Str(x)
 
 static Lisp_Object
-ns_appkit_version_str ()
+ns_appkit_version_str (void)
 {
   char tmp[80];
 
@@ -968,7 +965,7 @@ ns_appkit_version_str ()
    have into a single int.  For a better picture of the implementation
    running, use ns_appkit_version_str.*/
 static int
-ns_appkit_version_int ()
+ns_appkit_version_int (void)
 {
 #ifdef NS_IMPL_GNUSTEP
   return GNUSTEP_GUI_MAJOR_VERSION * 100 + GNUSTEP_GUI_MINOR_VERSION;
@@ -1044,6 +1041,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
   x_set_font_backend, /* generic OK */
   x_set_alpha,
   0, /* x_set_sticky */  
+  0, /* x_set_tool_bar_position */  
 };
 
 
@@ -2004,8 +2002,7 @@ DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
    string or a number containing the resulting script value.  Otherwise,
    1 is returned. */
 static int
-ns_do_applescript (script, result)
-     Lisp_Object script, *result;
+ns_do_applescript (Lisp_Object script, Lisp_Object *result)
 {
   NSAppleEventDescriptor *desc;
   NSDictionary* errorDict;
@@ -2108,8 +2105,7 @@ check_x_display_info (Lisp_Object frame)
 
 
 void
-x_set_scroll_bar_default_width (f)
-     struct frame *f;
+x_set_scroll_bar_default_width (struct frame *f)
 {
   int wid = FRAME_COLUMN_WIDTH (f);
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = NS_SCROLL_BAR_WIDTH_DEFAULT;
@@ -2189,7 +2185,7 @@ x_screen_planes (struct frame *f)
 
 
 void
-x_sync (Lisp_Object frame)
+x_sync (struct frame *f)
 {
   /* XXX Not implemented XXX */
   return;
@@ -2367,11 +2363,14 @@ Lisp_Object tip_frame;
 
 /* TODO: move to xdisp or similar */
 static void
-compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
-     struct frame *f;
-     Lisp_Object parms, dx, dy;
-     int width, height;
-     int *root_x, *root_y;
+compute_tip_xy (struct frame *f,
+                Lisp_Object parms,
+                Lisp_Object dx,
+                Lisp_Object dy,
+                int width,
+                int height,
+                int *root_x,
+                int *root_y)
 {
   Lisp_Object left, top;
   EmacsView *view = FRAME_NS_VIEW (f);
@@ -2595,11 +2594,11 @@ Value is t if tooltip was open, nil otherwise.  */)
 
 
 void
-syms_of_nsfns ()
+syms_of_nsfns (void)
 {
   int i;
 
-  Qfontsize = intern ("fontsize");
+  Qfontsize = intern_c_string ("fontsize");
   staticpro (&Qfontsize);
 
   DEFVAR_LISP ("ns-icon-type-alist", &Vns_icon_type_alist,

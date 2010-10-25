@@ -50,7 +50,7 @@ support for DIGEST-MD5 and NTLM.   *Note Emacs SASL: (sasl)Top.
 The primary change this brings is support for DIGEST-MD5 and NTLM, when
 the server supports it.
 
-** Gnus includes a password cache mechanism in password.el.
+** Gnus includes a password cache mechanism in password-cache.el.
 
 It is enabled by default (see `password-cache'), with a short timeout of
 16 seconds (see `password-cache-expiry').  If PGG is used as the PGP

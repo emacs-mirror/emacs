@@ -5,6 +5,7 @@
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
+;; Package: tramp
 
 ;; This file is part of GNU Emacs.
 
@@ -29,17 +30,16 @@
 
 (eval-when-compile (require 'cl))	; block, return
 (require 'tramp)
-(require 'tramp-cache)
-(require 'tramp-compat)
 
 ;; Define SMB method ...
-(defcustom tramp-smb-method "smb"
-  "*Method to connect SAMBA and M$ SMB servers."
-  :group 'tramp
-  :type 'string)
+;;;###tramp-autoload
+(defconst tramp-smb-method "smb"
+  "*Method to connect SAMBA and M$ SMB servers.")
 
 ;; ... and add it to the method list.
-(add-to-list 'tramp-methods (cons tramp-smb-method nil))
+;;;###tramp-autoload
+(unless (memq system-type '(cygwin windows-nt))
+  (add-to-list 'tramp-methods (cons tramp-smb-method nil)))
 
 ;; Add a default for `tramp-default-method-alist'. Rule: If there is
 ;; a domain in USER, it must be the SMB method.
@@ -153,7 +153,7 @@ See `tramp-actions-before-shell' for more info.")
     (directory-file-name . tramp-handle-directory-file-name)
     (directory-files . tramp-smb-handle-directory-files)
     (directory-files-and-attributes
-     . tramp-smb-handle-directory-files-and-attributes)
+     . tramp-handle-directory-files-and-attributes)
     (dired-call-process . ignore)
     (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
@@ -161,8 +161,8 @@ See `tramp-actions-before-shell' for more info.")
     (file-accessible-directory-p . tramp-smb-handle-file-directory-p)
     (file-attributes . tramp-smb-handle-file-attributes)
     (file-directory-p .  tramp-smb-handle-file-directory-p)
-    (file-executable-p . tramp-smb-handle-file-exists-p)
-    (file-exists-p . tramp-smb-handle-file-exists-p)
+    (file-executable-p . tramp-handle-file-exists-p)
+    (file-exists-p . tramp-handle-file-exists-p)
     (file-local-copy . tramp-smb-handle-file-local-copy)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-smb-handle-file-name-all-completions)
@@ -171,9 +171,9 @@ See `tramp-actions-before-shell' for more info.")
     (file-name-directory . tramp-handle-file-name-directory)
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     ;; `file-name-sans-versions' performed by default handler.
-    (file-newer-than-file-p . tramp-smb-handle-file-newer-than-file-p)
+    (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
     (file-ownership-preserved-p . ignore)
-    (file-readable-p . tramp-smb-handle-file-exists-p)
+    (file-readable-p . tramp-handle-file-exists-p)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-remote-p . tramp-handle-file-remote-p)
     ;; `file-selinux-context' performed by default handler.
@@ -204,11 +204,13 @@ See `tramp-actions-before-shell' for more info.")
   "Alist of handler functions for Tramp SMB method.
 Operations not mentioned here will be handled by the default Emacs primitives.")
 
-(defun tramp-smb-file-name-p (filename)
+;;;###tramp-autoload
+(defsubst tramp-smb-file-name-p (filename)
   "Check if it's a filename for SMB servers."
   (let ((v (tramp-dissect-file-name filename)))
     (string= (tramp-file-name-method v) tramp-smb-method)))
 
+;;;###tramp-autoload
 (defun tramp-smb-file-name-handler (operation &rest args)
   "Invoke the SMB related OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
@@ -218,8 +220,10 @@ pass to the OPERATION."
 	(save-match-data (apply (cdr fn) args))
       (tramp-run-real-handler operation args))))
 
-(add-to-list 'tramp-foreign-file-name-handler-alist
-	     (cons 'tramp-smb-file-name-p 'tramp-smb-file-name-handler))
+;;;###tramp-autoload
+(unless (memq system-type '(cygwin windows-nt))
+  (add-to-list 'tramp-foreign-file-name-handler-alist
+	       (cons 'tramp-smb-file-name-p 'tramp-smb-file-name-handler)))
 
 
 ;; File name primitives.
@@ -447,15 +451,6 @@ PRESERVE-UID-GID is completely ignored."
     ;; That's it.
     result))
 
-(defun tramp-smb-handle-directory-files-and-attributes
-  (directory &optional full match nosort id-format)
-  "Like `directory-files-and-attributes' for Tramp files."
-  (mapcar
-   (lambda (x)
-     (cons x (tramp-compat-file-attributes
-	      (if full x (expand-file-name x directory)) id-format)))
-   (directory-files directory full match nosort)))
-
 (defun tramp-smb-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
   ;; If DIR is not given, use DEFAULT-DIRECTORY or "/".
@@ -593,10 +588,6 @@ PRESERVE-UID-GID is completely ignored."
   (and (file-exists-p filename)
        (eq ?d (aref (nth 8 (file-attributes filename)) 0))))
 
-(defun tramp-smb-handle-file-exists-p (filename)
-  "Like `file-exists-p' for Tramp files."
-  (not (null (file-attributes filename))))
-
 (defun tramp-smb-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
   (with-parsed-tramp-file-name filename nil
@@ -633,14 +624,6 @@ PRESERVE-UID-GID is completely ignored."
 		   (file-name-as-directory (nth 0 x))
 		 (nth 0 x))))
 	    entries)))))))
-
-(defun tramp-smb-handle-file-newer-than-file-p (file1 file2)
-  "Like `file-newer-than-file-p' for Tramp files."
-  (cond
-   ((not (file-exists-p file1)) nil)
-   ((not (file-exists-p file2)) t)
-   (t (tramp-time-less-p (nth 5 (file-attributes file2))
-			 (nth 5 (file-attributes file1))))))
 
 (defun tramp-smb-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
@@ -783,7 +766,7 @@ PRESERVE-UID-GID is completely ignored."
 	   (if (tramp-smb-get-cifs-capabilities v)
 	       (format
 		"posix_mkdir \"%s\" %s"
-		file (tramp-decimal-to-octal (default-file-modes)))
+		file (tramp-compat-decimal-to-octal (default-file-modes)))
 	     (format "mkdir \"%s\"" file)))
 	  ;; We must also flush the cache of the directory, because
 	  ;; `file-attributes' reads the values from there.
@@ -892,7 +875,7 @@ target of the symlink differ."
       (unless (tramp-smb-send-command
 	       v (format "chmod \"%s\" %s"
 			 (tramp-smb-get-localname v)
-			 (tramp-decimal-to-octal mode)))
+			 (tramp-compat-decimal-to-octal mode)))
 	(tramp-error
 	 v 'file-error "Error while changing file's mode %s" filename)))))
 
@@ -1319,7 +1302,7 @@ connection if a previous connection has died for some reason."
 
 	      (tramp-message
 	       vec 6 "%s" (mapconcat 'identity (process-command p) " "))
-	      (tramp-set-process-query-on-exit-flag p nil)
+	      (tramp-compat-set-process-query-on-exit-flag p nil)
 
 	      ;; Set variables for computing the prompt for reading password.
 	      (setq tramp-current-method tramp-smb-method
@@ -1396,6 +1379,9 @@ Returns nil if an error message has appeared."
       (tramp-message vec 6 "\n%s" (buffer-string))
       (not err))))
 
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-smb 'force)))
 
 (provide 'tramp-smb)
 

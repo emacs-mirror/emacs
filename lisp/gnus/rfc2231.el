@@ -185,11 +185,19 @@ must never cause a Lisp error."
 		in (sort parameters (lambda (e1 e2)
 				      (< (or (caddr e1) 0)
 					 (or (caddr e2) 0))))
-		do (if (or (not (setq elem (assq attribute cparams)))
-			   (and (numberp part)
-				(zerop part)))
-		       (push (list attribute value encoded) cparams)
-		     (setcar (cdr elem) (concat (cadr elem) value))))
+		do (cond
+		    ;; First part.
+		    ((or (not (setq elem (assq attribute cparams)))
+			 (and (numberp part)
+			      (zerop part)))
+		     (push (list attribute value encoded) cparams))
+		    ;; Repetition of a part; do nothing.
+		    ((and elem
+			  (null number))
+		     )
+		    ;; Concatenate continuation parts.
+		    (t
+		     (setcar (cdr elem) (concat (cadr elem) value)))))
 	  ;; Finally decode encoded values.
 	  (cons type (mapcar
 		      (lambda (elem)
@@ -296,5 +304,4 @@ the result of this function."
 
 (provide 'rfc2231)
 
-;; arch-tag: c3ab751d-d108-406a-b301-68882ad8cd63
 ;;; rfc2231.el ends here

@@ -27,7 +27,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  3.0
-@set EMACSVER 24.0.50
+@include emacsver.texi
 @set DATE July 2009
 
 @dircategory Emacs
@@ -179,6 +179,8 @@ Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
 * Display::                 Features for controlling the screen display.
 * System Interface::        Getting the user id, system type, environment
                               variables, and other such things.
+
+* Packaging::               Preparing Lisp code for distribution.
 
 Appendices
 
@@ -1415,6 +1417,12 @@ Operating System Interface
 * Session Management::      Saving and restoring state with
                               X Session Management.
 
+Preparing Lisp code for distribution
+
+* Packaging Basics::        The basic concepts of Emacs Lisp packages.
+* Simple Packages::         How to package a single .el file.
+* Multi-file Packages::     How to package multiple files.
+
 Starting Up Emacs
 
 * Startup Summary::         Sequence of actions Emacs performs at startup.
@@ -1542,7 +1550,3 @@ Object Internals
 
 
 These words prevent "local variables" above from confusing Emacs.
-
-@ignore
-   arch-tag: 9594760d-8801-4d1b-aeb9-f3b3166b5be2
-@end ignore

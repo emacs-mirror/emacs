@@ -58,7 +58,7 @@ modules may have a simple template to begin with."
 ;;; User Variables:
 
 (defcustom eshell-banner-message "Welcome to the Emacs shell\n\n"
-  "*The banner message to be displayed when Eshell is loaded.
+  "The banner message to be displayed when Eshell is loaded.
 This can be any sexp, and should end with at least two newlines."
   :type 'sexp
   :group 'eshell-banner)
@@ -66,7 +66,7 @@ This can be any sexp, and should end with at least two newlines."
 (put 'eshell-banner-message 'risky-local-variable t)
 
 (defcustom eshell-banner-load-hook '(eshell-banner-initialize)
-  "*A list of functions to run when `eshell-banner' is loaded."
+  "A list of functions to run when `eshell-banner' is loaded."
   :type 'hook
   :group 'eshell-banner)
 

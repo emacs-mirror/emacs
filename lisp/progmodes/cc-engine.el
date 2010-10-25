@@ -1,8 +1,8 @@
 ;;; cc-engine.el --- core syntax guessing engine for CC mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Authors:    2001- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -12,8 +12,8 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    See cc-mode.el
-;; Keywords:   c languages oop
+;; Keywords:   c languages
+;; Package:    cc-mode
 
 ;; This file is part of GNU Emacs.
 
@@ -5023,6 +5023,10 @@ comment at the start of cc-engine.el for more info."
 	(c-unmark-<->-as-paren pos))
       t)))
 
+;; Set by c-common-init in cc-mode.el.
+(defvar c-new-BEG)
+(defvar c-new-END)
+
 (defun c-before-change-check-<>-operators (beg end)
   ;; Unmark certain pairs of "< .... >" which are currently marked as
   ;; template/generic delimiters.  (This marking is via syntax-table
@@ -5366,6 +5370,9 @@ comment at the start of cc-engine.el for more info."
       (goto-char safe-pos)
       t)))
 
+;; cc-mode requires cc-fonts.
+(declare-function c-fontify-recorded-types-and-refs "cc-fonts" ())
+
 (defun c-forward-<>-arglist (all-types)
   ;; The point is assumed to be at a "<".  Try to treat it as the open
   ;; paren of an angle bracket arglist and move forward to the
@@ -5401,6 +5408,7 @@ comment at the start of cc-engine.el for more info."
 		  ;; `nconc' doesn't mind that the tail of
 		  ;; `c-record-found-types' is t.
 		  (nconc c-record-found-types c-record-type-identifiers)))
+	    (if (c-major-mode-is 'java-mode) (c-fontify-recorded-types-and-refs))
 	  t)
 
       (goto-char start)
@@ -5420,7 +5428,6 @@ comment at the start of cc-engine.el for more info."
 	;; List that collects the positions after the argument
 	;; separating ',' in the arglist.
 	arg-start-pos)
-
     ;; If the '<' has paren open syntax then we've marked it as an angle
     ;; bracket arglist before, so skip to the end.
     (if (and (not c-parse-and-markup-<>-arglists)
@@ -5431,7 +5438,6 @@ comment at the start of cc-engine.el for more info."
 	  (if (and (c-go-up-list-forward)
 		   (eq (char-before) ?>))
 	      t
-
 	    ;; Got unmatched paren angle brackets.  We don't clear the paren
 	    ;; syntax properties and retry, on the basis that it's very
 	    ;; unlikely that paren angle brackets become operators by code
@@ -5441,67 +5447,46 @@ comment at the start of cc-engine.el for more info."
 	    nil))
 
       (forward-char)
+
       (unless (looking-at c-<-op-cont-regexp)
 	(while (and
 		(progn
-
-		  (when c-record-type-identifiers
-		    (if all-types
-
-			;; All encountered identifiers are types, so set the
-			;; promote flag and parse the type.
-			(progn
-			  (c-forward-syntactic-ws)
+		  (c-forward-syntactic-ws)
+		  (let ((orig-record-found-types c-record-found-types))
+		    (when (or (and c-record-type-identifiers all-types)
+			      (c-major-mode-is 'java-mode))
+		      ;; All encountered identifiers are types, so set the
+		      ;; promote flag and parse the type.
+		      (progn
+			(c-forward-syntactic-ws)
+			(if (looking-at "\\?")
+			    (forward-char)
 			  (when (looking-at c-identifier-start)
-			    (let ((c-promote-possible-types t))
+			    (let ((c-promote-possible-types t)
+				  (c-record-found-types t))
 			      (c-forward-type))))
 
-		      ;; Check if this arglist argument is a sole type.  If
-		      ;; it's known then it's recorded in
-		      ;; `c-record-type-identifiers'.  If it only is found
-		      ;; then it's recorded in `c-record-found-types' which we
-		      ;; might roll back if it turns out that this isn't an
-		      ;; angle bracket arglist afterall.
-		      (when (memq (char-before) '(?, ?<))
-			(let ((orig-record-found-types c-record-found-types))
+			(c-forward-syntactic-ws)
+
+			(when (or (looking-at "extends")
+				  (looking-at "super"))
+			  (forward-word)
 			  (c-forward-syntactic-ws)
-			  (and (memq (c-forward-type) '(known found))
-			       (not (looking-at "[,>]"))
-			       ;; A found type was recorded but it's not the
-			       ;; only thing in the arglist argument, so reset
-			       ;; `c-record-found-types'.
-			       (setq c-record-found-types
-				     orig-record-found-types))))))
+			  (let ((c-promote-possible-types t)
+				(c-record-found-types t))
+			    (c-forward-type)
+			    (c-forward-syntactic-ws))))))
 
 		  (setq pos (point))
-		  (or (when (eq (char-after) ?>)
-			;; Must check for '>' at the very start separately,
-			;; since the regexp below has to avoid ">>" without
-			;; using \\=.
-			(forward-char)
-			t)
 
-		      ;; Note: These regexps exploit the match order in \| so
-		      ;; that "<>" is matched by "<" rather than "[^>:-]>".
-		      (c-syntactic-re-search-forward
-		       (if c-restricted-<>-arglists
-			   ;; Stop on ',', '|', '&', '+' and '-' to catch
-			   ;; common binary operators that could be between
-			   ;; two comparison expressions "a<b" and "c>d".
-			   "[<;{},|&+-]\\|\\([^>:-]>\\)"
-			 ;; Otherwise we still stop on ',' to find the
-			 ;; argument start positions.
-			 "[<;{},]\\|\\([^>:-]>\\)")
-		       nil 'move t t 1)
-
-		      ;; If the arglist starter has lost its open paren
-		      ;; syntax but not the closer, we won't find the
-		      ;; closer above since we only search in the
-		      ;; balanced sexp.  In that case we stop just short
-		      ;; of it so check if the following char is the closer.
-		      (when (eq (char-after) ?>)
-			(forward-char)
-			t)))
+		  ;; Note: These regexps exploit the match order in \| so
+		  ;; that "<>" is matched by "<" rather than "[^>:-]>".
+		  (c-syntactic-re-search-forward
+		   ;; Stop on ',', '|', '&', '+' and '-' to catch
+		   ;; common binary operators that could be between
+		   ;; two comparison expressions "a<b" and "c>d".
+		   "[<;{},|+&-]\\|[>)]"
+		   nil t t))
 
 		(cond
 		 ((eq (char-before) ?>)
@@ -5526,7 +5511,6 @@ comment at the start of cc-engine.el for more info."
 
 		 ((eq (char-before) ?<)
 		  ;; Either an operator starting with '<' or a nested arglist.
-
 		  (setq pos (point))
 		  (let (id-start id-end subres keyword-match)
 		    (if (if (looking-at c-<-op-cont-regexp)
@@ -5549,8 +5533,8 @@ comment at the start of cc-engine.el for more info."
 				(setq id-start (point))))
 
 			    (setq subres
-				  (let ((c-record-type-identifiers nil)
-					(c-record-found-types nil))
+				  (let ((c-promote-possible-types t)
+					(c-record-found-types t))
 				    (c-forward-<>-arglist-recur
 				     (and keyword-match
 					  (c-keyword-member
@@ -5577,9 +5561,11 @@ comment at the start of cc-engine.el for more info."
 			  (c-record-type-id (cons id-start id-end))))))
 		  t)
 
-		 ((and (eq (char-before) ?,)
-		       (not c-restricted-<>-arglists))
-		  ;; Just another argument.  Record the position.  The
+		 ((and (not c-restricted-<>-arglists)
+		       (or (and (eq (char-before) ?&)
+				(not (eq (char-after) ?&)))
+			   (eq (char-before) ?,)))
+		  ;; Just another argument.	 Record the position.  The
 		  ;; type check stuff that made us stop at it is at
 		  ;; the top of the loop.
 		  (setq arg-start-pos (cons (point) arg-start-pos)))
@@ -5590,7 +5576,6 @@ comment at the start of cc-engine.el for more info."
 		  ;; it's useless to try to find a surrounding arglist
 		  ;; if we're nested.
 		  (throw 'angle-bracket-arglist-escape nil))))))
-
       (if res
 	  (or c-record-found-types t)))))
 
@@ -5661,17 +5646,23 @@ comment at the start of cc-engine.el for more info."
 
 (defun c-forward-name ()
   ;; Move forward over a complete name if at the beginning of one,
-  ;; stopping at the next following token.  If the point is not at
-  ;; something that are recognized as name then it stays put.  A name
-  ;; could be something as simple as "foo" in C or something as
+  ;; stopping at the next following token.  A keyword, as such,
+  ;; doesn't count as a name.  If the point is not at something that
+  ;; is recognized as a name then it stays put.
+  ;;
+  ;; A name could be something as simple as "foo" in C or something as
   ;; complex as "X<Y<class A<int>::B, BIT_MAX >> b>, ::operator<> ::
   ;; Z<(a>b)> :: operator const X<&foo>::T Q::G<unsigned short
   ;; int>::*volatile const" in C++ (this function is actually little
   ;; more than a `looking-at' call in all modes except those that,
-  ;; like C++, have `c-recognize-<>-arglists' set).  Return nil if no
-  ;; name is found, 'template if it's an identifier ending with an
-  ;; angle bracket arglist, 'operator of it's an operator identifier,
-  ;; or t if it's some other kind of name.
+  ;; like C++, have `c-recognize-<>-arglists' set).
+  ;;
+  ;; Return
+  ;; o - nil if no name is found;
+  ;; o - 'template if it's an identifier ending with an angle bracket
+  ;;   arglist;
+  ;; o - 'operator of it's an operator identifier;
+  ;; o - t if it's some other kind of name.
   ;;
   ;; This function records identifier ranges on
   ;; `c-record-type-identifiers' and `c-record-ref-identifiers' if
@@ -5793,9 +5784,8 @@ comment at the start of cc-engine.el for more info."
 	      ((and c-recognize-<>-arglists
 		    (eq (char-after) ?<))
 	       ;; Maybe an angle bracket arglist.
-
-	       (when (let (c-record-type-identifiers
-			   c-record-found-types)
+	       (when (let ((c-record-type-identifiers t)
+			   (c-record-found-types t))
 		       (c-forward-<>-arglist nil))
 
 		 (c-add-type start (1+ pos))
@@ -5824,16 +5814,28 @@ comment at the start of cc-engine.el for more info."
     (goto-char pos)
     res))
 
-(defun c-forward-type ()
+(defun c-forward-type (&optional brace-block-too)
   ;; Move forward over a type spec if at the beginning of one,
-  ;; stopping at the next following token.  Return t if it's a known
-  ;; type that can't be a name or other expression, 'known if it's an
-  ;; otherwise known type (according to `*-font-lock-extra-types'),
-  ;; 'prefix if it's a known prefix of a type, 'found if it's a type
-  ;; that matches one in `c-found-types', 'maybe if it's an identfier
-  ;; that might be a type, or nil if it can't be a type (the point
-  ;; isn't moved then).  The point is assumed to be at the beginning
-  ;; of a token.
+  ;; stopping at the next following token.  The keyword "typedef"
+  ;; isn't part of a type spec here.
+  ;;
+  ;; BRACE-BLOCK-TOO, when non-nil, means move over the brace block in
+  ;; constructs like "struct foo {...} bar ;" or "struct {...} bar;".
+  ;; The current (2009-03-10) intention is to convert all uses of
+  ;; `c-forward-type' to call with this parameter set, then to
+  ;; eliminate it.
+  ;;
+  ;; Return
+  ;;   o - t if it's a known type that can't be a name or other
+  ;;     expression;
+  ;;   o - 'known if it's an otherwise known type (according to
+  ;;     `*-font-lock-extra-types');
+  ;;   o - 'prefix if it's a known prefix of a type;
+  ;;   o - 'found if it's a type that matches one in `c-found-types';
+  ;;   o - 'maybe if it's an identfier that might be a type; or
+  ;;   o -  nil if it can't be a type (the point isn't moved then).
+  ;;
+  ;; The point is assumed to be at the beginning of a token.
   ;;
   ;; Note that this function doesn't skip past the brace definition
   ;; that might be considered part of the type, e.g.
@@ -5844,37 +5846,47 @@ comment at the start of cc-engine.el for more info."
   ;; `c-record-type-identifiers' is non-nil.
   ;;
   ;; This function might do hidden buffer changes.
+  (when (looking-at "<")
+    (c-forward-<>-arglist t)
+    (c-forward-syntactic-ws))
 
   (let ((start (point)) pos res name-res id-start id-end id-range)
 
     ;; Skip leading type modifiers.  If any are found we know it's a
     ;; prefix of a type.
-    (when c-opt-type-modifier-key
+    (when c-opt-type-modifier-key ; e.g. "const" "volatile", but NOT "typedef"
       (while (looking-at c-opt-type-modifier-key)
 	(goto-char (match-end 1))
 	(c-forward-syntactic-ws)
 	(setq res 'prefix)))
 
     (cond
-     ((looking-at c-type-prefix-key)
-      ;; Looking at a keyword that prefixes a type identifier,
-      ;; e.g. "class".
+     ((looking-at c-type-prefix-key) ; e.g. "struct", "class", but NOT
+				     ; "typedef".
       (goto-char (match-end 1))
       (c-forward-syntactic-ws)
       (setq pos (point))
-      (if (memq (setq name-res (c-forward-name)) '(t template))
-	  (progn
-	    (when (eq name-res t)
-	      ;; In many languages the name can be used without the
-	      ;; prefix, so we add it to `c-found-types'.
-	      (c-add-type pos (point))
-	      (when (and c-record-type-identifiers
-			 c-last-identifier-range)
-		(c-record-type-id c-last-identifier-range)))
-	    (setq res t))
-	;; Invalid syntax.
-	(goto-char start)
-	(setq res nil)))
+
+      (setq name-res (c-forward-name))
+      (setq res (not (null name-res)))
+      (when (eq name-res t)
+	;; In many languages the name can be used without the
+	;; prefix, so we add it to `c-found-types'.
+	(c-add-type pos (point))
+	(when (and c-record-type-identifiers
+		   c-last-identifier-range)
+	  (c-record-type-id c-last-identifier-range)))
+      (when (and brace-block-too
+		 (memq res '(t nil))
+		 (eq (char-after) ?\{)
+		 (save-excursion
+		   (c-safe
+		     (progn (c-forward-sexp)
+			    (c-forward-syntactic-ws)
+			    (setq pos (point))))))
+	(goto-char pos)
+	(setq res t))
+      (unless res (goto-char start)))	; invalid syntax
 
      ((progn
 	(setq pos nil)
@@ -5964,14 +5976,13 @@ comment at the start of cc-engine.el for more info."
 	     (setq res nil)))))
 
     (when res
-      ;; Skip trailing type modifiers.  If any are found we know it's
+      ;; Skip trailing type modifiers.	If any are found we know it's
       ;; a type.
       (when c-opt-type-modifier-key
-	(while (looking-at c-opt-type-modifier-key)
+	(while (looking-at c-opt-type-modifier-key) ; e.g. "const", "volatile"
 	  (goto-char (match-end 1))
 	  (c-forward-syntactic-ws)
 	  (setq res t)))
-
       ;; Step over any type suffix operator.  Do not let the existence
       ;; of these alter the classification of the found type, since
       ;; these operators typically are allowed in normal expressions
@@ -5981,7 +5992,7 @@ comment at the start of cc-engine.el for more info."
 	  (goto-char (match-end 1))
 	  (c-forward-syntactic-ws)))
 
-      (when c-opt-type-concat-key
+      (when c-opt-type-concat-key	; Only/mainly for pike.
 	;; Look for a trailing operator that concatenates the type
 	;; with a following one, and if so step past that one through
 	;; a recursive call.  Note that we don't record concatenated
@@ -6042,6 +6053,18 @@ comment at the start of cc-engine.el for more info."
     ;;(message "c-forward-type %s -> %s: %s" start (point) res)
 
     res))
+
+(defun c-forward-annotation ()
+  ;; Used for Java code only at the moment.  Assumes point is on the
+  ;; @, moves forward an annotation.  returns nil if there is no
+  ;; annotation at point.
+  (and (looking-at "@")
+       (progn (forward-char) t)
+       (c-forward-type)
+       (progn (c-forward-syntactic-ws) t)
+       (if (looking-at "(")
+	   (c-go-list-forward)
+         t)))
 
 
 ;; Handling of large scale constructs like statements and declarations.
@@ -6120,11 +6143,15 @@ comment at the start of cc-engine.el for more info."
   ;;      car ^                                     ^ point
   ;;     Foo::Foo (int b) : Base (b) {}
   ;; car ^                ^ point
-  ;;
-  ;;   The cdr of the return value is non-nil iff a `c-typedef-decl-kwds'
-  ;;   specifier (e.g. class, struct, enum, typedef) is found in the
-  ;;   declaration, i.e. the declared identifier(s) are types.
-  ;;
+  ;; 
+  ;;   The cdr of the return value is non-nil when a
+  ;;   `c-typedef-decl-kwds' specifier is found in the declaration.
+  ;;   Specifically it is a dotted pair (A . B) where B is t when a
+  ;;   `c-typedef-kwds' ("typedef") is present, and A is t when some
+  ;;   other `c-typedef-decl-kwds' (e.g. class, struct, enum)
+  ;;   specifier is present.  I.e., (some of) the declared
+  ;;   identifier(s) are types.
+  ;; 
   ;; If a cast is parsed:
   ;;
   ;;   The point is left at the first token after the closing paren of
@@ -6182,9 +6209,11 @@ comment at the start of cc-engine.el for more info."
 	;; If `backup-at-type' is nil then the other variables have
 	;; undefined values.
 	backup-at-type backup-type-start backup-id-start
-	;; Set if we've found a specifier that makes the defined
-	;; identifier(s) types.
+	;; Set if we've found a specifier (apart from "typedef") that makes
+	;; the defined identifier(s) types.
 	at-type-decl
+	;; Set if we've a "typedef" keyword.
+	at-typedef
 	;; Set if we've found a specifier that can start a declaration
 	;; where there's no type.
 	maybe-typeless
@@ -6212,6 +6241,9 @@ comment at the start of cc-engine.el for more info."
 	(save-rec-type-ids c-record-type-identifiers)
 	(save-rec-ref-ids c-record-ref-identifiers))
 
+    (while (c-forward-annotation)
+      (c-forward-syntactic-ws))
+
     ;; Check for a type.  Unknown symbols are treated as possible
     ;; types, but they could also be specifiers disguised through
     ;; macros like __INLINE__, so we recognize both types and known
@@ -6221,12 +6253,14 @@ comment at the start of cc-engine.el for more info."
 
 	  ;; Look for a specifier keyword clause.
 	  (when (looking-at c-prefix-spec-kwds-re)
+	    (if (looking-at c-typedef-key)
+		(setq at-typedef t))
 	    (setq kwd-sym (c-keyword-sym (match-string 1)))
 	    (save-excursion
 	      (c-forward-keyword-clause 1)
 	      (setq kwd-clause-end (point))))
 
-	  (when (setq found-type (c-forward-type))
+	  (when (setq found-type (c-forward-type t)) ; brace-block-too
 	    ;; Found a known or possible type or a prefix of a known type.
 
 	    (when at-type
@@ -6291,6 +6325,8 @@ comment at the start of cc-engine.el for more info."
 			  (setq backup-maybe-typeless t)))
 
 		    (when (c-keyword-member kwd-sym 'c-typedef-decl-kwds)
+		      ;; This test only happens after we've scanned a type.
+		      ;; So, with valid syntax, kwd-sym can't be 'typedef.
 		      (setq at-type-decl t))
 		    (when (c-keyword-member kwd-sym 'c-typeless-decl-kwds)
 		      (setq maybe-typeless t))
@@ -6545,13 +6581,14 @@ comment at the start of cc-engine.el for more info."
 		;; CASE 3
 		(when (= (point) start)
 		  ;; Got a plain list of identifiers.  If a colon follows it's
-		  ;; a valid label.  Otherwise the last one probably is the
-		  ;; declared identifier and we should back up to the previous
-		  ;; type, providing it isn't a cast.
-		  (if (eq (char-after) ?:)
-		      ;; If we've found a specifier keyword then it's a
-		      ;; declaration regardless.
-		      (throw 'at-decl-or-cast (eq at-decl-or-cast t))
+		   ;; a valid label.  Otherwise the last one probably is the
+		   ;; declared identifier and we should back up to the previous
+		   ;; type, providing it isn't a cast.
+		   (if (and (eq (char-after) ?:)
+			    (not (c-major-mode-is 'java-mode)))
+		       ;; If we've found a specifier keyword then it's a
+		       ;; declaration regardless.
+		       (throw 'at-decl-or-cast (eq at-decl-or-cast t))
 		    (setq backup-if-not-cast t)
 		    (throw 'at-decl-or-cast t)))
 
@@ -6889,7 +6926,9 @@ comment at the start of cc-engine.el for more info."
 	    (goto-char type-start)
 	    (c-forward-type))))
 
-      (cons id-start at-type-decl))
+      (cons id-start
+	    (and (or at-type-decl at-typedef)
+		 (cons at-type-decl at-typedef))))
 
      (t
       ;; False alarm.  Restore the recorded ranges.
@@ -8512,7 +8551,7 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; This function might do hidden buffer changes.
 
-  (let (special-brace-list)
+  (let (special-brace-list placeholder)
     (goto-char indent-point)
     (skip-chars-forward " \t")
 
@@ -8619,6 +8658,22 @@ comment at the start of cc-engine.el for more info."
       (c-add-stmt-syntax 'func-decl-cont nil t
 			 containing-sexp paren-state))
 
+     ;;CASE F: continued statement and the only preceding items are
+     ;;annotations.
+     ((and (c-major-mode-is 'java-mode)
+	   (setq placeholder (point))
+            (c-beginning-of-statement-1)
+            (progn
+              (while (and (c-forward-annotation)
+                          (< (point) placeholder))
+                (c-forward-syntactic-ws))
+              t)
+            (prog1
+                (>= (point) placeholder)
+              (goto-char placeholder)))
+       (c-beginning-of-statement-1 containing-sexp)
+       (c-add-syntax 'annotation-var-cont (point)))
+
      ;; CASE D: continued statement.
      (t
       (c-beginning-of-statement-1 containing-sexp)
@@ -8718,7 +8773,6 @@ comment at the start of cc-engine.el for more info."
 	(when (and containing-sexp
 		   (eq (char-after containing-sexp) ?\())
 	  (setq c-stmt-delim-chars c-stmt-delim-chars-with-comma))
-
 	;; cache char before and after indent point, and move point to
 	;; the most likely position to perform the majority of tests
 	(goto-char indent-point)
@@ -9468,23 +9522,36 @@ comment at the start of cc-engine.el for more info."
 	    (c-add-syntax 'objc-method-args-cont placeholder))
 
 	   ;; CASE 5L: we are at the first argument of a template
-	   ;; arglist that begins on the previous line.
-	   ((and c-recognize-<>-arglists
-		 (eq (char-before) ?<)
-		 (setq placeholder (1- (point)))
-		 (not (and c-overloadable-operators-regexp
-			   (c-after-special-operator-id lim))))
-	    (c-beginning-of-statement-1 (c-safe-position (point) paren-state))
-	    (c-add-syntax 'template-args-cont (c-point 'boi) placeholder))
+	 ;; arglist that begins on the previous line.
+	 ((and c-recognize-<>-arglists
+	       (eq (char-before) ?<)
+	       (not (and c-overloadable-operators-regexp
+			 (c-after-special-operator-id lim))))
+	  (c-beginning-of-statement-1 (c-safe-position (point) paren-state))
+	  (c-add-syntax 'template-args-cont (c-point 'boi)))
 
-	   ;; CASE 5Q: we are at a statement within a macro.
-	   (macro-start
-	    (c-beginning-of-statement-1 containing-sexp)
-	    (c-add-stmt-syntax 'statement nil t containing-sexp paren-state))
+	 ;; CASE 5Q: we are at a statement within a macro.
+	 (macro-start
+	  (c-beginning-of-statement-1 containing-sexp)
+	  (c-add-stmt-syntax 'statement nil t containing-sexp paren-state))
 
-	   ;; CASE 5M: we are at a topmost continuation line
-	   (t
-	    (c-beginning-of-statement-1 (c-safe-position (point) paren-state))
+     ;;CASE 5N: We are at a tompmost continuation line and the only
+     ;;preceding items are annotations.
+	 ((and (c-major-mode-is 'java-mode)
+	       (setq placeholder (point))
+           (c-beginning-of-statement-1)
+           (progn
+		 (while (and (c-forward-annotation))
+	       (c-forward-syntactic-ws))
+	     t)
+	   (prog1
+             (>= (point) placeholder)
+             (goto-char placeholder)))
+      (c-add-syntax 'annotation-top-cont (c-point 'boi)))
+
+	 ;; CASE 5M: we are at a topmost continuation line
+	 (t
+	  (c-beginning-of-statement-1 (c-safe-position (point) paren-state))
 	    (when (c-major-mode-is 'objc-mode)
 	      (setq placeholder (point))
 	      (while (and (c-forward-objc-directive)
@@ -9495,43 +9562,20 @@ comment at the start of cc-engine.el for more info."
 	    (c-add-syntax 'topmost-intro-cont (c-point 'boi)))
 	   ))
 
-	 ;; (CASE 6 has been removed.)
 
-	 ;; CASE 19: line is an expression, not a statement, and is directly
-	 ;; contained by a template delimiter.  Most likely, we are in a
-	 ;; template arglist within a statement.  This case is based on CASE
-	 ;; 7.  At some point in the future, we may wish to create more
-	 ;; syntactic symbols such as `template-intro',
-	 ;; `template-cont-nonempty', etc., and distinguish between them as we
-	 ;; do for `arglist-intro' etc. (2009-12-07).
-	 ((and c-recognize-<>-arglists
-	       (setq containing-< (c-up-list-backward indent-point containing-sexp))
-	       (eq (char-after containing-<) ?\<))
-	  (setq placeholder (c-point 'boi containing-<))
-	  (goto-char containing-sexp)	; Most nested Lbrace/Lparen (but not
-					; '<') before indent-point.
-	  (if (>= (point) placeholder)
-	      (progn
-		(forward-char)
-		(skip-chars-forward " \t"))
-	    (goto-char placeholder))
-	  (c-add-stmt-syntax 'template-args-cont (list containing-<) t
-			     (c-most-enclosing-brace c-state-cache (point))
-			     paren-state))
-			     
+       ;; (CASE 6 has been removed.)
 
-	 ;; CASE 7: line is an expression, not a statement.  Most
-	 ;; likely we are either in a function prototype or a function
-	 ;; call argument list, or a template argument list.
-	 ((not (or (and c-special-brace-lists
-			(save-excursion
-			  (goto-char containing-sexp)
-			  (c-looking-at-special-brace-list)))
-		   (eq (char-after containing-sexp) ?{)
-		   (eq (char-after containing-sexp) ?<)))
-	  (cond
+       ;; CASE 7: line is an expression, not a statement.  Most
+       ;; likely we are either in a function prototype or a function
+       ;; call argument list
+       ((not (or (and c-special-brace-lists
+		      (save-excursion
+			(goto-char containing-sexp)
+			(c-looking-at-special-brace-list)))
+		 (eq (char-after containing-sexp) ?{)))
+	(cond
 
-	   ;; CASE 7A: we are looking at the arglist closing paren.
+	 ;; CASE 7A: we are looking at the arglist closing paren.
 	   ;; C.f. case 7F.
 	   ((memq char-after-ip '(?\) ?\]))
 	    (goto-char containing-sexp)
@@ -9543,12 +9587,34 @@ comment at the start of cc-engine.el for more info."
 		  (skip-chars-forward " \t"))
 	      (goto-char placeholder))
 	    (c-add-stmt-syntax 'arglist-close (list containing-sexp) t
-			       (c-most-enclosing-brace paren-state (point))
-			       paren-state))
+			     (c-most-enclosing-brace paren-state (point))
+			     paren-state))
 
-	   ;; CASE 7B: Looking at the opening brace of an
-	   ;; in-expression block or brace list.  C.f. cases 4, 16A
-	   ;; and 17E.
+        ;; CASE 19: line is an expression, not a statement, and is directly
+        ;; contained by a template delimiter.	Most likely, we are in a
+        ;; template arglist within a statement.  This case is based on CASE
+        ;; 7.	At some point in the future, we may wish to create more
+        ;; syntactic symbols such as `template-intro',
+        ;; `template-cont-nonempty', etc., and distinguish between them as we
+        ;; do for `arglist-intro' etc. (2009-12-07).
+        ((and c-recognize-<>-arglists
+ 	     (setq containing-< (c-up-list-backward indent-point containing-sexp))
+ 	     (eq (char-after containing-<) ?\<))
+ 	(setq placeholder (c-point 'boi containing-<))
+ 	(goto-char containing-sexp)	; Most nested Lbrace/Lparen (but not
+ 					; '<') before indent-point.
+ 	(if (>= (point) placeholder)
+ 	    (progn
+ 	      (forward-char)
+ 	      (skip-chars-forward " \t"))
+ 	  (goto-char placeholder))
+ 	(c-add-stmt-syntax 'template-args-cont (list containing-<) t
+ 			   (c-most-enclosing-brace c-state-cache (point))
+ 			   paren-state))
+
+	 ;; CASE 7B: Looking at the opening brace of an
+	 ;; in-expression block or brace list.	C.f. cases 4, 16A
+	 ;; and 17E.
 	   ((and (eq char-after-ip ?{)
 		 (progn
 		   (setq placeholder (c-inside-bracelist-p (point)

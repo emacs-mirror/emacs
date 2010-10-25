@@ -6,6 +6,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -317,7 +318,7 @@ Keymap to display on column and line numbers.")
 mouse-2: Make current window occupy the whole frame\n\
 mouse-3: Remove current window from display")
        (recursive-edit-help-echo "Recursive edit, type C-M-c to get out")
-       (dashes (propertize "--" 'help-echo help-echo))
+       (spaces (propertize " " 'help-echo help-echo))
        (standard-mode-line-format
 	(list
 	 "%e"
@@ -333,9 +334,10 @@ mouse-3: Remove current window from display")
 	 '(vc-mode vc-mode)
 	 (propertize "  " 'help-echo help-echo)
 	 'mode-line-modes
-	 `(which-func-mode ("" which-func-format ,dashes))
-	 `(global-mode-string ("" global-mode-string ,dashes))
-	 (propertize "-%-" 'help-echo help-echo)))
+	 `(which-func-mode ("" which-func-format ,spaces))
+	 `(global-mode-string ("" global-mode-string ,spaces))
+	 `(:eval (unless (display-graphic-p)
+		   ,(propertize "-%-" 'help-echo help-echo)))))
        (standard-mode-line-modes
 	(list
 	 (propertize "%[" 'help-echo recursive-edit-help-echo)
@@ -361,7 +363,7 @@ mouse-3: Toggle minor modes"
 				 'mouse-2 #'mode-line-widen))
 	 (propertize ")" 'help-echo help-echo)
 	 (propertize "%]" 'help-echo recursive-edit-help-echo)
-	 (propertize "--" 'help-echo help-echo)))
+	 spaces))
 
        (standard-mode-line-position
 	`((-3 ,(propertize
@@ -818,7 +820,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key global-map [?\C-\M--] 'negative-argument)
 
 (define-key global-map "\177" 'delete-backward-char)
-(define-key global-map "\C-d" 'delete-forward-char)
+(define-key global-map "\C-d" 'delete-char)
 
 (define-key global-map "\C-k" 'kill-line)
 (define-key global-map "\C-w" 'kill-region)
@@ -927,7 +929,7 @@ if `inhibit-field-text-motion' is non-nil."
 ;; (define-key global-map [clearline]	'function-key-error)
 (define-key global-map [insertline]	'open-line)
 (define-key global-map [deleteline]	'kill-line)
-(define-key global-map [deletechar]	'delete-char)
+(define-key global-map [deletechar]	'delete-forward-char)
 ;; (define-key global-map [backtab]	'function-key-error)
 ;; (define-key global-map [f1]		'function-key-error)
 ;; (define-key global-map [f2]		'function-key-error)
@@ -1049,6 +1051,9 @@ if `inhibit-field-text-motion' is non-nil."
 ;; so we can't distinguish those two keys, but usually we consider C-SPC
 ;; (rather than C-@) as the "canonical" binding.
 (define-key function-key-map [?\C-@] [?\C-\s])
+;; Many keyboards don't have a `backtab' key, so by convention the user
+;; can use S-tab instead to access that binding.
+(define-key function-key-map [S-tab] [backtab])
 
 (define-key global-map [mouse-movement] 'ignore)
 

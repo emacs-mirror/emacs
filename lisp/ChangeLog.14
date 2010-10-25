@@ -1,3 +1,7 @@
+2009-02-07  Dave Love  <fx@gnu.org>
+
+	* net/tls.el (open-tls-stream): Don't query killing process.
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.1.

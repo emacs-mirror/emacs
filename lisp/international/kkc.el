@@ -1,7 +1,7 @@
 ;;; kkc.el --- Kana Kanji converter    -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -135,7 +135,7 @@ This string is shown at mode line when users are in KKC mode.")
 (defvar kkc-current-conversions-width nil)
 
 (defcustom kkc-show-conversion-list-count 4
-  "*Count of successive `kkc-next' or `kkc-prev' to show conversion list.
+  "Count of successive `kkc-next' or `kkc-prev' to show conversion list.
 When you type SPC or C-p successively this count while using the input
 method `japanese', the conversion candidates are shown in the echo
 area while indicating the current selection by `<N>'."

@@ -1,7 +1,7 @@
 ;;; ld-script.el --- GNU linker script editing mode for Emacs
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO<jet@gyve.org>
 ;; Keywords: languages, faces
@@ -76,20 +76,20 @@
 (defvar ld-script-keywords
   '(
     ;; 3.4.1 Setting the Entry Point
-    "ENTRY" 
+    "ENTRY"
     ;; 3.4.2 Commands Dealing with Files
     "INCLUDE" "INPUT" "GROUP" "AS_NEEDED" "OUTPUT" "SEARCH_DIR" "STARTUP"
     ;; 3.4.3 Commands Dealing with Object File Formats
     "OUTPUT_FORMAT" "TARGET"
     ;; 3.4.3 Other Linker Script Commands
-    "ASSERT" "EXTERN" "FORCE_COMMON_ALLOCATION" 
+    "ASSERT" "EXTERN" "FORCE_COMMON_ALLOCATION"
     "INHIBIT_COMMON_ALLOCATION" "NOCROSSREFS" "OUTPUT_ARCH"
     ;; 3.5.2 PROVIDE
     "PROVIDE"
     ;; 3.5.3 PROVIDE_HIDDEN
     "PROVIDE_HIDDEN"
     ;; 3.6 SECTIONS Command
-    "SECTIONS" 
+    "SECTIONS"
     ;; 3.6.4.2 Input Section Wildcard Patterns
     "SORT" "SORT_BY_NAME" "SORT_BY_ALIGNMENT"
     ;; 3.6.4.3 Input Section for Common Symbols
@@ -156,18 +156,6 @@
      )
    cpp-font-lock-keywords)
   "Default font-lock-keywords for `ld-script-mode'.")
-
-;; Linux-2.6.9 uses some different suffix for linker scripts:
-;; "ld", "lds", "lds.S", "lds.in", "ld.script", and "ld.script.balo".
-;; eCos uses "ld" and "ldi".
-;; Netbsd uses "ldscript.*".
-;;;###autoload
-(add-to-list 'auto-mode-alist (purecopy '("\\.ld[si]?\\>" . ld-script-mode)))
-;;;###autoload
-(add-to-list 'auto-mode-alist (purecopy '("ld\\.?script\\>" . ld-script-mode)))
-
-;;;###autoload
-(add-to-list 'auto-mode-alist (purecopy '("\\.x[bdsru]?[cn]?\\'" . ld-script-mode)))
 
 ;;;###autoload
 (define-derived-mode ld-script-mode nil "LD-Script"

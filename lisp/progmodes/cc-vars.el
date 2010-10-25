@@ -12,8 +12,8 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    See cc-mode.el
-;; Keywords:   c languages oop
+;; Keywords:   c languages
+;; Package:    cc-mode
 
 ;; This file is part of GNU Emacs.
 
@@ -1056,9 +1056,13 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: Boi at the topmost intro line.
        (knr-argdecl           . 0)
        ;; Anchor pos: At the beginning of the first K&R argdecl.
-       (topmost-intro         . 0)
+       (topmost-intro	      . 0)
        ;; Anchor pos: Bol at the last line of previous construct.
        (topmost-intro-cont    . c-lineup-topmost-intro-cont)
+       ;;Anchor pos: Bol at the topmost annotation line
+       (annotation-top-cont   .   0)
+       ;;Anchor pos: Bol at the topmost annotation line
+       (annotation-var-cont   .   +)
        ;; Anchor pos: Boi at the topmost intro line.
        (member-init-intro     . +)
        ;; Anchor pos: Boi at the func decl arglist open.
@@ -1285,12 +1289,16 @@ Here is the current list of valid syntactic element symbols:
                            between them; in C++ and Java, throws declarations
                            and other things can appear in this context.
  knr-argdecl-intro      -- First line of a K&R C argument declaration.
- knr-argdecl            -- Subsequent lines in a K&R C argument declaration.
- topmost-intro          -- The first line in a topmost construct definition.
- topmost-intro-cont     -- Topmost definition continuation lines.
- member-init-intro      -- First line in a member initialization list.
- member-init-cont       -- Subsequent member initialization list lines.
- inher-intro            -- First line of a multiple inheritance list.
+ knr-argdecl		-- Subsequent lines in a K&R C argument declaration.
+ topmost-intro		-- The first line in a topmost construct definition.
+ topmost-intro-cont	-- Topmost definition continuation lines.
+ annotation-top-cont    -- Topmost definition continuation line where only
+ 			   annotations are on previous lines.
+ annotation-var-cont    -- A continuation of a C (or like) statement where
+ 			   only annotations are on previous lines.
+ member-init-intro	-- First line in a member initialization list.
+ member-init-cont	-- Subsequent member initialization list lines.
+ inher-intro		-- First line of a multiple inheritance list.
  inher-cont             -- Subsequent multiple inheritance lines.
  block-open             -- Statement block open brace.
  block-close            -- Statement block close brace.
@@ -1376,7 +1384,7 @@ Here is the current list of valid syntactic element symbols:
   '(defun-block-intro block-open block-close statement statement-cont
     statement-block-intro statement-case-intro statement-case-open
     substatement substatement-open substatement-label case-label label
-    do-while-closure else-clause catch-clause inlambda))
+    do-while-closure else-clause catch-clause inlambda annotation-var-cont))
 
 (defcustom c-style-variables-are-local-p t
   "*Whether style variables should be buffer local by default.
@@ -1577,7 +1585,7 @@ names)."))
   :group 'c)
 
 (defcustom java-font-lock-extra-types
-  (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw*"))
+  (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw"))
   (c-make-font-lock-extra-types-blurb "Java" "java-mode" (concat
 "For example, a value of (\"[" c-upper "]\\\\sw*[" c-lower "]\\\\sw*\") means
 capitalized words are treated as type names (the requirement for a

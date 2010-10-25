@@ -6,6 +6,7 @@
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
 ;; Version: 4.31
+;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -384,7 +385,7 @@ of master file."
 
 (defun reftex-section-info (file)
   ;; Return a section entry for the current match.
-  ;; Carefull: This function expects the match-data to be still in place!
+  ;; Careful: This function expects the match-data to be still in place!
   (let* ((marker (set-marker (make-marker) (1- (match-beginning 3))))
          (macro (reftex-match-string 3))
          (prefix (save-match-data
@@ -774,16 +775,18 @@ of master file."
           pos cmd-list cmd cnt cnt-opt entry)
       (save-restriction
         (save-excursion
-          (narrow-to-region (max 1 bound) (point-max))
+          (narrow-to-region (max (point-min) bound) (point-max))
           ;; move back out of the current parenthesis
           (while (condition-case nil
-                     (progn (up-list -1) t)
+                     (let ((forward-sexp-function nil))
+                       (up-list -1) t)
                    (error nil))
             (setq cnt 1 cnt-opt 0)
             ;; move back over any touching sexps
             (while (and (reftex-move-to-previous-arg bound)
                         (condition-case nil
-                            (progn (backward-sexp) t)
+                            (let ((forward-sexp-function nil))
+                              (backward-sexp) t)
                           (error nil)))
               (if (eq (following-char) ?\[) (incf cnt-opt))
               (incf cnt))
@@ -964,15 +967,14 @@ of master file."
             (if (re-search-forward "\\\\end{" nil t)
                 (match-beginning 0)
               (point-max))))))
-   ((or (= (preceding-char) ?\{)
-        (= (preceding-char) ?\[))
+   ((memq (preceding-char) '(?\{ ?\[))
     ;; Inside a list - get only the list.
     (buffer-substring-no-properties
      (point)
      (min (+ (point) 150)
           (point-max)
           (condition-case nil
-              (progn
+              (let ((forward-sexp-function nil)) ;Unneeded fanciness.
                 (up-list 1)
                 (1- (point)))
             (error (point-max))))))

@@ -69,5 +69,4 @@
 
 (provide 'hex-util)
 
-;; arch-tag: fe8aaa79-6c86-400e-813f-5a8cc4cb3859
 ;;; hex-util.el ends here

@@ -59,6 +59,36 @@ If RANGE is a single range, return (RANGE). Otherwise, return RANGE."
       (setq list2 (cdr list2)))
     list1))
 
+(defun gnus-range-nconcat (&rest ranges)
+  "Return a range comprising all the RANGES, which are pre-sorted.
+RANGES will be destructively altered."
+  (setq ranges (delete nil ranges))
+  (let* ((result (gnus-range-normalize (pop ranges)))
+	 (last (last result)))
+    (dolist (range ranges)
+      (setq range (gnus-range-normalize range))
+      ;; Normalize the single-number case, so that we don't need to
+      ;; special-case that so much.
+      (when (numberp (car last))
+	(setcar last (cons (car last) (car last))))
+      (when (numberp (car range))
+	(setcar range (cons (car range) (car range))))
+      (if (= (1+ (cdar last)) (caar range))
+	  (progn
+	    (setcdr (car last) (cdar range))
+	    (setcdr last (cdr range)))
+	(setcdr last range)
+	;; Denormalize back, since we couldn't join the ranges up.
+	(when (= (caar range) (cdar range))
+	  (setcar range (caar range)))
+	(when (= (caar last) (cdar last))
+	  (setcar last (caar last))))
+      (setq last (last last)))
+    (if (and (consp (car result))
+	     (= (length result) 1))
+	(car result)
+      result)))
+
 (defun gnus-range-difference (range1 range2)
   "Return the range of elements in RANGE1 that do not appear in RANGE2.
 Both ranges must be in ascending order."
@@ -187,7 +217,7 @@ LIST1 and LIST2 have to be sorted over <."
 RANGE1 and RANGE2 have to be sorted over <."
   (let* (out
          (min1 (car range1))
-         (max1 (if (numberp min1) 
+         (max1 (if (numberp min1)
                    (if (numberp (cdr range1))
                        (prog1 (cdr range1)
                          (setq range1 nil)) min1)
@@ -196,8 +226,8 @@ RANGE1 and RANGE2 have to be sorted over <."
          (min2 (car range2))
          (max2 (if (numberp min2)
                    (if (numberp (cdr range2))
-                       (prog1 (cdr range2) 
-                         (setq range2 nil)) min2) 
+                       (prog1 (cdr range2)
+                         (setq range2 nil)) min2)
                  (prog1 (cdr min2)
                    (setq min2 (car min2))))))
     (setq range1 (cdr range1)
@@ -654,5 +684,4 @@ LIST is a sorted list."
 
 (provide 'gnus-range)
 
-;; arch-tag: 4780bdd8-5a15-4aff-be28-18727895b6ad
 ;;; gnus-range.el ends here

@@ -95,12 +95,12 @@ undo that change.")
   "Report an article as spam by resending via email.
 Reports is as ham when HAM is set."
   (dolist (article articles)
-    (gnus-message 6 
+    (gnus-message 6
 		  "Reporting %s article %d to <%s>..."
 		  (if ham "ham" "spam")
 		  article spam-report-resend-to)
     (unless spam-report-resend-to
-      (customize-set-variable 
+      (customize-set-variable
        spam-report-resend-to
        (read-from-minibuffer "email address to resend SPAM/HAM to? ")))
     ;; This is ganked from the `gnus-summary-resend-message' function.
@@ -109,8 +109,7 @@ Reports is as ham when HAM is set."
     ;; select this particular article
     (gnus-summary-select-article nil nil nil article)
     ;; resend it to the destination address
-    (save-excursion
-      (set-buffer gnus-original-article-buffer)
+    (with-current-buffer gnus-original-article-buffer
       (message-resend spam-report-resend-to))))
 
 (defun spam-report-resend-ham (articles)
@@ -257,6 +256,7 @@ This is initialized based on `user-mail-address'."
 		 80))
 	  (error "Could not open connection to %s" host))
       (set-marker (process-mark tcp-connection) (point-min))
+      (gnus-set-process-query-on-exit-flag tcp-connection nil)
       (process-send-string
        tcp-connection
        (format "GET %s HTTP/1.1\nUser-Agent: %s\nHost: %s\n\n"
@@ -267,7 +267,7 @@ This is initialized based on `user-mail-address'."
 	(gnus-message 7 "Waiting for response from %s..." host)
 	(while (and (memq (process-status tcp-connection) '(open run))
 		    (zerop (buffer-size)))
-	  (accept-process-output tcp-connection))
+	  (accept-process-output tcp-connection 1))
 	(gnus-message 7 "Waiting for response from %s... done" host)))))
 
 ;;;###autoload
@@ -292,8 +292,7 @@ symbol `ask', query before flushing the queue file."
     (gnus-message 7 "Processing requests using `%s'."
 		  spam-report-url-ping-function))
   (or file (setq file spam-report-requests-file))
-  (save-excursion
-    (set-buffer (find-file-noselect file))
+  (with-current-buffer (find-file-noselect file)
     (goto-char (point-min))
     (while (and (not (eobp))
 		(re-search-forward
@@ -385,5 +384,4 @@ Process queued spam reports."
 
 (provide 'spam-report)
 
-;; arch-tag: f6683295-ec89-4ab5-8803-8cc842293022
 ;;; spam-report.el ends here.

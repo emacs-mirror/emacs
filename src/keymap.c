@@ -103,11 +103,6 @@ static Lisp_Object exclude_keys;
 /* Pre-allocated 2-element vector for Fcommand_remapping to use.  */
 static Lisp_Object command_remapping_vector;
 
-/* A char with the CHAR_META bit set in a vector or the 0200 bit set
-   in a string key sequence is equivalent to prefixing with this
-   character.  */
-extern Lisp_Object meta_prefix_char;
-
 /* Hash table used to cache a reverse-map to speed up calls to where-is.  */
 static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
@@ -179,13 +174,13 @@ in case you use it as a menu with `x-popup-menu'.  */)
    initial_define_key (control_x_map, Ctl('X'), "exchange-point-and-mark");  */
 
 void
-initial_define_key (Lisp_Object keymap, int key, char *defname)
+initial_define_key (Lisp_Object keymap, int key, const char *defname)
 {
   store_in_keymap (keymap, make_number (key), intern_c_string (defname));
 }
 
 void
-initial_define_lispy_key (Lisp_Object keymap, char *keyname, char *defname)
+initial_define_lispy_key (Lisp_Object keymap, const char *keyname, const char *defname)
 {
   store_in_keymap (keymap, intern_c_string (keyname), intern_c_string (defname));
 }
@@ -1226,7 +1221,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 	  && (!CONSP (c)
 	      /* If C is a range, it must be a leaf.  */
 	      || (INTEGERP (XCAR (c)) && idx != length)))
-	error ("Key sequence contains invalid event");
+	message_with_string ("Key sequence contains invalid event %s", c, 1);
 
       if (idx == length)
 	RETURN_UNGCPRO (store_in_keymap (keymap, c, def));
@@ -1340,7 +1335,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
       /* Allow string since binding for `menu-bar-select-buffer'
 	 includes the buffer name in the key sequence.  */
       if (!INTEGERP (c) && !SYMBOLP (c) && !CONSP (c) && !STRINGP (c))
-	error ("Key sequence contains invalid event");
+	message_with_string ("Key sequence contains invalid event %s", c, 1);
 
       cmd = access_keymap (keymap, c, t_ok, 0, 1);
       if (idx == length)
@@ -2967,7 +2962,7 @@ The optional argument MENUS, if non-nil, says to mention menu bindings.
   register Lisp_Object start1;
   struct gcpro gcpro1;
 
-  char *alternate_heading
+  const char *alternate_heading
     = "\
 Keyboard translations:\n\n\
 You type        Translation\n\
@@ -3139,13 +3134,13 @@ You type        Translation\n\
 
 void
 describe_map_tree (Lisp_Object startmap, int partial, Lisp_Object shadow,
-		   Lisp_Object prefix, char *title, int nomenu, int transl,
+		   Lisp_Object prefix, const char *title, int nomenu, int transl,
 		   int always_title, int mention_shadow)
 {
   Lisp_Object maps, orig_maps, seen, sub_shadows;
   struct gcpro gcpro1, gcpro2, gcpro3;
   int something = 0;
-  char *key_heading
+  const char *key_heading
     = "\
 key             binding\n\
 ---             -------\n";

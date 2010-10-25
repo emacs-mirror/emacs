@@ -142,7 +142,7 @@ mktime.o: mktime.c $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
    termopts.h termchar.h character.h coding.h ccl.h disptab.h window.h \
    keyboard.h $(INTERVALS_H) buffer.h commands.h blockinput.h atimer.h \
-   lisp.h $(config_h)
+   lisp.h sysselect.h $(config_h)
 nsfns.o: nsfns.m charset.h nsterm.h nsgui.h frame.h window.h buffer.h \
    dispextern.h fontset.h $(INTERVALS_H) keyboard.h blockinput.h \
    atimer.h systime.h epaths.h termhooks.h coding.h systime.h lisp.h $(config_h)
@@ -176,7 +176,7 @@ syntax.o: syntax.c syntax.h buffer.h commands.h category.h character.h \
 sysdep.o: sysdep.c syssignal.h systty.h systime.h syswait.h blockinput.h \
    process.h dispextern.h termhooks.h termchar.h termopts.h coding.h \
    frame.h atimer.h window.h msdos.h dosfns.h keyboard.h cm.h lisp.h \
-   $(config_h) composite.h
+   $(config_h) composite.h sysselect.h
 term.o: term.c termchar.h termhooks.h termopts.h lisp.h $(config_h) \
    cm.h frame.h disptab.h keyboard.h character.h charset.h coding.h ccl.h \
    xterm.h msdos.h window.h keymap.h blockinput.h atimer.h systime.h \
@@ -190,7 +190,7 @@ undo.o: undo.c buffer.h commands.h window.h dispextern.h lisp.h $(config_h)
 unexaix.o: unexaix.c lisp.h $(config_h)
 unexalpha.o: unexalpha.c $(config_h)
 unexcw.o: unexcw.c lisp.h $(config_h)
-unexec.o: unexec.c lisp.h $(config_h)
+unexcoff.o: unexcoff.c lisp.h $(config_h)
 unexelf.o: unexelf.c $(config_h)
 unexhp9k800.o: unexhp9k800.c $(config_h)
 unexmacosx.o: unexmacosx.c $(config_h)
@@ -230,6 +230,7 @@ xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    charset.h keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h \
    systime.h gtkutil.h msdos.h coding.h menu.h lisp.h $(config_h) composite.h \
    keymap.h sysselect.h
+xml.o: xml.c buffer.h lisp.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
    dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
    keyboard.h emacs-icon.h character.h charset.h ccl.h fontset.h composite.h \

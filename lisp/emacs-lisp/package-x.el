@@ -6,6 +6,7 @@
 ;; Created: 10 Mar 2007
 ;; Version: 0.9
 ;; Keywords: tools
+;; Package: package
 
 ;; This file is part of GNU Emacs.
 
@@ -129,7 +130,7 @@ If nil, the \"gnu\" archive is used."
 		     (aref pkg-info 2)))
 	     (pkg-version (aref pkg-info 3))
 	     (commentary (aref pkg-info 4))
-	     (split-version (package-version-split pkg-version))
+	     (split-version (version-to-list pkg-version))
 	     (pkg-buffer (current-buffer))
 
 	     ;; Download latest archive-contents.
@@ -150,9 +151,8 @@ If nil, the \"gnu\" archive is used."
 	      (error "Unrecognized archive version %d" (car contents)))
 	  (let ((elt (assq pkg-name (cdr contents))))
 	    (if elt
-		(if (package-version-compare split-version
-					     (package-desc-vers (cdr elt))
-					     '<=)
+		(if (version-list-<= split-version
+				     (package-desc-vers (cdr elt)))
 		    (error "New package has smaller version: %s" pkg-version)
 		  (setcdr elt new-desc))
 	      (setq contents (cons (car contents)

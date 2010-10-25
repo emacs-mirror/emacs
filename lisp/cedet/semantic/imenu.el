@@ -99,7 +99,7 @@ A nil value means to keep them in the same order.
 Overriden to nil if `semantic-imenu-bucketize-file' is nil."
   :group 'semantic-imenu
   :type 'boolean)
-(make-variable-buffer-local 'semantic-imenu-bucketize-type-parts)
+(make-variable-buffer-local 'semantic-imenu-bucketize-type-members)
 (semantic-varalias-obsolete 'semantic-imenu-bucketize-type-parts
                             'semantic-imenu-bucketize-type-members "23.2")
 
@@ -235,7 +235,7 @@ Optional argument STREAM is an optional stream of tags used to create menus."
   (setq imenu-default-goto-function 'semantic-imenu-goto-function)
   (prog1
       (if (and semantic-imenu-index-directory
-               (featurep 'semanticdb)
+               (featurep 'semantic/db)
                (semanticdb-minor-mode-p))
           (semantic-create-imenu-directory-index
 	   (or stream (semantic-fetch-tags-fast)))

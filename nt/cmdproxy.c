@@ -35,17 +35,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdlib.h>  /* getenv */
 #include <string.h>  /* strlen */
 
+/* We don't want to include stdio.h because we are already duplicating
+   lots of it here */
+extern int _snprintf (char *buffer, size_t count, const char *format, ...);
 
 /*******  Mock C library routines  *********************************/
 
 /* These routines are used primarily to minimize the executable size.  */
 
-#define stdin  GetStdHandle (STD_INPUT_HANDLE)
 #define stdout GetStdHandle (STD_OUTPUT_HANDLE)
 #define stderr GetStdHandle (STD_ERROR_HANDLE)
 
 int
-vfprintf(HANDLE hnd, char * msg, va_list args)
+vfprintf (HANDLE hnd, const char * msg, va_list args)
 {
   DWORD bytes_written;
   char buf[1024];
@@ -55,7 +57,7 @@ vfprintf(HANDLE hnd, char * msg, va_list args)
 }
 
 int
-fprintf(HANDLE hnd, char * msg, ...)
+fprintf (HANDLE hnd, const char * msg, ...)
 {
   va_list args;
   int rc;
@@ -68,7 +70,7 @@ fprintf(HANDLE hnd, char * msg, ...)
 }
 
 int
-printf(char * msg, ...)
+printf (const char * msg, ...)
 {
   va_list args;
   int rc;
@@ -81,7 +83,7 @@ printf(char * msg, ...)
 }
 
 void
-fail (char * msg, ...)
+fail (const char * msg, ...)
 {
   va_list args;
 
@@ -93,7 +95,7 @@ fail (char * msg, ...)
 }
 
 void
-warn (char * msg, ...)
+warn (const char * msg, ...)
 {
   va_list args;
 
@@ -119,15 +121,15 @@ canon_filename (char *fname)
   return fname;
 }
 
-char *
-skip_space (char *str)
+const char *
+skip_space (const char *str)
 {
   while (isspace (*str)) str++;
   return str;
 }
 
-char *
-skip_nonspace (char *str)
+const char *
+skip_nonspace (const char *str)
 {
   while (*str && !isspace (*str)) str++;
   return str;
@@ -137,9 +139,9 @@ int escape_char = '\\';
 
 /* Get next token from input, advancing pointer.  */
 int
-get_next_token (char * buf, char ** pSrc)
+get_next_token (char * buf, const char ** pSrc)
 {
-  char * p = *pSrc;
+  const char * p = *pSrc;
   char * o = buf;
 
   p = skip_space (p);
@@ -206,7 +208,7 @@ get_next_token (char * buf, char ** pSrc)
   else
     {
       /* Next token is delimited by whitespace.  */
-      char * p1 = skip_nonspace (p);
+      const char * p1 = skip_nonspace (p);
       memcpy (o, p, p1 - p);
       o += (p1 - p);
       *o = '\0';
@@ -221,9 +223,9 @@ get_next_token (char * buf, char ** pSrc)
 /* Search for EXEC file in DIR.  If EXEC does not have an extension,
    DIR is searched for EXEC with the standard extensions appended.  */
 int
-search_dir (char *dir, char *exec, int bufsize, char *buffer)
+search_dir (const char *dir, const char *exec, int bufsize, char *buffer)
 {
-  char *exts[] = {".bat", ".cmd", ".exe", ".com"};
+  const char *exts[] = {".bat", ".cmd", ".exe", ".com"};
   int n_exts = sizeof (exts) / sizeof (char *);
   char *dummy;
   int i, rc;
@@ -243,13 +245,13 @@ search_dir (char *dir, char *exec, int bufsize, char *buffer)
    any file extensions.  If an absolute name for PROG cannot be found,
    return NULL.  */
 char *
-make_absolute (char *prog)
+make_absolute (const char *prog)
 {
   char absname[MAX_PATH];
   char dir[MAX_PATH];
   char curdir[MAX_PATH];
-  char *p, *fname;
-  char *path;
+  char *p, *path;
+  const char *fname;
   int i;
 
   /* At least partial absolute path specified; search there.  */
@@ -369,7 +371,7 @@ console_event_handler (DWORD event)
 /* Change from normal usage; return value indicates whether spawn
    succeeded or failed - program return code is returned separately.  */
 int
-spawn (char * progname, char * cmdline, char * dir, int * retcode)
+spawn (const char *progname, char *cmdline, const char *dir, int *retcode)
 {
   BOOL success = FALSE;
   SECURITY_ATTRIBUTES sec_attrs;
@@ -467,8 +469,8 @@ main (int argc, char ** argv)
   /* Due to problems with interaction between API functions that use "OEM"
      codepage vs API functions that use the "ANSI" codepage, we need to
      make things consistent by choosing one and sticking with it.  */
-  SetConsoleCP (GetACP());
-  SetConsoleOutputCP (GetACP());
+  SetConsoleCP (GetACP ());
+  SetConsoleOutputCP (GetACP ());
 
   /* Although Emacs always sets argv[0] to an absolute pathname, we
      might get run in other ways as well, so convert argv[0] to an
@@ -506,7 +508,7 @@ main (int argc, char ** argv)
   /* Ask command.com to create an environment block with a reasonable
      amount of free space.  */
   envsize = get_env_size () + 300;
-  pass_through_args = (char **) alloca (argc * sizeof(char *));
+  pass_through_args = (char **) alloca (argc * sizeof (char *));
   num_pass_through_args = 0;
 
   while (--argc > 0)
@@ -580,7 +582,7 @@ main (int argc, char ** argv)
 
       if (strpbrk (cmdline, copout_chars) == NULL)
 	{
- 	  char *args;
+ 	  const char *args;
 
 	  /* The program name is the first token of cmdline.  Since
 	     filenames cannot legally contain embedded quotes, the value
@@ -604,6 +606,7 @@ main (int argc, char ** argv)
     {
       char * p;
       int    extra_arg_space = 0;
+      int    maxlen, remlen;
       int    run_command_dot_com;
 
       progname = getenv ("COMSPEC");
@@ -635,21 +638,26 @@ main (int argc, char ** argv)
 	     case path contains spaces (fortunately it can't contain
 	     quotes, since they are illegal in path names).  */
 
-	  buf = p = alloca (strlen (progname) + extra_arg_space +
-			    strlen (cmdline) + 16);
+	  remlen = maxlen =
+	    strlen (progname) + extra_arg_space + strlen (cmdline) + 16;
+	  buf = p = alloca (maxlen + 1);
 
 	  /* Quote progname in case it contains spaces.  */
-	  p += wsprintf (p, "\"%s\"", progname);
+	  p += _snprintf (p, remlen, "\"%s\"", progname);
+	  remlen = maxlen - (p - buf);
 
 	  /* Include pass_through_args verbatim; these are just switches
              so should not need quoting.  */
 	  for (argv = pass_through_args; *argv != NULL; ++argv)
-	    p += wsprintf (p, " %s", *argv);
+	    {
+	      p += _snprintf (p, remlen, " %s", *argv);
+	      remlen = maxlen - (p - buf);
+	    }
 
 	  if (run_command_dot_com)
-	    wsprintf(p, " /e:%d /c %s", envsize, cmdline);
+	    _snprintf (p, remlen, " /e:%d /c %s", envsize, cmdline);
 	  else
-	    wsprintf(p, " /c %s", cmdline);
+	    _snprintf (p, remlen, " /c %s", cmdline);
 	  cmdline = buf;
 	}
       else
@@ -669,19 +677,24 @@ main (int argc, char ** argv)
 	  else
 	    path[0] = '\0';
 
-	  cmdline = p = alloca (strlen (progname) + extra_arg_space +
-				strlen (path) + 13);
+	  remlen = maxlen =
+	    strlen (progname) + extra_arg_space + strlen (path) + 13;
+	  cmdline = p = alloca (maxlen + 1);
 
 	  /* Quote progname in case it contains spaces.  */
-	  p += wsprintf (p, "\"%s\" %s", progname, path);
+	  p += _snprintf (p, remlen, "\"%s\" %s", progname, path);
+	  remlen = maxlen - (p - cmdline);
 
 	  /* Include pass_through_args verbatim; these are just switches
              so should not need quoting.  */
 	  for (argv = pass_through_args; *argv != NULL; ++argv)
-	    p += wsprintf (p, " %s", *argv);
+	    {
+	      p += _snprintf (p, remlen, " %s", *argv);
+	      remlen = maxlen - (p - cmdline);
+	    }
 
 	  if (run_command_dot_com)
-	    wsprintf (p, " /e:%d", envsize);
+	    _snprintf (p, remlen, " /e:%d", envsize);
 	}
     }
 

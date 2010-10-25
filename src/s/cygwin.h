@@ -45,16 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    through a pipe. */
 #undef INTERRUPT_INPUT
 
-/* Define HAVE_TERMIOS if the system provides POSIX-style
-   functions and macros for terminal control.
-
-   Define HAVE_TERMIO if the system provides sysV-style ioctls
-   for terminal control.
-
-   Do not define both.  HAVE_TERMIOS is preferred, if it is
-   supported on your system.  */
-#define HAVE_TERMIOS
-
 /* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
 #define PTY_ITERATION		for (i = 0; i < 1; i++) /* ick */
@@ -110,6 +100,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    As malloc is not the Cygwin malloc, the Cygwin memalign always
    returns ENOSYS.  A workaround is to set G_SLICE=always-malloc. */
 #define G_SLICE_ALWAYS_MALLOC
+
+/* Send signals to subprocesses by "typing" special chars at them.  */
+#define SIGNALS_VIA_CHARACTERS
 
 /* arch-tag: 5ae7ba00-83b0-4ab3-806a-3e845779191b
    (do not change this comment) */

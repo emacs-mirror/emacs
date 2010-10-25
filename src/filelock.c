@@ -31,10 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <sys/file.h>
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#include <string.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -117,10 +114,8 @@ Lisp_Object Vtemporary_file_directory;
 static time_t boot_time;
 static int boot_time_initialized;
 
-extern Lisp_Object Vshell_file_name;
-
 #ifdef BOOT_TIME
-static void get_boot_time_1 (char *, int);
+static void get_boot_time_1 (const char *, int);
 #endif
 
 static time_t
@@ -251,7 +246,7 @@ get_boot_time (void)
    Success is indicated by setting BOOT_TIME to a larger value.  */
 
 void
-get_boot_time_1 (char *filename, int newest)
+get_boot_time_1 (const char *filename, int newest)
 {
   struct utmp ut, *utp;
   int desc;
@@ -362,8 +357,8 @@ lock_file_1 (char *lfname, int force)
 {
   register int err;
   time_t boot_time;
-  char *user_name;
-  char *host_name;
+  const char *user_name;
+  const char *host_name;
   char *lock_info_str;
 
   /* Call this first because it can GC.  */

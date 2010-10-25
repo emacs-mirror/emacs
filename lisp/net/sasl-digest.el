@@ -5,6 +5,7 @@
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;;	Kenichi OKADA <okada@opaopa.org>
 ;; Keywords: SASL, DIGEST-MD5
+;; Package: sasl
 
 ;; This file is part of GNU Emacs.
 
@@ -94,10 +95,10 @@ charset algorithm cipher-opts auth-param)."
 	 (md5-binary
 	  (concat
 	   (encode-hex-string
-	    (md5-binary (concat (md5-binary 
+	    (md5-binary (concat (md5-binary
 				 (concat username ":" realm ":" passphrase))
 				":" nonce ":" cnonce
-				(if authzid 
+				(if authzid
 				    (concat ":" authzid)))))
 	   ":" nonce
 	   ":" (format "%08x" nonce-count) ":" cnonce ":" qop ":"
@@ -153,5 +154,4 @@ charset algorithm cipher-opts auth-param)."
 
 (provide 'sasl-digest)
 
-;; arch-tag: 786e02ed-1bc4-4b3c-bf34-96c27e31084d
 ;;; sasl-digest.el ends here

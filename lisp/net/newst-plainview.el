@@ -7,6 +7,7 @@
 ;; Filename:    newst-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Time-stamp:  "6. Dezember 2009, 19:17:02 (ulf)"
+;; Package:     newsticker
 
 ;; ======================================================================
 

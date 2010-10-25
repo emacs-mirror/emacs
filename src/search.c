@@ -100,15 +100,15 @@ Lisp_Object Vinhibit_changing_match_data;
 
 static void set_search_regs (EMACS_INT, EMACS_INT);
 static void save_search_regs (void);
-static EMACS_INT simple_search (int, unsigned char *, int, int,
-                                Lisp_Object, EMACS_INT, EMACS_INT,
+static EMACS_INT simple_search (EMACS_INT, unsigned char *, EMACS_INT,
+				EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT,
                                 EMACS_INT, EMACS_INT);
-static EMACS_INT boyer_moore (int, unsigned char *, int, int,
+static EMACS_INT boyer_moore (EMACS_INT, unsigned char *, EMACS_INT, EMACS_INT,
                               Lisp_Object, Lisp_Object,
                               EMACS_INT, EMACS_INT,
                               EMACS_INT, EMACS_INT, int);
 static EMACS_INT search_buffer (Lisp_Object, EMACS_INT, EMACS_INT,
-                                EMACS_INT, EMACS_INT, int, int,
+                                EMACS_INT, EMACS_INT, EMACS_INT, int,
                                 Lisp_Object, Lisp_Object, int);
 static void matcher_overflow (void) NO_RETURN;
 
@@ -286,7 +286,7 @@ looking_at_1 (Lisp_Object string, int posix)
   Lisp_Object val;
   unsigned char *p1, *p2;
   EMACS_INT s1, s2;
-  register int i;
+  register EMACS_INT i;
   struct re_pattern_buffer *bufp;
 
   if (running_asynch_code)
@@ -396,7 +396,7 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start, int p
     pos = 0, pos_byte = 0;
   else
     {
-      int len = SCHARS (string);
+      EMACS_INT len = SCHARS (string);
 
       CHECK_NUMBER (start);
       pos = XINT (start);
@@ -504,14 +504,12 @@ fast_string_match (Lisp_Object regexp, Lisp_Object string)
    This does not clobber the match data.
    We assume that STRING contains single-byte characters.  */
 
-extern Lisp_Object Vascii_downcase_table;
-
 int
 fast_c_string_match_ignore_case (Lisp_Object regexp, const char *string)
 {
   int val;
   struct re_pattern_buffer *bufp;
-  int len = strlen (string);
+  size_t len = strlen (string);
 
   regexp = string_make_unibyte (regexp);
   re_match_object = Qt;
@@ -656,8 +654,9 @@ newline_cache_on_off (struct buffer *buf)
    If ALLOW_QUIT is non-zero, set immediate_quit.  That's good to do
    except when inside redisplay.  */
 
-int
-scan_buffer (register int target, EMACS_INT start, EMACS_INT end, int count, int *shortage, int allow_quit)
+EMACS_INT
+scan_buffer (register int target, EMACS_INT start, EMACS_INT end,
+	     EMACS_INT count, int *shortage, int allow_quit)
 {
   struct region_cache *newline_cache;
   int direction;
@@ -697,7 +696,7 @@ scan_buffer (register int target, EMACS_INT start, EMACS_INT end, int count, int
            to see where we can avoid some scanning.  */
         if (target == '\n' && newline_cache)
           {
-            int next_change;
+            EMACS_INT next_change;
             immediate_quit = 0;
             while (region_cache_forward
                    (current_buffer, newline_cache, start_byte, &next_change))
@@ -769,7 +768,7 @@ scan_buffer (register int target, EMACS_INT start, EMACS_INT end, int count, int
         /* Consult the newline cache, if appropriate.  */
         if (target == '\n' && newline_cache)
           {
-            int next_change;
+            EMACS_INT next_change;
             immediate_quit = 0;
             while (region_cache_backward
                    (current_buffer, newline_cache, start_byte, &next_change))
@@ -848,8 +847,10 @@ scan_buffer (register int target, EMACS_INT start, EMACS_INT end, int count, int
    If ALLOW_QUIT is non-zero, set immediate_quit.  That's good to do
    except in special cases.  */
 
-int
-scan_newline (EMACS_INT start, EMACS_INT start_byte, EMACS_INT limit, EMACS_INT limit_byte, register int count, int allow_quit)
+EMACS_INT
+scan_newline (EMACS_INT start, EMACS_INT start_byte,
+	      EMACS_INT limit, EMACS_INT limit_byte,
+	      register EMACS_INT count, int allow_quit)
 {
   int direction = ((count > 0) ? 1 : -1);
 
@@ -942,8 +943,8 @@ scan_newline (EMACS_INT start, EMACS_INT start_byte, EMACS_INT limit, EMACS_INT 
   return count * direction;
 }
 
-int
-find_next_newline_no_quit (EMACS_INT from, int cnt)
+EMACS_INT
+find_next_newline_no_quit (EMACS_INT from, EMACS_INT cnt)
 {
   return scan_buffer ('\n', from, 0, cnt, (int *) 0, 0);
 }
@@ -952,11 +953,11 @@ find_next_newline_no_quit (EMACS_INT from, int cnt)
    not after, and only search up to TO.  This isn't just
    find_next_newline (...)-1, because you might hit TO.  */
 
-int
-find_before_next_newline (EMACS_INT from, EMACS_INT to, int cnt)
+EMACS_INT
+find_before_next_newline (EMACS_INT from, EMACS_INT to, EMACS_INT cnt)
 {
   int shortage;
-  int pos = scan_buffer ('\n', from, to, cnt, &shortage, 1);
+  EMACS_INT pos = scan_buffer ('\n', from, to, cnt, &shortage, 1);
 
   if (shortage == 0)
     pos--;
@@ -967,10 +968,11 @@ find_before_next_newline (EMACS_INT from, EMACS_INT to, int cnt)
 /* Subroutines of Lisp buffer search functions. */
 
 static Lisp_Object
-search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count, int direction, int RE, int posix)
+search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
+		Lisp_Object count, int direction, int RE, int posix)
 {
   register int np;
-  int lim, lim_byte;
+  EMACS_INT lim, lim_byte;
   int n = direction;
 
   if (!NILP (count))
@@ -1046,7 +1048,7 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp
 static int
 trivial_regexp_p (Lisp_Object regexp)
 {
-  int len = SBYTES (regexp);
+  EMACS_INT len = SBYTES (regexp);
   unsigned char *s = SDATA (regexp);
   while (--len >= 0)
     {
@@ -1111,11 +1113,11 @@ static struct re_registers search_regs_1;
 
 static EMACS_INT
 search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
-	       EMACS_INT lim, EMACS_INT lim_byte, int n,
+	       EMACS_INT lim, EMACS_INT lim_byte, EMACS_INT n,
 	       int RE, Lisp_Object trt, Lisp_Object inverse_trt, int posix)
 {
-  int len = SCHARS (string);
-  int len_byte = SBYTES (string);
+  EMACS_INT len = SCHARS (string);
+  EMACS_INT len_byte = SBYTES (string);
   register int i;
 
   if (running_asynch_code)
@@ -1132,7 +1134,7 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
   if (RE && !(trivial_regexp_p (string) && NILP (Vsearch_spaces_regexp)))
     {
       unsigned char *p1, *p2;
-      int s1, s2;
+      EMACS_INT s1, s2;
       struct re_pattern_buffer *bufp;
 
       bufp = compile_pattern (string,
@@ -1168,7 +1170,7 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
 
       while (n < 0)
 	{
-	  int val;
+	  EMACS_INT val;
 	  val = re_search_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 			     pos_byte - BEGV_BYTE, lim_byte - pos_byte,
 			     (NILP (Vinhibit_changing_match_data)
@@ -1212,7 +1214,7 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
 	}
       while (n > 0)
 	{
-	  int val;
+	  EMACS_INT val;
 	  val = re_search_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 			     pos_byte - BEGV_BYTE, lim_byte - pos_byte,
 			     (NILP (Vinhibit_changing_match_data)
@@ -1257,8 +1259,8 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
   else				/* non-RE case */
     {
       unsigned char *raw_pattern, *pat;
-      int raw_pattern_size;
-      int raw_pattern_size_byte;
+      EMACS_INT raw_pattern_size;
+      EMACS_INT raw_pattern_size_byte;
       unsigned char *patbuf;
       int multibyte = !NILP (current_buffer->enable_multibyte_characters);
       unsigned char *base_pat;
@@ -1452,13 +1454,16 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
    boyer_moore cannot work.  */
 
 static EMACS_INT
-simple_search (int n, unsigned char *pat, int len, int len_byte, Lisp_Object trt, EMACS_INT pos, EMACS_INT pos_byte, EMACS_INT lim, EMACS_INT lim_byte)
+simple_search (EMACS_INT n, unsigned char *pat,
+	       EMACS_INT len, EMACS_INT len_byte, Lisp_Object trt,
+	       EMACS_INT pos, EMACS_INT pos_byte,
+	       EMACS_INT lim, EMACS_INT lim_byte)
 {
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
   int forward = n > 0;
   /* Number of buffer bytes matched.  Note that this may be different
      from len_byte in a multibyte buffer.  */
-  int match_byte;
+  EMACS_INT match_byte;
 
   if (lim > pos && multibyte)
     while (n > 0)
@@ -1468,7 +1473,7 @@ simple_search (int n, unsigned char *pat, int len, int len_byte, Lisp_Object trt
 	    /* Try matching at position POS.  */
 	    EMACS_INT this_pos = pos;
 	    EMACS_INT this_pos_byte = pos_byte;
-	    int this_len = len;
+	    EMACS_INT this_len = len;
 	    unsigned char *p = pat;
 	    if (pos + len > lim || pos_byte + len_byte > lim_byte)
 	      goto stop;
@@ -1513,7 +1518,7 @@ simple_search (int n, unsigned char *pat, int len, int len_byte, Lisp_Object trt
 	  {
 	    /* Try matching at position POS.  */
 	    EMACS_INT this_pos = pos;
-	    int this_len = len;
+	    EMACS_INT this_len = len;
 	    unsigned char *p = pat;
 
 	    if (pos + len > lim)
@@ -1553,7 +1558,7 @@ simple_search (int n, unsigned char *pat, int len, int len_byte, Lisp_Object trt
 	    /* Try matching at position POS.  */
 	    EMACS_INT this_pos = pos;
 	    EMACS_INT this_pos_byte = pos_byte;
-	    int this_len = len;
+	    EMACS_INT this_len = len;
 	    const unsigned char *p = pat + len_byte;
 
 	    if (this_pos - len < lim || (pos_byte - len_byte) < lim_byte)
@@ -1596,7 +1601,7 @@ simple_search (int n, unsigned char *pat, int len, int len_byte, Lisp_Object trt
 	  {
 	    /* Try matching at position POS.  */
 	    EMACS_INT this_pos = pos - len;
-	    int this_len = len;
+	    EMACS_INT this_len = len;
 	    unsigned char *p = pat;
 
 	    if (this_pos < lim)
@@ -1659,18 +1664,20 @@ simple_search (int n, unsigned char *pat, int len, int len_byte, Lisp_Object trt
    If that criterion is not satisfied, do not call this function.  */
 
 static EMACS_INT
-boyer_moore (int n, unsigned char *base_pat, int len, int len_byte,
+boyer_moore (EMACS_INT n, unsigned char *base_pat,
+	     EMACS_INT len, EMACS_INT len_byte,
 	     Lisp_Object trt, Lisp_Object inverse_trt,
 	     EMACS_INT pos, EMACS_INT pos_byte,
 	     EMACS_INT lim, EMACS_INT lim_byte, int char_base)
 {
   int direction = ((n > 0) ? 1 : -1);
-  register int dirlen;
+  register EMACS_INT dirlen;
   EMACS_INT limit;
   int stride_for_teases = 0;
   int BM_tab[0400];
   register unsigned char *cursor, *p_limit;
-  register int i, j;
+  register EMACS_INT i;
+  register int j;
   unsigned char *pat, *pat_end;
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
@@ -2100,10 +2107,11 @@ static Lisp_Object
 wordify (Lisp_Object string, int lax)
 {
   register unsigned char *p, *o;
-  register int i, i_byte, len, punct_count = 0, word_count = 0;
+  register EMACS_INT i, i_byte, len, punct_count = 0, word_count = 0;
   Lisp_Object val;
   int prev_c = 0;
-  int adjust, whitespace_at_end;
+  EMACS_INT adjust;
+  int whitespace_at_end;
 
   CHECK_STRING (string);
   p = SDATA (string);
@@ -2153,7 +2161,7 @@ wordify (Lisp_Object string, int lax)
   for (i = 0, i_byte = 0; i < len; )
     {
       int c;
-      int i_byte_orig = i_byte;
+      EMACS_INT i_byte_orig = i_byte;
 
       FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c, string, i, i_byte);
 
@@ -2394,7 +2402,7 @@ since only regular expressions have distinguished subexpressions.  */)
   (Lisp_Object newtext, Lisp_Object fixedcase, Lisp_Object literal, Lisp_Object string, Lisp_Object subexp)
 {
   enum { nochange, all_caps, cap_initial } case_action;
-  register int pos, pos_byte;
+  register EMACS_INT pos, pos_byte;
   int some_multiletter_word;
   int some_lowercase;
   int some_uppercase;
@@ -2542,8 +2550,8 @@ since only regular expressions have distinguished subexpressions.  */)
 
 	  for (pos_byte = 0, pos = 0; pos_byte < length;)
 	    {
-	      int substart = -1;
-	      int subend = 0;
+	      EMACS_INT substart = -1;
+	      EMACS_INT subend = 0;
 	      int delbackslash = 0;
 
 	      FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
@@ -2636,9 +2644,9 @@ since only regular expressions have distinguished subexpressions.  */)
      perform substitution on the replacement string.  */
   if (NILP (literal))
     {
-      int length = SBYTES (newtext);
+      EMACS_INT length = SBYTES (newtext);
       unsigned char *substed;
-      int substed_alloc_size, substed_len;
+      EMACS_INT substed_alloc_size, substed_len;
       int buf_multibyte = !NILP (current_buffer->enable_multibyte_characters);
       int str_multibyte = STRING_MULTIBYTE (newtext);
       Lisp_Object rev_tbl;
@@ -2657,8 +2665,8 @@ since only regular expressions have distinguished subexpressions.  */)
       for (pos_byte = 0, pos = 0; pos_byte < length;)
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
-	  unsigned char *add_stuff = NULL;
-	  int add_len = 0;
+	  const unsigned char *add_stuff = NULL;
+	  EMACS_INT add_len = 0;
 	  int idx = -1;
 
 	  if (str_multibyte)
@@ -2752,7 +2760,8 @@ since only regular expressions have distinguished subexpressions.  */)
 	{
 	  if (buf_multibyte)
 	    {
-	      int nchars = multibyte_chars_in_text (substed, substed_len);
+	      EMACS_INT nchars =
+		multibyte_chars_in_text (substed, substed_len);
 
 	      newtext = make_multibyte_string (substed, nchars, substed_len);
 	    }

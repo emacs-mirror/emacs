@@ -78,7 +78,7 @@
 (defconst utf7-utf-16-coding-system
   (cond ((mm-coding-system-p 'utf-16-be-no-signature) ; Mule-UCS
 	 'utf-16-be-no-signature)
-	((and (mm-coding-system-p 'utf-16-be) ; Emacs 21.3, Emacs 22
+	((and (mm-coding-system-p 'utf-16-be) ; Emacs
 	      ;; Avoid versions with BOM.
 	      (= 2 (length (encode-coding-string "a" 'utf-16-be))))
 	 'utf-16-be)
@@ -205,6 +205,7 @@ Characters are in raw byte pairs in narrowed buffer."
   (mm-decode-coding-region (point-min) (point-max) 'iso-8859-1)
   (mm-enable-multibyte))
 
+;;;###autoload
 (defun utf7-encode (string &optional for-imap)
   "Encode UTF-7 STRING.  Use IMAP modification if FOR-IMAP is non-nil."
   (if (and (coding-system-p 'utf-7) (coding-system-p 'utf-7-imap))
@@ -228,5 +229,4 @@ Characters are in raw byte pairs in narrowed buffer."
 
 (provide 'utf7)
 
-;; arch-tag: 96078b55-85c7-4161-aed2-932c24b282c7
 ;;; utf7.el ends here

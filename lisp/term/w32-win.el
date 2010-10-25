@@ -148,17 +148,7 @@ the last file dropped is selected."
 (global-set-key [language-change] 'ignore)
 
 (defvar x-resource-name)
-(defvar x-colors)
 
-
-(defun xw-defined-colors (&optional frame)
-  "Internal function called by `defined-colors', which see."
-  (or frame (setq frame (selected-frame)))
-  (let ((defined-colors nil))
-    (dolist (this-color (or (mapcar 'car w32-color-map) x-colors))
-      (and (color-supported-p this-color frame t)
-	   (setq defined-colors (cons this-color defined-colors))))
-    defined-colors))
 
 ;;;; Function keys
 
@@ -196,10 +186,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   "Report an error when a suspend is attempted."
   (error "Suspending an Emacs running under W32 makes no sense"))
 
-(defvar image-library-alist)
+(defvar dynamic-library-alist)
 
-;;; Set default known names for image libraries
-(setq image-library-alist
+;;; Set default known names for external libraries
+(setq dynamic-library-alist
       '((xpm "libxpm.dll" "xpm4.dll" "libXpm-nox4.dll")
         (png "libpng12d.dll" "libpng12.dll" "libpng.dll"
 	 ;; these are libpng 1.2.8 from GTK+
@@ -316,5 +306,4 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (provide 'w32-win)
 
-;; arch-tag: 69fb1701-28c2-4890-b351-3d1fe4b4f166
 ;;; w32-win.el ends here

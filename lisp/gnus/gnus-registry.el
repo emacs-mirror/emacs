@@ -1,6 +1,6 @@
 ;;; gnus-registry.el --- article registry for Gnus
 
-;;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 
+;;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 ;;; Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
@@ -45,6 +45,9 @@
 
 ;; (: gnus-registry-split-fancy-with-parent)
 
+;; You should also consider using the nnregistry backend to look up
+;; articles.  See the Gnus manual for more information.
+
 ;; TODO:
 
 ;; - get the correct group on spool actions
@@ -72,7 +75,7 @@
   :version "22.1"
   :group 'gnus)
 
-(defvar gnus-registry-hashtb (make-hash-table 			    
+(defvar gnus-registry-hashtb (make-hash-table
 			      :size 256
 			      :test 'equal)
   "*The article registry by Message ID.")
@@ -97,7 +100,7 @@
   "List of registry marks and their options.
 
 `gnus-registry-mark-article' will offer symbols from this list
-for completion.  
+for completion.
 
 Each entry must have a character to be useful for summary mode
 line display and for keyboard shortcuts.
@@ -121,13 +124,15 @@ display."
   :group 'gnus-registry
   :type 'symbol)
 
-(defcustom gnus-registry-unfollowed-groups 
-  '("delayed$" "drafts$" "queue$" "INBOX$")
+(defcustom gnus-registry-unfollowed-groups
+  '("delayed$" "drafts$" "queue$" "INBOX$" "^nnmairix:")
   "List of groups that gnus-registry-split-fancy-with-parent won't return.
 The group names are matched, they don't have to be fully
 qualified.  This parameter tells the Registry 'never split a
 message into a group that matches one of these, regardless of
-references.'"
+references.'
+
+nnmairix groups are specifically excluded because they are ephemeral."
   :group 'gnus-registry
   :type '(repeat regexp))
 
@@ -206,9 +211,9 @@ considered precious) will not be trimmed."
   :group 'gnus-registry
   :type '(repeat symbol))
 
-(defcustom gnus-registry-cache-file 
-  (nnheader-concat 
-   (or gnus-dribble-directory gnus-home-directory "~/") 
+(defcustom gnus-registry-cache-file
+  (nnheader-concat
+   (or gnus-dribble-directory gnus-home-directory "~/")
    ".gnus.registry.eld")
   "File where the Gnus registry will be stored."
   :group 'gnus-registry
@@ -241,8 +246,7 @@ considered precious) will not be trimmed."
   "Save the registry cache file."
   (interactive)
   (let ((file gnus-registry-cache-file))
-    (save-excursion
-      (set-buffer (gnus-get-buffer-create " *Gnus-registry-cache*"))
+    (with-current-buffer (gnus-get-buffer-create " *Gnus-registry-cache*")
       (make-local-variable 'version-control)
     (setq version-control gnus-backup-startup-file)
     (setq buffer-file-name file)
@@ -253,7 +257,7 @@ considered precious) will not be trimmed."
     (if gnus-save-startup-file-via-temp-buffer
 	(let ((coding-system-for-write gnus-ding-file-coding-system)
 	      (standard-output (current-buffer)))
-	  (gnus-gnus-to-quick-newsrc-format 
+	  (gnus-gnus-to-quick-newsrc-format
 	   t "gnus registry startup file" 'gnus-registry-alist)
 	  (gnus-registry-cache-whitespace file)
 	  (save-buffer))
@@ -276,7 +280,7 @@ considered precious) will not be trimmed."
 	(unwind-protect
 	    (progn
 	      (gnus-with-output-to-file working-file
-		(gnus-gnus-to-quick-newsrc-format 
+		(gnus-gnus-to-quick-newsrc-format
 		 t "gnus registry startup file" 'gnus-registry-alist))
 
 	      ;; These bindings will mislead the current buffer
@@ -326,7 +330,7 @@ considered precious) will not be trimmed."
       (when gnus-registry-clean-empty
 	(gnus-registry-clean-empty-function))
       ;; now trim and clean text properties from the registry appropriately
-      (setq gnus-registry-alist 
+      (setq gnus-registry-alist
 	    (gnus-registry-remove-alist-text-properties
 	     (gnus-registry-trim
 	      (gnus-hashtable-to-alist
@@ -346,7 +350,7 @@ considered precious) will not be trimmed."
 	 (dolist (group (gnus-registry-fetch-groups key))
 	   (when (gnus-parameter-registry-ignore group)
 	     (gnus-message
-	      10 
+	      10
 	      "gnus-registry: deleted ignored group %s from key %s"
 	      group key)
 	     (gnus-registry-delete-group key group)))
@@ -361,14 +365,14 @@ considered precious) will not be trimmed."
 		  (gnus-registry-fetch-extra key 'label))
 	   (incf count)
 	   (gnus-registry-delete-id key))
-	 
+
 	 (unless (stringp key)
-	   (gnus-message 
-	    10 
-	    "gnus-registry key %s was not a string, removing" 
+	   (gnus-message
+	    10
+	    "gnus-registry key %s was not a string, removing"
 	    key)
 	   (gnus-registry-delete-id key))))
-       
+
      gnus-registry-hashtb)
     count))
 
@@ -391,7 +395,7 @@ considered precious) will not be trimmed."
 (defun gnus-registry-trim (alist)
   "Trim alist to size, using gnus-registry-max-entries.
 Any entries with extra data (marks, currently) are left alone."
-  (if (null gnus-registry-max-entries)      
+  (if (null gnus-registry-max-entries)
       alist                             ; just return the alist
     ;; else, when given max-entries, trim the alist
     (let* ((timehash (make-hash-table
@@ -420,25 +424,25 @@ Any entries with extra data (marks, currently) are left alone."
 	      (push item precious-list)
 	    (push item junk-list))))
 
-      (sort 
+      (sort
        junk-list
        (lambda (a b)
-	 (let ((t1 (or (cdr (gethash (car a) timehash)) 
+	 (let ((t1 (or (cdr (gethash (car a) timehash))
 		       '(0 0 0)))
-	       (t2 (or (cdr (gethash (car b) timehash)) 
+	       (t2 (or (cdr (gethash (car b) timehash))
 		       '(0 0 0))))
 	   (time-less-p t1 t2))))
 
       ;; we use the return value of this setq, which is the trimmed alist
       (setq alist (append precious-list
 			  (nthcdr trim-length junk-list))))))
-  
+
 (defun gnus-registry-action (action data-header from &optional to method)
   (let* ((id (mail-header-id data-header))
 	 (subject (gnus-string-remove-all-properties
 		   (gnus-registry-simplify-subject
 		    (mail-header-subject data-header))))
-	 (sender (gnus-string-remove-all-properties 
+	 (sender (gnus-string-remove-all-properties
 		  (mail-header-from data-header)))
 	 (from (gnus-group-guess-full-name-from-command-method from))
 	 (to (if to (gnus-group-guess-full-name-from-command-method to) nil))
@@ -489,7 +493,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
   (let* ((refstr (or (message-fetch-field "references") "")) ; guaranteed
 	 (reply-to (message-fetch-field "in-reply-to"))	     ; may be nil
 	 ;; now, if reply-to is valid, append it to the References
-	 (refstr (if reply-to 
+	 (refstr (if reply-to
 		     (concat refstr " " reply-to)
 		   refstr))
 	 ;; these may not be used, but the code is cleaner having them up here
@@ -517,8 +521,8 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	 9
 	 "%s is looking for matches for reference %s from [%s]"
 	 log-agent reference refstr)
-	(dolist (group (gnus-registry-fetch-groups 
-			reference 
+	(dolist (group (gnus-registry-fetch-groups
+			reference
 			gnus-registry-max-track-groups))
 	  (when (and group (gnus-registry-follow-group-p group))
 	    (gnus-message
@@ -528,9 +532,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	    (push group found))))
       ;; filter the found groups and return them
       ;; the found groups are the full groups
-      (setq found (gnus-registry-post-process-groups 
+      (setq found (gnus-registry-post-process-groups
 		   "references" refstr found found)))
-     
+
      ;; else: there were no matches, now try the extra tracking by sender
      ((and (gnus-registry-track-sender-p)
 	   sender
@@ -543,12 +547,13 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	       matches)
 	   (when (and this-sender
 		      (equal sender this-sender))
-	     (let ((groups (gnus-registry-fetch-groups 
+	     (let ((groups (gnus-registry-fetch-groups
 			    key
 			    gnus-registry-max-track-groups)))
 	       (dolist (group groups)
-		 (push group found-full)
-		 (setq found (append (list group) (delete group found)))))
+		 (when (and group (gnus-registry-follow-group-p group))
+		   (push group found-full)
+		   (setq found (append (list group) (delete group found))))))
 	     (push key matches)
 	     (gnus-message
 	      ;; raise level of messaging if gnus-registry-track-extra
@@ -558,9 +563,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
        gnus-registry-hashtb)
       ;; filter the found groups and return them
       ;; the found groups are NOT the full groups
-      (setq found (gnus-registry-post-process-groups 
+      (setq found (gnus-registry-post-process-groups
 		   "sender" sender found found-full)))
-      
+
      ;; else: there were no matches, now try the extra tracking by subject
      ((and (gnus-registry-track-subject-p)
 	   subject
@@ -572,12 +577,13 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	       matches)
 	   (when (and this-subject
 		      (equal subject this-subject))
-	     (let ((groups (gnus-registry-fetch-groups 
+	     (let ((groups (gnus-registry-fetch-groups
 			    key
 			    gnus-registry-max-track-groups)))
 	       (dolist (group groups)
-		 (push group found-full)
-		 (setq found (append (list group) (delete group found)))))
+		 (when (and group (gnus-registry-follow-group-p group))
+		   (push group found-full)
+		   (setq found (append (list group) (delete group found))))))
 	     (push key matches)
 	     (gnus-message
 	      ;; raise level of messaging if gnus-registry-track-extra
@@ -587,7 +593,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
        gnus-registry-hashtb)
       ;; filter the found groups and return them
       ;; the found groups are NOT the full groups
-      (setq found (gnus-registry-post-process-groups 
+      (setq found (gnus-registry-post-process-groups
 		   "subject" subject found found-full))))
     ;; after the (cond) we extract the actual value safely
     (car-safe found)))
@@ -627,7 +633,7 @@ necessary."
 			     (lambda (a b)
 			       (> (gethash a freq 0)
 				  (gethash b freq 0)))))))))
-    
+
     (if gnus-registry-use-long-group-names
 	(dolist (group groups)
 	  (let ((m1 (gnus-find-method-for-group group))
@@ -661,10 +667,10 @@ necessary."
   "Determines if a group name should be followed.
 Consults `gnus-registry-unfollowed-groups' and
 `nnmail-split-fancy-with-parent-ignore-groups'."
-  (not (or (gnus-registry-grep-in-list
+  (not (or (gnus-grep-in-list
 	    group
 	    gnus-registry-unfollowed-groups)
-	   (gnus-registry-grep-in-list
+	   (gnus-grep-in-list
 	    group
 	    nnmail-split-fancy-with-parent-ignore-groups))))
 
@@ -674,8 +680,7 @@ Consults `gnus-registry-unfollowed-groups' and
 	word words)
     (if (or (not (gnus-registry-fetch-extra id 'keywords))
 	    force)
-	(save-excursion
-	  (set-buffer gnus-article-buffer)
+	(with-current-buffer gnus-article-buffer
 	  (article-goto-body)
 	  (save-window-excursion
 	    (save-restriction
@@ -708,8 +713,8 @@ Consults `gnus-registry-unfollowed-groups' and
 	(unless (member gnus-newsgroup-name (gnus-registry-fetch-groups id))
 	  (gnus-message 9 "Registry: Registering article %d with group %s"
 			article gnus-newsgroup-name)
-	  (gnus-registry-add-group 
-	   id 
+	  (gnus-registry-add-group
+	   id
 	   gnus-newsgroup-name
 	   (gnus-registry-fetch-simplified-message-subject-fast article)
 	   (gnus-registry-fetch-sender-fast article)))))))
@@ -744,14 +749,6 @@ Consults `gnus-registry-unfollowed-groups' and
        (mail-header-from (gnus-data-header
 			  (assoc article (gnus-data-list nil)))))
     nil))
-
-(defun gnus-registry-grep-in-list (word list)
-"Find if a WORD matches any regular expression in the given LIST."
-  (when (and word list)
-    (catch 'found
-      (dolist (r list)
-	(when (string-match r word)
-	  (throw 'found r))))))
 
 (defun gnus-registry-do-marks (type function)
   "For each known mark, call FUNCTION for each cell of type TYPE.
@@ -791,20 +788,20 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 		  (function-name (format function-format variant-name))
 		  (shortcut (format "%c" data))
 		  (shortcut (if remove (upcase shortcut) shortcut)))
-	     (unintern function-name)
+	     (unintern function-name obarray)
 	     (eval
-	      `(defun 
+	      `(defun
 		 ;; function name
-		 ,(intern function-name) 
+		 ,(intern function-name)
 		 ;; parameter definition
 		 (&rest articles)
 		 ;; documentation
-		 ,(format 
+		 ,(format
 		   "%s the %s mark over process-marked ARTICLES."
 		   (upcase-initials variant-name)
 		   mark)
 		 ;; interactive definition
-		 (interactive 
+		 (interactive
 		  (gnus-summary-work-articles current-prefix-arg))
 		 ;; actual code
 
@@ -815,49 +812,49 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 
 		 ;; now the user is asked if gnus-registry-install is 'ask
 		 (when (gnus-registry-install-p)
-		   (gnus-registry-set-article-mark-internal 
+		   (gnus-registry-set-article-mark-internal
 		    ;; all this just to get the mark, I must be doing it wrong
 		    (intern ,(symbol-name mark))
 		    articles ,remove t)
 		   (gnus-message
-		    9 
+		    9
 		    "Applying mark %s to %d articles"
 		    ,(symbol-name mark) (length articles))
 		   (dolist (article articles)
-		     (gnus-summary-update-article 
+		     (gnus-summary-update-article
 		      article
 		      (assoc article (gnus-data-list nil)))))))
 	     (push (intern function-name) keys-plist)
-	     (push shortcut keys-plist)	     
+	     (push shortcut keys-plist)
 	     (push (vector (format "%s %s"
 				   (upcase-initials variant-name)
 				   (symbol-name mark))
 			   (intern function-name) t)
 		   gnus-registry-misc-menus)
 	     (gnus-message
-	      9 
-	      "Defined mark handling function %s" 
+	      9
+	      "Defined mark handling function %s"
 	      function-name))))))
     (gnus-define-keys-1
      '(gnus-registry-mark-map "M" gnus-summary-mark-map)
      keys-plist)
     (add-hook 'gnus-summary-menu-hook
 	      (lambda ()
-		(easy-menu-add-item 
+		(easy-menu-add-item
 		 gnus-summary-misc-menu
-		 nil 
+		 nil
 		 (cons "Registry Marks" gnus-registry-misc-menus))))))
 
 ;;; use like this:
-;;; (defalias 'gnus-user-format-function-M 
+;;; (defalias 'gnus-user-format-function-M
 ;;;           'gnus-registry-user-format-function-M)
 (defun gnus-registry-user-format-function-M (headers)
   (let* ((id (mail-header-message-id headers))
 	 (marks (when id (gnus-registry-fetch-extra-marks id))))
     (apply 'concat (mapcar (lambda(mark)
-			     (let ((c 
+			     (let ((c
 				    (plist-get
-				     (cdr-safe 
+				     (cdr-safe
 				      (assoc mark gnus-registry-marks))
 				     :char)))
 			       (if c
@@ -867,12 +864,11 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 
 (defun gnus-registry-read-mark ()
   "Read a mark name from the user with completion."
-  (let ((mark (gnus-completing-read-with-default 
-	       (symbol-name gnus-registry-default-mark)
-	       "Label" 
-	       (mapcar (lambda (x)	; completion list
-			 (cons (symbol-name (car-safe x)) (car-safe x)))
-		       gnus-registry-marks))))
+  (let ((mark (gnus-completing-read
+               "Label"
+               (mapcar 'symbol-name (mapcar 'car gnus-registry-marks))
+               nil nil nil
+	       (symbol-name gnus-registry-default-mark))))
     (when (stringp mark)
       (intern mark))))
 
@@ -904,7 +900,7 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 	  (gnus-message 1 "%s mark %s with message ID %s, resulting in %S"
 			(if remove "Removing" "Adding")
 			mark id new-marks))
-	
+
 	(apply 'gnus-registry-store-extra-marks ; set the extra marks
 	       id				; for the message ID
 	       new-marks)))))
@@ -1015,7 +1011,7 @@ The message must have at least one group name."
   "Put a specific entry in the extras field of the registry entry for id."
   (let* ((extra (gnus-registry-fetch-extra id))
 	 ;; all the entries except the one for `key'
-	 (the-rest (gnus-assq-delete-all key (gnus-registry-fetch-extra id))) 
+	 (the-rest (gnus-assq-delete-all key (gnus-registry-fetch-extra id)))
 	 (alist (if value
 		    (gnus-registry-remove-alist-text-properties
 		     (cons (cons key value)
@@ -1042,7 +1038,7 @@ Returns the first place where the trail finds a group name."
     (dolist (crumb trail)
       (when (stringp crumb)
 	;; push the group name into the list
-	(setq 
+	(setq
 	 groups
 	 (cons
 	  (if (or (not (stringp crumb)) gnus-registry-use-long-group-names)
@@ -1183,13 +1179,8 @@ Returns the first place where the trail finds a group name."
 ;;; we could call it here: (customize-variable 'gnus-registry-install)
   gnus-registry-install)
 
-(when (or (eq gnus-registry-install t)
-	  (gnus-registry-install-p))
-  (gnus-registry-initialize))
-
 ;; TODO: a few things
 
 (provide 'gnus-registry)
 
-;; arch-tag: 5cba0a32-718a-4a97-8c91-0a15af21da94
 ;;; gnus-registry.el ends here

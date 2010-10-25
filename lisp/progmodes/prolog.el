@@ -31,7 +31,7 @@
 
 (defvar comint-prompt-regexp)
 (defvar comint-process-echoes)
-(defvar smie-indent-basic)
+(require 'smie)
 
 (defgroup prolog nil
   "Major mode for editing and running Prolog under Emacs."
@@ -99,12 +99,36 @@ When nil, send actual operating system end of file."
 (defvar prolog-mode-abbrev-table nil)
 (define-abbrev-table 'prolog-mode-abbrev-table ())
 
+(defun prolog-smie-forward-token ()
+  (forward-comment (point-max))
+  (buffer-substring-no-properties
+   (point)
+   (progn (cond
+           ((looking-at "[!;]") (forward-char 1))
+           ((not (zerop (skip-chars-forward "#&*+-./:<=>?@\\^`~"))))
+           ((not (zerop (skip-syntax-forward "w_'"))))
+           ;; In case of non-ASCII punctuation.
+           ((not (zerop (skip-syntax-forward ".")))))
+          (point))))
+
+(defun prolog-smie-backward-token ()
+  (forward-comment (- (point-max)))
+  (buffer-substring-no-properties
+   (point)
+   (progn (cond
+           ((memq (char-before) '(?! ?\;)) (forward-char -1))
+           ((not (zerop (skip-chars-backward "#&*+-./:<=>?@\\^`~"))))
+           ((not (zerop (skip-syntax-backward "w_'"))))
+           ;; In case of non-ASCII punctuation.
+           ((not (zerop (skip-syntax-backward ".")))))
+          (point))))
+
 (defconst prolog-smie-op-levels
   ;; Rather than construct the operator levels table from the BNF,
   ;; we directly provide the operator precedences from GNU Prolog's
-  ;; manual.  The only problem is that GNU Prolog's manual uses
-  ;; precedence levels in the opposite sense (higher numbers bind less
-  ;; tightly) than SMIE, so we use negative numbers.
+  ;; manual (7.14.10 op/3).  The only problem is that GNU Prolog's
+  ;; manual uses precedence levels in the opposite sense (higher
+  ;; numbers bind less tightly) than SMIE, so we use negative numbers.
   '(("." -10000 -10000)
     (":-" -1200 -1200)
     ("-->" -1200 -1200)
@@ -162,9 +186,18 @@ When nil, send actual operating system end of file."
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression '((nil "^\\sw+" 0)))
   (smie-setup prolog-smie-op-levels prolog-smie-indent-rules)
+  (set (make-local-variable 'smie-forward-token-function)
+       #'prolog-smie-forward-token)
+  (set (make-local-variable 'smie-backward-token-function)
+       #'prolog-smie-backward-token)
   (set (make-local-variable 'forward-sexp-function)
        'smie-forward-sexp-command)
   (set (make-local-variable 'smie-indent-basic) prolog-indent-width)
+  (set (make-local-variable 'smie-blink-matching-triggers) '(?.))
+  (set (make-local-variable 'smie-closer-alist) '((t . ".")))
+  (add-hook 'post-self-insert-hook #'smie-blink-matching-open 'append 'local)
+  ;; There's no real closer in Prolog anyway.
+  (set (make-local-variable 'smie-blink-matching-inners) t)
   (make-local-variable 'comment-start)
   (setq comment-start "%")
   (make-local-variable 'comment-start-skip)

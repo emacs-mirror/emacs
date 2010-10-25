@@ -1,11 +1,10 @@
 ;;; select.el --- lisp portion of standard selection support
 
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
+
 ;; Maintainer: FSF
 ;; Keywords: internal
-
-;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010 Free Software Foundation, Inc.
-;; Based partially on earlier release by Lucid.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,11 +23,20 @@
 
 ;;; Commentary:
 
+;; Based partially on earlier release by Lucid.
+
 ;;; Code:
 
 (defcustom selection-coding-system nil
-  "Coding system for communicating with other X clients.
+  "Coding system for communicating with other programs.
 
+For MS-Windows and MS-DOS:
+When sending or receiving text via selection and clipboard, the text
+is encoded or decoded by this coding system.  The default value is
+the current system default encoding on 9x/Me, `utf-16le-dos'
+\(Unicode) on NT/W2K/XP, and `iso-latin-1-dos' on MS-DOS.
+
+For X Windows:
 When sending text via selection and clipboard, if the target
 data-type matches with the type of this coding system, it is used
 for encoding the text.  Otherwise (including the case that this
@@ -58,11 +66,11 @@ The default value is nil."
          (set symbol value)))
 
 (defvar next-selection-coding-system nil
-  "Coding system for the next communication with other X clients.
+  "Coding system for the next communication with other programs.
 Usually, `selection-coding-system' is used for communicating with
-other X clients.  But, if this variable is set, it is used for
-the next communication only.  After the communication, this
-variable is set to nil.")
+other programs (X Windows clients or MS Windows programs).  But, if this
+variable is set, it is used for the next communication only.
+After the communication, this variable is set to nil.")
 
 (declare-function x-get-selection-internal "xselect.c"
 		  (selection-symbol target-type &optional time-stamp))
@@ -173,36 +181,6 @@ are not available to other programs."
 	   (buffer-name (overlay-buffer data)))
       (symbolp data)
       (integerp data)))
-
-;;; Cut Buffer support
-
-(declare-function x-get-cut-buffer-internal "xselect.c")
-
-(defun x-get-cut-buffer (&optional which-one)
-  "Return the value of one of the 8 X server cut-buffers.
-Optional arg WHICH-ONE should be a number from 0 to 7, defaulting to 0.
-Cut buffers are considered obsolete; you should use selections instead."
-  (x-get-cut-buffer-internal
-   (if which-one
-       (aref [CUT_BUFFER0 CUT_BUFFER1 CUT_BUFFER2 CUT_BUFFER3
-	      CUT_BUFFER4 CUT_BUFFER5 CUT_BUFFER6 CUT_BUFFER7]
-	     which-one)
-     'CUT_BUFFER0)))
-
-(declare-function x-rotate-cut-buffers-internal "xselect.c")
-(declare-function x-store-cut-buffer-internal "xselect.c")
-
-(defun x-set-cut-buffer (string &optional push)
-  "Store STRING into the X server's primary cut buffer.
-If PUSH is non-nil, also rotate the cut buffers:
-this means the previous value of the primary cut buffer moves to the second
-cut buffer, and the second to the third, and so on (there are 8 buffers.)
-Cut buffers are considered obsolete; you should use selections instead."
-  (or (stringp string) (signal 'wrong-type-argument (list 'stringp string)))
-  (if push
-      (x-rotate-cut-buffers-internal 1))
-  (x-store-cut-buffer-internal 'CUT_BUFFER0 string))
-
 
 ;; Functions to convert the selection into various other selection types.
 ;; Every selection type that Emacs handles is implemented this way, except
@@ -410,5 +388,4 @@ This function returns the string \"emacs\"."
 
 (provide 'select)
 
-;; arch-tag: bb634f97-8a3b-4b0a-b940-f6e09982328c
 ;;; select.el ends here

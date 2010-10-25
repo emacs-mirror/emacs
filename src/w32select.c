@@ -1,6 +1,7 @@
 /* Selection processing for Emacs on the Microsoft W32 API.
-   Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+  2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1069,10 +1070,34 @@ syms_of_w32select (void)
 
   DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
 	       doc: /* Coding system for communicating with other programs.
-When sending or receiving text via cut_buffer, selection, and
-clipboard, the text is encoded or decoded by this coding system.
-The default value is the current system default encoding on 9x/Me and
-`utf-16le-dos' (Unicode) on NT/W2K/XP. */);
+
+For MS-Windows and MS-DOS:
+When sending or receiving text via selection and clipboard, the text
+is encoded or decoded by this coding system.  The default value is
+the current system default encoding on 9x/Me, `utf-16le-dos'
+\(Unicode) on NT/W2K/XP, and `iso-latin-1-dos' on MS-DOS.
+
+For X Windows:
+When sending text via selection and clipboard, if the target
+data-type matches with the type of this coding system, it is used
+for encoding the text.  Otherwise (including the case that this
+variable is nil), a proper coding system is used as below:
+
+data-type	coding system
+---------	-------------
+UTF8_STRING	utf-8
+COMPOUND_TEXT	compound-text-with-extensions
+STRING		iso-latin-1
+C_STRING	no-conversion
+
+When receiving text, if this coding system is non-nil, it is used
+for decoding regardless of the data-type.  If this is nil, a
+proper coding system is used according to the data-type as above.
+
+See also the documentation of the variable `x-select-request-type' how
+to control which data-type to request for receiving text.
+
+The default value is nil.  */);
   /* The actual value is set dynamically in the dumped Emacs, see
      below. */
   Vselection_coding_system = Qnil;
@@ -1080,9 +1105,9 @@ The default value is the current system default encoding on 9x/Me and
   DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
 	       doc: /* Coding system for the next communication with other programs.
 Usually, `selection-coding-system' is used for communicating with
-other programs.  But, if this variable is set, it is used for the
-next communication only.  After the communication, this variable is
-set to nil.  */);
+other programs (X Windows clients or MS Windows programs).  But, if this
+variable is set, it is used for the next communication only.
+After the communication, this variable is set to nil.  */);
   Vnext_selection_coding_system = Qnil;
 
   DEFSYM (QCLIPBOARD, "CLIPBOARD");
@@ -1123,5 +1148,3 @@ globals_of_w32select (void)
   clipboard_owner = create_owner ();
 }
 
-/* arch-tag: c96e9724-5eb1-4dad-be07-289f092fd2af
-   (do not change this comment) */

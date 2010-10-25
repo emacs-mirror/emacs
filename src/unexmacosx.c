@@ -190,6 +190,8 @@ static off_t data_segment_old_fileoff = 0;
 
 static struct segment_command *data_segment_scp;
 
+static void unexec_error (const char *format, ...) NO_RETURN;
+
 /* Read N bytes from infd into memory starting at address DEST.
    Return true if successful, false otherwise.  */
 static int
@@ -267,7 +269,7 @@ unexec_copy (off_t dest, off_t src, ssize_t count)
 /* Debugging and informational messages routines.  */
 
 static void
-unexec_error (char *format, ...)
+unexec_error (const char *format, ...)
 {
   va_list ap;
 
@@ -305,7 +307,7 @@ print_region (vm_address_t address, vm_size_t size, vm_prot_t prot,
 }
 
 static void
-print_region_list ()
+print_region_list (void)
 {
   struct region_t *r;
 
@@ -316,7 +318,7 @@ print_region_list ()
 }
 
 static void
-print_regions ()
+print_regions (void)
 {
   task_t target_task = mach_task_self ();
   vm_address_t address = (vm_address_t) 0;
@@ -346,7 +348,7 @@ print_regions ()
    cannot be omitted because they some regions created at run time are
    read-only.  */
 static void
-build_region_list ()
+build_region_list (void)
 {
   task_t target_task = mach_task_self ();
   vm_address_t address = (vm_address_t) 0;
@@ -465,7 +467,7 @@ unexec_reader (task_t task, vm_address_t address, vm_size_t size, void **ptr)
 }
 
 static void
-find_emacs_zone_regions ()
+find_emacs_zone_regions (void)
 {
   num_unexec_regions = 0;
 
@@ -495,7 +497,7 @@ unexec_regions_sort_compare (const void *a, const void *b)
 }
 
 static void
-unexec_regions_merge ()
+unexec_regions_merge (void)
 {
   int i, n;
   unexec_region_info r;
@@ -627,7 +629,7 @@ print_load_command (struct load_command *lc)
    the global array lca.  Store the total number of load commands in
    global variable nlc.  */
 static void
-read_load_commands ()
+read_load_commands (void)
 {
   int i;
 
@@ -684,8 +686,8 @@ read_load_commands ()
 	}
     }
 
-  printf ("Highest address of load commands in input file: %#8x\n",
-	  infile_lc_highest_addr);
+  printf ("Highest address of load commands in input file: %#8lx\n",
+	  (unsigned long)infile_lc_highest_addr);
 
   printf ("Lowest offset of all sections in __TEXT segment: %#8lx\n",
 	  text_seg_lowest_offset);
@@ -1143,7 +1145,7 @@ copy_other (struct load_command *lc)
 /* Loop through all load commands and dump them.  Then write the Mach
    header.  */
 static void
-dump_it ()
+dump_it (void)
 {
   int i;
   long linkedit_delta = 0;
@@ -1217,9 +1219,8 @@ dump_it ()
    from it.  The file names of the output and input files are outfile
    and infile, respectively.  The three other parameters are
    ignored.  */
-void
-unexec (char *outfile, char *infile, void *start_data, void *start_bss,
-        void *entry_address)
+int
+unexec (const char *outfile, const char *infile)
 {
   if (in_dumped_exec)
     unexec_error ("Unexec from a dumped executable is not supported.");
@@ -1249,11 +1250,12 @@ unexec (char *outfile, char *infile, void *start_data, void *start_bss,
   dump_it ();
 
   close (outfd);
+  return 0;
 }
 
 
 void
-unexec_init_emacs_zone ()
+unexec_init_emacs_zone (void)
 {
   emacs_zone = malloc_create_zone (0, 0);
   malloc_set_zone_name (emacs_zone, "EmacsZone");

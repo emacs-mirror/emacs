@@ -249,10 +249,10 @@ struct member
   int vis;			/* Visibility (public, ...).  */
   int flags;			/* See F_* above.  */
   char *regexp;			/* Matching regular expression.  */
-  char *filename;		/* Don't free this shared string.  */
+  const char *filename;		/* Don't free this shared string.  */
   int pos;			/* Buffer position of occurrence.  */
   char *def_regexp;		/* Regular expression matching definition.  */
-  char *def_filename;		/* File name of definition.  */
+  const char *def_filename;	/* File name of definition.  */
   int def_pos;			/* Buffer position of definition.  */
   char name[1];			/* Member name.  */
 };
@@ -294,8 +294,8 @@ struct sym
   struct member *types;		/* List of local types.  */
   char *regexp;			/* Matching regular expression.  */
   int pos;			/* Buffer position.  */
-  char *filename;		/* File in which it can be found.  */
-  char *sfilename;		/* File in which members can be found.  */
+  const char *filename;		/* File in which it can be found.  */
+  const char *sfilename; 	/* File in which members can be found.  */
   struct sym *namesp;		/* Namespace in which defined. .  */
   char name[1];                 /* Name of the class.  */
 };
@@ -353,7 +353,7 @@ int yyline;
 
 /* The name of the current input file.  */
 
-char *filename;
+const char *filename;
 
 /* Three character class vectors, and macros to test membership
    of characters.  */
@@ -444,7 +444,7 @@ int tk = -1;
 
 struct kw
 {
-  char *name;			/* Spelling.  */
+  const char *name;		/* Spelling.  */
   int tk;			/* Token value.  */
   struct kw *next;		/* Next in collision chain.  */
 };
@@ -470,10 +470,10 @@ struct search_path *search_path_tail;
 int yylex (void);
 void yyparse (void);
 void re_init_parser (void);
-char *token_string (int);
+const char *token_string (int);
 char *matching_regexp (void);
 void init_sym (void);
-struct sym *add_sym (char *, struct sym *);
+struct sym *add_sym (const char *, struct sym *);
 void add_link (struct sym *, struct sym *);
 void add_member_defn (struct sym *, char *, char *,
                       int, unsigned, int, int, int);
@@ -489,11 +489,9 @@ void mark_inherited_virtual (void);
 void leave_namespace (void);
 void enter_namespace (char *);
 void register_namespace_alias (char *, struct link *);
-void insert_keyword (char *, int);
+void insert_keyword (const char *, int);
 void re_init_scanner (void);
 void init_scanner (void);
-void usage (int);
-void version (void);
 void process_file (char *);
 void add_search_path (char *);
 FILE *open_file (char *);
@@ -503,7 +501,6 @@ void dump_sym (FILE *, struct sym *);
 int dump_tree (FILE *, struct sym *);
 struct member *find_member (struct sym *, char *, int, int, unsigned);
 struct member *add_member (struct sym *, char *, int, int, unsigned);
-void mark_virtual (struct sym *);
 void mark_virtual (struct sym *);
 struct sym *make_namespace (char *, struct sym *);
 char *sym_scope (struct sym *);
@@ -520,7 +517,7 @@ struct sym *parse_classname (void);
 struct sym *parse_qualified_ident_or_type (char **);
 void parse_qualified_param_ident_or_type (char **);
 int globals (int);
-void yyerror (char *, char *);
+void yyerror (const char *, const char *);
 void usage (int) NO_RETURN;
 void version (void) NO_RETURN;
 
@@ -534,7 +531,7 @@ void version (void) NO_RETURN;
    name and line number.  */
 
 void
-yyerror (char *format, char *s)
+yyerror (const char *format, const char *s)
 {
   fprintf (stderr, "%s:%d: ", filename, yyline);
   fprintf (stderr, format, s);
@@ -608,11 +605,11 @@ init_sym (void)
    create a new symbol and set it to default values.  */
 
 struct sym *
-add_sym (char *name, struct sym *nested_in_class)
+add_sym (const char *name, struct sym *nested_in_class)
 {
   struct sym *sym;
   unsigned h;
-  char *s;
+  const char *s;
   struct sym *scope = nested_in_class ? nested_in_class : current_namespace;
 
   for (s = name, h = 0; *s; ++s)
@@ -1978,7 +1975,7 @@ matching_regexp (void)
 
 /* Return a printable representation of token T.  */
 
-char *
+const char *
 token_string (int t)
 {
   static char b[3];
@@ -2114,9 +2111,9 @@ re_init_scanner (void)
    table.  */
 
 void
-insert_keyword (char *name, int tk)
+insert_keyword (const char *name, int tk)
 {
-  char *s;
+  const char *s;
   unsigned h = 0;
   struct kw *k = (struct kw *) xmalloc (sizeof *k);
 
@@ -2842,7 +2839,7 @@ operator_name (int *sc)
 {
   static int id_size = 0;
   static char *id = NULL;
-  char *s;
+  const char *s;
   int len;
 
   MATCH ();
@@ -3683,7 +3680,7 @@ main (int argc, char **argv)
 {
   int i;
   int any_inputfiles = 0;
-  static char *out_filename = DEFAULT_OUTFILE;
+  static const char *out_filename = DEFAULT_OUTFILE;
   static char **input_filenames = NULL;
   static int input_filenames_size = 0;
   static int n_input_files;

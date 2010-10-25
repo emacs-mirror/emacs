@@ -273,23 +273,23 @@ The functions come in the following groups.
 		ogonek-name-encoding-alist))
   "List of ogonek encodings.  Used only for customization.")
 (defcustom ogonek-from-encoding "iso8859-2"
-  "*Encoding in the source file of recoding."
+  "Encoding in the source file of recoding."
   :type ogonek-encoding-choices
   :group 'ogonek)
 (defcustom ogonek-to-encoding "ascii"
-  "*Encoding in the target file of recoding."
+  "Encoding in the target file of recoding."
   :type ogonek-encoding-choices
   :group 'ogonek)
 (defcustom ogonek-prefix-char ?/
-  "*Prefix character for prefix encodings."
+  "Prefix character for prefix encodings."
   :type 'character
   :group 'ogonek)
 (defcustom ogonek-prefix-from-encoding "iso8859-2"
-  "*Encoding in the source file subject to prefixifation."
+  "Encoding in the source file subject to prefixifation."
   :type ogonek-encoding-choices
   :group 'ogonek)
 (defcustom ogonek-prefix-to-encoding "iso8859-2"
-  "*Encoding in the target file subject to deprefixifation."
+  "Encoding in the target file subject to deprefixifation."
   :type ogonek-encoding-choices
   :group 'ogonek)
 

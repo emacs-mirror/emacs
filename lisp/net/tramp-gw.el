@@ -4,6 +4,7 @@
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
+;; Package: tramp
 
 ;; This file is part of GNU Emacs.
 
@@ -37,11 +38,6 @@
   (require 'cl)
   (require 'custom))
 
-;; Autoload the socks library.  It is used only when we access a SOCKS server.
-(autoload 'socks-open-network-stream "socks")
-(defvar socks-username (user-login-name))
-(defvar socks-server (list "Default server" "socks" 1080 5))
-
 ;; Avoid byte-compiler warnings if the byte-compiler supports this.
 ;; Currently, XEmacs supports this.
 (eval-when-compile
@@ -49,20 +45,28 @@
       (byte-compiler-options (warnings (- unused-vars)))))
 
 ;; Define HTTP tunnel method ...
-(defvar tramp-gw-tunnel-method "tunnel"
+;;;###tramp-autoload
+(defconst tramp-gw-tunnel-method "tunnel"
   "*Method to connect HTTP gateways.")
 
 ;; ... and port.
-(defvar tramp-gw-default-tunnel-port 8080
+(defconst tramp-gw-default-tunnel-port 8080
   "*Default port for HTTP gateways.")
 
 ;; Define SOCKS method ...
-(defvar tramp-gw-socks-method "socks"
+;;;###tramp-autoload
+(defconst tramp-gw-socks-method "socks"
   "*Method to connect SOCKS servers.")
 
 ;; ... and port.
-(defvar tramp-gw-default-socks-port 1080
+(defconst tramp-gw-default-socks-port 1080
   "*Default port for SOCKS servers.")
+
+;; Autoload the socks library.  It is used only when we access a SOCKS server.
+(autoload 'socks-open-network-stream "socks")
+(defvar socks-username (user-login-name))
+(defvar socks-server
+  (list "Default server" "socks" tramp-gw-default-socks-port 5))
 
 ;; Add a default for `tramp-default-user-alist'.  Default is the local user.
 (add-to-list 'tramp-default-user-alist
@@ -103,7 +107,7 @@
      tramp-gw-vector 4
      "Opening auxiliary process `%s', speaking with process `%s'"
      proc tramp-gw-gw-proc)
-    (tramp-set-process-query-on-exit-flag proc nil)
+    (tramp-compat-set-process-query-on-exit-flag proc nil)
     ;; We don't want debug messages, because the corresponding debug
     ;; buffer might be undecided.
     (let (tramp-verbose)
@@ -124,6 +128,7 @@
     (process-send-string
      (tramp-get-connection-property proc "process" nil) string)))
 
+;;;###tramp-autoload
 (defun tramp-gw-open-connection (vec gw-vec target-vec)
   "Open a remote connection to VEC (see `tramp-file-name' structure).
 Take GW-VEC as SOCKS or HTTP gateway, i.e. its method must be a
@@ -149,7 +154,7 @@ instead of the host name declared in TARGET-VEC."
 	     :name (tramp-buffer-name aux-vec) :buffer nil :host 'local
 	     :server t :noquery t :service t :coding 'binary))
       (set-process-sentinel tramp-gw-aux-proc 'tramp-gw-aux-proc-sentinel)
-      (tramp-set-process-query-on-exit-flag tramp-gw-aux-proc nil)
+      (tramp-compat-set-process-query-on-exit-flag tramp-gw-aux-proc nil)
       (tramp-message
        vec 4 "Opening auxiliary process `%s', listening on port %d"
        tramp-gw-aux-proc (process-contact tramp-gw-aux-proc :service))))
@@ -194,7 +199,7 @@ instead of the host name declared in TARGET-VEC."
 	   (tramp-file-name-real-host target-vec)
 	   (tramp-file-name-port target-vec)))
     (set-process-sentinel tramp-gw-gw-proc 'tramp-gw-gw-proc-sentinel)
-    (tramp-set-process-query-on-exit-flag tramp-gw-gw-proc nil)
+    (tramp-compat-set-process-query-on-exit-flag tramp-gw-gw-proc nil)
     (tramp-message
      vec 4 "Opened %s process `%s'"
      (case gw-method ('tunnel "HTTP tunnel") ('socks "SOCKS"))
@@ -225,7 +230,7 @@ authentication is requested from proxy server, provide it."
       (setq proc (open-network-stream
 		  name buffer (nth 1 socks-server) (nth 2 socks-server)))
       (set-process-coding-system proc 'binary 'binary)
-      (tramp-set-process-query-on-exit-flag proc nil)
+      (tramp-compat-set-process-query-on-exit-flag proc nil)
       ;; Send CONNECT command.
       (process-send-string proc (format "%s%s\r\n" command authentication))
       (tramp-message
@@ -238,10 +243,9 @@ authentication is requested from proxy server, provide it."
 	;; Trap errors to be traced in the right trace buffer.  Often,
 	;; proxies have a timeout of 60".  We wait 65" in order to
 	;; receive an answer this case.
-	(condition-case nil
-	    (let (tramp-verbose)
-	      (tramp-wait-for-regexp proc 65 "\r?\n\r?\n"))
-	  (error nil))
+	(ignore-errors
+	  (let (tramp-verbose)
+	    (tramp-wait-for-regexp proc 65 "\r?\n\r?\n")))
 	;; Check return code.
 	(goto-char (point-min))
 	(narrow-to-region
@@ -309,6 +313,9 @@ password in password cache.  This is done for the first try only."
 	(format
 	 "Password for %s@[%s]: " socks-username (read (current-buffer)))))))))
 
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-gw 'force)))
 
 (provide 'tramp-gw)
 

@@ -63,15 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   if system supports pty's.  'a' means it is /dev/ptya0  */
 #define FIRST_PTY_LETTER 'p'
 
-/* Define HAVE_TERMIOS if the system provides POSIX-style
-   functions and macros for terminal control.
-
-   Define HAVE_TERMIO if the system provides sysV-style ioctls
-   for terminal control.
-
-   Do not define both.  HAVE_TERMIOS is preferred, if it is supported
-   on your system. */
-#define HAVE_TERMIOS
 #define NO_TERMIO
 
 /* Define HAVE_PTYS if the system supports pty devices.

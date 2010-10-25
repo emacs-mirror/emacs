@@ -166,29 +166,32 @@
           symbol-end)
      . font-lock-builtin-face)))
 
-(defconst python-font-lock-syntactic-keywords
+(defconst python-syntax-propertize-function
   ;; Make outer chars of matching triple-quote sequences into generic
   ;; string delimiters.  Fixme: Is there a better way?
   ;; First avoid a sequence preceded by an odd number of backslashes.
-  `((,(rx (not (any ?\\))
-	  ?\\ (* (and ?\\ ?\\))
-	  (group (syntax string-quote))
-	  (backref 1)
-	  (group (backref 1)))
-     (2 ,(string-to-syntax "\"")))	; dummy
-    (,(rx (group (optional (any "uUrR"))) ; prefix gets syntax property
-	  (optional (any "rR"))		  ; possible second prefix
-	  (group (syntax string-quote))   ; maybe gets property
-	  (backref 2)			  ; per first quote
-	  (group (backref 2)))		  ; maybe gets property
-     (1 (python-quote-syntax 1))
-     (2 (python-quote-syntax 2))
-     (3 (python-quote-syntax 3)))
-    ;; This doesn't really help.
-;;;     (,(rx (and ?\\ (group ?\n))) (1 " "))
-    ))
+  (syntax-propertize-rules
+   (;; (rx (not (any ?\\))
+    ;;     ?\\ (* (and ?\\ ?\\))
+    ;;     (group (syntax string-quote))
+    ;;     (backref 1)
+    ;;     (group (backref 1)))
+    ;; ¡Backrefs don't work in syntax-propertize-rules!
+    "[^\\]\\\\\\(\\\\\\\\\\)*\\(?:''\\('\\)\\|\"\"\\(?2:\"\\)\\)"
+    (2 "\""))                           ; dummy
+   (;; (rx (optional (group (any "uUrR"))) ; prefix gets syntax property
+    ;;     (optional (any "rR"))           ; possible second prefix
+    ;;     (group (syntax string-quote))   ; maybe gets property
+    ;;     (backref 2)                     ; per first quote
+    ;;     (group (backref 2)))            ; maybe gets property
+    ;; ¡Backrefs don't work in syntax-propertize-rules!
+    "\\([RUru]\\)?[Rr]?\\(?:\\('\\)'\\('\\)\\|\\(?2:\"\\)\"\\(?3:\"\\)\\)"
+    (3 (ignore (python-quote-syntax))))
+   ;; This doesn't really help.
+   ;;((rx (and ?\\ (group ?\n))) (1 " "))
+   ))
 
-(defun python-quote-syntax (n)
+(defun python-quote-syntax ()
   "Put `syntax-table' property correctly on triple quote.
 Used for syntactic keywords.  N is the match number (1, 2 or 3)."
   ;; Given a triple quote, we have to check the context to know
@@ -206,28 +209,25 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
   ;; x '"""' x """ \"""" x
   (save-excursion
     (goto-char (match-beginning 0))
-    (cond
-     ;; Consider property for the last char if in a fenced string.
-     ((= n 3)
-      (let* ((font-lock-syntactic-keywords nil)
-	     (syntax (syntax-ppss)))
-	(when (eq t (nth 3 syntax))	; after unclosed fence
-	  (goto-char (nth 8 syntax))	; fence position
-	  (skip-chars-forward "uUrR")	; skip any prefix
-	  ;; Is it a matching sequence?
-	  (if (eq (char-after) (char-after (match-beginning 2)))
-	      (eval-when-compile (string-to-syntax "|"))))))
-     ;; Consider property for initial char, accounting for prefixes.
-     ((or (and (= n 2)			; leading quote (not prefix)
-	       (= (match-beginning 1) (match-end 1))) ; prefix is null
-	  (and (= n 1)			; prefix
-	       (/= (match-beginning 1) (match-end 1)))) ; non-empty
-      (let ((font-lock-syntactic-keywords nil))
-	(unless (eq 'string (syntax-ppss-context (syntax-ppss)))
-	  (eval-when-compile (string-to-syntax "|")))))
-     ;; Otherwise (we're in a non-matching string) the property is
-     ;; nil, which is OK.
-     )))
+    (let ((syntax (save-match-data (syntax-ppss))))
+      (cond
+       ((eq t (nth 3 syntax))           ; after unclosed fence
+        ;; Consider property for the last char if in a fenced string.
+        (goto-char (nth 8 syntax))	; fence position
+        (skip-chars-forward "uUrR")	; skip any prefix
+        ;; Is it a matching sequence?
+        (if (eq (char-after) (char-after (match-beginning 2)))
+            (put-text-property (match-beginning 3) (match-end 3)
+                               'syntax-table (string-to-syntax "|"))))
+       ((match-end 1)
+        ;; Consider property for initial char, accounting for prefixes.
+        (put-text-property (match-beginning 1) (match-end 1)
+                           'syntax-table (string-to-syntax "|")))
+       (t
+        ;; Consider property for initial char, accounting for prefixes.
+        (put-text-property (match-beginning 2) (match-end 2)
+                           'syntax-table (string-to-syntax "|"))))
+      )))
 
 ;; This isn't currently in `font-lock-defaults' as probably not worth
 ;; it -- we basically only mess with a few normally-symbol characters.
@@ -579,6 +579,33 @@ having to restart the program."
   "Queue of Python temp files awaiting execution.
 Currently-active file is at the head of the list.")
 
+(defcustom python-shell-prompt-alist
+  '(("ipython" . "^In \\[[0-9]+\\]: *")
+    (t . "^>>> "))
+  "Alist of Python input prompts.
+Each element has the form (PROGRAM . REGEXP), where PROGRAM is
+the value of `python-python-command' for the python process and
+REGEXP is a regular expression matching the Python prompt.
+PROGRAM can also be t, which specifies the default when no other
+element matches `python-python-command'."
+  :type 'string
+  :group 'python
+  :version "24.1")
+
+(defcustom python-shell-continuation-prompt-alist
+  '(("ipython" . "^   [.][.][.]+: *")
+    (t . "^[.][.][.] "))
+  "Alist of Python continued-line prompts.
+Each element has the form (PROGRAM . REGEXP), where PROGRAM is
+the value of `python-python-command' for the python process and
+REGEXP is a regular expression matching the Python prompt for
+continued lines.
+PROGRAM can also be t, which specifies the default when no other
+element matches `python-python-command'."
+  :type 'string
+  :group 'python
+  :version "24.1")
+
 (defvar python-pdbtrack-is-tracking-p nil)
 
 (defconst python-pdbtrack-stack-entry-regexp
@@ -755,7 +782,7 @@ Set `python-indent' locally to the value guessed."
   '(("else" "if" "elif" "while" "for" "try" "except")
     ("elif" "if" "elif")
     ("except" "try" "except")
-    ("finally" "try" "except"))
+    ("finally" "else" "try" "except"))
   "Alist of keyword matches.
 The car of an element is a keyword introducing a statement which
 can close a block opened by a keyword in the cdr.")
@@ -1311,13 +1338,9 @@ See `python-check-command' for the default."
 
 ;;;; Inferior mode stuff (following cmuscheme).
 
-;; Fixme: Make sure we can work with IPython.
-
 (defcustom python-python-command "python"
   "Shell command to run Python interpreter.
-Any arguments can't contain whitespace.
-Note that IPython may not work properly; it must at least be used
-with the `-cl' flag, i.e. use `ipython -cl'."
+Any arguments can't contain whitespace."
   :group 'python
   :type 'string)
 
@@ -1395,6 +1418,23 @@ local value.")
 ;; Autoloaded.
 (declare-function compilation-shell-minor-mode "compile" (&optional arg))
 
+(defvar python--prompt-regexp nil)
+
+(defun python--set-prompt-regexp ()
+  (let ((prompt  (cdr-safe (or (assoc python-python-command
+				      python-shell-prompt-alist)
+			       (assq t python-shell-prompt-alist))))
+	(cprompt (cdr-safe (or (assoc python-python-command
+				      python-shell-continuation-prompt-alist)
+			       (assq t python-shell-continuation-prompt-alist)))))
+    (set (make-local-variable 'comint-prompt-regexp)
+	 (concat "\\("
+		 (mapconcat 'identity
+			    (delq nil (list prompt cprompt "^([Pp]db) "))
+			    "\\|")
+		 "\\)"))
+    (set (make-local-variable 'python--prompt-regexp) prompt)))
+
 ;; Fixme: This should inherit some stuff from `python-mode', but I'm
 ;; not sure how much: at least some keybindings, like C-c C-f;
 ;; syntax?; font-locking, e.g. for triple-quoted strings?
@@ -1417,14 +1457,12 @@ For running multiple processes in multiple buffers, see `run-python' and
 
 \\{inferior-python-mode-map}"
   :group 'python
+  (require 'ansi-color) ; for ipython
   (setq mode-line-process '(":%s"))
   (set (make-local-variable 'comint-input-filter) 'python-input-filter)
   (add-hook 'comint-preoutput-filter-functions #'python-preoutput-filter
 	    nil t)
-  ;; Still required by `comint-redirect-send-command', for instance
-  ;; (and we need to match things like `>>> ... >>> '):
-  (set (make-local-variable 'comint-prompt-regexp)
-       (rx line-start (1+ (and (or (repeat 3 (any ">.")) "(Pdb)") " "))))
+  (python--set-prompt-regexp)
   (set (make-local-variable 'compilation-error-regexp-alist)
        python-compilation-regexp-alist)
   (compilation-shell-minor-mode 1))
@@ -1521,12 +1559,12 @@ Don't save anything for STR matching `inferior-python-filter-regexp'."
 				     cmd)))
     (unless (shell-command-to-string cmd)
       (error "Can't run Python command `%s'" cmd))
-    (let* ((res (shell-command-to-string (concat cmd " --version"))))
-      (string-match "Python \\([0-9]\\)\\.\\([0-9]\\)" res)
-      (unless (and (equal "2" (match-string 1 res))
-		   (match-beginning 2)
-		   (>= (string-to-number (match-string 2 res)) 2))
-	(error "Only Python versions >= 2.2 and < 3.0 supported")))
+    (let* ((res (shell-command-to-string
+                 (concat cmd
+                         " -c \"from sys import version_info;\
+print version_info >= (2, 2) and version_info < (3, 0)\""))))
+      (unless (string-match "True" res)
+	(error "Only Python versions >= 2.2 and < 3.0 are supported")))
     (setq python-version-checked t)))
 
 ;;;###autoload
@@ -1549,6 +1587,7 @@ buffer for a list of commands.)"
   (interactive (if current-prefix-arg
 		   (list (read-string "Run Python: " python-command) nil t)
 		 (list python-command)))
+  (require 'ansi-color) ; for ipython
   (unless cmd (setq cmd python-command))
   (python-check-version cmd)
   (setq python-command cmd)
@@ -1566,8 +1605,10 @@ buffer for a list of commands.)"
 			      (if path (concat path path-separator))
 			      data-directory)
 		      process-environment))
-	       ;; Suppress use of pager for help output:
-	       (process-connection-type nil))
+               ;; If we use a pipe, unicode characters are not printed
+               ;; correctly (Bug#5794) and IPython does not work at
+               ;; all (Bug#5390).
+	       (process-connection-type t))
 	  (apply 'make-comint-in-buffer "Python"
 		 (generate-new-buffer "*Python*")
 		 (car cmdlist) nil (cdr cmdlist)))
@@ -1623,7 +1664,12 @@ buffer for a list of commands.)"
   ;; non-ASCII.
   (interactive "r")
   (let* ((f (make-temp-file "py"))
-	 (command (format "emacs.eexecfile(%S)" f))
+	 (command
+          ;; IPython puts the FakeModule module into __main__ so
+          ;; emacs.eexecfile becomes useless.
+          (if (string-match "^ipython" python-command)
+              (format "execfile %S" f)
+            (format "emacs.eexecfile(%S)" f)))
 	 (orig-start (copy-marker start)))
     (when (save-excursion
 	    (goto-char start)
@@ -1820,7 +1866,9 @@ If there isn't, it's probably not appropriate to send input to return Eldoc
 information etc.  If PROC is non-nil, check the buffer for that process."
   (with-current-buffer (process-buffer (or proc (python-proc)))
     (save-excursion
-      (save-match-data (re-search-backward ">>> \\=" nil t)))))
+      (save-match-data
+	(re-search-backward (concat python--prompt-regexp " *\\=")
+			    nil t)))))
 
 ;; Fixme:  Is there anything reasonable we can do with random methods?
 ;; (Currently only works with functions.)
@@ -2234,6 +2282,7 @@ the if condition."
 (eval-when-compile
   ;; Define a user-level skeleton and add it to the abbrev table.
 (defmacro def-python-skeleton (name &rest elements)
+  (declare (indent 2))
   (let* ((name (symbol-name name))
 	 (function (intern (concat "python-insert-" name))))
     `(progn
@@ -2246,7 +2295,6 @@ the if condition."
        (define-skeleton ,function
 	 ,(format "Insert Python \"%s\" template." name)
 	 ,@elements)))))
-(put 'def-python-skeleton 'lisp-indent-function 2)
 
 ;; From `skeleton-further-elements' set below:
 ;;  `<': outdent a level;
@@ -2444,12 +2492,12 @@ with skeleton expansions for compound statement templates.
   :group 'python
   (set (make-local-variable 'font-lock-defaults)
        '(python-font-lock-keywords nil nil nil nil
-				   (font-lock-syntactic-keywords
-				    . python-font-lock-syntactic-keywords)
-				   ;; This probably isn't worth it.
-				   ;; (font-lock-syntactic-face-function
-				   ;;  . python-font-lock-syntactic-face-function)
-				   ))
+         ;; This probably isn't worth it.
+         ;; (font-lock-syntactic-face-function
+         ;;  . python-font-lock-syntactic-face-function)
+         ))
+  (set (make-local-variable 'syntax-propertize-function)
+       python-syntax-propertize-function)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'comment-start) "# ")
@@ -2536,9 +2584,7 @@ Runs `jython-mode-hook' after `python-mode-hook'."
   "Watch output for Python prompt and exec next file waiting in queue.
 This function is appropriate for `comint-output-filter-functions'."
   ;; TBD: this should probably use split-string
-  (when (and (or (string-equal string ">>> ")
-		 (and (>= (length string) 5)
-		      (string-equal (substring string -5) "\n>>> ")))
+  (when (and (string-match python--prompt-regexp string)
 	     python-file-queue)
     (condition-case nil
         (delete-file (car python-file-queue))
@@ -2750,6 +2796,7 @@ comint believe the user typed this string so that
 	  (funcall (process-filter proc) proc msg))
       (set-buffer curbuf))
     (process-send-string proc cmd)))
+
 ;;;###autoload
 (defun python-shell (&optional argprompt)
   "Start an interactive Python interpreter in another window.
@@ -2789,6 +2836,7 @@ interaction between undo and process filters; the same problem exists in
 non-Python process buffers using the default (Emacs-supplied) process
 filter."
   (interactive "P")
+  (require 'ansi-color) ; For ipython
   ;; Set the default shell if not already set
   (when (null python-which-shell)
     (python-toggle-shells python-default-interpreter))
@@ -2805,10 +2853,9 @@ filter."
 			       ))))
     (switch-to-buffer-other-window
      (apply 'make-comint python-which-bufname python-which-shell nil args))
-    (make-local-variable 'comint-prompt-regexp)
     (set-process-sentinel (get-buffer-process (current-buffer))
                           'python-sentinel)
-    (setq comint-prompt-regexp "^>>> \\|^[.][.][.] \\|^(pdb) ")
+    (python--set-prompt-regexp)
     (add-hook 'comint-output-filter-functions
 	      'python-comint-output-filter-function nil t)
     ;; pdbtrack

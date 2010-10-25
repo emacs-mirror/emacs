@@ -1,7 +1,8 @@
 /* Implementation of GUI terminal on the Microsoft W32 API.
-   Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998,
-                 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <setjmp.h>
 #include "lisp.h"
 #include "blockinput.h"
@@ -894,7 +894,7 @@ w32_set_terminal_modes (struct terminal *term)
 {
 }
 
-/* This is called when exiting or suspending Emacs. Exiting will make
+/* This is called when exiting or suspending Emacs.  Exiting will make
    the W32 windows go away, and suspending requires no action. */
 
 static void
@@ -2106,17 +2106,34 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
   if (s->hl == DRAW_CURSOR
       && !x_stretch_cursor_p)
     {
-      /* If `x-stretch-block-cursor' is nil, don't draw a block cursor
-	 as wide as the stretch glyph.  */
+      /* If `x-stretch-cursor' is nil, don't draw a block cursor as
+	 wide as the stretch glyph.  */
       int width, background_width = s->background_width;
-      int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
+      int x = s->x;
 
-      if (x < left_x)
+      if (!s->row->reversed_p)
 	{
-	  background_width -= left_x - x;
-	  x = left_x;
+	  int left_x = window_box_left_offset (s->w, TEXT_AREA);
+
+	  if (x < left_x)
+	    {
+	      background_width -= left_x - x;
+	      x = left_x;
+	    }
+	}
+      else
+	{
+	  /* In R2L rows, draw the cursor on the right edge of the
+	     stretch glyph.  */
+	  int right_x = window_box_right_offset (s->w, TEXT_AREA);
+
+	  if (x + background_width > right_x)
+	    background_width -= x - right_x;
+	  x += background_width;
 	}
       width = min (FRAME_COLUMN_WIDTH (s->f), background_width);
+      if (s->row->reversed_p)
+	x -= width;
 
       /* Draw cursor.  */
       x_draw_glyph_string_bg_rect (s, x, s->y, width, s->height);
@@ -2130,7 +2147,10 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	  RECT r;
           HDC hdc = s->hdc;
 
-	  x += width;
+	  if (!s->row->reversed_p)
+	    x += width;
+	  else
+	    x = s->x;
 	  if (s->row->mouse_face_p
 	      && cursor_in_mouse_face_p (s->w))
 	    {
@@ -3935,7 +3955,7 @@ static char dbcs_lead = 0;
    recursively with different messages by the system.
 */
 
-int
+static int
 w32_read_socket (struct terminal *terminal, int expected,
 		 struct input_event *hold_quit)
 {
@@ -4220,7 +4240,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 		      inev.frame_or_window = window;
 		    }
 
-		  last_window=window;
+		  last_window = window;
 		}
 	      if (!note_mouse_movement (f, &msg.msg))
 		help_echo_string = previous_help_echo_string;
@@ -4876,6 +4896,11 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row,
 	  width = min (cursor_glyph->pixel_width, width);
 
 	  w->phys_cursor_width = width;
+
+	  /* If the character under cursor is R2L, draw the bar cursor
+	     on the right of its glyph, rather than on the left.  */
+	  if ((cursor_glyph->resolved_level & 1) != 0)
+	    x += cursor_glyph->pixel_width - width;
 
 	  w32_fill_area (f, hdc, cursor_color, x,
 			 WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
@@ -5577,7 +5602,7 @@ x_make_frame_visible (struct frame *f)
 	  /* Adjust vertical window position in order to avoid being
 	     covered by a task bar placed at the bottom of the desktop. */
 	  SystemParametersInfo (SPI_GETWORKAREA, 0, &workarea_rect, 0);
-	  GetWindowRect (FRAME_W32_WINDOW(f), &window_rect);
+	  GetWindowRect (FRAME_W32_WINDOW (f), &window_rect);
 	  if (window_rect.bottom > workarea_rect.bottom
 	      && window_rect.top > workarea_rect.top)
 	    f->top_pos = max (window_rect.top
@@ -6312,7 +6337,9 @@ the cursor have no effect.  */);
      doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
 A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
-to 4.1, set this to nil.  */);
+to 4.1, set this to nil.  You can also use `underline-minimum-offset'
+to override the font's UNDERLINE_POSITION for small font display
+sizes.  */);
   x_use_underline_position_properties = 0;
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
@@ -6324,12 +6351,14 @@ baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
-	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
+	       doc: /* Which toolkit scroll bars Emacs uses, if any.
+A value of nil means Emacs doesn't use toolkit scroll bars.
+With the X Window system, the value is a symbol describing the
+X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
+With MS Windows, the value is t.  */);
   Vx_toolkit_scroll_bars = Qt;
 
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 }
 
-/* arch-tag: 5fa70624-ab86-499c-8a85-473958ee4646
-   (do not change this comment) */

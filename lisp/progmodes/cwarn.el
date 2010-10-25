@@ -6,7 +6,7 @@
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: c, languages, faces
 ;; X-Url: http://www.andersl.com/emacs
-;; Version: 1.3.1  1999-12-13
+;; Version: 1.3.1
 
 ;; This file is part of GNU Emacs.
 

@@ -1,7 +1,8 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: FSF
@@ -204,12 +205,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
 
-(eval-when-compile (require 'cl)
-		   (require 'thingatpt)
-                   (require 'term)
-		   (require 'dired)
-                   (require 'executable)
-		   (require 'w3-auto nil t))
+(eval-when-compile (require 'cl))
 
 (defgroup browse-url nil
   "Use a web browser to look at a URL."
@@ -607,7 +603,7 @@ down (this *won't* always work)."
   :group 'browse-url)
 
 (defcustom browse-url-elinks-wrapper '("xterm" "-e")
-  "*Wrapper command prepended to the Elinks command-line."
+  "Wrapper command prepended to the Elinks command-line."
   :type '(repeat (string :tag "Wrapper"))
   :group 'browse-url)
 
@@ -755,6 +751,9 @@ narrowed."
 
 (add-hook 'kill-buffer-hook 'browse-url-delete-temp-file)
 
+(declare-function dired-get-filename "dired"
+		  (&optional localp no-error-if-not-filep))
+
 ;;;###autoload
 (defun browse-url-of-dired-file ()
   "In Dired, ask a WWW browser to display the file named on this line."
@@ -892,6 +891,7 @@ The order attempted is gnome-moz-remote, Mozilla, Firefox,
 Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
   (apply
    (cond
+    ((browse-url-can-use-xdg-open) 'browse-url-xdg-open)
     ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
     ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
     ((executable-find browse-url-firefox-program) 'browse-url-firefox)
@@ -904,6 +904,38 @@ Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
     (t
      (lambda (&rest ignore) (error "No usable browser found"))))
    url args))
+
+(defun browse-url-can-use-xdg-open ()
+  "Check if xdg-open can be used, i.e. we are on Gnome, KDE or xfce4."
+  (and (getenv "DISPLAY")
+       (executable-find "xdg-open")
+       ;; xdg-open may call gnome-open and that does not wait for its child
+       ;; to finish.  This child may then be killed when the parent dies.
+       ;; Use nohup to work around.
+       (executable-find "nohup")
+       (or (getenv "GNOME_DESKTOP_SESSION_ID")
+	   ;; GNOME_DESKTOP_SESSION_ID is deprecated, check on Dbus also.
+	   (condition-case nil
+	       (eq 0 (call-process
+		      "dbus-send" nil nil nil
+				  "--dest=org.gnome.SessionManager"
+				  "--print-reply"
+				  "/org/gnome/SessionManager"
+				  "org.gnome.SessionManager.CanShutdown"))
+	     (error nil))
+	   (equal (getenv "KDE_FULL_SESSION") "true")
+	   (condition-case nil
+	       (eq 0 (call-process
+		      "/bin/sh" nil nil nil
+		      "-c"
+		      "xprop -root _DT_SAVE_MODE|grep xfce4"))
+	     (error nil)))))
+
+
+;;;###autoload
+(defun browse-url-xdg-open (url &optional new-window)
+  (interactive (browse-url-interactive-arg "URL: "))
+  (call-process "nohup" nil nil nil "xdg-open" url))
 
 ;;;###autoload
 (defun browse-url-netscape (url &optional new-window)
@@ -1350,6 +1382,10 @@ with possible additional arguments `browse-url-xterm-args'."
 
 ;; --- Lynx in an Emacs "term" window ---
 
+(declare-function term-char-mode "term" ())
+(declare-function term-send-down "term" ())
+(declare-function term-send-string "term" (proc str))
+
 ;;;###autoload
 (defun browse-url-text-emacs (url &optional new-buffer)
   "Ask a text browser to load URL.
@@ -1370,6 +1406,7 @@ used instead of `browse-url-new-window-flag'."
 	 (buf (get-buffer "*text browser*"))
 	 (proc (and buf (get-buffer-process buf)))
 	 (n browse-url-text-input-attempts))
+    (require 'term)
     (if (and (browse-url-maybe-new-window new-buffer) buf)
 	;; Rename away the OLD buffer. This isn't very polite, but
 	;; term insists on working in a buffer named *lynx* and would
@@ -1534,5 +1571,4 @@ from `browse-url-elinks-wrapper'."
 
 (provide 'browse-url)
 
-;; arch-tag: d2079573-5c06-4097-9598-f550fba19430
 ;;; browse-url.el ends here

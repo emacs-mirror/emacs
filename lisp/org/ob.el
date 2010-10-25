@@ -25,33 +25,34 @@
 ;;; Commentary:
 
 ;; See the online documentation for more information
-;; 
+;;
 ;;   http://orgmode.org/worg/org-contrib/babel/
 
 ;;; Code:
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl))
 (require 'org-macs)
 
 (defvar org-babel-call-process-region-original)
 (declare-function show-all "outline" ())
-(declare-function tramp-compat-make-temp-file "tramp" (filename &optional dir-flag))
+(declare-function tramp-compat-make-temp-file "tramp-compat"
+                  (filename &optional dir-flag))
 (declare-function tramp-dissect-file-name "tramp" (name &optional nodefault))
 (declare-function tramp-file-name-user "tramp" (vec))
 (declare-function tramp-file-name-host "tramp" (vec))
 (declare-function org-icompleting-read "org" (&rest args))
-(declare-function org-edit-src-code "org" (context code edit-buffer-name))
+(declare-function org-edit-src-code "org-src"
+                  (&optional context code edit-buffer-name))
 (declare-function org-open-at-point "org" (&optional in-emacs reference-buffer))
-(declare-function org-save-outline-visibility "org" (use-markers &rest body))
 (declare-function org-narrow-to-subtree "org" ())
-(declare-function org-entry-get "org" (pom property &optional inherit))
+(declare-function org-entry-get "org" (pom property &optional inherit literal-nil))
 (declare-function org-make-options-regexp "org" (kwds &optional extra))
-(declare-function org-match-string-no-properties "org" (num &optional string))
 (declare-function org-do-remove-indentation "org" (&optional n))
 (declare-function org-show-context "org" (&optional key))
 (declare-function org-at-table-p "org" (&optional table-type))
 (declare-function org-cycle "org" (&optional arg))
 (declare-function org-uniquify "org" (list))
-(declare-function org-table-import "org" (file arg))
+(declare-function org-table-import "org-table" (file arg))
 (declare-function org-add-hook "org-compat" (hook function &optional append local))
 (declare-function org-table-align "org-table" ())
 (declare-function org-table-end "org-table" (&optional table-type))

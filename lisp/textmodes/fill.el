@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: wp
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -1289,18 +1290,16 @@ otherwise it is made canonical."
 		     (skip-chars-backward " "))
 		   (setq ncols (- fc endcol))
 		   ;; Ncols is number of additional space chars needed
-		   (if (and (> ncols 0) (> nspaces 0) (not eop))
-		       (progn
-			 (setq curr-fracspace (+ ncols (/ (1+ nspaces) 2))
-			       count nspaces)
-			 (while (> count 0)
-			   (skip-chars-forward " ")
-			   (insert-and-inherit
-			    (make-string (/ curr-fracspace nspaces) ?\s))
-			   (search-forward " " nil t)
-			   (setq count (1- count)
-				 curr-fracspace
-				   (+ (% curr-fracspace nspaces) ncols)))))))
+		   (when (and (> ncols 0) (> nspaces 0) (not eop))
+                     (setq curr-fracspace (+ ncols (/ nspaces 2))
+                           count nspaces)
+                     (while (> count 0)
+                       (skip-chars-forward " ")
+                       (insert-char ?\s (/ curr-fracspace nspaces) t)
+                       (search-forward " " nil t)
+                       (setq count (1- count)
+                             curr-fracspace
+                             (+ (% curr-fracspace nspaces) ncols))))))
 		(t (error "Unknown justification value"))))
 	(goto-char pos)
 	(move-marker pos nil)))

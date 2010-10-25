@@ -16,7 +16,7 @@
 
 @include trampver.texi
 
-@c Macro for formatting a filename according to the repective syntax.
+@c Macro for formatting a filename according to the respective syntax.
 @c xxx and yyy are auxiliary macros in order to omit leading and
 @c trailing whitespace.  Not very elegant, but I don't know it better.
 
@@ -105,11 +105,6 @@ If you're using the other Emacs flavor, you should read the
 @end ifset
 
 @ifhtml
-@ifset jamanual
-This manual is also available as a @uref{@value{japanesemanual},
-Japanese translation}.
-@end ifset
-
 The latest release of @value{tramp} is available for
 @uref{ftp://ftp.gnu.org/gnu/tramp/, download}, or you may see
 @ref{Obtaining Tramp} for more details, including the CVS server
@@ -171,7 +166,6 @@ Installing @value{tramp} with your @value{emacsname}
 
 * Installation parameters::     Parameters in order to control installation.
 * Load paths::                  How to plug-in @value{tramp} into your environment.
-* Japanese manual::             Japanese manual.
 
 @end ifset
 
@@ -625,10 +619,6 @@ or 2 to connect to the remote host.  (You can also specify in
 @file{~/.ssh/config}, the SSH configuration file, which protocol
 should be used, and use the regular @option{ssh} method.)
 
-Two other variants, @option{ssh1_old} and @option{ssh2_old}, use the
-@command{ssh1} and @command{ssh2} commands explicitly.  If you don't
-know what these are, you do not need these options.
-
 All the methods based on @command{ssh} have an additional feature: you
 can specify a host name which looks like @file{host#42} (the real host
 name, then a hash sign, then a port number).  This means to connect to
@@ -737,19 +727,6 @@ expects PuTTY session names, calling @samp{plink -load @var{session}
 hasn't defined a user name.  Different port numbers must be defined in
 the session.
 
-
-@item @option{fish}
-@cindex method fish
-@cindex fish method
-
-This is an experimental implementation of the fish protocol, known from
-the GNU Midnight Commander or the KDE Konqueror.  @value{tramp} expects
-the fish server implementation from the KDE kioslave.  That means, the
-file @file{~/.fishsrv.pl} is expected to reside on the remote host.
-
-The implementation lacks good performance.  The code is offered anyway,
-maybe somebody can improve the performance.
-
 @end table
 
 
@@ -808,10 +785,6 @@ explicitly select whether you want to use the SSH protocol version 1
 or 2 to connect to the remote host.  (You can also specify in
 @file{~/.ssh/config}, the SSH configuration file, which protocol
 should be used, and use the regular @option{scp} method.)
-
-Two other variants, @option{scp1_old} and @option{scp2_old}, use the
-@command{ssh1} and @command{ssh2} commands explicitly.  If you don't
-know what these are, you do not need these options.
 
 All the @command{ssh} based methods support the @samp{-p} feature
 where you can specify a port number to connect to in the host name.
@@ -2780,7 +2753,10 @@ Use an external method, like @option{scpc}.
 Use caching.  This is already enabled by default.  Information about
 the remote host as well as the remote files are cached for reuse.  The
 information about remote hosts is kept in the file specified in
-@code{tramp-persistency-file-name}.  Keep this file.
+@code{tramp-persistency-file-name}.  Keep this file.  If you are
+confident, that files on remote hosts are not changed out of
+@value{emacsname}' control, set @code{remote-file-name-inhibit-cache}
+to @code{nil}.
 
 Disable version control.  If you access remote files which are not
 under version control, a lot of check operations can be avoided by
@@ -3471,7 +3447,7 @@ it has seen so far.
 
 This is a performance degradation, because the lost file attributes
 must be recomputed, when needed again.  In cases the caller of
-@code{process-file} knows that there are file attribute changes, it
+@code{process-file} knows that there are no file attribute changes, it
 shall let-bind the variable @code{process-file-side-effects} to
 @code{nil}.  @value{tramp} wouldn't flush the file attributes cache then.
 
@@ -3479,6 +3455,25 @@ shall let-bind the variable @code{process-file-side-effects} to
 (let (process-file-side-effects)
   ...)
 @end lisp
+
+For asynchronous processes, @value{tramp} flushes the file attributes
+cache via a process sentinel.  If the caller of
+@code{start-file-process} knows that there are no file attribute
+changes, it shall set the process sentinel to @code{nil}.  In case the
+caller defines an own process sentinel, @value{tramp}'s process
+sentinel is overwritten.  The caller can still flush the file
+attributes cache in its process sentinel with this code:
+
+@lisp
+(unless (memq (process-status proc) '(run open))
+  (dired-uncache remote-directory))
+@end lisp
+
+@code{remote-directory} shall be the root directory, where file
+attribute changes can happen during the process lifetime.
+@value{tramp} traverses all subdirectories, starting at this
+directory.  Often, it is sufficient to use @code{default-directory} of
+the process buffer as root directory.
 @end ifset
 
 

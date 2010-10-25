@@ -68,9 +68,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 int scan_file (char *filename);
-int scan_lisp_file (char *filename, char *mode);
-int scan_c_file (char *filename, char *mode);
-void fatal (char *s1, char *s2) NO_RETURN;
+int scan_lisp_file (const char *filename, const char *mode);
+int scan_c_file (char *filename, const char *mode);
+void fatal (const char *s1, const char *s2) NO_RETURN;
 
 #ifdef MSDOS
 /* s/msdos.h defines this as sys_chdir, but we're not linking with the
@@ -92,7 +92,7 @@ char *progname;
 
 /* VARARGS1 */
 void
-error (char *s1, char *s2)
+error (const char *s1, const char *s2)
 {
   fprintf (stderr, "%s: ", progname);
   fprintf (stderr, s1, s2);
@@ -103,7 +103,7 @@ error (char *s1, char *s2)
 
 /* VARARGS1 */
 void
-fatal (char *s1, char *s2)
+fatal (const char *s1, const char *s2)
 {
   error (s1, s2);
   exit (EXIT_FAILURE);
@@ -204,7 +204,8 @@ put_filename (char *filename)
 int
 scan_file (char *filename)
 {
-  int len = strlen (filename);
+
+  size_t len = strlen (filename);
 
   put_filename (filename);
   if (len > 4 && !strcmp (filename + len - 4, ".elc"))
@@ -233,10 +234,10 @@ struct rcsoc_state
 
   /* A keyword we look for at the beginning of lines.  If found, it is
      not copied, and SAW_KEYWORD is set to true.  */
-  char *keyword;
+  const char *keyword;
   /* The current point we've reached in an occurrence of KEYWORD in
      the input stream.  */
-  char *cur_keyword_ptr;
+  const char *cur_keyword_ptr;
   /* Set to true if we saw an occurrence of KEYWORD.  */
   int saw_keyword;
 };
@@ -326,7 +327,7 @@ scan_keyword_or_put_char (int ch, struct rcsoc_state *state)
 	   keyword, but it was a false alarm.  Output the
 	   part we scanned.  */
 	{
-	  char *p;
+	  const char *p;
 
 	  for (p = state->keyword; p < state->cur_keyword_ptr; p++)
 	    put_char (*p, state);
@@ -442,7 +443,7 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
   register char *p;
   int in_ident = 0;
   char *ident_start;
-  int ident_length = 0;
+  size_t ident_length = 0;
 
   fprintf (out, "(fn");
 
@@ -521,7 +522,7 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
    Accepts any word starting DEF... so it finds DEFSIMPLE and DEFPRED.  */
 
 int
-scan_c_file (char *filename, char *mode)
+scan_c_file (char *filename, const char *mode)
 {
   FILE *infile;
   register int c;
@@ -834,7 +835,7 @@ read_lisp_symbol (FILE *infile, char *buffer)
 }
 
 int
-scan_lisp_file (char *filename, char *mode)
+scan_lisp_file (const char *filename, const char *mode)
 {
   FILE *infile;
   register int c;

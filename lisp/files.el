@@ -5,6 +5,7 @@
 ;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -66,9 +67,9 @@ Use this feature when you have directories which you normally refer to
 via absolute symbolic links.  Make TO the name of the link, and FROM
 the name it is linked to."
   :type '(repeat (cons :format "%v"
-		       :value ("" . "")
+		       :value ("\\`" . "")
 		       (regexp :tag "From")
-		       (regexp :tag "To")))
+		       (string :tag "To")))
   :group 'abbrev
   :group 'find-file)
 
@@ -189,12 +190,27 @@ If the buffer is visiting a new file, the value is nil.")
 
 (defcustom temporary-file-directory
   (file-name-as-directory
+   ;; FIXME ? Should there be Ftemporary_file_directory to do the
+   ;; following more robustly (cf set_local_socket in emacsclient.c).
+   ;; It could be used elsewhere, eg Fcall_process_region, server-socket-dir.
+   ;; See bug#7135.
    (cond ((memq system-type '(ms-dos windows-nt))
 	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
+	 ((eq system-type 'darwin)
+	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
+	      (let ((tmp (ignore-errors (shell-command-to-string ; bug#7135
+					 "getconf DARWIN_USER_TEMP_DIR"))))
+		(and (stringp tmp)
+		     (setq tmp (replace-regexp-in-string "\n\\'" "" tmp))
+		     ;; This handles "getconf: Unrecognized variable..."
+		     (file-directory-p tmp)
+		     tmp))
+	      "/tmp"))
 	 (t
 	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
   "The directory for writing temporary files."
   :group 'files
+  ;; Darwin section added 24.1, does not seem worth :version bump.
   :initialize 'custom-initialize-delay
   :type 'directory)
 
@@ -757,21 +773,45 @@ one or more of those symbols."
              (let ((x (file-name-directory suffix)))
                (if x (1- (length x)) (length suffix))))))
    (t
-    (let ((names nil)
+    (let ((names '())
+          ;; If we have files like "foo.el" and "foo.elc", we could load one of
+          ;; them with "foo.el", "foo.elc", or "foo", where just "foo" is the
+          ;; preferred way.  So if we list all 3, that gives a lot of redundant
+          ;; entries for the poor soul looking just for "foo".  OTOH, sometimes
+          ;; the user does want to pay attention to the extension.  We try to
+          ;; diffuse this tension by stripping the suffix, except when the
+          ;; result is a single element (i.e. usually we only list "foo" unless
+          ;; it's the only remaining element in the list, in which case we do
+          ;; list "foo", "foo.elc" and "foo.el").
+          (fullnames '())
 	  (suffix (concat (regexp-opt suffixes t) "\\'"))
 	  (string-dir (file-name-directory string))
           (string-file (file-name-nondirectory string)))
       (dolist (dir dirs)
-	(unless dir
-	  (setq dir default-directory))
-	(if string-dir (setq dir (expand-file-name string-dir dir)))
-	(when (file-directory-p dir)
-	  (dolist (file (file-name-all-completions
-			 string-file dir))
-	    (push file names)
-	    (when (string-match suffix file)
-	      (setq file (substring file 0 (match-beginning 0)))
-              (push file names)))))
+        (unless dir
+          (setq dir default-directory))
+        (if string-dir (setq dir (expand-file-name string-dir dir)))
+        (when (file-directory-p dir)
+          (dolist (file (file-name-all-completions
+                         string-file dir))
+            (if (not (string-match suffix file))
+                (push file names)
+              (push file fullnames)
+              (push (substring file 0 (match-beginning 0)) names)))))
+      ;; Switching from names to names+fullnames creates a non-monotonicity
+      ;; which can cause problems with things like partial-completion.
+      ;; To minimize the problem, filter out completion-regexp-list, so that
+      ;; M-x load-library RET t/x.e TAB finds some files.  Also remove elements
+      ;; from `names' which only matched `string' when they still had
+      ;; their suffix.
+      (setq names (all-completions string names))
+      ;; Remove duplicates of the first element, so that we can easily check
+      ;; if `names' really only contains a single element.
+      (when (cdr names) (setcdr names (delete (car names) (cdr names))))
+      (unless (cdr names)
+        ;; There's no more than one matching non-suffixed element, so expand
+        ;; the list by adding the suffixed elements as well.
+        (setq names (nconc names fullnames)))
       (completion-table-with-context
        string-dir names string-file pred action)))))
 
@@ -909,6 +949,36 @@ to that remote system.
     (if handler
 	(funcall handler 'file-remote-p file identification connected)
       nil)))
+
+(defcustom remote-file-name-inhibit-cache 10
+  "Whether to use the remote file-name cache for read access.
+
+When `nil', always use the cached values.
+When `t', never use them.
+A number means use them for that amount of seconds since they were
+cached.
+
+File attributes of remote files are cached for better performance.
+If they are changed out of Emacs' control, the cached values
+become invalid, and must be invalidated.
+
+In case a remote file is checked regularly, it might be
+reasonable to let-bind this variable to a value less then the
+time period between two checks.
+Example:
+
+  \(defun display-time-file-nonempty-p \(file)
+    \(let \(\(remote-file-name-inhibit-cache \(- display-time-interval 5)))
+      \(and \(file-exists-p file)
+           \(< 0 \(nth 7 \(file-attributes \(file-chase-links file)))))))"
+  :group 'files
+  :version "24.1"
+  :type `(choice
+	  (const   :tag "Do not inhibit file name cache" nil)
+	  (const   :tag "Do not use file name cache" t)
+	  (integer :tag "Do not use file name cache"
+		   :format "Do not use file name cache older then %v seconds"
+		   :value 10)))
 
 (defun file-local-copy (file)
   "Copy the file FILE into a temporary file on this machine.
@@ -2116,6 +2186,15 @@ since only a single case-insensitive search through the alist is made."
      (cons (purecopy (car elt)) (cdr elt)))
    `(;; do this first, so that .html.pl is Polish html, not Perl
      ("\\.s?html?\\(\\.[a-zA-Z_]+\\)?\\'" . html-mode)
+     ("\\.svgz?\\'" . image-mode)
+     ("\\.svgz?\\'" . xml-mode)
+     ("\\.x[bp]m\\'" . image-mode)
+     ("\\.x[bp]m\\'" . c-mode)
+     ("\\.p[bpgn]m\\'" . image-mode)
+     ("\\.tiff?\\'" . image-mode)
+     ("\\.gif\\'" . image-mode)
+     ("\\.png\\'" . image-mode)
+     ("\\.jpe?g\\'" . image-mode)
      ("\\.te?xt\\'" . text-mode)
      ("\\.[tT]e[xX]\\'" . tex-mode)
      ("\\.ins\\'" . tex-mode)		;Installation files for TeX packages.
@@ -2151,6 +2230,14 @@ since only a single case-insensitive search through the alist is made."
      ("\\.te?xi\\'" . texinfo-mode)
      ("\\.[sS]\\'" . asm-mode)
      ("\\.asm\\'" . asm-mode)
+     ("\\.css\\'" . css-mode)
+     ("\\.mixal\\'" . mixal-mode)
+     ("\\.gcov\\'" . compilation-mode)
+     ;; Besides .gdbinit, gdb documents other names to be usable for init
+     ;; files, cross-debuggers can use something like
+     ;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
+     ;; don't interfere with each other.
+     ("/\\.[a-z0-9-]*gdbinit" . gdb-script-mode)
      ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
      ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
@@ -2167,6 +2254,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.cl[so]\\'" . latex-mode)		;LaTeX 2e class option
      ("\\.bbl\\'" . latex-mode)
      ("\\.bib\\'" . bibtex-mode)
+     ("\\.bst\\'" . bibtex-style-mode)
      ("\\.sql\\'" . sql-mode)
      ("\\.m[4c]\\'" . m4-mode)
      ("\\.mf\\'" . metafont-mode)
@@ -2215,6 +2303,20 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("[:/]_emacs\\'" . emacs-lisp-mode)
      ("/crontab\\.X*[0-9]+\\'" . shell-script-mode)
      ("\\.ml\\'" . lisp-mode)
+     ;; Linux-2.6.9 uses some different suffix for linker scripts:
+     ;; "ld", "lds", "lds.S", "lds.in", "ld.script", and "ld.script.balo".
+     ;; eCos uses "ld" and "ldi".  Netbsd uses "ldscript.*".
+     ("\\.ld[si]?\\'" . ld-script-mode)
+     ("ld\\.?script\\'" . ld-script-mode)
+     ;; .xs is also used for ld scripts, but seems to be more commonly
+     ;; associated with Perl .xs files (C with Perl bindings).  (Bug#7071)
+     ("\\.xs\\'" . c-mode)
+     ;; Explained in binutils ld/genscripts.sh.  Eg:
+     ;; A .x script file is the default script.
+     ;; A .xr script is for linking without relocation (-r flag).  Etc.
+     ("\\.x[abdsru]?[cnw]?\\'" . ld-script-mode)
+     ("\\.zone\\'" . dns-mode)
+     ("\\.soa\\'" . dns-mode)
      ;; Common Lisp ASDF package system.
      ("\\.asd\\'" . lisp-mode)
      ("\\.\\(asn\\|mib\\|smi\\)\\'" . snmp-mode)
@@ -2711,7 +2813,11 @@ asking you for confirmation."
 	(no-update-autoloads     . booleanp)
 	(tab-width               . integerp)   ;; C source code
 	(truncate-lines          . booleanp)   ;; C source code
+	(word-wrap               . booleanp) ;; C source code
 	(bidi-display-reordering . booleanp))) ;; C source code
+
+(put 'bidi-paragraph-direction 'safe-local-variable
+     (lambda (v) (memq v '(nil right-to-left left-to-right))))
 
 (put 'c-set-style 'safe-local-eval-function t)
 
@@ -5464,12 +5570,14 @@ preference to the program given by this variable."
 
 (defun get-free-disk-space (dir)
   "Return the amount of free space on directory DIR's file system.
-The result is a string that gives the number of free 1KB blocks,
-or nil if the system call or the program which retrieve the information
-fail.  It returns also nil when DIR is a remote directory.
+The return value is a string describing the amount of free
+space (normally, the number of free 1KB blocks).
 
-This function calls `file-system-info' if it is available, or invokes the
-program specified by `directory-free-space-program' if that is non-nil."
+This function calls `file-system-info' if it is available, or
+invokes the program specified by `directory-free-space-program'
+and `directory-free-space-args'.  If the system call or program
+is unsuccessful, or if DIR is a remote directory, this function
+returns nil."
   (unless (file-remote-p dir)
     ;; Try to find the number of free blocks.  Non-Posix systems don't
     ;; always have df, but might have an equivalent system call.
@@ -5489,19 +5597,17 @@ program specified by `directory-free-space-program' if that is non-nil."
 					 directory-free-space-args
 					 dir)
 			   0)))
-	    ;; Usual format is a header line followed by a line of
-	    ;; numbers.
+	    ;; Assume that the "available" column is before the
+	    ;; "capacity" column.  Find the "%" and scan backward.
 	    (goto-char (point-min))
 	    (forward-line 1)
-	    (if (not (eobp))
-		(progn
-		  ;; Move to the end of the "available blocks" number.
-		  (skip-chars-forward "^ \t")
-		  (forward-word 3)
-		  ;; Copy it into AVAILABLE.
-		  (let ((end (point)))
-		    (forward-word -1)
-		    (buffer-substring (point) end))))))))))
+	    (when (re-search-forward
+		   "[[:space:]]+[^[:space:]]+%[^%]*$"
+		   (line-end-position) t)
+	      (goto-char (match-beginning 0))
+	      (let ((endpt (point)))
+		(skip-chars-backward "^[:space:]")
+		(buffer-substring-no-properties (point) endpt)))))))))
 
 ;; The following expression replaces `dired-move-to-filename-regexp'.
 (defvar directory-listing-before-filename-regexp

@@ -102,7 +102,8 @@ is nil, use `smiley-style'."
 
 ;; The XEmacs version has a baroque, if not rococo, set of these.
 (defcustom smiley-regexp-alist
-  '(("\\(;-?)\\)\\W" 1 "blink")
+  '(("\\(;-)\\)\\W" 1 "blink")
+    ("[^;]\\(;)\\)\\W" 1 "blink")
     ("\\(:-]\\)\\W" 1 "forced")
     ("\\(8-)\\)\\W" 1 "braindamaged")
     ("\\(:-|\\)\\W" 1 "indifferent")
@@ -119,6 +120,7 @@ is nil, use `smiley-style'."
 The elements are (REGEXP MATCH IMAGE), where MATCH is the submatch in
 regexp to replace with IMAGE.  IMAGE is the name of an image file in
 `smiley-data-directory'."
+  :version "24.1"
   :type '(repeat (list regexp
 		       (integer :tag "Regexp match number")
 		       (string :tag "Image name")))
@@ -226,5 +228,4 @@ With arg, turn displaying on if and only if arg is positive."
 
 (provide 'smiley)
 
-;; arch-tag: 5beb161b-4321-40af-8ac9-876afb8ee818
 ;;; smiley.el ends here

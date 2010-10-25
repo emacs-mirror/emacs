@@ -93,7 +93,7 @@ if optional DONT-ERR-IF-NOT-AVAILABLE is non-nil; else throw an error."
 	       '(omniscience))
        )
     (if dont-err-if-not-available
-	(message "No Global support in %s" default-directory)
+	nil; (message "No Global support in %s" default-directory)
       (error "No Global support in %s" default-directory))
     ))
 

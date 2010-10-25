@@ -149,7 +149,7 @@ quotify_args (Lisp_Object exp)
   return exp;
 }
 
-char *callint_argfuns[]
+static const char *callint_argfuns[]
     = {"", "point", "mark", "region-beginning", "region-end"};
 
 static void

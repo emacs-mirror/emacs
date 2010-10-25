@@ -1,7 +1,8 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996,
-                 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997,
+  1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,11 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <limits.h>
-
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -71,7 +68,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #define NOMINMAX 1
 #include <windows.h>
-#include <stdlib.h>
 #include <fcntl.h>
 #endif /* not WINDOWSNT */
 
@@ -79,7 +75,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #include <sys/param.h>
 #include <fcntl.h>
-#include <string.h>
 #endif
 
 #ifdef DOS_NT
@@ -104,14 +99,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include "commands.h"
-
-#ifndef O_WRONLY
-#define O_WRONLY 1
-#endif
-
-#ifndef O_RDONLY
-#define O_RDONLY 0
-#endif
 
 #ifndef S_ISLNK
 #  define lstat stat
@@ -187,10 +174,6 @@ Lisp_Object Vauto_save_visited_file_name;
 
 /* Whether or not to continue auto-saving after a large deletion.  */
 Lisp_Object Vauto_save_include_big_deletions;
-
-/* On NT, specifies the directory separator character, used (eg.) when
-   expanding file names.  This can be bound to / or \. */
-Lisp_Object Vdirectory_sep_char;
 
 #ifdef HAVE_FSYNC
 /* Nonzero means skip the call to fsync in Fwrite-region.  */
@@ -854,8 +837,6 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 
 	 To avoid this, we set default_directory to the root of the
 	 current drive.  */
-      extern char *emacs_root_dir (void);
-
       default_directory = build_string (emacs_root_dir ());
 #else
       default_directory = build_string ("/");
@@ -1825,7 +1806,7 @@ expand_and_dir_to_file (Lisp_Object filename, Lisp_Object defdir)
    If QUICK is nonzero, we ask for y or n, not yes or no.  */
 
 void
-barf_or_query_if_file_exists (Lisp_Object absname, unsigned char *querystring, int interactive, struct stat *statptr, int quick)
+barf_or_query_if_file_exists (Lisp_Object absname, const unsigned char *querystring, int interactive, struct stat *statptr, int quick)
 {
   register Lisp_Object tem, encoded_filename;
   struct stat statbuf;
@@ -1844,7 +1825,7 @@ barf_or_query_if_file_exists (Lisp_Object absname, unsigned char *querystring, i
       tem = format2 ("File %s already exists; %s anyway? ",
 		     absname, build_string (querystring));
       if (quick)
-	tem = Fy_or_n_p (tem);
+	tem = call1 (intern ("y-or-n-p"), tem);
       else
 	tem = do_yes_or_no_p (tem);
       UNGCPRO;
@@ -2475,7 +2456,7 @@ check_executable (char *filename)
 /* Return nonzero if file FILENAME exists and can be written.  */
 
 static int
-check_writable (char *filename)
+check_writable (const char *filename)
 {
 #ifdef MSDOS
   struct stat st;

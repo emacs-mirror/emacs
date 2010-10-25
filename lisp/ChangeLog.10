@@ -4757,7 +4757,7 @@
 	* files.el (insert-directory): Decode by what specified.
 
 	* language/japan-util.el (setup-japanese-environment-internal):
-	By defalt, use japanese-iso-8bit for file names, and prefer
+	By default, use japanese-iso-8bit for file names, and prefer
 	japanese-shift-jis on DOS and Windows.
 
 	* international/quail.el (quail-show-guidance-buf): Make the quail
@@ -21636,7 +21636,7 @@
 2001-11-26  Sam Steingold  <sds@gnu.org>
 
 	* frame.el (show-trailing-whitespace): Remove :set argument (the
-	value was essentially identical to the defalt).
+	value was essentially identical to the default).
 
 2001-11-26  Pavel Janík  <Pavel@Janik.cz>
 

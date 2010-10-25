@@ -29,13 +29,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include "lisp.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
 #include <sys/param.h>
 #include <sys/time.h>
 #include <dos.h>
 #include <errno.h>
-#include <string.h>	 /* for memset and string functions */
 #include <sys/stat.h>    /* for _fixpath */
 #include <unistd.h>	 /* for chdir, dup, dup2, etc. */
 #include <dir.h>	 /* for getdisk */
@@ -68,8 +66,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <pc.h>
 #include <ctype.h>
 /* #include <process.h> */
-/* Damn that local process.h!  Instead we can define P_WAIT ourselves.  */
+/* Damn that local process.h!  Instead we can define P_WAIT and
+   spawnve ourselves.  */
 #define P_WAIT 1
+extern int spawnve (int, const char *, char *const [], char *const []);
 
 #ifndef _USE_LFN
 #define _USE_LFN 0
@@ -827,7 +827,7 @@ IT_set_face (int face)
       bg = tem2;
     }
   if (tty->termscript)
-    fprintf (tty->termscript, "<FACE %d: %d/%d[FG:%d/BG:%d]>", face,
+    fprintf (tty->termscript, "<FACE %d: %lu/%lu[FG:%lu/BG:%lu]>", face,
 	     fp->foreground, fp->background, fg, bg);
   if (fg >= 0 && fg < 16)
     {
@@ -858,12 +858,6 @@ IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
   struct tty_display_info *tty = FRAME_TTY (f);
   struct frame *sf;
   unsigned char *conversion_buffer;
-
-  /* Do we need to consider conversion of unibyte characters to
-     multibyte?  */
-  int convert_unibyte_characters
-    = (NILP (current_buffer->enable_multibyte_characters)
-       && unibyte_display_via_language_environment);
 
   /* If terminal_coding does any conversion, use it, otherwise use
      safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
@@ -1180,8 +1174,6 @@ fast_find_position (struct window *w, int pos, int *hpos, int *vpos)
 static void
 IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
 {
-  struct frame *f = XFRAME (w->frame);
-  struct tty_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   struct glyph_row *row;
 
   if (mode_line_p)
@@ -1192,7 +1184,7 @@ IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
   if (row->enabled_p)
     {
       struct glyph *glyph, *end;
-      Lisp_Object help, map;
+      Lisp_Object help;
 
       /* Find the glyph under X.  */
       glyph = (row->glyphs[TEXT_AREA]
@@ -1453,7 +1445,6 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 	/* Look for a `help-echo' property.  */
 	{
 	  Lisp_Object help;
-	  extern Lisp_Object Qhelp_echo;
 
 	  /* Check overlays first.  */
 	  help = Qnil;
@@ -1593,14 +1584,16 @@ IT_display_cursor (int on)
       ScreenSetCursor (current_pos_Y, current_pos_X);
       cursor_cleared = 0;
       if (tty->termscript)
-	fprintf (tty->termscript, "\nCURSOR ON");
+	fprintf (tty->termscript, "\nCURSOR ON (%dx%d)",
+		 current_pos_Y, current_pos_X);
     }
   else if (!on && !cursor_cleared)
     {
       ScreenSetCursor (-1, -1);
       cursor_cleared = 1;
       if (tty->termscript)
-	fprintf (tty->termscript, "\nCURSOR OFF");
+	fprintf (tty->termscript, "\nCURSOR OFF (%dx%d)",
+		 current_pos_Y, current_pos_X);
     }
 }
 
@@ -1872,6 +1865,8 @@ IT_delete_glyphs (struct frame *f, int n)
 void
 x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
+  extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+
   set_menu_bar_lines (f, value, oldval);
 }
 
@@ -1938,7 +1933,7 @@ IT_set_terminal_modes (struct terminal *term)
 	   already point to the relocated buffer address returned by
 	   the Int 10h/AX=FEh call above.  DJGPP v2.02 and later sets
 	   ScreenPrimary to that address at startup under DOS/V.  */
-	if (regs.x.es != (ScreenPrimary >> 4) & 0xffff)
+	if (regs.x.es != ((ScreenPrimary >> 4) & 0xffff))
 	  screen_old_address = ScreenPrimary;
 	screen_virtual_segment = regs.x.es;
 	screen_virtual_offset  = regs.x.di;
@@ -2055,6 +2050,8 @@ DEFUN ("msdos-remember-default-colors", Fmsdos_remember_default_colors,
      frame colors are reversed.  */
   initial_screen_colors[0] = FRAME_FOREGROUND_PIXEL (f);
   initial_screen_colors[1] = FRAME_BACKGROUND_PIXEL (f);
+
+  return Qnil;
 }
 
 void
@@ -2070,7 +2067,6 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
   int reverse = EQ (Fcdr (Fassq (Qreverse, f->param_alist)), Qt);
   int redraw = 0, fg_set = 0, bg_set = 0;
   unsigned long orig_fg, orig_bg;
-  Lisp_Object frame_bg, frame_fg;
   struct tty_display_info *tty = FRAME_TTY (f);
 
   /* If we are creating a new frame, begin with the original screen colors
@@ -2194,9 +2190,10 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
 	  IT_set_cursor_type (f, val);
 	  if (tty->termscript)
 	    fprintf (tty->termscript, "<CTYPE: %s>\n",
-		     EQ (val, Qbar) || EQ (val, Qhbar)
-		     || CONSP (val) && (EQ (XCAR (val), Qbar)
-					|| EQ (XCAR (val), Qhbar))
+		     EQ (val, Qbar)
+		     || EQ (val, Qhbar)
+		     || (CONSP (val) && (EQ (XCAR (val), Qbar)
+					 || EQ (XCAR (val), Qhbar)))
 		     ? "bar" : "box");
 	}
       else if (EQ (prop, Qtty_type))
@@ -2213,8 +2210,6 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
      the current frame colors.  */
   if (reverse)
     {
-      Lisp_Object frame;
-
       if (!fg_set)
 	{
 	  FRAME_FOREGROUND_PIXEL (f) = orig_bg;
@@ -2531,11 +2526,11 @@ static struct keyboard_layout_list
   struct dos_keyboard_map *keyboard_map;
 } keyboard_layout_list[] =
 {
-  1, &us_keyboard,
-  33, &fr_keyboard,
-  39, &it_keyboard,
-  45, &dk_keyboard,
-  81, &jp_keyboard
+  { 1, &us_keyboard },
+  { 33, &fr_keyboard },
+  { 39, &it_keyboard },
+  { 45, &dk_keyboard },
+  { 81, &jp_keyboard }
 };
 
 static struct dos_keyboard_map *keyboard;
@@ -2580,17 +2575,17 @@ static struct
   unsigned char keypad_code;	/* keypad code	*/
   unsigned char editkey_code;	/* edit key	*/
 } keypad_translate_map[] = {
-  '0',  '0',  0xb0, /* kp-0 */		0x63, /* insert */
-  '1',  '1',  0xb1, /* kp-1 */		0x57, /* end */
-  '2',  '2',  0xb2, /* kp-2 */		0x54, /* down */
-  '3',  '3',  0xb3, /* kp-3 */		0x56, /* next */
-  '4',  '4',  0xb4, /* kp-4 */		0x51, /* left */
-  '5',  '5',  0xb5, /* kp-5 */		0xb5, /* kp-5 */
-  '6',  '6',  0xb6, /* kp-6 */		0x53, /* right */
-  '7',  '7',  0xb7, /* kp-7 */		0x50, /* home */
-  '8',  '8',  0xb8, /* kp-8 */		0x52, /* up */
-  '9',  '9',  0xb9, /* kp-9 */		0x55, /* prior */
-  '.',  '-',  0xae, /* kp-decimal */	0xff  /* delete */
+  { '0',  '0',  0xb0, /* kp-0 */		0x63 /* insert */ },
+  { '1',  '1',  0xb1, /* kp-1 */		0x57 /* end */    },
+  { '2',  '2',  0xb2, /* kp-2 */		0x54 /* down */   },
+  { '3',  '3',  0xb3, /* kp-3 */		0x56 /* next */   },
+  { '4',  '4',  0xb4, /* kp-4 */		0x51 /* left */   },
+  { '5',  '5',  0xb5, /* kp-5 */		0xb5 /* kp-5 */   },
+  { '6',  '6',  0xb6, /* kp-6 */		0x53 /* right */  },
+  { '7',  '7',  0xb7, /* kp-7 */		0x50 /* home */   },
+  { '8',  '8',  0xb8, /* kp-8 */		0x52 /* up */     },
+  { '9',  '9',  0xb9, /* kp-9 */		0x55 /* prior */  },
+  { '.',  '-',  0xae, /* kp-decimal */		0xff  /* delete */}
 };
 
 static struct
@@ -2598,11 +2593,11 @@ static struct
   unsigned char char_code;	/* normal code	*/
   unsigned char keypad_code;	/* keypad code	*/
 } grey_key_translate_map[] = {
-  '/',  0xaf, /* kp-decimal */
-  '*',  0xaa, /* kp-multiply */
-  '-',  0xad, /* kp-subtract */
-  '+',  0xab, /* kp-add */
-  '\r', 0x8d  /* kp-enter */
+  { '/',  0xaf /* kp-decimal */  },
+  { '*',  0xaa /* kp-multiply */ },
+  { '-',  0xad /* kp-subtract */ },
+  { '+',  0xab /* kp-add */      },
+  { '\r', 0x8d  /* kp-enter */   }
 };
 
 static unsigned short
@@ -3128,7 +3123,6 @@ dos_rawgetc (void)
 	  break;
 	}
 
-    make_event:
       if (code == 0)
 	continue;
 
@@ -3236,14 +3230,14 @@ dos_rawgetc (void)
 		    /* If only one button is pressed, wait 100 msec and
 		       check again.  This way, Speedy Gonzales isn't
 		       punished, while the slow get their chance.  */
-		    if (press && mouse_pressed (1-but, &x2, &y2)
-			|| !press && mouse_released (1-but, &x2, &y2))
+		    if ((press && mouse_pressed (1-but, &x2, &y2))
+			|| (!press && mouse_released (1-but, &x2, &y2)))
 		      button_num = 2;
 		    else
 		      {
 			delay (100);
-			if (press && mouse_pressed (1-but, &x2, &y2)
-			    || !press && mouse_released (1-but, &x2, &y2))
+			if ((press && mouse_pressed (1-but, &x2, &y2))
+			    || (!press && mouse_released (1-but, &x2, &y2)))
 			  button_num = 2;
 		      }
 		  }
@@ -3679,10 +3673,12 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 		if (0 <= dy && dy < state[i].menu->count)
 		  {
 		    if (!state[i].menu->submenu[dy])
-		      if (state[i].menu->panenumber[dy])
-			result = XM_SUCCESS;
-		      else
-			result = XM_IA_SELECT;
+		      {
+			if (state[i].menu->panenumber[dy])
+			  result = XM_SUCCESS;
+			else
+			  result = XM_IA_SELECT;
+		      }
 		    *pane = state[i].pane - 1;
 		    *selidx = dy;
 		    /* We hit some part of a menu, so drop extra menus that
@@ -4180,7 +4176,7 @@ dos_ttraw (struct tty_display_info *tty)
   /* If we are called for the initial terminal, it's too early to do
      anything, and termscript isn't set up.  */
   if (tty->terminal->type == output_initial)
-    return;
+    return 2;
 
   break_stat = getcbrk ();
   setcbrk (0);
@@ -4366,7 +4362,7 @@ run_msdos_command (unsigned char **argv, const char *working_dir,
 	result = 0;	/* emulate Unixy shell behavior with empty cmd line */
     }
   else
-    result = spawnve (P_WAIT, argv[0], argv, envv);
+    result = spawnve (P_WAIT, argv[0], (char **)argv, envv);
 
   dup2 (inbak, 0);
   dup2 (outbak, 1);
@@ -4708,7 +4704,7 @@ syms_of_msdos (void)
 #ifndef HAVE_X_WINDOWS
 
   /* The following two are from xfns.c:  */
-  Qreverse = intern ("reverse");
+  Qreverse = intern_c_string ("reverse");
   staticpro (&Qreverse);
 
   DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,

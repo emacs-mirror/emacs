@@ -53,6 +53,7 @@ another.  An overview of D-Bus can be found at
 * Asynchronous Methods::        Calling methods non-blocking.
 * Receiving Method Calls::      Offering own methods.
 * Signals::                     Sending and receiving signals.
+* Alternative Buses::           Alternative buses.
 * Errors and Events::           Errors and events.
 * Index::                       Index including concepts, functions, variables.
 
@@ -1576,6 +1577,56 @@ The callback function @code{my-dbus-signal-handler} must define one
 single string argument therefore.  Plugging an USB device to your
 machine, when registered for signal @samp{DeviceAdded}, will show you
 which objects the GNU/Linux @code{hal} daemon adds.
+@end defun
+
+
+@node Alternative Buses
+@chapter Alternative buses.
+@cindex bus names
+@cindex UNIX domain socket
+
+Until now, we have spoken about the system and the session buses,
+which are the default buses to be connected to.  However, it is
+possible to connect to any bus, from which the address is known.  This
+is a UNIX domain socket.  Everywhere, where a @var{bus} is mentioned
+as argument of a function (the symbol @code{:system} or the symbol
+@code{:session}), this address can be used instead.  The connection to
+this bus must be initialized first.
+
+@defun dbus-init-bus bus
+Establish the connection to D-Bus @var{bus}.
+
+@var{bus} can be either the symbol @code{:system} or the symbol
+@code{:session}, or it can be a string denoting the address of the
+corresponding bus.  For the system and session busses, this function
+is called when loading @file{dbus.el}, there is no need to call it
+again.
+
+Example: You open another session bus in a terminal window on your host:
+
+@example
+# eval `dbus-launch --auto-syntax`
+# echo $DBUS_SESSION_BUS_ADDRESS
+
+@print{} unix:abstract=/tmp/dbus-JoFtAVG92w,guid=2f320a1ebe50b7ef58e
+@end example
+
+In Emacs, you can access to this bus via its address:
+
+@lisp
+(setq my-bus
+      "unix:abstract=/tmp/dbus-JoFtAVG92w,guid=2f320a1ebe50b7ef58e")
+
+@result{} "unix:abstract=/tmp/dbus-JoFtAVG92w,guid=2f320a1ebe50b7ef58e"
+
+(dbus-init-bus my-bus)
+
+@result{} nil
+
+(dbus-get-unique-name my-bus)
+
+@result{} ":1.0"
+@end lisp
 @end defun
 
 

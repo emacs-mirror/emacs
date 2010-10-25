@@ -117,7 +117,7 @@ static int in_float;
 
 static Lisp_Object float_error_arg, float_error_arg2;
 
-static char *float_error_fn_name;
+static const char *float_error_fn_name;
 
 /* Evaluate the floating point expression D, recording NUM
    as the original argument for error messages.
@@ -746,7 +746,7 @@ static Lisp_Object
 rounding_driver (Lisp_Object arg, Lisp_Object divisor,
 		 double (*double_round) (double),
 		 EMACS_INT (*int_round2) (EMACS_INT, EMACS_INT),
-		 char *name)
+		 const char *name)
 {
   CHECK_NUMBER_OR_FLOAT (arg);
 
@@ -987,16 +987,18 @@ int
 matherr (struct exception *x)
 {
   Lisp_Object args;
+  const char *name = x->name;
+
   if (! in_float)
     /* Not called from emacs-lisp float routines; do the default thing. */
     return 0;
   if (!strcmp (x->name, "pow"))
-    x->name = "expt";
+    name = "expt";
 
   args
-    = Fcons (build_string (x->name),
+    = Fcons (build_string (name),
 	     Fcons (make_float (x->arg1),
-		    ((!strcmp (x->name, "log") || !strcmp (x->name, "pow"))
+		    ((!strcmp (name, "log") || !strcmp (name, "pow"))
 		     ? Fcons (make_float (x->arg2), Qnil)
 		     : Qnil)));
   switch (x->type)

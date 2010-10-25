@@ -52,12 +52,8 @@
 (require 'frame)
 (require 'mouse)
 (require 'faces)
-(require 'easymenu)
 (require 'menu-bar)
 (require 'fontset)
-
-;; Not needed?
-;;(require 'ispell)
 
 (defgroup ns nil
   "GNUstep/Mac OS X specific features."
@@ -66,6 +62,7 @@
 ;; nsterm.m
 (defvar ns-version-string)
 (defvar ns-alternate-modifier)
+(defvar ns-right-alternate-modifier)
 
 ;;;; Command line argument handling.
 
@@ -284,6 +281,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (defvaralias 'mac-command-modifier 'ns-command-modifier)
 (defvaralias 'mac-control-modifier 'ns-control-modifier)
 (defvaralias 'mac-option-modifier 'ns-option-modifier)
+(defvaralias 'mac-right-option-modifier 'ns-right-option-modifier)
 (defvaralias 'mac-function-modifier 'ns-function-modifier)
 (declare-function ns-do-applescript "nsfns.m" (script))
 (defalias 'do-applescript 'ns-do-applescript)
@@ -293,7 +291,7 @@ The properties returned may include `top', `left', `height', and `width'."
   (unless (terminal-parameter frame 'x-setup-function-keys)
     (with-selected-frame frame
       (setq interprogram-cut-function 'x-select-text
-	    interprogram-paste-function 'x-cut-buffer-or-selection-value)
+	    interprogram-paste-function 'x-selection-value)
       (let ((map (copy-keymap ns-alternatives-map)))
 	(set-keymap-parent map (keymap-parent local-function-key-map))
 	(set-keymap-parent local-function-key-map map))
@@ -438,38 +436,6 @@ The properties returned may include `top', `left', `height', and `width'."
     ;; in OS X it's in the app menu already
     (define-key menu-bar-help-menu [info-panel]
       '("About Emacs..." . ns-do-emacs-info-panel)))
-
-;;;; Edit menu: Modify slightly
-
-;; Substitute a Copy function that works better under X (for GNUstep).
-(easy-menu-remove-item global-map '("menu-bar" "edit") 'copy)
-(define-key-after menu-bar-edit-menu [copy]
-  '(menu-item "Copy" ns-copy-including-secondary
-    :enable mark-active
-    :help "Copy text in region between mark and current position")
-  'cut)
-
-;; Change to same precondition as select-and-paste, as we don't have
-;; `x-selection-exists-p'.
-(easy-menu-remove-item global-map '("menu-bar" "edit") 'paste)
-(define-key-after menu-bar-edit-menu [paste]
-  '(menu-item "Paste" yank
-    :enable (and (cdr yank-menu) (not buffer-read-only))
-    :help "Paste (yank) text most recently cut/copied")
-  'copy)
-
-;; Change text to be more consistent with surrounding menu items `paste', etc.
-(easy-menu-remove-item global-map '("menu-bar" "edit") 'paste-from-menu)
-(define-key-after menu-bar-edit-menu [select-paste]
-  '(menu-item "Select and Paste" yank-menu
-    :enable (and (cdr yank-menu) (not buffer-read-only))
-    :help "Choose a string from the kill ring and paste it")
-  'paste)
-
-;; Separate undo from cut/paste section, add spell for platform consistency.
-(define-key-after menu-bar-edit-menu [separator-undo] '("--") 'undo)
-(define-key-after menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map) 'fill)
-
 
 ;;;; Services
 (declare-function ns-perform-service "nsfns.m" (service send))
@@ -815,6 +781,7 @@ unless the current buffer is a scratch buffer."
 
 ;; You say tomAYto, I say tomAHto..
 (defvaralias 'ns-option-modifier 'ns-alternate-modifier)
+(defvaralias 'ns-right-option-modifier 'ns-right-alternate-modifier)
 
 (defun ns-do-hide-emacs ()
   (interactive)
@@ -1003,7 +970,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (defun ns-get-pasteboard ()
   "Returns the value of the pasteboard."
-  (ns-get-cut-buffer-internal 'PRIMARY))
+  (ns-get-cut-buffer-internal 'CLIPBOARD))
 
 (declare-function ns-store-cut-buffer-internal "nsselect.m" (buffer string))
 
@@ -1011,27 +978,25 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   "Store STRING into the pasteboard of the Nextstep display server."
   ;; Check the data type of STRING.
   (if (not (stringp string)) (error "Nonstring given to pasteboard"))
-  (ns-store-cut-buffer-internal 'PRIMARY string))
+  (ns-store-cut-buffer-internal 'CLIPBOARD string))
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
-;; from x-cut-buffer-or-selection-value.
+;; from x-selection-value.
 (defvar ns-last-selected-text nil)
 
-(defun x-select-text (text &optional push)
+(defun x-select-text (text)
   "Select TEXT, a string, according to the window system.
 
-On X, put TEXT in the primary X selection.  For backward
-compatibility with older X applications, set the value of X cut
-buffer 0 as well, and if the optional argument PUSH is non-nil,
-rotate the cut buffers.  If `x-select-enable-clipboard' is
-non-nil, copy the text to the X clipboard as well.
+On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
+clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
+the primary selection.
 
-On Windows, make TEXT the current selection.  If
+On MS-Windows, make TEXT the current selection.  If
 `x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.  The argument PUSH is ignored.
+clipboard as well.
 
-On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
+On Nextstep, put TEXT in the pasteboard."
   ;; Don't send the pasteboard too much text.
   ;; It becomes slow, and if really big it causes errors.
   (ns-set-pasteboard text)
@@ -1040,11 +1005,10 @@ On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
 ;; Return the value of the current Nextstep selection.  For
 ;; compatibility with older Nextstep applications, this checks cut
 ;; buffer 0 before retrieving the value of the primary selection.
-(defun x-cut-buffer-or-selection-value ()
+(defun x-selection-value ()
   (let (text)
 
-    ;; Consult the selection, then the cut buffer.  Treat empty strings
-    ;; as if they were unset.
+    ;; Consult the selection.  Treat empty strings as if they were unset.
     (or text (setq text (ns-get-pasteboard)))
     (if (string= text "") (setq text nil))
 
@@ -1138,7 +1102,7 @@ For Nextstep, this is a list of non-PANTONE colors returned by
 the operating system.")
 
 (defun xw-defined-colors (&optional frame)
-  "Internal function called by `defined-colors'."
+  "Internal function called by `defined-colors', which see."
   (or frame (setq frame (selected-frame)))
   (let ((all-colors x-colors)
 	(this-color nil)
@@ -1263,5 +1227,4 @@ the operating system.")
 
 (provide 'ns-win)
 
-;; arch-tag: eb138a45-4e2e-4d68-b1c9-a39665731644
 ;;; ns-win.el ends here

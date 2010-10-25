@@ -40,8 +40,7 @@
 (defun gnus-backlog-buffer ()
   "Return the backlog buffer."
   (or (get-buffer gnus-backlog-buffer)
-      (save-excursion
-	(set-buffer (gnus-get-buffer-create gnus-backlog-buffer))
+      (with-current-buffer (gnus-get-buffer-create gnus-backlog-buffer)
 	(buffer-disable-undo)
 	(setq buffer-read-only t)
 	(get-buffer gnus-backlog-buffer))))
@@ -76,8 +75,7 @@
 	   (gnus-backlog-remove-oldest-article))
 	(push ident gnus-backlog-articles)
 	;; Insert the new article.
-	(save-excursion
-	  (set-buffer (gnus-backlog-buffer))
+	(with-current-buffer (gnus-backlog-buffer)
 	  (let (buffer-read-only)
 	    (goto-char (point-max))
 	    (unless (bolp)
@@ -90,8 +88,7 @@
 	      (gnus-error 3 "Article %d is blank" number))))))))
 
 (defun gnus-backlog-remove-oldest-article ()
-  (save-excursion
-    (set-buffer (gnus-backlog-buffer))
+  (with-current-buffer (gnus-backlog-buffer)
     (goto-char (point-min))
     (if (zerop (buffer-size))
 	()				; The buffer is empty.
@@ -114,8 +111,7 @@
 	  beg end)
       (when (memq ident gnus-backlog-articles)
 	;; It was in the backlog.
-	(save-excursion
-	  (set-buffer (gnus-backlog-buffer))
+	(with-current-buffer (gnus-backlog-buffer)
 	  (let (buffer-read-only)
 	    (when (setq beg (text-property-any
 			     (point-min) (point-max) 'gnus-backlog
@@ -138,8 +134,7 @@
 	  beg end)
       (when (memq ident gnus-backlog-articles)
 	;; It was in the backlog.
-	(save-excursion
-	  (set-buffer (gnus-backlog-buffer))
+	(with-current-buffer (gnus-backlog-buffer)
 	  (if (not (setq beg (text-property-any
 			      (point-min) (point-max) 'gnus-backlog
 			      ident)))
@@ -150,8 +145,7 @@
 	    (setq end
 		  (next-single-property-change
 		   (1+ beg) 'gnus-backlog (current-buffer) (point-max)))))
-	(save-excursion
-	  (and buffer (set-buffer buffer))
+	(with-current-buffer (or (current-buffer) buffer)
 	  (let ((buffer-read-only nil))
 	    (erase-buffer)
 	    (insert-buffer-substring gnus-backlog-buffer beg end)))
@@ -159,5 +153,4 @@
 
 (provide 'gnus-bcklg)
 
-;; arch-tag: 66259e56-505a-4bba-8a0d-3552c5b94e39
 ;;; gnus-bcklg.el ends here

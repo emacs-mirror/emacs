@@ -67,7 +67,7 @@
 	       :documentation
 	       "The list of types currently in scope.
 For C++, this would contain anonymous namespaces known, and
-anything labled by a `using' statement.")
+anything labeled by a `using' statement.")
    (parents :initform nil
 	    :documentation
 	    "List of parents in scope w/in the body of this function.
@@ -239,8 +239,11 @@ are from nesting data types."
 	   )
       ;; In case of arg lists or some-such, throw out non-types.
       (while (and stack (not (semantic-tag-of-class-p pparent 'type)))
-	(setq stack (cdr stack)
-	            pparent (car (cdr stack))))
+	(setq stack (cdr stack) pparent (car (cdr stack))))
+
+      ;; Remove duplicates
+      (while (member pparent scopetypes)
+	(setq stack (cdr stack) pparent (car (cdr stack))))
 
       ;; Step 1:
       ;;    Analyze the stack of tags we are nested in as parents.
@@ -611,7 +614,7 @@ whose tags can be searched when needed, OR it may be a scope object."
 	  ;; to do any of the stuff related to variables and what-not.
 	  (setq tmpscope (semantic-scope-cache "mini"))
 	  (let* ( ;; Step 1:
-		 (scopetypes (semantic-analyze-scoped-types (point)))
+		 (scopetypes (cons type (semantic-analyze-scoped-types (point))))
 		 (parents (semantic-analyze-scope-nested-tags (point) scopetypes))
 		 ;;(parentinherited (semantic-analyze-scope-lineage-tags parents scopetypes))
 		 (lscope nil)

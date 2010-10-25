@@ -3,6 +3,7 @@
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

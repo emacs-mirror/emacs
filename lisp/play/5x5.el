@@ -108,12 +108,7 @@
 (defvar 5x5-buffer-name "*5x5*"
   "Name of the 5x5 play buffer.")
 
-(defvar 5x5-mode-map nil
-  "Local keymap for the 5x5 game.")
-
-;; Keymap.
-
-(unless 5x5-mode-map
+(defvar 5x5-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
     (define-key map "?"                       #'describe-mode)
@@ -141,7 +136,8 @@
     (define-key map [(control c) (control x)] #'5x5-crack-xor-mutate)
     (define-key map "n"                       #'5x5-new-game)
     (define-key map "q"                       #'5x5-quit-game)
-    (setq 5x5-mode-map map)))
+    map)
+  "Local keymap for the 5x5 game.")
 
 ;; Menu definition.
 

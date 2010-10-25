@@ -1,6 +1,8 @@
 /* xfaces.c -- "Face" primitives.
-   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+  2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -321,11 +323,6 @@ Lisp_Object QCreverse_video;
 Lisp_Object QCoverline, QCstrike_through, QCbox, QCinherit;
 Lisp_Object QCfontset;
 
-/* Keywords symbols used for font properties.  */
-extern Lisp_Object QCfoundry, QCadstyle, QCregistry;
-extern Lisp_Object QCspacing, QCsize, QCavgwidth;
-extern Lisp_Object Qp;
-
 /* Symbols used for attribute values.  */
 
 Lisp_Object Qnormal, Qbold, Qultra_light, Qextra_light, Qlight;
@@ -351,15 +348,12 @@ Lisp_Object Qframe_set_background_mode;
 Lisp_Object Qdefault, Qtool_bar, Qregion, Qfringe;
 Lisp_Object Qheader_line, Qscroll_bar, Qcursor, Qborder, Qmouse, Qmenu;
 Lisp_Object Qmode_line_inactive, Qvertical_border;
-extern Lisp_Object Qmode_line;
 
 /* The symbol `face-alias'.  A symbols having that property is an
    alias for another face.  Value of the property is the name of
    the aliased face.  */
 
 Lisp_Object Qface_alias;
-
-extern Lisp_Object Qcircular_list;
 
 /* Default stipple pattern used on monochrome displays.  This stipple
    pattern is used on monochrome displays instead of shades of gray
@@ -750,10 +744,9 @@ x_free_gc (struct frame *f, GC gc)
 /* NS emulation of GCs */
 
 static INLINE GC
-x_create_gc (f, mask, xgcv)
-     struct frame *f;
-     unsigned long mask;
-     XGCValues *xgcv;
+x_create_gc (struct frame *f,
+             unsigned long mask,
+             XGCValues *xgcv)
 {
   GC gc = xmalloc (sizeof (*gc));
   if (gc)
@@ -762,9 +755,7 @@ x_create_gc (f, mask, xgcv)
 }
 
 static INLINE void
-x_free_gc (f, gc)
-     struct frame *f;
-     GC gc;
+x_free_gc (struct frame *f, GC gc)
 {
   xfree (gc);
 }
@@ -6742,7 +6733,8 @@ See `set-face-stipple' for possible values for this variable.  */);
   Vface_default_stipple = make_pure_c_string ("gray3");
 
   DEFVAR_LISP ("tty-defined-color-alist", &Vtty_defined_color_alist,
-   doc: /* An alist of defined terminal colors and their RGB values.  */);
+   doc: /* An alist of defined terminal colors and their RGB values.
+See the docstring of `tty-color-alist' for the details.  */);
   Vtty_defined_color_alist = Qnil;
 
   DEFVAR_LISP ("scalable-fonts-allowed", &Vscalable_fonts_allowed,
@@ -6819,5 +6811,3 @@ a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
 #endif
 }
 
-/* arch-tag: 8a0f7598-5517-408d-9ab3-1da6fcd4c749
-   (do not change this comment) */

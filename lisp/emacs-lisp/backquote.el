@@ -6,6 +6,7 @@
 ;; Author: Rick Sladkey <jrs@world.std.com>
 ;; Maintainer: FSF
 ;; Keywords: extensions, internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

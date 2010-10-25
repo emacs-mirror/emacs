@@ -3123,10 +3123,12 @@ class of the file (using s to separate nested class ids)."
     ("\\$\\(\\w+\\)" (1 font-lock-variable-name-face))
     ("^\\s-*\\(\\w\\(\\w\\|\\s_\\)*\\)" (1 font-lock-keyword-face))))
 
-(defvar gdb-script-font-lock-syntactic-keywords
-  '(("^document\\s-.*\\(\n\\)" (1 "< b"))
-    ("^end\\>"
-     (0 (unless (eq (match-beginning 0) (point-min))
+(defconst gdb-script-syntax-propertize-function
+  (syntax-propertize-rules
+   ("^document\\s-.*\\(\n\\)" (1 "< b"))
+   ("^end\\(\\>\\)"
+    (1 (ignore
+        (unless (eq (match-beginning 0) (point-min))
           ;; We change the \n in front, which is more difficult, but results
           ;; in better highlighting.  If the doc is empty, the single \n is
           ;; both the beginning and the end of the docstring, which can't be
@@ -3138,10 +3140,9 @@ class of the file (using s to separate nested class ids)."
                              'syntax-table (eval-when-compile
                                              (string-to-syntax "> b")))
           ;; Make sure that rehighlighting the previous line won't erase our
-          ;; syntax-table property.
+          ;; syntax-table property and that modifying `end' will.
           (put-text-property (1- (match-beginning 0)) (match-end 0)
-                             'font-lock-multiline t)
-          nil)))))
+                             'syntax-multiline t)))))))
 
 (defun gdb-script-font-lock-syntactic-face (state)
   (cond
@@ -3217,13 +3218,6 @@ Treats actions as defuns."
     (goto-char (point-max)))
   t)
 
-;; Besides .gdbinit, gdb documents other names to be usable for init
-;; files, cross-debuggers can use something like
-;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
-;; don't interfere with each other.
-;;;###autoload
-(add-to-list 'auto-mode-alist (cons (purecopy "/\\.[a-z0-9-]*gdbinit") 'gdb-script-mode))
-
 ;;;###autoload
 (define-derived-mode gdb-script-mode nil "GDB-Script"
   "Major mode for editing GDB scripts."
@@ -3239,10 +3233,13 @@ Treats actions as defuns."
        #'gdb-script-end-of-defun)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-script-font-lock-keywords nil nil ((?_ . "w")) nil
-	 (font-lock-syntactic-keywords
-	  . gdb-script-font-lock-syntactic-keywords)
 	 (font-lock-syntactic-face-function
-	  . gdb-script-font-lock-syntactic-face))))
+	  . gdb-script-font-lock-syntactic-face)))
+  ;; Recognize docstrings.
+  (set (make-local-variable 'syntax-propertize-function)
+       gdb-script-syntax-propertize-function)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'syntax-propertize-multiline 'append 'local))
 
 
 ;;; tooltips for GUD

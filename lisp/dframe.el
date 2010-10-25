@@ -430,7 +430,8 @@ a cons cell indicating a position of the form (LEFT . TOP)."
   (unless (or (not window-system) (eq window-system 'pc))
     (let* ((pfx (dframe-frame-parameter parent-frame 'left))
 	   (pfy (dframe-frame-parameter parent-frame 'top))
-	   (pfw (frame-pixel-width parent-frame))
+	   (pfw (+ (tool-bar-pixel-width parent-frame)
+		   (frame-pixel-width parent-frame)))
 	   (pfh (frame-pixel-height parent-frame))
 	   (nfw (frame-pixel-width new-frame))
 	   (nfh (frame-pixel-height new-frame))
@@ -459,7 +460,7 @@ a cons cell indicating a position of the form (LEFT . TOP)."
 		      (- (x-display-pixel-height) (car (cdr pfy)) pfh)
 		    (car (cdr pfy)))))
       (cond ((eq location 'right)
-	     (setq newleft (+ pfx pfw 5)
+	     (setq newleft (+ pfx pfw 10)
 		   newtop pfy))
 	    ((eq location 'left)
 	     (setq newleft (- pfx 10 nfw)
@@ -471,7 +472,7 @@ a cons cell indicating a position of the form (LEFT . TOP)."
 		   ;; extra 10 is just dressings for window
 		   ;; decorations.
 		   (let* ((left-guess (- pfx 10 nfw))
-			  (right-guess (+ pfx pfw 5))
+			  (right-guess (+ pfx pfw 10))
 			  (left-margin left-guess)
 			  (right-margin (- (x-display-pixel-width)
 					   right-guess 5 nfw)))

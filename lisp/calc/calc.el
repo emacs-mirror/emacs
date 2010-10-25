@@ -425,6 +425,27 @@ in normal mode."
   :group 'calc
   :type 'integer)
 
+(defcustom calc-highlight-selections-with-faces
+  nil
+  "If non-nil, use a separate face to indicate selected sub-formulas.
+If `calc-show-selections' is non-nil, then selected sub-formulas are shown
+by displaying the rest of the formula in `calc-nonselected-face'.  
+If `calc-show-selections' is nil, then selected sub-formulas are shown
+by displaying the sub-formula in `calc-selected-face'."
+  :group 'calc
+  :type 'boolean)
+
+(defface calc-nonselected-face
+  '((t :inherit shadow       
+       :slant italic))
+  "Face used to show the non-selected portion of a formula."
+  :group 'calc)
+
+(defface calc-selected-face
+  '((t :weight bold))
+  "Face used to show the selected portion of a formula."
+  :group 'calc)
+
 (defvar calc-bug-address "jay.p.belanger@gmail.com"
   "Address of the maintainer of Calc, for use by `report-calc-bug'.")
 
@@ -1385,8 +1406,7 @@ commands given here will actually operate on the *Calculator* stack."
     (set (make-local-variable 'calc-main-buffer) buf))
   (when (= (buffer-size) 0)
     (let ((buffer-read-only nil))
-      (insert (propertize (concat "Emacs Calculator Trail\n")
-			  'font-lock-face 'italic))))
+      (insert (propertize "Emacs Calculator Trail\n" 'face 'italic))))
   (run-mode-hooks 'calc-trail-mode-hook))
 
 (defun calc-create-buffer ()
@@ -1976,7 +1996,7 @@ See calc-keypad for details."
 	 (erase-buffer)
 	 (when calc-show-banner
 	   (insert (propertize "--- Emacs Calculator Mode ---\n"
-			       'font-lock-face 'italic)))
+			       'face 'italic)))
 	 (while thing
 	   (goto-char (point-min))
 	   (when calc-show-banner

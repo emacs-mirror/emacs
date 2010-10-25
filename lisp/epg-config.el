@@ -4,6 +4,7 @@
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
+;; Package: epg
 
 ;; This file is part of GNU Emacs.
 
@@ -36,7 +37,9 @@
   :version "23.1"
   :group 'data)
 
-(defcustom epg-gpg-program "gpg"
+(defcustom epg-gpg-program (or (executable-find "gpg")
+			       (executable-find "gpg2")
+			       "gpg")
   "The `gpg' executable."
   :group 'epg
   :type 'string)

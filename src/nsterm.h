@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "character.h"
 #include "font.h"
+#include "sysselect.h"
 
 #ifdef HAVE_NS
 
@@ -113,10 +114,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - initWithTitle: (NSString *)title frame: (struct frame *)f;
 - (void)setFrame: (struct frame *)f;
 - (void)menuNeedsUpdate: (NSMenu *)menu; /* (delegate method) */
-- (NSString *)parseKeyEquiv: (char *)key;
+- (NSString *)parseKeyEquiv: (const char *)key;
 - (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr;
 - (void)fillWithWidgetValue: (void *)wvptr;
-- (EmacsMenu *)addSubmenuWithTitle: (char *)title forFrame: (struct frame *)f;
+- (EmacsMenu *)addSubmenuWithTitle: (const char *)title forFrame: (struct frame *)f;
 - (void) clear;
 - (Lisp_Object)runMenuAt: (NSPoint)p forFrame: (struct frame *)f
                  keymaps: (int)keymaps;
@@ -143,7 +144,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (void) clearActive;
 - (BOOL) changed;
 - (void) addDisplayItemWithImage: (EmacsImage *)img idx: (int)idx
-                        helpText: (char *)help
+                        helpText: (const char *)help
                          enabled: (BOOL)enabled;
 /* delegate methods */
 - (NSToolbarItem *)toolbar: (NSToolbar *)toolbar
@@ -712,7 +713,9 @@ extern void ns_set_name_as_filename (struct frame *f);
 extern void ns_set_doc_edited (struct frame *f, Lisp_Object arg);
 
 extern int
-ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
+ns_defined_color (struct frame *f,
+                  const char *name,
+                  XColor *color_def, int alloc,
                   char makeIndex);
 extern void
 ns_query_color (void *col, XColor *color_def, int setPixel);
@@ -742,10 +745,34 @@ extern Lisp_Object find_and_return_menu_selection (FRAME_PTR f,
 extern Lisp_Object ns_popup_dialog (Lisp_Object position, Lisp_Object contents,
                                     Lisp_Object header);
 
-/* two more prototypes that should be moved to a more general include file */
+/* More prototypes that should be moved to a more general include file */
 extern void set_frame_menubar (struct frame *f, int first_time, int deep_p);
 extern void x_set_window_size (struct frame *f, int change_grav,
                               int cols, int rows);
+extern void x_sync (struct frame *);
+extern Lisp_Object x_get_focus_frame (struct frame *);
+extern void x_set_mouse_position (struct frame *f, int h, int v);
+extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
+extern void x_make_frame_visible (struct frame *f);
+extern void x_make_frame_invisible (struct frame *f);
+extern void x_iconify_frame (struct frame *f);
+extern int x_char_width (struct frame *f);
+extern int x_char_height (struct frame *f);
+extern int x_pixel_width (struct frame *f);
+extern int x_pixel_height (struct frame *f);
+extern void x_set_frame_alpha (struct frame *f);
+extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_tool_bar_lines (struct frame *f,
+                                  Lisp_Object value,
+                                  Lisp_Object oldval);
+extern void x_activate_menubar (struct frame *);
+extern void free_frame_menubar (struct frame *);
+
+extern void ns_init_paths (void);
+extern void syms_of_nsterm (void);
+extern void syms_of_nsfns (void);
+extern void syms_of_nsmenu (void);
+extern void syms_of_nsselect (void);
 
 /* From nsimage.m, needed in image.c */
 struct image;
@@ -764,6 +791,8 @@ extern int x_display_pixel_height (struct ns_display_info *);
 extern int x_display_pixel_width (struct ns_display_info *);
 
 /* This in nsterm.m */
+extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
+                      fd_set *exceptfds, struct timeval *timeout);
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
 extern NSPoint last_mouse_motion_position;

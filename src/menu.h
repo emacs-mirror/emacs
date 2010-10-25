@@ -21,17 +21,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 extern Lisp_Object Vmenu_updating_frame;
 
+extern void x_set_menu_bar_lines (struct frame *f,
+                                  Lisp_Object value,
+                                  Lisp_Object oldval);
+
 extern void init_menu_items (void);
 extern void finish_menu_items (void);
 extern void discard_menu_items (void);
 extern void save_menu_items (void);
 extern int parse_single_submenu (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void list_of_panes (Lisp_Object);
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI) \
+  || defined (HAVE_NS)
 extern void free_menubar_widget_value_tree (widget_value *);
 extern void update_submenu_strings (widget_value *);
 extern void find_and_call_menu_selection (FRAME_PTR, int,
                                           Lisp_Object, void *);
+extern widget_value *xmalloc_widget_value (void);
+extern widget_value *digest_single_submenu (int, int, int);
 #endif
 
 #ifdef HAVE_X_WINDOWS
@@ -39,11 +46,11 @@ extern void mouse_position_for_popup (FRAME_PTR f, int *x, int *y);
 #endif
 
 extern Lisp_Object w32_menu_show (FRAME_PTR, int, int, int, int,
-				  Lisp_Object, char **);
+				  Lisp_Object, const char **);
 extern Lisp_Object ns_menu_show (FRAME_PTR, int, int, int, int,
-				 Lisp_Object, char **);
+				 Lisp_Object, const char **);
 extern Lisp_Object xmenu_show (FRAME_PTR, int, int, int, int,
-			       Lisp_Object, char **, EMACS_UINT);
+			       Lisp_Object, const char **, EMACS_UINT);
 #endif /* MENU_H */
 
 /* arch-tag: c32b2778-724d-4e85-81d7-45f98530a988

@@ -48,7 +48,7 @@ which commands are considered visual in nature."
 ;;; User Variables:
 
 (defcustom eshell-term-load-hook '(eshell-term-initialize)
-  "*A list of functions to call when loading `eshell-term'."
+  "A list of functions to call when loading `eshell-term'."
   :type 'hook
   :group 'eshell-term)
 
@@ -58,19 +58,19 @@ which commands are considered visual in nature."
     "less" "more"                       ; M-x view-file
     "lynx" "ncftp"                      ; w3.el, ange-ftp
     "pine" "tin" "trn" "elm")           ; GNUS!!
-  "*A list of commands that present their output in a visual fashion."
+  "A list of commands that present their output in a visual fashion."
   :type '(repeat string)
   :group 'eshell-term)
 
 (defcustom eshell-term-name "eterm"
-  "*Name to use for the TERM variable when running visual commands.
+  "Name to use for the TERM variable when running visual commands.
 See `term-term-name' in term.el for more information on how this is
 used."
   :type 'string
   :group 'eshell-term)
 
 (defcustom eshell-escape-control-x t
-  "*If non-nil, allow <C-x> to be handled by Emacs key in visual buffers.
+  "If non-nil, allow <C-x> to be handled by Emacs key in visual buffers.
 See the variable `eshell-visual-commands'.  If this variable is set to
 nil, <C-x> will send that control character to the invoked process."
   :type 'boolean
@@ -187,8 +187,7 @@ allowed."
 ;   (if (boundp 'xemacs-logo)
 ;       (eshell-term-send-raw-string
 ;        (or (condition-case () (x-get-selection) (error ()))
-;	   (x-get-cutbuffer)
-;	   (error "No selection or cut buffer available")))
+;	   (error "No selection available")))
 ;     ;; Give temporary modes such as isearch a chance to turn off.
 ;     (run-hooks 'mouse-leave-buffer-hook)
 ;     (setq this-command 'yank)

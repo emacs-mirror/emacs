@@ -6,6 +6,7 @@
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
 ;; Keywords: help
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

@@ -49,39 +49,31 @@ typedef struct _popserver *popserver;
 #define POP_NO_HESIOD	(1<<1)
 #define POP_NO_GETPASS 	(1<<2)
 
-#ifdef __STDC__
-#define _ARGS(a) a
-#else
-#define _ARGS(a) ()
-#endif
-
-extern popserver pop_open _ARGS((char *host, char *username, char *password,
-				 int flags));
-extern int pop_stat _ARGS((popserver server, int *count, int *size));
-extern int pop_list _ARGS((popserver server, int message, int **IDs,
-			   int **size));
-extern int pop_retrieve _ARGS((popserver server, int message, int markfrom,
-			       char **));
-extern int pop_retrieve_first _ARGS((popserver server, int message,
-				     char **response));
-extern int pop_retrieve_next _ARGS((popserver server, char **line));
-extern int pop_retrieve_flush _ARGS((popserver server));
-extern int pop_top_first _ARGS((popserver server, int message, int lines,
-				char **response));
-extern int pop_top_next _ARGS((popserver server, char **line));
-extern int pop_top_flush _ARGS((popserver server));
-extern int pop_multi_first _ARGS((popserver server, char *command,
-				  char **response));
-extern int pop_multi_next _ARGS((popserver server, char **line));
-extern int pop_multi_flush _ARGS((popserver server));
-extern int pop_delete _ARGS((popserver server, int message));
-extern int pop_noop _ARGS((popserver server));
-extern int pop_last _ARGS((popserver server));
-extern int pop_reset _ARGS((popserver server));
-extern int pop_quit _ARGS((popserver server));
-extern void pop_close _ARGS((popserver));
-
-#undef _ARGS
+extern popserver pop_open (char *host, char *username, char *password,
+                           int flags);
+extern int pop_stat (popserver server, int *count, int *size);
+extern int pop_list (popserver server, int message, int **IDs,
+                     int **size);
+extern int pop_retrieve (popserver server, int message, int markfrom,
+                         char **);
+extern int pop_retrieve_first (popserver server, int message,
+                               char **response);
+extern int pop_retrieve_next (popserver server, char **line);
+extern int pop_retrieve_flush (popserver server);
+extern int pop_top_first (popserver server, int message, int lines,
+                          char **response);
+extern int pop_top_next (popserver server, char **line);
+extern int pop_top_flush (popserver server);
+extern int pop_multi_first (popserver server, const char *command,
+                            char **response);
+extern int pop_multi_next (popserver server, char **line);
+extern int pop_multi_flush (popserver server);
+extern int pop_delete (popserver server, int message);
+extern int pop_noop (popserver server);
+extern int pop_last (popserver server);
+extern int pop_reset (popserver server);
+extern int pop_quit (popserver server);
+extern void pop_close (popserver);
 
 /* arch-tag: 76cc5f58-8e86-48fa-bc72-a7c6cb1c4f1c
    (do not change this comment) */

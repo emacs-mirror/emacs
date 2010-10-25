@@ -244,7 +244,7 @@ string_to_object (Lisp_Object val, Lisp_Object defalt)
 {
   struct gcpro gcpro1, gcpro2;
   Lisp_Object expr_and_pos;
-  int pos;
+  EMACS_INT pos;
 
   GCPRO2 (val, defalt);
 
@@ -262,7 +262,7 @@ string_to_object (Lisp_Object val, Lisp_Object defalt)
     {
       /* Ignore trailing whitespace; any other trailing junk
 	 is an error.  */
-      int i;
+      EMACS_INT i;
       pos = string_char_to_byte (val, pos);
       for (i = pos; i < SBYTES (val); i++)
 	{
@@ -378,7 +378,7 @@ DEFUN ("minibuffer-contents", Fminibuffer_contents,
 If the current buffer is not a minibuffer, return its entire contents.  */)
   (void)
 {
-  int prompt_end = XINT (Fminibuffer_prompt_end ());
+  EMACS_INT prompt_end = XINT (Fminibuffer_prompt_end ());
   return make_buffer_string (prompt_end, ZV, 1);
 }
 
@@ -388,7 +388,7 @@ DEFUN ("minibuffer-contents-no-properties", Fminibuffer_contents_no_properties,
 If the current buffer is not a minibuffer, return its entire contents.  */)
   (void)
 {
-  int prompt_end = XINT (Fminibuffer_prompt_end ());
+  EMACS_INT prompt_end = XINT (Fminibuffer_prompt_end ());
   return make_buffer_string (prompt_end, ZV, 0);
 }
 
@@ -399,7 +399,7 @@ That is what completion commands operate on.
 If the current buffer is not a minibuffer, return its entire contents.  */)
   (void)
 {
-  int prompt_end = XINT (Fminibuffer_prompt_end ());
+  EMACS_INT prompt_end = XINT (Fminibuffer_prompt_end ());
   if (PT < prompt_end)
     error ("Cannot do completion in the prompt");
   return make_buffer_string (prompt_end, PT, 1);
@@ -2088,7 +2088,8 @@ syms_of_minibuf (void)
   staticpro (&Qread_expression_history);
 
   DEFVAR_LISP ("read-buffer-function", &Vread_buffer_function,
-	       doc: /* If this is non-nil, `read-buffer' does its work by calling this function.  */);
+	       doc: /* If this is non-nil, `read-buffer' does its work by calling this function.
+The function is called with the arguments passed to `read-buffer'.  */);
   Vread_buffer_function = Qnil;
 
   DEFVAR_BOOL ("read-buffer-completion-ignore-case",

@@ -31,6 +31,7 @@ s/\.h\.in/.h-in/
 /^ALL_CFLAGS *=/s/@[^@\n]*@//g
 /^CPPFLAGS *=/s/@[^@\n]*@//
 /^LDFLAGS *=/s/@[^@\n]*@//
+/^LD_FIRSTFLAG *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
 /^LIBES *=/,/^ *$/ {
   s/@[^@\n]*@//g
@@ -42,7 +43,6 @@ s/\.h\.in/.h-in/
 /^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
 /^C_WARNINGS_SWITCH *=/s/@C_WARNINGS_SWITCH@//
 /^PROFILING_CFLAGS *=/s/@PROFILING_CFLAGS@//
-/^PROFILING_LDFLAGS *=/s/@PROFILING_LDFLAGS@//
 #/^LD_SWITCH_X_SITE *=/s/@LD_SWITCH_X_SITE@//
 /^LD_SWITCH_SYSTEM_TEMACS *=/s/@LD_SWITCH_SYSTEM_TEMACS@//
 /^LD_SWITCH_X_SITE_AUX *=/s/@LD_SWITCH_X_SITE_AUX@//
@@ -51,7 +51,6 @@ s/\.h\.in/.h-in/
 /^TEMACS_LDFLAGS2 *=/s/@TEMACS_LDFLAGS2@/$(LDFLAGS)/
 /^LIBS_SYSTEM *=/s/@LIBS_SYSTEM@//
 /^LIB_GCC *=/s/@LIB_GCC@//
-/^LD *=/s/@LINKER@/$(CC)/
 /^LIB_STANDARD *=/s/@LIB_STANDARD@//
 /^LIB_MATH *=/s/@LIB_MATH@/-lm/
 /^LIBTIFF *=/s/@LIBTIFF@//
@@ -88,6 +87,10 @@ s/\.h\.in/.h-in/
 /^CFLAGS_SOUND *=/s/@CFLAGS_SOUND@//
 /^RSVG_LIBS *=/s/@RSVG_LIBS@//
 /^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
+/^IMAGEMAGICK_LIBS *=/s/@IMAGEMAGICK_LIBS@//
+/^IMAGEMAGICK_CFLAGS *=/s/@IMAGEMAGICK_CFLAGS@//
+/^LIBXML2_LIBS *=/s/@LIBXML2_LIBS@//
+/^LIBXML2_CFLAGS *=/s/@LIBXML2_CFLAGS@//
 /^WIDGET_OBJ *=/s/@WIDGET_OBJ@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
 /^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o w16select.o/
@@ -100,6 +103,8 @@ s/\.h\.in/.h-in/
 /^GNU_OBJC_CFLAGS*=/s/@GNU_OBJC_CFLAGS@//
 /^LIBRESOLV *=/s/@LIBRESOLV@//
 /^LIBSELINUX_LIBS *=/s/@LIBSELINUX_LIBS@//
+/^LIBGNUTLS_LIBS *=/s/@[^@\n]*@//
+/^LIBGNUTLS_CFLAGS *=/s/@[^@\n]*@//
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
 /^START_FILES *=/s/@START_FILES@//
 /^OTHER_FILES *=/s/@OTHER_FILES@//
@@ -118,7 +123,7 @@ s/\.h\.in/.h-in/
 /^RALLOC_OBJ *=/s/@RALLOC_OBJ@/ralloc.o/
 /^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/
 /^POST_ALLOC_OBJ *=/s/@POST_ALLOC_OBJ@/$(vmlimitobj)/
-/^UNEXEC_OBJ *=/s/@UNEXEC_OBJ@/unexec.o/
+/^UNEXEC_OBJ *=/s/@UNEXEC_OBJ@/unexcoff.o/
 /^CANNOT_DUMP *=/s/@CANNOT_DUMP@/no/
 /^DEPFLAGS *=/s/@DEPFLAGS@//
 /^MKDEPDIR *=/s/@MKDEPDIR@//
@@ -126,12 +131,12 @@ s/\.h\.in/.h-in/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
-/^.\${libsrc}make-docfile.*>/s!make-docfile!make-docfile -o ../etc/DOC!
-/^.\${libsrc}make-doc/s!>.*$!!
+/^.\$(libsrc)\/make-docfile.*>/s!make-docfile!make-docfile -o ../etc/DOC!
+/^.\$(libsrc)\/make-doc/s!>.*$!!
 /^[ 	]*$/d
 /^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
-/^	if test "\${CANNOT_DUMP}" =/,/^	else /d
+/^	if test "\$(CANNOT_DUMP)" =/,/^	else /d
 /^	fi/d
 /^	LC_ALL=C \$(RUN_TEMACS)/i\
 	stubedit temacs.exe minstack=1024k
@@ -147,7 +152,7 @@ s/ || true\; \\$//
 /^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
 /^	#/d
-/^	cd.*make-docfile/s!$!; cd ${dot}${dot}/src!
+/^	cd.*make-docfile/s!$!; cd ../src!
 /^	@: /d
 /^	-\{0,1\} *ln -/s/ln -f/cp -pf/
 /^[ 	]touch /s/touch/djecho $@ >/

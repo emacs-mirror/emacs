@@ -156,9 +156,6 @@ The default value is \(author subject date group annotation\)."
   "The current version of the format used by bookmark files.
 You should never need to change this.")
 
-(defvar gnus-bookmark-after-jump-hook nil
-  "Hook run after `gnus-bookmark-jump' jumps to a Gnus bookmark.")
-
 (defvar gnus-bookmark-alist ()
   "Association list of Gnus bookmarks and their records.
 The format of the alist is
@@ -292,8 +289,8 @@ So the cdr of each bookmark is an alist too.")
   (interactive)
   (gnus-bookmark-maybe-load-default-file)
   (let* ((bookmark (or bmk-name
-	  (completing-read "Jump to bookmarked article: "
-			   gnus-bookmark-alist)))
+                       (gnus-completing-read "Jump to bookmarked article"
+                                             (mapcar 'car gnus-bookmark-alist))))
 	 (bmk-record (cadr (assoc bookmark gnus-bookmark-alist)))
 	 (group (cdr (assoc 'group bmk-record)))
 	 (message-id (cdr (assoc 'message-id bmk-record))))
@@ -828,5 +825,4 @@ probably because we were called from there."
 
 (provide 'gnus-bookmark)
 
-;; arch-tag: 779df694-366f-46e8-84b2-1d0340e6f525
 ;;; gnus-bookmark.el ends here

@@ -665,8 +665,6 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   return definition;
 }
 
-extern Lisp_Object Qfunction_documentation;
-
 DEFUN ("defalias", Fdefalias, Sdefalias, 2, 3, 0,
        doc: /* Set SYMBOL's function definition to DEFINITION, and return DEFINITION.
 Associates the function with the current load file, if any.
@@ -1866,6 +1864,7 @@ BUFFER defaults to the current buffer.  */)
 	Lisp_Object tail, elt, tmp;
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	XSETBUFFER (tmp, buf);
+	XSETSYMBOL (variable, sym); /* Update in case of aliasing.  */
 
 	for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
 	  {
@@ -2083,13 +2082,14 @@ ARRAY may be a vector, a string, a char-table, a bool-vector,
 or a byte-code object.  IDX starts at 0.  */)
   (register Lisp_Object array, Lisp_Object idx)
 {
-  register int idxval;
+  register EMACS_INT idxval;
 
   CHECK_NUMBER (idx);
   idxval = XINT (idx);
   if (STRINGP (array))
     {
-      int c, idxval_byte;
+      int c;
+      EMACS_INT idxval_byte;
 
       if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
@@ -2137,7 +2137,7 @@ Return NEWELT.  ARRAY may be a vector, a string, a char-table or a
 bool-vector.  IDX starts at 0.  */)
   (register Lisp_Object array, Lisp_Object idx, Lisp_Object newelt)
 {
-  register int idxval;
+  register EMACS_INT idxval;
 
   CHECK_NUMBER (idx);
   idxval = XINT (idx);
@@ -2172,7 +2172,7 @@ bool-vector.  IDX starts at 0.  */)
     }
   else if (STRING_MULTIBYTE (array))
     {
-      int idxval_byte, prev_bytes, new_bytes, nbytes;
+      EMACS_INT idxval_byte, prev_bytes, new_bytes, nbytes;
       unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 
       if (idxval < 0 || idxval >= SCHARS (array))
@@ -2188,7 +2188,7 @@ bool-vector.  IDX starts at 0.  */)
       if (prev_bytes != new_bytes)
 	{
 	  /* We must relocate the string data.  */
-	  int nchars = SCHARS (array);
+	  EMACS_INT nchars = SCHARS (array);
 	  unsigned char *str;
 	  USE_SAFE_ALLOCA;
 
@@ -2502,8 +2502,6 @@ enum arithop
 
 static Lisp_Object float_arith_driver (double, int, enum arithop,
                                        int, Lisp_Object *);
-extern Lisp_Object fmod_float (Lisp_Object, Lisp_Object);
-
 Lisp_Object
 arith_driver (enum arithop code, int nargs, register Lisp_Object *args)
 {

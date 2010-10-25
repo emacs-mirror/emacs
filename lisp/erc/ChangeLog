@@ -1,3 +1,33 @@
+2010-10-24  Julien Danjou  <julien@danjou.info>
+
+	* erc-backend.el (erc-server-JOIN): Set the correct target list on join.
+
+	* erc-backend.el (erc-process-sentinel): Check that buffer is alive
+	before setting it as current buffer.
+
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc-xdcc.el (erc-xdcc-help-text): Fix typo in docstring.
+
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* erc-list.el (erc-list-menu-mode-map): Declare and define in one step.
+
+2010-08-14  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* erc-join.el (erc-autojoin-timing, erc-autojoin-delay): New vars.
+	(erc-autojoin-channels-delayed, erc-autojoin-after-ident): New
+	functions.
+	(erc-autojoin-channels): Allow autojoining after ident (Bug#5521).
+
+2010-08-08  Fran Litterio  <flitterio@gmail.com>
+
+	* erc-backend.el (erc-server-filter-function): Call
+	erc-log-irc-protocol.
+
+	* erc.el (erc-toggle-debug-irc-protocol): Bind
+	erc-toggle-debug-irc-protocol to t.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.

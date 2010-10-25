@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 extern Lisp_Object Qsyntax_table_p;
-extern void update_syntax_table (int, int, int, Lisp_Object);
+extern void update_syntax_table (EMACS_INT, int, int, Lisp_Object);
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
@@ -128,56 +128,9 @@ extern Lisp_Object syntax_temp;
     : Qnil))
 #endif
 
-/* Then there are seven single-bit flags that have the following meanings:
-  1. This character is the first of a two-character comment-start sequence.
-  2. This character is the second of a two-character comment-start sequence.
-  3. This character is the first of a two-character comment-end sequence.
-  4. This character is the second of a two-character comment-end sequence.
-  5. This character is a prefix, for backward-prefix-chars.
-  6. see below
-  7. This character is part of a nestable comment sequence.
-  Note that any two-character sequence whose first character has flag 1
-  and whose second character has flag 2 will be interpreted as a comment start.
 
-  bit 6 is used to discriminate between two different comment styles.
-  Languages such as C++ allow two orthogonal syntax start/end pairs
-  and bit 6 is used to determine whether a comment-end or Scommentend
-  ends style a or b.  Comment start sequences can start style a or b.
-  Style a is always the default.
-  */
-
-/* These macros extract a particular flag for a given character.  */
-
-#define SYNTAX_COMSTART_FIRST(c) ((SYNTAX_WITH_FLAGS (c) >> 16) & 1)
-
-#define SYNTAX_COMSTART_SECOND(c) ((SYNTAX_WITH_FLAGS (c) >> 17) & 1)
-
-#define SYNTAX_COMEND_FIRST(c) ((SYNTAX_WITH_FLAGS (c) >> 18) & 1)
-
-#define SYNTAX_COMEND_SECOND(c) ((SYNTAX_WITH_FLAGS (c) >> 19) & 1)
-
-#define SYNTAX_PREFIX(c) ((SYNTAX_WITH_FLAGS (c) >> 20) & 1)
-
-#define SYNTAX_COMMENT_STYLE(c) ((SYNTAX_WITH_FLAGS (c) >> 21) & 1)
-
-#define SYNTAX_COMMENT_NESTED(c) ((SYNTAX_WITH_FLAGS (c) >> 22) & 1)
-
-/* These macros extract specific flags from an integer
-   that holds the syntax code and the flags.  */
-
-#define SYNTAX_FLAGS_COMSTART_FIRST(flags) (((flags) >> 16) & 1)
-
-#define SYNTAX_FLAGS_COMSTART_SECOND(flags) (((flags) >> 17) & 1)
-
-#define SYNTAX_FLAGS_COMEND_FIRST(flags) (((flags) >> 18) & 1)
-
-#define SYNTAX_FLAGS_COMEND_SECOND(flags) (((flags) >> 19) & 1)
-
-#define SYNTAX_FLAGS_PREFIX(flags) (((flags) >> 20) & 1)
-
-#define SYNTAX_FLAGS_COMMENT_STYLE(flags) (((flags) >> 21) & 1)
-
-#define SYNTAX_FLAGS_COMMENT_NESTED(flags) (((flags) >> 22) & 1)
+/* Whether the syntax of the character C has the prefix flag set.  */
+extern int syntax_prefix_flag_p (int c);
 
 /* This array, indexed by a character, contains the syntax code which that
  character signifies (as a char).  For example,
@@ -348,7 +301,7 @@ extern struct gl_state_s gl_state;
 extern int parse_sexp_lookup_properties;
 extern INTERVAL interval_of (int, Lisp_Object);
 
-extern int scan_words (int, int);
+extern EMACS_INT scan_words (EMACS_INT, EMACS_INT);
 
 /* arch-tag: 28833cca-cd73-4741-8c85-a3111166a0e0
    (do not change this comment) */

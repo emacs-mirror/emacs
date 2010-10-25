@@ -31,6 +31,7 @@
 (require 'message)
 (require 'gnus-range)
 
+(autoload 'gnus-run-hook-with-args "gnus-util")
 (autoload 'gnus-agent-expire "gnus-agent")
 (autoload 'gnus-agent-regenerate-group "gnus-agent")
 (autoload 'gnus-agent-read-servers-validate-native "gnus-agent")
@@ -38,6 +39,16 @@
 
 (defcustom gnus-open-server-hook nil
   "Hook called just before opening connection to the news server."
+  :group 'gnus-start
+  :type 'hook)
+
+(defcustom gnus-after-set-mark-hook nil
+  "Hook called just after marks are set in a group."
+  :group 'gnus-start
+  :type 'hook)
+
+(defcustom gnus-before-update-mark-hook nil
+  "Hook called just before marks are updated in a group."
   :group 'gnus-start
   :type 'hook)
 
@@ -94,11 +105,10 @@ If CONFIRM is non-nil, the user will be asked for an NNTP server."
       (when confirm
 	;; Read server name with completion.
 	(setq gnus-nntp-server
-	      (completing-read "NNTP server: "
-			       (mapcar 'list
-				       (cons (list gnus-nntp-server)
-					     gnus-secondary-servers))
-			       nil nil gnus-nntp-server)))
+	      (gnus-completing-read "NNTP server"
+                                    (cons gnus-nntp-server
+                                          gnus-secondary-servers)
+                                    nil gnus-nntp-server)))
 
       (when (and gnus-nntp-server
 		 (stringp gnus-nntp-server)
@@ -179,15 +189,17 @@ If it is down, start it up (again)."
 			(format " on %s" (nth 1 method)))))
       (gnus-run-hooks 'gnus-open-server-hook)
       (prog1
-	  (condition-case ()
-	      (setq result (gnus-open-server method))
-	    (quit (message "Quit gnus-check-server")
-		  nil))
+	  (setq result (gnus-open-server method))
 	(unless silent
-	  (gnus-message 5 "Opening %s server%s...%s" (car method)
-			(if (equal (nth 1 method) "") ""
-			  (format " on %s" (nth 1 method)))
-			(if result "done" "failed")))))))
+	  (gnus-message
+	   (if result 5 3)
+	   "Opening %s server%s...%s" (car method)
+	   (if (equal (nth 1 method) "") ""
+	     (format " on %s" (nth 1 method)))
+	   (if result
+	       "done"
+	     (format "failed: %s"
+		     (nnheader-get-report-string (car method))))))))))
 
 (defun gnus-get-function (method function &optional noerror)
   "Return a function symbol based on METHOD and FUNCTION."
@@ -225,10 +237,22 @@ If it is down, start it up (again)."
 ;;; Interface functions to the backends.
 ;;;
 
+(defun gnus-method-denied-p (method)
+  (eq (nth 1 (assoc method gnus-opened-servers))
+      'denied))
+
+(defvar gnus-backend-trace t)
+
 (defun gnus-open-server (gnus-command-method)
   "Open a connection to GNUS-COMMAND-METHOD."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (when gnus-backend-trace
+    (with-current-buffer (get-buffer-create "*gnus trace*")
+      (buffer-disable-undo)
+      (goto-char (point-max))
+      (insert (format-time-string "%H:%M:%S")
+	      (format " %S\n" gnus-command-method))))
   (let ((elem (assoc gnus-command-method gnus-opened-servers))
 	(server (gnus-method-to-server-name gnus-command-method)))
     ;; If this method was previously denied, we just return nil.
@@ -244,9 +268,8 @@ If it is down, start it up (again)."
                           (nth 1 gnus-command-method)
                           (nthcdr 2 gnus-command-method))
                (error
-                (gnus-message 1 (format
-                                 "Unable to open server %s due to: %s"
-                                 server (error-message-string err)))
+                (gnus-message 1 "Unable to open server %s due to: %s"
+			      server (error-message-string err))
                 nil)
                (quit
                 (gnus-message 1 "Quit trying to open server %s" server)
@@ -257,34 +280,31 @@ If it is down, start it up (again)."
 	  (setq elem (list gnus-command-method nil)
 		gnus-opened-servers (cons elem gnus-opened-servers)))
 	;; Set the status of this server.
-        (setcar (cdr elem)
-                (cond (result
-                       (if (eq open-server-function #'nnagent-open-server)
-                           ;; The agent's backend has a "special" status
-                           'offline
-                         'ok))
-                      ((and gnus-agent
-                            (gnus-agent-method-p gnus-command-method))
-                       (cond (gnus-server-unopen-status
-                              ;; Set the server's status to the unopen
-                              ;; status.  If that status is offline,
-                              ;; recurse to open the agent's backend.
-                              (setq open-offline (eq gnus-server-unopen-status 'offline))
-                              gnus-server-unopen-status)
-                             ((and
-			       (not gnus-batch-mode)
-			       (gnus-y-or-n-p
-				(format
-				 "Unable to open server %s, go offline? "
-				 server)))
-                              (setq open-offline t)
-                              'offline)
-                             (t
-                              ;; This agentized server was still denied
-                              'denied)))
-                      (t
-                       ;; This unagentized server must be denied
-                       'denied)))
+        (setcar
+	 (cdr elem)
+	 (cond (result
+		(if (eq open-server-function #'nnagent-open-server)
+		    ;; The agent's backend has a "special" status
+		    'offline
+		  'ok))
+	       ((and gnus-agent
+		     (gnus-agent-method-p gnus-command-method))
+		(cond
+		 (gnus-server-unopen-status
+		  ;; Set the server's status to the unopen
+		  ;; status.  If that status is offline,
+		  ;; recurse to open the agent's backend.
+		  (setq open-offline (eq gnus-server-unopen-status 'offline))
+		  gnus-server-unopen-status)
+		 ((not gnus-batch-mode)
+		  (setq open-offline t)
+		  'offline)
+		 (t
+		  ;; This agentized server was still denied
+		  'denied)))
+	       (t
+		;; This unagentized server must be denied
+		'denied)))
 
         ;; NOTE: I MUST set the server's status to offline before this
         ;; recursive call as this status will drive the
@@ -318,6 +338,22 @@ If it is down, start it up (again)."
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (funcall (gnus-get-function gnus-command-method 'request-list)
 	   (nth 1 gnus-command-method)))
+
+(defun gnus-finish-retrieve-group-infos (gnus-command-method infos data)
+  "Read and update infos from GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (gnus-get-function gnus-command-method 'finish-retrieve-group-infos)
+	   (nth 1 gnus-command-method)
+	   infos data))
+
+(defun gnus-retrieve-group-data-early (gnus-command-method infos)
+  "Start early async retrival of data from GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (gnus-get-function gnus-command-method 'retrieve-group-data-early)
+	   (nth 1 gnus-command-method)
+	   infos))
 
 (defun gnus-request-list-newsgroups (gnus-command-method)
   "Request the newsgroups file from GNUS-COMMAND-METHOD."
@@ -358,16 +394,17 @@ If it is down, start it up (again)."
   (funcall (gnus-get-function gnus-command-method 'request-compact)
 	   (nth 1 gnus-command-method)))
 
-(defun gnus-request-group (group &optional dont-check gnus-command-method)
+(defun gnus-request-group (group &optional dont-check gnus-command-method info)
   "Request GROUP.  If DONT-CHECK, no information is required."
   (let ((gnus-command-method
 	 (or gnus-command-method (inline (gnus-find-method-for-group group)))))
     (when (stringp gnus-command-method)
       (setq gnus-command-method
 	    (inline (gnus-server-to-method gnus-command-method))))
-	 (funcall (inline (gnus-get-function gnus-command-method 'request-group))
+    (funcall (inline (gnus-get-function gnus-command-method 'request-group))
 	     (gnus-group-real-name group) (nth 1 gnus-command-method)
-	     dont-check)))
+	     dont-check
+	     info)))
 
 (defun gnus-list-active-group (group)
   "Request active information on GROUP."
@@ -445,7 +482,8 @@ If FETCH-OLD, retrieve all headers (or some subset thereof) in the group."
 	action
       (funcall (gnus-get-function gnus-command-method 'request-set-mark)
 	       (gnus-group-real-name group) action
-	       (nth 1 gnus-command-method)))))
+	       (nth 1 gnus-command-method))
+      (gnus-run-hook-with-args gnus-after-set-mark-hook group action))))
 
 (defun gnus-request-update-mark (group article mark)
   "Allow the back end to change the mark the user tries to put on an article."
@@ -453,6 +491,7 @@ If FETCH-OLD, retrieve all headers (or some subset thereof) in the group."
     (if (not (gnus-check-backend-function
 	      'request-update-mark (car gnus-command-method)))
 	mark
+      (gnus-run-hook-with-args gnus-before-update-mark-hook group article mark)
       (funcall (gnus-get-function gnus-command-method 'request-update-mark)
 	       (gnus-group-real-name group) article mark))))
 
@@ -464,6 +503,12 @@ If BUFFER, insert the article in that group."
     (funcall (gnus-get-function gnus-command-method 'request-article)
 	     article (gnus-group-real-name group)
 	     (nth 1 gnus-command-method) buffer)))
+
+(defun gnus-request-thread (id)
+  "Request the thread containing the article specified by Message-ID id."
+  (let ((gnus-command-method (gnus-find-method-for-group gnus-newsgroup-name)))
+    (funcall (gnus-get-function gnus-command-method 'request-thread)
+	     id)))
 
 (defun gnus-request-head (article group)
   "Request the head of ARTICLE in GROUP."
@@ -490,8 +535,7 @@ If BUFFER, insert the article in that group."
       (setq res (gnus-request-article article group)
 	    clean-up t)))
     (when clean-up
-      (save-excursion
-	(set-buffer nntp-server-buffer)
+      (with-current-buffer nntp-server-buffer
 	(goto-char (point-min))
 	(when (search-forward "\n\n" nil t)
 	  (delete-region (1- (point)) (point-max)))
@@ -523,8 +567,7 @@ If BUFFER, insert the article in that group."
       (setq res (gnus-request-article article group)
 	    clean-up t)))
     (when clean-up
-      (save-excursion
-	(set-buffer nntp-server-buffer)
+      (with-current-buffer nntp-server-buffer
 	(goto-char (point-min))
 	(when (search-forward "\n\n" nil t)
 	  (delete-region (point-min) (1- (point))))))
@@ -537,6 +580,14 @@ If BUFFER, insert the article in that group."
   (funcall (gnus-get-function gnus-command-method 'request-post)
 	   (nth 1 gnus-command-method)))
 
+(defun gnus-request-expunge-group (group gnus-command-method)
+  "Expunge GROUP, which is removing articles that have been marked as deleted."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (gnus-get-function gnus-command-method 'request-expunge-group)
+	   (gnus-group-real-name group)
+	   (nth 1 gnus-command-method)))
+
 (defun gnus-request-scan (group gnus-command-method)
   "Request a SCAN being performed in GROUP from GNUS-COMMAND-METHOD.
 If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
@@ -544,18 +595,28 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	 (if group (gnus-find-method-for-group group) gnus-command-method))
 	(gnus-inhibit-demon t)
 	(mail-source-plugged gnus-plugged))
-    (when (or gnus-plugged (not (gnus-agent-method-p gnus-command-method)))
+    (when (or gnus-plugged
+	      (not (gnus-agent-method-p gnus-command-method)))
       (setq gnus-internal-registry-spool-current-method gnus-command-method)
       (funcall (gnus-get-function gnus-command-method 'request-scan)
 	       (and group (gnus-group-real-name group))
 	       (nth 1 gnus-command-method)))))
 
-(defsubst gnus-request-update-info (info gnus-command-method)
+(defun gnus-request-update-info (info gnus-command-method)
+  (when (gnus-check-backend-function
+	 'request-update-info (car gnus-command-method))
+    (when (stringp gnus-command-method)
+      (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+    (funcall (gnus-get-function gnus-command-method 'request-update-info)
+	     (gnus-group-real-name (gnus-info-group info)) info
+	     (nth 1 gnus-command-method))))
+
+(defsubst gnus-request-marks (info gnus-command-method)
   "Request that GNUS-COMMAND-METHOD update INFO."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (when (gnus-check-backend-function
-	 'request-update-info (car gnus-command-method))
+	 'request-marks (car gnus-command-method))
     (let ((group (gnus-info-group info)))
       (and (funcall (gnus-get-function gnus-command-method
 				       'request-update-info)
@@ -575,6 +636,7 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 
 (defun gnus-request-expire-articles (articles group &optional force)
   (let* ((gnus-command-method (gnus-find-method-for-group group))
+	 (gnus-inhibit-demon t)
 	 (not-deleted
 	  (funcall
 	   (gnus-get-function gnus-command-method 'request-expire-articles)
@@ -593,7 +655,8 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	 (result (funcall (gnus-get-function gnus-command-method
 					     'request-move-article)
 			  article (gnus-group-real-name group)
-			  (nth 1 gnus-command-method) accept-function last move-is-internal)))
+			  (nth 1 gnus-command-method) accept-function
+			  last move-is-internal)))
     (when (and result gnus-agent
 	       (gnus-agent-method-p gnus-command-method))
       (gnus-agent-unfetch-articles group (list article)))
@@ -716,5 +779,4 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 
 (provide 'gnus-int)
 
-;; arch-tag: bbc90087-9b7f-4017-a92c-3abf180ac86d
 ;;; gnus-int.el ends here

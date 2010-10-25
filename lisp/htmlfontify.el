@@ -1,6 +1,7 @@
 ;;; htmlfontify.el --- htmlise a buffer/source tree with optional hyperlinks
 
-;; Copyright (C) 2002, 2003, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
@@ -15,6 +16,7 @@
 ;; Compatibility: Emacs23, Emacs22
 ;; Incompatibility: Emacs19, Emacs20, Emacs21
 ;; Last Updated: Thu 2009-11-19 01:31:21 +0000
+;; Version: 0.21
 
 ;; This file is part of GNU Emacs.
 
@@ -2348,7 +2350,7 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
 
 
 ;;;### (autoloads (hfy-fallback-colour-values htmlfontify-load-rgb-file)
-;;;;;;  "hfy-cmap" "hfy-cmap.el" "3de2db2d213813bb3afe170ffd66cdde")
+;;;;;;  "hfy-cmap" "hfy-cmap.el" "7e622e4b131ea5efbe9d258f719822d6")
 ;;; Generated autoloads from hfy-cmap.el
 
 (autoload 'htmlfontify-load-rgb-file "hfy-cmap" "\
@@ -2369,5 +2371,8 @@ Use a fallback method for obtaining the rgb values for a color.
 
 (provide 'htmlfontify)
 
-;; arch-tag: 944e5e63-c81d-4baa-a82a-0275f9c30e61
+;; Local Variables:
+;; coding: utf-8
+;; End:
+
 ;;; htmlfontify.el ends here

@@ -9,6 +9,7 @@
 ;;	Rolf Ebert <ebert@waporo.muc.de>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages, ada
+;; Package: ada-mode
 
 ;; This file is part of GNU Emacs.
 

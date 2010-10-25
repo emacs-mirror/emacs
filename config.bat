@@ -38,6 +38,7 @@ set X11=
 set nodebug=
 set djgpp_ver=
 set sys_malloc=
+set libxml=
 if "%1" == "" goto usage
 rem   ----------------------------------------------------------------------
 rem   See if their environment is large enough.  We need 28 bytes.
@@ -175,6 +176,24 @@ rem The following line disables DECL_ALIGN which in turn disables USE_LSB_TAG
 rem For details see lisp.h where it defines USE_LSB_TAG
 echo #define NO_DECL_ALIGN >>config.h2
 :alignOk
+Rem See if they have libxml2 later than v2.2.0 installed
+Echo Checking whether libxml2 v2.2.1 or later is installed ...
+rm -f junk.c junk.o junk junk.exe
+rem Use djecho here because we need to quote brackets
+djecho "#include <libxml/xmlversion.h>"             >junk.c
+djecho "int main()"                                 >>junk.c
+djecho "{return (LIBXML_VERSION > 20200 ? 0 : 1);}" >>junk.c
+redir -o Nul -eo gcc -I/dev/env/DJDIR/include/libxml2 -o junk junk.c
+if not exist junk Goto xmlDone
+if not exist junk.exe coff2exe junk
+junk
+If ErrorLevel 1 Goto xmlDone
+Echo Configuring with libxml2 ...
+sed -e "/#undef HAVE_LIBXML2/s/^.*$/#define HAVE_LIBXML2 1/" <config.h2 >config.h3
+mv config.h3 config.h2
+set libxml=1
+:xmlDone
+rm -f junk.c junk junk.exe
 Rem See if they requested a SYSTEM_MALLOC build
 if "%sys_malloc%" == "" Goto cfgDone
 rm -f config.tmp
@@ -213,6 +232,12 @@ sed -e "/^CFLAGS *=/s/ *-gcoff//" <Makefile >makefile.tmp
 sed -e "/^LDFLAGS *=/s/=/=-s/" <makefile.tmp >Makefile
 rm -f makefile.tmp
 :src6
+
+if "%libxml%" == "" goto src7
+sed -e "/^LIBXML2_LIBS *=/s/=/= -lxml2 -lz -liconv/" <Makefile >makefile.tmp
+sed -e "/^LIBXML2_CFLAGS *=/s|=|= -I/dev/env/DJDIR/include/libxml2|" <makefile.tmp >Makefile
+rm -f makefile.tmp
+:src7
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
@@ -250,6 +275,7 @@ cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the lisp directory...
 cd lisp
+If Exist gnus\.dir-locals.el update gnus/.dir-locals.el gnus/_dir-locals.el
 sed -f ../msdos/sedlisp.inp < Makefile.in > Makefile
 cd ..
 rem   ----------------------------------------------------------------------
@@ -288,6 +314,7 @@ set X11=
 set nodebug=
 set djgpp_ver=
 set sys_malloc=
+set libxml=
 
 goto skipArchTag
    arch-tag: 2d2fed23-4dc6-4006-a2e4-49daf0031f33

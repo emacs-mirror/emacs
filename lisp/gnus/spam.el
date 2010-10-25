@@ -39,7 +39,7 @@
 
 ;;{{{ compilation directives and autoloads/requires
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -689,7 +689,8 @@ order for SpamAssassin to recognize the new registered spam."
   "Sx" gnus-summary-mark-as-spam
   "Mst" spam-generic-score
   "Msx" gnus-summary-mark-as-spam
-  "\M-d" gnus-summary-mark-as-spam)
+  "\M-d" gnus-summary-mark-as-spam
+  "$" gnus-summary-mark-as-spam)
 
 (defvar spam-cache-lookups t
   "Whether spam.el will try to cache lookups using `spam-caches'.")
@@ -1286,6 +1287,7 @@ variable.  When the processor variable is nil, just the
 classification and spam-use-* check variable are used.  This is
 superseded by the new spam backend code, so it's only consulted
 for backwards compatibility.")
+(make-obsolete-variable 'spam-list-of-processors nil "22.1")
 
 (defun spam-group-processor-p (group backend &optional classification)
   "Checks if GROUP has a BACKEND with CLASSIFICATION registered.
@@ -1605,8 +1607,7 @@ to find it out)."
        article))))
 
 (defun spam-fetch-article-header (article)
-  (save-excursion
-    (set-buffer gnus-summary-buffer)
+  (with-current-buffer gnus-summary-buffer
     (gnus-read-header article)
     (nth 3 (assq article gnus-newsgroup-data))))
 ;;}}}
@@ -2172,8 +2173,7 @@ See `spam-ifile-database'."
     (with-temp-buffer
       (let ((temp-buffer-name (buffer-name))
 	    (db-param (spam-get-ifile-database-parameter)))
-	(save-excursion
-	  (set-buffer article-buffer-name)
+	(with-current-buffer article-buffer-name
 	  (apply 'call-process-region
 		 (point-min) (point-max) spam-ifile-program
 		 nil temp-buffer-name nil "-c"
@@ -2318,9 +2318,8 @@ With a non-nil REMOVE, remove the ADDRESSES."
     ;; else, we have a list of addresses here
     (unless (file-exists-p (file-name-directory file))
       (make-directory (file-name-directory file) t))
-    (save-excursion
-      (set-buffer
-       (find-file-noselect file))
+    (with-current-buffer
+       (find-file-noselect file)
       (dolist (a addresses)
 	(when (stringp a)
 	  (goto-char (point-min))
@@ -2521,8 +2520,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 	    return)
 	(with-temp-buffer
 	  (let ((temp-buffer-name (buffer-name)))
-	    (save-excursion
-	      (set-buffer article-buffer-name)
+	    (with-current-buffer article-buffer-name
 	      (apply 'call-process-region
 		     (point-min) (point-max)
 		     spam-bogofilter-program
@@ -2579,8 +2577,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
   (let ((article-buffer-name (buffer-name)))
     (with-temp-buffer
       (let ((temp-buffer-name (buffer-name)))
-	(save-excursion
-	  (set-buffer article-buffer-name)
+	(with-current-buffer article-buffer-name
 	  (let ((status
 		 (apply 'call-process-region
 			(point-min) (point-max)
@@ -2656,8 +2653,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
   (let ((article-buffer-name (buffer-name)))
     (with-temp-buffer
       (let ((temp-buffer-name (buffer-name)))
-	(save-excursion
-	  (set-buffer article-buffer-name)
+	(with-current-buffer article-buffer-name
 	  (apply 'call-process-region
 		 (point-min) (point-max) spam-assassin-program
 		 nil temp-buffer-name nil spam-spamassassin-arguments))
@@ -2691,8 +2687,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 	  ;; group the articles into mbox format
 	  (dolist (article articles)
 	    (let (article-string)
-	      (save-excursion
-		(set-buffer summary-buffer-name)
+	      (with-current-buffer summary-buffer-name
 		(setq article-string (spam-get-article-as-string article)))
 	      (when (stringp article-string)
 		(insert "From \n") ; mbox separator (sa-learn only checks the
@@ -2755,8 +2750,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 	return)
     (with-temp-buffer
       (let ((temp-buffer-name (buffer-name)))
-	(save-excursion
-	  (set-buffer article-buffer-name)
+	(with-current-buffer article-buffer-name
 	  (apply 'call-process-region
 		 (point-min) (point-max)
 		 spam-bsfilter-program
@@ -2841,8 +2835,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 	return)
     (with-temp-buffer
       (let ((temp-buffer-name (buffer-name)))
-	(save-excursion
-	  (set-buffer article-buffer-name)
+	(with-current-buffer article-buffer-name
 	  (apply 'call-process-region
 		 (point-min) (point-max)
 		 spam-crm114-program
@@ -2941,5 +2934,4 @@ installed through `spam-necessary-extra-headers'."
 
 (provide 'spam)
 
-;; arch-tag: 07e6e0ca-ab0a-4412-b445-1f6c72a4f27f
 ;;; spam.el ends here

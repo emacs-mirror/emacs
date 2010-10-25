@@ -69,10 +69,7 @@
     (setq m2-mode-syntax-table table)))
 
 ;;; Added by TEP
-(defvar m2-mode-map nil
-  "Keymap used in Modula-2 mode.")
-
-(if m2-mode-map ()
+(defvar m2-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\^i" 'm2-tab)
     (define-key map "\C-cb" 'm2-begin)
@@ -103,7 +100,8 @@
     (define-key map "\C-c\C-t" 'm2-toggle)
     (define-key map "\C-c\C-l" 'm2-link)
     (define-key map "\C-c\C-c" 'm2-compile)
-    (setq m2-mode-map map)))
+    map)
+  "Keymap used in Modula-2 mode.")
 
 (defcustom m2-indent 5
   "*This variable gives the indentation in Modula-2-Mode."

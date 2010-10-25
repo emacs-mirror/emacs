@@ -273,15 +273,6 @@ the kill ring.  This prevents you from losing the existing selection,
 at the risk of large memory consumption if other applications generate
 large selections.
 
-@cindex cut buffer
-@vindex x-cut-buffer-max
-  Whenever Emacs saves some text to the primary selection, it may also
-save it to the @dfn{cut buffer}.  The cut buffer is an obsolete
-predecessor to the primary selection; most modern applications do not
-use it.  Saving text to the cut buffer is slow and inefficient, so
-Emacs only does it if the text is shorter than the value of
-@code{x-cut-buffer-max} (20000 characters by default).
-
   You can yank the primary selection into Emacs using the usual yank
 commands, such as @kbd{C-y} (@code{yank}) and @kbd{Mouse-2}
 (@code{mouse-yank-at-click}).  These commands actually check the

@@ -31,6 +31,7 @@
 (require 'srecode)
 
 (declare-function srecode-load-tables-for-mode "srecode/find")
+(declare-function srecode-template-table-in-project-p "srecode/find")
 
 ;;; Code:
 
@@ -74,6 +75,12 @@ Emacs Lisp code to fill in the dictionary.")
 When there are multiple template files with similar names, templates with
 the highest priority are scanned last, allowing them to override values in
 previous template files.")
+   (project :initarg :project
+	    :type (or null string)
+	    :documentation
+	    "Scope some project files to a specific project.
+The value is a directory which forms the root of a particular project,
+or a subset of a particular project.")
    ;;
    ;; Parsed Data from the template file
    ;;
@@ -224,6 +231,12 @@ Use PREDICATE is the same as for the `sort' function."
   (when (oref tab :application)
     (princ "\nApplication: ")
     (princ (oref tab :application)))
+  (when (oref tab :project)
+    (require 'srecode/find) ; For srecode-template-table-in-project-p
+    (princ "\nProject Directory: ")
+    (princ (oref tab :project))
+    (when (not (srecode-template-table-in-project-p tab))
+      (princ "\n   ** Not Usable in this file. **")))
   (princ "\n\nVariables:\n")
   (let ((vars (oref tab variables)))
     (while vars

@@ -150,7 +150,7 @@ generalize(Ee, Te, Env, Eg, Tg) :-
 %% instantiate(+X, +T, -E)
 %% Utilise la variable X de type T.  Le résultat E est X auquel on ajoute
 %% tous les arguments implicites (de valeur inconnue).
-instantiate(X, T, X) :- var(T), ! .
+instantiate(X, T, X) :- var(T), !.
 instantiate(X, forall(_, _, T), app(E, _)) :- !, instantiate(X, T, E).
 instantiate(X, _, X).
 

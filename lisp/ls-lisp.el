@@ -7,6 +7,7 @@
 ;; Modified by: Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
 ;; Maintainer: FSF
 ;; Keywords: unix, dired
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -636,7 +637,7 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 	    ;; They tend to be bogus on non-UNIX platforms anyway so
 	    ;; optionally hide them.
 	    (if (memq 'uid ls-lisp-verbosity)
-		;; uid can be a sting or an integer
+		;; uid can be a string or an integer
 		(let ((uid (nth 2 file-attr)))
                   (format (if (stringp uid)
 			      ls-lisp-uid-s-fmt

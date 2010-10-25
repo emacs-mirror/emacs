@@ -35,9 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    if system supports pty's.  'p' means it is /dev/ptym/ptyp0  */
 #define FIRST_PTY_LETTER 'p'
 
-/* Define HAVE_TERMIO if the system provides sysV-style ioctls
-   for terminal control.  */
-#define HAVE_TERMIO
+#define NO_TERMIO
 
 /* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
@@ -76,9 +74,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Assar Westerlund <assar@sics.se> says this is necessary for
    HP-UX 10.20, and that it works for HP-UX 0 as well.  */
 #define NO_EDITRES
-
-/* Tested in getloadavg.c.  */
-#define HAVE_PSTAT_GETDYNAMIC
 
 /* Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
    has a broken `rint' in some library versions including math library

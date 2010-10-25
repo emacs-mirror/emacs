@@ -4,6 +4,7 @@
 ;;   2008, 2009, 2010  Free Software Foundation, Inc.
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
 ;; Keywords: mouse
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

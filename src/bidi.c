@@ -51,7 +51,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <string.h>
 #include <setjmp.h>
 
 #include "lisp.h"
@@ -79,10 +78,10 @@ static Lisp_Object bidi_type_table, bidi_mirror_table;
 
 /* What we need to know about the current paragraph.  */
 struct bidi_paragraph_info {
-  int start_bytepos;	/* byte position where it begins */
-  int end_bytepos;	/* byte position where it ends */
-  int embedding_level;	/* its basic embedding level */
-  bidi_dir_t base_dir;	/* its base direction */
+  EMACS_INT start_bytepos;	/* byte position where it begins */
+  EMACS_INT end_bytepos;	/* byte position where it ends */
+  int	    embedding_level;	/* its basic embedding level */
+  bidi_dir_t base_dir;		/* its base direction */
 };
 
 /* Data type for describing the bidirectional character categories.  */
@@ -313,7 +312,7 @@ bidi_cache_fetch_state (int idx, struct bidi_it *bidi_it)
    resolved levels in cached states.  DIR, if non-zero, means search
    in that direction from the last cache hit.  */
 static INLINE int
-bidi_cache_search (int charpos, int level, int dir)
+bidi_cache_search (EMACS_INT charpos, int level, int dir)
 {
   int i, i_start;
 
@@ -462,7 +461,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 }
 
 static INLINE bidi_type_t
-bidi_cache_find (int charpos, int level, struct bidi_it *bidi_it)
+bidi_cache_find (EMACS_INT charpos, int level, struct bidi_it *bidi_it)
 {
   int i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
 
@@ -497,7 +496,6 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
 static EMACS_INT
 bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
 {
-  /* FIXME: Why Fbuffer_local_value rather than just Fsymbol_value?  */
   Lisp_Object sep_re;
   Lisp_Object start_re;
   EMACS_INT val;
@@ -584,18 +582,26 @@ bidi_find_paragraph_start (EMACS_INT pos, EMACS_INT pos_byte)
   return pos_byte;
 }
 
-/* Determine the direction, a.k.a. base embedding level, of the
+/* Determine the base direction, a.k.a. base embedding level, of the
    paragraph we are about to iterate through.  If DIR is either L2R or
    R2L, just use that.  Otherwise, determine the paragraph direction
-   from the first strong character of the paragraph.
+   from the first strong directional character of the paragraph.
 
-   Note that this gives the paragraph separator the same direction as
-   the preceding paragraph, even though Emacs generally views the
-   separartor as not belonging to any paragraph.  */
+   NO_DEFAULT_P non-nil means don't default to L2R if the paragraph
+   has no strong directional characters and both DIR and
+   bidi_it->paragraph_dir are NEUTRAL_DIR.  In that case, search back
+   in the buffer until a paragraph is found with a strong character,
+   or until hitting BEGV.  In the latter case, fall back to L2R.  This
+   flag is used in current-bidi-paragraph-direction.
+
+   Note that this function gives the paragraph separator the same
+   direction as the preceding paragraph, even though Emacs generally
+   views the separartor as not belonging to any paragraph.  */
 void
-bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
+bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 {
   EMACS_INT bytepos = bidi_it->bytepos;
+  EMACS_INT pstartbyte;
 
   /* Special case for an empty buffer. */
   if (bytepos == BEGV_BYTE && bytepos == ZV_BYTE)
@@ -644,49 +650,75 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 
       /* We are either at the beginning of a paragraph or in the
 	 middle of it.  Find where this paragraph starts.  */
-      bytepos = bidi_find_paragraph_start (pos, bytepos);
-
+      pstartbyte = bidi_find_paragraph_start (pos, bytepos);
       bidi_it->separator_limit = -1;
       bidi_it->new_paragraph = 0;
-      ch = FETCH_CHAR (bytepos);
-      ch_len = CHAR_BYTES (ch);
-      pos = BYTE_TO_CHAR (bytepos);
-      type = bidi_get_type (ch, NEUTRAL_DIR);
 
-      for (pos++, bytepos += ch_len;
-	   /* NOTE: UAX#9 says to search only for L, AL, or R types of
-	      characters, and ignore RLE, RLO, LRE, and LRO.  However,
-	      I'm not sure it makes sense to omit those 4; should try
-	      with and without that to see the effect.  */
-	   (bidi_get_category (type) != STRONG)
-	     || (bidi_ignore_explicit_marks_for_paragraph_level
-		 && (type == RLE || type == RLO
-		     || type == LRE || type == LRO));
-	   type = bidi_get_type (ch, NEUTRAL_DIR))
-	{
-	  if (type == NEUTRAL_B && bidi_at_paragraph_end (pos, bytepos) >= -1)
-	    break;
-	  if (bytepos >= ZV_BYTE)
-	    {
-	      /* Pretend there's a paragraph separator at end of buffer.  */
-	      type = NEUTRAL_B;
+      /* The following loop is run more than once only if NO_DEFAULT_P
+	 is non-zero.  */
+      do {
+	bytepos = pstartbyte;
+	ch = FETCH_CHAR (bytepos);
+	ch_len = CHAR_BYTES (ch);
+	pos = BYTE_TO_CHAR (bytepos);
+	type = bidi_get_type (ch, NEUTRAL_DIR);
+
+	for (pos++, bytepos += ch_len;
+	     /* NOTE: UAX#9 says to search only for L, AL, or R types
+		of characters, and ignore RLE, RLO, LRE, and LRO.
+		However, I'm not sure it makes sense to omit those 4;
+		should try with and without that to see the effect.  */
+	     (bidi_get_category (type) != STRONG)
+	       || (bidi_ignore_explicit_marks_for_paragraph_level
+		   && (type == RLE || type == RLO
+		       || type == LRE || type == LRO));
+	     type = bidi_get_type (ch, NEUTRAL_DIR))
+	  {
+	    if (type == NEUTRAL_B && bidi_at_paragraph_end (pos, bytepos) >= -1)
 	      break;
-	    }
-	  FETCH_CHAR_ADVANCE (ch, pos, bytepos);
-	}
-      if (type == STRONG_R || type == STRONG_AL) /* P3 */
-	bidi_it->paragraph_dir = R2L;
-      else if (type == STRONG_L)
-	bidi_it->paragraph_dir = L2R;
+	    if (bytepos >= ZV_BYTE)
+	      {
+		/* Pretend there's a paragraph separator at end of
+		   buffer.  */
+		type = NEUTRAL_B;
+		break;
+	      }
+	    FETCH_CHAR_ADVANCE (ch, pos, bytepos);
+	  }
+	if (type == STRONG_R || type == STRONG_AL) /* P3 */
+	  bidi_it->paragraph_dir = R2L;
+	else if (type == STRONG_L)
+	  bidi_it->paragraph_dir = L2R;
+	if (no_default_p && bidi_it->paragraph_dir == NEUTRAL_DIR)
+	  {
+	    /* If this paragraph is at BEGV, default to L2R.  */
+	    if (pstartbyte == BEGV_BYTE)
+	      bidi_it->paragraph_dir = L2R; /* P3 and HL1 */
+	    else
+	      {
+		EMACS_INT prevpbyte = pstartbyte;
+		EMACS_INT p = BYTE_TO_CHAR (pstartbyte), pbyte = pstartbyte;
+
+		/* Find the beginning of the previous paragraph, if any.  */
+		while (pbyte > BEGV_BYTE && prevpbyte >= pstartbyte)
+		  {
+		    p--;
+		    pbyte = CHAR_TO_BYTE (p);
+		    prevpbyte = bidi_find_paragraph_start (p, pbyte);
+		  }
+		pstartbyte = prevpbyte;
+	      }
+	  }
+      } while (no_default_p && bidi_it->paragraph_dir == NEUTRAL_DIR);
     }
   else
     abort ();
 
   /* Contrary to UAX#9 clause P3, we only default the paragraph
      direction to L2R if we have no previous usable paragraph
-     direction.  */
+     direction.  This is allowed by the HL1 clause.  */
   if (bidi_it->paragraph_dir != L2R && bidi_it->paragraph_dir != R2L)
-    bidi_it->paragraph_dir = L2R; /* P3 and ``higher protocols'' */
+    bidi_it->paragraph_dir = L2R; /* P3 and HL1 ``higher-level protocols'' */
   if (bidi_it->paragraph_dir == R2L)
     bidi_it->level_stack[0].level = 1;
   else
@@ -1534,7 +1566,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 
 	 we want it to be displayed as
 
-	     {RLO}STet{PDF}
+	     {PDF}STet{RLO}
 
 	 not as
 
@@ -1774,6 +1806,6 @@ bidi_dump_cached_states (void)
   fputs ("\n", stderr);
   fputs ("pos ", stderr);
   for (i = 0; i < bidi_cache_idx; i++)
-    fprintf (stderr, "%*d", ndigits, bidi_cache[i].charpos);
+    fprintf (stderr, "%*ld", ndigits, (long)bidi_cache[i].charpos);
   fputs ("\n", stderr);
 }

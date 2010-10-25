@@ -12,8 +12,8 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    See cc-mode.el
-;; Keywords:   c languages oop
+;; Keywords:   c languages
+;; Package:    cc-mode
 
 ;; This file is part of GNU Emacs.
 
@@ -50,7 +50,6 @@
 
 ;; Silence the compiler.
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
-(cc-bytecomp-obsolete-fun make-local-hook) ; Marked obsolete in Emacs 21.1.
 
 
 (defvar c-style-alist
@@ -649,7 +648,7 @@ any reason to call this function directly."
     (mapc func varsyms)
     ;; Hooks must be handled specially
     (if this-buf-only-p
-	(make-local-hook 'c-special-indent-hook)
+	(if (featurep 'xemacs) (make-local-hook 'c-special-indent-hook))
       (with-no-warnings (make-variable-buffer-local 'c-special-indent-hook))
       (setq c-style-variables-are-local-p t))
     ))

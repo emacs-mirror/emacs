@@ -4,6 +4,7 @@
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
+;; Package: tramp
 
 ;; This file is part of GNU Emacs.
 
@@ -49,6 +50,7 @@
 	  x)))
     (buffer-list))))
 
+;;;###tramp-autoload
 (defun tramp-cleanup-connection (vec)
   "Flush all connection related objects.
 This includes password cache, file cache, connection cache, buffers.
@@ -97,6 +99,7 @@ When called interactively, a Tramp connection has to be selected."
 		   (tramp-get-connection-property vec "process-buffer" nil)))
       (when (bufferp buf) (kill-buffer buf)))))
 
+;;;###tramp-autoload
 (defun tramp-cleanup-all-connections ()
   "Flush all Tramp internal objects.
 This includes password cache, file cache, connection cache, buffers."
@@ -115,6 +118,7 @@ This includes password cache, file cache, connection cache, buffers."
   (dolist (name (tramp-list-tramp-buffers))
     (when (bufferp (get-buffer name)) (kill-buffer name))))
 
+;;;###tramp-autoload
 (defun tramp-cleanup-all-buffers ()
   "Kill all remote buffers."
   (interactive)
@@ -128,6 +132,7 @@ This includes password cache, file cache, connection cache, buffers."
 
 ;; Tramp version is useful in a number of situations.
 
+;;;###tramp-autoload
 (defun tramp-version (arg)
   "Print version number of tramp.el in minibuffer or current buffer."
   (interactive "P")
@@ -138,6 +143,7 @@ This includes password cache, file cache, connection cache, buffers."
 
 (autoload 'reporter-submit-bug-report "reporter")
 
+;;;###tramp-autoload
 (defun tramp-bug ()
   "Submit a bug report to the Tramp developers."
   (interactive)
@@ -147,65 +153,25 @@ This includes password cache, file cache, connection cache, buffers."
       (reporter-submit-bug-report
        tramp-bug-report-address		; to-address
        (format "tramp (%s)" tramp-version) ; package name and version
-       (delq nil
-	     `(;; Current state
-	       tramp-current-method
-	       tramp-current-user
-	       tramp-current-host
-
-	       ;; System defaults
-	       tramp-auto-save-directory        ; vars to dump
-	       tramp-default-method
-	       tramp-default-method-alist
-	       tramp-default-host
-	       tramp-default-proxies-alist
-	       tramp-default-user
-	       tramp-default-user-alist
-	       tramp-rsh-end-of-line
-	       tramp-default-password-end-of-line
-	       tramp-login-prompt-regexp
-	       ;; Mask non-7bit characters
-	       (tramp-password-prompt-regexp . tramp-reporter-dump-variable)
-	       tramp-wrong-passwd-regexp
-	       tramp-yesno-prompt-regexp
-	       tramp-yn-prompt-regexp
-	       tramp-terminal-prompt-regexp
-	       tramp-temp-name-prefix
-	       tramp-file-name-structure
-	       tramp-file-name-regexp
-	       tramp-methods
-	       tramp-end-of-output
-	       tramp-local-coding-commands
-	       tramp-remote-coding-commands
-	       tramp-actions-before-shell
-	       tramp-actions-copy-out-of-band
-	       tramp-terminal-type
-	       ;; Mask non-7bit characters
-	       (tramp-shell-prompt-pattern . tramp-reporter-dump-variable)
-	       ,(when (boundp 'tramp-backup-directory-alist)
-		  'tramp-backup-directory-alist)
-	       ,(when (boundp 'tramp-bkup-backup-directory-info)
-		  'tramp-bkup-backup-directory-info)
-	       ;; Dump cache.
-	       (tramp-cache-data . tramp-reporter-dump-variable)
-
-	       ;; Non-tramp variables of interest
-	       ;; Mask non-7bit characters
-	       (shell-prompt-pattern . tramp-reporter-dump-variable)
-	       backup-by-copying
-	       backup-by-copying-when-linked
-	       backup-by-copying-when-mismatch
-	       ,(when (boundp 'backup-by-copying-when-privileged-mismatch)
-		  'backup-by-copying-when-privileged-mismatch)
-	       ,(when (boundp 'password-cache)
-		  'password-cache)
-	       ,(when (boundp 'password-cache-expiry)
-		  'password-cache-expiry)
-	       ,(when (boundp 'backup-directory-alist)
-		  'backup-directory-alist)
-	       ,(when (boundp 'bkup-backup-directory-info)
-		  'bkup-backup-directory-info)
-	       file-name-handler-alist))
+       (sort
+	(delq nil (mapcar
+	  (lambda (x)
+	    (and x (boundp x) (cons x 'tramp-reporter-dump-variable)))
+	  (append
+	   (mapcar 'intern (all-completions "tramp-" obarray 'boundp))
+	   ;; Non-tramp variables of interest.
+	   '(shell-prompt-pattern
+	     backup-by-copying
+	     backup-by-copying-when-linked
+	     backup-by-copying-when-mismatch
+	     backup-by-copying-when-privileged-mismatch
+	     backup-directory-alist
+	     bkup-backup-directory-info
+	     password-cache
+	     password-cache-expiry
+	     remote-file-name-inhibit-cache
+	     file-name-handler-alist))))
+	(lambda (x y) (string< (symbol-name (car x)) (symbol-name (car y)))))
 
        'tramp-load-report-modules	; pre-hook
        'tramp-append-tramp-buffers	; post-hook
@@ -235,8 +201,7 @@ buffer in your bug report.
 "))))
 
 (defun tramp-reporter-dump-variable (varsym mailbuf)
-  "Pretty-print the value of the variable in symbol VARSYM.
-Used for non-7bit chars in strings."
+  "Pretty-print the value of the variable in symbol VARSYM."
   (let* ((reporter-eval-buffer (symbol-value 'reporter-eval-buffer))
 	 (val (with-current-buffer reporter-eval-buffer
 		(symbol-value varsym))))
@@ -244,12 +209,13 @@ Used for non-7bit chars in strings."
     (if (hash-table-p val)
 	;; Pretty print the cache.
 	(set varsym (read (format "(%s)" (tramp-cache-print val))))
-      ;; There are characters to be masked.
+      ;; There are non-7bit characters to be masked.
       (when (and (boundp 'mm-7bit-chars)
+		 (stringp val)
 		 (string-match
 		  (concat "[^" (symbol-value 'mm-7bit-chars) "]") val))
 	(with-current-buffer reporter-eval-buffer
-	  (set varsym (format "(base64-decode-string \"%s\""
+	  (set varsym (format "(base64-decode-string \"%s\")"
 			      (base64-encode-string val))))))
 
     ;; Dump variable.
@@ -265,7 +231,7 @@ Used for non-7bit chars in strings."
 		     "\\(\")\\)" "\"$"))                    ;; \4 "
 	(replace-match "\\1\\2\\3\\4")
 	(beginning-of-line)
-	(insert " ;; variable encoded due to non-printable characters\n"))
+	(insert " ;; Variable encoded due to non-printable characters.\n"))
       (forward-line 1))
 
     ;; Reset VARSYM to old value.
@@ -274,7 +240,6 @@ Used for non-7bit chars in strings."
 
 (defun tramp-load-report-modules ()
   "Load needed modules for reporting."
-
   ;; We load message.el and mml.el from Gnus.
   (if (featurep 'xemacs)
       (progn
@@ -287,7 +252,6 @@ Used for non-7bit chars in strings."
 
 (defun tramp-append-tramp-buffers ()
   "Append Tramp buffers and buffer local variables into the bug report."
-
   (goto-char (point-max))
 
   ;; Dump buffer local variables.
@@ -386,6 +350,9 @@ please ensure that the buffers are attached to your email.\n\n")
 
 (defalias 'tramp-submit-bug 'tramp-bug)
 
+(add-hook 'tramp-unload-hook
+	  (lambda () (unload-feature 'tramp-cmds 'force)))
+
 (provide 'tramp-cmds)
 
 ;;; TODO:
@@ -394,7 +361,7 @@ please ensure that the buffers are attached to your email.\n\n")
 ;; * WIBNI there was an interactive command prompting for Tramp
 ;;   method, hostname, username and filename and translates the user
 ;;   input into the correct filename syntax (depending on the Emacs
-;;   flavor) (Reiner Steib)
+;;   flavor)  (Reiner Steib)
 ;; * Let the user edit the connection properties interactively.
 ;;   Something like `gnus-server-edit-server' in Gnus' *Server* buffer.
 ;; * It's just that when I come to Customize `tramp-default-user-alist'
@@ -403,7 +370,7 @@ please ensure that the buffers are attached to your email.\n\n")
 ;;   Option and should not be modified by the code.  add-to-list is
 ;;   called in several places. One way to handle that is to have a new
 ;;   ordinary variable that gets its initial value from
-;;   tramp-default-user-alist and then is added to. (Pete Forman)
+;;   tramp-default-user-alist and then is added to.  (Pete Forman)
 
 ;; arch-tag: 190d4c33-76bb-4e99-8b6f-71741f23d98c
 ;;; tramp-cmds.el ends here

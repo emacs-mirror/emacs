@@ -1,8 +1,8 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -12,7 +12,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
-;; Keywords:   c languages oop
+;; Keywords:   c languages
 
 ;; This file is part of GNU Emacs.
 
@@ -100,7 +100,6 @@
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
 (cc-bytecomp-defun set-keymap-parents)	; XEmacs
 (cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1
-(cc-bytecomp-obsolete-fun make-local-hook) ; Marked obsolete in Emacs 21.1.
 
 ;; We set these variables during mode init, yet we don't require
 ;; font-lock.
@@ -522,7 +521,7 @@ that requires a literal mode spec at compile time."
 
   (when (or c-recognize-<>-arglists
 	    (c-major-mode-is 'awk-mode)
-	    (c-major-mode-is '(c-mode c++-mode objc-mode)))
+	    (c-major-mode-is '(java-mode c-mode c++-mode objc-mode)))
     ;; We'll use the syntax-table text property to change the syntax
     ;; of some chars for this language, so do the necessary setup for
     ;; that.
@@ -600,9 +599,10 @@ that requires a literal mode spec at compile time."
 
   ;; Install the functions that ensure that various internal caches
   ;; don't become invalid due to buffer changes.
-  (make-local-hook 'before-change-functions)
+  (when (featurep 'xemacs)
+    (make-local-hook 'before-change-functions)
+    (make-local-hook 'after-change-functions))
   (add-hook 'before-change-functions 'c-before-change nil t)
-  (make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'c-after-change nil t)
   (set (make-local-variable 'font-lock-extend-after-change-region-function)
  	'c-extend-after-change-region))	; Currently (2009-05) used by all
@@ -615,6 +615,15 @@ that requires a literal mode spec at compile time."
     ;; Force font lock mode to reinitialize itself.
     (font-lock-mode 0)
     (font-lock-mode 1)))
+
+;; Buffer local variables defining the region to be fontified by a font lock
+;; after-change function.  They are set in c-after-change to
+;; after-change-function's BEG and END, and may be modified by a
+;; `c-before-font-lock-function'.
+(defvar c-new-BEG 0)
+(make-variable-buffer-local 'c-new-BEG)
+(defvar c-new-END 0)
+(make-variable-buffer-local 'c-new-END)
 
 (defun c-common-init (&optional mode)
   "Common initialization for all CC Mode modes.
@@ -810,15 +819,6 @@ Note that the style variables are always made local to the buffer."
 
 
 ;;; Change hooks, linking with Font Lock.
-
-;; Buffer local variables defining the region to be fontified by a font lock
-;; after-change function.  They are set in c-after-change to
-;; after-change-function's BEG and END, and may be modified by a
-;; `c-before-font-lock-function'.
-(defvar c-new-BEG 0)
-(make-variable-buffer-local 'c-new-BEG)
-(defvar c-new-END 0)
-(make-variable-buffer-local 'c-new-END)
 
 ;; Buffer local variables recording Beginning/End-of-Macro position before a
 ;; change, when a macro straddles, respectively, the BEG or END (or both) of
@@ -1029,10 +1029,6 @@ Note that the style variables are always made local to the buffer."
 			    (buffer-substring-no-properties type-pos term-pos)
 			    (buffer-substring-no-properties beg end)))))))
 
-	;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
-	;; larger than (beg end).
-	(setq c-new-BEG beg
-	      c-new-END end)
 	(if c-get-state-before-change-functions
 	    (mapc (lambda (fn)
 		    (funcall fn beg end))
@@ -1086,6 +1082,10 @@ Note that the style variables are always made local to the buffer."
 	(when c-recognize-<>-arglists
 	  (c-after-change-check-<>-operators beg end))
 
+	;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
+	;; larger than (beg end).
+	(setq c-new-BEG beg
+	      c-new-END end)
 	(if c-before-font-lock-function
 	    (save-excursion
 	      (funcall c-before-font-lock-function beg end old-len)))))))
@@ -1113,8 +1113,8 @@ This does not load the font-lock package.  Use after
 	  c-beginning-of-syntax
 	  (font-lock-mark-block-function
 	   . c-mark-function)))
-
-  (make-local-hook 'font-lock-mode-hook)
+  (if (featurep 'xemacs)
+      (make-local-hook 'font-lock-mode-hook))
   (add-hook 'font-lock-mode-hook 'c-after-font-lock-init nil t))
 
 (defun c-extend-after-change-region (beg end old-len)

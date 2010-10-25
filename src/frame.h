@@ -310,7 +310,7 @@ struct frame
   /* Canonical X unit.  Width of default font, in pixels.  */
   int column_width;
 
-  /* Widht of space glyph of default font, in pixels.  */
+  /* Width of space glyph of default font, in pixels.  */
   int space_width;
 
   /* Canonical Y unit.  Height of a line, in pixels.  */
@@ -1049,7 +1049,8 @@ extern Lisp_Object Qfont;
 extern Lisp_Object Qbackground_color, Qforeground_color;
 extern Lisp_Object Qicon, Qicon_name, Qicon_type, Qicon_left, Qicon_top;
 extern Lisp_Object Qinternal_border_width;
-extern Lisp_Object Qmenu_bar_lines, Qtool_bar_lines;
+extern Lisp_Object Qtooltip;
+extern Lisp_Object Qmenu_bar_lines, Qtool_bar_lines, Qtool_bar_position;
 extern Lisp_Object Qmouse_color;
 extern Lisp_Object Qname, Qtitle;
 extern Lisp_Object Qparent_id;
@@ -1078,6 +1079,8 @@ extern Lisp_Object Qx_resource_name;
 extern Lisp_Object Qleft, Qright, Qtop, Qbox, Qbottom;
 extern Lisp_Object Qdisplay;
 
+extern Lisp_Object Qrun_hook_with_args;
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* The class of this X application.  */
@@ -1095,6 +1098,7 @@ extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 
 extern Lisp_Object Vx_resource_name;
 extern Lisp_Object Vx_resource_class;
+extern Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
 
 
 extern Lisp_Object Qface_set_after_frame_default;
@@ -1137,6 +1141,9 @@ extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object class,
 					   Lisp_Object component,
 					   Lisp_Object subclass);
+
+/* In xmenu.c */
+extern void set_frame_menubar (FRAME_PTR, int, int);
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
