@@ -52,12 +52,8 @@
 (require 'frame)
 (require 'mouse)
 (require 'faces)
-(require 'easymenu)
 (require 'menu-bar)
 (require 'fontset)
-
-;; Not needed?
-;;(require 'ispell)
 
 (defgroup ns nil
   "GNUstep/Mac OS X specific features."
@@ -440,38 +436,6 @@ The properties returned may include `top', `left', `height', and `width'."
     ;; in OS X it's in the app menu already
     (define-key menu-bar-help-menu [info-panel]
       '("About Emacs..." . ns-do-emacs-info-panel)))
-
-;;;; Edit menu: Modify slightly
-
-;; Substitute a Copy function that works better under X (for GNUstep).
-(easy-menu-remove-item global-map '("menu-bar" "edit") 'copy)
-(define-key-after menu-bar-edit-menu [copy]
-  '(menu-item "Copy" ns-copy-including-secondary
-    :enable mark-active
-    :help "Copy text in region between mark and current position")
-  'cut)
-
-;; Change to same precondition as select-and-paste, as we don't have
-;; `x-selection-exists-p'.
-(easy-menu-remove-item global-map '("menu-bar" "edit") 'paste)
-(define-key-after menu-bar-edit-menu [paste]
-  '(menu-item "Paste" yank
-    :enable (and (cdr yank-menu) (not buffer-read-only))
-    :help "Paste (yank) text most recently cut/copied")
-  'copy)
-
-;; Change text to be more consistent with surrounding menu items `paste', etc.
-(easy-menu-remove-item global-map '("menu-bar" "edit") 'paste-from-menu)
-(define-key-after menu-bar-edit-menu [select-paste]
-  '(menu-item "Select and Paste" yank-menu
-    :enable (and (cdr yank-menu) (not buffer-read-only))
-    :help "Choose a string from the kill ring and paste it")
-  'paste)
-
-;; Separate undo from cut/paste section, add spell for platform consistency.
-(define-key-after menu-bar-edit-menu [separator-undo] '("--") 'undo)
-(define-key-after menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map) 'fill)
-
 
 ;;;; Services
 (declare-function ns-perform-service "nsfns.m" (service send))

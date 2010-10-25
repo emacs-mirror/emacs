@@ -1,3 +1,7 @@
+2010-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Remove easymenu.elc.
+
 2010-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* digest-doc.c, sorted-doc.c: Remove files.

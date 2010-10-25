@@ -361,6 +361,11 @@
 (define-key menu-bar-edit-menu [props]
   `(menu-item ,(purecopy "Text Properties") facemenu-menu))
 
+;; ns-win.el said: Add spell for platorm consistency.
+(if (featurep 'ns)
+    (define-key menu-bar-edit-menu [spell]
+      `(menu-item ,(purecopy "Spell") ispell-menu-map)))
+
 (define-key menu-bar-edit-menu [fill]
   `(menu-item ,(purecopy "Fill") fill-region
 	      :enable (and mark-active (not buffer-read-only))
@@ -453,30 +458,46 @@
 	      ,(purecopy "Delete the text in region between mark and current position")))
 (defvar yank-menu (cons (purecopy "Select Yank") nil))
 (fset 'yank-menu (cons 'keymap yank-menu))
-(define-key menu-bar-edit-menu [paste-from-menu]
-  `(menu-item ,(purecopy "Paste from Kill Menu") yank-menu
+;; The ns differences here seem silly.
+(define-key menu-bar-edit-menu (if (featurep 'ns) [select-paste]
+                                 [paste-from-menu])
+  ;; ns-win.el said: Change text to be more consistent with
+  ;; surrounding menu items `paste', etc."
+  `(menu-item ,(purecopy (if (featurep 'ns) "Select and Paste"
+                           "Paste from Kill Menu")) yank-menu
 	      :enable (and (cdr yank-menu) (not buffer-read-only))
 	      :help ,(purecopy "Choose a string from the kill ring and paste it")))
 (define-key menu-bar-edit-menu [paste]
   `(menu-item ,(purecopy "Paste") yank
 	      :enable (and (or
-			    ;; Emacs compiled --without-x doesn't have
-			    ;; x-selection-exists-p.
+			    ;; Emacs compiled --without-x (or --with-ns)
+			    ;; doesn't have x-selection-exists-p.
 			    (and (fboundp 'x-selection-exists-p)
 				 (x-selection-exists-p 'CLIPBOARD))
-			    kill-ring)
+			    (if (featurep 'ns) ; like paste-from-menu
+				(cdr yank-menu)
+			      kill-ring))
 			   (not buffer-read-only))
 	      :help ,(purecopy "Paste (yank) text most recently cut/copied")))
 (define-key menu-bar-edit-menu [copy]
-  `(menu-item ,(purecopy "Copy") menu-bar-kill-ring-save
-	      :enable mark-active
-	      :help ,(purecopy "Copy text in region between mark and current position")
-	      :keys ,(purecopy "\\[kill-ring-save]")))
+  ;; ns-win.el said: Substitute a Copy function that works better
+  ;; under X (for GNUstep).
+  `(menu-item ,(purecopy "Copy") ,(if (featurep 'ns)
+                                      'ns-copy-including-secondary
+                                    'menu-bar-kill-ring-save)
+              :enable mark-active
+              :help ,(purecopy "Copy text in region between mark and current position")
+              :keys ,(purecopy (if (featurep 'ns)
+                                   "\\[ns-copy-including-secondary]"
+                                 "\\[kill-ring-save]"))))
 (define-key menu-bar-edit-menu [cut]
   `(menu-item ,(purecopy "Cut") kill-region
 	      :enable (and mark-active (not buffer-read-only))
 	      :help
 	      ,(purecopy "Cut (kill) text in region between mark and current position")))
+;; ns-win.el said: Separate undo from cut/paste section.
+(if (featurep 'ns)
+    (define-key menu-bar-edit-menu [separator-undo] `(,(purecopy "--"))))
 (define-key menu-bar-edit-menu [undo]
   `(menu-item ,(purecopy "Undo") undo
 	      :enable (and (not buffer-read-only)
@@ -485,7 +506,6 @@
 			       (listp pending-undo-list)
 			     (consp buffer-undo-list)))
 	      :help ,(purecopy "Undo last operation")))
-
 
 (defun menu-bar-kill-ring-save (beg end)
   (interactive "r")
@@ -2082,5 +2102,4 @@ If FRAME is nil or not given, use the selected frame."
 
 (provide 'menu-bar)
 
-;; arch-tag: 6e6a3c22-4ec4-4d3d-8190-583f8ef94ced
 ;;; menu-bar.el ends here
