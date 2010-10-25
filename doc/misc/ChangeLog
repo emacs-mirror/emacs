@@ -2,6 +2,7 @@
 
 	* epa.texi (Mail-mode integration): Add alternative key bindings
 	for epa-mail commands; escape comma.
+	Don't use the word "PGP", since it is a non-free program.
 
 2010-10-24  Jay Belanger  <jay.p.belanger@gmail.com>
 

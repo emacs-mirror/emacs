@@ -306,14 +306,14 @@ Encrypt marked files.
 @section Mail-mode integration
 
 EasyPG Assistant provides a minor mode @code{epa-mail-mode} to help
-user compose inline PGP messages.  Inline PGP is a traditional style
-of sending signed/encrypted emails by embedding raw OpenPGP blobs
-inside a message body, not using modern MIME format.
+user compose inline OpenPGP messages.  Inline OpenPGP is a traditional
+style of sending signed/encrypted emails by embedding raw OpenPGP
+blobs inside a message body, not using modern MIME format.
 
-NOTE: Inline PGP is not recommended and you should consider to use
+NOTE: Inline OpenPGP is not recommended and you should consider to use
 PGP/MIME.  See
 @uref{http://josefsson.org/inline-openpgp-considered-harmful.html,
-Inline PGP in E-mail is bad@comma{} Mm'kay?}.
+Inline OpenPGP in E-mail is bad@comma{} Mm'kay?}.
 
 @noindent
 Once @code{epa-mail-mode} is enabled, the following keys are assigned.
