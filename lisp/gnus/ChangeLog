@@ -1,3 +1,8 @@
+2010-10-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-select-article): Fix type error in checking
+	the original article buffer.
+
 2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-request-head): New function.

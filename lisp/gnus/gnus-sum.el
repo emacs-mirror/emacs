@@ -7593,7 +7593,7 @@ be displayed."
 		       (not (eq article (cdr gnus-article-current)))
 		       (not (equal (car gnus-article-current)
 				   gnus-newsgroup-name))
-		       (not (buffer-name gnus-original-article-buffer))))
+		       (not (get-buffer gnus-original-article-buffer))))
 	      (and (not gnus-single-article-buffer)
 		   (or (null gnus-current-article)
 		       (not (eq gnus-current-article article))))
