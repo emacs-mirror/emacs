@@ -1,3 +1,8 @@
+2010-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (init_eval_once): Set max_lisp_eval_depth to 600;
+	otherwise, bootstrapping on Windows fails to compile macroexp.el.
+
 2010-10-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* cmds.c (internal_self_insert): Don't insert if argument N is
