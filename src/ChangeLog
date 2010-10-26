@@ -1,3 +1,7 @@
+2010-10-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (qttip_cb): Set title to empty for ATK (Bug#7278).
+
 2010-10-25  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (SOME_MACHINE_LISP): Remove easymenu.elc.
