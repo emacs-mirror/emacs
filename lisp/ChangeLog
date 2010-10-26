@@ -1,5 +1,18 @@
 2010-10-26  Glenn Morris  <rgm@gnu.org>
 
+	* term/ns-win.el (ns-version-string): Remove unused declaration.
+	(ns-invocation-args): Change to x-invocation-args.
+	(ns-handle-switch, ns-handle-numeric-switch, ns-handle-iconic)
+	(ns-handle-name-switch, ns-ignore-2-arg): Remove.
+	(ns-handle-nxopen, ns-handle-nxopentemp, ns-ignore-1-arg):
+	Use x-invocation-args instead of ns-invocation-args.
+	(ns-initialize-window-system, handle-args-function-alist):
+	Use x-handle-args instead of ns-handle-args.
+	* term/common-win.el (x-handle-args): Also handle nextstep arguments.
+	* startup.el (command-line-ns-option-alist): Replace
+	ns-handle-name-switch, ns-handle-switch, ns-handle-numeric-switch,
+	ns-handle-iconic with the x- equivalents.
+
 	* term/common-win.el (x-select-enable-clipboard):
 	* term/pc-win.el (x-select-enable-clipboard): Doc fix.
 

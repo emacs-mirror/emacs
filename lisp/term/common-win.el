@@ -316,12 +316,14 @@ On X, the display name of individual X frames is recorded in the
   (setenv "DISPLAY" x-display-name))
 
 (defun x-handle-args (args)
-  "Process the X-related command line options in ARGS.
-This is done before the user's startup file is loaded.  They are copied to
-`x-invocation-args', from which the X-related things are extracted, first
-the switch (e.g., \"-fg\") in the following code, and possible values
-\(e.g., \"black\") in the option handler code (e.g., x-handle-switch).
-This function returns ARGS minus the arguments that have been processed."
+  "Process the X (or Nextstep) related command line options in ARGS.
+This is done before the user's startup file is loaded.
+Copies the options in ARGS to `x-invocation-args'.  It then extracts
+the X (or Nextstep) options according to the handlers defined in
+`command-line-x-option-alist' (or `command-line-ns-option-alist').
+For example, `x-handle-switch' handles a switch like \"-fg\" and its
+value \"black\".  This function returns ARGS minus the arguments that
+have been processed."
   ;; We use ARGS to accumulate the args that we don't handle here, to return.
   (setq x-invocation-args args		; FIXME let-bind?
 	args nil)
@@ -329,6 +331,9 @@ This function returns ARGS minus the arguments that have been processed."
 	      (not (equal (car x-invocation-args) "--")))
     (let* ((this-switch (pop x-invocation-args))
 	   (orig-this-switch this-switch)
+	   (option-alist (if (featurep 'ns)
+			     command-line-ns-option-alist
+			   command-line-x-option-alist))
 	   completion argval aelt handler)
       ;; Check for long options with attached arguments
       ;; and separate out the attached option argument into argval.
@@ -338,17 +343,17 @@ This function returns ARGS minus the arguments that have been processed."
       ;; Complete names of long options.
       (if (string-match "^--" this-switch)
 	  (progn
-	    (setq completion (try-completion this-switch command-line-x-option-alist))
+	    (setq completion (try-completion this-switch option-alist))
 	    (if (eq completion t)
 		;; Exact match for long option.
 		nil
 	      (if (stringp completion)
-		  (let ((elt (assoc completion command-line-x-option-alist)))
+		  (let ((elt (assoc completion option-alist)))
 		    ;; Check for abbreviated long option.
 		    (or elt
 			(error "Option `%s' is ambiguous" this-switch))
 		    (setq this-switch completion))))))
-      (setq aelt (assoc this-switch command-line-x-option-alist))
+      (setq aelt (assoc this-switch option-alist))
       (if aelt (setq handler (nth 2 aelt)))
       (if handler
 	  (if argval

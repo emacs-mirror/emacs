@@ -58,99 +58,30 @@
   :group 'environment)
 
 ;; nsterm.m
-(defvar ns-version-string)
 (defvar ns-alternate-modifier)
 (defvar ns-right-alternate-modifier)
 
 ;;;; Command line argument handling.
 
-(defvar ns-invocation-args nil)
-(defvar ns-command-line-resources nil)
-
-;; Handler for switches of the form "-switch value" or "-switch".
-(defun ns-handle-switch (switch &optional numeric)
-  (let ((aelt (assoc switch command-line-ns-option-alist)))
-    (if aelt
-	(setq default-frame-alist
-	      (cons (cons (nth 3 aelt)
-			  (if numeric
-			      (string-to-number (pop ns-invocation-args))
-			    (or (nth 4 aelt) (pop ns-invocation-args))))
-		    default-frame-alist)))))
-
-;; Handler for switches of the form "-switch n"
-(defun ns-handle-numeric-switch (switch)
-  (ns-handle-switch switch t))
-
-(defalias 'ns-handle-iconic 'x-handle-iconic)
-
-;; Handle the -name option, set the name of the initial frame.
-(defun ns-handle-name-switch (switch)
-  (or (consp ns-invocation-args)
-      (error "%s: missing argument to `%s' option" (invocation-name) switch))
-  (setq initial-frame-alist (cons (cons 'name (pop ns-invocation-args))
-                                  initial-frame-alist)))
+(defvar x-invocation-args)
+(defvar ns-command-line-resources nil)  ; FIXME unused?
 
 ;; nsterm.m.
 (defvar ns-input-file)
 
 (defun ns-handle-nxopen (switch)
   (setq unread-command-events (append unread-command-events '(ns-open-file))
-        ns-input-file (append ns-input-file (list (pop ns-invocation-args)))))
+        ns-input-file (append ns-input-file (list (pop x-invocation-args)))))
 
 (defun ns-handle-nxopentemp (switch)
   (setq unread-command-events (append unread-command-events
 				      '(ns-open-temp-file))
-        ns-input-file (append ns-input-file (list (pop ns-invocation-args)))))
+        ns-input-file (append ns-input-file (list (pop x-invocation-args)))))
 
 (defun ns-ignore-1-arg (switch)
-  (setq ns-invocation-args (cdr ns-invocation-args)))
-(defun ns-ignore-2-arg (switch)
-  (setq ns-invocation-args (cddr ns-invocation-args)))
-
-(defun ns-handle-args (args)
-  "Process Nextstep-related command line options.
-This is run before the user's startup file is loaded.
-The options in ARGS are copied to `ns-invocation-args'.
-The Nextstep-related settings are then applied using the handlers
-defined in `command-line-ns-option-alist'.
-The return value is ARGS minus the number of arguments processed."
-  ;; We use ARGS to accumulate the args that we don't handle here, to return.
-  (setq ns-invocation-args args
-        args nil)
-  (while ns-invocation-args
-    (let* ((this-switch (pop ns-invocation-args))
-	   (orig-this-switch this-switch)
-	   completion argval aelt handler)
-      ;; Check for long options with attached arguments
-      ;; and separate out the attached option argument into argval.
-      (if (string-match "^--[^=]*=" this-switch)
-	  (setq argval (substring this-switch (match-end 0))
-		this-switch (substring this-switch 0 (1- (match-end 0)))))
-      ;; Complete names of long options.
-      (if (string-match "^--" this-switch)
-	  (progn
-	    (setq completion (try-completion this-switch
-                                             command-line-ns-option-alist))
-	    (if (eq completion t)
-		;; Exact match for long option.
-		nil
-	      (if (stringp completion)
-		  (let ((elt (assoc completion command-line-ns-option-alist)))
-		    ;; Check for abbreviated long option.
-		    (or elt
-			(error "Option `%s' is ambiguous" this-switch))
-		    (setq this-switch completion))))))
-      (setq aelt (assoc this-switch command-line-ns-option-alist))
-      (if aelt (setq handler (nth 2 aelt)))
-      (if handler
-	  (if argval
-	      (let ((ns-invocation-args
-		     (cons argval ns-invocation-args)))
-		(funcall handler this-switch))
-	    (funcall handler this-switch))
-	(setq args (cons orig-this-switch args)))))
-  (nreverse args))
+  (setq x-invocation-args (cdr x-invocation-args)))
+(defun ns-ignore-2-arg (switch)         ; FIXME unused?
+  (setq x-invocation-args (cddr x-invocation-args)))
 
 (defun ns-parse-geometry (geom)
   "Parse a Nextstep-style geometry string GEOM.
@@ -1029,7 +960,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   "Initialize Emacs for Nextstep (Cocoa / GNUstep) windowing."
 
   ;; PENDING: not needed?
-  (setq command-line-args (ns-handle-args command-line-args))
+  (setq command-line-args (x-handle-args command-line-args))
 
   (x-open-connection (system-name) nil t)
 
@@ -1048,7 +979,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
   (setq ns-initialized t))
 
-(add-to-list 'handle-args-function-alist '(ns . ns-handle-args))
+(add-to-list 'handle-args-function-alist '(ns . x-handle-args))
 (add-to-list 'frame-creation-function-alist '(ns . x-create-frame-with-faces))
 (add-to-list 'window-system-initialization-alist '(ns . ns-initialize-window-system))
 
