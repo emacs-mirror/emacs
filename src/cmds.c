@@ -474,7 +474,7 @@ internal_self_insert (int c, EMACS_INT n)
       insert_and_inherit (strn, p - strn);
       SAFE_FREE ();
     }
-  else if (n)
+  else if (n > 0)
     insert_and_inherit (str, len);
 
   if ((CHAR_TABLE_P (Vauto_fill_chars)

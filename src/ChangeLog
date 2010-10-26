@@ -1,7 +1,7 @@
 2010-10-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* cmds.c (internal_self_insert): Don't insert if argument N is
-	zero.  (Bug#7281)
+	zero or negative.  (Bug#7281)
 
 2010-10-26  Jan Djärv  <jan.h.d@swipnet.se>
 
