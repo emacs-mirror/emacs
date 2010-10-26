@@ -1,3 +1,8 @@
+2010-10-26  Glenn Morris  <rgm@gnu.org>
+
+	* images/README: Add (un)checked.xpm
+	* images/checked.xpm, images/unchecked.xpm: Add copyright.
+
 2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* images/checked.xpm:
