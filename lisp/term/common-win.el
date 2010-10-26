@@ -463,15 +463,15 @@ the operating system.")
 
 (defun xw-defined-colors (&optional frame)
   "Internal function called by `defined-colors', which see."
-  (or frame (setq frame (selected-frame)))
-  ;; FIXME for ns, this is just... x-colors.
-  (let (defined-colors)
-    (dolist (this-color (if (eq system-type 'windows-nt)
-			    (or (mapcar 'car w32-color-map) x-colors)
-			  x-colors))
-      (and (or (color-supported-p this-color frame t)
-	       (featurep 'ns))
-	   (setq defined-colors (cons this-color defined-colors))))
-    defined-colors))
+  (if (featurep 'ns)
+      x-colors
+    (or frame (setq frame (selected-frame)))
+    (let (defined-colors)
+      (dolist (this-color (if (eq system-type 'windows-nt)
+			      (or (mapcar 'car w32-color-map) x-colors)
+			    x-colors))
+	(and (color-supported-p this-color frame t)
+	     (setq defined-colors (cons this-color defined-colors))))
+      defined-colors)))
 
 ;;; common-win.el ends here

@@ -1,3 +1,7 @@
+2010-10-26  Glenn Morris  <rgm@gnu.org>
+
+	* term/common-win.el (xw-defined-colors): Simplify the 'ns case.
+
 2010-10-26  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el (ns-new-frame, ns-show-prefs): Don't add to
