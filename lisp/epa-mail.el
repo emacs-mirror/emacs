@@ -154,7 +154,9 @@ If no one is selected, symmetric encryption will be performed.  "
 			    (epa-mail--find-usable-key
 			     (epg-list-keys
 			      (epg-make-context epa-protocol)
-			      (concat "<" recipient ">"))
+			      (if (string-match "@" recipient)
+				  (concat "<" recipient ">")
+				recipient))
 			     'encrypt))
 		      (unless (or recipient-key
 				  (y-or-n-p

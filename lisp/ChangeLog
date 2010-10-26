@@ -1,3 +1,8 @@
+2010-10-26  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-mail.el (epa-mail-encrypt): Handle local-part only
+	recipients (Bug#7280).
+
 2010-10-25  Glenn Morris  <rgm@gnu.org>
 
 	* term/common-win.el (x-handle-switch): Simplify with pop.
