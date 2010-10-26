@@ -80,8 +80,6 @@
 
 (defun ns-ignore-1-arg (switch)
   (setq x-invocation-args (cdr x-invocation-args)))
-(defun ns-ignore-2-arg (switch)         ; FIXME unused?
-  (setq x-invocation-args (cddr x-invocation-args)))
 
 (defun ns-parse-geometry (geom)
   "Parse a Nextstep-style geometry string GEOM.
