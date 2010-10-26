@@ -1,3 +1,10 @@
+2010-10-26  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-new-frame, ns-show-prefs): Don't add to
+	global map.
+	* term/common-win.el (x-setup-function-keys): Remove most of the
+	keymappings.  Comment on the remaining ones.
+
 2010-10-26  Peter Oliver  <p.d.oliver@mavit.org.uk>  (tiny change)
 
 	* server.el (server-port): New option.  (Bug#854)

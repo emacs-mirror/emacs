@@ -163,7 +163,8 @@ The properties returned may include `top', `left', `height', and `width'."
 
 
 ;; Special Nextstep-generated events are converted to function keys.  Here
-;; are the bindings for them.
+;; are the bindings for them.  Note, these keys are actually declared in
+;; x-setup-function-keys in common-win.
 (define-key global-map [ns-power-off] 'save-buffers-kill-emacs)
 (define-key global-map [ns-open-file] 'ns-find-file)
 (define-key global-map [ns-open-temp-file] [ns-open-file])
@@ -174,9 +175,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-change-font] 'ns-respond-to-change-font)
 (define-key global-map [ns-open-file-line] 'ns-open-file-select-line)
 (define-key global-map [ns-spi-service-call] 'ns-spi-service-call)
-(define-key global-map [ns-new-frame] 'make-frame)
 (define-key global-map [ns-toggle-toolbar] 'ns-toggle-toolbar)
-(define-key global-map [ns-show-prefs] 'customize)
 
 
 ;; Set up a number of aliases and other layers to pretend we're using
