@@ -1,3 +1,17 @@
+2010-10-26  Glenn Morris  <rgm@gnu.org>
+
+	* term/common-win.el (x-select-enable-clipboard):
+	* term/pc-win.el (x-select-enable-clipboard): Doc fix.
+
+	* term/ns-win.el: No need to require cl when compiling.
+	(x-display-name, x-setup-function-keys, x-select-text, x-colors)
+	(xw-defined-colors): Use the common-win definitions.
+	(ns-alternatives-map): Make it an obsolete alias for x-alternatives-map.
+	(ns-handle-iconic): Make it an alias for x-handle-iconic.
+	* term/common-win.el (x-select-text, x-alternatives-map)
+	(x-setup-function-keys, x-colors, xw-defined-colors): Handle 'ns case.
+	* loadup.el [ns]: Load common-win.
+
 2010-10-26  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-mail.el (epa-mail-encrypt): Handle local-part only
