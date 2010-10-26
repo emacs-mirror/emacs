@@ -1,3 +1,8 @@
+2010-10-26  Peter Oliver  <p.d.oliver@mavit.org.uk>  (tiny change)
+
+	* server.el (server-port): New option.
+	(server-start): Use server-port.
+
 2010-10-26  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el (ns-version-string): Remove unused declaration.

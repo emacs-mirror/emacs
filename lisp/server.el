@@ -112,6 +112,15 @@ If set, the server accepts remote connections; otherwise it is local."
   :version "22.1")
 (put 'server-host 'risky-local-variable t)
 
+(defcustom server-port nil
+  "The port number that the server process should listen on."
+  :group 'server
+  :risky t
+  :type '(choice
+          (string :tag "Port number")
+          (const :tag "Random" nil))
+  :version "24.1")
+
 (defcustom server-auth-dir (locate-user-emacs-file "server/")
   "Directory for server authentication files.
 
@@ -564,7 +573,7 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 		       ;; The other args depend on the kind of socket used.
 		       (if server-use-tcp
 			   (list :family 'ipv4  ;; We're not ready for IPv6 yet
-				 :service t
+				 :service (or server-port t)
 				 :host (or server-host 'local)
 				 :plist '(:authenticated nil))
 			 (list :family 'local
