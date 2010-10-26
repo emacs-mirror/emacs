@@ -1,6 +1,6 @@
 2010-10-26  Peter Oliver  <p.d.oliver@mavit.org.uk>  (tiny change)
 
-	* server.el (server-port): New option.
+	* server.el (server-port): New option.  (Bug#854)
 	(server-start): Use server-port.
 
 2010-10-26  Glenn Morris  <rgm@gnu.org>
