@@ -1,3 +1,7 @@
+2010-10-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-tag-div): Added.
+
 2010-10-25  Julien Danjou  <julien@danjou.info>
 
 	* gnus-util.el: Remove `gnus-with-local-quit'.
