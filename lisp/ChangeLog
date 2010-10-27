@@ -1,5 +1,11 @@
 2010-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* play/landmark.el: Adjust commenting convention.
+	(lm-nil-score): Rename from nil-score.
+	(Xscore, XXscore, XXXscore, XXXXscore, Oscore, OOscore, OOOscore)
+	(OOOOscore): Move into a let in lm-score-trans-table.
+	(lm-winning-threshold, lm-loosing-threshold): Use lm-score-trans-table.
+
 	* electric.el (electric-indent-chars): Autoload.
 	* progmodes/octave-mod.el (octave-mode):
 	* progmodes/ruby-mode.el (ruby-mode): Take advantage of it.

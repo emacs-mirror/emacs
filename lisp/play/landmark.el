@@ -30,31 +30,31 @@
 
 
 ;;; Commentary:
-;;; Lm is a relatively non-participatory game in which a robot
-;;; attempts to maneuver towards a tree at the center of the window
-;;; based on unique olfactory cues from each of the 4 directions. If
-;;; the smell of the tree increases, then the weights in the robot's
-;;; brain are adjusted to encourage this odor-driven behavior in the
-;;; future. If the smell of the tree decreases, the robots weights are
-;;; adjusted to discourage a correct move.
+;; Lm is a relatively non-participatory game in which a robot
+;; attempts to maneuver towards a tree at the center of the window
+;; based on unique olfactory cues from each of the 4 directions. If
+;; the smell of the tree increases, then the weights in the robot's
+;; brain are adjusted to encourage this odor-driven behavior in the
+;; future. If the smell of the tree decreases, the robots weights are
+;; adjusted to discourage a correct move.
 
-;;; In laymen's terms, the search space is initially flat. The point
-;;; of training is to "turn up the edges of the search space" so that
-;;; the robot rolls toward the center.
+;; In laymen's terms, the search space is initially flat. The point
+;; of training is to "turn up the edges of the search space" so that
+;; the robot rolls toward the center.
 
-;;; Further, do not become alarmed if the robot appears to oscillate
-;;; back and forth between two or a few positions. This simply means
-;;; it is currently caught in a local minimum and is doing its best to
-;;; work its way out.
+;; Further, do not become alarmed if the robot appears to oscillate
+;; back and forth between two or a few positions. This simply means
+;; it is currently caught in a local minimum and is doing its best to
+;; work its way out.
 
-;;; The version of this program as described has a small problem. a
-;;; move in a net direction can produce gross credit assignment. for
-;;; example, if moving south will produce positive payoff, then, if in
-;;; a single move, one moves east,west and south, then both east and
-;;; west will be improved when they shouldn't
+;; The version of this program as described has a small problem. a
+;; move in a net direction can produce gross credit assignment. for
+;; example, if moving south will produce positive payoff, then, if in
+;; a single move, one moves east,west and south, then both east and
+;; west will be improved when they shouldn't
 
-;;; Many thanks to Yuri Pryadkin (yuri@rana.usc.edu) for this
-;;; concise problem description.
+;; Many thanks to Yuri Pryadkin (yuri@rana.usc.edu) for this
+;; concise problem description.
 
 ;;;_* Require
 (eval-when-compile (require 'cl))
@@ -303,47 +303,47 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 ;; these values will change (hopefully improve) the strength of the program
 ;; and may change its style (rather aggressive here).
 
-(defconst nil-score	  7  "Score of an empty qtuple.")
-(defconst Xscore	 15  "Score of a qtuple containing one X.")
-(defconst XXscore	400  "Score of a qtuple containing two X's.")
-(defconst XXXscore     1800  "Score of a qtuple containing three X's.")
-(defconst XXXXscore  100000  "Score of a qtuple containing four X's.")
-(defconst Oscore	 35  "Score of a qtuple containing one O.")
-(defconst OOscore	800  "Score of a qtuple containing two O's.")
-(defconst OOOscore    15000  "Score of a qtuple containing three O's.")
-(defconst OOOOscore  800000  "Score of a qtuple containing four O's.")
-
-;; These values are not just random: if, given the following situation:
-;;
-;;			  . . . . . . . O .
-;;			  . X X a . . . X .
-;;			  . . . X . . . X .
-;;			  . . . X . . . X .
-;;			  . . . . . . . b .
-;;
-;; you want Emacs to play in "a" and not in "b", then the parameters must
-;; satisfy the inequality:
-;;
-;;		   6 * XXscore > XXXscore + XXscore
-;;
-;; because "a" mainly belongs to six "XX" qtuples (the others are less
-;; important) while "b" belongs to one "XXX" and one "XX" qtuples.  Other
-;; conditions are required to obtain sensible moves, but the previous example
-;; should illustrate the point. If you manage to improve on these values,
-;; please send me a note. Thanks.
-
-
-;; As we chose values 0, 1 and 6 to denote empty, X and O squares, the
-;; contents of a qtuple are uniquely determined by the sum of its elements and
-;; we just have to set up a translation table.
+(defconst lm-nil-score	  7  "Score of an empty qtuple.")
 
 (defconst lm-score-trans-table
-  (vector nil-score Xscore XXscore XXXscore XXXXscore 0
-	  Oscore    0	   0	   0	    0	      0
-	  OOscore   0	   0	   0	    0	      0
-	  OOOscore  0	   0	   0	    0	      0
-	  OOOOscore 0	   0	   0	    0	      0
-	  0)
+  (let ((Xscore		15)  ; Score of a qtuple containing one X.
+        (XXscore       400)  ; Score of a qtuple containing two X's.
+        (XXXscore     1800)  ; Score of a qtuple containing three X's.
+        (XXXXscore  100000)  ; Score of a qtuple containing four X's.
+        (Oscore		35)  ; Score of a qtuple containing one O.
+        (OOscore       800)  ; Score of a qtuple containing two O's.
+        (OOOscore    15000)  ; Score of a qtuple containing three O's.
+        (OOOOscore  800000)) ; Score of a qtuple containing four O's.
+
+    ;; These values are not just random: if, given the following situation:
+    ;;
+    ;;			  . . . . . . . O .
+    ;;			  . X X a . . . X .
+    ;;			  . . . X . . . X .
+    ;;			  . . . X . . . X .
+    ;;			  . . . . . . . b .
+    ;;
+    ;; you want Emacs to play in "a" and not in "b", then the parameters must
+    ;; satisfy the inequality:
+    ;;
+    ;;		   6 * XXscore > XXXscore + XXscore
+    ;;
+    ;; because "a" mainly belongs to six "XX" qtuples (the others are less
+    ;; important) while "b" belongs to one "XXX" and one "XX" qtuples.
+    ;; Other conditions are required to obtain sensible moves, but the
+    ;; previous example should illustrate the point.  If you manage to
+    ;; improve on these values, please send me a note.  Thanks.
+
+
+    ;; As we chose values 0, 1 and 6 to denote empty, X and O squares,
+    ;; the contents of a qtuple are uniquely determined by the sum of
+    ;; its elements and we just have to set up a translation table.
+    (vector lm-nil-score Xscore XXscore XXXscore XXXXscore 0
+            Oscore       0	0	0	 0	   0
+            OOscore      0	0	0	 0	   0
+            OOOscore     0	0	0	 0	   0
+            OOOOscore    0	0	0	 0	   0
+            0))
   "Vector associating qtuple contents to their score.")
 
 
@@ -354,10 +354,12 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 ;; qtuple. We may use these considerations to detect when a given move is
 ;; winning or loosing.
 
-(defconst lm-winning-threshold OOOOscore
+(defconst lm-winning-threshold
+  (aref lm-score-trans-table (+ 6 6 6 6)) ;; OOOOscore
   "Threshold score beyond which an Emacs move is winning.")
 
-(defconst lm-loosing-threshold XXXXscore
+(defconst lm-loosing-threshold
+  (aref lm-score-trans-table (+ 1 1 1 1)) ;; XXXXscore
   "Threshold score beyond which a human move is winning.")
 
 
@@ -423,7 +425,7 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
       (setq lm-score-table (copy-sequence lm-saved-score-table))
       ;; No, compute it:
       (setq lm-score-table
-	    (make-vector lm-vector-length (* 20 nil-score)))
+	    (make-vector lm-vector-length (* 20 lm-nil-score)))
       (let (i j maxi maxj maxi2 maxj2)
 	(setq maxi  (/ (1+ lm-board-width) 2)
 	      maxj  (/ (1+ lm-board-height) 2)
