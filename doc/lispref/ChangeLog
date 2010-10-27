@@ -1,3 +1,7 @@
+2010-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* maps.texi (Standard Keymaps): Update File menu description.
+
 2010-10-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Window Systems): Deprecate use of window-system as
