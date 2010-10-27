@@ -420,8 +420,7 @@ See `ns-insert-working-text'."
   "Insert contents of file `ns-input-file' like insert-file but with less
 prompting.  If file is a directory perform a `find-file' on it."
   (interactive)
-  (let (f)
-    (setq f (pop ns-input-file))
+  (let ((f (pop ns-input-file)))
     (if (file-directory-p f)
         (find-file f)
       (push-mark (+ (point) (cadr (insert-file-contents f)))))))
@@ -527,11 +526,10 @@ unless the current buffer is a scratch buffer."
 (defun ns-find-file ()
   "Do a `find-file' with the `ns-input-file' as argument."
   (interactive)
-  (let (f file bufwin1 bufwin2)
-    (setq f (file-truename (pop ns-input-file))
-          file (find-file-noselect f)
-          bufwin1 (get-buffer-window file 'visible)
-          bufwin2 (get-buffer-window "*scratch*" 'visibile))
+  (let* ((f (file-truename (pop ns-input-file)))
+         (file (find-file-noselect f))
+         (bufwin1 (get-buffer-window file 'visible))
+         (bufwin2 (get-buffer-window "*scratch*" 'visibile)))
     (cond
      (bufwin1
       (select-frame (window-frame bufwin1))
