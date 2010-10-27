@@ -110,16 +110,18 @@ If set, the server accepts remote connections; otherwise it is local."
           (string :tag "Name or IP address")
           (const :tag "Local" nil))
   :version "22.1")
+;;;###autoload
 (put 'server-host 'risky-local-variable t)
 
 (defcustom server-port nil
   "The port number that the server process should listen on."
   :group 'server
-  :risky t
   :type '(choice
           (string :tag "Port number")
           (const :tag "Random" nil))
   :version "24.1")
+;;;###autoload
+(put 'server-port 'risky-local-variable t)
 
 (defcustom server-auth-dir (locate-user-emacs-file "server/")
   "Directory for server authentication files.
@@ -131,6 +133,7 @@ directory residing in a NTFS partition instead."
   :group 'server
   :type 'directory
   :version "22.1")
+;;;###autoload
 (put 'server-auth-dir 'risky-local-variable t)
 
 (defcustom server-raise-frame t
@@ -1482,5 +1485,4 @@ only these files will be asked to be saved."
 
 (provide 'server)
 
-;; arch-tag: 1f7ecb42-f00a-49f8-906d-61995d84c8d6
 ;;; server.el ends here

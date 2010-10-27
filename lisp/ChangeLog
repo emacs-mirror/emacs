@@ -1,5 +1,7 @@
 2010-10-27  Glenn Morris  <rgm@gnu.org>
 
+	* server.el (server-host, server-port, server-auth-dir): Autoload risky.
+
 	* term/ns-win.el: Restore require of cl when compiling.
 	(menu-bar-final-items): Remove non-existent `windows' menu.
 
