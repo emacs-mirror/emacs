@@ -1712,7 +1712,13 @@ If RECURSIVE, search recursively."
 		       (mm-decode-coding-string (buffer-string) charset)
 		     (erase-buffer)
 		     (mm-enable-multibyte))))
-	 (libxml-parse-html-region (point-min) (point-max)))))))
+	 (libxml-parse-html-region (point-min) (point-max))))
+      (mm-handle-set-undisplayer
+       handle
+       `(lambda ()
+	  (let ((inhibit-read-only t))
+	    (delete-region ,(point-min-marker)
+			   ,(point-max-marker))))))))
 
 (provide 'mm-decode)
 

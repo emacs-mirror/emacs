@@ -444,6 +444,12 @@ Return a string with image data."
   (shr-generic cont)
   (shr-ensure-paragraph))
 
+(defun shr-tag-div (cont)
+  (shr-ensure-newline)
+  (shr-indent)
+  (shr-generic cont)
+  (shr-ensure-newline))
+
 (defun shr-tag-b (cont)
   (shr-fontize-cont cont 'bold))
 

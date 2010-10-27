@@ -1,3 +1,17 @@
+2010-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (init_eval_once): Set max_lisp_eval_depth to 600;
+	otherwise, bootstrapping on Windows fails to compile macroexp.el.
+
+2010-10-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmds.c (internal_self_insert): Don't insert if argument N is
+	zero or negative.  (Bug#7281)
+
+2010-10-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (qttip_cb): Set title to empty for ATK (Bug#7278).
+
 2010-10-25  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (SOME_MACHINE_LISP): Remove easymenu.elc.

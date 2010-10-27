@@ -7698,7 +7698,13 @@ x_connection_closed (Display *dpy, const char *error_message)
 #endif
 
 #ifdef USE_GTK
-      /* Due to bugs in some Gtk+ versions, just exit here. */
+      /* There is a long-standing bug in GTK that prevents the GTK
+	 main loop from recovering gracefully from disconnects
+	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Among
+	 other problems, this gives rise to a stream of Glib error
+	 messages that, in one incident, filled up a user's hard disk
+	 (http://lists.gnu.org/archive/html/emacs-devel/2010-10/msg00927.html).
+	 So, kill Emacs unconditionally if the display is closed.  */
       {
 	fprintf (stderr, "%s\n", error_msg);
 	Fkill_emacs (make_number (70));

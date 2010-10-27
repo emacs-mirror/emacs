@@ -1,3 +1,21 @@
+2010-10-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-shr): Add undisplayer to MIME handle.
+
+	* gnus-group.el (gnus-group-completing-read)
+	(gnus-read-ephemeral-bug-group): Replace replace-regexp-in-string with
+	gnus-replace-in-string.
+
+2010-10-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-tag-div): Added.
+
+2010-10-25  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el: Remove `gnus-with-local-quit'.
+
+	* gnus-demon.el (gnus-demon-init): Use run-with-idle-timer function.
+
 2010-10-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-summary-select-article): Fix type error in checking

@@ -41,12 +41,11 @@
 
 ;;; Code:
 
-
-(if (not (featurep 'ns))
+(or (featurep 'ns)
     (error "%s: Loading ns-win.el but not compiled for GNUstep/MacOS"
-	   (invocation-name)))
+           (invocation-name)))
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl))       ; lexical-let
 
 ;; Documentation-purposes only: actually loaded in loadup.el
 (require 'frame)
@@ -59,109 +58,25 @@
   "GNUstep/Mac OS X specific features."
   :group 'environment)
 
-;; nsterm.m
-(defvar ns-version-string)
-(defvar ns-alternate-modifier)
-(defvar ns-right-alternate-modifier)
-
 ;;;; Command line argument handling.
 
-(defvar ns-invocation-args nil)
-(defvar ns-command-line-resources nil)
-
-;; Handler for switches of the form "-switch value" or "-switch".
-(defun ns-handle-switch (switch &optional numeric)
-  (let ((aelt (assoc switch command-line-ns-option-alist)))
-    (if aelt
-	(setq default-frame-alist
-	      (cons (cons (nth 3 aelt)
-			  (if numeric
-			      (string-to-number (pop ns-invocation-args))
-			    (or (nth 4 aelt) (pop ns-invocation-args))))
-		    default-frame-alist)))))
-
-;; Handler for switches of the form "-switch n"
-(defun ns-handle-numeric-switch (switch)
-  (ns-handle-switch switch t))
-
-;; Make -iconic apply only to the initial frame!
-(defun ns-handle-iconic (switch)
-  (setq initial-frame-alist
-        (cons '(visibility . icon) initial-frame-alist)))
-
-;; Handle the -name option, set the name of the initial frame.
-(defun ns-handle-name-switch (switch)
-  (or (consp ns-invocation-args)
-      (error "%s: missing argument to `%s' option" (invocation-name) switch))
-  (setq initial-frame-alist (cons (cons 'name (pop ns-invocation-args))
-                                  initial-frame-alist)))
-
-;; Set (but not used?) in frame.el.
-(defvar x-display-name nil
-  "The name of the window display on which Emacs was started.
-On X, the display name of individual X frames is recorded in the
-`display' frame parameter.")
+(defvar x-invocation-args)
+(defvar ns-command-line-resources nil)  ; FIXME unused?
 
 ;; nsterm.m.
 (defvar ns-input-file)
 
 (defun ns-handle-nxopen (switch)
   (setq unread-command-events (append unread-command-events '(ns-open-file))
-        ns-input-file (append ns-input-file (list (pop ns-invocation-args)))))
+        ns-input-file (append ns-input-file (list (pop x-invocation-args)))))
 
 (defun ns-handle-nxopentemp (switch)
   (setq unread-command-events (append unread-command-events
 				      '(ns-open-temp-file))
-        ns-input-file (append ns-input-file (list (pop ns-invocation-args)))))
+        ns-input-file (append ns-input-file (list (pop x-invocation-args)))))
 
 (defun ns-ignore-1-arg (switch)
-  (setq ns-invocation-args (cdr ns-invocation-args)))
-(defun ns-ignore-2-arg (switch)
-  (setq ns-invocation-args (cddr ns-invocation-args)))
-
-(defun ns-handle-args (args)
-  "Process Nextstep-related command line options.
-This is run before the user's startup file is loaded.
-The options in ARGS are copied to `ns-invocation-args'.
-The Nextstep-related settings are then applied using the handlers
-defined in `command-line-ns-option-alist'.
-The return value is ARGS minus the number of arguments processed."
-  ;; We use ARGS to accumulate the args that we don't handle here, to return.
-  (setq ns-invocation-args args
-        args nil)
-  (while ns-invocation-args
-    (let* ((this-switch (pop ns-invocation-args))
-	   (orig-this-switch this-switch)
-	   completion argval aelt handler)
-      ;; Check for long options with attached arguments
-      ;; and separate out the attached option argument into argval.
-      (if (string-match "^--[^=]*=" this-switch)
-	  (setq argval (substring this-switch (match-end 0))
-		this-switch (substring this-switch 0 (1- (match-end 0)))))
-      ;; Complete names of long options.
-      (if (string-match "^--" this-switch)
-	  (progn
-	    (setq completion (try-completion this-switch
-                                             command-line-ns-option-alist))
-	    (if (eq completion t)
-		;; Exact match for long option.
-		nil
-	      (if (stringp completion)
-		  (let ((elt (assoc completion command-line-ns-option-alist)))
-		    ;; Check for abbreviated long option.
-		    (or elt
-			(error "Option `%s' is ambiguous" this-switch))
-		    (setq this-switch completion))))))
-      (setq aelt (assoc this-switch command-line-ns-option-alist))
-      (if aelt (setq handler (nth 2 aelt)))
-      (if handler
-	  (if argval
-	      (let ((ns-invocation-args
-		     (cons argval ns-invocation-args)))
-		(funcall handler this-switch))
-	    (funcall handler this-switch))
-	(setq args (cons orig-this-switch args)))))
-  (nreverse args))
+  (setq x-invocation-args (cdr x-invocation-args)))
 
 (defun ns-parse-geometry (geom)
   "Parse a Nextstep-style geometry string GEOM.
@@ -183,20 +98,7 @@ The properties returned may include `top', `left', `height', and `width'."
 
 ;;;; Keyboard mapping.
 
-(defvar ns-alternatives-map
-  (let ((map (make-sparse-keymap)))
-    ;; Map certain keypad keys into ASCII characters
-    ;; that people usually expect.
-    (define-key map [S-tab] [backtab])
-    (define-key map [M-backspace] [?\M-\d])
-    (define-key map [M-delete] [?\M-\d])
-    (define-key map [M-tab] [?\M-\t])
-    (define-key map [M-linefeed] [?\M-\n])
-    (define-key map [M-clear] [?\M-\C-l])
-    (define-key map [M-return] [?\M-\C-m])
-    (define-key map [M-escape] [?\M-\e])
-    map)
-  "Keymap of alternative meanings for some keys under Nextstep.")
+(define-obsolete-variable-alias 'ns-alternatives-map 'x-alternatives-map "24.1")
 
 ;; Here are some Nextstep-like bindings for command key sequences.
 (define-key global-map [?\s-,] 'customize)
@@ -256,9 +158,9 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [S-mouse-1] 'mouse-save-then-kill)
 (global-unset-key [S-down-mouse-1])
 
-
 ;; Special Nextstep-generated events are converted to function keys.  Here
-;; are the bindings for them.
+;; are the bindings for them.  Note, these keys are actually declared in
+;; x-setup-function-keys in common-win.
 (define-key global-map [ns-power-off] 'save-buffers-kill-emacs)
 (define-key global-map [ns-open-file] 'ns-find-file)
 (define-key global-map [ns-open-temp-file] [ns-open-file])
@@ -269,9 +171,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-change-font] 'ns-respond-to-change-font)
 (define-key global-map [ns-open-file-line] 'ns-open-file-select-line)
 (define-key global-map [ns-spi-service-call] 'ns-spi-service-call)
-(define-key global-map [ns-new-frame] 'make-frame)
 (define-key global-map [ns-toggle-toolbar] 'ns-toggle-toolbar)
-(define-key global-map [ns-show-prefs] 'customize)
 
 
 ;; Set up a number of aliases and other layers to pretend we're using
@@ -286,125 +186,16 @@ The properties returned may include `top', `left', `height', and `width'."
 (declare-function ns-do-applescript "nsfns.m" (script))
 (defalias 'do-applescript 'ns-do-applescript)
 
-(defun x-setup-function-keys (frame)
-  "Set up `function-key-map' on the graphical frame FRAME."
-  (unless (terminal-parameter frame 'x-setup-function-keys)
-    (with-selected-frame frame
-      (setq interprogram-cut-function 'x-select-text
-	    interprogram-paste-function 'x-selection-value)
-      (let ((map (copy-keymap ns-alternatives-map)))
-	(set-keymap-parent map (keymap-parent local-function-key-map))
-	(set-keymap-parent local-function-key-map map))
-      (setq system-key-alist
-            (list
-             (cons (logior (lsh 0 16)   1) 'ns-power-off)
-             (cons (logior (lsh 0 16)   2) 'ns-open-file)
-             (cons (logior (lsh 0 16)   3) 'ns-open-temp-file)
-             (cons (logior (lsh 0 16)   4) 'ns-drag-file)
-             (cons (logior (lsh 0 16)   5) 'ns-drag-color)
-             (cons (logior (lsh 0 16)   6) 'ns-drag-text)
-             (cons (logior (lsh 0 16)   7) 'ns-change-font)
-             (cons (logior (lsh 0 16)   8) 'ns-open-file-line)
-;             (cons (logior (lsh 0 16)   9) 'ns-insert-working-text)
-;             (cons (logior (lsh 0 16)  10) 'ns-delete-working-text)
-             (cons (logior (lsh 0 16)  11) 'ns-spi-service-call)
-	     (cons (logior (lsh 0 16)  12) 'ns-new-frame)
-	     (cons (logior (lsh 0 16)  13) 'ns-toggle-toolbar)
-	     (cons (logior (lsh 0 16)  14) 'ns-show-prefs)
-	     (cons (logior (lsh 1 16)  32) 'f1)
-             (cons (logior (lsh 1 16)  33) 'f2)
-             (cons (logior (lsh 1 16)  34) 'f3)
-             (cons (logior (lsh 1 16)  35) 'f4)
-             (cons (logior (lsh 1 16)  36) 'f5)
-             (cons (logior (lsh 1 16)  37) 'f6)
-             (cons (logior (lsh 1 16)  38) 'f7)
-             (cons (logior (lsh 1 16)  39) 'f8)
-             (cons (logior (lsh 1 16)  40) 'f9)
-             (cons (logior (lsh 1 16)  41) 'f10)
-             (cons (logior (lsh 1 16)  42) 'f11)
-             (cons (logior (lsh 1 16)  43) 'f12)
-             (cons (logior (lsh 1 16)  44) 'kp-insert)
-             (cons (logior (lsh 1 16)  45) 'kp-delete)
-             (cons (logior (lsh 1 16)  46) 'kp-home)
-             (cons (logior (lsh 1 16)  47) 'kp-end)
-             (cons (logior (lsh 1 16)  48) 'kp-prior)
-             (cons (logior (lsh 1 16)  49) 'kp-next)
-             (cons (logior (lsh 1 16)  50) 'print-screen)
-             (cons (logior (lsh 1 16)  51) 'scroll-lock)
-             (cons (logior (lsh 1 16)  52) 'pause)
-             (cons (logior (lsh 1 16)  53) 'system)
-             (cons (logior (lsh 1 16)  54) 'break)
-             (cons (logior (lsh 1 16)  56) 'please-tell-carl-what-this-key-is-called-56)
-             (cons (logior (lsh 1 16)  61) 'please-tell-carl-what-this-key-is-called-61)
-             (cons (logior (lsh 1 16)  62) 'please-tell-carl-what-this-key-is-called-62)
-             (cons (logior (lsh 1 16)  63) 'please-tell-carl-what-this-key-is-called-63)
-             (cons (logior (lsh 1 16)  64) 'please-tell-carl-what-this-key-is-called-64)
-             (cons (logior (lsh 1 16)  69) 'please-tell-carl-what-this-key-is-called-69)
-             (cons (logior (lsh 1 16)  70) 'please-tell-carl-what-this-key-is-called-70)
-             (cons (logior (lsh 1 16)  71) 'please-tell-carl-what-this-key-is-called-71)
-             (cons (logior (lsh 1 16)  72) 'please-tell-carl-what-this-key-is-called-72)
-             (cons (logior (lsh 1 16)  73) 'please-tell-carl-what-this-key-is-called-73)
-             (cons (logior (lsh 2 16)   3) 'kp-enter)
-             (cons (logior (lsh 2 16)   9) 'kp-tab)
-             (cons (logior (lsh 2 16)  28) 'kp-quit)
-             (cons (logior (lsh 2 16)  35) 'kp-hash)
-             (cons (logior (lsh 2 16)  42) 'kp-multiply)
-             (cons (logior (lsh 2 16)  43) 'kp-add)
-             (cons (logior (lsh 2 16)  44) 'kp-separator)
-             (cons (logior (lsh 2 16)  45) 'kp-subtract)
-             (cons (logior (lsh 2 16)  46) 'kp-decimal)
-             (cons (logior (lsh 2 16)  47) 'kp-divide)
-             (cons (logior (lsh 2 16)  48) 'kp-0)
-             (cons (logior (lsh 2 16)  49) 'kp-1)
-             (cons (logior (lsh 2 16)  50) 'kp-2)
-             (cons (logior (lsh 2 16)  51) 'kp-3)
-             (cons (logior (lsh 2 16)  52) 'kp-4)
-             (cons (logior (lsh 2 16)  53) 'kp-5)
-             (cons (logior (lsh 2 16)  54) 'kp-6)
-             (cons (logior (lsh 2 16)  55) 'kp-7)
-             (cons (logior (lsh 2 16)  56) 'kp-8)
-             (cons (logior (lsh 2 16)  57) 'kp-9)
-             (cons (logior (lsh 2 16)  60) 'kp-less)
-             (cons (logior (lsh 2 16)  61) 'kp-equal)
-             (cons (logior (lsh 2 16)  62) 'kp-more)
-             (cons (logior (lsh 2 16)  64) 'kp-at)
-             (cons (logior (lsh 2 16)  92) 'kp-backslash)
-             (cons (logior (lsh 2 16)  96) 'kp-backtick)
-             (cons (logior (lsh 2 16) 124) 'kp-bar)
-             (cons (logior (lsh 2 16) 126) 'kp-tilde)
-             (cons (logior (lsh 2 16) 157) 'kp-mu)
-             (cons (logior (lsh 2 16) 165) 'kp-yen)
-             (cons (logior (lsh 2 16) 167) 'kp-paragraph)
-             (cons (logior (lsh 2 16) 172) 'left)
-             (cons (logior (lsh 2 16) 173) 'up)
-             (cons (logior (lsh 2 16) 174) 'right)
-             (cons (logior (lsh 2 16) 175) 'down)
-             (cons (logior (lsh 2 16) 176) 'kp-ring)
-             (cons (logior (lsh 2 16) 201) 'kp-square)
-             (cons (logior (lsh 2 16) 204) 'kp-cube)
-             (cons (logior (lsh 3 16)   8) 'backspace)
-             (cons (logior (lsh 3 16)   9) 'tab)
-             (cons (logior (lsh 3 16)  10) 'linefeed)
-             (cons (logior (lsh 3 16)  11) 'clear)
-             (cons (logior (lsh 3 16)  13) 'return)
-             (cons (logior (lsh 3 16)  18) 'pause)
-             (cons (logior (lsh 3 16)  25) 'S-tab)
-             (cons (logior (lsh 3 16)  27) 'escape)
-             (cons (logior (lsh 3 16) 127) 'delete)
-             )))
-    (set-terminal-parameter frame 'x-setup-function-keys t)))
-
-
 ;; Add a couple of menus and rearrange some others; easiest just to redo toplvl
 ;; Note keymap defns must be given last-to-first
 (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar"))
 
 (setq menu-bar-final-items
       (cond ((eq system-type 'darwin)
-             '(buffer windows services help-menu))
+             '(buffer services help-menu))
             ;; Otherwise, GNUstep.
             (t
-             '(buffer windows services hide-app quit))))
+             '(buffer services hide-app quit))))
 
 ;; Add standard top-level items to GNUstep menu.
 (unless (eq system-type 'darwin)
@@ -498,10 +289,6 @@ The properties returned may include `top', `left', `height', and `width'."
 	((string-equal ns-input-spi-name "mail-to")
 	 (compose-mail ns-input-spi-arg))
 	(t (error (concat "Service " ns-input-spi-name " not recognized")))))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 
 ;; Composed key sequence handling for Nextstep system input methods.
@@ -600,29 +387,25 @@ See `ns-insert-working-text'."
 ;;;; OS X file system Unicode UTF-8 NFD (decomposed form) support
 ;; Lisp code based on utf-8m.el, by Seiji Zenitani, Eiji Honjoh, and
 ;; Carsten Bormann.
-(if (eq system-type 'darwin)
-    (progn
+(when (eq system-type 'darwin)
+  (defun ns-utf8-nfd-post-read-conversion (length)
+    "Calls `ns-convert-utf8-nfd-to-nfc' to compose char sequences."
+    (save-excursion
+      (save-restriction
+        (narrow-to-region (point) (+ (point) length))
+        (let ((str (buffer-string)))
+          (delete-region (point-min) (point-max))
+          (insert (ns-convert-utf8-nfd-to-nfc str))
+          (- (point-max) (point-min))
+          ))))
 
-      (defun ns-utf8-nfd-post-read-conversion (length)
-	"Calls `ns-convert-utf8-nfd-to-nfc' to compose char sequences."
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region (point) (+ (point) length))
-	    (let ((str (buffer-string)))
-	      (delete-region (point-min) (point-max))
-	      (insert (ns-convert-utf8-nfd-to-nfc str))
-	      (- (point-max) (point-min))
-	      ))))
-
-      (define-coding-system 'utf-8-nfd
-	"UTF-8 NFD (decomposed) encoding."
-	:coding-type 'utf-8
-	:mnemonic ?U
-	:charset-list '(unicode)
-	:post-read-conversion 'ns-utf8-nfd-post-read-conversion)
-      (set-file-name-coding-system 'utf-8-nfd)))
-
-
+  (define-coding-system 'utf-8-nfd
+    "UTF-8 NFD (decomposed) encoding."
+    :coding-type 'utf-8
+    :mnemonic ?U
+    :charset-list '(unicode)
+    :post-read-conversion 'ns-utf8-nfd-post-read-conversion)
+  (set-file-name-coding-system 'utf-8-nfd))
 
 ;;;; Inter-app communications support.
 
@@ -695,7 +478,6 @@ Lines are highlighted according to `ns-input-line'."
       (setq ns-select-overlay (delete-overlay ns-select-overlay))))
 
 (add-hook 'first-change-hook 'ns-unselect-line)
-
 
 
 ;;;; Preferences handling.
@@ -772,12 +554,14 @@ unless the current buffer is a scratch buffer."
       (ns-hide-emacs 'activate)
       (find-file f)))))
 
-
-
 ;;;; Frame-related functions.
 
 ;; Don't show the frame name; that's redundant with Nextstep.
 (setq-default mode-line-frame-identification '("  "))
+
+;; nsterm.m
+(defvar ns-alternate-modifier)
+(defvar ns-right-alternate-modifier)
 
 ;; You say tomAYto, I say tomAHto..
 (defvaralias 'ns-option-modifier 'ns-alternate-modifier)
@@ -845,9 +629,7 @@ unless the current buffer is a scratch buffer."
   (if (not tool-bar-mode) (tool-bar-mode t)))
 
 
-
 ;;;; Dialog-related functions.
-
 
 ;; Ask user for confirm before printing.  Due to Kevin Rodgers.
 (defun ns-print-buffer ()
@@ -911,17 +693,16 @@ come with OS X.
 See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles.
-(if (fboundp 'new-fontset)
-    (progn
-      ;; Setup the default fontset.
-      (create-default-fontset)
-      ;; Create the standard fontset.
-      (condition-case err
-	  (create-fontset-from-fontset-spec ns-standard-fontset-spec t)
-	(error (display-warning
-		'initialization
-		(format "Creation of the standard fontset failed: %s" err)
-		:error)))))
+(when (fboundp 'new-fontset)
+  ;; Setup the default fontset.
+  (create-default-fontset)
+  ;; Create the standard fontset.
+  (condition-case err
+      (create-fontset-from-fontset-spec ns-standard-fontset-spec t)
+    (error (display-warning
+            'initialization
+            (format "Creation of the standard fontset failed: %s" err)
+            :error))))
 
 (defvar ns-reg-to-script)               ; nsfont.m
 
@@ -985,33 +766,14 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;; from x-selection-value.
 (defvar ns-last-selected-text nil)
 
-(defun x-select-text (text)
-  "Select TEXT, a string, according to the window system.
-
-On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
-clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
-the primary selection.
-
-On MS-Windows, make TEXT the current selection.  If
-`x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.
-
-On Nextstep, put TEXT in the pasteboard."
-  ;; Don't send the pasteboard too much text.
-  ;; It becomes slow, and if really big it causes errors.
-  (ns-set-pasteboard text)
-  (setq ns-last-selected-text text))
-
 ;; Return the value of the current Nextstep selection.  For
 ;; compatibility with older Nextstep applications, this checks cut
 ;; buffer 0 before retrieving the value of the primary selection.
 (defun x-selection-value ()
   (let (text)
-
     ;; Consult the selection.  Treat empty strings as if they were unset.
     (or text (setq text (ns-get-pasteboard)))
     (if (string= text "") (setq text nil))
-
     (cond
      ((not text) nil)
      ((eq text ns-last-selected-text) nil)
@@ -1030,7 +792,6 @@ On Nextstep, put TEXT in the pasteboard."
 (defun ns-paste-secondary ()
   (interactive)
   (insert (ns-get-cut-buffer-internal 'SECONDARY)))
-
 
 
 ;;;; Scrollbar handling.
@@ -1092,27 +853,6 @@ On Nextstep, put TEXT in the pasteboard."
 
 
 ;;;; Color support.
-
-(declare-function ns-list-colors "nsfns.m" (&optional frame))
-
-(defvar x-colors (ns-list-colors)
-  "List of basic colors available on color displays.
-For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
-For Nextstep, this is a list of non-PANTONE colors returned by
-the operating system.")
-
-(defun xw-defined-colors (&optional frame)
-  "Internal function called by `defined-colors', which see."
-  (or frame (setq frame (selected-frame)))
-  (let ((all-colors x-colors)
-	(this-color nil)
-	(defined-colors nil))
-    (while all-colors
-      (setq this-color (car all-colors)
-	    all-colors (cdr all-colors))
-      ;; (and (face-color-supported-p frame this-color t)
-      (setq defined-colors (cons this-color defined-colors))) ;;)
-    defined-colors))
 
 ;; Functions for color panel + drag
 (defun ns-face-at-pos (pos)
@@ -1201,7 +941,7 @@ the operating system.")
   "Initialize Emacs for Nextstep (Cocoa / GNUstep) windowing."
 
   ;; PENDING: not needed?
-  (setq command-line-args (ns-handle-args command-line-args))
+  (setq command-line-args (x-handle-args command-line-args))
 
   (x-open-connection (system-name) nil t)
 
@@ -1220,7 +960,7 @@ the operating system.")
 
   (setq ns-initialized t))
 
-(add-to-list 'handle-args-function-alist '(ns . ns-handle-args))
+(add-to-list 'handle-args-function-alist '(ns . x-handle-args))
 (add-to-list 'frame-creation-function-alist '(ns . x-create-frame-with-faces))
 (add-to-list 'window-system-initialization-alist '(ns . ns-initialize-window-system))
 

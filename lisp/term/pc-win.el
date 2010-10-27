@@ -204,8 +204,10 @@ the operating system.")
 This is in addition to, but in preference to, the primary selection.
 
 Note that MS-Windows does not support selection types other than the
-clipboard.   \(The primary selection that is set by Emacs is not
-accessible to other programs on MS-Windows.\)"
+clipboard.  (The primary selection that is set by Emacs is not
+accessible to other programs on MS-Windows.)
+
+This variable is not used by the Nextstep port."
   :type 'boolean
   :group 'killing)
 

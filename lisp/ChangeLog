@@ -1,3 +1,56 @@
+2010-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el: Restore require of cl when compiling.
+	(menu-bar-final-items): Remove non-existent `windows' menu.
+
+2010-10-26  Glenn Morris  <rgm@gnu.org>
+
+	* term/common-win.el (xw-defined-colors): Simplify the 'ns case.
+
+2010-10-26  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-new-frame, ns-show-prefs): Don't add to
+	global map.
+	* term/common-win.el (x-setup-function-keys): Remove most of the
+	keymappings.  Comment on the remaining ones.
+
+2010-10-26  Peter Oliver  <p.d.oliver@mavit.org.uk>  (tiny change)
+
+	* server.el (server-port): New option.  (Bug#854)
+	(server-start): Use server-port.
+
+2010-10-26  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (ns-version-string): Remove unused declaration.
+	(ns-invocation-args): Change to x-invocation-args.
+	(ns-handle-switch, ns-handle-numeric-switch, ns-handle-iconic)
+	(ns-handle-name-switch, ns-ignore-2-arg): Remove.
+	(ns-handle-nxopen, ns-handle-nxopentemp, ns-ignore-1-arg):
+	Use x-invocation-args instead of ns-invocation-args.
+	(ns-initialize-window-system, handle-args-function-alist):
+	Use x-handle-args instead of ns-handle-args.
+	* term/common-win.el (x-handle-args): Also handle nextstep arguments.
+	* startup.el (command-line-ns-option-alist): Replace
+	ns-handle-name-switch, ns-handle-switch, ns-handle-numeric-switch,
+	ns-handle-iconic with the x- equivalents.
+
+	* term/common-win.el (x-select-enable-clipboard):
+	* term/pc-win.el (x-select-enable-clipboard): Doc fix.
+
+	* term/ns-win.el: No need to require cl when compiling.
+	(x-display-name, x-setup-function-keys, x-select-text, x-colors)
+	(xw-defined-colors): Use the common-win definitions.
+	(ns-alternatives-map): Make it an obsolete alias for x-alternatives-map.
+	(ns-handle-iconic): Make it an alias for x-handle-iconic.
+	* term/common-win.el (x-select-text, x-alternatives-map)
+	(x-setup-function-keys, x-colors, xw-defined-colors): Handle 'ns case.
+	* loadup.el [ns]: Load common-win.
+
+2010-10-26  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-mail.el (epa-mail-encrypt): Handle local-part only
+	recipients; expand mail aliases (Bug#7280).
+
 2010-10-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-iso-combination-p, window-iso-combinations):

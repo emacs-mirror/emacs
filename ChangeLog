@@ -1,3 +1,8 @@
+2010-10-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (checking for -znocombreloc): Use AC_LANG_PROGRAM
+	to avoid warning.
+
 2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* configure.in: Remove the BROKEN annotation from gnutls.

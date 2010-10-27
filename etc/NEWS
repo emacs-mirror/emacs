@@ -329,6 +329,8 @@ You can get a comparable behavior with:
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 
+** server can listen on a specific port using the server-port option.
+
 ** Calendar, Diary, and Appt
 
 ---
