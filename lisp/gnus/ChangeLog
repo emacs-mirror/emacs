@@ -1,3 +1,9 @@
+2010-10-26  Julien Danjou  <julien@danjou.info>
+
+	* gnus-group.el (gnus-group-default-list-level): Add this function to
+	compute the default list level.
+	(gnus-group-default-list-level): Add possibility to use a function.
+
 2010-10-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-shr): Add undisplayer to MIME handle.

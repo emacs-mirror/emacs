@@ -2415,6 +2415,9 @@ one with the best level.
 All groups with a level less than or equal to
 @code{gnus-group-default-list-level} will be listed in the group buffer
 by default.
+This variable can also be a function.  In that case, that function will
+be called and the result will be used as value.
+
 
 @vindex gnus-group-list-inactive-groups
 If @code{gnus-group-list-inactive-groups} is non-@code{nil}, non-active
