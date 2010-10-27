@@ -1,5 +1,7 @@
 2010-10-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* mm-decode.el (mm-shr): Add undisplayer to MIME handle.
+
 	* gnus-group.el (gnus-group-completing-read)
 	(gnus-read-ephemeral-bug-group): Replace replace-regexp-in-string with
 	gnus-replace-in-string.
