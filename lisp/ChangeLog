@@ -4,6 +4,9 @@
 
 	* term/ns-win.el: Restore require of cl when compiling.
 	(menu-bar-final-items): Remove non-existent `windows' menu.
+	(ns-handle-nxopen): Optionally handle the temp-case.
+	(ns-handle-nxopentemp): Just call ns-handle-nxopen.
+	(ns-insert-file, ns-find-file): Use `pop'.
 
 2010-10-26  Glenn Morris  <rgm@gnu.org>
 

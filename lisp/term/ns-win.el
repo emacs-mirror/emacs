@@ -47,7 +47,7 @@
 
 (eval-when-compile (require 'cl))       ; lexical-let
 
-;; Documentation-purposes only: actually loaded in loadup.el
+;; Documentation-purposes only: actually loaded in loadup.el.
 (require 'frame)
 (require 'mouse)
 (require 'faces)
@@ -66,14 +66,14 @@
 ;; nsterm.m.
 (defvar ns-input-file)
 
-(defun ns-handle-nxopen (switch)
-  (setq unread-command-events (append unread-command-events '(ns-open-file))
+(defun ns-handle-nxopen (switch &optional temp)
+  (setq unread-command-events (append unread-command-events
+                                      (if temp '(ns-open-temp-file)
+                                        '(ns-open-file)))
         ns-input-file (append ns-input-file (list (pop x-invocation-args)))))
 
 (defun ns-handle-nxopentemp (switch)
-  (setq unread-command-events (append unread-command-events
-				      '(ns-open-temp-file))
-        ns-input-file (append ns-input-file (list (pop x-invocation-args)))))
+  (ns-handle-nxopen switch t))
 
 (defun ns-ignore-1-arg (switch)
   (setq x-invocation-args (cdr x-invocation-args)))
@@ -154,7 +154,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [kp-prior] 'scroll-down)
 (define-key global-map [kp-next] 'scroll-up)
 
-;;; Allow shift-clicks to work similarly to under Nextstep
+;; Allow shift-clicks to work similarly to under Nextstep.
 (define-key global-map [S-mouse-1] 'mouse-save-then-kill)
 (global-unset-key [S-down-mouse-1])
 
@@ -396,8 +396,7 @@ See `ns-insert-working-text'."
         (let ((str (buffer-string)))
           (delete-region (point-min) (point-max))
           (insert (ns-convert-utf8-nfd-to-nfc str))
-          (- (point-max) (point-min))
-          ))))
+          (- (point-max) (point-min))))))
 
   (define-coding-system 'utf-8-nfd
     "UTF-8 NFD (decomposed) encoding."
@@ -421,12 +420,11 @@ See `ns-insert-working-text'."
   "Insert contents of file `ns-input-file' like insert-file but with less
 prompting.  If file is a directory perform a `find-file' on it."
   (interactive)
-  (let ((f))
-    (setq f (car ns-input-file))
-    (setq ns-input-file (cdr ns-input-file))
+  (let (f)
+    (setq f (pop ns-input-file))
     (if (file-directory-p f)
         (find-file f)
-      (push-mark (+ (point) (car (cdr (insert-file-contents f))))))))
+      (push-mark (+ (point) (cadr (insert-file-contents f)))))))
 
 (defvar ns-select-overlay nil
   "Overlay used to highlight areas in files requested by Nextstep apps.")
@@ -479,7 +477,6 @@ Lines are highlighted according to `ns-input-line'."
 
 (add-hook 'first-change-hook 'ns-unselect-line)
 
-
 ;;;; Preferences handling.
 (declare-function ns-get-resource "nsfns.m" (owner name))
 
@@ -530,12 +527,11 @@ unless the current buffer is a scratch buffer."
 (defun ns-find-file ()
   "Do a `find-file' with the `ns-input-file' as argument."
   (interactive)
-  (let ((f) (file) (bufwin1) (bufwin2))
-    (setq f (file-truename (car ns-input-file)))
-    (setq ns-input-file (cdr ns-input-file))
-    (setq file (find-file-noselect f))
-    (setq bufwin1 (get-buffer-window file 'visible))
-    (setq bufwin2 (get-buffer-window "*scratch*" 'visibile))
+  (let (f file bufwin1 bufwin2)
+    (setq f (file-truename (pop ns-input-file))
+          file (find-file-noselect f)
+          bufwin1 (get-buffer-window file 'visible)
+          bufwin2 (get-buffer-window "*scratch*" 'visibile))
     (cond
      (bufwin1
       (select-frame (window-frame bufwin1))
@@ -647,7 +643,6 @@ unless the current buffer is a scratch buffer."
             (print-buffer)
 	  (error "Cancelled")))
     (print-buffer)))
-
 
 ;;;; Font support.
 
