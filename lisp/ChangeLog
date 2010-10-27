@@ -1,5 +1,11 @@
 2010-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/log-edit.el (log-edit-rewrite-fixes): New var.
+	(log-edit-author): New dynamic var.
+	(log-edit-changelog-ours-p, log-edit-insert-changelog-entries): Use it
+	to return the author if different from committer.
+	(log-edit-insert-changelog): Use them to add Author: and Fixes headers.
+
 	* play/landmark.el: Adjust commenting convention.
 	(lm-nil-score): Rename from nil-score.
 	(Xscore, XXscore, XXXscore, XXXXscore, Oscore, OOscore, OOOscore)

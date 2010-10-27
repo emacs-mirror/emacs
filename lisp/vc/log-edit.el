@@ -572,6 +572,14 @@ can thus take some time."
 	(log-edit-comment-to-change-log)))))
 
 (defvar log-edit-changelog-use-first nil)
+
+(defvar log-edit-rewrite-fixes nil
+  "Rule to rewrite bug numbers into Fixes: headers.
+The value should be of the form (REGEXP . REPLACEMENT)
+where REGEXP should match the expression referring to a bug number
+in the text, and REPLACEMENT is an expression to pass to `replace-match'
+to build the Fixes: header.")
+
 (defun log-edit-insert-changelog (&optional use-first)
   "Insert a log message by looking at the ChangeLog.
 The idea is to write your ChangeLog entries first, and then use this
@@ -593,18 +601,34 @@ regardless of user name or time."
     (when (<= (point) eoh)
       (goto-char eoh)
       (if (looking-at "\n") (forward-char 1))))
-  (let ((log-edit-changelog-use-first
-	 (or use-first (eq last-command 'log-edit-insert-changelog))))
-    (log-edit-insert-changelog-entries (log-edit-files)))
-  (log-edit-set-common-indentation)
-  (goto-char (point-min))
-  (when (and log-edit-strip-single-file-name (looking-at "\\*\\s-+"))
-    (forward-line 1)
-    (when (not (re-search-forward "^\\*\\s-+" nil t))
-      (goto-char (point-min))
-      (skip-chars-forward "^():")
-      (skip-chars-forward ": ")
-      (delete-region (point-min) (point)))))
+  (let ((author
+         (let ((log-edit-changelog-use-first
+                (or use-first (eq last-command 'log-edit-insert-changelog))))
+           (log-edit-insert-changelog-entries (log-edit-files)))))
+    (log-edit-set-common-indentation)
+    ;; Add an Author: field if appropriate.
+    (when author
+      (rfc822-goto-eoh)
+      (insert "Author: " author "\n" (if (looking-at "\n") "" "\n")))
+    ;; Add a Fixes: field if applicable.
+    (when (consp log-edit-rewrite-fixes)
+      (rfc822-goto-eoh)
+      (when (re-search-forward (car log-edit-rewrite-fixes) nil t)
+        (let ((start (match-beginning 0))
+              (end (match-end 0))
+              (fixes (match-substitute-replacement
+                      (cdr log-edit-rewrite-fixes))))
+          (delete-region start end)
+          (rfc822-goto-eoh)
+          (insert "Fixes: " fixes "\n" (if (looking-at "\n") "" "\n")))))
+    (goto-char (point-min))
+    (when (and log-edit-strip-single-file-name (looking-at "\\*\\s-+"))
+      (forward-line 1)
+      (when (not (re-search-forward "^\\*\\s-+" nil t))
+        (goto-char (point-min))
+        (skip-chars-forward "^():")
+        (skip-chars-forward ": ")
+        (delete-region (point-min) (point))))))
 
 ;;;;
 ;;;; functions for getting commit message from ChangeLog a file...
@@ -670,6 +694,9 @@ for more details."
 
 (defvar user-full-name)
 (defvar user-mail-address)
+
+(defvar log-edit-author)                ;Dynamically scoped.
+
 (defun log-edit-changelog-ours-p ()
   "See if ChangeLog entry at point is for the current user, today.
 Return non-nil if it is."
@@ -684,9 +711,23 @@ Return non-nil if it is."
 		       (functionp add-log-time-format)
 		       (funcall add-log-time-format))
 		  (format-time-string "%Y-%m-%d"))))
-    (looking-at (if log-edit-changelog-use-first
-                    "[^ \t]"
-                  (regexp-quote (format "%s  %s  <%s>" time name mail))))))
+    (if (null log-edit-changelog-use-first)
+        (looking-at (regexp-quote (format "%s  %s  <%s>" time name mail)))
+      ;; Check the author, to potentially add it as a "Author: " header.
+      (when (looking-at "[^ \t]")
+        (when (and (boundp 'log-edit-author)
+                   (not (looking-at (format ".+  .+  <%s>"
+                                            (regexp-quote mail))))
+                   (looking-at ".+  \\(.+  <.+>\\)"))
+          (let ((author (replace-regexp-in-string "  " " "
+                                                  (match-string 1))))
+            (unless (and log-edit-author
+                         (string-match (regexp-quote author) log-edit-author))
+              (setq log-edit-author
+                    (if log-edit-author
+                        (concat log-edit-author ", " author)
+                      author)))))
+        t))))
 
 (defun log-edit-changelog-entries (file)
   "Return the ChangeLog entries for FILE, and the ChangeLog they came from.
@@ -776,7 +817,8 @@ Rename relative filenames in the ChangeLog entry as FILES."
 
 (defun log-edit-insert-changelog-entries (files)
   "Given a list of files FILES, insert the ChangeLog entries for them."
-  (let ((log-entries nil))
+  (let ((log-entries nil)
+        (log-edit-author nil))
     ;; Note that any ChangeLog entry can apply to more than one file.
     ;; Here we construct a log-entries list with elements of the form
     ;;   ((LOGBUFFER ENTRYSTART ENTRYEND) FILE1 FILE2...)
@@ -793,7 +835,8 @@ Rename relative filenames in the ChangeLog entry as FILES."
     (dolist (log-entry (nreverse log-entries))
       (apply 'log-edit-changelog-insert-entries
 	     (append (car log-entry) (cdr log-entry)))
-      (insert "\n"))))
+      (insert "\n"))
+    log-edit-author))
 
 (defun log-edit-extract-headers (headers comment)
   "Extract headers from COMMENT to form command line arguments.
