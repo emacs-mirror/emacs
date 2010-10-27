@@ -1009,7 +1009,6 @@ textual parts.")
     (with-current-buffer (nnimap-buffer)
       (erase-buffer)
       (setf (nnimap-group nnimap-object) nil)
-      ;; QRESYNC handling isn't implemented.
       (let ((qresyncp (member "QRESYNC" (nnimap-capabilities nnimap-object)))
 	    params groups sequences active uidvalidity modseq group)
 	;; Go through the infos and gather the data needed to know
