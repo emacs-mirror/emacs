@@ -1,3 +1,10 @@
+2010-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-chars): Autoload.
+	* progmodes/octave-mod.el (octave-mode):
+	* progmodes/ruby-mode.el (ruby-mode): Take advantage of it.
+	(ruby-mode-abbrev-table): Merge initialization and declaration.
+
 2010-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* abbrev.el (abbrev-mode): Remove one of the three definitions of this

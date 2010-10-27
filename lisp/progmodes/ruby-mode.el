@@ -135,10 +135,8 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
 (defconst ruby-symbol-re (concat "[" ruby-symbol-chars "]")
   "Regexp to match symbols.")
 
-(defvar ruby-mode-abbrev-table nil
+(define-abbrev-table 'ruby-mode-abbrev-table ()
   "Abbrev table in use in Ruby mode buffers.")
-
-(define-abbrev-table 'ruby-mode-abbrev-table ())
 
 (defvar ruby-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1430,8 +1428,6 @@ See `font-lock-syntax-table'.")
    )
   "Additional expressions to highlight in Ruby mode.")
 
-(defvar electric-indent-chars)
-
 ;;;###autoload
 (define-derived-mode ruby-mode prog-mode "Ruby"
   "Major mode for editing Ruby scripts.
@@ -1456,8 +1452,7 @@ The variable `ruby-indent-level' controls the amount of indentation.
    'ruby-mode-set-encoding nil 'local)
 
   (set (make-local-variable 'electric-indent-chars)
-       (append '(?\{ ?\}) (if (boundp 'electric-indent-chars)
-                              (default-value 'electric-indent-chars))))
+       (append '(?\{ ?\}) electric-indent-chars))
 
   (set (make-local-variable 'font-lock-defaults)
        '((ruby-font-lock-keywords) nil nil))
