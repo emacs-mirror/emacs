@@ -1,3 +1,8 @@
+2010-10-27  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* add-log.el (find-change-log): Use derived-mode-p rather than
+	major-mode (bug#7284).
+
 2010-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* menu-bar.el (menu-bar-files-menu): Make it into an actual alias,
@@ -9,13 +14,13 @@
 	auto-built for efficiency of execution and updating.
 	(verilog-extended-complete-re): Support 'pure' fucntion & task
 	declarations (these have no bodies).
-	(verilog-beg-of-statement): general cleanup to enable support of
-	'pure' fucntion & task declarations (these have no bodies).  These
-	efforts together fix Verilog bug210 from veripool; which was also
+	(verilog-beg-of-statement): General cleanup to enable support of
+	'pure' fucntion & task declarations (these have no bodies).
+	These efforts together fix Verilog bug210 from veripool; which was also
 	noticed by Steve Pearlmutter.
 	(verilog-directive-re, verilog-directive-begin, verilog-indent-re)
-	(verilog-directive-nest-re, verilog-set-auto-endcomments): Support
-	`elsif.  Reported by Shankar Giri.
+	(verilog-directive-nest-re, verilog-set-auto-endcomments):
+	Support `elsif.  Reported by Shankar Giri.
 	(verilog-forward-ws&directives, verilog-in-attribute-p): Fixes for
 	attribute handling for lining up declarations and assignments.
 	(verilog-beg-of-statement-1): Fix issue where continued declaration
@@ -23,8 +28,7 @@
 	(verilog-in-attribute-p, verilog-skip-backward-comments)
 	(verilog-skip-forward-comment-p): Support proper treatment of
 	attributes by indent code. Reported by Jeff Steele.
-	(verilog-in-directive-p): Fix comment to correctly describe
-	function.
+	(verilog-in-directive-p): Fix comment to correctly describe function.
 	(verilog-backward-up-list, verilog-in-struct-region-p)
 	(verilog-backward-token, verilog-in-struct-p)
 	(verilog-in-coverage-p, verilog-do-indent)
@@ -51,7 +55,7 @@
 	parameter in AUTOINSTPARAM.
 	(verilog-read-always-signals-recurse, verilog-read-decls): Fix not
 	treating `elsif similar to `endif inside AUTOSENSE.
-        (verilog-do-indent): Implement correct automatic or static task or
+	(verilog-do-indent): Implement correct automatic or static task or
 	function end comment highlight. Reported by Steve Pearlmutter.
 	(verilog-font-lock-keywords-2): Fix highlighting of single
 	character pins, bug264.  Reported by Michael Laajanen.
@@ -59,15 +63,15 @@
 	(verilog-read-sub-decls-in-interfaced, verilog-read-sub-decls-sig)
 	(verilog-subdecls-get-interfaced, verilog-subdecls-new): Support
 	interfaces with AUTOINST, bug270.  Reported by Luis Gutierrez.
-	(verilog-pretty-expr): Fix interactive arguments, bug272. Reported
-	by Mark Johnson.
-	(verilog-auto-tieoff, verilog-auto-tieoff-ignore-regexp): Add
-	'verilog-auto-tieoff-ignore-regexp' for AUTOTIEOFF,
+	(verilog-pretty-expr): Fix interactive arguments, bug272.
+	Reported by Mark Johnson.
+	(verilog-auto-tieoff, verilog-auto-tieoff-ignore-regexp):
+	Add 'verilog-auto-tieoff-ignore-regexp' for AUTOTIEOFF,
 	bug269. Suggested by Gary Delp.
 	(verilog-mode-map, verilog-preprocess, verilog-preprocess-history)
-	(verilog-preprocessor, verilog-set-compile-command): Create
-	verilog-preprocess and verilog-preprocessor to show preprocessed
-	output.
+	(verilog-preprocessor, verilog-set-compile-command):
+	Create verilog-preprocess and verilog-preprocessor to show
+	preprocessed output.
 	(verilog-get-beg-of-line, verilog-get-end-of-line)
 	(verilog-modi-file-or-buffer, verilog-modi-name)
 	(verilog-modi-point, verilog-within-string): Move defmacro's
@@ -115,16 +119,16 @@
 	(verilog-modi-lookup-last-current, verilog-modi-lookup-last-mod)
 	(verilog-modi-lookup-last-modi, verilog-modi-lookup-last-tick):
 	Fix slow verilog-auto expansion on very large files.
-	(verilog-read-sub-decls-expr, verilog-read-sub-decls-line): Fix
-	AUTOOUTPUT treating "1*2" as a signal name in submodule connection
+	(verilog-read-sub-decls-expr, verilog-read-sub-decls-line):
+	Fix AUTOOUTPUT treating "1*2" as a signal name in submodule connection
 	"{1*2{...".  Broke in last revision.
 	(verilog-read-sub-decls-expr): Fix AUTOOUTPUT not detecting
 	submodule connections with replications "{#{a},#{b}}".
 
 2010-10-23  Glenn Morris  <rgm@gnu.org>
 
-	* comint.el (comint-password-prompt-regexp): Match
-	"enter the password".  (Bug#7224)
+	* comint.el (comint-password-prompt-regexp):
+	Match "enter the password".  (Bug#7224)
 
 2010-10-22  Juanma Barranquero  <lekktu@gmail.com>
 
