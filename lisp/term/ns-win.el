@@ -41,10 +41,11 @@
 
 ;;; Code:
 
-
 (or (featurep 'ns)
     (error "%s: Loading ns-win.el but not compiled for GNUstep/MacOS"
            (invocation-name)))
+
+(eval-when-compile (require 'cl))       ; lexical-let
 
 ;; Documentation-purposes only: actually loaded in loadup.el
 (require 'frame)
@@ -56,10 +57,6 @@
 (defgroup ns nil
   "GNUstep/Mac OS X specific features."
   :group 'environment)
-
-;; nsterm.m
-(defvar ns-alternate-modifier)
-(defvar ns-right-alternate-modifier)
 
 ;;;; Command line argument handling.
 
@@ -161,7 +158,6 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [S-mouse-1] 'mouse-save-then-kill)
 (global-unset-key [S-down-mouse-1])
 
-
 ;; Special Nextstep-generated events are converted to function keys.  Here
 ;; are the bindings for them.  Note, these keys are actually declared in
 ;; x-setup-function-keys in common-win.
@@ -196,10 +192,10 @@ The properties returned may include `top', `left', `height', and `width'."
 
 (setq menu-bar-final-items
       (cond ((eq system-type 'darwin)
-             '(buffer windows services help-menu))
+             '(buffer services help-menu))
             ;; Otherwise, GNUstep.
             (t
-             '(buffer windows services hide-app quit))))
+             '(buffer services hide-app quit))))
 
 ;; Add standard top-level items to GNUstep menu.
 (unless (eq system-type 'darwin)
@@ -293,10 +289,6 @@ The properties returned may include `top', `left', `height', and `width'."
 	((string-equal ns-input-spi-name "mail-to")
 	 (compose-mail ns-input-spi-arg))
 	(t (error (concat "Service " ns-input-spi-name " not recognized")))))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 
 ;; Composed key sequence handling for Nextstep system input methods.
@@ -395,29 +387,25 @@ See `ns-insert-working-text'."
 ;;;; OS X file system Unicode UTF-8 NFD (decomposed form) support
 ;; Lisp code based on utf-8m.el, by Seiji Zenitani, Eiji Honjoh, and
 ;; Carsten Bormann.
-(if (eq system-type 'darwin)
-    (progn
+(when (eq system-type 'darwin)
+  (defun ns-utf8-nfd-post-read-conversion (length)
+    "Calls `ns-convert-utf8-nfd-to-nfc' to compose char sequences."
+    (save-excursion
+      (save-restriction
+        (narrow-to-region (point) (+ (point) length))
+        (let ((str (buffer-string)))
+          (delete-region (point-min) (point-max))
+          (insert (ns-convert-utf8-nfd-to-nfc str))
+          (- (point-max) (point-min))
+          ))))
 
-      (defun ns-utf8-nfd-post-read-conversion (length)
-	"Calls `ns-convert-utf8-nfd-to-nfc' to compose char sequences."
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region (point) (+ (point) length))
-	    (let ((str (buffer-string)))
-	      (delete-region (point-min) (point-max))
-	      (insert (ns-convert-utf8-nfd-to-nfc str))
-	      (- (point-max) (point-min))
-	      ))))
-
-      (define-coding-system 'utf-8-nfd
-	"UTF-8 NFD (decomposed) encoding."
-	:coding-type 'utf-8
-	:mnemonic ?U
-	:charset-list '(unicode)
-	:post-read-conversion 'ns-utf8-nfd-post-read-conversion)
-      (set-file-name-coding-system 'utf-8-nfd)))
-
-
+  (define-coding-system 'utf-8-nfd
+    "UTF-8 NFD (decomposed) encoding."
+    :coding-type 'utf-8
+    :mnemonic ?U
+    :charset-list '(unicode)
+    :post-read-conversion 'ns-utf8-nfd-post-read-conversion)
+  (set-file-name-coding-system 'utf-8-nfd))
 
 ;;;; Inter-app communications support.
 
@@ -490,7 +478,6 @@ Lines are highlighted according to `ns-input-line'."
       (setq ns-select-overlay (delete-overlay ns-select-overlay))))
 
 (add-hook 'first-change-hook 'ns-unselect-line)
-
 
 
 ;;;; Preferences handling.
@@ -567,12 +554,14 @@ unless the current buffer is a scratch buffer."
       (ns-hide-emacs 'activate)
       (find-file f)))))
 
-
-
 ;;;; Frame-related functions.
 
 ;; Don't show the frame name; that's redundant with Nextstep.
 (setq-default mode-line-frame-identification '("  "))
+
+;; nsterm.m
+(defvar ns-alternate-modifier)
+(defvar ns-right-alternate-modifier)
 
 ;; You say tomAYto, I say tomAHto..
 (defvaralias 'ns-option-modifier 'ns-alternate-modifier)
@@ -640,9 +629,7 @@ unless the current buffer is a scratch buffer."
   (if (not tool-bar-mode) (tool-bar-mode t)))
 
 
-
 ;;;; Dialog-related functions.
-
 
 ;; Ask user for confirm before printing.  Due to Kevin Rodgers.
 (defun ns-print-buffer ()
@@ -784,11 +771,9 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;; buffer 0 before retrieving the value of the primary selection.
 (defun x-selection-value ()
   (let (text)
-
     ;; Consult the selection.  Treat empty strings as if they were unset.
     (or text (setq text (ns-get-pasteboard)))
     (if (string= text "") (setq text nil))
-
     (cond
      ((not text) nil)
      ((eq text ns-last-selected-text) nil)
@@ -807,7 +792,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defun ns-paste-secondary ()
   (interactive)
   (insert (ns-get-cut-buffer-internal 'SECONDARY)))
-
 
 
 ;;;; Scrollbar handling.
