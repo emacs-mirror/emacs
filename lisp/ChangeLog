@@ -1,5 +1,8 @@
 2010-10-27  Glenn Morris  <rgm@gnu.org>
 
+	* abbrev.el (abbrev-mode): Remove one of the three definitions of this
+	variable.
+
 	* server.el (server-host, server-port, server-auth-dir): Autoload risky.
 
 	* term/ns-win.el: Restore require of cl when compiling.
