@@ -2748,17 +2748,9 @@ name, or the marker and a count of marked files."
 	(format "%c [%d files]" dired-marker-char count)))))
 
 (defun dired-pop-to-buffer (buf)
-  "Pop up buffer BUF in a way suitable for Dired."
-  (let ((split-window-preferred-function
-	 (lambda (window)
-	   (or (and (let ((split-height-threshold 0))
-		      (window-sensibly-splittable-p (selected-window)))
-		    ;; Try to split the selected window vertically if
-		    ;; that's possible.  (Bug#1806)
-		    (split-window-vertically))
-	       ;; Otherwise, try to split WINDOW sensibly.
-	       (split-window-sensibly window)))))
-    (pop-to-buffer (get-buffer-create buf)))
+  "Pop up buffer BUF in a way suitable for Dired.
+Curently this means just above the echo area."
+  (pop-to-buffer (get-buffer-create buf) '(same-frame (split-root . below)))
   ;; If dired-shrink-to-fit is t, make its window fit its contents.
   (when dired-shrink-to-fit
     ;; Try to not delete window when we want to display less than

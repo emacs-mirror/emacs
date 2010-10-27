@@ -448,8 +448,8 @@ Setting this variable does not affect existing frames.
 @end defopt
 
 Functions that display a buffer in a separate frame can override the
-default parameters by supplying their own parameters.  @xref{Definition
-of special-display-frame-alist}.
+default parameters by supplying their own parameters.
+@xref{Displaying Buffers}.
 
 If you use options that specify window appearance when you invoke Emacs,
 they take effect by adding elements to @code{default-frame-alist}.  One

@@ -1,3 +1,56 @@
+2010-10-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (pop-up-frame-alist, pop-up-frame-function)
+	(special-display-frame-alist): Make obsolete.
+
+	* window.el (display-buffer-window-and-buffer)
+	(window--display-buffer-in-window, window--reuse-window)
+	(window--pop-up-window, window--pop-up-frame)
+	(split-window-sensibly, window-sensibly-splittable-p)
+	(window--raise-window-frame, window--usable-frame): Remove.
+	(display-buffer-mark-dedicated, display-buffer-function)
+	(special-display-buffer-names)
+	(special-display-regexps, special-display-p)
+	(special-display-function, same-window-buffer-names)
+	(same-window-regexps, same-window-p, pop-up-frames)
+	(display-buffer-reuse-frames, pop-up-windows)
+	(split-height-threshold, split-width-threshold)
+	(even-window-heights): Make obsolete.
+	(display-buffer-names, display-buffer-regexps): New options.
+	(display-buffer-frame, display-buffer-normalize-specifiers-1)
+	(display-buffer-normalize-specifiers)
+	(display-buffer-adjust-heights, display-buffer-select-window)
+	(display-buffer-in-window, display-buffer-in-lru-buffer-window)
+	(display-buffer-in-lru-window, display-buffer-split-window-1)
+	(display-buffer-split-window, display-buffer-in-new-window)
+	(display-buffer-in-new-frame, normalize-buffer-to-display)
+	(display-buffer-same-window, display-buffer-other-window)
+	(pop-to-buffer-same-window, pop-to-buffer-other-window)
+	(pop-to-buffer-other-frame, normalize-buffer-to-switch-to): New
+	functions.
+	(display-buffer-locations, display-buffer-default-specifiers)
+	(display-buffer-other-window-specifiers)
+	(display-buffer-other-frame-specifiers)
+	(display-buffer-split-specifiers)
+	(display-buffer-side-specifiers): New variables/constants.
+	(display-buffer): Major rewrite.
+	(pop-to-buffer): Rewrite.  Default buffer-or-name argument to
+	the current buffer.
+	(switch-to-buffer, switch-to-buffer-other-window)
+	(switch-to-buffer-other-frame): Rewrite.
+
+	* calendar/calendar.el (calendar-basic-setup): Do not call
+	split-window-horizontally before popping to buffer.  Eventually
+	the second argument of pop-to-buffer must be set accordingly.
+
+	* dired.el (dired-pop-to-buffer): Adapt to new buffer display
+	code.
+
+	* info.el (Info-revert-find-node, info, info-other-window)
+	(Info-find-node, Info-next, Info-prev, Info-up)
+	(Info-goto-emacs-command-node, Info-speedbar-goto-node): Adapt
+	to new buffer display code.
+
 2010-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el: Restore require of cl when compiling.

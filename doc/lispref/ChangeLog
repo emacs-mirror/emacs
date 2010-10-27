@@ -1,3 +1,11 @@
+2010-10-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Displaying Buffers, Switching Buffers): Describe
+	new buffer display code.
+
+	* frames.texi (Initial Parameters): Fix reference to buffer
+	display section.
+
 2010-10-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Window Systems): Deprecate use of window-system as

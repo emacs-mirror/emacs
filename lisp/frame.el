@@ -114,6 +114,10 @@ affected by this variable."
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value")))
   :group 'frames)
+(make-obsolete-variable
+ 'pop-up-frame-alist
+ "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "24.1")
 
 (defcustom pop-up-frame-function
   (lambda () (make-frame pop-up-frame-alist))
@@ -123,6 +127,10 @@ frame.  The default value calls `make-frame' with the argument
 `pop-up-frame-alist'."
   :type 'function
   :group 'frames)
+(make-obsolete-variable
+ 'pop-up-frame-function
+ "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "24.1")
 
 (defcustom special-display-frame-alist
   '((height . 14) (width . 80) (unsplittable . t))
@@ -140,6 +148,10 @@ These supersede the values given in `default-frame-alist'."
 			 (symbol :tag "Parameter")
 			 (sexp :tag "Value")))
   :group 'frames)
+(make-obsolete-variable
+ 'special-display-frame-alist
+ "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "24.1")
 
 (defun special-display-popup-frame (buffer &optional args)
   "Display BUFFER and return the window chosen.

@@ -612,14 +612,11 @@ in `Info-file-supports-index-cookies-list'."
   "Like `info' but show the Info buffer in another window."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
-  (let (same-window-buffer-names same-window-regexps)
-    (info file-or-node)))
-
-;;;###autoload (add-hook 'same-window-regexps (purecopy "\\*info\\*\\(\\|<[0-9]+>\\)"))
+  (info file-or-node nil 'same-frame))
 
 ;;;###autoload (put 'info 'info-file (purecopy "emacs"))
 ;;;###autoload
-(defun info (&optional file-or-node buffer)
+(defun info (&optional file-or-node buffer window-specifiers)
   "Enter Info, the documentation browser.
 Optional argument FILE-OR-NODE specifies the file to examine;
 the default is the top-level directory of Info.
@@ -645,7 +642,8 @@ See a list of available Info commands in `Info-mode'."
                     (read-file-name "Info file name: " nil nil t))
                 (if (numberp current-prefix-arg)
                     (format "*info*<%s>" current-prefix-arg))))
-  (pop-to-buffer (or buffer "*info*"))
+  (pop-to-buffer
+   (or buffer "*info*") (or window-specifiers 'same-window))
   (if (and buffer (not (eq major-mode 'Info-mode)))
       (Info-mode))
   (if file-or-node
@@ -772,7 +770,8 @@ it says do not attempt further (recursive) error recovery."
   (info-initialize)
   (setq filename (Info-find-file filename))
   ;; Go into Info buffer.
-  (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+  (or (eq major-mode 'Info-mode)
+      (pop-to-buffer "*info*" 'same-window))
   ;; Record the node we are leaving, if we were in one.
   (and (not no-going-back)
        Info-current-file
@@ -806,7 +805,8 @@ otherwise, that defaults to `Top'."
   "Go to an Info node FILENAME and NODENAME, re-reading disk contents.
 When *info* is already displaying FILENAME and NODENAME, the window position
 is preserved, if possible."
-  (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+  (or (eq major-mode 'Info-mode)
+      (pop-to-buffer "*info*" 'same-window))
   (let ((old-filename Info-current-file)
 	(old-nodename Info-current-node)
 	(old-buffer-name (buffer-name))
@@ -818,7 +818,8 @@ is preserved, if possible."
 	(new-history  (and Info-current-file
 			   (list Info-current-file Info-current-node (point)))))
     (kill-buffer (current-buffer))
-    (pop-to-buffer (or old-buffer-name "*info*"))
+    (pop-to-buffer
+     (or old-buffer-name "*info*") 'same-window)
     (Info-mode)
     (Info-find-node filename nodename)
     (setq Info-history-forward old-history-forward)
@@ -2015,7 +2016,7 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
   (interactive)
   ;; In case another window is currently selected
   (save-window-excursion
-    (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+    (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*" 'same-window))
     (Info-goto-node (Info-extract-pointer "next"))))
 
 (defun Info-prev ()
@@ -2023,7 +2024,7 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
   (interactive)
   ;; In case another window is currently selected
   (save-window-excursion
-    (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+    (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*" 'same-window))
     (Info-goto-node (Info-extract-pointer "prev[ious]*" "previous"))))
 
 (defun Info-up (&optional same-file)
@@ -2032,7 +2033,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   (interactive)
   ;; In case another window is currently selected
   (save-window-excursion
-    (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+    (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*" 'same-window))
     (let ((old-node Info-current-node)
 	  (old-file Info-current-file)
 	  (node (Info-extract-pointer "up")) p)
@@ -4158,7 +4159,8 @@ COMMAND must be a symbol or string."
 	  ;; Get Info running, and pop to it in another window.
 	  (save-window-excursion
 	    (info))
-	  (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+	  (or (eq major-mode 'Info-mode)
+	      (pop-to-buffer "*info*" 'same-window))
 	  ;; Bind Info-history to nil, to prevent the last Index node
 	  ;; visited by Info-find-emacs-command-nodes from being
 	  ;; pushed onto the history.
@@ -4766,7 +4768,7 @@ The INDENT level is ignored."
 	  (select-window bwin)
 	  (raise-frame (window-frame bwin)))
       (if speedbar-power-click
-	  (let ((pop-up-frames t)) (select-window (display-buffer buff)))
+	  (select-window (display-buffer buff 'other-frame))
 	(speedbar-select-attached-frame)
 	(switch-to-buffer buff)))
     (if (not (string-match "^(\\([^)]+\\))\\([^.]+\\)$" node))
