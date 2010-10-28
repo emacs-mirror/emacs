@@ -373,12 +373,14 @@ redirects somewhere else."
   (kill-buffer (current-buffer)))
 
 (defun shr-put-image (data point alt)
-  (if (not (display-graphic-p))
-      (insert alt)
-    (let ((image (ignore-errors
-		   (shr-rescale-image data))))
-      (when image
-	(put-image image point alt)))))
+  (if (display-graphic-p)
+      (let ((image (ignore-errors
+                     (shr-rescale-image data))))
+        (when image
+          (put-image image point alt)))
+    (save-excursion
+      (goto-char point)
+      (insert alt))))
 
 (defun shr-rescale-image (data)
   (if (or (not (fboundp 'imagemagick-types))
