@@ -1,3 +1,8 @@
+2010-10-28  Jes Bodi Klinke  <jes@bodi-klinke.dk>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Don't confuse -omega as "-o mega".
+
 2010-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/log-edit.el (log-edit-rewrite-fixes): New var.
