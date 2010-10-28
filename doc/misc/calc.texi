@@ -7,7 +7,7 @@
 @setchapternewpage odd
 @comment %**end of header (This is for running Texinfo on a region.)
 
-@include ../emacs/emacsver.texi
+@include emacsver.texi
 
 @c The following macros are used for conditional output for single lines.
 @c @texline foo
@@ -36585,7 +36585,3 @@ the corresponding full Lisp name is derived by adding a prefix of
 
 @bye
 
-
-@ignore
-   arch-tag: 77a71809-fa4d-40be-b2cc-da3e8fb137c0
-@end ignore

@@ -1,3 +1,21 @@
+2010-10-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-jump-to-part): Error on no part; fix prompt.
+	(gnus-mime-copy-part): Check coding system, not charset.
+	(gnus-mime-view-part-externally): Never remove part.
+	(gnus-mime-view-part-internally): Don't remove part here.
+	(gnus-article-part-wrapper): Make sure MIME tag is visible.
+	(gnus-article-goto-part): Go to displayed or preferred subpart if it is
+	multipart/alternative.
+
+	* mm-decode.el (mm-display-part): Take optional arg `force'.
+
+2010-10-26  Julien Danjou  <julien@danjou.info>
+
+	* gnus-group.el (gnus-group-default-list-level): Add this function to
+	compute the default list level.
+	(gnus-group-default-list-level): Add possibility to use a function.
+
 2010-10-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-shr): Add undisplayer to MIME handle.

@@ -3631,8 +3631,6 @@ a mistake; see the documentation of `set-mark'."
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
 
-(declare-function x-selection-owner-p "xselect.c" (&optional selection))
-
 (defsubst deactivate-mark (&optional force)
   "Deactivate the mark by setting `mark-active' to nil.
 Unless FORCE is non-nil, this function does nothing if Transient
@@ -6710,5 +6708,4 @@ warning using STRING as the message.")
 
 (provide 'simple)
 
-;; arch-tag: 24af67c0-2a49-44f6-b3b1-312d8b570dfd
 ;;; simple.el ends here

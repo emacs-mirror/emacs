@@ -47,7 +47,7 @@
 
 (eval-when-compile (require 'cl))       ; lexical-let
 
-;; Documentation-purposes only: actually loaded in loadup.el
+;; Documentation-purposes only: actually loaded in loadup.el.
 (require 'frame)
 (require 'mouse)
 (require 'faces)
@@ -66,14 +66,14 @@
 ;; nsterm.m.
 (defvar ns-input-file)
 
-(defun ns-handle-nxopen (switch)
-  (setq unread-command-events (append unread-command-events '(ns-open-file))
+(defun ns-handle-nxopen (switch &optional temp)
+  (setq unread-command-events (append unread-command-events
+                                      (if temp '(ns-open-temp-file)
+                                        '(ns-open-file)))
         ns-input-file (append ns-input-file (list (pop x-invocation-args)))))
 
 (defun ns-handle-nxopentemp (switch)
-  (setq unread-command-events (append unread-command-events
-				      '(ns-open-temp-file))
-        ns-input-file (append ns-input-file (list (pop x-invocation-args)))))
+  (ns-handle-nxopen switch t))
 
 (defun ns-ignore-1-arg (switch)
   (setq x-invocation-args (cdr x-invocation-args)))
@@ -154,7 +154,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [kp-prior] 'scroll-down)
 (define-key global-map [kp-next] 'scroll-up)
 
-;;; Allow shift-clicks to work similarly to under Nextstep
+;; Allow shift-clicks to work similarly to under Nextstep.
 (define-key global-map [S-mouse-1] 'mouse-save-then-kill)
 (global-unset-key [S-down-mouse-1])
 
@@ -185,48 +185,6 @@ The properties returned may include `top', `left', `height', and `width'."
 (defvaralias 'mac-function-modifier 'ns-function-modifier)
 (declare-function ns-do-applescript "nsfns.m" (script))
 (defalias 'do-applescript 'ns-do-applescript)
-
-;; Add a couple of menus and rearrange some others; easiest just to redo toplvl
-;; Note keymap defns must be given last-to-first
-(define-key global-map [menu-bar] (make-sparse-keymap "menu-bar"))
-
-(setq menu-bar-final-items
-      (cond ((eq system-type 'darwin)
-             '(buffer services help-menu))
-            ;; Otherwise, GNUstep.
-            (t
-             '(buffer services hide-app quit))))
-
-;; Add standard top-level items to GNUstep menu.
-(unless (eq system-type 'darwin)
-  (define-key global-map [menu-bar quit] '("Quit" . save-buffers-kill-emacs))
-  (define-key global-map [menu-bar hide-app] '("Hide" . ns-do-hide-emacs)))
-
-(define-key global-map [menu-bar services]
-  (cons "Services" (make-sparse-keymap "Services")))
-(define-key global-map [menu-bar buffer]
-  (cons "Buffers" global-buffers-menu-map))
-;;  (cons "Buffers" (make-sparse-keymap "Buffers")))
-(define-key global-map [menu-bar tools] (cons "Tools" menu-bar-tools-menu))
-(define-key global-map [menu-bar options] (cons "Options" menu-bar-options-menu))
-(define-key global-map [menu-bar edit] (cons "Edit" menu-bar-edit-menu))
-(define-key global-map [menu-bar file] (cons "File" menu-bar-file-menu))
-
-;; If running under GNUstep, rename "Help" to "Info"
-(cond ((eq system-type 'darwin)
-       (define-key global-map [menu-bar help-menu]
-	 (cons "Help" menu-bar-help-menu)))
-      (t
-       (let ((contents (reverse (cdr menu-bar-help-menu))))
-	 (setq menu-bar-help-menu
-	       (append (list 'keymap) (cdr contents) (list "Info"))))
-       (define-key global-map [menu-bar help-menu]
-	 (cons "Info" menu-bar-help-menu))))
-
-(if (not (eq system-type 'darwin))
-    ;; in OS X it's in the app menu already
-    (define-key menu-bar-help-menu [info-panel]
-      '("About Emacs..." . ns-do-emacs-info-panel)))
 
 ;;;; Services
 (declare-function ns-perform-service "nsfns.m" (service send))
@@ -396,8 +354,7 @@ See `ns-insert-working-text'."
         (let ((str (buffer-string)))
           (delete-region (point-min) (point-max))
           (insert (ns-convert-utf8-nfd-to-nfc str))
-          (- (point-max) (point-min))
-          ))))
+          (- (point-max) (point-min))))))
 
   (define-coding-system 'utf-8-nfd
     "UTF-8 NFD (decomposed) encoding."
@@ -421,12 +378,10 @@ See `ns-insert-working-text'."
   "Insert contents of file `ns-input-file' like insert-file but with less
 prompting.  If file is a directory perform a `find-file' on it."
   (interactive)
-  (let ((f))
-    (setq f (car ns-input-file))
-    (setq ns-input-file (cdr ns-input-file))
+  (let ((f (pop ns-input-file)))
     (if (file-directory-p f)
         (find-file f)
-      (push-mark (+ (point) (car (cdr (insert-file-contents f))))))))
+      (push-mark (+ (point) (cadr (insert-file-contents f)))))))
 
 (defvar ns-select-overlay nil
   "Overlay used to highlight areas in files requested by Nextstep apps.")
@@ -479,7 +434,6 @@ Lines are highlighted according to `ns-input-line'."
 
 (add-hook 'first-change-hook 'ns-unselect-line)
 
-
 ;;;; Preferences handling.
 (declare-function ns-get-resource "nsfns.m" (owner name))
 
@@ -530,12 +484,10 @@ unless the current buffer is a scratch buffer."
 (defun ns-find-file ()
   "Do a `find-file' with the `ns-input-file' as argument."
   (interactive)
-  (let ((f) (file) (bufwin1) (bufwin2))
-    (setq f (file-truename (car ns-input-file)))
-    (setq ns-input-file (cdr ns-input-file))
-    (setq file (find-file-noselect f))
-    (setq bufwin1 (get-buffer-window file 'visible))
-    (setq bufwin2 (get-buffer-window "*scratch*" 'visibile))
+  (let* ((f (file-truename (pop ns-input-file)))
+         (file (find-file-noselect f))
+         (bufwin1 (get-buffer-window file 'visible))
+         (bufwin2 (get-buffer-window "*scratch*" 'visibile)))
     (cond
      (bufwin1
       (select-frame (window-frame bufwin1))
@@ -647,7 +599,6 @@ unless the current buffer is a scratch buffer."
             (print-buffer)
 	  (error "Cancelled")))
     (print-buffer)))
-
 
 ;;;; Font support.
 

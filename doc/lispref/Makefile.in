@@ -109,7 +109,7 @@ $(infodir)/elisp: $(srcs)
 	$(MAKEINFO) -o $@ $<
 
 elisp.dvi: $(srcs)
-	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $<
+	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) -I $(emacsdir) $<
 
 elisp.html: $(srcs)
 	$(MAKEINFO) --html -o $@ $<
@@ -118,7 +118,7 @@ elisp.ps: elisp.dvi
 	$(DVIPS) -o $@ $<
 
 elisp.pdf: $(srcs)
-	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $<
+	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) -I $(emacsdir) $<
 
 .PHONY: mostlyclean clean distclean maintainer-clean infoclean
 

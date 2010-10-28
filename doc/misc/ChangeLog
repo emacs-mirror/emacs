@@ -1,3 +1,9 @@
+2010-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MAKEINFO, ENVADD): Add $emacsdir to include path.
+	(($(infodir)/calc, calc.dvi, calc.pdf): Depend on emacsver.texi.
+	($(infodir)/efaq): Remove -I option now in $MAKEINFO.
+
 2010-10-25  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.texi (Mail-mode integration): Add alternative key bindings

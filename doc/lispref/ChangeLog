@@ -1,3 +1,7 @@
+2010-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (elisp.dvi, elisp.pdf): Also include $emacsdir.
+
 2010-10-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Displaying Buffers, Switching Buffers): Describe

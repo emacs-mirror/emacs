@@ -1,8 +1,12 @@
+2010-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/octave.m: Add a test to ensure indentation is local.
+
 2010-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* comint-testsuite.el
-	(comint-testsuite--test-comint-password-prompt-regexp): Add
-	"Please enter the password".  (Bug#7224)
+	(comint-testsuite--test-comint-password-prompt-regexp):
+	Add "Please enter the password".  (Bug#7224)
 
 2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 

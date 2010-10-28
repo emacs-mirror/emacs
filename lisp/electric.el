@@ -178,6 +178,10 @@
 
 ;; Electric indentation.
 
+;; Autoloading variables is generally undesirable, but major modes
+;; should usually set this variable by adding elements to the default
+;; value, which only works well if the variable is preloaded.
+;;;###autoload
 (defvar electric-indent-chars '(?\n)
   "Characters that should cause automatic reindentation.")
 

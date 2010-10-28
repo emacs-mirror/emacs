@@ -4811,11 +4811,17 @@ General format specifiers can also be used.  See Info node
 (defun gnus-article-jump-to-part (n)
   "Jump to MIME part N."
   (interactive "P")
-  (pop-to-buffer gnus-article-buffer)
-  ;; FIXME: why is it necessary?
-  (sit-for 0)
-  (let ((parts (length gnus-article-mime-handle-alist)))
-    (or n (setq n (read-number (format "Jump to part (2..%s): " parts))))
+  (let ((parts (with-current-buffer gnus-article-buffer
+		 (length gnus-article-mime-handle-alist))))
+    (when (zerop parts)
+      (error "No such part"))
+    (pop-to-buffer gnus-article-buffer)
+    ;; FIXME: why is it necessary?
+    (sit-for 0)
+    (or n
+	(setq n (if (= parts 1)
+		    1
+		  (read-number (format "Jump to part (1..%s): " parts)))))
     (unless (and (integerp n) (<= n parts) (>= n 1))
       (setq n
 	    (progn
@@ -5115,7 +5121,7 @@ are decompressed."
       (if (or coding-system
 	      (and charset
 		   (setq coding-system (mm-charset-to-coding-system charset))
-		   (not (eq charset 'ascii))))
+		   (not (eq coding-system 'ascii))))
 	  (progn
 	    (mm-enable-multibyte)
 	    (insert (mm-decode-coding-string contents coding-system))
@@ -5290,9 +5296,7 @@ specified charset."
 	(gnus-mime-view-part-as-type
 	 nil (lambda (type) (stringp (mailcap-mime-info type))))
       (when handle
-	(if (mm-handle-undisplayer handle)
-	    (mm-remove-part handle)
-	  (mm-display-part handle))))))
+	(mm-display-part handle nil t)))))
 
 (defun gnus-mime-view-part-internally (&optional handle)
   "View the MIME part under point with an internal viewer.
@@ -5311,9 +5315,7 @@ If no internal viewer is available, use an external viewer."
         (gnus-mime-view-part-as-type
          nil (lambda (type) (mm-inlinable-p handle type)))
       (when handle
-	(if (mm-handle-undisplayer handle)
-	    (mm-remove-part handle)
-	  (gnus-bind-safe-url-regexp (mm-display-part handle)))))))
+	(gnus-bind-safe-url-regexp (mm-display-part handle))))))
 
 (defun gnus-mime-action-on-part (&optional action)
   "Do something with the MIME attachment at \(point\)."
@@ -5376,6 +5378,10 @@ If INTERACTIVE, call FUNCTION interactivly."
 	  (when (gnus-article-goto-part n)
 	    ;; We point the cursor and the arrow at the MIME button
 	    ;; when the `function' prompt the user for something.
+	    (unless (and (pos-visible-in-window-p)
+			 (> (count-lines (point) (window-end))
+			    (/ (1- (window-height)) 3)))
+	      (recenter (/ (1- (window-height)) 3)))
 	    (let ((cursor-in-non-selected-windows t)
 		  (overlay-arrow-string "=>")
 		  (overlay-arrow-position (point-marker)))
@@ -5387,11 +5393,10 @@ If INTERACTIVE, call FUNCTION interactivly."
 		    (funcall function))
 		   (interactive
 		    (call-interactively
-		     function
-		     (cdr (assq n gnus-article-mime-handle-alist))))
+		     function (get-text-property (point) 'gnus-data)))
 		   (t
 		    (funcall function
-			     (cdr (assq n gnus-article-mime-handle-alist)))))
+			     (get-text-property (point) 'gnus-data))))
 		(set-marker overlay-arrow-position nil)
 		(unless gnus-auto-select-part
 		  (gnus-select-frame-set-input-focus frame)
@@ -5556,7 +5561,35 @@ all parts."
 
 (defun gnus-article-goto-part (n)
   "Go to MIME part N."
-  (gnus-goto-char (text-property-any (point-min) (point-max) 'gnus-part n)))
+  (let ((start (text-property-any (point-min) (point-max) 'gnus-part n))
+	part handle end next handles)
+    (when start
+      (goto-char start)
+      (if (setq handle (get-text-property start 'gnus-data))
+	  start
+	;; Go to the displayed subpart, assuming this is multipart/alternative.
+	(setq part start
+	      end (point-at-eol))
+	(while (and (not handle)
+		    part
+		    (< part end)
+		    (setq next (text-property-not-all part end
+						      'gnus-data nil)))
+	  (setq part next
+		handle (get-text-property part 'gnus-data))
+	  (push (cons handle part) handles)
+	  (unless (mm-handle-displayed-p handle)
+	    (setq handle nil
+		  part (text-property-any part end 'gnus-data nil))))
+	(unless handle
+	  ;; No subpart is displayed, so we find preferred one.
+	  (setq part
+		(cdr (assq (mm-preferred-alternative
+			    (nreverse (mapcar 'car handles)))
+			   handles))))
+	(if part
+	    (goto-char (1+ part))
+	  start)))))
 
 (defun gnus-insert-mime-button (handle gnus-tmp-id &optional displayed)
   (let ((gnus-tmp-name

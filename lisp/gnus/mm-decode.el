@@ -696,13 +696,14 @@ Postpone undisplaying of viewers for types in
 (autoload 'mailcap-parse-mailcaps "mailcap")
 (autoload 'mailcap-mime-info "mailcap")
 
-(defun mm-display-part (handle &optional no-default)
+(defun mm-display-part (handle &optional no-default force)
   "Display the MIME part represented by HANDLE.
 Returns nil if the part is removed; inline if displayed inline;
 external if displayed external."
   (save-excursion
     (mailcap-parse-mailcaps)
-    (if (mm-handle-displayed-p handle)
+    (if (and (not force)
+	     (mm-handle-displayed-p handle))
 	(mm-remove-part handle)
       (let* ((ehandle (if (equal (mm-handle-media-type handle)
 				 "message/external-body")

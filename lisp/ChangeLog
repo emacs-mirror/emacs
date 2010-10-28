@@ -1,3 +1,32 @@
+2010-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (global-map, menu-bar-final-items, menu-bar-help-menu):
+	Move menu-bar related settings to ../menu-bar.el.
+	* menu-bar.el (global-map, menu-bar-final-items, menu-bar-help-menu):
+	Move ns-specific settings here from term/ns-win.el.
+
+	* simple.el (x-selection-owner-p): Remove unused declaration.
+
+2010-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-cycling): New var (bug#7266).
+	(minibuffer-complete, completion--do-completion):
+	Use completion--flush-all-sorted-completions.
+	(minibuffer-complete): Only cycle if completion-cycling is set.
+	(completion--flush-all-sorted-completions): Unset completion-cycling.
+	(minibuffer-force-complete): Set completion-cycling.
+	(completion-all-sorted-completions): Move declaration before first use.
+
+2010-10-28  Leo  <sdl.web@gmail.com>
+
+	* iswitchb.el (iswitchb-kill-buffer): Avoid `iswitchb-make-buflist'
+	which changes the order of matches seen by users (bug#7231).
+
+2010-10-28  Jes Bodi Klinke  <jes@bodi-klinke.dk>  (tiny change)
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Don't confuse -omega as "-o mega".
+
 2010-10-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.el (pop-up-frame-alist, pop-up-frame-function)
@@ -51,10 +80,37 @@
 	(Info-goto-emacs-command-node, Info-speedbar-goto-node): Adapt
 	to new buffer display code.
 
+2010-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-rewrite-fixes): New var.
+	(log-edit-author): New dynamic var.
+	(log-edit-changelog-ours-p, log-edit-insert-changelog-entries): Use it
+	to return the author if different from committer.
+	(log-edit-insert-changelog): Use them to add Author: and Fixes headers.
+
+	* play/landmark.el: Adjust commenting convention.
+	(lm-nil-score): Rename from nil-score.
+	(Xscore, XXscore, XXXscore, XXXXscore, Oscore, OOscore, OOOscore)
+	(OOOOscore): Move into a let in lm-score-trans-table.
+	(lm-winning-threshold, lm-loosing-threshold): Use lm-score-trans-table.
+
+	* electric.el (electric-indent-chars): Autoload.
+	* progmodes/octave-mod.el (octave-mode):
+	* progmodes/ruby-mode.el (ruby-mode): Take advantage of it.
+	(ruby-mode-abbrev-table): Merge initialization and declaration.
+
 2010-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* abbrev.el (abbrev-mode): Remove one of the three definitions of this
+	variable.
+
+	* server.el (server-host, server-port, server-auth-dir): Autoload risky.
 
 	* term/ns-win.el: Restore require of cl when compiling.
 	(menu-bar-final-items): Remove non-existent `windows' menu.
+	(ns-handle-nxopen): Optionally handle the temp-case.
+	(ns-handle-nxopentemp): Just call ns-handle-nxopen.
+	(ns-insert-file, ns-find-file): Use `pop'.
 
 2010-10-26  Glenn Morris  <rgm@gnu.org>
 

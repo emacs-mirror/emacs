@@ -119,10 +119,11 @@ If nil, only list groups that have unread articles."
   :type 'boolean)
 
 (defcustom gnus-group-default-list-level gnus-level-subscribed
-  "*Default listing level.
+  "Default listing level.
 Ignored if `gnus-group-use-permanent-levels' is non-nil."
   :group 'gnus-group-listing
-  :type 'integer)
+  :type '(choice (integer :tag "Level")
+                 (function :tag "Function returning level")))
 
 (defcustom gnus-group-list-inactive-groups t
   "*If non-nil, inactive groups will be listed."
@@ -1169,6 +1170,12 @@ The following commands are available:
   (mouse-set-point e)
   (gnus-group-read-group nil))
 
+(defun gnus-group-default-list-level ()
+  "Return the real value for `gnus-group-default-list-level'."
+  (if (functionp gnus-group-default-list-level)
+      (funcall gnus-group-default-list-level)
+    gnus-group-default-list-level))
+
 ;; Look at LEVEL and find out what the level is really supposed to be.
 ;; If LEVEL is non-nil, LEVEL will be returned, if not, what happens
 ;; will depend on whether `gnus-group-use-permanent-levels' is used.
@@ -1178,13 +1185,13 @@ The following commands are available:
     (or (setq gnus-group-use-permanent-levels
 	      (or level (if (numberp gnus-group-use-permanent-levels)
 			    gnus-group-use-permanent-levels
-			  (or gnus-group-default-list-level
+			  (or (gnus-group-default-list-level)
 			      gnus-level-subscribed))))
-	gnus-group-default-list-level gnus-level-subscribed))
+	(gnus-group-default-list-level) gnus-level-subscribed))
    (number-or-nil
     level)
    (t
-    (or level gnus-group-default-list-level gnus-level-subscribed))))
+    (or level (gnus-group-default-list-level) gnus-level-subscribed))))
 
 (defun gnus-group-setup-buffer ()
   (set-buffer (gnus-get-buffer-create gnus-group-buffer))
@@ -1230,7 +1237,7 @@ Also see the `gnus-group-use-permanent-levels' variable."
 	     (prefix-numeric-value current-prefix-arg)
 	   (or
 	    (gnus-group-default-level nil t)
-	    gnus-group-default-list-level
+	    (gnus-group-default-list-level)
 	    gnus-level-subscribed))))
   (unless level
     (setq level (car gnus-group-list-mode)
