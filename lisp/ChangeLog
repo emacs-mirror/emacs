@@ -1,4 +1,9 @@
-2010-10-28  Jes Bodi Klinke  <jes@bodi-klinke.dk>
+2010-10-28  Leo  <sdl.web@gmail.com>
+
+	* iswitchb.el (iswitchb-kill-buffer): Avoid `iswitchb-make-buflist'
+	which changes the order of matches seen by users (bug#7231).
+
+2010-10-28  Jes Bodi Klinke  <jes@bodi-klinke.dk>  (tiny change)
 
 	* progmodes/compile.el (compilation-mode-font-lock-keywords):
 	Don't confuse -omega as "-o mega".
