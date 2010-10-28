@@ -579,6 +579,8 @@ The value should be of the form (REGEXP . REPLACEMENT)
 where REGEXP should match the expression referring to a bug number
 in the text, and REPLACEMENT is an expression to pass to `replace-match'
 to build the Fixes: header.")
+(put 'log-edit-rewrite-fixes 'safe-local-variable
+     (lambda (v) (and (stringp (car-safe v)) (stringp (cdr v)))))
 
 (defun log-edit-insert-changelog (&optional use-first)
   "Insert a log message by looking at the ChangeLog.

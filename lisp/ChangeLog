@@ -1,3 +1,7 @@
+2010-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-rewrite-fixes): State its safety pred.
+
 2010-10-28  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el (global-map, menu-bar-final-items, menu-bar-help-menu):
