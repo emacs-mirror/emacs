@@ -1,3 +1,7 @@
+2010-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (x-selection-owner-p): Remove unused declaration.
+
 2010-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-cycling): New var (bug#7266).
