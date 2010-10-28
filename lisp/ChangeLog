@@ -1,3 +1,13 @@
+2010-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-cycling): New var (bug#7266).
+	(minibuffer-complete, completion--do-completion):
+	Use completion--flush-all-sorted-completions.
+	(minibuffer-complete): Only cycle if completion-cycling is set.
+	(completion--flush-all-sorted-completions): Unset completion-cycling.
+	(minibuffer-force-complete): Set completion-cycling.
+	(completion-all-sorted-completions): Move declaration before first use.
+
 2010-10-28  Leo  <sdl.web@gmail.com>
 
 	* iswitchb.el (iswitchb-kill-buffer): Avoid `iswitchb-make-buflist'
