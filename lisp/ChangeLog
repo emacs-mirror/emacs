@@ -1,3 +1,7 @@
+2010-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* select.el (x-selection): Mark it as an obsolete alias.
+
 2010-10-27  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
 	* add-log.el (find-change-log): Use derived-mode-p rather than
