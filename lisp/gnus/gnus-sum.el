@@ -7033,7 +7033,11 @@ The prefix argument ALL means to select all articles."
 (defun gnus-summary-rescan-group (&optional all)
   "Exit the newsgroup, ask for new articles, and select the newsgroup."
   (interactive "P")
-  (gnus-summary-reselect-current-group all t))
+  (let ((config gnus-current-window-configuration))
+    (gnus-summary-reselect-current-group all t)
+    (gnus-configure-windows config)
+    (when (eq config 'article)
+      (gnus-summary-select-article))))
 
 (defun gnus-summary-update-info (&optional non-destructive)
   (save-excursion

@@ -1,3 +1,8 @@
+2010-10-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-rescan-group): Try to restore the window
+	config after reselecting.
+
 2010-10-28  Julien Danjou  <julien@danjou.info>
 
 	* shr.el (shr-put-image): Use point even if only inserting text.
