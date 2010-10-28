@@ -78,9 +78,8 @@
 
 ;; Restrictions:
 ;;
-;; * If you don't use HyREX as your search engine, this expects that
-;;   you use nnml or another one-file-per-message backend, because the
-;;   others doesn't support nnfolder.
+;; * This expects that you use nnml or another one-file-per-message backend,
+;;   because the others doesn't support nnfolder.
 ;; * It can only search the mail backend's which are supported by one
 ;;   search engine, because of different query languages.
 ;; * There are restrictions to the Wais setup.
@@ -96,8 +95,7 @@
 ;; like this :
 ;;   (setq gnus-secondary-select-methods '(
 ;;       (nnimap "" (nnimap-address "localhost")
-;;                  (nnir-search-engine hyrex)
-;;                  (nnir-hyrex-additional-switches ("-d" "ddl-nnimap.xml"))
+;;                  (nnir-search-engine namazu)
 ;;       )))
 ;; Or you can define the global ones. The variables set in the mailer-
 ;; definition will be used first.
@@ -227,18 +225,7 @@
 ;; For maximum searching efficiency I have a cron job set to run this
 ;; command every four hours.
 
-;; 3. HyREX
-;;
-;; The HyREX backend requires you to have one directory from where all
-;; your relative paths are to, if you use them. This directory must be
-;; set in the `nnir-hyrex-index-directory' variable, which defaults to
-;; your home directory. You must also pass the base, class and
-;; directory options or simply your dll to the `nnir-hyrex-programm' by
-;; setting the `nnir-hyrex-additional-switches' variable accordently.
-;; To function the `nnir-hyrex-remove-prefix' variable must also be
-;; correct, see the documentation for `nnir-wais-remove-prefix' above.
-
-;; 4. find-grep
+;; 3. find-grep
 ;;
 ;; The find-grep engine simply runs find(1) to locate eligible
 ;; articles and searches them with grep(1).  This, of course, is much
@@ -319,7 +306,6 @@
 ;;   are simple, but what about the article number?
 ;;   - The article number is encoded in the `X-Gnus-Article-Number'
 ;;     header of each mail.
-;;   - The HyREX engine supports nnfolder.
 ;;
 ;; * Support compressed mail files.  Probably, just stripping off the
 ;;   `.gz' or `.Z' file name extension is sufficient.
@@ -403,8 +389,6 @@ result, `gnus-retrieve-headers' will be called instead.")
              ((group . "Group spec: ")))
     (namazu  nnir-run-namazu
              ())
-    (hyrex   nnir-run-hyrex
-	     ((group . "Group spec: ")))
     (find-grep nnir-run-find-grep
 	       ((grep-options . "Grep options: "))))
   "Alist of supported search engines.
@@ -573,40 +557,6 @@ that it is for swish-e, not Wais.
 
 This could be a server parameter."
   :type '(regexp)
-  :group 'nnir)
-
-;; HyREX engine, see <URL:http://ls6-www.cs.uni-dortmund.de/>
-
-(defcustom nnir-hyrex-program "nnir-search"
-  "*Name of the nnir-search executable."
-  :type '(string)
-  :group 'nnir)
-
-(defcustom nnir-hyrex-additional-switches '()
-  "*A list of strings, to be given as additional arguments for nnir-search.
-Note that this should be a list. Ie, do NOT use the following:
-    (setq nnir-hyrex-additional-switches \"-ddl ddl.xml -c nnir\") ; wrong !
-Instead, use this:
-    (setq nnir-hyrex-additional-switches '(\"-ddl\" \"ddl.xml\" \"-c\" \"nnir\"))"
-  :type '(repeat (string))
-  :group 'nnir)
-
-(defcustom nnir-hyrex-index-directory (getenv "HOME")
-  "*Index directory for HyREX."
-  :type '(directory)
-  :group 'nnir)
-
-(defcustom nnir-hyrex-remove-prefix (concat (getenv "HOME") "/Mail/")
-  "*The prefix to remove from each file name returned by HyREX
-in order to get a group name (albeit with / instead of .).
-
-For example, suppose that HyREX returns file names such as
-\"/home/john/Mail/mail/misc/42\".  For this example, use the following
-setting:  (setq nnir-hyrex-remove-prefix \"/home/john/Mail/\")
-Note the trailing slash.  Removing this prefix gives \"mail/misc/42\".
-`nnir' knows to remove the \"/42\" and to replace \"/\" with \".\" to
-arrive at the correct group name, \"mail.misc\"."
-  :type '(directory)
   :group 'nnir)
 
 ;; Namazu engine, see <URL:http://www.namazu.org/>
@@ -1355,85 +1305,6 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
                    (function (lambda (x y)
                                (> (nnir-artitem-rsv x)
                                   (nnir-artitem-rsv y)))))))))
-
-;; HyREX interface
-(defun nnir-run-hyrex (query server &optional group)
-  (save-excursion
-    (let ((artlist nil)
-          (groupspec (cdr (assq 'group query)))
-          (qstring (cdr (assq 'query query)))
-	  (prefix (nnir-read-server-parm 'nnir-hyrex-remove-prefix server))
-	  score artno dirnam)
-      (when (and group groupspec)
-        (error (concat "It does not make sense to use a group spec"
-                       " with process-marked groups.")))
-      (when group
-        (setq groupspec (gnus-group-real-name group)))
-      (when (and group (not (equal group (nnir-group-full-name groupspec server))))
-	(message "%s vs. %s" group (nnir-group-full-name groupspec server))
-	(error "Server with groupspec doesn't match group !"))
-      (set-buffer (get-buffer-create nnir-tmp-buffer))
-      (erase-buffer)
-      (if groupspec
-          (message "Doing hyrex-search query %s on %s..." query groupspec)
-        (message "Doing hyrex-search query %s..." query))
-      (let* ((cp-list
-	      `( ,nnir-hyrex-program
-		 nil			; input from /dev/null
-		 t			; output
-		 nil			; don't redisplay
-		 "-i",(nnir-read-server-parm 'nnir-hyrex-index-directory server) ; index directory
-		 ,@(nnir-read-server-parm 'nnir-hyrex-additional-switches server)
-		 ,qstring	   ; the query, in hyrex-search format
-		 ))
-             (exitstatus
-              (progn
-                (message "%s args: %s" nnir-hyrex-program
-                         (mapconcat 'identity (cddddr cp-list) " "))
-                (apply 'call-process cp-list))))
-        (unless (or (null exitstatus)
-                    (zerop exitstatus))
-          (nnheader-report 'nnir "Couldn't run hyrex-search: %s" exitstatus)
-          ;; nnir-search failure reason is in this buffer, show it if
-          ;; the user wants it.
-          (when (> gnus-verbose 6)
-            (display-buffer nnir-tmp-buffer)))) ;; FIXME: Dont clear buffer !
-      (if groupspec
-          (message "Doing hyrex-search query \"%s\" on %s...done" qstring groupspec)
-        (message "Doing hyrex-search query \"%s\"...done" qstring))
-      (sit-for 0)
-      ;; nnir-search returns:
-      ;;   for nnml/nnfolder: "filename mailid weigth"
-      ;;   for nnimap:        "group mailid weigth"
-      (goto-char (point-min))
-      (delete-non-matching-lines "^\\S + [0-9]+ [0-9]+$")
-      ;; HyREX couldn't search directly in groups -- so filter out here.
-      (when groupspec
-	(keep-lines groupspec))
-      ;; extract data from result lines
-      (goto-char (point-min))
-      (while (re-search-forward
-	      "\\(\\S +\\) \\([0-9]+\\) \\([0-9]+\\)" nil t)
-	(setq dirnam (match-string 1)
-	      artno (match-string 2)
-	      score (match-string 3))
-	(when (string-match prefix dirnam)
-	  (setq dirnam (replace-match "" t t dirnam)))
-	(push (vector (nnir-group-full-name
-                       (gnus-replace-in-string dirnam "/" ".") server)
-		      (string-to-number artno)
-		      (string-to-number score))
-	      artlist))
-      (message "Massaging hyrex-search output...done.")
-      (apply 'vector
-	     (sort artlist
-                   (function (lambda (x y)
-                               (if (string-lessp (nnir-artitem-group x)
-                                                 (nnir-artitem-group y))
-                                   t
-                                 (< (nnir-artitem-number x)
-                                    (nnir-artitem-number y)))))))
-      )))
 
 ;; Namazu interface
 (defun nnir-run-namazu (query server &optional group)

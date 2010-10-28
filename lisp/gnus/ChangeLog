@@ -1,3 +1,7 @@
+2010-10-28  Julien Danjou  <julien@danjou.info>
+
+	* nnir.el (nnir-run-swish-e): Remove hyrex support.
+
 2010-10-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-jump-to-part): Error on no part; fix prompt.
