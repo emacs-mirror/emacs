@@ -358,27 +358,30 @@
       (message "Scanning thebibliography environment in %s" file)
 
       (with-current-buffer buf
-        (save-restriction
-          (widen)
-          (goto-char (point-min))
-          (while (re-search-forward 
-                  "\\(\\`\\|[\n\r]\\)[ \t]*\\\\begin{thebibliography}" nil t)
-            (beginning-of-line 2)
-            (setq start (point))
-            (if (re-search-forward 
-                 "\\(\\`\\|[\n\r]\\)[ \t]*\\\\end{thebibliography}" nil t)
-                (progn
-                  (beginning-of-line 1)
-                  (setq end (point))))
-            (when (and start end)
-              (setq entries 
-                    (append entries
-                      (mapcar 'reftex-parse-bibitem
-                        (delete ""
-                                (split-string 
-                                 (buffer-substring-no-properties start end)
-                                 "[ \t\n\r]*\\\\bibitem\\(\\[[^]]*]\\)*"))))))
-            (goto-char end)))))
+	(save-excursion
+	  (save-restriction
+	    (widen)
+	    (goto-char (point-min))
+	    (while (re-search-forward
+		    "\\(\\`\\|[\n\r]\\)[ \t]*\\\\begin{thebibliography}" nil t)
+	      (beginning-of-line 2)
+	      (setq start (point))
+	      (if (re-search-forward
+		   "\\(\\`\\|[\n\r]\\)[ \t]*\\\\end{thebibliography}" nil t)
+		  (progn
+		    (beginning-of-line 1)
+		    (setq end (point))))
+	      (when (and start end)
+		(setq entries
+		      (append entries
+			      (mapcar 'reftex-parse-bibitem
+				      (delete ""
+					      (split-string
+					       (buffer-substring-no-properties
+						start end)
+					       "[ \t\n\r]*\\\\bibitem\
+\\(\\[[^]]*]\\)*\[ \t]*"))))))
+	      (goto-char end))))))
     (unless entries
       (error "No bibitems found"))
 

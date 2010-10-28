@@ -1450,8 +1450,10 @@ Allegedly.
 
 @item message-default-headers
 @vindex message-default-headers
-This string is inserted at the end of the headers in all message
-buffers.
+Header lines to be inserted in outgoing messages before you edit the
+message, so you can edit or delete their lines. If set to a string, it
+is directly inserted. If set to a function, it is called and its
+result is inserted.
 
 @item message-subject-re-regexp
 @vindex message-subject-re-regexp

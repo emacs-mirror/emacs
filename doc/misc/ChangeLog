@@ -1,3 +1,79 @@
+2010-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MAKEINFO, ENVADD): Add $emacsdir to include path.
+	(($(infodir)/calc, calc.dvi, calc.pdf): Depend on emacsver.texi.
+	($(infodir)/efaq): Remove -I option now in $MAKEINFO.
+
+2010-10-25  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Mail-mode integration): Add alternative key bindings
+	for epa-mail commands; escape comma.
+	Don't use the word "PGP", since it is a non-free program.
+
+2010-10-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi:  Use emacsver.texi to determine Emacs version.
+
+2010-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus.texi (Group Parameters, Buttons): Fix typos.
+
+2010-10-22  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* gnus.texi (Subscription Commands): Mention that you can also
+	subscribe to new groups via the Server buffer, which is probably more
+	convenient when subscribing to many groups.
+
+2010-10-21  Julien Danjou  <julien@danjou.info>
+
+	* message.texi (Message Headers): Allow message-default-headers to be a
+	function.
+
+2010-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-news.texi: Mention new archive defaults.
+
+2010-10-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (RSS): Remove nnrss-wash-html-in-text-plain-parts.
+
+2010-10-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (HTML): Document the function value of
+	gnus-blocked-images.
+	(Article Washing): shr and gnus-w3m, not the direct function names.
+
+2010-10-20  Julien Danjou  <julien@danjou.info>
+
+	* emacs-mime.texi (Flowed text): Add a note about mml-enable-flowed
+	variable.
+
+2010-10-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing the IMAP Connection): The port strings are
+	strings.
+	(Document Groups): Mention git.
+
+2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-coding.texi (Gnus Maintainance Guide): Update to mention Emacs
+	bzr/Gnus git sync.
+
+2010-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* auth.texi (GnuPG and EasyPG Assistant Configuration): Fix last
+	change.
+
+2010-10-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* auth.texi (GnuPG and EasyPG Assistant Configuration): Fix up the
+	@item syntax for in-Emacs makeinfo.
+
+2010-10-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (GnuPG and EasyPG Assistant Configuration): Fix syntax and
+	trim sentence.
+
 2010-10-12  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.texi (Caching Passphrases):

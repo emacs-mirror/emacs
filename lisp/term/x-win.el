@@ -1,7 +1,7 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n
@@ -251,50 +251,6 @@ exists."
 (defconst x-pointer-xterm 152)
 (defconst x-pointer-invisible 255)
 
-
-(defvar x-colors)
-
-(defun xw-defined-colors (&optional frame)
-  "Internal function called by `defined-colors'."
-  (or frame (setq frame (selected-frame)))
-  (let ((all-colors x-colors)
-	(this-color nil)
-	(defined-colors nil))
-    (while all-colors
-      (setq this-color (car all-colors)
-	    all-colors (cdr all-colors))
-      (and (color-supported-p this-color frame t)
-	   (setq defined-colors (cons this-color defined-colors))))
-    defined-colors))
-
-;;;; Function keys
-
-(defvar x-alternatives-map
-  (let ((map (make-sparse-keymap)))
-    ;; Map certain keypad keys into ASCII characters that people usually expect.
-    (define-key map [M-backspace] [?\M-\d])
-    (define-key map [M-delete] [?\M-\d])
-    (define-key map [M-tab] [?\M-\t])
-    (define-key map [M-linefeed] [?\M-\n])
-    (define-key map [M-clear] [?\M-\C-l])
-    (define-key map [M-return] [?\M-\C-m])
-    (define-key map [M-escape] [?\M-\e])
-    (define-key map [iso-lefttab] [backtab])
-    (define-key map [S-iso-lefttab] [backtab])
-    map)
-  "Keymap of possible alternative meanings for some keys.")
-
-(defun x-setup-function-keys (frame)
-  "Set up `function-key-map' on the graphical frame FRAME."
-  ;; Don't do this twice on the same display, or it would break
-  ;; normal-erase-is-backspace-mode.
-  (unless (terminal-parameter frame 'x-setup-function-keys)
-    ;; Map certain keypad keys into ASCII characters that people usually expect.
-    (with-selected-frame frame
-      (let ((map (copy-keymap x-alternatives-map)))
-        (set-keymap-parent map (keymap-parent local-function-key-map))
-        (set-keymap-parent local-function-key-map map)))
-    (set-terminal-parameter frame 'x-setup-function-keys t)))
 
 ;;;; Keysyms
 
@@ -1206,39 +1162,11 @@ pasted text.")
   "The value of the PRIMARY X selection last time we selected or
 pasted text.")
 
-(defcustom x-select-enable-clipboard t
-  "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to, but in preference to, the primary selection."
-  :type 'boolean
-  :group 'killing
-  :version "24.1")
-
 (defcustom x-select-enable-primary nil
   "Non-nil means cutting and pasting uses the primary selection."
   :type 'boolean
   :group 'killing
   :version "24.1")
-
-(defun x-select-text (text)
-  "Select TEXT, a string, according to the window system.
-
-On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
-clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
-the primary selection.
-
-On Windows, make TEXT the current selection.  If
-`x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.
-
-On Nextstep, put TEXT in the pasteboard."
-  ;; With multi-tty, this function may be called from a tty frame.
-  (when (eq (framep (selected-frame)) 'x)
-    (when x-select-enable-primary
-      (x-set-selection 'PRIMARY text)
-      (setq x-last-selected-text-primary text))
-    (when x-select-enable-clipboard
-      (x-set-selection 'CLIPBOARD text)
-      (setq x-last-selected-text-clipboard text))))
 
 (defvar x-select-request-type nil
   "*Data type request for X selection.
@@ -1640,5 +1568,4 @@ This uses `icon-map-list' to map icon file names to stock icon names."
 
 (provide 'x-win)
 
-;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here

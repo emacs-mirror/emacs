@@ -1,3 +1,673 @@
+2010-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (global-map, menu-bar-final-items, menu-bar-help-menu):
+	Move menu-bar related settings to ../menu-bar.el.
+	* menu-bar.el (global-map, menu-bar-final-items, menu-bar-help-menu):
+	Move ns-specific settings here from term/ns-win.el.
+
+	* simple.el (x-selection-owner-p): Remove unused declaration.
+
+2010-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-cycling): New var (bug#7266).
+	(minibuffer-complete, completion--do-completion):
+	Use completion--flush-all-sorted-completions.
+	(minibuffer-complete): Only cycle if completion-cycling is set.
+	(completion--flush-all-sorted-completions): Unset completion-cycling.
+	(minibuffer-force-complete): Set completion-cycling.
+	(completion-all-sorted-completions): Move declaration before first use.
+
+2010-10-28  Leo  <sdl.web@gmail.com>
+
+	* iswitchb.el (iswitchb-kill-buffer): Avoid `iswitchb-make-buflist'
+	which changes the order of matches seen by users (bug#7231).
+
+2010-10-28  Jes Bodi Klinke  <jes@bodi-klinke.dk>  (tiny change)
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Don't confuse -omega as "-o mega".
+
+2010-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-rewrite-fixes): New var.
+	(log-edit-author): New dynamic var.
+	(log-edit-changelog-ours-p, log-edit-insert-changelog-entries): Use it
+	to return the author if different from committer.
+	(log-edit-insert-changelog): Use them to add Author: and Fixes headers.
+
+	* play/landmark.el: Adjust commenting convention.
+	(lm-nil-score): Rename from nil-score.
+	(Xscore, XXscore, XXXscore, XXXXscore, Oscore, OOscore, OOOscore)
+	(OOOOscore): Move into a let in lm-score-trans-table.
+	(lm-winning-threshold, lm-loosing-threshold): Use lm-score-trans-table.
+
+	* electric.el (electric-indent-chars): Autoload.
+	* progmodes/octave-mod.el (octave-mode):
+	* progmodes/ruby-mode.el (ruby-mode): Take advantage of it.
+	(ruby-mode-abbrev-table): Merge initialization and declaration.
+
+2010-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* abbrev.el (abbrev-mode): Remove one of the three definitions of this
+	variable.
+
+	* server.el (server-host, server-port, server-auth-dir): Autoload risky.
+
+	* term/ns-win.el: Restore require of cl when compiling.
+	(menu-bar-final-items): Remove non-existent `windows' menu.
+	(ns-handle-nxopen): Optionally handle the temp-case.
+	(ns-handle-nxopentemp): Just call ns-handle-nxopen.
+	(ns-insert-file, ns-find-file): Use `pop'.
+
+2010-10-26  Glenn Morris  <rgm@gnu.org>
+
+	* term/common-win.el (xw-defined-colors): Simplify the 'ns case.
+
+2010-10-26  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-new-frame, ns-show-prefs): Don't add to
+	global map.
+	* term/common-win.el (x-setup-function-keys): Remove most of the
+	keymappings.  Comment on the remaining ones.
+
+2010-10-26  Peter Oliver  <p.d.oliver@mavit.org.uk>  (tiny change)
+
+	* server.el (server-port): New option.  (Bug#854)
+	(server-start): Use server-port.
+
+2010-10-26  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (ns-version-string): Remove unused declaration.
+	(ns-invocation-args): Change to x-invocation-args.
+	(ns-handle-switch, ns-handle-numeric-switch, ns-handle-iconic)
+	(ns-handle-name-switch, ns-ignore-2-arg): Remove.
+	(ns-handle-nxopen, ns-handle-nxopentemp, ns-ignore-1-arg):
+	Use x-invocation-args instead of ns-invocation-args.
+	(ns-initialize-window-system, handle-args-function-alist):
+	Use x-handle-args instead of ns-handle-args.
+	* term/common-win.el (x-handle-args): Also handle nextstep arguments.
+	* startup.el (command-line-ns-option-alist): Replace
+	ns-handle-name-switch, ns-handle-switch, ns-handle-numeric-switch,
+	ns-handle-iconic with the x- equivalents.
+
+	* term/common-win.el (x-select-enable-clipboard):
+	* term/pc-win.el (x-select-enable-clipboard): Doc fix.
+
+	* term/ns-win.el: No need to require cl when compiling.
+	(x-display-name, x-setup-function-keys, x-select-text, x-colors)
+	(xw-defined-colors): Use the common-win definitions.
+	(ns-alternatives-map): Make it an obsolete alias for x-alternatives-map.
+	(ns-handle-iconic): Make it an alias for x-handle-iconic.
+	* term/common-win.el (x-select-text, x-alternatives-map)
+	(x-setup-function-keys, x-colors, xw-defined-colors): Handle 'ns case.
+	* loadup.el [ns]: Load common-win.
+
+2010-10-26  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-mail.el (epa-mail-encrypt): Handle local-part only
+	recipients; expand mail aliases (Bug#7280).
+
+2010-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* term/common-win.el (x-handle-switch): Simplify with pop.
+	Optionally handle numeric switches.
+	(x-handle-numeric-switch): Just call x-handle-switch.
+	(x-handle-initial-switch, x-handle-xrm-switch, x-handle-geometry)
+	(x-handle-name-switch, x-handle-display, x-handle-args):
+	Simplify with pop.
+
+	* term/ns-win.el: Do not require easymenu.
+	(menu-bar-edit-menu) <copy, paste, paste-from-menu, separator-undo>:
+	<spell>: Move adjustments to menu-bar.el.
+	* menu-bar.el (menu-bar-edit-menu) <copy, paste, paste-from-menu>:
+	<separator-undo, spell>: Move ns-win's adjustments here.
+	* loadup.el [ns]: Do not load easymenu.
+
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (image-checkbox-checked, image-checkbox-unchecked):
+	Delete (Bug#7222).
+
+	* startup.el (fancy-startup-tail): Instead of using inline images,
+	refer to image files from etc/.
+
+	* wid-edit.el (checkbox): Likewise.
+	(widget-image-find): Center image specs.
+
+2010-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (x-select-text): Doc fix.
+	* w32-fns.el (x-alternatives-map, x-setup-function-keys)
+	(x-select-text): Move to term/common-win.
+	* term/w32-win.el (xw-defined-colors): Move to common-win.
+	* term/x-win.el (xw-defined-colors, x-alternatives-map)
+	(x-setup-function-keys, x-select-text): Move to common-win.
+	* term/common-win.el (x-select-text, x-alternatives-map)
+	(x-setup-function-keys, xw-defined-colors): Merge x- and w32-
+	definitions here.
+
+2010-10-24  T.V. Raman  <tv.raman.tv@gmail.com>  (tiny change)
+
+	* net/mairix.el (mairix-searches-mode-map):
+	* mail/mspools.el (mspools-mode-map): Fix 2010-10-10 change.
+
+2010-10-24  Michael McNamara  <mac@mail.brushroad.com>
+
+	* verilog-mode.el (verilog-directive-re): Make this variable
+	auto-built for efficiency of execution and updating.
+	(verilog-extended-complete-re): Support 'pure' fucntion & task
+	declarations (these have no bodies).
+	(verilog-beg-of-statement): general cleanup to enable support of
+	'pure' fucntion & task declarations (these have no bodies).  These
+	efforts together fix Verilog bug210 from veripool; which was also
+	noticed by Steve Pearlmutter.
+	(verilog-directive-re, verilog-directive-begin, verilog-indent-re)
+	(verilog-directive-nest-re, verilog-set-auto-endcomments): Support
+	`elsif.  Reported by Shankar Giri.
+	(verilog-forward-ws&directives, verilog-in-attribute-p): Fixes for
+	attribute handling for lining up declarations and assignments.
+	(verilog-beg-of-statement-1): Fix issue where continued declaration
+	is indented differently if it is after a begin..end clock.
+	(verilog-in-attribute-p, verilog-skip-backward-comments)
+	(verilog-skip-forward-comment-p): Support proper treatment of
+	attributes by indent code. Reported by Jeff Steele.
+	(verilog-in-directive-p): Fix comment to correctly describe
+	function.
+	(verilog-backward-up-list, verilog-in-struct-region-p)
+	(verilog-backward-token, verilog-in-struct-p)
+	(verilog-in-coverage-p, verilog-do-indent)
+	(verilog-pretty-declarations): Use verilog-backward-up-list as
+	wrapper around backward-up-list inorder to properly skip comments.
+	Reported by David Rogoff.
+	(verilog-property-re, verilog-endcomment-reason-re)
+	(verilog-beg-of-statement, verilog-set-auto-endcomments)
+	(verilog-calc-1 ): Fix for assert a; else b; indentation (new form
+	of if). Reported by Max Bjurling and
+	(verilog-calc-1): Fix for clocking block in modport
+	declaration. Reported by Brian Hunter.
+
+2010-10-24  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* verilog-mode.el (verilog-auto-inst, verilog-gate-ios)
+	(verilog-gate-keywords, verilog-read-sub-decls)
+	(verilog-read-sub-decls-gate, verilog-read-sub-decls-gate-ios)
+	(verilog-read-sub-decls-line, verilog-read-sub-decls-sig): Support
+	AUTOINST for gate primitives, bug284.  Reported by Mark Johnson.
+	(verilog-read-decls): Fix spaces in V2K module parameters causing
+	mis-identification as interfaces, bug287.
+	(verilog-read-decls): Fix not treating "parameter string" as a
+	parameter in AUTOINSTPARAM.
+	(verilog-read-always-signals-recurse, verilog-read-decls): Fix not
+	treating `elsif similar to `endif inside AUTOSENSE.
+        (verilog-do-indent): Implement correct automatic or static task or
+	function end comment highlight. Reported by Steve Pearlmutter.
+	(verilog-font-lock-keywords-2): Fix highlighting of single
+	character pins, bug264.  Reported by Michael Laajanen.
+	(verilog-auto-inst, verilog-read-decls, verilog-read-sub-decls)
+	(verilog-read-sub-decls-in-interfaced, verilog-read-sub-decls-sig)
+	(verilog-subdecls-get-interfaced, verilog-subdecls-new): Support
+	interfaces with AUTOINST, bug270.  Reported by Luis Gutierrez.
+	(verilog-pretty-expr): Fix interactive arguments, bug272. Reported
+	by Mark Johnson.
+	(verilog-auto-tieoff, verilog-auto-tieoff-ignore-regexp): Add
+	'verilog-auto-tieoff-ignore-regexp' for AUTOTIEOFF,
+	bug269. Suggested by Gary Delp.
+	(verilog-mode-map, verilog-preprocess, verilog-preprocess-history)
+	(verilog-preprocessor, verilog-set-compile-command): Create
+	verilog-preprocess and verilog-preprocessor to show preprocessed
+	output.
+	(verilog-get-beg-of-line, verilog-get-end-of-line)
+	(verilog-modi-file-or-buffer, verilog-modi-name)
+	(verilog-modi-point, verilog-within-string): Move defmacro's
+	before first use to avoid warning. Reported by Steve Pearlmutter.
+	(verilog-colorize-buffer, verilog-colorize-include-files-buffer)
+	(verilog-colorize-region, verilog-highlight-buffer)
+	(verilog-highlight-includes, verilog-highlight-modules)
+	(verilog-highlight-region, verilog-mode): Rename colorize to
+	highlight to match other packages.  Disable module highlighting,
+	as received speed complaints, reenable for experimentation only
+	using new verilog-highlight-modules.
+	(verilog-read-decls): Fix regexp stack overflow in very large
+	AUTO_TEMPLATEs, bug250.
+	(verilog-auto, verilog-delete-auto, verilog-save-buffer-state)
+	(verilog-scan): Create verilog-save-buffer-state to standardize
+	making insignificant changes that shouldn't call hooks.
+	(verilog-save-no-change-functions, verilog-save-scan-cache)
+	(verilog-scan, verilog-scan-cache-ok-p, verilog-scan-region):
+	Create verilog-save-no-change-functions to wrap verilog-scan
+	preservation, and fix to work with nested preserved calls.
+	(verilog-auto-inst, verilog-auto-inst-dot-name): Support .name
+	port syntax for AUTOWIRE, and with new verilog-auto-inst-dot-name
+	generate .name with AUTOINST, bug245.  Suggested by David Rogoff.
+	(verilog-submit-bug-report): Update variable list to be complete.
+	(verilog-auto, verilog-colorize-region): Fix AUTO expansion
+	breaking on-the-fly font-locking.
+	(verilog-colorize-buffer, verilog-colorize-include-files)
+	(verilog-colorize-include-files-buffer, verilog-colorize-region)
+	(verilog-load-file-at-mouse, verilog-load-file-at-point)
+	(verilog-mode, verilog-read-inst-module-matcher): With point on a
+	AUTOINST cell instance name, middle mouse button now finds-file on
+	it.  Suggested by Brad Dobbie.
+	(verilog-alw-get-temps, verilog-auto-reset)
+	(verilog-auto-sense-sigs, verilog-read-always-signals)
+	(verilog-read-always-signals-recurse): Fix loop indexes being
+	AUTORESET. AUTORESET now assumes any variables in the
+	initialization section of a for() should be ignored.  Reported by
+	Dan Dever.
+	(verilog-error-font-lock-keywords)
+	(verilog-error-regexp-emacs-alist)
+	(verilog-error-regexp-xemacs-alist): Fix error detection of
+	Cadence HAL, reported by David Asher.  Repair drift between the
+	three similar error variables.
+	(verilog-modi-lookup, verilog-modi-lookup-cache)
+	(verilog-modi-lookup-last-current, verilog-modi-lookup-last-mod)
+	(verilog-modi-lookup-last-modi, verilog-modi-lookup-last-tick):
+	Fix slow verilog-auto expansion on very large files.
+	(verilog-read-sub-decls-expr, verilog-read-sub-decls-line): Fix
+	AUTOOUTPUT treating "1*2" as a signal name in submodule connection
+	"{1*2{...".  Broke in last revision.
+	(verilog-read-sub-decls-expr): Fix AUTOOUTPUT not detecting
+	submodule connections with replications "{#{a},#{b}}".
+
+2010-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/dcl-mode.el (dcl-electric-reindent-regexps):
+	Fix typo in docstring.
+
+2010-10-24  Kenichi Handa  <handa@m17n.org>
+
+	* face-remap.el (text-scale-adjust): Call read-event with a proper
+	prompt.
+
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/unsafep.el: Don't mark functions that display
+	messages as safe.  Suggested by Johan Bockgård.
+
+2010-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-group, regexp-opt-charset):
+	Turn comments into docstrings.
+
+	* minibuffer.el (completion--replace): Move point where it belongs
+	when there's a common suffix (bug#7215).
+
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	Merge read-color and facemenu-read-color (Bug#7242).
+
+	* faces.el (read-color): Use the completion code from
+	facemenu-read-color.  Require match in completion.  Doc fix.
+
+	* facemenu.el (facemenu-read-color): Alias for read-color.
+	(facemenu-set-foreground, facemenu-set-background): Use
+	read-color.
+
+	* frame.el (set-background-color, set-foreground-color)
+	(set-cursor-color, set-mouse-color, set-border-color): Use
+	read-color.
+
+2010-10-24  Leo  <sdl.web@gmail.com>
+
+	* eshell/em-unix.el (eshell-remove-entries): Use the TRASH
+	argument of delete-file and delete-directory (Bug#7011).
+
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-menu-mode-map): Inherit from
+	button-buffer-map.
+
+2010-10-24  Ralf Angeli  <angeli@caeruleus.net>
+
+	* emacs-lisp/package.el (package--generate-package-list): Make the
+	*Packages* buffer read-only.
+
+2010-10-24  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Cache the
+	result of `c-beginning-of-decl-1' between invocations of a lambda
+	function (Bug #7265).
+
+2010-10-24  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg-config.el (epg-gpg-program): Try to use "gpg2" if "gpg"
+	executable is not available on the system (Bug#7268).
+
+2010-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* select.el (selection-coding-system, next-selection-coding-system):
+	Sync doc with C versions.
+
+	* w32-vars.el (x-select-enable-clipboard):
+	* term/x-win.el (x-select-enable-clipboard): Move to common-win.
+	* term/common-win.el (x-select-enable-clipboard): Move here.
+
+	* term/tty-colors.el (tty-defined-color-alist): Remove duplicate
+	definition of C variable.
+
+	* frame.el (show-trailing-whitespace, auto-hscroll-mode)
+	(display-hourglass, hourglass-delay, cursor-in-non-selected-windows):
+	Don't redefine things that are defined in C.
+	* cus-start.el: Also handle :risky, :safe, :set, and :tag.
+	(show-trailing-whitespace, auto-hscroll-mode)
+	(display-hourglass, hourglass-delay, cursor-in-non-selected-windows):
+	Set up the appropriate custom properties.
+
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	Bind "C-c ]" to ...
+	* progmodes/f90.el (f90-mode-map): ... f90-insert-end.
+	* nxml/nxml-mode.el (nxml-mode-map): ... nxml-finish-element.
+	* textmodes/tex-mode.el (tex-mode-map): ... latex-close-block.
+	* textmodes/sgml-mode.el (sgml-mode-map): ... sgml-close-tag.
+
+2010-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mode): If there was an error,
+	say what it was.
+
+	* frame.el (auto-hscroll-mode, cursor-in-non-selected-windows):
+	Sync docs with C version.
+
+	* term/ns-win.el (xw-defined-colors):
+	* term/x-win.el (xw-defined-colors): Make docs identical to w32-win.
+
+	* term/pc-win.el (x-select-enable-clipboard):
+	* term/x-win.el (x-select-enable-clipboard):
+	* w32-vars.el (x-select-enable-clipboard): Make doc-strings identical.
+
+	* comint.el (comint-password-prompt-regexp): Make it less vague.
+	Bump version.
+
+	* help-fns.el (doc-file-to-man, doc-file-to-info): New commands.
+
+	* help.el (finder-by-keyword): Remove unnecessary autoload.
+
+2010-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* loadup.el: Unconditionally load float-sup.
+	* paren.el (show-paren-delay):
+	* emacs-lisp/float-sup.el:
+	* emulation/cua-base.el (cua-prefix-override-inhibit-delay):
+	* obsolete/lazy-lock.el (lazy-lock-defer-time, lazy-lock-stealth-nice)
+	(lazy-lock-stealth-verbose): Assume float support.
+	* ps-print.el: Assume float support on Emacs.
+	* emacs-lisp/timer.el (timer-next-integral-multiple-of-time):
+	Remove non-float branch.
+
+	* emacs-lisp/autoload.el (batch-update-autoloads): Update for
+	src/Makefile no longer being pre-processed.
+
+2010-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/find-func.el (find-library): Use test-completion.
+
+2010-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* newcomment.el (comment-dwim): Fix the intentation in the doc string.
+
+010-10-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-file-attributes-with-stat): Do not use
+	space in stat format string.
+	(tramp-send-command): Unset $PS1 when using here documents, in
+	order not to get several prompts.
+	(tramp-get-inline-coding): Return `nil' in case of errors.
+
+2010-10-21  Daiki Ueno  <ueno@unixuser.org>
+
+	* hexl.el (hexl-mode, hexl-mode-exit):
+	Tweak revert-buffer-function to inhibit auto-mode-alist (Bug#7252).
+	(hexl-revert-buffer-function): New function.
+	(hexl-before-revert-hook, hexl-after-revert-hook): Abolish.
+
+2010-10-19  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-langs.el (c-type-decl-prefix-key): C++ bit:
+	Move "\(const\|throw\|volatile\)\>" nearer the start of the regexp, so
+	that these keywords aren't wrongly matched as identifiers.
+
+	* progmodes/cc-mode.el (c-before-change, c-after-change): Move the
+	setting of c-new-BEG and c-new-END from c-before-change to
+	c-after-change.  (Bug#7181)
+
+2010-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-face.el (custom-theme-set-faces): Revert 2010-10-18 change.
+	Don't mark as safe.
+
+	* custom.el (custom-theme-set-variables): Likewise.
+	(load-theme): Add custom-theme-set-faces and
+	custom-theme-set-variables to safe-functions while loading.
+	(custom-enabled-themes): Mark as risky.
+
+2010-10-18  Julien Danjou  <julien@danjou.info>
+
+	* bindings.el: Remove end dashes in default mode-line-format.
+
+2010-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el (global-map): Bind C-d to delete-char and deletechar
+	to delete-forward-char.
+
+	* simple.el (normal-erase-is-backspace-mode): Remap delete to
+	deletechar, and hence delete-forward-char.
+
+2010-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* repeat.el (repeat): Use read-key (bug#6256).
+
+2010-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/unsafep.el: Don't mark functions that display
+	messages as safe.  Suggested by Johan Bockgård.
+
+2010-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--replace): Move point where it belongs
+	when there's a common suffix (bug#7215).
+
+2010-10-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Add category '|' (word breakable)
+	to fullwidth characters.
+
+2010-10-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-file-attributes-with-stat)
+	(tramp-do-directory-files-and-attributes-with-stat): Use "e0" in
+	order to make stat results a float.  Patch by Andreas Schwab
+	<schwab@linux-m68k.org>.
+
+2010-10-18  Julien Danjou  <julien@danjou.info>
+
+	* avoid.el (mouse-avoidance-ignore-p): Ignore mouse when it is
+	hidden by `make-pointer-invisible'.
+
+2010-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (locate-file-completion-table): Strip non-matching elements
+	before checking length of list (bug#7238).
+
+2010-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-theme-set-variables): Mark as a safe function.
+	(load-theme): Check forms using unsafep.
+
+	* cus-face.el (custom-theme-set-faces): Mark as a safe function.
+
+2010-10-17  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-aspell-find-dictionary):
+	Fix aspell data file searching (bug#7230).
+
+2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el (custom-theme--migrate-settings): New var.
+	(customize-create-theme): Allow editing the `user' theme.
+	(custom-theme-add-variable, custom-theme-add-var-1)
+	(custom-theme-add-face, custom-theme-add-face-1): Add a checkbox
+	to the front of each variable or face widget.
+	(custom-theme-write): Save theme settings in the correct order.
+	Optionally, remove saved settings from user customizations.
+	(custom-theme-write-variables, custom-theme-write-faces):
+	Save only the checked widgets.
+	(customize-themes): Add a link for migrating custom settings.
+
+	* custom.el (custom-declare-theme, provide-theme):
+	Use custom-theme-name-valid-p.
+	(custom-theme-name-valid-p): Remove checks that are now
+	unnecessary since themes no longer obey load-path.
+
+	* cus-edit.el (custom-variable-value-create): For the simple
+	style, hide documentation string when hidden.
+
+2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-variable, custom-face): Combine the
+	:inhibit-magic and :display-style properties into a single
+	:custom-style property.
+	(custom-toggle-hide-variable, custom-toggle-hide-face):
+	New functions.  If hiding an edited value, save it to :shown-value.
+	(custom-variable-value-create, custom-face-value-create): Use them.
+	(custom-magic-reset): Allow magic property to be unset.
+
+	* custom.el: Custom themes no longer use load-path.
+	(custom-theme-load-path): New option.  Change built-in theme
+	directory to etc/.
+	(custom-enabled-themes): Add custom-theme-load-path dependency.
+	(custom-theme--load-path): New function.
+	(load-theme, custom-available-themes): Use it.
+
+	* cus-theme.el (describe-theme-1): Use custom-theme--load-path.
+	(customize-themes): Link to custom-theme-load-path variable.
+	(custom-theme-add-var-1, custom-theme-add-face-1): Use the
+	:custom-style property.
+
+	* themes/*.el: Moved to etc/.
+
+2010-10-16  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/reftex-cite.el
+	(reftex-extract-bib-entries-from-thebibliography): Do not move
+	point when searching for \bibitem entries.  Match entries with
+	spaces or tabs in front of arguments.
+
+2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el (customize-create-theme): Delete overlays after
+	erasing.  If given a THEME arg, display only the faces of that arg
+	instead of custom-theme--listed-faces.
+	(custom-theme-variable-menu, custom-theme-variable-action)
+	(custom-variable-reset-theme, custom-theme-delete-variable): Delete.
+	(custom-theme-add-variable, custom-theme-add-face): Apply value
+	from the theme settings, instead of the current value.
+	(custom-theme-add-var-1, custom-theme-add-face-1): New functions.
+	(custom-theme-visit-theme): Allow calling outside theme buffers.
+	(custom-theme-merge-theme): Don't enable the theme when merging.
+	(custom-theme-write-variables, custom-theme-write-faces): Use the
+	:shown-value properties to save buffer values, not global ones.
+	(customize-themes): Display a warning about user customizations.
+
+	* cus-edit.el (custom-variable-value-create)
+	(custom-face-value-create): Obey new special properties
+	:shown-value and :inhibit-magic.
+
+2010-10-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):
+	Suppress expansion of tabs to spaces.  Reported by Dale Sedivec
+	<dale@codefu.org>.
+
+2010-10-14  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmail.el (rmail-show-message-1): Catch an error of
+	base64-decode-region and just show an error message (bug#7165).
+
+	* ps-mule.el (ps-mule-font-spec-list): Delete it.  Not used anymore.
+	(ps-mule-begin-job): Fix for the case that only ENCODING is set in
+	a font-spec (bug#7197).
+
+2010-10-14  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Mention debbugs.gnu.org.
+
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule.el (define-coding-system):
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info):
+	* composite.el (compose-region): Fix typo in docstring.
+
+2010-10-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-face.el (custom-theme-set-faces): Call custom-push-theme
+	only after checking the theme-face property.
+
+	* faces.el (face-spec-reset-face): Reset all attributes in one
+	single call to set-face-attribute.
+	(face-spec-match-p): Make it a defsubst.
+	(frame-set-background-mode): New arg KEEP-FACE-SPECS.
+	(x-create-frame-with-faces, tty-create-frame-with-faces)
+	(tty-set-up-initial-frame-faces): Don't recompute face specs in
+	frame-set-background-mode, since they are recomputed immediately
+	afterwards in face-set-after-frame-default.
+	(face-set-after-frame-default): Minor optimization.
+	(cursor): Provide non-trivial defface spec.
+
+	* custom.el (custom-theme-recalc-face): Simplify.
+
+2010-10-14  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-alg.el (math-var): Rename from `var'.
+	(math-is-polynomial, math-is-poly-rec): Replace `var'
+	with `math-var'.
+
+	* calc/calcalg2.el (math-var): Rename from `var'.
+	(calcFunc-table, math-scan-for-limits): Replace `var'
+	with `math-var'.
+
+2010-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (last): Deal with dotted lists (reported in bug#7174).
+
+2010-10-13  Stephen Berman  <stephen.berman@gmx.net>
+
+	* subr.el (last): Use `safe-length' instead of `length' (bug#7206).
+
+2010-10-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/tls.el (tls-program): Remove spurious %s from openssl.
+	(tls-starttls-switches): Remove starttls hack.
+	(open-tls-stream): Ditto.
+	(tls-find-starttls-argument): Ditto.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.el (image-library-alist): Declare as obsolete alias.
+	(image-type-available-p): Use `dynamic-library-alist'.
+
+	* term/w32-win.el (dynamic-library-alist):
+	Use instead of `image-library-alist'.
+
+2010-10-13  IRIE Shinsuke  <irieshinsuke@yahoo.co.jp>  (tiny change)
+
+	* subr.el (last): Make it faster.  (Bug#7174)
+
+2010-10-13  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>  (tiny change)
+
+	* Makefile.in (compile-clean): Use `` instead of $().  (Bug#7178)
+
+2010-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el (custom-theme--listed-faces): Add cursor face.
+	(describe-theme-1): Extract doc from unloaded themes.
+
+	* custom.el (custom-theme-name-valid-p): Don't list color-themes.
+
+	* themes/tango-theme.el:
+	* themes/tango-dark-theme.el:
+	* themes/wheatgrass-theme.el: New files.
+
 2010-10-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-theme.el (describe-theme, customize-themes)
@@ -16,8 +686,8 @@
 	(custom-theme-allow-multiple-selections): New option.
 	(custom-theme-choose-mode): New major mode.
 
-	* custom.el (custom-theme-set-variables): Remove dead code.  Obey
-	custom--inhibit-theme-enable.
+	* custom.el (custom-theme-set-variables): Remove dead code.
+	Obey custom--inhibit-theme-enable.
 	(custom--inhibit-theme-enable): New var.
 	(provide-theme): Obey it.
 	(load-theme): Replace load with manual read/eval, in order to
@@ -28,8 +698,8 @@
 	* cus-edit.el (custom--initialize-widget-variables): New function.
 	(Custom-mode): Use it.
 
-	* cus-face.el (custom-theme-set-faces): Remove dead code.  Obey
-	custom--inhibit-theme-enable.
+	* cus-face.el (custom-theme-set-faces): Remove dead code.
+	Obey custom--inhibit-theme-enable.
 
 	* help-mode.el (help-theme-def, help-theme-edit): New buttons.
 
@@ -80,15 +750,14 @@
 	(custom-available-themes): New function.
 	(load-theme): Use it.
 
-	* cus-edit.el (custom-face-edit-fix-value): Use
-	custom-fix-face-spec.
+	* cus-edit.el (custom-face-edit-fix-value): Use custom-fix-face-spec.
 
 	* custom.el (custom-push-theme): Cleanup (use cond).
 	(disable-theme): Recompute the saved-face property.
 	(custom-theme-recalc-face): Follow face alias before setting prop.
 
-	* image.el (image-checkbox-checked, image-checkbox-unchecked): New
-	variables, containing checkbox images.
+	* image.el (image-checkbox-checked, image-checkbox-unchecked):
+	New variables, containing checkbox images.
 
 	* startup.el (fancy-startup-tail):
 	* wid-edit.el (checkbox): Use them.
@@ -123,8 +792,8 @@
 
 	* epa.el (epa-passphrase-callback-function): Display filename
 	passed as the 3rd arg.
-	* epa-file.el (epa-file-passphrase-callback-function): Pass
-	filename to epa-passphrase-callback-function.
+	* epa-file.el (epa-file-passphrase-callback-function):
+	Pass filename to epa-passphrase-callback-function.
 
 2010-10-09  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -152,8 +821,7 @@
 	* cc-engine.el (c-forward-type): New &optional param
 	"brace-block-too".
 	(c-forward-decl-or-cast-1): cdr of return value now indicates the
-	presence of either or both of a "struct"-like keyword and
-	"typedef".
+	presence of either or both of a "struct"-like keyword and "typedef".
 
 	* cc-fonts.el (c-complex-decl-matchers): Remove the heuristic
 	fontification of declarators which follow a "}".
@@ -175,8 +843,7 @@
 	querying the password for.
 
 	* ibuffer.el (ibuffer-visit-buffer): To mimick list-buffers
-	behaviour, don't bury the ibuffer buffer when visiting other
-	buffers.
+	behaviour, don't bury the ibuffer buffer when visiting other buffers.
 
 2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -184,12 +851,12 @@
 	(custom-magic-value-create): Pad button tags with spaces.
 	(custom-face-edit): New variable.
 	(custom-face-value-create): Determine whether to use the usual
-	face editor here, instead of using custom-face-selected.  Pass
-	face defaults to custom-face-edit widget.
+	face editor here, instead of using custom-face-selected.
+	Pass face defaults to custom-face-edit widget.
 	(custom-face-selected, custom-display-unselected): Delete widgets.
 	(custom-display-unselected-match): Function removed.
-	(custom-face-set, custom-face-mark-to-save): Accept
-	custom-face-edit widgets as the direct widget child.
+	(custom-face-set, custom-face-mark-to-save):
+	Accept custom-face-edit widgets as the direct widget child.
 
 	* wid-edit.el (widget--completing-widget): New var.
 	(widget-default-complete): Bind it when doing completion.
@@ -273,8 +940,8 @@
 	* cus-edit.el (custom-variable, custom-face): Doc fix.
 	(custom-face-edit): Add value-create attribute.
 	(custom-face-edit-value-create)
-	(custom-face-edit-value-visibility-action): New functions.  Hide
-	unused face attributes by default, and add a visibility toggle.
+	(custom-face-edit-value-visibility-action): New functions.
+	Hide unused face attributes by default, and add a visibility toggle.
 	(custom-face-edit-deactivate): Show empty values with shadow face.
 	(custom-face-selected): Only use this for face specs with default
 	attributes.
@@ -354,10 +1021,9 @@
 	(tramp-handle-file-exists-p, tramp-handle-file-newer-than-file-p):
 	New defuns, taken from tramp-smb.el.
 	(tramp-coding-system-change-eol-conversion)
-	(tramp-set-process-query-on-exit-flag): Removed.
+	(tramp-set-process-query-on-exit-flag): Remove.
 
-	* net/tramp-compat.el (top): Do not check for byte-compiler
-	objects.
+	* net/tramp-compat.el (top): Do not check for byte-compiler objects.
 	(tramp-compat-coding-system-change-eol-conversion)
 	(tramp-compat-set-process-query-on-exit-flag): New defuns, taken
 	from tramp.el.
@@ -366,30 +1032,30 @@
 	* net/tramp-gw.el: Replace `tramp-set-process-query-on-exit-flag'
 	by `tramp-compat-set-process-query-on-exit-flag'.
 
-	* net/tramp-imap.el (tramp-imap-file-name-handler-alist): Use
-	`tramp-handle-directory-files-and-attributes',
+	* net/tramp-imap.el (tramp-imap-file-name-handler-alist):
+	Use `tramp-handle-directory-files-and-attributes',
 	`tramp-handle-file-exists-p' and
 	`tramp-handle-file-newer-than-file-p'.
 	(tramp-imap-handle-file-exists-p)
 	(tramp-imap-handle-file-executable-p)
 	(tramp-imap-handle-file-readable-p)
 	(tramp-imap-handle-directory-files-and-attributes)
-	(tramp-imap-handle-file-newer-than-file-p): Removed.
+	(tramp-imap-handle-file-newer-than-file-p): Remove.
 
 	* net/tramp-sh.el: Replace `tramp-set-process-query-on-exit-flag'
 	by `tramp-compat-set-process-query-on-exit-flag' and
 	`tramp-coding-system-change-eol-conversion' by
 	`tramp-compat-coding-system-change-eol-conversion'.
 
-	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Use
-	`tramp-handle-directory-files-and-attributes',
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist):
+	Use `tramp-handle-directory-files-and-attributes',
 	`tramp-handle-file-exists-p' and
 	`tramp-handle-file-newer-than-file-p'.
 	(tramp-smb-handle-directory-files-and-attributes)
 	(tramp-smb-handle-file-exists-p)
-	(tramp-smb-handle-file-newer-than-file-p): Removed.
-	(tramp-smb-maybe-open-connection): Replace
-	`tramp-set-process-query-on-exit-flag' by
+	(tramp-smb-handle-file-newer-than-file-p): Remove.
+	(tramp-smb-maybe-open-connection):
+	Replace `tramp-set-process-query-on-exit-flag' by
 	`tramp-compat-set-process-query-on-exit-flag'.
 
 2010-10-05  Glenn Morris  <rgm@gnu.org>
@@ -416,7 +1082,7 @@
 	(tramp-handle-substitute-in-file-name)
 	(tramp-handle-unhandled-file-name-directory)
 	(tramp-mode-string-to-int, tramp-local-host-p)
-	(tramp-make-tramp-temp-file): Moved from tramp-sh.el.
+	(tramp-make-tramp-temp-file): Move from tramp-sh.el.
 
 	* net/tramp-gvfs.el (top):
 	* net/tramp-smb.el (top): Do not require 'tramp-sh.
@@ -433,8 +1099,8 @@
 
 	* net/gnutls.el: Improve docs.  Remove starttls and ssl emulation.
 	Provide only `open-gnutls-stream' (formerly `open-ssl-stream') and
-	`gnutls-negotiate' (formerly `starttls-negotiate').  Remove
-	trivial wrapper `starttls-open-stream'.
+	`gnutls-negotiate' (formerly `starttls-negotiate').
+	Remove trivial wrapper `starttls-open-stream'.
 
 2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -448,8 +1114,8 @@
 2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/gnutls.el (starttls-negotiate): Use the plist interface to
-	`gnutls-boot'.  Make TYPE the only required parameter.  Allow
-	TRUSTFILES and KEYFILES to be lists.
+	`gnutls-boot'.  Make TYPE the only required parameter.
+	Allow TRUSTFILES and KEYFILES to be lists.
 	(open-ssl-stream): Use it.
 
 2010-10-03  Glenn Morris  <rgm@gnu.org>
@@ -470,8 +1136,8 @@
 
 2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Remove
-	obsolete use of binary-overwrite-mode (Bug#7001).
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer):
+	Remove obsolete use of binary-overwrite-mode (Bug#7001).
 
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
@@ -506,18 +1172,18 @@
 
 2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
-	* server.el (server-process-filter, server-return-error): Give
-	emacsclient time to shut down after receiving an error string.
+	* server.el (server-process-filter, server-return-error):
+	Give emacsclient time to shut down after receiving an error string.
 
 2010-10-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (remote-file-name-inhibit-cache): New defcustom.
 
-	* time.el (display-time-file-nonempty-p): Use
-	`remote-file-name-inhibit-cache'.
+	* time.el (display-time-file-nonempty-p):
+	Use `remote-file-name-inhibit-cache'.
 
-	* net/tramp.el (tramp-completion-reread-directory-timeout): Fix
-	docstring.
+	* net/tramp.el (tramp-completion-reread-directory-timeout):
+	Fix docstring.
 
 	* net/tramp-cache.el (tramp-cache-inhibit-cache): Remove.
 	(tramp-get-file-property): Replace `tramp-cache-inhibit-cache' by
@@ -538,10 +1204,9 @@
 
 	* net/tramp-sh.el (tramp-handle-verify-visited-file-modtime)
 	(tramp-handle-file-name-all-completions)
-	(tramp-handle-vc-registered): Use
-	`remote-file-name-inhibit-cache'.
-	(tramp-open-connection-setup-interactive-shell): Call
-	`tramp-cleanup-connection' directly.
+	(tramp-handle-vc-registered): Use `remote-file-name-inhibit-cache'.
+	(tramp-open-connection-setup-interactive-shell):
+	Call `tramp-cleanup-connection' directly.
 
 2010-10-02  Glenn Morris  <rgm@gnu.org>
 

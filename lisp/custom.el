@@ -996,9 +996,8 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 
 ;;; Defining themes.
 
-;; A theme file should be named `THEME-theme.el' (where THEME is the theme
-;; name), and found in either `custom-theme-directory' or the load path.
-;; It has the following format:
+;; A theme file is named `THEME-theme.el' (where THEME is the theme
+;; name) found in `custom-theme-load-path'.  It has this format:
 ;;
 ;;   (deftheme THEME
 ;;     DOCSTRING)
@@ -1034,8 +1033,8 @@ see `custom-make-theme-feature' for more information."
   "Like `deftheme', but THEME is evaluated as a normal argument.
 FEATURE is the feature this theme provides.  Normally, this is a symbol
 created from THEME by `custom-make-theme-feature'."
-  (if (memq theme '(user changed))
-      (error "Custom theme cannot be named %S" theme))
+  (unless (custom-theme-name-valid-p theme)
+    (error "Custom theme cannot be named %S" theme))
   (add-to-list 'custom-known-themes theme)
   (put theme 'theme-feature feature)
   (when doc (put theme 'theme-documentation doc)))
@@ -1053,15 +1052,34 @@ Every theme X has a property `provide-theme' whose value is \"X-theme\".
 
 ;;; Loading themes.
 
-(defcustom custom-theme-directory
-  user-emacs-directory
-  "Directory in which Custom theme files should be written.
-`load-theme' searches this directory in addition to load-path.
-The command `customize-create-theme' writes the files it produces
-into this directory."
+(defcustom custom-theme-directory user-emacs-directory
+  "Default user directory for storing custom theme files.
+The command `customize-create-theme' writes theme files into this
+directory.  By default, Emacs searches for custom themes in this
+directory first---see `custom-theme-load-path'."
   :type 'string
   :group 'customize
   :version "22.1")
+
+(defcustom custom-theme-load-path (list 'custom-theme-directory t)
+  "List of directories to search for custom theme files.
+When loading custom themes (e.g. in `customize-themes' and
+`load-theme'), Emacs searches for theme files in the specified
+order.  Each element in the list should be one of the following:
+- the symbol `custom-theme-directory', meaning the value of
+  `custom-theme-directory'.
+- the symbol t, meaning the built-in theme directory (a directory
+  named \"themes\" in `data-directory').
+- a directory name (a string).
+
+Each theme file is named NAME-theme.el, where THEME is the theme
+name."
+  :type '(repeat (choice (const :tag "custom-theme-directory"
+				custom-theme-directory)
+			 (const :tag "Built-in theme directory" t)
+			 directory))
+  :group 'customize
+  :version "24.1")
 
 (defvar custom--inhibit-theme-enable nil
   "If non-nil, loading a theme does not enable it.
@@ -1074,18 +1092,20 @@ argument is non-nil, and it affects `custom-theme-set-variables',
 This calls `provide' to provide the feature name stored in THEME's
 property `theme-feature' (which is usually a symbol created by
 `custom-make-theme-feature')."
-  (if (memq theme '(user changed))
-      (error "Custom theme cannot be named %S" theme))
+  (unless (custom-theme-name-valid-p theme)
+    (error "Custom theme cannot be named %S" theme))
   (custom-check-theme theme)
   (provide (get theme 'theme-feature))
   (unless custom--inhibit-theme-enable
-    ;; Loading a theme also enables it.
+    ;; By default, loading a theme also enables it.
     (push theme custom-enabled-themes)
     ;; `user' must always be the highest-precedence enabled theme.
-    ;; Make that remain true.  (This has the effect of making user settings
-    ;; override the ones just loaded, too.)
+    ;; Make that remain true.  (This has the effect of making user
+    ;; settings override the ones just loaded, too.)
     (let ((custom-enabling-themes t))
       (enable-theme 'user))))
+
+(defvar safe-functions) ; From unsafep.el
 
 (defun load-theme (theme &optional no-enable)
   "Load a theme's settings from its file.
@@ -1108,40 +1128,39 @@ the theme."
     (put theme 'theme-feature nil)
     (put theme 'theme-documentation nil))
   (let ((fn (locate-file (concat (symbol-name theme) "-theme.el")
-			 (cons custom-theme-directory load-path)
+			 (custom-theme--load-path)
 			 '("" "c"))))
     (unless fn
       (error "Unable to find theme file for `%s'." theme))
     ;; Instead of simply loading the theme file, read it manually.
     (with-temp-buffer
       (insert-file-contents fn)
+      (require 'unsafep)
       (let ((custom--inhibit-theme-enable no-enable)
-	    sexp scar)
-	(while (setq sexp (let ((read-circle nil))
+	    (safe-functions (append '(custom-theme-set-variables
+				      custom-theme-set-faces)
+				    safe-functions))
+	    form scar)
+	(while (setq form (let ((read-circle nil))
 			    (condition-case nil
 				(read (current-buffer))
 			      (end-of-file nil))))
-	  ;; Perform some checks on each sexp before evaluating it.
 	  (cond
-	   ((not (listp sexp)))
-	   ((eq (setq scar (car sexp)) 'deftheme)
-	    (unless (eq (cadr sexp) theme)
+	   ;; Check `deftheme' expressions.
+	   ((eq (setq scar (car form)) 'deftheme)
+	    (unless (eq (cadr form) theme)
 	      (error "Incorrect theme name in `deftheme'"))
-	    (and (symbolp (nth 1 sexp))
-		 (stringp (nth 2 sexp))
-		 (eval (list scar (nth 1 sexp) (nth 2 sexp)))))
-	   ((or (eq scar 'custom-theme-set-variables)
-		(eq scar 'custom-theme-set-faces))
-	    (unless (equal (nth 1 sexp) `(quote ,theme))
-	      (error "Incorrect theme name in theme settings"))
-	    (dolist (entry (cddr sexp))
-	      (unless (eq (car-safe entry) 'quote)
-		(error "Unsafe expression in theme settings")))
-	    (eval sexp))
+	    (and (symbolp (nth 1 form))
+		 (stringp (nth 2 form))
+		 (eval (list scar (nth 1 form) (nth 2 form)))))
+	   ;; Check `provide-theme' expressions.
 	   ((and (eq scar 'provide-theme)
-		 (equal (cadr sexp) `(quote ,theme))
-		 (= (length sexp) 2))
-	    (eval sexp))))))))
+		 (equal (cadr form) `(quote ,theme))
+		 (= (length form) 2))
+	    (eval form))
+	   ;; All other expressions need to be safe.
+	   ((not (unsafep form))
+	    (eval form))))))))
 
 (defun custom-theme-name-valid-p (name)
   "Return t if NAME is a valid name for a Custom theme, nil otherwise.
@@ -1149,25 +1168,34 @@ NAME should be a symbol."
   (and (symbolp name)
        name
        (not (or (zerop (length (symbol-name name)))
-		(eq name 'cus)
 		(eq name 'user)
 		(eq name 'changed)))))
 
 (defun custom-available-themes ()
   "Return a list of available Custom themes (symbols)."
-  (let* ((load-path (if (file-directory-p custom-theme-directory)
-			(cons custom-theme-directory load-path)
-		      load-path))
-	 sym themes)
-    (dolist (dir load-path)
-      (dolist (file (file-expand-wildcards
-		     (expand-file-name "*-theme.el" dir) t))
-	(setq file (file-name-nondirectory file))
-	(and (string-match "\\`\\(.+\\)-theme.el\\'" file)
-	     (setq sym (intern (match-string 1 file)))
-	     (custom-theme-name-valid-p sym)
-	     (push sym themes))))
+  (let* (sym themes)
+    (dolist (dir (custom-theme--load-path))
+      (when (file-directory-p dir)
+	(dolist (file (file-expand-wildcards
+		       (expand-file-name "*-theme.el" dir) t))
+	  (setq file (file-name-nondirectory file))
+	  (and (string-match "\\`\\(.+\\)-theme.el\\'" file)
+	       (setq sym (intern (match-string 1 file)))
+	       (custom-theme-name-valid-p sym)
+	       (push sym themes)))))
     (delete-dups themes)))
+
+(defun custom-theme--load-path ()
+  (let (lpath)
+    (dolist (f custom-theme-load-path)
+      (cond ((eq f 'custom-theme-directory)
+	     (setq f custom-theme-directory))
+	    ((eq f t)
+	     (setq f (expand-file-name "themes" data-directory))))
+      (if (file-directory-p f)
+	  (push f lpath)))
+    (nreverse lpath)))
+
 
 ;;; Enabling and disabling loaded themes.
 
@@ -1209,7 +1237,8 @@ This does not include the `user' theme, which is set by Customize,
 and always takes precedence over other Custom Themes."
   :group 'customize
   :type  '(repeat symbol)
-  :set-after '(custom-theme-directory)  ; so we can find the themes
+  :set-after '(custom-theme-directory custom-theme-load-path)
+  :risky t
   :set (lambda (symbol themes)
 	 ;; Avoid an infinite loop when custom-enabled-themes is
 	 ;; defined in a theme (e.g. `user').  Enabling the theme sets
@@ -1258,8 +1287,7 @@ See `custom-enabled-themes' for a list of enabled themes."
 	    ;; If the face spec specified by this theme is in the
 	    ;; saved-face property, reset that property.
 	    (when (equal (nth 3 s) (get symbol 'saved-face))
-	      (put symbol 'saved-face
-		   (and val (cadr (car val)))))
+	      (put symbol 'saved-face (and val (cadr (car val)))))
 	    (custom-theme-recalc-face symbol)))))
       (setq custom-enabled-themes
 	    (delq theme custom-enabled-themes)))))
@@ -1290,7 +1318,9 @@ This function returns nil if no custom theme specifies a value for VARIABLE."
   "Set FACE according to currently enabled custom themes."
   (if (get face 'face-alias)
       (setq face (get face 'face-alias)))
-  (face-spec-set face (get face 'face-override-spec)))
+  ;; Reset the faces for each frame.
+  (dolist (frame (frame-list))
+    (face-spec-recalc face frame)))
 
 
 ;;; XEmacs compability functions

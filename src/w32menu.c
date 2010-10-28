@@ -106,6 +106,7 @@ static Lisp_Object simple_dialog_show (FRAME_PTR, Lisp_Object, Lisp_Object);
 #endif
 
 static void utf8to16 (unsigned char *, int, WCHAR *);
+static int fill_in_menu (HMENU, widget_value *);
 
 void w32_free_menu_strings (HWND);
 
@@ -996,7 +997,7 @@ w32_dialog_show (FRAME_PTR f, int keymaps,
 		 Lisp_Object title, Lisp_Object header,
 		 char **error)
 {
-  int i, nb_buttons=0;
+  int i, nb_buttons = 0;
   char dialog_name[6];
   int menu_item_selection;
 
@@ -1568,7 +1569,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 }
 
 /* Construct native Windows menu(bar) based on widget_value tree.  */
-int
+static int
 fill_in_menu (HMENU menu, widget_value *wv)
 {
   int items_added = 0;
@@ -1739,7 +1740,7 @@ syms_of_w32menu (void)
 void
 globals_of_w32menu (void)
 {
-	/* See if Get/SetMenuItemInfo functions are available.  */
+  /* See if Get/SetMenuItemInfo functions are available.  */
   HMODULE user32 = GetModuleHandle ("user32.dll");
   get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
   set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");

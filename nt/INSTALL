@@ -266,7 +266,7 @@
   library is not an error; the associated image format will simply be
   unavailable.  Note that once Emacs has determined that a library can
   not be found, there's no way to force it to try again, other than
-  restarting.  See the variable `image-library-alist' to configure the
+  restarting.  See the variable `dynamic-library-alist' to configure the
   expected names of the libraries.
 
   Some image libraries have dependencies on one another, or on zlib.

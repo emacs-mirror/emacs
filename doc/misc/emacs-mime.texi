@@ -1040,6 +1040,10 @@ flowed text, the default is to wrap after 66 characters.  If hard
 newline characters are not present in the buffer, no flow encoding
 occurs.
 
+You can customize the value of the @code{mml-enable-flowed} variable
+to enable or disable the flowed encoding usage when newline
+characteres are present in the buffer.
+
 On decoding flowed text, lines with soft newline characters are filled
 together and wrapped after the column decided by
 @code{fill-flowed-display-column}.  The default is to wrap after

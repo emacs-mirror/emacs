@@ -1187,7 +1187,7 @@ The variable `package-load-list' controls which packages to load."
 (defvar package-menu-mode-map
   (let ((map (make-keymap))
 	(menu-map (make-sparse-keymap "Package")))
-    (suppress-keymap map)
+    (set-keymap-parent map button-buffer-map)
     (define-key map "\C-m" 'package-menu-describe-package)
     (define-key map "q" 'quit-window)
     (define-key map "n" 'next-line)
@@ -1474,7 +1474,6 @@ A value of nil means to display all packages.")
   (package-initialize)
   (let ((inhibit-read-only t)
 	info-list name desc hold builtin)
-    (setq buffer-read-only nil)
     (erase-buffer)
     ;; List installed packages
     (dolist (elt package-alist)

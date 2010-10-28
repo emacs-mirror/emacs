@@ -2090,7 +2090,7 @@ If SCAN, request a scan of that group as well."
 	  (gnus-message 5 "%s" mesg)
 	  (gnus-active-to-gnus-format method gnus-active-hashtb nil t)
 	  ;; We mark this active file as read.
-	  (push method gnus-have-read-active-file)
+	  (add-to-list 'gnus-have-read-active-file method)
 	  (gnus-message 5 "%sdone" mesg)))))))
 
 (defun gnus-read-active-file-2 (groups method)

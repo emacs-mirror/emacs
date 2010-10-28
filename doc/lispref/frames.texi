@@ -1748,6 +1748,15 @@ If @var{frame} is not visible, this function does nothing.  The return
 value is not significant.
 @end defun
 
+@defun frame-pointer-visible-p &optional frame
+This predicate function returns non-@code{nil} if the mouse pointer
+displayed on @var{frame} is visible; otherwise it returns @code{nil}.
+@var{frame} omitted or @code{nil} means the selected frame.  This is
+useful when @code{make-pointer-invisible} is set to @code{t}: it
+allows to know if the pointer has been hidden.
+@xref{Mouse Avoidance,,,emacs}.
+@end defun
+
 @need 3000
 
 @node Pop-Up Menus

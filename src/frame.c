@@ -1,6 +1,8 @@
 /* Generic frame functions.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
-     2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
+  2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -201,11 +203,12 @@ Lisp_Object Vframe_list;
 
 DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a frame.
-Value is t for a termcap frame (a character-only terminal),
-`x' for an Emacs frame that is really an X window,
-`w32' for an Emacs frame that is a window on MS-Windows display,
-`ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
-`pc' for a direct-write MS-DOS frame.
+Value is:
+  t for a termcap frame (a character-only terminal),
+ 'x' for an Emacs frame that is really an X window,
+ 'w32' for an Emacs frame that is a window on MS-Windows display,
+ 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ 'pc' for a direct-write MS-DOS frame.
 See also `frame-live-p'.  */)
   (Lisp_Object object)
 {
@@ -247,10 +250,18 @@ return values.  */)
 
 DEFUN ("window-system", Fwindow_system, Swindow_system, 0, 1, 0,
        doc: /* The name of the window system that FRAME is displaying through.
-The value is a symbol---for instance, 'x' for X windows.
-The value is nil if Emacs is using a text-only terminal.
+The value is a symbol:
+ nil for a termcap frame (a character-only terminal),
+ 'x' for an Emacs frame that is really an X window,
+ 'w32' for an Emacs frame that is a window on MS-Windows display,
+ 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ 'pc' for a direct-write MS-DOS frame.
 
-FRAME defaults to the currently selected frame.  */)
+FRAME defaults to the currently selected frame.
+
+Use of this function as a predicate is deprecated.  Instead,
+use `display-graphic-p' or any of the other `display-*-p'
+predicates which report frame's specific UI-related capabilities.  */)
   (Lisp_Object frame)
 {
   Lisp_Object type;
@@ -4314,6 +4325,20 @@ frame_make_pointer_visible (void)
     }
 }
 
+DEFUN ("frame-pointer-visible-p", Fframe_pointer_visible_p,
+       Sframe_pointer_visible_p, 0, 1, 0,
+       doc: /* Return t if the mouse pointer displayed on FRAME is visible.
+Otherwise it returns nil.  FRAME omitted or nil means the
+selected frame.  This is useful when `make-pointer-invisible' is set.  */)
+  (Lisp_Object frame)
+{
+  if (NILP (frame))
+    frame = selected_frame;
+
+  CHECK_FRAME (frame);
+
+  return (XFRAME (frame)->pointer_invisible ? Qnil : Qt);
+}
 
 
 /***********************************************************************
@@ -4538,7 +4563,11 @@ recursively).  */);
   staticpro (&Qdelete_frame_functions);
 
   DEFVAR_LISP ("menu-bar-mode", &Vmenu_bar_mode,
-               doc: /* Non-nil if Menu-Bar mode is enabled.  */);
+               doc: /* Non-nil if Menu-Bar mode is enabled.
+See the command `menu-bar-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `menu-bar-mode'.  */);
   Vmenu_bar_mode = Qt;
 
   DEFVAR_LISP ("tool-bar-mode", &Vtool_bar_mode,
@@ -4623,6 +4652,7 @@ automatically.  See also `mouse-autoselect-window'.  */);
   defsubr (&Sset_frame_width);
   defsubr (&Sset_frame_size);
   defsubr (&Sset_frame_position);
+  defsubr (&Sframe_pointer_visible_p);
 
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sx_get_resource);
@@ -4631,5 +4661,3 @@ automatically.  See also `mouse-autoselect-window'.  */);
 
 }
 
-/* arch-tag: 7dbf2c69-9aad-45f8-8296-db893d6dd039
-   (do not change this comment) */

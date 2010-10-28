@@ -581,7 +581,7 @@ struct font_driver
      FONT-ENTITY and it must be opened to check it, return -1.  */
   int (*has_char) (Lisp_Object font, int c);
 
-  /* Return a glyph code of FONT for characer C (Unicode code point).
+  /* Return a glyph code of FONT for character C (Unicode code point).
      If FONT doesn't have such a glyph, return FONT_INVALID_CODE.  */
   unsigned (*encode_char) (struct font *font, int c);
 
@@ -820,6 +820,11 @@ extern int font_put_frame_data (FRAME_PTR f,
                                 void *data);
 extern void *font_get_frame_data (FRAME_PTR f,
                                   struct font_driver *driver);
+
+extern void font_filter_properties (Lisp_Object font,
+				    Lisp_Object alist,
+				    const char *boolean_properties[],
+				    const char *non_boolean_properties[]);
 
 #ifdef HAVE_FREETYPE
 extern struct font_driver ftfont_driver;

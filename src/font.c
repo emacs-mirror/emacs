@@ -3723,6 +3723,58 @@ font_get_frame_data (FRAME_PTR f, struct font_driver *driver)
 }
 
 
+/* Sets attributes on a font.  Any properties that appear in ALIST and
+   BOOLEAN_PROPERTIES or NON_BOOLEAN_PROPERTIES are set on the font.
+   BOOLEAN_PROPERTIES and NON_BOOLEAN_PROPERTIES are NULL-terminated
+   arrays of strings.  This function is intended for use by the font
+   drivers to implement their specific font_filter_properties.  */
+void
+font_filter_properties (Lisp_Object font,
+			Lisp_Object alist,
+			const char *boolean_properties[],
+			const char *non_boolean_properties[])
+{
+  Lisp_Object it;
+  int i;
+
+  /* Set boolean values to Qt or Qnil */
+  for (i = 0; boolean_properties[i] != NULL; ++i)
+    for (it = alist; ! NILP (it); it = XCDR (it))
+      {
+        Lisp_Object key = XCAR (XCAR (it));
+        Lisp_Object val = XCDR (XCAR (it));
+        char *keystr = SDATA (SYMBOL_NAME (key));
+
+        if (strcmp (boolean_properties[i], keystr) == 0)
+          {
+            const char *str = INTEGERP (val) ? (XINT (val) ? "true" : "false")
+	      : SYMBOLP (val) ? (const char *) SDATA (SYMBOL_NAME (val))
+	      : "true";
+
+            if (strcmp ("false", str) == 0 || strcmp ("False", str) == 0
+                || strcmp ("FALSE", str) == 0 || strcmp ("FcFalse", str) == 0
+                || strcmp ("off", str) == 0 || strcmp ("OFF", str) == 0
+                || strcmp ("Off", str) == 0)
+              val = Qnil;
+	    else
+              val = Qt;
+
+            Ffont_put (font, key, val);
+          }
+      }
+
+  for (i = 0; non_boolean_properties[i] != NULL; ++i)
+    for (it = alist; ! NILP (it); it = XCDR (it))
+      {
+        Lisp_Object key = XCAR (XCAR (it));
+        Lisp_Object val = XCDR (XCAR (it));
+        char *keystr = SDATA (SYMBOL_NAME (key));
+        if (strcmp (non_boolean_properties[i], keystr) == 0)
+          Ffont_put (font, key, val);
+      }
+}
+
+
 /* Return the font used to draw character C by FACE at buffer position
    POS in window W.  If STRING is non-nil, it is a string containing C
    at index POS.  If C is negative, get C from the current buffer or
@@ -4486,7 +4538,7 @@ DEFUN ("font-variation-glyphs", Ffont_variation_glyphs, Sfont_variation_glyphs,
        doc: /* Return a list of variation glyphs for CHAR in FONT-OBJECT.
 Each element of the value is a cons (VARIATION-SELECTOR . GLYPH-ID),
 where
-  VARIATION-SELECTOR is a chracter code of variation selection
+  VARIATION-SELECTOR is a character code of variation selection
     (#xFE00..#xFE0F or #xE0100..#xE01EF)
   GLYPH-ID is a glyph code of the corresponding variation glyph.  */)
   (Lisp_Object font_object, Lisp_Object character)

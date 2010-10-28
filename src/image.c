@@ -567,10 +567,6 @@ static struct image_type *image_types;
 
 Lisp_Object Vimage_types;
 
-/* An alist of image types and libraries that implement the type.  */
-
-Lisp_Object Vimage_library_alist;
-
 /* Cache for delayed-loading image types.  */
 
 static Lisp_Object Vimage_type_cache;
@@ -645,7 +641,7 @@ lookup_image_type (Lisp_Object symbol)
   struct image_type *type;
 
   /* We must initialize the image-type if it hasn't been already.  */
-  if (NILP (Finit_image_library (symbol, Vimage_library_alist)))
+  if (NILP (Finit_image_library (symbol, Vdynamic_library_alist)))
     return 0;			/* unimplemented */
 
   for (type = image_types; type; type = type->next)
@@ -1914,7 +1910,7 @@ mark_image_cache (struct image_cache *c)
 #ifdef HAVE_NTGUI
 
 /* Macro for defining functions that will be loaded from image DLLs.  */
-#define DEF_IMGLIB_FN(func) int (FAR CDECL *fn_##func)()
+#define DEF_IMGLIB_FN(func,args) int (FAR CDECL *fn_##func)args
 
 /* Macro for loading those image functions from the library.  */
 #define LOAD_IMGLIB_FN(lib,func) {					\
@@ -1923,10 +1919,11 @@ mark_image_cache (struct image_cache *c)
   }
 
 /* Load a DLL implementing an image type.
-   The `image-library-alist' variable associates a symbol,
-   identifying an image type, to a list of possible filenames.
+   The argument LIBRARIES is usually the variable
+   `dynamic-library-alist', which associates a symbol, identifying
+   an external DLL library, to a list of possible filenames.
    The function returns NULL if no library could be loaded for
-   the given image type, or if the library was previously loaded;
+   the given symbol, or if the library was previously loaded;
    else the handle of the DLL.  */
 static HMODULE
 w32_delayed_load (Lisp_Object libraries, Lisp_Object type)
@@ -3268,10 +3265,12 @@ xpm_free_colors (Display *dpy, Colormap cmap, Pixel *pixels, int npixels, void *
 
 /* XPM library details.  */
 
-DEF_IMGLIB_FN (XpmFreeAttributes);
-DEF_IMGLIB_FN (XpmCreateImageFromBuffer);
-DEF_IMGLIB_FN (XpmReadFileToImage);
-DEF_IMGLIB_FN (XImageFree);
+DEF_IMGLIB_FN (XpmFreeAttributes, (XpmAttributes *));
+DEF_IMGLIB_FN (XpmCreateImageFromBuffer, (Display *, char *, xpm_XImage **,
+					  xpm_XImage **, XpmAttributes *));
+DEF_IMGLIB_FN (XpmReadFileToImage, (Display *, char *, xpm_XImage **,
+				    xpm_XImage **, XpmAttributes *));
+DEF_IMGLIB_FN (XImageFree, (xpm_XImage *));
 
 static int
 init_xpm_functions (Lisp_Object libraries)
@@ -5439,27 +5438,31 @@ png_image_p (Lisp_Object object)
 #ifdef HAVE_NTGUI
 /* PNG library details.  */
 
-DEF_IMGLIB_FN (png_get_io_ptr);
-DEF_IMGLIB_FN (png_sig_cmp);
-DEF_IMGLIB_FN (png_create_read_struct);
-DEF_IMGLIB_FN (png_create_info_struct);
-DEF_IMGLIB_FN (png_destroy_read_struct);
-DEF_IMGLIB_FN (png_set_read_fn);
-DEF_IMGLIB_FN (png_set_sig_bytes);
-DEF_IMGLIB_FN (png_read_info);
-DEF_IMGLIB_FN (png_get_IHDR);
-DEF_IMGLIB_FN (png_get_valid);
-DEF_IMGLIB_FN (png_set_strip_16);
-DEF_IMGLIB_FN (png_set_expand);
-DEF_IMGLIB_FN (png_set_gray_to_rgb);
-DEF_IMGLIB_FN (png_set_background);
-DEF_IMGLIB_FN (png_get_bKGD);
-DEF_IMGLIB_FN (png_read_update_info);
-DEF_IMGLIB_FN (png_get_channels);
-DEF_IMGLIB_FN (png_get_rowbytes);
-DEF_IMGLIB_FN (png_read_image);
-DEF_IMGLIB_FN (png_read_end);
-DEF_IMGLIB_FN (png_error);
+DEF_IMGLIB_FN (png_get_io_ptr, (png_structp));
+DEF_IMGLIB_FN (png_sig_cmp, (png_bytep, png_size_t, png_size_t));
+DEF_IMGLIB_FN (png_create_read_struct, (png_const_charp, png_voidp,
+					png_error_ptr, png_error_ptr));
+DEF_IMGLIB_FN (png_create_info_struct, (png_structp));
+DEF_IMGLIB_FN (png_destroy_read_struct, (png_structpp, png_infopp, png_infopp));
+DEF_IMGLIB_FN (png_set_read_fn, (png_structp, png_voidp, png_rw_ptr));
+DEF_IMGLIB_FN (png_set_sig_bytes, (png_structp, int));
+DEF_IMGLIB_FN (png_read_info, (png_structp, png_infop));
+DEF_IMGLIB_FN (png_get_IHDR, (png_structp, png_infop,
+			      png_uint_32 *, png_uint_32 *,
+			      int *, int *, int *, int *, int *));
+DEF_IMGLIB_FN (png_get_valid, (png_structp, png_infop, png_uint_32));
+DEF_IMGLIB_FN (png_set_strip_16, (png_structp));
+DEF_IMGLIB_FN (png_set_expand, (png_structp));
+DEF_IMGLIB_FN (png_set_gray_to_rgb, (png_structp));
+DEF_IMGLIB_FN (png_set_background, (png_structp, png_color_16p,
+				    int, int, double));
+DEF_IMGLIB_FN (png_get_bKGD, (png_structp, png_infop, png_color_16p *));
+DEF_IMGLIB_FN (png_read_update_info, (png_structp, png_infop));
+DEF_IMGLIB_FN (png_get_channels, (png_structp, png_infop));
+DEF_IMGLIB_FN (png_get_rowbytes, (png_structp, png_infop));
+DEF_IMGLIB_FN (png_read_image, (png_structp, png_bytepp));
+DEF_IMGLIB_FN (png_read_end, (png_structp, png_infop));
+DEF_IMGLIB_FN (png_error, (png_structp, png_const_charp));
 
 static int
 init_png_functions (Lisp_Object libraries)
@@ -6042,14 +6045,14 @@ jpeg_image_p (Lisp_Object object)
 #ifdef HAVE_NTGUI
 
 /* JPEG library details.  */
-DEF_IMGLIB_FN (jpeg_CreateDecompress);
-DEF_IMGLIB_FN (jpeg_start_decompress);
-DEF_IMGLIB_FN (jpeg_finish_decompress);
-DEF_IMGLIB_FN (jpeg_destroy_decompress);
-DEF_IMGLIB_FN (jpeg_read_header);
-DEF_IMGLIB_FN (jpeg_read_scanlines);
-DEF_IMGLIB_FN (jpeg_std_error);
-DEF_IMGLIB_FN (jpeg_resync_to_restart);
+DEF_IMGLIB_FN (jpeg_CreateDecompress, (j_decompress_ptr, int, size_t));
+DEF_IMGLIB_FN (jpeg_start_decompress, (j_decompress_ptr));
+DEF_IMGLIB_FN (jpeg_finish_decompress, (j_decompress_ptr));
+DEF_IMGLIB_FN (jpeg_destroy_decompress, (j_decompress_ptr));
+DEF_IMGLIB_FN (jpeg_read_header, (j_decompress_ptr, boolean));
+DEF_IMGLIB_FN (jpeg_read_scanlines, (j_decompress_ptr, JSAMPARRAY, JDIMENSION));
+DEF_IMGLIB_FN (jpeg_std_error, (struct jpeg_error_mgr *));
+DEF_IMGLIB_FN (jpeg_resync_to_restart, (j_decompress_ptr, int));
 
 static int
 init_jpeg_functions (Lisp_Object libraries)
@@ -6575,14 +6578,17 @@ tiff_image_p (Lisp_Object object)
 #ifdef HAVE_NTGUI
 
 /* TIFF library details.  */
-DEF_IMGLIB_FN (TIFFSetErrorHandler);
-DEF_IMGLIB_FN (TIFFSetWarningHandler);
-DEF_IMGLIB_FN (TIFFOpen);
-DEF_IMGLIB_FN (TIFFClientOpen);
-DEF_IMGLIB_FN (TIFFGetField);
-DEF_IMGLIB_FN (TIFFReadRGBAImage);
-DEF_IMGLIB_FN (TIFFClose);
-DEF_IMGLIB_FN (TIFFSetDirectory);
+DEF_IMGLIB_FN (TIFFSetErrorHandler, (TIFFErrorHandler));
+DEF_IMGLIB_FN (TIFFSetWarningHandler, (TIFFErrorHandler));
+DEF_IMGLIB_FN (TIFFOpen, (const char *, const char *));
+DEF_IMGLIB_FN (TIFFClientOpen, (const char *, const char *, thandle_t,
+				TIFFReadWriteProc, TIFFReadWriteProc,
+				TIFFSeekProc, TIFFCloseProc, TIFFSizeProc,
+				TIFFMapFileProc, TIFFUnmapFileProc));
+DEF_IMGLIB_FN (TIFFGetField, (TIFF *, ttag_t, ...));
+DEF_IMGLIB_FN (TIFFReadRGBAImage, (TIFF *, uint32, uint32, uint32 *, int));
+DEF_IMGLIB_FN (TIFFClose, (TIFF *));
+DEF_IMGLIB_FN (TIFFSetDirectory, (TIFF *, tdir_t));
 
 static int
 init_tiff_functions (Lisp_Object libraries)
@@ -6787,8 +6793,9 @@ tiff_load (struct frame *f, struct image *img)
       memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
-      /* Casting return value avoids a GCC warning on W32.  */
-      tiff = (TIFF *)fn_TIFFClientOpen ("memory_source", "r", &memsrc,
+      /* Casting arguments return value avoids a GCC warning on W32.  */
+      tiff = (TIFF *)fn_TIFFClientOpen ("memory_source", "r",
+					(thandle_t) &memsrc,
 					(TIFFReadWriteProc) tiff_read_from_memory,
 					(TIFFReadWriteProc) tiff_write_from_memory,
 					tiff_seek_in_memory,
@@ -7024,10 +7031,10 @@ gif_image_p (Lisp_Object object)
 #ifdef HAVE_NTGUI
 
 /* GIF library details.  */
-DEF_IMGLIB_FN (DGifCloseFile);
-DEF_IMGLIB_FN (DGifSlurp);
-DEF_IMGLIB_FN (DGifOpen);
-DEF_IMGLIB_FN (DGifOpenFileName);
+DEF_IMGLIB_FN (DGifCloseFile, (GifFileType *));
+DEF_IMGLIB_FN (DGifSlurp, (GifFileType *));
+DEF_IMGLIB_FN (DGifOpen, (void *, InputFunc));
+DEF_IMGLIB_FN (DGifOpenFileName, (const char *));
 
 static int
 init_gif_functions (Lisp_Object libraries)
@@ -8583,7 +8590,7 @@ Return non-nil if TYPE is a supported image type.
 
 Image types pbm and xbm are prebuilt; other types are loaded here.
 Libraries to load are specified in alist LIBRARIES (usually, the value
-of `image-library-alist', which see).  */)
+of `dynamic-library-alist', which see).  */)
   (Lisp_Object type, Lisp_Object libraries)
 {
   Lisp_Object tested;
@@ -8658,20 +8665,6 @@ syms_of_image (void)
 Each element of the list is a symbol for an image type, like 'jpeg or 'png.
 To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
-
-  DEFVAR_LISP ("image-library-alist", &Vimage_library_alist,
-    doc: /* Alist of image types vs external libraries needed to display them.
-
-Each element is a list (IMAGE-TYPE LIBRARY...), where the car is a symbol
-representing a supported image type, and the rest are strings giving
-alternate filenames for the corresponding external libraries.
-
-Emacs tries to load the libraries in the order they appear on the
-list; if none is loaded, the running session of Emacs won't
-support the image type.  Types 'pbm and 'xbm don't need to be
-listed; they are always supported.  */);
-  Vimage_library_alist = Qnil;
-  Fput (intern_c_string ("image-library-alist"), Qrisky_local_variable, Qt);
 
   DEFVAR_LISP ("max-image-size", &Vmax_image_size,
     doc: /* Maximum size of images.

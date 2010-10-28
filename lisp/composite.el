@@ -213,7 +213,7 @@ of the text in the region.
 
 If it is a string, the elements are alternate characters.  In
 this case, TAB element has a special meaning.  If the first
-characer is TAB, the glyphs are displayed with left padding space
+character is TAB, the glyphs are displayed with left padding space
 so that no pixel overlaps with the previous column.  If the last
 character is TAB, the glyphs are displayed with right padding
 space so that no pixel overlaps with the following column.

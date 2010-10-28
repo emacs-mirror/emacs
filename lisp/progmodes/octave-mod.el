@@ -646,9 +646,8 @@ including a reproducible test case and send the message."
                                      (aref (cdr kw) (1- (length (cdr kw)))))
                                    smie-closer-alist))))))
 
-  ;; FIXME: maybe we should use (cons ?\; electric-indent-chars)
-  ;; since only ; is really octave-specific.
-  (set (make-local-variable 'electric-indent-chars) '(?\; ?\s ?\n))
+  (set (make-local-variable 'electric-indent-chars)
+       (cons ?\; electric-indent-chars))
 
   (set (make-local-variable 'comment-start) octave-comment-start)
   (set (make-local-variable 'comment-end) "")

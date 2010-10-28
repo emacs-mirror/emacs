@@ -384,7 +384,7 @@
 	       (eq 'lambda (car-safe fn)))
 	   (let ((newform (byte-compile-unfold-lambda form)))
 	     (if (eq newform form)
-		 ;; Some error occured, avoid infinite recursion
+		 ;; Some error occurred, avoid infinite recursion
 		 form
 	       (byte-optimize-form-code-walker newform for-effect))))
 	  ((memq fn '(let let*))

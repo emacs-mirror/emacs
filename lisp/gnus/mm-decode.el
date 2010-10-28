@@ -105,8 +105,8 @@
 	 ,disposition ,description ,cache ,id))
 
 (defcustom mm-text-html-renderer
-  (cond ((fboundp 'libxml-parse-html-region) 'mm-shr)
-	((executable-find "w3m") 'gnus-article-html)
+  (cond ((fboundp 'libxml-parse-html-region) 'shr)
+	((executable-find "w3m") 'gnus-w3m)
 	((executable-find "links") 'links)
 	((executable-find "lynx") 'lynx)
 	((locate-library "w3") 'w3)
@@ -115,8 +115,8 @@
   "Render of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:
-`mm-shr': use Gnus simple HTML renderer;
-`gnus-article-html' : use Gnus renderer based on w3m;
+`shr': use Gnus simple HTML renderer;
+`gnus-w3m' : use Gnus renderer based on w3m;
 `w3m'  : use emacs-w3m;
 `w3m-standalone': use w3m;
 `links': use links;
@@ -125,8 +125,8 @@ The defined renderer types are:
 `html2text' : use html2text;
 nil    : use external viewer (default web browser)."
   :version "24.1"
-  :type '(choice (const mm-shr)
-                 (const gnus-article-html)
+  :type '(choice (const shr)
+                 (const gnus-w3m)
                  (const w3)
                  (const w3m :tag "emacs-w3m")
 		 (const w3m-standalone :tag "standalone w3m" )
@@ -136,10 +136,6 @@ nil    : use external viewer (default web browser)."
 		 (const nil :tag "External viewer")
 		 (function))
   :group 'mime-display)
-
-(defvar mm-inline-text-html-renderer nil
-  "Function used for rendering inline HTML contents.
-It is suggested to customize `mm-text-html-renderer' instead.")
 
 (defcustom mm-inline-text-html-with-images nil
   "If non-nil, Gnus will allow retrieving images in HTML contents with
@@ -245,8 +241,7 @@ before the external MIME handler is invoked."
     ("text/html"
      mm-inline-text-html
      (lambda (handle)
-       (or mm-inline-text-html-renderer
-	   mm-text-html-renderer)))
+       mm-text-html-renderer))
     ("text/x-vcard"
      mm-inline-text-vcard
      (lambda (handle)
@@ -701,13 +696,14 @@ Postpone undisplaying of viewers for types in
 (autoload 'mailcap-parse-mailcaps "mailcap")
 (autoload 'mailcap-mime-info "mailcap")
 
-(defun mm-display-part (handle &optional no-default)
+(defun mm-display-part (handle &optional no-default force)
   "Display the MIME part represented by HANDLE.
 Returns nil if the part is removed; inline if displayed inline;
 external if displayed external."
   (save-excursion
     (mailcap-parse-mailcaps)
-    (if (mm-handle-displayed-p handle)
+    (if (and (not force)
+	     (mm-handle-displayed-p handle))
 	(mm-remove-part handle)
       (let* ((ehandle (if (equal (mm-handle-media-type handle)
 				 "message/external-body")
@@ -1686,13 +1682,17 @@ If RECURSIVE, search recursively."
 (declare-function libxml-parse-html-region "xml.c"
 		  (start end &optional base-url))
 (declare-function shr-insert-document "shr" (dom))
+(defvar shr-blocked-images)
 
 (defun mm-shr (handle)
   ;; Require since we bind its variables.
   (require 'shr)
   (let ((article-buffer (current-buffer))
-	(shr-blocked-images (with-current-buffer gnus-summary-buffer
-			      gnus-blocked-images))
+	(shr-blocked-images (if (and (boundp 'gnus-summary-buffer)
+				     (buffer-name gnus-summary-buffer))
+				(with-current-buffer gnus-summary-buffer
+				  (gnus-blocked-images))
+			      shr-blocked-images))
 	(shr-content-function (lambda (id)
 				(let ((handle (mm-get-content-id id)))
 				  (when handle
@@ -1713,7 +1713,13 @@ If RECURSIVE, search recursively."
 		       (mm-decode-coding-string (buffer-string) charset)
 		     (erase-buffer)
 		     (mm-enable-multibyte))))
-	 (libxml-parse-html-region (point-min) (point-max)))))))
+	 (libxml-parse-html-region (point-min) (point-max))))
+      (mm-handle-set-undisplayer
+       handle
+       `(lambda ()
+	  (let ((inhibit-read-only t))
+	    (delete-region ,(point-min-marker)
+			   ,(point-max-marker))))))))
 
 (provide 'mm-decode)
 

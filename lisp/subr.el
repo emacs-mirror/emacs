@@ -289,14 +289,11 @@ If LIST is nil, return nil.
 If N is non-nil, return the Nth-to-last link of LIST.
 If N is bigger than the length of LIST, return LIST."
   (if n
-      (let ((m 0) (p list))
-	(while (consp p)
-	  (setq m (1+ m) p (cdr p)))
-	(if (<= n 0) p
-	  (if (< n m) (nthcdr (- m n) list) list)))
-    (while (consp (cdr list))
-      (setq list (cdr list)))
-    list))
+      (and (>= n 0)
+           (let ((m (safe-length list)))
+             (if (< n m) (nthcdr (- m n) list) list)))
+    (and list
+         (nthcdr (1- (safe-length list)) list))))
 
 (defun butlast (list &optional n)
   "Return a copy of LIST with the last N elements removed."

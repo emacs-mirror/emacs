@@ -1,3 +1,37 @@
+2010-10-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (checking for -znocombreloc): Use AC_LANG_PROGRAM
+	to avoid warning.
+
+2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in: Remove the BROKEN annotation from gnutls.
+
+2010-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Avoid listing .el files twice.  Don't try to run
+	autoconf if --no-update.
+
+2010-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: No longer create lisp/MANIFEST.
+
+2010-10-14  Glenn Morris  <rgm@gnu.org>
+
+	* BUGS, INSTALL.BZR, README: Updates.
+
+2010-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Remove --compress.  Check for the appropriate
+	gzip-like executable, and if not found, don't compress.
+	Check version number in README, don't change it.
+	Use find for nt/inc/*.h.
+
+2010-10-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure (ns_appdir, OLDXMENU, TOOLTIP_SUPPORT): Remove
+	trailing / from directory names.
+
 2010-10-12  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Update and simplify.

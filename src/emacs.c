@@ -187,6 +187,9 @@ Lisp_Object Vprevious_system_time_locale;
    Lisp code.  */
 Lisp_Object Vemacs_copyright, Vemacs_version;
 
+/* Alist of external libraries and files implementing them.  */
+Lisp_Object Vdynamic_library_alist;
+
 /* If non-zero, emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
 int inhibit_window_system;
@@ -826,13 +829,14 @@ main (int argc, char **argv)
       printf ("see the file named COPYING.\n");
       exit (0);
     }
-  if (argmatch (argv, argc, "-chdir", "--chdir", 2, &ch_to_dir, &skip_args))
-      if (chdir (ch_to_dir) == -1)
-        {
-          fprintf (stderr, "%s: Can't chdir to %s: %s\n",
-                   argv[0], ch_to_dir, strerror (errno));
-          exit (1);
-        }
+
+  if (argmatch (argv, argc, "-chdir", "--chdir", 4, &ch_to_dir, &skip_args))
+    if (chdir (ch_to_dir) == -1)
+      {
+	fprintf (stderr, "%s: Can't chdir to %s: %s\n",
+		 argv[0], ch_to_dir, strerror (errno));
+	exit (1);
+      }
 
 
 #ifdef HAVE_PERSONALITY_LINUX32
@@ -2506,6 +2510,24 @@ This is nil during initialization.  */);
   DEFVAR_LISP ("emacs-version", &Vemacs_version,
 	       doc: /* Version numbers of this version of Emacs.  */);
   Vemacs_version = build_string (emacs_version);
+
+  DEFVAR_LISP ("dynamic-library-alist", &Vdynamic_library_alist,
+    doc: /* Alist of dynamic libraries vs external files implementing them.
+Each element is a list (LIBRARY FILE...), where the car is a symbol
+representing a supported external library, and the rest are strings giving
+alternate filenames for that library.
+
+Emacs tries to load the library from the files in the order they appear on
+the list; if none is loaded, the running session of Emacs won't have access
+to that library.
+
+Note that image types `pbm' and `xbm' do not need entries in this variable
+because they do not depend on external libraries and are always available.
+
+Also note that this is not a generic facility for accessing external
+libraries; only those already known by Emacs will be loaded.  */);
+  Vdynamic_library_alist = Qnil;
+  Fput (intern_c_string ("dynamic-library-alist"), Qrisky_local_variable, Qt);
 
   /* Make sure IS_DAEMON starts up as false.  */
   daemon_pipe[1] = 0;

@@ -176,7 +176,7 @@ init_eval_once (void)
   specpdl_ptr = specpdl;
   /* Don't forget to update docs (lispref node "Local Variables").  */
   max_specpdl_size = 1000;
-  max_lisp_eval_depth = 500;
+  max_lisp_eval_depth = 600;
 
   Vrun_hooks = Qnil;
 }

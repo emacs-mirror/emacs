@@ -249,7 +249,7 @@ compile-main: compile-clean
 compile-clean:
 	@cd $(lisp); $(setwins); \
 	elcs=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.elc |g'`; \
-	for el in $$(echo $$elcs | sed -e 's/\.elc/\.el/g'); do \
+	for el in `echo $$elcs | sed -e 's/\.elc/\.el/g'`; do \
 	  if test -f "$$el" -o \! -f "$${el}c"; then :; else \
 	    echo rm "$${el}c"; \
 	    rm "$${el}c"; \

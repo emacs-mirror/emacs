@@ -50,28 +50,18 @@
 (defvar w3m-minor-mode-map)
 
 (defvar mm-text-html-renderer-alist
-  '((w3  . mm-inline-text-html-render-with-w3)
+  '((shr . mm-shr)
+    (w3 . mm-inline-text-html-render-with-w3)
     (w3m . mm-inline-text-html-render-with-w3m)
     (w3m-standalone . mm-inline-text-html-render-with-w3m-standalone)
+    (gnus-w3m . gnus-article-html)
     (links mm-inline-render-with-file
 	   mm-links-remove-leading-blank
 	   "links" "-dump" file)
-    (lynx  mm-inline-render-with-stdin nil
-	   "lynx" "-dump" "-force_html" "-stdin" "-nolist")
-    (html2text  mm-inline-render-with-function html2text))
+    (lynx mm-inline-render-with-stdin nil
+	  "lynx" "-dump" "-force_html" "-stdin" "-nolist")
+    (html2text mm-inline-render-with-function html2text))
   "The attributes of renderer types for text/html.")
-
-(defvar mm-text-html-washer-alist
-  '((w3  . gnus-article-wash-html-with-w3)
-    (w3m . gnus-article-wash-html-with-w3m)
-    (w3m-standalone . gnus-article-wash-html-with-w3m-standalone)
-    (links mm-inline-wash-with-file
-	   mm-links-remove-leading-blank
-	   "links" "-dump" file)
-    (lynx  mm-inline-wash-with-stdin nil
-	   "lynx" "-dump" "-force_html" "-stdin" "-nolist")
-    (html2text  html2text))
-  "The attributes of washer types for text/html.")
 
 (defcustom mm-fill-flowed t
   "If non-nil a format=flowed article will be displayed flowed."
@@ -426,7 +416,7 @@
        (buffer-string)))))
 
 (defun mm-inline-text-html (handle)
-  (let* ((func (or mm-inline-text-html-renderer mm-text-html-renderer))
+  (let* ((func mm-text-html-renderer)
 	 (entry (assq func mm-text-html-renderer-alist))
 	 (inhibit-read-only t))
     (if entry

@@ -1,7 +1,8 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
-                 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995, 1997,
+  1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3889,9 +3890,9 @@ defalias (sname, string)
 }
 #endif /* NOTDEF */
 
-/* Define an "integer variable"; a symbol whose value is forwarded
-   to a C variable of type int.  Sample call:
-   DEFVAR_INT ("emacs-priority", &emacs_priority, "Documentation");  */
+/* Define an "integer variable"; a symbol whose value is forwarded to a
+   C variable of type int.  Sample call (munged w "xx" to fool make-docfile):
+   DEFxxVAR_INT ("emacs-priority", &emacs_priority, "Documentation");  */
 void
 defvar_int (struct Lisp_Intfwd *i_fwd,
 	    const char *namestring, EMACS_INT *address)
@@ -4474,5 +4475,3 @@ to load.  See also `load-dangerous-libraries'.  */);
   staticpro (&Qrehash_threshold);
 }
 
-/* arch-tag: a0d02733-0f96-4844-a659-9fd53c4f414d
-   (do not change this comment) */

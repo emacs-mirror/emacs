@@ -1,7 +1,8 @@
 /* Functions for the X window system.
-   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+  2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -99,6 +100,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
 #include <Xm/FileSB.h>
+#include <Xm/List.h>
+#include <Xm/TextF.h>
 #endif
 
 #ifdef USE_LUCID
@@ -4179,6 +4182,9 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
 
 DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
        doc: /* If ON is non-nil, report X errors as soon as the erring request is made.
+This function only has an effect on X Windows.  With MS Windows, it is
+defined but does nothing.
+
 If ON is nil, allow buffering of requests.
 Turning on synchronization prohibits the Xlib routines from buffering
 requests and seriously degrades performance, but makes debugging much
@@ -4213,12 +4219,12 @@ x_sync (FRAME_PTR f)
 DEFUN ("x-change-window-property", Fx_change_window_property,
        Sx_change_window_property, 2, 6, 0,
        doc: /* Change window property PROP to VALUE on the X window of FRAME.
-PROP must be a string.
-VALUE may be a string or a list of conses, numbers and/or strings.
-If an element in the list is a string, it is converted to
-an Atom and the value of the Atom is used.  If an element is a cons,
-it is converted to a 32 bit number where the car is the 16 top bits and the
-cdr is the lower 16 bits.
+PROP must be a string.  VALUE may be a string or a list of conses,
+numbers and/or strings.  If an element in the list is a string, it is
+converted to an atom and the value of the atom is used.  If an element
+is a cons, it is converted to a 32 bit number where the car is the 16
+top bits and the cdr is the lower 16 bits.
+
 FRAME nil or omitted means use the selected frame.
 If TYPE is given and non-nil, it is the name of the type of VALUE.
 If TYPE is not given or nil, the type is STRING.
@@ -4226,9 +4232,7 @@ FORMAT gives the size in bits of each element if VALUE is a list.
 It must be one of 8, 16 or 32.
 If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
 If OUTER_P is non-nil, the property is changed for the outer X window of
-FRAME.  Default is to change on the edit X window.
-
-Value is VALUE.  */)
+FRAME.  Default is to change on the edit X window.  */)
   (Lisp_Object prop, Lisp_Object value, Lisp_Object frame, Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
   struct frame *f = check_x_frame (frame);
@@ -4329,15 +4333,19 @@ DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
        1, 6, 0,
        doc: /* Value is the value of window property PROP on FRAME.
 If FRAME is nil or omitted, use the selected frame.
-If TYPE is nil or omitted, get the property as a string.  Otherwise TYPE
-is the name of the Atom that denotes the type expected.
+
+On MS Windows, this function only accepts the PROP and FRAME arguments.
+
+On X Windows, the following optional arguments are also accepted:
+If TYPE is nil or omitted, get the property as a string.
+Otherwise TYPE is the name of the atom that denotes the type expected.
 If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
 If DELETE_P is non-nil, delete the property after retreiving it.
 If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
-no value of TYPE.  */)
+no value of TYPE (always string in the MS Windows case).  */)
   (Lisp_Object prop, Lisp_Object frame, Lisp_Object type, Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
 {
   struct frame *f = check_x_frame (frame);
@@ -5299,9 +5307,7 @@ DEFUN ("x-uses-old-gtk-dialog", Fx_uses_old_gtk_dialog,
 /* Callback for "OK" and "Cancel" on file selection dialog.  */
 
 static void
-file_dialog_cb (widget, client_data, call_data)
-     Widget widget;
-     XtPointer call_data, client_data;
+file_dialog_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   int *result = (int *) client_data;
   XmAnyCallbackStruct *cb = (XmAnyCallbackStruct *) call_data;
@@ -5315,17 +5321,14 @@ file_dialog_cb (widget, client_data, call_data)
    in this case.  */
 
 static void
-file_dialog_unmap_cb (widget, client_data, call_data)
-     Widget widget;
-     XtPointer call_data, client_data;
+file_dialog_unmap_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   int *result = (int *) client_data;
   *result = XmCR_CANCEL;
 }
 
 static Lisp_Object
-clean_up_file_dialog (arg)
-     Lisp_Object arg;
+clean_up_file_dialog (Lisp_Object arg)
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
   Widget dialog = (Widget) p->pointer;
@@ -5345,7 +5348,11 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
 Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
 selection box, if specified.  If MUSTMATCH is non-nil, the returned file
-or directory must exist.  ONLY-DIR-P is ignored."  */)
+or directory must exist.
+
+This function is only defined on MS Windows, and X Windows with the
+Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
+Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   int result;
@@ -5514,8 +5521,11 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
 Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
 selection box, if specified.  If MUSTMATCH is non-nil, the returned file
-or directory must exist.  If ONLY-DIR-P is non-nil, the user can only select
-directories.  */)
+or directory must exist.
+
+This function is only defined on MS Windows, and X Windows with the
+Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
+Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   FRAME_PTR f = SELECTED_FRAME ();
@@ -6019,5 +6029,3 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
 
 #endif /* HAVE_X_WINDOWS */
 
-/* arch-tag: 55040d02-5485-4d58-8b22-95a7a05f3288
-   (do not change this comment) */

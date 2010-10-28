@@ -801,9 +801,10 @@ one or more of those symbols."
       ;; Switching from names to names+fullnames creates a non-monotonicity
       ;; which can cause problems with things like partial-completion.
       ;; To minimize the problem, filter out completion-regexp-list, so that
-      ;; M-x load-library RET t/x.e TAB finds some files.
-      (if completion-regexp-list
-          (setq names (all-completions "" names)))
+      ;; M-x load-library RET t/x.e TAB finds some files.  Also remove elements
+      ;; from `names' which only matched `string' when they still had
+      ;; their suffix.
+      (setq names (all-completions string names))
       ;; Remove duplicates of the first element, so that we can easily check
       ;; if `names' really only contains a single element.
       (when (cdr names) (setcdr names (delete (car names) (cdr names))))

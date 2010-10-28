@@ -1507,12 +1507,11 @@ If SPEC is nil, return nil."
 
 (defun face-spec-reset-face (face &optional frame)
   "Reset all attributes of FACE on FRAME to unspecified."
-  (let ((attrs face-attribute-name-alist))
-    (while attrs
-      (let ((attr-and-name (car attrs)))
-	(set-face-attribute face frame (car attr-and-name) 'unspecified))
-      (setq attrs (cdr attrs)))))
-
+  (let (reset-args)
+    (dolist (attr-and-name face-attribute-name-alist)
+      (push 'unspecified reset-args)
+      (push (car attr-and-name) reset-args))
+    (apply 'set-face-attribute face frame reset-args)))
 
 (defun face-spec-set (face spec &optional for-defface)
   "Set FACE's face spec, which controls its appearance, to SPEC.
@@ -1578,8 +1577,8 @@ is used.  If nil or omitted, use the selected frame."
     (setq frame (selected-frame)))
   (let ((list face-attribute-name-alist)
 	(match t))
-    (while (and match (not (null list)))
-      (let* ((attr (car (car list)))
+    (while (and match list)
+      (let* ((attr (caar list))
 	     (specified-value
 	      (if (plist-member attrs attr)
 		  (plist-get attrs attr)
@@ -1589,7 +1588,7 @@ is used.  If nil or omitted, use the selected frame."
 	(setq list (cdr list))))
     match))
 
-(defun face-spec-match-p (face spec &optional frame)
+(defsubst face-spec-match-p (face spec &optional frame)
   "Return t if FACE, on FRAME, matches what SPEC says it should look like."
   (face-attr-match-p face (face-spec-choose spec frame) frame))
 
@@ -1677,89 +1676,76 @@ If omitted or nil, that stands for the selected frame's display."
      (t
       (> (tty-color-gray-shades display) 2)))))
 
-(defun read-color (&optional prompt convert-to-RGB-p allow-empty-name-p msg-p)
-  "Read a color name or RGB hex value: #RRRRGGGGBBBB.
-Completion is available for color names, but not for RGB hex strings.
-If the user inputs an RGB hex string, it must have the form
-#XXXXXXXXXXXX or XXXXXXXXXXXX, where each X is a hex digit.  The
-number of Xs must be a multiple of 3, with the same number of Xs for
-each of red, green, and blue.  The order is red, green, blue.
+(defun read-color (&optional prompt convert-to-RGB allow-empty-name msg)
+  "Read a color name or RGB triplet of the form \"#RRRRGGGGBBBB\".
+Completion is available for color names, but not for RGB triplets.
 
-In addition to standard color names and RGB hex values, the following
-are available as color candidates.  In each case, the corresponding
-color is used.
+RGB triplets have the form #XXXXXXXXXXXX, where each X is a hex
+digit.  The number of Xs must be a multiple of 3, with the same
+number of Xs for each of red, green, and blue.  The order is red,
+green, blue.
+
+In addition to standard color names and RGB hex values, the
+following are available as color candidates.  In each case, the
+corresponding color is used.
 
  * `foreground at point'   - foreground under the cursor
  * `background at point'   - background under the cursor
 
-Checks input to be sure it represents a valid color.  If not, raises
-an error (but see exception for empty input with non-nil
-ALLOW-EMPTY-NAME-P).
+Optional arg PROMPT is the prompt; if nil, use a default prompt.
 
-Optional arg PROMPT is the prompt; if nil, uses a default prompt.
+Interactively, or with optional arg CONVERT-TO-RGB-P non-nil,
+convert an input color name to an RGB hex string.  Return the RGB
+hex string.
 
-Interactively, or with optional arg CONVERT-TO-RGB-P non-nil, converts
-an input color name to an RGB hex string.  Returns the RGB hex string.
+If optional arg ALLOW-EMPTY-NAME is non-nil, the user is allowed
+to enter an empty color name (the empty string).
 
-Optional arg ALLOW-EMPTY-NAME-P controls what happens if the user
-enters an empty color name (that is, just hits `RET').  If non-nil,
-then returns an empty color name, \"\".  If nil, then raises an error.
-Programs must test for \"\" if ALLOW-EMPTY-NAME-P is non-nil.  They
-can then perform an appropriate action in case of empty input.
-
-Interactively, or with optional arg MSG-P non-nil, echoes the color in
-a message."
+Interactively, or with optional arg MSG non-nil, print the
+resulting color name in the echo area."
   (interactive "i\np\ni\np")    ; Always convert to RGB interactively.
   (let* ((completion-ignore-case t)
-         (colors (append '("foreground at point" "background at point")
-			 (defined-colors)))
-         (color (completing-read (or prompt "Color (name or #R+G+B+): ")
-				 colors))
-         hex-string)
-    (cond ((string= "foreground at point" color)
-	   (setq color (foreground-color-at-point)))
-	  ((string= "background at point" color)
-	   (setq color (background-color-at-point))))
-    (unless color
-      (setq color ""))
-    (setq hex-string
-	  (string-match "^#?\\([a-fA-F0-9][a-fA-F0-9][a-fA-F0-9]\\)+$" color))
-    (if (and allow-empty-name-p (string= "" color))
-        ""
-      (when (and hex-string (not (eq (aref color 0) ?#)))
-        (setq color (concat "#" color))) ; No #; add it.
-      (unless hex-string
-        (when (or (string= "" color) (not (test-completion color colors)))
-          (error "No such color: %S" color))
-        (when convert-to-RGB-p
-          (let ((components (x-color-values color)))
-            (unless components (error "No such color: %S" color))
-            (unless (string-match "^#\\([a-fA-F0-9][a-fA-F0-9][a-fA-F0-9]\\)+$" color)
-              (setq color (format "#%04X%04X%04X"
-                                  (logand 65535 (nth 0 components))
-                                  (logand 65535 (nth 1 components))
-                                  (logand 65535 (nth 2 components))))))))
-      (when msg-p (message "Color: `%s'" color))
-      color)))
+	 (colors (or facemenu-color-alist
+		     (append '("foreground at point" "background at point")
+			     (if allow-empty-name '(""))
+			     (defined-colors))))
+	 (color (completing-read
+		 (or prompt "Color (name or #RGB triplet): ")
+		 ;; Completing function for reading colors, accepting
+		 ;; both color names and RGB triplets.
+		 (lambda (string pred flag)
+		   (cond
+		    ((null flag) ; Try completion.
+		     (or (try-completion string colors pred)
+			 (if (color-defined-p string)
+			     string)))
+		    ((eq flag t) ; List all completions.
+		     (or (all-completions string colors pred)
+			 (if (color-defined-p string)
+			     (list string))))
+		    ((eq flag 'lambda) ; Test completion.
+		     (or (memq string colors)
+			 (color-defined-p string)))))
+		 nil t))
+	 hex-string)
 
-;; Commented out because I decided it is better to include the
-;; duplicates in read-color's completion list.
+    ;; Process named colors.
+    (when (member color colors)
+      (cond ((string-equal color "foreground at point")
+	     (setq color (foreground-color-at-point)))
+	    ((string-equal color "background at point")
+	     (setq color (background-color-at-point))))
+      (when (and convert-to-RGB
+		 (not (string-equal color "")))
+	(let ((components (x-color-values color)))
+	  (unless (string-match "^#\\([a-fA-F0-9][a-fA-F0-9][a-fA-F0-9]\\)+$" color)
+	    (setq color (format "#%04X%04X%04X"
+				(logand 65535 (nth 0 components))
+				(logand 65535 (nth 1 components))
+				(logand 65535 (nth 2 components))))))))
+    (when msg (message "Color: `%s'" color))
+    color))
 
-;; (defun defined-colors-without-duplicates ()
-;;   "Return the list of defined colors, without the no-space versions.
-;; For each color name, we keep the variant that DOES have spaces."
-;;   (let ((result (copy-sequence (defined-colors)))
-;; 	   to-be-rejected)
-;;     (save-match-data
-;;       (dolist (this result)
-;; 	   (if (string-match " " this)
-;; 	       (push (replace-regexp-in-string " " ""
-;; 					       this)
-;; 		     to-be-rejected)))
-;;       (dolist (elt to-be-rejected)
-;; 	   (let ((as-found (car (member-ignore-case elt result))))
-;; 	     (setq result (delete as-found result)))))
-;;     result))
 
 (defun face-at-point ()
   "Return the face of the character after point.
@@ -1837,10 +1823,13 @@ variable with `setq'; this won't have the expected effect."
 
 (defvar inhibit-frame-set-background-mode nil)
 
-(defun frame-set-background-mode (frame)
+(defun frame-set-background-mode (frame &optional keep-face-specs)
   "Set up display-dependent faces on FRAME.
 Display-dependent faces are those which have different definitions
-according to the `background-mode' and `display-type' frame parameters."
+according to the `background-mode' and `display-type' frame parameters.
+
+If optional arg KEEP-FACE-SPECS is non-nil, don't recalculate
+face specs for the new background mode."
   (unless inhibit-frame-set-background-mode
     (let* ((bg-resource
 	    (and (window-system frame)
@@ -1888,29 +1877,29 @@ according to the `background-mode' and `display-type' frame parameters."
 	(let ((locally-modified-faces nil)
 	      ;; Prevent face-spec-recalc from calling this function
 	      ;; again, resulting in a loop (bug#911).
-	      (inhibit-frame-set-background-mode t))
-	  ;; Before modifying the frame parameters, collect a list of
-	  ;; faces that don't match what their face-spec says they
-	  ;; should look like.  We then avoid changing these faces
-	  ;; below.  These are the faces whose attributes were
-	  ;; modified on FRAME.  We use a negative list on the
-	  ;; assumption that most faces will be unmodified, so we can
-	  ;; avoid consing in the common case.
-	  (dolist (face (face-list))
-	    (and (not (get face 'face-override-spec))
-		 (not (face-spec-match-p face
-					 (face-user-default-spec face)
-					 (selected-frame)))
-		 (push face locally-modified-faces)))
-	  ;; Now change to the new frame parameters
-	  (modify-frame-parameters frame
-				   (list (cons 'background-mode bg-mode)
-					 (cons 'display-type display-type)))
-	  ;; For all named faces, choose face specs matching the new frame
-	  ;; parameters, unless they have been locally modified.
-	  (dolist (face (face-list))
-	    (unless (memq face locally-modified-faces)
-	      (face-spec-recalc face frame))))))))
+	      (inhibit-frame-set-background-mode t)
+	      (params (list (cons 'background-mode bg-mode)
+			    (cons 'display-type display-type))))
+	  (if keep-face-specs
+	      (modify-frame-parameters frame params)
+	    ;; If we are recomputing face specs, first collect a list
+	    ;; of faces that don't match their face-specs.  These are
+	    ;; the faces modified on FRAME, and we avoid changing them
+	    ;; below.  Use a negative list to avoid consing (we assume
+	    ;; most faces are unmodified).
+	    (dolist (face (face-list))
+	      (and (not (get face 'face-override-spec))
+		   (not (face-spec-match-p face
+					   (face-user-default-spec face)
+					   (selected-frame)))
+		   (push face locally-modified-faces)))
+	    ;; Now change to the new frame parameters
+	    (modify-frame-parameters frame params)
+	    ;; For all unmodified named faces, choose face specs
+	    ;; matching the new frame parameters.
+	    (dolist (face (face-list))
+	      (unless (memq face locally-modified-faces)
+		(face-spec-recalc face frame)))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1990,7 +1979,7 @@ the X resource ``reverseVideo'' is present, handle that."
 	(progn
 	  (x-setup-function-keys frame)
 	  (x-handle-reverse-video frame parameters)
-	  (frame-set-background-mode frame)
+	  (frame-set-background-mode frame t)
 	  (face-set-after-frame-default frame parameters)
 	  (if (null visibility-spec)
 	      (make-frame-visible frame)
@@ -2006,20 +1995,21 @@ Calculate the face definitions using the face specs, custom theme
 settings, X resources, and `face-new-frame-defaults'.
 Finally, apply any relevant face attributes found amongst the
 frame parameters in PARAMETERS."
-  (dolist (face (nreverse (face-list))) ;Why reverse?  --Stef
-    (condition-case ()
-	(progn
-	  ;; Initialize faces from face spec and custom theme.
-	  (face-spec-recalc face frame)
-	  ;; X resouces for the default face are applied during
-	  ;; x-create-frame.
-	  (and (not (eq face 'default))
-	       (memq (window-system frame) '(x w32))
-	       (make-face-x-resource-internal face frame))
-	  ;; Apply attributes specified by face-new-frame-defaults
-	  (internal-merge-in-global-face face frame))
-      ;; Don't let invalid specs prevent frame creation.
-      (error nil)))
+  (let ((window-system-p (memq (window-system frame) '(x w32))))
+    (dolist (face (nreverse (face-list))) ;Why reverse?  --Stef
+      (condition-case ()
+	  (progn
+	    ;; Initialize faces from face spec and custom theme.
+	    (face-spec-recalc face frame)
+	    ;; X resouces for the default face are applied during
+	    ;; `x-create-frame'.
+	    (and (not (eq face 'default)) window-system-p
+		 (make-face-x-resource-internal face frame))
+	    ;; Apply attributes specified by face-new-frame-defaults
+	    (internal-merge-in-global-face face frame))
+	;; Don't let invalid specs prevent frame creation.
+	(error nil))))
+
   ;; Apply attributes specified by frame parameters.
   (let ((face-params '((foreground-color default :foreground)
   		       (background-color default :background)
@@ -2066,7 +2056,7 @@ If PARAMETERS contains a `reverse' parameter, handle that."
             (set-terminal-parameter frame 'terminal-initted t)
             (set-locale-environment nil frame)
             (tty-run-terminal-initialization frame))
-	  (frame-set-background-mode frame)
+	  (frame-set-background-mode frame t)
 	  (face-set-after-frame-default frame parameters)
 	  (setq success t))
       (unless success
@@ -2122,7 +2112,7 @@ terminal type to a different value."
 
 (defun tty-set-up-initial-frame-faces ()
   (let ((frame (selected-frame)))
-    (frame-set-background-mode frame)
+    (frame-set-background-mode frame t)
     (face-set-after-frame-default frame)))
 
 
@@ -2448,7 +2438,9 @@ used to display the prompt text."
   :group 'frames
   :group 'basic-faces)
 
-(defface cursor '((t nil))
+(defface cursor
+  '((((background light)) :background "black")
+    (((background dark))  :background "white"))
   "Basic face for the cursor color under X.
 Note: Other faces cannot inherit from the cursor face."
   :version "21.1"

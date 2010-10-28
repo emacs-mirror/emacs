@@ -869,7 +869,7 @@ else
 fi
 
 AC_MSG_CHECKING([for -znocombreloc])
-AC_LINK_IFELSE([main(){return 0;}],
+AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
   [AC_MSG_RESULT(yes)],
   LDFLAGS=$late_LDFLAGS
   [AC_MSG_RESULT(no)])
@@ -1491,15 +1491,15 @@ dnl trailing "/" to it, so now we do it here.
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app/
-     ns_appbindir=${ns_appdir}Contents/MacOS/
-     ns_appresdir=${ns_appdir}Contents/Resources
+     ns_appdir=`pwd`/nextstep/Emacs.app
+     ns_appbindir=${ns_appdir}/Contents/MacOS/
+     ns_appresdir=${ns_appdir}/Contents/Resources
      ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app/
+     ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}
-     ns_appresdir=${ns_appdir}Resources
+     ns_appresdir=${ns_appdir}/Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
      dnl FIXME sourcing this several times in subshells seems inefficient.
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
@@ -1546,7 +1546,7 @@ if test "${HAVE_NS}" = yes; then
   fi
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
-  NS_SUPPORT="\${lispsource}emacs-lisp/easymenu.elc \${lispsource}term/ns-win.elc"
+  NS_SUPPORT="\${lispsource}/emacs-lisp/easymenu.elc \${lispsource}/term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
@@ -3260,9 +3260,9 @@ if test "${HAVE_X11}" = "yes" ; then
 	     Otherwise, Emacs expects to use version 10.])
 
   if test "$USE_X_TOOLKIT" = "none"; then
-    OLDXMENU="\${oldXMenudir}libXMenu11.a"
+    OLDXMENU="\${oldXMenudir}/libXMenu11.a"
   else
-    OLDXMENU="\${lwlibdir}liblw.a"
+    OLDXMENU="\${lwlibdir}/liblw.a"
   fi
   LIBXMENU="\$(OLDXMENU)"
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
@@ -3468,7 +3468,7 @@ if test "$HAVE_X_WINDOWS" = "yes" || test "$HAVE_NS" = "yes"; then
   AC_DEFINE(HAVE_WINDOW_SYSTEM, 1, [Define if you have a window system.])
   AC_DEFINE(HAVE_MOUSE, 1, [Define if you have mouse support.])
   MOUSE_SUPPORT="\$(REAL_MOUSE_SUPPORT)"
-  TOOLTIP_SUPPORT="\${lispsource}mouse.elc"
+  TOOLTIP_SUPPORT="\${lispsource}/mouse.elc"
 
   WINDOW_SUPPORT="\$(BASE_WINDOW_SUPPORT)"
   test "$HAVE_X_WINDOWS" = "yes" && \
@@ -3712,7 +3712,7 @@ echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
-echo "  Does Emacs use -lgnutls (BROKEN)?                       ${HAVE_GNUTLS}"
+echo "  Does Emacs use -lgnutls?                       	        ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"

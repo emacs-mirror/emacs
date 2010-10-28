@@ -108,7 +108,7 @@ For double-width GB2312 characters correponding to ASCII, use the
 input method `chinese-qj'.")
 
     ("chinese-ecdict" "$(05CKH(B"
-"In this input method, you enter a Chinese (Big5) charactere or word
+"In this input method, you enter a Chinese (Big5) character or word
 by typing the corresponding English word.  For example, if you type
 \"computer\", \"$(0IZH+(B\" is input.
 

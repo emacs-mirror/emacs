@@ -646,7 +646,7 @@ VALUE must be a function to call after all functions in
 `write-region-annotate-functions' and `buffer-file-format' are
 called, and before the text is encoded by the coding system
 itself.  This function should convert the whole text in the
-current buffer.  For backward compatibility, this funciton is
+current buffer.  For backward compatibility, this function is
 passed two arguments which can be ignored.
 
 `:default-char'

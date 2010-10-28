@@ -1,7 +1,8 @@
 /* Graphical user interface functions for the Microsoft W32 API.
-   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -245,7 +246,7 @@ struct MONITOR_INFO
 };
 
 /* Reportedly, VS 6 does not have this in its headers.  */
-#if defined(_MSC_VER) && _MSC_VER < 1300
+#if defined (_MSC_VER) && _MSC_VER < 1300
 DECLARE_HANDLE(HMONITOR);
 #endif
 
@@ -1870,7 +1871,6 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
     }
 }
 
-
 void
 x_set_scroll_bar_default_width (struct frame *f)
 {
@@ -1900,7 +1900,7 @@ w32_load_cursor (LPCTSTR name)
   return cursor;
 }
 
-extern LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
 
 static BOOL
 w32_init_class (HINSTANCE hinst)
@@ -2672,7 +2672,7 @@ post_character_message (HWND hwnd, UINT msg,
 
 /* Main window procedure */
 
-LRESULT CALLBACK
+static LRESULT CALLBACK
 w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   struct frame *f;
@@ -3918,7 +3918,6 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       return DefWindowProc (hwnd, msg, wParam, lParam);
     }
 
-
   /* The most common default return code for handled messages is 0.  */
   return 0;
 }
@@ -4358,7 +4357,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "leftFringe", "LeftFringe", RES_TYPE_NUMBER);
   x_default_parameter (f, parameters, Qright_fringe, Qnil,
 		       "rightFringe", "RightFringe", RES_TYPE_NUMBER);
-
 
   /* Init faces before x_default_parameter is called for scroll-bar
      parameters because that function calls x_set_scroll_bar_width,
@@ -4977,7 +4975,17 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
 }
 
 DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
-       doc: /* This is a noop on W32 systems.  */)
+       doc: /* If ON is non-nil, report X errors as soon as the erring request is made.
+This function only has an effect on X Windows.  With MS Windows, it is
+defined but does nothing.
+
+If ON is nil, allow buffering of requests.
+Turning on synchronization prohibits the Xlib routines from buffering
+requests and seriously degrades performance, but makes debugging much
+easier.
+The optional second argument TERMINAL specifies which display to act on.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If TERMINAL is omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object on, Lisp_Object display)
 {
   return Qnil;
@@ -4992,11 +5000,12 @@ DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
 DEFUN ("x-change-window-property", Fx_change_window_property,
        Sx_change_window_property, 2, 6, 0,
        doc: /* Change window property PROP to VALUE on the X window of FRAME.
-VALUE may be a string or a list of conses, numbers and/or strings.
-If an element in the list is a string, it is converted to
-an Atom and the value of the Atom is used.  If an element is a cons,
-it is converted to a 32 bit number where the car is the 16 top bits and the
-cdr is the lower 16 bits.
+PROP must be a string.  VALUE may be a string or a list of conses,
+numbers and/or strings.  If an element in the list is a string, it is
+converted to an atom and the value of the Atom is used.  If an element
+is a cons, it is converted to a 32 bit number where the car is the 16
+top bits and the cdr is the lower 16 bits.
+
 FRAME nil or omitted means use the selected frame.
 If TYPE is given and non-nil, it is the name of the type of VALUE.
 If TYPE is not given or nil, the type is STRING.
@@ -5004,9 +5013,7 @@ FORMAT gives the size in bits of each element if VALUE is a list.
 It must be one of 8, 16 or 32.
 If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
 If OUTER_P is non-nil, the property is changed for the outer X window of
-FRAME.  Default is to change on the edit X window.
-
-Value is VALUE.  */)
+FRAME.  Default is to change on the edit X window.  */)
   (Lisp_Object prop, Lisp_Object value, Lisp_Object frame, Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
 #if 0 /* TODO : port window properties to W32 */
@@ -5060,9 +5067,20 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
 DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
        1, 2, 0,
        doc: /* Value is the value of window property PROP on FRAME.
-If FRAME is nil or omitted, use the selected frame.  Value is nil
-if FRAME hasn't a property with name PROP or if PROP has no string
-value.  */)
+If FRAME is nil or omitted, use the selected frame.
+
+On MS Windows, this function only accepts the PROP and FRAME arguments.
+
+On X Windows, the following optional arguments are also accepted:
+If TYPE is nil or omitted, get the property as a string.
+Otherwise TYPE is the name of the atom that denotes the type expected.
+If SOURCE is non-nil, get the property on that window instead of from
+FRAME.  The number 0 denotes the root window.
+If DELETE_P is non-nil, delete the property after retreiving it.
+If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
+
+Value is nil if FRAME hasn't a property with name PROP or if PROP has
+no value of TYPE (always string in the MS Windows case).  */)
   (Lisp_Object prop, Lisp_Object frame)
 {
 #if 0 /* TODO : port window properties to W32 */
@@ -5903,7 +5921,7 @@ extern Lisp_Object Qfile_name_history;
    read-only when "Directories" is selected in the filter.  This
    allows us to work around the fact that the standard Open File
    dialog does not support directories.  */
-UINT CALLBACK
+static UINT CALLBACK
 file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   if (msg == WM_NOTIFY)
@@ -5951,10 +5969,13 @@ typedef struct
 
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
-Use a file selection dialog.
-Select DEFAULT-FILENAME in the dialog's file selection box, if
-specified.  Ensure that file exists if MUSTMATCH is non-nil.
-If ONLY-DIR-P is non-nil, the user can only select directories.  */)
+Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
+selection box, if specified.  If MUSTMATCH is non-nil, the returned file
+or directory must exist.
+
+This function is only defined on MS Windows, and X Windows with the
+Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
+Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   struct frame *f = SELECTED_FRAME ();

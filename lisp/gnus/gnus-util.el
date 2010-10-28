@@ -1930,25 +1930,6 @@ empty directories from OLD-PATH."
   (defalias 'gnus-set-process-query-on-exit-flag
     'process-kill-without-query))
 
-(if (fboundp 'with-local-quit)
-    (defalias 'gnus-with-local-quit 'with-local-quit)
-  (defmacro gnus-with-local-quit (&rest body)
-    "Execute BODY, allowing quits to terminate BODY but not escape further.
-When a quit terminates BODY, `gnus-with-local-quit' returns nil but
-requests another quit.  That quit will be processed as soon as quitting
-is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
-    ;;(declare (debug t) (indent 0))
-    `(condition-case nil
-	 (let ((inhibit-quit nil))
-	   ,@body)
-       (quit (setq quit-flag t)
-	     ;; This call is to give a chance to handle quit-flag
-	     ;; in case inhibit-quit is nil.
-	     ;; Without this, it will not be handled until the next function
-	     ;; call, and that might allow it to exit thru a condition-case
-	     ;; that intends to handle the quit signal next time.
-	     (eval '(ignore nil))))))
-
 (defalias 'gnus-read-shell-command
   (if (fboundp 'read-shell-command) 'read-shell-command 'read-string))
 

@@ -4055,10 +4055,12 @@ displayed (@pxref{Display Feature Testing}).
 
   Emacs can display a number of different image formats; some of them
 are supported only if particular support libraries are installed on
-your machine.  In some environments, Emacs can load image
-libraries on demand; if so, the variable @code{image-library-alist}
-can be used to modify the set of known names for these dynamic
-libraries (though it is not possible to add new image formats).
+your machine.  In some environments, Emacs can load support libraries
+on demand; if so, the variable @code{dynamic-library-alist}
+(@pxref{Dynamic Libraries}) can be used to modify the set of known
+names for these dynamic libraries (though it is not possible to add
+new image formats).  Note that image types @code{pbm} and @code{xbm}
+do not depend on external libraries and are always available in Emacs.
 
   The supported image formats include XBM, XPM (this requires the
 libraries @code{libXpm} version 3.4k and @code{libz}), GIF (requiring
@@ -4080,24 +4082,6 @@ unavailable dynamic libraries, for example).
 
 To know which image types are really available, use
 @code{image-type-available-p}.
-@end defvar
-
-@defvar image-library-alist
-This in an alist of image types vs external libraries needed to
-display them.
-
-Each element is a list @code{(@var{image-type} @var{library}...)},
-where the car is a supported image format from @code{image-types}, and
-the rest are strings giving alternate filenames for the corresponding
-external libraries to load.
-
-Emacs tries to load the libraries in the order they appear on the
-list; if none is loaded, the running session of Emacs won't support
-the image type.  @code{pbm} and @code{xbm} don't need to be listed;
-they're always supported.
-
-This variable is ignored if the image libraries are statically linked
-into Emacs.
 @end defvar
 
 @defun image-type-available-p type
@@ -5943,6 +5927,14 @@ used for displaying @var{frame} (which defaults to the currently
 selected frame).  The list of possible symbols it returns is the same
 one documented for the variable @code{window-system} above.
 @end defun
+
+  Do @emph{not} use @code{window-system} and
+@code{initial-window-system} as predicates or boolean flag variables,
+if you want to write code that works differently on text terminals and
+graphic displays.  That is because @code{window-system} is not a good
+indicator of Emacs capabilities on a given display type.  Instead, use
+@code{display-graphic-p} or any of the other @code{display-*-p}
+predicates described in @ref{Display Feature Testing}.
 
 @defvar window-setup-hook
 This variable is a normal hook which Emacs runs after handling the

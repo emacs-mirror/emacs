@@ -188,6 +188,9 @@ Combining diacritic or mark (Unicode General Category M)")
 			       cp932-2-byte))
   (map-charset-chars #'modify-category-entry l ?j))
 
+;; Fullwidth characters
+(modify-category-entry '(#xff01 . #xff60) ?\|)
+
 ;; Unicode equivalents of JISX0201-kana
 (let ((range '(#xff61 . #xff9f)))
   (modify-category-entry range  ?k)

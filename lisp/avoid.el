@@ -278,7 +278,8 @@ redefine this function to suit your own tastes."
 
 (defun mouse-avoidance-ignore-p ()
   (let ((mp (mouse-position)))
-    (or executing-kbd-macro	       ; don't check inside macro
+    (or (not (frame-pointer-visible-p)) ; The pointer is hidden
+        executing-kbd-macro	       ; don't check inside macro
 	(null (cadr mp))	       ; don't move unless in an Emacs frame
 	(not (eq (car mp) (selected-frame)))
 	;; Don't do anything if last event was a mouse event.

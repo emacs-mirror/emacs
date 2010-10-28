@@ -1139,13 +1139,17 @@ It is a vector of the following headers:
   :error "All header lines must be newline terminated")
 
 (defcustom message-default-headers ""
-  "*A string containing header lines to be inserted in outgoing messages.
-It is inserted before you edit the message, so you can edit or delete
-these lines."
+  "Header lines to be inserted in outgoing messages.
+This can be set to a string containing or a function returning
+header lines to be inserted before you edit the message, so you
+can edit or delete these lines.  If set to a function, it is
+called and its result is inserted."
   :version "23.2"
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
-  :type 'message-header-lines)
+  :type '(choice
+          (message-header-lines :tag "String")
+          (function :tag "Function")))
 
 (defcustom message-default-mail-headers
   ;; Ease the transition from mail-mode to message-mode.  See bugs#4431, 5555.
@@ -2639,7 +2643,6 @@ PGG manual, depending on the value of `mml2015-use'."
 
   (define-key message-mode-map "\C-a" 'message-beginning-of-line)
   (define-key message-mode-map "\t" 'message-tab)
-  (define-key message-mode-map "\M-;" 'comment-region)
 
   (define-key message-mode-map "\M-n" 'message-display-abbrev))
 
@@ -4206,7 +4209,7 @@ conformance."
 		 (?r ,(format
 		       "Replace non-printable characters with \"%s\" and send"
 		       message-replacement-char))
-		 (?i "Ignore non-printable characters and send")
+		 (?s "Send as is without removing anything")
 		 (?e "Continue editing"))))
 	(if (eq choice ?e)
 	  (error "Non-printable characters"))
@@ -6363,7 +6366,10 @@ are not included."
    headers)
   (delete-region (point) (progn (forward-line -1) (point)))
   (when message-default-headers
-    (insert message-default-headers)
+    (insert
+     (if (functionp message-default-headers)
+         (funcall message-default-headers)
+       message-default-headers))
     (or (bolp) (insert ?\n)))
   (insert mail-header-separator "\n")
   (forward-line -1)
@@ -6568,6 +6574,10 @@ The function is called with one parameter, a cons cell ..."
     (save-match-data
       ;; Build (textual) list of new recipient addresses.
       (cond
+       (to-address
+	(setq recipients (concat ", " to-address))
+	;; If the author explicitly asked for a copy, we don't deny it to them.
+	(if mct (setq recipients (concat recipients ", " mct))))
        ((not wide)
 	(setq recipients (concat ", " author)))
        (address-headers
@@ -6603,10 +6613,6 @@ responses here are directed to other addresses.
 You may customize the variable `message-use-mail-followup-to', if you
 want to get rid of this query permanently.")))
 	(setq recipients (concat ", " mft)))
-       (to-address
-	(setq recipients (concat ", " to-address))
-	;; If the author explicitly asked for a copy, we don't deny it to them.
-	(if mct (setq recipients (concat recipients ", " mct))))
        (t
 	(setq recipients (if never-mct "" (concat ", " author)))
 	(if to (setq recipients (concat recipients ", " to)))

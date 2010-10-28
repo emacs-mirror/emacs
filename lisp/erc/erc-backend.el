@@ -653,30 +653,31 @@ Conditionally try to reconnect and take appropriate action."
 
 (defun erc-process-sentinel (cproc event)
   "Sentinel function for ERC process."
-  (with-current-buffer (process-buffer cproc)
-    (erc-log (format
-              "SENTINEL: proc: %S	 status: %S  event: %S (quitting: %S)"
-              cproc (process-status cproc) event erc-server-quitting))
-    (if (string-match "^open" event)
-        ;; newly opened connection (no wait)
-        (erc-login)
-      ;; assume event is 'failed
-      (let ((buf (process-buffer cproc)))
-        (erc-with-all-buffers-of-server cproc nil
-                                        (setq erc-server-connected nil))
-        (when erc-server-ping-handler
-          (progn (erc-cancel-timer erc-server-ping-handler)
-                 (setq erc-server-ping-handler nil)))
-        (run-hook-with-args 'erc-disconnected-hook
-                            (erc-current-nick) (system-name) "")
-        ;; Remove the prompt
-        (goto-char (or (marker-position erc-input-marker) (point-max)))
-        (forward-line 0)
-        (erc-remove-text-properties-region (point) (point-max))
-        (delete-region (point) (point-max))
-        ;; Decide what to do with the buffer
-        ;; Restart if disconnected
-        (erc-process-sentinel-1 event buf)))))
+  (let ((buf (process-buffer cproc)))
+    (when (buffer-live-p buf)
+      (with-current-buffer buf
+        (erc-log (format
+                  "SENTINEL: proc: %S	 status: %S  event: %S (quitting: %S)"
+                  cproc (process-status cproc) event erc-server-quitting))
+        (if (string-match "^open" event)
+            ;; newly opened connection (no wait)
+            (erc-login)
+          ;; assume event is 'failed
+          (erc-with-all-buffers-of-server cproc nil
+                                          (setq erc-server-connected nil))
+          (when erc-server-ping-handler
+            (progn (erc-cancel-timer erc-server-ping-handler)
+                   (setq erc-server-ping-handler nil)))
+          (run-hook-with-args 'erc-disconnected-hook
+                              (erc-current-nick) (system-name) "")
+          ;; Remove the prompt
+          (goto-char (or (marker-position erc-input-marker) (point-max)))
+          (forward-line 0)
+          (erc-remove-text-properties-region (point) (point-max))
+          (delete-region (point) (point-max))
+          ;; Decide what to do with the buffer
+          ;; Restart if disconnected
+          (erc-process-sentinel-1 event buf))))))
 
 ;;;; Sending messages
 
@@ -1195,7 +1196,7 @@ add things to `%s' instead."
                       (setq buffer (erc-open erc-session-server erc-session-port
                                              nick erc-session-user-full-name
                                              nil nil
-                                             erc-default-recipients chnl
+                                             (list chnl) chnl
                                              erc-server-process))
                       (when buffer
                         (set-buffer buffer)

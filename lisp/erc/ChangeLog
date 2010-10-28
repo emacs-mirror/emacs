@@ -1,3 +1,14 @@
+2010-10-24  Julien Danjou  <julien@danjou.info>
+
+	* erc-backend.el (erc-server-JOIN): Set the correct target list on join.
+
+	* erc-backend.el (erc-process-sentinel): Check that buffer is alive
+	before setting it as current buffer.
+
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc-xdcc.el (erc-xdcc-help-text): Fix typo in docstring.
+
 2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* erc-list.el (erc-list-menu-mode-map): Declare and define in one step.

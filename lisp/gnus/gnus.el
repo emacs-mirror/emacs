@@ -1356,12 +1356,12 @@ updated if the value of this variable is nil, even if you change the
 value of `gnus-message-archive-method' afterward.  If you want the
 saved \"archive\" method to be updated whenever you change the value of
 `gnus-message-archive-method', set this variable to a non-nil value."
-  :version "23.1" ;; No Gnus
+  :version "23.1"
   :group 'gnus-server
   :group 'gnus-message
   :type 'boolean)
 
-(defcustom gnus-message-archive-group nil
+(defcustom gnus-message-archive-group '((format-time-string "sent.%Y-%m"))
   "*Name of the group in which to save the messages you've written.
 This can either be a string; a list of strings; or an alist
 of regexps/functions/forms to be evaluated to return a string (or a list
@@ -1381,8 +1381,12 @@ unprefixed -- which implicitly means \"store on the archive server\".
 However, you may wish to store the message on some other server.  In
 that case, just return a fully prefixed name of the group --
 \"nnml+private:mail.misc\", for instance."
+  :version "24.1"
   :group 'gnus-message
   :type '(choice (const :tag "none" nil)
+		 (const :tag "Weekly" ((format-time-string "sent.%Yw%U")))
+		 (const :tag "Monthly" ((format-time-string "sent.%Y-%m")))
+		 (const :tag "Yearly" ((format-time-string "sent.%Y")))
 		 function
 		 sexp
 		 string))
@@ -2911,6 +2915,7 @@ gnus-registry.el will populate this if it's loaded.")
       gnus-start-date-timer gnus-stop-date-timer
       gnus-mime-view-all-parts)
      ("gnus-int" gnus-request-type)
+     ("gnus-html" gnus-html-show-images)
      ("gnus-start" gnus-newsrc-parse-options gnus-1 gnus-no-server-1
       gnus-dribble-enter gnus-read-init-file gnus-dribble-touch
       gnus-check-reasonable-setup)
@@ -3937,7 +3942,9 @@ GROUP can also be an INFO structure."
 		    (not (eq (caar old-params) name)))
 	    (setq new-params (append new-params (list (car old-params)))))
 	  (setq old-params (cdr old-params)))
-	(gnus-group-set-info new-params (gnus-info-group info) 'params)))))
+	(if (listp group)
+	    (gnus-info-set-params info new-params t)
+	  (gnus-group-set-info new-params (gnus-info-group info) 'params))))))
 
 (defun gnus-group-remove-parameter (group name)
   "Remove parameter NAME from GROUP.

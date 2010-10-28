@@ -1,7 +1,8 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7697,15 +7698,18 @@ x_connection_closed (Display *dpy, const char *error_message)
 #endif
 
 #ifdef USE_GTK
-      /* Due to bugs in some Gtk+ versions, just exit here if this
-         is the last display/terminal. */
-      if (terminal_list->next_terminal == NULL)
-        {
-          fprintf (stderr, "%s\n", error_msg);
-          Fkill_emacs (make_number (70));
-          /* NOTREACHED */
-        }
-      xg_display_close (dpyinfo->display);
+      /* There is a long-standing bug in GTK that prevents the GTK
+	 main loop from recovering gracefully from disconnects
+	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Among
+	 other problems, this gives rise to a stream of Glib error
+	 messages that, in one incident, filled up a user's hard disk
+	 (http://lists.gnu.org/archive/html/emacs-devel/2010-10/msg00927.html).
+	 So, kill Emacs unconditionally if the display is closed.  */
+      {
+	fprintf (stderr, "%s\n", error_msg);
+	Fkill_emacs (make_number (70));
+	abort ();  /* NOTREACHED */
+      }
 #endif
 
       /* Indicate that this display is dead.  */
@@ -10682,9 +10686,11 @@ selected window or cursor position is preserved.  */);
   x_mouse_click_focus_ignore_position = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
-    doc: /* What X toolkit scroll bars Emacs uses.
-A value of nil means Emacs doesn't use X toolkit scroll bars.
-Otherwise, value is a symbol describing the X toolkit.  */);
+    doc: /* Which toolkit scroll bars Emacs uses, if any.
+A value of nil means Emacs doesn't use toolkit scroll bars.
+With the X Window system, the value is a symbol describing the
+X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
+With MS Windows, the value is t.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_MOTIF
   Vx_toolkit_scroll_bars = intern_c_string ("motif");
@@ -10750,5 +10756,3 @@ default is nil, which is the same as `super'.  */);
 
 #endif /* HAVE_X_WINDOWS */
 
-/* arch-tag: 6d4e4cb7-abc1-4302-9585-d84dcfb09d0f
-   (do not change this comment) */

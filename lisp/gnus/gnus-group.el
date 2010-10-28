@@ -55,6 +55,8 @@
 (autoload 'gnus-agent-total-fetched-for "gnus-agent")
 (autoload 'gnus-cache-total-fetched-for "gnus-cache")
 
+(autoload 'gnus-group-make-nnir-group "nnir")
+
 (defcustom gnus-no-groups-message "No Gnus is good news"
   "*Message displayed by Gnus when no groups are available."
   :group 'gnus-start
@@ -117,10 +119,11 @@ If nil, only list groups that have unread articles."
   :type 'boolean)
 
 (defcustom gnus-group-default-list-level gnus-level-subscribed
-  "*Default listing level.
+  "Default listing level.
 Ignored if `gnus-group-use-permanent-levels' is non-nil."
   :group 'gnus-group-listing
-  :type 'integer)
+  :type '(choice (integer :tag "Level")
+                 (function :tag "Function returning level")))
 
 (defcustom gnus-group-list-inactive-groups t
   "*If non-nil, inactive groups will be listed."
@@ -653,6 +656,7 @@ simple manner.")
   "D" gnus-group-enter-directory
   "f" gnus-group-make-doc-group
   "w" gnus-group-make-web-group
+  "G" gnus-group-make-nnir-group
   "M" gnus-group-read-ephemeral-group
   "r" gnus-group-rename-group
   "R" gnus-group-make-rss-group
@@ -757,7 +761,6 @@ simple manner.")
        (symbol-value 'gnus-topic-mode)))
 
 (defun gnus-group-make-menu-bar ()
-  (gnus-turn-off-edit-menu 'group)
   (unless (boundp 'gnus-group-reading-menu)
 
     (easy-menu-define
@@ -905,6 +908,7 @@ simple manner.")
 	["Add the help group" gnus-group-make-help-group t]
 	["Make a doc group..." gnus-group-make-doc-group t]
 	["Make a web group..." gnus-group-make-web-group t]
+	["Make a search group..." gnus-group-make-nnir-group t]
 	["Make a virtual group..." gnus-group-make-empty-virtual t]
 	["Add a group to a virtual..." gnus-group-add-to-virtual t]
 	["Make an ephemeral group..." gnus-group-read-ephemeral-group t]
@@ -1166,6 +1170,12 @@ The following commands are available:
   (mouse-set-point e)
   (gnus-group-read-group nil))
 
+(defun gnus-group-default-list-level ()
+  "Return the real value for `gnus-group-default-list-level'."
+  (if (functionp gnus-group-default-list-level)
+      (funcall gnus-group-default-list-level)
+    gnus-group-default-list-level))
+
 ;; Look at LEVEL and find out what the level is really supposed to be.
 ;; If LEVEL is non-nil, LEVEL will be returned, if not, what happens
 ;; will depend on whether `gnus-group-use-permanent-levels' is used.
@@ -1175,13 +1185,13 @@ The following commands are available:
     (or (setq gnus-group-use-permanent-levels
 	      (or level (if (numberp gnus-group-use-permanent-levels)
 			    gnus-group-use-permanent-levels
-			  (or gnus-group-default-list-level
+			  (or (gnus-group-default-list-level)
 			      gnus-level-subscribed))))
-	gnus-group-default-list-level gnus-level-subscribed))
+	(gnus-group-default-list-level) gnus-level-subscribed))
    (number-or-nil
     level)
    (t
-    (or level gnus-group-default-list-level gnus-level-subscribed))))
+    (or level (gnus-group-default-list-level) gnus-level-subscribed))))
 
 (defun gnus-group-setup-buffer ()
   (set-buffer (gnus-get-buffer-create gnus-group-buffer))
@@ -1227,7 +1237,7 @@ Also see the `gnus-group-use-permanent-levels' variable."
 	     (prefix-numeric-value current-prefix-arg)
 	   (or
 	    (gnus-group-default-level nil t)
-	    gnus-group-default-list-level
+	    (gnus-group-default-list-level)
 	    gnus-level-subscribed))))
   (unless level
     (setq level (car gnus-group-list-mode)
@@ -1548,7 +1558,7 @@ if it is a string, only list groups matching REGEXP."
 	      ?m ? ))
 	 (gnus-tmp-moderated-string
 	  (if (eq gnus-tmp-moderated ?m) "(m)" ""))
-         (gnus-tmp-group-icon (gnus-group-get-icon gnus-tmp-qualified-group))
+         (gnus-tmp-group-icon (gnus-group-get-icon gnus-tmp-group))
 	 (gnus-tmp-news-server (or (cadr gnus-tmp-method) ""))
 	 (gnus-tmp-news-method (or (car gnus-tmp-method) ""))
 	 (gnus-tmp-news-method-string
@@ -1888,7 +1898,7 @@ If FIRST-TOO, the current line is also eligible as a target."
       (unless no-advance
 	(gnus-group-next-group 1))
       (decf n))
-    (gnus-summary-position-point)
+    (gnus-group-position-point)
     n))
 
 (defun gnus-group-unmark-group (n)
@@ -2190,11 +2200,13 @@ if it is not a list."
 				      require-match initial-input
 				      (or hist 'gnus-group-history)
 				      def))
-    (if (if (listp collection)
-	    (member group (mapcar 'symbol-name collection))
-	  (symbol-value (intern-soft group collection)))
-	group
-      (mm-encode-coding-string group (gnus-group-name-charset nil group)))))
+    (unless (if (listp collection)
+		(member group (mapcar 'symbol-name collection))
+	      (symbol-value (intern-soft group collection)))
+      (setq group
+	    (mm-encode-coding-string
+	     group (gnus-group-name-charset nil group))))
+    (gnus-replace-in-string group "\n" "")))
 
 ;;;###autoload
 (defun gnus-fetch-group (group &optional articles)
@@ -2424,9 +2436,9 @@ the bug number, and browsing the URL must return mbox output."
       (while (re-search-forward "^To: " nil t)
 	(end-of-line)
 	(insert (format ", %s@%s" number
-			(replace-regexp-in-string
-			 "/.*$" ""
-			 (replace-regexp-in-string "^http://" "" mbox-url)))))
+			(gnus-replace-in-string
+			 (gnus-replace-in-string mbox-url "^http://" "")
+			 "/.*$" ""))))
       (write-region (point-min) (point-max) tmpfile)
       (gnus-group-read-ephemeral-group
        "gnus-read-ephemeral-bug"
@@ -3677,7 +3689,7 @@ If given numerical prefix, toggle the N next groups."
 Killed newsgroups are subscribed.  If SILENT, don't try to update the
 group line."
   (interactive (list (gnus-group-completing-read
-		      nil (gnus-read-active-file-p))))
+		      nil nil (gnus-read-active-file-p))))
   (let ((newsrc (gnus-group-entry group)))
     (cond
      ((string-match "^[ \t]*$" group)
@@ -4010,7 +4022,7 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
       (goto-char beg))
     (when gnus-goto-next-group-when-activating
       (gnus-group-next-unread-group 1 t))
-    (gnus-summary-position-point)
+    (gnus-group-position-point)
     ret))
 
 (defun gnus-group-fetch-control (group)

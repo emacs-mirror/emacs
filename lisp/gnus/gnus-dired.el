@@ -133,7 +133,9 @@ filenames."
 	  (mapcar
 	   ;; don't attach directories
 	   (lambda (f) (if (file-directory-p f) nil f))
-	   (nreverse (dired-map-over-marks (dired-get-filename) nil))))))
+	   (nreverse
+	    (let ((arg nil)) ;; Silence XEmacs 21.5 when compiling.
+	      (dired-map-over-marks (dired-get-filename) arg)))))))
   (let ((destination nil)
 	(files-str nil)
 	(bufs nil))

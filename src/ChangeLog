@@ -1,3 +1,221 @@
+2010-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (init_eval_once): Set max_lisp_eval_depth to 600;
+	otherwise, bootstrapping on Windows fails to compile macroexp.el.
+
+2010-10-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmds.c (internal_self_insert): Don't insert if argument N is
+	zero or negative.  (Bug#7281)
+
+2010-10-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (qttip_cb): Set title to empty for ATK (Bug#7278).
+
+2010-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SOME_MACHINE_LISP): Remove easymenu.elc.
+
+2010-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* w32fns.c (Fx_synchronize, Fx_change_window_property)
+	(Fx_window_property, Fx_file_dialog):
+	* xfns.c (Fx_synchronize, Fx_change_window_property)
+	(Fx_window_property, Fx_file_dialog): Sync docs between w32 and X.
+
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_connection_closed): Kill Emacs unconditionally.
+
+2010-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (Fframep, Fwindow_system): Deprecate use as a predicate.
+
+	* dispnew.c (syms_of_display) <initial-window-system, window-system>:
+	Deprecate use as a boolean flag.
+
+2010-10-24  Jim Meyering  <jim@meyering.net>
+
+	* emacs.c (argmatch): Don't treat "--" as "--chdir".
+
+2010-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* w16select.c (syms_of_win16select) <selection-coding-system>:
+	<next-selection-coding-system>:
+	* w32select.c (syms_of_w32select) <selection-coding-system>:
+	<next-selection-coding-system>:
+	Sync docs with select.el.
+
+	* xfaces.c (syms_of_xfaces) <tty-defined-color-alist>: Sync doc with
+	Lisp version.
+
+	* w32term.c (syms_of_w32term) <x-use-underline-position-properties>:
+	Sync doc with the xterm.c version.
+
+	* w32term.c (syms_of_w32term) <x-toolkit-scroll-bars>:
+	* xterm.c (syms_of_xterm) <x-toolkit-scroll-bars>: Sync docs.
+
+2010-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (syms_of_buffer) <cursor-in-non-selected-windows>:
+	* frame.c (syms_of_frame) <menu-bar-mode>:
+	* xdisp.c (syms_of_xdisp) <auto-hscroll-mode, display-hourglass>:
+	<hourglass-delay>: Sync docs with Lisp.
+
+2010-10-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement mouse highlight for bidi-reordered lines.
+
+	* xdisp.c (fast_find_string_pos): #ifdef away, not used anymore.
+	(mouse_face_from_string_pos): New function, replaces
+	fast_find_string_pos.
+	(note_mouse_highlight): Call it instead of fast_find_string_pos.
+	(note_mode_line_or_margin_highlight): Support bidi-reordered
+	strings and R2L glyph rows.  Fix comments.
+	(note_mouse_highlight): When bidi reordering is turned on in a
+	buffer, call next-single-property-change and
+	previous-single-property-change with last argument nil.  Clear
+	mouse highlight when mouse pointer is in a R2L row on the stretch
+	glyph that stands for no text beyond the line end.
+	(row_containing_pos): Don't return too early when CHARPOS is in a
+	bidi-reordered continued line.  Return immediately when the first
+	hit is found in a line that is not continued, or when an exact
+	match for CHARPOS is found.
+	(rows_from_pos_range): New function.
+	(mouse_face_from_buffer_pos): Use it instead of calling
+	row_containing_pos for START_CHARPOS and END_CHARPOS.  Rewrite the
+	function to support mouse highlight in bidi-reordered lines and
+	not to assume that START_CHARPOS is always in mouse_face_beg_row.
+	If necessary, swap mouse_face_beg_row and mouse_face_end_row so
+	that the former is always above the latter or identical to it.
+	(show_mouse_face): Support drawing highlighted R2L lines.
+	(coords_in_mouse_face_p): New function, bidi-aware.
+	(cursor_in_mouse_face_p, note_mouse_highlight, erase_phys_cursor):
+	Call it instead of comparing with mouse-face members of dpyinfo.
+	(note_mode_line_or_margin_highlight): Fix confusingly swapped
+	usage of hpos and vpos.
+
+2010-10-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xrdb.c: Include keyboard.h for MOTIF.
+
+	* xmenu.c: Revert 2010-07-27 change: lwlib.h is needed for
+	MOTIF (Bug#7263).
+
+	* xfns.c: Include Xm/TextF and Xm/List.
+	(file_dialog_cb, file_dialog_unmap_cb, clean_up_file_dialog): Make
+	ANSI prototypes.
+
+2010-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SOME_MACHINE_LISP): Add w32-vars.
+	Remove ccl and duplicate mouse.
+
+2010-10-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* insdel.c (prepare_to_modify_buffer): Don't set
+	saved-region-selection if modification hooks are disabled.
+
+2010-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cmds.c (Fdelete_char): Doc fix.
+
+2010-10-19  Ken Brown  <kbrown@cornell.edu>
+
+	* s/cygwin.h (SIGNALS_VIA_CHARACTERS): New define (bug#7225).
+
+2010-10-19  Kenichi Handa  <handa@m17n.org>
+
+	Fix incorrect font metrics when the same font is opened with
+	different pixelsizes.
+
+	* xftfont.c: Include composite.h.
+	(xftfont_shape): New function.
+	(syms_of_xftfont): Set xftfont_driver.shape.
+
+2010-10-18  Julien Danjou  <julien@danjou.info>
+
+	* frame.c (Fframe_pointer_visible_p):
+	Add `frame-pointer-visible-p' to get the pointer visibility.
+
+2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_read): Return 0 if we get a
+	non-"EAGAIN"-like error to signal to Emacs that the socket should
+	be closed.
+
+2010-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* unexcoff.c (make_hdr): Fix prototype according to changes in
+	revno 101757.
+
+	* image.c (tiff_load): Cast 3rd argument to avoid compiler warning.
+
+2010-10-15  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* Makefile.in (really-oldXMenu): Fix typo in variable name that
+	made building the X menu fail.
+	(really-oldXMenu): Fix my previous fix.
+
+2010-10-14  Damyan Pepper  <damyanp@gmail.com>
+
+	Fix handling of font properties on Windows (bug#6303).
+	* font.c (font_filter_properties): New function, refactored from
+	ftfont_filter_properties.
+	* font.h (font_filter_properties): Declare.
+	* ftfont.c (ftfont_filter_properties): Use font_filter_properties.
+	* w32font.c (w32font_booleans, w32font_non_booleans): New variables.
+	(w32font_filter_properties): New function.
+	(w32font_driver): Add w32font_filter_properties.
+
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Ffont_variation_glyphs):
+	* ccl.c (Fccl_execute_on_string): Fix typo in docstring.
+
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (w32_wnd_proc, file_dialog_callback):
+	* w32font.c (w32_generic_family):
+	* w32inevt.c (key_event):
+	* w32menu.c (fill_in_menu):
+	* w32proc.c (reader_thread, w32_executable_type, compare_env)
+	(merge_and_sort_env, int_from_hex, enum_locale_fn, enum_codepage_fn):
+	* w32term.c (w32_read_socket): Make static.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (DEF_IMGLIB_FN): Add argument to adapt to strict
+	prototypes; all callers changed.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (TLIB2): Rename from TLIBW32.
+	(OBJ2): New macro.
+	(WIN32OBJ, FONTOBJ): Remove.
+	(OBJ1): Redistribute object files with OBJ2.
+	(LIBS, $(TEMACS)): Use TLIB2.
+	(make-buildobj-CMD, make-buildobj-SH): Use OBJ2.
+	($(TLIB2), TAGS, TAGS-LISP, TAGS-gmake): Depend on OBJ2.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (Vdynamic_library_alist)
+	(syms_of_emacs) <dynamic-library-alist>: Move from image.c and rename.
+	Doc fix.
+
+	* lisp.h (Vdynamic_library_alist): Declare extern.
+
+	* image.c (Vimage_library_alist)
+	(syms_of_image) <image-library-alist>: Move to emacs.c and rename.
+	(lookup_image_type): Use Vdynamic_library_alist.
+	(Finit_image_library): Doc fix.
+
+2010-10-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (lispsource, libsrc, etc, oldxmenudir, lwlibdir)
+	(lispdir): Remove trailing /, update all uses.
+
 2010-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (Qleft): Declare.
@@ -28124,10 +28342,10 @@ See ChangeLog.10 for earlier changes.
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 2007, 2008, 2009, 2010
+    Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -28144,4 +28362,3 @@ See ChangeLog.10 for earlier changes.
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;; arch-tag: dfb6ad96-1550-4905-9e53-d2059ee84c40
