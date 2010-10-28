@@ -186,48 +186,6 @@ The properties returned may include `top', `left', `height', and `width'."
 (declare-function ns-do-applescript "nsfns.m" (script))
 (defalias 'do-applescript 'ns-do-applescript)
 
-;; Add a couple of menus and rearrange some others; easiest just to redo toplvl
-;; Note keymap defns must be given last-to-first
-(define-key global-map [menu-bar] (make-sparse-keymap "menu-bar"))
-
-(setq menu-bar-final-items
-      (cond ((eq system-type 'darwin)
-             '(buffer services help-menu))
-            ;; Otherwise, GNUstep.
-            (t
-             '(buffer services hide-app quit))))
-
-;; Add standard top-level items to GNUstep menu.
-(unless (eq system-type 'darwin)
-  (define-key global-map [menu-bar quit] '("Quit" . save-buffers-kill-emacs))
-  (define-key global-map [menu-bar hide-app] '("Hide" . ns-do-hide-emacs)))
-
-(define-key global-map [menu-bar services]
-  (cons "Services" (make-sparse-keymap "Services")))
-(define-key global-map [menu-bar buffer]
-  (cons "Buffers" global-buffers-menu-map))
-;;  (cons "Buffers" (make-sparse-keymap "Buffers")))
-(define-key global-map [menu-bar tools] (cons "Tools" menu-bar-tools-menu))
-(define-key global-map [menu-bar options] (cons "Options" menu-bar-options-menu))
-(define-key global-map [menu-bar edit] (cons "Edit" menu-bar-edit-menu))
-(define-key global-map [menu-bar file] (cons "File" menu-bar-file-menu))
-
-;; If running under GNUstep, rename "Help" to "Info"
-(cond ((eq system-type 'darwin)
-       (define-key global-map [menu-bar help-menu]
-	 (cons "Help" menu-bar-help-menu)))
-      (t
-       (let ((contents (reverse (cdr menu-bar-help-menu))))
-	 (setq menu-bar-help-menu
-	       (append (list 'keymap) (cdr contents) (list "Info"))))
-       (define-key global-map [menu-bar help-menu]
-	 (cons "Info" menu-bar-help-menu))))
-
-(if (not (eq system-type 'darwin))
-    ;; in OS X it's in the app menu already
-    (define-key menu-bar-help-menu [info-panel]
-      '("About Emacs..." . ns-do-emacs-info-panel)))
-
 ;;;; Services
 (declare-function ns-perform-service "nsfns.m" (service send))
 

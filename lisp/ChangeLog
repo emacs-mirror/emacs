@@ -1,5 +1,10 @@
 2010-10-28  Glenn Morris  <rgm@gnu.org>
 
+	* term/ns-win.el (global-map, menu-bar-final-items, menu-bar-help-menu):
+	Move menu-bar related settings to ../menu-bar.el.
+	* menu-bar.el (global-map, menu-bar-final-items, menu-bar-help-menu):
+	Move ns-specific settings here from term/ns-win.el.
+
 	* simple.el (x-selection-owner-p): Remove unused declaration.
 
 2010-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>

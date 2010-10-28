@@ -35,14 +35,33 @@
     (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar")))
 (defvar menu-bar-help-menu (make-sparse-keymap "Help"))
 
-;; Force Help item to come last, after the major mode's own items.
-;; The symbol used to be called `help', but that gets confused with the
-;; help key.
-(setq menu-bar-final-items '(help-menu))
+(if (not (featurep 'ns))
+    ;; Force Help item to come last, after the major mode's own items.
+    ;; The symbol used to be called `help', but that gets confused with the
+    ;; help key.
+    (setq menu-bar-final-items '(help-menu))
+  (if (eq system-type 'darwin)
+      (setq menu-bar-final-items '(buffer services help-menu))
+    (setq menu-bar-final-items '(buffer services hide-app quit))
+    ;; Add standard top-level items to GNUstep menu.
+    (define-key global-map [menu-bar quit]
+      `(menu-item ,(purecopy "Quit") save-buffers-kill-emacs
+                  :help ,(purecopy "Save unsaved buffers, then exit")))
+    (define-key global-map [menu-bar hide-app]
+      `(menu-item ,(purecopy "Hide") ns-do-hide-emacs
+                  :help ,(purecopy "Hide Emacs"))))
+  (define-key global-map [menu-bar services] ; set-up in ns-win
+    (cons (purecopy "Services") (make-sparse-keymap "Services"))))
 
-(define-key global-map [menu-bar help-menu] (cons (purecopy "Help") menu-bar-help-menu))
+;; If running under GNUstep, "Help" is moved and renamed "Info" (see below).
+(or (and (featurep 'ns)
+         (not (eq system-type 'darwin)))
+    (define-key global-map [menu-bar help-menu]
+      (cons (purecopy "Help") menu-bar-help-menu)))
+
 (defvar menu-bar-tools-menu (make-sparse-keymap "Tools"))
-(define-key global-map [menu-bar tools] (cons (purecopy "Tools") menu-bar-tools-menu))
+(define-key global-map [menu-bar tools]
+  (cons (purecopy "Tools") menu-bar-tools-menu))
 ;; This definition is just to show what this looks like.
 ;; It gets modified in place when menu-bar-update-buffers is called.
 (defvar global-buffers-menu-map (make-sparse-keymap "Buffers"))
@@ -52,9 +71,17 @@
 (define-key global-map [menu-bar options]
   (cons (purecopy "Options") menu-bar-options-menu))
 (defvar menu-bar-edit-menu (make-sparse-keymap "Edit"))
-(define-key global-map [menu-bar edit] (cons (purecopy "Edit") menu-bar-edit-menu))
+(define-key global-map [menu-bar edit]
+  (cons (purecopy "Edit") menu-bar-edit-menu))
 (defvar menu-bar-file-menu (make-sparse-keymap "File"))
-(define-key global-map [menu-bar file] (cons (purecopy "File") menu-bar-file-menu))
+(define-key global-map [menu-bar file]
+  (cons (purecopy "File") menu-bar-file-menu))
+
+;; Put "Help" menu at the front, called "Info".
+(and (featurep 'ns)
+     (not (eq system-type 'darwin))
+     (define-key global-map [menu-bar help-menu]
+       (cons (purecopy "Info") menu-bar-help-menu)))
 
 ;; This alias is for compatibility with 19.28 and before.
 (defvar menu-bar-files-menu menu-bar-file-menu)
@@ -458,7 +485,6 @@
 	      ,(purecopy "Delete the text in region between mark and current position")))
 (defvar yank-menu (cons (purecopy "Select Yank") nil))
 (fset 'yank-menu (cons 'keymap yank-menu))
-;; The ns differences here seem silly.
 (define-key menu-bar-edit-menu (if (featurep 'ns) [select-paste]
                                  [paste-from-menu])
   ;; ns-win.el said: Change text to be more consistent with
@@ -1028,47 +1054,47 @@ mail status in mode line"))
       (defvar menu-bar-showhide-tool-bar-menu (make-sparse-keymap "Tool-bar"))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-left]
-	`(menu-item ,(purecopy "On the left") 
+	`(menu-item ,(purecopy "On the left")
 		    menu-bar-showhide-tool-bar-menu-customize-enable-left
 		    :help ,(purecopy "Tool-bar at the left side")
 		    :visible (display-graphic-p)
-		    :button 
-		    (:radio . (and tool-bar-mode 
+		    :button
+		    (:radio . (and tool-bar-mode
 				   (eq (frame-parameter nil 'tool-bar-position)
 				       'left)))))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-right]
-	`(menu-item ,(purecopy "On the right") 
+	`(menu-item ,(purecopy "On the right")
 		    menu-bar-showhide-tool-bar-menu-customize-enable-right
 		    :help ,(purecopy "Tool-bar at the right side")
 		    :visible (display-graphic-p)
 		    :button
-		    (:radio . (and tool-bar-mode 
+		    (:radio . (and tool-bar-mode
 				   (eq (frame-parameter nil 'tool-bar-position)
 				       'right)))))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-bottom]
-	`(menu-item ,(purecopy "On the bottom") 
+	`(menu-item ,(purecopy "On the bottom")
 		    menu-bar-showhide-tool-bar-menu-customize-enable-bottom
 		    :help ,(purecopy "Tool-bar at the bottom")
 		    :visible (display-graphic-p)
 		    :button
-		    (:radio . (and tool-bar-mode 
+		    (:radio . (and tool-bar-mode
 				   (eq (frame-parameter nil 'tool-bar-position)
 				       'bottom)))))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-top]
-	`(menu-item ,(purecopy "On the top") 
+	`(menu-item ,(purecopy "On the top")
 		    menu-bar-showhide-tool-bar-menu-customize-enable-top
 		    :help ,(purecopy "Tool-bar at the top")
 		    :visible (display-graphic-p)
 		    :button
-		    (:radio . (and tool-bar-mode 
+		    (:radio . (and tool-bar-mode
 				   (eq (frame-parameter nil 'tool-bar-position)
 				       'top)))))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-none]
-	`(menu-item ,(purecopy "None") 
+	`(menu-item ,(purecopy "None")
 		    menu-bar-showhide-tool-bar-menu-customize-disable
 		    :help ,(purecopy "Turn tool-bar off")
 		    :visible (display-graphic-p)
@@ -1687,6 +1713,13 @@ key, a click, or a menu-item")))
 (define-key menu-bar-help-menu [emacs-tutorial]
   `(menu-item ,(purecopy "Emacs Tutorial") help-with-tutorial
 	      :help ,(purecopy "Learn how to use Emacs")))
+
+;; In OS X it's in the app menu already.
+;; FIXME? There already is an "About Emacs" (sans ...) entry in the Help menu.
+(and (featurep 'ns)
+     (not (eq system-type 'darwin))
+     (define-key menu-bar-help-menu [info-panel]
+       `(menu-item ,(purecopy "About Emacs...") ns-do-emacs-info-panel)))
 
 (defun menu-bar-menu-frame-live-and-visible-p ()
   "Return non-nil if the menu frame is alive and visible.
