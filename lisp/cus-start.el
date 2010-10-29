@@ -174,6 +174,35 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
              ;; fileio.c
              (delete-by-moving-to-trash auto-save boolean "23.1")
 	     (auto-save-visited-file-name auto-save boolean)
+	     ;; filelock.c
+	     (temporary-file-directory
+	      ;; Darwin section added 24.1, does not seem worth :version bump.
+	      files directory nil
+	      (file-name-as-directory
+	       ;; FIXME ? Should there be Ftemporary_file_directory to do this
+	       ;; more robustly (cf set_local_socket in emacsclient.c).
+	       ;; It could be used elsewhere, eg Fcall_process_region,
+	       ;; server-socket-dir.  See bug#7135.
+	       (cond ((memq system-type '(ms-dos windows-nt))
+		      (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP")
+			  "c:/temp"))
+		     ((eq system-type 'darwin)
+		      (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
+			  ;; See bug#7135.
+			  (let ((tmp (ignore-errors
+				       (shell-command-to-string
+					"getconf DARWIN_USER_TEMP_DIR"))))
+			    (and (stringp tmp)
+				 (setq tmp (replace-regexp-in-string
+					    "\n\\'" "" tmp))
+				 ;; Handles "getconf: Unrecognized variable..."
+				 (file-directory-p tmp)
+				 tmp))
+			  "/tmp"))
+		     (t
+		      (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
+			  "/tmp"))))
+	      :initialize custom-initialize-delay)
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "22.1")
