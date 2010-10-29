@@ -1,3 +1,35 @@
+2010-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	SMIE: change indent rules format, improve smie-setup.
+	* emacs-lisp/smie.el (smie-precs-precedence-table)
+	(smie-merge-prec2s, smie-bnf-precedence-table, smie-prec2-levels):
+	Mark them pure so the tables gets built at compile time.
+	(smie-bnf-precedence-table): Store the closer-alist in the table.
+	(smie-prec2-levels): Preserve the closer-alist.
+	(smie-blink-matching-open): Be more forgiving in case of indentation.
+	(smie-hanging-p): Rename from smie-indent--hanging-p.
+	(smie-bolp): Rename from smie-indent--bolp.
+	(smie--parent, smie--after): New dynamic vars.
+	(smie-parent-p, smie-next-p, smie-prev-p): New funs.
+	(smie-indent-rules): Remove.
+	(smie-indent--offset-rule): Remove fun.
+	(smie-rules-function): New var.
+	(smie-indent--rule): New fun.
+	(smie-indent--offset, smie-indent-keyword, smie-indent-after-keyword)
+	(smie-indent-exps): Use it.
+	(smie-setup): Setup paren blinking; add keyword args for token
+	functions; extract closer-alist from op-levels.
+	(smie-indent-debug-log): Remove var.
+	(smie-indent-debug): Remove fun.
+	* progmodes/prolog.el (prolog-smie-indent-rules): Remove.
+	(prolog-smie-rules): New fun to replace it.
+	(prolog-mode-variables): Simplify.
+	* progmodes/octave-mod.el (octave-smie-closer-alist): Remove, now that
+	it's setup automatically.
+	(octave-smie-indent-rules): Remove.
+	(octave-smie-rules): New fun to replace it.
+	(octave-mode): Simplify.
+
 2010-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (temporary-file-directory): Remove (already defined in C).
