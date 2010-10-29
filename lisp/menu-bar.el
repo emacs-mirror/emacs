@@ -2073,7 +2073,8 @@ With a numeric argument, if the argument is positive,
 turn on menu bars; otherwise, turn off menu bars."
   :init-value t
   :global t
-  :group 'frames
+  ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
+  :variable menu-bar-mode
 
   ;; Turn the menu-bars on all frames on or off.
   (let ((val (if menu-bar-mode 1 0)))

@@ -101,6 +101,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	      :set #'(lambda (symbol value)
 		       (set-default symbol value)
 		       (force-mode-line-update t)))
+	     (transient-mark-mode editing-basics boolean nil
+				  (not noninteractive)
+				  :initialize custom-initialize-delay)
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
@@ -185,6 +188,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					    (other :tag "hidden by keypress" 1))
 			      "22.1")
 	     (make-pointer-invisible mouse boolean "23.2")
+	     (menu-bar-mode frames boolean)
+	     (tool-bar-mode (frames mouse) boolean)
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; indent.c
@@ -452,11 +457,17 @@ since it could result in memory overflow and make Emacs crash."
 	  (put symbol 'safe-local-variable (cadr prop)))
       (if (setq prop (memq :risky rest))
 	  (put symbol 'risky-local-variable (cadr prop)))
+      ;; Note this is the _only_ initialize property we handle.
+      (if (eq (cadr (memq :initialize rest)) 'custom-initialize-delay)
+	  (push symbol custom-delayed-init-variables))
       ;; If this is NOT while dumping Emacs,
       ;; set up the rest of the customization info.
       (unless purify-flag
-	;; Add it to the right group.
-	(custom-add-to-group group symbol 'custom-variable)
+	;; Add it to the right group(s).
+	(if (listp group)
+	    (dolist (g group)
+	      (custom-add-to-group g symbol 'custom-variable))
+	  (custom-add-to-group group symbol 'custom-variable))
 	;; Set the type.
 	(put symbol 'custom-type type)
 	(put symbol 'custom-version version)

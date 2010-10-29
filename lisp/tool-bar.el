@@ -1,8 +1,8 @@
 ;;; tool-bar.el --- setting up the tool bar
-;;
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-;;
+
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
+
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: mouse frames
 ;; Package: emacs
@@ -51,8 +51,8 @@ See `tool-bar-add-item' and `tool-bar-add-item-from-menu' for
 conveniently adding tool bar items."
   :init-value t
   :global t
-  :group 'mouse
-  :group 'frames
+  ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
+  :variable tool-bar-mode
   (let ((val (if tool-bar-mode 1 0)))
     (dolist (frame (frame-list))
       (set-frame-parameter frame 'tool-bar-lines val))
@@ -325,10 +325,10 @@ Customize `tool-bar-mode' if you want to show or hide the tool bar."
       :initialize 'custom-initialize-default
       :set (lambda (sym val)
 	     (set-default sym val)
-	     (modify-all-frames-parameters 
+	     (modify-all-frames-parameters
 	      (list (cons 'tool-bar-position val))))))
 
 
 (provide 'tool-bar)
-;; arch-tag: 15f30f0a-d0d7-4d50-bbb7-f48fd0c8582f
+
 ;;; tool-bar.el ends here

@@ -1,3 +1,8 @@
+2010-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (syms_of_buffer) <abbrev-mode, transient-mark-mode>:
+	* frame.c (syms_of_frame) <tool-bar-mode>: Move doc here from Lisp.
+
 2010-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (init_eval_once): Set max_lisp_eval_depth to 600;

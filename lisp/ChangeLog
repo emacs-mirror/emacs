@@ -1,3 +1,17 @@
+2010-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* abbrev.el (abbrev-mode):
+	* composite.el (auto-composition-mode):
+	* menu-bar.el (menu-bar-mode):
+	* simple.el (transient-mark-mode):
+	* tool-bar.el (tool-bar-mode): Adjust the define-minor-mode calls so
+	that they do not define the associated variables twice.
+	* simple.el (transient-mark-mode): Remove defvar.
+	* composite.el (auto-composition-mode): Make variable auto-buffer-local.
+	* cus-start.el: Add transient-mark-mode, menu-bar-mode, tool-bar-mode.
+	Handle multiple groups, and also custom-delayed-init-variables.
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix.
+
 2010-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase): New `string' and `guard' patterns.
