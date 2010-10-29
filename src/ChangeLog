@@ -1,5 +1,11 @@
 2010-10-29  Glenn Morris  <rgm@gnu.org>
 
+	* nsfns.m (Fx-display-save-under, Fx-open-connection)
+	(Fxw-color-defined-p, Fxw-display-color-p, Fx-show-tip):
+	* w32fns.c (Fxw_color_defined_p, Fx_open_connection):
+	* xfns.c (Fxw_color_defined_p, Fx_open_connection):
+	Sync docs between X, W32, NS.
+
 	* buffer.c (syms_of_buffer) <abbrev-mode, transient-mark-mode>:
 	* frame.c (syms_of_frame) <tool-bar-mode>: Move doc here from Lisp.
 
