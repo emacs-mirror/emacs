@@ -59,13 +59,13 @@ typedef HCURSOR Cursor;
 
 /* Dealing with bits of wchar_t as if they were an XChar2b.  */
 #define STORE_XCHAR2B(chp, byte1, byte2) \
-  ((*chp) = ((XChar2b)((((byte1) & 0x00ff) << 8) | ((byte2) & 0x00ff))))
+  ((*(chp)) = ((XChar2b)((((byte1) & 0x00ff) << 8) | ((byte2) & 0x00ff))))
 
 #define XCHAR2B_BYTE1(chp) \
- (((*chp) & 0xff00) >> 8)
+  (((*(chp)) & 0xff00) >> 8)
 
 #define XCHAR2B_BYTE2(chp) \
- ((*chp) & 0x00ff)
+  ((*(chp)) & 0x00ff)
 
 
 /* Windows equivalent of XImage.  */
