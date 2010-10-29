@@ -1330,6 +1330,83 @@ x_draw_composite_glyph_string_foreground (struct glyph_string *s)
 }
 
 
+/* Draw the foreground of glyph string S for glyphless characters.  */
+
+static void
+x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
+{
+  struct glyph *glyph = s->first_glyph;
+  XChar2b char2b[8];
+  int x, i, j;
+
+  /* If first glyph of S has a left box line, start drawing the text
+     of S to the right of that box line.  */
+  if (s->face && s->face->box != FACE_NO_BOX
+      && s->first_glyph->left_box_line_p)
+    x = s->x + eabs (s->face->box_line_width);
+  else
+    x = s->x;
+
+  s->char2b = char2b;
+
+  for (i = 0; i < s->nchars; i++, glyph++)
+    {
+      char buf[7], *str = NULL;
+      int len = glyph->u.glyphless.len;
+
+      if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_ACRONYM)
+	{
+	  if (len > 0
+	      && CHAR_TABLE_P (Vglyphless_char_display)
+	      && (CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (Vglyphless_char_display))
+		  >= 1))
+	    {
+	      Lisp_Object acronym
+		= (! glyph->u.glyphless.for_no_font
+		   ? CHAR_TABLE_REF (Vglyphless_char_display,
+				     glyph->u.glyphless.ch)
+		   : XCHAR_TABLE (Vglyphless_char_display)->extras[0]);
+	      if (STRINGP (acronym))
+		str = (char *) SDATA (acronym);
+	    }
+	}
+      else if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEXA_CODE)
+	{
+	  sprintf ((char *) buf, "%0*X",
+		   glyph->u.glyphless.ch < 0x10000 ? 4 : 6,
+		   glyph->u.glyphless.ch);
+	  str = buf;
+	}
+
+      if (str)
+	{
+	  int upper_len = (len + 1) / 2;
+	  unsigned code;
+
+	  /* It is assured that all LEN characters in STR is ASCII.  */
+	  for (j = 0; j < len; j++)
+	    {
+	      code = s->font->driver->encode_char (s->font, str[j]);
+	      STORE_XCHAR2B (char2b + j, code >> 8, code & 0xFF);
+	    }
+	  s->font->driver->draw (s, 0, upper_len,
+				 x + glyph->slice.glyphless.upper_xoff,
+				 s->ybase + glyph->slice.glyphless.upper_yoff,
+				 0);
+	  s->font->driver->draw (s, upper_len, len,
+				 x + glyph->slice.glyphless.lower_xoff,
+				 s->ybase + glyph->slice.glyphless.lower_yoff,
+				 0);
+	}
+      if (glyph->u.glyphless.method != GLYPHLESS_DISPLAY_THIN_SPACE)
+	XDrawRectangle (s->display, s->window, s->gc,
+			x, s->ybase - glyph->ascent,
+			glyph->pixel_width - 1,
+			glyph->ascent + glyph->descent - 1);
+      x += glyph->pixel_width;
+   }
+}
+
 #ifdef USE_X_TOOLKIT
 
 static struct frame *x_frame_of_widget (Widget);
@@ -2654,6 +2731,14 @@ x_draw_glyph_string (struct glyph_string *s)
       else
 	x_draw_glyph_string_background (s, 1);
       x_draw_composite_glyph_string_foreground (s);
+      break;
+
+    case GLYPHLESS_GLYPH:
+      if (s->for_overlaps)
+	s->background_filled_p = 1;
+      else
+	x_draw_glyph_string_background (s, 1);
+      x_draw_glyphless_glyph_string_foreground (s);
       break;
 
     default:

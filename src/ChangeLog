@@ -1,3 +1,46 @@
+2010-10-28  Kenichi Handa  <handa@m17n.org>
+
+	Implement various display methods for glyphless characters.
+
+	* xdisp.c (Qglyphless_char, Vglyphless_char_display)
+	(Qglyphless_char_display, Qhexa_code, Qempty_box, Qthin_space)
+	(Qzero_width): New variables.
+	(THIN_SPACE_WIDTH): New macro.
+	(lookup_glyphless_char_display): New funciton.
+	(last_glyphless_glyph_frame, last_glyphless_glyph_face_id)
+	(last_glyphless_glyph_merged_face_id): New variables.
+	(get_next_display_element): Check glyphless characters.
+	(redisplay_internal): Initialize last_glyphless_glyph_frame and
+	last_glyphless_glyph_face_id.
+	(fill_glyphless_glyph_string): New function.
+	(BUILD_GLYPHLESS_GLYPH_STRING): New macro.
+	(BUILD_GLYPH_STRINGS): Handle the case GLYPHLESS_GLYPH.
+	(append_glyphless_glyph, produce_glyphless_glyph): New functions.
+	(x_produce_glyphs): If a suitable font is not found, produce a
+	glyphless glyph.  Handle the case it->what == IT_GLYPHLESS.
+	(syms_of_xdisp): Intern and staticpro Qglyphless_char,
+	Qglyphless_char_display, Qhexa_code, Qempty_box, Qthin_space, and
+	Qzero_width.
+	(Vglyphless_char_display): Declare it as a Lisp variable.
+
+	* dispextern.h (enum glyph_type): Add GLYPHLESS_GLYPH.
+	(struct glyph): Change the size of the member "type" to 3.  Add
+	glyphless to the union slice and u.
+	(enum display_element_type): Add IT_GLYPHLESS.
+	(enum glyphless_display_method): New enum.
+	(struct it): New member glyphless_method.
+	(Vglyphless_char_display): Extern it.
+
+	* xterm.c (x_draw_glyphless_glyph_string_foreground): New function.
+	(x_draw_glyph_string): Handle the case GLYPHLESS_GLYPH.
+
+	* w32term.c (x_draw_glyphless_glyph_string_foreground): New
+	function.
+	(x_draw_glyph_string): Handle the case GLYPHLESS_GLYPH.
+
+	* nsterm.m (ns_draw_glyph_string): Handle the case
+	GLYPHLESS_GLYPH (the detail is not yet implemented).
+
 2010-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (init_eval_once): Set max_lisp_eval_depth to 600;

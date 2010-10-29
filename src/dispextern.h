@@ -279,6 +279,9 @@ enum glyph_type
   /* Glyph describes a static composition.  */
   COMPOSITE_GLYPH,
 
+  /* Glyph describes a glyphless character.  */
+  GLYPHLESS_GLYPH,
+
   /* Glyph describes an image.  */
   IMAGE_GLYPH,
 
@@ -333,7 +336,7 @@ struct glyph
 
   /* Which kind of glyph this is---character, image etc.  Value
      should be an enumerator of type enum glyph_type.  */
-  unsigned type : 2;
+  unsigned type : 3;
 
   /* 1 means this glyph was produced from multibyte text.  Zero
      means it was produced from unibyte text, i.e. charsets aren't
@@ -402,6 +405,11 @@ struct glyph
     /* Start and end indices of glyphs of a graphme cluster of a
        composition (type == COMPOSITE_GLYPH).  */
     struct { int from, to; } cmp;
+    /* Pixel offsets for upper and lower part of the acronym.  */
+    struct {
+      short upper_xoff, upper_yoff;
+      short lower_xoff, lower_yoff;
+    } glyphless;
   } slice;
 
   /* A union of sub-structures for different glyph types.  */
@@ -432,6 +440,19 @@ struct glyph
       unsigned ascent  : 16;
     }
     stretch;
+
+    /* Sub-stretch for type == GLYPHLESS_GLYPH.  */
+    struct
+    {
+      /* Value is an enum of the type glyphless_display_method.  */
+      unsigned method : 2;
+      /* 1 iff this glyph is for a character of no font. */
+      unsigned for_no_font : 1;
+      /* Length of acronym or hexadecimal code string (at most 8).  */
+      unsigned len : 4;
+      /* Character to display.  Actually we need only 22 bits.  */
+      unsigned ch : 26;
+    } glyphless;
 
     /* Used to compare all bit-fields above in one step.  */
     unsigned val;
@@ -1918,6 +1939,9 @@ enum display_element_type
   /* A composition (static and automatic).  */
   IT_COMPOSITION,
 
+  /* A glyphless character (e.g. ZWNJ, LRE).  */
+  IT_GLYPHLESS,
+
   /* An image.  */
   IT_IMAGE,
 
@@ -1963,6 +1987,20 @@ enum line_wrap_method
   WORD_WRAP,
   WINDOW_WRAP
 };
+
+/* An enumerator for the method of displaying glyphless characters.  */
+
+enum glyphless_display_method
+  {
+    /* Display a thin (1-pixel width) space.  */
+    GLYPHLESS_DISPLAY_THIN_SPACE,
+    /* Display an empty box of proper width.  */
+    GLYPHLESS_DISPLAY_EMPTY_BOX,
+    /* Display an acronym string in a box.  */
+    GLYPHLESS_DISPLAY_ACRONYM,
+    /* Display a hexadecimal character code in a box.  */
+    GLYPHLESS_DISPLAY_HEXA_CODE
+  };
 
 struct it_slice
 {
@@ -2294,6 +2332,10 @@ struct it
      called.  If we are setting it->C directly before calling
      PRODUCE_GLYPHS, this should be set beforehand too.  */
   int char_to_display;
+
+  /* If what == IT_GLYPHLESS, the method to display such a
+     character.  */
+  enum glyphless_display_method glyphless_method;
 
   /* If what == IT_IMAGE, the id of the image to display.  */
   int image_id;
@@ -2976,6 +3018,7 @@ extern int last_tool_bar_item;
 extern Lisp_Object Vmouse_autoselect_window;
 extern int unibyte_display_via_language_environment;
 extern EMACS_INT underline_minimum_offset;
+extern Lisp_Object Vglyphless_char_display;
 
 extern void reseat_at_previous_visible_line_start (struct it *);
 

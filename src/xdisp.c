@@ -932,6 +932,21 @@ struct atimer *hourglass_atimer;
 /* Number of seconds to wait before displaying an hourglass cursor.  */
 Lisp_Object Vhourglass_delay;
 
+/* Name of the face used to display glyphless characters.  */
+Lisp_Object Qglyphless_char;
+
+/* Char-table to control the display of glyphless characters.  */
+Lisp_Object Vglyphless_char_display;
+
+/* Symbol for the purpose of Vglyphless_char_display.  */
+Lisp_Object Qglyphless_char_display;
+
+/* Method symbols for Vglyphless_char_display.  */
+static Lisp_Object Qhexa_code, Qempty_box, Qthin_space, Qzero_width;
+
+/* Default pixel width of `thin-space' display method.  */
+#define THIN_SPACE_WIDTH 1
+
 /* Default number of seconds to wait before displaying an hourglass
    cursor.  */
 #define DEFAULT_HOURGLASS_DELAY 1
@@ -5732,6 +5747,57 @@ static int (* get_next_element[NUM_IT_METHODS]) (struct it *it) =
 				 (IT)->string)))
 
 
+/* Lookup the char-table Vglyphless_char_display for character C (-1
+   if we want information for no-font case), and return the display
+   method symbol.  By side-effect, update it->what and
+   it->glyphless_method.  This function is called from
+   get_next_display_element for each character element, and from
+   x_produce_glyphs when no suitable font was found.  */
+
+static Lisp_Object
+lookup_glyphless_char_display (int c, struct it *it)
+{
+  Lisp_Object glyphless_method = Qnil;
+
+  if (CHAR_TABLE_P (Vglyphless_char_display)
+      && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (Vglyphless_char_display)) >= 1)
+    glyphless_method = (c >= 0
+			? CHAR_TABLE_REF (Vglyphless_char_display, c)
+			: XCHAR_TABLE (Vglyphless_char_display)->extras[0]);
+ retry:
+  if (NILP (glyphless_method))
+    {
+      if (c >= 0)
+	/* The default is to display the character by a proper font.  */
+	return Qnil;
+      /* The default for the no-font case is to display an empty box.  */
+      glyphless_method = Qempty_box;
+    }
+  if (EQ (glyphless_method, Qzero_width))
+    {
+      if (c >= 0)
+	return glyphless_method;
+      /* This method can't be used for the no-font case.  */
+      glyphless_method = Qempty_box;
+    }
+  it->what = IT_GLYPHLESS;
+  if (EQ (glyphless_method, Qthin_space))
+    it->glyphless_method = GLYPHLESS_DISPLAY_THIN_SPACE;
+  else if (EQ (glyphless_method, Qempty_box))
+    it->glyphless_method = GLYPHLESS_DISPLAY_EMPTY_BOX;
+  else if (EQ (glyphless_method, Qhexa_code))
+    it->glyphless_method = GLYPHLESS_DISPLAY_HEXA_CODE;
+  else if (STRINGP (glyphless_method))
+    it->glyphless_method = GLYPHLESS_DISPLAY_ACRONYM;
+  else
+    {
+      /* Invalid value.  We use the default method.  */
+      glyphless_method = Qnil;
+      goto retry;
+    }
+  return glyphless_method;
+}
+
 /* Load IT's display element fields with information about the next
    display element from the current position of IT.  Value is zero if
    end of buffer (or C string) is reached.  */
@@ -5739,6 +5805,10 @@ static int (* get_next_element[NUM_IT_METHODS]) (struct it *it) =
 static struct frame *last_escape_glyph_frame = NULL;
 static unsigned last_escape_glyph_face_id = (1 << FACE_ID_BITS);
 static int last_escape_glyph_merged_face_id = 0;
+
+static struct frame *last_glyphless_glyph_frame = NULL;
+static unsigned last_glyphless_glyph_face_id = (1 << FACE_ID_BITS);
+static int last_glyphless_glyph_merged_face_id = 0;
 
 int
 get_next_display_element (struct it *it)
@@ -5815,6 +5885,15 @@ get_next_display_element (struct it *it)
 		{
 		  set_iterator_to_next (it, 0);
 		}
+	      goto get_next;
+	    }
+
+	  if (! NILP (lookup_glyphless_char_display (c, it)))
+	    {
+	      if (it->what == IT_GLYPHLESS)
+		goto done;
+	      /* Don't display this character.  */
+	      set_iterator_to_next (it, 0);
 	      goto get_next;
 	    }
 
@@ -6032,6 +6111,7 @@ get_next_display_element (struct it *it)
     }
 #endif
 
+ done:
   /* Is this character the last one of a run of characters with
      box?  If yes, set IT->end_of_box_run_p to 1.  */
   if (it->face_box_p
@@ -11579,6 +11659,8 @@ redisplay_internal (int preserve_echo_area)
   reconsider_clip_changes (w, current_buffer);
   last_escape_glyph_frame = NULL;
   last_escape_glyph_face_id = (1 << FACE_ID_BITS);
+  last_glyphless_glyph_frame = NULL;
+  last_glyphless_glyph_face_id = (1 << FACE_ID_BITS);
 
   /* If new fonts have been loaded that make a glyph matrix adjustment
      necessary, do it.  */
@@ -20657,6 +20739,42 @@ fill_gstring_glyph_string (struct glyph_string *s, int face_id,
 }
 
 
+/* Fill glyph string S from a sequence glyphs for glyphless characters.
+   See the comment of fill_glyph_string for arguments.
+   Value is the index of the first glyph not in S.  */
+
+
+static int
+fill_glyphless_glyph_string (struct glyph_string *s, int face_id,
+			     int start, int end, int overlaps)
+{
+  struct glyph *glyph, *last;
+  int voffset;
+
+  xassert (s->first_glyph->type == GLYPHLESS_GLYPH);
+  s->for_overlaps = overlaps;
+  glyph = s->row->glyphs[s->area] + start;
+  last = s->row->glyphs[s->area] + end;
+  voffset = glyph->voffset;
+  s->face = FACE_FROM_ID (s->f, face_id);
+  s->font = s->face->font;
+  s->nchars = 1;
+  s->width = glyph->pixel_width;
+  glyph++;
+  while (glyph < last
+	 && glyph->type == GLYPHLESS_GLYPH
+	 && glyph->voffset == voffset
+	 && glyph->face_id == face_id)
+    {
+      s->nchars++;
+      s->width += glyph->pixel_width;
+      glyph++;
+    }
+  s->ybase += voffset;
+  return glyph - s->row->glyphs[s->area];
+}
+
+
 /* Fill glyph string S from a sequence of character glyphs.
 
    FACE_ID is the face id of the string.  START is the index of the
@@ -21167,6 +21285,28 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
   } while (0)
 
 
+/* Add a glyph string for a sequence of glyphless character's glyphs
+   to the list of strings between HEAD and TAIL.  The meanings of
+   arguments are the same as those of BUILD_CHAR_GLYPH_STRINGS.  */
+
+#define BUILD_GLYPHLESS_GLYPH_STRING(START, END, HEAD, TAIL, HL, X, LAST_X) \
+  do									    \
+    {									    \
+      int face_id;							    \
+      XChar2b *char2b;							    \
+									    \
+      face_id = (row)->glyphs[area][START].face_id;			    \
+									    \
+      s = (struct glyph_string *) alloca (sizeof *s);			    \
+      INIT_GLYPH_STRING (s, NULL, w, row, area, START, HL);		    \
+      append_glyph_string (&HEAD, &TAIL, s);				    \
+      s->x = (X);							    \
+      START = fill_glyphless_glyph_string (s, face_id, START, END,	    \
+					   overlaps);			    \
+    }									    \
+  while (0)
+
+
 /* Build a list of glyph strings between HEAD and TAIL for the glyphs
    of AREA of glyph row ROW on window W between indices START and END.
    HL overrides the face for drawing glyph strings, e.g. it is
@@ -21190,7 +21330,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 	      BUILD_CHAR_GLYPH_STRINGS (START, END, HEAD, TAIL,		\
 					HL, X, LAST_X);			\
 	      break;							\
-	      								\
+									\
 	    case COMPOSITE_GLYPH:					\
 	      if (first_glyph->u.cmp.automatic)				\
 		BUILD_GSTRING_GLYPH_STRING (START, END, HEAD, TAIL,	\
@@ -21199,21 +21339,26 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 		BUILD_COMPOSITE_GLYPH_STRING (START, END, HEAD, TAIL,	\
 					      HL, X, LAST_X);		\
 	      break;							\
-	      								\
+									\
 	    case STRETCH_GLYPH:						\
 	      BUILD_STRETCH_GLYPH_STRING (START, END, HEAD, TAIL,	\
 					  HL, X, LAST_X);		\
 	      break;							\
-	      								\
+									\
 	    case IMAGE_GLYPH:						\
 	      BUILD_IMAGE_GLYPH_STRING (START, END, HEAD, TAIL,		\
 					HL, X, LAST_X);			\
 	      break;							\
-	      								\
+									\
+	    case GLYPHLESS_GLYPH:					\
+	      BUILD_GLYPHLESS_GLYPH_STRING (START, END, HEAD, TAIL,	\
+					    HL, X, LAST_X);		\
+	      break;							\
+									\
 	    default:							\
 	      abort ();							\
 	    }								\
-	  								\
+									\
 	  if (s)							\
 	    {								\
 	      set_glyph_string_background_width (s, START, LAST_X);	\
@@ -22109,6 +22254,229 @@ calc_line_height_property (struct it *it, Lisp_Object val, struct font *font,
 }
 
 
+/* Append a glyph for a glyphless character to IT->glyph_row.  FACE_ID
+   is a face ID to be used for the glyph.  FOR_NO_FONT is nonzero if
+   and only if this is for a character for which no font was found.
+
+   If the display method (it->glyphless_method) is
+   GLYPHLESS_DISPLAY_ACRONYM or GLYPHLESS_DISPLAY_HEXA_CODE, LEN is a
+   length of the acronym or the hexadecimal string, UPPER_XOFF and
+   UPPER_YOFF are pixel offsets for the upper part of the string,
+   LOWER_XOFF and LOWER_YOFF are for the lower part.
+
+   For the other display methods, LEN through LOWER_YOFF are zero.  */
+
+static void
+append_glyphless_glyph (struct it *it, int face_id, int for_no_font, int len,
+			short upper_xoff, short upper_yoff,
+			short lower_xoff, short lower_yoff)
+{
+  struct glyph *glyph;
+  enum glyph_row_area area = it->area;
+
+  glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
+  if (glyph < it->glyph_row->glyphs[area + 1])
+    {
+      /* If the glyph row is reversed, we need to prepend the glyph
+	 rather than append it.  */
+      if (it->glyph_row->reversed_p && area == TEXT_AREA)
+	{
+	  struct glyph *g;
+
+	  /* Make room for the additional glyph.  */
+	  for (g = glyph - 1; g >= it->glyph_row->glyphs[area]; g--)
+	    g[1] = *g;
+	  glyph = it->glyph_row->glyphs[area];
+	}
+      glyph->charpos = CHARPOS (it->position);
+      glyph->object = it->object;
+      glyph->pixel_width = it->pixel_width;
+      glyph->ascent = it->ascent;
+      glyph->descent = it->descent;
+      glyph->voffset = it->voffset;
+      glyph->type = GLYPHLESS_GLYPH;
+      glyph->u.glyphless.method = it->glyphless_method;
+      glyph->u.glyphless.for_no_font = for_no_font;
+      glyph->u.glyphless.len = len;
+      glyph->u.glyphless.ch = it->c;
+      glyph->slice.glyphless.upper_xoff = upper_xoff;
+      glyph->slice.glyphless.upper_yoff = upper_yoff;
+      glyph->slice.glyphless.lower_xoff = lower_xoff;
+      glyph->slice.glyphless.lower_yoff = lower_yoff;
+      glyph->avoid_cursor_p = it->avoid_cursor_p;
+      glyph->multibyte_p = it->multibyte_p;
+      glyph->left_box_line_p = it->start_of_box_run_p;
+      glyph->right_box_line_p = it->end_of_box_run_p;
+      glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
+				      || it->phys_descent > it->descent);
+      glyph->padding_p = 0;
+      glyph->glyph_not_available_p = 0;
+      glyph->face_id = face_id;
+      glyph->font_type = FONT_TYPE_UNKNOWN;
+      if (it->bidi_p)
+	{
+	  glyph->resolved_level = it->bidi_it.resolved_level;
+	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
+	    abort ();
+	  glyph->bidi_type = it->bidi_it.type;
+	}
+      ++it->glyph_row->used[area];
+    }
+  else
+    IT_EXPAND_MATRIX_WIDTH (it, area);
+}
+
+
+/* Produce a glyph for a glyphless character for iterator IT.
+   IT->glyphless_method specifies which method to use for displaying
+   the glyph.  See the description of enum glyphless_display_method in
+   dispextern.h for the default of the display methods.
+
+   FOR_NO_FONT is nonzero if and only if this is for a character for
+   which no font was found.  ACRONYM, if non-nil, is an acronym string
+   for the character.  */
+
+static void
+produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
+{
+  int face_id;
+  struct face *face;
+  struct font *font;
+  int base_width, base_height, width, height;
+  short upper_xoff, upper_yoff, lower_xoff, lower_yoff;
+  int len;
+
+  /* Get the metrics of the base font.  We always refer to the current
+     ASCII face.  */
+  face = FACE_FROM_ID (it->f, it->face_id)->ascii_face;
+  font = face->font ? face->font : FRAME_FONT (it->f);
+  it->ascent = FONT_BASE (font) + font->baseline_offset;
+  it->descent = FONT_DESCENT (font) - font->baseline_offset;
+  base_height = it->ascent + it->descent;
+  base_width = font->average_width;
+
+  /* Get a face ID for the glyph by utilizing a cache (the same way as
+     doen for `escape-glyph' in get_next_display_element).  */
+  if (it->f == last_glyphless_glyph_frame
+      && it->face_id == last_glyphless_glyph_face_id)
+    {
+      face_id = last_glyphless_glyph_merged_face_id;
+    }
+  else
+    {
+      /* Merge the `glyphless-char' face into the current face.  */
+      face_id = merge_faces (it->f, Qglyphless_char, 0, it->face_id);
+      last_glyphless_glyph_frame = it->f;
+      last_glyphless_glyph_face_id = it->face_id;
+      last_glyphless_glyph_merged_face_id = face_id;
+    }
+
+  if (it->glyphless_method == GLYPHLESS_DISPLAY_THIN_SPACE)
+    {
+      it->pixel_width = THIN_SPACE_WIDTH;
+      len = 0;
+      upper_xoff = upper_yoff = lower_xoff = lower_yoff = 0;
+    }
+  else if (it->glyphless_method == GLYPHLESS_DISPLAY_EMPTY_BOX)
+    {
+      width = CHAR_WIDTH (it->c);
+      if (width == 0)
+	width = 1;
+      else if (width > 4)
+	width = 4;
+      it->pixel_width = base_width * width;
+      len = 0;
+      upper_xoff = upper_yoff = lower_xoff = lower_yoff = 0;
+    }
+  else
+    {
+      char buf[7], *str;
+      unsigned int code[6];
+      int upper_len;
+      int ascent, descent;
+      struct font_metrics metrics_upper, metrics_lower;
+
+      face = FACE_FROM_ID (it->f, face_id);
+      font = face->font ? face->font : FRAME_FONT (it->f);
+      PREPARE_FACE_FOR_DISPLAY (it->f, face);
+
+      if (it->glyphless_method == GLYPHLESS_DISPLAY_ACRONYM)
+	{
+	  if (! STRINGP (acronym) && CHAR_TABLE_P (Vglyphless_char_display))
+	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
+	  str = STRINGP (acronym) ? (char *) SDATA (acronym) : "";
+	}
+      else
+	{
+	  xassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEXA_CODE);
+	  sprintf (buf, "%0*X", it->c < 0x10000 ? 4 : 6, it->c);
+	  str = buf;
+	}
+      for (len = 0; str[len] && ASCII_BYTE_P (str[len]); len++)
+	code[len] = font->driver->encode_char (font, str[len]);
+      upper_len = (len + 1) / 2;
+      font->driver->text_extents (font, code, upper_len,
+				  &metrics_upper);
+      font->driver->text_extents (font, code + upper_len, len - upper_len,
+				  &metrics_lower);
+
+
+
+      /* +4 is for vertical bars of a box plus 1-pixel spaces at both side.  */
+      width = max (metrics_upper.width, metrics_lower.width) + 4;
+      upper_xoff = upper_yoff = 2; /* the typical case */
+      if (base_width >= width)
+	{
+	  /* Align the upper to the left, the lower to the right.  */
+	  it->pixel_width = base_width;
+	  lower_xoff = base_width - 2 - metrics_lower.width;
+	}
+      else
+	{
+	  /* Center the shorter one.  */
+	  it->pixel_width = width;
+	  if (metrics_upper.width >= metrics_lower.width)
+	    lower_xoff = (width - metrics_lower.width) / 2;
+	  else
+	    upper_xoff = (width - metrics_upper.width) / 2;
+	}
+  
+      /* +5 is for horizontal bars of a box plus 1-pixel spaces at
+	 top, bottom, and between upper and lower strings.  */
+      height = (metrics_upper.ascent + metrics_upper.descent
+		+ metrics_lower.ascent + metrics_lower.descent) + 5;
+      /* Center vertically.
+	 H:base_height, D:base_descent
+	 h:height, ld:lower_descent, la:lower_ascent, ud:upper_descent
+
+	 ascent = - (D - H/2 - h/2 + 1); "+ 1" for rounding up
+	 descent = D - H/2 + h/2;
+	 lower_yoff = descent - 2 - ld;
+	 upper_yoff = lower_yoff - la - 1 - ud;  */
+      ascent = - (it->descent - (base_height + height + 1) / 2);
+      descent = it->descent - (base_height - height) / 2;
+      lower_yoff = descent - 2 - metrics_lower.descent;
+      upper_yoff = (lower_yoff - metrics_lower.ascent - 1
+		    - metrics_upper.descent);
+      /* Don't make the height shorter than the base height. */
+      if (height > base_height)
+	{
+	  it->ascent = ascent;
+	  it->descent = descent;
+	}
+    }
+
+  it->phys_ascent = it->ascent;
+  it->phys_descent = it->descent;
+  if (it->glyph_row)
+    append_glyphless_glyph (it, face_id, for_no_font, len,
+			    upper_xoff, upper_yoff,
+			    lower_xoff, lower_yoff);
+  it->nglyphs = 1;
+  take_vertical_position_into_account (it);
+}
+
+
 /* RIF:
    Produce glyphs/get display metrics for the display element IT is
    loaded with.  See the description of struct it in dispextern.h
@@ -22126,28 +22494,24 @@ x_produce_glyphs (struct it *it)
       XChar2b char2b;
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
       struct font *font = face->font;
-      int font_not_found_p = font == NULL;
       struct font_metrics *pcm = NULL;
       int boff;			/* baseline offset */
 
-      if (font_not_found_p)
+      if (font == NULL)
 	{
-	  /* When no suitable font found, display an empty box based
-	     on the metrics of the font of the default face (or what
-	     remapped).  */
-	  struct face *no_font_face
-	    = FACE_FROM_ID (it->f,
-			    NILP (Vface_remapping_alist) ? DEFAULT_FACE_ID
-			    : lookup_basic_face (it->f, DEFAULT_FACE_ID));
-	  font = no_font_face->font;
-	  boff = font->baseline_offset;
+	  /* When no suitable font is found, display this character by
+	     the method specified in the first extra slot of
+	     Vglyphless_char_display.  */
+	  Lisp_Object acronym = lookup_glyphless_char_display (-1, it);
+
+	  xassert (it->what == IT_GLYPHLESS);
+	  produce_glyphless_glyph (it, 1, STRINGP (acronym) ? acronym : Qnil);
+	  goto done;
 	}
-      else
-	{
-	  boff = font->baseline_offset;
-	  if (font->vertical_centering)
-	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
-	}
+
+      boff = font->baseline_offset;
+      if (font->vertical_centering)
+	boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
 
       if (it->char_to_display != '\n' && it->char_to_display != '\t')
 	{
@@ -22167,8 +22531,7 @@ x_produce_glyphs (struct it *it)
  	      it->descent = FONT_DESCENT (font) - boff;
  	    }
 
-	  if (! font_not_found_p
-	      && get_char_glyph_code (it->char_to_display, font, &char2b))
+	  if (get_char_glyph_code (it->char_to_display, font, &char2b))
 	    {
 	      pcm = get_per_char_metric (it->f, font, &char2b);
 	      if (pcm->width == 0
@@ -22758,11 +23121,14 @@ x_produce_glyphs (struct it *it)
       if (it->glyph_row)
 	append_composite_glyph (it);
     }
+  else if (it->what == IT_GLYPHLESS)
+    produce_glyphless_glyph (it, 0, Qnil);
   else if (it->what == IT_IMAGE)
     produce_image_glyph (it);
   else if (it->what == IT_STRETCH)
     produce_stretch_glyph (it);
 
+ done:
   /* Accumulate dimensions.  Note: can't assume that it->descent > 0
      because this isn't true for images with `:ascent 100'.  */
   xassert (it->ascent >= 0 && it->descent >= 0);
@@ -26592,6 +26958,35 @@ cursor shapes.  */);
 
   hourglass_atimer = NULL;
   hourglass_shown_p = 0;
+
+  DEFSYM (Qglyphless_char, "glyphless-char");
+  DEFSYM (Qhexa_code, "hexa-code");
+  DEFSYM (Qempty_box, "empty-box");
+  DEFSYM (Qthin_space, "thin-space");
+  DEFSYM (Qzero_width, "zero-width");
+
+  DEFSYM (Qglyphless_char_display, "glyphless-char-display");
+  /* Intern this now in case it isn't already done.
+     Setting this variable twice is harmless.
+     But don't staticpro it here--that is done in alloc.c.  */
+  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
+  Fput (Qglyphless_char_display, Qchar_table_extra_slots, make_number (1));
+
+  DEFVAR_LISP ("glyphless-char-display", &Vglyphless_char_display,
+	       doc: /* Char-table to control displaying of glyphless characters.
+Each element, if non-nil, is an ASCII acronym string (displayed in a box)
+or one of these symbols:
+  hexa-code: display with hexadecimal character code in a box
+  empty-box: display with an empty box
+  thin-space: display with 1-pixel width space
+  zero-width: don't display
+
+It has one extra slot to control the display of a character for which
+no font is found.  The value of the slot is `hexa-code' or `empty-box'.
+The default is `empty-box'.  */);
+  Vglyphless_char_display = Fmake_char_table (Qglyphless_char_display, Qnil);
+  Fset_char_table_extra_slot (Vglyphless_char_display, make_number (0),
+			      Qempty_box);
 }
 
 
