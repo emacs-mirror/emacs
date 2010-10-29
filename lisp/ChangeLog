@@ -1,3 +1,13 @@
+2010-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase): New `string' and `guard' patterns.
+	(pcase-if): Add one minor optimization.
+	(pcase-split-equal): Rename from pcase-split-eq.
+	(pcase-split-member): Rename from pcase-split-memq.
+	(pcase-u1): Add strings to the member optimization.
+	Add `guard' variant of predicates.
+	(pcase-q1): Add string patterns.
+
 2010-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/log-edit.el (log-edit-rewrite-fixes): State its safety pred.
