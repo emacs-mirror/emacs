@@ -308,9 +308,6 @@ be set in `.emacs' instead."
   :group 'gnus-start
   :type 'boolean)
 
-(unless (fboundp 'gnus-group-remove-excess-properties)
-  (defalias 'gnus-group-remove-excess-properties 'ignore))
-
 (unless (featurep 'gnus-xmas)
   (defalias 'gnus-make-overlay 'make-overlay)
   (defalias 'gnus-delete-overlay 'delete-overlay)

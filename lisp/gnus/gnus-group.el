@@ -1090,8 +1090,7 @@ When FORCE, rebuild the tool bar."
   (when (and (not (featurep 'xemacs))
 	     (boundp 'tool-bar-mode)
 	     tool-bar-mode
-	     ;; The Gnus 5.10.6 code checked (default-value 'tool-bar-mode).
-	     ;; Why?  --rsteib
+             (display-graphic-p)
 	     (or (not gnus-group-tool-bar-map) force))
     (let* ((load-path
 	    (gmm-image-load-path-for-library "gnus"
@@ -1607,9 +1606,7 @@ if it is a string, only list groups matching REGEXP."
     (when (inline (gnus-visual-p 'group-highlight 'highlight))
       (gnus-group-highlight-line gnus-tmp-group beg end))
     (gnus-run-hooks 'gnus-group-update-hook)
-    (forward-line)
-    ;; Allow XEmacs to remove front-sticky text properties.
-    (gnus-group-remove-excess-properties)))
+    (forward-line)))
 
 (defun gnus-group-update-eval-form (group list)
   "Eval `car' of each element of LIST, and return the first that return t.
