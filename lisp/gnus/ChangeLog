@@ -1,3 +1,7 @@
+2010-10-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-goto-part): Work for article narrowed by ^L.
+
 2010-10-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-summary-rescan-group): Try to restore the window

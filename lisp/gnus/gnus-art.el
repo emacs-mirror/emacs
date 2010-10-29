@@ -5561,12 +5561,13 @@ all parts."
 
 (defun gnus-article-goto-part (n)
   "Go to MIME part N."
+  (when gnus-break-pages
+    (widen))
   (let ((start (text-property-any (point-min) (point-max) 'gnus-part n))
 	part handle end next handles)
     (when start
       (goto-char start)
-      (if (setq handle (get-text-property start 'gnus-data))
-	  start
+      (unless (setq handle (get-text-property start 'gnus-data))
 	;; Go to the displayed subpart, assuming this is multipart/alternative.
 	(setq part start
 	      end (point-at-eol))
@@ -5586,10 +5587,12 @@ all parts."
 	  (setq part
 		(cdr (assq (mm-preferred-alternative
 			    (nreverse (mapcar 'car handles)))
-			   handles))))
-	(if part
-	    (goto-char (1+ part))
-	  start)))))
+			   handles)))))
+      (when gnus-break-pages
+	(gnus-narrow-to-page))
+      (if part
+	  (goto-char (1+ part))
+	start))))
 
 (defun gnus-insert-mime-button (handle gnus-tmp-id &optional displayed)
   (let ((gnus-tmp-name
