@@ -5590,10 +5590,10 @@ all parts."
 	      (setq part
 		    (cdr (assq (mm-preferred-alternative
 				(nreverse (mapcar 'car handles)))
-			       handles)))))
-	  (if part
-	      (goto-char (1+ part))
-	    start)))
+			       handles))))
+	    (if part
+		(goto-char (1+ part))
+	      start))))
     (when gnus-break-pages
       (gnus-narrow-to-page))))
 
