@@ -1509,9 +1509,7 @@ main (int argc, char **argv)
       syms_of_doc ();
       syms_of_editfns ();
       syms_of_emacs ();
-#ifdef CLASH_DETECTION
       syms_of_filelock ();
-#endif /* CLASH_DETECTION */
       syms_of_indent ();
       syms_of_insdel ();
       /* syms_of_keymap (); */

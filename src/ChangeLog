@@ -1,3 +1,10 @@
+2010-10-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main): Call syms_of_filelock unconditionally.
+
+	* filelock.c (syms_of_filelock): Move out of #ifdef CLASH_DETECTION
+	clause, but keep part of it conditioned on CLASH_DETECTION.
+
 2010-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* nsfns.m (Fx-display-save-under, Fx-open-connection)
