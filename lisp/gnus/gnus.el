@@ -350,7 +350,6 @@ be set in `.emacs' instead."
 		     (list str))
 	    line)))
     (defalias 'gnus-mode-line-buffer-identification 'identity))
-  (defalias 'gnus-characterp 'numberp)
   (defalias 'gnus-deactivate-mark 'deactivate-mark)
   (defalias 'gnus-window-edges 'window-edges)
   (defalias 'gnus-key-press-event-p 'numberp)
@@ -918,7 +917,8 @@ be set in `.emacs' instead."
 ;;; Gnus buffers
 ;;;
 
-(defvar gnus-buffers nil)
+(defvar gnus-buffers nil
+  "List of buffers handled by Gnus.")
 
 (defun gnus-get-buffer-create (name)
   "Do the same as `get-buffer-create', but store the created buffer."
@@ -950,7 +950,8 @@ be set in `.emacs' instead."
 
 ;;; Splash screen.
 
-(defvar gnus-group-buffer "*Group*")
+(defvar gnus-group-buffer "*Group*"
+  "Name of the Gnus group buffer.")
 
 (defface gnus-splash
   '((((class color)
@@ -988,8 +989,6 @@ be set in `.emacs' instead."
 	(goto-char (point-min))
 	(while (search-forward "\t" nil t)
 	  (replace-match "        " t t))))))
-
-(defvar gnus-simple-splash nil)
 
 ;;(format "%02x%02x%02x" 114 66 20) "724214"
 
@@ -1030,50 +1029,45 @@ be set in `.emacs' instead."
   "Insert startup message in current buffer."
   ;; Insert the message.
   (erase-buffer)
-  (cond
-   ((and
-     (fboundp 'find-image)
-     (display-graphic-p)
-     ;; Make sure the library defining `image-load-path' is loaded
-     ;; (`find-image' is autoloaded) (and discard the result).  Else, we may
-     ;; get "defvar ignored because image-load-path is let-bound" when calling
-     ;; `find-image' below.
-     (or (find-image '(nil (:type xpm :file "gnus.xpm"))) t)
-     (let* ((data-directory (nnheader-find-etc-directory "images/gnus"))
-	    (image-load-path (cond (data-directory
-				    (list data-directory))
-				   ((boundp 'image-load-path)
-				    (symbol-value 'image-load-path))
-				   (t load-path)))
-	    (image (find-image
-		    `((:type xpm :file "gnus.xpm"
-			     :color-symbols
-			     (("thing" . ,(car gnus-logo-colors))
-			      ("shadow" . ,(cadr gnus-logo-colors))
-			      ("oort" . "#eeeeee")
-			      ("background" . ,(face-background 'default))))
-		      (:type svg :file "gnus.svg")
-		      (:type png :file "gnus.png")
-		      (:type pbm :file "gnus.pbm"
-			     ;; Account for the pbm's blackground.
-			     :background ,(face-foreground 'gnus-splash)
-			     :foreground ,(face-background 'default))
-		      (:type xbm :file "gnus.xbm"
-			     ;; Account for the xbm's blackground.
-			     :background ,(face-foreground 'gnus-splash)
-			     :foreground ,(face-background 'default))))))
-       (when image
-	 (let ((size (image-size image)))
-	   (insert-char ?\n (max 0 (round (- (window-height)
-					     (or y (cdr size)) 1) 2)))
-	   (insert-char ?\  (max 0 (round (- (window-width)
-					     (or x (car size))) 2)))
-	   (insert-image image))
-	 (setq gnus-simple-splash nil)
-	 t))))
-   (t
+  (unless (and
+           (fboundp 'find-image)
+           (display-graphic-p)
+           ;; Make sure the library defining `image-load-path' is loaded
+           ;; (`find-image' is autoloaded) (and discard the result).  Else, we may
+           ;; get "defvar ignored because image-load-path is let-bound" when calling
+           ;; `find-image' below.
+           (or (find-image '(nil (:type xpm :file "gnus.xpm"))) t)
+           (let* ((data-directory (nnheader-find-etc-directory "images/gnus"))
+                  (image-load-path (cond (data-directory
+                                          (list data-directory))
+                                         ((boundp 'image-load-path)
+                                          (symbol-value 'image-load-path))
+                                         (t load-path)))
+                  (image (find-image
+                          `((:type xpm :file "gnus.xpm"
+                                   :color-symbols
+                                   (("thing" . ,(car gnus-logo-colors))
+                                    ("shadow" . ,(cadr gnus-logo-colors))))
+                            (:type svg :file "gnus.svg")
+                            (:type png :file "gnus.png")
+                            (:type pbm :file "gnus.pbm"
+                                   ;; Account for the pbm's background.
+                                   :background ,(face-foreground 'gnus-splash)
+                                   :foreground ,(face-background 'default))
+                            (:type xbm :file "gnus.xbm"
+                                   ;; Account for the xbm's background.
+                                   :background ,(face-foreground 'gnus-splash)
+                                   :foreground ,(face-background 'default))))))
+             (when image
+               (let ((size (image-size image)))
+                 (insert-char ?\n (max 0 (round (- (window-height)
+                                                   (or y (cdr size)) 1) 2)))
+                 (insert-char ?\  (max 0 (round (- (window-width)
+                                                   (or x (car size))) 2)))
+                 (insert-image image))
+               t)))
     (insert
-     (format "              %s
+     (format "              
 	  _    ___ _             _
 	  _ ___ __ ___  __    _ ___
 	  __   _     ___    __  ___
@@ -1092,8 +1086,7 @@ be set in `.emacs' instead."
 	    _
 	  __
 
-"
-	     ""))
+"))
     ;; And then hack it.
     (gnus-indent-rigidly (point-min) (point-max)
 			 (/ (max (- (window-width) (or x 46)) 0) 2))
@@ -1105,10 +1098,9 @@ be set in `.emacs' instead."
       (insert (make-string (max 0 (* 2 (/ rest 3))) ?\n)))
     ;; Fontify some.
     (put-text-property (point-min) (point-max) 'face 'gnus-splash)
-    (setq gnus-simple-splash t)))
-  (goto-char (point-min))
-  (setq mode-line-buffer-identification (concat " " gnus-version))
-  (set-buffer-modified-p t))
+    (goto-char (point-min))
+    (setq mode-line-buffer-identification (concat " " gnus-version))
+    (set-buffer-modified-p t)))
 
 (eval-when (load)
   (let ((command (format "%s" this-command)))

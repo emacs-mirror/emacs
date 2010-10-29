@@ -775,14 +775,6 @@ prompt the user for the name of an NNTP server to use."
     (if gnus-agent
 	(gnus-agentize))
 
-    (when gnus-simple-splash
-      (setq gnus-simple-splash nil)
-      (cond
-       ((featurep 'xemacs)
-	(gnus-xmas-splash))
-       (window-system
-	(gnus-x-splash))))
-
     (let ((level (and (numberp arg) (> arg 0) arg))
 	  did-connect)
       (unwind-protect
