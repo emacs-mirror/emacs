@@ -1,3 +1,8 @@
+2010-10-30  Knut Anders Hatlen  <kahatlen@gmail.com>  (tiny change)
+
+	* nnimap.el (nnimap-update-info): Allow 'ticked and other flags to be
+	set on groups that don't have \* permanentflags.
+
 2010-10-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-tag-span): Drop colorisation of regions since we don't
