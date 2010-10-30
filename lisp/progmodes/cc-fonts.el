@@ -1048,6 +1048,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  ;; Start of containing declaration (if any); limit for searching
 	  ;; backwards for it.
 	  decl-start decl-search-lim
+	  ;; Start of containing declaration (if any); limit for searching
+	  ;; backwards for it.
+	  decl-start decl-search-lim
 	  ;; The result from `c-forward-decl-or-cast-1'.
 	  decl-or-cast
 	  ;; The maximum of the end positions of all the checked type
@@ -1318,6 +1321,40 @@ casts and declarations are fontified.  Used on level 2 and higher."
 
       nil)))
 
+(defun c-font-lock-enum-tail (limit)
+  ;; Fontify an enum's identifiers when POINT is within the enum's brace
+  ;; block.
+  ;;
+  ;; This function will be called from font-lock for a region bounded by POINT
+  ;; and LIMIT, as though it were to identify a keyword for
+  ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
+  ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
+  ;; Fontification".
+  ;;
+  ;; Note that this function won't attempt to fontify beyond the end of the
+  ;; current enum block, if any.
+  (let* ((paren-state (c-parse-state))
+	 (encl-pos (c-most-enclosing-brace paren-state))
+	 (start (point))
+	)
+    (when (and
+	   encl-pos
+	   (eq (char-after encl-pos) ?\{)
+	   (save-excursion
+	     (goto-char encl-pos)
+	     (c-backward-syntactic-ws)
+	     (c-simple-skip-symbol-backward)
+	     (or (looking-at c-brace-list-key) ; "enum"
+		 (progn (c-backward-syntactic-ws)
+			(c-simple-skip-symbol-backward)
+			(looking-at c-brace-list-key)))))
+      (c-syntactic-skip-backward "^{," nil t)
+      (c-put-char-property (1- (point)) 'c-type 'c-decl-id-start)
+
+      (c-forward-syntactic-ws)
+      (c-font-lock-declarators limit t nil)))
+  nil)
+
 (c-lang-defconst c-simple-decl-matchers
   "Simple font lock matchers for types and declarations.  These are used
 on level 2 only and so aren't combined with `c-complex-decl-matchers'."
@@ -1582,11 +1619,14 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 generic casts and declarations are fontified.  Used on level 2 and
 higher."
 
-  t `(;; Fontify the identifiers inside enum lists.  (The enum type
+  t `(,@(when (c-lang-const c-brace-id-list-kwds)
+      ;; Fontify the remaining identifiers inside an enum list when we start
+      ;; inside it.
+	  `(c-font-lock-enum-tail
+      ;; Fontify the identifiers inside enum lists.  (The enum type
       ;; name is handled by `c-simple-decl-matchers' or
       ;; `c-complex-decl-matchers' below.
-      ,@(when (c-lang-const c-brace-id-list-kwds)
-	  `((,(c-make-font-lock-search-function
+	    (,(c-make-font-lock-search-function
 	       (concat
 		"\\<\\("
 		(c-make-keywords-re nil (c-lang-const c-brace-id-list-kwds))

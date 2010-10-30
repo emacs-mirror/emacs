@@ -1,3 +1,10 @@
+2010-10-30  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-fonts.el (c-font-lock-enum-tail): New function
+	which fontifies the tail of an enum.
+	(c-basic-matchers-after): Insert a call to the above new function.
+	This fixes bug #7264.
+
 2010-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* cus-start.el: Add :set properties for minor modes menu-bar-mode,
