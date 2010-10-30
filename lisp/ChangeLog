@@ -1,3 +1,9 @@
+2010-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el: Add :set properties for minor modes menu-bar-mode,
+	tool-bar-mode, transient-mark-mode.  (Bug#7306)
+	Include the :set property in the dumped Emacs.
+
 2010-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	SMIE: change indent rules format, improve smie-setup.
