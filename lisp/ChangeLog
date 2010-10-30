@@ -1,3 +1,8 @@
+2010-10-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-file-contents): For root,
+	preserve owner and group when editing files.  (Bug#7289)
+
 2010-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* speedbar.el (speedbar-mode):

@@ -5008,7 +5008,11 @@ coding system might not be determined.  This function repairs it."
 	    (setq buffer-file-name filename)
 	    (setq buffer-read-only (not (file-writable-p filename)))
 	    (set-visited-file-modtime)
-	    (set-buffer-modified-p nil))
+	    (set-buffer-modified-p nil)
+	    ;; For root, preserve owner and group when editing files.
+	    (when (string-equal (file-remote-p filename 'user) "root")
+	      (set (make-local-variable 'backup-by-copying-when-mismatch) t)
+	      (put 'backup-by-copying-when-mismatch 'permanent-local t)))
 	  (when (and (stringp local-copy)
 		     (or remote-copy (null tramp-temp-buffer-file-name)))
 	    (delete-file local-copy))
