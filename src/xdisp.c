@@ -1085,11 +1085,12 @@ static void notice_overwritten_cursor (struct window *,
                                        int, int, int, int);
 static void append_stretch_glyph (struct it *, Lisp_Object,
                                   int, int, int);
-static int coords_in_mouse_face_p (struct window *, int, int);
-
 
 
 #endif /* HAVE_WINDOW_SYSTEM */
+
+static int coords_in_mouse_face_p (struct window *, int, int);
+
 
 
 /***********************************************************************
@@ -1782,8 +1783,6 @@ glyph_to_pixel_coords (struct window *w, int hpos, int vpos,
 }
 
 
-#ifdef HAVE_WINDOW_SYSTEM
-
 /* Find the glyph under window-relative coordinates X/Y in window W.
    Consider only glyphs from buffer text, i.e. no glyphs from overlay
    strings.  Return in *HPOS and *VPOS the row and column number of
@@ -1866,7 +1865,6 @@ x_y_to_hpos_vpos (struct window *w, int x, int y, int *hpos, int *vpos,
   return glyph;
 }
 
-
 /* EXPORT:
    Convert frame-relative x/y to coordinates relative to window W.
    Takes pseudo-windows into account.  */
@@ -1888,6 +1886,8 @@ frame_to_window_pixel_xy (struct window *w, int *x, int *y)
       *y = FRAME_TO_WINDOW_PIXEL_Y (w, *y);
     }
 }
+
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* EXPORT:
    Return in RECTS[] at most N clipping rectangles for glyph string S.
@@ -15903,6 +15903,9 @@ try_window_id (struct window *w)
 		     + (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0)
 		     + window_internal_height (w));
 
+#if defined (HAVE_GPM) || defined (MSDOS)
+	  x_clear_window_mouse_face (w);
+#endif
 	  /* Perform the operation on the screen.  */
 	  if (dvpos > 0)
 	    {
@@ -23608,6 +23611,16 @@ x_clear_cursor (struct window *w)
     update_window_cursor (w, 0);
 }
 
+void
+draw_row_with_mouse_face (struct frame *w, int start_x, struct glyph_row *row,
+			  int start_hpos, int end_hpos,
+			  enum draw_glyphs_face draw)
+{
+  draw_glyphs (w, start_x, row, TEXT_AREA, start_hpos, end_hpos, draw, 0);
+}
+
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* EXPORT:
    Display the active region described by mouse_face_* according to DRAW.  */
@@ -23695,15 +23708,15 @@ show_mouse_face (Display_Info *dpyinfo, enum draw_glyphs_face draw)
 
 	  if (end_hpos > start_hpos)
 	    {
-	      draw_glyphs (w, start_x, row, TEXT_AREA,
-			   start_hpos, end_hpos,
-			   draw, 0);
+	      draw_row_with_mouse_face (w, start_x, row,
+					start_hpos, end_hpos, draw);
 
 	      row->mouse_face_p
 		= draw == DRAW_MOUSE_FACE || draw == DRAW_IMAGE_RAISED;
 	    }
 	}
 
+#ifdef HAVE_WINDOW_SYSTEM
       /* When we've written over the cursor, arrange for it to
 	 be displayed again.  */
       if (phys_cursor_on_p && !w->phys_cursor_on_p)
@@ -23714,8 +23727,10 @@ show_mouse_face (Display_Info *dpyinfo, enum draw_glyphs_face draw)
 				  w->phys_cursor.x, w->phys_cursor.y);
 	  UNBLOCK_INPUT;
 	}
+#endif	/* HAVE_WINDOW_SYSTEM */
     }
 
+#ifdef HAVE_WINDOW_SYSTEM
   /* Change the mouse cursor.  */
   if (draw == DRAW_NORMAL_TEXT && !EQ (dpyinfo->mouse_face_window, f->tool_bar_window))
     FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->text_cursor);
@@ -23723,6 +23738,8 @@ show_mouse_face (Display_Info *dpyinfo, enum draw_glyphs_face draw)
     FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->hand_cursor);
   else
     FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->nontext_cursor);
+
+#endif	/* HAVE_WINDOW_SYSTEM */
 }
 
 /* EXPORT:
@@ -24066,13 +24083,13 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 					    start_charpos);
 	      /* If pos == 0, it means before_string came from an
 		 overlay, not from a buffer position.  */
-	      if (!pos || pos >= start_charpos && pos < end_charpos)
+	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
 	  else if (EQ (glyph->object, after_string))
 	    {
 	      pos = string_buffer_position (w, after_string, end_charpos);
-	      if (!pos || pos >= start_charpos && pos < end_charpos)
+	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
 	  x += glyph->pixel_width;
@@ -24116,13 +24133,13 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	      pos = string_buffer_position (w, before_string, start_charpos);
 	      /* If pos == 0, it means before_string came from an
 		 overlay, not from a buffer position.  */
-	      if (!pos || pos >= start_charpos && pos < end_charpos)
+	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
 	  else if (EQ (glyph->object, after_string))
 	    {
 	      pos = string_buffer_position (w, after_string, end_charpos);
-	      if (!pos || pos >= start_charpos && pos < end_charpos)
+	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
 	}
@@ -24180,13 +24197,13 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	  if (EQ (end->object, before_string))
 	    {
 	      pos = string_buffer_position (w, before_string, start_charpos);
-	      if (!pos || pos >= start_charpos && pos < end_charpos)
+	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
 	  else if (EQ (end->object, after_string))
 	    {
 	      pos = string_buffer_position (w, after_string, end_charpos);
-	      if (!pos || pos >= start_charpos && pos < end_charpos)
+	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
 	}
@@ -24230,13 +24247,13 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	  if (EQ (end->object, before_string))
 	    {
 	      pos = string_buffer_position (w, before_string, start_charpos);
-	      if (!pos || pos >= start_charpos && pos < end_charpos)
+	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
 	  else if (EQ (end->object, after_string))
 	    {
 	      pos = string_buffer_position (w, after_string, end_charpos);
-	      if (!pos || pos >= start_charpos && pos < end_charpos)
+	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
 	  x += end->pixel_width;
@@ -24460,6 +24477,8 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
     }
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 /* See if position X, Y is within a hot-spot of an image.  */
 
 static int
@@ -24630,6 +24649,8 @@ define_frame_cursor1 (struct frame *f, Cursor cursor, Lisp_Object pointer)
     FRAME_RIF (f)->define_frame_cursor (f, cursor);
 }
 
+#endif	/* HAVE_WINDOW_SYSTEM */
+
 /* Take proper action when mouse has moved to the mode or header line
    or marginal area AREA of window W, x-position X and y-position Y.
    X is relative to the start of the text display area of W, so the
@@ -24643,7 +24664,11 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+#ifdef HAVE_WINDOW_SYSTEM
   Cursor cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
+#else
+  Cursor cursor = No_Cursor;
+#endif
   Lisp_Object pointer = Qnil;
   int dx, dy, width, height;
   EMACS_INT charpos;
@@ -24695,6 +24720,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 
   help = Qnil;
 
+#ifdef HAVE_WINDOW_SYSTEM
   if (IMAGEP (object))
     {
       Lisp_Object image_map, hotspot;
@@ -24731,6 +24757,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
       if (NILP (pointer))
 	pointer = Fplist_get (XCDR (object), QCpointer);
     }
+#endif	/* HAVE_WINDOW_SYSTEM */
 
   if (STRINGP (string))
     {
@@ -24750,6 +24777,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	    }
 	}
 
+#ifdef HAVE_WINDOW_SYSTEM
       if (NILP (pointer))
 	pointer = Fget_text_property (pos, Qpointer, string);
 
@@ -24763,6 +24791,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	  if (!KEYMAPP (map))
 	    cursor = dpyinfo->vertical_scroll_bar_cursor;
 	}
+#endif
 
      /* Change the mouse face according to what is under X/Y.  */
       mouse_face = Fget_text_property (pos, Qmouse_face, string);
@@ -24895,7 +24924,9 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
       else if ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE))
 	clear_mouse_face (dpyinfo);
     }
+#ifdef HAVE_WINDOW_SYSTEM
   define_frame_cursor1 (f, cursor, pointer);
+#endif
 }
 
 
@@ -24917,7 +24948,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
   struct buffer *b;
 
   /* When a menu is active, don't highlight because this looks odd.  */
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) || defined (MSDOS)
   if (popup_activated ())
     return;
 #endif
@@ -24961,6 +24992,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
   w = XWINDOW (window);
   frame_to_window_pixel_xy (w, &x, &y);
 
+#ifdef HAVE_WINDOW_SYSTEM
   /* Handle tool-bar window differently since it doesn't display a
      buffer.  */
   if (EQ (window, f->tool_bar_window))
@@ -24968,6 +25000,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
       note_tool_bar_highlight (f, x, y);
       return;
     }
+#endif
 
   /* Mouse is on the mode, header line or margin?  */
   if (part == ON_MODE_LINE || part == ON_HEADER_LINE
@@ -24977,6 +25010,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
       return;
     }
 
+#ifdef HAVE_WINDOW_SYSTEM
   if (part == ON_VERTICAL_BORDER)
     {
       cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
@@ -24987,6 +25021,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
     cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
   else
     cursor = FRAME_X_OUTPUT (f)->text_cursor;
+#endif
 
   /* Are we in a window whose display is up to date?
      And verify the buffer's text has not changed.  */
@@ -25010,6 +25045,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
       /* Find the glyph under X/Y.  */
       glyph = x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, &dx, &dy, &area);
 
+#ifdef HAVE_WINDOW_SYSTEM
       /* Look for :pointer property on image.  */
       if (glyph != NULL && glyph->type == IMAGE_GLYPH)
 	{
@@ -25051,11 +25087,18 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		pointer = Fplist_get (XCDR (img->spec), QCpointer);
 	    }
 	}
+#endif	/* HAVE_WINDOW_SYSTEM */
 
       /* Clear mouse face if X/Y not over text.  */
       if (glyph == NULL
 	  || area != TEXT_AREA
 	  || !MATRIX_ROW (w->current_matrix, vpos)->displays_text_p
+	  /* Glyph's OBJECT is an integer for glyphs inserted by the
+	     display engine for its internal purposes, like truncation
+	     and continuation glyphs and blanks beyond the end of
+	     line's text on text terminals.  If we are over such a
+	     glyph, we are not over any text.  */
+	  || INTEGERP (glyph->object)
 	  /* R2L rows have a stretch glyph at their front, which
 	     stands for no text, whereas L2R rows have no glyphs at
 	     all beyond the end of text.  Treat such stretch glyphs
@@ -25067,6 +25110,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	{
 	  if (clear_mouse_face (dpyinfo))
 	    cursor = No_Cursor;
+#ifdef HAVE_WINDOW_SYSTEM
 	  if (NILP (pointer))
 	    {
 	      if (area != TEXT_AREA)
@@ -25074,6 +25118,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	      else
 		pointer = Vvoid_text_area_pointer;
 	    }
+#endif
 	  goto set_cursor;
 	}
 
@@ -25323,6 +25368,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	  }
       }
 
+#ifdef HAVE_WINDOW_SYSTEM
       /* Look for a `pointer' property.  */
       if (NILP (pointer))
 	{
@@ -25363,6 +25409,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 					      Qpointer, object);
 	    }
 	}
+#endif	/* HAVE_WINDOW_SYSTEM */
 
       BEGV = obegv;
       ZV = ozv;
@@ -25371,7 +25418,13 @@ note_mouse_highlight (struct frame *f, int x, int y)
 
  set_cursor:
 
+#ifdef HAVE_WINDOW_SYSTEM
   define_frame_cursor1 (f, cursor, pointer);
+#else
+  /* This is here to prevent a compiler error, due to "label at end of
+     compound statement".  */
+  return;
+#endif
 }
 
 
@@ -25413,8 +25466,6 @@ cancel_mouse_face (struct frame *f)
     }
 }
 
-
-#endif /* HAVE_WINDOW_SYSTEM */
 
 
 /***********************************************************************

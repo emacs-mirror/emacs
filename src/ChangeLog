@@ -1,3 +1,57 @@
+2010-10-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (coords_in_mouse_face_p): Move prototype out of the
+	HAVE_WINDOW_SYSTEM conditional.
+	(x_y_to_hpos_vpos, frame_to_window_pixel_xy): Move out of the
+	HAVE_WINDOW_SYSTEM block.
+	(try_window_id) [HAVE_GPM || MSDOS]: Call
+	x_clear_window_mouse_face.
+	(draw_row_with_mouse_face): Implementation for HAVE_WINDOW_SYSTEM
+	systems.
+	(show_mouse_face): Call it, instead of calling draw_glyphs directly.
+	(show_mouse_face, clear_mouse_face, coords_in_mouse_face_p)
+	(cursor_in_mouse_face_p, rows_from_pos_range)
+	(mouse_face_from_buffer_pos, mouse_face_from_string_pos)
+	(note_mode_line_or_margin_highlight, note_mouse_highlight)
+	(x_clear_window_mouse_face, cancel_mouse_face): Move out of the
+	HAVE_WINDOW_SYSTEM block.  Ifdef away window-system specific
+	fragments.
+	(note_mouse_highlight): Call popup_activated for MSDOS as well.
+	Clear mouse highlight if pointer is over glyphs whose OBJECT is an
+	integer.
+	(mouse_face_from_buffer_pos): Add parentheses around && within ||.
+
+	* xmenu.c (popup_activated): Don't define on MSDOS.
+
+	* dispnew.c (mirror_make_current): Set Y coordinate of the
+	mode-line and header-line rows.
+
+	* termchar.h (struct tty_display_info): Define mouse_face_*
+	members not only for MSDOS.  Delete stray whitespace.
+	<mouse_face_beg_x, mouse_face_beg_y, mouse_face_overlay>: New
+	struct members.
+
+	* dispextern.h (DPYINFO_DEFINED) [HAVE_X_WINDOWS]: Define.
+	(DPYINFO_DEFINED) [HAVE_NTGUI]: Define.
+	(DPYINFO_DEFINED) [HAVE_NS]: Define.
+	(Display_Info) [!DPYINFO_DEFINED]: Define here.
+	(FRAME_X_DISPLAY_INFO) [HAVE_GPM]: Define.
+	(FRAME_X_DISPLAY_INFO): Define to NULL if not defined.
+	(frame_to_window_pixel_xy, note_mouse_highlight)
+	(x_clear_window_mouse_face, cancel_mouse_face, clear_mouse_face)
+	(show_mouse_face, cursor_in_mouse_face_p): Move prototypes out of
+	HAVE_WINDOW_SYSTEM conditional.
+	(draw_row_with_mouse_face): Declare prototype.
+
+	* msdos.h (Display_Info): Don't define here.
+
+	* msdos.c (show_mouse_face, clear_mouse_face)
+	(fast_find_position, IT_note_mode_line_highlight)
+	(IT_note_mouse_highlight): Functions deleted.
+	(IT_frame_up_to_date, dos_rawgetc): Call note_mouse_highlight
+	instead of IT_note_mouse_highlight.
+	(draw_row_with_mouse_face, popup_activated): New functions.
+
 2010-10-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.c (main): Call syms_of_filelock unconditionally.
