@@ -1628,7 +1628,7 @@ this is a reply."
 	    (unless (gnus-check-server method)
 	      (error "Can't open server %s" (if (stringp method) method
 					      (car method))))
-	    (unless (gnus-request-group group nil method)
+	    (unless (gnus-request-group group t method)
 	      (gnus-request-create-group group method))
 	    (setq mml-externalize-attachments
 		  (if (stringp gnus-gcc-externalize-attachments)

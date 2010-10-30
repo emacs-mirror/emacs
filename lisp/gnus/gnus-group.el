@@ -3988,7 +3988,7 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
   (let* ((groups (gnus-group-process-prefix n))
 	 (ret (if (numberp n) (- n (length groups)) 0))
 	 (beg (unless n
-		(point)))
+		(point-marker)))
 	 group method
 	 (gnus-inhibit-demon t)
 	 ;; Binding this variable will inhibit multiple fetchings

@@ -1256,15 +1256,6 @@ by the user.
 If you want to change servers, you should use `gnus-select-method'.
 See the documentation to that variable.")
 
-;; Don't touch this variable.
-(defvar gnus-nntp-service "nntp"
-  "NNTP service name (\"nntp\" or 119).
-This is an obsolete variable, which is scarcely used.  If you use an
-nntp server for your newsgroup and want to change the port number
-used to 899, you would say something along these lines:
-
- (setq gnus-select-method '(nntp \"my.nntp.server\" (nntp-port-number 899)))")
-
 (defcustom gnus-nntpserver-file "/etc/nntpserver"
   "A file with only the name of the nntp server in it."
   :group 'gnus-files
@@ -1288,20 +1279,11 @@ Check the NNTPSERVER environment variable and the
 ;;;###autoload  (custom-autoload 'gnus-select-method "gnus"))
 
 (defcustom gnus-select-method
-  (condition-case nil
-      (nconc
-       (list 'nntp (or (condition-case nil
-			   (gnus-getenv-nntpserver)
-			 (error nil))
-		       (when (and gnus-default-nntp-server
-				  (not (string= gnus-default-nntp-server "")))
-			 gnus-default-nntp-server)
-		       "news"))
-       (if (or (null gnus-nntp-service)
-	       (equal gnus-nntp-service "nntp"))
-	   nil
-	 (list gnus-nntp-service)))
-    (error nil))
+  (list 'nntp (or (gnus-getenv-nntpserver)
+                  (when (and gnus-default-nntp-server
+                             (not (string= gnus-default-nntp-server "")))
+                    gnus-default-nntp-server)
+                  "news"))
   "Default method for selecting a newsgroup.
 This variable should be a list, where the first element is how the
 news is to be fetched, the second is the address.
@@ -1386,14 +1368,14 @@ To make Gnus query you for a server, you have to give `gnus' a
 non-numeric prefix - `C-u M-x gnus', in short."
   :group 'gnus-server
   :type '(repeat string))
+(make-obsolete-variable 'gnus-secondary-servers 'gnus-select-method "24.1")
 
 (defcustom gnus-nntp-server nil
-  "*The name of the host running the NNTP server.
-This variable is semi-obsolete.  Use the `gnus-select-method'
-variable instead."
+  "The name of the host running the NNTP server."
   :group 'gnus-server
   :type '(choice (const :tag "disable" nil)
 		 string))
+(make-obsolete-variable 'gnus-nntp-server 'gnus-select-method "24.1")
 
 (defcustom gnus-secondary-select-methods nil
   "A list of secondary methods that will be used for reading news.
@@ -1492,7 +1474,7 @@ Also see `gnus-large-ephemeral-newsgroup'."
 		 integer))
 
 (defcustom gnus-use-long-file-name (not (memq system-type '(usg-unix-v)))
-  "*Non-nil means that the default name of a file to save articles in is the group name.
+  "Non-nil means that the default name of a file to save articles in is the group name.
 If it's nil, the directory form of the group name is used instead.
 
 If this variable is a list, and the list contains the element
@@ -1502,8 +1484,8 @@ saving; and if it contains the element `not-kill', long file names
 will not be used for kill files.
 
 Note that the default for this variable varies according to what system
-type you're using.  On `usg-unix-v' and `xenix' this variable defaults
-to nil while on all other systems it defaults to t."
+type you're using.  On `usg-unix-v' this variable defaults to nil while
+on all other systems it defaults to t."
   :group 'gnus-start
   :type '(radio (sexp :format "Non-nil\n"
 		      :match (lambda (widget value)

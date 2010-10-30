@@ -100,8 +100,6 @@ If CONFIRM is non-nil, the user will be asked for an NNTP server."
 	;; Stream is already opened.
 	nil
       ;; Open NNTP server.
-      (unless gnus-nntp-service
-	(setq gnus-nntp-server nil))
       (when confirm
 	;; Read server name with completion.
 	(setq gnus-nntp-server

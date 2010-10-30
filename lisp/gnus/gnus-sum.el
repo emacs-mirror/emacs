@@ -8303,10 +8303,6 @@ articles that are younger than AGE days."
     (gnus-summary-limit articles))
   (gnus-summary-position-point))
 
-(defalias 'gnus-summary-delete-marked-as-read 'gnus-summary-limit-to-unread)
-(make-obsolete
- 'gnus-summary-delete-marked-as-read 'gnus-summary-limit-to-unread "Emacs 20.4")
-
 (defun gnus-summary-limit-to-unread (&optional all)
   "Limit the summary buffer to articles that are not marked as read.
 If ALL is non-nil, limit strictly to unread articles."
@@ -8396,10 +8392,6 @@ If UNREPLIED (the prefix), limit to unreplied articles."
 	gnus-newsgroup-replied))
     (gnus-summary-limit gnus-newsgroup-replied))
   (gnus-summary-position-point))
-
-(defalias 'gnus-summary-delete-marked-with 'gnus-summary-limit-exclude-marks)
-(make-obsolete 'gnus-summary-delete-marked-with
-	       'gnus-summary-limit-exclude-marks "Emacs 20.4")
 
 (defun gnus-summary-limit-exclude-marks (marks &optional reverse)
   "Exclude articles that are marked with MARKS (e.g. \"DK\").
