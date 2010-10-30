@@ -32,7 +32,7 @@ infodir = $(srcdir)/../../info
 emacsdir = $(srcdir)/../emacs
 
 # The makeinfo program is part of the Texinfo distribution.
-MAKEINFO = makeinfo --force
+MAKEINFO = makeinfo --force -I$(emacsdir)
 MULTI_INSTALL_INFO = $(srcdir)\..\..\nt\multi-install-info.bat
 INFO_TARGETS = $(infodir)/ccmode \
 		$(infodir)/cl $(infodir)/dbus $(infodir)/dired-x \
@@ -70,7 +70,7 @@ INFOSOURCES = info.texi
 
 TEXI2DVI = texi2dvi
 ENVADD = $(srcdir)\..\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
-	 "MAKEINFO=$(MAKEINFO) -I$(srcdir) -I$(emacsdir)" /C
+	 "MAKEINFO=$(MAKEINFO) -I$(srcdir)" /C
 
 
 info: $(INFO_TARGETS)
@@ -218,7 +218,7 @@ widget.dvi: widget.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/widget.texi
 
 $(infodir)/efaq: faq.texi $(emacsdir)/emacsver.texi
-	$(MAKEINFO) -I$(emacsdir) faq.texi
+	$(MAKEINFO) faq.texi
 faq.dvi: faq.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/faq.texi
 
@@ -227,10 +227,10 @@ $(infodir)/autotype: autotype.texi
 autotype.dvi: autotype.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/autotype.texi
 
-$(infodir)/calc: calc.texi
+$(infodir)/calc: calc.texi $(emacsdir)/emacsver.texi
 	$(MAKEINFO) calc.texi
 
-calc.dvi: calc.texi
+calc.dvi: calc.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/calc.texi
 
 # This is produced with --no-split to avoid making files whose

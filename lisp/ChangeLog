@@ -1,3 +1,9 @@
+2010-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el: Add :set properties for minor modes menu-bar-mode,
+	tool-bar-mode, transient-mark-mode.  (Bug#7306)
+	Include the :set property in the dumped Emacs.
+
 2010-10-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-deletable-p, quit-restore-window): Adapt to
@@ -17,6 +23,69 @@
 	* help.el (help-window-setup, with-help-window): Use
 	display-buffer-window insted of display-buffer-window-and-buffer
 	and adapt to new semantics of the former.
+
+2010-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	SMIE: change indent rules format, improve smie-setup.
+	* emacs-lisp/smie.el (smie-precs-precedence-table)
+	(smie-merge-prec2s, smie-bnf-precedence-table, smie-prec2-levels):
+	Mark them pure so the tables gets built at compile time.
+	(smie-bnf-precedence-table): Store the closer-alist in the table.
+	(smie-prec2-levels): Preserve the closer-alist.
+	(smie-blink-matching-open): Be more forgiving in case of indentation.
+	(smie-hanging-p): Rename from smie-indent--hanging-p.
+	(smie-bolp): Rename from smie-indent--bolp.
+	(smie--parent, smie--after): New dynamic vars.
+	(smie-parent-p, smie-next-p, smie-prev-p): New funs.
+	(smie-indent-rules): Remove.
+	(smie-indent--offset-rule): Remove fun.
+	(smie-rules-function): New var.
+	(smie-indent--rule): New fun.
+	(smie-indent--offset, smie-indent-keyword, smie-indent-after-keyword)
+	(smie-indent-exps): Use it.
+	(smie-setup): Setup paren blinking; add keyword args for token
+	functions; extract closer-alist from op-levels.
+	(smie-indent-debug-log): Remove var.
+	(smie-indent-debug): Remove fun.
+	* progmodes/prolog.el (prolog-smie-indent-rules): Remove.
+	(prolog-smie-rules): New fun to replace it.
+	(prolog-mode-variables): Simplify.
+	* progmodes/octave-mod.el (octave-smie-closer-alist): Remove, now that
+	it's setup automatically.
+	(octave-smie-indent-rules): Remove.
+	(octave-smie-rules): New fun to replace it.
+	(octave-mode): Simplify.
+
+2010-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (temporary-file-directory): Remove (already defined in C).
+	* cus-start.el: Add temporary-file-directory.
+
+	* abbrev.el (abbrev-mode):
+	* composite.el (auto-composition-mode):
+	* menu-bar.el (menu-bar-mode):
+	* simple.el (transient-mark-mode):
+	* tool-bar.el (tool-bar-mode): Adjust the define-minor-mode calls so
+	that they do not define the associated variables twice.
+	* simple.el (transient-mark-mode): Remove defvar.
+	* composite.el (auto-composition-mode): Make variable auto-buffer-local.
+	* cus-start.el: Add transient-mark-mode, menu-bar-mode, tool-bar-mode.
+	Handle multiple groups, and also custom-delayed-init-variables.
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix.
+
+2010-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase): New `string' and `guard' patterns.
+	(pcase-if): Add one minor optimization.
+	(pcase-split-equal): Rename from pcase-split-eq.
+	(pcase-split-member): Rename from pcase-split-memq.
+	(pcase-u1): Add strings to the member optimization.
+	Add `guard' variant of predicates.
+	(pcase-q1): Add string patterns.
+
+2010-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-rewrite-fixes): State its safety pred.
 
 2010-10-28  Glenn Morris  <rgm@gnu.org>
 

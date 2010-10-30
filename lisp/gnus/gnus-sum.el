@@ -7033,7 +7033,11 @@ The prefix argument ALL means to select all articles."
 (defun gnus-summary-rescan-group (&optional all)
   "Exit the newsgroup, ask for new articles, and select the newsgroup."
   (interactive "P")
-  (gnus-summary-reselect-current-group all t))
+  (let ((config gnus-current-window-configuration))
+    (gnus-summary-reselect-current-group all t)
+    (gnus-configure-windows config)
+    (when (eq config 'article)
+      (gnus-summary-select-article))))
 
 (defun gnus-summary-update-info (&optional non-destructive)
   (save-excursion
@@ -8299,10 +8303,6 @@ articles that are younger than AGE days."
     (gnus-summary-limit articles))
   (gnus-summary-position-point))
 
-(defalias 'gnus-summary-delete-marked-as-read 'gnus-summary-limit-to-unread)
-(make-obsolete
- 'gnus-summary-delete-marked-as-read 'gnus-summary-limit-to-unread "Emacs 20.4")
-
 (defun gnus-summary-limit-to-unread (&optional all)
   "Limit the summary buffer to articles that are not marked as read.
 If ALL is non-nil, limit strictly to unread articles."
@@ -8392,10 +8392,6 @@ If UNREPLIED (the prefix), limit to unreplied articles."
 	gnus-newsgroup-replied))
     (gnus-summary-limit gnus-newsgroup-replied))
   (gnus-summary-position-point))
-
-(defalias 'gnus-summary-delete-marked-with 'gnus-summary-limit-exclude-marks)
-(make-obsolete 'gnus-summary-delete-marked-with
-	       'gnus-summary-limit-exclude-marks "Emacs 20.4")
 
 (defun gnus-summary-limit-exclude-marks (marks &optional reverse)
   "Exclude articles that are marked with MARKS (e.g. \"DK\").

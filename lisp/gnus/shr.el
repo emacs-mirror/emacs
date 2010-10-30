@@ -90,6 +90,7 @@ cid: URL as the argument.")
 (defvar shr-list-mode nil)
 (defvar shr-content-cache nil)
 (defvar shr-kinsoku-shorten nil)
+(defvar shr-table-depth 0)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -369,16 +370,17 @@ redirects somewhere else."
           (let ((alt (buffer-substring start end))
 		(inhibit-read-only t))
 	    (delete-region start end)
-	    (shr-put-image data start alt))))))
+	    (goto-char start)
+	    (shr-put-image data alt))))))
   (kill-buffer (current-buffer)))
 
-(defun shr-put-image (data point alt)
-  (if (not (display-graphic-p))
-      (insert alt)
-    (let ((image (ignore-errors
-		   (shr-rescale-image data))))
-      (when image
-	(put-image image point alt)))))
+(defun shr-put-image (data alt)
+  (if (display-graphic-p)
+      (let ((image (ignore-errors
+                     (shr-rescale-image data))))
+        (when image
+	  (insert-image image (or alt "*"))))
+    (insert alt)))
 
 (defun shr-rescale-image (data)
   (if (or (not (fboundp 'imagemagick-types))
@@ -468,14 +470,6 @@ Return a string with image data."
 (defun shr-tag-s (cont)
   (shr-fontize-cont cont 'strike-through))
 
-(defun shr-tag-span (cont)
-  (let ((start (point))
-	(color (cdr (assq 'color (shr-parse-style (cdr (assq :style cont)))))))
-    (shr-generic cont)
-    (when color
-      (let ((overlay (make-overlay start (point))))
-	(overlay-put overlay 'face (cons 'foreground-color color))))))
-
 (defun shr-parse-style (style)
   (when style
     (let ((plist nil))
@@ -499,24 +493,43 @@ Return a string with image data."
     (shr-urlify (or shr-start start) url)))
 
 (defun shr-tag-object (cont)
-  (let ((url (cdr (assq :src (cdr (assq 'embed cont)))))
-	(start (point)))
+  (let ((start (point))
+	url)
+    (dolist (elem cont)
+      (when (eq (car elem) 'embed)
+	(setq url (or url (cdr (assq :src (cdr elem))))))
+      (when (and (eq (car elem) 'param)
+		 (equal (cdr (assq :name (cdr elem))) "movie"))
+	(setq url (or url (cdr (assq :value (cdr elem)))))))
     (when url
       (shr-insert " [multimedia] ")
-      (shr-urlify start url))))
+      (shr-urlify start url))
+    (shr-generic cont)))
 
-(defun shr-tag-img (cont)
-  (when (and cont
-	     (cdr (assq :src cont)))
+(defun shr-tag-video (cont)
+  (let ((image (cdr (assq :poster cont)))
+	(url (cdr (assq :src cont)))
+	(start (point)))
+    (shr-tag-img nil image)
+    (shr-urlify start url)))
+
+(defun shr-tag-img (cont &optional url)
+  (when (or url
+	    (and cont
+		 (cdr (assq :src cont))))
     (when (and (> (current-column) 0)
 	       (not (eq shr-state 'image)))
       (insert "\n"))
     (let ((alt (cdr (assq :alt cont)))
-	  (url (cdr (assq :src cont))))
+	  (url (or url (cdr (assq :src cont)))))
       (let ((start (point-marker)))
 	(when (zerop (length alt))
 	  (setq alt "[img]"))
 	(cond
+	 ((or (member (cdr (assq :height cont)) '("0" "1"))
+	      (member (cdr (assq :width cont)) '("0" "1")))
+	  ;; Ignore zero-sized or single-pixel images.
+	  )
 	 ((and (not shr-inhibit-images)
 	       (string-match "\\`cid:" url))
 	  (let ((url (substring url (match-end 0)))
@@ -524,7 +537,7 @@ Return a string with image data."
 	    (if (or (not shr-content-function)
 		    (not (setq image (funcall shr-content-function url))))
 		(insert alt)
-	      (shr-put-image image (point) alt))))
+	      (shr-put-image image alt))))
 	 ((or shr-inhibit-images
 	      (and shr-blocked-images
 		   (string-match shr-blocked-images url)))
@@ -534,17 +547,17 @@ Return a string with image data."
 		(shr-insert (substring alt 0 8))
 	      (shr-insert alt))))
 	 ((url-is-cached (shr-encode-url url))
-	  (shr-put-image (shr-get-image-data url) (point) alt))
+	  (shr-put-image (shr-get-image-data url) alt))
 	 (t
 	  (insert alt)
 	  (ignore-errors
 	    (url-retrieve (shr-encode-url url) 'shr-image-fetched
 			  (list (current-buffer) start (point-marker))
 			  t))))
-	(insert " ")
 	(put-text-property start (point) 'keymap shr-map)
 	(put-text-property start (point) 'shr-alt alt)
 	(put-text-property start (point) 'shr-image url)
+	(put-text-property start (point) 'help-echo alt)
 	(setq shr-state 'image)))))
 
 (defun shr-tag-pre (cont)
@@ -628,6 +641,7 @@ Return a string with image data."
   (setq cont (or (cdr (assq 'tbody cont))
 		 cont))
   (let* ((shr-inhibit-images t)
+	 (shr-table-depth (1+ shr-table-depth))
 	 (shr-kinsoku-shorten t)
 	 ;; Find all suggested widths.
 	 (columns (shr-column-specs cont))
@@ -649,8 +663,9 @@ Return a string with image data."
   ;; Finally, insert all the images after the table.  The Emacs buffer
   ;; model isn't strong enough to allow us to put the images actually
   ;; into the tables.
-  (dolist (elem (shr-find-elements cont 'img))
-    (shr-tag-img (cdr elem))))
+  (when (zerop shr-table-depth)
+    (dolist (elem (shr-find-elements cont 'img))
+      (shr-tag-img (cdr elem)))))
 
 (defun shr-tag-table (cont)
   (shr-ensure-paragraph)

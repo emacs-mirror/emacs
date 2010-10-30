@@ -78,6 +78,9 @@ Uses the same syntax as nnmail-split-methods")
 (defvoo nnimap-split-fancy nil
   "Uses the same syntax as nnmail-split-fancy.")
 
+(defvoo nnimap-unsplittable-articles '(%Deleted %Seen)
+  "Articles with the flags in the list will not be considered when splitting.")
+
 (make-obsolete-variable 'nnimap-split-rule "see `nnimap-split-methods'"
 			"Emacs 24.1")
 
@@ -412,9 +415,18 @@ textual parts.")
 				;; physical address.
 				(nnimap-credentials nnimap-address ports)))))
 		  (setq nnimap-object nil)
-		(setq login-result (nnimap-command "LOGIN %S %S"
-						   (car credentials)
-						   (cadr credentials)))
+		(setq login-result
+		      (if (member "AUTH=PLAIN"
+				  (nnimap-capabilities nnimap-object))
+			  (nnimap-command
+			   "AUTHENTICATE PLAIN %s"
+			   (base64-encode-string
+			    (format "\000%s\000%s"
+				    (nnimap-quote-specials (car credentials))
+				    (nnimap-quote-specials (cadr credentials)))))
+			(nnimap-command "LOGIN %S %S"
+					(car credentials)
+					(cadr credentials))))
 		(unless (car login-result)
 		  ;; If the login failed, then forget the credentials
 		  ;; that are now possibly cached.
@@ -430,6 +442,16 @@ textual parts.")
 	      (when (member "QRESYNC" (nnimap-capabilities nnimap-object))
 		(nnimap-command "ENABLE QRESYNC"))
 	      (nnimap-process nnimap-object))))))))
+
+(defun nnimap-quote-specials (string)
+  (with-temp-buffer
+    (insert string)
+    (goto-char (point-min))
+    (while (re-search-forward "[\\\"]" nil t)
+      (forward-char -1)
+      (insert "\\")
+      (forward-char 1))
+    (buffer-string)))
 
 (defun nnimap-find-parameter (parameter elems)
   (let (result)
@@ -1593,6 +1615,7 @@ textual parts.")
 	  new-articles)
       (erase-buffer)
       (nnimap-command "SELECT %S" nnimap-inbox)
+      (setf (nnimap-group nnimap-object) nnimap-inbox)
       (setq new-articles (nnimap-new-articles (nnimap-get-flags "1:*")))
       (when new-articles
 	(nnimap-fetch-inbox new-articles)
@@ -1665,9 +1688,8 @@ textual parts.")
 (defun nnimap-new-articles (flags)
   (let (new)
     (dolist (elem flags)
-      (when (or (null (cdr elem))
-		(and (not (memq '%Deleted (cdr elem)))
-		     (not (memq '%Seen (cdr elem)))))
+      (unless (gnus-list-memq-of-list nnimap-unsplittable-articles
+				      (cdr elem))
 	(push (car elem) new)))
     (gnus-compress-sequence (nreverse new))))
 

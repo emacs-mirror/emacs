@@ -173,10 +173,11 @@ When nil, send actual operating system end of file."
     )
   "Precedence levels of infix operators.")
 
-(defconst prolog-smie-indent-rules
-  '((":-")
-    ("->"))
-  "Prolog indentation rules.")
+(defun prolog-smie-rules (kind token)
+  (pcase (cons kind token)
+    (`(:elem . basic) prolog-indent-width)
+    (`(:after . ".") 0) ;; To work around smie-closer-alist.
+    (`(:after . ,(or `":-" `"->")) prolog-indent-width)))
 
 (defun prolog-mode-variables ()
   (make-local-variable 'paragraph-separate)
@@ -185,19 +186,17 @@ When nil, send actual operating system end of file."
   (setq paragraph-ignore-fill-prefix t)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression '((nil "^\\sw+" 0)))
-  (smie-setup prolog-smie-op-levels prolog-smie-indent-rules)
-  (set (make-local-variable 'smie-forward-token-function)
-       #'prolog-smie-forward-token)
-  (set (make-local-variable 'smie-backward-token-function)
-       #'prolog-smie-backward-token)
-  (set (make-local-variable 'forward-sexp-function)
-       'smie-forward-sexp-command)
-  (set (make-local-variable 'smie-indent-basic) prolog-indent-width)
+
+  ;; Setup SMIE.
+  (smie-setup prolog-smie-op-levels #'prolog-smie-rules
+              :forward-token #'prolog-smie-forward-token
+              :backward-token #'prolog-smie-backward-token)
   (set (make-local-variable 'smie-blink-matching-triggers) '(?.))
   (set (make-local-variable 'smie-closer-alist) '((t . ".")))
   (add-hook 'post-self-insert-hook #'smie-blink-matching-open 'append 'local)
   ;; There's no real closer in Prolog anyway.
   (set (make-local-variable 'smie-blink-matching-inners) t)
+
   (make-local-variable 'comment-start)
   (setq comment-start "%")
   (make-local-variable 'comment-start-skip)

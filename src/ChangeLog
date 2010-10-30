@@ -1,3 +1,21 @@
+2010-10-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main): Call syms_of_filelock unconditionally.
+
+	* filelock.c (syms_of_filelock): Move out of #ifdef CLASH_DETECTION
+	clause, but keep part of it conditioned on CLASH_DETECTION.
+
+2010-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* nsfns.m (Fx-display-save-under, Fx-open-connection)
+	(Fxw-color-defined-p, Fxw-display-color-p, Fx-show-tip):
+	* w32fns.c (Fxw_color_defined_p, Fx_open_connection):
+	* xfns.c (Fxw_color_defined_p, Fx_open_connection):
+	Sync docs between X, W32, NS.
+
+	* buffer.c (syms_of_buffer) <abbrev-mode, transient-mark-mode>:
+	* frame.c (syms_of_frame) <tool-bar-mode>: Move doc here from Lisp.
+
 2010-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (init_eval_once): Set max_lisp_eval_depth to 600;

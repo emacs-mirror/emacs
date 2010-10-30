@@ -1,8 +1,8 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -3997,29 +3997,8 @@ Invoke \\[apropos-documentation] and type \"transient\" or
 \"mark.*active\" at the prompt, to see the documentation of
 commands which are sensitive to the Transient Mark mode."
   :global t
-  :init-value (not noninteractive)
-  :initialize 'custom-initialize-delay
-  :group 'editing-basics)
-
-;; The variable transient-mark-mode is ugly: it can take on special
-;; values.  Document these here.
-(defvar transient-mark-mode t
-  "*Non-nil if Transient Mark mode is enabled.
-See the command `transient-mark-mode' for a description of this minor mode.
-
-Non-nil also enables highlighting of the region whenever the mark is active.
-The variable `highlight-nonselected-windows' controls whether to highlight
-all windows or just the selected window.
-
-If the value is `lambda', that enables Transient Mark mode temporarily.
-After any subsequent action that would normally deactivate the mark
-\(such as buffer modification), Transient Mark mode is turned off.
-
-If the value is (only . OLDVAL), that enables Transient Mark mode
-temporarily.  After any subsequent point motion command that is not
-shift-translated, or any other action that would normally deactivate
-the mark (such as buffer modification), the value of
-`transient-mark-mode' is set to OLDVAL.")
+  ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
+  :variable transient-mark-mode)
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.

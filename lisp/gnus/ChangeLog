@@ -1,3 +1,78 @@
+2010-10-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-span): Drop colorisation of regions since we don't
+	control the background color.
+	(shr-tag-img): Ignore very small web bug type images.
+	(shr-put-image): Add help-echo alt texts to the images.
+	(shr-tag-video): Show the video poster image.
+
+2010-10-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-table-depth): New variable.
+	(shr-tag-table-1): Only insert the images after the top-level table.
+
+	* nnimap.el (nnimap-split-incoming-mail): Fix typo.
+
+	* gnus-util.el (gnus-list-memq-of-list): New function.
+
+	* nnimap.el (nnimap-split-incoming-mail): Note that the INBOX has been
+	selected.
+	(nnimap-unsplittable-articles): New slot.
+	(nnimap-new-articles): Use it.
+
+2010-10-29  Stephen Berman  <stephen.berman@gmx.net>  (tiny change)
+
+	* gnus-group.el (gnus-group-get-new-news-this-group): Don't have point
+	move to the previous line on `M-g'.
+
+2010-10-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-inews-do-gcc): Don't have the backends do the slow
+	*-request-group, which seems unnecessary.
+
+	* nnimap.el (nnimap-quote-specials): Function copied over from
+	imap.el.
+	(nnimap-open-connection): Use AUTHENTICATE PLAIN on servers that say
+	they support that.  Suggested by Tom Regner.
+
+2010-10-29  Julien Danjou  <julien@danjou.info>
+
+	* gnus-sum.el (gnus-summary-delete-marked-as-read): Remove obsolete
+	defalias.
+	(gnus-summary-delete-marked-with): Remove obsolete defalias.
+
+	* gnus.el: Remove `gnus-nntp-service' variable.
+	(gnus-secondary-servers): Make obsolete.
+	(gnus-nntp-server): Make obsolete.
+
+	* gnus-start.el (gnus-1): Remove x-splash calls.
+
+	* gnus-ems.el (gnus-x-splash): Remove.
+
+	* gnus.el (gnus-group-startup-message): Simplify/update code.
+
+	* gnus-group.el (gnus-group-make-tool-bar): Check for display graphic
+	capability before doing anything.
+	(gnus-group-insert-group-line): Remove useless
+	gnus-group-remove-excess-properties.
+
+2010-10-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-goto-part): Work for article narrowed by ^L.
+
+2010-10-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-rescan-group): Try to restore the window
+	config after reselecting.
+
+2010-10-28  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-put-image): Use point even if only inserting text.
+	(shr-put-image): Save excursion when inserting alt text on non-graphic
+	display, so the behaviour is the same when we are on a graphic display.
+
+	* nnir.el (nnir-run-swish-e): Remove hyrex support.
+
 2010-10-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-jump-to-part): Error on no part; fix prompt.

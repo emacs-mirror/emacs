@@ -5465,7 +5465,8 @@ Format with `format-mode-line' to produce a string value.  */);
 		     doc: /* Local (mode-specific) abbrev table of current buffer.  */);
 
   DEFVAR_PER_BUFFER ("abbrev-mode", &current_buffer->abbrev_mode, Qnil,
-		     doc: /* Non-nil turns on automatic expansion of abbrevs as they are inserted.  */);
+		     doc: /*  Non-nil if Abbrev mode is enabled.
+Use the command `abbrev-mode' to change this variable.  */);
 
   DEFVAR_PER_BUFFER ("case-fold-search", &current_buffer->case_fold_search,
 		     Qnil,
@@ -5963,11 +5964,23 @@ to the value obtained by calling `current-time'.
 If the buffer has never been shown in a window, the value is nil.  */);
 
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
-	       doc: /* */);
+	       doc: /*  Non-nil if Transient Mark mode is enabled.
+See the command `transient-mark-mode' for a description of this minor mode.
+
+Non-nil also enables highlighting of the region whenever the mark is active.
+The variable `highlight-nonselected-windows' controls whether to highlight
+all windows or just the selected window.
+
+If the value is `lambda', that enables Transient Mark mode temporarily.
+After any subsequent action that would normally deactivate the mark
+\(such as buffer modification), Transient Mark mode is turned off.
+
+If the value is (only . OLDVAL), that enables Transient Mark mode
+temporarily.  After any subsequent point motion command that is not
+shift-translated, or any other action that would normally deactivate
+the mark (such as buffer modification), the value of
+`transient-mark-mode' is set to OLDVAL.  */);
   Vtransient_mark_mode = Qnil;
-  /* The docstring is in simple.el.  If we put it here, it would be
-     overwritten when transient-mark-mode is defined using
-     define-minor-mode.  */
 
   DEFVAR_LISP ("inhibit-read-only", &Vinhibit_read_only,
 	       doc: /* *Non-nil means disregard read-only status of buffers or characters.

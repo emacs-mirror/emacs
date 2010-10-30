@@ -5561,35 +5561,41 @@ all parts."
 
 (defun gnus-article-goto-part (n)
   "Go to MIME part N."
-  (let ((start (text-property-any (point-min) (point-max) 'gnus-part n))
-	part handle end next handles)
-    (when start
-      (goto-char start)
-      (if (setq handle (get-text-property start 'gnus-data))
-	  start
-	;; Go to the displayed subpart, assuming this is multipart/alternative.
-	(setq part start
-	      end (point-at-eol))
-	(while (and (not handle)
-		    part
-		    (< part end)
-		    (setq next (text-property-not-all part end
-						      'gnus-data nil)))
-	  (setq part next
-		handle (get-text-property part 'gnus-data))
-	  (push (cons handle part) handles)
-	  (unless (mm-handle-displayed-p handle)
-	    (setq handle nil
-		  part (text-property-any part end 'gnus-data nil))))
-	(unless handle
-	  ;; No subpart is displayed, so we find preferred one.
-	  (setq part
-		(cdr (assq (mm-preferred-alternative
-			    (nreverse (mapcar 'car handles)))
-			   handles))))
-	(if part
-	    (goto-char (1+ part))
-	  start)))))
+  (when gnus-break-pages
+    (widen))
+  (prog1
+      (let ((start (text-property-any (point-min) (point-max) 'gnus-part n))
+	    part handle end next handles)
+	(when start
+	  (goto-char start)
+	  (if (setq handle (get-text-property start 'gnus-data))
+	      start
+	    ;; Go to the displayed subpart, assuming this is
+	    ;; multipart/alternative.
+	    (setq part start
+		  end (point-at-eol))
+	    (while (and (not handle)
+			part
+			(< part end)
+			(setq next (text-property-not-all part end
+							  'gnus-data nil)))
+	      (setq part next
+		    handle (get-text-property part 'gnus-data))
+	      (push (cons handle part) handles)
+	      (unless (mm-handle-displayed-p handle)
+		(setq handle nil
+		      part (text-property-any part end 'gnus-data nil))))
+	    (unless handle
+	      ;; No subpart is displayed, so we find preferred one.
+	      (setq part
+		    (cdr (assq (mm-preferred-alternative
+				(nreverse (mapcar 'car handles)))
+			       handles))))
+	    (if part
+		(goto-char (1+ part))
+	      start))))
+    (when gnus-break-pages
+      (gnus-narrow-to-page))))
 
 (defun gnus-insert-mime-button (handle gnus-tmp-id &optional displayed)
   (let ((gnus-tmp-name

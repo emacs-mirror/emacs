@@ -1,3 +1,20 @@
+2010-10-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Client-Side IMAP Splitting): Mention
+	nnimap-unsplittable-articles.
+
+2010-10-29  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi (Finding the News): Remove references to obsoletes
+	variables `gnus-nntp-server' and `gnus-secondary-servers'.
+
+2010-10-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (MAKEINFO): Add -I$(emacsdir).
+	(ENVADD): Remove extra -I$(emacsdir), included in $(MAKEINFO).
+	($(infodir)/efaq): Remove -I$(emacsdir), included in $(MAKEINFO).
+	($(infodir)/calc, calc.dvi): Depend on $(emacsdir)/emacsver.texi.
+
 2010-10-28  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (MAKEINFO, ENVADD): Add $emacsdir to include path.
@@ -12,7 +29,7 @@
 
 2010-10-24  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.texi:  Use emacsver.texi to determine Emacs version.
+	* calc.texi: Use emacsver.texi to determine Emacs version.
 
 2010-10-24  Juanma Barranquero  <lekktu@gmail.com>
 

@@ -1974,6 +1974,14 @@ Sizes are in pixels."
                    image)))
       image)))
 
+(defun gnus-list-memq-of-list (elements list)
+  "Return non-nil if any of the members of ELEMENTS are in LIST."
+  (let ((found nil))
+    (dolist (elem elements)
+      (setq found (or found
+		      (memq elem list))))
+    found))
+
 (provide 'gnus-util)
 
 ;;; gnus-util.el ends here

@@ -3585,7 +3585,8 @@ FRAME nil means use the selected frame.  */)
 
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
-       doc: /* Internal function called by `color-defined-p', which see.  */)
+       doc: /* Internal function called by `color-defined-p', which see
+.\(Note that the Nextstep version of this function ignores FRAME.)  */)
   (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
@@ -4103,11 +4104,12 @@ x_display_info_for_name (Lisp_Object name)
 
 DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
        1, 3, 0,
-       doc: /* Open a connection to an X server.
+       doc: /* Open a connection to a display server.
 DISPLAY is the name of the display to connect to.
 Optional second arg XRM-STRING is a string of resources in xrdb format.
 If the optional third arg MUST-SUCCEED is non-nil,
-terminate Emacs if we can't open the connection.  */)
+terminate Emacs if we can't open the connection.
+\(In the Nextstep version, the last two arguments are currently ignored.)  */)
   (Lisp_Object display, Lisp_Object xrm_string, Lisp_Object must_succeed)
 {
   unsigned char *xrm_option;

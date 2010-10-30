@@ -1020,22 +1020,6 @@ Gnus will see whether @code{gnus-nntpserver-file}
 If that fails as well, Gnus will try to use the machine running Emacs
 as an @acronym{NNTP} server.  That's a long shot, though.
 
-@vindex gnus-nntp-server
-If @code{gnus-nntp-server} is set, this variable will override
-@code{gnus-select-method}.  You should therefore set
-@code{gnus-nntp-server} to @code{nil}, which is what it is by default.
-
-@vindex gnus-secondary-servers
-@vindex gnus-nntp-server
-You can also make Gnus prompt you interactively for the name of an
-@acronym{NNTP} server.  If you give a non-numerical prefix to @code{gnus}
-(i.e., @kbd{C-u M-x gnus}), Gnus will let you choose between the servers
-in the @code{gnus-secondary-servers} list (if any).  You can also just
-type in the name of any server you feel like visiting.  (Note that this
-will set @code{gnus-nntp-server}, which means that if you then @kbd{M-x
-gnus} later in the same Emacs session, Gnus will contact the same
-server.)
-
 @findex gnus-group-browse-foreign-server
 @kindex B (Group)
 However, if you use one @acronym{NNTP} server regularly and are just
@@ -14944,6 +14928,11 @@ use the value of the @code{nnmail-split-methods} variable.
 
 @item nnimap-split-fancy
 Uses the same syntax as @code{nnmail-split-fancy}.
+
+@item nnimap-unsplittable-articles
+List of flag symbols to ignore when doing splitting.  That is,
+articles that have these flags won't be considered when splitting.
+The default is @samp{(%Deleted %Seen)}.
 
 @end table
 
@@ -30102,11 +30091,11 @@ that means:
 (setq gnus-read-active-file 'some)
 @end lisp
 
-On the other hand, if the manual says ``set @code{gnus-nntp-server} to
-@samp{nntp.ifi.uio.no}'', that means:
+On the other hand, if the manual says ``set @code{gnus-nntp-server-file} to
+@samp{/etc/nntpserver}'', that means:
 
 @lisp
-(setq gnus-nntp-server "nntp.ifi.uio.no")
+(setq gnus-nntp-server-file "/etc/nntpserver")
 @end lisp
 
 So be careful not to mix up strings (the latter) with symbols (the

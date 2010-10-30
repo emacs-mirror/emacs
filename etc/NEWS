@@ -587,6 +587,8 @@ Notifications API.  It requires D-Bus for communication.
 
 * Incompatible Lisp Changes in Emacs 24.1
 
+** Remove obsolete name `e' (use `float-e' instead).
+
 ** A backquote not followed by a space is now always treated as new-style.
 
 ** Test for special mode-class was moved from view-file to view-buffer.

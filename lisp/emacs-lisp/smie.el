@@ -109,6 +109,7 @@
           (display-warning 'smie (format "Conflict: %s %s/%s %s" x old val y)))
       (puthash key val table))))
 
+(put 'smie-precs-precedence-table 'pure t)
 (defun smie-precs-precedence-table (precs)
   "Compute a 2D precedence table from a list of precedences.
 PRECS should be a list, sorted by precedence (e.g. \"+\" will
@@ -132,6 +133,7 @@ one of those elements share the same precedence level and associativity."
                 (smie-set-prec2tab prec2-table other-op op op1)))))))
     prec2-table))
 
+(put 'smie-merge-prec2s 'pure t)
 (defun smie-merge-prec2s (&rest tables)
   (if (null (cdr tables))
       (car tables)
@@ -147,6 +149,7 @@ one of those elements share the same precedence level and associativity."
                  table))
       prec2)))
 
+(put 'smie-bnf-precedence-table 'pure t)
 (defun smie-bnf-precedence-table (bnf &rest precs)
   (let ((nts (mapcar 'car bnf))         ;Non-terminals
         (first-ops-table ())
@@ -233,6 +236,7 @@ one of those elements share the same precedence level and associativity."
     ;; Keep track of which tokens are openers/closer, so they can get a nil
     ;; precedence in smie-prec2-levels.
     (puthash :smie-open/close-alist (smie-bnf-classify bnf) prec2)
+    (puthash :smie-closer-alist (smie-bnf-closer-alist bnf) prec2)
     prec2))
 
 ;; (defun smie-prec2-closer-alist (prec2 include-inners)
@@ -377,6 +381,7 @@ CSTS is a list of pairs representing arcs in a graph."
      (append names (list (car names)))
      " < ")))
 
+(put 'smie-prec2-levels 'pure t)
 (defun smie-prec2-levels (prec2)
   ;; FIXME: Rather than only return an alist of precedence levels, we should
   ;; also extract other useful data from it:
@@ -479,6 +484,8 @@ PREC2 is a table as returned by `smie-precs-precedence-table' or
                       (eq 'closer (cdr (assoc (car x) classification-table))))
             (setf (nth 2 x) i)
             (incf i)))))                ;See other (incf i) above.
+    (let ((ca (gethash :smie-closer-alist prec2)))
+      (when ca (push (cons :smie-closer-alist ca) table)))
     table))
 
 ;;; Parsing using a precedence level table.
@@ -803,14 +810,22 @@ If non-nil, it will blink not only for \"begin..end\" but also for \"if...else\"
 (defun smie-blink-matching-open ()
   "Blink the matching opener when applicable.
 This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'."
+  (let ((pos (point))                   ;Position after the close token.
+        token)
   (when (and blink-matching-paren
              smie-closer-alist                     ; Optimization.
-             (eq (char-before) last-command-event) ; Sanity check.
+               (or (eq (char-before) last-command-event) ;; Sanity check.
+                   (save-excursion
+                     (or (progn (skip-chars-backward " \t")
+                                (setq pos (point))
+                                (eq (char-before) last-command-event))
+                         (progn (skip-chars-backward " \n\t")
+                                (setq pos (point))
+                                (eq (char-before) last-command-event)))))
              (memq last-command-event smie-blink-matching-triggers)
              (not (nth 8 (syntax-ppss))))
     (save-excursion
-      (let ((pos (point))
-            (token (funcall smie-backward-token-function)))
+        (setq token (funcall smie-backward-token-function))
         (when (and (eq (point) (1- pos))
                    (= 1 (length token))
                    (not (rassoc token smie-closer-alist)))
@@ -818,17 +833,20 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
           ;; closers (e.g. ?\; in Octave mode), so go back to the
           ;; previous token.
           (setq pos (point))
-          (setq token (save-excursion
-                        (funcall smie-backward-token-function))))
+          (setq token (funcall smie-backward-token-function)))
         (when (rassoc token smie-closer-alist)
           ;; We're after a close token.  Let's still make sure we
           ;; didn't skip a comment to find that token.
           (funcall smie-forward-token-function)
           (when (and (save-excursion
-                       ;; Trigger can be SPC, or reindent.
-                       (skip-chars-forward " \n\t")
+                       ;; Skip the trigger char, if applicable.
+                       (if (eq (char-after) last-command-event)
+                           (forward-char 1))
+                       (if (eq ?\n last-command-event)
+                           ;; Skip any auto-indentation, if applicable.
+                           (skip-chars-forward " \t"))
                        (>= (point) pos))
-                     ;; If token ends with a trigger char, so don't blink for
+                     ;; If token ends with a trigger char, don't blink for
                      ;; anything else than this trigger char, lest we'd blink
                      ;; both when inserting the trigger char and when
                      ;; inserting a subsequent trigger char like SPC.
@@ -850,34 +868,25 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
   "Basic amount of indentation."
   :type 'integer)
 
-(defvar smie-indent-rules 'unset
-  ;; TODO: For SML, we need more rule formats, so as to handle
-  ;;   structure Foo =
-  ;;      Bar (toto)
-  ;; and
-  ;;   structure Foo =
-  ;;   struct ... end
-  ;; I.e. the indentation after "=" depends on the parent ("structure")
-  ;; as well as on the following token ("struct").
-  "Rules of the following form.
-\((:before . TOK) . OFFSET-RULES)	how to indent TOK itself.
-\(TOK . OFFSET-RULES)	how to indent right after TOK.
-\(list-intro . TOKENS)	declare TOKENS as being followed by what may look like
-			  a funcall but is just a sequence of expressions.
-\(t . OFFSET)		basic indentation step.
-\(args . OFFSET)		indentation of arguments.
-\((T1 . T2) OFFSET)	like ((:before . T2) (:parent T1 OFFSET)).
+(defvar smie-rules-function 'ignore
+  "Function providing the indentation rules.
+It takes two arguments METHOD and ARG where the meaning of ARG
+and the expected return value depends on METHOD.
+METHOD can be:
+- :after, in which case ARG is a token and the function should return the
+  OFFSET to use for indentation after ARG.
+- :before, in which case ARG is a token and the function should return the
+  OFFSET to use to indent ARG itself.
+- :elem, in which case the function should return either:
+  - the offset to use to indent function arguments (ARG = `arg')
+  - the basic indentation step (ARG = `basic').
+- :list-intro, in which case ARG is a token and the function should return
+  non-nil if TOKEN is followed by a list of expressions (not separated by any
+  token) rather than an expression.
 
-OFFSET-RULES is a list of elements which can each either be:
-
-\(:hanging . OFFSET-RULES)	if TOK is hanging, use OFFSET-RULES.
-\(:parent PARENT . OFFSET-RULES) if TOK's parent is PARENT, use OFFSET-RULES.
-\(:next TOKEN . OFFSET-RULES)	if TOK is followed by TOKEN, use OFFSET-RULES.
-\(:prev TOKEN . OFFSET-RULES)	if TOK is preceded by TOKEN, use
-\(:bolp . OFFSET-RULES)		If TOK is first on a line, use OFFSET-RULES.
-OFFSET				the offset to use.
-
-PARENT can be either the name of the parent or a list of such names.
+When ARG is a token, the function is called with point just before that token.
+A return value of nil always means to fallback on the default behavior, so the
+function should return nil for arguments it does not expect.
 
 OFFSET can be of the form:
 `point'				align with the token.
@@ -886,91 +895,69 @@ NUMBER				offset by NUMBER.
 \(+ OFFSETS...)			use the sum of OFFSETS.
 VARIABLE			use the value of VARIABLE as offset.
 
-The precise meaning of `point' depends on various details: it can
-either mean the position of the token we're indenting, or the
-position of its parent, or the position right after its parent.
+This function will often use some of the following functions designed
+specifically for it:
+`smie-bolp', `smie-hanging-p', `smie-parent-p', `smie-next-p', `smie-prev-p'.")
 
-A nil offset for indentation after an opening token defaults
-to `smie-indent-basic'.")
-
-(defun smie-indent--hanging-p ()
-  ;; A hanging keyword is one that's at the end of a line except it's not at
-  ;; the beginning of a line.
-  (and (save-excursion
+(defun smie-hanging-p ()
+  "Return non-nil if the current token is \"hanging\".
+A hanging keyword is one that's at the end of a line except it's not at
+the beginning of a line."
+  (and (not (smie-bolp))
+       (save-excursion
          (when (zerop (length (funcall smie-forward-token-function)))
            ;; Could be an open-paren.
            (forward-char 1))
          (skip-chars-forward " \t")
-         (eolp))
-       (not (smie-indent--bolp))))
+         (eolp))))
 
-(defun smie-indent--bolp ()
+(defun smie-bolp ()
+  "Return non-nil if the current token is the first on the line."
   (save-excursion (skip-chars-backward " \t") (bolp)))
 
+(defvar smie--parent) (defvar smie--after) ;Dynamically scoped.
+
+(defun smie-parent-p (&rest parents)
+  "Return non-nil if the current token's parent is among PARENTS.
+Only meaningful when called from within `smie-rules-function'."
+  (member (nth 2 (or smie--parent
+                     (save-excursion
+                       (let* ((pos (point))
+                              (tok (funcall smie-forward-token-function)))
+                         (unless (cadr (assoc tok smie-op-levels))
+                           (goto-char pos))
+                         (setq smie--parent
+                               (smie-backward-sexp 'halfsexp))))))
+          parents))
+
+(defun smie-next-p (&rest tokens)
+  "Return non-nil if the next token is among TOKENS.
+Only meaningful when called from within `smie-rules-function'."
+  (let ((next
+         (save-excursion
+           (unless smie--after
+             (smie-indent-forward-token) (setq smie--after (point)))
+           (goto-char smie--after)
+           (smie-indent-forward-token))))
+    (member (car next) tokens)))
+
+(defun smie-prev-p (&rest tokens)
+  "Return non-nil if the previous token is among TOKENS."
+  (let ((prev (save-excursion
+                (smie-indent-backward-token))))
+    (member (car prev) tokens)))
+
+
 (defun smie-indent--offset (elem)
-  (or (cdr (assq elem smie-indent-rules))
-      (cdr (assq t smie-indent-rules))
+  (or (funcall smie-rules-function :elem elem)
+      (if (not (eq elem 'basic))
+          (funcall smie-rules-function :elem 'basic))
       smie-indent-basic))
 
-(defvar smie-indent-debug-log)
-
-(defun smie-indent--offset-rule (tokinfo &optional after parent)
-  "Apply the OFFSET-RULES in TOKINFO.
-Point is expected to be right in front of the token corresponding to TOKINFO.
-If computing the indentation after the token, then AFTER is the position
-after the token, otherwise it should be nil.
-PARENT if non-nil should be the parent info returned by `smie-backward-sexp'."
-  (let ((rules (cdr tokinfo))
-        next prev
-        offset)
-    (while (consp rules)
-      (let ((rule (pop rules)))
-        (cond
-         ((not (consp rule)) (setq offset rule))
-         ((eq (car rule) '+) (setq offset rule))
-         ((eq (car rule) :hanging)
-          (when (smie-indent--hanging-p)
-            (setq rules (cdr rule))))
-         ((eq (car rule) :bolp)
-          (when (smie-indent--bolp)
-            (setq rules (cdr rule))))
-         ((eq (car rule) :eolp)
-          (unless after
-            (error "Can't use :eolp in :before indentation rules"))
-          (when (> after (line-end-position))
-            (setq rules (cdr rule))))
-         ((eq (car rule) :prev)
-          (unless prev
-            (save-excursion
-              (setq prev (smie-indent-backward-token))))
-          (when (equal (car prev) (cadr rule))
-            (setq rules (cddr rule))))
-         ((eq (car rule) :next)
-          (unless next
-            (unless after
-              (error "Can't use :next in :before indentation rules"))
-            (save-excursion
-              (goto-char after)
-              (setq next (smie-indent-forward-token))))
-          (when (equal (car next) (cadr rule))
-            (setq rules (cddr rule))))
-         ((eq (car rule) :parent)
-          (unless parent
-            (save-excursion
-              (if after (goto-char after))
-              (setq parent (smie-backward-sexp 'halfsexp))))
-          (when (if (listp (cadr rule))
-                    (member (nth 2 parent) (cadr rule))
-                  (equal (nth 2 parent) (cadr rule)))
-            (setq rules (cddr rule))))
-         (t (error "Unknown rule %s for indentation of %s"
-                   rule (car tokinfo))))))
-    ;; If `offset' is not set yet, use `rules' to handle the case where
-    ;; the tokinfo uses the old-style ((PARENT . TOK). OFFSET).
-    (unless offset (setq offset rules))
-    (when (boundp 'smie-indent-debug-log)
-      (push (list (point) offset tokinfo) smie-indent-debug-log))
-    offset))
+(defun smie-indent--rule (kind token &optional after parent)
+  (let ((smie--parent parent)
+        (smie--after after))
+    (funcall smie-rules-function kind token)))
 
 (defun smie-indent--column (offset &optional base parent virtual-point)
   "Compute the actual column to use for a given OFFSET.
@@ -1012,6 +999,9 @@ If VIRTUAL-POINT is non-nil, then `point' is virtual."
     (if (consp parent) (goto-char (cadr parent)))
     (smie-indent-virtual))
    ((eq offset nil) nil)
+   ;; FIXME: would be good to get rid of this since smie-rules-function
+   ;; can usually do the lookup trivially, but in cases where
+   ;; smie-rules-function returns (+ point VAR) it's not nearly as trivial.
    ((and (symbolp offset) (boundp 'offset))
     (smie-indent--column (symbol-value offset) base parent virtual-point))
    (t (error "Unknown indentation offset %s" offset))))
@@ -1046,11 +1036,11 @@ This is used when we're not trying to indent point but just
 need to compute the column at which point should be indented
 in order to figure out the indentation of some other (further down) point."
   ;; Trust pre-existing indentation on other lines.
-  (if (smie-indent--bolp) (current-column) (smie-indent-calculate)))
+  (if (smie-bolp) (current-column) (smie-indent-calculate)))
 
 (defun smie-indent-fixindent ()
   ;; Obey the `fixindent' special comment.
-  (and (smie-indent--bolp)
+  (and (smie-bolp)
        (save-excursion
          (comment-normalize-vars)
          (re-search-forward (concat comment-start-skip
@@ -1090,43 +1080,31 @@ in order to figure out the indentation of some other (further down) point."
           (save-excursion
             (goto-char pos)
             ;; Different cases:
-            ;; - smie-indent--bolp: "indent according to others".
+            ;; - smie-bolp: "indent according to others".
             ;; - common hanging: "indent according to others".
             ;; - SML-let hanging: "indent like parent".
             ;; - if-after-else: "indent-like parent".
             ;; - middle-of-line: "trust current position".
             (cond
              ((null (cdr toklevels)) nil) ;Not a keyword.
-             ((smie-indent--bolp)
+             ((smie-bolp)
               ;; For an open-paren-like thingy at BOL, always indent only
               ;; based on other rules (typically smie-indent-after-keyword).
               nil)
              (t
               ;; We're only ever here for virtual-indent, which is why
               ;; we can use (current-column) as answer for `point'.
-              (let* ((tokinfo (or (assoc (cons :before token)
-                                         smie-indent-rules)
+              (let* ((offset (or (smie-indent--rule :before token)
                                   ;; By default use point unless we're hanging.
-                                  `((:before . ,token) (:hanging nil) point)))
-                     ;; (after (prog1 (point) (goto-char pos)))
-                     (offset (smie-indent--offset-rule tokinfo)))
+                                 (unless (smie-hanging-p) 'point))))
                 (smie-indent--column offset)))))
 
         ;; FIXME: This still looks too much like black magic!!
-        ;; FIXME: Rather than a bunch of rules like (PARENT . TOKEN), we
-        ;; want a single rule for TOKEN with different cases for each PARENT.
         (let* ((parent (smie-backward-sexp 'halfsexp))
-               (tokinfo
-                (or (assoc (cons (caddr parent) token)
-                           smie-indent-rules)
-                    (assoc (cons :before token) smie-indent-rules)
-                    ;; Default rule.
-                    `((:before . ,token)
-                      ;; (:parent open 0)
-                      point)))
                (offset (save-excursion
                          (goto-char pos)
-                         (smie-indent--offset-rule tokinfo nil parent))))
+                         (or (smie-indent--rule :before token nil parent)
+                             'point))))
           ;; Different behaviors:
           ;; - align with parent.
           ;; - parent + offset.
@@ -1151,10 +1129,10 @@ in order to figure out the indentation of some other (further down) point."
             nil)
            ((eq (car parent) (car toklevels))
             ;; We bumped into a same-level operator. align with it.
-            (if (and (smie-indent--bolp) (/= (point) pos)
+            (if (and (smie-bolp) (/= (point) pos)
                      (save-excursion
                        (goto-char (goto-char (cadr parent)))
-                       (not (smie-indent--bolp)))
+                       (not (smie-bolp)))
                      ;; Check the offset of `token' rather then its parent
                      ;; because its parent may have used a special rule.  E.g.
                      ;;    function foo;
@@ -1190,8 +1168,8 @@ in order to figure out the indentation of some other (further down) point."
               ;;    -> d
               ;; So as to align with the earliest appropriate place.
               (smie-indent-virtual)))
-           (tokinfo
-            (if (and (= (point) pos) (smie-indent--bolp)
+           (t
+            (if (and (= (point) pos) (smie-bolp)
                      (or (eq offset 'point)
                          (and (consp offset) (memq 'point offset))))
                 ;; Since we started at BOL, we're not computing a virtual
@@ -1209,7 +1187,7 @@ in order to figure out the indentation of some other (further down) point."
   ;; Don't do it for virtual indentations.  We should normally never be "in
   ;; front of a comment" when doing virtual-indentation anyway.  And if we are
   ;; (as can happen in octave-mode), moving forward can lead to inf-loops.
-  (and (smie-indent--bolp)
+  (and (smie-bolp)
        (let ((pos (point)))
          (save-excursion
            (beginning-of-line)
@@ -1254,27 +1232,18 @@ in order to figure out the indentation of some other (further down) point."
   (save-excursion
     (let* ((pos (point))
            (toklevel (smie-indent-backward-token))
-           (tok (car toklevel))
-           (tokinfo (assoc tok smie-indent-rules)))
-      ;; Set some default indent rules.
-      (if (and toklevel (null (cadr toklevel)) (null tokinfo))
-          (setq tokinfo (list (car toklevel))))
-      ;; (if (and tokinfo (null toklevel))
-      ;;     (error "Token %S has indent rule but has no parsing info" tok))
+           (tok (car toklevel)))
       (when toklevel
-        (unless tokinfo
-          ;; The default indentation after a keyword/operator is 0 for
-          ;; infix and t for prefix.
-          ;; Using the BNF syntax, we could come up with better
-          ;; defaults, but we only have the precedence levels here.
-          (setq tokinfo (list tok 'default-rule
-                              (if (cadr toklevel) 0 (smie-indent--offset t)))))
         (let ((offset
-               (or (smie-indent--offset-rule tokinfo pos)
-                   (smie-indent--offset t))))
-          (let ((before (point)))
+               (or (smie-indent--rule :after tok pos)
+                   ;; The default indentation after a keyword/operator is
+                   ;; 0 for infix and t for prefix.
+                   (if (or (null (cadr toklevel))
+                           (rassoc tok smie-closer-alist))
+                       (smie-indent--offset 'basic) 0)))
+              (before (point)))
             (goto-char pos)
-            (smie-indent--column offset before)))))))
+          (smie-indent--column offset before))))))
 
 (defun smie-indent-exps ()
   ;; Indentation of sequences of simple expressions without
@@ -1297,13 +1266,14 @@ in order to figure out the indentation of some other (further down) point."
           arg)
       (while (and (null (car (smie-backward-sexp)))
                   (push (point) positions)
-                  (not (smie-indent--bolp))))
+                  (not (smie-bolp))))
       (save-excursion
         ;; Figure out if the atom we just skipped is an argument rather
         ;; than a function.
-        (setq arg (or (null (car (smie-backward-sexp)))
-                      (member (funcall smie-backward-token-function)
-                              (cdr (assoc 'list-intro smie-indent-rules))))))
+        (setq arg
+              (or (null (car (smie-backward-sexp)))
+                  (funcall smie-rules-function :list-intro
+                           (funcall smie-backward-token-function)))))
       (cond
        ((null positions)
         ;; We're the first expression of the list.  In that case, the
@@ -1362,18 +1332,51 @@ to which that point should be aligned, if we were to reindent it.")
           (save-excursion (indent-line-to indent))
         (indent-line-to indent)))))
 
-(defun smie-indent-debug ()
-  "Show the rules used to compute indentation of current line."
-  (interactive)
-  (let ((smie-indent-debug-log '()))
-    (smie-indent-calculate)
-    ;; FIXME: please improve!
-    (message "%S" smie-indent-debug-log)))
-
-(defun smie-setup (op-levels indent-rules)
-  (set (make-local-variable 'smie-indent-rules) indent-rules)
+(defun smie-setup (op-levels rules-function &rest keywords)
+  "Setup SMIE navigation and indentation.
+OP-LEVELS is a grammar table generated by `smie-prec2-levels'.
+RULES-FUNCTION is a set of indentation rules for use on `smie-rules-function'.
+KEYWORDS are additional arguments, which can use the following keywords:
+- :forward-token FUN
+- :backward-token FUN"
+  (set (make-local-variable 'smie-rules-function) rules-function)
   (set (make-local-variable 'smie-op-levels) op-levels)
-  (set (make-local-variable 'indent-line-function) 'smie-indent-line))
+  (set (make-local-variable 'indent-line-function) 'smie-indent-line)
+  (set (make-local-variable 'forward-sexp-function)
+       'smie-forward-sexp-command)
+  (while keywords
+    (let ((k (pop keywords))
+          (v (pop keywords)))
+      (case k
+        (:forward-token
+         (set (make-local-variable 'smie-forward-token-function) v))
+        (:backward-token
+         (set (make-local-variable 'smie-backward-token-function) v))
+        (t (message "smie-setup: ignoring unknown keyword %s" k)))))
+  (let ((ca (cdr (assq :smie-closer-alist op-levels))))
+    (when ca
+      (set (make-local-variable 'smie-closer-alist) ca)
+      ;; Only needed for interactive calls to blink-matching-open.
+      (set (make-local-variable 'blink-matching-check-function)
+           #'smie-blink-matching-check)
+      (add-hook 'post-self-insert-hook
+                #'smie-blink-matching-open 'append 'local)
+      (set (make-local-variable 'smie-blink-matching-triggers)
+           (append smie-blink-matching-triggers
+                   ;; Rather than wait for SPC to blink, try to blink as
+                   ;; soon as we type the last char of a block ender.
+                   (let ((closers (sort (mapcar #'cdr smie-closer-alist)
+                                        #'string-lessp))
+                         (triggers ())
+                         closer)
+                     (while (setq closer (pop closers))
+                       (unless (and closers
+                                    ;; FIXME: this eliminates prefixes of other
+                                    ;; closers, but we should probably elimnate
+                                    ;; prefixes of other keywords as well.
+                                    (string-prefix-p closer (car closers)))
+                         (push (aref closer (1- (length closer))) triggers)))
+                     (delete-dups triggers)))))))
 
 
 (provide 'smie)

@@ -308,9 +308,6 @@ be set in `.emacs' instead."
   :group 'gnus-start
   :type 'boolean)
 
-(unless (fboundp 'gnus-group-remove-excess-properties)
-  (defalias 'gnus-group-remove-excess-properties 'ignore))
-
 (unless (featurep 'gnus-xmas)
   (defalias 'gnus-make-overlay 'make-overlay)
   (defalias 'gnus-delete-overlay 'delete-overlay)
@@ -353,7 +350,6 @@ be set in `.emacs' instead."
 		     (list str))
 	    line)))
     (defalias 'gnus-mode-line-buffer-identification 'identity))
-  (defalias 'gnus-characterp 'numberp)
   (defalias 'gnus-deactivate-mark 'deactivate-mark)
   (defalias 'gnus-window-edges 'window-edges)
   (defalias 'gnus-key-press-event-p 'numberp)
@@ -921,7 +917,8 @@ be set in `.emacs' instead."
 ;;; Gnus buffers
 ;;;
 
-(defvar gnus-buffers nil)
+(defvar gnus-buffers nil
+  "List of buffers handled by Gnus.")
 
 (defun gnus-get-buffer-create (name)
   "Do the same as `get-buffer-create', but store the created buffer."
@@ -953,7 +950,8 @@ be set in `.emacs' instead."
 
 ;;; Splash screen.
 
-(defvar gnus-group-buffer "*Group*")
+(defvar gnus-group-buffer "*Group*"
+  "Name of the Gnus group buffer.")
 
 (defface gnus-splash
   '((((class color)
@@ -991,8 +989,6 @@ be set in `.emacs' instead."
 	(goto-char (point-min))
 	(while (search-forward "\t" nil t)
 	  (replace-match "        " t t))))))
-
-(defvar gnus-simple-splash nil)
 
 ;;(format "%02x%02x%02x" 114 66 20) "724214"
 
@@ -1033,50 +1029,45 @@ be set in `.emacs' instead."
   "Insert startup message in current buffer."
   ;; Insert the message.
   (erase-buffer)
-  (cond
-   ((and
-     (fboundp 'find-image)
-     (display-graphic-p)
-     ;; Make sure the library defining `image-load-path' is loaded
-     ;; (`find-image' is autoloaded) (and discard the result).  Else, we may
-     ;; get "defvar ignored because image-load-path is let-bound" when calling
-     ;; `find-image' below.
-     (or (find-image '(nil (:type xpm :file "gnus.xpm"))) t)
-     (let* ((data-directory (nnheader-find-etc-directory "images/gnus"))
-	    (image-load-path (cond (data-directory
-				    (list data-directory))
-				   ((boundp 'image-load-path)
-				    (symbol-value 'image-load-path))
-				   (t load-path)))
-	    (image (find-image
-		    `((:type xpm :file "gnus.xpm"
-			     :color-symbols
-			     (("thing" . ,(car gnus-logo-colors))
-			      ("shadow" . ,(cadr gnus-logo-colors))
-			      ("oort" . "#eeeeee")
-			      ("background" . ,(face-background 'default))))
-		      (:type svg :file "gnus.svg")
-		      (:type png :file "gnus.png")
-		      (:type pbm :file "gnus.pbm"
-			     ;; Account for the pbm's blackground.
-			     :background ,(face-foreground 'gnus-splash)
-			     :foreground ,(face-background 'default))
-		      (:type xbm :file "gnus.xbm"
-			     ;; Account for the xbm's blackground.
-			     :background ,(face-foreground 'gnus-splash)
-			     :foreground ,(face-background 'default))))))
-       (when image
-	 (let ((size (image-size image)))
-	   (insert-char ?\n (max 0 (round (- (window-height)
-					     (or y (cdr size)) 1) 2)))
-	   (insert-char ?\  (max 0 (round (- (window-width)
-					     (or x (car size))) 2)))
-	   (insert-image image))
-	 (setq gnus-simple-splash nil)
-	 t))))
-   (t
+  (unless (and
+           (fboundp 'find-image)
+           (display-graphic-p)
+           ;; Make sure the library defining `image-load-path' is loaded
+           ;; (`find-image' is autoloaded) (and discard the result).  Else, we may
+           ;; get "defvar ignored because image-load-path is let-bound" when calling
+           ;; `find-image' below.
+           (or (find-image '(nil (:type xpm :file "gnus.xpm"))) t)
+           (let* ((data-directory (nnheader-find-etc-directory "images/gnus"))
+                  (image-load-path (cond (data-directory
+                                          (list data-directory))
+                                         ((boundp 'image-load-path)
+                                          (symbol-value 'image-load-path))
+                                         (t load-path)))
+                  (image (find-image
+                          `((:type xpm :file "gnus.xpm"
+                                   :color-symbols
+                                   (("thing" . ,(car gnus-logo-colors))
+                                    ("shadow" . ,(cadr gnus-logo-colors))))
+                            (:type svg :file "gnus.svg")
+                            (:type png :file "gnus.png")
+                            (:type pbm :file "gnus.pbm"
+                                   ;; Account for the pbm's background.
+                                   :background ,(face-foreground 'gnus-splash)
+                                   :foreground ,(face-background 'default))
+                            (:type xbm :file "gnus.xbm"
+                                   ;; Account for the xbm's background.
+                                   :background ,(face-foreground 'gnus-splash)
+                                   :foreground ,(face-background 'default))))))
+             (when image
+               (let ((size (image-size image)))
+                 (insert-char ?\n (max 0 (round (- (window-height)
+                                                   (or y (cdr size)) 1) 2)))
+                 (insert-char ?\  (max 0 (round (- (window-width)
+                                                   (or x (car size))) 2)))
+                 (insert-image image))
+               t)))
     (insert
-     (format "              %s
+     (format "              
 	  _    ___ _             _
 	  _ ___ __ ___  __    _ ___
 	  __   _     ___    __  ___
@@ -1095,8 +1086,7 @@ be set in `.emacs' instead."
 	    _
 	  __
 
-"
-	     ""))
+"))
     ;; And then hack it.
     (gnus-indent-rigidly (point-min) (point-max)
 			 (/ (max (- (window-width) (or x 46)) 0) 2))
@@ -1108,10 +1098,9 @@ be set in `.emacs' instead."
       (insert (make-string (max 0 (* 2 (/ rest 3))) ?\n)))
     ;; Fontify some.
     (put-text-property (point-min) (point-max) 'face 'gnus-splash)
-    (setq gnus-simple-splash t)))
-  (goto-char (point-min))
-  (setq mode-line-buffer-identification (concat " " gnus-version))
-  (set-buffer-modified-p t))
+    (goto-char (point-min))
+    (setq mode-line-buffer-identification (concat " " gnus-version))
+    (set-buffer-modified-p t)))
 
 (eval-when (load)
   (let ((command (format "%s" this-command)))
@@ -1267,15 +1256,6 @@ by the user.
 If you want to change servers, you should use `gnus-select-method'.
 See the documentation to that variable.")
 
-;; Don't touch this variable.
-(defvar gnus-nntp-service "nntp"
-  "NNTP service name (\"nntp\" or 119).
-This is an obsolete variable, which is scarcely used.  If you use an
-nntp server for your newsgroup and want to change the port number
-used to 899, you would say something along these lines:
-
- (setq gnus-select-method '(nntp \"my.nntp.server\" (nntp-port-number 899)))")
-
 (defcustom gnus-nntpserver-file "/etc/nntpserver"
   "A file with only the name of the nntp server in it."
   :group 'gnus-files
@@ -1299,20 +1279,11 @@ Check the NNTPSERVER environment variable and the
 ;;;###autoload  (custom-autoload 'gnus-select-method "gnus"))
 
 (defcustom gnus-select-method
-  (condition-case nil
-      (nconc
-       (list 'nntp (or (condition-case nil
-			   (gnus-getenv-nntpserver)
-			 (error nil))
-		       (when (and gnus-default-nntp-server
-				  (not (string= gnus-default-nntp-server "")))
-			 gnus-default-nntp-server)
-		       "news"))
-       (if (or (null gnus-nntp-service)
-	       (equal gnus-nntp-service "nntp"))
-	   nil
-	 (list gnus-nntp-service)))
-    (error nil))
+  (list 'nntp (or (gnus-getenv-nntpserver)
+                  (when (and gnus-default-nntp-server
+                             (not (string= gnus-default-nntp-server "")))
+                    gnus-default-nntp-server)
+                  "news"))
   "Default method for selecting a newsgroup.
 This variable should be a list, where the first element is how the
 news is to be fetched, the second is the address.
@@ -1397,14 +1368,14 @@ To make Gnus query you for a server, you have to give `gnus' a
 non-numeric prefix - `C-u M-x gnus', in short."
   :group 'gnus-server
   :type '(repeat string))
+(make-obsolete-variable 'gnus-secondary-servers 'gnus-select-method "24.1")
 
 (defcustom gnus-nntp-server nil
-  "*The name of the host running the NNTP server.
-This variable is semi-obsolete.  Use the `gnus-select-method'
-variable instead."
+  "The name of the host running the NNTP server."
   :group 'gnus-server
   :type '(choice (const :tag "disable" nil)
 		 string))
+(make-obsolete-variable 'gnus-nntp-server 'gnus-select-method "24.1")
 
 (defcustom gnus-secondary-select-methods nil
   "A list of secondary methods that will be used for reading news.
@@ -1503,7 +1474,7 @@ Also see `gnus-large-ephemeral-newsgroup'."
 		 integer))
 
 (defcustom gnus-use-long-file-name (not (memq system-type '(usg-unix-v)))
-  "*Non-nil means that the default name of a file to save articles in is the group name.
+  "Non-nil means that the default name of a file to save articles in is the group name.
 If it's nil, the directory form of the group name is used instead.
 
 If this variable is a list, and the list contains the element
@@ -1513,8 +1484,8 @@ saving; and if it contains the element `not-kill', long file names
 will not be used for kill files.
 
 Note that the default for this variable varies according to what system
-type you're using.  On `usg-unix-v' and `xenix' this variable defaults
-to nil while on all other systems it defaults to t."
+type you're using.  On `usg-unix-v' this variable defaults to nil while
+on all other systems it defaults to t."
   :group 'gnus-start
   :type '(radio (sexp :format "Non-nil\n"
 		      :match (lambda (widget value)
