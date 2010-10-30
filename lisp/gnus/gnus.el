@@ -1389,11 +1389,6 @@ you could set this variable:
   :group 'gnus-server
   :type '(repeat gnus-select-method))
 
-(defvar gnus-backup-default-subscribed-newsgroups
-  '("news.announce.newusers" "news.groups.questions" "gnu.emacs.gnus")
-  "Default default new newsgroups the first time Gnus is run.
-Should be set in paths.el, and shouldn't be touched by the user.")
-
 (defcustom gnus-local-domain nil
   "Local domain name without a host name.
 The DOMAINNAME environment variable is used instead if it is defined.
@@ -1436,14 +1431,6 @@ list, Gnus will try all the methods in the list until it finds a match."
 				 (const :tag "Google"
 					(nnweb "refer" (nnweb-type google)))
 				 gnus-select-method))))
-
-(defcustom gnus-group-fetch-control-use-browse-url nil
-  "*Non-nil means that control messages are displayed using `browse-url'.
-Otherwise they are fetched with ange-ftp and displayed in an ephemeral
-group."
-  :version "22.1"
-  :group 'gnus-group-various
-  :type 'boolean)
 
 (defcustom gnus-use-cross-reference t
   "*Non-nil means that cross referenced articles will be marked as read.

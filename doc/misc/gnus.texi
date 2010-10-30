@@ -5188,24 +5188,6 @@ used for fetching the file.
 If fetching from the first site is unsuccessful, Gnus will attempt to go
 through @code{gnus-group-faq-directory} and try to open them one by one.
 
-@item H C
-@kindex H C (Group)
-@findex gnus-group-fetch-control
-@vindex gnus-group-fetch-control-use-browse-url
-@cindex control message
-Fetch the control messages for the group from the archive at
-@code{ftp.isc.org} (@code{gnus-group-fetch-control}).  Query for a
-group if given a prefix argument.
-
-If @code{gnus-group-fetch-control-use-browse-url} is non-@code{nil},
-Gnus will open the control messages in a browser using
-@code{browse-url}.  Otherwise they are fetched using @code{ange-ftp}
-and displayed in an ephemeral group.
-
-Note that the control messages are compressed.  To use this command
-you need to turn on @code{auto-compression-mode} (@pxref{Compressed
-Files, ,Compressed Files, emacs, The Emacs Manual}).
-
 @item H d
 @itemx C-c C-d
 @c @icon{gnus-group-describe-group}

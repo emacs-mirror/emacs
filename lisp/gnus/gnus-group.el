@@ -741,7 +741,6 @@ simple manner.")
   "e" gnus-score-edit-all-score)
 
 (gnus-define-keys (gnus-group-help-map "H" gnus-group-mode-map)
-  "C" gnus-group-fetch-control
   "d" gnus-group-describe-group
   "v" gnus-version)
 
@@ -807,10 +806,6 @@ simple manner.")
        ["Describe" gnus-group-describe-group :active (gnus-group-group-name)
 	,@(if (featurep 'xemacs) nil
 	    '(:help "Display description of the current group"))]
-       ["Fetch control message" gnus-group-fetch-control
-	:active (gnus-group-group-name)
-	,@(if (featurep 'xemacs) nil
-	    '(:help "Display the archived control message for the current group"))]
        ;; Actually one should check, if any of the marked groups gives t for
        ;; (gnus-check-backend-function 'request-expire-articles ...)
        ["Expire articles" gnus-group-expire-articles
@@ -4021,32 +4016,6 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
       (gnus-group-next-unread-group 1 t))
     (gnus-group-position-point)
     ret))
-
-(defun gnus-group-fetch-control (group)
-  "Fetch the archived control messages for the current group.
-If given a prefix argument, prompt for a group."
-  (interactive
-   (list (or (when current-prefix-arg
-	       (gnus-group-completing-read))
-	     (gnus-group-group-name)
-	     gnus-newsgroup-name)))
-  (unless group
-    (error "No group name given"))
-  (let ((name (gnus-group-real-name group))
-	hierarchy)
-    (when (string-match "\\(^[^\\.]+\\)\\..*" name)
-      (setq hierarchy (match-string 1 name))
-      (if gnus-group-fetch-control-use-browse-url
-	  (browse-url (concat "ftp://ftp.isc.org/usenet/control/"
-			      hierarchy "/" name ".gz"))
-	(let ((enable-local-variables nil))
-	  (gnus-group-read-ephemeral-group
-	   group
-	   `(nndoc ,group (nndoc-address
-			   ,(find-file-noselect
-			     (concat "/ftp@ftp.isc.org:/usenet/control/"
-				     hierarchy "/" name ".gz")))
-		   (nndoc-article-type mbox)) t nil nil))))))
 
 (defun gnus-group-describe-group (force &optional group)
   "Display a description of the current newsgroup."

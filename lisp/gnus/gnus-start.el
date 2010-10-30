@@ -1100,53 +1100,52 @@ for new groups, and subscribe the new groups as zombies."
 			'gnus-subscribe-zombies)
 		  t)
 		 (t gnus-check-new-newsgroups))))
-    (unless (gnus-check-first-time-used)
-      (if (or (consp check)
-	      (eq check 'ask-server))
-	  ;; Ask the server for new groups.
-	  (gnus-ask-server-for-new-groups)
-	;; Go through the active hashtb and look for new groups.
-	(let ((groups 0)
-	      group new-newsgroups)
-	  (gnus-message 5 "Looking for new newsgroups...")
-	  (unless gnus-have-read-active-file
-	    (gnus-read-active-file))
-	  (setq gnus-newsrc-last-checked-date (message-make-date))
-	  (unless gnus-killed-hashtb
-	    (gnus-make-hashtable-from-killed))
-	  ;; Go though every newsgroup in `gnus-active-hashtb' and compare
-	  ;; with `gnus-newsrc-hashtb' and `gnus-killed-hashtb'.
-	  (mapatoms
-	   (lambda (sym)
-	     (if (or (null (setq group (symbol-name sym)))
-		     (not (boundp sym))
-		     (null (symbol-value sym))
-		     (gnus-gethash group gnus-killed-hashtb)
-		     (gnus-gethash group gnus-newsrc-hashtb))
-		 ()
-	       (let ((do-sub (gnus-matches-options-n group)))
-		 (cond
-		  ((eq do-sub 'subscribe)
-		   (setq groups (1+ groups))
-		   (gnus-sethash group group gnus-killed-hashtb)
-		   (gnus-call-subscribe-functions
-		    gnus-subscribe-options-newsgroup-method group))
-		  ((eq do-sub 'ignore)
-		   nil)
-		  (t
-		   (setq groups (1+ groups))
-		   (gnus-sethash group group gnus-killed-hashtb)
-		   (if gnus-subscribe-hierarchical-interactive
-		       (push group new-newsgroups)
-		     (gnus-call-subscribe-functions
-		      gnus-subscribe-newsgroup-method group)))))))
-	   gnus-active-hashtb)
-	  (when new-newsgroups
-	    (gnus-subscribe-hierarchical-interactive new-newsgroups))
-	  (if (> groups 0)
-	      (gnus-message 5 "%d new newsgroup%s arrived."
-			    groups (if (> groups 1) "s have" " has"))
-	    (gnus-message 5 "No new newsgroups.")))))))
+    (if (or (consp check)
+            (eq check 'ask-server))
+        ;; Ask the server for new groups.
+        (gnus-ask-server-for-new-groups)
+      ;; Go through the active hashtb and look for new groups.
+      (let ((groups 0)
+            group new-newsgroups)
+        (gnus-message 5 "Looking for new newsgroups...")
+        (unless gnus-have-read-active-file
+          (gnus-read-active-file))
+        (setq gnus-newsrc-last-checked-date (message-make-date))
+        (unless gnus-killed-hashtb
+          (gnus-make-hashtable-from-killed))
+        ;; Go though every newsgroup in `gnus-active-hashtb' and compare
+        ;; with `gnus-newsrc-hashtb' and `gnus-killed-hashtb'.
+        (mapatoms
+         (lambda (sym)
+           (if (or (null (setq group (symbol-name sym)))
+                   (not (boundp sym))
+                   (null (symbol-value sym))
+                   (gnus-gethash group gnus-killed-hashtb)
+                   (gnus-gethash group gnus-newsrc-hashtb))
+               ()
+             (let ((do-sub (gnus-matches-options-n group)))
+               (cond
+                ((eq do-sub 'subscribe)
+                 (setq groups (1+ groups))
+                 (gnus-sethash group group gnus-killed-hashtb)
+                 (gnus-call-subscribe-functions
+                  gnus-subscribe-options-newsgroup-method group))
+                ((eq do-sub 'ignore)
+                 nil)
+                (t
+                 (setq groups (1+ groups))
+                 (gnus-sethash group group gnus-killed-hashtb)
+                 (if gnus-subscribe-hierarchical-interactive
+                     (push group new-newsgroups)
+                   (gnus-call-subscribe-functions
+                    gnus-subscribe-newsgroup-method group)))))))
+         gnus-active-hashtb)
+        (when new-newsgroups
+          (gnus-subscribe-hierarchical-interactive new-newsgroups))
+        (if (> groups 0)
+            (gnus-message 5 "%d new newsgroup%s arrived."
+                          groups (if (> groups 1) "s have" " has"))
+          (gnus-message 5 "No new newsgroups."))))))
 
 (defun gnus-matches-options-n (group)
   ;; Returns `subscribe' if the group is to be unconditionally
@@ -1245,53 +1244,6 @@ for new groups, and subscribe the new groups as zombies."
     (when got-new
       (setq gnus-newsrc-last-checked-date new-date))
     got-new))
-
-(defun gnus-check-first-time-used ()
-  (catch 'ended
-    ;; First check if any of the following files exist.  If they do,
-    ;; it's not the first time the user has used Gnus.
-    (dolist (file (list (concat gnus-current-startup-file ".el")
-			(concat gnus-current-startup-file ".eld")
-			(concat gnus-startup-file ".el")
-			(concat gnus-startup-file ".eld")))
-      (when (file-exists-p file)
-	(throw 'ended nil)))
-    (gnus-message 6 "First time user; subscribing you to default groups")
-    (unless (gnus-read-active-file-p)
-      (let ((gnus-read-active-file t))
-	(gnus-read-active-file)))
-    (setq gnus-newsrc-last-checked-date (message-make-date))
-    ;; Subscribe to the default newsgroups.
-    (let ((groups (or gnus-default-subscribed-newsgroups
-		      gnus-backup-default-subscribed-newsgroups))
-	  group)
-      (if (eq groups t)
-	  ;; If t, we subscribe (or not) all groups as if they were new.
-	  (mapatoms
-	   (lambda (sym)
-	     (when (setq group (symbol-name sym))
-	       (let ((do-sub (gnus-matches-options-n group)))
-		 (cond
-		  ((eq do-sub 'subscribe)
-		   (gnus-sethash group group gnus-killed-hashtb)
-		   (gnus-call-subscribe-functions
-		    gnus-subscribe-options-newsgroup-method group))
-		  ((eq do-sub 'ignore)
-		   nil)
-		  (t
-		   (push group gnus-killed-list))))))
-	   gnus-active-hashtb)
-	(dolist (group groups)
-	  ;; Only subscribe the default groups that are activated.
-	  (when (gnus-active group)
-	    (gnus-group-change-level
-	     group gnus-level-default-subscribed gnus-level-killed)))
-	(with-current-buffer gnus-group-buffer
-	  ;; Don't error if the group already exists. This happens when a
-	  ;; first-time user types 'F'. -- didier
-	  (gnus-group-make-help-group t))
-	(when gnus-novice-user
-	  (gnus-message 7 "`A k' to list killed groups"))))))
 
 (defun gnus-subscribe-group (group &optional previous method)
   "Subscribe GROUP and put it after PREVIOUS."

@@ -2169,8 +2169,7 @@ increase the score of each group you read."
   "v" gnus-version
   "d" gnus-summary-describe-group
   "h" gnus-summary-describe-briefly
-  "i" gnus-info-find-node
-  "C" gnus-group-fetch-control)
+  "i" gnus-info-find-node)
 
 (gnus-define-keys (gnus-summary-backend-map "B" gnus-summary-mode-map)
   "e" gnus-summary-expire-articles
@@ -2747,9 +2746,6 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	 ["Original sort" gnus-summary-sort-by-original t])
 	("Help"
 	 ["Describe group" gnus-summary-describe-group t]
-	 ["Fetch control message" gnus-group-fetch-control
-	  ,@(if (featurep 'xemacs) nil
-	      '(:help "Display the archived control message for the current group"))]
 	 ["Read manual" gnus-info-find-node t])
 	("Modes"
 	 ["Pick and read" gnus-pick-mode t]

@@ -1,3 +1,12 @@
+2010-10-30  Julien Danjou  <julien@danjou.info>
+
+	* gnus-group.el: Remove gnus-group-fetch-control.
+
+	* gnus-start.el (gnus-find-new-newsgroups): Remove
+	gnus-check-first-time-used.
+
+	* gnus.el: Remove gnus-backup-default-subscribed-newsgroups.
+
 2010-10-30  Knut Anders Hatlen  <kahatlen@gmail.com>  (tiny change)
 
 	* nnimap.el (nnimap-update-info): Allow 'ticked and other flags to be
