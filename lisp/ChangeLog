@@ -1,3 +1,23 @@
+2010-10-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-deletable-p, quit-restore-window): Adapt to
+	new quit-restore semantics.
+	(split-window-quit-restore): Remove.
+	(split-window-vertically, split-window-horizontally):
+	Unconditionally copy quit-restore parameter to new window.
+	(display-buffer-names): Mention quit-restore window parameter.
+	(display-buffer-window-and-buffer): Rename to
+	display-buffer-window and rewrite doc-string.
+	(display-buffer-in-window, display-buffer-in-lru-buffer-window)
+	(display-buffer-in-lru-window, display-buffer-in-new-window)
+	(display-buffer-in-new-frame, display-buffer): Move quit-restore
+	parameter handling from display-buffer-in-window to the callers.
+	Set display-buffer-window.
+
+	* help.el (help-window-setup, with-help-window): Use
+	display-buffer-window insted of display-buffer-window-and-buffer
+	and adapt to new semantics of the former.
+
 2010-10-28  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el (global-map, menu-bar-final-items, menu-bar-help-menu):

@@ -1786,10 +1786,12 @@ predefined:
 Any other symbol with a function definition means to call that function
 to display the buffer.  The function is called with two arguments - the
 buffer to display and a list of specifiers - and is supposed to display
-the buffer and return the window used for that purpose.  The function is
-also responsible for giving the variable
-@code{display-buffer-window-and-buffer} a meaningful value, see below
-for an explanation.
+the buffer and return the window used for that purpose.  That function
+is also responsible for giving the variable @code{display-buffer-window}
+a meaningful value, see below for an explanation.  Moreover, the
+function should set up the @code{quit-restore} window parameter which is
+required for proper functioning of the command
+@code{quit-restore-window}, see below.
 
    The remaining buffer display specifiers are cons cells or lists whose
 @sc{car} is one of the symbols listed next.
@@ -2205,20 +2207,20 @@ The following variable conveys some information about the last
 @code{display-buffer} action performed and is used mainly when popping
 up a @samp{*Help*} buffer.
 
-@defvar display-buffer-window-and-buffer
+@defvar display-buffer-window
 After @code{display-buffer} has shown a buffer in some window this
 variable should be a cons cell whose @sc{car} denotes the window used to
-display the buffer.  The @sc{cdr} is either @code{nil} (which means the
-same buffer was displayed in that window before), @code{t} (which means
-the window was created by @code{display-buffer}), or the buffer
-displayed in that window before.
+display the buffer.  The @sc{cdr} is either @code{new-window} (which
+means a new window has been made), @code{new-frame} (a new frame has
+been created), @code{reuse-buffer-window} (a window showing the buffer
+has been reused), @code{reuse-other-window} (some other window has been
+reused).
 
    If the location specifier is one of @code{same-window},
-@code{same-frame}, or @code{other-frame}, the @code{display-buffer}
-routines themselves set the value of this variable.  See the code of the
-function @code{display-buffer-in-window} for how this is done.  If the
-location specifier is a function, that function becomes responsible for
-assigning a meaningful value to this variable.
+@code{same-frame}, or @code{other-frame}, the @code{display-buffer} code
+itself sets the value of this variable.  If the location specifier is a
+function, that function becomes responsible for assigning a meaningful
+value to this variable.
 @end defvar
 
 The command described next allows to quit the window chosen by
@@ -2260,9 +2262,6 @@ other buffer.
 Make @var{window} display some other buffer.  This action is usually
 taken when the three preceding ones are not applicable.
 @end itemize
-
-If its value was non-@code{nil}, this function resets @var{window}'s
-@code{quit-restore} parameter to @code{nil}.
 
 If the optional argument @var{kill} is non-@code{nil}, this means in
 addition kill @var{window}'s buffer.  If @var{kill} is @code{nil}, this

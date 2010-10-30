@@ -954,7 +954,6 @@ is currently activated with completion."
     result))
 
 ;;; Automatic resizing of temporary buffers.
-
 (defcustom temp-buffer-max-height (lambda (buffer) (/ (- (frame-height) 2) 2))
   "Maximum height of a window displaying a temporary buffer.
 This is effective only when Temp Buffer Resize mode is enabled.
@@ -1000,14 +999,14 @@ of view."
 	 (funcall temp-buffer-max-height (window-buffer))
        temp-buffer-max-height))))
 
-;;; help windows
+;;; Help windows.
 (defcustom help-window-select 'other
     "Non-nil means select help window for viewing.
 Choices are:
  never (nil) Select help window only if there is no other window
              on its frame.
  other       Select help window unless the selected window is the
-             only other window on its frame.
+             only other window on the help window's frame.
  always (t)  Always select the help window.
 
 This option has effect if and only if the help window was created
@@ -1037,19 +1036,14 @@ window."
     (message "%s"
      (substitute-command-keys (concat quit-part scroll-part)))))
 
-;; No matter what we do down here: There will be always a case that
-;; defeats our best intentions ;-)
 (defun help-window-setup ()
-  "Set up help window."
-  (let* ((help-window (car-safe display-buffer-window-and-buffer))
+  "Set up help window for `with-help-window'.
+This relies on `display-buffer-window' being correctly set up by
+`display-buffer'."
+  (let* ((help-window (car-safe display-buffer-window))
 	 (help-buffer (when (window-live-p help-window)
 			(window-buffer help-window)))
-	 (help-value (cdr-safe display-buffer-window-and-buffer))
-	 (number-of-windows
-	  ;; FIXME: This is intuitvely wrong for compound windows.  What
-	  ;; we need is the number of windows eligible by `other-window'
-	  ;; on this frame.
-	  (length (window-list (window-frame help-window) 'no-mini))))
+	 (help-value (cdr-safe display-buffer-window)))
     (when help-buffer
       ;; Handle `help-window-point-marker'.
       (when (eq (marker-buffer help-window-point-marker) help-buffer)
@@ -1058,54 +1052,36 @@ window."
 	(set-marker help-window-point-marker nil))
 
       (cond
-       ;; Don't say anything if the help window displayed the same
-       ;; buffer before.
-       ((or (not help-value) (eq help-buffer help-value)))
-       ;; The following does not handle the case where the help window
-       ;; fills its frame, is not selected, but does get selected
-       ;; afterwards by external intervention.
        ((or (eq help-window (selected-window))
-	    (and (eq help-window-select t)
+	    (and (or (eq help-window-select t)
+		     (and (eq help-window-select 'other)
+			  (eq (window-frame help-window) (selected-frame))
+			  (= (length (window-list nil 'no-mini)) 2)))
 		 (select-window help-window)))
 	;; The help window is or gets selected ...
 	(help-window-display-message
 	 (cond
-	  ((buffer-live-p help-value)
-	   ;; ... and displayed some other buffer before, ...
-	   "Type \"q\" to restore previous buffer")
-	  ((eq (frame-root-window (window-frame help-window))
-	       help-window)
-	   (if view-remove-frame-by-deleting
-	       ;; ... is on a new deletable frame, ...
-	       "Type \"q\" to delete this frame"
-	     ;; ... is on a new non-deletable frame, ...
-	     "Type \"q\" to iconify this frame"))
-	  (t
-	   ;; ... is new.
-	   "Type \"q\" to delete this window"))
+	  ((eq help-value 'new-window)
+	   ;; ... and is new, ...
+	   "Type \"q\" to delete this window")
+	  ((eq help-value 'new-frame)
+	   ;; ... is on a new frame ...
+	   "Type \"q\" to delete this frame")
+	  ((eq help-value 'reuse-other-window)
+	   ;; ... or displayed some other buffer before.
+	   "Type \"q\" to restore previous buffer"))
 	 help-window t))
-       ((and (= number-of-windows 2)
-	     (eq (window-frame help-window)
-		 (window-frame (selected-window))))
+       ((and (eq (window-frame help-window) (selected-frame))
+	     (= (length (window-list nil 'no-mini)) 2))
 	;; There are two windows on the help window's frame and the
 	;; other one is the selected one.
-	(if (memq help-window-select '(nil other))
-	    ;; Do not select the help window.
-	    (help-window-display-message
-	     (if (buffer-live-p help-value)
-		 ;; Offer `display-buffer' for consistency with
-		 ;; `help-print-return-message'.  This is not TRT but
-		 ;; handled this way ever since.
-		 "Type \\[display-buffer] RET to restore previous buffer"
-	       ;; The classic "two windows" configuration.
-	       "Type \\[delete-other-windows] to delete the help window")
-	     help-window 'other)
-	  ;; Select help window and tell how to quit.
-	  (select-window help-window)
-	  (help-window-display-message
-	   (if (buffer-live-p help-value)
-	       "Type \"q\" to restore previous buffer"
-	     "Type \"q\" to delete this window") help-window t)))
+	(help-window-display-message
+	 (cond
+	  ((eq help-value 'new-window)
+	   "Type \\[delete-other-windows] to delete the help window")
+	  ((eq help-value 'reuse-other-window)
+	   "Type \\[switch-to-prev-buffer] RET to restore previous buffer"))
+	 help-window 'other))
        (t
 	;; Not much to say here.
 	(help-window-display-message
@@ -1117,37 +1093,32 @@ window."
 ;; (1) Issue more accurate messages telling how to scroll and quit the
 ;; help window.
 
-;; (2) Make `view-mode-exit' DTRT in more cases.
-
-;; (3) An option (customizable via `help-window-select') to select the
+;; (2) An option (customizable via `help-window-select') to select the
 ;; help window automatically.
 
-;; (4) A marker (`help-window-point-marker') to move point in the help
+;; (3) A marker (`help-window-point-marker') to move point in the help
 ;; window to an arbitrary buffer position.
 
 ;; Note: It's usually always wrong to use `help-print-return-message' in
 ;; the body of `with-help-window'.
 (defmacro with-help-window (buffer-name &rest body)
-  "Display buffer BUFFER-NAME in a help window evaluating BODY.
+  "Display buffer with name BUFFER-NAME in a help window evaluating BODY.
 Select help window if the actual value of the user option
 `help-window-select' says so.  Return last value in BODY."
   (declare (indent 1) (debug t))
-  ;; Bind list-of-frames to `frame-list' and list-of-window-tuples to a
-  ;; list of one <window window-buffer window-start window-point> tuple
-  ;; for each live window.
   `(progn
-     ;; Emacs 24 sets `display-buffer-window-and-buffer' to the window
-     ;; it uses to display the buffer and some buffer information.  Bind
-     ;; it to nil and see what it makes
-     (setq display-buffer-window-and-buffer nil)
-     ;; Make `help-window-point-marker' point nowhere (the only place
-     ;; where this should be set to a buffer position is within BODY).
+     ;; Reset `display-buffer-window': `display-buffer' is
+     ;; supposed to set this to the window displaying the buffer plus
+     ;; some additional information.
+     (setq display-buffer-window nil)
+     ;; Make `help-window-point-marker' point nowhere.  The only place
+     ;; where this should be set to a buffer position is within BODY.
      (set-marker help-window-point-marker nil)
      (prog1
 	 ;; Return value returned by `with-output-to-temp-buffer'.
 	 (with-output-to-temp-buffer ,buffer-name
 	   (progn ,@body))
-     (when display-buffer-window-and-buffer (help-window-setup)))))
+       (when display-buffer-window (help-window-setup)))))
 
 (provide 'help)
 

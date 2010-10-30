@@ -2106,21 +2106,18 @@ instead."
   (setq window (normalize-any-window window))
   (let ((frame (window-frame window))
 	(dedicated (and (window-buffer window) (window-dedicated-p window)))
-	(quit-restore (car-safe (window-parameter window 'quit-restore)))
+	(quit-restore (window-parameter window 'quit-restore))
 	composite type role root)
     (cond
      ((frame-root-window-p window)
       (when (and (or dedicated
-		     (and (eq quit-restore t)
-			  (with-current-buffer (window-buffer window)
-			    ;; `view-remove-frame-by-deleting' and
-			    ;; `view-mode' are autoloaded.
-			    (or (not view-mode)
-				view-remove-frame-by-deleting))))
+		     (and (eq (car-safe quit-restore) 'new-frame)
+			  (eq (nth 1 quit-restore) (window-buffer window))))
 		 (other-visible-frames-p frame))
 	;; WINDOW is the root window of its frame.  Return `frame' but
 	;; only if WINDOW is (1) either dedicated or quit-restore's car
-	;; is t and (2) there are other frames left.
+	;; is new-frame and the window still displays the same buffer
+	;; and (2) there are other frames left.
 	'frame))
      ((setq composite (window-parameter window 'composite))
       (setq type (car-safe composite))
@@ -2851,51 +2848,47 @@ buffer list.  Interactively, KILL is the prefix argument."
   (interactive "i\nP")
   (setq window (normalize-live-window window))
   (let ((buffer (window-buffer window))
-	(parameters (window-parameter window 'quit-restore))
+	(quit-restore (window-parameter window 'quit-restore))
 	deletable)
     (cond
-     ((and (eq (car-safe parameters) t)
+     ((and (or (and (memq (car-safe quit-restore) '(new-window new-frame))
+		    ;; Check that WINDOW's buffer is still the same.
+		    (eq (window-buffer window) (nth 1 quit-restore)))
+	       (window-dedicated-p window))
 	   (setq deletable (window-deletable-p window)))
+      ;; WINDOW can be deleted.
       (unrecord-buffer buffer)
-      ;; WINDOW is deletable.
       (if (eq deletable 'frame)
 	  ;; WINDOW's frame can be deleted.
 	  (delete-frame (window-frame window))
 	;; Just delete WINDOW.
 	(delete-window window))
-      (when (window-live-p (nth 1 parameters))
-	(select-window (nth 1 parameters))))
-     ((and (buffer-live-p (nth 0 parameters))
+      ;; If the previously selected window is still alive, select it.
+      (when (window-live-p (nth 2 quit-restore))
+	(select-window (nth 2 quit-restore))))
+     ((and (buffer-live-p (nth 0 quit-restore))
 	   ;; The buffer currently shown in WINDOW must still be the
-	   ;; buffer shown when the `quit-restore' parameter was
-	   ;; created in the first place.
-	   (eq (window-buffer window) (nth 3 parameters)))
+	   ;; buffer shown when its `quit-restore' parameter was created
+	   ;; in the first place.  Leave WINDOW's quit-restore parameter
+	   ;; alone, it can be reused later.
+	   (eq (window-buffer window) (nth 3 quit-restore)))
       ;; Unrecord buffer.
       (unrecord-buffer buffer)
       (unrecord-window-buffer window buffer)
-      ;; The `quit-restore' parameters tell us the buffer to display in
-      ;; WINDOW and how to do that.
+      ;; Display buffer stored in the quit-restore parameter.
       (set-window-dedicated-p window nil)
-      (set-window-buffer window (nth 0 parameters))
-      (set-window-start window (nth 1 parameters))
-      (set-window-point window (nth 2 parameters))
-      (unless (= (nth 4 parameters) (window-total-size window))
+      (set-window-buffer window (nth 0 quit-restore))
+      (set-window-start window (nth 1 quit-restore))
+      (set-window-point window (nth 2 quit-restore))
+      (unless (= (nth 4 quit-restore) (window-total-size window))
 	(resize-window
-	 window (- (nth 4 parameters) (window-total-size window))))
+	 window (- (nth 4 quit-restore) (window-total-size window))))
       (set-window-parameter window 'quit-restore nil)
-      (when (window-live-p (nth 5 parameters))
-	(select-window (nth 5 parameters))))
-     ((and (window-dedicated-p window)
-	   (setq deletable (window-deletable-p window)))
-      (unrecord-buffer buffer)
-      ;; WINDOW is dedicated and deletable.
-      (if (eq deletable 'frame)
-	  ;; WINDOW's frame can be deleted.
-	  (delete-frame (window-frame window))
-	;; Just delete WINDOW.
-	(delete-window window)))
+      (when (window-live-p (nth 5 quit-restore))
+	(select-window (nth 5 quit-restore))))
      (t
-      ;; Otherwise, show another buffer in WINDOW.
+      ;; Otherwise, show another buffer in WINDOW and reset the
+      ;; quit-restore parameter.
       (set-window-parameter window 'quit-restore nil)
       (unrecord-buffer buffer)
       (switch-to-prev-buffer window 'bury-or-kill)))
@@ -3177,15 +3170,6 @@ point in both children."
   :type 'boolean
   :group 'windows)
 
-(defun split-window-quit-restore (new-window old-window)
-  "Copy `quit-restore' parameter from OLD-WINDOW to NEW-WINDOW.
-Do this if and only if NEW-WINDOW's buffer is in `view-mode'."
-  (let ((parameter (window-parameter old-window 'quit-restore)))
-    (when (and parameter
-	       (with-current-buffer (window-buffer new-window)
-		 view-mode))
-      (set-window-parameter new-window 'quit-restore parameter))))
-
 (defun split-window-vertically (&optional size)
   "Split selected window into two windows, one above the other.
 The upper window gets SIZE lines and the lower one gets the rest.
@@ -3234,7 +3218,10 @@ window."
 	   (<= (window-start new-window) old-point)
 	   (set-window-point new-window old-point)
 	   (select-window new-window)))
-    (split-window-quit-restore new-window old-window)
+    ;; Always copy quit-restore parameter in interactive use.
+    (let ((quit-restore (window-parameter old-window 'quit-restore)))
+      (when quit-restore
+	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
 (defun split-window-horizontally (&optional size)
@@ -3256,7 +3243,10 @@ The selected window remains selected.  Return the new window."
       ;; `split-window' would not signal an error here.
       (error "Size of new window too small"))
     (setq new-window (split-window nil size t))
-    (split-window-quit-restore new-window old-window)
+    ;; Always copy quit-restore parameter in interactive use.
+    (let ((quit-restore (window-parameter old-window 'quit-restore)))
+      (when quit-restore
+	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
 ;;; Composite windows.
@@ -3640,7 +3630,8 @@ function to display the buffer.  The function is called with two
 arguments - the buffer to display and a list of specifiers - and
 is supposed to display the buffer and return the window used for
 that purpose.  The function is also responsible for giving the
-variable `display-buffer-window-and-buffer' a meaningful value.
+variable `display-buffer-window' and the
+`quit-restore' parameter of the window used a meaningful value.
 
 The remaining display specifiers are cons cells \(occasionally
 also true lists) whose components are listed below.  The
@@ -4514,23 +4505,25 @@ list is not necessarily a location specifier."
      ;; Append the default specifiers.
      display-buffer-default-specifiers)))
 
-;; The following is a global variable which is used both internally by
-;; the `display-buffer' routines and externally by e.g. help.el.
-(defvar display-buffer-window-and-buffer nil
+;; The following is a global variable which is used externally (by
+;; help.el) to (1) know which window was used for displaying a buffer
+;; and (2) whether the window was new or reused.
+(defvar display-buffer-window nil
   "Window used by `display-buffer' and related information.
 After `display-buffer' displays a buffer in some window this
 variable is a cons cell whose car denotes the window used to
-display the buffer.  The cdr is either nil \(which means the same
-buffer was displayed before in that window), t \(which means the
-window was created by `display-buffer'), or the buffer displayed
-previously in that window.
+display the buffer.  The cdr is supposed to be one of the symbols
+`reuse-buffer-window', `reuse-other-window', `new-window' or
+`new-frame'.
 
 If the buffer display location specifier is one of 'same-window,
 'same-frame, or 'other-frame, the `display-buffer' routines
 assign the value of this variable.  If the location specifier is
 a function, that function becomes responsible for assigning a
-meaningful value to `display-buffer-window-and-buffer'.  See the
-function `display-buffer-in-window' for how this is done.")
+meaningful value to this variable.  See the functions
+`display-buffer-in-lru-buffer-window',
+`display-buffer-in-lru-window', `display-buffer-in-new-window'
+and `display-buffer-in-new-frame' for how this is done.")
 
 (defun display-buffer-adjust-heights (window specifiers)
   "Adjust height of WINDOW according to SPECIFIERS.
@@ -4570,41 +4563,18 @@ documentation of `display-buffer-names' for a description."
     (unless (eq old-frame new-frame)
       (select-frame-set-input-focus new-frame))))
 
-(defun display-buffer-in-window (buffer window specifiers type)
+(defun display-buffer-in-window (buffer window specifiers)
   "Display BUFFER in WINDOW and raise its frame.
 WINDOW must be a live window and defaults to the selected one.
 Return WINDOW.
 
 SPECIFIERS must be a list of buffer display specifiers, see the
-documentation of `display-buffer-names' for a description.  TYPE
-must be 'new-window if a new window is used and 'new-frame if a
-new frame was created.  Other values currently have no special
-meaning."
+documentation of `display-buffer-names' for a description."
   (setq buffer (normalize-live-buffer buffer))
   (setq window (normalize-live-window window))
   (let* ((old-frame (selected-frame))
 	 (new-frame (window-frame window))
-	 (new (memq type '(new-window new-frame)))
 	 (dedicated (cdr (assq 'dedicated specifiers))))
-    ;; Set up information for help-windows.
-    (setq display-buffer-window-and-buffer
-	  (cons window (if new t (window-buffer window))))
-    ;; Set `quit-restore' information.
-    (cond
-     ((memq type '(new-window new-frame))
-      (set-window-parameter
-       ;; Maybe we should use (frame-selected-window frame) here?  Do we
-       ;; have to save the selected window here?  Should we discriminate
-       ;; new-window and new-frame somehow?
-       window 'quit-restore (list t (selected-window))))
-     ((and (not (eq buffer (window-buffer window)))
-	   ;; Do not overwrite an existing value.
-	   (not (window-parameter window 'quit-restore)))
-      (set-window-parameter
-       window 'quit-restore
-       (list (window-buffer window) (window-start window)
-	     (window-point window) buffer (window-total-size window)
-	     (selected-window)))))
     ;; Show BUFFER in WINDOW.
     (set-window-dedicated-p window nil)
     (set-window-buffer window buffer)
@@ -4652,8 +4622,10 @@ description."
 	  (setq best-time time))))
 
     (when best-window
-      (display-buffer-in-window
-       buffer best-window specifiers 'buffer-window))))
+      ;; Never change the quit-restore parameter of a window here.
+      (setq display-buffer-window
+	    (cons best-window 'reuse-buffer-window))
+      (display-buffer-in-window buffer best-window specifiers))))
 
 (defun display-buffer-in-lru-window (buffer frames &optional specifiers)
   "Display BUFFER in least recently used window.
@@ -4691,8 +4663,16 @@ description."
 	     ;; If there's no full-width window return the lru window.
 	     (caar lru-windows)))))
     (when window
-      (display-buffer-in-window
-       buffer window specifiers 'same-frame))))
+      (unless (window-parameter window 'quit-restore)
+	;; Don't overwrite an existing quit-restore entry.
+	(set-window-parameter
+	 window 'quit-restore
+	 (list (window-buffer window) (window-start window)
+	       (window-point window) buffer
+	       (window-total-size window) (selected-window))))
+      (setq display-buffer-window
+	    (cons window 'reuse-other-window))
+      (display-buffer-in-window buffer window specifiers))))
 
 (defun display-buffer-split-window-1 (window side min-size max-size)
   "Subroutine of `display-buffer-split-window'."
@@ -4820,6 +4800,7 @@ was successful, nil otherwise.
 SPECIFIERS must be a list of buffer display specifiers, see the
 documentation of `display-buffer-names' for a description."
   (let* ((frame (display-buffer-frame))
+	 (selected-window (frame-selected-window frame))
 	 window window-specifier side-specifier)
     ;; Don't split an unsplittable frame unless SPECIFIERS allow it.
     (unless (and (cdr (assq 'unsplittable (frame-parameters frame)))
@@ -4857,8 +4838,10 @@ documentation of `display-buffer-names' for a description."
 			     (error nil)))))
 		   (throw 'done window))))))
       (when window
-	(display-buffer-in-window
-	 buffer window specifiers 'new-window)))))
+	(set-window-parameter
+	 window 'quit-restore (list 'new-window buffer selected-window))
+	(setq display-buffer-window (cons window 'new-window))
+	(display-buffer-in-window buffer window specifiers)))))
 
 (defun display-buffer-in-new-frame (buffer specifiers)
   "Make a new frame for displaying BUFFER.
@@ -4869,13 +4852,17 @@ SPECIFIERS must be a list of buffer display specifiers, see the
 documentation of `display-buffer-names' for a description."
   (unless (and (cdr (assq 'graphic-only specifiers))
 	       (not (display-graphic-p)))
-    (let* ((function (or (cdr (assq 'popup-frame-function specifiers))
+    (let* ((selected-window (selected-window))
+	   (function (or (cdr (assq 'popup-frame-function specifiers))
 			 'make-frame))
 	   (parameters (cdr (assq 'popup-frame-alist specifiers)))
 	   (frame (funcall function parameters)))
       (when frame
-	(display-buffer-in-window
-	 buffer (frame-selected-window frame) specifiers 'new-frame)))))
+	(let ((window (frame-selected-window frame)))
+	  (set-window-parameter
+	   window 'quit-restore (list 'new-frame buffer selected-window))
+	  (setq display-buffer-window (cons window 'new-frame))
+	  (display-buffer-in-window buffer window specifiers))))))
 
 (defun normalize-buffer-to-display (buffer-or-name)
   "Normalize BUFFER-OR-NAME argument for buffer display functions.
@@ -4945,8 +4932,8 @@ the currently chosen location specifier in the list are ignored."
 	 ;; `window' is the window we use for showing `buffer'.
 	 specifier location window type
 	 reuse-buffer-window reuse-other-window)
-    ;; Reset `display-buffer-window-and-buffer'.
-    (setq display-buffer-window-and-buffer nil)
+    ;; Reset this.
+    (setq display-buffer-window nil)
     ;; Retrieve the next location specifier while there a specifiers left
     ;; and we don't have a valid window.
     (while (and specifiers (or (not window) (not (window-live-p window))))
@@ -4962,13 +4949,15 @@ the currently chosen location specifier in the list are ignored."
 			      ;; window, use the selected window of the
 			      ;; last nonminibuffer frame instead.
 			      (if (window-minibuffer-p)
-				  (frame-selected-window (last-nonminibuffer-frame))
+				  (frame-selected-window
+				   (last-nonminibuffer-frame))
 				(selected-window))))
 			 (display-buffer-in-window
-			  buffer selected-window specifiers 'reuse-window)))
+			  buffer selected-window specifiers)))
 		  (and (memq location '(same-frame other-frame))
 		       (not (eq (setq reuse-buffer-window
-				      (cdr (assq 'reuse-buffer-window specifiers)))
+				      (cdr (assq
+					    'reuse-buffer-window specifiers)))
 				'never))
 		       ;; Try to reuse a window showing BUFFER.  If
 		       ;; reuse-buffer-window was set, it will specify
@@ -4978,6 +4967,7 @@ the currently chosen location specifier in the list are ignored."
 			buffer reuse-buffer-window specifiers))
 		  (and (eq location 'same-frame)
 		       (not (frame-parameter frame 'unsplittable))
+		       (cdr (assq 'new-window specifiers))
 		       ;; Try making a new window.
 		       (display-buffer-in-new-window buffer specifiers))
 		  (and (eq location 'other-frame)
@@ -5019,8 +5009,7 @@ the currently chosen location specifier in the list are ignored."
 	;; Try making a new frame
 	(display-buffer-in-new-frame buffer nil)
 	;; Use the selected window and let errors show trough.
-	(display-buffer-in-window
-	 buffer (selected-window) nil 'reuse-window))))
+	(display-buffer-in-window buffer (selected-window) nil))))
 
 (defun display-buffer-same-window (&optional buffer-or-name) 
   "Display buffer specified by BUFFER-OR-NAME in the selected window.

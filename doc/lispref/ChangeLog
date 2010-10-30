@@ -1,3 +1,10 @@
+2010-10-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Buffers and Windows, Displaying Buffers): Adapt
+	to new semantics of quit-restore window parameter and
+	display-buffer-window (was display-buffer-window-and-buffer)
+	semantics.
+
 2010-10-28  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (elisp.dvi, elisp.pdf): Also include $emacsdir.
