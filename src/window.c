@@ -3562,7 +3562,7 @@ be applied on the Elisp level.  */)
   r = XWINDOW (FRAME_ROOT_WINDOW (f));
 
   if (!resize_window_check (r, horflag)
-      || (r->new_total != (horflag ? r->total_cols : r->total_lines)))
+      || ! EQ (r->new_total, horflag ? r->total_cols : r->total_lines))
     return Qnil;
 
   BLOCK_INPUT;
@@ -3930,7 +3930,7 @@ when WINDOW is the only window on its frame.  */)
     }
 
   if (resize_window_check (r, horflag)
-      && r->new_total == (horflag ? r->total_cols : r->total_lines))
+      && EQ (r->new_total, horflag ? r->total_cols : r->total_lines))
     /* We can delete WINDOW now.  */
     {
       /* Block input.  */
@@ -4001,7 +4001,7 @@ when WINDOW is the only window on its frame.  */)
 	  /* Now look whether `get-mru-window' gets us something.  */
 	  mru_window = call1 (Qget_mru_window, frame);
 	  if (WINDOW_LIVE_P (mru_window)
-	      && XWINDOW (mru_window)->frame == frame)
+	      && EQ (XWINDOW (mru_window)->frame, frame))
 	    new_selected_window = mru_window;
 
 	  /* If all ended up well, we now promote the mru window.  */
@@ -4081,7 +4081,8 @@ shrink_mini_window (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
   struct window *r;
-  Lisp_Object root, value, size;
+  Lisp_Object root, value;
+  EMACS_INT size;
 
   xassert (MINI_WINDOW_P (w));
 

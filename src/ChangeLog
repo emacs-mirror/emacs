@@ -1,3 +1,10 @@
+2010-10-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* window.c (Fresize_window_apply): Use EQ to compare Lisp_Object
+	values.
+	(Fdelete_window_internal): Likewise.
+	(shrink_mini_window): Declare size as EMACS_INT.
+
 2010-10-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.c (main): Call syms_of_filelock unconditionally.
