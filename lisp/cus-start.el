@@ -34,6 +34,19 @@
 
 ;;; Code:
 
+;; Elements of this list have the form:
+;; SYMBOL GROUP TYPE VERSION REST...
+;; SYMBOL is the name of the variable.
+;; GROUP is the custom group to which it belongs (may also be a list
+;; of groups)
+;; TYPE is the defcustom :type.
+;; VERSION is the defcustom :version (or nil).
+;; REST is a set of :KEYWORD VALUE pairs.  Accepted :KEYWORDs are:
+;; :standard - standard value for SYMBOL (else use current value)
+;; :set - custom-set property
+;; :risky - risky-local-variable property
+;; :safe - safe-local-variable property
+;; :tag - custom-tag property
 (let ((all '(;; alloc.c
 	     (gc-cons-threshold alloc integer)
 	     (garbage-collection-messages alloc boolean)
