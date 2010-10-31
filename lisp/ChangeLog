@@ -1,3 +1,8 @@
+2010-10-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-get-selection-value): New function that gets
+	PRIMARY with type as specified in x-select-request-type. (Bug#6802).
+
 2010-10-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-insert-file-contents): For root,
