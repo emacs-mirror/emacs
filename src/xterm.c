@@ -7689,7 +7689,6 @@ x_connection_closed (Display *dpy, const char *error_message)
 	 Closing the display is reported to lead to a bus error on
 	 OpenWindows in certain situations.  I suspect that is a bug
 	 in OpenWindows.  I don't know how to circumvent it here.  */
-      extern void (*fatal_error_signal_hook) P_ ((void));
       fatal_error_signal_hook = x_fatal_error_signal;
       XtCloseDisplay (dpy);
       fatal_error_signal_hook = NULL;

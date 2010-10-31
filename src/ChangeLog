@@ -1,5 +1,7 @@
 2010-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* xterm.c (x_connection_closed) [USE_X_TOOLKIT]: Fix merge, maybe.
+
 	* frame.c (syms_of_frame) <tool-bar-mode>:
 	Default to nil if !HAVE_WINDOW_SYSTEM.  (Bug#7299)
 
