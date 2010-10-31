@@ -1,3 +1,12 @@
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el: Handle standard values via a keyword.
+	Only set version property if specified.
+	(cursor-in-non-selected-windows, menu-bar-mode)
+	(tool-bar-mode, show-trailing-whitespace):
+	Do not specify standard values.
+	(transient-mark-mode, temporary-file-directory): Use :standard.
+
 2010-10-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-get-selection-value): New function that gets

@@ -1,3 +1,8 @@
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* frame.c (syms_of_frame) <tool-bar-mode>:
+	Default to nil if !HAVE_WINDOW_SYSTEM.  (Bug#7299)
+
 2010-10-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_connection_closed): Print informative error message
