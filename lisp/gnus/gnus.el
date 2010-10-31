@@ -1032,10 +1032,11 @@ be set in `.emacs' instead."
   (unless (and
            (fboundp 'find-image)
            (display-graphic-p)
-           ;; Make sure the library defining `image-load-path' is loaded
-           ;; (`find-image' is autoloaded) (and discard the result).  Else, we may
-           ;; get "defvar ignored because image-load-path is let-bound" when calling
-           ;; `find-image' below.
+           ;; Make sure the library defining `image-load-path' is
+           ;; loaded (`find-image' is autoloaded) (and discard the
+           ;; result).  Else, we may get "defvar ignored because
+           ;; image-load-path is let-bound" when calling `find-image'
+           ;; below.
            (or (find-image '(nil (:type xpm :file "gnus.xpm"))) t)
            (let* ((data-directory (nnheader-find-etc-directory "images/gnus"))
                   (image-load-path (cond (data-directory
@@ -1065,9 +1066,10 @@ be set in `.emacs' instead."
                  (insert-char ?\  (max 0 (round (- (window-width)
                                                    (or x (car size))) 2)))
                  (insert-image image))
+	       (goto-char (point-min))
                t)))
     (insert
-     (format "              
+     (format "
 	  _    ___ _             _
 	  _ ___ __ ___  __    _ ___
 	  __   _     ___    __  ___
@@ -2772,7 +2774,8 @@ gnus-registry.el will populate this if it's loaded.")
      ("gnus-cite" :interactive t
       gnus-article-highlight-citation gnus-article-hide-citation-maybe
       gnus-article-hide-citation gnus-article-fill-cited-article
-      gnus-article-hide-citation-in-followups)
+      gnus-article-hide-citation-in-followups
+      gnus-article-fill-cited-long-lines)
      ("gnus-kill" gnus-kill gnus-apply-kill-file-internal
       gnus-kill-file-edit-file gnus-kill-file-raise-followups-to-author
       gnus-execute gnus-expunge gnus-batch-kill gnus-batch-score)

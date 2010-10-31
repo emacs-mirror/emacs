@@ -286,7 +286,9 @@ redirects somewhere else."
 			    (aref (char-category-set (following-char)) ?>)))
 		  (backward-char 1))
 	      (while (and (>= (setq count (1- count)) 0)
-			  (aref (char-category-set (following-char)) ?>))
+			  (aref (char-category-set (following-char)) ?>)
+			  (aref fill-find-break-point-function-table
+				(following-char)))
 		(forward-char 1)))
 	    (when (eq (following-char) ? )
 	      (forward-char 1))

@@ -1982,6 +1982,28 @@ Sizes are in pixels."
 		      (memq elem list))))
     found))
 
+(eval-and-compile
+  (cond
+   ((fboundp 'match-substitute-replacement)
+    (defalias 'gnus-match-substitute-replacement 'match-substitute-replacement))
+   (t
+    (defun gnus-match-substitute-replacement (replacement &optional fixedcase literal string subexp)
+      "Return REPLACEMENT as it will be inserted by `replace-match'.
+In other words, all back-references in the form `\\&' and `\\N'
+are substituted with actual strings matched by the last search.
+Optional FIXEDCASE, LITERAL, STRING and SUBEXP have the same
+meaning as for `replace-match'.
+
+This is the definition of match-substitute-replacement in subr.el from GNU Emacs."
+      (let ((match (match-string 0 string)))
+	(save-match-data
+	  (set-match-data (mapcar (lambda (x)
+				    (if (numberp x)
+					(- x (match-beginning 0))
+				      x))
+				  (match-data t)))
+	  (replace-match replacement fixedcase literal match subexp)))))))
+
 (provide 'gnus-util)
 
 ;;; gnus-util.el ends here

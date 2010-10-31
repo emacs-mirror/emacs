@@ -491,10 +491,12 @@ result, `gnus-retrieve-headers' will be called instead.")
 	nnir-current-group-marked nil
 	nnir-artlist nil)
   (let* ((query (read-string "Query: " nil 'nnir-search-history))
-	 (parms (list (cons 'query query))))
+	 (parms (list (cons 'query query)))
+	 (srv (if (gnus-server-server-name)
+		  "all"	"")))
     (add-to-list 'parms (cons 'unique-id (message-unique-id)) t)
     (gnus-group-read-ephemeral-group
-     (concat "nnir:" (prin1-to-string parms)) '(nnir "") t
+     (concat "nnir:" (prin1-to-string parms)) (list 'nnir srv) t
      (cons (current-buffer) gnus-current-window-configuration)
      nil)))
 
@@ -566,7 +568,7 @@ and show thread that contains this article."
                (equal server nnir-current-server)))
       nnir-artlist
     ;; Cache miss.
-    (setq nnir-artlist (nnir-run-query group)))
+    (setq nnir-artlist (nnir-run-query group server)))
   (with-current-buffer nntp-server-buffer
     (setq nnir-current-query group)
     (when server (setq nnir-current-server server))
@@ -765,6 +767,7 @@ details on the language and supported extensions"
                         (cdr (assoc nnir-imap-default-search-key
                                     nnir-imap-search-arguments))))
           (gnus-inhibit-demon t)
+	  (groups (or groups (nnir-get-active srv)))
           artlist)
       (message "Opening server %s" server)
       (apply
@@ -1414,15 +1417,22 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 	  (while (not (eobp))
 	    (unless (or (eolp) (looking-at "\x0d"))
 	      (let ((header (nnheader-parse-nov)))
-		(let ((xref (mail-header-xref header)))
+		(let ((xref (mail-header-xref header))
+		      (xscore (string-to-number (cdr (assoc 'X-Score
+			       (mail-header-extra header))))))
 		  (when (string-match " \\([^:]+\\)[:/]\\([0-9]+\\)" xref)
 		    (push
 		     (vector
 		      (gnus-group-prefixed-name (match-string 1 xref) srv)
-		      (string-to-number (match-string 2 xref)) 1)
+		      (string-to-number (match-string 2 xref)) xscore)
 		     artlist)))))
 	    (forward-line 1)))
-	(reverse artlist))
+	;; Sort by score
+	(apply 'vector
+	       (sort artlist
+		     (function (lambda (x y)
+				 (> (nnir-artitem-rsv x)
+				    (nnir-artitem-rsv y)))))))
     (message "Can't search non-gmane nntp groups")))
 
 ;;; Util Code:
@@ -1445,13 +1455,16 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 	  (cons sym (format (cdr mapping) result)))
       (cons sym (read-string prompt)))))
 
-(defun nnir-run-query (query)
+(defun nnir-run-query (query nserver)
   "Invoke appropriate search engine function (see `nnir-engines').
   If some groups were process-marked, run the query for each of the groups
   and concat the results."
   (let ((q (car (read-from-string query)))
-        (groups (nnir-sort-groups-by-server
-		 (or gnus-group-marked (list (gnus-group-group-name))))))
+        (groups (if (string= "all-ephemeral" nserver)
+		    (with-current-buffer gnus-server-buffer
+		      (list (list (gnus-server-server-name))))
+		  (nnir-sort-groups-by-server
+		   (or gnus-group-marked (list (gnus-group-group-name)))))))
     (apply 'vconcat
            (mapcar (lambda (x)
                      (let* ((server (car x))
@@ -1550,6 +1563,44 @@ artitem (counting from 1)."
 	  (push (cons (gnus-group-server var) (list var)) value))))
     value)
   nil))
+
+(defun nnir-get-active (srv)
+  (let ((method (gnus-server-to-method srv))
+	groups)
+    (gnus-request-list method)
+    (with-current-buffer nntp-server-buffer
+      (let ((cur (current-buffer))
+	    name)
+	(goto-char (point-min))
+	(unless (string= gnus-ignored-newsgroups "")
+	  (delete-matching-lines gnus-ignored-newsgroups))
+	;; We treat NNTP as a special case to avoid problems with
+	;; garbage group names like `"foo' that appear in some badly
+	;; managed active files. -jh.
+	(if (eq (car method) 'nntp)
+	    (while (not (eobp))
+	      (ignore-errors
+		(push (cons
+		       (mm-string-as-unibyte
+			(buffer-substring
+			 (point)
+			 (progn
+			   (skip-chars-forward "^ \t")
+			   (point))))
+		       (let ((last (read cur)))
+			 (cons (read cur) last)))
+		      groups))
+	      (forward-line))
+	  (while (not (eobp))
+	    (ignore-errors
+	      (push (mm-string-as-unibyte
+		     (let ((p (point)))
+		       (skip-chars-forward "^ \t\\\\")
+		       (setq name (buffer-substring (+ p 1) (- (point) 1)))
+		       (gnus-group-full-name name method)))
+		    groups))
+	    (forward-line)))))
+    groups))
 
 ;; The end.
 (provide 'nnir)

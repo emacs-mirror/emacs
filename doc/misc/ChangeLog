@@ -1,3 +1,7 @@
+2010-10-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Paging the Article): Document C-u g/C-u C-u g.
+
 2010-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* mh-e.texi (Preface, From Bill Wohler): Change 23 to past tense.

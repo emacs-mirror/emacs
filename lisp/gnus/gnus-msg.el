@@ -1891,7 +1891,11 @@ this is a reply."
 	    (setq v
 		  (cond
 		   ((stringp value)
-		    value)
+		    (if (and (stringp match)
+			     (string-match-p "\\\\[&[:digit:]]" value)
+			     (match-beginning 1))
+			(gnus-match-substitute-replacement value nil nil group)
+		      value))
 		   ((or (symbolp value)
 			(functionp value))
 		    (cond ((functionp value)

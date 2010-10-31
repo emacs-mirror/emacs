@@ -382,14 +382,13 @@ textual parts.")
 	    ;; connection and start a STARTTLS connection instead.
 	    (cond
 	     ((and (or (and (eq nnimap-stream 'network)
-			    (member "STARTTLS"
-				    (nnimap-capabilities nnimap-object)))
+			    (nnimap-capability "STARTTLS"))
 		       (eq nnimap-stream 'starttls))
 		   (fboundp 'open-gnutls-stream))
 	      (nnimap-command "STARTTLS")
 	      (gnutls-negotiate (nnimap-process nnimap-object) nil))
 	     ((and (eq nnimap-stream 'network)
-		   (member "STARTTLS" (nnimap-capabilities nnimap-object)))
+		   (nnimap-capability "STARTTLS"))
 	      (let ((nnimap-stream 'starttls))
 		(let ((tls-process
 		       (nnimap-open-connection buffer)))
@@ -416,8 +415,8 @@ textual parts.")
 				(nnimap-credentials nnimap-address ports)))))
 		  (setq nnimap-object nil)
 		(setq login-result
-		      (if (member "AUTH=PLAIN"
-				  (nnimap-capabilities nnimap-object))
+		      (if (and (nnimap-capability "AUTH=PLAIN")
+			       (nnimap-capability "LOGINDISABLED"))
 			  (nnimap-command
 			   "AUTHENTICATE PLAIN %s"
 			   (base64-encode-string
@@ -439,7 +438,7 @@ textual parts.")
 		  (delete-process (nnimap-process nnimap-object))
 		  (setq nnimap-object nil))))
 	    (when nnimap-object
-	      (when (member "QRESYNC" (nnimap-capabilities nnimap-object))
+	      (when (nnimap-capability "QRESYNC")
 		(nnimap-command "ENABLE QRESYNC"))
 	      (nnimap-process nnimap-object))))))))
 
@@ -555,8 +554,11 @@ textual parts.")
 	(delete-region (point) (point-max)))
       t)))
 
+(defun nnimap-capability (capability)
+  (member capability (nnimap-capabilities nnimap-object)))
+
 (defun nnimap-ver4-p ()
-  (member "IMAP4REV1" (nnimap-capabilities nnimap-object)))
+  (nnimap-capability "IMAP4REV1"))
 
 (defun nnimap-get-partial-article (article parts structure)
   (let ((result
@@ -872,7 +874,7 @@ textual parts.")
     (nnimap-command "UID STORE %s +FLAGS.SILENT (\\Deleted)"
 		    (nnimap-article-ranges articles))
     (cond
-     ((member "UIDPLUS" (nnimap-capabilities nnimap-object))
+     ((nnimap-capability "UIDPLUS")
       (nnimap-command "UID EXPUNGE %s"
 		      (nnimap-article-ranges articles))
       t)
@@ -928,9 +930,12 @@ textual parts.")
       (nnimap-add-cr)
       (setq message (buffer-substring-no-properties (point-min) (point-max)))
       (with-current-buffer (nnimap-buffer)
+	(erase-buffer)
 	(setq sequence (nnimap-send-command
 			"APPEND %S {%d}" (utf7-encode group t)
 			(length message)))
+	(unless nnimap-streaming
+	  (nnimap-wait-for-connection "^[+]"))
 	(process-send-string (get-buffer-process (current-buffer)) message)
 	(process-send-string (get-buffer-process (current-buffer))
 			     (if (nnimap-newlinep nnimap-object)
@@ -1031,7 +1036,7 @@ textual parts.")
     (with-current-buffer (nnimap-buffer)
       (erase-buffer)
       (setf (nnimap-group nnimap-object) nil)
-      (let ((qresyncp (member "QRESYNC" (nnimap-capabilities nnimap-object)))
+      (let ((qresyncp (nnimap-capability "QRESYNC"))
 	    params groups sequences active uidvalidity modseq group)
 	;; Go through the infos and gather the data needed to know
 	;; what and how to request the data.
@@ -1477,12 +1482,14 @@ textual parts.")
   (nnimap-wait-for-response sequence)
   (nnimap-parse-response))
 
-(defun nnimap-wait-for-connection ()
+(defun nnimap-wait-for-connection (&optional regexp)
+  (unless regexp
+    (setq regexp "^[*.] .*\n"))
   (let ((process (get-buffer-process (current-buffer))))
     (goto-char (point-min))
     (while (and (memq (process-status process)
 		      '(open run))
-		(not (re-search-forward "^[*.] .*\n" nil t)))
+		(not (re-search-forward regexp nil t)))
       (nnheader-accept-process-output process)
       (goto-char (point-min)))
     (forward-line -1)
@@ -1669,7 +1676,7 @@ textual parts.")
       (cond
        ;; If the server supports it, we now delete the message we have
        ;; just copied over.
-       ((member "UIDPLUS" (nnimap-capabilities nnimap-object))
+       ((nnimap-capability "UIDPLUS")
 	(setq sequence (nnimap-send-command "UID EXPUNGE %s" range)))
        ;; If it doesn't support UID EXPUNGE, then we only expunge if the
        ;; user has configured it.

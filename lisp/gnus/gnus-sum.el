@@ -7596,6 +7596,7 @@ be displayed."
 		       (not (get-buffer gnus-original-article-buffer))))
 	      (and (not gnus-single-article-buffer)
 		   (or (null gnus-current-article)
+		       (not (get-buffer gnus-original-article-buffer))
 		       (not (eq gnus-current-article article))))
 	      force)
 	  ;; The requested article is different from the current article.
@@ -9392,9 +9393,10 @@ article currently."
 If ARG (the prefix) is a number, show the article with the charset
 defined in `gnus-summary-show-article-charset-alist', or the charset
 input.
-If ARG (the prefix) is non-nil and not a number, show the raw article
-without any article massaging functions being run.  Normally, the key
-strokes are `C-u g'."
+If ARG (the prefix) is non-nil and not a number, show the article,
+but without running any of the article treatment functions
+article.  Normally, the keystroke is `C-u g'.  When using `C-u
+C-u g', show the raw article."
   (interactive "P")
   (cond
    ((numberp arg)
@@ -9436,7 +9438,8 @@ strokes are `C-u g'."
    ((not arg)
     ;; Select the article the normal way.
     (gnus-summary-select-article nil 'force))
-   (t
+   ((equal arg '(16))
+    ;; C-u C-u g
     ;; We have to require this here to make sure that the following
     ;; dynamic binding isn't shadowed by autoloading.
     (require 'gnus-async)
@@ -9454,6 +9457,9 @@ strokes are `C-u g'."
 	  ;; Set it to nil for safety reason.
 	  (setq gnus-article-mime-handle-alist nil)
 	  (setq gnus-article-mime-handles nil)))
+      (gnus-summary-select-article nil 'force)))
+   (t
+    (let ((gnus-inhibit-article-treatments t))
       (gnus-summary-select-article nil 'force))))
   (gnus-summary-goto-subject gnus-current-article)
   (gnus-summary-position-point))

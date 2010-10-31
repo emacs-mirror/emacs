@@ -1,3 +1,74 @@
+2010-10-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-accept-article): Erase buffer before
+	appending for easier debugging.
+	(nnimap-wait-for-connection): Take a regexp.
+	(nnimap-request-accept-article): Wait for the continuation line before
+	sending anything unless we're streaming.
+
+	* gnus-art.el (gnus-treat-article): Only inhibit body washing, and
+	leave the header washing to take place.
+
+2010-10-31  Daniel Dehennin  <daniel.dehennin@baby-gnu.org>
+
+	* gnus-msg.el (gnus-configure-posting-styles): Permit the use of
+	regular expression match and replace in posting styles.
+
+2010-10-31  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (gnus-group-make-nnir-group,nnir-run-query): Allow searching
+	an entire server.
+	(nnir-get-active): New function.
+	(nnir-run-imap): Use it.
+	(nnir-run-gmane): Who knew, gmane search returns an article score!
+
+	* gnus-srvr.el (gnus-server-mode-map): add binding "G" to search the
+	server on the current line with nnir.
+
+2010-10-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-cite.el (gnus-article-foldable-buffer): Refactor out.
+	(gnus-article-foldable-buffer): Don't fold regions that have a ragged
+	left edge.
+	(gnus-article-foldable-buffer): Skip past the prefix when determining
+	raggedness.
+
+	* gnus-sum.el (gnus-summary-show-article): Add `C-u C-u g' for showing
+	the raw article, and change `C-u g' to show the article without doing
+	treatments.
+
+	* gnus-art.el (gnus-mime-display-alternative): Actually pass the type
+	on to `gnus-treat-article'.
+	(gnus-inhibit-article-treatments): New variable.
+
+	* gnus.el: Autoload gnus-article-fill-cited-long-lines.
+
+	* gnus-art.el (gnus-treatment-function-alist): Have
+	gnus-treat-fill-long-lines point to gnus-article-fill-cited-long-lines.
+	(gnus-treat-fill-long-lines): Change default to fill all text/plain
+	sections.
+
+	* gnus-cite.el (gnus-article-fill-cited-article): Remove unused `force'
+	parameter.
+	(gnus-article-fill-cited-long-lines): New function.
+	(gnus-article-fill-cited-article): Allow filling only long sections.
+
+	* shr.el (shr-find-fill-point): Don't break lines between punctuation
+	and non-punctuation (like after the apostrophe in "'We").
+
+	* gnus-sum.el (gnus-summary-select-article): Make sure
+	gnus-original-article-buffer is alive.
+
+	* nndoc.el (nndoc-dissect-buffer): Reverse the order of the articles to
+	reflect the order they're in in the digest.
+
+	* gnus.el (gnus-group-startup-message): Move point to the start of the
+	buffer.
+
+	* nnimap.el (nnimap-capability): New function.
+	(nnimap-open-connection): Only send AUTHENTICATE PLAIN if LOGINDISABLED
+	is set.
+
 2010-10-31  David Engster  <dengste@eml.cc>
 
 	* nnmairix.el (nnmairix-get-valid-servers): Return list of strings to
