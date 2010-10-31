@@ -181,7 +181,7 @@ redirects somewhere else."
 	    result))
     (dolist (sub dom)
       (if (stringp sub)
-	  (push (cons :text sub) result)
+	  (push (cons 'text sub) result)
 	(push (shr-transform-dom sub) result)))
     (nreverse result)))
 
@@ -194,7 +194,7 @@ redirects somewhere else."
 (defun shr-generic (cont)
   (dolist (sub cont)
     (cond
-     ((eq (car sub) :text)
+     ((eq (car sub) 'text)
       (shr-insert (cdr sub)))
      ((listp (cdr sub))
       (shr-descend sub)))))
@@ -524,7 +524,7 @@ Return a string with image data."
 	  (url (or url (cdr (assq :src cont)))))
       (let ((start (point-marker)))
 	(when (zerop (length alt))
-	  (setq alt "[img]"))
+	  (setq alt "*"))
 	(cond
 	 ((or (member (cdr (assq :height cont)) '("0" "1"))
 	      (member (cdr (assq :width cont)) '("0" "1")))

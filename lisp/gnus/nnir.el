@@ -32,161 +32,40 @@
 
 ;; TODO: Documentation in the Gnus manual
 
-;; From: Reiner Steib
-;; Subject: Re: Including nnir.el
-;; Newsgroups: gmane.emacs.gnus.general
-;; Message-ID: <v9d5dnp6aq.fsf@marauder.physik.uni-ulm.de>
-;; Date: 2006-06-05 22:49:01 GMT
-;;
-;; On Sun, Jun 04 2006, Sascha Wilde wrote:
-;;
-;; > The one thing most hackers like to forget: Documentation.  By now the
-;; > documentation is only in the comments at the head of the source, I
-;; > would use it as basis to cook up some minimal texinfo docs.
-;; >
-;; > Where in the existing gnus manual would this fit best?
+;; Where in the existing gnus manual would this fit best?
 
-;; Maybe (info "(gnus)Combined Groups") for a general description.
-;; `gnus-group-make-nnir-group' might be described in (info
-;; "(gnus)Foreign Groups") as well.
-
-
-;; The most recent version of this can always be fetched from the Gnus
-;; repository.  See http://www.gnus.org/ for more information.
-
-;; This code is still in the development stage but I'd like other
-;; people to have a look at it.  Please do not hesitate to contact me
-;; with your ideas.
-
-;; What does it do?  Well, it allows you to index your mail using some
-;; search engine (freeWAIS-sf, swish-e and others -- see later),
-;; then type `G G' in the Group buffer and issue a query to the search
-;; engine.  You will then get a buffer which shows all articles
-;; matching the query, sorted by Retrieval Status Value (score).
+;; What does it do?  Well, it allows you to search your mail using
+;; some search engine (imap, namazu, swish-e, gmane and others -- see
+;; later) by typing `G G' in the Group buffer.  You will then get a
+;; buffer which shows all articles matching the query, sorted by
+;; Retrieval Status Value (score).
 
 ;; When looking at the retrieval result (in the Summary buffer) you
 ;; can type `G T' (aka M-x gnus-summary-nnir-goto-thread RET) on an
 ;; article.  You will be teleported into the group this article came
-;; from, showing the thread this article is part of.  (See below for
-;; restrictions.)
+;; from, showing the thread this article is part of.
 
-;; The Lisp installation is simple: just put this file on your
-;; load-path, byte-compile it, and load it from ~/.gnus or something.
-;; This will install a new command `G G' in your Group buffer for
-;; searching your mail.  Note that you also need to configure a number
-;; of variables, as described below.
-
-;; Restrictions:
-;;
-;; * This expects that you use nnml or another one-file-per-message backend,
-;;   because the others doesn't support nnfolder.
-;; * It can only search the mail backend's which are supported by one
-;;   search engine, because of different query languages.
-;; * There are restrictions to the Wais setup.
-;; * There are restrictions to the imap setup.
-;; * gnus-summary-nnir-goto-thread: Fetches whole group first, before
-;;   limiting to the right articles.  This is much too slow, of
-;;   course.  May issue a query for number of articles to fetch; you
-;;   must accept the default of all articles at this point or things
-;;   may break.
-
-;; The Lisp setup involves setting a few variables and setting up the
+;; The Lisp setup may involve setting a few variables and setting up the
 ;; search engine. You can define the variables in the server definition
 ;; like this :
 ;;   (setq gnus-secondary-select-methods '(
 ;;       (nnimap "" (nnimap-address "localhost")
 ;;                  (nnir-search-engine namazu)
 ;;       )))
-;; Or you can define the global ones. The variables set in the mailer-
-;; definition will be used first.
-;; The variable to set is `nnir-search-engine'.  Choose one of the engines
-;; listed in `nnir-engines'.  (Actually `nnir-engines' is an alist,
-;; type `C-h v nnir-engines RET' for more information; this includes
-;; examples for setting `nnir-search-engine', too.)
-;;
-;; The variable nnir-mail-backend isn't used anymore.
-;;
+;; The main variable to set is `nnir-search-engine'.  Choose one of
+;; the engines listed in `nnir-engines'.  (Actually `nnir-engines' is
+;; an alist, type `C-h v nnir-engines RET' for more information; this
+;; includes examples for setting `nnir-search-engine', too.)
 
-;; You must also set up a search engine.  I'll tell you about the two
-;; search engines currently supported:
+;; If you use one of the local indices (namazu, find-grep, swish) you
+;; must also set up a search engine backend.
 
-;; 1. freeWAIS-sf
-;;
-;; As always with freeWAIS-sf, you need a so-called `format file'.  I
-;; use the following file:
-;;
-;; ,-----
-;; | # Kai's format file for freeWAIS-sf for indexing mails.
-;; | # Each mail is in a file, much like the MH format.
-;; |
-;; | # Document separator should never match -- each file is a document.
-;; | record-sep: /^@this regex should never match@$/
-;; |
-;; | # Searchable fields specification.
-;; |
-;; | region: /^[sS]ubject:/ /^[sS]ubject: */
-;; |         subject "Subject header" stemming TEXT BOTH
-;; | end: /^[^ \t]/
-;; |
-;; | region: /^([tT][oO]|[cC][cC]):/ /^([tT][oO]|[cC][cC]): */
-;; |         to "To and Cc headers" SOUNDEX BOTH
-;; | end: /^[^ \t]/
-;; |
-;; | region: /^[fF][rR][oO][mM]:/ /^[fF][rR][oO][mM]: */
-;; |         from "From header" SOUNDEX BOTH
-;; | end: /^[^ \t]/
-;; |
-;; | region: /^$/
-;; |         stemming TEXT GLOBAL
-;; | end: /^@this regex should never match@$/
-;; `-----
-;;
-;; 1998-07-22: waisindex would dump core on me for large articles with
-;; the above settings.  I used /^$/ as the end regex for the global
-;; field.  That seemed to work okay.
-
-;; There is a Perl module called `WAIS.pm' which is available from
-;; CPAN as well as ls6-ftp.cs.uni-dortmund.de:/pub/wais/Perl.  This
-;; module comes with a nifty tool called `makedb', which I use for
-;; indexing.  Here's my `makedb.conf':
-;;
-;; ,-----
-;; | # Config file for makedb
-;; |
-;; | # Global options
-;; | waisindex = /usr/local/bin/waisindex
-;; | wais_opt  = -stem -t fields
-;; | # `-stem' option necessary when `stemming' is specified for the
-;; | # global field in the *.fmt file
-;; |
-;; | # Own variables
-;; | homedir = /home/kai
-;; |
-;; | # The mail database.
-;; | database        = mail
-;; | files           = `find $homedir/Mail -name \*[0-9] -print`
-;; | dbdir           = $homedir/.wais
-;; | limit           = 100
-;; `-----
-;;
-;; The Lisp setup involves the `nnir-wais-*' variables.  The most
-;; difficult to understand variable is probably
-;; `nnir-wais-remove-prefix'.  Here's what it does: the output of
-;; `waissearch' basically contains the file name and the (full)
-;; directory name.  As Gnus works with group names rather than
-;; directory names, the directory name is transformed into a group
-;; name as follows: first, a prefix is removed from the (full)
-;; directory name, then all `/' are replaced with `.'.  The variable
-;; `nnir-wais-remove-prefix' should contain a regex matching exactly
-;; this prefix.  It defaults to `$HOME/Mail/' (note the trailing
-;; slash).
-
-;; 2. Namazu
+;; 1. Namazu
 ;;
 ;; The Namazu backend requires you to have one directory containing all
 ;; index files, this is controlled by the `nnir-namazu-index-directory'
 ;; variable.  To function the `nnir-namazu-remove-prefix' variable must
-;; also be correct, see the documentation for `nnir-wais-remove-prefix'
+;; also be correct, see the documentation for `nnir-namazu-remove-prefix'
 ;; above.
 ;;
 ;; It is particularly important not to pass any any switches to namazu
@@ -225,7 +104,7 @@
 ;; For maximum searching efficiency I have a cron job set to run this
 ;; command every four hours.
 
-;; 3. find-grep
+;; 2. find-grep
 ;;
 ;; The find-grep engine simply runs find(1) to locate eligible
 ;; articles and searches them with grep(1).  This, of course, is much
@@ -281,39 +160,7 @@
 ;; function should return the list of articles as a vector, as
 ;; described above.  Then, you need to register this backend in
 ;; `nnir-engines'.  Then, users can choose the backend by setting
-;; `nnir-search-engine'.
-
-;; Todo, or future ideas:
-
-;; * It should be possible to restrict search to certain groups.
-;;
-;; * There is currently no error checking.
-;;
-;; * The summary buffer display is currently really ugly, with all the
-;;   added information in the subjects.  How could I make this
-;;   prettier?
-;;
-;; * A function which can be called from an nnir summary buffer which
-;;   teleports you into the group the current article came from and
-;;   shows you the whole thread this article is part of.
-;;   Implementation suggestions?
-;;   (1998-07-24: There is now a preliminary implementation, but
-;;   it is much too slow and quite fragile.)
-;;
-;; * Support other mail backends.  In particular, probably quite a few
-;;   people use nnfolder.  How would one go about searching nnfolders
-;;   and producing the right data needed?  The group name and the RSV
-;;   are simple, but what about the article number?
-;;   - The article number is encoded in the `X-Gnus-Article-Number'
-;;     header of each mail.
-;;
-;; * Support compressed mail files.  Probably, just stripping off the
-;;   `.gz' or `.Z' file name extension is sufficient.
-;;
-;; * At least for imap, the query is performed twice.
-;;
-
-;; Have you got other ideas?
+;; `nnir-search-engine' as a server variable.
 
 ;;; Setup Code:
 
@@ -336,115 +183,26 @@
 
 (gnus-declare-backend "nnir" 'mail)
 
-(defvar nnir-imap-default-search-key "Whole message"
-  "The default IMAP search key for an nnir search. Must be one of
-  the keys in nnir-imap-search-arguments. To use raw imap queries
-  by default set this to \"Imap\"")
-
-(defvar nnir-imap-search-arguments
-  '(("Whole message" . "TEXT")
-    ("Subject" . "SUBJECT")
-    ("To" . "TO")
-    ("From" . "FROM")
-    ("Imap" . ""))
-  "Mapping from user readable keys to IMAP search items for use in nnir")
-
-(defvar nnir-imap-search-other "HEADER %S"
-  "The IMAP search item to use for anything other than
-  nnir-imap-search-arguments. By default this is the name of an
-  email header field")
-
-(defvar nnir-imap-search-argument-history ()
-  "The history for querying search options in nnir")
-
-(defvar nnir-get-article-nov-override-function nil
-  "If non-nil, a function that will be passed each search result.  This
-should return a message's headers in NOV format.
-
-If this variable is nil, or if the provided function returns nil for a search
-result, `gnus-retrieve-headers' will be called instead.")
-
-(defvar nnir-method-default-engines
-  '((nnimap . imap)
-    (nntp . nil))
-  "Alist of default search engines by server method")
-
-;;; Developer Extension Variable:
-
-(defvar nnir-engines
-  `((wais    nnir-run-waissearch
-             ())
-    (imap    nnir-run-imap
-             ((criteria
-	       "Search in"                        ; Prompt
-	       ,(mapcar 'car nnir-imap-search-arguments) ; alist for completing
-	       nil                                ; allow any user input
-	       nil                                ; initial value
-	       nnir-imap-search-argument-history  ; the history to use
-	       ,nnir-imap-default-search-key      ; default
-	       )))
-    (swish++ nnir-run-swish++
-             ((group . "Group spec: ")))
-    (swish-e nnir-run-swish-e
-             ((group . "Group spec: ")))
-    (namazu  nnir-run-namazu
-             ())
-    (find-grep nnir-run-find-grep
-	       ((grep-options . "Grep options: "))))
-  "Alist of supported search engines.
-Each element in the alist is a three-element list (ENGINE FUNCTION ARGS).
-ENGINE is a symbol designating the searching engine.  FUNCTION is also
-a symbol, giving the function that does the search.  The third element
-ARGS is a list of cons pairs (PARAM . PROMPT).  When issuing a query,
-the FUNCTION will issue a query for each of the PARAMs, using PROMPT.
-
-The value of `nnir-search-engine' must be one of the ENGINE symbols.
-For example, use the following line for searching using freeWAIS-sf:
-    (setq nnir-search-engine 'wais)
-Use the following line if you read your mail via IMAP and your IMAP
-server supports searching:
-    (setq nnir-search-engine 'imap)
-Note that you have to set additional variables for most backends.  For
-example, the `wais' backend needs the variables `nnir-wais-program',
-`nnir-wais-database' and `nnir-wais-remove-prefix'.
-
-Add an entry here when adding a new search engine.")
 
 ;;; User Customizable Variables:
 
 (defgroup nnir nil
-  "Search nnmh and nnml groups in Gnus with swish-e, freeWAIS-sf, or EWS."
+  "Search groups in Gnus with assorted seach engines."
   :group 'gnus)
 
-;; Mail backend.
-
-;; TODO:
-;; If `nil', use server parameters to find out which server to search. CCC
-;;
-(defcustom nnir-mail-backend '(nnml "")
-  "*Specifies which backend should be searched.
-More precisely, this is used to determine from which backend to fetch the
-messages found.
-
-This must be equal to an existing server, so maybe it is best to use
-something like the following:
-    (setq nnir-mail-backend (nth 0 gnus-secondary-select-methods))
-The above line works fine if the mail backend you want to search is
-the first element of gnus-secondary-select-methods (`nth' starts counting
-at zero)."
-  :type '(sexp)
+(defcustom nnir-method-default-engines
+  '((nnimap . imap)
+    (nntp . gmane))
+  "*Alist of default search engines keyed by server method"
+  :type '(alist)
   :group 'nnir)
 
-;; Search engine to use.
-
-(defcustom nnir-search-engine 'wais
-  "*The search engine to use.  Must be a symbol.
-See `nnir-engines' for a list of supported engines, and for example
-settings of `nnir-search-engine'."
-  :type '(sexp)
+(defcustom nnir-imap-default-search-key "Whole message"
+  "*The default IMAP search key for an nnir search. Must be one of
+  the keys in `nnir-imap-search-arguments'. To use raw imap queries
+  by default set this to \"Imap\""
+  :type '(string)
   :group 'nnir)
-
-;; freeWAIS-sf.
 
 (defcustom nnir-wais-program "waissearch"
   "*Name of waissearch executable."
@@ -501,8 +259,8 @@ Instead, use this:
 in order to get a group name (albeit with / instead of .).  This is a
 regular expression.
 
-This variable is very similar to `nnir-wais-remove-prefix', except
-that it is for swish++, not Wais."
+This variable is very similar to `nnir-namazu-remove-prefix', except
+that it is for swish++, not Namazu."
   :type '(regexp)
   :group 'nnir)
 
@@ -552,11 +310,45 @@ This could be a server parameter."
 in order to get a group name (albeit with / instead of .).  This is a
 regular expression.
 
-This variable is very similar to `nnir-wais-remove-prefix', except
-that it is for swish-e, not Wais.
+This variable is very similar to `nnir-namazu-remove-prefix', except
+that it is for swish-e, not Namazu.
 
 This could be a server parameter."
   :type '(regexp)
+  :group 'nnir)
+
+;; HyREX engine, see <URL:http://ls6-www.cs.uni-dortmund.de/>
+
+(defcustom nnir-hyrex-program "nnir-search"
+  "*Name of the nnir-search executable."
+  :type '(string)
+  :group 'nnir)
+
+(defcustom nnir-hyrex-additional-switches '()
+  "*A list of strings, to be given as additional arguments for nnir-search.
+Note that this should be a list. Ie, do NOT use the following:
+    (setq nnir-hyrex-additional-switches \"-ddl ddl.xml -c nnir\") ; wrong !
+Instead, use this:
+    (setq nnir-hyrex-additional-switches '(\"-ddl\" \"ddl.xml\" \"-c\" \"nnir\"))"
+  :type '(repeat (string))
+  :group 'nnir)
+
+(defcustom nnir-hyrex-index-directory (getenv "HOME")
+  "*Index directory for HyREX."
+  :type '(directory)
+  :group 'nnir)
+
+(defcustom nnir-hyrex-remove-prefix (concat (getenv "HOME") "/Mail/")
+  "*The prefix to remove from each file name returned by HyREX
+in order to get a group name (albeit with / instead of .).
+
+For example, suppose that HyREX returns file names such as
+\"/home/john/Mail/mail/misc/42\".  For this example, use the following
+setting:  (setq nnir-hyrex-remove-prefix \"/home/john/Mail/\")
+Note the trailing slash.  Removing this prefix gives \"mail/misc/42\".
+`nnir' knows to remove the \"/42\" and to replace \"/\" with \".\" to
+arrive at the correct group name, \"mail.misc\"."
+  :type '(directory)
   :group 'nnir)
 
 ;; Namazu engine, see <URL:http://www.namazu.org/>
@@ -587,10 +379,82 @@ Instead, use this:
   "*The prefix to remove from each file name returned by Namazu
 in order to get a group name (albeit with / instead of .).
 
-This variable is very similar to `nnir-wais-remove-prefix', except
-that it is for Namazu, not Wais."
+For example, suppose that Namazu returns file names such as
+\"/home/john/Mail/mail/misc/42\".  For this example, use the following
+setting:  (setq nnir-namazu-remove-prefix \"/home/john/Mail/\")
+Note the trailing slash.  Removing this prefix gives \"mail/misc/42\".
+`nnir' knows to remove the \"/42\" and to replace \"/\" with \".\" to
+arrive at the correct group name, \"mail.misc\"."
   :type '(directory)
   :group 'nnir)
+
+;; Imap variables
+
+(defvar nnir-imap-search-arguments
+  '(("Whole message" . "TEXT")
+    ("Subject" . "SUBJECT")
+    ("To" . "TO")
+    ("From" . "FROM")
+    ("Imap" . ""))
+  "Mapping from user readable keys to IMAP search items for use in nnir")
+
+(defvar nnir-imap-search-other "HEADER %S"
+  "The IMAP search item to use for anything other than
+  `nnir-imap-search-arguments'. By default this is the name of an
+  email header field")
+
+(defvar nnir-imap-search-argument-history ()
+  "The history for querying search options in nnir")
+
+;;; Developer Extension Variable:
+
+(defvar nnir-engines
+  `((wais    nnir-run-waissearch
+             ())
+    (imap    nnir-run-imap
+             ((criteria
+	       "Imap Search in"                   ; Prompt
+	       ,(mapcar 'car nnir-imap-search-arguments) ; alist for completing
+	       nil                                ; allow any user input
+	       nil                                ; initial value
+	       nnir-imap-search-argument-history  ; the history to use
+	       ,nnir-imap-default-search-key      ; default
+	       )))
+    (gmane   nnir-run-gmane
+	     ((author . "Gmane Author: ")))
+    (swish++ nnir-run-swish++
+             ((group . "Swish++ Group spec: ")))
+    (swish-e nnir-run-swish-e
+             ((group . "Swish-e Group spec: ")))
+    (namazu  nnir-run-namazu
+             ())
+    (hyrex   nnir-run-hyrex
+	     ((group . "Hyrex Group spec: ")))
+    (find-grep nnir-run-find-grep
+	       ((grep-options . "Grep options: "))))
+  "Alist of supported search engines.
+Each element in the alist is a three-element list (ENGINE FUNCTION ARGS).
+ENGINE is a symbol designating the searching engine.  FUNCTION is also
+a symbol, giving the function that does the search.  The third element
+ARGS is a list of cons pairs (PARAM . PROMPT).  When issuing a query,
+the FUNCTION will issue a query for each of the PARAMs, using PROMPT.
+
+The value of `nnir-search-engine' must be one of the ENGINE symbols.
+For example, for searching a server using namazu include
+    (nnir-search-engine namazu)
+in the server definition.  Note that you have to set additional
+variables for most backends.  For example, the `namazu' backend
+needs the variables `nnir-namazu-program',
+`nnir-namazu-index-directory' and `nnir-namazu-remove-prefix'.
+
+Add an entry here when adding a new search engine.")
+
+(defvar nnir-get-article-nov-override-function nil
+  "If non-nil, a function that will be passed each search result.  This
+should return a message's headers in NOV format.
+
+If this variable is nil, or if the provided function returns nil for a search
+result, `gnus-retrieve-headers' will be called instead.")
 
 ;;; Internal Variables:
 
@@ -609,42 +473,30 @@ that it is for Namazu, not Wais."
 (defvar nnir-tmp-buffer " *nnir*"
   "Internal: temporary buffer.")
 
+(defvar nnir-search-history ()
+  "Internal: the history for querying search options in nnir")
+
+(defvar nnir-extra-parms nil
+  "Internal: stores request for extra search parms")
+
 ;;; Code:
 
 ;; Gnus glue.
 
-(defun gnus-group-make-nnir-group (extra-parms query)
+(defun gnus-group-make-nnir-group (nnir-extra-parms)
   "Create an nnir group.  Asks for query."
-  (interactive "P\nsQuery: ")
+  (interactive "P")
   (setq nnir-current-query nil
 	nnir-current-server nil
 	nnir-current-group-marked nil
 	nnir-artlist nil)
-  (let ((parms nil))
-    (if extra-parms
-        (setq parms (nnir-read-parms query))
-      (setq parms (list (cons 'query query))))
+  (let* ((query (read-string "Query: " nil 'nnir-search-history))
+	 (parms (list (cons 'query query))))
     (add-to-list 'parms (cons 'unique-id (message-unique-id)) t)
     (gnus-group-read-ephemeral-group
      (concat "nnir:" (prin1-to-string parms)) '(nnir "") t
-     (cons (current-buffer)
-           gnus-current-window-configuration)
+     (cons (current-buffer) gnus-current-window-configuration)
      nil)))
-
-;; Why is this needed? Is this for compatibility with old/new gnusae? Using
-;; gnus-group-server instead works for me.  -- Justus Piater
-(defmacro nnir-group-server (group)
-  "Return the server for a newsgroup GROUP.
-The returned format is as `gnus-server-to-method' needs it.  See
-`gnus-group-real-prefix' and `gnus-group-real-name'."
-  `(let ((gname ,group))
-     (if (string-match "^\\([^:]+\\):" gname)
-	 (progn
-	   (setq gname (match-string 1 gname))
-	   (if (string-match "^\\([^+]+\\)\\+\\(.+\\)$" gname)
-	       (format "%s:%s" (match-string 1 gname) (match-string 2 gname))
-	     (concat gname ":")))
-       (format "%s:%s" (car gnus-select-method) (cadr gnus-select-method)))))
 
 ;; Summary mode commands.
 
@@ -660,22 +512,27 @@ and show thread that contains this article."
 	 (id (mail-header-id (gnus-summary-article-header)))
 	 (refs (split-string
 		(mail-header-references (gnus-summary-article-header)))))
-    (if (eq (car (gnus-group-method group)) 'nnimap)
-	(progn (nnimap-possibly-change-group (gnus-group-short-name group) nil)
-	       (with-current-buffer (nnimap-buffer)
-		 (let* ((cmd (let ((value (format
-					   "(OR HEADER REFERENCES %s HEADER Message-Id %s)"
-					   id id)))
-			       (dolist (refid refs value)
-				 (setq value (format
-					      "(OR (OR HEADER Message-Id %s HEADER REFERENCES %s) %s)"
-					      refid refid value)))))
-			(result (nnimap-command
-				 "UID SEARCH %s" cmd)))
-		   (gnus-summary-read-group-1 group t t gnus-summary-buffer nil
-					      (and (car result)
-						   (delete 0 (mapcar #'string-to-number
-								     (cdr (assoc "SEARCH" (cdr result))))))))))
+    (if (eq (car (gnus-find-method-for-group group)) 'nnimap)
+	(progn
+	  (nnimap-possibly-change-group (gnus-group-short-name group) nil)
+	  (with-current-buffer (nnimap-buffer)
+	    (let* ((cmd
+		    (let ((value
+			   (format
+			    "(OR HEADER REFERENCES %s HEADER Message-Id %s)"
+			    id id)))
+		      (dolist (refid refs value)
+			(setq value
+			      (format
+			       "(OR (OR HEADER Message-Id %s HEADER REFERENCES %s) %s)"
+			       refid refid value)))))
+		   (result (nnimap-command "UID SEARCH %s" cmd)))
+	      (gnus-summary-read-group-1
+	       group t t gnus-summary-buffer nil
+	       (and (car result)
+		    (delete 0 (mapcar
+			       #'string-to-number
+			       (cdr (assoc "SEARCH" (cdr result))))))))))
       (gnus-summary-read-group-1 group t t gnus-summary-buffer
 				 nil (list backend-number))
       (gnus-summary-limit (list backend-number))
@@ -711,22 +568,17 @@ and show thread that contains this article."
     ;; Cache miss.
     (setq nnir-artlist (nnir-run-query group)))
   (with-current-buffer nntp-server-buffer
+    (setq nnir-current-query group)
+    (when server (setq nnir-current-server server))
+    (setq nnir-current-group-marked gnus-group-marked)
     (if (zerop (length nnir-artlist))
-	(progn
-	  (setq nnir-current-query nil
-		nnir-current-server nil
-		nnir-current-group-marked nil
-		nnir-artlist nil)
-	  (nnheader-report 'nnir "Search produced empty results."))
+	(nnheader-report 'nnir "Search produced empty results.")
       ;; Remember data for cache.
-      (setq nnir-current-query group)
-      (when server (setq nnir-current-server server))
-      (setq nnir-current-group-marked gnus-group-marked)
       (nnheader-insert "211 %d %d %d %s\n"
 		       (nnir-artlist-length nnir-artlist) ; total #
 		       1              ; first #
 		       (nnir-artlist-length nnir-artlist) ; last #
-		       group))))     ; group name
+		       group))))      ; group name
 
 (deffoo nnir-retrieve-headers (articles &optional group server fetch-old)
   (save-excursion
@@ -745,7 +597,7 @@ and show thread that contains this article."
         (setq artfullgroup (nnir-artitem-group artitem))
         (setq artno (nnir-artitem-number artitem))
         (setq artgroup (gnus-group-real-name artfullgroup))
-	(setq server (nnir-group-server artfullgroup))
+	(setq server (gnus-group-server artfullgroup))
         ;; retrieve NOV or HEAD data for this article, transform into
         ;; NOV data and prepend to `novdata'
         (set-buffer nntp-server-buffer)
@@ -859,8 +711,8 @@ ready to be added to the list of search results."
 (defun nnir-run-waissearch (query server &optional group)
   "Run given query agains waissearch.  Returns vector of (group name, file name)
 pairs (also vectors, actually)."
-  (when group
-    (error "The freeWAIS-sf backend cannot search specific groups"))
+  ;; (when group
+  ;;   (error "The freeWAIS-sf backend cannot search specific groups"))
   (save-excursion
     (let ((qstring (cdr (assq 'query query)))
 	  (prefix (nnir-read-server-parm 'nnir-wais-remove-prefix server))
@@ -900,49 +752,49 @@ pairs (also vectors, actually)."
                                (> (nnir-artitem-rsv x)
                                   (nnir-artitem-rsv y)))))))))
 
-;; IMAP interface.
-;; todo:
-;; send queries as literals
-;; handle errors
-
-
-(defun nnir-run-imap (query srv &optional group-option)
+;; imap interface
+(defun nnir-run-imap (query srv &optional groups)
   "Run a search against an IMAP back-end server.
 This uses a custom query language parser; see `nnir-imap-make-query' for
 details on the language and supported extensions"
   (save-excursion
     (let ((qstring (cdr (assq 'query query)))
-	  (server (cadr (gnus-server-to-method srv)))
-	  (group (or group-option (gnus-group-group-name)))
-	  (defs (caddr (gnus-server-to-method srv)))
-	  (criteria (or (cdr (assq 'criteria query))
-			(cdr (assoc nnir-imap-default-search-key
-				    nnir-imap-search-arguments))))
-	  (gnus-inhibit-demon t)
-	  artlist)
+          (server (cadr (gnus-server-to-method srv)))
+          (defs (caddr (gnus-server-to-method srv)))
+          (criteria (or (cdr (assq 'criteria query))
+                        (cdr (assoc nnir-imap-default-search-key
+                                    nnir-imap-search-arguments))))
+          (gnus-inhibit-demon t)
+          artlist)
       (message "Opening server %s" server)
-      (condition-case ()
-	  (when (nnimap-possibly-change-group (gnus-group-short-name group) server)
-	    (with-current-buffer (nnimap-buffer)
-	      (message "Searching %s..." group)
-	      (let ((arts 0)
-		    (result
-		     (nnimap-command "UID SEARCH %s"
-				     (if (string= criteria "")
-					 qstring
-				       (nnir-imap-make-query criteria qstring)
-				       ))))
-		(mapc
-		 (lambda (artnum)
-		   (push (vector group artnum 1) artlist)
-		   (setq arts (1+ arts)))
-		 (and (car result)
-		      (delete 0 (mapcar #'string-to-number
-					(cdr (assoc "SEARCH" (cdr result)))))))
-		(message "Searching %s... %d matches" group arts)))
-	    (message "Searching %s...done" group))
-	(quit nil))
-      (reverse artlist))))
+      (apply
+       'vconcat
+       (mapcar
+	(lambda (x)
+	  (let ((group x))
+	    (condition-case ()
+		(when (nnimap-possibly-change-group
+		       (gnus-group-short-name group) server)
+		  (with-current-buffer (nnimap-buffer)
+		    (message "Searching %s..." group)
+		    (let ((arts 0)
+			  (result (nnimap-command "UID SEARCH %s"
+						  (if (string= criteria "")
+						      qstring
+						    (nnir-imap-make-query
+						     criteria qstring)))))
+		      (mapc
+		       (lambda (artnum) (push (vector group artnum 1) artlist)
+			 (setq arts (1+ arts)))
+		       (and (car result)
+			    (delete 0 (mapcar #'string-to-number
+					      (cdr (assoc "SEARCH"
+							  (cdr result)))))))
+		      (message "Searching %s... %d matches" group arts)))
+		  (message "Searching %s...done" group))
+	      (quit nil))
+	    (reverse artlist)))
+	groups)))))
 
 (defun nnir-imap-make-query (criteria qstring)
   "Parse the query string and criteria into an appropriate IMAP search
@@ -1132,8 +984,8 @@ actually).
 Tested with swish++ 4.7 on GNU/Linux and with swish++ 5.0b2 on
 Windows NT 4.0."
 
-  (when group
-    (error "The swish++ backend cannot search specific groups"))
+  ;; (when group
+  ;;   (error "The swish++ backend cannot search specific groups"))
 
   (save-excursion
     (let ( (qstring (cdr (assq 'query query)))
@@ -1221,8 +1073,8 @@ actually).
 Tested with swish-e-2.0.1 on Windows NT 4.0."
 
   ;; swish-e crashes with empty parameter to "-w" on commandline...
-  (when group
-    (error "The swish-e backend cannot search specific groups"))
+  ;; (when group
+  ;;   (error "The swish-e backend cannot search specific groups"))
 
   (save-excursion
     (let ((qstring (cdr (assq 'query query)))
@@ -1306,14 +1158,85 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
                                (> (nnir-artitem-rsv x)
                                   (nnir-artitem-rsv y)))))))))
 
+;; HyREX interface
+(defun nnir-run-hyrex (query server &optional group)
+  (save-excursion
+    (let ((artlist nil)
+          (groupspec (cdr (assq 'group query)))
+          (qstring (cdr (assq 'query query)))
+	  (prefix (nnir-read-server-parm 'nnir-hyrex-remove-prefix server))
+	  score artno dirnam)
+      (when (and (not groupspec) group)
+        (setq groupspec
+	      (regexp-opt
+	       (mapcar (lambda (x) (gnus-group-real-name x)) group))))
+      (set-buffer (get-buffer-create nnir-tmp-buffer))
+      (erase-buffer)
+      (message "Doing hyrex-search query %s..." query)
+      (let* ((cp-list
+	      `( ,nnir-hyrex-program
+		 nil			; input from /dev/null
+		 t			; output
+		 nil			; don't redisplay
+		 "-i",(nnir-read-server-parm 'nnir-hyrex-index-directory server) ; index directory
+		 ,@(nnir-read-server-parm 'nnir-hyrex-additional-switches server)
+		 ,qstring	   ; the query, in hyrex-search format
+		 ))
+             (exitstatus
+              (progn
+                (message "%s args: %s" nnir-hyrex-program
+                         (mapconcat 'identity (cddddr cp-list) " "))
+                (apply 'call-process cp-list))))
+        (unless (or (null exitstatus)
+                    (zerop exitstatus))
+          (nnheader-report 'nnir "Couldn't run hyrex-search: %s" exitstatus)
+          ;; nnir-search failure reason is in this buffer, show it if
+          ;; the user wants it.
+          (when (> gnus-verbose 6)
+            (display-buffer nnir-tmp-buffer)))) ;; FIXME: Dont clear buffer !
+      (message "Doing hyrex-search query \"%s\"...done" qstring)
+      (sit-for 0)
+      ;; nnir-search returns:
+      ;;   for nnml/nnfolder: "filename mailid weigth"
+      ;;   for nnimap:        "group mailid weigth"
+      (goto-char (point-min))
+      (delete-non-matching-lines "^\\S + [0-9]+ [0-9]+$")
+      ;; HyREX doesn't search directly in groups -- so filter out here.
+      (when groupspec
+	(keep-lines groupspec))
+      ;; extract data from result lines
+      (goto-char (point-min))
+      (while (re-search-forward
+	      "\\(\\S +\\) \\([0-9]+\\) \\([0-9]+\\)" nil t)
+	(setq dirnam (match-string 1)
+	      artno (match-string 2)
+	      score (match-string 3))
+	(when (string-match prefix dirnam)
+	  (setq dirnam (replace-match "" t t dirnam)))
+	(push (vector (nnir-group-full-name
+                       (gnus-replace-in-string dirnam "/" ".") server)
+		      (string-to-number artno)
+		      (string-to-number score))
+	      artlist))
+      (message "Massaging hyrex-search output...done.")
+      (apply 'vector
+	     (sort artlist
+                   (function (lambda (x y)
+                               (if (string-lessp (nnir-artitem-group x)
+                                                 (nnir-artitem-group y))
+                                   t
+                                 (< (nnir-artitem-number x)
+                                    (nnir-artitem-number y)))))))
+      )))
+
 ;; Namazu interface
 (defun nnir-run-namazu (query server &optional group)
   "Run given query against Namazu.  Returns a vector of (group name, file name)
 pairs (also vectors, actually).
 
 Tested with Namazu 2.0.6 on a GNU/Linux system."
-  (when group
-    (error "The Namazu backend cannot search specific groups"))
+  ;; (when group
+  ;;   (error "The Namazu backend cannot search specific groups"))
   (save-excursion
     (let ((article-pattern (if (string= (gnus-group-server server) "nnmaildir")
 			       ":[0-9]+"
@@ -1375,7 +1298,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
                                (> (nnir-artitem-rsv x)
                                   (nnir-artitem-rsv y)))))))))
 
-(defun nnir-run-find-grep (query server &optional group)
+(defun nnir-run-find-grep (query server &optional grouplist)
   "Run find and grep to obtain matching articles."
   (let* ((method (gnus-server-to-method server))
 	 (sym (intern
@@ -1387,65 +1310,128 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
     (unless directory
       (error "No directory found in method specification of server %s"
 	     server))
-    (message "Searching %s using find-grep..." (or group server))
-    (save-window-excursion
-      (set-buffer (get-buffer-create nnir-tmp-buffer))
-      (erase-buffer)
-      (if (> gnus-verbose 6)
-	  (pop-to-buffer (current-buffer)))
-      (cd directory) ; Using relative paths simplifies postprocessing.
-      (let ((group
-	     (if (not group)
-		 "."
-	       ;; Try accessing the group literally as well as
-	       ;; interpreting dots as directory separators so the
-	       ;; engine works with plain nnml as well as the Gnus Cache.
-               (let ((group (gnus-group-real-name group)))
-                 ;; Replace cl-func find-if.
-                 (if (file-directory-p group)
-                     group
-                   (if (file-directory-p
-                        (setq group (gnus-replace-in-string group "\\." "/" t)))
-                       group))))))
-	(unless group
-	  (error "Cannot locate directory for group"))
-	(save-excursion
-	  (apply
-	   'call-process "find" nil t
-	   "find" group "-type" "f" "-name" "[0-9]*" "-exec"
-	   "grep"
-	   `("-l" ,@(and grep-options
-			 (split-string grep-options "\\s-" t))
-	     "-e" ,regexp "{}" "+"))))
+    (apply
+     'vconcat
+     (mapcar (lambda (x)
+	       (let ((group x))
+		 (message "Searching %s using find-grep..."
+			  (or group server))
+		 (save-window-excursion
+		   (set-buffer (get-buffer-create nnir-tmp-buffer))
+		   (erase-buffer)
+		   (if (> gnus-verbose 6)
+		       (pop-to-buffer (current-buffer)))
+		   (cd directory) ; Using relative paths simplifies
+				  ; postprocessing.
+		   (let ((group
+			  (if (not group)
+			      "."
+			    ;; Try accessing the group literally as
+			    ;; well as interpreting dots as directory
+			    ;; separators so the engine works with
+			    ;; plain nnml as well as the Gnus Cache.
+			    (let ((group (gnus-group-real-name group)))
+			      ;; Replace cl-func find-if.
+			      (if (file-directory-p group)
+				  group
+				(if (file-directory-p
+				     (setq group
+					   (gnus-replace-in-string
+					    group
+					    "\\." "/" t)))
+				    group))))))
+		     (unless group
+		       (error "Cannot locate directory for group"))
+		     (save-excursion
+		       (apply
+			'call-process "find" nil t
+			"find" group "-type" "f" "-name" "[0-9]*" "-exec"
+			"grep"
+			`("-l" ,@(and grep-options
+				      (split-string grep-options "\\s-" t))
+			  "-e" ,regexp "{}" "+"))))
 
-      ;; Translate relative paths to group names.
-      (while (not (eobp))
-	(let* ((path (split-string
-		      (buffer-substring (point) (line-end-position)) "/" t))
-	       (art (string-to-number (car (last path)))))
-	  (while (string= "." (car path))
-	    (setq path (cdr path)))
-	  (let ((group (mapconcat 'identity
-                                  ;; Replace cl-func: (subseq path 0 -1)
-                                  (let ((end (1- (length path)))
-                                        res)
-                                    (while (>= (setq end (1- end)) 0)
-                                      (push (pop path) res))
-                                    (nreverse res))
-                                  ".")))
-	    (push (vector (nnir-group-full-name group server) art 0)
-		  artlist))
-	  (forward-line 1)))
-      (message "Searching %s using find-grep...done" (or group server))
-      artlist)))
+		   ;; Translate relative paths to group names.
+		   (while (not (eobp))
+		     (let* ((path (split-string
+				   (buffer-substring
+				    (point)
+				    (line-end-position)) "/" t))
+			    (art (string-to-number (car (last path)))))
+		       (while (string= "." (car path))
+			 (setq path (cdr path)))
+		       (let ((group (mapconcat 'identity
+					       ;; Replace cl-func:
+					       ;; (subseq path 0 -1)
+					       (let ((end (1- (length path)))
+						     res)
+						 (while
+						     (>= (setq end (1- end)) 0)
+						   (push (pop path) res))
+						 (nreverse res))
+					       ".")))
+			 (push
+			  (vector (nnir-group-full-name group server) art 0)
+			  artlist))
+		       (forward-line 1)))
+		   (message "Searching %s using find-grep...done"
+			    (or group server))
+		   artlist)))
+     grouplist))))
+
+;; gmane interface
+(defun nnir-run-gmane (query srv &optional groups)
+  "Run a search against a gmane back-end server."
+  (if (string-match-p "gmane" srv)
+      (let* ((case-fold-search t)
+	     (qstring (cdr (assq 'query query)))
+	     (server (cadr (gnus-server-to-method srv)))
+	     (groupspec (if groups
+			    (mapconcat
+			     (function (lambda (x)
+					 (format "group:%s"
+						 (gnus-group-short-name x))))
+			     groups " ") ""))
+	     (authorspec
+	      (if (assq 'author query)
+		  (format "author:%s" (cdr (assq 'author query))) ""))
+	     (search (format "%s %s %s"
+			     qstring groupspec authorspec))
+	     artlist)
+	(with-current-buffer nntp-server-buffer
+	  (erase-buffer)
+	  (mm-url-insert
+	   (concat
+	    "http://search.gmane.org/nov.php"
+	    "?"
+	    (mm-url-encode-www-form-urlencoded
+	     `(("query" . ,search)
+	       ("HITSPERPAGE" . "999")))))
+	  (unless (featurep 'xemacs) (set-buffer-multibyte t))
+	  (mm-decode-coding-region (point-min) (point-max) 'utf-8)
+	  (goto-char (point-min))
+	  (forward-line 1)
+	  (while (not (eobp))
+	    (unless (or (eolp) (looking-at "\x0d"))
+	      (let ((header (nnheader-parse-nov)))
+		(let ((xref (mail-header-xref header)))
+		  (when (string-match " \\([^:]+\\)[:/]\\([0-9]+\\)" xref)
+		    (push
+		     (vector
+		      (gnus-group-prefixed-name (match-string 1 xref) srv)
+		      (string-to-number (match-string 2 xref)) 1)
+		     artlist)))))
+	    (forward-line 1)))
+	(reverse artlist))
+    (message "Can't search non-gmane nntp groups")))
 
 ;;; Util Code:
 
-(defun nnir-read-parms (query)
+(defun nnir-read-parms (query nnir-search-engine)
   "Reads additional search parameters according to `nnir-engines'."
   (let ((parmspec (caddr (assoc nnir-search-engine nnir-engines))))
-    (cons (cons 'query query)
-          (mapcar 'nnir-read-parm parmspec))))
+    (nconc query
+	   (mapcar 'nnir-read-parm parmspec))))
 
 (defun nnir-read-parm (parmspec)
   "Reads a single search parameter.
@@ -1461,67 +1447,40 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 
 (defun nnir-run-query (query)
   "Invoke appropriate search engine function (see `nnir-engines').
-If some groups were process-marked, run the query for each of the groups
-and concat the results."
-  (let ((q (car (read-from-string query))))
-    (if gnus-group-marked
-	(apply 'vconcat
-	       (mapcar (lambda (x)
-			 (let* ((server (nnir-group-server x))
-				(engine
-				 (or (nnir-read-server-parm 'nnir-search-engine
-							    server)
-				     (cdr
-				      (assoc (car (gnus-server-to-method server))
-					     nnir-method-default-engines))))
-				search-func)
-			   (setq search-func (cadr
-					      (assoc
-					       engine
-					       nnir-engines)))
-			   (if search-func
-			       (funcall search-func q server x)
-			     nil)))
-		       gnus-group-marked))
-      (apply 'vconcat
-	     (mapcar (lambda (x)
-		       (if (and (equal (cadr x) 'ok) (not (equal (cadar x) "-ephemeral")))
-			   (let* ((server (format "%s:%s" (caar x) (cadar x)))
-				  (engine
-				   (or (nnir-read-server-parm 'nnir-search-engine
-							      server)
-				       (cdr
-					(assoc (car (gnus-server-to-method server))
-					       nnir-method-default-engines))))
-				  search-func)
-			     (setq search-func (cadr
-						(assoc
-						 engine
+  If some groups were process-marked, run the query for each of the groups
+  and concat the results."
+  (let ((q (car (read-from-string query)))
+        (groups (nnir-sort-groups-by-server
+		 (or gnus-group-marked (list (gnus-group-group-name))))))
+    (apply 'vconcat
+           (mapcar (lambda (x)
+                     (let* ((server (car x))
+                            (nnir-search-engine
+                             (or (nnir-read-server-parm 'nnir-search-engine
+                                                        server)
+                                 (cdr (assoc (car
+                                              (gnus-server-to-method server))
+                                             nnir-method-default-engines))))
+                            search-func)
+                       (setq search-func (cadr
+                                          (assoc nnir-search-engine
 						 nnir-engines)))
-			     (if search-func
-				 (funcall search-func q server nil)
-			       nil))
-			 nil))
-		     gnus-opened-servers)
-	     ))
-    ))
+                       (if search-func
+			   (funcall search-func
+				    (if nnir-extra-parms
+					(nnir-read-parms q nnir-search-engine)
+				      q)
+				    server (cdr x))
+                         nil)))
+                   groups))))
 
 (defun nnir-read-server-parm (key server)
-  "Returns the parameter value of for the given server, where server is of
-form 'backend:name'."
+  "Returns the parameter value of key for the given server, where
+server is of form 'backend:name'."
   (let ((method (gnus-server-to-method server)))
     (cond ((and method (assq key (cddr method)))
-	   (nth 1 (assq key (cddr method))))
-	  ((and nnir-mail-backend
-		(gnus-server-equal method nnir-mail-backend))
-	   (symbol-value key))
-	  (t nil))))
-;;     (if method
-;;       (if (assq key (cddr method))
-;; 	  (nth 1 (assq key (cddr method)))
-;; 	(symbol-value key))
-;;       (symbol-value key))
-;;     ))
+    	   (nth 1 (assq key (cddr method))))
+    	  (t nil))))
 
 (defun nnir-group-full-name (shortname server)
   "For the given group name, return a full Gnus group name.
@@ -1564,8 +1523,8 @@ The Gnus backend/server information is added."
   (elt artitem 2))
 
 (defun nnir-artlist-artitem-rsv (artlist n)
-  "Returns from ARTLIST the Retrieval Status Value of the Nth artitem
-\(counting from 1)."
+  "Returns from ARTLIST the Retrieval Status Value of the Nth
+artitem (counting from 1)."
   (nnir-artitem-rsv (nnir-artlist-article artlist n)))
 
 ;; unused?
@@ -1580,6 +1539,17 @@ The Gnus backend/server information is added."
             with-dups)
     res))
 
+(defun nnir-sort-groups-by-server (groups)
+  "sorts a list of groups into an alist keyed by server"
+(if (car groups)
+  (let (value)
+    (dolist (var groups value)
+      (let ((server (gnus-group-server var)))
+	(if (assoc server value)
+	    (nconc (cdr (assoc server value)) (list var))
+	  (push (cons (gnus-group-server var) (list var)) value))))
+    value)
+  nil))
 
 ;; The end.
 (provide 'nnir)
