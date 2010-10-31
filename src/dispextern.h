@@ -43,9 +43,12 @@ typedef struct {
 
 #endif /* HAVE_X_WINDOWS */
 
+#ifdef MSDOS
+#include "msdos.h"
+#endif
+
 #ifdef HAVE_X_WINDOWS
 typedef struct x_display_info Display_Info;
-#define DPYINFO_DEFINED 1
 typedef XImage * XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
 #define NativeRectangle XRectangle
@@ -54,7 +57,6 @@ typedef XImagePtr XImagePtr_or_DC;
 #ifdef HAVE_NTGUI
 #include "w32gui.h"
 typedef struct w32_display_info Display_Info;
-#define DPYINFO_DEFINED 1
 typedef XImage *XImagePtr;
 typedef HDC XImagePtr_or_DC;
 #endif
@@ -63,30 +65,13 @@ typedef HDC XImagePtr_or_DC;
 #include "nsgui.h"
 /* following typedef needed to accomodate the MSDOS port, believe it or not */
 typedef struct ns_display_info Display_Info;
-#define DPYINFO_DEFINED 1
 typedef Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
 #endif
 
-#ifndef DPYINFO_DEFINED
-typedef struct tty_display_info Display_Info;
+#ifndef HAVE_WINDOW_SYSTEM
 typedef int Cursor;
 #define No_Cursor (0)
-#endif
-
-#undef DPYINFO_DEFINED
-
-#ifdef MSDOS
-/* This defines FRAME_X_DISPLAY_INFO for MSDOS.  */
-#include "msdos.h"
-#endif
-
-#ifdef HAVE_GPM
-#define FRAME_X_DISPLAY_INFO(f) gpm_tty
-#endif
-
-#ifndef FRAME_X_DISPLAY_INFO
-#define FRAME_X_DISPLAY_INFO(f) NULL
 #endif
 
 #ifndef NativeRectangle

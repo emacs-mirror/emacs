@@ -10738,7 +10738,7 @@ static int
 get_tool_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
 		   int *hpos, int *vpos, int *prop_idx)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   struct window *w = XWINDOW (f->tool_bar_window);
   int area;
 
@@ -10753,14 +10753,14 @@ get_tool_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
     return -1;
 
   /* Is mouse on the highlighted item?  */
-  if (EQ (f->tool_bar_window, dpyinfo->mouse_face_window)
-      && *vpos >= dpyinfo->mouse_face_beg_row
-      && *vpos <= dpyinfo->mouse_face_end_row
-      && (*vpos > dpyinfo->mouse_face_beg_row
-	  || *hpos >= dpyinfo->mouse_face_beg_col)
-      && (*vpos < dpyinfo->mouse_face_end_row
-	  || *hpos < dpyinfo->mouse_face_end_col
-	  || dpyinfo->mouse_face_past_end))
+  if (EQ (f->tool_bar_window, hlinfo->mouse_face_window)
+      && *vpos >= hlinfo->mouse_face_beg_row
+      && *vpos <= hlinfo->mouse_face_end_row
+      && (*vpos > hlinfo->mouse_face_beg_row
+	  || *hpos >= hlinfo->mouse_face_beg_col)
+      && (*vpos < hlinfo->mouse_face_end_row
+	  || *hpos < hlinfo->mouse_face_end_col
+	  || hlinfo->mouse_face_past_end))
     return 0;
 
   return 1;
@@ -10777,7 +10777,7 @@ void
 handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
 		       unsigned int modifiers)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   struct window *w = XWINDOW (f->tool_bar_window);
   int hpos, vpos, prop_idx;
   struct glyph *glyph;
@@ -10796,8 +10796,8 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
   if (down_p)
     {
       /* Show item in pressed state.  */
-      show_mouse_face (dpyinfo, DRAW_IMAGE_SUNKEN);
-      dpyinfo->mouse_face_image_state = DRAW_IMAGE_SUNKEN;
+      show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN);
+      hlinfo->mouse_face_image_state = DRAW_IMAGE_SUNKEN;
       last_tool_bar_item = prop_idx;
     }
   else
@@ -10807,8 +10807,8 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
       EVENT_INIT (event);
 
       /* Show item in released state.  */
-      show_mouse_face (dpyinfo, DRAW_IMAGE_RAISED);
-      dpyinfo->mouse_face_image_state = DRAW_IMAGE_RAISED;
+      show_mouse_face (hlinfo, DRAW_IMAGE_RAISED);
+      hlinfo->mouse_face_image_state = DRAW_IMAGE_RAISED;
 
       key = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_KEY);
 
@@ -10838,6 +10838,7 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
   Lisp_Object window = f->tool_bar_window;
   struct window *w = XWINDOW (window);
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   int hpos, vpos;
   struct glyph *glyph;
   struct glyph_row *row;
@@ -10851,7 +10852,7 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
      values when mouse moves outside of the frame.  */
   if (x <= 0 || y <= 0)
     {
-      clear_mouse_face (dpyinfo);
+      clear_mouse_face (hlinfo);
       return;
     }
 
@@ -10859,14 +10860,14 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
   if (rc < 0)
     {
       /* Not on tool-bar item.  */
-      clear_mouse_face (dpyinfo);
+      clear_mouse_face (hlinfo);
       return;
     }
   else if (rc == 0)
     /* On same tool-bar item as before.  */
     goto set_help_echo;
 
-  clear_mouse_face (dpyinfo);
+  clear_mouse_face (hlinfo);
 
   /* Mouse is down, but on different tool-bar item?  */
   mouse_down_p = (dpyinfo->grabbed
@@ -10876,7 +10877,7 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
       && last_tool_bar_item != prop_idx)
     return;
 
-  dpyinfo->mouse_face_image_state = DRAW_NORMAL_TEXT;
+  hlinfo->mouse_face_image_state = DRAW_NORMAL_TEXT;
   draw = mouse_down_p ? DRAW_IMAGE_SUNKEN : DRAW_IMAGE_RAISED;
 
   /* If tool-bar item is not enabled, don't highlight it.  */
@@ -10890,22 +10891,22 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
 	x += row->glyphs[TEXT_AREA][i].pixel_width;
 
       /* Record this as the current active region.  */
-      dpyinfo->mouse_face_beg_col = hpos;
-      dpyinfo->mouse_face_beg_row = vpos;
-      dpyinfo->mouse_face_beg_x = x;
-      dpyinfo->mouse_face_beg_y = row->y;
-      dpyinfo->mouse_face_past_end = 0;
+      hlinfo->mouse_face_beg_col = hpos;
+      hlinfo->mouse_face_beg_row = vpos;
+      hlinfo->mouse_face_beg_x = x;
+      hlinfo->mouse_face_beg_y = row->y;
+      hlinfo->mouse_face_past_end = 0;
 
-      dpyinfo->mouse_face_end_col = hpos + 1;
-      dpyinfo->mouse_face_end_row = vpos;
-      dpyinfo->mouse_face_end_x = x + glyph->pixel_width;
-      dpyinfo->mouse_face_end_y = row->y;
-      dpyinfo->mouse_face_window = window;
-      dpyinfo->mouse_face_face_id = TOOL_BAR_FACE_ID;
+      hlinfo->mouse_face_end_col = hpos + 1;
+      hlinfo->mouse_face_end_row = vpos;
+      hlinfo->mouse_face_end_x = x + glyph->pixel_width;
+      hlinfo->mouse_face_end_y = row->y;
+      hlinfo->mouse_face_window = window;
+      hlinfo->mouse_face_face_id = TOOL_BAR_FACE_ID;
 
       /* Display it as active.  */
-      show_mouse_face (dpyinfo, draw);
-      dpyinfo->mouse_face_image_state = draw;
+      show_mouse_face (hlinfo, draw);
+      hlinfo->mouse_face_image_state = draw;
     }
 
  set_help_echo:
@@ -21300,7 +21301,7 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
   if (head && !overlaps && row->contains_overlapping_glyphs_p)
     {
       struct glyph_string *h, *t;
-      Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
       int mouse_beg_col, mouse_end_col, check_mouse_face = 0;
       int dummy_x = 0;
 
@@ -21310,16 +21311,16 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 	{
 	  struct glyph_row *mouse_beg_row, *mouse_end_row;
 
-	  mouse_beg_row = MATRIX_ROW (w->current_matrix, dpyinfo->mouse_face_beg_row);
-	  mouse_end_row = MATRIX_ROW (w->current_matrix, dpyinfo->mouse_face_end_row);
+	  mouse_beg_row = MATRIX_ROW (w->current_matrix, hlinfo->mouse_face_beg_row);
+	  mouse_end_row = MATRIX_ROW (w->current_matrix, hlinfo->mouse_face_end_row);
 
 	  if (row >= mouse_beg_row && row <= mouse_end_row)
 	    {
 	      check_mouse_face = 1;
 	      mouse_beg_col = (row == mouse_beg_row)
-		? dpyinfo->mouse_face_beg_col : 0;
+		? hlinfo->mouse_face_beg_col : 0;
 	      mouse_end_col = (row == mouse_end_row)
-		? dpyinfo->mouse_face_end_col
+		? hlinfo->mouse_face_end_col
 		: row->used[TEXT_AREA];
 	    }
 	}
@@ -23363,7 +23364,7 @@ void
 erase_phys_cursor (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   int hpos = w->phys_cursor.hpos;
   int vpos = w->phys_cursor.vpos;
   int mouse_face_here_p = 0;
@@ -23419,7 +23420,7 @@ erase_phys_cursor (struct window *w)
 
   /* If the cursor is in the mouse face area, redisplay that when
      we clear the cursor.  */
-  if (! NILP (dpyinfo->mouse_face_window)
+  if (! NILP (hlinfo->mouse_face_window)
       && coords_in_mouse_face_p (w, hpos, vpos)
       /* Don't redraw the cursor's spot in mouse face if it is at the
 	 end of a line (on a newline).  The cursor appears there, but
@@ -23611,40 +23612,52 @@ x_clear_cursor (struct window *w)
     update_window_cursor (w, 0);
 }
 
+#endif /* HAVE_WINDOW_SYSTEM */
+
+/* Implementation of draw_row_with_mouse_face for GUI sessions and
+   GPM.  MSDOS has its own implementation on msdos.c.  */
+#ifndef MSDOS
 void
-draw_row_with_mouse_face (struct frame *w, int start_x, struct glyph_row *row,
+draw_row_with_mouse_face (struct window *w, int start_x, struct glyph_row *row,
 			  int start_hpos, int end_hpos,
 			  enum draw_glyphs_face draw)
 {
-  draw_glyphs (w, start_x, row, TEXT_AREA, start_hpos, end_hpos, draw, 0);
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (XFRAME (w->frame)))
+    {
+      draw_glyphs (w, start_x, row, TEXT_AREA, start_hpos, end_hpos, draw, 0);
+      return;
+    }
+#endif
+#ifdef HAVE_GPM
+  tty_draw_row_with_mouse_face (w, row, start_hpos, end_hpos, draw);
+#endif
 }
-
-
-#endif /* HAVE_WINDOW_SYSTEM */
+#endif	/* not MSDOS */
 
 /* EXPORT:
    Display the active region described by mouse_face_* according to DRAW.  */
 
 void
-show_mouse_face (Display_Info *dpyinfo, enum draw_glyphs_face draw)
+show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
 {
-  struct window *w = XWINDOW (dpyinfo->mouse_face_window);
+  struct window *w = XWINDOW (hlinfo->mouse_face_window);
   struct frame *f = XFRAME (WINDOW_FRAME (w));
 
   if (/* If window is in the process of being destroyed, don't bother
 	 to do anything.  */
       w->current_matrix != NULL
       /* Don't update mouse highlight if hidden */
-      && (draw != DRAW_MOUSE_FACE || !dpyinfo->mouse_face_hidden)
+      && (draw != DRAW_MOUSE_FACE || !hlinfo->mouse_face_hidden)
       /* Recognize when we are called to operate on rows that don't exist
 	 anymore.  This can happen when a window is split.  */
-      && dpyinfo->mouse_face_end_row < w->current_matrix->nrows)
+      && hlinfo->mouse_face_end_row < w->current_matrix->nrows)
     {
       int phys_cursor_on_p = w->phys_cursor_on_p;
       struct glyph_row *row, *first, *last;
 
-      first = MATRIX_ROW (w->current_matrix, dpyinfo->mouse_face_beg_row);
-      last = MATRIX_ROW (w->current_matrix, dpyinfo->mouse_face_end_row);
+      first = MATRIX_ROW (w->current_matrix, hlinfo->mouse_face_beg_row);
+      last = MATRIX_ROW (w->current_matrix, hlinfo->mouse_face_end_row);
 
       for (row = first; row <= last && row->enabled_p; ++row)
 	{
@@ -23659,13 +23672,13 @@ show_mouse_face (Display_Info *dpyinfo, enum draw_glyphs_face draw)
 		 highlighted area in R2L rows.  */
 	      if (!row->reversed_p)
 		{
-		  start_hpos = dpyinfo->mouse_face_beg_col;
-		  start_x = dpyinfo->mouse_face_beg_x;
+		  start_hpos = hlinfo->mouse_face_beg_col;
+		  start_x = hlinfo->mouse_face_beg_x;
 		}
 	      else if (row == last)
 		{
-		  start_hpos = dpyinfo->mouse_face_end_col;
-		  start_x = dpyinfo->mouse_face_end_x;
+		  start_hpos = hlinfo->mouse_face_end_col;
+		  start_x = hlinfo->mouse_face_end_x;
 		}
 	      else
 		{
@@ -23675,8 +23688,8 @@ show_mouse_face (Display_Info *dpyinfo, enum draw_glyphs_face draw)
 	    }
 	  else if (row->reversed_p && row == last)
 	    {
-	      start_hpos = dpyinfo->mouse_face_end_col;
-	      start_x = dpyinfo->mouse_face_end_x;
+	      start_hpos = hlinfo->mouse_face_end_col;
+	      start_x = hlinfo->mouse_face_end_x;
 	    }
 	  else
 	    {
@@ -23687,9 +23700,9 @@ show_mouse_face (Display_Info *dpyinfo, enum draw_glyphs_face draw)
 	  if (row == last)
 	    {
 	      if (!row->reversed_p)
-		end_hpos = dpyinfo->mouse_face_end_col;
+		end_hpos = hlinfo->mouse_face_end_col;
 	      else if (row == first)
-		end_hpos = dpyinfo->mouse_face_beg_col;
+		end_hpos = hlinfo->mouse_face_beg_col;
 	      else
 		{
 		  end_hpos = row->used[TEXT_AREA];
@@ -23698,7 +23711,7 @@ show_mouse_face (Display_Info *dpyinfo, enum draw_glyphs_face draw)
 		}
 	    }
 	  else if (row->reversed_p && row == first)
-	    end_hpos = dpyinfo->mouse_face_beg_col;
+	    end_hpos = hlinfo->mouse_face_beg_col;
 	  else
 	    {
 	      end_hpos = row->used[TEXT_AREA];
@@ -23732,7 +23745,7 @@ show_mouse_face (Display_Info *dpyinfo, enum draw_glyphs_face draw)
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* Change the mouse cursor.  */
-  if (draw == DRAW_NORMAL_TEXT && !EQ (dpyinfo->mouse_face_window, f->tool_bar_window))
+  if (draw == DRAW_NORMAL_TEXT && !EQ (hlinfo->mouse_face_window, f->tool_bar_window))
     FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->text_cursor);
   else if (draw == DRAW_MOUSE_FACE)
     FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->hand_cursor);
@@ -23748,20 +23761,20 @@ show_mouse_face (Display_Info *dpyinfo, enum draw_glyphs_face draw)
    face was actually drawn unhighlighted.  */
 
 int
-clear_mouse_face (Display_Info *dpyinfo)
+clear_mouse_face (Mouse_HLInfo *hlinfo)
 {
   int cleared = 0;
 
-  if (!dpyinfo->mouse_face_hidden && !NILP (dpyinfo->mouse_face_window))
+  if (!hlinfo->mouse_face_hidden && !NILP (hlinfo->mouse_face_window))
     {
-      show_mouse_face (dpyinfo, DRAW_NORMAL_TEXT);
+      show_mouse_face (hlinfo, DRAW_NORMAL_TEXT);
       cleared = 1;
     }
 
-  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-  dpyinfo->mouse_face_window = Qnil;
-  dpyinfo->mouse_face_overlay = Qnil;
+  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+  hlinfo->mouse_face_window = Qnil;
+  hlinfo->mouse_face_overlay = Qnil;
   return cleared;
 }
 
@@ -23770,43 +23783,43 @@ clear_mouse_face (Display_Info *dpyinfo)
 static int
 coords_in_mouse_face_p (struct window *w, int hpos, int vpos)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (w->frame));
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
 
   /* Quickly resolve the easy cases.  */
-  if (!(WINDOWP (dpyinfo->mouse_face_window)
-	&& XWINDOW (dpyinfo->mouse_face_window) == w))
+  if (!(WINDOWP (hlinfo->mouse_face_window)
+	&& XWINDOW (hlinfo->mouse_face_window) == w))
     return 0;
-  if (vpos < dpyinfo->mouse_face_beg_row
-      || vpos > dpyinfo->mouse_face_end_row)
+  if (vpos < hlinfo->mouse_face_beg_row
+      || vpos > hlinfo->mouse_face_end_row)
     return 0;
-  if (vpos > dpyinfo->mouse_face_beg_row
-      && vpos < dpyinfo->mouse_face_end_row)
+  if (vpos > hlinfo->mouse_face_beg_row
+      && vpos < hlinfo->mouse_face_end_row)
     return 1;
 
   if (!MATRIX_ROW (w->current_matrix, vpos)->reversed_p)
     {
-      if (dpyinfo->mouse_face_beg_row == dpyinfo->mouse_face_end_row)
+      if (hlinfo->mouse_face_beg_row == hlinfo->mouse_face_end_row)
 	{
-	  if (dpyinfo->mouse_face_beg_col <= hpos && hpos < dpyinfo->mouse_face_end_col)
+	  if (hlinfo->mouse_face_beg_col <= hpos && hpos < hlinfo->mouse_face_end_col)
 	    return 1;
 	}
-      else if ((vpos == dpyinfo->mouse_face_beg_row
-		&& hpos >= dpyinfo->mouse_face_beg_col)
-	       || (vpos == dpyinfo->mouse_face_end_row
-		   && hpos < dpyinfo->mouse_face_end_col))
+      else if ((vpos == hlinfo->mouse_face_beg_row
+		&& hpos >= hlinfo->mouse_face_beg_col)
+	       || (vpos == hlinfo->mouse_face_end_row
+		   && hpos < hlinfo->mouse_face_end_col))
 	return 1;
     }
   else
     {
-       if (dpyinfo->mouse_face_beg_row == dpyinfo->mouse_face_end_row)
+       if (hlinfo->mouse_face_beg_row == hlinfo->mouse_face_end_row)
 	{
-	  if (dpyinfo->mouse_face_end_col < hpos && hpos <= dpyinfo->mouse_face_beg_col)
+	  if (hlinfo->mouse_face_end_col < hpos && hpos <= hlinfo->mouse_face_beg_col)
 	    return 1;
 	}
-      else if ((vpos == dpyinfo->mouse_face_beg_row
-		&& hpos <= dpyinfo->mouse_face_beg_col)
-	       || (vpos == dpyinfo->mouse_face_end_row
-		   && hpos > dpyinfo->mouse_face_end_col))
+      else if ((vpos == hlinfo->mouse_face_beg_row
+		&& hpos <= hlinfo->mouse_face_beg_col)
+	       || (vpos == hlinfo->mouse_face_end_row
+		   && hpos > hlinfo->mouse_face_end_col))
 	return 1;
     }
   return 0;
@@ -23947,7 +23960,7 @@ rows_from_pos_range (struct window *w,
     }
 }
 
-/* This function sets the mouse_face_* elements of DPYINFO, assuming
+/* This function sets the mouse_face_* elements of HLINFO, assuming
    the mouse cursor is on a glyph with buffer charpos MOUSE_CHARPOS in
    window WINDOW.  START_CHARPOS and END_CHARPOS are buffer positions
    for the overlay or run of text properties specifying the mouse
@@ -23958,7 +23971,7 @@ rows_from_pos_range (struct window *w,
 
 static void
 mouse_face_from_buffer_pos (Lisp_Object window,
-			    Display_Info *dpyinfo,
+			    Mouse_HLInfo *hlinfo,
 			    EMACS_INT mouse_charpos,
 			    EMACS_INT start_charpos,
 			    EMACS_INT end_charpos,
@@ -24003,7 +24016,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   if (r2 == NULL)
     {
       r2 = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
-      dpyinfo->mouse_face_past_end = 1;
+      hlinfo->mouse_face_past_end = 1;
     }
   else if (!NILP (after_string))
     {
@@ -24032,10 +24045,10 @@ mouse_face_from_buffer_pos (Lisp_Object window,
       r1 = tem;
     }
 
-  dpyinfo->mouse_face_beg_y = r1->y;
-  dpyinfo->mouse_face_beg_row = MATRIX_ROW_VPOS (r1, w->current_matrix);
-  dpyinfo->mouse_face_end_y = r2->y;
-  dpyinfo->mouse_face_end_row = MATRIX_ROW_VPOS (r2, w->current_matrix);
+  hlinfo->mouse_face_beg_y = r1->y;
+  hlinfo->mouse_face_beg_row = MATRIX_ROW_VPOS (r1, w->current_matrix);
+  hlinfo->mouse_face_end_y = r2->y;
+  hlinfo->mouse_face_end_row = MATRIX_ROW_VPOS (r2, w->current_matrix);
 
   /* For a bidi-reordered row, the positions of BEFORE_STRING,
      AFTER_STRING, DISPLAY_STRING, START_CHARPOS, and END_CHARPOS
@@ -24094,8 +24107,8 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	    }
 	  x += glyph->pixel_width;
 	}
-      dpyinfo->mouse_face_beg_x = x;
-      dpyinfo->mouse_face_beg_col = glyph - r1->glyphs[TEXT_AREA];
+      hlinfo->mouse_face_beg_x = x;
+      hlinfo->mouse_face_beg_col = glyph - r1->glyphs[TEXT_AREA];
     }
   else
     {
@@ -24147,8 +24160,8 @@ mouse_face_from_buffer_pos (Lisp_Object window,
       glyph++; /* first glyph to the right of the highlighted area */
       for (g = r1->glyphs[TEXT_AREA], x = r1->x; g < glyph; g++)
 	x += g->pixel_width;
-      dpyinfo->mouse_face_beg_x = x;
-      dpyinfo->mouse_face_beg_col = glyph - r1->glyphs[TEXT_AREA];
+      hlinfo->mouse_face_beg_x = x;
+      hlinfo->mouse_face_beg_col = glyph - r1->glyphs[TEXT_AREA];
     }
 
   /* If the highlight ends in a different row, compute GLYPH and END
@@ -24211,8 +24224,8 @@ mouse_face_from_buffer_pos (Lisp_Object window,
       for (; glyph <= end; ++glyph)
 	x += glyph->pixel_width;
 
-      dpyinfo->mouse_face_end_x = x;
-      dpyinfo->mouse_face_end_col = glyph - r2->glyphs[TEXT_AREA];
+      hlinfo->mouse_face_end_x = x;
+      hlinfo->mouse_face_end_col = glyph - r2->glyphs[TEXT_AREA];
     }
   else
     {
@@ -24258,16 +24271,16 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	    }
 	  x += end->pixel_width;
 	}
-      dpyinfo->mouse_face_end_x = x;
-      dpyinfo->mouse_face_end_col = end - r2->glyphs[TEXT_AREA];
+      hlinfo->mouse_face_end_x = x;
+      hlinfo->mouse_face_end_col = end - r2->glyphs[TEXT_AREA];
     }
 
-  dpyinfo->mouse_face_window = window;
-  dpyinfo->mouse_face_face_id
+  hlinfo->mouse_face_window = window;
+  hlinfo->mouse_face_face_id
     = face_at_buffer_position (w, mouse_charpos, 0, 0, &ignore,
 			       mouse_charpos + 1,
-			       !dpyinfo->mouse_face_hidden, -1);
-  show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
+			       !hlinfo->mouse_face_hidden, -1);
+  show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
 }
 
 /* The following function is not used anymore (replaced with
@@ -24356,11 +24369,11 @@ fast_find_string_pos (struct window *w, EMACS_INT pos, Lisp_Object object,
 
 /* Find the positions of the first and the last glyphs in window W's
    current matrix that occlude positions [STARTPOS..ENDPOS] in OBJECT
-   (assumed to be a string), and return in DPYINFO's mouse_face
+   (assumed to be a string), and return in HLINFO's mouse_face_*
    members the pixel and column/row coordinates of those glyphs.  */
 
 static void
-mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
+mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
 			    Lisp_Object object,
 			    EMACS_INT startpos, EMACS_INT endpos)
 {
@@ -24385,10 +24398,10 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
 	    if (EQ (g->object, object)
 		&& startpos <= g->charpos && g->charpos <= endpos)
 	      {
-		dpyinfo->mouse_face_beg_row = r - w->current_matrix->rows;
-		dpyinfo->mouse_face_beg_y = r->y;
-		dpyinfo->mouse_face_beg_col = g - r->glyphs[TEXT_AREA];
-		dpyinfo->mouse_face_beg_x = gx;
+		hlinfo->mouse_face_beg_row = r - w->current_matrix->rows;
+		hlinfo->mouse_face_beg_y = r->y;
+		hlinfo->mouse_face_beg_col = g - r->glyphs[TEXT_AREA];
+		hlinfo->mouse_face_beg_x = gx;
 		found = 1;
 		break;
 	      }
@@ -24403,12 +24416,12 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
 	    if (EQ ((g-1)->object, object)
 		&& startpos <= (g-1)->charpos && (g-1)->charpos <= endpos)
 	      {
-		dpyinfo->mouse_face_beg_row = r - w->current_matrix->rows;
-		dpyinfo->mouse_face_beg_y = r->y;
-		dpyinfo->mouse_face_beg_col = g - r->glyphs[TEXT_AREA];
+		hlinfo->mouse_face_beg_row = r - w->current_matrix->rows;
+		hlinfo->mouse_face_beg_y = r->y;
+		hlinfo->mouse_face_beg_col = g - r->glyphs[TEXT_AREA];
 		for (gx = r->x, g1 = r->glyphs[TEXT_AREA]; g1 < g; ++g1)
 		  gx += g1->pixel_width;
-		dpyinfo->mouse_face_beg_x = gx;
+		hlinfo->mouse_face_beg_x = gx;
 		found = 1;
 		break;
 	      }
@@ -24442,8 +24455,8 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
   r--;
 
   /* Set the end row and its vertical pixel coordinate.  */
-  dpyinfo->mouse_face_end_row = r - w->current_matrix->rows;
-  dpyinfo->mouse_face_end_y = r->y;
+  hlinfo->mouse_face_end_row = r - w->current_matrix->rows;
+  hlinfo->mouse_face_end_y = r->y;
 
   /* Compute and set the end column and the end column's horizontal
      pixel coordinate.  */
@@ -24455,11 +24468,11 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
 	if (EQ ((e-1)->object, object)
 	    && startpos <= (e-1)->charpos && (e-1)->charpos <= endpos)
 	  break;
-      dpyinfo->mouse_face_end_col = e - g;
+      hlinfo->mouse_face_end_col = e - g;
 
       for (gx = r->x; g < e; ++g)
 	gx += g->pixel_width;
-      dpyinfo->mouse_face_end_x = gx;
+      hlinfo->mouse_face_end_x = gx;
     }
   else
     {
@@ -24472,8 +24485,8 @@ mouse_face_from_string_pos (struct window *w, Display_Info *dpyinfo,
 	    break;
 	  gx += e->pixel_width;
 	}
-      dpyinfo->mouse_face_end_col = e - r->glyphs[TEXT_AREA];
-      dpyinfo->mouse_face_end_x = gx;
+      hlinfo->mouse_face_end_col = e - r->glyphs[TEXT_AREA];
+      hlinfo->mouse_face_end_x = gx;
     }
 }
 
@@ -24663,8 +24676,9 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 {
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 #ifdef HAVE_WINDOW_SYSTEM
+  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Cursor cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
 #else
   Cursor cursor = No_Cursor;
@@ -24871,58 +24885,58 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 
 	  /* If GLYPH's position is included in the region that is
 	     already drawn in mouse face, we have nothing to do.  */
-	  if ( EQ (window, dpyinfo->mouse_face_window)
+	  if ( EQ (window, hlinfo->mouse_face_window)
 	       && (!row->reversed_p
-		   ? (dpyinfo->mouse_face_beg_col <= hpos
-		      && hpos < dpyinfo->mouse_face_end_col)
+		   ? (hlinfo->mouse_face_beg_col <= hpos
+		      && hpos < hlinfo->mouse_face_end_col)
 		   /* In R2L rows we swap BEG and END, see below.  */
-		   : (dpyinfo->mouse_face_end_col <= hpos
-		      && hpos < dpyinfo->mouse_face_beg_col))
-	       && dpyinfo->mouse_face_beg_row == vpos )
+		   : (hlinfo->mouse_face_end_col <= hpos
+		      && hpos < hlinfo->mouse_face_beg_col))
+	       && hlinfo->mouse_face_beg_row == vpos )
 	    return;
 
-	  if (clear_mouse_face (dpyinfo))
+	  if (clear_mouse_face (hlinfo))
 	    cursor = No_Cursor;
 
 	  if (!row->reversed_p)
 	    {
-	      dpyinfo->mouse_face_beg_col = hpos;
-	      dpyinfo->mouse_face_beg_x   = original_x_pixel
+	      hlinfo->mouse_face_beg_col = hpos;
+	      hlinfo->mouse_face_beg_x   = original_x_pixel
 					    - (total_pixel_width + dx);
-	      dpyinfo->mouse_face_end_col = hpos + gseq_length;
-	      dpyinfo->mouse_face_end_x   = 0;
+	      hlinfo->mouse_face_end_col = hpos + gseq_length;
+	      hlinfo->mouse_face_end_x   = 0;
 	    }
 	  else
 	    {
 	      /* In R2L rows, show_mouse_face expects BEG and END
 		 coordinates to be swapped.  */
-	      dpyinfo->mouse_face_end_col = hpos;
-	      dpyinfo->mouse_face_end_x   = original_x_pixel
+	      hlinfo->mouse_face_end_col = hpos;
+	      hlinfo->mouse_face_end_x   = original_x_pixel
 					    - (total_pixel_width + dx);
-	      dpyinfo->mouse_face_beg_col = hpos + gseq_length;
-	      dpyinfo->mouse_face_beg_x   = 0;
+	      hlinfo->mouse_face_beg_col = hpos + gseq_length;
+	      hlinfo->mouse_face_beg_x   = 0;
 	    }
 
-	  dpyinfo->mouse_face_beg_row  = vpos;
-	  dpyinfo->mouse_face_end_row  = dpyinfo->mouse_face_beg_row;
-	  dpyinfo->mouse_face_beg_y    = 0;
-	  dpyinfo->mouse_face_end_y    = 0;
-	  dpyinfo->mouse_face_past_end = 0;
-	  dpyinfo->mouse_face_window   = window;
+	  hlinfo->mouse_face_beg_row  = vpos;
+	  hlinfo->mouse_face_end_row  = hlinfo->mouse_face_beg_row;
+	  hlinfo->mouse_face_beg_y    = 0;
+	  hlinfo->mouse_face_end_y    = 0;
+	  hlinfo->mouse_face_past_end = 0;
+	  hlinfo->mouse_face_window   = window;
 
-	  dpyinfo->mouse_face_face_id = face_at_string_position (w, string,
-								 charpos,
-								 0, 0, 0,
-								 &ignore,
-								 glyph->face_id,
-								 1);
-	  show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
+	  hlinfo->mouse_face_face_id = face_at_string_position (w, string,
+								charpos,
+								0, 0, 0,
+								&ignore,
+								glyph->face_id,
+								1);
+	  show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
 
 	  if (NILP (pointer))
 	    pointer = Qhand;
 	}
       else if ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE))
-	clear_mouse_face (dpyinfo);
+	clear_mouse_face (hlinfo);
     }
 #ifdef HAVE_WINDOW_SYSTEM
   define_frame_cursor1 (f, cursor, pointer);
@@ -24939,7 +24953,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 void
 note_mouse_highlight (struct frame *f, int x, int y)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   enum window_part part;
   Lisp_Object window;
   struct window *w;
@@ -24958,16 +24972,16 @@ note_mouse_highlight (struct frame *f, int x, int y)
       || f->pointer_invisible)
     return;
 
-  dpyinfo->mouse_face_mouse_x = x;
-  dpyinfo->mouse_face_mouse_y = y;
-  dpyinfo->mouse_face_mouse_frame = f;
+  hlinfo->mouse_face_mouse_x = x;
+  hlinfo->mouse_face_mouse_y = y;
+  hlinfo->mouse_face_mouse_frame = f;
 
-  if (dpyinfo->mouse_face_defer)
+  if (hlinfo->mouse_face_defer)
     return;
 
   if (gc_in_progress)
     {
-      dpyinfo->mouse_face_deferred_gc = 1;
+      hlinfo->mouse_face_deferred_gc = 1;
       return;
     }
 
@@ -24976,10 +24990,10 @@ note_mouse_highlight (struct frame *f, int x, int y)
 
   /* If we were displaying active text in another window, clear that.
      Also clear if we move out of text area in same window.  */
-  if (! EQ (window, dpyinfo->mouse_face_window)
+  if (! EQ (window, hlinfo->mouse_face_window)
       || (part != ON_TEXT && part != ON_MODE_LINE && part != ON_HEADER_LINE
-	  && !NILP (dpyinfo->mouse_face_window)))
-    clear_mouse_face (dpyinfo);
+	  && !NILP (hlinfo->mouse_face_window)))
+    clear_mouse_face (hlinfo);
 
   /* Not on a window -> return.  */
   if (!WINDOWP (window))
@@ -25108,7 +25122,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	      && glyph->type == STRETCH_GLYPH
 	      && glyph->avoid_cursor_p))
 	{
-	  if (clear_mouse_face (dpyinfo))
+	  if (clear_mouse_face (hlinfo))
 	    cursor = No_Cursor;
 #ifdef HAVE_WINDOW_SYSTEM
 	  if (NILP (pointer))
@@ -25164,8 +25178,8 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	     the one we are currently highlighting, we have to
 	     check if we enter the overlapping overlay, and then
 	     highlight only that.  */
-	  || (OVERLAYP (dpyinfo->mouse_face_overlay)
-	      && mouse_face_overlay_overlaps (dpyinfo->mouse_face_overlay)))
+	  || (OVERLAYP (hlinfo->mouse_face_overlay)
+	      && mouse_face_overlay_overlaps (hlinfo->mouse_face_overlay)))
 	{
 	  /* Find the highest priority overlay with a mouse-face.  */
 	  overlay = Qnil;
@@ -25178,12 +25192,12 @@ note_mouse_highlight (struct frame *f, int x, int y)
 
 	  /* If we're highlighting the same overlay as before, there's
 	     no need to do that again.  */
-	  if (!NILP (overlay) && EQ (overlay, dpyinfo->mouse_face_overlay))
+	  if (!NILP (overlay) && EQ (overlay, hlinfo->mouse_face_overlay))
 	    goto check_help_echo;
-	  dpyinfo->mouse_face_overlay = overlay;
+	  hlinfo->mouse_face_overlay = overlay;
 
 	  /* Clear the display of the old active region, if any.  */
-	  if (clear_mouse_face (dpyinfo))
+	  if (clear_mouse_face (hlinfo))
 	    cursor = No_Cursor;
 
 	  /* If no overlay applies, get a text property.  */
@@ -25207,14 +25221,14 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		b = make_number (0);
 	      if (NILP (e))
 		e = make_number (SCHARS (object) - 1);
-	      mouse_face_from_string_pos (w, dpyinfo, object,
+	      mouse_face_from_string_pos (w, hlinfo, object,
 					  XINT (b), XINT (e));
-	      dpyinfo->mouse_face_past_end = 0;
-	      dpyinfo->mouse_face_window = window;
-	      dpyinfo->mouse_face_face_id
+	      hlinfo->mouse_face_past_end = 0;
+	      hlinfo->mouse_face_window = window;
+	      hlinfo->mouse_face_face_id
 		= face_at_string_position (w, object, pos, 0, 0, 0, &ignore,
 					   glyph->face_id, 1);
-	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
+	      show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
 	      cursor = No_Cursor;
 	    }
 	  else
@@ -25289,7 +25303,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		      if (!STRINGP (after_string))  after_string = Qnil;
 		    }
 
-		  mouse_face_from_buffer_pos (window, dpyinfo, pos,
+		  mouse_face_from_buffer_pos (window, hlinfo, pos,
 					      XFASTINT (before),
 					      XFASTINT (after),
 					      before_string, after_string,
@@ -25436,13 +25450,13 @@ note_mouse_highlight (struct frame *f, int x, int y)
 void
 x_clear_window_mouse_face (struct window *w)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (w->frame));
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
   Lisp_Object window;
 
   BLOCK_INPUT;
   XSETWINDOW (window, w);
-  if (EQ (window, dpyinfo->mouse_face_window))
-    clear_mouse_face (dpyinfo);
+  if (EQ (window, hlinfo->mouse_face_window))
+    clear_mouse_face (hlinfo);
   UNBLOCK_INPUT;
 }
 
@@ -25455,14 +25469,14 @@ void
 cancel_mouse_face (struct frame *f)
 {
   Lisp_Object window;
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 
-  window = dpyinfo->mouse_face_window;
+  window = hlinfo->mouse_face_window;
   if (! NILP (window) && XFRAME (XWINDOW (window)->frame) == f)
     {
-      dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-      dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-      dpyinfo->mouse_face_window = Qnil;
+      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+      hlinfo->mouse_face_window = Qnil;
     }
 }
 
@@ -25923,12 +25937,12 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
      focus-follows-mouse with delayed raise.  --jason 2001-10-12  */
   if (mouse_face_overwritten_p && !FRAME_GARBAGED_P (f))
     {
-      Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-      if (f == dpyinfo->mouse_face_mouse_frame)
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+      if (f == hlinfo->mouse_face_mouse_frame)
 	{
-	  int x = dpyinfo->mouse_face_mouse_x;
-	  int y = dpyinfo->mouse_face_mouse_y;
-	  clear_mouse_face (dpyinfo);
+	  int x = hlinfo->mouse_face_mouse_x;
+	  int y = hlinfo->mouse_face_mouse_y;
+	  clear_mouse_face (hlinfo);
 	  note_mouse_highlight (f, x, y);
 	}
     }

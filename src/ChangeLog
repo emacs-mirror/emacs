@@ -1,3 +1,27 @@
+2010-10-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (get_tool_bar_item, handle_tool_bar_click)
+	(note_tool_bar_highlight, draw_glyphs, erase_phys_cursor)
+	(show_mouse_face, clear_mouse_face, coords_in_mouse_face_p)
+	(note_mode_line_or_margin_highlight, note_mouse_highlight)
+	(x_clear_window_mouse_face, cancel_mouse_face, expose_frame):
+	Replace Display_Info with Mouse_HLInfo everywhere where
+	mouse_face_* members were accessed for mouse highlight purposes.
+
+	* frame.h (MOUSE_HL_INFO): New macro.
+
+	* lisp.h (Mouse_HLInfo): New data type.
+
+	* xterm.h (struct x_display_info):
+	* w32term.h (struct w32_display_info):
+	* nsterm.h (struct ns_display_info):
+	* termchar.h (struct tty_display_info): Use it instead of
+	mouse_face_* members.
+
+	* dispextern.h (DPYINFO_DEFINED): Remove definition.
+	(FRAME_X_DISPLAY_INFO): Remove definition.
+	(show_mouse_face, clear_mouse_face): Update type of 1st argument.
+
 2010-10-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (coords_in_mouse_face_p): Move prototype out of the
