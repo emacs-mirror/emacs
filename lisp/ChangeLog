@@ -30,7 +30,7 @@
 
 2010-10-31  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
-	* add-log.el (find-change-log): Use derived-mode-p rather than
+	* vc/add-log.el (find-change-log): Use derived-mode-p rather than
 	major-mode (bug#7284).
 
 2010-10-31  Glenn Morris  <rgm@gnu.org>
