@@ -8,7 +8,7 @@
 	* net/tramp.el (tramp-handle-insert-file-contents): For root,
 	preserve owner and group when editing files.  (Bug#7289)
 
-2010-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+2010-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* speedbar.el (speedbar-mode):
 	* play/fortune.el (fortune-in-buffer, fortune):
@@ -16,8 +16,6 @@
 	* play/landmark.el (lm-mode):
 	* textmodes/bibtex.el (bibtex-validate, bibtex-validate-globally):
 	Replace inappropriate uses of toggle-read-only.  (Bug#7292)
-
-2010-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* select.el (x-selection): Mark it as an obsolete alias.
 
@@ -30,11 +28,6 @@
 
 	* menu-bar.el (menu-bar-files-menu): Make it into an actual alias,
 	rather than just an unused variable that inherits from the real one.
-
-2010-10-31  Glenn Morris  <rgm@gnu.org>
-
-	* comint.el (comint-password-prompt-regexp):
-	Match "enter the password".  (Bug#7224)
 
 2010-10-31  Alan Mackenzie  <acm@muc.de>
 
