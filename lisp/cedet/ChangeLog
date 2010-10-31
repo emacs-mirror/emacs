@@ -1,5 +1,6 @@
 2010-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* ede/proj-elisp.el (project-compile-target): Fix previous change.
 	* semantic/ede-grammar.el (project-compile-target): Fix previous change.
 
 2010-10-31  Julien Danjou  <julien@danjou.info>

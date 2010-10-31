@@ -129,15 +129,13 @@ Bonus: Return a cons cell: (COMPILED . UPTODATE)."
 	 (utd 0))
     (mapc (lambda (src)
 	    (let* ((fsrc (expand-file-name src dir))
-		   (elc (concat (file-name-sans-extension fsrc) ".elc"))
-		   )
-	      (if (eq (byte-recompile-file fsrc nil 0)) t)
+		   (elc (concat (file-name-sans-extension fsrc) ".elc")))
+	      (if (eq (byte-recompile-file fsrc nil 0) t)
                   (setq comp (1+ comp))
 		(setq utd (1+ utd)))))
 	    (oref obj source))
     (message "All Emacs Lisp sources are up to date in %s" (object-name obj))
-    (cons comp utd)
-    ))
+    (cons comp utd)))
 
 (defmethod ede-update-version-in-source ((this ede-proj-target-elisp) version)
   "In a Lisp file, updated a version string for THIS to VERSION.
@@ -387,5 +385,4 @@ Argument THIS is the target which needs to insert an info file."
 
 (provide 'ede/proj-elisp)
 
-;; arch-tag: 3802c94b-d04d-4ecf-9bab-b29ed6e77588
 ;;; ede/proj-elisp.el ends here
