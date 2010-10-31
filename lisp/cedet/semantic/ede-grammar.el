@@ -133,10 +133,7 @@ Lays claim to all -by.el, and -wy.el files."
 	      (save-excursion
 		(semantic-grammar-create-package))
 	      (save-buffer)
-	      (let ((cf (concat (semantic-grammar-package) ".el")))
-		(if (or (not (file-exists-p cf))
-			(file-newer-than-file-p src cf))
-		    (byte-compile-file cf)))))
+              (byte-recompile-file (concat (semantic-grammar-package) ".el") nil 0))
 	    (oref obj source)))
   (message "All Semantic Grammar sources are up to date in %s" (object-name obj)))
 

@@ -37,6 +37,7 @@
 ;; ========================================================================
 ;; Entry points:
 ;;	byte-recompile-directory, byte-compile-file,
+;;      byte-recompile-file,
 ;;     batch-byte-compile, batch-byte-recompile-directory,
 ;;	byte-compile, compile-defun,
 ;;	display-call-tree
@@ -1551,23 +1552,10 @@ that already has a `.elc' file."
 			(not (auto-save-file-name-p bytecomp-source))
 			(not (string-equal dir-locals-file
 					   (file-name-nondirectory
-					    bytecomp-source)))
-			(setq bytecomp-dest
-                              (byte-compile-dest-file bytecomp-source))
-			(if (file-exists-p bytecomp-dest)
-			    ;; File was already compiled.
-			    (or bytecomp-force
-                                (file-newer-than-file-p bytecomp-source
-                                                        bytecomp-dest))
-			  ;; No compiled file exists yet.
-			  (and bytecomp-arg
-			       (or (eq 0 bytecomp-arg)
-				   (y-or-n-p (concat "Compile "
-                                                     bytecomp-source "? "))))))
-		   (progn (if (and noninteractive (not byte-compile-verbose))
-			      (message "Compiling %s..." bytecomp-source))
-			  (let ((bytecomp-res (byte-compile-file
-                                               bytecomp-source)))
+					    bytecomp-source))))
+		   (progn (let ((bytecomp-res (byte-recompile-file
+                                               bytecomp-source
+                                               bytecomp-force bytecomp-arg)))
 			    (cond ((eq bytecomp-res 'no-byte-compile)
 				   (setq skip-count (1+ skip-count)))
 				  ((eq bytecomp-res t)
@@ -1594,6 +1582,59 @@ This is normally set in local file variables at the end of the elisp file:
 
 ;; Local Variables:\n;; no-byte-compile: t\n;; End: ")
 ;;;###autoload(put 'no-byte-compile 'safe-local-variable 'booleanp)
+
+(defun byte-recompile-file (bytecomp-filename &optional bytecomp-force bytecomp-arg load)
+  "Recompile BYTECOMP-FILENAME file if it needs recompilation.
+This happens when its `.elc' file is older than itself.
+
+If the `.elc' file exists and is up-to-date, normally this
+function *does not* compile BYTECOMP-FILENAME. However, if the
+prefix argument BYTECOMP-FORCE is set, that means do compile
+BYTECOMP-FILENAME even if the destination already exists and is
+up-to-date.
+
+If the `.elc' file does not exist, normally this function *does
+not* compile BYTECOMP-FILENAME. If BYTECOMP-ARG is 0, that means
+compile the file even if it has never been compiled before.
+A nonzero BYTECOMP-ARG means ask the user.
+
+If LOAD is set, `load' the file after compiling.
+
+The value returned is the value returned by `byte-compile-file',
+or 'no-byte-compile if the file did not need recompilation."
+  (interactive
+      (let ((bytecomp-file buffer-file-name)
+	 (bytecomp-file-name nil)
+	 (bytecomp-file-dir nil))
+     (and bytecomp-file
+	  (eq (cdr (assq 'major-mode (buffer-local-variables)))
+	      'emacs-lisp-mode)
+	  (setq bytecomp-file-name (file-name-nondirectory bytecomp-file)
+		bytecomp-file-dir (file-name-directory bytecomp-file)))
+     (list (read-file-name (if current-prefix-arg
+			       "Byte compile file: "
+			     "Byte recompile file: ")
+			   bytecomp-file-dir bytecomp-file-name nil)
+	   current-prefix-arg)))
+  (let ((bytecomp-dest
+         (byte-compile-dest-file bytecomp-filename))
+        ;; Expand now so we get the current buffer's defaults
+        (bytecomp-filename (expand-file-name bytecomp-filename)))
+    (if (if (file-exists-p bytecomp-dest)
+            ;; File was already compiled
+            ;; Compile if forced to, or filename newer
+            (or bytecomp-force
+                (file-newer-than-file-p bytecomp-filename
+                                         bytecomp-dest))
+          (or (eq 0 bytecomp-arg)
+              (y-or-n-p (concat "Compile "
+                                bytecomp-filename "? "))))
+        (progn
+          (if (and noninteractive (not byte-compile-verbose))
+              (message "Compiling %s..." bytecomp-source))
+          (byte-compile-file bytecomp-filename load))
+      (when load (load bytecomp-filename))
+      'no-byte-compile)))
 
 ;;;###autoload
 (defun byte-compile-file (bytecomp-filename &optional load)
