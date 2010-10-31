@@ -1,3 +1,8 @@
+2010-10-31  David Engster  <dengste@eml.cc>
+
+	* nnmairix.el (nnmairix-get-valid-servers): Return list of strings to
+	conform with changes to gnus-completing-read.
+
 2010-10-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-tag-img): Output "*" instead of "[img]".
