@@ -1,5 +1,8 @@
 2010-10-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* message.el (message-subject-trailing-was-query): Change default to t,
+	since I think that's what most people want.
+
 	* nnimap.el (nnimap-request-accept-article): Erase buffer before
 	appending for easier debugging.
 	(nnimap-wait-for-connection): Take a regexp.

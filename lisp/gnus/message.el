@@ -306,7 +306,7 @@ any confusion."
 
 ;;; Start of variables adopted from `message-utils.el'.
 
-(defcustom message-subject-trailing-was-query 'ask
+(defcustom message-subject-trailing-was-query t
   "*What to do with trailing \"(was: <old subject>)\" in subject lines.
 If nil, leave the subject unchanged.  If it is the symbol `ask', query
 the user what do do.  In this case, the subject is matched against
@@ -314,7 +314,7 @@ the user what do do.  In this case, the subject is matched against
 `message-subject-trailing-was-query' is t, always strip the trailing
 old subject.  In this case, `message-subject-trailing-was-regexp' is
 used."
-  :version "22.1"
+  :version "24.1"
   :type '(choice (const :tag "never" nil)
 		 (const :tag "always strip" t)
 		 (const ask))
