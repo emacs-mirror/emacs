@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1999, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c   2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/maps
 @node Standard Keymaps, Standard Hooks, Standard Buffer-Local Variables, Top
@@ -183,9 +184,9 @@ A sparse keymap used by Lisp mode.
 @vindex menu-bar-edit-menu
 The keymap which displays the Edit menu in the menu bar.
 
-@item menu-bar-files-menu
-@vindex menu-bar-files-menu
-The keymap which displays the Files menu in the menu bar.
+@item menu-bar-file-menu
+@vindex menu-bar-file-menu
+The keymap which displays the File menu in the menu bar.
 
 @item menu-bar-help-menu
 @vindex menu-bar-help-menu
@@ -239,6 +240,3 @@ The keymap defining the contents of the tool bar.
 A full keymap used by View mode.
 @end table
 
-@ignore
-   arch-tag: b741253c-7e23-4a02-b3fa-cffd9e4d72b9
-@end ignore

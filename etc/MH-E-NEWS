@@ -1,13 +1,13 @@
 * COPYRIGHT
 
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+  2010  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
 * Changes in MH-E 8.2
 
-Version 8.2 of MH-E will appear in GNU Emacs 23.1. This is a small
+Version 8.2 of MH-E appeared in GNU Emacs 23.1.  This is a small
 release that includes internal changes from the Emacs team. A new
 hook, `mh-pack-folder-hook', has been added.
 
@@ -231,7 +231,7 @@ gatewayed at gmane.org (closes SF #979308).
 If you want to see the release notes for the alpha and beta releases
 leading up this release, please see:
 
-  http://cvs.savannah.gnu.org/viewcvs/emacs/etc/MH-E-NEWS?rev=1.25&root=emacs&view=markup
+  http://cvs.savannah.gnu.org/viewvc/emacs/emacs/etc/MH-E-NEWS?revision=1.25&view=markup
 
 
 

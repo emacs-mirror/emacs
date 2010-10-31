@@ -1,3 +1,17 @@
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* mode-local.el (mode-local-augment-function-help):
+	* semantic/analyze/debug.el (semantic-analyzer-debug-add-buttons):
+	* semantic/symref/list.el (semantic-symref-results-dump)
+	(semantic-symref-rb-toggle-expand-tag): Replace inappropriate uses
+	of toggle-read-only.
+
+2010-10-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* semantic/symref/list.el (semantic-symref-list-rename-open-hits):
+	Fix typo in message.
+	(semantic-symref-list-map-open-hits): Fix typo in docstring.
+
 2010-09-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* semantic/bovine/el.el:
