@@ -1,3 +1,11 @@
+2010-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Search for package directories, and
+	don't load package.el if none are found.
+
+	* emacs-lisp/package.el (describe-package, list-packages): Call
+	package-initialize if it has not been called yet.
+
 2010-10-30  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-fonts.el (c-font-lock-enum-tail): New function

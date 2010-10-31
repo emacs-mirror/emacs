@@ -1172,8 +1172,30 @@ the `--debug-init' option to view a complete error backtrace."
 		 (eq face-ignored-fonts old-face-ignored-fonts))
       (clear-face-cache)))
 
-  ;; Load ELPA packages.
-  (and user-init-file package-enable-at-startup (package-initialize))
+  ;; If any package directory exists, initialize the package system.
+  (and user-init-file
+       package-enable-at-startup
+       (catch 'package-dir-found
+	 (let (dirs)
+	   (if (boundp 'package-directory-list)
+	       (setq dirs package-directory-list)
+	     (dolist (f load-path)
+	       (and (stringp f)
+		    (equal (file-name-nondirectory f) "site-lisp")
+		    (push (expand-file-name "elpa" f) dirs))))
+	   (push (if (boundp 'package-user-dir)
+		     package-user-dir
+		   (locate-user-emacs-file "elpa"))
+		 dirs)
+	   (dolist (dir dirs)
+	     (when (file-directory-p dir)
+	       (dolist (subdir (directory-files dir))
+		 (when (and (file-directory-p (expand-file-name subdir dir))
+			    ;; package-subdirectory-regexp from package.el
+			    (string-match "^\\([^.].*\\)-\\([0-9]+\\(?:[.][0-9]+\\)*\\)$"
+					  subdir))
+		   (throw 'package-dir-found t)))))))
+       (package-initialize))
 
   (setq after-init-time (current-time))
   (run-hooks 'after-init-hook)
