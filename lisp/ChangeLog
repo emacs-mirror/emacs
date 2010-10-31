@@ -3,8 +3,6 @@
 	* emacs-lisp/bytecomp.el (byte-recompile-file): New fun (bug#7297).
 	(byte-recompile-directory):
 	* emacs-lisp/lisp-mode.el (emacs-lisp-byte-compile-and-load):
-	* cedet/ede/proj-elisp.el (project-compile-target):
-	* cedet/semantic/ede-grammar.el (project-compile-target):
 	Use `byte-recompile-file'.
 
 2010-10-31  Glenn Morris  <rgm@gnu.org>
