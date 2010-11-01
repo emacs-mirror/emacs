@@ -1,3 +1,7 @@
+2010-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* locate.el (locate, locate-mode): Doc fixes.
+
 2010-11-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-start): New arg INHIBIT-PROMPT prevents asking
