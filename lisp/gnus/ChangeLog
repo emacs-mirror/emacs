@@ -5,6 +5,9 @@
 
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* mm-util.el (gnus-completing-read): Autoload.
+	(mm-read-coding-system): Simplify Emacs definition.
+
 	* nnmail.el (gnus-activate-group):
 	* nnimap.el (gnutls-negotiate):
 	* nntp.el (netrc-parse): Fix declarations.
