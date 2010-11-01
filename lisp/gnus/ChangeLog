@@ -1,3 +1,10 @@
+2010-11-01  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-gmane): inhibit demon. return nil if no messages.
+	(nnir-read-parms): don't modify query.
+	(nnir-run-query): add ability to search topic on current line.
+	(nnir-get-active): clean up.
+
 2010-11-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-cite.el (gnus-article-foldable-buffer): Protect against

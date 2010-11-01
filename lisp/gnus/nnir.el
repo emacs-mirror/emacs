@@ -1407,6 +1407,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 		  (format "author:%s" (cdr (assq 'author query))) ""))
 	     (search (format "%s %s %s"
 			     qstring groupspec authorspec))
+	     (gnus-inhibit-demon t)
 	     artlist)
 	(require 'mm-url)
 	(with-current-buffer nntp-server-buffer
@@ -1441,14 +1442,15 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 		     (function (lambda (x y)
 				 (> (nnir-artitem-rsv x)
 				    (nnir-artitem-rsv y)))))))
-    (message "Can't search non-gmane nntp groups")))
+    (message "Can't search non-gmane nntp groups")
+    nil))
 
 ;;; Util Code:
 
 (defun nnir-read-parms (query nnir-search-engine)
   "Reads additional search parameters according to `nnir-engines'."
   (let ((parmspec (caddr (assoc nnir-search-engine nnir-engines))))
-    (nconc query
+    (append query
 	   (mapcar 'nnir-read-parm parmspec))))
 
 (defun nnir-read-parm (parmspec)
@@ -1472,7 +1474,11 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 		    (with-current-buffer gnus-server-buffer
 		      (list (list (gnus-server-server-name))))
 		  (nnir-sort-groups-by-server
-		   (or gnus-group-marked (list (gnus-group-group-name)))))))
+		   (or gnus-group-marked
+		       (if (gnus-group-group-name)
+			   (list (gnus-group-group-name))
+			 (cdr (assoc (gnus-group-topic-name)
+				     gnus-topic-alist))))))))
     (apply 'vconcat
            (mapcar (lambda (x)
                      (let* ((server (car x))
@@ -1582,32 +1588,15 @@ artitem (counting from 1)."
 	(goto-char (point-min))
 	(unless (string= gnus-ignored-newsgroups "")
 	  (delete-matching-lines gnus-ignored-newsgroups))
-	;; We treat NNTP as a special case to avoid problems with
-	;; garbage group names like `"foo' that appear in some badly
-	;; managed active files. -jh.
-	(if (eq (car method) 'nntp)
-	    (while (not (eobp))
-	      (ignore-errors
-		(push (cons
-		       (mm-string-as-unibyte
-			(buffer-substring
-			 (point)
-			 (progn
-			   (skip-chars-forward "^ \t")
-			   (point))))
-		       (let ((last (read cur)))
-			 (cons (read cur) last)))
-		      groups))
-	      (forward-line))
-	  (while (not (eobp))
-	    (ignore-errors
-	      (push (mm-string-as-unibyte
-		     (let ((p (point)))
-		       (skip-chars-forward "^ \t\\\\")
-		       (setq name (buffer-substring (+ p 1) (- (point) 1)))
-		       (gnus-group-full-name name method)))
-		    groups))
-	    (forward-line)))))
+	(while (not (eobp))
+	  (ignore-errors
+	    (push (mm-string-as-unibyte
+		   (let ((p (point)))
+		     (skip-chars-forward "^ \t\\\\")
+		     (setq name (buffer-substring (+ p 1) (- (point) 1)))
+		     (gnus-group-full-name name method)))
+		  groups))
+	  (forward-line))))
     groups))
 
 ;; The end.
