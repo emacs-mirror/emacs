@@ -1,3 +1,17 @@
+2010-11-01  Kenichi Handa  <handa@m17n.org>
+
+	* faces.el (glyphless-char): Inherit underline for tty.
+
+2010-10-28  Kenichi Handa  <handa@m17n.org>
+
+	Implement various display methods for glyphless characters.
+
+	* international/characters.el (char-acronym-table): New variable.
+	(glyphless-char-control): New variable.
+	(update-glyphless-char-display): New funciton.
+
+	* faces.el (glyphless-char): New face.
+
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/holidays.el (general-holidays, oriental-holidays)

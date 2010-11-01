@@ -1501,6 +1501,8 @@ static void append_glyph (struct it *);
 static void produce_stretch_glyph (struct it *);
 static void append_composite_glyph (struct it *);
 static void produce_composite_glyph (struct it *);
+static void append_glyphless_glyph (struct it *, int, char *);
+static void produce_glyphless_glyph (struct it *, int, Lisp_Object);
 
 /* Append glyphs to IT's glyph_row.  Called from produce_glyphs for
    terminal frames if IT->glyph_row != NULL.  IT->char_to_display is
@@ -1609,6 +1611,12 @@ produce_glyphs (struct it *it)
       goto done;
     }
 
+  if (it->what == IT_GLYPHLESS)
+    {
+      produce_glyphless_glyph (it, 0, Qnil);
+      goto done;
+    }
+
   if (it->char_to_display >= 040 && it->char_to_display < 0177)
     {
       it->pixel_width = it->nglyphs = 1;
@@ -1660,11 +1668,22 @@ produce_glyphs (struct it *it)
     }
   else
     {
-      it->pixel_width = CHAR_WIDTH (it->char_to_display);
-      it->nglyphs = it->pixel_width;
+      Lisp_Object charset_list = FRAME_TERMINAL (it->f)->charset_list;
 
-      if (it->glyph_row)
-	append_glyph (it);
+      if (char_charset (it->char_to_display, charset_list, NULL))
+	{
+	  it->pixel_width = CHAR_WIDTH (it->char_to_display);
+	  it->nglyphs = it->pixel_width;
+	  if (it->glyph_row)
+	    append_glyph (it);
+	}
+      else
+	{
+	  Lisp_Object acronym = lookup_glyphless_char_display (-1, it);
+
+	  xassert (it->what == IT_GLYPHLESS);
+	  produce_glyphless_glyph (it, 1, acronym);
+	}
     }
 
  done:
@@ -1841,6 +1860,161 @@ produce_composite_glyph (struct it *it)
   it->nglyphs = 1;
   if (it->glyph_row)
     append_composite_glyph (it);
+}
+
+
+/* Append a glyph for a glyphless character to IT->glyph_row.  FACE_ID
+   is a face ID to be used for the glyph.  What actually appended are
+   glyphs of type CHAR_GLYPH of which characters are in STR
+   (it->nglyphs bytes).  */
+
+static void
+append_glyphless_glyph (struct it *it, int face_id, char *str)
+{
+  struct glyph *glyph, *end;
+  bidi_type_t bidi_type;
+  int resolved_level;
+  int i;
+
+  xassert (it->glyph_row);
+  glyph = it->glyph_row->glyphs[it->area] + it->glyph_row->used[it->area];
+  end = it->glyph_row->glyphs[1 + it->area];
+
+  /* If the glyph row is reversed, we need to prepend the glyph rather
+     than append it.  */
+  if (it->glyph_row->reversed_p && it->area == TEXT_AREA)
+    {
+      struct glyph *g;
+      int move_by = it->pixel_width;
+
+      /* Make room for the new glyphs.  */
+      if (move_by > end - glyph) /* don't overstep end of this area */
+	move_by = end - glyph;
+      for (g = glyph - 1; g >= it->glyph_row->glyphs[it->area]; g--)
+	g[move_by] = *g;
+      glyph = it->glyph_row->glyphs[it->area];
+      end = glyph + move_by;
+    }
+
+  if (glyph >= end)
+    return;
+  glyph->type = CHAR_GLYPH;
+  glyph->pixel_width = 1;
+  glyph->face_id = face_id;
+  glyph->padding_p = 0;
+  glyph->charpos = CHARPOS (it->position);
+  glyph->object = it->object;
+  if (it->bidi_p)
+    {
+      glyph->resolved_level = it->bidi_it.resolved_level;
+      if ((it->bidi_it.type & 7) != it->bidi_it.type)
+	abort ();
+      glyph->bidi_type = it->bidi_it.type;
+    }
+  else
+    {
+      glyph->resolved_level = 0;
+      glyph->bidi_type = UNKNOWN_BT;
+    }
+
+  /* BIDI Note: we put the glyphs of characters left to right, even in
+     the REVERSED_P case because we write to the terminal
+     left-to-right.  */
+  for (i = 0; i < it->nglyphs && glyph < end; ++i)
+    {
+      if (i > 0)
+	glyph[0] = glyph[-1];
+      glyph->u.ch = str[i];
+      ++it->glyph_row->used[it->area];
+      ++glyph;
+    }
+}
+
+/* Declared in xdisp.c */
+extern struct frame *last_glyphless_glyph_frame;
+extern unsigned last_glyphless_glyph_face_id;
+extern int last_glyphless_glyph_merged_face_id;
+extern Lisp_Object Qglyphless_char;
+
+/* Produce glyphs for a glyphless character for iterator IT.
+   IT->glyphless_method specifies which method to use for displaying
+   the character.  See the description of enum
+   glyphless_display_method in dispextern.h for the detail.
+
+   FOR_NO_FONT is nonzero if and only if this is for a character that
+   is not supproted by the coding system of the terminal.  ACRONYM, if
+   non-nil, is an acronym string for the character.
+
+   The glyphs actually produced are of type CHAR_GLYPH.  */
+
+static void
+produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
+{
+  int face_id;
+  struct face *face;
+  int width, len;
+  char buf[9], *str = "    ";
+
+  /* Get a face ID for the glyph by utilizing a cache (the same way as
+     doen for `escape-glyph' in get_next_display_element).  */
+  if (it->f == last_glyphless_glyph_frame
+      && it->face_id == last_glyphless_glyph_face_id)
+    {
+      face_id = last_glyphless_glyph_merged_face_id;
+    }
+  else
+    {
+      /* Merge the `glyphless-char' face into the current face.  */
+      face_id = merge_faces (it->f, Qglyphless_char, 0, it->face_id);
+      last_glyphless_glyph_frame = it->f;
+      last_glyphless_glyph_face_id = it->face_id;
+      last_glyphless_glyph_merged_face_id = face_id;
+    }
+
+  if (it->glyphless_method == GLYPHLESS_DISPLAY_THIN_SPACE)
+    {
+      /* As there's no way to produce a thin space, we produce
+	 a space of canonical width..  */
+      len = 1;
+    }
+  else if (it->glyphless_method == GLYPHLESS_DISPLAY_EMPTY_BOX)
+    {
+      len = CHAR_WIDTH (it->c);
+      if (len == 0)
+	len = 1;
+      else if (width > 4)
+	len = 4;
+    }
+  else
+    {
+      if (it->glyphless_method == GLYPHLESS_DISPLAY_ACRONYM)
+	{
+	  int i;
+
+	  if (! STRINGP (acronym) && CHAR_TABLE_P (Vglyphless_char_display))
+	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
+	  buf[0] = '[';
+	  str = STRINGP (acronym) ? (char *) SDATA (acronym) : "";
+	  for (len = 0; len < 6 && str[len] && ASCII_BYTE_P (str[len]); len++)
+	    buf[1 + len] = str[len];
+	  buf[1 + len] = ']';
+	  len += 2;
+	}
+      else
+	{
+	  xassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEXA_CODE);
+	  len = (it->c < 0x100 ? sprintf (buf, "U+%02X", it->c)
+		 : it->c < 0x10000 ? sprintf (buf, "U+%04X", it->c)
+		 : it->c <= MAX_UNICODE_CHAR ? sprintf (buf, "U+%06X", it->c)
+		 : sprintf (buf, "E+%06X", it->c));
+	}
+      str = buf;
+    }
+
+  it->pixel_width = len;
+  it->nglyphs = len;
+  if (len > 0 && it->glyph_row)
+    append_glyphless_glyph (it, face_id, str);
 }
 
 

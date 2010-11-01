@@ -2482,6 +2482,14 @@ Note: Other faces cannot inherit from the cursor face."
 (defface help-argument-name '((((supports :slant italic)) :inherit italic))
   "Face to highlight argument names in *Help* buffers."
   :group 'help)
+
+(defface glyphless-char
+  '((((type tty)) :inherit underline)
+    (t :height 0.6))
+  "Face for displaying non-graphic characters (e.g. U+202A (LRE)).
+It is used for characters of no fonts too."
+  :version "24.1"
+  :group 'basic-faces)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Manipulating font names.

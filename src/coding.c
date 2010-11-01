@@ -9297,7 +9297,8 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
        doc: /* Internal use only.  */)
   (Lisp_Object coding_system, Lisp_Object terminal)
 {
-  struct coding_system *terminal_coding = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1));
+  struct terminal *term = get_terminal (terminal, 1);
+  struct coding_system *terminal_coding = TERMINAL_TERMINAL_CODING (term);
   CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system), terminal_coding);
   /* We had better not send unsafe characters to terminal.  */
@@ -9306,6 +9307,10 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
   terminal_coding->common_flags &= ~CODING_ANNOTATE_COMPOSITION_MASK;
   terminal_coding->src_multibyte = 1;
   terminal_coding->dst_multibyte = 0;
+  if (terminal_coding->common_flags & CODING_REQUIRE_ENCODING_MASK)
+    term->charset_list = coding_charset_list (terminal_coding);
+  else
+    term->charset_list = Fcons (Qascii, Qnil);
   return Qnil;
 }
 
