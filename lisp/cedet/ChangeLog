@@ -1,5 +1,7 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* semantic/bovine/c.el (semantic-analyze-split-name): Move before use.
+
 	* semantic/symref/cscope.el (ede-toplevel):
 	* semantic/symref.el (ede-toplevel):
 	* semantic/tag-file.el (ede-toplevel):
