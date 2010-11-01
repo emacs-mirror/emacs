@@ -1,8 +1,8 @@
 ;; info.el --- info package for Emacs
 
-;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -3379,6 +3379,8 @@ Build a menu of the possible matches."
 (declare-function find-library-name "find-func" (library))
 (declare-function finder-unknown-keywords "finder" ())
 (declare-function lm-commentary "lisp-mnt" (&optional file))
+(defvar finder-keywords-hash)
+(defvar package-alist)                  ; finder requires package
 
 (defun Info-finder-find-node (filename nodename &optional no-going-back)
   "Finder-specific implementation of Info-find-node-2."
@@ -4930,5 +4932,4 @@ type returned by `Info-bookmark-make-record', which see."
 
 (provide 'info)
 
-;; arch-tag: f2480fe2-2139-40c1-a49b-6314991164ac
 ;;; info.el ends here

@@ -1,3 +1,7 @@
+2010-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* info.el (finder-keywords-hash, package-alist): Declare.
+
 2010-11-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* finder.el (finder-compile-keywords): Don't use intern-soft,
