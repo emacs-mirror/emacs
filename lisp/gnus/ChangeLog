@@ -1,5 +1,9 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* nnir.el (declare-function): Add compat stub.
+	(mm-url-insert, mm-url-encode-www-form-urlencoded): Declare.
+	(nnir-run-gmane): Require 'mm-url.
+
 	* mm-util.el (mm-string-to-multibyte): Simplify.
 
 	* shr.el (declare-function): Add compat stub.

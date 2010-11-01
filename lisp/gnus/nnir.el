@@ -164,6 +164,10 @@
 
 ;;; Setup Code:
 
+;; For Emacs <22.2 and XEmacs.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (require 'nnoo)
 (require 'gnus-group)
 (require 'gnus-sum)
@@ -1382,6 +1386,9 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 		   artlist)))
      grouplist))))
 
+(declare-function mm-url-insert "mm-url" (url &optional follow-refresh))
+(declare-function mm-url-encode-www-form-urlencoded "mm-url" (pairs))
+
 ;; gmane interface
 (defun nnir-run-gmane (query srv &optional groups)
   "Run a search against a gmane back-end server."
@@ -1401,6 +1408,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 	     (search (format "%s %s %s"
 			     qstring groupspec authorspec))
 	     artlist)
+	(require 'mm-url)
 	(with-current-buffer nntp-server-buffer
 	  (erase-buffer)
 	  (mm-url-insert
