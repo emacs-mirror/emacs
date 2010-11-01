@@ -2,7 +2,7 @@
 
 	* faces.el (glyphless-char): Inherit underline for tty.
 
-2010-10-28  Kenichi Handa  <handa@m17n.org>
+2010-11-01  Kenichi Handa  <handa@m17n.org>
 
 	Implement various display methods for glyphless characters.
 

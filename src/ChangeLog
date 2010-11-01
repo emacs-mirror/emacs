@@ -7,8 +7,7 @@
 	* coding.c (Fset_terminal_coding_system_internal): Set the
 	`charset_list' member of struct terminal.
 
-	* term.c (produce_glyphs): Handle the case it->what ==
-	IT_GLYPHLESS.
+	* term.c (produce_glyphs): Handle the case it->what == IT_GLYPHLESS.
 	(append_glyphless_glyph, produce_glyphless_glyph): New functions.
 
 	* xdisp.c (lookup_glyphless_char_display): Make it non-static.
@@ -16,15 +15,15 @@
 	(last_glyphless_glyph_frame, last_glyphless_glyph_face_id)
 	(last_glyphless_glyph_merged_face_id): Make them non-static.
 
-	* w32term.c (x_draw_glyphless_glyph_string_foreground): Fix
-	the arg with_background for font->driver->draw.
+	* w32term.c (x_draw_glyphless_glyph_string_foreground):
+	Fix the arg with_background for font->driver->draw.
 
-2010-10-29  Kenichi Handa  <handa@m17n.org>
+2010-11-01  Kenichi Handa  <handa@m17n.org>
 
-	* w32gui.h (STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2): Surround
-	chp by parentheses.
+	* w32gui.h (STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2):
+	Surround chp by parentheses.
 
-2010-10-28  Kenichi Handa  <handa@m17n.org>
+2010-11-01  Kenichi Handa  <handa@m17n.org>
 
 	Implement various display methods for glyphless characters.
 
@@ -50,8 +49,8 @@
 	(Vglyphless_char_display): Declare it as a Lisp variable.
 
 	* dispextern.h (enum glyph_type): Add GLYPHLESS_GLYPH.
-	(struct glyph): Change the size of the member "type" to 3.  Add
-	glyphless to the union slice and u.
+	(struct glyph): Change the size of the member "type" to 3.
+	Add glyphless to the union slice and u.
 	(enum display_element_type): Add IT_GLYPHLESS.
 	(enum glyphless_display_method): New enum.
 	(struct it): New member glyphless_method.
@@ -60,8 +59,7 @@
 	* xterm.c (x_draw_glyphless_glyph_string_foreground): New function.
 	(x_draw_glyph_string): Handle the case GLYPHLESS_GLYPH.
 
-	* w32term.c (x_draw_glyphless_glyph_string_foreground): New
-	function.
+	* w32term.c (x_draw_glyphless_glyph_string_foreground): New function.
 	(x_draw_glyph_string): Handle the case GLYPHLESS_GLYPH.
 
 	* nsterm.m (ns_draw_glyph_string): Handle the case
