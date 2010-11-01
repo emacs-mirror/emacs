@@ -1651,10 +1651,14 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 		       initial-input history def))
 
 
-(autoload 'iswitchb-read-buffer "iswitchb")
+(declare-function iswitchb-read-buffer "iswitchb"
+		  (prompt &optional default require-match start matches-set))
+(defvar iswitchb-temp-buflist)
+
 (defun gnus-iswitchb-completing-read (prompt collection &optional require-match
                                             initial-input history def)
   "`iswitchb' based completing-read function."
+  (require 'iswitchb)
   (let ((iswitchb-make-buflist-hook
          (lambda ()
            (setq iswitchb-temp-buflist
@@ -1667,11 +1671,11 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
                    (nreverse filtered-choices))))))
     (unwind-protect
         (progn
-          (when (not iswitchb-mode)
-            (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup))
+          (or iswitchb-mode
+	      (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup))
           (iswitchb-read-buffer prompt def require-match))
-      (when (not iswitchb-mode)
-        (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))))
+      (or iswitchb-mode
+	  (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))))
 
 (defun gnus-graphic-display-p ()
   (if (featurep 'xemacs)
@@ -1758,14 +1762,16 @@ CHOICE is a list of the choice char and help message at IDX."
 	(kill-buffer buf))
     tchar))
 
-(if (fboundp 'select-frame-set-input-focus)
+(if (featurep 'emacs)
     (defalias 'gnus-select-frame-set-input-focus 'select-frame-set-input-focus)
-  ;; XEmacs 21.4, SXEmacs
-  (defun gnus-select-frame-set-input-focus (frame)
-    "Select FRAME, raise it, and set input focus, if possible."
-    (raise-frame frame)
-    (select-frame frame)
-    (focus-frame frame)))
+  (if (fboundp 'select-frame-set-input-focus)
+      (defalias 'gnus-select-frame-set-input-focus 'select-frame-set-input-focus)
+    ;; XEmacs 21.4, SXEmacs
+    (defun gnus-select-frame-set-input-focus (frame)
+      "Select FRAME, raise it, and set input focus, if possible."
+      (raise-frame frame)
+      (select-frame frame)
+      (focus-frame frame))))
 
 (defun gnus-frame-or-window-display-name (object)
   "Given a frame or window, return the associated display name.
