@@ -1,5 +1,8 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/smie.el (smie): New custom group.
+	(smie-blink-matching-inners, smie-indent-basic): Add :group.
+
 	* faces.el (xw-defined-colors, x-setup-function-keys):
 	* mouse-sel.el (x-select-text):
 	* term/w32console.el (x-setup-function-keys): Update declarations.

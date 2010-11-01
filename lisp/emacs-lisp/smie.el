@@ -70,6 +70,10 @@
 
 (eval-when-compile (require 'cl))
 
+(defgroup smie nil
+  "Simple Minded Indentation Engine."
+  :group 'languages)
+
 (defvar comment-continue)
 (declare-function comment-string-strip "newcomment" (str beforep afterp))
 
@@ -790,7 +794,8 @@ I.e. a good choice can be:
 (defcustom smie-blink-matching-inners t
   "Whether SMIE should blink to matching opener for inner keywords.
 If non-nil, it will blink not only for \"begin..end\" but also for \"if...else\"."
-  :type 'boolean)
+  :type 'boolean
+  :group 'smie)
 
 (defun smie-blink-matching-check (start end)
   (save-excursion
@@ -866,7 +871,8 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
 
 (defcustom smie-indent-basic 4
   "Basic amount of indentation."
-  :type 'integer)
+  :type 'integer
+  :group 'smie)
 
 (defvar smie-rules-function 'ignore
   "Function providing the indentation rules.
