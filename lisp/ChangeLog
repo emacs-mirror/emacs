@@ -1,4 +1,9 @@
-2010-10-31  Chong Yidong  <cyd@stupidchicken.com>
+2010-11-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* finder.el (finder-compile-keywords): Don't use intern-soft,
+	since package names may not yet exist in the obarray.
+
+2010-11-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/vc-arch.el (vc-arch-checkin):
 	* vc/vc-cvs.el (vc-cvs-checkin):
