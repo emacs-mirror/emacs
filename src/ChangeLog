@@ -78,12 +78,6 @@
 	when aborting on GTK.  This requires using shut_down_emacs
 	directly instead of Fkill_emacs.
 
-2010-10-31  Michael Albinus  <michael.albinus@gmx.de>
-
-	* dbusbind.c (Fdbus_call_method_asynchronously)
-	(Fdbus_register_signal, Fdbus_register_method): Check, whether
-	`dbus-registered-objects-table' is initialized.
-
 2010-10-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.c (main): Call syms_of_filelock unconditionally.
