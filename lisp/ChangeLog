@@ -1,3 +1,8 @@
+2010-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/ada-mode.el (ada-font-lock-syntactic-keywords):
+	Silence compiler.
+
 2010-10-31  Julien Danjou  <julien@danjou.info>
 
 	* emacs-lisp/bytecomp.el (byte-recompile-file): New fun (bug#7297).

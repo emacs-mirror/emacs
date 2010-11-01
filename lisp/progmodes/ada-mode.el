@@ -1,7 +1,8 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
-;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
@@ -1117,9 +1118,9 @@ the file name."
 	(funcall (symbol-function 'speedbar-add-supported-extension)
 		 spec)
 	(funcall (symbol-function 'speedbar-add-supported-extension)
-		 body)))
-  )
+		 body))))
 
+(defvar ada-font-lock-syntactic-keywords) ; defined below
 
 ;;;###autoload
 (defun ada-mode ()
@@ -5538,5 +5539,4 @@ This function typically is to be hooked into `ff-file-created-hook'."
 ;;; provide ourselves
 (provide 'ada-mode)
 
-;; arch-tag: 1b7d45ec-1698-43b5-8d4a-e479ea023270
 ;;; ada-mode.el ends here
