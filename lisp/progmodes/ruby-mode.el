@@ -1,7 +1,7 @@
 ;;; ruby-mode.el --- Major mode for editing Ruby files
 
-;; Copyright (C) 1994, 1995, 1996 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1994, 1995, 1996 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Authors: Yukihiro Matsumoto
@@ -1108,6 +1108,8 @@ See `add-log-current-defun-function'."
               (if mlist (concat mlist mname) mname)
             mlist)))))
 
+(declare-function ruby-syntax-propertize-heredoc "ruby-mode" (limit))
+
 (if (eval-when-compile (fboundp #'syntax-propertize-rules))
     ;; New code that works independently from font-lock.
     (progn
@@ -1162,7 +1164,7 @@ See `add-log-current-defun-function'."
               ;; inf-loop.
               (if (< (point) start) (goto-char start))))))
       )
-      
+
   ;; For Emacsen where syntax-propertize-rules is not (yet) available,
   ;; fallback on the old font-lock-syntactic-keywords stuff.
 
@@ -1478,5 +1480,4 @@ The variable `ruby-indent-level' controls the amount of indentation.
 
 (provide 'ruby-mode)
 
-;; arch-tag: e6ecc893-8005-420c-b7f9-34ab99a1fff9
 ;;; ruby-mode.el ends here

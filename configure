@@ -13982,14 +13982,6 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <time.h>
-extern char **environ;
-unset_TZ ()
-{
-  char **from, **to;
-  for (to = from = environ; (*to = *from); from++)
-    if (! (to[0][0] == 'T' && to[0][1] == 'Z' && to[0][2] == '='))
-      to++;
-}
 char TZ_GMT0[] = "TZ=GMT0";
 char TZ_PST8[] = "TZ=PST8";
 main()
@@ -13999,13 +13991,13 @@ main()
   if (putenv (TZ_GMT0) != 0)
     exit (1);
   hour_GMT0 = localtime (&now)->tm_hour;
-  unset_TZ ();
+  unsetenv("TZ");
   hour_unset = localtime (&now)->tm_hour;
   if (putenv (TZ_PST8) != 0)
     exit (1);
   if (localtime (&now)->tm_hour == hour_GMT0)
     exit (1);
-  unset_TZ ();
+  unsetenv("TZ");
   if (localtime (&now)->tm_hour != hour_unset)
     exit (1);
   exit (0);

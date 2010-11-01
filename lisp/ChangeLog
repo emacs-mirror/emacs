@@ -12,6 +12,185 @@
 
 	* faces.el (glyphless-char): New face.
 
+2010-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/smie.el (smie): New custom group.
+	(smie-blink-matching-inners, smie-indent-basic): Add :group.
+
+	* faces.el (xw-defined-colors, x-setup-function-keys):
+	* mouse-sel.el (x-select-text):
+	* term/w32console.el (x-setup-function-keys): Update declarations.
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-heredoc): Declare.
+
+	* textmodes/ispell.el (comment-add): Declare.
+
+	* net/gnutls.el (gnutls-boot, gnutls-errorp, gnutls-error-string):
+	Declare.
+
+	* info.el (finder-keywords-hash, package-alist): Declare.
+
+2010-11-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* finder.el (finder-compile-keywords): Don't use intern-soft,
+	since package names may not yet exist in the obarray.
+
+2010-11-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc-arch.el (vc-arch-checkin):
+	* vc/vc-cvs.el (vc-cvs-checkin):
+	* vc/vc-mtn.el (vc-mtn-checkin):
+	* vc/vc-rcs.el (vc-rcs-checkin):
+	* vc/vc-sccs.el (vc-sccs-checkin):
+	* vc/vc-svn.el (vc-svn-checkin): Remove optional extra arg, unused
+	since 2010-04-21 commit by Stefan Monnier.
+
+2010-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-file): Fix previous change.
+
+	* startup.el (package-enable-at-startup, package-initialize):
+	Silence compiler.
+
+	* progmodes/ada-mode.el (ada-font-lock-syntactic-keywords):
+	Silence compiler.
+
+2010-10-31  Julien Danjou  <julien@danjou.info>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-file): New fun (bug#7297).
+	(byte-recompile-directory):
+	* emacs-lisp/lisp-mode.el (emacs-lisp-byte-compile-and-load):
+	Use `byte-recompile-file'.
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el: Handle standard values via a keyword.
+	Only set version property if specified.
+	(cursor-in-non-selected-windows, menu-bar-mode)
+	(tool-bar-mode, show-trailing-whitespace):
+	Do not specify standard values.
+	(transient-mark-mode, temporary-file-directory): Use :standard.
+
+2010-10-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-get-selection-value): New function that gets
+	PRIMARY with type as specified in x-select-request-type. (Bug#6802).
+
+2010-10-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-file-contents): For root,
+	preserve owner and group when editing files.  (Bug#7289)
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* speedbar.el (speedbar-mode):
+	* play/fortune.el (fortune-in-buffer, fortune):
+	* play/gomoku.el (gomoku-mode):
+	* play/landmark.el (lm-mode):
+	* textmodes/bibtex.el (bibtex-validate, bibtex-validate-globally):
+	Replace inappropriate uses of toggle-read-only.  (Bug#7292)
+
+	* select.el (x-selection): Mark it as an obsolete alias.
+
+2010-10-31  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* vc/add-log.el (find-change-log): Use derived-mode-p rather than
+	major-mode (bug#7284).
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-files-menu): Make it into an actual alias,
+	rather than just an unused variable that inherits from the real one.
+
+2010-10-31  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-mask-paragraph): Fix an off-by-1 error.
+	This fixes bug #7185.
+
+2010-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Search for package directories, and
+	don't load package.el if none are found.
+
+	* emacs-lisp/package.el (describe-package, list-packages): Call
+	package-initialize if it has not been called yet.
+
+2010-10-30  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-fonts.el (c-font-lock-enum-tail): New function
+	which fontifies the tail of an enum.
+	(c-basic-matchers-after): Insert a call to the above new function.
+	This fixes bug #7264.
+
+2010-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el: Add :set properties for minor modes menu-bar-mode,
+	tool-bar-mode, transient-mark-mode.  (Bug#7306)
+	Include the :set property in the dumped Emacs.
+
+2010-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	SMIE: change indent rules format, improve smie-setup.
+	* emacs-lisp/smie.el (smie-precs-precedence-table)
+	(smie-merge-prec2s, smie-bnf-precedence-table, smie-prec2-levels):
+	Mark them pure so the tables gets built at compile time.
+	(smie-bnf-precedence-table): Store the closer-alist in the table.
+	(smie-prec2-levels): Preserve the closer-alist.
+	(smie-blink-matching-open): Be more forgiving in case of indentation.
+	(smie-hanging-p): Rename from smie-indent--hanging-p.
+	(smie-bolp): Rename from smie-indent--bolp.
+	(smie--parent, smie--after): New dynamic vars.
+	(smie-parent-p, smie-next-p, smie-prev-p): New funs.
+	(smie-indent-rules): Remove.
+	(smie-indent--offset-rule): Remove fun.
+	(smie-rules-function): New var.
+	(smie-indent--rule): New fun.
+	(smie-indent--offset, smie-indent-keyword, smie-indent-after-keyword)
+	(smie-indent-exps): Use it.
+	(smie-setup): Setup paren blinking; add keyword args for token
+	functions; extract closer-alist from op-levels.
+	(smie-indent-debug-log): Remove var.
+	(smie-indent-debug): Remove fun.
+	* progmodes/prolog.el (prolog-smie-indent-rules): Remove.
+	(prolog-smie-rules): New fun to replace it.
+	(prolog-mode-variables): Simplify.
+	* progmodes/octave-mod.el (octave-smie-closer-alist): Remove, now that
+	it's setup automatically.
+	(octave-smie-indent-rules): Remove.
+	(octave-smie-rules): New fun to replace it.
+	(octave-mode): Simplify.
+
+2010-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (temporary-file-directory): Remove (already defined in C).
+	* cus-start.el: Add temporary-file-directory.
+
+	* abbrev.el (abbrev-mode):
+	* composite.el (auto-composition-mode):
+	* menu-bar.el (menu-bar-mode):
+	* simple.el (transient-mark-mode):
+	* tool-bar.el (tool-bar-mode): Adjust the define-minor-mode calls so
+	that they do not define the associated variables twice.
+	* simple.el (transient-mark-mode): Remove defvar.
+	* composite.el (auto-composition-mode): Make variable auto-buffer-local.
+	* cus-start.el: Add transient-mark-mode, menu-bar-mode, tool-bar-mode.
+	Handle multiple groups, and also custom-delayed-init-variables.
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix.
+
+2010-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase): New `string' and `guard' patterns.
+	(pcase-if): Add one minor optimization.
+	(pcase-split-equal): Rename from pcase-split-eq.
+	(pcase-split-member): Rename from pcase-split-memq.
+	(pcase-u1): Add strings to the member optimization.
+	Add `guard' variant of predicates.
+	(pcase-q1): Add string patterns.
+
+2010-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-rewrite-fixes): State its safety pred.
+
 2010-10-28  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el (global-map, menu-bar-final-items, menu-bar-help-menu):
@@ -171,13 +350,13 @@
 	auto-built for efficiency of execution and updating.
 	(verilog-extended-complete-re): Support 'pure' fucntion & task
 	declarations (these have no bodies).
-	(verilog-beg-of-statement): general cleanup to enable support of
-	'pure' fucntion & task declarations (these have no bodies).  These
-	efforts together fix Verilog bug210 from veripool; which was also
+	(verilog-beg-of-statement): General cleanup to enable support of
+	'pure' fucntion & task declarations (these have no bodies).
+	These efforts together fix Verilog bug210 from veripool; which was also
 	noticed by Steve Pearlmutter.
 	(verilog-directive-re, verilog-directive-begin, verilog-indent-re)
-	(verilog-directive-nest-re, verilog-set-auto-endcomments): Support
-	`elsif.  Reported by Shankar Giri.
+	(verilog-directive-nest-re, verilog-set-auto-endcomments):
+	Support `elsif.  Reported by Shankar Giri.
 	(verilog-forward-ws&directives, verilog-in-attribute-p): Fixes for
 	attribute handling for lining up declarations and assignments.
 	(verilog-beg-of-statement-1): Fix issue where continued declaration
@@ -185,8 +364,7 @@
 	(verilog-in-attribute-p, verilog-skip-backward-comments)
 	(verilog-skip-forward-comment-p): Support proper treatment of
 	attributes by indent code. Reported by Jeff Steele.
-	(verilog-in-directive-p): Fix comment to correctly describe
-	function.
+	(verilog-in-directive-p): Fix comment to correctly describe function.
 	(verilog-backward-up-list, verilog-in-struct-region-p)
 	(verilog-backward-token, verilog-in-struct-p)
 	(verilog-in-coverage-p, verilog-do-indent)
@@ -213,7 +391,7 @@
 	parameter in AUTOINSTPARAM.
 	(verilog-read-always-signals-recurse, verilog-read-decls): Fix not
 	treating `elsif similar to `endif inside AUTOSENSE.
-        (verilog-do-indent): Implement correct automatic or static task or
+	(verilog-do-indent): Implement correct automatic or static task or
 	function end comment highlight. Reported by Steve Pearlmutter.
 	(verilog-font-lock-keywords-2): Fix highlighting of single
 	character pins, bug264.  Reported by Michael Laajanen.
@@ -221,15 +399,15 @@
 	(verilog-read-sub-decls-in-interfaced, verilog-read-sub-decls-sig)
 	(verilog-subdecls-get-interfaced, verilog-subdecls-new): Support
 	interfaces with AUTOINST, bug270.  Reported by Luis Gutierrez.
-	(verilog-pretty-expr): Fix interactive arguments, bug272. Reported
-	by Mark Johnson.
-	(verilog-auto-tieoff, verilog-auto-tieoff-ignore-regexp): Add
-	'verilog-auto-tieoff-ignore-regexp' for AUTOTIEOFF,
+	(verilog-pretty-expr): Fix interactive arguments, bug272.
+	Reported by Mark Johnson.
+	(verilog-auto-tieoff, verilog-auto-tieoff-ignore-regexp):
+	Add 'verilog-auto-tieoff-ignore-regexp' for AUTOTIEOFF,
 	bug269. Suggested by Gary Delp.
 	(verilog-mode-map, verilog-preprocess, verilog-preprocess-history)
-	(verilog-preprocessor, verilog-set-compile-command): Create
-	verilog-preprocess and verilog-preprocessor to show preprocessed
-	output.
+	(verilog-preprocessor, verilog-set-compile-command):
+	Create verilog-preprocess and verilog-preprocessor to show
+	preprocessed output.
 	(verilog-get-beg-of-line, verilog-get-end-of-line)
 	(verilog-modi-file-or-buffer, verilog-modi-name)
 	(verilog-modi-point, verilog-within-string): Move defmacro's
@@ -277,8 +455,8 @@
 	(verilog-modi-lookup-last-current, verilog-modi-lookup-last-mod)
 	(verilog-modi-lookup-last-modi, verilog-modi-lookup-last-tick):
 	Fix slow verilog-auto expansion on very large files.
-	(verilog-read-sub-decls-expr, verilog-read-sub-decls-line): Fix
-	AUTOOUTPUT treating "1*2" as a signal name in submodule connection
+	(verilog-read-sub-decls-expr, verilog-read-sub-decls-line):
+	Fix AUTOOUTPUT treating "1*2" as a signal name in submodule connection
 	"{1*2{...".  Broke in last revision.
 	(verilog-read-sub-decls-expr): Fix AUTOOUTPUT not detecting
 	submodule connections with replications "{#{a},#{b}}".

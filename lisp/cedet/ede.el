@@ -1,7 +1,7 @@
 ;;; ede.el --- Emacs Development Environment gloss
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -56,7 +56,7 @@
 (declare-function ede-directory-project-p "ede/files")
 (declare-function ede-find-subproject-for-directory "ede/files")
 (declare-function ede-project-directory-remove-hash "ede/files")
-(declare-function ede-toplevel "ede/files")
+(declare-function ede-toplevel "ede/base")
 (declare-function ede-toplevel-project "ede/files")
 (declare-function ede-up-directory "ede/files")
 (declare-function semantic-lex-make-spp-table "semantic/lex-spp")
@@ -1278,5 +1278,4 @@ is the project to use, instead of `ede-current-project'."
     (ede-speedbar-file-setup)
   (add-hook 'speedbar-load-hook 'ede-speedbar-file-setup))
 
-;; arch-tag: 0e1e0eba-484f-4119-abdb-30951f725705
 ;;; ede.el ends here

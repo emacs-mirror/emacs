@@ -57,7 +57,9 @@ define global abbrevs instead."
   "Toggle Abbrev mode in the current buffer.
 With optional argument ARG, turn abbrev mode on if ARG is
 positive, otherwise turn it off.  In Abbrev mode, inserting an
-abbreviation causes it to expand and be replaced by its expansion.")
+abbreviation causes it to expand and be replaced by its expansion."
+  ;; It's defined in C, this stops the d-m-m macro defining it again.
+  :variable abbrev-mode)
 
 (put 'abbrev-mode 'safe-local-variable 'booleanp)
 

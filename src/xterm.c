@@ -7755,47 +7755,43 @@ x_connection_closed (Display *dpy, const char *error_message)
 	delete_frame (frame, Qnoelisp);
       }
 
-  /* We have to close the display to inform Xt that it doesn't
-     exist anymore.  If we don't, Xt will continue to wait for
-     events from the display.  As a consequence, a sequence of
-
-     M-x make-frame-on-display RET :1 RET
-     ...kill the new frame, so that we get an IO error...
-     M-x make-frame-on-display RET :1 RET
-
-     will indefinitely wait in Xt for events for display `:1', opened
-     in the first call to make-frame-on-display.
-
-     Closing the display is reported to lead to a bus error on
-     OpenWindows in certain situations.  I suspect that is a bug
-     in OpenWindows.  I don't know how to circumvent it here.  */
-
+  /* If DPYINFO is null, this means we didn't open the display in the
+     first place, so don't try to close it.  */
   if (dpyinfo)
     {
 #ifdef USE_X_TOOLKIT
-      /* If DPYINFO is null, this means we didn't open the display
-	 in the first place, so don't try to close it.  */
-      {
-	fatal_error_signal_hook = x_fatal_error_signal;
-	XtCloseDisplay (dpy);
-	fatal_error_signal_hook = NULL;
-      }
-#endif
+      /* We have to close the display to inform Xt that it doesn't
+	 exist anymore.  If we don't, Xt will continue to wait for
+	 events from the display.  As a consequence, a sequence of
+
+	 M-x make-frame-on-display RET :1 RET
+	 ...kill the new frame, so that we get an IO error...
+	 M-x make-frame-on-display RET :1 RET
+
+	 will indefinitely wait in Xt for events for display `:1',
+	 opened in the first call to make-frame-on-display.
+
+	 Closing the display is reported to lead to a bus error on
+	 OpenWindows in certain situations.  I suspect that is a bug
+	 in OpenWindows.  I don't know how to circumvent it here.  */
+      fatal_error_signal_hook = x_fatal_error_signal;
+      XtCloseDisplay (dpy);
+      fatal_error_signal_hook = NULL;
+#endif /* USE_X_TOOLKIT */
 
 #ifdef USE_GTK
-      /* There is a long-standing bug in GTK that prevents the GTK
-	 main loop from recovering gracefully from disconnects
-	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Among
-	 other problems, this gives rise to a stream of Glib error
-	 messages that, in one incident, filled up a user's hard disk
-	 (http://lists.gnu.org/archive/html/emacs-devel/2010-10/msg00927.html).
-	 So, kill Emacs unconditionally if the display is closed.  */
-      {
-	fprintf (stderr, "%s\n", error_msg);
-	Fkill_emacs (make_number (70));
-	abort ();  /* NOTREACHED */
-      }
-#endif
+      /* A long-standing GTK bug prevents proper disconnect handling
+	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Once,
+	 the resulting Glib error message loop filled a user's disk.
+	 To avoid this, kill Emacs unconditionally on disconnect.  */
+      shut_down_emacs (0, 0, Qnil);
+      fprintf (stderr, "%s\n\
+When compiled with GTK, Emacs cannot recover from X disconnects.\n\
+This is a GTK bug: https://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
+For details, see etc/PROBLEMS.\n",
+	       error_msg);
+      abort ();
+#endif /* USE_GTK */
 
       /* Indicate that this display is dead.  */
       dpyinfo->display = 0;

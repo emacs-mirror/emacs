@@ -1628,7 +1628,7 @@ this is a reply."
 	    (unless (gnus-check-server method)
 	      (error "Can't open server %s" (if (stringp method) method
 					      (car method))))
-	    (unless (gnus-request-group group nil method)
+	    (unless (gnus-request-group group t method)
 	      (gnus-request-create-group group method))
 	    (setq mml-externalize-attachments
 		  (if (stringp gnus-gcc-externalize-attachments)
@@ -1891,7 +1891,11 @@ this is a reply."
 	    (setq v
 		  (cond
 		   ((stringp value)
-		    value)
+		    (if (and (stringp match)
+			     (gnus-string-match-p "\\\\[&[:digit:]]" value)
+			     (match-beginning 1))
+			(gnus-match-substitute-replacement value nil nil group)
+		      value))
 		   ((or (symbolp value)
 			(functionp value))
 		    (cond ((functionp value)

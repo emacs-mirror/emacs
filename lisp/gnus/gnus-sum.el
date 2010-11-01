@@ -2169,8 +2169,7 @@ increase the score of each group you read."
   "v" gnus-version
   "d" gnus-summary-describe-group
   "h" gnus-summary-describe-briefly
-  "i" gnus-info-find-node
-  "C" gnus-group-fetch-control)
+  "i" gnus-info-find-node)
 
 (gnus-define-keys (gnus-summary-backend-map "B" gnus-summary-mode-map)
   "e" gnus-summary-expire-articles
@@ -2747,9 +2746,6 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	 ["Original sort" gnus-summary-sort-by-original t])
 	("Help"
 	 ["Describe group" gnus-summary-describe-group t]
-	 ["Fetch control message" gnus-group-fetch-control
-	  ,@(if (featurep 'xemacs) nil
-	      '(:help "Display the archived control message for the current group"))]
 	 ["Read manual" gnus-info-find-node t])
 	("Modes"
 	 ["Pick and read" gnus-pick-mode t]
@@ -7033,7 +7029,11 @@ The prefix argument ALL means to select all articles."
 (defun gnus-summary-rescan-group (&optional all)
   "Exit the newsgroup, ask for new articles, and select the newsgroup."
   (interactive "P")
-  (gnus-summary-reselect-current-group all t))
+  (let ((config gnus-current-window-configuration))
+    (gnus-summary-reselect-current-group all t)
+    (gnus-configure-windows config)
+    (when (eq config 'article)
+      (gnus-summary-select-article))))
 
 (defun gnus-summary-update-info (&optional non-destructive)
   (save-excursion
@@ -7596,6 +7596,7 @@ be displayed."
 		       (not (get-buffer gnus-original-article-buffer))))
 	      (and (not gnus-single-article-buffer)
 		   (or (null gnus-current-article)
+		       (not (get-buffer gnus-original-article-buffer))
 		       (not (eq gnus-current-article article))))
 	      force)
 	  ;; The requested article is different from the current article.
@@ -8299,10 +8300,6 @@ articles that are younger than AGE days."
     (gnus-summary-limit articles))
   (gnus-summary-position-point))
 
-(defalias 'gnus-summary-delete-marked-as-read 'gnus-summary-limit-to-unread)
-(make-obsolete
- 'gnus-summary-delete-marked-as-read 'gnus-summary-limit-to-unread "Emacs 20.4")
-
 (defun gnus-summary-limit-to-unread (&optional all)
   "Limit the summary buffer to articles that are not marked as read.
 If ALL is non-nil, limit strictly to unread articles."
@@ -8392,10 +8389,6 @@ If UNREPLIED (the prefix), limit to unreplied articles."
 	gnus-newsgroup-replied))
     (gnus-summary-limit gnus-newsgroup-replied))
   (gnus-summary-position-point))
-
-(defalias 'gnus-summary-delete-marked-with 'gnus-summary-limit-exclude-marks)
-(make-obsolete 'gnus-summary-delete-marked-with
-	       'gnus-summary-limit-exclude-marks "Emacs 20.4")
 
 (defun gnus-summary-limit-exclude-marks (marks &optional reverse)
   "Exclude articles that are marked with MARKS (e.g. \"DK\").
@@ -9400,9 +9393,10 @@ article currently."
 If ARG (the prefix) is a number, show the article with the charset
 defined in `gnus-summary-show-article-charset-alist', or the charset
 input.
-If ARG (the prefix) is non-nil and not a number, show the raw article
-without any article massaging functions being run.  Normally, the key
-strokes are `C-u g'."
+If ARG (the prefix) is non-nil and not a number, show the article,
+but without running any of the article treatment functions
+article.  Normally, the keystroke is `C-u g'.  When using `C-u
+C-u g', show the raw article."
   (interactive "P")
   (cond
    ((numberp arg)
@@ -9444,7 +9438,8 @@ strokes are `C-u g'."
    ((not arg)
     ;; Select the article the normal way.
     (gnus-summary-select-article nil 'force))
-   (t
+   ((equal arg '(16))
+    ;; C-u C-u g
     ;; We have to require this here to make sure that the following
     ;; dynamic binding isn't shadowed by autoloading.
     (require 'gnus-async)
@@ -9462,6 +9457,9 @@ strokes are `C-u g'."
 	  ;; Set it to nil for safety reason.
 	  (setq gnus-article-mime-handle-alist nil)
 	  (setq gnus-article-mime-handles nil)))
+      (gnus-summary-select-article nil 'force)))
+   (t
+    (let ((gnus-inhibit-article-treatments t))
       (gnus-summary-select-article nil 'force))))
   (gnus-summary-goto-subject gnus-current-article)
   (gnus-summary-position-point))

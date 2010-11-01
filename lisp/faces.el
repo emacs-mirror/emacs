@@ -30,7 +30,7 @@
 (eval-when-compile
   (require 'cl))
 
-(declare-function xw-defined-colors "term/x-win" (&optional frame))
+(declare-function xw-defined-colors "term/common-win" (&optional frame))
 
 (defvar help-xref-stack-item)
 
@@ -1957,7 +1957,7 @@ Value is the new parameter list."
 				     (list (cons 'cursor-color fg)))))))
 
 (declare-function x-create-frame "xfns.c" (parms))
-(declare-function x-setup-function-keys "term/x-win" (frame))
+(declare-function x-setup-function-keys "term/common-win" (frame))
 
 (defun x-create-frame-with-faces (&optional parameters)
   "Create and return a frame with frame parameters PARAMETERS.
@@ -2578,5 +2578,4 @@ also the same size as FACE on FRAME, or fail."
 
 (provide 'faces)
 
-;; arch-tag: 19a4759f-2963-445f-b004-425b9aadd7d6
 ;;; faces.el ends here

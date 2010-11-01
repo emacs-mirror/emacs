@@ -75,8 +75,9 @@ After the communication, this variable is set to nil.")
 (declare-function x-get-selection-internal "xselect.c"
 		  (selection-symbol target-type &optional time-stamp))
 
-;; This is for temporary compatibility with pre-release Emacs 19.
-(defalias 'x-selection 'x-get-selection)
+;; Only declared obsolete in 23.3.
+(define-obsolete-function-alias 'x-selection 'x-get-selection "at least 19.34")
+
 (defun x-get-selection (&optional type data-type)
   "Return the value of an X Windows selection.
 The argument TYPE (default `PRIMARY') says which selection,

@@ -34,6 +34,8 @@
 (require 'gnus-int)
 (require 'gnus-range)
 
+(autoload 'gnus-group-make-nnir-group "nnir")
+
 (defcustom gnus-server-mode-hook nil
   "Hook run in `gnus-server-mode' buffers."
   :group 'gnus-server
@@ -164,6 +166,8 @@ If nil, a faster, but more primitive, buffer is used instead."
     "p" previous-line
 
     "g" gnus-server-regenerate-server
+
+    "G" gnus-group-make-nnir-group
 
     "z" gnus-server-compact-server
 

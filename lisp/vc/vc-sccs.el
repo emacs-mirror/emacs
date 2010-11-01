@@ -237,7 +237,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
       (stringp (vc-sccs-search-project-dir (or (file-name-directory file) "")
 					   (file-name-nondirectory file)))))
 
-(defun vc-sccs-checkin (files rev comment &optional extra-args-ignored)
+(defun vc-sccs-checkin (files rev comment)
   "SCCS-specific version of `vc-backend-checkin'."
   (dolist (file (vc-expand-dirs files))
     (apply 'vc-sccs-do-command nil 0 "delta" (vc-name file)

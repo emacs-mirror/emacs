@@ -83,8 +83,8 @@
      (define-key global-map [menu-bar help-menu]
        (cons (purecopy "Info") menu-bar-help-menu)))
 
-;; This alias is for compatibility with 19.28 and before.
-(defvar menu-bar-files-menu menu-bar-file-menu)
+;; Only declared obsolete (and only made a proper alias) in 23.3.
+(define-obsolete-variable-alias 'menu-bar-files-menu 'menu-bar-file-menu "22.1")
 
 ;; This is referenced by some code below; it is defined in uniquify.el
 (defvar uniquify-buffer-name-style)
@@ -2073,7 +2073,8 @@ With a numeric argument, if the argument is positive,
 turn on menu bars; otherwise, turn off menu bars."
   :init-value t
   :global t
-  :group 'frames
+  ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
+  :variable menu-bar-mode
 
   ;; Turn the menu-bars on all frames on or off.
   (let ((val (if menu-bar-mode 1 0)))

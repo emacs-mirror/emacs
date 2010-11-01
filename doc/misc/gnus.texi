@@ -1020,22 +1020,6 @@ Gnus will see whether @code{gnus-nntpserver-file}
 If that fails as well, Gnus will try to use the machine running Emacs
 as an @acronym{NNTP} server.  That's a long shot, though.
 
-@vindex gnus-nntp-server
-If @code{gnus-nntp-server} is set, this variable will override
-@code{gnus-select-method}.  You should therefore set
-@code{gnus-nntp-server} to @code{nil}, which is what it is by default.
-
-@vindex gnus-secondary-servers
-@vindex gnus-nntp-server
-You can also make Gnus prompt you interactively for the name of an
-@acronym{NNTP} server.  If you give a non-numerical prefix to @code{gnus}
-(i.e., @kbd{C-u M-x gnus}), Gnus will let you choose between the servers
-in the @code{gnus-secondary-servers} list (if any).  You can also just
-type in the name of any server you feel like visiting.  (Note that this
-will set @code{gnus-nntp-server}, which means that if you then @kbd{M-x
-gnus} later in the same Emacs session, Gnus will contact the same
-server.)
-
 @findex gnus-group-browse-foreign-server
 @kindex B (Group)
 However, if you use one @acronym{NNTP} server regularly and are just
@@ -5204,24 +5188,6 @@ used for fetching the file.
 If fetching from the first site is unsuccessful, Gnus will attempt to go
 through @code{gnus-group-faq-directory} and try to open them one by one.
 
-@item H C
-@kindex H C (Group)
-@findex gnus-group-fetch-control
-@vindex gnus-group-fetch-control-use-browse-url
-@cindex control message
-Fetch the control messages for the group from the archive at
-@code{ftp.isc.org} (@code{gnus-group-fetch-control}).  Query for a
-group if given a prefix argument.
-
-If @code{gnus-group-fetch-control-use-browse-url} is non-@code{nil},
-Gnus will open the control messages in a browser using
-@code{browse-url}.  Otherwise they are fetched using @code{ange-ftp}
-and displayed in an ephemeral group.
-
-Note that the control messages are compressed.  To use this command
-you need to turn on @code{auto-compression-mode} (@pxref{Compressed
-Files, ,Compressed Files, emacs, The Emacs Manual}).
-
 @item H d
 @itemx C-c C-d
 @c @icon{gnus-group-describe-group}
@@ -6187,8 +6153,9 @@ Scroll the current article one line backward
 @vindex gnus-summary-show-article-charset-alist
 (Re)fetch the current article (@code{gnus-summary-show-article}).  If
 given a prefix, fetch the current article, but don't run any of the
-article treatment functions.  This will give you a ``raw'' article, just
-the way it came from the server.
+article treatment functions.  If given a prefix twice (i.e., @kbd{C-u
+C-u g'}), show a completely ``raw'' article, just the way it came from
+the server.
 
 @cindex charset, view article with different charset
 If given a numerical prefix, you can do semi-manual charset stuff.
@@ -13462,14 +13429,20 @@ the headers of the article; if the value is @code{nil}, the header
 name will be removed.  If the attribute name is @code{eval}, the form
 is evaluated, and the result is thrown away.
 
-The attribute value can be a string (used verbatim), a function with
-zero arguments (the return value will be used), a variable (its value
-will be used) or a list (it will be @code{eval}ed and the return value
-will be used).  The functions and sexps are called/@code{eval}ed in the
-message buffer that is being set up.  The headers of the current article
-are available through the @code{message-reply-headers} variable, which
-is a vector of the following headers: number subject from date id
-references chars lines xref extra.
+The attribute value can be a string, a function with zero arguments
+(the return value will be used), a variable (its value will be used)
+or a list (it will be @code{eval}ed and the return value will be
+used).  The functions and sexps are called/@code{eval}ed in the
+message buffer that is being set up.  The headers of the current
+article are available through the @code{message-reply-headers}
+variable, which is a vector of the following headers: number subject
+from date id references chars lines xref extra.
+
+In the case of a string value, if the @code{match} is a regular
+expression, a @samp{gnus-match-substitute-replacement} is proceed on
+the value to replace the positional parameters @samp{\@var{n}} by the
+corresponding parenthetical matches (see @xref{Replacing the Text that
+Matched, , Text Replacement, elisp, The Emacs Lisp Reference Manual}.)
 
 @vindex message-reply-headers
 
@@ -14944,6 +14917,11 @@ use the value of the @code{nnmail-split-methods} variable.
 
 @item nnimap-split-fancy
 Uses the same syntax as @code{nnmail-split-fancy}.
+
+@item nnimap-unsplittable-articles
+List of flag symbols to ignore when doing splitting.  That is,
+articles that have these flags won't be considered when splitting.
+The default is @samp{(%Deleted %Seen)}.
 
 @end table
 
@@ -30102,11 +30080,11 @@ that means:
 (setq gnus-read-active-file 'some)
 @end lisp
 
-On the other hand, if the manual says ``set @code{gnus-nntp-server} to
-@samp{nntp.ifi.uio.no}'', that means:
+On the other hand, if the manual says ``set @code{gnus-nntp-server-file} to
+@samp{/etc/nntpserver}'', that means:
 
 @lisp
-(setq gnus-nntp-server "nntp.ifi.uio.no")
+(setq gnus-nntp-server-file "/etc/nntpserver")
 @end lisp
 
 So be careful not to mix up strings (the latter) with symbols (the

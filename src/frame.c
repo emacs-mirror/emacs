@@ -4571,8 +4571,16 @@ or call the function `menu-bar-mode'.  */);
   Vmenu_bar_mode = Qt;
 
   DEFVAR_LISP ("tool-bar-mode", &Vtool_bar_mode,
-               doc: /* Non-nil if Tool-Bar mode is enabled.  */);
+               doc: /* Non-nil if Tool-Bar mode is enabled.
+See the command `tool-bar-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `tool-bar-mode'.  */);
+#ifdef HAVE_WINDOW_SYSTEM
   Vtool_bar_mode = Qt;
+#else
+  Vtool_bar_mode = Qnil;
+#endif
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,
 		 doc: /* Minibufferless frames use this frame's minibuffer.

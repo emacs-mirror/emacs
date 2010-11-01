@@ -160,7 +160,8 @@ CC Mode
 This manual is for CC Mode in Emacs.
 
 Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -201,9 +202,8 @@ developing GNU and promoting software freedom.''
 @vskip 0pt plus 1filll
 @insertcopying
 
-This manual was generated from cc-mode.texi, which can be downloaded
-from
-@url{http://cvs.savannah.gnu.org/viewcvs/emacs/emacs/doc/misc/cc-mode.texi}.
+This manual was generated from cc-mode.texi, which is distributed with Emacs,
+or can be downloaded from @url{http://savannah.gnu.org/projects/emacs/}.
 @end titlepage
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -7015,6 +7015,3 @@ Since most @ccmode{} variables are prepended with the string
 
 @bye
 
-@ignore
-   arch-tag: c4cab162-5e57-4366-bdce-4a9db2fc97f0
-@end ignore

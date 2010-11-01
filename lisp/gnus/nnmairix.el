@@ -1357,7 +1357,7 @@ If ALL is t, return also the unopened/failed ones."
 		 (not (member (car server) gnus-ephemeral-servers))
 		 (not (member (gnus-method-to-server (car server)) occ)))
 	(push
-	 (list mserver)
+	 mserver
 	 openedserver)))
     openedserver))
 

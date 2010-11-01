@@ -384,6 +384,14 @@ fixed 123 23.0.60
 *** To remove a "fixed" mark:
 notfixed 123 23.0.60
 
+*** To make a bug as present in a particular version:
+found 123 23.2
+NB if there is no specified "fixed" version, or if there is one and it
+is earlier than the found version, this reopens a closed bug.
+
+The leading "23.1;" that M-x report-emacs-bug adds to bug subjects
+automatically sets a found version (if none is explicitly specified).
+
 *** To assign or reassign a bug to a package or list of packages:
 reassign 1234 emacs
 

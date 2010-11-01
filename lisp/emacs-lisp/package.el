@@ -1037,10 +1037,13 @@ The variable `package-load-list' controls which packages to load."
 (defun describe-package (package)
   "Display the full documentation of PACKAGE (a symbol)."
   (interactive
-   (let* ((packages (append (mapcar 'car package-alist)
+   (let* ((guess (function-called-at-point))
+	  packages val)
+     ;; Initialize the package system if it's not.
+     (unless package-alist
+       (package-initialize))
+     (setq packages (append (mapcar 'car package-alist)
 			    (mapcar 'car package-archive-contents)))
-	  (guess (function-called-at-point))
-	  val)
      (unless (memq guess packages)
        (setq guess nil))
      (setq packages (mapcar 'symbol-name packages))
@@ -1617,6 +1620,9 @@ list; the default is to display everything in `package-alist'."
 Fetches the updated list of packages before displaying.
 The list is displayed in a buffer named `*Packages*'."
   (interactive)
+  ;; Initialize the package system if necessary.
+  (unless package-alist
+    (package-initialize))
   (package-refresh-contents)
   (package--list-packages))
 

@@ -1,7 +1,7 @@
 ;;; cus-start.el --- define customization properties of builtins
 ;;
-;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -34,6 +34,19 @@
 
 ;;; Code:
 
+;; Elements of this list have the form:
+;; SYMBOL GROUP TYPE VERSION REST...
+;; SYMBOL is the name of the variable.
+;; GROUP is the custom group to which it belongs (may also be a list
+;; of groups)
+;; TYPE is the defcustom :type.
+;; VERSION is the defcustom :version (or nil).
+;; REST is a set of :KEYWORD VALUE pairs.  Accepted :KEYWORDs are:
+;; :standard - standard value for SYMBOL (else use current value)
+;; :set - custom-set property
+;; :risky - risky-local-variable property
+;; :safe - safe-local-variable property
+;; :tag - custom-tag property
 (let ((all '(;; alloc.c
 	     (gc-cons-threshold alloc integer)
 	     (garbage-collection-messages alloc boolean)
@@ -97,10 +110,15 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (line-spacing display (choice (const :tag "none" nil) integer)
 			   "22.1")
 	     (cursor-in-non-selected-windows
-	      cursor boolean nil t :tag "Cursor In Non-selected Windows"
+	      cursor boolean nil
+	      :tag "Cursor In Non-selected Windows"
 	      :set #'(lambda (symbol value)
 		       (set-default symbol value)
 		       (force-mode-line-update t)))
+	     (transient-mark-mode editing-basics boolean nil
+				  :standard (not noninteractive)
+				  :initialize custom-initialize-delay
+				  :set custom-set-minor-mode)
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
@@ -171,6 +189,36 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
              ;; fileio.c
              (delete-by-moving-to-trash auto-save boolean "23.1")
 	     (auto-save-visited-file-name auto-save boolean)
+	     ;; filelock.c
+	     (temporary-file-directory
+	      ;; Darwin section added 24.1, does not seem worth :version bump.
+	      files directory nil
+	      :standard
+	      (file-name-as-directory
+	       ;; FIXME ? Should there be Ftemporary_file_directory to do this
+	       ;; more robustly (cf set_local_socket in emacsclient.c).
+	       ;; It could be used elsewhere, eg Fcall_process_region,
+	       ;; server-socket-dir.  See bug#7135.
+	       (cond ((memq system-type '(ms-dos windows-nt))
+		      (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP")
+			  "c:/temp"))
+		     ((eq system-type 'darwin)
+		      (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
+			  ;; See bug#7135.
+			  (let ((tmp (ignore-errors
+				       (shell-command-to-string
+					"getconf DARWIN_USER_TEMP_DIR"))))
+			    (and (stringp tmp)
+				 (setq tmp (replace-regexp-in-string
+					    "\n\\'" "" tmp))
+				 ;; Handles "getconf: Unrecognized variable..."
+				 (file-directory-p tmp)
+				 tmp))
+			  "/tmp"))
+		     (t
+		      (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
+			  "/tmp"))))
+	      :initialize custom-initialize-delay)
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "22.1")
@@ -185,6 +233,13 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					    (other :tag "hidden by keypress" 1))
 			      "22.1")
 	     (make-pointer-invisible mouse boolean "23.2")
+	     (menu-bar-mode frames boolean nil
+			    ;; FIXME?
+;			    :initialize custom-initialize-default
+			    :set custom-set-minor-mode)
+	     (tool-bar-mode (frames mouse) boolean nil
+;			    :initialize custom-initialize-default
+			    :set custom-set-minor-mode)
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; indent.c
@@ -332,7 +387,7 @@ since it could result in memory overflow and make Emacs crash."
 				  (other :tag "Always" t))
 				 "23.1")
 	     ;; xdisp.c
-	     (show-trailing-whitespace whitespace-faces boolean nil nil
+	     (show-trailing-whitespace whitespace-faces boolean nil
 				       :safe booleanp)
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
@@ -408,13 +463,13 @@ since it could result in memory overflow and make Emacs crash."
 	  group (nth 1 this)
 	  type (nth 2 this)
 	  version (nth 3 this)
+	  rest (nthcdr 4 this)
 	  ;; If we did not specify any standard value expression above,
 	  ;; use the current value as the standard value.
-	  standard (if (nthcdr 4 this)
-		       (nth 4 this)
-		     (when (default-boundp symbol)
-		       (funcall quoter (default-value symbol))))
-	  rest (nthcdr 5 this)
+	  standard (if (setq prop (memq :standard rest))
+		       (cadr prop)
+		     (if (default-boundp symbol)
+			 (funcall quoter (default-value symbol))))
 	  ;; Don't complain about missing variables which are
 	  ;; irrelevant to this platform.
 	  native-p (save-match-data
@@ -452,21 +507,28 @@ since it could result in memory overflow and make Emacs crash."
 	  (put symbol 'safe-local-variable (cadr prop)))
       (if (setq prop (memq :risky rest))
 	  (put symbol 'risky-local-variable (cadr prop)))
-      ;; If this is NOT while dumping Emacs,
-      ;; set up the rest of the customization info.
+      (if (setq prop (memq :set rest))
+	  (put symbol 'custom-set (cadr prop)))
+      ;; Note this is the _only_ initialize property we handle.
+      (if (eq (cadr (memq :initialize rest)) 'custom-initialize-delay)
+	  (push symbol custom-delayed-init-variables))
+      ;; If this is NOT while dumping Emacs, set up the rest of the
+      ;; customization info.  This is the stuff that is not needed
+      ;; until someone does M-x customize etc.
       (unless purify-flag
-	;; Add it to the right group.
-	(custom-add-to-group group symbol 'custom-variable)
+	;; Add it to the right group(s).
+	(if (listp group)
+	    (dolist (g group)
+	      (custom-add-to-group g symbol 'custom-variable))
+	  (custom-add-to-group group symbol 'custom-variable))
 	;; Set the type.
 	(put symbol 'custom-type type)
-	(put symbol 'custom-version version)
+	(if version (put symbol 'custom-version version))
 	(while rest
 	  (setq prop (car rest)
 		propval (cadr rest)
 		rest (nthcdr 2 rest))
-	  (cond ((memq prop '(:risky :safe))) ; handled above
-		((eq prop :set)
-		 (put symbol 'custom-set propval))
+	  (cond ((memq prop '(:standard :risky :safe :set))) ; handled above
 		((eq prop :tag)
 		 (put symbol 'custom-tag propval))))))))
 
