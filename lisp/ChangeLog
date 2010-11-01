@@ -1,5 +1,7 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/ispell.el (comment-add): Declare.
+
 	* net/gnutls.el (gnutls-boot, gnutls-errorp, gnutls-error-string):
 	Declare.
 
