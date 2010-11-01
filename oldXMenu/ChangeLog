@@ -1,4 +1,4 @@
-2010-11-01  Elias Pipping  <pipping.elias@googlemail.com>
+2010-11-01  Elias Pipping  <pipping.elias@googlemail.com>  (tiny change)
 
 	Make Emacs compile with clang (bug#7309).
 	* XMakeAssoc.c (XMakeAssoc):
