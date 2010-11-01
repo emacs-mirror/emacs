@@ -314,7 +314,7 @@ its parents."
                   (directory-file-name dir))))
     (eq dir t)))
 
-(defun vc-cvs-checkin (files rev comment  &optional extra-args-ignored)
+(defun vc-cvs-checkin (files rev comment)
   "CVS-specific version of `vc-backend-checkin'."
   (unless (or (not rev) (vc-cvs-valid-revision-number-p rev))
     (if (not (vc-cvs-valid-symbolic-tag-name-p rev))

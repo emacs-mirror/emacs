@@ -1,3 +1,13 @@
+2010-10-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc-arch.el (vc-arch-checkin):
+	* vc/vc-cvs.el (vc-cvs-checkin):
+	* vc/vc-mtn.el (vc-mtn-checkin):
+	* vc/vc-rcs.el (vc-rcs-checkin):
+	* vc/vc-sccs.el (vc-sccs-checkin):
+	* vc/vc-svn.el (vc-svn-checkin): Remove optional extra arg, unused
+	since 2010-04-21 commit by Stefan Monnier.
+
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-recompile-file): Fix previous change.
