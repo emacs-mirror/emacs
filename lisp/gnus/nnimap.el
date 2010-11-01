@@ -299,7 +299,8 @@ textual parts.")
 			(* 5 60)))
 	    (nnimap-send-command "NOOP")))))))
 
-(declare-function gnutls-negotiate "subr" (fn file &optional arglist fileonly))
+(declare-function gnutls-negotiate "gnutls"
+		  (proc type &optional priority-string trustfiles keyfiles))
 
 (defun nnimap-open-connection (buffer)
   (unless nnimap-keepalive-timer

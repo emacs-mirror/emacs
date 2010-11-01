@@ -1,5 +1,9 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* faces.el (xw-defined-colors, x-setup-function-keys):
+	* mouse-sel.el (x-select-text):
+	* term/w32console.el (x-setup-function-keys): Update declarations.
+
 	* progmodes/ruby-mode.el (ruby-syntax-propertize-heredoc): Declare.
 
 	* textmodes/ispell.el (comment-add): Declare.

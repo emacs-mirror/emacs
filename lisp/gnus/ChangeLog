@@ -1,3 +1,8 @@
+2010-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* nnimap.el (gnutls-negotiate):
+	* nntp.el (netrc-parse): Fix declarations.
+
 2010-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el (gnus-string-match-p): New function, that is an alias to
