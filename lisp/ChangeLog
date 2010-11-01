@@ -1,3 +1,11 @@
+2010-11-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-start): New arg INHIBIT-PROMPT prevents asking
+	user for confirmation.
+	(server-force-stop): Use it.
+	(server-start): Use server-force-stop for kill-emacs-hook, to
+	avoid user interaction while killing Emacs.
+
 2010-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/log-edit.el (log-edit-rewrite-fixes): New var.
