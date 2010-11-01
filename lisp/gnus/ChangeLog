@@ -5,6 +5,7 @@
 
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* nnmail.el (gnus-activate-group):
 	* nnimap.el (gnutls-negotiate):
 	* nntp.el (netrc-parse): Fix declarations.
 
