@@ -1,8 +1,8 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
-;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997,
+;;   1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -3546,16 +3546,6 @@ that that variable is buffer-local to the summary buffers."
 					    gnus-valid-select-methods)))
 		 (equal (nth 1 m1) (nth 1 m2)))))))
 
-(defun gnus-methods-sloppily-equal (m1 m2)
-  ;; Same method.
-  (or
-   (eq m1 m2)
-   ;; Type and name are equal.
-   (and
-    (eq (car m1) (car m2))
-    (equal (cadr m1) (cadr m2))
-    (gnus-sloppily-equal-method-parameters m1 m2))))
-
 (defsubst gnus-sloppily-equal-method-parameters (m1 m2)
   ;; Check parameters for sloppy equalness.
   (let ((p1 (copy-sequence (cddr m1)))
@@ -3583,6 +3573,16 @@ that that variable is buffer-local to the summary buffers."
 		(return nil))))))
       ;; If p2 now is empty, they were equal.
       (null p2))))
+
+(defun gnus-methods-sloppily-equal (m1 m2)
+  ;; Same method.
+  (or
+   (eq m1 m2)
+   ;; Type and name are equal.
+   (and
+    (eq (car m1) (car m2))
+    (equal (cadr m1) (cadr m2))
+    (gnus-sloppily-equal-method-parameters m1 m2))))
 
 (defun gnus-server-equal (m1 m2)
   "Say whether two methods are equal."

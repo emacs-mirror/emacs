@@ -1,5 +1,7 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* gnus.el (gnus-sloppily-equal-method-parameters): Move defn before use.
+
 	* sieve-manage.el: Require 'cl when compiling.
 
 	* gnus-util.el (iswitchb-read-buffer): Declare rather than autoload.
