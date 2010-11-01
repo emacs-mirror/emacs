@@ -30,6 +30,10 @@
 
 ;;; Code:
 
+;; For Emacs <22.2 and XEmacs.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
 (require 'browse-url)
 (unless (aref (char-category-set (make-char 'japanese-jisx0208 33 35)) ?>)
@@ -411,6 +415,10 @@ redirects somewhere else."
 		     image)))
       image)))
 
+;; url-cache-extract autoloads url-cache.
+(declare-function url-cache-create-filename "url-cache" (url))
+(autoload 'mm-disable-multibyte "mm-util")
+
 (defun shr-get-image-data (url)
   "Get image data for URL.
 Return a string with image data."
@@ -427,6 +435,8 @@ Return a string with image data."
   (shr-ensure-paragraph)
   (apply #'shr-fontize-cont cont types)
   (shr-ensure-paragraph))
+
+(autoload 'widget-convert-button "wid-edit")
 
 (defun shr-urlify (start url)
   (widget-convert-button

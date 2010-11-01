@@ -1,5 +1,9 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* shr.el (declare-function): Add compat stub.
+	(url-cache-create-filename): Declare.
+	(mm-disable-multibyte, widget-convert-button): Autoload.
+
 	* smime.el (ldap-search): Declare.
 	(smime-cert-by-ldap-1): Require ldap on Emacs.
 
