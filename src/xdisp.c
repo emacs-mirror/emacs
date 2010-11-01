@@ -5754,7 +5754,7 @@ static int (* get_next_element[NUM_IT_METHODS]) (struct it *it) =
    get_next_display_element for each character element, and from
    x_produce_glyphs when no suitable font was found.  */
 
-static Lisp_Object
+Lisp_Object
 lookup_glyphless_char_display (int c, struct it *it)
 {
   Lisp_Object glyphless_method = Qnil;
@@ -5780,7 +5780,6 @@ lookup_glyphless_char_display (int c, struct it *it)
       /* This method can't be used for the no-font case.  */
       glyphless_method = Qempty_box;
     }
-  it->what = IT_GLYPHLESS;
   if (EQ (glyphless_method, Qthin_space))
     it->glyphless_method = GLYPHLESS_DISPLAY_THIN_SPACE;
   else if (EQ (glyphless_method, Qempty_box))
@@ -5795,6 +5794,7 @@ lookup_glyphless_char_display (int c, struct it *it)
       glyphless_method = Qnil;
       goto retry;
     }
+  it->what = IT_GLYPHLESS;
   return glyphless_method;
 }
 
@@ -5806,9 +5806,9 @@ static struct frame *last_escape_glyph_frame = NULL;
 static unsigned last_escape_glyph_face_id = (1 << FACE_ID_BITS);
 static int last_escape_glyph_merged_face_id = 0;
 
-static struct frame *last_glyphless_glyph_frame = NULL;
-static unsigned last_glyphless_glyph_face_id = (1 << FACE_ID_BITS);
-static int last_glyphless_glyph_merged_face_id = 0;
+struct frame *last_glyphless_glyph_frame = NULL;
+unsigned last_glyphless_glyph_face_id = (1 << FACE_ID_BITS);
+int last_glyphless_glyph_merged_face_id = 0;
 
 int
 get_next_display_element (struct it *it)
@@ -22329,8 +22329,8 @@ append_glyphless_glyph (struct it *it, int face_id, int for_no_font, int len,
 
 /* Produce a glyph for a glyphless character for iterator IT.
    IT->glyphless_method specifies which method to use for displaying
-   the glyph.  See the description of enum glyphless_display_method in
-   dispextern.h for the default of the display methods.
+   the character.  See the description of enum
+   glyphless_display_method in dispextern.h for the detail.
 
    FOR_NO_FONT is nonzero if and only if this is for a character for
    which no font was found.  ACRONYM, if non-nil, is an acronym string

@@ -3021,7 +3021,7 @@ extern EMACS_INT underline_minimum_offset;
 extern Lisp_Object Vglyphless_char_display;
 
 extern void reseat_at_previous_visible_line_start (struct it *);
-
+extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern int calc_pixel_width_or_height (double *, struct it *, Lisp_Object,
                                        struct font *, int, int *);
 

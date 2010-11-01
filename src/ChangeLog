@@ -1,3 +1,21 @@
+2010-11-01  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (lookup_glyphless_char_display): Extern it.
+
+	* termhooks.h (struct terminal): New member charset_list.
+
+	* coding.c (Fset_terminal_coding_system_internal): Set the
+	`charset_list' member of struct terminal.
+
+	* term.c (produce_glyphs): Handle the case it->what ==
+	IT_GLYPHLESS.
+	(append_glyphless_glyph, produce_glyphless_glyph): New functions.
+
+	* xdisp.c (lookup_glyphless_char_display): Make it non-static.
+	(lookup_glyphless_char_display): Set it->what at the end.
+	(last_glyphless_glyph_frame, last_glyphless_glyph_face_id)
+	(last_glyphless_glyph_merged_face_id): Make them non-static.
+
 2010-10-29  Kenichi Handa  <handa@m17n.org>
 
 	* w32gui.h (STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2): Surround
