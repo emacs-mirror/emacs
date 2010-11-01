@@ -16,6 +16,9 @@
 	(last_glyphless_glyph_frame, last_glyphless_glyph_face_id)
 	(last_glyphless_glyph_merged_face_id): Make them non-static.
 
+	* w32term.c (x_draw_glyphless_glyph_string_foreground): Fix
+	the arg with_background for font->driver->draw.
+
 2010-10-29  Kenichi Handa  <handa@m17n.org>
 
 	* w32gui.h (STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2): Surround

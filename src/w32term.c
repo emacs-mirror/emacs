@@ -1402,6 +1402,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
   struct glyph *glyph = s->first_glyph;
   XChar2b char2b[8];
   int x, i, j;
+  int with_background;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -1416,7 +1417,8 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
   SetTextAlign (s->hdc, TA_BASELINE | TA_LEFT);
 
   s->char2b = char2b;
-
+  with_background = ! (s->for_overlaps
+		       || (s->background_filled_p && s->hl != DRAW_CURSOR));
   for (i = 0; i < s->nchars; i++, glyph++)
     {
       char buf[7], *str = NULL;
@@ -1453,7 +1455,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 	  unsigned code;
 	  HFONT old_font;
 
-	  old_font =  SelectObject (s->hdc, FONT_HANDLE (font));
+	  old_font = SelectObject (s->hdc, FONT_HANDLE (font));
 	  /* It is assured that all LEN characters in STR is ASCII.  */
 	  for (j = 0; j < len; j++)
 	    {
@@ -1463,11 +1465,11 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 	  font->driver->draw (s, 0, upper_len,
 			      x + glyph->slice.glyphless.upper_xoff,
 			      s->ybase + glyph->slice.glyphless.upper_yoff,
-			      0);
+			      with_background);
 	  font->driver->draw (s, upper_len, len,
 			      x + glyph->slice.glyphless.lower_xoff,
 			      s->ybase + glyph->slice.glyphless.lower_yoff,
-			      0);
+			      with_background);
 	  SelectObject (s->hdc, old_font);
 	}
       if (glyph->u.glyphless.method != GLYPHLESS_DISPLAY_THIN_SPACE)
@@ -2369,11 +2371,10 @@ x_draw_glyph_string (struct glyph_string *s)
       break;
 
     case GLYPHLESS_GLYPH:
-      if (s->for_overlaps || (s->cmp_from > 0
-			      && ! s->first_glyph->u.cmp.automatic))
+      if (s->for_overlaps)
 	s->background_filled_p = 1;
       else
-	x_draw_glyph_string_background (s, 1);
+	x_draw_glyph_string_background (s, 0);
       x_draw_glyphless_glyph_string_foreground (s);
       break;
 
