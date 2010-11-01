@@ -1,7 +1,12 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* mail-source.el (nnheader-message, gnus-float-time): Autoload.
+	(mail-source-delete-crash-box): Use gnus-float-time.
+
 	* gnus-dired.el (gnus-completing-read): Autoload.
+
 	* mm-view.el (gnus-rescale-image): Autoload.
+
 	* mm-decode.el (gnus-completing-read, gnus-blocked-images): Autoload.
 
 	* gnus.el (gnus-sloppily-equal-method-parameters): Move defn before use.
