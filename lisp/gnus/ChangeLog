@@ -1,5 +1,7 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* mm-util.el (mm-string-to-multibyte): Simplify.
+
 	* shr.el (declare-function): Add compat stub.
 	(url-cache-create-filename): Declare.
 	(mm-disable-multibyte, widget-convert-button): Autoload.
@@ -662,12 +664,12 @@
 
 	* nnimap.el (gnutls-negotiate): Silence the byte compiler.
 
-	* gnus-art.el, gnus-cache.el, gnus-fun.el, gnus-group.el,
-	gnus-picon.el, gnus-spec.el, gnus-sum.el, gnus-util.el, gnus.el,
-	mail-source.el, message.el, mm-bodies.el, mm-decode.el, mm-extern.el,
-	mm-util.el, mm-view.el, mml-smime.el, mml.el, mml1991.el, mml2015.el,
-	nnfolder.el, nnheader.el, nnmail.el, nnmaildir.el, nnrss.el, nntp.el,
-	rfc1843.el, sieve-manage.el, smime.el, spam.el:
+	* gnus-art.el, gnus-cache.el, gnus-fun.el, gnus-group.el:
+	* gnus-picon.el, gnus-spec.el, gnus-sum.el, gnus-util.el, gnus.el:
+	* mail-source.el, message.el, mm-bodies.el, mm-decode.el, mm-extern.el:
+	* mm-util.el, mm-view.el, mml-smime.el, mml.el, mml1991.el, mml2015.el:
+	* nnfolder.el, nnheader.el, nnmail.el, nnmaildir.el, nnrss.el, nntp.el:
+	* rfc1843.el, sieve-manage.el, smime.el, spam.el:
 	Fix comment for declare-function.
 
 2010-10-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>

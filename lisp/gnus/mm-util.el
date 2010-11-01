@@ -202,19 +202,10 @@ to the contents of the accessible portion of the buffer."
     (defalias 'mm-decode-coding-region 'decode-coding-region)
     (defalias 'mm-encode-coding-region 'encode-coding-region)))
 
-;; `string-to-multibyte' is available only in Emacs 22.1 or greater.
-(defalias 'mm-string-to-multibyte
-  (cond
-   ((featurep 'xemacs)
-    'identity)
-   ((fboundp 'string-to-multibyte)
-    'string-to-multibyte)
-   (t
-    (lambda (string)
-      "Return a multibyte string with the same individual chars as STRING."
-      (mapconcat
-       (lambda (ch) (mm-string-as-multibyte (char-to-string ch)))
-       string "")))))
+;; `string-to-multibyte' is available only in Emacs.
+(defalias 'mm-string-to-multibyte (if (featurep 'xemacs)
+				      'identity
+				    'string-to-multibyte))
 
 ;; `char-or-char-int-p' is an XEmacs function, not available in Emacs.
 (eval-and-compile
