@@ -1,5 +1,10 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/holidays.el (general-holidays, oriental-holidays)
+	(local-holidays, other-holidays, hebrew-holidays, christian-holidays)
+	(islamic-holidays, bahai-holidays, solar-holidays): Move aliases before
+	the definitions of their targets.
+
 	* emacs-lisp/smie.el (smie): New custom group.
 	(smie-blink-matching-inners, smie-indent-basic): Add :group.
 
