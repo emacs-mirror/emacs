@@ -1,3 +1,29 @@
+2010-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* nsterm.m (ns_update_window_begin, ns_update_window_end)
+	(ns_update_end, x_destroy_window, ns_frame_up_to_date)
+	(ns_dumpglyphs_box_or_relief, ns_maybe_dumpglyphs_background)
+	(ns_dumpglyphs_image, ns_dumpglyphs_stretch)
+	(ns_initialize_display_info, keyDown, mouseMoved, mouseExited):
+	Replace Display_Info with Mouse_HLInfo everywhere where
+	mouse_face_* members were accessed for mouse highlight purposes.
+
+	* xterm.c (x_update_window_begin, x_update_window_end)
+	(x_update_end, XTframe_up_to_date, x_set_mouse_face_gc)
+	(handle_one_xevent, x_free_frame_resources, x_term_init): Replace
+	Display_Info with Mouse_HLInfo everywhere where mouse_face_*
+	members were accessed for mouse highlight purposes.
+
+	* w32term.c (x_update_window_begin, x_update_window_end)
+	(x_update_end, w32_read_socket, x_free_frame_resources)
+	(w32_initialize_display_info): Replace Display_Info with
+	Mouse_HLInfo everywhere where mouse_face_* members were accessed
+	for mouse highlight purposes.
+
+	* xdisp.c (show_mouse_face, note_mode_line_or_margin_highlight)
+	(note_mouse_highlight) [HAVE_WINDOW_SYSTEM]: Don't run GUI code
+	unless the frame is on a window-system.
+
 2010-10-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (get_tool_bar_item, handle_tool_bar_click)

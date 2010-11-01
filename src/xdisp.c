@@ -23732,7 +23732,8 @@ show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
 #ifdef HAVE_WINDOW_SYSTEM
       /* When we've written over the cursor, arrange for it to
 	 be displayed again.  */
-      if (phys_cursor_on_p && !w->phys_cursor_on_p)
+      if (FRAME_WINDOW_P (f)
+	  && phys_cursor_on_p && !w->phys_cursor_on_p)
 	{
 	  BLOCK_INPUT;
 	  display_and_set_cursor (w, 1,
@@ -23745,13 +23746,16 @@ show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* Change the mouse cursor.  */
-  if (draw == DRAW_NORMAL_TEXT && !EQ (hlinfo->mouse_face_window, f->tool_bar_window))
-    FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->text_cursor);
-  else if (draw == DRAW_MOUSE_FACE)
-    FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->hand_cursor);
-  else
-    FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->nontext_cursor);
-
+  if (FRAME_WINDOW_P (f))
+    {
+      if (draw == DRAW_NORMAL_TEXT
+	  && !EQ (hlinfo->mouse_face_window, f->tool_bar_window))
+	FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->text_cursor);
+      else if (draw == DRAW_MOUSE_FACE)
+	FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->hand_cursor);
+      else
+	FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->nontext_cursor);
+    }
 #endif	/* HAVE_WINDOW_SYSTEM */
 }
 
@@ -24678,8 +24682,8 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
   struct frame *f = XFRAME (w->frame);
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 #ifdef HAVE_WINDOW_SYSTEM
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  Cursor cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
+  Display_Info *dpyinfo;
+  Cursor cursor;
 #else
   Cursor cursor = No_Cursor;
 #endif
@@ -24792,18 +24796,24 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	}
 
 #ifdef HAVE_WINDOW_SYSTEM
-      if (NILP (pointer))
-	pointer = Fget_text_property (pos, Qpointer, string);
-
-     /* Change the mouse pointer according to what is under X/Y.  */
-      if (NILP (pointer) && ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE)))
+      if (FRAME_WINDOW_P (f))
 	{
-	  Lisp_Object map;
-	  map = Fget_text_property (pos, Qlocal_map, string);
-	  if (!KEYMAPP (map))
-	    map = Fget_text_property (pos, Qkeymap, string);
-	  if (!KEYMAPP (map))
-	    cursor = dpyinfo->vertical_scroll_bar_cursor;
+	  dpyinfo = FRAME_X_DISPLAY_INFO (f);
+	  cursor  = FRAME_X_OUTPUT (f)->nontext_cursor;
+	  if (NILP (pointer))
+	    pointer = Fget_text_property (pos, Qpointer, string);
+
+	  /* Change the mouse pointer according to what is under X/Y.  */
+	  if (NILP (pointer)
+	      && ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE)))
+	    {
+	      Lisp_Object map;
+	      map = Fget_text_property (pos, Qlocal_map, string);
+	      if (!KEYMAPP (map))
+		map = Fget_text_property (pos, Qkeymap, string);
+	      if (!KEYMAPP (map))
+		cursor = dpyinfo->vertical_scroll_bar_cursor;
+	    }
 	}
 #endif
 
@@ -24939,7 +24949,8 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	clear_mouse_face (hlinfo);
     }
 #ifdef HAVE_WINDOW_SYSTEM
-  define_frame_cursor1 (f, cursor, pointer);
+  if (FRAME_WINDOW_P (f))
+    define_frame_cursor1 (f, cursor, pointer);
 #endif
 }
 
@@ -25125,7 +25136,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	  if (clear_mouse_face (hlinfo))
 	    cursor = No_Cursor;
 #ifdef HAVE_WINDOW_SYSTEM
-	  if (NILP (pointer))
+	  if (FRAME_WINDOW_P (f) && NILP (pointer))
 	    {
 	      if (area != TEXT_AREA)
 		cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
@@ -25384,7 +25395,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 
 #ifdef HAVE_WINDOW_SYSTEM
       /* Look for a `pointer' property.  */
-      if (NILP (pointer))
+      if (FRAME_WINDOW_P (f) && NILP (pointer))
 	{
 	  /* Check overlays first.  */
 	  for (i = noverlays - 1; i >= 0 && NILP (pointer); --i)
@@ -25433,9 +25444,10 @@ note_mouse_highlight (struct frame *f, int x, int y)
  set_cursor:
 
 #ifdef HAVE_WINDOW_SYSTEM
-  define_frame_cursor1 (f, cursor, pointer);
+  if (FRAME_WINDOW_P (f))
+    define_frame_cursor1 (f, cursor, pointer);
 #else
-  /* This is here to prevent a compiler error, due to "label at end of
+  /* This is here to prevent a compiler error, about "label at end of
      compound statement".  */
   return;
 #endif
