@@ -44,6 +44,10 @@
 (require 'utf7)
 (require 'tls)
 (require 'parse-time)
+(require 'nnmail)
+
+(eval-when-compile
+  (require 'gnus-sum))
 
 (autoload 'auth-source-forget-user-or-password "auth-source")
 (autoload 'auth-source-user-or-password "auth-source")
@@ -287,7 +291,7 @@ textual parts.")
 	(with-current-buffer buffer
 	  (when (and nnimap-object
 		     (nnimap-last-command-time nnimap-object)
-		     (> (time-to-seconds
+		     (> (gnus-float-time
 			 (time-subtract
 			  now
 			  (nnimap-last-command-time nnimap-object)))

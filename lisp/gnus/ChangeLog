@@ -1,5 +1,8 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* nnimap.el: Require nnmail, and gnus-sum when compiling.
+	(nnimap-keepalive): Use gnus-float-time.
+
 	* mail-source.el (nnheader-message, gnus-float-time): Autoload.
 	(mail-source-delete-crash-box): Use gnus-float-time.
 
