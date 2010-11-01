@@ -1145,7 +1145,8 @@ for new groups, and subscribe the new groups as zombies."
         (if (> groups 0)
             (gnus-message 5 "%d new newsgroup%s arrived."
                           groups (if (> groups 1) "s have" " has"))
-          (gnus-message 5 "No new newsgroups."))))))
+          (gnus-message 5 "No new newsgroups."))
+	groups))))
 
 (defun gnus-matches-options-n (group)
   ;; Returns `subscribe' if the group is to be unconditionally
@@ -1243,7 +1244,7 @@ for new groups, and subscribe the new groups as zombies."
       (gnus-message 5 "No new newsgroups"))
     (when got-new
       (setq gnus-newsrc-last-checked-date new-date))
-    got-new))
+    new-newsgroups))
 
 (defun gnus-subscribe-group (group &optional previous method)
   "Subscribe GROUP and put it after PREVIOUS."

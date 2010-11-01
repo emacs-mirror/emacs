@@ -1,3 +1,24 @@
+2010-11-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-group): Store the new updated info.
+	(nnimap-request-group): Select the group when we don't know whether it
+	exists or not.
+
+	* gnus-start.el (gnus-ask-server-for-new-groups): Return the new
+	groups.
+
+	* gnus-group.el (gnus-group-find-new-groups): Display all the new
+	groups.
+
+	* gnus-start.el (gnus-find-new-newsgroups): Return the list of new
+	groups.
+
+	* gnus-cite.el (gnus-article-fill-cited-article): Minimize the
+	long-lines case by only filling the long lines.
+
+	* nnimap.el (nnimap-parse-line): Don't bug out oddly formed replies
+	(bug #7311).
+
 2010-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el: No need to declare `declare-function' since shr.el is for

@@ -545,7 +545,16 @@ longer than the frame width."
 	    (unless do-fill
 	      (setq do-fill (gnus-article-foldable-buffer (cdar marks))))
 	    (when do-fill
-	      (fill-region (point-min) (point-max))))
+	      (if (not long-lines)
+		  (fill-region (point-min) (point-max))
+		(goto-char (point-min))
+		(while (not (eobp))
+		  (end-of-line)
+		  (when (> (current-column) (frame-width))
+		    (save-restriction
+		      (narrow-to-region (line-beginning-position) (point))
+		      (fill-region (point-min) (point-max))))
+		  (forward-line 1)))))
 	  (set-marker (caar marks) nil)
 	  (setq marks (cdr marks)))
 	(when marks

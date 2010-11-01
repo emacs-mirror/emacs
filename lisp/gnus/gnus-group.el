@@ -4186,8 +4186,14 @@ groups.
 With 2 C-u's, use most complete method possible to query the server
 for new groups, and subscribe the new groups as zombies."
   (interactive "p")
-  (gnus-find-new-newsgroups (or arg 1))
-  (gnus-group-list-groups))
+  (let ((new-groups (gnus-find-new-newsgroups (or arg 1)))
+	current-group)
+    (gnus-group-list-groups)
+    (setq current-group (gnus-group-group-name))
+    (dolist (group new-groups)
+      (gnus-group-jump-to-group group))
+    (when current-group
+      (gnus-group-jump-to-group current-group))))
 
 (defun gnus-group-edit-global-kill (&optional article group)
   "Edit the global kill file.

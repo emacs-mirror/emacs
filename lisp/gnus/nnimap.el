@@ -669,7 +669,8 @@ textual parts.")
   (let ((result (nnimap-possibly-change-group
 		 ;; Don't SELECT the group if we're going to select it
 		 ;; later, anyway.
-		 (if dont-check
+		 (if (and dont-check
+			  (assoc group nnimap-current-infos))
 		     nil
 		   group)
 		 server))
@@ -698,7 +699,8 @@ textual parts.")
 				  1 group "SELECT")))))
 	      (when (and info
 			 marks)
-		(nnimap-update-infos marks (list info)))
+		(nnimap-update-infos marks (list info))
+		(nnimap-store-info info (gnus-active (gnus-info-group info))))
 	      (goto-char (point-max))
 	      (let ((uidnext (nth 5 (car marks))))
 		(setq high (or (if uidnext
@@ -1555,12 +1557,16 @@ textual parts.")
 	     (split-string
 	      (buffer-substring
 	       (1+ (point))
-	       (1- (search-forward "]" (line-end-position) 'move)))))
+	       (if (search-forward "]" (line-end-position) 'move)
+		   (1- (point))
+		 (point)))))
 	    ((eql char ?\()
 	     (split-string
 	      (buffer-substring
 	       (1+ (point))
-	       (1- (search-forward ")" (line-end-position) 'move)))))
+	       (if (search-forward ")" (line-end-position) 'move)
+		   (1- (point))
+		 (point)))))
 	    ((eql char ?\")
 	     (forward-char 1)
 	     (buffer-substring
