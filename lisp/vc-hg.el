@@ -256,33 +256,33 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
     (with-current-buffer
 	buffer
       (apply 'vc-hg-command buffer 0 files "log"
-	     (append
+	     (nconc
 	      (when start-revision (list (format "-r%s:" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))
-	      (when shortlog '("--style" "compact"))
+	      (when shortlog (list "--style" "compact"))
 	      vc-hg-log-switches)))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
 (defvar log-view-per-file-logs)
-(defvar vc-short-log)
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
-       (if vc-short-log
-           "^\\([0-9]+\\)\\(?:\\[.*\\]\\)? +\\([0-9a-z]\\{12\\}\\) +\\(\\(?:[0-9]+\\)-\\(?:[0-9]+\\)-\\(?:[0-9]+\\) \\(?:[0-9]+\\):\\(?:[0-9]+\\) \\(?:[-+0-9]+\\)\\) +\\(.*\\)$"
+       (if (eq vc-log-view-type 'short)
+           "^\\([0-9]+\\)\\(\\[.*\\]\\)? +\\([0-9a-z]\\{12\\}\\) +\\(\\(?:[0-9]+\\)-\\(?:[0-9]+\\)-\\(?:[0-9]+\\) \\(?:[0-9]+\\):\\(?:[0-9]+\\) \\(?:[-+0-9]+\\)\\) +\\(.*\\)$"
          "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
-       (if vc-short-log
+       (if (eq vc-log-view-type 'short)
            (append `((,log-view-message-re
                       (1 'log-view-message-face)
-                      (2 'log-view-message-face)
-                      (3 'change-log-date)
-                      (4 'change-log-name))))
+                      (2 'highlight nil lax)
+                      (3 'log-view-message-face)
+                      (4 'change-log-date)
+                      (5 'change-log-name))))
        (append
         log-view-font-lock-keywords
         '(
@@ -298,7 +298,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
           ("^user:[ \t]+\\([A-Za-z0-9_.+-]+\\(?:@[A-Za-z0-9_.-]+\\)?\\)"
            (1 'change-log-email))
           ("^date: \\(.+\\)" (1 'change-log-date))
-            ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
+	  ("^tag: +\\([^ ]+\\)$" (1 'highlight))
+	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
@@ -423,10 +424,16 @@ COMMENT is ignored."
 ;;   "Unregister FILE from hg."
 ;;   (vc-hg-command nil nil file "remove"))
 
+(declare-function log-edit-extract-headers "log-edit" (headers string))
+
 (defun vc-hg-checkin (files rev comment)
   "Hg-specific version of `vc-backend-checkin'.
 REV is ignored."
-  (vc-hg-command nil 0 files  "commit" "-m" comment))
+  (apply 'vc-hg-command nil 0 files
+         (nconc (list "commit" "-m")
+                (log-edit-extract-headers '(("Author" . "--user")
+					    ("Date" . "--date"))
+                                          comment))))
 
 (defun vc-hg-find-revision (file rev buffer)
   (let ((coding-system-for-read 'binary)
@@ -460,8 +467,6 @@ REV is the revision to check out into WORKFILE."
 
 (defvar vc-hg-extra-menu-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [incoming] '(menu-item "Show incoming" vc-hg-incoming))
-    (define-key map [outgoing] '(menu-item "Show outgoing" vc-hg-outgoing))
     map))
 
 (defun vc-hg-extra-menu () vc-hg-extra-menu-map)
@@ -469,14 +474,6 @@ REV is the revision to check out into WORKFILE."
 (defun vc-hg-extra-status-menu () vc-hg-extra-menu-map)
 
 (defvar log-view-vc-backend)
-
-(define-derived-mode vc-hg-outgoing-mode vc-hg-log-view-mode "Hg-Outgoing"
-  "Mode for browsing Hg outgoing changes."
-  (set (make-local-variable 'log-view-vc-backend) 'Hg))
-
-(define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming"
-  "Mode for browsing Hg incoming changes."
-  (set (make-local-variable 'log-view-vc-backend) 'Hg))
 
 (defstruct (vc-hg-extra-fileinfo
             (:copier nil)
@@ -583,33 +580,13 @@ REV is the revision to check out into WORKFILE."
      ;; (vc-hg-dir-extra-header "Global id  : " "id" "-i")
      )))
 
-;; FIXME: this adds another top level menu, instead figure out how to
-;; replace the Log-View menu.
-(easy-menu-define log-view-mode-menu vc-hg-outgoing-mode-map
-  "Hg-outgoing Display Menu"
-  `("Hg-outgoing"
-    ["Push selected"  vc-hg-push]))
+(defun vc-hg-log-incoming (buffer remote-location)
+  (vc-hg-command buffer 1 nil "incoming" "-n" (unless (string= remote-location "")
+						remote-location)))
 
-(easy-menu-define log-view-mode-menu vc-hg-incoming-mode-map
-  "Hg-incoming Display Menu"
-  `("Hg-incoming"
-    ["Pull selected"  vc-hg-pull]))
-
-(defun vc-hg-outgoing ()
-  (interactive)
-  (let ((bname "*Hg outgoing*")
-	(vc-short-log nil))
-    (vc-hg-command bname 1 nil "outgoing" "-n")
-    (pop-to-buffer bname)
-    (vc-hg-outgoing-mode)))
-
-(defun vc-hg-incoming ()
-  (interactive)
-  (let ((bname "*Hg incoming*")
-	(vc-short-log nil))
-    (vc-hg-command bname 0 nil "incoming" "-n")
-    (pop-to-buffer bname)
-    (vc-hg-incoming-mode)))
+(defun vc-hg-log-outgoing (buffer remote-location)
+  (vc-hg-command buffer 1 nil "outgoing" "-n" (unless (string= remote-location "")
+						remote-location)))
 
 (declare-function log-view-get-marked "log-view" ())
 
@@ -618,22 +595,22 @@ REV is the revision to check out into WORKFILE."
   (interactive)
   (let ((marked-list (log-view-get-marked)))
     (if marked-list
-        (vc-hg-command
-         nil 0 nil
-         (cons "push"
+        (apply #'vc-hg-command
+               nil 0 nil
+               "push"
                (apply 'nconc
-                      (mapcar (lambda (arg) (list "-r" arg)) marked-list))))
-         (error "No log entries selected for push"))))
+                      (mapcar (lambda (arg) (list "-r" arg)) marked-list)))
+      (error "No log entries selected for push"))))
 
 (defun vc-hg-pull ()
   (interactive)
   (let ((marked-list (log-view-get-marked)))
     (if marked-list
-        (vc-hg-command
-         nil 0 nil
-         (cons "pull"
+        (apply #'vc-hg-command
+               nil 0 nil
+               "pull"
                (apply 'nconc
-                      (mapcar (lambda (arg) (list "-r" arg)) marked-list))))
+                      (mapcar (lambda (arg) (list "-r" arg)) marked-list)))
       (error "No log entries selected for pull"))))
 
 ;;; Internal functions

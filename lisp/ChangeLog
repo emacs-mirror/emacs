@@ -1,3 +1,188 @@
+2010-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-rewrite-fixes): New var.
+	(log-edit-author): New dynamic var.
+	(log-edit-changelog-ours-p, log-edit-insert-changelog-entries):
+	Use it to return the author if different from committer.
+	(log-edit-insert-changelog): Use them to add Author: and Fixes headers.
+
+2010-10-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* vc/vc-hooks.el (vc-default-mode-line-string): Doc fix.
+
+2010-10-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc.el (vc-deduce-backend): New fun.  Handle diff buffers.
+	(vc-root-diff, vc-print-root-log, vc-log-incoming)
+	(vc-log-outgoing): Use it.
+	(vc-diff-internal): Set diff-vc-backend.
+
+	* vc/diff-mode.el (diff-vc-backend): New var.
+
+2010-10-31  Juri Linkov  <juri@jurta.org>
+
+	* vc/vc.el (vc-diff-internal): Set `revert-buffer-function'
+	buffer-locally to lambda that re-runs the vc diff command.
+	(Bug#6447)
+
+2010-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc/log-view.el (log-view-mode-map): Bind revert-buffer.
+
+	Make 'g' (AKA revert-buffer) rerun VC log, log-incoming and
+	log-outgoing commands.
+	* vc/vc.el (vc-log-internal-common): Add a new argument and use it
+	to create a buffer local revert-buffer-function variable.
+	(vc-print-log-internal, vc-log-incoming, vc-log-outgoing): Pass a
+	revert-buffer-function lambda.
+
+	Improve VC create/retrieve tag/branch.
+	* vc.el (vc-create-tag): Do not read the directory name for VCs
+	with repository revision granularity.  Adjust the tag/branch
+	prompt.  Reset VC properties.
+	(vc-retrieve-tag): Do not read the directory name for VCs
+	with repository revision granularity.  Reset VC properties.
+
+	Add optional support for resetting VC properties.
+	* vc-dispatcher.el (vc-resynch-window): Add new optional argument,
+	call vc-file-clearprops when true.
+	(vc-resynch-buffer): Add new optional argument, pass it down.
+	(vc-resynch-buffers-in-directory): Likewise.
+
+	Improve support for special markup in the VC commit message.
+	* vc-mtn.el (vc-mtn-checkin): Support Author: and Date: markup.
+	* vc-hg.el (vc-hg-checkin): Add support for Date:.
+	* vc-git.el (vc-git-checkin):
+	* vc-bzr.el (vc-bzr-checkin): Likewise.
+
+	Add support for vc-log-incoming, improve vc-log-outgoing for Git.
+	* vc-git.el (vc-git-log-view-mode): Fix font lock for
+	incoming/outgoing logs.
+	(vc-git-log-outgoing, vc-git-log-incoming): New functions.
+
+	* vc-git.el (vc-git-log-outgoing): Use the same format as the
+	short log.
+	(vc-git-log-incoming): Likewise.  Run "git fetch" before the log
+	command
+
+	Add bindings for vc-log-incoming and vc-log-outgoing.
+	* vc-hooks.el (vc-prefix-map): Add bindings for vc-log-incoming
+	and vc-log-outgoing.
+	* vc-dir.el (vc-dir-menu-map): Add menu bindings for vc-log-incoming
+	and vc-log-outgoing.
+
+	Improve state updating for VC tag commands.
+	* vc.el (vc-create-tag, vc-retrieve-tag): Call vc-resynch-buffer
+	to update the state of all buffers in the directory.
+
+2010-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* vc-dir.el (vc-dir): Don't pop-up-windows.  (Bug#6204)
+
+2010-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-checkin, vc-modify-change-comment):
+	Adjust to new vc-start/finish-logentry.
+	(vc-find-conflicted-file): New command.
+	(vc-transfer-file): Adjust to new vc-checkin.
+	(vc-next-action): Improve scoping.
+
+	* vc-git.el (vc-git-checkin): Use log-edit-extract-headers.
+	(vc-git-commits-coding-system): Rename from git-commits-coding-system.
+
+	* vc-dispatcher.el (vc-log-edit): Shorten names for
+	log-edit-show-files.
+
+	* vc-bzr.el (vc-bzr-checkin): Use log-edit-extract-headers.
+	(vc-bzr-conflicted-files): New function.
+
+	* log-edit.el (log-edit-summary, log-edit-header)
+	(log-edit-unknown-header): New faces.
+	(log-edit-headers-alist): New var.
+	(log-edit-header-contents-regexp): New const.
+	(log-edit-match-to-eoh): New function.
+	(log-edit-font-lock-keywords): Use them.
+	(log-edit): Insert a "Summary:" header as default.
+	(log-edit-mode): Mark font-lock rules as case-insensitive.
+	(log-edit-done): Cleanup headers.
+	(log-edit-extract-headers): New function to replace it.
+
+	* vc-dispatcher.el (vc-finish-logentry): Don't mess so badly with
+	the windows/frames.
+
+	* vc-bzr.el (vc-bzr-shelve-apply): Don't use *vc-bzr-shelve*.
+
+	* vc-dir.el (vc-dir-kill-line): New command.
+	(vc-dir-mode-map): Bind it to C-k.
+	(vc-dir-headers): Abbreviate the working dir.
+
+	* vc-git.el (vc-git-revision-table): Include remote branches.
+
+2010-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	New VC methods: vc-log-incoming and vc-log-outgoing.
+	* vc.el (vc-print-log-setup-buttons, vc-log-internal-common)
+	(vc-incoming-outgoing-internal, vc-log-incoming, vc-log-outgoing):
+	New functions.
+	(vc-print-log-internal): Just call vc-log-internal-common.
+	(vc-log-view-type): New permanent local variable.
+
+	* vc-hooks.el (vc-menu-map): Bind vc-log-incoming and vc-log-outgoing.
+
+	* vc-bzr.el (vc-bzr-log-view-mode): Use vc-log-view-type instead
+	of the dynamic bound vc-short-log.
+	(vc-bzr-log-incoming, vc-bzr-log-outgoing): New functions.
+
+	* vc-git.el (vc-git-log-outgoing): New function.
+	(vc-git-log-view-mode): Use vc-log-view-type instead
+	of the dynamic bound vc-short-log.
+
+	* vc-hg.el (vc-hg-log-view-mode): Use vc-log-view-type instead of
+	the dynamic bound vc-short-log.  Highlight the tag.
+	(vc-hg-log-incoming, vc-hg-log-outgoing): New functions.
+	(vc-hg-outgoing, vc-hg-incoming, vc-hg-outgoing-mode):
+	(vc-hg-incoming-mode): Remove.
+	(vc-hg-extra-menu-map): Do not bind vc-hg-incoming and vc-hg-outgoing.
+
+	Fix default-directory for vc-root-diff.
+	* vc.el (vc-root-diff): Bind default-directory to the root
+	directory for the diff command.
+
+2010-10-31  Sam Steingold  <sds@gnu.org>
+
+	* vc-hg.el (vc-hg-push, vc-hg-pull): Use `apply' when calling
+	`vc-hg-command' with a list of flags.
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* vc-bzr.el (vc-bzr-log-edit-mode): Add --fixes support to
+	log-edit-before-checkin-process.
+
+	* vc.el (vc-modify-change-comment): Pass MODE to vc-start-logentry.
+
+	* vc-bzr.el, vc-hg.el (log-edit-mode): Declare.
+
+	* vc-dispatcher.el (vc-start-logentry): Doc fix.
+	(log-view-process-buffer, log-edit-extra-flags): Declare.
+
+2010-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add special markup processing for commit logs.
+	* log-edit.el (log-edit): Add new argument MODE.  Use that mode
+	when non-nil instead of the log-view-mode.
+
+	* vc.el (vc-default-log-edit-mode): New function.
+
+	* vc-dispatcher.el (vc-log-edit): Add a mode argument, pass it to
+	log-edit.
+
+	Support for shelving snapshots and for showing shelves.
+	* vc-bzr.el (vc-bzr-shelve-show, vc-bzr-shelve-show-at-point)
+	(vc-bzr-shelve-apply-and-keep-at-point, vc-bzr-shelve-snapshot):
+	New functions.
+	(vc-bzr-shelve-map, vc-bzr-shelve-menu-map)
+	(vc-bzr-extra-menu-map): Map them.
+
 2010-10-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-insert-file-contents): For root,

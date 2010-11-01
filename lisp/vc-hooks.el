@@ -403,7 +403,7 @@ If the argument is a list, the files must all have the same back end."
 
 
 (defun vc-backend-subdirectory-name (file)
-  "Return where the master and lock FILEs for the current directory are kept."
+  "Return where the repository for the current directory is kept."
   (symbol-name (vc-backend file)))
 
 (defun vc-name (file)
@@ -471,13 +471,13 @@ For registered files, the value returned is one of:
   USER               The current version of the working file is locked by
                      some other USER (a string).
 
-  'needs-update       The file has not been edited by the user, but there is
+  'needs-update      The file has not been edited by the user, but there is
                      a more recent version on the current branch stored
-                     in the master file.
+                     in the repository.
 
   'needs-merge       The file has been edited by the user, and there is also
                      a more recent version on the current branch stored in
-                     the master file.  This state can only occur if locking
+                     the repository.  This state can only occur if locking
                      is not used for the file.
 
   'unlocked-changes  The working version of the file is not locked,
@@ -556,7 +556,7 @@ and does not employ any heuristic at all."
 	unchanged))))
 
 (defun vc-default-workfile-unchanged-p (backend file)
-  "Check if FILE is unchanged by diffing against the master version.
+  "Check if FILE is unchanged by diffing against the repository version.
 Return non-nil if FILE is unchanged."
   (zerop (condition-case err
              ;; If the implementation supports it, let the output
@@ -818,6 +818,9 @@ Format:
   \"BACKEND-REV\"        if the file is up-to-date
   \"BACKEND:REV\"        if the file is edited (or locked by the calling user)
   \"BACKEND:LOCKER:REV\" if the file is locked by somebody else
+  \"BACKEND@REV\"        if the file was locally added
+  \"BACKEND!REV\"        if the file contains conflicts or was removed
+  \"BACKEND?REV\"        if the file is under VC, but is missing
 
 This function assumes that the file is registered."
   (let* ((backend-name (symbol-name backend))
@@ -947,6 +950,8 @@ current, and kill the buffer that visits the link."
     (define-key map "i" 'vc-register)
     (define-key map "l" 'vc-print-log)
     (define-key map "L" 'vc-print-root-log)
+    (define-key map "I" 'vc-log-incoming)
+    (define-key map "O" 'vc-log-outgoing)
     (define-key map "m" 'vc-merge)
     (define-key map "r" 'vc-retrieve-tag)
     (define-key map "s" 'vc-create-tag)
@@ -989,6 +994,12 @@ current, and kill the buffer that visits the link."
     (define-key map [vc-update-change-log]
       `(menu-item ,(purecopy "Update ChangeLog") vc-update-change-log
 		  :help ,(purecopy "Find change log file and add entries from recent version control logs")))
+    (define-key map [vc-log-out]
+      `(menu-item ,(purecopy "Show Outgoing Log") vc-log-outgoing
+		  :help ,(purecopy "Show a log of changes that will be sent with a push operation")))
+    (define-key map [vc-log-in]
+      `(menu-item ,(purecopy "Show Incoming Log") vc-log-incoming
+		  :help ,(purecopy "Show a log of changes that will be received with a pull operation")))
     (define-key map [vc-print-log]
       `(menu-item ,(purecopy "Show History") vc-print-log
 		  :help ,(purecopy "List the change log of the current file set in a window")))

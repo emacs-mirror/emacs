@@ -34,6 +34,42 @@ alt/option key by customizing the value for ns-right-alternate-modifier.
 ** The appt-add command takes an optional argument for the warning time.
 This can be used in place of the default appt-message-warning-time.
 
+** VC and related modes
+
+*** New VC commands: vc-log-incoming, vc-log-outgoing, vc-find-conflicted-file.
+
+**** vc-log-incoming for Git runs "git fetch" so that the necessary
+data is available locally.
+
+**** vc-log-incoming and vc-log-outgoing for Git require version 1.7 (or newer).
+
+*** New key bindings: C-x v I and C-x v O bound to vc-log-incoming and
+vc-log-outgoing, respectively.
+
+*** The 'g' key in VC diff, log, log-incoming and log-outgoing buffers
+reruns the corresponding VC command to compute an up to date version
+of the buffer.
+
+*** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
+
+*** Special markup can be added to log-edit buffers.
+The log-edit buffers are expected to have a format similar to email messages
+with headers of the form:
+  Author: <author of this change>
+  Summary: <one line summary of this change>
+  Fixes: <reference to the bug fixed by this change>
+Some backends handle some of those headers specially, but any unknown header
+is just left as is in the message, so it is not lost.
+
+**** vc-git handles Author: and Date:
+**** vc-hg handles  Author: and Date:
+**** vc-bzr handles Author:, Date: and Fixes:
+**** vc-mtn handles Author: and Date:
+
+*** Pressing g in a *vc-diff* buffer reruns vc-diff, so it will
+produce an up to date diff.
+
+
 ** Obsolete packages
 
 +++
