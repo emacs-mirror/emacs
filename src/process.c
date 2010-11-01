@@ -346,6 +346,9 @@ static int max_keyboard_desc;
 /* The largest descriptor currently in use for gpm mouse input.  */
 static int max_gpm_desc;
 
+/* Non-zero if keyboard input is on hold, zero otherwise.  */
+static int kbd_is_on_hold;
+
 /* Nonzero means delete a process right away if it exits.  */
 static int delete_exited_processes;
 
@@ -4795,7 +4798,11 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	  SELECT_TYPE Ctemp;
 #endif
 
-	  Atemp = input_wait_mask;
+          if (kbd_on_hold_p ())
+            FD_ZERO (&Atemp);
+          else
+            Atemp = input_wait_mask;
+
 	  IF_NON_BLOCKING_CONNECT (Ctemp = connect_wait_mask);
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
@@ -7224,6 +7231,31 @@ keyboard_bit_set (mask)
 
   return 0;
 }
+
+/* Stop reading input from keyboard sources.  */
+
+void
+hold_keyboard_input (void)
+{
+  kbd_is_on_hold = 1;
+}
+
+/* Resume reading input from keyboard sources.  */
+
+void
+unhold_keyboard_input (void)
+{
+  kbd_is_on_hold = 0;
+}
+
+/* Return non-zero if keyboard input is on hold, zero otherwise.  */
+
+int
+kbd_on_hold_p (void)
+{
+  return kbd_is_on_hold;
+}
+
 
 /* Enumeration of and access to system processes a-la ps(1).  */
 
@@ -8039,6 +8071,7 @@ integer or floating point values.
 void
 init_process ()
 {
+  kbd_is_on_hold = 0;
 }
 
 void
