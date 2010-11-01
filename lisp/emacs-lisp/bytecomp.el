@@ -1631,7 +1631,7 @@ or 'no-byte-compile if the file did not need recompilation."
                                 bytecomp-filename "? "))))
         (progn
           (if (and noninteractive (not byte-compile-verbose))
-              (message "Compiling %s..." bytecomp-source))
+              (message "Compiling %s..." bytecomp-filename))
           (byte-compile-file bytecomp-filename load))
       (when load (load bytecomp-filename))
       'no-byte-compile)))
@@ -4349,5 +4349,4 @@ and corresponding effects."
 
 (run-hooks 'bytecomp-load-hook)
 
-;; arch-tag: 9c97b0f0-8745-4571-bfc3-8dceb677292a
 ;;; bytecomp.el ends here

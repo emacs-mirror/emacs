@@ -1,5 +1,7 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-recompile-file): Fix previous change.
+
 	* startup.el (package-enable-at-startup, package-initialize):
 	Silence compiler.
 
