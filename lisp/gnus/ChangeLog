@@ -1,3 +1,8 @@
+2010-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el: No need to declare `declare-function' since shr.el is for
+	only Emacsen that provide `libxml-parse-html-region'.
+
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
 	* nnimap.el (gnutls-negotiate):
