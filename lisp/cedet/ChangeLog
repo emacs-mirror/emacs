@@ -1,3 +1,10 @@
+2010-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/symref/cscope.el (ede-toplevel):
+	* semantic/symref.el (ede-toplevel):
+	* semantic/tag-file.el (ede-toplevel):
+	* ede.el (ede-toplevel): Fix declarations.
+
 2010-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* ede/proj-elisp.el (project-compile-target): Fix previous change.
