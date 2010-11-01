@@ -584,14 +584,14 @@ dos_set_window_size (int *rows, int *cols)
   if (current_rows != *rows || current_cols != *cols)
     {
       struct frame *f = SELECTED_FRAME();
-      struct tty_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-      Lisp_Object window = dpyinfo->mouse_face_window;
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+      Lisp_Object window = hlinfo->mouse_face_window;
 
       if (! NILP (window) && XFRAME (XWINDOW (window)->frame) == f)
 	{
-	  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-	  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-	  dpyinfo->mouse_face_window = Qnil;
+	  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+	  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+	  hlinfo->mouse_face_window = Qnil;
 	}
     }
 
@@ -957,6 +957,7 @@ draw_row_with_mouse_face (struct window *w, int x, struct glyph_row *row,
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct tty_display_info *tty = FRAME_TTY (f);
+  Mouse_HLInfo *hlinfo = &tty->mouse_highlight;
 
   if (hl == DRAW_MOUSE_FACE)
     {
@@ -971,7 +972,7 @@ draw_row_with_mouse_face (struct window *w, int x, struct glyph_row *row,
 		 kstart, kstart + nglyphs - 1, vpos);
 
       mouse_off ();
-      IT_set_face (tty->mouse_face_face_id);
+      IT_set_face (hlinfo->mouse_face_face_id);
       /* Since we are going to change only the _colors_ of already
 	 displayed text, there's no need to go through all the pain of
 	 generating and encoding the text from the glyphs.  Instead,
@@ -1216,7 +1217,8 @@ static void
 IT_update_begin (struct frame *f)
 {
   struct tty_display_info *display_info = FRAME_X_DISPLAY_INFO (f);
-  struct frame *mouse_face_frame = display_info->mouse_face_mouse_frame;
+  Mouse_HLInfo *hlinfo = &display_info->mouse_highlight;
+  struct frame *mouse_face_frame = hlinfo->mouse_face_mouse_frame;
 
   if (display_info->termscript)
     fprintf (display_info->termscript, "\n\n<UPDATE_BEGIN");
@@ -1226,28 +1228,28 @@ IT_update_begin (struct frame *f)
   if (f && f == mouse_face_frame)
     {
       /* Don't do highlighting for mouse motion during the update.  */
-      display_info->mouse_face_defer = 1;
+      hlinfo->mouse_face_defer = 1;
 
       /* If F needs to be redrawn, simply forget about any prior mouse
 	 highlighting.  */
       if (FRAME_GARBAGED_P (f))
-	display_info->mouse_face_window = Qnil;
+	hlinfo->mouse_face_window = Qnil;
 
       /* Can we tell that this update does not affect the window
 	 where the mouse highlight is?  If so, no need to turn off.
 	 Likewise, don't do anything if none of the enabled rows
 	 contains glyphs highlighted in mouse face.  */
-      if (!NILP (display_info->mouse_face_window)
-	  && WINDOWP (display_info->mouse_face_window))
+      if (!NILP (hlinfo->mouse_face_window)
+	  && WINDOWP (hlinfo->mouse_face_window))
 	{
-	  struct window *w = XWINDOW (display_info->mouse_face_window);
+	  struct window *w = XWINDOW (hlinfo->mouse_face_window);
 	  int i;
 
 	  /* If the mouse highlight is in the window that was deleted
 	     (e.g., if it was popped by completion), clear highlight
 	     unconditionally.  */
 	  if (NILP (w->buffer))
-	    display_info->mouse_face_window = Qnil;
+	    hlinfo->mouse_face_window = Qnil;
 	  else
 	    {
 	      for (i = 0; i < w->desired_matrix->nrows; ++i)
@@ -1257,18 +1259,18 @@ IT_update_begin (struct frame *f)
 	    }
 
 	  if (NILP (w->buffer) || i < w->desired_matrix->nrows)
-	    clear_mouse_face (display_info);
+	    clear_mouse_face (hlinfo);
 	}
     }
   else if (mouse_face_frame && !FRAME_LIVE_P (mouse_face_frame))
     {
       /* If the frame with mouse highlight was deleted, invalidate the
 	 highlight info.  */
-      display_info->mouse_face_beg_row = display_info->mouse_face_beg_col = -1;
-      display_info->mouse_face_end_row = display_info->mouse_face_end_col = -1;
-      display_info->mouse_face_window = Qnil;
-      display_info->mouse_face_deferred_gc = 0;
-      display_info->mouse_face_mouse_frame = NULL;
+      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+      hlinfo->mouse_face_window = Qnil;
+      hlinfo->mouse_face_deferred_gc = 0;
+      hlinfo->mouse_face_mouse_frame = NULL;
     }
 
   UNBLOCK_INPUT;
@@ -1281,25 +1283,25 @@ IT_update_end (struct frame *f)
 
   if (dpyinfo->termscript)
     fprintf (dpyinfo->termscript, "\n<UPDATE_END\n");
-  dpyinfo->mouse_face_defer = 0;
+  dpyinfo->mouse_highlight.mouse_face_defer = 0;
 }
 
 static void
 IT_frame_up_to_date (struct frame *f)
 {
-  struct tty_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   Lisp_Object new_cursor, frame_desired_cursor;
   struct window *sw;
 
-  if (dpyinfo->mouse_face_deferred_gc
-      || (f && f == dpyinfo->mouse_face_mouse_frame))
+  if (hlinfo->mouse_face_deferred_gc
+      || (f && f == hlinfo->mouse_face_mouse_frame))
     {
       BLOCK_INPUT;
-      if (dpyinfo->mouse_face_mouse_frame)
-	note_mouse_highlight (dpyinfo->mouse_face_mouse_frame,
-			      dpyinfo->mouse_face_mouse_x,
-			      dpyinfo->mouse_face_mouse_y);
-      dpyinfo->mouse_face_deferred_gc = 0;
+      if (hlinfo->mouse_face_mouse_frame)
+	note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
+			      hlinfo->mouse_face_mouse_x,
+			      hlinfo->mouse_face_mouse_y);
+      hlinfo->mouse_face_deferred_gc = 0;
       UNBLOCK_INPUT;
     }
 
@@ -1844,18 +1846,18 @@ internal_terminal_init (void)
 	  if (colors[1] >= 0 && colors[1] < 16)
 	    FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()) = colors[1];
 	}
-      the_only_display_info.mouse_face_mouse_frame = NULL;
-      the_only_display_info.mouse_face_deferred_gc = 0;
-      the_only_display_info.mouse_face_beg_row =
-	the_only_display_info.mouse_face_beg_col = -1;
-      the_only_display_info.mouse_face_end_row =
-	the_only_display_info.mouse_face_end_col = -1;
-      the_only_display_info.mouse_face_face_id = DEFAULT_FACE_ID;
-      the_only_display_info.mouse_face_window = Qnil;
-      the_only_display_info.mouse_face_mouse_x =
-	the_only_display_info.mouse_face_mouse_y = 0;
-      the_only_display_info.mouse_face_defer = 0;
-      the_only_display_info.mouse_face_hidden = 0;
+      the_only_display_info.mouse_highlight.mouse_face_mouse_frame = NULL;
+      the_only_display_info.mouse_highlight.mouse_face_deferred_gc = 0;
+      the_only_display_info.mouse_highlight.mouse_face_beg_row =
+	the_only_display_info.mouse_highlight.mouse_face_beg_col = -1;
+      the_only_display_info.mouse_highlight.mouse_face_end_row =
+	the_only_display_info.mouse_highlight.mouse_face_end_col = -1;
+      the_only_display_info.mouse_highlight.mouse_face_face_id = DEFAULT_FACE_ID;
+      the_only_display_info.mouse_highlight.mouse_face_window = Qnil;
+      the_only_display_info.mouse_highlight.mouse_face_mouse_x =
+	the_only_display_info.mouse_highlight.mouse_face_mouse_y = 0;
+      the_only_display_info.mouse_highlight.mouse_face_defer = 0;
+      the_only_display_info.mouse_highlight.mouse_face_hidden = 0;
 
       if (have_mouse)	/* detected in dos_ttraw, which see */
 	{
@@ -2443,7 +2445,7 @@ dos_rawgetc (void)
 {
   struct input_event event;
   union REGS regs;
-  struct tty_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (SELECTED_FRAME());
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (SELECTED_FRAME());
   EVENT_INIT (event);
 
 #ifndef HAVE_X_WINDOWS
@@ -2653,10 +2655,10 @@ dos_rawgetc (void)
       if (code == 0)
 	continue;
 
-      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
 	{
-	  clear_mouse_face (dpyinfo);
-	  dpyinfo->mouse_face_hidden = 1;
+	  clear_mouse_face (hlinfo);
+	  hlinfo->mouse_face_hidden = 1;
 	}
 
       if (code >= 0x100)
@@ -2684,10 +2686,10 @@ dos_rawgetc (void)
          might need to update mouse highlight.  */
       if (mouse_last_x != mouse_prev_x || mouse_last_y != mouse_prev_y)
 	{
-	  if (dpyinfo->mouse_face_hidden)
+	  if (hlinfo->mouse_face_hidden)
 	    {
-	      dpyinfo->mouse_face_hidden = 0;
-	      clear_mouse_face (dpyinfo);
+	      hlinfo->mouse_face_hidden = 0;
+	      clear_mouse_face (hlinfo);
 	    }
 
 	  /* Generate SELECT_WINDOW_EVENTs when needed.  */

@@ -1,5 +1,11 @@
 2010-11-01  Eli Zaretskii  <eliz@gnu.org>
 
+	* msdos.c (dos_set_window_size, draw_row_with_mouse_face)
+	(IT_update_begin, IT_update_end, IT_frame_up_to_date)
+	(internal_terminal_init, dos_rawgetc): Replace Display_Info with
+	Mouse_HLInfo everywhere where mouse_face_* members were accessed
+	for mouse highlight purposes.
+
 	* nsterm.m (ns_update_window_begin, ns_update_window_end)
 	(ns_update_end, x_destroy_window, ns_frame_up_to_date)
 	(ns_dumpglyphs_box_or_relief, ns_maybe_dumpglyphs_background)
