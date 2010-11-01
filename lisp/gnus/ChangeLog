@@ -1,5 +1,8 @@
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* smime.el (ldap-search): Declare.
+	(smime-cert-by-ldap-1): Require ldap on Emacs.
+
 	* nnimap.el: Require nnmail, and gnus-sum when compiling.
 	(nnimap-keepalive): Use gnus-float-time.
 
