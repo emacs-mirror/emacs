@@ -1,5 +1,12 @@
 2010-11-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-cite.el (gnus-article-foldable-buffer): Protect against
+	degenerate articles.
+
+	* gnus-sum.el (gnus-print-buffer): Rewrite to use with-temp-buffer.
+	(gnus-print-buffer): Just print the buffer as is, without any copying
+	to a buffer and then re-highlighting.
+
 	* nnimap.el (nnimap-request-group): Store the new updated info.
 	(nnimap-request-group): Select the group when we don't know whether it
 	exists or not.

@@ -9330,41 +9330,26 @@ to save in."
   (ps-despool filename))
 
 (defun gnus-print-buffer ()
-  (let ((buffer (generate-new-buffer " *print*")))
-    (unwind-protect
-	(progn
-	  (copy-to-buffer buffer (point-min) (point-max))
-	  (set-buffer buffer)
-	  (gnus-remove-text-with-property 'gnus-decoration)
-	  (when (gnus-visual-p 'article-highlight 'highlight)
-	    ;; Copy-to-buffer doesn't copy overlay.  So redo
-	    ;; highlight.
-	    (let ((gnus-article-buffer buffer))
-	      (gnus-article-highlight-citation t)
-	      (gnus-article-highlight-signature)
-	      (gnus-article-emphasize)
-	      (gnus-article-delete-invisible-text)))
-	  (let ((ps-left-header
-		 (list
-		  (concat "("
-			  (gnus-summary-print-truncate-and-quote
-			   (mail-header-subject gnus-current-headers)
-			   66) ")")
-		  (concat "("
-			  (gnus-summary-print-truncate-and-quote
-			   (mail-header-from gnus-current-headers)
-			   45) ")")))
-		(ps-right-header
-		 (list
-		  "/pagenumberstring load"
-		  (concat "("
-			  (mail-header-date gnus-current-headers) ")"))))
-	    (gnus-run-hooks 'gnus-ps-print-hook)
-	    (save-excursion
-	      (if ps-print-color-p
-		  (ps-spool-buffer-with-faces)
-		(ps-spool-buffer)))))
-      (kill-buffer buffer))))
+  (let ((ps-left-header
+	 (list
+	  (concat "("
+		  (gnus-summary-print-truncate-and-quote
+		   (mail-header-subject gnus-current-headers)
+		   66) ")")
+	  (concat "("
+		  (gnus-summary-print-truncate-and-quote
+		   (mail-header-from gnus-current-headers)
+		   45) ")")))
+	(ps-right-header
+	 (list
+	  "/pagenumberstring load"
+	  (concat "("
+		  (mail-header-date gnus-current-headers) ")"))))
+    (gnus-run-hooks 'gnus-ps-print-hook)
+    (save-excursion
+      (if ps-print-color-p
+	  (ps-spool-buffer-with-faces)
+	(ps-spool-buffer)))))
 
 (defun gnus-summary-show-complete-article ()
   "Show a complete version of the current article.
