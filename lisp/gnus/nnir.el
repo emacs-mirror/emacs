@@ -1392,7 +1392,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 ;; gmane interface
 (defun nnir-run-gmane (query srv &optional groups)
   "Run a search against a gmane back-end server."
-  (if (string-match-p "gmane" srv)
+  (if (gnus-string-match-p "gmane" srv)
       (let* ((case-fold-search t)
 	     (qstring (cdr (assq 'query query)))
 	     (server (cadr (gnus-server-to-method srv)))

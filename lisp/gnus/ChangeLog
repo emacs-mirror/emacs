@@ -1,3 +1,11 @@
+2010-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-string-match-p): New function, that is an alias to
+	string-match-p in Emacs >=23.
+
+	* gnus-msg.el (gnus-configure-posting-styles)
+	* nnir.el (nnir-run-gmane): Use gnus-string-match-p.
+
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
 	* nnir.el (declare-function): Add compat stub.

@@ -2010,6 +2010,14 @@ This is the definition of match-substitute-replacement in subr.el from GNU Emacs
 				  (match-data t)))
 	  (replace-match replacement fixedcase literal match subexp)))))))
 
+(if (fboundp 'string-match-p)
+    (defalias 'gnus-string-match-p 'string-match-p)
+  (defsubst gnus-string-match-p (regexp string &optional start)
+    "\
+Same as `string-match' except this function does not change the match data."
+    (save-match-data
+      (string-match regexp string start))))
+
 (provide 'gnus-util)
 
 ;;; gnus-util.el ends here

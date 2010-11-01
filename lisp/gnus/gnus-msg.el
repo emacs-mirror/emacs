@@ -1892,7 +1892,7 @@ this is a reply."
 		  (cond
 		   ((stringp value)
 		    (if (and (stringp match)
-			     (string-match-p "\\\\[&[:digit:]]" value)
+			     (gnus-string-match-p "\\\\[&[:digit:]]" value)
 			     (match-beginning 1))
 			(gnus-match-substitute-replacement value nil nil group)
 		      value))
