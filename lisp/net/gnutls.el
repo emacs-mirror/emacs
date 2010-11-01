@@ -1,4 +1,5 @@
 ;;; gnutls.el --- Support SSL/TLS connections through GnuTLS
+
 ;; Copyright (C) 2010 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
@@ -65,6 +66,8 @@ trust and key files, and priority string."
   (let ((proc (open-network-stream name buffer host service)))
     (gnutls-negotiate proc 'gnutls-x509pki)))
 
+(declare-function gnutls-boot "gnutls.c" (proc type proplist))
+
 (defun gnutls-negotiate (proc type &optional priority-string
                               trustfiles keyfiles)
   "Negotiate a SSL/TLS connection.
@@ -94,6 +97,9 @@ KEYFILES is a list of client keys."
      "boot: %s")
 
     proc))
+
+(declare-function gnutls-errorp "gnutls.c" (error))
+(declare-function gnutls-error-string "gnutls.c" (error))
 
 (defun gnutls-message-maybe (doit format &rest params)
   "When DOIT, message with the caller name followed by FORMAT on PARAMS."
