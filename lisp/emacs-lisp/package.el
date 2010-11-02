@@ -1027,7 +1027,8 @@ The variable `package-load-list' controls which packages to load."
   (package-read-all-archive-contents)
   ;; "Deactivate" obsoleted built-in packages
   (dolist (elt package-obsolete-alist)
-    (delq (car elt) package-activated-list))
+    (setq package-activated-list
+	  (delq (car elt) package-activated-list)))
   ;; Try to activate all our packages.
   (dolist (elt package-alist)
     (package-activate (car elt) (package-desc-vers (cdr elt)))))
