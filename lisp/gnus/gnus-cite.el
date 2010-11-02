@@ -544,17 +544,20 @@ longer than the frame width."
 		use-hard-newlines)
 	    (unless do-fill
 	      (setq do-fill (gnus-article-foldable-buffer (cdar marks))))
+	    ;; Note: the XEmacs version of `fill-region' inserts a newline
+	    ;; unless the region ends with a newline.
 	    (when do-fill
 	      (if (not long-lines)
 		  (fill-region (point-min) (point-max))
 		(goto-char (point-min))
 		(while (not (eobp))
 		  (end-of-line)
-		  (when (> (current-column) (frame-width))
+		  (when (prog1
+			    (> (current-column) (window-width))
+			  (forward-line 1))
 		    (save-restriction
-		      (narrow-to-region (line-beginning-position) (point))
-		      (fill-region (point-min) (point-max))))
-		  (forward-line 1)))))
+		      (narrow-to-region (line-beginning-position 0) (point))
+		      (fill-region (point-min) (point-max))))))))
 	  (set-marker (caar marks) nil)
 	  (setq marks (cdr marks)))
 	(when marks
@@ -581,7 +584,7 @@ longer than the frame width."
 	    (push elem columns))
 	  (setcdr elem (1+ (cdr elem)))))
       (end-of-line)
-      (when (> (current-column) (frame-width))
+      (when (> (current-column) (window-width))
 	(setq do-fill t))
       (forward-line 1))
     (and do-fill
@@ -596,7 +599,7 @@ longer than the frame width."
     (and
      ;; The line is long.
      (> (- (line-end-position) (line-beginning-position))
-	(frame-width))
+	(window-width))
      ;; It doesn't start with spaces.
      (not (looking-at "    "))
      ;; Not cited text.

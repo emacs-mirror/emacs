@@ -1,3 +1,11 @@
+2010-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-cite.el (gnus-article-fill-cited-article): Make fill work
+	properly for XEmacs as well.
+	(gnus-article-fill-cited-article, gnus-article-foldable-buffer)
+	(gnus-article-natural-long-line-p): Use window-width rather than
+	frame-width.
+
 2010-11-01  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (nnir-run-gmane): inhibit demon. return nil if no messages.
