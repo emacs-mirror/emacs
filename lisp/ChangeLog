@@ -1,3 +1,9 @@
+2010-11-02  Noah Friedman  <friedman@splode.com>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-file): If bytecomp-arg is
+	nil, do not ask to recompile files that are not already compiled,
+	and do not recompile them.
+
 2010-11-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package-initialize): Ensure that

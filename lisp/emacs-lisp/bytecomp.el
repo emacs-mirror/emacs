@@ -1626,9 +1626,10 @@ or 'no-byte-compile if the file did not need recompilation."
             (or bytecomp-force
                 (file-newer-than-file-p bytecomp-filename
                                          bytecomp-dest))
-          (or (eq 0 bytecomp-arg)
-              (y-or-n-p (concat "Compile "
-                                bytecomp-filename "? "))))
+          (and bytecomp-arg
+               (or (eq 0 bytecomp-arg)
+                   (y-or-n-p (concat "Compile "
+                                     bytecomp-filename "? ")))))
         (progn
           (if (and noninteractive (not byte-compile-verbose))
               (message "Compiling %s..." bytecomp-filename))
