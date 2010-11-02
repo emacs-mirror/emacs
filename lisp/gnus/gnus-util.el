@@ -1658,6 +1658,8 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 (defun gnus-iswitchb-completing-read (prompt collection &optional require-match
                                             initial-input history def)
   "`iswitchb' based completing-read function."
+  ;; Make sure iswitchb is loaded before we let-bind its variables.
+  ;; If it is loaded inside the let, variables can become unbound afterwards.
   (require 'iswitchb)
   (let ((iswitchb-make-buflist-hook
          (lambda ()
