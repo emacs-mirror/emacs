@@ -1296,9 +1296,6 @@ Returns the compilation buffer created."
 		command "\n")
 	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
-    ;; Pop up the compilation buffer.
-    ;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01638.html
-    (setq outwin (display-buffer outbuf))
     (with-current-buffer outbuf
       (let ((process-environment
 	     (append
@@ -1320,8 +1317,18 @@ Returns the compilation buffer created."
 	     (list command mode name-function highlight-regexp))
 	(set (make-local-variable 'revert-buffer-function)
 	     'compilation-revert-buffer)
-	(set-window-start outwin (point-min))
+	;; The setup function is called before compilation-set-window-height
+	;; so it can set the compilation-window-height buffer locally.
+	(when compilation-process-setup-function
+	  (funcall compilation-process-setup-function))
+	(let ((height (buffer-local-value 'compilation-window-height outbuf)))
+	  ;; Pop up the compilation buffer.
+	  (setq outwin
+		(display-buffer
+		 outbuf
+		 `(same-frame (min-height . ,height) (max-height . ,height)))))
 
+	(set-window-start outwin (point-min))
 	;; Position point as the user will see it.
 	(let ((desired-visible-point
 	       ;; Put it at the end if `compilation-scroll-output' is set.
@@ -1333,11 +1340,6 @@ Returns the compilation buffer created."
 	      (goto-char desired-visible-point)
 	    (set-window-point outwin desired-visible-point)))
 
-	;; The setup function is called before compilation-set-window-height
-	;; so it can set the compilation-window-height buffer locally.
-	(if compilation-process-setup-function
-	    (funcall compilation-process-setup-function))
-	(compilation-set-window-height outwin)
 	;; Start the compilation.
 	(if (fboundp 'start-process)
 	    (let ((proc
@@ -2094,37 +2096,27 @@ displays at the top of the window; there is no arrow."
 All arguments are markers.  If END-MK is non-nil, mark is set there
 and overlay is highlighted between MK and END-MK."
   ;; Show compilation buffer in other window, scrolled to this error.
-  (let* ((from-compilation-buffer (eq (window-buffer (selected-window))
-                                      (marker-buffer msg)))
-         ;; Use an existing window if it is in a visible frame.
-         (pre-existing (get-buffer-window (marker-buffer msg) 0))
-         (w (if (and from-compilation-buffer pre-existing)
-                ;; Calling display-buffer here may end up (partly) hiding
-                ;; the error location if the two buffers are in two
-                ;; different frames.  So don't do it if it's not necessary.
-                pre-existing
-              (let ((display-buffer-reuse-frames t)
-                    (pop-up-windows t))
-		;; Pop up a window.
-                (display-buffer (marker-buffer msg)))))
-	 (highlight-regexp (with-current-buffer (marker-buffer msg)
+  (let* ((msg-buffer (marker-buffer msg))
+	 (mk-buffer (marker-buffer mk))
+         (msg-buffer-window
+	    ;; Pop up a window, if possible reusing a window on a
+	    ;; visible or iconified frame.
+	    (let ((height (buffer-local-value
+			   'compilation-window-height msg-buffer)))
+	      (display-buffer
+	       msg-buffer
+	       `(same-frame (reuse-buffer-window . 0)
+			    (min-height . ,height) (max-height . ,height)))))
+	 (mk-buffer-window
+	  (pop-to-buffer
+	   mk-buffer
+	   ;; Do not use msg-buffer-window.
+	   `(same-frame (not-this-window . ,msg-buffer-window)
+			(reuse-buffer-window . 0))))
+	 (highlight-regexp (with-current-buffer msg-buffer
 			     ;; also do this while we change buffer
-			     (compilation-set-window w msg)
+			     (compilation-set-window msg-buffer-window msg)
 			     compilation-highlight-regexp)))
-    ;; Ideally, the window-size should be passed to `display-buffer' (via
-    ;; something like special-display-buffer) so it's only used when
-    ;; creating a new window.
-    (unless pre-existing (compilation-set-window-height w))
-
-    (if from-compilation-buffer
-        ;; If the compilation buffer window was selected,
-        ;; keep the compilation buffer in this window;
-        ;; display the source in another window.
-        (let ((pop-up-windows t))
-          (pop-to-buffer (marker-buffer mk) 'other-window))
-      (if (window-dedicated-p (selected-window))
-          (pop-to-buffer (marker-buffer mk))
-        (switch-to-buffer (marker-buffer mk))))
     (unless (eq (goto-char mk) (point))
       ;; If narrowing gets in the way of going to the right place, widen.
       (widen)
@@ -2148,7 +2140,7 @@ and overlay is highlighted between MK and END-MK."
 	(setq compilation-highlight-overlay
 	      (make-overlay (point-min) (point-min)))
 	(overlay-put compilation-highlight-overlay 'face 'next-error))
-      (with-current-buffer (marker-buffer mk)
+      (with-current-buffer mk-buffer
 	(save-excursion
 	  (if end-mk (goto-char end-mk) (end-of-line))
 	  (let ((end (point)))
@@ -2224,45 +2216,47 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
                           (find-file-noselect name))
               fmts (cdr fmts)))
       (setq dirs (cdr dirs)))
-    (while (null buffer)    ;Repeat until the user selects an existing file.
+    (while (null buffer) ;Repeat until the user selects an existing file.
       ;; The file doesn't exist.  Ask the user where to find it.
-      (save-excursion            ;This save-excursion is probably not right.
-        (let ((pop-up-windows t))
-          (compilation-set-window (display-buffer (marker-buffer marker))
-                                  marker)
-          (let* ((name (read-file-name
-                        (format "Find this %s in (default %s): "
-                                compilation-error filename)
-                        spec-dir filename t nil
-                        ;; The predicate below is fine when called from
-                        ;; minibuffer-complete-and-exit, but it's too
-                        ;; restrictive otherwise, since it also prevents the
-                        ;; user from completing "fo" to "foo/" when she
-                        ;; wants to enter "foo/bar".
-                        ;;
-                        ;; Try to make sure the user can only select
-                        ;; a valid answer.  This predicate may be ignored,
-                        ;; tho, so we still have to double-check afterwards.
-                        ;; TODO: We should probably fix read-file-name so
-                        ;; that it never ignores this predicate, even when
-                        ;; using popup dialog boxes.
-                        ;; (lambda (name)
-                        ;;   (if (file-directory-p name)
-                        ;;       (setq name (expand-file-name filename name)))
-                        ;;   (file-exists-p name))
-                        ))
-                 (origname name))
-            (cond
-             ((not (file-exists-p name))
-              (message "Cannot find file `%s'" name)
-              (ding) (sit-for 2))
-             ((and (file-directory-p name)
-                   (not (file-exists-p
-                         (setq name (expand-file-name filename name)))))
-              (message "No `%s' in directory %s" filename origname)
-              (ding) (sit-for 2))
-             (t
-              (setq buffer (find-file-noselect name))))))))
+      (save-excursion	   ;This save-excursion is probably not right.
+	(compilation-set-window
+	 ;; Apparently the window should be made on the same frame.  If
+	 ;; it should be made in another window but the selected one
+	 ;; replace same-frame by t.
+	 (display-buffer (marker-buffer marker) 'same-frame) marker)
+	(let* ((name (read-file-name
+		      (format "Find this %s in (default %s): "
+			      compilation-error filename)
+		      spec-dir filename t nil
+		      ;; The predicate below is fine when called from
+		      ;; minibuffer-complete-and-exit, but it's too
+		      ;; restrictive otherwise, since it also prevents the
+		      ;; user from completing "fo" to "foo/" when she
+		      ;; wants to enter "foo/bar".
+		      ;;
+		      ;; Try to make sure the user can only select
+		      ;; a valid answer.  This predicate may be ignored,
+		      ;; tho, so we still have to double-check afterwards.
+		      ;; TODO: We should probably fix read-file-name so
+		      ;; that it never ignores this predicate, even when
+		      ;; using popup dialog boxes.
+		      ;; (lambda (name)
+		      ;;   (if (file-directory-p name)
+		      ;;       (setq name (expand-file-name filename name)))
+		      ;;   (file-exists-p name))
+		      ))
+	       (origname name))
+	  (cond
+	   ((not (file-exists-p name))
+	    (message "Cannot find file `%s'" name)
+	    (ding) (sit-for 2))
+	   ((and (file-directory-p name)
+		 (not (file-exists-p
+		       (setq name (expand-file-name filename name)))))
+	    (message "No `%s' in directory %s" filename origname)
+	    (ding) (sit-for 2))
+	   (t
+	    (setq buffer (find-file-noselect name)))))))
     ;; Make intangible overlays tangible.
     ;; This is weird: it's not even clear which is the current buffer,
     ;; so the code below can't be expected to DTRT here.  -- Stef

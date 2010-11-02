@@ -3638,9 +3638,10 @@ also true lists) whose components are listed below.  The
 specifiers listed below are useful if the location specifier
 equals either `same-frame' or `other-frame':
 
-- `other-window' with a non-nil cdr can be used to specify that
-  the selected window must not be used for displaying the buffer
-  regardless of whether it shows that buffer or any other buffer.
+- `not-this-window' with a non-nil cdr can be used to specify
+  that the selected window must not be used for displaying the
+  buffer regardless of whether it shows that buffer or any other
+  buffer.
 
 - `reuse-buffer-window' is used to specify whether a window
   currently showing the buffer may be reused and where to look
@@ -3746,6 +3747,9 @@ specifier equals 'same-frame:
 
 The specifiers listed next are useful if the location specifier
 equals 'other-frame:
+
+- `not-this-frame' with a non-nil cdr means that the selected
+  frame shall not be used for displaying the buffer.
 
 - `graphic-only' with a non-nil cdr means that a new frame shall
   be made on graphic displays only.
@@ -4609,12 +4613,23 @@ description."
   ;; the first window on the selected frame showing BUFFER (provided
   ;; there is such a window).
   (let ((windows (get-buffer-window-list buffer 'nomini frames))
+	(not-this-window
+	 (let ((spec-cdr (cdr (assq 'not-this-window specifiers))))
+	   (cond
+	    ((eq spec-cdr t)
+	     (selected-window))
+	    (spec-cdr))))
+	(not-this-frame
+	 (let ((spec-cdr (cdr (assq 'not-this-frame specifiers))))
+	   (cond
+	    ((eq spec-cdr t)
+	     (selected-frame))
+	    (spec-cdr))))
 	best-window best-time time)
     (dolist (window windows)
-      (unless (or (and (eq window (selected-window))
-		       (assq 'not-this-window specifiers))
-		  (and (eq (window-frame window) (selected-frame))
-		       (assq 'not-this-frame specifiers))
+      ;; Take care of `not-this-window' and `not-this-frame' specifiers.
+      (unless (or (eq window not-this-window)
+		  (eq (window-frame window) not-this-frame)
 		  (window-minibuffer-p window))
 	(setq time (window-use-time window))
 	(when (or (not best-window) (< time best-time))
@@ -4640,13 +4655,25 @@ description."
 	   (let ((windows
 		  (window-list-1
 		   (frame-first-window (display-buffer-frame)) 'nomini frames))
+		 (not-this-window
+		  (let ((spec-cdr (cdr (assq 'not-this-window specifiers))))
+		    (cond
+		     ((eq spec-cdr t)
+		      (selected-window))
+		     (spec-cdr))))
+		 (not-this-frame
+		  (let ((spec-cdr (cdr (assq 'not-this-frame specifiers))))
+		    (cond
+		     ((eq spec-cdr t)
+		      (selected-frame))
+		     (spec-cdr))))
 		 ;; lru-windows is a list of (window . use-time) pairs.
 		 lru-windows)
 	     (dolist (window windows)
-	       (unless (or (and (eq window (selected-window))
-				(assq 'not-this-window specifiers))
-			   (and (eq (window-frame window) (selected-frame))
-				(assq 'not-this-frame specifiers))
+	       ;; Take care of `not-this-window' and `not-this-frame'
+	       ;; specifiers.
+	       (unless (or (eq window not-this-window)
+			   (eq (window-frame window) not-this-frame)
 			   (window-minibuffer-p window)
 			   (window-dedicated-p window))
 		 (setq lru-windows (cons (cons window (window-use-time window))
@@ -4802,9 +4829,14 @@ documentation of `display-buffer-names' for a description."
   (let* ((frame (display-buffer-frame))
 	 (selected-window (frame-selected-window frame))
 	 window window-specifier side-specifier)
-    ;; Don't split an unsplittable frame unless SPECIFIERS allow it.
-    (unless (and (cdr (assq 'unsplittable (frame-parameters frame)))
-		 (not (cdr (assq 'split-unsplittable-frame specifiers))))
+    (unless (or (and (cdr (assq 'unsplittable (frame-parameters frame)))
+		     ;; Don't split an unsplittable frame unless
+		     ;; SPECIFIERS allow it.
+		     (not (cdr (assq 'split-unsplittable-frame specifiers))))
+		(let ((spec-cdr (cdr (assq 'not-this-frame specifiers))))
+		  ;; Don't split a window on the selected frame if
+		  ;; `not-this-frame' disallows it.
+		  (or (eq spec-cdr t) (eq spec-cdr (selected-frame)))))
       (catch 'done
 	(dolist (specifier specifiers)
 	  (when (and (consp specifier) (eq (car specifier) 'new-window))
@@ -4900,6 +4932,12 @@ is nil or omitted, this means to exclusively use the values
 provided by `display-buffer-names' and `display-buffer-regexps'.
 If these values are nil too, all specifiers are provided by the
 constant `display-buffer-default-specifiers'.
+
+In addition, the `not-this-window' specifier allows as cdr to
+specify an arbitrary window in order to not use that window for
+displaying the buffer.  The `not-this-frame' specifier allows as
+cdr to also specify an arbitrary frame in order to not use that
+frame for displaying the buffer.
 
 The optional third argument IGNORE is ignored.
 

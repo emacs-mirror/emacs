@@ -1751,6 +1751,13 @@ the values provided by the variables @code{display-buffer-names} and
 @code{display-buffer-regexps} described below.  If their values are nil
 too, default specifiers are used.
 
+   The @code{not-this-window} specifier described below allows as
+@sc{cdr} also to specify an arbitrary window.  This means that the
+window specified here shall not be used for displaying the buffer.  The
+@code{not-this-frame} specifier described below allows as @sc{cdr} to
+also specify an arbitrary frame.  This means that the frame specified
+here shall not be used for displaying the buffer.
+
 The optional third argument @var{ignore} is ignored.
 @end deffn
 
