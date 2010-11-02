@@ -1,3 +1,9 @@
+2010-11-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* subr.el (version-separator, version-regexp-alist): Remove '*'
+	from docstring.
+	(version-list-<=, version<=, version=): Doc fix.
+
 2010-11-01  Kenichi Handa  <handa@m17n.org>
 
 	* faces.el (glyphless-char): Inherit underline for tty.
