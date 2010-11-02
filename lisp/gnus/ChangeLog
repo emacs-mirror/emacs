@@ -1,3 +1,7 @@
+2010-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-html.el: Reorder requirements to quieten compiler.
+
 2010-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-cite.el (gnus-article-fill-cited-article): Make fill work
@@ -8,10 +12,10 @@
 
 2010-11-01  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* nnir.el (nnir-run-gmane): inhibit demon. return nil if no messages.
-	(nnir-read-parms): don't modify query.
-	(nnir-run-query): add ability to search topic on current line.
-	(nnir-get-active): clean up.
+	* nnir.el (nnir-run-gmane): Inhibit demon.  Return nil if no messages.
+	(nnir-read-parms): Don't modify query.
+	(nnir-run-query): Add ability to search topic on current line.
+	(nnir-get-active): Clean up.
 
 2010-11-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
