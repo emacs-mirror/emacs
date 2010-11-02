@@ -1020,15 +1020,17 @@ makes them available for download."
 The variable `package-load-list' controls which packages to load."
   (interactive)
   (require 'finder-inf nil t)
-  (setq package-alist package--builtins)
-  (setq package-activated-list (mapcar #'car package-alist))
-  (setq package-obsolete-alist nil)
+  (setq package-alist package--builtins
+	package-activated-list (mapcar #'car package-alist)
+	package-obsolete-alist nil)
   (package-load-all-descriptors)
   (package-read-all-archive-contents)
+  ;; "Deactivate" obsoleted built-in packages
+  (dolist (elt package-obsolete-alist)
+    (delq (car elt) package-activated-list))
   ;; Try to activate all our packages.
-  (mapc (lambda (elt)
-	  (package-activate (car elt) (package-desc-vers (cdr elt))))
-	package-alist))
+  (dolist (elt package-alist)
+    (package-activate (car elt) (package-desc-vers (cdr elt)))))
 
 
 ;;;; Package description buffer.
@@ -1073,10 +1075,10 @@ The variable `package-load-list' controls which packages to load."
 	;; This package is loaded (i.e. in `package-alist').
 	(progn
 	  (setq version (package-version-join (package-desc-vers desc)))
-	  (cond (built-in
-		 (princ "a built-in package.\n\n"))
-		((setq pkg-dir (package--dir package-name version))
+	  (cond ((setq pkg-dir (package--dir package-name version))
 		 (insert "an installed package.\n\n"))
+		(built-in
+		 (princ "a built-in package.\n\n"))
 		(t ;; This normally does not happen.
 		 (insert "a deleted package.\n\n")
 		 (setq version nil))))

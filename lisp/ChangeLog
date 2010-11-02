@@ -1,3 +1,11 @@
+2010-11-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-initialize): Ensure that
+	obsoleted built-in packages are not in package-activated-list
+	during activation.
+	(describe-package-1): Make the "installed" status override
+	"built-in".
+
 2010-11-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* subr.el (version-separator, version-regexp-alist): Remove '*'
