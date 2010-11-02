@@ -208,35 +208,6 @@
   :type '(string)
   :group 'nnir)
 
-(defcustom nnir-wais-program "waissearch"
-  "*Name of waissearch executable."
-  :type '(string)
-  :group 'nnir)
-
-(defcustom nnir-wais-database (expand-file-name "~/.wais/mail")
-  "*Name of Wais database containing the mail.
-
-Note that this should be a file name without extension.  For example,
-if you have a file /home/john/.wais/mail.fmt, use this:
-    (setq nnir-wais-database \"/home/john/.wais/mail\")
-The string given here is passed to `waissearch -d' as-is."
-  :type '(file)
-  :group 'nnir)
-
-(defcustom nnir-wais-remove-prefix (concat (getenv "HOME") "/Mail/")
-  "*The prefix to remove from each directory name returned by waissearch
-in order to get a group name (albeit with / instead of .).  This is a
-regular expression.
-
-For example, suppose that Wais returns file names such as
-\"/home/john/Mail/mail/misc/42\".  For this example, use the following
-setting:  (setq nnir-wais-remove-prefix \"/home/john/Mail/\")
-Note the trailing slash.  Removing this prefix gives \"mail/misc/42\".
-`nnir' knows to remove the \"/42\" and to replace \"/\" with \".\" to
-arrive at the correct group name, \"mail.misc\"."
-  :type '(regexp)
-  :group 'nnir)
-
 (defcustom nnir-swish++-configuration-file
   (expand-file-name "~/Mail/swish++.conf")
   "*Configuration file for swish++."
@@ -413,9 +384,7 @@ arrive at the correct group name, \"mail.misc\"."
 ;;; Developer Extension Variable:
 
 (defvar nnir-engines
-  `((wais    nnir-run-waissearch
-             ())
-    (imap    nnir-run-imap
+  `((imap    nnir-run-imap
              ((criteria
 	       "Imap Search in"                   ; Prompt
 	       ,(mapcar 'car nnir-imap-search-arguments) ; alist for completing
@@ -712,51 +681,6 @@ ready to be added to the list of search results."
 	    (string-to-number score)))))
 
 ;;; Search Engine Interfaces:
-
-;; freeWAIS-sf interface.
-(defun nnir-run-waissearch (query server &optional group)
-  "Run given query agains waissearch.  Returns vector of (group name, file name)
-pairs (also vectors, actually)."
-  ;; (when group
-  ;;   (error "The freeWAIS-sf backend cannot search specific groups"))
-  (save-excursion
-    (let ((qstring (cdr (assq 'query query)))
-	  (prefix (nnir-read-server-parm 'nnir-wais-remove-prefix server))
-          artlist score artno dirnam)
-      (set-buffer (get-buffer-create nnir-tmp-buffer))
-      (erase-buffer)
-      (message "Doing WAIS query %s..." query)
-      (call-process nnir-wais-program
-                    nil                 ; input from /dev/null
-                    t                   ; output to current buffer
-                    nil                 ; don't redisplay
-                    "-d" (nnir-read-server-parm 'nnir-wais-database server) ; database to search
-                    qstring)
-      (message "Massaging waissearch output...")
-      ;; remove superfluous lines
-      (keep-lines "Score:")
-      ;; extract data from result lines
-      (goto-char (point-min))
-      (while (re-search-forward
-              "Score: +\\([0-9]+\\).*'\\([0-9]+\\) +\\([^']+\\)/'" nil t)
-        (setq score (match-string 1)
-              artno (match-string 2)
-              dirnam (match-string 3))
-        (unless (string-match prefix dirnam)
-          (nnheader-report 'nnir "Dir name %s doesn't contain prefix %s"
-                           dirnam prefix))
-        (setq group (gnus-replace-in-string
-                     (replace-match "" t t dirnam) "/" "."))
-        (push (vector (nnir-group-full-name group server)
-                      (string-to-number artno)
-                      (string-to-number score))
-              artlist))
-      (message "Massaging waissearch output...done")
-      (apply 'vector
-             (sort artlist
-                   (function (lambda (x y)
-                               (> (nnir-artitem-rsv x)
-                                  (nnir-artitem-rsv y)))))))))
 
 ;; imap interface
 (defun nnir-run-imap (query srv &optional groups)
