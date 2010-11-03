@@ -1,3 +1,27 @@
+2010-11-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el: Don't put built-in packages in
+	package-alist, to avoid loading inefficiencies.
+	(package-built-in-p): Make VERSION optional, and treat it as a
+	minimum acceptable version.
+	(package-activate): Search separately for built-in packages.  Emit
+	a warning if a dependency fails.
+	(define-package): Handle most common case, where there is no
+	obsolete package, first.
+	(package-compute-transaction): Print required version in error.
+	(package--initialized): New variable.
+	(list-packages): Use it.
+	(package-initialize): Optional arg NO-ACTIVATE.  Don't put
+	built-in packages in packages-alist; keep it separate.  Set
+	package--initialized.
+	(describe-package): Avoid activating packages as a side-effect.
+	Search separately for built-in packages.
+	(describe-package-1): Handle the case where an elpa package is
+	simultaneously built-in and available/installed.
+	(package-installed-p, package--generate-package-list): Search
+	separately for built-in packages.
+	(package-load-descriptor): Doc fix.
+
 2010-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/perl-mode.el (perl-syntax-propertize-function):
