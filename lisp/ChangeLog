@@ -1,5 +1,8 @@
 2010-11-03  Glenn Morris  <rgm@gnu.org>
 
+	* play/landmark.el (lm-losing-threshold): Correct spelling.
+	(lm-human-plays): Use new name.
+
 	* play/gomoku.el (gomoku-loosing-threshold): Correct spelling.
 	(gomoku-human-plays): Use new name.
 

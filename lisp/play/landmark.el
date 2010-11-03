@@ -282,7 +282,7 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 ;; its contents as a set, i.e. not considering the order of its elements. The
 ;; highest score is given to the "OOOO" qtuples because playing in such a
 ;; qtuple is winning the game. Just after this comes the "XXXX" qtuple because
-;; not playing in it is just loosing the game, and so on. Note that a
+;; not playing in it is just losing the game, and so on. Note that a
 ;; "polluted" qtuple, i.e. one containing at least one X and at least one O,
 ;; has score zero because there is no more any point in playing in it, from
 ;; both an attacking and a defending point of view.
@@ -352,13 +352,13 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 ;; qtuple, thus to be a winning move. Similarly, the only way for a square to
 ;; have a score between XXXXscore and OOOOscore is to belong to a "XXXX"
 ;; qtuple. We may use these considerations to detect when a given move is
-;; winning or loosing.
+;; winning or losing.
 
 (defconst lm-winning-threshold
   (aref lm-score-trans-table (+ 6 6 6 6)) ;; OOOOscore
   "Threshold score beyond which an Emacs move is winning.")
 
-(defconst lm-loosing-threshold
+(defconst lm-losing-threshold
   (aref lm-score-trans-table (+ 1 1 1 1)) ;; XXXXscore
   "Threshold score beyond which a human move is winning.")
 
@@ -771,7 +771,7 @@ If the game is finished, this command requests for another game."
 	    (t
 	     (setq score (aref lm-score-table square))
 	     (lm-play-move square 1)
-	     (cond ((and (>= score lm-loosing-threshold)
+	     (cond ((and (>= score lm-losing-threshold)
 			 ;; Just testing SCORE > THRESHOLD is not enough for
 			 ;; detecting wins, it just gives an indication that
 			 ;; we confirm with LM-FIND-FILLED-QTUPLE.
