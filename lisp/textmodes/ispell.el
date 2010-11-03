@@ -2740,9 +2740,11 @@ Keeps argument list for future ispell invocations for no async support."
 	(if extended-char-mode		; ~ extended character mode
 	    (ispell-send-string (concat extended-char-mode "\n"))))
       (if ispell-async-processp
-	  (if (fboundp 'set-process-query-on-exit-flag) ;; not XEmacs
+	  (if (featurep 'emacs)
 	      (set-process-query-on-exit-flag ispell-process nil)
-	    (process-kill-without-query ispell-process))))))
+	    (if (fboundp 'set-process-query-on-exit-flag)
+		(set-process-query-on-exit-flag ispell-process nil)
+	      (process-kill-without-query ispell-process)))))))
 
 ;;;###autoload
 (defun ispell-kill-ispell (&optional no-error)
