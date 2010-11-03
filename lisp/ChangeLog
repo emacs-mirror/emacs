@@ -1,5 +1,8 @@
 2010-11-03  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/idlwave.el (idlwave-pset): Only used on XEmacs.
+	(props): Remove unnecessary declaration.
+
 	* textmodes/ispell.el (ispell-init-process): On Emacs, always use
 	set-process-query-on-exit-flag.
 

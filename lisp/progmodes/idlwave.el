@@ -6911,9 +6911,10 @@ accumulate information on matching completions."
 ;;----------------------------------------------------------------------
 ;;----------------------------------------------------------------------
 ;;----------------------------------------------------------------------
-(defvar rtn)
-(defun idlwave-pset (item)
-  (set 'rtn item))
+(when (featurep 'xemacs)
+  (defvar rtn)
+  (defun idlwave-pset (item)
+    (set 'rtn item)))
 
 (defun idlwave-popup-select (ev list title &optional sort)
   "Select an item in LIST with a popup menu.
@@ -7683,7 +7684,6 @@ property indicating the link is added."
 	  (t nil))))
 
 (defvar link) ;dynamic variables set by help callback
-(defvar props)
 (defun idlwave-complete-sysvar-help (mode word)
   (let ((word (or (nth 1 idlwave-completion-help-info) word))
 	(entry (assoc word idlwave-system-variables-alist)))
@@ -9364,5 +9364,4 @@ This function was written since `list-abbrevs' looks terrible for IDLWAVE mode."
 
 (provide 'idlwave)
 
-;; arch-tag: f77f3b0c-c37c-424f-a328-0886fd42b6fb
 ;;; idlwave.el ends here
