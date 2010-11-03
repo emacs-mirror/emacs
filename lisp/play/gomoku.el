@@ -278,7 +278,7 @@ Other useful commands:\n
 ;; its contents as a set, i.e. not considering the order of its elements. The
 ;; highest score is given to the "OOOO" qtuples because playing in such a
 ;; qtuple is winning the game. Just after this comes the "XXXX" qtuple because
-;; not playing in it is just loosing the game, and so on. Note that a
+;; not playing in it is just losing the game, and so on. Note that a
 ;; "polluted" qtuple, i.e. one containing at least one X and at least one O,
 ;; has score zero because there is no more any point in playing in it, from
 ;; both an attacking and a defending point of view.
@@ -348,12 +348,12 @@ Other useful commands:\n
 ;; qtuple, thus to be a winning move. Similarly, the only way for a square to
 ;; have a score between gomoku-XXXXscore and gomoku-OOOOscore is to belong to a "XXXX"
 ;; qtuple. We may use these considerations to detect when a given move is
-;; winning or loosing.
+;; winning or losing.
 
 (defconst gomoku-winning-threshold gomoku-OOOOscore
   "Threshold score beyond which an Emacs move is winning.")
 
-(defconst gomoku-loosing-threshold gomoku-XXXXscore
+(defconst gomoku-losing-threshold gomoku-XXXXscore
   "Threshold score beyond which a human move is winning.")
 
 
@@ -872,7 +872,7 @@ If the game is finished, this command requests for another game."
 	    (t
 	     (setq score (aref gomoku-score-table square))
 	     (gomoku-play-move square 1)
-	     (cond ((and (>= score gomoku-loosing-threshold)
+	     (cond ((and (>= score gomoku-losing-threshold)
 			 ;; Just testing SCORE > THRESHOLD is not enough for
 			 ;; detecting wins, it just gives an indication that
 			 ;; we confirm with GOMOKU-FIND-FILLED-QTUPLE.
