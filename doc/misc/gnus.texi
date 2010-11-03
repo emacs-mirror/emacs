@@ -4556,7 +4556,7 @@ However, you can also create e.g. a new @code{nnmaildir} or @code{nnml}
 server exclusively for @code{nnmairix} in your secondary select methods
 (@pxref{Finding the News}).  If you use a secondary @code{nnml} server
 just for mairix, make sure that you explicitly set the server variable
-@code{nnml-get-new-mail} to @code{nil}, or you might loose mail
+@code{nnml-get-new-mail} to @code{nil}, or you might lose mail
 (@pxref{nnmairix caveats}).  If you want to use mairix remotely on an
 @acronym{IMAP} server, you have to choose the corresponding
 @code{nnimap} server here.

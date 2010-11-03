@@ -1,7 +1,7 @@
 2010-11-03  Glenn Morris  <rgm@gnu.org>
 
 	* ediff.texi (Quick Help Commands, Miscellaneous):
-	* gnus.texi (Agent Variables): Spelling fix.
+	* gnus.texi (Agent Variables, Configuring nnmairix): Spelling fix.
 
 2010-10-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
