@@ -7,6 +7,8 @@
 	set-process-query-on-exit-flag.
 
 	* textmodes/reftex-toc.el (name1, dummy, dummy2): Remove unused decs.
+	(reftex-toc-do-promote): Remove unused local `mpos'.
+	(reftex-toc-restore-region): Make `mpos' local to this function.
 
 	* net/dbus.el (dbus-name-owner-changed-handler): Doc fix.
 

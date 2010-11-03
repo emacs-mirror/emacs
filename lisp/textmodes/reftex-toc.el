@@ -546,7 +546,6 @@ Useful for large TOC's."
 ;; Promotion/Demotion stuff
 
 (defvar delta)
-(defvar mpos)
 (defvar pro-or-de)
 (defvar start-pos)
 (defvar start-line)
@@ -575,7 +574,7 @@ point."
 					    (if (bolp) 1 0)))))
          (start-pos (point))
          (pro-or-de (if (> delta 0) "de" "pro"))
-         beg end entries data sections nsec mpos msg)
+         beg end entries data sections nsec msg)
     (setq msg
           (catch 'exit
             (if (reftex-region-active-p)
@@ -629,20 +628,20 @@ point."
 
 
 (defun reftex-toc-restore-region (point-line &optional mark-line)
-  (when mark-line
-    (goto-char (point-min))
-    (forward-line (1- mark-line))
-    (setq mpos (point)))
-  (when point-line
-    (goto-char (point-min))
-    (forward-line (1- point-line)))
-  (if mark-line
-      (progn
-        (set-mark mpos)
-        (if (featurep 'xemacs)
-            (zmacs-activate-region)
-          (setq mark-active t
-                deactivate-mark nil)))))
+  (let (mpos)
+    (when mark-line
+      (goto-char (point-min))
+      (forward-line (1- mark-line))
+      (setq mpos (point)))
+    (when point-line
+      (goto-char (point-min))
+      (forward-line (1- point-line)))
+    (when mark-line
+      (set-mark mpos)
+      (if (featurep 'xemacs)
+          (zmacs-activate-region)
+        (setq mark-active t
+              deactivate-mark nil)))))
 
 (defun reftex-toc-promote-prepare (x)
   "Look at a toc entry and see if we could pro/demote it.
