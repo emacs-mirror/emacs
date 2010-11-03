@@ -19840,7 +19840,7 @@ limit to control how often the cycling occurs.  A large value improves
 performance.  A small value minimizes the time lost should the
 connection be lost while fetching (You may need to run
 @code{gnus-agent-regenerate-group} to update the group's state.
-However, all articles parsed prior to loosing the connection will be
+However, all articles parsed prior to losing the connection will be
 available while unplugged).  The default is 10M so it is unusual to
 see any cycling.
 
