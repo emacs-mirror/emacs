@@ -77,7 +77,7 @@
 
 ;; Other external functions you may want to use:
 ;;
-;; M-x package-list-packages
+;; M-x list-packages
 ;;    Enters a mode similar to buffer-menu which lets you manage
 ;;    packages.  You can choose packages for install (mark with "i",
 ;;    then "x" to execute) or deletion (not implemented yet), and you
@@ -215,7 +215,6 @@ If VERSION is nil, the package is not loaded (it is \"disabled\")."
 (declare-function url-http-parse-response "url-http" ())
 (declare-function lm-header "lisp-mnt" (header))
 (declare-function lm-commentary "lisp-mnt" (&optional file))
-(declare-function dired-delete-file "dired" (file &optional recursive trash))
 (defvar url-http-end-of-headers)
 
 (defcustom package-archives '(("gnu" . "http://elpa.gnu.org/packages/"))
@@ -278,9 +277,12 @@ contrast, `package-user-dir' contains packages for personal use."
 ;; until it's needed (i.e. when `package-intialize' is called).
 (defvar package--builtins nil
   "Alist of built-in packages.
+The actual value is initialized by loading the library
+`finder-inf'; this is not done until it is needed, e.g. by the
+function `package-built-in-p'.
+
 Each element has the form (PKG . DESC), where PKG is a package
 name (a symbol) and DESC is a vector that describes the package.
-
 The vector DESC has the form [VERSION REQS DOCSTRING].
   VERSION is a version list.
   REQS is a list of packages (symbols) required by the package.
@@ -389,8 +391,10 @@ updates `package-alist' and `package-obsolete-alist'."
   "Extract the kind of download from an archive package description vector."
   (aref desc 3))
 
-(defun package--dir (name version-string)
-  (let* ((subdir (concat name "-" version-string))
+(defun package--dir (name version)
+  "Return the directory where a package is installed, or nil if none.
+NAME and VERSION are both strings."
+  (let* ((subdir (concat name "-" version))
 	 (dir-list (cons package-user-dir package-directory-list))
 	 pkg-dir)
     (while dir-list
@@ -406,7 +410,7 @@ updates `package-alist' and `package-obsolete-alist'."
 	 (version-str (package-version-join (package-desc-vers pkg-vec)))
 	 (pkg-dir (package--dir name version-str)))
     (unless pkg-dir
-      (error "Internal error: could not find directory for %s-%s"
+      (error "Internal error: unable to find directory for `%s-%s'"
 	     name version-str))
     ;; Add info node.
     (when (file-exists-p (expand-file-name "dir" pkg-dir))
@@ -457,7 +461,7 @@ Return nil if the package could not be activated."
 			(throw 'dep-failure req))))))
 	(if fail
 	    (warn "Unable to activate package `%s'.
-Required package `%s', version %s, is unavailable"
+Required package `%s-%s' is unavailable"
 		  package (car fail) (package-version-join (cadr fail)))
 	  ;; If all goes well, activate the package itself.
 	  (package-activate-1 package pkg-vec)))))))
@@ -565,12 +569,8 @@ Otherwise it uses an external `tar' program.
 (defun package-unpack (name version)
   (let ((pkg-dir (expand-file-name (concat (symbol-name name) "-" version)
 				   package-user-dir)))
-    ;; Be careful!!
     (make-directory package-user-dir t)
-    (if (file-directory-p pkg-dir)
-	(mapc (lambda (file) nil) ; 'delete-file -- FIXME: when we're
-				  ; more confident
-	      (directory-files pkg-dir t "^[^.]")))
+    ;; FIXME: should we delete PKG-DIR if it exists?
     (let* ((default-directory (file-name-as-directory package-user-dir)))
       (package-untar-buffer)
       (package-generate-autoloads (symbol-name name) pkg-dir)
@@ -608,7 +608,7 @@ Otherwise it uses an external `tar' program.
 		       (mapcar
 			(lambda (elt)
 			  (list (car elt)
-				(package-version-join (car (cdr elt)))))
+				(package-version-join (cadr elt))))
 			requires))))
 	  "\n")
 	 nil
@@ -698,18 +698,18 @@ not included in this list."
 		  ((null (stringp hold))
 		   (error "Invalid element in `package-load-list'"))
 		  ((version-list-< (version-to-list hold) next-version)
-		   (error "Package '%s' held at version %s, \
+		   (error "Package `%s' held at version %s, \
 but version %s required"
 			  (symbol-name next-pkg) hold
 			  (package-version-join next-version)))))
 	  (unless pkg-desc
-	    (error "Package '%s', version %s, unavailable for installation"
+	    (error "Package `%s-%s' is unavailable"
 		   (symbol-name next-pkg)
 		   (package-version-join next-version)))
 	  (unless (version-list-<= next-version
 				   (package-desc-vers (cdr pkg-desc)))
 	    (error
-	     "Need package '%s' with version %s, but only %s is available"
+	     "Need package `%s-%s', but only %s is available"
 	     (symbol-name next-pkg) (package-version-join next-version)
 	     (package-version-join (package-desc-vers (cdr pkg-desc)))))
 	  ;; Only add to the transaction if we don't already have it.
@@ -819,7 +819,7 @@ The package is found on one of the archives in `package-archives'."
 				  nil t))))
   (let ((pkg-desc (assq name package-archive-contents)))
     (unless pkg-desc
-      (error "Package '%s' is not available for installation"
+      (error "Package `%s' is not available for installation"
 	     (symbol-name name)))
     (package-download-transaction
      (package-compute-transaction (list name)
@@ -976,11 +976,16 @@ The file can either be a tar file or an Emacs Lisp file."
      (t (error "Unrecognized extension `%s'" (file-name-extension file))))))
 
 (defun package-delete (name version)
-  (require 'dired)			; for dired-delete-file
-  (dired-delete-file (expand-file-name (concat name "-" version)
-				       package-user-dir)
-		     ;; FIXME: query user?
-		     'always))
+  (let ((dir (package--dir name version)))
+    (if (string-equal (file-name-directory dir)
+		      (file-name-as-directory
+		       (expand-file-name package-user-dir)))
+	(progn
+	  (delete-directory dir t t)
+	  (message "Package `%s-%s' deleted." name version))
+      ;; Don't delete "system" packages
+      (error "Package `%s-%s' is a system package, not deleting"
+	     name version))))
 
 (defun package-archive-url (name)
   "Return the archive containing the package NAME."
@@ -1030,7 +1035,8 @@ makes them available for download."
 The variable `package-load-list' controls which packages to load.
 If optional arg NO-ACTIVATE is non-nil, don't activate packages."
   (interactive)
-  (setq package-obsolete-alist nil)
+  (setq package-alist nil
+	package-obsolete-alist nil)
   (package-load-all-descriptors)
   (package-read-all-archive-contents)
   (unless no-activate
@@ -1361,12 +1367,16 @@ buffers.  The arguments are ignored."
 (defun package-menu-mark-delete (num)
   "Mark a package for deletion and move to the next line."
   (interactive "p")
-  (package-menu-mark-internal "D"))
+  (if (string-equal (package-menu-get-status) "installed")
+      (package-menu-mark-internal "D")
+    (forward-line)))
 
 (defun package-menu-mark-install (num)
   "Mark a package for installation and move to the next line."
   (interactive "p")
-  (package-menu-mark-internal "I"))
+  (if (string-equal (package-menu-get-status) "available")
+      (package-menu-mark-internal "I")
+    (forward-line)))
 
 (defun package-menu-mark-unmark (num)
   "Clear any marks on a package and move to the next line."
@@ -1420,34 +1430,58 @@ buffers.  The arguments are ignored."
       "")))
 
 (defun package-menu-execute ()
-  "Perform all the marked actions.
-Packages marked for installation will be downloaded and
-installed.  Packages marked for deletion will be removed.
-Note that after installing packages you will want to restart
-Emacs."
+  "Perform marked Package Menu actions.
+Packages marked for installation are downloaded and installed;
+packages marked for deletion are removed."
   (interactive)
-  (goto-char (point-min))
-  (while (not (eobp))
-    (let ((cmd (char-after))
-	  (pkg-name (package-menu-get-package))
-	  (pkg-vers (package-menu-get-version))
-	  (pkg-status (package-menu-get-status)))
-      (cond
-       ((eq cmd ?D)
-	(when (and (string= pkg-status "installed")
-		   (string= pkg-name "package"))
-	  ;; FIXME: actually, we could be tricky and remove all info.
-	  ;; But that is drastic and the user can do that instead.
-	  (error "Can't delete most recent version of `package'"))
-	;; Ask for confirmation here?  Maybe if package status is ""?
-	;; Or if any lisp from package is actually loaded?
-	(message "Deleting %s-%s..." pkg-name pkg-vers)
-	(package-delete pkg-name pkg-vers)
-	(message "Deleting %s-%s... done" pkg-name pkg-vers))
-       ((eq cmd ?I)
-	(package-install (intern pkg-name)))))
-    (forward-line))
-  (package-menu-revert))
+  (let (install-list delete-list cmd)
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+	(setq cmd (char-after))
+	(cond
+	 ((eq cmd ?\s) t)
+	 ((eq cmd ?D)
+	  (push (cons (package-menu-get-package)
+		      (package-menu-get-version))
+		delete-list))
+	 ((eq cmd ?I)
+	  (push (package-menu-get-package) install-list)))
+	(forward-line)))
+    ;; Delete packages, prompting if necessary.
+    (when delete-list
+      (if (yes-or-no-p
+	   (if (= (length delete-list) 1)
+	       (format "Delete package `%s-%s'? "
+		       (caar delete-list)
+		       (cdr (car delete-list)))
+	     (format "Delete these %d packages (%s)? "
+		     (length delete-list)
+		     (mapconcat (lambda (elt)
+				  (concat (car elt) "-" (cdr elt)))
+				delete-list
+				", "))))
+	  (dolist (elt delete-list)
+	    (condition-case err
+		(package-delete (car elt) (cdr elt))
+	      (error (message (cadr err)))))
+	(error "Aborted")))
+    (when install-list
+      (if (yes-or-no-p
+	   (if (= (length install-list) 1)
+	       (format "Install package `%s'? " (car install-list))
+	     (format "Install these %d packages (%s)? "
+		     (length install-list)
+		     (mapconcat 'identity install-list ", "))))
+	  (dolist (elt install-list)
+	    (package-install (intern elt)))))
+    ;; If we deleted anything, regenerate `package-alist'.  This is done
+    ;; automatically if we installed a package.
+    (and delete-list (null install-list)
+	 (package-initialize))
+    (if (or delete-list install-list)
+	(package-menu-revert)
+      (message "No operations specified."))))
 
 (defun package-print-package (package version key desc)
   (let ((face

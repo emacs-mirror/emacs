@@ -1,3 +1,16 @@
+2010-11-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-unpack): Remove no-op.
+	(package--builtins, package--dir): Doc fix.
+	(package-activate-1, package-activate, package-install)
+	(package-compute-transaction): Fix error message.
+	(package-delete): Use delete-directory.  Omit system packages.
+	(package-initialize): Set package-alist to nil first.
+	(package-menu-mark-delete, package-menu-mark-install): Don't add
+	symbols that are inconsistent with the package state.
+	(package-menu-execute): Perform deletions and installations as
+	single batch operations.
+
 2010-11-03  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/idlwave.el (idlwave-pset): Only used on XEmacs.
