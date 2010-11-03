@@ -89,7 +89,7 @@
 This file documents Calc, the GNU Emacs calculator.
 @end ifinfo
 @ifnotinfo
-This file documents Calc, the GNU Emacs calculator, included with GNU Emacs 23.1.
+This file documents Calc, the GNU Emacs calculator, included with GNU Emacs 23.3.
 @end ifnotinfo
 
 Copyright @copyright{} 1990, 1991, 2001, 2002, 2003, 2004,
