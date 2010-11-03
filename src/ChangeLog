@@ -1,3 +1,8 @@
+2010-11-03  Julien Danjou  <julien@danjou.info>
+
+	* image.c (gif_load): Add support for transparency and specified
+	:background.
+
 2010-11-01  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (lookup_glyphless_char_display): Extern it.
