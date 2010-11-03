@@ -644,10 +644,6 @@ point."
           (setq mark-active t
                 deactivate-mark nil)))))
 
-(defvar name1)
-(defvar dummy)
-(defvar dummy2)
-
 (defun reftex-toc-promote-prepare (x)
   "Look at a toc entry and see if we could pro/demote it.
 Expects the level change DELTA to be dynamically scoped into this function.
