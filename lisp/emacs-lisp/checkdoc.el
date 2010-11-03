@@ -1388,7 +1388,7 @@ Depends on `checkdoc-this-string-valid' to reset the syntax table so that
 regexp short cuts work.  FP is the function defun information."
   (let ((case-fold-search nil)
 	;; Use a marker so if an early check modifies the text,
-	;; we won't accidentally loose our place.  This could cause
+	;; we won't accidentally lose our place.  This could cause
 	;; end-of doc string whitespace to also delete the " char.
 	(s (point))
 	(e (if (looking-at "\"")
@@ -2676,5 +2676,4 @@ function called to create the messages."
 
 (provide 'checkdoc)
 
-;; arch-tag: c49a7ec8-3bb7-46f2-bfbc-d5f26e033b26
 ;;; checkdoc.el ends here

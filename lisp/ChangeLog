@@ -1,5 +1,7 @@
 2010-11-03  Glenn Morris  <rgm@gnu.org>
 
+	* net/dbus.el (dbus-name-owner-changed-handler): Doc fix.
+
 	* play/landmark.el (lm-losing-threshold): Correct spelling.
 	(lm-human-plays): Use new name.
 

@@ -678,7 +678,7 @@ promotion/demotion later."
                           (error "Something is wrong!  Contact maintainer!")))
                     ;; Section has changed, request scan and loading
                     ;; We use a variable to delay until after the safe-exc.
-                    ;; because otherwise we loose the region.
+                    ;; because otherwise we lose the region.
                     (setq load t)))
                 ;; Scan document and load all files, this exits command
                 (if load (reftex-toc-load-all-files-for-promotion))) ; exits
@@ -1100,5 +1100,4 @@ always show the current section in connection with the option
    ["Help" reftex-toc-show-help t]))
 
 
-;; arch-tag: 92400ce2-0b86-4c89-a606-4ed71acea17e
 ;;; reftex-toc.el ends here
