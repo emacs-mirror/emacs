@@ -1,3 +1,8 @@
+2010-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-function):
+	Handle __DATA__ and __END__.
+
 2010-11-02  Noah Friedman  <friedman@splode.com>
 
 	* emacs-lisp/bytecomp.el (byte-recompile-file): If bytecomp-arg is
