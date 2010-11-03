@@ -1,11 +1,17 @@
+2010-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* nndiary.el (nndiary-generate-nov-databases-1)
+	(nndiary-generate-active-info): Rename dynamic variable `files' to
+	something less generic.
+
 2010-11-03  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* nnir.el (nnir-request-move-article): call the underlying backend to
+	* nnir.el (nnir-request-move-article): Call the underlying backend to
 	move articles from nnir.
 
 2010-11-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-cite.el (gnus-article-natural-long-line-p): Removed.
+	* gnus-cite.el (gnus-article-natural-long-line-p): Remove.
 
 2010-11-02  Julien Danjou  <julien@danjou.info>
 
