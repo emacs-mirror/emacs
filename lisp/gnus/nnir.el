@@ -636,6 +636,26 @@ and show thread that contains this article."
 	(gnus-request-article artno artfullgroup nntp-server-buffer)
 	(cons artfullgroup artno)))))
 
+(deffoo nnir-request-move-article (article group server accept-form
+					   &optional last internal-move-group)
+  (let* ((artitem (nnir-artlist-article nnir-artlist
+					article))
+	 (artfullgroup (nnir-artitem-group artitem))
+	 (artno (nnir-artitem-number artitem))
+	 (to-newsgroup (nth 1 accept-form))
+	 (to-method (gnus-find-method-for-group to-newsgroup))
+	 (from-method (gnus-find-method-for-group artfullgroup))
+	 (move-is-internal (gnus-server-equal from-method to-method)))
+    (gnus-request-move-article
+     artno
+     artfullgroup
+     (nth 1 from-method)
+     accept-form
+     last
+     (and move-is-internal
+	  to-newsgroup		; Not respooling
+	  (gnus-group-real-name to-newsgroup))) ; Is this move internal
+    ))
 
 (nnoo-define-skeleton nnir)
 
