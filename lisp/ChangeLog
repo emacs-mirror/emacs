@@ -1,3 +1,10 @@
+2010-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* play/gomoku.el (nil-score, Xscore, XXscore, XXXscore, XXXXscore)
+	(Oscore, OOscore, OOOscore, OOOOscore): Rename with gomoku- prefix.
+	(gomoku-score-trans-table, gomoku-winning-threshold)
+	(gomoku-loosing-threshold, gomoku-init-score-table): Use new names.
+
 2010-11-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el: Don't put built-in packages in
