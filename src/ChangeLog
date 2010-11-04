@@ -1,3 +1,8 @@
+2010-11-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* Refer to set-coding-system-priority instead of the obsolete
+	set-coding-priority in the doc string.
+
 2010-11-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
 	    Ismail Donmez  <ismail@namtrac.org>  (tiny change)
 
