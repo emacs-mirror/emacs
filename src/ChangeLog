@@ -1,3 +1,8 @@
+2010-03-25  Helmut Eller  <eller.helmut@gmail.com>
+
+	* process.c (Fmake_network_process): Call `select' for interrupted
+	`connect' rather than creating new socket (Bug#5173).
+
 2010-11-04  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_delete_unmatched): Check Vface_ignored_fonts.
