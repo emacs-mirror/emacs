@@ -3070,11 +3070,6 @@ to run if these resources are not installed."
    echo
 fi
 
-if test "$HAVE_DBUS" = yes && test "${opsys}" != "gnu-linux"; then
-  echo "D-Bus integration has been tested for GNU/Linux only."
-  echo
-fi
-
 
 # Remove any trailing slashes in these variables.
 [test "${prefix}" != NONE &&

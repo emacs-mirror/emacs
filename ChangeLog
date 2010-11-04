@@ -1,3 +1,7 @@
+2010-11-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in: Don't write a warning for D-Bus anymore.
+
 2010-11-03  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (CRT_DIR): New output variable.
