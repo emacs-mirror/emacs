@@ -532,7 +532,7 @@ x_real_positions (f, xptr, yptr)
   int win_x, win_y, outer_x, outer_y;
   int real_x = 0, real_y = 0;
   int had_errors = 0;
-  Window win;
+  Window win = f->output_data.x->parent_desc;
   Atom actual_type;
   unsigned long actual_size, bytes_remaining;
   int i, rc, actual_format;
@@ -546,47 +546,7 @@ x_real_positions (f, xptr, yptr)
 
   x_catch_errors (dpy);
 
-  win = FRAME_OUTER_WINDOW (f);
-  /* Try _NET_FRAME_EXTENTS first.  */
-  rc = XGetWindowProperty (dpy, win, dpyinfo->Xatom_net_frame_extents,
-                           0, max_len, False, target_type,
-                           &actual_type, &actual_format, &actual_size,
-                           &bytes_remaining, &tmp_data);
-
-  if (rc == Success && actual_type == target_type && !x_had_errors_p (dpy)
-      && actual_size == 4 && actual_format == 32)
-    {
-      int ign;
-      Window rootw;
-
-      XGetGeometry (FRAME_X_DISPLAY (f), win,
-                    &rootw, &real_x, &real_y, &ign, &ign, &ign, &ign);
-      long *fe = (long *)tmp_data;
-      
-      FRAME_X_OUTPUT (f)->x_pixels_outer_diff = fe[0];
-      FRAME_X_OUTPUT (f)->y_pixels_outer_diff = fe[2];
-      *xptr = real_x - fe[0];
-      *yptr = real_y - fe[2];
-
-      if (FRAME_X_WINDOW (f) != win) 
-        {
-          XGetGeometry (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                        &rootw, &real_x, &real_y, &ign, &ign, &ign, &ign);
-
-          f->x_pixels_diff = real_x;
-          f->y_pixels_diff = real_y;
-        }
-
-      if (tmp_data) XFree (tmp_data);
-      x_uncatch_errors ();
-      UNBLOCK_INPUT;
-      return;
-    }
-
-  if (tmp_data) XFree (tmp_data);
-
-  win = f->output_data.x->parent_desc;
-  if (win == FRAME_X_DISPLAY_INFO (f)->root_window)
+  if (win == dpyinfo->root_window)
     win = FRAME_OUTER_WINDOW (f);
 
   /* This loop traverses up the containment tree until we hit the root
@@ -670,6 +630,34 @@ x_real_positions (f, xptr, yptr)
 
       had_errors = x_had_errors_p (FRAME_X_DISPLAY (f));
     }
+
+
+  if (dpyinfo->root_window == f->output_data.x->parent_desc)
+    {
+      /* Try _NET_FRAME_EXTENTS if our parent is the root window.  */
+      rc = XGetWindowProperty (dpy, win, dpyinfo->Xatom_net_frame_extents,
+                               0, max_len, False, target_type,
+                               &actual_type, &actual_format, &actual_size,
+                               &bytes_remaining, &tmp_data);
+
+      if (rc == Success && actual_type == target_type && !x_had_errors_p (dpy)
+          && actual_size == 4 && actual_format == 32)
+        {
+          int ign;
+          Window rootw;
+
+          XGetGeometry (FRAME_X_DISPLAY (f), win,
+                        &rootw, &real_x, &real_y, &ign, &ign, &ign, &ign);
+          long *fe = (long *)tmp_data;
+      
+          outer_x = -fe[0];
+          outer_y = -fe[2];
+          real_x -= fe[0];
+          real_y -= fe[2];
+        }
+    }
+
+  if (tmp_data) XFree (tmp_data);
 
   x_uncatch_errors ();
 
