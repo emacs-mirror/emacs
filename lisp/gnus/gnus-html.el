@@ -350,9 +350,13 @@ Use ALT-TEXT for the image string."
   "Browse the image under point."
   (interactive)
   (let ((url (get-text-property (point) 'gnus-string)))
-    (if (not url)
-	(message "No URL at point")
-      (browse-url url))))
+    (cond
+     ((not url)
+      (message "No link under point"))
+     ((string-match "^mailto:" url)
+      (gnus-url-mailto url))
+     (t
+      (browse-url url)))))
 
 (defun gnus-html-schedule-image-fetching (buffer image)
   "Retrieve IMAGE, and place it into BUFFER on arrival."

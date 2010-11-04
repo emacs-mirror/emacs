@@ -510,7 +510,6 @@ and show thread that contains this article."
 			       (cdr (assoc "SEARCH" (cdr result))))))))))
       (gnus-summary-read-group-1 group t t gnus-summary-buffer
 				 nil (list backend-number))
-      (gnus-summary-limit (list backend-number))
       (gnus-summary-refer-thread))))
 
 

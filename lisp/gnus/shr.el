@@ -340,9 +340,13 @@ redirects somewhere else."
   "Browse the URL under point."
   (interactive)
   (let ((url (get-text-property (point) 'shr-url)))
-    (if (not url)
-	(message "No link under point")
-      (browse-url url))))
+    (cond
+     ((not url)
+      (message "No link under point"))
+     ((string-match "^mailto:" url)
+      (gnus-url-mailto url))
+     (t
+      (browse-url url)))))
 
 (defun shr-save-contents (directory)
   "Save the contents from URL in a file."

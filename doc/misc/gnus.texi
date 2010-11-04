@@ -14845,9 +14845,7 @@ Here's an example method that's more complex:
         (nnimap-inbox "INBOX")
         (nnimap-split-methods default)
         (nnimap-expunge t)
-        (nnimap-stream ssl)
-        (nnir-search-engine imap)
-        (nnimap-expunge-inbox t))
+        (nnimap-stream ssl))
 @end example
 
 @table @code
@@ -14882,6 +14880,11 @@ what you need.
 @item nnimap-authenticator
 Some @acronym{IMAP} servers allow anonymous logins.  In that case,
 this should be set to @code{anonymous}.
+
+@item nnimap-expunge
+If non-@code{nil}, expunge articles after deleting them.  This is always done
+if the server supports UID EXPUNGE, but it's not done by default on
+servers that doesn't support that command.
 
 @item nnimap-streaming
 Virtually all @code{IMAP} server support fast streaming of data.  If

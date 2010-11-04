@@ -1,3 +1,13 @@
+2010-11-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing the IMAP Connection): Remove nnir mention,
+	since that works by default.
+
+2010-11-03  Kan-Ru Chen  <kanru@kanru.info>  (tiny change)
+
+	* gnus.texi (Customizing the IMAP Connection): Document
+	`nnimap-expunge' and remove `nnimap-expunge-inbox' from example.
+
 2010-11-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Remote shell setup): New item "Interactive shell
