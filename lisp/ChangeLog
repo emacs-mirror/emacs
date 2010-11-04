@@ -25,6 +25,9 @@
 	(compilation-goto-locus): Use adjust-height specifier in
 	display-buffer calls.
 
+	* buff-menu.el (Buffer-menu-switch-other-window)
+	(Buffer-menu-2-window): Use buffer display specifiers.
+
 2010-11-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-names): Describe `not-this-window' and
