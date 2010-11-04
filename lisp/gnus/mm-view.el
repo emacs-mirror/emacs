@@ -82,6 +82,8 @@
 ;;; Functions for displaying various formats inline
 ;;;
 
+(autoload 'gnus-rescale-image "gnus-util")
+
 (defun mm-inline-image-emacs (handle)
   (let ((b (point-marker))
 	(inhibit-read-only t))

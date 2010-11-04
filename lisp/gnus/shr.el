@@ -181,7 +181,7 @@ redirects somewhere else."
 	    result))
     (dolist (sub dom)
       (if (stringp sub)
-	  (push (cons :text sub) result)
+	  (push (cons 'text sub) result)
 	(push (shr-transform-dom sub) result)))
     (nreverse result)))
 
@@ -194,7 +194,7 @@ redirects somewhere else."
 (defun shr-generic (cont)
   (dolist (sub cont)
     (cond
-     ((eq (car sub) :text)
+     ((eq (car sub) 'text)
       (shr-insert (cdr sub)))
      ((listp (cdr sub))
       (shr-descend sub)))))
@@ -286,7 +286,9 @@ redirects somewhere else."
 			    (aref (char-category-set (following-char)) ?>)))
 		  (backward-char 1))
 	      (while (and (>= (setq count (1- count)) 0)
-			  (aref (char-category-set (following-char)) ?>))
+			  (aref (char-category-set (following-char)) ?>)
+			  (aref fill-find-break-point-function-table
+				(following-char)))
 		(forward-char 1)))
 	    (when (eq (following-char) ? )
 	      (forward-char 1))
@@ -409,6 +411,10 @@ redirects somewhere else."
 		     image)))
       image)))
 
+;; url-cache-extract autoloads url-cache.
+(declare-function url-cache-create-filename "url-cache" (url))
+(autoload 'mm-disable-multibyte "mm-util")
+
 (defun shr-get-image-data (url)
   "Get image data for URL.
 Return a string with image data."
@@ -425,6 +431,8 @@ Return a string with image data."
   (shr-ensure-paragraph)
   (apply #'shr-fontize-cont cont types)
   (shr-ensure-paragraph))
+
+(autoload 'widget-convert-button "wid-edit")
 
 (defun shr-urlify (start url)
   (widget-convert-button
@@ -524,7 +532,7 @@ Return a string with image data."
 	  (url (or url (cdr (assq :src cont)))))
       (let ((start (point-marker)))
 	(when (zerop (length alt))
-	  (setq alt "[img]"))
+	  (setq alt "*"))
 	(cond
 	 ((or (member (cdr (assq :height cont)) '("0" "1"))
 	      (member (cdr (assq :width cont)) '("0" "1")))

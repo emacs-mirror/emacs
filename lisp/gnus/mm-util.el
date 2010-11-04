@@ -39,6 +39,10 @@
     (require 'timer)))
 
 (defvar mm-mime-mule-charset-alist )
+;; Note this is not presently used on Emacs >= 23, which is good,
+;; since it means standalone message-mode (which requires mml and
+;; hence mml-util) does not load gnus-util.
+(autoload 'gnus-completing-read "gnus-util")
 
 ;; Emulate functions that are not available in every (X)Emacs version.
 ;; The name of a function is prefixed with mm-, like `mm-char-int' for
@@ -202,19 +206,10 @@ to the contents of the accessible portion of the buffer."
     (defalias 'mm-decode-coding-region 'decode-coding-region)
     (defalias 'mm-encode-coding-region 'encode-coding-region)))
 
-;; `string-to-multibyte' is available only in Emacs 22.1 or greater.
-(defalias 'mm-string-to-multibyte
-  (cond
-   ((featurep 'xemacs)
-    'identity)
-   ((fboundp 'string-to-multibyte)
-    'string-to-multibyte)
-   (t
-    (lambda (string)
-      "Return a multibyte string with the same individual chars as STRING."
-      (mapconcat
-       (lambda (ch) (mm-string-as-multibyte (char-to-string ch)))
-       string "")))))
+;; `string-to-multibyte' is available only in Emacs.
+(defalias 'mm-string-to-multibyte (if (featurep 'xemacs)
+				      'identity
+				    'string-to-multibyte))
 
 ;; `char-or-char-int-p' is an XEmacs function, not available in Emacs.
 (eval-and-compile
@@ -272,18 +267,19 @@ to the contents of the accessible portion of the buffer."
 ;; Actually, there should be an `mm-coding-system-mime-charset'.
 (eval-and-compile
   (defalias 'mm-read-coding-system
-    (cond
-     ((fboundp 'read-coding-system)
-      (if (and (featurep 'xemacs)
-	       (<= (string-to-number emacs-version) 21.1))
-	  (lambda (prompt &optional default-coding-system)
-	    (read-coding-system prompt))
-	'read-coding-system))
-     (t (lambda (prompt &optional default-coding-system)
-	  "Prompt the user for a coding system."
-	  (gnus-completing-read
-	   prompt (mapcar (lambda (s) (symbol-name (car s)))
-			  mm-mime-mule-charset-alist)))))))
+    (if (featurep 'emacs) 'read-coding-system
+      (cond
+       ((fboundp 'read-coding-system)
+	(if (and (featurep 'xemacs)
+		 (<= (string-to-number emacs-version) 21.1))
+	    (lambda (prompt &optional default-coding-system)
+	      (read-coding-system prompt))
+	  'read-coding-system))
+       (t (lambda (prompt &optional default-coding-system)
+	    "Prompt the user for a coding system."
+	    (gnus-completing-read
+	     prompt (mapcar (lambda (s) (symbol-name (car s)))
+			    mm-mime-mule-charset-alist))))))))
 
 (defvar mm-coding-system-list nil)
 (defun mm-get-coding-system-list ()

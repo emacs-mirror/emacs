@@ -1,7 +1,7 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -1324,6 +1324,8 @@ Use CMD as the process."
       (let ((coding-system-for-write 'binary))
 	(shell-command-on-region (point-min) (point-max) command nil)))))
 
+(autoload 'gnus-completing-read "gnus-util")
+
 (defun mm-interactively-view-part (handle)
   "Display HANDLE using METHOD."
   (let* ((type (mm-handle-media-type handle))
@@ -1683,6 +1685,7 @@ If RECURSIVE, search recursively."
 		  (start end &optional base-url))
 (declare-function shr-insert-document "shr" (dom))
 (defvar shr-blocked-images)
+(autoload 'gnus-blocked-images "gnus-art")
 
 (defun mm-shr (handle)
   ;; Require since we bind its variables.

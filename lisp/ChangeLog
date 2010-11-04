@@ -1,3 +1,30 @@
+2010-11-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-names, display-buffer-regexps): Make
+	even-window-sizes a seperate specifier.  Allow numbers and
+	functions in the cdr of the adjust-height specifier and remove
+	even-window-heights and the special handling of
+	fit-window-to-buffer and shrink-window-if-larger-than-buffer.
+	Add new specifier adjust-width similar to adjust-height.
+	(display-buffer-normalize-specifiers-1): Fix typo.
+	(display-buffer-even-sizes, display-buffer-adjust-height)
+	(display-buffer-adjust-width): New functions to handle size
+	adjustment of new window.
+	(display-buffer-adjust-heights): Remove.
+	(display-buffer-in-window): Don't call
+	display-buffer-adjust-heights any more.
+	(display-buffer-in-lru-buffer-window)
+	(display-buffer-in-lru-window): Call display-buffer-even-sizes.
+	(display-buffer-in-new-window): Use functionp instead of
+	fboundp.  Call display-buffer-adjust-height and
+	display-buffer-adjust-width.
+	(display-buffer): Use functionp instead of fboundp.
+	(fit-window-to-buffer): Rename argument IGNORE to OVERRIDE.
+
+	* progmodes/compile.el (compilation-start)
+	(compilation-goto-locus): Use adjust-height specifier in
+	display-buffer calls.
+
 2010-11-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-names): Describe `not-this-window' and
@@ -15,6 +42,149 @@
 	(compilation-goto-locus): Use specifiers in display-buffer and
 	pop-to-buffer calls.  Simplify.
 	(compilation-find-file): Use specifiers in display-buffer calls.
+
+2010-11-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-initialize): Ensure that
+	obsoleted built-in packages are not in package-activated-list
+	during activation.
+	(describe-package-1): Make the "installed" status override
+	"built-in".
+
+2010-11-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* subr.el (version-separator, version-regexp-alist): Remove '*'
+	from docstring.
+	(version-list-<=, version<=, version=): Doc fix.
+
+2010-11-01  Kenichi Handa  <handa@m17n.org>
+
+	* faces.el (glyphless-char): Inherit underline for tty.
+
+2010-11-01  Kenichi Handa  <handa@m17n.org>
+
+	Implement various display methods for glyphless characters.
+
+	* international/characters.el (char-acronym-table): New variable.
+	(glyphless-char-control): New variable.
+	(update-glyphless-char-display): New funciton.
+
+	* faces.el (glyphless-char): New face.
+
+2010-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/holidays.el (general-holidays, oriental-holidays)
+	(local-holidays, other-holidays, hebrew-holidays, christian-holidays)
+	(islamic-holidays, bahai-holidays, solar-holidays): Move aliases before
+	the definitions of their targets.
+
+	* emacs-lisp/smie.el (smie): New custom group.
+	(smie-blink-matching-inners, smie-indent-basic): Add :group.
+
+	* faces.el (xw-defined-colors, x-setup-function-keys):
+	* mouse-sel.el (x-select-text):
+	* term/w32console.el (x-setup-function-keys): Update declarations.
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-heredoc): Declare.
+
+	* textmodes/ispell.el (comment-add): Declare.
+
+	* net/gnutls.el (gnutls-boot, gnutls-errorp, gnutls-error-string):
+	Declare.
+
+	* info.el (finder-keywords-hash, package-alist): Declare.
+
+2010-11-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* finder.el (finder-compile-keywords): Don't use intern-soft,
+	since package names may not yet exist in the obarray.
+
+2010-11-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc-arch.el (vc-arch-checkin):
+	* vc/vc-cvs.el (vc-cvs-checkin):
+	* vc/vc-mtn.el (vc-mtn-checkin):
+	* vc/vc-rcs.el (vc-rcs-checkin):
+	* vc/vc-sccs.el (vc-sccs-checkin):
+	* vc/vc-svn.el (vc-svn-checkin): Remove optional extra arg, unused
+	since 2010-04-21 commit by Stefan Monnier.
+
+2010-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-file): Fix previous change.
+
+	* startup.el (package-enable-at-startup, package-initialize):
+	Silence compiler.
+
+	* progmodes/ada-mode.el (ada-font-lock-syntactic-keywords):
+	Silence compiler.
+
+2010-10-31  Julien Danjou  <julien@danjou.info>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-file): New fun (bug#7297).
+	(byte-recompile-directory):
+	* emacs-lisp/lisp-mode.el (emacs-lisp-byte-compile-and-load):
+	Use `byte-recompile-file'.
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el: Handle standard values via a keyword.
+	Only set version property if specified.
+	(cursor-in-non-selected-windows, menu-bar-mode)
+	(tool-bar-mode, show-trailing-whitespace):
+	Do not specify standard values.
+	(transient-mark-mode, temporary-file-directory): Use :standard.
+
+2010-10-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-get-selection-value): New function that gets
+	PRIMARY with type as specified in x-select-request-type. (Bug#6802).
+
+2010-10-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-file-contents): For root,
+	preserve owner and group when editing files.  (Bug#7289)
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* speedbar.el (speedbar-mode):
+	* play/fortune.el (fortune-in-buffer, fortune):
+	* play/gomoku.el (gomoku-mode):
+	* play/landmark.el (lm-mode):
+	* textmodes/bibtex.el (bibtex-validate, bibtex-validate-globally):
+	Replace inappropriate uses of toggle-read-only.  (Bug#7292)
+
+	* select.el (x-selection): Mark it as an obsolete alias.
+
+2010-10-31  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* vc/add-log.el (find-change-log): Use derived-mode-p rather than
+	major-mode (bug#7284).
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-files-menu): Make it into an actual alias,
+	rather than just an unused variable that inherits from the real one.
+
+2010-10-31  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-mask-paragraph): Fix an off-by-1 error.
+	This fixes bug #7185.
+
+2010-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Search for package directories, and
+	don't load package.el if none are found.
+
+	* emacs-lisp/package.el (describe-package, list-packages): Call
+	package-initialize if it has not been called yet.
+
+2010-10-30  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-fonts.el (c-font-lock-enum-tail): New function
+	which fontifies the tail of an enum.
+	(c-basic-matchers-after): Insert a call to the above new function.
+	This fixes bug #7264.
 
 2010-10-30  Glenn Morris  <rgm@gnu.org>
 
@@ -332,13 +502,13 @@
 	auto-built for efficiency of execution and updating.
 	(verilog-extended-complete-re): Support 'pure' fucntion & task
 	declarations (these have no bodies).
-	(verilog-beg-of-statement): general cleanup to enable support of
-	'pure' fucntion & task declarations (these have no bodies).  These
-	efforts together fix Verilog bug210 from veripool; which was also
+	(verilog-beg-of-statement): General cleanup to enable support of
+	'pure' fucntion & task declarations (these have no bodies).
+	These efforts together fix Verilog bug210 from veripool; which was also
 	noticed by Steve Pearlmutter.
 	(verilog-directive-re, verilog-directive-begin, verilog-indent-re)
-	(verilog-directive-nest-re, verilog-set-auto-endcomments): Support
-	`elsif.  Reported by Shankar Giri.
+	(verilog-directive-nest-re, verilog-set-auto-endcomments):
+	Support `elsif.  Reported by Shankar Giri.
 	(verilog-forward-ws&directives, verilog-in-attribute-p): Fixes for
 	attribute handling for lining up declarations and assignments.
 	(verilog-beg-of-statement-1): Fix issue where continued declaration
@@ -346,8 +516,7 @@
 	(verilog-in-attribute-p, verilog-skip-backward-comments)
 	(verilog-skip-forward-comment-p): Support proper treatment of
 	attributes by indent code. Reported by Jeff Steele.
-	(verilog-in-directive-p): Fix comment to correctly describe
-	function.
+	(verilog-in-directive-p): Fix comment to correctly describe function.
 	(verilog-backward-up-list, verilog-in-struct-region-p)
 	(verilog-backward-token, verilog-in-struct-p)
 	(verilog-in-coverage-p, verilog-do-indent)
@@ -374,7 +543,7 @@
 	parameter in AUTOINSTPARAM.
 	(verilog-read-always-signals-recurse, verilog-read-decls): Fix not
 	treating `elsif similar to `endif inside AUTOSENSE.
-        (verilog-do-indent): Implement correct automatic or static task or
+	(verilog-do-indent): Implement correct automatic or static task or
 	function end comment highlight. Reported by Steve Pearlmutter.
 	(verilog-font-lock-keywords-2): Fix highlighting of single
 	character pins, bug264.  Reported by Michael Laajanen.
@@ -382,15 +551,15 @@
 	(verilog-read-sub-decls-in-interfaced, verilog-read-sub-decls-sig)
 	(verilog-subdecls-get-interfaced, verilog-subdecls-new): Support
 	interfaces with AUTOINST, bug270.  Reported by Luis Gutierrez.
-	(verilog-pretty-expr): Fix interactive arguments, bug272. Reported
-	by Mark Johnson.
-	(verilog-auto-tieoff, verilog-auto-tieoff-ignore-regexp): Add
-	'verilog-auto-tieoff-ignore-regexp' for AUTOTIEOFF,
+	(verilog-pretty-expr): Fix interactive arguments, bug272.
+	Reported by Mark Johnson.
+	(verilog-auto-tieoff, verilog-auto-tieoff-ignore-regexp):
+	Add 'verilog-auto-tieoff-ignore-regexp' for AUTOTIEOFF,
 	bug269. Suggested by Gary Delp.
 	(verilog-mode-map, verilog-preprocess, verilog-preprocess-history)
-	(verilog-preprocessor, verilog-set-compile-command): Create
-	verilog-preprocess and verilog-preprocessor to show preprocessed
-	output.
+	(verilog-preprocessor, verilog-set-compile-command):
+	Create verilog-preprocess and verilog-preprocessor to show
+	preprocessed output.
 	(verilog-get-beg-of-line, verilog-get-end-of-line)
 	(verilog-modi-file-or-buffer, verilog-modi-name)
 	(verilog-modi-point, verilog-within-string): Move defmacro's
@@ -438,8 +607,8 @@
 	(verilog-modi-lookup-last-current, verilog-modi-lookup-last-mod)
 	(verilog-modi-lookup-last-modi, verilog-modi-lookup-last-tick):
 	Fix slow verilog-auto expansion on very large files.
-	(verilog-read-sub-decls-expr, verilog-read-sub-decls-line): Fix
-	AUTOOUTPUT treating "1*2" as a signal name in submodule connection
+	(verilog-read-sub-decls-expr, verilog-read-sub-decls-line):
+	Fix AUTOOUTPUT treating "1*2" as a signal name in submodule connection
 	"{1*2{...".  Broke in last revision.
 	(verilog-read-sub-decls-expr): Fix AUTOOUTPUT not detecting
 	submodule connections with replications "{#{a},#{b}}".

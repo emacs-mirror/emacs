@@ -221,49 +221,38 @@ Some useful functions are found in `semantic-format-tag-functions'."
 (defun semantic-symref-results-dump (results)
   "Dump the RESULTS into the current buffer."
   ;; Get ready for the insert.
-  (toggle-read-only -1)
-  (erase-buffer)
-
-  ;; Insert the contents.
-  (let ((lastfile nil)
-	)
-    (dolist (T (oref results :hit-tags))
-
-      (when (not (equal lastfile (semantic-tag-file-name T)))
-	(setq lastfile (semantic-tag-file-name T))
-	(insert-button lastfile
-		       'mouse-face 'custom-button-pressed-face
-		       'action 'semantic-symref-rb-goto-file
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    ;; Insert the contents.
+    (let ((lastfile nil))
+      (dolist (T (oref results :hit-tags))
+	(unless (equal lastfile (semantic-tag-file-name T))
+	  (setq lastfile (semantic-tag-file-name T))
+	  (insert-button lastfile
+			 'mouse-face 'custom-button-pressed-face
+			 'action 'semantic-symref-rb-goto-file
+			 'tag T)
+	  (insert "\n"))
+	(insert "  ")
+	(insert-button "[+]"
+		       'mouse-face 'highlight
+		       'face nil
+		       'action 'semantic-symref-rb-toggle-expand-tag
 		       'tag T
-		       )
-	(insert "\n"))
-
-      (insert "  ")
-      (insert-button "[+]"
-		     'mouse-face 'highlight
-		     'face nil
-		     'action 'semantic-symref-rb-toggle-expand-tag
-		     'tag T
-		     'state 'closed)
-      (insert " ")
-      (insert-button (funcall semantic-symref-results-summary-function
-			      T nil t)
-		     'mouse-face 'custom-button-pressed-face
-		     'face nil
-		     'action 'semantic-symref-rb-goto-tag
-		     'tag T)
-      (insert "\n")
-
-      ))
-
-  ;; Auto expand
-  (when semantic-symref-auto-expand-results
-    (semantic-symref-list-expand-all))
-
-  ;; Clean up the mess
-  (toggle-read-only 1)
-  (set-buffer-modified-p nil)
-  )
+		       'state 'closed)
+	(insert " ")
+	(insert-button (funcall semantic-symref-results-summary-function
+				T nil t)
+		       'mouse-face 'custom-button-pressed-face
+		       'face nil
+		       'action 'semantic-symref-rb-goto-tag
+		       'tag T)
+	(insert "\n")))
+    ;; Auto expand
+    (when semantic-symref-auto-expand-results
+      (semantic-symref-list-expand-all)))
+    ;; Clean up the mess
+  (set-buffer-modified-p nil))
 
 ;;; Commands for semantic-symref-results
 ;;
@@ -283,11 +272,9 @@ BUTTON is the button that was clicked."
 	 (buff (semantic-tag-buffer tag))
 	 (hits (semantic--tag-get-property tag :hit))
 	 (state (button-get button 'state))
-	 (text nil)
-	 )
+	 (text nil))
     (cond
      ((eq state 'closed)
-      (toggle-read-only -1)
       (with-current-buffer buff
 	(dolist (H hits)
 	  (goto-char (point-min))
@@ -295,48 +282,42 @@ BUTTON is the button that was clicked."
 	  (beginning-of-line)
 	  (back-to-indentation)
 	  (setq text (cons (buffer-substring (point) (point-at-eol)) text)))
-	(setq text (nreverse text))
-	)
+	(setq text (nreverse text)))
       (goto-char (button-start button))
       (forward-char 1)
-      (delete-char 1)
-      (insert "-")
-      (button-put button 'state 'open)
-      (save-excursion
-	(end-of-line)
-	(while text
-	(insert "\n")
-	  (insert "    ")
-	  (insert-button (car text)
-			 'mouse-face 'highlight
-			 'face nil
-			 'action 'semantic-symref-rb-goto-match
-			 'tag tag
-			 'line (car hits))
-	  (setq text (cdr text)
-		hits (cdr hits))))
-      (toggle-read-only 1)
-      )
+      (let ((inhibit-read-only t))
+	(delete-char 1)
+	(insert "-")
+	(button-put button 'state 'open)
+	(save-excursion
+	  (end-of-line)
+	  (while text
+	    (insert "\n")
+	    (insert "    ")
+	    (insert-button (car text)
+			   'mouse-face 'highlight
+			   'face nil
+			   'action 'semantic-symref-rb-goto-match
+			   'tag tag
+			   'line (car hits))
+	    (setq text (cdr text)
+		  hits (cdr hits))))))
      ((eq state 'open)
-      (toggle-read-only -1)
-      (button-put button 'state 'closed)
-      ;; Delete the various bits.
-      (goto-char (button-start button))
-      (forward-char 1)
-      (delete-char 1)
-      (insert "+")
-      (save-excursion
-	(end-of-line)
+      (let ((inhibit-read-only t))
+	(button-put button 'state 'closed)
+	;; Delete the various bits.
+	(goto-char (button-start button))
 	(forward-char 1)
-	(delete-region (point)
-		       (save-excursion
-			 (forward-char 1)
-			 (forward-line (length hits))
-			 (point))))
-      (toggle-read-only 1)
-      )
-     ))
-  )
+	(delete-char 1)
+	(insert "+")
+	(save-excursion
+	  (end-of-line)
+	  (forward-char 1)
+	  (delete-region (point)
+			 (save-excursion
+			   (forward-char 1)
+			   (forward-line (length hits))
+			   (point)))))))))
 
 (defun semantic-symref-rb-goto-file (&optional button)
   "Go to the file specified in the symref results buffer.
@@ -554,5 +535,4 @@ Return the number of occurrences FUNCTION was operated upon."
 ;; generated-autoload-load-name: "semantic/symref/list"
 ;; End:
 
-;; arch-tag: e355d9c6-26e0-42d1-9bf1-f4801a54fffa
 ;;; semantic/symref/list.el ends here

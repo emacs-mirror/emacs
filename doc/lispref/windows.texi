@@ -782,7 +782,7 @@ If the edge can't be moved by @var{delta} lines, move it as far as
 possible in the desired direction.
 @end defun
 
-@deffn Command fit-window-to-buffer &optional window max-height min-height
+@deffn Command fit-window-to-buffer &optional window max-height min-height override
 This command makes @var{window} the right height to display its
 contents exactly.  The default for @var{window} is the selected window.
 
@@ -792,6 +792,10 @@ height of a window on @var{window}'s frame.  The optional argument
 @var{min-height} specifies the minimum height for the window; @code{nil}
 means use @code{window-min-height}.  All these height values include the
 mode line and/or header line.
+
+If the optional argument @var{override} is non-@code{nil}, this means to
+ignore any restrictions imposed by @code{window-min-height} and
+@code{window-min-width} on the size of @var{window}.
 
 This function returns non-@code{nil} if it orderly resized @var{window},
 and @code{nil} otherwise.
@@ -1758,8 +1762,8 @@ window specified here shall not be used for displaying the buffer.  The
 also specify an arbitrary frame.  This means that the frame specified
 here shall not be used for displaying the buffer.
 
-The optional third argument @var{ignore} is ignored.
-@end deffn
+The optional third argument @var{ignore} is ignored.                            
+@end deffn                                                                      
 
 Precisely how @code{display-buffer} finds or creates a window depends on
 the @var{specifiers} argument and the two variables described next.
@@ -1844,6 +1848,12 @@ window must be on.  The possible values for the @sc{cdr} are the same
 as for the @code{reuse-buffer-window} specifier.
 @end itemize
 
+@item
+@code{even-window-sizes} with a non-@code{nil} @sc{cdr} means to even
+the sizes of any window reused for displaying the buffer with the size
+of the selected window, provided these windows are adjacent to each
+other and the selected window is larger than the reused one.
+
 The additional specifiers listed so far are useful if the location
 specifier equals @code{same-frame} or @code{other-frame}.  The
 specifiers we describe next are mainly useful in the @code{same-frame}
@@ -1888,59 +1898,59 @@ new window to display the buffer.  An integer number specifies the
 minimum number of lines or columns of the new window.  A floating point
 number gives the minimum fraction of the window's size with respect to
 the frame's root window.  A new window will be made if and only if it
-can be made at least as large as specified by the number.
-
-  Note that @code{min-height} and @code{min-width} (as well as the
-specifiers @code{max-height} and @code{max-width} below) restrict the
-size of new windows only.  Reusing a window or making a new frame is not
-affected by these specifiers.
-
-@item
-The symbols @code{max-height} and @code{max-width}.  In this case, the
-@sc{cdr} must be a number specifying the maximum height or width of any
-new window displaying the buffer.  An integer number specifies the
-maximum number of lines or columns of the new window.  A floating point
-number gives the maximum fraction of the window's size with respect to
-the frame's root window.
-
-  Setting @code{min-height} and @code{max-height} to the same value will
-make a window of exactly that height.  Conversely, setting
-@code{min-width} and @code{max-width} to the same value will produce a
-window of that width.  Note, however, that specifying the exact size of
-a new window might reduce the number of candidate windows that can be
-suitably split.
+can be made at least as large as specified by the number.  Reusing a
+window or making a new frame are not affected by these specifiers.
 
 @item
 The symbol @code{split-unsplittable-frame} with a non-@code{nil}
-@sc{cdr} allows to split a window on an unsplittable frame.  This
+@sc{cdr} allows to make a new window on an unsplittable frame.  This
 specifier should be used in special cases only since frames are usually
 unsplittable in order to prevent @code{display-buffer} from splitting
-them.
+them (@pxref{Buffer Parameters}).
 
 @item
-@code{adjust-height} with the following interpretations for the
-@sc{cdr}:
+@code{adjust-height} with the following semantics for the @sc{cdr}:
 
 @itemize @minus
 @item
-@code{nil} means do not adjust the height of a new window.
+@code{nil} means do not adjust the height of the new window.
 
 @item
-The symbol @code{even-window-heights} means to even the height of the
-window used for displaying the buffer with the height of the selected
-window, provided these windows are full-width and appear above each
-other.
+A number specifies the height of the new window.  An integer number
+specifies the desired number of lines of the new window.  A floating
+point number gives the desired fraction of the window's height with
+respect to the frame's root window.
 
 @item
-The symbols @code{shrink-window-if-larger-than-buffer} and
-@code{fit-window-to-buffer} specify that the new window shall be
-adjusted by the homonymous function.
-
-  Observe that a non-@code{nil} value for @code{adjust-height} can
-override restrictions given by @code{min-height}, @code{min-width},
-@code{max-height}, and @code{max-width} specifiers.
-
+A function to call for adjusting the height of the new window.  The
+function is called with one argument, the new window.  Its return value
+is ignored.  Suitable candidates are
+@code{shrink-window-if-larger-than-buffer} and
+@code{fit-window-to-buffer}.
 @end itemize
+
+@item
+@code{adjust-width} with the following semantics for the @sc{cdr}:
+
+@itemize @minus
+@item
+@code{nil} means do not adjust the width of the new window.
+
+@item
+A number specifies the width of the new window.  An integer number
+specifies the desired number of columns of the new window.  A floating
+point number gives the desired fraction of the window's width with
+respect to the frame's root window.
+
+@item
+A function to call for adjusting the width of the new window.  The
+function is called with one argument, the new window.  Its return value
+is ignored.
+@end itemize
+
+Observe that a non-@code{nil} value for the @sc{cdr} of
+@code{adjust-height} or @code{adjust-width} can override restrictions
+given earlier by the @code{min-height} and @code{min-width} specifiers.
 @end itemize
 
 The following specifiers are useful when the location is specified as
@@ -2016,9 +2026,9 @@ This variable has the following default value:
 (((".*")
   same-frame
   (reuse-buffer-window)
+  (adjust-height . even-window-sizes)
   (largest) (lru)
   (min-height . 24) (min-width . 60)
-  (adjust-height . even-window-heights)
   other-frame
   (reuse-buffer-window . visible)
   (graphic-only . t)
@@ -2191,7 +2201,7 @@ the desired minimum sizes of the new window.
 
 @item
 @code{even-window-heights} is handled by setting the @sc{cdr} of the
-@code{adjust-height} specifier to @code{even-window-heights}.
+@code{even-window-sizes} specifier to a non-@code{nil} value.
 @end itemize
 
 The following two functions are simple variations of

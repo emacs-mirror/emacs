@@ -2983,6 +2983,22 @@ ns_draw_glyph_string (struct glyph_string *s)
       ns_unfocus (s->f);
       break;
 
+    case GLYPHLESS_GLYPH:
+      n = ns_get_glyph_string_clip_rect (s, r);
+      ns_focus (s->f, r, n);
+
+      if (s->for_overlaps || (s->cmp_from > 0
+			      && ! s->first_glyph->u.cmp.automatic))
+        s->background_filled_p = 1;
+      else
+        ns_maybe_dumpglyphs_background
+          (s, s->first_glyph->type == COMPOSITE_GLYPH);
+      /* ... */ 
+      /* Not yet implemented.  */
+      /* ... */ 
+      ns_unfocus (s->f);
+      break;
+
     default:
       abort ();
     }

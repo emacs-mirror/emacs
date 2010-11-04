@@ -1,3 +1,240 @@
+2010-11-02  Julien Danjou  <julien@danjou.info>
+
+	* nnir.el: Remove wais support.
+
+2010-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-html.el: Reorder requirements to quieten compiler.
+
+2010-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-cite.el (gnus-article-fill-cited-article): Make fill work
+	properly for XEmacs as well.
+	(gnus-article-fill-cited-article, gnus-article-foldable-buffer)
+	(gnus-article-natural-long-line-p): Use window-width rather than
+	frame-width.
+
+2010-11-01  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-gmane): Inhibit demon.  Return nil if no messages.
+	(nnir-read-parms): Don't modify query.
+	(nnir-run-query): Add ability to search topic on current line.
+	(nnir-get-active): Clean up.
+
+2010-11-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-cite.el (gnus-article-foldable-buffer): Protect against
+	degenerate articles.
+
+	* gnus-sum.el (gnus-print-buffer): Rewrite to use with-temp-buffer.
+	(gnus-print-buffer): Just print the buffer as is, without any copying
+	to a buffer and then re-highlighting.
+
+	* nnimap.el (nnimap-request-group): Store the new updated info.
+	(nnimap-request-group): Select the group when we don't know whether it
+	exists or not.
+
+	* gnus-start.el (gnus-ask-server-for-new-groups): Return the new
+	groups.
+
+	* gnus-group.el (gnus-group-find-new-groups): Display all the new
+	groups.
+
+	* gnus-start.el (gnus-find-new-newsgroups): Return the list of new
+	groups.
+
+	* gnus-cite.el (gnus-article-fill-cited-article): Minimize the
+	long-lines case by only filling the long lines.
+
+	* nnimap.el (nnimap-parse-line): Don't bug out oddly formed replies
+	(bug #7311).
+
+2010-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el: No need to declare `declare-function' since shr.el is for
+	only Emacsen that provide `libxml-parse-html-region'.
+
+2010-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* mm-util.el (gnus-completing-read): Autoload.
+	(mm-read-coding-system): Simplify Emacs definition.
+
+	* nnmail.el (gnus-activate-group):
+	* nnimap.el (gnutls-negotiate):
+	* nntp.el (netrc-parse): Fix declarations.
+
+2010-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-string-match-p): New function, that is an alias to
+	string-match-p in Emacs >=23.
+
+	* gnus-msg.el (gnus-configure-posting-styles)
+	* nnir.el (nnir-run-gmane): Use gnus-string-match-p.
+
+2010-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* nnir.el (declare-function): Add compat stub.
+	(mm-url-insert, mm-url-encode-www-form-urlencoded): Declare.
+	(nnir-run-gmane): Require 'mm-url.
+
+	* mm-util.el (mm-string-to-multibyte): Simplify.
+
+	* shr.el (declare-function): Add compat stub.
+	(url-cache-create-filename): Declare.
+	(mm-disable-multibyte, widget-convert-button): Autoload.
+
+	* smime.el (ldap-search): Declare.
+	(smime-cert-by-ldap-1): Require ldap on Emacs.
+
+	* nnimap.el: Require nnmail, and gnus-sum when compiling.
+	(nnimap-keepalive): Use gnus-float-time.
+
+	* mail-source.el (nnheader-message, gnus-float-time): Autoload.
+	(mail-source-delete-crash-box): Use gnus-float-time.
+
+	* gnus-dired.el (gnus-completing-read): Autoload.
+
+	* mm-view.el (gnus-rescale-image): Autoload.
+
+	* mm-decode.el (gnus-completing-read, gnus-blocked-images): Autoload.
+
+	* gnus.el (gnus-sloppily-equal-method-parameters): Move defn before use.
+
+	* sieve-manage.el: Require 'cl when compiling.
+
+	* gnus-util.el (iswitchb-read-buffer): Declare rather than autoload.
+	(gnus-iswitchb-completing-read): Require iswitchb.
+	(gnus-select-frame-set-input-focus): Silence compiler.
+
+2010-10-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-subject-trailing-was-query): Change default to t,
+	since I think that's what most people want.
+
+	* nnimap.el (nnimap-request-accept-article): Erase buffer before
+	appending for easier debugging.
+	(nnimap-wait-for-connection): Take a regexp.
+	(nnimap-request-accept-article): Wait for the continuation line before
+	sending anything unless we're streaming.
+
+	* gnus-art.el (gnus-treat-article): Only inhibit body washing, and
+	leave the header washing to take place.
+
+2010-10-31  Daniel Dehennin  <daniel.dehennin@baby-gnu.org>
+
+	* gnus-msg.el (gnus-configure-posting-styles): Permit the use of
+	regular expression match and replace in posting styles.
+
+2010-10-31  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (gnus-group-make-nnir-group,nnir-run-query): Allow searching
+	an entire server.
+	(nnir-get-active): New function.
+	(nnir-run-imap): Use it.
+	(nnir-run-gmane): Who knew, gmane search returns an article score!
+
+	* gnus-srvr.el (gnus-server-mode-map): add binding "G" to search the
+	server on the current line with nnir.
+
+2010-10-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-cite.el (gnus-article-foldable-buffer): Refactor out.
+	(gnus-article-foldable-buffer): Don't fold regions that have a ragged
+	left edge.
+	(gnus-article-foldable-buffer): Skip past the prefix when determining
+	raggedness.
+
+	* gnus-sum.el (gnus-summary-show-article): Add `C-u C-u g' for showing
+	the raw article, and change `C-u g' to show the article without doing
+	treatments.
+
+	* gnus-art.el (gnus-mime-display-alternative): Actually pass the type
+	on to `gnus-treat-article'.
+	(gnus-inhibit-article-treatments): New variable.
+
+	* gnus.el: Autoload gnus-article-fill-cited-long-lines.
+
+	* gnus-art.el (gnus-treatment-function-alist): Have
+	gnus-treat-fill-long-lines point to gnus-article-fill-cited-long-lines.
+	(gnus-treat-fill-long-lines): Change default to fill all text/plain
+	sections.
+
+	* gnus-cite.el (gnus-article-fill-cited-article): Remove unused `force'
+	parameter.
+	(gnus-article-fill-cited-long-lines): New function.
+	(gnus-article-fill-cited-article): Allow filling only long sections.
+
+	* shr.el (shr-find-fill-point): Don't break lines between punctuation
+	and non-punctuation (like after the apostrophe in "'We").
+
+	* gnus-sum.el (gnus-summary-select-article): Make sure
+	gnus-original-article-buffer is alive.
+
+	* nndoc.el (nndoc-dissect-buffer): Reverse the order of the articles to
+	reflect the order they're in in the digest.
+
+	* gnus.el (gnus-group-startup-message): Move point to the start of the
+	buffer.
+
+	* nnimap.el (nnimap-capability): New function.
+	(nnimap-open-connection): Only send AUTHENTICATE PLAIN if LOGINDISABLED
+	is set.
+
+2010-10-31  David Engster  <dengste@eml.cc>
+
+	* nnmairix.el (nnmairix-get-valid-servers): Return list of strings to
+	conform with changes to gnus-completing-read.
+
+2010-10-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-img): Output "*" instead of "[img]".
+
+2010-10-30  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el move defvar, defcustom around to keep file organized and keep
+	byte-compiler quiet.
+	(nnir-read-parms): accept search-engine as arg.
+	(nnir-run-query): pass search-engine as arg.
+	(nnir-search-engine): remove.
+
+2010-10-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-generic): The text nodes should be text, not :text.
+
+	* nnir.el (nnir-search-engine): Ressurect variable, since it's used
+	later in the file.
+
+2010-10-30  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el: general clean up. allow searching with multiple
+	engines. allow separate extra-parameters for each engine. batch queries
+	when possible.
+	(nnir-imap-default-search-key,nnir-method-default-engines): add
+	customize interface.
+	(nnir-run-gmane): new engine.
+	(nnir-engines): use it. qualify all prompts with engine name.
+	(nnir-search-engine): remove global variable.
+	(nnir-run-hyrex): restore for now.
+	(nnir-extra-parms,nnir-search-history): new variables.
+	(gnus-group-make-nnir-group): use them.
+	(nnir-group-server): remove in favor of gnus-group-server.
+	(nnir-request-group): avoid searching twice.
+	(nnir-sort-groups-by-server): new function.
+
+2010-10-30  Julien Danjou  <julien@danjou.info>
+
+	* gnus-group.el: Remove gnus-group-fetch-control.
+
+	* gnus-start.el (gnus-find-new-newsgroups): Remove
+	gnus-check-first-time-used.
+
+	* gnus.el: Remove gnus-backup-default-subscribed-newsgroups.
+
+2010-10-30  Knut Anders Hatlen  <kahatlen@gmail.com>  (tiny change)
+
+	* nnimap.el (nnimap-update-info): Allow 'ticked and other flags to be
+	set on groups that don't have \* permanentflags.
+
 2010-10-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-tag-span): Drop colorisation of regions since we don't
@@ -504,12 +741,12 @@
 
 	* nnimap.el (gnutls-negotiate): Silence the byte compiler.
 
-	* gnus-art.el, gnus-cache.el, gnus-fun.el, gnus-group.el,
-	gnus-picon.el, gnus-spec.el, gnus-sum.el, gnus-util.el, gnus.el,
-	mail-source.el, message.el, mm-bodies.el, mm-decode.el, mm-extern.el,
-	mm-util.el, mm-view.el, mml-smime.el, mml.el, mml1991.el, mml2015.el,
-	nnfolder.el, nnheader.el, nnmail.el, nnmaildir.el, nnrss.el, nntp.el,
-	rfc1843.el, sieve-manage.el, smime.el, spam.el:
+	* gnus-art.el, gnus-cache.el, gnus-fun.el, gnus-group.el:
+	* gnus-picon.el, gnus-spec.el, gnus-sum.el, gnus-util.el, gnus.el:
+	* mail-source.el, message.el, mm-bodies.el, mm-decode.el, mm-extern.el:
+	* mm-util.el, mm-view.el, mml-smime.el, mml.el, mml1991.el, mml2015.el:
+	* nnfolder.el, nnheader.el, nnmail.el, nnmaildir.el, nnrss.el, nntp.el:
+	* rfc1843.el, sieve-manage.el, smime.el, spam.el:
 	Fix comment for declare-function.
 
 2010-10-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -1409,7 +1646,7 @@
 
 2010-09-27  David Engster  <dengste@eml.cc>
 
-	* nnmairix.el: (nnmairix-replace-group-and-numbers): Deal with NOV as
+	* nnmairix.el (nnmairix-replace-group-and-numbers): Deal with NOV as
 	well as HEADERS.
 	(nnmairix-retrieve-headers): Provide new argument for the above.
 
@@ -1787,7 +2024,7 @@
 	(nnimap-make-process-buffer): Store all the process buffers.
 	(nnimap-keepalive): New function.
 
-	* starttls.el: (starttls-open-stream): Add autoload cookie.
+	* starttls.el (starttls-open-stream): Add autoload cookie.
 
 2010-09-24  Michael Welsh Duggan  <md5i@md5i.com>  (tiny change)
 

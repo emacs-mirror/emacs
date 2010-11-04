@@ -1020,15 +1020,18 @@ makes them available for download."
 The variable `package-load-list' controls which packages to load."
   (interactive)
   (require 'finder-inf nil t)
-  (setq package-alist package--builtins)
-  (setq package-activated-list (mapcar #'car package-alist))
-  (setq package-obsolete-alist nil)
+  (setq package-alist package--builtins
+	package-activated-list (mapcar #'car package-alist)
+	package-obsolete-alist nil)
   (package-load-all-descriptors)
   (package-read-all-archive-contents)
+  ;; "Deactivate" obsoleted built-in packages
+  (dolist (elt package-obsolete-alist)
+    (setq package-activated-list
+	  (delq (car elt) package-activated-list)))
   ;; Try to activate all our packages.
-  (mapc (lambda (elt)
-	  (package-activate (car elt) (package-desc-vers (cdr elt))))
-	package-alist))
+  (dolist (elt package-alist)
+    (package-activate (car elt) (package-desc-vers (cdr elt)))))
 
 
 ;;;; Package description buffer.
@@ -1037,10 +1040,13 @@ The variable `package-load-list' controls which packages to load."
 (defun describe-package (package)
   "Display the full documentation of PACKAGE (a symbol)."
   (interactive
-   (let* ((packages (append (mapcar 'car package-alist)
+   (let* ((guess (function-called-at-point))
+	  packages val)
+     ;; Initialize the package system if it's not.
+     (unless package-alist
+       (package-initialize))
+     (setq packages (append (mapcar 'car package-alist)
 			    (mapcar 'car package-archive-contents)))
-	  (guess (function-called-at-point))
-	  val)
      (unless (memq guess packages)
        (setq guess nil))
      (setq packages (mapcar 'symbol-name packages))
@@ -1070,10 +1076,10 @@ The variable `package-load-list' controls which packages to load."
 	;; This package is loaded (i.e. in `package-alist').
 	(progn
 	  (setq version (package-version-join (package-desc-vers desc)))
-	  (cond (built-in
-		 (princ "a built-in package.\n\n"))
-		((setq pkg-dir (package--dir package-name version))
+	  (cond ((setq pkg-dir (package--dir package-name version))
 		 (insert "an installed package.\n\n"))
+		(built-in
+		 (princ "a built-in package.\n\n"))
 		(t ;; This normally does not happen.
 		 (insert "a deleted package.\n\n")
 		 (setq version nil))))
@@ -1617,6 +1623,9 @@ list; the default is to display everything in `package-alist'."
 Fetches the updated list of packages before displaying.
 The list is displayed in a buffer named `*Packages*'."
   (interactive)
+  ;; Initialize the package system if necessary.
+  (unless package-alist
+    (package-initialize))
   (package-refresh-contents)
   (package--list-packages))
 

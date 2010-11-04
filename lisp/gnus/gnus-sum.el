@@ -2169,8 +2169,7 @@ increase the score of each group you read."
   "v" gnus-version
   "d" gnus-summary-describe-group
   "h" gnus-summary-describe-briefly
-  "i" gnus-info-find-node
-  "C" gnus-group-fetch-control)
+  "i" gnus-info-find-node)
 
 (gnus-define-keys (gnus-summary-backend-map "B" gnus-summary-mode-map)
   "e" gnus-summary-expire-articles
@@ -2747,9 +2746,6 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	 ["Original sort" gnus-summary-sort-by-original t])
 	("Help"
 	 ["Describe group" gnus-summary-describe-group t]
-	 ["Fetch control message" gnus-group-fetch-control
-	  ,@(if (featurep 'xemacs) nil
-	      '(:help "Display the archived control message for the current group"))]
 	 ["Read manual" gnus-info-find-node t])
 	("Modes"
 	 ["Pick and read" gnus-pick-mode t]
@@ -7600,6 +7596,7 @@ be displayed."
 		       (not (get-buffer gnus-original-article-buffer))))
 	      (and (not gnus-single-article-buffer)
 		   (or (null gnus-current-article)
+		       (not (get-buffer gnus-original-article-buffer))
 		       (not (eq gnus-current-article article))))
 	      force)
 	  ;; The requested article is different from the current article.
@@ -9333,41 +9330,26 @@ to save in."
   (ps-despool filename))
 
 (defun gnus-print-buffer ()
-  (let ((buffer (generate-new-buffer " *print*")))
-    (unwind-protect
-	(progn
-	  (copy-to-buffer buffer (point-min) (point-max))
-	  (set-buffer buffer)
-	  (gnus-remove-text-with-property 'gnus-decoration)
-	  (when (gnus-visual-p 'article-highlight 'highlight)
-	    ;; Copy-to-buffer doesn't copy overlay.  So redo
-	    ;; highlight.
-	    (let ((gnus-article-buffer buffer))
-	      (gnus-article-highlight-citation t)
-	      (gnus-article-highlight-signature)
-	      (gnus-article-emphasize)
-	      (gnus-article-delete-invisible-text)))
-	  (let ((ps-left-header
-		 (list
-		  (concat "("
-			  (gnus-summary-print-truncate-and-quote
-			   (mail-header-subject gnus-current-headers)
-			   66) ")")
-		  (concat "("
-			  (gnus-summary-print-truncate-and-quote
-			   (mail-header-from gnus-current-headers)
-			   45) ")")))
-		(ps-right-header
-		 (list
-		  "/pagenumberstring load"
-		  (concat "("
-			  (mail-header-date gnus-current-headers) ")"))))
-	    (gnus-run-hooks 'gnus-ps-print-hook)
-	    (save-excursion
-	      (if ps-print-color-p
-		  (ps-spool-buffer-with-faces)
-		(ps-spool-buffer)))))
-      (kill-buffer buffer))))
+  (let ((ps-left-header
+	 (list
+	  (concat "("
+		  (gnus-summary-print-truncate-and-quote
+		   (mail-header-subject gnus-current-headers)
+		   66) ")")
+	  (concat "("
+		  (gnus-summary-print-truncate-and-quote
+		   (mail-header-from gnus-current-headers)
+		   45) ")")))
+	(ps-right-header
+	 (list
+	  "/pagenumberstring load"
+	  (concat "("
+		  (mail-header-date gnus-current-headers) ")"))))
+    (gnus-run-hooks 'gnus-ps-print-hook)
+    (save-excursion
+      (if ps-print-color-p
+	  (ps-spool-buffer-with-faces)
+	(ps-spool-buffer)))))
 
 (defun gnus-summary-show-complete-article ()
   "Show a complete version of the current article.
@@ -9396,9 +9378,10 @@ article currently."
 If ARG (the prefix) is a number, show the article with the charset
 defined in `gnus-summary-show-article-charset-alist', or the charset
 input.
-If ARG (the prefix) is non-nil and not a number, show the raw article
-without any article massaging functions being run.  Normally, the key
-strokes are `C-u g'."
+If ARG (the prefix) is non-nil and not a number, show the article,
+but without running any of the article treatment functions
+article.  Normally, the keystroke is `C-u g'.  When using `C-u
+C-u g', show the raw article."
   (interactive "P")
   (cond
    ((numberp arg)
@@ -9440,7 +9423,8 @@ strokes are `C-u g'."
    ((not arg)
     ;; Select the article the normal way.
     (gnus-summary-select-article nil 'force))
-   (t
+   ((equal arg '(16))
+    ;; C-u C-u g
     ;; We have to require this here to make sure that the following
     ;; dynamic binding isn't shadowed by autoloading.
     (require 'gnus-async)
@@ -9458,6 +9442,9 @@ strokes are `C-u g'."
 	  ;; Set it to nil for safety reason.
 	  (setq gnus-article-mime-handle-alist nil)
 	  (setq gnus-article-mime-handles nil)))
+      (gnus-summary-select-article nil 'force)))
+   (t
+    (let ((gnus-inhibit-article-treatments t))
       (gnus-summary-select-article nil 'force))))
   (gnus-summary-goto-subject gnus-current-article)
   (gnus-summary-position-point))

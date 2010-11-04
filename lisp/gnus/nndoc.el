@@ -918,7 +918,8 @@ from the document.")
 	    (setq body-end (point))
 	    (push (list (incf i) head-begin head-end body-begin body-end
 			(count-lines body-begin body-end))
-		  nndoc-dissection-alist)))))))
+		  nndoc-dissection-alist)))))
+    (setq nndoc-dissection-alist (nreverse nndoc-dissection-alist))))
 
 (defun nndoc-article-begin ()
   (if nndoc-article-begin-function

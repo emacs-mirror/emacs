@@ -1325,8 +1325,7 @@ Returns the compilation buffer created."
 	  ;; Pop up the compilation buffer.
 	  (setq outwin
 		(display-buffer
-		 outbuf
-		 `(same-frame (min-height . ,height) (max-height . ,height)))))
+		 outbuf `(same-frame (adjust-height . ,height)))))
 
 	(set-window-start outwin (point-min))
 	;; Position point as the user will see it.
@@ -2104,9 +2103,8 @@ and overlay is highlighted between MK and END-MK."
 	    (let ((height (buffer-local-value
 			   'compilation-window-height msg-buffer)))
 	      (display-buffer
-	       msg-buffer
-	       `(same-frame (reuse-buffer-window . 0)
-			    (min-height . ,height) (max-height . ,height)))))
+	       msg-buffer `(same-frame (reuse-buffer-window . 0)
+				       (adjust-height . ,height)))))
 	 (mk-buffer-window
 	  (pop-to-buffer
 	   mk-buffer

@@ -1,7 +1,7 @@
 ;;; startup.el --- process Emacs shell arguments
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -691,6 +691,9 @@ opening the first frame (e.g. open a connection to an X server).")
 
 (defvar server-name)
 (defvar server-process)
+;; Autoload in package.el, but when we bootstrap, we don't have loaddefs yet.
+(defvar package-enable-at-startup)
+(declare-function package-initialize "package" ())
 
 (defun command-line ()
   (setq before-init-time (current-time)
@@ -1172,8 +1175,30 @@ the `--debug-init' option to view a complete error backtrace."
 		 (eq face-ignored-fonts old-face-ignored-fonts))
       (clear-face-cache)))
 
-  ;; Load ELPA packages.
-  (and user-init-file package-enable-at-startup (package-initialize))
+  ;; If any package directory exists, initialize the package system.
+  (and user-init-file
+       package-enable-at-startup
+       (catch 'package-dir-found
+	 (let (dirs)
+	   (if (boundp 'package-directory-list)
+	       (setq dirs package-directory-list)
+	     (dolist (f load-path)
+	       (and (stringp f)
+		    (equal (file-name-nondirectory f) "site-lisp")
+		    (push (expand-file-name "elpa" f) dirs))))
+	   (push (if (boundp 'package-user-dir)
+		     package-user-dir
+		   (locate-user-emacs-file "elpa"))
+		 dirs)
+	   (dolist (dir dirs)
+	     (when (file-directory-p dir)
+	       (dolist (subdir (directory-files dir))
+		 (when (and (file-directory-p (expand-file-name subdir dir))
+			    ;; package-subdirectory-regexp from package.el
+			    (string-match "^\\([^.].*\\)-\\([0-9]+\\(?:[.][0-9]+\\)*\\)$"
+					  subdir))
+		   (throw 'package-dir-found t)))))))
+       (package-initialize))
 
   (setq after-init-time (current-time))
   (run-hooks 'after-init-hook)
@@ -2359,5 +2384,4 @@ A fancy display is used on graphic displays, normal otherwise."
       (setq file (replace-match "/" t t file)))
     file))
 
-;; arch-tag: 7e294698-244d-4758-984b-4047f887a5db
 ;;; startup.el ends here

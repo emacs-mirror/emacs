@@ -1,8 +1,8 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
-;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997,
+;;   1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1032,10 +1032,11 @@ be set in `.emacs' instead."
   (unless (and
            (fboundp 'find-image)
            (display-graphic-p)
-           ;; Make sure the library defining `image-load-path' is loaded
-           ;; (`find-image' is autoloaded) (and discard the result).  Else, we may
-           ;; get "defvar ignored because image-load-path is let-bound" when calling
-           ;; `find-image' below.
+           ;; Make sure the library defining `image-load-path' is
+           ;; loaded (`find-image' is autoloaded) (and discard the
+           ;; result).  Else, we may get "defvar ignored because
+           ;; image-load-path is let-bound" when calling `find-image'
+           ;; below.
            (or (find-image '(nil (:type xpm :file "gnus.xpm"))) t)
            (let* ((data-directory (nnheader-find-etc-directory "images/gnus"))
                   (image-load-path (cond (data-directory
@@ -1065,9 +1066,10 @@ be set in `.emacs' instead."
                  (insert-char ?\  (max 0 (round (- (window-width)
                                                    (or x (car size))) 2)))
                  (insert-image image))
+	       (goto-char (point-min))
                t)))
     (insert
-     (format "              
+     (format "
 	  _    ___ _             _
 	  _ ___ __ ___  __    _ ___
 	  __   _     ___    __  ___
@@ -1389,11 +1391,6 @@ you could set this variable:
   :group 'gnus-server
   :type '(repeat gnus-select-method))
 
-(defvar gnus-backup-default-subscribed-newsgroups
-  '("news.announce.newusers" "news.groups.questions" "gnu.emacs.gnus")
-  "Default default new newsgroups the first time Gnus is run.
-Should be set in paths.el, and shouldn't be touched by the user.")
-
 (defcustom gnus-local-domain nil
   "Local domain name without a host name.
 The DOMAINNAME environment variable is used instead if it is defined.
@@ -1436,14 +1433,6 @@ list, Gnus will try all the methods in the list until it finds a match."
 				 (const :tag "Google"
 					(nnweb "refer" (nnweb-type google)))
 				 gnus-select-method))))
-
-(defcustom gnus-group-fetch-control-use-browse-url nil
-  "*Non-nil means that control messages are displayed using `browse-url'.
-Otherwise they are fetched with ange-ftp and displayed in an ephemeral
-group."
-  :version "22.1"
-  :group 'gnus-group-various
-  :type 'boolean)
 
 (defcustom gnus-use-cross-reference t
   "*Non-nil means that cross referenced articles will be marked as read.
@@ -2785,7 +2774,8 @@ gnus-registry.el will populate this if it's loaded.")
      ("gnus-cite" :interactive t
       gnus-article-highlight-citation gnus-article-hide-citation-maybe
       gnus-article-hide-citation gnus-article-fill-cited-article
-      gnus-article-hide-citation-in-followups)
+      gnus-article-hide-citation-in-followups
+      gnus-article-fill-cited-long-lines)
      ("gnus-kill" gnus-kill gnus-apply-kill-file-internal
       gnus-kill-file-edit-file gnus-kill-file-raise-followups-to-author
       gnus-execute gnus-expunge gnus-batch-kill gnus-batch-score)
@@ -3556,16 +3546,6 @@ that that variable is buffer-local to the summary buffers."
 					    gnus-valid-select-methods)))
 		 (equal (nth 1 m1) (nth 1 m2)))))))
 
-(defun gnus-methods-sloppily-equal (m1 m2)
-  ;; Same method.
-  (or
-   (eq m1 m2)
-   ;; Type and name are equal.
-   (and
-    (eq (car m1) (car m2))
-    (equal (cadr m1) (cadr m2))
-    (gnus-sloppily-equal-method-parameters m1 m2))))
-
 (defsubst gnus-sloppily-equal-method-parameters (m1 m2)
   ;; Check parameters for sloppy equalness.
   (let ((p1 (copy-sequence (cddr m1)))
@@ -3593,6 +3573,16 @@ that that variable is buffer-local to the summary buffers."
 		(return nil))))))
       ;; If p2 now is empty, they were equal.
       (null p2))))
+
+(defun gnus-methods-sloppily-equal (m1 m2)
+  ;; Same method.
+  (or
+   (eq m1 m2)
+   ;; Type and name are equal.
+   (and
+    (eq (car m1) (car m2))
+    (equal (cadr m1) (cadr m2))
+    (gnus-sloppily-equal-method-parameters m1 m2))))
 
 (defun gnus-server-equal (m1 m2)
   "Say whether two methods are equal."

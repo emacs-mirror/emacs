@@ -44,6 +44,10 @@
 (require 'utf7)
 (require 'tls)
 (require 'parse-time)
+(require 'nnmail)
+
+(eval-when-compile
+  (require 'gnus-sum))
 
 (autoload 'auth-source-forget-user-or-password "auth-source")
 (autoload 'auth-source-user-or-password "auth-source")
@@ -287,7 +291,7 @@ textual parts.")
 	(with-current-buffer buffer
 	  (when (and nnimap-object
 		     (nnimap-last-command-time nnimap-object)
-		     (> (time-to-seconds
+		     (> (gnus-float-time
 			 (time-subtract
 			  now
 			  (nnimap-last-command-time nnimap-object)))
@@ -295,7 +299,8 @@ textual parts.")
 			(* 5 60)))
 	    (nnimap-send-command "NOOP")))))))
 
-(declare-function gnutls-negotiate "subr" (fn file &optional arglist fileonly))
+(declare-function gnutls-negotiate "gnutls"
+		  (proc type &optional priority-string trustfiles keyfiles))
 
 (defun nnimap-open-connection (buffer)
   (unless nnimap-keepalive-timer
@@ -382,14 +387,13 @@ textual parts.")
 	    ;; connection and start a STARTTLS connection instead.
 	    (cond
 	     ((and (or (and (eq nnimap-stream 'network)
-			    (member "STARTTLS"
-				    (nnimap-capabilities nnimap-object)))
+			    (nnimap-capability "STARTTLS"))
 		       (eq nnimap-stream 'starttls))
 		   (fboundp 'open-gnutls-stream))
 	      (nnimap-command "STARTTLS")
 	      (gnutls-negotiate (nnimap-process nnimap-object) nil))
 	     ((and (eq nnimap-stream 'network)
-		   (member "STARTTLS" (nnimap-capabilities nnimap-object)))
+		   (nnimap-capability "STARTTLS"))
 	      (let ((nnimap-stream 'starttls))
 		(let ((tls-process
 		       (nnimap-open-connection buffer)))
@@ -416,8 +420,8 @@ textual parts.")
 				(nnimap-credentials nnimap-address ports)))))
 		  (setq nnimap-object nil)
 		(setq login-result
-		      (if (member "AUTH=PLAIN"
-				  (nnimap-capabilities nnimap-object))
+		      (if (and (nnimap-capability "AUTH=PLAIN")
+			       (nnimap-capability "LOGINDISABLED"))
 			  (nnimap-command
 			   "AUTHENTICATE PLAIN %s"
 			   (base64-encode-string
@@ -439,7 +443,7 @@ textual parts.")
 		  (delete-process (nnimap-process nnimap-object))
 		  (setq nnimap-object nil))))
 	    (when nnimap-object
-	      (when (member "QRESYNC" (nnimap-capabilities nnimap-object))
+	      (when (nnimap-capability "QRESYNC")
 		(nnimap-command "ENABLE QRESYNC"))
 	      (nnimap-process nnimap-object))))))))
 
@@ -555,8 +559,11 @@ textual parts.")
 	(delete-region (point) (point-max)))
       t)))
 
+(defun nnimap-capability (capability)
+  (member capability (nnimap-capabilities nnimap-object)))
+
 (defun nnimap-ver4-p ()
-  (member "IMAP4REV1" (nnimap-capabilities nnimap-object)))
+  (nnimap-capability "IMAP4REV1"))
 
 (defun nnimap-get-partial-article (article parts structure)
   (let ((result
@@ -662,7 +669,8 @@ textual parts.")
   (let ((result (nnimap-possibly-change-group
 		 ;; Don't SELECT the group if we're going to select it
 		 ;; later, anyway.
-		 (if dont-check
+		 (if (and dont-check
+			  (assoc group nnimap-current-infos))
 		     nil
 		   group)
 		 server))
@@ -691,7 +699,8 @@ textual parts.")
 				  1 group "SELECT")))))
 	      (when (and info
 			 marks)
-		(nnimap-update-infos marks (list info)))
+		(nnimap-update-infos marks (list info))
+		(nnimap-store-info info (gnus-active (gnus-info-group info))))
 	      (goto-char (point-max))
 	      (let ((uidnext (nth 5 (car marks))))
 		(setq high (or (if uidnext
@@ -872,7 +881,7 @@ textual parts.")
     (nnimap-command "UID STORE %s +FLAGS.SILENT (\\Deleted)"
 		    (nnimap-article-ranges articles))
     (cond
-     ((member "UIDPLUS" (nnimap-capabilities nnimap-object))
+     ((nnimap-capability "UIDPLUS")
       (nnimap-command "UID EXPUNGE %s"
 		      (nnimap-article-ranges articles))
       t)
@@ -928,9 +937,12 @@ textual parts.")
       (nnimap-add-cr)
       (setq message (buffer-substring-no-properties (point-min) (point-max)))
       (with-current-buffer (nnimap-buffer)
+	(erase-buffer)
 	(setq sequence (nnimap-send-command
 			"APPEND %S {%d}" (utf7-encode group t)
 			(length message)))
+	(unless nnimap-streaming
+	  (nnimap-wait-for-connection "^[+]"))
 	(process-send-string (get-buffer-process (current-buffer)) message)
 	(process-send-string (get-buffer-process (current-buffer))
 			     (if (nnimap-newlinep nnimap-object)
@@ -1031,7 +1043,7 @@ textual parts.")
     (with-current-buffer (nnimap-buffer)
       (erase-buffer)
       (setf (nnimap-group nnimap-object) nil)
-      (let ((qresyncp (member "QRESYNC" (nnimap-capabilities nnimap-object)))
+      (let ((qresyncp (nnimap-capability "QRESYNC"))
 	    params groups sequences active uidvalidity modseq group)
 	;; Go through the infos and gather the data needed to know
 	;; what and how to request the data.
@@ -1203,7 +1215,8 @@ textual parts.")
 	      (setq marks (gnus-info-marks info))
 	      (dolist (type (cdr nnimap-mark-alist))
 		(when (or (not (listp permanent-flags))
-			  (memq (assoc (caddr type) flags) permanent-flags)
+			  (memq (car (assoc (caddr type) flags))
+				permanent-flags)
 			  (memq '%* permanent-flags))
 		  (let ((old-marks (assoc (car type) marks))
 			(new-marks
@@ -1476,12 +1489,14 @@ textual parts.")
   (nnimap-wait-for-response sequence)
   (nnimap-parse-response))
 
-(defun nnimap-wait-for-connection ()
+(defun nnimap-wait-for-connection (&optional regexp)
+  (unless regexp
+    (setq regexp "^[*.] .*\n"))
   (let ((process (get-buffer-process (current-buffer))))
     (goto-char (point-min))
     (while (and (memq (process-status process)
 		      '(open run))
-		(not (re-search-forward "^[*.] .*\n" nil t)))
+		(not (re-search-forward regexp nil t)))
       (nnheader-accept-process-output process)
       (goto-char (point-min)))
     (forward-line -1)
@@ -1542,12 +1557,16 @@ textual parts.")
 	     (split-string
 	      (buffer-substring
 	       (1+ (point))
-	       (1- (search-forward "]" (line-end-position) 'move)))))
+	       (if (search-forward "]" (line-end-position) 'move)
+		   (1- (point))
+		 (point)))))
 	    ((eql char ?\()
 	     (split-string
 	      (buffer-substring
 	       (1+ (point))
-	       (1- (search-forward ")" (line-end-position) 'move)))))
+	       (if (search-forward ")" (line-end-position) 'move)
+		   (1- (point))
+		 (point)))))
 	    ((eql char ?\")
 	     (forward-char 1)
 	     (buffer-substring
@@ -1668,7 +1687,7 @@ textual parts.")
       (cond
        ;; If the server supports it, we now delete the message we have
        ;; just copied over.
-       ((member "UIDPLUS" (nnimap-capabilities nnimap-object))
+       ((nnimap-capability "UIDPLUS")
 	(setq sequence (nnimap-send-command "UID EXPUNGE %s" range)))
        ;; If it doesn't support UID EXPUNGE, then we only expunge if the
        ;; user has configured it.

@@ -1,8 +1,19 @@
+2010-11-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows): Explain OVERRIDE argumet for
+	fit-window-to-buffer.
+	(Displaying Buffers): Describe even-window-sizes, adjust-height
+	and adjust-width buffer display specifiers.
+
 2010-11-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Displaying Buffers): Describe special handling
 	of `not-this-window' and `not-this-frame' specifiers for
 	`display-buffer'.
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* maps.texi (Standard Keymaps): Update File menu description.
 
 2010-10-30  Martin Rudalics  <rudalics@gmx.at>
 

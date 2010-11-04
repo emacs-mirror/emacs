@@ -1279,6 +1279,13 @@ The value nil is the same as this list:
 (setq interprogram-cut-function 'x-select-text)
 (setq interprogram-paste-function 'x-selection-value)
 
+;; Make paste from other applications use the decoding in x-select-request-type
+;; and not just STRING.
+(defun x-get-selection-value ()
+  "Get the current value of the PRIMARY selection.
+Request data types in the order specified by `x-select-request-type'."
+  (x-selection-value-internal 'PRIMARY))
+
 (defun x-clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive "*")

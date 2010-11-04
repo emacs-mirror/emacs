@@ -1,7 +1,8 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
 ;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
@@ -3896,6 +3897,9 @@ Both should not be used to define a buffer-local dictionary."
 
 ;;; returns optionally adjusted region-end-point.
 
+;; If comment-padright is defined, newcomment must be loaded.
+(declare-function comment-add "newcomment" (arg))
+
 (defun ispell-add-per-file-word-list (word)
   "Add WORD to the per-file word list."
   (or ispell-buffer-local-name
@@ -3970,5 +3974,4 @@ Both should not be used to define a buffer-local dictionary."
 ; LocalWords:  uuencoded unidiff sc nn VM SGML eval IspellPersDict unsplitable
 ; LocalWords:  lns XEmacs HTML casechars Multibyte
 
-;; arch-tag: 4941b9f9-3b7c-4a76-a4ed-5fa8b6010ef5
 ;;; ispell.el ends here

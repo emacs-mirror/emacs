@@ -3664,6 +3664,11 @@ equals either `same-frame' or `other-frame':
   look for such a window.  The possible values for the cdr are
   the same as for the `reuse-buffer-window' specifier.
 
+- `even-window-sizes' with a non-nil cdr means even out the sizes
+  of a reused window and the selected window provided they (1)
+  appear adjacent to each other and (2) the selected window is
+  larger than the window chosen.
+
 The following display specifiers are useful if the location
 specifier equals 'same-frame:
 
@@ -3692,58 +3697,66 @@ specifier equals 'same-frame:
   splitting the largest window first and, if that fails, the
   least recently used one.
 
-- The symbols `min-height' and `min-width'.  In this case the cdr
-  must be a number specifying the minimum height or width of a
-  new window to display the buffer.  An integer number specifies
-  the minimum number of lines or columns of the new window.  A
-  floating point number gives the minimum fraction of the window
-  size with respect to the frame's root window.  A new window
-  will be made if and only if it can be made at least as large as
-  specified by the number.
-
-  Note that `min-height' and `min-width' \(as well as the
-  specifiers `max-height' and `max-width' below) restrict the
-  size of new windows only.  Reusing an existing window or making
-  a new frame is not affected by these specifiers.
-
-- The symbols `max-height' and `max-width'.  In this case the cdr
-  must be a number specifying the maximum height or width of any
-  new window displaying the buffer.  An integer number specifies
-  the maximum number of lines or columns of the new window.  A
-  floating point number gives the maximum fraction of the window
-  size with respect to the frame's root window.
-
-  Setting `min-height' and `max-height' to the same value will
-  make a window of exactly that height.  Conversely, setting
-  `min-width' and `max-width' to the same value will produce a
-  window of that width.  Note, however, that specifying the exact
-  size of a new window this way may reduce the number of windows
-  that can be suitably split.
-
 - The symbol `split-unsplittable-frame' with a non-nil cdr allows
-  to split a window on an unsplittable frame.  This specifier
+  to make a new window on an unsplittable frame.  This specifier
   should be used in special cases only since frames are usually
   made unsplittable in order to prevent `display-buffer' from
   splitting them.
 
+- `min-height' specifies the minimum height of a new window used
+  for displaying the buffer.  An integer number specifies the
+  minimum number of lines of the window.  A floating point number
+  gives the minimum fraction of the window height with respect to
+  the frame's root window.  A new window will be made if and only
+  if it can be made at least as high as specified by the number.
+
+- `min-width' specifies the minimum width of a new window used
+  for displaying the buffer.  An integer number specifies the
+  minimum number of columns of the window.  A floating point
+  number gives the minimum fraction of the window width with
+  respect to the frame's root window.  A new window will be made
+  if and only if it can be made at least as wide as specified by
+  the number.
+
 - `adjust-height' with the following interpretations for the cdr:
 
-  - nil means do not adjust the height of a new window.
+  - nil means do not adjust the height of the new window.
 
-  - `even-window-heights' means to even the height of the window
-    used for displaying the buffer with the height of the
-    selected window provided these windows appear above each
-    other.
+  - A number specifying the desided height of the new window.  An
+    integer number specifies the minimum number of lines of the
+    window.  A floating point number gives the minimum fraction
+    of the window height with respect to the frame's root window.
 
-  - The symbols `shrink-window-if-larger-than-buffer' and
-    `fit-window-to-buffer' specify that the new window shall be
-    adjusted by the homonymous function.
+  - `even-window-heights' means to even the height of the new
+    window with the height of the selected window provided these
+    windows appear above each other.
 
-  Observe that a non-nil value may override restrictions given by
-  the `min-height', `min-width', `max-height', and `max-width'
-  specifiers.  Think of the latter being applied when the new
-  window is created and `adjust-height' being applied after that
-  window has been created.
+  - If the cdr specifies a function, that function is called with
+    one argument - the new window.  The function is supposed to
+    adjust the height of the window, its return value is ignored.
+    Suitable functions are `shrink-window-if-larger-than-buffer'
+    and `fit-window-to-buffer'.
+
+- `adjust-width' with the following interpretations for the cdr:
+
+  - nil means do not adjust the width of the new window.
+
+  - A number specifying the desided width of the new window.  An
+    integer number specifies the minimum number of columns of the
+    window.  A floating point number gives the minimum fraction
+    of the window width with respect to the frame's root window.
+
+  - `even-window-widths' means to even the wdith of the new
+    window with the width of the selected window provided these
+    windows appear besides ach other.
+
+  - If the cdr specifies a function, that function is called with
+    one argument - the new window.  The function is supposed to
+    adjust the width of the window, its return value is ignored.
+
+  Observe that specifying `adjust-height' or `adjust-width' may
+  override restrictions given by the `min-height' or `min-width'
+  specifiers.
 
 The specifiers listed next are useful if the location specifier
 equals 'other-frame:
@@ -3810,6 +3823,8 @@ using the location specifiers `same-window' or `other-frame'."
 	:inline t
 	:help-echo "Choose a location for displaying the buffer(s)."
 	:value (same-frame
+		(reuse-buffer-window . nil)
+		(even-window-sizes . t)
 		(new-window (largest . nil) (lru . nil))
 		(min-height . 24) (min-width . 60))
 	:format "%[Location%] %v" :size 15
@@ -3837,10 +3852,10 @@ using the location specifiers `same-window' or `other-frame'."
 	(list
 	 :tag "Same frame"
 	 :value (same-frame
+		 (reuse-buffer-window . nil)
+		 (even-window-sizes . t)
 		 (new-window (largest . nil) (lru . nil))
-		 (min-height . 24) (min-width . 60)
-		 (adjust-height . even-window-heights)
-		 (reuse-buffer-window . nil))
+		 (min-height . 24) (min-width . 60))
 	 :format "%t%v"
 	 :inline t
 	 (const :format "\n" same-frame)
@@ -3877,6 +3892,11 @@ using the location specifiers `same-window' or `other-frame'."
 	    (const :tag "Visible frames" :format "%t" visible)
 	    (const :tag "Visible and iconified frames" :format "%t" 0)
 	    (const :tag "All frames" :format "%t" t)))
+	  (cons
+	   :tag "Even window sizes"
+	   :format "%v%t\n"
+	   (const :format "" even-window-sizes)
+	   (const :format "" t))
 	  (list
 	   :format "%v"
 	   :value (new-window (largest . nil) (lru . nil))
@@ -3906,43 +3926,42 @@ using the location specifiers `same-window' or `other-frame'."
 	      (function
 	       :tag "Function" :format "%v\n" :size 25)))))
 	  (cons
-	   :format "%v\n"
-	   (const :format "" min-height)
-	   (number
-	    :tag "Minimum height" :value 12 :size 5))
-	  (cons
-	   :format "%v\n"
-	   (const :format "" min-width)
-	   (number
-	    :tag "Minimum width" :value 60 :size 5))
-	  (cons
-	   :format "%v\n"
-	   (const :format "" max-height)
-	   (number
-	    :tag "Maximum height" :value 48 :size 5))
-	  (cons
-	   :format "%v\n"
-	   (const :format "" max-width)
-	   (number
-	    :tag "Maximum width" :value 120 :size 5))
-	  (cons
 	   :tag "Make new window even if frame is unsplittable" :size 5
 	   :format "%v%t\n"
 	   (const :format "" split-unsplittable-frame)
 	   (const :format "" t))
 	  (cons
+	   :format "%v\n"
+	   (const :format "" min-height)
+	   (number
+	    :tag "Minimum height of new window" :value 12 :size 5))
+	  (cons
+	   :format "%v\n"
+	   (const :format "" min-width)
+	   (number
+	    :tag "Minimum width of new window" :value 60 :size 5))
+	  (cons
 	   :format "%v"
 	   (const :format "" adjust-height)
 	   (choice
-	    :tag "Adjust window height" :value even-window-heights
+	    :tag "Adjust window height"
 	    :help-echo "Whether window height shall be adjusted."
 	    :format "%[Adjust height%] %v\n" :size 15
 	    ;; nil matters when we want to override.
 	    (const :tag "Do not adjust heights" :format "%t" nil)
-	    (const :tag "Even window heights" :format "%t" even-window-heights)
-	    (const :tag "Shrink window if larger than buffer"
-		   :format "%t" shrink-window-if-larger-than-buffer)
-	    (const :tag "Fit window to buffer" :format "%t" fit-window-to-buffer)))
+	    (number :tag "Desired height" :value 60 :size 5)
+	    (function :tag "Function" :size 25)))
+	  (cons
+	   :format "%v"
+	   (const :format "" adjust-width)
+	   (choice
+	    :tag "Adjust window width" :value nil
+	    :help-echo "Whether window width shall be adjusted."
+	    :format "%[Adjust width%] %v\n" :size 15
+	    ;; nil matters when we want to override.
+	    (const :tag "Do not adjust widths" :format "%t" nil)
+	    (number :tag "Desired width" :value 120 :size 5)
+	    (function :tag "Function" :size 25)))
 	  (cons
 	   :format "%v"
 	   :inline t
@@ -3959,10 +3978,10 @@ using the location specifiers `same-window' or `other-frame'."
 	(list
 	 :tag "Other frame"
 	 :value (other-frame
+		 (reuse-buffer-window . visible)
 		 (graphic-only . t)
 		 (popup-frame-alist
-		  (height . 24) (width . 80) (unsplittable . t))
-		 (reuse-buffer-window . visible))
+		  (height . 24) (width . 80) (unsplittable . t)))
 	 :format "%t%v"
 	 :inline t
 	 (const :format "\n" other-frame)
@@ -4000,6 +4019,11 @@ using the location specifiers `same-window' or `other-frame'."
 	    (const :tag "Visible frames" :format "%t" visible)
 	    (const :tag "Visible and iconified frames" :format "%t" 0)
 	    (const :tag "All frames" :format "%t" t)))
+	  (cons
+	   :tag "Even window sizes"
+	   :format "%v%t\n"
+	   (const :format "" even-window-sizes)
+	   (const :format "" t))
 	  (cons
 	   :tag "Avoid selected frame"
 	   :format "%v%t\n"
@@ -4073,7 +4097,7 @@ using the location specifiers `same-window' or `other-frame'."
      (reuse-buffer-window . nil)
      (new-window (largest . nil) (lru . nil))
      (min-height . 24) (min-width . 60)
-     (adjust-height . even-window-heights)
+     (even-window-sizes . t)
      other-frame
      (reuse-buffer-window . visible)
      (graphic-only . t)
@@ -4127,6 +4151,8 @@ lines, and a non-nil unsplittable property."
 	:inline t
 	:help-echo "Choose a location for displaying the buffer(s)."
 	:value (same-frame
+		(reuse-buffer-window . nil)
+		(even-window-sizes . t)
 		(new-window (largest . nil) (lru . nil))
 		(min-height . 24) (min-width . 60))
 	:format "%[Location%] %v" :size 15
@@ -4155,9 +4181,9 @@ lines, and a non-nil unsplittable property."
 	 :tag "Same frame"
 	 :value (same-frame
 		 (reuse-buffer-window . nil)
+		 (even-window-sizes . t)
 		 (new-window (largest . nil) (lru . nil))
-		 (min-height . 24) (min-width . 60)
-		 (adjust-height . even-window-heights))
+		 (min-height . 24) (min-width . 60))
 	 :format "%t%v"
 	 :inline t
 	 (const :format "\n" same-frame)
@@ -4194,6 +4220,11 @@ lines, and a non-nil unsplittable property."
 	    (const :tag "Visible frames" :format "%t" visible)
 	    (const :tag "Visible and iconified frames" :format "%t" 0)
 	    (const :tag "All frames" :format "%t" t)))
+	  (cons
+	   :tag "Even window sizes"
+	   :format "%v%t\n"
+	   (const :format "" even-window-sizes)
+	   (const :format "" t))
 	  (list
 	   :format "%v"
 	   :value (new-window (largest . nil) (lru . nil))
@@ -4223,43 +4254,42 @@ lines, and a non-nil unsplittable property."
 	      (function
 	       :tag "Function" :format "%v\n" :size 25)))))
 	  (cons
-	   :format "%v\n"
-	   (const :format "" min-height)
-	   (number
-	    :tag "Minimum height" :value 12 :size 5))
-	  (cons
-	   :format "%v\n"
-	   (const :format "" min-width)
-	   (number
-	    :tag "Minimum width" :value 60 :size 5))
-	  (cons
-	   :format "%v\n"
-	   (const :format "" max-height)
-	   (number
-	    :tag "Maximum height" :value 48 :size 5))
-	  (cons
-	   :format "%v\n"
-	   (const :format "" max-width)
-	   (number
-	    :tag "Maximum width" :value 120 :size 5))
-	  (cons
 	   :tag "Make new window even if frame is unsplittable" :size 5
 	   :format "%v%t\n"
 	   (const :format "" split-unsplittable-frame)
 	   (const :format "" t))
 	  (cons
+	   :format "%v\n"
+	   (const :format "" min-height)
+	   (number
+	    :tag "Minimum height of new window" :value 12 :size 5))
+	  (cons
+	   :format "%v\n"
+	   (const :format "" min-width)
+	   (number
+	    :tag "Minimum width of new window" :value 60 :size 5))
+	  (cons
 	   :format "%v"
 	   (const :format "" adjust-height)
 	   (choice
-	    :tag "Adjust window height" :value even-window-heights
+	    :tag "Adjust window height"
 	    :help-echo "Whether window height shall be adjusted."
 	    :format "%[Adjust height%] %v\n" :size 15
 	    ;; nil matters when we want to override.
 	    (const :tag "Do not adjust heights" :format "%t" nil)
-	    (const :tag "Even window heights" :format "%t" even-window-heights)
-	    (const :tag "Shrink window if larger than buffer"
-		   :format "%t" shrink-window-if-larger-than-buffer)
-	    (const :tag "Fit window to buffer" :format "%t" fit-window-to-buffer)))
+	    (number :tag "Desired height" :value 60 :size 5)
+	    (function :tag "Function" :size 25)))
+	  (cons
+	   :format "%v"
+	   (const :format "" adjust-width)
+	   (choice
+	    :tag "Adjust window width" :value nil
+	    :help-echo "Whether window width shall be adjusted."
+	    :format "%[Adjust width%] %v\n" :size 15
+	    ;; nil matters when we want to override.
+	    (const :tag "Do not adjust widths" :format "%t" nil)
+	    (number :tag "Desired width" :value 120 :size 5)
+	    (function :tag "Function" :size 25)))
 	  (cons
 	   :format "%v"
 	   :inline t
@@ -4276,10 +4306,10 @@ lines, and a non-nil unsplittable property."
 	(list
 	 :tag "Other frame"
 	 :value (other-frame
+		 (reuse-buffer-window . visible)
 		 (graphic-only . t)
 		 (popup-frame-alist
-		  (height . 24) (width . 80) (unsplittable . t))
-		 (reuse-buffer-window . visible))
+		  (height . 24) (width . 80) (unsplittable . t)))
 	 :format "%t%v"
 	 :inline t
 	 (const :format "\n" other-frame)
@@ -4317,6 +4347,11 @@ lines, and a non-nil unsplittable property."
 	    (const :tag "Visible frames" :format "%t" visible)
 	    (const :tag "Visible and iconified frames" :format "%t" 0)
 	    (const :tag "All frames" :format "%t" t)))
+	  (cons
+	   :tag "Even window sizes"
+	   :format "%v%t\n"
+	   (const :format "" even-window-sizes)
+	   (const :format "" t))
 	  (cons
 	   :tag "Avoid selected frame"
 	   :format "%v%t\n"
@@ -4438,7 +4473,7 @@ SPECIFIERS is the homonymous argument for `display-buffer'."
     ;; occasionally used with the same meaning.
     display-buffer-other-window-specifiers)
    ((or (memq specifiers display-buffer-locations)
-	(functionp 'specifiers))
+	(functionp specifiers))
     ;; A single specifier à la 'same-window - make it a list.
     (list specifiers))
    ((or (not specifiers) (not (listp specifiers)))
@@ -4529,22 +4564,25 @@ meaningful value to this variable.  See the functions
 `display-buffer-in-lru-window', `display-buffer-in-new-window'
 and `display-buffer-in-new-frame' for how this is done.")
 
-(defun display-buffer-adjust-heights (window specifiers)
-  "Adjust height of WINDOW according to SPECIFIERS.
+(defun display-buffer-even-sizes (window specifiers)
+  "Even sizes of WINDOW and selected window according to SPECIFIERS.
 SPECIFIERS must be a list of buffer display specifiers, see the
-documentation of `display-buffer-names' for a description."
-  (let ((adjust-height (cdr (assq 'adjust-height specifiers))))
+documentation of `display-buffer-names' for a description.
+
+Sizes are evened out if and only if WINDOW and the selected
+window appear next to each other and the selected window is
+larger than WINDOW."
+  (let ((even-window-sizes (cdr (assq 'even-window-sizes specifiers))))
     (cond
-     ((eq adjust-height 'even-window-heights)
-      (when (and (not (eq window (selected-window)))
-	       ;; Don't resize minibuffer windows.
-	       (not (window-minibuffer-p))
-	       ;; Resize iff the selected window is higher than WINDOW.
-	       (> (window-total-size) (window-total-size window))
-	       ;; Resize vertical combinations only.
-	       (and (window-parent) (window-iso-combined-p (window-parent))
-		    ;; WINDOW must be adjacent to the selected one.
-		    (or (eq window (window-prev)) (eq window (window-next)))))
+     ((or (not even-window-sizes)
+	  ;; Don't resize minibuffer windows.
+	  (window-minibuffer-p)
+	  ;; WINDOW must be adjacent to the selected one.
+	  (not (or (eq window (window-prev))
+		   (eq window (window-next))))))
+     ((and (window-iso-combined-p window)
+	   ;; Resize iff the selected window is higher than WINDOW.
+	   (> (window-total-height) (window-total-height window)))
       ;; Don't throw an error if we can't even window heights for
       ;; whatever reason.  In any case, enlarging the selected window
       ;; might fail anyway if there are other windows above or below
@@ -4552,12 +4590,59 @@ documentation of `display-buffer-names' for a description."
       ;; configuration the present behavior is good enough so why care?
       (condition-case nil
 	  (resize-window
-	   window (/ (- (window-total-size window) (window-total-size)) 2))
-	(error nil))))
-     ((eq adjust-height 'shrink-window-if-larger-than-buffer)
-      (shrink-window-if-larger-than-buffer window))
-     ((eq adjust-height 'fit-window-to-buffer)
-      (fit-window-to-buffer window)))))
+	   window (/ (- (window-total-height) (window-total-height window))
+		     2))
+	(error nil)))
+     ((and (window-iso-combined-p window t)
+	   ;; Resize iff the selected window is wider than WINDOW.
+	   (> (window-total-width) (window-total-width window)))
+      ;; Don't throw an error if we can't even window widths, see
+      ;; comment above.
+      (condition-case nil
+	  (resize-window
+	   window (/ (- (window-total-width) (window-total-width window))
+		     2) t)
+	  (error nil))))))
+
+(defun display-buffer-adjust-height (window specifiers)
+  "Adjust height of WINDOW according to SPECIFIERS.
+SPECIFIERS must be a list of buffer display specifiers, see the
+documentation of `display-buffer-names' for a description."
+  (let ((adjust-height (cdr (assq 'adjust-height specifiers))))
+    (cond
+     ((numberp adjust-height)
+      (let* ((height (if (integerp adjust-height)
+			 adjust-height
+		       (* (window-total-size (frame-root-window window))
+			  adjust-height)))
+	     (delta (- height (window-total-size window))))
+	(when (and (window-resizable-p window delta)
+		   (window-iso-combined-p window))
+	  (resize-window window delta))))
+     ((functionp adjust-height)
+      (condition-case nil
+	  (funcall adjust-height window)
+	(error nil))))))
+
+(defun display-buffer-adjust-width (window specifiers)
+  "Adjust width of WINDOW according to SPECIFIERS.
+SPECIFIERS must be a list of buffer display specifiers, see the
+documentation of `display-buffer-names' for a description."
+  (let ((adjust-width (cdr (assq 'adjust-width specifiers))))
+    (cond
+     ((numberp adjust-width)
+      (let* ((width (if (integerp adjust-width)
+			adjust-width
+		      (* (window-total-size (frame-root-window window) t)
+			 adjust-width)))
+	     (delta (- width (window-total-size window t))))
+	(when (and (window-resizable-p window delta t)
+		   (window-iso-combined-p window t))
+	  (resize-window window delta t))))
+     ((functionp adjust-width)
+      (condition-case nil
+	  (funcall adjust-width window)
+	(error nil))))))
 
 (defun display-buffer-select-window (window &optional norecord)
   "Select WINDOW  and make sure it's frame is risen."
@@ -4584,8 +4669,6 @@ documentation of `display-buffer-names' for a description."
     (set-window-buffer window buffer)
     (when dedicated
       (set-window-dedicated-p window dedicated))
-    ;; Adjust heights if necessary.
-    (display-buffer-adjust-heights window specifiers)
     ;; Raise the frame if it's new (no use to check all sorts of things
     ;; as we did earlier).  I'm not sure what gets broken by this but at
     ;; least the case where the buffer is already shown on another frame
@@ -4593,7 +4676,7 @@ documentation of `display-buffer-names' for a description."
     ;; raises the frame and selects the window).
 
     ;; The "do not raise new frame" case is too difficult to handle (see
-    ;; also the problems with `display-buffer-other-frame').
+    ;; also the problems with the old `display-buffer-other-frame').
     (unless (eq old-frame new-frame)
       ;; Maybe we should call this with NORECORD non-nil.
       (display-buffer-select-window window))
@@ -4637,6 +4720,7 @@ description."
 	  (setq best-time time))))
 
     (when best-window
+      (display-buffer-even-sizes best-window specifiers)
       ;; Never change the quit-restore parameter of a window here.
       (setq display-buffer-window
 	    (cons best-window 'reuse-buffer-window))
@@ -4690,6 +4774,7 @@ description."
 	     ;; If there's no full-width window return the lru window.
 	     (caar lru-windows)))))
     (when window
+      (display-buffer-even-sizes window specifiers)
       (unless (window-parameter window 'quit-restore)
 	;; Don't overwrite an existing quit-restore entry.
 	(set-window-parameter
@@ -4863,13 +4948,16 @@ documentation of `display-buffer-names' for a description."
 			    side-specifier display-buffer-side-specifiers)
 			   (display-buffer-split-window
 			    window side-specifier specifiers))
-			  ((fboundp side-specifier)
+			  ((functionp side-specifier)
 			   (condition-case nil
 			       (funcall
 				side-specifier window (cdr specifiers))
 			     (error nil)))))
 		   (throw 'done window))))))
       (when window
+	;; Adjust sizes if asked for.
+	(display-buffer-adjust-height window specifiers)
+	(display-buffer-adjust-width window specifiers)
 	(set-window-parameter
 	 window 'quit-restore (list 'new-window buffer selected-window))
 	(setq display-buffer-window (cons window 'new-window))
@@ -5022,7 +5110,7 @@ the currently chosen location specifier in the list are ignored."
 		       (display-buffer-in-lru-window
 			buffer reuse-other-window specifiers))
 		  (and (not (memq location display-buffer-locations))
-		       (fboundp location)
+		       (functionp location)
 		       ;; Separate function.
 		       (funcall location buffer specifiers))))))
 
@@ -5779,7 +5867,7 @@ in some window."
 			     window))))
 
 ;;; Resizing buffers to fit their contents exactly.
-(defun fit-window-to-buffer (&optional window max-height min-height ignore)
+(defun fit-window-to-buffer (&optional window max-height min-height override)
   "Adjust height of WINDOW to display its buffer's contents exactly.
 WINDOW can be any live window and defaults to the selected one.
 
@@ -5790,7 +5878,7 @@ defaults to `window-min-height'.  Both, MAX-HEIGHT and MIN-HEIGHT
 are specified in lines and include the mode line and header line,
 if any.
 
-Optional argument IGNORE non-nil means ignore restrictions
+Optional argument OVERRIDE non-nil means override restrictions
 imposed by `window-min-height' and `window-min-width' on the size
 of WINDOW.
 
@@ -5813,7 +5901,7 @@ WINDOW was scrolled."
       ;; We are in WINDOW's buffer now.
       (let* ( ;; Adjust MIN-HEIGHT.
 	     (min-height
-	      (if ignore
+	      (if override
 		  (window-min-size window nil window)
 		(max (or min-height window-min-height)
 		     window-safe-min-height)))
@@ -5821,7 +5909,7 @@ WINDOW was scrolled."
 	      (window-total-size (frame-root-window window)))
 	     ;; Adjust MAX-HEIGHT.
 	     (max-height
-	      (if (or ignore (not max-height))
+	      (if (or override (not max-height))
 		  max-window-height
 		(min max-height max-window-height)))
 	     ;; Make `desired-height' the height necessary to show
@@ -5859,7 +5947,7 @@ WINDOW was scrolled."
 		;; It's silly to put `point' at the end of the previous
 		;; line and so maybe force horizontal scrolling.
 		(set-window-point window (line-beginning-position 0)))
-	      ;; Call `resize-window' with IGNORE argument equal WINDOW.
+	      ;; Call `resize-window' with OVERRIDE argument equal WINDOW.
 	      (resize-window window delta nil window)
 	      ;; Check if the last line is surely fully visible.  If
 	      ;; not, enlarge the window.
