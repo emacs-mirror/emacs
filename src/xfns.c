@@ -532,12 +532,60 @@ x_real_positions (f, xptr, yptr)
   int win_x, win_y, outer_x, outer_y;
   int real_x = 0, real_y = 0;
   int had_errors = 0;
-  Window win = f->output_data.x->parent_desc;
+  Window win;
+  Atom actual_type;
+  unsigned long actual_size, bytes_remaining;
+  int i, rc, actual_format;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  long max_len = 400;
+  Display *dpy = FRAME_X_DISPLAY (f);
+  unsigned char *tmp_data = NULL;
+  Atom target_type = XA_CARDINAL;
 
   BLOCK_INPUT;
 
-  x_catch_errors (FRAME_X_DISPLAY (f));
+  x_catch_errors (dpy);
 
+  win = FRAME_OUTER_WINDOW (f);
+  /* Try _NET_FRAME_EXTENTS first.  */
+  rc = XGetWindowProperty (dpy, win, dpyinfo->Xatom_net_frame_extents,
+                           0, max_len, False, target_type,
+                           &actual_type, &actual_format, &actual_size,
+                           &bytes_remaining, &tmp_data);
+
+  if (0 && rc == Success && actual_type == target_type && !x_had_errors_p (dpy)
+      && actual_size == 4 && actual_format == 32)
+    {
+      int ign;
+      Window rootw;
+
+      XGetGeometry (FRAME_X_DISPLAY (f), win,
+                    &rootw, &real_x, &real_y, &ign, &ign, &ign, &ign);
+      long *fe = (long *)tmp_data;
+      
+      FRAME_X_OUTPUT (f)->x_pixels_outer_diff = fe[0];
+      FRAME_X_OUTPUT (f)->y_pixels_outer_diff = fe[2];
+      *xptr = real_x - fe[0];
+      *yptr = real_y - fe[2];
+
+      if (FRAME_X_WINDOW (f) != win) 
+        {
+          XGetGeometry (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                        &rootw, &real_x, &real_y, &ign, &ign, &ign, &ign);
+
+          f->x_pixels_diff = real_x;
+          f->y_pixels_diff = real_y;
+        }
+
+      if (tmp_data) XFree (tmp_data);
+      x_uncatch_errors ();
+      UNBLOCK_INPUT;
+      return;
+    }
+
+  if (tmp_data) XFree (tmp_data);
+
+  win = f->output_data.x->parent_desc;
   if (win == FRAME_X_DISPLAY_INFO (f)->root_window)
     win = FRAME_OUTER_WINDOW (f);
 

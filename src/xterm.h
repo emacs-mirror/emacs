@@ -362,10 +362,10 @@ struct x_display_info
   Window net_supported_window;
   Atom Xatom_net_window_type, Xatom_net_window_type_tooltip;
 
-  /* Atoms dealing with maximization and fullscreen */
+  /* Atoms dealing with EWMH (i.e. _NET_...) */
   Atom Xatom_net_wm_state, Xatom_net_wm_state_fullscreen_atom,
     Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
-    Xatom_net_wm_state_sticky;
+    Xatom_net_wm_state_sticky, Xatom_net_frame_extents;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;

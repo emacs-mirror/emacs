@@ -1,3 +1,12 @@
+2010-11-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_term_init): Initialize Xatom_net_frame_extents.
+
+	* xterm.h (struct x_display_info): Xatom_net_frame_extents is new.
+
+	* xfns.c (x_real_positions): Try to get _NET_FRAME_EXTENTS first
+	before traversing window tree (Bug#5721).
+
 2010-11-03  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (CRT_DIR): New variable, set by configure.

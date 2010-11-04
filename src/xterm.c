@@ -10522,7 +10522,8 @@ x_term_init (display_name, xrm_option, resource_name)
     = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE", False);
   dpyinfo->Xatom_net_window_type_tooltip
     = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE_TOOLTIP", False);
-  
+  dpyinfo->Xatom_net_frame_extents  
+    = XInternAtom (dpyinfo->display, "_NET_FRAME_EXTENTS", False);
   dpyinfo->cut_buffers_initialized = 0;
 
   dpyinfo->x_dnd_atoms_size = 8;
