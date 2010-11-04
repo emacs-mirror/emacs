@@ -553,7 +553,7 @@ x_real_positions (f, xptr, yptr)
                            &actual_type, &actual_format, &actual_size,
                            &bytes_remaining, &tmp_data);
 
-  if (0 && rc == Success && actual_type == target_type && !x_had_errors_p (dpy)
+  if (rc == Success && actual_type == target_type && !x_had_errors_p (dpy)
       && actual_size == 4 && actual_format == 32)
     {
       int ign;
