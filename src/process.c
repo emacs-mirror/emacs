@@ -3656,22 +3656,8 @@ usage: (make-network-process &rest ARGS)  */)
       immediate_quit = 1;
       QUIT;
 
-      /* This turns off all alarm-based interrupts; the
-	 bind_polling_period call above doesn't always turn all the
-	 short-interval ones off, especially if interrupt_input is
-	 set.
-
-	 It'd be nice to be able to control the connect timeout
-	 though.  Would non-blocking connect calls be portable?
-
-	 This used to be conditioned by HAVE_GETADDRINFO.  Why?  */
-
-      turn_on_atimers (0);
-
       ret = connect (s, lres->ai_addr, lres->ai_addrlen);
       xerrno = errno;
-
-      turn_on_atimers (1);
 
       if (ret == 0 || xerrno == EISCONN)
 	{
@@ -3692,6 +3678,40 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
 #endif
 
+#ifndef WINDOWSNT
+      if (xerrno == EINTR)
+	{
+	  /* Unlike most other syscalls connect() cannot be called
+	     again.  (That would return EALREADY.)  The proper way to
+	     wait for completion is select(). */
+	  int sc, len;
+	  SELECT_TYPE fdset;
+	retry_select:
+	  FD_ZERO (&fdset);
+	  FD_SET (s, &fdset);
+	  QUIT;
+	  sc = select (s + 1, (SELECT_TYPE *)0, &fdset, (SELECT_TYPE *)0,
+		       (EMACS_TIME *)0);
+	  if (sc == -1)
+	    {
+	      if (errno == EINTR)
+		goto retry_select;
+	      else
+		report_file_error ("select failed", Qnil);
+	    }
+	  eassert (sc > 0);
+
+	  len = sizeof xerrno;
+	  eassert (FD_ISSET (s, &fdset));
+	  if (getsockopt (s, SOL_SOCKET, SO_ERROR, &xerrno, &len) == -1)
+	    report_file_error ("getsockopt failed", Qnil);
+	  if (xerrno)
+	    errno = xerrno, report_file_error ("error during connect", Qnil);
+	  else
+	    break;
+	}
+#endif /* !WINDOWSNT */
+
       immediate_quit = 0;
 
       /* Discard the unwind protect closing S.  */
@@ -3699,8 +3719,10 @@ usage: (make-network-process &rest ARGS)  */)
       emacs_close (s);
       s = -1;
 
+#ifdef WINDOWSNT
       if (xerrno == EINTR)
 	goto retry_connect;
+#endif
     }
 
   if (s >= 0)
