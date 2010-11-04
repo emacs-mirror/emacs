@@ -1,3 +1,10 @@
+2010-11-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote shell setup): New item "Interactive shell
+	prompt".  Reported by Christian Millour <cm@abtela.com>.
+	(Remote shell setup, Remote processes): Use @code{} for
+	environment variables.
+
 2010-11-03  Glenn Morris  <rgm@gnu.org>
 
 	* ediff.texi (Quick Help Commands, Miscellaneous):
