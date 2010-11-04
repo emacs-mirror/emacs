@@ -660,6 +660,7 @@ ALSA_LIBS
 ALSA_CFLAGS
 PKG_CONFIG
 LIBSOUND
+CRT_DIR
 MAKEINFO
 GZIP_PROG
 INSTALL_INFO
@@ -755,6 +756,7 @@ with_makeinfo
 with_gtk
 with_gcc
 with_pkg_config_prog
+with_crt_dir
 with_gnustep_conf
 enable_ns_self_contained
 enable_asserts
@@ -1454,6 +1456,8 @@ Optional Packages:
 
   --with-pkg-config-prog=PATH
                           path to pkg-config for finding GTK and librsvg
+  --with-crt-dir=DIR      directory containing crtn.o etc. This option is only
+                          used on x86-64 and s390x GNU/Linux architectures.
   --with-gnustep-conf=PATH
                           path to GNUstep.conf; default $GNUSTEP_CONFIG_FILE,
                           or /etc/GNUstep/GNUstep.conf
@@ -2741,6 +2745,15 @@ if test "X${with_pkg_config_prog}" != X; then
       PKG_CONFIG="${with_pkg_config_prog}"
    fi
 fi
+
+CRT_DIR=
+
+# Check whether --with-crt-dir was given.
+if test "${with_crt_dir+set}" = set; then :
+  withval=$with_crt_dir;
+fi
+
+CRT_DIR="${with_crt_dir}"
 
 
 # Check whether --with-gnustep-conf was given.
@@ -5705,19 +5718,28 @@ rm -rf conftest*
 fi
 
 
-
-### The standard library on x86-64 and s390x GNU/Linux distributions can
-### be located in either /usr/lib64 or /usr/lib.
-### In some rare cases, /usr/lib64 exists but does not contain the
-### relevant files (bug#1287).  Hence test for crtn.o.
+## Note: at present CRT_DIR is only used for amdx86-64 and ibms390x.
+## Other machine types hard-code the location in src/[ms]/*.h.
 case "${canonical}" in
   x86_64-*-linux-gnu* | s390x-*-linux-gnu* )
-    if test -e /usr/lib64/crtn.o; then
+   ## On x86-64 and s390x GNU/Linux distributions, the standard library
+   ## can be in a variety of places.  We only try /usr/lib64 and /usr/lib.
+   ## For anything else (eg /usr/lib32), it is up the user to specify
+   ## the location (bug#5655).
+   ## Test for crtn.o, not just the directory, because sometimes the
+   ## directory exists but does not have the relevant files (bug#1287).
+   ## If user specified a crt-dir, use that unconditionally.
+   if test "X$CRT_DIR" = "X"; then
+     CRT_DIR=/usr/lib
+     test -e /usr/lib64/crtn.o && CRT_DIR=/usr/lib64
+   fi
 
-$as_echo "#define HAVE_LIB64_DIR 1" >>confdefs.h
-
-fi
+   test -e $CRT_DIR/crtn.o || test -e $CRT_DIR/crt0.o || \
+     as_fn_error $? "crt*.o not found.  Use --with-crt-dir to specify the location." "$LINENO" 5
+   ;;
 esac
+test "X$CRT_DIR" = "X" && CRT_DIR=/usr/lib
+
 
 
 
@@ -13365,11 +13387,6 @@ You may need to run \"make install\" with sudo.  The application will fail
 to run if these resources are not installed."
    fi
    echo
-fi
-
-if test "$HAVE_DBUS" = yes && test "${opsys}" != "gnu-linux"; then
-  echo "D-Bus integration has been tested for GNU/Linux only."
-  echo
 fi
 
 
