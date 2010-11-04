@@ -5436,7 +5436,7 @@ ns_term_shutdown (int sig)
   NSTRACE (performDragOperation);
 
   if (!emacs_event)
-    return;
+    return NO;
 
   position = [self convertPoint: [sender draggingLocation] fromView: nil];
   x = lrint (position.x);  y = lrint (position.y);

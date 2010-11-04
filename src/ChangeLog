@@ -1,3 +1,10 @@
+2010-11-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfont.m (nsfont_draw)
+	* nsimage.m (EmacsImage-setXBMColor:)
+	* nsterm.m (EmacsView-performDragOperation:): Correct empty return
+	statements.  Based on a patch by Ismail Donmez <ismail@namtrac.org>.
+
 2010-11-03  Julien Danjou  <julien@danjou.info>
 
 	* image.c (gif_load): Add support for transparency and specified
