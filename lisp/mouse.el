@@ -1280,7 +1280,7 @@ regardless of where you click."
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((primary
 	 (cond
-	  ((fboundp 'x-get-selection-value) ; MS-DOS and MS-Windows
+	  ((fboundp 'x-get-selection-value) ; MS-DOS, MS-Windows and X.
 	   (or (x-get-selection-value)
 	       (x-get-selection 'PRIMARY)))
 	  ;; FIXME: What about xterm-mouse-mode etc.?

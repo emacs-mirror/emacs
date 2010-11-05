@@ -1,3 +1,7 @@
+2010-11-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* mouse.el (mouse-yank-primary): Update comment (Bug#6802).
+
 2010-11-05  Glenn Morris  <rgm@gnu.org>
 
 	* woman.el (woman0-roff-buffer, woman1-roff-buffer)
