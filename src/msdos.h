@@ -52,6 +52,8 @@ typedef int XRectangle;
 #define PIX_TYPE unsigned long
 #define XDISPLAY
 
+typedef struct tty_display_info Display_Info;
+
 extern struct tty_display_info the_only_display_info;
 
 #define FRAME_X_DISPLAY(f) ((Display *) 0)

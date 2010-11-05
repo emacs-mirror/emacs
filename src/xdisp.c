@@ -23614,9 +23614,8 @@ x_clear_cursor (struct window *w)
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* Implementation of draw_row_with_mouse_face for GUI sessions and
-   GPM.  MSDOS has its own implementation on msdos.c.  */
-#ifndef MSDOS
+/* Implementation of draw_row_with_mouse_face for GUI sessions, GPM,
+   and MSDOS.  */
 void
 draw_row_with_mouse_face (struct window *w, int start_x, struct glyph_row *row,
 			  int start_hpos, int end_hpos,
@@ -23629,11 +23628,10 @@ draw_row_with_mouse_face (struct window *w, int start_x, struct glyph_row *row,
       return;
     }
 #endif
-#ifdef HAVE_GPM
+#if defined (HAVE_GPM) || defined (MSDOS)
   tty_draw_row_with_mouse_face (w, row, start_hpos, end_hpos, draw);
 #endif
 }
-#endif	/* not MSDOS */
 
 /* EXPORT:
    Display the active region described by mouse_face_* according to DRAW.  */

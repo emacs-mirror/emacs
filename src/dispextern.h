@@ -3040,12 +3040,13 @@ extern void frame_to_window_pixel_xy (struct window *, int *, int *);
 extern void note_mouse_highlight (struct frame *, int, int);
 extern void x_clear_window_mouse_face (struct window *);
 extern void cancel_mouse_face (struct frame *);
-extern int clear_mouse_face (Display_Info *);
-extern void show_mouse_face (Display_Info *, enum draw_glyphs_face);
+extern int clear_mouse_face (Mouse_HLInfo *);
+extern void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face);
 extern int cursor_in_mouse_face_p (struct window *w);
 extern void draw_row_with_mouse_face (struct window *, int, struct glyph_row *,
 				      int, int, enum draw_glyphs_face);
-
+extern void tty_draw_row_with_mouse_face (struct window *, struct glyph_row *,
+					  int, int, enum draw_glyphs_face);
 
 /* Flags passed to try_window.  */
 #define TRY_WINDOW_CHECK_MARGINS	(1 << 0)

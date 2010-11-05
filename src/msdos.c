@@ -948,12 +948,12 @@ popup_activated (void)
 }
 
 /* Draw TEXT_AREA glyphs between START and END of glyph row ROW on
-   window W, starting at x-position X.  X is relative to TEXT_AREA
-   in W.  HL is a face override for drawing the glyphs.  */
+   window W.  X is relative to TEXT_AREA in W.  HL is a face override
+   for drawing the glyphs.  */
 void
-draw_row_with_mouse_face (struct window *w, int x, struct glyph_row *row,
-			  int start_hpos, int end_hpos,
-			  enum draw_glyphs_face hl)
+tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
+			      int start_hpos, int end_hpos,
+			      enum draw_glyphs_face hl)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct tty_display_info *tty = FRAME_TTY (f);

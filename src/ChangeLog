@@ -1,3 +1,16 @@
+2010-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (tty_draw_row_with_mouse_face): Add prototype.
+
+	* xdisp.c (draw_row_with_mouse_face): Don't #ifdef away on MSDOS.
+	Call tty_draw_row_with_mouse_face on MSDOS as well.
+
+	* msdos.c (tty_draw_row_with_mouse_face): Renamed from
+	draw_row_with_mouse_face.  Make the argument list identical with
+	GPM implementation.
+
+	* msdos.h (Display_Info): Restore typedef.
+
 2010-11-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c: Remove static mouse_face_* variables.  All users
