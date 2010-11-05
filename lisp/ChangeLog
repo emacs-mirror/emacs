@@ -1,3 +1,9 @@
+2010-11-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/byte-opt.el (byte-decompile-bytecode-1): Give local
+	variables bytes, ptr, op a prefix.
+	(disassemble-offset): Update for above change.
+
 2010-11-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package-unpack): Remove no-op.
