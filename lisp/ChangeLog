@@ -1,5 +1,10 @@
 2010-11-05  Martin Rudalics  <rudalics@gmx.at>
 
+	* window.el (display-buffer-even-sizes)
+	(display-buffer-adjust-height, display-buffer-adjust-width)
+	(display-buffer-in-new-window, kill-buffer-and-window): Use
+	ignore-errors instead of condition-case.
+
 	* electric.el (Electric-pop-up-window): Use buffer display
 	specifiers.
 

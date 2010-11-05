@@ -4588,21 +4588,19 @@ larger than WINDOW."
       ;; might fail anyway if there are other windows above or below
       ;; WINDOW and the selected one.  But for a simple two windows
       ;; configuration the present behavior is good enough so why care?
-      (condition-case nil
-	  (resize-window
-	   window (/ (- (window-total-height) (window-total-height window))
-		     2))
-	(error nil)))
+      (ignore-errors
+       (resize-window
+	window (/ (- (window-total-height) (window-total-height window))
+		  2))))
      ((and (window-iso-combined-p window t)
 	   ;; Resize iff the selected window is wider than WINDOW.
 	   (> (window-total-width) (window-total-width window)))
       ;; Don't throw an error if we can't even window widths, see
       ;; comment above.
-      (condition-case nil
-	  (resize-window
-	   window (/ (- (window-total-width) (window-total-width window))
-		     2) t)
-	  (error nil))))))
+      (ignore-errors
+       (resize-window
+	window (/ (- (window-total-width) (window-total-width window))
+		  2) t))))))
 
 (defun display-buffer-adjust-height (window specifiers)
   "Adjust height of WINDOW according to SPECIFIERS.
@@ -4620,9 +4618,7 @@ documentation of `display-buffer-names' for a description."
 		   (window-iso-combined-p window))
 	  (resize-window window delta))))
      ((functionp adjust-height)
-      (condition-case nil
-	  (funcall adjust-height window)
-	(error nil))))))
+      (ignore-errors (funcall adjust-height window))))))
 
 (defun display-buffer-adjust-width (window specifiers)
   "Adjust width of WINDOW according to SPECIFIERS.
@@ -4640,9 +4636,7 @@ documentation of `display-buffer-names' for a description."
 		   (window-iso-combined-p window t))
 	  (resize-window window delta t))))
      ((functionp adjust-width)
-      (condition-case nil
-	  (funcall adjust-width window)
-	(error nil))))))
+      (ignore-errors (funcall adjust-width window))))))
 
 (defun display-buffer-select-window (window &optional norecord)
   "Select WINDOW  and make sure it's frame is risen."
@@ -4949,10 +4943,8 @@ documentation of `display-buffer-names' for a description."
 			   (display-buffer-split-window
 			    window side-specifier specifiers))
 			  ((functionp side-specifier)
-			   (condition-case nil
-			       (funcall
-				side-specifier window (cdr specifiers))
-			     (error nil)))))
+			   (ignore-errors
+			    (funcall side-specifier window (cdr specifiers))))))
 		   (throw 'done window))))))
       (when window
 	;; Adjust sizes if asked for.
@@ -6011,10 +6003,7 @@ Return non-nil if the window was shrunk, nil otherwise."
   (interactive)
   (let ((window-to-delete (selected-window))
 	(buffer-to-kill (current-buffer))
-	(delete-window-hook (lambda ()
-			      (condition-case nil
-				  (delete-window)
-				(error nil)))))
+	(delete-window-hook (lambda () (ignore-errors (delete-window)))))
     (unwind-protect
 	(progn
 	  (add-hook 'kill-buffer-hook delete-window-hook t t)
@@ -6025,10 +6014,9 @@ Return non-nil if the window was shrunk, nil otherwise."
 		(delete-window))))
       ;; If the buffer is not dead for some reason (probably because
       ;; of a `quit' signal), remove the hook again.
-      (condition-case nil
-	  (with-current-buffer buffer-to-kill
-	    (remove-hook 'kill-buffer-hook delete-window-hook t))
-	(error nil)))))
+      (ignore-errors
+       (with-current-buffer buffer-to-kill
+	 (remove-hook 'kill-buffer-hook delete-window-hook t))))))
 
 (defun quit-window (&optional kill window)
   "Quit WINDOW and bury its buffer.
