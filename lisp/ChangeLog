@@ -1,5 +1,8 @@
 2010-11-05  Glenn Morris  <rgm@gnu.org>
 
+	* play/doctor.el: Give all local variables a prefix.  Update callers.
+	(doc$, doctor-put-meaning): Use backquote.
+
 	* emacs-lisp/cl-macs.el (loop): Give local variable args a prefix.
 	(cl-parse-loop-clause, cl-loop-handle-accum): Update for above change.
 
