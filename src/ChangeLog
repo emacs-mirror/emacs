@@ -2,6 +2,10 @@
 
 	* xdisp.c (x_consider_frame_title, tool_bar_lines_needed): Move
 	prototypes to HAVE_WINDOW_SYSTEM-only part.
+	(get_window_cursor_type): Move inside a HAVE_WINDOW_SYSTEM-only
+	part.  Remove "#ifdef HAVE_WINDOW_SYSTEM" from body of function.
+	(null_glyph_slice): Move declaration into HAVE_WINDOW_SYSTEM-only
+	part.
 
 	* frame.h (MOUSE_HL_INFO): Fix definition to work both for
 	TTY-only and GUI builds.

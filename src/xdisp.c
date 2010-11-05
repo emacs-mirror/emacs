@@ -888,6 +888,9 @@ static int clear_face_cache_count;
 #ifdef HAVE_WINDOW_SYSTEM
 #define CLEAR_IMAGE_CACHE_COUNT	101
 static int clear_image_cache_count;
+
+/* Null glyph slice */
+static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 #endif
 
 /* Non-zero while redisplay_internal is in progress.  */
@@ -912,10 +915,6 @@ EMACS_INT help_echo_pos;
 /* Temporary variable for XTread_socket.  */
 
 Lisp_Object previous_help_echo_string;
-
-/* Null glyph slice */
-
-static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 
 /* Platform-independent portion of hourglass implementation. */
 
@@ -23038,6 +23037,8 @@ set_frame_cursor_types (struct frame *f, Lisp_Object arg)
 }
 
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 /* Return the cursor we want to be displayed in window W.  Return
    width of bar/hbar cursor through WIDTH arg.  Return with
    ACTIVE_CURSOR arg set to 1 if cursor in window W is `active'
@@ -23083,10 +23084,7 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
 
   /* Detect a nonselected window or nonselected frame.  */
   else if (w != XWINDOW (f->selected_window)
-#ifdef HAVE_WINDOW_SYSTEM
-	   || f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame
-#endif
-	   )
+	   || f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)
     {
       *active_cursor = 0;
 
@@ -23127,7 +23125,6 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
   /* Use normal cursor if not blinked off.  */
   if (!w->cursor_off_p)
     {
-#ifdef HAVE_WINDOW_SYSTEM
       if (glyph != NULL && glyph->type == IMAGE_GLYPH)
 	{
 	  if (cursor_type == FILLED_BOX_CURSOR)
@@ -23155,7 +23152,6 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
 	      cursor_type = HOLLOW_BOX_CURSOR;
 	    }
       }
-#endif
       return cursor_type;
     }
 
@@ -23196,8 +23192,6 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
   return NO_CURSOR;
 }
 
-
-#ifdef HAVE_WINDOW_SYSTEM
 
 /* Notice when the text cursor of window W has been completely
    overwritten by a drawing operation that outputs glyphs in AREA
