@@ -5313,7 +5313,7 @@ ns_term_shutdown (int sig)
 
   NSTRACE (mouseExited);
 
-  if (dpyinfo || !emacsframe)
+  if (!dpyinfo)
     return;
 
   last_mouse_movement_time = EV_TIMESTAMP (theEvent);
