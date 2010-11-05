@@ -592,24 +592,6 @@ longer than the frame width."
 	 ;; like code?  Check for ragged edges on the left.
 	 (< (length columns) 3))))
 
-(defun gnus-article-natural-long-line-p ()
-  "Return true if the current line is long, and it's natural text."
-  (save-excursion
-    (beginning-of-line)
-    (and
-     ;; The line is long.
-     (> (- (line-end-position) (line-beginning-position))
-	(window-width))
-     ;; It doesn't start with spaces.
-     (not (looking-at "    "))
-     ;; Not cited text.
-     (let ((line-number (1+ (count-lines (point-min) (point))))
-	   citep)
-       (dolist (elem gnus-cite-prefix-alist)
-	 (when (member line-number (cdr elem))
-	   (setq citep t)))
-       (not citep)))))
-
 (defun gnus-article-hide-citation (&optional arg force)
   "Toggle hiding of all cited text except attribution lines.
 See the documentation for `gnus-article-highlight-citation'.

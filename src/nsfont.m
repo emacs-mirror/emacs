@@ -1211,7 +1211,6 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     DPSstroke (context);
 
     DPSgrestore (context);
-    return to-from;
   }
 
 #else  /* NS_IMPL_COCOA */
@@ -1280,10 +1279,9 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       }
 
     CGContextRestoreGState (gcontext);
-    return;
   }
 #endif  /* NS_IMPL_COCOA */
-
+  return to-from;
 }
 
 

@@ -52,6 +52,73 @@
 
 	* ehelp.el (with-electric-help): Use pop-to-buffer-other-window.
 
+2010-11-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-unpack): Remove no-op.
+	(package--builtins, package--dir): Doc fix.
+	(package-activate-1, package-activate, package-install)
+	(package-compute-transaction): Fix error message.
+	(package-delete): Use delete-directory.  Omit system packages.
+	(package-initialize): Set package-alist to nil first.
+	(package-menu-mark-delete, package-menu-mark-install): Don't add
+	symbols that are inconsistent with the package state.
+	(package-menu-execute): Perform deletions and installations as
+	single batch operations.
+
+2010-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/idlwave.el (idlwave-pset): Only used on XEmacs.
+	(props): Remove unnecessary declaration.
+
+	* textmodes/ispell.el (ispell-init-process): On Emacs, always use
+	set-process-query-on-exit-flag.
+
+	* textmodes/reftex-toc.el (name1, dummy, dummy2): Remove unused decs.
+	(reftex-toc-do-promote): Remove unused local `mpos'.
+	(reftex-toc-restore-region): Make `mpos' local to this function.
+
+	* net/dbus.el (dbus-name-owner-changed-handler): Doc fix.
+
+	* play/landmark.el (lm-losing-threshold): Correct spelling.
+	(lm-human-plays): Use new name.
+
+	* play/gomoku.el (gomoku-loosing-threshold): Correct spelling.
+	(gomoku-human-plays): Use new name.
+
+	* play/gomoku.el (nil-score, Xscore, XXscore, XXXscore, XXXXscore)
+	(Oscore, OOscore, OOOscore, OOOOscore): Rename with gomoku- prefix.
+	(gomoku-score-trans-table, gomoku-winning-threshold)
+	(gomoku-loosing-threshold, gomoku-init-score-table): Use new names.
+
+2010-11-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el: Don't put built-in packages in
+	package-alist, to avoid loading inefficiencies.
+	(package-built-in-p): Make VERSION optional, and treat it as a
+	minimum acceptable version.
+	(package-activate): Search separately for built-in packages.  Emit
+	a warning if a dependency fails.
+	(define-package): Handle most common case, where there is no
+	obsolete package, first.
+	(package-compute-transaction): Print required version in error.
+	(package--initialized): New variable.
+	(list-packages): Use it.
+	(package-initialize): Optional arg NO-ACTIVATE.  Don't put
+	built-in packages in packages-alist; keep it separate.  Set
+	package--initialized.
+	(describe-package): Avoid activating packages as a side-effect.
+	Search separately for built-in packages.
+	(describe-package-1): Handle the case where an elpa package is
+	simultaneously built-in and available/installed.
+	(package-installed-p, package--generate-package-list): Search
+	separately for built-in packages.
+	(package-load-descriptor): Doc fix.
+
+2010-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-function):
+	Handle __DATA__ and __END__.
+
 2010-11-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-names): Describe `not-this-window' and
@@ -69,6 +136,12 @@
 	(compilation-goto-locus): Use specifiers in display-buffer and
 	pop-to-buffer calls.  Simplify.
 	(compilation-find-file): Use specifiers in display-buffer calls.
+
+2010-11-02  Noah Friedman  <friedman@splode.com>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-file): If bytecomp-arg is
+	nil, do not ask to recompile files that are not already compiled,
+	and do not recompile them.
 
 2010-11-02  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -4820,6 +4893,7 @@
 2010-07-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (get-mru-window): New function.
+
 2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/dbus.el (dbus-send-signal): Declare function.

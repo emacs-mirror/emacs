@@ -784,7 +784,7 @@ Related buffers can be cycled through via :R and :P commands."
 
 ;; These two vars control the interaction of jumps performed by ' and `.
 ;; In this new version, '' doesn't erase the marks set by ``, so one can
-;; use both kinds of jumps interchangeably and without loosing positions
+;; use both kinds of jumps interchangeably and without losing positions
 ;; inside the lines.
 
 ;; Remembers position of the last jump done using ``'.

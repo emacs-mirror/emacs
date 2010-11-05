@@ -1,3 +1,21 @@
+2010-11-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* coding.c (coding-category-list): Refer to set-coding-system-priority
+	instead of the obsolete set-coding-priority in the doc string.
+
+2010-11-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+	    Ismail Donmez  <ismail@namtrac.org>  (tiny change)
+
+	* nsfont.m (nsfont_draw)
+	* nsimage.m (EmacsImage-setXBMColor:)
+	* nsterm.m (EmacsView-performDragOperation:): Correct empty return
+	statements.
+
+2010-11-03  Julien Danjou  <julien@danjou.info>
+
+	* image.c (gif_load): Add support for transparency and specified
+	:background.
+
 2010-11-01  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (lookup_glyphless_char_display): Extern it.

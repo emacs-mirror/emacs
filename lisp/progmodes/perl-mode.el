@@ -274,6 +274,11 @@ The expansion is entirely correct because it uses the C preprocessor."
       ;; Be careful not to match "sub { (...) ... }".
       ("\\<sub\\(?:[[:space:]]+[^{}[:punct:][:space:]]+\\)?[[:space:]]*(\\([^)]+\\))"
        (1 "."))
+      ;; Turn __DATA__ trailer into a comment.
+      ("^\\(_\\)_\\(?:DATA\\|END\\)__[ \t]*\\(?:\\(\n\\)#.-\\*-.*perl.*-\\*-\\|\n.*\\)"
+       (1 "< c") (2 "> c")
+       (0 (ignore (put-text-property (match-beginning 0) (match-end 0)
+                                     'syntax-multiline t))))
       ;; Regexp and funny quotes.  Distinguishing a / that starts a regexp
       ;; match from the division operator is ...interesting.
       ;; Basically, / is a regexp match if it's preceded by an infix operator

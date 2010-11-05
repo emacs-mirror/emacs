@@ -4498,7 +4498,9 @@ This function could be useful in `message-setup-hook'."
 			 (string= "base64"
 				  (message-fetch-field
 				   "content-transfer-encoding")))))))
-	    (message-insert-courtesy-copy))
+	    (message-insert-courtesy-copy
+	     (with-current-buffer mailbuf
+	       message-courtesy-message)))
           ;; Let's make sure we encoded all the body.
           (assert (save-excursion
                     (goto-char (point-min))
@@ -5939,7 +5941,7 @@ Headers already prepared in the buffer are not modified."
       ;; Check for IDNA
       (message-idna-to-ascii-rhs))))
 
-(defun message-insert-courtesy-copy ()
+(defun message-insert-courtesy-copy (message)
   "Insert a courtesy message in mail copies of combined messages."
   (let (newsgroups)
     (save-excursion
@@ -5949,12 +5951,12 @@ Headers already prepared in the buffer are not modified."
 	  (goto-char (point-max))
 	  (insert "Posted-To: " newsgroups "\n")))
       (forward-line 1)
-      (when message-courtesy-message
+      (when message
 	(cond
-	 ((string-match "%s" message-courtesy-message)
-	  (insert (format message-courtesy-message newsgroups)))
+	 ((string-match "%s" message)
+	  (insert (format message newsgroups)))
 	 (t
-	  (insert message-courtesy-message)))))))
+	  (insert message)))))))
 
 ;;;
 ;;; Setting up a message buffer

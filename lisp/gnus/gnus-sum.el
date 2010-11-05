@@ -4506,7 +4506,7 @@ the id of the parent article (if any)."
 	(while (not (eobp))
 	  (ignore-errors
 	    (setq article (read (current-buffer))
-		  header (gnus-nov-parse-line article dependencies)))
+		  header (gnus-nov-parse-line article dependencies t)))
 	  (when header
 	    (with-current-buffer gnus-summary-buffer
 	      (push header gnus-newsgroup-headers)
@@ -8445,7 +8445,11 @@ When called interactively, ID is the Message-ID of the current
 article."
   (interactive (list (mail-header-id (gnus-summary-article-header))))
   (let ((articles (gnus-articles-in-thread
-		   (gnus-id-to-thread (gnus-root-id id)))))
+		   (gnus-id-to-thread (gnus-root-id id))))
+	;;we REALLY want the whole thread---this prevents cut-threads
+	;;from removing the thread we want to include.
+	(gnus-fetch-old-headers nil)
+	(gnus-build-sparse-threads nil))
     (prog1
 	(gnus-summary-limit (nconc articles gnus-newsgroup-limit))
       (gnus-summary-limit-include-matching-articles
@@ -8832,7 +8836,13 @@ fetch what's specified by the `gnus-refer-thread-limit'
 variable."
   (interactive "P")
   (let ((id (mail-header-id (gnus-summary-article-header)))
+	(subject (gnus-simplify-subject
+		  (mail-header-subject (gnus-summary-article-header))))
+	(refs (split-string (or (mail-header-references
+				 (gnus-summary-article-header)) "")))
 	(gnus-summary-ignore-duplicates t)
+	(gnus-inhibit-demon t)
+	(gnus-read-all-available-headers t)
 	(limit (if limit (prefix-numeric-value limit)
 		 gnus-refer-thread-limit)))
     (if  (gnus-check-backend-function 'request-thread gnus-newsgroup-name)
@@ -8859,6 +8869,11 @@ variable."
 	  (gnus-message 5 "Fetching headers for %s...done"
 			gnus-newsgroup-name))))
     (when (eq gnus-headers-retrieved-by 'nov)
+      ;; might as well restrict the headers to the relevant ones. this
+      ;; should save time when building threads.
+      (with-current-buffer nntp-server-buffer
+	(goto-char (point-min))
+	(keep-lines (regexp-opt (append refs (list id subject)))))
       (gnus-build-all-threads))
     (gnus-summary-limit-include-thread id)))
 
@@ -9423,7 +9438,8 @@ C-u g', show the raw article."
    ((not arg)
     ;; Select the article the normal way.
     (gnus-summary-select-article nil 'force))
-   ((equal arg '(16))
+   ((or (equal arg '(16))
+	(eq arg t))
     ;; C-u C-u g
     ;; We have to require this here to make sure that the following
     ;; dynamic binding isn't shadowed by autoloading.

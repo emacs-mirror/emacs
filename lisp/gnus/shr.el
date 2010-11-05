@@ -340,9 +340,13 @@ redirects somewhere else."
   "Browse the URL under point."
   (interactive)
   (let ((url (get-text-property (point) 'shr-url)))
-    (if (not url)
-	(message "No link under point")
-      (browse-url url))))
+    (cond
+     ((not url)
+      (message "No link under point"))
+     ((string-match "^mailto:" url)
+      (gnus-url-mailto url))
+     (t
+      (browse-url url)))))
 
 (defun shr-save-contents (directory)
   "Save the contents from URL in a file."
@@ -551,8 +555,8 @@ Return a string with image data."
 		   (string-match shr-blocked-images url)))
 	  (setq shr-start (point))
 	  (let ((shr-state 'space))
-	    (if (> (length alt) 8)
-		(shr-insert (substring alt 0 8))
+	    (if (> (string-width alt) 8)
+		(shr-insert (truncate-string-to-width alt 8))
 	      (shr-insert alt))))
 	 ((url-is-cached (shr-encode-url url))
 	  (shr-put-image (shr-get-image-data url) alt))

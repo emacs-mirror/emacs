@@ -1,8 +1,9 @@
 /* font.c -- "Font" primitives.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010
-     National Institute of Advanced Industrial Science and Technology (AIST)
-     Registration Number H13PRO009
+
+Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright (C) 2006, 2007, 2008, 2009, 2010
+  National Institute of Advanced Industrial Science and Technology (AIST)
+  Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -3443,7 +3444,7 @@ font_load_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec)
       if (NILP (entity))
 	return Qnil;
     }
-  /* Don't loose the original name that was put in initially.  We need
+  /* Don't lose the original name that was put in initially.  We need
      it to re-apply the font when font parameters (like hinting or dpi) have
      changed.  */
   entity = font_open_for_lface (f, entity, attrs, spec);
@@ -3514,7 +3515,7 @@ font_open_by_name (FRAME_PTR f, const char *name)
   args[1] = make_unibyte_string (name, strlen (name));
   spec = Ffont_spec (2, args);
   ret = font_open_by_spec (f, spec);
-  /* Do not loose name originally put in.  */
+  /* Do not lose name originally put in.  */
   if (!NILP (ret))
     font_put_extra (ret, QCuser_spec, args[1]);
 
@@ -5399,5 +5400,3 @@ init_font (void)
   Vfont_log = egetenv ("EMACS_FONT_LOG") ? Qnil : Qt;
 }
 
-/* arch-tag: 74c9475d-5976-4c93-a327-942ae3072846
-   (do not change this comment) */

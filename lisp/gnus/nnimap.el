@@ -731,8 +731,6 @@ textual parts.")
       ;; to examine a mailbox that doesn't exist.  This seems to be
       ;; the only way that allows us to reliably go back to unselected
       ;; state on Courier.
-      (nnimap-command "EXAMINE DOES.NOT.EXIST")
-      (setf (nnimap-group nnimap-object) nil)
       (car (nnimap-command "RENAME %S %S"
 			   (utf7-encode group t) (utf7-encode new-name t))))))
 
@@ -863,8 +861,9 @@ textual parts.")
 (defun nnimap-find-article-by-message-id (group message-id)
   (with-current-buffer (nnimap-buffer)
     (erase-buffer)
-    (setf (nnimap-group nnimap-object) nil)
-    (nnimap-send-command "EXAMINE %S" (utf7-encode group t))
+    (unless (equal group (nnimap-group nnimap-object))
+      (setf (nnimap-group nnimap-object) nil)
+      (nnimap-send-command "EXAMINE %S" (utf7-encode group t)))
     (let ((sequence
 	   (nnimap-send-command "UID SEARCH HEADER Message-Id %S" message-id))
 	  article result)
