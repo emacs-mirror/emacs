@@ -303,6 +303,11 @@ successful NickServ identification, or after `erc-autojoin-delay'
 seconds.  The default value, 'ident, means to autojoin immediately
 after connecting.
 
+*** New variable `erc-coding-system-precedence': If we use `undecided'
+as the server coding system, this variable will then be consulted.
+The default is to decode strings that can be decoded as utf-8 as
+utf-8, and do the normal `undecided' decoding for the rest.
+
 ** In ido-mode, C-v is no longer bound to ido-toggle-vc.
 The reason is that this interferes with cua-mode.
 

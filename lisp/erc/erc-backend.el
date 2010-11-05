@@ -324,6 +324,13 @@ Good luck."
   :type 'integer
   :group 'erc-server)
 
+(defcustom erc-coding-system-precedence '(utf-8 undecided)
+  "List of coding systems to be preferred when receiving a string from the server.
+This will only be consulted if the coding system in
+`erc-server-coding-system' is `undecided'."
+  :group 'erc-server
+  :type '(repeat coding-system))
+
 (defcustom erc-server-coding-system (if (and (fboundp 'coding-system-p)
                                              (coding-system-p 'undecided)
                                              (coding-system-p 'utf-8))
@@ -334,7 +341,9 @@ This is either a coding system, a cons, a function, or nil.
 
 If a cons, the encoding system for outgoing text is in the car
 and the decoding system for incoming text is in the cdr. The most
-interesting use for this is to put `undecided' in the cdr.
+interesting use for this is to put `undecided' in the cdr. This
+means that `erc-coding-system-precedence' will be consulted, and the
+first match there will be used.
 
 If a function, it is called with the argument `target' and should
 return a coding system or a cons as described above.
@@ -705,6 +714,14 @@ This is indicated by `erc-encoding-coding-alist', defaulting to the value of
   (let ((coding (erc-coding-system-for-target target)))
     (when (consp coding)
       (setq coding (cdr coding)))
+    (when (eq coding 'undecided)
+      (let ((codings (detect-coding-string str))
+            (precedence erc-coding-system-precedence))
+        (while (and precedence
+                    (not (memq (car precedence) codings)))
+          (pop precedence))
+        (when precedence
+          (setq coding (car precedence)))))
     (erc-decode-coding-string str coding)))
 
 ;; proposed name, not used by anything yet

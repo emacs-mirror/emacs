@@ -1,3 +1,8 @@
+2010-11-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* erc-backend.el (erc-coding-system-precedence): New variable.
+	(erc-decode-string-from-target): Use it.
+
 2010-10-24  Julien Danjou  <julien@danjou.info>
 
 	* erc-backend.el (erc-server-JOIN): Set the correct target list on join.
