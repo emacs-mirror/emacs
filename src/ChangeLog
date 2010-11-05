@@ -1,3 +1,9 @@
+2010-11-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (free_image): Don't garbage the frame here, since this
+	function can be called while redisplaying (Bug#7210).
+	(uncache_image): Garbage the frame here (Bug#6426).
+
 2010-11-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* process.c (Fmake_network_process): Don't apply Bug#5173 fix for
