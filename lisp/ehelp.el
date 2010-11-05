@@ -145,8 +145,7 @@ BUFFER is put back into its original major mode."
          (save-excursion
            (when one
 	     (goto-char (window-start (selected-window))))
-           (let ((pop-up-windows t))
-             (pop-to-buffer buffer))
+	   (pop-to-buffer-other-window buffer)
            (with-current-buffer buffer
              (when (and minheight (< (window-height) minheight))
 	       (enlarge-window (- minheight (window-height))))

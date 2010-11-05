@@ -711,10 +711,9 @@ START and END are positions in the statistics buffer.  Makes the
 statistics buffer visible and sizes the window to just fit the
 displayed text, but leaves the current window selected."
   (let ((stats-buffer (decipher-stats-buffer))
-        (current-window (selected-window))
-        (pop-up-windows t))
+        (current-window (selected-window)))
     (or (eq (current-buffer) stats-buffer)
-        (pop-to-buffer stats-buffer))
+        (pop-to-buffer-other-window stats-buffer))
     (goto-char start)
     (or (one-window-p t)
         (enlarge-window (- (1+ (count-lines start end)) (window-height))))
@@ -1001,12 +1000,9 @@ Creates the statistics buffer if it doesn't exist."
 
 (defun decipher-display-stats-buffer ()
   "Make the statistics buffer visible, but do not select it."
-  (let ((stats-buffer (decipher-stats-buffer))
-        (current-window (selected-window)))
+  (let ((stats-buffer (decipher-stats-buffer)))
     (or (eq (current-buffer) stats-buffer)
-        (progn
-          (pop-to-buffer stats-buffer)
-          (select-window current-window)))))
+        (display-buffer-other-window stats-buffer))))
 
 (defun decipher-stats-buffer (&optional create)
   "Return the buffer used for decipher statistics.

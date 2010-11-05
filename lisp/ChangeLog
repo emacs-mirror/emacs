@@ -28,6 +28,30 @@
 	* buff-menu.el (Buffer-menu-switch-other-window)
 	(Buffer-menu-2-window): Use buffer display specifiers.
 
+	* cus-edit.el (top-level): Remove autoloaded add-hook for
+	same-window-regexps.
+	(customize-group, customize-face): New optional argument
+	OTHER-WINDOW.  Use buffer display specifiers.  Call
+	custom-buffer-create with OTHER-WINDOW argument t.
+	(customize-group-other-window): Call customize-group with
+	OTHER-WINDOW argument t.
+	(customize-face-other-window): Call customize-face with
+	OTHER-WINDOW argument t.
+	(custom-buffer-create): New optional argument OTHER-WINDOW.
+	(custom-buffer-create-other-window): Call
+	pop-to-buffer-other-window.
+	(customize-browse): Call pop-to-buffer-same-window.
+
+	* play/decipher.el (decipher-display-range): Use
+	pop-to-buffer-other-window.
+	(decipher-display-stats-buffer): Use
+	display-buffer-other-window.
+
+	* vc/ediff-util.el (ediff-clone-buffer-for-region-comparison):
+	Use pop-to-buffer-other-window.
+
+	* ehelp.el (with-electric-help): Use pop-to-buffer-other-window.
+
 2010-11-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-names): Describe `not-this-window' and

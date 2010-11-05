@@ -3334,13 +3334,12 @@ Without an argument, it saves customized diff argument, if available
 ;; idea suggested by Hannu Koivisto <azure@iki.fi>
 (defun ediff-clone-buffer-for-region-comparison (buff region-name)
   (let ((cloned-buff (ediff-make-cloned-buffer buff region-name))
-	(pop-up-windows t)
 	wind
 	other-wind
 	msg-buf)
     (ediff-with-current-buffer cloned-buff
       (setq ediff-temp-indirect-buffer t))
-    (pop-to-buffer cloned-buff)
+    (pop-to-buffer-other-window cloned-buff)
     (setq wind (ediff-get-visible-buffer-window cloned-buff))
     (select-window wind)
     (delete-other-windows)
