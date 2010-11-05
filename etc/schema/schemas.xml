@@ -39,7 +39,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>. -->
 
   <documentElement prefix="" localName="article" typeId="DocBook"/>
   <documentElement prefix="" localName="book" typeId="DocBook"/>
+  <documentElement prefix="" localName="chapter" typeId="DocBook"/>
+  <documentElement prefix="" localName="part" typeId="DocBook"/>
   <documentElement prefix="" localName="refentry" typeId="DocBook"/>
+  <documentElement prefix="" localName="section" typeId="DocBook"/>
 
   <documentElement localName="RDF" typeId="RDF"/>
   <documentElement prefix="rdf" typeId="RDF"/>
