@@ -1,5 +1,10 @@
 2010-11-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* dispnew.c (init_display): Setup initial frame's output_data for
+	text terminal frames.
+
+	* frame.h (MOUSE_HL_INFO): Fix TTY definition.
+
 	* dispextern.h (tty_draw_row_with_mouse_face): Add prototype.
 
 	* xdisp.c (draw_row_with_mouse_face): Don't #ifdef away on MSDOS.
@@ -10,6 +15,7 @@
 	GPM implementation.
 
 	* msdos.h (Display_Info): Restore typedef.
+	(initialize_msdos_display): Add prototype.
 
 2010-11-02  Eli Zaretskii  <eliz@gnu.org>
 
