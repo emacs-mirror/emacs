@@ -1,5 +1,18 @@
 2010-11-05  Glenn Morris  <rgm@gnu.org>
 
+	* woman.el (woman0-roff-buffer, woman1-roff-buffer)
+	(woman2-roff-buffer): Give local variable `request' a prefix.
+	(woman0-macro): Rename argument `request' in the same way.
+	(woman-request): New name for `request' dynamic variable.
+	(woman-unquote, woman-forward-arg): Update for above name change.
+	(woman1-roff-buffer): Give local variable `unquote' a prefix.
+	(woman1-unquote): New name for `unquote' dynamic variable.
+	(woman1-B-or-I, woman1-alt-fonts): Update for above name change.
+	(woman-translations): Rename from `translations'.  No longer global.
+	(woman2-tr, woman-translate): Update for above name change.
+	(woman-translate): Check for bound variable.
+	(woman2-roff-buffer): Give local variable `translations' a prefix.
+
 	* play/doctor.el: Give all local variables a prefix.  Update callers.
 	(doc$, doctor-put-meaning): Use backquote.
 
