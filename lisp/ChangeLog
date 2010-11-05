@@ -1,3 +1,14 @@
+2010-11-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* electric.el (Electric-pop-up-window): Use buffer display
+	specifiers.
+
+	* emacs-lisp/elint.el (elint-display-log): Use
+	display-buffer-other-window.
+
+	* vc/pcvs-util.el (cvs-pop-to-buffer-same-frame): Use buffer
+	display specifiers.
+
 2010-11-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-names, display-buffer-regexps): Make

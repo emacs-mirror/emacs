@@ -1,3 +1,12 @@
+2010-11-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* mh-comp.el (mh-send-other-window): Pass t as extra argument to
+	mh-send-sub.
+	(mh-send-sub): New optional argument OTHER-WINDOW. Pass extra
+	argument to mh-read-draft.
+	(mh-read-draft): New optional argument OTHER-WINDOW. Pass it in
+	suitable fashion to pop-to-buffer.
+
 2010-11-03  Glenn Morris  <rgm@gnu.org>
 
 	* mh-mime.el (dots, type, ov): Avoid unnecessary declaration.

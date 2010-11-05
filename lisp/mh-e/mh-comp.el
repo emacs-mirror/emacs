@@ -169,8 +169,7 @@ TO, CC, and SUBJECT arguments are used."
                 (mh-interactive-read-address "To: ")
                 (mh-interactive-read-address "Cc: ")
                 (mh-interactive-read-string "Subject: ")))
-  (let ((pop-up-windows t))
-    (mh-send-sub to cc subject (current-window-configuration))))
+  (mh-send-sub to cc subject (current-window-configuration) t))
 
 (defvar mh-error-if-no-draft nil)       ;raise error over using old draft
 
@@ -773,10 +772,11 @@ Optional argument BUFFER can be used to specify the buffer."
           (t
            nil))))
 
-(defun mh-send-sub (to cc subject config)
+(defun mh-send-sub (to cc subject config &optional other-window)
   "Do the real work of composing and sending a letter.
 Expects the TO, CC, and SUBJECT fields as arguments.
-CONFIG is the window configuration before sending mail."
+CONFIG is the window configuration before sending mail.
+OTHER-WINDOW non-nil means use another window for composing."
   (let ((folder mh-current-folder)
         (msg-num (mh-get-msg-num nil)))
     (message "Composing a message...")
@@ -795,7 +795,7 @@ CONFIG is the window configuration before sending mail."
                      (t
                       (error "Can't find %s in %s or %s"
                              mh-comp-formfile mh-user-path mh-lib))))
-                  nil)))
+                  nil (and other-window t))))
       (mh-insert-fields "To:" to "Subject:" subject "Cc:" cc)
       (goto-char (point-max))
       (mh-compose-and-send-mail draft "" folder msg-num
@@ -804,7 +804,7 @@ CONFIG is the window configuration before sending mail."
       (mh-letter-mode-message)
       (mh-letter-adjust-point))))
 
-(defun mh-read-draft (use initial-contents delete-contents-file)
+(defun mh-read-draft (use initial-contents delete-contents-file &optional other-window)
   "Read draft file into a draft buffer and make that buffer the current one.
 
 USE is a message used for prompting about the intended use of the
@@ -812,6 +812,8 @@ message.
 INITIAL-CONTENTS is filename that is read into an empty buffer, or nil
 if buffer should not be modified. Delete the initial-contents file if
 DELETE-CONTENTS-FILE flag is set.
+OTHER-WINDOW non-nil means use another window for displaying the
+draft file.
 Returns the draft folder's name.
 If the draft folder facility is enabled in ~/.mh_profile, a new buffer
 is used each time and saved in the draft folder. The draft file can
@@ -821,14 +823,15 @@ then be reused."
                (draft-file-name (mh-new-draft-name)))
            (pop-to-buffer (generate-new-buffer
                            (format "draft-%s"
-                                   (file-name-nondirectory draft-file-name))))
+                                   (file-name-nondirectory draft-file-name)))
+                          (and other-window t))
            (condition-case ()
                (insert-file-contents draft-file-name t)
              (file-error))
            (setq default-directory orig-default-dir)))
         (t
          (let ((draft-name (expand-file-name "draft" mh-user-path)))
-           (pop-to-buffer "draft")      ; Create if necessary
+           (pop-to-buffer "draft" (and other-window t)) ; Create if necessary
            (if (buffer-modified-p)
                (if (y-or-n-p "Draft has been modified; kill anyway? ")
                    (set-buffer-modified-p nil)

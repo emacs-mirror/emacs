@@ -7490,12 +7490,8 @@ you."
   "Like `message-mail' command, but display mail buffer in another window."
   (interactive)
   (unless (message-mail-user-agent)
-    (let ((pop-up-windows t)
-	  (special-display-buffer-names nil)
-	  (special-display-regexps nil)
-	  (same-window-buffer-names nil)
-	  (same-window-regexps nil))
-      (message-pop-to-buffer (message-buffer-name "mail" to))))
+    (message-pop-to-buffer
+     (message-buffer-name "mail" to) 'pop-to-buffer-other-window))
   (let ((message-this-is-mail t))
     (message-setup `((To . ,(or to "")) (Subject . ,(or subject "")))
 		   nil nil nil 'switch-to-buffer-other-window)))
@@ -7505,12 +7501,8 @@ you."
   "Like `message-mail' command, but display mail buffer in another frame."
   (interactive)
   (unless (message-mail-user-agent)
-    (let ((pop-up-frames t)
-	  (special-display-buffer-names nil)
-	  (special-display-regexps nil)
-	  (same-window-buffer-names nil)
-	  (same-window-regexps nil))
-      (message-pop-to-buffer (message-buffer-name "mail" to))))
+    (message-pop-to-buffer
+     (message-buffer-name "mail" to) 'pop-to-buffer-other-frame))
   (let ((message-this-is-mail t))
     (message-setup `((To . ,(or to "")) (Subject . ,(or subject "")))
 		   nil nil nil 'switch-to-buffer-other-frame)))
@@ -7519,12 +7511,8 @@ you."
 (defun message-news-other-window (&optional newsgroups subject)
   "Start editing a news article to be sent."
   (interactive)
-  (let ((pop-up-windows t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (message-pop-to-buffer (message-buffer-name "posting" nil newsgroups)))
+  (message-pop-to-buffer
+   (message-buffer-name "posting" nil newsgroups) 'pop-to-buffer-other-window)
   (let ((message-this-is-news t))
     (message-setup `((Newsgroups . ,(or newsgroups ""))
 		     (Subject . ,(or subject ""))))))
@@ -7533,12 +7521,8 @@ you."
 (defun message-news-other-frame (&optional newsgroups subject)
   "Start editing a news article to be sent."
   (interactive)
-  (let ((pop-up-frames t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (message-pop-to-buffer (message-buffer-name "posting" nil newsgroups)))
+  (message-pop-to-buffer
+   (message-buffer-name "posting" nil newsgroups) 'pop-to-buffer-other-frame)
   (let ((message-this-is-news t))
     (message-setup `((Newsgroups . ,(or newsgroups ""))
 		     (Subject . ,(or subject ""))))))

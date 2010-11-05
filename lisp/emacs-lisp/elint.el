@@ -1036,9 +1036,8 @@ Insert HEADER followed by a blank line if non-nil."
 
 (defun elint-display-log ()
   "Display the lint log buffer."
-  (let ((pop-up-windows t))
-    (display-buffer (elint-get-log-buffer))
-    (sit-for 0)))
+  (display-buffer-other-window (elint-get-log-buffer))
+  (sit-for 0))
 
 (defvar elint-running)
 

@@ -1,3 +1,12 @@
+2010-11-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* message.el (message-mail-other-window)
+	(message-news-other-window): Pass pop-to-buffer-other-window as
+	switch-function to message-pop-to-buffer.
+	(message-mail-other-frame, message-news-other-frame): Pass
+	pop-to-buffer-other-frame as switch-function to
+	message-pop-to-buffer.
+
 2010-11-04  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (gnus-summary-nnir-goto-thread): limiting work done by

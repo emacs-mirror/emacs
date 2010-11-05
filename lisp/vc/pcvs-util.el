@@ -85,13 +85,9 @@ the other elements.  The ordering among elements is maintained."
   "Pop to BUF like `pop-to-buffer' but staying on the same frame.
 If `pop-to-buffer' would have opened a new frame, this function would
 try to split a new window instead."
-  (let ((pop-up-windows (or pop-up-windows pop-up-frames))
-	(pop-up-frames nil))
-    (or (let ((buf (get-buffer-window buf))) (and buf (select-window buf)))
-	(and pop-up-windows
-	     (ignore-errors (select-window (split-window-vertically)))
-	     (switch-to-buffer buf))
-	(pop-to-buffer (current-buffer)))))
+  (pop-to-buffer
+   (current-buffer) '(same-frame (new-window (selected . below))
+				 (reuse-buffer-window . nil))))
 
 (defun cvs-bury-buffer (buf &optional mainbuf)
   "Hide the buffer BUF that was temporarily popped up.
