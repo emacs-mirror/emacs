@@ -1,3 +1,7 @@
+2010-11-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/trampver.el: Update release number.
+
 2010-08-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mouse.el (mouse-fixup-help-message): Match "mouse-2" only at the
