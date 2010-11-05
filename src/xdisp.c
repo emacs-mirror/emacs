@@ -960,10 +960,8 @@ static int text_outside_line_unchanged_p (struct window *,
 					  EMACS_INT, EMACS_INT);
 static void store_mode_line_noprop_char (char);
 static int store_mode_line_noprop (const unsigned char *, int, int);
-static void x_consider_frame_title (Lisp_Object);
 static void handle_stop (struct it *);
 static void handle_stop_backwards (struct it *, EMACS_INT);
-static int tool_bar_lines_needed (struct frame *, int *);
 static int single_display_spec_intangible_p (Lisp_Object);
 static void ensure_echo_area_buffers (void);
 static Lisp_Object unwind_with_echo_area_buffer (Lisp_Object);
@@ -1076,6 +1074,8 @@ static int in_ellipses_for_invisible_text_p (struct display_pos *,
 
 #ifdef HAVE_WINDOW_SYSTEM
 
+static void x_consider_frame_title (Lisp_Object);
+static int tool_bar_lines_needed (struct frame *, int *);
 static void update_tool_bar (struct frame *, int);
 static void build_desired_tool_bar_string (struct frame *f);
 static int redisplay_tool_bar (struct frame *);

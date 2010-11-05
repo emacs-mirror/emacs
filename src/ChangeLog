@@ -1,5 +1,11 @@
 2010-11-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (x_consider_frame_title, tool_bar_lines_needed): Move
+	prototypes to HAVE_WINDOW_SYSTEM-only part.
+
+	* frame.h (MOUSE_HL_INFO): Fix definition to work both for
+	TTY-only and GUI builds.
+
 	* dispnew.c (init_display): Setup initial frame's output_data for
 	text terminal frames.
 
