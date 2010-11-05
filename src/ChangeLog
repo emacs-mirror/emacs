@@ -1,3 +1,8 @@
+2010-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (append_glyphless_glyph, produce_glyphless_glyph): Remove
+	unused variables.
+
 2010-11-05  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (EmacsView-mouseExited:): Correct error in conditional

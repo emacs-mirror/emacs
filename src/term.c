@@ -1872,8 +1872,6 @@ static void
 append_glyphless_glyph (struct it *it, int face_id, char *str)
 {
   struct glyph *glyph, *end;
-  bidi_type_t bidi_type;
-  int resolved_level;
   int i;
 
   xassert (it->glyph_row);
@@ -1951,7 +1949,6 @@ static void
 produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 {
   int face_id;
-  struct face *face;
   int width, len;
   char buf[9], *str = "    ";
 
@@ -1989,8 +1986,6 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
     {
       if (it->glyphless_method == GLYPHLESS_DISPLAY_ACRONYM)
 	{
-	  int i;
-
 	  if (! STRINGP (acronym) && CHAR_TABLE_P (Vglyphless_char_display))
 	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
 	  buf[0] = '[';
