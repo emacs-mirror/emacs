@@ -46,7 +46,56 @@
 <h2>Introduction</h2>
 
 
-<p>Tracing is when the MPS follows the dag of references to find all reachable objects.</p>
+<p>Tracing is when the MPS follows the directed graph of references to find all reachable objects.</p>
+
+<p>ref --&gt; Object</p>
+
+<p>Root [ ref, ref, ref ]</p>
+
+<p>Object [ ref, ref, ref ]</p>
+
+<p>Refs are conceptually just the address (in virtual memory address-space) of the referent, but there may be some encoding (tag bits, auto_header offsets).  The referent is an Object.  (Whereas a root may have no address, so there's no general way for a Ref to refer to a root).</p>
+
+<p>Refs should be usually be managed.  A "managed reference" is one which the MPS knows is part of the object graph, such as references in declared roots, and references in managed objects with a format-scan method.  The MPS keeps managed references freesh.  Unmanaged refs may become stale, and are only safe in very restricted circumstances (see allocation point protocol).</p>
+
+<p>All managed refs in externally allocated memory must be Roots (scannable, not collectable).  (We could support externally-allocated non-root Objects (scannable, non-collectable), with extra work, but there's no requirement).  A root is usually (currently: always) unprotectable, which has several consequences: it must be scanned at mutator flip, and its summary will always be RefSetUNIV.</p>
+
+<p>All Objects are MPS-allocated, ie. in a Segment.</p>
+
+<p>Possible attributes of an Object:</p>
+<ul>
+  <li>Collectable?  Ie. automatic memory management.</li>
+  <li>Scannable?  Ie. may contain refs.</li>
+</ul>
+
+<p>Objects may be collectable but not scannable: eg. leaf objects.  Objects may be scannable but not collectable: eg. finalization guardians.  Objects may be formatted but neither collectable nor scannable.</p>
+
+<p>If a scannable Object is <i>never condemned</i>, then it acts quite like a root.  This is how finalization guardians work: they are part of the graph (scannable), their segs are RankFINAL (see MRGRefSegInit()), and they are never condemned.  (Aside: how come they are never condemned?  The pool has no chain, so is not eligible for full (sic) collection.  The pool does not have AttrGC, so it is not condemned in minor collections (see TraceCondemnZones())).</p>
+
+<p>To <b>scan</b> a Root or Object means to find all the refs within it.</p>
+
+<p>To <b>fix</b> a ref means: do whatever is necessary to make sure that ref will be correct and useful when the trace ends.  That often includes:</p>
+<ul>
+  <li>mark the referent Object for preservation and scanning (ie. greyen if necessary);</li>
+  <li>or, observing that trace-band is weak and the referent Object is not yet marked, leave it unmarked so it will be reclaimed;</li>
+  <li>update the ref's value if the referent has moved, or splat it if the referent will be reclaimed.</li>
+</ul>
+
+<p>A black Object is preserved (that is: it will not be reclaimed) and all refs it contains are fixed (according to the above definition of "fix").  A grey Object is preserved but contains unfixed refs.  A white Object is not preserved and contains unfixed refs.</p>
+
+<p>Optimisations avoid the <b>fix</b> operation where possible:</p>
+<ul>
+  <li>ref's Seg's summary non-intersect whiteset;</li>
+  <li>ref non-intersect whiteset;</li>
+  <li>referent Tract non-white;</li>
+</ul>
+
+<p>The trace-band determines the rank at which the fix occurs.  This must be at least as early as the rank of the ref, but may be earlier (for example, barrier-hits on weak refs may cause fixes at an earlier rank, such as exact).</p>
+
+<p>The Object end of the fix detects whether this fix is a "discovery fix" (such that immediately before the fix the object was not marked for preservation), or a "re-encounter fix" (the object was marked for preservation already).  This determines whether a weak ref should be splatted: a discovery fix at trace-band weak should cause the ref to be splatted and the object to remain unmarked, but a re-encounter fix should maintain the weak ref.  The discovery/re-encounter property is also reported to the ref end of the fix, via ss->wasMarked; this is important for finalization (prompting a finalization message).</p>
+
+<p>The Object end of the fix may also determine a new value for the reference, which is passed back to the ref end and overwrites the old value of the ref.  This is used for Objects in pools that preserve by moving, causing snap-out of the ref.  It is also used for weakness, splatting the ref.</p>
+
 
 
 <h2>Setting up a trace</h2>
@@ -182,12 +231,13 @@ PoolFix(pool, ss, seg, refIO)
   2007-01-12  RHSK  Created.
   2007-01-16  RHSK  .scan.loop, .scan.total.
   2007-01-18  RHSK  .scan.change.
+  2010-11-05  RHSK  Introduction: how tracing works with refs and Objects
 </pre>
 
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 2007 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 2007,2010 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
