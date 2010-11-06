@@ -1,6 +1,10 @@
 2010-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (insert-directory): Doc fix.  (bug#7285)
+	(ls-lisp-classify-file): New function.
+	(ls-lisp-insert-directory): Call it if switches include -F (bug#6294).
+	(ls-lisp-classify): Call ls-lisp-classify-file.
+	(insert-directory): Remove blanks from switches.
 
 2010-11-07  Wilson Snyder  <wsnyder@wsnyder.org>
 
