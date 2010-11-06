@@ -1,5 +1,9 @@
 2010-11-06  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/eieio-comp.el (byte-compile-file-form-defmethod):
+	Use boundp tests to silence compiler.  Update for changed name of
+	bytecomp-filename variable.
+
 	* emulation/viper-cmd.el (viper-read-string-with-history):
 	Prefix dynamic local `initial'.
 	(viper-minibuffer-standard-hook): Update for above name change.
