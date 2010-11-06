@@ -616,7 +616,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 (defun archive-get-lineno ()
   (if (>= (point) archive-file-list-start)
       (count-lines archive-file-list-start
-		   (save-excursion (beginning-of-line) (point)))
+		   (line-beginning-position))
     0))
 
 (defun archive-get-descr (&optional noerror)
@@ -2213,5 +2213,4 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 
 (provide 'arc-mode)
 
-;; arch-tag: e5966a01-35ec-4f27-8095-a043a79b457b
 ;;; arc-mode.el ends here

@@ -3543,8 +3543,8 @@ The expression may be an argument in quotes."
 ;      (WoMan-warn "Unimplemented numerical operator `%c' in %s"
 ;		  (following-char)
 ;		  (buffer-substring
-;		   (save-excursion (beginning-of-line) (point))
-;		   (save-excursion (end-of-line) (point))))
+;		   (line-beginning-position)
+;		   (line-end-position)))
 ;      (skip-syntax-forward "^ "))
     value
     ))
@@ -3613,7 +3613,7 @@ expression in parentheses.  Leaves point after the value."
 	    (WoMan-warn "Numeric/register argument error: %s"
 			(buffer-substring
 			 (point)
-			 (save-excursion (end-of-line) (point))))
+			 (line-end-position)))
 	    (skip-syntax-forward "^ ")
 	    0)
 	(goto-char (match-end 0))
@@ -3763,8 +3763,7 @@ v alters page foot left; m alters page head center.
 			(buffer-substring start here))
 	  (delete-region here (point)))))
   ;; Embolden heading (point is at end of heading):
-  (woman-set-face
-   (save-excursion (beginning-of-line) (point)) (point) 'woman-bold)
+  (woman-set-face (line-beginning-position) (point) 'woman-bold)
   (forward-line)
   (delete-blank-lines)
   (setq woman-left-margin woman-default-indent)
@@ -3783,8 +3782,7 @@ Format paragraphs upto TO.  Set prevailing indent to 5."
   (setq woman-leave-blank-lines nil)
   ;; Optionally embolden heading (point is at beginning of heading):
   (if woman-bold-headings
-      (woman-set-face
-       (point) (save-excursion (end-of-line) (point)) 'woman-bold))
+      (woman-set-face (point) (line-end-position) 'woman-bold))
   (forward-line)
   (setq woman-left-margin woman-default-indent
 	woman-nofill nil)		; fill output lines
@@ -4376,7 +4374,7 @@ tab stop columns or pairs (COLUMN . TYPE) where TYPE is R or C."
 	       eol n)
 	  (if type
 	      (setq tab (woman-get-tab-stop tab)
-		    eol (save-excursion (end-of-line) (point))
+		    eol (line-end-position)
 		    n (save-excursion
 			(search-forward "\t" eol t))
 		    n (- (if n (1- n) eol) (point))
@@ -4507,7 +4505,7 @@ Format paragraphs upto TO."
 IGNORED is a string appended to the log message."
   (let ((tail
 	 (buffer-substring (point)
-			   (save-excursion (end-of-line) (point)))))
+			   (line-end-position))))
     (if (and (> (length tail) 0)
 	     (/= (string-to-char tail) ?\ ))
 	(setq tail (concat " " tail)))

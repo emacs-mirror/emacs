@@ -3249,7 +3249,7 @@ directory with these items."
 	;; If this fails, then it is a non-standard click, and as such,
 	;; perfectly allowed.
 	(if (re-search-forward "[]>?}] [^ ]"
-			       (save-excursion (end-of-line) (point))
+			       (line-end-position)
 			       t)
 	    (progn
 	      (forward-char -1)
@@ -3267,7 +3267,7 @@ With universal argument ARG, flush cached data."
     (condition-case nil
 	(progn
 	  (re-search-forward ":\\s-*.\\+. "
-			     (save-excursion (end-of-line) (point)))
+			     (line-end-position))
 	  (forward-char -2)
 	  (speedbar-do-function-pointer))
       (error (speedbar-position-cursor-on-line)))))
@@ -3284,7 +3284,7 @@ With universal argument ARG, flush cached data."
   (condition-case nil
       (progn
 	(re-search-forward ":\\s-*.-. "
-			   (save-excursion (end-of-line) (point)))
+			   (line-end-position))
 	(forward-char -2)
 	(speedbar-do-function-pointer))
     (error (speedbar-position-cursor-on-line))))
@@ -3296,7 +3296,7 @@ With universal argument ARG, flush cached data."
   (condition-case nil
       (progn
 	(re-search-forward ":\\s-*.[-+]. "
-			   (save-excursion (end-of-line) (point)))
+			   (line-end-position))
 	(forward-char -2)
 	(speedbar-do-function-pointer))
     (error (speedbar-position-cursor-on-line))))
@@ -3787,7 +3787,7 @@ regular expression EXPR."
 (defun speedbar-parse-c-or-c++tag ()
   "Parse a C or C++ tag, which tends to be a little complex."
   (save-excursion
-    (let ((bound (save-excursion (end-of-line) (point))))
+    (let ((bound (line-end-position)))
       (cond ((re-search-forward "\C-?\\([^\C-a]+\\)\C-a" bound t)
 	     (buffer-substring-no-properties (match-beginning 1)
 					     (match-end 1)))
@@ -3803,7 +3803,7 @@ regular expression EXPR."
 (defun speedbar-parse-tex-string ()
   "Parse a Tex string.  Only find data which is relevant."
   (save-excursion
-    (let ((bound (save-excursion (end-of-line) (point))))
+    (let ((bound (line-end-position)))
       (cond ((re-search-forward "\\(\\(sub\\)*section\\|chapter\\|cite\\)\\s-*{[^\C-?}]*}?" bound t)
 	     (buffer-substring-no-properties (match-beginning 0)
 					     (match-end 0)))
@@ -3983,7 +3983,7 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
     ;; If this fails, then it is a non-standard click, and as such,
     ;; perfectly allowed
     (if (re-search-forward "[]>?}] [^ ]"
-			   (save-excursion (end-of-line) (point))
+			   (line-end-position)
 			   t)
 	(let ((text (progn
 		      (forward-char -1)
@@ -4005,7 +4005,7 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
   "Highlight the current line, unhighlighting a previously jumped to line."
   (speedbar-unhighlight-one-tag-line)
   (setq speedbar-highlight-one-tag-line
-	(speedbar-make-overlay (save-excursion (beginning-of-line) (point))
+	(speedbar-make-overlay (line-beginning-position)
 			       (save-excursion (end-of-line)
 					       (forward-char 1)
 					       (point))))

@@ -2138,7 +2138,7 @@ Return the position of the beginning of the filename, or nil if none found."
       ;; case-fold-search is nil now, so we can test for capital F:
       (setq used-F (string-match "F" dired-actual-switches)
 	    opoint (point)
-	    eol (save-excursion (end-of-line) (point))
+	    eol (line-end-position)
 	    hidden (and selective-display
 			(save-excursion (search-forward "\r" eol t))))
       (if hidden
@@ -4030,5 +4030,4 @@ For absolute symlinks, use \\[dired-do-symlink].
 
 (run-hooks 'dired-load-hook)		; for your customizations
 
-;; arch-tag: e1af7a8f-691c-41a0-aac1-ddd4d3c87517
 ;;; dired.el ends here

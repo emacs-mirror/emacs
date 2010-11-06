@@ -242,7 +242,7 @@ if that value is non-nil."
 (defun end-of-prolog-clause ()
   "Go to end of clause in this line."
   (beginning-of-line 1)
-  (let* ((eolpos (save-excursion (end-of-line) (point))))
+  (let* ((eolpos (line-end-position)))
     (if (re-search-forward comment-start-skip eolpos 'move)
 	(goto-char (match-beginning 0)))
     (skip-chars-backward " \t")))
@@ -434,5 +434,4 @@ If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
 
 (provide 'prolog)
 
-;; arch-tag: f3ec6748-1272-4ab6-8826-c50cb1607636
 ;;; prolog.el ends here

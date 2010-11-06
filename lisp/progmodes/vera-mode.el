@@ -770,7 +770,7 @@ the offset is simply returned."
 	      relpos 0)
       (setq offset (vera-evaluate-offset offset langelem symbol)))
     (+ (if (and relpos
-		(< relpos (save-excursion (beginning-of-line) (point))))
+		(< relpos (line-beginning-position)))
 	   (save-excursion
 	     (goto-char relpos)
 	     (current-column))
@@ -1482,5 +1482,4 @@ If `vera-intelligent-tab' is nil, always indent line."
 
 (provide 'vera-mode)
 
-;; arch-tag: 22eae722-7ac5-47ac-a713-c4db1cf623a9
 ;;; vera-mode.el ends here

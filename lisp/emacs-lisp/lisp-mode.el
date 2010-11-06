@@ -1067,7 +1067,7 @@ is the buffer position of the start of the containing expression."
                        (goto-char calculate-lisp-indent-last-sexp)
                        (or (and (looking-at ":")
                                 (setq indent (current-column)))
-                           (and (< (save-excursion (beginning-of-line) (point))
+                           (and (< (line-beginning-position)
                                    (prog2 (backward-sexp) (point)))
                                 (looking-at ":")
                                 (setq indent (current-column))))
@@ -1429,5 +1429,4 @@ means don't indent that line."
 
 (provide 'lisp-mode)
 
-;; arch-tag: 414c7f93-c245-4b77-8ed5-ed05ef7ff1bf
 ;;; lisp-mode.el ends here

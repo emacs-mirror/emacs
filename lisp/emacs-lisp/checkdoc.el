@@ -1366,7 +1366,7 @@ See the style guide in the Emacs Lisp manual for more details."
 			   (setq checkdoc-autofix-flag 'never))))
 		 (checkdoc-create-error
 		  "You should convert this comment to documentation"
-		  (point) (save-excursion (end-of-line) (point))))
+		  (point) (line-end-position)))
 	     (checkdoc-create-error
 	      (if (nth 2 fp)
 		  "All interactive functions should have documentation"

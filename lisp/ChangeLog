@@ -1,5 +1,55 @@
 2010-11-06  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/texnfo-upd.el (texinfo-start-menu-description)
+	(texinfo-update-menu-region-beginning, texinfo-menu-first-node)
+	(texinfo-delete-existing-pointers, texinfo-find-pointer)
+	(texinfo-clean-up-node-line, texinfo-insert-node-lines)
+	(texinfo-multiple-files-update):
+	* textmodes/table.el (table--probe-cell-left-up)
+	(table--probe-cell-right-bottom):
+	* textmodes/picture.el (picture-tab-search):
+	* textmodes/page-ext.el (pages-copy-header-and-position)
+	(pages-directory-for-addresses):
+	* progmodes/vera-mode.el (vera-get-offset):
+	* progmodes/simula.el (simula-calculate-indent):
+	* progmodes/python.el (python-pdbtrack-overlay-arrow):
+	* progmodes/prolog.el (end-of-prolog-clause):
+	* progmodes/perl-mode.el (perl-calculate-indent, perl-indent-exp):
+	* progmodes/icon.el (indent-icon-exp):
+	* progmodes/etags.el (tag-re-match-p):
+	* progmodes/ebrowse.el (ebrowse-show-file-name-at-point):
+	* progmodes/ebnf2ps.el (ebnf-begin-file):
+	* progmodes/dcl-mode.el (dcl-back-to-indentation-1)
+	(dcl-save-local-variable):
+	* play/life.el (life-setup):
+	* play/gametree.el (gametree-looking-at-ply):
+	* nxml/nxml-maint.el (nxml-insert-target-repertoire-glyph-set):
+	* mail/sendmail.el (mail-mode-auto-fill):
+	* emacs-lisp/lisp-mode.el (calculate-lisp-indent):
+	* emacs-lisp/edebug.el (edebug-overlay-arrow):
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid):
+	* woman.el (woman-parse-numeric-value, woman2-TH, woman2-SH)
+	(woman-tab-to-tab-stop, WoMan-warn-ignored):
+	* type-break.el (type-break-file-keystroke-count):
+	* term.el (term-replace-by-expanded-history-before-point)
+	(term-skip-prompt, term-extract-string):
+	* speedbar.el (speedbar-edit-line, speedbar-expand-line)
+	(speedbar-contract-line, speedbar-toggle-line-expansion)
+	(speedbar-parse-c-or-c++tag, speedbar-parse-tex-string)
+	(speedbar-buffer-revert-buffer, speedbar-highlight-one-tag-line):
+	* sort.el (sort-skip-fields):
+	* skeleton.el (skeleton-internal-list):
+	* simple.el (line-move-finish, line-move-to-column):
+	* shell.el (shell-forward-command):
+	* misc.el (copy-from-above-command):
+	* makesum.el (double-column):
+	* ebuff-menu.el (electric-buffer-update-highlight):
+	* dired.el (dired-move-to-end-of-filename):
+	* dframe.el (dframe-popup-kludge):
+	* bookmark.el (bookmark-kill-line, bookmark-bmenu-show-filenames):
+	* arc-mode.el (archive-get-lineno):
+	Use line-end-position and line-beginning-position.
+
 	* progmodes/idlwave.el (idlwave-routine-entry-compare-twins):
 	(idlwave-study-twins): Prefix dynamic local `class'.
 	(idlwave-routine-twin-compare): Update for above name change.

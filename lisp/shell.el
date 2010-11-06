@@ -1,7 +1,8 @@
 ;;; shell.el --- specialized comint.el for running the shell
 
-;; Copyright (C) 1988, 1993, 1994, 1995, 1996, 1997, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993, 1994, 1995, 1996, 1997, 2000, 2001, 2002,
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -928,7 +929,7 @@ Copy Shell environment variable to Emacs: ")))
   "Move forward across ARG shell command(s).  Does not cross lines.
 See `shell-command-regexp'."
   (interactive "p")
-  (let ((limit (save-excursion (end-of-line nil) (point))))
+  (let ((limit (line-end-position)))
     (if (re-search-forward (concat shell-command-regexp "\\([;&|][\t ]*\\)+")
 			   limit 'move arg)
 	(skip-syntax-backward " "))))
@@ -1111,5 +1112,4 @@ Returns t if successful."
 
 (provide 'shell)
 
-;; arch-tag: bcb5f12a-c1f4-4aea-a809-2504bd5bd797
 ;;; shell.el ends here

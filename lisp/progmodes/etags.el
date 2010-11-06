@@ -1,8 +1,8 @@
 ;;; etags.el --- etags facility for Emacs
 
-;; Copyright (C) 1985, 1986, 1988, 1989, 1992, 1993, 1994, 1995, 1996, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1988, 1989, 1992, 1993, 1994, 1995, 1996,
+;;   1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
@@ -1681,7 +1681,7 @@ Point should be just after a string that matches TAG."
   (save-excursion
     (beginning-of-line)
     (let ((bol (point)))
-      (and (search-forward "\177" (save-excursion (end-of-line) (point)) t)
+      (and (search-forward "\177" (line-end-position) t)
 	   (re-search-backward re bol t)))))
 
 (defcustom tags-loop-revert-buffers nil
@@ -2086,5 +2086,4 @@ for \\[find-tag] (which see)."
 
 (provide 'etags)
 
-;; arch-tag: b897c2b5-08f3-4837-b2d3-0e7d6db1b63e
 ;;; etags.el ends here
