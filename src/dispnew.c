@@ -2893,6 +2893,14 @@ mirror_make_current (struct window *w, int frame_row)
 	      else
 		swap_glyph_pointers (desired_row, current_row);
 	      current_row->enabled_p = 1;
+
+	      /* Set the Y coordinate of the mode/header line's row.
+		 It is needed in draw_row_with_mouse_face to find the
+		 screen coordinates.  (Window-based redisplay sets
+		 this in update_window, but no one seems to do that
+		 for frame-based redisplay.)  */
+	      if (current_row->mode_line_p)
+		current_row->y = row;
 	    }
 	}
 
@@ -6416,6 +6424,12 @@ init_display (void)
     f->terminal = t;
 
     t->reference_count++;
+#ifdef MSDOS
+    f->output_data.tty->display_info = &the_only_display_info;
+#else
+    if (f->output_method == output_termcap)
+      create_tty_output (f);
+#endif
     t->display_info.tty->top_frame = selected_frame;
     change_frame_size (XFRAME (selected_frame),
                        FrameRows (t->display_info.tty),

@@ -553,7 +553,7 @@ ns_update_window_begin (struct window *w)
    -------------------------------------------------------------------------- */
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+ Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   NSTRACE (ns_update_window_begin);
 
   updated_window = w;
@@ -561,15 +561,15 @@ ns_update_window_begin (struct window *w)
 
   BLOCK_INPUT;
 
-  if (f == dpyinfo->mouse_face_mouse_frame)
+  if (f == hlinfo->mouse_face_mouse_frame)
     {
       /* Don't do highlighting for mouse motion during the update.  */
-      dpyinfo->mouse_face_defer = 1;
+      hlinfo->mouse_face_defer = 1;
 
         /* If the frame needs to be redrawn,
            simply forget about any prior mouse highlighting.  */
       if (FRAME_GARBAGED_P (f))
-        dpyinfo->mouse_face_window = Qnil;
+        hlinfo->mouse_face_window = Qnil;
 
       /* (further code for mouse faces ifdef'd out in other terms elided) */
     }
@@ -586,7 +586,7 @@ ns_update_window_end (struct window *w, int cursor_on_p,
    external (RIF) call; for one window called before update_end
    -------------------------------------------------------------------------- */
 {
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (XFRAME (w->frame));
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
 
   /* note: this fn is nearly identical in all terms */
   if (!w->pseudo_window_p)
@@ -608,9 +608,9 @@ ns_update_window_end (struct window *w, int cursor_on_p,
      frame_up_to_date to redisplay the mouse highlight.  */
   if (mouse_face_overwritten_p)
     {
-      dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-      dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-      dpyinfo->mouse_face_window = Qnil;
+      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+      hlinfo->mouse_face_window = Qnil;
     }
 
   updated_window = NULL;
@@ -627,8 +627,8 @@ ns_update_end (struct frame *f)
 {
   NSView *view = FRAME_NS_VIEW (f);
 
-/*   if (f == FRAME_NS_DISPLAY_INFO (f)->mouse_face_mouse_frame) */
-    FRAME_NS_DISPLAY_INFO (f)->mouse_face_defer = 0;
+/*   if (f == MOUSE_HL_INFO (f)->mouse_face_mouse_frame) */
+    MOUSE_HL_INFO (f)->mouse_face_defer = 0;
 
   BLOCK_INPUT;
 
@@ -1032,6 +1032,7 @@ x_destroy_window (struct frame *f)
 {
   NSView *view = FRAME_NS_VIEW (f);
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   NSTRACE (x_destroy_window);
   check_ns ();
 
@@ -1048,13 +1049,13 @@ x_destroy_window (struct frame *f)
     dpyinfo->x_focus_frame = 0;
   if (f == dpyinfo->x_highlight_frame)
     dpyinfo->x_highlight_frame = 0;
-  if (f == dpyinfo->mouse_face_mouse_frame)
+  if (f == hlinfo->mouse_face_mouse_frame)
     {
-      dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-      dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-      dpyinfo->mouse_face_window = Qnil;
-      dpyinfo->mouse_face_deferred_gc = 0;
-      dpyinfo->mouse_face_mouse_frame = 0;
+      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+      hlinfo->mouse_face_window = Qnil;
+      hlinfo->mouse_face_deferred_gc = 0;
+      hlinfo->mouse_face_mouse_frame = 0;
     }
 
   xfree (f->output_data.ns);
@@ -1772,18 +1773,18 @@ ns_frame_up_to_date (struct frame *f)
 
   if (FRAME_NS_P (f))
     {
-      struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
-      if ((dpyinfo->mouse_face_deferred_gc||f ==dpyinfo->mouse_face_mouse_frame)
-      /*&& dpyinfo->mouse_face_mouse_frame*/)
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+      if ((hlinfo->mouse_face_deferred_gc || f ==hlinfo->mouse_face_mouse_frame)
+      /*&& hlinfo->mouse_face_mouse_frame*/)
         {
           BLOCK_INPUT;
-         ns_update_begin(f);
-          if (dpyinfo->mouse_face_mouse_frame)
-            note_mouse_highlight (dpyinfo->mouse_face_mouse_frame,
-                                  dpyinfo->mouse_face_mouse_x,
-                                  dpyinfo->mouse_face_mouse_y);
-          dpyinfo->mouse_face_deferred_gc = 0;
-         ns_update_end(f);
+	  ns_update_begin(f);
+          if (hlinfo->mouse_face_mouse_frame)
+            note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
+                                  hlinfo->mouse_face_mouse_x,
+                                  hlinfo->mouse_face_mouse_y);
+          hlinfo->mouse_face_deferred_gc = 0;
+	  ns_update_end(f);
           UNBLOCK_INPUT;
         }
     }
@@ -2595,8 +2596,7 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
 
   if (s->hl == DRAW_MOUSE_FACE)
     {
-      face = FACE_FROM_ID
-        (s->f, FRAME_NS_DISPLAY_INFO (s->f)->mouse_face_face_id);
+      face = FACE_FROM_ID (s->f, MOUSE_HL_INFO (s->f)->mouse_face_face_id);
       if (!face)
         face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
     }
@@ -2663,8 +2663,8 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
           struct face *face;
           if (s->hl == DRAW_MOUSE_FACE)
             {
-              face = FACE_FROM_ID
-                (s->f, FRAME_NS_DISPLAY_INFO (s->f)->mouse_face_face_id);
+              face = FACE_FROM_ID (s->f,
+				   MOUSE_HL_INFO (s->f)->mouse_face_face_id);
               if (!face)
                 face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
             }
@@ -2749,8 +2749,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
      with its background color), we must clear just the image area. */
   if (s->hl == DRAW_MOUSE_FACE)
     {
-      face = FACE_FROM_ID
-       (s->f, FRAME_NS_DISPLAY_INFO (s->f)->mouse_face_face_id);
+      face = FACE_FROM_ID (s->f, MOUSE_HL_INFO (s->f)->mouse_face_face_id);
       if (!face)
        face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
     }
@@ -2873,8 +2872,7 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
 
       if (s->hl == DRAW_MOUSE_FACE)
        {
-         face = FACE_FROM_ID
-           (s->f, FRAME_NS_DISPLAY_INFO (s->f)->mouse_face_face_id);
+         face = FACE_FROM_ID (s->f, MOUSE_HL_INFO (s->f)->mouse_face_face_id);
          if (!face)
            face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
        }
@@ -3545,6 +3543,7 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
 {
     NSScreen *screen = [NSScreen mainScreen];
     NSWindowDepth depth = [screen depth];
+    Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
 
     dpyinfo->resx = 72.27; /* used 75.0, but this makes pt == pixel, expected */
     dpyinfo->resy = 72.27;
@@ -3559,16 +3558,16 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
     dpyinfo->color_table->colors = NULL;
     dpyinfo->root_window = 42; /* a placeholder.. */
 
-    dpyinfo->mouse_face_mouse_frame = NULL;
-    dpyinfo->mouse_face_deferred_gc = 0;
-    dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-    dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-    dpyinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-    dpyinfo->mouse_face_window = dpyinfo->mouse_face_overlay = Qnil;
-    dpyinfo->mouse_face_hidden = 0;
+    hlinfo->mouse_face_mouse_frame = NULL;
+    hlinfo->mouse_face_deferred_gc = 0;
+    hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+    hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+    hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
+    hlinfo->mouse_face_window = hlinfo->mouse_face_overlay = Qnil;
+    hlinfo->mouse_face_hidden = 0;
 
-    dpyinfo->mouse_face_mouse_x = dpyinfo->mouse_face_mouse_y = 0;
-    dpyinfo->mouse_face_defer = 0;
+    hlinfo->mouse_face_mouse_x = hlinfo->mouse_face_mouse_y = 0;
+    hlinfo->mouse_face_defer = 0;
 
     dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame = NULL;
 
@@ -4351,7 +4350,7 @@ ns_term_shutdown (int sig)
 
 - (void)keyDown: (NSEvent *)theEvent
 {
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (emacsframe);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (emacsframe);
   int code;
   unsigned fnKeysym = 0;
   int flags;
@@ -4389,10 +4388,10 @@ ns_term_shutdown (int sig)
 
   [NSCursor setHiddenUntilMouseMoves: YES];
 
-  if (dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+  if (hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
     {
-      clear_mouse_face (dpyinfo);
-      dpyinfo->mouse_face_hidden = 1;
+      clear_mouse_face (hlinfo);
+      hlinfo->mouse_face_hidden = 1;
     }
 
   if (!processingCompose)
@@ -4829,7 +4828,7 @@ ns_term_shutdown (int sig)
 /* Tell emacs the mouse has moved. */
 - (void)mouseMoved: (NSEvent *)e
 {
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (emacsframe);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (emacsframe);
   Lisp_Object frame;
 
 //  NSTRACE (mouseMoved);
@@ -4839,10 +4838,10 @@ ns_term_shutdown (int sig)
     = [self convertPoint: [e locationInWindow] fromView: nil];
 
   /* update any mouse face */
-  if (dpyinfo->mouse_face_hidden)
+  if (hlinfo->mouse_face_hidden)
     {
-      dpyinfo->mouse_face_hidden = 0;
-      clear_mouse_face (dpyinfo);
+      hlinfo->mouse_face_hidden = 0;
+      clear_mouse_face (hlinfo);
     }
 
   /* tooltip handling */
@@ -5308,20 +5307,19 @@ ns_term_shutdown (int sig)
 {
   NSPoint p = [self convertPoint: [theEvent locationInWindow] fromView: nil];
   NSRect r;
-  struct ns_display_info *dpyinfo
-    = emacsframe ? FRAME_NS_DISPLAY_INFO (emacsframe) : NULL;
+  Mouse_HLInfo *hlinfo = emacsframe ? MOUSE_HL_INFO (emacsframe) : NULL;
 
   NSTRACE (mouseExited);
 
-  if (!dpyinfo)
+  if (!hlinfo)
     return;
 
   last_mouse_movement_time = EV_TIMESTAMP (theEvent);
 
-  if (emacsframe == dpyinfo->mouse_face_mouse_frame)
+  if (emacsframe == hlinfo->mouse_face_mouse_frame)
     {
-      clear_mouse_face (dpyinfo);
-      dpyinfo->mouse_face_mouse_frame = 0;
+      clear_mouse_face (hlinfo);
+      hlinfo->mouse_face_mouse_frame = 0;
     }
 }
 

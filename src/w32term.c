@@ -505,7 +505,7 @@ static void
 x_update_window_begin (struct window *w)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  struct w32_display_info *display_info = FRAME_W32_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 
   /* Hide the system caret during an update.  */
   if (w32_use_visible_system_caret && w32_system_caret_hwnd)
@@ -518,15 +518,15 @@ x_update_window_begin (struct window *w)
 
   BLOCK_INPUT;
 
-  if (f == display_info->mouse_face_mouse_frame)
+  if (f == hlinfo->mouse_face_mouse_frame)
     {
       /* Don't do highlighting for mouse motion during the update.  */
-      display_info->mouse_face_defer = 1;
+      hlinfo->mouse_face_defer = 1;
 
       /* If F needs to be redrawn, simply forget about any prior mouse
 	 highlighting.  */
       if (FRAME_GARBAGED_P (f))
-	display_info->mouse_face_window = Qnil;
+	hlinfo->mouse_face_window = Qnil;
 
 #if 0 /* Rows in a current matrix containing glyphs in mouse-face have
 	 their mouse_face_p flag set, which means that they are always
@@ -540,8 +540,8 @@ x_update_window_begin (struct window *w)
 	 Likewise, don't do anything if the frame is garbaged;
 	 in that case, the frame's current matrix that we would use
 	 is all wrong, and we will redisplay that line anyway.  */
-      if (!NILP (display_info->mouse_face_window)
-	  && w == XWINDOW (display_info->mouse_face_window))
+      if (!NILP (hlinfo->mouse_face_window)
+	  && w == XWINDOW (hlinfo->mouse_face_window))
 	{
 	  int i;
 
@@ -550,7 +550,7 @@ x_update_window_begin (struct window *w)
 	      break;
 
 	  if (i < w->desired_matrix->nrows)
-	    clear_mouse_face (display_info);
+	    clear_mouse_face (hlinfo);
 	}
 #endif /* 0 */
     }
@@ -601,7 +601,7 @@ static void
 x_update_window_end (struct window *w, int cursor_on_p,
 		     int mouse_face_overwritten_p)
 {
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (XFRAME (w->frame));
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
 
   if (!w->pseudo_window_p)
     {
@@ -622,9 +622,9 @@ x_update_window_end (struct window *w, int cursor_on_p,
      XTframe_up_to_date to redisplay the mouse highlight.  */
   if (mouse_face_overwritten_p)
     {
-      dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-      dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-      dpyinfo->mouse_face_window = Qnil;
+      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+      hlinfo->mouse_face_window = Qnil;
     }
 
   /* Unhide the caret.  This won't actually show the cursor, unless it
@@ -649,7 +649,7 @@ x_update_end (struct frame *f)
     return;
 
   /* Mouse highlight may be displayed again.  */
-  FRAME_W32_DISPLAY_INFO (f)->mouse_face_defer = 0;
+  MOUSE_HL_INFO (f)->mouse_face_defer = 0;
 }
 
 
@@ -662,17 +662,17 @@ w32_frame_up_to_date (struct frame *f)
 {
   if (FRAME_W32_P (f))
     {
-      struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 
-      if (dpyinfo->mouse_face_deferred_gc
-	  || f == dpyinfo->mouse_face_mouse_frame)
+      if (hlinfo->mouse_face_deferred_gc
+	  || f == hlinfo->mouse_face_mouse_frame)
 	{
 	  BLOCK_INPUT;
-	  if (dpyinfo->mouse_face_mouse_frame)
-	    note_mouse_highlight (dpyinfo->mouse_face_mouse_frame,
-				  dpyinfo->mouse_face_mouse_x,
-				  dpyinfo->mouse_face_mouse_y);
-	  dpyinfo->mouse_face_deferred_gc = 0;
+	  if (hlinfo->mouse_face_mouse_frame)
+	    note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
+				  hlinfo->mouse_face_mouse_x,
+				  hlinfo->mouse_face_mouse_y);
+	  hlinfo->mouse_face_deferred_gc = 0;
 	  UNBLOCK_INPUT;
 	}
     }
@@ -999,7 +999,7 @@ x_set_mouse_face_gc (struct glyph_string *s)
   struct face *face;
 
   /* What face has to be used last for the mouse face?  */
-  face_id = FRAME_W32_DISPLAY_INFO (s->f)->mouse_face_face_id;
+  face_id = MOUSE_HL_INFO (s->f)->mouse_face_face_id;
   face = FACE_FROM_ID (s->f, face_id);
   if (face == NULL)
     face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
@@ -4060,6 +4060,7 @@ w32_read_socket (struct terminal *terminal, int expected,
   W32Msg msg;
   struct frame *f;
   struct w32_display_info *dpyinfo = &one_w32_display_info;
+  Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
 
   if (interrupt_input_blocked)
     {
@@ -4160,11 +4161,11 @@ w32_read_socket (struct terminal *terminal, int expected,
 
 	  if (f && !f->iconified)
 	    {
-	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
-		  && !EQ (f->tool_bar_window, dpyinfo->mouse_face_window))
+	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
 		{
-		  clear_mouse_face (dpyinfo);
-		  dpyinfo->mouse_face_hidden = 1;
+		  clear_mouse_face (hlinfo);
+		  hlinfo->mouse_face_hidden = 1;
 		}
 
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
@@ -4185,11 +4186,11 @@ w32_read_socket (struct terminal *terminal, int expected,
 
 	  if (f && !f->iconified)
 	    {
-	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
-		  && !EQ (f->tool_bar_window, dpyinfo->mouse_face_window))
+	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
 		{
-		  clear_mouse_face (dpyinfo);
-		  dpyinfo->mouse_face_hidden = 1;
+		  clear_mouse_face (hlinfo);
+		  hlinfo->mouse_face_hidden = 1;
 		}
 
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
@@ -4263,11 +4264,11 @@ w32_read_socket (struct terminal *terminal, int expected,
 
 	  if (f && !f->iconified)
 	    {
-	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
-		  && !EQ (f->tool_bar_window, dpyinfo->mouse_face_window))
+	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
 		{
-		  clear_mouse_face (dpyinfo);
-		  dpyinfo->mouse_face_hidden = 1;
+		  clear_mouse_face (hlinfo);
+		  hlinfo->mouse_face_hidden = 1;
 		}
 
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
@@ -4301,10 +4302,10 @@ w32_read_socket (struct terminal *terminal, int expected,
 	  else
 	    f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
-	  if (dpyinfo->mouse_face_hidden)
+	  if (hlinfo->mouse_face_hidden)
 	    {
-	      dpyinfo->mouse_face_hidden = 0;
-	      clear_mouse_face (dpyinfo);
+	      hlinfo->mouse_face_hidden = 0;
+	      clear_mouse_face (hlinfo);
 	    }
 
 	  if (f)
@@ -4345,7 +4346,7 @@ w32_read_socket (struct terminal *terminal, int expected,
             {
               /* If we move outside the frame, then we're
                  certainly no longer on any text in the frame.  */
-              clear_mouse_face (dpyinfo);
+              clear_mouse_face (hlinfo);
             }
 
           /* If the contents of the global variable help_echo_string
@@ -4634,12 +4635,12 @@ w32_read_socket (struct terminal *terminal, int expected,
 	  f = x_any_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  if (f)
 	    {
-	      if (f == dpyinfo->mouse_face_mouse_frame)
+	      if (f == hlinfo->mouse_face_mouse_frame)
 		{
 		  /* If we move outside the frame, then we're
 		     certainly no longer on any text in the frame.  */
-		  clear_mouse_face (dpyinfo);
-		  dpyinfo->mouse_face_mouse_frame = 0;
+		  clear_mouse_face (hlinfo);
+		  hlinfo->mouse_face_mouse_frame = 0;
 		}
 
 	      /* Generate a nil HELP_EVENT to cancel a help-echo.
@@ -4669,12 +4670,12 @@ w32_read_socket (struct terminal *terminal, int expected,
               if (f == dpyinfo->w32_focus_frame)
                 x_new_focus_frame (dpyinfo, 0);
 
-              if (f == dpyinfo->mouse_face_mouse_frame)
+              if (f == hlinfo->mouse_face_mouse_frame)
                 {
                   /* If we move outside the frame, then we're
                      certainly no longer on any text in the frame.  */
-                  clear_mouse_face (dpyinfo);
-                  dpyinfo->mouse_face_mouse_frame = 0;
+                  clear_mouse_face (hlinfo);
+                  hlinfo->mouse_face_mouse_frame = 0;
                 }
 
               /* Generate a nil HELP_EVENT to cancel a help-echo.
@@ -5822,6 +5823,7 @@ void
 x_free_frame_resources (struct frame *f)
 {
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 
   BLOCK_INPUT;
 
@@ -5860,15 +5862,15 @@ x_free_frame_resources (struct frame *f)
   if (f == dpyinfo->x_highlight_frame)
     dpyinfo->x_highlight_frame = 0;
 
-  if (f == dpyinfo->mouse_face_mouse_frame)
+  if (f == hlinfo->mouse_face_mouse_frame)
     {
-      dpyinfo->mouse_face_beg_row
-	= dpyinfo->mouse_face_beg_col = -1;
-      dpyinfo->mouse_face_end_row
-	= dpyinfo->mouse_face_end_col = -1;
-      dpyinfo->mouse_face_window = Qnil;
-      dpyinfo->mouse_face_deferred_gc = 0;
-      dpyinfo->mouse_face_mouse_frame = 0;
+      hlinfo->mouse_face_beg_row
+	= hlinfo->mouse_face_beg_col = -1;
+      hlinfo->mouse_face_end_row
+	= hlinfo->mouse_face_end_col = -1;
+      hlinfo->mouse_face_window = Qnil;
+      hlinfo->mouse_face_deferred_gc = 0;
+      hlinfo->mouse_face_mouse_frame = 0;
     }
 
   UNBLOCK_INPUT;
@@ -5934,6 +5936,7 @@ void
 w32_initialize_display_info (Lisp_Object display_name)
 {
   struct w32_display_info *dpyinfo = &one_w32_display_info;
+  Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
 
   memset (dpyinfo, 0, sizeof (*dpyinfo));
 
@@ -5959,12 +5962,12 @@ w32_initialize_display_info (Lisp_Object display_name)
   dpyinfo->smallest_font_height = 1;
   dpyinfo->smallest_char_width = 1;
 
-  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-  dpyinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-  dpyinfo->mouse_face_window = Qnil;
-  dpyinfo->mouse_face_overlay = Qnil;
-  dpyinfo->mouse_face_hidden = 0;
+  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+  hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
+  hlinfo->mouse_face_window = Qnil;
+  hlinfo->mouse_face_overlay = Qnil;
+  hlinfo->mouse_face_hidden = 0;
 
   dpyinfo->vertical_scroll_bar_cursor = w32_load_cursor (IDC_ARROW);
   /* TODO: dpyinfo->gray */

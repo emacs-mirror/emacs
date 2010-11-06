@@ -2533,13 +2533,16 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 
 #endif /* HAVE_MENUS */
 
-/* Detect if a dialog or menu has been posted.  */
+#ifndef MSDOS
+/* Detect if a dialog or menu has been posted.  MSDOS has its own
+   implementation on msdos.c.  */
 
 int
 popup_activated (void)
 {
   return popup_activated_flag;
 }
+#endif	/* not MSDOS */
 
 /* The following is used by delayed window autoselection.  */
 
