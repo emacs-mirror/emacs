@@ -1,13 +1,19 @@
+2010-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-art.el (gnus-treat-article): Give dynamic local variables
+	`condition', `type', `length' a prefix.
+	(gnus-treat-predicate): Update for above name changes.
+
 2010-11-04  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* nnir.el (gnus-summary-nnir-goto-thread): limiting work done by
+	* nnir.el (gnus-summary-nnir-goto-thread): Limit work done by
 	gnus-summary-refer-thread.
 
-	* gnus-sum.el (gnus-build-all-threads): force updating of dependency
+	* gnus-sum.el (gnus-build-all-threads): Force updating of dependency
 	headers.
-	(gnus-summary-limit-include-thread): prevent articles in thread from
+	(gnus-summary-limit-include-thread): Prevent articles in thread from
 	being cut in gnus-cut-threads.
-	(gnus-summary-refer-thread): limit retrieved headers to those in
+	(gnus-summary-refer-thread): Limit retrieved headers to those in
 	thread.
 
 2010-11-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
