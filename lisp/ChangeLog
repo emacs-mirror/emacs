@@ -1,3 +1,12 @@
+2010-11-07  Wilson Snyder  <wsnyder@wsnyder.org>
+
+        * progmodes/verilog-mode.el (verilog-insert-one-definition)
+	(verilog-read-decls, verilog-read-sub-decls-sig): Fix AUTOWIRE and
+	AUTOINOUT for SV style multidimensional arrays, bug294.  Reported
+	by Eric Mastromarchi.
+        (verilog-preprocess): Use with-current-buffer and
+	font-lock-fontify-buffer to cleanup style issues.
+
 2010-11-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/trampver.el: Update release number.
