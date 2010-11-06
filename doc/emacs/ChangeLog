@@ -1,3 +1,8 @@
+2010-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows HOME): Add information regarding startup
+	directory when invoking Emacs from a desktop shortcut.  (bug#7300)
+
 2010-09-14  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi (Fancy Diary Display): Emphasize that sort should be
