@@ -1,3 +1,11 @@
+2010-11-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (backup-by-copying-when-mismatch): Make it a buffer local
+	variable (permanent-local).
+
+	* net/tramp.el (tramp-handle-insert-file-contents): Do not set
+	`permanent-local' property for `(backup-by-copying-when-mismatch'.
+
 2010-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (insert-directory): Doc fix.  (bug#7285)

@@ -5011,8 +5011,7 @@ coding system might not be determined.  This function repairs it."
 	    (set-buffer-modified-p nil)
 	    ;; For root, preserve owner and group when editing files.
 	    (when (string-equal (file-remote-p filename 'user) "root")
-	      (set (make-local-variable 'backup-by-copying-when-mismatch) t)
-	      (put 'backup-by-copying-when-mismatch 'permanent-local t)))
+	      (set (make-local-variable 'backup-by-copying-when-mismatch) t)))
 	  (when (and (stringp local-copy)
 		     (or remote-copy (null tramp-temp-buffer-file-name)))
 	    (delete-file local-copy))

@@ -123,6 +123,7 @@ the default for a new file created there by you.
 This variable is relevant only if `backup-by-copying' is nil."
   :type 'boolean
   :group 'backup)
+(put 'backup-by-copying-when-mismatch 'permanent-local t)
 
 (defcustom backup-by-copying-when-privileged-mismatch 200
   "Non-nil means create backups by copying to preserve a privileged owner.
