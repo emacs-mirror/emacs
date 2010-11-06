@@ -8828,7 +8828,7 @@ routines, and may have been scanned."
   (let* ((entry (car entries))
 	 (name (car entry))      ;
 	 (type (nth 1 entry))    ; Must be bound for
-	 (class (nth 2 entry))   ;  idlwave-routine-twin-compare
+	 (idlwave-twin-class (nth 2 entry)) ;  idlwave-routine-twin-compare
 	 (cnt 0)
 	 source type type-cons file alist syslibp key)
     (while (setq entry (pop entries))
@@ -8870,7 +8870,6 @@ routines, and may have been scanned."
 
 ;; FIXME: Dynamically scoped vars need to use the `idlwave-' prefix.
 ;; (defvar type)
-;; (defvar class)
 (defmacro idlwave-xor (a b)
   `(and (or ,a ,b)
 	(not (and ,a ,b))))
@@ -8903,7 +8902,9 @@ names and path locations."
 (defun idlwave-routine-entry-compare-twins (a b)
   "Compare two routine entries, under the assumption that they are twins.
 This basically calls `idlwave-routine-twin-compare' with the correct args."
-  (let* ((name (car a)) (type (nth 1 a)) (class (nth 2 a)) ; needed outside
+  (let* ((name (car a))
+	 (type (nth 1 a))
+	 (idlwave-twin-class (nth 2 a)) ; used in idlwave-routine-twin-compare
 	 (asrc (nth 3 a))
 	 (atype (car asrc))
 	 (bsrc (nth 3 b))
@@ -8916,18 +8917,16 @@ This basically calls `idlwave-routine-twin-compare' with the correct args."
        (list atype afile (list atype)))
      (if (stringp bfile)
 	 (list (file-truename bfile) bfile (list btype))
-       (list btype bfile (list btype))))
-    ))
+       (list btype bfile (list btype))))))
 
 ;; Bound in idlwave-study-twins,idlwave-routine-entry-compare-twins.
-;; FIXME: Dynamically scoped vars need to use the `idlwave-' prefix.
-(defvar class)
+(defvar idlwave-twin-class)
 
 (defun idlwave-routine-twin-compare (a b)
   "Compare two routine twin entries for sorting.
 In here, A and B are not normal routine info entries, but special
 lists (KEY FILENAME (TYPES...)).
-This expects NAME TYPE CLASS to be bound to the right values."
+This expects NAME TYPE IDLWAVE-TWIN-CLASS to be bound to the right values."
   (let* (;; Dis-assemble entries
 	 (akey (car a))	     (bkey (car b))
 	 (afile (nth 1 a))   (bfile (nth 1 b))
@@ -8959,16 +8958,19 @@ This expects NAME TYPE CLASS to be bound to the right values."
 	 ;; Look at file names
 	 (aname (if (stringp afile) (downcase (file-name-nondirectory afile)) ""))
 	 (bname (if (stringp bfile) (downcase (file-name-nondirectory bfile)) ""))
-	 (fname-re (if class (format "\\`%s__\\(%s\\|define\\)\\.pro\\'"
-				     (regexp-quote (downcase class))
-				     (regexp-quote (downcase name)))
+	 (fname-re (if idlwave-twin-class
+		       (format "\\`%s__\\(%s\\|define\\)\\.pro\\'"
+			       (regexp-quote (downcase idlwave-twin-class))
+			       (regexp-quote (downcase name)))
 		     (format "\\`%s\\.pro" (regexp-quote (downcase name)))))
 	 ;; Is file name derived from the routine name?
 	 ;; Method file or class definition file?
 	 (anamep (string-match fname-re aname))
-	 (adefp (and class anamep (string= "define" (match-string 1 aname))))
+	 (adefp (and idlwave-twin-class anamep
+		     (string= "define" (match-string 1 aname))))
 	 (bnamep (string-match fname-re bname))
-	 (bdefp (and class bnamep (string= "define" (match-string 1 bname)))))
+	 (bdefp (and idlwave-twin-class bnamep
+		     (string= "define" (match-string 1 bname)))))
 
     ;; Now: follow JD's ideas about sorting.  Looks really simple now,
     ;; doesn't it?  The difficult stuff is hidden above...
@@ -8980,7 +8982,7 @@ This expects NAME TYPE CLASS to be bound to the right values."
      ((idlwave-xor acompp bcompp)      acompp)	; Compiled entries
      ((idlwave-xor apathp bpathp)      apathp)	; Library before non-library
      ((idlwave-xor anamep bnamep)      anamep)	; Correct file names first
-     ((and class anamep bnamep                  ; both file names match ->
+     ((and idlwave-twin-class anamep bnamep     ; both file names match ->
 	   (idlwave-xor adefp bdefp))  bdefp)	; __define after __method
      ((> anpath bnpath)                t)	; Who is first on path?
      (t                                nil))))	; Default

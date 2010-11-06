@@ -1,5 +1,9 @@
 2010-11-06  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/idlwave.el (idlwave-routine-entry-compare-twins):
+	(idlwave-study-twins): Prefix dynamic local `class'.
+	(idlwave-routine-twin-compare): Update for above name change.
+
 	* emacs-lisp/eieio-comp.el (byte-compile-file-form-defmethod):
 	Use boundp tests to silence compiler.  Update for changed name of
 	bytecomp-filename variable.
