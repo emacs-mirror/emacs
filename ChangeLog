@@ -1,3 +1,7 @@
+2010-11-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Fix indentation.
+
 2010-10-31  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.in (checking whether localtime caches TZ): Use
