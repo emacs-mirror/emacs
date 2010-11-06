@@ -1,5 +1,21 @@
 2010-11-06  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/reftex-toc.el (reftex-toc-do-promote)
+	(reftex-toc-promote-prepare): Pass `delta' as an explicit argument.
+	(reftex-toc-promote-action): Doc fix.
+
+	* textmodes/reftex-sel.el (reftex-select-item): Give local variables
+	`prompt', `data' a prefix.
+	(reftex-select-post-command-hook, reftex-select-callback)
+	(reftex-select-mouse-accept, reftex-select-read-cite):
+	Update for above name changes.
+
+	* textmodes/reftex-ref.el (reftex-reference): Rename local variable
+	`refstyle' to reftex-refstyle.
+	(reftex-offer-label-menu): Update for above name change.
+	* textmodes/reftex-sel.el (reftex-select-toggle-varioref): Update for
+	`refstyle' name change.
+
 	* vc/emerge.el (emerge-eval-in-buffer): Remove, and replace all uses
 	with with-current-buffer.
 	(diff, template): Give dynamic local variables a prefix.
