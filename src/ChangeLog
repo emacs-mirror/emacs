@@ -9,6 +9,7 @@
 2010-11-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfont.m: Include termchar for new mouse-highlight.
+	(nsfont_draw): Use MOUSE_HL_INFO.
 
 2010-11-05  Eli Zaretskii  <eliz@gnu.org>
 
