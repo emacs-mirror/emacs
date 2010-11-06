@@ -1,3 +1,7 @@
+2010-11-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m: Include termchar for new mouse-highlight.
+
 2010-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	Unify mouse-highlight code for all GUI and TTY sessions.
