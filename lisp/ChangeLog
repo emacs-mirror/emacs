@@ -1,5 +1,9 @@
 2010-11-06  Glenn Morris  <rgm@gnu.org>
 
+	* mail/mail-extr.el (mail-extract-address-components): Give dynamic
+	local variables `cbeg' and `cend' a prefix.
+	(mail-extr-voodoo): Update for above name change.
+
 	* textmodes/reftex-toc.el (reftex-toc-do-promote)
 	(reftex-toc-promote-prepare): Pass `delta' as an explicit argument.
 	(reftex-toc-promote-action): Doc fix.
