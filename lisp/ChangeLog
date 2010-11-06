@@ -1,3 +1,14 @@
+2010-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* vc/emerge.el (emerge-eval-in-buffer): Remove, and replace all uses
+	with with-current-buffer.
+	(diff, template): Give dynamic local variables a prefix.
+	(emerge-line-numbers): Rename local `diff' to emerge-line-diff.
+	(emerge-line-number-in-buf): Update for above name change.
+	(emerge-combine-versions-internal): Rename local `template' to
+	emerge-combine-template.
+	(emerge-combine-versions-edit): Update for above name change.
+
 2010-11-06  Ralf Angeli  <angeli@caeruleus.net>
 
 	* textmodes/reftex-cite.el
