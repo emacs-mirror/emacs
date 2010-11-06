@@ -1,5 +1,8 @@
 2010-11-06  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/elint.el (elint-init-env): Prefix dynamic local `env'.
+	(elint-init-form): Update for above name change.
+
 	* mail/mail-extr.el (mail-extract-address-components): Give dynamic
 	local variables `cbeg' and `cend' a prefix.
 	(mail-extr-voodoo): Update for above name change.
