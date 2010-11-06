@@ -700,7 +700,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 (defun shell-process-popd (arg)
   (let ((num (or (shell-extract-num arg) 0)))
     (cond ((and num (= num 0) shell-dirstack)
-	   (shell-cd (car shell-dirstack))
+	   (shell-cd (shell-prefixed-directory-name (car shell-dirstack)))
 	   (setq shell-dirstack (cdr shell-dirstack))
 	   (shell-dirstack-message))
 	  ((and num (> num 0) (<= num (length shell-dirstack)))

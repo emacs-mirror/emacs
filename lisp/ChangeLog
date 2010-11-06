@@ -1,3 +1,7 @@
+2010-11-05  Christian Millour  <cm@abtela.com>  (tiny change)
+
+	* shell.el (shell-process-popd): Made aware of comint-file-name-prefix.
+
 2010-11-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* mouse.el (mouse-yank-primary): Update comment (Bug#6802).
