@@ -214,10 +214,40 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    leftmost character with special glyphs, which will display as,
    well, empty.  On text terminals, these special glyphs are simply
    blank characters.  On graphics terminals, there's a single stretch
-   glyph with suitably computed width.  Both the blanks and the
+   glyph of a suitably computed width.  Both the blanks and the
    stretch glyph are given the face of the background of the line.
    This way, the terminal-specific back-end can still draw the glyphs
    left to right, even for R2L lines.
+
+   Bidirectional display and character compositions
+
+   Some scripts cannot be displayed by drawing each character
+   individually, because adjacent characters change each other's shape
+   on display.  For example, Arabic and Indic scripts belong to this
+   category.
+
+   Emacs display supports this by providing "character compositions",
+   most of which is implemented in composite.c.  During the buffer
+   scan that delivers characters to PRODUCE_GLYPHS, if the next
+   character to be delivered is a composed character, the iteration
+   calls composition_reseat_it and next_element_from_composition.  If
+   they succeed to compose the character with one or more of the
+   following characters, the whole sequence of characters that where
+   composed is recorded in the `struct composition_it' object that is
+   part of the buffer iterator.  The composed sequence could produce
+   one or more font glyphs (called "grapheme clusters") on the screen.
+   Each of these grapheme clusters is then delivered to PRODUCE_GLYPHS
+   in the direction corresponding to the current bidi scan direction
+   (recorded in the scan_dir member of the `struct bidi_it' object
+   that is part of the buffer iterator).  In particular, if the bidi
+   iterator currently scans the buffer backwards, the grapheme
+   clusters are delivered back to front.  This reorders the grapheme
+   clusters as appropriate for the current bidi context.  Note that
+   this means that the grapheme clusters are always stored in the
+   LGSTRING object (see composite.c) in the logical order.
+
+   Moving an iterator in bidirectional text
+   without producing glyphs
 
    Note one important detail mentioned above: that the bidi reordering
    engine, driven by the iterator, produces characters in R2L rows
