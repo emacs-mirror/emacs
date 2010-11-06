@@ -1,3 +1,7 @@
+2010-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (insert-directory): Doc fix.  (bug#7285)
+
 2010-11-07  Wilson Snyder  <wsnyder@wsnyder.org>
 
         * progmodes/verilog-mode.el (verilog-insert-one-definition)
