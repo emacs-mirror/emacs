@@ -1,3 +1,11 @@
+2010-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfns.c (Fx_show_tip): If any of the tool-tip text lines is R2L,
+	adjust width of tool-tip frame to the width of text, excluding the
+	stretch glyph at the beginning of R2L glyph rows.
+
+	* w32fns.c (Fx_show_tip): Likewise.
+
 2010-11-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfont.m: Include termchar for new mouse-highlight.
