@@ -61,10 +61,12 @@
 <ul>
   <li>
 Perforce branch, defining the mapping used to integrate from master to version.  By convention, the name of the branch is "mps/version/A.BBB": note that we make the branch name exactly match the pathname of that version's sub-tree.  For example:  
-<blockquote><code>
-  p4 branch -o mps/version/1.105
-  //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/1.105/...
-</code></blockquote>
+<blockquote><pre><code>
+  $ p4 branch -o mps/version/1.105
+  ...
+      //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/1.105/...
+  ...
+</code></pre></blockquote>
 </li>
 
 <li>Cloned (integrated) and submitted files, in the "version/A.BBB/..." sub-tree.  Usually this is a clone of the entire "master" subtree and all its files.  These were created in a single change with "p4 integrate -b &lt;branchspec&gt;".  This initial integrate is what populates the version branch with files; before that it was empty.  For each of these files, Perforce reports the first action as "branch".  Some files may then be further modified.  </li>
@@ -172,11 +174,12 @@ p4 resolve -ay &lt;Files Edited Master-&gt;Version&gt;
 2006-12-27  RHSK  Step 0: edit some files on master before making version branch
 2007-07-05  RHSK  Releasename now also in w3build.bat.  Make sure all submitted before integ.
 2008-10-29  RHSK  Convert from text to html.
+2010-11-06  RHSK  Correctly format example of p4 branch -o mps/version/1.105
 </pre>
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 2002, 2005-2008 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 2002, 2005-2008, 2010 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
