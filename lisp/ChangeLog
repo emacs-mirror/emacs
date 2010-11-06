@@ -1,3 +1,12 @@
+2010-11-06  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/reftex-cite.el
+	(reftex-extract-bib-entries-from-thebibliography): Match bibitem
+	entries with whitespace after \bibitem.
+	(reftex-create-bibtex-file): Match entries containing numbers and
+	symbol constituents.  Make sure that entries with whitespace at
+	various places are found.
+
 2010-11-05  Christian Millour  <cm@abtela.com>  (tiny change)
 
 	* shell.el (shell-process-popd): Made aware of comint-file-name-prefix.
