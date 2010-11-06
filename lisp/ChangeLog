@@ -4,7 +4,7 @@
 	variable (permanent-local).
 
 	* net/tramp.el (tramp-handle-insert-file-contents): Do not set
-	`permanent-local' property for `(backup-by-copying-when-mismatch'.
+	`permanent-local' property for `backup-by-copying-when-mismatch'.
 
 2010-11-06  Eli Zaretskii  <eliz@gnu.org>
 
