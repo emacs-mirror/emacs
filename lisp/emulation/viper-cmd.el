@@ -1,7 +1,7 @@
 ;;; viper-cmd.el --- Vi command support for Viper
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -42,7 +42,7 @@
 (defvar quail-current-str)
 (defvar mark-even-if-inactive)
 (defvar init-message)
-(defvar initial)
+(defvar viper-initial)
 (defvar undo-beg-posn)
 (defvar undo-end-posn)
 
@@ -2065,23 +2065,22 @@ Undo previous insertion and inserts new."
     (funcall hook)
     ))
 
-;; Thie is a temp hook that uses free variables init-message and initial.
+;; This is a temp hook that uses free variables init-message and viper-initial.
 ;; A dirty feature, but it is the simplest way to have it do the right thing.
-;; The INIT-MESSAGE and INITIAL vars come from the scope set by
+;; The INIT-MESSAGE and VIPER-INITIAL vars come from the scope set by
 ;; viper-read-string-with-history
 (defun viper-minibuffer-standard-hook ()
   (if (stringp init-message)
       (viper-tmp-insert-at-eob init-message))
-  (if (stringp initial)
-      (progn
-	;; don't wait if we have unread events or in kbd macro
-	(or unread-command-events
-	    executing-kbd-macro
-	    (sit-for 840))
-	(if (fboundp 'minibuffer-prompt-end)
-	    (delete-region (minibuffer-prompt-end) (point-max))
-	  (erase-buffer))
-	(insert initial))))
+  (when (stringp viper-initial)
+    ;; don't wait if we have unread events or in kbd macro
+    (or unread-command-events
+	executing-kbd-macro
+	(sit-for 840))
+    (if (fboundp 'minibuffer-prompt-end)
+	(delete-region (minibuffer-prompt-end) (point-max))
+      (erase-buffer))
+    (insert viper-initial)))
 
 (defsubst viper-minibuffer-real-start ()
   (if (fboundp 'minibuffer-prompt-end)
@@ -2180,10 +2179,10 @@ problems."
 
 ;;; Reading string with history
 
-(defun viper-read-string-with-history (prompt &optional initial
+(defun viper-read-string-with-history (prompt &optional viper-initial
 					      history-var default keymap
 					      init-message)
-  ;; Read string, prompting with PROMPT and inserting the INITIAL
+  ;; Read string, prompting with PROMPT and inserting the VIPER-INITIAL
   ;; value.  Uses HISTORY-VAR.  DEFAULT is the default value to accept if the
   ;; input is an empty string.
   ;; Default value is displayed until the user types something in the
@@ -2206,14 +2205,14 @@ problems."
 	temp-msg)
 
     (setq keymap (or keymap minibuffer-local-map)
-	  initial (or initial "")
+	  viper-initial (or viper-initial "")
 	  temp-msg (if default
 		       (format "(default %s) " default)
 		     ""))
 
     (setq viper-incomplete-ex-cmd nil)
     (setq val (read-from-minibuffer prompt
-				    (concat temp-msg initial val padding)
+				    (concat temp-msg viper-initial val padding)
 				    keymap nil history-var))
     (setq minibuffer-setup-hook nil
 	  padding (viper-array-to-string (this-command-keys))
@@ -5093,5 +5092,4 @@ Mail anyway (y or n)? ")
 
 
 
-;; arch-tag: 739a6450-5fda-44d0-88b0-325053d888c2
 ;;; viper-cmd.el ends here
