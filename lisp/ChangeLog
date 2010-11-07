@@ -1,5 +1,9 @@
 2010-11-07  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/esh-util.el (subst-char-in-string)
+	(directory-files-and-attributes): These compatibility definitions are
+	not needed on any version of Emacs since at least 21.4.
+
 	* progmodes/verilog-mode.el (verilog-get-beg-of-line)
 	(verilog-get-end-of-line): Remove.
 	(verilog-within-string, verilog-re-search-forward-substr)
