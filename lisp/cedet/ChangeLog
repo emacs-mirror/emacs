@@ -1,3 +1,7 @@
+2010-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* ede/proj-elisp.el (ede-proj-flush-autoconf): Use point-at-bol.
+
 2010-11-01  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/bovine/c.el (semantic-analyze-split-name): Move before use.

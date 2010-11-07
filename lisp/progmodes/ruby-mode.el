@@ -616,7 +616,7 @@ and `\\' when preceded by `?'."
           (setq re (regexp-quote (or (match-string 4) (match-string 2))))
           (if (match-beginning 1) (setq re (concat "\\s *" re)))
           (let* ((id-end (goto-char (match-end 0)))
-                 (line-end-position (save-excursion (end-of-line) (point)))
+                 (line-end-position (point-at-eol))
                  (state (list in-string nest depth pcol indent)))
             ;; parse the rest of the line
             (while (and (> line-end-position (point))
@@ -1256,7 +1256,7 @@ buffer position `limit' or the end of the buffer."
     (save-excursion
       (beginning-of-line)
       (catch 'done
-        (let ((eol (save-excursion (end-of-line) (point)))
+        (let ((eol (point-at-eol))
               (case-fold-search nil)
               ;; Fake match data such that (match-end 0) is at eol
               (end-match-data (progn (looking-at ".*$") (match-data)))

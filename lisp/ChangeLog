@@ -1,5 +1,32 @@
 2010-11-07  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/chart.el (chart-zap-chars):
+	* play/decipher.el (decipher-set-map):
+	* progmodes/ada-mode.el (ada-get-current-indent)
+	(ada-search-ignore-string-comment, ada-tab-hard, ada-untab-hard):
+	* progmodes/ada-prj.el (ada-prj-load-from-file, ada-prj-display-help):
+	* progmodes/ada-xref.el (ada-initialize-runtime-library)
+	(ada-get-all-references):
+	* progmodes/cperl-mode.el (cperl-electric-paren)
+	(cperl-electric-rparen, cperl-electric-keyword, cperl-electric-else)
+	(cperl-linefeed, cperl-sniff-for-indent, cperl-to-comment-or-eol)
+	(cperl-find-pods-heres, cperl-indent-exp, cperl-fix-line-spacing)
+	(cperl-word-at-point-hard):
+	* progmodes/idlw-shell.el (idlwave-shell-move-or-history)
+	(idlwave-shell-filename-string, idlwave-shell-batch-command)
+	(idlwave-shell-display-line):
+	* progmodes/idlwave.el (idlwave-show-begin, idlwave-fill-paragraph)
+	(idlwave-calc-hanging-indent, idlwave-auto-fill, idlwave-template):
+	* progmodes/js.el (js--re-search-forward-inner)
+	(js--re-search-backward-inner):
+	* progmodes/vhdl-mode.el (vhdl-align-region-1, vhdl-align-region-2)
+	(vhdl-fix-clause, vhdl-compose-configuration-architecture):
+	* progmodes/ruby-mode.el (ruby-parse-partial, eval-when-compile):
+	* textmodes/flyspell.el (flyspell-process-localwords):
+	* textmodes/ispell.el (ispell-buffer-local-parsing)
+	(ispell-buffer-local-dict, ispell-buffer-local-words):
+	Use point-at-bol and point-at-eol.
+
 	* speedbar.el (speedbar-generic-item-info)
 	(speedbar-item-info-tag-helper, speedbar-change-expand-button-char)
 	(speedbar-add-indicator, speedbar-check-vc-this-line)

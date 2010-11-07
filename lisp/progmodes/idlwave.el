@@ -2152,7 +2152,7 @@ Also checks if the correct END statement has been used."
   ;;(backward-char 1)
   (let* ((pos (point-marker))
 	 (last-abbrev-marker (copy-marker last-abbrev-location))
-	 (eol-pos (save-excursion (end-of-line) (point)))
+	 (eol-pos (point-at-eol))
 	 begin-pos end-pos end end1 )
     (if idlwave-reindent-end  (idlwave-indent-line))
     (setq last-abbrev-location (marker-position last-abbrev-marker))
@@ -3301,10 +3301,8 @@ ignored."
         (setq here (point))
         (beginning-of-line)
         (setq bcl (point))
-        (re-search-forward
-         (concat "^[ \t]*" comment-start "+")
-         (save-excursion (end-of-line) (point))
-         t)
+        (re-search-forward (concat "^[ \t]*" comment-start "+")
+			   (point-at-eol) t)
         ;; Get the comment leader on the line and its length
         (setq pre (current-column))
         ;; the comment leader is the indentation plus exactly the
@@ -3369,9 +3367,7 @@ ignored."
               (setq indent hang)
               (beginning-of-line)
               (while (> (point) start)
-                (re-search-forward comment-start-skip
-                                   (save-excursion (end-of-line) (point))
-                                   t)
+                (re-search-forward comment-start-skip (point-at-eol) t)
                 (if (> (setq diff (- indent (current-column))) 0)
                     (progn
                       (if (>= here (point))
@@ -3393,13 +3389,9 @@ ignored."
             (setq indent
                   (min indent
                        (progn
-                         (re-search-forward
-                          comment-start-skip
-                          (save-excursion (end-of-line) (point))
-                          t)
+                         (re-search-forward comment-start-skip (point-at-eol) t)
                          (current-column))))
-            (forward-line -1))
-          )
+            (forward-line -1)))
         (setq fill-prefix (concat fill-prefix
                                   (make-string (- indent pre)
                                                ?\ )))
@@ -3407,10 +3399,7 @@ ignored."
         (setq first-indent
               (max
                (progn
-                 (re-search-forward
-                  comment-start-skip
-                  (save-excursion (end-of-line) (point))
-                  t)
+                 (re-search-forward comment-start-skip (point-at-eol) t)
                  (current-column))
                indent))
 
@@ -3448,17 +3437,11 @@ If not found returns nil."
   (if idlwave-use-last-hang-indent
       (save-excursion
         (end-of-line)
-        (if (re-search-backward
-             idlwave-hang-indent-regexp
-             (save-excursion (beginning-of-line) (point))
-             t)
+        (if (re-search-backward idlwave-hang-indent-regexp (point-at-bol) t)
             (+ (current-column) (length idlwave-hang-indent-regexp))))
     (save-excursion
       (beginning-of-line)
-      (if (re-search-forward
-           idlwave-hang-indent-regexp
-           (save-excursion (end-of-line) (point))
-           t)
+      (if (re-search-forward idlwave-hang-indent-regexp (point-at-eol) t)
           (current-column)))))
 
 (defun idlwave-auto-fill ()
@@ -3502,18 +3485,14 @@ if `idlwave-auto-fill-split-string' is non-nil."
 			 (save-excursion
 			   (forward-line -1)
 			   (idlwave-calc-hanging-indent))))
-		    (if indent
-			(progn
-			  ;; Remove whitespace between comment delimiter and
-			  ;; text, insert spaces for appropriate indentation.
-			  (beginning-of-line)
-			  (re-search-forward
-			   comment-start-skip
-			   (save-excursion (end-of-line) (point)) t)
-			  (delete-horizontal-space)
-			  (idlwave-indent-to indent)
-			  (goto-char (- (point-max) here)))
-		      )))
+		    (when indent
+		      ;; Remove whitespace between comment delimiter and
+		      ;; text, insert spaces for appropriate indentation.
+		      (beginning-of-line)
+		      (re-search-forward comment-start-skip (point-at-eol) t)
+		      (delete-horizontal-space)
+		      (idlwave-indent-to indent)
+		      (goto-char (- (point-max) here)))))
 	    ;; Split code or comment?
 	    (if (save-excursion
 		  (end-of-line 0)
@@ -3767,7 +3746,7 @@ unless the optional second argument NOINDENT is non-nil."
 	   (setq s1 (downcase s1) s2 (downcase s2)))
 	  (idlwave-abbrev-change-case
 	   (setq s1 (upcase s1) s2 (upcase s2))))
-    (let ((beg (save-excursion (beginning-of-line) (point)))
+    (let ((beg (point-at-bol))
 	  end)
       (if (not (looking-at "\\s-*\n"))
 	  (open-line 1))

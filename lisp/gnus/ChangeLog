@@ -1,3 +1,8 @@
+2010-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-bookmark.el (gnus-bookmark-bmenu-show-infos)
+	(gnus-bookmark-kill-line): Use point-at-eol.
+
 2010-11-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-gravatar.el (gnus-gravatar-transform-address): No need to skip
