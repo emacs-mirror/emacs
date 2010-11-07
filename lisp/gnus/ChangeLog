@@ -1,3 +1,8 @@
+2010-11-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-gravatar.el (gnus-gravatar-transform-address): No need to skip
+	asterisks in From header.
+
 2010-11-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-ems.el (gnus-put-image): Use a blank text as the insertion
