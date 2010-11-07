@@ -123,7 +123,7 @@ When nil, send actual operating system end of file."
            ((not (zerop (skip-syntax-backward ".")))))
           (point))))
 
-(defconst prolog-smie-op-levels
+(defconst prolog-smie-grammar
   ;; Rather than construct the operator levels table from the BNF,
   ;; we directly provide the operator precedences from GNU Prolog's
   ;; manual (7.14.10 op/3).  The only problem is that GNU Prolog's
@@ -188,7 +188,7 @@ When nil, send actual operating system end of file."
   (setq imenu-generic-expression '((nil "^\\sw+" 0)))
 
   ;; Setup SMIE.
-  (smie-setup prolog-smie-op-levels #'prolog-smie-rules
+  (smie-setup prolog-smie-grammar #'prolog-smie-rules
               :forward-token #'prolog-smie-forward-token
               :backward-token #'prolog-smie-backward-token)
   (set (make-local-variable 'smie-blink-matching-triggers) '(?.))

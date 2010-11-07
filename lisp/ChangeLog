@@ -1,3 +1,34 @@
+2010-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el: Simplify the smie-rules-function return values.
+	(smie-precs->prec2): Rename from smie-precs-precedence-table.
+	(smie-bnf->prec2): Rename from smie-bnf-precedence-table.
+	(smie-prec2->grammar): Rename from smie-prec2-levels.
+	(smie-grammar): Rename from smie-op-levels.
+	(smie-indent--hanging-p): Rename from smie-hanging-p.
+	(smie-rule-hanging-p): New alias.
+	(smie-indent--bolp): Rename from smie-bolp.
+	(smie-indent--hanging-p): New alias.
+	(smie--token): New dynamically bound variable.
+	(smie-indent--parent): New function.
+	(smie-rule-parent-p): Use it; rename from smie-parent-p.
+	(smie-rule-next-p): Rename from smie-next-p.
+	(smie-rule-prev-p): Rename from smie-prev-p.
+	(smie-rule-sibling-p, smie-rule-parent)
+	(smie-indent--separator-outdent, smie-rule-separator): New functions.
+	(smie-rule-separator-outdent): New var.
+	(smie-indent--rule): Merge with smie-indent--column.
+	(smie-indent-forward-token, smie-indent-backward-token):
+	Also recognize close parens.
+	(smie-indent-keyword): Don't use smie-indent--column any more.
+	(smie-indent-after-keyword): Ignore closers by default.
+	(smie-indent-line): Use with-demoted-errors.
+	* progmodes/octave-mod.el (octave-smie-grammar):
+	Rename from octave-smie-op-levels.
+	(octave-smie-rules): Adjust to new behavior.
+	* progmodes/prolog.el (prolog-smie-grammar):
+	Rename from prolog-smie-op-levels.
+
 2010-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-util.el (subst-char-in-string)

@@ -446,14 +446,13 @@ Non-nil means always go to the next Octave code line after sending."
     ;; (fundesc (atom "=" atom))
     ))
 
-(defconst octave-smie-op-levels
-  (smie-prec2-levels
+(defconst octave-smie-grammar
+  (smie-prec2->grammar
    (smie-merge-prec2s
-    (smie-bnf-precedence-table
-     octave-smie-bnf-table
-     '((assoc "\n" ";")))
+    (smie-bnf->prec2 octave-smie-bnf-table
+                     '((assoc "\n" ";")))
 
-    (smie-precs-precedence-table octave-operator-table))))
+    (smie-precs->prec2 octave-operator-table))))
 
 ;; Tokenizing needs to be refined so that ";;" is treated as two
 ;; tokens and also so as to recognize the \n separator (and
@@ -520,13 +519,19 @@ Non-nil means always go to the next Octave code line after sending."
 
 (defun octave-smie-rules (kind token)
   (pcase (cons kind token)
+    ;; We could set smie-indent-basic instead, but that would have two
+    ;; disadvantages:
+    ;; - changes to octave-block-offset wouldn't take effect immediately.
+    ;; - edebug wouldn't show the use of this variable.
     (`(:elem . basic) octave-block-offset)
-    (`(:before . "case") octave-block-offset)
+    ;; Since "case" is in the same BNF rules as switch..end, SMIE by default
+    ;; aligns it with "switch".
+    (`(:before . "case") (if (not (smie-rule-sibling-p)) octave-block-offset))
     (`(:after . ";")
-     (if (smie-parent-p "function" "if" "while" "else" "elseif" "for"
-                        "otherwise" "case" "try" "catch" "unwind_protect"
-                        "unwind_protect_cleanup")
-         '(+ parent octave-block-offset)
+     (if (smie-rule-parent-p "function" "if" "while" "else" "elseif" "for"
+                             "otherwise" "case" "try" "catch" "unwind_protect"
+                             "unwind_protect_cleanup")
+         (smie-rule-parent octave-block-offset)
        ;; For (invalid) code between switch and case.
        ;; (if (smie-parent-p "switch") 4)
        0))))
@@ -619,7 +624,7 @@ already added.  You just need to add a description of the problem,
 including a reproducible test case and send the message."
   (setq local-abbrev-table octave-abbrev-table)
 
-  (smie-setup octave-smie-op-levels #'octave-smie-rules
+  (smie-setup octave-smie-grammar #'octave-smie-rules
               :forward-token  #'octave-smie-forward-token
               :backward-token #'octave-smie-backward-token)
   (set (make-local-variable 'smie-indent-basic) 'octave-block-offset)
