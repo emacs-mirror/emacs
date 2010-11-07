@@ -1,3 +1,8 @@
+2010-11-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Initialize
+	Cursor to No_Cursor for HAVE_WINDOW_SYSTEM also.
+
 2010-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* xfns.c (Fx_show_tip): If any of the tool-tip text lines is R2L,

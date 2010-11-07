@@ -25071,10 +25071,8 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 #ifdef HAVE_WINDOW_SYSTEM
   Display_Info *dpyinfo;
-  Cursor cursor;
-#else
-  Cursor cursor = No_Cursor;
 #endif
+  Cursor cursor = No_Cursor;
   Lisp_Object pointer = Qnil;
   int dx, dy, width, height;
   EMACS_INT charpos;
