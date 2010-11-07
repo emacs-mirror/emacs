@@ -799,7 +799,7 @@ Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
   (goto-char (point-min))
   (forward-line (1- line-no))
   (let* ((line-beg (point-at-bol))
-	 (line-end (poin-at-eol))
+	 (line-end (point-at-eol))
 	 (beg      line-beg)
 	 (end      line-end)
 	 (tooltip-text (flymake-ler-text (nth 0 line-err-info-list)))
