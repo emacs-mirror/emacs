@@ -1,7 +1,11 @@
+2010-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el: New package.
+
 2010-11-06  Michael Albinus  <michael.albinus@gmx.de>
 
-	* files.el (backup-by-copying-when-mismatch): Set
-	`permanent-local' property.
+	* files.el (backup-by-copying-when-mismatch):
+	Set `permanent-local' property.
 
 	* net/tramp.el (tramp-handle-insert-file-contents): Do not set
 	`permanent-local' property for `backup-by-copying-when-mismatch'.
@@ -16,11 +20,11 @@
 
 2010-11-07  Wilson Snyder  <wsnyder@wsnyder.org>
 
-        * progmodes/verilog-mode.el (verilog-insert-one-definition)
+	* progmodes/verilog-mode.el (verilog-insert-one-definition)
 	(verilog-read-decls, verilog-read-sub-decls-sig): Fix AUTOWIRE and
-	AUTOINOUT for SV style multidimensional arrays, bug294.  Reported
-	by Eric Mastromarchi.
-        (verilog-preprocess): Use with-current-buffer and
+	AUTOINOUT for SV style multidimensional arrays, bug294.
+	Reported by Eric Mastromarchi.
+	(verilog-preprocess): Use with-current-buffer and
 	font-lock-fontify-buffer to cleanup style issues.
 
 2010-11-05  Michael Albinus  <michael.albinus@gmx.de>
