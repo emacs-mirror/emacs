@@ -3078,25 +3078,11 @@ If FRAME is nil, use the selected frame.  */)
 static void
 set_machine_and_pid_properties (struct frame *f)
 {
-  /* See the above comment "Note: Encoding strategy".  */
-  XTextProperty text;
-  int bytes, stringp;
-  int do_free_text_value = 0;
   long pid = (long) getpid ();
 
-  text.value = x_encode_text (Vsystem_name,
-                              Qcompound_text, 0, &bytes, &stringp,
-                              &do_free_text_value);
-  text.encoding = (stringp ? XA_STRING
-                   : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
-  text.format = 8;
-  text.nitems = bytes;
-  XSetWMClientMachine (FRAME_X_DISPLAY (f),
-                       FRAME_OUTER_WINDOW (f),
-                       &text);
-  if (do_free_text_value)
-    xfree (text.value);
-
+  /* This will set WM_CLIENT_MACHINE and WM_LOCALE_NAME.  */
+  XSetWMProperties (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), NULL, NULL,
+                    NULL, 0, NULL, NULL, NULL);
   XChangeProperty (FRAME_X_DISPLAY (f),
                    FRAME_OUTER_WINDOW (f),
                    XInternAtom (FRAME_X_DISPLAY (f),

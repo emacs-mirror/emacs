@@ -1,5 +1,7 @@
 2010-11-07  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xfns.c (set_machine_and_pid_properties): Let X set WM_CLIENT_MACHINE.
+
 	* xdisp.c (note_mode_line_or_margin_highlight): Initialize
 	Cursor to No_Cursor for HAVE_WINDOW_SYSTEM also.
 
