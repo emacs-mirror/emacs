@@ -1,7 +1,7 @@
 2010-11-06  Michael Albinus  <michael.albinus@gmx.de>
 
-	* files.el (backup-by-copying-when-mismatch): Make it a buffer local
-	variable (permanent-local).
+	* files.el (backup-by-copying-when-mismatch): Set
+	`permanent-local' property.
 
 	* net/tramp.el (tramp-handle-insert-file-contents): Do not set
 	`permanent-local' property for `backup-by-copying-when-mismatch'.
