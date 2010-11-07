@@ -878,10 +878,8 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
            (with-current-buffer (window-buffer (posn-window (event-end event)))
              (save-excursion
                (goto-char (posn-point (event-end event)))
-               (occur-mode-find-occurrence)))))
-        same-window-buffer-names
-        same-window-regexps)
-    (pop-to-buffer (marker-buffer pos))
+               (occur-mode-find-occurrence))))))
+    (pop-to-buffer-other-window (marker-buffer pos))
     (goto-char pos)
     (run-hooks 'occur-mode-find-occurrence-hook)))
 
@@ -897,11 +895,8 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   "Display in another window the occurrence the current line describes."
   (interactive)
   (let ((pos (occur-mode-find-occurrence))
-	window
-	;; Bind these to ensure `display-buffer' puts it in another window.
-	same-window-buffer-names
-	same-window-regexps)
-    (setq window (display-buffer (marker-buffer pos)))
+	window)
+    (setq window (display-buffer-other-window (marker-buffer pos)))
     ;; This is the way to set point in the proper window.
     (save-selected-window
       (select-window window)

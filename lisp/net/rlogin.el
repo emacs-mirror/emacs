@@ -131,8 +131,6 @@ this variable is set from that."
   (define-key rlogin-mode-map "\C-i" 'rlogin-tab-or-complete)))
 
 
-;;;###autoload (add-hook 'same-window-regexps (purecopy "^\\*rlogin-.*\\*\\(\\|<[0-9]+>\\)"))
-
 (defvar rlogin-history nil)
 
 ;;;###autoload
@@ -205,7 +203,7 @@ variable."
            (setq buffer-name (generate-new-buffer-name buffer-name))))
 
     (setq buffer (get-buffer-create buffer-name))
-    (pop-to-buffer buffer-name)
+    (pop-to-buffer-same-window buffer-name)
 
     (unless (comint-check-proc buffer-name)
       (comint-exec buffer buffer-name rlogin-program nil args)

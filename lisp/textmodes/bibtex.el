@@ -3603,9 +3603,8 @@ mode is not `bibtex-mode', START is nil, and DISPLAY is t."
                 ;; `bibtex-search-entry' moves point if key found
                 (setq found (bibtex-search-entry key)))))
         (cond ((and found display)
-               (let ((same-window-buffer-names
-                      (cons (buffer-name buffer) same-window-buffer-names)))
-                 (pop-to-buffer buffer)
+               (progn
+                 (pop-to-buffer-same-window buffer)
                  (bibtex-reposition-window)))
               (found (set-buffer buffer))
               (display (message "Key `%s' not found" key)))

@@ -1,3 +1,77 @@
+2010-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* ielm.el (top-level): Remove autoloaded add-hook for
+	same-window-buffer-names.
+	(ielm): Use pop-to-buffer-same-window.
+
+	* progmodes/inf-lisp.el (inferior-lisp): Use
+	pop-to-buffer-same-window.
+	(top-level): Remove autoloaded add-hook for
+	same-window-buffer-names.
+	(switch-to-lisp): Use pop-to-buffer with tailored specifiers.
+
+	* replace.el (occur-mode-goto-occurrence): Use
+	pop-to-buffer-other-window.
+	(occur-mode-display-occurrence): Use
+	display-buffer-other-window.
+
+	* shell.el (shell): Use pop-to-buffer-same-window.
+	(top-level): Remove autoloaded add-hook for
+	same-window-buffer-names.
+
+	* net/rlogin.el: (top-level): Remove autoloaded add-hook for
+	same-window-regexps.
+	(rlogin): Use pop-to-buffer-same-window.
+
+	* net/telnet.el (top-level): Remove two autoloaded add-hooks for
+	same-window-regexps.
+	(telnet, rsh): Use pop-to-buffer-same-window.
+
+2010-11-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* mail/sendmail.el (mail-bury): Do something similar to
+	quit-restore-window.
+	(top-level): Don't change same-window-buffer-names via add-hook
+	any more.
+	(mail): Use pop-to-buffer-same-window.
+	(mail-other-window): Use pop-to-buffer-other-window.
+	(mail-other-frame): Use pop-to-buffer-other-frame.
+
+	* simple.el (display-message-or-buffer): Rename argument FRAME
+	to IGNORE because it's ignored.  Change call to display-buffer
+	accordingly.
+	(sendmail-user-agent-compose): Remove let bindings around call
+	to switch-function; the latter should have been bound to an
+	appropriate function already.
+	(clone-buffer): Call pop-to-buffer-other-window.
+	(clone-indirect-buffer): New semantices of display-flag
+	argument.
+	(clone-indirect-buffer-other-window): Interactively set
+	display-flag to 'other-window.
+
+	* calendar/solar.el (sunrise-sunset): Use with-help-window instead
+	of with-output-to-temp-buffer.
+
+	* textmodes/bibtex.el (bibtex-search-entry): Use
+	pop-to-buffer-same-window.
+
+	* cmuscheme.el (run-scheme): Use pop-to-buffer-same-window.
+	(top-level): Remove autoloaded add-hook for
+	same-window-buffer-names.
+
+	* eshell/eshell.el (eshell-add-to-window-buffer-names)
+	(eshell-remove-from-window-buffer-names): Remove.
+	(eshell-unload-hook): Don't call
+	eshell-remove-from-window-buffer-names.
+	(eshell-buffer-name): Don't call
+	eshell-remove-from-window-buffer-names and
+	eshell-add-to-window-buffer-names.
+	(top-level): Remove eshell-deftest call to check for
+	same-window-buffer-names.
+	(eshell): Call pop-to-buffer-same-window.
+
+	* files.el (display-buffer-other-frame): Remove.
+
 2010-11-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-even-sizes)
@@ -13,6 +87,12 @@
 
 	* vc/pcvs-util.el (cvs-pop-to-buffer-same-frame): Use buffer
 	display specifiers.
+
+	* printing.el (pr-file-list): Comment out bindings of
+	pop-up-windows and pop-up-frames.
+
+	* mail/reporter.el (reporter-submit-bug-report): Use
+	pop-to-buffer-other-window and display specifiers.
 
 2010-11-04  Martin Rudalics  <rudalics@gmx.at>
 

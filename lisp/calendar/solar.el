@@ -855,16 +855,8 @@ This function is suitable for execution in a .emacs file."
          (one-window (one-window-p t)))
     (if (<= (length msg) (frame-width))
         (message "%s" msg)
-      (with-output-to-temp-buffer "*temp*"
-        (princ (concat date-string "\n" time-string)))
-      (message "%s"
-               (substitute-command-keys
-                (if one-window
-                    (if pop-up-windows
-                        "Type \\[delete-other-windows] to remove temp window."
-                      "Type \\[switch-to-buffer] RET to remove temp window.")
-                  "Type \\[switch-to-buffer-other-window] RET to restore old \
-contents of temp window."))))))
+      (with-help-window "*temp*"
+        (princ (concat date-string "\n" time-string))))))
 
 ;;;###cal-autoload
 (defun calendar-sunrise-sunset (&optional event)

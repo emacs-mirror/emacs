@@ -247,8 +247,7 @@ is run).
 	(inferior-scheme-mode)))
   (setq scheme-program-name cmd)
   (setq scheme-buffer "*scheme*")
-  (pop-to-buffer "*scheme*"))
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*scheme*"))
+  (pop-to-buffer-same-window "*scheme*"))
 
 (defun scheme-start-file (prog)
   "Return the name of the start file corresponding to PROG.

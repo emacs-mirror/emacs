@@ -5837,9 +5837,11 @@ If menu binding was not done, calls `pr-menu-bind'."
   (mapcar #'(lambda (file)
 	      (and (or pr-list-directory
 		       (not (file-directory-p file)))
-		   (let ((buffer (pr-find-buffer-visiting file))
-			 pop-up-windows
-			 pop-up-frames)
+		   (let ((buffer (pr-find-buffer-visiting file)))
+		     ;; Commented out the following two until I know
+		     ;; what they are used for.
+		     ;; pop-up-windows
+		     ;; pop-up-frames)
 		     (and (or buffer
 			      (file-readable-p file))
 			  (with-current-buffer (or buffer

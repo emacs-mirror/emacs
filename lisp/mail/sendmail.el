@@ -784,21 +784,26 @@ Prefix arg means don't delete this window."
   "Bury this mail buffer."
   (let ((newbuf (other-buffer (current-buffer))))
     (bury-buffer (current-buffer))
+    ;; The inherent assumption is that we are in the selected window so
+    ;; using `frame-selected-window' doesn't make any sense.  We should
+    ;; be able to use `quit-restore-window' here but I don't understand
+    ;; all implications of the code so try to do what was done before.
     (if (and (or nil
 		 ;; In this case, we need to go to a different frame.
-		 (window-dedicated-p (frame-selected-window))
-		 ;; In this mode of operation, the frame was probably
-		 ;; made for this buffer, so the user probably wants
-		 ;; to delete it now.
-		 (and pop-up-frames (one-window-p))
+		 (window-dedicated-p)
+		 (let ((quit-restore (window-parameter nil 'quit-restore)))
+		   (and (memq (car-safe quit-restore) '(new-window new-frame))
+			;; Check that WINDOW's buffer is still the same.
+			(eq (window-buffer) (nth 1 quit-restore))))
 		 (cdr (assq 'mail-dedicated-frame (frame-parameters))))
-	     (not (null (delq (selected-frame) (visible-frame-list)))))
+	     (other-visible-frames-p))
 	(progn
 	  (if (display-multi-frame-p)
 	      (delete-frame (selected-frame))
 	    ;; The previous frame is where normally they have the
 	    ;; Rmail buffer displayed.
 	    (other-frame -1)))
+
       (let (rmail-flag summary-buffer)
 	(and (not arg)
 	     (not (one-window-p))
@@ -1662,9 +1667,6 @@ If the current line has `mail-yank-prefix', insert it on the new line."
 ;; Put these commands last, to reduce chance of lossage from quitting
 ;; in middle of loading the file.
 
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*mail*"))
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*unsent mail*"))
-
 ;;;###autoload
 (defun mail (&optional noerase to subject in-reply-to cc replybuffer actions)
   "Edit a message to be sent.  Prefix arg means resume editing (don't erase).
@@ -1758,11 +1760,11 @@ The seventh argument ACTIONS is a list of actions to take
  ;;         t))
 
   (if (eq noerase 'new)
-      (pop-to-buffer (generate-new-buffer "*mail*"))
+      (pop-to-buffer-same-window (generate-new-buffer "*mail*"))
     (and noerase
 	 (not (get-buffer "*mail*"))
 	 (setq noerase nil))
-    (pop-to-buffer "*mail*"))
+    (pop-to-buffer-same-window "*mail*"))
 
   ;; Avoid danger that the auto-save file can't be written.
   (let ((dir (expand-file-name
@@ -1931,24 +1933,14 @@ you can move to one of them and type C-c C-c to recover that one."
 (defun mail-other-window (&optional noerase to subject in-reply-to cc replybuffer sendactions)
   "Like `mail' command, but display mail buffer in another window."
   (interactive "P")
-  (let ((pop-up-windows t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (pop-to-buffer "*mail*"))
+  (pop-to-buffer-other-window "*mail*")
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
 ;;;###autoload
 (defun mail-other-frame (&optional noerase to subject in-reply-to cc replybuffer sendactions)
   "Like `mail' command, but display mail buffer in another frame."
   (interactive "P")
-  (let ((pop-up-frames t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (pop-to-buffer "*mail*"))
+  (pop-to-buffer-other-frame "*mail*")
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
 ;; Do not add anything but external entries on this page.

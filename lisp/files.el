@@ -1241,29 +1241,6 @@ return value, which may be passed as the REQUIRE-MATCH arg to
 	 'confirm)
 	(t nil)))
 
-(defun display-buffer-other-frame (buffer)
-  "Display buffer BUFFER in another frame.
-This uses the function `display-buffer' as a subroutine; see
-its documentation for additional customization information."
-  (interactive "BDisplay buffer in other frame: ")
-  (let ((pop-up-frames t)
-	same-window-buffer-names same-window-regexps
-        (old-window (selected-window))
-	new-window)
-    (setq new-window (display-buffer buffer t))
-    ;; This may have been here in order to prevent the new frame from hiding
-    ;; the old frame.  But it does more harm than good.
-    ;; Maybe we should call `raise-window' on the old-frame instead?  --Stef
-    ;;(lower-frame (window-frame new-window))
-
-    ;; This may have been here in order to make sure the old-frame gets the
-    ;; focus.  But not only can it cause an annoying flicker, with some
-    ;; window-managers it just makes the window invisible, with no easy
-    ;; way to recover it.  --Stef
-    ;;(make-frame-invisible (window-frame old-window))
-    ;;(make-frame-visible (window-frame old-window))
-    ))
-
 (defmacro minibuffer-with-setup-hook (fun &rest body)
   "Temporarily add FUN to `minibuffer-setup-hook' while executing BODY.
 BODY should use the minibuffer at most once.

@@ -2283,7 +2283,7 @@ the use of a shell (with its need to quote arguments)."
 				     output-buffer nil error-buffer)))))))
 
 (defun display-message-or-buffer (message
-				  &optional buffer-name not-this-window frame)
+				  &optional buffer-name not-this-window ignore)
   "Display MESSAGE in the echo area if possible, otherwise in a pop-up buffer.
 MESSAGE may be either a string or a buffer.
 
@@ -2300,8 +2300,9 @@ is used, defaulting to `*Message*'.  In the case where MESSAGE is a
 string and it is displayed in the echo area, it is not specified whether
 the contents are inserted into the buffer anyway.
 
-Optional arguments NOT-THIS-WINDOW and FRAME are as for `display-buffer',
-and only used if a buffer is displayed."
+Optional argument NOT-THIS-WINDOW is as for `display-buffer', and
+only used if a buffer is displayed.  Optional argument IGNORE is
+ignored."
   (cond ((and (stringp message) (not (string-match "\n" message)))
 	 ;; Trivial case where we can use the echo area
 	 (message "%s" message))
@@ -2347,8 +2348,7 @@ and only used if a buffer is displayed."
 		   (t
 		    ;; Buffer
 		    (goto-char (point-min))
-		    (display-buffer (current-buffer)
-				    not-this-window frame))))))))
+		    (display-buffer nil not-this-window))))))))
 
 
 ;; We have a sentinel to prevent insertion of a termination message
@@ -5666,12 +5666,8 @@ appears to have customizations applying to the old default,
 (defun sendmail-user-agent-compose (&optional to subject other-headers continue
 					      switch-function yank-action
 					      send-actions)
-  (if switch-function
-      (let ((special-display-buffer-names nil)
-	    (special-display-regexps nil)
-	    (same-window-buffer-names nil)
-	    (same-window-regexps nil))
-	(funcall switch-function "*mail*")))
+  (when switch-function
+    (funcall switch-function "*mail*"))
   (let ((cc (cdr (assoc-string "cc" other-headers t)))
 	(in-reply-to (cdr (assoc-string "in-reply-to" other-headers t)))
 	(body (cdr (assoc-string "body" other-headers t))))
@@ -6391,9 +6387,7 @@ after it has been set up properly in other respects."
     (if display-flag
         ;; Presumably the current buffer is shown in the selected frame, so
         ;; we want to display the clone elsewhere.
-        (let ((same-window-regexps nil)
-              (same-window-buffer-names))
-          (pop-to-buffer new)))
+	(pop-to-buffer-other-window new))
     new))
 
 
@@ -6408,11 +6402,13 @@ or by incrementing the N in an existing suffix.  Trying to clone a
 buffer whose major mode symbol has a non-nil `no-clone-indirect'
 property results in an error.
 
-DISPLAY-FLAG non-nil means show the new buffer with `pop-to-buffer'.
-This is always done when called interactively.
+DISPLAY-FLAG non-nil means show the new buffer with
+`pop-to-buffer'.  This is always done when called interactively.
+Non-interactively, if DISPLAY-FLAG equals 'other-window, display
+the buffer in another window.
 
-Optional third arg NORECORD non-nil means do not put this buffer at the
-front of the list of recently selected ones."
+Optional third arg NORECORD non-nil means do not put this buffer
+at the front of the list of recently selected ones."
   (interactive
    (progn
      (if (get major-mode 'no-clone-indirect)
@@ -6430,9 +6426,8 @@ front of the list of recently selected ones."
     (with-current-buffer buffer
       (run-hooks 'clone-indirect-buffer-hook))
     (when display-flag
-      (pop-to-buffer buffer norecord))
+      (pop-to-buffer buffer (eq display-flag 'other-window) norecord))
     buffer))
-
 
 (defun clone-indirect-buffer-other-window (newname display-flag &optional norecord)
   "Like `clone-indirect-buffer' but display in another window."
@@ -6442,9 +6437,8 @@ front of the list of recently selected ones."
 	 (error "Cannot indirectly clone a buffer in %s mode" mode-name))
      (list (if current-prefix-arg
 	       (read-buffer "Name of indirect buffer: " (current-buffer)))
-	   t)))
-  (let ((pop-up-windows t))
-    (clone-indirect-buffer newname display-flag norecord)))
+	   'other-window)))
+  (clone-indirect-buffer newname display-flag norecord))
 
 
 ;;; Handling of Backspace and Delete keys.

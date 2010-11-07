@@ -305,8 +305,7 @@ of `inferior-lisp-program').  Runs the hooks from
 			   "inferior-lisp" (car cmdlist) nil (cdr cmdlist)))
 	(inferior-lisp-mode)))
   (setq inferior-lisp-buffer "*inferior-lisp*")
-  (pop-to-buffer "*inferior-lisp*"))
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*inferior-lisp*"))
+  (pop-to-buffer-same-window "*inferior-lisp*"))
 
 ;;;###autoload
 (defalias 'run-lisp 'inferior-lisp)
@@ -381,13 +380,10 @@ Prefix argument means switch to the Lisp buffer afterwards."
 With argument, positions cursor at end of buffer."
   (interactive "P")
   (if (get-buffer-process inferior-lisp-buffer)
-      (let ((pop-up-frames
-	     ;; Be willing to use another frame
-	     ;; that already has the window in it.
-	     (or pop-up-frames
-		 (get-buffer-window inferior-lisp-buffer t))))
-	(pop-to-buffer inferior-lisp-buffer))
-      (run-lisp inferior-lisp-program))
+      (pop-to-buffer
+       ;; Trying to guess what was here previously.
+       inferior-lisp-buffer '(other-frame (reuse-buffer-window . t) same-window))
+    (run-lisp inferior-lisp-program))
   (when eob-p
 	 (push-mark)
     (goto-char (point-max))))
