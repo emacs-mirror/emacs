@@ -1,3 +1,12 @@
+2010-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* speedbar.el (speedbar-generic-item-info)
+	(speedbar-item-info-tag-helper, speedbar-change-expand-button-char)
+	(speedbar-add-indicator, speedbar-check-vc-this-line)
+	(speedbar-check-obj-this-line, speedbar-extract-one-symbol)
+	(speedbar-buffers-line-directory, speedbar-buffer-revert-buffer):
+	Replace more uses of end-of-line etc with line-end-position.
+
 2010-11-06  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/texnfo-upd.el (texinfo-start-menu-description)
