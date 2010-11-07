@@ -1486,12 +1486,10 @@ regexp short cuts work.  FP is the function defun information."
 		    "First line not a complete sentence.  Add RET here? "
 		    "\n" t)
 		   (let (l1 l2)
-		     (forward-line 1)
-		     (end-of-line)
+		     (end-of-line 2)
 		     (setq l1 (current-column)
 			   l2 (save-excursion
-				(forward-line 1)
-				(end-of-line)
+				(end-of-line 2)
 				(current-column)))
 		     (if (> (+ l1 l2 1) 80)
 			 (setq msg "Incomplete auto-fix; doc string \
@@ -1508,10 +1506,7 @@ may require more formatting")
 	       (forward-line 1)
 	       (beginning-of-line)
 	       (if (and (re-search-forward "[.!?:\"]\\([ \t\n]+\\|\"\\)"
-					   (save-excursion
-					     (end-of-line)
-					     (point))
-					   t)
+					   (line-end-position) t)
 			(< (current-column) numc))
 		   (if (checkdoc-autofix-ask-replace
 			p (1+ p)
@@ -1526,9 +1521,7 @@ may require more formatting")
 	   (if msg
 	       (checkdoc-create-error msg s (save-excursion
 					      (goto-char s)
-					      (end-of-line)
-					      (point)))
-	     nil) ))))
+					      (line-end-position))))))))
      ;; Continuation of above.  Make sure our sentence is capitalized.
      (save-excursion
        (skip-chars-forward "\"\\*")
@@ -1628,7 +1621,7 @@ function,command,variable,option or symbol." ms1))))))
 	 (if (and (< (point) e) (> (current-column) 80))
 	     (checkdoc-create-error
 	      "Some lines are over 80 columns wide"
-	      s (save-excursion (goto-char s) (end-of-line) (point)) ))))
+	      s (save-excursion (goto-char s) (line-end-position))))))
      ;; Here we deviate to tests based on a variable or function.
      ;; We must do this before checking for symbols in quotes because there
      ;; is a chance that just such a symbol might really be an argument.
@@ -1773,9 +1766,8 @@ function,command,variable,option or symbol." ms1))))))
 				 (end-of-line)
 				 ;; check string-continuation
 				 (if (checkdoc-char= (preceding-char) ?\\)
-				     (progn (forward-line 1)
-					    (end-of-line)))
-				 (point)))
+				     (line-end-position 2)
+				   (point))))
 			  (rs nil) replace original (case-fold-search t))
 		      (while (and (not rs)
 				  (re-search-forward
@@ -2253,8 +2245,8 @@ Code:, and others referenced in the style guide."
 		 (insert ";;; " fn fe " --- " (read-string "Summary: ") "\n"))
 	     (checkdoc-create-error
 	      "The first line should be of the form: \";;; package --- Summary\""
-	      (point-min) (save-excursion (goto-char (point-min)) (end-of-line)
-					  (point))))
+	      (point-min) (save-excursion (goto-char (point-min))
+					  (line-end-position))))
 	 nil))
       (setq
        err

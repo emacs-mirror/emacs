@@ -1,5 +1,10 @@
 2010-11-07  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Use end-of-line N.
+	(checkdoc-this-string-valid-engine, checkdoc-file-comments-engine):
+	Use line-end-position.
+
 	* emacs-lisp/chart.el (chart-zap-chars):
 	* play/decipher.el (decipher-set-map):
 	* progmodes/ada-mode.el (ada-get-current-indent)
