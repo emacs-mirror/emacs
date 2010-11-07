@@ -536,14 +536,6 @@ list."
       (eshell-read-hosts eshell-hosts-file 'eshell-host-names
 			 'eshell-host-timestamp)))
 
-(unless (fboundp 'line-end-position)
-  (defsubst line-end-position (&optional N)
-    (save-excursion (end-of-line N) (point))))
-
-(unless (fboundp 'line-beginning-position)
-  (defsubst line-beginning-position (&optional N)
-    (save-excursion (beginning-of-line N) (point))))
-
 (unless (fboundp 'subst-char-in-string)
   (defun subst-char-in-string (fromchar tochar string &optional inplace)
     "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
@@ -802,5 +794,4 @@ gid format.  Valid values are 'string and 'integer, defaulting to
 
 (provide 'esh-util)
 
-;; arch-tag: 70159778-5c7a-480a-bae4-3ad332fca19d
 ;;; esh-util.el ends here

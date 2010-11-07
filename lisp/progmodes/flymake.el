@@ -106,16 +106,6 @@ Zero-length substrings at the beginning and end of the list are omitted."
       'temp-directory
     (lambda () temporary-file-directory)))
 
-(defalias 'flymake-line-beginning-position
-  (if (fboundp 'line-beginning-position)
-      'line-beginning-position
-    (lambda (&optional arg) (save-excursion (beginning-of-line arg) (point)))))
-
-(defalias 'flymake-line-end-position
-  (if (fboundp 'line-end-position)
-      'line-end-position
-    (lambda (&optional arg) (save-excursion (end-of-line arg) (point)))))
-
 (defun flymake-posn-at-point-as-event (&optional position window dx dy)
   "Return pixel position of top left corner of glyph at POSITION,
 relative to top left corner of WINDOW, as a mouse-1 click
@@ -808,8 +798,8 @@ Return t if it has at least one flymake overlay, nil if no overlay."
 Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
   (goto-char (point-min))
   (forward-line (1- line-no))
-  (let* ((line-beg (flymake-line-beginning-position))
-	 (line-end (flymake-line-end-position))
+  (let* ((line-beg (point-at-bol))
+	 (line-end (poin-at-eol))
 	 (beg      line-beg)
 	 (end      line-end)
 	 (tooltip-text (flymake-ler-text (nth 0 line-err-info-list)))
@@ -1764,5 +1754,4 @@ Use CREATE-TEMP-F for creating temp copy."
 
 (provide 'flymake)
 
-;; arch-tag: 8f0d6090-061d-4cac-8862-7c151c4a02dd
 ;;; flymake.el ends here

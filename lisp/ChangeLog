@@ -1,5 +1,25 @@
 2010-11-07  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/verilog-mode.el (verilog-get-beg-of-line)
+	(verilog-get-end-of-line): Remove.
+	(verilog-within-string, verilog-re-search-forward-substr)
+	(verilog-re-search-backward-substr, verilog-set-auto-endcomments)
+	(verilog-surelint-off, verilog-getopt-file, verilog-highlight-region):
+	Use point-at-bol, point-at-eol.
+	* progmodes/pascal.el (pascal-get-beg-of-line, pascal-get-end-of-line):
+	Remove.
+	(pascal-declaration-end, pascal-declaration-beg, pascal-within-string)
+	(electric-pascal-terminate-line, pascal-set-auto-comments)
+	(pascal-indent-paramlist, pascal-indent-declaration)
+	(pascal-get-lineup-indent, pascal-func-completion)
+	(pascal-get-completion-decl, pascal-var-completion, pascal-completion):
+	Use point-at-bol, point-at-eol.
+	* progmodes/flymake.el (flymake-line-beginning-position)
+	(flymake-line-end-position): Remove.
+	(flymake-highlight-line): Use point-at-bol, point-at-eol.
+	* eshell/esh-util.el (line-end-position, line-beginning-position):
+	Remove compat definitions.
+
 	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
 	Use end-of-line N.
 	(checkdoc-this-string-valid-engine, checkdoc-file-comments-engine):
