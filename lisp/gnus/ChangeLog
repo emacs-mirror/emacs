@@ -1,8 +1,31 @@
+2010-11-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-ems.el (gnus-put-image): Use a blank text as the insertion
+	string to avoid making the From headers syntactically invalid.
+
+	* message.el (message-send-mail): Don't insert courtesy messages if the
+	message already has List-Post and List-ID messages.
+
 2010-11-06  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-art.el (gnus-treat-article): Give dynamic local variables
 	`condition', `type', `length' a prefix.
 	(gnus-treat-predicate): Update for above name changes.
+
+2010-11-06  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (gnus-summary-nnir-goto-thread): Remove function and
+	binding.  Handled by `gnus-summary-refer-thread' instead.
+	(nnir-warp-to-article): New backend function.
+
+	* nnimap.el (nnimap-request-thread): Force dependency updating.
+
+	* gnus-sum.el (gnus-fetch-headers): Allow more arguments.
+	(gnus-summary-refer-thread): Rework to improve thread-referral.
+
+	* gnus-int.el (gnus-warp-to-article): New function.
+
+	* gnus-sum.el (gnus-summary-article-map): Bind it.
 
 2010-11-04  Andrew Cohen  <cohen@andy.bu.edu>
 

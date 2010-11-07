@@ -41,9 +41,10 @@
 ;; Retrieval Status Value (score).
 
 ;; When looking at the retrieval result (in the Summary buffer) you
-;; can type `G T' (aka M-x gnus-summary-nnir-goto-thread RET) on an
-;; article.  You will be teleported into the group this article came
-;; from, showing the thread this article is part of.
+;; can type `A W' (aka M-x gnus-warp-article RET) on an article.  You
+;; will be warped into the group this article came from. Typing `A W'
+;; (aka M-x gnus-summary-refer-thread RET) will warp to the group and
+;; also show the thread this article is part of.
 
 ;; The Lisp setup may involve setting a few variables and setting up the
 ;; search engine. You can define the variables in the server definition
@@ -473,56 +474,6 @@ result, `gnus-retrieve-headers' will be called instead.")
      (cons (current-buffer) gnus-current-window-configuration)
      nil)))
 
-;; Summary mode commands.
-
-(defun gnus-summary-nnir-goto-thread ()
-  "Only applies to nnir groups.  Go to group this article came from
-and show thread that contains this article."
-  (interactive)
-  (unless (eq 'nnir (car (gnus-find-method-for-group gnus-newsgroup-name)))
-    (error "Can't execute this command unless in nnir group"))
-  (let* ((cur (gnus-summary-article-number))
-         (group (nnir-artlist-artitem-group nnir-artlist cur))
-         (backend-number (nnir-artlist-artitem-number nnir-artlist cur))
-	 (id (mail-header-id (gnus-summary-article-header)))
-	 (refs (split-string
-		(mail-header-references (gnus-summary-article-header)))))
-    (if (eq (car (gnus-find-method-for-group group)) 'nnimap)
-	(progn
-	  (nnimap-possibly-change-group (gnus-group-short-name group) nil)
-	  (with-current-buffer (nnimap-buffer)
-	    (let* ((cmd
-		    (let ((value
-			   (format
-			    "(OR HEADER REFERENCES %s HEADER Message-Id %s)"
-			    id id)))
-		      (dolist (refid refs value)
-			(setq value
-			      (format
-			       "(OR (OR HEADER Message-Id %s HEADER REFERENCES %s) %s)"
-			       refid refid value)))))
-		   (result (nnimap-command "UID SEARCH %s" cmd)))
-	      (gnus-summary-read-group-1
-	       group t t gnus-summary-buffer nil
-	       (and (car result)
-		    (delete 0 (mapcar
-			       #'string-to-number
-			       (cdr (assoc "SEARCH" (cdr result))))))))))
-      (gnus-summary-read-group-1 group t t gnus-summary-buffer
-				 nil (list backend-number))
-      (gnus-summary-refer-thread))))
-
-
-(if (fboundp 'eval-after-load)
-    (eval-after-load "gnus-sum"
-      '(define-key gnus-summary-goto-map
-         "T" 'gnus-summary-nnir-goto-thread))
-  (add-hook 'gnus-summary-mode-hook
-            (function (lambda ()
-                        (define-key gnus-summary-goto-map
-                          "T" 'gnus-summary-nnir-goto-thread)))))
-
-
 
 ;; Gnus backend interface functions.
 
@@ -655,6 +606,13 @@ and show thread that contains this article."
 	  to-newsgroup		; Not respooling
 	  (gnus-group-real-name to-newsgroup))) ; Is this move internal
     ))
+
+(deffoo nnir-warp-to-article ()
+  (let* ((cur (gnus-summary-article-number))
+         (gnus-newsgroup-name (nnir-artlist-artitem-group nnir-artlist cur))
+         (backend-number (nnir-artlist-artitem-number nnir-artlist cur)))
+    (gnus-summary-read-group-1 gnus-newsgroup-name t t gnus-summary-buffer
+			       nil (list backend-number))))
 
 (nnoo-define-skeleton nnir)
 

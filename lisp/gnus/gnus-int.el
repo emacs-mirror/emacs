@@ -503,10 +503,21 @@ If BUFFER, insert the article in that group."
 	     (nth 1 gnus-command-method) buffer)))
 
 (defun gnus-request-thread (id)
-  "Request the thread containing the article specified by Message-ID id."
+  "Request the headers in the thread containing the article
+specified by Message-ID id."
   (let ((gnus-command-method (gnus-find-method-for-group gnus-newsgroup-name)))
     (funcall (gnus-get-function gnus-command-method 'request-thread)
 	     id)))
+
+(defun gnus-warp-to-article ()
+  "Warps from an article in a virtual group to the article in its
+real group. Does nothing on a real group."
+  (interactive)
+  (let ((gnus-command-method
+	 (gnus-find-method-for-group gnus-newsgroup-name)))
+    (when (gnus-check-backend-function
+	   'warp-to-article (car gnus-command-method))
+      (funcall (gnus-get-function gnus-command-method 'warp-to-article)))))
 
 (defun gnus-request-head (article group)
   "Request the head of ARTICLE in GROUP."

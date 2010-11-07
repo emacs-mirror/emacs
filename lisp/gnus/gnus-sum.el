@@ -2061,6 +2061,7 @@ increase the score of each group you read."
   "D" gnus-summary-enter-digest-group
   "R" gnus-summary-refer-references
   "T" gnus-summary-refer-thread
+  "W" gnus-warp-to-article
   "g" gnus-summary-show-article
   "s" gnus-summary-isearch-article
   "P" gnus-summary-print-article
@@ -5468,7 +5469,7 @@ or a straight list of headers."
 			  (substring subject (match-end 1)))))
 	  (mail-header-set-subject header subject))))))
 
-(defun gnus-fetch-headers (articles)
+(defun gnus-fetch-headers (articles &optional limit force-new dependencies)
   "Fetch headers of ARTICLES."
   (let ((name (gnus-group-decoded-name gnus-newsgroup-name)))
     (gnus-message 5 "Fetching headers for %s..." name)
@@ -5477,16 +5478,17 @@ or a straight list of headers."
 		(setq gnus-headers-retrieved-by
 		      (gnus-retrieve-headers
 		       articles gnus-newsgroup-name
-		       ;; We might want to fetch old headers, but
-		       ;; not if there is only 1 article.
-		       (and (or (and
-				 (not (eq gnus-fetch-old-headers 'some))
-				 (not (numberp gnus-fetch-old-headers)))
-				(> (length articles) 1))
-			    gnus-fetch-old-headers))))
+		       (or limit
+			   ;; We might want to fetch old headers, but
+			   ;; not if there is only 1 article.
+			   (and (or (and
+				     (not (eq gnus-fetch-old-headers 'some))
+				     (not (numberp gnus-fetch-old-headers)))
+				    (> (length articles) 1))
+				gnus-fetch-old-headers)))))
 	    (gnus-get-newsgroup-headers-xover
-	     articles nil nil gnus-newsgroup-name t)
-	  (gnus-get-newsgroup-headers))
+	     articles force-new dependencies gnus-newsgroup-name t)
+	  (gnus-get-newsgroup-headers dependencies force-new))
       (gnus-message 5 "Fetching headers for %s...done" name))))
 
 (defun gnus-select-newsgroup (group &optional read-all select-articles)
@@ -8835,46 +8837,39 @@ fetch LIMIT (the numerical prefix) old headers. If LIMIT is nil
 fetch what's specified by the `gnus-refer-thread-limit'
 variable."
   (interactive "P")
+  (gnus-warp-to-article)
   (let ((id (mail-header-id (gnus-summary-article-header)))
-	(subject (gnus-simplify-subject
-		  (mail-header-subject (gnus-summary-article-header))))
-	(refs (split-string (or (mail-header-references
-				 (gnus-summary-article-header)) "")))
-	(gnus-summary-ignore-duplicates t)
 	(gnus-inhibit-demon t)
+	(gnus-agent nil)
+	(gnus-summary-ignore-duplicates t)
 	(gnus-read-all-available-headers t)
 	(limit (if limit (prefix-numeric-value limit)
 		 gnus-refer-thread-limit)))
-    (if  (gnus-check-backend-function 'request-thread gnus-newsgroup-name)
-	(setq gnus-newsgroup-headers
-	      (gnus-merge 'list
-			  gnus-newsgroup-headers
-			  (gnus-request-thread id)
-			  'gnus-article-sort-by-number))
-      (unless (eq gnus-fetch-old-headers 'invisible)
-	(gnus-message 5 "Fetching headers for %s..." gnus-newsgroup-name)
-	;;	Retrieve the headers and read them in.
-	(if (numberp limit)
-	    (gnus-retrieve-headers
-	     (list (min
-		    (+ (mail-header-number
-			(gnus-summary-article-header))
-		       limit)
-		    gnus-newsgroup-end))
-	     gnus-newsgroup-name (* limit 2))
-	  ;; gnus-refer-thread-limit is t, i.e. fetch _all_
-	  ;; headers.
-	  (gnus-retrieve-headers (list gnus-newsgroup-end)
-				 gnus-newsgroup-name limit)
-	  (gnus-message 5 "Fetching headers for %s...done"
-			gnus-newsgroup-name))))
-    (when (eq gnus-headers-retrieved-by 'nov)
-      ;; might as well restrict the headers to the relevant ones. this
-      ;; should save time when building threads.
-      (with-current-buffer nntp-server-buffer
-	(goto-char (point-min))
-	(keep-lines (regexp-opt (append refs (list id subject)))))
-      (gnus-build-all-threads))
+    (setq gnus-newsgroup-headers
+	  (gnus-merge
+	   'list gnus-newsgroup-headers
+	   (if (gnus-check-backend-function
+		'request-thread gnus-newsgroup-name)
+	       (gnus-request-thread id)
+	     (let* ((last (if (numberp limit)
+			      (min (+ (mail-header-number
+				       (gnus-summary-article-header))
+				      limit)
+				   gnus-newsgroup-highest)
+			    gnus-newsgroup-highest))
+		    (subject (gnus-simplify-subject
+			      (mail-header-subject
+			       (gnus-summary-article-header))))
+		    (refs (split-string (or (mail-header-references
+					     (gnus-summary-article-header))
+					    "")))
+		    (gnus-parse-headers-hook
+		     (lambda () (goto-char (point-min))
+		       (keep-lines
+			(regexp-opt (append refs (list id subject)))))))
+	       (gnus-fetch-headers (list last) (if (numberp limit)
+						   (* 2 limit) limit) t)))
+	   'gnus-article-sort-by-number))
     (gnus-summary-limit-include-thread id)))
 
 (defun gnus-summary-refer-article (message-id)
