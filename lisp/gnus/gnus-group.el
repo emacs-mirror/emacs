@@ -2267,7 +2267,7 @@ Return the name of the group if selection was successful."
    (list
     ;; (gnus-read-group "Group name: ")
     (gnus-group-completing-read)
-    (gnus-read-method "From method: ")))
+    (gnus-read-method "From method")))
   ;; Transform the select method into a unique server.
   (when (stringp method)
     (setq method (gnus-server-to-method method)))
@@ -2674,7 +2674,7 @@ server."
   (interactive
    (list
     (gnus-read-group "Group name: ")
-    (gnus-read-method "From method: ")))
+    (gnus-read-method "From method")))
 
   (when (stringp method)
     (setq method (or (gnus-server-to-method method) method)))
