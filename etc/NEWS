@@ -95,7 +95,7 @@ indentation, which can be adjusted via ad-hoc indentation rules.
 ** `e' and `pi' are now called `float-e' and `float-pi'.
   The old names are obsolete.
 ** The use of unintern without an obarray arg is declared obsolete.
-
+** The function `princ-list' is declared obsolete.
 ** New function byte-to-string, like char-to-string but for bytes.
 
 
