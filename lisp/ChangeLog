@@ -1,3 +1,8 @@
+2010-11-08  Richard Levitte  <richard@levitte.org>  (tiny patch)
+
+	* vc-mtn.el (vc-mtn-working-revision, vc-mtn-after-dir-status)
+	(vc-mtn-workfile-branch): Adjust to new output format.
+
 2010-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-cmds.el (princ-list): Mark as obsolete.
