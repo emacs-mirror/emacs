@@ -1,7 +1,7 @@
 ;;; ede-proj-elisp.el --- EDE Generic Project Emacs Lisp support
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -129,18 +129,13 @@ Bonus: Return a cons cell: (COMPILED . UPTODATE)."
 	 (utd 0))
     (mapc (lambda (src)
 	    (let* ((fsrc (expand-file-name src dir))
-		   (elc (concat (file-name-sans-extension fsrc) ".elc"))
-		   )
-	      (if (or (not (file-exists-p elc))
-		      (file-newer-than-file-p fsrc elc))
-		  (progn
-		    (setq comp (1+ comp))
-		    (byte-compile-file fsrc))
+		   (elc (concat (file-name-sans-extension fsrc) ".elc")))
+	      (if (eq (byte-recompile-file fsrc nil 0) t)
+                  (setq comp (1+ comp))
 		(setq utd (1+ utd)))))
 	    (oref obj source))
     (message "All Emacs Lisp sources are up to date in %s" (object-name obj))
-    (cons comp utd)
-    ))
+    (cons comp utd)))
 
 (defmethod ede-update-version-in-source ((this ede-proj-target-elisp) version)
   "In a Lisp file, updated a version string for THIS to VERSION.
@@ -250,10 +245,7 @@ is found, such as a `-version' variable, or the standard header."
 	    (let ((path (match-string 1)))
 	      (if (string= path "nil")
 		  nil
-		(delete-region (save-excursion (beginning-of-line) (point))
-			       (save-excursion (end-of-line)
-					       (forward-char 1)
-					       (point))))))))))
+		(delete-region (point-at-bol) (point-at-bol 2)))))))))
 
 ;;;
 ;; Autoload generators
@@ -390,5 +382,4 @@ Argument THIS is the target which needs to insert an info file."
 
 (provide 'ede/proj-elisp)
 
-;; arch-tag: 3802c94b-d04d-4ecf-9bab-b29ed6e77588
 ;;; ede/proj-elisp.el ends here

@@ -100,8 +100,6 @@ If CONFIRM is non-nil, the user will be asked for an NNTP server."
 	;; Stream is already opened.
 	nil
       ;; Open NNTP server.
-      (unless gnus-nntp-service
-	(setq gnus-nntp-server nil))
       (when confirm
 	;; Read server name with completion.
 	(setq gnus-nntp-server
@@ -504,6 +502,23 @@ If BUFFER, insert the article in that group."
 	     article (gnus-group-real-name group)
 	     (nth 1 gnus-command-method) buffer)))
 
+(defun gnus-request-thread (id)
+  "Request the headers in the thread containing the article
+specified by Message-ID id."
+  (let ((gnus-command-method (gnus-find-method-for-group gnus-newsgroup-name)))
+    (funcall (gnus-get-function gnus-command-method 'request-thread)
+	     id)))
+
+(defun gnus-warp-to-article ()
+  "Warps from an article in a virtual group to the article in its
+real group. Does nothing on a real group."
+  (interactive)
+  (let ((gnus-command-method
+	 (gnus-find-method-for-group gnus-newsgroup-name)))
+    (when (gnus-check-backend-function
+	   'warp-to-article (car gnus-command-method))
+      (funcall (gnus-get-function gnus-command-method 'warp-to-article)))))
+
 (defun gnus-request-head (article group)
   "Request the head of ARTICLE in GROUP."
   (let* ((gnus-command-method (gnus-find-method-for-group group))
@@ -649,7 +664,8 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	 (result (funcall (gnus-get-function gnus-command-method
 					     'request-move-article)
 			  article (gnus-group-real-name group)
-			  (nth 1 gnus-command-method) accept-function last move-is-internal)))
+			  (nth 1 gnus-command-method) accept-function
+			  last move-is-internal)))
     (when (and result gnus-agent
 	       (gnus-agent-method-p gnus-command-method))
       (gnus-agent-unfetch-articles group (list article)))

@@ -4901,7 +4901,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;  ;; This is the Unix dl version.
 ;;  (let ((opoint (point))
 ;;	case-fold-search hidden)
-;;    (or eol (setq eol (save-excursion (end-of-line) (point))))
+;;    (or eol (setq eol (line-end-position)))
 ;;    (setq hidden (and selective-display
 ;;		       (save-excursion
 ;;			 (search-forward "\r" eol t))))
@@ -5300,7 +5300,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;  ;; This is the VMS version.
 ;;  (let (opoint hidden case-fold-search)
 ;;    (setq opoint (point))
-;;    (or eol (setq eol (save-excursion (end-of-line) (point))))
+;;    (or eol (setq eol (line-end-position)))
 ;;    (setq hidden (and selective-display
 ;;		      (save-excursion (search-forward "\r" eol t))))
 ;;    (if hidden
@@ -5658,7 +5658,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;  ;; This is the MTS version.
 ;;  (let (opoint hidden case-fold-search)
 ;;    (setq opoint (point)
-;;	  eol (save-excursion (end-of-line) (point))
+;;	  eol (line-end-position)
 ;;	  hidden (and selective-display
 ;;		      (save-excursion (search-forward "\r" eol t))))
 ;;    (if hidden
@@ -5879,7 +5879,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;  ;; This is the CMS version.
 ;;  (let ((opoint (point))
 ;;	case-fold-search hidden)
-;;    (or eol (setq eol (save-excursion (end-of-line) (point))))
+;;    (or eol (setq eol (line-end-position)))
 ;;    (setq hidden (and selective-display
 ;;		      (save-excursion
 ;;			(search-forward "\r" eol t))))
@@ -6153,5 +6153,4 @@ be recognized automatically (they are all valid BS2000 hosts too)."
 
 (provide 'ange-ftp)
 
-;; arch-tag: 2987ef88-cb56-4ec1-87a9-79132572e316
 ;;; ange-ftp.el ends here

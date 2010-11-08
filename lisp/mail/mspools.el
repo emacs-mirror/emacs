@@ -181,7 +181,8 @@ your primary spool is.  If this fails, set it to something like
     (define-key map "q" 'mspools-quit)
     (define-key map "n" 'next-line)
     (define-key map "p" 'previous-line)
-    (define-key map "g" 'revert-buffer))
+    (define-key map "g" 'revert-buffer)
+    map)
   "Keymap for the *spools* buffer.")
 
 ;;; Code

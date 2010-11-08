@@ -1164,8 +1164,8 @@ is passed on to the respective function."
 (defun comment-dwim (arg)
   "Call the comment command you want (Do What I Mean).
 If the region is active and `transient-mark-mode' is on, call
-  `comment-region' (unless it only consists of comments, in which
-  case it calls `uncomment-region').
+`comment-region' (unless it only consists of comments, in which
+case it calls `uncomment-region').
 Else, if the current line is empty, call `comment-insert-comment-function'
 if it is defined, otherwise insert a comment and indent it.
 Else if a prefix ARG is specified, call `comment-kill'.

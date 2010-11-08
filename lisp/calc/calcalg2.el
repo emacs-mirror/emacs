@@ -1886,9 +1886,9 @@
 ;; math-scan-for-limits.
 (defvar calc-low)
 (defvar calc-high)
-(defvar var)
+(defvar math-var)
 
-(defun calcFunc-table (expr var &optional calc-low calc-high step)
+(defun calcFunc-table (expr math-var &optional calc-low calc-high step)
   (or calc-low
       (setq calc-low '(neg (var inf var-inf)) calc-high '(var inf var-inf)))
   (or calc-high (setq calc-high calc-low calc-low 1))
@@ -1917,7 +1917,7 @@
 	      (math-working-step-2 (1+ count))
 	      (math-working-step 0))
 	  (setq expr (math-evaluate-expr
-		      (math-expr-subst expr var '(var DUMMY var-DUMMY))))
+		      (math-expr-subst expr math-var '(var DUMMY var-DUMMY))))
 	  (while (>= count 0)
 	    (setq math-working-step (1+ math-working-step)
 		  var-DUMMY calc-low
@@ -1940,7 +1940,7 @@
 	      (calc-record-why 'integerp calc-high))
 	  (calc-record-why 'integerp calc-low)))
       (append (list (or math-tabulate-function 'calcFunc-table)
-		    expr var)
+		    expr math-var)
 	      (and (not (and (equal calc-low '(neg (var inf var-inf)))
 			     (equal calc-high '(var inf var-inf))))
 		   (list calc-low calc-high))
@@ -1950,11 +1950,11 @@
   (cond ((Math-primp x))
 	((and (eq (car x) 'calcFunc-subscr)
 	      (Math-vectorp (nth 1 x))
-	      (math-expr-contains (nth 2 x) var))
+	      (math-expr-contains (nth 2 x) math-var))
 	 (let* ((calc-next-why nil)
-		(low-val (math-solve-for (nth 2 x) 1 var nil))
+		(low-val (math-solve-for (nth 2 x) 1 math-var nil))
 		(high-val (math-solve-for (nth 2 x) (1- (length (nth 1 x)))
-					  var nil))
+					  math-var nil))
 		temp)
 	   (and low-val (math-realp low-val)
 		high-val (math-realp high-val))

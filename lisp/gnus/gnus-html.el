@@ -29,9 +29,10 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'mm-decode))
 
 (require 'gnus-art)
+(eval-when-compile (require 'mm-decode))
+
 (require 'mm-url)
 (require 'url)
 (require 'url-cache)
@@ -205,8 +206,8 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
                  url
                  (if (buffer-live-p gnus-summary-buffer)
                      (with-current-buffer gnus-summary-buffer
-                       gnus-blocked-images)
-                   gnus-blocked-images))
+                       (gnus-blocked-images))
+                   (gnus-blocked-images)))
                 (progn
                   (widget-convert-button
                    'link start end
@@ -349,9 +350,13 @@ Use ALT-TEXT for the image string."
   "Browse the image under point."
   (interactive)
   (let ((url (get-text-property (point) 'gnus-string)))
-    (if (not url)
-	(message "No URL at point")
-      (browse-url url))))
+    (cond
+     ((not url)
+      (message "No link under point"))
+     ((string-match "^mailto:" url)
+      (gnus-url-mailto url))
+     (t
+      (browse-url url)))))
 
 (defun gnus-html-schedule-image-fetching (buffer image)
   "Retrieve IMAGE, and place it into BUFFER on arrival."
@@ -491,10 +496,11 @@ This only works if the article in question is HTML."
 (defun gnus-html-prefetch-images (summary)
   (when (buffer-live-p summary)
     (let ((blocked-images (with-current-buffer summary
-                            gnus-blocked-images)))
+                            (gnus-blocked-images))))
       (save-match-data
-	(while (re-search-forward "<img[^>]+src=[\"']\\([^\"']+\\)" nil t)
-	  (let ((url (gnus-html-encode-url (match-string 1))))
+	(while (re-search-forward "<img[^>]+src=[\"']\\(http[^\"']+\\)" nil t)
+	  (let ((url (gnus-html-encode-url
+		      (mm-url-decode-entities-string (match-string 1)))))
 	    (unless (gnus-html-image-url-blocked-p url blocked-images)
               (when (gnus-html-cache-expired url gnus-html-image-cache-ttl)
                 (gnus-html-schedule-image-fetching nil

@@ -589,6 +589,8 @@ qttip_cb (GtkWidget  *widget,
       g_object_ref (G_OBJECT (x->ttip_lbl));
       gtk_tooltip_set_custom (tooltip, x->ttip_lbl);
       x->ttip_window = GTK_WINDOW (gtk_widget_get_toplevel (x->ttip_lbl));
+      /* ATK needs an empty title for some reason.  */
+      gtk_window_set_title (x->ttip_window, "");
       /* Realize so we can safely get screen later on.  */
       gtk_widget_realize (GTK_WIDGET (x->ttip_window));
       gtk_widget_realize (x->ttip_lbl);

@@ -543,7 +543,7 @@ you may also want to change `compilation-page-delimiter'.")
      ;; Command output lines.  Recognize `make[n]:' lines too.
      ("^\\([[:alnum:]_/.+-]+\\)\\(\\[\\([0-9]+\\)\\]\\)?[ \t]*:"
       (1 font-lock-function-name-face) (3 compilation-line-face nil t))
-     (" --?o\\(?:utfile\\|utput\\)?[= ]?\\(\\S +\\)" . 1)
+     (" -\\(?:o[= ]?\\|-\\(?:outfile\\|output\\)[= ]\\)\\(\\S +\\)" . 1)
      ("^Compilation \\(finished\\).*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-info-face))

@@ -1059,6 +1059,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
 
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t
+
 /* Define to any substitute for sys_siglist. */
 #undef sys_siglist
 
@@ -1097,17 +1100,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include config_opsysfile
 #include config_machfile
 
-/* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
-  (There is probably a better place to do this, but right now the Cocoa
-   side does this in s/darwin.h and we cannot
-   parallel this exactly since GNUstep is multi-OS.  */
-#ifdef HAVE_NS
-# ifdef NS_IMPL_GNUSTEP
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
-SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
+   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
+  (There is probably a better place to do this, but right now the
+   Cocoa side does this in s/darwin.h and we cannot parallel this
+   exactly since GNUstep is multi-OS.  */
+#if defined HAVE_NS && defined NS_IMPL_GNUSTEP
 #  define SYSTEM_PURESIZE_EXTRA 30000
-# endif /* NS_IMPL_GNUSTEP */
-#endif /* HAVE_NS */
+#endif
 
 /* SIGTYPE is the macro we actually use.  */
 #ifndef SIGTYPE

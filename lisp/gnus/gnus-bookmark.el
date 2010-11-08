@@ -1,6 +1,7 @@
 ;;; gnus-bookmark.el --- Bookmarks in Gnus
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: news
@@ -538,7 +539,7 @@ Optional argument SHOW means show them unconditionally."
             (let ((bmrk (gnus-bookmark-bmenu-bookmark)))
               (setq gnus-bookmark-bmenu-hidden-bookmarks
                     (cons bmrk gnus-bookmark-bmenu-hidden-bookmarks))
-	      (let ((start (save-excursion (end-of-line) (point))))
+	      (let ((start (point-at-eol)))
 		(move-to-column gnus-bookmark-bmenu-file-column t)
 		;; Strip off `mouse-face' from the white spaces region.
 		(if (gnus-bookmark-mouse-available-p)
@@ -572,10 +573,9 @@ Optional argument SHOW means show them unconditionally."
   "Kill from point to end of line.
 If optional arg NEWLINE-TOO is non-nil, delete the newline too.
 Does not affect the kill ring."
-  (let ((eol (save-excursion (end-of-line) (point))))
-    (delete-region (point) eol)
-    (if (and newline-too (looking-at "\n"))
-        (delete-char 1))))
+  (delete-region (point) (point-at-eol))
+  (if (and newline-too (looking-at "\n"))
+      (delete-char 1)))
 
 (defun gnus-bookmark-get-details (bmk-name details-list)
   "Get details for a Gnus BMK-NAME depending on DETAILS-LIST."

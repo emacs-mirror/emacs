@@ -1466,12 +1466,9 @@ Please send all bug fixes and enhancements to
 (require 'lpr)
 
 
-(or (featurep 'lisp-float-type)
-    (error "`ps-print' requires floating point support"))
-
-
 (if (featurep 'xemacs)
-    ()
+    (or (featurep 'lisp-float-type)
+	(error "`ps-print' requires floating point support"))
   (unless (and (boundp 'emacs-major-version)
 	       (>= emacs-major-version 23))
     (error "`ps-print' only supports Emacs 23 and higher")))
@@ -6656,7 +6653,7 @@ If FACE is not a valid face name, use default face."
 ;; But autoload them here to make the separation invisible.
 
 ;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
-;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "d2fcad95db7404989362657faf744796")
+;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "26f1d5db9476d0e84ab55627fbb72b1b")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\
@@ -6726,5 +6723,4 @@ Finish printing job for multi-byte chars.
 
 (provide 'ps-print)
 
-;; arch-tag: fb06a585-1112-4206-885d-a57d95d50579
 ;;; ps-print.el ends here

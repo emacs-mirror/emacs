@@ -1,7 +1,7 @@
 ;;; skeleton.el --- Lisp language extension for writing statement skeletons -*- coding: utf-8 -*-
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Maintainer: FSF
@@ -318,7 +318,7 @@ automatically, and you are prompted to fill in the variable parts.")))
     prompt))
 
 (defun skeleton-internal-list (skeleton &optional str recursive)
-  (let* ((start (save-excursion (beginning-of-line) (point)))
+  (let* ((start (line-beginning-position))
 	 (column (current-column))
 	 (line (buffer-substring start (line-end-position)))
 	 opoint)
@@ -562,5 +562,4 @@ symmetrical ones, and the same character twice for the others."
 
 (provide 'skeleton)
 
-;; arch-tag: ccad7bd5-eb5d-40de-9ded-900197215c3e
 ;;; skeleton.el ends here

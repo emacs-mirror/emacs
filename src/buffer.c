@@ -1,8 +1,8 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994,
-                 1995, 1997, 1998, 1999, 2000, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995, 1997,
+  1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -5600,7 +5600,8 @@ Format with `format-mode-line' to produce a string value.  */);
 		     doc: /* Local (mode-specific) abbrev table of current buffer.  */);
 
   DEFVAR_PER_BUFFER ("abbrev-mode", &current_buffer->abbrev_mode, Qnil,
-		     doc: /* Non-nil turns on automatic expansion of abbrevs as they are inserted.  */);
+		     doc: /*  Non-nil if Abbrev mode is enabled.
+Use the command `abbrev-mode' to change this variable.  */);
 
   DEFVAR_PER_BUFFER ("case-fold-search", &current_buffer->case_fold_search,
 		     Qnil,
@@ -6098,11 +6099,23 @@ to the value obtained by calling `current-time'.
 If the buffer has never been shown in a window, the value is nil.  */);
 
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
-	       doc: /* */);
+	       doc: /*  Non-nil if Transient Mark mode is enabled.
+See the command `transient-mark-mode' for a description of this minor mode.
+
+Non-nil also enables highlighting of the region whenever the mark is active.
+The variable `highlight-nonselected-windows' controls whether to highlight
+all windows or just the selected window.
+
+If the value is `lambda', that enables Transient Mark mode temporarily.
+After any subsequent action that would normally deactivate the mark
+\(such as buffer modification), Transient Mark mode is turned off.
+
+If the value is (only . OLDVAL), that enables Transient Mark mode
+temporarily.  After any subsequent point motion command that is not
+shift-translated, or any other action that would normally deactivate
+the mark (such as buffer modification), the value of
+`transient-mark-mode' is set to OLDVAL.  */);
   Vtransient_mark_mode = Qnil;
-  /* The docstring is in simple.el.  If we put it here, it would be
-     overwritten when transient-mark-mode is defined using
-     define-minor-mode.  */
 
   DEFVAR_LISP ("inhibit-read-only", &Vinhibit_read_only,
 	       doc: /* *Non-nil means disregard read-only status of buffers or characters.
@@ -6140,8 +6153,12 @@ to the default frame line height.  A value of nil means add no extra space.  */)
 
   DEFVAR_PER_BUFFER ("cursor-in-non-selected-windows",
 		     &current_buffer->cursor_in_non_selected_windows, Qnil,
-		     doc: /* *Cursor type to display in non-selected windows.
-The value t means to use hollow box cursor.  See `cursor-type' for other values.  */);
+		     doc: /* *Non-nil means show a cursor in non-selected windows.
+If nil, only shows a cursor in the selected window.
+If t, displays a cursor related to the usual cursor type
+\(a solid box becomes hollow, a bar becomes a narrower bar).
+You can also specify the cursor type as in the `cursor-type' variable.
+Use Custom to set this variable and update the display."  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", &Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.
@@ -6218,5 +6235,3 @@ keys_of_buffer (void)
   Fput (intern_c_string ("erase-buffer"), Qdisabled, Qt);
 }
 
-/* arch-tag: e48569bf-69a9-4b65-a23b-8e68769436e1
-   (do not change this comment) */

@@ -89,6 +89,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Xaw/Paned.h>
 #endif /* HAVE_XAW3D */
 #endif /* USE_LUCID */
+#include "../lwlib/lwlib.h"
 #else /* not USE_X_TOOLKIT */
 #ifndef USE_GTK
 #include "../oldXMenu/XMenu.h"
@@ -2532,13 +2533,16 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 
 #endif /* HAVE_MENUS */
 
-/* Detect if a dialog or menu has been posted.  */
+#ifndef MSDOS
+/* Detect if a dialog or menu has been posted.  MSDOS has its own
+   implementation on msdos.c.  */
 
 int
 popup_activated (void)
 {
   return popup_activated_flag;
 }
+#endif	/* not MSDOS */
 
 /* The following is used by delayed window autoselection.  */
 

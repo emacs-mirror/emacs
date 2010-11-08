@@ -703,7 +703,7 @@ point at BOB."
                (setq str-terminator ?/))
              (re-search-forward
               (concat "\\([^\\]\\|^\\)" (string str-terminator))
-              (save-excursion (end-of-line) (point)) t))
+              (point-at-eol) t))
             ((nth 7 parse)
              (forward-line))
             ((or (nth 4 parse)
@@ -759,7 +759,7 @@ macro as normal text."
                (setq str-terminator ?/))
              (re-search-backward
               (concat "\\([^\\]\\|^\\)" (string str-terminator))
-              (save-excursion (beginning-of-line) (point)) t))
+              (point-at-bol) t))
             ((nth 7 parse)
              (goto-char (nth 8 parse)))
             ((or (nth 4 parse)
@@ -3377,5 +3377,4 @@ Key bindings:
 
 (provide 'js)
 
-;; arch-tag: 1a0d0409-e87f-4fc7-a58c-3731c66ddaac
 ;; js.el ends here

@@ -213,6 +213,8 @@ LIBRARY should be a string (the name of the library)."
   (interactive
    (let* ((dirs (or find-function-source-path load-path))
           (suffixes (find-library-suffixes))
+          (table (apply-partially 'locate-file-completion-table
+                                  dirs suffixes))
 	  (def (if (eq (function-called-at-point) 'require)
 		   ;; `function-called-at-point' may return 'require
 		   ;; with `point' anywhere on this line.  So wrap the
@@ -226,16 +228,12 @@ LIBRARY should be a string (the name of the library)."
 			 (thing-at-point 'symbol))
 		     (error nil))
 		 (thing-at-point 'symbol))))
-     (when def
-       (setq def (and (locate-file-completion-table
-                       dirs suffixes def nil 'lambda)
-                      def)))
+     (when (and def (not (test-completion def table)))
+       (setq def nil))
      (list
       (completing-read (if def (format "Library name (default %s): " def)
 			 "Library name: ")
-		       (apply-partially 'locate-file-completion-table
-                                        dirs suffixes)
-                       nil nil nil nil def))))
+		       table nil nil nil nil def))))
   (let ((buf (find-file-noselect (find-library-name library))))
     (condition-case nil (switch-to-buffer buf) (error (pop-to-buffer buf)))))
 

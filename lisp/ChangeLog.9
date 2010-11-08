@@ -1034,8 +1034,8 @@
 2001-09-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired.el (dired-move-to-filename-regexp): Allow one digit in the
-	numeric month value, and allow the Kanji character after the it to
-	be missing (happens with ls-lisp's output on Japanese versions of
+	numeric month value, and allow the Kanji character after it to be
+	missing (happens with ls-lisp's output on Japanese versions of
 	MS-Windows).
 
 2001-09-18  Miles Bader  <miles@gnu.org>
@@ -16606,7 +16606,7 @@
 	0.  Give correct argument to set-auto-coding-function.
 	(tar-expunge): For goto-char, use (point-min), not 0.
 	(tar-clear-modification-flags): For goto-char, use (point-min), not 1.
-	(tar-subfile-save-buffer): Likewize.
+	(tar-subfile-save-buffer): Likewise.
 
 	* international/mule.el
 	(after-insert-file-set-buffer-file-coding-system): Call
@@ -16910,7 +16910,7 @@
 	(ccl-decode-viscii): Use translate-character.
 	(ccl-encode-viscii, ccl-encode-viscii-font)
 	(ccl-decode-vscii, ccl-encode-vscii, ccl-encode-vscii-font):
-	Likewize.
+	Likewise.
 
 	* language/cyrillic.el: Remove eval-when-compile.
 	(cyrillic-koi8-r-nonascii-translation-table): Define it as a
@@ -16925,7 +16925,7 @@
 	table made from the reverse map of above.
 	(ccl-decode-alternativnyj): Use translate-character.
 	(ccl-encode-alternativnyj, ccl-encode-alternativnyj-font):
-	Likewize
+	Likewise.
 
 	* international/mule-diag.el (non-iso-charset-alist): Specify
 	translation table symbol instead of translation table itself.
@@ -18071,8 +18071,8 @@
 
 	* emacs-lisp/cl-macs.el: Doc fixes; mainly avoid duplicating arg
 	list in doc string.  Don't quote keyword symbols.
-	* emacs-lisp/cl.el: Likewise
-	* emacs-lisp/cl-seq.el: Likewise
+	* emacs-lisp/cl.el: Likewise.
+	* emacs-lisp/cl-seq.el: Likewise.
 
 2000-05-05  Gerd Moellmann  <gerd@gnu.org>
 

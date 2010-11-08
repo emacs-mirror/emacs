@@ -69,6 +69,11 @@ typedef Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
 #endif
 
+#ifndef HAVE_WINDOW_SYSTEM
+typedef int Cursor;
+#define No_Cursor (0)
+#endif
+
 #ifndef NativeRectangle
 #define NativeRectangle int
 #endif
@@ -279,6 +284,9 @@ enum glyph_type
   /* Glyph describes a static composition.  */
   COMPOSITE_GLYPH,
 
+  /* Glyph describes a glyphless character.  */
+  GLYPHLESS_GLYPH,
+
   /* Glyph describes an image.  */
   IMAGE_GLYPH,
 
@@ -333,7 +341,7 @@ struct glyph
 
   /* Which kind of glyph this is---character, image etc.  Value
      should be an enumerator of type enum glyph_type.  */
-  unsigned type : 2;
+  unsigned type : 3;
 
   /* 1 means this glyph was produced from multibyte text.  Zero
      means it was produced from unibyte text, i.e. charsets aren't
@@ -402,6 +410,11 @@ struct glyph
     /* Start and end indices of glyphs of a graphme cluster of a
        composition (type == COMPOSITE_GLYPH).  */
     struct { int from, to; } cmp;
+    /* Pixel offsets for upper and lower part of the acronym.  */
+    struct {
+      short upper_xoff, upper_yoff;
+      short lower_xoff, lower_yoff;
+    } glyphless;
   } slice;
 
   /* A union of sub-structures for different glyph types.  */
@@ -432,6 +445,19 @@ struct glyph
       unsigned ascent  : 16;
     }
     stretch;
+
+    /* Sub-stretch for type == GLYPHLESS_GLYPH.  */
+    struct
+    {
+      /* Value is an enum of the type glyphless_display_method.  */
+      unsigned method : 2;
+      /* 1 iff this glyph is for a character of no font. */
+      unsigned for_no_font : 1;
+      /* Length of acronym or hexadecimal code string (at most 8).  */
+      unsigned len : 4;
+      /* Character to display.  Actually we need only 22 bits.  */
+      unsigned ch : 26;
+    } glyphless;
 
     /* Used to compare all bit-fields above in one step.  */
     unsigned val;
@@ -1918,6 +1944,9 @@ enum display_element_type
   /* A composition (static and automatic).  */
   IT_COMPOSITION,
 
+  /* A glyphless character (e.g. ZWNJ, LRE).  */
+  IT_GLYPHLESS,
+
   /* An image.  */
   IT_IMAGE,
 
@@ -1963,6 +1992,20 @@ enum line_wrap_method
   WORD_WRAP,
   WINDOW_WRAP
 };
+
+/* An enumerator for the method of displaying glyphless characters.  */
+
+enum glyphless_display_method
+  {
+    /* Display a thin (1-pixel width) space.  */
+    GLYPHLESS_DISPLAY_THIN_SPACE,
+    /* Display an empty box of proper width.  */
+    GLYPHLESS_DISPLAY_EMPTY_BOX,
+    /* Display an acronym string in a box.  */
+    GLYPHLESS_DISPLAY_ACRONYM,
+    /* Display a hexadecimal character code in a box.  */
+    GLYPHLESS_DISPLAY_HEXA_CODE
+  };
 
 struct it_slice
 {
@@ -2294,6 +2337,10 @@ struct it
      called.  If we are setting it->C directly before calling
      PRODUCE_GLYPHS, this should be set beforehand too.  */
   int char_to_display;
+
+  /* If what == IT_GLYPHLESS, the method to display such a
+     character.  */
+  enum glyphless_display_method glyphless_method;
 
   /* If what == IT_IMAGE, the id of the image to display.  */
   int image_id;
@@ -2976,9 +3023,10 @@ extern int last_tool_bar_item;
 extern Lisp_Object Vmouse_autoselect_window;
 extern int unibyte_display_via_language_environment;
 extern EMACS_INT underline_minimum_offset;
+extern Lisp_Object Vglyphless_char_display;
 
 extern void reseat_at_previous_visible_line_start (struct it *);
-
+extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern int calc_pixel_width_or_height (double *, struct it *, Lisp_Object,
                                        struct font *, int, int *);
 
@@ -3017,28 +3065,31 @@ extern void x_update_cursor (struct frame *, int);
 extern void x_clear_cursor (struct window *);
 extern void x_draw_vertical_border (struct window *w);
 
-extern void frame_to_window_pixel_xy (struct window *, int *, int *);
 extern int get_glyph_string_clip_rects (struct glyph_string *,
                                         NativeRectangle *, int);
 extern void get_glyph_string_clip_rect (struct glyph_string *,
                                         NativeRectangle *nr);
 extern Lisp_Object find_hot_spot (Lisp_Object, int, int);
-extern void note_mouse_highlight (struct frame *, int, int);
-extern void x_clear_window_mouse_face (struct window *);
-extern void cancel_mouse_face (struct frame *);
 
 extern void handle_tool_bar_click (struct frame *,
                                    int, int, int, unsigned int);
 
-/* msdos.c defines its own versions of these functions. */
-extern int clear_mouse_face (Display_Info *);
-extern void show_mouse_face (Display_Info *, enum draw_glyphs_face);
-extern int cursor_in_mouse_face_p (struct window *w);
-
 extern void expose_frame (struct frame *, int, int, int, int);
 extern int x_intersect_rectangles (XRectangle *, XRectangle *,
                                    XRectangle *);
-#endif
+#endif	/* HAVE_WINDOW_SYSTEM */
+
+extern void frame_to_window_pixel_xy (struct window *, int *, int *);
+extern void note_mouse_highlight (struct frame *, int, int);
+extern void x_clear_window_mouse_face (struct window *);
+extern void cancel_mouse_face (struct frame *);
+extern int clear_mouse_face (Mouse_HLInfo *);
+extern void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face);
+extern int cursor_in_mouse_face_p (struct window *w);
+extern void draw_row_with_mouse_face (struct window *, int, struct glyph_row *,
+				      int, int, enum draw_glyphs_face);
+extern void tty_draw_row_with_mouse_face (struct window *, struct glyph_row *,
+					  int, int, enum draw_glyphs_face);
 
 /* Flags passed to try_window.  */
 #define TRY_WINDOW_CHECK_MARGINS	(1 << 0)

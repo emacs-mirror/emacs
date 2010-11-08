@@ -1,7 +1,7 @@
 ;;; ebnf2ps.el --- translate an EBNF to a syntactic chart on PostScript
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -5279,7 +5279,7 @@ killed after process termination."
     (goto-char (point-min))
     (and (search-forward "%%Creator: " nil t)
 	 (not (search-forward "& ebnf2ps v"
-			      (save-excursion (end-of-line) (point))
+			      (line-end-position)
 			      t))
 	 (progn
 	   ;; adjust creator comment
@@ -6395,5 +6395,4 @@ killed after process termination."
 
 (provide 'ebnf2ps)
 
-;; arch-tag: 148bc8af-5398-468b-b922-eeb7afef3e4f
 ;;; ebnf2ps.el ends here

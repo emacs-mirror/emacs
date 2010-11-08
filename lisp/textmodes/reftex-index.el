@@ -1699,7 +1699,7 @@ it first compares the macro identifying chars and then the phrases."
           (let* ((lines (split-string (buffer-substring beg end) "\n"))
                  (lines1 (sort lines 'reftex-compare-phrase-lines)))
             (message "Sorting lines...done")
-            (let ((inhibit-quit t))  ;; make sure we do not loose lines
+            (let ((inhibit-quit t))  ;; make sure we do not lose lines
               (delete-region beg end)
               (insert (mapconcat 'identity lines1 "\n"))))
           (goto-char (point-max))
@@ -2104,5 +2104,4 @@ Does not do a save-excursion."
    ["Save and Return" reftex-index-phrases-save-and-return t]))
 
 
-;; arch-tag: 4b2362af-c156-42c1-8932-ea2823e205c1
 ;;; reftex-index.el ends here

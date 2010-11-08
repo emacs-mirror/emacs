@@ -123,7 +123,7 @@ When nil, send actual operating system end of file."
            ((not (zerop (skip-syntax-backward ".")))))
           (point))))
 
-(defconst prolog-smie-op-levels
+(defconst prolog-smie-grammar
   ;; Rather than construct the operator levels table from the BNF,
   ;; we directly provide the operator precedences from GNU Prolog's
   ;; manual (7.14.10 op/3).  The only problem is that GNU Prolog's
@@ -173,10 +173,11 @@ When nil, send actual operating system end of file."
     )
   "Precedence levels of infix operators.")
 
-(defconst prolog-smie-indent-rules
-  '((":-")
-    ("->"))
-  "Prolog indentation rules.")
+(defun prolog-smie-rules (kind token)
+  (pcase (cons kind token)
+    (`(:elem . basic) prolog-indent-width)
+    (`(:after . ".") 0) ;; To work around smie-closer-alist.
+    (`(:after . ,(or `":-" `"->")) prolog-indent-width)))
 
 (defun prolog-mode-variables ()
   (make-local-variable 'paragraph-separate)
@@ -185,19 +186,17 @@ When nil, send actual operating system end of file."
   (setq paragraph-ignore-fill-prefix t)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression '((nil "^\\sw+" 0)))
-  (smie-setup prolog-smie-op-levels prolog-smie-indent-rules)
-  (set (make-local-variable 'smie-forward-token-function)
-       #'prolog-smie-forward-token)
-  (set (make-local-variable 'smie-backward-token-function)
-       #'prolog-smie-backward-token)
-  (set (make-local-variable 'forward-sexp-function)
-       'smie-forward-sexp-command)
-  (set (make-local-variable 'smie-indent-basic) prolog-indent-width)
+
+  ;; Setup SMIE.
+  (smie-setup prolog-smie-grammar #'prolog-smie-rules
+              :forward-token #'prolog-smie-forward-token
+              :backward-token #'prolog-smie-backward-token)
   (set (make-local-variable 'smie-blink-matching-triggers) '(?.))
   (set (make-local-variable 'smie-closer-alist) '((t . ".")))
   (add-hook 'post-self-insert-hook #'smie-blink-matching-open 'append 'local)
   ;; There's no real closer in Prolog anyway.
   (set (make-local-variable 'smie-blink-matching-inners) t)
+
   (make-local-variable 'comment-start)
   (setq comment-start "%")
   (make-local-variable 'comment-start-skip)
@@ -243,7 +242,7 @@ if that value is non-nil."
 (defun end-of-prolog-clause ()
   "Go to end of clause in this line."
   (beginning-of-line 1)
-  (let* ((eolpos (save-excursion (end-of-line) (point))))
+  (let* ((eolpos (line-end-position)))
     (if (re-search-forward comment-start-skip eolpos 'move)
 	(goto-char (match-beginning 0)))
     (skip-chars-backward " \t")))
@@ -435,5 +434,4 @@ If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
 
 (provide 'prolog)
 
-;; arch-tag: f3ec6748-1272-4ab6-8826-c50cb1607636
 ;;; prolog.el ends here

@@ -1,7 +1,8 @@
 ;;; nnmail.el --- mail support functions for the Gnus mail backends
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -1347,7 +1348,7 @@ Eudora has a broken References line, but an OK In-Reply-To."
 ;;; Utility functions
 
 (declare-function gnus-activate-group "gnus-start"
-                  (group &optional scan dont-check method))
+                  (group &optional scan dont-check method dont-sub-check))
 
 (defun nnmail-do-request-post (accept-func &optional server)
   "Utility function to directly post a message to an nnmail-derived group.

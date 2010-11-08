@@ -1029,10 +1029,6 @@ Note that the style variables are always made local to the buffer."
 			    (buffer-substring-no-properties type-pos term-pos)
 			    (buffer-substring-no-properties beg end)))))))
 
-	;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
-	;; larger than (beg end).
-	(setq c-new-BEG beg
-	      c-new-END end)
 	(if c-get-state-before-change-functions
 	    (mapc (lambda (fn)
 		    (funcall fn beg end))
@@ -1086,6 +1082,10 @@ Note that the style variables are always made local to the buffer."
 	(when c-recognize-<>-arglists
 	  (c-after-change-check-<>-operators beg end))
 
+	;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
+	;; larger than (beg end).
+	(setq c-new-BEG beg
+	      c-new-END end)
 	(if c-before-font-lock-function
 	    (save-excursion
 	      (funcall c-before-font-lock-function beg end old-len)))))))

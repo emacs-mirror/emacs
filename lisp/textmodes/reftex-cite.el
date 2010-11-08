@@ -358,27 +358,30 @@
       (message "Scanning thebibliography environment in %s" file)
 
       (with-current-buffer buf
-        (save-restriction
-          (widen)
-          (goto-char (point-min))
-          (while (re-search-forward 
-                  "\\(\\`\\|[\n\r]\\)[ \t]*\\\\begin{thebibliography}" nil t)
-            (beginning-of-line 2)
-            (setq start (point))
-            (if (re-search-forward 
-                 "\\(\\`\\|[\n\r]\\)[ \t]*\\\\end{thebibliography}" nil t)
-                (progn
-                  (beginning-of-line 1)
-                  (setq end (point))))
-            (when (and start end)
-              (setq entries 
-                    (append entries
-                      (mapcar 'reftex-parse-bibitem
-                        (delete ""
-                                (split-string 
-                                 (buffer-substring-no-properties start end)
-                                 "[ \t\n\r]*\\\\bibitem\\(\\[[^]]*]\\)*"))))))
-            (goto-char end)))))
+	(save-excursion
+	  (save-restriction
+	    (widen)
+	    (goto-char (point-min))
+	    (while (re-search-forward
+		    "\\(\\`\\|[\n\r]\\)[ \t]*\\\\begin{thebibliography}" nil t)
+	      (beginning-of-line 2)
+	      (setq start (point))
+	      (if (re-search-forward
+		   "\\(\\`\\|[\n\r]\\)[ \t]*\\\\end{thebibliography}" nil t)
+		  (progn
+		    (beginning-of-line 1)
+		    (setq end (point))))
+	      (when (and start end)
+		(setq entries
+		      (append entries
+			      (mapcar 'reftex-parse-bibitem
+				      (delete ""
+					      (split-string
+					       (buffer-substring-no-properties
+						start end)
+					       "[ \t\n\r]*\\\\bibitem[ \t]*\
+\\(\\[[^]]*]\\)*\[ \t]*"))))))
+	      (goto-char end))))))
     (unless entries
       (error "No bibitems found"))
 
@@ -1144,9 +1147,8 @@ The sequence in the new file is the same as it was in the old database."
            (save-restriction
              (widen)
              (goto-char (point-min))
-             (while (re-search-forward
-                     "^[ \t]*@[a-zA-Z]+[ \t]*{\\([^ \t\r\n]+\\),"
-                     nil t)
+             (while (re-search-forward "^[ \t]*@\\(?:\\w\\|\\s_\\)+[ \t\n\r]*\
+\[{(][ \t\n\r]*\\([^ \t\n\r,]+\\)" nil t)
                (setq key (match-string 1)
                      beg (match-beginning 0)
                      end (progn

@@ -700,7 +700,7 @@ Internal use only.  Should be called at startup time."
 ;; "HP-Hebrew8"                                    [36]
 ;;         HPHEBREW8 8-bit character set
 ;; "HP-Japanese15"                                 [36]
-;;         HPJAPAN15 15-bit characer set,
+;;         HPJAPAN15 15-bit character set,
 ;;         modified from industry defacto
 ;;         standard Shift-JIS
 ;; "HP-Kana8"                                      [36]

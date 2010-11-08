@@ -1,7 +1,7 @@
 ;;; gnus-dired.el --- utility functions where gnus and dired meet
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Authors: Benjamin Rutt <brutt@bloomington.in.us>,
 ;;          Shenghuo Zhu <zsh@cs.rochester.edu>
@@ -122,6 +122,8 @@ See `mail-user-agent' for more information."
 	    (push (buffer-name buffer) buffers))))
       (nreverse buffers))))
 
+(autoload 'gnus-completing-read "gnus-util")
+
 ;; Method to attach files to a mail composition.
 (defun gnus-dired-attach (files-to-attach)
   "Attach dired's marked files to a gnus message composition.
@@ -133,7 +135,9 @@ filenames."
 	  (mapcar
 	   ;; don't attach directories
 	   (lambda (f) (if (file-directory-p f) nil f))
-	   (nreverse (dired-map-over-marks (dired-get-filename) nil))))))
+	   (nreverse
+	    (let ((arg nil)) ;; Silence XEmacs 21.5 when compiling.
+	      (dired-map-over-marks (dired-get-filename) arg)))))))
   (let ((destination nil)
 	(files-str nil)
 	(bufs nil))

@@ -369,22 +369,21 @@ During a selection process, these are the local bindings.
 (defvar reftex-last-line nil)
 (defvar reftex-select-marked nil)
 
-(defun reftex-select-item (prompt help-string keymap
+(defun reftex-select-item (reftex-select-prompt help-string keymap
                                   &optional offset
                                   call-back cb-flag)
-;; Select an item, using PROMPT. The function returns a key indicating
-;; an exit status, along with a data structure indicating which item was
-;; selected.
-;; HELP-STRING contains help.  KEYMAP is a keymap with the available
-;; selection commands.
-;; OFFSET can be a label list item which will be selected at start.
-;; When it is t, point will start out at the beginning of the buffer.
-;; Any other value will cause restart where last selection left off.
-;; When CALL-BACK is given, it is a function which is called with the index
-;; of the element.
-;; CB-FLAG is the initial value of that flag.
-
-  (let* (ev data last-data (selection-buffer (current-buffer)))
+  ;; Select an item, using REFTEX-SELECT-PROMPT.
+  ;; The function returns a key indicating an exit status, along with a
+  ;; data structure indicating which item was selected.
+  ;; HELP-STRING contains help.  KEYMAP is a keymap with the available
+  ;; selection commands.
+  ;; OFFSET can be a label list item which will be selected at start.
+  ;; When it is t, point will start out at the beginning of the buffer.
+  ;; Any other value will cause restart where last selection left off.
+  ;; When CALL-BACK is given, it is a function which is called with the index
+  ;; of the element.
+  ;; CB-FLAG is the initial value of that flag.
+  (let (ev reftex-select-data last-data (selection-buffer (current-buffer)))
 
     (setq reftex-select-marked nil)
 
@@ -404,7 +403,7 @@ During a selection process, these are the local bindings.
             (use-local-map keymap)
             (add-hook 'pre-command-hook 'reftex-select-pre-command-hook nil t)
             (add-hook 'post-command-hook 'reftex-select-post-command-hook nil t)
-            (princ prompt)
+            (princ reftex-select-prompt)
             (set-marker reftex-recursive-edit-marker (point))
             ;; XEmacs does not run post-command-hook here
             (and (featurep 'xemacs) (run-hooks 'post-command-hook))
@@ -426,19 +425,18 @@ During a selection process, these are the local bindings.
     (reftex-kill-buffer "*RefTeX Help*")
     (setq reftex-callback-fwd (not reftex-callback-fwd)) ;; ;-)))
     (message "")
-    (list ev data last-data)))
+    (list ev reftex-select-data last-data)))
 
 ;; The following variables are all bound dynamically in `reftex-select-item'.
 ;; The defvars are here only to silence the byte compiler.
 
 (defvar found-list)
 (defvar cb-flag)
-(defvar data)
-(defvar prompt)
+(defvar reftex-select-data)
+(defvar reftex-select-prompt)
 (defvar last-data)
 (defvar call-back)
 (defvar help-string)
-(defvar refstyle)
 
 ;; The selection commands
 
@@ -448,15 +446,15 @@ During a selection process, these are the local bindings.
 
 (defun reftex-select-post-command-hook ()
   (let (b e)
-    (setq data (get-text-property (point) :data))
-    (setq last-data (or data last-data))
+    (setq reftex-select-data (get-text-property (point) :data))
+    (setq last-data (or reftex-select-data last-data))
 
-    (when (and data cb-flag
+    (when (and reftex-select-data cb-flag
                (not (equal reftex-last-follow-point (point))))
       (setq reftex-last-follow-point (point))
-      (funcall call-back data reftex-callback-fwd
+      (funcall call-back reftex-select-data reftex-callback-fwd
                (not reftex-revisit-to-follow)))
-    (if data
+    (if reftex-select-data
         (setq b (or (previous-single-property-change
                      (1+ (point)) :data)
                     (point-min))
@@ -470,7 +468,7 @@ During a selection process, these are the local bindings.
             (not (pos-visible-in-window-p e)))
         (recenter '(4)))
     (unless (current-message)
-      (princ prompt))))
+      (princ reftex-select-prompt))))
 
 (defun reftex-select-next (&optional arg)
   "Move to next selectable item."
@@ -531,19 +529,22 @@ Useful for large TOC's."
   (interactive)
   (setq reftex-last-follow-point -1)
   (setq cb-flag (not cb-flag)))
+
+(defvar reftex-refstyle)                ; from reftex-reference
+
 (defun reftex-select-toggle-varioref ()
   "Toggle the macro used for referencing the label between \\ref and \\vref."
   (interactive)
-  (if (string= refstyle "\\ref")
-      (setq refstyle "\\vref")
-    (setq refstyle "\\ref"))
+  (if (string= reftex-refstyle "\\ref")
+      (setq reftex-refstyle "\\vref")
+    (setq reftex-refstyle "\\ref"))
   (force-mode-line-update))
 (defun reftex-select-toggle-fancyref ()
   "Toggle the macro used for referencing the label between \\ref and \\vref."
   (interactive)
-  (setq refstyle
-        (cond ((string= refstyle "\\ref") "\\fref")
-              ((string= refstyle "\\fref") "\\Fref")
+  (setq reftex-refstyle
+        (cond ((string= reftex-refstyle "\\ref") "\\fref")
+              ((string= reftex-refstyle "\\fref") "\\Fref")
               (t "\\ref")))
   (force-mode-line-update))
 (defun reftex-select-show-insertion-point ()
@@ -560,7 +561,7 @@ Useful for large TOC's."
 (defun reftex-select-callback ()
   "Show full context in another window."
   (interactive)
-  (if data (funcall call-back data reftex-callback-fwd nil) (ding)))
+  (if reftex-select-data (funcall call-back reftex-select-data reftex-callback-fwd nil) (ding)))
 (defun reftex-select-accept ()
   "Accept the currently selected item."
   (interactive)
@@ -569,8 +570,8 @@ Useful for large TOC's."
   "Accept the item at the mouse click."
   (interactive "e")
   (mouse-set-point ev)
-  (setq data (get-text-property (point) :data))
-  (setq last-data (or data last-data))
+  (setq reftex-select-data (get-text-property (point) :data))
+  (setq last-data (or reftex-select-data last-data))
   (throw 'myexit 'return))
 (defun reftex-select-read-label ()
   "Use minibuffer to read a label to reference, with completion."
@@ -588,8 +589,8 @@ Useful for large TOC's."
     (cond
      ((or (null key) (equal key "")))
      (entry
-      (setq data entry)
-      (setq last-data data)
+      (setq reftex-select-data entry)
+      (setq last-data reftex-select-data)
       (throw 'myexit 'return))
      (t (throw 'myexit key)))))
 
@@ -736,5 +737,4 @@ Useful for large TOC's."
       do (define-key reftex-select-bib-map (car x) (cdr x)))
 
 
-;; arch-tag: 842078ff-0586-4e0b-957e-536e08218464
 ;;; reftex-sel.el ends here

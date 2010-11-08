@@ -203,13 +203,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 	    (eshell-error "rm: cannot remove `.' or `..'\n"))
       (if (and (file-directory-p (car files))
 	       (not (file-symlink-p (car files))))
-	  (let ((dir (file-name-as-directory (car files))))
-	    (eshell-remove-entries dir
-				   (mapcar
-				    (function
-				     (lambda (file)
-				       (concat dir file)))
-				    (directory-files dir)))
+	  (progn
 	    (if verbose
 		(eshell-printn (format "rm: removing directory `%s'"
 				       (car files))))
@@ -219,7 +213,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 			 (not (y-or-n-p
 			       (format "rm: remove directory `%s'? "
 				       (car files))))))
-	      (eshell-funcalln 'delete-directory (car files))))
+	      (eshell-funcalln 'delete-directory (car files) t t)))
 	(if verbose
 	    (eshell-printn (format "rm: removing file `%s'"
 				   (car files))))
@@ -228,7 +222,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 			 (not (y-or-n-p
 			       (format "rm: remove `%s'? "
 				       (car files))))))
-	  (eshell-funcalln 'delete-file (car files)))))
+	  (eshell-funcalln 'delete-file (car files) t))))
     (setq files (cdr files))))
 
 (defun eshell/rm (&rest args)

@@ -1,3 +1,17 @@
+2010-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Remove easymenu.elc.
+
+2010-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* digest-doc.c, sorted-doc.c: Remove files.
+	* Makefile.in (UTILITIES): Remove digest-doc and sorted-doc.
+	(digest-doc${EXEEXT}, sorted-doc${EXEEXT}): Remove rules.
+	* makefile.w32-in (ALL): Remove digest-doc and sorted-doc.
+	($(BLD)/sorted-doc.exe, $(BLD)/digest-doc.exe, sorted-doc, digest-doc)
+	($(BLD)/digest-doc.$(O), $(BLD)/sorted-doc.$(O)): Remove rules.
+	(install): Don't install digest-doc.exe or sorted-doc.exe.
+
 2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (PROFILING_LDFLAGS): Remove, not needed.
@@ -5376,10 +5390,10 @@
 	(main): Improve usage message.
 	(error): Write to stderr, not stdout.
 
-	* b2m.c cvtmail.c digest-doc.c emacsclient.c emacsserver.c etags.c
-	fakemail.c hexl.c make-docfile.c profile.c sorted-doc.c test-distrib.c
-	timer.c wakeup.c yow.c: Eliminate some -Wall warnings from unused
-	variables and implicitly declared functions.
+	* b2m.c, cvtmail.c, digest-doc.c, emacsclient.c, emacsserver.c:
+	* etags.c, fakemail.c, hexl.c, make-docfile.c, profile.c, sorted-doc.c:
+	* test-distrib.c, timer.c, wakeup.c, yow.c: Eliminate some -Wall
+	warnings from unused variables and implicitly declared functions.
 
 1994-10-11  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 

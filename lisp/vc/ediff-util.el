@@ -311,7 +311,7 @@ to invocation.")
 	    ediff-word-mode-job (ediff-word-mode-job))
 
       ;; Don't delete variants in case of ediff-buffer-* jobs without asking.
-      ;; This is because one may loose work---dangerous.
+      ;; This is because one may lose work---dangerous.
       (if (string-match "buffer" (symbol-name ediff-job-name))
 	  (setq ediff-keep-variants t))
 
@@ -4289,5 +4289,4 @@ Mail anyway? (y or n) ")
 ;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;; End:
 
-;; arch-tag: f51099b6-ef4b-470f-88a1-3a0e0b03a879
 ;;; ediff-util.el ends here

@@ -1,7 +1,8 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -816,7 +817,7 @@ the list of bookmarks.)"
   "Kill from point to end of line.
 If optional arg NEWLINE-TOO is non-nil, delete the newline too.
 Does not affect the kill ring."
-  (let ((eol (save-excursion (end-of-line) (point))))
+  (let ((eol (line-end-position)))
     (delete-region (point) eol)
     (if (and newline-too (looking-at "\n"))
         (delete-char 1))))
@@ -1684,7 +1685,7 @@ mainly for debugging, and should not be necessary in normal use."
            (while (< (point) (point-max))
              (let ((bmrk (bookmark-bmenu-bookmark)))
                (push bmrk bookmark-bmenu-hidden-bookmarks)
-               (let ((start (save-excursion (end-of-line) (point))))
+               (let ((start (line-end-position)))
                  (move-to-column bookmark-bmenu-file-column t)
                  ;; Strip off `mouse-face' from the white spaces region.
                  (if (display-mouse-p)
@@ -2225,5 +2226,4 @@ This also runs `bookmark-exit-hook'."
 
 (provide 'bookmark)
 
-;; arch-tag: 139f519a-dd0c-4b8d-8b5d-f9fcf53ca8f6
 ;;; bookmark.el ends here

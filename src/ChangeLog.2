@@ -1563,10 +1563,10 @@
 1987-04-27  Richard Mlynarik  (mly@prep)
 
 	* fileio.c (APOLLO from lnz):
-	Fcopy_file, Fset_file_modes: Don't use un*x modes if
+	(Fcopy_file, Fset_file_modes): Don't use un*x modes if
 	env var USE_DOMAIN_ACLS is set.
-	Fset_file_modes: utimes fix.
-	Finsert_file_contents: Must do fstat after open for Apollo.
+	(Fset_file_modes): utimes fix.
+	(Finsert_file_contents): Must do fstat after open for Apollo.
 
 	* emacs.c (main): (APOLLO from lnz):
 	Don't use un*x modes if env var USE_DOMAIN_ACLS set.
@@ -2073,7 +2073,7 @@
 
 	* xfns.c (Fx_get_default): Add (unsigned char *) cast.
 
-	* window.c: typo.
+	* window.c: Typo.
 
 1987-02-09  Richard M. Stallman  (rms@prep)
 

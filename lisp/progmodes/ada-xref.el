@@ -1,7 +1,8 @@
 ;; ada-xref.el --- for lookup and completion in Ada mode
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Rolf Ebert <ebert@inf.enst.fr>
@@ -324,7 +325,7 @@ CROSS-PREFIX is the prefix to use for the `gnatls' command."
 		    (add-to-list 'ada-xref-runtime-library-specs-path
 				 (buffer-substring-no-properties
 				  (point)
-				  (save-excursion (end-of-line) (point)))))
+				  (point-at-eol))))
 		  (forward-line 1))
 
 		;;  Object path
@@ -338,7 +339,7 @@ CROSS-PREFIX is the prefix to use for the `gnatls' command."
 		    (add-to-list 'ada-xref-runtime-library-ali-path
 				 (buffer-substring-no-properties
 				  (point)
-				  (save-excursion (end-of-line) (point)))))
+				  (point-at-eol))))
 		  (forward-line 1))
 		)
 	    (kill-buffer nil))))
@@ -1817,7 +1818,7 @@ Information is extracted from the ali file."
     (beginning-of-line)
     (if declaration-found
 	(let ((current-line (buffer-substring
-			     (point) (save-excursion (end-of-line) (point)))))
+			     (point) (point-at-eol))))
 	  (save-excursion
 	    (forward-line 1)
 	    (beginning-of-line)
@@ -2379,5 +2380,4 @@ For instance, it creates the gnat-specific menus, sets some hooks for
 
 (provide 'ada-xref)
 
-;; arch-tag: 415a39fe-577b-4676-b3b1-6ff6db7ca24e
 ;;; ada-xref.el ends here

@@ -2605,7 +2605,7 @@ This function is appropriate for `comint-output-filter-functions'."
               overlay-arrow-string "=>"
               python-pdbtrack-is-tracking-p t)
         (set-marker overlay-arrow-position
-                    (save-excursion (beginning-of-line) (point))
+                    (line-beginning-position)
                     (current-buffer)))
     (setq overlay-arrow-position nil
           python-pdbtrack-is-tracking-p nil)))
@@ -2891,5 +2891,4 @@ filter."
 (provide 'python)
 (provide 'python-21)
 
-;; arch-tag: 6fce1d99-a704-4de9-ba19-c6e4912b0554
 ;;; python.el ends here

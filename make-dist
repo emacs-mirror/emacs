@@ -49,6 +49,7 @@ update=yes
 check=yes
 clean_up=no
 make_tar=no
+default_gzip=gzip
 newer=""
 
 while [ $# -gt 0 ]; do
@@ -78,12 +79,7 @@ while [ $# -gt 0 ]; do
       new_extension=".new"
       shift
     ;;
-    ## This option tells make-dist to use `compress' instead of gzip.
-    ## Normally, make-dist uses gzip whenever it is present.
-    "--compress")
-      default_gzip="compress"
-    ;;
-    ## Same with bzip2.
+    ## This option tells make-dist to use `bzip2' instead of gzip.
     "--bzip2")
       default_gzip="bzip2"
     ;;
@@ -104,7 +100,6 @@ while [ $# -gt 0 ]; do
       echo ""
       echo "  --bzip2	use bzip2 instead of gzip"
       echo "  --clean-up	delete staging directories when done"
-      echo "  --compress	use compress instead of gzip"
       echo "  --lzma	use lzma instead of gzip"
       echo "  --newer=TIME	don't include files older than TIME"
       echo "  --no-check	don't check for bad file names etc."
@@ -161,12 +156,11 @@ fi
 
 echo Version number is $version
 
-if [ $update = yes ];
-then
-  if grep -s "@set EMACSVER  *${version}" ./doc/emacs/emacsver.texi > /dev/null; then
-    true
-  else
-    echo "You must update the version number in \`./doc/emacs/emacsver.texi'"
+if [ $update = yes ]; then
+  if ! grep -q "@set EMACSVER  *${version}" doc/emacs/emacsver.texi || \
+     ! grep -q "tree holds version  *${version}" README; then
+    echo "WARNING: README and/or emacsver.texi have the wrong version number"
+    echo "Consider running M-x set-version from admin/admin.el"
     sleep 5
   fi
 fi
@@ -192,72 +186,66 @@ them, and try again." >&2
   exit 1
 fi
 
-### Find where to run Emacs.
-if [ $check = yes ];
-then
-  ### Check for .elc files with no corresponding .el file.
-  ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
-	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
-	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
-	leim/[a-z]*/[a-z]*.el | sed 's/\.el$/.elc/' > /tmp/el
-  ls -1 lisp/[a-zA-Z]*.elc lisp/[a-z]*/[a-zA-Z0-9]*.elc \
-	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc \
-	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc \
-	leim/[a-z]*/[a-z]*.elc > /tmp/elc
-  bogosities="`comm -13 /tmp/el /tmp/elc`"
-  if [ "${bogosities}" != "" ]; then
-    echo "The following .elc files have no corresponding .el files:"
-    echo "${bogosities}"
-  fi
-  rm -f /tmp/el /tmp/elc
-
-  ### Check for .el files with no corresponding .elc file.
+if [ $check = yes ]; then
   ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
 	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
 	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
 	leim/[a-z]*/[a-z]*.el > /tmp/el
+
   ls -1 lisp/[a-zA-Z]*.elc lisp/[a-z]*/[a-zA-Z0-9]*.elc \
-	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
-	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
-	leim/[a-z]*/[a-z]*.elc | sed 's/\.elc$/.el/' > /tmp/elc
-  losers="`comm -23 /tmp/el /tmp/elc`"
+	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc \
+	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc \
+	leim/[a-z]*/[a-z]*.elc > /tmp/elc
+
+  ## Check for .elc files with no corresponding .el file.
+  sed 's/\.el$/.elc/' /tmp/el > /tmp/elelc
+
+  bogosities="`comm -13 /tmp/elelc /tmp/elc`"
+  if [ x"${bogosities}" != x"" ]; then
+    echo "The following .elc files have no corresponding .el files:"
+    echo "${bogosities}"
+  fi
+
+  ### Check for .el files with no corresponding .elc file.
+  sed 's/\.elc$/.el/' /tmp/elc > /tmp/elcel
+  losers="`comm -23 /tmp/el /tmp/elcel`"
+
+  rm -f /tmp/el /tmp/elc /tmp/elcel /tmp/elelc
+
   bogosities=
   for file in $losers; do
-    if ! grep -q "no-byte-compile: t" $file; then
-      case $file in
-	site-init.el | site-load.el | site-start.el | default.el)
-	  ;;
-	*)
-	  bogosities="$file $bogosities"
-	  ;;
-      esac
-    fi
+    grep -q "no-byte-compile: t" $file && continue
+    case $file in
+      site-init.el | site-load.el | site-start.el | default.el) continue ;;
+    esac
+
+    bogosities="$file $bogosities"
+
   done
   if [ x"${bogosities}" != x"" ]; then
     echo "The following .el files have no corresponding .elc files:"
     echo "${bogosities}"
   fi
-  rm -f /tmp/el /tmp/elc
 fi
 
-### Make sure configure is newer than configure.in.
-if [ "x`ls -t configure configure.in | sed q`" != "xconfigure" ]; then
-  echo "\`./configure.in' is newer than \`./configure'" >&2
-  echo "Running autoconf" >&2
-  autoconf || { x=$?; echo Autoconf FAILED! >&2; exit $x; }
-fi
+if [ $update = yes ]; then
 
-### Make sure src/stamp-h.in is newer than configure.in.
-if [ "x`ls -t src/stamp-h.in configure.in | sed q`" != "xsrc/stamp-h.in" ]; then
-  echo "\`./configure.in' is newer than \`./src/stamp-h.in'" >&2
-  echo "Running autoheader" >&2
-  autoheader || { x=$?; echo Autoheader FAILED! >&2; exit $x; }
-  rm -f src/stamp-h.in
-  echo timestamp > src/stamp-h.in
-fi
+  ## Make sure configure is newer than configure.in.
+  if [ "x`ls -t configure configure.in | sed q`" != "xconfigure" ]; then
+    echo "\`./configure.in' is newer than \`./configure'" >&2
+    echo "Running autoconf" >&2
+    autoconf || { x=$?; echo Autoconf FAILED! >&2; exit $x; }
+  fi
 
-if [ $update = yes ];
-then
+  ## Make sure src/stamp-h.in is newer than configure.in.
+  if [ "x`ls -t src/stamp-h.in configure.in | sed q`" != "xsrc/stamp-h.in" ]; then
+    echo "\`./configure.in' is newer than \`./src/stamp-h.in'" >&2
+    echo "Running autoheader" >&2
+    autoheader || { x=$?; echo Autoheader FAILED! >&2; exit $x; }
+    rm -f src/stamp-h.in
+    echo timestamp > src/stamp-h.in
+  fi
+
   echo "Updating Info files"
   (cd doc/emacs; make info)
   (cd doc/misc; make info)
@@ -274,19 +262,7 @@ then
 
   echo "Recompiling Lisp files"
   $EMACS -batch -f batch-byte-recompile-directory lisp leim
-fi
-
-## What is this file for?  It goes in srcdir, not the tarfile.
-## Why does it exclude term/ ?
-echo "Making lisp/MANIFEST"
-
-files=`find lisp -type f -name '*.el'`
-for file in $files; do
-   case "$file" in
-     */subdirs.el|*/default.el|*/loaddefs.el|*/term/*) continue ;;
-   esac
-   sed -n 's/^;;; //p; q' $file
-done | sort > lisp/MANIFEST
+fi                              # $update = yes
 
 echo "Creating staging directory: \`${tempparent}'"
 
@@ -311,17 +287,6 @@ ln INSTALL README BUGS move-if-change ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
 ln config.bat make-dist update-subdirs vpath.sed .dir-locals.el ${tempdir}
 ln mkinstalldirs config.sub config.guess install-sh ${tempdir}
-
-## FIXME why do we bother doing this? set-version in admin/admin.el
-## does this, and more besides.
-echo "Updating version number in README"
-(cd ${tempdir}
- awk \
-   '$1 " " $2 " " $3 " " $4 " " $5 == "This directory tree holds version" { $6 = version; print $0 }
-    $1 " " $2 " " $3 " " $4 " " $5 != "This directory tree holds version"' \
-   version=${version} README > tmp.README
- mv -f tmp.README README)
-
 
 echo "Creating subdirectories"
 for subdir in site-lisp \
@@ -417,28 +382,18 @@ echo "Making links to \`m4'"
 (cd m4
  ln *.m4 ../${tempdir}/m4)
 
+## Exclude README.W32 because it is specific to pre-built binaries(?).
 echo "Making links to \`nt'"
 (cd nt
  ln emacs.manifest emacs.rc emacsclient.rc config.nt ../${tempdir}/nt
  ln emacs-src.tags nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
  ln [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
- ln ChangeLog INSTALL README README.W32 makefile.w32-in ../${tempdir}/nt)
+ ln ChangeLog INSTALL README makefile.w32-in ../${tempdir}/nt)
 
-echo "Making links to \`nt/inc'"
-(cd nt/inc
- ln [a-z]*.h ../../${tempdir}/nt/inc)
-
-echo "Making links to \`nt/inc/sys'"
-(cd nt/inc/sys
- ln [a-z]*.h ../../../${tempdir}/nt/inc/sys)
-
-echo "Making links to \`nt/inc/arpa'"
-(cd nt/inc/arpa
- ln [a-z]*.h ../../../${tempdir}/nt/inc/arpa)
-
-echo "Making links to \`nt/inc/netinet'"
-(cd nt/inc/netinet
- ln [a-z]*.h ../../../${tempdir}/nt/inc/netinet)
+echo "Making links to \`nt/inc' and its subdirectories"
+for f in `find nt/inc -type f -name '[a-z]*.h'`; do
+  ln $f $tempdir/$f
+done
 
 echo "Making links to \`nt/icons'"
 (cd nt/icons
@@ -452,7 +407,7 @@ echo "Making links to \`msdos'"
 
 echo "Making links to \`nextstep'"
 (cd nextstep
- ln AUTHORS ChangeLog README INSTALL ../${tempdir}/nextstep)
+ ln ChangeLog README INSTALL ../${tempdir}/nextstep)
 
 echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents'"
 (cd nextstep/Cocoa/Emacs.base/Contents
@@ -493,8 +448,7 @@ for f in `find etc -type f`; do
 done
 
 echo "Making links to \`info'"
-(cd info
- ln `find . -type f -print` ../${tempdir}/info)
+ln `find info -type f -print` ${tempdir}/info
 
 echo "Making links to \`doc/emacs'"
 (cd doc/emacs
@@ -542,24 +496,23 @@ echo "Removing unwanted files"
 find ${tempparent} \( -name '*~' -o -name '#*#' -o -name '.*ignore' -o -name '=*' -o -name 'TAGS' \) -exec rm -f {} \;
 
 if [ "${make_tar}" = yes ]; then
-  if [ "${default_gzip}" = "" ]; then
-    echo "Looking for gzip"
-    temppath=`echo $PATH | sed 's/^:/.:/
-				s/::/:.:/g
-				s/:$/:./
-				s/:/ /g'`
-    default_gzip=`(
-      for dir in ${temppath}; do
-	if [ -f ${dir}/gzip ]; then echo 'gzip --best'; exit 0; fi
-      done
-      echo compress
-    )`
+  echo "Looking for $default_gzip"
+  found=0
+  temppath=`echo $PATH | sed -e 's/^:/.:/' -e 's/::/:.:/g' -e 's/:$/:./' \
+     -e 's/:/ /g'`
+  for dir in ${temppath}; do
+    [ -x ${dir}/$default_gzip ] || continue
+    found=1; break
+  done
+  if [ "$found" = "0" ]; then
+    echo "WARNING: \`$default_gzip' not found, will not compress" >&2
+    default_gzip=cat
   fi
   case "${default_gzip}" in
-    bzip2)      gzip_extension=.bz2 ;;
-    compress* ) gzip_extension=.Z ;;
-    lzma)       gzip_extension=.lzma ;;
-    * )         gzip_extension=.gz ;;
+    bzip2) gzip_extension=.bz2 ;;
+    lzma)  gzip_extension=.lzma ;;
+    gzip)  gzip_extension=.gz ; default_gzip="gzip --best";;
+       *)  gzip_extension= ;;
   esac
   echo "Creating tar file"
   (cd ${tempparent} ; tar cvf - ${emacsname} ) \

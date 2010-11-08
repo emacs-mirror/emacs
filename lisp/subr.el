@@ -289,14 +289,11 @@ If LIST is nil, return nil.
 If N is non-nil, return the Nth-to-last link of LIST.
 If N is bigger than the length of LIST, return LIST."
   (if n
-      (let ((m 0) (p list))
-	(while (consp p)
-	  (setq m (1+ m) p (cdr p)))
-	(if (<= n 0) p
-	  (if (< n m) (nthcdr (- m n) list) list)))
-    (while (consp (cdr list))
-      (setq list (cdr list)))
-    list))
+      (and (>= n 0)
+           (let ((m (safe-length list)))
+             (if (< n m) (nthcdr (- m n) list) list)))
+    (and list
+         (nthcdr (1- (safe-length list)) list))))
 
 (defun butlast (list &optional n)
   "Return a copy of LIST with the last N elements removed."
@@ -3596,18 +3593,18 @@ convenience wrapper around `make-progress-reporter' and friends.
 ;;;; Comparing version strings.
 
 (defconst version-separator "."
-  "*Specify the string used to separate the version elements.
+  "Specify the string used to separate the version elements.
 
 Usually the separator is \".\", but it can be any other string.")
 
 
 (defconst version-regexp-alist
-  '(("^[-_+ ]?alpha$"   . -3)
-    ("^[-_+]$"                 . -3) ; treat "1.2.3-20050920" and "1.2-3" as alpha releases
-    ("^[-_+ ]cvs$"             . -3)	; treat "1.2.3-CVS" as alpha release
-    ("^[-_+ ]?beta$"    . -2)
+  '(("^[-_+ ]?alpha$"           . -3)
+    ("^[-_+]$"                  . -3) ; treat "1.2.3-20050920" and "1.2-3" as alpha releases
+    ("^[-_+ ]cvs$"              . -3) ; treat "1.2.3-CVS" as alpha release
+    ("^[-_+ ]?beta$"            . -2)
     ("^[-_+ ]?\\(pre\\|rcc\\)$" . -1))
-  "*Specify association between non-numeric version and its priority.
+  "Specify association between non-numeric version and its priority.
 
 This association is used to handle version string like \"1.0pre2\",
 \"0.9alpha1\", etc.  It's used by `version-to-list' (which see) to convert the
@@ -3701,7 +3698,7 @@ See documentation for `version-separator' and `version-regexp-alist'."
 	      (setq al (cdr al)))
 	    (cond (al
 		   (push (cdar al) lst))
-		  ;; Convert 22.3a to 22.3.1.
+		  ;; Convert 22.3a to 22.3.1, 22.3b to 22.3.2, etc.
 		  ((string-match "^[-_+ ]?\\([a-zA-Z]\\)$" s)
 		   (push (- (aref (downcase (match-string 1 s)) 0) ?a -1)
 			 lst))
@@ -3757,7 +3754,7 @@ turn is higher than (1 -2), which is higher than (1 -3)."
   "Return t if L1, a list specification of a version, is lower or equal to L2.
 
 Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
-etc.  That is, the trailing zeroes are irrelevant.  Also, integer
+etc.  That is, the trailing zeroes are insignificant.  Also, integer
 list (1) is greater than (1 -1) which is greater than (1 -2)
 which is greater than (1 -3)."
   (while (and l1 l2 (= (car l1) (car l2)))
@@ -3799,7 +3796,7 @@ which is higher than \"1alpha\"."
   "Return t if version V1 is lower (older) than or equal to V2.
 
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
-etc.  That is, the trailing \".0\"s are insignificant..  Also, version
+etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
 which is higher than \"1alpha\"."
   (version-list-<= (version-to-list v1) (version-to-list v2)))
@@ -3808,7 +3805,7 @@ which is higher than \"1alpha\"."
   "Return t if version V1 is equal to V2.
 
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
-etc.  That is, the trailing \".0\"s are insignificant..  Also, version
+etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
 which is higher than \"1alpha\"."
   (version-list-= (version-to-list v1) (version-to-list v2)))

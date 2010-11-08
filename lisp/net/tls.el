@@ -75,13 +75,9 @@ and `gnutls-cli' (version 2.0.1) output."
   :type 'regexp
   :group 'tls)
 
-(defvar tls-starttls-switches
-  '(("openssl" "-starttls imap"))
-  "Alist of programs and the switches necessary to get starttls behaviour.")
-
 (defcustom tls-program '("gnutls-cli --insecure -p %p %h"
 			 "gnutls-cli --insecure -p %p %h --protocols ssl3"
-			 "openssl s_client %s -connect %h:%p -no_ssl2 -ign_eof")
+			 "openssl s_client -connect %h:%p -no_ssl2 -ign_eof")
   "List of strings containing commands to start TLS stream to a host.
 Each entry in the list is tried until a connection is successful.
 %h is replaced with server hostname, %p with port to connect to.
@@ -203,7 +199,7 @@ Used by `tls-certificate-information'."
 	    (push (cons (match-string 1) (match-string 2)) vals))
 	  (nreverse vals))))))
 
-(defun open-tls-stream (name buffer host port &optional starttlsp)
+(defun open-tls-stream (name buffer host port)
   "Open a TLS connection for a port to a host.
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
@@ -233,9 +229,6 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	       (format-spec
 		cmd
 		(format-spec-make
-		 ?s (if starttlsp
-			(tls-find-starttls-argument cmd)
-		      "")
 		 ?h host
 		 ?p (if (integerp port)
 			(int-to-string port)
@@ -306,11 +299,6 @@ match `%s'. Connect anyway? " host))))))
       (if done (set-process-buffer process nil))
       (kill-buffer buffer))
     done))
-
-(defun tls-find-starttls-argument (command)
-  (let ((command (car (split-string command))))
-    (or (cadr (assoc command tls-starttls-switches))
-	"")))
 
 (provide 'tls)
 

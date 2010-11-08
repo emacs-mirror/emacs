@@ -1020,22 +1020,6 @@ Gnus will see whether @code{gnus-nntpserver-file}
 If that fails as well, Gnus will try to use the machine running Emacs
 as an @acronym{NNTP} server.  That's a long shot, though.
 
-@vindex gnus-nntp-server
-If @code{gnus-nntp-server} is set, this variable will override
-@code{gnus-select-method}.  You should therefore set
-@code{gnus-nntp-server} to @code{nil}, which is what it is by default.
-
-@vindex gnus-secondary-servers
-@vindex gnus-nntp-server
-You can also make Gnus prompt you interactively for the name of an
-@acronym{NNTP} server.  If you give a non-numerical prefix to @code{gnus}
-(i.e., @kbd{C-u M-x gnus}), Gnus will let you choose between the servers
-in the @code{gnus-secondary-servers} list (if any).  You can also just
-type in the name of any server you feel like visiting.  (Note that this
-will set @code{gnus-nntp-server}, which means that if you then @kbd{M-x
-gnus} later in the same Emacs session, Gnus will contact the same
-server.)
-
 @findex gnus-group-browse-foreign-server
 @kindex B (Group)
 However, if you use one @acronym{NNTP} server regularly and are just
@@ -2211,6 +2195,12 @@ selected.
 @section Subscription Commands
 @cindex subscription
 
+The following commands allow for managing your subscriptions in the
+Group buffer.  If you want to subscribe to many groups, it's probably
+more convenient to go to the @ref{Server Buffer}, and choose the
+server there using @kbd{RET} or @kbd{SPC}.  Then you'll have the
+commands listed in @ref{Browse Foreign Server} at hand.
+
 @table @kbd
 
 @item S t
@@ -2409,6 +2399,9 @@ one with the best level.
 All groups with a level less than or equal to
 @code{gnus-group-default-list-level} will be listed in the group buffer
 by default.
+This variable can also be a function.  In that case, that function will
+be called and the result will be used as value.
+
 
 @vindex gnus-group-list-inactive-groups
 If @code{gnus-group-list-inactive-groups} is non-@code{nil}, non-active
@@ -3085,8 +3078,8 @@ The Sieve language is described in RFC 3028.  @xref{Top, Emacs Sieve,
 Top, sieve, Emacs Sieve}.
 
 @item (agent parameters)
-If the agent has been enabled, you can set any of the its parameters
-to control the behavior of the agent in individual groups. See Agent
+If the agent has been enabled, you can set any of its parameters to
+control the behavior of the agent in individual groups.  See Agent
 Parameters in @ref{Category Syntax}.  Most users will choose to set
 agent parameters in either an agent category or group topic to
 minimize the configuration effort.
@@ -4563,7 +4556,7 @@ However, you can also create e.g. a new @code{nnmaildir} or @code{nnml}
 server exclusively for @code{nnmairix} in your secondary select methods
 (@pxref{Finding the News}).  If you use a secondary @code{nnml} server
 just for mairix, make sure that you explicitly set the server variable
-@code{nnml-get-new-mail} to @code{nil}, or you might loose mail
+@code{nnml-get-new-mail} to @code{nil}, or you might lose mail
 (@pxref{nnmairix caveats}).  If you want to use mairix remotely on an
 @acronym{IMAP} server, you have to choose the corresponding
 @code{nnimap} server here.
@@ -5194,24 +5187,6 @@ used for fetching the file.
 
 If fetching from the first site is unsuccessful, Gnus will attempt to go
 through @code{gnus-group-faq-directory} and try to open them one by one.
-
-@item H C
-@kindex H C (Group)
-@findex gnus-group-fetch-control
-@vindex gnus-group-fetch-control-use-browse-url
-@cindex control message
-Fetch the control messages for the group from the archive at
-@code{ftp.isc.org} (@code{gnus-group-fetch-control}).  Query for a
-group if given a prefix argument.
-
-If @code{gnus-group-fetch-control-use-browse-url} is non-@code{nil},
-Gnus will open the control messages in a browser using
-@code{browse-url}.  Otherwise they are fetched using @code{ange-ftp}
-and displayed in an ephemeral group.
-
-Note that the control messages are compressed.  To use this command
-you need to turn on @code{auto-compression-mode} (@pxref{Compressed
-Files, ,Compressed Files, emacs, The Emacs Manual}).
 
 @item H d
 @itemx C-c C-d
@@ -6178,8 +6153,9 @@ Scroll the current article one line backward
 @vindex gnus-summary-show-article-charset-alist
 (Re)fetch the current article (@code{gnus-summary-show-article}).  If
 given a prefix, fetch the current article, but don't run any of the
-article treatment functions.  This will give you a ``raw'' article, just
-the way it came from the server.
+article treatment functions.  If given a prefix twice (i.e., @kbd{C-u
+C-u g'}), show a completely ``raw'' article, just the way it came from
+the server.
 
 @cindex charset, view article with different charset
 If given a numerical prefix, you can do semi-manual charset stuff.
@@ -9803,19 +9779,16 @@ If a prefix is given, a charset will be asked for.  If it is a number,
 the charset defined in @code{gnus-summary-show-article-charset-alist}
 (@pxref{Paging the Article}) will be used.
 
-@vindex gnus-article-wash-function
 The default is to use the function specified by
 @code{mm-text-html-renderer} (@pxref{Display Customization, ,Display
 Customization, emacs-mime, The Emacs MIME Manual}) to convert the
-@acronym{HTML}, but this is controlled by the
-@code{gnus-article-wash-function} variable.  Pre-defined functions you
-can use include:
+@acronym{HTML}.  Pre-defined functions you can use include:
 
 @table @code
-@item mm-shr
+@item shr
 Use Gnus simple html renderer.
 
-@item gnus-article-html
+@item gnus-w3m
 Use Gnus rendered based on w3m.
 
 @item w3
@@ -12462,15 +12435,20 @@ that's based on @code{w3m}.
 
 @item gnus-blocked-images
 @vindex gnus-blocked-images
-Images that have @acronym{URL}s that match this regexp won't be
-fetched and displayed.  For instance, do block all @acronym{URL}s that
-have the string ``ads'' in them, do the following:
+External images that have @acronym{URL}s that match this regexp won't
+be fetched and displayed.  For instance, do block all @acronym{URL}s
+that have the string ``ads'' in them, do the following:
 
 @lisp
 (setq gnus-blocked-images "ads")
 @end lisp
 
-The default is to block all external images.
+This can also be a function to be evaluated.  If so, it will be
+called with the group name as the parameter.  The default value is
+@code{gnus-block-private-groups}, which will return @samp{"."} for
+anything that isn't a newsgroup.  This means that no external images
+will be fetched as a result of reading mail, so that nobody can use
+web bugs (and the like) to track whether you've read email.
 
 @item gnus-html-cache-directory
 @vindex gnus-html-cache-directory
@@ -13451,14 +13429,20 @@ the headers of the article; if the value is @code{nil}, the header
 name will be removed.  If the attribute name is @code{eval}, the form
 is evaluated, and the result is thrown away.
 
-The attribute value can be a string (used verbatim), a function with
-zero arguments (the return value will be used), a variable (its value
-will be used) or a list (it will be @code{eval}ed and the return value
-will be used).  The functions and sexps are called/@code{eval}ed in the
-message buffer that is being set up.  The headers of the current article
-are available through the @code{message-reply-headers} variable, which
-is a vector of the following headers: number subject from date id
-references chars lines xref extra.
+The attribute value can be a string, a function with zero arguments
+(the return value will be used), a variable (its value will be used)
+or a list (it will be @code{eval}ed and the return value will be
+used).  The functions and sexps are called/@code{eval}ed in the
+message buffer that is being set up.  The headers of the current
+article are available through the @code{message-reply-headers}
+variable, which is a vector of the following headers: number subject
+from date id references chars lines xref extra.
+
+In the case of a string value, if the @code{match} is a regular
+expression, a @samp{gnus-match-substitute-replacement} is proceed on
+the value to replace the positional parameters @samp{\@var{n}} by the
+corresponding parenthetical matches (see @xref{Replacing the Text that
+Matched, , Text Replacement, elisp, The Emacs Lisp Reference Manual}.)
 
 @vindex message-reply-headers
 
@@ -14861,9 +14845,7 @@ Here's an example method that's more complex:
         (nnimap-inbox "INBOX")
         (nnimap-split-methods default)
         (nnimap-expunge t)
-        (nnimap-stream ssl)
-        (nnir-search-engine imap)
-        (nnimap-expunge-inbox t))
+        (nnimap-stream ssl))
 @end example
 
 @table @code
@@ -14872,7 +14854,7 @@ The address of the server, like @samp{imap.gmail.com}.
 
 @item nnimap-server-port
 If the server uses a non-standard port, that can be specified here.  A
-typical port would be @samp{imap} or @samp{imaps}.
+typical port would be @code{"imap"} or @code{"imaps"}.
 
 @item nnimap-stream
 How @code{nnimap} should connect to the server.  Possible values are:
@@ -14898,6 +14880,11 @@ what you need.
 @item nnimap-authenticator
 Some @acronym{IMAP} servers allow anonymous logins.  In that case,
 this should be set to @code{anonymous}.
+
+@item nnimap-expunge
+If non-@code{nil}, expunge articles after deleting them.  This is always done
+if the server supports UID EXPUNGE, but it's not done by default on
+servers that doesn't support that command.
 
 @item nnimap-streaming
 Virtually all @code{IMAP} server support fast streaming of data.  If
@@ -14933,6 +14920,11 @@ use the value of the @code{nnmail-split-methods} variable.
 
 @item nnimap-split-fancy
 Uses the same syntax as @code{nnmail-split-fancy}.
+
+@item nnimap-unsplittable-articles
+List of flag symbols to ignore when doing splitting.  That is,
+articles that have these flags won't be considered when splitting.
+The default is @samp{(%Deleted %Seen)}.
 
 @end table
 
@@ -17711,15 +17703,6 @@ If you set @code{nnrss-use-local} to @code{t}, @code{nnrss} will read
 the feeds from local files in @code{nnrss-directory}.  You can use
 the command @code{nnrss-generate-download-script} to generate a
 download script using @command{wget}.
-
-@item nnrss-wash-html-in-text-plain-parts
-Non-@code{nil} means that @code{nnrss} renders text in @samp{text/plain}
-parts as @acronym{HTML}.  The function specified by the
-@code{mm-text-html-renderer} variable (@pxref{Display Customization,
-,Display Customization, emacs-mime, The Emacs MIME Manual}) will be used
-to render text.  If it is @code{nil}, which is the default, text will
-simply be folded.  Leave it @code{nil} if you prefer to see
-@samp{text/html} parts.
 @end table
 
 The following code may be helpful, if you want to show the description in
@@ -17968,6 +17951,10 @@ A @acronym{MIME} digest of messages.
 
 @item lanl-gov-announce
 Announcement messages from LANL Gov Announce.
+
+@cindex git commit messages
+@item git
+@code{git} commit messages.
 
 @cindex forwarded messages
 @item rfc822-forward
@@ -19856,7 +19843,7 @@ limit to control how often the cycling occurs.  A large value improves
 performance.  A small value minimizes the time lost should the
 connection be lost while fetching (You may need to run
 @code{gnus-agent-regenerate-group} to update the group's state.
-However, all articles parsed prior to loosing the connection will be
+However, all articles parsed prior to losing the connection will be
 available while unplugged).  The default is 10M so it is unusual to
 see any cycling.
 
@@ -30096,11 +30083,11 @@ that means:
 (setq gnus-read-active-file 'some)
 @end lisp
 
-On the other hand, if the manual says ``set @code{gnus-nntp-server} to
-@samp{nntp.ifi.uio.no}'', that means:
+On the other hand, if the manual says ``set @code{gnus-nntp-server-file} to
+@samp{/etc/nntpserver}'', that means:
 
 @lisp
-(setq gnus-nntp-server "nntp.ifi.uio.no")
+(setq gnus-nntp-server-file "/etc/nntpserver")
 @end lisp
 
 So be careful not to mix up strings (the latter) with symbols (the

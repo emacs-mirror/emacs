@@ -1,3 +1,35 @@
+2010-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* ede/proj-elisp.el (ede-proj-flush-autoconf): Use point-at-bol.
+
+2010-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/bovine/c.el (semantic-analyze-split-name): Move before use.
+
+	* semantic/symref/cscope.el (ede-toplevel):
+	* semantic/symref.el (ede-toplevel):
+	* semantic/tag-file.el (ede-toplevel):
+	* ede.el (ede-toplevel): Fix declarations.
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* ede/proj-elisp.el (project-compile-target): Fix previous change.
+	* semantic/ede-grammar.el (project-compile-target): Fix previous change.
+
+2010-10-31  Julien Danjou  <julien@danjou.info>
+
+	* ede/proj-elisp.el (project-compile-target):
+	* semantic/ede-grammar.el (project-compile-target):
+	Use `byte-recompile-file'.
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* mode-local.el (mode-local-augment-function-help):
+	* semantic/analyze/debug.el (semantic-analyzer-debug-add-buttons):
+	* semantic/symref/list.el (semantic-symref-results-dump)
+	(semantic-symref-rb-toggle-expand-tag): Replace inappropriate uses
+	of toggle-read-only.
+
 2010-09-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* semantic/bovine/el.el:

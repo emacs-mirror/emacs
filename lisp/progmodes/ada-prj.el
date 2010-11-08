@@ -196,21 +196,17 @@ One item per line should be found in the file."
       (widen)
       (goto-char (point-min))
       (while (not (eobp))
-	(set 'line (buffer-substring-no-properties
-		    (point) (save-excursion (end-of-line) (point))))
+	(set 'line (buffer-substring-no-properties (point) (point-at-eol)))
 	(add-to-list 'list line)
-	(forward-line 1)
-	)
+	(forward-line 1))
       (kill-buffer nil)
       (set-buffer buffer)
       (set 'ada-prj-current-values
 	   (plist-put ada-prj-current-values
 		      symbol
 		      (append (plist-get ada-prj-current-values symbol)
-			      (reverse list))))
-      )
-    (ada-prj-display-page 2)
-  ))
+			      (reverse list)))))
+    (ada-prj-display-page 2)))
 
 (defun ada-prj-subdirs-of (dir)
   "Return a list of all the subdirectories of DIR, recursively."
@@ -568,8 +564,7 @@ Parameters WIDGET-MODIFIED, EVENT match :notify for the widget."
       ;;  variables
       (momentary-string-display
        (concat "*****Help*****\n" text "\n**************\n")
-       (save-excursion (forward-line) (beginning-of-line) (point)))
-      )))
+       (point-at-bol 2)))))
 
 (defun ada-prj-show-value (widget widget-modified event)
   "Show the current field value in WIDGET.
@@ -681,5 +676,4 @@ AFTER-TEXT is inserted just after the widget."
 
 (provide 'ada-prj)
 
-;; arch-tag: 65978c77-816e-49c6-896e-6905605d1b4c
 ;;; ada-prj.el ends here

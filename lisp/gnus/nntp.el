@@ -1,8 +1,8 @@
 ;;; nntp.el --- nntp access for Gnus
 
-;; Copyright (C) 1987, 1988, 1989, 1990, 1992, 1993,
-;;   1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1988, 1989, 1990, 1992, 1993, 1994, 1995, 1996,
+;;   1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -1172,7 +1172,7 @@ It will make innd servers spawn an nnrpd process to allow actual article
 reading."
   (nntp-send-command "^.*\n" "MODE READER"))
 
-(declare-function netrc-parse "netrc" (file))
+(declare-function netrc-parse "netrc" (&optional file))
 (declare-function netrc-machine "netrc"
 		  (list machine &optional port defaultport))
 (declare-function netrc-get "netrc" (alist type))
