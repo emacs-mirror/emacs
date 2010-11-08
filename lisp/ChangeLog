@@ -1,5 +1,11 @@
 2010-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/checkdoc.el (checkdoc-display-status-buffer)
+	(checkdoc-interactive-loop, checkdoc-recursive-edit): Avoid princ-list.
+	(checkdoc-syntax-table): Initialize in the declaration.
+	(emacs-lisp-mode-hook): Use just checkdoc-minor-mode now that it turns
+	the mode on unconditionally.
+
 	* emacs-lisp/cl-macs.el (extent-data, extent-face, extent-priority)
 	(extent-end-position, extent-start-position): Remove setf method for
 	non-existing functions (bug#7319).
