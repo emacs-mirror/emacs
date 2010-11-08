@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -68,11 +68,11 @@
       . ,(lambda (prompt)
 	   "Return a charset."
 	   (intern
-	    (completing-read
+	    (gnus-completing-read
 	     prompt
-	     (mapcar (lambda (e) (list (symbol-name (car e))))
+	     (mapcar (lambda (e) (symbol-name (car e)))
 		     mm-mime-mule-charset-alist)
-	     nil t))))
+	     t))))
      ;; `subst-char-in-string' is not available in XEmacs 21.4.
      (subst-char-in-string
       . ,(lambda (from to string &optional inplace)
@@ -281,8 +281,8 @@ to the contents of the accessible portion of the buffer."
 	'read-coding-system))
      (t (lambda (prompt &optional default-coding-system)
 	  "Prompt the user for a coding system."
-	  (completing-read
-	   prompt (mapcar (lambda (s) (list (symbol-name (car s))))
+	  (gnus-completing-read
+	   prompt (mapcar (lambda (s) (symbol-name (car s)))
 			  mm-mime-mule-charset-alist)))))))
 
 (defvar mm-coding-system-list nil)
@@ -316,8 +316,8 @@ the alias.  Else windows-NUMBER is used."
 			 (cp-supported-codepages)
 		       ;; Removed in Emacs 23 (unicode), so signal an error:
 		       (error "`codepage-setup' not present in this Emacs version"))))
-     (list (completing-read "Setup DOS Codepage: (default 437) " candidates
-			    nil t nil nil "437"))))
+     (list (gnus-completing-read "Setup DOS Codepage" candidates
+                                 t nil nil "437"))))
   (when alias
     (setq alias (if (stringp alias)
 		    (intern alias)
@@ -383,8 +383,7 @@ See `mm-codepage-iso-8859-list' and `mm-codepage-ibm-list'.")
 (defcustom mm-codepage-iso-8859-list
   (list 1250 ;; Windows-1250 is a variant of Latin-2 heavily used by Microsoft
 	;; Outlook users in Czech republic.  Use this to allow reading of
-	;; their e-mails.  cp1250 should be defined by M-x codepage-setup
-	;; (Emacs 21).
+	;; their e-mails.
 	'(1252 . 1) ;; Windows-1252 is a superset of iso-8859-1 (West
 	            ;; Europe).  See also `gnus-article-dumbquotes-map'.
 	'(1254 . 9) ;; Windows-1254 is a superset of iso-8859-9 (Turkish).
@@ -494,8 +493,8 @@ Unless LIST is given, `mm-codepage-ibm-list' is used."
 (defcustom mm-charset-eval-alist
   (if (featurep 'xemacs)
       nil ;; I don't know what would be useful for XEmacs.
-    '(;; Emacs 21 offers 1250 1251 1253 1257.  Emacs 22 provides autoloads for
-      ;; 1250-1258 (i.e. `mm-codepage-setup' does nothing).
+    '(;; Emacs 22 provides autoloads for 1250-1258
+      ;; (i.e. `mm-codepage-setup' does nothing).
       (windows-1250 . (mm-codepage-setup 1250 t))
       (windows-1251 . (mm-codepage-setup 1251 t))
       (windows-1253 . (mm-codepage-setup 1253 t))
@@ -966,7 +965,6 @@ If the charset is `composition', return the actual one."
   (if (eq charset 'unknown)
       (error "The message contains non-printable characters, please use attachment"))
   (if (and (fboundp 'coding-system-get) (fboundp 'get-charset-property))
-      ;; This exists in Emacs 20.
       (or
        (and (mm-preferred-coding-system charset)
 	    (or (coding-system-get
@@ -1539,14 +1537,13 @@ decompressed data.  The buffer's multibyteness must be turned off."
 				       prog t (list t err-file) nil args)
 				jka-compr-acceptable-retval-list)
 		    (erase-buffer)
-		    (insert (mapconcat
-			     'identity
-			     (delete "" (split-string
-					 (prog2
-					     (insert-file-contents err-file)
-					     (buffer-string)
-					   (erase-buffer))))
-			     " ")
+		    (insert (mapconcat 'identity
+				       (split-string
+					(prog2
+					    (insert-file-contents err-file)
+					    (buffer-string)
+					  (erase-buffer)) t)
+				       " ")
 			    "\n")
 		    (setq err-msg
 			  (format "Error while executing \"%s %s < %s\""

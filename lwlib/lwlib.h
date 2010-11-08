@@ -186,7 +186,7 @@ void lw_set_main_areas (Widget parent,
    MOTIF_P non-zero means map separator types not supported by Motif
    to similar ones that are supported.  */
 
-int lw_separator_p (char *label, enum menu_separator *type,
+int lw_separator_p (const char *label, enum menu_separator *type,
                     int motif_p);
 
 #endif /* LWLIB_H */

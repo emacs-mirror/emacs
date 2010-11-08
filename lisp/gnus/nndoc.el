@@ -64,9 +64,6 @@ from the document.")
      (body-end . "")
      (file-end . "")
      (subtype digest guess))
-    (mime-parts
-     (generate-head-function . nndoc-generate-mime-parts-head)
-     (article-transform-function . nndoc-transform-mime-parts))
     (nsmail
      (article-begin .  "^From - "))
     (news
@@ -82,6 +79,9 @@ from the document.")
      (body-end . "\^_")
      (body-begin-function . nndoc-babyl-body-begin)
      (head-begin-function . nndoc-babyl-head-begin))
+    (mime-parts
+     (generate-head-function . nndoc-generate-mime-parts-head)
+     (article-transform-function . nndoc-transform-mime-parts))
     (exim-bounce
      (article-begin . "^------ This is a copy of the message, including all the headers. ------\n\n")
      (body-end-function . nndoc-exim-bounce-body-end-function))
@@ -280,6 +280,11 @@ from the document.")
      (t
       (nnheader-insert "211 %d %d %d %s\n" number 1 number group)))))
 
+(deffoo nndoc-retrieve-groups (groups &optional server)
+  (dolist (group groups)
+    (nndoc-request-group group server))
+  t)
+
 (deffoo nndoc-request-type (group &optional article)
   (cond ((not article) 'unknown)
 	(nndoc-post-type nndoc-post-type)
@@ -298,7 +303,7 @@ from the document.")
   t)
 
 (deffoo nndoc-request-list (&optional server)
-  nil)
+  t)
 
 (deffoo nndoc-request-newgroups (date &optional server)
   nil)
@@ -1033,7 +1038,7 @@ as the last checked definition, if t or `first', add as the
 first definition, and if any other symbol, add after that
 symbol in the alist."
   ;; First remove any old instances.
-  (gnus-pull (car definition) nndoc-type-alist)
+  (gnus-alist-pull (car definition) nndoc-type-alist)
   ;; Then enter the new definition in the proper place.
   (cond
    ((or (null position) (eq position 'last))

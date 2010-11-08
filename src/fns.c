@@ -241,8 +241,8 @@ If string STR1 is greater, the value is a positive number N;
   N - 1 is the number of characters that match at the beginning.  */)
   (Lisp_Object str1, Lisp_Object start1, Lisp_Object end1, Lisp_Object str2, Lisp_Object start2, Lisp_Object end2, Lisp_Object ignore_case)
 {
-  register int end1_char, end2_char;
-  register int i1, i1_byte, i2, i2_byte;
+  register EMACS_INT end1_char, end2_char;
+  register EMACS_INT i1, i1_byte, i2, i2_byte;
 
   CHECK_STRING (str1);
   CHECK_STRING (str2);
@@ -332,8 +332,8 @@ Case is significant.
 Symbols are also allowed; their print names are used instead.  */)
   (register Lisp_Object s1, Lisp_Object s2)
 {
-  register int end;
-  register int i1, i1_byte, i2, i2_byte;
+  register EMACS_INT end;
+  register EMACS_INT i1, i1_byte, i2, i2_byte;
 
   if (SYMBOLP (s1))
     s1 = SYMBOL_NAME (s1);
@@ -456,8 +456,8 @@ with the original.  */)
 struct textprop_rec
 {
   int argnum;			/* refer to ARGS (arguments of `concat') */
-  int from;			/* refer to ARGS[argnum] (argument string) */
-  int to;			/* refer to VAL (the target string) */
+  EMACS_INT from;		/* refer to ARGS[argnum] (argument string) */
+  EMACS_INT to;			/* refer to VAL (the target string) */
 };
 
 static Lisp_Object
@@ -466,10 +466,10 @@ concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_speci
   Lisp_Object val;
   register Lisp_Object tail;
   register Lisp_Object this;
-  int toindex;
-  int toindex_byte = 0;
-  register int result_len;
-  register int result_len_byte;
+  EMACS_INT toindex;
+  EMACS_INT toindex_byte = 0;
+  register EMACS_INT result_len;
+  register EMACS_INT result_len_byte;
   register int argnum;
   Lisp_Object last_tail;
   Lisp_Object prev;
@@ -513,16 +513,16 @@ concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_speci
   some_multibyte = 0;
   for (argnum = 0; argnum < nargs; argnum++)
     {
-      int len;
+      EMACS_INT len;
       this = args[argnum];
       len = XFASTINT (Flength (this));
       if (target_type == Lisp_String)
 	{
 	  /* We must count the number of bytes needed in the string
 	     as well as the number of characters.  */
-	  int i;
+	  EMACS_INT i;
 	  Lisp_Object ch;
-	  int this_len_byte;
+	  EMACS_INT this_len_byte;
 
 	  if (VECTORP (this))
 	    for (i = 0; i < len; i++)
@@ -594,9 +594,9 @@ concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_speci
   for (argnum = 0; argnum < nargs; argnum++)
     {
       Lisp_Object thislen;
-      int thisleni = 0;
-      register unsigned int thisindex = 0;
-      register unsigned int thisindex_byte = 0;
+      EMACS_INT thisleni = 0;
+      register EMACS_INT thisindex = 0;
+      register EMACS_INT thisindex_byte = 0;
 
       this = args[argnum];
       if (!CONSP (this))
@@ -606,7 +606,7 @@ concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_speci
       if (STRINGP (this) && STRINGP (val)
 	  && STRING_MULTIBYTE (this) == some_multibyte)
 	{
-	  int thislen_byte = SBYTES (this);
+	  EMACS_INT thislen_byte = SBYTES (this);
 
 	  memcpy (SDATA (val) + toindex_byte, SDATA (this), SBYTES (this));
 	  if (! NULL_INTERVAL_P (STRING_INTERVALS (this)))
@@ -713,7 +713,7 @@ concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_speci
   if (num_textprops > 0)
     {
       Lisp_Object props;
-      int last_to_end = -1;
+      EMACS_INT last_to_end = -1;
 
       for (argnum = 0; argnum < num_textprops; argnum++)
 	{
@@ -938,7 +938,7 @@ string_to_multibyte (Lisp_Object string)
 Lisp_Object
 string_make_unibyte (Lisp_Object string)
 {
-  int nchars;
+  EMACS_INT nchars;
   unsigned char *buf;
   Lisp_Object ret;
   USE_SAFE_ALLOCA;
@@ -1003,7 +1003,7 @@ If STRING is multibyte and contains a character of charset
 
   if (STRING_MULTIBYTE (string))
     {
-      int bytes = SBYTES (string);
+      EMACS_INT bytes = SBYTES (string);
       unsigned char *str = (unsigned char *) xmalloc (bytes);
 
       memcpy (str, SDATA (string), bytes);
@@ -1036,7 +1036,7 @@ If you're not sure, whether to use `string-as-multibyte' or
   if (! STRING_MULTIBYTE (string))
     {
       Lisp_Object new_string;
-      int nchars, nbytes;
+      EMACS_INT nchars, nbytes;
 
       parse_str_as_multibyte (SDATA (string),
 			      SBYTES (string),
@@ -1138,10 +1138,10 @@ value is a new vector that contains the elements between index FROM
   (Lisp_Object string, register Lisp_Object from, Lisp_Object to)
 {
   Lisp_Object res;
-  int size;
-  int size_byte = 0;
-  int from_char, to_char;
-  int from_byte = 0, to_byte = 0;
+  EMACS_INT size;
+  EMACS_INT size_byte = 0;
+  EMACS_INT from_char, to_char;
+  EMACS_INT from_byte = 0, to_byte = 0;
 
   CHECK_VECTOR_OR_STRING (string);
   CHECK_NUMBER (from);
@@ -1206,9 +1206,9 @@ If FROM or TO is negative, it counts from the end.
 With one argument, just copy STRING without its properties.  */)
   (Lisp_Object string, register Lisp_Object from, Lisp_Object to)
 {
-  int size, size_byte;
-  int from_char, to_char;
-  int from_byte, to_byte;
+  EMACS_INT size, size_byte;
+  EMACS_INT from_char, to_char;
+  EMACS_INT from_byte, to_byte;
 
   CHECK_STRING (string);
 
@@ -1256,11 +1256,12 @@ With one argument, just copy STRING without its properties.  */)
    both in characters and in bytes.  */
 
 Lisp_Object
-substring_both (Lisp_Object string, int from, int from_byte, int to, int to_byte)
+substring_both (Lisp_Object string, EMACS_INT from, EMACS_INT from_byte,
+		EMACS_INT to, EMACS_INT to_byte)
 {
   Lisp_Object res;
-  int size;
-  int size_byte;
+  EMACS_INT size;
+  EMACS_INT size_byte;
 
   CHECK_VECTOR_OR_STRING (string);
 
@@ -2147,7 +2148,9 @@ DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
 ARRAY is a vector, string, char-table, or bool-vector.  */)
   (Lisp_Object array, Lisp_Object item)
 {
-  register int size, index, charval;
+  register EMACS_INT size, index;
+  int charval;
+
   if (VECTORP (array))
     {
       register Lisp_Object *p = XVECTOR (array)->contents;
@@ -2173,7 +2176,7 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len = CHAR_STRING (charval, str);
-	  int size_byte = SBYTES (array);
+	  EMACS_INT size_byte = SBYTES (array);
 	  unsigned char *p1 = p, *endp = p + size_byte;
 	  int i;
 
@@ -2221,7 +2224,7 @@ DEFUN ("clear-string", Fclear_string, Sclear_string,
 This makes STRING unibyte and may change its length.  */)
   (Lisp_Object string)
 {
-  int len;
+  EMACS_INT len;
   CHECK_STRING (string);
   len = SBYTES (string);
   memset (SDATA (string), 0, len);
@@ -2285,11 +2288,11 @@ usage: (nconc &rest LISTS)  */)
  LENI is the length of VALS, which should also be the length of SEQ.  */
 
 static void
-mapcar1 (int leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
+mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 {
   register Lisp_Object tail;
   Lisp_Object dummy;
-  register int i;
+  register EMACS_INT i;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   if (vals)
@@ -2331,12 +2334,12 @@ mapcar1 (int leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
     }
   else if (STRINGP (seq))
     {
-      int i_byte;
+      EMACS_INT i_byte;
 
       for (i = 0, i_byte = 0; i < leni;)
 	{
 	  int c;
-	  int i_before = i;
+	  EMACS_INT i_before = i;
 
 	  FETCH_STRING_CHAR_ADVANCE (c, seq, i, i_byte);
 	  XSETFASTINT (dummy, c);
@@ -2368,10 +2371,10 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   (Lisp_Object function, Lisp_Object sequence, Lisp_Object separator)
 {
   Lisp_Object len;
-  register int leni;
+  register EMACS_INT leni;
   int nargs;
   register Lisp_Object *args;
-  register int i;
+  register EMACS_INT i;
   struct gcpro gcpro1;
   Lisp_Object ret;
   USE_SAFE_ALLOCA;
@@ -2408,7 +2411,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   (Lisp_Object function, Lisp_Object sequence)
 {
   register Lisp_Object len;
-  register int leni;
+  register EMACS_INT leni;
   register Lisp_Object *args;
   Lisp_Object ret;
   USE_SAFE_ALLOCA;
@@ -2434,7 +2437,7 @@ Unlike `mapcar', don't accumulate the results.  Return SEQUENCE.
 SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   (Lisp_Object function, Lisp_Object sequence)
 {
-  register int leni;
+  register EMACS_INT leni;
 
   leni = XFASTINT (Flength (sequence));
   if (CHAR_TABLE_P (sequence))
@@ -2958,8 +2961,9 @@ static const short base64_char_to_value[128] =
    base64 characters.  */
 
 
-static int base64_encode_1 (const char *, char *, int, int, int);
-static int base64_decode_1 (const char *, char *, int, int, int *);
+static EMACS_INT base64_encode_1 (const char *, char *, EMACS_INT, int, int);
+static EMACS_INT base64_decode_1 (const char *, char *, EMACS_INT, int,
+				  EMACS_INT *);
 
 DEFUN ("base64-encode-region", Fbase64_encode_region, Sbase64_encode_region,
        2, 3, "r",
@@ -2970,9 +2974,9 @@ into shorter lines.  */)
   (Lisp_Object beg, Lisp_Object end, Lisp_Object no_line_break)
 {
   char *encoded;
-  int allength, length;
-  int ibeg, iend, encoded_length;
-  int old_pos = PT;
+  EMACS_INT allength, length;
+  EMACS_INT ibeg, iend, encoded_length;
+  EMACS_INT old_pos = PT;
   USE_SAFE_ALLOCA;
 
   validate_region (&beg, &end);
@@ -3028,7 +3032,7 @@ Optional second argument NO-LINE-BREAK means do not break long lines
 into shorter lines.  */)
   (Lisp_Object string, Lisp_Object no_line_break)
 {
-  int allength, length, encoded_length;
+  EMACS_INT allength, length, encoded_length;
   char *encoded;
   Lisp_Object encoded_string;
   USE_SAFE_ALLOCA;
@@ -3064,10 +3068,12 @@ into shorter lines.  */)
   return encoded_string;
 }
 
-static int
-base64_encode_1 (const char *from, char *to, int length, int line_break, int multibyte)
+static EMACS_INT
+base64_encode_1 (const char *from, char *to, EMACS_INT length,
+		 int line_break, int multibyte)
 {
-  int counter = 0, i = 0;
+  int counter = 0;
+  EMACS_INT i = 0;
   char *e = to;
   int c;
   unsigned int value;
@@ -3166,11 +3172,11 @@ Return the length of the decoded text.
 If the region can't be decoded, signal an error and don't modify the buffer.  */)
   (Lisp_Object beg, Lisp_Object end)
 {
-  int ibeg, iend, length, allength;
+  EMACS_INT ibeg, iend, length, allength;
   char *decoded;
-  int old_pos = PT;
-  int decoded_length;
-  int inserted_chars;
+  EMACS_INT old_pos = PT;
+  EMACS_INT decoded_length;
+  EMACS_INT inserted_chars;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   USE_SAFE_ALLOCA;
 
@@ -3227,7 +3233,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   (Lisp_Object string)
 {
   char *decoded;
-  int length, decoded_length;
+  EMACS_INT length, decoded_length;
   Lisp_Object decoded_string;
   USE_SAFE_ALLOCA;
 
@@ -3259,14 +3265,15 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
    form.  If NCHARS_RETRUN is not NULL, store the number of produced
    characters in *NCHARS_RETURN.  */
 
-static int
-base64_decode_1 (const char *from, char *to, int length, int multibyte, int *nchars_return)
+static EMACS_INT
+base64_decode_1 (const char *from, char *to, EMACS_INT length,
+		 int multibyte, EMACS_INT *nchars_return)
 {
-  int i = 0;
+  EMACS_INT i = 0;		/* Used inside READ_QUADRUPLET_BYTE */
   char *e = to;
   unsigned char c;
   unsigned long value;
-  int nchars = 0;
+  EMACS_INT nchars = 0;
 
   while (1)
     {
@@ -4572,13 +4579,13 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
   unsigned char digest[16];
   unsigned char value[33];
   int i;
-  int size;
-  int size_byte = 0;
-  int start_char = 0, end_char = 0;
-  int start_byte = 0, end_byte = 0;
-  register int b, e;
+  EMACS_INT size;
+  EMACS_INT size_byte = 0;
+  EMACS_INT start_char = 0, end_char = 0;
+  EMACS_INT start_byte = 0, end_byte = 0;
+  register EMACS_INT b, e;
   register struct buffer *bp;
-  int temp;
+  EMACS_INT temp;
 
   if (STRINGP (object))
     {

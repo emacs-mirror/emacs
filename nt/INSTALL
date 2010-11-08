@@ -221,6 +221,14 @@
   absolutely sure the produced binaries will never need to be run under
   a debugger.
 
+  Because of limitations of the stock Windows command shell, certain
+  characters (quotes, backslashes and equal signs) can be problematic
+  and should not be used in arguments to configure.  That means that
+  forward slashes must be used in paths passed to the compiler and
+  linker via the --cflags and --ldflags options, and that it is
+  currently not possible to pass a macro like -DFOO=BAR (though -DFOO
+  is perfectly valid).
+
   N.B.  It is normal to see a few error messages output while configure
   is running, when gcc support is being tested.  These cannot be
   suppressed because of limitations in the Windows 9X command.com shell.

@@ -76,11 +76,11 @@ negative, force off."
 				     "Add files to Target: "))))
   (dolist (file (dired-get-marked-files t))
     (project-add-file target file)
-    ;; Find the buffer for this files, and set it's ede-object
+    ;; Find the buffer for this files, and set its ede-object
     (if (get-file-buffer file)
-        (with-current-buffer (get-file-buffer file)
-          (setq ede-object nil)
-          (setq ede-object (ede-buffer-object (current-buffer)))))))
+	(with-current-buffer (get-file-buffer file)
+	  (setq ede-object nil)
+	  (setq ede-object (ede-buffer-object (current-buffer)))))))
 
 (provide 'ede/dired)
 

@@ -293,6 +293,53 @@ cleanall:	clean
 	- $(DEL_TREE) oo
 	- $(DEL_TREE) oo-spd
 
+## Arrange to make a tags table TAGS-LISP for ../lisp,
+## plus TAGS for the C files, which includes ../lisp/TAGS by reference.
+##
+## This works only with GNU Make.
+
+TAGS: $(OBJ0) $(OBJ1) $(WIN32OBJ) $(FONTOBJ)
+	$(MAKE) $(MFLAGS) TAGS-$(MAKETYPE)
+
+TAGS-LISP: $(OBJ0) $(OBJ1) $(WIN32OBJ) $(FONTOBJ)
+	$(MAKE) $(MFLAGS) TAGS-LISP-$(MAKETYPE)
+
+TAGS-gmake:
+	../lib-src/$(BLD)/etags.exe --include=TAGS-LISP --include=../nt/TAGS \
+	  --regex=@../nt/emacs-src.tags \
+	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ0))
+	../lib-src/$(BLD)/etags.exe -a --regex=@../nt/emacs-src.tags \
+	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ1))
+	../lib-src/$(BLD)/etags.exe -a --regex=@../nt/emacs-src.tags \
+	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(WIN32OBJ)) \
+	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(FONTOBJ)) \
+	  $(CURDIR)/*.h
+
+TAGS-nmake:
+	echo This target is not supported with NMake
+	exit -1
+
+frc:
+TAGS-LISP-gmake: frc
+	$(MAKE) $(MFLAGS) -C ../lisp TAGS-LISP DEST=../src
+
+TAGS-LISP-nmake:
+	echo This target is not supported with NMake
+	exit -1
+
+../nt/TAGS: frc
+	$(MAKE) $(MFLAGS) nt-TAGS-$(MAKETYPE)
+
+nt-TAGS-gmake:
+	$(MAKE) $(MFLAGS) -C ../nt TAGS
+
+nt-TAGS-nmake:
+	echo This target is not supported with NMake
+	exit -1
+
+full-tags: TAGS TAGS-LISP ../nt/TAGS
+.PHONY: full-tags
+
 ### DEPENDENCIES ###
 
 EMACS_ROOT = ..

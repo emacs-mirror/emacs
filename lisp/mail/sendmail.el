@@ -285,14 +285,14 @@ regardless of what part of it (if any) is included in the cited text.")
 
 ;;;###autoload
 (defcustom mail-citation-prefix-regexp
-  (purecopy "\\([ \t]*\\(\\w\\|[_.]\\)+>+\\|[ \t]*[]>|}]\\)+")
+  (purecopy "\\([ \t]*\\(\\w\\|[_.]\\)+>+\\|[ \t]*[]>|]\\)+")
   "Regular expression to match a citation prefix plus whitespace.
 It should match whatever sort of citation prefixes you want to handle,
 with whitespace before and after; it should also match just whitespace.
 The default value matches citations like `foo-bar>' plus whitespace."
   :type 'regexp
   :group 'sendmail
-  :version "20.3")
+  :version "24.1")
 
 (defvar mail-abbrevs-loaded nil)
 (defvar mail-mode-map

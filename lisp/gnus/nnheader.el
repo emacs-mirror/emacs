@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile (require 'cl))
@@ -570,8 +571,6 @@ the line could be found."
 
 (defvar nntp-server-buffer nil)
 (defvar nntp-process-response nil)
-(defvar news-reply-yank-from nil)
-(defvar news-reply-yank-message-id nil)
 
 (defvar nnheader-callback-function nil)
 
@@ -824,12 +823,16 @@ The first string in ARGS can be a format string."
 	 (apply 'format args)))
   nil)
 
-(defun nnheader-get-report (backend)
+(defun nnheader-get-report-string (backend)
   "Get the most recent report from BACKEND."
   (condition-case ()
-      (nnheader-message 5 "%s" (symbol-value (intern (format "%s-status-string"
-							     backend))))
-    (error (nnheader-message 5 ""))))
+      (format "%s" (symbol-value (intern (format "%s-status-string"
+						 backend))))
+    (error "")))
+
+(defun nnheader-get-report (backend)
+  "Get the most recent report from BACKEND."
+  (nnheader-message 5 (nnheader-get-report-string backend)))
 
 (defun nnheader-insert (format &rest args)
   "Clear the communication buffer and insert FORMAT and ARGS into the buffer.

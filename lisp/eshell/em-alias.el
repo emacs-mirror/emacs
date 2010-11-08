@@ -103,7 +103,7 @@
   :group 'eshell-module)
 
 (defcustom eshell-aliases-file (expand-file-name "alias" eshell-directory-name)
-  "*The file in which aliases are kept.
+  "The file in which aliases are kept.
 Whenever an alias is defined by the user, using the `alias' command,
 it will be written to this file.  Thus, alias definitions (and
 deletions) are always permanent.  This approach was chosen for the
@@ -113,13 +113,13 @@ gained by using this module."
   :group 'eshell-alias)
 
 (defcustom eshell-bad-command-tolerance 3
-  "*The number of failed commands to ignore before creating an alias."
+  "The number of failed commands to ignore before creating an alias."
   :type 'integer
   ;; :link '(custom-manual "(eshell)Auto-correction of bad commands")
   :group 'eshell-alias)
 
 (defcustom eshell-alias-load-hook '(eshell-alias-initialize)
-  "*A hook that gets run when `eshell-alias' is loaded."
+  "A hook that gets run when `eshell-alias' is loaded."
   :type 'hook
   :group 'eshell-alias)
 

@@ -204,7 +204,8 @@ put_filename (char *filename)
 int
 scan_file (char *filename)
 {
-  int len = strlen (filename);
+
+  size_t len = strlen (filename);
 
   put_filename (filename);
   if (len > 4 && !strcmp (filename + len - 4, ".elc"))
@@ -442,7 +443,7 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
   register char *p;
   int in_ident = 0;
   char *ident_start;
-  int ident_length = 0;
+  size_t ident_length = 0;
 
   fprintf (out, "(fn");
 

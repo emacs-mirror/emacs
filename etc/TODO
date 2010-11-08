@@ -627,6 +627,35 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
 
 * Things to be done for specific packages or features
 
+** NeXTstep port
+
+*** Bugs
+
+**** (mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back
+up on top of all others
+
+**** free_frame_resources, face colors
+
+**** Numeric keysetting bug.
+
+*** Mac-related
+
+**** Open file:/// URLs.
+
+**** Put frame autopositioning into C code somewhere -- if loc = same, offset.
+
+**** Automap ctrl-mouse-1 to mouse-3.
+
+**** Deal with Finder aliases somehow.
+
+**** Ctrl-F2 won't pull up menus.
+
+*** Other / Low Priority:
+
+**** Better recognition of unicode scripts / Greek / composition.
+
+**** Undo for color-drag face customization.
+
 ** ImageMagick support
 
 *** image-type-header-regexps priorities the jpeg loader over the

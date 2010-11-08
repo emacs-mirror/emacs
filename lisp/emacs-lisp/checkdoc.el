@@ -1,7 +1,7 @@
 ;;; checkdoc.el --- check documentation strings for style requirements
 
-;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -1206,9 +1206,6 @@ generating a buffered list of errors."
     (define-key map "\C-c?" pmap)
     map)
   "Keymap used to override evaluation key-bindings for documentation checking.")
-
-(define-obsolete-variable-alias 'checkdoc-minor-keymap
-    'checkdoc-minor-mode-map "21.1")
 
 ;; Add in a menubar with easy-menu
 

@@ -681,6 +681,8 @@ FONTCONFIG_LIBS
 FONTCONFIG_CFLAGS
 LIBXMU
 LIBXTR6
+LIBGNUTLS_LIBS
+LIBGNUTLS_CFLAGS
 LIBSELINUX_LIBS
 GCONF_LIBS
 GCONF_CFLAGS
@@ -747,7 +749,6 @@ build_os
 build_vendor
 build_cpu
 build
-PROFILING_LDFLAGS
 PROFILING_CFLAGS
 MAINT
 GZIP_INFO
@@ -822,6 +823,7 @@ with_gpm
 with_dbus
 with_gconf
 with_selinux
+with_gnutls
 with_makeinfo
 with_compress_info
 with_pkg_config_prog
@@ -1518,7 +1520,7 @@ Optional Packages:
   --without-png           don't compile with PNG image support
   --without-rsvg          don't compile with SVG image support
   --without-xml2          don't compile with XML parsing support
-  --with-imagemagick      compile with ImageMagick image support
+  --without-imagemagick   don't compile with ImageMagick image support
   --without-xft           don't use XFT for anti aliased fonts
   --without-libotf        don't use libotf for OpenType font support
   --without-m17n-flt      don't use m17n-flt for text shaping
@@ -1532,6 +1534,7 @@ Optional Packages:
   --without-dbus          don't compile with D-Bus support
   --without-gconf         don't compile with GConf support
   --without-selinux       don't compile with SELinux support
+  --without-gnutls        don't use -lgnutls for SSL/TLS support
   --without-makeinfo      don't require makeinfo for building manuals
   --without-compress-info don't compress the installed Info pages
   --with-pkg-config-prog=PATH
@@ -2748,7 +2751,7 @@ fi
 if test "${with_imagemagick+set}" = set; then :
   withval=$with_imagemagick;
 else
-      with_imagemagick=no
+     with_imagemagick=yes
 fi
 
 
@@ -2840,6 +2843,14 @@ if test "${with_selinux+set}" = set; then :
   withval=$with_selinux;
 else
      with_selinux=yes
+fi
+
+
+# Check whether --with-gnutls was given.
+if test "${with_gnutls+set}" = set; then :
+  withval=$with_gnutls;
+else
+     with_gnutls=yes
 fi
 
 
@@ -3026,12 +3037,9 @@ fi
 
 if test x$ac_enable_profiling != x ; then
    PROFILING_CFLAGS="-DPROFILING=1 -pg"
-   PROFILING_LDFLAGS="-pg"
 else
    PROFILING_CFLAGS=
-   PROFILING_LDFLAGS=
 fi
-
 
 
 # Check whether --enable-autodepend was given.
@@ -7667,7 +7675,7 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-TEMACS_LDFLAGS2="\${LDFLAGS} \${PROFILING_LDFLAGS}"
+TEMACS_LDFLAGS2="\${LDFLAGS}"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
@@ -8046,7 +8054,6 @@ int
 main ()
 {
   char *data, *data2, *data3;
-  const char *cdata2;
   int i, pagesize;
   int fd, fd2;
 
@@ -8071,10 +8078,10 @@ main ()
   fd2 = open ("conftest.txt", O_RDWR | O_CREAT | O_TRUNC, 0600);
   if (fd2 < 0)
     return 4;
-  cdata2 = "";
-  if (write (fd2, cdata2, 1) != 1)
+  data2 = "";
+  if (write (fd2, data2, 1) != 1)
     return 5;
-  data2 = (char *) mmap (0, pagesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0L);
+  data2 = mmap (0, pagesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0L);
   if (data2 == MAP_FAILED)
     return 6;
   for (i = 0; i < pagesize; ++i)
@@ -8627,8 +8634,9 @@ $as_echo "#define HAVE_RSVG 1" >>confdefs.h
 fi
 
 HAVE_IMAGEMAGICK=no
-if test "${with_imagemagick}" != "no"; then
-  IMAGEMAGICK_MODULE="Wand"
+if test "${HAVE_X11}" = "yes"; then
+  if test "${with_imagemagick}" != "no"; then
+    IMAGEMAGICK_MODULE="Wand"
 
   succeeded=no
 
@@ -8726,13 +8734,13 @@ $as_echo "no" >&6; }
 
 
 
-  if test $HAVE_IMAGEMAGICK = yes; then
+    if test $HAVE_IMAGEMAGICK = yes; then
 
 $as_echo "#define HAVE_IMAGEMAGICK 1" >>confdefs.h
 
-    CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
-    LIBS="$IMAGEMAGICK_LIBS $LIBS"
-    for ac_func in MagickExportImagePixels
+      CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
+      LIBS="$IMAGEMAGICK_LIBS $LIBS"
+      for ac_func in MagickExportImagePixels
 do :
   ac_fn_c_check_func "$LINENO" "MagickExportImagePixels" "ac_cv_func_MagickExportImagePixels"
 if test "x$ac_cv_func_MagickExportImagePixels" = x""yes; then :
@@ -8743,6 +8751,7 @@ _ACEOF
 fi
 done
 
+    fi
   fi
 fi
 
@@ -9396,6 +9405,111 @@ $as_echo "#define HAVE_LIBSELINUX 1" >>confdefs.h
       LIBSELINUX_LIBS=-lselinux
    fi
 fi
+
+
+HAVE_GNUTLS=no
+if test "${with_gnutls}" = "yes" ; then
+
+  succeeded=no
+
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_GNUTLS=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gnutls >= 2.2.4" >&5
+$as_echo_n "checking for gnutls >= 2.2.4... " >&6; }
+
+        if $PKG_CONFIG --exists "gnutls >= 2.2.4" 2>&5; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+            succeeded=yes
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBGNUTLS_CFLAGS" >&5
+$as_echo_n "checking LIBGNUTLS_CFLAGS... " >&6; }
+            LIBGNUTLS_CFLAGS=`$PKG_CONFIG --cflags "gnutls >= 2.2.4"|sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBGNUTLS_CFLAGS" >&5
+$as_echo "$LIBGNUTLS_CFLAGS" >&6; }
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBGNUTLS_LIBS" >&5
+$as_echo_n "checking LIBGNUTLS_LIBS... " >&6; }
+            LIBGNUTLS_LIBS=`$PKG_CONFIG --libs "gnutls >= 2.2.4"|sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBGNUTLS_LIBS" >&5
+$as_echo "$LIBGNUTLS_LIBS" >&6; }
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            LIBGNUTLS_CFLAGS=""
+            LIBGNUTLS_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            LIBGNUTLS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gnutls >= 2.2.4"`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_GNUTLS=yes
+  else
+     HAVE_GNUTLS=no
+  fi
+
+  if test "${HAVE_GNUTLS}" = "yes"; then
+
+$as_echo "#define HAVE_GNUTLS 1" >>confdefs.h
+
+  fi
+fi
+
 
 
 HAVE_XAW3D=no
@@ -14849,10 +14963,13 @@ echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $LIB
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}"
+
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
+echo "  Does Emacs use -lgnutls (BROKEN)?                       ${HAVE_GNUTLS}"
+echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
 echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"

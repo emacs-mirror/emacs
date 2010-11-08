@@ -29,7 +29,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -1202,7 +1202,7 @@ This command does not work if you use short group names."
     (nnfolder-save-marks group server))
   nil)
 
-(deffoo nnfolder-request-update-info (group info &optional server)
+(deffoo nnfolder-request-marks (group info &optional server)
   ;; Change servers.
   (when (and server
 	     (not (nnfolder-server-opened server)))

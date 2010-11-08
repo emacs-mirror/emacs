@@ -918,7 +918,11 @@ for Font Lock mode.
 If the optional argument @var{paren} is non-@code{nil}, then the
 returned regular expression is always enclosed by at least one
 parentheses-grouping construct.  If @var{paren} is @code{words}, then
-that construct is additionally surrounded by @samp{\<} and @samp{\>}.
+that construct is additionally surrounded by @samp{\<} and @samp{\>};
+alternatively, if @var{paren} is @code{symbols}, then that construct
+is additionally surrounded by @samp{\_<} and @samp{\_>}
+(@code{symbols} is often appropriate when matching
+programming-language keywords and the like).
 
 This simplified definition of @code{regexp-opt} produces a
 regular expression which is equivalent to the actual value

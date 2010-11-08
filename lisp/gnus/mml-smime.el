@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -52,11 +52,6 @@
 	 nil
 	 mml-smime-epg-verify
 	 mml-smime-epg-verify-test)))
-
-(defcustom mml-smime-verbose mml-secure-verbose
-  "If non-nil, ask the user about the current operation more verbosely."
-  :group 'mime-security
-  :type 'boolean)
 
 (defcustom mml-smime-cache-passphrase mml-secure-cache-passphrase
   "If t, cache passphrase."
@@ -166,10 +161,10 @@ Whether the passphrase is cached at all is controlled by
 					     "")))))
 		(and from (smime-get-key-by-email from)))
 	      (smime-get-key-by-email
-	       (completing-read "Sign this part with what signature? "
-				smime-keys nil nil
-				(and (listp (car-safe smime-keys))
-				     (caar smime-keys))))))))
+	       (gnus-completing-read "Sign this part with what signature"
+                                     (mapcar 'car smime-keys) nil nil nil
+                                     (and (listp (car-safe smime-keys))
+                                          (caar smime-keys))))))))
 
 (defun mml-smime-get-file-cert ()
   (ignore-errors
@@ -218,15 +213,16 @@ Whether the passphrase is cached at all is controlled by
       (quit))
     result))
 
-(autoload 'gnus-completing-read-with-default "gnus-util")
+(autoload 'gnus-completing-read "gnus-util")
 
 (defun mml-smime-openssl-encrypt-query ()
   ;; todo: try dns/ldap automatically first, before prompting user
   (let (certs done)
     (while (not done)
-      (ecase (read (gnus-completing-read-with-default
-		    "ldap" "Fetch certificate from"
-		    '(("dns") ("ldap") ("file")) nil t))
+      (ecase (read (gnus-completing-read
+		    "Fetch certificate from"
+		    '("dns" "ldap" "file") t nil nil
+                    "ldap"))
 	(dns (setq certs (append certs
 				 (mml-smime-get-dns-cert))))
 	(ldap (setq certs (append certs

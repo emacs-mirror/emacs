@@ -82,6 +82,15 @@ valid value is 'apop'."
   :version "22.1" ;; Oort Gnus
   :group 'pop3)
 
+(defcustom pop3-stream-length 100
+  "How many messages should be requested at one time.
+The lower the number, the more latency-sensitive the fetching
+will be.  If your pop3 server doesn't support streaming at all,
+set this to 1."
+  :type 'number
+  :version "24.1"
+  :group 'pop3)
+
 (defcustom pop3-leave-mail-on-server nil
   "*Non-nil if the mail is to be left on the POP server after fetching.
 
@@ -140,7 +149,7 @@ Use streaming commands."
       (let ((size (pop3-stat process)))
 	(setq message-count (car size)
 	      message-total-size (cadr size)))
-      (when (plusp message-count)
+      (when (> message-count 0)
 	(pop3-send-streaming-command
 	 process "RETR" message-count message-total-size)
 	(pop3-write-to-file file)
@@ -156,7 +165,7 @@ Use streaming commands."
     (while (>= count i)
       (process-send-string process (format "%s %d\r\n" command i))
       ;; Only do 100 messages at a time to avoid pipe stalls.
-      (when (zerop (% i 100))
+      (when (zerop (% i pop3-stream-length))
 	(pop3-wait-for-messages process i total-size))
       (incf i)))
   (pop3-wait-for-messages process count total-size))
@@ -520,8 +529,7 @@ Otherwise, return the size of the message-id MSG"
 	  (mapcar #'(lambda (s) (let ((split (split-string s " ")))
 				  (cons (string-to-number (nth 0 split))
 					(string-to-number (nth 1 split)))))
-		  (delete "" (split-string (buffer-substring start end)
-					   "\r\n"))))))))
+		  (split-string (buffer-substring start end) "\r\n" t)))))))
 
 (defun pop3-retr (process msg crashbuf)
   "Retrieve message-id MSG to buffer CRASHBUF."

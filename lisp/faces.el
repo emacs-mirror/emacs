@@ -186,33 +186,6 @@ to NEW-FACE on frame NEW-FRAME.  In this case, FRAME may not be nil."
       (internal-copy-lisp-face old-face new-face frame new-frame))
     new-face))
 
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Obsolete functions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; The functions in this section are defined because Lisp packages use
-;; them, despite the prefix `internal-' suggesting that they are
-;; private to the face implementation.
-
-(defun internal-find-face (name &optional frame)
-  "Retrieve the face named NAME.
-Return nil if there is no such face.
-If NAME is already a face, it is simply returned.
-The optional argument FRAME is ignored."
-  (facep name))
-(make-obsolete 'internal-find-face 'facep "21.1")
-
-
-(defun internal-get-face (name &optional frame)
-  "Retrieve the face named NAME; error if there is none.
-If NAME is already a face, it is simply returned.
-The optional argument FRAME is ignored."
-  (or (facep name)
-      (check-face name)))
-(make-obsolete 'internal-get-face "see `facep' and `check-face'." "21.1")
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Predicates, type checks.
@@ -2153,23 +2126,6 @@ terminal type to a different value."
     (face-set-after-frame-default frame)))
 
 
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Compatibility with 20.2
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Update a frame's faces when we change its default font.
-
-(defalias 'frame-update-faces 'ignore "")
-(make-obsolete 'frame-update-faces "no longer necessary." "21.1")
-
-;; Update the colors of FACE, after FRAME's own colors have been
-;; changed.
-
-(define-obsolete-function-alias 'frame-update-face-colors
-    'frame-set-background-mode "21.1")
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Standard faces.
@@ -2619,97 +2575,6 @@ also the same size as FACE on FRAME, or fail."
 	      (error "No fonts match `%s'" pattern)))
 	(car fonts))
     (cdr (assq 'font (frame-parameters (selected-frame))))))
-
-
-(defun x-frob-font-weight (font which)
-  (let ((case-fold-search t))
-    (cond ((string-match x-font-regexp font)
-	   (concat (substring font 0
-			      (match-beginning x-font-regexp-weight-subnum))
-		   which
-		   (substring font (match-end x-font-regexp-weight-subnum)
-			      (match-beginning x-font-regexp-adstyle-subnum))
-		   ;; Replace the ADD_STYLE_NAME field with *
-		   ;; because the info in it may not be the same
-		   ;; for related fonts.
-		   "*"
-		   (substring font (match-end x-font-regexp-adstyle-subnum))))
-	  ((string-match x-font-regexp-head font)
-	   (concat (substring font 0 (match-beginning 1)) which
-		   (substring font (match-end 1))))
-	  ((string-match x-font-regexp-weight font)
-	   (concat (substring font 0 (match-beginning 1)) which
-		   (substring font (match-end 1)))))))
-(make-obsolete 'x-frob-font-weight 'make-face-... "21.1")
-
-(defun x-frob-font-slant (font which)
-  (let ((case-fold-search t))
-    (cond ((string-match x-font-regexp font)
-	   (concat (substring font 0
-			      (match-beginning x-font-regexp-slant-subnum))
-		   which
-		   (substring font (match-end x-font-regexp-slant-subnum)
-			      (match-beginning x-font-regexp-adstyle-subnum))
-		   ;; Replace the ADD_STYLE_NAME field with *
-		   ;; because the info in it may not be the same
-		   ;; for related fonts.
-		   "*"
-		   (substring font (match-end x-font-regexp-adstyle-subnum))))
-	  ((string-match x-font-regexp-head font)
-	   (concat (substring font 0 (match-beginning 2)) which
-		   (substring font (match-end 2))))
-	  ((string-match x-font-regexp-slant font)
-	   (concat (substring font 0 (match-beginning 1)) which
-		   (substring font (match-end 1)))))))
-(make-obsolete 'x-frob-font-slant 'make-face-... "21.1")
-
-;; These aliases are here so that we don't get warnings about obsolete
-;; functions from the byte compiler.
-(defalias 'internal-frob-font-weight 'x-frob-font-weight)
-(defalias 'internal-frob-font-slant 'x-frob-font-slant)
-
-(defun x-make-font-bold (font)
-  "Given an X font specification, make a bold version of it.
-If that can't be done, return nil."
-  (internal-frob-font-weight font "bold"))
-(make-obsolete 'x-make-font-bold 'make-face-bold "21.1")
-
-(defun x-make-font-demibold (font)
-  "Given an X font specification, make a demibold version of it.
-If that can't be done, return nil."
-  (internal-frob-font-weight font "demibold"))
-(make-obsolete 'x-make-font-demibold 'make-face-bold "21.1")
-
-(defun x-make-font-unbold (font)
-  "Given an X font specification, make a non-bold version of it.
-If that can't be done, return nil."
-  (internal-frob-font-weight font "medium"))
-(make-obsolete 'x-make-font-unbold 'make-face-unbold "21.1")
-
-(defun x-make-font-italic (font)
-  "Given an X font specification, make an italic version of it.
-If that can't be done, return nil."
-  (internal-frob-font-slant font "i"))
-(make-obsolete 'x-make-font-italic 'make-face-italic "21.1")
-
-(defun x-make-font-oblique (font) ; you say tomayto...
-  "Given an X font specification, make an oblique version of it.
-If that can't be done, return nil."
-  (internal-frob-font-slant font "o"))
-(make-obsolete 'x-make-font-oblique 'make-face-italic "21.1")
-
-(defun x-make-font-unitalic (font)
-  "Given an X font specification, make a non-italic version of it.
-If that can't be done, return nil."
-  (internal-frob-font-slant font "r"))
-(make-obsolete 'x-make-font-unitalic 'make-face-unitalic "21.1")
-
-(defun x-make-font-bold-italic (font)
-  "Given an X font specification, make a bold and italic version of it.
-If that can't be done, return nil."
-  (and (setq font (internal-frob-font-weight font "bold"))
-       (internal-frob-font-slant font "i")))
-(make-obsolete 'x-make-font-bold-italic 'make-face-bold-italic "21.1")
 
 (provide 'faces)
 

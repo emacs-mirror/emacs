@@ -65,7 +65,9 @@ called EasyPG Library.
 @menu
 * Overview::                    
 * Quick start::                 
-* Commands::               
+* Commands::                    
+* Caching Passphrases::         
+* Bug Reports::                 
 @end menu
 
 @node  Overview
@@ -397,6 +399,65 @@ default value is @code{nil}.
 If non-@code{nil}, disable auto-saving when opening an encrypted file.
 The default value is @code{t}.
 @end defvar
+
+@node Caching Passphrases
+@chapter Caching Passphrases
+
+Typing passphrases is an irritating task if you frequently open and
+close the same file.  GnuPG and EasyPG Assistant provide mechanisms to
+remember your passphrases.  However, the configuration is a bit
+confusing since it depends on your GnuPG installation (GnuPG version 1 or
+GnuPG version 2), encryption method (symmetric or public key), and whether or
+not you want to use gpg-agent.  Here are some questions:
+
+@enumerate
+@item Do you use GnuPG version 2 instead of GnuPG version 1?
+@item Do you use symmetric encryption rather than public key encryption?
+@item Do you want to use gpg-agent?
+@end enumerate
+
+Here are configurations depending on your answers:
+
+@multitable {111} {222} {333} {configuration configuration configuration}
+@item @b{1} @tab @b{2} @tab @b{3} @tab Configuration
+@item Yes @tab Yes @tab Yes @tab Set up gpg-agent.
+@item Yes @tab Yes @tab No @tab You can't, without gpg-agent.
+@item Yes @tab No @tab Yes @tab Set up gpg-agent.
+@item Yes @tab No @tab No @tab You can't, without gpg-agent.
+@item No @tab Yes @tab Yes @tab Set up elisp passphrase cache.
+@item No @tab Yes @tab No @tab Set up elisp passphrase cache.
+@item No @tab No @tab Yes @tab Set up gpg-agent.
+@item No @tab No @tab No @tab You can't, without gpg-agent.
+@end multitable
+
+To set up gpg-agent, follow the instruction in GnuPG manual.
+@pxref{Invoking GPG-AGENT, , Invoking GPG-AGENT, gnupg}.
+
+To set up elisp passphrase cache, set
+@code{epa-file-cache-passphrase-for-symmetric-encryption}.
+@xref{Encrypting/decrypting *.gpg files}.
+
+@node Bug Reports
+@chapter Bug Reports
+
+Bugs and problems with EasyPG Assistant are actively worked on by the
+Emacs development team.  Feature requests and suggestions are also
+more than welcome.  Use @kbd{M-x report-emacs-bug}, @pxref{Bugs, ,
+Bugs, emacs, Reporting Bugs}.
+
+When submitting a bug report, please try to describe in excruciating
+detail the steps required to reproduce the problem.  Also try to
+collect necessary information to fix the bug, such as:
+
+@itemize @bullet
+@item the GnuPG version.  Send the output of @samp{gpg --version}.
+@item the GnuPG configuration.  Send the contents of @file{~/.gnupg/gpg.conf}.
+@end itemize
+
+Before reporting the bug, you should set @code{epg-debug} in the
+@file{~/.emacs} file and repeat the bug.  Then, include the contents
+of the @samp{ *epg-debug*} buffer.  Note that the first letter of the
+buffer name is a whitespace.
 
 @bye
 

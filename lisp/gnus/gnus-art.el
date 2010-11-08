@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
@@ -34,10 +34,7 @@
 (defvar w3m-minor-mode-map)
 
 (require 'gnus)
-;; Avoid the "Recursive load suspected" error in Emacs 21.1.
-(eval-and-compile
-  (let ((recursive-load-depth-limit 100))
-    (require 'gnus-sum)))
+(require 'gnus-sum)
 (require 'gnus-spec)
 (require 'gnus-int)
 (require 'gnus-win)
@@ -728,7 +725,7 @@ Each element is a regular expression."
   :group 'gnus-article-various)
 
 (make-obsolete-variable 'gnus-article-hide-pgp-hook nil
-			"Gnus 5.10 (Emacs-22.1)")
+			"Gnus 5.10 (Emacs 22.1)")
 
 (defface gnus-button
   '((t (:weight bold)))
@@ -1415,7 +1412,7 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :type gnus-article-treat-custom)
 
 (make-obsolete-variable 'gnus-treat-display-xface
-			'gnus-treat-display-x-face "22.1")
+			'gnus-treat-display-x-face "Emacs 22.1")
 
 (defcustom gnus-treat-display-x-face
   (and (not noninteractive)
@@ -1532,10 +1529,38 @@ node `(gnus)Picons' for details."
   :type gnus-article-treat-head-custom)
 (put 'gnus-treat-newsgroups-picon 'highlight t)
 
+(defcustom gnus-treat-from-gravatar nil
+  "Display gravatars in the From header.
+Valid values are nil, t, `head', `first', `last', an integer or a
+predicate.  See Info node `(gnus)Customizing Articles' and Info
+node `(gnus)Gravatars' for details."
+  :version "24.1"
+  :group 'gnus-article-treat
+  :group 'gnus-gravatar
+  :link '(custom-manual "(gnus)Customizing Articles")
+  :link '(custom-manual "(gnus)Gravatars")
+  :type gnus-article-treat-head-custom)
+(put 'gnus-treat-from-gravatar 'highlight t)
+
+(defcustom gnus-treat-mail-gravatar nil
+  "Display gravatars in To and Cc headers.
+Valid values are nil, t, `head', `first', `last', an integer or a
+predicate.  See Info node `(gnus)Customizing Articles' and Info
+node `(gnus)Gravatars' for details."
+  :version "24.1"
+  :group 'gnus-article-treat
+  :group 'gnus-gravatar
+  :link '(custom-manual "(gnus)Customizing Articles")
+  :link '(custom-manual "(gnus)Gravatars")
+  :type gnus-article-treat-head-custom)
+(put 'gnus-treat-mail-gravatar 'highlight t)
+
 (defcustom gnus-treat-body-boundary
   (if (or gnus-treat-newsgroups-picon
 	  gnus-treat-mail-picon
-	  gnus-treat-from-picon)
+	  gnus-treat-from-picon
+          gnus-treat-from-gravatar
+          gnus-treat-mail-gravatar)
       ;; If there's much decoration, the user might prefer a boundery.
       'head
     nil)
@@ -1569,24 +1594,6 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   "Fill long lines.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles'."
-  :group 'gnus-article-treat
-  :link '(custom-manual "(gnus)Customizing Articles")
-  :type gnus-article-treat-custom)
-
-(defcustom gnus-treat-play-sounds nil
-  "Play sounds.
-Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
-  :version "21.1"
-  :group 'gnus-article-treat
-  :link '(custom-manual "(gnus)Customizing Articles")
-  :type gnus-article-treat-custom)
-
-(defcustom gnus-treat-translate nil
-  "Translate articles from one language to another.
-Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
-  :version "21.1"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -1632,6 +1639,12 @@ This requires GNU Libidn, and by default only enabled if it is found."
   :group 'gnus-article
   :type 'boolean)
 
+(defcustom gnus-blocked-images "."
+  "Images that have URLs matching this regexp will be blocked."
+  :version "24.1"
+  :group 'gnus-art
+  :type 'regexp)
+
 ;;; Internal variables
 
 (defvar gnus-english-month-names
@@ -1668,10 +1681,12 @@ This requires GNU Libidn, and by default only enabled if it is found."
     (gnus-treat-hide-signature gnus-article-hide-signature)
     (gnus-treat-strip-list-identifiers gnus-article-hide-list-identifiers)
     (gnus-treat-leading-whitespace gnus-article-remove-leading-whitespace)
-    (gnus-treat-strip-pem gnus-article-hide-pem)
     (gnus-treat-from-picon gnus-treat-from-picon)
     (gnus-treat-mail-picon gnus-treat-mail-picon)
     (gnus-treat-newsgroups-picon gnus-treat-newsgroups-picon)
+    (gnus-treat-strip-pem gnus-article-hide-pem)
+    (gnus-treat-from-gravatar gnus-treat-from-gravatar)
+    (gnus-treat-mail-gravatar gnus-treat-mail-gravatar)
     (gnus-treat-highlight-headers gnus-article-highlight-headers)
     (gnus-treat-highlight-signature gnus-article-highlight-signature)
     (gnus-treat-strip-trailing-blank-lines
@@ -1693,8 +1708,7 @@ This requires GNU Libidn, and by default only enabled if it is found."
     (gnus-treat-hide-citation gnus-article-hide-citation)
     (gnus-treat-hide-citation-maybe gnus-article-hide-citation-maybe)
     (gnus-treat-highlight-citation gnus-article-highlight-citation)
-    (gnus-treat-body-boundary gnus-article-treat-body-boundary)
-    (gnus-treat-play-sounds gnus-earcon-display)))
+    (gnus-treat-body-boundary gnus-article-treat-body-boundary)))
 
 (defvar gnus-article-mime-handle-alist nil)
 (defvar article-lapsed-timer nil)
@@ -2277,9 +2291,9 @@ long lines if and only if arg is positive."
 	(insert "X-Boundary: ")
 	(gnus-add-text-properties start (point) '(invisible t intangible t))
 	(insert (let (str)
-		  (while (>= (1- (window-width)) (length str))
+		  (while (>= (window-width) (length str))
 		    (setq str (concat str gnus-body-boundary-delimiter)))
-		  (substring str 0 (1- (window-width))))
+		  (substring str 0 (window-width)))
 		"\n")
 	(gnus-put-text-property start (point) 'gnus-decoration 'header)))))
 
@@ -3950,7 +3964,7 @@ Directory to save to is default to `gnus-article-save-directory'."
 		  "Save %s in rmail file" filename
 		  gnus-rmail-save-name gnus-newsgroup-name
 		  gnus-current-headers 'gnus-newsgroup-last-rmail))
-  (gnus-eval-in-buffer-window gnus-save-article-buffer
+  (with-current-buffer gnus-save-article-buffer
     (save-excursion
       (save-restriction
 	(widen)
@@ -3968,7 +3982,7 @@ Directory to save to is default to `gnus-article-save-directory'."
 		  "Save %s in Unix mail file" filename
 		  gnus-mail-save-name gnus-newsgroup-name
 		  gnus-current-headers 'gnus-newsgroup-last-mail))
-  (gnus-eval-in-buffer-window gnus-save-article-buffer
+  (with-current-buffer gnus-save-article-buffer
     (save-excursion
       (save-restriction
 	(widen)
@@ -3989,7 +4003,7 @@ Directory to save to is default to `gnus-article-save-directory'."
 		  "Save %s in file" filename
 		  gnus-file-save-name gnus-newsgroup-name
 		  gnus-current-headers 'gnus-newsgroup-last-file))
-  (gnus-eval-in-buffer-window gnus-save-article-buffer
+  (with-current-buffer gnus-save-article-buffer
     (save-excursion
       (save-restriction
 	(widen)
@@ -4021,7 +4035,7 @@ The directory to save in defaults to `gnus-article-save-directory'."
 		  "Save %s body in file" filename
 		  gnus-file-save-name gnus-newsgroup-name
 		  gnus-current-headers 'gnus-newsgroup-last-file))
-  (gnus-eval-in-buffer-window gnus-save-article-buffer
+  (with-current-buffer gnus-save-article-buffer
     (save-excursion
       (save-restriction
 	(widen)
@@ -4100,7 +4114,7 @@ and the raw article including all headers will be piped."
       (if default
 	  (setq command default)
 	(error "A command is required")))
-    (gnus-eval-in-buffer-window save-buffer
+    (with-current-buffer save-buffer
       (save-restriction
 	(widen)
 	(shell-command-on-region (point-min) (point-max) command nil)))
@@ -4259,7 +4273,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 		  (put-text-property (match-end 0) (point-max)
 				     'face eface)))))))))
 
-(autoload 'canlock-verify "canlock" nil t) ;; for Emacs 21.
+(autoload 'canlock-verify "canlock" nil t) ;; for XEmacs.
 
 (defun article-verify-cancel-lock ()
   "Verify Cancel-Lock header."
@@ -4894,10 +4908,7 @@ General format specifiers can also be used.  See Info node
   ;; FIXME: why is it necessary?
   (sit-for 0)
   (let ((parts (length gnus-article-mime-handle-alist)))
-    (or n (setq n
-		(string-to-number
-		 (read-string ;; Emacs 21 doesn't have `read-number'.
-		  (format "Jump to part (2..%s): " parts)))))
+    (or n (setq n (read-number (format "Jump to part (2..%s): " parts))))
     (unless (and (integerp n) (<= n parts) (>= n 1))
       (setq n
 	    (progn
@@ -5051,7 +5062,7 @@ Deleting parts may malfunction or destroy the article; continue? "))
       (unless data
 	(error "No MIME part under point"))
       (with-current-buffer (mm-handle-buffer data)
-	(let ((bsize (format "%s" (buffer-size))))
+	(let ((bsize (buffer-size)))
 	  (erase-buffer)
 	  (insert
 	   (concat
@@ -5060,7 +5071,10 @@ Deleting parts may malfunction or destroy the article; continue? "))
 	    "|\n"
 	    "| Type:           " type "\n"
 	    "| Filename:       " filename "\n"
-	    "| Size (encoded): " bsize " Byte\n"
+	    "| Size (encoded): " (format "%s byte%s\n"
+					 bsize (if (= bsize 1)
+						   ""
+						 "s"))
 	    (when description
 	      (concat    "| Description:    " description "\n"))
 	    "`----\n"))
@@ -5123,11 +5137,12 @@ available media-types."
   (unless mime-type
     (setq mime-type
 	  (let ((default (gnus-mime-view-part-as-type-internal)))
-	    (completing-read
-	     (format "View as MIME type (default %s): "
-		     (car default))
-	     (mapcar #'list (mailcap-mime-types))
-	     pred nil nil nil
+	    (gnus-completing-read
+	     "View as MIME type"
+	     (if pred
+		 (gnus-remove-if-not pred (mailcap-mime-types))
+	       (mailcap-mime-types))
+	     nil nil nil
 	     (car default)))))
   (gnus-article-check-buffer)
   (let ((handle (get-text-property (point) 'gnus-data)))
@@ -5366,7 +5381,7 @@ specified charset."
          (mm-enable-external t))
     (if (not (stringp method))
 	(gnus-mime-view-part-as-type
-	 nil (lambda (types) (stringp (mailcap-mime-info (car types)))))
+	 nil (lambda (type) (stringp (mailcap-mime-info type))))
       (when handle
 	(if (mm-handle-undisplayer handle)
 	    (mm-remove-part handle)
@@ -5387,7 +5402,7 @@ If no internal viewer is available, use an external viewer."
 	 (inhibit-read-only t))
     (if (not (mm-inlinable-p handle))
         (gnus-mime-view-part-as-type
-         nil (lambda (types) (mm-inlinable-p handle (car types))))
+         nil (lambda (type) (mm-inlinable-p handle type)))
       (when handle
 	(if (mm-handle-undisplayer handle)
 	    (mm-remove-part handle)
@@ -5396,7 +5411,7 @@ If no internal viewer is available, use an external viewer."
 (defun gnus-mime-action-on-part (&optional action)
   "Do something with the MIME attachment at \(point\)."
   (interactive
-   (list (completing-read "Action: " gnus-mime-action-alist nil t)))
+   (list (gnus-completing-read "Action" (mapcar 'car gnus-mime-action-alist) t)))
   (gnus-article-check-buffer)
   (let ((action-pair (assoc action gnus-mime-action-alist)))
     (if action-pair
@@ -5681,7 +5696,7 @@ all parts."
      :action 'gnus-widget-press-button
      :button-keymap gnus-mime-button-map
      :help-echo
-     (lambda (widget/window &optional overlay pos)
+     (lambda (widget)
        ;; Needed to properly clear the message due to a bug in
        ;; wid-edit (XEmacs only).
        (if (boundp 'help-echo-owns-message)
@@ -5689,14 +5704,7 @@ all parts."
        (format
 	"%S: %s the MIME part; %S: more options"
 	(aref gnus-mouse-2 0)
-	;; XEmacs will get a single widget arg; Emacs 21 will get
-	;; window, overlay, position.
-	(if (mm-handle-displayed-p
-	     (if overlay
-		 (with-current-buffer (gnus-overlay-buffer overlay)
-		   (widget-get (widget-at (gnus-overlay-start overlay))
-			       :mime-handle))
-	       (widget-get widget/window :mime-handle)))
+	(if (mm-handle-displayed-p (widget-get widget :mime-handle))
 	    "hide" "show")
 	(aref gnus-down-mouse-3 0))))))
 
@@ -6319,15 +6327,6 @@ specifies."
 		      2)))))))
 
 (defun gnus-article-next-page-1 (lines)
-  (unless (featurep 'xemacs)
-    ;; Protect against the bug that Emacs 21.x hangs up when scrolling up for
-    ;; too many number of lines if `scroll-margin' is set as two or greater.
-    (when (and (numberp lines)
-	       (> lines 0)
-	       (> scroll-margin 0))
-      (setq lines (min lines
-		       (max 0 (- (count-lines (window-start) (point-max))
-				 scroll-margin))))))
   (condition-case ()
       (let ((scroll-in-place nil))
 	(scroll-up lines))
@@ -6581,6 +6580,9 @@ KEY is a string or a vector."
 (defvar gnus-draft-mode)
 ;; Calling help-buffer will autoload help-mode.
 (defvar help-xref-stack-item)
+;; Emacs 22 doesn't load it in the batch mode.
+(eval-when-compile
+  (autoload 'help-buffer "help-mode"))
 
 (defun gnus-article-describe-bindings (&optional prefix)
   "Show a list of all defined keys, and their definitions.
@@ -6631,9 +6633,7 @@ then we display only bindings that start with that prefix."
 		    (with-current-buffer ,(current-buffer)
 		      (gnus-article-describe-bindings prefix)))
 		  ,prefix)))
-      (with-current-buffer (if (fboundp 'help-buffer)
-			       (let (help-xref-following) (help-buffer))
-			     "*Help*") ;; Emacs 21
+      (with-current-buffer (let (help-xref-following) (help-buffer))
 	(setq help-xref-stack-item item)))))
 
 (defun gnus-article-reply-with-original (&optional wide)
@@ -7030,9 +7030,7 @@ groups."
       (gnus-backlog-remove-article
        (car gnus-article-current) (cdr gnus-article-current)))
     ;; Flush original article as well.
-    (when (get-buffer gnus-original-article-buffer)
-      (with-current-buffer gnus-original-article-buffer
-	(setq gnus-original-article nil)))
+    (gnus-flush-original-article-buffer)
     (when gnus-use-cache
       (gnus-cache-update-article
        (car gnus-article-current) (cdr gnus-article-current)))
@@ -7045,6 +7043,11 @@ groups."
     (set-window-start (get-buffer-window buf) start)
     (set-window-point (get-buffer-window buf) (point)))
   (gnus-summary-show-article))
+
+(defun gnus-flush-original-article-buffer ()
+  (when (get-buffer gnus-original-article-buffer)
+    (with-current-buffer gnus-original-article-buffer
+      (setq gnus-original-article nil))))
 
 (defun gnus-article-edit-exit ()
   "Exit the article editing without updating."
@@ -7133,46 +7136,6 @@ man page."
 		 (function-item :tag "Woman" woman)
 		 (function :tag "Other"))
   :group 'gnus-article-buttons)
-
-(defcustom gnus-ctan-url "http://tug.ctan.org/tex-archive/"
-  "Top directory of a CTAN \(Comprehensive TeX Archive Network\) archive.
-If the default site is too slow, try to find a CTAN mirror, see
-<URL:http://tug.ctan.org/tex-archive/CTAN.sites?action=/index.html>.  See also
-the variable `gnus-button-handle-ctan'."
-  :version "22.1"
-  :group 'gnus-article-buttons
-  :link '(custom-manual "(gnus)Group Parameters")
-  :type '(choice (const "http://www.tex.ac.uk/tex-archive/")
-		 (const "http://tug.ctan.org/tex-archive/")
-		 (const "http://www.dante.de/CTAN/")
-		 (string :tag "Other")))
-
-(defcustom gnus-button-ctan-handler 'browse-url
-  "Function to use for displaying CTAN links.
-The function must take one argument, the string naming the URL."
-  :version "22.1"
-  :type '(choice (function-item :tag "Browse Url" browse-url)
-		 (function :tag "Other"))
-  :group 'gnus-article-buttons)
-
-(defcustom gnus-button-handle-ctan-bogus-regexp "^/?tex-archive/\\|^/"
-  "Bogus strings removed from CTAN URLs."
-  :version "22.1"
-  :group 'gnus-article-buttons
-  :type '(choice (const "^/?tex-archive/\\|/")
-		 (regexp :tag "Other")))
-
-(defcustom gnus-button-ctan-directory-regexp
-  (regexp-opt
-   (list "archive-tools" "biblio" "bibliography" "digests" "documentation"
-	 "dviware" "fonts" "graphics" "help" "indexing" "info" "language"
-	 "languages" "macros" "nonfree" "obsolete" "support" "systems"
-	 "tds" "tools" "usergrps" "web") t)
-  "Regular expression for ctan directories.
-It should match all directories in the top level of `gnus-ctan-url'."
-  :version "22.1"
-  :group 'gnus-article-buttons
-  :type 'regexp)
 
 (defcustom gnus-button-mid-or-mail-regexp
   (concat "\\b\\(<?" gnus-button-valid-localpart-regexp "@"
@@ -7431,26 +7394,6 @@ Calls `describe-variable' or `describe-function'."
 	(gnus-message 1 "Cannot locale library `%s'." url)
       (find-file-read-only file))))
 
-(defun gnus-button-handle-ctan (url)
-  "Call `browse-url' when pushing a CTAN URL button."
-  (funcall
-   gnus-button-ctan-handler
-   (concat
-    gnus-ctan-url
-    (gnus-replace-in-string url gnus-button-handle-ctan-bogus-regexp ""))))
-
-(defcustom gnus-button-tex-level 5
-  "*Integer that says how many TeX-related buttons Gnus will show.
-The higher the number, the more buttons will appear and the more false
-positives are possible.  Note that you can set this variable local to
-specific groups.  Setting it higher in TeX groups is probably a good idea.
-See Info node `(gnus)Group Parameters' and the variable `gnus-parameters' on
-how to set variables in specific groups."
-  :version "22.1"
-  :group 'gnus-article-buttons
-  :link '(custom-manual "(gnus)Group Parameters")
-  :type 'integer)
-
 (defcustom gnus-button-man-level 5
   "*Integer that says how many man-related buttons Gnus will show.
 The higher the number, the more buttons will appear and the more false
@@ -7517,20 +7460,6 @@ positives are possible."
      0 (>= gnus-button-message-level 0) gnus-url-mailto 1)
     ("\\bmailto:\\([^ \n\t]+\\)"
      0 (>= gnus-button-message-level 0) gnus-url-mailto 1)
-    ;; CTAN
-    ((concat "\\bCTAN:[ \t\n]?[^>)!;:,'\n\t ]*\\("
-	     gnus-button-ctan-directory-regexp
-	     "[^][>)!;:,'\n\t ]+\\)")
-     0 (>= gnus-button-tex-level 1) gnus-button-handle-ctan 1)
-    ((concat "\\btex-archive/\\("
-	     gnus-button-ctan-directory-regexp
-	     "/[-_.a-z0-9/]+[-_./a-z0-9]+[/a-z0-9]\\)")
-     1 (>= gnus-button-tex-level 6) gnus-button-handle-ctan 1)
-    ((concat
-      "\\b\\("
-      gnus-button-ctan-directory-regexp
-      "/[-_.a-z0-9]+/[-_./a-z0-9]+[/a-z0-9]\\)")
-     1 (>= gnus-button-tex-level 8) gnus-button-handle-ctan 1)
     ;; Info Konqueror style <info:/foo/bar baz>.
     ;; Must come before " Gnus home-grown style".
     ("\\binfo://?\\([^'\">\n\t]+\\)"
@@ -8250,9 +8179,6 @@ url is put as the `gnus-button-url' overlay property on the button."
 
 (defvar gnus-next-page-map
   (let ((map (make-sparse-keymap)))
-    (unless (>= emacs-major-version 21)
-      ;; XEmacs doesn't care.
-      (set-keymap-parent map gnus-article-mode-map))
     (define-key map gnus-mouse-2 'gnus-button-next-page)
     (define-key map "\r" 'gnus-button-next-page)
     map))
@@ -8448,9 +8374,9 @@ For example:
   (interactive
    (list
     (or gnus-article-encrypt-protocol
-	(completing-read "Encrypt protocol: "
-			 gnus-article-encrypt-protocol-alist
-			 nil t))
+	(gnus-completing-read "Encrypt protocol"
+                              (mapcar 'car gnus-article-encrypt-protocol-alist)
+                              t))
     current-prefix-arg))
   ;; User might hit `K E' instead of `K e', so prompt once.
   (when (and gnus-article-encrypt-protocol
@@ -8512,9 +8438,7 @@ For example:
 	  (when gnus-keep-backlog
 	    (gnus-backlog-remove-article
 	     (car gnus-article-current) (cdr gnus-article-current)))
-          (when (get-buffer gnus-original-article-buffer)
-            (with-current-buffer gnus-original-article-buffer
-	      (setq gnus-original-article nil)))
+	  (gnus-flush-original-article-buffer)
 	  (when gnus-use-cache
 	    (gnus-cache-update-article
 	     (car gnus-article-current) (cdr gnus-article-current))))))))
@@ -8702,7 +8626,7 @@ For example:
      :action 'gnus-widget-press-button
      :button-keymap gnus-mime-security-button-map
      :help-echo
-     (lambda (widget/window &optional overlay pos)
+     (lambda (widget)
        ;; Needed to properly clear the message due to a bug in
        ;; wid-edit (XEmacs only).
        (when (boundp 'help-echo-owns-message)

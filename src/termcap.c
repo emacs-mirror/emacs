@@ -20,22 +20,16 @@ Boston, MA 02110-1301, USA.  */
 /* Emacs config.h may rename various library functions such as malloc.  */
 #include <config.h>
 #include <setjmp.h>
-#include <lisp.h>		/* xmalloc is here */
-/* Get the O_* definitions for open et al.  */
 #include <sys/file.h>
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
+#include "lisp.h"
+
 #ifndef NULL
 #define NULL (char *) 0
-#endif
-
-#ifndef O_RDONLY
-#define O_RDONLY 0
 #endif
 
 /* BUFSIZE is the initial size allocated for the buffer
@@ -268,25 +262,7 @@ tgetst1 (char *ptr, char **area)
 
 /* Outputting a string with padding.  */
 
-#ifndef emacs
-short ospeed;
-/* If OSPEED is 0, we use this as the actual baud rate.  */
-int tputs_baud_rate;
-#endif
-
 char PC;
-
-#ifndef emacs
-/* Actual baud rate if positive;
-   - baud rate / 100 if negative.  */
-
-static const int speeds[] =
-  {
-    0, 50, 75, 110, 135, 150, -2, -3, -6, -12,
-    -18, -24, -48, -96, -192, -288, -384, -576, -1152
-  };
-
-#endif /* not emacs */
 
 void
 tputs (register char *str, int nlines, register int (*outfun) (/* ??? */))
@@ -294,19 +270,12 @@ tputs (register char *str, int nlines, register int (*outfun) (/* ??? */))
   register int padcount = 0;
   register int speed;
 
-#ifdef emacs
   extern EMACS_INT baud_rate;
   speed = baud_rate;
   /* For quite high speeds, convert to the smaller
      units to avoid overflow.  */
   if (speed > 10000)
     speed = - speed / 100;
-#else
-  if (ospeed == 0)
-    speed = tputs_baud_rate;
-  else
-    speed = speeds[ospeed];
-#endif
 
   if (!str)
     return;

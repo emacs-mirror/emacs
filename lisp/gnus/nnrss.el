@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -77,7 +77,8 @@ this variable to the list of fields to be ignored.")
 (defvar nnrss-group-alist '()
   "List of RSS addresses.")
 
-(defvar nnrss-use-local nil)
+(defvar nnrss-use-local nil
+  "If non-nil nnrss will read the feeds from local files in nnrss-directory.")
 
 (defvar nnrss-description-field 'X-Gnus-Description
   "Field name used for DESCRIPTION.
@@ -391,8 +392,8 @@ used to render text.  If it is nil, text will simply be folded.")
   t)
 
 (deffoo nnrss-retrieve-groups (groups &optional server)
-  (nnrss-possibly-change-group nil server)
   (dolist (group groups)
+    (nnrss-possibly-change-group group server)
     (nnrss-check-group group server))
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
@@ -561,12 +562,7 @@ which RSS 2.0 allows."
   (let ((file (nnrss-make-filename "nnrss" server))
 	(file-name-coding-system nnmail-pathname-coding-system))
     (when (file-exists-p file)
-      ;; In Emacs 21.3 and earlier, `load' doesn't support non-ASCII
-      ;; file names.  So, we use `insert-file-contents' instead.
-      (mm-with-multibyte-buffer
-	(let ((coding-system-for-read nnrss-file-coding-system))
-	  (insert-file-contents file)
-	  (eval-region (point-min) (point-max)))))))
+      (load file nil t t))))
 
 (defun nnrss-save-server-data (server)
   (gnus-make-directory nnrss-directory)
@@ -590,12 +586,7 @@ which RSS 2.0 allows."
   (let ((file (nnrss-make-filename group server))
 	(file-name-coding-system nnmail-pathname-coding-system))
     (when (file-exists-p file)
-      ;; In Emacs 21.3 and earlier, `load' doesn't support non-ASCII
-      ;; file names.  So, we use `insert-file-contents' instead.
-      (mm-with-multibyte-buffer
-	(let ((coding-system-for-read nnrss-file-coding-system))
-	  (insert-file-contents file)
-	  (eval-region (point-min) (point-max))))
+      (load file nil t t)
       (dolist (e nnrss-group-data)
 	(puthash (nth 9 e) t nnrss-group-hashtb)
 	(when (and (car e) (> nnrss-group-min (car e)))
@@ -712,9 +703,6 @@ which RSS 2.0 allows."
 	    (push (list group nnrss-group-max url) nnrss-server-data)))
 	(setq changed t))
       (setq xml (nnrss-fetch url)))
-    ;; See
-    ;; http://feeds.archive.org/validator/docs/howto/declare_namespaces.html
-    ;; for more RSS namespaces.
     (setq dc-ns (nnrss-get-namespace-prefix xml "http://purl.org/dc/elements/1.1/")
 	  rdf-ns (nnrss-get-namespace-prefix xml "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
 	  rss-ns (nnrss-get-namespace-prefix xml "http://purl.org/rss/1.0/")
@@ -975,7 +963,7 @@ whether they are `offsite' or `onsite'."
 
 (defun nnrss-discover-feed (url)
   "Given a page, find an RSS feed using Mark Pilgrim's
-`ultra-liberal rss locator' (URL `http://diveintomark.org/2002/08/15.html')."
+`ultra-liberal rss locator'."
 
   (let ((parsed-page (nnrss-fetch url)))
 
@@ -1058,9 +1046,9 @@ whether they are `offsite' or `onsite'."
 				    (cdr (assoc "feedid" listinfo)))))
 			   feedinfo)))
 	      (cdr (assoc
-		    (completing-read
-		     "Multiple feeds found.  Select one: "
-		     selection nil t) urllist)))))))))
+		    (gnus-completing-read
+		     "Multiple feeds found. Select one"
+		     selection t) urllist)))))))))
 
 (defun nnrss-rss-p (data)
   "Test if DATA is an RSS feed.

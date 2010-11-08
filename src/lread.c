@@ -54,12 +54,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <locale.h>
 #endif /* HAVE_SETLOCALE */
 
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#ifndef O_RDONLY
-#define O_RDONLY 0
-#endif
 
 #ifdef HAVE_FSEEKO
 #define file_offset off_t
@@ -163,13 +158,13 @@ static FILE *instream;
 static int read_pure;
 
 /* For use within read-from-string (this reader is non-reentrant!!)  */
-static int read_from_string_index;
-static int read_from_string_index_byte;
-static int read_from_string_limit;
+static EMACS_INT read_from_string_index;
+static EMACS_INT read_from_string_index_byte;
+static EMACS_INT read_from_string_limit;
 
 /* Number of characters read in the current call to Fread or
    Fread_from_string. */
-static int readchar_count;
+static EMACS_INT readchar_count;
 
 /* This contains the last string skipped with #@.  */
 static char *saved_doc_string;
@@ -276,7 +271,7 @@ readchar (Lisp_Object readcharfun, int *multibyte)
     {
       register struct buffer *inbuffer = XBUFFER (readcharfun);
 
-      int pt_byte = BUF_PT_BYTE (inbuffer);
+      EMACS_INT pt_byte = BUF_PT_BYTE (inbuffer);
 
       if (pt_byte >= BUF_ZV_BYTE (inbuffer))
 	return -1;
@@ -305,7 +300,7 @@ readchar (Lisp_Object readcharfun, int *multibyte)
     {
       register struct buffer *inbuffer = XMARKER (readcharfun)->buffer;
 
-      int bytepos = marker_byte_position (readcharfun);
+      EMACS_INT bytepos = marker_byte_position (readcharfun);
 
       if (bytepos >= BUF_ZV_BYTE (inbuffer))
 	return -1;
@@ -439,7 +434,7 @@ unreadchar (Lisp_Object readcharfun, int c)
   else if (BUFFERP (readcharfun))
     {
       struct buffer *b = XBUFFER (readcharfun);
-      int bytepos = BUF_PT_BYTE (b);
+      EMACS_INT bytepos = BUF_PT_BYTE (b);
 
       BUF_PT (b)--;
       if (! NILP (b->enable_multibyte_characters))
@@ -452,7 +447,7 @@ unreadchar (Lisp_Object readcharfun, int c)
   else if (MARKERP (readcharfun))
     {
       struct buffer *b = XMARKER (readcharfun)->buffer;
-      int bytepos = XMARKER (readcharfun)->bytepos;
+      EMACS_INT bytepos = XMARKER (readcharfun)->bytepos;
 
       XMARKER (readcharfun)->charpos--;
       if (! NILP (b->enable_multibyte_characters))
@@ -1893,7 +1888,7 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
   if (STRINGP (stream)
       || ((CONSP (stream) && STRINGP (XCAR (stream)))))
     {
-      int startval, endval;
+      EMACS_INT startval, endval;
       Lisp_Object string;
 
       if (STRINGP (stream))
@@ -3739,7 +3734,7 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
    Also store the bucket number in oblookup_last_bucket_number.  */
 
 Lisp_Object
-oblookup (Lisp_Object obarray, register const char *ptr, int size, int size_byte)
+oblookup (Lisp_Object obarray, register const char *ptr, EMACS_INT size, EMACS_INT size_byte)
 {
   int hash;
   int obsize;

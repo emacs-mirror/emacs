@@ -88,13 +88,18 @@
   ;; `directory-sep-char' is an obsolete variable in Emacs.  But it is
   ;; used in XEmacs, so we set it here and there.  The following is
   ;; needed to pacify Emacs byte-compiler.
-  (unless (boundp 'byte-compile-not-obsolete-var)
-    (defvar byte-compile-not-obsolete-var nil))
-  (setq byte-compile-not-obsolete-var 'directory-sep-char)
-  ;; Emacs 23.2.
-  (unless (boundp 'byte-compile-not-obsolete-vars)
-    (defvar byte-compile-not-obsolete-vars nil))
-  (setq byte-compile-not-obsolete-vars '(directory-sep-char))
+  ;; Note that it was removed altogether in Emacs 24.1.
+  (when (boundp 'directory-sep-char)
+    (defvar byte-compile-not-obsolete-var nil)
+    (setq byte-compile-not-obsolete-var 'directory-sep-char)
+    ;; Emacs 23.2.
+    (defvar byte-compile-not-obsolete-vars nil)
+    (setq byte-compile-not-obsolete-vars '(directory-sep-char)))
+
+  ;; `remote-file-name-inhibit-cache' has been introduced with Emacs 24.1.
+  ;; Besides `t', `nil', and integer, we use also timestamps (as
+  ;; returned by `current-time') internally.
+  (defvar remote-file-name-inhibit-cache nil)
 
   ;; For not existing functions, or functions with a changed argument
   ;; list, there are compiler warnings.  We want to avoid them in
@@ -490,9 +495,35 @@ This is the last value stored with `(process-put PROCESS PROPNAME VALUE)'."
 It can be retrieved with `(process-get PROCESS PROPNAME)'."
   (ignore-errors (tramp-compat-funcall 'process-put process propname value)))
 
+(defun tramp-compat-set-process-query-on-exit-flag (process flag)
+  "Specify if query is needed for process when Emacs is exited.
+If the second argument flag is non-nil, Emacs will query the user before
+exiting if process is running."
+  (if (fboundp 'set-process-query-on-exit-flag)
+      (tramp-compat-funcall 'set-process-query-on-exit-flag process flag)
+    (tramp-compat-funcall 'process-kill-without-query process flag)))
+
 (add-hook 'tramp-unload-hook
 	  (lambda ()
 	    (unload-feature 'tramp-compat 'force)))
+
+(defun tramp-compat-coding-system-change-eol-conversion (coding-system eol-type)
+  "Return a coding system like CODING-SYSTEM but with given EOL-TYPE.
+EOL-TYPE can be one of `dos', `unix', or `mac'."
+  (cond ((fboundp 'coding-system-change-eol-conversion)
+         (tramp-compat-funcall
+	  'coding-system-change-eol-conversion coding-system eol-type))
+        ((fboundp 'subsidiary-coding-system)
+         (tramp-compat-funcall
+	  'subsidiary-coding-system coding-system
+	  (cond ((eq eol-type 'dos) 'crlf)
+		((eq eol-type 'unix) 'lf)
+		((eq eol-type 'mac) 'cr)
+		(t
+		 (error "Unknown EOL-TYPE `%s', must be %s"
+			eol-type
+			"`dos', `unix', or `mac'")))))
+        (t (error "Can't change EOL conversion -- is MULE missing?"))))
 
 (provide 'tramp-compat)
 

@@ -30,101 +30,118 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object make_dom (xmlNode *node)
 {
-  if (node->type == XML_ELEMENT_NODE) {
-    Lisp_Object result = Fcons (intern (node->name), Qnil);
-    xmlNode *child;
-    xmlAttr *property;
+  if (node->type == XML_ELEMENT_NODE)
+    {
+      Lisp_Object result = Fcons (intern (node->name), Qnil);
+      xmlNode *child;
+      xmlAttr *property;
+      Lisp_Object plist = Qnil;
 
-    /* First add the attributes. */
-    property = node->properties;
-    while (property != NULL) {
-      if (property->children &&
-	  property->children->content) {
-	char *pname = xmalloc (strlen (property->name) + 2);
-	*pname = ':';
-	strcpy(pname + 1, property->name);
-	result = Fcons (Fcons (intern (pname),
-			       build_string(property->children->content)),
-			result);
-	xfree (pname);
-      }
-      property = property->next;
+      /* First add the attributes. */
+      property = node->properties;
+      while (property != NULL)
+	{
+	  if (property->children &&
+	      property->children->content)
+	    {
+	      plist = Fcons (Fcons (intern (property->name),
+				    build_string (property->children->content)),
+			     plist);
+	    }
+	  property = property->next;
+	}
+      result = Fcons (Fnreverse (plist), result);
+
+      /* Then add the children of the node. */
+      child = node->children;
+      while (child != NULL)
+	{
+	  result = Fcons (make_dom (child), result);
+	  child = child->next;
+	}
+
+      return Fnreverse (result);
     }
-    /* Then add the children of the node. */
-    child = node->children;
-    while (child != NULL) {
-      result = Fcons (make_dom (child), result);
-      child = child->next;
+  else if (node->type == XML_TEXT_NODE)
+    {
+      if (node->content)
+	return build_string (node->content);
+      else
+	return Qnil;
     }
-    return Fnreverse (result);
-  } else if (node->type == XML_TEXT_NODE) {
-    Lisp_Object content = Qnil;
-
-    if (node->content)
-      content = build_string (node->content);
-
-    return Fcons (intern (node->name), content);
-  } else
+  else
     return Qnil;
 }
 
 static Lisp_Object
-parse_string (Lisp_Object string, Lisp_Object base_url, int htmlp)
+parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int htmlp)
 {
   xmlDoc *doc;
   xmlNode *node;
   Lisp_Object result = Qnil;
-  int ibeg, iend;
-  char *burl = "";
+  const char *burl = "";
+  EMACS_INT bytes;
+  EMACS_INT istart, iend;
 
   LIBXML_TEST_VERSION;
 
-  CHECK_STRING (string);
+  validate_region (&start, &end);
 
-  if (! NILP (base_url)) {
-    CHECK_STRING (base_url);
-    burl = SDATA (base_url);
-  }
+  istart = XINT (start);
+  iend = XINT (end);
+
+  if (istart < GPT && GPT < iend)
+    move_gap (iend);
+
+  if (! NILP (base_url))
+    {
+      CHECK_STRING (base_url);
+      burl = SDATA (base_url);
+    }
+
+  bytes = CHAR_TO_BYTE (iend) - CHAR_TO_BYTE (istart);
 
   if (htmlp)
-    doc = htmlReadMemory (SDATA (string), SBYTES (string), burl, "utf-8",
+    doc = htmlReadMemory (BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
+			  bytes, burl, "utf-8",
 			  HTML_PARSE_RECOVER|HTML_PARSE_NONET|
 			  HTML_PARSE_NOWARNING|HTML_PARSE_NOERROR);
   else
-    doc = xmlReadMemory (SDATA (string), SBYTES (string), burl, "utf-8",
+    doc = xmlReadMemory (BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
+			 bytes, burl, "utf-8",
 			 XML_PARSE_NONET|XML_PARSE_NOWARNING|
 			 XML_PARSE_NOERROR);
 
-  if (doc != NULL) {
-    node = xmlDocGetRootElement (doc);
-    if (node != NULL)
-      result = make_dom (node);
-
-    xmlFreeDoc (doc);
-    xmlCleanupParser ();
-  }
+  if (doc != NULL)
+    {
+      node = xmlDocGetRootElement (doc);
+      if (node != NULL)
+	result = make_dom (node);
+      xmlFreeDoc (doc);
+      xmlCleanupParser ();
+    }
 
   return result;
 }
 
-DEFUN ("html-parse-string", Fhtml_parse_string, Shtml_parse_string,
-       1, 2, 0,
-       doc: /* Parse STRING as an HTML document and return the parse tree.
-If BASE-URL is non-nil, it will be used to expand relative URLs in
-the HTML document.  */)
-  (Lisp_Object string, Lisp_Object base_url)
+DEFUN ("libxml-parse-html-region", Flibxml_parse_html_region,
+       Slibxml_parse_html_region,
+       2, 3, 0,
+       doc: /* Parse the region as an HTML document and return the parse tree.
+If BASE-URL is non-nil, it is used to expand relative URLs.  */)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object base_url)
 {
-  return parse_string (string, base_url, 1);
+  return parse_region (start, end, base_url, 1);
 }
 
-DEFUN ("xml-parse-string", Fxml_parse_string, Sxml_parse_string,
-       1, 2, 0,
-       doc: /* Parse STRING as an XML document and return the parse tree.
-If BASE-URL is non-nil, it will be used to expand relative URLs in
-the XML document.  */)
-  (Lisp_Object string, Lisp_Object base_url)
+DEFUN ("libxml-parse-xml-region", Flibxml_parse_xml_region,
+       Slibxml_parse_xml_region,
+       2, 3, 0,
+       doc: /* Parse the region as an XML document and return the parse tree.
+If BASE-URL is non-nil, it is used to expand relative URLs.  */)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object base_url)
 {
-  return parse_string (string, base_url, 0);
+  return parse_region (start, end, base_url, 0);
 }
 
 
@@ -134,8 +151,8 @@ the XML document.  */)
 void
 syms_of_xml (void)
 {
-  defsubr (&Shtml_parse_string);
-  defsubr (&Sxml_parse_string);
+  defsubr (&Slibxml_parse_html_region);
+  defsubr (&Slibxml_parse_xml_region);
 }
 
 #endif /* HAVE_LIBXML2 */

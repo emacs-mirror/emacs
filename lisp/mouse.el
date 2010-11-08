@@ -2130,12 +2130,5 @@ choose a font."
 
 (provide 'mouse)
 
-;; This file contains the functionality of the old mldrag.el.
-(defalias 'mldrag-drag-mode-line 'mouse-drag-mode-line)
-(defalias 'mldrag-drag-vertical-line 'mouse-drag-vertical-line)
-(make-obsolete 'mldrag-drag-mode-line 'mouse-drag-mode-line "21.1")
-(make-obsolete 'mldrag-drag-vertical-line 'mouse-drag-vertical-line "21.1")
-(provide 'mldrag)
-
 ;; arch-tag: 9a710ce1-914a-4923-9b81-697f7bf82ab3
 ;;; mouse.el ends here

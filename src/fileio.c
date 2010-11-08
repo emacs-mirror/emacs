@@ -1,7 +1,8 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996,
-                 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997,
+  1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,11 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <limits.h>
-
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -71,7 +68,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #define NOMINMAX 1
 #include <windows.h>
-#include <stdlib.h>
 #include <fcntl.h>
 #endif /* not WINDOWSNT */
 
@@ -79,7 +75,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #include <sys/param.h>
 #include <fcntl.h>
-#include <string.h>
 #endif
 
 #ifdef DOS_NT
@@ -104,14 +99,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include "commands.h"
-
-#ifndef O_WRONLY
-#define O_WRONLY 1
-#endif
-
-#ifndef O_RDONLY
-#define O_RDONLY 0
-#endif
 
 #ifndef S_ISLNK
 #  define lstat stat
@@ -187,10 +174,6 @@ Lisp_Object Vauto_save_visited_file_name;
 
 /* Whether or not to continue auto-saving after a large deletion.  */
 Lisp_Object Vauto_save_include_big_deletions;
-
-/* On NT, specifies the directory separator character, used (eg.) when
-   expanding file names.  This can be bound to / or \. */
-Lisp_Object Vdirectory_sep_char;
 
 #ifdef HAVE_FSYNC
 /* Nonzero means skip the call to fsync in Fwrite-region.  */

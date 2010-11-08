@@ -21,6 +21,9 @@ with a prefix argument or by typing C-u C-h C-n.
 
 * Changes in Emacs 23.3
 
+** The nextstep port can have different modifiers for the left and right
+alt/option key by customizing the value for ns-right-alternate-modifier.
+
 
 * Editing Changes in Emacs 23.3
 
@@ -40,6 +43,8 @@ This can be used in place of the default appt-message-warning-time.
 
 * Lisp changes in Emacs 23.3
 
+** `e' and `pi' are now called `float-e' and `float-pi'.
+  The old names are obsolete.
 ** The use of unintern without an obarray arg is declared obsolete.
 
 ** New function byte-to-string, like char-to-string but for bytes.

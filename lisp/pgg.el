@@ -36,6 +36,7 @@
 
 ;; Don't merge these two `eval-when-compile's.
 (eval-when-compile
+  ;; For Emacs <22.2 and XEmacs.
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
   (require 'cl))
 
@@ -43,10 +44,8 @@
 ;;;
 
 (eval-when-compile
-  ;; Define it as a null macro for Emacs in order to suppress a byte
-  ;; compile warning that Emacs 21 issues.
-  (defmacro pgg-run-at-time-1 (time repeat function args)
-    (when (featurep 'xemacs)
+  (when (featurep 'xemacs)
+    (defmacro pgg-run-at-time-1 (time repeat function args)
       (if (condition-case nil
 	      (let ((delete-itimer 'delete-itimer)
 		    (itimer-driver-start 'itimer-driver-start)
@@ -75,36 +74,36 @@
 	  `(let ((time ,time))
 	     (apply #'start-itimer "pgg-run-at-time"
 		    ,function (if time (max time 1e-9) 1e-9)
-		    ,repeat nil t ,args)))
-      `(let ((time ,time)
-	     (itimers (list nil)))
-	 (setcar
-	  itimers
-	  (apply #'start-itimer "pgg-run-at-time"
-		 (lambda (itimers repeat function &rest args)
-		   (let ((itimer (car itimers)))
-		     (if repeat
-			 (progn
-			   (set-itimer-function
-			    itimer
-			    (lambda (itimer repeat function &rest args)
-			      (set-itimer-restart itimer repeat)
-			      (set-itimer-function itimer function)
-			      (set-itimer-function-arguments itimer args)
-			      (apply function args)))
-			   (set-itimer-function-arguments
-			    itimer
-			    (append (list itimer repeat function) args)))
-		       (set-itimer-function
-			itimer
-			(lambda (itimer function &rest args)
-			  (delete-itimer itimer)
-			  (apply function args)))
-		       (set-itimer-function-arguments
-			itimer
-			(append (list itimer function) args)))))
-		 1e-9 (if time (max time 1e-9) 1e-9)
-		 nil t itimers ,repeat ,function ,args))))))
+		    ,repeat nil t ,args))
+	`(let ((time ,time)
+	       (itimers (list nil)))
+	   (setcar
+	    itimers
+	    (apply #'start-itimer "pgg-run-at-time"
+		   (lambda (itimers repeat function &rest args)
+		     (let ((itimer (car itimers)))
+		       (if repeat
+			   (progn
+			     (set-itimer-function
+			      itimer
+			      (lambda (itimer repeat function &rest args)
+				(set-itimer-restart itimer repeat)
+				(set-itimer-function itimer function)
+				(set-itimer-function-arguments itimer args)
+				(apply function args)))
+			     (set-itimer-function-arguments
+			      itimer
+			      (append (list itimer repeat function) args)))
+			 (set-itimer-function
+			  itimer
+			  (lambda (itimer function &rest args)
+			    (delete-itimer itimer)
+			    (apply function args)))
+			 (set-itimer-function-arguments
+			  itimer
+			  (append (list itimer function) args)))))
+		   1e-9 (if time (max time 1e-9) 1e-9)
+		   nil t itimers ,repeat ,function ,args)))))))
 
 (eval-and-compile
   (if (featurep 'xemacs)

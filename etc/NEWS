@@ -66,9 +66,14 @@ obsolete in Emacs 23.)
 
 * Changes in Emacs 24.1
 
-** New emacsclient argument --parent-id ID can be used to open a
+** emacsclient changes
+
+*** New emacsclient argument --parent-id ID can be used to open a
 client frame in parent X window ID, via XEmbed.  This works like the
 --parent-id argument to Emacs.
+
+*** If emacsclient shuts down as a result of Emacs signalling an
+error, its exit status is 1.
 
 ** Completion can cycle, depending on completion-cycle-threshold.
 
@@ -114,9 +119,10 @@ top, left, right or bottom.  The Options => Show/Hide menu has entries
 for this.
 
 ** ImageMagick support.
-It is now possible to use the Imagemagick library to load many new
-image formats in Emacs.  To enable this, use the configure option
-`--with-imagemagick'.
+It is now possible to use the ImageMagick library to load many new
+image formats in Emacs.  By default, Emacs links with the ImageMagick
+libraries if they are present at build time.  To disable this, use
+the configure option `--without-imagemagick'.
 
 The new function `imagemagick-types' returns a list of image file
 extensions that your installation of ImageMagick supports.  The
@@ -147,6 +153,11 @@ get and set the SELinux context of a file.
 
 *** Tramp offers handlers for file-selinux-context and set-file-selinux-context
 for remote machines which support SELinux.
+
+** The function kill-emacs is now run upon receipt of the signals SIGTERM
+and SIGHUP, and upon SIGINT in batch mode.
+
+** kill-emacs-hook is now also run in batch mode.
 
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
@@ -183,6 +194,13 @@ selected for installation.
 automatically when Emacs starts up.  To disable this, set
 `package-enable-at-startup' to nil.  To change which packages are
 loaded, customize `package-load-list'.
+
+** Custom Themes
+
+*** `M-x customize-themes' lists Custom themes which can be enabled.
+
+** The user option `remote-file-name-inhibit-cache' controls whether
+the remote file-name cache is used for read access.
 
 
 * Editing Changes in Emacs 24.1
@@ -236,7 +254,7 @@ kill ring).
 
 ** latex-electric-env-pair-mode keeps \begin..\end matched on the fly.
 
-** FIXME: xdg-open for browse-url and reportbug, 2010/08.  (Close bug#4546?)
+** FIXME: xdg-open for browse-url and reportbug, 2010/08.
 
 ** Archive Mode has basic support to browse 7z archives.
 
@@ -257,6 +275,21 @@ You can get a comparable behavior with:
 (setq completion-pcm-complete-word-inserts-delimiters t)
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
+
+** Calendar, Diary, and Appt
+
+---
+*** The obsolete (since Emacs 22.1) method of enabling the appt package
+by adding appt-make-list to diary-hook has been removed.  Use appt-activate.
+
+---
+*** Some appt variables (obsolete since Emacs 22.1) have been removed:
+appt-issue-message (use the function appt-activate)
+appt-visible/appt-msg-window (use the variable appt-display-format)
+
+---
+*** Some diary function aliases (obsolete since Emacs 22.1) have been removed:
+view-diary-entries, list-diary-entries, show-all-diary-entries
 
 ** Customize
 
@@ -288,6 +321,10 @@ data is available locally.
 
 *** New key bindings: C-x v I and C-x v O bound to vc-log-incoming and
 vc-log-outgoing, respectively.
+
+*** The 'g' key in VC diff, log, log-incoming and log-outgoing buffers
+reruns the corresponding VC command to compute an up to date version
+of the buffer.
 
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 
@@ -517,6 +554,27 @@ similar to the ones created by shift-selection.  In previous Emacs
 versions, these regions were delineated by `mouse-drag-overlay', which
 has now been removed.
 
+** cl.el no longer provides `cl-19'.
+
+** The following functions and aliases, obsolete since at least Emacs 21.1,
+have been removed:
+comint-kill-output, decompose-composite-char, outline-visible,
+internal-find-face, internal-get-face, frame-update-faces,
+frame-update-face-colors, x-frob-font-weight, x-frob-font-slant,
+x-make-font-bold, x-make-font-demibold, x-make-font-unbold
+x-make-font-italic, x-make-font-oblique, x-make-font-unitalic
+x-make-font-bold-italic, mldrag-drag-mode-line, mldrag-drag-vertical-line,
+iswitchb-default-keybindings, char-bytes, isearch-return-char,
+make-local-hook
+
+** The following variables and aliases, obsolete since at least Emacs 21.1,
+have been removed:
+checkdoc-minor-keymap, vc-header-alist, directory-sep-char,
+font-lock-defaults-alist
+
+** The following files, obsolete since at least Emacs 21.1, have been removed:
+sc.el, x-menu.el, rnews.el, rnewspost.el
+
 
 * Lisp changes in Emacs 24.1
 
@@ -561,10 +619,14 @@ by the Graphic Control Extension of the image.
 ** XML and HTML parsing
 
 *** If Emacs is compiled with libxml2 support (which is the default),
-two new Emacs Lisp-level functions are defined: `html-parse-string'
-(which will parse "real world" HTML) and `xml-parse-string' (which
-parses XML).  Both return an Emacs Lisp parse tree.  See the Emacs
-Lisp Reference Manual for details.
+two new Emacs Lisp-level functions are defined:
+`xml-parse-html-string-internal' (which will parse "real world" HTML)
+and `xml-parse-string-internal' (which parses XML).  Both return an
+Emacs Lisp parse tree.
+
+FIXME: These should be front-ended by xml.el.
+
+** FIXME GnuTLS
 
 ** Isearch
 

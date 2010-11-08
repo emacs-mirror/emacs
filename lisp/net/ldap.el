@@ -1,7 +1,7 @@
 ;;; ldap.el --- client interface to LDAP for Emacs
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: FSF
@@ -43,7 +43,7 @@
   :group 'comm)
 
 (defcustom ldap-default-host nil
-  "*Default LDAP server.
+  "Default LDAP server.
 A TCP port number can be appended to that name using a colon as
 a separator."
   :type '(choice (string :tag "Host name")
@@ -51,14 +51,14 @@ a separator."
   :group 'ldap)
 
 (defcustom ldap-default-port nil
-  "*Default TCP port for LDAP connections.
+  "Default TCP port for LDAP connections.
 Initialized from the LDAP library at build time. Default value is 389."
   :type '(choice (const :tag "Use library default" nil)
 		 (integer :tag "Port number"))
   :group 'ldap)
 
 (defcustom ldap-default-base nil
-  "*Default base for LDAP searches.
+  "Default base for LDAP searches.
 This is a string using the syntax of RFC 1779.
 For instance, \"o=ACME, c=US\" limits the search to the
 Acme organization in the United States."
@@ -68,7 +68,7 @@ Acme organization in the United States."
 
 
 (defcustom ldap-host-parameters-alist nil
-  "*Alist of host-specific options for LDAP transactions.
+  "Alist of host-specific options for LDAP transactions.
 The format of each list element is (HOST PROP1 VAL1 PROP2 VAL2 ...).
 HOST is the hostname of an LDAP server (with an optional TCP port number
 appended to it using a colon as a separator).
@@ -148,28 +148,28 @@ Valid properties include:
   :group 'ldap)
 
 (defcustom ldap-ldapsearch-prog "ldapsearch"
-  "*The name of the ldapsearch command line program."
+  "The name of the ldapsearch command line program."
   :type '(string :tag "`ldapsearch' Program")
   :group 'ldap)
 
 (defcustom ldap-ldapsearch-args '("-LL" "-tt")
-  "*A list of additional arguments to pass to `ldapsearch'."
+  "A list of additional arguments to pass to `ldapsearch'."
   :type '(repeat :tag "`ldapsearch' Arguments"
 		 (string :tag "Argument"))
   :group 'ldap)
 
 (defcustom ldap-ignore-attribute-codings nil
-  "*If non-nil, do not encode/decode LDAP attribute values."
+  "If non-nil, do not encode/decode LDAP attribute values."
   :type 'boolean
   :group 'ldap)
 
 (defcustom ldap-default-attribute-decoder nil
-  "*Decoder function to use for attributes whose syntax is unknown."
+  "Decoder function to use for attributes whose syntax is unknown."
   :type 'symbol
   :group 'ldap)
 
 (defcustom ldap-coding-system 'utf-8
-  "*Coding system of LDAP string values.
+  "Coding system of LDAP string values.
 LDAP v3 specifies the coding system of strings to be UTF-8."
   :type 'symbol
   :group 'ldap)

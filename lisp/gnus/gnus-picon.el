@@ -38,7 +38,7 @@
 ;;
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -85,23 +85,14 @@ added right to the textual representation."
 		 (const right))
   :group 'gnus-picon)
 
-(defface gnus-picon-xbm '((t (:foreground "black" :background "white")))
-  "Face to show xbm picon in."
+(defcustom gnus-picon-inhibit-top-level-domains t
+  "If non-nil, don't piconify top-level domains.
+These are often not very interesting."
+  :type 'boolean
   :group 'gnus-picon)
-;; backward-compatibility alias
-(put 'gnus-picon-xbm-face 'face-alias 'gnus-picon-xbm)
-(put 'gnus-picon-xbm-face 'obsolete-face "22.1")
-
-(defface gnus-picon '((t (:foreground "black" :background "white")))
-  "Face to show picon in."
-  :group 'gnus-picon)
-;; backward-compatibility alias
-(put 'gnus-picon-face 'face-alias 'gnus-picon)
-(put 'gnus-picon-face 'obsolete-face "22.1")
 
 ;;; Internal variables:
 
-(defvar gnus-picon-setup-p nil)
 (defvar gnus-picon-glyph-alist nil
   "Picon glyphs cache.
 List of pairs (KEY . GLYPH) where KEY is either a filename or an URL.")
@@ -166,7 +157,9 @@ replacement is added."
 
 (defun gnus-picon-create-glyph (file)
   (or (cdr (assoc file gnus-picon-glyph-alist))
-      (cdar (push (cons file (gnus-create-image file))
+      (cdar (push (cons file (gnus-create-image
+			      file nil nil
+			      :color-symbols '(("None" . "white"))))
 		  gnus-picon-glyph-alist))))
 
 ;;; Functions that does picon transformations:
@@ -201,7 +194,9 @@ replacement is added."
 	     (setcar spec (cons (gnus-picon-create-glyph file)
 				(car spec))))
 
-	   (dotimes (i (1- (length spec)))
+	   (dotimes (i (- (length spec)
+			  (if gnus-picon-inhibit-top-level-domains
+			      2 1)))
 	     (when (setq file (gnus-picon-find-face
 			       (concat "unknown@"
 				       (mapconcat

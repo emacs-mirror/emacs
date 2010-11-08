@@ -1,7 +1,7 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
@@ -1957,24 +1957,11 @@ The replacement is used to convert tabs and new-lines to spaces."
 
 (defun artist-replace-char (new-char)
   "Replace the character at point with NEW-CHAR."
-  ;; Check that the variable exists first. The doc says it was added in 19.23.
-  (if (and (and (boundp 'emacs-major-version) (= emacs-major-version 20))
-	   (and (boundp 'emacs-minor-version) (<= emacs-minor-version 3)))
-      ;; This is a bug workaround for Emacs 20, versions up to 20.3:
-      ;; The self-insert-command doesn't care about the overwrite-mode,
-      ;; so the insertion is done in the same way as in picture mode.
-      ;; This seems to be a little bit slower.
-      (progn
-	(artist-move-to-xy (1+ (artist-current-column))
-			   (artist-current-line))
-	(delete-char -1)
-	(insert (artist-get-replacement-char new-char)))
-    ;; In emacs-19, the self-insert-command works better and faster
-    (let ((overwrite-mode 'overwrite-mode-textual)
-	  (fill-column 32765)		; Large :-)
-	  (blink-matching-paren nil))
-      (setq last-command-event (artist-get-replacement-char new-char))
-      (self-insert-command 1))))
+  (let ((overwrite-mode 'overwrite-mode-textual)
+	(fill-column 32765)		; Large :-)
+	(blink-matching-paren nil))
+    (setq last-command-event (artist-get-replacement-char new-char))
+    (self-insert-command 1)))
 
 (defun artist-replace-chars (new-char count)
   "Replace characters at point with NEW-CHAR.  COUNT chars are replaced."
@@ -2939,7 +2926,7 @@ Blanks in the rendered text overwrite any text in the buffer."
 Returns a list of points.  Each point is on the form (X1 . Y1)."
   (let ((points))
     (while (> n 0)
-      (let* ((angle (* (random 359) (/ pi 180)))
+      (let* ((angle (* (random 359) (/ float-pi 180)))
 	     (dist  (random radius))
 	     (point (cons (round (* dist (cos angle)))
 			  (round (* dist (sin angle))))))

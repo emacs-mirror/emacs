@@ -96,6 +96,7 @@ THISDIR		= .
 ifdef USING_SH
 sh_output := $(shell echo [Please ignore a syntax error on the next line - it is intentional] 1>&2)
 sh_output := $(shell echo foo")
+# This single quote " is to fix fintification due to previous line
 ifeq "$(sh_output)" ""
 NEW_CYGWIN = 1
 endif

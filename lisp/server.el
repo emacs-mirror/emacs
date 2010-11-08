@@ -565,7 +565,7 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 		       (if server-use-tcp
 			   (list :family 'ipv4  ;; We're not ready for IPv6 yet
 				 :service t
-				 :host (or server-host "127.0.0.1") ;; See bug#6781
+				 :host (or server-host 'local)
 				 :plist '(:authenticated nil))
 			 (list :family 'local
 			       :service server-file
@@ -586,7 +586,7 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 		(setq buffer-file-coding-system 'no-conversion)
 		(insert (format-network-address
 			 (process-contact server-process :local))
-			" " (int-to-string (emacs-pid))
+			" " (number-to-string (emacs-pid)) ; Kept for compatibility
 			"\n" auth-key)))))))))
 
 ;;;###autoload
@@ -706,9 +706,6 @@ Server mode runs a process that accepts commands from the
     ;; Display *scratch* by default.
     (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
 
-    ;; Reply with our pid.
-    (server-send-string proc (concat "-emacs-pid "
-                                     (number-to-string (emacs-pid)) "\n"))
     frame))
 
 (defun server-create-window-system-frame (display nowait proc parent-id)
@@ -862,7 +859,7 @@ The following commands are accepted by the client:
   returned by -eval.
 
 `-error DESCRIPTION'
-  Signal an error (but continue processing).
+  Signal an error and delete process PROC.
 
 `-suspend'
   Suspend this terminal, i.e., stop the client process.
@@ -879,6 +876,9 @@ The following commands are accepted by the client:
       (server-log "Authentication failed" proc)
       (server-send-string
        proc (concat "-error " (server-quote-arg "Authentication failed")))
+      ;; Before calling `delete-process', give emacsclient time to
+      ;; receive the error string and shut down on its own.
+      (sit-for 1)
       (delete-process proc)
       ;; We return immediately
       (return-from server-process-filter)))
@@ -889,6 +889,9 @@ The following commands are accepted by the client:
   (condition-case err
       (progn
 	(server-add-client proc)
+	;; Send our pid
+	(server-send-string proc (concat "-emacs-pid "
+					 (number-to-string (emacs-pid)) "\n"))
 	(if (not (string-match "\n" string))
             ;; Save for later any partial line that remains.
             (when (> (length string) 0)
@@ -1129,6 +1132,9 @@ The following commands are accepted by the client:
      proc (concat "-error " (server-quote-arg
                              (error-message-string err))))
     (server-log (error-message-string err) proc)
+    ;; Before calling `delete-process', give emacsclient time to
+    ;; receive the error string and shut down on its own.
+    (sit-for 5)
     (delete-process proc)))
 
 (defun server-goto-line-column (line-col)

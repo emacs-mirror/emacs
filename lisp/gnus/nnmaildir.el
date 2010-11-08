@@ -59,7 +59,7 @@
    )
 ]
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -916,7 +916,7 @@ by nnmaildir-request-article.")
 		  "\n")))))
   'group)
 
-(defun nnmaildir-request-update-info (gname info &optional server)
+(defun nnmaildir-request-marks (gname info &optional server)
   (let ((group (nnmaildir--prepare server gname))
 	pgname flist always-marks never-marks old-marks dotfile num dir
 	markdirs marks mark ranges markdir article read end new-marks ls

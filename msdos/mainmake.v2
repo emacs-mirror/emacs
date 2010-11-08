@@ -129,7 +129,7 @@ emacs misc lispref lispintro:	FRC
 install: all
 	if not exist bin\nul md bin
 	cd lib-src
-	command.com /c >/dev/null for %p in (hexl etags ctags b2m ebrowse) do\
+	command.com /c >/dev/null for %p in (hexl etags ctags ebrowse) do\
 	   if exist %p.exe mv -f %p.exe ../bin
 	if exist fns.el update fns.el ../bin/fns.el
 	cd ..
@@ -147,16 +147,21 @@ FRC:
 
 # We cannot use [a-zA-Z]* like the mainline distribution does, because
 # that causes all file names to be returned in upper-case on DOS...
+# Must use `find' to filter out loaddefs files; ignore errors if `find'
+# is not available or is an MS `find'.
+# The "cd $(CURDIR)" gork is for when `find' fails and leaves us inside
+# `lisp' or one of its subdirectories.
 TAGS tags:	lib-src FRC
 	cd lib-src
 	if exist etags.exe mv -f etags.exe ../bin
 	cd ..
-	cd lisp
-	../bin/etags .../*.el
-	cd ..
+	- find $(CURDIR)/lisp -iname "*.el" -a -! -( -iname "*loaddefs.el" -o -iname "ldefs-boot.el" -) | ./bin/etags -o lisp/TAGS -
+	cd $(CURDIR)
 	cd src
 	../bin/etags --include=../lisp/TAGS \
-	'--regex=/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' *.c *.h s/msdos.h m/intel386.h
+	 --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
+	 $(CURDIR)/src/*.c $(CURDIR)/src/*.h \
+         $(CURDIR)/src/s/msdos.h $(CURDIR)/src/m/intel386.h
 	cd ..
 	./bin/etags --include=src/TAGS
 
@@ -282,4 +287,3 @@ bootstrap: bootstrap-clean FRC
 	command.com /e:2048 /c config msdos
 	$(MAKE) $(MFLAGS) info all
 
-# arch-tag: 6fee5130-4c53-46c6-93d3-d0ea852298b9

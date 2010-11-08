@@ -1,12 +1,12 @@
 ;;; cl-compat.el --- Common Lisp extensions for GNU Emacs Lisp (compatibility)
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
 ;; Keywords: extensions
-;; Package: emacs
+;; Obsolete-since: 23.3
 
 ;; This file is part of GNU Emacs.
 
@@ -24,6 +24,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This file has been obsolete since Emacs 23.3.
 
 ;; These are extensions to Emacs Lisp that provide a degree of
 ;; Common Lisp compatibility, beyond what is already built-in
@@ -195,5 +197,4 @@
 ;; byte-compile-warnings: (not cl-functions)
 ;; End:
 
-;; arch-tag: 9996bb4f-aaf5-4592-b436-bf64759a3163
 ;;; cl-compat.el ends here

@@ -320,11 +320,12 @@ Server  : " server ":" (or port "2000") "
       (insert "\n"))))
 
 (defun sieve-open-server (server &optional port)
-  ;; open server
-  (set (make-local-variable 'sieve-manage-buffer)
-       (sieve-manage-open server))
-  ;; authenticate
-  (sieve-manage-authenticate nil nil sieve-manage-buffer))
+  "Open SERVER (on PORT) and authenticate."
+  (with-current-buffer
+      ;; open server
+      (set (make-local-variable 'sieve-manage-buffer)
+           (sieve-manage-open server))
+    (sieve-manage-authenticate)))
 
 (defun sieve-refresh-scriptlist ()
   (interactive)

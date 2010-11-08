@@ -49,9 +49,6 @@ vc-BACKEND-master-templates.  To enable or disable VC for a given
 BACKEND, use `vc-handled-backends'."
  "21.1")
 
-(defvar vc-header-alist ())
-(make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header "21.1")
-
 (defcustom vc-ignore-dir-regexp
   ;; Stop SMB, automounter, AFS, and DFS host lookups.
   locate-dominating-stop-dir-regexp
@@ -815,6 +812,9 @@ Format:
   \"BACKEND-REV\"        if the file is up-to-date
   \"BACKEND:REV\"        if the file is edited (or locked by the calling user)
   \"BACKEND:LOCKER:REV\" if the file is locked by somebody else
+  \"BACKEND@REV\"        if the file was locally added
+  \"BACKEND!REV\"        if the file contains conflicts or was removed
+  \"BACKEND?REV\"        if the file is under VC, but is missing
 
 This function assumes that the file is registered."
   (let* ((backend-name (symbol-name backend))

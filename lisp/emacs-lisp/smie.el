@@ -138,7 +138,12 @@ one of those elements share the same precedence level and associativity."
     (let ((prec2 (make-hash-table :test 'equal)))
       (dolist (table tables)
         (maphash (lambda (k v)
-                   (smie-set-prec2tab prec2 (car k) (cdr k) v))
+                   (if (consp k)
+                       (smie-set-prec2tab prec2 (car k) (cdr k) v)
+                     (if (and (gethash k prec2)
+                              (not (equal (gethash k prec2) v)))
+                         (error "Conflicting values for %s property" k)
+                       (puthash k v prec2))))
                  table))
       prec2)))
 
@@ -225,6 +230,9 @@ one of those elements share the same precedence level and associativity."
                                    '= override)))
            (t (smie-set-prec2tab prec2 (car rhs) (cadr rhs) '= override)))
           (setq rhs (cdr rhs)))))
+    ;; Keep track of which tokens are openers/closer, so they can get a nil
+    ;; precedence in smie-prec2-levels.
+    (puthash :smie-open/close-alist (smie-bnf-classify bnf) prec2)
     prec2))
 
 ;; (defun smie-prec2-closer-alist (prec2 include-inners)
@@ -307,6 +315,33 @@ from the table, e.g. the table will not include things like (\"if\" . \"else\").
                 (pushnew (cons (car rhs) term) alist :test #'equal)))))))
     (nreverse alist)))
     
+(defun smie-bnf-classify (bnf)
+  "Return a table classifying terminals.
+Each terminal can either be an `opener', a `closer', or neither."
+  (let ((table (make-hash-table :test #'equal))
+        (alist '()))
+    (dolist (category bnf)
+      (puthash (car category) 'neither table) ;Remove non-terminals.
+      (dolist (rhs (cdr category))
+        (if (null (cdr rhs))
+            (puthash (pop rhs) 'neither table)
+          (let ((first (pop rhs)))
+            (puthash first
+                     (if (memq (gethash first table) '(nil opener))
+                         'opener 'neither)
+                     table))
+          (while (cdr rhs)
+            (puthash (pop rhs) 'neither table)) ;Remove internals.
+          (let ((last (pop rhs)))
+            (puthash last
+                     (if (memq (gethash last table) '(nil closer))
+                         'closer 'neither)
+                     table)))))
+    (maphash (lambda (tok v)
+               (when (memq v '(closer opener))
+                 (push (cons tok v) alist)))
+             table)
+    alist))
 
 (defun smie-debug--prec2-cycle (csts)
   "Return a cycle in CSTS, assuming there's one.
@@ -345,11 +380,6 @@ CSTS is a list of pairs representing arcs in a graph."
 (defun smie-prec2-levels (prec2)
   ;; FIXME: Rather than only return an alist of precedence levels, we should
   ;; also extract other useful data from it:
-  ;; - matching sets of block openers&closers (which can otherwise become
-  ;;   collapsed into a single equivalence class in smie-op-levels) for
-  ;;   smie-close-block as well as to detect mismatches in smie-next-sexp
-  ;;   or in blink-paren (as well as to do the blink-paren for inner
-  ;;   keywords like the "in" of "let..in..end").
   ;; - better default indentation rules (i.e. non-zero indentation after inner
   ;;   keywords like the "in" of "let..in..end") for smie-indent-after-keyword.
   ;; Of course, maybe those things would be even better handled in the
@@ -369,18 +399,19 @@ PREC2 is a table as returned by `smie-precs-precedence-table' or
     ;; variables (aka "precedence levels").  These can be either
     ;; equality constraints (in `eqs') or `<' constraints (in `csts').
     (maphash (lambda (k v)
-               (if (setq tmp (assoc (car k) table))
-                   (setq x (cddr tmp))
-                 (setq x (cons nil nil))
-                 (push (cons (car k) (cons nil x)) table))
-               (if (setq tmp (assoc (cdr k) table))
-                   (setq y (cdr tmp))
-                 (setq y (cons nil (cons nil nil)))
-                 (push (cons (cdr k) y) table))
-               (ecase v
-                 (= (push (cons x y) eqs))
-                 (< (push (cons x y) csts))
-                 (> (push (cons y x) csts))))
+               (when (consp k)
+                 (if (setq tmp (assoc (car k) table))
+                     (setq x (cddr tmp))
+                   (setq x (cons nil nil))
+                   (push (cons (car k) (cons nil x)) table))
+                 (if (setq tmp (assoc (cdr k) table))
+                     (setq y (cdr tmp))
+                   (setq y (cons nil (cons nil nil)))
+                   (push (cons (cdr k) y) table))
+                 (ecase v
+                   (= (push (cons x y) eqs))
+                   (< (push (cons x y) csts))
+                   (> (push (cons y x) csts)))))
              prec2)
     ;; First process the equality constraints.
     (let ((eqs eqs))
@@ -432,16 +463,22 @@ PREC2 is a table as returned by `smie-precs-precedence-table' or
         (setcar (car eq) (cadr eq)))
       ;; Finally, fill in the remaining vars (which only appeared on the
       ;; right side of the < constraints).
-      (dolist (x table)
-        ;; When both sides are nil, it means this operator binds very
-        ;; very tight, but it's still just an operator, so we give it
-        ;; the highest precedence.
-        ;; OTOH if only one side is nil, it usually means it's like an
-        ;; open-paren, which is very important for indentation purposes,
-        ;; so we keep it nil, to make it easier to recognize.
-        (unless (or (nth 1 x) (nth 2 x))
-          (setf (nth 1 x) i)
-          (setf (nth 2 x) i))))
+      (let ((classification-table (gethash :smie-open/close-alist prec2)))
+        (dolist (x table)
+          ;; When both sides are nil, it means this operator binds very
+          ;; very tight, but it's still just an operator, so we give it
+          ;; the highest precedence.
+          ;; OTOH if only one side is nil, it usually means it's like an
+          ;; open-paren, which is very important for indentation purposes,
+          ;; so we keep it nil if so, to make it easier to recognize.
+          (unless (or (nth 1 x)
+                      (eq 'opener (cdr (assoc (car x) classification-table))))
+            (setf (nth 1 x) i)
+            (incf i))                   ;See other (incf i) above.
+          (unless (or (nth 2 x)
+                      (eq 'closer (cdr (assoc (car x) classification-table))))
+            (setf (nth 2 x) i)
+            (incf i)))))                ;See other (incf i) above.
     table))
 
 ;;; Parsing using a precedence level table.

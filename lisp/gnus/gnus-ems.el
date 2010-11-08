@@ -272,7 +272,8 @@
     (when face
       (setq props (plist-put props :foreground (face-foreground face)))
       (setq props (plist-put props :background (face-background face))))
-    (apply 'create-image file type data-p props)))
+    (ignore-errors
+      (apply 'create-image file type data-p props))))
 
 (defun gnus-put-image (glyph &optional string category)
   (let ((point (point)))
@@ -306,6 +307,12 @@
 		end nil))))))
 
 (eval-and-compile
+  ;; XEmacs does not have window-inside-pixel-edges
+  (defalias 'gnus-window-inside-pixel-edges
+    (if (fboundp 'window-inside-pixel-edges)
+        'window-inside-pixel-edges
+      'window-pixel-edges))
+
   (if (fboundp 'set-process-plist)
       (progn
 	(defalias 'gnus-set-process-plist 'set-process-plist)

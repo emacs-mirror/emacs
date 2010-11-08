@@ -24,13 +24,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <stdio.h>
 #include <setjmp.h>
-
-/* Define SIGCHLD as an alias for SIGCLD.  */
-
-#if !defined (SIGCHLD) && defined (SIGCLD)
-#define SIGCHLD SIGCLD
-#endif /* SIGCLD */
-
 #include <sys/types.h>
 
 #ifdef HAVE_UNISTD_H
@@ -38,32 +31,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <sys/file.h>
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 
 #ifdef WINDOWSNT
 #define NOMINMAX
 #include <windows.h>
-#include <stdlib.h>	/* for proper declaration of environ */
-#include <fcntl.h>
 #include "w32.h"
 #define _P_NOWAIT 1	/* from process.h */
 #endif
 
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
-#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/param.h>
 #endif /* MSDOS */
-
-#ifndef O_RDONLY
-#define O_RDONLY 0
-#endif
-
-#ifndef O_WRONLY
-#define O_WRONLY 1
-#endif
 
 #include "lisp.h"
 #include "commands.h"
@@ -274,21 +254,16 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	if (!NILP (Vcoding_system_for_write))
 	  val = Vcoding_system_for_write;
 	else if (! must_encode)
-	  val = Qnil;
+	  val = Qraw_text;
 	else
 	  {
 	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
 	    args2[0] = Qcall_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
-	    if (CONSP (coding_systems))
-	      val = XCDR (coding_systems);
-	    else if (CONSP (Vdefault_process_coding_system))
-	      val = XCDR (Vdefault_process_coding_system);
-	    else
-	      val = Qnil;
+	    val = CONSP (coding_systems) ? XCDR (coding_systems) : Qnil;
 	  }
-	val = coding_inherit_eol_type (val, Qnil);
+	val = complement_process_encoding_system (val);
 	setup_coding_system (Fcheck_coding_system (val), &argument_coding);
 	coding_attrs = CODING_ID_ATTRS (argument_coding.id);
 	if (NILP (CODING_ATTR_ASCII_COMPAT (coding_attrs)))
@@ -678,9 +653,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   QUIT;
 
   {
-    register int nread;
+    register EMACS_INT nread;
     int first = 1;
-    int total_read = 0;
+    EMACS_INT total_read = 0;
     int carryover = 0;
     int display_on_the_fly = display_p;
     struct coding_system saved_coding;
@@ -932,20 +907,16 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   if (!NILP (Vcoding_system_for_write))
     val = Vcoding_system_for_write;
   else if (NILP (current_buffer->enable_multibyte_characters))
-    val = Qnil;
+    val = Qraw_text;
   else
     {
       args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
       args2[0] = Qcall_process_region;
       for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
       coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
-      if (CONSP (coding_systems))
-	val = XCDR (coding_systems);
-      else if (CONSP (Vdefault_process_coding_system))
-	val = XCDR (Vdefault_process_coding_system);
-      else
-	val = Qnil;
+      val = CONSP (coding_systems) ? XCDR (coding_systems) : Qnil;
     }
+  val = complement_process_encoding_system (val);
 
   {
     int count1 = SPECPDL_INDEX ();

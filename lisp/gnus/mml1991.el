@@ -26,8 +26,8 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
 (eval-and-compile
+  ;; For Emacs <22.2 and XEmacs.
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
 
   (if (locate-library "password-cache")
@@ -57,16 +57,11 @@
 (defvar mml1991-function-alist
   '((mailcrypt mml1991-mailcrypt-sign
 	       mml1991-mailcrypt-encrypt)
-    (gpg mml1991-gpg-sign
-	 mml1991-gpg-encrypt)
     (pgg mml1991-pgg-sign
 	 mml1991-pgg-encrypt)
     (epg mml1991-epg-sign
 	 mml1991-epg-encrypt))
   "Alist of PGP functions.")
-
-(defvar mml1991-verbose mml-secure-verbose
-  "If non-nil, ask the user about the current operation more verbosely.")
 
 (defvar mml1991-cache-passphrase mml-secure-cache-passphrase
   "If t, cache passphrase.")
@@ -160,99 +155,6 @@ Whether the passphrase is cached at all is controlled by
 	  (unless (> (point-max) (point-min))
 	    (pop-to-buffer result-buffer)
 	    (error "Encrypt error")))
-	(goto-char (point-min))
-	(while (re-search-forward "\r+$" nil t)
-	  (replace-match "" t t))
-	(set-buffer text)
-	(delete-region (point-min) (point-max))
-	;;(insert "Content-Type: application/pgp-encrypted\n\n")
-	;;(insert "Version: 1\n\n")
-	(insert "\n")
-	(insert-buffer-substring cipher)
-	(goto-char (point-max))))))
-
-;;; gpg wrapper
-
-(autoload 'gpg-sign-cleartext "gpg")
-
-(declare-function gpg-sign-encrypt "ext:gpg"
-                  (plaintext ciphertext result recipients &optional
-                             passphrase sign-with-key armor textmode))
-(declare-function gpg-encrypt "ext:gpg"
-                  (plaintext ciphertext result recipients &optional
-                             passphrase armor textmode))
-
-(defun mml1991-gpg-sign (cont)
-  (let ((text (current-buffer))
-	headers signature
-	(result-buffer (get-buffer-create "*GPG Result*")))
-    ;; Save MIME Content[^ ]+: headers from signing
-    (goto-char (point-min))
-    (while (looking-at "^Content[^ ]+:") (forward-line))
-    (unless (bobp)
-      (setq headers (buffer-string))
-      (delete-region (point-min) (point)))
-    (goto-char (point-max))
-    (unless (bolp)
-      (insert "\n"))
-    (quoted-printable-decode-region (point-min) (point-max))
-    (with-temp-buffer
-      (unless (gpg-sign-cleartext text (setq signature (current-buffer))
-				  result-buffer
-				  nil
-				  (message-options-get 'message-sender))
-	(unless (> (point-max) (point-min))
-	  (pop-to-buffer result-buffer)
-	  (error "Sign error")))
-      (goto-char (point-min))
-      (while (re-search-forward "\r+$" nil t)
-	(replace-match "" t t))
-      (quoted-printable-encode-region (point-min) (point-max))
-      (set-buffer text)
-      (delete-region (point-min) (point-max))
-      (if headers (insert headers))
-      (insert "\n")
-      (insert-buffer-substring signature)
-      (goto-char (point-max)))))
-
-(defun mml1991-gpg-encrypt (cont &optional sign)
-  (let ((text (current-buffer))
-	cipher
-	(result-buffer (get-buffer-create "*GPG Result*")))
-    ;; Strip MIME Content[^ ]: headers since it will be ASCII ARMORED
-    (goto-char (point-min))
-    (while (looking-at "^Content[^ ]+:") (forward-line))
-    (unless (bobp)
-      (delete-region (point-min) (point)))
-    (mm-with-unibyte-current-buffer
-      (with-temp-buffer
-	(inline (mm-disable-multibyte))
-	(flet ((gpg-encrypt-func
-		(sign plaintext ciphertext result recipients &optional
-		      passphrase sign-with-key armor textmode)
-		(if sign
-		    (gpg-sign-encrypt
-		     plaintext ciphertext result recipients passphrase
-		     sign-with-key armor textmode)
-		  (gpg-encrypt
-		   plaintext ciphertext result recipients passphrase
-		   armor textmode))))
-	  (unless (gpg-encrypt-func
-		   sign
-		   text (setq cipher (current-buffer))
-		   result-buffer
-		   (split-string
-		    (or
-		     (message-options-get 'message-recipients)
-		     (message-options-set 'message-recipients
-					  (read-string "Recipients: ")))
-		    "[ \f\t\n\r\v,]+")
-		   nil
-		   (message-options-get 'message-sender)
-		   t t) ; armor & textmode
-	    (unless (> (point-max) (point-min))
-	      (pop-to-buffer result-buffer)
-	      (error "Encrypt error"))))
 	(goto-char (point-min))
 	(while (re-search-forward "\r+$" nil t)
 	  (replace-match "" t t))

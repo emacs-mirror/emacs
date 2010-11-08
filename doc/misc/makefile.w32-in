@@ -27,6 +27,10 @@ srcdir=.
 
 infodir = $(srcdir)/../../info
 
+## Directory with emacsver.texi.
+## Currently only used by efaq; could be added to MAKEINFO.
+emacsdir = $(srcdir)/../emacs
+
 # The makeinfo program is part of the Texinfo distribution.
 MAKEINFO = makeinfo --force
 MULTI_INSTALL_INFO = $(srcdir)\..\..\nt\multi-install-info.bat
@@ -66,7 +70,7 @@ INFOSOURCES = info.texi
 
 TEXI2DVI = texi2dvi
 ENVADD = $(srcdir)\..\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
-	 "MAKEINFO=$(MAKEINFO) -I$(srcdir)" /C
+	 "MAKEINFO=$(MAKEINFO) -I$(srcdir) -I$(emacsdir)" /C
 
 
 info: $(INFO_TARGETS)
@@ -213,9 +217,9 @@ $(infodir)/widget: widget.texi
 widget.dvi: widget.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/widget.texi
 
-$(infodir)/efaq: faq.texi
-	$(MAKEINFO) faq.texi
-faq.dvi: faq.texi
+$(infodir)/efaq: faq.texi $(emacsdir)/emacsver.texi
+	$(MAKEINFO) -I$(emacsdir) faq.texi
+faq.dvi: faq.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/faq.texi
 
 $(infodir)/autotype: autotype.texi

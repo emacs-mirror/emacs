@@ -1,7 +1,8 @@
 #### Makefile for the Emacs Manual
 
 # Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-#   2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+#   2004, 2005, 2006, 2007, 2008, 2009, 2010
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -18,42 +19,38 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+SHELL = /bin/sh
 
-# Where to find the source code.  $(srcdir) will be the man
-# subdirectory of the source tree.  This is
-# set by the configure script's `--srcdir' option.
+# Where to find the source code.  $(srcdir) will be the doc/emacs subdirectory
+# of the source tree.  This is set by configure's `--srcdir' option.
 srcdir=@srcdir@
-top_srcdir=@top_srcdir@
 
-# Tell make where to find source files; this is needed for the makefiles.
-VPATH=@srcdir@
+# Only for make dist.
+version=@version@
 
 ## Where the output files go.
 ## Note that the setfilename command in the .texi files assumes this.
-infodir=../../info
+## This is a bit funny.  Because the info files are in the
+## distribution tarfiles, they are always made in $scrdir/../../info,
+## even for out-of-tree builds.
+infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
-MAKEINFO = makeinfo --force
-
-INFO_TARGETS = $(infodir)/emacs
-DVI_TARGETS  = emacs.dvi
-
+MAKEINFO = makeinfo --force -I $(srcdir)
 
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
+DVIPS = dvips
 
-# The following rule does not work with all versions of `make'.
-.SUFFIXES: .texi .dvi
-.texi.dvi:
-	$(TEXI2DVI) $<
 
 ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
 
 
-EMACS_XTRA=\
+EMACS_XTRA= \
+	${srcdir}/emacs-xtra.texi \
 	$(srcdir)/arevert-xtra.texi \
 	$(srcdir)/cal-xtra.texi \
 	$(srcdir)/dired-xtra.texi \
@@ -66,6 +63,7 @@ EMACS_XTRA=\
 
 EMACSSOURCES= \
 	${srcdir}/emacs.texi \
+	${srcdir}/emacsver.texi \
 	${srcdir}/doclicense.texi \
 	${srcdir}/gpl.texi \
 	${srcdir}/screen.texi \
@@ -111,56 +109,85 @@ EMACSSOURCES= \
 	${srcdir}/kmacro.texi \
 	$(EMACS_XTRA)
 
-info: $(infodir) $(INFO_TARGETS)
+## This seems pointless.  The info/ directory exists in both the
+## repository and the release tarfiles.  We do not use any
+## equivalent of mkdir -p/mkinstalldirs, so this is not a general
+## solution anyway.  The second test -d is for parallel builds.
+mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
-$(infodir):
-	mkdir $@
+.PHONY: info dvi html pdf ps
 
-dvi: $(DVI_TARGETS)
+info: $(infodir)/emacs
+dvi: emacs.dvi
+html: emacs.html
+pdf: emacs.pdf
+ps: emacs.ps
 
-# Note that all the Info targets build the Info files
-# in srcdir.  There is no provision for Info files
-# to exist in the build directory.
+# Note that all the Info targets build the Info files in srcdir.
+# There is no provision for Info files to exist in the build directory.
 # In a distribution of Emacs, the Info files should be up to date.
 
-emacs : $(infodir)/emacs
-
 $(infodir)/emacs: ${EMACSSOURCES}
-	cd $(srcdir); $(MAKEINFO) emacs.texi
+	$(mkinfodir)
+	$(MAKEINFO) -o $@ $<
 
 emacs.dvi: ${EMACSSOURCES}
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs.texi
+	$(ENVADD) $(TEXI2DVI) $<
+
+emacs.ps: emacs.dvi
+	$(DVIPS) -o $@ $<
 
 emacs.pdf: ${EMACSSOURCES}
-	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs.texi
+	$(ENVADD) $(TEXI2PDF) $<
 
+emacs.html: ${EMACSSOURCES}
+	$(MAKEINFO) --html -o $@ $<
 
-emacs-xtra.dvi: emacs-xtra.texi $(EMACS_XTRA)
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-xtra.texi
+emacs-xtra.dvi: $(EMACS_XTRA)
+	$(ENVADD) $(TEXI2DVI) $<
 
-emacs-xtra.pdf: emacs-xtra.texi $(EMACS_XTRA)
-	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-xtra.texi
+emacs-xtra.ps: emacs-xtra.dvi
+	$(DVIPS) -o $@ $<
 
+emacs-xtra.pdf: $(EMACS_XTRA)
+	$(ENVADD) $(TEXI2PDF) $<
 
+.PHONY: mostlyclean clean distclean maintainer-clean infoclean
+
+## Temp files.
 mostlyclean:
-	rm -f *.log *.cp *.fn *.ky *.op *.ops *.pg *.vr core *.tp *.core
-	rm -f *.aux *.cps *.fns *.kys *.pgs *.vrs *.toc
+	rm -f *.aux *.log *.toc *.cp *.cps *.fn *.fns *.ky *.kys \
+	  *.op *.ops *.pg *.pgs *.tp *.tps *.vr *.vrs
 
+## Products not in the release tarfiles.
 clean: mostlyclean
-	rm -f *.dvi
+	rm -f emacs.dvi emacs-xtra.dvi emacs.pdf emacs-xtra.pdf \
+	  emacs.ps emacs-xtra.ps
+	rm -rf emacs.html/
+	rm -f emacs-manual-${version}.tar*
 
 distclean: clean
-#	rm -f Makefile
 
-maintainer-clean: distclean
-	for file in $(INFO_TARGETS); do rm -f $${file}*; done
+## In the standalone tarfile, the clean rule runs this.
+infoclean:
+	-cd $(infodir) && rm -f emacs emacs-[1-9] emacs-[1-9][0-9]
 
+maintainer-clean: distclean infoclean
 
-# Formerly this directory had texindex.c and getopt.c in it
-# and this makefile built them to make texindex.
-# That caused trouble because this is run entirely in the source directory.
-# Since we expect to get texi2dvi from elsewhere,
-# it is ok to expect texindex from elsewhere also.
+.PHONY: dist
 
+## Make a standalone tarfile of the Emacs manual sources.
+## The [c] is a dumb way to prevent configure expanding it.
+dist:
+	rm -rf emacs-manual-${version}
+	mkdir emacs-manual-${version}
+	cp ${srcdir}/*.texi ${texinfodir}/texinfo.tex \
+	  ${srcdir}/ChangeLog* emacs-manual-${version}/
+	sed -e 's/@sr[c]dir@/./' -e 's/^\(texinfodir *=\).*/\1 ./' \
+	  -e 's/^\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
+	  -e "s/@ver[s]ion@/${version}/" \
+	  ${srcdir}/Makefile.in > emacs-manual-${version}/Makefile
+	tar -cf emacs-manual-${version}.tar emacs-manual-${version}
+	rm -rf emacs-manual-${version}
 
 ### Makefile ends here

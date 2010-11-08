@@ -810,7 +810,7 @@ without interactive confirmation, if it exists as a topic."
 
 (defvar woman-file-regexp nil
   "Regexp used to select (possibly compressed) man source files, e.g.
-\"\\.\\([0-9lmnt]\\w*\\)\\(\\.\\(g?z\\|bz2\\)\\)?\\'\".
+\"\\.\\([0-9lmnt]\\w*\\)\\(\\.\\(g?z\\|bz2\\|xz\\)\\)?\\'\".
 Built automatically from the customizable user options
 `woman-uncompressed-file-regexp' and `woman-file-compression-regexp'.")
 
@@ -846,16 +846,17 @@ MUST NOT end with any kind of string terminator such as $ or \\'."
   :group 'woman-interface)
 
 (defcustom woman-file-compression-regexp
-  "\\.\\(g?z\\|bz2\\)\\'"
+  "\\.\\(g?z\\|bz2\\|xz\\)\\'"
   "Do not change this unless you are sure you know what you are doing!
 Regexp used to match compressed man file extensions for which
 decompressors are available and handled by auto-compression mode,
-e.g. \"\\\\.\\\\(g?z\\\\|bz2\\\\)\\\\'\" for `gzip' or `bzip2'.
+e.g. \"\\\\.\\\\(g?z\\\\|bz2\\\\|xz\\\\)\\\\'\" for `gzip', `bzip2', or `xz'.
 Should begin with \\. and end with \\' and MUST NOT be optional."
   ;; Should be compatible with car of
   ;; `jka-compr-file-name-handler-entry', but that is unduly
   ;; complicated, includes an inappropriate extension (.tgz) and is
   ;; not loaded by default!
+  :version "24.1"                       ; added xz
   :type 'regexp
   :set 'set-woman-file-regexp
   :group 'woman-interface)

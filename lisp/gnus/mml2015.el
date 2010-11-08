@@ -28,8 +28,8 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
 (eval-and-compile
+  ;; For Emacs <22.2 and XEmacs.
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
 
   (if (locate-library "password-cache")
@@ -56,18 +56,9 @@
 			   'epg)
 		       (error))
 		     (progn
-		       (ignore-errors
-			;; Avoid the "Recursive load suspected" error
-			;; in Emacs 21.1.
-			(let ((recursive-load-depth-limit 100))
-			  (require 'pgg)))
+		       (ignore-errors (require 'pgg))
 		       (and (fboundp 'pgg-sign-region)
 			    'pgg))
-		     (progn
-		       (ignore-errors
-			 (require 'gpg))
-		       (and (fboundp 'gpg-sign-detached)
-			    'gpg))
 		     (progn (ignore-errors
 			      (load "mc-toplev"))
 			    (and (fboundp 'mc-encrypt-generic)
@@ -75,7 +66,7 @@
 				 (fboundp 'mc-cleanup-recipient-headers)
 				 'mailcrypt)))
   "The package used for PGP/MIME.
-Valid packages include `epg', `pgg', `gpg' and `mailcrypt'.")
+Valid packages include `epg', `pgg' and `mailcrypt'.")
 
 ;; Something is not RFC2015.
 (defvar mml2015-function-alist
@@ -85,24 +76,18 @@ Valid packages include `epg', `pgg', `gpg' and `mailcrypt'.")
 	       mml2015-mailcrypt-decrypt
 	       mml2015-mailcrypt-clear-verify
 	       mml2015-mailcrypt-clear-decrypt)
-    (gpg mml2015-gpg-sign
-	 mml2015-gpg-encrypt
-	 mml2015-gpg-verify
-	 mml2015-gpg-decrypt
-	 mml2015-gpg-clear-verify
-	 mml2015-gpg-clear-decrypt)
-  (pgg mml2015-pgg-sign
-       mml2015-pgg-encrypt
-       mml2015-pgg-verify
-       mml2015-pgg-decrypt
-       mml2015-pgg-clear-verify
-       mml2015-pgg-clear-decrypt)
-  (epg mml2015-epg-sign
-       mml2015-epg-encrypt
-       mml2015-epg-verify
-       mml2015-epg-decrypt
-       mml2015-epg-clear-verify
-       mml2015-epg-clear-decrypt))
+    (pgg mml2015-pgg-sign
+	 mml2015-pgg-encrypt
+	 mml2015-pgg-verify
+	 mml2015-pgg-decrypt
+	 mml2015-pgg-clear-verify
+	 mml2015-pgg-clear-decrypt)
+    (epg mml2015-epg-sign
+	 mml2015-epg-encrypt
+	 mml2015-epg-verify
+	 mml2015-epg-decrypt
+	 mml2015-epg-clear-verify
+	 mml2015-epg-clear-decrypt))
   "Alist of PGP/MIME functions.")
 
 (defvar mml2015-result-buffer nil)
@@ -118,11 +103,6 @@ Valid packages include `epg', `pgg', `gpg' and `mailcrypt'.")
   :group 'mime-security
   :type '(repeat (cons (regexp :tag "GnuPG output regexp")
 		       (boolean :tag "Trust key"))))
-
-(defcustom mml2015-verbose mml-secure-verbose
-  "If non-nil, ask the user about the current operation more verbosely."
-  :group 'mime-security
-  :type 'boolean)
 
 (defcustom mml2015-cache-passphrase mml-secure-cache-passphrase
   "If t, cache passphrase."
@@ -153,7 +133,7 @@ Whether the passphrase is cached at all is controlled by
 
 ;; Extract plaintext from cleartext signature.  IMO, this kind of task
 ;; should be done by GnuPG rather than Elisp, but older PGP backends
-;; (such as Mailcrypt, PGG, and gpg.el) discard the output from GnuPG.
+;; (such as Mailcrypt, and PGG) discard the output from GnuPG.
 (defun mml2015-extract-cleartext-signature ()
   ;; Daiki Ueno in
   ;; <54a15d860801080142l70b95d7dkac4bf51a86196011@mail.gmail.com>: ``I still
@@ -192,9 +172,6 @@ Whether the passphrase is cached at all is controlled by
 (autoload 'mc-encrypt-generic "mc-toplev")
 (autoload 'mc-cleanup-recipient-headers "mc-toplev")
 (autoload 'mc-sign-generic "mc-toplev")
-
-(defvar mc-default-scheme)
-(defvar mc-schemes)
 
 (defvar mml2015-decrypt-function 'mailcrypt-decrypt)
 (defvar mml2015-verify-function 'mailcrypt-verify)
@@ -241,6 +218,58 @@ Whether the passphrase is cached at all is controlled by
       (if (listp (car handles))
 	  handles
 	(list handles)))))
+
+(defun mml2015-gpg-pretty-print-fpr (fingerprint)
+  (let* ((result "")
+	 (fpr-length (string-width fingerprint))
+	 (n-slice 0)
+	 slice)
+    (setq fingerprint (string-to-list fingerprint))
+    (while fingerprint
+      (setq fpr-length (- fpr-length 4))
+      (setq slice (butlast fingerprint fpr-length))
+      (setq fingerprint (nthcdr 4 fingerprint))
+      (setq n-slice (1+ n-slice))
+      (setq result
+	    (concat
+	     result
+	     (case n-slice
+	       (1  slice)
+	       (otherwise (concat " " slice))))))
+    result))
+
+(defun mml2015-gpg-extract-signature-details ()
+  (goto-char (point-min))
+  (let* ((expired (re-search-forward
+		   "^\\[GNUPG:\\] SIGEXPIRED$"
+		   nil t))
+	 (signer (and (re-search-forward
+		       "^\\[GNUPG:\\] GOODSIG \\([0-9A-Za-z]*\\) \\(.*\\)$"
+		       nil t)
+		      (cons (match-string 1) (match-string 2))))
+	 (fprint (and (re-search-forward
+		       "^\\[GNUPG:\\] VALIDSIG \\([0-9a-zA-Z]*\\) "
+		       nil t)
+		      (match-string 1)))
+	 (trust  (and (re-search-forward
+		       "^\\[GNUPG:\\] \\(TRUST_.*\\)$"
+		       nil t)
+		      (match-string 1)))
+	 (trust-good-enough-p
+	  (cdr (assoc trust mml2015-unabbrev-trust-alist))))
+    (cond ((and signer fprint)
+	   (concat (cdr signer)
+		   (unless trust-good-enough-p
+		     (concat "\nUntrusted, Fingerprint: "
+			     (mml2015-gpg-pretty-print-fpr fprint)))
+		   (when expired
+		     (format "\nWARNING: Signature from expired key (%s)"
+			     (car signer)))))
+	  ((re-search-forward
+	    "^\\(gpg: \\)?Good signature from \"\\(.*\\)\"$" nil t)
+	   (match-string 2))
+	  (t
+	   "From unknown user"))))
 
 (defun mml2015-mailcrypt-clear-decrypt ()
   (let (result)
@@ -453,280 +482,6 @@ Whether the passphrase is cached at all is controlled by
     (goto-char (point-max))
     (insert (format "--%s--\n" boundary))
     (goto-char (point-max))))
-
-;;; gpg wrapper
-
-(autoload 'gpg-decrypt "gpg")
-(autoload 'gpg-verify "gpg")
-(autoload 'gpg-verify-cleartext "gpg")
-(autoload 'gpg-sign-detached "gpg")
-(autoload 'gpg-sign-encrypt "gpg")
-(autoload 'gpg-encrypt "gpg")
-(autoload 'gpg-passphrase-read "gpg")
-
-(defun mml2015-gpg-passphrase ()
-  (or (message-options-get 'gpg-passphrase)
-      (message-options-set 'gpg-passphrase (gpg-passphrase-read))))
-
-(defun mml2015-gpg-decrypt-1 ()
-  (let ((cipher (current-buffer)) plain result)
-    (if (with-temp-buffer
-	  (prog1
-	      (gpg-decrypt cipher (setq plain (current-buffer))
-			   mml2015-result-buffer nil)
-	    (mm-set-handle-multipart-parameter
-	     mm-security-handle 'gnus-details
-	     (with-current-buffer mml2015-result-buffer
-	       (buffer-string)))
-	    (set-buffer cipher)
-	    (erase-buffer)
-	    (insert-buffer-substring plain)
-	    (goto-char (point-min))
-	    (while (search-forward "\r\n" nil t)
-	      (replace-match "\n" t t))))
-	'(t)
-      ;; Some wrong with the return value, check plain text buffer.
-      (if (> (point-max) (point-min))
-	  '(t)
-	nil))))
-
-(defun mml2015-gpg-decrypt (handle ctl)
-  (let ((mml2015-decrypt-function 'mml2015-gpg-decrypt-1))
-    (mml2015-mailcrypt-decrypt handle ctl)))
-
-(defun mml2015-gpg-clear-decrypt ()
-  (let (result)
-    (setq result (mml2015-gpg-decrypt-1))
-    (if (car result)
-	(mm-set-handle-multipart-parameter
-	 mm-security-handle 'gnus-info "OK")
-      (mm-set-handle-multipart-parameter
-       mm-security-handle 'gnus-info "Failed"))))
-
-(defun mml2015-gpg-pretty-print-fpr (fingerprint)
-  (let* ((result "")
-	 (fpr-length (string-width fingerprint))
-	 (n-slice 0)
-	 slice)
-    (setq fingerprint (string-to-list fingerprint))
-    (while fingerprint
-      (setq fpr-length (- fpr-length 4))
-      (setq slice (butlast fingerprint fpr-length))
-      (setq fingerprint (nthcdr 4 fingerprint))
-      (setq n-slice (1+ n-slice))
-      (setq result
-	    (concat
-	     result
-	     (case n-slice
-	       (1  slice)
-	       (otherwise (concat " " slice))))))
-    result))
-
-(defun mml2015-gpg-extract-signature-details ()
-  (goto-char (point-min))
-  (let* ((expired (re-search-forward
-		   "^\\[GNUPG:\\] SIGEXPIRED$"
-		   nil t))
-	 (signer (and (re-search-forward
-		       "^\\[GNUPG:\\] GOODSIG \\([0-9A-Za-z]*\\) \\(.*\\)$"
-		       nil t)
-		      (cons (match-string 1) (match-string 2))))
-	 (fprint (and (re-search-forward
-		       "^\\[GNUPG:\\] VALIDSIG \\([0-9a-zA-Z]*\\) "
-		       nil t)
-		      (match-string 1)))
-	 (trust  (and (re-search-forward
-		       "^\\[GNUPG:\\] \\(TRUST_.*\\)$"
-		       nil t)
-		      (match-string 1)))
-	 (trust-good-enough-p
-	  (cdr (assoc trust mml2015-unabbrev-trust-alist))))
-    (cond ((and signer fprint)
-	   (concat (cdr signer)
-		   (unless trust-good-enough-p
-		     (concat "\nUntrusted, Fingerprint: "
-			     (mml2015-gpg-pretty-print-fpr fprint)))
-		   (when expired
-		     (format "\nWARNING: Signature from expired key (%s)"
-			     (car signer)))))
-	  ((re-search-forward
-	    "^\\(gpg: \\)?Good signature from \"\\(.*\\)\"$" nil t)
-	   (match-string 2))
-	  (t
-	   "From unknown user"))))
-
-(defun mml2015-gpg-verify (handle ctl)
-  (catch 'error
-    (let (part message signature info-is-set-p)
-      (unless (setq part (mm-find-raw-part-by-type
-			  ctl (or (mm-handle-multipart-ctl-parameter
-				   ctl 'protocol)
-				  "application/pgp-signature")
-			  t))
-	(mm-set-handle-multipart-parameter
-	 mm-security-handle 'gnus-info "Corrupted")
-	(throw 'error handle))
-      (with-temp-buffer
-	(setq message (current-buffer))
-	(insert part)
-	;; Convert <LF> to <CR><LF> in signed text.  If --textmode is
-	;; specified when signing, the conversion is not necessary.
-	(goto-char (point-min))
-	(end-of-line)
-	(while (not (eobp))
-	  (unless (eq (char-before) ?\r)
-	    (insert "\r"))
-	  (forward-line)
-	  (end-of-line))
-	(with-temp-buffer
-	  (setq signature (current-buffer))
-	  (unless (setq part (mm-find-part-by-type
-			      (cdr handle) "application/pgp-signature" nil t))
-	    (mm-set-handle-multipart-parameter
-	     mm-security-handle 'gnus-info "Corrupted")
-	    (throw 'error handle))
-	  (mm-insert-part part)
-	  (unless (condition-case err
-		      (prog1
-			  (gpg-verify message signature mml2015-result-buffer)
-			(mm-set-handle-multipart-parameter
-			 mm-security-handle 'gnus-details
-			 (with-current-buffer mml2015-result-buffer
-			   (buffer-string))))
-		    (error
-		     (mm-set-handle-multipart-parameter
-		      mm-security-handle 'gnus-details (mml2015-format-error err))
-		     (mm-set-handle-multipart-parameter
-		      mm-security-handle 'gnus-info "Error.")
-		     (setq info-is-set-p t)
-		     nil)
-		    (quit
-		     (mm-set-handle-multipart-parameter
-		      mm-security-handle 'gnus-details "Quit.")
-		     (mm-set-handle-multipart-parameter
-		      mm-security-handle 'gnus-info "Quit.")
-		     (setq info-is-set-p t)
-		     nil))
-	    (unless info-is-set-p
-	      (mm-set-handle-multipart-parameter
-	       mm-security-handle 'gnus-info "Failed"))
-	    (throw 'error handle)))
-	(mm-set-handle-multipart-parameter
-	 mm-security-handle 'gnus-info
-	 (with-current-buffer mml2015-result-buffer
-	   (mml2015-gpg-extract-signature-details))))
-      handle)))
-
-(defun mml2015-gpg-clear-verify ()
-  (if (condition-case err
-	  (prog1
-	      (gpg-verify-cleartext (current-buffer) mml2015-result-buffer)
-	    (mm-set-handle-multipart-parameter
-	     mm-security-handle 'gnus-details
-	     (with-current-buffer mml2015-result-buffer
-	       (buffer-string))))
-	(error
-	 (mm-set-handle-multipart-parameter
-	  mm-security-handle 'gnus-details (mml2015-format-error err))
-	 nil)
-	(quit
-	 (mm-set-handle-multipart-parameter
-	  mm-security-handle 'gnus-details "Quit.")
-	 nil))
-      (mm-set-handle-multipart-parameter
-       mm-security-handle 'gnus-info
-       (with-current-buffer mml2015-result-buffer
-	 (mml2015-gpg-extract-signature-details)))
-    (mm-set-handle-multipart-parameter
-     mm-security-handle 'gnus-info "Failed"))
-  (mml2015-extract-cleartext-signature))
-
-(defun mml2015-gpg-sign (cont)
-  (let ((boundary (mml-compute-boundary cont))
-	(text (current-buffer)) signature)
-    (goto-char (point-max))
-    (unless (bolp)
-      (insert "\n"))
-    (with-temp-buffer
-      (unless (gpg-sign-detached text (setq signature (current-buffer))
-				 mml2015-result-buffer
-				 nil
-				 (message-options-get 'message-sender)
-				 t t) ; armor & textmode
-	(unless (> (point-max) (point-min))
-	  (pop-to-buffer mml2015-result-buffer)
-	  (error "Sign error")))
-      (goto-char (point-min))
-      (while (re-search-forward "\r+$" nil t)
-	(replace-match "" t t))
-      (set-buffer text)
-      (goto-char (point-min))
-      (insert (format "Content-Type: multipart/signed; boundary=\"%s\";\n"
-		      boundary))
-      ;;; FIXME: what is the micalg?
-      (insert "\tmicalg=pgp-sha1; protocol=\"application/pgp-signature\"\n")
-      (insert (format "\n--%s\n" boundary))
-      (goto-char (point-max))
-      (insert (format "\n--%s\n" boundary))
-      (insert "Content-Type: application/pgp-signature\n\n")
-      (insert-buffer-substring signature)
-      (goto-char (point-max))
-      (insert (format "--%s--\n" boundary))
-      (goto-char (point-max)))))
-
-(defun mml2015-gpg-encrypt (cont &optional sign)
-  (let ((boundary (mml-compute-boundary cont))
-	(text (current-buffer))
-	cipher)
-    (mm-with-unibyte-current-buffer
-      (with-temp-buffer
-	(mm-disable-multibyte)
-	;; set up a function to call the correct gpg encrypt routine
-	;; with the right arguments. (FIXME: this should be done
-	;; differently.)
-	(flet ((gpg-encrypt-func
-		 (sign plaintext ciphertext result recipients &optional
-		       passphrase sign-with-key armor textmode)
-		 (if sign
-		     (gpg-sign-encrypt
-		      plaintext ciphertext result recipients passphrase
-		      sign-with-key armor textmode)
-		   (gpg-encrypt
-		    plaintext ciphertext result recipients passphrase
-		    armor textmode))))
-	  (unless (gpg-encrypt-func
-		    sign ; passed in when using signencrypt
-		    text (setq cipher (current-buffer))
-		    mml2015-result-buffer
-		    (split-string
-		     (or
-		      (message-options-get 'message-recipients)
-		      (message-options-set 'message-recipients
-					   (read-string "Recipients: ")))
-		     "[ \f\t\n\r\v,]+")
-		    nil
-		    (message-options-get 'message-sender)
-		    t t) ; armor & textmode
-	    (unless (> (point-max) (point-min))
-	      (pop-to-buffer mml2015-result-buffer)
-	      (error "Encrypt error"))))
-	(goto-char (point-min))
-	(while (re-search-forward "\r+$" nil t)
-	  (replace-match "" t t))
-	(set-buffer text)
-	(delete-region (point-min) (point-max))
-	(insert (format "Content-Type: multipart/encrypted; boundary=\"%s\";\n"
-			boundary))
-	(insert "\tprotocol=\"application/pgp-encrypted\"\n\n")
-	(insert (format "--%s\n" boundary))
-	(insert "Content-Type: application/pgp-encrypted\n\n")
-	(insert "Version: 1\n\n")
-	(insert (format "--%s\n" boundary))
-	(insert "Content-Type: application/octet-stream\n\n")
-	(insert-buffer-substring cipher)
-	(goto-char (point-max))
-	(insert (format "--%s--\n" boundary))
-	(goto-char (point-max))))))
 
 ;;; pgg wrapper
 

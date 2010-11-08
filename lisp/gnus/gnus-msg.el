@@ -420,7 +420,7 @@ Thank you for your help in stamping out bugs.
 		     ;; There may be an old " *gnus article copy*" buffer.
 		     (let (gnus-article-copy)
 		       (gnus-configure-posting-styles ,group)))))
-       (gnus-pull ',(intern gnus-draft-meta-information-header)
+       (gnus-alist-pull ',(intern gnus-draft-meta-information-header)
 		  message-required-headers)
        (when (and ,group
 		  (not (string= ,group "")))
@@ -578,8 +578,8 @@ If ARG is 1, prompt for a group name to find the posting style."
 		(if arg
 		    (if (= 1 (prefix-numeric-value arg))
 			(gnus-group-completing-read
-			 "Use posting style of group: "
-			 nil nil (gnus-read-active-file-p))
+			 "Use posting style of group"
+			 nil (gnus-read-active-file-p))
 		      (gnus-group-group-name))
 		  ""))
 	  ;; #### see comment in gnus-setup-message -- drv
@@ -607,8 +607,8 @@ network.  The corresponding back end must have a 'request-post method."
 	  (setq gnus-newsgroup-name
 		(if arg
 		    (if (= 1 (prefix-numeric-value arg))
-			(gnus-group-completing-read "Use group: "
-						    nil nil
+			(gnus-group-completing-read "Use group"
+						    nil
 						    (gnus-read-active-file-p))
 		      (gnus-group-group-name))
 		  ""))
@@ -628,7 +628,7 @@ a news."
   (let ((gnus-newsgroup-name
 	 (if arg
 	     (if (= 1 (prefix-numeric-value arg))
-		 (gnus-group-completing-read "Newsgroup: " nil nil
+		 (gnus-group-completing-read "Newsgroup" nil
 					     (gnus-read-active-file-p))
 	       (gnus-group-group-name))
 	   ""))
@@ -654,8 +654,8 @@ posting style."
 	  (setq gnus-newsgroup-name
 		(if arg
 		    (if (= 1 (prefix-numeric-value arg))
-			(gnus-group-completing-read "Use group: "
-						    nil nil
+			(gnus-group-completing-read "Use group"
+						    nil
 						    (gnus-read-active-file-p))
 		      "")
 		  gnus-newsgroup-name))
@@ -684,8 +684,8 @@ network.  The corresponding back end must have a 'request-post method."
 	  (setq gnus-newsgroup-name
 		(if arg
 		    (if (= 1 (prefix-numeric-value arg))
-			(gnus-group-completing-read "Use group: "
-						    nil nil
+			(gnus-group-completing-read "Use group"
+						    nil
 						    (gnus-read-active-file-p))
 		      "")
 		  gnus-newsgroup-name))
@@ -710,7 +710,7 @@ a news."
   (let ((gnus-newsgroup-name
 	 (if arg
 	     (if (= 1 (prefix-numeric-value arg))
-		 (gnus-group-completing-read "Newsgroup: " nil nil
+		 (gnus-group-completing-read "Newsgroup" nil
 					     (gnus-read-active-file-p))
 	       "")
 	   gnus-newsgroup-name))
@@ -1028,8 +1028,8 @@ If SILENT, don't prompt the user."
 			 gnus-last-posting-server)
 		    ;; Just use the last value.
 		    gnus-last-posting-server
-		  (completing-read
-		   "Posting method: " method-alist nil t
+		  (gnus-completing-read
+		   "Posting method" (mapcar 'car method-alist) t
 		   (cons (or gnus-last-posting-server "") 0))))
 	  method-alist))))
      ;; Override normal method.
@@ -1265,7 +1265,8 @@ For the `inline' alternatives, also see the variable
   (dolist (article (gnus-summary-work-articles n))
     (gnus-summary-select-article nil nil nil article)
     (with-current-buffer gnus-original-article-buffer
-      (message-resend address))
+      (let ((gnus-gcc-externalize-attachments nil))
+	(message-resend address)))
     (gnus-summary-mark-article-as-forwarded article)))
 
 ;; From: Matthieu Moy <Matthieu.Moy@imag.fr>
@@ -1487,7 +1488,7 @@ If YANK is non-nil, include the original article."
 (defun gnus-summary-yank-message (buffer n)
   "Yank the current article into a composed message."
   (interactive
-   (list (completing-read "Buffer: " (mapcar 'list (message-buffers)) nil t)
+   (list (gnus-completing-read "Buffer" (message-buffers) t)
 	 current-prefix-arg))
   (gnus-summary-iterate n
     (let ((gnus-inhibit-treatment t))

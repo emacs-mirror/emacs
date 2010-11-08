@@ -173,7 +173,20 @@ in your ~/.emacs (after loading/requiring quickurl).")
 (defvar quickurl-urls nil
   "URL alist for use with `quickurl' and `quickurl-ask'.")
 
-(defvar quickurl-list-mode-map nil
+(defvar quickurl-list-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map t)
+    (define-key map "a"           #'quickurl-list-add-url)
+    (define-key map [(control m)] #'quickurl-list-insert-url)
+    (define-key map "u"           #'quickurl-list-insert-naked-url)
+    (define-key map " "           #'quickurl-list-insert-with-lookup)
+    (define-key map "l"           #'quickurl-list-insert-lookup)
+    (define-key map "d"           #'quickurl-list-insert-with-desc)
+    (define-key map [(control g)] #'quickurl-list-quit)
+    (define-key map "q"           #'quickurl-list-quit)
+    (define-key map [mouse-2]     #'quickurl-list-mouse-select)
+    (define-key map "?"           #'describe-mode)
+    map)
   "Local keymap for a `quickurl-list-mode' buffer.")
 
 (defvar quickurl-list-buffer-name "*quickurl-list*"
@@ -419,21 +432,6 @@ current buffer, this default action can be modifed via
   (find-file quickurl-url-file))
 
 ;; quickurl-list mode.
-
-(unless quickurl-list-mode-map
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map t)
-    (define-key map "a"           #'quickurl-list-add-url)
-    (define-key map [(control m)] #'quickurl-list-insert-url)
-    (define-key map "u"           #'quickurl-list-insert-naked-url)
-    (define-key map " "           #'quickurl-list-insert-with-lookup)
-    (define-key map "l"           #'quickurl-list-insert-lookup)
-    (define-key map "d"           #'quickurl-list-insert-with-desc)
-    (define-key map [(control g)] #'quickurl-list-quit)
-    (define-key map "q"           #'quickurl-list-quit)
-    (define-key map [mouse-2]     #'quickurl-list-mouse-select)
-    (define-key map "?"           #'describe-mode)
-    (setq quickurl-list-mode-map map)))
 
 (put 'quickurl-list-mode 'mode-class 'special)
 

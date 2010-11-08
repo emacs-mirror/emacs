@@ -756,23 +756,6 @@ See `auto-composition-mode' for more information on Auto-Composition mode."
 (defalias 'toggle-auto-composition 'auto-composition-mode)
 
 
-;; The following codes are only for backward compatibility with Emacs
-;; 20.4 and earlier.
-
-(defun decompose-composite-char (char &optional type with-composition-rule)
-  "Convert CHAR to string.
-
-If optional 2nd arg TYPE is non-nil, it is `string', `list', or
-`vector'.  In this case, CHAR is converted to string, list of CHAR, or
-vector of CHAR respectively.
-Optional 3rd arg WITH-COMPOSITION-RULE is ignored."
-  (cond ((or (null type) (eq type 'string)) (char-to-string char))
-	((eq type 'list) (list char))
-	(t (vector char))))
-
-(make-obsolete 'decompose-composite-char 'char-to-string "21.1")
-
-
 
 ;; arch-tag: ee703d77-1723-45d4-a31f-e9f0f867aa33
 ;;; composite.el ends here

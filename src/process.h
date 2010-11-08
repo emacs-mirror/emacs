@@ -24,6 +24,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_GNUTLS
+#include "gnutls.h"
+#endif
+
 /* This structure records information about a subprocess
    or network connection.
 
@@ -76,6 +80,10 @@ struct Lisp_Process
     /* Working buffer for encoding.  */
     Lisp_Object encoding_buf;
 
+#ifdef HAVE_GNUTLS
+    Lisp_Object gnutls_cred_type;
+#endif
+
     /* After this point, there are no Lisp_Objects any more.  */
     /* alloc.c assumes that `pid' is the first such non-Lisp slot.  */
 
@@ -121,6 +129,15 @@ struct Lisp_Process
        needs to be synced to `status'.  */
     unsigned int raw_status_new : 1;
     int raw_status;
+
+#ifdef HAVE_GNUTLS
+    gnutls_initstage_t gnutls_initstage;
+    gnutls_session_t gnutls_state;
+    gnutls_certificate_client_credentials gnutls_x509_cred;
+    gnutls_anon_client_credentials_t gnutls_anon_cred;
+    int gnutls_log_level;
+    int gnutls_p;
+#endif
 };
 
 /* Every field in the preceding structure except for the first two
@@ -176,6 +193,13 @@ extern Lisp_Object system_process_attributes (Lisp_Object);
 extern void hold_keyboard_input (void);
 extern void unhold_keyboard_input (void);
 extern int kbd_on_hold_p (void);
+
+typedef void (*fd_callback)(int fd, void *data, int for_read);
+
+extern void add_read_fd (int fd, fd_callback func, void *data);
+extern void delete_read_fd (int fd);
+extern void add_write_fd (int fd, fd_callback func, void *data);
+extern void delete_write_fd (int fd);
 
 /* arch-tag: dffedfc4-d7bc-4b58-a26f-c16155449c72
    (do not change this comment) */

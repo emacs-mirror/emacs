@@ -562,9 +562,8 @@ Other back ends might or might not work.")
 		 "retrieve-headers" articles folder nnmairix-backend-server fetch-old))
 	    (nnmairix-call-backend
 	     "retrieve-headers" articles folder nnmairix-backend-server fetch-old)))
-    (when (eq rval 'nov)
-      (nnmairix-replace-group-and-numbers articles folder group numcorr)
-      rval)))
+    (nnmairix-replace-group-and-numbers articles folder group numcorr rval)
+    rval))
 
 (deffoo nnmairix-request-article (article &optional group server to-buffer)
   (when server (nnmairix-open-server server))
@@ -705,7 +704,7 @@ Other back ends might or might not work.")
 
 (autoload 'nnimap-request-update-info-internal "nnimap")
 
-(deffoo nnmairix-request-update-info (group info &optional server)
+(deffoo nnmairix-request-marks (group info &optional server)
 ;; propagate info from underlying IMAP folder to nnmairix group
 ;; This is currently experimental and must be explicitly activated
 ;; with nnmairix-propagate-marks-to-nnmairix-group
@@ -849,8 +848,8 @@ called interactively, user will be asked for parameters."
 All necessary information will be queried from the user."
   (interactive)
   (let* ((name (read-string "Name of the mairix server: "))
-	(server (completing-read "Back end server (TAB for completion): "
-				 (nnmairix-get-valid-servers) nil 1))
+	(server (gnus-completing-read "Back end server"
+				 (nnmairix-get-valid-servers) t))
 	(mairix (read-string "Command to call mairix: " "mairix"))
 	(defaultgroup (read-string "Default search group: "))
 	(backend (symbol-name (car (gnus-server-to-method server))))
@@ -1166,7 +1165,7 @@ nnmairix server. Only marks from current session will be set."
 If SKIPDEFAULT is t, the default search group will not be
 updated.
 If UPDATEDB is t, database for SERVERNAME will be updated first."
-  (interactive (list (completing-read "Update groups on server: "
+  (interactive (list (gnus-completing-read "Update groups on server"
 				(nnmairix-get-nnmairix-servers))))
   (save-excursion
     (when (string-match ".*:\\(.*\\)" servername)
@@ -1303,7 +1302,7 @@ Otherwise, ask user for server."
 	  (while
 	      (equal '("")
 		  (setq nnmairix-last-server
-			(list (completing-read "Server: " openedserver nil 1
+			(list (gnus-completing-read "Server" openedserver t
 					       (or nnmairix-last-server
 						   "nnmairix:"))))))
 	  nnmairix-last-server)
@@ -1413,43 +1412,55 @@ nnmairix with nnml backends."
 	(setq cur lastplusone))
       (setq lastplusone (1+ cur)))))
 
-(defun nnmairix-replace-group-and-numbers (articles backendgroup mairixgroup numc)
+(defun nnmairix-replace-group-and-numbers (articles backendgroup mairixgroup numc type)
   "Replace folder names in Xref header and correct article numbers.
 Do this for all ARTICLES on BACKENDGROUP.  Replace using
-MAIRIXGROUP.  NUMC contains values for article number correction."
-  (let ((buf (get-buffer-create " *nnmairix buffer*"))
-	(corr (not (zerop numc)))
-	(name (buffer-name nntp-server-buffer))
-	header cur xref)
-    (with-current-buffer buf
-      (erase-buffer)
-      (set-buffer nntp-server-buffer)
-      (goto-char (point-min))
-      (nnheader-message 7 "nnmairix: Rewriting headers...")
-      (mapc
-       (lambda (article)
-         (when (or (looking-at (number-to-string article))
-                   (nnheader-find-nov-line article))
-           (setq cur (nnheader-parse-nov))
-           (when corr
-             (setq article (+ (mail-header-number cur) numc))
-             (mail-header-set-number cur article))
-           (setq xref (mail-header-xref cur))
-           (when (and (stringp xref)
-                      (string-match (format "[ \t]%s:[0-9]+" backendgroup) xref))
-             (setq xref (replace-match (format " %s:%d" mairixgroup article) t nil xref))
-             (mail-header-set-xref cur xref))
-           (set-buffer buf)
-           (nnheader-insert-nov cur)
-           (set-buffer nntp-server-buffer)
-           (when (not (eobp))
-             (forward-line 1))))
-       articles)
-      (nnheader-message 7 "nnmairix: Rewriting headers... done")
-      (kill-buffer nntp-server-buffer)
-      (set-buffer buf)
-      (rename-buffer name)
-      (setq nntp-server-buffer buf))))
+MAIRIXGROUP.  NUMC contains values for article number correction.
+TYPE is either 'nov or 'headers."
+  (nnheader-message 7 "nnmairix: Rewriting headers...")
+  (cond
+   ((eq type 'nov)
+    (let ((buf (get-buffer-create " *nnmairix buffer*"))
+	  (corr (not (zerop numc)))
+	  (name (buffer-name nntp-server-buffer))
+	  header cur xref)
+      (with-current-buffer buf
+	(erase-buffer)
+	(set-buffer nntp-server-buffer)
+	(goto-char (point-min))
+	(mapc
+	 (lambda (article)
+	   (when (or (looking-at (number-to-string article))
+		     (nnheader-find-nov-line article))
+	     (setq cur (nnheader-parse-nov))
+	     (when corr
+	       (setq article (+ (mail-header-number cur) numc))
+	       (mail-header-set-number cur article))
+	     (setq xref (mail-header-xref cur))
+	     (when (and (stringp xref)
+			(string-match (format "[ \t]%s:[0-9]+" backendgroup) xref))
+	       (setq xref (replace-match (format " %s:%d" mairixgroup article) t nil xref))
+	       (mail-header-set-xref cur xref))
+	     (set-buffer buf)
+	     (nnheader-insert-nov cur)
+	     (set-buffer nntp-server-buffer)
+	     (when (not (eobp))
+	       (forward-line 1))))
+	 articles)
+	(kill-buffer nntp-server-buffer)
+	(set-buffer buf)
+	(rename-buffer name)
+	(setq nntp-server-buffer buf))))
+   ((and (eq type 'headers)
+	 (not (zerop numc)))
+    (with-current-buffer nntp-server-buffer
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward "^[23][0-9]+ \\([0-9]+\\)" nil t)
+	  (replace-match (number-to-string
+			  (+ (string-to-number (match-string 1)) numc))
+			 t t nil 1))))))
+  (nnheader-message 7 "nnmairix: Rewriting headers... done"))
 
 (defun nnmairix-backend-to-server (server)
   "Return nnmairix server most probably responsible for back end SERVER.
@@ -1481,10 +1492,10 @@ group."
 	  (when (not found)
 	    (setq mairixserver
 		  (gnus-server-to-method
-		   (completing-read
-		    (format "Cannot determine which nnmairix server indexes %s. Please specify: "
+		   (gnus-completing-read
+		    (format "Cannot determine which nnmairix server indexes %s. Please specify"
 			    (gnus-method-to-server server))
-		    (nnmairix-get-nnmairix-servers) nil nil "nnmairix:")))
+		    (nnmairix-get-nnmairix-servers) nil "nnmairix:")))
 	    ;; Save result in parameter of default search group so that
 	    ;; we don't have to ask again
 	    (setq defaultgroup (gnus-group-prefixed-name
@@ -1561,14 +1572,11 @@ See %s for details" proc nnmairix-mairix-output-buffer)))
 (defun nnmairix-replace-illegal-chars (header)
   "Replace illegal characters in HEADER for mairix query."
   (when header
-    (if (> emacs-major-version 20)
-	(while (string-match "[^-.@/,& [:alnum:]]" header)
-	  (setq header (replace-match "" t t header)))
-      (while (string-match "[[]{}:<>]" header)
-	(setq header (replace-match "" t t header))))
+    (while (string-match "[^-.@/,& [:alnum:]]" header)
+      (setq header (replace-match "" t t header)))
     (while (string-match "[-& ]" header)
       (setq header (replace-match "," t t header)))
-  header))
+    header))
 
 (defun nnmairix-group-toggle-parameter (group parameter description &optional par)
   "Toggle on GROUP a certain PARAMETER.
@@ -1632,9 +1640,9 @@ search in raw mode."
 	      (gnus-registry-add-group mid cur)))))
       (if (> (length allgroups) 1)
 	  (setq group
-		(completing-read
-		 "Message exists in more than one group. Choose: "
-		 allgroups nil t))
+		(gnus-completing-read
+		 "Message exists in more than one group. Choose"
+		 allgroups t))
 	(setq group (car allgroups))))
     (if group
 	;; show article in summary buffer
@@ -1737,9 +1745,9 @@ SERVER."
 	     (gnus-group-prefixed-name group (car cur))
 	     allgroups))))
       (if (> (length allgroups) 1)
-	  (setq group (completing-read
-		       "Group %s exists on more than one IMAP server. Choose: "
-		       allgroups nil t))
+	  (setq group (gnus-completing-read
+		       "Group %s exists on more than one IMAP server. Choose"
+		       allgroups t))
 	(setq group (car allgroups))))
     group))
 

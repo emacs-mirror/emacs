@@ -358,9 +358,25 @@ gcc %cf% -c junk.c
 @echo gcc %cf% -c junk.c >>config.log
 gcc %cf% -c junk.c >>config.log 2>&1
 set cf=
-if exist junk.o goto gccOk
+if exist junk.o goto chkuser
 echo The failed program was: >>config.log
 type junk.c >>config.log
+goto nocompiler
+
+:chkuser
+rm -f junk.o
+echo int main (int argc, char *argv[]) {>junk.c
+echo char *usercflags = "%usercflags%";>>junk.c
+echo }>>junk.c
+echo gcc -Werror -c junk.c >>config.log
+gcc -Werror -c junk.c >>config.log 2>&1
+if exist junk.o goto gccOk
+echo.
+echo Error in --cflags argument: %usercflags%
+echo Backslashes and quotes cannot be used with --cflags.  Please use forward
+echo slashes for filenames and paths (e.g. when passing directories to -I).
+rm -f junk.c
+goto end
 
 :nocompiler
 echo.
@@ -630,6 +646,8 @@ echo. >>config.settings
 copy config.nt config.tmp
 echo. >>config.tmp
 echo /* Start of settings from configure.bat.  */ >>config.tmp
+rem   We write USER_CFLAGS and USER_LDFLAGS starting with a space to simplify
+rem   processing of compiler options in w32.c:get_emacs_configuration_options
 if (%docflags%) == (Y) echo #define USER_CFLAGS " %usercflags%">>config.tmp
 if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %userldflags%">>config.tmp
 if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
@@ -651,7 +669,7 @@ if not errorlevel 2 goto doCopy
 fc /b config.tmp ..\src\config.h >nul 2>&1
 if errorlevel 1 goto doCopy
 fc /b paths.h ..\src\epaths.h >nul 2>&1
-if errorlevel 0 goto dontCopy
+if not errorlevel 1 goto dontCopy
 
 :doCopy
 copy config.tmp ..\src\config.h

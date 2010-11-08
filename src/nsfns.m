@@ -2598,7 +2598,7 @@ syms_of_nsfns (void)
 {
   int i;
 
-  Qfontsize = intern ("fontsize");
+  Qfontsize = intern_c_string ("fontsize");
   staticpro (&Qfontsize);
 
   DEFVAR_LISP ("ns-icon-type-alist", &Vns_icon_type_alist,

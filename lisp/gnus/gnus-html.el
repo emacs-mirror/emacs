@@ -35,12 +35,21 @@
 (require 'mm-url)
 (require 'url)
 (require 'url-cache)
+(require 'xml)
+(require 'browse-url)
+(eval-and-compile (unless (featurep 'xemacs) (require 'help-fns)))
 
 (defcustom gnus-html-image-cache-ttl (days-to-time 7)
-  "Time in seconds used to cache the image on disk."
+  "Time used to determine if we should use images from the cache."
   :version "24.1"
   :group 'gnus-art
   :type 'integer)
+
+(defcustom gnus-html-image-automatic-caching t
+  "Whether automatically cache retrieve images."
+  :version "24.1"
+  :group 'gnus-art
+  :type 'boolean)
 
 (defcustom gnus-html-frame-width 70
   "What width to use when rendering HTML."
@@ -48,13 +57,7 @@
   :group 'gnus-art
   :type 'integer)
 
-(defcustom gnus-blocked-images "."
-  "Images that have URLs matching this regexp will be blocked."
-  :version "24.1"
-  :group 'gnus-art
-  :type 'regexp)
-
-(defcustom gnus-max-image-proportion 0.7
+(defcustom gnus-max-image-proportion 0.9
   "How big pictures displayed are in relation to the window they're in.
 A value of 0.7 means that they are allowed to take up 70% of the
 width and height of the window.  If they are larger than this,
@@ -79,6 +82,28 @@ fit these criteria."
     (define-key map "u" 'gnus-article-copy-string)
     (define-key map [tab] 'widget-forward)
     map))
+
+(eval-and-compile
+  (defalias 'gnus-html-encode-url-chars
+    (if (fboundp 'browse-url-url-encode-chars)
+	'browse-url-url-encode-chars
+      (lambda (text chars)
+	"URL-encode the chars in TEXT that match CHARS.
+CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
+	(let ((encoded-text (copy-sequence text))
+	      (s 0))
+	  (while (setq s (string-match chars encoded-text s))
+	    (setq encoded-text
+		  (replace-match (format "%%%x"
+					 (string-to-char
+					  (match-string 0 encoded-text)))
+				 t t encoded-text)
+		  s (1+ s)))
+	  encoded-text)))))
+
+(defun gnus-html-encode-url (url)
+  "Encode URL."
+  (gnus-html-encode-url-chars url "[)$ ]"))
 
 (defun gnus-html-cache-expired (url ttl)
   "Check if URL is cached for more than TTL."
@@ -154,28 +179,28 @@ fit these criteria."
 	(delete-region (match-beginning 0) (match-end 0)))
       (setq end (point))
       (when (string-match "src=\"\\([^\"]+\\)" parameters)
-	(setq url (match-string 1 parameters))
+	(setq url (gnus-html-encode-url (match-string 1 parameters)))
 	(gnus-message 8 "gnus-html-wash-tags: fetching image URL %s" url)
 	(if (string-match "^cid:\\(.*\\)" url)
 	    ;; URLs with cid: have their content stashed in other
 	    ;; parts of the MIME structure, so just insert them
 	    ;; immediately.
-	    (let ((handle (mm-get-content-id
-			   (setq url (match-string 1 url))))
-		  image)
-	      (when handle
-		(mm-with-part handle
-		  (setq image (gnus-create-image (buffer-string)
-						 nil t))))
+	    (let* ((handle (mm-get-content-id
+                            (setq url (match-string 1 url))))
+                   (image (when handle
+                            (gnus-create-image (mm-with-part handle (buffer-string))
+                                               nil t))))
 	      (when image
                 (let ((string (buffer-substring start end)))
                   (delete-region start end)
-                  (gnus-put-image image (gnus-string-or string "*") 'cid)
+                  (gnus-put-image (gnus-rescale-image image (gnus-html-maximum-image-size))
+                                  (gnus-string-or string "*") 'cid)
                   (gnus-add-image 'cid image))))
 	  ;; Normal, external URL.
           (let ((alt-text (when (string-match "\\(alt\\|title\\)=\"\\([^\"]+\\)"
                                               parameters)
-                            (match-string 2 parameters))))
+                            (xml-substitute-special (match-string 2 parameters)))))
+            (gnus-put-text-property start end 'gnus-image-url url)
             (if (gnus-html-image-url-blocked-p
                  url
                  (if (buffer-live-p gnus-summary-buffer)
@@ -190,13 +215,9 @@ fit these criteria."
                    :keymap gnus-html-image-map
                    :button-keymap gnus-html-image-map)
                   (let ((overlay (gnus-make-overlay start end))
-                        (spec (list url
-                                    (set-marker (make-marker) start)
-                                    (set-marker (make-marker) end)
-                                    alt-text)))
+                        (spec (list url start end alt-text)))
                     (gnus-overlay-put overlay 'local-map gnus-html-image-map)
                     (gnus-overlay-put overlay 'gnus-image spec)
-                    (gnus-put-text-property start end 'gnus-image-url url)
                     (gnus-put-text-property
                      start end
                      'gnus-image spec)))
@@ -223,13 +244,9 @@ Use ALT-TEXT for the image string."
       ;; asynchronously.
       (gnus-html-schedule-image-fetching
        (current-buffer)
-       (list url
-             (set-marker (make-marker) start)
-             (set-marker (make-marker) end)
-             alt-text))
+       (list url alt-text))
     ;; It's already cached, so just insert it.
-    (gnus-html-put-image (gnus-html-get-image-data url)
-                         start end url alt-text)))
+    (gnus-html-put-image (gnus-html-get-image-data url) url alt-text)))
 
 (defun gnus-html-wash-tags ()
   (let (tag parameters string start end images url)
@@ -242,7 +259,7 @@ Use ALT-TEXT for the image string."
       (setq tag (match-string 1)
 	    parameters (match-string 2)
 	    start (match-beginning 0))
-      (when (plusp (length parameters))
+      (when (> (length parameters) 0)
 	(set-text-properties 0 (1- (length parameters)) nil parameters))
       (delete-region start (point))
       (when (search-forward (concat "</" tag ">") nil t)
@@ -258,7 +275,7 @@ Use ALT-TEXT for the image string."
 	  (setq url (match-string 1 parameters))
           (gnus-message 8 "gnus-html-wash-tags: fetching link URL %s" url)
 	  (gnus-article-add-button start end
-				   'browse-url url
+				   'browse-url (mm-url-decode-entities-string url)
 				   url)
 	  (let ((overlay (gnus-make-overlay start end)))
 	    (gnus-overlay-put overlay 'evaporate t)
@@ -340,28 +357,29 @@ Use ALT-TEXT for the image string."
   "Retrieve IMAGE, and place it into BUFFER on arrival."
   (gnus-message 8 "gnus-html-schedule-image-fetching: buffer %s, image %s"
                 buffer image)
-  (ignore-errors
-    (url-retrieve (car image)
-                  'gnus-html-image-fetched
-                  (list buffer image))))
+  (let ((args (list (car image)
+		    'gnus-html-image-fetched
+		    (list buffer image))))
+    (when (> (length (if (featurep 'xemacs)
+			 (cdr (split-string (function-arglist 'url-retrieve)))
+		       (help-function-arglist 'url-retrieve)))
+	     4)
+      (setq args (nconc args (list t))))
+    (ignore-errors
+      (apply #'url-retrieve args))))
 
 (defun gnus-html-image-fetched (status buffer image)
-  (url-store-in-cache (current-buffer))
-  (when (and (search-forward "\n\n" nil t)
-             (buffer-live-p buffer)
-             ;; If the `image' has no marker, do not replace anything
-             (cadr image)
-             ;; If the position of the marker is 1, then that
-             ;; means that the text it was in has been deleted;
-             ;; i.e., that the user has selected a different
-             ;; article before the image arrived.
-             (not (= (marker-position (cadr image))
-                     (with-current-buffer buffer
-                       (point-min)))))
-    (let ((data (buffer-substring (point) (point-max))))
-      (with-current-buffer buffer
-        (let ((inhibit-read-only t))
-          (gnus-html-put-image data (cadr image) (caddr image) (car image) (cadddr image))))))
+  "Callback function called when image has been fetched."
+  (unless (plist-get status :error)
+    (when gnus-html-image-automatic-caching
+      (url-store-in-cache (current-buffer)))
+    (when (and (or (search-forward "\n\n" nil t)
+                   (search-forward "\r\n\r\n" nil t))
+               (buffer-live-p buffer))
+      (let ((data (buffer-substring (point) (point-max))))
+        (with-current-buffer buffer
+          (let ((inhibit-read-only t))
+            (gnus-html-put-image data (car image) (cadr image)))))))
   (kill-buffer (current-buffer)))
 
 (defun gnus-html-get-image-data (url)
@@ -370,77 +388,83 @@ Return a string with image data."
   (with-temp-buffer
     (mm-disable-multibyte)
     (url-cache-extract (url-cache-create-filename url))
-    (when (search-forward "\n\n" nil t)
+    (when (or (search-forward "\n\n" nil t)
+              (search-forward "\r\n\r\n" nil t))
       (buffer-substring (point) (point-max)))))
 
-(defun gnus-html-put-image (data start end &optional url alt-text)
-  (when (gnus-graphic-display-p)
-    (let* ((image (ignore-errors
-                    (gnus-create-image data nil t)))
-           (size (and image
-                      (if (featurep 'xemacs)
-                          (cons (glyph-width image) (glyph-height image))
-                        (image-size image t)))))
-      (save-excursion
-	(goto-char start)
-        (let ((alt-text (or alt-text (buffer-substring-no-properties start end))))
-          (if (and image
-                   ;; Kludge to avoid displaying 30x30 gif images, which
-                   ;; seems to be a signal of a broken image.
-                   (not (and (if (featurep 'xemacs)
-                                 (glyphp image)
-                               (listp image))
-                             (eq (if (featurep 'xemacs)
-                                     (let ((d (cdadar (specifier-spec-list
-                                                       (glyph-image image)))))
-                                       (and (vectorp d)
-                                            (aref d 0)))
-                                   (plist-get (cdr image) :type))
-                                 'gif)
-                             (= (car size) 30)
-                             (= (cdr size) 30))))
-              ;; Good image, add it!
-              (let ((image (gnus-html-rescale-image image data size)))
-                (delete-region start end)
-                (gnus-put-image image alt-text 'external)
-                (gnus-overlay-put (gnus-make-overlay start (point)) 'local-map
-                                  gnus-html-displayed-image-map)
-                (gnus-put-text-property start (point) 'gnus-alt-text alt-text)
-                (when url
-                  (gnus-put-text-property start (point) 'gnus-image-url url))
-                (gnus-add-image 'external image)
-                t)
-            ;; Bad image, try to show something else
-            (delete-region start end)
-            (when (fboundp 'find-image)
-              (setq image (find-image '((:type xpm :file "lock-broken.xpm"))))
-              (gnus-put-image image alt-text 'internal)
-              (gnus-add-image 'internal image))
-            nil))))))
+(defun gnus-html-maximum-image-size ()
+  "Return the maximum size of an image according to `gnus-max-image-proportion'."
+  (let ((edges (gnus-window-inside-pixel-edges
+                (get-buffer-window (current-buffer)))))
+    ;; (width . height)
+    (cons
+     ;; Aimed width
+     (truncate
+      (* gnus-max-image-proportion
+         (- (nth 2 edges) (nth 0 edges))))
+     ;; Aimed height
+     (truncate (* gnus-max-image-proportion
+                  (- (nth 3 edges) (nth 1 edges)))))))
 
-(defun gnus-html-rescale-image (image data size)
-  (if (or (not (fboundp 'imagemagick-types))
-	  (not (get-buffer-window (current-buffer))))
-      image
-    (let* ((width (car size))
-	   (height (cdr size))
-	   (edges (window-pixel-edges (get-buffer-window (current-buffer))))
-	   (window-width (truncate (* gnus-max-image-proportion
-				      (- (nth 2 edges) (nth 0 edges)))))
-	   (window-height (truncate (* gnus-max-image-proportion
-				       (- (nth 3 edges) (nth 1 edges)))))
-	   scaled-image)
-      (when (> height window-height)
-	(setq image (or (create-image data 'imagemagick t
-				      :height window-height)
-			image))
-	(setq size (image-size image t)))
-      (when (> (car size) window-width)
-	(setq image (or
-		     (create-image data 'imagemagick t
-				   :width window-width)
-		     image)))
-      image)))
+(defun gnus-html-put-image (data url &optional alt-text)
+  "Put an image with DATA from URL and optional ALT-TEXT."
+  (when (gnus-graphic-display-p)
+    (let* ((start (text-property-any (point-min) (point-max)
+				     'gnus-image-url url))
+           (end (when start
+                  (next-single-property-change start 'gnus-image-url))))
+      ;; Image found?
+      (when start
+        (let* ((image
+                (ignore-errors
+                  (gnus-create-image data nil t)))
+               (size (and image
+                          (if (featurep 'xemacs)
+                              (cons (glyph-width image) (glyph-height image))
+                            (image-size image t)))))
+          (save-excursion
+            (goto-char start)
+            (let ((alt-text (or alt-text
+				(buffer-substring-no-properties start end))))
+              (if (and image
+                       ;; Kludge to avoid displaying 30x30 gif images, which
+                       ;; seems to be a signal of a broken image.
+                       (not (and (if (featurep 'xemacs)
+                                     (glyphp image)
+                                   (listp image))
+                                 (eq (if (featurep 'xemacs)
+                                         (let ((d (cdadar
+						   (specifier-spec-list
+						    (glyph-image image)))))
+                                           (and (vectorp d)
+                                                (aref d 0)))
+                                       (plist-get (cdr image) :type))
+                                     'gif)
+                                 (= (car size) 30)
+                                 (= (cdr size) 30))))
+                  ;; Good image, add it!
+                  (let ((image (gnus-rescale-image image (gnus-html-maximum-image-size))))
+                    (delete-region start end)
+                    (gnus-put-image image alt-text 'external)
+                    (gnus-put-text-property start (point) 'help-echo alt-text)
+                    (gnus-overlay-put
+		     (gnus-make-overlay start (point)) 'local-map
+		     gnus-html-displayed-image-map)
+                    (gnus-put-text-property start (point)
+					    'gnus-alt-text alt-text)
+                    (when url
+                      (gnus-put-text-property start (point)
+					      'gnus-image-url url))
+                    (gnus-add-image 'external image)
+                    t)
+                ;; Bad image, try to show something else
+                (when (fboundp 'find-image)
+                  (delete-region start end)
+                  (setq image (find-image
+			       '((:type xpm :file "lock-broken.xpm"))))
+                  (gnus-put-image image alt-text 'internal)
+                  (gnus-add-image 'internal image))
+                nil))))))))
 
 (defun gnus-html-image-url-blocked-p (url blocked-images)
   "Find out if URL is blocked by BLOCKED-IMAGES."
@@ -469,8 +493,8 @@ This only works if the article in question is HTML."
     (let ((blocked-images (with-current-buffer summary
                             gnus-blocked-images)))
       (save-match-data
-	(while (re-search-forward "<img.*src=[\"']\\([^\"']+\\)" nil t)
-	  (let ((url (match-string 1)))
+	(while (re-search-forward "<img[^>]+src=[\"']\\([^\"']+\\)" nil t)
+	  (let ((url (gnus-html-encode-url (match-string 1))))
 	    (unless (gnus-html-image-url-blocked-p url blocked-images)
               (when (gnus-html-cache-expired url gnus-html-image-cache-ttl)
                 (gnus-html-schedule-image-fetching nil

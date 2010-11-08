@@ -1,8 +1,64 @@
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (PROFILING_LDFLAGS): Remove, not needed.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* b2m.c, b2m.pl: Remove files.
+	* Makefile.in (INSTALLABLES): Remove b2m.
+	* makefile.w32-in ($(BLD)/b2m.$(O)): Remove.
+
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacsclient.c (set_local_socket) [DARWIN_OS]: Try as a fall-back
+	DARWIN_USER_TEMP_DIR.  (Bug#3992)
+
+2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* test-distrib.c (cool_read):
+	* movemail.c (main, concat):
+	* make-docfile.c (scan_file, write_c_args):
+	* emacsclient.c	(get_server_config): Fix -Wconversion warning.
+	(egetenv): Move conditional definition earlier.
+	(progname): Use const.
+	* sorted-doc.c (xstrdup): Use const.
+
+	* Makefile.in: Remove ^L, old makes choke on it.
+
+2010-10-02  Wolfgang Schnerring  <wosc@wosc.de>  (tiny change)
+
+	* emacsclient.c (main): Return EXIT_FAILURE if Emacs sends us an
+	error string (Bug#6963).
+
+2010-10-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (tags): Remove target.
+
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (tags, TAGS): New targets.
+
+2010-09-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (get_server_config): Don't read Emacs pid from
+	the authentication file.
+
+2010-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (../src/config.h): Remove target, it is stale.
+
+	* emacsclient.c (main): Remove unused variables.
+	(start_daemon_and_retry_set_socket): Use EXIT_FAILURE.
+
+2010-09-25  Ulrich Mueller  <ulm@gentoo.org>
+
+	* etags.c (compressors, print_language_names): Support xz compression.
+
 2010-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* fakemail.c: Include stdlib.h for getenv. Remove declaration of
+	* fakemail.c: Include stdlib.h for getenv.  Remove declaration of
 	popen, fclose and pclose.
-	(my_name, fatal, error, put_line): Use const char*
+	(my_name, fatal, error, put_line): Use const char*.
 	(main): Remove extern getenv, mail_program_name is const char*.
 
 	* update-game-score.c (get_prefix, write_scores, main): Use const char*.
@@ -12,7 +68,7 @@
 	* pop.h (pop_multi_first): Use const char *.
 	(_ARGS): Remove.
 
-	* pop.c (pop_multi_first, socket_connection, sendline): Use conat char*.
+	* pop.c (pop_multi_first, socket_connection, sendline): Use const char*.
 
 	* movemail.c (fatal, error, concat): Use const char *.
 
@@ -57,7 +113,7 @@
 2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacsclient.c: Move socket related #includes together with the
-	rest of the #includes.  Move a WINDOWSNT includes closer together.
+	rest of the #includes.  Move WINDOWSNT includes closer together.
 	(HAVE_CONFIG_H): Remove.
 	(NO_RETURN): Remove, defined in config.h.
 	(main): Convert definition to standard C.
@@ -160,7 +216,7 @@
 	(fatal): Make static.
 	(error): Likewise.
 	(pfatal_with_name): Likewise.
-	(pfatal_and_delete). Likewise.
+	(pfatal_and_delete): Likewise.
 	(concat): Likewise.
 	(xmalloc): Likewise.
 	(popmail): Likewise.

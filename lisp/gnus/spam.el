@@ -39,7 +39,7 @@
 
 ;;{{{ compilation directives and autoloads/requires
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -689,7 +689,8 @@ order for SpamAssassin to recognize the new registered spam."
   "Sx" gnus-summary-mark-as-spam
   "Mst" spam-generic-score
   "Msx" gnus-summary-mark-as-spam
-  "\M-d" gnus-summary-mark-as-spam)
+  "\M-d" gnus-summary-mark-as-spam
+  "$" gnus-summary-mark-as-spam)
 
 (defvar spam-cache-lookups t
   "Whether spam.el will try to cache lookups using `spam-caches'.")

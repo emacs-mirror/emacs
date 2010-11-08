@@ -1,7 +1,8 @@
 ;;; outline.el --- outline mode commands for Emacs
 
 ;; Copyright (C) 1986, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: outlines
@@ -444,10 +445,6 @@ at the end of the buffer."
 (defsubst outline-invisible-p (&optional pos)
   "Non-nil if the character after point is invisible."
   (get-char-property (or pos (point)) 'invisible))
-
-(defun outline-visible ()
-  (not (outline-invisible-p)))
-(make-obsolete 'outline-visible 'outline-invisible-p "21.1")
 
 (defun outline-back-to-heading (&optional invisible-ok)
   "Move to previous heading line, or beg of this line if it's a heading.

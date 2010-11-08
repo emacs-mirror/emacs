@@ -1,3 +1,69 @@
+2010-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Update and simplify.
+
+2010-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-dist: Don't distribute src/buildobj.h.  (Bug#7167)
+
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (PROFILING_LDFLAGS): Do not define, remove all uses.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: No more doc/emacs/*.texi.in.
+
+	* configure.in (AC_OUTPUT): Remove doc/emacs/emacsver.texi.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Combine some conditionals.
+
+	* configure.in (AC_OUTPUT): Add doc/emacs/emacsver.texi.
+	* make-dist: Include doc/emacs/*.texi.in.
+
+	* INSTALL, make-dist: Remove references to b2m.
+	* Makefile.in (MAN_PAGES): Remove b2m.1.
+
+2010-10-05  Glenn Morris  <rgm@gnu.org>
+
+	* .dir-locals.el: The Emacs convention is sentence-end-double-space.
+
+2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (NO_INLINE, noinline): Move here from src/xterm.c.
+
+2010-10-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Include stdlib.h and string.h unconditionally.
+
+2010-09-29  Romain Francoise  <romain@orebokech.com>
+
+	* configure.in: Don't enable ImageMagick unless HAVE_X11.
+
+2010-09-28  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_GNUTLS): Add a description to make autoheader
+	happy.
+
+2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in: Enable imagemagick by default.
+
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in (HAVE_GNUTLS): Don't break if we don't have the
+	gnutls libraries.
+
+2010-09-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.in: Set up GnuTLS.
+
+2010-09-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Announce whether libxml2 is linked to.
+
 2010-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (LINKER): Rename to LD_FIRSTFLAG, do not include $(CC).

@@ -1,7 +1,8 @@
 ;;; ediff-ptch.el --- Ediff's  patch support
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -62,7 +63,7 @@ case the default value for this variable should be changed."
 
 ;; the default backup extension
 (defconst ediff-default-backup-extension
-  (if (memq system-type '(emx ms-dos))
+  (if (eq system-type 'ms-dos)
       "_orig" ".orig"))
 
 
@@ -841,5 +842,4 @@ you can still examine the changes via M-x ediff-files"
 ;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;; End:
 
-;; arch-tag: 2fe2161e-e116-469b-90fa-5cbb44c1bd1b
 ;;; ediff-ptch.el ends here

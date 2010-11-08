@@ -1,7 +1,7 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
-;; Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -1118,19 +1118,6 @@ If BUFFER is visible in the current frame, return nil."
       ;;  maybe in other frame or icon
       (get-buffer-window buffer 0) ; better than 'visible
       )))
-
-(defun iswitchb-default-keybindings ()
-  "Set up default keybindings for `iswitchb-buffer'.
-Call this function to override the normal bindings.  This function also
-adds a hook to the minibuffer."
-  (interactive)
-  (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)
-  (global-set-key "\C-xb" 'iswitchb-buffer)
-  (global-set-key "\C-x4b" 'iswitchb-buffer-other-window)
-  (global-set-key "\C-x4\C-o" 'iswitchb-display-buffer)
-  (global-set-key "\C-x5b" 'iswitchb-buffer-other-frame))
-
-(make-obsolete 'iswitchb-default-keybindings 'iswitchb-mode "21.1")
 
 (defun iswitchb-buffer ()
   "Switch to another buffer.

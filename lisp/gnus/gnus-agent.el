@@ -459,10 +459,7 @@ manipulated as follows:
   (let ((def (or (gnus-group-group-name) gnus-newsgroup-name)))
     (when def
       (setq def (gnus-group-decoded-name def)))
-    (gnus-group-completing-read (if def
-				    (concat "Group Name (" def "): ")
-				  "Group Name: ")
-				nil nil t nil nil def)))
+    (gnus-group-completing-read nil nil t nil nil def)))
 
 ;;; Fetching setup functions.
 
@@ -606,16 +603,13 @@ manipulated as follows:
       (propertize string 'local-map
 		  (make-mode-line-mouse-map mouse-button mouse-func)
 		  'mouse-face
-		  (cond ((and (featurep 'xemacs)
-			      ;; XEmacs' `facep' only checks for a face
-			      ;; object, not for a face name, so it's useless
-			      ;; to check with `facep'.
-			      (find-face 'modeline))
-			 'modeline)
-			((facep 'mode-line-highlight) ;; Emacs 22
-			 'mode-line-highlight)
-			((facep 'mode-line) ;; Emacs 21
-			 'mode-line)) )
+		  (if (and (featurep 'xemacs)
+			   ;; XEmacs' `facep' only checks for a face
+			   ;; object, not for a face name, so it's useless
+			   ;; to check with `facep'.
+			   (find-face 'modeline))
+		      'modeline
+		    'mode-line-highlight))
     string))
 
 (defun gnus-agent-toggle-plugged (set-to)
@@ -819,11 +813,11 @@ be a select method."
   (interactive
    (list
     (intern
-     (completing-read
-      "Add to category: "
-      (mapcar (lambda (cat) (list (symbol-name (car cat))))
+     (gnus-completing-read
+      "Add to category"
+      (mapcar (lambda (cat) (symbol-name (car cat)))
 	      gnus-category-alist)
-      nil t))
+      t))
     current-prefix-arg))
   (let ((cat (assq category gnus-category-alist))
 	c groups)
@@ -1029,7 +1023,7 @@ supported."
                   (unless (member server gnus-agent-covered-methods)
                     (push server gnus-agent-covered-methods)
                     (setq gnus-agent-method-p-cache nil))
-                (gnus-message 1 "Ignoring disappeared server `%s'" server))))
+                (gnus-message 8 "Ignoring disappeared server `%s'" server))))
           (prog1 gnus-agent-covered-methods
             (setq gnus-agent-covered-methods nil))))
 
@@ -3755,7 +3749,7 @@ has been fetched."
 	    (erase-buffer)
             (cond ((not (eq 'nov (let (gnus-agent) ; Turn off agent
                                    (gnus-retrieve-headers
-                                    uncached-articles group fetch-old))))
+                                    uncached-articles group))))
                    (nnvirtual-convert-headers))
                   ((eq 'nntp (car gnus-current-select-method))
                    ;; The author of gnus-get-newsgroup-headers-xover

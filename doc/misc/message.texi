@@ -1090,11 +1090,11 @@ the passphrase prompt.
 @subsection Using PGP/MIME
 
 @acronym{PGP/MIME} requires an external OpenPGP implementation, such
-as @uref{http://www.gnupg.org/, GNU Privacy Guard}.  Pre-OpenPGP
-implementations such as PGP 2.x and PGP 5.x are also supported.  One
+as @uref{http://www.gnupg.org/, GNU Privacy Guard}. Pre-OpenPGP
+implementations such as PGP 2.x and PGP 5.x are also supported. One
 Emacs interface to the PGP implementations, PGG (@pxref{Top, ,PGG,
-pgg, PGG Manual}), is included, but Mailcrypt and Florian Weimer's
-@code{gpg.el} are also supported.  @xref{PGP Compatibility}.
+pgg, PGG Manual}), is included, but Mailcrypt is also supported.
+@xref{PGP Compatibility}.
 
 @cindex gpg-agent
 Message internally calls GnuPG (the @command{gpg} command) to perform
@@ -1149,11 +1149,8 @@ If you have imported your old PGP 2.x key into GnuPG, and want to send
 signed and encrypted messages to your fellow PGP 2.x users, you'll
 discover that the receiver cannot understand what you send. One
 solution is to use PGP 2.x instead (i.e., if you use @code{pgg}, set
-@code{pgg-default-scheme} to @code{pgp}).  If you do want to use
-GnuPG, you can use a compatibility script called @code{gpg-2comp}
-available from
-@uref{http://muppet.faveve.uni-stuttgart.de/~gero/gpg-2comp/}.  You
-could also convince your fellow PGP 2.x users to convert to GnuPG.
+@code{pgg-default-scheme} to @code{pgp}). You could also convince your
+fellow PGP 2.x users to convert to GnuPG.
 @vindex mml-signencrypt-style-alist
 As a final workaround, you can make the sign and encryption work in
 two steps; separately sign, then encrypt a message.  If you would like

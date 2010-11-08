@@ -71,10 +71,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <sys/file.h>
-
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 
 #include "systty.h"
 #include "syswait.h"
@@ -126,18 +123,11 @@ struct utimbuf {
 #endif
 #endif
 
-/* LPASS8 is new in 4.3, and makes cbreak mode provide all 8 bits.  */
-#ifndef LPASS8
-#define LPASS8 0
-#endif
-
 static const int baud_convert[] =
   {
     0, 50, 75, 110, 135, 150, 200, 300, 600, 1200,
     1800, 2400, 4800, 9600, 19200, 38400
   };
-
-int emacs_ospeed;
 
 void croak (char *) NO_RETURN;
 
@@ -278,6 +268,8 @@ stuff_char (char c)
 void
 init_baud_rate (int fd)
 {
+  int emacs_ospeed;
+ 
   if (noninteractive)
     emacs_ospeed = 0;
   else
@@ -299,16 +291,6 @@ init_baud_rate (int fd)
     baud_rate = 1200;
 }
 
-
-/*ARGSUSED*/
-void
-set_exclusive_use (int fd)
-{
-#ifdef FIOCLEX
-  ioctl (fd, FIOCLEX, 0);
-#endif
-  /* Ok to do nothing if this feature does not exist */
-}
 
 
 int wait_debugging;   /* Set nonzero to make following function work under dbx
@@ -373,22 +355,7 @@ wait_for_termination (int pid)
 void
 flush_pending_output (int channel)
 {
-#ifndef DOS_NT
-  /* If we try this, we get hit with SIGTTIN, because
-     the child's tty belongs to the child's pgrp. */
-#else
-#ifdef TCFLSH
-  ioctl (channel, TCFLSH, 1);
-#else
-#ifdef TIOCFLUSH
-  int zero = 0;
-  /* 3rd arg should be ignored
-     but some 4.2 kernels actually want the address of an int
-     and nonzero means something different.  */
-  ioctl (channel, TIOCFLUSH, &zero);
-#endif
-#endif
-#endif
+  /* FIXME: maybe this function should be removed */
 }
 
 /*  Set up the terminal at the other end of a pseudo-terminal that
@@ -483,7 +450,7 @@ child_setup_tty (int out)
   EMACS_SET_TTY (out, &s, 0);
 #endif /* not WINDOWSNT */
 }
-#endif	/* MSDOS */
+#endif	/* not MSDOS */
 
 
 /* Record a signal code and the handler for it.  */
@@ -1486,242 +1453,6 @@ init_system_name (void)
   }
 }
 
-#ifndef MSDOS
-#if !defined (HAVE_SELECT)
-
-#include "sysselect.h"
-#undef select
-
-#if defined (HAVE_X_WINDOWS) && !defined (HAVE_SELECT)
-/* Cause explanatory error message at compile time,
-   since the select emulation is not good enough for X.  */
-int *x = &x_windows_lose_if_no_select_system_call;
-#endif
-
-/* Emulate as much as select as is possible under 4.1 and needed by Gnu Emacs
- * Only checks read descriptors.
- */
-/* How long to wait between checking fds in select */
-#define SELECT_PAUSE 1
-int select_alarmed;
-
-/* For longjmp'ing back to read_input_waiting.  */
-
-jmp_buf read_alarm_throw;
-
-/* Nonzero if the alarm signal should throw back to read_input_waiting.
-   The read_socket_hook function sets this to 1 while it is waiting.  */
-
-int read_alarm_should_throw;
-
-void
-select_alarm (int ignore)
-{
-  select_alarmed = 1;
-  signal (SIGALRM, SIG_IGN);
-  SIGNAL_THREAD_CHECK (SIGALRM);
-  if (read_alarm_should_throw)
-    longjmp (read_alarm_throw, 1);
-}
-
-#ifndef WINDOWSNT
-/* Only rfds are checked.  */
-int
-sys_select (int nfds,
-	    SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	    EMACS_TIME *timeout)
-{
-  /* XXX This needs to be updated for multi-tty support.  Is there
-     anybody who needs to emulate select these days?  */
- int ravail = 0;
-  SELECT_TYPE orfds;
-  int timeoutval;
-  int *local_timeout;
-  extern int proc_buffered_char[];
-  extern int process_tick, update_tick;
-  unsigned char buf;
-
-#if defined (HAVE_SELECT) && defined (HAVE_X_WINDOWS)
-  /* If we're using X, then the native select will work; we only need the
-     emulation for non-X usage.  */
-  if (!NILP (Vinitial_window_system))
-    return select (nfds, rfds, wfds, efds, timeout);
-#endif
-  timeoutval = timeout ? EMACS_SECS (*timeout) : 100000;
-  local_timeout = &timeoutval;
-  FD_ZERO (&orfds);
-  if (rfds)
-    {
-      orfds = *rfds;
-      FD_ZERO (rfds);
-    }
-  if (wfds)
-    FD_ZERO (wfds);
-  if (efds)
-    FD_ZERO (efds);
-
-  /* If we are looking only for the terminal, with no timeout,
-     just read it and wait -- that's more efficient.  */
-  if (*local_timeout == 100000 && process_tick == update_tick
-      && FD_ISSET (0, &orfds))
-    {
-      int fd;
-      for (fd = 1; fd < nfds; ++fd)
-	if (FD_ISSET (fd, &orfds))
-	  goto hardway;
-      if (! detect_input_pending ())
-	read_input_waiting ();
-      FD_SET (0, rfds);
-      return 1;
-    }
-
- hardway:
-  /* Once a second, till the timer expires, check all the flagged read
-   * descriptors to see if any input is available.  If there is some then
-   * set the corresponding bit in the return copy of rfds.
-   */
-  while (1)
-    {
-      register int to_check, fd;
-
-      if (rfds)
-	{
-	  for (to_check = nfds, fd = 0; --to_check >= 0; fd++)
-	    {
-	      if (FD_ISSET (fd, &orfds))
-		{
-		  int avail = 0, status = 0;
-
-		  if (fd == 0)
-		    avail = detect_input_pending (); /* Special keyboard handler */
-		  else
-		    {
-#ifdef FIONREAD
-		      status = ioctl (fd, FIONREAD, &avail);
-#else /* no FIONREAD */
-		      /* Hoping it will return -1 if nothing available
-			 or 0 if all 0 chars requested are read.  */
-		      if (proc_buffered_char[fd] >= 0)
-			avail = 1;
-		      else
-			{
-			  avail = read (fd, &buf, 1);
-			  if (avail > 0)
-			    proc_buffered_char[fd] = buf;
-			}
-#endif /* no FIONREAD */
-		    }
-		  if (status >= 0 && avail > 0)
-		    {
-		      FD_SET (fd, rfds);
-		      ravail++;
-		    }
-		}
-	    }
-	}
-      if (*local_timeout == 0 || ravail != 0 || process_tick != update_tick)
-	break;
-
-      turn_on_atimers (0);
-      signal (SIGALRM, select_alarm);
-      select_alarmed = 0;
-      alarm (SELECT_PAUSE);
-
-      /* Wait for a SIGALRM (or maybe a SIGTINT) */
-      while (select_alarmed == 0 && *local_timeout != 0
-	     && process_tick == update_tick)
-	{
-	  /* If we are interested in terminal input,
-	     wait by reading the terminal.
-	     That makes instant wakeup for terminal input at least.  */
-	  if (FD_ISSET (0, &orfds))
-	    {
-	      read_input_waiting ();
-	      if (detect_input_pending ())
-		select_alarmed = 1;
-	    }
-	  else
-	    pause ();
-	}
-      (*local_timeout) -= SELECT_PAUSE;
-
-      /* Reset the old alarm if there was one.  */
-      turn_on_atimers (1);
-
-      if (*local_timeout == 0)  /* Stop on timer being cleared */
-	break;
-    }
-  return ravail;
-}
-#endif /* not WINDOWSNT */
-
-/* Read keyboard input into the standard buffer,
-   waiting for at least one character.  */
-
-void
-read_input_waiting (void)
-{
-  /* XXX This needs to be updated for multi-tty support.  Is there
-     anybody who needs to emulate select these days?  */
-  int nread, i;
-
-  if (read_socket_hook)
-    {
-      struct input_event hold_quit;
-
-      EVENT_INIT (hold_quit);
-      hold_quit.kind = NO_EVENT;
-
-      read_alarm_should_throw = 0;
-      if (! setjmp (read_alarm_throw))
-	nread = (*read_socket_hook) (0, 1, &hold_quit);
-      else
-	nread = -1;
-
-      if (hold_quit.kind != NO_EVENT)
-	kbd_buffer_store_event (&hold_quit);
-    }
-  else
-    {
-      struct input_event e;
-      char buf[3];
-      nread = read (fileno (stdin), buf, 1);
-      EVENT_INIT (e);
-
-      /* Scan the chars for C-g and store them in kbd_buffer.  */
-      e.kind = ASCII_KEYSTROKE_EVENT;
-      e.frame_or_window = selected_frame;
-      e.modifiers = 0;
-      for (i = 0; i < nread; i++)
-	{
-	  /* Convert chars > 0177 to meta events if desired.
-	     We do this under the same conditions that read_avail_input does.  */
-	  if (read_socket_hook == 0)
-	    {
-	      /* If the user says she has a meta key, then believe her. */
-	      if (meta_key == 1 && (buf[i] & 0x80))
-		e.modifiers = meta_modifier;
-	      if (meta_key != 2)
-		buf[i] &= ~0x80;
-	    }
-
-	  XSETINT (e.code, buf[i]);
-	  kbd_buffer_store_event (&e);
-	  /* Don't look at input that follows a C-g too closely.
-	     This reduces lossage due to autorepeat on C-g.  */
-	  if (buf[i] == quit_char)
-	    break;
-	}
-    }
-}
-
-#if !defined (HAVE_SELECT)
-#define select sys_select
-#endif
-
-#endif /* not HAVE_SELECT */
-#endif /* not MSDOS */
-
 /* POSIX signals support - DJB */
 /* Anyone with POSIX signals should have ANSI C declarations */
 
@@ -2271,7 +2002,6 @@ dup2 (int oldd, int newd)
 #ifndef HAVE_GETTIMEOFDAY
 #ifdef HAVE_TIMEVAL
 
-/* ARGSUSED */
 int
 gettimeofday (struct timeval *tp, struct timezone *tzp)
 {

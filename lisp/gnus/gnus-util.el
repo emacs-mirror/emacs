@@ -33,7 +33,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
@@ -43,6 +43,36 @@
   (unless (fboundp 'with-no-warnings)
     (defmacro with-no-warnings (&rest body)
       `(progn ,@body))))
+
+(defcustom gnus-completing-read-function 'gnus-emacs-completing-read
+  "Function use to do completing read."
+  :version "24.1"
+  :group 'gnus-meta
+  :type `(radio (function-item
+                 :doc "Use Emacs standard `completing-read' function."
+                 gnus-emacs-completing-read)
+		;; iswitchb.el is very old and ido.el is unavailable
+		;; in XEmacs, so we exclude those function items.
+		,@(unless (featurep 'xemacs)
+		    '((function-item
+		       :doc "Use `ido-completing-read' function."
+		       gnus-ido-completing-read)
+		      (function-item
+		       :doc "Use iswitchb based completing-read function."
+		       gnus-iswitchb-completing-read)))))
+
+(defcustom gnus-completion-styles
+  (if (and (boundp 'completion-styles-alist)
+           (boundp 'completion-styles))
+      (append (when (and (assq 'substring completion-styles-alist)
+                         (not (memq 'substring completion-styles)))
+                (list 'substring))
+              completion-styles)
+    nil)
+  "Value of `completion-styles' to use when completing."
+  :version "24.1"
+  :group 'gnus-meta
+  :type 'list)
 
 ;; Fixme: this should be a gnus variable, not nnmail-.
 (defvar nnmail-pathname-coding-system)
@@ -122,11 +152,9 @@ This is a compatibility function for different Emacsen."
 ;; XEmacs.  In Emacs we don't need to call `make-local-hook' first.
 ;; It's harmless, though, so the main purpose of this alias is to shut
 ;; up the byte compiler.
-(defalias 'gnus-make-local-hook
-  (if (eq (get 'make-local-hook 'byte-compile)
-	  'byte-compile-obsolete)
-      'ignore				; Emacs
-    'make-local-hook))			; XEmacs
+(defalias 'gnus-make-local-hook (if (featurep 'xemacs)
+                                    'make-local-hook
+                                  'ignore))
 
 (defun gnus-delete-first (elt list)
   "Delete by side effect the first occurrence of ELT as a member of LIST."
@@ -343,16 +371,6 @@ TIME defaults to the current time."
 	      (eq (lookup-key keymap key) 'undefined))
 	  (define-key keymap key (pop plist))
 	(pop plist)))))
-
-(defun gnus-completing-read-with-default (default prompt &rest args)
-  ;; Like `completing-read', except that DEFAULT is the default argument.
-  (let* ((prompt (if default
-		     (concat prompt " (default " default "): ")
-		   (concat prompt ": ")))
-	 (answer (apply 'completing-read prompt args)))
-    (if (or (null answer) (zerop (length answer)))
-	default
-      answer)))
 
 ;; Two silly functions to ensure that all `y-or-n-p' questions clear
 ;; the echo area.
@@ -601,6 +619,8 @@ but also to the ones displayed in the echo area."
 		 (t
 		  (apply 'message ,format-string ,args))))))))
 
+(defvar gnus-action-message-log nil)
+
 (defun gnus-message-with-timestamp (format-string &rest args)
   "Display message with timestamp.  Arguments are the same as `message'.
 The `gnus-add-timestamp-to-message' variable controls how to add
@@ -615,13 +635,25 @@ Guideline for numbers:
 that take a long time, 7 - not very important messages on stuff, 9 - messages
 inside loops."
   (if (<= level gnus-verbose)
-      (if gnus-add-timestamp-to-message
-	  (apply 'gnus-message-with-timestamp args)
-	(apply 'message args))
+      (let ((message
+	     (if gnus-add-timestamp-to-message
+		 (apply 'gnus-message-with-timestamp args)
+	       (apply 'message args))))
+	(when (and (consp gnus-action-message-log)
+		   (<= level 3))
+	  (push message gnus-action-message-log))
+	message)
     ;; We have to do this format thingy here even if the result isn't
     ;; shown - the return value has to be the same as the return value
     ;; from `message'.
     (apply 'format args)))
+
+(defun gnus-final-warning ()
+  (when (and (consp gnus-action-message-log)
+	     (setq gnus-action-message-log
+		   (delete nil gnus-action-message-log)))
+    (message "Warning: %s"
+	     (mapconcat #'identity gnus-action-message-log "; "))))
 
 (defun gnus-error (level &rest args)
   "Beep an error if LEVEL is equal to or less than `gnus-verbose'.
@@ -1258,6 +1290,11 @@ ARG is passed to the first function."
   (save-current-buffer
     (apply 'run-hooks funcs)))
 
+(defun gnus-run-hook-with-args (hook &rest args)
+  "Does the same as `run-hook-with-args', but saves the current buffer."
+  (save-current-buffer
+    (apply 'run-hook-with-args hook args)))
+
 (defun gnus-run-mode-hooks (&rest funcs)
   "Run `run-mode-hooks' if it is available, otherwise `run-hooks'.
 This function saves the current buffer."
@@ -1275,13 +1312,40 @@ This function saves the current buffer."
        (with-current-buffer gnus-group-buffer
 	 (eq major-mode 'gnus-group-mode))))
 
-(defun gnus-remove-if (predicate list)
-  "Return a copy of LIST with all items satisfying PREDICATE removed."
+(defun gnus-remove-if (predicate sequence &optional hash-table-p)
+  "Return a copy of SEQUENCE with all items satisfying PREDICATE removed.
+SEQUENCE should be a list, a vector, or a string.  Returns always a list.
+If HASH-TABLE-P is non-nil, regards SEQUENCE as a hash table."
   (let (out)
-    (while list
-      (unless (funcall predicate (car list))
-	(push (car list) out))
-      (setq list (cdr list)))
+    (if hash-table-p
+	(mapatoms (lambda (symbol)
+		    (unless (funcall predicate symbol)
+		      (push symbol out)))
+		  sequence)
+      (unless (listp sequence)
+	(setq sequence (append sequence nil)))
+      (while sequence
+	(unless (funcall predicate (car sequence))
+	  (push (car sequence) out))
+	(setq sequence (cdr sequence))))
+    (nreverse out)))
+
+(defun gnus-remove-if-not (predicate sequence &optional hash-table-p)
+  "Return a copy of SEQUENCE with all items not satisfying PREDICATE removed.
+SEQUENCE should be a list, a vector, or a string.  Returns always a list.
+If HASH-TABLE-P is non-nil, regards SEQUENCE as a hash table."
+  (let (out)
+    (if hash-table-p
+	(mapatoms (lambda (symbol)
+		    (when (funcall predicate symbol)
+		      (push symbol out)))
+		  sequence)
+      (unless (listp sequence)
+	(setq sequence (append sequence nil)))
+      (while sequence
+	(when (funcall predicate (car sequence))
+	  (push (car sequence) out))
+	(setq sequence (cdr sequence))))
     (nreverse out)))
 
 (if (fboundp 'assq-delete-all)
@@ -1302,7 +1366,7 @@ Return the modified alist."
 	(when (string-match r word)
 	  (throw 'found r))))))
 
-(defmacro gnus-pull (key alist &optional assoc-p)
+(defmacro gnus-alist-pull (key alist &optional assoc-p)
   "Modify ALIST to be without KEY."
   (unless (symbolp alist)
     (error "Not a symbol: %s" alist))
@@ -1560,21 +1624,54 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 	`(,(car spec) ,@(mapcar 'gnus-make-predicate-1 (cdr spec)))
       (error "Invalid predicate specifier: %s" spec)))))
 
-(defun gnus-completing-read (prompt table &optional predicate require-match
-				    history)
-  (when (and history
-	     (not (boundp history)))
-    (set history nil))
-  (completing-read
-   (if (symbol-value history)
-       (concat prompt " (" (car (symbol-value history)) "): ")
-     (concat prompt ": "))
-   table
-   predicate
-   require-match
-   nil
-   history
-   (car (symbol-value history))))
+(defun gnus-completing-read (prompt collection &optional require-match
+                                    initial-input history def)
+  "Call `gnus-completing-read-function'."
+  (funcall gnus-completing-read-function
+           (concat prompt (when def
+                            (concat " (default " def ")"))
+                   ": ")
+           collection require-match initial-input history def))
+
+(defun gnus-emacs-completing-read (prompt collection &optional require-match
+                                          initial-input history def)
+  "Call standard `completing-read-function'."
+  (let ((completion-styles gnus-completion-styles))
+    (completing-read prompt
+                     ;; Old XEmacs (at least 21.4) expect an alist for
+                     ;; collection.
+                     (mapcar 'list collection)
+                     nil require-match initial-input history def)))
+
+(autoload 'ido-completing-read "ido")
+(defun gnus-ido-completing-read (prompt collection &optional require-match
+                                        initial-input history def)
+  "Call `ido-completing-read-function'."
+  (ido-completing-read prompt collection nil require-match
+		       initial-input history def))
+
+
+(autoload 'iswitchb-read-buffer "iswitchb")
+(defun gnus-iswitchb-completing-read (prompt collection &optional require-match
+                                            initial-input history def)
+  "`iswitchb' based completing-read function."
+  (let ((iswitchb-make-buflist-hook
+         (lambda ()
+           (setq iswitchb-temp-buflist
+                 (let ((choices (append
+                                 (when initial-input (list initial-input))
+                                 (symbol-value history) collection))
+                       filtered-choices)
+                   (dolist (x choices)
+                     (setq filtered-choices (adjoin x filtered-choices)))
+                   (nreverse filtered-choices))))))
+    (unwind-protect
+        (progn
+          (when (not iswitchb-mode)
+            (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup))
+          (iswitchb-read-buffer prompt def require-match))
+      (when (not iswitchb-mode)
+        (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))))
 
 (defun gnus-graphic-display-p ()
   (if (featurep 'xemacs)
@@ -1661,30 +1758,14 @@ CHOICE is a list of the choice char and help message at IDX."
 	(kill-buffer buf))
     tchar))
 
-(declare-function x-focus-frame "xfns.c" (frame))
-(declare-function w32-focus-frame "../term/w32-win" (frame))
-
-(defun gnus-select-frame-set-input-focus (frame)
-  "Select FRAME, raise it, and set input focus, if possible."
-  (cond ((featurep 'xemacs)
-	 (if (fboundp 'select-frame-set-input-focus)
-	     (select-frame-set-input-focus frame)
-	   (raise-frame frame)
-	   (select-frame frame)
-	   (focus-frame frame)))
-	;; `select-frame-set-input-focus' defined in Emacs 21 will not
-	;; set the input focus.
-	((>= emacs-major-version 22)
-	 (select-frame-set-input-focus frame))
-	(t
-	 (raise-frame frame)
-	 (select-frame frame)
-	 (cond ((memq window-system '(x ns mac))
-		(x-focus-frame frame))
-	       ((eq window-system 'w32)
-		(w32-focus-frame frame)))
-	 (when focus-follows-mouse
-	   (set-mouse-position frame (1- (frame-width frame)) 0)))))
+(if (fboundp 'select-frame-set-input-focus)
+    (defalias 'gnus-select-frame-set-input-focus 'select-frame-set-input-focus)
+  ;; XEmacs 21.4, SXEmacs
+  (defun gnus-select-frame-set-input-focus (frame)
+    "Select FRAME, raise it, and set input focus, if possible."
+    (raise-frame frame)
+    (select-frame frame)
+    (focus-frame frame)))
 
 (defun gnus-frame-or-window-display-name (object)
   "Given a frame or window, return the associated display name.
@@ -1891,6 +1972,26 @@ is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
               (aref ,display-table ,character)
             (get-char-table ,character ,display-table)))
     `(aref ,display-table ,character)))
+
+(defun gnus-rescale-image (image size)
+  "Rescale IMAGE to SIZE if possible.
+SIZE is in format (WIDTH . HEIGHT). Return a new image.
+Sizes are in pixels."
+  (if (or (not (fboundp 'imagemagick-types))
+	  (not (get-buffer-window (current-buffer))))
+      image
+    (let ((new-width (car size))
+          (new-height (cdr size)))
+      (when (> (cdr (image-size image t)) new-height)
+        (setq image (or (create-image (plist-get (cdr image) :data) 'imagemagick t
+                                      :height new-height)
+                        image)))
+      (when (> (car (image-size image t)) new-width)
+        (setq image (or
+                   (create-image (plist-get (cdr image) :data) 'imagemagick t
+                                 :width new-width)
+                   image)))
+      image)))
 
 (provide 'gnus-util)
 

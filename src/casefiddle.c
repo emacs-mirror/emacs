@@ -352,8 +352,8 @@ static Lisp_Object
 operate_on_word (Lisp_Object arg, EMACS_INT *newpoint)
 {
   Lisp_Object val;
-  int farend;
-  int iarg;
+  EMACS_INT farend;
+  EMACS_INT iarg;
 
   CHECK_NUMBER (arg);
   iarg = XINT (arg);

@@ -162,7 +162,7 @@ element should come before the second.  The arguments are cons cells;
 
 ;; No longer used.  KFS 2004-10-27
 ;; (defcustom imenu-scanning-message "Scanning buffer for index (%3d%%)"
-;;   "*Progress message during the index scanning of the buffer.
+;;   "Progress message during the index scanning of the buffer.
 ;; If non-nil, user gets a message during the scanning of the buffer.
 ;;
 ;; Relevant only if the mode-specific function that creates the buffer

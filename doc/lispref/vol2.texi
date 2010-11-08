@@ -27,7 +27,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  3.0
-@set EMACSVER 24.0.50
+@include emacsver.texi
 @set DATE July 2009
 
 @dircategory Emacs
@@ -1549,7 +1549,3 @@ Object Internals
 
 
 These words prevent "local variables" above from confusing Emacs.
-
-@ignore
-   arch-tag: dfdbecf8-fec2-49c1-8427-3e8ac8b0b849
-@end ignore

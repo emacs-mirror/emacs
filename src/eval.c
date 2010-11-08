@@ -79,7 +79,7 @@ Lisp_Object Vautoload_queue;
 
 /* Current number of specbindings allocated in specpdl.  */
 
-int specpdl_size;
+EMACS_INT specpdl_size;
 
 /* Pointer to beginning of specpdl.  */
 
@@ -95,7 +95,7 @@ EMACS_INT max_specpdl_size;
 
 /* Depth in Lisp evaluations and function calls.  */
 
-int lisp_eval_depth;
+EMACS_INT lisp_eval_depth;
 
 /* Maximum allowed depth in Lisp evaluations and function calls.  */
 
@@ -216,7 +216,7 @@ call_debugger (Lisp_Object arg)
   int debug_while_redisplaying;
   int count = SPECPDL_INDEX ();
   Lisp_Object val;
-  int old_max = max_specpdl_size;
+  EMACS_INT old_max = max_specpdl_size;
 
   /* Temporarily bump up the stack limits,
      so the debugger won't run out of stack.  */
@@ -1992,7 +1992,7 @@ void
 verror (const char *m, va_list ap)
 {
   char buf[200];
-  int size = 200;
+  EMACS_INT size = 200;
   int mlen;
   char *buffer = buf;
   char *args[3];
@@ -2003,7 +2003,7 @@ verror (const char *m, va_list ap)
 
   while (1)
     {
-      int used;
+      EMACS_INT used;
       used = doprnt (buffer, size, m, m + mlen, ap);
       if (used < size)
 	break;
@@ -3441,8 +3441,10 @@ Output stream used is value of `standard-output'.  */)
   Lisp_Object tail;
   Lisp_Object tem;
   struct gcpro gcpro1;
+  Lisp_Object old_print_level = Vprint_level;
 
-  XSETFASTINT (Vprint_level, 3);
+  if (NILP (Vprint_level))
+    XSETFASTINT (Vprint_level, 8);
 
   tail = Qnil;
   GCPRO1 (tail);
@@ -3483,7 +3485,7 @@ Output stream used is value of `standard-output'.  */)
       backlist = backlist->next;
     }
 
-  Vprint_level = Qnil;
+  Vprint_level = old_print_level;
   UNGCPRO;
   return Qnil;
 }

@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -603,7 +603,7 @@ system for example was used.")
 	(insert-file-contents (gnus-cache-file-name group entry)))
       (goto-char (point-min))
       (insert "220 ")
-      (princ (car cached) (current-buffer))
+      (princ (pop cached) (current-buffer))
       (insert " Article retrieved.\n")
       (search-forward "\n\n" nil 'move)
       (delete-region (point) (point-max))

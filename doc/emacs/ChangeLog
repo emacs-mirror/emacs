@@ -1,3 +1,95 @@
+2010-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MAKEINFO): Add explicit -I$srcdir.
+
+	* Makefile.in (.texi.dvi): Remove unnecessary suffix rule.
+	(DVIPS): New variable.
+	(.PHONY): Add html, ps.
+	(html, emacs.html, ps, emacs.ps, emacs-xtra.ps): New targets.
+	(clean): Delete html, ps files.
+
+2010-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (EMACSSOURCES): Add emacsver.texi.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (VPATH): Remove.
+	(infodir): Make it absolute.
+	(mkinfodir, $(infodir)/emacs, infoclean): No need to cd $srcdir.
+
+	* Makefile.in (dist): Anchor regexps.
+
+	* Makefile.in (EMACSSOURCES): Put emacs.texi first.
+	($(infodir)/emacs, emacs.dvi, emacs.pdf, emacs-xtra.dvi)
+	(emacs-xtra.pdf): Use $<.
+
+	* Makefile.in (infoclean): Remove harmless, long-standing error.
+
+	* Makefile.in ($(infodir)): Delete rule.
+	(mkinfodir): New.
+	($(infodir)/emacs): Use $mkinfodir instead of infodir.
+
+	* Makefile.in (distclean): Do not delete emacsver.texi.
+	(dist): Remove reference to emacsver.texi.in.
+	* emacsver.texi: New file, replacing emacsver.texi.in.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* emacsver.texi.in: New file.
+	* emacs.texi: Set EMACSVER by including emacsver.texi.
+	* Makefile.in (distclean): Delete emacsver.texi.
+	(dist): Copy emacsver.texi.
+	(EMACSSOURCES): Add emacsver.texi.
+
+	* ack.texi (Acknowledgments): No more b2m.c.
+
+	* Makefile.in (.PHONY): Declare info, dvi, pdf, dist.
+	(emacs): Remove rule.
+	(dist): No need to deal with the emacs rule any more.
+
+2010-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (version): New, set by configure.
+	(clean): Delete dist tar file.
+	(dist): Use version in tar name.
+
+2010-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (EMACS_XTRA): Add the main source file.
+	(emacs-xtra.dvi, emacs-xtra.pdf): Remove explicit emacs-xtra.texi.
+	(mostlyclean): No core files, reorder other files.
+	(clean): Delete specific dvi and pdf files.
+	(infoclean, dist): New rules.
+	(maintainer-clean): Use infoclean.
+	($(infodir)): Add parallel build workaround.
+
+2010-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SHELL): Set it.
+	(INFO_TARGETS, DVI_TARGETS): Remove variables.
+	(info, dvi): Replace above variables with their expansions.
+	(info): Move mkdir from here...
+	($(infodir)/emacs): ... to here (for parallel builds).
+	(pdf): New target.
+	($(infodir)/emacs): Pass -o option to makeinfo.
+	(.PHONY): Declare clean rules.
+	(maintainer-clean): Delete dvi and pdf files.
+	Guard against cd failures.  Use a more restrictive delete.
+
+2010-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Shell Mode): Remove reference to old function name.
+
+2010-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* maintaining.texi (VC Mode Line): Mention all the possible VC status
+	indicator characters.
+
+2010-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (top_srcdir): Remove unused variable.
+
 2010-09-14  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi (Fancy Diary Display): Emphasize that sort should be
@@ -7331,12 +7423,11 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; fill-column: 79
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-      2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
+    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+    Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -7352,5 +7443,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: f1d62776-3ed5-4811-9d96-267252577dbd
