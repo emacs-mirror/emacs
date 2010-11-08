@@ -718,7 +718,7 @@ Leave point at the start of the delimiter line."
   "Carry out Auto Fill for Mail mode.
 If within the headers, this makes the new lines into continuation lines."
   (if (< (point) (mail-header-end))
-      (let ((old-line-start (save-excursion (beginning-of-line) (point))))
+      (let ((old-line-start (line-beginning-position)))
 	(if (do-auto-fill)
 	    (save-excursion
 	      (beginning-of-line)
@@ -1947,5 +1947,4 @@ you can move to one of them and type C-c C-c to recover that one."
 
 (provide 'sendmail)
 
-;; arch-tag: 48bc1025-d993-4d31-8d81-2a29491f0626
 ;;; sendmail.el ends here

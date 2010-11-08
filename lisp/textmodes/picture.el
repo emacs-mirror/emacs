@@ -438,7 +438,7 @@ If no such character is found, move to beginning of line."
 	  (move-to-column target))
       (if (re-search-forward
 	   (concat "[ \t]+[" (regexp-quote picture-tab-chars) "]")
-	   (save-excursion (end-of-line) (point))
+	   (line-end-position)
 	   'move)
 	  (setq target (1- (current-column)))
 	(setq target nil)))
@@ -775,5 +775,4 @@ Runs `picture-mode-exit-hook' at the end."
 
 (provide 'picture)
 
-;; arch-tag: e452d08d-a470-4fbf-896e-ea276698d1ca
 ;;; picture.el ends here

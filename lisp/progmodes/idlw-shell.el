@@ -1458,7 +1458,7 @@ Otherwise just move the line.  Move down unless UP is non-nil."
 	 (arg (if up arg (- arg))))
     (if (eq t idlwave-shell-arrows-do-history) (goto-char proc-pos))
     (if (and idlwave-shell-arrows-do-history
-	     (>= (1+ (save-excursion (end-of-line) (point))) proc-pos))
+	     (>= (1+ (point-at-eol)) proc-pos))
 	(comint-previous-input arg)
       (forward-line (- arg)))))
 
@@ -2211,7 +2211,7 @@ args of an executive .run, .rnew or .compile."
 
 (defun idlwave-shell-filename-string ()
   "Return t if in a string and after what could be a file name."
-  (let ((limit (save-excursion (beginning-of-line) (point))))
+  (let ((limit (point-at-bol)))
     (save-excursion
       ;; Skip backwards over file name chars
       (skip-chars-backward idlwave-shell-file-name-chars limit)
@@ -2220,7 +2220,7 @@ args of an executive .run, .rnew or .compile."
 
 (defun idlwave-shell-batch-command ()
   "Return t if we're in a batch command statement like @foo"
-  (let ((limit (save-excursion (beginning-of-line) (point))))
+  (let ((limit (point-at-bol)))
     (save-excursion
       ;; Skip backwards over filename
       (skip-chars-backward idlwave-shell-file-name-chars limit)
@@ -2398,7 +2398,7 @@ matter what the settings of that variable."
                                    idlwave-shell-electric-stop-line-face
                                  idlwave-shell-stop-line-face))
 		  (move-overlay idlwave-shell-stop-line-overlay
-				(point) (save-excursion (end-of-line) (point))
+				(point) (point-at-eol)
 				(current-buffer)))
 	      ;; use the arrow instead, but only if marking is wanted.
 	      (if idlwave-shell-mark-stop-line
@@ -4693,5 +4693,4 @@ static char * file[] = {
 (if idlwave-shell-use-toolbar
     (add-hook 'idlwave-shell-mode-hook 'idlwave-toolbar-add-everywhere))
 
-;; arch-tag: 20c2e8ce-0709-41d8-a5b6-bb039148440a
 ;;; idlw-shell.el ends here

@@ -2602,7 +2602,7 @@ and the offset."
      ((and (= (char-after) ?#)
 	   (equal ada-which-compiler 'gnat)
 	   (looking-at "#[ \t]*\\(if\\|els\\(e\\|if\\)\\|end[ \t]*if\\)"))
-      (list (save-excursion (beginning-of-line) (point)) 0))
+      (list (point-at-bol) 0))
 
      ;;--------------------------------
      ;;   starting with ')' (end of a parameter list)
@@ -4049,11 +4049,7 @@ Point is moved at the beginning of the SEARCH-RE."
                   (funcall search-func search-re limit 1))
         (setq begin (match-beginning 0))
         (setq end (match-end 0))
-
-        (setq parse-result (parse-partial-sexp
-                            (save-excursion (beginning-of-line) (point))
-                            (point)))
-
+        (setq parse-result (parse-partial-sexp (point-at-bol) (point)))
         (cond
          ;;
          ;; If inside a string, skip it (and the following comments)
@@ -4272,16 +4268,12 @@ of the region.  Otherwise, operate only on the current line."
   (save-excursion
     (beginning-of-line)
     (insert-char ?  ada-indent))
-  (if (save-excursion (= (point) (progn (beginning-of-line) (point))))
-      (forward-char ada-indent)))
+  (if (bolp) (forward-char ada-indent)))
 
 (defun ada-untab-hard ()
   "Indent current line to previous tab stop."
   (interactive)
-  (let ((bol (save-excursion (progn (beginning-of-line) (point))))
-	(eol (save-excursion (progn (end-of-line) (point)))))
-    (indent-rigidly bol eol (- 0 ada-indent))))
-
+  (indent-rigidly (point-at-bol) (point-at-eol) (- 0 ada-indent)))
 
 
 ;; ------------------------------------------------------------

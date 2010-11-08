@@ -1465,7 +1465,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
       (goto-char (point-min))
       ;; Localwords parsing copied from ispell.el.
       (while (search-forward ispell-words-keyword nil t)
-	(let ((end (save-excursion (end-of-line) (point)))
+	(let ((end (point-at-eol))
 	      string)
 	  ;; buffer-local words separated by a space, and can contain
 	  ;; any character other than a space.  Not rigorous enough.

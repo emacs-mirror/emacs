@@ -27,6 +27,102 @@
 	same-window-regexps.
 	(telnet, rsh): Use pop-to-buffer-same-window.
 
+2010-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el: Simplify the smie-rules-function return values.
+	(smie-precs->prec2): Rename from smie-precs-precedence-table.
+	(smie-bnf->prec2): Rename from smie-bnf-precedence-table.
+	(smie-prec2->grammar): Rename from smie-prec2-levels.
+	(smie-grammar): Rename from smie-op-levels.
+	(smie-indent--hanging-p): Rename from smie-hanging-p.
+	(smie-rule-hanging-p): New alias.
+	(smie-indent--bolp): Rename from smie-bolp.
+	(smie-indent--hanging-p): New alias.
+	(smie--token): New dynamically bound variable.
+	(smie-indent--parent): New function.
+	(smie-rule-parent-p): Use it; rename from smie-parent-p.
+	(smie-rule-next-p): Rename from smie-next-p.
+	(smie-rule-prev-p): Rename from smie-prev-p.
+	(smie-rule-sibling-p, smie-rule-parent)
+	(smie-indent--separator-outdent, smie-rule-separator): New functions.
+	(smie-rule-separator-outdent): New var.
+	(smie-indent--rule): Merge with smie-indent--column.
+	(smie-indent-forward-token, smie-indent-backward-token):
+	Also recognize close parens.
+	(smie-indent-keyword): Don't use smie-indent--column any more.
+	(smie-indent-after-keyword): Ignore closers by default.
+	(smie-indent-line): Use with-demoted-errors.
+	* progmodes/octave-mod.el (octave-smie-grammar):
+	Rename from octave-smie-op-levels.
+	(octave-smie-rules): Adjust to new behavior.
+	* progmodes/prolog.el (prolog-smie-grammar):
+	Rename from prolog-smie-op-levels.
+
+2010-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-util.el (subst-char-in-string)
+	(directory-files-and-attributes): These compatibility definitions are
+	not needed on any version of Emacs since at least 21.4.
+
+	* progmodes/verilog-mode.el (verilog-get-beg-of-line)
+	(verilog-get-end-of-line): Remove.
+	(verilog-within-string, verilog-re-search-forward-substr)
+	(verilog-re-search-backward-substr, verilog-set-auto-endcomments)
+	(verilog-surelint-off, verilog-getopt-file, verilog-highlight-region):
+	Use point-at-bol, point-at-eol.
+	* progmodes/pascal.el (pascal-get-beg-of-line, pascal-get-end-of-line):
+	Remove.
+	(pascal-declaration-end, pascal-declaration-beg, pascal-within-string)
+	(electric-pascal-terminate-line, pascal-set-auto-comments)
+	(pascal-indent-paramlist, pascal-indent-declaration)
+	(pascal-get-lineup-indent, pascal-func-completion)
+	(pascal-get-completion-decl, pascal-var-completion, pascal-completion):
+	Use point-at-bol, point-at-eol.
+	* progmodes/flymake.el (flymake-line-beginning-position)
+	(flymake-line-end-position): Remove.
+	(flymake-highlight-line): Use point-at-bol, point-at-eol.
+	* eshell/esh-util.el (line-end-position, line-beginning-position):
+	Remove compat definitions.
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Use end-of-line N.
+	(checkdoc-this-string-valid-engine, checkdoc-file-comments-engine):
+	Use line-end-position.
+
+	* emacs-lisp/chart.el (chart-zap-chars):
+	* play/decipher.el (decipher-set-map):
+	* progmodes/ada-mode.el (ada-get-current-indent)
+	(ada-search-ignore-string-comment, ada-tab-hard, ada-untab-hard):
+	* progmodes/ada-prj.el (ada-prj-load-from-file, ada-prj-display-help):
+	* progmodes/ada-xref.el (ada-initialize-runtime-library)
+	(ada-get-all-references):
+	* progmodes/cperl-mode.el (cperl-electric-paren)
+	(cperl-electric-rparen, cperl-electric-keyword, cperl-electric-else)
+	(cperl-linefeed, cperl-sniff-for-indent, cperl-to-comment-or-eol)
+	(cperl-find-pods-heres, cperl-indent-exp, cperl-fix-line-spacing)
+	(cperl-word-at-point-hard):
+	* progmodes/idlw-shell.el (idlwave-shell-move-or-history)
+	(idlwave-shell-filename-string, idlwave-shell-batch-command)
+	(idlwave-shell-display-line):
+	* progmodes/idlwave.el (idlwave-show-begin, idlwave-fill-paragraph)
+	(idlwave-calc-hanging-indent, idlwave-auto-fill, idlwave-template):
+	* progmodes/js.el (js--re-search-forward-inner)
+	(js--re-search-backward-inner):
+	* progmodes/vhdl-mode.el (vhdl-align-region-1, vhdl-align-region-2)
+	(vhdl-fix-clause, vhdl-compose-configuration-architecture):
+	* progmodes/ruby-mode.el (ruby-parse-partial, eval-when-compile):
+	* textmodes/flyspell.el (flyspell-process-localwords):
+	* textmodes/ispell.el (ispell-buffer-local-parsing)
+	(ispell-buffer-local-dict, ispell-buffer-local-words):
+	Use point-at-bol and point-at-eol.
+
+	* speedbar.el (speedbar-generic-item-info)
+	(speedbar-item-info-tag-helper, speedbar-change-expand-button-char)
+	(speedbar-add-indicator, speedbar-check-vc-this-line)
+	(speedbar-check-obj-this-line, speedbar-extract-one-symbol)
+	(speedbar-buffers-line-directory, speedbar-buffer-revert-buffer):
+	Replace more uses of end-of-line etc with line-end-position.
+
 2010-11-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* mail/sendmail.el (mail-bury): Do something similar to
@@ -72,6 +168,111 @@
 
 	* files.el (display-buffer-other-frame): Remove.
 
+2010-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/texnfo-upd.el (texinfo-start-menu-description)
+	(texinfo-update-menu-region-beginning, texinfo-menu-first-node)
+	(texinfo-delete-existing-pointers, texinfo-find-pointer)
+	(texinfo-clean-up-node-line, texinfo-insert-node-lines)
+	(texinfo-multiple-files-update):
+	* textmodes/table.el (table--probe-cell-left-up)
+	(table--probe-cell-right-bottom):
+	* textmodes/picture.el (picture-tab-search):
+	* textmodes/page-ext.el (pages-copy-header-and-position)
+	(pages-directory-for-addresses):
+	* progmodes/vera-mode.el (vera-get-offset):
+	* progmodes/simula.el (simula-calculate-indent):
+	* progmodes/python.el (python-pdbtrack-overlay-arrow):
+	* progmodes/prolog.el (end-of-prolog-clause):
+	* progmodes/perl-mode.el (perl-calculate-indent, perl-indent-exp):
+	* progmodes/icon.el (indent-icon-exp):
+	* progmodes/etags.el (tag-re-match-p):
+	* progmodes/ebrowse.el (ebrowse-show-file-name-at-point):
+	* progmodes/ebnf2ps.el (ebnf-begin-file):
+	* progmodes/dcl-mode.el (dcl-back-to-indentation-1)
+	(dcl-save-local-variable):
+	* play/life.el (life-setup):
+	* play/gametree.el (gametree-looking-at-ply):
+	* nxml/nxml-maint.el (nxml-insert-target-repertoire-glyph-set):
+	* mail/sendmail.el (mail-mode-auto-fill):
+	* emacs-lisp/lisp-mode.el (calculate-lisp-indent):
+	* emacs-lisp/edebug.el (edebug-overlay-arrow):
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid):
+	* woman.el (woman-parse-numeric-value, woman2-TH, woman2-SH)
+	(woman-tab-to-tab-stop, WoMan-warn-ignored):
+	* type-break.el (type-break-file-keystroke-count):
+	* term.el (term-replace-by-expanded-history-before-point)
+	(term-skip-prompt, term-extract-string):
+	* speedbar.el (speedbar-edit-line, speedbar-expand-line)
+	(speedbar-contract-line, speedbar-toggle-line-expansion)
+	(speedbar-parse-c-or-c++tag, speedbar-parse-tex-string)
+	(speedbar-buffer-revert-buffer, speedbar-highlight-one-tag-line):
+	* sort.el (sort-skip-fields):
+	* skeleton.el (skeleton-internal-list):
+	* simple.el (line-move-finish, line-move-to-column):
+	* shell.el (shell-forward-command):
+	* misc.el (copy-from-above-command):
+	* makesum.el (double-column):
+	* ebuff-menu.el (electric-buffer-update-highlight):
+	* dired.el (dired-move-to-end-of-filename):
+	* dframe.el (dframe-popup-kludge):
+	* bookmark.el (bookmark-kill-line, bookmark-bmenu-show-filenames):
+	* arc-mode.el (archive-get-lineno):
+	Use line-end-position and line-beginning-position.
+
+	* progmodes/idlwave.el (idlwave-routine-entry-compare-twins):
+	(idlwave-study-twins): Prefix dynamic local `class'.
+	(idlwave-routine-twin-compare): Update for above name change.
+
+	* emacs-lisp/eieio-comp.el (byte-compile-file-form-defmethod):
+	Use boundp tests to silence compiler.  Update for changed name of
+	bytecomp-filename variable.
+
+	* emulation/viper-cmd.el (viper-read-string-with-history):
+	Prefix dynamic local `initial'.
+	(viper-minibuffer-standard-hook): Update for above name change.
+
+	* emacs-lisp/elint.el (elint-init-env): Prefix dynamic local `env'.
+	(elint-init-form): Update for above name change.
+
+	* mail/mail-extr.el (mail-extract-address-components): Give dynamic
+	local variables `cbeg' and `cend' a prefix.
+	(mail-extr-voodoo): Update for above name change.
+
+	* textmodes/reftex-toc.el (reftex-toc-do-promote)
+	(reftex-toc-promote-prepare): Pass `delta' as an explicit argument.
+	(reftex-toc-promote-action): Doc fix.
+
+	* textmodes/reftex-sel.el (reftex-select-item): Give local variables
+	`prompt', `data' a prefix.
+	(reftex-select-post-command-hook, reftex-select-callback)
+	(reftex-select-mouse-accept, reftex-select-read-cite):
+	Update for above name changes.
+
+	* textmodes/reftex-ref.el (reftex-reference): Rename local variable
+	`refstyle' to reftex-refstyle.
+	(reftex-offer-label-menu): Update for above name change.
+	* textmodes/reftex-sel.el (reftex-select-toggle-varioref): Update for
+	`refstyle' name change.
+
+	* vc/emerge.el (emerge-eval-in-buffer): Remove, and replace all uses
+	with with-current-buffer.
+	(diff, template): Give dynamic local variables a prefix.
+	(emerge-line-numbers): Rename local `diff' to emerge-line-diff.
+	(emerge-line-number-in-buf): Update for above name change.
+	(emerge-combine-versions-internal): Rename local `template' to
+	emerge-combine-template.
+	(emerge-combine-versions-edit): Update for above name change.
+
+2010-11-06  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/reftex-cite.el
+	(reftex-extract-bib-entries-from-thebibliography): Match bibitem
+	entries with whitespace after \bibitem.
+	(reftex-create-bibtex-file): Match entries containing numbers and
+	symbol constituents.  Make sure that entries with whitespace at
+	various places are found.
+
 2010-11-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-even-sizes)
@@ -93,6 +294,39 @@
 
 	* mail/reporter.el (reporter-submit-bug-report): Use
 	pop-to-buffer-other-window and display specifiers.
+
+2010-11-05  Christian Millour  <cm@abtela.com>  (tiny change)
+
+	* shell.el (shell-process-popd): Made aware of comint-file-name-prefix.
+
+2010-11-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* mouse.el (mouse-yank-primary): Update comment (Bug#6802).
+
+2010-11-05  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman0-roff-buffer, woman1-roff-buffer)
+	(woman2-roff-buffer): Give local variable `request' a prefix.
+	(woman0-macro): Rename argument `request' in the same way.
+	(woman-request): New name for `request' dynamic variable.
+	(woman-unquote, woman-forward-arg): Update for above name change.
+	(woman1-roff-buffer): Give local variable `unquote' a prefix.
+	(woman1-unquote): New name for `unquote' dynamic variable.
+	(woman1-B-or-I, woman1-alt-fonts): Update for above name change.
+	(woman-translations): Rename from `translations'.  No longer global.
+	(woman2-tr, woman-translate): Update for above name change.
+	(woman-translate): Check for bound variable.
+	(woman2-roff-buffer): Give local variable `translations' a prefix.
+
+	* play/doctor.el: Give all local variables a prefix.  Update callers.
+	(doc$, doctor-put-meaning): Use backquote.
+
+	* emacs-lisp/cl-macs.el (loop): Give local variable args a prefix.
+	(cl-parse-loop-clause, cl-loop-handle-accum): Update for above change.
+
+	* emacs-lisp/byte-opt.el (byte-decompile-bytecode-1): Give local
+	variables bytes, ptr, op a prefix.
+	(disassemble-offset): Update for above change.
 
 2010-11-04  Martin Rudalics  <rudalics@gmx.at>
 

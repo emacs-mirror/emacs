@@ -8257,16 +8257,17 @@ For example:
 
 (defvar gnus-inhibit-article-treatments nil)
 
-(defun gnus-treat-article (condition &optional part-number total-parts type)
-  (let ((length (- (point-max) (point-min)))
+(defun gnus-treat-article (gnus-treat-condition
+			   &optional part-number total-parts gnus-treat-type)
+  (let ((gnus-treat-length (- (point-max) (point-min)))
 	(alist gnus-treatment-function-alist)
 	(article-goto-body-goes-to-point-min-p t)
 	(treated-type
-	 (or (not type)
+	 (or (not gnus-treat-type)
 	     (catch 'found
 	       (let ((list gnus-article-treat-types))
 		 (while list
-		   (when (string-match (pop list) type)
+		   (when (string-match (pop list) gnus-treat-type)
 		     (throw 'found t)))))))
 	(highlightp (gnus-visual-p 'article-highlight 'highlight))
 	val elem)
@@ -8280,7 +8281,7 @@ For example:
       (when (and (or (consp val)
 		     treated-type)
 		 (or (not gnus-inhibit-article-treatments)
-		     (eq condition 'head))
+		     (eq gnus-treat-condition 'head))
 		 (gnus-treat-predicate val)
 		 (or (not (get (car elem) 'highlight))
 		     highlightp))
@@ -8290,16 +8291,16 @@ For example:
 ;; Dynamic variables.
 (defvar part-number)
 (defvar total-parts)
-(defvar type)
-(defvar condition)
-(defvar length)
+(defvar gnus-treat-type)
+(defvar gnus-treat-condition)
+(defvar gnus-treat-length)
 
 (defun gnus-treat-predicate (val)
   (cond
    ((null val)
     nil)
-   (condition
-    (eq condition val))
+   (gnus-treat-condition
+    (eq gnus-treat-condition val))
    ((and (listp val)
 	 (stringp (car val)))
     (apply 'gnus-or (mapcar `(lambda (s)
@@ -8315,7 +8316,7 @@ For example:
        ((eq pred 'not)
 	(not (gnus-treat-predicate (car val))))
        ((eq pred 'typep)
-	(equal (car val) type))
+	(equal (car val) gnus-treat-type))
        (t
 	(error "%S is not a valid predicate" pred)))))
    ((eq val t)
@@ -8327,7 +8328,7 @@ For example:
    ((eq val 'last)
     (eq part-number total-parts))
    ((numberp val)
-    (< length val))
+    (< gnus-treat-length val))
    (t
     (error "%S is not a valid value" val))))
 

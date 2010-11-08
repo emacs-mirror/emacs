@@ -920,9 +920,7 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 			   (cond ((looking-at ";?#")
 				  (forward-line 1) t)
 				 ((looking-at "\\(\\w\\|\\s_\\)+:[^:]")
-				  (save-excursion
-				    (end-of-line)
-				    (setq colon-line-end (point)))
+				  (setq colon-line-end (line-end-position))
 				  (search-forward ":")))))
 		  ;; The first following code counts
 		  ;; if it is before the line we want to indent.
@@ -982,7 +980,7 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
     (if (= (char-after (marker-position bof-mark)) ?=)
 	(message "Can't indent a format statement")
       (message "Indenting Perl expression...")
-      (save-excursion (end-of-line) (setq eol (point)))
+      (setq eol (line-end-position))
       (save-excursion			; locate matching close paren
 	(while (and (not (eobp)) (<= (point) eol))
 	  (parse-partial-sexp (point) (point-max) 0))
@@ -1080,5 +1078,4 @@ With argument, repeat that many times; negative args move backward."
 
 (provide 'perl-mode)
 
-;; arch-tag: 8c7ff68d-15f3-46a2-ade2-b7c41f176826
 ;;; perl-mode.el ends here

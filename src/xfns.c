@@ -3082,25 +3082,11 @@ If FRAME is nil, use the selected frame.  */)
 static void
 set_machine_and_pid_properties (struct frame *f)
 {
-  /* See the above comment "Note: Encoding strategy".  */
-  XTextProperty text;
-  int bytes, stringp;
-  int do_free_text_value = 0;
   long pid = (long) getpid ();
 
-  text.value = x_encode_text (Vsystem_name,
-                              Qcompound_text, 0, &bytes, &stringp,
-                              &do_free_text_value);
-  text.encoding = (stringp ? XA_STRING
-                   : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
-  text.format = 8;
-  text.nitems = bytes;
-  XSetWMClientMachine (FRAME_X_DISPLAY (f),
-                       FRAME_OUTER_WINDOW (f),
-                       &text);
-  if (do_free_text_value)
-    xfree (text.value);
-
+  /* This will set WM_CLIENT_MACHINE and WM_LOCALE_NAME.  */
+  XSetWMProperties (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), NULL, NULL,
+                    NULL, 0, NULL, NULL, NULL);
   XChangeProperty (FRAME_X_DISPLAY (f),
                    FRAME_OUTER_WINDOW (f),
                    XInternAtom (FRAME_X_DISPLAY (f),
@@ -5021,7 +5007,7 @@ Text larger than the specified size is clipped.  */)
   int root_x, root_y;
   struct buffer *old_buffer;
   struct text_pos pos;
-  int i, width, height;
+  int i, width, height, seen_reversed_p;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
   int count = SPECPDL_INDEX ();
@@ -5162,7 +5148,7 @@ Text larger than the specified size is clipped.  */)
   try_window (FRAME_ROOT_WINDOW (f), pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
 
   /* Compute width and height of the tooltip.  */
-  width = height = 0;
+  width = height = seen_reversed_p = 0;
   for (i = 0; i < w->desired_matrix->nrows; ++i)
     {
       struct glyph_row *row = &w->desired_matrix->rows[i];
@@ -5177,17 +5163,72 @@ Text larger than the specified size is clipped.  */)
       row->full_width_p = 1;
 
       row_width = row->pixel_width;
-      /* There's a glyph at the end of rows that is used to place
-	 the cursor there.  Don't include the width of this glyph.  */
       if (row->used[TEXT_AREA])
 	{
-	  last = &row->glyphs[TEXT_AREA][row->used[TEXT_AREA] - 1];
-	  if (INTEGERP (last->object))
-	    row_width -= last->pixel_width;
+	  /* There's a glyph at the end of rows that is used to place
+	     the cursor there.  Don't include the width of this glyph.  */
+	  if (!row->reversed_p)
+	    {
+	      last = &row->glyphs[TEXT_AREA][row->used[TEXT_AREA] - 1];
+	      if (INTEGERP (last->object))
+		row_width -= last->pixel_width;
+	    }
+	  else
+	    {
+	      /* There could be a stretch glyph at the beginning of R2L
+		 rows that is produced by extend_face_to_end_of_line.
+		 Don't count that glyph.  */
+	      struct glyph *g = row->glyphs[TEXT_AREA];
+
+	      if (g->type == STRETCH_GLYPH && INTEGERP (g->object))
+		{
+		  row_width -= g->pixel_width;
+		  seen_reversed_p = 1;
+		}
+	    }
 	}
 
       height += row->height;
       width = max (width, row_width);
+    }
+
+  /* If we've seen partial-length R2L rows, we need to re-adjust the
+     tool-tip frame width and redisplay it again, to avoid over-wide
+     tips due to the stretch glyph that extends R2L lines to full
+     width of the frame.  */
+  if (seen_reversed_p)
+    {
+      /* w->total_cols and FRAME_TOTAL_COLS want the width in columns,
+	 not in pixels.  */
+      width /= WINDOW_FRAME_COLUMN_WIDTH (w);
+      w->total_cols = make_number (width);
+      FRAME_TOTAL_COLS (f) = width;
+      adjust_glyphs (f);
+      clear_glyph_matrix (w->desired_matrix);
+      clear_glyph_matrix (w->current_matrix);
+      try_window (FRAME_ROOT_WINDOW (f), pos, 0);
+      width = height = 0;
+      /* Recompute width and height of the tooltip.  */
+      for (i = 0; i < w->desired_matrix->nrows; ++i)
+	{
+	  struct glyph_row *row = &w->desired_matrix->rows[i];
+	  struct glyph *last;
+	  int row_width;
+
+	  if (!row->enabled_p || !row->displays_text_p)
+	    break;
+	  row->full_width_p = 1;
+	  row_width = row->pixel_width;
+	  if (row->used[TEXT_AREA] && !row->reversed_p)
+	    {
+	      last = &row->glyphs[TEXT_AREA][row->used[TEXT_AREA] - 1];
+	      if (INTEGERP (last->object))
+		row_width -= last->pixel_width;
+	    }
+
+	  height += row->height;
+	  width = max (width, row_width);
+	}
     }
 
   /* Add the frame's internal border to the width and height the X

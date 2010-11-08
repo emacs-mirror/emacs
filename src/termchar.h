@@ -34,18 +34,18 @@ struct tty_output
 struct tty_display_info
 {
   struct tty_display_info *next; /* Chain of all tty devices. */
-  
+
   char *name;                   /* The name of the device file or 0 if
                                    stdin/stdout. */
   char *type;                   /* The type of the tty. */
-  
+
   /* Input/output */
-  
+
   FILE *input;                  /* The stream to be used for terminal input.
                                    NULL if the terminal is suspended. */
   FILE *output;                 /* The stream to be used for terminal output.
                                    NULL if the terminal is suspended. */
-  
+
   FILE *termscript;             /* If nonzero, send all terminal output
                                    characters to this stream also.  */
 
@@ -65,38 +65,14 @@ struct tty_display_info
   /* Redisplay. */
 
   Lisp_Object top_frame;        /* The topmost frame on this tty. */
-  
+
   /* The previous frame we displayed on this tty.  */
   struct frame *previous_frame;
   int previous_color_mode;
 
-#ifdef MSDOS
-  /* These variables describe the range of text currently shown in its
-     mouse-face, together with the window they apply to.  As long as
-     the mouse stays within this range, we need not redraw anything on
-     its account.  Rows and columns are glyph matrix positions in
-     MOUSE_FACE_WINDOW.  */
-  int mouse_face_beg_row, mouse_face_beg_col;
-  int mouse_face_end_row, mouse_face_end_col;
-  int mouse_face_past_end;
-  Lisp_Object mouse_face_window;
-  int mouse_face_face_id;
-
-  /* 1 if a mouse motion event came and we didn't handle it right away because
-     gc was in progress.  */
-  int mouse_face_deferred_gc;
-
-  /* FRAME and X, Y position of mouse when last checked for
-     highlighting.  X and Y can be negative or out of range for the frame.  */
-  struct frame *mouse_face_mouse_frame;
-  int mouse_face_mouse_x, mouse_face_mouse_y;
-
-  /* Nonzero means defer mouse-motion highlighting.  */
-  int mouse_face_defer;
-
-  /* Nonzero means that the mouse highlight should not be shown.  */
-  int mouse_face_hidden;
-#endif	/* !MSDOS */
+  /* Information about the range of text currently shown in
+     mouse-face.  */
+  Mouse_HLInfo mouse_highlight;
 
   /* Buffer used internally by termcap (see tgetent in the Termcap
      manual).  Only init_tty and delete_tty should change this.  */
@@ -190,12 +166,12 @@ struct tty_display_info
   int RPov;                     /* # chars to start a TS_repeat */
 
   int delete_in_insert_mode;    /* delete mode == insert mode */
-  
+
   int se_is_so;                 /* 1 if same string both enters and leaves
                                    standout mode */
-  
+
   int costs_set;                /* Nonzero if costs have been calculated. */
-  
+
   int insert_mode;              /* Nonzero when in insert mode.  */
   int standout_mode;            /* Nonzero when in standout mode.  */
 
@@ -214,7 +190,7 @@ struct tty_display_info
    lines from those operations.  */
 
   int specified_window;
-  
+
   /* Flag used in tty_show/hide_cursor.  */
 
   int cursor_hidden;

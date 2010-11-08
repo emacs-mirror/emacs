@@ -4420,7 +4420,7 @@ into account variable-width characters and line continuation."
 
       (let (new
 	    (old (point))
-	    (line-beg (save-excursion (beginning-of-line) (point)))
+	    (line-beg (line-beginning-position))
 	    (line-end
 	     ;; Compute the end of the line
 	     ;; ignoring effectively invisible newlines.
@@ -4528,7 +4528,7 @@ and `current-column' to be able to ignore invisible text."
 	;; that will get us to the same place on the screen
 	;; but with a more reasonable buffer position.
 	(goto-char normal-location)
-	(let ((line-beg (save-excursion (beginning-of-line) (point))))
+	(let ((line-beg (line-beginning-position)))
 	  (while (and (not (bolp)) (invisible-p (1- (point))))
 	    (goto-char (previous-char-property-change (point) line-beg))))))))
 

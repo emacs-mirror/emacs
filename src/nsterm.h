@@ -492,21 +492,9 @@ struct ns_display_info
   /* The cursor to use for vertical scroll bars. */
   Cursor vertical_scroll_bar_cursor;
 
-  /* most mouse face stuff moved in here as of 21+ (and reasonably so) */
-  int mouse_face_beg_row, mouse_face_beg_col;
-  int mouse_face_end_row, mouse_face_end_col;
-  int mouse_face_beg_x, mouse_face_beg_y;
-  int mouse_face_end_x, mouse_face_end_y;
-  int mouse_face_past_end;
-  Lisp_Object mouse_face_window;
-  int mouse_face_face_id;
-  int mouse_face_deferred_gc;
-  Lisp_Object mouse_face_overlay;
-  FRAME_PTR mouse_face_mouse_frame;
-  int mouse_face_mouse_x, mouse_face_mouse_y;
-  int mouse_face_defer;
-  int mouse_face_hidden;
-  int mouse_face_image_state;
+  /* Information about the range of text currently shown in
+     mouse-face.  */
+  Mouse_HLInfo mouse_highlight;
 
   struct frame *x_highlight_frame;
   struct frame *x_focus_frame;

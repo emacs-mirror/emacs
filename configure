@@ -14986,7 +14986,7 @@ echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
-echo "  Does Emacs use -lgnutls?                       	        ${HAVE_GNUTLS}"
+echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"

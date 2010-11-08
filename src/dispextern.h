@@ -69,6 +69,11 @@ typedef Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
 #endif
 
+#ifndef HAVE_WINDOW_SYSTEM
+typedef int Cursor;
+#define No_Cursor (0)
+#endif
+
 #ifndef NativeRectangle
 #define NativeRectangle int
 #endif
@@ -3060,28 +3065,31 @@ extern void x_update_cursor (struct frame *, int);
 extern void x_clear_cursor (struct window *);
 extern void x_draw_vertical_border (struct window *w);
 
-extern void frame_to_window_pixel_xy (struct window *, int *, int *);
 extern int get_glyph_string_clip_rects (struct glyph_string *,
                                         NativeRectangle *, int);
 extern void get_glyph_string_clip_rect (struct glyph_string *,
                                         NativeRectangle *nr);
 extern Lisp_Object find_hot_spot (Lisp_Object, int, int);
-extern void note_mouse_highlight (struct frame *, int, int);
-extern void x_clear_window_mouse_face (struct window *);
-extern void cancel_mouse_face (struct frame *);
 
 extern void handle_tool_bar_click (struct frame *,
                                    int, int, int, unsigned int);
 
-/* msdos.c defines its own versions of these functions. */
-extern int clear_mouse_face (Display_Info *);
-extern void show_mouse_face (Display_Info *, enum draw_glyphs_face);
-extern int cursor_in_mouse_face_p (struct window *w);
-
 extern void expose_frame (struct frame *, int, int, int, int);
 extern int x_intersect_rectangles (XRectangle *, XRectangle *,
                                    XRectangle *);
-#endif
+#endif	/* HAVE_WINDOW_SYSTEM */
+
+extern void frame_to_window_pixel_xy (struct window *, int *, int *);
+extern void note_mouse_highlight (struct frame *, int, int);
+extern void x_clear_window_mouse_face (struct window *);
+extern void cancel_mouse_face (struct frame *);
+extern int clear_mouse_face (Mouse_HLInfo *);
+extern void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face);
+extern int cursor_in_mouse_face_p (struct window *w);
+extern void draw_row_with_mouse_face (struct window *, int, struct glyph_row *,
+				      int, int, enum draw_glyphs_face);
+extern void tty_draw_row_with_mouse_face (struct window *, struct glyph_row *,
+					  int, int, enum draw_glyphs_face);
 
 /* Flags passed to try_window.  */
 #define TRY_WINDOW_CHECK_MARGINS	(1 << 0)

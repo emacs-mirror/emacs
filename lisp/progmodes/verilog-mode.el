@@ -1378,19 +1378,8 @@ If set will become buffer local.")
 ;;  Macros
 ;;
 
-(defsubst verilog-get-beg-of-line (&optional arg)
-  (save-excursion
-    (beginning-of-line arg)
-    (point)))
-
-(defsubst verilog-get-end-of-line (&optional arg)
-  (save-excursion
-    (end-of-line arg)
-    (point)))
-
 (defsubst verilog-within-string ()
-  (save-excursion
-    (nth 3 (parse-partial-sexp (verilog-get-beg-of-line) (point)))))
+  (nth 3 (parse-partial-sexp (point-at-bol) (point))))
 
 (defsubst verilog-string-replace-matches (from-string to-string fixedcase literal string)
   "Replace occurrences of FROM-STRING with TO-STRING.
@@ -1480,7 +1469,7 @@ This speeds up complicated regexp matches."
 		(search-forward substr bound noerror))
       (save-excursion
 	(beginning-of-line)
-	(setq done (re-search-forward regexp (verilog-get-end-of-line) noerror)))
+	(setq done (re-search-forward regexp (point-at-eol) noerror)))
       (unless (and (<= (match-beginning 0) (point))
 		   (>= (match-end 0) (point)))
 	(setq done nil)))
@@ -1500,7 +1489,7 @@ This speeds up complicated regexp matches."
 		(search-backward substr bound noerror))
       (save-excursion
 	(end-of-line)
-	(setq done (re-search-backward regexp (verilog-get-beg-of-line) noerror)))
+	(setq done (re-search-backward regexp (point-at-bol) noerror)))
       (unless (and (<= (match-beginning 0) (point))
 		   (>= (match-end 0) (point)))
 	(setq done nil)))
@@ -3925,7 +3914,7 @@ primitive or interface named NAME."
        (or  kill-existing-comment
 	    (not (save-excursion
 		   (end-of-line)
-		   (search-backward "//" (verilog-get-beg-of-line) t)))))
+		   (search-backward "//" (point-at-bol) t)))))
       (let ((nest 1) b e
 	    m
 	    (else (if (match-end 2) "!" " ")))
@@ -3978,7 +3967,7 @@ primitive or interface named NAME."
 	   (or kill-existing-comment
 	       (not (save-excursion
 		      (end-of-line)
-		      (search-backward "//" (verilog-get-beg-of-line) t)))))
+		      (search-backward "//" (point-at-bol) t)))))
       (let ((type (car indent-str)))
 	(unless (eq type 'declaration)
 	  (unless (looking-at (concat "\\(" verilog-end-block-ordered-re "\\)[ \t]*:")) ;; ignore named ends
@@ -4512,7 +4501,7 @@ becomes:
                 (cond
                  ((looking-at "// surefire lint_off_line ")
                   (goto-char (match-end 0))
-                  (let ((lim (save-excursion (end-of-line) (point))))
+                  (let ((lim (point-at-eol)))
                     (if (re-search-forward code lim 'move)
                         (throw 'already t)
                       (insert (concat " " code)))))
@@ -8272,8 +8261,7 @@ Some macros and such are also found and included.  For dinotrace.el."
 		       ": Can't find verilog-getopt-file -f file: " filename)))
       (goto-char (point-min))
       (while (not (eobp))
-	(setq line (buffer-substring (point)
-				     (save-excursion (end-of-line) (point))))
+	(setq line (buffer-substring (point) (point-at-eol)))
 	(forward-line 1)
 	(when (string-match "//" line)
 	  (setq line (substring line 0 (match-beginning 0))))
@@ -11898,7 +11886,7 @@ Clicking on the middle-mouse button loads them in a buffer (as in dired)."
 	 (verilog-save-scan-cache
 	  (let (end-point)
 	    (goto-char end)
-	    (setq end-point (verilog-get-end-of-line))
+	    (setq end-point (point-at-eol))
 	    (goto-char beg)
 	    (beginning-of-line)  ; scan entire line
 	    ;; delete overlays existing on this line
@@ -12122,5 +12110,4 @@ but instead, [[Fill in here]] happens!.
 ;; checkdoc-force-docstrings-flag:nil
 ;; End:
 
-;; arch-tag: 87923725-57b3-41b5-9494-be21118c6a6f
 ;;; verilog-mode.el ends here

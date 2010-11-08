@@ -1,7 +1,7 @@
 ;;; dcl-mode.el --- major mode for editing DCL command files
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Odd Gripenstam <gripenstamol@decus.se>
 ;; Maintainer: Odd Gripenstam <gripenstamol@decus.se>
@@ -821,7 +821,7 @@ by the numbers in order 1-2-3-1-... :
   ;;  text
   ;;  1
 
-  (let* ((default-limit (save-excursion (end-of-line) (1+ (point))))
+  (let* ((default-limit (1+ (line-end-position)))
 	 (limit (or limit default-limit))
 	 (last-good-point (point))
 	 (opoint (point)))
@@ -1783,7 +1783,7 @@ Set or update the value of VAR in the current buffers
 	  (skip-chars-forward " \t")
 	  (or (eolp)
 	      (setq suffix-string (buffer-substring (point)
-					     (progn (end-of-line) (point)))))
+                                                    (line-end-position))))
 	  (goto-char (match-beginning 0))
 	  (or (bolp)
 	      (setq prefix-string
@@ -2214,5 +2214,4 @@ otherwise return nil."
 
 (run-hooks 'dcl-mode-load-hook)		; for your customizations
 
-;; arch-tag: e00d421b-f26c-483e-a8bd-af412ea7764a
 ;;; dcl-mode.el ends here

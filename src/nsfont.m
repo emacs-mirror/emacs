@@ -37,6 +37,7 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "frame.h"
 #include "character.h"
 #include "font.h"
+#include "termchar.h"
 
 /* TODO: Drop once we can assume gnustep-gui 0.17.1. */
 #ifdef NS_IMPL_GNUSTEP
@@ -1040,8 +1041,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       face = s->face;
       break;
     case NS_DUMPGLYPH_MOUSEFACE:
-      face = FACE_FROM_ID (s->f,
-                           FRAME_NS_DISPLAY_INFO (s->f)->mouse_face_face_id);
+      face = FACE_FROM_ID (s->f, MOUSE_HL_INFO (s->f)->mouse_face_face_id);
       if (!face)
         face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
       break;

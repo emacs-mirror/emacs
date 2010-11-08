@@ -1,7 +1,7 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals
 
-;; Copyright (C) 1994, 1995, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@splode.com>
@@ -495,7 +495,7 @@ variable of the same name."
 	    (let ((inhibit-read-only t))
 	      (goto-char (point-min))
 	      (forward-line)
-	      (delete-region (point) (save-excursion (end-of-line) (point)))
+	      (delete-region (point) (line-end-position))
 	      (insert (format "%s" type-break-keystroke-count))
 	      ;; file saving is left to auto-save
 	      ))))))
@@ -1243,5 +1243,4 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 (if type-break-mode
     (type-break-mode 1))
 
-;; arch-tag: 943a2eb3-07e6-420b-993f-96e4796f5fd0
 ;;; type-break.el ends here

@@ -1702,16 +1702,20 @@ If SCAN, request a scan of that group as well."
       (destructuring-bind (method method-type infos dummy) elem
 	(when (and method infos
 		   (not (gnus-method-denied-p method)))
-	  (unless (gnus-server-opened method)
-	    (gnus-open-server method))
-	  (when (and
-		 (gnus-server-opened method)
-		 (gnus-check-backend-function
-		  'retrieve-group-data-early (car method)))
-	    (when (gnus-check-backend-function 'request-scan (car method))
-	      (gnus-request-scan nil method))
-	    (setcar (nthcdr 3 elem)
-		    (gnus-retrieve-group-data-early method infos))))))
+	  ;; If the open-server method doesn't exist, then the method
+	  ;; itself doesn't exist, so we ignore it.
+	  (if (not (ignore-errors (gnus-get-function method 'open-server)))
+	      (setq type-cache (delq elem type-cache))
+	    (unless (gnus-server-opened method)
+	      (gnus-open-server method))
+	    (when (and
+		   (gnus-server-opened method)
+		   (gnus-check-backend-function
+		    'retrieve-group-data-early (car method)))
+	      (when (gnus-check-backend-function 'request-scan (car method))
+		(gnus-request-scan nil method))
+	      (setcar (nthcdr 3 elem)
+		      (gnus-retrieve-group-data-early method infos)))))))
 
     ;; Do the rest of the retrieval.
     (dolist (elem type-cache)
@@ -1982,7 +1986,9 @@ If SCAN, request a scan of that group as well."
       (while (setq method (pop methods))
 	;; Only do each method once, in case the methods appear more
 	;; than once in this list.
-	(unless (member method methods)
+	(when (and (not (member method methods))
+		   ;; Check whether the backend exists.
+		   (ignore-errors (gnus-get-function method 'open-server)))
 	  (if (or debug-on-error debug-on-quit)
 	      (gnus-read-active-file-1 method force)
 	    (condition-case ()

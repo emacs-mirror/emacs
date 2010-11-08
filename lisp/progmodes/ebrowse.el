@@ -1,8 +1,8 @@
 ;;; ebrowse.el --- Emacs C++ class browser & tags facility
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
@@ -1313,7 +1313,7 @@ With PREFIX, insert that many filenames."
 	  (skip-chars-forward " \t*a-zA-Z0-9_")
 	  (setq start (point)
 		file-name-existing (looking-at "("))
-	  (delete-region start (save-excursion (end-of-line) (point)))
+	  (delete-region start (line-end-position))
 	  (unless file-name-existing
 	    (indent-to ebrowse-source-file-column)
 	    (insert "(" (or (ebrowse-cs-file
@@ -4490,5 +4490,4 @@ EVENT is the mouse event."
 ;; eval:(put 'ebrowse-for-all-trees 'lisp-indent-hook 1)
 ;; End:
 
-;; arch-tag: 4fa3c8bf-1771-479b-bcd7-b029c7c9677b
 ;;; ebrowse.el ends here

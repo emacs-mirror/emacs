@@ -545,7 +545,6 @@ Useful for large TOC's."
 
 ;; Promotion/Demotion stuff
 
-(defvar delta)
 (defvar pro-or-de)
 (defvar start-pos)
 (defvar start-line)
@@ -601,7 +600,9 @@ point."
                               (reftex-toc-extract-section-number
                                (nth (1- nsec) entries)))))
             ;; Run through the list and prepare the changes.
-            (setq entries (mapcar 'reftex-toc-promote-prepare entries))
+            (setq entries (mapcar
+                           (lambda (e) (reftex-toc-promote-prepare e delta))
+                           entries))
             ;; Ask for permission
             (if (or (not reftex-toc-confirm-promotion)           ; never confirm
                     (and (integerp reftex-toc-confirm-promotion) ; confirm if many
@@ -643,12 +644,11 @@ point."
         (setq mark-active t
               deactivate-mark nil)))))
 
-(defun reftex-toc-promote-prepare (x)
+(defun reftex-toc-promote-prepare (x delta)
   "Look at a toc entry and see if we could pro/demote it.
-Expects the level change DELTA to be dynamically scoped into this function.
 This function prepares everything for the changes, but does not do it.
 The return value is a list with information needed when doing the
-promotion/demotion later."
+promotion/demotion later.  DELTA is the level change."
   (let* ((data (car x))
          (toc-point (cdr x))
          (marker (nth 4 data))
@@ -684,7 +684,6 @@ promotion/demotion later."
                     (progn
                       (goto-char toc-point)
                       (error "Cannot %smote special sections" pro-or-de))))
-         ;; Delta is dynamically scoped into here...
          (newlevel (if (>= level 0) (+ delta level) (- level delta)))
          (dummy2 (if (or (and (>= level 0) (= newlevel -1))
                          (and (< level 0)  (= newlevel 0)))
@@ -698,7 +697,7 @@ promotion/demotion later."
 
 (defun reftex-toc-promote-action (x)
   "Change the level of a toc entry.
-DELTA and PRO-OR-DE are assumed to be dynamically scoped into this function."
+PRO-OR-DE is assumed to be dynamically scoped into this function."
   (let* ((data (car x))
          (name (nth 1 x))
          (newname (nth 2 x))

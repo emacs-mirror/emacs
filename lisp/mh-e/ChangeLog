@@ -1,3 +1,7 @@
+2010-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* mh-seq.el (mh-read-msg-list): Use point-at-eol.
+
 2010-11-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* mh-comp.el (mh-send-other-window): Pass t as extra argument to

@@ -63,14 +63,11 @@
 	  (gravatar-size gnus-gravatar-size)
 	  name)
       (dolist (address addresses)
-	(when (and (setq name (cdr address))
-		   (string-match "\\`\\*+ " name)) ;; (X-)Faces exist.
-	  (setcdr address (setq name (substring name (match-end 0)))))
 	(when (or force
 		  (not (and gnus-gravatar-too-ugly
 			    (or (string-match gnus-gravatar-too-ugly
 					      (car address))
-				(and name
+				(and (setq name (cdr address))
 				     (string-match gnus-gravatar-too-ugly
 						   name))))))
 	  (ignore-errors

@@ -3815,7 +3815,7 @@ Includes Latex/Nroff modes and extended character mode."
     (goto-char (point-max))
     ;; Uses last occurrence of ispell-parsing-keyword
     (if (search-backward ispell-parsing-keyword nil t)
-	(let ((end (save-excursion (end-of-line) (point)))
+	(let ((end (point-at-eol))
 	      string)
 	  (search-forward ispell-parsing-keyword)
 	  (while (re-search-forward " *\\([^ \"]+\\)" end t)
@@ -3851,7 +3851,7 @@ Both should not be used to define a buffer-local dictionary."
 	(if (search-backward ispell-dictionary-keyword nil t)
 	    (progn
 	      (search-forward ispell-dictionary-keyword)
-	      (setq end (save-excursion (end-of-line) (point)))
+	      (setq end (point-at-eol))
 	      (if (re-search-forward " *\\([^ \"]+\\)" end t)
 		  (setq ispell-local-dictionary
 			(match-string-no-properties 1))))))
@@ -3859,7 +3859,7 @@ Both should not be used to define a buffer-local dictionary."
       (if (search-backward ispell-pdict-keyword nil t)
 	  (progn
 	    (search-forward ispell-pdict-keyword)
-	    (setq end (save-excursion (end-of-line) (point)))
+	    (setq end (point-at-eol))
 	    (if (re-search-forward " *\\([^ \"]+\\)" end t)
 		(setq ispell-local-pdict
 		      (match-string-no-properties 1)))))))
@@ -3883,7 +3883,7 @@ Both should not be used to define a buffer-local dictionary."
     (while (search-forward ispell-words-keyword nil t)
       (or ispell-buffer-local-name
 	  (setq ispell-buffer-local-name (buffer-name)))
-      (let ((end (save-excursion (end-of-line) (point)))
+      (let ((end (point-at-eol))
 	    (ispell-casechars (ispell-get-casechars))
 	    string)
 	;; buffer-local words separated by a space, and can contain

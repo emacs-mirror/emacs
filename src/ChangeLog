@@ -1,15 +1,162 @@
+2010-11-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (set_machine_and_pid_properties): Let X set WM_CLIENT_MACHINE.
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Initialize
+	Cursor to No_Cursor for HAVE_WINDOW_SYSTEM also.
+
+2010-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfns.c (Fx_show_tip): If any of the tool-tip text lines is R2L,
+	adjust width of tool-tip frame to the width of text, excluding the
+	stretch glyph at the beginning of R2L glyph rows.
+
+	* w32fns.c (Fx_show_tip): Likewise.
+
+2010-11-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m: Include termchar for new mouse-highlight.
+	(nsfont_draw): Use MOUSE_HL_INFO.
+
+2010-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	Unify mouse-highlight code for all GUI and TTY sessions.
+
+	* term.c: Remove static mouse_face_* variables.  All users
+	changed.
+	(term_show_mouse_face, term_clear_mouse_face)
+	(fast_find_position, term_mouse_highlight): Functions deleted.
+	(tty_draw_row_with_mouse_face): New function.
+	(term_mouse_movement): Call note_mouse_highlight instead of
+	term_mouse_highlight.
+
+	* nsterm.m (ns_update_window_begin, ns_update_window_end)
+	(ns_update_end, x_destroy_window, ns_frame_up_to_date)
+	(ns_dumpglyphs_box_or_relief, ns_maybe_dumpglyphs_background)
+	(ns_dumpglyphs_image, ns_dumpglyphs_stretch)
+	(ns_initialize_display_info, keyDown, mouseMoved, mouseExited):
+	Replace Display_Info with Mouse_HLInfo everywhere where
+	mouse_face_* members were accessed for mouse highlight purposes.
+
+	* xterm.c (x_update_window_begin, x_update_window_end)
+	(x_update_end, XTframe_up_to_date, x_set_mouse_face_gc)
+	(handle_one_xevent, x_free_frame_resources, x_term_init): Replace
+	Display_Info with Mouse_HLInfo everywhere where mouse_face_*
+	members were accessed for mouse highlight purposes.
+
+	* w32term.c (x_update_window_begin, x_update_window_end)
+	(x_update_end, w32_read_socket, x_free_frame_resources)
+	(w32_initialize_display_info): Replace Display_Info with
+	Mouse_HLInfo everywhere where mouse_face_* members were accessed
+	for mouse highlight purposes.
+
+	* xdisp.c (show_mouse_face, note_mode_line_or_margin_highlight)
+	(note_mouse_highlight) [HAVE_WINDOW_SYSTEM]: Don't run GUI code
+	unless the frame is on a window-system.
+	(get_tool_bar_item, handle_tool_bar_click)
+	(note_tool_bar_highlight, draw_glyphs, erase_phys_cursor)
+	(show_mouse_face, clear_mouse_face, coords_in_mouse_face_p)
+	(note_mode_line_or_margin_highlight, note_mouse_highlight)
+	(x_clear_window_mouse_face, cancel_mouse_face, expose_frame):
+	Replace Display_Info with Mouse_HLInfo everywhere where
+	mouse_face_* members were accessed for mouse highlight purposes.
+	(coords_in_mouse_face_p): Move prototype out of the
+	HAVE_WINDOW_SYSTEM conditional.
+	(x_y_to_hpos_vpos, frame_to_window_pixel_xy): Move out of the
+	HAVE_WINDOW_SYSTEM block.
+	(try_window_id) [HAVE_GPM || MSDOS]: Call
+	x_clear_window_mouse_face.
+	(draw_row_with_mouse_face): Implementation for HAVE_WINDOW_SYSTEM
+	systems.  Call tty_draw_row_with_mouse_face for TTY systems.
+	(show_mouse_face): Call draw_row_with_mouse_face, instead of
+	calling draw_glyphs directly.
+	(show_mouse_face, clear_mouse_face, coords_in_mouse_face_p)
+	(cursor_in_mouse_face_p, rows_from_pos_range)
+	(mouse_face_from_buffer_pos, mouse_face_from_string_pos)
+	(note_mode_line_or_margin_highlight, note_mouse_highlight)
+	(x_clear_window_mouse_face, cancel_mouse_face): Move out of the
+	HAVE_WINDOW_SYSTEM block.  Ifdef away window-system specific
+	fragments.
+	(note_mouse_highlight): Call popup_activated for MSDOS as well.
+	Clear mouse highlight if pointer is over glyphs whose OBJECT is an
+	integer.
+	(mouse_face_from_buffer_pos): Add parentheses around && within ||.
+	(x_consider_frame_title, tool_bar_lines_needed): Move
+	prototypes to HAVE_WINDOW_SYSTEM-only part.
+	(get_window_cursor_type): Move inside a HAVE_WINDOW_SYSTEM-only
+	part.  Remove "#ifdef HAVE_WINDOW_SYSTEM" from body of function.
+	(null_glyph_slice): Move declaration into HAVE_WINDOW_SYSTEM-only
+	part.
+
+	* dispnew.c (mirror_make_current): Set Y coordinate of the
+	mode-line and header-line rows.
+	(init_display): Setup initial frame's output_data for text
+	terminal frames.
+
+	* xmenu.c (popup_activated): Don't define on MSDOS, which now has
+	its own definition on msdos.c.
+
+	* msdos.c (show_mouse_face, clear_mouse_face)
+	(fast_find_position, IT_note_mode_line_highlight)
+	(IT_note_mouse_highlight): Functions deleted.
+	(IT_frame_up_to_date, dos_rawgetc): Call note_mouse_highlight
+	instead of IT_note_mouse_highlight.
+	(draw_row_with_mouse_face, popup_activated): New functions.
+	(dos_set_window_size, draw_row_with_mouse_face, IT_update_begin)
+	(IT_update_end, IT_frame_up_to_date, internal_terminal_init)
+	(dos_rawgetc): Replace Display_Info with Mouse_HLInfo everywhere
+	where mouse_face_* members were accessed for mouse highlight
+	purposes.
+
+	* msdos.h (initialize_msdos_display): Add prototype.
+
+	* frame.h (MOUSE_HL_INFO): New macro.
+
+	* lisp.h (Mouse_HLInfo): New data type.
+
+	* xterm.h (struct x_display_info):
+	* w32term.h (struct w32_display_info):
+	* nsterm.h (struct ns_display_info):
+	* termchar.h (struct tty_display_info): Use it instead of
+	mouse_face_* members.
+
+	* dispextern.h (show_mouse_face, clear_mouse_face): Update type of
+	1st argument.
+	(frame_to_window_pixel_xy, note_mouse_highlight)
+	(x_clear_window_mouse_face, cancel_mouse_face, clear_mouse_face)
+	(show_mouse_face, cursor_in_mouse_face_p): Move prototypes out of
+	HAVE_WINDOW_SYSTEM conditional.
+	(draw_row_with_mouse_face): Declare prototype.
+	(tty_draw_row_with_mouse_face): Declare prototype.
+
+2010-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (append_glyphless_glyph, produce_glyphless_glyph): Remove
+	unused variables.
+
+2010-11-05  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (EmacsView-mouseExited:): Correct error in conditional
+	logic pointed out by Eli Zaretskii.
+
 2010-11-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* coding.c (coding-category-list): Refer to set-coding-system-priority
 	instead of the obsolete set-coding-priority in the doc string.
 
+
 2010-11-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
-	    Ismail Donmez  <ismail@namtrac.org>  (tiny change)
+
+	* nsfont.m (nsfont_draw):  Correct previous patch to return
+	correct value.
+	* nsimage.m (EmacsImage-setXBMColor:): Correct previous patch:
+	don't change the method signature, change the return.
+
+2010-11-04  Ismail Donmez  <ismail@namtrac.org>  (tiny change)
 
 	* nsfont.m (nsfont_draw)
 	* nsimage.m (EmacsImage-setXBMColor:)
-	* nsterm.m (EmacsView-performDragOperation:): Correct empty return
-	statements.
+	* nsterm.m (EmacsView-performDragOperation:): Correct empty return.
 
 2010-11-03  Julien Danjou  <julien@danjou.info>
 
