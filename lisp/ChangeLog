@@ -1,3 +1,9 @@
+2010-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-font-lock-syntactic-keywords): (bug#7322)
+	Fix handling of backslash escapes.
+	(python-quote-syntax): Adjust accordingly.
+
 2010-11-08  Richard Levitte  <richard@levitte.org>  (tiny patch)
 
 	* vc-mtn.el (vc-mtn-working-revision, vc-mtn-after-dir-status)

@@ -170,18 +170,9 @@
   ;; Make outer chars of matching triple-quote sequences into generic
   ;; string delimiters.  Fixme: Is there a better way?
   ;; First avoid a sequence preceded by an odd number of backslashes.
-  `((,(rx (not (any ?\\))
-	  ?\\ (* (and ?\\ ?\\))
-	  (group (syntax string-quote))
-	  (backref 1)
-	  (group (backref 1)))
-     (2 ,(string-to-syntax "\"")))	; dummy
-    (,(rx (group (optional (any "uUrR"))) ; prefix gets syntax property
-	  (optional (any "rR"))		  ; possible second prefix
-	  (group (syntax string-quote))   ; maybe gets property
-	  (backref 2)			  ; per first quote
-	  (group (backref 2)))		  ; maybe gets property
-     (1 (python-quote-syntax 1))
+  `((,(concat "\\(?:\\([RUru]\\)[Rr]?\\|^\\|[^\\]\\(?:\\\\.\\)*\\)" ;Prefix.
+              "\\(?:\\('\\)'\\('\\)\\|\\(?2:\"\\)\"\\(?3:\"\\)\\)")
+     (1 (python-quote-syntax 1) nil lax)
      (2 (python-quote-syntax 2))
      (3 (python-quote-syntax 3)))
     ;; This doesn't really help.
@@ -219,9 +210,9 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
 	      (eval-when-compile (string-to-syntax "|"))))))
      ;; Consider property for initial char, accounting for prefixes.
      ((or (and (= n 2)			; leading quote (not prefix)
-	       (= (match-beginning 1) (match-end 1))) ; prefix is null
+	       (not (match-end 1)))     ; prefix is null
 	  (and (= n 1)			; prefix
-	       (/= (match-beginning 1) (match-end 1)))) ; non-empty
+	       (match-end 1)))          ; non-empty
       (let ((font-lock-syntactic-keywords nil))
 	(unless (eq 'string (syntax-ppss-context (syntax-ppss)))
 	  (eval-when-compile (string-to-syntax "|")))))
