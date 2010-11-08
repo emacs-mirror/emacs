@@ -1,5 +1,8 @@
 2010-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (minibuffer-completion-help): Specify the end of the
+	completion field (bug#7211).
+
 	* progmodes/python.el (python-font-lock-syntactic-keywords): (bug#7322)
 	Fix handling of backslash escapes.
 	(python-quote-syntax): Adjust accordingly.
