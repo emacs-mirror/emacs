@@ -1,3 +1,7 @@
+2010-11-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Washing): Document gnus-article-treat-non-ascii.
+
 2010-11-09  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi: Use emacsver.texi to determine Emacs version.

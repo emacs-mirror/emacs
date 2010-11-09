@@ -322,7 +322,7 @@ used."
   :group 'message-various)
 
 (defcustom message-subject-trailing-was-ask-regexp
-  "[ \t]*\\([[(]+[Ww][Aa][Ss]:?[ \t]*.*[\])]+\\)"
+  "[ \t]*\\([[(]+[Ww][Aa][Ss]:?[ \t]*.*[])]+\\)"
   "*Regexp matching \"(was: <old subject>)\" in the subject line.
 
 The function `message-strip-subject-trailing-was' uses this regexp if
@@ -331,20 +331,20 @@ the variable is t instead of `ask', use
 `message-subject-trailing-was-regexp' instead.
 
 It is okay to create some false positives here, as the user is asked."
-  :version "24.1"
+  :version "22.1"
   :group 'message-various
   :link '(custom-manual "(message)Message Headers")
   :type 'regexp)
 
 (defcustom message-subject-trailing-was-regexp
-  "[ \t]*\\((*[Ww][Aa][Ss]:?[ \t]*.*)\\)"
+  "[ \t]*\\((*[Ww][Aa][Ss]:[ \t]*.*)\\)"
   "*Regexp matching \"(was: <old subject>)\" in the subject line.
 
 If `message-subject-trailing-was-query' is set to t, the subject is
 matched against `message-subject-trailing-was-regexp' in
 `message-strip-subject-trailing-was'.  You should use a regexp creating very
 few false positives here."
-  :version "24.1"
+  :version "22.1"
   :group 'message-various
   :link '(custom-manual "(message)Message Headers")
   :type 'regexp)

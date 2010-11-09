@@ -344,7 +344,7 @@ redirects somewhere else."
      ((not url)
       (message "No link under point"))
      ((string-match "^mailto:" url)
-      (gnus-url-mailto url))
+      (browse-url-mailto url))
      (t
       (browse-url url)))))
 
@@ -418,6 +418,7 @@ redirects somewhere else."
 ;; url-cache-extract autoloads url-cache.
 (declare-function url-cache-create-filename "url-cache" (url))
 (autoload 'mm-disable-multibyte "mm-util")
+(autoload 'browse-url-mailto "browse-url")
 
 (defun shr-get-image-data (url)
   "Get image data for URL.

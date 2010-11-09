@@ -2114,6 +2114,27 @@ try this wash."
   (interactive)
   (article-translate-strings gnus-article-dumbquotes-map))
 
+(defun article-treat-non-ascii ()
+  "Translate many Unicode characters into their ASCII equivalents."
+  (interactive)
+  (require 'org-entities)
+  (let ((table (make-char-table nil)))
+    (dolist (elem org-entities)
+      (when (and (listp elem)
+		 (= (length (nth 6 elem)) 1))
+	(set-char-table-range table
+			      (aref (nth 6 elem) 0)
+			      (nth 4 elem))))
+    (save-excursion
+      (when (article-goto-body)
+	(let ((inhibit-read-only t)
+	      replace)
+	  (while (not (eobp))
+	    (if (not (setq replace (aref table (following-char))))
+		(forward-char 1)
+	      (delete-char 1)
+	      (insert replace))))))))
+
 (defun article-translate-characters (from to)
   "Translate all characters in the body of the article according to FROM and TO.
 FROM is a string of characters to translate from; to is a string of
@@ -4248,6 +4269,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
      article-date-lapsed
      article-emphasize
      article-treat-dumbquotes
+     article-treat-non-ascii
      article-normalize-headers
      ;;(article-show-all . gnus-article-show-all-headers)
      )))
