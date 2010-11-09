@@ -1,3 +1,8 @@
+2010-11-09  Sven Joachim  <svenjoac@gmx.de>
+
+	* message.el (message-subject-trailing-was-ask-regexp)
+	(message-subject-trailing-was-regexp): Match was: in addition to was.
+
 2010-11-09  Glenn Morris  <rgm@gnu.org>
 
 	* nnbabyl.el (nnbabyl-request-move-article, nnbabyl-delete-mail)
