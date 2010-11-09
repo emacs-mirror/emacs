@@ -606,15 +606,11 @@ Commands:
   (set (make-local-variable 'dabbrev-abbrev-skip-leading-regexp) "[$!]")
   (set (make-local-variable 'dabbrev-abbrev-char-regexp) "\\sw\\|\\s_")
 
-  ;; This can only be set to t in Emacs 19 and XEmacs.
-  ;; Emacs 18 and Epoch lose.
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   ;; XEmacs has defun-prompt-regexp, but I don't believe
   ;; that it works for end-of-defun -- only for
   ;; beginning-of-defun.
   (set (make-local-variable 'defun-prompt-regexp) tcl-omit-ws-regexp)
-  ;; The following doesn't work in Lucid Emacs 19.6, but maybe
-  ;; it will appear in later versions.
   (set (make-local-variable 'add-log-current-defun-function)
        'tcl-add-log-defun)
 
@@ -1200,11 +1196,7 @@ semicolon, opening brace, or opening bracket on the same line."
   "Determine if point is in a comment.
 Returns a list of the form `(FLAG . STATE)'.  STATE can be used
 as input to future invocations.  FLAG is nil if not in comment,
-t otherwise.  If in comment, leaves point at beginning of comment.
-
-This function does not work in Emacs 18.
-See also `tcl-simple-scan-for-comment', a
-simpler version that is often right, and works in Emacs 18."
+t otherwise.  If in comment, leaves point at beginning of comment."
   (let ((bol (save-excursion
 	       (goto-char end)
 	       (beginning-of-line)
