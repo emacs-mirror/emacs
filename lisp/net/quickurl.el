@@ -1,7 +1,7 @@
 ;;; quickurl.el --- insert an URL based on text at point in buffer
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -506,9 +506,7 @@ TYPE dictates what will be inserted, options are:
   `with-lookup' - Insert \"lookup <URL:url>\"
   `with-desc'   - Insert \"description <URL:url>\"
   `lookup'      - Insert the lookup for that URL"
-  (let ((url (nth (save-excursion
-                    (beginning-of-line)
-                    (count-lines (point-min) (point)))
+  (let ((url (nth (count-lines (point-min) (line-beginning-position))
                   quickurl-urls)))
     (if url
         (with-current-buffer quickurl-list-last-buffer
@@ -542,5 +540,4 @@ TYPE dictates what will be inserted, options are:
 
 (provide 'quickurl)
 
-;; arch-tag: a8183ea5-80c2-4082-a7d1-b0fdf2da467e
 ;;; quickurl.el ends here

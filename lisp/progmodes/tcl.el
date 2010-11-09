@@ -1208,8 +1208,7 @@ See also `tcl-simple-scan-for-comment', a
 simpler version that is often right, and works in Emacs 18."
   (let ((bol (save-excursion
 	       (goto-char end)
-	       (beginning-of-line)
-	       (point)))
+	       (line-beginning-position)))
 	real-comment
 	last-cstart)
     (while (and (not last-cstart) (< (point) end))
@@ -1557,5 +1556,4 @@ The first line is assumed to look like \"#!.../program ...\"."
 
 (provide 'tcl)
 
-;; arch-tag: 8a032554-c3ef-422e-b84c-acec0522179d
 ;;; tcl.el ends here

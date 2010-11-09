@@ -1,3 +1,48 @@
+2010-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* vc/emerge.el (emerge-line-number-in-buf):
+	* textmodes/ispell.el (ispell-region):
+	* textmodes/fill.el (current-fill-column):
+	* progmodes/xscheme.el (xscheme-send-current-line):
+	* progmodes/vhdl-mode.el (vhdl-current-line, vhdl-line-copy):
+	* progmodes/tcl.el (tcl-hairy-scan-for-comment):
+	* progmodes/sh-script.el (sh-handle-prev-do):
+	* progmodes/meta-mode.el (meta-indent-line):
+	* progmodes/idlwave.el (idlwave-goto-comment, idlwave-fill-paragraph)
+	(idlwave-in-quote):
+	* progmodes/idlw-shell.el (idlwave-shell-current-frame)
+	(idlwave-shell-update-bp-overlays, idlwave-shell-sources-filter):
+	* progmodes/fortran.el (fortran-looking-at-if-then):
+	* progmodes/etags.el (find-tag-in-order, etags-snarf-tag):
+	* progmodes/cperl-mode.el (cperl-sniff-for-indent)
+	(cperl-find-pods-heres):
+	* progmodes/ada-mode.el (ada-get-current-indent, ada-narrow-to-defun):
+	* net/quickurl.el (quickurl-list-insert):
+	* net/ldap.el (ldap-search-internal):
+	* net/eudc.el (eudc-expand-inline):
+	* mail/sendmail.el (sendmail-send-it):
+	* mail/mspools.el (mspools-visit-spool, mspools-get-spool-name):
+	* emulation/viper-cmd.el (viper-paren-match, viper-backward-indent)
+	(viper-brac-function):
+	* calc/calc-yank.el (calc-do-grab-region):
+	* calc/calc-keypd.el (calc-keypad-press):
+	* term.el (term-move-columns, term-insert-spaces):
+	* speedbar.el (speedbar-highlight-one-tag-line):
+	* simple.el (current-word):
+	* mouse-drag.el (mouse-drag-should-do-col-scrolling):
+	* info.el (Info-find-node-in-buffer-1, Info-follow-reference)
+	(Info-scroll-down):
+	* hippie-exp.el (he-line-beg):
+	* epa.el (epa--marked-keys):
+	* dired-aux.el (dired-kill-line, dired-do-kill-lines)
+	(dired-update-file-line, dired-add-entry, dired-remove-entry)
+	(dired-relist-entry):
+	* buff-menu.el (Buffer-menu-buffer):
+	* array.el (current-line):
+	* allout.el (allout-resolve-xref)
+	(allout-latex-verbatim-quote-curr-line):
+	Replace yet more uses of end-of-line etc with line-end-position, etc.
+
 2010-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/checkdoc.el (checkdoc-display-status-buffer)

@@ -12115,9 +12115,7 @@ options vhdl-upper-case-{keywords,types,attributes,enum-values}."
   "Return the line number of the line containing point."
   (save-restriction
     (widen)
-    (save-excursion
-      (beginning-of-line)
-      (1+ (count-lines (point-min) (point))))))
+    (1+ (count-lines (point-min) (point-at-bol)))))
 
 (defun vhdl-line-kill-entire (&optional arg)
   "Delete entire line."
@@ -12134,8 +12132,7 @@ options vhdl-upper-case-{keywords,types,attributes,enum-values}."
   "Copy current line."
   (interactive "p")
   (save-excursion
-    (beginning-of-line)
-    (let ((position (point)))
+    (let ((position (point-at-bol)))
       (forward-line (or arg 1))
       (copy-region-as-kill position (point)))))
 

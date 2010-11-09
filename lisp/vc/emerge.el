@@ -2474,10 +2474,8 @@ merge buffers."
 (defvar emerge-line-diff)
 
 (defun emerge-line-number-in-buf (begin-marker end-marker)
-  (let (temp)
-    (setq temp (save-excursion
-		 (beginning-of-line)
-		 (1+ (count-lines 1 (point)))))
+  ;; FIXME point-min rather than 1? widen?
+  (let ((temp (1+ (count-lines 1 (line-beginning-position)))))
     (if valid-diff
 	(progn
 	  (if (> (point) (aref emerge-line-diff begin-marker))

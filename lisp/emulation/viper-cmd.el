@@ -3498,11 +3498,8 @@ controlled by the sign of prefix numeric value."
 	(if (and (eolp) (not (bolp))) (forward-char -1))
 	(if (not (looking-at "[][(){}]"))
 	    (setq anchor-point (point)))
-	(save-excursion
-	  (beginning-of-line)
-	  (setq beg-lim (point))
-	  (end-of-line)
-	  (setq end-lim (point)))
+	(setq beg-lim (point-at-bol)
+	      end-lim (point-at-eol))
 	(cond ((re-search-forward "[][(){}]" end-lim t)
 	       (backward-char) )
 	      ((re-search-backward "[][(){}]" beg-lim t))
@@ -4625,9 +4622,7 @@ One can use `` and '' to temporarily jump 1 step back."
 	      (delete-char -1)
 	      (setq p (point))
 	      (setq indent nil)))
-	(save-excursion
-	  (beginning-of-line)
-	  (setq bol (point)))
+	(setq bol (point-at-bol))
 	(if (re-search-backward "[^ \t]" bol 1) (forward-char))
 	(delete-region (point) p)
 	(if indent
@@ -4711,9 +4706,7 @@ One can use `` and '' to temporarily jump 1 step back."
 		       (goto-char pos)
 		       (beginning-of-line)
 		       (if (re-search-backward "[^ \t]" nil t)
-			   (progn
-			     (beginning-of-line)
-			     (setq s (point))))
+			   (setq s (point-at-bol)))
 		       (goto-char pos)
 		       (forward-line 1)
 		       (if (re-search-forward "[^ \t]" nil t)

@@ -2984,8 +2984,7 @@ Will not look before LIM."
 				    (looking-at "sub\\>")))
 			     (setq p (nth 1 ; start of innermost containing list
 					  (parse-partial-sexp
-					   (save-excursion (beginning-of-line)
-							   (point))
+					   (point-at-bol)
 					   (point)))))
 			    (progn
 			      (goto-char (1+ p)) ; enclosing block on the same line
@@ -4048,10 +4047,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			     "")
 		      tb (match-beginning 0))
 		(setq argument nil)
-		(put-text-property (save-excursion
-				     (beginning-of-line)
-				     (point))
-				   b 'first-format-line 't)
+		(put-text-property (point-at-bol) b 'first-format-line 't)
 		(if cperl-pod-here-fontify
 		    (while (and (eq (forward-line) 0)
 				(not (looking-at "^[.;]$")))

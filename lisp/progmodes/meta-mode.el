@@ -1,7 +1,7 @@
 ;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Ulrik Vieth <vieth@thphy.uni-duesseldorf.de>
 ;; Version: 1.0
@@ -577,7 +577,7 @@ If the list was changed, sort the list and remove duplicates first."
   (let ((indent (meta-indent-calculate)))
     (save-excursion
       (if (/= (current-indentation) indent)
-          (let ((beg (progn (beginning-of-line) (point)))
+          (let ((beg (line-beginning-position))
                 (end (progn (back-to-indentation) (point))))
             (delete-region beg end)
             (indent-to indent))))
@@ -1084,5 +1084,4 @@ Turning on MetaPost mode calls the value of the variable
 (provide 'meta-mode)
 (run-hooks 'meta-mode-load-hook)
 
-;; arch-tag: ec2916b2-3a83-4cf7-962d-d8019370c006
 ;;; meta-mode.el ends here
