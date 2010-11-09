@@ -645,11 +645,10 @@ x_real_positions (f, xptr, yptr)
         {
           int ign;
           Window rootw;
+          long *fe = (long *)tmp_data;
 
           XGetGeometry (FRAME_X_DISPLAY (f), win,
                         &rootw, &real_x, &real_y, &ign, &ign, &ign, &ign);
-          long *fe = (long *)tmp_data;
-      
           outer_x = -fe[0];
           outer_y = -fe[2];
           real_x -= fe[0];

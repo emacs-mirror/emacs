@@ -1,3 +1,8 @@
+2010-11-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfns.c (x_real_positions): Fix declaration-after-statement
+	problem.
+
 2010-11-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (free_image): Don't garbage the frame here, since this
