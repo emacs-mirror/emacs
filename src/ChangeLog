@@ -1,5 +1,13 @@
 2010-11-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* keyboard.c (kbd_buffer_nr_stored): Define only ifdef subprocesses.
+	(kbd_buffer_store_event_hold, kbd_buffer_get_event)
+	(tty_read_avail_input): Call kbd_buffer_nr_stored only ifdef
+	subprocesses.  Use buffer_free only ifdef subprocesses.
+
+	* process.c (init_process) [subprocesses]: Init kbd_is_on_hold in
+	the subprocesses version, not in the non-subprocesses one.
+
 	* Makefile.in: Don't use ## comment, it breaks the MSDOS build.
 
 	* xfns.c (x_real_positions): Fix declaration-after-statement

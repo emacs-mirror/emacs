@@ -7356,6 +7356,7 @@ init_process ()
   register int i;
 
   inhibit_sentinels = 0;
+  kbd_is_on_hold = 0;
 
 #ifdef SIGCHLD
 #ifndef CANNOT_DUMP
@@ -8093,7 +8094,6 @@ integer or floating point values.
 void
 init_process ()
 {
-  kbd_is_on_hold = 0;
 }
 
 void
