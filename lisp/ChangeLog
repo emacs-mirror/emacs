@@ -1,5 +1,65 @@
 2010-11-09  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/tcl.el (tcl-hairy-scan-for-comment): Doc fix.
+
+2010-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-completion-help): Specify the end of the
+	completion field (bug#7211).
+
+	* progmodes/python.el (python-font-lock-syntactic-keywords): (bug#7322)
+	Fix handling of backslash escapes.
+	(python-quote-syntax): Adjust accordingly.
+
+2010-11-09  Richard Levitte  <richard@levitte.org>  (tiny change)
+2010-11-09  Richard Levitte  <richard@levitte.org>  (tiny patch)
+
+	* vc-mtn.el (vc-mtn-working-revision, vc-mtn-after-dir-status)
+	(vc-mtn-workfile-branch): Adjust to new output format.
+
+2010-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (princ-list): Mark as obsolete.
+
+2010-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el: New package.
+
+2010-11-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (backup-by-copying-when-mismatch):
+	Set `permanent-local' property.
+
+	* net/tramp.el (tramp-handle-insert-file-contents): Do not set
+	`permanent-local' property for `backup-by-copying-when-mismatch'.
+
+2010-11-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (insert-directory): Doc fix.  (bug#7285)
+
+2010-11-09  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el (verilog-insert-one-definition)
+	(verilog-read-decls, verilog-read-sub-decls-sig): Fix AUTOWIRE and
+	AUTOINOUT for SV style multidimensional arrays, bug294.
+	Reported by Eric Mastromarchi.
+	(verilog-preprocess): Use with-current-buffer and
+	font-lock-fontify-buffer to cleanup style issues.
+
+2010-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* locate.el (locate, locate-mode): Doc fixes.
+
+2010-11-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-start): New arg INHIBIT-PROMPT prevents asking
+	user for confirmation.
+	(server-force-stop): Use it.
+	(server-start): Use server-force-stop for kill-emacs-hook, to
+	avoid user interaction while killing Emacs.
+
+2010-11-09  Glenn Morris  <rgm@gnu.org>
+
 	* progmodes/meta-mode.el: Remove leading `*' from defcustom docs.
 	(meta-indent-line): Simplify.
 

@@ -220,7 +220,8 @@ The Lisp emulation does not run any external programs or shells.  It
 supports ordinary shell wildcards if `ls-lisp-support-shell-wildcards'
 is non-nil; otherwise, it interprets wildcards as regular expressions
 to match file names.  It does not support all `ls' switches -- those
-that work are: A a c i r S s t u U X g G B C R n and F partly."
+that work are: A a B C c F G g h i n R r S s t U u X.  The l switch
+is assumed to be always present and cannot be turned off."
   (if ls-lisp-use-insert-directory-program
       (funcall original-insert-directory
 	       file switches wildcard full-directory-p)
