@@ -1,5 +1,7 @@
 2010-11-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* Makefile.in: Don't use ## comment, it breaks the MSDOS build.
+
 	* xfns.c (x_real_positions): Fix declaration-after-statement
 	problem.
 
