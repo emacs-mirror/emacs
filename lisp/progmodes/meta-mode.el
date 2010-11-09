@@ -517,24 +517,24 @@ If the list was changed, sort the list and remove duplicates first."
 ;;; Indentation.
 
 (defcustom meta-indent-level 2
-  "*Indentation of begin-end blocks in Metafont or MetaPost mode."
+  "Indentation of begin-end blocks in Metafont or MetaPost mode."
   :type 'integer
   :group 'meta-font)
 
 
 (defcustom meta-left-comment-regexp "%%+"
-  "*Regexp matching comments that should be placed on the left margin."
+  "Regexp matching comments that should be placed on the left margin."
   :type 'regexp
   :group 'meta-font)
 
 (defcustom meta-right-comment-regexp nil
-  "*Regexp matching comments that should be placed to the right margin."
+  "Regexp matching comments that should be placed to the right margin."
   :type '(choice regexp
 		 (const :tag "None" nil))
   :group 'meta-font)
 
 (defcustom meta-ignore-comment-regexp "%[^%]"
-  "*Regexp matching comments that whose indentation should not be touched."
+  "Regexp matching comments that whose indentation should not be touched."
   :type 'regexp
   :group 'meta-font)
 
@@ -543,21 +543,21 @@ If the list was changed, sort the list and remove duplicates first."
   (concat "\\(begin\\(char\\|fig\\|gr\\(aph\\|oup\\)\\|logochar\\)\\|"
           "def\\|for\\(\\|ever\\|suffixes\\)\\|if\\|mode_def\\|"
           "primarydef\\|secondarydef\\|tertiarydef\\|vardef\\)")
-  "*Regexp matching the beginning of environments to be indented."
+  "Regexp matching the beginning of environments to be indented."
   :type 'regexp
   :group 'meta-font)
 
 (defcustom meta-end-environment-regexp
   (concat "\\(end\\(char\\|def\\|f\\(ig\\|or\\)\\|gr\\(aph\\|oup\\)\\)"
           "\\|fi\\)")
-  "*Regexp matching the end of environments to be indented."
+  "Regexp matching the end of environments to be indented."
   :type 'regexp
   :group 'meta-font)
 
 (defcustom meta-within-environment-regexp
 ; (concat "\\(e\\(lse\\(\\|if\\)\\|xit\\(if\\|unless\\)\\)\\)")
   (concat "\\(else\\(\\|if\\)\\)")
-  "*Regexp matching keywords within environments not to be indented."
+  "Regexp matching keywords within environments not to be indented."
   :type 'regexp
   :group 'meta-font)
 
@@ -744,13 +744,13 @@ If the list was changed, sort the list and remove duplicates first."
 (defcustom meta-begin-defun-regexp
   (concat "\\(begin\\(char\\|fig\\|logochar\\)\\|def\\|mode_def\\|"
           "primarydef\\|secondarydef\\|tertiarydef\\|vardef\\)")
-  "*Regexp matching beginning of defuns in Metafont or MetaPost mode."
+  "Regexp matching beginning of defuns in Metafont or MetaPost mode."
   :type 'regexp
   :group 'meta-font)
 
 (defcustom meta-end-defun-regexp
   (concat "\\(end\\(char\\|def\\|fig\\)\\)")
-  "*Regexp matching the end of defuns in Metafont or MetaPost mode."
+  "Regexp matching the end of defuns in Metafont or MetaPost mode."
   :type 'regexp
   :group 'meta-font)
 
@@ -955,21 +955,21 @@ The environment marked is the one that contains point or follows point."
 ;;; Hook variables.
 
 (defcustom meta-mode-load-hook nil
-  "*Hook evaluated when first loading Metafont or MetaPost mode."
+  "Hook evaluated when first loading Metafont or MetaPost mode."
   :type 'hook
   :group 'meta-font)
 
 (defcustom meta-common-mode-hook nil
-  "*Hook evaluated by both `metafont-mode' and `metapost-mode'."
+  "Hook evaluated by both `metafont-mode' and `metapost-mode'."
   :type 'hook
   :group 'meta-font)
 
 (defcustom metafont-mode-hook nil
-  "*Hook evaluated by `metafont-mode' after `meta-common-mode-hook'."
+  "Hook evaluated by `metafont-mode' after `meta-common-mode-hook'."
   :type 'hook
   :group 'meta-font)
 (defcustom metapost-mode-hook nil
-  "*Hook evaluated by `metapost-mode' after `meta-common-mode-hook'."
+  "Hook evaluated by `metapost-mode' after `meta-common-mode-hook'."
   :type 'hook
   :group 'meta-font)
 
