@@ -7,7 +7,7 @@
 	Fix handling of backslash escapes.
 	(python-quote-syntax): Adjust accordingly.
 
-2010-11-08  Richard Levitte  <richard@levitte.org>  (tiny patch)
+2010-11-08  Richard Levitte  <richard@levitte.org>  (tiny change)
 
 	* vc-mtn.el (vc-mtn-working-revision, vc-mtn-after-dir-status)
 	(vc-mtn-workfile-branch): Adjust to new output format.
