@@ -575,12 +575,11 @@ If the list was changed, sort the list and remove duplicates first."
   "Indent the line containing point as Metafont or MetaPost source."
   (interactive)
   (let ((indent (meta-indent-calculate)))
-    (save-excursion
-      (if (/= (current-indentation) indent)
-          (let ((beg (line-beginning-position))
-                (end (progn (back-to-indentation) (point))))
-            (delete-region beg end)
-            (indent-to indent))))
+    (if (/= (current-indentation) indent)
+        (save-excursion
+          (delete-region (line-beginning-position)
+                         (progn (back-to-indentation) (point)))
+          (indent-to indent)))
     (if (< (current-column) indent)
         (back-to-indentation))))
 

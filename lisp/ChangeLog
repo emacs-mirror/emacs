@@ -1,6 +1,7 @@
 2010-11-09  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/meta-mode.el: Remove leading `*' from defcustom docs.
+	(meta-indent-line): Simplify.
 
 	* vc/emerge.el (emerge-line-number-in-buf):
 	* textmodes/ispell.el (ispell-region):
