@@ -163,7 +163,7 @@ int xd_in_read_queued_messages = 0;
    || (type ==  DBUS_TYPE_DOUBLE)					\
    || (type ==  DBUS_TYPE_STRING)					\
    || (type ==  DBUS_TYPE_OBJECT_PATH)					\
-   || (type ==  DBUS_TYPE_SIGNATURE					\
+   || (type ==  DBUS_TYPE_SIGNATURE)					\
    || (type ==  DBUS_TYPE_UNIX_FD))
 #else
 #define XD_BASIC_DBUS_TYPE(type)					\
