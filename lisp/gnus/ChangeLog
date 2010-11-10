@@ -1,5 +1,7 @@
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* smime.el (from): Remove unused declaration.
+
 	* gnus-util.el (with-no-warnings): Remove compat stub, now unused.
 	(gnus-float-time): On Emacs, always an alias.
 
