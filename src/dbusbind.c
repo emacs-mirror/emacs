@@ -57,6 +57,9 @@ Lisp_Object QCdbus_type_int32, QCdbus_type_uint32;
 Lisp_Object QCdbus_type_int64, QCdbus_type_uint64;
 Lisp_Object QCdbus_type_double, QCdbus_type_string;
 Lisp_Object QCdbus_type_object_path, QCdbus_type_signature;
+#ifdef DBUS_TYPE_UNIX_FD
+Lisp_Object QCdbus_type_unix_fd;
+#endif
 Lisp_Object QCdbus_type_array, QCdbus_type_variant;
 Lisp_Object QCdbus_type_struct, QCdbus_type_dict_entry;
 
@@ -147,6 +150,22 @@ int xd_in_read_queued_messages = 0;
 #endif
 
 /* Check whether TYPE is a basic DBusType.  */
+#ifdef DBUS_TYPE_UNIX_FD
+#define XD_BASIC_DBUS_TYPE(type)					\
+  ((type ==  DBUS_TYPE_BYTE)						\
+   || (type ==  DBUS_TYPE_BOOLEAN)					\
+   || (type ==  DBUS_TYPE_INT16)					\
+   || (type ==  DBUS_TYPE_UINT16)					\
+   || (type ==  DBUS_TYPE_INT32)					\
+   || (type ==  DBUS_TYPE_UINT32)					\
+   || (type ==  DBUS_TYPE_INT64)					\
+   || (type ==  DBUS_TYPE_UINT64)					\
+   || (type ==  DBUS_TYPE_DOUBLE)					\
+   || (type ==  DBUS_TYPE_STRING)					\
+   || (type ==  DBUS_TYPE_OBJECT_PATH)					\
+   || (type ==  DBUS_TYPE_SIGNATURE					\
+   || (type ==  DBUS_TYPE_UNIX_FD))
+#else
 #define XD_BASIC_DBUS_TYPE(type)					\
   ((type ==  DBUS_TYPE_BYTE)						\
    || (type ==  DBUS_TYPE_BOOLEAN)					\
@@ -160,6 +179,7 @@ int xd_in_read_queued_messages = 0;
    || (type ==  DBUS_TYPE_STRING)					\
    || (type ==  DBUS_TYPE_OBJECT_PATH)					\
    || (type ==  DBUS_TYPE_SIGNATURE))
+#endif
 
 /* This was a macro.  On Solaris 2.11 it was said to compile for
    hours, when optimzation is enabled.  So we have transferred it into
@@ -182,6 +202,9 @@ xd_symbol_to_dbus_type (Lisp_Object object)
      : (EQ (object, QCdbus_type_string)) ? DBUS_TYPE_STRING
      : (EQ (object, QCdbus_type_object_path)) ? DBUS_TYPE_OBJECT_PATH
      : (EQ (object, QCdbus_type_signature)) ? DBUS_TYPE_SIGNATURE
+#ifdef DBUS_TYPE_UNIX_FD
+     : (EQ (object, QCdbus_type_unix_fd)) ? DBUS_TYPE_UNIX_FD
+#endif
      : (EQ (object, QCdbus_type_array)) ? DBUS_TYPE_ARRAY
      : (EQ (object, QCdbus_type_variant)) ? DBUS_TYPE_VARIANT
      : (EQ (object, QCdbus_type_struct)) ? DBUS_TYPE_STRUCT
@@ -238,6 +261,9 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
     case DBUS_TYPE_UINT16:
     case DBUS_TYPE_UINT32:
     case DBUS_TYPE_UINT64:
+#ifdef DBUS_TYPE_UNIX_FD
+    case DBUS_TYPE_UNIX_FD:
+#endif
       CHECK_NATNUM (object);
       sprintf (signature, "%c", dtype);
       break;
@@ -451,6 +477,9 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_UINT32:
+#ifdef DBUS_TYPE_UNIX_FD
+      case DBUS_TYPE_UNIX_FD:
+#endif
 	CHECK_NUMBER (object);
 	{
 	  dbus_uint32_t val = XUINT (object);
@@ -648,6 +677,9 @@ xd_retrieve_arg (unsigned int dtype, DBusMessageIter *iter)
       }
 
     case DBUS_TYPE_UINT32:
+#ifdef DBUS_TYPE_UNIX_FD
+    case DBUS_TYPE_UNIX_FD:
+#endif
       {
 	dbus_uint32_t val;
 	dbus_message_iter_get_basic (iter, &val);
@@ -983,6 +1015,7 @@ input arguments.  It follows the mapping rules:
   DBUS_TYPE_UINT16      => number
   DBUS_TYPE_INT16       => integer
   DBUS_TYPE_UINT32      => number or float
+  DBUS_TYPE_UNIX_FD     => number or float
   DBUS_TYPE_INT32       => integer or float
   DBUS_TYPE_UINT64      => number or float
   DBUS_TYPE_INT64       => integer or float
@@ -2103,6 +2136,11 @@ syms_of_dbusbind (void)
 
   QCdbus_type_signature = intern_c_string (":signature");
   staticpro (&QCdbus_type_signature);
+
+#ifdef DBUS_TYPE_UNIX_FD
+  QCdbus_type_unix_fd = intern_c_string (":unix-fd");
+  staticpro (&QCdbus_type_unix_fd);
+#endif
 
   QCdbus_type_array = intern_c_string (":array");
   staticpro (&QCdbus_type_array);

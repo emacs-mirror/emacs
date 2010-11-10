@@ -1,3 +1,11 @@
+2010-11-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (QCdbus_type_unix_fd): New Lisp object.
+	(XD_BASIC_DBUS_TYPE, xd_symbol_to_dbus_type, xd_signature)
+	(xd_append_arg, xd_retrieve_arg): Support DBUS_TYPE_UNIX_FD.
+	(Fdbus_call_method): Add DBUS_TYPE_UNIX_FD type mapping to doc string.
+	(syms_of_dbusbind): Initialize QCdbus_type_unix_fd).
+
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (syms_of_emacs) <system-type>: Doc fix.
