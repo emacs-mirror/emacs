@@ -1,3 +1,11 @@
+2010-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-resend): Don't disable encoding unless it's
+	already encoded.
+
+	* nnimap.el (nnimap-update-info): Fix problem with `g' chopping of
+	low-numbered articles.
+
 2010-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2047.el (rfc2047-syntax-table): Simplify.
