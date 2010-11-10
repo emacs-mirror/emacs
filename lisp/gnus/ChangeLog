@@ -1,3 +1,7 @@
+2010-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (org-entities): Bind it.
+
 2010-11-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (browse-url-mailto): Autoload.

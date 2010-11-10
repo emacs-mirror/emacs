@@ -2114,6 +2114,8 @@ try this wash."
   (interactive)
   (article-translate-strings gnus-article-dumbquotes-map))
 
+(defvar org-entities)
+
 (defun article-treat-non-ascii ()
   "Translate many Unicode characters into their ASCII equivalents."
   (interactive)
