@@ -1,8 +1,8 @@
-2010-11-10  Agustín Martín  <agustin.martin@hispalinux.es>
+2010-11-10  Brandon Craig Rhodes <brandon@rhodesmill.org>
 
 	* textmodes/flyspell.el (flyspell-word): Do not re-check words
 	already found as misspellings by (flyspell-large-region), just
-	do highlighting.  Patch by Brandon Craig Rhodes (bug#7322)
+	do highlighting (bug#7322).
 
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
