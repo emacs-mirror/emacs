@@ -1,5 +1,7 @@
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* speedbar.el (speedbar-toggle-images): Doc fix.
+
 	* progmodes/python.el (python-shell): Doc fix.
 
 	* wid-edit.el (widget-field-use-before-change)
