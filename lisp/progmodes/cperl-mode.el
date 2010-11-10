@@ -3803,7 +3803,8 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 						  indentable t))
 	    ;; Need to remove face as well...
 	    (goto-char min)
-	    (and (eq system-type 'emx)
+	    ;; 'emx not supported by Emacs since at least 21.1.
+	    (and (featurep 'xemacs) (eq system-type 'emx)
 		 (eq (point) 1)
 		 (let ((case-fold-search t))
 		   (looking-at "extproc[ \t]")) ; Analogue of #!
@@ -7038,7 +7039,7 @@ Use as
   (or topdir
       (setq topdir default-directory))
   (let ((tags-file-name "TAGS")
-	(case-fold-search (eq system-type 'emx))
+	(case-fold-search (and (featurep 'xemacs) (eq system-type 'emx)))
 	xs rel tm)
     (save-excursion
       (cond (inbuffer nil)		; Already there

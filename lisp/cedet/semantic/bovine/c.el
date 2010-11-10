@@ -94,8 +94,8 @@ NOTE: In process of obsoleting this."
 ;; Compiler options need to show up after path setup, but before
 ;; the preprocessor section.
 
-(when (member system-type '(gnu gnu/linux darwin cygwin))
-  (semantic-gcc-setup))
+(if (memq system-type '(gnu gnu/linux darwin cygwin))
+    (semantic-gcc-setup))
 
 ;;; Pre-processor maps
 ;;

@@ -1,5 +1,23 @@
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/cperl-mode.el (cperl-find-pods-heres, cperl-write-tags):
+	No recent Emacs supports system-type `emx'.
+
+	* progmodes/ada-xref.el (is-windows): Rename to ada-on-ms-windows.
+	(ada-command-separator, ada-default-prj-properties)
+	(ada-find-any-references): Update for above name change.
+
+	* dirtrack.el (dirtrack-directory-function)
+	(dirtrack-canonicalize-function):
+	* filecache.el (file-cache-completion-ignore-case)
+	(file-cache-case-fold-search, file-cache-ignore-case):
+	* term.el (serial-port-is-file-p): Cosmetic change.
+
+	* emulation/viper-init.el (viper-ms-style-os-p): Doc fix.
+	Remove non-existent `windows-95' system-type.
+	* dired.el (dired-chown-program): Remove non-existent `linux'
+	system-type.
+
 	* net/net-utils.el (net-utils-remove-ctl-m): Use memq for system-types.
 	(ping-program-options): Remove non-existent `linux' system-type.
 

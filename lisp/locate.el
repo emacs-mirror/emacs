@@ -97,7 +97,7 @@
 ;; (defadvice dired-make-relative (before set-no-error activate)
 ;;   "For locate mode and Windows, don't return errors"
 ;;   (if (and (eq   major-mode  'locate-mode)
-;; 	   (memq system-type (list 'windows-nt 'ms-dos)))
+;; 	   (memq system-type '(windows-nt ms-dos)))
 ;;       (ad-set-arg 2 t)
 ;;     ))
 ;;

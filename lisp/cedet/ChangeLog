@@ -1,3 +1,7 @@
+2010-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/bovine/c.el: Test system-type with memq.
+
 2010-11-09  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/lex.el (semantic-lex-ignore-comments, semantic-flex):
