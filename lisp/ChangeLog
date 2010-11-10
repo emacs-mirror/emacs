@@ -1,3 +1,12 @@
+2010-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-unix.el (eshell-remove-entries, eshell/rm)
+	(eshell-shuffle-files, eshell-shorthand-tar-command)
+	(eshell-mvcpln-template, eshell/mv, eshell/cp, eshell/ln):
+	Prefix dynamic locals `interactive', `preview', `recursive', `verbose'.
+	* eshell/em-glob.el (eshell-extended-glob, eshell-glob-entries):
+	Prefix dynamic local variable `matches'.
+
 2010-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* net/browse-url.el (browse-url-mail): Insert body part of mailto url

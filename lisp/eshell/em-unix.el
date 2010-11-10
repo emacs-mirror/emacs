@@ -154,10 +154,10 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 (defalias 'eshell/basename 'file-name-nondirectory)
 (defalias 'eshell/dirname  'file-name-directory)
 
-(defvar interactive)
-(defvar preview)
-(defvar recursive)
-(defvar verbose)
+(defvar em-interactive)
+(defvar em-preview)
+(defvar em-recursive)
+(defvar em-verbose)
 
 (defun eshell/man (&rest args)
   "Invoke man, flattening the arguments appropriately."
@@ -204,21 +204,21 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
       (if (and (file-directory-p (car files))
 	       (not (file-symlink-p (car files))))
 	  (progn
-	    (if verbose
+	    (if em-verbose
 		(eshell-printn (format "rm: removing directory `%s'"
 				       (car files))))
 	    (unless
-		(or preview
-		    (and interactive
+		(or em-preview
+		    (and em-interactive
 			 (not (y-or-n-p
 			       (format "rm: remove directory `%s'? "
 				       (car files))))))
 	      (eshell-funcalln 'delete-directory (car files) t t)))
-	(if verbose
+	(if em-verbose
 	    (eshell-printn (format "rm: removing file `%s'"
 				   (car files))))
-	(unless (or preview
-		    (and interactive
+	(unless (or em-preview
+		    (and em-interactive
 			 (not (y-or-n-p
 			       (format "rm: remove `%s'? "
 				       (car files))))))
@@ -235,21 +235,21 @@ argument."
    "rm" args
    '((?h "help" nil nil "show this usage screen")
      (?f "force" nil force-removal "force removal")
-     (?i "interactive" nil interactive "prompt before any removal")
-     (?n "preview" nil preview "don't change anything on disk")
-     (?r "recursive" nil recursive
+     (?i "interactive" nil em-interactive "prompt before any removal")
+     (?n "preview" nil em-preview "don't change anything on disk")
+     (?r "recursive" nil em-recursive
 	 "remove the contents of directories recursively")
-     (?R nil nil recursive "(same)")
-     (?v "verbose" nil verbose "explain what is being done")
+     (?R nil nil em-recursive "(same)")
+     (?v "verbose" nil em-verbose "explain what is being done")
      :preserve-args
      :external "rm"
      :show-usage
      :usage "[OPTION]... FILE...
 Remove (unlink) the FILE(s).")
-   (unless interactive
-     (setq interactive eshell-rm-interactive-query))
-   (if (and force-removal interactive)
-       (setq interactive nil))
+   (unless em-interactive
+     (setq em-interactive eshell-rm-interactive-query))
+   (if (and force-removal em-interactive)
+       (setq em-interactive nil))
    (while args
      (let ((entry (if (stringp (car args))
 		      (directory-file-name (car args))
@@ -258,37 +258,37 @@ Remove (unlink) the FILE(s).")
 		      (car args)))))
        (cond
 	((bufferp entry)
-	 (if verbose
+	 (if em-verbose
 	     (eshell-printn (format "rm: removing buffer `%s'" entry)))
-	 (unless (or preview
-		     (and interactive
+	 (unless (or em-preview
+		     (and em-interactive
 			  (not (y-or-n-p (format "rm: delete buffer `%s'? "
 						 entry)))))
 	   (eshell-funcalln 'kill-buffer entry)))
 	((eshell-processp entry)
-	 (if verbose
+	 (if em-verbose
 	     (eshell-printn (format "rm: killing process `%s'" entry)))
-	 (unless (or preview
-		     (and interactive
+	 (unless (or em-preview
+		     (and em-interactive
 			  (not (y-or-n-p (format "rm: kill process `%s'? "
 						 entry)))))
 	   (eshell-funcalln 'kill-process entry)))
 	((symbolp entry)
-	 (if verbose
+	 (if em-verbose
 	     (eshell-printn (format "rm: uninterning symbol `%s'" entry)))
 	 (unless
-	     (or preview
-		 (and interactive
+	     (or em-preview
+		 (and em-interactive
 		      (not (y-or-n-p (format "rm: unintern symbol `%s'? "
 					     entry)))))
 	   (eshell-funcalln 'unintern entry)))
 	((stringp entry)
 	 (if (and (file-directory-p entry)
 		  (not (file-symlink-p entry)))
-	     (if (or recursive
+	     (if (or em-recursive
 		     eshell-rm-removes-directories)
-		 (if (or preview
-			 (not interactive)
+		 (if (or em-preview
+			 (not em-interactive)
 			 (y-or-n-p
 			  (format "rm: descend into directory `%s'? "
 				  entry)))
@@ -333,8 +333,6 @@ Remove the DIRECTORY(ies), if they are empty.")
 (put 'eshell/rmdir 'eshell-no-numeric-conversions t)
 
 (defvar no-dereference)
-(defvar preview)
-(defvar verbose)
 
 (defvar eshell-warn-dot-directories t)
 
@@ -342,9 +340,9 @@ Remove the DIRECTORY(ies), if they are empty.")
   "Shuffle around some filesystem entries, using FUNC to do the work."
   (let ((attr-target (eshell-file-attributes target))
 	(is-dir (or (file-directory-p target)
-		    (and preview (not eshell-warn-dot-directories))))
+		    (and em-preview (not eshell-warn-dot-directories))))
 	attr)
-    (if (and (not preview) (not is-dir)
+    (if (and (not em-preview) (not is-dir)
 	     (> (length files) 1))
 	(error "%s: when %s multiple files, last argument must be a directory"
 	       command action))
@@ -381,7 +379,7 @@ Remove the DIRECTORY(ies), if they are empty.")
 		   (not (memq func '(make-symbolic-link
 				     add-name-to-file))))
 	      (if (and (eq func 'copy-file)
-		       (not recursive))
+		       (not em-recursive))
 		  (eshell-error (format "%s: %s: omitting directory\n"
 					command (car files)))
 		(let (eshell-warn-dot-directories)
@@ -399,11 +397,11 @@ Remove the DIRECTORY(ies), if they are empty.")
 					     (expand-file-name target)))))))
 		      (apply 'eshell-funcalln func source target args)
 		  (unless (file-directory-p target)
-		    (if verbose
+		    (if em-verbose
 			(eshell-printn
 			 (format "%s: making directory %s"
 				 command target)))
-		    (unless preview
+		    (unless em-preview
 		      (eshell-funcalln 'make-directory target)))
 		  (apply 'eshell-shuffle-files
 			 command action
@@ -414,16 +412,16 @@ Remove the DIRECTORY(ies), if they are empty.")
 			  (directory-files source))
 			 target func t args)
 		  (when (eq func 'rename-file)
-		    (if verbose
+		    (if em-verbose
 			(eshell-printn
 			 (format "%s: deleting directory %s"
 				 command source)))
-		    (unless preview
+		    (unless em-preview
 		      (eshell-funcalln 'delete-directory source))))))
-	    (if verbose
+	    (if em-verbose
 		(eshell-printn (format "%s: %s -> %s" command
 				       source target)))
-	    (unless preview
+	    (unless em-preview
 	      (if (and no-dereference
 		       (setq link (file-symlink-p source)))
 		  (progn
@@ -448,7 +446,7 @@ Remove the DIRECTORY(ies), if they are empty.")
     (if (file-exists-p archive)
 	(setq tar-args (concat "u" tar-args))
       (setq tar-args (concat "c" tar-args)))
-    (if verbose
+    (if em-verbose
 	(setq tar-args (concat "v" tar-args)))
     (if (equal command "mv")
 	(setq tar-args (concat "--remove-files -" tar-args)))
@@ -481,7 +479,7 @@ Remove the DIRECTORY(ies), if they are empty.")
 	 (eshell-shuffle-files
 	  ,command ,action args target ,func nil
 	  ,@(append
-	     `((if (and (or interactive
+	     `((if (and (or em-interactive
 			    ,query-var)
 			(not force))
 		   1 (or force ,force-var)))
@@ -495,11 +493,11 @@ Remove the DIRECTORY(ies), if they are empty.")
    "mv" args
    '((?f "force" nil force
 	 "remove existing destinations, never prompt")
-     (?i "interactive" nil interactive
+     (?i "interactive" nil em-interactive
 	 "request confirmation if target already exists")
-     (?n "preview" nil preview
+     (?n "preview" nil em-preview
 	 "don't change anything on disk")
-     (?v "verbose" nil verbose
+     (?v "verbose" nil em-verbose
 	 "explain what is being done")
      (nil "help" nil nil "show this usage screen")
      :preserve-args
@@ -526,15 +524,15 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
 	 "preserve links")
      (?f "force" nil force
 	 "remove existing destinations, never prompt")
-     (?i "interactive" nil interactive
+     (?i "interactive" nil em-interactive
 	 "request confirmation if target already exists")
-     (?n "preview" nil preview
+     (?n "preview" nil em-preview
 	 "don't change anything on disk")
      (?p "preserve" nil preserve
 	 "preserve file attributes if possible")
-     (?R "recursive" nil recursive
+     (?R "recursive" nil em-recursive
 	 "copy directories recursively")
-     (?v "verbose" nil verbose
+     (?v "verbose" nil em-verbose
 	 "explain what is being done")
      (nil "help" nil nil "show this usage screen")
      :preserve-args
@@ -544,7 +542,7 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
    or:  cp [OPTION]... SOURCE... DIRECTORY
 Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
    (if archive
-       (setq preserve t no-dereference t recursive t))
+       (setq preserve t no-dereference t em-recursive t))
    (eshell-mvcpln-template "cp" "copying" 'copy-file
 			   eshell-cp-interactive-query
 			   eshell-cp-overwrite-files preserve)))
@@ -558,12 +556,12 @@ Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
    '((?h "help" nil nil "show this usage screen")
      (?s "symbolic" nil symbolic
 	 "make symbolic links instead of hard links")
-     (?i "interactive" nil interactive
+     (?i "interactive" nil em-interactive
 	 "request confirmation if target already exists")
      (?f "force" nil force "remove existing destinations, never prompt")
-     (?n "preview" nil preview
+     (?n "preview" nil em-preview
 	 "don't change anything on disk")
-     (?v "verbose" nil verbose "explain what is being done")
+     (?v "verbose" nil em-verbose "explain what is being done")
      :preserve-args
      :external "ln"
      :show-usage
@@ -1121,5 +1119,4 @@ Execute a COMMAND as the superuser or another USER.")
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 2462edd2-a76a-4cf2-897d-92e9a82ac1c9
 ;;; em-unix.el ends here
