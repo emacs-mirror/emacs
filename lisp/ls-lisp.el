@@ -1,7 +1,7 @@
 ;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp
 
-;; Copyright (C) 1992, 1994, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Modified by: Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
@@ -486,8 +486,8 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
 				    (nth 7 (cdr x)))))
 			      ((setq index (ls-lisp-time-index switches))
 			       (lambda (x y) ; sorted on time
-				 (ls-lisp-time-lessp (nth index (cdr y))
-						     (nth index (cdr x)))))
+				 (time-less-p (nth index (cdr y))
+					      (nth index (cdr x)))))
 			      ((memq ?X switches)
 			       (lambda (x y) ; sorted on extension
 				 (ls-lisp-string-lessp
@@ -585,14 +585,6 @@ FOLLOWED by null and full filename, SOLELY for full alpha sort."
 	     (substring filename (1+ i) end))))
        )) "\0" filename))
 
-;; From Roland McGrath.  Can use this to sort on time.
-(defun ls-lisp-time-lessp (time0 time1)
-  "Return t if time TIME0 is earlier than time TIME1."
-  (let ((hi0 (car time0)) (hi1 (car time1)))
-    (or (< hi0 hi1)
-	(and (= hi0 hi1)
-	     (< (cadr time0) (cadr time1))))))
-
 (defun ls-lisp-format (file-name file-attr file-size switches time-index now)
   "Format one line of long ls output for file FILE-NAME.
 FILE-ATTR and FILE-SIZE give the file's attributes and size.
@@ -672,20 +664,14 @@ Return nil if no time switch found."
 	((memq ?t switches) 5)		; last modtime
 	((memq ?u switches) 4)))	; last access
 
-(defun ls-lisp-time-to-seconds (time)
-  "Convert TIME to a floating point number."
-  (+ (* (car time) 65536.0)
-     (cadr time)
-     (/ (or (nth 2 time) 0) 1000000.0)))
-
 (defun ls-lisp-format-time (file-attr time-index now)
   "Format time for file with attributes FILE-ATTR according to TIME-INDEX.
 Use the same method as ls to decide whether to show time-of-day or year,
 depending on distance between file date and NOW.
 All ls time options, namely c, t and u, are handled."
   (let* ((time (nth (or time-index 5) file-attr)) ; default is last modtime
-	 (diff (- (ls-lisp-time-to-seconds time)
-		  (ls-lisp-time-to-seconds now)))
+	 (diff (- (float-time time)
+		  (float-time now)))
 	 ;; Consider a time to be recent if it is within the past six
 	 ;; months.  A Gregorian year has 365.2425 * 24 * 60 * 60 ==
 	 ;; 31556952 seconds on the average, and half of that is 15778476.
@@ -728,5 +714,4 @@ All ls time options, namely c, t and u, are handled."
 
 (provide 'ls-lisp)
 
-;; arch-tag: e55f399b-05ec-425c-a6d5-f5e349c35ab4
 ;;; ls-lisp.el ends here

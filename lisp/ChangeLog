@@ -23,6 +23,10 @@
 
 	* startup.el (package-initialize): Update declaration.
 
+	* ls-lisp.el (ls-lisp-time-lessp, ls-lisp-time-to-seconds): Remove.
+	(ls-lisp-handle-switches): Use time-less-p.
+	(ls-lisp-format-time): Use float-time.
+
 	* textmodes/remember.el (remember-time-to-seconds): Remove.
 	(remember-store-in-mailbox): Use float-time.
 
