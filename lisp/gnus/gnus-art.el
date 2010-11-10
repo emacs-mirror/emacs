@@ -2124,9 +2124,9 @@ try this wash."
     (dolist (elem org-entities)
       (when (and (listp elem)
 		 (= (length (nth 6 elem)) 1))
-	(set-char-table-range table
-			      (aref (nth 6 elem) 0)
-			      (nth 4 elem))))
+	(if (featurep 'xemacs)
+	    (put-char-table (aref (nth 6 elem) 0) (nth 4 elem) table)
+	  (set-char-table-range table (aref (nth 6 elem) 0) (nth 4 elem)))))
     (save-excursion
       (when (article-goto-body)
 	(let ((inhibit-read-only t)
