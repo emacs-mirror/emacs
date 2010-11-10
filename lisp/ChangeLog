@@ -1,3 +1,8 @@
+2010-11-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-read-all-archive-contents): Reset
+	package-archive-contents to nil before re-reading.
+
 2010-11-10  Brandon Craig Rhodes <brandon@rhodesmill.org>
 
 	* textmodes/flyspell.el (flyspell-word): Do not re-check words
