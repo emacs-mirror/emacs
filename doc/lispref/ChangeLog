@@ -1,3 +1,7 @@
+2010-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (Kill Functions, Low-Level Kill Ring): Small fixes.
+
 2010-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* maps.texi (Standard Keymaps): Update File menu description.

@@ -900,10 +900,10 @@ from the buffer.  It returns @code{nil}.
 The command does not set @code{this-command} to @code{kill-region}, so a
 subsequent kill command does not append to the same kill ring entry.
 
-Don't call @code{copy-region-as-kill} in Lisp programs unless you aim to
-support Emacs 18.  For newer Emacs versions, it is better to use
-@code{kill-new} or @code{kill-append} instead.  @xref{Low-Level Kill
-Ring}.
+@c FIXME Why is it better?  Why isn't copy-region-as-kill obsolete then?
+@c Why is it used in many places in Emacs?
+In Lisp programs, it is better to use @code{kill-new} or
+@code{kill-append} instead of this command.  @xref{Low-Level Kill Ring}.
 @end deffn
 
 @node Yanking
@@ -1041,8 +1041,8 @@ text property, if there is one.
 @subsection Low-Level Kill Ring
 
   These functions and variables provide access to the kill ring at a
-lower level, but still convenient for use in Lisp programs, because they
-take care of interaction with window system selections
+lower level, but are still convenient for use in Lisp programs,
+because they take care of interaction with window system selections
 (@pxref{Window System Selections}).
 
 @defun current-kill n &optional do-not-move
@@ -4279,6 +4279,4 @@ code that is itself run from a modification hook, then rebind locally
 @code{inhibit-modification-hooks} to @code{nil}.
 @end defvar
 
-@ignore
-   arch-tag: 3721e738-a1cb-4085-bc1a-6cb8d8e1d32b
-@end ignore
+
