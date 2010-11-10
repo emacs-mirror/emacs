@@ -1,7 +1,7 @@
 ;;; octave-mod.el --- editing Octave source files under Emacs
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;; Author: John Eaton <jwe@octave.org>
@@ -829,7 +829,7 @@ The block marked is the one that contains point or follows point."
   (unless (or (looking-at "\\s(")
               (save-excursion
                 (let* ((token (funcall smie-forward-token-function))
-                       (level (assoc token smie-op-levels)))
+                       (level (assoc token smie-grammar)))
                   (and level (null (cadr level))))))
     (backward-up-list 1))
   (mark-sexp))
@@ -1228,5 +1228,4 @@ code line."
 
 (provide 'octave-mod)
 
-;; arch-tag: 05f1ce09-be87-4c00-803e-4919ffa26c23
 ;;; octave-mod.el ends here
