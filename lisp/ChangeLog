@@ -1,3 +1,9 @@
+2010-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/browse-url.el (browse-url-mail): Insert body part of mailto url
+	in mail buffer; make yank-action always a command that yanks original
+	buffer.
+
 2010-11-09  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/tcl.el (tcl-hairy-scan-for-comment): Doc fix.
