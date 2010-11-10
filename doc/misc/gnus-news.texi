@@ -124,6 +124,9 @@ Customization}.
 
 @itemize @bullet
 
+@item There's now only one variable that determines how @acronym{HTML}
+is rendered: @code{mm-text-html-renderer}.
+
 @item Gnus now supports sticky article buffers.  Those are article buffers
 that are not reused when you select another article.  @xref{Sticky
 Articles}.
@@ -221,6 +224,9 @@ that are accessible from the article buffer.
 @item Changes in Message mode
 
 @itemize @bullet
+@item Gnus now defaults to saving all outgoing messages in per-month
+nnfolder archives.
+
 @item Gnus now supports the ``hashcash'' client puzzle anti-spam mechanism.
 Use @code{(setq message-generate-hashcash t)} to enable.
 @xref{Hashcash}.

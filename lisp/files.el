@@ -124,6 +124,7 @@ the default for a new file created there by you.
 This variable is relevant only if `backup-by-copying' is nil."
   :type 'boolean
   :group 'backup)
+(put 'backup-by-copying-when-mismatch 'permanent-local t)
 
 (defcustom backup-by-copying-when-privileged-mismatch 200
   "Non-nil means create backups by copying to preserve a privileged owner.
@@ -187,32 +188,6 @@ If the buffer is visiting a new file, the value is nil.")
 (defvar buffer-file-read-only nil
   "Non-nil if visited file was read-only when visited.")
 (make-variable-buffer-local 'buffer-file-read-only)
-
-(defcustom temporary-file-directory
-  (file-name-as-directory
-   ;; FIXME ? Should there be Ftemporary_file_directory to do the
-   ;; following more robustly (cf set_local_socket in emacsclient.c).
-   ;; It could be used elsewhere, eg Fcall_process_region, server-socket-dir.
-   ;; See bug#7135.
-   (cond ((memq system-type '(ms-dos windows-nt))
-	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
-	 ((eq system-type 'darwin)
-	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
-	      (let ((tmp (ignore-errors (shell-command-to-string ; bug#7135
-					 "getconf DARWIN_USER_TEMP_DIR"))))
-		(and (stringp tmp)
-		     (setq tmp (replace-regexp-in-string "\n\\'" "" tmp))
-		     ;; This handles "getconf: Unrecognized variable..."
-		     (file-directory-p tmp)
-		     tmp))
-	      "/tmp"))
-	 (t
-	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
-  "The directory for writing temporary files."
-  :group 'files
-  ;; Darwin section added 24.1, does not seem worth :version bump.
-  :initialize 'custom-initialize-delay
-  :type 'directory)
 
 (defcustom small-temporary-file-directory
   (if (eq system-type 'ms-dos) (getenv "TMPDIR"))
@@ -6470,5 +6445,4 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 (define-key ctl-x-5-map "r" 'find-file-read-only-other-frame)
 (define-key ctl-x-5-map "\C-o" 'display-buffer-other-frame)
 
-;; arch-tag: bc68d3ea-19ca-468b-aac6-3a4a7766101f
 ;;; files.el ends here

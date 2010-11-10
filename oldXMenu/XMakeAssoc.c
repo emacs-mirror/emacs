@@ -26,6 +26,7 @@ void emacs_insque (struct qelem *elem, struct qelem *prev);
  * meaningless (but cause no problems).  The queue in each association
  * bucket is sorted (lowest XId to highest XId).
  */
+void
 XMakeAssoc(register Display *dpy, register XAssocTable *table, register XID x_id, register caddr_t data)
 {
 	int hash;

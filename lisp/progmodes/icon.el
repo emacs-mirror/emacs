@@ -1,7 +1,7 @@
 ;;; icon.el --- mode for editing Icon code
 
-;; Copyright (C) 1989, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Chris Smith <csmith@convex.com>
 ;; Created: 15 Feb 89
@@ -601,7 +601,7 @@ Returns nil if line starts inside a string, t if in a comment."
 		  (indent-to this-indent)))
 	    ;; Indent any comment following the text.
 	    (or (looking-at comment-start-skip)
-		(if (re-search-forward comment-start-skip (save-excursion (end-of-line) (point)) t)
+		(if (re-search-forward comment-start-skip (line-end-position) t)
 		    (progn (indent-for-comment) (beginning-of-line))))))))))
 
 (defconst icon-font-lock-keywords-1
@@ -687,5 +687,4 @@ Returns nil if line starts inside a string, t if in a comment."
 
 (provide 'icon)
 
-;; arch-tag: 8abf8c99-e7df-44af-a58f-ef5ed2ee52cb
 ;;; icon.el ends here

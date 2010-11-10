@@ -993,8 +993,6 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 	  (and (or now (default-boundp symbol))
 	       (put symbol 'variable-comment comment)))))))
 
-(put 'custom-theme-set-variables 'safe-function t)
-
 
 ;;; Defining themes.
 
@@ -1107,6 +1105,8 @@ property `theme-feature' (which is usually a symbol created by
     (let ((custom-enabling-themes t))
       (enable-theme 'user))))
 
+(defvar safe-functions) ; From unsafep.el
+
 (defun load-theme (theme &optional no-enable)
   "Load a theme's settings from its file.
 Normally, this also enables the theme; use `disable-theme' to
@@ -1135,7 +1135,11 @@ the theme."
     ;; Instead of simply loading the theme file, read it manually.
     (with-temp-buffer
       (insert-file-contents fn)
+      (require 'unsafep)
       (let ((custom--inhibit-theme-enable no-enable)
+	    (safe-functions (append '(custom-theme-set-variables
+				      custom-theme-set-faces)
+				    safe-functions))
 	    form scar)
 	(while (setq form (let ((read-circle nil))
 			    (condition-case nil
@@ -1234,6 +1238,7 @@ and always takes precedence over other Custom Themes."
   :group 'customize
   :type  '(repeat symbol)
   :set-after '(custom-theme-directory custom-theme-load-path)
+  :risky t
   :set (lambda (symbol themes)
 	 ;; Avoid an infinite loop when custom-enabled-themes is
 	 ;; defined in a theme (e.g. `user').  Enabling the theme sets

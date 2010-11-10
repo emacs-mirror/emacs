@@ -2893,6 +2893,14 @@ mirror_make_current (struct window *w, int frame_row)
 	      else
 		swap_glyph_pointers (desired_row, current_row);
 	      current_row->enabled_p = 1;
+
+	      /* Set the Y coordinate of the mode/header line's row.
+		 It is needed in draw_row_with_mouse_face to find the
+		 screen coordinates.  (Window-based redisplay sets
+		 this in update_window, but no one seems to do that
+		 for frame-based redisplay.)  */
+	      if (current_row->mode_line_p)
+		current_row->y = row;
 	    }
 	}
 
@@ -6416,6 +6424,12 @@ init_display (void)
     f->terminal = t;
 
     t->reference_count++;
+#ifdef MSDOS
+    f->output_data.tty->display_info = &the_only_display_info;
+#else
+    if (f->output_method == output_termcap)
+      create_tty_output (f);
+#endif
     t->display_info.tty->top_frame = selected_frame;
     change_frame_size (XFRAME (selected_frame),
                        FrameRows (t->display_info.tty),
@@ -6583,13 +6597,29 @@ It is up to you to set this variable if your terminal can do that.  */);
 
   DEFVAR_LISP ("initial-window-system", &Vinitial_window_system,
 	       doc: /* Name of the window system that Emacs uses for the first frame.
-The value is a symbol--for instance, `x' for X windows.
-The value is nil if Emacs is using a text-only terminal.  */);
+The value is a symbol:
+ nil for a termcap frame (a character-only terminal),
+ 'x' for an Emacs frame that is really an X window,
+ 'w32' for an Emacs frame that is a window on MS-Windows display,
+ 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ 'pc' for a direct-write MS-DOS frame.
+
+Use of this variable as a boolean is deprecated.  Instead,
+use `display-graphic-p' or any of the other `display-*-p'
+predicates which report frame's specific UI-related capabilities.  */);
 
   DEFVAR_KBOARD ("window-system", Vwindow_system,
 		 doc: /* Name of window system through which the selected frame is displayed.
-The value is a symbol--for instance, `x' for X windows.
-The value is nil if the selected frame is on a text-only-terminal.  */);
+The value is a symbol:
+ nil for a termcap frame (a character-only terminal),
+ 'x' for an Emacs frame that is really an X window,
+ 'w32' for an Emacs frame that is a window on MS-Windows display,
+ 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ 'pc' for a direct-write MS-DOS frame.
+
+Use of this variable as a boolean is deprecated.  Instead,
+use `display-graphic-p' or any of the other `display-*-p'
+predicates which report frame's specific UI-related capabilities.  */);
 
   DEFVAR_LISP ("window-system-version", &Vwindow_system_version,
 	       doc: /* The version number of the window system in use.

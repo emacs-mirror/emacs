@@ -171,21 +171,9 @@
   ;; string delimiters.  Fixme: Is there a better way?
   ;; First avoid a sequence preceded by an odd number of backslashes.
   (syntax-propertize-rules
-   (;; (rx (not (any ?\\))
-    ;;     ?\\ (* (and ?\\ ?\\))
-    ;;     (group (syntax string-quote))
-    ;;     (backref 1)
-    ;;     (group (backref 1)))
-    ;; ¡Backrefs don't work in syntax-propertize-rules!
-    "[^\\]\\\\\\(\\\\\\\\\\)*\\(?:''\\('\\)\\|\"\"\\(?2:\"\\)\\)"
-    (2 "\""))                           ; dummy
-   (;; (rx (optional (group (any "uUrR"))) ; prefix gets syntax property
-    ;;     (optional (any "rR"))           ; possible second prefix
-    ;;     (group (syntax string-quote))   ; maybe gets property
-    ;;     (backref 2)                     ; per first quote
-    ;;     (group (backref 2)))            ; maybe gets property
-    ;; ¡Backrefs don't work in syntax-propertize-rules!
-    "\\([RUru]\\)?[Rr]?\\(?:\\('\\)'\\('\\)\\|\\(?2:\"\\)\"\\(?3:\"\\)\\)"
+   (;; ¡Backrefs don't work in syntax-propertize-rules!
+    (concat "\\(?:\\([RUru]\\)[Rr]?\\|^\\|[^\\]\\(?:\\\\.\\)*\\)" ;Prefix.
+              "\\(?:\\('\\)'\\('\\)\\|\\(?2:\"\\)\"\\(?3:\"\\)\\)")
     (3 (ignore (python-quote-syntax))))
    ;; This doesn't really help.
    ;;((rx (and ?\\ (group ?\n))) (1 " "))
@@ -2605,7 +2593,7 @@ This function is appropriate for `comint-output-filter-functions'."
               overlay-arrow-string "=>"
               python-pdbtrack-is-tracking-p t)
         (set-marker overlay-arrow-position
-                    (save-excursion (beginning-of-line) (point))
+                    (line-beginning-position)
                     (current-buffer)))
     (setq overlay-arrow-position nil
           python-pdbtrack-is-tracking-p nil)))
@@ -2891,5 +2879,4 @@ filter."
 (provide 'python)
 (provide 'python-21)
 
-;; arch-tag: 6fce1d99-a704-4de9-ba19-c6e4912b0554
 ;;; python.el ends here

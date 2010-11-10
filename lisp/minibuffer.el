@@ -42,7 +42,7 @@
 ;;   provide the start info but not the end info in
 ;;   completion-base-position.
 ;; - quoting is problematic.  E.g. the double-dollar quoting used in
-;;   substitie-in-file-name (and hence read-file-name-internal) bumps
+;;   substitute-in-file-name (and hence read-file-name-internal) bumps
 ;;   into various bugs:
 ;; - choose-completion doesn't know how to quote the text it inserts.
 ;;   E.g. it fails to double the dollars in file-name completion, or
@@ -508,10 +508,11 @@ Moves point to the end of the new text."
       (setq suffix-len (1+ suffix-len)))
     (unless (zerop suffix-len)
       (setq end (- end suffix-len))
-      (setq newtext (substring newtext 0 (- suffix-len)))))
-  (goto-char beg)
-  (insert newtext)
-  (delete-region (point) (+ (point) (- end beg))))
+      (setq newtext (substring newtext 0 (- suffix-len))))
+    (goto-char beg)
+    (insert newtext)
+    (delete-region (point) (+ (point) (- end beg)))
+    (forward-char suffix-len)))
 
 (defcustom completion-cycle-threshold nil
   "Number of completion candidates below which cycling is used.
@@ -524,6 +525,10 @@ candidates than this number."
   :type '(choice (const :tag "No cycling" nil)
           (const :tag "Always cycle" t)
           (integer :tag "Threshold")))
+
+(defvar completion-all-sorted-completions nil)
+(make-variable-buffer-local 'completion-all-sorted-completions)
+(defvar completion-cycling nil)
 
 (defun completion--do-completion (&optional try-completion-function)
   "Do the completion and return a summary of what happened.
@@ -557,7 +562,7 @@ E = after completion we now have an Exact match.
      ((eq t comp)
       (minibuffer-hide-completions)
       (goto-char (field-end))
-      (minibuffer--bitset nil nil t)) ;Exact and unique match.
+      (minibuffer--bitset nil nil t))   ;Exact and unique match.
      (t
       ;; `completed' should be t if some completion was done, which doesn't
       ;; include simply changing the case of the entered string.  However,
@@ -577,11 +582,11 @@ E = after completion we now have an Exact match.
 	(forward-char (- comp-pos (length completion)))
 
         (if (not (or unchanged completed))
-	   ;; The case of the string changed, but that's all.  We're not sure
-	   ;; whether this is a unique completion or not, so try again using
-	   ;; the real case (this shouldn't recurse again, because the next
-	   ;; time try-completion will return either t or the exact string).
-           (completion--do-completion try-completion-function)
+            ;; The case of the string changed, but that's all.  We're not sure
+            ;; whether this is a unique completion or not, so try again using
+            ;; the real case (this shouldn't recurse again, because the next
+            ;; time try-completion will return either t or the exact string).
+            (completion--do-completion try-completion-function)
 
           ;; It did find a match.  Do we match some possibility exactly now?
           (let ((exact (test-completion completion
@@ -604,35 +609,34 @@ E = after completion we now have an Exact match.
                                          ""))
                                    comp-pos)))
                    (completion-all-sorted-completions))))
-            (setq completion-all-sorted-completions nil)
+            (completion--flush-all-sorted-completions)
             (cond
-             ((and (not (ignore-errors
+             ((and (consp (cdr comps)) ;; There's something to cycle.
+                   (not (ignore-errors
                           ;; This signal an (intended) error if comps is too
                           ;; short or if completion-cycle-threshold is t.
-                          (consp (nthcdr completion-cycle-threshold comps))))
-                   ;; More than 1, so there's something to cycle.
-                   (consp (cdr comps)))
+                          (consp (nthcdr completion-cycle-threshold comps)))))
               ;; Fewer than completion-cycle-threshold remaining
               ;; completions: let's cycle.
               (setq completed t exact t)
               (setq completion-all-sorted-completions comps)
               (minibuffer-force-complete))
              (completed
-                ;; We could also decide to refresh the completions,
-                ;; if they're displayed (and assuming there are
-                ;; completions left).
+              ;; We could also decide to refresh the completions,
+              ;; if they're displayed (and assuming there are
+              ;; completions left).
               (minibuffer-hide-completions))
-              ;; Show the completion table, if requested.
-               ((not exact)
-                (if (case completion-auto-help
-                      (lazy (eq this-command last-command))
-                      (t completion-auto-help))
-                    (minibuffer-completion-help)
-                  (minibuffer-message "Next char not unique")))
-               ;; If the last exact completion and this one were the same, it
-               ;; means we've already given a "Next char not unique" message
-               ;; and the user's hit TAB again, so now we give him help.
-               ((eq this-command last-command)
+             ;; Show the completion table, if requested.
+             ((not exact)
+              (if (case completion-auto-help
+                    (lazy (eq this-command last-command))
+                    (t completion-auto-help))
+                  (minibuffer-completion-help)
+                (minibuffer-message "Next char not unique")))
+             ;; If the last exact completion and this one were the same, it
+             ;; means we've already given a "Next char not unique" message
+             ;; and the user's hit TAB again, so now we give him help.
+             ((eq this-command last-command)
               (if completion-auto-help (minibuffer-completion-help))))
 
             (minibuffer--bitset completed t exact))))))))
@@ -647,7 +651,7 @@ scroll the window of possible completions."
   ;; If the previous command was not this,
   ;; mark the completion buffer obsolete.
   (unless (eq this-command last-command)
-    (setq completion-all-sorted-completions nil)
+    (completion--flush-all-sorted-completions)
     (setq minibuffer-scroll-window nil))
 
   (cond
@@ -663,7 +667,7 @@ scroll the window of possible completions."
 	    (scroll-other-window))
         nil)))
    ;; If we're cycling, keep on cycling.
-   (completion-all-sorted-completions
+   ((and completion-cycling completion-all-sorted-completions)
     (minibuffer-force-complete)
     t)
    (t (case (completion--do-completion)
@@ -674,10 +678,8 @@ scroll the window of possible completions."
                t)
         (t     t)))))
 
-(defvar completion-all-sorted-completions nil)
-(make-variable-buffer-local 'completion-all-sorted-completions)
-
 (defun completion--flush-all-sorted-completions (&rest ignore)
+  (setq completion-cycling nil)
   (setq completion-all-sorted-completions nil))
 
 (defun completion-all-sorted-completions ()
@@ -719,6 +721,7 @@ Repeated uses step through the possible completions."
          (all (completion-all-sorted-completions)))
     (if (not (consp all))
         (minibuffer-message (if all "No more completions" "No completions"))
+      (setq completion-cycling t)
       (goto-char end)
       (insert (car all))
       (delete-region (+ start (cdr (last all))) end)
@@ -1130,6 +1133,7 @@ variables.")
   (interactive)
   (message "Making completion list...")
   (lexical-let* ((start (field-beginning))
+                 (end (field-end))
 		 (string (field-string))
 		 (completions (completion-all-completions
 			       string
@@ -1161,10 +1165,12 @@ variables.")
                             completions)))
             (with-current-buffer standard-output
               (set (make-local-variable 'completion-base-position)
-                   ;; FIXME: We should provide the END part as well, but
-                   ;; currently completion-all-completions does not give
-                   ;; us the necessary information.
-                   (list (+ start base-size) nil)))
+                   (list (+ start base-size)
+                         ;; FIXME: We should pay attention to completion
+                         ;; boundaries here, but currently
+                         ;; completion-all-completions does not give us the
+                         ;; necessary information.
+                         end)))
             (display-completion-list completions)))
 
       ;; If there are no completions, or if the current input is already the

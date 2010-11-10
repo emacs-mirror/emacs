@@ -186,72 +186,66 @@ them, and try again." >&2
   exit 1
 fi
 
-### Find where to run Emacs.
-if [ $check = yes ];
-then
-  ### Check for .elc files with no corresponding .el file.
-  ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
-	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
-	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
-	leim/[a-z]*/[a-z]*.el | sed 's/\.el$/.elc/' > /tmp/el
-  ls -1 lisp/[a-zA-Z]*.elc lisp/[a-z]*/[a-zA-Z0-9]*.elc \
-	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc \
-	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc \
-	leim/[a-z]*/[a-z]*.elc > /tmp/elc
-  bogosities="`comm -13 /tmp/el /tmp/elc`"
-  if [ "${bogosities}" != "" ]; then
-    echo "The following .elc files have no corresponding .el files:"
-    echo "${bogosities}"
-  fi
-  rm -f /tmp/el /tmp/elc
-
-  ### Check for .el files with no corresponding .elc file.
+if [ $check = yes ]; then
   ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
 	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
 	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
 	leim/[a-z]*/[a-z]*.el > /tmp/el
+
   ls -1 lisp/[a-zA-Z]*.elc lisp/[a-z]*/[a-zA-Z0-9]*.elc \
-	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
-	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
-	leim/[a-z]*/[a-z]*.elc | sed 's/\.elc$/.el/' > /tmp/elc
-  losers="`comm -23 /tmp/el /tmp/elc`"
+	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc \
+	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc \
+	leim/[a-z]*/[a-z]*.elc > /tmp/elc
+
+  ## Check for .elc files with no corresponding .el file.
+  sed 's/\.el$/.elc/' /tmp/el > /tmp/elelc
+
+  bogosities="`comm -13 /tmp/elelc /tmp/elc`"
+  if [ x"${bogosities}" != x"" ]; then
+    echo "The following .elc files have no corresponding .el files:"
+    echo "${bogosities}"
+  fi
+
+  ### Check for .el files with no corresponding .elc file.
+  sed 's/\.elc$/.el/' /tmp/elc > /tmp/elcel
+  losers="`comm -23 /tmp/el /tmp/elcel`"
+
+  rm -f /tmp/el /tmp/elc /tmp/elcel /tmp/elelc
+
   bogosities=
   for file in $losers; do
-    if ! grep -q "no-byte-compile: t" $file; then
-      case $file in
-	site-init.el | site-load.el | site-start.el | default.el)
-	  ;;
-	*)
-	  bogosities="$file $bogosities"
-	  ;;
-      esac
-    fi
+    grep -q "no-byte-compile: t" $file && continue
+    case $file in
+      site-init.el | site-load.el | site-start.el | default.el) continue ;;
+    esac
+
+    bogosities="$file $bogosities"
+
   done
   if [ x"${bogosities}" != x"" ]; then
     echo "The following .el files have no corresponding .elc files:"
     echo "${bogosities}"
   fi
-  rm -f /tmp/el /tmp/elc
 fi
 
-### Make sure configure is newer than configure.in.
-if [ "x`ls -t configure configure.in | sed q`" != "xconfigure" ]; then
-  echo "\`./configure.in' is newer than \`./configure'" >&2
-  echo "Running autoconf" >&2
-  autoconf || { x=$?; echo Autoconf FAILED! >&2; exit $x; }
-fi
+if [ $update = yes ]; then
 
-### Make sure src/stamp-h.in is newer than configure.in.
-if [ "x`ls -t src/stamp-h.in configure.in | sed q`" != "xsrc/stamp-h.in" ]; then
-  echo "\`./configure.in' is newer than \`./src/stamp-h.in'" >&2
-  echo "Running autoheader" >&2
-  autoheader || { x=$?; echo Autoheader FAILED! >&2; exit $x; }
-  rm -f src/stamp-h.in
-  echo timestamp > src/stamp-h.in
-fi
+  ## Make sure configure is newer than configure.in.
+  if [ "x`ls -t configure configure.in | sed q`" != "xconfigure" ]; then
+    echo "\`./configure.in' is newer than \`./configure'" >&2
+    echo "Running autoconf" >&2
+    autoconf || { x=$?; echo Autoconf FAILED! >&2; exit $x; }
+  fi
 
-if [ $update = yes ];
-then
+  ## Make sure src/stamp-h.in is newer than configure.in.
+  if [ "x`ls -t src/stamp-h.in configure.in | sed q`" != "xsrc/stamp-h.in" ]; then
+    echo "\`./configure.in' is newer than \`./src/stamp-h.in'" >&2
+    echo "Running autoheader" >&2
+    autoheader || { x=$?; echo Autoheader FAILED! >&2; exit $x; }
+    rm -f src/stamp-h.in
+    echo timestamp > src/stamp-h.in
+  fi
+
   echo "Updating Info files"
   (cd doc/emacs; make info)
   (cd doc/misc; make info)
@@ -268,19 +262,7 @@ then
 
   echo "Recompiling Lisp files"
   $EMACS -batch -f batch-byte-recompile-directory lisp leim
-fi
-
-## What is this file for?  It goes in srcdir, not the tarfile.
-## Why does it exclude term/ ?
-echo "Making lisp/MANIFEST"
-
-files=`find lisp -type f -name '*.el'`
-for file in $files; do
-   case "$file" in
-     */subdirs.el|*/default.el|*/loaddefs.el|*/term/*) continue ;;
-   esac
-   sed -n 's/^;;; //p; q' $file
-done | sort > lisp/MANIFEST
+fi                              # $update = yes
 
 echo "Creating staging directory: \`${tempparent}'"
 

@@ -1,7 +1,8 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -547,22 +548,22 @@ static void
 x_update_window_begin (struct window *w)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  struct x_display_info *display_info = FRAME_X_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 
   updated_window = w;
   set_output_cursor (&w->cursor);
 
   BLOCK_INPUT;
 
-  if (f == display_info->mouse_face_mouse_frame)
+  if (f == hlinfo->mouse_face_mouse_frame)
     {
       /* Don't do highlighting for mouse motion during the update.  */
-      display_info->mouse_face_defer = 1;
+      hlinfo->mouse_face_defer = 1;
 
       /* If F needs to be redrawn, simply forget about any prior mouse
 	 highlighting.  */
       if (FRAME_GARBAGED_P (f))
-	display_info->mouse_face_window = Qnil;
+	hlinfo->mouse_face_window = Qnil;
     }
 
   UNBLOCK_INPUT;
@@ -602,7 +603,7 @@ x_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 static void
 x_update_window_end (struct window *w, int cursor_on_p, int mouse_face_overwritten_p)
 {
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (w->frame));
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
 
   if (!w->pseudo_window_p)
     {
@@ -623,9 +624,9 @@ x_update_window_end (struct window *w, int cursor_on_p, int mouse_face_overwritt
      XTframe_up_to_date to redisplay the mouse highlight.  */
   if (mouse_face_overwritten_p)
     {
-      dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-      dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-      dpyinfo->mouse_face_window = Qnil;
+      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+      hlinfo->mouse_face_window = Qnil;
     }
 
   updated_window = NULL;
@@ -639,7 +640,7 @@ static void
 x_update_end (struct frame *f)
 {
   /* Mouse highlight may be displayed again.  */
-  FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
+  MOUSE_HL_INFO (f)->mouse_face_defer = 0;
 
 #ifndef XFlush
   BLOCK_INPUT;
@@ -658,17 +659,17 @@ XTframe_up_to_date (struct frame *f)
 {
   if (FRAME_X_P (f))
     {
-      struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 
-      if (dpyinfo->mouse_face_deferred_gc
-	  || f == dpyinfo->mouse_face_mouse_frame)
+      if (hlinfo->mouse_face_deferred_gc
+	  || f == hlinfo->mouse_face_mouse_frame)
 	{
 	  BLOCK_INPUT;
-	  if (dpyinfo->mouse_face_mouse_frame)
-	    note_mouse_highlight (dpyinfo->mouse_face_mouse_frame,
-				  dpyinfo->mouse_face_mouse_x,
-				  dpyinfo->mouse_face_mouse_y);
-	  dpyinfo->mouse_face_deferred_gc = 0;
+	  if (hlinfo->mouse_face_mouse_frame)
+	    note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
+				  hlinfo->mouse_face_mouse_x,
+				  hlinfo->mouse_face_mouse_y);
+	  hlinfo->mouse_face_deferred_gc = 0;
 	  UNBLOCK_INPUT;
 	}
     }
@@ -969,7 +970,7 @@ x_set_mouse_face_gc (struct glyph_string *s)
   struct face *face;
 
   /* What face has to be used last for the mouse face?  */
-  face_id = FRAME_X_DISPLAY_INFO (s->f)->mouse_face_face_id;
+  face_id = MOUSE_HL_INFO (s->f)->mouse_face_face_id;
   face = FACE_FROM_ID (s->f, face_id);
   if (face == NULL)
     face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
@@ -1328,6 +1329,83 @@ x_draw_composite_glyph_string_foreground (struct glyph_string *s)
     }
 }
 
+
+/* Draw the foreground of glyph string S for glyphless characters.  */
+
+static void
+x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
+{
+  struct glyph *glyph = s->first_glyph;
+  XChar2b char2b[8];
+  int x, i, j;
+
+  /* If first glyph of S has a left box line, start drawing the text
+     of S to the right of that box line.  */
+  if (s->face && s->face->box != FACE_NO_BOX
+      && s->first_glyph->left_box_line_p)
+    x = s->x + eabs (s->face->box_line_width);
+  else
+    x = s->x;
+
+  s->char2b = char2b;
+
+  for (i = 0; i < s->nchars; i++, glyph++)
+    {
+      char buf[7], *str = NULL;
+      int len = glyph->u.glyphless.len;
+
+      if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_ACRONYM)
+	{
+	  if (len > 0
+	      && CHAR_TABLE_P (Vglyphless_char_display)
+	      && (CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (Vglyphless_char_display))
+		  >= 1))
+	    {
+	      Lisp_Object acronym
+		= (! glyph->u.glyphless.for_no_font
+		   ? CHAR_TABLE_REF (Vglyphless_char_display,
+				     glyph->u.glyphless.ch)
+		   : XCHAR_TABLE (Vglyphless_char_display)->extras[0]);
+	      if (STRINGP (acronym))
+		str = (char *) SDATA (acronym);
+	    }
+	}
+      else if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEXA_CODE)
+	{
+	  sprintf ((char *) buf, "%0*X",
+		   glyph->u.glyphless.ch < 0x10000 ? 4 : 6,
+		   glyph->u.glyphless.ch);
+	  str = buf;
+	}
+
+      if (str)
+	{
+	  int upper_len = (len + 1) / 2;
+	  unsigned code;
+
+	  /* It is assured that all LEN characters in STR is ASCII.  */
+	  for (j = 0; j < len; j++)
+	    {
+	      code = s->font->driver->encode_char (s->font, str[j]);
+	      STORE_XCHAR2B (char2b + j, code >> 8, code & 0xFF);
+	    }
+	  s->font->driver->draw (s, 0, upper_len,
+				 x + glyph->slice.glyphless.upper_xoff,
+				 s->ybase + glyph->slice.glyphless.upper_yoff,
+				 0);
+	  s->font->driver->draw (s, upper_len, len,
+				 x + glyph->slice.glyphless.lower_xoff,
+				 s->ybase + glyph->slice.glyphless.lower_yoff,
+				 0);
+	}
+      if (glyph->u.glyphless.method != GLYPHLESS_DISPLAY_THIN_SPACE)
+	XDrawRectangle (s->display, s->window, s->gc,
+			x, s->ybase - glyph->ascent,
+			glyph->pixel_width - 1,
+			glyph->ascent + glyph->descent - 1);
+      x += glyph->pixel_width;
+   }
+}
 
 #ifdef USE_X_TOOLKIT
 
@@ -2653,6 +2731,14 @@ x_draw_glyph_string (struct glyph_string *s)
       else
 	x_draw_glyph_string_background (s, 1);
       x_draw_composite_glyph_string_foreground (s);
+      break;
+
+    case GLYPHLESS_GLYPH:
+      if (s->for_overlaps)
+	s->background_filled_p = 1;
+      else
+	x_draw_glyph_string_background (s, 1);
+      x_draw_glyphless_glyph_string_foreground (s);
       break;
 
     default:
@@ -5702,6 +5788,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
   struct frame *f = NULL;
   struct coding_system coding;
   XEvent event = *eventp;
+  Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
 
   *finish = X_EVENT_NORMAL;
 
@@ -6151,12 +6238,12 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
 
       /* If mouse-highlight is an integer, input clears out
 	 mouse highlighting.  */
-      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
 	  && (f == 0
-	      || !EQ (f->tool_bar_window, dpyinfo->mouse_face_window)))
+	      || !EQ (f->tool_bar_window, hlinfo->mouse_face_window)))
         {
-          clear_mouse_face (dpyinfo);
-          dpyinfo->mouse_face_hidden = 1;
+          clear_mouse_face (hlinfo);
+          hlinfo->mouse_face_hidden = 1;
         }
 
 #if defined USE_MOTIF && defined USE_TOOLKIT_SCROLL_BARS
@@ -6513,12 +6600,12 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
       f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
       if (f)
         {
-          if (f == dpyinfo->mouse_face_mouse_frame)
+          if (f == hlinfo->mouse_face_mouse_frame)
             {
               /* If we move outside the frame, then we're
                  certainly no longer on any text in the frame.  */
-              clear_mouse_face (dpyinfo);
-              dpyinfo->mouse_face_mouse_frame = 0;
+              clear_mouse_face (hlinfo);
+              hlinfo->mouse_face_mouse_frame = 0;
             }
 
           /* Generate a nil HELP_EVENT to cancel a help-echo.
@@ -6551,10 +6638,10 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
         else
           f = x_window_to_frame (dpyinfo, event.xmotion.window);
 
-        if (dpyinfo->mouse_face_hidden)
+        if (hlinfo->mouse_face_hidden)
           {
-            dpyinfo->mouse_face_hidden = 0;
-            clear_mouse_face (dpyinfo);
+            hlinfo->mouse_face_hidden = 0;
+            clear_mouse_face (hlinfo);
           }
 
 #ifdef USE_GTK
@@ -6609,7 +6696,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
 
             /* If we move outside the frame, then we're
                certainly no longer on any text in the frame.  */
-            clear_mouse_face (dpyinfo);
+            clear_mouse_face (hlinfo);
           }
 
         /* If the contents of the global variable help_echo_string
@@ -7669,44 +7756,43 @@ x_connection_closed (Display *dpy, const char *error_message)
 	delete_frame (frame, Qnoelisp);
       }
 
-  /* We have to close the display to inform Xt that it doesn't
-     exist anymore.  If we don't, Xt will continue to wait for
-     events from the display.  As a consequence, a sequence of
-
-     M-x make-frame-on-display RET :1 RET
-     ...kill the new frame, so that we get an IO error...
-     M-x make-frame-on-display RET :1 RET
-
-     will indefinitely wait in Xt for events for display `:1', opened
-     in the first call to make-frame-on-display.
-
-     Closing the display is reported to lead to a bus error on
-     OpenWindows in certain situations.  I suspect that is a bug
-     in OpenWindows.  I don't know how to circumvent it here.  */
-
+  /* If DPYINFO is null, this means we didn't open the display in the
+     first place, so don't try to close it.  */
   if (dpyinfo)
     {
 #ifdef USE_X_TOOLKIT
-      /* If DPYINFO is null, this means we didn't open the display
-	 in the first place, so don't try to close it.  */
-      {
-	fatal_error_signal_hook = x_fatal_error_signal;
-	XtCloseDisplay (dpy);
-	fatal_error_signal_hook = NULL;
-      }
-#endif
+      /* We have to close the display to inform Xt that it doesn't
+	 exist anymore.  If we don't, Xt will continue to wait for
+	 events from the display.  As a consequence, a sequence of
+
+	 M-x make-frame-on-display RET :1 RET
+	 ...kill the new frame, so that we get an IO error...
+	 M-x make-frame-on-display RET :1 RET
+
+	 will indefinitely wait in Xt for events for display `:1',
+	 opened in the first call to make-frame-on-display.
+
+	 Closing the display is reported to lead to a bus error on
+	 OpenWindows in certain situations.  I suspect that is a bug
+	 in OpenWindows.  I don't know how to circumvent it here.  */
+      fatal_error_signal_hook = x_fatal_error_signal;
+      XtCloseDisplay (dpy);
+      fatal_error_signal_hook = NULL;
+#endif /* USE_X_TOOLKIT */
 
 #ifdef USE_GTK
-      /* Due to bugs in some Gtk+ versions, just exit here if this
-         is the last display/terminal. */
-      if (terminal_list->next_terminal == NULL)
-        {
-          fprintf (stderr, "%s\n", error_msg);
-          Fkill_emacs (make_number (70));
-          /* NOTREACHED */
-        }
-      xg_display_close (dpyinfo->display);
-#endif
+      /* A long-standing GTK bug prevents proper disconnect handling
+	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Once,
+	 the resulting Glib error message loop filled a user's disk.
+	 To avoid this, kill Emacs unconditionally on disconnect.  */
+      shut_down_emacs (0, 0, Qnil);
+      fprintf (stderr, "%s\n\
+When compiled with GTK, Emacs cannot recover from X disconnects.\n\
+This is a GTK bug: https://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
+For details, see etc/PROBLEMS.\n",
+	       error_msg);
+      abort ();
+#endif /* USE_GTK */
 
       /* Indicate that this display is dead.  */
       dpyinfo->display = 0;
@@ -9300,6 +9386,7 @@ x_free_frame_resources (struct frame *f)
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Lisp_Object bar;
   struct scroll_bar *b;
+  Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
 
   BLOCK_INPUT;
 
@@ -9393,15 +9480,15 @@ x_free_frame_resources (struct frame *f)
   if (f == dpyinfo->x_highlight_frame)
     dpyinfo->x_highlight_frame = 0;
 
-  if (f == dpyinfo->mouse_face_mouse_frame)
+  if (f == hlinfo->mouse_face_mouse_frame)
     {
-      dpyinfo->mouse_face_beg_row
-	= dpyinfo->mouse_face_beg_col = -1;
-      dpyinfo->mouse_face_end_row
-	= dpyinfo->mouse_face_end_col = -1;
-      dpyinfo->mouse_face_window = Qnil;
-      dpyinfo->mouse_face_deferred_gc = 0;
-      dpyinfo->mouse_face_mouse_frame = 0;
+      hlinfo->mouse_face_beg_row
+	= hlinfo->mouse_face_beg_col = -1;
+      hlinfo->mouse_face_end_row
+	= hlinfo->mouse_face_end_col = -1;
+      hlinfo->mouse_face_window = Qnil;
+      hlinfo->mouse_face_deferred_gc = 0;
+      hlinfo->mouse_face_mouse_frame = 0;
     }
 
   UNBLOCK_INPUT;
@@ -9778,6 +9865,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   struct terminal *terminal;
   struct x_display_info *dpyinfo;
   XrmDatabase xrdb;
+  Mouse_HLInfo *hlinfo;
 
   BLOCK_INPUT;
 
@@ -9908,6 +9996,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   dpyinfo = (struct x_display_info *) xmalloc (sizeof (struct x_display_info));
   memset (dpyinfo, 0, sizeof *dpyinfo);
+  hlinfo = &dpyinfo->mouse_highlight;
 
   terminal = x_create_terminal (dpyinfo);
 
@@ -10030,16 +10119,16 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->bitmaps_size = 0;
   dpyinfo->bitmaps_last = 0;
   dpyinfo->scratch_cursor_gc = 0;
-  dpyinfo->mouse_face_mouse_frame = 0;
-  dpyinfo->mouse_face_deferred_gc = 0;
-  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-  dpyinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-  dpyinfo->mouse_face_window = Qnil;
-  dpyinfo->mouse_face_overlay = Qnil;
-  dpyinfo->mouse_face_mouse_x = dpyinfo->mouse_face_mouse_y = 0;
-  dpyinfo->mouse_face_defer = 0;
-  dpyinfo->mouse_face_hidden = 0;
+  hlinfo->mouse_face_mouse_frame = 0;
+  hlinfo->mouse_face_deferred_gc = 0;
+  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+  hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
+  hlinfo->mouse_face_window = Qnil;
+  hlinfo->mouse_face_overlay = Qnil;
+  hlinfo->mouse_face_mouse_x = hlinfo->mouse_face_mouse_y = 0;
+  hlinfo->mouse_face_defer = 0;
+  hlinfo->mouse_face_hidden = 0;
   dpyinfo->x_focus_frame = 0;
   dpyinfo->x_focus_event_frame = 0;
   dpyinfo->x_highlight_frame = 0;
@@ -10189,6 +10278,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     = XInternAtom (dpyinfo->display, "_NET_WM_ICON_NAME", False);
   dpyinfo->Xatom_net_wm_name
     = XInternAtom (dpyinfo->display, "_NET_WM_NAME", False);
+  dpyinfo->Xatom_net_frame_extents  
+    = XInternAtom (dpyinfo->display, "_NET_FRAME_EXTENTS", False);
 
   dpyinfo->x_dnd_atoms_size = 8;
   dpyinfo->x_dnd_atoms_length = 0;
@@ -10682,9 +10773,11 @@ selected window or cursor position is preserved.  */);
   x_mouse_click_focus_ignore_position = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
-    doc: /* What X toolkit scroll bars Emacs uses.
-A value of nil means Emacs doesn't use X toolkit scroll bars.
-Otherwise, value is a symbol describing the X toolkit.  */);
+    doc: /* Which toolkit scroll bars Emacs uses, if any.
+A value of nil means Emacs doesn't use toolkit scroll bars.
+With the X Window system, the value is a symbol describing the
+X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
+With MS Windows, the value is t.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_MOTIF
   Vx_toolkit_scroll_bars = intern_c_string ("motif");
@@ -10750,5 +10843,3 @@ default is nil, which is the same as `super'.  */);
 
 #endif /* HAVE_X_WINDOWS */
 
-/* arch-tag: 6d4e4cb7-abc1-4302-9585-d84dcfb09d0f
-   (do not change this comment) */

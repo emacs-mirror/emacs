@@ -1,7 +1,8 @@
 ;;; dframe --- dedicate frame support modes
 
-;;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;    2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -784,8 +785,8 @@ Must be bound to EVENT."
               (popup-mode-menu event)
             (goto-char (event-closest-point event))
             (beginning-of-line)
-            (forward-char (min 5 (- (save-excursion (end-of-line) (point))
-                                    (save-excursion (beginning-of-line) (point)))))
+            (forward-char (min 5 (- (line-end-position)
+                                    (line-beginning-position))))
             (popup-mode-menu))
           ;; Wait for menu to bail out.  `popup-mode-menu' (and other popup
           ;; menu functions) return immediately.
@@ -991,5 +992,4 @@ mode-line.  This is only useful for non-XEmacs."
 
 (provide 'dframe)
 
-;; arch-tag: df9b91b6-e85e-4a76-a02e-b3cb5b686bd4
 ;;; dframe.el ends here

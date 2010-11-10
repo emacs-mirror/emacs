@@ -7798,7 +7798,7 @@
 
 2008-10-26  James TD Smith  <ahktenzero@mohorovi.cc>
 
-	* org.el (org-add-log-setup): Only skip drawers if the are
+	* org.el (org-add-log-setup): Only skip drawers if they are
 	immediately after the scheduling keywords.
 
 	* org-clock.el (org-clock-in-switch-to-state): Allow this to be a

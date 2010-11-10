@@ -1,7 +1,7 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua
@@ -300,8 +300,7 @@ is not turned on."
   :type 'boolean
   :group 'cua)
 
-(defcustom cua-prefix-override-inhibit-delay
-  (if (featurep 'lisp-float-type) (/ (float 1) (float 5)) nil)
+(defcustom cua-prefix-override-inhibit-delay 0.2
   "If non-nil, time in seconds to delay before overriding prefix key.
 If there is additional input within this time, the prefix key is
 used as a normal prefix key.  So typing a key sequence quickly will
@@ -1637,5 +1636,4 @@ shifted movement key, set `cua-highlight-region-shift-only'."
 
 (provide 'cua-base)
 
-;; arch-tag: 21fb6289-ba25-4fee-bfdc-f9fb351acf05
 ;;; cua-base.el ends here

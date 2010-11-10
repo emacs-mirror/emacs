@@ -1,7 +1,8 @@
 /* Graphical user interface functions for the Microsoft W32 API.
-   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4510,7 +4511,8 @@ DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
 
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
-       doc: /* Internal function called by `color-defined-p', which see.  */)
+       doc: /* Internal function called by `color-defined-p', which see.
+\(Note that the Nextstep version of this function ignores FRAME.)  */)
   (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
@@ -4850,11 +4852,12 @@ x_display_info_for_name (Lisp_Object name)
 }
 
 DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
-       1, 3, 0, doc: /* Open a connection to a server.
+       1, 3, 0, doc: /* Open a connection to a display server.
 DISPLAY is the name of the display to connect to.
 Optional second arg XRM-STRING is a string of resources in xrdb format.
 If the optional third arg MUST-SUCCEED is non-nil,
-terminate Emacs if we can't open the connection.  */)
+terminate Emacs if we can't open the connection.
+\(In the Nextstep version, the last two arguments are currently ignored.)  */)
   (Lisp_Object display, Lisp_Object xrm_string, Lisp_Object must_succeed)
 {
   unsigned char *xrm_option;
@@ -4974,7 +4977,17 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
 }
 
 DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
-       doc: /* This is a noop on W32 systems.  */)
+       doc: /* If ON is non-nil, report X errors as soon as the erring request is made.
+This function only has an effect on X Windows.  With MS Windows, it is
+defined but does nothing.
+
+If ON is nil, allow buffering of requests.
+Turning on synchronization prohibits the Xlib routines from buffering
+requests and seriously degrades performance, but makes debugging much
+easier.
+The optional second argument TERMINAL specifies which display to act on.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If TERMINAL is omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object on, Lisp_Object display)
 {
   return Qnil;
@@ -4989,11 +5002,12 @@ DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
 DEFUN ("x-change-window-property", Fx_change_window_property,
        Sx_change_window_property, 2, 6, 0,
        doc: /* Change window property PROP to VALUE on the X window of FRAME.
-VALUE may be a string or a list of conses, numbers and/or strings.
-If an element in the list is a string, it is converted to
-an Atom and the value of the Atom is used.  If an element is a cons,
-it is converted to a 32 bit number where the car is the 16 top bits and the
-cdr is the lower 16 bits.
+PROP must be a string.  VALUE may be a string or a list of conses,
+numbers and/or strings.  If an element in the list is a string, it is
+converted to an atom and the value of the Atom is used.  If an element
+is a cons, it is converted to a 32 bit number where the car is the 16
+top bits and the cdr is the lower 16 bits.
+
 FRAME nil or omitted means use the selected frame.
 If TYPE is given and non-nil, it is the name of the type of VALUE.
 If TYPE is not given or nil, the type is STRING.
@@ -5001,9 +5015,7 @@ FORMAT gives the size in bits of each element if VALUE is a list.
 It must be one of 8, 16 or 32.
 If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
 If OUTER_P is non-nil, the property is changed for the outer X window of
-FRAME.  Default is to change on the edit X window.
-
-Value is VALUE.  */)
+FRAME.  Default is to change on the edit X window.  */)
   (Lisp_Object prop, Lisp_Object value, Lisp_Object frame, Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
 #if 0 /* TODO : port window properties to W32 */
@@ -5057,9 +5069,20 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
 DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
        1, 2, 0,
        doc: /* Value is the value of window property PROP on FRAME.
-If FRAME is nil or omitted, use the selected frame.  Value is nil
-if FRAME hasn't a property with name PROP or if PROP has no string
-value.  */)
+If FRAME is nil or omitted, use the selected frame.
+
+On MS Windows, this function only accepts the PROP and FRAME arguments.
+
+On X Windows, the following optional arguments are also accepted:
+If TYPE is nil or omitted, get the property as a string.
+Otherwise TYPE is the name of the atom that denotes the type expected.
+If SOURCE is non-nil, get the property on that window instead of from
+FRAME.  The number 0 denotes the root window.
+If DELETE_P is non-nil, delete the property after retreiving it.
+If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
+
+Value is nil if FRAME hasn't a property with name PROP or if PROP has
+no value of TYPE (always string in the MS Windows case).  */)
   (Lisp_Object prop, Lisp_Object frame)
 {
 #if 0 /* TODO : port window properties to W32 */
@@ -5634,7 +5657,7 @@ Text larger than the specified size is clipped.  */)
   int root_x, root_y;
   struct buffer *old_buffer;
   struct text_pos pos;
-  int i, width, height;
+  int i, width, height, seen_reversed_p;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
   int count = SPECPDL_INDEX ();
@@ -5764,7 +5787,7 @@ Text larger than the specified size is clipped.  */)
   try_window (FRAME_ROOT_WINDOW (f), pos, 0);
 
   /* Compute width and height of the tooltip.  */
-  width = height = 0;
+  width = height = seen_reversed_p = 0;
   for (i = 0; i < w->desired_matrix->nrows; ++i)
     {
       struct glyph_row *row = &w->desired_matrix->rows[i];
@@ -5778,22 +5801,81 @@ Text larger than the specified size is clipped.  */)
       /* Let the row go over the full width of the frame.  */
       row->full_width_p = 1;
 
-#ifdef TODO /* Investigate why some fonts need more width than is
-	       calculated for some tooltips.  */
-      /* There's a glyph at the end of rows that is use to place
-	 the cursor there.  Don't include the width of this glyph.  */
+      row_width = row->pixel_width;
       if (row->used[TEXT_AREA])
 	{
-	  last = &row->glyphs[TEXT_AREA][row->used[TEXT_AREA] - 1];
-	  row_width = row->pixel_width - last->pixel_width;
-	}
-      else
+	  if (!row->reversed_p)
+	    {
+#ifdef TODO   /* Investigate why some fonts need more width than is
+		 calculated for some tooltips.  */
+
+	      /* There's a glyph at the end of rows that is used to
+		 place the cursor there.  Don't include the width of
+		 this glyph.  */
+	      last = &row->glyphs[TEXT_AREA][row->used[TEXT_AREA] - 1];
+	      if (INTEGERP (last->object))
+		row_width -= last->pixel_width;
 #endif
-	row_width = row->pixel_width;
+	    }
+	  else
+	    {
+	      /* There could be a stretch glyph at the beginning of R2L
+		 rows that is produced by extend_face_to_end_of_line.
+		 Don't count that glyph.  */
+	      struct glyph *g = row->glyphs[TEXT_AREA];
+
+	      if (g->type == STRETCH_GLYPH && INTEGERP (g->object))
+		{
+		  row_width -= g->pixel_width;
+		  seen_reversed_p = 1;
+		}
+	    }
+	}
 
       /* TODO: find why tips do not draw along baseline as instructed.  */
       height += row->height;
       width = max (width, row_width);
+    }
+
+  /* If we've seen partial-length R2L rows, we need to re-adjust the
+     tool-tip frame width and redisplay it again, to avoid over-wide
+     tips due to the stretch glyph that extends R2L lines to full
+     width of the frame.  */
+  if (seen_reversed_p)
+    {
+      /* w->total_cols and FRAME_TOTAL_COLS want the width in columns,
+	 not in pixels.  */
+      width /= WINDOW_FRAME_COLUMN_WIDTH (w);
+      w->total_cols = make_number (width);
+      FRAME_TOTAL_COLS (f) = width;
+      adjust_glyphs (f);
+      clear_glyph_matrix (w->desired_matrix);
+      clear_glyph_matrix (w->current_matrix);
+      try_window (FRAME_ROOT_WINDOW (f), pos, 0);
+      width = height = 0;
+      /* Recompute width and height of the tooltip.  */
+      for (i = 0; i < w->desired_matrix->nrows; ++i)
+	{
+	  struct glyph_row *row = &w->desired_matrix->rows[i];
+	  struct glyph *last;
+	  int row_width;
+
+	  if (!row->enabled_p || !row->displays_text_p)
+	    break;
+	  row->full_width_p = 1;
+	  row_width = row->pixel_width;
+#ifdef TODO /* See above.  */
+	  if (row->used[TEXT_AREA] && !row->reversed_p)
+	    {
+	      last = &row->glyphs[TEXT_AREA][row->used[TEXT_AREA] - 1];
+	      if (INTEGERP (last->object))
+		row_width -= last->pixel_width;
+	    }
+#endif
+
+	  height += row->height;
+	  width = max (width, row_width);
+	}
     }
 
   /* Add the frame's internal border to the width and height the X
@@ -5948,10 +6030,13 @@ typedef struct
 
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
-Use a file selection dialog.
-Select DEFAULT-FILENAME in the dialog's file selection box, if
-specified.  Ensure that file exists if MUSTMATCH is non-nil.
-If ONLY-DIR-P is non-nil, the user can only select directories.  */)
+Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
+selection box, if specified.  If MUSTMATCH is non-nil, the returned file
+or directory must exist.
+
+This function is only defined on MS Windows, and X Windows with the
+Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
+Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   struct frame *f = SELECTED_FRAME ();
@@ -7243,5 +7328,3 @@ w32_last_error (void)
   return GetLastError ();
 }
 
-/* arch-tag: 707589ab-b9be-4638-8cdd-74629cc9b446
-   (do not change this comment) */

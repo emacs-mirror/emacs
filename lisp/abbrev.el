@@ -1,7 +1,7 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev convenience
@@ -57,18 +57,10 @@ define global abbrevs instead."
   "Toggle Abbrev mode in the current buffer.
 With optional argument ARG, turn abbrev mode on if ARG is
 positive, otherwise turn it off.  In Abbrev mode, inserting an
-abbreviation causes it to expand and be replaced by its expansion.")
+abbreviation causes it to expand and be replaced by its expansion."
+  ;; It's defined in C, this stops the d-m-m macro defining it again.
+  :variable abbrev-mode)
 
-(defcustom abbrev-mode nil
-  "Enable or disable Abbrev mode.
-Non-nil means automatically expand abbrevs as they are inserted.
-
-Setting this variable with `setq' changes it for the current buffer.
-Changing it with \\[customize] sets the default value.
-Interactively, use the command `abbrev-mode'
-to enable or disable Abbrev mode in the current buffer."
-  :type 'boolean
-  :group 'abbrev-mode)
 (put 'abbrev-mode 'safe-local-variable 'booleanp)
 
 
@@ -927,5 +919,4 @@ SORTFUN is passed to `sort' to change the default ordering."
 
 (provide 'abbrev)
 
-;; arch-tag: dbd6f3ae-dfe3-40ba-b00f-f9e3ff960df5
 ;;; abbrev.el ends here

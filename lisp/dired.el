@@ -73,7 +73,7 @@ If nil, `dired-listing-switches' is used.")
 ;;;###autoload
 (defvar dired-chown-program
   (purecopy
-  (if (memq system-type '(hpux usg-unix-v irix linux gnu/linux cygwin))
+  (if (memq system-type '(hpux usg-unix-v irix gnu/linux cygwin))
       "chown"
     (if (file-exists-p "/usr/sbin/chown")
 	"/usr/sbin/chown"
@@ -2138,7 +2138,7 @@ Return the position of the beginning of the filename, or nil if none found."
       ;; case-fold-search is nil now, so we can test for capital F:
       (setq used-F (string-match "F" dired-actual-switches)
 	    opoint (point)
-	    eol (save-excursion (end-of-line) (point))
+	    eol (line-end-position)
 	    hidden (and selective-display
 			(save-excursion (search-forward "\r" eol t))))
       (if hidden
@@ -3539,7 +3539,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "416d272299fd4774c47c2f677ee640a4")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "1628b7a7d379fb4da8ae4bf29faad4b5")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4030,5 +4030,4 @@ For absolute symlinks, use \\[dired-do-symlink].
 
 (run-hooks 'dired-load-hook)		; for your customizations
 
-;; arch-tag: e1af7a8f-691c-41a0-aac1-ddd4d3c87517
 ;;; dired.el ends here

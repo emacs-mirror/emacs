@@ -1479,20 +1479,27 @@ used instead of `browse-url-new-window-flag'."
 	   (to (assoc "To" alist))
 	   (subject (assoc "Subject" alist))
 	   (body (assoc "Body" alist))
-	   (rest (delete to (delete subject (delete body alist))))
+	   (rest (delq to (delq subject (delq body alist))))
 	   (to (cdr to))
 	   (subject (cdr subject))
 	   (body (cdr body))
 	   (mail-citation-hook (unless body mail-citation-hook)))
       (if (browse-url-maybe-new-window new-window)
 	  (compose-mail-other-window to subject rest nil
-				     (if body
-					 (list 'insert body)
-				       (list 'insert-buffer (current-buffer))))
+				     (list 'insert-buffer (current-buffer)))
 	(compose-mail to subject rest nil nil
-		      (if body
-			  (list 'insert body)
-			(list 'insert-buffer (current-buffer))))))))
+		      (list 'insert-buffer (current-buffer))))
+      (when body
+	(goto-char (point-min))
+	(unless (or (search-forward (concat "\n" mail-header-separator "\n")
+				    nil 'move)
+		    (bolp))
+	  (insert "\n"))
+	(goto-char (prog1
+		       (point)
+		     (insert (replace-regexp-in-string "\r\n" "\n" body))
+		     (unless (bolp)
+		       (insert "\n"))))))))
 
 ;; --- Random browser ---
 

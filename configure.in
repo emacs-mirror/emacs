@@ -869,7 +869,7 @@ else
 fi
 
 AC_MSG_CHECKING([for -znocombreloc])
-AC_LINK_IFELSE([main(){return 0;}],
+AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
   [AC_MSG_RESULT(yes)],
   LDFLAGS=$late_LDFLAGS
   [AC_MSG_RESULT(no)])
@@ -2952,14 +2952,6 @@ AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
 [if test x$ac_cv_func_tzset = xyes; then
 AC_TRY_RUN([#include <time.h>
-extern char **environ;
-unset_TZ ()
-{
-  char **from, **to;
-  for (to = from = environ; (*to = *from); from++)
-    if (! (to[0][0] == 'T' && to[0][1] == 'Z' && to[0][2] == '='))
-      to++;
-}
 char TZ_GMT0[] = "TZ=GMT0";
 char TZ_PST8[] = "TZ=PST8";
 main()
@@ -2969,13 +2961,13 @@ main()
   if (putenv (TZ_GMT0) != 0)
     exit (1);
   hour_GMT0 = localtime (&now)->tm_hour;
-  unset_TZ ();
+  unsetenv("TZ");
   hour_unset = localtime (&now)->tm_hour;
   if (putenv (TZ_PST8) != 0)
     exit (1);
   if (localtime (&now)->tm_hour == hour_GMT0)
     exit (1);
-  unset_TZ ();
+  unsetenv("TZ");
   if (localtime (&now)->tm_hour != hour_unset)
     exit (1);
   exit (0);
@@ -3712,7 +3704,7 @@ echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
-echo "  Does Emacs use -lgnutls (BROKEN)?                       ${HAVE_GNUTLS}"
+echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
@@ -3743,11 +3735,6 @@ You may need to run \"make install\" with sudo.  The application will fail
 to run if these resources are not installed."
    fi
    echo
-fi
-
-if test "$HAVE_DBUS" = yes && test "${opsys}" != "gnu-linux"; then
-  echo "D-Bus integration has been tested for GNU/Linux only."
-  echo
 fi
 
 

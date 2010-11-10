@@ -1,7 +1,8 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
-;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
@@ -1117,9 +1118,9 @@ the file name."
 	(funcall (symbol-function 'speedbar-add-supported-extension)
 		 spec)
 	(funcall (symbol-function 'speedbar-add-supported-extension)
-		 body)))
-  )
+		 body))))
 
+(defvar ada-font-lock-syntactic-keywords) ; defined below
 
 ;;;###autoload
 (defun ada-mode ()
@@ -2471,8 +2472,7 @@ and the offset."
       (if (and ada-indent-is-separate
 	       (save-excursion
 		 (goto-char (match-end 0))
-		 (ada-goto-next-non-ws (save-excursion (end-of-line)
-						       (point)))
+		 (ada-goto-next-non-ws (point-at-eol))
 		 (looking-at "\\<abstract\\>\\|\\<separate\\>")))
 	  (save-excursion
 	    (ada-goto-stmt-start)
@@ -2579,10 +2579,7 @@ and the offset."
 		       (forward-line -1)
 		       (beginning-of-line)
 		       (while (and (not pos)
-				   (search-forward "--"
-						    (save-excursion
-						      (end-of-line) (point))
-						    t))
+				   (search-forward "--" (point-at-eol) t))
 			 (unless (ada-in-string-p)
 			   (setq pos (point))))
 		       pos))
@@ -2601,7 +2598,7 @@ and the offset."
      ((and (= (char-after) ?#)
 	   (equal ada-which-compiler 'gnat)
 	   (looking-at "#[ \t]*\\(if\\|els\\(e\\|if\\)\\|end[ \t]*if\\)"))
-      (list (save-excursion (beginning-of-line) (point)) 0))
+      (list (point-at-bol) 0))
 
      ;;--------------------------------
      ;;   starting with ')' (end of a parameter list)
@@ -4048,11 +4045,7 @@ Point is moved at the beginning of the SEARCH-RE."
                   (funcall search-func search-re limit 1))
         (setq begin (match-beginning 0))
         (setq end (match-end 0))
-
-        (setq parse-result (parse-partial-sexp
-                            (save-excursion (beginning-of-line) (point))
-                            (point)))
-
+        (setq parse-result (parse-partial-sexp (point-at-bol) (point)))
         (cond
          ;;
          ;; If inside a string, skip it (and the following comments)
@@ -4271,16 +4264,12 @@ of the region.  Otherwise, operate only on the current line."
   (save-excursion
     (beginning-of-line)
     (insert-char ?  ada-indent))
-  (if (save-excursion (= (point) (progn (beginning-of-line) (point))))
-      (forward-char ada-indent)))
+  (if (bolp) (forward-char ada-indent)))
 
 (defun ada-untab-hard ()
   "Indent current line to previous tab stop."
   (interactive)
-  (let ((bol (save-excursion (progn (beginning-of-line) (point))))
-	(eol (save-excursion (progn (end-of-line) (point)))))
-    (indent-rigidly bol eol (- 0 ada-indent))))
-
+  (indent-rigidly (point-at-bol) (point-at-eol) (- 0 ada-indent)))
 
 
 ;; ------------------------------------------------------------
@@ -5292,11 +5281,7 @@ Use \\[widen] to go back to the full visibility for the buffer."
       (widen)
       (forward-line 1)
       (ada-previous-procedure)
-
-      (save-excursion
-	(beginning-of-line)
-	(setq end (point)))
-
+      (setq end (point-at-bol))
       (ada-move-to-end)
       (end-of-line)
       (narrow-to-region end (point))
@@ -5538,5 +5523,4 @@ This function typically is to be hooked into `ff-file-created-hook'."
 ;;; provide ourselves
 (provide 'ada-mode)
 
-;; arch-tag: 1b7d45ec-1698-43b5-8d4a-e479ea023270
 ;;; ada-mode.el ends here

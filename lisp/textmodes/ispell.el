@@ -1,7 +1,8 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
 ;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
@@ -2739,9 +2740,11 @@ Keeps argument list for future ispell invocations for no async support."
 	(if extended-char-mode		; ~ extended character mode
 	    (ispell-send-string (concat extended-char-mode "\n"))))
       (if ispell-async-processp
-	  (if (fboundp 'set-process-query-on-exit-flag) ;; not XEmacs
+	  (if (featurep 'emacs)
 	      (set-process-query-on-exit-flag ispell-process nil)
-	    (process-kill-without-query ispell-process))))))
+	    (if (fboundp 'set-process-query-on-exit-flag)
+		(set-process-query-on-exit-flag ispell-process nil)
+	      (process-kill-without-query ispell-process)))))))
 
 ;;;###autoload
 (defun ispell-kill-ispell (&optional no-error)
@@ -2909,8 +2912,7 @@ Return nil if spell session is quit,
 				     (min skip-region-start ispell-region-end)
 				   (marker-position ispell-region-end))))
 	      (let* ((ispell-start (point))
-		     (ispell-end (save-excursion
-                                   (end-of-line) (min (point) reg-end)))
+		     (ispell-end (min (point-at-eol) reg-end))
 		     (string (ispell-get-line
                               ispell-start ispell-end in-comment)))
 		(if in-comment		; account for comment chars added
@@ -3812,7 +3814,7 @@ Includes Latex/Nroff modes and extended character mode."
     (goto-char (point-max))
     ;; Uses last occurrence of ispell-parsing-keyword
     (if (search-backward ispell-parsing-keyword nil t)
-	(let ((end (save-excursion (end-of-line) (point)))
+	(let ((end (point-at-eol))
 	      string)
 	  (search-forward ispell-parsing-keyword)
 	  (while (re-search-forward " *\\([^ \"]+\\)" end t)
@@ -3848,7 +3850,7 @@ Both should not be used to define a buffer-local dictionary."
 	(if (search-backward ispell-dictionary-keyword nil t)
 	    (progn
 	      (search-forward ispell-dictionary-keyword)
-	      (setq end (save-excursion (end-of-line) (point)))
+	      (setq end (point-at-eol))
 	      (if (re-search-forward " *\\([^ \"]+\\)" end t)
 		  (setq ispell-local-dictionary
 			(match-string-no-properties 1))))))
@@ -3856,7 +3858,7 @@ Both should not be used to define a buffer-local dictionary."
       (if (search-backward ispell-pdict-keyword nil t)
 	  (progn
 	    (search-forward ispell-pdict-keyword)
-	    (setq end (save-excursion (end-of-line) (point)))
+	    (setq end (point-at-eol))
 	    (if (re-search-forward " *\\([^ \"]+\\)" end t)
 		(setq ispell-local-pdict
 		      (match-string-no-properties 1)))))))
@@ -3880,7 +3882,7 @@ Both should not be used to define a buffer-local dictionary."
     (while (search-forward ispell-words-keyword nil t)
       (or ispell-buffer-local-name
 	  (setq ispell-buffer-local-name (buffer-name)))
-      (let ((end (save-excursion (end-of-line) (point)))
+      (let ((end (point-at-eol))
 	    (ispell-casechars (ispell-get-casechars))
 	    string)
 	;; buffer-local words separated by a space, and can contain
@@ -3895,6 +3897,9 @@ Both should not be used to define a buffer-local dictionary."
 
 
 ;;; returns optionally adjusted region-end-point.
+
+;; If comment-padright is defined, newcomment must be loaded.
+(declare-function comment-add "newcomment" (arg))
 
 (defun ispell-add-per-file-word-list (word)
   "Add WORD to the per-file word list."
@@ -3970,5 +3975,4 @@ Both should not be used to define a buffer-local dictionary."
 ; LocalWords:  uuencoded unidiff sc nn VM SGML eval IspellPersDict unsplitable
 ; LocalWords:  lns XEmacs HTML casechars Multibyte
 
-;; arch-tag: 4941b9f9-3b7c-4a76-a4ed-5fa8b6010ef5
 ;;; ispell.el ends here

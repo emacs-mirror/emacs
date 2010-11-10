@@ -657,6 +657,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
     (define-key map "\C-c\C-f" 'f90-fill-region)
     (define-key map "\C-c\C-p" 'f90-previous-statement)
     (define-key map "\C-c\C-n" 'f90-next-statement)
+    (define-key map "\C-c]"    'f90-insert-end)
     (define-key map "\C-c\C-w" 'f90-insert-end)
     ;; Standard tab binding will call this, and also handle regions.
 ;;;    (define-key map "\t"       'f90-indent-line)

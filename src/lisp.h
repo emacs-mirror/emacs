@@ -1563,6 +1563,41 @@ typedef struct {
 /* The ID of the mode line highlighting face.  */
 #define GLYPH_MODE_LINE_FACE 1
 
+/* Structure to hold mouse highlight data.  This is here because other
+   header files need it for defining struct x_output etc.  */
+typedef struct {
+  /* These variables describe the range of text currently shown in its
+     mouse-face, together with the window they apply to.  As long as
+     the mouse stays within this range, we need not redraw anything on
+     its account.  Rows and columns are glyph matrix positions in
+     MOUSE_FACE_WINDOW.  */
+  int mouse_face_beg_row, mouse_face_beg_col;
+  int mouse_face_beg_x, mouse_face_beg_y;
+  int mouse_face_end_row, mouse_face_end_col;
+  int mouse_face_end_x, mouse_face_end_y;
+  int mouse_face_past_end;
+  Lisp_Object mouse_face_window;
+  int mouse_face_face_id;
+  Lisp_Object mouse_face_overlay;
+
+  /* 1 if a mouse motion event came and we didn't handle it right away because
+     gc was in progress.  */
+  int mouse_face_deferred_gc;
+
+  /* FRAME and X, Y position of mouse when last checked for
+     highlighting.  X and Y can be negative or out of range for the frame.  */
+  struct frame *mouse_face_mouse_frame;
+  int mouse_face_mouse_x, mouse_face_mouse_y;
+
+  /* Nonzero means defer mouse-motion highlighting.  */
+  int mouse_face_defer;
+
+  /* Nonzero means that the mouse highlight should not be shown.  */
+  int mouse_face_hidden;
+
+  int mouse_face_image_state;
+} Mouse_HLInfo;
+
 /* Data type checking */
 
 #define NILP(x)  EQ (x, Qnil)

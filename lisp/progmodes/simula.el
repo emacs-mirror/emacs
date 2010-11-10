@@ -964,7 +964,7 @@ If COUNT is negative, move backward instead."
 	      (simula-previous-statement 1)
 	      (simula-skip-comment-backward)))
 	(setq start-line
-	      (save-excursion (beginning-of-line) (point))
+	      (line-beginning-position)
 	      ;; - perhaps this is a continued statement
 	      continued
 	      (save-excursion
@@ -1023,7 +1023,7 @@ If COUNT is negative, move backward instead."
 				 (car simula-continued-statement-offset)
 			       simula-continued-statement-offset))))
 		(setq start-line
-		      (save-excursion (beginning-of-line) (point))
+		      (line-beginning-position)
 		      continued nil))
 	    ;; search failed .. point is at beginning of line
 	    ;; determine if we should continue searching
@@ -1064,7 +1064,7 @@ If COUNT is negative, move backward instead."
 			   simula-continued-statement-offset))))
 	    ;; while ends if point is at beginning of line at loop test
 	    (if (not temp)
-		(setq start-line (save-excursion (beginning-of-line) (point)))
+		(setq start-line (line-beginning-position))
 	      (beginning-of-line))))
         ;;
 	;; return indentation
@@ -1659,5 +1659,4 @@ If not nil and not t, move to limit of search and return nil."
 
 (provide 'simula)
 
-;; arch-tag: 488c1bb0-eebf-4f06-93df-1df603f06255
 ;;; simula.el ends here

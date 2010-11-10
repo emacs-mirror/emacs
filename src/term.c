@@ -184,24 +184,10 @@ extern char *tgetstr (char *, char **);
 #ifdef HAVE_GPM
 #include <sys/fcntl.h>
 
-static void term_clear_mouse_face (void);
-static void term_mouse_highlight (struct frame *f, int x, int y);
-
 /* The device for which we have enabled gpm support (or NULL).  */
 struct tty_display_info *gpm_tty = NULL;
 
-/* These variables describe the range of text currently shown in its
-   mouse-face, together with the window they apply to.  As long as
-   the mouse stays within this range, we need not redraw anything on
-   its account.  Rows and columns are glyph matrix positions in
-   MOUSE_FACE_WINDOW.  */
-static int mouse_face_beg_row, mouse_face_beg_col;
-static int mouse_face_end_row, mouse_face_end_col;
-static int mouse_face_past_end;
-static Lisp_Object mouse_face_window;
-static int mouse_face_face_id;
-
-static int pos_x, pos_y;
+/* Last recorded mouse coordinates.  */
 static int last_mouse_x, last_mouse_y;
 #endif /* HAVE_GPM */
 
@@ -1501,6 +1487,8 @@ static void append_glyph (struct it *);
 static void produce_stretch_glyph (struct it *);
 static void append_composite_glyph (struct it *);
 static void produce_composite_glyph (struct it *);
+static void append_glyphless_glyph (struct it *, int, char *);
+static void produce_glyphless_glyph (struct it *, int, Lisp_Object);
 
 /* Append glyphs to IT's glyph_row.  Called from produce_glyphs for
    terminal frames if IT->glyph_row != NULL.  IT->char_to_display is
@@ -1609,6 +1597,12 @@ produce_glyphs (struct it *it)
       goto done;
     }
 
+  if (it->what == IT_GLYPHLESS)
+    {
+      produce_glyphless_glyph (it, 0, Qnil);
+      goto done;
+    }
+
   if (it->char_to_display >= 040 && it->char_to_display < 0177)
     {
       it->pixel_width = it->nglyphs = 1;
@@ -1660,11 +1654,22 @@ produce_glyphs (struct it *it)
     }
   else
     {
-      it->pixel_width = CHAR_WIDTH (it->char_to_display);
-      it->nglyphs = it->pixel_width;
+      Lisp_Object charset_list = FRAME_TERMINAL (it->f)->charset_list;
 
-      if (it->glyph_row)
-	append_glyph (it);
+      if (char_charset (it->char_to_display, charset_list, NULL))
+	{
+	  it->pixel_width = CHAR_WIDTH (it->char_to_display);
+	  it->nglyphs = it->pixel_width;
+	  if (it->glyph_row)
+	    append_glyph (it);
+	}
+      else
+	{
+	  Lisp_Object acronym = lookup_glyphless_char_display (-1, it);
+
+	  xassert (it->what == IT_GLYPHLESS);
+	  produce_glyphless_glyph (it, 1, acronym);
+	}
     }
 
  done:
@@ -1841,6 +1846,156 @@ produce_composite_glyph (struct it *it)
   it->nglyphs = 1;
   if (it->glyph_row)
     append_composite_glyph (it);
+}
+
+
+/* Append a glyph for a glyphless character to IT->glyph_row.  FACE_ID
+   is a face ID to be used for the glyph.  What actually appended are
+   glyphs of type CHAR_GLYPH of which characters are in STR
+   (it->nglyphs bytes).  */
+
+static void
+append_glyphless_glyph (struct it *it, int face_id, char *str)
+{
+  struct glyph *glyph, *end;
+  int i;
+
+  xassert (it->glyph_row);
+  glyph = it->glyph_row->glyphs[it->area] + it->glyph_row->used[it->area];
+  end = it->glyph_row->glyphs[1 + it->area];
+
+  /* If the glyph row is reversed, we need to prepend the glyph rather
+     than append it.  */
+  if (it->glyph_row->reversed_p && it->area == TEXT_AREA)
+    {
+      struct glyph *g;
+      int move_by = it->pixel_width;
+
+      /* Make room for the new glyphs.  */
+      if (move_by > end - glyph) /* don't overstep end of this area */
+	move_by = end - glyph;
+      for (g = glyph - 1; g >= it->glyph_row->glyphs[it->area]; g--)
+	g[move_by] = *g;
+      glyph = it->glyph_row->glyphs[it->area];
+      end = glyph + move_by;
+    }
+
+  if (glyph >= end)
+    return;
+  glyph->type = CHAR_GLYPH;
+  glyph->pixel_width = 1;
+  glyph->face_id = face_id;
+  glyph->padding_p = 0;
+  glyph->charpos = CHARPOS (it->position);
+  glyph->object = it->object;
+  if (it->bidi_p)
+    {
+      glyph->resolved_level = it->bidi_it.resolved_level;
+      if ((it->bidi_it.type & 7) != it->bidi_it.type)
+	abort ();
+      glyph->bidi_type = it->bidi_it.type;
+    }
+  else
+    {
+      glyph->resolved_level = 0;
+      glyph->bidi_type = UNKNOWN_BT;
+    }
+
+  /* BIDI Note: we put the glyphs of characters left to right, even in
+     the REVERSED_P case because we write to the terminal
+     left-to-right.  */
+  for (i = 0; i < it->nglyphs && glyph < end; ++i)
+    {
+      if (i > 0)
+	glyph[0] = glyph[-1];
+      glyph->u.ch = str[i];
+      ++it->glyph_row->used[it->area];
+      ++glyph;
+    }
+}
+
+/* Declared in xdisp.c */
+extern struct frame *last_glyphless_glyph_frame;
+extern unsigned last_glyphless_glyph_face_id;
+extern int last_glyphless_glyph_merged_face_id;
+extern Lisp_Object Qglyphless_char;
+
+/* Produce glyphs for a glyphless character for iterator IT.
+   IT->glyphless_method specifies which method to use for displaying
+   the character.  See the description of enum
+   glyphless_display_method in dispextern.h for the detail.
+
+   FOR_NO_FONT is nonzero if and only if this is for a character that
+   is not supproted by the coding system of the terminal.  ACRONYM, if
+   non-nil, is an acronym string for the character.
+
+   The glyphs actually produced are of type CHAR_GLYPH.  */
+
+static void
+produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
+{
+  int face_id;
+  int width, len;
+  char buf[9], *str = "    ";
+
+  /* Get a face ID for the glyph by utilizing a cache (the same way as
+     doen for `escape-glyph' in get_next_display_element).  */
+  if (it->f == last_glyphless_glyph_frame
+      && it->face_id == last_glyphless_glyph_face_id)
+    {
+      face_id = last_glyphless_glyph_merged_face_id;
+    }
+  else
+    {
+      /* Merge the `glyphless-char' face into the current face.  */
+      face_id = merge_faces (it->f, Qglyphless_char, 0, it->face_id);
+      last_glyphless_glyph_frame = it->f;
+      last_glyphless_glyph_face_id = it->face_id;
+      last_glyphless_glyph_merged_face_id = face_id;
+    }
+
+  if (it->glyphless_method == GLYPHLESS_DISPLAY_THIN_SPACE)
+    {
+      /* As there's no way to produce a thin space, we produce
+	 a space of canonical width..  */
+      len = 1;
+    }
+  else if (it->glyphless_method == GLYPHLESS_DISPLAY_EMPTY_BOX)
+    {
+      len = CHAR_WIDTH (it->c);
+      if (len == 0)
+	len = 1;
+      else if (width > 4)
+	len = 4;
+    }
+  else
+    {
+      if (it->glyphless_method == GLYPHLESS_DISPLAY_ACRONYM)
+	{
+	  if (! STRINGP (acronym) && CHAR_TABLE_P (Vglyphless_char_display))
+	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
+	  buf[0] = '[';
+	  str = STRINGP (acronym) ? (char *) SDATA (acronym) : "";
+	  for (len = 0; len < 6 && str[len] && ASCII_BYTE_P (str[len]); len++)
+	    buf[1 + len] = str[len];
+	  buf[1 + len] = ']';
+	  len += 2;
+	}
+      else
+	{
+	  xassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEXA_CODE);
+	  len = (it->c < 0x100 ? sprintf (buf, "U+%02X", it->c)
+		 : it->c < 0x10000 ? sprintf (buf, "U+%04X", it->c)
+		 : it->c <= MAX_UNICODE_CHAR ? sprintf (buf, "U+%06X", it->c)
+		 : sprintf (buf, "E+%06X", it->c));
+	}
+      str = buf;
+    }
+
+  it->pixel_width = len;
+  it->nglyphs = len;
+  if (len > 0 && it->glyph_row)
+    append_glyphless_glyph (it, face_id, str);
 }
 
 
@@ -2517,416 +2672,36 @@ term_mouse_moveto (int x, int y)
   last_mouse_y = y;  */
 }
 
-static void
-term_show_mouse_face (enum draw_glyphs_face draw)
+/* Implementation of draw_row_with_mouse_face for TTY/GPM.  */
+void
+tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
+			      int start_hpos, int end_hpos,
+			      enum draw_glyphs_face draw)
 {
-  struct window *w = XWINDOW (mouse_face_window);
-  int save_x, save_y;
-  int i;
-
-  struct frame *f = XFRAME (w->frame);
+  int nglyphs = end_hpos - start_hpos;
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct tty_display_info *tty = FRAME_TTY (f);
+  int face_id = tty->mouse_highlight.mouse_face_face_id;
+  int save_x, save_y, pos_x, pos_y;
 
-  if (/* If window is in the process of being destroyed, don't bother
-	 to do anything.  */
-      w->current_matrix != NULL
-      /* Recognize when we are called to operate on rows that don't exist
-	 anymore.  This can happen when a window is split.  */
-      && mouse_face_end_row < w->current_matrix->nrows)
-    {
-      /* write_glyphs writes at cursor position, so we need to
-	 temporarily move cursor coordinates to the beginning of
-	 the highlight region.  */
+  if (end_hpos >= row->used[TEXT_AREA])
+    nglyphs = row->used[TEXT_AREA] - start_hpos;
 
-      /* Save current cursor co-ordinates */
-      save_y = curY (tty);
-      save_x = curX (tty);
+  pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
+  pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos + WINDOW_LEFT_EDGE_X (w);
 
-      /* Note that mouse_face_beg_row etc. are window relative.  */
-      for (i = mouse_face_beg_row; i <= mouse_face_end_row; i++)
-	{
-	  int start_hpos, end_hpos, nglyphs;
-	  struct glyph_row *row = MATRIX_ROW (w->current_matrix, i);
+  /* Save current cursor co-ordinates.  */
+  save_y = curY (tty);
+  save_x = curX (tty);
+  cursor_to (f, pos_y, pos_x);
 
-	  /* Don't do anything if row doesn't have valid contents.  */
-	  if (!row->enabled_p)
-	    continue;
+  if (draw == DRAW_MOUSE_FACE)
+    tty_write_glyphs_with_face (f, row->glyphs[TEXT_AREA] + start_hpos,
+				nglyphs, face_id);
+  else if (draw == DRAW_NORMAL_TEXT)
+    write_glyphs (f, row->glyphs[TEXT_AREA] + start_hpos, nglyphs);
 
-	  /* For all but the first row, the highlight starts at column 0.  */
-	  if (i == mouse_face_beg_row)
-	    start_hpos = mouse_face_beg_col;
-	  else
-	    start_hpos = 0;
-
-	  if (i == mouse_face_end_row)
-	    end_hpos = mouse_face_end_col;
-	  else
-	    {
-	      end_hpos = row->used[TEXT_AREA];
-	      if (draw == DRAW_NORMAL_TEXT)
-		row->fill_line_p = 1; /* Clear to end of line */
-	    }
-
-	  if (end_hpos <= start_hpos)
-	    continue;
-	  /* Record that some glyphs of this row are displayed in
-	     mouse-face.  */
-	  row->mouse_face_p = draw > 0;
-
-	  nglyphs = end_hpos - start_hpos;
-
-	  if (end_hpos >= row->used[TEXT_AREA])
-	    nglyphs = row->used[TEXT_AREA] - start_hpos;
-
-	  pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
-	  pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos
-	    + WINDOW_LEFT_EDGE_X (w);
-
-	  cursor_to (f, pos_y, pos_x);
-
-	  if (draw == DRAW_MOUSE_FACE)
-	    {
-	      tty_write_glyphs_with_face (f, row->glyphs[TEXT_AREA] + start_hpos,
-				      nglyphs, mouse_face_face_id);
-	    }
-	  else /* draw == DRAW_NORMAL_TEXT */
-	    write_glyphs (f, row->glyphs[TEXT_AREA] + start_hpos, nglyphs);
-	}
-      cursor_to (f, save_y, save_x);
-    }
-}
-
-static void
-term_clear_mouse_face (void)
-{
-  if (!NILP (mouse_face_window))
-    term_show_mouse_face (DRAW_NORMAL_TEXT);
-
-  mouse_face_beg_row = mouse_face_beg_col = -1;
-  mouse_face_end_row = mouse_face_end_col = -1;
-  mouse_face_window = Qnil;
-}
-
-/* Find the glyph matrix position of buffer position POS in window W.
-   *HPOS and *VPOS are set to the positions found.  W's current glyphs
-   must be up to date.  If POS is above window start return (0, 0).
-   If POS is after end of W, return end of last line in W.
-   - taken from msdos.c */
-static int
-fast_find_position (struct window *w, EMACS_INT pos, int *hpos, int *vpos)
-{
-  int i, lastcol, maybe_next_line_p = 0;
-  EMACS_INT line_start_position;
-  int yb = window_text_bottom_y (w);
-  struct glyph_row *row = MATRIX_ROW (w->current_matrix, 0), *best_row = row;
-
-  while (row->y < yb)
-    {
-      if (row->used[TEXT_AREA])
-	line_start_position = row->glyphs[TEXT_AREA]->charpos;
-      else
-	line_start_position = 0;
-
-      if (line_start_position > pos)
-	break;
-      /* If the position sought is the end of the buffer,
-	 don't include the blank lines at the bottom of the window.  */
-      else if (line_start_position == pos
-	       && pos == BUF_ZV (XBUFFER (w->buffer)))
-	{
-	  maybe_next_line_p = 1;
-	  break;
-	}
-      else if (line_start_position > 0)
-	best_row = row;
-
-      /* Don't overstep the last matrix row, lest we get into the
-	 never-never land... */
-      if (row->y + 1 >= yb)
-	break;
-
-      ++row;
-    }
-
-  /* Find the right column within BEST_ROW.  */
-  lastcol = 0;
-  row = best_row;
-  for (i = 0; i < row->used[TEXT_AREA]; i++)
-    {
-      struct glyph *glyph = row->glyphs[TEXT_AREA] + i;
-      EMACS_INT charpos;
-
-      charpos = glyph->charpos;
-      if (charpos == pos)
-	{
-	  *hpos = i;
-	  *vpos = row->y;
-	  return 1;
-	}
-      else if (charpos > pos)
-	break;
-      else if (charpos > 0)
-	lastcol = i;
-    }
-
-  /* If we're looking for the end of the buffer,
-     and we didn't find it in the line we scanned,
-     use the start of the following line.  */
-  if (maybe_next_line_p)
-    {
-      ++row;
-      lastcol = 0;
-    }
-
-  *vpos = row->y;
-  *hpos = lastcol + 1;
-  return 0;
-}
-
-static void
-term_mouse_highlight (struct frame *f, int x, int y)
-{
-  enum window_part part;
-  Lisp_Object window;
-  struct window *w;
-  struct buffer *b;
-
-  if (NILP (Vmouse_highlight)
-      || !f->glyphs_initialized_p)
-    return;
-
-  /* Which window is that in?  */
-  window = window_from_coordinates (f, x, y, &part, &x, &y, 0);
-
-  /* Not on a window -> return.  */
-  if (!WINDOWP (window))
-    return;
-
-  if (!EQ (window, mouse_face_window))
-    term_clear_mouse_face ();
-
-  w = XWINDOW (window);
-
-  /* Are we in a window whose display is up to date?
-     And verify the buffer's text has not changed.  */
-  b = XBUFFER (w->buffer);
-  if (part == ON_TEXT
-      && EQ (w->window_end_valid, w->buffer)
-      && XFASTINT (w->last_modified) == BUF_MODIFF (b)
-      && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
-    {
-      int i, nrows = w->current_matrix->nrows;
-      EMACS_INT pos;
-      struct glyph_row *row;
-      struct glyph *glyph;
-
-      /* Find the glyph under X/Y.  */
-      glyph = NULL;
-      if (y >= 0 && y < nrows)
-	{
-	  row = MATRIX_ROW (w->current_matrix, y);
-	  /* Give up if some row before the one we are looking for is
-	     not enabled.  */
-	  for (i = 0; i <= y; i++)
-	    if (!MATRIX_ROW (w->current_matrix, i)->enabled_p)
-	      break;
-	  if (i > y  /* all rows upto and including the one at Y are enabled */
-	      && row->displays_text_p
-	      && x <  window_box_width (w, TEXT_AREA))
-	    {
-	      glyph = row->glyphs[TEXT_AREA];
-	      if (x >= row->used[TEXT_AREA])
-		glyph = NULL;
-	      else
-		{
-		  glyph += x;
-		  if (!BUFFERP (glyph->object))
-		    glyph = NULL;
-		}
-	    }
-	}
-
-      /* Clear mouse face if X/Y not over text.  */
-      if (glyph == NULL)
-	{
-	  term_clear_mouse_face ();
-	  return;
-	}
-
-      if (!BUFFERP (glyph->object))
-	abort ();
-      pos = glyph->charpos;
-
-      /* Check for mouse-face.  */
-      {
-	Lisp_Object mouse_face, overlay, position, *overlay_vec;
-	int noverlays;
-	EMACS_INT obegv, ozv;
-	struct buffer *obuf;
-
-	/* If we get an out-of-range value, return now; avoid an error.  */
-	if (pos > BUF_Z (b))
-	  return;
-
-	/* Make the window's buffer temporarily current for
-	   overlays_at and compute_char_face.  */
-	obuf = current_buffer;
-	current_buffer = b;
-	obegv = BEGV;
-	ozv = ZV;
-	BEGV = BEG;
-	ZV = Z;
-
-	/* Is this char mouse-active?  */
-	XSETINT (position, pos);
-
-	/* Put all the overlays we want in a vector in overlay_vec.  */
-	GET_OVERLAYS_AT (pos, overlay_vec, noverlays, NULL, 0);
-	/* Sort overlays into increasing priority order.  */
-	noverlays = sort_overlays (overlay_vec, noverlays, w);
-
-	/* Check mouse-face highlighting.  */
-	if (!(EQ (window, mouse_face_window)
-	      && y >= mouse_face_beg_row
-	      && y <= mouse_face_end_row
-	      && (y > mouse_face_beg_row
-		  || x >= mouse_face_beg_col)
-	      && (y < mouse_face_end_row
-		  || x < mouse_face_end_col
-		  || mouse_face_past_end)))
-	  {
-	    /* Clear the display of the old active region, if any.  */
-	    term_clear_mouse_face ();
-
-	    /* Find the highest priority overlay that has a mouse-face
-	       property.  */
-	    overlay = Qnil;
-	    for (i = noverlays - 1; i >= 0; --i)
-	      {
-		mouse_face = Foverlay_get (overlay_vec[i], Qmouse_face);
-		if (!NILP (mouse_face))
-		  {
-		    overlay = overlay_vec[i];
-		    break;
-		  }
-	      }
-
-	    /* If no overlay applies, get a text property.  */
-	    if (NILP (overlay))
-	      mouse_face = Fget_text_property (position, Qmouse_face,
-					       w->buffer);
-
-	    /* Handle the overlay case.  */
-	    if (!NILP (overlay))
-	      {
-		/* Find the range of text around this char that
-		   should be active.  */
-		Lisp_Object before, after;
-		EMACS_INT ignore;
-
-
-		before = Foverlay_start (overlay);
-		after = Foverlay_end (overlay);
-		/* Record this as the current active region.  */
-		fast_find_position (w, XFASTINT (before),
-				    &mouse_face_beg_col,
-				    &mouse_face_beg_row);
-
-		mouse_face_past_end
-		  = !fast_find_position (w, XFASTINT (after),
-					 &mouse_face_end_col,
-					 &mouse_face_end_row);
-		mouse_face_window = window;
-
-		mouse_face_face_id
-		  = face_at_buffer_position (w, pos, 0, 0,
-					     &ignore, pos + 1, 1, -1);
-
-		/* Display it as active.  */
-		term_show_mouse_face (DRAW_MOUSE_FACE);
-	      }
-	    /* Handle the text property case.  */
-	    else if (!NILP (mouse_face))
-	      {
-		/* Find the range of text around this char that
-		   should be active.  */
-		Lisp_Object before, after, beginning, end;
-		EMACS_INT ignore;
-
-		beginning = Fmarker_position (w->start);
-		XSETINT (end, (BUF_Z (b) - XFASTINT (w->window_end_pos)));
-		before
-		  = Fprevious_single_property_change (make_number (pos + 1),
-						      Qmouse_face,
-						      w->buffer, beginning);
-		after
-		  = Fnext_single_property_change (position, Qmouse_face,
-						  w->buffer, end);
-
-		/* Record this as the current active region.  */
-		fast_find_position (w, XFASTINT (before),
-				    &mouse_face_beg_col,
-				    &mouse_face_beg_row);
-		mouse_face_past_end
-		  = !fast_find_position (w, XFASTINT (after),
-					 &mouse_face_end_col,
-					 &mouse_face_end_row);
-		mouse_face_window = window;
-
-		mouse_face_face_id
-		  = face_at_buffer_position (w, pos, 0, 0,
-					     &ignore, pos + 1, 1, -1);
-
-		/* Display it as active.  */
-		term_show_mouse_face (DRAW_MOUSE_FACE);
-	      }
-	  }
-
-	/* Look for a `help-echo' property.  */
-	{
-	  Lisp_Object help;
-
-	  /* Check overlays first.  */
-	  help = Qnil;
-	  for (i = noverlays - 1; i >= 0 && NILP (help); --i)
-	    {
-	      overlay = overlay_vec[i];
-	      help = Foverlay_get (overlay, Qhelp_echo);
-	    }
-
-	  if (!NILP (help))
-	    {
-	      help_echo_string = help;
-	      help_echo_window = window;
-	      help_echo_object = overlay;
-	      help_echo_pos = pos;
-	    }
-	  /* Try text properties.  */
-	  else if (NILP (help)
-		   && ((STRINGP (glyph->object)
-			&& glyph->charpos >= 0
-			&& glyph->charpos < SCHARS (glyph->object))
-		       || (BUFFERP (glyph->object)
-			   && glyph->charpos >= BEGV
-			   && glyph->charpos < ZV)))
-	    {
-	      help = Fget_text_property (make_number (glyph->charpos),
-					 Qhelp_echo, glyph->object);
-	      if (!NILP (help))
-		{
-		  help_echo_string = help;
-		  help_echo_window = window;
-		  help_echo_object = glyph->object;
-		  help_echo_pos = glyph->charpos;
-		}
-	    }
-	}
-
-	BEGV = obegv;
-	ZV = ozv;
-	current_buffer = obuf;
-      }
-    }
+  cursor_to (f, save_y, save_x);
 }
 
 static int
@@ -2936,7 +2711,7 @@ term_mouse_movement (FRAME_PTR frame, Gpm_Event *event)
   if (event->x != last_mouse_x || event->y != last_mouse_y)
     {
       frame->mouse_moved = 1;
-      term_mouse_highlight (frame, event->x, event->y);
+      note_mouse_highlight (frame, event->x, event->y);
       /* Remember which glyph we're now on.  */
       last_mouse_x = event->x;
       last_mouse_y = event->y;
@@ -3407,7 +3182,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
 
 #ifdef HAVE_GPM
   terminal->mouse_position_hook = term_mouse_position;
-  mouse_face_window = Qnil;
+  tty->mouse_highlight.mouse_face_window = Qnil;
 #endif
 
   
@@ -4042,8 +3817,6 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
 #ifdef HAVE_GPM
   defsubr (&Sgpm_mouse_start);
   defsubr (&Sgpm_mouse_stop);
-
-  staticpro (&mouse_face_window);
 #endif /* HAVE_GPM */
 
 #ifndef DOS_NT

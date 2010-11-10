@@ -2676,15 +2676,15 @@ Identifier syntax is in effect when this is matched \(see
   c++  (concat "\\("
 	       "[*\(&]"
 	       "\\|"
-	       (concat "\\("	; 2
+	       (c-lang-const c-type-decl-prefix-key)
+	       "\\|"
+	       (concat "\\("   ; 3
 		       ;; If this matches there's special treatment in
 		       ;; `c-font-lock-declarators' and
 		       ;; `c-font-lock-declarations' that check for a
 		       ;; complete name followed by ":: *".
 		       (c-lang-const c-identifier-start)
 		       "\\)")
-	       "\\|"
-	       (c-lang-const c-type-decl-prefix-key)
 	       "\\)"
 	       "\\([^=]\\|$\\)")
   pike "\\(\\*\\)\\([^=]\\|$\\)")

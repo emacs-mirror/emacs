@@ -1,8 +1,8 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -3685,8 +3685,6 @@ a mistake; see the documentation of `set-mark'."
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
 
-(declare-function x-selection-owner-p "xselect.c" (&optional selection))
-
 (defsubst deactivate-mark (&optional force)
   "Deactivate the mark by setting `mark-active' to nil.
 Unless FORCE is non-nil, this function does nothing if Transient
@@ -4053,29 +4051,8 @@ Invoke \\[apropos-documentation] and type \"transient\" or
 \"mark.*active\" at the prompt, to see the documentation of
 commands which are sensitive to the Transient Mark mode."
   :global t
-  :init-value (not noninteractive)
-  :initialize 'custom-initialize-delay
-  :group 'editing-basics)
-
-;; The variable transient-mark-mode is ugly: it can take on special
-;; values.  Document these here.
-(defvar transient-mark-mode t
-  "*Non-nil if Transient Mark mode is enabled.
-See the command `transient-mark-mode' for a description of this minor mode.
-
-Non-nil also enables highlighting of the region whenever the mark is active.
-The variable `highlight-nonselected-windows' controls whether to highlight
-all windows or just the selected window.
-
-If the value is `lambda', that enables Transient Mark mode temporarily.
-After any subsequent action that would normally deactivate the mark
-\(such as buffer modification), Transient Mark mode is turned off.
-
-If the value is (only . OLDVAL), that enables Transient Mark mode
-temporarily.  After any subsequent point motion command that is not
-shift-translated, or any other action that would normally deactivate
-the mark (such as buffer modification), the value of
-`transient-mark-mode' is set to OLDVAL.")
+  ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
+  :variable transient-mark-mode)
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.
@@ -4497,7 +4474,7 @@ into account variable-width characters and line continuation."
 
       (let (new
 	    (old (point))
-	    (line-beg (save-excursion (beginning-of-line) (point)))
+	    (line-beg (line-beginning-position))
 	    (line-end
 	     ;; Compute the end of the line
 	     ;; ignoring effectively invisible newlines.
@@ -4605,7 +4582,7 @@ and `current-column' to be able to ignore invisible text."
 	;; that will get us to the same place on the screen
 	;; but with a more reasonable buffer position.
 	(goto-char normal-location)
-	(let ((line-beg (save-excursion (beginning-of-line) (point))))
+	(let ((line-beg (line-beginning-position)))
 	  (while (and (not (bolp)) (invisible-p (1- (point))))
 	    (goto-char (previous-char-property-change (point) line-beg))))))))
 
@@ -5083,16 +5060,12 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 		 ;; Point is neither within nor adjacent to a word.
 		 (not strict))
 	;; Look for preceding word in same line.
-	(skip-syntax-backward not-syntaxes
-			      (save-excursion (beginning-of-line)
-					      (point)))
+	(skip-syntax-backward not-syntaxes (line-beginning-position))
 	(if (bolp)
 	    ;; No preceding word in same line.
 	    ;; Look for following word in same line.
 	    (progn
-	      (skip-syntax-forward not-syntaxes
-				   (save-excursion (end-of-line)
-						   (point)))
+	      (skip-syntax-forward not-syntaxes (line-end-position))
 	      (setq start (point))
 	      (skip-syntax-forward syntaxes)
 	      (setq end (point)))
@@ -6628,7 +6601,7 @@ See also `normal-erase-is-backspace'."
 
 	     (if enabled
 		 (progn
-		   (define-key local-function-key-map [delete] [?\C-d])
+		   (define-key local-function-key-map [delete] [deletechar])
 		   (define-key local-function-key-map [kp-delete] [?\C-d])
 		   (define-key local-function-key-map [backspace] [?\C-?])
                    (dolist (b bindings)
@@ -6764,5 +6737,4 @@ warning using STRING as the message.")
 
 (provide 'simple)
 
-;; arch-tag: 24af67c0-2a49-44f6-b3b1-312d8b570dfd
 ;;; simple.el ends here

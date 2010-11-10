@@ -498,12 +498,12 @@ you save, Emacs leaves the original file under a changed name in case
 you later decide that your changes were a mistake.
 
 If you look near the bottom of the screen you will see a line that
-begins and ends with dashes, and starts with "--:--- TUTORIAL" or
-something like that.  This part of the screen normally shows the name
-of the file that you are visiting.  Right now, you are visiting a file
-called "TUTORIAL" which is your personal scratch copy of the Emacs
-tutorial.  When you find a file with Emacs, that file's name will
-appear in that precise spot.
+begins with dashes, and starts with "--:--- TUTORIAL" or something
+like that.  This part of the screen normally shows the name of the
+file that you are visiting.  Right now, you are visiting a file called
+"TUTORIAL" which is your personal scratch copy of the Emacs tutorial.
+When you find a file with Emacs, that file's name will appear in that
+precise spot.
 
 One special thing about the command for finding a file is that you
 have to say what file name you want.  We say the command "reads an

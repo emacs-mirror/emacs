@@ -494,9 +494,9 @@ in your .emacs file.
   :keymap flyspell-mode-map
   :group 'flyspell
   (if flyspell-mode
-      (condition-case ()
+      (condition-case err
 	  (flyspell-mode-on)
-	(error (message "Enabling Flyspell mode gave an error")
+	(error (message "Error enabling Flyspell mode:\n%s" (cdr err))
 	       (flyspell-mode -1)))
     (flyspell-mode-off)))
 
@@ -1465,7 +1465,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
       (goto-char (point-min))
       ;; Localwords parsing copied from ispell.el.
       (while (search-forward ispell-words-keyword nil t)
-	(let ((end (save-excursion (end-of-line) (point)))
+	(let ((end (point-at-eol))
 	      string)
 	  ;; buffer-local words separated by a space, and can contain
 	  ;; any character other than a space.  Not rigorous enough.
@@ -2354,5 +2354,4 @@ This function is meant to be added to `flyspell-incorrect-hook'."
 
 (provide 'flyspell)
 
-;; arch-tag: 05d915b9-e9cf-44fb-9137-fc28f5eaab2a
 ;;; flyspell.el ends here

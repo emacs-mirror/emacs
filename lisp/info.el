@@ -1,8 +1,8 @@
 ;; info.el --- info package for Emacs
 
-;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -888,17 +888,16 @@ Value is the position at which a match was found, or nil if not found."
   (let ((case-fold-search case-fold)
 	found)
     (save-excursion
-      (when (Info-node-at-bob-matching regexp)
-	(setq found (point)))
-      (while (and (not found)
-		  (search-forward "\n\^_" nil t))
-	(forward-line 1)
-	(let ((beg (point)))
-	  (forward-line 1)
-	  (when (re-search-backward regexp beg t)
-	    (beginning-of-line)
-	    (setq found (point)))))
-      found)))
+      (if (Info-node-at-bob-matching regexp)
+          (setq found (point))
+        (while (and (not found)
+                    (search-forward "\n\^_" nil t))
+          (forward-line 1)
+          (let ((beg (point)))
+            (forward-line 1)
+            (if (re-search-backward regexp beg t)
+                (setq found (line-beginning-position)))))))
+    found))
 
 (defun Info-find-node-in-buffer (regexp)
   "Find a node or anchor in the current buffer.
@@ -2323,11 +2322,8 @@ new buffer."
 	 completions default alt-default (start-point (point)) str i bol eol)
      (save-excursion
        ;; Store end and beginning of line.
-       (end-of-line)
-       (setq eol (point))
-       (beginning-of-line)
-       (setq bol (point))
-
+       (setq eol (line-end-position)
+             bol (line-beginning-position))
        (goto-char (point-min))
        (while (re-search-forward "\\*note[ \n\t]+\\([^:]*\\):" nil t)
 	 (setq str (match-string-no-properties 1))
@@ -2843,12 +2839,9 @@ parent node."
 	 (virtual-end
 	  (and Info-scroll-prefer-subnodes
 	       (save-excursion
-		 (beginning-of-line)
-		 (setq current-point (point))
+		 (setq current-point (line-beginning-position))
 		 (goto-char (point-min))
-		 (search-forward "\n* Menu:"
-				 current-point
-				 t)))))
+		 (search-forward "\n* Menu:" current-point t)))))
     (if (or virtual-end
 	    (pos-visible-in-window-p (point-min) nil t))
 	(Info-last-preorder)
@@ -3379,6 +3372,8 @@ Build a menu of the possible matches."
 (declare-function find-library-name "find-func" (library))
 (declare-function finder-unknown-keywords "finder" ())
 (declare-function lm-commentary "lisp-mnt" (&optional file))
+(defvar finder-keywords-hash)
+(defvar package-alist)                  ; finder requires package
 
 (defun Info-finder-find-node (filename nodename &optional no-going-back)
   "Finder-specific implementation of Info-find-node-2."
@@ -4930,5 +4925,4 @@ type returned by `Info-bookmark-make-record', which see."
 
 (provide 'info)
 
-;; arch-tag: f2480fe2-2139-40c1-a49b-6314991164ac
 ;;; info.el ends here

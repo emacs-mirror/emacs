@@ -201,9 +201,9 @@ without asking, and complex changes are made by asking the user first.
 The value `never' is the same as nil, never ask or change anything."
   :group 'checkdoc
   :type '(choice (const automatic)
-		 (const query)
-		 (const never)
-		 (other :tag "semiautomatic" semiautomatic)))
+          (const query)
+          (const never)
+          (other :tag "semiautomatic" semiautomatic)))
 
 (defcustom checkdoc-bouncy-flag t
   "Non-nil means to \"bounce\" to auto-fix locations.
@@ -250,10 +250,10 @@ system.  Possible values are:
   t           - Always spell-check"
   :group 'checkdoc
   :type '(choice (const nil)
-		 (const defun)
-		 (const buffer)
-		 (const interactive)
-		 (const t)))
+          (const defun)
+          (const buffer)
+          (const interactive)
+          (const t)))
 
 (defvar checkdoc-ispell-lisp-words
   '("alist" "emacs" "etags" "keymap" "paren" "regexp" "sexp" "xemacs")
@@ -429,18 +429,14 @@ and experimental check.  Do not modify this list without setting
 the value of `checkdoc-common-verbs-regexp' to nil which cause it to
 be re-created.")
 
-(defvar checkdoc-syntax-table nil
+(defvar checkdoc-syntax-table
+  (let ((st (make-syntax-table emacs-lisp-mode-syntax-table)))
+    ;; When dealing with syntax in doc strings, make sure that - are
+    ;; encompassed in words so we can use cheap \\> to get the end of a symbol,
+    ;; not the end of a word in a conglomerate.
+    (modify-syntax-entry ?- "w" checkdoc-syntax-table)
+    st)
   "Syntax table used by checkdoc in document strings.")
-
-(if checkdoc-syntax-table
-    nil
-  (setq checkdoc-syntax-table (copy-syntax-table emacs-lisp-mode-syntax-table))
-  ;; When dealing with syntax in doc strings, make sure that - are encompassed
-  ;; in words so we can use cheap \\> to get the end of a symbol, not the
-  ;; end of a word in a conglomerate.
-  (modify-syntax-entry ?- "w" checkdoc-syntax-table)
-  )
-
 
 ;;; Compatibility
 ;;
@@ -515,12 +511,11 @@ CHECK is a list of four strings stating the current status of each
 test; the nth string describes the status of the nth test."
   (let (temp-buffer-setup-hook)
     (with-output-to-temp-buffer "*Checkdoc Status*"
-      (princ-list
-       "Buffer comments and tags:  " (nth 0 check) "\n"
-       "Documentation style:       " (nth 1 check) "\n"
-       "Message/Query text style:  " (nth 2 check) "\n"
-       "Unwanted Spaces:           " (nth 3 check)
-       )))
+      (mapc #'princ
+            (list "Buffer comments and tags:  " (nth 0 check)
+                  "\nDocumentation style:       " (nth 1 check)
+                  "\nMessage/Query text style:  " (nth 2 check)
+                  "\nUnwanted Spaces:           " (nth 3 check)))))
   (shrink-window-if-larger-than-buffer
    (get-buffer-window "*Checkdoc Status*"))
   (message nil)
@@ -623,7 +618,7 @@ style."
 		      (recenter (/ (- (window-height) l) 2))))
 		(recenter))
 	      (message "%s (C-h,%se,n,p,q)" (checkdoc-error-text
-					      (car (car err-list)))
+                                             (car (car err-list)))
 		       (if (checkdoc-error-unfixable (car (car err-list)))
 			   "" "f,"))
 	      (save-excursion
@@ -713,20 +708,21 @@ style."
 		      (delete-window (get-buffer-window "*Checkdoc Help*"))
 		      (kill-buffer "*Checkdoc Help*"))
 		  (with-output-to-temp-buffer "*Checkdoc Help*"
-		    (princ-list
-		     "Checkdoc Keyboard Summary:\n"
-		     (if (checkdoc-error-unfixable (car (car err-list)))
-			 ""
-		       (concat
-			"f, y    - auto Fix this warning without asking (if\
+                    (with-current-buffer standard-output
+                      (insert
+                       "Checkdoc Keyboard Summary:\n"
+                       (if (checkdoc-error-unfixable (car (car err-list)))
+                           ""
+                         (concat
+                          "f, y    - auto Fix this warning without asking (if\
  available.)\n"
-			"         Very complex operations will still query.\n")
-		       )
-		     "e      - Enter recursive Edit.  Press C-M-c to exit.\n"
-		     "SPC, n - skip to the Next error.\n"
-		     "DEL, p - skip to the Previous error.\n"
-		     "q      - Quit checkdoc.\n"
-		     "C-h    - Toggle this help buffer."))
+                          "         Very complex operations will still query.\n")
+                         )
+                       "e      - Enter recursive Edit.  Press C-M-c to exit.\n"
+                       "SPC, n - skip to the Next error.\n"
+                       "DEL, p - skip to the Previous error.\n"
+                       "q      - Quit checkdoc.\n"
+                       "C-h    - Toggle this help buffer.")))
 		  (shrink-window-if-larger-than-buffer
 		   (get-buffer-window "*Checkdoc Help*"))))))
 	  (if cdo (checkdoc-delete-overlay cdo)))))
@@ -826,9 +822,9 @@ assumes that the cursor is already positioned to perform the fix."
   "Enter recursive edit to permit a user to fix some error checkdoc has found.
 MSG is the error that was found, which is displayed in a help buffer."
   (with-output-to-temp-buffer "*Checkdoc Help*"
-    (princ-list
-     "Error message:\n  " msg
-     "\n\nEdit to fix this problem, and press C-M-c to continue."))
+    (mapc #'princ
+          (list "Error message:\n  " msg
+                "\n\nEdit to fix this problem, and press C-M-c to continue.")))
   (shrink-window-if-larger-than-buffer
    (get-buffer-window "*Checkdoc Help*"))
   (message "When you're done editing press C-M-c to continue.")
@@ -947,14 +943,14 @@ if there is one."
   (interactive "P")
   (if take-notes (checkdoc-start-section "checkdoc-comments"))
   (if (not buffer-file-name)
-     (error "Can only check comments for a file buffer"))
+      (error "Can only check comments for a file buffer"))
   (let* ((checkdoc-spellcheck-documentation-flag
 	  (car (memq checkdoc-spellcheck-documentation-flag
                      '(buffer t))))
 	 (checkdoc-autofix-flag (if take-notes 'never checkdoc-autofix-flag))
 	 (e (checkdoc-file-comments-engine))
-	(checkdoc-generate-compile-warnings-flag
-	 (or take-notes checkdoc-generate-compile-warnings-flag)))
+         (checkdoc-generate-compile-warnings-flag
+          (or take-notes checkdoc-generate-compile-warnings-flag)))
     (if e (error "%s" (checkdoc-error-text e)))
     (checkdoc-show-diagnostics)
     e))
@@ -970,8 +966,8 @@ Optional argument INTERACT permits more interactive fixing."
   (if take-notes (checkdoc-start-section "checkdoc-rogue-spaces"))
   (let* ((checkdoc-autofix-flag (if take-notes 'never checkdoc-autofix-flag))
 	 (e (checkdoc-rogue-space-check-engine nil nil interact))
-	(checkdoc-generate-compile-warnings-flag
-	 (or take-notes checkdoc-generate-compile-warnings-flag)))
+         (checkdoc-generate-compile-warnings-flag
+          (or take-notes checkdoc-generate-compile-warnings-flag)))
     (if (not (called-interactively-p 'interactive))
 	e
       (if e
@@ -1210,34 +1206,34 @@ generating a buffered list of errors."
 ;; Add in a menubar with easy-menu
 
 (easy-menu-define
- nil checkdoc-minor-mode-map "Checkdoc Minor Mode Menu"
- '("CheckDoc"
-   ["Interactive Buffer Style Check" checkdoc t]
-   ["Interactive Buffer Style and Spelling Check" checkdoc-ispell t]
-   ["Check Buffer" checkdoc-current-buffer t]
-   ["Check and Spell Buffer" checkdoc-ispell-current-buffer t]
-   "---"
-   ["Interactive Style Check" checkdoc-interactive t]
-   ["Interactive Style and Spelling Check" checkdoc-ispell-interactive t]
-   ["Find First Style Error" checkdoc-start t]
-   ["Find First Style or Spelling  Error" checkdoc-ispell-start t]
-   ["Next Style Error" checkdoc-continue t]
-   ["Next Style or Spelling  Error" checkdoc-ispell-continue t]
-   ["Interactive Message Text Style Check" checkdoc-message-interactive t]
-   ["Interactive Message Text Style and Spelling Check"
-    checkdoc-ispell-message-interactive t]
-   ["Check Message Text" checkdoc-message-text t]
-   ["Check and Spell Message Text" checkdoc-ispell-message-text t]
-   ["Check Comment Style" checkdoc-comments buffer-file-name]
-   ["Check Comment Style and Spelling" checkdoc-ispell-comments
-    buffer-file-name]
-   ["Check for Rogue Spaces" checkdoc-rogue-spaces t]
-   "---"
-   ["Check Defun" checkdoc-defun t]
-   ["Check and Spell Defun" checkdoc-ispell-defun t]
-   ["Check and Evaluate Defun" checkdoc-eval-defun t]
-   ["Check and Evaluate Buffer" checkdoc-eval-current-buffer t]
-   ))
+  nil checkdoc-minor-mode-map "Checkdoc Minor Mode Menu"
+  '("CheckDoc"
+    ["Interactive Buffer Style Check" checkdoc t]
+    ["Interactive Buffer Style and Spelling Check" checkdoc-ispell t]
+    ["Check Buffer" checkdoc-current-buffer t]
+    ["Check and Spell Buffer" checkdoc-ispell-current-buffer t]
+    "---"
+    ["Interactive Style Check" checkdoc-interactive t]
+    ["Interactive Style and Spelling Check" checkdoc-ispell-interactive t]
+    ["Find First Style Error" checkdoc-start t]
+    ["Find First Style or Spelling  Error" checkdoc-ispell-start t]
+    ["Next Style Error" checkdoc-continue t]
+    ["Next Style or Spelling  Error" checkdoc-ispell-continue t]
+    ["Interactive Message Text Style Check" checkdoc-message-interactive t]
+    ["Interactive Message Text Style and Spelling Check"
+     checkdoc-ispell-message-interactive t]
+    ["Check Message Text" checkdoc-message-text t]
+    ["Check and Spell Message Text" checkdoc-ispell-message-text t]
+    ["Check Comment Style" checkdoc-comments buffer-file-name]
+    ["Check Comment Style and Spelling" checkdoc-ispell-comments
+     buffer-file-name]
+    ["Check for Rogue Spaces" checkdoc-rogue-spaces t]
+    "---"
+    ["Check Defun" checkdoc-defun t]
+    ["Check and Spell Defun" checkdoc-ispell-defun t]
+    ["Check and Evaluate Defun" checkdoc-eval-defun t]
+    ["Check and Evaluate Buffer" checkdoc-eval-current-buffer t]
+    ))
 ;; XEmacs requires some weird stuff to add this menu in a minor mode.
 ;; What is it?
 
@@ -1366,7 +1362,7 @@ See the style guide in the Emacs Lisp manual for more details."
 			   (setq checkdoc-autofix-flag 'never))))
 		 (checkdoc-create-error
 		  "You should convert this comment to documentation"
-		  (point) (save-excursion (end-of-line) (point))))
+		  (point) (line-end-position)))
 	     (checkdoc-create-error
 	      (if (nth 2 fp)
 		  "All interactive functions should have documentation"
@@ -1388,7 +1384,7 @@ Depends on `checkdoc-this-string-valid' to reset the syntax table so that
 regexp short cuts work.  FP is the function defun information."
   (let ((case-fold-search nil)
 	;; Use a marker so if an early check modifies the text,
-	;; we won't accidentally loose our place.  This could cause
+	;; we won't accidentally lose our place.  This could cause
 	;; end-of doc string whitespace to also delete the " char.
 	(s (point))
 	(e (if (looking-at "\"")
@@ -1486,12 +1482,10 @@ regexp short cuts work.  FP is the function defun information."
 		    "First line not a complete sentence.  Add RET here? "
 		    "\n" t)
 		   (let (l1 l2)
-		     (forward-line 1)
-		     (end-of-line)
+		     (end-of-line 2)
 		     (setq l1 (current-column)
 			   l2 (save-excursion
-				(forward-line 1)
-				(end-of-line)
+				(end-of-line 2)
 				(current-column)))
 		     (if (> (+ l1 l2 1) 80)
 			 (setq msg "Incomplete auto-fix; doc string \
@@ -1508,10 +1502,7 @@ may require more formatting")
 	       (forward-line 1)
 	       (beginning-of-line)
 	       (if (and (re-search-forward "[.!?:\"]\\([ \t\n]+\\|\"\\)"
-					   (save-excursion
-					     (end-of-line)
-					     (point))
-					   t)
+					   (line-end-position) t)
 			(< (current-column) numc))
 		   (if (checkdoc-autofix-ask-replace
 			p (1+ p)
@@ -1526,9 +1517,7 @@ may require more formatting")
 	   (if msg
 	       (checkdoc-create-error msg s (save-excursion
 					      (goto-char s)
-					      (end-of-line)
-					      (point)))
-	     nil) ))))
+					      (line-end-position))))))))
      ;; Continuation of above.  Make sure our sentence is capitalized.
      (save-excursion
        (skip-chars-forward "\"\\*")
@@ -1628,7 +1617,7 @@ function,command,variable,option or symbol." ms1))))))
 	 (if (and (< (point) e) (> (current-column) 80))
 	     (checkdoc-create-error
 	      "Some lines are over 80 columns wide"
-	      s (save-excursion (goto-char s) (end-of-line) (point)) ))))
+	      s (save-excursion (goto-char s) (line-end-position))))))
      ;; Here we deviate to tests based on a variable or function.
      ;; We must do this before checking for symbols in quotes because there
      ;; is a chance that just such a symbol might really be an argument.
@@ -1773,9 +1762,8 @@ function,command,variable,option or symbol." ms1))))))
 				 (end-of-line)
 				 ;; check string-continuation
 				 (if (checkdoc-char= (preceding-char) ?\\)
-				     (progn (forward-line 1)
-					    (end-of-line)))
-				 (point)))
+				     (line-end-position 2)
+				   (point))))
 			  (rs nil) replace original (case-fold-search t))
 		      (while (and (not rs)
 				  (re-search-forward
@@ -2253,8 +2241,8 @@ Code:, and others referenced in the style guide."
 		 (insert ";;; " fn fe " --- " (read-string "Summary: ") "\n"))
 	     (checkdoc-create-error
 	      "The first line should be of the form: \";;; package --- Summary\""
-	      (point-min) (save-excursion (goto-char (point-min)) (end-of-line)
-					  (point))))
+	      (point-min) (save-excursion (goto-char (point-min))
+					  (line-end-position))))
 	 nil))
       (setq
        err
@@ -2665,8 +2653,7 @@ function called to create the messages."
 	(setq checkdoc-pending-errors nil)
 	nil)))
 
-(custom-add-option 'emacs-lisp-mode-hook
-		   (lambda () (checkdoc-minor-mode 1)))
+(custom-add-option 'emacs-lisp-mode-hook 'checkdoc-minor-mode)
 
 (add-to-list 'debug-ignored-errors
 	     "Argument `.*' should appear (as .*) in the doc string")
@@ -2676,5 +2663,4 @@ function called to create the messages."
 
 (provide 'checkdoc)
 
-;; arch-tag: c49a7ec8-3bb7-46f2-bfbc-d5f26e033b26
 ;;; checkdoc.el ends here

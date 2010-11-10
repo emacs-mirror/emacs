@@ -34,6 +34,7 @@ void dostounix_filename (char *);
 char *rootrelativepath (char *);
 void init_environment (int, char **, int);
 void internal_terminal_init (void);
+void initialize_msdos_display (struct terminal *);
 
 extern int have_mouse;
 void mouse_init (void);

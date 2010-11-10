@@ -1,7 +1,8 @@
 ;;; term.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 1990, 1992, 1994, 1995, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992, 1994, 1995, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
 ;; Maintainer: Dan Nicolaescu <dann@ics.uci.edu>, Per Bothner <per@bothner.com>
@@ -1798,15 +1799,11 @@ Returns t if successful."
   "Expand directory stack reference before point.
 See `term-replace-by-expanded-history'.  Returns t if successful."
   (save-excursion
-    (let ((toend (- (save-excursion (end-of-line nil) (point)) (point)))
+    (let ((toend (- (line-end-position) (point)))
 	  (start (progn (term-bol nil) (point))))
       (while (progn
-	       (skip-chars-forward "^!^"
-				   (save-excursion
-				     (end-of-line nil) (- (point) toend)))
-	       (< (point)
-		  (save-excursion
-		    (end-of-line nil) (- (point) toend))))
+	       (skip-chars-forward "^!^" (- (line-end-position) toend))
+	       (< (point) (- (line-end-position) toend)))
 	;; This seems a bit complex.  We look for references such as !!, !-num,
 	;; !foo, !?foo, !{bar}, !?{bar}, ^oh, ^my^, ^god^it, ^never^ends^.
 	;; If that wasn't enough, the plings can be suffixed with argument
@@ -2112,7 +2109,7 @@ Calls `term-get-old-input' to get old input."
 (defun term-skip-prompt ()
   "Skip past the text matching regexp `term-prompt-regexp'.
 If this takes us past the end of the current line, don't skip at all."
-  (let ((eol (save-excursion (end-of-line) (point))))
+  (let ((eol (line-end-position)))
     (when (and (looking-at term-prompt-regexp)
 	       (<= (match-end 0) eol))
       (goto-char (match-end 0)))))
@@ -2471,11 +2468,10 @@ See `term-prompt-regexp'."
   "Return string around `point' that starts the current line or nil."
   (save-excursion
     (let* ((point (point))
-	   (bol (progn (beginning-of-line) (point)))
-	   (eol (progn (end-of-line) (point)))
-	   (start (progn (goto-char point)
-			 (and (search-backward "\"" bol t)
-			      (1+ (point)))))
+	   (bol (line-beginning-position))
+	   (eol (line-end-position))
+	   (start (and (search-backward "\"" bol t)
+                       (1+ (point))))
 	   (end (progn (goto-char point)
 		       (and (search-forward "\"" eol t)
 			    (1- (point))))))
@@ -2615,10 +2611,7 @@ See `term-prompt-regexp'."
 
 (defun term-move-columns (delta)
   (setq term-current-column (max 0 (+ (term-current-column) delta)))
-  (let (point-at-eol)
-    (save-excursion
-      (end-of-line)
-      (setq point-at-eol (point)))
+  (let ((point-at-eol (line-end-position)))
     (move-to-column term-current-column t)
     ;; If move-to-column extends the current line it will use the face
     ;; from the last character on the line, set the face for the chars
@@ -3796,10 +3789,8 @@ if KIND is 1, erase from home to point; else erase from home to point-max."
     (term-vertical-motion 1)
     (when (bolp)
       (backward-char))
-    (setq save-eol (point))
-    (save-excursion
-      (end-of-line)
-      (setq pnt-at-eol (point)))
+    (setq save-eol (point)
+          pnt-at-eol (line-end-position))
     (move-to-column (+ (term-start-line-column) (- term-width count)) t)
     ;; If move-to-column extends the current line it will use the face
     ;; from the last character on the line, set the face for the chars
@@ -4232,7 +4223,7 @@ Return t if this is a Unix-based system, where serial ports are
 files, such as /dev/ttyS0.
 Return nil if this is Windows or DOS, where serial ports have
 special identifiers such as COM1."
-  (not (member system-type (list 'windows-nt 'cygwin 'ms-dos))))
+  (not (memq system-type '(windows-nt cygwin ms-dos))))
 
 (defvar serial-name-history
   (if (serial-port-is-file-p)
@@ -4534,5 +4525,4 @@ The return value may be nil for a special serial port."
 
 (provide 'term)
 
-;; arch-tag: eee16bc8-2cd7-4147-9534-a5694752f716
 ;;; term.el ends here

@@ -29,24 +29,12 @@
 (defvar A-end)
 (defvar B-begin)
 (defvar B-end)
-(defvar diff)
 (defvar diff-vector)
 (defvar merge-begin)
 (defvar merge-end)
-(defvar template)
 (defvar valid-diff)
 
 ;;; Macros
-
-(defmacro emerge-eval-in-buffer (buffer &rest forms)
-  "Macro to switch to BUFFER, evaluate FORMS, returns to original buffer.
-Differs from `save-excursion' in that it doesn't save the point and mark."
-  `(let ((StartBuffer (current-buffer)))
-    (unwind-protect
-         (progn
-           (set-buffer ,buffer)
-           ,@forms)
-      (set-buffer StartBuffer))))
 
 (defmacro emerge-defvar-local (var value doc)
   "Defines SYMBOL as an advertised variable.
@@ -565,7 +553,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
     (if output-file
 	(setq emerge-last-dir-output (file-name-directory output-file)))
     ;; Make sure the entire files are seen, and they reflect what is on disk
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-A
      (widen)
      (let ((temp (file-local-copy file-A)))
@@ -576,7 +564,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 		       startup-hooks))
            ;; Verify that the file matches the buffer
            (emerge-verify-file-buffer))))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-B
      (widen)
      (let ((temp (file-local-copy file-B)))
@@ -599,10 +587,10 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   (let* ((merge-buffer-name (emerge-unique-buffer-name "*merge" "*"))
 	 ;; create the merge buffer from buffer A, so it inherits buffer A's
 	 ;; default directory, etc.
-	 (merge-buffer (emerge-eval-in-buffer
+	 (merge-buffer (with-current-buffer
 			buffer-A
 			(get-buffer-create merge-buffer-name))))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      merge-buffer
      (emerge-copy-modes buffer-A)
      (setq buffer-read-only nil)
@@ -625,14 +613,14 @@ This is *not* a user option, since Emerge uses it for its own processing.")
      (emerge-remember-buffer-characteristics)
      (emerge-handle-local-variables))
     (emerge-setup-windows buffer-A buffer-B merge-buffer t)
-    (emerge-eval-in-buffer merge-buffer
+    (with-current-buffer merge-buffer
 			   (run-hooks 'startup-hooks 'emerge-startup-hook)
 			   (setq buffer-read-only t))))
 
 ;; Generate the Emerge difference list between two files
 (defun emerge-make-diff-list (file-A file-B)
   (setq emerge-diff-buffer (get-buffer-create "*emerge-diff*"))
-  (emerge-eval-in-buffer
+  (with-current-buffer
    emerge-diff-buffer
    (erase-buffer)
    (shell-command
@@ -648,7 +636,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 
 (defun emerge-extract-diffs (diff-buffer)
   (let (list)
-    (emerge-eval-in-buffer
+    (with-current-buffer
      diff-buffer
      (goto-char (point-min))
      (while (re-search-forward emerge-match-diff-line nil t)
@@ -692,7 +680,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 ;; Set up buffer of diff/diff3 error messages.
 (defun emerge-prepare-error-list (ok-regexp)
   (setq emerge-diff-error-buffer (get-buffer-create "*emerge-diff-errors*"))
-  (emerge-eval-in-buffer
+  (with-current-buffer
    emerge-diff-error-buffer
    (erase-buffer)
    (save-excursion (insert-buffer-substring emerge-diff-buffer))
@@ -719,7 +707,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
     (if output-file
 	(setq emerge-last-dir-output (file-name-directory output-file)))
     ;; Make sure the entire files are seen, and they reflect what is on disk
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-A
      (widen)
      (let ((temp (file-local-copy file-A)))
@@ -730,7 +718,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 		       startup-hooks))
            ;; Verify that the file matches the buffer
            (emerge-verify-file-buffer))))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-B
      (widen)
      (let ((temp (file-local-copy file-B)))
@@ -741,7 +729,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 		       startup-hooks))
            ;; Verify that the file matches the buffer
            (emerge-verify-file-buffer))))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-ancestor
      (widen)
      (let ((temp (file-local-copy file-ancestor)))
@@ -768,10 +756,10 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   (let* ((merge-buffer-name (emerge-unique-buffer-name "*merge" "*"))
 	 ;; create the merge buffer from buffer A, so it inherits buffer A's
 	 ;; default directory, etc.
-	 (merge-buffer (emerge-eval-in-buffer
+	 (merge-buffer (with-current-buffer
 			buffer-A
 			(get-buffer-create merge-buffer-name))))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      merge-buffer
      (emerge-copy-modes buffer-A)
      (setq buffer-read-only nil)
@@ -796,14 +784,14 @@ This is *not* a user option, since Emerge uses it for its own processing.")
      (emerge-select-prefer-Bs)
      (emerge-handle-local-variables))
     (emerge-setup-windows buffer-A buffer-B merge-buffer t)
-    (emerge-eval-in-buffer merge-buffer
+    (with-current-buffer merge-buffer
 			   (run-hooks 'startup-hooks 'emerge-startup-hook)
 			   (setq buffer-read-only t))))
 
 ;; Generate the Emerge difference list between two files with an ancestor
 (defun emerge-make-diff3-list (file-A file-B file-ancestor)
   (setq emerge-diff-buffer (get-buffer-create "*emerge-diff*"))
-  (emerge-eval-in-buffer
+  (with-current-buffer
    emerge-diff-buffer
    (erase-buffer)
    (shell-command
@@ -820,7 +808,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 
 (defun emerge-extract-diffs3 (diff-buffer)
   (let (list)
-    (emerge-eval-in-buffer
+    (with-current-buffer
      diff-buffer
      (while (re-search-forward "^====\\(.?\\)$" nil t)
        ;; leave point after matched line
@@ -928,10 +916,10 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   (interactive "bBuffer A to merge: \nbBuffer B to merge: ")
   (let ((emerge-file-A (emerge-make-temp-file "A"))
 	(emerge-file-B (emerge-make-temp-file "B")))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-A
      (write-region (point-min) (point-max) emerge-file-A nil 'no-message))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-B
      (write-region (point-min) (point-max) emerge-file-B nil 'no-message))
     (emerge-setup (get-buffer buffer-A) emerge-file-A
@@ -953,13 +941,13 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   (let ((emerge-file-A (emerge-make-temp-file "A"))
 	(emerge-file-B (emerge-make-temp-file "B"))
 	(emerge-file-ancestor (emerge-make-temp-file "anc")))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-A
      (write-region (point-min) (point-max) emerge-file-A nil 'no-message))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-B
      (write-region (point-min) (point-max) emerge-file-B nil 'no-message))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-ancestor
      (write-region (point-min) (point-max) emerge-file-ancestor nil
 		   'no-message))
@@ -1093,7 +1081,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 	(emerge-file-A (emerge-make-temp-file "A"))
 	(emerge-file-B (emerge-make-temp-file "B")))
     ;; Get the revisions into buffers
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-A
      (erase-buffer)
      (shell-command
@@ -1101,7 +1089,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
       t)
      (write-region (point-min) (point-max) emerge-file-A nil 'no-message)
      (set-buffer-modified-p nil))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-B
      (erase-buffer)
      (shell-command
@@ -1131,7 +1119,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 	(emerge-file-B (emerge-make-temp-file "B"))
 	(emerge-ancestor (emerge-make-temp-file "ancestor")))
     ;; Get the revisions into buffers
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-A
      (erase-buffer)
      (shell-command
@@ -1140,7 +1128,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
       t)
      (write-region (point-min) (point-max) emerge-file-A nil 'no-message)
      (set-buffer-modified-p nil))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-B
      (erase-buffer)
      (shell-command
@@ -1148,7 +1136,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
       t)
      (write-region (point-min) (point-max) emerge-file-B nil 'no-message)
      (set-buffer-modified-p nil))
-    (emerge-eval-in-buffer
+    (with-current-buffer
      buffer-ancestor
      (erase-buffer)
      (shell-command
@@ -1379,7 +1367,7 @@ Otherwise, the A or B file present is copied to the output file."
   (if pos
       (goto-char (point-min)))
   ;; If diff/diff3 reports errors, display them rather than the merge buffer.
-  (if (/= 0 (emerge-eval-in-buffer emerge-diff-error-buffer (buffer-size)))
+  (if (/= 0 (with-current-buffer emerge-diff-error-buffer (buffer-size)))
       (progn
 	(ding)
 	(message "Errors found in diff/diff3 output.  Merge buffer is %s."
@@ -1434,14 +1422,14 @@ These characteristics are restored by `emerge-restore-buffer-characteristics'."
   (do-auto-save)
   ;; remember and alter buffer characteristics
   (setq emerge-A-buffer-values
-	(emerge-eval-in-buffer
+	(with-current-buffer
 	 emerge-A-buffer
 	 (prog1
 	     (emerge-save-variables emerge-saved-variables)
 	   (emerge-restore-variables emerge-saved-variables
 				     emerge-merging-values))))
   (setq emerge-B-buffer-values
-	(emerge-eval-in-buffer
+	(with-current-buffer
 	 emerge-B-buffer
 	 (prog1
 	     (emerge-save-variables emerge-saved-variables)
@@ -1452,10 +1440,10 @@ These characteristics are restored by `emerge-restore-buffer-characteristics'."
   "Restore characteristics saved by `emerge-remember-buffer-characteristics'."
   (let ((A-values emerge-A-buffer-values)
 	(B-values emerge-B-buffer-values))
-    (emerge-eval-in-buffer emerge-A-buffer
+    (with-current-buffer emerge-A-buffer
 			   (emerge-restore-variables emerge-saved-variables
 						     A-values))
-    (emerge-eval-in-buffer emerge-B-buffer
+    (with-current-buffer emerge-B-buffer
 			   (emerge-restore-variables emerge-saved-variables
 						     B-values))))
 
@@ -1470,15 +1458,15 @@ These characteristics are restored by `emerge-restore-buffer-characteristics'."
 					merge-buffer
 					lineno-list)
   (let* (marker-list
-	 (A-point-min (emerge-eval-in-buffer A-buffer (point-min)))
+	 (A-point-min (with-current-buffer A-buffer (point-min)))
 	 (offset (1- A-point-min))
-	 (B-point-min (emerge-eval-in-buffer B-buffer (point-min)))
+	 (B-point-min (with-current-buffer B-buffer (point-min)))
 	 ;; Record current line number in each buffer
 	 ;; so we don't have to count from the beginning.
 	 (a-line 1)
 	 (b-line 1))
-    (emerge-eval-in-buffer A-buffer (goto-char (point-min)))
-    (emerge-eval-in-buffer B-buffer (goto-char (point-min)))
+    (with-current-buffer A-buffer (goto-char (point-min)))
+    (with-current-buffer B-buffer (goto-char (point-min)))
     (while lineno-list
       (let* ((list-element (car lineno-list))
 	     a-begin-marker
@@ -1493,13 +1481,13 @@ These characteristics are restored by `emerge-restore-buffer-characteristics'."
 	     (b-end (aref list-element 3))
 	     (state (aref list-element 4)))
 	;; place markers at the appropriate places in the buffers
-	(emerge-eval-in-buffer
+	(with-current-buffer
 	 A-buffer
 	 (setq a-line (emerge-goto-line a-begin a-line))
 	 (setq a-begin-marker (point-marker))
 	 (setq a-line (emerge-goto-line a-end a-line))
 	 (setq a-end-marker (point-marker)))
-	(emerge-eval-in-buffer
+	(with-current-buffer
 	 B-buffer
 	 (setq b-line (emerge-goto-line b-begin b-line))
 	 (setq b-begin-marker (point-marker))
@@ -1759,7 +1747,7 @@ This resets the horizontal scrolling of all three merge buffers
 to the left margin, if they are in windows."
   (interactive)
   (emerge-operate-on-windows
-   (function (lambda (x) (set-window-hscroll (selected-window) 0)))
+   (lambda (x) (set-window-hscroll (selected-window) 0))
    nil))
 
 ;; Attempt to show the region nicely.
@@ -1869,13 +1857,13 @@ buffer after this will cause serious problems."
   (emerge-restore-buffer-characteristics)
   ;; null out the difference markers so they don't slow down future editing
   ;; operations
-  (mapc (function (lambda (d)
-		    (set-marker (aref d 0) nil)
-		    (set-marker (aref d 1) nil)
-		    (set-marker (aref d 2) nil)
-		    (set-marker (aref d 3) nil)
-		    (set-marker (aref d 4) nil)
-		    (set-marker (aref d 5) nil)))
+  (mapc (lambda (d)
+	  (set-marker (aref d 0) nil)
+	  (set-marker (aref d 1) nil)
+	  (set-marker (aref d 2) nil)
+	  (set-marker (aref d 3) nil)
+	  (set-marker (aref d 4) nil)
+	  (set-marker (aref d 5) nil))
 	  emerge-difference-list)
   ;; allow them to be garbage collected
   (setq emerge-difference-list nil)
@@ -1900,19 +1888,18 @@ A prefix argument forces the variant to be selected
 even if the difference has been edited."
   (interactive "P")
   (let ((operate
-	 (function (lambda ()
-		     (emerge-select-A-edit merge-begin merge-end A-begin A-end)
-		     (if emerge-auto-advance
-			 (emerge-next-difference)))))
+	 (lambda ()
+	   (emerge-select-A-edit merge-begin merge-end A-begin A-end)
+	   (if emerge-auto-advance
+	       (emerge-next-difference))))
 	(operate-no-change
-	 (function (lambda ()
-		     (if emerge-auto-advance
-			 (emerge-next-difference))))))
+	 (lambda () (if emerge-auto-advance
+			(emerge-next-difference)))))
     (emerge-select-version force operate-no-change operate operate)))
 
 ;; Actually select the A variant
 (defun emerge-select-A-edit (merge-begin merge-end A-begin A-end)
-  (emerge-eval-in-buffer
+  (with-current-buffer
    emerge-merge-buffer
    (delete-region merge-begin merge-end)
    (goto-char merge-begin)
@@ -1929,19 +1916,18 @@ A prefix argument forces the variant to be selected
 even if the difference has been edited."
   (interactive "P")
   (let ((operate
-	 (function (lambda ()
-		     (emerge-select-B-edit merge-begin merge-end B-begin B-end)
-		     (if emerge-auto-advance
-			 (emerge-next-difference)))))
+	 (lambda ()
+	   (emerge-select-B-edit merge-begin merge-end B-begin B-end)
+	   (if emerge-auto-advance
+	       (emerge-next-difference))))
 	(operate-no-change
-	 (function (lambda ()
-		     (if emerge-auto-advance
-			 (emerge-next-difference))))))
+	 (lambda () (if emerge-auto-advance
+			(emerge-next-difference)))))
     (emerge-select-version force operate operate-no-change operate)))
 
 ;; Actually select the B variant
 (defun emerge-select-B-edit (merge-begin merge-end B-begin B-end)
-  (emerge-eval-in-buffer
+  (with-current-buffer
    emerge-merge-buffer
    (delete-region merge-begin merge-end)
    (goto-char merge-begin)
@@ -2134,12 +2120,12 @@ Use C-u l to reset the windows afterward."
   (interactive)
   (delete-other-windows)
   (let ((temp-buffer-show-function
-	 (function (lambda (buf)
-		     (split-window-vertically)
-		     (switch-to-buffer buf)
-		     (other-window 1)))))
+	 (lambda (buf)
+	   (split-window-vertically)
+	   (switch-to-buffer buf)
+	   (other-window 1))))
     (with-output-to-temp-buffer "*Help*"
-      (emerge-eval-in-buffer emerge-A-buffer
+      (with-current-buffer emerge-A-buffer
 			     (if buffer-file-name
 				 (progn
 				   (princ "File A is: ")
@@ -2148,7 +2134,7 @@ Use C-u l to reset the windows afterward."
 				 (princ "Buffer A is: ")
 				 (princ (buffer-name))))
 			     (princ "\n"))
-      (emerge-eval-in-buffer emerge-B-buffer
+      (with-current-buffer emerge-B-buffer
 			     (if buffer-file-name
 				 (progn
 				   (princ "File B is: ")
@@ -2158,7 +2144,7 @@ Use C-u l to reset the windows afterward."
 				 (princ (buffer-name))))
 			     (princ "\n"))
       (if emerge-ancestor-buffer
-	    (emerge-eval-in-buffer emerge-ancestor-buffer
+	    (with-current-buffer emerge-ancestor-buffer
 				   (if buffer-file-name
 				       (progn
 					 (princ "Ancestor file is: ")
@@ -2229,9 +2215,9 @@ With a prefix argument, join with the preceding one."
     ;; check that this is a valid difference
     (emerge-validate-difference)
     ;; get the point values and old difference
-    (let ((A-point (emerge-eval-in-buffer emerge-A-buffer
+    (let ((A-point (with-current-buffer emerge-A-buffer
 					  (point-marker)))
-	  (B-point (emerge-eval-in-buffer emerge-B-buffer
+	  (B-point (with-current-buffer emerge-B-buffer
 					  (point-marker)))
 	  (merge-point (point-marker))
 	  (old-diff (aref emerge-difference-list n)))
@@ -2313,10 +2299,10 @@ ancestor version does not share.)"
       (while success
 	(setq size (min size (- bottom-a top-a) (- bottom-b top-b)
 			(- bottom-m top-m)))
-	(setq sa (emerge-eval-in-buffer emerge-A-buffer
+	(setq sa (with-current-buffer emerge-A-buffer
 					(buffer-substring top-a
 							  (+ size top-a))))
-	(setq sb (emerge-eval-in-buffer emerge-B-buffer
+	(setq sb (with-current-buffer emerge-B-buffer
 					(buffer-substring top-b
 							  (+ size top-b))))
 	(setq sm (buffer-substring top-m (+ size top-m)))
@@ -2335,10 +2321,10 @@ ancestor version does not share.)"
       (while success
 	(setq size (min size (- bottom-a top-a) (- bottom-b top-b)
 			(- bottom-m top-m)))
-	(setq sa (emerge-eval-in-buffer emerge-A-buffer
+	(setq sa (with-current-buffer emerge-A-buffer
 					(buffer-substring (- bottom-a size)
 							  bottom-a)))
-	(setq sb (emerge-eval-in-buffer emerge-B-buffer
+	(setq sb (with-current-buffer emerge-B-buffer
 					(buffer-substring (- bottom-b size)
 							  bottom-b)))
 	(setq sm (buffer-substring (- bottom-m size) bottom-m))
@@ -2351,14 +2337,14 @@ ancestor version does not share.)"
     ;; {top,bottom}-{a,b,m} are now set at the new beginnings and ends
     ;; of the difference regions.  Move them to the beginning of lines, as
     ;; appropriate.
-    (emerge-eval-in-buffer emerge-A-buffer
+    (with-current-buffer emerge-A-buffer
 			   (goto-char top-a)
 			   (beginning-of-line)
 			   (aset diff 0 (point-marker))
 			   (goto-char bottom-a)
 			   (beginning-of-line 2)
 			   (aset diff 1 (point-marker)))
-    (emerge-eval-in-buffer emerge-B-buffer
+    (with-current-buffer emerge-B-buffer
 			   (goto-char top-b)
 			   (beginning-of-line)
 			   (aset diff 2 (point-marker))
@@ -2413,7 +2399,7 @@ the nearest previous difference."
   ;; search for the point in the A buffer, using the markers
   ;; for the beginning and end of the differences in the A buffer
   (emerge-find-difference1 arg
-			   (emerge-eval-in-buffer emerge-A-buffer (point))
+			   (with-current-buffer emerge-A-buffer (point))
 			   0 1))
 
 (defun emerge-find-difference-B (arg)
@@ -2426,7 +2412,7 @@ the nearest previous difference."
   ;; search for the point in the B buffer, using the markers
   ;; for the beginning and end of the differences in the B buffer
   (emerge-find-difference1 arg
-			   (emerge-eval-in-buffer emerge-B-buffer (point))
+			   (with-current-buffer emerge-B-buffer (point))
 			   2 3))
 
 (defun emerge-find-difference1 (arg location begin end)
@@ -2474,26 +2460,27 @@ merge buffers."
   (let* ((valid-diff
 	 (and (>= emerge-current-difference 0)
 	      (< emerge-current-difference emerge-number-of-differences)))
-	(diff (and valid-diff
-		   (aref emerge-difference-list emerge-current-difference)))
-	(merge-line (emerge-line-number-in-buf 4 5))
-	(A-line (emerge-eval-in-buffer emerge-A-buffer
-				       (emerge-line-number-in-buf 0 1)))
-	(B-line (emerge-eval-in-buffer emerge-B-buffer
-				       (emerge-line-number-in-buf 2 3))))
+	 (emerge-line-diff (and valid-diff
+				(aref emerge-difference-list
+				      emerge-current-difference)))
+	 (merge-line (emerge-line-number-in-buf 4 5))
+	 (A-line (with-current-buffer emerge-A-buffer
+					(emerge-line-number-in-buf 0 1)))
+	 (B-line (with-current-buffer emerge-B-buffer
+					(emerge-line-number-in-buf 2 3))))
     (message "At lines: merge = %d, A = %d, B = %d"
 	     merge-line A-line B-line)))
 
+(defvar emerge-line-diff)
+
 (defun emerge-line-number-in-buf (begin-marker end-marker)
-  (let (temp)
-    (setq temp (save-excursion
-		 (beginning-of-line)
-		 (1+ (count-lines 1 (point)))))
+  ;; FIXME point-min rather than 1? widen?
+  (let ((temp (1+ (count-lines 1 (line-beginning-position)))))
     (if valid-diff
 	(progn
-	  (if (> (point) (aref diff begin-marker))
+	  (if (> (point) (aref emerge-line-diff begin-marker))
 	      (setq temp (- temp emerge-before-flag-lines)))
-	  (if (> (point) (aref diff end-marker))
+	  (if (> (point) (aref emerge-line-diff end-marker))
 	      (setq temp (- temp emerge-after-flag-lines)))))
     temp))
 
@@ -2548,30 +2535,32 @@ been edited."
 	(error "Register does not contain text"))
     (emerge-combine-versions-internal template force)))
 
-(defun emerge-combine-versions-internal (template force)
+(defun emerge-combine-versions-internal (emerge-combine-template force)
   (let ((operate
-	 (function (lambda ()
-		     (emerge-combine-versions-edit merge-begin merge-end
-						   A-begin A-end B-begin B-end)
-		     (if emerge-auto-advance
-			 (emerge-next-difference))))))
+	 (lambda ()
+	   (emerge-combine-versions-edit merge-begin merge-end
+					 A-begin A-end B-begin B-end)
+	   (if emerge-auto-advance
+	       (emerge-next-difference)))))
     (emerge-select-version force operate operate operate)))
+
+(defvar emerge-combine-template)
 
 (defun emerge-combine-versions-edit (merge-begin merge-end
 				     A-begin A-end B-begin B-end)
-  (emerge-eval-in-buffer
+  (with-current-buffer
    emerge-merge-buffer
    (delete-region merge-begin merge-end)
    (goto-char merge-begin)
    (let ((i 0))
-     (while (< i (length template))
-       (let ((c (aref template i)))
+     (while (< i (length emerge-combine-template))
+       (let ((c (aref emerge-combine-template i)))
 	 (if (= c ?%)
 	     (progn
 	       (setq i (1+ i))
 	       (setq c
 		     (condition-case nil
-			 (aref template i)
+			 (aref emerge-combine-template i)
 		       (error ?%)))
 	       (cond ((= c ?a)
 		      (insert-buffer-substring emerge-A-buffer A-begin A-end))
@@ -2620,7 +2609,7 @@ keymap.  Leaves merge in fast mode."
 (defun emerge-place-flags-in-buffer (buffer difference before-index
 					    after-index)
   (if buffer
-      (emerge-eval-in-buffer
+      (with-current-buffer
        buffer
        (emerge-place-flags-in-buffer1 difference before-index after-index))
     (emerge-place-flags-in-buffer1 difference before-index after-index)))
@@ -2689,7 +2678,7 @@ keymap.  Leaves merge in fast mode."
   (run-hooks 'emerge-unselect-hook))
 
 (defun emerge-remove-flags-in-buffer (buffer before after)
-  (emerge-eval-in-buffer
+  (with-current-buffer
    buffer
    (let ((buffer-read-only nil))
      ;; remove the flags, if they're there
@@ -2838,11 +2827,11 @@ keymap.  Leaves merge in fast mode."
       (while (< x-begin x-end)
 	;; bite off and compare no more than 1000 characters at a time
 	(let* ((compare-length (min (- x-end x-begin) 1000))
-	       (x-string (emerge-eval-in-buffer
+	       (x-string (with-current-buffer
 			  buffer-x
 			  (buffer-substring x-begin
 					    (+ x-begin compare-length))))
-	       (y-string (emerge-eval-in-buffer
+	       (y-string (with-current-buffer
 			  buffer-y
 			  (buffer-substring y-begin
 					    (+ y-begin compare-length)))))
@@ -2879,9 +2868,9 @@ keymap.  Leaves merge in fast mode."
 ;; A "function" is anything that funcall can handle as an argument.
 
 (defun emerge-save-variables (vars)
-  (mapcar (function (lambda (v) (if (symbolp v)
-				    (symbol-value v)
-				  (funcall (car v)))))
+  (mapcar (lambda (v) (if (symbolp v)
+			  (symbol-value v)
+			(funcall (car v))))
 	  vars))
 
 (defun emerge-restore-variables (vars values)
@@ -2972,7 +2961,7 @@ around the current difference are removed."
 ;; buffer.
 (defun emerge-copy-modes (buffer)
   ;; Set the major mode
-  (funcall (emerge-eval-in-buffer buffer major-mode)))
+  (funcall (with-current-buffer buffer major-mode)))
 
 ;; Define a key, even if a prefix of it is defined
 (defun emerge-force-define-key (keymap key definition)
@@ -3163,11 +3152,11 @@ See also `auto-save-file-name-p'."
 			       (aref s i))
 			    65536))
       (setq i (1+ i)))
-    (mapconcat (function (lambda (b)
-			   (setq b (+ (% b 93) ?!))
-			   (if (>= b ?/)
-			       (setq b (1+ b)))
-			   (char-to-string b)))
+    (mapconcat (lambda (b)
+		 (setq b (+ (% b 93) ?!))
+		 (if (>= b ?/)
+		     (setq b (1+ b)))
+		 (char-to-string b))
 	       bins "")))
 
 ;; Quote any /s in a string by replacing them with \!.
@@ -3205,5 +3194,4 @@ More precisely, a [...] regexp to match any one such character."
 
 (provide 'emerge)
 
-;; arch-tag: a575f092-6e44-400e-b8a2-4124e9377585
 ;;; emerge.el ends here

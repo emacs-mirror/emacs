@@ -207,7 +207,7 @@ should be t."
   :group 'file-cache)
 
 (defcustom file-cache-completion-ignore-case
-   (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
+  (if (memq system-type '(ms-dos windows-nt cygwin))
       t
      completion-ignore-case)
   "If non-nil, file-cache completion should ignore case.
@@ -216,7 +216,7 @@ Defaults to the value of `completion-ignore-case'."
   :group 'file-cache)
 
 (defcustom file-cache-case-fold-search
-  (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
+  (if (memq system-type '(ms-dos windows-nt cygwin))
       t
     case-fold-search)
   "If non-nil, file-cache completion should ignore case.
@@ -225,7 +225,7 @@ Defaults to the value of `case-fold-search'."
   :group 'file-cache)
 
 (defcustom file-cache-ignore-case
-  (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
+  (memq system-type '(ms-dos windows-nt cygwin))
   "Non-nil means ignore case when checking completions in the file cache.
 Defaults to nil on DOS and Windows, and t on other systems."
   :type 'boolean
@@ -687,5 +687,4 @@ match REGEXP."
 
 (provide 'filecache)
 
-;; arch-tag: 433d3ca4-4af2-47ce-b2cf-1f727460f538
 ;;; filecache.el ends here

@@ -516,10 +516,15 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 	    (setq m (cdr m))))
 	marks))))
 
-(defun gnus-article-fill-cited-article (&optional force width)
+(defun gnus-article-fill-cited-long-lines ()
+  (gnus-article-fill-cited-article nil t))
+
+(defun gnus-article-fill-cited-article (&optional width long-lines)
   "Do word wrapping in the current article.
-If WIDTH (the numerical prefix), use that text width when filling."
-  (interactive (list t current-prefix-arg))
+If WIDTH (the numerical prefix), use that text width when
+filling.  If LONG-LINES, only fill sections that have lines
+longer than the frame width."
+  (interactive "P")
   (with-current-buffer gnus-article-buffer
     (let ((buffer-read-only nil)
 	  (inhibit-point-motion-hooks t)
@@ -535,8 +540,24 @@ If WIDTH (the numerical prefix), use that text width when filling."
 		(fill-prefix
 		 (if (string= (cdar marks) "") ""
 		   (concat (cdar marks) " ")))
+		(do-fill (not long-lines))
 		use-hard-newlines)
-	    (fill-region (point-min) (point-max)))
+	    (unless do-fill
+	      (setq do-fill (gnus-article-foldable-buffer (cdar marks))))
+	    ;; Note: the XEmacs version of `fill-region' inserts a newline
+	    ;; unless the region ends with a newline.
+	    (when do-fill
+	      (if (not long-lines)
+		  (fill-region (point-min) (point-max))
+		(goto-char (point-min))
+		(while (not (eobp))
+		  (end-of-line)
+		  (when (prog1
+			    (> (current-column) (window-width))
+			  (forward-line 1))
+		    (save-restriction
+		      (narrow-to-region (line-beginning-position 0) (point))
+		      (fill-region (point-min) (point-max))))))))
 	  (set-marker (caar marks) nil)
 	  (setq marks (cdr marks)))
 	(when marks
@@ -548,23 +569,28 @@ If WIDTH (the numerical prefix), use that text width when filling."
 	      gnus-cite-loose-attribution-alist nil
 	      gnus-cite-article nil)))))
 
-(defun gnus-article-natural-long-line-p ()
-  "Return true if the current line is long, and it's natural text."
-  (save-excursion
-    (beginning-of-line)
-    (and
-     ;; The line is long.
-     (> (- (line-end-position) (line-beginning-position))
-	(frame-width))
-     ;; It doesn't start with spaces.
-     (not (looking-at "    "))
-     ;; Not cited text.
-     (let ((line-number (1+ (count-lines (point-min) (point))))
-	   citep)
-       (dolist (elem gnus-cite-prefix-alist)
-	 (when (member line-number (cdr elem))
-	   (setq citep t)))
-       (not citep)))))
+(defun gnus-article-foldable-buffer (prefix)
+  (let ((do-fill nil)
+	columns)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (unless (> (length prefix) (- (point-max) (point)))
+	(forward-char (length prefix)))
+      (skip-chars-forward " \t")
+      (unless (eolp)
+	(let ((elem (assq (current-column) columns)))
+	  (unless elem
+	    (setq elem (cons (current-column) 0))
+	    (push elem columns))
+	  (setcdr elem (1+ (cdr elem)))))
+      (end-of-line)
+      (when (> (current-column) (window-width))
+	(setq do-fill t))
+      (forward-line 1))
+    (and do-fill
+	 ;; We know know that there are long lines here, but does this look
+	 ;; like code?  Check for ragged edges on the left.
+	 (< (length columns) 3))))
 
 (defun gnus-article-hide-citation (&optional arg force)
   "Toggle hiding of all cited text except attribution lines.

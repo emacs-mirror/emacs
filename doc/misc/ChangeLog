@@ -1,3 +1,118 @@
+2010-11-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Washing): Document gnus-article-treat-non-ascii.
+
+2010-11-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi: Use emacsver.texi to determine Emacs version.
+
+2010-11-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing the IMAP Connection): Remove nnir mention,
+	since that works by default.
+
+2010-11-03  Kan-Ru Chen  <kanru@kanru.info>  (tiny change)
+
+	* gnus.texi (Customizing the IMAP Connection): Document
+	`nnimap-expunge' and remove `nnimap-expunge-inbox' from example.
+
+2010-11-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote shell setup): New item "Interactive shell
+	prompt".  Reported by Christian Millour <cm@abtela.com>.
+	(Remote shell setup, Remote processes): Use @code{} for
+	environment variables.
+
+2010-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* ediff.texi (Quick Help Commands, Miscellaneous):
+	* gnus.texi (Agent Variables, Configuring nnmairix): Spelling fix.
+
+2010-10-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Paging the Article): Document C-u g/C-u C-u g.
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* mh-e.texi (Preface, From Bill Wohler): Change 23 to past tense.
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* cc-mode.texi: Remove reference to defunct viewcvs URL.
+
+2010-10-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Client-Side IMAP Splitting): Mention
+	nnimap-unsplittable-articles.
+
+2010-10-29  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi (Finding the News): Remove references to obsoletes
+	variables `gnus-nntp-server' and `gnus-secondary-servers'.
+
+2010-10-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (MAKEINFO): Add -I$(emacsdir).
+	(ENVADD): Remove extra -I$(emacsdir), included in $(MAKEINFO).
+	($(infodir)/efaq): Remove -I$(emacsdir), included in $(MAKEINFO).
+	($(infodir)/calc, calc.dvi): Depend on $(emacsdir)/emacsver.texi.
+
+2010-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MAKEINFO, ENVADD): Add $emacsdir to include path.
+	(($(infodir)/calc, calc.dvi, calc.pdf): Depend on emacsver.texi.
+	($(infodir)/efaq): Remove -I option now in $MAKEINFO.
+
+2010-10-25  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Mail-mode integration): Add alternative key bindings
+	for epa-mail commands; escape comma.
+	Don't use the word "PGP", since it is a non-free program.
+
+2010-10-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi: Use emacsver.texi to determine Emacs version.
+
+2010-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus.texi (Group Parameters, Buttons): Fix typos.
+
+2010-10-22  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* gnus.texi (Subscription Commands): Mention that you can also
+	subscribe to new groups via the Server buffer, which is probably more
+	convenient when subscribing to many groups.
+
+2010-10-21  Julien Danjou  <julien@danjou.info>
+
+	* message.texi (Message Headers): Allow message-default-headers to be a
+	function.
+
+2010-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-news.texi: Mention new archive defaults.
+
+2010-10-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (RSS): Remove nnrss-wash-html-in-text-plain-parts.
+
+2010-10-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (HTML): Document the function value of
+	gnus-blocked-images.
+	(Article Washing): shr and gnus-w3m, not the direct function names.
+
+2010-10-20  Julien Danjou  <julien@danjou.info>
+
+	* emacs-mime.texi (Flowed text): Add a note about mml-enable-flowed
+	variable.
+
+2010-10-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing the IMAP Connection): The port strings are
+	strings.
+	(Document Groups): Mention git.
+
 2010-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-coding.texi (Gnus Maintainance Guide): Update to mention Emacs

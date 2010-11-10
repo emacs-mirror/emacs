@@ -1,8 +1,8 @@
 ;;; etags.el --- etags facility for Emacs
 
-;; Copyright (C) 1985, 1986, 1988, 1989, 1992, 1993, 1994, 1995, 1996, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1988, 1989, 1992, 1993, 1994, 1995, 1996,
+;;   1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
@@ -1133,9 +1133,7 @@ error message."
 	      ;; Naive match found.  Qualify the match.
 	      (and (funcall (car order) pattern)
 		   ;; Make sure it is not a previous qualified match.
-		   (not (member (set-marker match-marker (save-excursion
-							   (beginning-of-line)
-							   (point)))
+		   (not (member (set-marker match-marker (point-at-bol))
 				tag-lines-already-matched))
 		   (throw 'qualified-match-found nil))
 	      (if next-line-after-failure-p
@@ -1313,13 +1311,11 @@ buffer-local values of tags table format variables."
 
       ;; Find the end of the tag and record the whole tag text.
       (search-forward "\177")
-      (setq tag-text (buffer-substring (1- (point))
-				       (save-excursion (beginning-of-line)
-						       (point))))
+      (setq tag-text (buffer-substring (1- (point)) (point-at-bol)))
       ;; If use-explicit is non nil and explicit tag is present, use it as part of
       ;; return value. Else just skip it.
       (setq explicit-start (point))
-      (when (and (search-forward "\001" (save-excursion (forward-line 1) (point)) t)
+      (when (and (search-forward "\001" (point-at-bol 2) t)
 		 use-explicit)
 	(setq tag-text (buffer-substring explicit-start (1- (point)))))
 
@@ -1681,7 +1677,7 @@ Point should be just after a string that matches TAG."
   (save-excursion
     (beginning-of-line)
     (let ((bol (point)))
-      (and (search-forward "\177" (save-excursion (end-of-line) (point)) t)
+      (and (search-forward "\177" (line-end-position) t)
 	   (re-search-backward re bol t)))))
 
 (defcustom tags-loop-revert-buffers nil
@@ -2086,5 +2082,4 @@ for \\[find-tag] (which see)."
 
 (provide 'etags)
 
-;; arch-tag: b897c2b5-08f3-4837-b2d3-0e7d6db1b63e
 ;;; etags.el ends here

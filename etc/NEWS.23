@@ -41,7 +41,10 @@ This can be used in place of the default appt-message-warning-time.
 
 
 * New Modes and Packages in Emacs 23.3
-
+** smie.el is a generic navigation and indentation engine.
+It takes a simple BNF description of the grammar, and provides both
+sexp-style navigation (jumping over begin..end pairs) as well as
+indentation, which can be adjusted via ad-hoc indentation rules.
 
 * Incompatible Lisp Changes in Emacs 23.3
 
@@ -51,7 +54,7 @@ This can be used in place of the default appt-message-warning-time.
 ** `e' and `pi' are now called `float-e' and `float-pi'.
   The old names are obsolete.
 ** The use of unintern without an obarray arg is declared obsolete.
-
+** The function `princ-list' is declared obsolete.
 ** New function byte-to-string, like char-to-string but for bytes.
 
 

@@ -730,6 +730,8 @@ init_filelock (void)
   boot_time_initialized = 0;
 }
 
+#endif /* CLASH_DETECTION */
+
 void
 syms_of_filelock (void)
 {
@@ -737,12 +739,12 @@ syms_of_filelock (void)
 	       doc: /* The directory for writing temporary files.  */);
   Vtemporary_file_directory = Qnil;
 
+#ifdef CLASH_DETECTION
   defsubr (&Sunlock_buffer);
   defsubr (&Slock_buffer);
   defsubr (&Sfile_locked_p);
+#endif
 }
-
-#endif /* CLASH_DETECTION */
 
 /* arch-tag: e062676d-50b2-4be0-ab96-197c81b181a1
    (do not change this comment) */

@@ -1590,7 +1590,7 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
 
-(defcustom gnus-treat-fill-long-lines nil
+(defcustom gnus-treat-fill-long-lines '(typep "text/plain")
   "Fill long lines.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles'."
@@ -1621,9 +1621,6 @@ It is a string, such as \"PGP\". If nil, ask user."
   :type 'string
   :group 'mime-security)
 
-(defvar gnus-article-wash-function nil
-  "Function used for converting HTML into text.")
-
 (defcustom gnus-use-idna (and (condition-case nil (require 'idna) (file-error))
 			      (mm-coding-system-p 'utf-8)
 			      (executable-find idna-program))
@@ -1639,8 +1636,11 @@ This requires GNU Libidn, and by default only enabled if it is found."
   :group 'gnus-article
   :type 'boolean)
 
-(defcustom gnus-blocked-images "."
-  "Images that have URLs matching this regexp will be blocked."
+(defcustom gnus-blocked-images 'gnus-block-private-groups
+  "Images that have URLs matching this regexp will be blocked.
+This can also be a function to be evaluated.  If so, it will be
+called with the group name as the parameter, and should return a
+regexp."
   :version "24.1"
   :group 'gnus-art
   :type 'regexp)
@@ -1664,7 +1664,7 @@ This requires GNU Libidn, and by default only enabled if it is found."
     (gnus-treat-highlight-signature gnus-article-highlight-signature)
     (gnus-treat-buttonize gnus-article-add-buttons)
     (gnus-treat-fill-article gnus-article-fill-cited-article)
-    (gnus-treat-fill-long-lines gnus-article-fill-long-lines)
+    (gnus-treat-fill-long-lines gnus-article-fill-cited-long-lines)
     (gnus-treat-strip-cr gnus-article-remove-cr)
     (gnus-treat-unsplit-urls gnus-article-unsplit-urls)
     (gnus-treat-date-ut gnus-article-date-ut)
@@ -2113,6 +2113,29 @@ you're expecting some kind of apostrophe or quotation mark, then
 try this wash."
   (interactive)
   (article-translate-strings gnus-article-dumbquotes-map))
+
+(defvar org-entities)
+
+(defun article-treat-non-ascii ()
+  "Translate many Unicode characters into their ASCII equivalents."
+  (interactive)
+  (require 'org-entities)
+  (let ((table (make-char-table nil)))
+    (dolist (elem org-entities)
+      (when (and (listp elem)
+		 (= (length (nth 6 elem)) 1))
+	(if (featurep 'xemacs)
+	    (put-char-table (aref (nth 6 elem) 0) (nth 4 elem) table)
+	  (set-char-table-range table (aref (nth 6 elem) 0) (nth 4 elem)))))
+    (save-excursion
+      (when (article-goto-body)
+	(let ((inhibit-read-only t)
+	      replace)
+	  (while (not (eobp))
+	    (if (not (setq replace (aref table (following-char))))
+		(forward-char 1)
+	      (delete-char 1)
+	      (insert replace))))))))
 
 (defun article-translate-characters (from to)
   "Translate all characters in the body of the article according to FROM and TO.
@@ -2694,118 +2717,16 @@ If READ-CHARSET, ask for a coding system."
     (when (interactive-p)
       (gnus-treat-article nil))))
 
-
-(defun article-wash-html (&optional read-charset)
-  "Format an HTML article.
-If READ-CHARSET, ask for a coding system.  If it is a number, the
-charset defined in `gnus-summary-show-article-charset-alist' is used."
-  (interactive "P")
-  (save-excursion
-    (let ((inhibit-read-only t)
-	  charset)
-      (if read-charset
-	  (if (or (and (numberp read-charset)
-		       (setq charset
-			     (cdr
-			      (assq read-charset
-				    gnus-summary-show-article-charset-alist))))
-		  (setq charset (mm-read-coding-system "Charset: ")))
-	      (let ((gnus-summary-show-article-charset-alist
-		     (list (cons 1 charset))))
-		(with-current-buffer gnus-summary-buffer
-		  (gnus-summary-show-article 1)))
-	    (error "No charset is given"))
-	(when (gnus-buffer-live-p gnus-original-article-buffer)
-	  (with-current-buffer gnus-original-article-buffer
-	    (let* ((ct (gnus-fetch-field "content-type"))
-		   (ctl (and ct (mail-header-parse-content-type ct))))
-	      (setq charset (and ctl
-				 (mail-content-type-get ctl 'charset)))
-	      (when (stringp charset)
-		(setq charset (intern (downcase charset)))))))
-	(unless charset
-	  (setq charset gnus-newsgroup-charset)))
-      (article-goto-body)
-      (save-window-excursion
-	(save-restriction
-	  (narrow-to-region (point) (point-max))
-	  (let* ((func (or gnus-article-wash-function mm-text-html-renderer))
-		 (entry (assq func mm-text-html-washer-alist)))
-	    (when entry
-	      (setq func (cdr entry)))
-	    (cond
-	     ((functionp func)
-	      (funcall func))
-	     (t
-	      (apply (car func) (cdr func))))))))))
-
-;; External.
-(declare-function w3-region "ext:w3-display" (st nd))
-
-(defun gnus-article-wash-html-with-w3 ()
-  "Wash the current buffer with w3."
-  (mm-setup-w3)
-  (let ((w3-strict-width (window-width))
-	(url-standalone-mode t)
-	(url-gateway-unplugged t)
-	(w3-honor-stylesheets nil))
-    (condition-case ()
-	(w3-region (point-min) (point-max))
-      (error))))
-
-;; External.
-(declare-function w3m-region "ext:w3m" (start end &optional url charset))
-
-(defun gnus-article-wash-html-with-w3m ()
-  "Wash the current buffer with emacs-w3m."
-  (mm-setup-w3m)
-  (let ((w3m-safe-url-regexp mm-w3m-safe-url-regexp)
-	w3m-force-redisplay)
-    (w3m-region (point-min) (point-max)))
-  ;; Put the mark meaning this part was rendered by emacs-w3m.
-  (put-text-property (point-min) (point-max) 'mm-inline-text-html-with-w3m t)
-  (when (and mm-inline-text-html-with-w3m-keymap
-	     (boundp 'w3m-minor-mode-map)
-	     w3m-minor-mode-map)
-    (if (and (boundp 'w3m-link-map)
-	     w3m-link-map)
-	(let* ((start (point-min))
-	       (end (point-max))
-	       (on (get-text-property start 'w3m-href-anchor))
-	       (map (copy-keymap w3m-link-map))
-	       next)
-	  (set-keymap-parent map w3m-minor-mode-map)
-	  (while (< start end)
-	    (if on
-		(progn
-		  (setq next (or (text-property-any start end
-						    'w3m-href-anchor nil)
-				 end))
-		  (put-text-property start next 'keymap map))
-	      (setq next (or (text-property-not-all start end
-						    'w3m-href-anchor nil)
-			     end))
-	      (put-text-property start next 'keymap w3m-minor-mode-map))
-	    (setq start next
-		  on (not on))))
-      (put-text-property (point-min) (point-max) 'keymap w3m-minor-mode-map))))
-
-(defvar charset) ;; Bound by `article-wash-html'.
-
-(defun gnus-article-wash-html-with-w3m-standalone ()
-  "Wash the current buffer with w3m."
-  (if (mm-w3m-standalone-supports-m17n-p)
-      (progn
-	(unless (mm-coding-system-p charset) ;; Bound by `article-wash-html'.
-	  ;; The default.
-	  (setq charset 'iso-8859-1))
-	(let ((coding-system-for-write charset)
-	      (coding-system-for-read charset))
-	  (call-process-region
-	   (point-min) (point-max)
-	   "w3m" t t nil "-dump" "-T" "text/html"
-	   "-I" (symbol-name charset) "-O" (symbol-name charset))))
-    (mm-inline-wash-with-stdin nil "w3m" "-dump" "-T" "text/html")))
+(defun article-wash-html ()
+  "Format an HTML article."
+  (interactive)
+  (let ((handles nil)
+	(buffer-read-only nil))
+    (when (gnus-buffer-live-p gnus-original-article-buffer)
+      (setq handles (mm-dissect-buffer t t)))
+    (article-goto-body)
+    (delete-region (point) (point-max))
+    (mm-inline-text-html handles)))
 
 (defvar gnus-article-browse-html-temp-list nil
   "List of temporary files created by `gnus-article-browse-html-parts'.
@@ -4350,6 +4271,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
      article-date-lapsed
      article-emphasize
      article-treat-dumbquotes
+     article-treat-non-ascii
      article-normalize-headers
      ;;(article-show-all . gnus-article-show-all-headers)
      )))
@@ -4913,11 +4835,17 @@ General format specifiers can also be used.  See Info node
 (defun gnus-article-jump-to-part (n)
   "Jump to MIME part N."
   (interactive "P")
-  (pop-to-buffer gnus-article-buffer)
-  ;; FIXME: why is it necessary?
-  (sit-for 0)
-  (let ((parts (length gnus-article-mime-handle-alist)))
-    (or n (setq n (read-number (format "Jump to part (2..%s): " parts))))
+  (let ((parts (with-current-buffer gnus-article-buffer
+		 (length gnus-article-mime-handle-alist))))
+    (when (zerop parts)
+      (error "No such part"))
+    (pop-to-buffer gnus-article-buffer)
+    ;; FIXME: why is it necessary?
+    (sit-for 0)
+    (or n
+	(setq n (if (= parts 1)
+		    1
+		  (read-number (format "Jump to part (1..%s): " parts)))))
     (unless (and (integerp n) (<= n parts) (>= n 1))
       (setq n
 	    (progn
@@ -5217,7 +5145,7 @@ are decompressed."
       (if (or coding-system
 	      (and charset
 		   (setq coding-system (mm-charset-to-coding-system charset))
-		   (not (eq charset 'ascii))))
+		   (not (eq coding-system 'ascii))))
 	  (progn
 	    (mm-enable-multibyte)
 	    (insert (mm-decode-coding-string contents coding-system))
@@ -5392,9 +5320,7 @@ specified charset."
 	(gnus-mime-view-part-as-type
 	 nil (lambda (type) (stringp (mailcap-mime-info type))))
       (when handle
-	(if (mm-handle-undisplayer handle)
-	    (mm-remove-part handle)
-	  (mm-display-part handle))))))
+	(mm-display-part handle nil t)))))
 
 (defun gnus-mime-view-part-internally (&optional handle)
   "View the MIME part under point with an internal viewer.
@@ -5413,9 +5339,7 @@ If no internal viewer is available, use an external viewer."
         (gnus-mime-view-part-as-type
          nil (lambda (type) (mm-inlinable-p handle type)))
       (when handle
-	(if (mm-handle-undisplayer handle)
-	    (mm-remove-part handle)
-	  (gnus-bind-safe-url-regexp (mm-display-part handle)))))))
+	(gnus-bind-safe-url-regexp (mm-display-part handle))))))
 
 (defun gnus-mime-action-on-part (&optional action)
   "Do something with the MIME attachment at \(point\)."
@@ -5478,6 +5402,10 @@ If INTERACTIVE, call FUNCTION interactivly."
 	  (when (gnus-article-goto-part n)
 	    ;; We point the cursor and the arrow at the MIME button
 	    ;; when the `function' prompt the user for something.
+	    (unless (and (pos-visible-in-window-p)
+			 (> (count-lines (point) (window-end))
+			    (/ (1- (window-height)) 3)))
+	      (recenter (/ (1- (window-height)) 3)))
 	    (let ((cursor-in-non-selected-windows t)
 		  (overlay-arrow-string "=>")
 		  (overlay-arrow-position (point-marker)))
@@ -5489,11 +5417,10 @@ If INTERACTIVE, call FUNCTION interactivly."
 		    (funcall function))
 		   (interactive
 		    (call-interactively
-		     function
-		     (cdr (assq n gnus-article-mime-handle-alist))))
+		     function (get-text-property (point) 'gnus-data)))
 		   (t
 		    (funcall function
-			     (cdr (assq n gnus-article-mime-handle-alist)))))
+			     (get-text-property (point) 'gnus-data))))
 		(set-marker overlay-arrow-position nil)
 		(unless gnus-auto-select-part
 		  (gnus-select-frame-set-input-focus frame)
@@ -5658,7 +5585,41 @@ all parts."
 
 (defun gnus-article-goto-part (n)
   "Go to MIME part N."
-  (gnus-goto-char (text-property-any (point-min) (point-max) 'gnus-part n)))
+  (when gnus-break-pages
+    (widen))
+  (prog1
+      (let ((start (text-property-any (point-min) (point-max) 'gnus-part n))
+	    part handle end next handles)
+	(when start
+	  (goto-char start)
+	  (if (setq handle (get-text-property start 'gnus-data))
+	      start
+	    ;; Go to the displayed subpart, assuming this is
+	    ;; multipart/alternative.
+	    (setq part start
+		  end (point-at-eol))
+	    (while (and (not handle)
+			part
+			(< part end)
+			(setq next (text-property-not-all part end
+							  'gnus-data nil)))
+	      (setq part next
+		    handle (get-text-property part 'gnus-data))
+	      (push (cons handle part) handles)
+	      (unless (mm-handle-displayed-p handle)
+		(setq handle nil
+		      part (text-property-any part end 'gnus-data nil))))
+	    (unless handle
+	      ;; No subpart is displayed, so we find preferred one.
+	      (setq part
+		    (cdr (assq (mm-preferred-alternative
+				(nreverse (mapcar 'car handles)))
+			       handles))))
+	    (if part
+		(goto-char (1+ part))
+	      start))))
+    (when gnus-break-pages
+      (gnus-narrow-to-page))))
 
 (defun gnus-insert-mime-button (handle gnus-tmp-id &optional displayed)
   (let ((gnus-tmp-name
@@ -5767,7 +5728,7 @@ all parts."
 	  (save-restriction
 	    (article-goto-body)
 	    (narrow-to-region (point) (point-max))
-	    (gnus-treat-article nil 1 1)
+	    (gnus-treat-article nil 1 1 "text/plain")
 	    (widen)))
 	(unless ihandles
 	  ;; Highlight the headers.
@@ -6055,7 +6016,7 @@ If displaying \"text/html\" is discouraged \(see
 		  (gnus-treat-article
 		   nil (length gnus-article-mime-handle-alist)
 		   (gnus-article-mime-total-parts)
-		   (mm-handle-media-type handle))))))
+		   (mm-handle-media-type preferred))))))
 	  (goto-char (point-max))
 	  (setcdr begend (point-marker)))))
     (when ibegend
@@ -6895,6 +6856,18 @@ If given a prefix, show the hidden text instead."
 	  (set-window-point (gnus-get-buffer-window (current-buffer) t)
 			    (point))
 	  (set-buffer buf))))))
+
+(defun gnus-block-private-groups (group)
+  (if (gnus-news-group-p group)
+      ;; Block nothing in news groups.
+      nil
+    ;; Block everything anywhere else.
+    "."))
+
+(defun gnus-blocked-images ()
+  (if (functionp gnus-blocked-images)
+      (funcall gnus-blocked-images gnus-newsgroup-name)
+    gnus-blocked-images))
 
 ;;;
 ;;; Article editing
@@ -8306,16 +8279,19 @@ For example:
 ;;; Treatment top-level handling.
 ;;;
 
-(defun gnus-treat-article (condition &optional part-number total-parts type)
-  (let ((length (- (point-max) (point-min)))
+(defvar gnus-inhibit-article-treatments nil)
+
+(defun gnus-treat-article (gnus-treat-condition
+			   &optional part-number total-parts gnus-treat-type)
+  (let ((gnus-treat-length (- (point-max) (point-min)))
 	(alist gnus-treatment-function-alist)
 	(article-goto-body-goes-to-point-min-p t)
 	(treated-type
-	 (or (not type)
+	 (or (not gnus-treat-type)
 	     (catch 'found
 	       (let ((list gnus-article-treat-types))
 		 (while list
-		   (when (string-match (pop list) type)
+		   (when (string-match (pop list) gnus-treat-type)
 		     (throw 'found t)))))))
 	(highlightp (gnus-visual-p 'article-highlight 'highlight))
 	val elem)
@@ -8328,6 +8304,8 @@ For example:
 	      (symbol-value (car elem))))
       (when (and (or (consp val)
 		     treated-type)
+		 (or (not gnus-inhibit-article-treatments)
+		     (eq gnus-treat-condition 'head))
 		 (gnus-treat-predicate val)
 		 (or (not (get (car elem) 'highlight))
 		     highlightp))
@@ -8337,16 +8315,16 @@ For example:
 ;; Dynamic variables.
 (defvar part-number)
 (defvar total-parts)
-(defvar type)
-(defvar condition)
-(defvar length)
+(defvar gnus-treat-type)
+(defvar gnus-treat-condition)
+(defvar gnus-treat-length)
 
 (defun gnus-treat-predicate (val)
   (cond
    ((null val)
     nil)
-   (condition
-    (eq condition val))
+   (gnus-treat-condition
+    (eq gnus-treat-condition val))
    ((and (listp val)
 	 (stringp (car val)))
     (apply 'gnus-or (mapcar `(lambda (s)
@@ -8362,7 +8340,7 @@ For example:
        ((eq pred 'not)
 	(not (gnus-treat-predicate (car val))))
        ((eq pred 'typep)
-	(equal (car val) type))
+	(equal (car val) gnus-treat-type))
        (t
 	(error "%S is not a valid predicate" pred)))))
    ((eq val t)
@@ -8374,7 +8352,7 @@ For example:
    ((eq val 'last)
     (eq part-number total-parts))
    ((numberp val)
-    (< length val))
+    (< gnus-treat-length val))
    (t
     (error "%S is not a valid value" val))))
 

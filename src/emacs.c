@@ -1,7 +1,8 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999,
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -829,13 +830,14 @@ main (int argc, char **argv)
       printf ("see the file named COPYING.\n");
       exit (0);
     }
-  if (argmatch (argv, argc, "-chdir", "--chdir", 2, &ch_to_dir, &skip_args))
-      if (chdir (ch_to_dir) == -1)
-        {
-          fprintf (stderr, "%s: Can't chdir to %s: %s\n",
-                   argv[0], ch_to_dir, strerror (errno));
-          exit (1);
-        }
+
+  if (argmatch (argv, argc, "-chdir", "--chdir", 4, &ch_to_dir, &skip_args))
+    if (chdir (ch_to_dir) == -1)
+      {
+	fprintf (stderr, "%s: Can't chdir to %s: %s\n",
+		 argv[0], ch_to_dir, strerror (errno));
+	exit (1);
+      }
 
 
 #ifdef HAVE_PERSONALITY_LINUX32
@@ -1508,9 +1510,7 @@ main (int argc, char **argv)
       syms_of_doc ();
       syms_of_editfns ();
       syms_of_emacs ();
-#ifdef CLASH_DETECTION
       syms_of_filelock ();
-#endif /* CLASH_DETECTION */
       syms_of_indent ();
       syms_of_insdel ();
       /* syms_of_keymap (); */
@@ -2412,9 +2412,10 @@ Special values:
   `ms-dos'       compiled as an MS-DOS application.
   `windows-nt'   compiled as a native W32 application.
   `cygwin'       compiled using the Cygwin library.
-Anything else (in Emacs 23.1, the possibilities are: aix, berkeley-unix,
-hpux, irix, lynxos 3.0.1, usg-unix-v) indicates some sort of Unix system.  */);
+Anything else (in Emacs 24.1, the possibilities are: aix, berkeley-unix,
+hpux, irix, usg-unix-v) indicates some sort of Unix system.  */);
   Vsystem_type = intern_c_string (SYSTEM_TYPE);
+  /* Above values are from SYSTEM_TYPE in src/s/*.h.  */
 
   DEFVAR_LISP ("system-configuration", &Vsystem_configuration,
 	       doc: /* Value is string indicating configuration Emacs was built for.
@@ -2532,5 +2533,3 @@ libraries; only those already known by Emacs will be loaded.  */);
   daemon_pipe[1] = 0;
 }
 
-/* arch-tag: 7bfd356a-c720-4612-8ab6-aa4222931c2e
-   (do not change this comment) */

@@ -638,7 +638,8 @@ extension (xpm, xbm, gif, jpg, or png) located in
 		specs)
 	   (dolist (elt widget-image-conversion)
 	     (dolist (ext (cdr elt))
-	       (push (list :type (car elt) :file (concat image ext)) specs)))
+	       (push (list :type (car elt) :file (concat image ext)
+			   :ascent 'center) specs)))
  	   (find-image (nreverse specs))))
 	(t
 	 ;; Oh well.
@@ -2195,9 +2196,9 @@ when he invoked the menu."
   ;; We could probably do the same job as the images using single
   ;; space characters in a boxed face with a stretch specification to
   ;; make them square.
-  :on-glyph image-checkbox-checked
+  :on-glyph "checked"
   :off "[ ]"
-  :off-glyph image-checkbox-unchecked
+  :off-glyph "unchecked"
   :help-echo "Toggle this item."
   :action 'widget-checkbox-action)
 

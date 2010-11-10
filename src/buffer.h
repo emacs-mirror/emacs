@@ -1,7 +1,8 @@
 /* Header file for the buffer manipulation primitives.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000,
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -459,7 +460,7 @@ struct buffer_text
     struct Lisp_Marker *markers;
 
     /* Usually 0.  Temporarily set to 1 in decode_coding_gap to
-       prevent Fgarbage_collect from shrinking the gap and loosing
+       prevent Fgarbage_collect from shrinking the gap and losing
        not-yet-decoded bytes.  */
     int inhibit_shrinking;
   };
@@ -1019,5 +1020,3 @@ extern int last_per_buffer_idx;
 #define PER_BUFFER_VALUE(BUFFER, OFFSET) \
       (*(Lisp_Object *)((OFFSET) + (char *) (BUFFER)))
 
-/* arch-tag: 679305dd-d41c-4a50-b170-3caf5c97b2d1
-   (do not change this comment) */

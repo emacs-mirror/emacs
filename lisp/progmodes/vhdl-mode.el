@@ -7269,7 +7269,7 @@ indentation is done before aligning."
        (save-excursion
 	 (goto-char begin)
 	 (let (element
-	       (eol (save-excursion (progn (end-of-line) (point)))))
+	       (eol (point-at-eol)))
 	   (setq element (nth 0 copy))
 	   (when (and (or (and (listp (car element))
 			       (memq major-mode (car element)))
@@ -7295,7 +7295,7 @@ the token in MATCH."
       ;; Determine the greatest whitespace distance to the alignment
       ;; character
       (goto-char begin)
-      (setq eol (progn (end-of-line) (point))
+      (setq eol (point-at-eol)
 	    bol (setq begin (progn (beginning-of-line) (point))))
       (while (< bol end)
 	(save-excursion
@@ -7306,13 +7306,13 @@ the token in MATCH."
 	      (setq max distance))))
 	(forward-line)
 	(setq bol (point)
-	      eol (save-excursion (end-of-line) (point)))
+	      eol (point-at-eol))
 	(setq lines (1+ lines)))
       ;; Now insert enough maxs to push each assignment operator to
       ;; the same column.  We need to use 'lines' as a counter, since
       ;; the location of the mark may change
       (goto-char (setq bol begin))
-      (setq eol (save-excursion (end-of-line) (point)))
+      (setq eol (point-at-eol))
       (while (> lines 0)
   	(when (and (re-search-forward match eol t)
 		   (not (vhdl-in-literal)))
@@ -7324,7 +7324,7 @@ the token in MATCH."
 	(beginning-of-line)
 	(forward-line)
 	(setq bol (point)
-	      eol (save-excursion (end-of-line) (point)))
+	      eol (point-at-eol))
 	(setq lines (1- lines))))))
 
 (defun vhdl-align-region-groups (beg end &optional spacing
@@ -7988,7 +7988,7 @@ buffer."
 	   (forward-char)
 	   (vhdl-forward-syntactic-ws))
 	 (goto-char end)
-	 (when (> pos (save-excursion (end-of-line) (point)))
+	 (when (> pos (point-at-eol))
 	   (error "ERROR:  Not within a generic/port clause"))
 	 ;; delete closing parenthesis on separate line (not supported style)
 	 (when (save-excursion (beginning-of-line) (looking-at "^\\s-*);"))
@@ -12115,9 +12115,7 @@ options vhdl-upper-case-{keywords,types,attributes,enum-values}."
   "Return the line number of the line containing point."
   (save-restriction
     (widen)
-    (save-excursion
-      (beginning-of-line)
-      (1+ (count-lines (point-min) (point))))))
+    (1+ (count-lines (point-min) (point-at-bol)))))
 
 (defun vhdl-line-kill-entire (&optional arg)
   "Delete entire line."
@@ -12134,8 +12132,7 @@ options vhdl-upper-case-{keywords,types,attributes,enum-values}."
   "Copy current line."
   (interactive "p")
   (save-excursion
-    (beginning-of-line)
-    (let ((position (point)))
+    (let ((position (point-at-bol)))
       (forward-line (or arg 1))
       (copy-region-as-kill position (point)))))
 
@@ -15916,7 +15913,7 @@ current project/directory."
 							 &optional insert-conf)
   "Generate block configuration for architecture."
   (let ((margin (current-indentation))
-	(beg (save-excursion (beginning-of-line) (point)))
+	(beg (point-at-bol))
 	ent-entry inst-entry inst-path inst-prev-path cons-key tmp-alist)
     ;; insert block configuration (for architecture)
     (vhdl-insert-keyword "FOR ") (insert arch-name "\n")
@@ -16977,5 +16974,4 @@ to visually support naming conventions.")
 
 (provide 'vhdl-mode)
 
-;; arch-tag: 780d7073-9b5d-4c6c-b0d8-26b28783aba3
 ;;; vhdl-mode.el ends here

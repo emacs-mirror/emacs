@@ -426,8 +426,6 @@ Any details (stdout and stderr) are left in the buffer specified by
     (insert-buffer-substring smime-details-buffer)
     nil))
 
-(defvar from)
-
 (defun smime-decrypt-region (b e keyfile)
   "Decrypt S/MIME message in region between B and E with key in KEYFILE.
 On success, replaces region with decrypted data and return non-nil.
@@ -587,6 +585,9 @@ A string or a list of strings is returned."
       (kill-buffer digbuf)
       retbuf))
 
+(declare-function ldap-search "ldap"
+		  (filter &optional host attributes attrsonly withdn))
+
 (defun smime-cert-by-ldap-1 (mail host)
   "Get cetificate for MAIL from the ldap server at HOST."
   (let ((ldapresult
@@ -595,7 +596,9 @@ A string or a list of strings is returned."
 	      (progn
 		(require 'smime-ldap)
 		'smime-ldap-search)
-	    'ldap-search)
+	    (progn
+	      (require 'ldap)
+	      'ldap-search))
 	  (concat "mail=" mail)
 	  host '("userCertificate") nil))
 	(retbuf (generate-new-buffer (format "*certificate for %s*" mail)))

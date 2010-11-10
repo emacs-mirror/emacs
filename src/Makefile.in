@@ -1,5 +1,5 @@
+# src/Makefile for GNU Emacs.
 
-# Makefile for GNU Emacs.
 # Copyright (C) 1985, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001, 2002,
 #   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #   Free Software Foundation, Inc.
@@ -177,7 +177,7 @@ OLDXMENU_TARGET=@OLDXMENU_TARGET@
 
 ## If !HAVE_X11 || USE_GTK, empty.
 ## Else if USE_X_TOOLKIT, $(lwlibdir)/liblw.a.
-## Else $(oldxmenudir)/libXMenu11.a.
+## Else $(oldXMenudir)/libXMenu11.a.
 ## (Actually, rather than being empty, it is set to "nothing".
 ## It is never actually used for anything in this case.
 ## This is done because there is a rule with target $(OLDXMENU) below,
@@ -575,23 +575,22 @@ shortlisp= \
 
 ## Like $shortlisp, but includes only those files from $lisp that are loaded
 ## conditionally (i.e., only on some platforms).
+## Confusingly, term/internal is not in loadup, but is unconditionally
+## loaded by pc-win, which is.
 SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/select.elc ../lisp/scroll-bar.elc \
   ../lisp/ls-lisp.elc ../lisp/dos-fns.elc \
   ../lisp/w32-fns.elc ../lisp/dos-w32.elc \
-  ../lisp/disp-table.elc ../lisp/dos-vars.elc \
+  ../lisp/disp-table.elc ../lisp/dos-vars.elc ../lisp/w32-vars.elc \
   ../lisp/tooltip.elc ../lisp/image.elc \
   ../lisp/fringe.elc ../lisp/dnd.elc \
   ../lisp/mwheel.elc ../lisp/tool-bar.elc \
   ../lisp/x-dnd.elc ../lisp/dynamic-setting.elc \
-  ../lisp/international/ccl.elc \
   ../lisp/international/fontset.elc \
-  ../lisp/mouse.elc \
   ../lisp/term/common-win.elc \
   ../lisp/term/x-win.elc \
   ../lisp/term/pc-win.elc ../lisp/term/internal.elc \
-  ../lisp/term/ns-win.elc ../lisp/term/w32-win.elc \
-  ../lisp/emacs-lisp/easymenu.elc
+  ../lisp/term/ns-win.elc ../lisp/term/w32-win.elc
 
 ## Construct full set of libraries to be linked.
 ## Note that SunOS needs -lm to come before -lc; otherwise, you get

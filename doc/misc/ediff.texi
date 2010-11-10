@@ -759,7 +759,7 @@ Displays a list of currently active Ediff sessions---the Ediff Registry.
 You can then restart any of these sessions by either clicking on a session
 record or by putting the cursor over it and then typing the return key.
 
-(Some poor souls leave so many active Ediff sessions around that they loose
+(Some poor souls leave so many active Ediff sessions around that they lose
 track of them completely...  The `R' command is designed to save these
 people from the recently discovered Ediff Proficiency Syndrome.)
 
@@ -2315,7 +2315,7 @@ other behavior.
 
 However, Ediff temporarily resets this variable to @code{t} if it is
 invoked via one of the "buffer" jobs, such as @code{ediff-buffers}.
-This is because it is all too easy to loose day's work otherwise.
+This is because it is all too easy to lose a day's work otherwise.
 Besides, in a "buffer" job, the variant buffers have already been loaded
 prior to starting Ediff, so Ediff just preserves status quo here.
 
@@ -2542,6 +2542,3 @@ Eli Zaretskii (eliz at is.elta.co.il)
 
 @bye
 
-@ignore
-   arch-tag: 165ecb88-d03c-44b1-a921-b93f50b05b46
-@end ignore

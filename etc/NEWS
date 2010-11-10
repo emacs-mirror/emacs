@@ -38,10 +38,6 @@ These provide no new functionality, they just remove the need to edit
 lib-src/Makefile by hand in order to use the associated features.
 
 ---
-** There is a new configure option --with-crt-dir.
-This is only useful if your crt*.o files are in a non-standard location.
-
----
 ** Emacs can be compiled against Gtk+ 3.0 if you pass --with-x-toolkit=gtk3
 to configure.  Note that other libraries used by Emacs, RSVG and GConf,
 also depend on Gtk+.  You can disable them with --without-rsvg and
@@ -138,7 +134,11 @@ theme when Emacs is built with GTK.
 off by customizing x-gtk-use-system-tooltips.
 
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
-with Xft.
+with Xft.  To change font, use X resource faceName, for example:
+Emacs.pane.menubar.faceName:  Courier-12
+Set faceName to none and use font to use the old X fonts.
+
+** On graphical displays, the mode-line no longer ends in dashes.
 
 ** Basic SELinux support has been added.
 This requires Emacs to be linked with libselinux at build time.
@@ -183,7 +183,7 @@ for `list-colors-display'.
 
 ** An Emacs Lisp package manager is now included.
 This is a convenient way to download and install additional packages,
-from elpa.gnu.org.
+from a package repository at elpa.gnu.org.
 
 *** `M-x list-packages' shows a list of packages, which can be
 selected for installation.
@@ -207,6 +207,9 @@ directory named "themes/" in `data-directory'.
 ** The user option `remote-file-name-inhibit-cache' controls whether
 the remote file-name cache is used for read access.
 
+** The standalone programs lib-src/digest-doc and sorted-doc have been
+replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
+
 
 * Editing Changes in Emacs 24.1
 
@@ -220,8 +223,8 @@ and no prefix argument is given.  If set to `kill', these commands
 kill instead.
 
 *** New command `delete-forward-char', bound to C-d and [delete].
-This is meant for interactive use, and obeys `delete-active-region';
-delete-char, meant for Lisp, does not obey `delete-active-region'.
+This is meant for interactive use, and obeys `delete-active-region'.
+The command `delete-char' does not obey `delete-active-region'.
 
 *** `delete-backward-char' is now a Lisp function.
 Apart from obeying `delete-active-region', its behavior is unchanged.
@@ -233,65 +236,53 @@ should use delete-char with a negative argument instead.
 ** Selection changes.
 
 The default handling of clipboard and primary selections has been
-changed to conform with other X applications.
+changed to conform with other X applications.  The exact changes are
+described below; in short, mouse commands to select and paste text now
+use the primary selection, while all other commands for killing and
+yanking text now use the clipboard.
 
-The new behavior is that by default Emacs does not put selected text
-into the clipboard, and does not add it to kill-ring, merely because
-the text was selected.  Only commands that kill text or copy it to the
-kill-ring (C-w, M-w, C-k, etc.) put the killed text into the
-clipboard.  Selected text is put into the primary selection (on
-systems, such as X, that support the primary selection separately from
-the clipboard).
+*** Merely selecting text (e.g. with drag-mouse-1) does not add it to
+the kill-ring.  On systems with a primary selection separate from the
+clipboard (such as X), the selected text is put in the primary
+selection.
 
-Similarly, Emacs by default does not retrieve text from the clipboard
-when the mouse (e.g., mouse-2) is used for pasting text selected in
-another application.  Mouse commands that paste text retrieve text
-from the primary selection, on systems that support it separately from
-the clipboard.  Text from the clipboard is retrieved only by C-y, M-y
-and other commands that yank text from the kill-ring.
+*** mouse-2 is now bound to `mouse-yank-primary', which pastes from
+the primary selection regardless of the contents of the kill-ring.
 
-In other words, the default behavior is that mouse gestures that
-select and paste text work with the primary selection (on X), while
-keyboard commands that kill/copy and paste text work with the
-clipboard.
+*** Commands that kill text or copy it to the kill-ring (M-w, C-w,
+C-k, etc.) also put the killed text into the clipboard.  This change
+also means that the "Copy", "Cut", and "Paste" items in the "Edit"
+menu are now exactly equivalent to, respectively M-w, C-w, and C-y.
 
-This change also means that the "Copy", "Cut", and "Paste" items of
-the menu-bar "Edit" menu are now exactly equivalent to, respectively
-M-w, C-w, and C-y.
+*** Yank commands, such as C-y and M-y, retrieve text from the
+clipboard if it is available.
 
-To get back the previous behavior, whereby mouse gestures set the
-clipboard and retrieve text from there, customize the variables
-`mouse-drag-copy-region' and (on X only) `x-select-enable-primary' to
-non-nil values.  If you don't want Emacs to put the text into the
-clipboard, only to the primary selection, additionally customize
-`x-select-enable-clipboard' to nil.
+*** The above changes are reflected in the following new defaults:
 
-These changes in the default behavior are reflected in the default
-values of several variables:
-
-*** `select-active-regions' now defaults to t, so active regions set
-the primary selection.  It was nil in previous versions.
-
+**** `select-active-regions' now defaults to t.
 It also accepts a new value, `only', which means to only set the
 primary selection for temporarily active regions (usually made by
 mouse-dragging or shift-selection).
 
-*** `mouse-2' is now bound to `mouse-yank-primary'.
+**** `mouse-2' is now bound to `mouse-yank-primary'.
 Previously, it was bound to `mouse-yank-at-click' (which is now
 unbound by default).
 
-*** `x-select-enable-clipboard' now defaults to t on all platforms.
-Thus, killing and yanking now use the clipboard (in addition to the
-kill ring).  Note that this variable was already non-nil by default on
-MS-Windows, which does not support the primary selection between
-applications.
+**** `x-select-enable-clipboard' now defaults to t on all platforms.
+Note that this variable was already non-nil by default on MS-Windows,
+which does not support the primary selection between applications.
 
-*** `x-select-enable-primary' now defaults to nil.
+**** `x-select-enable-primary' now defaults to nil.
 This variable exists only on X; its default value was t in previous
 versions.
 
-*** `mouse-drag-copy-region' now defaults to nil.
-Its previous default value was t.
+**** `mouse-drag-copy-region' now defaults to nil.
+
+*** To return to the previous behavior, where mouse commands use the
+clipboard, change `mouse-drag-copy-region' and (on X only)
+`x-select-enable-primary' to t.  If you don't want Emacs to put the
+text into the clipboard, only to the primary selection, additionally
+set `x-select-enable-clipboard' to nil.
 
 *** Support for X cut buffers has been removed.
 
@@ -312,6 +303,11 @@ successful NickServ identification, or after `erc-autojoin-delay'
 seconds.  The default value, 'ident, means to autojoin immediately
 after connecting.
 
+*** New variable `erc-coding-system-precedence': If we use `undecided'
+as the server coding system, this variable will then be consulted.
+The default is to decode strings that can be decoded as utf-8 as
+utf-8, and do the normal `undecided' decoding for the rest.
+
 ** In ido-mode, C-v is no longer bound to ido-toggle-vc.
 The reason is that this interferes with cua-mode.
 
@@ -321,6 +317,8 @@ You can get a comparable behavior with:
 (setq completion-pcm-complete-word-inserts-delimiters t)
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
+
+** server can listen on a specific port using the server-port option.
 
 ** Calendar, Diary, and Appt
 
@@ -341,7 +339,7 @@ view-diary-entries, list-diary-entries, show-all-diary-entries
 
 *** Customize buffers now contain a search field.
 The search is performed using `customize-apropos'.
-To turn off the search field, set custom-search-field to nil .
+To turn off the search field, set custom-search-field to nil.
 
 *** Custom options now start out hidden if at their default values.
 Use the arrow to the left of the option name to toggle visibility.
@@ -355,41 +353,6 @@ choose a color via list-colors-display.
 
 *** dired-jump and dired-jump-other-window called with a prefix argument
 read a file name from the minibuffer instead of using buffer-file-name.
-
-** VC and related modes
-
-*** New VC commands: vc-log-incoming, vc-log-outgoing, vc-find-conflicted-file.
-
-**** vc-log-incoming for Git runs "git fetch" so that the necessary
-data is available locally.
-
-**** vc-log-incoming and vc-log-outgoing for Git require version 1.7 (or newer).
-
-*** New key bindings: C-x v I and C-x v O bound to vc-log-incoming and
-vc-log-outgoing, respectively.
-
-*** The 'g' key in VC diff, log, log-incoming and log-outgoing buffers
-reruns the corresponding VC command to compute an up to date version
-of the buffer.
-
-*** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
-
-*** Special markup can be added to log-edit buffers.
-The log-edit buffers are expected to have a format similar to email messages
-with headers of the form:
-  Author: <author of this change>
-  Summary: <one line summary of this change>
-  Fixes: <reference to the bug fixed by this change>
-Some backends handle some of those headers specially, but any unknown header
-is just left as is in the message, so it is not lost.
-
-**** vc-git handles Author: and Date:
-**** vc-hg handles  Author: and Date:
-**** vc-bzr handles Author:, Date: and Fixes:
-**** vc-mtn handles Author: and Date:
-
-*** Pressing g in a *vc-diff* buffer reruns vc-diff, so it will
-produce an up to date diff.
 
 ** Directory local variables can apply to file-less buffers.
 For example, adding "(diff-mode . ((mode . whitespace)))" to your
@@ -578,6 +541,8 @@ Notifications API.  It requires D-Bus for communication.
 
 * Incompatible Lisp Changes in Emacs 24.1
 
+** Remove obsolete name `e' (use `float-e' instead).
+
 ** A backquote not followed by a space is now always treated as new-style.
 
 ** Test for special mode-class was moved from view-file to view-buffer.
@@ -621,6 +586,8 @@ font-lock-defaults-alist
 ** The following files, obsolete since at least Emacs 21.1, have been removed:
 sc.el, x-menu.el, rnews.el, rnewspost.el
 
+** FIXME finder-inf.el changes.
+
 
 * Lisp changes in Emacs 24.1
 
@@ -655,6 +622,12 @@ argument is supplied (see Trash changes, above).
 ** buffer-substring-filters is obsoleted by filter-buffer-substring-functions.
 
 ** New completion style `substring'.
+
+** `facemenu-read-color' is now an alias for `read-color'.
+The command `read-color' now requires a match for a color name or RGB
+triplet, instead of signalling an error if the user provides a invalid
+input.
+
 
 ** Image API
 

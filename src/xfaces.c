@@ -1,6 +1,8 @@
 /* xfaces.c -- "Face" primitives.
-   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+  2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -6731,7 +6733,8 @@ See `set-face-stipple' for possible values for this variable.  */);
   Vface_default_stipple = make_pure_c_string ("gray3");
 
   DEFVAR_LISP ("tty-defined-color-alist", &Vtty_defined_color_alist,
-   doc: /* An alist of defined terminal colors and their RGB values.  */);
+   doc: /* An alist of defined terminal colors and their RGB values.
+See the docstring of `tty-color-alist' for the details.  */);
   Vtty_defined_color_alist = Qnil;
 
   DEFVAR_LISP ("scalable-fonts-allowed", &Vscalable_fonts_allowed,
@@ -6808,5 +6811,3 @@ a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
 #endif
 }
 
-/* arch-tag: 8a0f7598-5517-408d-9ab3-1da6fcd4c749
-   (do not change this comment) */

@@ -39,11 +39,6 @@
 (eval-when-compile
   (require 'cl))
 
-(eval-when-compile
-  (unless (fboundp 'with-no-warnings)
-    (defmacro with-no-warnings (&rest body)
-      `(progn ,@body))))
-
 (defcustom gnus-completing-read-function 'gnus-emacs-completing-read
   "Function use to do completing read."
   :version "24.1"
@@ -320,13 +315,14 @@ Symbols are also allowed; their print names are used instead."
 	     (> (nth 1 fdate) (nth 1 date))))))
 
 (eval-and-compile
-  (if (and (fboundp 'float-time)
-	   (subrp (symbol-function 'float-time)))
+  (if (or (featurep 'emacs)
+	  (and (fboundp 'float-time)
+	       (subrp (symbol-function 'float-time))))
       (defalias 'gnus-float-time 'float-time)
     (defun gnus-float-time (&optional time)
       "Convert time value TIME to a floating point number.
 TIME defaults to the current time."
-      (with-no-warnings (time-to-seconds (or time (current-time)))))))
+      (time-to-seconds (or time (current-time))))))
 
 ;;; Keymap macros.
 
@@ -1651,10 +1647,16 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 		       initial-input history def))
 
 
-(autoload 'iswitchb-read-buffer "iswitchb")
+(declare-function iswitchb-read-buffer "iswitchb"
+		  (prompt &optional default require-match start matches-set))
+(defvar iswitchb-temp-buflist)
+
 (defun gnus-iswitchb-completing-read (prompt collection &optional require-match
                                             initial-input history def)
   "`iswitchb' based completing-read function."
+  ;; Make sure iswitchb is loaded before we let-bind its variables.
+  ;; If it is loaded inside the let, variables can become unbound afterwards.
+  (require 'iswitchb)
   (let ((iswitchb-make-buflist-hook
          (lambda ()
            (setq iswitchb-temp-buflist
@@ -1667,11 +1669,11 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
                    (nreverse filtered-choices))))))
     (unwind-protect
         (progn
-          (when (not iswitchb-mode)
-            (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup))
+          (or iswitchb-mode
+	      (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup))
           (iswitchb-read-buffer prompt def require-match))
-      (when (not iswitchb-mode)
-        (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))))
+      (or iswitchb-mode
+	  (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))))
 
 (defun gnus-graphic-display-p ()
   (if (featurep 'xemacs)
@@ -1758,14 +1760,16 @@ CHOICE is a list of the choice char and help message at IDX."
 	(kill-buffer buf))
     tchar))
 
-(if (fboundp 'select-frame-set-input-focus)
+(if (featurep 'emacs)
     (defalias 'gnus-select-frame-set-input-focus 'select-frame-set-input-focus)
-  ;; XEmacs 21.4, SXEmacs
-  (defun gnus-select-frame-set-input-focus (frame)
-    "Select FRAME, raise it, and set input focus, if possible."
-    (raise-frame frame)
-    (select-frame frame)
-    (focus-frame frame)))
+  (if (fboundp 'select-frame-set-input-focus)
+      (defalias 'gnus-select-frame-set-input-focus 'select-frame-set-input-focus)
+    ;; XEmacs 21.4, SXEmacs
+    (defun gnus-select-frame-set-input-focus (frame)
+      "Select FRAME, raise it, and set input focus, if possible."
+      (raise-frame frame)
+      (select-frame frame)
+      (focus-frame frame))))
 
 (defun gnus-frame-or-window-display-name (object)
   "Given a frame or window, return the associated display name.
@@ -1930,25 +1934,6 @@ empty directories from OLD-PATH."
   (defalias 'gnus-set-process-query-on-exit-flag
     'process-kill-without-query))
 
-(if (fboundp 'with-local-quit)
-    (defalias 'gnus-with-local-quit 'with-local-quit)
-  (defmacro gnus-with-local-quit (&rest body)
-    "Execute BODY, allowing quits to terminate BODY but not escape further.
-When a quit terminates BODY, `gnus-with-local-quit' returns nil but
-requests another quit.  That quit will be processed as soon as quitting
-is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
-    ;;(declare (debug t) (indent 0))
-    `(condition-case nil
-	 (let ((inhibit-quit nil))
-	   ,@body)
-       (quit (setq quit-flag t)
-	     ;; This call is to give a chance to handle quit-flag
-	     ;; in case inhibit-quit is nil.
-	     ;; Without this, it will not be handled until the next function
-	     ;; call, and that might allow it to exit thru a condition-case
-	     ;; that intends to handle the quit signal next time.
-	     (eval '(ignore nil))))))
-
 (defalias 'gnus-read-shell-command
   (if (fboundp 'read-shell-command) 'read-shell-command 'read-string))
 
@@ -1992,6 +1977,44 @@ Sizes are in pixels."
                                  :width new-width)
                    image)))
       image)))
+
+(defun gnus-list-memq-of-list (elements list)
+  "Return non-nil if any of the members of ELEMENTS are in LIST."
+  (let ((found nil))
+    (dolist (elem elements)
+      (setq found (or found
+		      (memq elem list))))
+    found))
+
+(eval-and-compile
+  (cond
+   ((fboundp 'match-substitute-replacement)
+    (defalias 'gnus-match-substitute-replacement 'match-substitute-replacement))
+   (t
+    (defun gnus-match-substitute-replacement (replacement &optional fixedcase literal string subexp)
+      "Return REPLACEMENT as it will be inserted by `replace-match'.
+In other words, all back-references in the form `\\&' and `\\N'
+are substituted with actual strings matched by the last search.
+Optional FIXEDCASE, LITERAL, STRING and SUBEXP have the same
+meaning as for `replace-match'.
+
+This is the definition of match-substitute-replacement in subr.el from GNU Emacs."
+      (let ((match (match-string 0 string)))
+	(save-match-data
+	  (set-match-data (mapcar (lambda (x)
+				    (if (numberp x)
+					(- x (match-beginning 0))
+				      x))
+				  (match-data t)))
+	  (replace-match replacement fixedcase literal match subexp)))))))
+
+(if (fboundp 'string-match-p)
+    (defalias 'gnus-string-match-p 'string-match-p)
+  (defsubst gnus-string-match-p (regexp string &optional start)
+    "\
+Same as `string-match' except this function does not change the match data."
+    (save-match-data
+      (string-match regexp string start))))
 
 (provide 'gnus-util)
 

@@ -48,6 +48,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 
+#ifdef USE_MOTIF
+/* For Vdouble_click_time.  */
+#include "keyboard.h"
+#endif
+
 extern char *getenv (const char *);
 
 extern struct passwd *getpwuid (uid_t);
