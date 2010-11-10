@@ -1,5 +1,12 @@
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/texnfo-upd.el (texinfo-all-menus-update)
+	(texinfo-menu-copy-old-description, texinfo-start-menu-description)
+	(texinfo-master-menu, texinfo-insert-node-lines)
+	(texinfo-multiple-files-update):
+	* textmodes/texinfmt.el (texinfo-append-refill, texinfo-copying):
+	Use line-beginning-position.
+
 	* progmodes/cperl-mode.el (cperl-find-pods-heres, cperl-write-tags):
 	No recent Emacs supports system-type `emx'.
 
