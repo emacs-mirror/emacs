@@ -1,5 +1,7 @@
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* startup.el (package-initialize): Update declaration.
+
 	* textmodes/remember.el (remember-time-to-seconds): Remove.
 	(remember-store-in-mailbox): Use float-time.
 

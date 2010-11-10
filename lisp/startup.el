@@ -693,7 +693,7 @@ opening the first frame (e.g. open a connection to an X server).")
 (defvar server-process)
 ;; Autoload in package.el, but when we bootstrap, we don't have loaddefs yet.
 (defvar package-enable-at-startup)
-(declare-function package-initialize "package" ())
+(declare-function package-initialize "package" (&optional no-activate))
 
 (defun command-line ()
   (setq before-init-time (current-time)
