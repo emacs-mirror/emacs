@@ -1,7 +1,10 @@
+2010-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (syms_of_emacs) <system-type>: Doc fix.
+
 2010-11-09  Eli Zaretskii  <eliz@gnu.org>
 
-	* xfns.c (x_real_positions): Fix declaration-after-statement
-	problem.
+	* xfns.c (x_real_positions): Fix declaration-after-statement problem.
 
 2010-11-09  Chong Yidong  <cyd@stupidchicken.com>
 
