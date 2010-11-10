@@ -1,5 +1,13 @@
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/esh-util.el (eshell-time-less-p, eshell-time-to-seconds):
+	Remove.
+	(eshell-read-passwd, eshell-read-hosts): Use time-less-p.
+	* eshell/esh-test.el (eshell-test, eshell-show-usage-metrics):
+	* eshell/em-unix.el (eshell-show-elapsed-time, eshell/time):
+	* eshell/em-pred.el (eshell-pred-file-time): Use float-time.
+	* eshell/em-ls.el (eshell-ls-sort-entries): Use time-less-p.
+
 	* eshell/em-unix.el (eshell-remove-entries, eshell/rm)
 	(eshell-shuffle-files, eshell-shorthand-tar-command)
 	(eshell-mvcpln-template, eshell/mv, eshell/cp, eshell/ln):

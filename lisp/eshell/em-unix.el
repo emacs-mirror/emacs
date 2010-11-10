@@ -912,9 +912,7 @@ Summarize disk usage of each FILE, recursively for directories.")
 (defvar eshell-time-start nil)
 
 (defun eshell-show-elapsed-time ()
-  (let ((elapsed (format "%.3f secs\n"
-			 (- (eshell-time-to-seconds (current-time))
-			    eshell-time-start))))
+  (let ((elapsed (format "%.3f secs\n" (- (float-time) eshell-time-start))))
     (set-text-properties 0 (length elapsed) '(face bold) elapsed)
     (eshell-interactive-print elapsed))
   (remove-hook 'eshell-post-command-hook 'eshell-show-elapsed-time t))
@@ -940,7 +938,7 @@ Summarize disk usage of each FILE, recursively for directories.")
        :show-usage
        :usage "COMMAND...
 Show wall-clock time elapsed during execution of COMMAND.")
-     (setq eshell-time-start (eshell-time-to-seconds (current-time)))
+     (setq eshell-time-start (float-time))
      (add-hook 'eshell-post-command-hook 'eshell-show-elapsed-time nil t)
      ;; after setting
      (throw 'eshell-replace-command

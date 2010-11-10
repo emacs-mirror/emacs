@@ -341,20 +341,6 @@ Prepend remote identification of `default-directory', if any."
   "Flatten and stringify all of the ARGS into a single string."
   (mapconcat 'eshell-stringify (eshell-flatten-list args) " "))
 
-;; the next two are from GNUS, and really should be made part of Emacs
-;; some day
-(defsubst eshell-time-less-p (t1 t2)
-  "Say whether time T1 is less than time T2."
-  (or (< (car t1) (car t2))
-      (and (= (car t1) (car t2))
-	   (< (nth 1 t1) (nth 1 t2)))))
-
-(defsubst eshell-time-to-seconds (time)
-  "Convert TIME to a floating point number."
-  (+ (* (car time) 65536.0)
-     (cadr time)
-     (/ (or (car (cdr (cdr time))) 0) 1000000.0)))
-
 (defsubst eshell-directory-files (regexp &optional directory)
   "Return a list of files in the given DIRECTORY matching REGEXP."
   (directory-files (or directory default-directory)
@@ -468,7 +454,7 @@ list."
   "Read the contents of /etc/passwd for user names."
   (if (or (not (symbol-value result-var))
 	  (not (symbol-value timestamp-var))
-	  (eshell-time-less-p
+	  (time-less-p
 	   (symbol-value timestamp-var)
 	   (nth 5 (file-attributes file))))
       (progn
@@ -522,7 +508,7 @@ list."
   "Read the contents of /etc/passwd for user names."
   (if (or (not (symbol-value result-var))
 	  (not (symbol-value timestamp-var))
-	  (eshell-time-less-p
+	  (time-less-p
 	   (symbol-value timestamp-var)
 	   (nth 5 (file-attributes file))))
       (progn
