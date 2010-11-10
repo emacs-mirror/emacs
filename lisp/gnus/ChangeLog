@@ -1,5 +1,7 @@
 2010-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* rfc2047.el (rfc2047-syntax-table): Simplify.
+
 	* gnus-art.el (article-treat-non-ascii): Use put-char-table instead of
 	set-char-table-range for XEmacs.
 
