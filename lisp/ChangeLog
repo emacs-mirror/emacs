@@ -1,5 +1,10 @@
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* emulation/edt.el (edt-with-position): New macro.
+	(edt-find-forward, edt-find-backward, edt-find-next-forward)
+	(edt-find-next-backward, edt-sentence-forward, edt-sentence-backward)
+	(edt-paragraph-forward, edt-paragraph-backward): Use it.
+
 	* emulation/tpu-extras.el (tpu-with-position): New macro.
 	(tpu-paragraph, tpu-page, tpu-search-internal): Use it.
 
