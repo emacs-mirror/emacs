@@ -3732,8 +3732,8 @@ font_get_frame_data (FRAME_PTR f, struct font_driver *driver)
 void
 font_filter_properties (Lisp_Object font,
 			Lisp_Object alist,
-			const char *boolean_properties[],
-			const char *non_boolean_properties[])
+			const char *const boolean_properties[],
+			const char *const non_boolean_properties[])
 {
   Lisp_Object it;
   int i;

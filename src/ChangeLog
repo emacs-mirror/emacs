@@ -1,3 +1,15 @@
+2010-11-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* font.c (font_filter_properties): Add const to array elements of
+	properties args.
+
+	* font.h (font_filter_properties): Likewise.
+
+	* ftfont.c (ftfont_booleans, ftfont_non_booleans): Add const to array
+	elements.
+
+	* w32font.c (w32font_booleans, w32font_non_booleans): Likewise.
+
 2010-11-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (QCdbus_type_unix_fd): New Lisp object.
