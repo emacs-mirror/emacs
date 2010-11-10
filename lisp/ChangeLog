@@ -18,7 +18,6 @@
 	(python-quote-syntax): Adjust accordingly.
 
 2010-11-09  Richard Levitte  <richard@levitte.org>  (tiny change)
-2010-11-09  Richard Levitte  <richard@levitte.org>  (tiny patch)
 
 	* vc-mtn.el (vc-mtn-working-revision, vc-mtn-after-dir-status)
 	(vc-mtn-workfile-branch): Adjust to new output format.
