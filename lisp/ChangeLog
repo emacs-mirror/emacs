@@ -8,6 +8,8 @@
 	* emulation/tpu-extras.el (tpu-with-position): New macro.
 	(tpu-paragraph, tpu-page, tpu-search-internal): Use it.
 
+	* textmodes/texnfo-upd.el (texinfo-pointer-name): Fix typo.
+
 	* textmodes/texnfo-upd.el (texinfo-all-menus-update)
 	(texinfo-menu-copy-old-description, texinfo-start-menu-description)
 	(texinfo-master-menu, texinfo-insert-node-lines)

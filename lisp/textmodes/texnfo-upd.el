@@ -1439,8 +1439,7 @@ The argument is the kind of section, either `normal' or `no-pointer'."
 	   (end-of-line)                ; this handles prev node top case
 	   (re-search-backward          ; when point is already
 	    "^@node"                    ; at the beginning of @node line
-	    ;; FIXME this can't be right.  Missing the point?
-	    (save-excursion (forward-line -3))
+	    (line-beginning-position -2)
 	    t)
 	   (setq name (texinfo-copy-node-name)))
 	  ((eq kind 'no-pointer)
