@@ -1,3 +1,7 @@
+2010-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* edt.texi: Remove information about Emacs 19.
+
 2010-11-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Update release number.
