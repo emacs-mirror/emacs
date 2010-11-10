@@ -1,3 +1,11 @@
+2010-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (with-no-warnings): Remove compat stub, now unused.
+	(gnus-float-time): On Emacs, always an alias.
+
+	* ecomplete.el (with-no-warnings): Remove compat stub, now unused.
+	(ecomplete-add-item): Use float-time on Emacs, else gnus-float-time.
+
 2010-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (org-entities): Bind it.

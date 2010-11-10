@@ -1,5 +1,16 @@
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/remember.el (remember-time-to-seconds): Remove.
+	(remember-store-in-mailbox): Use float-time.
+
+	* calendar/timeclock.el (timeclock-time-to-seconds): Make it an alias.
+
+	* calendar/time-date.el (time-to-seconds): Always an alias on Emacs,
+	never a real function.
+	(with-no-warnings): Remove compat stub, now unused.
+	(time-less-p): Doc fix.
+	(time-to-number-of-days): Simplify.
+
 	* eshell/esh-util.el (eshell-time-less-p, eshell-time-to-seconds):
 	Remove.
 	(eshell-read-passwd, eshell-read-hosts): Use time-less-p.
