@@ -53,6 +53,9 @@
 	* eshell/em-glob.el (eshell-extended-glob, eshell-glob-entries):
 	Prefix dynamic local variable `matches'.
 
+	* skeleton.el (skeleton-internal-list, skeleton-internal-1):
+	Prefix dynamic local variable `skeleton'.
+
 2010-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* net/browse-url.el (browse-url-mail): Insert body part of mailto url
