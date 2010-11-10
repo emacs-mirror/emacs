@@ -2984,8 +2984,7 @@ Will not look before LIM."
 				    (looking-at "sub\\>")))
 			     (setq p (nth 1 ; start of innermost containing list
 					  (parse-partial-sexp
-					   (save-excursion (beginning-of-line)
-							   (point))
+					   (point-at-bol)
 					   (point)))))
 			    (progn
 			      (goto-char (1+ p)) ; enclosing block on the same line
@@ -3804,7 +3803,8 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 						  indentable t))
 	    ;; Need to remove face as well...
 	    (goto-char min)
-	    (and (eq system-type 'emx)
+	    ;; 'emx not supported by Emacs since at least 21.1.
+	    (and (featurep 'xemacs) (eq system-type 'emx)
 		 (eq (point) 1)
 		 (let ((case-fold-search t))
 		   (looking-at "extproc[ \t]")) ; Analogue of #!
@@ -4048,10 +4048,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			     "")
 		      tb (match-beginning 0))
 		(setq argument nil)
-		(put-text-property (save-excursion
-				     (beginning-of-line)
-				     (point))
-				   b 'first-format-line 't)
+		(put-text-property (point-at-bol) b 'first-format-line 't)
 		(if cperl-pod-here-fontify
 		    (while (and (eq (forward-line) 0)
 				(not (looking-at "^[.;]$")))
@@ -7042,7 +7039,7 @@ Use as
   (or topdir
       (setq topdir default-directory))
   (let ((tags-file-name "TAGS")
-	(case-fold-search (eq system-type 'emx))
+	(case-fold-search (and (featurep 'xemacs) (eq system-type 'emx)))
 	xs rel tm)
     (save-excursion
       (cond (inbuffer nil)		; Already there

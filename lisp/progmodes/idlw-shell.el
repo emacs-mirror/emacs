@@ -2591,9 +2591,7 @@ If in the IDL shell buffer, returns `idlwave-shell-pc-frame'."
     (list (idlwave-shell-file-name (buffer-file-name))
           (save-restriction
             (widen)
-            (save-excursion
-              (beginning-of-line)
-              (1+ (count-lines 1 (point))))))))
+	    (1+ (count-lines 1 (point-at-bol)))))))
 
 (defun idlwave-shell-current-module ()
   "Return the name of the module for the current file.
@@ -3645,7 +3643,7 @@ Existing overlays are recycled, in order to minimize consumption."
       (while (setq bp (pop bp-list))
 	(save-excursion
 	  (idlwave-shell-goto-frame (car bp))
-	  (let* ((end (progn (end-of-line 1) (point)))
+	  (let* ((end (point-at-eol))
 		 (beg (progn (beginning-of-line 1) (point)))
 		 (condition (idlwave-shell-bp-get bp 'condition))
 		 (count (idlwave-shell-bp-get bp 'count))
@@ -3999,8 +3997,7 @@ of the form:
                   (append
                    ;; compiled procedures
                    (progn
-                     (beginning-of-line)
-                     (narrow-to-region cpro (point))
+                     (narrow-to-region cpro (point-at-bol))
                      (goto-char (point-min))
                      (idlwave-shell-sources-grep))
                    ;; compiled functions

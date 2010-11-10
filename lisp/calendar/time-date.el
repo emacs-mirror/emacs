@@ -112,27 +112,24 @@ If DATE lacks timezone information, GMT is assumed."
 ;; Bit of a mess.  Emacs has float-time since at least 21.1.
 ;; This file is synced to Gnus, and XEmacs packages may have been written
 ;; using time-to-seconds from the Gnus library.
-;;;###autoload(if (and (fboundp 'float-time)
-;;;###autoload         (subrp (symbol-function 'float-time)))
+;;;###autoload(if (or (featurep 'emacs)
+;;;###autoload        (and (fboundp 'float-time)
+;;;###autoload             (subrp (symbol-function 'float-time))))
 ;;;###autoload    (progn
 ;;;###autoload      (defalias 'time-to-seconds 'float-time)
 ;;;###autoload      (make-obsolete 'time-to-seconds 'float-time "21.1"))
 ;;;###autoload  (autoload 'time-to-seconds "time-date"))
 
-(eval-and-compile
-  (unless (and (fboundp 'float-time)
-	       (subrp (symbol-function 'float-time)))
-    (defun time-to-seconds (time)
-      "Convert time value TIME to a floating point number."
-      (with-decoded-time-value ((high low micro time))
-	(+ (* 1.0 high 65536)
-	   low
-	   (/ micro 1000000.0))))))
-
 (eval-when-compile
-  (unless (fboundp 'with-no-warnings)
-    (defmacro with-no-warnings (&rest body)
-      `(progn ,@body))))
+  (or (featurep 'emacs)
+      (and (fboundp 'float-time)
+           (subrp (symbol-function 'float-time)))
+      (defun time-to-seconds (time)
+        "Convert time value TIME to a floating point number."
+        (with-decoded-time-value ((high low micro time))
+          (+ (* 1.0 high 65536)
+             low
+             (/ micro 1000000.0))))))
 
 ;;;###autoload
 (defun seconds-to-time (seconds)
@@ -143,7 +140,7 @@ If DATE lacks timezone information, GMT is assumed."
 
 ;;;###autoload
 (defun time-less-p (t1 t2)
-  "Say whether time value T1 is less than time value T2."
+  "Return non-nil if time value T1 is earlier than time value T2."
   (with-decoded-time-value ((high1 low1 micro1 t1)
 			    (high2 low2 micro2 t2))
     (or (< high1 high2)
@@ -256,17 +253,15 @@ The Gregorian date Sunday, December 31, 1bce is imaginary."
        (- (/ (1- year) 100))		;	- century years
        (/ (1- year) 400))))		;	+ Gregorian leap years
 
-(eval-and-compile
-  (if (and (fboundp 'float-time)
-	   (subrp (symbol-function 'float-time)))
-      (defun time-to-number-of-days (time)
-	"Return the number of days represented by TIME.
-The number of days will be returned as a floating point number."
-	(/ (float-time time) (* 60 60 24)))
-    (defun time-to-number-of-days (time)
-      "Return the number of days represented by TIME.
-The number of days will be returned as a floating point number."
-      (/ (with-no-warnings (time-to-seconds time)) (* 60 60 24)))))
+(defun time-to-number-of-days (time)
+  "Return the number of days represented by TIME.
+Returns a floating point number."
+  (/ (funcall (eval-when-compile
+                (if (or (featurep 'emacs)
+                        (and (fboundp 'float-time)
+                             (subrp (symbol-function 'float-time))))
+                    'float-time
+                  'time-to-seconds)) time) (* 60 60 24)))
 
 ;;;###autoload
 (defun safe-date-to-time (date)

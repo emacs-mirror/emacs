@@ -9664,6 +9664,17 @@ an attempt to provide more quoting characters.  If you see something
 like @code{\222} or @code{\264} where you're expecting some kind of
 apostrophe or quotation mark, then try this wash.
 
+@item W A
+@kindex W A (Summary)
+@findex gnus-article-treat-non-ascii
+@cindex Unicode
+@cindex Non-@acronym{ASCII}
+Translate many non-@acronym{ASCII} characters into their
+@acronym{ASCII} equivalents (@code{gnus-article-treat-non-ascii}).
+This is mostly useful if you're on a terminal that has a limited font
+and does't show accented characters, ``advanced'' punctuation, and the
+like.  For instance, @samp{»} is tranlated into @samp{>>}, and so on.
+
 @item W Y f
 @kindex W Y f (Summary)
 @findex gnus-article-outlook-deuglify-article

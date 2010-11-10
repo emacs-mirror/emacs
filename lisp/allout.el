@@ -1,7 +1,7 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992, 1993, 1994, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
@@ -4725,7 +4725,7 @@ by pops to non-distinctive yanks.  Bug..."
         (save-match-data
           (save-excursion
             (let* ((text-start allout-recent-prefix-end)
-                   (heading-end (progn (end-of-line) (point))))
+                   (heading-end (point-at-eol)))
               (goto-char text-start)
               (setq file-name
                     (if (re-search-forward "\\s-\\(\\S-*\\)" heading-end t)
@@ -5672,8 +5672,7 @@ environment.  Leaves point at the end of the line."
   (let ((inhibit-field-text-motion t))
     (beginning-of-line)
     (let ((beg (point))
-          (end (progn (end-of-line)(point))))
-      (goto-char beg)
+          (end (point-at-eol)))
       (save-match-data
         (while (re-search-forward "\\\\"
   ;;"\\\\\\|\\{\\|\\}\\|\\_\\|\\$\\|\\\"\\|\\&\\|\\^\\|\\-\\|\\*\\|#"
@@ -6941,7 +6940,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
         (skip-chars-backward "^\n"))
       (vertical-motion 0))
 )
-;;;_   > move-end-of-line if necessary -- older emacs, xemacs
+;;;_   > move-end-of-line if necessary -- Emacs < 22.1, xemacs
 (if (not (fboundp 'move-end-of-line))
     (defun move-end-of-line (arg)
       "Move point to end of current line as displayed.
@@ -7147,5 +7146,4 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 ;;allout-layout: (0 : -1 -1 0)
 ;;End:
 
-;; arch-tag: cf38fbc3-c044-450f-8bff-afed8ba5681c
 ;;; allout.el ends here

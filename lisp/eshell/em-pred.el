@@ -427,7 +427,7 @@ returning the resultant string."
       (forward-char))
     (if (looking-at "[0-9]+")
 	(progn
-	  (setq when (- (eshell-time-to-seconds (current-time))
+	  (setq when (- (float-time)
 			(* (string-to-number (match-string 0))
 			   quantum)))
 	  (goto-char (match-end 0)))
@@ -444,7 +444,7 @@ returning the resultant string."
 	     (attrs (file-attributes file)))
 	(unless attrs
 	  (error "Cannot stat file `%s'" file))
-	(setq when (eshell-time-to-seconds (nth attr-index attrs))))
+	(setq when (float-time (nth attr-index attrs))))
       (goto-char (1+ end)))
     `(lambda (file)
        (let ((attrs (file-attributes file)))
@@ -453,7 +453,7 @@ returning the resultant string."
 		   '<
 		 (if (eq qual ?+)
 		     '>
-		   '=)) ,when (eshell-time-to-seconds
+		   '=)) ,when (float-time
 			       (nth ,attr-index attrs))))))))
 
 (defun eshell-pred-file-type (type)
@@ -605,5 +605,4 @@ that 'ls -l' will show in the first column of its display. "
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 8b5ce022-17f3-4c40-93c7-5faafaa63f31
 ;;; em-pred.el ends here

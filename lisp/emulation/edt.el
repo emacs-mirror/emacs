@@ -1,4 +1,4 @@
-;;; edt.el --- enhanced EDT keypad mode emulation for GNU Emacs 19
+;;; edt.el --- enhanced EDT keypad mode emulation for GNU Emacs
 
 ;; Copyright (C) 1986, 1992, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
 ;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -28,7 +28,7 @@
 ;;; Commentary:
 ;;
 
-;; This is Version 4.0 of the EDT Emulation for Emacs 19 and above.
+;; This is Version 4.0 of the EDT Emulation for Emacs.
 ;; It comes with special functions which replicate nearly all of EDT's
 ;; keypad mode behavior.  It sets up default keypad and function key
 ;; bindings which closely match those found in EDT.  Support is
@@ -89,8 +89,8 @@
 ;;      settings for that session.
 ;;
 ;;      NOTE: Another way to set the scroll margins is to use the
-;;      Emacs customization feature (not available in Emacs 19) to set
-;;      the following two variables directly:
+;;      Emacs customization feature to set the following two variables
+;;      directly:
 ;;
 ;;           edt-top-scroll-margin and edt-bottom-scroll-margin
 ;;
@@ -667,6 +667,25 @@ Argument NUM is the number of lines to move."
   (goto-char (point-max))
   (edt-line-to-bottom-of-window))
 
+(defmacro edt-with-position (&rest body)
+  "Execute BODY with some position-related variables bound."
+  `(let* ((left nil)
+          (beg (edt-current-line))
+          (height (window-height))
+          (top-percent
+           (if (zerop edt-top-scroll-margin) 10 edt-top-scroll-margin))
+          (bottom-percent
+           (if (zerop edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
+          (top-margin (/ (* height top-percent) 100))
+          (bottom-up-margin (1+ (/ (* height bottom-percent) 100)))
+          (bottom-margin (max beg (- height bottom-up-margin 1)))
+          (top (save-excursion (move-to-window-line top-margin) (point)))
+          (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
+          (far (save-excursion
+                 (goto-char bottom)
+                 (point-at-bol (1- height)))))
+     ,@body))
+
 ;;;
 ;;; FIND
 ;;;
@@ -675,57 +694,29 @@ Argument NUM is the number of lines to move."
   "Find first occurrence of a string in forward direction and save it.
 Optional argument FIND is t is this function is called from `edt-find'."
   (interactive)
-  (if (not find)
-      (set 'edt-find-last-text (read-string "Search forward: ")))
-  (let* ((left nil)
-	 (beg (edt-current-line))
-	 (height (window-height))
-	 (top-percent
-	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
-	 (bottom-percent
-	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
-	 (top-margin (/ (* height top-percent) 100))
-	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
-	 (bottom-margin (max beg (- height bottom-up-margin 1)))
-	 (top (save-excursion (move-to-window-line top-margin) (point)))
-	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
-	 (far (save-excursion
-		(goto-char bottom) (forward-line (- height 2)) (point))))
-    (if (search-forward edt-find-last-text)
-	(progn
-	  (search-backward edt-find-last-text)
-	  (edt-set-match)
-	  (cond((> (point) far)
-		(setq left (save-excursion (forward-line height)))
-		(if (= 0 left) (recenter top-margin)
-		  (recenter (- left bottom-up-margin))))
-	       (t
-		(and (> (point) bottom) (recenter bottom-margin)))))))
+  (or find
+      (setq edt-find-last-text (read-string "Search forward: ")))
+  (edt-with-position
+   (when (search-forward edt-find-last-text) ; FIXME noerror?
+     (search-backward edt-find-last-text)
+     (edt-set-match)
+     (if (> (point) far)
+         (if (zerop (setq left (save-excursion (forward-line height))))
+             (recenter top-margin)
+           (recenter (- left bottom-up-margin)))
+       (and (> (point) bottom) (recenter bottom-margin)))))
   (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-find-backward (&optional find)
   "Find first occurrence of a string in the backward direction and save it.
 Optional argument FIND is t if this function is called from `edt-find'."
   (interactive)
-  (if (not find)
-      (set 'edt-find-last-text (read-string "Search backward: ")))
-  (let* ((left nil)
-	 (beg (edt-current-line))
-	 (height (window-height))
-	 (top-percent
-	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
-	 (bottom-percent
-	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
-	 (top-margin (/ (* height top-percent) 100))
-	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
-	 (bottom-margin (max beg (- height bottom-up-margin 1)))
-	 (top (save-excursion (move-to-window-line top-margin) (point)))
-	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
-	 (far (save-excursion
-		(goto-char bottom) (forward-line (- height 2)) (point))))
-    (if (search-backward edt-find-last-text)
-	(edt-set-match))
-    (and (< (point) top) (recenter (min beg top-margin))))
+  (or find
+      (setq edt-find-last-text (read-string "Search backward: ")))
+  (edt-with-position
+   (if (search-backward edt-find-last-text)
+       (edt-set-match))
+   (and (< (point) top) (recenter (min beg top-margin))))
   (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-find ()
@@ -744,58 +735,29 @@ Optional argument FIND is t if this function is called from `edt-find'."
 (defun edt-find-next-forward ()
   "Find next occurrence of a string in forward direction."
   (interactive)
-  (let* ((left nil)
-	 (beg (edt-current-line))
-	 (height (window-height))
-	 (top-percent
-	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
-	 (bottom-percent
-	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
-	 (top-margin (/ (* height top-percent) 100))
-	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
-	 (bottom-margin (max beg (- height bottom-up-margin 1)))
-	 (top (save-excursion (move-to-window-line top-margin) (point)))
-	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
-	 (far (save-excursion
-		(goto-char bottom) (forward-line (- height 2)) (point))))
-    (forward-char 1)
-    (if (search-forward edt-find-last-text nil t)
-	(progn
-	  (search-backward edt-find-last-text)
-	  (edt-set-match)
-	  (cond((> (point) far)
-		(setq left (save-excursion (forward-line height)))
-		(if (= 0 left) (recenter top-margin)
-		  (recenter (- left bottom-up-margin))))
-	       (t
-		(and (> (point) bottom) (recenter bottom-margin)))))
-      (progn
-	(backward-char 1)
-	(error "Search failed: \"%s\"" edt-find-last-text))))
+  (edt-with-position
+   (forward-char 1)
+   (if (search-forward edt-find-last-text nil t)
+       (progn
+         (search-backward edt-find-last-text)
+         (edt-set-match)
+         (if (> (point) far)
+             (if (zerop (setq left (save-excursion (forward-line height))))
+                 (recenter top-margin)
+               (recenter (- left bottom-up-margin)))
+           (and (> (point) bottom) (recenter bottom-margin))))
+     (backward-char 1)
+     (error "Search failed: \"%s\"" edt-find-last-text)))
   (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-find-next-backward ()
   "Find next occurrence of a string in backward direction."
   (interactive)
-  (let* ((left nil)
-	 (beg (edt-current-line))
-	 (height (window-height))
-	 (top-percent
-	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
-	 (bottom-percent
-	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
-	 (top-margin (/ (* height top-percent) 100))
-	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
-	 (bottom-margin (max beg (- height bottom-up-margin 1)))
-	 (top (save-excursion (move-to-window-line top-margin) (point)))
-	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
-	 (far (save-excursion
-		(goto-char bottom) (forward-line (- height 2)) (point))))
-    (if (not (search-backward edt-find-last-text nil t))
-	(error "Search failed: \"%s\"" edt-find-last-text)
-      (progn
-	(edt-set-match)
-	(and (< (point) top) (recenter (min beg top-margin))))))
+  (edt-with-position
+   (if (not (search-backward edt-find-last-text nil t))
+       (error "Search failed: \"%s\"" edt-find-last-text)
+     (edt-set-match)
+     (and (< (point) top) (recenter (min beg top-margin)))))
   (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-find-next ()
@@ -1318,33 +1280,17 @@ Argument BOTTOM is the bottom margin in number of lines or percent of window."
 Argument NUM is the positive number of sentences to move."
   (interactive "p")
   (edt-check-prefix num)
-  (let* ((left nil)
-	 (beg (edt-current-line))
-	 (height (window-height))
-	 (top-percent
-	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
-	 (bottom-percent
-	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
-	 (top-margin (/ (* height top-percent) 100))
-	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
-	 (bottom-margin (max beg (- height bottom-up-margin 1)))
-	 (top (save-excursion (move-to-window-line top-margin) (point)))
-	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
-	 (far (save-excursion
-		(goto-char bottom) (forward-line (- height 2)) (point))))
-    (if (eobp)
-	(progn
-	  (error "End of buffer"))
-      (progn
-	(forward-sentence num)
-	(forward-word 1)
-	(backward-sentence)))
-    (cond((> (point) far)
-	  (setq left (save-excursion (forward-line height)))
-	  (if (= 0 left) (recenter top-margin)
-	    (recenter (- left bottom-up-margin))))
-	 (t
-	  (and (> (point) bottom) (recenter bottom-margin)))))
+  (edt-with-position
+   (if (eobp)
+       (error "End of buffer")
+     (forward-sentence num)
+     (forward-word 1)
+     (backward-sentence))
+   (if (> (point) far)
+       (if (zerop (setq left (save-excursion (forward-line height))))
+           (recenter top-margin)
+         (recenter (- left bottom-up-margin)))
+     (and (> (point) bottom) (recenter bottom-margin))))
   (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-sentence-backward (num)
@@ -1352,25 +1298,11 @@ Argument NUM is the positive number of sentences to move."
 Argument NUM is the positive number of sentences to move."
   (interactive "p")
   (edt-check-prefix num)
-  (let* ((left nil)
-	 (beg (edt-current-line))
-	 (height (window-height))
-	 (top-percent
-	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
-	 (bottom-percent
-	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
-	 (top-margin (/ (* height top-percent) 100))
-	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
-	 (bottom-margin (max beg (- height bottom-up-margin 1)))
-	 (top (save-excursion (move-to-window-line top-margin) (point)))
-	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
-	 (far (save-excursion
-		(goto-char bottom) (forward-line (- height 2)) (point))))
-    (if (eobp)
-	(progn
-	  (error "End of buffer"))
-      (backward-sentence num))
-    (and (< (point) top) (recenter (min beg top-margin))))
+  (edt-with-position
+   (if (eobp)
+       (error "End of buffer")
+     (backward-sentence num))
+   (and (< (point) top) (recenter (min beg top-margin))))
   (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-sentence (num)
@@ -1390,32 +1322,18 @@ Argument NUM is the positive number of sentences to move."
 Argument NUM is the positive number of paragraphs to move."
   (interactive "p")
   (edt-check-prefix num)
-  (let* ((left nil)
-	 (beg (edt-current-line))
-	 (height (window-height))
-	 (top-percent
-	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
-	 (bottom-percent
-	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
-	 (top-margin (/ (* height top-percent) 100))
-	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
-	 (bottom-margin (max beg (- height bottom-up-margin 1)))
-	 (top (save-excursion (move-to-window-line top-margin) (point)))
-	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
-	 (far (save-excursion
-		(goto-char bottom) (forward-line (- height 2)) (point))))
-    (while (> num 0)
-      (forward-paragraph (+ num 1))
-      (start-of-paragraph-text)
-      (if (eolp)
-	  (forward-line 1))
-      (setq num (1- num)))
-    (cond((> (point) far)
-	  (setq left (save-excursion (forward-line height)))
-	  (if (= 0 left) (recenter top-margin)
-	    (recenter (- left bottom-up-margin))))
-	 (t
-	  (and (> (point) bottom) (recenter bottom-margin)))))
+  (edt-with-position
+   (while (> num 0)
+     (forward-paragraph (+ num 1))
+     (start-of-paragraph-text)
+     (if (eolp)
+         (forward-line 1))
+     (setq num (1- num)))
+   (if (> (point) far)
+       (if (zerop (setq left (save-excursion (forward-line height))))
+           (recenter top-margin)
+         (recenter (- left bottom-up-margin)))
+     (and (> (point) bottom) (recenter bottom-margin))))
   (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-paragraph-backward (num)
@@ -1423,24 +1341,11 @@ Argument NUM is the positive number of paragraphs to move."
 Argument NUM is the positive number of paragraphs to move."
   (interactive "p")
   (edt-check-prefix num)
-  (let* ((left nil)
-	 (beg (edt-current-line))
-	 (height (window-height))
-	 (top-percent
-	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
-	 (bottom-percent
-	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
-	 (top-margin (/ (* height top-percent) 100))
-	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
-	 (bottom-margin (max beg (- height bottom-up-margin 1)))
-	 (top (save-excursion (move-to-window-line top-margin) (point)))
-	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
-	 (far (save-excursion
-		(goto-char bottom) (forward-line (- height 2)) (point))))
-    (while (> num 0)
-      (start-of-paragraph-text)
-      (setq num (1- num)))
-    (and (< (point) top) (recenter (min beg top-margin))))
+  (edt-with-position
+   (while (> num 0)
+     (start-of-paragraph-text)
+     (setq num (1- num)))
+   (and (< (point) top) (recenter (min beg top-margin))))
   (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-paragraph (num)
@@ -2701,5 +2606,4 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
 
 (provide 'edt)
 
-;; arch-tag: 18d1c54f-6900-4078-8bbc-7c2292f48941
 ;;; edt.el ends here

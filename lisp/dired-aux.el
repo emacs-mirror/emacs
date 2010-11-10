@@ -1,7 +1,8 @@
 ;;; dired-aux.el --- less commonly used parts of dired
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Maintainer: FSF
@@ -700,7 +701,7 @@ can be produced by `dired-get-marked-files', for example."
 	(save-excursion (and file
 			     (dired-goto-subdir file)
 			     (dired-kill-subdir)))
-	(delete-region (progn (beginning-of-line) (point))
+	(delete-region (line-beginning-position)
 		       (progn (forward-line 1) (point)))
 	(if (> arg 0)
 	    (setq arg (1- arg))
@@ -734,7 +735,7 @@ command with a prefix argument (the value does not matter)."
 	(while (and (not (eobp))
 		    (re-search-forward regexp nil t))
 	  (setq count (1+ count))
-	  (delete-region (progn (beginning-of-line) (point))
+	  (delete-region (line-beginning-position)
 			 (progn (forward-line 1) (point))))
 	(or (equal "" fmt)
 	    (message (or fmt "Killed %d line%s.") count (dired-plural-s count)))
@@ -1037,10 +1038,10 @@ See Info node `(emacs)Subdir switches' for more details."
   ;; Keeps any marks that may be present in column one (doing this
   ;; here is faster than with dired-add-entry's optional arg).
   ;; Does not update other dired buffers.  Use dired-relist-entry for that.
-  (beginning-of-line)
-  (let ((char (following-char)) (opoint (point))
+  (let ((char (following-char))
+	(opoint (line-beginning-position))
 	(buffer-read-only))
-    (delete-region (point) (progn (forward-line 1) (point)))
+    (delete-region opoint (progn (forward-line 1) (point)))
     (if file
 	(progn
 	  (dired-add-entry file nil t)
@@ -1133,8 +1134,7 @@ See Info node `(emacs)Subdir switches' for more details."
 		  (save-excursion ;; ...so we can run it right now:
 		    (save-restriction
 		      (beginning-of-line)
-		      (narrow-to-region (point) (save-excursion
-						  (forward-line 1) (point)))
+		      (narrow-to-region (point) (line-beginning-position 2))
 		      (run-hooks 'dired-after-readin-hook))))
 	      (dired-move-to-filename))
 	    ;; return nil if all went well
@@ -1167,7 +1167,7 @@ See Info node `(emacs)Subdir switches' for more details."
     (and (dired-goto-file file)
 	 (let (buffer-read-only)
 	   (delete-region (progn (beginning-of-line) (point))
-			  (save-excursion (forward-line 1) (point)))))))
+			  (line-beginning-position 2))))))
 
 ;;;###autoload
 (defun dired-relist-file (file)
@@ -1188,7 +1188,7 @@ See Info node `(emacs)Subdir switches' for more details."
 	   (delete-region (progn (beginning-of-line)
 				 (setq marker (following-char))
 				 (point))
-			  (save-excursion (forward-line 1) (point))))
+			  (line-beginning-position 2)))
       (setq file (directory-file-name file))
       (dired-add-entry file (if (eq ?\040 marker) nil marker)))))
 
@@ -2482,5 +2482,4 @@ true then the type of the file linked to by FILE is printed instead."
 ;; generated-autoload-file: "dired.el"
 ;; End:
 
-;; arch-tag: 4b508de9-a153-423d-8d3f-a1bbd86f4f60
 ;;; dired-aux.el ends here

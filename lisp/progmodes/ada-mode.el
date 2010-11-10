@@ -2472,8 +2472,7 @@ and the offset."
       (if (and ada-indent-is-separate
 	       (save-excursion
 		 (goto-char (match-end 0))
-		 (ada-goto-next-non-ws (save-excursion (end-of-line)
-						       (point)))
+		 (ada-goto-next-non-ws (point-at-eol))
 		 (looking-at "\\<abstract\\>\\|\\<separate\\>")))
 	  (save-excursion
 	    (ada-goto-stmt-start)
@@ -2580,10 +2579,7 @@ and the offset."
 		       (forward-line -1)
 		       (beginning-of-line)
 		       (while (and (not pos)
-				   (search-forward "--"
-						    (save-excursion
-						      (end-of-line) (point))
-						    t))
+				   (search-forward "--" (point-at-eol) t))
 			 (unless (ada-in-string-p)
 			   (setq pos (point))))
 		       pos))
@@ -5285,11 +5281,7 @@ Use \\[widen] to go back to the full visibility for the buffer."
       (widen)
       (forward-line 1)
       (ada-previous-procedure)
-
-      (save-excursion
-	(beginning-of-line)
-	(setq end (point)))
-
+      (setq end (point-at-bol))
       (ada-move-to-end)
       (end-of-line)
       (narrow-to-region end (point))

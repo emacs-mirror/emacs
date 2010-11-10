@@ -2912,8 +2912,7 @@ Return nil if spell session is quit,
 				     (min skip-region-start ispell-region-end)
 				   (marker-position ispell-region-end))))
 	      (let* ((ispell-start (point))
-		     (ispell-end (save-excursion
-                                   (end-of-line) (min (point) reg-end)))
+		     (ispell-end (min (point-at-eol) reg-end))
 		     (string (ispell-get-line
                               ispell-start ispell-end in-comment)))
 		(if in-comment		; account for comment chars added

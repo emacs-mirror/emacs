@@ -10278,6 +10278,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     = XInternAtom (dpyinfo->display, "_NET_WM_ICON_NAME", False);
   dpyinfo->Xatom_net_wm_name
     = XInternAtom (dpyinfo->display, "_NET_WM_NAME", False);
+  dpyinfo->Xatom_net_frame_extents  
+    = XInternAtom (dpyinfo->display, "_NET_FRAME_EXTENTS", False);
 
   dpyinfo->x_dnd_atoms_size = 8;
   dpyinfo->x_dnd_atoms_length = 0;

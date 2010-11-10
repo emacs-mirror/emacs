@@ -322,7 +322,7 @@ used."
   :group 'message-various)
 
 (defcustom message-subject-trailing-was-ask-regexp
-  "[ \t]*\\([[(]+[Ww][Aa][Ss][ \t]*.*[\])]+\\)"
+  "[ \t]*\\([[(]+[Ww][Aa][Ss]:?[ \t]*.*[])]+\\)"
   "*Regexp matching \"(was: <old subject>)\" in the subject line.
 
 The function `message-strip-subject-trailing-was' uses this regexp if

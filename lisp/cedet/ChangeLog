@@ -1,3 +1,16 @@
+2010-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/bovine/c.el: Test system-type with memq.
+
+2010-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/lex.el (semantic-lex-ignore-comments, semantic-flex):
+	* semantic/grammar.el (semantic-grammar-epilogue):
+	* ede/speedbar.el (ede-find-nearest-file-line):
+	* ede/pmake.el (ede-proj-makefile-insert-dist-rules):
+	* ede/autoconf-edit.el (autoconf-delete-parameter):
+	Use point-at-bol and point-at-eol.
+
 2010-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* ede/proj-elisp.el (ede-proj-flush-autoconf): Use point-at-bol.

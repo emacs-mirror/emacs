@@ -2096,6 +2096,7 @@ increase the score of each group you read."
   "a" gnus-article-strip-headers-in-body ;; mnemonic: wash archive
   "p" gnus-article-verify-x-pgp-sig
   "d" gnus-article-treat-dumbquotes
+  "U" gnus-article-treat-non-ascii
   "i" gnus-summary-idna-message)
 
 (gnus-define-keys (gnus-summary-wash-deuglify-map "Y" gnus-summary-wash-map)
@@ -2420,6 +2421,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 		gnus-article-remove-leading-whitespace t])
 	      ["Overstrike" gnus-article-treat-overstrike t]
 	      ["Dumb quotes" gnus-article-treat-dumbquotes t]
+	      ["Non-ASCII" gnus-article-treat-non-ascii t]
 	      ["Emphasis" gnus-article-emphasize t]
 	      ["Word wrap" gnus-article-fill-cited-article t]
 	      ["Fill long lines" gnus-article-fill-long-lines t]

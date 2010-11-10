@@ -2377,11 +2377,11 @@ in the font selection dialog. */)
   return DECODE_SYSTEM (build_string (buf));
 }
 
-static const char *w32font_booleans [] = {
+static const char *const w32font_booleans [] = {
   NULL,
 };
 
-static const char *w32font_non_booleans [] = {
+static const char *const w32font_non_booleans [] = {
   ":script",
   ":antialias",
   ":style",

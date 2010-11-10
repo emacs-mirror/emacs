@@ -1,7 +1,8 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2001, 2002, 2003,
-;;  2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;  2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -2136,11 +2137,7 @@ Return new point if successful, nil if an error occurred."
 (defun sh-handle-prev-do ()
   (cond
    ((save-restriction
-      (narrow-to-region
-       (point)
-       (save-excursion
-	 (beginning-of-line)
-	 (point)))
+      (narrow-to-region (point) (line-beginning-position))
       (sh-goto-match-for-done))
     (sh-debug "match for done found on THIS line")
     (list '(+ sh-indent-after-loop-construct)))
@@ -3840,5 +3837,4 @@ shell command and conveniently use this command."
 
 (provide 'sh-script)
 
-;; arch-tag: eccd8b72-f337-4fc2-ae86-18155a69d937
 ;;; sh-script.el ends here

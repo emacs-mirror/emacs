@@ -2097,7 +2097,7 @@ Returns non-nil if abbrev is left expanded."
 Moves to end of line if there is no comment delimiter.
 Ignores comment delimiters in strings.
 Returns point if comment found and nil otherwise."
-  (let ((eos (progn (end-of-line) (point)))
+  (let ((eos (point-at-eol))
         (data (match-data))
         found)
     ;; Look for first comment delimiter not in a string
@@ -3310,10 +3310,7 @@ ignored."
         (setq fill-prefix-reg
               (concat
                (setq fill-prefix
-                     (regexp-quote
-                      (buffer-substring (save-excursion
-                                          (beginning-of-line) (point))
-                                        (point))))
+                     (regexp-quote (buffer-substring (point-at-bol) (point))))
                "[^;]"))
 
         ;; Mark the beginning and end of the paragraph
@@ -3668,7 +3665,7 @@ constants - a double quote followed by an octal digit."
     ;; Because single and double quotes can quote each other we must
     ;; search for the string start from the beginning of line.
     (let* ((start (point))
-           (eol (progn (end-of-line) (point)))
+           (eol (point-at-eol))
            (bq (progn (beginning-of-line) (point)))
            (endq (point))
            (data (match-data))

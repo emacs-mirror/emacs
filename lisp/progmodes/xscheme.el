@@ -701,12 +701,7 @@ parse an expression from the beginning of the line and send that instead."
   "Send the current line to the Scheme process.
 Useful for working with debugging Scheme under adb."
   (interactive)
-  (let ((line
-	 (save-excursion
-	   (beginning-of-line)
-	   (let ((start (point)))
-	     (end-of-line)
-	     (buffer-substring start (point))))))
+  (let ((line (buffer-substring (line-beginning-position) (line-end-position))))
     (end-of-line)
     (insert ?\n)
     (xscheme-send-string-2 line)))
@@ -1224,5 +1219,4 @@ the remaining input.")
 
 (provide 'xscheme)
 
-;; arch-tag: cfc14adc-2917-409e-ad16-432e8d0017de
 ;;; xscheme.el ends here
