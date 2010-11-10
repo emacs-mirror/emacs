@@ -1,3 +1,9 @@
+2010-11-10  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-word): Do not re-check words
+	already found as misspellings by (flyspell-large-region), just
+	do highlighting.  Patch by Brandon Craig Rhodes (bug#7322)
+
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/octave-mod.el (octave-mark-block): Update for smie change.
