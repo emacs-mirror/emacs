@@ -465,54 +465,49 @@ while a list of strings is used as a word list."
 			  "command or function" "command"))
 		     current-prefix-arg))
   (apropos-parse-pattern pattern)
-  (let ((message
-	 (let ((standard-output (get-buffer-create "*Apropos*")))
-	   (help-print-return-message 'identity))))
-    (or do-all (setq do-all apropos-do-all))
-    (setq apropos-accumulator
-	  (apropos-internal apropos-regexp
-			    (or var-predicate
-                                ;; We used to use `functionp' here, but this
-                                ;; rules out macros.  `fboundp' rules in
-                                ;; keymaps, but it seems harmless.
-				(if do-all 'fboundp 'commandp))))
-    (let ((tem apropos-accumulator))
-      (while tem
-	(if (or (get (car tem) 'apropos-inhibit)
-		(apropos-false-hit-symbol (car tem)))
-	    (setq apropos-accumulator (delq (car tem) apropos-accumulator)))
-	(setq tem (cdr tem))))
-    (let ((p apropos-accumulator)
-	  doc symbol score)
-      (while p
-	(setcar p (list
-		   (setq symbol (car p))
-		   (setq score (apropos-score-symbol symbol))
-		   (unless var-predicate
-		     (if (fboundp symbol)
-			 (if (setq doc (condition-case nil
-                                           (documentation symbol t)
-                                         (error 'error)))
-                             ;; Eg alias to undefined function.
-                             (if (eq doc 'error)
-                                 "(documentation error)"
-			       (setq score (+ score (apropos-score-doc doc)))
-			       (substring doc 0 (string-match "\n" doc)))
-			   "(not documented)")))
-		   (and var-predicate
-			(funcall var-predicate symbol)
-			(if (setq doc (documentation-property
-				       symbol 'variable-documentation t))
-			     (progn
-			       (setq score (+ score (apropos-score-doc doc)))
-			       (substring doc 0
-					  (string-match "\n" doc)))))))
-	(setcar (cdr (car p)) score)
-	(setq p (cdr p))))
-    (and (let ((apropos-multi-type do-all))
-           (apropos-print t nil nil t))
-	 message
-	 (message "%s" message))))
+  (or do-all (setq do-all apropos-do-all))
+  (setq apropos-accumulator
+	(apropos-internal apropos-regexp
+			  (or var-predicate
+			      ;; We used to use `functionp' here, but this
+			      ;; rules out macros.  `fboundp' rules in
+			      ;; keymaps, but it seems harmless.
+			      (if do-all 'fboundp 'commandp))))
+  (let ((tem apropos-accumulator))
+    (while tem
+      (if (or (get (car tem) 'apropos-inhibit)
+	      (apropos-false-hit-symbol (car tem)))
+	  (setq apropos-accumulator (delq (car tem) apropos-accumulator)))
+      (setq tem (cdr tem))))
+  (let ((p apropos-accumulator)
+	doc symbol score)
+    (while p
+      (setcar p (list
+		 (setq symbol (car p))
+		 (setq score (apropos-score-symbol symbol))
+		 (unless var-predicate
+		   (if (fboundp symbol)
+		       (if (setq doc (condition-case nil
+					 (documentation symbol t)
+				       (error 'error)))
+			   ;; Eg alias to undefined function.
+			   (if (eq doc 'error)
+			       "(documentation error)"
+			     (setq score (+ score (apropos-score-doc doc)))
+			     (substring doc 0 (string-match "\n" doc)))
+			 "(not documented)")))
+		 (and var-predicate
+		      (funcall var-predicate symbol)
+		      (if (setq doc (documentation-property
+				     symbol 'variable-documentation t))
+			  (progn
+			    (setq score (+ score (apropos-score-doc doc)))
+			    (substring doc 0
+				       (string-match "\n" doc)))))))
+      (setcar (cdr (car p)) score)
+      (setq p (cdr p))))
+  (and (let ((apropos-multi-type do-all))
+	 (apropos-print t nil nil t))))
 
 
 ;;;###autoload
@@ -973,7 +968,7 @@ If non-nil TEXT is a string that will be printed as a heading."
 			  (and (= (cadr a) (cadr b))
 			       (string-lessp (car a) (car b))))
 		    (string-lessp (car a) (car b))))))
-    (with-output-to-temp-buffer "*Apropos*"
+    (with-help-window "*Apropos*"
       (let ((p apropos-accumulator)
 	    (old-buffer (current-buffer))
 	    symbol item)

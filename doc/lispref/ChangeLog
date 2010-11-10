@@ -1,3 +1,8 @@
+2010-11-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* display.texi (Temporary Displays): Describe
+	temp-buffer-show-specifiers.
+
 2010-11-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Resizing Windows): Explain OVERRIDE argumet for

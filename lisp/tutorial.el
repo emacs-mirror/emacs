@@ -73,7 +73,7 @@ Where
   WHERE       is a text describing the key sequences to which DEF-FUN is
               bound now (or, if it is remapped, a key sequence
               for the function it is remapped to)"
-  (with-output-to-temp-buffer (help-buffer)
+  (with-help-window (help-buffer)
     (help-setup-xref (list #'tutorial--describe-nonstandard-key value)
                      (called-interactively-p 'interactive))
     (with-current-buffer (help-buffer)
@@ -163,8 +163,7 @@ options:
                       " to get the function `"
                       (format "%s" db)
                       "'.")))
-          (fill-region (point-min) (point)))))
-      (help-print-return-message))))
+          (fill-region (point-min) (point))))))))
 
 (defun tutorial--sort-keys (left right)
   "Sort predicate for use with `tutorial--default-keys'.
@@ -322,7 +321,7 @@ LEFT and RIGHT are the elements to compare."
 
 (defun tutorial--detailed-help (button)
   "Give detailed help about changed keys."
-  (with-output-to-temp-buffer (help-buffer)
+  (with-help-window (help-buffer)
     (help-setup-xref (list #'tutorial--detailed-help button)
                      (called-interactively-p 'interactive))
     (with-current-buffer (help-buffer)
@@ -387,8 +386,7 @@ from the Emacs default:\n\n" )
 
         (insert "
 It is OK to change key bindings, but changed bindings do not
-correspond to what the tutorial says.\n\n")
-        (help-print-return-message)))))
+correspond to what the tutorial says.\n\n")))))
 
 (defun tutorial--find-changed-keys (default-keys)
   "Find the key bindings used in the tutorial that have changed.

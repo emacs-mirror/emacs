@@ -1,3 +1,14 @@
+2010-11-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (syms_of_window): New variable
+	temp-buffer-show-specifiers.
+	(temp_output_buffer_show): Call display-buffer with second
+	argument set to temp-buffer-show-specifiers and reset the latter
+	after the call.
+
+	* print.c (Fwith_output_to_temp_buffer): In doc-string explain how
+	to set up temp-buffer-show-specifiers.
+
 2010-11-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (set_machine_and_pid_properties): Let X set WM_CLIENT_MACHINE.
@@ -242,6 +253,7 @@
 	* xterm.c (x_connection_closed): Print informative error message
 	when aborting on GTK.  This requires using shut_down_emacs
 	directly instead of Fkill_emacs.
+
 2010-10-30  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* window.c (Fresize_window_apply): Use EQ to compare Lisp_Object

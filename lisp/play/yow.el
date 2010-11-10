@@ -96,12 +96,11 @@ If called interactively, display a list of matches."
                 (message "No matches found."))
                (t
                 (let ((l matches))
-                  (with-output-to-temp-buffer "*Zippy Apropos*"
+                  (with-help-window "*Zippy Apropos*"
                     (while l
                       (princ (car l))
                       (setq l (cdr l))
-                      (and l (princ "\n\n")))
-		    (help-print-return-message))))))
+                      (and l (princ "\n\n"))))))))
     matches))
 
 

@@ -1104,7 +1104,10 @@ This relies on `display-buffer-window' being correctly set up by
 (defmacro with-help-window (buffer-name &rest body)
   "Display buffer with name BUFFER-NAME in a help window evaluating BODY.
 Select help window if the actual value of the user option
-`help-window-select' says so.  Return last value in BODY."
+`help-window-select' says so.  Return last value in BODY.
+
+You can specify where and how to show the buffer by binding the
+variable `temp-buffer-show-specifiers' to an appropriate value."
   (declare (indent 1) (debug t))
   `(progn
      ;; Reset `display-buffer-window': `display-buffer' is

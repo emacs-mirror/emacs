@@ -371,7 +371,7 @@ they exit Isearch mode before displaying global help."
 (defun isearch-help-for-help ()
   "Display Isearch help menu."
   (interactive)
-  (let (same-window-buffer-names same-window-regexps)
+  (let ((temp-buffer-show-specifiers t))
     (isearch-help-for-help-internal))
   (isearch-update))
 
@@ -379,7 +379,7 @@ they exit Isearch mode before displaying global help."
   "Show a list of all keys defined in Isearch mode, and their definitions.
 This is like `describe-bindings', but displays only Isearch keys."
   (interactive)
-  (let (same-window-buffer-names same-window-regexps)
+  (let ((temp-buffer-show-specifiers t))
     (with-help-window "*Help*"
       (with-current-buffer standard-output
 	(princ "Isearch Mode Bindings:\n")
@@ -388,14 +388,14 @@ This is like `describe-bindings', but displays only Isearch keys."
 (defun isearch-describe-key ()
   "Display documentation of the function invoked by isearch key."
   (interactive)
-  (let (same-window-buffer-names same-window-regexps)
+  (let ((temp-buffer-show-specifiers t))
     (call-interactively 'describe-key))
   (isearch-update))
 
 (defun isearch-describe-mode ()
   "Display documentation of Isearch mode."
   (interactive)
-  (let (same-window-buffer-names same-window-regexps)
+  (let ((temp-buffer-show-specifiers t))
     (describe-function 'isearch-forward))
   (isearch-update))
 

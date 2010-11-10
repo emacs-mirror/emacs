@@ -266,7 +266,7 @@ C-w  Describe how there is no warranty for Calc."
 			  (setq notes (sort (car (read-from-string
 						  (format "(%s)" notes)))
 					    '<))
-			  (with-output-to-temp-buffer "*Help*"
+			  (with-help-window "*Help*"
 			    (princ (format "%s\n\n" msg))
 			    (set-buffer "*Calc Summary*")
 			    (re-search-forward "^ *NOTES")
@@ -280,8 +280,7 @@ C-w  Describe how there is no warranty for Calc."
 				    (goto-char (point-max)))
 				(beginning-of-line)
 				(princ (buffer-substring pt (point))))
-			      (setq notes (cdr notes)))
-			    (help-print-return-message)))
+			      (setq notes (cdr notes)))))
 		      (calc-unread-command (cdr key)))))
 	      (if (or (null defn) (integerp defn))
 		  (message "%s is undefined" desc)
@@ -413,7 +412,7 @@ C-w  Describe how there is no warranty for Calc."
 
 (defun calc-full-help ()
   (interactive)
-  (with-output-to-temp-buffer "*Help*"
+  (with-help-window "*Help*"
     (princ "GNU Emacs Calculator.\n")
     (princ "  By Dave Gillespie.\n")
     (princ (format "  %s\n\n" emacs-copyright))
@@ -464,8 +463,7 @@ C-w  Describe how there is no warranty for Calc."
 	      calc-v-prefix-help
 	      calc-shift-Y-prefix-help
 	      calc-shift-Z-prefix-help
-	      calc-z-prefix-help)))
-    (help-print-return-message)))
+	      calc-z-prefix-help)))))
 
 (defun calc-h-prefix-help ()
   (interactive)

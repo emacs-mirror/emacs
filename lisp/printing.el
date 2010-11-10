@@ -5485,9 +5485,8 @@ If menu binding was not done, calls `pr-menu-bind'."
 
 
 (defun pr-show-setup (settings buffer-name)
-  (with-output-to-temp-buffer buffer-name
-    (princ settings)
-    (help-print-return-message)))
+  (with-help-window buffer-name
+    (princ settings)))
 
 
 (defun pr-complete-alist (prompt alist default)

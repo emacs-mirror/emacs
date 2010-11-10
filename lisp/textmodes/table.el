@@ -4055,7 +4055,7 @@ converts a table into plain text without frames.  It is a companion to
   (interactive)
   (if (not (table--point-in-cell-p))
       (call-interactively 'describe-mode)
-    (with-output-to-temp-buffer "*Help*"
+    (with-help-window "*Help*"
       (princ "Table mode: (in ")
       (princ (format-mode-line mode-name nil nil (current-buffer)))
       (princ " mode)
@@ -4074,15 +4074,14 @@ in a fixed width mode all cell width are fixed.  When a word can not
 fit in the cell width the word is folded into the next line.  The
 folded location is marked by a continuation character which is
 specified in the variable `table-word-continuation-char'.
-")
-      (help-print-return-message))))
+"))))
 
 (defun *table--cell-describe-bindings ()
   "Table cell version of `describe-bindings'."
   (interactive)
   (if (not (table--point-in-cell-p))
       (call-interactively 'describe-bindings)
-    (with-output-to-temp-buffer "*Help*"
+    (with-help-window "*Help*"
       (princ "Table Bindings:
 key             binding
 ---             -------
@@ -4092,8 +4091,7 @@ key             binding
 	      (princ (format "%-16s%s\n"
 			     (key-description (car binding))
 			     (cdr binding))))
-	    table-cell-bindings)
-      (help-print-return-message))))
+	    table-cell-bindings))))
 
 (defun *table--cell-dabbrev-expand (arg)
   "Table cell version of `dabbrev-expand'."

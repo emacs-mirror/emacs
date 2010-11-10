@@ -1,3 +1,30 @@
+2010-11-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.el (with-help-window): In doc-string say how to set up
+	temp-buffer-show-specifiers.
+
+	* isearch.el (isearch-help-for-help, isearch-describe-bindings)
+	(isearch-describe-key, isearch-describe-mode): Replace bindings
+	for same-window-buffer-names and same-window-regexps by binding
+	temp-buffer-show-specifiers instead.
+
+	* international/mule-diag.el (mule-diag):
+	* calc/calc-help.el (calc-describe-key, calc-full-help):
+	* printing.el (pr-show-setup):
+	* progmodes/python.el (python-describe-symbol):
+	* textmodes/table.el (*table--cell-describe-mode)
+	(*table--cell-describe-bindings):
+	* tutorial.el (tutorial--describe-nonstandard-key)
+	(tutorial--detailed-help):
+	* progmodes/vhdl-mode.el (vhdl-doc-variable, vhdl-doc-mode):
+	* play/yow.el (apropos-zippy): Use with-help-window.
+
+	* apropos.el (apropos-command): Remove the message calculation part.
+	(apropos-print): Use with-help-window
+
+	* woman.el (woman-mini-help): Remove the message calculation part.
+	(woman-display-extended-fonts): Use with-help-window.
+
 2010-11-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* ielm.el (top-level): Remove autoloaded add-hook for

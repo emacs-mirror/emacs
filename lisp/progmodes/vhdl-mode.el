@@ -16951,26 +16951,24 @@ to visually support naming conventions.")
   (interactive)
   (unless (featurep 'xemacs)
     (help-setup-xref (list #'vhdl-doc-variable variable) (interactive-p)))
-  (with-output-to-temp-buffer
+  (with-help-window
       (if (fboundp 'help-buffer) (help-buffer) "*Help*")
     (princ (documentation-property variable 'variable-documentation))
     (with-current-buffer standard-output
-      (help-mode))
-    (help-print-return-message)))
+      (help-mode))))
 
 (defun vhdl-doc-mode ()
   "Display VHDL Mode documentation in *Help* buffer."
   (interactive)
   (unless (featurep 'xemacs)
     (help-setup-xref (list #'vhdl-doc-mode) (interactive-p)))
-  (with-output-to-temp-buffer
+  (with-help-window
       (if (fboundp 'help-buffer) (help-buffer) "*Help*")
     (princ mode-name)
     (princ " mode:\n")
     (princ (documentation 'vhdl-mode))
     (with-current-buffer standard-output
-      (help-mode))
-    (help-print-return-message)))
+      (help-mode))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

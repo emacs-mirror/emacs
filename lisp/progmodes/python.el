@@ -1832,13 +1832,12 @@ will."
   (let ((temp-buffer-show-hook		; avoid xref stuff
 	 (lambda ()
 	   (toggle-read-only 1))))
-    (with-output-to-temp-buffer (help-buffer)
+    (with-help-window (help-buffer)
       (with-current-buffer standard-output
  	;; Fixme: Is this actually useful?
 	(help-setup-xref (list 'python-describe-symbol symbol)
 			 (called-interactively-p 'interactive))
-	(set (make-local-variable 'comint-redirect-subvert-readonly) t)
-	(help-print-return-message))))
+	(set (make-local-variable 'comint-redirect-subvert-readonly) t))))
   (comint-redirect-send-command-to-process (format "emacs.ehelp(%S, %s)"
 						   symbol python-imports)
    "*Help*" (python-proc) nil nil))

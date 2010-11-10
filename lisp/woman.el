@@ -1975,35 +1975,30 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
   ;; Based on apropos-command in apropos.el
   (interactive)
   (require 'apropos)
-  (let ((message
-	 (let ((standard-output (get-buffer-create "*Apropos*")))
-	   (help-print-return-message 'identity))))
-    (setq apropos-accumulator
-	  (apropos-internal "woman"
-			    (lambda (symbol)
-			      (and
-			       (or (commandp symbol)
-				   (user-variable-p symbol))
-			       (not (get symbol 'apropos-inhibit))))))
-    ;; Find documentation strings:
-    (let ((p apropos-accumulator)
-	  doc symbol)
-      (while p
-	(setcar p (list			; must have 3 elements:
-		   (setq symbol (car p)) ; 1. name
-		   (if (functionp symbol) ; 2. command doc
-		       (if (setq doc (documentation symbol t))
-			   (substring doc 0 (string-match "\n" doc))
-			 "(not documented)"))
-		   (if (user-variable-p symbol)	; 3. variable doc
-		       (if (setq doc (documentation-property
-				      symbol 'variable-documentation t))
-			   (substring doc 0 (string-match "\n" doc))))))
-	(setq p (cdr p))))
-    ;; Output the result:
-    (and (apropos-print t nil)
-	 message
-	 (message "%s" message))))
+  (setq apropos-accumulator
+	(apropos-internal "woman"
+			  (lambda (symbol)
+			    (and
+			     (or (commandp symbol)
+				 (user-variable-p symbol))
+			     (not (get symbol 'apropos-inhibit))))))
+  ;; Find documentation strings:
+  (let ((p apropos-accumulator)
+	doc symbol)
+    (while p
+      (setcar p (list			       ; must have 3 elements:
+		 (setq symbol (car p))	       ; 1. name
+		 (if (functionp symbol)	       ; 2. command doc
+		     (if (setq doc (documentation symbol t))
+			 (substring doc 0 (string-match "\n" doc))
+		       "(not documented)"))
+		 (if (user-variable-p symbol)	; 3. variable doc
+		     (if (setq doc (documentation-property
+				    symbol 'variable-documentation t))
+			 (substring doc 0 (string-match "\n" doc))))))
+      (setq p (cdr p))))
+  ;; Output the result:
+  (apropos-print t nil))
 
 
 (defun WoMan-getpage-in-background (topic)
@@ -2974,7 +2969,7 @@ All the octal codes in the ranges [32..127] and [160..255] are displayed
 together with the corresponding glyphs from the default and symbol fonts.
 Useful for constructing the alist variable `woman-special-characters'."
   (interactive)
-  (with-output-to-temp-buffer "*WoMan Extended Font Map*"
+  (with-help-window "*WoMan Extended Font Map*"
     (with-current-buffer standard-output
       (let ((i 32))
 	(while (< i 256)
@@ -2984,8 +2979,7 @@ Useful for constructing the alist variable `woman-special-characters'."
 	  (insert "   ")
 	  (setq i (1+ i))
 	  (when (= i 128) (setq i 160) (insert "\n"))
-	  (if (zerop (% i 8)) (insert "\n")))))
-    (help-print-return-message)))
+	  (if (zerop (% i 8)) (insert "\n")))))))
 
 
 ;;; Formatting macros that do not cause a break:

@@ -1076,7 +1076,7 @@ environment, including lists of input methods, coding systems,
 character sets, and fontsets (if Emacs is running under a window
 system which uses fontsets)."
   (interactive)
-  (with-output-to-temp-buffer "*Mule-Diagnosis*"
+  (with-help-window "*Mule-Diagnosis*"
     (with-current-buffer standard-output
       (insert "###############################################\n"
 	      "### Current Status of Multilingual Features ###\n"
@@ -1137,8 +1137,7 @@ system which uses fontsets)."
 	(insert "Fontset-Name\t\t\t\t\t\t  WDxHT Style\n")
 	(insert "------------\t\t\t\t\t\t  ----- -----\n")
 	(dolist (fontset (fontset-list))
-	  (print-fontset fontset t)))
-      (help-print-return-message))))
+	  (print-fontset fontset t))))))
 
 ;;;###autoload
 (defun font-show-log (&optional limit)

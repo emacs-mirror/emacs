@@ -1085,6 +1085,15 @@ just as @code{with-output-to-temp-buffer} normally would, inside of
 selected.
 @end defopt
 
+@defvar temp-buffer-show-specifiers
+The value of this variable is passed by
+@code{with-output-to-temp-buffer} as second argument to
+@code{display-buffer}.  It should be a valid buffer display specifier
+(@pxref{Displaying Buffers}) and is reset to @code{nil} after the call
+to @code{display-buffer}.  Applications should only let-bind this
+variable.
+@end defvar
+
 @defvar temp-buffer-setup-hook
 This normal hook is run by @code{with-output-to-temp-buffer} before
 evaluating @var{body}.  When the hook runs, the temporary buffer is

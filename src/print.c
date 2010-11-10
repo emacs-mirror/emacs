@@ -625,12 +625,14 @@ Instead it binds `standard-output' to that buffer, so that output
 generated with `prin1' and similar functions in BODY goes into
 the buffer.
 
-At the end of BODY, this marks buffer BUFNAME unmodifed and displays
-it in a window, but does not select it.  The normal way to do this is
-by calling `display-buffer', then running `temp-buffer-show-hook'.
+At the end of BODY, this marks buffer BUFNAME unmodifed and displays it
+in a window, but does not select it.  The normal way to do this is by
+calling `display-buffer', then running `temp-buffer-show-hook'.
 However, if `temp-buffer-show-function' is non-nil, it calls that
 function instead (and does not run `temp-buffer-show-hook').  The
-function gets one argument, the buffer to display.
+function gets one argument, the buffer to display.  You can tell
+`display-buffer' where and how to show the buffer by binding the
+variable `temp-buffer-show-specifiers' to an appropriate value.
 
 The return value of `with-output-to-temp-buffer' is the value of the
 last form in BODY.  If BODY does not finish normally, the buffer
@@ -2047,7 +2049,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  if (NATNUMP (Vprint_length)
 	      && XFASTINT (Vprint_length) < size)
 	    size = XFASTINT (Vprint_length);
-	  
+
 	  PRINTCHAR ('(');
 	  for (i = 0; i < size; i++)
 	    if (!NILP (HASH_HASH (h, i)))
