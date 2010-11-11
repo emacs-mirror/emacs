@@ -1310,6 +1310,7 @@ the normal Gnus MIME machinery."
 (defvar gnus-article-decoded-p nil)
 (defvar gnus-article-charset nil)
 (defvar gnus-article-ignored-charsets nil)
+(defvar gnus-article-original-subject nil)
 (defvar gnus-scores-exclude-files nil)
 (defvar gnus-page-broken nil)
 
@@ -1335,6 +1336,7 @@ the normal Gnus MIME machinery."
 (defvar gnus-current-copy-group nil)
 (defvar gnus-current-crosspost-group nil)
 (defvar gnus-newsgroup-display nil)
+(defvar gnus-newsgroup-original-name nil)
 
 (defvar gnus-newsgroup-dependencies nil)
 (defvar gnus-newsgroup-adaptive nil)
@@ -9703,6 +9705,10 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 		  articles)
     (while articles
       (setq article (pop articles))
+      (let ((gnus-newsgroup-original-name gnus-newsgroup-name)
+	    (gnus-article-original-subject
+	     (mail-header-subject
+	      (gnus-data-header (assoc article (gnus-data-list nil))))))
       (setq
        art-group
        (cond
@@ -9781,7 +9787,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 			      action
 			      (gnus-data-header
 			       (assoc article (gnus-data-list nil)))
-			      gnus-newsgroup-name nil
+			      gnus-newsgroup-original-name nil
 			      select-method)))
        (t
 	(let* ((pto-group (gnus-group-prefixed-name
@@ -9877,13 +9883,16 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	       article gnus-newsgroup-name (current-buffer) t)))
 
 	  ;; run the move/copy/crosspost/respool hook
+	  (let ((header (gnus-data-header
+			 (assoc article (gnus-data-list nil)))))
+	    (mail-header-set-subject header gnus-article-original-subject)
 	  (run-hook-with-args 'gnus-summary-article-move-hook
 			      action
 			      (gnus-data-header
 			       (assoc article (gnus-data-list nil)))
-			      gnus-newsgroup-name
+			      gnus-newsgroup-original-name
 			      to-newsgroup
-			      select-method))
+			      select-method)))
 
 	;;;!!!Why is this necessary?
 	(set-buffer gnus-summary-buffer)
@@ -9903,7 +9912,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 
     (gnus-kill-buffer copy-buf)
     (gnus-summary-position-point)
-    (gnus-set-mode-line 'summary)))
+    (gnus-set-mode-line 'summary))))
 
 (defun gnus-summary-copy-article (&optional n to-newsgroup select-method)
   "Copy the current article to some other group.
