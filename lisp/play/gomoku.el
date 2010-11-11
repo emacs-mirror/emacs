@@ -929,11 +929,7 @@ If the game is finished, this command requests for another game."
   "Display a message asking for Human's move."
   (message (if (zerop gomoku-number-of-human-moves)
 	       "Your move?  (Move to a free square and hit X, RET ...)"
-	       "Your move?"))
-  ;; This may seem silly, but if one omits the following line (or a similar
-  ;; one), the cursor may very well go to some place where POINT is not.
-  ;; FIXME: this can't be right!!  --Stef
-  (save-excursion (set-buffer (other-buffer))))
+	       "Your move?")))
 
 (defun gomoku-prompt-for-other-game ()
   "Ask for another game, and start it."
