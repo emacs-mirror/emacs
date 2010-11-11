@@ -7659,7 +7659,7 @@ property indicating the link is added."
 	     t)) ; return t to skip other completions
 	  (t nil))))
 
-(defvar link) ;dynamic variables set by help callback
+(defvar idlw-help-link) ;dynamic variables set by help callback
 (defun idlwave-complete-sysvar-help (mode word)
   (let ((word (or (nth 1 idlwave-completion-help-info) word))
 	(entry (assoc word idlwave-system-variables-alist)))
@@ -7667,7 +7667,8 @@ property indicating the link is added."
      ((eq mode 'test)
       (and (stringp word) entry (nth 1 (assq 'link entry))))
      ((eq mode 'set)
-      (if entry (setq link (nth 1 (assq 'link entry))))) ;; setting dynamic!!!
+      ;; Setting dynamic!!!
+      (if entry (setq idlw-help-link (nth 1 (assq 'link entry)))))
      (t (error "This should not happen")))))
 
 (defun idlwave-complete-sysvar-tag-help (mode word)
@@ -7681,10 +7682,10 @@ property indicating the link is added."
       (and (stringp word) entry main))
      ((eq mode 'set)
       (if entry
-	  (setq link
+	  (setq idlw-help-link
 		(if (setq target (cdr (assoc-string word tags t)))
-		  (idlwave-substitute-link-target main target)
-		main)))) ;; setting dynamic!!!
+		    (idlwave-substitute-link-target main target)
+		  main)))) ;; setting dynamic!!!
      (t (error "This should not happen")))))
 
 (defun idlwave-split-link-target (link)
@@ -7704,9 +7705,10 @@ property indicating the link is added."
       link)))
 
 ;; Fake help in the source buffer for class structure tags.
-;; KWD AND NAME ARE GLOBAL-VARIABLES HERE.
-(defvar name)
-(defvar kwd)
+;; IDLW-HELP-LINK AND IDLW-HELP-NAME ARE GLOBAL-VARIABLES HERE.
+;; (from idlwave-do-mouse-completion-help)
+(defvar idlw-help-name)
+(defvar idlw-help-link)
 (defvar idlwave-help-do-class-struct-tag nil)
 (defun idlwave-complete-class-structure-tag-help (mode word)
   (cond
@@ -7722,9 +7724,9 @@ property indicating the link is added."
 		  idlwave-system-class-info)
 	    (error "No help available for system class tags"))
 	(if (setq found-in (idlwave-class-found-in class-with))
-	    (setq name (cons (concat found-in "__define") class-with))
-	  (setq name (concat class-with "__define")))))
-    (setq kwd word
+	    (setq idlw-help-name (cons (concat found-in "__define") class-with))
+	  (setq idlw-help-name (concat class-with "__define")))))
+    (setq idlw-help-link word
 	  idlwave-help-do-class-struct-tag t))
    (t (error "This should not happen"))))
 
@@ -8802,7 +8804,7 @@ the `idlwave-system-routines' list, we omit the latter as
 non-dangerous because many IDL routines are implemented as library
 routines, and may have been scanned."
   (let* ((entry (car entries))
-	 (name (car entry))      ;
+	 (idlwave-twin-name (car entry))      ;
 	 (type (nth 1 entry))    ; Must be bound for
 	 (idlwave-twin-class (nth 2 entry)) ;  idlwave-routine-twin-compare
 	 (cnt 0)
@@ -8878,7 +8880,7 @@ names and path locations."
 (defun idlwave-routine-entry-compare-twins (a b)
   "Compare two routine entries, under the assumption that they are twins.
 This basically calls `idlwave-routine-twin-compare' with the correct args."
-  (let* ((name (car a))
+  (let* ((idlwave-twin-name (car a))
 	 (type (nth 1 a))
 	 (idlwave-twin-class (nth 2 a)) ; used in idlwave-routine-twin-compare
 	 (asrc (nth 3 a))
@@ -8897,6 +8899,7 @@ This basically calls `idlwave-routine-twin-compare' with the correct args."
 
 ;; Bound in idlwave-study-twins,idlwave-routine-entry-compare-twins.
 (defvar idlwave-twin-class)
+(defvar idlwave-twin-name)
 
 (defun idlwave-routine-twin-compare (a b)
   "Compare two routine twin entries for sorting.
@@ -8937,8 +8940,8 @@ This expects NAME TYPE IDLWAVE-TWIN-CLASS to be bound to the right values."
 	 (fname-re (if idlwave-twin-class
 		       (format "\\`%s__\\(%s\\|define\\)\\.pro\\'"
 			       (regexp-quote (downcase idlwave-twin-class))
-			       (regexp-quote (downcase name)))
-		     (format "\\`%s\\.pro" (regexp-quote (downcase name)))))
+			       (regexp-quote (downcase idlwave-twin-name)))
+		     (format "\\`%s\\.pro" (regexp-quote (downcase idlwave-twin-name)))))
 	 ;; Is file name derived from the routine name?
 	 ;; Method file or class definition file?
 	 (anamep (string-match fname-re aname))

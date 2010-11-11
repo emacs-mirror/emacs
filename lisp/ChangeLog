@@ -1,3 +1,21 @@
+2010-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/idlw-complete-structtag.el: Remove unused dec `name'.
+
+	* progmodes/idlwave.el (idlwave-routine-entry-compare-twins)
+	(idlwave-study-twins): Prefix dynamic local variable `name'.
+	(idlwave-routine-twin-compare): Update for above change.
+
+	* progmodes/idlw-help.el (idlwave-do-mouse-completion-help):
+	Prefix dynamic local variables `name', `kwd', and `link'.
+	* progmodes/idlw-shell.el (idlwave-shell-complete-execcomm-help):
+	* progmodes/idlw-complete-structtag.el
+	(idlwave-complete-structure-tag-help):
+	* progmodes/idlwave.el (idlwave-complete-sysvar-help)
+	(idlwave-complete-sysvar-tag-help)
+	(idlwave-complete-class-structure-tag-help):
+	Update for above name changes.
+
 2010-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/browse-url.el (browse-url-browser-function): Change the

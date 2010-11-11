@@ -1,7 +1,7 @@
 ;;; idlw-complete-structtag.el --- Completion of structure tags.
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
@@ -225,9 +225,8 @@ an up-to-date completion list."
 
 
 ;; Fake help in the source buffer for structure tags.
-;; kwd and name are global-variables here.
-(defvar name)
-(defvar kwd)
+;; idlw-help-kwd is a global-variable (from idlwave-do-mouse-completion-help).
+(defvar idlw-help-kwd)
 (defvar idlwave-help-do-struct-tag)
 (defun idlwave-complete-structure-tag-help (mode word)
   (cond
@@ -236,13 +235,10 @@ an up-to-date completion list."
     (not (equal idlwave-current-tags-buffer
                 (get-buffer (idlwave-shell-buffer)))))
    ((eq mode 'set)
-    (setq kwd word
+    (setq idlw-help-kwd word
 	  idlwave-help-do-struct-tag idlwave-structtag-struct-location))
    (t (error "This should not happen"))))
 
 (provide 'idlw-complete-structtag)
 
 ;;; idlw-complete-structtag.el ends here
-
-
-;; arch-tag: d1f9e55c-e504-4187-9c31-3c3651fa4bfa
