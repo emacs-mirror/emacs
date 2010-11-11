@@ -285,11 +285,12 @@ on Windows, since many users of Emacs on those platforms prefer the
 @end table
 
 @noindent
-Any other value of @code{ls-lisp-emulation} means the same as
-@code{GNU}.  Note that this option needs to be set @emph{before}
-@file{ls-lisp.el} is loaded, which means that on MS-Windows and MS-DOS
-you will have to set the value from your @file{.emacs} file and then
-restart Emacs, since @file{ls-lisp.el} is preloaded.
+Any other value of @code{ls-lisp-emulation} means the same as @code{GNU}.
+Customizing this option calls the function @code{ls-lisp-set-options} to
+update the 3 dependent options as needed.  If you change the value of
+this variable without using customize after @file{ls-lisp.el} is loaded
+(note that it is preloaded on MS-Windows and MS-DOS), you can call that
+function manually for the same result.
 
 @vindex ls-lisp-support-shell-wildcards
   The variable @code{ls-lisp-support-shell-wildcards} controls how
@@ -925,6 +926,3 @@ click-to-focus policy.
 @include msdog-xtra.texi
 @end ifnottex
 
-@ignore
-   arch-tag: f39d2590-5dcc-4318-88d9-0eb73ca10fa2
-@end ignore
