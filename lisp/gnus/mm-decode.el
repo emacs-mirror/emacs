@@ -624,7 +624,7 @@ Postpone undisplaying of viewers for types in
 	     no-strict-mime
 	     (and cd (mail-header-parse-content-disposition cd))
 	     description id)
-	    ctl))))
+	    ctl from))))
 	(when id
 	  (when (string-match " *<\\(.*\\)> *" id)
 	    (setq id (match-string 1 id)))
@@ -666,7 +666,7 @@ Postpone undisplaying of viewers for types in
 	(save-restriction
 	  (narrow-to-region start end)
 	  (setq parts (nconc (list (mm-dissect-buffer t nil from)) parts)))))
-    (mm-possibly-verify-or-decrypt (nreverse parts) ctl)))
+    (mm-possibly-verify-or-decrypt (nreverse parts) ctl from)))
 
 (defun mm-copy-to-buffer ()
   "Copy the contents of the current buffer to a fresh buffer."
@@ -1569,7 +1569,7 @@ If RECURSIVE, search recursively."
 
 (autoload 'mm-view-pkcs7 "mm-view")
 
-(defun mm-possibly-verify-or-decrypt (parts ctl)
+(defun mm-possibly-verify-or-decrypt (parts ctl &optional from)
   (let ((type (car ctl))
 	(subtype (cadr (split-string (car ctl) "/")))
 	(mm-security-handle ctl) ;; (car CTL) is the type.
@@ -1584,7 +1584,7 @@ If RECURSIVE, search recursively."
 		    ((eq mm-decrypt-option 'known) t)
 		    (t (y-or-n-p
 			(format "Decrypt (S/MIME) part? "))))
-		   (mm-view-pkcs7 parts))
+		   (mm-view-pkcs7 parts from))
 	  (setq parts (mm-dissect-buffer t)))))
      ((equal subtype "signed")
       (unless (and (setq protocol

@@ -1,3 +1,13 @@
+2010-11-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-dissect-buffer): Pass sender's mail address to
+	smime-decrypt-region using function argument.
+	(mm-possibly-verify-or-decrypt, mm-dissect-multipart): Relay it.
+
+	* mm-view.el (mm-view-pkcs7, mm-view-pkcs7-decrypt): Relay it.
+
+	* smime.el (smime-decrypt-region): Catch it.
+
 2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smime.el (smime-mode-map): Move initialization into declaration.

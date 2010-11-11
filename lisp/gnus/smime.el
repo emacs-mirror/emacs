@@ -426,11 +426,7 @@ Any details (stdout and stderr) are left in the buffer specified by
     (insert-buffer-substring smime-details-buffer)
     nil))
 
-;; TODO: fix this properly by giving it a prefix.
-(if (featurep 'xemacs)
-    (defvar from))
-
-(defun smime-decrypt-region (b e keyfile)
+(defun smime-decrypt-region (b e keyfile &optional from)
   "Decrypt S/MIME message in region between B and E with key in KEYFILE.
 On success, replaces region with decrypted data and return non-nil.
 Any details (stderr on success, stdout and stderr on error) are left
@@ -454,8 +450,7 @@ in the buffer specified by `smime-details-buffer'."
 	    (delete-file tmpfile)))
 	(progn
 	  (delete-region b e)
-	  (when (boundp 'from)
-	    ;; `from' is dynamically bound in mm-dissect.
+	  (when from
 	    (insert "From: " from "\n"))
 	  (insert-buffer-substring buffer)
 	  (kill-buffer buffer)
