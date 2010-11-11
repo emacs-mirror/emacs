@@ -1,3 +1,7 @@
+2010-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* ls-lisp.el (ls-lisp-dired-ignore-case): Make it an obsolete alias.
+
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* printing.el (pr-menu-bind): Doc fix.

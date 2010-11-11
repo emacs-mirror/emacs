@@ -86,10 +86,16 @@ option will have no effect until you restart Emacs."
 		 (const UNIX))
   :group 'ls-lisp)
 
+;; Only made an obsolete alias in 23.3.  Before that, the initial
+;; value was set according to:
+;;  (or (memq ls-lisp-emulation '(MS-Windows MacOS))
+;;      (and (boundp 'ls-lisp-dired-ignore-case) ls-lisp-dired-ignore-case))
+;; Which isn't the right thing to do.
+(define-obsolete-variable-alias 'ls-lisp-dired-ignore-case
+  'ls-lisp-ignore-case "21.1")
+
 (defcustom ls-lisp-ignore-case
-  ;; Name change for consistency with other option names.
-  (or (memq ls-lisp-emulation '(MS-Windows MacOS))
-      (and (boundp 'ls-lisp-dired-ignore-case) ls-lisp-dired-ignore-case))
+  (memq ls-lisp-emulation '(MS-Windows MacOS))
   "Non-nil causes ls-lisp alphabetic sorting to ignore case."
   :type 'boolean
   :group 'ls-lisp)
