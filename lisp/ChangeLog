@@ -2,6 +2,12 @@
 
 	* obsolete/lucid.el: Don't warn about any CL functions in this file.
 
+	* ls-lisp.el (ls-lisp-ignore-case, ls-lisp-dirs-first)
+	(ls-lisp-verbosity): Add custom :set-after property.
+	(ls-lisp-verbosity, ls-lisp-use-localized-time-format): Doc fixes.
+	(ls-lisp-format, ls-lisp-format-time): Don't take `now' as an argument.
+	(ls-lisp-insert-directory): Update caller.
+
 	* play/landmark.el (lm-prompt-for-move):
 	* play/gomoku.el (gomoku-prompt-for-move): Remove nonsensical code.
 
