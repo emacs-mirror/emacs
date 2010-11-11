@@ -7,6 +7,9 @@
 	(ls-lisp-verbosity, ls-lisp-use-localized-time-format): Doc fixes.
 	(ls-lisp-format, ls-lisp-format-time): Don't take `now' as an argument.
 	(ls-lisp-insert-directory): Update caller.
+	(ls-lisp-set-options): New function.
+	(ls-lisp-emulation): Use ls-lisp-set-options for custom :set.
+	Doc fix.
 
 	* play/landmark.el (lm-prompt-for-move):
 	* play/gomoku.el (gomoku-prompt-for-move): Remove nonsensical code.

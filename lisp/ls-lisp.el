@@ -70,21 +70,37 @@
   :version "21.1"
   :group 'dired)
 
+(defun ls-lisp-set-options ()
+  "Reset the ls-lisp options that depend on `ls-lisp-emulation'."
+  (mapc 'custom-reevaluate-setting
+	'(ls-lisp-ignore-case ls-lisp-dirs-first ls-lisp-verbosity)))
+
 (defcustom ls-lisp-emulation
   (cond ;; ((eq system-type 'windows-nt) 'MS-Windows)
-	((memq system-type
-	       '(hpux usg-unix-v irix berkeley-unix))
-	 'UNIX))			; very similar to GNU
+	((memq system-type '(hpux usg-unix-v irix berkeley-unix))
+	 'UNIX))	; very similar to GNU
   ;; Anything else defaults to nil, meaning GNU.
   "Platform to emulate: GNU (default), MacOS, MS-Windows, UNIX.
-Corresponding value is one of the atoms: nil, MacOS, MS-Windows, UNIX.
-Sets default values for: `ls-lisp-ignore-case', `ls-lisp-dirs-first',
-`ls-lisp-verbosity'.  Need not match actual platform.  Changing this
-option will have no effect until you restart Emacs."
+Corresponding value is one of: nil, `MacOS', `MS-Windows', `UNIX'.
+Set this to your preferred value; it need not match the actual platform
+you are using.
+
+This variable does not affect the behavior of ls-lisp directly.
+Rather, it controls the default values for some variables that do:
+`ls-lisp-ignore-case', `ls-lisp-dirs-first', and `ls-lisp-verbosity'.
+
+If you change this variable directly (without using customize)
+after loading `ls-lisp', you should use `ls-lisp-set-options' to
+update the dependent variables."
   :type '(choice (const :tag "GNU" nil)
 		 (const MacOS)
 		 (const MS-Windows)
 		 (const UNIX))
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+	 (unless (equal value (eval symbol))
+	   (custom-set-default symbol value)
+	   (ls-lisp-set-options)))
   :group 'ls-lisp)
 
 (defcustom ls-lisp-ignore-case
