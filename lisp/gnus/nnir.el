@@ -1371,6 +1371,8 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 	  (cons sym (format (cdr mapping) result)))
       (cons sym (read-string prompt)))))
 
+(autoload 'gnus-group-topic-name "gnus-topic")
+
 (defun nnir-run-query (query nserver)
   "Invoke appropriate search engine function (see `nnir-engines').
   If some groups were process-marked, run the query for each of the groups
