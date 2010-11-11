@@ -1,3 +1,10 @@
+2010-11-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (syms_of_window): Add Qsafe and intern it.
+	(resize_frame_windows): Check whether the actual new size of the
+	root window matches the requested size.  Also try one more round
+	with safe minimum sizes.  Simplify code.
+
 2010-11-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (syms_of_window): New variable

@@ -57,7 +57,7 @@ Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
 Lisp_Object Qrecord_window_buffer;
 Lisp_Object Qresize_root_window, Qresize_root_window_vertically;
 Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
-Lisp_Object Qset, Qabove, Qbelow, Qnest, Qgroup, Qresize;
+Lisp_Object Qset, Qsafe, Qabove, Qbelow, Qnest, Qgroup, Qresize;
 
 static int displayed_window_lines (struct window *);
 static struct window *decode_window (Lisp_Object);
@@ -3600,55 +3600,57 @@ resize_frame_windows (struct frame *f, int size, int horflag)
   struct window *r = XWINDOW (root);
   Lisp_Object mini = f->minibuffer_window;
   struct window *m;
+  /* new_size is the new size of the frame's root window.  */
+  int new_size = (horflag
+		  ? size
+		  : (size
+		     - FRAME_TOP_MARGIN (f)
+		     - ((FRAME_HAS_MINIBUF_P (f) && !FRAME_MINIBUF_ONLY_P (f))
+			? 1 : 0)));
 
   XSETFASTINT (r->top_line, FRAME_TOP_MARGIN (f));
-
   if (NILP (r->vchild) && NILP (r->hchild))
     /* For a leaf root window just set the size.  */
     if (horflag)
-      XSETFASTINT (r->total_cols, size);
+      XSETFASTINT (r->total_cols, new_size);
     else
-      XSETFASTINT (r->total_lines,
-		   /* Take menubar, toolbar, and minibuffer into account.  */
-		   size
-		   - FRAME_TOP_MARGIN (f)
-		   - ((FRAME_HAS_MINIBUF_P (f) && !FRAME_MINIBUF_ONLY_P (f))
-		      ? 1 : 0));
+      XSETFASTINT (r->total_lines, new_size);
   else
     {
+      /* old_size is the old size of the frame's root window.  */
+      int old_size = XFASTINT (horflag ? r->total_cols : r->total_lines);
       Lisp_Object delta;
 
-      if (horflag)
-	XSETINT (delta, size - XINT (r->total_cols));
-      else
-	{
-	  /* Take menubar, toolbar, and minibuffer into account.  */
-	  XSETINT (delta,
-		   size
-		   - FRAME_TOP_MARGIN (f)
-		   - ((FRAME_HAS_MINIBUF_P (f) && !FRAME_MINIBUF_ONLY_P (f))
-		      ? 1 : 0)
-		   - XINT (r->total_lines));
-
-	  size = size - 1;
-	}
-
+      XSETINT (delta, new_size - old_size);
+      /* Try a "normal" resize first.  */
       resize_root_window (root, delta, horflag ? Qt : Qnil, Qnil);
-      if (resize_window_check (r, horflag))
+      if (resize_window_check (r, horflag) && new_size == XINT (r->new_total))
 	resize_window_apply (r, horflag);
       else
 	{
+	  /* Try with "reasonable" minimum sizes next.  */
 	  resize_root_window (root, delta, horflag ? Qt : Qnil, Qt);
-	  if (resize_window_check (r, horflag))
+	  if (resize_window_check (r, horflag)
+	      && new_size == XINT (r->new_total))
 	    resize_window_apply (r, horflag);
 	  else
 	    {
-	      root = f->selected_window;
-	      Fdelete_other_windows_internal (root, Qnil);
-	      if (horflag)
-		XSETFASTINT (r->total_cols, size);
+	      /* Finally, try with "safe" minimum sizes.  */
+	      resize_root_window (root, delta, horflag ? Qt : Qnil, Qsafe);
+	      if (resize_window_check (r, horflag)
+		  && new_size == XINT (r->new_total))
+		resize_window_apply (r, horflag);
 	      else
-		XSETFASTINT (r->total_lines, size);
+		{
+		  /* We lost.  Delete all windows but the frame's
+		     selected one.  */
+		  root = f->selected_window;
+		  Fdelete_other_windows_internal (root, Qnil);
+		  if (horflag)
+		    XSETFASTINT (XWINDOW (root)->total_cols, new_size);
+		  else
+		    XSETFASTINT (XWINDOW (root)->total_lines, new_size);
+		}
 	    }
 	}
     }
@@ -6472,6 +6474,9 @@ syms_of_window (void)
 
   Qset = intern_c_string ("set");
   staticpro (&Qset);
+
+  Qsafe = intern_c_string ("safe");
+  staticpro (&Qsafe);
 
   Qdisplay_buffer = intern_c_string ("display-buffer");
   staticpro (&Qdisplay_buffer);
