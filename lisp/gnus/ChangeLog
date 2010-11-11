@@ -1,11 +1,11 @@
 2010-11-11  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* nnir.el (nnir-request-move-article): fix to provide original group
+	* nnir.el (nnir-request-move-article): Fix to provide original group
 	and subject.
-	(nnir-warp-to-article): don't fail on articles whose headers haven't
+	(nnir-warp-to-article): Don't fail on articles whose headers haven't
 	been retrieved.
 
-	* gnus-sum.el (gnus-summary-move-article): use original group and
+	* gnus-sum.el (gnus-summary-move-article): Use original group and
 	subject for virtual articles such as those in an nnir summary buffer.
 
 2010-11-11  Katsumi Yamaoka  <yamaoka@jpl.org>
