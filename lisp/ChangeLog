@@ -1,5 +1,10 @@
 2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-warnings): Simplify the
+	safety predicate.
+
+	* files.el (safe-local-variable-p): Gracefully handle errors.
+
 	* emacs-lisp/smie.el (smie-rule-parent, smie-indent--rule):
 	Use smie-indent-virtual when indenting relative to an opener.
 	(smie-rule-separator): Use smie-rule-parent.
