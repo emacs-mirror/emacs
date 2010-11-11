@@ -240,11 +240,10 @@ redirects somewhere else."
 		    (progn
 		      (setq found (shr-find-fill-point))
 		      (not (eolp))))
-	  (unless (prog1
-		      found
-		    (when (eq (preceding-char) ? )
-		      (delete-char -1))
-		    (insert "\n"))
+	  (when (eq (preceding-char) ? )
+	    (delete-char -1))
+	  (insert "\n")
+	  (unless found
 	    (put-text-property (1- (point)) (point) 'shr-break t)
 	    ;; No space is needed at the beginning of a line.
 	    (when (eq (following-char) ? )
