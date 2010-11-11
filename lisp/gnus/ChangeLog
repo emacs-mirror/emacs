@@ -1,3 +1,10 @@
+2010-11-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-treat-non-ascii): Make it work for XEmacs (at
+	least 21.5).
+
+	* smime.el (from): Declare it again for XEmacs.
+
 2010-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* message.el (message-resend): Don't disable encoding unless it's

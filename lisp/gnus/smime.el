@@ -426,6 +426,8 @@ Any details (stdout and stderr) are left in the buffer specified by
     (insert-buffer-substring smime-details-buffer)
     nil))
 
+(defvar from) ;; Necessary for XEmacs to silence the byte compiler.
+
 (defun smime-decrypt-region (b e keyfile)
   "Decrypt S/MIME message in region between B and E with key in KEYFILE.
 On success, replaces region with decrypted data and return non-nil.
