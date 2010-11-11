@@ -1,3 +1,11 @@
+2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-rule-parent, smie-indent--rule):
+	Use smie-indent-virtual when indenting relative to an opener.
+	(smie-rule-separator): Use smie-rule-parent.
+	(smie-indent-keyword): Consult rules, even for openers at bol.
+	(smie-indent-comment-close): Try to align closer's content.
+
 2010-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* ls-lisp.el (ls-lisp-dired-ignore-case): Make it an obsolete alias.

@@ -63,6 +63,17 @@
 ;; Since then, some of that code has been beaten into submission, but the
 ;; smie-indent-keyword is still pretty obscure.
 
+;; Conflict resolution:
+;;
+;; - One source of conflicts is when you have:
+;;     (exp ("IF" exp "ELSE" exp "END") ("CASE" cases "END"))
+;;     (cases (cases "ELSE" insts) ...)
+;;   The IF-rule implies ELSE=END and the CASE-rule implies ELSE>END.
+;;   FIXME: we could try to resolve such conflicts automatically by changing
+;;   the way BNF rules such as the IF-rule is handled.  I.e. rather than
+;;   IF=ELSE and ELSE=END, we could turn them into IF<ELSE and ELSE>END
+;;   and IF=END,
+
 ;;; Code:
 
 ;; FIXME: I think the behavior on empty lines is wrong.  It shouldn't
@@ -155,6 +166,11 @@ one of those elements share the same precedence level and associativity."
 
 (put 'smie-bnf->prec2 'pure t)
 (defun smie-bnf->prec2 (bnf &rest precs)
+  ;; FIXME: Add repetition operator like (repeat <separator> <elems>).
+  ;; Maybe also add (or <elem1> <elem2>...) for things like
+  ;; (exp (exp (or "+" "*" "=" ..) exp)).
+  ;; Basically, make it EBNF (except for the specification of a separator in
+  ;; the repetition).
   (let ((nts (mapcar 'car bnf))         ;Non-terminals
         (first-ops-table ())
         (last-ops-table ())
@@ -613,7 +629,7 @@ Possible return values:
                     ;; It is the last element, let's stop here.
                     (throw 'return (list nil (point) token)))
                    ;; If the new operator is not the last in the BNF rule,
-                   ;; ans is not associative, it's one of the inner operators
+                   ;; and is not associative, it's one of the inner operators
                    ;; (like the "in" in "let .. in .. end"), so keep looking.
                    ((not (smie--associative-p toklevels))
                     (push toklevels levels))
@@ -969,8 +985,14 @@ Only meaningful when called from within `smie-rules-function'."
     (goto-char (cadr (smie-indent--parent)))
     (cons 'column
           (+ (or offset 0)
-             (if (smie-indent--hanging-p)
-                 (smie-indent-virtual) (current-column))))))  
+             ;; Use smie-indent-virtual when indenting relative to an opener:
+             ;; this will also by default use current-column unless
+             ;; that opener is hanging, but will additionally consult
+             ;; rules-function, so it gives it a chance to tweak
+             ;; indentation (e.g. by forcing indentation relative to
+             ;; its own parent, as in fn a => fn b => fn c =>).
+             (if (or (null (car smie--parent)) (smie-indent--hanging-p))
+                 (smie-indent-virtual) (current-column))))))
 
 (defvar smie-rule-separator-outdent 2)
 
@@ -1030,11 +1052,7 @@ Only meaningful when called from within `smie-rules-function'."
     ;; FIXME: Rather than consult the number of spaces, we could *set* the
     ;; number of spaces so as to align the separator with the close-paren
     ;; while aligning the content with the rest.
-    (let ((parent-col
-           (save-excursion
-             (goto-char (cadr smie--parent))
-             (if (smie-indent--hanging-p)
-                 (smie-indent-virtual) (current-column))))
+    (let ((parent-col (cdr (smie-rule-parent)))
           (parent-pos-col     ;FIXME: we knew this when computing smie--parent.
            (save-excursion
              (goto-char (cadr smie--parent))
@@ -1083,7 +1101,16 @@ BASE-POS is the position relative to which offsets should be applied."
         (+ offset
            (if (null base-pos) 0
              (goto-char base-pos)
-             (if (smie-indent--hanging-p)
+             ;; Use smie-indent-virtual when indenting relative to an opener:
+             ;; this will also by default use current-column unless
+             ;; that opener is hanging, but will additionally consult
+             ;; rules-function, so it gives it a chance to tweak indentation
+             ;; (e.g. by forcing indentation relative to its own parent, as in
+             ;; fn a => fn b => fn c =>).
+             ;; When parent==nil it doesn't matter because the only case
+             ;; where it's really used is when the base-pos is hanging anyway.
+             (if (or (and parent (null (car parent)))
+                     (smie-indent--hanging-p))
                  (smie-indent-virtual) (current-column)))))
        (t (error "Unknown indentation offset %s" offset))))))
 
@@ -1171,12 +1198,11 @@ in order to figure out the indentation of some other (further down) point."
             ;; - middle-of-line: "trust current position".
             (cond
              ((null (cdr toklevels)) nil) ;Not a keyword.
-             ((smie-indent--bolp)
+             ((smie-indent--rule :before token))
+             ((smie-indent--bolp)       ;I.e. non-virtual indent.
               ;; For an open-paren-like thingy at BOL, always indent only
               ;; based on other rules (typically smie-indent-after-keyword).
               nil)
-             ;; We're only ever here for virtual-indent.
-             ((smie-indent--rule :before token))
              (t
               ;; By default use point unless we're hanging.
               (unless (smie-indent--hanging-p) (current-column)))))
@@ -1298,10 +1324,19 @@ in order to figure out the indentation of some other (further down) point."
        comment-end-skip
        (not (looking-at " \t*$"))       ;Not just a \n comment-closer.
        (looking-at comment-end-skip)
-       (nth 4 (syntax-ppss))
-       (save-excursion
-         (goto-char (nth 8 (syntax-ppss)))
-         (current-column))))
+       (let ((end (match-string 0)))
+         (and (nth 4 (syntax-ppss))
+              (save-excursion
+                (goto-char (nth 8 (syntax-ppss)))
+                (and (looking-at comment-start-skip)
+                     (let ((start (match-string 0)))
+                       ;; Align the common substring between starter
+                       ;; and ender, if possible.
+                       (if (string-match "\\(.+\\).*\n\\(.*?\\)\\1"
+                                         (concat start "\n" end))
+                           (+ (current-column) (match-beginning 0)
+                              (- (match-beginning 2) (match-end 2)))
+                         (current-column)))))))))
 
 (defun smie-indent-comment-inside ()
   (and (nth 4 (syntax-ppss))
