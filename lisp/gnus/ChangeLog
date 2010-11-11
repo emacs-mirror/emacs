@@ -1,5 +1,7 @@
 2010-11-11  Glenn Morris  <rgm@gnu.org>
 
+	* smime.el (from): Restrict declaration to XEmacs.
+
 	* nnir.el (gnus-group-topic-name): Autoload.
 
 2010-11-11  Katsumi Yamaoka  <yamaoka@jpl.org>
