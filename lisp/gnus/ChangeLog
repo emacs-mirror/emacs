@@ -1,3 +1,9 @@
+2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smime.el (smime-mode-map): Move initialization into declaration.
+	(gnus-run-mode-hooks): Don't autoload.
+	(smime-mode): Use define-derived-mode.
+
 2010-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* smime.el (from): Restrict declaration to XEmacs.
