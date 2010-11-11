@@ -235,20 +235,24 @@ redirects somewhere else."
 				  (aref elem 0)))))
 	  (delete-char -1)))
       (insert elem)
-      (while (> (current-column) shr-width)
-	(unless (prog1
-		    (shr-find-fill-point)
-		  (when (eq (preceding-char) ? )
-		    (delete-char -1))
-		  (insert "\n"))
-	  (put-text-property (1- (point)) (point) 'shr-break t)
-	  ;; No space is needed at the beginning of a line.
-	  (when (eq (following-char) ? )
-	    (delete-char 1)))
-	(when (> shr-indentation 0)
-	  (shr-indent))
-	(end-of-line))
-      (insert " "))
+      (let (found)
+	(while (and (> (current-column) shr-width)
+		    (progn
+		      (setq found (shr-find-fill-point))
+		      (not (eolp))))
+	  (unless (prog1
+		      found
+		    (when (eq (preceding-char) ? )
+		      (delete-char -1))
+		    (insert "\n"))
+	    (put-text-property (1- (point)) (point) 'shr-break t)
+	    ;; No space is needed at the beginning of a line.
+	    (when (eq (following-char) ? )
+	      (delete-char 1)))
+	  (when (> shr-indentation 0)
+	    (shr-indent))
+	  (end-of-line))
+	(insert " ")))
     (unless (string-match "[ \t\n]\\'" text)
       (delete-char -1)))))
 

@@ -1,3 +1,8 @@
+2010-11-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-insert): Don't break long line if it is because of
+	kinsoku-bol characters in the line end.
+
 2010-11-11  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (nnir-request-move-article): Fix to provide original group
