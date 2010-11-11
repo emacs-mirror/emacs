@@ -1,3 +1,20 @@
+2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/modula2.el: Use SMIE and skeleton.
+	(m2-mode-syntax-table): (*..*) can be nested.
+	Add //...\n.  Fix paren syntax.
+	(m2-mode-map): Remove LF and TAB bindings.
+	(m2-indent): Add safety property.
+	(m2-smie-grammar): New var.
+	(m2-smie-refine-colon, m2-smie-refine-of, m2-smie-backward-token)
+	(m2-smie-forward-token, m2-smie-refine-semi, m2-smie-rules): New funs.
+	(m2-mode): Use define-derived-mode.
+	(m2-newline, m2-tab): Remove.
+	(m2-begin, m2-case, m2-definition, m2-else, m2-for, m2-header)
+	(m2-if, m2-loop, m2-module, m2-or, m2-procedure, m2-with, m2-record)
+	(m2-stdio, m2-type, m2-until, m2-var, m2-while, m2-export)
+	(m2-import): Use define-skeleton.
+
 2010-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* obsolete/lucid.el: Don't warn about any CL functions in this file.
@@ -37,8 +54,8 @@
 
 2010-11-10  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/package.el (package-read-all-archive-contents): Reset
-	package-archive-contents to nil before re-reading.
+	* emacs-lisp/package.el (package-read-all-archive-contents):
+	Reset package-archive-contents to nil before re-reading.
 
 2010-11-10  Brandon Craig Rhodes <brandon@rhodesmill.org>
 
