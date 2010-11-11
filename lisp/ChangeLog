@@ -1,5 +1,7 @@
 2010-11-11  Glenn Morris  <rgm@gnu.org>
 
+	* obsolete/lucid.el: Don't warn about any CL functions in this file.
+
 	* progmodes/idlw-complete-structtag.el: Remove unused dec `name'.
 
 	* progmodes/idlwave.el (idlwave-routine-entry-compare-twins)
