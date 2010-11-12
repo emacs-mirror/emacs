@@ -1,5 +1,7 @@
 2010-11-12  Eli Zaretskii  <eliz@gnu.org>
 
+	* customize.texi (Composite Types): Lower-case index entry.
+
 	* loading.texi (How Programs Do Loading): Document
 	load-file-name.  (Bug#7346)
 
