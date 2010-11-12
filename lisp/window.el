@@ -5061,7 +5061,7 @@ the currently chosen location specifier in the list are ignored."
 	(setq window
 	      (or (and (eq location 'same-window)
 		       (or (not (window-dedicated-p))
-			   (not (eq (window-buffer) buffer)))
+			   (eq (window-buffer) buffer))
 		       (let ((selected-window
 			      ;; If the selected window is a minibuffer
 			      ;; window, use the selected window of the

@@ -1,3 +1,8 @@
+2010-11-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer): Write check for dedicatedness
+	correctly in the same-window section.
+
 2010-11-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* help.el (with-help-window): In doc-string say how to set up
