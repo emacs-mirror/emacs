@@ -2035,7 +2035,7 @@ See `set-language-info-alist' for use in programs."
 
 (defun princ-list (&rest args)
   "Print all arguments with `princ', then print \"\\n\"."
-  (while args (princ (car args)) (setq args (cdr args)))
+  (mapc #'princ args)
   (princ "\n"))
 (make-obsolete 'princ-list "use mapc and princ instead" "23.3")
 
