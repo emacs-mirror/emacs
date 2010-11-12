@@ -2130,14 +2130,18 @@ try this wash."
     (save-excursion
       (when (article-goto-body)
 	(let ((inhibit-read-only t)
-	      replace)
+	      replace props)
 	  (while (not (eobp))
 	    (if (not (setq replace (if (featurep 'xemacs)
 				       (get-char-table (following-char) table)
 				     (aref table (following-char)))))
 		(forward-char 1)
-	      (delete-char 1)
-	      (insert replace))))))))
+	      (if (prog1
+		      (setq props (text-properties-at (point)))
+		    (delete-char 1))
+		  (add-text-properties (point) (progn (insert replace) (point))
+				       props)
+		(insert replace)))))))))
 
 (defun article-translate-characters (from to)
   "Translate all characters in the body of the article according to FROM and TO.
