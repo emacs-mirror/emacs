@@ -1,3 +1,8 @@
+2010-11-12  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-iso-date-forms): Make elements
+	mutually exclusive.  (Bug#7377)
+
 2010-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-prec2->grammar): Obey equality constraints
