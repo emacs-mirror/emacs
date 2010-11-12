@@ -1,3 +1,8 @@
+2010-11-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* loading.texi (How Programs Do Loading): Document
+	load-file-name.  (Bug#7346)
+
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* text.texi (Kill Functions, Low-Level Kill Ring): Small fixes.

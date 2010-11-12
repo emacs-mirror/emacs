@@ -1,3 +1,8 @@
+2010-11-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* lread.c (Fload): Mention `load-in-progress' and
+	`load-file-name'.  (Bug#7346)
+
 2010-11-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (kbd_buffer_nr_stored): Define only ifdef subprocesses.
