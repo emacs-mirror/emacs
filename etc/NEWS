@@ -289,6 +289,9 @@ set `x-select-enable-clipboard' to nil.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** shell-mode can track your cwd by reading it from your prompt.
+Just set shell-dir-cookie-re to an appropriate regexp.
+
 ** Modula-2 mode provides auto-indentation.
 
 ** latex-electric-env-pair-mode keeps \begin..\end matched on the fly.
@@ -528,8 +531,6 @@ system or session bus.
 ** New global minor modes electric-pair-mode and electric-indent-mode.
 
 ** pcase.el provides the ML-style pattern matching macro `pcase'.
-
-** smie.el is a package providing a simple generic indentation engine.
 
 ** secrets.el is an implementation of the Secret Service API, an
 interface to password managers like GNOME Keyring or KDE Wallet.  The

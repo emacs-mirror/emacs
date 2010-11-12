@@ -1,5 +1,8 @@
 2010-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* shell.el (shell-dir-cookie-re): New custom variable.
+	(shell-dir-cookie-watcher): New function.
+
 	* vc/vc.el (vc-deduce-backend): Use default-directory in shell-mode
 	and compilation-mode (bug#7350).
 
