@@ -480,10 +480,10 @@ more information about the bugtracker_debbugs_url setting.
 See also log-edit-rewrite-fixes in .dir-locals.el.
 
 Note that all this does is add some metadata to the commit, it doesn't
-actually mark the bug as closed in the tracker.  There seems to be no
-way to see this "metadata" with `bzr log', which is rather poor, but
-it will show up as a link in a recent loggerhead installation, or with
-some of the graphical frontends to bzr log.
+actually mark the bug as closed in the tracker.  You can see this
+information with `bzr log', and it will show up as a link in a recent
+loggerhead installation, or with some of the graphical frontends to
+`bzr log'.
 
 ** Gnus-specific voodoo
 
