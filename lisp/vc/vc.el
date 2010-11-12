@@ -920,7 +920,8 @@ Within directories, only files already under version control are noticed."
   (cond ((derived-mode-p 'vc-dir-mode)   vc-dir-backend)
 	((derived-mode-p 'log-view-mode) log-view-vc-backend)
 	((derived-mode-p 'diff-mode)     diff-vc-backend)
-	((derived-mode-p 'dired-mode)
+        ;; Maybe we could even use comint-mode rather than shell-mode?
+	((derived-mode-p 'dired-mode 'shell-mode 'compilation-mode)
 	 (vc-responsible-backend default-directory))
 	(vc-mode (vc-backend buffer-file-name))))
 
@@ -986,7 +987,7 @@ current buffer."
   (let ((backend (vc-responsible-backend default-directory)))
     (unless backend (error "Directory not under VC"))
     (list backend
-       (dired-map-over-marks (dired-get-filename nil t) nil))))
+          (dired-map-over-marks (dired-get-filename nil t) nil))))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."

@@ -1,5 +1,8 @@
 2010-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/vc.el (vc-deduce-backend): Use default-directory in shell-mode
+	and compilation-mode (bug#7350).
+
 	* vc/smerge-mode.el (smerge-refine): Choose better default part to
 	highlight when one of them is empty.
 
