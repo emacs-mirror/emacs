@@ -969,7 +969,7 @@ selected frame and no others."
     (or best-window second-best-window)))
 
 (defun get-mru-window (&optional all-frames)
-   "Return the least recently used window on frames specified by ALL-FRAMES.
+   "Return the most recently used window on frames specified by ALL-FRAMES.
 Do not return a minibuffer window.
 
 The following non-nil values of the optional argument ALL-FRAMES

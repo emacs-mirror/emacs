@@ -2,6 +2,7 @@
 
 	* window.el (display-buffer): Write check for dedicatedness
 	correctly in the same-window section.
+	(get-mru-window): Fix doc-string typo.
 
 2010-11-12  Glenn Morris  <rgm@gnu.org>
 
