@@ -442,7 +442,6 @@ x_display_info_for_display (Display *dpy)
 }
 
 #define OPAQUE  0xffffffff
-#define OPACITY "_NET_WM_WINDOW_OPACITY"
 
 void
 x_set_frame_alpha (struct frame *f)
@@ -486,7 +485,7 @@ x_set_frame_alpha (struct frame *f)
     unsigned long n, left;
 
     x_catch_errors (dpy);
-    rc = XGetWindowProperty (dpy, win, XInternAtom(dpy, OPACITY, False),
+    rc = XGetWindowProperty (dpy, win, dpyinfo->Xatom_net_wm_window_opacity,
 			     0L, 1L, False, XA_CARDINAL,
 			     &actual, &format, &n, &left,
 			     &data);
@@ -504,7 +503,7 @@ x_set_frame_alpha (struct frame *f)
   }
 
   x_catch_errors (dpy);
-  XChangeProperty (dpy, win, XInternAtom (dpy, OPACITY, False),
+  XChangeProperty (dpy, win, dpyinfo->Xatom_net_wm_window_opacity,
 		   XA_CARDINAL, 32, PropModeReplace,
 		   (unsigned char *) &opac, 1L);
   x_uncatch_errors ();
@@ -8285,12 +8284,11 @@ x_set_offset (struct frame *f, register int xoff, register int yoff, int change_
    http://freedesktop.org/wiki/Specifications/wm-spec.  */
 
 static int
-wm_supports (struct frame *f, const char *atomname)
+wm_supports (struct frame *f, Atom want_atom)
 {
   Atom actual_type;
   unsigned long actual_size, bytes_remaining;
   int i, rc, actual_format;
-  Atom prop_atom;
   Window wmcheck_window;
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Window target_window = dpyinfo->root_window;
@@ -8298,15 +8296,13 @@ wm_supports (struct frame *f, const char *atomname)
   Display *dpy = FRAME_X_DISPLAY (f);
   unsigned char *tmp_data = NULL;
   Atom target_type = XA_WINDOW;
-  Atom want_atom;
 
   BLOCK_INPUT;
 
-  prop_atom = XInternAtom (dpy, "_NET_SUPPORTING_WM_CHECK", False);
-
   x_catch_errors (dpy);
   rc = XGetWindowProperty (dpy, target_window,
-                           prop_atom, 0, max_len, False, target_type,
+                           dpyinfo->Xatom_net_supporting_wm_check,
+                           0, max_len, False, target_type,
                            &actual_type, &actual_format, &actual_size,
                            &bytes_remaining, &tmp_data);
 
@@ -8341,10 +8337,10 @@ wm_supports (struct frame *f, const char *atomname)
       dpyinfo->net_supported_window = 0;
 
       target_type = XA_ATOM;
-      prop_atom = XInternAtom (dpy, "_NET_SUPPORTED", False);
       tmp_data = NULL;
       rc = XGetWindowProperty (dpy, target_window,
-                               prop_atom, 0, max_len, False, target_type,
+                               dpyinfo->Xatom_net_supported,
+                               0, max_len, False, target_type,
                                &actual_type, &actual_format, &actual_size,
                                &bytes_remaining, &tmp_data);
 
@@ -8362,7 +8358,6 @@ wm_supports (struct frame *f, const char *atomname)
     }
 
   rc = 0;
-  want_atom = XInternAtom (dpy, atomname, False);
 
   for (i = 0; rc == 0 && i < dpyinfo->nr_net_supported_atoms; ++i)
     rc = dpyinfo->net_supported_atoms[i] == want_atom;
@@ -8374,31 +8369,31 @@ wm_supports (struct frame *f, const char *atomname)
 }
 
 static void
-set_wm_state (Lisp_Object frame, int add, const char *what, const char *what2)
+set_wm_state (Lisp_Object frame, int add, Atom atom, Atom value)
 {
-  const char *atom = "_NET_WM_STATE";
-  Fx_send_client_event (frame, make_number (0), frame,
-                        make_unibyte_string (atom, strlen (atom)),
-                        make_number (32),
-                        /* 1 = add, 0 = remove */
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (frame));
+
+  x_send_client_event (frame, make_number (0), frame,
+                       dpyinfo->Xatom_net_wm_state,
+                       make_number (32),
+                       /* 1 = add, 0 = remove */
+                       Fcons
+                       (make_number (add ? 1 : 0),
                         Fcons
-                        (make_number (add ? 1 : 0),
-                         Fcons
-                         (make_unibyte_string (what, strlen (what)),
-                          what2 != 0
-                          ? Fcons (make_unibyte_string (what2, strlen (what2)),
-                                   Qnil)
-                          : Qnil)));
+                        (atom,
+                         value != 0 ? value : Qnil)));
 }
 
 void
 x_set_sticky (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 {
   Lisp_Object frame;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
   XSETFRAME (frame, f);
+
   set_wm_state (frame, NILP (new_value) ? 0 : 1,
-                "_NET_WM_STATE_STICKY", NULL);
+                dpyinfo->Xatom_net_wm_state_sticky, None);
 }
 
 /* Return the current _NET_WM_STATE.
@@ -8457,7 +8452,7 @@ get_current_vm_state (struct frame *f,
           else
             *size_state = FULLSCREEN_HEIGHT;
         }
-      else if (a == dpyinfo->Xatom_net_wm_state_fullscreen_atom)
+      else if (a == dpyinfo->Xatom_net_wm_state_fullscreen)
         *size_state = FULLSCREEN_BOTH;
       else if (a == dpyinfo->Xatom_net_wm_state_sticky)
         *sticky = 1;
@@ -8472,7 +8467,8 @@ get_current_vm_state (struct frame *f,
 static int
 do_ewmh_fullscreen (struct frame *f)
 {
-  int have_net_atom = wm_supports (f, "_NET_WM_STATE");
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  int have_net_atom = wm_supports (f, dpyinfo->Xatom_net_wm_state);
   Lisp_Object lval = get_frame_param (f, Qfullscreen);
   int cur, dummy;
 
@@ -8481,14 +8477,11 @@ do_ewmh_fullscreen (struct frame *f)
   /* Some window managers don't say they support _NET_WM_STATE, but they do say
      they support _NET_WM_STATE_FULLSCREEN.  Try that also.  */
   if (!have_net_atom)
-      have_net_atom = wm_supports (f, "_NET_WM_STATE_FULLSCREEN");
+    have_net_atom = wm_supports (f, dpyinfo->Xatom_net_wm_state_fullscreen);
 
   if (have_net_atom && cur != f->want_fullscreen)
     {
       Lisp_Object frame;
-      const char *fs = "_NET_WM_STATE_FULLSCREEN";
-      const char *fw = "_NET_WM_STATE_MAXIMIZED_HORZ";
-      const char *fh = "_NET_WM_STATE_MAXIMIZED_VERT";
 
       XSETFRAME (frame, f);
 
@@ -8500,33 +8493,38 @@ do_ewmh_fullscreen (struct frame *f)
         case FULLSCREEN_BOTH:
           if (cur == FULLSCREEN_WIDTH || cur == FULLSCREEN_MAXIMIZED
               || cur == FULLSCREEN_HEIGHT)
-            set_wm_state (frame, 0, fw, fh);
-          set_wm_state (frame, 1, fs, NULL);
+            set_wm_state (frame, 0, dpyinfo->Xatom_net_wm_state_maximized_horz,
+                          dpyinfo->Xatom_net_wm_state_maximized_vert);
+          set_wm_state (frame, 1, dpyinfo->Xatom_net_wm_state_fullscreen, None);
           break;
         case FULLSCREEN_WIDTH:
           if (cur == FULLSCREEN_BOTH || cur == FULLSCREEN_HEIGHT
               || cur == FULLSCREEN_MAXIMIZED)
-            set_wm_state (frame, 0, fs, fh);
+            set_wm_state (frame, 0, dpyinfo->Xatom_net_wm_state_fullscreen,
+                          dpyinfo->Xatom_net_wm_state_maximized_vert);
           if (cur != FULLSCREEN_MAXIMIZED)
-            set_wm_state (frame, 1, fw, NULL);
+            set_wm_state (frame, 1, dpyinfo->Xatom_net_wm_state_maximized_horz, None);
           break;
         case FULLSCREEN_HEIGHT:
           if (cur == FULLSCREEN_BOTH || cur == FULLSCREEN_WIDTH
               || cur == FULLSCREEN_MAXIMIZED)
-            set_wm_state (frame, 0, fs, fw);
+            set_wm_state (frame, 0, dpyinfo->Xatom_net_wm_state_fullscreen,
+                          dpyinfo->Xatom_net_wm_state_maximized_horz);
           if (cur != FULLSCREEN_MAXIMIZED)
-            set_wm_state (frame, 1, fh, NULL);
+            set_wm_state (frame, 1, dpyinfo->Xatom_net_wm_state_maximized_vert, None);
           break;
         case FULLSCREEN_MAXIMIZED:
           if (cur == FULLSCREEN_BOTH)
-            set_wm_state (frame, 0, fs, NULL);
-          set_wm_state (frame, 1, fw, fh);
+            set_wm_state (frame, 0, dpyinfo->Xatom_net_wm_state_fullscreen, None);
+          set_wm_state (frame, 1, dpyinfo->Xatom_net_wm_state_maximized_horz,
+                        dpyinfo->Xatom_net_wm_state_maximized_vert);
           break;
         case FULLSCREEN_NONE:
           if (cur == FULLSCREEN_BOTH)
-            set_wm_state (frame, 0, fs, NULL);
+            set_wm_state (frame, 0, dpyinfo->Xatom_net_wm_state_fullscreen, None);
           else
-            set_wm_state (frame, 0, fw, fh);
+            set_wm_state (frame, 0, dpyinfo->Xatom_net_wm_state_maximized_horz,
+                          dpyinfo->Xatom_net_wm_state_maximized_vert);
         }
 
       f->want_fullscreen = FULLSCREEN_NONE;
@@ -8966,17 +8964,17 @@ x_ewmh_activate_frame (FRAME_PTR f)
   /* See Window Manager Specification/Extended Window Manager Hints at
      http://freedesktop.org/wiki/Specifications/wm-spec  */
 
-  const char *atom = "_NET_ACTIVE_WINDOW";
-  if (f->async_visible && wm_supports (f, atom))
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  if (f->async_visible && wm_supports (f, dpyinfo->Xatom_net_active_window))
     {
       Lisp_Object frame;
       XSETFRAME (frame, f);
-      Fx_send_client_event (frame, make_number (0), frame,
-                            make_unibyte_string (atom, strlen (atom)),
-                            make_number (32),
-                            Fcons (make_number (1),
-                                   Fcons (make_number (last_user_time),
-                                          Qnil)));
+      x_send_client_event (frame, make_number (0), frame,
+                           dpyinfo->Xatom_net_active_window,
+                           make_number (32),
+                           Fcons (make_number (1),
+                                  Fcons (make_number (last_user_time),
+                                         Qnil)));
     }
 }
 
@@ -8996,13 +8994,13 @@ xembed_set_info (struct frame *f, enum xembed_info flags)
 {
   Atom atom;
   unsigned long data[2];
-
-  atom = XInternAtom (FRAME_X_DISPLAY (f), "_XEMBED_INFO", False);
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
   data[0] = XEMBED_VERSION;
   data[1] = flags;
 
-  XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), atom, atom,
+  XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+                   dpyinfo->Xatom_XEMBED_INFO, dpyinfo->Xatom_XEMBED_INFO,
 		   32, PropModeReplace, (unsigned char *) data, 2);
 }
 
@@ -10196,90 +10194,97 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       dpyinfo->resx = (mm < 1) ? 100 : pixels * 25.4 / mm;
     }
 
-  dpyinfo->Xatom_wm_protocols
-    = XInternAtom (dpyinfo->display, "WM_PROTOCOLS", False);
-  dpyinfo->Xatom_wm_take_focus
-    = XInternAtom (dpyinfo->display, "WM_TAKE_FOCUS", False);
-  dpyinfo->Xatom_wm_save_yourself
-    = XInternAtom (dpyinfo->display, "WM_SAVE_YOURSELF", False);
-  dpyinfo->Xatom_wm_delete_window
-    = XInternAtom (dpyinfo->display, "WM_DELETE_WINDOW", False);
-  dpyinfo->Xatom_wm_change_state
-    = XInternAtom (dpyinfo->display, "WM_CHANGE_STATE", False);
-  dpyinfo->Xatom_wm_configure_denied
-    = XInternAtom (dpyinfo->display, "WM_CONFIGURE_DENIED", False);
-  dpyinfo->Xatom_wm_window_moved
-    = XInternAtom (dpyinfo->display, "WM_MOVED", False);
-  dpyinfo->Xatom_wm_client_leader
-    = XInternAtom (dpyinfo->display, "WM_CLIENT_LEADER", False);
-  dpyinfo->Xatom_editres
-    = XInternAtom (dpyinfo->display, "Editres", False);
-  dpyinfo->Xatom_CLIPBOARD
-    = XInternAtom (dpyinfo->display, "CLIPBOARD", False);
-  dpyinfo->Xatom_TIMESTAMP
-    = XInternAtom (dpyinfo->display, "TIMESTAMP", False);
-  dpyinfo->Xatom_TEXT
-    = XInternAtom (dpyinfo->display, "TEXT", False);
-  dpyinfo->Xatom_COMPOUND_TEXT
-    = XInternAtom (dpyinfo->display, "COMPOUND_TEXT", False);
-  dpyinfo->Xatom_UTF8_STRING
-    = XInternAtom (dpyinfo->display, "UTF8_STRING", False);
-  dpyinfo->Xatom_DELETE
-    = XInternAtom (dpyinfo->display, "DELETE", False);
-  dpyinfo->Xatom_MULTIPLE
-    = XInternAtom (dpyinfo->display, "MULTIPLE", False);
-  dpyinfo->Xatom_INCR
-    = XInternAtom (dpyinfo->display, "INCR", False);
-  dpyinfo->Xatom_EMACS_TMP
-    = XInternAtom (dpyinfo->display, "_EMACS_TMP_", False);
-  dpyinfo->Xatom_TARGETS
-    = XInternAtom (dpyinfo->display, "TARGETS", False);
-  dpyinfo->Xatom_NULL
-    = XInternAtom (dpyinfo->display, "NULL", False);
-  dpyinfo->Xatom_ATOM_PAIR
-    = XInternAtom (dpyinfo->display, "ATOM_PAIR", False);
-  /* For properties of font.  */
-  dpyinfo->Xatom_PIXEL_SIZE
-    = XInternAtom (dpyinfo->display, "PIXEL_SIZE", False);
-  dpyinfo->Xatom_AVERAGE_WIDTH
-    = XInternAtom (dpyinfo->display, "AVERAGE_WIDTH", False);
-  dpyinfo->Xatom_MULE_BASELINE_OFFSET
-    = XInternAtom (dpyinfo->display, "_MULE_BASELINE_OFFSET", False);
-  dpyinfo->Xatom_MULE_RELATIVE_COMPOSE
-    = XInternAtom (dpyinfo->display, "_MULE_RELATIVE_COMPOSE", False);
-  dpyinfo->Xatom_MULE_DEFAULT_ASCENT
-    = XInternAtom (dpyinfo->display, "_MULE_DEFAULT_ASCENT", False);
+  {
+    const struct
+    {
+      const char *name;
+      Atom *atom;
+    } atom_refs[] = {
+      { "WM_PROTOCOLS", &dpyinfo->Xatom_wm_protocols  },
+      { "WM_TAKE_FOCUS", &dpyinfo->Xatom_wm_take_focus },
+      { "WM_SAVE_YOURSELF", &dpyinfo->Xatom_wm_save_yourself },
+      { "WM_DELETE_WINDOW", &dpyinfo->Xatom_wm_delete_window },
+      { "WM_CHANGE_STATE", &dpyinfo->Xatom_wm_change_state },
+      { "WM_CONFIGURE_DENIED", &dpyinfo->Xatom_wm_configure_denied },
+      { "WM_MOVED", &dpyinfo->Xatom_wm_window_moved },
+      { "WM_CLIENT_LEADER", &dpyinfo->Xatom_wm_client_leader },
+      { "Editres", &dpyinfo->Xatom_editres },
+      { "CLIPBOARD", &dpyinfo->Xatom_CLIPBOARD },
+      { "TIMESTAMP", &dpyinfo->Xatom_TIMESTAMP },
+      { "TEXT", &dpyinfo->Xatom_TEXT },
+      { "COMPOUND_TEXT", &dpyinfo->Xatom_COMPOUND_TEXT },
+      { "UTF8_STRING", &dpyinfo->Xatom_UTF8_STRING },
+      { "DELETE", &dpyinfo->Xatom_DELETE },
+      { "MULTIPLE", &dpyinfo->Xatom_MULTIPLE },
+      { "INCR", &dpyinfo->Xatom_INCR },
+      { "_EMACS_TMP_",  &dpyinfo->Xatom_EMACS_TMP },
+      { "TARGETS", &dpyinfo->Xatom_TARGETS },
+      { "NULL", &dpyinfo->Xatom_NULL },
+      { "ATOM_PAIR", &dpyinfo->Xatom_ATOM_PAIR },
+      { "_XEMBED_INFO", &dpyinfo->Xatom_XEMBED_INFO },
+      /* For properties of font.  */
+      { "PIXEL_SIZE", &dpyinfo->Xatom_PIXEL_SIZE },
+      { "AVERAGE_WIDTH", &dpyinfo->Xatom_AVERAGE_WIDTH },
+      { "_MULE_BASELINE_OFFSET", &dpyinfo->Xatom_MULE_BASELINE_OFFSET },
+      { "_MULE_RELATIVE_COMPOSE", &dpyinfo->Xatom_MULE_RELATIVE_COMPOSE },
+      { "_MULE_DEFAULT_ASCENT", &dpyinfo->Xatom_MULE_DEFAULT_ASCENT },
+      /* Ghostscript support.  */
+      { "DONE", &dpyinfo->Xatom_DONE },
+      { "PAGE", &dpyinfo->Xatom_PAGE },
+      { "SCROLLBAR", &dpyinfo->Xatom_Scrollbar },
+      { "_XEMBED", &dpyinfo->Xatom_XEMBED },
+      /* EWMH */
+      { "_NET_WM_STATE", &dpyinfo->Xatom_net_wm_state },
+      { "_NET_WM_STATE_FULLSCREEN", &dpyinfo->Xatom_net_wm_state_fullscreen },
+      { "_NET_WM_STATE_MAXIMIZED_HORZ",
+        &dpyinfo->Xatom_net_wm_state_maximized_horz },
+      { "_NET_WM_STATE_MAXIMIZED_VERT",
+        &dpyinfo->Xatom_net_wm_state_maximized_vert },
+      { "_NET_WM_STATE_STICKY", &dpyinfo->Xatom_net_wm_state_sticky },
+      { "_NET_WM_WINDOW_TYPE", &dpyinfo->Xatom_net_window_type },
+      { "_NET_WM_WINDOW_TYPE_TOOLTIP",
+        &dpyinfo->Xatom_net_window_type_tooltip },
+      { "_NET_WM_ICON_NAME", &dpyinfo->Xatom_net_wm_icon_name },
+      { "_NET_WM_NAME", &dpyinfo->Xatom_net_wm_name },
+      { "_NET_SUPPORTED",  &dpyinfo->Xatom_net_supported },
+      { "_NET_SUPPORTING_WM_CHECK", &dpyinfo->Xatom_net_supported },
+      { "_NET_WM_WINDOW_OPACITY", &dpyinfo->Xatom_net_wm_window_opacity },
+      { "_NET_ACTIVE_WINDOW", &dpyinfo->Xatom_net_active_window },
+      { "_NET_FRAME_EXTENTS", &dpyinfo->Xatom_net_frame_extents },
+      /* Session management */
+      { "SM_CLIENT_ID", &dpyinfo->Xatom_SM_CLIENT_ID },
+      { "_XSETTINGS_SETTINGS", &dpyinfo->Xatom_xsettings_prop },
+      { "MANAGER", &dpyinfo->Xatom_xsettings_mgr },
+    };
 
-  /* Ghostscript support.  */
-  dpyinfo->Xatom_PAGE = XInternAtom (dpyinfo->display, "PAGE", False);
-  dpyinfo->Xatom_DONE = XInternAtom (dpyinfo->display, "DONE", False);
+    int i;
+    const int atom_count = sizeof (atom_refs) / sizeof (atom_refs[0]);
+    /* 1 for _XSETTINGS_SN  */
+    const int total_atom_count = 1 + atom_count;
+    Atom *atoms_return = xmalloc (sizeof (Atom) * total_atom_count);
+    char **atom_names = xmalloc (sizeof (char *) * total_atom_count);
+    char xsettings_atom_name[64];
 
-  dpyinfo->Xatom_Scrollbar = XInternAtom (dpyinfo->display, "SCROLLBAR",
-					  False);
+    for (i = 0; i < atom_count; i++)
+      atom_names[i] = (char *) atom_refs[i].name;
 
-  dpyinfo->Xatom_XEMBED = XInternAtom (dpyinfo->display, "_XEMBED",
-				       False);
+    /* Build _XSETTINGS_SN atom name */
+    snprintf (xsettings_atom_name, sizeof (xsettings_atom_name),
+              "_XSETTINGS_S%d", XScreenNumberOfScreen (dpyinfo->screen));
+    atom_names[i] = xsettings_atom_name;
 
-  dpyinfo->Xatom_net_wm_state
-    = XInternAtom (dpyinfo->display, "_NET_WM_STATE", False);
-  dpyinfo->Xatom_net_wm_state_fullscreen_atom
-    = XInternAtom (dpyinfo->display, "_NET_WM_STATE_FULLSCREEN", False);
-  dpyinfo->Xatom_net_wm_state_maximized_horz
-    = XInternAtom (dpyinfo->display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-  dpyinfo->Xatom_net_wm_state_maximized_vert
-    = XInternAtom (dpyinfo->display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-  dpyinfo->Xatom_net_wm_state_sticky
-    = XInternAtom (dpyinfo->display, "_NET_WM_STATE_STICKY", False);
-  dpyinfo->Xatom_net_window_type
-    = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE", False);
-  dpyinfo->Xatom_net_window_type_tooltip
-    = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE_TOOLTIP", False);
-  dpyinfo->Xatom_net_wm_icon_name
-    = XInternAtom (dpyinfo->display, "_NET_WM_ICON_NAME", False);
-  dpyinfo->Xatom_net_wm_name
-    = XInternAtom (dpyinfo->display, "_NET_WM_NAME", False);
-  dpyinfo->Xatom_net_frame_extents  
-    = XInternAtom (dpyinfo->display, "_NET_FRAME_EXTENTS", False);
+    XInternAtoms (dpyinfo->display, atom_names, total_atom_count,
+                  False, atoms_return);
+
+    for (i = 0; i < atom_count; i++)
+      *atom_refs[i].atom = atoms_return[i];
+
+    /* Manual copy of last atom */
+    dpyinfo->Xatom_xsettings_sel = atoms_return[i];
+
+    xfree (atom_names);
+    xfree (atoms_return);
+  }
 
   dpyinfo->x_dnd_atoms_size = 8;
   dpyinfo->x_dnd_atoms_length = 0;

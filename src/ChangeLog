@@ -1,5 +1,36 @@
 2010-11-11  Julien Danjou  <julien@danjou.info>
 
+	* xsettings.c (init_xsettings): Use already fetch atoms.
+
+	* xsmfns.c (create_client_leader_window): Use SM_CLIENT_ID atom
+	from dpyinfo.
+
+	* xselect.c (Fx_send_client_event): Split and create
+	x_send_client_event.
+
+	* lisp.h: Do not EXFUN Fx_send_client_event.
+
+	* xterm.c (x_set_frame_alpha): Use _NET_WM_WINDOW_OPACITY atom
+	from dpyinfo.
+	(wm_supports): Use atoms from dpyinfo.
+	(do_ewmh_fullscreen): Use atoms from dpyinfo.
+	(x_ewmh_activate_frame): Use atoms from dpyinfo.
+	(xembed_set_info): Use atoms from dpyinfo.
+	(x_term_init): Fetch _XEMBED_INFO, _NET_SUPPORTED,
+	_NET_SUPPORTING_WM_CHECK, _NET_WM_WINDOW_OPACITY and
+	_NET_ACTIVE_WINDOW, XSETTINGS  atoms.
+	Get all atoms in one round-trip.
+	(set_wm_state): Use x_send_client_event rather than
+	Fx_send_client_event, using Atom directly.
+	(x_ewmh_activate_frame): Ditto.
+	(x_set_sticky): Pass atoms to set_wm_state.
+	(do_ewmh_fullscreen): Ditto.
+
+
+	* xterm.h (x_display_info): Add Xatom_net_supported,
+	Xatom_net_supporting_wm_check, Xatom_net_active_window,
+	Xatom_net_wm_window_opacity, Xatom_XEMBED_INFO, SM_CLIENT_ID.
+
 	* xfns.c (Fx_show_tip): Fix typo in docstring.
 
 2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
