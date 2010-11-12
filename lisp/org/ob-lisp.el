@@ -41,7 +41,10 @@
 (require 'ob-ref)
 (require 'ob-comint)
 (require 'ob-eval)
-(require 'slime)
+(declare-function slime-eval "ext:slime" (form))
+(declare-function slime-connected-p "ext:slime" ())
+(declare-function slime-process "ext:slime" ())
+(require 'slime nil 'noerror)
 
 (defvar org-babel-default-header-args:lisp '()
   "Default header arguments for lisp code blocks.")
