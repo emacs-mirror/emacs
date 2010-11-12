@@ -1,3 +1,8 @@
+2010-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase-let*, pcase-let): Add debug and
+	indentation specs.
+
 2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/modula2.el: Use SMIE and skeleton.
@@ -57,7 +62,7 @@
 	* emacs-lisp/package.el (package-read-all-archive-contents):
 	Reset package-archive-contents to nil before re-reading.
 
-2010-11-10  Brandon Craig Rhodes <brandon@rhodesmill.org>
+2010-11-10  Brandon Craig Rhodes <brandon@rhodesmill.org>  (tiny change)
 
 	* textmodes/flyspell.el (flyspell-word): Do not re-check words
 	already found as misspellings by (flyspell-large-region), just
