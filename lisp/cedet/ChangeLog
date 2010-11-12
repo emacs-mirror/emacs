@@ -1,3 +1,7 @@
+2010-11-12  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/wisent/comp.el: Remove unnecessary eval-when-compiles.
+
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/bovine/c.el: Test system-type with memq.
