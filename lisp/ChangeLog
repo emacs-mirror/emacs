@@ -3,6 +3,65 @@
 	* window.el (display-buffer): Write check for dedicatedness
 	correctly in the same-window section.
 
+2010-11-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-log-buffer): New constant.
+	Use it to replace all instances of "*Compile-Log*"
+
+2010-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase-let*, pcase-let): Add debug and
+	indentation specs.
+
+2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/modula2.el: Use SMIE and skeleton.
+	(m2-mode-syntax-table): (*..*) can be nested.
+	Add //...\n.  Fix paren syntax.
+	(m2-mode-map): Remove LF and TAB bindings.
+	(m2-indent): Add safety property.
+	(m2-smie-grammar): New var.
+	(m2-smie-refine-colon, m2-smie-refine-of, m2-smie-backward-token)
+	(m2-smie-forward-token, m2-smie-refine-semi, m2-smie-rules): New funs.
+	(m2-mode): Use define-derived-mode.
+	(m2-newline, m2-tab): Remove.
+	(m2-begin, m2-case, m2-definition, m2-else, m2-for, m2-header)
+	(m2-if, m2-loop, m2-module, m2-or, m2-procedure, m2-with, m2-record)
+	(m2-stdio, m2-type, m2-until, m2-var, m2-while, m2-export)
+	(m2-import): Use define-skeleton.
+
+2010-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* obsolete/lucid.el: Don't warn about any CL functions in this file.
+
+	* ls-lisp.el (ls-lisp-ignore-case, ls-lisp-dirs-first)
+	(ls-lisp-verbosity): Add custom :set-after property.
+	(ls-lisp-verbosity, ls-lisp-use-localized-time-format): Doc fixes.
+	(ls-lisp-format, ls-lisp-format-time): Don't take `now' as an argument.
+	(ls-lisp-insert-directory): Update caller.
+	(ls-lisp-set-options): New function.
+	(ls-lisp-emulation): Use ls-lisp-set-options for custom :set.
+	Doc fix.
+
+	* play/landmark.el (lm-prompt-for-move):
+	* play/gomoku.el (gomoku-prompt-for-move): Remove nonsensical code.
+
+	* progmodes/idlw-complete-structtag.el: Remove unused dec `name'.
+
+	* progmodes/idlwave.el (idlwave-routine-entry-compare-twins)
+	(idlwave-study-twins): Prefix dynamic local variable `name'.
+	(idlwave-routine-twin-compare): Update for above change.
+
+	* progmodes/idlw-help.el (idlwave-do-mouse-completion-help):
+	Prefix dynamic local variables `name', `kwd', and `link'.
+	* progmodes/idlw-shell.el (idlwave-shell-complete-execcomm-help):
+	* progmodes/idlw-complete-structtag.el
+	(idlwave-complete-structure-tag-help):
+	* progmodes/idlwave.el (idlwave-complete-sysvar-help)
+	(idlwave-complete-sysvar-tag-help)
+	(idlwave-complete-class-structure-tag-help):
+	Update for above name changes.
+
 2010-11-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* help.el (with-help-window): In doc-string say how to set up
@@ -29,6 +88,22 @@
 
 	* woman.el (woman-mini-help): Remove the message calculation part.
 	(woman-display-extended-fonts): Use with-help-window.
+
+2010-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/browse-url.el (browse-url-browser-function): Change the
+	default to use `browse-url-mail' on mailto: URLs.
+
+2010-11-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-read-all-archive-contents):
+	Reset package-archive-contents to nil before re-reading.
+
+2010-11-10  Brandon Craig Rhodes <brandon@rhodesmill.org>  (tiny change)
+
+	* textmodes/flyspell.el (flyspell-word): Do not re-check words
+	already found as misspellings by (flyspell-large-region), just
+	do highlighting (bug#7322).
 
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 

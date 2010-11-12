@@ -289,6 +289,8 @@ set `x-select-enable-clipboard' to nil.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** Modula-2 mode provides auto-indentation.
+
 ** latex-electric-env-pair-mode keeps \begin..\end matched on the fly.
 
 ** FIXME: xdg-open for browse-url and reportbug, 2010/08.

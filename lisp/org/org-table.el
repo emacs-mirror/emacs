@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.3
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -342,17 +342,21 @@ available parameters."
 
 (defun org-table-cookie-line-p (line)
   "Is this a table line with only alignment/width cookies?"
-
   (save-match-data
     (and (string-match "[<>]\\|&[lg]t;" line)
-	 (or (string-match "\\`[ \t]*|[ \t]*/[ \t]*\\(|[ \t<>0-9|lgt&;]+\\)\\'" line)
-	     (string-match "\\(\\`[ \t<>lr0-9|gt&;]+\\'\\)" line))
+	 (or (string-match
+	      "\\`[ \t]*|[ \t]*/[ \t]*\\(|[ \t<>0-9|lrcgt&;]+\\)\\'" line)
+	     (string-match "\\(\\`[ \t<>lrc0-9|gt&;]+\\'\\)" line))
 	 (not (delq nil (mapcar
 			 (lambda (s)
 			   (not (or (equal s "")
-				    (string-match "\\`<\\([lr]?[0-9]+\\|[lr]\\)>\\'" s)
-				    (string-match "\\`&lt;\\([lr]?[0-9]+\\|[lr]\\)&gt;\\'" s))))
-			 (org-split-string (match-string 1 line) "[ \t]*|[ \t]*")))))))
+				    (string-match
+				     "\\`<\\([lrc]?[0-9]+\\|[lrc]\\)>\\'" s)
+				    (string-match
+				     "\\`&lt;\\([lrc]?[0-9]+\\|[lrc]\\)&gt;\\'"
+				     s))))
+			 (org-split-string (match-string 1 line)
+					   "[ \t]*|[ \t]*")))))))
 
 (defconst org-table-translate-regexp
   (concat "\\(" "@[-0-9I$]+" "\\|" "[a-zA-Z]\\{1,2\\}\\([0-9]+\\|&\\)" "\\)")
@@ -369,8 +373,9 @@ and table.el tables."
     (if (y-or-n-p "Convert table to Org-mode table? ")
 	(org-table-convert)))
    ((org-at-table-p)
-    (if (y-or-n-p "Convert table to table.el table? ")
-	(org-table-convert)))
+    (when (y-or-n-p "Convert table to table.el table? ")
+      (org-table-align)
+      (org-table-convert)))
    (t (call-interactively 'table-insert))))
 
 (defun org-table-create-or-convert-from-region (arg)
@@ -453,7 +458,7 @@ nil      When nil, the command tries to be smart and figure out the
 	     (t 1))))
     (goto-char beg)
     (if (equal separator '(4))
-	(while (<= (point) end)
+	(while (< (point) end)
 	  ;; parse the csv stuff
 	  (cond
 	   ((looking-at "^") (insert "| "))
@@ -656,9 +661,9 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
     (goto-char beg)
     (setq narrow (and org-table-do-narrow
 		      org-format-transports-properties-p
-		      (re-search-forward "<[rl]?[0-9]+>" end t)))
+		      (re-search-forward "<[lrc]?[0-9]+>" end t)))
     (goto-char beg)
-    (setq falign (re-search-forward "<[rl][0-9]*>" end t))
+    (setq falign (re-search-forward "<[lrc][0-9]*>" end t))
     (goto-char beg)
     ;; Get the rows
     (setq lines (org-split-string
@@ -699,7 +704,7 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
 	(setq c column fmax nil falign1 nil)
 	(while c
 	  (setq e (pop c))
-	  (when (and (stringp e) (string-match "^<\\([rl]\\)?\\([0-9]+\\)?>$" e))
+	  (when (and (stringp e) (string-match "^<\\([lrc]\\)?\\([0-9]+\\)?>$" e))
 	    (if (match-end 1) (setq falign1 (match-string 1 e)))
 	    (if (and org-table-do-narrow (match-end 2))
 		(setq fmax (string-to-number (match-string 2 e)) c nil))))
@@ -1150,11 +1155,14 @@ is always the old value."
 
 (defun org-table-current-column ()
   "Find out which column we are in."
+  (interactive)
+  (if (interactive-p) (org-table-check-inside-data-field))
   (save-excursion
     (let ((cnt 0) (pos (point)))
       (beginning-of-line 1)
       (while (search-forward "|" pos t)
 	(setq cnt (1+ cnt)))
+      (if (interactive-p) (message "In table column %d" cnt))
       cnt)))
 
 (defun org-table-current-dline ()
@@ -4254,7 +4262,7 @@ so you cannot specify parameters for it."
 		 (lambda (x)
 		   (if (eq x 'hline)
 		       "|----+----|"
-		     (concat "| " (mapconcat 'identity x " | ") " |")))
+		     (concat "| " (mapconcat 'org-html-expand x " | ") " |")))
 		 table)
 		splicep))
     (if (string-match "\n+\\'" html)

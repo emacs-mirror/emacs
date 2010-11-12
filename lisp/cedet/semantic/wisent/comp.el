@@ -1,7 +1,8 @@
 ;;; semantic/wisent/comp.el --- GNU Bison for Emacs - Grammar compiler
 
 ;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000, 2001, 2002, 2003,
-;; 2004, 2005, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -160,12 +161,6 @@ If optional LEFT is non-nil insert spaces on left."
   (not (zerop (logand (aref x (/ i wisent-BITS-PER-WORD))
                       (lsh 1 (% i wisent-BITS-PER-WORD))))))
 
-(eval-when-compile
-  (or (fboundp 'noninteractive)
-      ;; Silence the Emacs byte compiler
-      (defun noninteractive nil))
-  )
-
 (defsubst wisent-noninteractive ()
   "Return non-nil if running without interactive terminal."
   (if (featurep 'xemacs)
@@ -205,7 +200,7 @@ Its name is defined in constant `wisent-log-buffer-name'."
   `(with-current-buffer (wisent-log-buffer)
      (erase-buffer)))
 
-(eval-when-compile (defvar byte-compile-current-file))
+(defvar byte-compile-current-file)
 
 (defun wisent-source ()
   "Return the current source file name or nil."
@@ -3536,5 +3531,4 @@ See also `wisent-compile-grammar' for more details on AUTOMATON."
 
 (provide 'semantic/wisent/comp)
 
-;; arch-tag: 758ea04c-ea97-466b-9b35-aea0861033c9
 ;;; semantic/wisent/comp.el ends here

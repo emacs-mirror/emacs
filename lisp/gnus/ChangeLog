@@ -1,3 +1,61 @@
+2010-11-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-treat-non-ascii): Keep text properties not to
+	divide an image that's in an html article to two or more when washing
+	non-ASCII characters in alt text of it.
+
+2010-11-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-dissect-buffer): Pass sender's mail address to
+	smime-decrypt-region using function argument.
+	(mm-possibly-verify-or-decrypt, mm-dissect-multipart): Relay it.
+
+	* mm-view.el (mm-view-pkcs7, mm-view-pkcs7-decrypt): Relay it.
+
+	* smime.el (smime-decrypt-region): Catch it.
+
+2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smime.el (smime-mode-map): Move initialization into declaration.
+	(gnus-run-mode-hooks): Don't autoload.
+	(smime-mode): Use define-derived-mode.
+
+2010-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* smime.el (from): Restrict declaration to XEmacs.
+
+	* nnir.el (gnus-group-topic-name): Autoload.
+
+2010-11-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-insert): Don't break long line if it is because of
+	kinsoku-bol characters in the line end.
+
+2010-11-11  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-move-article): Fix to provide original group
+	and subject.
+	(nnir-warp-to-article): Don't fail on articles whose headers haven't
+	been retrieved.
+
+	* gnus-sum.el (gnus-summary-move-article): Use original group and
+	subject for virtual articles such as those in an nnir summary buffer.
+
+2010-11-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-treat-non-ascii): Make it work for XEmacs (at
+	least 21.5).
+
+	* smime.el (from): Declare it again for XEmacs.
+
+2010-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-resend): Don't disable encoding unless it's
+	already encoded.
+
+	* nnimap.el (nnimap-update-info): Fix problem with `g' chopping of
+	low-numbered articles.
+
 2010-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2047.el (rfc2047-syntax-table): Simplify.
@@ -17,7 +75,7 @@
 
 2010-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art.el (org-entities): Bind it.
+	* gnus-art.el (org-entities): Declare it to silence the byte compiler.
 
 2010-11-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -17967,7 +18025,8 @@
 
 See ChangeLog.2 for earlier changes.
 
-    Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+  Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+    Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

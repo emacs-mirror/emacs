@@ -2120,7 +2120,7 @@ try this wash."
   "Translate many Unicode characters into their ASCII equivalents."
   (interactive)
   (require 'org-entities)
-  (let ((table (make-char-table nil)))
+  (let ((table (make-char-table (if (featurep 'xemacs) 'generic))))
     (dolist (elem org-entities)
       (when (and (listp elem)
 		 (= (length (nth 6 elem)) 1))
@@ -2130,12 +2130,18 @@ try this wash."
     (save-excursion
       (when (article-goto-body)
 	(let ((inhibit-read-only t)
-	      replace)
+	      replace props)
 	  (while (not (eobp))
-	    (if (not (setq replace (aref table (following-char))))
+	    (if (not (setq replace (if (featurep 'xemacs)
+				       (get-char-table (following-char) table)
+				     (aref table (following-char)))))
 		(forward-char 1)
-	      (delete-char 1)
-	      (insert replace))))))))
+	      (if (prog1
+		      (setq props (text-properties-at (point)))
+		    (delete-char 1))
+		  (add-text-properties (point) (progn (insert replace) (point))
+				       props)
+		(insert replace)))))))))
 
 (defun article-translate-characters (from to)
   "Translate all characters in the body of the article according to FROM and TO.

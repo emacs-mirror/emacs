@@ -5,7 +5,7 @@
 ;; Author: Joel Boehland
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.3
 
 ;; This file is part of GNU Emacs.
 
@@ -45,7 +45,6 @@
 (declare-function slime-eval-async "ext:slime" (sexp &optional cont package))
 (declare-function slime-eval "ext:slime" (sexp &optional package))
 (declare-function swank-clojure-concat-paths "ext:slime" (paths))
-(declare-function org-babel-ref-variables "ext:slime" (params))
 (declare-function slime "ext:slime" (&optional command coding-system))
 (declare-function slime-output-buffer "ext:slime" (&optional noprompt))
 (declare-function slime-filter-buffers "ext:slime" (predicate))
@@ -92,28 +91,28 @@
 (defvar swank-clojure-extra-classpaths)
 (defun org-babel-clojure-babel-clojure-cmd ()
   "Create the command to start clojure according to current settings."
-  (if (and (not swank-clojure-binary) (not swank-clojure-classpath))
+  (or (when swank-clojure-binary
+	(if (listp swank-clojure-binary)
+	    swank-clojure-binary
+	  (list swank-clojure-binary)))
+      (when swank-clojure-classpath
+	(delq
+	 nil
+	 (append
+	  (list swank-clojure-java-path)
+	  swank-clojure-extra-vm-args
+	  (list
+	   (when swank-clojure-library-paths
+	     (concat "-Djava.library.path="
+		     (swank-clojure-concat-paths swank-clojure-library-paths)))
+	   "-classpath"
+	   (swank-clojure-concat-paths
+	    (append
+	     swank-clojure-classpath
+	     swank-clojure-extra-classpaths))
+	   "clojure.main"))))
       (error "%s" (concat "You must specifiy either a `swank-clojure-binary' "
-			  "or a `swank-clojure-jar-path'"))
-    (if swank-clojure-binary
-        (if (listp swank-clojure-binary)
-            swank-clojure-binary
-          (list swank-clojure-binary))
-      (delq
-       nil
-       (append
-        (list swank-clojure-java-path)
-        swank-clojure-extra-vm-args
-        (list
-         (when swank-clojure-library-paths
-           (concat "-Djava.library.path="
-                   (swank-clojure-concat-paths swank-clojure-library-paths)))
-         "-classpath"
-         (swank-clojure-concat-paths
-          (append
-           swank-clojure-classpath
-           swank-clojure-extra-classpaths))
-         "clojure.main"))))))
+			  "or a `swank-clojure-classpath'"))))
 
 (defun org-babel-clojure-table-or-string (results)
   "Convert RESULTS to an elisp value.
@@ -155,7 +154,7 @@ code specifying a variable of the same value."
   "Prepare SESSION according to the header arguments specified in PARAMS."
   (require 'slime) (require 'swank-clojure)
   (let* ((session-buf (org-babel-clojure-initiate-session session))
-         (vars (org-babel-ref-variables params))
+         (vars (mapcar #'cdr (org-babel-get-header params :var)))
          (var-lines (mapcar ;; define any top level session variables
                      (lambda (pair)
                        (format "(def %s %s)\n" (car pair)
@@ -261,9 +260,13 @@ repl buffer."
 				       " "))))
     (case result-type
       (output (org-babel-eval cmd body))
-      (value (let* ((tmp-file (make-temp-file "org-babel-clojure-results-")))
-	       (org-babel-eval cmd (format org-babel-clojure-wrapper-method
-					   body tmp-file tmp-file))
+      (value (let* ((tmp-file (org-babel-temp-file "clojure-")))
+	       (org-babel-eval
+		cmd
+		(format
+		 org-babel-clojure-wrapper-method
+		 body
+		 (org-babel-process-file-name tmp-file 'noquote)))
 	       (org-babel-clojure-table-or-string
 		(org-babel-eval-read-file tmp-file)))))))
 
@@ -290,24 +293,23 @@ return the value of the last statement in BODY as elisp."
       (org-babel-clojure-evaluate-session buffer body result-type)
     (org-babel-clojure-evaluate-external-process buffer body result-type)))
 
-(defun org-babel-expand-body:clojure (body params &optional processed-params)
+(defun org-babel-expand-body:clojure (body params)
   "Expand BODY according to PARAMS, return the expanded body."
   (org-babel-clojure-build-full-form
-   body (nth 1 (or processed-params (org-babel-process-params params)))))
+   body (mapcar #'cdr (org-babel-get-header params :var))))
 
 (defun org-babel-execute:clojure (body params)
   "Execute a block of Clojure code."
   (require 'slime) (require 'swank-clojure)
-  (let* ((processed-params (org-babel-process-params params))
-         (body (org-babel-expand-body:clojure body params processed-params))
+  (let* ((body (org-babel-expand-body:clojure body params))
          (session (org-babel-clojure-initiate-session
-		   (first processed-params))))
+		   (cdr (assoc :session params)))))
     (org-babel-reassemble-table
-     (org-babel-clojure-evaluate session body (nth 3 processed-params))
+     (org-babel-clojure-evaluate session body (cdr (assoc :result-type params)))
      (org-babel-pick-name
-      (nth 4 processed-params) (cdr (assoc :colnames params)))
+      (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
      (org-babel-pick-name
-      (nth 5 processed-params) (cdr (assoc :rownames params))))))
+      (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params))))))
 
 (provide 'ob-clojure)
 

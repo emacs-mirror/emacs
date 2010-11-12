@@ -9664,8 +9664,8 @@ an attempt to provide more quoting characters.  If you see something
 like @code{\222} or @code{\264} where you're expecting some kind of
 apostrophe or quotation mark, then try this wash.
 
-@item W A
-@kindex W A (Summary)
+@item W U
+@kindex W U (Summary)
 @findex gnus-article-treat-non-ascii
 @cindex Unicode
 @cindex Non-@acronym{ASCII}

@@ -653,9 +653,9 @@
 	  (t
 	   (error "Could not identify PKCS#7 type")))))
 
-(defun mm-view-pkcs7 (handle)
+(defun mm-view-pkcs7 (handle &optional from)
   (case (mm-view-pkcs7-get-type handle)
-    (enveloped (mm-view-pkcs7-decrypt handle))
+    (enveloped (mm-view-pkcs7-decrypt handle from))
     (signed (mm-view-pkcs7-verify handle))
     (otherwise (error "Unknown or unimplemented PKCS#7 type"))))
 
@@ -680,7 +680,7 @@
     (replace-match "\n"))
   t)
 
-(defun mm-view-pkcs7-decrypt (handle)
+(defun mm-view-pkcs7-decrypt (handle &optional from)
   (insert-buffer-substring (mm-handle-buffer handle))
   (goto-char (point-min))
   (insert "MIME-Version: 1.0\n")
@@ -692,7 +692,8 @@
      (smime-get-key-by-email
       (gnus-completing-read
        "Decipher using key"
-       smime-keys nil nil nil (car-safe (car-safe smime-keys))))))
+       smime-keys nil nil nil (car-safe (car-safe smime-keys)))))
+   from)
   (goto-char (point-min))
   (while (search-forward "\r\n" nil t)
     (replace-match "\n"))

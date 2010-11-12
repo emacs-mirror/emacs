@@ -5,6 +5,11 @@
 	root window matches the requested size.  Also try one more round
 	with safe minimum sizes.  Simplify code.
 
+2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (Fself_insert_command): Don't call XFASTINT without checking
+	it's not negative.
+
 2010-11-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (syms_of_window): New variable

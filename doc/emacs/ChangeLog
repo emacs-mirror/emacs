@@ -1,3 +1,7 @@
+2010-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* msdog.texi (ls in Lisp): Update for ls-lisp changes.
+
 2010-11-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows HOME): Add information regarding startup

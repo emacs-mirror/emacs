@@ -216,11 +216,13 @@
 
 ;;;###autoload
 (defcustom browse-url-browser-function
-  (cond
-   ((memq system-type '(windows-nt ms-dos cygwin))
-    'browse-url-default-windows-browser)
-   ((memq system-type '(darwin)) 'browse-url-default-macosx-browser)
-   (t 'browse-url-default-browser))
+  `(("\\`mailto:" . browse-url-mail)
+    ("." .
+     ,(cond
+       ((memq system-type '(windows-nt ms-dos cygwin))
+	'browse-url-default-windows-browser)
+       ((memq system-type '(darwin)) 'browse-url-default-macosx-browser)
+       (t 'browse-url-default-browser))))
   "Function to display the current buffer in a WWW browser.
 This is used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.
@@ -260,7 +262,7 @@ regexp should probably be \".\" to specify a default browser."
 	  (function :tag "Your own function")
 	  (alist :tag "Regexp/function association list"
 		 :key-type regexp :value-type function))
-  :version "21.1"
+  :version "24.1"
   :group 'browse-url)
 
 (defcustom browse-url-netscape-program "netscape"
