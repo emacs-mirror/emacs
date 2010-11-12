@@ -74,10 +74,20 @@
 ;;   IF=ELSE and ELSE=END, we could turn them into IF<ELSE and ELSE>END
 ;;   and IF=END,
 
-;;; Code:
+;; TODO & BUGS:
+;;
+;; - FIXME: I think the behavior on empty lines is wrong.  It shouldn't
+;;   look at the next token on subsequent lines.
+;; - Using the structural information SMIE gives us, it should be possible to
+;;   implement a `smie-align' command that would automatically figure out what
+;;   there is to align and how to do it (something like: align the token of
+;;   lowest precedence that appears the same number of times on all lines,
+;;   and then do the same on each side of that token).
+;; - Maybe accept two juxtaposed non-terminals in the BNF under the condition
+;;   that the first always ends with a terminal, or that the second always
+;;   starts with a terminal.
 
-;; FIXME: I think the behavior on empty lines is wrong.  It shouldn't
-;; look at the next token on subsequent lines.
+;;; Code:
 
 (eval-when-compile (require 'cl))
 
@@ -401,6 +411,18 @@ CSTS is a list of pairs representing arcs in a graph."
      (append names (list (car names)))
      " < ")))
 
+;; (defun smie-check-grammar (grammar prec2 &optional dummy)
+;;   (maphash (lambda (k v)
+;;              (when (consp k)
+;;                (let ((left (nth 2 (assoc (car k) grammar)))
+;;                      (right (nth 1 (assoc (cdr k) grammar))))
+;;                  (when (and left right)
+;;                    (cond
+;;                     ((< left right) (assert (eq v '<)))
+;;                     ((> left right) (assert (eq v '>)))
+;;                     (t (assert (eq v '=))))))))
+;;            prec2))
+
 (put 'smie-prec2->grammar 'pure t)
 (defun smie-prec2->grammar (prec2)
   "Take a 2D precedence table and turn it into an alist of precedence levels.
@@ -469,6 +491,7 @@ PREC2 is a table as returned by `smie-precs->prec2' or
               ;; left = right).
               (unless (caar cst)
                 (setcar (car cst) i)
+                ;; (smie-check-grammar table prec2 'step1)
                 (incf i))
               (setq csts (delq cst csts))))
           (unless progress
@@ -478,8 +501,19 @@ PREC2 is a table as returned by `smie-precs->prec2' or
         (incf i 10))
       ;; Propagate equalities back to their source.
       (dolist (eq (nreverse eqs))
-        (assert (or (null (caar eq)) (eq (car eq) (cdr eq))))
-        (setcar (car eq) (cadr eq)))
+        (when (null (cadr eq))
+          ;; There's an equality constraint, but we still haven't given
+          ;; it a value: that means it binds tighter than anything else,
+          ;; and it can't be an opener/closer (those don't have equality
+          ;; constraints).
+          ;; So set it here rather than below since doing it below
+          ;; makes it more difficult to obey the equality constraints.
+          (setcar (cdr eq) i)
+          (incf i))
+        (assert (or (null (caar eq)) (eq (caar eq) (cadr eq))))
+        (setcar (car eq) (cadr eq))
+        ;; (smie-check-grammar table prec2 'step2)
+        )
       ;; Finally, fill in the remaining vars (which only appeared on the
       ;; right side of the < constraints).
       (let ((classification-table (gethash :smie-open/close-alist prec2)))
@@ -500,6 +534,7 @@ PREC2 is a table as returned by `smie-precs->prec2' or
             (incf i)))))                ;See other (incf i) above.
     (let ((ca (gethash :smie-closer-alist prec2)))
       (when ca (push (cons :smie-closer-alist ca) table)))
+    ;; (smie-check-grammar table prec2 'step3)
     table))
 
 ;;; Parsing using a precedence level table.
