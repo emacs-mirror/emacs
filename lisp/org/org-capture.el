@@ -76,7 +76,6 @@
   :tag "Org Capture"
   :group 'org)
 
-;;;###autoload
 (defcustom org-capture-templates nil
   "Templates for the creation of new entries.
 
