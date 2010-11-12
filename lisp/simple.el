@@ -512,7 +512,7 @@ With arg N, insert N newlines."
   (interactive "*p")
   (let* ((do-fill-prefix (and fill-prefix (bolp)))
 	 (do-left-margin (and (bolp) (> (current-left-margin) 0)))
-	 (loc (point))
+	 (loc (point-marker))
 	 ;; Don't expand an abbrev before point.
 	 (abbrev-mode nil))
     (newline n)

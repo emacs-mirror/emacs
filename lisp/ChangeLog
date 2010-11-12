@@ -1,3 +1,7 @@
+2010-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (open-line): `newline' may strip trailing space.
+
 2010-11-12  Kevin Ryde  <user42@zip.com.au>
 
 	* international/mule-cmds.el (princ-list): Use mapc.
