@@ -5021,7 +5021,7 @@ change the tooltip's appearance.
 Automatically hide the tooltip after TIMEOUT seconds.  TIMEOUT nil
 means use the default timeout of 5 seconds.
 
-If the list of frame parameters PARAMS contains a `left' parameters,
+If the list of frame parameters PARMS contains a `left' parameters,
 the tooltip is displayed at that x-position.  Otherwise it is
 displayed at the mouse position, with offset DX added (default is 5 if
 DX isn't specified).  Likewise for the y-position; if a `top' frame
