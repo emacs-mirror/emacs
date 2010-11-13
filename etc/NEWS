@@ -213,6 +213,9 @@ replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
 * Editing Changes in Emacs 24.1
 
++++
+** There is a new command `count-words-region', which does what you expect.
+
 ** completion-at-point is now an alias for complete-symbol.
 
 ** Deletion changes

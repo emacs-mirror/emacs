@@ -1,3 +1,7 @@
+2010-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* basic.texi (Position Info): Add M-x count-words-region.
+
 2010-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* msdog.texi (ls in Lisp): Update for ls-lisp changes.
