@@ -2420,6 +2420,16 @@ check_all_windows (void)
   window_loop (CHECK_ALL_WINDOWS, Qnil, 1, Qt);
 }
 
+DEFUN ("window-use-time", Fwindow_use_time, Swindow_use_time, 0, 1, 0,
+       doc: /* Return WINDOW's use time.
+WINDOW defaults to the selected window.  The window with the highest use
+time is the most recently selected one.  The window with the lowest use
+time is the least recently selected one.  */)
+  (Lisp_Object window)
+{
+  return decode_window (window)->use_time;
+}
+
 DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 2, 0,
        doc: /* Return the window least recently selected or used for display.
 \(LRU means Least Recently Used.)
