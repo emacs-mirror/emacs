@@ -1318,7 +1318,7 @@ explicitly requested, despite its name.
 code.  If a fontset specifies no font for a certain character, or if
 it specifies a font that does not exist on your system, then it cannot
 display that character properly.  It will display that character as a
-hex code or thin space or an empty box instead.  (@xref{Text Display,
+hex code or thin space or an empty box instead.  (@xref{Text Display, ,
 glyphless characters}, for details.)
 
 @node Defining Fontsets
