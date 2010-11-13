@@ -1,7 +1,6 @@
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* refcards/orgcard.tex: adding new Babel key sequences to the
-	org refcard
+	* refcards/orgcard.tex: Add new Babel key sequences.
 
 2010-10-26  Glenn Morris  <rgm@gnu.org>
 
@@ -5109,12 +5108,11 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
-	2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-	Free Software Foundation, Inc.
+  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
+    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+    Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -5130,5 +5128,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: 094f3a51-bd72-44d0-8fac-2ac242c6c5b1
