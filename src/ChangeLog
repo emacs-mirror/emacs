@@ -1,7 +1,8 @@
 2010-11-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	Fix compilation on Solaris.
+	* xmenu.c: Make it clear that ../lwlib/lwlib.h is only needed for Motif.
 
+	Fix compilation on Solaris.
 	* sysdep.c: Do not #include <term.h>.
 	(tputs): Add declaration, similar to what cm.c does.  (Bug#7178)
 
