@@ -1,3 +1,8 @@
+2010-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* novice.el (disabled-command-function):
+	Fix 2009-11-15 change.  (Bug#7384)
+
 2010-11-12  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (diary-iso-date-forms): Make elements
