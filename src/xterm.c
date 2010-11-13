@@ -8380,8 +8380,9 @@ set_wm_state (Lisp_Object frame, int add, Atom atom, Atom value)
                        Fcons
                        (make_number (add ? 1 : 0),
                         Fcons
-                        (atom,
-                         value != 0 ? value : Qnil)));
+                        (make_fixnum_or_float (atom),
+                         value != 0
+                         ? make_fixnum_or_float (value) : Qnil)));
 }
 
 void
@@ -10247,7 +10248,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       { "_NET_WM_ICON_NAME", &dpyinfo->Xatom_net_wm_icon_name },
       { "_NET_WM_NAME", &dpyinfo->Xatom_net_wm_name },
       { "_NET_SUPPORTED",  &dpyinfo->Xatom_net_supported },
-      { "_NET_SUPPORTING_WM_CHECK", &dpyinfo->Xatom_net_supported },
+      { "_NET_SUPPORTING_WM_CHECK", &dpyinfo->Xatom_net_supporting_wm_check },
       { "_NET_WM_WINDOW_OPACITY", &dpyinfo->Xatom_net_wm_window_opacity },
       { "_NET_ACTIVE_WINDOW", &dpyinfo->Xatom_net_active_window },
       { "_NET_FRAME_EXTENTS", &dpyinfo->Xatom_net_frame_extents },

@@ -2528,8 +2528,11 @@ are ignored.  */)
 {
   struct x_display_info *dpyinfo = check_x_display_info (display);
 
+  CHECK_STRING (message_type);
   x_send_client_event(display, dest, from,
-                      XInternAtom (dpyinfo->display, SDATA (message_type), False),
+                      XInternAtom (dpyinfo->display,
+                                   SDATA (message_type),
+                                   False),
                       format, values);
 
   return Qnil;
@@ -2546,7 +2549,6 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from, At
   struct frame *f = check_x_frame (from);
   int to_root;
 
-  CHECK_STRING (message_type);
   CHECK_NUMBER (format);
   CHECK_CONS (values);
 
