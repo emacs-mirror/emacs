@@ -90,12 +90,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "process.h"
 #include "cm.h"  /* for reset_sys_modes */
-#ifdef HAVE_TERM_H
-/* Include this last.  If it is ncurses header file, it adds a lot of
-   defines that interfere with stuff in other headers.  Someone responsible
-   for ncurses messed up bigtime.  See bug#6812.  */
-#include <term.h>
-#endif
 
 #ifdef WINDOWSNT
 #include <direct.h>
@@ -122,6 +116,9 @@ struct utimbuf {
 };
 #endif
 #endif
+
+/* Declare here, including term.h is problematic on some systems.  */
+extern void tputs (const char *, int, int (*)(int));
 
 static const int baud_convert[] =
   {
@@ -3071,6 +3068,3 @@ system_process_attributes (Lisp_Object pid)
 
 #endif	/* !defined (WINDOWSNT) */
 
-
-/* arch-tag: edb43589-4e09-4544-b325-978b5b121dcf
-   (do not change this comment) */

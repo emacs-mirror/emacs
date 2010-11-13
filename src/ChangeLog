@@ -1,5 +1,10 @@
 2010-11-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Fix compilation on Solaris.
+
+	* sysdep.c: Do not #include <term.h>.
+	(tputs): Add declaration, similar to what cm.c does.  (Bug#7178)
+
 	* s/ms-w32.h (HAVE_TERMIOS_H): Do not undef, not used anymore.
 
 2010-11-13  Jan Djärv  <jan.h.d@swipnet.se>
