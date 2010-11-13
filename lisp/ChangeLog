@@ -1,3 +1,7 @@
+2010-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (posn-col-row): Pay attention to header line.  (Bug#7390)
+
 2010-11-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/picture.el (picture-mouse-set-point): Don't use
