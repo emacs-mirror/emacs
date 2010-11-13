@@ -1,3 +1,9 @@
+2010-11-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix alloca definition when using gcc on non-gnu systems.
+	* configure.in: Use the code sequence indicated by "info autoconf"
+	for alloca (bug#6170).
+
 2010-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* .dir-locals.el (log-edit-mode): Set log-edit-rewrite-fixes.
