@@ -1,3 +1,83 @@
+2010-11-13  Ken Manheimer <ken.manheimer@gmail.com>
+
+	Another omnibus checkin of a backlog of fixes.  (Now that i'm
+	using bzr i should be able to interact with the gnu version
+	control repository in smaller, properly incremental steps, from
+	here on.)
+
+	This main features of the changes here are:
+
+	- implement user customization for the allout key bindings
+	- add a customization control by which the user can inhibit use of
+	  a trailing Ctl-H, so by default it's reserved for use with
+	  describe-prefix-bindings
+	- adapt to new version of called-interactively-p, while
+	  maintaining backwards compatability with old version
+	- fix hotspot navigation so i works properly with meta-modified keys
+
+	+ allout.el (allout-keybindings), (allout-bind-keys),
+	(allout-keybindings-binding), allout-prefixed-keybindings,
+	allout-unprefixed-keybindings, allout-preempt-trailing-ctrl-h,
+	allout-keybindings-list,
+	allout-mode-map-adjustments, (allout-setup-mode-map): Establish
+	allout-mode keymaps as user customizable settings, and also
+	establish a customizable setting which regulates whether or not a
+	trailing control-h is reserved for use with
+	describe-prefix-bindings - and inihibit it by default, so that
+	control-h *is* reserved for describe-prefix-bindings unless the
+	user changes this setting.
+
+	(allout-hotspot-key-handler): Distinguish more explicitly and
+	accurately between modified and unmodified events, and handle
+	modified events more comprehensively.
+
+	(allout-substring-no-properties): Alias to use or provide version
+	of 'substring-no-properties'.
+	(allout-solicit-alternate-bullet): Use
+	'allout-substring-no-properties'.
+
+	(allout-next-single-char-property-change): Alias to use or provide
+	version of 'next-single-char-property-change'.
+	(allout-annotate-hidden), (allout-hide-by-annotation): Use
+	'allout-next-single-char-property-change'.
+
+	(allout-select-safe-coding-system): Alias to use or provide
+	version of 'select-safe-coding-system'.
+	(allout-toggle-subtree-encryption): Use
+	'allout-select-safe-coding-system'.
+
+	(allout-set-buffer-multibyte): Alias to use or provide version of
+	'set-buffer-multibyte'.
+	(allout-encrypt-string): Use 'allout-set-buffer-multibyte'.
+
+	(allout-called-interactively-p): Macro for using the different
+	versions of called-interactively-p identically, depending on the
+	subroutine's argument signature.
+
+	(allout-back-to-current-heading), (allout-beginning-of-current-entry)
+	- use '(interactive "p")' instead of '(called-interactively-p)'.
+
+	(allout-init), (allout-ascend), (allout-end-of-level),
+	(allout-previous-visible-heading), (allout-forward-current-level),
+	(allout-backward-current-level), (allout-show-children) - use
+	'(allout-called-interactively-p)' instead of
+	'(called-interactively-p)'.
+
+	(allout-before-change-handler): Exempt edits to the (overlaid)
+	character after the allout outline bullet from edit confirmation
+	prompt.
+
+	(allout-add-resumptions): Ensure that it respects correct buffer
+	for keybindings.
+
+	(allout-beginning-of-line): Use
+	'allout-previous-single-char-property-change' alias for the sake
+	of diverse compatibility.
+
+	(allout-end-of-line): Use 'allout-mark-active-p' to encapsulate
+	respect for mark activity.
+
+
 2010-11-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.el (frame-notice-user-settings): Don't clobber other
