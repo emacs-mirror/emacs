@@ -1,6 +1,6 @@
 ;;; ob-ruby.el --- org-babel functions for ruby evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation
+;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -29,10 +29,10 @@
 ;;; Requirements:
 
 ;; - ruby and irb executables :: http://www.ruby-lang.org/
-;; 
+;;
 ;; - ruby-mode :: Can be installed through ELPA, or from
 ;;   http://github.com/eschulte/rinari/raw/master/util/ruby-mode.el
-;;   
+;;
 ;; - inf-ruby mode :: Can be installed through ELPA, or from
 ;;   http://github.com/eschulte/rinari/raw/master/util/inf-ruby.el
 

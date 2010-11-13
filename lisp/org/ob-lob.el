@@ -2,7 +2,8 @@
 
 ;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
-;; Author: Eric Schulte, Dan Davison
+;; Author: Eric Schulte
+;;	Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
 ;; Version: 7.3
@@ -25,7 +26,7 @@
 ;;; Commentary:
 
 ;; See the online documentation for more information
-;; 
+;;
 ;;   http://orgmode.org/worg/org-contrib/babel/
 
 ;;; Code:
@@ -92,13 +93,13 @@ if so then run the appropriate source block from the Library."
       (beginning-of-line 1)
       (if (looking-at org-babel-lob-one-liner-regexp)
           (append
-	   (mapcar #'org-babel-clean-text-properties 
+	   (mapcar #'org-babel-clean-text-properties
 		   (list
 		    (format "%s(%s)%s"
 			    (match-string 2) (match-string 3) (match-string 4))
 		    (match-string 5)))
 	   (list (length (match-string 1))))))))
-  
+
 (defun org-babel-lob-execute (info)
   "Execute the lob call specified by INFO."
   (let ((params (org-babel-process-params
