@@ -7162,7 +7162,11 @@ and end of region, and are expected to replace the region contents
 with the encoded or decoded results, respectively.")
 
 (defconst tramp-remote-coding-commands
-  '((b64 "base64" "base64 -d")
+  '((b64 "base64" "base64 -d -i")
+    ;; "-i" is more robust with older base64 from GNU coreutils.
+    ;; However, I don't know whether all base64 versions do supports
+    ;; this option.
+    (b64 "base64" "base64 -d")
     (b64 "mimencode -b" "mimencode -u -b")
     (b64 "mmencode -b" "mmencode -u -b")
     (b64 "recode data..base64" "recode base64..data")
