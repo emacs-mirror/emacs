@@ -89,7 +89,7 @@
 	* emacs-lisp/package.el (package-read-all-archive-contents):
 	Reset package-archive-contents to nil before re-reading.
 
-2010-11-10  Brandon Craig Rhodes <brandon@rhodesmill.org>  (tiny change)
+2010-11-10  Brandon Craig Rhodes  <brandon@rhodesmill.org>  (tiny change)
 
 	* textmodes/flyspell.el (flyspell-word): Do not re-check words
 	already found as misspellings by (flyspell-large-region), just
