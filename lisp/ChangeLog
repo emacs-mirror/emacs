@@ -1,3 +1,9 @@
+2010-11-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (frame-notice-user-settings): Don't clobber other
+	user-set parameters when calling face-set-after-frame-default in
+	response to background-color parameter (Bug#7373).
+
 2010-11-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/characters.el (glyphless-char-display-control):
