@@ -1,3 +1,29 @@
+2010-11-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-line-beginning-position)
+	(tramp-compat-line-end-position): Remove them.
+
+	* net/tramp.el (tramp-parse-rhosts-group)
+	(tramp-parse-shosts-group, tramp-parse-sconfig-group)
+	(tramp-parse-hosts-group, tramp-parse-passwd-group)
+	(tramp-parse-netrc-group, tramp-parse-putty-group)
+	* net/tramp-cmds.el (tramp-append-tramp-buffers)
+	* net/tramp-sh.el (tramp-do-file-attributes-with-ls)
+	(tramp-sh-handle-file-selinux-context)
+	(tramp-sh-handle-file-name-all-completions)
+	(tramp-sh-handle-insert-directory)
+	(tramp-sh-handle-expand-file-name, tramp-find-executable)
+	(tramp-wait-for-output, tramp-send-command-and-read)
+	* net/tramp-smb.el (tramp-smb-read-file-entry)
+	(tramp-smb-get-cifs-capabilities): Use `point-at-eol'.
+
+	* net/tramp-sh.el (tramp-sh-handle-insert-directory) Use
+	`point-at-bol'.
+	(tramp-remote-coding-commands): Add an alternative using "base64
+	-d -i".  This is needed for older base64 versions from GNU
+	coreutils.  Reported by Klaus Reichl
+	<Klaus.Reichl@thalesgroup.com>.
+
 2010-11-13  Hrvoje Niksic  <hniksic@xemacs.org>
 
 	* simple.el (count-words-region): New function.
@@ -1227,7 +1253,7 @@
 
 	* newcomment.el (comment-dwim): Fix the intentation in the doc string.
 
-010-10-21  Michael Albinus  <michael.albinus@gmx.de>
+2010-10-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-do-file-attributes-with-stat): Do not use
 	space in stat format string.
