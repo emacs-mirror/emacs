@@ -973,6 +973,21 @@ rather than line counts."
 	(re-search-forward "[\n\C-m]" nil 'end (1- line))
       (forward-line (1- line)))))
 
+(defun count-words-region (start end)
+  "Print the number of words in the region.
+When called interactively, the word count is printed in echo area."
+  (interactive "r")
+  (let ((count 0))
+    (save-excursion
+      (save-restriction
+        (narrow-to-region start end)
+        (goto-char (point-min))
+        (while (forward-word 1)
+          (setq count (1+ count)))))
+    (if (interactive-p)
+        (message "Region has %d words" count))
+    count))
+
 (defun count-lines-region (start end)
   "Print number of lines and characters in the region."
   (interactive "r")
