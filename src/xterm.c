@@ -1369,7 +1369,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 		str = (char *) SDATA (acronym);
 	    }
 	}
-      else if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEXA_CODE)
+      else if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEX_CODE)
 	{
 	  sprintf ((char *) buf, "%0*X",
 		   glyph->u.glyphless.ch < 0x10000 ? 4 : 6,

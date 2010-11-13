@@ -138,6 +138,18 @@ with Xft.  To change font, use X resource faceName, for example:
 Emacs.pane.menubar.faceName:  Courier-12
 Set faceName to none and use font to use the old X fonts.
 
++++
+** Enhanced support for characters that have no glyphs in available fonts
+If a character has no glyphs in any of the available fonts, Emacs by
+default will display it either as a hexadecimal code in a box or as a
+thin 1-pixel space.  In addition to these two methods, Emacs can
+display these characters as empty box, as an acronym, or not display
+them at all.  To change how these characters are displayed, customize
+the variable `glyphless-char-display-control'.
+
+On character terminals these methods are used for characters that
+cannot be encoded by the `terminal-coding-system'.
+
 ** On graphical displays, the mode-line no longer ends in dashes.
 
 ** Basic SELinux support has been added.

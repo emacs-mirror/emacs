@@ -371,12 +371,11 @@ struct glyph
      displaying.  The member `pixel_width' above is set to 1.  */
   unsigned padding_p : 1;
 
-  /* 1 means the actual glyph is not available, draw a box instead.
-     This can happen when a font couldn't be loaded, or a character
-     doesn't have a glyph in a font.  */
+  /* 1 means the actual glyph is not available, draw using `struct
+     glyphless' below instead.  This can happen when a font couldn't
+     be loaded, or a character doesn't have a glyph in a font.  */
   unsigned glyph_not_available_p : 1;
 
- 
   /* Non-zero means don't display cursor here.  */
   unsigned avoid_cursor_p : 1;
 
@@ -1997,14 +1996,15 @@ enum line_wrap_method
 
 enum glyphless_display_method
   {
-    /* Display a thin (1-pixel width) space.  */
+    /* Display a thin (1-pixel width) space.  On a TTY, display a
+       1-character width space.  */
     GLYPHLESS_DISPLAY_THIN_SPACE,
     /* Display an empty box of proper width.  */
     GLYPHLESS_DISPLAY_EMPTY_BOX,
     /* Display an acronym string in a box.  */
     GLYPHLESS_DISPLAY_ACRONYM,
-    /* Display a hexadecimal character code in a box.  */
-    GLYPHLESS_DISPLAY_HEXA_CODE
+    /* Display the hexadecimal code of the character in a box.  */
+    GLYPHLESS_DISPLAY_HEX_CODE
   };
 
 struct it_slice

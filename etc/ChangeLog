@@ -1,3 +1,7 @@
+2010-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Document display of glyphless characters.
+
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
 	* refcards/orgcard.tex: Add new Babel key sequences.

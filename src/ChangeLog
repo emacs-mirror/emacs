@@ -1,3 +1,25 @@
+2010-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix cursor positioning on
+	zero-width characters.
+
+	* .gdbinit (pgx): Adapt to latest changes in `struct glyph'.
+
+	* w32term.c (x_draw_glyphless_glyph_string_foreground): Draw the
+	box before drawing the glyphs inside it.
+
+	* xdisp.c (syms_of_xdisp) <glyphless-char-display>: Doc fix.
+
+	* dispextern.h (enum glyphless_display_method): Rename
+	GLYPHLESS_DISPLAY_HEXA_CODE to GLYPHLESS_DISPLAY_HEX_CODE.  All
+	users changed.
+
+	* term.c (append_glyphless_glyph, produce_glyphless_glyph): Fix
+	comments.
+	(produce_glyphless_glyph): Enclose "U+nnnn" and "empty box"
+	whitespace in "[]", to simulate a box.  Don't use uninitialized
+	variable `width'.
+
 2010-11-11  Julien Danjou  <julien@danjou.info>
 
 	* xsettings.c (init_xsettings): Use already fetch atoms.

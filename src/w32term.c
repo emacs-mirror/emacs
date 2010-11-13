@@ -1440,7 +1440,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 		str = (char *) SDATA (acronym);
 	    }
 	}
-      else if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEXA_CODE)
+      else if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEX_CODE)
 	{
 	  sprintf ((char *) buf, "%0*X",
 		   glyph->u.glyphless.ch < 0x10000 ? 4 : 6,
@@ -1448,6 +1448,11 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 	  str = buf;
 	}
 
+      if (glyph->u.glyphless.method != GLYPHLESS_DISPLAY_THIN_SPACE)
+	w32_draw_rectangle (s->hdc, s->gc,
+			    x, s->ybase - glyph->ascent,
+			    glyph->pixel_width - 1,
+			    glyph->ascent + glyph->descent - 1);
       if (str)
 	{
 	  struct font *font = s->font;
@@ -1456,7 +1461,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 	  HFONT old_font;
 
 	  old_font = SelectObject (s->hdc, FONT_HANDLE (font));
-	  /* It is assured that all LEN characters in STR is ASCII.  */
+	  /* It is certain that all LEN characters in STR are ASCII.  */
 	  for (j = 0; j < len; j++)
 	    {
 	      code = font->driver->encode_char (font, str[j]);
@@ -1472,11 +1477,6 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 			      with_background);
 	  SelectObject (s->hdc, old_font);
 	}
-      if (glyph->u.glyphless.method != GLYPHLESS_DISPLAY_THIN_SPACE)
-	w32_draw_rectangle (s->hdc, s->gc,
-			    x, s->ybase - glyph->ascent,
-			    glyph->pixel_width - 1,
-			    glyph->ascent + glyph->descent - 1);
       x += glyph->pixel_width;
    }
 }

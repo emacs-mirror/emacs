@@ -1,3 +1,14 @@
+2010-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* rmail.texi (Rmail Coding): Characters with no fonts are not
+	necessarily displayed as empty boxes.
+
+	* mule.texi (Language Environments, Fontsets): Characters with no
+	fonts are not necessarily displayed as empty boxes.
+
+	* display.texi (Text Display): Document display of glyphless
+	characters.
+
 2010-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* basic.texi (Position Info): Add M-x count-words-region.

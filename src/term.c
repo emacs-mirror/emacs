@@ -1850,9 +1850,9 @@ produce_composite_glyph (struct it *it)
 
 
 /* Append a glyph for a glyphless character to IT->glyph_row.  FACE_ID
-   is a face ID to be used for the glyph.  What actually appended are
-   glyphs of type CHAR_GLYPH of which characters are in STR
-   (it->nglyphs bytes).  */
+   is a face ID to be used for the glyph.  What is actually appended
+   are glyphs of type CHAR_GLYPH whose characters are in STR (which
+   comes from it->nglyphs bytes).  */
 
 static void
 append_glyphless_glyph (struct it *it, int face_id, char *str)
@@ -1923,7 +1923,7 @@ extern Lisp_Object Qglyphless_char;
 /* Produce glyphs for a glyphless character for iterator IT.
    IT->glyphless_method specifies which method to use for displaying
    the character.  See the description of enum
-   glyphless_display_method in dispextern.h for the detail.
+   glyphless_display_method in dispextern.h for the details.
 
    FOR_NO_FONT is nonzero if and only if this is for a character that
    is not supproted by the coding system of the terminal.  ACRONYM, if
@@ -1935,11 +1935,11 @@ static void
 produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 {
   int face_id;
-  int width, len;
-  char buf[9], *str = "    ";
+  int len;
+  char buf[11], *str = "    ";
 
   /* Get a face ID for the glyph by utilizing a cache (the same way as
-     doen for `escape-glyph' in get_next_display_element).  */
+     done for `escape-glyph' in get_next_display_element).  */
   if (it->f == last_glyphless_glyph_frame
       && it->face_id == last_glyphless_glyph_face_id)
     {
@@ -1956,8 +1956,8 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 
   if (it->glyphless_method == GLYPHLESS_DISPLAY_THIN_SPACE)
     {
-      /* As there's no way to produce a thin space, we produce
-	 a space of canonical width..  */
+      /* As there's no way to produce a thin space, we produce a space
+	 of canonical width.  */
       len = 1;
     }
   else if (it->glyphless_method == GLYPHLESS_DISPLAY_EMPTY_BOX)
@@ -1965,8 +1965,11 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
       len = CHAR_WIDTH (it->c);
       if (len == 0)
 	len = 1;
-      else if (width > 4)
+      else if (len > 4)
 	len = 4;
+      sprintf (buf, "[%.*s]", len, str);
+      len += 2;
+      str = buf;
     }
   else
     {
@@ -1983,11 +1986,11 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	}
       else
 	{
-	  xassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEXA_CODE);
-	  len = (it->c < 0x100 ? sprintf (buf, "U+%02X", it->c)
-		 : it->c < 0x10000 ? sprintf (buf, "U+%04X", it->c)
-		 : it->c <= MAX_UNICODE_CHAR ? sprintf (buf, "U+%06X", it->c)
-		 : sprintf (buf, "E+%06X", it->c));
+	  xassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEX_CODE);
+	  len = (it->c < 0x100 ? sprintf (buf, "[U+%02X]", it->c)
+		 : it->c < 0x10000 ? sprintf (buf, "[U+%04X]", it->c)
+		 : it->c <= MAX_UNICODE_CHAR ? sprintf (buf, "[U+%06X]", it->c)
+		 : sprintf (buf, "[E+%06X]", it->c));
 	}
       str = buf;
     }

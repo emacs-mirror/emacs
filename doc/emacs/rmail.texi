@@ -1192,7 +1192,8 @@ specification, or because the specification was inaccurate.  For
 example, a misconfigured mailer could send a message with a
 @samp{charset=iso-8859-1} header when the message is actually encoded
 in @code{koi8-r}.  When you see the message text garbled, or some of
-its characters displayed as empty boxes, this may have happened.
+its characters displayed as hex codes or empty boxes, this may have
+happened.
 
 @findex rmail-redecode-body
   You can correct the problem by decoding the message again using the
