@@ -1,3 +1,7 @@
+2010-11-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/ms-w32.h (HAVE_TERMIOS_H): Do not undef, not used anymore.
+
 2010-11-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (set_wm_state): Don't put Atom in cons, call

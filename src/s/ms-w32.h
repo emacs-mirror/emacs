@@ -112,7 +112,6 @@ struct sigaction {
 #undef  HAVE_UTIME_H
 #undef  HAVE_LINUX_VERSION_H
 #undef  HAVE_SYS_SYSTEMINFO_H
-#undef  HAVE_TERMIOS_H
 #define HAVE_LIMITS_H 1
 #define HAVE_STRING_H 1
 #define HAVE_STDLIB_H 1
