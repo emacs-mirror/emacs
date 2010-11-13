@@ -1,8 +1,9 @@
 2010-11-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/characters.el (glyphless-char-display-control):
-	Doc fix.  Signal an error if display method is not one of the
-	recognized symbols.
+	Renamed from glyphless-char-control; all users changed.  Doc fix.
+	Signal an error if display method is not one of the recognized
+	symbols.
 
 2010-11-13  Michael Albinus  <michael.albinus@gmx.de>
 
