@@ -563,7 +563,9 @@ init_gconf ()
   int i;
   char *s;
 
+#ifdef HAVE_G_TYPE_INIT
   g_type_init ();
+#endif
   gconf_client = gconf_client_get_default ();
   s = gconf_client_get_string (gconf_client, SYSTEM_MONO_FONT, NULL);
   if (s)

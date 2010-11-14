@@ -292,6 +292,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if GTK can handle more than one display. */
 #undef HAVE_GTK_MULTIDISPLAY
 
+/* Define to 1 if you have the `g_type_init' function. */
+#undef HAVE_G_TYPE_INIT
+
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
 
@@ -333,9 +336,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
 #undef HAVE_LANGINFO_CODESET
-
-/* Define to 1 if the directory /usr/lib64 exists. */
-#undef HAVE_LIB64_DIR
 
 /* Define to 1 if you have the `com_err' library (-lcom_err). */
 #undef HAVE_LIBCOM_ERR
