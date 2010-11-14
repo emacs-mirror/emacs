@@ -1,3 +1,9 @@
+2010-11-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (init_gconf): Check HAVE_G_TYPE_INIT.
+
+	* config.in (HAVE_G_TYPE_INIT): New symbol.
+
 2010-11-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* lread.c (Fload): Mention `load-in-progress' and
