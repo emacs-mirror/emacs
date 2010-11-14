@@ -2544,8 +2544,6 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from, At
   struct x_display_info *dpyinfo = check_x_display_info (display);
   Window wdest;
   XEvent event;
-  Lisp_Object cons;
-  int size;
   struct frame *f = check_x_frame (from);
   int to_root;
 
@@ -2592,9 +2590,6 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from, At
 
   if (wdest == 0) wdest = dpyinfo->root_window;
   to_root = wdest == dpyinfo->root_window;
-
-  for (cons = values, size = 0; CONSP (cons); cons = XCDR (cons), ++size)
-    ;
 
   BLOCK_INPUT;
 
