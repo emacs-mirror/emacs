@@ -1224,8 +1224,6 @@ be shared by the new frame.  */)
                       "foreground", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qbackground_color, build_string ("White"),
                       "background", "Background", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qcursor_color, build_string ("grey"),
-                      "cursorColor", "CursorColor", RES_TYPE_STRING);
   /* FIXME: not suppported yet in Nextstep */
   x_default_parameter (f, parms, Qline_spacing, Qnil,
 		       "lineSpacing", "LineSpacing", RES_TYPE_NUMBER);

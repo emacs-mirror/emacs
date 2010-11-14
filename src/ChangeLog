@@ -1,3 +1,9 @@
+2010-11-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* w32fns.c (Fx_create_frame):
+	* nsfns.m (Fx_create_frame): Don't check for the cursorColor
+	resource here; it's now done at startup.
+
 2010-11-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (set_wm_state): Add Qnil to final cons.
