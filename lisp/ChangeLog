@@ -1,3 +1,8 @@
+2010-11-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): If the cursorColor resource is set,
+	change the cursor face-spec (Bug#7392).
+
 2010-11-13  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	The main features of the following allout.el changes are:

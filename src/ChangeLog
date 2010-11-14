@@ -1,3 +1,8 @@
+2010-11-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame): Don't check for the cursorColor
+	resource here; it's now done at startup.
+
 2010-11-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xmenu.c: Make it clear that ../lwlib/lwlib.h is only needed for Motif.
