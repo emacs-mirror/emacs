@@ -1,3 +1,17 @@
+2010-11-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (modify_event_symbol) : Add const to array elements of
+	arg NAME_TABLE.
+	(lispy_accent_keys, lispy_function_keys, lispy_multimedia_keys)
+	(lispy_kana_keys, iso_lispy_function_keys, lispy_wheel_names)
+	(lispy_wheel_names, lispy_drag_n_drop_names, modifier_names):
+	Add const to array elements.
+	(scroll_bar_parts): Make static.  Fix position of const.
+
+	* w32fns.c (lispy_function_keys): Add const to extern.
+
+	* w32inevt.c (lispy_function_keys): Likewise.
+
 2010-11-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (Fx_create_frame): Don't check for the cursorColor
