@@ -6221,10 +6221,10 @@ $as_echo "#define HAVE_SOUND 1" >>confdefs.h
 
 fi
 
-for ac_header in sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
-  linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
-  stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
-  sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
+for ac_header in sys/select.h sys/time.h unistd.h utime.h \
+  linux/version.h sys/systeminfo.h limits.h \
+  stdio_ext.h fcntl.h coff.h pty.h sys/mman.h \
+  sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
   sys/utsname.h pwd.h utmp.h dirent.h util.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
