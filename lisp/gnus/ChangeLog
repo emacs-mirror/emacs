@@ -1,3 +1,8 @@
+2010-11-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-agent.el (gnus-agentize): Only do the auto-agentizing if
+	gnus-agent-auto-agentize-methods is set.  Which it isn't.
+
 2010-11-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-move-article): Fix `while' loop to make it

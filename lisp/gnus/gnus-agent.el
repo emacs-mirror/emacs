@@ -695,7 +695,9 @@ minor mode in all Gnus buffers."
   ;; If the servers file doesn't exist, auto-agentize some servers and
   ;; save the servers file so this auto-agentizing isn't invoked
   ;; again.
-  (unless (file-exists-p (nnheader-concat gnus-agent-directory "lib/servers"))
+  (when (and (not (file-exists-p (nnheader-concat
+				  gnus-agent-directory "lib/servers")))
+	     gnus-agent-auto-agentize-methods)
     (gnus-message 3 "First time agent user, agentizing remote groups...")
     (mapc
      (lambda (server-or-method)
