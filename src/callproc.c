@@ -1231,6 +1231,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
     report_file_error ("Spawning child process", Qnil);
   return pid;
 #endif  /* MSDOS */
+#endif  /* not WINDOWSNT */
 }
 
 #ifndef WINDOWSNT
