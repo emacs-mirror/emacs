@@ -971,7 +971,7 @@ Lisp_Object Vglyphless_char_display;
 Lisp_Object Qglyphless_char_display;
 
 /* Method symbols for Vglyphless_char_display.  */
-static Lisp_Object Qhexa_code, Qempty_box, Qthin_space, Qzero_width;
+static Lisp_Object Qhex_code, Qempty_box, Qthin_space, Qzero_width;
 
 /* Default pixel width of `thin-space' display method.  */
 #define THIN_SPACE_WIDTH 1
@@ -5813,8 +5813,8 @@ lookup_glyphless_char_display (int c, struct it *it)
     it->glyphless_method = GLYPHLESS_DISPLAY_THIN_SPACE;
   else if (EQ (glyphless_method, Qempty_box))
     it->glyphless_method = GLYPHLESS_DISPLAY_EMPTY_BOX;
-  else if (EQ (glyphless_method, Qhexa_code))
-    it->glyphless_method = GLYPHLESS_DISPLAY_HEXA_CODE;
+  else if (EQ (glyphless_method, Qhex_code))
+    it->glyphless_method = GLYPHLESS_DISPLAY_HEX_CODE;
   else if (STRINGP (glyphless_method))
     it->glyphless_method = GLYPHLESS_DISPLAY_ACRONYM;
   else
@@ -12871,10 +12871,10 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	       || (row->truncated_on_left_p && pt_old < bpos_min)
 	       || (row->truncated_on_right_p && pt_old > bpos_max)
 	       /* Zero-width characters produce no glyphs.  */
-	       || ((row->reversed_p
-		    ? glyph_after > glyphs_end
-		    : glyph_after < glyphs_end)
-		   && eabs (glyph_after - glyph_before) == 1))
+	       || (!string_seen
+		   && (row->reversed_p
+		       ? glyph_after > glyphs_end
+		       : glyph_after < glyphs_end)))
 	{
 	  cursor = glyph_after;
 	  x = -1;
@@ -22292,7 +22292,7 @@ calc_line_height_property (struct it *it, Lisp_Object val, struct font *font,
    and only if this is for a character for which no font was found.
 
    If the display method (it->glyphless_method) is
-   GLYPHLESS_DISPLAY_ACRONYM or GLYPHLESS_DISPLAY_HEXA_CODE, LEN is a
+   GLYPHLESS_DISPLAY_ACRONYM or GLYPHLESS_DISPLAY_HEX_CODE, LEN is a
    length of the acronym or the hexadecimal string, UPPER_XOFF and
    UPPER_YOFF are pixel offsets for the upper part of the string,
    LOWER_XOFF and LOWER_YOFF are for the lower part.
@@ -22441,7 +22441,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	}
       else
 	{
-	  xassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEXA_CODE);
+	  xassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEX_CODE);
 	  sprintf (buf, "%0*X", it->c < 0x10000 ? 4 : 6, it->c);
 	  str = buf;
 	}
@@ -27057,7 +27057,7 @@ cursor shapes.  */);
   hourglass_shown_p = 0;
 
   DEFSYM (Qglyphless_char, "glyphless-char");
-  DEFSYM (Qhexa_code, "hexa-code");
+  DEFSYM (Qhex_code, "hex-code");
   DEFSYM (Qempty_box, "empty-box");
   DEFSYM (Qthin_space, "thin-space");
   DEFSYM (Qzero_width, "zero-width");
@@ -27073,13 +27073,13 @@ cursor shapes.  */);
 	       doc: /* Char-table to control displaying of glyphless characters.
 Each element, if non-nil, is an ASCII acronym string (displayed in a box)
 or one of these symbols:
-  hexa-code: display with hexadecimal character code in a box
-  empty-box: display with an empty box
-  thin-space: display with 1-pixel width space
+  hex-code:   display the hexadecimal code of a character in a box
+  empty-box:  display as an empty box
+  thin-space: display as 1-pixel width space
   zero-width: don't display
 
 It has one extra slot to control the display of a character for which
-no font is found.  The value of the slot is `hexa-code' or `empty-box'.
+no font is found.  The value of the slot is `hex-code' or `empty-box'.
 The default is `empty-box'.  */);
   Vglyphless_char_display = Fmake_char_table (Qglyphless_char_display, Qnil);
   Fset_char_table_extra_slot (Vglyphless_char_display, make_number (0),

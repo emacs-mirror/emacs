@@ -4,7 +4,7 @@
 
 2010-11-11  Noorul Islam  <noorul@noorul.com>
 
-	* org.texi: Fix typo
+	* org.texi: Fix typo.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -13,8 +13,7 @@
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.texi (Images and tables): Add cross reference to
-	link section.
+	* org.texi (Images and tables): Add cross reference to link section.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -22,18 +21,16 @@
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* multi-line header arguments :PROPERTIES: :ID:
-	b77c8857-6c76-4ea9-8a61-ddc2648d96c4 :END:
+	* org.texi: multi-line header arguments :PROPERTIES: :ID:
+	b77c8857-6c76-4ea9-8a61-ddc2648d96c4 :END:.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.texi (CSS support): Document :HTML_CONTAINER_CLASS:
-	property
+	* org.texi (CSS support): Document :HTML_CONTAINER_CLASS: property.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.texi (Project alist): Mention that this is a
-	property list
+	* org.texi (Project alist): Mention that this is a property list.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -47,18 +44,13 @@
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (noweb): updating :noweb documentation to
-	reflect the new "tangle" argument
-
-2010-11-11  Sebastian Rose, Hannover, Germany  <sebastian_rose@gmx.de>
-
-	* org-test-which-func: New function.  Find name of defun
-	around point.
+	* org.texi (noweb): Update :noweb documentation to
+	reflect the new "tangle" argument.
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (Batch execution): improved tangling script in
-	documentation
+	* org.texi (Batch execution): Improve tangling script in
+	documentation.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -72,42 +64,37 @@
 
 2010-11-11  David Maus  <dmaus@ictsoc.de>
 
-	* org.texi (Template expansion): Add date related link
-	type escapes
+	* org.texi (Template expansion): Add date related link type escapes.
 
 2010-11-11  David Maus  <dmaus@ictsoc.de>
 
-	* org.texi (Template expansion): Add mew in table for
-	link type escapes.
-
-2010-11-11  David Maus  <dmaus@ictsoc.de>
-
-	* org.texi (Template expansion): Fix typo in link type
+	* org.texi (Template expansion): Add mew in table for link type
 	escapes.
 
-2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
+2010-11-11  David Maus  <dmaus@ictsoc.de>
 
-	* org.texi (Structure of code blocks): another
-	documentation tweak
-
-2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
-
-	* org.texi (Structure of code blocks): documentation
-	tweak
+	* org.texi (Template expansion): Fix typo in link type escapes.
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (Structure of code blocks): updating
-	documentation to mention inline code block syntax
+	* org.texi (Structure of code blocks): Another documentation tweak.
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (comments): improved wording
+	* org.texi (Structure of code blocks): Documentation tweak.
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (comments): documenting the new :comments
-	header arguments
+	* org.texi (Structure of code blocks):
+	Update documentation to mention inline code block syntax.
+
+2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (comments): Improve wording.
+
+2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (comments): Document the new :comments header arguments.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -116,12 +103,12 @@
 
 2010-11-11  Jambunathan K  <kjambunathan@gmail.com>  (tiny change)
 
-	* org.texi (Easy Templates): New section. Documents quick
+	* org.texi (Easy Templates): New section.  Documents quick
 	insertion of empty structural elements.
 
 2010-11-11  Noorul Islam  <noorul@noorul.com>
 
-	* org.texi: Fix doc
+	* org.texi: Fix doc.
 
 2010-11-11  Jambunathan K  <kjambunathan@gmail.com>  (tiny change)
 

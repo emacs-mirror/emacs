@@ -1189,8 +1189,7 @@ target of the symlink differ."
         ;; if symlink, find out file name pointed to
         (when symlinkp
           (search-forward "-> ")
-          (setq res-symlink-target
-                (buffer-substring (point) (tramp-compat-line-end-position))))
+          (setq res-symlink-target (buffer-substring (point) (point-at-eol))))
         ;; return data gathered
         (list
          ;; 0. t for directory, string (name linked to) for symbolic
@@ -1438,7 +1437,7 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
 		       (tramp-shell-quote-argument localname))))
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (goto-char (point-min))
-	    (when (re-search-forward regexp (tramp-compat-line-end-position) t)
+	    (when (re-search-forward regexp (point-at-eol) t)
 	      (setq context (list (match-string 1) (match-string 2)
 				  (match-string 3) (match-string 4))))))
 	;; Return the context.
@@ -1746,8 +1745,7 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
                    (tramp-error
                     v 'file-error
                     "tramp-sh-handle-file-name-all-completions: %s"
-                    (buffer-substring
-                     (point) (tramp-compat-line-end-position))))
+                    (buffer-substring (point) (point-at-eol))))
                ;; For peace of mind, if buffer doesn't end in `fail'
                ;; then it should end in `ok'.  If neither are in the
                ;; buffer something went seriously wrong on the remote
@@ -1760,9 +1758,7 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
                   (tramp-shell-quote-argument localname) (buffer-string))))
 
              (while (zerop (forward-line -1))
-               (push (buffer-substring
-                      (point) (tramp-compat-line-end-position))
-                     result)))
+               (push (buffer-substring (point) (point-at-eol)) result)))
 
            ;; Because the remote op went through OK we know the
            ;; directory we `cd'-ed to exists
@@ -2524,7 +2520,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	  (forward-line -1))
 	(when (looking-at "//DIRED//\\s-+")
 	  (let ((databeg (match-end 0))
-		(end (tramp-compat-line-end-position)))
+		(end (point-at-eol)))
 	    ;; Now read the numeric positions of file names.
 	    (goto-char databeg)
 	    (while (< (point) end)
@@ -2534,7 +2530,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 		    ;; End is followed by \n or by " -> ".
 		    (put-text-property start end 'dired-filename t))))))
 	;; Remove trailing lines.
-	(goto-char (tramp-compat-line-beginning-position))
+	(goto-char (point-at-bol))
 	(while (looking-at "//")
 	  (forward-line 1)
 	  (delete-region (match-beginning 0) (point)))
@@ -2593,8 +2589,7 @@ the result will be a local, non-Tramp, filename."
 		   v (format "cd %s; pwd" (tramp-shell-quote-argument uname)))
 		  (with-current-buffer (tramp-get-buffer v)
 		    (goto-char (point-min))
-		    (buffer-substring
-		     (point) (tramp-compat-line-end-position)))))
+		    (buffer-substring (point) (point-at-eol)))))
 	  (setq localname (concat uname fname))))
       ;; There might be a double slash, for example when "~/"
       ;; expands to "/".  Remove this.
@@ -3496,8 +3491,7 @@ This function expects to be in the right *tramp* buffer."
 	(when (search-backward "tramp_executable " nil t)
 	  (skip-chars-forward "^ ")
 	  (skip-chars-forward " ")
-	  (setq result (buffer-substring
-			(point) (tramp-compat-line-end-position)))))
+	  (setq result (buffer-substring (point) (point-at-eol)))))
     result)))
 
 (defun tramp-set-remote-path (vec)
@@ -3647,7 +3641,7 @@ process to set up.  VEC specifies the connection."
     ;; the single quotes makes it work under `rc', too.  We also unset
     ;; the variable $ENV because that is read by some sh
     ;; implementations (eg, bash when called as sh) on startup; this
-    ;; way, we avoid the startup file clobbering $PS1.  $PROMP_COMMAND
+    ;; way, we avoid the startup file clobbering $PS1.  $PROMPT_COMMAND
     ;; is another way to set the prompt in /bin/bash, it must be
     ;; discarded as well.
     (tramp-open-shell
@@ -3858,7 +3852,11 @@ and end of region, and are expected to replace the region contents
 with the encoded or decoded results, respectively.")
 
 (defconst tramp-remote-coding-commands
-  '((b64 "base64" "base64 -d")
+  '((b64 "base64" "base64 -d -i")
+    ;; "-i" is more robust with older base64 from GNU coreutils.
+    ;; However, I don't know whether all base64 versions do supports
+    ;; this option.
+    (b64 "base64" "base64 -d")
     (b64 "mimencode -b" "mimencode -u -b")
     (b64 "mmencode -b" "mmencode -u -b")
     (b64 "recode data..base64" "recode base64..data")
@@ -4360,8 +4358,8 @@ function waits for output unless NOOUTPUT is set."
       (tramp-set-connection-property p "check-remote-echo" t)
       (setq command (format "%s%s%s" tramp-echo-mark command tramp-echo-mark)))
     (when (string-match "<<'EOF'" command)
-      ;; Unset $PS1 when using here documents, in order not to get
-      ;; several prompts.
+      ;; Unset $PS1 when using here documents, in order to avoid
+      ;; multiple prompts.
       (setq command (concat "(PS1= ; " command "\n)")))
     ;; Send the command.
     (tramp-message vec 6 "%s" command)
@@ -4387,8 +4385,7 @@ function waits for output unless NOOUTPUT is set."
 	    ;; A simple-minded busybox has sent " ^H" sequences.
 	    ;; Delete them.
 	    (goto-char (point-min))
-	    (when (re-search-forward
-		   "^\\(.\b\\)+$" (tramp-compat-line-end-position) t)
+	    (when (re-search-forward "^\\(.\b\\)+$" (point-at-eol) t)
 	      (forward-line 1)
 	      (delete-region (point-min) (point)))
 	    ;; Delete the prompt.
@@ -4450,7 +4447,7 @@ In case there is no valid Lisp expression, it raises an error"
     (condition-case nil
 	(prog1 (read (current-buffer))
 	  ;; Error handling.
-	  (when (re-search-forward "\\S-" (tramp-compat-line-end-position) t)
+	  (when (re-search-forward "\\S-" (point-at-eol) t)
 	    (error nil)))
       (error (tramp-error
 	      vec 'file-error
@@ -5042,5 +5039,6 @@ function cell is returned to be applied on a buffer."
 ;;   rsync.
 ;; * Try telnet+curl as new method.  It might be useful for busybox,
 ;;   without built-in uuencode/uudecode.
+;; * Try ssh+netcat as out-of-band method.
 
 ;;; tramp-sh.el ends here

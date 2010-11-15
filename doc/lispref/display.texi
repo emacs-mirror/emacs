@@ -5588,9 +5588,9 @@ digit characters representing the character code in octal.  (A display
 table can specify a glyph to use instead of @samp{\}.)
 
 @item
-Multibyte character codes above 256 are displayed as themselves, or as a
-question mark or empty box if the terminal cannot display that
-character.
+Multibyte character codes above 256 are displayed as themselves, or as
+a question mark or a hex code or an empty box if the terminal cannot
+display that character.
 @end itemize
 
   The usual display conventions apply even when there is a display

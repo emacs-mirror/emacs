@@ -298,8 +298,7 @@ buffer in your bug report.
 	(setq buffer-read-only nil)
 	(goto-char (point-min))
 	(while (not (eobp))
-	  (if (re-search-forward
-	       tramp-buf-regexp (tramp-compat-line-end-position) t)
+	  (if (re-search-forward tramp-buf-regexp (point-at-eol) t)
 	      (forward-line 1)
 	    (forward-line 0)
 	    (let ((start (point)))
@@ -372,5 +371,4 @@ please ensure that the buffers are attached to your email.\n\n")
 ;;   ordinary variable that gets its initial value from
 ;;   tramp-default-user-alist and then is added to.  (Pete Forman)
 
-;; arch-tag: 190d4c33-76bb-4e99-8b6f-71741f23d98c
 ;;; tramp-cmds.el ends here

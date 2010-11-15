@@ -1,7 +1,7 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992, 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
@@ -98,21 +98,142 @@
 
 ;;;_* USER CUSTOMIZATION VARIABLES:
 
-;;;_ > defgroup allout
+;;;_ > defgroup allout, allout-keybindings
 (defgroup allout nil
   "Extensive outline mode for use alone and with other modes."
   :prefix "allout-"
   :group 'outlines)
+(defgroup allout-keybindings nil
+  "Allout outline mode keyboard bindings configuration."
+  :group 'allout)
 
 ;;;_ + Layout, Mode, and Topic Header Configuration
 
-;;;_  = allout-command-prefix
+;;;_  > allout-keybindings incidentals:
+;;;_   > allout-bind-keys &optional varname value
+(defun allout-bind-keys (&optional varname value)
+  "Rebuild the `allout-mode-map' according to the keybinding specs.
+
+Useful standalone, to init the map, or in customizing the
+respective allout-mode keybinding variables, `allout-command-prefix',
+`allout-prefixed-keybindings', and `allout-unprefixed-keybindings'"
+  ;; Set the customization variable, if any:
+  (when varname
+    (set-default varname value))
+  (let ((map (make-sparse-keymap))
+        key)
+    (when (boundp 'allout-prefixed-keybindings)
+      ;; Be tolerant of the moments when the variables are first being defined.
+      (dolist (entry allout-prefixed-keybindings)
+        (define-key map
+          ;; XXX vector vs non-vector key descriptions?
+          (vconcat allout-command-prefix
+                   (car (read-from-string (car entry))))
+          (cadr entry))))
+    (when (boundp 'allout-unprefixed-keybindings)
+      (dolist (entry allout-unprefixed-keybindings)
+        (define-key map (car (read-from-string (car entry))) (cadr entry))))
+    (setq allout-mode-map map)
+    map
+    ))
+;;;_   = allout-command-prefix
 (defcustom allout-command-prefix "\C-c "
   "Key sequence to be used as prefix for outline mode command key bindings.
 
 Default is '\C-c<space>'; just '\C-c' is more short-and-sweet, if you're
 willing to let allout use a bunch of \C-c keybindings."
   :type 'string
+  :group 'allout-keybindings
+  :set 'allout-bind-keys)
+;;;_   = allout-keybindings-binding
+(define-widget 'allout-keybindings-binding 'lazy
+  "Structure of allout keybindings customization items."
+  :type '(repeat
+          (list (string :tag "Key" :value "[(meta control shift ?f)]")
+                (function :tag "Function name"
+                          :value allout-forward-current-level))))
+;;;_   = allout-prefixed-keybindings
+(defcustom allout-prefixed-keybindings
+  '(("[(control ?n)]" allout-next-visible-heading)
+    ("[(control ?p)]" allout-previous-visible-heading)
+;;    ("[(control ?u)]" allout-up-current-level)
+    ("[(control ?f)]" allout-forward-current-level)
+    ("[(control ?b)]" allout-backward-current-level)
+    ("[(control ?a)]" allout-beginning-of-current-entry)
+    ("[(control ?e)]" allout-end-of-entry)
+    ("[(control ?i)]" allout-show-children)
+    ("[(control ?i)]" allout-show-children)
+    ("[(control ?s)]" allout-show-current-subtree)
+    ("[(control ?t)]" allout-toggle-current-subtree-exposure)
+    ("[(control ?h)]" allout-hide-current-subtree)
+    ("[?h]" allout-hide-current-subtree)
+    ("[(control ?o)]" allout-show-current-entry)
+    ("[?!]" allout-show-all)
+    ("[?x]" allout-toggle-current-subtree-encryption)
+    ("[? ]" allout-open-sibtopic)
+    ("[?.]" allout-open-subtopic)
+    ("[?,]" allout-open-supertopic)
+    ("[?']" allout-shift-in)
+    ("[?>]" allout-shift-in)
+    ("[?<]" allout-shift-out)
+    ("[(control ?m)]" allout-rebullet-topic)
+    ("[?*]" allout-rebullet-current-heading)
+    ("[?']" allout-number-siblings)
+    ("[(control ?k)]" allout-kill-topic)
+    ("[??]" allout-copy-topic-as-kill)
+    ("[?@]" allout-resolve-xref)
+    ("[?=?c]" allout-copy-exposed-to-buffer)
+    ("[?=?i]" allout-indented-exposed-to-buffer)
+    ("[?=?t]" allout-latexify-exposed)
+    ("[?=?p]" allout-flatten-exposed-to-buffer)
+    )
+  "Allout-mode key bindings that are prefixed with `allout-command-prefix'.
+
+See `allout-unprefixed-keybindings' for the list of keybindings
+that are not prefixed.
+
+Use vector format for the keys:
+  - put literal keys after a '?' question mark, eg: '?a', '?.'
+  - enclose control, shift, or meta-modified keys as sequences within
+    parentheses, with the literal key, as above, preceded by the name(s)
+    of the modifers, eg: [(control ?a)]
+See the existing keys for examples.
+
+Functions can be bound to multiple keys, but binding keys to
+multiple functions will not work - the last binding for a key
+prevails."
+  :type 'allout-keybindings-binding
+  :group 'allout-keybindings
+  :set 'allout-bind-keys
+ )
+;;;_   = allout-unprefixed-keybindings
+(defcustom allout-unprefixed-keybindings
+  '(("[(control ?k)]" allout-kill-line)
+    ("[??(meta ?k)]" allout-copy-line-as-kill)
+    ("[(control ?y)]" allout-yank)
+    ("[??(meta ?y)]" allout-yank-pop)
+    )
+  "Allout-mode functions bound to keys without any added prefix.
+
+This is in contrast to the majority of allout-mode bindings on
+`allout-prefixed-bindings', whose bindings are created with a
+preceeding command key.
+
+Use vector format for the keys:
+  - put literal keys after a '?' question mark, eg: '?a', '?.'
+  - enclose control, shift, or meta-modified keys as sequences within
+    parentheses, with the literal key, as above, preceded by the name(s)
+    of the modifers, eg: [(control ?a)]
+See the existing keys for examples."
+  :type 'allout-keybindings-binding
+  :group 'allout-keybindings
+  :set 'allout-bind-keys
+  )
+
+;;;_  = allout-preempt-trailing-ctrl-h
+(defcustom allout-preempt-trailing-ctrl-h nil
+  "Use <prefix>-\C-h, instead of leaving it for describe-prefix-bindings?"
+  :type 'boolean
   :group 'allout)
 
 ;;;_  = allout-keybindings-list
@@ -133,9 +254,13 @@ unless optional third, non-nil element is present.")
         ("\C-a" allout-beginning-of-current-entry)
         ("\C-e" allout-end-of-entry)
                                         ; Exposure commands:
-        ("\C-i" allout-show-children)
+        ([(control i)] allout-show-children) ; xemacs translates "\C-i" to tab
+        ("\C-i" allout-show-children)   ; but we still need this for hotspot
         ("\C-s" allout-show-current-subtree)
-	("\C-h" allout-hide-current-subtree)
+        ;; binding to \C-h is included if allout-preempt-trailing-ctrl-h,
+        ;; so user controls whether or not to preempt the conventional ^H
+        ;; binding to help-command.
+        ("\C-h" allout-hide-current-subtree)
         ("\C-t" allout-toggle-current-subtree-exposure)
         ("h" allout-hide-current-subtree)
         ("\C-o" allout-show-current-entry)
@@ -753,7 +878,7 @@ disable auto-saves for that file."
 ;;;_ + Developer
 ;;;_  = allout-developer group
 (defgroup allout-developer nil
-  "Settings for topic encryption features of allout outliner."
+  "Allout settings developers care about, including topic encryption and more."
   :group 'allout)
 ;;;_  = allout-run-unit-tests-on-load
 (defcustom allout-run-unit-tests-on-load nil
@@ -1163,6 +1288,13 @@ See doc string for `allout-keybindings-list' for format of binding list."
 			      (car (cdr cell)))))))
 	    keymap-list)
     map))
+;;;_   > allout-mode-map-adjustments (base-map)
+(defun allout-mode-map-adjustments (base-map)
+  "Do conditional additions to specified base-map, like inclusion of \\C-h."
+  (if allout-preempt-trailing-ctrl-h
+      (cons '("\C-h" allout-hide-current-subtree) base-map)
+    base-map)
+  )
 ;;;_  : Menu bar
 (defvar allout-mode-exposure-menu)
 (defvar allout-mode-editing-menu)
@@ -1278,7 +1410,7 @@ The settings are stored on `allout-mode-prior-settings'."
                           (void-variable nil)))
       (when (not (assoc name allout-mode-prior-settings))
         ;; Not already added as a resumption, create the prior setting entry.
-        (if (local-variable-p name)
+        (if (local-variable-p name (current-buffer))
             ;; is already local variable -- preserve the prior value:
             (push (list name prior-value) allout-mode-prior-settings)
           ;; wasn't local variable, indicate so for resumption by killing
@@ -1541,6 +1673,14 @@ and the place for the cursor after the decryption is done."
     (goto-char (cadr allout-after-save-decrypt))
     (setq allout-after-save-decrypt nil))
   )
+;;;_   > allout-called-interactively-p ()
+(defmacro allout-called-interactively-p ()
+  "A version of called-interactively-p independent of emacs version."
+  ;; ... to ease maintenance of allout without betraying deprecation.
+  (if (equal (subr-arity (symbol-function 'called-interactively-p))
+             '(0 . 0))
+      '(called-interactively-p)
+    '(called-interactively-p 'interactive)))
 ;;;_   = allout-inhibit-aberrance-doublecheck nil
 ;; In some exceptional moments, disparate topic depths need to be allowed
 ;; momentarily, eg when one topic is being yanked into another and they're
@@ -1554,7 +1694,7 @@ and the place for the cursor after the decryption is done."
 This should only be momentarily let-bound non-nil, not set
 non-nil in a lasting way.")
 
-;;;_ #2 Mode activation
+;;;_ #2 Mode environment and activation
 ;;;_  = allout-explicitly-deactivated
 (defvar allout-explicitly-deactivated nil
   "If t, `allout-mode's last deactivation was deliberate.
@@ -1590,7 +1730,7 @@ the following two lines in your Emacs init file:
 \(allout-init t)"
 
   (interactive)
-  (if (called-interactively-p 'interactive)
+  (if (allout-called-interactively-p)
       (progn
 	(setq mode
 	      (completing-read
@@ -1614,7 +1754,7 @@ the following two lines in your Emacs init file:
     (cond ((not mode)
 	   (set find-file-hook-var-name
                 (delq hook (symbol-value find-file-hook-var-name)))
-	   (if (called-interactively-p 'interactive)
+	   (if (allout-called-interactively-p)
 	       (message "Allout outline mode auto-activation inhibited.")))
 	  ((eq mode 'report)
 	   (if (not (memq hook (symbol-value find-file-hook-var-name)))
@@ -1656,7 +1796,7 @@ the following two lines in your Emacs init file:
   (setplist 'allout-exposure-category nil)
   (put 'allout-exposure-category 'invisible 'allout)
   (put 'allout-exposure-category 'evaporate t)
-  ;; XXX We use isearch-open-invisible *and* isearch-mode-end-hook.  The
+  ;; ??? We use isearch-open-invisible *and* isearch-mode-end-hook.  The
   ;; latter would be sufficient, but it seems that a separate behavior --
   ;; the _transient_ opening of invisible text during isearch -- is keyed to
   ;; presence of the isearch-open-invisible property -- even though this
@@ -2116,9 +2256,11 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
 (defun allout-setup-mode-map ()
   "Establish allout-mode bindings."
   (setq-default allout-mode-map
-                (produce-allout-mode-map allout-keybindings-list))
+                (produce-allout-mode-map
+                 (allout-mode-map-adjustments allout-keybindings-list)))
   (setq allout-mode-map
-        (produce-allout-mode-map allout-keybindings-list))
+        (produce-allout-mode-map
+         (allout-mode-map-adjustments allout-keybindings-list)))
   (substitute-key-definition 'beginning-of-line
                              'allout-beginning-of-line
                              allout-mode-map global-map)
@@ -2153,7 +2295,7 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
 ;;;_  - Position Assessment
 ;;;_   > allout-hidden-p (&optional pos)
 (defsubst allout-hidden-p (&optional pos)
-  "Non-nil if the character after point is invisible."
+  "Non-nil if the character after point was made invisible by allout."
   (eq (get-char-property (or pos (point)) 'invisible) 'allout))
 
 ;;;_  > allout-overlay-insert-in-front-handler (ol after beg end
@@ -2162,8 +2304,8 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
                                                   &optional prelen)
   "Shift the overlay so stuff inserted in front of it is excluded."
   (if after
-      ;; XXX Shouldn't moving the overlay should be unnecessary, if overlay
-      ;;     front-advance on the overlay worked as it should?
+      ;; ??? Shouldn't moving the overlay should be unnecessary, if overlay
+      ;;     front-advance on the overlay worked as expected?
       (move-overlay ol (1+ beg) (overlay-end ol))))
 ;;;_  > allout-overlay-interior-modification-handler (ol after beg end
 ;;;                                                      &optional prelen)
@@ -2225,8 +2367,9 @@ See `allout-overlay-interior-modification-handler' for details."
     (save-excursion
       (goto-char beg)
       (let ((overlay (allout-get-invisibility-overlay)))
-	(allout-overlay-interior-modification-handler
-	 overlay nil beg end nil)))))
+        (if overlay
+            (allout-overlay-interior-modification-handler
+             overlay nil beg end nil))))))
 ;;;_  > allout-isearch-end-handler (&optional overlay)
 (defun allout-isearch-end-handler (&optional overlay)
   "Reconcile allout outline exposure on arriving in hidden text after isearch.
@@ -2508,7 +2651,7 @@ Outermost is first."
 ;;;_   > allout-end-of-current-line ()
 (defun allout-end-of-current-line ()
   "Move to the end of line, past concealed text if any."
-  ;; XXX This is for symmetry with `allout-beginning-of-current-line' --
+  ;; This is for symmetry with `allout-beginning-of-current-line' --
   ;; `move-end-of-line' doesn't suffer the same problem as
   ;; `move-beginning-of-line'.
   (let ((inhibit-field-text-motion t))
@@ -2527,7 +2670,7 @@ Outermost is first."
       (progn
         (if (and (not (bolp))
                  (allout-hidden-p (1- (point))))
-            (goto-char (previous-single-char-property-change
+            (goto-char (allout-previous-single-char-property-change
                         (1- (point)) 'invisible)))
         (move-beginning-of-line 1))
     (allout-depth)
@@ -2573,9 +2716,20 @@ Outermost is first."
              (allout-back-to-current-heading)
              (allout-end-of-current-line))
             (t
-             (if (not (and transient-mark-mode mark-active))
+             (if (not (allout-mark-active-p))
                  (push-mark))
              (allout-end-of-entry))))))
+;;;_   > allout-mark-active-p ()
+(defun allout-mark-active-p ()
+  "True if the mark is currently or always active."
+  ;; `(cond (boundp...))' (or `(if ...)') invokes special byte-compiler
+  ;; provisions, at least in fsf emacs to prevent warnings about lack of,
+  ;; eg, region-active-p.
+  (cond ((boundp 'mark-active)
+         mark-active)
+        ((fboundp 'region-active-p)
+         (region-active-p))
+        (t)))
 ;;;_   > allout-next-heading ()
 (defsubst allout-next-heading ()
   "Move to the heading for the topic (possibly invisible) after this one.
@@ -2888,8 +3042,8 @@ otherwise skip white space between bullet and ensuing text."
   (if (not (allout-current-depth))
       nil
     (1- allout-recent-prefix-end)))
-;;;_   > allout-back-to-current-heading ()
-(defun allout-back-to-current-heading ()
+;;;_   > allout-back-to-current-heading (&optional interactive)
+(defun allout-back-to-current-heading (&optional interactive)
   "Move to heading line of current topic, or beginning if not in a topic.
 
 If interactive, we position at the end of the prefix.
@@ -2897,11 +3051,13 @@ If interactive, we position at the end of the prefix.
 Return value of resulting point, unless we started outside
 of (before any) topics, in which case we return nil."
 
+  (interactive "p")
+
   (allout-beginning-of-current-line)
   (let ((bol-point (point)))
     (if (allout-goto-prefix-doublechecked)
         (if (<= (point) bol-point)
-            (if (called-interactively-p 'interactive)
+            (if interactive
                 (allout-end-of-prefix)
               (point))
           (goto-char (point-min))
@@ -2955,20 +3111,20 @@ excluded as delimiting whitespace between topics.
 Returns the value of point."
   (interactive)
   (allout-end-of-subtree t include-trailing-blank))
-;;;_   > allout-beginning-of-current-entry ()
-(defun allout-beginning-of-current-entry ()
+;;;_   > allout-beginning-of-current-entry (&optional interactive)
+(defun allout-beginning-of-current-entry (&optional interactive)
   "When not already there, position point at beginning of current topic header.
 
 If already there, move cursor to bullet for hot-spot operation.
 \(See `allout-mode' doc string for details of hot-spot operation.)"
-  (interactive)
+  (interactive "p")
   (let ((start-point (point)))
     (move-beginning-of-line 1)
     (if (< 0 (allout-current-depth))
         (goto-char allout-recent-prefix-end)
       (goto-char (point-min)))
     (allout-end-of-prefix)
-    (if (and (called-interactively-p 'interactive)
+    (if (and interactive
 	     (= (point) start-point))
 	(goto-char (allout-current-bullet-pos)))))
 ;;;_   > allout-end-of-entry (&optional inclusive)
@@ -3018,9 +3174,9 @@ collapsed."
         (while (and (< depth allout-recent-depth)
                     (setq last-ascended (allout-ascend))))
         (goto-char allout-recent-prefix-beginning)
-        (if (called-interactively-p 'interactive) (allout-end-of-prefix))
+        (if (allout-called-interactively-p) (allout-end-of-prefix))
         (and last-ascended allout-recent-depth))))
-;;;_   > allout-ascend ()
+;;;_   > allout-ascend (&optional dont-move-if-unsuccessful)
 (defun allout-ascend (&optional dont-move-if-unsuccessful)
   "Ascend one level, returning resulting depth if successful, nil if not.
 
@@ -3046,7 +3202,7 @@ which case point is returned to its original starting location."
                    (goto-char bolevel)
                    (allout-depth)
                    nil))))
-    (if (called-interactively-p 'interactive) (allout-end-of-prefix))))
+    (if (allout-called-interactively-p) (allout-end-of-prefix))))
 ;;;_   > allout-descend-to-depth (depth)
 (defun allout-descend-to-depth (depth)
   "Descend to depth DEPTH within current topic.
@@ -3074,7 +3230,7 @@ Returning depth if successful, nil if not."
     (if (not (allout-ascend))
         (progn (goto-char start-point)
                (error "Can't ascend past outermost level"))
-      (if (called-interactively-p 'interactive) (allout-end-of-prefix))
+      (if (allout-called-interactively-p) (allout-end-of-prefix))
       allout-recent-prefix-beginning)))
 
 ;;;_  - Linear
@@ -3219,7 +3375,7 @@ Presumes point is at the start of a topic prefix."
   (let ((depth (allout-depth)))
     (while (allout-previous-sibling depth nil))
     (prog1 allout-recent-depth
-      (if (called-interactively-p 'interactive) (allout-end-of-prefix)))))
+      (if (allout-called-interactively-p) (allout-end-of-prefix)))))
 ;;;_   > allout-next-visible-heading (arg)
 (defun allout-next-visible-heading (arg)
   "Move to the next ARG'th visible heading line, backward if arg is negative.
@@ -3272,7 +3428,7 @@ A heading line is one that starts with a `*' (or that `allout-regexp'
 matches)."
   (interactive "p")
   (prog1 (allout-next-visible-heading (- arg))
-    (if (called-interactively-p 'interactive) (allout-end-of-prefix))))
+    (if (allout-called-interactively-p) (allout-end-of-prefix))))
 ;;;_   > allout-forward-current-level (arg)
 (defun allout-forward-current-level (arg)
   "Position point at the next heading of the same level.
@@ -3293,7 +3449,7 @@ Returns resulting position, else nil if none found."
                     (allout-previous-sibling)
                   (allout-next-sibling)))
       (setq arg (1- arg)))
-    (if (not (called-interactively-p 'interactive))
+    (if (not (allout-called-interactively-p))
         nil
       (allout-end-of-prefix)
       (if (not (zerop arg))
@@ -3306,7 +3462,7 @@ Returns resulting position, else nil if none found."
 (defun allout-backward-current-level (arg)
   "Inverse of `allout-forward-current-level'."
   (interactive "p")
-  (if (called-interactively-p 'interactive)
+  (if (allout-called-interactively-p)
       (let ((current-prefix-arg (* -1 arg)))
 	(call-interactively 'allout-forward-current-level))
     (allout-forward-current-level (* -1 arg))))
@@ -3391,8 +3547,10 @@ this-command accordingly.
 
 Returns the qualifying command, if any, else nil."
   (interactive)
-  (let* ((key-string (if (numberp last-command-event)
-                         (char-to-string last-command-event)))
+  (let* ((modified (event-modifiers last-command-event))
+         (key-string (if (numberp last-command-event)
+                         (char-to-string
+                          (event-basic-type last-command-event))))
          (key-num (cond ((numberp last-command-event) last-command-event)
                         ;; for XEmacs character type:
                         ((and (fboundp 'characterp)
@@ -3406,6 +3564,7 @@ Returns the qualifying command, if any, else nil."
 
       (if (and
            ;; exclude control chars and escape:
+           (not modified)
            (<= 33 key-num)
            (setq mapped-binding
                  (or (and (assoc key-string allout-keybindings-list)
@@ -3413,22 +3572,22 @@ Returns the qualifying command, if any, else nil."
                           (cadr (assoc key-string allout-keybindings-list)))
                      ;; translate as a keybinding:
                      (key-binding (vconcat allout-command-prefix
-                                          (char-to-string
-                                           (if (and (<= 97 key-num)   ; "a"
-                                                    (>= 122 key-num)) ; "z"
-                                               (- key-num 96) key-num)))
+                                           (vector
+                                            (if (and (<= 97 key-num) ; "a"
+                                                     (>= 122 key-num)) ; "z"
+                                                (- key-num 96) key-num)))
                                   t))))
           ;; Qualified as an allout command -- do hot-spot operation.
           (setq allout-post-goto-bullet t)
-        ;; accept-defaults nil, or else we'll get allout-item-icon-key-handler.
-        (setq mapped-binding (key-binding (char-to-string key-num))))
+        ;; accept-defaults nil, or else we get allout-item-icon-key-handler.
+        (setq mapped-binding (key-binding (vector key-num))))
 
       (while (keymapp mapped-binding)
         (setq mapped-binding
               (lookup-key mapped-binding (vector (read-char)))))
 
-      (if mapped-binding
-          (setq this-command mapped-binding)))))
+      (when mapped-binding
+        (setq this-command mapped-binding)))))
 
 ;;;_   > allout-find-file-hook ()
 (defun allout-find-file-hook ()
@@ -3457,7 +3616,7 @@ Offer one suitable for current depth DEPTH as default."
       (setq choice (solicit-char-in-string
                     (format "Select bullet: %s ('%s' default): "
                             sans-escapes
-                            (substring-no-properties default-bullet))
+                            (allout-substring-no-properties default-bullet))
                     sans-escapes
                     t)))
     (message "")
@@ -4455,9 +4614,9 @@ Topic exposure is marked with text-properties, to be used by
           (if (not (allout-hidden-p))
               (setq next
                     (max (1+ (point))
-                         (next-single-char-property-change (point)
-                                                           'invisible
-                                                           nil end))))
+                         (allout-next-single-char-property-change (point)
+                                                                  'invisible
+                                                                  nil end))))
           (if (or (not next) (eq prev next))
               ;; still not at start of hidden area -- must not be any left.
               (setq done t)
@@ -4496,9 +4655,8 @@ Topic exposure is marked with text-properties, to be used by
       (while (not done)
         ;; at or advance to start of next annotation:
         (if (not (get-text-property (point) 'allout-was-hidden))
-            (setq next (next-single-char-property-change (point)
-                                                         'allout-was-hidden
-                                                         nil end)))
+            (setq next (allout-next-single-char-property-change
+                        (point) 'allout-was-hidden nil end)))
         (if (or (not next) (eq prev next))
             ;; no more or not advancing -- must not be any left.
             (setq done t)
@@ -4508,9 +4666,8 @@ Topic exposure is marked with text-properties, to be used by
               ;; still not at start of annotation.
               (setq done t)
             ;; advance to just after end of this annotation:
-            (setq next (next-single-char-property-change (point)
-                                                         'allout-was-hidden
-                                                         nil end))
+            (setq next (allout-next-single-char-property-change
+                        (point) 'allout-was-hidden nil end))
             (overlay-put (make-overlay prev next nil 'front-advance)
                          'category 'allout-exposure-category)
             (allout-deannotate-hidden prev next)
@@ -4766,7 +4923,10 @@ invoked.)"
       (when (featurep 'xemacs)
         (let ((props (symbol-plist 'allout-exposure-category)))
           (while props
-            (overlay-put o (pop props) (pop props)))))))
+            (condition-case nil
+                ;; as of 2008-02-27, xemacs lacks modification-hooks
+                (overlay-put o (pop props) (pop props))
+              (error nil)))))))
   (run-hooks 'allout-view-change-hook)
   (run-hook-with-args 'allout-exposure-change-hook from to flag))
 ;;;_   > allout-flag-current-subtree (flag)
@@ -4845,7 +5005,7 @@ point of non-opened subtree?)"
                  (to-reveal (or (allout-chart-to-reveal chart chart-level)
                                 ;; interactive, show discontinuous children:
                                 (and chart
-                                     (called-interactively-p 'interactive)
+                                     (allout-called-interactively-p)
                                      (save-excursion
                                        (allout-back-to-current-heading)
                                        (setq depth (allout-current-depth))
@@ -5975,7 +6135,7 @@ See `allout-toggle-current-subtree-encryption' for more details."
         ;; they're encrypted, so the coding system is set to accommodate
         ;; them.
         (setq buffer-file-coding-system
-              (select-safe-coding-system subtree-beg subtree-end))
+              (allout-select-safe-coding-system subtree-beg subtree-end))
         ;; if the coding system for the text being encrypted is different
         ;; than that prevailing, then there a real risk that the coding
         ;; system can't be noticed by emacs when the file is visited.  to
@@ -6118,7 +6278,7 @@ Returns the resulting string, or nil if the transformation fails."
           (insert text)
 
           ;; convey the text characteristics of the original buffer:
-          (set-buffer-multibyte multibyte)
+          (allout-set-buffer-multibyte multibyte)
           (when encoding
             (set-buffer-file-coding-system encoding)
             (if (not decrypt)
@@ -6830,6 +6990,14 @@ If BEG is bigger than END we return 0."
         ((atom (car list)) (cons (car list) (allout-flatten (cdr list))))
         (t (append (allout-flatten (car list)) (allout-flatten (cdr list))))))
 ;;;_  : Compatibility:
+;;;_   : xemacs undo-in-progress provision:
+(unless (boundp 'undo-in-progress)
+  (defvar undo-in-progress nil
+    "Placeholder defvar for XEmacs compatibility from allout.el.")
+  (defadvice undo-more (around allout activate)
+    ;; This defadvice used only in emacs that lack undo-in-progress, eg xemacs.
+    (let ((undo-in-progress t)) ad-do-it)))
+
 ;;;_   > allout-mark-marker to accommodate divergent emacsen:
 (defun allout-mark-marker (&optional force buffer)
   "Accommodate the different signature for `mark-marker' across Emacsen.
@@ -6990,6 +7158,42 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
                   (setq arg 1)
                 (setq done t)))))))
   )
+;;;_   > allout-next-single-char-property-change -- alias unless lacking
+(defalias 'allout-next-single-char-property-change
+  (if (fboundp 'next-single-char-property-change)
+      'next-single-char-property-change
+    'next-single-property-change)
+  ;; No docstring because xemacs defalias doesn't support it.
+  )
+;;;_   > allout-previous-single-char-property-change -- alias unless lacking
+(defalias 'allout-previous-single-char-property-change
+  (if (fboundp 'previous-single-char-property-change)
+      'previous-single-char-property-change
+    'previous-single-property-change)
+  ;; No docstring because xemacs defalias doesn't support it.
+  )
+;;;_   > allout-set-buffer-multibyte
+;; define as alias first, so byte compiler is happy.
+(defalias 'allout-set-buffer-multibyte 'set-buffer-multibyte)
+;; then supplant with definition if underlying alias absent.
+(if (not (fboundp 'set-buffer-multibyte))
+  (defun allout-set-buffer-multibyte (is-multibyte)
+    (setq enable-multibyte-characters is-multibyte))
+ )
+;;;_   > allout-select-safe-coding-system
+(defalias 'allout-select-safe-coding-system
+  (if (fboundp 'select-safe-coding-system)
+      'select-safe-coding-system
+    'detect-coding-region)
+ )
+;;;_   > allout-substring-no-properties
+;; define as alias first, so byte compiler is happy.
+(defalias 'allout-substring-no-properties 'substring-no-properties)
+;; then supplant with definition if underlying alias absent.
+(if (not (fboundp 'substring-no-properties))
+  (defun allout-substring-no-properties (string &optional start end)
+    (substring string (or start 0) end))
+  )
 
 ;;;_ #10 Unfinished
 ;;;_  > allout-bullet-isearch (&optional bullet)
@@ -7021,7 +7225,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 ;;;_   > allout-tests-obliterate-variable (name)
 (defun allout-tests-obliterate-variable (name)
   "Completely unbind variable with NAME."
-  (if (local-variable-p name) (kill-local-variable name))
+  (if (local-variable-p name (current-buffer)) (kill-local-variable name))
   (while (boundp name) (makunbound name)))
 ;;;_   > allout-test-resumptions ()
 (defvar allout-tests-globally-unbound nil
@@ -7040,11 +7244,12 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
     (allout-tests-obliterate-variable 'allout-tests-globally-unbound)
     (allout-add-resumptions '(allout-tests-globally-unbound t))
     (assert (not (default-boundp 'allout-tests-globally-unbound)))
-    (assert (local-variable-p 'allout-tests-globally-unbound))
+    (assert (local-variable-p 'allout-tests-globally-unbound (current-buffer)))
     (assert (boundp 'allout-tests-globally-unbound))
     (assert (equal allout-tests-globally-unbound t))
     (allout-do-resumptions)
-    (assert (not (local-variable-p 'allout-tests-globally-unbound)))
+    (assert (not (local-variable-p 'allout-tests-globally-unbound
+                                   (current-buffer))))
     (assert (not (boundp 'allout-tests-globally-unbound))))
 
   ;; ensure that variable with prior global value is resumed
@@ -7053,10 +7258,11 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
     (setq allout-tests-globally-true t)
     (allout-add-resumptions '(allout-tests-globally-true nil))
     (assert (equal (default-value 'allout-tests-globally-true) t))
-    (assert (local-variable-p 'allout-tests-globally-true))
+    (assert (local-variable-p 'allout-tests-globally-true (current-buffer)))
     (assert (equal allout-tests-globally-true nil))
     (allout-do-resumptions)
-    (assert (not (local-variable-p 'allout-tests-globally-true)))
+    (assert (not (local-variable-p 'allout-tests-globally-true
+                                   (current-buffer))))
     (assert (boundp 'allout-tests-globally-true))
     (assert (equal allout-tests-globally-true t)))
 
@@ -7067,16 +7273,16 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
     (assert (not (default-boundp 'allout-tests-locally-true))
             nil (concat "Test setup mistake -- variable supposed to"
                         " not have global binding, but it does."))
-    (assert (local-variable-p 'allout-tests-locally-true)
+    (assert (local-variable-p 'allout-tests-locally-true (current-buffer))
             nil (concat "Test setup mistake -- variable supposed to have"
                         " local binding, but it lacks one."))
     (allout-add-resumptions '(allout-tests-locally-true nil))
     (assert (not (default-boundp 'allout-tests-locally-true)))
-    (assert (local-variable-p 'allout-tests-locally-true))
+    (assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
     (assert (equal allout-tests-locally-true nil))
     (allout-do-resumptions)
     (assert (boundp 'allout-tests-locally-true))
-    (assert (local-variable-p 'allout-tests-locally-true))
+    (assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
     (assert (equal allout-tests-locally-true t))
     (assert (not (default-boundp 'allout-tests-locally-true))))
 
@@ -7095,22 +7301,24 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
                             '(allout-tests-locally-true 4))
     ;; reestablish many of the basic conditions are maintained after re-add:
     (assert (not (default-boundp 'allout-tests-globally-unbound)))
-    (assert (local-variable-p 'allout-tests-globally-unbound))
+    (assert (local-variable-p 'allout-tests-globally-unbound (current-buffer)))
     (assert (equal allout-tests-globally-unbound 2))
     (assert (default-boundp 'allout-tests-globally-true))
-    (assert (local-variable-p 'allout-tests-globally-true))
+    (assert (local-variable-p 'allout-tests-globally-true (current-buffer)))
     (assert (equal allout-tests-globally-true 3))
     (assert (not (default-boundp 'allout-tests-locally-true)))
-    (assert (local-variable-p 'allout-tests-locally-true))
+    (assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
     (assert (equal allout-tests-locally-true 4))
     (allout-do-resumptions)
-    (assert (not (local-variable-p 'allout-tests-globally-unbound)))
+    (assert (not (local-variable-p 'allout-tests-globally-unbound
+                                   (current-buffer))))
     (assert (not (boundp 'allout-tests-globally-unbound)))
-    (assert (not (local-variable-p 'allout-tests-globally-true)))
+    (assert (not (local-variable-p 'allout-tests-globally-true
+                                   (current-buffer))))
     (assert (boundp 'allout-tests-globally-true))
     (assert (equal allout-tests-globally-true t))
     (assert (boundp 'allout-tests-locally-true))
-    (assert (local-variable-p 'allout-tests-locally-true))
+    (assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
     (assert (equal allout-tests-locally-true t))
     (assert (not (default-boundp 'allout-tests-locally-true))))
 

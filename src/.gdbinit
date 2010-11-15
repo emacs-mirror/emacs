@@ -494,14 +494,30 @@ define pgx
   end
   # COMPOSITE_GLYPH
   if ($g->type == 1)
-    printf "COMP[%d (%d..%d)]", $g->u.cmp.id, $g->u.cmp.from, $g->u.cmp.to
+    printf "COMP[%d (%d..%d)]", $g->u.cmp.id, $g->slice.cmp.from, $g->slice.cmp.to
+  end
+  # GLYPHLESS_GLYPH
+  if ($g->type == 2)
+    printf "GLYPHLESS["
+    if ($g->u.glyphless.method == 0)
+      printf "THIN]"
+    end
+    if ($g->u.glyphless.method == 1)
+      printf "EMPTY]"
+    end
+    if ($g->u.glyphless.method == 2)
+      printf "ACRO]"
+    end
+    if ($g->u.glyphless.method == 3)
+      printf "HEX]"
+    end
   end
   # IMAGE_GLYPH
-  if ($g->type == 2)
+  if ($g->type == 3)
     printf "IMAGE[%d]", $g->u.img_id
   end
   # STRETCH_GLYPH
-  if ($g->type == 3)
+  if ($g->type == 4)
     printf "STRETCH[%d+%d]", $g->u.stretch.height, $g->u.stretch.ascent
   end
   xgettype ($g->object)
@@ -544,8 +560,8 @@ define pgx
   if ($g->right_box_line_p)
     printf " ]"
   end
-  if ($g->slice.x || $g->slice.y || $g->slice.width || $g->slice.height)
-    printf " slice=%d,%d,%d,%d" ,$g->slice.x, $g->slice.y, $g->slice.width, $g->slice.height
+  if ($g->slice.img.x || $g->slice.img.y || $g->slice.img.width || $g->slice.img.height)
+    printf " slice=%d,%d,%d,%d" ,$g->slice.img.x, $g->slice.img.y, $g->slice.img.width, $g->slice.img.height
   end
   printf "\n"
 end

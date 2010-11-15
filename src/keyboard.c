@@ -431,7 +431,7 @@ FILE *dribble;
 /* Nonzero if input is available.  */
 int input_pending;
 
-extern char *pending_malloc_warning;
+extern const char *pending_malloc_warning;
 
 /* Circular buffer for pre-read keyboard input.  */
 
@@ -620,7 +620,7 @@ static Lisp_Object make_lispy_movement (struct frame *, Lisp_Object,
                                         unsigned long);
 #endif
 static Lisp_Object modify_event_symbol (EMACS_INT, unsigned, Lisp_Object,
-                                        Lisp_Object, const char **,
+                                        Lisp_Object, const char *const *,
                                         Lisp_Object *, unsigned);
 static Lisp_Object make_lispy_switch_frame (Lisp_Object);
 static void save_getcjmp (jmp_buf);
@@ -4752,7 +4752,7 @@ static const int lispy_accent_codes[] =
 /* This is a list of Lisp names for special "accent" characters.
    It parallels lispy_accent_codes.  */
 
-static const char *lispy_accent_keys[] =
+static const char *const lispy_accent_keys[] =
 {
   "dead-circumflex",
   "dead-grave",
@@ -4779,7 +4779,7 @@ static const char *lispy_accent_keys[] =
 #ifdef HAVE_NTGUI
 #define FUNCTION_KEY_OFFSET 0x0
 
-char const *lispy_function_keys[] =
+const char *const lispy_function_keys[] =
   {
     0,                /* 0                      */
 
@@ -4973,7 +4973,7 @@ char const *lispy_function_keys[] =
 
 /* Some of these duplicate the "Media keys" on newer keyboards,
    but they are delivered to the application in a different way.  */
-static const char *lispy_multimedia_keys[] =
+static const char *const lispy_multimedia_keys[] =
   {
     0,
     "browser-back",
@@ -5037,7 +5037,7 @@ static const char *lispy_multimedia_keys[] =
    the XK_kana_A case below.  */
 #if 0
 #ifdef XK_kana_A
-static const char *lispy_kana_keys[] =
+static const char *const lispy_kana_keys[] =
   {
     /* X Keysym value */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x400 .. 0x40f */
@@ -5076,7 +5076,7 @@ static const char *lispy_kana_keys[] =
 
 /* You'll notice that this table is arranged to be conveniently
    indexed by X Windows keysym values.  */
-static const char *lispy_function_keys[] =
+static const char *const lispy_function_keys[] =
   {
     /* X Keysym value */
 
@@ -5162,7 +5162,7 @@ static const char *lispy_function_keys[] =
 /* ISO 9995 Function and Modifier Keys; the first byte is 0xFE.  */
 #define ISO_FUNCTION_KEY_OFFSET 0xfe00
 
-static const char *iso_lispy_function_keys[] =
+static const char *const iso_lispy_function_keys[] =
   {
     0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe00 */
     0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe08 */
@@ -5185,14 +5185,14 @@ static const char *iso_lispy_function_keys[] =
 
 Lisp_Object Vlispy_mouse_stem;
 
-static const char *lispy_wheel_names[] =
+static const char *const lispy_wheel_names[] =
 {
   "wheel-up", "wheel-down", "wheel-left", "wheel-right"
 };
 
 /* drag-n-drop events are generated when a set of selected files are
    dragged from another application and dropped onto an Emacs window.  */
-static const char *lispy_drag_n_drop_names[] =
+static const char *const lispy_drag_n_drop_names[] =
 {
   "drag-n-drop"
 };
@@ -5203,7 +5203,7 @@ Lisp_Object Qup, Qdown, Qbottom, Qend_scroll;
 Lisp_Object Qtop, Qratio;
 
 /* An array of scroll bar parts, indexed by an enum scroll_bar_part value.  */
-const Lisp_Object *scroll_bar_parts[] = {
+static Lisp_Object *const scroll_bar_parts[] = {
   &Qabove_handle, &Qhandle, &Qbelow_handle,
   &Qup, &Qdown, &Qtop, &Qbottom, &Qend_scroll, &Qratio
 };
@@ -6351,7 +6351,7 @@ apply_modifiers_uncached (int modifiers, char *base, int base_len, int base_len_
 }
 
 
-static const char *modifier_names[] =
+static const char *const modifier_names[] =
 {
   "up", "down", "drag", "click", "double", "triple", 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -6571,7 +6571,7 @@ reorder_modifiers (Lisp_Object symbol)
 
 static Lisp_Object
 modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object symbol_kind,
-		     Lisp_Object name_alist_or_stem, const char **name_table,
+		     Lisp_Object name_alist_or_stem, const char *const *name_table,
 		     Lisp_Object *symbol_table, unsigned int table_size)
 {
   Lisp_Object value;
@@ -11100,10 +11100,10 @@ See also `current-input-mode'.  */)
 #ifndef DOS_NT
       /* this causes startup screen to be restored and messes with the mouse */
       reset_all_sys_modes ();
-#endif
       interrupt_input = new_interrupt_input;
-#ifndef DOS_NT
       init_all_sys_modes ();
+#else
+      interrupt_input = new_interrupt_input;
 #endif
 
 #ifdef POLL_FOR_INPUT

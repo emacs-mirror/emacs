@@ -1,6 +1,7 @@
 ;;; org-mouse.el --- Better mouse support for org-mode
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation
+;; Copyright (C) 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>

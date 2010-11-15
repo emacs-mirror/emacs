@@ -1,5 +1,8 @@
 2010-11-12  Carsten Dominik  <carsten.dominik@gmail.com>
 
+	* org-capture.el (org-capture-templates): Remove autoload from
+	defcustom.
+
 	* ob-lisp.el (slime): Don't expect slime to be present.
 
 2010-11-11  Dan Davison  <dandavison7@gmail.com>

@@ -1,3 +1,8 @@
+2010-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Usual Display): Characters with no fonts are not
+	necessarily displayed as empty boxes.
+
 2010-11-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* display.texi (Temporary Displays): Describe

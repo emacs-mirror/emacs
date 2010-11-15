@@ -2352,7 +2352,7 @@ Either user or host may be nil."
 	  (concat
 	   "^\\(" tramp-host-regexp "\\)"
 	   "\\([ \t]+" "\\(" tramp-user-regexp "\\)" "\\)?")))
-     (narrow-to-region (point) (tramp-compat-line-end-position))
+     (narrow-to-region (point) (point-at-eol))
      (when (re-search-forward regexp nil t)
        (setq result (append (list (match-string 3) (match-string 1)))))
      (widen)
@@ -2379,7 +2379,7 @@ User is always nil."
 User is always nil."
    (let ((result)
 	 (regexp (concat "^\\(" tramp-host-regexp "\\)")))
-     (narrow-to-region (point) (tramp-compat-line-end-position))
+     (narrow-to-region (point) (point-at-eol))
      (when (re-search-forward regexp nil t)
        (setq result (list nil (match-string 1))))
      (widen)
@@ -2408,7 +2408,7 @@ User is always nil."
 User is always nil."
    (let ((result)
 	 (regexp (concat "^[ \t]*Host[ \t]+" "\\(" tramp-host-regexp "\\)")))
-     (narrow-to-region (point) (tramp-compat-line-end-position))
+     (narrow-to-region (point) (point-at-eol))
      (when (re-search-forward regexp nil t)
        (setq result (list nil (match-string 1))))
      (widen)
@@ -2469,7 +2469,7 @@ User is always nil."
    (let ((result)
 	 (regexp
 	  (concat "^\\(" tramp-ipv6-regexp "\\|" tramp-host-regexp "\\)")))
-     (narrow-to-region (point) (tramp-compat-line-end-position))
+     (narrow-to-region (point) (point-at-eol))
      (when (re-search-forward regexp nil t)
        (setq result (list nil (match-string 1))))
      (widen)
@@ -2504,7 +2504,7 @@ Host is always \"localhost\"."
 Host is always \"localhost\"."
    (let ((result)
 	 (regexp (concat "^\\(" tramp-user-regexp "\\):")))
-     (narrow-to-region (point) (tramp-compat-line-end-position))
+     (narrow-to-region (point) (point-at-eol))
      (when (re-search-forward regexp nil t)
        (setq result (list (match-string 1) "localhost")))
      (widen)
@@ -2534,7 +2534,7 @@ User may be nil."
 	  (concat
 	   "^[ \t]*machine[ \t]+" "\\(" tramp-host-regexp "\\)"
 	   "\\([ \t]+login[ \t]+" "\\(" tramp-user-regexp "\\)" "\\)?")))
-     (narrow-to-region (point) (tramp-compat-line-end-position))
+     (narrow-to-region (point) (point-at-eol))
      (when (re-search-forward regexp nil t)
        (setq result (list (match-string 3) (match-string 1))))
      (widen)
@@ -2560,7 +2560,7 @@ User is always nil."
 User is always nil."
    (let ((result)
 	 (regexp (concat (regexp-quote registry) "\\\\\\(.+\\)")))
-     (narrow-to-region (point) (tramp-compat-line-end-position))
+     (narrow-to-region (point) (point-at-eol))
      (when (re-search-forward regexp nil t)
        (setq result (list nil (match-string 1))))
      (widen)
@@ -3662,7 +3662,6 @@ Only works for Bourne-like shells."
 ;;   expects English?  Or just to set LC_MESSAGES to "C" if Tramp
 ;;   expects only English messages?  (Juri Linkov)
 ;; * Make shadowfile.el grok Tramp filenames.  (Bug#4526, Bug#4846)
-;; * Load ~/.emacs_SHELLNAME on the remote host for `shell'.
 ;; * I was wondering it it would be possible to use tramp even if I'm
 ;;   actually using sshfs.  But when I launch a command I would like
 ;;   to get it executed on the remote machine where the files really
@@ -3674,7 +3673,6 @@ Only works for Bourne-like shells."
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
 
-;; arch-tag: 3a21a994-182b-48fa-b0cd-c1d9fede424a
 ;;; tramp.el ends here
 
 ;; Local Variables:
