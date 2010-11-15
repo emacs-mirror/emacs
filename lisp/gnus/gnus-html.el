@@ -201,7 +201,7 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
           (let ((alt-text (when (string-match "\\(alt\\|title\\)=\"\\([^\"]+\\)"
                                               parameters)
                             (xml-substitute-special (match-string 2 parameters)))))
-            (gnus-put-text-property start end 'gnus-image-url url)
+            (gnus-put-text-property start end 'image-url url)
             (if (gnus-html-image-url-blocked-p
                  url
                  (if (buffer-live-p gnus-summary-buffer)
@@ -237,7 +237,7 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
                                (> width 4)))
                   (gnus-html-display-image url start end alt-text))))))))))
 
-(defun gnus-html-display-image (url start end alt-text)
+(defun gnus-html-display-image (url start end &optional alt-text)
   "Display image at URL on text from START to END.
 Use ALT-TEXT for the image string."
   (if (gnus-html-cache-expired url gnus-html-image-cache-ttl)
@@ -247,7 +247,7 @@ Use ALT-TEXT for the image string."
        (current-buffer)
        (list url alt-text))
     ;; It's already cached, so just insert it.
-    (gnus-html-put-image (gnus-html-get-image-data url) url alt-text)))
+    (gnus-html-put-image (gnus-html-get-image-data url) url (or alt-text "*"))))
 
 (defun gnus-html-wash-tags ()
   (let (tag parameters string start end images url)
@@ -344,7 +344,7 @@ Use ALT-TEXT for the image string."
 (defun gnus-html-browse-image ()
   "Browse the image under point."
   (interactive)
-  (browse-url (get-text-property (point) 'gnus-image-url)))
+  (browse-url (get-text-property (point) 'image-url)))
 
 (defun gnus-html-browse-url ()
   "Browse the image under point."
@@ -415,9 +415,9 @@ Return a string with image data."
   "Put an image with DATA from URL and optional ALT-TEXT."
   (when (gnus-graphic-display-p)
     (let* ((start (text-property-any (point-min) (point-max)
-				     'gnus-image-url url))
+				     'image-url url))
            (end (when start
-                  (next-single-property-change start 'gnus-image-url))))
+                  (next-single-property-change start 'image-url))))
       ;; Image found?
       (when start
         (let* ((image
@@ -459,7 +459,7 @@ Return a string with image data."
 					    'gnus-alt-text alt-text)
                     (when url
                       (gnus-put-text-property start (point)
-					      'gnus-image-url url))
+					      'image-url url))
                     (gnus-add-image 'external image)
                     t)
                 ;; Bad image, try to show something else
@@ -481,16 +481,6 @@ Return a string with image data."
       (gnus-message 9 "gnus-html-image-url-blocked-p: %s passes regex %s"
                     url blocked-images))
     ret))
-
-(defun gnus-html-show-images ()
-  "Show any images that are in the HTML-rendered article buffer.
-This only works if the article in question is HTML."
-  (interactive)
-  (gnus-with-article-buffer
-    (dolist (overlay (overlays-in (point-min) (point-max)))
-      (let ((o (overlay-get overlay 'gnus-image)))
-        (when o
-          (apply 'gnus-html-display-image o))))))
 
 ;;;###autoload
 (defun gnus-html-prefetch-images (summary)

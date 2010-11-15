@@ -1,5 +1,19 @@
 2010-11-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* shr.el (shr-tag-img): Put a displayer in the text property.
+
+	* gnus-util.el (gnus-find-text-property-region): New utility function.
+
+	* gnus-html.el (gnus-html-display-image): Make the alt optional.
+	(gnus-html-show-images): Remove.
+
+	* gnus-art.el (gnus-article-show-images): New, more general function.
+
+	* gnus-html.el: Use image-url instead of gnus-image-url to unify the
+	image url text properties.
+
+	* shr.el: Ditto.
+
 	* gnus-agent.el (gnus-agentize): Only do the auto-agentizing if
 	gnus-agent-auto-agentize-methods is set.  Which it isn't.
 

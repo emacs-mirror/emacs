@@ -2876,7 +2876,6 @@ gnus-registry.el will populate this if it's loaded.")
       gnus-start-date-timer gnus-stop-date-timer
       gnus-mime-view-all-parts)
      ("gnus-int" gnus-request-type)
-     ("gnus-html" gnus-html-show-images)
      ("gnus-start" gnus-newsrc-parse-options gnus-1 gnus-no-server-1
       gnus-dribble-enter gnus-read-init-file gnus-dribble-touch
       gnus-check-reasonable-setup)

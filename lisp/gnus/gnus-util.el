@@ -277,6 +277,21 @@ Uses `gnus-extract-address-components'."
       (setq start (when end
 		    (next-single-property-change start prop))))))
 
+(defun gnus-find-text-property-region (start end prop)
+  "Return a list of text property regions that has property PROP."
+  (let (regions value)
+    (unless (get-text-property start prop)
+      (setq start (next-single-property-change start prop)))
+    (while start
+      (setq value (get-text-property start prop)
+	    end (text-property-not-all start (point-max) prop value))
+      (if (not end)
+	  (setq start nil)
+	(when value
+	  (push (list start end value) regions))
+	(setq start (next-single-property-change start prop))))
+    (nreverse regions)))
+
 (defun gnus-newsgroup-directory-form (newsgroup)
   "Make hierarchical directory name from NEWSGROUP name."
   (let* ((newsgroup (gnus-newsgroup-savable-name newsgroup))
