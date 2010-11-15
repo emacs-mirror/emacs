@@ -21,10 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Geoff Voelker (voelker@cs.washington.edu)			     7-29-94
 */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -301,5 +298,3 @@ _heap_term (void)
 
 #endif
 
-/* arch-tag: 9a6a9860-040d-422d-8905-450dd535cd9c
-   (do not change this comment) */

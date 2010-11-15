@@ -1,5 +1,10 @@
 2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* w32proc.c:
+	* w32inevt.c:
+	* w32heap.c:
+	* w32.c: Remove config.h include guards.
+
 	* callproc.c (child_setup): Reorder code to simplify #ifdefs.
 	No code changes.
 

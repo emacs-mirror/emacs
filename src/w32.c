@@ -38,9 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* must include CRT headers *before* config.h */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #undef access
 #undef chdir
@@ -6086,5 +6084,3 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
 
 /* end of w32.c */
 
-/* arch-tag: 90442dd3-37be-482b-b272-ac752e3049f1
-   (do not change this comment) */
