@@ -3087,8 +3087,7 @@ static void
 dissociate_if_controlling_tty (int fd)
 {
 #ifndef DOS_NT
-  int pgid;
-  EMACS_GET_TTY_PGRP (fd, &pgid); /* If tcgetpgrp succeeds, fd is the ctty. */
+  int pgid = tcgetpgrp (fd); /* If tcgetpgrp succeeds, fd is the ctty. */
   if (pgid != -1)
     {
 #if defined (USG5)
@@ -3832,7 +3831,3 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   encode_terminal_dst = NULL;
 }
 
-
-
-/* arch-tag: 498e7449-6f2e-45e2-91dd-b7d4ca488193
-   (do not change this comment) */

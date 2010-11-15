@@ -1,5 +1,16 @@
 2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Clean up systty.h macros.
+	* systty.h (EMACS_GET_TTY_PGRP, EMACS_SET_TTY_PGRP, EMACS_GET_TTY)
+	(EMACS_SET_TTY): Remove unneeded abstraction, instead inline the
+	definition in all uses.
+	(EMACS_TTY_TABS_OK): Remove, it has a single user.
+	* sysdep.c (discard_tty_input, child_setup_tty)
+	(init_sys_modes, tabs_safe_p, reset_sys_modes):
+	* emacs.c (shut_down_emacs):
+	* callproc.c (child_setup):
+	* term.c (dissociate_if_controlling_tty): Inline removed macros.
+
 	* data.c (sign_extend_temp, sign_extend_lisp_int): Remove, unused.
 
 2010-11-14  Chong Yidong  <cyd@stupidchicken.com>

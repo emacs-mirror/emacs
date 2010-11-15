@@ -1221,7 +1221,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
   return cpid;
 #else /* not WINDOWSNT */
   /* setpgrp_of_tty is incorrect here; it uses input_fd.  */
-  EMACS_SET_TTY_PGRP (0, &pid);
+  tcsetpgrp (0, pid);
 
   /* execvp does not accept an environment arg so the only way
      to pass this environment is to set environ.  Our caller
@@ -1609,5 +1609,3 @@ See `setenv' and `getenv'.  */);
   defsubr (&Scall_process_region);
 }
 
-/* arch-tag: 769b8045-1df7-4d2b-8968-e3fb49017f95
-   (do not change this comment) */

@@ -2053,10 +2053,8 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 #ifndef DOS_NT
   {
     int pgrp = EMACS_GETPGRP (0);
-
-    int tpgrp;
-    if (EMACS_GET_TTY_PGRP (0, &tpgrp) != -1
-	&& tpgrp == pgrp)
+    int tpgrp = tcgetpgrp (0);
+    if ((tpgrp != -1) && tpgrp == pgrp)
       {
 	reset_all_sys_modes ();
 	if (sig && sig != SIGTERM)
