@@ -1,5 +1,11 @@
 2010-11-15  Martin Rudalics  <rudalics@gmx.at>
 
+	* minibuffer.el (minibuffer-completion-help): Don't mark window
+	as dedicated, the quit-restore parameter should take care of
+	deleting the window.
+	(minibuffer-hide-completions): Use quit-restore-window instead
+	of bury-buffer.
+
 	* window.el (display-buffer-split-window-1): Remove max-size
 	argument and corresponding code.
 	(display-buffer-split-window): Remove handling of max-height and

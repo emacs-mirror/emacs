@@ -1145,12 +1145,7 @@ variables.")
              (or (consp (cdr completions))
                  (not (equal (car completions) string))))
         (let* ((last (last completions))
-               (base-size (cdr last))
-               ;; If the *Completions* buffer is shown in a new
-               ;; window, mark it as softly-dedicated, so bury-buffer in
-               ;; minibuffer-hide-completions will know whether to
-               ;; delete the window or not.
-               (display-buffer-mark-dedicated 'soft))
+               (base-size (cdr last)))
           (with-output-to-temp-buffer "*Completions*"
             ;; Remove the base-size tail because `sort' requires a properly
             ;; nil-terminated list.
@@ -1186,7 +1181,7 @@ variables.")
   ;; FIXME: We could/should use minibuffer-scroll-window here, but it
   ;; can also point to the minibuffer-parent-window, so it's a bit tricky.
   (let ((win (get-buffer-window "*Completions*" 0)))
-    (if win (with-selected-window win (bury-buffer)))))
+    (if win (quit-restore-window win))))
 
 (defun exit-minibuffer ()
   "Terminate this minibuffer argument."
