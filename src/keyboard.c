@@ -431,7 +431,7 @@ FILE *dribble;
 /* Nonzero if input is available.  */
 int input_pending;
 
-extern char *pending_malloc_warning;
+extern const char *pending_malloc_warning;
 
 /* Circular buffer for pre-read keyboard input.  */
 
@@ -11100,10 +11100,10 @@ See also `current-input-mode'.  */)
 #ifndef DOS_NT
       /* this causes startup screen to be restored and messes with the mouse */
       reset_all_sys_modes ();
-#endif
       interrupt_input = new_interrupt_input;
-#ifndef DOS_NT
       init_all_sys_modes ();
+#else
+      interrupt_input = new_interrupt_input;
 #endif
 
 #ifdef POLL_FOR_INPUT

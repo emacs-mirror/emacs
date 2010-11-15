@@ -1,5 +1,11 @@
 2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* keyboard.c (pending_malloc_warning): Add const to match
+	definition in alloc.c.
+	(Fset_input_interrupt_mode): Simplify #ifdefs.
+
+2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	Clean up systty.h macros.
 	* systty.h (EMACS_GET_TTY_PGRP, EMACS_SET_TTY_PGRP, EMACS_GET_TTY)
 	(EMACS_SET_TTY): Remove unneeded abstraction, instead inline the
