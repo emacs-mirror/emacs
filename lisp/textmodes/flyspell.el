@@ -380,7 +380,8 @@ like <img alt=\"Some thing.\">."
 
 (defun flyspell-generic-progmode-verify ()
   "Used for `flyspell-generic-check-word-predicate' in programming modes."
-  (let ((f (get-text-property (point) 'face)))
+  ;; (point) is next char after the word. Must check one char before.
+  (let ((f (get-text-property (- (point) 1) 'face)))
     (memq f flyspell-prog-text-faces)))
 
 ;;;###autoload

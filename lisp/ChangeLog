@@ -1,3 +1,8 @@
+2010-11-15  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-generic-progmode-verify):
+	Make sure to check inside the word (Bug#6761).
+
 2010-11-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (command-line): If the cursorColor resource is set,
