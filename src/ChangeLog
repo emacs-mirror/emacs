@@ -1,5 +1,8 @@
 2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* callproc.c (child_setup): Reorder code to simplify #ifdefs.
+	No code changes.
+
 	* process.c: Include <sys/ioctl.h> unconditionally,
 	keyboard.c already does it.
 
