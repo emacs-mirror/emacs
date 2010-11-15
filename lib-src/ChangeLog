@@ -1,3 +1,9 @@
+2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* test-distrib.c: Remove include guards for config.h and fcntl.h.
+	(O_RDONLY): Do not define.
+	(cool_read): Fix type for variable "sofar".
+
 2010-10-25  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Remove easymenu.elc.
