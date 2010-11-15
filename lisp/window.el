@@ -4780,7 +4780,7 @@ description."
 	    (cons window 'reuse-other-window))
       (display-buffer-in-window buffer window specifiers))))
 
-(defun display-buffer-split-window-1 (window side min-size max-size)
+(defun display-buffer-split-window-1 (window side min-size)
   "Subroutine of `display-buffer-split-window'."
   (let* ((horflag (memq side '(left right)))
 	 (parent (window-parent window))
@@ -4790,21 +4790,20 @@ description."
 	  ;; We either resize WINDOW or its parent.
 	  (window-total-size (if resize parent window) horflag))
 	 (new-size
-	  ;; Don't make a window larger than MAX-SIZE, and not smaller
-	  ;; than MIN-SIZE and the minimum size of a window.
-	  (min max-size
-	       (max min-size
-		    (if resize
-			(min (- old-size (window-min-size parent horflag))
-			     (/ old-size
-				(1+ (window-iso-combinations parent horflag))))
-		      (/ old-size 2))))))
+	  ;; Don't make the new window smaller than MIN-SIZE.
+	  (max min-size
+	       (if resize
+		   (min (- old-size (window-min-size parent horflag))
+			(/ old-size
+			   (1+ (window-iso-combinations parent horflag))))
+		 (/ old-size 2)))))
     ;; Check the sizes.
     (when (if resize
 	      (window-sizable-p parent (- new-size) horflag)
 	    (window-sizable-p window (- new-size) horflag))
       ;; We don't call `split-window-vertically' any more here. If for
-      ;; some reason it seems appropriate we can always do so.
+      ;; some reason it seems appropriate we can always do so (provided
+      ;; we give it an optional SIDE argument).
       (split-window window (- new-size) side))))
 
 (defun display-buffer-split-window (window &optional side specifiers)
@@ -4815,16 +4814,14 @@ list of buffer display specifiers, see the documentation of
 `display-buffer-names' for a description.
 
 Return the new window, nil if it could not be created."
-  ;; Normalize min-height / min-width, we might need both.
   (let ((min-height (cdr (assq 'min-height specifiers)))
 	(min-width (cdr (assq 'min-width specifiers)))
-	(max-height (cdr (assq 'max-height specifiers)))
-	(max-width (cdr (assq 'max-width specifiers)))
 	(root-height (window-total-height
 		      (frame-root-window (window-frame window))))
 	(root-width (window-total-width
 		      (frame-root-window (window-frame window))))
 	size)
+    ;; Normalize min-height and min-width, we might need both.
     (setq min-height
 	  (cond
 	   ((and (integerp min-height)
@@ -4838,20 +4835,6 @@ Return the new window, nil if it could not be created."
 		   (when (>= height window-safe-min-height)
 		     height))))
 	   (t window-min-height)))
-    (setq max-height
-	  (cond
-	   ((and (integerp max-height)
-		 ;; If max-height is specified, it can be as large
-		 ;; as root-height.
-		 (>= max-height min-height)
-		 (<= max-height root-height))
-	    max-height)
-	   ((and (floatp max-height)
-		 (<= max-height 1)
-		 (let ((height (round (* max-height root-height))))
-		   (when (>= height min-height)
-		     height))))
-	   (t root-height)))
     (setq min-width
 	  (cond
 	   ((and (integerp min-width)
@@ -4865,32 +4848,24 @@ Return the new window, nil if it could not be created."
 		   (when (>= width window-safe-min-width)
 		     width))))
 	   (t window-min-width)))
-    (setq max-width
-	  (cond
-	   ((and (integerp max-width)
-		 ;; If max-width is specified, it can be as large as
-		 ;; root-width.
-		 (>= max-width min-width)
-		 (<= max-width root-width))
-	    max-width)
-	   ((and (floatp max-width)
-		 (<= max-width 1)
-		 (let ((width (round (* max-width root-width))))
-		   (when (>= width min-width)
-		     width))))
-	   (t root-width)))
 
     (or (and (memq side '(nil above below))
 	     (display-buffer-split-window-1
-	      window (or side 'below) min-height max-height))
+	      window (or side 'below) min-height))
 	;; If SIDE is nil and vertical splitting failed, we try again
-	;; splitting horizontally this time. For the SIDE nil case, we
-	;; could also try to split horizontally if splitting vertically
-	;; with proportional sizes fails and try the vertical split with
-	;; minimum size afterwards - but this might be disconcerting.
+	;; splitting horizontally this time.
 	(and (memq side '(nil left right))
 	     (display-buffer-split-window-1
-	      window (or side 'below) min-width max-width)))))
+	      window (or side 'right) min-width))
+	;; If WINDOW is the root window of its frame, try once more
+	;; splitting vertically, disregarding the min-height specifier
+	;; this time.  This was the old behavior and there's probably no
+	;; convincing reason to change it.
+	(and (memq side '(nil above below))
+	     (< window-min-height min-height)
+	     (eq window (frame-root-window window))
+	     (display-buffer-split-window-1
+	      window (or side 'below) window-min-height)))))
 
 (defconst display-buffer-split-specifiers '(largest lru selected root first)
   "Buffer display window split specifiers.")

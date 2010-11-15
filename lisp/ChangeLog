@@ -1,3 +1,15 @@
+2010-11-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-split-window-1): Remove max-size
+	argument and corresponding code.
+	(display-buffer-split-window): Remove handling of max-height and
+	max-width specifiers.  Restore the pre Emacs 24 behavior where a
+	single-window frame could be split ignoring the min-height
+	specifier (then split-height-threshold value).  For the
+	horizontal splitting, side equalling nil case call
+	display-buffer-split-window-1 with side argument set to 'right
+	instead of 'below, fixing a bug spotted by Štěpán Němec.
+
 2010-11-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer): Write check for dedicatedness
