@@ -1,5 +1,8 @@
 2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* process.c: Include <sys/ioctl.h> unconditionally,
+	keyboard.c already does it.
+
 	* keyboard.c (pending_malloc_warning): Add const to match
 	definition in alloc.c.
 	(Fset_input_interrupt_mode): Simplify #ifdefs.
