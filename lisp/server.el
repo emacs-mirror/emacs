@@ -594,7 +594,7 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 (defun server-force-stop ()
   "Kill all connections to the current server.
 This function is meant to be called from `kill-emacs-hook'."
-  (server-start nil t))
+  (server-start t t))
 
 ;;;###autoload
 (defun server-force-delete (&optional name)

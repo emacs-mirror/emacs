@@ -1,3 +1,7 @@
+2010-11-16  Ulrich Mueller  <ulm@gentoo.org>
+
+	* server.el (server-force-stop): Ensure the server is stopped (Bug#7409).
+
 2010-11-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (posn-col-row): Pay attention to header line.  (Bug#7390)
