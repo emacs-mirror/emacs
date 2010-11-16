@@ -189,19 +189,26 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 	    (let* ((handle (mm-get-content-id
                             (setq url (match-string 1 url))))
                    (image (when handle
-                            (gnus-create-image (mm-with-part handle (buffer-string))
-                                               nil t))))
+                            (gnus-create-image
+			     (mm-with-part handle (buffer-string))
+			     nil t))))
 	      (when image
                 (let ((string (buffer-substring start end)))
                   (delete-region start end)
-                  (gnus-put-image (gnus-rescale-image image (gnus-html-maximum-image-size))
+                  (gnus-put-image (gnus-rescale-image
+				   image (gnus-html-maximum-image-size))
                                   (gnus-string-or string "*") 'cid)
                   (gnus-add-image 'cid image))))
 	  ;; Normal, external URL.
-          (let ((alt-text (when (string-match "\\(alt\\|title\\)=\"\\([^\"]+\\)"
-                                              parameters)
-                            (xml-substitute-special (match-string 2 parameters)))))
+          (let ((alt-text
+		 (when (string-match "\\(alt\\|title\\)=\"\\([^\"]+\\)"
+				     parameters)
+		   (xml-substitute-special (match-string 2 parameters)))))
             (gnus-put-text-property start end 'image-url url)
+            (gnus-put-text-property
+	     start end 'image-displayer
+	     (lambda (url start end)
+	       (gnus-html-display-image url start end)))
             (if (gnus-html-image-url-blocked-p
                  url
                  (if (buffer-live-p gnus-summary-buffer)

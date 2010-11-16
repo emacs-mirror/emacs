@@ -288,7 +288,10 @@ Uses `gnus-extract-address-components'."
       (if (not end)
 	  (setq start nil)
 	(when value
-	  (push (list start end value) regions))
+	  (push (list (set-marker (make-marker) start)
+		      (set-marker (make-marker) end)
+		      value)
+		regions))
 	(setq start (next-single-property-change start prop))))
     (nreverse regions)))
 

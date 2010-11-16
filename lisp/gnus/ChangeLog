@@ -1,5 +1,9 @@
 2010-11-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-html.el (gnus-html-wash-images): Register a displayer.
+
+	* gnus-util.el (gnus-find-text-property-region): Return markers.
+
 	* shr.el (shr-tag-img): Put a displayer in the text property.
 
 	* gnus-util.el (gnus-find-text-property-region): New utility function.
