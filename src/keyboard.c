@@ -5243,24 +5243,22 @@ EMACS_INT double_click_fuzz;
 
 int double_click_count;
 
-/* Return position of a mouse click or wheel event */
+/* X and Y are frame-relative coordinates for a click or wheel event.
+   Return a Lisp-style event list.  */
 
 static Lisp_Object
-make_lispy_position (struct frame *f, Lisp_Object *x, Lisp_Object *y,
+make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 		     unsigned long time)
 {
-  Lisp_Object window;
   enum window_part part;
   Lisp_Object posn = Qnil;
   Lisp_Object extra_info = Qnil;
-  int wx, wy;
-
-  /* Set `window' to the window under frame pixel coordinates (x,y)  */
-  if (f)
-    window = window_from_coordinates (f, XINT (*x), XINT (*y),
-				      &part, &wx, &wy, 0);
-  else
-    window = Qnil;
+  /* Coordinate pixel positions to return.  */
+  int xret = 0, yret = 0;
+  /* The window under frame pixel coordinates (x,y)  */
+  Lisp_Object window = f
+    ? window_from_coordinates (f, XINT (x), XINT (y), &part, 0)
+    : Qnil;
 
   if (WINDOWP (window))
     {
@@ -5268,102 +5266,113 @@ make_lispy_position (struct frame *f, Lisp_Object *x, Lisp_Object *y,
       struct window *w = XWINDOW (window);
       Lisp_Object string_info = Qnil;
       EMACS_INT textpos = -1;
-      int rx = -1, ry = -1;
-      int dx = -1, dy = -1;
+      int col = -1, row = -1;
+      int dx  = -1, dy  = -1;
       int width = -1, height = -1;
       Lisp_Object object = Qnil;
 
-      /* Set event coordinates to window-relative coordinates
-	 for constructing the Lisp event below.  */
-      XSETINT (*x, wx);
-      XSETINT (*y, wy);
+      /* Pixel coordinates relative to the window corner.  */
+      int wx = XINT (x) - WINDOW_LEFT_EDGE_X (w);
+      int wy = XINT (y) - WINDOW_TOP_EDGE_Y (w);
 
+      /* For text area clicks, return X, Y relative to the corner of
+	 this text area.  Note that dX, dY etc are set below, by
+	 buffer_posn_from_coords.  */
       if (part == ON_TEXT)
 	{
-	  wx += WINDOW_LEFT_MARGIN_WIDTH (w);
+	  xret = wx - window_box_left (w, TEXT_AREA);
+	  yret = wy - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
+      /* For mode line and header line clicks, return X relative to
+	 the left window edge; ignore Y.  Use mode_line_string to look
+	 for a string on the click position.  */
       else if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
 	{
-	  /* Mode line or header line.  Look for a string under
-	     the mouse that may have a `local-map' property.  */
 	  Lisp_Object string;
 	  EMACS_INT charpos;
 
-	  posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
-	  rx = wx, ry = wy;
-	  string = mode_line_string (w, part, &rx, &ry, &charpos,
+	  posn = (part == ON_MODE_LINE) ? Qmode_line : Qheader_line;
+	  /* Note that mode_line_string takes COL, ROW as pixels and
+	     converts them to characters.  */
+	  col = wx;
+	  row = wy;
+	  string = mode_line_string (w, part, &col, &row, &charpos,
 				     &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
 	    string_info = Fcons (string, make_number (charpos));
-	  if (w == XWINDOW (selected_window)
-	      && current_buffer == XBUFFER (w->buffer))
-	    textpos = PT;
-	  else
-	    textpos = XMARKER (w->pointm)->charpos;
+	  textpos = (w == XWINDOW (selected_window)
+		     && current_buffer == XBUFFER (w->buffer))
+	    ? PT : XMARKER (w->pointm)->charpos;
+
+	  xret = wx;
 	}
-      else if (part == ON_VERTICAL_BORDER)
-	{
-	  posn = Qvertical_line;
-	  wx = -1;
-	  dx = 0;
-	  width = 1;
-	}
+      /* For fringes and margins, Y is relative to the area's (and the
+	 window's) top edge, while X is meaningless.  */
       else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
 	{
 	  Lisp_Object string;
 	  EMACS_INT charpos;
 
 	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
-	  rx = wx, ry = wy;
-	  string = marginal_area_string (w, part, &rx, &ry, &charpos,
+	  col = wx;
+	  row = wy;
+	  string = marginal_area_string (w, part, &col, &row, &charpos,
 					 &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
 	    string_info = Fcons (string, make_number (charpos));
-	  if (part == ON_LEFT_MARGIN)
-	    wx = 0;
-	  else
-	    wx = window_box_right_offset (w, TEXT_AREA) - 1;
+	  yret = wy - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
       else if (part == ON_LEFT_FRINGE)
 	{
 	  posn = Qleft_fringe;
-	  rx = 0;
-	  dx = wx;
-	  wx = (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
-		? 0
-		: window_box_width (w, LEFT_MARGIN_AREA));
-	  dx -= wx;
+	  col = 0;
+	  dx = wx
+	    - (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+	       ? 0 : window_box_width (w, LEFT_MARGIN_AREA));
+	  dy = yret = wy - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
       else if (part == ON_RIGHT_FRINGE)
 	{
 	  posn = Qright_fringe;
-	  rx = 0;
-	  dx = wx;
-	  wx = (window_box_width (w, LEFT_MARGIN_AREA)
-		+ window_box_width (w, TEXT_AREA)
-		+ (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
-		   ? window_box_width (w, RIGHT_MARGIN_AREA)
-		   : 0));
-	  dx -= wx;
+	  col = 0;
+	  dx = wx
+	    - window_box_width (w, LEFT_MARGIN_AREA)
+	    - window_box_width (w, TEXT_AREA)
+	    - (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+	       ? window_box_width (w, RIGHT_MARGIN_AREA)
+	       : 0);
+	  dy = yret = wy - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
-      else
+      else if (part == ON_VERTICAL_BORDER)
 	{
-	  /* Note: We have no special posn for part == ON_SCROLL_BAR.  */
-	  wx = max (WINDOW_LEFT_MARGIN_WIDTH (w), wx);
+	  posn = Qvertical_line;
+	  width = 1;
+	  dx = 0;
+	  dy = yret = wy;
 	}
+      /* Nothing special for part == ON_SCROLL_BAR.  */
 
+      /* For clicks in the text area, fringes, or margins, call
+	 buffer_posn_from_coords to extract TEXTPOS, the buffer
+	 position nearest to the click.  */
       if (textpos < 0)
 	{
 	  Lisp_Object string2, object2 = Qnil;
 	  struct display_pos p;
 	  int dx2, dy2;
 	  int width2, height2;
-	  string2 = buffer_posn_from_coords (w, &wx, &wy, &p,
+	  /* The pixel X coordinate passed to buffer_posn_from_coords
+	     is the X coordinate relative to the text area for
+	     text-area clicks, zero otherwise.  */
+	  int x2 = (part == ON_TEXT) ? xret : 0;
+	  int y2 = wy;
+
+	  string2 = buffer_posn_from_coords (w, &x2, &y2, &p,
 					     &object2, &dx2, &dy2,
 					     &width2, &height2);
 	  textpos = CHARPOS (p.pos);
-	  if (rx < 0) rx = wx;
-	  if (ry < 0) ry = wy;
+	  if (col < 0) col = x2;
+	  if (row < 0) row = y2;
 	  if (dx < 0) dx = dx2;
 	  if (dy < 0) dy = dy2;
 	  if (width < 0) width = width2;
@@ -5394,34 +5403,27 @@ make_lispy_position (struct frame *f, Lisp_Object *x, Lisp_Object *y,
 #endif
 
       /* Object info */
-      extra_info = Fcons (object,
-			  Fcons (Fcons (make_number (dx),
-					make_number (dy)),
-				 Fcons (Fcons (make_number (width),
-					       make_number (height)),
-					Qnil)));
+      extra_info
+	= list3 (object,
+		 Fcons (make_number (dx), make_number (dy)),
+		 Fcons (make_number (width), make_number (height)));
 
       /* String info */
       extra_info = Fcons (string_info,
 			  Fcons (make_number (textpos),
-				 Fcons (Fcons (make_number (rx),
-					       make_number (ry)),
+				 Fcons (Fcons (make_number (col),
+					       make_number (row)),
 					extra_info)));
     }
   else if (f != 0)
-    {
-      XSETFRAME (window, f);
-    }
+    XSETFRAME (window, f);
   else
-    {
-      window = Qnil;
-      XSETFASTINT (*x, 0);
-      XSETFASTINT (*y, 0);
-    }
+    window = Qnil;
 
   return Fcons (window,
 		Fcons (posn,
-		       Fcons (Fcons (*x, *y),
+		       Fcons (Fcons (make_number (xret),
+				     make_number (yret)),
 			      Fcons (make_number (time),
 				     extra_info))));
 }
@@ -5610,14 +5612,6 @@ make_lispy_event (struct input_event *event)
 		int hpos;
 		int i;
 
-#if 0
-		/* Activate the menu bar on the down event.  If the
-		   up event comes in before the menu code can deal with it,
-		   just ignore it.  */
-		if (! (event->modifiers & down_modifier))
-		  return Qnil;
-#endif
-
 		/* Find the menu bar item under `column'.  */
 		item = Qnil;
 		items = FRAME_MENU_BAR_ITEMS (f);
@@ -5649,7 +5643,7 @@ make_lispy_event (struct input_event *event)
 	      }
 #endif /* not USE_X_TOOLKIT && not USE_GTK && not HAVE_NS */
 
-	    position = make_lispy_position (f, &event->x, &event->y,
+	    position = make_lispy_position (f, event->x, event->y,
 					    event->timestamp);
 	  }
 #ifndef USE_TOOLKIT_SCROLL_BARS
@@ -5749,23 +5743,21 @@ make_lispy_event (struct input_event *event)
 	      return Qnil;
 
 	    event->modifiers &= ~up_modifier;
-#if 0 /* Formerly we treated an up with no down as a click event.  */
-	    if (!CONSP (start_pos))
-	      event->modifiers |= click_modifier;
-	    else
-#endif
+
 	      {
-		Lisp_Object down;
+		Lisp_Object new_down, down;
 		EMACS_INT xdiff = double_click_fuzz, ydiff = double_click_fuzz;
 
 		/* The third element of every position
 		   should be the (x,y) pair.  */
 		down = Fcar (Fcdr (Fcdr (start_pos)));
+		new_down = Fcar (Fcdr (Fcdr (position)));
+
 		if (CONSP (down)
 		    && INTEGERP (XCAR (down)) && INTEGERP (XCDR (down)))
 		  {
-		    xdiff = XINT (event->x) - XINT (XCAR (down));
-		    ydiff = XINT (event->y) - XINT (XCDR (down));
+		    xdiff = XINT (XCAR (new_down)) - XINT (XCAR (down));
+		    ydiff = XINT (XCDR (new_down)) - XINT (XCDR (down));
 		  }
 
 		if (ignore_mouse_drag_p)
@@ -5848,7 +5840,7 @@ make_lispy_event (struct input_event *event)
 	if (! FRAME_LIVE_P (f))
 	  return Qnil;
 
-	position = make_lispy_position (f, &event->x, &event->y,
+	position = make_lispy_position (f, event->x, event->y,
 					event->timestamp);
 
 	/* Set double or triple modifiers to indicate the wheel speed.  */
@@ -5868,10 +5860,8 @@ make_lispy_event (struct input_event *event)
 	  else
 	    abort ();
 
-	  if (FRAME_WINDOW_P (f))
-	    fuzz = double_click_fuzz;
-	  else
-	    fuzz = double_click_fuzz / 8;
+	  fuzz = FRAME_WINDOW_P (f)
+	    ? double_click_fuzz : double_click_fuzz / 8;
 
 	  if (event->modifiers & up_modifier)
 	    {
@@ -6009,7 +5999,7 @@ make_lispy_event (struct input_event *event)
 	if (! FRAME_LIVE_P (f))
 	  return Qnil;
 
-	position = make_lispy_position (f, &event->x, &event->y,
+	position = make_lispy_position (f, event->x, event->y,
 					event->timestamp);
 
 	head = modify_event_symbol (0, event->modifiers,
@@ -6092,8 +6082,8 @@ make_lispy_event (struct input_event *event)
 	start_pos_ptr = &AREF (button_down_location, button);
 	start_pos = *start_pos_ptr;
 
-	position = make_lispy_position (f, &event->x, &event->y,
-					    event->timestamp);
+	position = make_lispy_position (f, event->x, event->y,
+					event->timestamp);
 
  	if (event->modifiers & down_modifier)
 	  *start_pos_ptr = Fcopy_alist (position);
@@ -6152,25 +6142,19 @@ make_lispy_movement (FRAME_PTR frame, Lisp_Object bar_window, enum scroll_bar_pa
 
       part_sym = *scroll_bar_parts[(int) part];
       return Fcons (Qscroll_bar_movement,
-		    (Fcons (Fcons (bar_window,
-				   Fcons (Qvertical_scroll_bar,
-					  Fcons (Fcons (x, y),
-						 Fcons (make_number (time),
-							Fcons (part_sym,
-							       Qnil))))),
-			    Qnil)));
+		    Fcons (list5 (bar_window,
+				  Qvertical_scroll_bar,
+				  Fcons (x, y),
+				  make_number (time),
+				  part_sym),
+			   Qnil));
     }
-
   /* Or is it an ordinary mouse movement?  */
   else
     {
       Lisp_Object position;
-
-      position = make_lispy_position (frame, &x, &y, time);
-
-      return Fcons (Qmouse_movement,
-		    Fcons (position,
-			   Qnil));
+      position = make_lispy_position (frame, x, y, time);
+      return list2 (Qmouse_movement, position);
     }
 }
 
@@ -11327,7 +11311,7 @@ The `posn-' functions access elements of such lists.  */)
 
   CHECK_LIVE_FRAME (frame_or_window);
 
-  return make_lispy_position (XFRAME (frame_or_window), &x, &y, 0);
+  return make_lispy_position (XFRAME (frame_or_window), x, y, 0);
 }
 
 DEFUN ("posn-at-point", Fposn_at_point, Sposn_at_point, 0, 2, 0,
