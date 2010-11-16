@@ -1,3 +1,9 @@
+2010-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Displaying Buffers): Mention that if a window is
+	the only window on its frame it can be split regardless of the
+	min-height specifier.
+
 2010-11-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Usual Display): Characters with no fonts are not

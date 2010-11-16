@@ -1897,9 +1897,14 @@ The symbols @code{min-height} and @code{min-width}.  In this case, the
 new window to display the buffer.  An integer number specifies the
 minimum number of lines or columns of the new window.  A floating point
 number gives the minimum fraction of the window's size with respect to
-the frame's root window.  A new window will be made if and only if it
-can be made at least as large as specified by the number.  Reusing a
-window or making a new frame are not affected by these specifiers.
+the frame's root window.
+
+A new window will be made if and only if it can be made at least as
+large as specified by the number.  As a special case, if a window is the
+only window on its frame, it can be split vertically regardless of the
+value specified by the @code{min-height} specifier.  Reusing a window or
+making a new frame are not affected by these specifiers.
+
 
 @item
 The symbol @code{split-unsplittable-frame} with a non-@code{nil}

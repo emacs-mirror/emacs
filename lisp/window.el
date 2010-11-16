@@ -4789,22 +4789,35 @@ description."
 	 (old-size
 	  ;; We either resize WINDOW or its parent.
 	  (window-total-size (if resize parent window) horflag))
-	 (new-size
-	  ;; Don't make the new window smaller than MIN-SIZE.
-	  (max min-size
-	       (if resize
-		   (min (- old-size (window-min-size parent horflag))
-			(/ old-size
-			   (1+ (window-iso-combinations parent horflag))))
-		 (/ old-size 2)))))
-    ;; Check the sizes.
-    (when (if resize
-	      (window-sizable-p parent (- new-size) horflag)
-	    (window-sizable-p window (- new-size) horflag))
-      ;; We don't call `split-window-vertically' any more here. If for
-      ;; some reason it seems appropriate we can always do so (provided
-      ;; we give it an optional SIDE argument).
-      (split-window window (- new-size) side))))
+	 new-size)
+    ;; We don't call split-window-vertically/-horizontally any more
+    ;; here. If for some reason it's needed we can always do so
+    ;; (provided we give it an optional SIDE argument).
+    (cond
+     (resize
+      ;; When we resize a combination, the new window must be at least
+      ;; MIN-SIZE large after the split.
+      (setq new-size
+	    (max min-size
+		 (min (- old-size (window-min-size parent horflag))
+		      (/ old-size
+			 (1+ (window-iso-combinations parent horflag))))))
+      (when (window-sizable-p parent (- new-size) horflag)
+	(split-window window (- new-size) side)))
+     ((window-live-p window)
+      (setq new-size (/ old-size 2))
+      ;; When WINDOW is live the old _and_ the new window must be at
+      ;; least MIN-SIZE large after the split.
+      (when (and (>= new-size min-size)
+		 (window-sizable-p window (- new-size) horflag))
+	;; Do an even split to make Stepan happy.
+	(split-window window nil side)))
+     (t
+      ;; When WINDOW is internal the new window must be at least
+      ;; MIN-SIZE large after the split.
+      (setq new-size (max min-size (/ old-size 2)))
+      (when (window-sizable-p window (- new-size) horflag)
+	(split-window window (- new-size) side))))))
 
 (defun display-buffer-split-window (window &optional side specifiers)
   "Split WINDOW in a way suitable for `display-buffer'.
@@ -4816,35 +4829,37 @@ list of buffer display specifiers, see the documentation of
 Return the new window, nil if it could not be created."
   (let ((min-height (cdr (assq 'min-height specifiers)))
 	(min-width (cdr (assq 'min-width specifiers)))
-	(root-height (window-total-height
-		      (frame-root-window (window-frame window))))
-	(root-width (window-total-width
-		      (frame-root-window (window-frame window))))
 	size)
     ;; Normalize min-height and min-width, we might need both.
     (setq min-height
+	  ;; If min-height is specified, it can be as small as
+	  ;; `window-safe-min-height'.
 	  (cond
 	   ((and (integerp min-height)
-		 ;; If min-height is specified, it can be as small
-		 ;; `window-safe-min-height'.
 		 (>= min-height window-safe-min-height))
 	    min-height)
 	   ((and (floatp min-height)
 		 (<= min-height 1)
-		 (let ((height (round (* min-height root-height))))
+		 (let* ((root-height (window-total-height
+				      (frame-root-window
+				       (window-frame window))))
+			(height (round (* min-height root-height))))
 		   (when (>= height window-safe-min-height)
 		     height))))
 	   (t window-min-height)))
     (setq min-width
+	  ;; If min-width is specified, it can be as small as
+	  ;; `window-safe-min-width'.
 	  (cond
 	   ((and (integerp min-width)
-		 ;; If min-width is specified, it can be as small
-		 ;; `window-safe-min-width'.
 		 (>= min-width window-safe-min-width))
 	    min-width)
 	   ((and (floatp min-width)
 		 (<= min-width 1)
-		 (let ((width (round (* min-width root-width))))
+		 (let* ((root-width (window-total-width
+				     (frame-root-window
+				      (window-frame window))))
+			(width (round (* min-width root-width))))
 		   (when (>= width window-safe-min-width)
 		     width))))
 	   (t window-min-width)))
@@ -4857,12 +4872,12 @@ Return the new window, nil if it could not be created."
 	(and (memq side '(nil left right))
 	     (display-buffer-split-window-1
 	      window (or side 'right) min-width))
-	;; If WINDOW is the root window of its frame, try once more
-	;; splitting vertically, disregarding the min-height specifier
-	;; this time.  This was the old behavior and there's probably no
-	;; convincing reason to change it.
+	;; If WINDOW is live and the root window of its frame, try once
+	;; more splitting vertically, disregarding the min-height
+	;; specifier this time and using `window-min-height' instead.
 	(and (memq side '(nil above below))
-	     (< window-min-height min-height)
+	     (<= window-min-height min-height)
+	     (window-live-p window)
 	     (eq window (frame-root-window window))
 	     (display-buffer-split-window-1
 	      window (or side 'below) window-min-height)))))

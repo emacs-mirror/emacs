@@ -1,3 +1,9 @@
+2010-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-split-window-1)
+	(display-buffer-split-window): Rewrite so that windows are
+	always split evenly.
+
 2010-11-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* minibuffer.el (minibuffer-completion-help): Don't mark window
