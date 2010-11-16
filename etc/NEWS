@@ -543,7 +543,8 @@ system or session bus.
 
 * New Modes and Packages in Emacs 24.1
 
-** New global minor modes electric-pair-mode and electric-indent-mode.
+** New global minor modes electric-pair-mode, electric-indent-mode,
+and electric-layout-mode.
 
 ** pcase.el provides the ML-style pattern matching macro `pcase'.
 

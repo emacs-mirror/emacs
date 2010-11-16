@@ -1,3 +1,12 @@
+2010-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-layout-mode): New minor mode.
+	(electric--after-char-pos): New function.
+	(electric-indent-post-self-insert-function): Use it.
+	(electric-layout-rules): New var.
+	(electric-layout-post-self-insert-function): New function.
+	(electric-indent-mode): Make them interact better.
+
 2010-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/checkdoc.el (checkdoc-syntax-table): Fix last change.
