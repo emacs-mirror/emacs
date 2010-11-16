@@ -5280,7 +5280,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	 buffer_posn_from_coords.  */
       if (part == ON_TEXT)
 	{
-	  xret = wx - window_box_left (w, TEXT_AREA);
+	  xret = XINT (x) - window_box_left (w, TEXT_AREA);
 	  yret = wy - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
       /* For mode line and header line clicks, return X relative to
