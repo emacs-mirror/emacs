@@ -2698,7 +2698,7 @@ dos_rawgetc (void)
 	      mouse_window = window_from_coordinates (SELECTED_FRAME(),
 						      mouse_last_x,
 						      mouse_last_y,
-						      0, 0);
+						      0, 0, 0, 0);
 	      /* A window will be selected only when it is not
 		 selected now, and the last mouse movement event was
 		 not in it.  A minibuffer window will be selected iff

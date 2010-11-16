@@ -788,7 +788,8 @@ EXFUN (Fset_window_point, 2);
 extern Lisp_Object make_window (void);
 extern void delete_window (Lisp_Object);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
-                                            enum window_part *, int);
+                                            enum window_part *,
+                                            int *, int*, int);
 EXFUN (Fwindow_dedicated_p, 1);
 extern int window_height (Lisp_Object);
 extern int window_width (Lisp_Object);
@@ -803,7 +804,6 @@ extern void foreach_window (struct frame *,
                             void *);
 extern void grow_mini_window (struct window *, int);
 extern void shrink_mini_window (struct window *);
-extern int window_relative_x_coord (struct window *, enum window_part, int);
 
 void run_window_configuration_change_hook (struct frame *f);
 

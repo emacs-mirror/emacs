@@ -560,11 +560,6 @@ Notifications API.  It requires D-Bus for communication.
 
 * Incompatible Lisp Changes in Emacs 24.1
 
-** For mouse click input events in the text area, the Y pixel
-coordinate in the POSITION list now counts from the top of the text
-area, excluding any header line.  Previously, it counted from the top
-of the header line.
-
 ** Remove obsolete name `e' (use `float-e' instead).
 
 ** A backquote not followed by a space is now always treated as new-style.

@@ -5393,7 +5393,7 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
   BYTEPOS (startp) = min (ZV_BYTE, max (BEGV_BYTE, BYTEPOS (startp)));
   start_display (&it, w, startp);
 
-  x0 = *x;
+  x0 = *x - WINDOW_LEFT_MARGIN_WIDTH (w);
 
   /* First, move to the beginning of the row corresponding to *Y.  We
      need to be in that row to get the correct value of base paragraph

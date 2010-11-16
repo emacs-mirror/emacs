@@ -1,35 +1,3 @@
-2010-11-16  Chong Yidong  <cyd@stupidchicken.com>
-
-	* keyboard.c (make_lispy_position): For text area clicks, record Y
-	pixel position relative to the text area, excluding header line.
-	Also change X and Y to Lisp_Objects, not pointers; don't return
-	coordinate values via pointers.  Pass ON_TEXT_AREA coordinate to
-	buffer_posn_from_coords counting from the start of the text area.
-	(Fposn_at_x_y, make_lispy_event): Callers changed.
-
-	* window.c (coordinates_in_window): Change X and Y to ints rather
-	than pointers; don't return coordinates via pointers.
-	(struct check_window_data): Change X and Y from pointers to ints.
-	(window_from_coordinates): Remove args WX and WY; don't return
-	coordinates via pointers.
-	(Fcoordinates_in_window_p, window_from_coordinates):
-	(check_window_containing, Fwindow_at): Callers changed.
-	(window_relative_x_coord): New function.
-
-	* window.h (window_from_coordinates, window_relative_x_coord):
-	Update prototypes.
-
-	* dispnew.c (buffer_posn_from_coords): Assume that X counts from
-	the start of the text area.
-
-	* xdisp.c (remember_mouse_glyph): Change window_from_coordinates
-	call.  Use window_relative_x_coord.
-	(note_mouse_highlight): Change window_from_coordinates call.
-
-	* w32term.c (w32_read_socket):
-	* msdos.c (dos_rawgetc):
-	* xterm.c (handle_one_xevent): Likewise.
-
 2010-11-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* strftime.c (LOCALE_PARAM_DECL): Update for standard C.
