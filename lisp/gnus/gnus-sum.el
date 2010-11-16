@@ -2136,7 +2136,7 @@ increase the score of each group you read."
   "d" gnus-article-display-face
   "s" gnus-treat-smiley
   "D" gnus-article-remove-images
-  "W" gnus-html-show-images
+  "W" gnus-article-show-images
   "f" gnus-treat-from-picon
   "m" gnus-treat-mail-picon
   "n" gnus-treat-newsgroups-picon

@@ -22,6 +22,12 @@
 	display-buffer-split-window-1 with side argument set to 'right
 	instead of 'below, fixing a bug spotted by Štěpán Němec.
 
+2010-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/checkdoc.el (checkdoc-syntax-table): Fix last change.
+	(checkdoc-sentencespace-region-engine, checkdoc-this-string-valid)
+	(checkdoc-proper-noun-region-engine): Use with-syntax-table.
+
 2010-11-15  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-generic-progmode-verify):

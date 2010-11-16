@@ -23,10 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 */
 
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include <stdio.h>
 #include <windows.h>
 #include <setjmp.h>
@@ -784,5 +781,3 @@ w32_console_read_socket (struct terminal *terminal,
   return ret;
 }
 
-/* arch-tag: 0bcb39b7-d085-4b85-9070-6750e8c03047
-   (do not change this comment) */

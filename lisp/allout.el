@@ -6,7 +6,7 @@
 ;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Created: Dec 1991 -- first release to usenet
-;; Version: 2.2.1
+;; Version: 2.2.2
 ;; Keywords: outlines wp languages
 ;; Website: http://myriadicity.net/Sundry/EmacsAllout
 
@@ -917,7 +917,7 @@ For details, see `allout-toggle-current-subtree-encryption's docstring."
 ;;;_ #1 Internal Outline Formatting and Configuration
 ;;;_  : Version
 ;;;_   = allout-version
-(defvar allout-version "2.2.1"
+(defvar allout-version "2.2.2"
   "Version of currently loaded outline package.  (allout.el)")
 ;;;_   > allout-version
 (defun allout-version (&optional here)

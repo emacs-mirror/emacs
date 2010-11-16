@@ -154,7 +154,7 @@ redirects somewhere else."
 (defun shr-browse-image ()
   "Browse the image under point."
   (interactive)
-  (let ((url (get-text-property (point) 'shr-image)))
+  (let ((url (get-text-property (point) 'image-url)))
     (if (not url)
 	(message "No image under point")
       (message "Browsing %s..." url)
@@ -163,7 +163,7 @@ redirects somewhere else."
 (defun shr-insert-image ()
   "Insert the image under point into the buffer."
   (interactive)
-  (let ((url (get-text-property (point) 'shr-image)))
+  (let ((url (get-text-property (point) 'image-url)))
     (if (not url)
 	(message "No image under point")
       (message "Inserting %s..." url)
@@ -572,7 +572,12 @@ Return a string with image data."
 			  t))))
 	(put-text-property start (point) 'keymap shr-map)
 	(put-text-property start (point) 'shr-alt alt)
-	(put-text-property start (point) 'shr-image url)
+	(put-text-property start (point) 'image-url url)
+	(put-text-property start (point) 'image-displayer
+			   (lambda (url start end)
+			     (url-retrieve url 'shr-image-fetched
+					   (list (current-buffer) start end)
+					   t)))
 	(put-text-property start (point) 'help-echo alt)
 	(setq shr-state 'image)))))
 

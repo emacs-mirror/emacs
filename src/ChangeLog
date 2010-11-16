@@ -1,4 +1,25 @@
+2010-11-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* strftime.c (LOCALE_PARAM_DECL): Update for standard C.
+	(LOCALE_PARAM, LOCALE_PARAM_PROTO): Remove, unused.
+	(memcpy_lowcase, so_week_days, extra_args_spec, emacs_strftimeu):
+	Convert definitions to standard C.
+	* regex.c: Do not include <stdlib.h>, config.h does it.
+	Include unistd.h.
+	(xrealloc, init_syntax_once, re_match, regcomp, regexec)
+	(regerror, regfree): Convert definitions to standard C.
+	* mktime.c (my_mktime_localtime_r, ydhms_tm_diff, ranged_convert)
+	(__mktime_internal): Convert definitions to standard C.
+
 2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* w32proc.c:
+	* w32inevt.c:
+	* w32heap.c:
+	* w32.c: Remove config.h include guards.
+
+	* callproc.c (child_setup): Reorder code to simplify #ifdefs.
+	No code changes.
 
 	* process.c: Include <sys/ioctl.h> unconditionally,
 	keyboard.c already does it.

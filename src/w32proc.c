@@ -32,10 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 
 /* must include CRT headers *before* config.h */
-
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #undef signal
 #undef wait
@@ -2370,7 +2367,5 @@ where the performance impact may be noticeable even on modern hardware.  */);
   staticpro (&Vw32_valid_locale_ids);
   staticpro (&Vw32_valid_codepages);
 }
-/* end of ntproc.c */
+/* end of w32proc.c */
 
-/* arch-tag: 23d3a34c-06d2-48a1-833b-ac7609aa5250
-   (do not change this comment) */
