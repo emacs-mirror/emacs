@@ -1,3 +1,8 @@
+2010-11-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-file.el (url-file-build-filename): Avoid interpreting
+	file:/foo:/bar URLs via tramp.
+
 2010-10-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-gw.el (url-open-stream): Use open-gnutls-stream if it exists.
