@@ -1,3 +1,8 @@
+2010-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix cursor positioning in empty
+	lines on text-mode terminals.  (bug#7417)
+
 2010-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c (get_current_wm_state): Rename from get_current_vm_state.
