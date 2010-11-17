@@ -1,5 +1,8 @@
 2010-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/python.el (run-python): Explain why we remove the current
+	directory from sys.path.  Suggested by Eric Hanchrow <erich@cozi.com>.
+
 	* progmodes/grep.el (grep-regexp-alist): Tighten the regexp (bug#7378).
 
 2010-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>

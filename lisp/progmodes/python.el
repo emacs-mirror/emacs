@@ -1586,6 +1586,11 @@ buffer for a list of commands.)"
     (with-current-buffer
 	(let* ((cmdlist
 		(append (python-args-to-list cmd)
+                        ;; It's easy for the user to cause the process to be
+			;; started without realizing it (e.g. to perform
+			;; completion); for this reason loading files from the
+			;; current directory is a security risk.  See
+			;; http://article.gmane.org/gmane.emacs.devel/103569
 			'("-i" "-c" "import sys; sys.path.remove('')")))
 	       (path (getenv "PYTHONPATH"))
 	       (process-environment	; to import emacs.py
