@@ -388,6 +388,11 @@ redirects somewhere else."
       (let ((image (ignore-errors
                      (shr-rescale-image data))))
         (when image
+	  ;; When inserting big-ish pictures, put them at the
+	  ;; beginning of the line.
+	  (when (and (> (current-column) 0)
+		     (> (car (image-size image t)) 400))
+	    (insert "\n"))
 	  (insert-image image (or alt "*"))))
     (insert alt)))
 

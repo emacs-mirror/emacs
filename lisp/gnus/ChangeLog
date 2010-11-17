@@ -1,3 +1,17 @@
+2010-11-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-put-image): Break lines when inserting big pictures.
+
+2010-11-17  Daniel Dehennin  <daniel.dehennin@baby-gnu.org>
+
+	* mml2015.el (mml2015-epg-encrypt): Fix two cons with missing
+	sender, thanks Katsumi Yamaoka.
+
+2010-11-17  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-imap): Reverse the article list for each group
+	rather than the whole list.
+
 2010-11-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-image-displayer): Protect function against non-existent

@@ -677,14 +677,14 @@ details on the language and supported extensions"
                         (cdr (assoc nnir-imap-default-search-key
                                     nnir-imap-search-arguments))))
           (gnus-inhibit-demon t)
-	  (groups (or groups (nnir-get-active srv)))
-          artlist)
+	  (groups (or groups (nnir-get-active srv))))
       (message "Opening server %s" server)
       (apply
        'vconcat
        (mapcar
 	(lambda (x)
-	  (let ((group x))
+	  (let ((group x)
+		artlist)
 	    (condition-case ()
 		(when (nnimap-possibly-change-group
 		       (gnus-group-short-name group) server)
