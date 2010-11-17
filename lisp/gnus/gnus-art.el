@@ -1636,6 +1636,12 @@ This requires GNU Libidn, and by default only enabled if it is found."
   :group 'gnus-article
   :type 'boolean)
 
+(defcustom gnus-inhibit-images nil
+  "Non-nil means inhibit displaying of images inline in the article body."
+  :version "24.1"
+  :group 'gnus-article
+  :type 'boolean)
+
 (defcustom gnus-blocked-images 'gnus-block-private-groups
   "Images that have URLs matching this regexp will be blocked.
 This can also be a function to be evaluated.  If so, it will be
@@ -5845,7 +5851,9 @@ If displaying \"text/html\" is discouraged \(see
 	(while ignored
 	  (when (string-match (pop ignored) type)
 	    (throw 'ignored nil)))
-	(if (and (setq not-attachment
+	(if (and (not (and gnus-inhibit-images
+			   (string-match "\\`image/" type)))
+		 (setq not-attachment
 		       (and (not (mm-inline-override-p handle))
 			    (or (not (mm-handle-disposition handle))
 				(equal (car (mm-handle-disposition handle))

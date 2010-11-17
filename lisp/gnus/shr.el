@@ -435,6 +435,26 @@ Return a string with image data."
 		(search-forward "\r\n\r\n" nil t))
 	(buffer-substring (point) (point-max))))))
 
+(defun shr-image-displayer (content-function)
+  "Return a function to display an image.
+CONTENT-FUNCTION is a function to retrieve an image for a cid url that
+is an argument.  The function to be returned takes three arguments URL,
+START, and END."
+  `(lambda (url start end)
+     (if (string-match "\\`cid:" url)
+	 ,(when content-function
+	    `(let ((image (funcall ,content-function
+				   (substring url (match-end 0)))))
+	       (when image
+		 (goto-char start)
+		 (shr-put-image image
+				(prog1
+				    (buffer-substring-no-properties start end)
+				  (delete-region start end))))))
+       (url-retrieve url 'shr-image-fetched
+		     (list (current-buffer) start end)
+		     t))))
+
 (defun shr-heading (cont &rest types)
   (shr-ensure-paragraph)
   (apply #'shr-fontize-cont cont types)
@@ -574,10 +594,7 @@ Return a string with image data."
 	(put-text-property start (point) 'shr-alt alt)
 	(put-text-property start (point) 'image-url url)
 	(put-text-property start (point) 'image-displayer
-			   (lambda (url start end)
-			     (url-retrieve url 'shr-image-fetched
-					   (list (current-buffer) start end)
-					   t)))
+			   (shr-image-displayer shr-content-function))
 	(put-text-property start (point) 'help-echo alt)
 	(setq shr-state 'image)))))
 

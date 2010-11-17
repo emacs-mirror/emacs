@@ -1,3 +1,14 @@
+2010-11-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-inhibit-images): New user option.
+	(gnus-mime-display-single): Don't display image if it is non-nil.
+
+	* mm-decode.el (mm-shr): Bind shr-inhibit-images to the value of
+	gnus-inhibit-images.
+
+	* shr.el (shr-image-displayer): New function.
+	(shr-tag-img): Use it.
+
 2010-11-16  Daniel Dehennin  <daniel.dehennin@baby-gnu.org>
 
 	* mml2015.el (mml2015-epg-sign): Use From header.

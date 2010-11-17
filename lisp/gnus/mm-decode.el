@@ -1687,6 +1687,7 @@ If RECURSIVE, search recursively."
 		  (start end &optional base-url))
 (declare-function shr-insert-document "shr" (dom))
 (defvar shr-blocked-images)
+(defvar gnus-inhibit-images)
 (autoload 'gnus-blocked-images "gnus-art")
 
 (defun mm-shr (handle)
@@ -1703,6 +1704,7 @@ If RECURSIVE, search recursively."
 				  (when handle
 				    (mm-with-part handle
 				      (buffer-string))))))
+	(shr-inhibit-images gnus-inhibit-images)
 	charset)
     (unless handle
       (setq handle (mm-dissect-buffer t)))
