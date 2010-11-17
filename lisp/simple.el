@@ -512,7 +512,7 @@ With arg N, insert N newlines."
   (interactive "*p")
   (let* ((do-fill-prefix (and fill-prefix (bolp)))
 	 (do-left-margin (and (bolp) (> (current-left-margin) 0)))
-	 (loc (point))
+	 (loc (point-marker))
 	 ;; Don't expand an abbrev before point.
 	 (abbrev-mode nil))
     (newline n)
@@ -972,6 +972,21 @@ rather than line counts."
     (if (eq selective-display t)
 	(re-search-forward "[\n\C-m]" nil 'end (1- line))
       (forward-line (1- line)))))
+
+(defun count-words-region (start end)
+  "Print the number of words in the region.
+When called interactively, the word count is printed in echo area."
+  (interactive "r")
+  (let ((count 0))
+    (save-excursion
+      (save-restriction
+        (narrow-to-region start end)
+        (goto-char (point-min))
+        (while (forward-word 1)
+          (setq count (1+ count)))))
+    (if (interactive-p)
+        (message "Region has %d words" count))
+    count))
 
 (defun count-lines-region (start end)
   "Print number of lines and characters in the region."
@@ -5060,16 +5075,12 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 		 ;; Point is neither within nor adjacent to a word.
 		 (not strict))
 	;; Look for preceding word in same line.
-	(skip-syntax-backward not-syntaxes
-			      (save-excursion (beginning-of-line)
-					      (point)))
+	(skip-syntax-backward not-syntaxes (line-beginning-position))
 	(if (bolp)
 	    ;; No preceding word in same line.
 	    ;; Look for following word in same line.
 	    (progn
-	      (skip-syntax-forward not-syntaxes
-				   (save-excursion (end-of-line)
-						   (point)))
+	      (skip-syntax-forward not-syntaxes (line-end-position))
 	      (setq start (point))
 	      (skip-syntax-forward syntaxes)
 	      (setq end (point)))

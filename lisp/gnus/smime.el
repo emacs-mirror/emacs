@@ -426,10 +426,9 @@ Any details (stdout and stderr) are left in the buffer specified by
     (insert-buffer-substring smime-details-buffer)
     nil))
 
-(defvar from)
-
-(defun smime-decrypt-region (b e keyfile)
+(defun smime-decrypt-region (b e keyfile &optional from)
   "Decrypt S/MIME message in region between B and E with key in KEYFILE.
+Optional FROM specifies sender's mail address.
 On success, replaces region with decrypted data and return non-nil.
 Any details (stderr on success, stdout and stderr on error) are left
 in the buffer specified by `smime-details-buffer'."
@@ -452,8 +451,7 @@ in the buffer specified by `smime-details-buffer'."
 	    (delete-file tmpfile)))
 	(progn
 	  (delete-region b e)
-	  (when (boundp 'from)
-	    ;; `from' is dynamically bound in mm-dissect.
+	  (when from
 	    (insert "From: " from "\n"))
 	  (insert-buffer-substring buffer)
 	  (kill-buffer buffer)
@@ -647,20 +645,18 @@ A string or a list of strings is returned."
 
 (defvar smime-buffer "*SMIME*")
 
-(defvar smime-mode-map nil)
-(put 'smime-mode 'mode-class 'special)
+(defvar smime-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "q" 'smime-exit)
+    (define-key map "f" 'smime-certificate-info)
+    map))
 
-(unless smime-mode-map
-  (setq smime-mode-map (make-sparse-keymap))
-  (suppress-keymap smime-mode-map)
-
-  (define-key smime-mode-map "q" 'smime-exit)
-  (define-key smime-mode-map "f" 'smime-certificate-info))
-
-(autoload 'gnus-run-mode-hooks "gnus-util")
 (autoload 'gnus-completing-read "gnus-util")
 
-(defun smime-mode ()
+(put 'smime-mode 'mode-class 'special)
+(define-derived-mode smime-mode fundamental-mode ;special-mode
+  "SMIME"
   "Major mode for browsing, viewing and fetching certificates.
 
 All normal editing commands are switched off.
@@ -669,16 +665,10 @@ All normal editing commands are switched off.
 The following commands are available:
 
 \\{smime-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'smime-mode)
-  (setq mode-name "SMIME")
   (setq mode-line-process nil)
-  (use-local-map smime-mode-map)
   (buffer-disable-undo)
   (setq truncate-lines t)
-  (setq buffer-read-only t)
-  (gnus-run-mode-hooks 'smime-mode-hook))
+  (setq buffer-read-only t))
 
 (defun smime-certificate-info (certfile)
   (interactive "fCertificate file: ")

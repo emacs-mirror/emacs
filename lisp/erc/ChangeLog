@@ -1,3 +1,7 @@
+2010-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* erc-lang.el (erc-cmd-LANG): Fix what may have been a typo.
+
 2010-11-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* erc-backend.el (erc-coding-system-precedence): New variable.

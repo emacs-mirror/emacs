@@ -216,11 +216,13 @@
 
 ;;;###autoload
 (defcustom browse-url-browser-function
-  (cond
-   ((memq system-type '(windows-nt ms-dos cygwin))
-    'browse-url-default-windows-browser)
-   ((memq system-type '(darwin)) 'browse-url-default-macosx-browser)
-   (t 'browse-url-default-browser))
+  `(("\\`mailto:" . browse-url-mail)
+    ("." .
+     ,(cond
+       ((memq system-type '(windows-nt ms-dos cygwin))
+	'browse-url-default-windows-browser)
+       ((memq system-type '(darwin)) 'browse-url-default-macosx-browser)
+       (t 'browse-url-default-browser))))
   "Function to display the current buffer in a WWW browser.
 This is used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.
@@ -260,7 +262,7 @@ regexp should probably be \".\" to specify a default browser."
 	  (function :tag "Your own function")
 	  (alist :tag "Regexp/function association list"
 		 :key-type regexp :value-type function))
-  :version "21.1"
+  :version "24.1"
   :group 'browse-url)
 
 (defcustom browse-url-netscape-program "netscape"
@@ -1479,20 +1481,27 @@ used instead of `browse-url-new-window-flag'."
 	   (to (assoc "To" alist))
 	   (subject (assoc "Subject" alist))
 	   (body (assoc "Body" alist))
-	   (rest (delete to (delete subject (delete body alist))))
+	   (rest (delq to (delq subject (delq body alist))))
 	   (to (cdr to))
 	   (subject (cdr subject))
 	   (body (cdr body))
 	   (mail-citation-hook (unless body mail-citation-hook)))
       (if (browse-url-maybe-new-window new-window)
 	  (compose-mail-other-window to subject rest nil
-				     (if body
-					 (list 'insert body)
-				       (list 'insert-buffer (current-buffer))))
+				     (list 'insert-buffer (current-buffer)))
 	(compose-mail to subject rest nil nil
-		      (if body
-			  (list 'insert body)
-			(list 'insert-buffer (current-buffer))))))))
+		      (list 'insert-buffer (current-buffer))))
+      (when body
+	(goto-char (point-min))
+	(unless (or (search-forward (concat "\n" mail-header-separator "\n")
+				    nil 'move)
+		    (bolp))
+	  (insert "\n"))
+	(goto-char (prog1
+		       (point)
+		     (insert (replace-regexp-in-string "\r\n" "\n" body))
+		     (unless (bolp)
+		       (insert "\n"))))))))
 
 ;; --- Random browser ---
 

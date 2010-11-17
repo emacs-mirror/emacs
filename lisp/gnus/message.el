@@ -322,7 +322,7 @@ used."
   :group 'message-various)
 
 (defcustom message-subject-trailing-was-ask-regexp
-  "[ \t]*\\([[(]+[Ww][Aa][Ss][ \t]*.*[\])]+\\)"
+  "[ \t]*\\([[(]+[Ww][Aa][Ss]:?[ \t]*.*[])]+\\)"
   "*Regexp matching \"(was: <old subject>)\" in the subject line.
 
 The function `message-strip-subject-trailing-was' uses this regexp if
@@ -7432,7 +7432,11 @@ is for the internal use."
       (when (looking-at "From ")
 	(replace-match "X-From-Line: "))
       ;; Send it.
-      (let ((message-inhibit-body-encoding t)
+      (let ((message-inhibit-body-encoding
+	     ;; Don't do any further encoding if it looks like the
+	     ;; message has already been encoded.
+	     (let ((case-fold-search t))
+	       (re-search-forward "^mime-version:" nil t)))
 	    (message-inhibit-ecomplete t)
 	    message-required-mail-headers
 	    message-generate-hashcash

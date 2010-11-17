@@ -1,3 +1,447 @@
+2010-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-mod.el: Rely on elecric-*-modes.
+	(octave-mode-map): Don't bind ;, SPC, and LF.
+	(octave-auto-indent, octave-auto-newline): Remove.
+	(electric-layout-rules): Declare.
+	(octave-mode): Set electric-layout-rules.
+	(octave-indent-new-comment-line): Use reindent-then-newline-and-indent.
+	(octave-reindent-then-newline-and-indent, octave-electric-semi)
+	(octave-electric-space): Remove.
+
+	* electric.el (electric-layout-mode): New minor mode.
+	(electric--after-char-pos): New function.
+	(electric-indent-post-self-insert-function): Use it.
+	(electric-layout-rules): New var.
+	(electric-layout-post-self-insert-function): New function.
+	(electric-indent-mode): Make them interact better.
+
+2010-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/checkdoc.el (checkdoc-syntax-table): Fix last change.
+	(checkdoc-sentencespace-region-engine, checkdoc-this-string-valid)
+	(checkdoc-proper-noun-region-engine): Use with-syntax-table.
+
+2010-11-15  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-generic-progmode-verify):
+	Make sure to check inside the word (Bug#6761).
+
+2010-11-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): If the cursorColor resource is set,
+	change the cursor face-spec (Bug#7392).
+
+2010-11-13  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	The main features of the following allout.el changes are:
+	- implement user customization for the allout key bindings
+	- add a customization control by which the user can inhibit use of
+	  a trailing Ctrl-H, so by default it's reserved for use with
+	  describe-prefix-bindings
+	- adapt to new version of called-interactively-p, while
+	  maintaining backwards compatibility with old version
+	- fix hotspot navigation so i works properly with meta-modified keys
+
+	* allout.el (allout-keybindings, allout-bind-keys)
+	(allout-keybindings-binding, allout-prefixed-keybindings)
+	(allout-unprefixed-keybindings, allout-preempt-trailing-ctrl-h)
+	(allout-keybindings-list, allout-mode-map-adjustments)
+	(allout-setup-mode-map): Establish allout-mode keymaps as user
+	customizable settings, and also establish a customizable setting which
+	regulates whether or not a trailing control-h is reserved for use with
+	describe-prefix-bindings - and inhibit it by default, so that control-h
+	*is* reserved for describe-prefix-bindings unless the user changes it.
+
+	* allout.el (allout-hotspot-key-handler): Distinguish more explicitly
+	and accurately between modified and unmodified events, and handle
+	modified events more comprehensively.
+
+	* allout.el (allout-substring-no-properties):
+	Alias to use or provide version of `substring-no-properties'.
+	(allout-solicit-alternate-bullet): Use `allout-substring-no-properties'.
+
+	* allout.el (allout-next-single-char-property-change):
+	Alias to use or provide version of `next-single-char-property-change'.
+	(allout-annotate-hidden, allout-hide-by-annotation):
+	Use `allout-next-single-char-property-change'.
+
+	* allout.el (allout-select-safe-coding-system):
+	Alias to use or provide version of `select-safe-coding-system'.
+	(allout-toggle-subtree-encryption):
+	Use `allout-select-safe-coding-system'.
+
+	* allout.el (allout-set-buffer-multibyte):
+	Alias to use or provide version of `set-buffer-multibyte'.
+	(allout-encrypt-string): Use `allout-set-buffer-multibyte'.
+
+	* allout.el (allout-called-interactively-p): Macro for using the
+	different versions of called-interactively-p identically, depending on
+	the subroutine's argument signature.
+	(allout-back-to-current-heading, allout-beginning-of-current-entry):
+	Use `(interactive "p")' instead of `(called-interactively-p)'.
+
+	* allout.el (allout-init, allout-ascend, allout-end-of-level)
+	(allout-previous-visible-heading, allout-forward-current-level)
+	(allout-backward-current-level, allout-show-children):
+	Use `allout-called-interactively-p' instead of `called-interactively-p'.
+
+	* allout.el (allout-before-change-handler):
+	Exempt edits to the (overlaid) character after the allout outline
+	bullet from edit confirmation prompt.
+
+	* allout.el (allout-add-resumptions):
+	Ensure that it respects correct buffer for keybindings.
+
+	* allout.el (allout-beginning-of-line):
+	Use `allout-previous-single-char-property-change' alias for the sake of
+	diverse compatibility.
+
+	* allout.el (allout-end-of-line):
+	Use `allout-mark-active-p' to encapsulate respect for mark activity.
+
+2010-11-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (frame-notice-user-settings): Don't clobber other
+	user-set parameters when calling face-set-after-frame-default in
+	response to background-color parameter (Bug#7373).
+
+2010-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el (glyphless-char-display-control):
+	Renamed from glyphless-char-control; all users changed.  Doc fix.
+	Signal an error if display method is not one of the recognized
+	symbols.
+
+2010-11-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-line-beginning-position)
+	(tramp-compat-line-end-position): Remove them.
+
+	* net/tramp.el (tramp-parse-rhosts-group)
+	(tramp-parse-shosts-group, tramp-parse-sconfig-group)
+	(tramp-parse-hosts-group, tramp-parse-passwd-group)
+	(tramp-parse-netrc-group, tramp-parse-putty-group)
+	* net/tramp-cmds.el (tramp-append-tramp-buffers)
+	* net/tramp-sh.el (tramp-do-file-attributes-with-ls)
+	(tramp-sh-handle-file-selinux-context)
+	(tramp-sh-handle-file-name-all-completions)
+	(tramp-sh-handle-insert-directory)
+	(tramp-sh-handle-expand-file-name, tramp-find-executable)
+	(tramp-wait-for-output, tramp-send-command-and-read)
+	* net/tramp-smb.el (tramp-smb-read-file-entry)
+	(tramp-smb-get-cifs-capabilities): Use `point-at-eol'.
+
+	* net/tramp-sh.el (tramp-sh-handle-insert-directory) Use
+	`point-at-bol'.
+	(tramp-remote-coding-commands): Add an alternative using "base64
+	-d -i".  This is needed for older base64 versions from GNU
+	coreutils.  Reported by Klaus Reichl
+	<Klaus.Reichl@thalesgroup.com>.
+
+2010-11-13  Hrvoje Niksic  <hniksic@xemacs.org>
+
+	* simple.el (count-words-region): New function.
+
+2010-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-dir-cookie-re): New custom variable.
+	(shell-dir-cookie-watcher): New function.
+
+	* vc/vc.el (vc-deduce-backend): Use default-directory in shell-mode
+	and compilation-mode (bug#7350).
+
+	* vc/smerge-mode.el (smerge-refine): Choose better default part to
+	highlight when one of them is empty.
+
+	* skeleton.el (skeleton-read): Don't use `newline' since it may strip
+	trailing space.
+	(skeleton-newline): New function.
+	(skeleton-internal-1): Use it.
+
+	* simple.el (open-line): `newline' may strip trailing space.
+
+2010-11-12  Kevin Ryde  <user42@zip.com.au>
+
+	* international/mule-cmds.el (princ-list): Use mapc.
+
+2010-11-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-log-buffer): New constant.
+	Use it to replace all instances of "*Compile-Log*"
+
+2010-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase-let*, pcase-let): Add debug and
+	indentation specs.
+
+2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/modula2.el: Use SMIE and skeleton.
+	(m2-mode-syntax-table): (*..*) can be nested.
+	Add //...\n.  Fix paren syntax.
+	(m2-mode-map): Remove LF and TAB bindings.
+	(m2-indent): Add safety property.
+	(m2-smie-grammar): New var.
+	(m2-smie-refine-colon, m2-smie-refine-of, m2-smie-backward-token)
+	(m2-smie-forward-token, m2-smie-refine-semi, m2-smie-rules): New funs.
+	(m2-mode): Use define-derived-mode.
+	(m2-newline, m2-tab): Remove.
+	(m2-begin, m2-case, m2-definition, m2-else, m2-for, m2-header)
+	(m2-if, m2-loop, m2-module, m2-or, m2-procedure, m2-with, m2-record)
+	(m2-stdio, m2-type, m2-until, m2-var, m2-while, m2-export)
+	(m2-import): Use define-skeleton.
+
+2010-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* obsolete/lucid.el: Don't warn about any CL functions in this file.
+
+	* ls-lisp.el (ls-lisp-ignore-case, ls-lisp-dirs-first)
+	(ls-lisp-verbosity): Add custom :set-after property.
+	(ls-lisp-verbosity, ls-lisp-use-localized-time-format): Doc fixes.
+	(ls-lisp-format, ls-lisp-format-time): Don't take `now' as an argument.
+	(ls-lisp-insert-directory): Update caller.
+	(ls-lisp-set-options): New function.
+	(ls-lisp-emulation): Use ls-lisp-set-options for custom :set.
+	Doc fix.
+
+	* play/landmark.el (lm-prompt-for-move):
+	* play/gomoku.el (gomoku-prompt-for-move): Remove nonsensical code.
+
+	* progmodes/idlw-complete-structtag.el: Remove unused dec `name'.
+
+	* progmodes/idlwave.el (idlwave-routine-entry-compare-twins)
+	(idlwave-study-twins): Prefix dynamic local variable `name'.
+	(idlwave-routine-twin-compare): Update for above change.
+
+	* progmodes/idlw-help.el (idlwave-do-mouse-completion-help):
+	Prefix dynamic local variables `name', `kwd', and `link'.
+	* progmodes/idlw-shell.el (idlwave-shell-complete-execcomm-help):
+	* progmodes/idlw-complete-structtag.el
+	(idlwave-complete-structure-tag-help):
+	* progmodes/idlwave.el (idlwave-complete-sysvar-help)
+	(idlwave-complete-sysvar-tag-help)
+	(idlwave-complete-class-structure-tag-help):
+	Update for above name changes.
+
+2010-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/browse-url.el (browse-url-browser-function): Change the
+	default to use `browse-url-mail' on mailto: URLs.
+
+2010-11-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-read-all-archive-contents):
+	Reset package-archive-contents to nil before re-reading.
+
+2010-11-10  Brandon Craig Rhodes  <brandon@rhodesmill.org>  (tiny change)
+
+	* textmodes/flyspell.el (flyspell-word): Do not re-check words
+	already found as misspellings by (flyspell-large-region), just
+	do highlighting (bug#7322).
+
+2010-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/octave-mod.el (octave-mark-block): Update for smie change.
+
+	* emulation/edt.el (edt-with-position): New macro.
+	(edt-find-forward, edt-find-backward, edt-find-next-forward)
+	(edt-find-next-backward, edt-sentence-forward, edt-sentence-backward)
+	(edt-paragraph-forward, edt-paragraph-backward): Use it.
+
+	* emulation/tpu-extras.el (tpu-with-position): New macro.
+	(tpu-paragraph, tpu-page, tpu-search-internal): Use it.
+
+	* textmodes/texnfo-upd.el (texinfo-pointer-name): Fix typo.
+
+	* textmodes/texnfo-upd.el (texinfo-all-menus-update)
+	(texinfo-menu-copy-old-description, texinfo-start-menu-description)
+	(texinfo-master-menu, texinfo-insert-node-lines)
+	(texinfo-multiple-files-update):
+	* textmodes/texinfmt.el (texinfo-append-refill, texinfo-copying):
+	Use line-beginning-position.
+
+	* progmodes/cperl-mode.el (cperl-find-pods-heres, cperl-write-tags):
+	No recent Emacs supports system-type `emx'.
+
+	* progmodes/ada-xref.el (is-windows): Rename to ada-on-ms-windows.
+	(ada-command-separator, ada-default-prj-properties)
+	(ada-find-any-references): Update for above name change.
+
+	* dirtrack.el (dirtrack-directory-function)
+	(dirtrack-canonicalize-function):
+	* filecache.el (file-cache-completion-ignore-case)
+	(file-cache-case-fold-search, file-cache-ignore-case):
+	* term.el (serial-port-is-file-p): Cosmetic change.
+
+	* emulation/viper-init.el (viper-ms-style-os-p): Doc fix.
+	Remove non-existent `windows-95' system-type.
+	* dired.el (dired-chown-program): Remove non-existent `linux'
+	system-type.
+
+	* net/net-utils.el (net-utils-remove-ctl-m): Use memq for system-types.
+	(ping-program-options): Remove non-existent `linux' system-type.
+
+	* startup.el (package-initialize): Update declaration.
+
+	* ls-lisp.el (ls-lisp-time-lessp, ls-lisp-time-to-seconds): Remove.
+	(ls-lisp-handle-switches): Use time-less-p.
+	(ls-lisp-format-time): Use float-time.
+
+	* textmodes/remember.el (remember-time-to-seconds): Remove.
+	(remember-store-in-mailbox): Use float-time.
+
+	* calendar/timeclock.el (timeclock-time-to-seconds): Make it an alias.
+
+	* calendar/time-date.el (time-to-seconds): Always an alias on Emacs,
+	never a real function.
+	(with-no-warnings): Remove compat stub, now unused.
+	(time-less-p): Doc fix.
+	(time-to-number-of-days): Simplify.
+
+	* eshell/esh-util.el (eshell-time-less-p, eshell-time-to-seconds):
+	Remove.
+	(eshell-read-passwd, eshell-read-hosts): Use time-less-p.
+	* eshell/esh-test.el (eshell-test, eshell-show-usage-metrics):
+	* eshell/em-unix.el (eshell-show-elapsed-time, eshell/time):
+	* eshell/em-pred.el (eshell-pred-file-time): Use float-time.
+	* eshell/em-ls.el (eshell-ls-sort-entries): Use time-less-p.
+
+	* eshell/em-unix.el (eshell-remove-entries, eshell/rm)
+	(eshell-shuffle-files, eshell-shorthand-tar-command)
+	(eshell-mvcpln-template, eshell/mv, eshell/cp, eshell/ln):
+	Prefix dynamic locals `interactive', `preview', `recursive', `verbose'.
+	* eshell/em-glob.el (eshell-extended-glob, eshell-glob-entries):
+	Prefix dynamic local variable `matches'.
+
+	* skeleton.el (skeleton-internal-list, skeleton-internal-1):
+	Prefix dynamic local variable `skeleton'.
+
+2010-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/browse-url.el (browse-url-mail): Insert body part of mailto url
+	in mail buffer; make yank-action always a command that yanks original
+	buffer.
+
+2010-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/tcl.el (tcl-hairy-scan-for-comment): Doc fix.
+
+2010-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-completion-help): Specify the end of the
+	completion field (bug#7211).
+
+	* progmodes/python.el (python-font-lock-syntactic-keywords): (bug#7322)
+	Fix handling of backslash escapes.
+	(python-quote-syntax): Adjust accordingly.
+
+2010-11-09  Richard Levitte  <richard@levitte.org>  (tiny change)
+
+	* vc-mtn.el (vc-mtn-working-revision, vc-mtn-after-dir-status)
+	(vc-mtn-workfile-branch): Adjust to new output format.
+
+2010-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (princ-list): Mark as obsolete.
+
+2010-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el: New package.
+
+2010-11-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (backup-by-copying-when-mismatch):
+	Set `permanent-local' property.
+
+	* net/tramp.el (tramp-handle-insert-file-contents): Do not set
+	`permanent-local' property for `backup-by-copying-when-mismatch'.
+
+2010-11-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (insert-directory): Doc fix.  (bug#7285)
+
+2010-11-09  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el (verilog-insert-one-definition)
+	(verilog-read-decls, verilog-read-sub-decls-sig): Fix AUTOWIRE and
+	AUTOINOUT for SV style multidimensional arrays, bug294.
+	Reported by Eric Mastromarchi.
+	(verilog-preprocess): Use with-current-buffer and
+	font-lock-fontify-buffer to cleanup style issues.
+
+2010-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* locate.el (locate, locate-mode): Doc fixes.
+
+2010-11-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-start): New arg INHIBIT-PROMPT prevents asking
+	user for confirmation.
+	(server-force-stop): Use it.
+	(server-start): Use server-force-stop for kill-emacs-hook, to
+	avoid user interaction while killing Emacs.
+
+2010-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/meta-mode.el: Remove leading `*' from defcustom docs.
+	(meta-indent-line): Simplify.
+
+	* vc/emerge.el (emerge-line-number-in-buf):
+	* textmodes/ispell.el (ispell-region):
+	* textmodes/fill.el (current-fill-column):
+	* progmodes/xscheme.el (xscheme-send-current-line):
+	* progmodes/vhdl-mode.el (vhdl-current-line, vhdl-line-copy):
+	* progmodes/tcl.el (tcl-hairy-scan-for-comment):
+	* progmodes/sh-script.el (sh-handle-prev-do):
+	* progmodes/meta-mode.el (meta-indent-line):
+	* progmodes/idlwave.el (idlwave-goto-comment, idlwave-fill-paragraph)
+	(idlwave-in-quote):
+	* progmodes/idlw-shell.el (idlwave-shell-current-frame)
+	(idlwave-shell-update-bp-overlays, idlwave-shell-sources-filter):
+	* progmodes/fortran.el (fortran-looking-at-if-then):
+	* progmodes/etags.el (find-tag-in-order, etags-snarf-tag):
+	* progmodes/cperl-mode.el (cperl-sniff-for-indent)
+	(cperl-find-pods-heres):
+	* progmodes/ada-mode.el (ada-get-current-indent, ada-narrow-to-defun):
+	* net/quickurl.el (quickurl-list-insert):
+	* net/ldap.el (ldap-search-internal):
+	* net/eudc.el (eudc-expand-inline):
+	* mail/sendmail.el (sendmail-send-it):
+	* mail/mspools.el (mspools-visit-spool, mspools-get-spool-name):
+	* emulation/viper-cmd.el (viper-paren-match, viper-backward-indent)
+	(viper-brac-function):
+	* calc/calc-yank.el (calc-do-grab-region):
+	* calc/calc-keypd.el (calc-keypad-press):
+	* term.el (term-move-columns, term-insert-spaces):
+	* speedbar.el (speedbar-highlight-one-tag-line):
+	* simple.el (current-word):
+	* mouse-drag.el (mouse-drag-should-do-col-scrolling):
+	* info.el (Info-find-node-in-buffer-1, Info-follow-reference)
+	(Info-scroll-down):
+	* hippie-exp.el (he-line-beg):
+	* epa.el (epa--marked-keys):
+	* dired-aux.el (dired-kill-line, dired-do-kill-lines)
+	(dired-update-file-line, dired-add-entry, dired-remove-entry)
+	(dired-relist-entry):
+	* buff-menu.el (Buffer-menu-buffer):
+	* array.el (current-line):
+	* allout.el (allout-resolve-xref)
+	(allout-latex-verbatim-quote-curr-line):
+	Replace yet more uses of end-of-line etc with line-end-position, etc.
+
+2010-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/checkdoc.el (checkdoc-display-status-buffer)
+	(checkdoc-interactive-loop, checkdoc-recursive-edit): Avoid princ-list.
+	(checkdoc-syntax-table): Initialize in the declaration.
+	(emacs-lisp-mode-hook): Use just checkdoc-minor-mode now that it turns
+	the mode on unconditionally.
+
+	* emacs-lisp/cl-macs.el (extent-data, extent-face, extent-priority)
+	(extent-end-position, extent-start-position): Remove setf method for
+	non-existing functions (bug#7319).
+
 2010-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el: Simplify the smie-rules-function return values.
@@ -924,7 +1368,7 @@
 
 	* newcomment.el (comment-dwim): Fix the intentation in the doc string.
 
-010-10-21  Michael Albinus  <michael.albinus@gmx.de>
+2010-10-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-do-file-attributes-with-stat): Do not use
 	space in stat format string.

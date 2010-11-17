@@ -1079,7 +1079,7 @@ If SHARE is result, entries are of type dir. Otherwise, shares are listed.
 Result is the list (LOCALNAME MODE SIZE MTIME)."
 ;; We are called from `tramp-smb-get-file-entries', which sets the
 ;; current buffer.
-  (let ((line (buffer-substring (point) (tramp-compat-line-end-position)))
+  (let ((line (buffer-substring (point) (point-at-eol)))
 	localname mode size month day hour min sec year mtime)
 
     (if (not share)
@@ -1177,8 +1177,7 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
 		(member
 		 "pathnames"
 		 (split-string
-		  (buffer-substring
-		   (point) (tramp-compat-line-end-position)) nil t)))))))))
+		  (buffer-substring (point) (point-at-eol)) nil t)))))))))
 
 (defun tramp-smb-get-stat-capability (vec)
   "Check, whether the SMB server supports the STAT command."
@@ -1396,5 +1395,4 @@ Returns nil if an error message has appeared."
 ;;   regular again.
 ;; * Make it multi-hop capable.
 
-;; arch-tag: fcc9dbec-7503-4d73-b638-3c8aa59575f5
 ;;; tramp-smb.el ends here

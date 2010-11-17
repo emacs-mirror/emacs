@@ -2611,10 +2611,7 @@ See `term-prompt-regexp'."
 
 (defun term-move-columns (delta)
   (setq term-current-column (max 0 (+ (term-current-column) delta)))
-  (let (point-at-eol)
-    (save-excursion
-      (end-of-line)
-      (setq point-at-eol (point)))
+  (let ((point-at-eol (line-end-position)))
     (move-to-column term-current-column t)
     ;; If move-to-column extends the current line it will use the face
     ;; from the last character on the line, set the face for the chars
@@ -3792,10 +3789,8 @@ if KIND is 1, erase from home to point; else erase from home to point-max."
     (term-vertical-motion 1)
     (when (bolp)
       (backward-char))
-    (setq save-eol (point))
-    (save-excursion
-      (end-of-line)
-      (setq pnt-at-eol (point)))
+    (setq save-eol (point)
+          pnt-at-eol (line-end-position))
     (move-to-column (+ (term-start-line-column) (- term-width count)) t)
     ;; If move-to-column extends the current line it will use the face
     ;; from the last character on the line, set the face for the chars
@@ -4228,7 +4223,7 @@ Return t if this is a Unix-based system, where serial ports are
 files, such as /dev/ttyS0.
 Return nil if this is Windows or DOS, where serial ports have
 special identifiers such as COM1."
-  (not (member system-type (list 'windows-nt 'cygwin 'ms-dos))))
+  (not (memq system-type '(windows-nt cygwin ms-dos))))
 
 (defvar serial-name-history
   (if (serial-port-is-file-p)

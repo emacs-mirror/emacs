@@ -138,6 +138,18 @@ with Xft.  To change font, use X resource faceName, for example:
 Emacs.pane.menubar.faceName:  Courier-12
 Set faceName to none and use font to use the old X fonts.
 
++++
+** Enhanced support for characters that have no glyphs in available fonts
+If a character has no glyphs in any of the available fonts, Emacs by
+default will display it either as a hexadecimal code in a box or as a
+thin 1-pixel space.  In addition to these two methods, Emacs can
+display these characters as empty box, as an acronym, or not display
+them at all.  To change how these characters are displayed, customize
+the variable `glyphless-char-display-control'.
+
+On character terminals these methods are used for characters that
+cannot be encoded by the `terminal-coding-system'.
+
 ** On graphical displays, the mode-line no longer ends in dashes.
 
 ** Basic SELinux support has been added.
@@ -212,6 +224,9 @@ replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
 
 * Editing Changes in Emacs 24.1
+
++++
+** There is a new command `count-words-region', which does what you expect.
 
 ** completion-at-point is now an alias for complete-symbol.
 
@@ -288,6 +303,11 @@ set `x-select-enable-clipboard' to nil.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
+
+** shell-mode can track your cwd by reading it from your prompt.
+Just set shell-dir-cookie-re to an appropriate regexp.
+
+** Modula-2 mode provides auto-indentation.
 
 ** latex-electric-env-pair-mode keeps \begin..\end matched on the fly.
 
@@ -523,11 +543,10 @@ system or session bus.
 
 * New Modes and Packages in Emacs 24.1
 
-** New global minor modes electric-pair-mode and electric-indent-mode.
+** New global minor modes electric-pair-mode, electric-indent-mode,
+and electric-layout-mode.
 
 ** pcase.el provides the ML-style pattern matching macro `pcase'.
-
-** smie.el is a package providing a simple generic indentation engine.
 
 ** secrets.el is an implementation of the Secret Service API, an
 interface to password managers like GNOME Keyring or KDE Wallet.  The
@@ -540,6 +559,11 @@ Notifications API.  It requires D-Bus for communication.
 
 
 * Incompatible Lisp Changes in Emacs 24.1
+
+** For mouse click input events in the text area, the Y pixel
+coordinate in the POSITION list now counts from the top of the text
+area, excluding any header line.  Previously, it counted from the top
+of the header line.
 
 ** Remove obsolete name `e' (use `float-e' instead).
 

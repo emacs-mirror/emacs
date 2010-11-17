@@ -1009,6 +1009,10 @@ repeating the command will highlight other two parts."
   (setq part (cond ((null (match-end 2)) 2)
                    ((eq (match-end 1) (match-end 3)) 1)
                    ((integerp part) part)
+                   ;; If one of the parts is empty, any refinement using
+                   ;; it will be trivial and uninteresting.
+                   ((eq (match-end 1) (match-beginning 1)) 1)
+                   ((eq (match-end 3) (match-beginning 3)) 3)
                    (t 2)))
   (let ((n1 (if (eq part 1) 2 1))
         (n2 (if (eq part 3) 2 3)))

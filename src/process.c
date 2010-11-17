@@ -56,12 +56,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-#if defined(HAVE_SYS_IOCTL_H)
 #include <sys/ioctl.h>
 #if defined(HAVE_NET_IF_H)
 #include <net/if.h>
 #endif /* HAVE_NET_IF_H */
-#endif /* HAVE_SYS_IOCTL_H */
 
 #ifdef NEED_BSDTTY
 #include <bsdtty.h>

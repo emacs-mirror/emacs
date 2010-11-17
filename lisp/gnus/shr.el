@@ -154,7 +154,7 @@ redirects somewhere else."
 (defun shr-browse-image ()
   "Browse the image under point."
   (interactive)
-  (let ((url (get-text-property (point) 'shr-image)))
+  (let ((url (get-text-property (point) 'image-url)))
     (if (not url)
 	(message "No image under point")
       (message "Browsing %s..." url)
@@ -163,7 +163,7 @@ redirects somewhere else."
 (defun shr-insert-image ()
   "Insert the image under point into the buffer."
   (interactive)
-  (let ((url (get-text-property (point) 'shr-image)))
+  (let ((url (get-text-property (point) 'image-url)))
     (if (not url)
 	(message "No image under point")
       (message "Inserting %s..." url)
@@ -235,20 +235,23 @@ redirects somewhere else."
 				  (aref elem 0)))))
 	  (delete-char -1)))
       (insert elem)
-      (while (> (current-column) shr-width)
-	(unless (prog1
-		    (shr-find-fill-point)
-		  (when (eq (preceding-char) ? )
-		    (delete-char -1))
-		  (insert "\n"))
-	  (put-text-property (1- (point)) (point) 'shr-break t)
-	  ;; No space is needed at the beginning of a line.
-	  (when (eq (following-char) ? )
-	    (delete-char 1)))
-	(when (> shr-indentation 0)
-	  (shr-indent))
-	(end-of-line))
-      (insert " "))
+      (let (found)
+	(while (and (> (current-column) shr-width)
+		    (progn
+		      (setq found (shr-find-fill-point))
+		      (not (eolp))))
+	  (when (eq (preceding-char) ? )
+	    (delete-char -1))
+	  (insert "\n")
+	  (unless found
+	    (put-text-property (1- (point)) (point) 'shr-break t)
+	    ;; No space is needed at the beginning of a line.
+	    (when (eq (following-char) ? )
+	      (delete-char 1)))
+	  (when (> shr-indentation 0)
+	    (shr-indent))
+	  (end-of-line))
+	(insert " ")))
     (unless (string-match "[ \t\n]\\'" text)
       (delete-char -1)))))
 
@@ -344,7 +347,7 @@ redirects somewhere else."
      ((not url)
       (message "No link under point"))
      ((string-match "^mailto:" url)
-      (gnus-url-mailto url))
+      (browse-url-mailto url))
      (t
       (browse-url url)))))
 
@@ -418,6 +421,7 @@ redirects somewhere else."
 ;; url-cache-extract autoloads url-cache.
 (declare-function url-cache-create-filename "url-cache" (url))
 (autoload 'mm-disable-multibyte "mm-util")
+(autoload 'browse-url-mailto "browse-url")
 
 (defun shr-get-image-data (url)
   "Get image data for URL.
@@ -568,7 +572,12 @@ Return a string with image data."
 			  t))))
 	(put-text-property start (point) 'keymap shr-map)
 	(put-text-property start (point) 'shr-alt alt)
-	(put-text-property start (point) 'shr-image url)
+	(put-text-property start (point) 'image-url url)
+	(put-text-property start (point) 'image-displayer
+			   (lambda (url start end)
+			     (url-retrieve url 'shr-image-fetched
+					   (list (current-buffer) start end)
+					   t)))
 	(put-text-property start (point) 'help-echo alt)
 	(setq shr-state 'image)))))
 

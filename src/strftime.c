@@ -318,14 +318,10 @@ static const CHAR_T zeroes[16] = /* "0000000000000000" */
 # undef _NL_CURRENT
 # define _NL_CURRENT(category, item) \
   (current->values[_NL_ITEM_INDEX (item)].string)
-# define LOCALE_PARAM , loc
 # define LOCALE_ARG , loc
-# define LOCALE_PARAM_DECL  __locale_t loc;
-# define LOCALE_PARAM_PROTO , __locale_t loc
+# define LOCALE_PARAM_DECL , __locale_t loc
 # define HELPER_LOCALE_ARG  , current
 #else
-# define LOCALE_PARAM
-# define LOCALE_PARAM_PROTO
 # define LOCALE_ARG
 # define LOCALE_PARAM_DECL
 # ifdef _LIBC
@@ -363,30 +359,16 @@ static const CHAR_T zeroes[16] = /* "0000000000000000" */
    more reliable way to accept other sets of digits.  */
 #define ISDIGIT(Ch) ((unsigned int) (Ch) - L_('0') <= 9)
 
-static CHAR_T *memcpy_lowcase (CHAR_T *dest, const CHAR_T *src,
-                               size_t len LOCALE_PARAM_PROTO);
-
 static CHAR_T *
-memcpy_lowcase (dest, src, len LOCALE_PARAM)
-     CHAR_T *dest;
-     const CHAR_T *src;
-     size_t len;
-     LOCALE_PARAM_DECL
+memcpy_lowcase (CHAR_T *dest, const CHAR_T *src, size_t len LOCALE_PARAM_DECL)
 {
   while (len-- > 0)
     dest[len] = TOLOWER ((UCHAR_T) src[len], loc);
   return dest;
 }
 
-static CHAR_T *memcpy_uppcase (CHAR_T *dest, const CHAR_T *src,
-                               size_t len LOCALE_PARAM_PROTO);
-
 static CHAR_T *
-memcpy_uppcase (dest, src, len LOCALE_PARAM)
-     CHAR_T *dest;
-     const CHAR_T *src;
-     size_t len;
-     LOCALE_PARAM_DECL
+memcpy_uppcase (CHAR_T *dest, const CHAR_T *src, size_t len LOCALE_PARAM_DECL)
 {
   while (len-- > 0)
     dest[len] = TOUPPER ((UCHAR_T) src[len], loc);
@@ -437,9 +419,7 @@ static int iso_week_days (int, int);
 __inline__
 #endif
 static int
-iso_week_days (yday, wday)
-     int yday;
-     int wday;
+iso_week_days (int yday, int wday)
 {
   /* Add enough to the first operand of % to make it nonnegative.  */
   int big_enough_multiple_of_7 = (-YDAY_MINIMUM / 7 + 2) * 7;
@@ -470,7 +450,7 @@ static CHAR_T const month_name[][10] =
 
 #ifdef my_strftime
 # define extra_args , ut, ns
-# define extra_args_spec int ut; int ns;
+# define extra_args_spec , int ut, int ns
 # define extra_args_spec_iso , int ut, int ns
 #else
 # ifdef COMPILE_WIDE
@@ -517,13 +497,8 @@ static CHAR_T const month_name[][10] =
    anywhere, so to determine how many characters would be
    written, use NULL for S and (size_t) UINT_MAX for MAXSIZE.  */
 size_t
-my_strftime (s, maxsize, format, tp extra_args LOCALE_PARAM)
-      CHAR_T *s;
-      size_t maxsize;
-      const CHAR_T *format;
-      const struct tm *tp;
-      extra_args_spec
-      LOCALE_PARAM_DECL
+my_strftime (CHAR_T *s, size_t maxsize, const CHAR_T *format,
+	     const struct tm *tp extra_args_spec LOCALE_PARAM_DECL)
 {
 #if defined _LIBC && defined USE_IN_EXTENDED_LOCALE_MODEL
   struct locale_data *const current = loc->__locales[LC_TIME];
@@ -1474,16 +1449,10 @@ libc_hidden_def (my_strftime)
 /* For Emacs we have a separate interface which corresponds to the normal
    strftime function plus the ut argument, but without the ns argument.  */
 size_t
-emacs_strftimeu (s, maxsize, format, tp, ut)
-      char *s;
-      size_t maxsize;
-      const char *format;
-      const struct tm *tp;
-      int ut;
+emacs_strftimeu (char *s, size_t maxsize, const char *format,
+		 const struct tm *tp, int ut)
 {
   return my_strftime (s, maxsize, format, tp, ut, 0);
 }
 #endif
 
-/* arch-tag: 662bc9c4-f8e2-41b6-bf96-b8346d0ce0d8
-   (do not change this comment) */

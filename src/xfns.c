@@ -519,12 +519,20 @@ x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
   int real_x = 0, real_y = 0;
   int had_errors = 0;
   Window win = f->output_data.x->parent_desc;
+  Atom actual_type;
+  unsigned long actual_size, bytes_remaining;
+  int i, rc, actual_format;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  long max_len = 400;
+  Display *dpy = FRAME_X_DISPLAY (f);
+  unsigned char *tmp_data = NULL;
+  Atom target_type = XA_CARDINAL;
 
   BLOCK_INPUT;
 
-  x_catch_errors (FRAME_X_DISPLAY (f));
+  x_catch_errors (dpy);
 
-  if (win == FRAME_X_DISPLAY_INFO (f)->root_window)
+  if (win == dpyinfo->root_window)
     win = FRAME_OUTER_WINDOW (f);
 
   /* This loop traverses up the containment tree until we hit the root
@@ -608,6 +616,33 @@ x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
 
       had_errors = x_had_errors_p (FRAME_X_DISPLAY (f));
     }
+
+
+  if (dpyinfo->root_window == f->output_data.x->parent_desc)
+    {
+      /* Try _NET_FRAME_EXTENTS if our parent is the root window.  */
+      rc = XGetWindowProperty (dpy, win, dpyinfo->Xatom_net_frame_extents,
+                               0, max_len, False, target_type,
+                               &actual_type, &actual_format, &actual_size,
+                               &bytes_remaining, &tmp_data);
+
+      if (rc == Success && actual_type == target_type && !x_had_errors_p (dpy)
+          && actual_size == 4 && actual_format == 32)
+        {
+          int ign;
+          Window rootw;
+          long *fe = (long *)tmp_data;
+
+          XGetGeometry (FRAME_X_DISPLAY (f), win,
+                        &rootw, &real_x, &real_y, &ign, &ign, &ign, &ign);
+          outer_x = -fe[0];
+          outer_y = -fe[2];
+          real_x -= fe[0];
+          real_y -= fe[2];
+        }
+    }
+
+  if (tmp_data) XFree (tmp_data);
 
   x_uncatch_errors ();
 
@@ -3332,8 +3367,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "background", "Background", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qmouse_color, build_string ("black"),
 		       "pointerColor", "Foreground", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qcursor_color, build_string ("black"),
-		       "cursorColor", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qscreen_gamma, Qnil,
@@ -4986,7 +5019,7 @@ change the tooltip's appearance.
 Automatically hide the tooltip after TIMEOUT seconds.  TIMEOUT nil
 means use the default timeout of 5 seconds.
 
-If the list of frame parameters PARAMS contains a `left' parameters,
+If the list of frame parameters PARMS contains a `left' parameters,
 the tooltip is displayed at that x-position.  Otherwise it is
 displayed at the mouse position, with offset DX added (default is 5 if
 DX isn't specified).  Likewise for the y-position; if a `top' frame

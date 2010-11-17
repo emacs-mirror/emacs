@@ -1,3 +1,142 @@
+2010-11-16  Daniel Dehennin  <daniel.dehennin@baby-gnu.org>
+
+	* mml2015.el (mml2015-epg-sign): Use From header.
+
+2010-11-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-wash-images): Register a displayer.
+
+	* gnus-util.el (gnus-find-text-property-region): Return markers.
+
+	* shr.el (shr-tag-img): Put a displayer in the text property.
+
+	* gnus-util.el (gnus-find-text-property-region): New utility function.
+
+	* gnus-html.el (gnus-html-display-image): Make the alt optional.
+	(gnus-html-show-images): Remove.
+
+	* gnus-art.el (gnus-article-show-images): New, more general function.
+
+	* gnus-html.el: Use image-url instead of gnus-image-url to unify the
+	image url text properties.
+
+	* shr.el: Ditto.
+
+	* gnus-agent.el (gnus-agentize): Only do the auto-agentizing if
+	gnus-agent-auto-agentize-methods is set.  Which it isn't.
+
+2010-11-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-move-article): Fix `while' loop to make it
+	work for two or more articles.
+
+2010-11-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-treat-non-ascii): Keep text properties not to
+	divide an image that's in an html article to two or more when washing
+	non-ASCII characters in alt text of it.
+
+2010-11-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-dissect-buffer): Pass sender's mail address to
+	smime-decrypt-region using function argument.
+	(mm-possibly-verify-or-decrypt, mm-dissect-multipart): Relay it.
+
+	* mm-view.el (mm-view-pkcs7, mm-view-pkcs7-decrypt): Relay it.
+
+	* smime.el (smime-decrypt-region): Catch it.
+
+2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smime.el (smime-mode-map): Move initialization into declaration.
+	(gnus-run-mode-hooks): Don't autoload.
+	(smime-mode): Use define-derived-mode.
+
+2010-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* smime.el (from): Restrict declaration to XEmacs.
+
+	* nnir.el (gnus-group-topic-name): Autoload.
+
+2010-11-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-insert): Don't break long line if it is because of
+	kinsoku-bol characters in the line end.
+
+2010-11-11  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-move-article): Fix to provide original group
+	and subject.
+	(nnir-warp-to-article): Don't fail on articles whose headers haven't
+	been retrieved.
+
+	* gnus-sum.el (gnus-summary-move-article): Use original group and
+	subject for virtual articles such as those in an nnir summary buffer.
+
+2010-11-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-treat-non-ascii): Make it work for XEmacs (at
+	least 21.5).
+
+	* smime.el (from): Declare it again for XEmacs.
+
+2010-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-resend): Don't disable encoding unless it's
+	already encoded.
+
+	* nnimap.el (nnimap-update-info): Fix problem with `g' chopping of
+	low-numbered articles.
+
+2010-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-syntax-table): Simplify.
+
+	* gnus-art.el (article-treat-non-ascii): Use put-char-table instead of
+	set-char-table-range for XEmacs.
+
+2010-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* smime.el (from): Remove unused declaration.
+
+	* gnus-util.el (with-no-warnings): Remove compat stub, now unused.
+	(gnus-float-time): On Emacs, always an alias.
+
+	* ecomplete.el (with-no-warnings): Remove compat stub, now unused.
+	(ecomplete-add-item): Use float-time on Emacs, else gnus-float-time.
+
+2010-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (org-entities): Declare it to silence the byte compiler.
+
+2010-11-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (browse-url-mailto): Autoload.
+
+	* gnus-art.el (article-treat-non-ascii): New command and keystroke.
+
+	* message.el (message-subject-trailing-was-ask-regexp): A ] in a []
+	regexp doesn't need quoting.
+
+2010-11-09  Sven Joachim  <svenjoac@gmx.de>
+
+	* message.el (message-subject-trailing-was-ask-regexp)
+	(message-subject-trailing-was-regexp): Match was: in addition to was.
+
+2010-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* nnbabyl.el (nnbabyl-request-move-article, nnbabyl-delete-mail)
+	(nnbabyl-check-mbox): Use point-at-bol.
+
+2010-11-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-browse-url): Call browse-url-mailto for mailto: links.
+
+	* message.el (message-mailto): New function.
+	(message-mailto): Should accept other parameters.
+	(message-mailto): Remove since it duplicates browse-url-mailto
+	functionality.
+
 2010-11-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-get-unread-articles): Ignore totally non-existent
@@ -17909,7 +18048,8 @@
 
 See ChangeLog.2 for earlier changes.
 
-    Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+  Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+    Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

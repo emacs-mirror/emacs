@@ -1,7 +1,7 @@
 ;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Ulrik Vieth <vieth@thphy.uni-duesseldorf.de>
 ;; Version: 1.0
@@ -517,24 +517,24 @@ If the list was changed, sort the list and remove duplicates first."
 ;;; Indentation.
 
 (defcustom meta-indent-level 2
-  "*Indentation of begin-end blocks in Metafont or MetaPost mode."
+  "Indentation of begin-end blocks in Metafont or MetaPost mode."
   :type 'integer
   :group 'meta-font)
 
 
 (defcustom meta-left-comment-regexp "%%+"
-  "*Regexp matching comments that should be placed on the left margin."
+  "Regexp matching comments that should be placed on the left margin."
   :type 'regexp
   :group 'meta-font)
 
 (defcustom meta-right-comment-regexp nil
-  "*Regexp matching comments that should be placed to the right margin."
+  "Regexp matching comments that should be placed to the right margin."
   :type '(choice regexp
 		 (const :tag "None" nil))
   :group 'meta-font)
 
 (defcustom meta-ignore-comment-regexp "%[^%]"
-  "*Regexp matching comments that whose indentation should not be touched."
+  "Regexp matching comments that whose indentation should not be touched."
   :type 'regexp
   :group 'meta-font)
 
@@ -543,21 +543,21 @@ If the list was changed, sort the list and remove duplicates first."
   (concat "\\(begin\\(char\\|fig\\|gr\\(aph\\|oup\\)\\|logochar\\)\\|"
           "def\\|for\\(\\|ever\\|suffixes\\)\\|if\\|mode_def\\|"
           "primarydef\\|secondarydef\\|tertiarydef\\|vardef\\)")
-  "*Regexp matching the beginning of environments to be indented."
+  "Regexp matching the beginning of environments to be indented."
   :type 'regexp
   :group 'meta-font)
 
 (defcustom meta-end-environment-regexp
   (concat "\\(end\\(char\\|def\\|f\\(ig\\|or\\)\\|gr\\(aph\\|oup\\)\\)"
           "\\|fi\\)")
-  "*Regexp matching the end of environments to be indented."
+  "Regexp matching the end of environments to be indented."
   :type 'regexp
   :group 'meta-font)
 
 (defcustom meta-within-environment-regexp
 ; (concat "\\(e\\(lse\\(\\|if\\)\\|xit\\(if\\|unless\\)\\)\\)")
   (concat "\\(else\\(\\|if\\)\\)")
-  "*Regexp matching keywords within environments not to be indented."
+  "Regexp matching keywords within environments not to be indented."
   :type 'regexp
   :group 'meta-font)
 
@@ -575,12 +575,11 @@ If the list was changed, sort the list and remove duplicates first."
   "Indent the line containing point as Metafont or MetaPost source."
   (interactive)
   (let ((indent (meta-indent-calculate)))
-    (save-excursion
-      (if (/= (current-indentation) indent)
-          (let ((beg (progn (beginning-of-line) (point)))
-                (end (progn (back-to-indentation) (point))))
-            (delete-region beg end)
-            (indent-to indent))))
+    (if (/= (current-indentation) indent)
+        (save-excursion
+          (delete-region (line-beginning-position)
+                         (progn (back-to-indentation) (point)))
+          (indent-to indent)))
     (if (< (current-column) indent)
         (back-to-indentation))))
 
@@ -744,13 +743,13 @@ If the list was changed, sort the list and remove duplicates first."
 (defcustom meta-begin-defun-regexp
   (concat "\\(begin\\(char\\|fig\\|logochar\\)\\|def\\|mode_def\\|"
           "primarydef\\|secondarydef\\|tertiarydef\\|vardef\\)")
-  "*Regexp matching beginning of defuns in Metafont or MetaPost mode."
+  "Regexp matching beginning of defuns in Metafont or MetaPost mode."
   :type 'regexp
   :group 'meta-font)
 
 (defcustom meta-end-defun-regexp
   (concat "\\(end\\(char\\|def\\|fig\\)\\)")
-  "*Regexp matching the end of defuns in Metafont or MetaPost mode."
+  "Regexp matching the end of defuns in Metafont or MetaPost mode."
   :type 'regexp
   :group 'meta-font)
 
@@ -955,21 +954,21 @@ The environment marked is the one that contains point or follows point."
 ;;; Hook variables.
 
 (defcustom meta-mode-load-hook nil
-  "*Hook evaluated when first loading Metafont or MetaPost mode."
+  "Hook evaluated when first loading Metafont or MetaPost mode."
   :type 'hook
   :group 'meta-font)
 
 (defcustom meta-common-mode-hook nil
-  "*Hook evaluated by both `metafont-mode' and `metapost-mode'."
+  "Hook evaluated by both `metafont-mode' and `metapost-mode'."
   :type 'hook
   :group 'meta-font)
 
 (defcustom metafont-mode-hook nil
-  "*Hook evaluated by `metafont-mode' after `meta-common-mode-hook'."
+  "Hook evaluated by `metafont-mode' after `meta-common-mode-hook'."
   :type 'hook
   :group 'meta-font)
 (defcustom metapost-mode-hook nil
-  "*Hook evaluated by `metapost-mode' after `meta-common-mode-hook'."
+  "Hook evaluated by `metapost-mode' after `meta-common-mode-hook'."
   :type 'hook
   :group 'meta-font)
 
@@ -1084,5 +1083,4 @@ Turning on MetaPost mode calls the value of the variable
 (provide 'meta-mode)
 (run-hooks 'meta-mode-load-hook)
 
-;; arch-tag: ec2916b2-3a83-4cf7-962d-d8019370c006
 ;;; meta-mode.el ends here

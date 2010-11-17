@@ -199,29 +199,6 @@
   (ignore-errors
     (tramp-compat-funcall 'font-lock-add-keywords mode keywords how)))
 
-;; FIXME is this really necessary?  Eg Emacs has both l-b-p and p-at-b
-;; since at least 21.1.
-(defsubst tramp-compat-line-beginning-position ()
-  "Return point at beginning of line (compat function).
-Calls `line-beginning-position' or `point-at-bol' if defined, else
-own implementation."
-  (cond
-   ((fboundp 'line-beginning-position)
-    (tramp-compat-funcall 'line-beginning-position))
-   ((fboundp 'point-at-bol) (tramp-compat-funcall 'point-at-bol))
-   (t (save-excursion (beginning-of-line) (point)))))
-
-;; FIXME is this really necessary?  Eg Emacs has both l-e-p and p-at-e
-;; since at least 21.1.
-(defsubst tramp-compat-line-end-position ()
-  "Return point at end of line (compat function).
-Calls `line-end-position' or `point-at-eol' if defined, else
-own implementation."
-  (cond
-   ((fboundp 'line-end-position) (tramp-compat-funcall 'line-end-position))
-   ((fboundp 'point-at-eol) (tramp-compat-funcall 'point-at-eol))
-   (t (save-excursion (end-of-line) (point)))))
-
 (defsubst tramp-compat-temporary-file-directory ()
   "Return name of directory for temporary files (compat function).
 For Emacs, this is the variable `temporary-file-directory', for XEmacs

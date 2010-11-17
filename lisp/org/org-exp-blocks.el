@@ -4,7 +4,7 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
-;; Version: 7.01
+;; Version: 7.3
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -201,7 +201,8 @@ which defaults to the value of `org-export-blocks-witheld'."
 	(interblock start (point-max))
 	(run-hooks 'org-export-blocks-postblock-hook)))))
 
-(add-hook 'org-export-preprocess-hook 'org-export-blocks-preprocess)
+(add-hook 'org-export-preprocess-after-include-files-hook
+	  'org-export-blocks-preprocess)
 
 ;;================================================================================
 ;; type specific functions

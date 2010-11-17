@@ -2598,7 +2598,7 @@ ftfont_font_format (FcPattern *pattern, Lisp_Object filename)
   return intern ("unknown");
 }
 
-static const char *ftfont_booleans [] = {
+static const char *const ftfont_booleans [] = {
   ":antialias",
   ":hinting",
   ":verticallayout",
@@ -2611,7 +2611,7 @@ static const char *ftfont_booleans [] = {
   NULL,
 };
 
-static const char *ftfont_non_booleans [] = {
+static const char *const ftfont_non_booleans [] = {
   ":family",
   ":familylang",
   ":style",

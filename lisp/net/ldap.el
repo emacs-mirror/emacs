@@ -579,9 +579,7 @@ an alist of attribute/value pairs."
 	(while (progn
 		 (skip-chars-forward " \t\n")
 		 (not (eobp)))
-	  (setq dn (buffer-substring (point) (save-excursion
-					       (end-of-line)
-					       (point))))
+	  (setq dn (buffer-substring (point) (point-at-eol)))
 	  (forward-line 1)
           (while (looking-at "^\\([A-Za-z][-A-Za-z0-9]*\
 \\|[0-9]+\\(?:\\.[0-9]+\\)*\\)\\(;[-A-Za-z0-9]+\\)*[=:\t ]+\
@@ -617,5 +615,4 @@ an alist of attribute/value pairs."
 
 (provide 'ldap)
 
-;; arch-tag: 47913a76-6155-42e6-ac58-6d28b5d50eb0
 ;;; ldap.el ends here

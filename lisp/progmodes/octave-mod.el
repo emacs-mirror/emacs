@@ -1,7 +1,7 @@
 ;;; octave-mod.el --- editing Octave source files under Emacs
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;; Author: John Eaton <jwe@octave.org>
@@ -212,9 +212,6 @@ parenthetical grouping.")
 (defvar octave-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "`" 'octave-abbrev-start)
-    (define-key map ";" 'octave-electric-semi)
-    (define-key map " " 'octave-electric-space)
-    (define-key map "\n" 'octave-reindent-then-newline-and-indent)
     (define-key map "\e\n" 'octave-indent-new-comment-line)
     (define-key map "\M-\C-q" 'octave-indent-defun)
     (define-key map "\C-c\C-b" 'octave-submit-bug-report)
@@ -318,16 +315,6 @@ parenthetical grouping.")
     (modify-syntax-entry ?\n ">"  table)
     table)
   "Syntax table in use in `octave-mode' buffers.")
-
-(defcustom octave-auto-indent nil
-  "Non-nil means indent line after a semicolon or space in Octave mode."
-  :type 'boolean
-  :group 'octave)
-
-(defcustom octave-auto-newline nil
-  "Non-nil means automatically newline after a semicolon in Octave mode."
-  :type 'boolean
-  :group 'octave)
 
 (defcustom octave-blink-matching-block t
   "Control the blinking of matching Octave block keywords.
@@ -536,7 +523,7 @@ Non-nil means always go to the next Octave code line after sending."
        ;; (if (smie-parent-p "switch") 4)
        0))))
 
-(defvar electric-indent-chars)
+(defvar electric-layout-rules)
 
 ;;;###autoload
 (define-derived-mode octave-mode prog-mode "Octave"
@@ -566,14 +553,6 @@ Keybindings
 
 Variables you can use to customize Octave mode
 ==============================================
-
-`octave-auto-indent'
-  Non-nil means indent current line after a semicolon or space.
-  Default is nil.
-
-`octave-auto-newline'
-  Non-nil means auto-insert a newline and indent after a semicolon.
-  Default is nil.
 
 `octave-blink-matching-block'
   Non-nil means show matching begin of block when inserting a space,
@@ -636,6 +615,9 @@ including a reproducible test case and send the message."
 
   (set (make-local-variable 'electric-indent-chars)
        (cons ?\; electric-indent-chars))
+  ;; IIUC matlab-mode takes the opposite approach: it makes RET insert
+  ;; a ";" at those places where it's correct (i.e. outside of parens).
+  (set (make-local-variable 'electric-layout-rules) '((?\; . after)))
 
   (set (make-local-variable 'comment-start) octave-comment-start)
   (set (make-local-variable 'comment-end) "")
@@ -736,7 +718,7 @@ The new line is properly indented."
     (error "Cannot split a code line inside a string"))
    (t
     (insert (concat " " octave-continuation-string))
-    (octave-reindent-then-newline-and-indent))))
+    (reindent-then-newline-and-indent))))
 
 (defun octave-indent-defun ()
   "Properly indent the Octave function which contains point."
@@ -829,7 +811,7 @@ The block marked is the one that contains point or follows point."
   (unless (or (looking-at "\\s(")
               (save-excursion
                 (let* ((token (funcall smie-forward-token-function))
-                       (level (assoc token smie-op-levels)))
+                       (level (assoc token smie-grammar)))
                   (and level (null (cadr level))))))
     (backward-up-list 1))
   (mark-sexp))
@@ -1017,45 +999,6 @@ variables."
   (apply 'completion-in-region (octave-completion-at-point-function)))
 
 ;;; Electric characters && friends
-(defun octave-reindent-then-newline-and-indent ()
-  "Reindent current Octave line, insert newline, and indent the new line.
-If Abbrev mode is on, expand abbrevs first."
-  ;; FIXME: None of this is Octave-specific.
-  (interactive)
-  (reindent-then-newline-and-indent))
-
-(defun octave-electric-semi ()
-  "Insert a semicolon in Octave mode.
-Maybe expand abbrevs and blink matching block open keywords.
-Reindent the line if `octave-auto-indent' is non-nil.
-Insert a newline if `octave-auto-newline' is non-nil."
-  (interactive)
-  (setq last-command-event ?\;)
-  (if (not (octave-not-in-string-or-comment-p))
-      (self-insert-command 1)
-    (if octave-auto-indent
-	(indent-according-to-mode))
-    (self-insert-command 1)
-    (if octave-auto-newline
-	(newline-and-indent))))
-
-(defun octave-electric-space ()
-  "Insert a space in Octave mode.
-Maybe expand abbrevs and blink matching block open keywords.
-Reindent the line if `octave-auto-indent' is non-nil."
-  (interactive)
-  (setq last-command-event ? )
-  (if (and octave-auto-indent
-	   (not (octave-not-in-string-or-comment-p)))
-      (progn
-	(indent-according-to-mode)
-	(self-insert-command 1))
-    (if (and octave-auto-indent
-	     (save-excursion
-	       (skip-syntax-backward " ")
-	       (not (bolp))))
-	(indent-according-to-mode))
-    (self-insert-command 1)))
 
 (defun octave-abbrev-start ()
   "Start entering an Octave abbreviation.
@@ -1213,8 +1156,6 @@ code line."
     octave-maintainer-address
     (concat "Emacs version " emacs-version)
     (list
-     'octave-auto-indent
-     'octave-auto-newline
      'octave-blink-matching-block
      'octave-block-offset
      'octave-comment-char
@@ -1228,5 +1169,4 @@ code line."
 
 (provide 'octave-mod)
 
-;; arch-tag: 05f1ce09-be87-4c00-803e-4919ffa26c23
 ;;; octave-mod.el ends here

@@ -1,7 +1,7 @@
 ;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp
 
-;; Copyright (C) 1992, 1994, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Modified by: Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
@@ -70,21 +70,37 @@
   :version "21.1"
   :group 'dired)
 
+(defun ls-lisp-set-options ()
+  "Reset the ls-lisp options that depend on `ls-lisp-emulation'."
+  (mapc 'custom-reevaluate-setting
+	'(ls-lisp-ignore-case ls-lisp-dirs-first ls-lisp-verbosity)))
+
 (defcustom ls-lisp-emulation
   (cond ;; ((eq system-type 'windows-nt) 'MS-Windows)
-	((memq system-type
-	       '(hpux usg-unix-v irix berkeley-unix))
-	 'UNIX))			; very similar to GNU
+	((memq system-type '(hpux usg-unix-v irix berkeley-unix))
+	 'UNIX))	; very similar to GNU
   ;; Anything else defaults to nil, meaning GNU.
   "Platform to emulate: GNU (default), MacOS, MS-Windows, UNIX.
-Corresponding value is one of the atoms: nil, MacOS, MS-Windows, UNIX.
-Sets default values for: `ls-lisp-ignore-case', `ls-lisp-dirs-first',
-`ls-lisp-verbosity'.  Need not match actual platform.  Changing this
-option will have no effect until you restart Emacs."
+Corresponding value is one of: nil, `MacOS', `MS-Windows', `UNIX'.
+Set this to your preferred value; it need not match the actual platform
+you are using.
+
+This variable does not affect the behavior of ls-lisp directly.
+Rather, it controls the default values for some variables that do:
+`ls-lisp-ignore-case', `ls-lisp-dirs-first', and `ls-lisp-verbosity'.
+
+If you change this variable directly (without using customize)
+after loading `ls-lisp', you should use `ls-lisp-set-options' to
+update the dependent variables."
   :type '(choice (const :tag "GNU" nil)
 		 (const MacOS)
 		 (const MS-Windows)
 		 (const UNIX))
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+	 (unless (equal value (eval symbol))
+	   (custom-set-default symbol value)
+	   (ls-lisp-set-options)))
   :group 'ls-lisp)
 
 (defcustom ls-lisp-ignore-case
@@ -92,6 +108,7 @@ option will have no effect until you restart Emacs."
   (or (memq ls-lisp-emulation '(MS-Windows MacOS))
       (and (boundp 'ls-lisp-dired-ignore-case) ls-lisp-dired-ignore-case))
   "Non-nil causes ls-lisp alphabetic sorting to ignore case."
+  :set-after '(ls-lisp-emulation)
   :type 'boolean
   :group 'ls-lisp)
 
@@ -99,6 +116,7 @@ option will have no effect until you restart Emacs."
   "Non-nil causes ls-lisp to sort directories first in any ordering.
 \(Or last if it is reversed.)  Follows Microsoft Windows Explorer."
   ;; Functionality suggested by Chris McMahan <cmcmahan@one.net>
+  :set-after '(ls-lisp-emulation)
   :type 'boolean
   :group 'ls-lisp)
 
@@ -114,14 +132,15 @@ It should contain none or more of the symbols: links, uid, gid.
 A value of nil (or an empty list) means display none of them.
 
 Concepts come from UNIX: `links' means count of names associated with
-the file\; `uid' means user (owner) identifier\; `gid' means group
+the file; `uid' means user (owner) identifier; `gid' means group
 identifier.
 
-If emulation is MacOS then default is nil\;
+If emulation is MacOS then default is nil;
 if emulation is MS-Windows then default is `(links)' if platform is
-Windows NT/2K, nil otherwise\;
-if emulation is UNIX then default is `(links uid)'\;
+Windows NT/2K, nil otherwise;
+if emulation is UNIX then default is `(links uid)';
 if emulation is GNU then default is `(links uid gid)'."
+  :set-after '(ls-lisp-emulation)
   ;; Functionality suggested by Howard Melman <howard@silverstream.com>
   :type '(set (const :tag "Show Link Count" links)
 	      (const :tag "Show User" uid)
@@ -157,7 +176,7 @@ regardless of whether the locale can be determined.
 Syntax:  (EARLY-TIME-FORMAT OLD-TIME-FORMAT)
 
 The EARLY-TIME-FORMAT is used if file has been modified within the
-current year. The OLD-TIME-FORMAT is used for older files.  To use ISO
+current year.  The OLD-TIME-FORMAT is used for older files.  To use ISO
 8601 dates, you could set:
 
 \(setq ls-lisp-format-time-list
@@ -168,11 +187,11 @@ current year. The OLD-TIME-FORMAT is used for older files.  To use ISO
   :group 'ls-lisp)
 
 (defcustom ls-lisp-use-localized-time-format nil
-  "Non-nil causes ls-lisp to use `ls-lisp-format-time-list' even if
-a valid locale is specified.
+  "Non-nil means to always use `ls-lisp-format-time-list' for time stamps.
+This applies even if a valid locale is specified.
 
 WARNING: Using localized date/time format might cause Dired columns
-to fail to lign up, e.g. if month names are not all of the same length."
+to fail to line up, e.g. if month names are not all of the same length."
   :type 'boolean
   :group 'ls-lisp)
 
@@ -220,7 +239,8 @@ The Lisp emulation does not run any external programs or shells.  It
 supports ordinary shell wildcards if `ls-lisp-support-shell-wildcards'
 is non-nil; otherwise, it interprets wildcards as regular expressions
 to match file names.  It does not support all `ls' switches -- those
-that work are: A a c i r S s t u U X g G B C R n and F partly."
+that work are: A a B C c F G g h i n R r S s t U u X.  The l switch
+is assumed to be always present and cannot be turned off."
   (if ls-lisp-use-insert-directory-program
       (funcall original-insert-directory
 	       file switches wildcard full-directory-p)
@@ -301,7 +321,6 @@ not contain `d', so that a full listing is expected."
 					      (if (memq ?n switches)
 						  'integer
 						'string)))
-	     (now (current-time))
 	     (sum 0)
 	     (max-uid-len 0)
 	     (max-gid-len 0)
@@ -372,7 +391,7 @@ not contain `d', so that a full listing is expected."
 				  sum
 				(float sum))))
 		 (insert (ls-lisp-format short attr file-size
-					 switches time-index now))))
+					 switches time-index))))
 	  ;; Insert total size of all files:
 	  (save-excursion
 	    (goto-char (car total-line))
@@ -411,7 +430,7 @@ not contain `d', so that a full listing is expected."
 		       (ls-lisp-classify-file file fattr)
 		     file)
 		   fattr (nth 7 fattr)
-				  switches time-index (current-time)))
+				  switches time-index))
 	(message "%s: doesn't exist or is inaccessible" file)
 	(ding) (sit-for 2)))))		; to show user the message!
 
@@ -485,8 +504,8 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
 				    (nth 7 (cdr x)))))
 			      ((setq index (ls-lisp-time-index switches))
 			       (lambda (x y) ; sorted on time
-				 (ls-lisp-time-lessp (nth index (cdr y))
-						     (nth index (cdr x)))))
+				 (time-less-p (nth index (cdr y))
+					      (nth index (cdr x)))))
 			      ((memq ?X switches)
 			       (lambda (x y) ; sorted on extension
 				 (ls-lisp-string-lessp
@@ -584,18 +603,10 @@ FOLLOWED by null and full filename, SOLELY for full alpha sort."
 	     (substring filename (1+ i) end))))
        )) "\0" filename))
 
-;; From Roland McGrath.  Can use this to sort on time.
-(defun ls-lisp-time-lessp (time0 time1)
-  "Return t if time TIME0 is earlier than time TIME1."
-  (let ((hi0 (car time0)) (hi1 (car time1)))
-    (or (< hi0 hi1)
-	(and (= hi0 hi1)
-	     (< (cadr time0) (cadr time1))))))
-
-(defun ls-lisp-format (file-name file-attr file-size switches time-index now)
+(defun ls-lisp-format (file-name file-attr file-size switches time-index)
   "Format one line of long ls output for file FILE-NAME.
 FILE-ATTR and FILE-SIZE give the file's attributes and size.
-SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
+SWITCHES and TIME-INDEX give the full switch list and time data."
   (let ((file-type (nth 0 file-attr))
 	;; t for directory, string (name linked to)
 	;; for symbolic link, or nil.
@@ -653,7 +664,7 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 			      gid))))
 	    (ls-lisp-format-file-size file-size (memq ?h switches))
 	    " "
-	    (ls-lisp-format-time file-attr time-index now)
+	    (ls-lisp-format-time file-attr time-index)
 	    " "
 	    (if (not (memq ?F switches)) ; ls-lisp-classify already did that
 		(propertize file-name 'dired-filename t)
@@ -671,20 +682,13 @@ Return nil if no time switch found."
 	((memq ?t switches) 5)		; last modtime
 	((memq ?u switches) 4)))	; last access
 
-(defun ls-lisp-time-to-seconds (time)
-  "Convert TIME to a floating point number."
-  (+ (* (car time) 65536.0)
-     (cadr time)
-     (/ (or (nth 2 time) 0) 1000000.0)))
-
-(defun ls-lisp-format-time (file-attr time-index now)
+(defun ls-lisp-format-time (file-attr time-index)
   "Format time for file with attributes FILE-ATTR according to TIME-INDEX.
 Use the same method as ls to decide whether to show time-of-day or year,
-depending on distance between file date and NOW.
+depending on distance between file date and the current time.
 All ls time options, namely c, t and u, are handled."
   (let* ((time (nth (or time-index 5) file-attr)) ; default is last modtime
-	 (diff (- (ls-lisp-time-to-seconds time)
-		  (ls-lisp-time-to-seconds now)))
+	 (diff (- (float-time time) (float-time)))
 	 ;; Consider a time to be recent if it is within the past six
 	 ;; months.  A Gregorian year has 365.2425 * 24 * 60 * 60 ==
 	 ;; 31556952 seconds on the average, and half of that is 15778476.
@@ -727,5 +731,4 @@ All ls time options, namely c, t and u, are handled."
 
 (provide 'ls-lisp)
 
-;; arch-tag: e55f399b-05ec-425c-a6d5-f5e349c35ab4
 ;;; ls-lisp.el ends here

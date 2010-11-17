@@ -548,8 +548,6 @@ result, `gnus-retrieve-headers' will be called instead.")
         ;; in nnir group
 	(when novitem
 	  (mail-header-set-number novitem art)
-	  (mail-header-set-from novitem
-				(mail-header-from novitem))
 	  (mail-header-set-subject
 	   novitem
 	   (format "[%d: %s/%d] %s"
@@ -595,7 +593,13 @@ result, `gnus-retrieve-headers' will be called instead.")
 	 (to-newsgroup (nth 1 accept-form))
 	 (to-method (gnus-find-method-for-group to-newsgroup))
 	 (from-method (gnus-find-method-for-group artfullgroup))
-	 (move-is-internal (gnus-server-equal from-method to-method)))
+	 (move-is-internal (gnus-server-equal from-method to-method))
+	 (artsubject (mail-header-subject
+		      (gnus-data-header
+		       (assoc article (gnus-data-list nil))))))
+    (setq gnus-newsgroup-original-name artfullgroup)
+    (string-match "^\\[[0-9]+:.+/[0-9]+\\] " artsubject)
+    (setq gnus-article-original-subject (substring artsubject (match-end 0)))
     (gnus-request-move-article
      artno
      artfullgroup
@@ -604,11 +608,12 @@ result, `gnus-retrieve-headers' will be called instead.")
      last
      (and move-is-internal
 	  to-newsgroup		; Not respooling
-	  (gnus-group-real-name to-newsgroup))) ; Is this move internal
-    ))
+	  (gnus-group-real-name to-newsgroup)))))
 
 (deffoo nnir-warp-to-article ()
-  (let* ((cur (gnus-summary-article-number))
+  (let* ((cur (if (> (gnus-summary-article-number) 0)
+		  (gnus-summary-article-number)
+		(error "This is not a real article.")))
          (gnus-newsgroup-name (nnir-artlist-artitem-group nnir-artlist cur))
          (backend-number (nnir-artlist-artitem-number nnir-artlist cur)))
     (gnus-summary-read-group-1 gnus-newsgroup-name t t gnus-summary-buffer
@@ -1366,6 +1371,8 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 	  (cons sym (format (cdr mapping) result)))
       (cons sym (read-string prompt)))))
 
+(autoload 'gnus-group-topic-name "gnus-topic")
+
 (defun nnir-run-query (query nserver)
   "Invoke appropriate search engine function (see `nnir-engines').
   If some groups were process-marked, run the query for each of the groups
@@ -1475,7 +1482,7 @@ artitem (counting from 1)."
       (let ((server (gnus-group-server var)))
 	(if (assoc server value)
 	    (nconc (cdr (assoc server value)) (list var))
-	  (push (cons (gnus-group-server var) (list var)) value))))
+	  (push (cons server (list var)) value))))
     value)
   nil))
 

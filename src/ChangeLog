@@ -1,3 +1,244 @@
+2010-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (make_lispy_position): For text area clicks, record Y
+	pixel position relative to the text area, excluding header line.
+	Also change X and Y to Lisp_Objects, not pointers; don't return
+	coordinate values via pointers.  Pass ON_TEXT_AREA coordinate to
+	buffer_posn_from_coords counting from the start of the text area.
+	(Fposn_at_x_y, make_lispy_event): Callers changed.
+
+	* window.c (coordinates_in_window): Change X and Y to ints rather
+	than pointers; don't return coordinates via pointers.
+	(struct check_window_data): Change X and Y from pointers to ints.
+	(window_from_coordinates): Remove args WX and WY; don't return
+	coordinates via pointers.
+	(Fcoordinates_in_window_p, window_from_coordinates):
+	(check_window_containing, Fwindow_at): Callers changed.
+	(window_relative_x_coord): New function.
+
+	* window.h (window_from_coordinates, window_relative_x_coord):
+	Update prototypes.
+
+	* dispnew.c (buffer_posn_from_coords): Assume that X counts from
+	the start of the text area.
+
+	* xdisp.c (remember_mouse_glyph): Change window_from_coordinates
+	call.  Use window_relative_x_coord.
+	(note_mouse_highlight): Change window_from_coordinates call.
+
+	* w32term.c (w32_read_socket):
+	* msdos.c (dos_rawgetc):
+	* xterm.c (handle_one_xevent): Likewise.
+
+2010-11-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* strftime.c (LOCALE_PARAM_DECL): Update for standard C.
+	(LOCALE_PARAM, LOCALE_PARAM_PROTO): Remove, unused.
+	(memcpy_lowcase, so_week_days, extra_args_spec, emacs_strftimeu):
+	Convert definitions to standard C.
+	* regex.c: Do not include <stdlib.h>, config.h does it.
+	Include unistd.h.
+	(xrealloc, init_syntax_once, re_match, regcomp, regexec)
+	(regerror, regfree): Convert definitions to standard C.
+	* mktime.c (my_mktime_localtime_r, ydhms_tm_diff, ranged_convert)
+	(__mktime_internal): Convert definitions to standard C.
+
+2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* w32proc.c:
+	* w32inevt.c:
+	* w32heap.c:
+	* w32.c: Remove config.h include guards.
+
+	* callproc.c (child_setup): Reorder code to simplify #ifdefs.
+	No code changes.
+
+	* process.c: Include <sys/ioctl.h> unconditionally,
+	keyboard.c already does it.
+
+	* keyboard.c (pending_malloc_warning): Add const to match
+	definition in alloc.c.
+	(Fset_input_interrupt_mode): Simplify #ifdefs.
+
+2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Clean up systty.h macros.
+	* systty.h (EMACS_GET_TTY_PGRP, EMACS_SET_TTY_PGRP, EMACS_GET_TTY)
+	(EMACS_SET_TTY): Remove unneeded abstraction, instead inline the
+	definition in all uses.
+	(EMACS_TTY_TABS_OK): Remove, it has a single user.
+	* sysdep.c (discard_tty_input, child_setup_tty)
+	(init_sys_modes, tabs_safe_p, reset_sys_modes):
+	* emacs.c (shut_down_emacs):
+	* callproc.c (child_setup):
+	* term.c (dissociate_if_controlling_tty): Inline removed macros.
+
+	* data.c (sign_extend_temp, sign_extend_lisp_int): Remove, unused.
+
+2010-11-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* w32fns.c (Fx_create_frame):
+	* nsfns.m (Fx_create_frame): Don't check for the cursorColor
+	resource here; it's now done at startup.
+
+2010-11-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (set_wm_state): Add Qnil to final cons.
+
+	* xselect.c (x_send_client_event): Remove unused variables cons and
+	size.
+
+2010-11-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (modify_event_symbol) : Add const to array elements of
+	arg NAME_TABLE.
+	(lispy_accent_keys, lispy_function_keys, lispy_multimedia_keys)
+	(lispy_kana_keys, iso_lispy_function_keys, lispy_wheel_names)
+	(lispy_wheel_names, lispy_drag_n_drop_names, modifier_names):
+	Add const to array elements.
+	(scroll_bar_parts): Make static.  Fix position of const.
+
+	* w32fns.c (lispy_function_keys): Add const to extern.
+
+	* w32inevt.c (lispy_function_keys): Likewise.
+
+2010-11-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame): Don't check for the cursorColor
+	resource here; it's now done at startup.
+
+2010-11-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xmenu.c: Make it clear that ../lwlib/lwlib.h is only needed for Motif.
+
+	Fix compilation on Solaris.
+	* sysdep.c: Do not #include <term.h>.
+	(tputs): Add declaration, similar to what cm.c does.  (Bug#7178)
+
+	* s/ms-w32.h (HAVE_TERMIOS_H): Do not undef, not used anymore.
+
+2010-11-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (set_wm_state): Don't put Atom in cons, call
+	make_fixnum_or_float on them first.
+	(x_term_init): Initialize Xatom_net_supporting_wm_check and
+	Xatom_net_supported correctly.
+
+	* xselect.c (x_send_client_event): Move CHECK_STRING ...
+	(Fx_send_client_event): to here.
+
+2010-11-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_use_time): New function.
+
+2010-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix cursor positioning on
+	zero-width characters.
+
+	* .gdbinit (pgx): Adapt to latest changes in `struct glyph'.
+
+	* w32term.c (x_draw_glyphless_glyph_string_foreground): Draw the
+	box before drawing the glyphs inside it.
+
+	* xdisp.c (syms_of_xdisp) <glyphless-char-display>: Doc fix.
+
+	* dispextern.h (enum glyphless_display_method): Rename
+	GLYPHLESS_DISPLAY_HEXA_CODE to GLYPHLESS_DISPLAY_HEX_CODE.  All
+	users changed.
+
+	* term.c (append_glyphless_glyph, produce_glyphless_glyph): Fix
+	comments.
+	(produce_glyphless_glyph): Enclose "U+nnnn" and "empty box"
+	whitespace in "[]", to simulate a box.  Don't use uninitialized
+	variable `width'.
+
+2010-11-11  Julien Danjou  <julien@danjou.info>
+
+	* xsettings.c (init_xsettings): Use already fetch atoms.
+
+	* xsmfns.c (create_client_leader_window): Use SM_CLIENT_ID atom
+	from dpyinfo.
+
+	* xselect.c (Fx_send_client_event): Split and create
+	x_send_client_event.
+
+	* lisp.h: Do not EXFUN Fx_send_client_event.
+
+	* xterm.c (x_set_frame_alpha): Use _NET_WM_WINDOW_OPACITY atom
+	from dpyinfo.
+	(wm_supports): Use atoms from dpyinfo.
+	(do_ewmh_fullscreen): Use atoms from dpyinfo.
+	(x_ewmh_activate_frame): Use atoms from dpyinfo.
+	(xembed_set_info): Use atoms from dpyinfo.
+	(x_term_init): Fetch _XEMBED_INFO, _NET_SUPPORTED,
+	_NET_SUPPORTING_WM_CHECK, _NET_WM_WINDOW_OPACITY and
+	_NET_ACTIVE_WINDOW, XSETTINGS  atoms.
+	Get all atoms in one round-trip.
+	(set_wm_state): Use x_send_client_event rather than
+	Fx_send_client_event, using Atom directly.
+	(x_ewmh_activate_frame): Ditto.
+	(x_set_sticky): Pass atoms to set_wm_state.
+	(do_ewmh_fullscreen): Ditto.
+
+
+	* xterm.h (x_display_info): Add Xatom_net_supported,
+	Xatom_net_supporting_wm_check, Xatom_net_active_window,
+	Xatom_net_wm_window_opacity, Xatom_XEMBED_INFO, SM_CLIENT_ID.
+
+	* xfns.c (Fx_show_tip): Fix typo in docstring.
+
+2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (Fself_insert_command): Don't call XFASTINT without checking
+	it's not negative.
+
+2010-11-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* font.c (font_filter_properties): Add const to array elements of
+	properties args.
+
+	* font.h (font_filter_properties): Likewise.
+
+	* ftfont.c (ftfont_booleans, ftfont_non_booleans): Add const to array
+	elements.
+
+	* w32font.c (w32font_booleans, w32font_non_booleans): Likewise.
+
+2010-11-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (QCdbus_type_unix_fd): New Lisp object.
+	(XD_BASIC_DBUS_TYPE, xd_symbol_to_dbus_type, xd_signature)
+	(xd_append_arg, xd_retrieve_arg): Support DBUS_TYPE_UNIX_FD.
+	(Fdbus_call_method): Add DBUS_TYPE_UNIX_FD type mapping to doc string.
+	(syms_of_dbusbind): Initialize QCdbus_type_unix_fd).
+
+2010-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (syms_of_emacs) <system-type>: Doc fix.
+
+2010-11-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfns.c (x_real_positions): Fix declaration-after-statement problem.
+
+2010-11-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (free_image): Don't garbage the frame here, since this
+	function can be called while redisplaying (Bug#7210).
+	(uncache_image): Garbage the frame here (Bug#6426).
+
+2010-11-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_real_positions): Only use _NET_FRAME_EXTENTS if our
+	parent is the root window.  Check this after traversing window tree.
+
+	* xterm.c (x_term_init): Initialize Xatom_net_frame_extents.
+
+	* xterm.h (struct x_display_info): Xatom_net_frame_extents is new.
+
+	* xfns.c (x_real_positions): Try to get _NET_FRAME_EXTENTS first
+	before traversing window tree (Bug#5721).
+
 2010-11-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (set_machine_and_pid_properties): Let X set WM_CLIENT_MACHINE.

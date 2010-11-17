@@ -75,7 +75,7 @@ PRED patterns can refer to variables bound earlier in the pattern.
 E.g. you can match pairs where the cdr is larger than the car with a pattern
 like `(,a . ,(pred (< a))) or, with more checks:
 `(,(and a (pred numberp)) . ,(and (pred numberp) (pred (< a))))"
-  (declare (indent 1) (debug case))
+  (declare (indent 1) (debug case))     ;FIXME: edebug `guard' and vars.
   (or (gethash (cons exp cases) pcase-memoize)
       (puthash (cons exp cases)
                (pcase-expand exp cases)
@@ -86,6 +86,7 @@ like `(,a . ,(pred (< a))) or, with more checks:
   "Like `let*' but where you can use `pcase' patterns for bindings.
 BODY should be an expression, and BINDINGS should be a list of bindings
 of the form (UPAT EXP)."
+  (declare (indent 1) (debug let))
   (if (null bindings) body
     `(pcase ,(cadr (car bindings))
        (,(caar bindings) (pcase-let* ,(cdr bindings) ,body))
@@ -98,6 +99,7 @@ of the form (UPAT EXP)."
   "Like `let' but where you can use `pcase' patterns for bindings.
 BODY should be an expression, and BINDINGS should be a list of bindings
 of the form (UPAT EXP)."
+  (declare (indent 1) (debug let))
   (if (null (cdr bindings))
       `(pcase-let* ,bindings ,body)
     (setq bindings (mapcar (lambda (x) (cons (make-symbol "x") x)) bindings))

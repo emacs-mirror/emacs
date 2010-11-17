@@ -888,17 +888,16 @@ Value is the position at which a match was found, or nil if not found."
   (let ((case-fold-search case-fold)
 	found)
     (save-excursion
-      (when (Info-node-at-bob-matching regexp)
-	(setq found (point)))
-      (while (and (not found)
-		  (search-forward "\n\^_" nil t))
-	(forward-line 1)
-	(let ((beg (point)))
-	  (forward-line 1)
-	  (when (re-search-backward regexp beg t)
-	    (beginning-of-line)
-	    (setq found (point)))))
-      found)))
+      (if (Info-node-at-bob-matching regexp)
+          (setq found (point))
+        (while (and (not found)
+                    (search-forward "\n\^_" nil t))
+          (forward-line 1)
+          (let ((beg (point)))
+            (forward-line 1)
+            (if (re-search-backward regexp beg t)
+                (setq found (line-beginning-position)))))))
+    found))
 
 (defun Info-find-node-in-buffer (regexp)
   "Find a node or anchor in the current buffer.
@@ -2323,11 +2322,8 @@ new buffer."
 	 completions default alt-default (start-point (point)) str i bol eol)
      (save-excursion
        ;; Store end and beginning of line.
-       (end-of-line)
-       (setq eol (point))
-       (beginning-of-line)
-       (setq bol (point))
-
+       (setq eol (line-end-position)
+             bol (line-beginning-position))
        (goto-char (point-min))
        (while (re-search-forward "\\*note[ \n\t]+\\([^:]*\\):" nil t)
 	 (setq str (match-string-no-properties 1))
@@ -2843,12 +2839,9 @@ parent node."
 	 (virtual-end
 	  (and Info-scroll-prefer-subnodes
 	       (save-excursion
-		 (beginning-of-line)
-		 (setq current-point (point))
+		 (setq current-point (line-beginning-position))
 		 (goto-char (point-min))
-		 (search-forward "\n* Menu:"
-				 current-point
-				 t)))))
+		 (search-forward "\n* Menu:" current-point t)))))
     (if (or virtual-end
 	    (pos-visible-in-window-p (point-min) nil t))
 	(Info-last-preorder)

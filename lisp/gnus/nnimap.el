@@ -1155,13 +1155,16 @@ textual parts.")
 		(not (gnus-active group)))
 	    (gnus-set-active group
 			     (cond
+			      (active
+			       (cons (min (or low (car active))
+					  (car active))
+				     (max (or high (cdr active))
+					  (cdr active))))
 			      ((and low high)
 			       (cons low high))
 			      (uidnext
 			       ;; No articles in this group.
 			       (cons uidnext (1- uidnext)))
-			      (active
-			       active)
 			      (start-article
 			       (cons start-article (1- start-article)))
 			      (t

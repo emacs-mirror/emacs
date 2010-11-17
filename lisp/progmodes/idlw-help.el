@@ -1,7 +1,7 @@
 ;;; idlw-help.el --- HTML Help code for IDLWAVE
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 ;;
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
@@ -576,13 +576,13 @@ Needs additional info stored in global `idlwave-completion-help-info'."
   (let* ((cw (selected-window))
 	 (info idlwave-completion-help-info) ; global passed in
 	 (what (nth 0 info))
-	 (name (nth 1 info))
+	 (idlw-help-name (nth 1 info))
 	 (type (nth 2 info))
 	 (class (nth 3 info))
 	 (need-class class)
-	 (kwd (nth 4 info))
+	 (idlw-help-kwd (nth 4 info))
 	 (sclasses (nth 5 info))
-	 word link)
+	 word idlw-help-link)
     (mouse-set-point ev)
 
 
@@ -590,18 +590,18 @@ Needs additional info stored in global `idlwave-completion-help-info'."
     (setq word (idlwave-this-word))
     (if (string= word "")
 	(error "No help item selected"))
-    (setq link (get-text-property 0 'link word))
+    (setq idlw-help-link (get-text-property 0 'link word))
     (select-window cw)
     (cond
      ;; Routine name
      ((memq what '(procedure function routine))
-      (setq name word)
+      (setq idlw-help-name word)
       (if (or (eq class t)
 	      (and (stringp class) sclasses))
 	  (let* ((classes (idlwave-all-method-classes
-			   (idlwave-sintern-method name)
+			   (idlwave-sintern-method idlw-help-name)
 			   type)))
-	    (setq link t)		; No specific link valid yet
+	    (setq idlw-help-link t)		; No specific link valid yet
 	    (if sclasses
 		(setq classes (idlwave-members-only
 			       classes (cons class sclasses))))
@@ -611,19 +611,19 @@ Needs additional info stored in global `idlwave-completion-help-info'."
       ;; XXX is this necessary, given all-method-classes?
       (if (stringp class)
 	  (setq class (idlwave-find-inherited-class
-		       (idlwave-sintern-routine-or-method name class)
+		       (idlwave-sintern-routine-or-method idlw-help-name class)
 		       type (idlwave-sintern-class class)))))
 
      ;; Keyword
      ((eq what 'keyword)
-      (setq kwd word)
+      (setq idlw-help-kwd word)
       (if (or (eq class t)
 	      (and (stringp class) sclasses))
 	  (let ((classes  (idlwave-all-method-keyword-classes
-			   (idlwave-sintern-method name)
-			   (idlwave-sintern-keyword kwd)
+			   (idlwave-sintern-method idlw-help-name)
+			   (idlwave-sintern-keyword idlw-help-kwd)
 			   type)))
-	    (setq link t) ; Link can't be correct yet
+	    (setq idlw-help-link t) ; Link can't be correct yet
 	    (if sclasses
 		(setq classes (idlwave-members-only
 			       classes (cons class sclasses))))
@@ -632,11 +632,12 @@ Needs additional info stored in global `idlwave-completion-help-info'."
 	    ;; XXX is this necessary, given all-method-keyword-classes?
 	    (if (stringp class)
 		(setq class (idlwave-find-inherited-class
-			     (idlwave-sintern-routine-or-method name class)
+			     (idlwave-sintern-routine-or-method
+			      idlw-help-name class)
 			     type (idlwave-sintern-class class)))))
-	(if (string= (downcase name) "obj_new")
+	(if (string= (downcase idlw-help-name) "obj_new")
 	    (setq class idlwave-current-obj_new-class
-		  name "Init"))))
+		  idlw-help-name "Init"))))
 
      ;; Class name
      ((eq what 'class)
@@ -649,9 +650,11 @@ Needs additional info stored in global `idlwave-completion-help-info'."
       (funcall what 'set word))
 
      (t (error "Cannot help with this item")))
-    (if (and need-class (not class) (not (and link (not (eq link t)))))
+    (if (and need-class (not class)
+	     (not (and idlw-help-link (not (eq idlw-help-link t)))))
 	(error "Cannot help with this item"))
-    (idlwave-online-help link (or name word) type class kwd)))
+    (idlwave-online-help idlw-help-link (or idlw-help-name word)
+			 type class idlw-help-kwd)))
 
 (defvar idlwave-highlight-help-links-in-completion)
 (defvar idlwave-completion-help-links)
@@ -1383,5 +1386,4 @@ IDL assistant.")
 (provide 'idlw-help)
 (provide 'idlwave-help)
 
-;; arch-tag: d27b5505-59de-497f-ba3f-f199fd4fb911
 ;;; idlw-help.el ends here

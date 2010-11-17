@@ -3600,7 +3600,6 @@ extern void syms_of_xfns (void);
 extern void syms_of_xsmfns (void);
 
 /* Defined in xselect.c */
-EXFUN (Fx_send_client_event, 6);
 extern void syms_of_xselect (void);
 
 /* Defined in xterm.c */

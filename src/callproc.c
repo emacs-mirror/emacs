@@ -1154,6 +1154,14 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
 #ifdef WINDOWSNT
   prepare_standard_handles (in, out, err, handles);
   set_process_dir (SDATA (current_dir));
+  /* Spawn the child.  (See ntproc.c:Spawnve).  */
+  cpid = spawnve (_P_NOWAIT, new_argv[0], new_argv, env);
+  reset_standard_handles (in, out, err, handles);
+  if (cpid == -1)
+    /* An error occurred while trying to spawn the process.  */
+    report_file_error ("Spawning child process", Qnil);
+  return cpid;
+
 #else  /* not WINDOWSNT */
   /* Make sure that in, out, and err are not actually already in
      descriptors zero, one, or two; this could happen if Emacs is
@@ -1192,36 +1200,17 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
     emacs_close (out);
   if (err != in && err != out)
     emacs_close (err);
-#endif /* not MSDOS */
-#endif /* not WINDOWSNT */
 
 #if defined(USG)
 #ifndef SETPGRP_RELEASES_CTTY
   setpgrp ();			/* No arguments but equivalent in this case */
 #endif
-#else
+#else /* not USG */
   setpgrp (pid, pid);
-#endif /* USG */
+#endif /* not USG */
 
-#ifdef MSDOS
-  pid = run_msdos_command (new_argv, pwd_var + 4, in, out, err, env);
-  xfree (pwd_var);
-  if (pid == -1)
-    /* An error occurred while trying to run the subprocess.  */
-    report_file_error ("Spawning child process", Qnil);
-  return pid;
-#else  /* not MSDOS */
-#ifdef WINDOWSNT
-  /* Spawn the child.  (See ntproc.c:Spawnve).  */
-  cpid = spawnve (_P_NOWAIT, new_argv[0], new_argv, env);
-  reset_standard_handles (in, out, err, handles);
-  if (cpid == -1)
-    /* An error occurred while trying to spawn the process.  */
-    report_file_error ("Spawning child process", Qnil);
-  return cpid;
-#else /* not WINDOWSNT */
   /* setpgrp_of_tty is incorrect here; it uses input_fd.  */
-  EMACS_SET_TTY_PGRP (0, &pid);
+  tcsetpgrp (0, pid);
 
   /* execvp does not accept an environment arg so the only way
      to pass this environment is to set environ.  Our caller
@@ -1233,8 +1222,16 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
   emacs_write (1, new_argv[0], strlen (new_argv[0]));
   emacs_write (1, "\n", 1);
   _exit (1);
-#endif /* not WINDOWSNT */
-#endif /* not MSDOS */
+
+#else /* MSDOS */
+  pid = run_msdos_command (new_argv, pwd_var + 4, in, out, err, env);
+  xfree (pwd_var);
+  if (pid == -1)
+    /* An error occurred while trying to run the subprocess.  */
+    report_file_error ("Spawning child process", Qnil);
+  return pid;
+#endif  /* MSDOS */
+#endif  /* not WINDOWSNT */
 }
 
 #ifndef WINDOWSNT
@@ -1609,5 +1606,3 @@ See `setenv' and `getenv'.  */);
   defsubr (&Scall_process_region);
 }
 
-/* arch-tag: 769b8045-1df7-4d2b-8968-e3fb49017f95
-   (do not change this comment) */

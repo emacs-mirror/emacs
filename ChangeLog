@@ -1,3 +1,15 @@
+2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Do not check for unconditionally included headers.
+
+2010-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .dir-locals.el (log-edit-mode): Set log-edit-rewrite-fixes.
+
+2010-11-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in: Don't write a warning for D-Bus anymore.
+
 2010-11-06  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in: Fix indentation.

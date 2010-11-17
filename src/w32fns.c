@@ -82,7 +82,7 @@ extern const char *map_w32_filename (const char *, const char **);
 
 extern int quit_char;
 
-extern char *lispy_function_keys[];
+extern const char *const lispy_function_keys[];
 
 /* The colormap for converting color names to RGB values */
 Lisp_Object Vw32_color_map;
@@ -4345,8 +4345,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "background", "Background", RES_TYPE_STRING);
   x_default_parameter (f, parameters, Qmouse_color, build_string ("black"),
 		       "pointerColor", "Foreground", RES_TYPE_STRING);
-  x_default_parameter (f, parameters, Qcursor_color, build_string ("black"),
-		       "cursorColor", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parameters, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
   x_default_parameter (f, parameters, Qscreen_gamma, Qnil,

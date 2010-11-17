@@ -693,7 +693,7 @@ opening the first frame (e.g. open a connection to an X server).")
 (defvar server-process)
 ;; Autoload in package.el, but when we bootstrap, we don't have loaddefs yet.
 (defvar package-enable-at-startup)
-(declare-function package-initialize "package" ())
+(declare-function package-initialize "package" (&optional no-activate))
 
 (defun command-line ()
   (setq before-init-time (current-time)
@@ -885,14 +885,15 @@ opening the first frame (e.g. open a connection to an X server).")
 
   ;; Under X, this creates the X frame and deletes the terminal frame.
   (unless (daemonp)
-    ;; Enable or disable the tool-bar and menu-bar.
-    ;; While we're at it, set `no-blinking-cursor' too.
+
+    ;; If X resources are available, use them to initialize the values
+    ;; of `tool-bar-mode' and `menu-bar-mode', as well as the value of
+    ;; `no-blinking-cursor' and the `cursor' face.
     (cond
      ((or noninteractive emacs-basic-display)
       (setq menu-bar-mode nil
 	    tool-bar-mode nil
 	    no-blinking-cursor t))
-     ;; Check X resources if available.
      ((memq initial-window-system '(x w32 ns))
       (let ((no-vals  '("no" "off" "false" "0")))
 	(if (member (x-get-resource "menuBar" "MenuBar") no-vals)
@@ -901,7 +902,13 @@ opening the first frame (e.g. open a connection to an X server).")
 	    (setq tool-bar-mode nil))
 	(if (member (x-get-resource "cursorBlink" "CursorBlink")
 		    no-vals)
-	    (setq no-blinking-cursor t)))))
+	    (setq no-blinking-cursor t)))
+      ;; If the cursorColor X resource exists, alter the `cursor' face
+      ;; spec, but mark it as changed outside of Customize.
+      (let ((color (x-get-resource "cursorColor" "CursorColor")))
+	(when color
+	  (face-spec-set 'cursor `((t (:background ,color))))
+	  (put 'cursor 'face-modified t)))))
     (frame-initialize))
 
   (when (fboundp 'x-create-frame)

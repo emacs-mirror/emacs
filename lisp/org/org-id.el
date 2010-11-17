@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.3
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -596,6 +596,7 @@ optional argument MARKERP, return the position as a new marker."
 ;; Calling the following function is hard-coded into `org-store-link',
 ;; so we do have to add it to `org-store-link-functions'.
 
+;;;###autoload
 (defun org-id-store-link ()
   "Store a link to the current entry, using its ID."
   (interactive)

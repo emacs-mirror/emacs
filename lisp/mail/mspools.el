@@ -1,7 +1,7 @@
 ;;; mspools.el --- show mail spools waiting to be read
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -280,10 +280,7 @@ Buffer is not displayed if SHOW is non-nil."
 	    ))
 
       (message "folder %s spool %s" folder-name spool-name)
-      (if (eq (count-lines (point-min)
-			   (save-excursion
-			     (end-of-line)
-			     (point)))
+      (if (eq (count-lines (point-min) (point-at-eol))
 	      mspools-files-len)
 	  (forward-line (- 1 mspools-files-len)) ;back to top of list
 	;; else just on to next line
@@ -323,11 +320,7 @@ Buffer is not displayed if SHOW is non-nil."
 
 (defun mspools-get-spool-name ()
   "Return the name of the spool on the current line."
-  (let ((line-num (1- (count-lines (point-min)
-				   (save-excursion
-				     (end-of-line)
-				     (point))
-				   ))))
+  (let ((line-num (1- (count-lines (point-min) (point-at-eol)))))
     (car (nth line-num mspools-files))))
 
 ;;; Spools mode functions
@@ -411,5 +404,4 @@ nil."
 
 (provide 'mspools)
 
-;; arch-tag: 8990b3ee-68c8-4892-98f1-51a735c8bac6
 ;;; mspools.el ends here

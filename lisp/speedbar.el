@@ -3986,13 +3986,10 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
   (speedbar-unhighlight-one-tag-line)
   (setq speedbar-highlight-one-tag-line
 	(speedbar-make-overlay (line-beginning-position)
-			       (save-excursion (end-of-line)
-					       (forward-char 1)
-					       (point))))
+			       (1+ (line-end-position))))
   (speedbar-overlay-put speedbar-highlight-one-tag-line 'face
 			'speedbar-highlight-face)
-  (add-hook 'pre-command-hook 'speedbar-unhighlight-one-tag-line)
-  )
+  (add-hook 'pre-command-hook 'speedbar-unhighlight-one-tag-line))
 
 (defun speedbar-unhighlight-one-tag-line ()
   "Unhighlight the currently highlighted line."

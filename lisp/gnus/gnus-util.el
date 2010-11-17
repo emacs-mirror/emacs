@@ -39,11 +39,6 @@
 (eval-when-compile
   (require 'cl))
 
-(eval-when-compile
-  (unless (fboundp 'with-no-warnings)
-    (defmacro with-no-warnings (&rest body)
-      `(progn ,@body))))
-
 (defcustom gnus-completing-read-function 'gnus-emacs-completing-read
   "Function use to do completing read."
   :version "24.1"
@@ -282,6 +277,24 @@ Uses `gnus-extract-address-components'."
       (setq start (when end
 		    (next-single-property-change start prop))))))
 
+(defun gnus-find-text-property-region (start end prop)
+  "Return a list of text property regions that has property PROP."
+  (let (regions value)
+    (unless (get-text-property start prop)
+      (setq start (next-single-property-change start prop)))
+    (while start
+      (setq value (get-text-property start prop)
+	    end (text-property-not-all start (point-max) prop value))
+      (if (not end)
+	  (setq start nil)
+	(when value
+	  (push (list (set-marker (make-marker) start)
+		      (set-marker (make-marker) end)
+		      value)
+		regions))
+	(setq start (next-single-property-change start prop))))
+    (nreverse regions)))
+
 (defun gnus-newsgroup-directory-form (newsgroup)
   "Make hierarchical directory name from NEWSGROUP name."
   (let* ((newsgroup (gnus-newsgroup-savable-name newsgroup))
@@ -320,13 +333,14 @@ Symbols are also allowed; their print names are used instead."
 	     (> (nth 1 fdate) (nth 1 date))))))
 
 (eval-and-compile
-  (if (and (fboundp 'float-time)
-	   (subrp (symbol-function 'float-time)))
+  (if (or (featurep 'emacs)
+	  (and (fboundp 'float-time)
+	       (subrp (symbol-function 'float-time))))
       (defalias 'gnus-float-time 'float-time)
     (defun gnus-float-time (&optional time)
       "Convert time value TIME to a floating point number.
 TIME defaults to the current time."
-      (with-no-warnings (time-to-seconds (or time (current-time)))))))
+      (time-to-seconds (or time (current-time))))))
 
 ;;; Keymap macros.
 

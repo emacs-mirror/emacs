@@ -2114,6 +2114,35 @@ try this wash."
   (interactive)
   (article-translate-strings gnus-article-dumbquotes-map))
 
+(defvar org-entities)
+
+(defun article-treat-non-ascii ()
+  "Translate many Unicode characters into their ASCII equivalents."
+  (interactive)
+  (require 'org-entities)
+  (let ((table (make-char-table (if (featurep 'xemacs) 'generic))))
+    (dolist (elem org-entities)
+      (when (and (listp elem)
+		 (= (length (nth 6 elem)) 1))
+	(if (featurep 'xemacs)
+	    (put-char-table (aref (nth 6 elem) 0) (nth 4 elem) table)
+	  (set-char-table-range table (aref (nth 6 elem) 0) (nth 4 elem)))))
+    (save-excursion
+      (when (article-goto-body)
+	(let ((inhibit-read-only t)
+	      replace props)
+	  (while (not (eobp))
+	    (if (not (setq replace (if (featurep 'xemacs)
+				       (get-char-table (following-char) table)
+				     (aref table (following-char)))))
+		(forward-char 1)
+	      (if (prog1
+		      (setq props (text-properties-at (point)))
+		    (delete-char 1))
+		  (add-text-properties (point) (progn (insert replace) (point))
+				       props)
+		(insert replace)))))))))
+
 (defun article-translate-characters (from to)
   "Translate all characters in the body of the article according to FROM and TO.
 FROM is a string of characters to translate from; to is a string of
@@ -2241,6 +2270,17 @@ unfolded."
   (gnus-with-article-buffer
     (dolist (elem gnus-article-image-alist)
       (gnus-delete-images (car elem)))))
+
+(defun gnus-article-show-images ()
+  "Show any images that are in the HTML-rendered article buffer.
+This only works if the article in question is HTML."
+  (interactive)
+  (gnus-with-article-buffer
+    (dolist (region (gnus-find-text-property-region (point-min) (point-max)
+						    'image-displayer))
+      (destructuring-bind (start end function) region
+	(funcall function (get-text-property start 'image-url)
+		 start end)))))
 
 (defun gnus-article-treat-fold-newsgroups ()
   "Unfold folded message headers.
@@ -4248,6 +4288,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
      article-date-lapsed
      article-emphasize
      article-treat-dumbquotes
+     article-treat-non-ascii
      article-normalize-headers
      ;;(article-show-all . gnus-article-show-all-headers)
      )))
