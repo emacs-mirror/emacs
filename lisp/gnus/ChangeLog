@@ -1,5 +1,8 @@
 2010-11-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* shr.el (shr-image-displayer): Protect function against non-existent
+	image source.
+
 	* gnus-art.el (gnus-inhibit-images): New user option.
 	(gnus-mime-display-single): Don't display image if it is non-nil.
 
