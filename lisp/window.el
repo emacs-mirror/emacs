@@ -4801,21 +4801,30 @@ description."
 	    (max min-size
 		 (min (- old-size (window-min-size parent horflag))
 		      (/ old-size
+			 ;; Try to make the size of the new window
+			 ;; proportional to the number of iso-arranged
+			 ;; windows in the combination.
 			 (1+ (window-iso-combinations parent horflag))))))
       (when (window-sizable-p parent (- new-size) horflag)
 	(split-window window (- new-size) side)))
      ((window-live-p window)
       (setq new-size (/ old-size 2))
-      ;; When WINDOW is live the old _and_ the new window must be at
+      ;; When WINDOW is live, the old _and_ the new window must be at
       ;; least MIN-SIZE large after the split.
       (when (and (>= new-size min-size)
 		 (window-sizable-p window (- new-size) horflag))
 	;; Do an even split to make Stepan happy.
 	(split-window window nil side)))
      (t
-      ;; When WINDOW is internal the new window must be at least
+      ;; When WINDOW is internal, the new window must be at least
       ;; MIN-SIZE large after the split.
-      (setq new-size (max min-size (/ old-size 2)))
+      (setq new-size
+	    (max min-size
+		 (/ old-size
+		    ;; Try to make the size of the new window
+		    ;; proportional to the number of iso-arranged
+		    ;; subwindows of WINDOW.
+		    (1+ (window-iso-combinations window horflag)))))
       (when (window-sizable-p window (- new-size) horflag)
 	(split-window window (- new-size) side))))))
 
