@@ -1,3 +1,9 @@
+2010-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hg.el (vc-hg-program): New var.
+	Suggested by Norman Gray <norman@astro.gla.ac.uk>.
+	(vc-hg-state, vc-hg-working-revision, vc-hg-command): Use it.
+
 2010-11-17  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/autoload.el (autoload-find-destination): The function
