@@ -4317,7 +4317,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 		  int x = LOWORD (msg.msg.lParam);
 		  int y = HIWORD (msg.msg.lParam);
 
-		  window = window_from_coordinates (f, x, y, 0, 0, 0, 0);
+		  window = window_from_coordinates (f, x, y, 0, 0);
 
 		  /* Window will be selected only when it is not
 		     selected now and last mouse movement event was
@@ -4396,7 +4396,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 		    int x = XFASTINT (inev.x);
 		    int y = XFASTINT (inev.y);
 
-                    window = window_from_coordinates (f, x, y, 0, 0, 0, 1);
+                    window = window_from_coordinates (f, x, y, 0, 1);
 
                     if (EQ (window, f->tool_bar_window))
                       {

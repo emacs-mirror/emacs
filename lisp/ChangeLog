@@ -13,6 +13,24 @@
 	(display-buffer-split-window): Rewrite so that windows are
 	always split evenly.
 
+2010-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-mod.el: Rely on elecric-*-modes.
+	(octave-mode-map): Don't bind ;, SPC, and LF.
+	(octave-auto-indent, octave-auto-newline): Remove.
+	(electric-layout-rules): Declare.
+	(octave-mode): Set electric-layout-rules.
+	(octave-indent-new-comment-line): Use reindent-then-newline-and-indent.
+	(octave-reindent-then-newline-and-indent, octave-electric-semi)
+	(octave-electric-space): Remove.
+
+	* electric.el (electric-layout-mode): New minor mode.
+	(electric--after-char-pos): New function.
+	(electric-indent-post-self-insert-function): Use it.
+	(electric-layout-rules): New var.
+	(electric-layout-post-self-insert-function): New function.
+	(electric-indent-mode): Make them interact better.
+
 2010-11-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* minibuffer.el (minibuffer-completion-help): Don't mark window

@@ -543,7 +543,8 @@ system or session bus.
 
 * New Modes and Packages in Emacs 24.1
 
-** New global minor modes electric-pair-mode and electric-indent-mode.
+** New global minor modes electric-pair-mode, electric-indent-mode,
+and electric-layout-mode.
 
 ** pcase.el provides the ML-style pattern matching macro `pcase'.
 
@@ -558,6 +559,11 @@ Notifications API.  It requires D-Bus for communication.
 
 
 * Incompatible Lisp Changes in Emacs 24.1
+
+** For mouse click input events in the text area, the Y pixel
+coordinate in the POSITION list now counts from the top of the text
+area, excluding any header line.  Previously, it counted from the top
+of the header line.
 
 ** Remove obsolete name `e' (use `float-e' instead).
 
