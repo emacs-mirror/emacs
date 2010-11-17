@@ -2218,7 +2218,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
      frame pixel coordinates X/Y on frame F.  */
 
   if (!f->glyphs_initialized_p
-      || (window = window_from_coordinates (f, gx, gy, &part, &x, &y, 0),
+      || (window = window_from_coordinates (f, gx, gy, &part, 0),
 	  NILP (window)))
     {
       width = FRAME_SMALLEST_CHAR_WIDTH (f);
@@ -2229,6 +2229,9 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
   w = XWINDOW (window);
   width = WINDOW_FRAME_COLUMN_WIDTH (w);
   height = WINDOW_FRAME_LINE_HEIGHT (w);
+
+  x = window_relative_x_coord (w, part, gx);
+  y = gy - WINDOW_TOP_EDGE_Y (w);
 
   r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   end_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
@@ -25383,7 +25386,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
     }
 
   /* Which window is that in?  */
-  window = window_from_coordinates (f, x, y, &part, 0, 0, 1);
+  window = window_from_coordinates (f, x, y, &part, 1);
 
   /* If we were displaying active text in another window, clear that.
      Also clear if we move out of text area in same window.  */

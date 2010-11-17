@@ -6658,7 +6658,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
 
                 window = window_from_coordinates (f,
                                                   event.xmotion.x, event.xmotion.y,
-                                                  0, 0, 0, 0);
+                                                  0, 0);
 
                 /* Window will be selected only when it is not selected now and
                    last mouse movement event was not in it.  Minibuffer window
@@ -6797,7 +6797,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
                 int x = event.xbutton.x;
                 int y = event.xbutton.y;
 
-                window = window_from_coordinates (f, x, y, 0, 0, 0, 1);
+                window = window_from_coordinates (f, x, y, 0, 1);
                 tool_bar_p = EQ (window, f->tool_bar_window);
 
                 if (tool_bar_p && event.xbutton.button < 4)
