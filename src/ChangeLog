@@ -1,3 +1,8 @@
+2010-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (get_current_wm_state): Rename from get_current_vm_state.
+	(do_ewmh_fullscreen, x_handle_net_wm_state): Update callers.
+
 2010-11-17  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Fset_terminal_coding_system_internal): Fix previous
