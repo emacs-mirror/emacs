@@ -1,7 +1,8 @@
 ;; autoload.el --- maintain autoloads in loaddefs.el
 
-;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001, 2002,
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -525,8 +526,8 @@ removes any prior now out-of-date autoload entries."
            (autoload-ensure-default-file (autoload-generated-file)))
         ;; This is to make generated-autoload-file have Unix EOLs, so
         ;; that it is portable to all platforms.
-        (unless (zerop (coding-system-eol-type buffer-file-coding-system))
-          (set-buffer-file-coding-system 'unix))
+        (or (eq 0 (coding-system-eol-type buffer-file-coding-system))
+	    (set-buffer-file-coding-system 'unix))
         (or (> (buffer-size) 0)
             (error "Autoloads file %s does not exist" buffer-file-name))
         (or (file-writable-p buffer-file-name)
@@ -735,5 +736,4 @@ Calls `update-directory-autoloads' on the command line arguments."
 
 (provide 'autoload)
 
-;; arch-tag: 00244766-98f4-4767-bf42-8a22103441c6
 ;;; autoload.el ends here
