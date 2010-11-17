@@ -1,3 +1,8 @@
+2010-11-17  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Fset_terminal_coding_system_internal): Fix previous
+	change (set charset-ID list instead of charset-symbol list).
+
 2010-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (make_lispy_position): For text area clicks, record Y
