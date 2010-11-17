@@ -1,3 +1,7 @@
+2010-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-regexp-alist): Tighten the regexp (bug#7378).
+
 2010-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave-mod.el: Rely on elecric-*-modes.
