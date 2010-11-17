@@ -1,5 +1,13 @@
 2010-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el (smie-bnf-classify): Signal errors for tokens
+	that are both openers (resp. closers) and something else.
+	(smie-grammar): Loosen definition of valid values.
+	(smie-next-sexp, smie-down-list, smie-blink-matching-open)
+	(smie-indent--parent, smie-rule-parent, smie-indent-keyword)
+	(smie-indent-after-keyword): Adjust users.
+	(smie-indent-keyword): Don't indent empty lines.
+
 	* vc-hg.el (vc-hg-program): New var.
 	Suggested by Norman Gray <norman@astro.gla.ac.uk>.
 	(vc-hg-state, vc-hg-working-revision, vc-hg-command): Use it.

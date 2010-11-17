@@ -353,6 +353,7 @@ from the table, e.g. the table will not include things like (\"if\" . \"else\").
   "Return a table classifying terminals.
 Each terminal can either be an `opener', a `closer', or neither."
   (let ((table (make-hash-table :test #'equal))
+        (nts (mapcar #'car bnf))
         (alist '()))
     (dolist (category bnf)
       (puthash (car category) 'neither table) ;Remove non-terminals.
@@ -362,14 +363,22 @@ Each terminal can either be an `opener', a `closer', or neither."
           (let ((first (pop rhs)))
             (puthash first
                      (if (memq (gethash first table) '(nil opener))
-                         'opener 'neither)
+                         'opener
+                       (unless (member first nts)
+                         (error "SMIE: token %s is both opener and non-opener"
+                                first))
+                       'neither)
                      table))
           (while (cdr rhs)
             (puthash (pop rhs) 'neither table)) ;Remove internals.
           (let ((last (pop rhs)))
             (puthash last
                      (if (memq (gethash last table) '(nil closer))
-                         'closer 'neither)
+                         'closer
+                       (unless (member last nts)
+                         (error "SMIE: token %s is both closer and non-closer"
+                                last))
+                       'neither)
                      table)))))
     (maphash (lambda (tok v)
                (when (memq v '(closer opener))
@@ -544,9 +553,9 @@ PREC2 is a table as returned by `smie-precs->prec2' or
 This list is normally built by `smie-prec2->grammar'.
 Each element is of the form (TOKEN LEFT-LEVEL RIGHT-LEVEL).
 Parsing is done using an operator precedence parser.
-LEFT-LEVEL and RIGHT-LEVEL can be either numbers or nil, where nil
+LEFT-LEVEL and RIGHT-LEVEL can be either numbers or a list, where a list
 means that this operator does not bind on the corresponding side,
-i.e. a LEFT-LEVEL of nil means this is a token that behaves somewhat like
+e.g. a LEFT-LEVEL of nil means this is a token that behaves somewhat like
 an open-paren, whereas a RIGHT-LEVEL of nil would correspond to something
 like a close-paren.")
 
@@ -630,9 +639,10 @@ Possible return values:
                 (if (eq pos (point))
                     ;; We did not move, so let's abort the loop.
                     (throw 'return (list t (point))))))
-             ((null (funcall op-back toklevels))
+             ((not (numberp (funcall op-back toklevels)))
               ;; A token like a paren-close.
-              (assert (funcall op-forw toklevels)) ;Otherwise, why mention it?
+              (assert (numberp     ; Otherwise, why mention it in smie-grammar.
+                       (funcall op-forw toklevels)))
               (push toklevels levels))
              (t
               (while (and levels (< (funcall op-back toklevels)
@@ -640,7 +650,7 @@ Possible return values:
                 (setq levels (cdr levels)))
               (cond
                ((null levels)
-                (if (and halfsexp (funcall op-forw toklevels))
+                (if (and halfsexp (numberp (funcall op-forw toklevels)))
                     (push toklevels levels)
                   (throw 'return
                          (prog1 (list (or (car toklevels) t) (point) token)
@@ -656,11 +666,11 @@ Possible return values:
                    ;; Keep looking as long as we haven't matched the
                    ;; topmost operator.
                    (levels
-                    (if (funcall op-forw toklevels)
+                    (if (numberp (funcall op-forw toklevels))
                         (push toklevels levels)))
                    ;; We matched the topmost operator.  If the new operator
                    ;; is the last in the corresponding BNF rule, we're done.
-                   ((null (funcall op-forw toklevels))
+                   ((not (numberp (funcall op-forw toklevels)))
                     ;; It is the last element, let's stop here.
                     (throw 'return (list nil (point) token)))
                    ;; If the new operator is not the last in the BNF rule,
@@ -765,7 +775,7 @@ Possible return values:
                 ;; intervention, e.g. for Octave's use of `until'
                 ;; as a pseudo-closer of `do'.
                 (closer)
-                ((or (equal levels '(nil)) (nth 1 (car levels)))
+                ((or (equal levels '(nil)) (numberp (nth 1 (car levels))))
                  (error "Doesn't look like a block"))
                 (t
                  ;; Now that smie-setup automatically sets smie-closer-alist
@@ -776,7 +786,7 @@ Possible return values:
                        (when (and (eq (nth 2 level) (nth 1 other))
                                   (not (memq other seen)))
                          (push other seen)
-                         (if (nth 2 other)
+                         (if (numberp (nth 2 other))
                              (push other levels)
                            (push (car other) found))))))
                  (cond
@@ -817,8 +827,8 @@ This command assumes point is not in a string or comment."
                   (progn (goto-char start) (down-list inc) nil)
                 (forward-sexp inc)
                 (/= (point) pos)))
-             ((and levels (null (nth (+ 1 offset) levels))) nil)
-             ((and levels (null (nth (- 2 offset) levels)))
+             ((and levels (not (numberp (nth (+ 1 offset) levels)))) nil)
+             ((and levels (not (numberp (nth (- 2 offset) levels))))
               (let ((end (point)))
                 (goto-char start)
                 (signal 'scan-error
@@ -903,7 +913,7 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
                          (not (memq (char-before)
                                     smie-blink-matching-triggers)))
                      (or smie-blink-matching-inners
-                         (null (nth 2 (assoc token smie-grammar)))))
+                         (not (numberp (nth 2 (assoc token smie-grammar))))))
             ;; The major mode might set blink-matching-check-function
             ;; buffer-locally so that interactive calls to
             ;; blink-matching-open work right, but let's not presume
@@ -979,7 +989,7 @@ the beginning of a line."
       (save-excursion
         (let* ((pos (point))
                (tok (funcall smie-forward-token-function)))
-          (unless (cadr (assoc tok smie-grammar))
+          (unless (numberp (cadr (assoc tok smie-grammar)))
             (goto-char pos))
           (setq smie--parent
                 (smie-backward-sexp 'halfsexp))))))
@@ -1026,7 +1036,7 @@ Only meaningful when called from within `smie-rules-function'."
              ;; rules-function, so it gives it a chance to tweak
              ;; indentation (e.g. by forcing indentation relative to
              ;; its own parent, as in fn a => fn b => fn c =>).
-             (if (or (null (car smie--parent)) (smie-indent--hanging-p))
+             (if (or (listp (car smie--parent)) (smie-indent--hanging-p))
                  (smie-indent-virtual) (current-column))))))
 
 (defvar smie-rule-separator-outdent 2)
@@ -1222,26 +1232,30 @@ in order to figure out the indentation of some other (further down) point."
     (let* ((pos (point))
            (toklevels (smie-indent-forward-token))
            (token (pop toklevels)))
-      (if (null (car toklevels))
-          (save-excursion
-            (goto-char pos)
-            ;; Different cases:
-            ;; - smie-indent--bolp: "indent according to others".
-            ;; - common hanging: "indent according to others".
-            ;; - SML-let hanging: "indent like parent".
-            ;; - if-after-else: "indent-like parent".
-            ;; - middle-of-line: "trust current position".
-            (cond
-             ((null (cdr toklevels)) nil) ;Not a keyword.
-             ((smie-indent--rule :before token))
-             ((smie-indent--bolp)       ;I.e. non-virtual indent.
-              ;; For an open-paren-like thingy at BOL, always indent only
-              ;; based on other rules (typically smie-indent-after-keyword).
-              nil)
-             (t
-              ;; By default use point unless we're hanging.
-              (unless (smie-indent--hanging-p) (current-column)))))
-
+      (cond
+       ((< pos (line-beginning-position))
+        ;; The token we just read is actually not on the line where we started.
+        nil)
+       ((not (numberp (car toklevels)))
+        (save-excursion
+          (goto-char pos)
+          ;; Different cases:
+          ;; - smie-indent--bolp: "indent according to others".
+          ;; - common hanging: "indent according to others".
+          ;; - SML-let hanging: "indent like parent".
+          ;; - if-after-else: "indent-like parent".
+          ;; - middle-of-line: "trust current position".
+          (cond
+           ((null (cdr toklevels)) nil) ;Not a keyword.
+           ((smie-indent--rule :before token))
+           ((smie-indent--bolp)         ;I.e. non-virtual indent.
+            ;; For an open-paren-like thingy at BOL, always indent only
+            ;; based on other rules (typically smie-indent-after-keyword).
+            nil)
+           (t
+            ;; By default use point unless we're hanging.
+            (unless (smie-indent--hanging-p) (current-column))))))
+       (t
         ;; FIXME: This still looks too much like black magic!!
         (let* ((parent (smie-backward-sexp 'halfsexp)))
           ;; Different behaviors:
@@ -1321,7 +1335,7 @@ in order to figure out the indentation of some other (further down) point."
               ;; So we use a heuristic here, which is that we only use virtual
               ;; if the parent is tightly linked to the child token (they're
               ;; part of the same BNF rule).
-              (if (car parent) (current-column) (smie-indent-virtual))))))))))
+              (if (car parent) (current-column) (smie-indent-virtual)))))))))))
 
 (defun smie-indent-comment ()
   "Compute indentation of a comment."
@@ -1389,11 +1403,11 @@ in order to figure out the indentation of some other (further down) point."
        ;; The default indentation after a keyword/operator is
        ;; 0 for infix, t for prefix, and use another rule
        ;; for postfix.
-       ((null (nth 2 toklevel)) nil)        ;A closer.
-       ((or (null (nth 1 toklevel))         ;An opener.
-            (rassoc tok smie-closer-alist)) ;An inner.
+       ((not (numberp (nth 2 toklevel))) nil)                   ;A closer.
+       ((or (not (numberp (nth 1 toklevel)))                    ;An opener.
+            (rassoc tok smie-closer-alist))                     ;An inner.
         (+ (smie-indent-virtual) (smie-indent--offset 'basic))) ;
-       (t (smie-indent-virtual))))))    ;An infix.
+       (t (smie-indent-virtual))))))                            ;An infix.
 
 (defun smie-indent-exps ()
   ;; Indentation of sequences of simple expressions without
