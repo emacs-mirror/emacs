@@ -9310,7 +9310,7 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
   if (terminal_coding->common_flags & CODING_REQUIRE_ENCODING_MASK)
     term->charset_list = coding_charset_list (terminal_coding);
   else
-    term->charset_list = Fcons (Qascii, Qnil);
+    term->charset_list = Fcons (make_number (charset_ascii), Qnil);
   return Qnil;
 }
 
