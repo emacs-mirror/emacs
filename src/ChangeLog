@@ -248,8 +248,8 @@
 
 	* xfns.c (set_machine_and_pid_properties): Let X set WM_CLIENT_MACHINE.
 
-	* xdisp.c (note_mode_line_or_margin_highlight): Initialize
-	Cursor to No_Cursor for HAVE_WINDOW_SYSTEM also.
+	* xdisp.c (note_mode_line_or_margin_highlight):
+	Initialize Cursor to No_Cursor for HAVE_WINDOW_SYSTEM also.
 
 2010-11-06  Eli Zaretskii  <eliz@gnu.org>
 
