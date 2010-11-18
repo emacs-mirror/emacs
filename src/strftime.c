@@ -179,11 +179,8 @@ extern char *tzname[];
    Similarly for localtime_r.  */
 
 # if ! HAVE_TM_GMTOFF
-static struct tm *my_strftime_gmtime_r (const time_t *, struct tm *);
 static struct tm *
-my_strftime_gmtime_r (t, tp)
-     const time_t *t;
-     struct tm *tp;
+my_strftime_gmtime_r (const time_t *t, struct tm *tp)
 {
   struct tm *l = gmtime (t);
   if (! l)
@@ -192,11 +189,8 @@ my_strftime_gmtime_r (t, tp)
   return tp;
 }
 
-static struct tm *my_strftime_localtime_r (const time_t *, struct tm *);
 static struct tm *
-my_strftime_localtime_r (t, tp)
-     const time_t *t;
-     struct tm *tp;
+my_strftime_localtime_r (const time_t *t, struct tm *tp)
 {
   struct tm *l = localtime (t);
   if (! l)
@@ -380,11 +374,8 @@ memcpy_uppcase (CHAR_T *dest, const CHAR_T *src, size_t len LOCALE_PARAM_DECL)
 /* Yield the difference between *A and *B,
    measured in seconds, ignoring leap seconds.  */
 # define tm_diff ftime_tm_diff
-static int tm_diff (const struct tm *, const struct tm *);
 static int
-tm_diff (a, b)
-     const struct tm *a;
-     const struct tm *b;
+tm_diff (const struct tm *a, const struct tm *b)
 {
   /* Compute intervening leap days correctly even if year is negative.
      Take care to avoid int overflow in leap day calculations,
@@ -451,7 +442,6 @@ static CHAR_T const month_name[][10] =
 #ifdef my_strftime
 # define extra_args , ut, ns
 # define extra_args_spec , int ut, int ns
-# define extra_args_spec_iso , int ut, int ns
 #else
 # ifdef COMPILE_WIDE
 #  define my_strftime wcsftime
@@ -462,7 +452,6 @@ static CHAR_T const month_name[][10] =
 # endif
 # define extra_args
 # define extra_args_spec
-# define extra_args_spec_iso
 /* We don't have this information in general.  */
 # define ut 0
 # define ns 0
@@ -471,15 +460,9 @@ static CHAR_T const month_name[][10] =
 #if !defined _LIBC && !defined(WINDOWSNT) && HAVE_TZNAME && HAVE_TZSET
   /* Solaris 2.5 tzset sometimes modifies the storage returned by localtime.
      Work around this bug by copying *tp before it might be munged.  */
-  size_t _strftime_copytm (char *, size_t, const char *,
-                           const struct tm * extra_args_spec_iso);
   size_t
-  my_strftime (s, maxsize, format, tp extra_args)
-      CHAR_T *s;
-      size_t maxsize;
-      const CHAR_T *format;
-      const struct tm *tp;
-      extra_args_spec
+  my_strftime (CHAR_T *s, size_t maxsize, const CHAR_T *format,
+	       const struct tm *tp extra_args_spec)
   {
     struct tm tmcopy;
     tmcopy = *tp;

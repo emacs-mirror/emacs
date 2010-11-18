@@ -1,3 +1,9 @@
+2010-11-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* strftime.c (my_strftime_gmtime_r, my_strftime_localtime_r)
+	(tm_diff): Convert definitions to standard C.
+	(extra_args_spec_iso): Remove, unused.
+
 2010-11-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (init_gconf): Check HAVE_G_TYPE_INIT.
