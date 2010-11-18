@@ -2641,6 +2641,7 @@ updated using `comint-update-fence', if necessary."
 	(let ((inhibit-read-only t))
 	  (kill-region beg end yank-handler)
 	  (comint-update-fence))))))
+(set-advertised-calling-convention 'comint-kill-new '(beg end) "23.3")
 
 
 ;; Support for source-file processing commands.

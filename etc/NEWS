@@ -100,6 +100,7 @@ starting from the first line of text below the header line.
   The old names are obsolete.
 ** The use of unintern without an obarray arg is declared obsolete.
 ** The function `princ-list' is declared obsolete.
+** The yank-handler argument to kill-region and friends is declared obsolete.
 ** New function byte-to-string, like char-to-string but for bytes.
 
 
