@@ -1,3 +1,10 @@
+2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-pair-pairs): New var.
+	(electric-pair-post-self-insert-function): Use it.
+	(electric-layout-post-self-insert-function): Don't insert a before
+	newline unless it's actually needed.
+
 2010-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (run-python): Explain why we remove the current
