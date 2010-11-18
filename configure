@@ -9364,6 +9364,17 @@ $as_echo "no" >&6; }
 
 $as_echo "#define HAVE_GCONF 1" >>confdefs.h
 
+            for ac_func in g_type_init
+do :
+  ac_fn_c_check_func "$LINENO" "g_type_init" "ac_cv_func_g_type_init"
+if test "x$ac_cv_func_g_type_init" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_G_TYPE_INIT 1
+_ACEOF
+
+fi
+done
+
    fi
 fi
 

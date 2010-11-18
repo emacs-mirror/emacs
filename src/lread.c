@@ -966,6 +966,10 @@ Loading a file records its definitions, and its `provide' and
 `require' calls, in an element of `load-history' whose
 car is the file name loaded.  See `load-history'.
 
+While the file is in the process of being loaded, the variable
+`load-in-progress' is non-nil and the variable `load-file-name'
+is bound to the file's name.
+
 Return t if the file exists and loads successfully.  */)
   (Lisp_Object file, Lisp_Object noerror, Lisp_Object nomessage, Lisp_Object nosuffix, Lisp_Object must_suffix)
 {

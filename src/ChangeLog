@@ -1,3 +1,24 @@
+2010-11-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (init_gconf): Check HAVE_G_TYPE_INIT.
+
+	* config.in (HAVE_G_TYPE_INIT): New symbol.
+
+2010-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* lread.c (Fload): Mention `load-in-progress' and
+	`load-file-name'.  (Bug#7346)
+
+	* keyboard.c (kbd_buffer_nr_stored): Define only ifdef subprocesses.
+	(kbd_buffer_store_event_hold, kbd_buffer_get_event)
+	(tty_read_avail_input): Call kbd_buffer_nr_stored only ifdef
+	subprocesses.  Use buffer_free only ifdef subprocesses.
+
+	* process.c (init_process) [subprocesses]: Init kbd_is_on_hold in
+	the subprocesses version, not in the non-subprocesses one.
+
+	* Makefile.in: Don't use ## comment, it breaks the MSDOS build.
+
 2010-11-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Fix cursor positioning in empty

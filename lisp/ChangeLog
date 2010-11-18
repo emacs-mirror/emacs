@@ -1,5 +1,86 @@
 2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (kill-new, kill-append, kill-region):
+	* comint.el (comint-kill-region): Make the yank-handler argument obsolete.
+
+2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-bnf-classify): Signal errors for tokens
+	that are both openers (resp. closers) and something else.
+	(smie-grammar): Loosen definition of valid values.
+	(smie-next-sexp, smie-down-list, smie-blink-matching-open)
+	(smie-indent--parent, smie-rule-parent, smie-indent-keyword)
+	(smie-indent-after-keyword): Adjust users.
+	(smie-indent-keyword): Don't indent empty lines.
+
+	* vc-hg.el (vc-hg-program): New var.
+	Suggested by Norman Gray <norman@astro.gla.ac.uk>.
+	(vc-hg-state, vc-hg-working-revision, vc-hg-command): Use it.
+
+2010-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-find-destination): The function
+	coding-system-eol-type may return non-numeric values.  (Bug#7414)
+
+2010-11-18  Ulrich Mueller  <ulm@gentoo.org>
+
+	* server.el (server-force-stop): Ensure the server is stopped (Bug#7409).
+
+2010-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (posn-col-row): Pay attention to header line.  (Bug#7390)
+
+2010-11-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/picture.el (picture-mouse-set-point): Don't use
+	posn-col-row; explicitly compute the motion based on the posn at
+	the window-start (Bug#7390).
+
+2010-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* novice.el (disabled-command-function):
+	Fix 2009-11-15 change.  (Bug#7384)
+
+2010-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-iso-date-forms): Make elements
+	mutually exclusive.  (Bug#7377)
+
+2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-prec2->grammar): Obey equality constraints
+	when filling the remaining "unconstrained" values.
+
+2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warnings): Simplify the
+	safety predicate.
+
+	* files.el (safe-local-variable-p): Gracefully handle errors.
+
+	* emacs-lisp/smie.el (smie-rule-parent, smie-indent--rule):
+	Use smie-indent-virtual when indenting relative to an opener.
+	(smie-rule-separator): Use smie-rule-parent.
+	(smie-indent-keyword): Consult rules, even for openers at bol.
+	(smie-indent-comment-close): Try to align closer's content.
+
+2010-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* ls-lisp.el (ls-lisp-dired-ignore-case): Make it an obsolete alias.
+
+2010-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* printing.el (pr-menu-bind): Doc fix.
+
+	* speedbar.el (speedbar-toggle-images): Doc fix.
+
+	* progmodes/python.el (python-shell): Doc fix.
+
+	* wid-edit.el (widget-field-use-before-change)
+	(widget-use-overlay-change): Doc fixes.
+
+2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	Minor cleanup to improve style.
 	* textmodes/rst.el (rst-update-section): Use point-marker.
 	(rst-get-decoration): Eliminate unneeded assignment.

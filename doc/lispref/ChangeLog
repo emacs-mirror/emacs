@@ -1,3 +1,14 @@
+2010-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* customize.texi (Composite Types): Lower-case index entry.
+
+	* loading.texi (How Programs Do Loading): Document
+	load-file-name.  (Bug#7346)
+
+2010-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (Kill Functions, Low-Level Kill Ring): Small fixes.
+
 2010-11-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Usual Display): Characters with no fonts are not
