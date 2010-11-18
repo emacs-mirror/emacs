@@ -1,5 +1,7 @@
 2010-11-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* strftime.c (_strftime_copytm): Add declaration.
+
 	* callproc.c (syms_of_callproc): Use intern_c_string.
 
 	Move declarations from .c files to .h files.

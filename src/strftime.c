@@ -461,6 +461,9 @@ static CHAR_T const month_name[][10] =
   /* Solaris 2.5 tzset sometimes modifies the storage returned by localtime.
      Work around this bug by copying *tp before it might be munged.  */
   size_t
+  _strftime_copytm (CHAR_T *s, size_t maxsize, const CHAR_T *format,
+		    const struct tm *tp extra_args_spec LOCALE_PARAM_DECL);
+  size_t
   my_strftime (CHAR_T *s, size_t maxsize, const CHAR_T *format,
 	       const struct tm *tp extra_args_spec)
   {
