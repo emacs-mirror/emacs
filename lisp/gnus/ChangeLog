@@ -1,3 +1,13 @@
+2010-11-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-html-wash-images): Don't display images if
+	gnus-inhibit-images is non-nil; register displayer for cid images.
+	(gnus-html-display-image): Work for cid image.
+	(gnus-html-insert-image): Allow arguments.
+	(gnus-html-put-image): Inhibit read-only.
+	(gnus-html-prefetch-images): Don't prefetch images if
+	gnus-inhibit-images is non-nil.
+
 2010-11-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-put-image): Break lines when inserting big pictures.
