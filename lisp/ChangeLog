@@ -1,5 +1,15 @@
 2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Minor cleanup to improve style.
+	* textmodes/rst.el (rst-update-section): Use point-marker.
+	(rst-get-decoration): Eliminate unneeded assignment.
+	(rst-promote-region, rst-straighten-decorations)
+	(rst-section-tree, rst-adjust): Use point-marker.
+	(rst-toc-mode-mouse-goto): Avoid setq.
+	(rst-shift-region-guts, rst-shift-region-left)
+	(rst-iterate-leftmost-paragraphs, rst-iterate-leftmost-paragraphs-2)
+	(rst-convert-bullets-to-enumeration): Use copy-marker.
+
 	* minibuffer.el (completion-fail-discreetly): New var.
 	(completion--do-completion): Use it.
 
