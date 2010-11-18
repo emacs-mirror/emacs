@@ -2736,6 +2736,7 @@ extern void memory_full (void) NO_RETURN;
 extern void buffer_memory_full (void) NO_RETURN;
 extern int survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
+extern void refill_memory_reserve (void);
 extern const char *pending_malloc_warning;
 extern Lisp_Object Vpurify_flag;
 extern Lisp_Object Vmemory_full;
