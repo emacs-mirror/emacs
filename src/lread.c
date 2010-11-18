@@ -552,8 +552,6 @@ readbyte_from_string (int c, Lisp_Object readcharfun)
    encoded in `emacs-mule' and the first byte is already read in
    C.  */
 
-extern char emacs_mule_bytes[256];
-
 static int
 read_emacs_mule_char (int c, int (*readbyte) (int, Lisp_Object), Lisp_Object readcharfun)
 {

@@ -1,5 +1,17 @@
 2010-11-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Move declarations from .c files to .h files.
+	* process.c (timers_run):
+	* minibuf.c (quit_char):
+	* lread.c (read_emacs_mule_char):
+	* keyboard.c (minibuf_level, message_enable_multibyte)
+	(pending_malloc_warning):
+	* insdel.c (Vselect_active_regions, Vsaved_region_selection)
+	(Qonly): Remove declarations.
+	* lisp.h (pending_malloc_warning, Vsaved_region_selection)
+	(Vselect_active_regions):
+	* keyboard.h (timers_run):  Add declarations.
+
 	* strftime.c (my_strftime_gmtime_r, my_strftime_localtime_r)
 	(tm_diff): Convert definitions to standard C.
 	(extra_args_spec_iso): Remove, unused.

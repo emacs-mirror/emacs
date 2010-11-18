@@ -144,10 +144,6 @@ int this_single_command_key_start;
 static int before_command_key_count;
 static int before_command_echo_length;
 
-extern int minbuf_level;
-
-extern int message_enable_multibyte;
-
 /* If non-nil, the function that implements the display of help.
    It's called with one argument, the help string to display.  */
 
@@ -430,8 +426,6 @@ FILE *dribble;
 
 /* Nonzero if input is available.  */
 int input_pending;
-
-extern const char *pending_malloc_warning;
 
 /* Circular buffer for pre-read keyboard input.  */
 
@@ -12434,5 +12428,3 @@ mark_kboards (void)
   }
 }
 
-/* arch-tag: 774e34d7-6d31-42f3-8397-e079a4e4c9ca
-   (do not change this comment) */
