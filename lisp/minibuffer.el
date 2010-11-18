@@ -530,6 +530,9 @@ candidates than this number."
 (make-variable-buffer-local 'completion-all-sorted-completions)
 (defvar completion-cycling nil)
 
+(defvar completion-fail-discreetly nil
+  "If non-nil, stay quiet when there  is no match.")
+
 (defun completion--do-completion (&optional try-completion-function)
   "Do the completion and return a summary of what happened.
 M = completion was performed, the text was Modified.
@@ -558,7 +561,9 @@ E = after completion we now have an Exact match.
     (cond
      ((null comp)
       (minibuffer-hide-completions)
-      (ding) (minibuffer-message "No match") (minibuffer--bitset nil nil nil))
+      (unless completion-fail-discreetly
+        (ding) (minibuffer-message "No match"))
+      (minibuffer--bitset nil nil nil))
      ((eq t comp)
       (minibuffer-hide-completions)
       (goto-char (field-end))
