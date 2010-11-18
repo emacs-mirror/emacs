@@ -55,18 +55,23 @@ fit these criteria."
   :group 'shr
   :type 'regexp)
 
-(defcustom shr-table-line ?-
-  "Character used to draw table line."
+(defcustom shr-table-horizontal-line ?-
+  "Character used to draw horizontal table lines."
+  :group 'shr
+  :type 'character)
+
+(defcustom shr-table-vertical-line ?|
+  "Character used to draw vertical table lines."
   :group 'shr
   :type 'character)
 
 (defcustom shr-table-corner ?+
-  "Character used to draw table corner."
+  "Character used to draw table corners."
   :group 'shr
   :type 'character)
 
 (defcustom shr-hr-line ?-
-  "Character used to draw hr line."
+  "Character used to draw hr lines."
   :group 'shr
   :type 'character)
 
@@ -778,7 +783,7 @@ START, and END."
 		    max)))
       (dotimes (i height)
 	(shr-indent)
-	(insert "|\n"))
+	(insert shr-table-vertical-line "\n"))
       (dolist (column row)
 	(goto-char start)
 	(let ((lines (nth 2 column))
@@ -787,7 +792,7 @@ START, and END."
 	  (dolist (line lines)
 	    (setq overlay-line (pop overlay-lines))
 	    (end-of-line)
-	    (insert line "|")
+	    (insert line shr-table-vertical-line)
 	    (dolist (overlay overlay-line)
 	      (let ((o (make-overlay (- (point) (nth 0 overlay) 1)
 				     (- (point) (nth 1 overlay) 1)))
@@ -799,7 +804,8 @@ START, and END."
 	  ;; possibly.
 	  (dotimes (i (- height (length lines)))
 	    (end-of-line)
-	    (insert (make-string (string-width (car lines)) ? ) "|")
+	    (insert (make-string (string-width (car lines)) ? )
+		    shr-table-vertical-line)
 	    (forward-line 1)))))
     (shr-insert-table-ruler widths)))
 
@@ -809,7 +815,8 @@ START, and END."
     (shr-indent))
   (insert shr-table-corner)
   (dotimes (i (length widths))
-    (insert (make-string (aref widths i) shr-table-line) shr-table-corner))
+    (insert (make-string (aref widths i) shr-table-horizontal-line)
+	    shr-table-corner))
   (insert "\n"))
 
 (defun shr-table-widths (table suggested-widths)
