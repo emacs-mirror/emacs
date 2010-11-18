@@ -1516,7 +1516,7 @@ void
 syms_of_callproc (void)
 {
 #ifdef DOS_NT
-  Qbuffer_file_type = intern ("buffer-file-type");
+  Qbuffer_file_type = intern_c_string ("buffer-file-type");
   staticpro (&Qbuffer_file_type);
 #endif /* DOS_NT */
 
