@@ -12941,7 +12941,8 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 			     cursor on that character's glyph.  */
 			  EMACS_INT strpos = glyph->charpos;
 
-			  cursor = glyph;
+			  if (tem)
+			    cursor = glyph;
 			  for (glyph += incr;
 			       (row->reversed_p ? glyph > stop : glyph < stop)
 				 && EQ (glyph->object, str);
@@ -12958,7 +12959,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 				  cursor = glyph;
 				  break;
 				}
-			      if (glyph->charpos < strpos)
+			      if (tem && glyph->charpos < strpos)
 				{
 				  strpos = glyph->charpos;
 				  cursor = glyph;
@@ -12973,10 +12974,9 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 		    }
 		  /* This string is not what we want; skip all of the
 		     glyphs that came from it.  */
-		  do
-		    glyph += incr;
 		  while ((row->reversed_p ? glyph > stop : glyph < stop)
-			 && EQ (glyph->object, str));
+			 && EQ (glyph->object, str))
+		    glyph += incr;
 		}
 	      else
 		glyph += incr;

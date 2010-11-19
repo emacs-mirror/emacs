@@ -1,3 +1,9 @@
+2010-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Display cursor after all the
+	glyphs that come from an overlay.  Don't overstep the last glyph
+	when skipping glyphs from an overlay.  (Bug#6687)
+
 2010-11-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* alloc.c (refill_memory_reserve): Move declaration ...
