@@ -13493,7 +13493,7 @@
 	* menu-bar.el (menu-bar-vc-filter): New function.
 	(menu-bar-tools-menu): Use it as a filter.
 
-2007-08-01  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2007-08-01  Eric Hanchrow  <offby1@blarg.net>
 
 	* ibuf-ext.el (ibuffer-mark-old-buffers): Docstring fix.
 

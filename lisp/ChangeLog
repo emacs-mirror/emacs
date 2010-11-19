@@ -31,6 +31,120 @@
 
 	* term/ns-win.el (ns-find-file): Use pop-to-buffer-other-frame.
 
+2010-11-19  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* textmodes/reftex-ref.el (reftex-goto-label): If point is inside
+	a \ref{} or \pageref{} macro, then use its value as initial input.
+
+2010-11-19  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-build-units-table-buffer):
+	calc/README: Mention that the TeX specific units won't use the
+	`tex' prefix in TeX mode.
+	calc/calc-lang.el (math-variable-table): Don't use the `tex'
+	prefix for units in TeX mode.
+
+2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (kill-new, kill-append, kill-region):
+	* comint.el (comint-kill-region): Make the yank-handler argument obsolete.
+
+2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-bnf-classify): Signal errors for tokens
+	that are both openers (resp. closers) and something else.
+	(smie-grammar): Loosen definition of valid values.
+	(smie-next-sexp, smie-down-list, smie-blink-matching-open)
+	(smie-indent--parent, smie-rule-parent, smie-indent-keyword)
+	(smie-indent-after-keyword): Adjust users.
+	(smie-indent-keyword): Don't indent empty lines.
+
+	* vc-hg.el (vc-hg-program): New var.
+	Suggested by Norman Gray <norman@astro.gla.ac.uk>.
+	(vc-hg-state, vc-hg-working-revision, vc-hg-command): Use it.
+
+2010-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-find-destination): The function
+	coding-system-eol-type may return non-numeric values.  (Bug#7414)
+
+2010-11-18  Ulrich Mueller  <ulm@gentoo.org>
+
+	* server.el (server-force-stop): Ensure the server is stopped (Bug#7409).
+
+2010-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (posn-col-row): Pay attention to header line.  (Bug#7390)
+
+2010-11-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/picture.el (picture-mouse-set-point): Don't use
+	posn-col-row; explicitly compute the motion based on the posn at
+	the window-start (Bug#7390).
+
+2010-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* novice.el (disabled-command-function):
+	Fix 2009-11-15 change.  (Bug#7384)
+
+2010-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-iso-date-forms): Make elements
+	mutually exclusive.  (Bug#7377)
+
+2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-prec2->grammar): Obey equality constraints
+	when filling the remaining "unconstrained" values.
+
+2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warnings): Simplify the
+	safety predicate.
+
+	* files.el (safe-local-variable-p): Gracefully handle errors.
+
+	* emacs-lisp/smie.el (smie-rule-parent, smie-indent--rule):
+	Use smie-indent-virtual when indenting relative to an opener.
+	(smie-rule-separator): Use smie-rule-parent.
+	(smie-indent-keyword): Consult rules, even for openers at bol.
+	(smie-indent-comment-close): Try to align closer's content.
+
+2010-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* ls-lisp.el (ls-lisp-dired-ignore-case): Make it an obsolete alias.
+
+2010-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* printing.el (pr-menu-bind): Doc fix.
+
+	* speedbar.el (speedbar-toggle-images): Doc fix.
+
+	* progmodes/python.el (python-shell): Doc fix.
+
+	* wid-edit.el (widget-field-use-before-change)
+	(widget-use-overlay-change): Doc fixes.
+
+2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Minor cleanup to improve style.
+	* textmodes/rst.el (rst-update-section): Use point-marker.
+	(rst-get-decoration): Eliminate unneeded assignment.
+	(rst-promote-region, rst-straighten-decorations)
+	(rst-section-tree, rst-adjust): Use point-marker.
+	(rst-toc-mode-mouse-goto): Avoid setq.
+	(rst-shift-region-guts, rst-shift-region-left)
+	(rst-iterate-leftmost-paragraphs, rst-iterate-leftmost-paragraphs-2)
+	(rst-convert-bullets-to-enumeration): Use copy-marker.
+
+	* minibuffer.el (completion-fail-discreetly): New var.
+	(completion--do-completion): Use it.
+
+	* electric.el (electric-pair-pairs): New var.
+	(electric-pair-post-self-insert-function): Use it.
+	(electric-layout-post-self-insert-function): Don't insert a before
+	newline unless it's actually needed.
+
 2010-11-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-split-window-1): Fix sizing for
@@ -39,6 +153,13 @@
 	* progmodes/compile.el (compilation-minor-mode-map)
 	(compilation-mode-map): Replace bindings for quit-window by
 	bindings for quit-restore-window.
+
+2010-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (run-python): Explain why we remove the current
+	directory from sys.path.  Suggested by Eric Hanchrow <erich@cozi.com>.
+
+	* progmodes/grep.el (grep-regexp-alist): Tighten the regexp (bug#7378).
 
 2010-11-16  Martin Rudalics  <rudalics@gmx.at>
 
@@ -10171,7 +10292,7 @@
 
 	* vc-bzr.el (vc-bzr-revision-table): New function.
 
-2010-01-25  Eric Hanchrow  <eric.hanchrow@gmail.com>  (tiny change)
+2010-01-25  Eric Hanchrow  <eric.hanchrow@gmail.com>
 
 	* vc-git.el (vc-git-dir-status-goto-stage): Pass --relative to the
 	diff-index command.  This requires at least git-1.5.5.  (Bug#1589).

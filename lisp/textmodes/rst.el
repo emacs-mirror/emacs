@@ -698,11 +698,9 @@ existing decoration, they are removed before adding the
 requested decoration."
 
   (interactive)
-  (let (marker
-        len)
-
       (end-of-line)
-      (setq marker (point-marker))
+  (let ((marker (point-marker))
+        len)
 
       ;; Fixup whitespace at the beginning and end of the line
       (if (or (null indent) (eq style 'simple))
@@ -789,7 +787,7 @@ This function does not detect the hierarchy of decorations, it
 just finds all of them in a file.  You can then invoke another
 function to remove redundancies and inconsistencies."
 
-  (let (positions
+  (let ((positions ())
         (curline 1))
     ;; Iterate over all the section titles/decorations in the file.
     (save-excursion
@@ -870,7 +868,7 @@ A decoration can be said to exist if the style is not nil.
 A point can be specified to go to the given location before
 extracting the decoration."
 
-  (let (char style indent)
+  (let (char style)
     (save-excursion
       (if point (goto-char point))
       (beginning-of-line)
@@ -879,10 +877,10 @@ extracting the decoration."
                          (forward-line -1)
                          (rst-line-homogeneous-nodent-p)))
 
-                (under (save-excursion
-                         (forward-line +1)
-                         (rst-line-homogeneous-nodent-p)))
-                )
+                 (under (save-excursion
+                          (forward-line +1)
+                          (rst-line-homogeneous-nodent-p)))
+                 )
 
             ;; Check that the line above the overline is not part of a title
             ;; above it.
@@ -910,15 +908,11 @@ extracting the decoration."
              ;; Both overline and underline.
              (t
               (setq char under
-                    style 'over-and-under))
-             )
-            )
-        )
-      ;; Find indentation.
-      (setq indent (save-excursion (back-to-indentation) (current-column)))
-      )
-    ;; Return values.
-    (list char style indent)))
+                    style 'over-and-under)))))
+      ;; Return values.
+      (list char style
+            ;; Find indentation.
+            (save-excursion (back-to-indentation) (current-column))))))
 
 
 (defun rst-get-decorations-around (&optional alldecos)
@@ -1041,7 +1035,7 @@ b. a negative numerical argument, which generally inverts the
   (interactive)
 
   (let* (;; Save our original position on the current line.
-	 (origpt (set-marker (make-marker) (point)))
+	 (origpt (point-marker))
 
 	 ;; Parse the positive and negative prefix arguments.
          (reverse-direction
@@ -1395,32 +1389,28 @@ hierarchy is similar to that used by `rst-adjust-decoration'."
     ;; Create a list of markers for all the decorations which are found within
     ;; the region.
     (save-excursion
-      (let (m line)
+      (let (line)
         (while (and cur (< (setq line (caar cur)) region-end-line))
-          (setq m (make-marker))
           (goto-char (point-min))
           (forward-line (1- line))
-          (push (list (set-marker m (point)) (cdar cur)) marker-list)
+          (push (list (point-marker) (cdar cur)) marker-list)
           (setq cur (cdr cur)) ))
 
       ;; Apply modifications.
-      (let (nextdeco)
-        (dolist (p marker-list)
-          ;; Go to the decoration to promote.
-          (goto-char (car p))
+      (dolist (p marker-list)
+        ;; Go to the decoration to promote.
+        (goto-char (car p))
 
-          ;; Rotate the next decoration.
-          (setq nextdeco (rst-get-next-decoration
-                          (cadr p) hier suggestion demote))
+        ;; Update the decoration.
+        (apply 'rst-update-section
+               ;; Rotate the next decoration.
+               (rst-get-next-decoration
+                (cadr p) hier suggestion demote))
 
-          ;; Update the decoration.
-          (apply 'rst-update-section nextdeco)
-
-          ;; Clear marker to avoid slowing down the editing after we're done.
-          (set-marker (car p) nil)
-          ))
+        ;; Clear marker to avoid slowing down the editing after we're done.
+        (set-marker (car p) nil))
       (setq deactivate-mark nil)
-    )))
+      )))
 
 
 
@@ -1463,11 +1453,10 @@ in order to adapt it to our preferred style."
 	   (levels-and-markers (mapcar
 				(lambda (deco)
 				  (cons (rst-position (cdr deco) hier)
-					(let ((m (make-marker)))
+					(progn
 					  (goto-char (point-min))
 					  (forward-line (1- (car deco)))
-					  (set-marker m (point))
-					  m)))
+                                          (point-marker))))
 				alldecos))
 	   )
       (dolist (lm levels-and-markers)
@@ -1511,7 +1500,7 @@ section levels."
   "Find all the positions of prefixes in region between BEG and END.
 This is used to find bullets and enumerated list items.  PFX-RE
 is a regular expression for matching the lines with items."
-  (let (pfx)
+  (let ((pfx ()))
     (save-excursion
       (goto-char beg)
       (while (< (point) end)
@@ -1635,10 +1624,9 @@ child.  This has advantages later in processing the graph."
                       (forward-line (1- (car deco)))
                       (list (gethash (cons (cadr deco) (caddr deco)) levels)
                             (rst-get-stripped-line)
-                            (let ((m (make-marker)))
+                            (progn
                               (beginning-of-line 1)
-                              (set-marker m (point)))
-                            ))
+                              (point-marker))))
                     alldecos)))
 
     (let ((lcontnr (cons nil lines)))
@@ -2057,11 +2045,11 @@ brings the cursor in that section."
   "In `rst-toc' mode, go to the occurrence whose line you click on.
 EVENT is the input event."
   (interactive "e")
-  (let (pos)
+  (let ((pos
     (with-current-buffer (window-buffer (posn-window (event-end event)))
       (save-excursion
         (goto-char (posn-point (event-end event)))
-        (setq pos (rst-toc-mode-find-section))))
+             (rst-toc-mode-find-section)))))
     (pop-to-buffer (marker-buffer pos))
     (goto-char pos)
     (recenter 5)))
@@ -2306,8 +2294,8 @@ of (COLUMN-NUMBER . LINE) pairs."
 
 (defun rst-shift-region-guts (find-next-fun offset-fun)
   "(See `rst-shift-region-right' for a description)."
-  (let* ((mbeg (set-marker (make-marker) (region-beginning)))
-	 (mend (set-marker (make-marker) (region-end)))
+  (let* ((mbeg (copy-marker (region-beginning)))
+	 (mend (copy-marker (region-end)))
 	 (tabs (rst-compute-bullet-tabs mbeg))
 	 (leftmostcol (rst-find-leftmost-column (region-beginning) (region-end)))
 	 )
@@ -2386,8 +2374,8 @@ Also, if invoked with a negative prefix arg, the entire
 indentation is removed, up to the leftmost character in the
 region, and automatic filling is disabled."
   (interactive "P")
-  (let ((mbeg (set-marker (make-marker) (region-beginning)))
-	(mend (set-marker (make-marker) (region-end)))
+  (let ((mbeg (copy-marker (region-beginning)))
+	(mend (copy-marker (region-end)))
 	(leftmostcol (rst-find-leftmost-column
 		      (region-beginning) (region-end)))
 	(rst-shift-fill-region
@@ -2421,8 +2409,7 @@ Set FIRST-ONLY to true if you want to callback on the first line
 of each paragraph only."
   `(save-excursion
     (let ((leftcol (rst-find-leftmost-column ,beg ,end))
-	  (endm (set-marker (make-marker) ,end))
-	  )
+	  (endm (copy-marker ,end)))
 
       (do* (;; Iterate lines
 	    (l (progn (goto-char ,beg) (back-to-indentation))
@@ -2460,8 +2447,7 @@ first of a paragraph."
 
   `(save-excursion
      (let ((,leftmost (rst-find-leftmost-column ,beg ,end))
-	   (endm (set-marker (make-marker) ,end))
-	   )
+	   (endm (copy-marker ,end)))
 
       (do* (;; Iterate lines
 	    (l (progn (goto-char ,beg) (back-to-indentation))
@@ -2538,9 +2524,7 @@ region to enumerated lists, renumbering as necessary."
   (let* (;; Find items and convert the positions to markers.
 	 (items (mapcar
 		 (lambda (x)
-		   (cons (let ((m (make-marker)))
-			   (set-marker m (car x))
-			   m)
+		   (cons (copy-marker (car x))
 			 (cdr x)))
 		 (rst-find-pfx-in-region beg end rst-re-items)))
 	 (count 1)

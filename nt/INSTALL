@@ -105,9 +105,9 @@
   since v1.3.3, include the MinGW headers and libraries as an integral
   part).
 
-  Note that building Emacs with Visual Studio 2005 (VC++ 8.0) is not
-  supported at this time, due to changes introduced by Microsoft into
-  the libraries shipped with the compiler.
+  Note that building Emacs with Visual Studio 2005 (VC++ 8.0) and
+  later is not supported at this time, due to changes introduced by
+  Microsoft into the libraries shipped with the compiler.
 
   The rest of this file assumes you have a working development
   environment.  If you just installed  such an environment, try

@@ -12461,6 +12461,8 @@ anything that isn't a newsgroup.  This means that no external images
 will be fetched as a result of reading mail, so that nobody can use
 web bugs (and the like) to track whether you've read email.
 
+Also @pxref{Misc Article} for @code{gnus-inhibit-images}.
+
 @item gnus-html-cache-directory
 @vindex gnus-html-cache-directory
 Gnus will download and cache images according to how
@@ -12940,6 +12942,15 @@ internationalized domain names inside @samp{From}, @samp{To} and
 for how to compose such messages.  This requires
 @uref{http://www.gnu.org/software/libidn/, GNU Libidn}, and this
 variable is only enabled if you have installed it.
+
+@vindex gnus-inhibit-images
+@item gnus-inhibit-images
+If this is non-@code{nil}, inhibit displaying of images inline in the
+article body.  It is effective to images that are in articles as
+@acronym{MIME} parts, and images in @acronym{HTML} articles rendered
+when @code{mm-text-html-renderer} (@pxref{Display Customization,
+,Display Customization, emacs-mime, The Emacs MIME Manual}) is
+@code{shr} or @code{gnus-w3m}.
 
 @end table
 

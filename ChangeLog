@@ -2894,7 +2894,7 @@
 
 	* make-dist (lispref): Do include lispref/index.texi.
 
-2004-01-06  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2004-01-06  Eric Hanchrow  <offby1@blarg.net>
 
 	* make-dist (tempdir): Include cursors in nt/icons.
 

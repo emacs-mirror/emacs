@@ -294,6 +294,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `gtk_widget_set_has_window' function. */
 #undef HAVE_GTK_WIDGET_SET_HAS_WINDOW
 
+/* Define to 1 if you have the `g_type_init' function. */
+#undef HAVE_G_TYPE_INIT
+
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
 

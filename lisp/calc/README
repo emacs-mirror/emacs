@@ -74,6 +74,9 @@ Summary of changes to "Calc"
 
 Emacs 24.1
 
+* Calc no longer uses the tex prefix for TeX specific unit 
+names when using TeX or LaTeX mode.
+
 * Added option to highlight selections using faces.
 
 * Gave `calc-histogram' the option of using a vector to determine the bins.

@@ -36,8 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "termhooks.h"
 
-extern int quit_char;
-
 /* List of buffers for use as minibuffers.
    The first element of the list is used for the outermost minibuffer
    invocation, the next element is used for a recursive minibuffer
@@ -2251,5 +2249,3 @@ properties.  */);
   defsubr (&Scompleting_read);
 }
 
-/* arch-tag: 8f69b601-fba3-484c-a6dd-ceaee54a7a73
-   (do not change this comment) */

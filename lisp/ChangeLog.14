@@ -2148,7 +2148,7 @@
 	* emacs-lisp/find-func.el (find-library-name, find-library):
 	Doc fixes.  (Part of bug#2270)
 
-2009-02-10  Eric Hanchrow  <eric.hanchrow@gmail.com>  (tiny change)
+2009-02-10  Eric Hanchrow  <eric.hanchrow@gmail.com>
 
 	* env.el (getenv): When FRAME is non-nil, pass the frame environment
 	to `getenv-internal', not the frame.  (Bug#2259)
@@ -6518,7 +6518,7 @@
 	(hl-line-unhighlight, global-hl-line-unhighlight): Use `when'.
 	(hl-line-sticky-flag): Remove spurious * in docstring.
 
-2008-10-14  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2008-10-14  Eric Hanchrow  <offby1@blarg.net>
 
 	* vc-git.el (vc-git-show-log-entry): Include the revision in the
 	search string.

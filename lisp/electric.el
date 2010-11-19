@@ -261,6 +261,11 @@ Returns nil when we can't find this char."
 
 ;; Electric pairing.
 
+(defcustom electric-pair-pairs
+  '((?\" . ?\"))
+  "Alist of pairs that should be used regardless of major mode."
+  :type '(repeat (cons character character)))
+
 (defcustom electric-pair-skip-self t
   "If non-nil, skip char instead of inserting a second closing paren.
 When inserting a closing paren character right before the same character,
@@ -271,13 +276,18 @@ This can be convenient for people who find it easier to hit ) than C-f."
 
 (defun electric-pair-post-self-insert-function ()
   (let* ((syntax (and (eq (char-before) last-command-event) ; Sanity check.
-                      (char-syntax last-command-event)))
+                      (let ((x (assq last-command-event electric-pair-pairs)))
+                        (cond
+                         (x (if (eq (car x) (cdr x)) ?\" ?\())
+                         ((rassq last-command-event electric-pair-pairs) ?\))
+                         (t (char-syntax last-command-event))))))
          ;; FIXME: when inserting the closer, we should maybe use
          ;; self-insert-command, although it may prove tricky running
          ;; post-self-insert-hook recursively, and we wouldn't want to trigger
          ;; blink-matching-open.
          (closer (if (eq syntax ?\()
-                     (cdr (aref (syntax-table) last-command-event))
+                     (cdr (or (assq last-command-event electric-pair-pairs)
+                              (aref (syntax-table) last-command-event)))
                    last-command-event)))
     (cond
      ;; Wrap a pair around the active region.
@@ -351,10 +361,13 @@ one of those symbols.")
           ;; It happened to make electric-indent-mode work automatically with
           ;; electric-layout-mode (at the cost of re-indenting lines
           ;; multiple times), but I'm not sure it's what we want.
-          (before (goto-char (1- pos)) (insert "\n"))
-          (after  (insert "\n"))
-          (around (goto-char (1- pos)) (insert "\n")
-                  (forward-char 1) (insert "\n")))
+          (before (goto-char (1- pos)) (skip-chars-backward " \t")
+                  (unless (bolp) (insert "\n")))
+          (after  (insert "\n"))       ; FIXME: check eolp before inserting \n?
+          (around (save-excursion
+                    (goto-char (1- pos)) (skip-chars-backward " \t")
+                    (unless (bolp) (insert "\n")))
+                  (insert "\n")))      ; FIXME: check eolp before inserting \n?
         (goto-char end)))))
 
 ;;;###autoload
