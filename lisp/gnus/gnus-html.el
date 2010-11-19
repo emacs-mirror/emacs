@@ -508,7 +508,7 @@ Return a string with image data."
 (defun gnus-html-prefetch-images (summary)
   (when (buffer-live-p summary)
     (let (inhibit-images blocked-images)
-      (with-current-buffer summary-buffer
+      (with-current-buffer summary
 	(setq inhibit-images gnus-inhibit-images
 	      blocked-images (gnus-blocked-images)))
       (save-match-data
