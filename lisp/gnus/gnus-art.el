@@ -5851,7 +5851,10 @@ If displaying \"text/html\" is discouraged \(see
 	(while ignored
 	  (when (string-match (pop ignored) type)
 	    (throw 'ignored nil)))
-	(if (and (not (and gnus-inhibit-images
+	(if (and (not (and (if (gnus-buffer-live-p gnus-summary-buffer)
+			       (with-current-buffer gnus-summary-buffer
+				 gnus-inhibit-images)
+			     gnus-inhibit-images)
 			   (string-match "\\`image/" type)))
 		 (setq not-attachment
 		       (and (not (mm-inline-override-p handle))

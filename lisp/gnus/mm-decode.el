@@ -1694,18 +1694,19 @@ If RECURSIVE, search recursively."
   ;; Require since we bind its variables.
   (require 'shr)
   (let ((article-buffer (current-buffer))
-	(shr-blocked-images (if (and (boundp 'gnus-summary-buffer)
-				     (buffer-name gnus-summary-buffer))
-				(with-current-buffer gnus-summary-buffer
-				  (gnus-blocked-images))
-			      shr-blocked-images))
 	(shr-content-function (lambda (id)
 				(let ((handle (mm-get-content-id id)))
 				  (when handle
 				    (mm-with-part handle
 				      (buffer-string))))))
-	(shr-inhibit-images gnus-inhibit-images)
-	charset)
+	shr-inhibit-images shr-blocked-images charset)
+    (if (and (boundp 'gnus-summary-buffer)
+	     (buffer-name gnus-summary-buffer))
+	(with-current-buffer gnus-summary-buffer
+	  (setq shr-inhibit-images gnus-inhibit-images
+		shr-blocked-images (gnus-blocked-images)))
+      (setq shr-inhibit-images gnus-inhibit-images
+	    shr-blocked-images (gnus-blocked-images)))
     (unless handle
       (setq handle (mm-dissect-buffer t)))
     (setq charset (mail-content-type-get (mm-handle-type handle) 'charset))

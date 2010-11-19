@@ -169,7 +169,14 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 
 (defun gnus-html-wash-images ()
   "Run through current buffer and replace img tags by images."
-  (let (tag parameters string start end images url alt-text)
+  (let (tag parameters string start end images url alt-text
+	    inhibit-images blocked-images)
+    (if (buffer-live-p gnus-summary-buffer)
+	(with-current-buffer gnus-summary-buffer
+	  (setq inhibit-images gnus-inhibit-images
+		blocked-images (gnus-blocked-images)))
+      (setq inhibit-images gnus-inhibit-images
+	    blocked-images (gnus-blocked-images)))
     (goto-char (point-min))
     ;; Search for all the images first.
     (while (re-search-forward "<img_alt \\([^>]*\\)>" nil t)
@@ -200,7 +207,7 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 	    ;; immediately.
 	    (let* ((handle (mm-get-content-id (substring url (match-end 0))))
 		   (image (when (and handle
-				     (not gnus-inhibit-images))
+				     (not inhibit-images))
 			    (gnus-create-image
 			     (mm-with-part handle (buffer-string))
 			     nil t))))
@@ -222,13 +229,8 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 		 :keymap gnus-html-image-map
 		 :button-keymap gnus-html-image-map)))
 	  ;; Normal, external URL.
-	  (if (or gnus-inhibit-images
-		  (gnus-html-image-url-blocked-p
-		   url
-		   (if (buffer-live-p gnus-summary-buffer)
-		       (with-current-buffer gnus-summary-buffer
-			 (gnus-blocked-images))
-		     (gnus-blocked-images))))
+	  (if (or inhibit-images
+		  (gnus-html-image-url-blocked-p url blocked-images))
 	      (widget-convert-button
 	       'link start end
 	       :action 'gnus-html-insert-image
@@ -505,13 +507,15 @@ Return a string with image data."
 ;;;###autoload
 (defun gnus-html-prefetch-images (summary)
   (when (buffer-live-p summary)
-    (let ((blocked-images (with-current-buffer summary
-                            (gnus-blocked-images))))
+    (let (inhibit-images blocked-images)
+      (with-current-buffer summary-buffer
+	(setq inhibit-images gnus-inhibit-images
+	      blocked-images (gnus-blocked-images)))
       (save-match-data
 	(while (re-search-forward "<img[^>]+src=[\"']\\(http[^\"']+\\)" nil t)
 	  (let ((url (gnus-html-encode-url
 		      (mm-url-decode-entities-string (match-string 1)))))
-	    (unless (or gnus-inhibit-images
+	    (unless (or inhibit-images
 			(gnus-html-image-url-blocked-p url blocked-images))
               (when (gnus-html-cache-expired url gnus-html-image-cache-ttl)
                 (gnus-html-schedule-image-fetching nil

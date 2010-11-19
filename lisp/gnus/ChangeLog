@@ -1,3 +1,10 @@
+2010-11-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-display-single)
+	* gnus-html.el (gnus-html-wash-images, gnus-html-prefetch-images)
+	* mm-decode.el (mm-shr): Assume that gnus-inhibit-images may be a group
+	parameter.
+
 2010-11-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-table-horizontal-line): Renamed from shr-table-line.
