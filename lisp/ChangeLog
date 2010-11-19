@@ -1,3 +1,11 @@
+2010-11-19  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-build-units-table-buffer):
+	calc/README: Mention that the TeX specific units won't use the
+	`tex' prefix in TeX mode.
+	calc/calc-lang.el (math-variable-table): Don't use the `tex'
+	prefix for units in TeX mode.
+
 2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (kill-new, kill-append, kill-region):
