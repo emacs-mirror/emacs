@@ -831,7 +831,12 @@ Optional prefix argument OTHER-WINDOW goes to the label in another window."
   (let* ((wcfg (current-window-configuration))
          (docstruct (symbol-value reftex-docstruct-symbol))
          (label (completing-read "Label: " docstruct
-                                 (lambda (x) (stringp (car x))) t))
+                                 (lambda (x) (stringp (car x))) t
+				 ;; If point is inside a \ref{} or
+				 ;; \pageref{}, use that as initial
+				 ;; input.
+				 (when (looking-back "\\\\\\(?:page\\)?ref{[-a-zA-Z0-9_*.:]*")
+				   (reftex-this-word "-a-zA-Z0-9_*.:"))))
          (selection (assoc label docstruct))
          (where (progn
                   (reftex-show-label-location selection t nil 'stay)

@@ -1,3 +1,8 @@
+2010-11-19  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* textmodes/reftex-ref.el (reftex-goto-label): If point is inside
+	a \ref{} or \pageref{} macro, then use its value as initial input.
+
 2010-11-19  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (math-build-units-table-buffer):
