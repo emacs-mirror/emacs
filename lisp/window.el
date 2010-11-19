@@ -4458,6 +4458,14 @@ buffer display specifiers.")
 These are the specifiers applied when `display-buffer' is called
 with the second argument equal t.")
 
+(defconst display-buffer-same-frame-specifiers
+  '(same-frame (reuse-buffer-window . nil))
+  "Specifiers for displaying a buffer in a window on the selected frame.")
+
+(defconst display-buffer-other-window-same-frame-specifiers
+  '(same-frame (reuse-buffer-window . nil) (not-this-window . t))
+  "Specifiers for displaying a buffer in another window on the selected frame.")
+
 (defconst display-buffer-other-frame-specifiers
   '(other-frame (reuse-buffer-window . visible)
     (not-this-window . t) (not-this-frame . t))
@@ -5020,8 +5028,8 @@ frame for displaying the buffer.
 
 The optional third argument IGNORE is ignored.
 
-The method to display a buffer is derived by combining the values
-of `display-buffer-names', `display-buffer-regexps', and
+The method to display the buffer is derived by combining the
+values of `display-buffer-names', `display-buffer-regexps', and
 SPECIFIERS.  Highest priority is given to overriding elements of
 `display-buffer-names' followed by overriding elements of
 `display-buffer-regexps'.  Next come the elements specified by
@@ -5029,15 +5037,17 @@ SPECIFIERS, followed by the non-overriding elements of
 `display-buffer-names' and the non-overriding elements of
 `display-buffer-regexps'.
 
-The result must be a list of valid buffer display specifiers.
-`display-buffer' scans this list from front to back until it
-finds a location specifier and attempts to use that specifier in
-order to produce a suitable window.  For this purpose, all
-non-symbolic specifiers following the location specifier in the
-list are considered additional specifiers.  If an attempt fails
-to produce a window, `display-buffer' continues with the next
-location specifier on the list.  Additional specifiers preceding
-the currently chosen location specifier in the list are ignored."
+The result must be a list of valid buffer display specifiers.  If
+`display-buffer-function' is non-nil, call it with the buffer and
+this list as arguments.  Otherwise, `display-buffer' scans this
+list from front to back until it finds a location specifier and
+attempts to use that specifier in order to produce a suitable
+window.  For this purpose, all non-symbolic specifiers following
+the location specifier in the list are considered additional
+specifiers.  If an attempt fails to produce a window,
+`display-buffer' continues with the next location specifier on
+the list.  Additional specifiers preceding the currently chosen
+location specifier in the list are ignored."
   (interactive "BDisplay buffer:\nP")
   (let* ((buffer (normalize-buffer-to-display buffer-or-name))
 	 (buffer-name (buffer-name buffer))
@@ -5051,87 +5061,92 @@ the currently chosen location specifier in the list are ignored."
 	 reuse-buffer-window reuse-other-window)
     ;; Reset this.
     (setq display-buffer-window nil)
-    ;; Retrieve the next location specifier while there a specifiers left
-    ;; and we don't have a valid window.
-    (while (and specifiers (or (not window) (not (window-live-p window))))
-      (setq location (car specifiers))
-      (setq specifiers (cdr specifiers))
-      (when (symbolp location)
-	(setq window
-	      (or (and (eq location 'same-window)
-		       (or (not (window-dedicated-p))
-			   (eq (window-buffer) buffer))
-		       (let ((selected-window
-			      ;; If the selected window is a minibuffer
-			      ;; window, use the selected window of the
-			      ;; last nonminibuffer frame instead.
-			      (if (window-minibuffer-p)
-				  (frame-selected-window
-				   (last-nonminibuffer-frame))
-				(selected-window))))
-			 (display-buffer-in-window
-			  buffer selected-window specifiers)))
-		  (and (memq location '(same-frame other-frame))
-		       (not (eq (setq reuse-buffer-window
-				      (cdr (assq
-					    'reuse-buffer-window specifiers)))
-				'never))
-		       ;; Try to reuse a window showing BUFFER.  If
-		       ;; reuse-buffer-window was set, it will specify
-		       ;; the frames to consider, otherwise look at the
-		       ;; selected frame's windows only.
-		       (display-buffer-in-lru-buffer-window
-			buffer reuse-buffer-window specifiers))
-		  (and (eq location 'same-frame)
-		       (not (frame-parameter frame 'unsplittable))
-		       (cdr (assq 'new-window specifiers))
-		       ;; Try making a new window.
-		       (display-buffer-in-new-window buffer specifiers))
-		  (and (eq location 'other-frame)
-		       ;; Try making a new frame.
-		       (display-buffer-in-new-frame buffer specifiers))
-		  (and (eq location 'same-frame)
-		       (not (eq (setq reuse-other-window
-				      (cdr (assq 'reuse-other-window specifiers)))
-				'never))
-		       ;; Try to reuse a window not showing BUFFER.  If
-		       ;; reuse-buffer-window was set, it will specify
-		       ;; the frames to consider, otherwise look at the
-		       ;; selected frame's windows only.
-		       (display-buffer-in-lru-window
-			buffer reuse-other-window specifiers))
-		  (and (not (memq location display-buffer-locations))
-		       (functionp location)
-		       ;; Separate function.
-		       (funcall location buffer specifiers))))))
+    (if display-buffer-function
+	;; Let `display-buffer-function' do the job handing it the list
+	;; of our specifiers.
+	(funcall display-buffer-function buffer specifiers)
+      ;; Retrieve the next location specifier while there a specifiers
+      ;; left and we don't have a valid window.
+      (while (and specifiers (or (not window) (not (window-live-p window))))
+	(setq location (car specifiers))
+	(setq specifiers (cdr specifiers))
+	(when (symbolp location)
+	  (setq window
+		(or (and (eq location 'same-window)
+			 (or (not (window-dedicated-p))
+			     (eq (window-buffer) buffer))
+			 (let ((selected-window
+				;; If the selected window is a minibuffer
+				;; window, use the selected window of the
+				;; last nonminibuffer frame instead.
+				(if (window-minibuffer-p)
+				    (frame-selected-window
+				     (last-nonminibuffer-frame))
+				  (selected-window))))
+			   (display-buffer-in-window
+			    buffer selected-window specifiers)))
+		    (and (memq location '(same-frame other-frame))
+			 (not (eq (setq reuse-buffer-window
+					(cdr
+					 (assq 'reuse-buffer-window specifiers)))
+				  'never))
+			 ;; Try to reuse a window showing BUFFER.  If
+			 ;; reuse-buffer-window was set, it will specify
+			 ;; the frames to consider, otherwise look at the
+			 ;; selected frame's windows only.
+			 (display-buffer-in-lru-buffer-window
+			  buffer reuse-buffer-window specifiers))
+		    (and (eq location 'same-frame)
+			 (not (frame-parameter frame 'unsplittable))
+			 (cdr (assq 'new-window specifiers))
+			 ;; Try making a new window.
+			 (display-buffer-in-new-window buffer specifiers))
+		    (and (eq location 'other-frame)
+			 ;; Try making a new frame.
+			 (display-buffer-in-new-frame buffer specifiers))
+		    (and (eq location 'same-frame)
+			 (not (eq (setq reuse-other-window
+					(cdr
+					 (assq 'reuse-other-window specifiers)))
+				  'never))
+			 ;; Try to reuse a window not showing BUFFER.  If
+			 ;; reuse-buffer-window was set, it will specify
+			 ;; the frames to consider, otherwise look at the
+			 ;; selected frame's windows only.
+			 (display-buffer-in-lru-window
+			  buffer reuse-other-window specifiers))
+		    (and (not (memq location display-buffer-locations))
+			 (functionp location)
+			 ;; Separate function.
+			 (funcall location buffer specifiers))))))
 
-    ;; If we don't have a window yet, try a fallback method.  Note: All
-    ;; specifiers have been used up by now.
-    (or (and (window-live-p window) window)
-	;; Try reusing any window showing BUFFER on a visible or
-	;; iconfied frame.
-	(display-buffer-in-lru-buffer-window buffer 0)
-	;; Try reusing a window on the selected frame.
-	(display-buffer-in-lru-window buffer nil)
-	;; Try reusing a window on a visible frame.
-	(display-buffer-in-lru-window buffer 'visible)
-	;; Try reusing a window on a visible or iconified frame.
-	(display-buffer-in-lru-window buffer 0)
-	;; Try reusing any window showing BUFFER on any frame.
-	(display-buffer-in-lru-buffer-window buffer t)
-	;; Try reusing a window on any frame.
-	(display-buffer-in-lru-window buffer t)
-	;; Try making a new window.
-	(display-buffer-in-new-window buffer nil)
-	;; Try making a new frame
-	(display-buffer-in-new-frame buffer nil)
-	;; Use the selected window and let errors show trough.
-	(display-buffer-in-window buffer (selected-window) nil))))
+      ;; If we don't have a window yet, try a fallback method.  Note: All
+      ;; specifiers have been used up by now.
+      (or (and (window-live-p window) window)
+	  ;; Try reusing any window showing BUFFER on a visible or
+	  ;; iconfied frame.
+	  (display-buffer-in-lru-buffer-window buffer 0)
+	  ;; Try reusing a window on the selected frame.
+	  (display-buffer-in-lru-window buffer nil)
+	  ;; Try reusing a window on a visible frame.
+	  (display-buffer-in-lru-window buffer 'visible)
+	  ;; Try reusing a window on a visible or iconified frame.
+	  (display-buffer-in-lru-window buffer 0)
+	  ;; Try reusing any window showing BUFFER on any frame.
+	  (display-buffer-in-lru-buffer-window buffer t)
+	  ;; Try reusing a window on any frame.
+	  (display-buffer-in-lru-window buffer t)
+	  ;; Try making a new window.
+	  (display-buffer-in-new-window buffer nil)
+	  ;; Try making a new frame
+	  (display-buffer-in-new-frame buffer nil)
+	  ;; Use the selected window and let errors show trough.
+	  (display-buffer-in-window buffer (selected-window) nil)))))
 
 (defun display-buffer-same-window (&optional buffer-or-name) 
   "Display buffer specified by BUFFER-OR-NAME in the selected window.
 Another window will be used only if the buffer can't be shown in
-the selected window, usualy because it is dedicated to another
+the selected window, usually because it is dedicated to another
 buffer.
 
 Optional argument BUFFER-OR-NAME may be a buffer, a string \(a
@@ -5144,9 +5159,24 @@ nil if no such window is found.  Do not change the selected
 window unless a new frame is created."
   (display-buffer buffer-or-name 'same-window))
 
+(defun display-buffer-same-frame (&optional buffer-or-name) 
+  "Display buffer specified by BUFFER-OR-NAME in a window on the same frame.
+Another frame will be used only if there is no other choice.
+
+Optional argument BUFFER-OR-NAME may be a buffer, a string \(a
+buffer name), or nil.  If BUFFER-OR-NAME is a string not naming
+an existent buffer, create a buffer with that name.  If
+BUFFER-OR-NAME is nil or omitted, display the current buffer.
+
+Return the window chosen to display BUFFER-OR-NAME or
+nil if no such window is found.  Do not change the selected
+window unless a new frame is created."
+  (display-buffer
+   buffer-or-name display-buffer-same-frame-specifiers))
+
 (defun display-buffer-other-window (&optional buffer-or-name) 
   "Display buffer specified by BUFFER-OR-NAME in another window.
-The selected window will be used if and only if there is no other
+The selected window will be used only if there is no other
 choice.  Windows on the selected frame are preferred to windows
 on other frames.
 
@@ -5160,6 +5190,22 @@ nil if no such window is found.  Do not change the selected
 window unless a new frame is created."
   (display-buffer
    buffer-or-name display-buffer-other-window-specifiers))
+
+(defun display-buffer-other-window-same-frame (&optional buffer-or-name) 
+  "Display buffer specified by BUFFER-OR-NAME in another window on the same frame.
+The selected window or another frame will be used only if there
+is no other choice.
+
+Optional argument BUFFER-OR-NAME may be a buffer, a string \(a
+buffer name), or nil.  If BUFFER-OR-NAME is a string not naming
+an existent buffer, create a buffer with that name.  If
+BUFFER-OR-NAME is nil or omitted, display the current buffer.
+
+Return the window chosen to display BUFFER-OR-NAME or
+nil if no such window is found.  Do not change the selected
+window unless a new frame is created."
+  (display-buffer
+   buffer-or-name display-buffer-other-window-same-frame-specifiers))
 
 (defun pop-to-buffer (&optional buffer-or-name specifiers norecord)
   "Display buffer specified by BUFFER-OR-NAME and select the window used.
@@ -5207,9 +5253,22 @@ Optional arguments BUFFER-OR-NAME and NORECORD are as for
   (interactive "BPop to buffer in selected window:\nP")
   (pop-to-buffer buffer-or-name 'same-window norecord))
 
+(defun pop-to-buffer-same-frame (&optional buffer-or-name norecord) 
+  "Pop to buffer specified by BUFFER-OR-NAME in a window on the selected frame.
+Another frame will be used only if there is no other choice.
+Select the window used for displaying the buffer and return the
+buffer specified by BUFFER-OR-NAME or nil if displaying the
+buffer failed.
+
+Optional arguments BUFFER-OR-NAME and NORECORD are as for
+`pop-to-buffer'."
+  (interactive "BPop to buffer in another window:\nP")
+  (pop-to-buffer
+   buffer-or-name display-buffer-same-frame-specifiers norecord))
+
 (defun pop-to-buffer-other-window (&optional buffer-or-name norecord) 
   "Pop to buffer specified by BUFFER-OR-NAME in another window.
-The selected window will be used if and only if there is no other
+The selected window will be used only if there is no other
 choice.  Windows on the selected frame are preferred to windows
 on other frames.  Select the window used for displaying the
 buffer and return the buffer specified by BUFFER-OR-NAME or nil
@@ -5220,6 +5279,19 @@ Optional arguments BUFFER-OR-NAME and NORECORD are as for
   (interactive "BPop to buffer in another window:\nP")
   (pop-to-buffer
    buffer-or-name display-buffer-other-window-specifiers norecord))
+
+(defun pop-to-buffer-other-window-same-frame (&optional buffer-or-name norecord) 
+  "Pop to buffer specified by BUFFER-OR-NAME in another window on the selected frame.
+The selected window or another frame will be used only if there
+is no other choice.  Select the window used for displaying the
+buffer and return the buffer specified by BUFFER-OR-NAME or nil
+if displaying the buffer failed.
+
+Optional arguments BUFFER-OR-NAME and NORECORD are as for
+`pop-to-buffer'."
+  (interactive "BPop to buffer in another window:\nP")
+  (pop-to-buffer
+   buffer-or-name display-buffer-other-window-same-frame-specifiers norecord))
 
 (defun pop-to-buffer-other-frame (&optional buffer-or-name norecord) 
   "Pop to buffer specified by BUFFER-OR-NAME on another frame.
@@ -5308,9 +5380,41 @@ should call `pop-to-buffer-same-window' instead."
 	(select-window (selected-window)))
       (set-buffer buffer))))
 
+(defun switch-to-buffer-same-frame (buffer-or-name &optional norecord)
+  "Switch to buffer BUFFER-OR-NAME in a window on the selected frame.
+Another frame will be used only if there is no other choice.
+
+If called interactively, prompt for the buffer name using the
+minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
+determines whether to request confirmation before creating a new
+buffer.
+
+When called from Lisp, BUFFER-OR-NAME may be a buffer, a string
+\(a buffer name), or nil.  If BUFFER-OR-NAME is a string that
+does not identify an existing buffer, create a buffer with that
+name.  If BUFFER-OR-NAME is nil, switch to the buffer returned by
+`other-buffer'.
+
+Optional argument NORECORD non-nil means do not put the buffer
+specified by BUFFER-OR-NAME at the front of the buffer list and
+do not make the window displaying it the most recently selected
+one.  Return the buffer switched to.
+
+This uses the function `display-buffer' as a subroutine; see the
+documentations of `display-buffer', `display-buffer-names' and
+`display-buffer-regexps' for additional information.
+
+This function is intended for interactive use.  Lisp functions
+should call `pop-to-buffer-other-window' instead."
+  (interactive
+   (list (read-buffer-to-switch "Switch to buffer in other window: ")))
+  (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
+    (pop-to-buffer
+     buffer display-buffer-same-frame-specifiers norecord)))
+
 (defun switch-to-buffer-other-window (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in another window.
-The selected window will be used if and only if there is no other
+The selected window will be used only if there is no other
 choice.  Windows on the selected frame are preferred to windows
 on other frames.
 
@@ -5342,6 +5446,39 @@ should call `pop-to-buffer-other-window' instead."
     (pop-to-buffer
      buffer display-buffer-other-window-specifiers norecord)))
 
+(defun switch-to-buffer-other-window-same-frame (buffer-or-name &optional norecord)
+  "Switch to buffer BUFFER-OR-NAME in another window on the selected frame.
+The selected window or another frame will be used only if there
+is no other choice.
+
+If called interactively, prompt for the buffer name using the
+minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
+determines whether to request confirmation before creating a new
+buffer.
+
+When called from Lisp, BUFFER-OR-NAME may be a buffer, a string
+\(a buffer name), or nil.  If BUFFER-OR-NAME is a string that
+does not identify an existing buffer, create a buffer with that
+name.  If BUFFER-OR-NAME is nil, switch to the buffer returned by
+`other-buffer'.
+
+Optional argument NORECORD non-nil means do not put the buffer
+specified by BUFFER-OR-NAME at the front of the buffer list and
+do not make the window displaying it the most recently selected
+one.  Return the buffer switched to.
+
+This uses the function `display-buffer' as a subroutine; see the
+documentations of `display-buffer', `display-buffer-names' and
+`display-buffer-regexps' for additional information.
+
+This function is intended for interactive use.  Lisp functions
+should call `pop-to-buffer-other-window' instead."
+  (interactive
+   (list (read-buffer-to-switch "Switch to buffer in other window: ")))
+  (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
+    (pop-to-buffer
+     buffer display-buffer-other-window-same-frame-specifiers norecord)))
+
 (defun switch-to-buffer-other-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME on another frame.
 If called interactively, prompt for the buffer name using the
@@ -5371,26 +5508,31 @@ should call `pop-to-buffer-other-frame' instead."
   (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
     (pop-to-buffer buffer display-buffer-other-frame-specifiers norecord)))
 
-;;; Obsolete definitions of `display-buffer' below.
 (defcustom display-buffer-function nil
   "If non-nil, function to call to display a buffer.
 `display-buffer' calls this function with two arguments, the
-buffer to display and a flag which if non-nil means that the
-selected window is not acceptable for displaying the buffer.  It
-should choose or create a window, display the specified buffer in
-it, and return the window.
+buffer to display and a list of buffer display specifiers, see
+`display-buffer-names'. 
 
-Commands such as `switch-to-buffer-other-window' and
-`find-file-other-window' work using this function."
+The function is supposed to choose or create a window, display
+the specified buffer in it, and return the window.  It is also
+responsible for giving the variable `display-buffer-window' and
+the `quit-restore' parameter of the window used a meaningful
+value.
+
+The function specified here overrides all specifiers of the
+variables `display-buffer-names' and `display-buffer-regexps' and
+any specifiers passed to `display-buffer'.
+
+If you call `display-buffer' within the body of the function,
+bind the value of `display-buffer-function' to nil around that
+call to avoid that the function recursively calls itself."
   :type '(choice
 	  (const nil)
-	  (function :tag "function"))
+	  (function :tag "Function"))
   :group 'display-buffer)
-(make-obsolete-variable
- 'display-buffer-function
- "use `display-buffer-names' or `display-buffer-regexps' instead."
- "24.1")
 
+;;; Obsolete definitions of `display-buffer' below.
 (defcustom special-display-buffer-names nil
   "List of names of buffers that should be displayed specially.
 Displaying a buffer with `display-buffer' or `pop-to-buffer', if

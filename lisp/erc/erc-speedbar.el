@@ -327,8 +327,7 @@ The INDENT level is ignored."
 		(select-window bwin)
 		(raise-frame (window-frame bwin)))
 	    (if dframe-power-click
-		(let ((pop-up-frames t))
-		  (select-window (display-buffer buffer)))
+		(pop-to-buffer-other-frame buffer)
 	      (dframe-select-attached-frame speedbar-frame)
 	      (switch-to-buffer buffer)))))
     (let ((bwin (get-buffer-window buffer 0)))
@@ -337,7 +336,7 @@ The INDENT level is ignored."
 	    (select-window bwin)
 	    (raise-frame (window-frame bwin)))
 	(if speedbar-power-click
-	    (let ((pop-up-frames t)) (select-window (display-buffer buffer)))
+	    (pop-to-buffer-other-frame buffer)
 	  (dframe-select-attached-frame speedbar-frame)
 	  (switch-to-buffer buffer))))))
 

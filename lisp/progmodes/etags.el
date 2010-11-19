@@ -956,7 +956,7 @@ See documentation of variable `tags-file-name'."
 ;;;###autoload (define-key esc-map "." 'find-tag)
 
 ;;;###autoload
-(defun find-tag-other-window (tagname &optional next-p regexp-p)
+(defun find-tag-other-window (tagname &optional next-p regexp-p other-frame)
   "Find tag (in current tags table) whose name contains TAGNAME.
 Select the buffer containing the tag's definition in another window, and
 move point there.  The default for TAGNAME is the expression in the buffer
@@ -969,6 +969,8 @@ is negative (interactively, with prefix arg that is a negative number or
 just \\[negative-argument]), pop back to the previous tag gone to.
 
 If third arg REGEXP-P is non-nil, treat TAGNAME as a regexp.
+
+Third arg OTHER-FRAME non-nil find tag on another frame.
 
 A marker representing the point when this command is invoked is pushed
 onto a ring and may be popped back to with \\[pop-tag-mark].
@@ -986,7 +988,9 @@ See documentation of variable `tags-file-name'."
 	 (tagpoint (progn (set-buffer tagbuf) (point))))
     (set-window-point (prog1
 			  (selected-window)
-			(switch-to-buffer-other-window tagbuf)
+			(if other-frame
+			    (pop-to-buffer-other-frame tagbuf)
+			  (pop-to-buffer-other-window tagbuf))
 			;; We have to set this new window's point; it
 			;; might already have been displaying a
 			;; different portion of tagbuf, in which case
@@ -1017,8 +1021,7 @@ Contrast this with the ring of marks gone to by the command.
 
 See documentation of variable `tags-file-name'."
   (interactive (find-tag-interactive "Find tag other frame: "))
-  (let ((pop-up-frames t))
-    (find-tag-other-window tagname next-p)))
+  (find-tag-other-window tagname next-p t))
 ;;;###autoload (define-key ctl-x-5-map "." 'find-tag-other-frame)
 
 ;;;###autoload

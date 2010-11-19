@@ -1,3 +1,36 @@
+2010-11-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-same-frame-specifiers)
+	(display-buffer-other-window-same-frame-specifiers): New
+	constants.
+	(display-buffer): Call display-buffer-function if it's non-nil.
+	(display-buffer-same-window, display-buffer-other-window)
+	(pop-to-buffer-other-window, switch-to-buffer-other-window):
+	Adjust doc-strings.
+	(display-buffer-same-frame)
+	(display-buffer-other-window-same-frame)
+	(pop-to-buffer-same-frame)
+	(pop-to-buffer-other-window-same-frame)
+	(switch-to-buffer-same-frame)
+	(switch-to-buffer-other-window-same-frame): New functions.
+	(display-buffer-function): Un-obsolete.
+
+	* bookmark.el (bookmark-bmenu-2-window): Use
+	pop-to-buffer-other-window.
+	(bookmark-bmenu-switch-other-window): Use
+	display-buffer-other-window.
+
+	* progmodes/etags.el (find-tag-other-window): New argument
+	other-frame. Call either pop-to-buffer-other-window or
+	pop-to-buffer-other-frame.
+	(find-tag-other-frame): Call find-tag-other-window with
+	other-frame argument t.
+
+	* speedbar.el (speedbar-find-file-in-frame)
+	(speedbar-buffer-click): Use pop-to-buffer-other-frame.
+
+	* term/ns-win.el (ns-find-file): Use pop-to-buffer-other-frame.
+
 2010-11-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-split-window-1): Fix sizing for

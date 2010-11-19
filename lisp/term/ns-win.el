@@ -501,7 +501,7 @@ unless the current buffer is a scratch buffer."
       (find-file f))
      (ns-pop-up-frames
       (ns-hide-emacs 'activate)
-      (let ((pop-up-frames t)) (pop-to-buffer file nil)))
+      (pop-to-buffer-other-frame file nil))
      (t
       (ns-hide-emacs 'activate)
       (find-file f)))))

@@ -3500,7 +3500,7 @@ frame instead."
 	  (select-window bwin)
 	  (raise-frame (window-frame bwin)))
       (if dframe-power-click
-	  (let ((pop-up-frames t)) (select-window (display-buffer buff)))
+	  (pop-to-buffer-other-frame (display-buffer buff))
 	(if (numberp speedbar-select-frame-method)
 	    (other-frame speedbar-select-frame-method)
 	  (dframe-select-attached-frame speedbar-frame))
@@ -3943,7 +3943,7 @@ Optional argument DEPTH specifies the current depth of the back search."
   "When the users clicks on a buffer-button in speedbar.
 TEXT is the buffer's name, TOKEN and INDENT are unused."
   (if dframe-power-click
-      (let ((pop-up-frames t)) (select-window (display-buffer text)))
+      (pop-to-buffer-other-frame text)
     (dframe-select-attached-frame speedbar-frame)
     (switch-to-buffer text)
     (if token (speedbar-change-initial-expansion-list
