@@ -1,3 +1,7 @@
+2010-11-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* faces.el (glyphless-char): Define value for `pc'.
+
 2010-11-20  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* mail/emacsbug.el (report-emacs-bug-tracker-url)
