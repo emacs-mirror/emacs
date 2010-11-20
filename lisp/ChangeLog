@@ -1,3 +1,11 @@
+2010-11-20  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* mail/emacsbug.el (report-emacs-bug-tracker-url)
+	(report-emacs-bug-create-existing-bugs-buffer)
+	(report-emacs-bug-parse-query-results)
+	(report-emacs-bug-query-existing-bugs): Implemented a bug querying
+	mechanism.
+
 2010-11-19  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* textmodes/reftex-ref.el (reftex-goto-label): If point is inside
