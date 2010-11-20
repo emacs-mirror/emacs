@@ -1,3 +1,7 @@
+2010-11-20  Ken Brown  <kbrown@cornell.edu>
+
+	* sheap.c (STATIC_HEAP_SIZE): Increase to 13MB.
+
 2010-11-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (produce_glyphless_glyph): Use \uNNNN, \UNNNNNN, or
