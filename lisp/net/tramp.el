@@ -2863,7 +2863,9 @@ User is always nil."
 	    (set-visited-file-modtime)
 	    (set-buffer-modified-p nil)
 	    ;; For root, preserve owner and group when editing files.
-	    (when (string-equal (file-remote-p filename 'user) "root")
+	    (when (string-equal
+		   (tramp-file-name-handler 'file-remote-p filename 'user)
+		   "root")
 	      (set (make-local-variable 'backup-by-copying-when-mismatch) t)))
 	  (when (and (stringp local-copy)
 		     (or remote-copy (null tramp-temp-buffer-file-name)))

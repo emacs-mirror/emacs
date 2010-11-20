@@ -1,3 +1,15 @@
+2010-11-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.0.
+
+	* net/tramp.el (tramp-handle-insert-file-contents): Don't use
+	`file-remote-p' (due to compatibility).
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-directly)
+	(tramp-do-copy-or-rename-file-out-of-band): Use `ignore-errors'.
+
+	* net/trampver.el: Update release number.
+
 2010-11-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* faces.el (glyphless-char): Define value for `pc'.
