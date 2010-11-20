@@ -2485,6 +2485,7 @@ Note: Other faces cannot inherit from the cursor face."
 
 (defface glyphless-char
   '((((type tty)) :inherit underline)
+    (((type pc)) :inherit escape-glyph)
     (t :height 0.6))
   "Face for displaying non-graphic characters (e.g. U+202A (LRE)).
 It is used for characters of no fonts too."
