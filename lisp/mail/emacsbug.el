@@ -380,7 +380,7 @@ and send the mail again%s."
 
 ;; Querying the bug database
 
-(defun report-emacs-bug-create-existing-bugs-buffer (bugs)
+(defun report-emacs-bug-create-existing-bugs-buffer (bugs keywords)
   (switch-to-buffer (get-buffer-create "*Existing Emacs Bugs*"))
   (setq buffer-read-only t)
   (let ((inhibit-read-only t))
@@ -388,7 +388,9 @@ and send the mail again%s."
     (make-local-variable 'bug-alist)
     (setq bug-alist bugs)
     (make-local-variable 'bug-choice-widget)
-    (widget-insert (propertize "Already known bugs:\n\n" 'face 'bold))
+    (widget-insert (propertize (concat "Already known bugs ("
+				       keywords "):\n\n")
+			       'face 'bold))
     (if bugs
 	(setq bug-choice-widget
 	      (apply 'widget-create 'radio-button-choice
@@ -430,7 +432,7 @@ and send the mail again%s."
   (widget-setup)
   (goto-char (point-min)))
 
-(defun report-emacs-bug-parse-query-results (status)
+(defun report-emacs-bug-parse-query-results (status keywords)
   (goto-char (point-min))
   (let (buglist)
     (while (re-search-forward "<a href=\"bugreport\\.cgi\\?bug=\\([[:digit:]]+\\)\">\\([^<]+\\)</a>" nil t)
@@ -444,7 +446,7 @@ and send the mail again%s."
 		 ;; then the subject and number
 		 subject (string-to-number number))
 		buglist))))
-    (report-emacs-bug-create-existing-bugs-buffer (nreverse buglist))))
+    (report-emacs-bug-create-existing-bugs-buffer (nreverse buglist) keywords)))
 
 (defun report-emacs-bug-query-existing-bugs (keywords)
   "Query for KEYWORDS at `report-emacs-bug-tracker-url', and return the result.
@@ -454,7 +456,7 @@ The result is an alist with items of the form (URL SUBJECT NO)."
 			"pkgreport.cgi?include=subject%3A"
 			(replace-regexp-in-string "[[:space:]]+" "+" keywords)
 			";package=emacs")
-		'report-emacs-bug-parse-query-results))
+		'report-emacs-bug-parse-query-results (list keywords)))
 
 (provide 'emacsbug)
 

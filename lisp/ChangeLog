@@ -1,3 +1,11 @@
+2010-11-20  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* mail/emacsbug.el (report-emacs-bug-query-existing-bugs)
+	(report-emacs-bug-parse-query-results)
+	(report-emacs-bug-create-existing-bugs-buffer): Pass through
+	keywords used for querying the bug database to show them in the
+	existing bugs buffer.
+
 2010-11-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* tool-bar.el (tool-bar-setup): Add some :vert-only keywords.
