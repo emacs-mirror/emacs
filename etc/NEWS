@@ -26,9 +26,6 @@ used on x86-64 and s390x GNU/Linux architectures.
 
 * Changes in Emacs 23.3
 
-** The nextstep port can have different modifiers for the left and right
-alt/option key by customizing the value for ns-right-alternate-modifier.
-
 
 * Editing Changes in Emacs 23.3
 
@@ -82,10 +79,12 @@ produce an up to date diff.
 
 
 * New Modes and Packages in Emacs 23.3
+
 ** smie.el is a generic navigation and indentation engine.
 It takes a simple BNF description of the grammar, and provides both
 sexp-style navigation (jumping over begin..end pairs) as well as
 indentation, which can be adjusted via ad-hoc indentation rules.
+
 
 * Incompatible Lisp Changes in Emacs 23.3
 
@@ -96,15 +95,27 @@ starting from the first line of text below the header line.
 
 * Lisp changes in Emacs 23.3
 
++++
 ** `e' and `pi' are now called `float-e' and `float-pi'.
   The old names are obsolete.
-** The use of unintern without an obarray arg is declared obsolete.
-** The function `princ-list' is declared obsolete.
-** The yank-handler argument to kill-region and friends is declared obsolete.
+
++++
+** The use of unintern without an obarray arg is now obsolete.
+
+---
+** The function `princ-list' is now obsolete.
+
++++
+** The yank-handler argument to kill-region and friends is now obsolete.
+
 ** New function byte-to-string, like char-to-string but for bytes.
 
 
 * Changes in Emacs 23.3 on non-free operating systems
+
++++
+** The nextstep port can have different modifiers for the left and right
+alt/option key by customizing the value for ns-right-alternate-modifier.
 
 
 * Installation Changes in Emacs 23.2
