@@ -1,3 +1,11 @@
+2010-11-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xfaces.c (lookup_face): Make static.
+	* dispnew.c (copy_row_except_pointers): Likewise.
+	* syntax.c (dec_bytepos): Likewise.
+	(inc_bytepos): Remove.
+	* dispextern.h (lookup_face): Remove declaration.
+
 2010-11-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Display cursor after all the

@@ -1180,7 +1180,7 @@ swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
 /* Copy glyph row structure FROM to glyph row structure TO, except
    that glyph pointers in the structures are left unchanged.  */
 
-INLINE void
+static INLINE void
 copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 {
   struct glyph *pointers[1 + LAST_AREA];

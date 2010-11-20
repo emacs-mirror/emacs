@@ -4540,7 +4540,7 @@ uncache_face (struct face_cache *c, struct face *face)
    Value is the ID of the face found.  If no suitable face is found,
    realize a new one.  */
 
-INLINE int
+static INLINE int
 lookup_face (struct frame *f, Lisp_Object *attr)
 {
   struct face_cache *cache = FRAME_FACE_CACHE (f);
