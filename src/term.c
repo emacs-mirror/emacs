@@ -1936,7 +1936,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 {
   int face_id;
   int len;
-  char buf[11], *str = "    ";
+  char buf[9], *str = "    ";
 
   /* Get a face ID for the glyph by utilizing a cache (the same way as
      done for `escape-glyph' in get_next_display_element).  */
@@ -1987,10 +1987,9 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
       else
 	{
 	  xassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEX_CODE);
-	  len = (it->c < 0x100 ? sprintf (buf, "[U+%02X]", it->c)
-		 : it->c < 0x10000 ? sprintf (buf, "[U+%04X]", it->c)
-		 : it->c <= MAX_UNICODE_CHAR ? sprintf (buf, "[U+%06X]", it->c)
-		 : sprintf (buf, "[E+%06X]", it->c));
+	  len = (it->c < 0x10000 ? sprintf (buf, "\\u%04X", it->c)
+		 : it->c <= MAX_UNICODE_CHAR ? sprintf (buf, "\\U%06X", it->c)
+		 : sprintf (buf, "\\x%06X", it->c));
 	}
       str = buf;
     }
