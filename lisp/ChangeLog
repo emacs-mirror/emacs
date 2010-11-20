@@ -1,3 +1,10 @@
+2010-11-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el (glyphless-char-display-control):
+	Make it a defcustom, with update-glyphless-char-display as its
+	:set attribute.
+	(top level): Don't call update-glyphless-char-display.
+
 2010-11-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.0.
