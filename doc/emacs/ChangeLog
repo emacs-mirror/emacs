@@ -1,7 +1,17 @@
 2010-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
+	* maintaining.texi (Version Control): Say "commit", not "check in".
+	(Version Control Systems): Simplify descriptions.
+	(VCS Merging, VCS Changesets, VCS Repositories): New nodes, split from
+	VCS Concepts.
+	(VC Mode Line): Update example.
+	(Old Revisions): Document revert-buffer for vc-diff.
+	(Log Buffer): Promote to a subsection.  Document header lines.
+
 	* macos.texi (Mac / GNUstep Basics): Document
 	ns-right-alternate-modifier.
+
+	* emacs.texi (Top): Update node listing.
 
 2010-11-06  Eli Zaretskii  <eliz@gnu.org>
 

@@ -38,39 +38,35 @@ This can be used in place of the default appt-message-warning-time.
 
 ** VC and related modes
 
-*** New VC commands: vc-log-incoming, vc-log-outgoing, vc-find-conflicted-file.
+*** New VC command `vc-log-incoming', bound to `C-x v I'.
+This shows a log of changes to be received with a pull operation.
+For Git, this runs "git fetch" to make the necessary data available
+locally; this requires version 1.7 or newer.
 
-**** vc-log-incoming for Git runs "git fetch" so that the necessary
-data is available locally.
+*** New VC command `vc-log-outgoing', bound to `C-x v O'.
+This shows a log of changes to be sent in the next commit.
 
-**** vc-log-incoming and vc-log-outgoing for Git require version 1.7 (or newer).
+*** New VC command vc-find-conflicted-file.
 
-*** New key bindings: C-x v I and C-x v O bound to vc-log-incoming and
-vc-log-outgoing, respectively.
-
++++
 *** The 'g' key in VC diff, log, log-incoming and log-outgoing buffers
 reruns the corresponding VC command to compute an up to date version
 of the buffer.
 
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 
++++
 *** Special markup can be added to log-edit buffers.
-The log-edit buffers are expected to have a format similar to email messages
-with headers of the form:
-  Author: <author of this change>
-  Summary: <one line summary of this change>
-  Fixes: <reference to the bug fixed by this change>
-Some backends handle some of those headers specially, but any unknown header
-is just left as is in the message, so it is not lost.
+You can add headers specifying additional information to be supplied
+to the version control system.  For example:
 
-**** vc-git handles Author: and Date:
-**** vc-hg handles  Author: and Date:
-**** vc-bzr handles Author:, Date: and Fixes:
-**** vc-mtn handles Author: and Date:
+  Author: J. R. Hacker <jrh@example.com>
+  Fixes: 4204
+  Actual text of log entry...
 
-*** Pressing g in a *vc-diff* buffer reruns vc-diff, so it will
-produce an up to date diff.
-
+Bazaar recognizes the headers "Author", "Date" and "Fixes".
+Git, Mercurial, and Monotone recognize "Author" and "Date".
+Any unknown header is left as is in the message, so it is not lost.
 
 ** Obsolete packages
 
