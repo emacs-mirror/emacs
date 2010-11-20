@@ -4975,9 +4975,6 @@
 
 2010-07-31  Nathaniel Flath  <flat0103@gmail.com>
 
-	Enhance Java Mode to handle Java 5.0 (Tiger) and Java 6 (Mustang).
-	The following functions were modified or created:
-
 	* progmodes/cc-vars.el (c-offsets-alist, c-inside-block-syms)
 	(objc-font-lock-extra-types):
 	* progmodes/cc-mode.el (c-basic-common-init):
@@ -4993,6 +4990,8 @@
 	(c-forward-<>-arglist, c-forward-<>-arglist-recur)
 	(c-forward-name, c-forward-type, c-forward-decl-or-cast-1)
 	(c-guess-continued-construct, c-guess-basic-syntax):
+	Enhance Java Mode to handle Java 5.0 (Tiger) and Java 6 (Mustang).
+	The above functions were modified or created.
 
 2010-07-31  Jan Djärv  <jan.h.d@swipnet.se>
 

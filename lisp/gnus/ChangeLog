@@ -484,11 +484,11 @@
 
 2010-10-30  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* nnir.el move defvar, defcustom around to keep file organized and keep
-	byte-compiler quiet.
-	(nnir-read-parms): accept search-engine as arg.
-	(nnir-run-query): pass search-engine as arg.
-	(nnir-search-engine): remove.
+	* nnir.el: Move defvar, defcustom around to keep file organized
+	and keep byte-compiler quiet.
+	(nnir-read-parms): Accept search-engine as arg.
+	(nnir-run-query): Pass search-engine as arg.
+	(nnir-search-engine): Remove.
 
 2010-10-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -499,27 +499,27 @@
 
 2010-10-30  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* nnir.el: general clean up. allow searching with multiple
-	engines. allow separate extra-parameters for each engine. batch queries
-	when possible.
-	(nnir-imap-default-search-key,nnir-method-default-engines): add
-	customize interface.
-	(nnir-run-gmane): new engine.
-	(nnir-engines): use it. qualify all prompts with engine name.
-	(nnir-search-engine): remove global variable.
-	(nnir-run-hyrex): restore for now.
-	(nnir-extra-parms,nnir-search-history): new variables.
-	(gnus-group-make-nnir-group): use them.
-	(nnir-group-server): remove in favor of gnus-group-server.
-	(nnir-request-group): avoid searching twice.
-	(nnir-sort-groups-by-server): new function.
+	* nnir.el: General clean up.  Allow searching with multiple engines.
+	Allow separate extra-parameters for each engine.
+	Batch queries when possible.
+	(nnir-imap-default-search-key,nnir-method-default-engines):
+	Add customize interface.
+	(nnir-run-gmane): New engine.
+	(nnir-engines): Use it.  Qualify all prompts with engine name.
+	(nnir-search-engine): Remove global variable.
+	(nnir-run-hyrex): Restore for now.
+	(nnir-extra-parms,nnir-search-history): New variables.
+	(gnus-group-make-nnir-group): Use them.
+	(nnir-group-server): Remove in favor of gnus-group-server.
+	(nnir-request-group): Avoid searching twice.
+	(nnir-sort-groups-by-server): New function.
 
 2010-10-30  Julien Danjou  <julien@danjou.info>
 
 	* gnus-group.el: Remove gnus-group-fetch-control.
 
-	* gnus-start.el (gnus-find-new-newsgroups): Remove
-	gnus-check-first-time-used.
+	* gnus-start.el (gnus-find-new-newsgroups):
+	Remove gnus-check-first-time-used.
 
 	* gnus.el: Remove gnus-backup-default-subscribed-newsgroups.
 
@@ -671,17 +671,17 @@
 
 2010-10-22  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* nnir.el (nnir-method-default-engines): new variable.
-	(nnir-run-query): use it.
-	(nnir-group-mode-hook): remove key binding and move to gnus-group.el.
-	(gnus-summary-nnir-goto-thread): change group if needed.
+	* nnir.el (nnir-method-default-engines): New variable.
+	(nnir-run-query): Use it.
+	(nnir-group-mode-hook): Remove key binding and move to gnus-group.el.
+	(gnus-summary-nnir-goto-thread): Change group if needed.
 
-	* gnus-group.el (gnus-group-group-map): add key binding for
+	* gnus-group.el (gnus-group-group-map): Add key binding for
 	gnus-group-make-nnir-group.
 
 2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-tag-object): Added.
+	* shr.el (shr-tag-object): Add.
 
 	* gnus-sum.el (gnus-summary-select-article): Make sure we have the
 	original article buffer live.
@@ -878,7 +878,7 @@
 
 2010-10-16  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* gnus-sum.el (gnus-summary-refer-thread): Bug fix. Add the thread
+	* gnus-sum.el (gnus-summary-refer-thread): Bug fix.  Add the thread
 	headers to gnus-newsgroup-headers.
 
 2010-10-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -1103,8 +1103,8 @@
 2010-10-10  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (autoload): Clean up autoloads.
-	(nnir-imap-default-search-key): Renamed from
-	nnir-imap-search-field. Use key rather than value.
+	(nnir-imap-default-search-key): Rename from nnir-imap-search-field.
+	Use key rather than value.
 	(nnir-imap-search-other): New variable.
 	(nnir-read-parm): Use it.
 	(nnir-imap-expr-to-imap): Use %S rather than imap-quote-specials.
@@ -1771,8 +1771,8 @@
 
 	* gnus.el (gnus-local-domain): Declare variable obsolete.
 
-	* gnus-util.el (gnus-icompleting-read): Require iswitchb. Fix history
-	computing.
+	* gnus-util.el (gnus-icompleting-read): Require iswitchb.
+	Fix history computing.
 	(gnus-ido-completing-read): Require ido.
 
 2010-09-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -2223,8 +2223,7 @@
 
 2010-09-25  Andrew Cohen  <cohen@andy.bu.edu>  (tiny change)
 
-	* nnir.el (nnir-run-imap): Allow sending IMAP search patterns
-	directly.
+	* nnir.el (nnir-run-imap): Allow sending IMAP search patterns directly.
 
 2010-09-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -2510,7 +2509,7 @@
 
 2010-09-22  Julien Danjou  <julien@danjou.info>
 
-	* gnus-html.el (gnus-html-put-image): Stop using markers. They are
+	* gnus-html.el (gnus-html-put-image): Stop using markers.  They are
 	harmful if you have 2 images side-by-side, they can't be properly
 	update on text deletion.  Using text-property is safer here.
 	(gnus-html-image-fetched): Search also for \r\n\r\n to get the start of
@@ -2636,7 +2635,7 @@
 	cache.
 	(gnus-html-put-image): Change buffer argument to use image data rather
 	than file, and place image above region rather than inserting a new
-	one. Do not take alt-text as argument, since it's useless now: we place
+	one.  Do not take alt-text as argument, since it's useless now: we place
 	the image above alt-text.
 	(gnus-html-prune-cache): Remove.
 	(gnus-html-show-images): Start to fetch image when we find one, do not

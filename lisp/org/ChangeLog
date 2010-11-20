@@ -1148,11 +1148,6 @@
 	* ob-exp.el (org-babel-exp-src-blocks): Fixed export when headings
 	have links, with tests.
 
-2010-11-11  Sebastian Rose, Hannover, Germany  <sebastian_rose@gmx.de>
-
-	* org-test-which-func: New function.  Find name of defun around
-	point.
-
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-latex.el (org-latex-to-pdf-process): Use texi2dvi if
@@ -3134,11 +3129,11 @@
 
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
 
-	* ob-octave.el only (require 'matlab) when necessary
+	* ob-octave.el: Only (require 'matlab) when necessary.
 	(org-babel-octave-initiate-session) (require) octave-inf or matlab
-	as appropriate
-	(org-babel-execute:matlab): Remove (require)
-	(org-babel-prep-session:matlab): Remove (require)
+	as appropriate.
+	(org-babel-execute:matlab): Remove (require).
+	(org-babel-prep-session:matlab): Remove (require).
 	(org-babel-matlab-initiate-session): Remove (require).
 
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
@@ -3702,11 +3697,6 @@
 
 2010-07-19  Eric Schulte  <schulte.eric@gmail.com>
 
-	* Makefile (lisp/org-install.el): Replace babel files in
-	construction of org-install.el.
-
-2010-07-19  Eric Schulte  <schulte.eric@gmail.com>
-
 	* org-table.el (orgtbl-to-generic): Add the :remove-newlines
 	option which will strip newline characters from the text of table
 	cells and replace then with "\n".
@@ -3852,10 +3842,6 @@
 
 	* org-html.el (org-export-html-close-lists-maybe): Check if raw
 	HTML stuff was actually made from an example.
-
-2010-07-19  Eric Schulte  <schulte.eric@gmail.com>
-
-	* Makefile (LISPF): Let's not compile files that won't often be used.
 
 2010-07-19  Bastien Guerry  <bzg@altern.org>
 
