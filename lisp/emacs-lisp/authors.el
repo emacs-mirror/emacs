@@ -268,6 +268,7 @@ listed.")
     "CODINGS" "CHARSETS"
     "calc/INSTALL" "calc/Makefile"
     "vms-pp.trans" "_emacs" "batcomp.com" "notes/cpp" ; admin/
+    "emacsver.texi.in"
     ;; MH-E stuff not in Emacs:
     "import-emacs" "release-utils"
     ;; Erc stuff not in Emacs:
@@ -507,10 +508,11 @@ Changes to files in this list are not listed.")
     "ymakefile"
     "permute-index" "index.perm"
     "ibmrs6000.inp"
-    "b2m.c"
+    "b2m.c" "b2m.1" "b2m.pl"
+    "emacs.bash" "emacs.csh" "ms-kermit"
     "emacs.ico"
     "emacs21.ico"
-    "LPF" "LEDIT" "OTHER.EMACSES"
+    "BABYL" "LPF" "LEDIT" "OTHER.EMACSES"
     "emacs16_mac.png" "emacs24_mac.png"
     "emacs256_mac.png" "emacs32_mac.png"
     "emacs48_mac.png" "emacs512_mac.png"
@@ -585,12 +587,15 @@ in the repository.")
     ("schema/docbook-soextbl.rnc" . "schema/docbk-soextbl.rn" )
     ("texi/url.txi" . "url.texi")
     ("edt-user.doc" . "edt.texi")
+    ("DEV-NOTES" . "nextstep")
     ;; Moved to different directories.
     ("ctags.1" . "ctags.1")
     ("etags.1" . "etags.1")
     ("emacs.1" . "emacs.1")
     ("emacsclient.1" . "emacsclient.1")
     ("icons/emacs21.ico" . "emacs21.ico")
+    ;; Moved from admin/nt/ to nt/.
+    ("nt/README.W32" . "README.W32")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
