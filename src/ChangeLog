@@ -1,3 +1,18 @@
+2010-11-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_make_tool_item): Take vert_only as argument.
+	Set important to ! vert_only.
+	(xg_show_toolbar_item): Don't show label horizontally if
+	tool item isn't important.
+	(update_frame_tool_bar): Get TOOL_BAR_ITEM_VERT_ONLY and pass it to
+	xg_make_tool_item, or update important on existing tool item.
+
+	* keyboard.c (QCvert_only): New variable.
+	(parse_tool_bar_item): Check for QCvert_only.
+	(syms_of_keyboard): Initialize QCvert_only.
+
+	* dispextern.h (tool_bar_item_idx): Add TOOL_BAR_ITEM_VERT_ONLY.
+
 2010-11-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (dos_rawgetc): Use gen_help_event, instead of doing the

@@ -489,10 +489,10 @@ Lisp_Object Qconfig_changed_event;
 Lisp_Object Qevent_kind;
 Lisp_Object Qevent_symbol_elements;
 
-/* menu item parts */
+/* menu and tool bar item parts */
 Lisp_Object Qmenu_enable;
 Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCkeys, QCkey_sequence;
-Lisp_Object QCbutton, QCtoggle, QCradio, QClabel;
+Lisp_Object QCbutton, QCtoggle, QCradio, QClabel, QCvert_only;
 
 /* An event header symbol HEAD may have a property named
    Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
@@ -8269,9 +8269,12 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 	  if (NILP (menu_item_eval_property (value)))
 	    return 0;
 	}
-      else if (EQ (key, QChelp))
+      else if (EQ (key, QChelp)) 
         /* `:help HELP-STRING'.  */
         PROP (TOOL_BAR_ITEM_HELP) = value;
+      else if (EQ (key, QCvert_only)) 
+        /* `:vert-only t/nil'.  */
+        PROP (TOOL_BAR_ITEM_VERT_ONLY) = value;
       else if (EQ (key, QClabel))
         {
           const char *bad_label = "!!?GARBLED ITEM?!!";
@@ -11629,6 +11632,8 @@ syms_of_keyboard (void)
   staticpro (&QCradio);
   QClabel = intern_c_string (":label");
   staticpro (&QClabel);
+  QCvert_only = intern_c_string (":vert-only");
+  staticpro (&QCvert_only);
 
   Qmode_line = intern_c_string ("mode-line");
   staticpro (&Qmode_line);

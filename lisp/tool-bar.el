@@ -260,31 +260,33 @@ holds a keymap."
   ;; People say it's bad to have EXIT on the tool bar, since users
   ;; might inadvertently click that button.
   ;;(tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
-  (tool-bar-add-item-from-menu 'find-file "new" nil :label "New File")
-  (tool-bar-add-item-from-menu 'menu-find-file-existing "open")
-  (tool-bar-add-item-from-menu 'dired "diropen")
-  (tool-bar-add-item-from-menu 'kill-this-buffer "close")
-  (tool-bar-add-item-from-menu 'save-buffer "save" nil
+  (tool-bar-add-item-from-menu 'find-file "new" nil :label "New File"
+			       :vert-only t)
+  (tool-bar-add-item-from-menu 'menu-find-file-existing "open" nil
+			       :vert-only t)
+  (tool-bar-add-item-from-menu 'dired "diropen" nil :vert-only t)
+  (tool-bar-add-item-from-menu 'kill-this-buffer "close" nil :vert-only t)
+  (tool-bar-add-item-from-menu 'save-buffer "save" nil :vert-only t
 			       :visible '(or buffer-file-name
 					     (not (eq 'special
 						      (get major-mode
 							   'mode-class)))))
-  (tool-bar-add-item-from-menu 'write-file "saveas" nil
+  (tool-bar-add-item-from-menu 'write-file "saveas" nil :vert-only t
 			       :visible '(or buffer-file-name
 					     (not (eq 'special
 						      (get major-mode
 							   'mode-class)))))
-  (tool-bar-add-item-from-menu 'undo "undo" nil
+  (tool-bar-add-item-from-menu 'undo "undo" nil :vert-only t
 			       :visible '(not (eq 'special (get major-mode
 								'mode-class))))
   (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [cut])
-			       "cut" nil
+			       "cut" nil :vert-only t
 			       :visible '(not (eq 'special (get major-mode
 								'mode-class))))
   (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [copy])
-			       "copy")
+			       "copy" nil :vert-only t)
   (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [paste])
-			       "paste" nil
+			       "paste" nil :vert-only t
 			       :visible '(not (eq 'special (get major-mode
 								'mode-class))))
   (tool-bar-add-item-from-menu 'nonincremental-search-forward "search"

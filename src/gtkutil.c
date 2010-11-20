@@ -4059,7 +4059,8 @@ xg_make_tool_item (FRAME_PTR f,
                    GtkWidget *wimage,
                    GtkWidget **wbutton,
                    const char *label,
-                   int i)
+                   int i,
+                   int vert_only)
 {
   GtkToolItem *ti = gtk_tool_item_new ();
   Lisp_Object style = Ftool_bar_get_system_style ();
@@ -4070,6 +4071,10 @@ xg_make_tool_item (FRAME_PTR f,
     ? gtk_hbox_new (FALSE, 0) : gtk_vbox_new (FALSE, 0);
   GtkWidget *wb = gtk_button_new ();
   GtkWidget *weventbox = gtk_event_box_new ();
+
+  /* We are not letting Gtk+ alter display on this, we only keep it here
+     so we can get it later in xg_show_toolbar_item.  */
+  gtk_tool_item_set_is_important (ti, !vert_only);
 
   if (wimage && ! text_image)
     gtk_box_pack_start (GTK_BOX (vb), wimage, TRUE, TRUE, 0);
@@ -4144,7 +4149,8 @@ xg_show_toolbar_item (GtkToolItem *ti)
   int text_image = EQ (style, Qtext_image_horiz);
 
   int horiz = both_horiz || text_image;
-  int show_label = ! EQ (style, Qimage);
+  int vert_only = ! gtk_tool_item_get_is_important (ti);
+  int show_label = ! EQ (style, Qimage) && ! (vert_only && horiz);
   int show_image = ! EQ (style, Qtext);
 
   GtkWidget *weventbox = gtk_bin_get_child (GTK_BIN (ti));
@@ -4301,7 +4307,8 @@ update_frame_tool_bar (FRAME_PTR f)
       Lisp_Object specified_file;
       const char *label = (STRINGP (PROP (TOOL_BAR_ITEM_LABEL))
                            ? SSDATA (PROP (TOOL_BAR_ITEM_LABEL)) : "");
-      
+      int vert_only = ! NILP (PROP (TOOL_BAR_ITEM_VERT_ONLY));
+
       ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (wtoolbar), i);
 
       if (ti)
@@ -4391,7 +4398,7 @@ update_frame_tool_bar (FRAME_PTR f)
               else
                 {
                   /* Insert an empty (non-image) button */
-                  ti = xg_make_tool_item (f, NULL, NULL, "", i);
+                  ti = xg_make_tool_item (f, NULL, NULL, "", i, 0);
                   gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, -1);
                 }
               continue;
@@ -4425,7 +4432,7 @@ update_frame_tool_bar (FRAME_PTR f)
             }
 
           gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
-          ti = xg_make_tool_item (f, w, &wbutton, label, i);
+          ti = xg_make_tool_item (f, w, &wbutton, label, i, vert_only);
           gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, -1);
           gtk_widget_set_sensitive (wbutton, enabled_p);
         }
@@ -4442,6 +4449,7 @@ update_frame_tool_bar (FRAME_PTR f)
           gpointer old_icon_name = g_object_get_data (G_OBJECT (wimage),
                                                       XG_TOOL_BAR_ICON_NAME);
           gtk_label_set_text (GTK_LABEL (wlbl), label);
+          gtk_tool_item_set_is_important (ti, !vert_only);
           if (stock_name &&
               (! old_stock_name || strcmp (old_stock_name, stock_name) != 0))
             {
