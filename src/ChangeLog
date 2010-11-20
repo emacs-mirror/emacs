@@ -1,3 +1,9 @@
+2010-11-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (menubar_map_cb): New function (Bug#7425).
+	(xg_update_frame_menubar): Connect signal map to menubar_map_cb.
+	Use 23 as menubar height if 0. (Bug#7425).
+
 2010-11-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (init_gconf): Check HAVE_G_TYPE_INIT.
