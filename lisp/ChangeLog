@@ -1,7 +1,13 @@
+2010-11-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* lpr.el (lpr-buffer, print-buffer, lpr-region, print-region):
+	Prompt user before actually printing.
+
 2010-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (kill-new, kill-append, kill-region):
-	* comint.el (comint-kill-region): Make the yank-handler argument obsolete.
+	* comint.el (comint-kill-region): Make the yank-handler argument
+	obsolete.
 
 2010-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
