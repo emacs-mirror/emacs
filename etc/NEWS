@@ -36,6 +36,10 @@ used on x86-64 and s390x GNU/Linux architectures.
 ** The appt-add command takes an optional argument for the warning time.
 This can be used in place of the default appt-message-warning-time.
 
+---
+** You can allow inferior Python processes to load modules from the
+current directory by setting `python-remove-cwd-from-path' to nil.
+
 ** VC and related modes
 
 *** New VC command `vc-log-incoming', bound to `C-x v I'.

@@ -1,3 +1,8 @@
+2010-11-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/python.el (run-python): Doc fix.
+	(python-keep-current-directory-in-path): New var (Bug#7454).
+
 2010-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* lpr.el (lpr-buffer, print-buffer, lpr-region, print-region):
