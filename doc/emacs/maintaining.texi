@@ -172,10 +172,8 @@ under active development, and has been deprecated in favor of Bazaar.
 @item
 Git is a distributed version control system originally invented by
 Linus Torvalds to support development of Linux (his kernel).  VC
-supports most git operations, with the exception of news merges and
-repository syncing; these must be done from the command line.  VC
-supports most git operations, with the exception of news merges and
-repository syncing.
+supports many common git operations, but others, such as repository
+syncing, must be done from the command line.
 
 @cindex hg
 @cindex Mercurial
