@@ -1,3 +1,14 @@
+2010-11-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_right_command_modifier, ns_right_control_modifier):
+	Define (Bug#7458).
+	(NSRightCommandKeyMask, NSRightControlKeyMask): Define (Bug#7458).
+	(EV_MODIFIERS): Check for NSRightCommandKeyMask and
+	NSRightControlKeyMask also (Bug#7458).
+	(keyDown): Ditto (Bug#7458).
+	(syms_of_nsterm): Defvar ns-right-command-modifier and
+	ns-right-control-modifier (Bug#7458).
+
 2010-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* sysdep.c (sys_subshell): Remove SET_EMACS_PRIORITY.

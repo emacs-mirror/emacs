@@ -1,3 +1,11 @@
+2010-11-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-right-control-modifier)
+	(ns-right-command-modifier): Defvar them.
+
+	* cus-start.el (all): Add ns-right-control-modifier and
+	ns-right-command-modifier (Bug#7458).
+
 2010-11-20  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-ignored-files)
