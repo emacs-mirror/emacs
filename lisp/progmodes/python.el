@@ -110,7 +110,8 @@
     (,(rx symbol-start (group "def") (1+ space) (group (1+ (or word ?_))))
      (1 font-lock-keyword-face) (2 font-lock-function-name-face))
     ;; Top-level assignments are worth highlighting.
-    (,(rx line-start (group (1+ (or word ?_))) (0+ space) "=")
+    (,(rx line-start (group (1+ (or word ?_))) (0+ space)
+	  (opt (or "+" "-" "*" "**" "/" "//" "&" "%" "|" "^" "<<" ">>")) "=")
      (1 font-lock-variable-name-face))
     ;; Decorators.
     (,(rx line-start (* (any " \t")) (group "@" (1+ (or word ?_))
