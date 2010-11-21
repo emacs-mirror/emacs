@@ -1,3 +1,7 @@
+2010-11-21  Ken Brown  <kbrown@cornell.edu>
+
+	* sheap.c (STATIC_HEAP_SIZE): Revert previous change.
+
 2010-11-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_right_command_modifier, ns_right_control_modifier):
