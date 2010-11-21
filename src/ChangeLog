@@ -1,3 +1,8 @@
+2010-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* intervals.h (temp_set_point, temp_set_point_both):
+	* buffer.h (offset_intervals, copy_intervals): Remove INLINE.
+
 2010-11-20  Ken Brown  <kbrown@cornell.edu>
 
 	* sheap.c (STATIC_HEAP_SIZE): Increase to 13MB.

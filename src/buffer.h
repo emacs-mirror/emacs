@@ -227,10 +227,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   (temp_set_point ((buffer), (position)))
 
 extern void set_point (EMACS_INT);
-extern INLINE void temp_set_point (struct buffer *, EMACS_INT);
+extern void temp_set_point (struct buffer *, EMACS_INT);
 extern void set_point_both (EMACS_INT, EMACS_INT);
-extern INLINE void temp_set_point_both (struct buffer *,
-                                        EMACS_INT, EMACS_INT);
+extern void temp_set_point_both (struct buffer *,
+				 EMACS_INT, EMACS_INT);
 extern void enlarge_buffer_text (struct buffer *, EMACS_INT);
 
 
