@@ -1,3 +1,7 @@
+2010-11-21  Ulrich Mueller  <ulm@gentoo.org>
+
+	* HELLO: Add ancient Greek (Bug#7418).
+
 2010-10-20  Richard Stallman  <rms@gnu.org>
 
 	* DISTRIB: Update donation section.
