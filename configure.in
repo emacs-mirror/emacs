@@ -1498,7 +1498,7 @@ if test "${with_ns}" != no; then
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=${ns_appdir}
+     ns_appbindir=${ns_appdir}/
      ns_appresdir=${ns_appdir}/Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
      dnl FIXME sourcing this several times in subshells seems inefficient.
