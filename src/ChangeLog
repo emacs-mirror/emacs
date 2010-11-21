@@ -1,5 +1,8 @@
 2010-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* sysdep.c (sys_subshell): Remove SET_EMACS_PRIORITY.
+	* emacs.c (emacs_priority, syms_of_emacs): Remove emacs_priority.
+
 	* intervals.h (temp_set_point, temp_set_point_both):
 	* buffer.h (offset_intervals, copy_intervals): Remove INLINE.
 

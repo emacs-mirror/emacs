@@ -195,11 +195,6 @@ Lisp_Object Vdynamic_library_alist;
    but instead should use the virtual terminal under which it was started.  */
 int inhibit_window_system;
 
-/* If nonzero, set Emacs to run at this priority.  This is also used
-   in child_setup and sys_suspend to make sure subshells run at normal
-   priority; those functions have their own extern declaration.  */
-EMACS_INT emacs_priority;
-
 /* If non-zero, a filter or a sentinel is running.  Tested to save the match
    data on the first attempt to change it inside asynchronous code.  */
 int running_asynch_code;
@@ -2438,15 +2433,6 @@ see `kill-emacs-query-functions' instead.
 Before Emacs 24.1, the hook was not run in batch mode, i.e., if
 `noninteractive' was non-nil.  */);
   Vkill_emacs_hook = Qnil;
-
-  DEFVAR_INT ("emacs-priority", &emacs_priority,
-	      doc: /* Priority for Emacs to run at.
-This value is effective only if set before Emacs is dumped,
-and only if the Emacs executable is installed with setuid to permit
-it to change priority.  (Emacs sets its uid back to the real uid.)
-Currently, you need to define SET_EMACS_PRIORITY in `config.h'
-before you compile Emacs, to enable the code for this feature.  */);
-  emacs_priority = 0;
 
   DEFVAR_LISP ("path-separator", &Vpath_separator,
 	       doc: /* String containing the character that separates directories in
