@@ -230,6 +230,8 @@ replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
 ** completion-at-point is now an alias for complete-symbol.
 
+** The default value of `backup-by-copying-when-mismatch' is now t.
+
 ** Deletion changes
 
 *** New option `delete-active-region'.
