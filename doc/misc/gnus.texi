@@ -13840,6 +13840,11 @@ Add a new server (@code{gnus-server-add-server}).
 @findex gnus-server-edit-server
 Edit a server (@code{gnus-server-edit-server}).
 
+@item S
+@kindex S (Server)
+@findex gnus-server-show-server
+Show the definition of a server (@code{gnus-server-show-server}).
+
 @item SPACE
 @kindex SPACE (Server)
 @findex gnus-server-read-server

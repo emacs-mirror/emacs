@@ -1,3 +1,16 @@
+2010-11-21  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el: Fix typo in comments.
+	(nnir-run-imap): Simplify code. No need to reverse artlist.
+	(nnir-run-gmane): Use nnir-tmp-buffer for web results.
+
+2010-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-srvr.el (gnus-server-show-server): New command and keystroke.
+
+	* nnimap.el (nnimap-get-capabilities): Refactor out.
+	(nnimap-open-connection): Re-request capabilities after STARTTLS.
+
 2010-11-21  Ralf Angeli  <angeli@caeruleus.net>
 
 	* mm-uu.el (mm-uu-type-alist): Prevent spurious empty line from

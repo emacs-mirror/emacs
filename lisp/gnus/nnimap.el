@@ -375,12 +375,7 @@ textual parts.")
 	    (setf (nnimap-greeting nnimap-object)
 		  (buffer-substring (line-beginning-position)
 				    (line-end-position)))
-	    ;; Store the capabilities.
-	    (setf (nnimap-capabilities nnimap-object)
-		  (mapcar
-		   #'upcase
-		   (nnimap-find-parameter
-		    "CAPABILITY" (cdr (nnimap-command "CAPABILITY")))))
+	    (nnimap-get-capabilities)
 	    (when nnimap-server-port
 	      (push (format "%s" nnimap-server-port) ports))
 	    ;; If this is a STARTTLS-capable server, then sever the
@@ -391,7 +386,10 @@ textual parts.")
 		       (eq nnimap-stream 'starttls))
 		   (fboundp 'open-gnutls-stream))
 	      (nnimap-command "STARTTLS")
-	      (gnutls-negotiate (nnimap-process nnimap-object) nil))
+	      (gnutls-negotiate (nnimap-process nnimap-object) nil)
+	      ;; Get the capabilities again -- they may have changed
+	      ;; after doing STARTTLS.
+	      (nnimap-get-capabilities))
 	     ((and (eq nnimap-stream 'network)
 		   (nnimap-capability "STARTTLS"))
 	      (let ((nnimap-stream 'starttls))
@@ -446,6 +444,13 @@ textual parts.")
 	      (when (nnimap-capability "QRESYNC")
 		(nnimap-command "ENABLE QRESYNC"))
 	      (nnimap-process nnimap-object))))))))
+
+(defun nnimap-get-capabilities ()
+  (setf (nnimap-capabilities nnimap-object)
+	(mapcar
+	 #'upcase
+	 (nnimap-find-parameter
+	  "CAPABILITY" (cdr (nnimap-command "CAPABILITY"))))))
 
 (defun nnimap-quote-specials (string)
   (with-temp-buffer

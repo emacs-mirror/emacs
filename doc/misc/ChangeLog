@@ -1,3 +1,7 @@
+2010-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Server Commands): Document gnus-server-show-server.
+
 2010-11-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.0.
