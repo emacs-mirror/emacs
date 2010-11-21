@@ -1,3 +1,12 @@
+2010-11-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (backup-by-copying-when-mismatch): The default value is
+	now t.
+
+	* startup.el (normal-top-level):
+	* net/tramp.el (tramp-handle-insert-file-contents): Do not set
+	`backup-by-copying-when-mismatch'.
+
 2010-11-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* tool-bar.el (tool-bar-setup): Remove save as, print and customize.
