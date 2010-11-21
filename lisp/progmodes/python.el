@@ -1550,6 +1550,7 @@ buffer for a list of commands.)"
     (with-current-buffer
 	(let* ((cmdlist
 		(append (python-args-to-list cmd)
+                        ;; See http://lists.gnu.org/archive/html/emacs-devel/2008-09/msg00215.html
 			'("-i" "-c" "import sys; sys.path.remove('')")))
 	       (path (getenv "PYTHONPATH"))
 	       (process-environment	; to import emacs.py
