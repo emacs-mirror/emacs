@@ -271,11 +271,6 @@ holds a keymap."
 					     (not (eq 'special
 						      (get major-mode
 							   'mode-class)))))
-  (tool-bar-add-item-from-menu 'write-file "saveas" nil :vert-only t
-			       :visible '(or buffer-file-name
-					     (not (eq 'special
-						      (get major-mode
-							   'mode-class)))))
   (tool-bar-add-item-from-menu 'undo "undo" nil :vert-only t
 			       :visible '(not (eq 'special (get major-mode
 								'mode-class))))
@@ -297,16 +292,12 @@ holds a keymap."
   ;; than a lambda for Read Mail.
   ;;(tool-bar-add-item-from-menu 'compose-mail "mail/compose")
 
-  (tool-bar-add-item-from-menu 'print-buffer "print" nil :label "Print")
 
   ;; tool-bar-add-item-from-menu itself operates on
   ;; (default-value 'tool-bar-map), but when we don't use that function,
   ;; we must explicitly operate on the default value.
 
   (let ((tool-bar-map (default-value 'tool-bar-map)))
-    (tool-bar-add-item "preferences" 'customize 'customize
-		       :help "Edit preferences (customize)")
-
     (tool-bar-add-item "help" (lambda ()
 				(interactive)
 				(popup-menu menu-bar-help-menu))

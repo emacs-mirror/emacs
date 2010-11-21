@@ -1,3 +1,7 @@
+2010-11-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* tool-bar.el (tool-bar-setup): Remove save as, print and customize.
+
 2010-11-21  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* progmodes/python.el (python-font-lock-keywords): Highlight
