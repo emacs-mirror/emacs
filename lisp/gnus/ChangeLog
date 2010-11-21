@@ -1,3 +1,8 @@
+2010-11-21  Ralf Angeli  <angeli@caeruleus.net>
+
+	* mm-uu.el (mm-uu-type-alist): Prevent spurious empty line from
+	appearing when `mm-uu-hide-markers' is nil.
+
 2010-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-unselect-group): Made into its own function.
