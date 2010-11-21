@@ -1,5 +1,19 @@
 2010-11-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/python.el: Add Ipython support (Bug#5390).
+	(python-shell-prompt-alist)
+	(python-shell-continuation-prompt-alist): New options.
+	(python--set-prompt-regexp): New function.
+	(inferior-python-mode, run-python, python-shell): Require
+	ansi-color.  Use python--set-prompt-regexp to set the comint
+	prompt based on the Python interpreter.
+	(python--prompt-regexp): New var.
+	(python-check-comint-prompt)
+	(python-comint-output-filter-function): Use it.
+	(run-python): Use a pipe (Bug#5694).
+
+2010-11-21  Chong Yidong  <cyd@stupidchicken.com>
+
 	* progmodes/python.el (run-python): Doc fix.
 	(python-keep-current-directory-in-path): New var (Bug#7454).
 
