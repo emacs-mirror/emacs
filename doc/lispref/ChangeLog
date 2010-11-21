@@ -1,3 +1,19 @@
+2010-11-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Converting Representations): Document
+	byte-to-string.
+
+	* strings.texi (Creating Strings): Don't mention semi-obsolete
+	function char-to-string.
+	(String Conversion): Shorten discussion of semi-obsolete function
+	string-to-char.  Link to Converting Representations.
+
+	* objects.texi (Symbol Type):
+	* text.texi (Near Point):
+	* help.texi (Help Functions):
+	* functions.texi (Mapping Functions): Use string instead of
+	char-to-string in examples.
+
 2010-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* text.texi (Kill Functions, Kill Functions)

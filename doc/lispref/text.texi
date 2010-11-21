@@ -86,7 +86,7 @@ buffer is @samp{@@}:
 
 @example
 @group
-(char-to-string (char-after 1))
+(string (char-after 1))
      @result{} "@@"
 @end group
 @end example
@@ -121,9 +121,9 @@ but there is no peace.
 @end group
 
 @group
-(char-to-string (preceding-char))
+(string (preceding-char))
      @result{} "a"
-(char-to-string (following-char))
+(string (following-char))
      @result{} "c"
 @end group
 @end example

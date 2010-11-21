@@ -108,6 +108,7 @@ starting from the first line of text below the header line.
 +++
 ** The yank-handler argument to kill-region and friends is now obsolete.
 
++++
 ** New function byte-to-string, like char-to-string but for bytes.
 
 
