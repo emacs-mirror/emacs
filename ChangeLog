@@ -1,3 +1,7 @@
+2010-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (INLINE): Do not depend on OPTIMIZE, unused.
+
 2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Do not check for unconditionally included headers.
