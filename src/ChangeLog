@@ -1,3 +1,7 @@
+2010-11-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Fbyte_to_string): Signal an error arg is not a byte.
+
 2010-11-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (menubar_map_cb): New function (Bug#7425).
