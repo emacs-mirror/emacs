@@ -108,11 +108,16 @@ specified in `diff-switches' are passed to the diff command."
 		  (read-file-name "Diff original file: "
 				  (file-name-directory newf) nil t)))
      (list oldf newf (diff-switches))))
+  (diff-into-buffer nil old new switches no-async))
+
+(defun diff-into-buffer (buf old new &optional switches no-async)
+  ;; Noninteractive helper for creating and reverting diff buffers.
   (setq new (expand-file-name new)
 	old (expand-file-name old))
   (or switches (setq switches diff-switches)) ; If not specified, use default.
+  (or buf (setq buf (get-buffer-create "*Diff*")))
   (let* ((old-alt (file-local-copy old))
-	(new-alt (file-local-copy new))
+	 (new-alt (file-local-copy new))
 	 (command
 	  (mapconcat 'identity
 		     `(,diff-command
@@ -123,7 +128,6 @@ specified in `diff-switches' are passed to the diff command."
 		       ,(shell-quote-argument (or old-alt old))
 		       ,(shell-quote-argument (or new-alt new)))
 		     " "))
-	 (buf (get-buffer-create "*Diff*"))
 	 (thisdir default-directory)
 	 proc)
     (save-excursion

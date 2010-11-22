@@ -4491,24 +4491,42 @@ Before and after saving the buffer, this function runs
   "View the differences between BUFFER and its associated file.
 This requires the external program `diff' to be in your `exec-path'."
   (interactive "bBuffer: ")
-  (with-current-buffer (get-buffer (or buffer (current-buffer)))
+  (diff-buffer-internal (get-buffer (or buffer (current-buffer)))
+			(get-buffer-create "*Diff*"))
+  ;; return always nil, so that save-buffers-kill-emacs will not move
+  ;; over to the next unsaved buffer when calling `d'.
+  nil)
+
+(defvar diff-buffer-buffer)	;; suppress compiler warnings.
+
+(defun diff-buffer-internal (buffer result-buffer)
+  (if (not (and buffer (buffer-name buffer)))
+      (error "Original buffer deleted."))
+  (with-current-buffer buffer
     (if (and buffer-file-name
 	     (file-exists-p buffer-file-name))
 	(let ((tempfile (make-temp-file "buffer-content-")))
 	  (unwind-protect
 	      (progn
 		(write-region nil nil tempfile nil 'nomessage)
-		(diff buffer-file-name tempfile nil t)
-		(sit-for 0))
+		;; No asynch so we don't delete the temp file prematurely.
+		(diff-into-buffer result-buffer buffer-file-name tempfile
+				  nil t)
+		(sit-for 0)
+		;; Now revise the revert-buffer-function, since the
+		;; default will not be able to find the temp file.
+		(with-current-buffer result-buffer
+		  (set (make-local-variable 'diff-buffer-buffer) buffer)
+		  (setq revert-buffer-function
+			(lambda (ignore-auto noconfirm)
+			  (diff-buffer-internal diff-buffer-buffer
+						(current-buffer))))))
 	    (when (file-exists-p tempfile)
 	      (delete-file tempfile))))
       (message "Buffer %s has no associated file on disc" (buffer-name))
       ;; Display that message for 1 second so that user can read it
       ;; in the minibuffer.
-      (sit-for 1)))
-  ;; return always nil, so that save-buffers-kill-emacs will not move
-  ;; over to the next unsaved buffer when calling `d'.
-  nil)
+      (sit-for 1))))
 
 (defvar save-some-buffers-action-alist
   `((?\C-r
