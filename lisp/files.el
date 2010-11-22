@@ -4487,47 +4487,6 @@ Before and after saving the buffer, this function runs
 		   (setq buffer-backed-up nil))))))
     setmodes))
 
-(defun diff-buffer-with-file (&optional buffer)
-  "View the differences between BUFFER and its associated file.
-This requires the external program `diff' to be in your `exec-path'."
-  (interactive "bBuffer: ")
-  (diff-buffer-internal (get-buffer (or buffer (current-buffer)))
-			(get-buffer-create "*Diff*"))
-  ;; return always nil, so that save-buffers-kill-emacs will not move
-  ;; over to the next unsaved buffer when calling `d'.
-  nil)
-
-(defvar diff-buffer-buffer)	;; suppress compiler warnings.
-
-(defun diff-buffer-internal (buffer result-buffer)
-  (if (not (and buffer (buffer-name buffer)))
-      (error "Original buffer deleted."))
-  (with-current-buffer buffer
-    (if (and buffer-file-name
-	     (file-exists-p buffer-file-name))
-	(let ((tempfile (make-temp-file "buffer-content-")))
-	  (unwind-protect
-	      (progn
-		(write-region nil nil tempfile nil 'nomessage)
-		;; No asynch so we don't delete the temp file prematurely.
-		(diff-into-buffer result-buffer buffer-file-name tempfile
-				  nil t)
-		(sit-for 0)
-		;; Now revise the revert-buffer-function, since the
-		;; default will not be able to find the temp file.
-		(with-current-buffer result-buffer
-		  (set (make-local-variable 'diff-buffer-buffer) buffer)
-		  (setq revert-buffer-function
-			(lambda (ignore-auto noconfirm)
-			  (diff-buffer-internal diff-buffer-buffer
-						(current-buffer))))))
-	    (when (file-exists-p tempfile)
-	      (delete-file tempfile))))
-      (message "Buffer %s has no associated file on disc" (buffer-name))
-      ;; Display that message for 1 second so that user can read it
-      ;; in the minibuffer.
-      (sit-for 1))))
-
 (defvar save-some-buffers-action-alist
   `((?\C-r
      ,(lambda (buf)
@@ -4542,13 +4501,14 @@ This requires the external program `diff' to be in your `exec-path'."
     (?d ,(lambda (buf)
            (if (null (buffer-file-name buf))
                (message "Not applicable: no file")
-             (save-window-excursion (diff-buffer-with-file buf))
-             (if (not enable-recursive-minibuffers)
-                 (progn (display-buffer (get-buffer-create "*Diff*"))
-                        (setq other-window-scroll-buffer "*Diff*"))
-               (view-buffer (get-buffer-create "*Diff*")
-                            (lambda (_) (exit-recursive-edit)))
-               (recursive-edit)))
+             (require 'diff)            ;for diff-no-select.
+             (let ((diffbuf (diff-no-select (buffer-file-name buf) buf
+                                            nil 'noasync)))
+               (if (not enable-recursive-minibuffers)
+                   (progn (display-buffer diffbuf)
+                          (setq other-window-scroll-buffer diffbuf))
+                 (view-buffer diffbuf (lambda (_) (exit-recursive-edit)))
+                 (recursive-edit))))
            ;; Return nil to ask about BUF again.
            nil)
 	,(purecopy "view changes in this buffer")))

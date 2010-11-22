@@ -1,3 +1,20 @@
+2010-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/diff.el (diff-old-temp-file, diff-new-temp-file): Remove.
+	(diff-sentinel): Get them as arguments instead.
+	(diff-old-file, diff-new-file, diff-extra-args): Remove.
+	(diff-file-local-copy, diff-better-file-name): New funs.
+	(diff-no-select): Rename from diff-into-buffer.
+	Support buffers additionally to files.  Move `buf' arg.  Don't display buf.
+	Prefer closures to buffer-local variables.
+	(diff): Adjust accordingly.
+	(diff-buffer-with-file): Move from files.el.
+	* files.el (diff-buffer-with-file): Move to vc/diff.el.
+	(diff-buffer-internal): Remove.
+	(diff-buffer-buffer): Remove.
+	(save-some-buffers-action-alist): Use diff-no-select so as not to guess
+	the buffer name used, and so as not to mess up windows and frames.
+
 2010-11-22  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
 
 	* files.el: Make revert work with diff-buffer-with-file (bug#7277).
