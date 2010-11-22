@@ -1,3 +1,8 @@
+2010-11-22  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* textmodes/reftex-ref.el (reftex-goto-label): Use the current
+	\ref's or \pageref's value as default instead of initial input.
+
 2010-11-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (backup-by-copying-when-mismatch): The default value is
