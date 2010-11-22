@@ -1,3 +1,7 @@
+2010-11-22  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-url-mailto): Do not downcase args.
+
 2010-11-21  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el: Fix typo in comments.

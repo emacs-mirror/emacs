@@ -8155,8 +8155,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 		  (if (string-match "^\\([^?]+\\)\\?\\(.*\\)" url)
 		      (concat "to=" (match-string 1 url) "&"
 			      (match-string 2 url))
-		    (concat "to=" url)))
-		t)
+		    (concat "to=" url))))
 	  subject (cdr-safe (assoc "subject" args)))
     (gnus-msg-mail)
     (while args
