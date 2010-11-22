@@ -6218,9 +6218,6 @@ Returns the resulting string, or nil if the transformation fails."
 
   (require 'pgg)
 
-  (if (not (fboundp 'pgg-encrypt-symmetric))
-      (error "Allout encryption depends on a newer version of pgg"))
-
   (let* ((scheme (upcase
                   (format "%s" (or pgg-scheme pgg-default-scheme "GPG"))))
          (for-key (and (equal key-type 'keypair)
