@@ -1,3 +1,8 @@
+2010-11-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c (mark_terminals): Ensure that the image cache is marked
+	even if the terminal object was marked earlier (Bug#6301).
+
 2010-11-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* editfns.c (Fbyte_to_string): Signal an error arg is not a byte.
