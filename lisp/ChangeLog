@@ -1,5 +1,7 @@
 2010-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* Makefile.in: Fix up last merge.
+
 	* vc/diff.el (diff-old-temp-file, diff-new-temp-file): Remove.
 	(diff-sentinel): Get them as arguments instead.
 	(diff-old-file, diff-new-file, diff-extra-args): Remove.
@@ -2110,10 +2112,6 @@
 2010-10-08  Drew Adams  <drew.adams@oracle.com>
 
 	* dired.el (dired-save-positions): Doc fix.  (Bug#7119)
-
-2010-10-08  Andreas Schwab  <schwab@linux-m68k.org>
-
-	* Makefile.in (ELCFILES): Update.
 
 2010-10-08  Glenn Morris  <rgm@gnu.org>
 
