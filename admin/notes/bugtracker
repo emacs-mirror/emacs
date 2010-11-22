@@ -466,7 +466,7 @@ In the locations.conf file, it should go into the branch-specific
 configuration section for the branch where you want this to be in
 effect.  For example, if you want this to be in effect for the branch
 located at `/home/projects/emacs/trunk', you need to have this in your
-~/locations.conf file:
+~/.bazaar/locations.conf file:
 
 [/home/projects/emacs/trunk]
 bugtracker_debbugs_url = http://debbugs.gnu.org/{id}
