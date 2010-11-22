@@ -1,3 +1,8 @@
+2010-11-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (_PROCESS_MEMORY_COUNTERS_EX): Don't define with versions
+	of w32api >= 3.15.  (Bug#6989)  (Bug#7452)
+
 2010-11-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* alloc.c (mark_terminals): Ensure that the image cache is marked
