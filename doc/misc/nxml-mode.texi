@@ -96,7 +96,7 @@ one, you can also use the XSLT stylesheet from
 @url{http://www.pantor.com/download.html}.
 
 To convert a W3C XML Schema to an RNC schema, you need first to convert it
-to RELAX NG XML syntax using Sun's RELAX NG converter tool @code{rngconv}
+to RELAX NG XML syntax using the RELAX NG converter tool @code{rngconv}
 (built on top of MSV).  See @url{https://github.com/kohsuke/msv}
 and @url{https://msv.dev.java.net/}.
 

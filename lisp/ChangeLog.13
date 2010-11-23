@@ -6680,7 +6680,7 @@
 	buffer if the parent buffer is in vc-dired-mode.
 
 2007-11-23  Mark A. Hershberger  <mah@everybody.org>
-	    James Clark  <jjc@public.jclark.com>
+	    James Clark  <none@example.com>
 
 	* nxml/: Initial merge of nxml.  Kept nxml/char-name subdir for now.
 
