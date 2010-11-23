@@ -191,10 +191,17 @@ redirects somewhere else."
     (nreverse result)))
 
 (defun shr-descend (dom)
-  (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray)))
+  (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray))
+	(style (cdr (assq :style (cdr dom))))
+	(start (point)))
+    (when (and style
+	       (string-match "color" style))
+      (setq style (shr-parse-style style)))
     (if (fboundp function)
 	(funcall function (cdr dom))
-      (shr-generic (cdr dom)))))
+      (shr-generic (cdr dom)))
+    (when (consp style)
+      (shr-insert-color-overlay (cdr (assq 'color style)) start (point)))))
 
 (defun shr-generic (cont)
   (dolist (sub cont)
@@ -485,6 +492,20 @@ START, and END."
   "Encode URL."
   (browse-url-url-encode-chars url "[)$ ]"))
 
+(autoload 'shr-color-visible "shr-color")
+(autoload 'shr-color->hexadecimal "shr-color")
+(defun shr-color-check (fg &optional bg)
+  "Check that FG is visible on BG."
+  (shr-color-visible (or (shr-color->hexadecimal bg)
+                         (frame-parameter nil 'background-color))
+                     (shr-color->hexadecimal fg) (not bg)))
+
+(defun shr-insert-color-overlay (color start end)
+  (when color
+    (let ((overlay (make-overlay start end)))
+      (overlay-put overlay 'face (cons 'foreground-color
+                                       (cadr (shr-color-check color)))))))
+
 ;;; Tag-specific rendering rules.
 
 (defun shr-tag-p (cont)
@@ -516,31 +537,6 @@ START, and END."
 
 (defun shr-tag-s (cont)
   (shr-fontize-cont cont 'strike-through))
-
-(autoload 'shr-color-visible "shr-color")
-(defun shr-tag-color-check (fg &optional bg)
-  "Check that FG is visible on BG."
-  (shr-color-visible (or (shr-color->hexadecimal bg)
-                         (frame-parameter nil 'background-color))
-                     (shr-color->hexadecimal fg) (not bg)))
-
-(defun shr-tag-insert-color-overlay (color start end)
-  (when color
-    (let ((overlay (make-overlay start end)))
-      (overlay-put overlay 'face (cons 'foreground-color
-                                       (cadr (shr-tag-color-check color)))))))
-
-(defun shr-tag-span (cont)
-  (let ((start (point))
-	(color (cdr (assq 'color (shr-parse-style (cdr (assq :style cont)))))))
-    (shr-generic cont)
-    (shr-tag-insert-color-overlay color start (point))))
-
-(defun shr-tag-font (cont)
-  (let ((start (point))
-        (color (cdr (assq :color cont))))
-    (shr-generic cont)
-    (shr-tag-insert-color-overlay color start (point))))
 
 (defun shr-parse-style (style)
   (when style
