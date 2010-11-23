@@ -540,6 +540,9 @@ START, and END."
 
 (defun shr-parse-style (style)
   (when style
+    (save-match-data
+      (when (string-match "\n" style)
+        (setq style (replace-match " " t t style))))
     (let ((plist nil))
       (dolist (elem (split-string style ";"))
 	(when elem

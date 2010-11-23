@@ -54,6 +54,15 @@ This will convert \"80 %\" to 204, \"100 %\" to 255 but \"123\" to \"123\"."
         (/ (* (string-to-number (substring number 0 string-length)) 255) 100)
       (string-to-number number))))
 
+(defun shr-color-hue-to-rgb (x y h)
+  "Convert X Y H to RGB value."
+  (when (< h 0) (incf h))
+  (when (> h 1) (decf h))
+  (cond ((< h (/ 1 6.0)) (+ x (* (- y x) h 6)))
+        ((< h 0.5) y)
+        ((< h (/ 2.0 3.0)) (+ x (* (- y x) (- (/ 2.0 3.0) h) 6)))
+        (t x)))
+
 (defun shr-color-hsl-to-rgb-fractions (h s l)
   "Convert H S L to fractional RGB values."
   (let (m1 m2)
@@ -61,9 +70,9 @@ This will convert \"80 %\" to 204, \"100 %\" to 255 but \"123\" to \"123\"."
         (setq m2 (* l (+ s 1)))
         (setq m2 (- (+ l s) (* l s))))
     (setq m1 (- (* l 2) m2))
-    (list (rainbow-hue-to-rgb m1 m2 (+ h (/ 1 3.0)))
-	  (rainbow-hue-to-rgb m1 m2 h)
-	  (rainbow-hue-to-rgb m1 m2 (- h (/ 1 3.0))))))
+    (list (shr-color-hue-to-rgb m1 m2 (+ h (/ 1 3.0)))
+	  (shr-color-hue-to-rgb m1 m2 h)
+	  (shr-color-hue-to-rgb m1 m2 (- h (/ 1 3.0))))))
 
 (defun shr-color->hexadecimal (color)
   "Convert any color format to hexadecimal representation.
@@ -89,7 +98,7 @@ Like rgb() or hsl()."
                  (s (/ (string-to-number (match-string-no-properties 2 color)) 100.0))
                  (l (/ (string-to-number (match-string-no-properties 3 color)) 100.0)))
              (destructuring-bind (r g b)
-                 (rainbow-hsl-to-rgb-fractions h s l)
+                 (shr-color-hsl-to-rgb-fractions h s l)
                (format "#%02X%02X%02X" (* r 255) (* g 255) (* b 255)))))
           (t
            color))))
