@@ -2832,7 +2832,8 @@ extern void syms_of_chartab (void);
 /* Defined in print.c */
 extern Lisp_Object Vprin1_to_string_buffer;
 extern Lisp_Object Vprint_level, Vprint_length;
-extern void debug_print (Lisp_Object);
+extern void debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
+extern void safe_debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
 EXFUN (Fprin1, 2);
 EXFUN (Fprin1_to_string, 2);
 EXFUN (Fprinc, 2);

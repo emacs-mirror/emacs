@@ -1,6 +1,7 @@
 2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in <AC_CHECK_HEADERS>: Remove sys/ioctl.h.
+	(EXTERNALLY_VISIBLE): New definition.
 
 2010-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
 

@@ -3633,6 +3633,12 @@ typedef unsigned size_t;
 #define NO_INLINE
 #endif
 
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+#define EXTERNALLY_VISIBLE __attribute__((externally_visible))
+#else
+#define EXTERNALLY_VISIBLE
+#endif
+
 /* Some versions of GNU/Linux define noinline in their headers.  */
 #ifdef noinline
 #undef noinline

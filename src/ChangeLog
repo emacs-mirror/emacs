@@ -1,5 +1,12 @@
 2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* emacs.c (gdb_use_union, gdb_valbits,gdb_gctypebits)
+	(gdb_data_seg_bits, gdb_array_mark_flag, PVEC_FLAG)
+	(gdb_pvec_type):
+	* print.c (print_output_debug_flag):
+	* lisp.h (debug_print): Mark as EXTERNALLY_VISIBLE.
+	(safe_debug_print): New declaration.
+
 	* xterm.c:
 	* systty.h:
 	* sound.c: Include <sys/ioctl.h> unconditionally.
