@@ -1,3 +1,8 @@
+2010-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* intervals.c (temp_set_point_both): Define before calling, to
+	avoid GCC warnings.
+
 2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* nsmenu.m: Use #include <config.h> instead of "config.h".
