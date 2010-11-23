@@ -1,3 +1,16 @@
+2010-11-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc.el (vc-merge): Use vc-BACKEND-merge-branch if available.
+	Accept optional prefix arg meaning to prompt for a command.
+	(vc-update): Use vc-BACKEND-pull if available.  Accept optional
+	prefix arg meaning to prompt for a command.
+	(vc-pull): Alias for vc-update.
+
+	* vc/vc-bzr.el (vc-bzr-admin-branchconf, vc-bzr-history): New vars.
+	(vc-bzr--branch-conf, vc-bzr-async-command, vc-bzr-pull)
+	(vc-bzr-merge-branch): New functions, implementing merge-branch
+	and pull operations.
+
 2010-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in: Fix up last merge.

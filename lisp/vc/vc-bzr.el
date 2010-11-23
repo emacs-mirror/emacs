@@ -115,6 +115,8 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
   (concat vc-bzr-admin-dirname "/branch/revision-history"))
 (defconst vc-bzr-admin-lastrev
   (concat vc-bzr-admin-dirname "/branch/last-revision"))
+(defconst vc-bzr-admin-branchconf
+  (concat vc-bzr-admin-dirname "/branch/branch.conf"))
 
 ;;;###autoload (defun vc-bzr-registered (file)
 ;;;###autoload   (if (vc-find-root file vc-bzr-admin-checkout-format-file)
@@ -128,6 +130,13 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
   (or (vc-file-getprop file 'bzr-root)
       (let ((root (vc-find-root file vc-bzr-admin-checkout-format-file)))
 	(when root (vc-file-setprop file 'bzr-root root)))))
+
+(defun vc-bzr--branch-conf (file)
+  "Return the Bzr branch config for file FILE, as a string."
+  (with-temp-buffer
+    (insert-file-contents
+     (expand-file-name vc-bzr-admin-branchconf (vc-bzr-root file)))
+    (buffer-string)))
 
 (require 'sha1)                         ;For sha1-program
 
@@ -228,6 +237,9 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
   "added\\|ignored\\|kind changed\\|modified\\|removed\\|renamed\\|unknown"
   "Regexp matching file status words as reported in `bzr' output.")
 
+;; History of Bzr commands.
+(defvar vc-bzr-history nil)
+
 (defun vc-bzr-file-name-relative (filename)
   "Return file name FILENAME stripped of the initial Bzr repository path."
   (lexical-let*
@@ -235,6 +247,87 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
        (rootdir (vc-bzr-root filename*)))
     (when rootdir
          (file-relative-name filename* rootdir))))
+
+(defun vc-bzr-async-command (command args)
+  "Run Bzr COMMAND asynchronously with ARGS, displaying the result.
+Send the output to a buffer named \"*vc-bzr : NAME*\", where NAME
+is the root of the current Bzr branch.  Display the buffer in
+some window, but don't select it."
+  ;; TODO: set up hyperlinks.
+  (let* ((dir default-directory)
+	 (root (vc-bzr-root default-directory))
+	 (buffer (get-buffer-create (format "*vc-bzr : %s*" root))))
+    (with-current-buffer buffer
+      (setq default-directory root)
+      (goto-char (point-max))
+      (unless (eq (point) (point-min))
+	(insert "\n"))
+      (insert "Running \"" vc-bzr-program " " command)
+      (dolist (arg args)
+	(insert " " arg))
+      (insert "\"...\n")
+      ;; Run bzr in the original working directory.
+      (let ((default-directory dir))
+	(apply 'vc-bzr-command command t 'async nil args)))
+    (display-buffer buffer)))
+
+(defun vc-bzr-pull (prompt)
+  "Pull changes into the current Bzr branch.
+Normally, this runs \"bzr pull\".  However, if the branch is a
+bound branch, run \"bzr update\" instead.  If there is no default
+location from which to pull or update, or if PROMPT is non-nil,
+prompt for the Bzr command to run."
+  (let* ((vc-bzr-program vc-bzr-program)
+	 (branch-conf (vc-bzr--branch-conf default-directory))
+	 ;; Check whether the branch is bound.
+	 (bound (string-match "^bound\\s-*=\\s-*True" branch-conf))
+	 ;; If we need to do a "bzr pull", check for a parent.  If it
+	 ;; does not exist, bzr will need a pull location.
+	 (parent (unless bound
+		   (string-match
+		    "^parent_location\\s-*=\\s-*[^\n[:space:]]+"
+		    branch-conf)))
+	 (command (if bound "update" "pull"))
+	 args buf)
+    ;; If necessary, prompt for the exact command.
+    (when (or prompt (not (or bound parent)))
+      (setq args (split-string
+		  (read-shell-command
+		   "Run Bzr (like this): "
+		   (concat vc-bzr-program " " command)
+		   'vc-bzr-history)
+		  " " t))
+      (setq vc-bzr-program (car  args)
+	    command        (cadr args)
+	    args           (cddr args)))
+    (vc-bzr-async-command command args)))
+
+(defun vc-bzr-merge-branch (prompt)
+  "Merge another Bzr branch into the current one.
+If a default merge source is defined (i.e. an upstream branch or
+a previous merge source), this normally runs \"bzr merge --pull\".
+If optional PROMPT is non-nil or no default merge source is
+defined, prompt for the Bzr command to run."
+  (let* ((vc-bzr-program vc-bzr-program)
+	 (command "merge")
+	 (args '("--pull"))
+	 command-string args buf)
+    (when (or prompt
+	      ;; Prompt if there is no default merge source.
+	      (null
+	       (string-match
+		"^\\(parent_location\\|submit_branch\\)\\s-*=\\s-*[^\n[:space:]]+"
+		(vc-bzr--branch-conf default-directory))))
+      (setq args (split-string
+		  (read-shell-command
+		   "Run Bzr (like this): "
+		   (concat vc-bzr-program " " command " --pull")
+		   'vc-bzr-history)
+		  " " t))
+      (setq vc-bzr-program (car  args)
+	    command        (cadr args)
+	    args           (cddr args)))
+    (vc-bzr-async-command command args)))
 
 (defun vc-bzr-status (file)
   "Return FILE status according to Bzr.
