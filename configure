@@ -14106,19 +14106,6 @@ $as_echo "#define HAVE_INET_SOCKETS 1" >>confdefs.h
 
 fi
 
-for ac_header in sys/ioctl.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "sys/ioctl.h" "ac_cv_header_sys_ioctl_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_ioctl_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SYS_IOCTL_H 1
-_ACEOF
-
-fi
-
-done
-
-
 if test -f /usr/lpp/X11/bin/smt.exp; then
 
 $as_echo "#define HAVE_AIX_SMT_EXP 1" >>confdefs.h

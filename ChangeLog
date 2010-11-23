@@ -1,3 +1,7 @@
+2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in <AC_CHECK_HEADERS>: Remove sys/ioctl.h.
+
 2010-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (INLINE): Do not depend on OPTIMIZE, unused.

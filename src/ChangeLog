@@ -1,3 +1,9 @@
+2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c:
+	* systty.h:
+	* sound.c: Include <sys/ioctl.h> unconditionally.
+
 2010-11-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* alloc.c (mark_maybe_object): Return early if given a Lisp

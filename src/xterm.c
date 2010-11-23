@@ -47,9 +47,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #endif /* makedev */
 
-#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
-#endif /* ! defined (HAVE_SYS_IOCTL_H) */
 
 #include "systime.h"
 

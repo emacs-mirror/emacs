@@ -26,9 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #endif /* not DOS_NT */
 
-#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
-#endif
 
 #ifdef HPUX
 #include <sys/bsdtty.h>
