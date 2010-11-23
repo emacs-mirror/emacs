@@ -1,5 +1,7 @@
 2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* nsmenu.m: Use #include <config.h> instead of "config.h".
+
 	* term.c (Qglyphless_char,last_glyphless_glyph_frame)
 	(last_glyphless_glyph_face_id. last_glyphless_glyph_merged_face_id):
 	Move declarations ...
