@@ -542,6 +542,24 @@ system or session bus.
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old" and "fish".
 
+** VC and related modes
+
+*** Support for pulling on distributed version control systems.
+The vc-update command now runs a "pull" operation, if it is supported.
+This updates the current branch from upstream.  A prefix argument
+means to prompt the user for command specifics, e.g. a pull location.
+
+**** vc-pull is an alias for vc-update.
+
+**** Currently supported by Bzr.
+
+*** Support for merging on distributed version control systems.
+The vc-merge command now runs a "merge" operation, if it is supported.
+This merges another branch into the current one.  A prefix argument
+means to prompt the user for command specifics, e.g. a merge location.
+
+**** Currently supported by Bzr.
+
 
 * New Modes and Packages in Emacs 24.1
 
