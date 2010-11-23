@@ -66,6 +66,10 @@ extern int tgetent (char *, const char *);
 extern int tgetflag (char *id);
 extern int tgetnum (char *id);
 
+char *tparam (char *, char *, int, int, ...);
+
+extern char *tgetstr (char *, char **);
+
 #include "cm.h"
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
@@ -176,9 +180,6 @@ static int no_controlling_tty;
 
 static int system_uses_terminfo;
 
-char *tparam (char *, char *, int, int, ...);
-
-extern char *tgetstr (char *, char **);
 
 
 #ifdef HAVE_GPM
@@ -1913,12 +1914,6 @@ append_glyphless_glyph (struct it *it, int face_id, char *str)
       ++glyph;
     }
 }
-
-/* Declared in xdisp.c */
-extern struct frame *last_glyphless_glyph_frame;
-extern unsigned last_glyphless_glyph_face_id;
-extern int last_glyphless_glyph_merged_face_id;
-extern Lisp_Object Qglyphless_char;
 
 /* Produce glyphs for a glyphless character for iterator IT.
    IT->glyphless_method specifies which method to use for displaying

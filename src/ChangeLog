@@ -1,5 +1,12 @@
 2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* term.c (Qglyphless_char,last_glyphless_glyph_frame)
+	(last_glyphless_glyph_face_id. last_glyphless_glyph_merged_face_id):
+	Move declarations ...
+	* lisp.h (Qglyphless_char,last_glyphless_glyph_frame)
+	(last_glyphless_glyph_face_id. last_glyphless_glyph_merged_face_id):
+	... here.
+
 	* emacs.c (gdb_use_union, gdb_valbits,gdb_gctypebits)
 	(gdb_data_seg_bits, gdb_array_mark_flag, PVEC_FLAG)
 	(gdb_pvec_type):
