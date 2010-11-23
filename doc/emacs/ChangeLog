@@ -1,3 +1,8 @@
+2010-11-23  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
+
+	* maintaining.texi (VC With A Locking VCS, VC Directory Commands):
+	* vc1-xtra.texi (Customizing VC, General VC Options): Small fixes.
+
 2010-11-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* maintaining.texi (Version Control Systems): Fix repeated sentence.

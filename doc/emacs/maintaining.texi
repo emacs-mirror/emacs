@@ -524,7 +524,7 @@ locked the file, to inform him of what has happened.
 @end itemize
 
   These rules also apply when you use CVS in locking mode, except
-that there is no such thing as stealing a lock.
+that CVS does not support stealing a lock.
 
 @node Advanced C-x v v
 @subsubsection Advanced Control in @kbd{C-x v v}
@@ -1161,7 +1161,8 @@ directory buffer will be used.
 
   @kbd{M-s a C-s} does an incremental search on the marked files.
 
-  @kbd{M-s a C-M-s} does an incremental search on the marked files.
+  @kbd{M-s a C-M-s} does an incremental regular expression search
+on the marked files.
 
 @cindex stashes in version control
 @cindex shelves in version control
