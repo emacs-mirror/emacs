@@ -1,7 +1,13 @@
+2010-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell): Use current-buffer by default if it's already
+	a shell mode buffer and its process is dead.
+	Suggested by <jemarch@gnu.org>.
+
 2010-11-23  Tassilo Horn  <tassilo@member.fsf.org>
 
-	* mail/emacsbug.el (report-emacs-bug-query-existing-bugs): Mention
-	that the keywords should be comma separated.
+	* mail/emacsbug.el (report-emacs-bug-query-existing-bugs):
+	Mention that the keywords should be comma separated.
 
 2010-11-23  Chong Yidong  <cyd@stupidchicken.com>
 
