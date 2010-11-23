@@ -1,3 +1,10 @@
+2010-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/esh-cmd.el (eshell-parse-command):
+	* eshell/esh-arg.el (eshell-parse-arguments):
+	* eshell/em-script.el (eshell-source-file):
+	Use with-silent-modifications.
+
 2010-11-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/vc.el (vc-merge): Remove optional arg PROMPT.  Always prompt
