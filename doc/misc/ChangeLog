@@ -1,3 +1,8 @@
+2010-11-23  Glenn Morris  <rgm@gnu.org>
+	    James Clark  <jjc@public.jclark.com>
+
+	* nxml-mode.texi (Introduction): New section.
+
 2010-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* edt.texi: Remove information about Emacs 19.
