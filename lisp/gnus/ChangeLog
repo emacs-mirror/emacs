@@ -1,4 +1,21 @@
+2010-11-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-insert-color-overlay): Split stuff like
+	"#444444 !important" to find the real colour.
+
+2010-11-23  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnheader.el (nnheader-parse-head): Bug fix.  Properly position
+	point when parsing headers.
+
+	* nnspool.el (nnspool-insert-nov-head): Bug fix.  Make sure point
+	is positioned properly when parsing headers.
+
 2010-11-23  Julien Danjou  <julien@danjou.info>
+
+	* color-lab.el (boundp): Bind float-pi for Emacs < 23.3.
+
+	* shr-color.el (shr-color->hexadecimal): Add support for color names.
 
 	* shr.el (shr-parse-style): Replace \n with space in style parsing.
 

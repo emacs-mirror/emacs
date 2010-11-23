@@ -26,6 +26,10 @@
 
 ;;; Code:
 
+;; Emacs < 23.3
+(unless (boundp 'float-pi)
+  (defconst float-pi (* 4 (atan 1)) "The value of Pi (3.1415926...)."))
+
 (defun rgb->hsv (red green blue)
   "Convert RED GREEN BLUE values to HSV representation.
 Hue is in radian. Saturation and values are between 0 and 1."
