@@ -451,7 +451,7 @@ and send the mail again%s."
 (defun report-emacs-bug-query-existing-bugs (keywords)
   "Query for KEYWORDS at `report-emacs-bug-tracker-url', and return the result.
 The result is an alist with items of the form (URL SUBJECT NO)."
-  (interactive "sBug keywords: ")
+  (interactive "sBug keywords (comma separated): ")
   (url-retrieve (concat report-emacs-bug-tracker-url
 			"pkgreport.cgi?include=subject%3A"
 			(replace-regexp-in-string "[[:space:]]+" "+" keywords)
