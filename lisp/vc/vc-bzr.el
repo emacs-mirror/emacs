@@ -256,7 +256,9 @@ some window, but don't select it."
   ;; TODO: set up hyperlinks.
   (let* ((dir default-directory)
 	 (root (vc-bzr-root default-directory))
-	 (buffer (get-buffer-create (format "*vc-bzr : %s*" root))))
+	 (buffer (get-buffer-create
+		  (format "*vc-bzr : %s*"
+			  (expand-file-name root)))))
     (with-current-buffer buffer
       (setq default-directory root)
       (goto-char (point-max))
@@ -288,7 +290,7 @@ prompt for the Bzr command to run."
 		    "^parent_location\\s-*=\\s-*[^\n[:space:]]+"
 		    branch-conf)))
 	 (command (if bound "update" "pull"))
-	 args buf)
+	 args)
     ;; If necessary, prompt for the exact command.
     (when (or prompt (not (or bound parent)))
       (setq args (split-string
@@ -302,31 +304,36 @@ prompt for the Bzr command to run."
 	    args           (cddr args)))
     (vc-bzr-async-command command args)))
 
-(defun vc-bzr-merge-branch (prompt)
+(defun vc-bzr-merge-branch ()
   "Merge another Bzr branch into the current one.
-If a default merge source is defined (i.e. an upstream branch or
-a previous merge source), this normally runs \"bzr merge --pull\".
-If optional PROMPT is non-nil or no default merge source is
-defined, prompt for the Bzr command to run."
-  (let* ((vc-bzr-program vc-bzr-program)
-	 (command "merge")
-	 (args '("--pull"))
-	 command-string args buf)
-    (when (or prompt
-	      ;; Prompt if there is no default merge source.
-	      (null
-	       (string-match
-		"^\\(parent_location\\|submit_branch\\)\\s-*=\\s-*[^\n[:space:]]+"
-		(vc-bzr--branch-conf default-directory))))
-      (setq args (split-string
-		  (read-shell-command
-		   "Run Bzr (like this): "
-		   (concat vc-bzr-program " " command " --pull")
-		   'vc-bzr-history)
-		  " " t))
-      (setq vc-bzr-program (car  args)
-	    command        (cadr args)
-	    args           (cddr args)))
+Prompt for the Bzr command to run, providing a pre-defined merge
+source (an upstream branch or a previous merge source) as a
+default if it is available."
+  (let* ((branch-conf (vc-bzr--branch-conf default-directory))
+	 ;; "bzr merge" without an argument defaults to submit_branch,
+	 ;; then parent_location.  We extract the specific location
+	 ;; and add it explicitly to the command line.
+	 (location
+	  (cond
+	   ((string-match
+	     "^submit_branch\\s-*=\\s-*\\(?:file://\\)?\\([^\n[:space:]]+\\)$"
+	     branch-conf)
+	    (match-string 1 branch-conf))
+	   ((string-match
+	     "^parent_location\\s-*=\\s-*\\(?:file://\\)?\\([^\n[:space:]]+\\)$"
+	     branch-conf)
+	    (match-string 1 branch-conf))))
+	 (cmd
+	  (split-string
+	   (read-shell-command
+	    "Run Bzr (like this): "
+	    (concat vc-bzr-program " merge --pull"
+		    (if location (concat " " location) ""))
+	    'vc-bzr-history)
+	   " " t))
+	 (vc-bzr-program (car  cmd))
+	 (command        (cadr cmd))
+	 (args           (cddr cmd)))
     (vc-bzr-async-command command args)))
 
 (defun vc-bzr-status (file)

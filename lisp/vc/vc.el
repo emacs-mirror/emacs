@@ -316,10 +316,10 @@
 ;;   Merge the changes between REV1 and REV2 into the current working file
 ;;   (for non-distributed VCS).
 ;;
-;; - merge-branch (prompt)
+;; - merge-branch ()
 ;;
-;;   Merge another branch into the current one.  If PROMPT is non-nil,
-;;   or if necessary, prompt for a location to merge from.
+;;   Merge another branch into the current one, prompting for a
+;;   location to merge from.
 ;;
 ;; - merge-news (file)
 ;;
@@ -1828,12 +1828,11 @@ The headers are reset to their non-expanded form."
                           'modify-change-comment files rev comment))))))
 
 ;;;###autoload
-(defun vc-merge (&optional arg)
+(defun vc-merge ()
   "Perform a version control merge operation.
 On a distributed version control system, this runs a \"merge\"
 operation to incorporate changes from another branch onto the
-current branch, prompting for an argument list if required.
-Optional prefix ARG forces a prompt.
+current branch, prompting for an argument list.
 
 On a non-distributed version control system, this merges changes
 between two revisions into the current fileset.  This asks for
@@ -1841,14 +1840,14 @@ two revisions to merge from in the minibuffer.  If the first
 revision is a branch number, then merge all changes from that
 branch.  If the first revision is empty, merge the most recent
 changes from the current branch."
-  (interactive "P")
+  (interactive)
   (let* ((vc-fileset (vc-deduce-fileset t))
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset)))
     (cond
      ;; If a branch-merge operation is defined, use it.
      ((vc-find-backend-function backend 'merge-branch)
-      (vc-call-backend backend 'merge-branch arg))
+      (vc-call-backend backend 'merge-branch))
      ;; Otherwise, do a per-file merge.
      ((vc-find-backend-function backend 'merge)
       (vc-buffer-sync)

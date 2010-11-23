@@ -1,3 +1,12 @@
+2010-11-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc.el (vc-merge): Remove optional arg PROMPT.  Always prompt
+	for a merge location.
+
+	* vc/vc-bzr.el (vc-bzr-pull): Remove unused var.
+	(vc-bzr-merge-branch): Always prompt.
+	(vc-bzr-async-command): Use the full branch filename.
+
 2010-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* shell.el (shell): Use current-buffer by default if it's already
