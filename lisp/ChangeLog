@@ -1,3 +1,9 @@
+2010-11-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-default-method-alist)
+	(tramp-default-user-alist, tramp-default-proxies-alist): Adapt
+	custom options type.  (Bug#7445)
+
 2010-11-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/python.el: Add Ipython support (Bug#5390).
