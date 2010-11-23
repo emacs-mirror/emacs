@@ -517,6 +517,31 @@ START, and END."
 (defun shr-tag-s (cont)
   (shr-fontize-cont cont 'strike-through))
 
+(autoload 'shr-color-visible "shr-color")
+(defun shr-tag-color-check (fg &optional bg)
+  "Check that FG is visible on BG."
+  (shr-color-visible (or (shr-color->hexadecimal bg)
+                         (frame-parameter nil 'background-color))
+                     (shr-color->hexadecimal fg) (not bg)))
+
+(defun shr-tag-insert-color-overlay (color start end)
+  (when color
+    (let ((overlay (make-overlay start end)))
+      (overlay-put overlay 'face (cons 'foreground-color
+                                       (cadr (shr-tag-color-check color)))))))
+
+(defun shr-tag-span (cont)
+  (let ((start (point))
+	(color (cdr (assq 'color (shr-parse-style (cdr (assq :style cont)))))))
+    (shr-generic cont)
+    (shr-tag-insert-color-overlay color start (point))))
+
+(defun shr-tag-font (cont)
+  (let ((start (point))
+        (color (cdr (assq :color cont))))
+    (shr-generic cont)
+    (shr-tag-insert-color-overlay color start (point))))
+
 (defun shr-parse-style (style)
   (when style
     (let ((plist nil))
