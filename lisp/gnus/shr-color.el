@@ -260,8 +260,7 @@ Like rgb() or hsl()."
             (shr-color-hsl-to-rgb-fractions h s l)
           (format "#%02X%02X%02X" (* r 255) (* g 255) (* b 255)))))
      ;; Color names
-     ((assoc color shr-color-html-colors-alist)
-      (cdr (assoc-string color shr-color-html-colors-alist t)))
+     ((cdr (assoc-string color shr-color-html-colors-alist t)))
      ;; Unrecognized color :(
      (t
       nil))))

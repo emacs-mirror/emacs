@@ -1,5 +1,7 @@
 2010-11-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* shr-color.el (shr-color->hexadecimal): Ignore case of color names.
+
 	* color-lab.el: Add coding cookie.
 	(float-pi): Use eval-and-compile.
 
