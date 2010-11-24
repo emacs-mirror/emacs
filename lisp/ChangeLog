@@ -1,5 +1,9 @@
 2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail/mailclient.el (browse-url): Require.
+	(mailclient-send-it): Bind `browse-url-mailto-function' to nil to
+	use the external browser function to send the mail (bug#7469).
+
 	* net/browse-url.el (browse-url-browser-function): Revert the
 	default back to the previous value, since the new value broke
 	mailclient.el.
