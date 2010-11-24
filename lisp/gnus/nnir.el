@@ -41,7 +41,7 @@
 ;; Retrieval Status Value (score).
 
 ;; When looking at the retrieval result (in the Summary buffer) you
-;; can type `A W' (aka M-x gnus-warp-article RET) on an article.  You
+;; can type `A W' (aka M-x gnus-warp-to-article RET) on an article.  You
 ;; will be warped into the group this article came from. Typing `A W'
 ;; (aka M-x gnus-summary-refer-thread RET) will warp to the group and
 ;; also show the thread this article is part of.
@@ -677,14 +677,13 @@ details on the language and supported extensions"
                         (cdr (assoc nnir-imap-default-search-key
                                     nnir-imap-search-arguments))))
           (gnus-inhibit-demon t)
-	  (groups (or groups (nnir-get-active srv)))
-          artlist)
+	  (groups (or groups (nnir-get-active srv))))
       (message "Opening server %s" server)
       (apply
        'vconcat
        (mapcar
-	(lambda (x)
-	  (let ((group x))
+	(lambda (group)
+	  (let (artlist)
 	    (condition-case ()
 		(when (nnimap-possibly-change-group
 		       (gnus-group-short-name group) server)
@@ -706,7 +705,7 @@ details on the language and supported extensions"
 		      (message "Searching %s... %d matches" group arts)))
 		  (message "Searching %s...done" group))
 	      (quit nil))
-	    (reverse artlist)))
+	    artlist))
 	groups)))))
 
 (defun nnir-imap-make-query (criteria qstring)
@@ -1316,7 +1315,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 	     (gnus-inhibit-demon t)
 	     artlist)
 	(require 'mm-url)
-	(with-current-buffer nntp-server-buffer
+	(with-current-buffer (get-buffer-create nnir-tmp-buffer)
 	  (erase-buffer)
 	  (mm-url-insert
 	   (concat

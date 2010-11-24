@@ -281,6 +281,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define INLINE
 #endif
 
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+#define EXTERNALLY_VISIBLE __attribute__((externally_visible))
+#else
+#define EXTERNALLY_VISIBLE
+#endif
+
 #undef EMACS_CONFIGURATION
 
 #undef EMACS_CONFIG_OPTIONS

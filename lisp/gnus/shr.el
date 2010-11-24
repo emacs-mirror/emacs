@@ -55,18 +55,23 @@ fit these criteria."
   :group 'shr
   :type 'regexp)
 
-(defcustom shr-table-line ?-
-  "Character used to draw table line."
+(defcustom shr-table-horizontal-line ?-
+  "Character used to draw horizontal table lines."
+  :group 'shr
+  :type 'character)
+
+(defcustom shr-table-vertical-line ?|
+  "Character used to draw vertical table lines."
   :group 'shr
   :type 'character)
 
 (defcustom shr-table-corner ?+
-  "Character used to draw table corner."
+  "Character used to draw table corners."
   :group 'shr
   :type 'character)
 
 (defcustom shr-hr-line ?-
-  "Character used to draw hr line."
+  "Character used to draw hr lines."
   :group 'shr
   :type 'character)
 
@@ -186,10 +191,17 @@ redirects somewhere else."
     (nreverse result)))
 
 (defun shr-descend (dom)
-  (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray)))
+  (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray))
+	(style (cdr (assq :style (cdr dom))))
+	(start (point)))
+    (when (and style
+	       (string-match "color" style))
+      (setq style (shr-parse-style style)))
     (if (fboundp function)
 	(funcall function (cdr dom))
-      (shr-generic (cdr dom)))))
+      (shr-generic (cdr dom)))
+    (when (consp style)
+      (shr-insert-color-overlay (cdr (assq 'color style)) start (point)))))
 
 (defun shr-generic (cont)
   (dolist (sub cont)
@@ -388,6 +400,11 @@ redirects somewhere else."
       (let ((image (ignore-errors
                      (shr-rescale-image data))))
         (when image
+	  ;; When inserting big-ish pictures, put them at the
+	  ;; beginning of the line.
+	  (when (and (> (current-column) 0)
+		     (> (car (image-size image t)) 400))
+	    (insert "\n"))
 	  (insert-image image (or alt "*"))))
     (insert alt)))
 
@@ -435,6 +452,27 @@ Return a string with image data."
 		(search-forward "\r\n\r\n" nil t))
 	(buffer-substring (point) (point-max))))))
 
+(defun shr-image-displayer (content-function)
+  "Return a function to display an image.
+CONTENT-FUNCTION is a function to retrieve an image for a cid url that
+is an argument.  The function to be returned takes three arguments URL,
+START, and END."
+  `(lambda (url start end)
+     (when url
+       (if (string-match "\\`cid:" url)
+	   ,(when content-function
+	      `(let ((image (funcall ,content-function
+				     (substring url (match-end 0)))))
+		 (when image
+		   (goto-char start)
+		   (shr-put-image image
+				  (prog1
+				      (buffer-substring-no-properties start end)
+				    (delete-region start end))))))
+	 (url-retrieve url 'shr-image-fetched
+		       (list (current-buffer) start end)
+		       t)))))
+
 (defun shr-heading (cont &rest types)
   (shr-ensure-paragraph)
   (apply #'shr-fontize-cont cont types)
@@ -453,6 +491,22 @@ Return a string with image data."
 (defun shr-encode-url (url)
   "Encode URL."
   (browse-url-url-encode-chars url "[)$ ]"))
+
+(autoload 'shr-color-visible "shr-color")
+(autoload 'shr-color->hexadecimal "shr-color")
+(defun shr-color-check (fg &optional bg)
+  "Check that FG is visible on BG."
+  (shr-color-visible (or (shr-color->hexadecimal bg)
+                         (frame-parameter nil 'background-color))
+                     (shr-color->hexadecimal fg) (not bg)))
+
+(defun shr-insert-color-overlay (color start end)
+  (when color
+    (when (string-match " " color)
+      (setq color (car (split-string color))))
+    (let ((overlay (make-overlay start end)))
+      (overlay-put overlay 'face (cons 'foreground-color
+                                       (cadr (shr-color-check color)))))))
 
 ;;; Tag-specific rendering rules.
 
@@ -488,6 +542,9 @@ Return a string with image data."
 
 (defun shr-parse-style (style)
   (when style
+    (save-match-data
+      (when (string-match "\n" style)
+        (setq style (replace-match " " t t style))))
     (let ((plist nil))
       (dolist (elem (split-string style ";"))
 	(when elem
@@ -574,10 +631,7 @@ Return a string with image data."
 	(put-text-property start (point) 'shr-alt alt)
 	(put-text-property start (point) 'image-url url)
 	(put-text-property start (point) 'image-displayer
-			   (lambda (url start end)
-			     (url-retrieve url 'shr-image-fetched
-					   (list (current-buffer) start end)
-					   t)))
+			   (shr-image-displayer shr-content-function))
 	(put-text-property start (point) 'help-echo alt)
 	(setq shr-state 'image)))))
 
@@ -647,6 +701,12 @@ Return a string with image data."
 (defun shr-tag-hr (cont)
   (shr-ensure-newline)
   (insert (make-string shr-width shr-hr-line) "\n"))
+
+(defun shr-tag-font (cont)
+  (let ((start (point))
+        (color (cdr (assq :color cont))))
+    (shr-generic cont)
+    (shr-insert-color-overlay color start (point))))
 
 ;;; Table rendering algorithm.
 
@@ -755,7 +815,7 @@ Return a string with image data."
 		    max)))
       (dotimes (i height)
 	(shr-indent)
-	(insert "|\n"))
+	(insert shr-table-vertical-line "\n"))
       (dolist (column row)
 	(goto-char start)
 	(let ((lines (nth 2 column))
@@ -764,7 +824,7 @@ Return a string with image data."
 	  (dolist (line lines)
 	    (setq overlay-line (pop overlay-lines))
 	    (end-of-line)
-	    (insert line "|")
+	    (insert line shr-table-vertical-line)
 	    (dolist (overlay overlay-line)
 	      (let ((o (make-overlay (- (point) (nth 0 overlay) 1)
 				     (- (point) (nth 1 overlay) 1)))
@@ -776,7 +836,8 @@ Return a string with image data."
 	  ;; possibly.
 	  (dotimes (i (- height (length lines)))
 	    (end-of-line)
-	    (insert (make-string (string-width (car lines)) ? ) "|")
+	    (insert (make-string (string-width (car lines)) ? )
+		    shr-table-vertical-line)
 	    (forward-line 1)))))
     (shr-insert-table-ruler widths)))
 
@@ -786,7 +847,8 @@ Return a string with image data."
     (shr-indent))
   (insert shr-table-corner)
   (dotimes (i (length widths))
-    (insert (make-string (aref widths i) shr-table-line) shr-table-corner))
+    (insert (make-string (aref widths i) shr-table-horizontal-line)
+	    shr-table-corner))
   (insert "\n"))
 
 (defun shr-table-widths (table suggested-widths)

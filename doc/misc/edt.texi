@@ -63,8 +63,8 @@ of DEC's EDT editor.
 @node Overview
 @chapter Overview of the EDT Package
 
-This manual describes version 4.0 of the EDT Emulation for Emacs 19 and
-above.  It comes with special functions which replicate nearly all of
+This manual describes version 4.0 of the EDT Emulation for Emacs.
+It comes with special functions which replicate nearly all of
 EDT's keypad mode behavior.  It sets up default keypad and function key
 bindings which closely match those found in EDT.  Support is provided so
 that users may reconfigure most keypad and function key bindings to
@@ -152,9 +152,8 @@ You can also invoke @code{edt-set-scroll-margins} interactively while
 EDT Emulation is active to change the settings for that session.
 
 @strong{Please note:} Another way to set the scroll margins is to use
-the Emacs customization feature (not available in Emacs 19) to set the
-following two variables directly: @code{edt-top-scroll-margin} and
-@code{edt-bottom-scroll-margin}.
+the Emacs customization feature to set the following two variables
+directly: @code{edt-top-scroll-margin} and @code{edt-bottom-scroll-margin}.
 
 Enter the Emacs @code{customize} command.  First select the
 @samp{Editing} group and then select the @samp{Emulations} group.
@@ -239,8 +238,7 @@ Provide an easy way to restore @strong{all} original Emacs key bindings,
 just as they existed before the EDT emulation was first invoked.
 
 @item
-Support GNU Emacs 19 and higher.  (GNU Emacs 18 and below is no longer
-supported.)  XEmacs 19, and above, is also supported.
+Support GNU Emacs 19 and higher.  XEmacs 19, and above, is also supported.
 
 @item
 Supports highlighting of marked text within the EDT emulation on all
@@ -933,9 +931,8 @@ You can also invoke @code{edt-set-scroll-margins} interactively while
 EDT Emulation is active to change the settings for that session.
 
 @strong{Please note:} Another way to set the scroll margins is to use
-the Emacs customization feature (not available in Emacs 19) to set the
-following two variables directly: @code{edt-top-scroll-margin} and
-@code{edt-bottom-scroll-margin}.
+the Emacs customization feature to set the following two variables
+directly: @code{edt-top-scroll-margin} and @code{edt-bottom-scroll-margin}.
 
 Enter the Emacs @code{customize} command.  First select the
 @samp{Editing} group and then select the @samp{Emulations} group.
@@ -946,7 +943,3 @@ Finally, select the @samp{Edt} group and follow the directions.
 @include doclicense.texi
 
 @bye
-
-@ignore
-   arch-tag: 1b7ebe01-754b-4834-a12b-f152ef7db9e0
-@end ignore

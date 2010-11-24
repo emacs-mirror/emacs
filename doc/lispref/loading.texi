@@ -107,6 +107,10 @@ in @code{load-path}, where @code{nil} stands for the default directory.
 @code{load-path}, then all three suffixes in the second directory, and
 so on.  @xref{Library Search}.
 
+Whatever the name under which the file is eventually found, and the
+directory where Emacs found it, Emacs sets the value of the variable
+@code{load-file-name} to that file's name.
+
 If you get a warning that @file{foo.elc} is older than @file{foo.el}, it
 means you should consider recompiling @file{foo.el}.  @xref{Byte
 Compilation}.
@@ -155,6 +159,12 @@ This command loads the library named @var{library}.  It is equivalent to
 @defvar load-in-progress
 This variable is non-@code{nil} if Emacs is in the process of loading a
 file, and it is @code{nil} otherwise.
+@end defvar
+
+@defvar load-file-name
+When Emacs is in the process of loading a file, this variable's value
+is the name of that file, as Emacs found it during the search
+described earlier in this section.
 @end defvar
 
 @defvar load-read-function

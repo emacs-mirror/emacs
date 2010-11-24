@@ -554,13 +554,19 @@ Otherwise, one argument `-i' is passed to the shell.
 			  (generate-new-buffer-name "*shell*"))
 	   (if (file-remote-p default-directory)
 	       ;; It must be possible to declare a local default-directory.
+               ;; FIXME: This can't be right: it changes the default-directory
+               ;; of the current-buffer rather than of the *shell* buffer.
 	       (setq default-directory
 		     (expand-file-name
 		      (read-file-name
 		       "Default directory: " default-directory default-directory
 		       t nil 'file-directory-p))))))))
   (require 'ansi-color)
-  (setq buffer (get-buffer-create (or buffer "*shell*")))
+  (setq buffer (if (or buffer (not (derived-mode-p 'shell-mode))
+                       (comint-check-proc (current-buffer)))
+                   (get-buffer-create (or buffer "*shell*"))
+                 ;; If the current buffer is a dead shell buffer, use it.
+                 (current-buffer)))
   ;; Pop to buffer, so that the buffer's window will be correctly set
   ;; when we call comint (so that comint sets the COLUMNS env var properly).
   (pop-to-buffer buffer)

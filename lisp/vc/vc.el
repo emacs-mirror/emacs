@@ -100,7 +100,7 @@
 ;; In the list of functions below, each identifier needs to be prepended
 ;; with `vc-sys-'.  Some of the functions are mandatory (marked with a
 ;; `*'), others are optional (`-').
-;;
+
 ;; BACKEND PROPERTIES
 ;;
 ;; * revision-granularity
@@ -109,7 +109,7 @@
 ;;   that return 'file have per-file revision numbering; backends
 ;;   that return 'repository have per-repository revision numbering,
 ;;   so a revision level implicitly identifies a changeset
-;;
+
 ;; STATE-QUERYING FUNCTIONS
 ;;
 ;; * registered (file)
@@ -313,11 +313,24 @@
 ;;
 ;; - merge (file rev1 rev2)
 ;;
-;;   Merge the changes between REV1 and REV2 into the current working file.
+;;   Merge the changes between REV1 and REV2 into the current working file
+;;   (for non-distributed VCS).
+;;
+;; - merge-branch ()
+;;
+;;   Merge another branch into the current one, prompting for a
+;;   location to merge from.
 ;;
 ;; - merge-news (file)
 ;;
 ;;   Merge recent changes from the current branch into FILE.
+;;   (for non-distributed VCS).
+;;
+;; - pull (prompt)
+;;
+;;   Pull "upstream" changes into the current branch (for distributed
+;;   VCS).  If PROMPT is non-nil, or if necessary, prompt for a
+;;   location to pull from.
 ;;
 ;; - steal-lock (file &optional revision)
 ;;
@@ -335,7 +348,7 @@
 ;;
 ;;   Mark conflicts as resolved.  Some VC systems need to run a
 ;;   command to mark conflicts as resolved.
-;;
+
 ;; HISTORY FUNCTIONS
 ;;
 ;; * print-log (files buffer &optional shortlog start-revision limit)
@@ -440,7 +453,7 @@
 ;;   If the backend supports annotating through copies and renames,
 ;;   and displays a file name and a revision, then return a cons
 ;;   (REVISION . FILENAME).
-;;
+
 ;; TAG SYSTEM
 ;;
 ;; - create-tag (dir name branchp)
@@ -461,7 +474,7 @@
 ;;   does a sanity check whether there aren't any uncommitted changes at
 ;;   or below DIR, and then performs a tree walk, using the `checkout'
 ;;   function to retrieve the corresponding revisions.
-;;
+
 ;; MISCELLANEOUS
 ;;
 ;; - make-version-backups-p (file)
@@ -1816,53 +1829,65 @@ The headers are reset to their non-expanded form."
 
 ;;;###autoload
 (defun vc-merge ()
-  "Merge changes between two revisions into the current buffer's file.
-This asks for two revisions to merge from in the minibuffer.  If the
-first revision is a branch number, then merge all changes from that
-branch.  If the first revision is empty, merge news, i.e. recent changes
-from the current branch.
+  "Perform a version control merge operation.
+On a distributed version control system, this runs a \"merge\"
+operation to incorporate changes from another branch onto the
+current branch, prompting for an argument list.
 
-See Info node `Merging'."
+On a non-distributed version control system, this merges changes
+between two revisions into the current fileset.  This asks for
+two revisions to merge from in the minibuffer.  If the first
+revision is a branch number, then merge all changes from that
+branch.  If the first revision is empty, merge the most recent
+changes from the current branch."
   (interactive)
-  (vc-ensure-vc-buffer)
-  (vc-buffer-sync)
-  (let* ((file buffer-file-name)
-	 (backend (vc-backend file))
-	 (state (vc-state file))
-	 first-revision second-revision status)
+  (let* ((vc-fileset (vc-deduce-fileset t))
+	 (backend (car vc-fileset))
+	 (files (cadr vc-fileset)))
     (cond
-     ((stringp state)	;; Locking VCses only
-      (error "File is locked by %s" state))
-     ((not (vc-editable-p file))
-      (if (y-or-n-p
-	   "File must be checked out for merging.  Check out now? ")
-	  (vc-checkout file t)
-	(error "Merge aborted"))))
-    (setq first-revision
-	  (vc-read-revision
-           (concat "Branch or revision to merge from "
-                   "(default news on current branch): ")
-           (list file)
-           backend))
-    (if (string= first-revision "")
-        (setq status (vc-call-backend backend 'merge-news file))
-      (if (not (vc-find-backend-function backend 'merge))
-	  (error "Sorry, merging is not implemented for %s" backend)
-	(if (not (vc-branch-p first-revision))
-	    (setq second-revision
-		  (vc-read-revision
-                   "Second revision: "
-                   (list file) backend nil
-                   ;; FIXME: This is CVS/RCS/SCCS specific.
-                   (concat (vc-branch-part first-revision) ".")))
-	  ;; We want to merge an entire branch.  Set revisions
-	  ;; accordingly, so that vc-BACKEND-merge understands us.
-	  (setq second-revision first-revision)
-	  ;; first-revision must be the starting point of the branch
-	  (setq first-revision (vc-branch-part first-revision)))
-	(setq status (vc-call-backend backend 'merge file
-                                      first-revision second-revision))))
-    (vc-maybe-resolve-conflicts file status "WORKFILE" "MERGE SOURCE")))
+     ;; If a branch-merge operation is defined, use it.
+     ((vc-find-backend-function backend 'merge-branch)
+      (vc-call-backend backend 'merge-branch))
+     ;; Otherwise, do a per-file merge.
+     ((vc-find-backend-function backend 'merge)
+      (vc-buffer-sync)
+      (dolist (file files)
+	(let* ((state (vc-state file))
+	       first-revision second-revision status)
+	  (cond
+	   ((stringp state)	;; Locking VCses only
+	    (error "File %s is locked by %s" file state))
+	   ((not (vc-editable-p file))
+	    (vc-checkout file t)))
+	  (setq first-revision
+		(vc-read-revision
+		 (concat "Merge " file
+			 "from branch or revision "
+			 "(default news on current branch): ")
+		 (list file)
+		 backend))
+	  (cond
+	   ((string= first-revision "")
+	    (setq status (vc-call-backend backend 'merge-news file)))
+	   (t
+	    (if (not (vc-branch-p first-revision))
+		(setq second-revision
+		      (vc-read-revision
+		       "Second revision: "
+		       (list file) backend nil
+		       ;; FIXME: This is CVS/RCS/SCCS specific.
+		       (concat (vc-branch-part first-revision) ".")))
+	      ;; We want to merge an entire branch.  Set revisions
+	      ;; accordingly, so that vc-BACKEND-merge understands us.
+	      (setq second-revision first-revision)
+	      ;; first-revision must be the starting point of the branch
+	      (setq first-revision (vc-branch-part first-revision)))
+	    (setq status (vc-call-backend backend 'merge file
+					  first-revision second-revision))))
+	  (vc-maybe-resolve-conflicts file status "WORKFILE" "MERGE SOURCE"))))
+     (t
+      (error "Sorry, merging is not implemented for %s" backend)))))
+
 
 (defun vc-maybe-resolve-conflicts (file status &optional name-A name-B)
   (vc-resynch-buffer file t (not (buffer-modified-p)))
@@ -2274,35 +2299,47 @@ depending on the underlying version-control system."
 (define-obsolete-function-alias 'vc-revert-buffer 'vc-revert "23.1")
 
 ;;;###autoload
-(defun vc-update ()
-  "Update the current fileset's files to their tip revisions.
-For each one that contains no changes, and is not locked, then this simply
-replaces the work file with the latest revision on its branch.  If the file
-contains changes, and the backend supports merging news, then any recent
-changes from the current branch are merged into the working file."
-  (interactive)
-  (let* ((vc-fileset (vc-deduce-fileset))
+(defun vc-update (&optional arg)
+  "Update the current fileset or branch.
+On a distributed version control system, this runs a \"pull\"
+operation to update the current branch, prompting for an argument
+list if required.  Optional prefix ARG forces a prompt.
+
+On a non-distributed version control system, update the current
+fileset to the tip revisions.  For each unchanged and unlocked
+file, this simply replaces the work file with the latest revision
+on its branch.  If the file contains changes, any changes in the
+tip revision are merged into the working file."
+  (interactive "P")
+  (let* ((vc-fileset (vc-deduce-fileset t))
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset)))
-    (save-some-buffers          ; save buffers visiting files
-     nil (lambda ()
-           (and (buffer-modified-p)
-                (let ((file (buffer-file-name)))
-                  (and file (member file files))))))
-    (dolist (file files)
-      (if (vc-up-to-date-p file)
-	  (vc-checkout file nil t)
-	(if (eq (vc-checkout-model backend (list file)) 'locking)
-	    (if (eq (vc-state file) 'edited)
-		(error "%s"
-		       (substitute-command-keys
-			"File is locked--type \\[vc-revert] to discard changes"))
-	      (error "Unexpected file state (%s) -- type %s"
-		     (vc-state file)
-		     (substitute-command-keys
-		      "\\[vc-next-action] to correct")))
-          (vc-maybe-resolve-conflicts
-           file (vc-call-backend backend 'merge-news file)))))))
+    (cond
+     ;; If a pull operation is defined, use it.
+     ((vc-find-backend-function backend 'pull)
+      (vc-call-backend backend 'pull arg))
+     ;; If VCS has `merge-news' functionality (CVS and SVN), use it.
+     ((vc-find-backend-function backend 'merge-news)
+      (save-some-buffers ; save buffers visiting files
+       nil (lambda ()
+	     (and (buffer-modified-p)
+		  (let ((file (buffer-file-name)))
+		    (and file (member file files))))))
+      (dolist (file files)
+	(if (vc-up-to-date-p file)
+	    (vc-checkout file nil t)
+	  (vc-maybe-resolve-conflicts
+	   file (vc-call-backend backend 'merge-news file)))))
+     ;; For a locking VCS, check out each file.
+     ((eq (vc-checkout-model backend files) 'locking)
+      (dolist (file files)
+	(if (vc-up-to-date-p file)
+	    (vc-checkout file nil t))))
+     (t
+      (error "VC update is unsupported for `%s'" backend)))))
+
+;;;###autoload
+(defalias 'vc-pull 'vc-update)
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.

@@ -113,8 +113,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-extern int timers_run;
-
 Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
 Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
 Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
@@ -7744,5 +7742,3 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sprocess_attributes);
 }
 
-/* arch-tag: 3706c011-7b9a-4117-bd4f-59e7f701a4c4
-   (do not change this comment) */

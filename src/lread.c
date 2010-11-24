@@ -552,8 +552,6 @@ readbyte_from_string (int c, Lisp_Object readcharfun)
    encoded in `emacs-mule' and the first byte is already read in
    C.  */
 
-extern char emacs_mule_bytes[256];
-
 static int
 read_emacs_mule_char (int c, int (*readbyte) (int, Lisp_Object), Lisp_Object readcharfun)
 {
@@ -965,6 +963,10 @@ and then the former.
 Loading a file records its definitions, and its `provide' and
 `require' calls, in an element of `load-history' whose
 car is the file name loaded.  See `load-history'.
+
+While the file is in the process of being loaded, the variable
+`load-in-progress' is non-nil and the variable `load-file-name'
+is bound to the file's name.
 
 Return t if the file exists and loads successfully.  */)
   (Lisp_Object file, Lisp_Object noerror, Lisp_Object nomessage, Lisp_Object nosuffix, Lisp_Object must_suffix)

@@ -144,10 +144,6 @@ int this_single_command_key_start;
 static int before_command_key_count;
 static int before_command_echo_length;
 
-extern int minbuf_level;
-
-extern int message_enable_multibyte;
-
 /* If non-nil, the function that implements the display of help.
    It's called with one argument, the help string to display.  */
 
@@ -431,8 +427,6 @@ FILE *dribble;
 /* Nonzero if input is available.  */
 int input_pending;
 
-extern const char *pending_malloc_warning;
-
 /* Circular buffer for pre-read keyboard input.  */
 
 static struct input_event kbd_buffer[KBD_BUFFER_SIZE];
@@ -495,10 +489,10 @@ Lisp_Object Qconfig_changed_event;
 Lisp_Object Qevent_kind;
 Lisp_Object Qevent_symbol_elements;
 
-/* menu item parts */
+/* menu and tool bar item parts */
 Lisp_Object Qmenu_enable;
 Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCkeys, QCkey_sequence;
-Lisp_Object QCbutton, QCtoggle, QCradio, QClabel;
+Lisp_Object QCbutton, QCtoggle, QCradio, QClabel, QCvert_only;
 
 /* An event header symbol HEAD may have a property named
    Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
@@ -3601,6 +3595,7 @@ event_to_kboard (struct input_event *event)
     return FRAME_KBOARD (XFRAME (frame));
 }
 
+#ifdef subprocesses
 /* Return the number of slots occupied in kbd_buffer.  */
 
 static int
@@ -3613,6 +3608,7 @@ kbd_buffer_nr_stored (void)
        : ((kbd_buffer + KBD_BUFFER_SIZE) - kbd_fetch_ptr
           + (kbd_store_ptr - kbd_buffer)));
 }
+#endif	/* subprocesses */
 
 Lisp_Object Vthrow_on_input;
 
@@ -3734,6 +3730,7 @@ kbd_buffer_store_event_hold (register struct input_event *event,
     {
       *kbd_store_ptr = *event;
       ++kbd_store_ptr;
+#ifdef subprocesses
       if (kbd_buffer_nr_stored () > KBD_BUFFER_SIZE/2 && ! kbd_on_hold_p ())
         {
           /* Don't read keyboard input until we have processed kbd_buffer.
@@ -3745,6 +3742,7 @@ kbd_buffer_store_event_hold (register struct input_event *event,
 #endif
           stop_polling ();
         }
+#endif	/* subprocesses */
     }
 
   /* If we're inside while-no-input, and this event qualifies
@@ -3905,6 +3903,7 @@ kbd_buffer_get_event (KBOARD **kbp,
   register int c;
   Lisp_Object obj;
 
+#ifdef subprocesses
   if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE/4)
     {
       /* Start reading input again, we have processed enough so we can
@@ -3916,6 +3915,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif /* SIGIO */
       start_polling ();
     }
+#endif	/* subprocesses */
 
   if (noninteractive
       /* In case we are running as a daemon, only do this before
@@ -7058,10 +7058,12 @@ tty_read_avail_input (struct terminal *terminal,
   int n_to_read, i;
   struct tty_display_info *tty = terminal->display_info.tty;
   int nread = 0;
+#ifdef subprocesses
   int buffer_free = KBD_BUFFER_SIZE - kbd_buffer_nr_stored () - 1;
 
   if (kbd_on_hold_p () || buffer_free <= 0)
     return 0;
+#endif	/* subprocesses */
 
   if (!terminal->name)		/* Don't read from a dead terminal. */
     return 0;
@@ -7143,9 +7145,11 @@ tty_read_avail_input (struct terminal *terminal,
 #endif
 #endif
 
+#ifdef subprocesses
   /* Don't read more than we can store.  */
   if (n_to_read > buffer_free)
     n_to_read = buffer_free;
+#endif	/* subprocesses */
 
   /* Now read; for one reason or another, this will not block.
      NREAD is set to the number of chars read.  */
@@ -8265,9 +8269,12 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 	  if (NILP (menu_item_eval_property (value)))
 	    return 0;
 	}
-      else if (EQ (key, QChelp))
+      else if (EQ (key, QChelp)) 
         /* `:help HELP-STRING'.  */
         PROP (TOOL_BAR_ITEM_HELP) = value;
+      else if (EQ (key, QCvert_only)) 
+        /* `:vert-only t/nil'.  */
+        PROP (TOOL_BAR_ITEM_VERT_ONLY) = value;
       else if (EQ (key, QClabel))
         {
           const char *bad_label = "!!?GARBLED ITEM?!!";
@@ -11625,6 +11632,8 @@ syms_of_keyboard (void)
   staticpro (&QCradio);
   QClabel = intern_c_string (":label");
   staticpro (&QClabel);
+  QCvert_only = intern_c_string (":vert-only");
+  staticpro (&QCvert_only);
 
   Qmode_line = intern_c_string ("mode-line");
   staticpro (&Qmode_line);
@@ -12424,5 +12433,3 @@ mark_kboards (void)
   }
 }
 
-/* arch-tag: 774e34d7-6d31-42f3-8397-e079a4e4c9ca
-   (do not change this comment) */

@@ -1,3 +1,12 @@
+2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in <AC_CHECK_HEADERS>: Remove sys/ioctl.h.
+	(EXTERNALLY_VISIBLE): New definition.
+
+2010-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (INLINE): Do not depend on OPTIMIZE, unused.
+
 2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Do not check for unconditionally included headers.
@@ -2894,7 +2903,7 @@
 
 	* make-dist (lispref): Do include lispref/index.texi.
 
-2004-01-06  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2004-01-06  Eric Hanchrow  <offby1@blarg.net>
 
 	* make-dist (tempdir): Include cursors in nt/icons.
 

@@ -294,6 +294,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `gtk_widget_set_has_window' function. */
 #undef HAVE_GTK_WIDGET_SET_HAS_WINDOW
 
+/* Define to 1 if you have the `g_type_init' function. */
+#undef HAVE_G_TYPE_INIT
+
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
 
@@ -659,9 +662,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `sysinfo' function. */
 #undef HAVE_SYSINFO
-
-/* Define to 1 if you have the <sys/ioctl.h> header file. */
-#undef HAVE_SYS_IOCTL_H
 
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #undef HAVE_SYS_MMAN_H
@@ -1073,7 +1073,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
-#if defined (__GNUC__) && defined (OPTIMIZE)
+#if defined (__GNUC__)
 #define INLINE __inline__
 #else
 #define INLINE
@@ -1195,6 +1195,12 @@ typedef unsigned size_t;
 #define NO_INLINE __attribute__((noinline))
 #else
 #define NO_INLINE
+#endif
+
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+#define EXTERNALLY_VISIBLE __attribute__((externally_visible))
+#else
+#define EXTERNALLY_VISIBLE
 #endif
 
 /* Some versions of GNU/Linux define noinline in their headers.  */

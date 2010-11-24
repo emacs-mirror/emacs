@@ -12839,6 +12839,15 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	&& BUFFERP (glyph->object) && glyph->charpos == pt_old)
       && bpos_covered < pt_old)
     {
+      /* An empty line has a single glyph whose OBJECT is zero and
+	 whose CHARPOS is the position of a newline on that line.
+	 Note that on a TTY, there are more glyphs after that, which
+	 were produced by extend_face_to_end_of_line, but their
+	 CHARPOS is zero or negative.  */
+      int empty_line_p =
+	(row->reversed_p ? glyph > glyphs_end : glyph < glyphs_end)
+	&& INTEGERP (glyph->object) && glyph->charpos > 0;
+
       if (row->ends_in_ellipsis_p && pos_after == last_pos)
 	{
 	  EMACS_INT ellipsis_pos;
@@ -12875,6 +12884,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	       || (row->truncated_on_right_p && pt_old > bpos_max)
 	       /* Zero-width characters produce no glyphs.  */
 	       || (!string_seen
+		   && !empty_line_p
 		   && (row->reversed_p
 		       ? glyph_after > glyphs_end
 		       : glyph_after < glyphs_end)))
@@ -12931,7 +12941,8 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 			     cursor on that character's glyph.  */
 			  EMACS_INT strpos = glyph->charpos;
 
-			  cursor = glyph;
+			  if (tem)
+			    cursor = glyph;
 			  for (glyph += incr;
 			       (row->reversed_p ? glyph > stop : glyph < stop)
 				 && EQ (glyph->object, str);
@@ -12948,7 +12959,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 				  cursor = glyph;
 				  break;
 				}
-			      if (glyph->charpos < strpos)
+			      if (tem && glyph->charpos < strpos)
 				{
 				  strpos = glyph->charpos;
 				  cursor = glyph;
@@ -12963,10 +12974,9 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 		    }
 		  /* This string is not what we want; skip all of the
 		     glyphs that came from it.  */
-		  do
-		    glyph += incr;
 		  while ((row->reversed_p ? glyph > stop : glyph < stop)
-			 && EQ (glyph->object, str));
+			 && EQ (glyph->object, str))
+		    glyph += incr;
 		}
 	      else
 		glyph += incr;

@@ -351,7 +351,6 @@ enum mem_type
 
 static POINTER_TYPE *lisp_align_malloc (size_t, enum mem_type);
 static POINTER_TYPE *lisp_malloc (size_t, enum mem_type);
-void refill_memory_reserve (void);
 
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
@@ -3987,8 +3986,14 @@ DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
 static INLINE void
 mark_maybe_object (Lisp_Object obj)
 {
-  void *po = (void *) XPNTR (obj);
-  struct mem_node *m = mem_find (po);
+  void *po;
+  struct mem_node *m;
+
+  if (INTEGERP (obj))
+    return;
+
+  po = (void *) XPNTR (obj);
+  m = mem_find (po);
 
   if (m != MEM_NIL)
     {

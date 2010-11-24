@@ -115,13 +115,14 @@ This variable is relevant only if `backup-by-copying' is nil."
   :type 'boolean
   :group 'backup)
 
-(defcustom backup-by-copying-when-mismatch nil
+(defcustom backup-by-copying-when-mismatch t
   "Non-nil means create backups by copying if this preserves owner or group.
 Renaming may still be used (subject to control of other variables)
 when it would not result in changing the owner or group of the file;
 that is, for files which are owned by you and whose group matches
 the default for a new file created there by you.
 This variable is relevant only if `backup-by-copying' is nil."
+  :version "24.1"
   :type 'boolean
   :group 'backup)
 (put 'backup-by-copying-when-mismatch 'permanent-local t)
@@ -3224,7 +3225,10 @@ It is safe if any of these conditions are met:
    evaluates to a non-nil value with VAL as an argument."
   (or (member (cons sym val) safe-local-variable-values)
       (let ((safep (get sym 'safe-local-variable)))
-        (and (functionp safep) (funcall safep val)))))
+        (and (functionp safep)
+             ;; If the function signals an error, that means it
+             ;; can't assure us that the value is safe.
+             (with-demoted-errors (funcall safep val))))))
 
 (defun risky-local-variable-p (sym &optional ignored)
   "Non-nil if SYM could be dangerous as a file-local variable.
@@ -4483,29 +4487,6 @@ Before and after saving the buffer, this function runs
 		   (setq buffer-backed-up nil))))))
     setmodes))
 
-(defun diff-buffer-with-file (&optional buffer)
-  "View the differences between BUFFER and its associated file.
-This requires the external program `diff' to be in your `exec-path'."
-  (interactive "bBuffer: ")
-  (with-current-buffer (get-buffer (or buffer (current-buffer)))
-    (if (and buffer-file-name
-	     (file-exists-p buffer-file-name))
-	(let ((tempfile (make-temp-file "buffer-content-")))
-	  (unwind-protect
-	      (progn
-		(write-region nil nil tempfile nil 'nomessage)
-		(diff buffer-file-name tempfile nil t)
-		(sit-for 0))
-	    (when (file-exists-p tempfile)
-	      (delete-file tempfile))))
-      (message "Buffer %s has no associated file on disc" (buffer-name))
-      ;; Display that message for 1 second so that user can read it
-      ;; in the minibuffer.
-      (sit-for 1)))
-  ;; return always nil, so that save-buffers-kill-emacs will not move
-  ;; over to the next unsaved buffer when calling `d'.
-  nil)
-
 (defvar save-some-buffers-action-alist
   `((?\C-r
      ,(lambda (buf)
@@ -4520,13 +4501,14 @@ This requires the external program `diff' to be in your `exec-path'."
     (?d ,(lambda (buf)
            (if (null (buffer-file-name buf))
                (message "Not applicable: no file")
-             (save-window-excursion (diff-buffer-with-file buf))
-             (if (not enable-recursive-minibuffers)
-                 (progn (display-buffer (get-buffer-create "*Diff*"))
-                        (setq other-window-scroll-buffer "*Diff*"))
-               (view-buffer (get-buffer-create "*Diff*")
-                            (lambda (_) (exit-recursive-edit)))
-               (recursive-edit)))
+             (require 'diff)            ;for diff-no-select.
+             (let ((diffbuf (diff-no-select (buffer-file-name buf) buf
+                                            nil 'noasync)))
+               (if (not enable-recursive-minibuffers)
+                   (progn (display-buffer diffbuf)
+                          (setq other-window-scroll-buffer diffbuf))
+                 (view-buffer diffbuf (lambda (_) (exit-recursive-edit)))
+                 (recursive-edit))))
            ;; Return nil to ask about BUF again.
            nil)
 	,(purecopy "view changes in this buffer")))

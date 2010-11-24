@@ -100,27 +100,27 @@ static const char emacs_version[] = "24.0.50";
 /* Make these values available in GDB, which doesn't see macros.  */
 
 #ifdef USE_LSB_TAG
-int gdb_use_lsb = 1;
+int gdb_use_lsb EXTERNALLY_VISIBLE = 1;
 #else
-int gdb_use_lsb = 0;
+int gdb_use_lsb EXTERNALLY_VISIBLE = 0;
 #endif
 #ifndef USE_LISP_UNION_TYPE
-int gdb_use_union = 0;
+int gdb_use_union EXTERNALLY_VISIBLE  = 0;
 #else
-int gdb_use_union = 1;
+int gdb_use_union EXTERNALLY_VISIBLE = 1;
 #endif
-EMACS_INT gdb_valbits = VALBITS;
-EMACS_INT gdb_gctypebits = GCTYPEBITS;
+EMACS_INT gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
+EMACS_INT gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;
 #if defined (DATA_SEG_BITS) && ! defined (USE_LSB_TAG)
-EMACS_INT gdb_data_seg_bits = DATA_SEG_BITS;
+EMACS_INT gdb_data_seg_bits EXTERNALLY_VISIBLE = DATA_SEG_BITS;
 #else
-EMACS_INT gdb_data_seg_bits = 0;
+EMACS_INT gdb_data_seg_bits EXTERNALLY_VISIBLE = 0;
 #endif
-EMACS_INT PVEC_FLAG = PSEUDOVECTOR_FLAG;
-EMACS_INT gdb_array_mark_flag = ARRAY_MARK_FLAG;
+EMACS_INT PVEC_FLAG EXTERNALLY_VISIBLE = PSEUDOVECTOR_FLAG;
+EMACS_INT gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
 /* GDB might say "No enum type named pvec_type" if we don't have at
    least one symbol with that type, and then xbacktrace could fail.  */
-enum pvec_type gdb_pvec_type = PVEC_TYPE_MASK;
+enum pvec_type gdb_pvec_type EXTERNALLY_VISIBLE = PVEC_TYPE_MASK;
 
 /* Command line args from shell, as list of strings.  */
 Lisp_Object Vcommand_line_args;
@@ -194,11 +194,6 @@ Lisp_Object Vdynamic_library_alist;
 /* If non-zero, emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
 int inhibit_window_system;
-
-/* If nonzero, set Emacs to run at this priority.  This is also used
-   in child_setup and sys_suspend to make sure subshells run at normal
-   priority; those functions have their own extern declaration.  */
-EMACS_INT emacs_priority;
 
 /* If non-zero, a filter or a sentinel is running.  Tested to save the match
    data on the first attempt to change it inside asynchronous code.  */
@@ -2438,15 +2433,6 @@ see `kill-emacs-query-functions' instead.
 Before Emacs 24.1, the hook was not run in batch mode, i.e., if
 `noninteractive' was non-nil.  */);
   Vkill_emacs_hook = Qnil;
-
-  DEFVAR_INT ("emacs-priority", &emacs_priority,
-	      doc: /* Priority for Emacs to run at.
-This value is effective only if set before Emacs is dumped,
-and only if the Emacs executable is installed with setuid to permit
-it to change priority.  (Emacs sets its uid back to the real uid.)
-Currently, you need to define SET_EMACS_PRIORITY in `config.h'
-before you compile Emacs, to enable the code for this feature.  */);
-  emacs_priority = 0;
 
   DEFVAR_LISP ("path-separator", &Vpath_separator,
 	       doc: /* String containing the character that separates directories in

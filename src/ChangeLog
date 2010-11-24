@@ -1,3 +1,157 @@
+2010-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* intervals.c (temp_set_point_both): Define before calling, to
+	avoid GCC warnings.
+
+2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* nsmenu.m: Use #include <config.h> instead of "config.h".
+
+	* term.c (Qglyphless_char,last_glyphless_glyph_frame)
+	(last_glyphless_glyph_face_id. last_glyphless_glyph_merged_face_id):
+	Move declarations ...
+	* lisp.h (Qglyphless_char,last_glyphless_glyph_frame)
+	(last_glyphless_glyph_face_id. last_glyphless_glyph_merged_face_id):
+	... here.
+
+	* emacs.c (gdb_use_union, gdb_valbits,gdb_gctypebits)
+	(gdb_data_seg_bits, gdb_array_mark_flag, PVEC_FLAG)
+	(gdb_pvec_type):
+	* print.c (print_output_debug_flag):
+	* lisp.h (debug_print): Mark as EXTERNALLY_VISIBLE.
+	(safe_debug_print): New declaration.
+
+	* xterm.c:
+	* systty.h:
+	* sound.c: Include <sys/ioctl.h> unconditionally.
+
+2010-11-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c (mark_maybe_object): Return early if given a Lisp
+	integer (Bug#6301).
+
+2010-11-21  Ken Brown  <kbrown@cornell.edu>
+
+	* sheap.c (STATIC_HEAP_SIZE): Revert previous change.
+
+2010-11-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_right_command_modifier, ns_right_control_modifier):
+	Define (Bug#7458).
+	(NSRightCommandKeyMask, NSRightControlKeyMask): Define (Bug#7458).
+	(EV_MODIFIERS): Check for NSRightCommandKeyMask and
+	NSRightControlKeyMask also (Bug#7458).
+	(keyDown): Ditto (Bug#7458).
+	(syms_of_nsterm): Defvar ns-right-command-modifier and
+	ns-right-control-modifier (Bug#7458).
+
+2010-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sysdep.c (sys_subshell): Remove SET_EMACS_PRIORITY.
+	* emacs.c (emacs_priority, syms_of_emacs): Remove emacs_priority.
+
+	* intervals.h (temp_set_point, temp_set_point_both):
+	* buffer.h (offset_intervals, copy_intervals): Remove INLINE.
+
+2010-11-20  Ken Brown  <kbrown@cornell.edu>
+
+	* sheap.c (STATIC_HEAP_SIZE): Increase to 13MB.
+
+2010-11-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (produce_glyphless_glyph): Use \uNNNN, \UNNNNNN, or
+	\xNNNNNN for hex-code display of glyphless characters.
+
+2010-11-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_make_tool_item): Take vert_only as argument.
+	Set important to ! vert_only.
+	(xg_show_toolbar_item): Don't show label horizontally if
+	tool item isn't important.
+	(update_frame_tool_bar): Get TOOL_BAR_ITEM_VERT_ONLY and pass it to
+	xg_make_tool_item, or update important on existing tool item.
+
+	* keyboard.c (QCvert_only): New variable.
+	(parse_tool_bar_item): Check for QCvert_only.
+	(syms_of_keyboard): Initialize QCvert_only.
+
+	* dispextern.h (tool_bar_item_idx): Add TOOL_BAR_ITEM_VERT_ONLY.
+
+2010-11-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (dos_rawgetc): Use gen_help_event, instead of doing the
+	same in-line.
+
+2010-11-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xfaces.c (lookup_face): Make static.
+	* dispnew.c (copy_row_except_pointers): Likewise.
+	* syntax.c (dec_bytepos): Likewise.
+	(inc_bytepos): Remove.
+	* dispextern.h (lookup_face): Remove declaration.
+
+2010-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Display cursor after all the
+	glyphs that come from an overlay.  Don't overstep the last glyph
+	when skipping glyphs from an overlay.  (Bug#6687)
+
+2010-11-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c (refill_memory_reserve): Move declaration ...
+	* lisp.h (refill_memory_reserve): ... here.
+
+	* strftime.c (_strftime_copytm): Add declaration.
+
+	* callproc.c (syms_of_callproc): Use intern_c_string.
+
+	Move declarations from .c files to .h files.
+	* process.c (timers_run):
+	* minibuf.c (quit_char):
+	* lread.c (read_emacs_mule_char):
+	* keyboard.c (minibuf_level, message_enable_multibyte)
+	(pending_malloc_warning):
+	* insdel.c (Vselect_active_regions, Vsaved_region_selection)
+	(Qonly): Remove declarations.
+	* lisp.h (pending_malloc_warning, Vsaved_region_selection)
+	(Vselect_active_regions):
+	* keyboard.h (timers_run):  Add declarations.
+
+	* strftime.c (my_strftime_gmtime_r, my_strftime_localtime_r)
+	(tm_diff): Convert definitions to standard C.
+	(extra_args_spec_iso): Remove, unused.
+
+2010-11-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (init_gconf): Check HAVE_G_TYPE_INIT.
+
+	* config.in (HAVE_G_TYPE_INIT): New symbol.
+
+2010-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* lread.c (Fload): Mention `load-in-progress' and
+	`load-file-name'.  (Bug#7346)
+
+	* keyboard.c (kbd_buffer_nr_stored): Define only ifdef subprocesses.
+	(kbd_buffer_store_event_hold, kbd_buffer_get_event)
+	(tty_read_avail_input): Call kbd_buffer_nr_stored only ifdef
+	subprocesses.  Use buffer_free only ifdef subprocesses.
+
+	* process.c (init_process) [subprocesses]: Init kbd_is_on_hold in
+	the subprocesses version, not in the non-subprocesses one.
+
+	* Makefile.in: Don't use ## comment, it breaks the MSDOS build.
+
+2010-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix cursor positioning in empty
+	lines on text-mode terminals.  (bug#7417)
+
+2010-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (get_current_wm_state): Rename from get_current_vm_state.
+	(do_ewmh_fullscreen, x_handle_net_wm_state): Update callers.
+
 2010-11-17  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Fset_terminal_coding_system_internal): Fix previous
@@ -248,8 +402,8 @@
 
 	* xfns.c (set_machine_and_pid_properties): Let X set WM_CLIENT_MACHINE.
 
-	* xdisp.c (note_mode_line_or_margin_highlight): Initialize
-	Cursor to No_Cursor for HAVE_WINDOW_SYSTEM also.
+	* xdisp.c (note_mode_line_or_margin_highlight):
+	Initialize Cursor to No_Cursor for HAVE_WINDOW_SYSTEM also.
 
 2010-11-06  Eli Zaretskii  <eliz@gnu.org>
 

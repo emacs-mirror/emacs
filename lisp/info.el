@@ -3763,15 +3763,18 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
   (let ((map (make-sparse-keymap)))
     (tool-bar-local-item-from-menu 'Info-history-back "left-arrow" map Info-mode-map
 				   :rtl "right-arrow"
-				   :label "Back")
+				   :label "Back"
+				   :vert-only t)
     (tool-bar-local-item-from-menu 'Info-history-forward "right-arrow" map Info-mode-map
 				   :rtl "left-arrow"
-				   :label "Forward")
+				   :label "Forward"
+				   :vert-only t)
     (tool-bar-local-item-from-menu 'Info-prev "prev-node" map Info-mode-map
 				   :rtl "next-node")
     (tool-bar-local-item-from-menu 'Info-next "next-node" map Info-mode-map
 				   :rtl "prev-node")
-    (tool-bar-local-item-from-menu 'Info-up "up-node" map Info-mode-map)
+    (tool-bar-local-item-from-menu 'Info-up "up-node" map Info-mode-map
+				   :vert-only t)
     (tool-bar-local-item-from-menu 'Info-top-node "home" map Info-mode-map)
     (tool-bar-local-item-from-menu 'Info-goto-node "jump-to" map Info-mode-map)
     (tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map

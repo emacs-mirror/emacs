@@ -58,6 +58,9 @@
 
 ;; User options end here.
 
+(defvar report-emacs-bug-tracker-url "http://debbugs.gnu.org/cgi/"
+  "Base URL of the GNU bugtracker.
+Used for querying duplicates and linking to existing bugs.")
 
 (defvar report-emacs-bug-orig-text nil
   "The automatically-created initial text of the bug report.")
@@ -119,7 +122,6 @@
 			 "--body" body
 			 (concat "mailto:" to))
 	(error "Subject, To or body not found")))))
-
 
 ;;;###autoload
 (defun report-emacs-bug (topic &optional recent-keys)
@@ -374,6 +376,87 @@ and send the mail again%s."
       (while (setq pos (text-property-any pos (point-max)
                                           'field 'emacsbug-prompt))
         (delete-region pos (field-end (1+ pos)))))))
+
+
+;; Querying the bug database
+
+(defun report-emacs-bug-create-existing-bugs-buffer (bugs keywords)
+  (switch-to-buffer (get-buffer-create "*Existing Emacs Bugs*"))
+  (setq buffer-read-only t)
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (make-local-variable 'bug-alist)
+    (setq bug-alist bugs)
+    (make-local-variable 'bug-choice-widget)
+    (widget-insert (propertize (concat "Already known bugs ("
+				       keywords "):\n\n")
+			       'face 'bold))
+    (if bugs
+	(setq bug-choice-widget
+	      (apply 'widget-create 'radio-button-choice
+		     :value (car (first bugs))
+		     (let (items)
+		       (dolist (bug bugs)
+			 (push (list
+				'url-link
+				:format (concat "Bug#" (number-to-string (third bug))
+						": " (second bug) "\n    %[%v%]\n")
+				;; FIXME: Why is only the link of the
+				;; active item clickable?
+				(first bug))
+			       items))
+		       (nreverse items))))
+      (widget-insert "No bugs maching your keywords found.\n"))
+    (widget-insert "\n")
+    (widget-create 'push-button
+		   :notify (lambda (&rest ignore)
+			     ;; TODO: Do something!
+			     (message "Reporting new bug!"))
+		   "Report new bug")
+    (when bugs
+      (widget-insert " ")
+      (widget-create 'push-button
+		     :notify (lambda (&rest ignore)
+			       (let ((val (widget-value bug-choice-widget)))
+				 ;; TODO: Do something!
+				 (message "Appending to bug %s!"
+					  (third (assoc val bug-alist)))))
+		     "Append to chosen bug"))
+    (widget-insert " ")
+    (widget-create 'push-button
+		   :notify (lambda (&rest ignore)
+			     (kill-buffer))
+		   "Quit reporting bug")
+    (widget-insert "\n"))
+  (use-local-map widget-keymap)
+  (widget-setup)
+  (goto-char (point-min)))
+
+(defun report-emacs-bug-parse-query-results (status keywords)
+  (goto-char (point-min))
+  (let (buglist)
+    (while (re-search-forward "<a href=\"bugreport\\.cgi\\?bug=\\([[:digit:]]+\\)\">\\([^<]+\\)</a>" nil t)
+      (let ((number (match-string 1))
+	    (subject (match-string 2)))
+	(when (not (string-match "^#" subject))
+	  (push (list
+		 ;; first the bug URL
+		 (concat report-emacs-bug-tracker-url
+			 "bugreport.cgi?bug=" number)
+		 ;; then the subject and number
+		 subject (string-to-number number))
+		buglist))))
+    (report-emacs-bug-create-existing-bugs-buffer (nreverse buglist) keywords)))
+
+(defun report-emacs-bug-query-existing-bugs (keywords)
+  "Query for KEYWORDS at `report-emacs-bug-tracker-url', and return the result.
+The result is an alist with items of the form (URL SUBJECT NO)."
+  (interactive "sBug keywords (comma separated): ")
+  (url-retrieve (concat report-emacs-bug-tracker-url
+			"pkgreport.cgi?include=subject%3A"
+			(replace-regexp-in-string "[[:space:]]+" "+" keywords)
+			";package=emacs")
+		'report-emacs-bug-parse-query-results (list keywords)))
 
 (provide 'emacsbug)
 

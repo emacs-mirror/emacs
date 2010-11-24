@@ -47,9 +47,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #endif /* makedev */
 
-#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
-#endif /* ! defined (HAVE_SYS_IOCTL_H) */
 
 #include "systime.h"
 
@@ -8403,7 +8401,7 @@ x_set_sticky (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
    STICKY is set to 1 if the sticky state is set, 0 if not.  */
 
 static void
-get_current_vm_state (struct frame *f,
+get_current_wm_state (struct frame *f,
                       Window window,
                       int *size_state,
                       int *sticky)
@@ -8474,7 +8472,7 @@ do_ewmh_fullscreen (struct frame *f)
   Lisp_Object lval = get_frame_param (f, Qfullscreen);
   int cur, dummy;
 
-  get_current_vm_state (f, FRAME_OUTER_WINDOW (f), &cur, &dummy);
+  get_current_wm_state (f, FRAME_OUTER_WINDOW (f), &cur, &dummy);
 
   /* Some window managers don't say they support _NET_WM_STATE, but they do say
      they support _NET_WM_STATE_FULLSCREEN.  Try that also.  */
@@ -8556,7 +8554,7 @@ x_handle_net_wm_state (struct frame *f, XPropertyEvent *event)
   Lisp_Object lval;
   int sticky = 0;
 
-  get_current_vm_state (f, event->window, &value, &sticky);
+  get_current_wm_state (f, event->window, &value, &sticky);
   lval = Qnil;
   switch (value)
     {

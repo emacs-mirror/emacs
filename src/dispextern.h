@@ -2887,6 +2887,9 @@ enum tool_bar_item_idx
   /* Label to show when text labels are enabled.  */
   TOOL_BAR_ITEM_LABEL,
 
+  /* If we shall show the label only below the icon and not beside it.  */
+  TOOL_BAR_ITEM_VERT_ONLY,
+
   /* Sentinel = number of slots in tool_bar_items occupied by one
      tool-bar item.  */
   TOOL_BAR_ITEM_NSLOTS
@@ -3175,7 +3178,6 @@ char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
 int ascii_face_of_lisp_face (struct frame *, int);
 void prepare_face_for_display (struct frame *, struct face *);
 int xstrcasecmp (const unsigned char *, const unsigned char *);
-int lookup_face (struct frame *, Lisp_Object *);
 int lookup_named_face (struct frame *, Lisp_Object, int);
 int lookup_basic_face (struct frame *, int);
 int smaller_face (struct frame *, int, int);

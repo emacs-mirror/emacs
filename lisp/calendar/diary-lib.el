@@ -1,7 +1,8 @@
 ;;; diary-lib.el --- diary functions
 
 ;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1995, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -2331,6 +2332,7 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
 
 ;;; Fancy Diary Mode.
 
+;; FIXME does not update upon changes to the name-arrays.
 (defvar diary-fancy-date-pattern
   (concat
    (let ((dayname (diary-name-pattern calendar-day-name-array nil t))
@@ -2433,9 +2435,6 @@ message contains an appointment, don't make a diary entry."
             (setq format-string (cdr (nth i diary-outlook-formats)))
             (save-excursion
               (save-window-excursion
-                ;; Fixme: References to optional fields in the format
-                ;; are treated literally, not replaced by the empty
-                ;; string.  I think this is an Emacs bug.
                 (diary-make-entry
                  (format (replace-match (if (functionp format-string)
                                             (funcall format-string body)
@@ -2513,5 +2512,4 @@ user is asked to confirm its addition."
 
 (provide 'diary-lib)
 
-;; arch-tag: 22dd506e-2e33-410d-9ae1-095a0c1b2010
 ;;; diary-lib.el ends here

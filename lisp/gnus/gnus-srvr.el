@@ -115,6 +115,7 @@ If nil, a faster, but more primitive, buffer is used instead."
        ["Kill" gnus-server-kill-server t]
        ["Yank" gnus-server-yank-server t]
        ["Copy" gnus-server-copy-server t]
+       ["Show" gnus-server-show-server t]
        ["Edit" gnus-server-edit-server t]
        ["Regenerate" gnus-server-regenerate-server t]
        ["Compact" gnus-server-compact-server t]
@@ -152,6 +153,7 @@ If nil, a faster, but more primitive, buffer is used instead."
     "c" gnus-server-copy-server
     "a" gnus-server-add-server
     "e" gnus-server-edit-server
+    "S" gnus-server-show-server
     "s" gnus-server-scan-server
 
     "O" gnus-server-open-server
@@ -606,6 +608,18 @@ The following commands are available:
      `(lambda (form)
 	(gnus-server-set-info ,server form)
 	(gnus-server-list-servers)
+	(gnus-server-position-point))
+     'edit-server)))
+
+(defun gnus-server-show-server (server)
+  "Show the definition of the server on the current line."
+  (interactive (list (gnus-server-server-name)))
+  (unless server
+    (error "No server on current line"))
+  (let ((info (gnus-server-to-method server)))
+    (gnus-edit-form
+     info "Showing the server."
+     `(lambda (form)
 	(gnus-server-position-point))
      'edit-server)))
 

@@ -106,7 +106,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 ;;;###tramp-autoload
 (add-to-list
  'tramp-methods
- '("scp"   (tramp-login-program        "ssh")
+ '("scp"
+   (tramp-login-program        "ssh")
    (tramp-login-args           (("-l" "%u") ("-p" "%p")	("-e" "none") ("%h")))
    (tramp-async-args           (("-q")))
    (tramp-remote-sh            "/bin/sh")
@@ -2166,16 +2167,13 @@ the uid and gid from FILENAME."
 		       (list tmpfile localname2 ok-if-already-exists)))))
 
 		;; Save exit.
-		(condition-case nil
-		    (delete-file tmpfile)
-		  (error)))))))))
+		(ignore-errors (delete-file tmpfile)))))))))
 
       ;; Set the time and mode. Mask possible errors.
-      (condition-case nil
+      (ignore-errors
 	  (when keep-date
 	    (set-file-times newname file-times)
-	    (set-file-modes newname file-modes))
-	(error)))))
+	    (set-file-modes newname file-modes))))))
 
 (defun tramp-do-copy-or-rename-file-out-of-band (op filename newname keep-date)
   "Invoke rcp program to copy.
@@ -2203,12 +2201,11 @@ The method used must be an out-of-band method."
 		  (tramp-do-copy-or-rename-file-out-of-band
 		   'rename tmpfile newname keep-date))
 	      ;; Save exit.
-	      (condition-case nil
-		  (if dir-flag
-		      (tramp-compat-delete-directory
-		       (expand-file-name ".." tmpfile) 'recursive)
-		    (delete-file tmpfile))
-		(error))))
+	      (ignore-errors
+		(if dir-flag
+		    (tramp-compat-delete-directory
+		     (expand-file-name ".." tmpfile) 'recursive)
+		  (delete-file tmpfile)))))
 
 	;; Expand hops.  Might be necessary for gateway methods.
 	(setq v (car (tramp-compute-multi-hops v)))
@@ -5039,6 +5036,5 @@ function cell is returned to be applied on a buffer."
 ;;   rsync.
 ;; * Try telnet+curl as new method.  It might be useful for busybox,
 ;;   without built-in uuencode/uudecode.
-;; * Try ssh+netcat as out-of-band method.
 
 ;;; tramp-sh.el ends here

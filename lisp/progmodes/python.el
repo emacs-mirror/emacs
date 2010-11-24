@@ -110,7 +110,8 @@
     (,(rx symbol-start (group "def") (1+ space) (group (1+ (or word ?_))))
      (1 font-lock-keyword-face) (2 font-lock-function-name-face))
     ;; Top-level assignments are worth highlighting.
-    (,(rx line-start (group (1+ (or word ?_))) (0+ space) "=")
+    (,(rx line-start (group (1+ (or word ?_))) (0+ space)
+	  (opt (or "+" "-" "*" "**" "/" "//" "&" "%" "|" "^" "<<" ">>")) "=")
      (1 font-lock-variable-name-face))
     ;; Decorators.
     (,(rx line-start (* (any " \t")) (group "@" (1+ (or word ?_))
@@ -1586,6 +1587,11 @@ buffer for a list of commands.)"
     (with-current-buffer
 	(let* ((cmdlist
 		(append (python-args-to-list cmd)
+                        ;; It's easy for the user to cause the process to be
+			;; started without realizing it (e.g. to perform
+			;; completion); for this reason loading files from the
+			;; current directory is a security risk.  See
+			;; http://article.gmane.org/gmane.emacs.devel/103569
 			'("-i" "-c" "import sys; sys.path.remove('')")))
 	       (path (getenv "PYTHONPATH"))
 	       (process-environment	; to import emacs.py
@@ -2802,7 +2808,7 @@ command is used to switch to an existing process, only when a new
 process is started.  If you use this, you will probably want to ensure
 that the current arguments are retained (they will be included in the
 prompt).  This argument is ignored when this function is called
-programmatically, or when running in Emacs 19.34 or older.
+programmatically.
 
 Note: You can toggle between using the CPython interpreter and the
 JPython interpreter by hitting \\[python-toggle-shells].  This toggles

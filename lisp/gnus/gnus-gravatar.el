@@ -63,11 +63,13 @@
 	  (gravatar-size gnus-gravatar-size)
 	  name)
       (dolist (address addresses)
+	(when (setq name (cdr address))
+	  (setcdr address (setq name (mail-decode-encoded-word-string name))))
 	(when (or force
 		  (not (and gnus-gravatar-too-ugly
 			    (or (string-match gnus-gravatar-too-ugly
 					      (car address))
-				(and (setq name (cdr address))
+				(and name
 				     (string-match gnus-gravatar-too-ugly
 						   name))))))
 	  (ignore-errors
@@ -87,12 +89,12 @@ Set image category to CATEGORY."
         (mail-header-narrow-to-field)
         (let ((real-name (cdr address))
               (mail-address (car address)))
-          (when (if real-name             ; have a realname, go for it!
-                    (and (search-forward real-name nil t)
-                         (search-backward real-name nil t))
-                  (and (search-forward mail-address nil t)
-                       (search-backward mail-address nil t)))
-            (goto-char (1- (point)))
+          (when (if real-name
+		    (re-search-forward (concat (regexp-quote real-name) "\\|"
+					       (regexp-quote mail-address))
+				       nil t)
+		  (search-forward mail-address nil t))
+	    (goto-char (1- (match-beginning 0)))
             ;; If we're on the " quoting the name, go backward
             (when (looking-at "[\"<]")
               (goto-char (1- (point))))

@@ -179,7 +179,9 @@ The properties returned may include `top', `left', `height', and `width'."
 
 (defvaralias 'mac-allow-anti-aliasing 'ns-antialias-text)
 (defvaralias 'mac-command-modifier 'ns-command-modifier)
+(defvaralias 'mac-right-command-modifier 'ns-right-command-modifier)
 (defvaralias 'mac-control-modifier 'ns-control-modifier)
+(defvaralias 'mac-right-control-modifier 'ns-right-control-modifier)
 (defvaralias 'mac-option-modifier 'ns-option-modifier)
 (defvaralias 'mac-right-option-modifier 'ns-right-option-modifier)
 (defvaralias 'mac-function-modifier 'ns-function-modifier)
@@ -514,6 +516,8 @@ unless the current buffer is a scratch buffer."
 ;; nsterm.m
 (defvar ns-alternate-modifier)
 (defvar ns-right-alternate-modifier)
+(defvar ns-right-command-modifier)
+(defvar ns-right-control-modifier)
 
 ;; You say tomAYto, I say tomAHto..
 (defvaralias 'ns-option-modifier 'ns-alternate-modifier)

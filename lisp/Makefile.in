@@ -180,7 +180,6 @@ TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptags
 	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4) | sed -e "s,$(lisp)/[^ ]*loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
 	${ETAGS} -o $@ $$els
 
-	$(lisp)/emacs-lisp/smie.elc \
 # The src/Makefile.in has its own set of dependencies and when they decide
 # that one Lisp file needs to be re-compiled, we had better recompile it as
 # well, otherwise every subsequent make will again call us, until we finally

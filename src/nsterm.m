@@ -158,8 +158,18 @@ Lisp_Object ns_right_alternate_modifier;
 Lisp_Object ns_command_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
+   the right Command modifier.  Has same values as ns_command_modifier plus
+   the value Qleft which means whatever value ns_command_modifier has.  */
+Lisp_Object ns_right_command_modifier;
+
+/* Specifies which emacs modifier should be generated when NS receives
    the Control modifier.  May be any of the modifier lisp symbols. */
 Lisp_Object ns_control_modifier;
+
+/* Specifies which emacs modifier should be generated when NS receives
+   the right Control modifier.  Has same values as ns_control_modifier plus
+   the value Qleft which means whatever value ns_control_modifier has.  */
+Lisp_Object ns_right_control_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
    the Function modifier (laptops).  May be any of the modifier lisp symbols. */
@@ -224,6 +234,8 @@ static BOOL inNsSelect = 0;
 /* Convert modifiers in a NeXTSTEP event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
 #define NSRightAlternateKeyMask (0x000040 | NSAlternateKeyMask)
+#define NSRightControlKeyMask   (0x002000 | NSControlKeyMask)
+#define NSRightCommandKeyMask   (0x000010 | NSCommandKeyMask)
 #define EV_MODIFIERS(e)                               \
     ((([e modifierFlags] & NSHelpKeyMask) ?           \
            hyper_modifier : 0)                        \
@@ -235,10 +247,18 @@ static BOOL inNsSelect = 0;
            parse_solitary_modifier (ns_alternate_modifier) : 0)   \
      | (([e modifierFlags] & NSShiftKeyMask) ?     \
            shift_modifier : 0)                        \
+     | (!EQ (ns_right_control_modifier, Qleft) && \
+        (([e modifierFlags] & NSRightControlKeyMask) \
+         == NSRightControlKeyMask) ? \
+           parse_solitary_modifier (ns_right_control_modifier) : 0) \
      | (([e modifierFlags] & NSControlKeyMask) ?      \
            parse_solitary_modifier (ns_control_modifier) : 0)     \
      | (([e modifierFlags] & NS_FUNCTION_KEY_MASK) ?  \
            parse_solitary_modifier (ns_function_modifier) : 0)    \
+     | (!EQ (ns_right_command_modifier, Qleft) && \
+        (([e modifierFlags] & NSRightCommandKeyMask) \
+         == NSRightCommandKeyMask) ? \
+           parse_solitary_modifier (ns_right_command_modifier) : 0) \
      | (([e modifierFlags] & NSCommandKeyMask) ?      \
            parse_solitary_modifier (ns_command_modifier):0))
 
@@ -4424,7 +4444,14 @@ ns_term_shutdown (int sig)
 
       if (flags & NSCommandKeyMask)
         {
-          emacs_event->modifiers |= parse_solitary_modifier (ns_command_modifier);
+          if ((flags & NSRightCommandKeyMask) == NSRightCommandKeyMask
+              && !EQ (ns_right_command_modifier, Qleft))
+            emacs_event->modifiers |= parse_solitary_modifier
+              (ns_right_command_modifier);
+          else
+            emacs_event->modifiers |= parse_solitary_modifier
+              (ns_command_modifier);
+
           /* if super (default), take input manager's word so things like
              dvorak / qwerty layout work */
           if (EQ (ns_command_modifier, Qsuper)
@@ -4458,8 +4485,15 @@ ns_term_shutdown (int sig)
         }
 
       if (flags & NSControlKeyMask)
-          emacs_event->modifiers |=
-            parse_solitary_modifier (ns_control_modifier);
+        {
+          if ((flags & NSRightControlKeyMask) == NSRightControlKeyMask
+              && !EQ (ns_right_control_modifier, Qleft))
+            emacs_event->modifiers |= parse_solitary_modifier
+              (ns_right_control_modifier);
+          else
+            emacs_event->modifiers |= parse_solitary_modifier
+              (ns_control_modifier);
+        }
 
       if (flags & NS_FUNCTION_KEY_MASK && !fnKeysym)
           emacs_event->modifiers |=
@@ -6246,10 +6280,26 @@ at all, allowing it to be used at a lower level for accented character entry.");
 Set to control, meta, alt, super, or hyper means it is taken to be that key.");
   ns_command_modifier = Qsuper;
 
+  DEFVAR_LISP ("ns-right-command-modifier", &ns_right_command_modifier,
+               "This variable describes the behavior of the right command key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to left means be the same key as `ns-command-modifier'.\n\
+Set to none means that the command / option key is not interpreted by Emacs\n\
+at all, allowing it to be used at a lower level for accented character entry.");
+  ns_right_command_modifier = Qleft;
+
   DEFVAR_LISP ("ns-control-modifier", &ns_control_modifier,
                "This variable describes the behavior of the control key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.");
   ns_control_modifier = Qcontrol;
+
+  DEFVAR_LISP ("ns-right-control-modifier", &ns_right_control_modifier,
+               "This variable describes the behavior of the right control key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to left means be the same key as `ns-control-modifier'.\n\
+Set to none means that the control / option key is not interpreted by Emacs\n\
+at all, allowing it to be used at a lower level for accented character entry.");
+  ns_right_control_modifier = Qleft;
 
   DEFVAR_LISP ("ns-function-modifier", &ns_function_modifier,
                "This variable describes the behavior of the function key (on laptops).\n\

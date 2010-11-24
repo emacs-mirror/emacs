@@ -125,7 +125,7 @@ textual parts.")
 
 (defstruct nnimap
   group process commands capabilities select-result newlinep server
-  last-command-time greeting)
+  last-command-time greeting examined)
 
 (defvar nnimap-object nil)
 
@@ -375,12 +375,7 @@ textual parts.")
 	    (setf (nnimap-greeting nnimap-object)
 		  (buffer-substring (line-beginning-position)
 				    (line-end-position)))
-	    ;; Store the capabilities.
-	    (setf (nnimap-capabilities nnimap-object)
-		  (mapcar
-		   #'upcase
-		   (nnimap-find-parameter
-		    "CAPABILITY" (cdr (nnimap-command "CAPABILITY")))))
+	    (nnimap-get-capabilities)
 	    (when nnimap-server-port
 	      (push (format "%s" nnimap-server-port) ports))
 	    ;; If this is a STARTTLS-capable server, then sever the
@@ -391,7 +386,10 @@ textual parts.")
 		       (eq nnimap-stream 'starttls))
 		   (fboundp 'open-gnutls-stream))
 	      (nnimap-command "STARTTLS")
-	      (gnutls-negotiate (nnimap-process nnimap-object) nil))
+	      (gnutls-negotiate (nnimap-process nnimap-object) nil)
+	      ;; Get the capabilities again -- they may have changed
+	      ;; after doing STARTTLS.
+	      (nnimap-get-capabilities))
 	     ((and (eq nnimap-stream 'network)
 		   (nnimap-capability "STARTTLS"))
 	      (let ((nnimap-stream 'starttls))
@@ -446,6 +444,13 @@ textual parts.")
 	      (when (nnimap-capability "QRESYNC")
 		(nnimap-command "ENABLE QRESYNC"))
 	      (nnimap-process nnimap-object))))))))
+
+(defun nnimap-get-capabilities ()
+  (setf (nnimap-capabilities nnimap-object)
+	(mapcar
+	 #'upcase
+	 (nnimap-find-parameter
+	  "CAPABILITY" (cdr (nnimap-command "CAPABILITY"))))))
 
 (defun nnimap-quote-specials (string)
   (with-temp-buffer
@@ -727,12 +732,16 @@ textual parts.")
 (deffoo nnimap-request-rename-group (group new-name &optional server)
   (when (nnimap-possibly-change-group nil server)
     (with-current-buffer (nnimap-buffer)
-      ;; Make sure we don't have this group open read/write by asking
-      ;; to examine a mailbox that doesn't exist.  This seems to be
-      ;; the only way that allows us to reliably go back to unselected
-      ;; state on Courier.
+      (nnimap-unselect-group)
       (car (nnimap-command "RENAME %S %S"
 			   (utf7-encode group t) (utf7-encode new-name t))))))
+
+(defun nnimap-unselect-group ()
+  ;; Make sure we don't have this group open read/write by asking
+  ;; to examine a mailbox that doesn't exist.  This seems to be
+  ;; the only way that allows us to reliably go back to unselected
+  ;; state on Courier.
+  (nnimap-command "EXAMINE DOES.NOT.EXIST"))
 
 (deffoo nnimap-request-expunge-group (group &optional server)
   (when (nnimap-possibly-change-group group server)
@@ -774,6 +783,9 @@ textual parts.")
 	(if internal-move-group
 	    (let ((result
 		   (with-current-buffer (nnimap-buffer)
+		     ;; Clear all flags before moving.
+		     (nnimap-send-command "UID STORE %d FLAGS.SILENT ()"
+					  article)
 		     (nnimap-command "UID COPY %d %S"
 				     article
 				     (utf7-encode internal-move-group t)))))
@@ -863,6 +875,7 @@ textual parts.")
     (erase-buffer)
     (unless (equal group (nnimap-group nnimap-object))
       (setf (nnimap-group nnimap-object) nil)
+      (setf (nnimap-examined nnimap-object) group)
       (nnimap-send-command "EXAMINE %S" (utf7-encode group t)))
     (let ((sequence
 	   (nnimap-send-command "UID SEARCH HEADER Message-Id %S" message-id))
@@ -936,6 +949,10 @@ textual parts.")
       (nnimap-add-cr)
       (setq message (buffer-substring-no-properties (point-min) (point-max)))
       (with-current-buffer (nnimap-buffer)
+	;; If we have this group open read-only, then unselect it
+	;; before appending to it.
+	(when (equal (nnimap-examined nnimap-object) group)
+	  (nnimap-unselect-group))
 	(erase-buffer)
 	(setq sequence (nnimap-send-command
 			"APPEND %S {%d}" (utf7-encode group t)
@@ -994,6 +1011,7 @@ textual parts.")
 	(with-current-buffer (nnimap-buffer)
 	  (setf (nnimap-group nnimap-object) nil)
 	  (dolist (group groups)
+	    (setf (nnimap-examined nnimap-object) group)
 	    (push (list (nnimap-send-command "EXAMINE %S" (utf7-encode group t))
 			group)
 		  sequences))
@@ -1052,6 +1070,7 @@ textual parts.")
 		active (cdr (assq 'active params))
 		uidvalidity (cdr (assq 'uidvalidity params))
 		modseq (cdr (assq 'modseq params)))
+	  (setf (nnimap-examined nnimap-object) group)
 	  (if (and qresyncp
 		   uidvalidity
 		   modseq)

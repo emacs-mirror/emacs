@@ -90,23 +90,25 @@ Comments begin with '#'."
   (interactive "f")
   (let ((orig (point))
 	(here (point-max))
-	(inhibit-point-motion-hooks t)
-	after-change-functions)
+	(inhibit-point-motion-hooks t))
     (goto-char (point-max))
-    (insert-file-contents file)
-    (goto-char (point-max))
-    (throw 'eshell-replace-command
-	   (prog1
-	       (list 'let
-		     (list (list 'eshell-command-name (list 'quote file))
-			   (list 'eshell-command-arguments
-				 (list 'quote args)))
-		     (let ((cmd (eshell-parse-command (cons here (point)))))
-		       (if subcommand-p
-			   (setq cmd (list 'eshell-as-subcommand cmd)))
-		       cmd))
-	     (delete-region here (point))
-	     (goto-char orig)))))
+    (with-silent-modifications
+      ;; FIXME: Why not use a temporary buffer and avoid this
+      ;; "insert&delete" business?  --Stef
+      (insert-file-contents file)
+      (goto-char (point-max))
+      (throw 'eshell-replace-command
+             (prog1
+                 (list 'let
+                       (list (list 'eshell-command-name (list 'quote file))
+                             (list 'eshell-command-arguments
+                                   (list 'quote args)))
+                       (let ((cmd (eshell-parse-command (cons here (point)))))
+                         (if subcommand-p
+                             (setq cmd (list 'eshell-as-subcommand cmd)))
+                         cmd))
+               (delete-region here (point))
+               (goto-char orig))))))
 
 (defun eshell/source (&rest args)
   "Source a file in a subshell environment."

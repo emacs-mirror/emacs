@@ -554,15 +554,6 @@ sys_subshell (void)
 
       close_process_descs ();	/* Close Emacs's pipes/ptys */
 
-#ifdef SET_EMACS_PRIORITY
-      {
-	extern EMACS_INT emacs_priority;
-
-	if (emacs_priority < 0)
-	  nice (-emacs_priority);
-      }
-#endif
-
 #ifdef MSDOS    /* Demacs 1.1.2 91/10/20 Manabu Higashida */
       {
 	char *epwd = getenv ("PWD");

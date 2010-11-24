@@ -1062,7 +1062,7 @@ If no one is selected, symmetric encryption will be performed.  "
 		     (epa-select-keys context "\
 Select keys for signing.
 If no one is selected, default secret key is used.  "
-				      (cons mml2015-signers) t)
+				      (cons sender mml2015-signers) t)
 		   (if (or sender mml2015-signers)
 		       (delq nil
 			     (mapcar
@@ -1077,7 +1077,7 @@ If no one is selected, default secret key is used.  "
 					      signer)))
 				  (error "No secret key for %s" signer))
 				signer-key)
-			      (cons mml2015-signers))))))))
+			      (cons sender mml2015-signers))))))))
       (epg-context-set-signers context signers))
     (epg-context-set-armor context t)
     (epg-context-set-textmode context t)

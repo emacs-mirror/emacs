@@ -165,7 +165,7 @@ This can be either \"inline\" or \"attachment\".")
      ;; dependency on `message.el'.
      "^-+[8<>]*-\\{9,\\}[a-z ]+-\\{9,\\}[a-z ]+-\\{9,\\}[8<>]*-+$"
      "^-+[8<>]*-\\{9,\\}[a-z ]+-\\{9,\\}[a-z ]+-\\{9,\\}[8<>]*-+$"
-     (lambda () (mm-uu-verbatim-marks-extract -1 0 1 -1))
+     (lambda () (mm-uu-verbatim-marks-extract 0 0 1 -1))
      nil)
     ;; Omitting [a-z8<] leads to false positives (bogus signature separators
     ;; and mailing list banners).
