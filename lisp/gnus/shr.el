@@ -702,6 +702,12 @@ START, and END."
   (shr-ensure-newline)
   (insert (make-string shr-width shr-hr-line) "\n"))
 
+(defun shr-tag-font (cont)
+  (let ((start (point))
+        (color (cdr (assq :color cont))))
+    (shr-generic cont)
+    (shr-insert-color-overlay color start (point))))
+
 ;;; Table rendering algorithm.
 
 ;; Table rendering is the only complicated thing here.  We do this by

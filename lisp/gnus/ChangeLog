@@ -2,6 +2,8 @@
 
 	* shr.el (shr-insert-color-overlay): Split stuff like
 	"#444444 !important" to find the real colour.
+	(shr-tag-font): Resurrect shr-tag-font again, since it's needed to
+	parse <font color="red"> entries.
 
 2010-11-23  Andrew Cohen  <cohen@andy.bu.edu>
 
