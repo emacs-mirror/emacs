@@ -1,3 +1,8 @@
+2010-11-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* color-lab.el: Add coding cookie.
+	(float-pi): Use eval-and-compile.
+
 2010-11-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-insert-color-overlay): Split stuff like

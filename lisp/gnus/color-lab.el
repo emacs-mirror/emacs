@@ -1,4 +1,4 @@
-;;; color-lab.el --- Color manipulation laboratory routines
+;;; color-lab.el --- Color manipulation laboratory routines -*- coding: utf-8; -*-
 
 ;; Copyright (C) 2010 Free Software Foundation, Inc.
 
@@ -27,8 +27,9 @@
 ;;; Code:
 
 ;; Emacs < 23.3
-(unless (boundp 'float-pi)
-  (defconst float-pi (* 4 (atan 1)) "The value of Pi (3.1415926...)."))
+(eval-and-compile
+  (unless (boundp 'float-pi)
+    (defconst float-pi (* 4 (atan 1)) "The value of Pi (3.1415926...).")))
 
 (defun rgb->hsv (red green blue)
   "Convert RED GREEN BLUE values to HSV representation.
@@ -243,3 +244,5 @@ Colors must be in CIE L*a*b* format."
                  (* Rt (/ ΔC′ (* Sc kC)) (/ ΔH′ (* Sh kH)))))))))
 
 (provide 'color-lab)
+
+;;; color-lab.el ends here
