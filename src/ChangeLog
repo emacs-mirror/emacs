@@ -1,3 +1,9 @@
+2010-11-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (NSLeftControlKeyMask, NSLeftCommandKeyMask)
+	(NSLeftAlternateKeyMask): New defines.
+	(keyDown): Parse left and right keys separatly (Bug#7458).
+
 2010-11-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* intervals.c (temp_set_point_both): Define before calling, to
