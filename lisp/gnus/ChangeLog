@@ -1,5 +1,8 @@
 2010-11-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* shr.el (shr-insert-color-overlay): Pass rgb(rrr, ggg, bbb) type color
+	expression to shr-color-check as is.
+
 	* shr-color.el (shr-color->hexadecimal): Ignore case of color names.
 
 	* color-lab.el: Add coding cookie.

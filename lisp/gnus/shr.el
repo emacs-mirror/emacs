@@ -502,11 +502,12 @@ START, and END."
 
 (defun shr-insert-color-overlay (color start end)
   (when color
-    (when (string-match " " color)
+    (when (and (not (string-match "\\`rgb([^\)]+)\\'" color))
+	       (string-match " " color))
       (setq color (car (split-string color))))
     (let ((overlay (make-overlay start end)))
       (overlay-put overlay 'face (cons 'foreground-color
-                                       (cadr (shr-color-check color)))))))
+				       (cadr (shr-color-check color)))))))
 
 ;;; Tag-specific rendering rules.
 
