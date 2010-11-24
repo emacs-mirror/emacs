@@ -4,6 +4,8 @@
 
 2010-11-24  Julien Danjou  <julien@danjou.info>
 
+	* color-lab.el: Require 'cl when compiling.
+
 	* shr.el (shr-insert-color-overlay): Remove specific rgb() check.
 
 	* shr-color.el (shr-color->hexadecimal): Only return the hexadecimal

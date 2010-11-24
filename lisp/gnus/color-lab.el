@@ -26,6 +26,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl))
+
 ;; Emacs < 23.3
 (eval-and-compile
   (unless (boundp 'float-pi)
