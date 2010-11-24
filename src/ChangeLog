@@ -2,7 +2,8 @@
 
 	* nsterm.m (NSLeftControlKeyMask, NSLeftCommandKeyMask)
 	(NSLeftAlternateKeyMask): New defines.
-	(keyDown): Parse left and right keys separatly (Bug#7458).
+	(keyDown): Parse left and right keys separately (Bug#7458).
+	Compare Left key masks exactly (Bug#7458).
 
 2010-11-23  Eli Zaretskii  <eliz@gnu.org>
 

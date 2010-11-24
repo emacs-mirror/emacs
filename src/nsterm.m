@@ -4451,7 +4451,7 @@ ns_term_shutdown (int sig)
            ? ns_command_modifier
            : ns_right_command_modifier);
 
-      if (flags & NSLeftCommandKeyMask)
+      if ((flags & NSLeftCommandKeyMask) == NSLeftCommandKeyMask)
         {
           emacs_event->modifiers |= parse_solitary_modifier
             (ns_command_modifier);
@@ -4494,7 +4494,7 @@ ns_term_shutdown (int sig)
                ? ns_control_modifier
                : ns_right_control_modifier);
 
-      if (flags & NSLeftControlKeyMask)
+      if ((flags & NSLeftControlKeyMask) == NSLeftControlKeyMask)
         emacs_event->modifiers |= parse_solitary_modifier
           (ns_control_modifier);
 
@@ -4521,7 +4521,7 @@ ns_term_shutdown (int sig)
                : ns_right_alternate_modifier);
         }
 
-      if (flags & NSLeftAlternateKeyMask) /* default = meta */
+      if ((flags & NSLeftAlternateKeyMask) == NSLeftAlternateKeyMask) /* default = meta */
         {
           if ((NILP (ns_alternate_modifier)
                || EQ (ns_alternate_modifier, Qnone))
