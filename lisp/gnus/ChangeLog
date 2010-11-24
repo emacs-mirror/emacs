@@ -1,3 +1,16 @@
+2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-color-check): Protect against non-existant colour names.
+
+2010-11-24  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-insert-color-overlay): Remove specific rgb() check.
+
+	* shr-color.el (shr-color->hexadecimal): Only return the hexadecimal
+	matched part.
+
+	* color-lab.el: Fix all expt calls to use float type.
+
 2010-11-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-insert-color-overlay): Pass rgb(rrr, ggg, bbb) type color

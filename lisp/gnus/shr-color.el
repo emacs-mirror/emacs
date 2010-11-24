@@ -231,10 +231,10 @@ Like rgb() or hsl()."
   (when color
     (cond
      ;; Hexadecimal color: #abc or #aabbcc
-     ((string-match-p
-       "#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]\\{3\\}?"
+     ((string-match
+       "\\(#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]\\{3\\}?\\)"
        color)
-      color)
+      (match-string 1 color))
      ;; rgb() or rgba() colors
      ((or (string-match
            "rgb(\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*,\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*,\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*)"

@@ -496,18 +496,18 @@ START, and END."
 (autoload 'shr-color->hexadecimal "shr-color")
 (defun shr-color-check (fg &optional bg)
   "Check that FG is visible on BG."
-  (shr-color-visible (or (shr-color->hexadecimal bg)
-                         (frame-parameter nil 'background-color))
-                     (shr-color->hexadecimal fg) (not bg)))
+  (let ((hex-color (shr-color->hexadecimal fg)))
+    (when hex-color
+      (shr-color-visible (or (shr-color->hexadecimal bg)
+			     (frame-parameter nil 'background-color))
+			 hex-color (not bg)))))
 
 (defun shr-insert-color-overlay (color start end)
   (when color
-    (when (and (not (string-match "\\`rgb([^\)]+)\\'" color))
-	       (string-match " " color))
-      (setq color (car (split-string color))))
-    (let ((overlay (make-overlay start end)))
-      (overlay-put overlay 'face (cons 'foreground-color
-				       (cadr (shr-color-check color)))))))
+    (let ((new-color (cadr (shr-color-check color))))
+      (when new-color
+	(overlay-put (make-overlay start end) 'face
+		     (cons 'foreground-color new-color))))))
 
 ;;; Tag-specific rendering rules.
 
