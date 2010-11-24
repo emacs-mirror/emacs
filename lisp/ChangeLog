@@ -1,3 +1,11 @@
+2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/browse-url.el (browse-url-browser-function): Revert the
+	default back to the previous value, since the new value broke
+	mailclient.el.
+	(browse-url-mailto-function): New variable for mailto: URLs.
+	(browse-url): Use the new variable for mailto: URLs.
+
 2010-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eshell/esh-cmd.el (eshell-parse-command):
