@@ -1,5 +1,64 @@
 2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-cache.el (gnus-summary-insert-cached-articles): Use it.
+
+	* gnus-sum.el (gnus-summary-include-articles): New function.
+
+	* message.el (message-goto-body): called-interactively-p needs a
+	parameter, so use `any'.
+
+	* nnimap.el (nnimap-request-move-article): It's no longer necessary to
+	clear marks before moving, since they're synced from the Gnus side
+	first.
+
+	* gnus-sum.el (gnus-summary-push-marks-to-backend): New function.
+	(gnus-summary-move-article): Copy over all marks before moving, so that
+	IMAP doesn't think a new article has arrived.
+
+2010-11-24  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-insert-background-overlay): Fix typo.
+	(shr-render-td): Copy the background before rendering.
+
+	* shr-color.el (shr-color-visible): Fix docstring.
+
+	* shr.el (shr-tag-table): Add bgcolor support.
+	(shr-render-td): Add bgcolor support.
+	(shr-get-background): Add.
+	(shr-insert-foreground-overlay): Use shr-get-background.
+
+	* message.el (message-goto-body): Use called-interactively-p.
+	(message-in-body-p): message-goto-body returns point.
+
+2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-util.el (mm-enable-multibyte): Use `to' instead of t.  This fixes
+	Fixes something or other in Emacs 23, and is backwards compatible.
+
+	* message.el (message-goto-body): Remove the <#secure special-casing,
+	which is too special.
+
+	* shr.el (shr-parse-style): Drop !important from styles.
+
+2010-11-24  Daniel Schoepe  <daniel.schoepe@googlemail.com>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-articles-in-thread): Fix a bug that causes
+	this function to return incorrect results when calling it with an
+	explicit article argument different from
+	(gnus-summary-article-number).
+
+2010-11-24  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-insert-color-overlay): Replace deprecated syntax.
+	(shr-tag-body): Add background support.
+	(shr-descend): Add background support.
+	(shr-tag-title): Add.
+
+	* shr-color.el (shr-color-visible): Really return original background
+	if fixed.
+
+2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* shr.el (shr-color-check): Protect against non-existant colour names.
 
 2010-11-24  Julien Danjou  <julien@danjou.info>
@@ -46,7 +105,8 @@
 
 	* shr.el (shr-parse-style): Replace \n with space in style parsing.
 
-	* shr-color.el (shr-color-hsl-to-rgb-fractions): Use shr-color-hue-to-rgb.
+	* shr-color.el (shr-color-hsl-to-rgb-fractions): Use
+	shr-color-hue-to-rgb.
 	(shr-color->hexadecimal): Call shr-color-hsl-to-rgb-fractions.
 
 2010-11-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
