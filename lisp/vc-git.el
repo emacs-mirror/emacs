@@ -118,7 +118,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "23.1"
   :group 'vc)
 
-(defvar git-commits-coding-system 'utf-8
+(defvar vc-git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
 
 ;;; BACKEND PROPERTIES
@@ -171,7 +171,14 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
-  ;; FIXME: This can't set 'ignored yet
+  ;; FIXME: This can't set 'ignored or 'conflict yet
+  ;; The 'ignored state could be detected with `git ls-files -i -o
+  ;; --exclude-standard` It also can't set 'needs-update or
+  ;; 'needs-merge. The rough equivalent would be that upstream branch
+  ;; for current branch is in fast-forward state i.e. current branch
+  ;; is direct ancestor of corresponding upstream branch, and the file
+  ;; was modified upstream.  But we can't check that without a network
+  ;; operation.
   (if (not (vc-git-registered file))
       'unregistered
     (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
@@ -541,11 +548,16 @@ or an empty string if none."
 (defun vc-git-unregister (file)
   (vc-git-command nil 0 file "rm" "-f" "--cached" "--"))
 
+(declare-function log-edit-extract-headers "log-edit" (headers string))
 
 (defun vc-git-checkin (files rev comment)
-  (let ((coding-system-for-write git-commits-coding-system))
-    (vc-git-command nil 0 files "commit"
-		    "-m" comment "--only" "--")))
+  (let ((coding-system-for-write vc-git-commits-coding-system))
+    (apply 'vc-git-command nil 0 files
+	   (nconc (list "commit" "-m")
+                  (log-edit-extract-headers '(("Author" . "--author")
+					      ("Date" . "--date"))
+                                            comment)
+                  (list "--only" "--")))))
 
 (defun vc-git-find-revision (file rev buffer)
   (let* (process-file-side-effects
@@ -580,7 +592,7 @@ or an empty string if none."
   "Get change log associated with FILES.
 Note that using SHORTLOG requires at least Git version 1.5.6,
 for the --graph option."
-  (let ((coding-system-for-read git-commits-coding-system))
+  (let ((coding-system-for-read vc-git-commits-coding-system))
     ;; `vc-do-command' creates the buffer, but we need it before running
     ;; the command.
     (vc-setup-buffer buffer)
@@ -600,13 +612,34 @@ for the --graph option."
 		(when start-revision (list start-revision))
 		'("--")))))))
 
+(defun vc-git-log-outgoing (buffer remote-location)
+  (interactive)
+  (vc-git-command
+   buffer 0 nil
+   "log"
+   "--no-color" "--graph" "--decorate" "--date=short"
+   "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"
+   (concat (if (string= remote-location "")
+	       "@{upstream}"
+	     remote-location)
+	   "..HEAD")))
+
+(defun vc-git-log-incoming (buffer remote-location)
+  (interactive)
+  (vc-git-command nil 0 nil "fetch")
+  (vc-git-command
+   buffer 0 nil
+   "log"
+   "--no-color" "--graph" "--decorate" "--date=short"
+   "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"
+   (concat "HEAD.." (if (string= remote-location "")
+			"@{upstream}"
+		      remote-location))))
+
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
 (defvar log-view-per-file-logs)
-
-;; Dynamically bound.
-(defvar vc-short-log)
 
 (define-derived-mode vc-git-log-view-mode log-view-mode "Git-Log-View"
   (require 'add-log) ;; We need the faces add-log.
@@ -614,11 +647,11 @@ for the --graph option."
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
-       (if vc-short-log
+       (if (not (eq vc-log-view-type 'long))
 	   "^\\(?:[*/\\| ]+ \\)?\\(?: ([^)]+)\\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
 	 "^commit *\\([0-9a-z]+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
-       (if vc-short-log
+       (if (not (eq vc-log-view-type 'long))
 	   '(
 	     ;; Same as log-view-message-re, except that we don't
 	     ;; want the shy group for the tag name.
@@ -681,7 +714,8 @@ or BRANCH^ (where \"^\" can be repeated)."
     (with-temp-buffer
       (vc-git-command t nil nil "for-each-ref" "--format=%(refname)")
       (goto-char (point-min))
-      (while (re-search-forward "^refs/\\(heads\\|tags\\)/\\(.*\\)$" nil t)
+      (while (re-search-forward "^refs/\\(heads\\|tags\\|remotes\\)/\\(.*\\)$"
+                                nil t)
         (push (match-string 2) table)))
     table))
 

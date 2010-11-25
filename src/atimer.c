@@ -175,9 +175,9 @@ cancel_atimer (timer)
       for (t = *list, prev = NULL; t && t != timer; prev = t, t = t->next)
 	;
 
-      /* If it is, take it off the its list, and put in on the
-	 free-list.  We don't bother to arrange for setting a
-	 different alarm time, since a too early one doesn't hurt.  */
+      /* If it is, take it off its list, and put in on the free-list.
+	 We don't bother to arrange for setting a different alarm time,
+	 since a too early one doesn't hurt.  */
       if (t)
 	{
 	  if (prev)

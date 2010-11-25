@@ -1,3 +1,33 @@
+2010-11-23  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
+
+	* maintaining.texi (VC With A Locking VCS, VC Directory Commands):
+	* vc1-xtra.texi (Customizing VC, General VC Options): Small fixes.
+
+2010-11-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* maintaining.texi (Version Control Systems): Fix repeated sentence.
+	Suggested by Štěpán Němec.
+
+2010-11-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* maintaining.texi (Version Control): Say "commit", not "check in".
+	(Version Control Systems): Simplify descriptions.
+	(VCS Merging, VCS Changesets, VCS Repositories): New nodes, split from
+	VCS Concepts.
+	(VC Mode Line): Update example.
+	(Old Revisions): Document revert-buffer for vc-diff.
+	(Log Buffer): Promote to a subsection.  Document header lines.
+
+	* macos.texi (Mac / GNUstep Basics): Document
+	ns-right-alternate-modifier.
+
+	* emacs.texi (Top): Update node listing.
+
+2010-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows HOME): Add information regarding startup
+	directory when invoking Emacs from a desktop shortcut.  (bug#7300)
+
 2010-09-14  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi (Fancy Diary Display): Emphasize that sort should be

@@ -31,7 +31,8 @@ here.
 * Text and Binary::     Text files use CRLF to terminate lines.
 * Windows Files::       File-name conventions on Windows.
 * ls in Lisp::          Emulation of @code{ls} for Dired.
-* Windows HOME::        Where Emacs looks for your @file{.emacs}.
+* Windows HOME::        Where Emacs looks for your @file{.emacs} and
+                          where it starts up.
 * Windows Keyboard::    Windows-specific keyboard features.
 * Windows Mouse::       Windows-specific mouse features.
 * Windows Processes::   Running subprocesses on Windows.
@@ -329,7 +330,7 @@ names, which might cause misalignment of columns in Dired display.
 @end ifnottex
 
 @node Windows HOME
-@section HOME Directory on MS-Windows
+@section HOME and Startup Directories on MS-Windows
 @cindex @code{HOME} directory on MS-Windows
 
   The Windows equivalent of the @code{HOME} directory is the
@@ -370,6 +371,13 @@ because older Windows systems made it hard to create files with such
 names, the Windows port of Emacs supports an alternative name
 @file{_emacs} as a fallback, if such a file exists in the home
 directory, whereas @file{.emacs} does not.
+
+@cindex start directory, MS-Windows
+@cindex directory where Emacs starts on MS-Windows
+  If you use a Windows desktop shortcut to start Emacs, it starts in
+the directory specified by the shortcut.  To control where that is,
+right-click on the shortcut, select ``Properties'', and in the
+``Shortcut'' tab modify the ``Start in'' field to your liking.
 
 @node Windows Keyboard
 @section Keyboard Usage on MS-Windows

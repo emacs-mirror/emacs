@@ -7882,45 +7882,44 @@ x_connection_closed (dpy, error_message)
 	delete_frame (frame, Qnoelisp);
       }
 
-  /* We have to close the display to inform Xt that it doesn't
-     exist anymore.  If we don't, Xt will continue to wait for
-     events from the display.  As a consequence, a sequence of
-
-     M-x make-frame-on-display RET :1 RET
-     ...kill the new frame, so that we get an IO error...
-     M-x make-frame-on-display RET :1 RET
-
-     will indefinitely wait in Xt for events for display `:1', opened
-     in the first call to make-frame-on-display.
-
-     Closing the display is reported to lead to a bus error on
-     OpenWindows in certain situations.  I suspect that is a bug
-     in OpenWindows.  I don't know how to circumvent it here.  */
-
+  /* If DPYINFO is null, this means we didn't open the display in the
+     first place, so don't try to close it.  */
   if (dpyinfo)
     {
 #ifdef USE_X_TOOLKIT
-      /* If DPYINFO is null, this means we didn't open the display
-	 in the first place, so don't try to close it.  */
-      {
-	extern void (*fatal_error_signal_hook) P_ ((void));
-	fatal_error_signal_hook = x_fatal_error_signal;
-	XtCloseDisplay (dpy);
-	fatal_error_signal_hook = NULL;
-      }
-#endif
+      /* We have to close the display to inform Xt that it doesn't
+	 exist anymore.  If we don't, Xt will continue to wait for
+	 events from the display.  As a consequence, a sequence of
+
+	 M-x make-frame-on-display RET :1 RET
+	 ...kill the new frame, so that we get an IO error...
+	 M-x make-frame-on-display RET :1 RET
+
+	 will indefinitely wait in Xt for events for display `:1',
+	 opened in the first call to make-frame-on-display.
+
+	 Closing the display is reported to lead to a bus error on
+	 OpenWindows in certain situations.  I suspect that is a bug
+	 in OpenWindows.  I don't know how to circumvent it here.  */
+      extern void (*fatal_error_signal_hook) P_ ((void));
+      fatal_error_signal_hook = x_fatal_error_signal;
+      XtCloseDisplay (dpy);
+      fatal_error_signal_hook = NULL;
+#endif /* USE_X_TOOLKIT */
 
 #ifdef USE_GTK
-      /* Due to bugs in some Gtk+ versions, just exit here if this
-         is the last display/terminal. */
-      if (terminal_list->next_terminal == NULL)
-        {
-          fprintf (stderr, "%s\n", error_msg);
-          shut_down_emacs (0, 0, Qnil);
-          exit (70);
-        }
-      xg_display_close (dpyinfo->display);
-#endif
+      /* A long-standing GTK bug prevents proper disconnect handling
+	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Once,
+	 the resulting Glib error message loop filled a user's disk.
+	 To avoid this, kill Emacs unconditionally on disconnect.  */
+      shut_down_emacs (0, 0, Qnil);
+      fprintf (stderr, "%s\n\
+When compiled with GTK, Emacs cannot recover from X disconnects.\n\
+This is a GTK bug: https://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
+For details, see etc/PROBLEMS.\n",
+	       error_msg);
+      abort ();
+#endif /* USE_GTK */
 
       /* Indicate that this display is dead.  */
       dpyinfo->display = 0;
@@ -10523,7 +10522,8 @@ x_term_init (display_name, xrm_option, resource_name)
     = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE", False);
   dpyinfo->Xatom_net_window_type_tooltip
     = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE_TOOLTIP", False);
-  
+  dpyinfo->Xatom_net_frame_extents  
+    = XInternAtom (dpyinfo->display, "_NET_FRAME_EXTENTS", False);
   dpyinfo->cut_buffers_initialized = 0;
 
   dpyinfo->x_dnd_atoms_size = 8;

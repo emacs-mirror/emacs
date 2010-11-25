@@ -316,9 +316,8 @@ size field.")
 
 (defvar widget-field-use-before-change t
   "Non-nil means use `before-change-functions' to track editable fields.
-This enables the use of undo, but doesn't work on Emacs 19.34 and earlier.
-Using before hooks also means that the :notify function can't know the
-new value.")
+This enables the use of undo.  Using before hooks also means that
+the :notify function can't know the new value.")
 
 (defun widget-specify-field (widget from to)
   "Specify editable button for WIDGET between FROM and TO."
@@ -1053,7 +1052,7 @@ POS defaults to the value of (point)."
 
 (defvar widget-use-overlay-change t
   "If non-nil, use overlay change functions to tab around in the buffer.
-This is much faster, but doesn't work reliably on Emacs 19.34.")
+This is much faster.")
 
 (defun widget-move (arg)
   "Move point to the ARG next field or button.
@@ -3751,5 +3750,4 @@ example:
 
 (provide 'wid-edit)
 
-;; arch-tag: a076e75e-18a1-4b46-8be5-3f317bcbc707
 ;;; wid-edit.el ends here

@@ -814,9 +814,9 @@ empty string for the user name.
 
 See `tramp-methods' for a list of possibilities for METHOD."
   :group 'tramp
-  :type '(repeat (list (regexp :tag "Host regexp")
-		       (regexp :tag "User regexp")
-		       (string :tag "Method"))))
+  :type '(repeat (list (choice :tag "Host regexp" regexp sexp)
+		       (choice :tag "User regexp" regexp sexp)
+		       (choice :tag "Method name" string (const nil)))))
 
 (defcustom tramp-default-user
   nil
@@ -842,9 +842,9 @@ matches, the variable `tramp-default-user' takes effect.
 If the file name does not specify the method, lookup is done using the
 empty string for the method name."
   :group 'tramp
-  :type '(repeat (list (regexp :tag "Method regexp")
-		       (regexp :tag "Host regexp")
-		       (string :tag "User"))))
+  :type '(repeat (list (choice :tag "Method regexp" regexp sexp)
+		       (choice :tag "  Host regexp" regexp sexp)
+		       (choice :tag "    User name" string (const nil)))))
 
 (defcustom tramp-default-host
   (system-name)
@@ -870,7 +870,7 @@ interpreted as a regular expression which always matches."
   :group 'tramp
   :type '(repeat (list (choice :tag "Host regexp" regexp sexp)
 		       (choice :tag "User regexp" regexp sexp)
-		       (choice :tag "Proxy remote name" string (const nil)))))
+		       (choice :tag " Proxy name" string (const nil)))))
 
 (defconst tramp-local-host-regexp
   (concat
@@ -5008,7 +5008,10 @@ coding system might not be determined.  This function repairs it."
 	    (setq buffer-file-name filename)
 	    (setq buffer-read-only (not (file-writable-p filename)))
 	    (set-visited-file-modtime)
-	    (set-buffer-modified-p nil))
+	    (set-buffer-modified-p nil)
+	    ;; For root, preserve owner and group when editing files.
+	    (when (string-equal (file-remote-p filename 'user) "root")
+	      (set (make-local-variable 'backup-by-copying-when-mismatch) t)))
 	  (when (and (stringp local-copy)
 		     (or remote-copy (null tramp-temp-buffer-file-name)))
 	    (delete-file local-copy))
@@ -7159,7 +7162,11 @@ and end of region, and are expected to replace the region contents
 with the encoded or decoded results, respectively.")
 
 (defconst tramp-remote-coding-commands
-  '((b64 "base64" "base64 -d")
+  '((b64 "base64" "base64 -d -i")
+    ;; "-i" is more robust with older base64 from GNU coreutils.
+    ;; However, I don't know whether all base64 versions do supports
+    ;; this option.
+    (b64 "base64" "base64 -d")
     (b64 "mimencode -b" "mimencode -u -b")
     (b64 "mmencode -b" "mmencode -u -b")
     (b64 "recode data..base64" "recode base64..data")
@@ -8578,54 +8585,57 @@ If no corresponding command is found, nil is returned.
 Otherwise, either a string is returned which contains a `%s' mark
 to be used for the respective input or output file; or a Lisp
 function cell is returned to be applied on a buffer."
-  (let ((coding
-	 (with-connection-property vec prop
-	   (tramp-find-inline-encoding vec)
-	   (tramp-get-connection-property vec prop nil)))
-	(prop1 (if (string-match "encoding" prop)
-		   "inline-compress" "inline-decompress"))
-	compress)
-    ;; The connection property might have been cached.  So we must send
-    ;; the script to the remote side - maybe.
-    (when (and coding (symbolp coding) (string-match "remote" prop))
-      (let ((name (symbol-name coding)))
-	(while (string-match (regexp-quote "-") name)
-	  (setq name (replace-match "_" nil t name)))
-	(tramp-maybe-send-script vec (symbol-value coding) name)
-	(setq coding name)))
-    (when coding
-      ;; Check for the `compress' command.
-      (setq compress (tramp-get-inline-compress vec prop1 size))
-      ;; Return the value.
-      (cond
-       ((and compress (symbolp coding))
-	(if (string-match "decompress" prop1)
+  ;; We must catch the errors, because we want to return `nil', when
+  ;; no inline coding is found.
+  (ignore-errors
+    (let ((coding
+	   (with-connection-property vec prop
+	     (tramp-find-inline-encoding vec)
+	     (tramp-get-connection-property vec prop nil)))
+	  (prop1 (if (string-match "encoding" prop)
+		     "inline-compress" "inline-decompress"))
+	  compress)
+      ;; The connection property might have been cached.  So we must
+      ;; send the script to the remote side - maybe.
+      (when (and coding (symbolp coding) (string-match "remote" prop))
+	(let ((name (symbol-name coding)))
+	  (while (string-match (regexp-quote "-") name)
+	    (setq name (replace-match "_" nil t name)))
+	  (tramp-maybe-send-script vec (symbol-value coding) name)
+	  (setq coding name)))
+      (when coding
+	;; Check for the `compress' command.
+	(setq compress (tramp-get-inline-compress vec prop1 size))
+	;; Return the value.
+	(cond
+	 ((and compress (symbolp coding))
+	  (if (string-match "decompress" prop1)
+	      `(lambda (beg end)
+		 (,coding beg end)
+		 (let ((coding-system-for-write 'binary)
+		       (coding-system-for-read 'binary))
+		   (apply
+		    'call-process-region (point-min) (point-max)
+		    (car (split-string ,compress)) t t nil
+		    (cdr (split-string ,compress)))))
 	    `(lambda (beg end)
-	       (,coding beg end)
 	       (let ((coding-system-for-write 'binary)
 		     (coding-system-for-read 'binary))
 		 (apply
-		  'call-process-region (point-min) (point-max)
+		  'call-process-region beg end
 		  (car (split-string ,compress)) t t nil
-		  (cdr (split-string ,compress)))))
-	  `(lambda (beg end)
-	     (let ((coding-system-for-write 'binary)
-		   (coding-system-for-read 'binary))
-	       (apply
-		'call-process-region beg end
-		(car (split-string ,compress)) t t nil
-		(cdr (split-string ,compress))))
-	     (,coding (point-min) (point-max)))))
-       ((symbolp coding)
-	coding)
-       ((and compress (string-match "decoding" prop))
-	(format "(%s | %s >%%s)" coding compress))
-       (compress
-	(format "(%s <%%s | %s)" compress coding))
-       ((string-match "decoding" prop)
-	(format "%s >%%s" coding))
-       (t
-	(format "%s <%%s" coding))))))
+		  (cdr (split-string ,compress))))
+	       (,coding (point-min) (point-max)))))
+	 ((symbolp coding)
+	  coding)
+	 ((and compress (string-match "decoding" prop))
+	  (format "(%s | %s >%%s)" coding compress))
+	 (compress
+	  (format "(%s <%%s | %s)" compress coding))
+	 ((string-match "decoding" prop)
+	  (format "%s >%%s" coding))
+	 (t
+	  (format "%s <%%s" coding)))))))
 
 (defun tramp-get-method-parameter (method param)
   "Return the method parameter PARAM.

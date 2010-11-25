@@ -125,6 +125,7 @@ If SETUP is 'force, this variable has no effect."
   :type 'boolean)
 
 (defcustom log-edit-hook '(log-edit-insert-cvs-template
+                           log-edit-show-files
 			   log-edit-insert-changelog)
   "Hook run at the end of `log-edit'."
   :group 'log-edit
@@ -188,6 +189,7 @@ when this variable is set to nil.")
 (defvar log-edit-callback nil)
 (defvar log-edit-diff-function nil)
 (defvar log-edit-listfun nil)
+
 (defvar log-edit-parent-buffer nil)
 
 ;;; Originally taken from VC-Log mode
@@ -312,15 +314,59 @@ automatically."
 ;;; Actual code
 ;;;
 
+(defface log-edit-summary '((t :inherit font-lock-function-name-face))
+  "Face for the summary in `log-edit-mode' buffers.")
+
+(defface log-edit-header '((t :inherit font-lock-keyword-face))
+  "Face for the headers in `log-edit-mode' buffers.")
+
+(defface log-edit-unknown-header '((t :inherit font-lock-comment-face))
+  "Face for unknown headers in `log-edit-mode' buffers.")
+
+(defvar log-edit-headers-alist '(("Summary" . log-edit-summary)
+                                 ("Fixes") ("Author"))
+  "AList of known headers and the face to use to highlight them.")
+
+(defconst log-edit-header-contents-regexp
+  "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?")
+
+(defun log-edit-match-to-eoh (limit)
+  ;; FIXME: copied from message-match-to-eoh.
+  (let ((start (point)))
+    (rfc822-goto-eoh)
+    ;; Typical situation: some temporary change causes the header to be
+    ;; incorrect, so EOH comes earlier than intended: the last lines of the
+    ;; intended headers are now not considered part of the header any more,
+    ;; so they don't have the multiline property set.  When the change is
+    ;; completed and the header has its correct shape again, the lack of the
+    ;; multiline property means we won't rehighlight the last lines of
+    ;; the header.
+    (if (< (point) start)
+        nil                             ;No header within start..limit.
+      ;; Here we disregard LIMIT so that we may extend the area again.
+      (set-match-data (list start (point)))
+      (point))))
+
 (defvar log-edit-font-lock-keywords
-  '(("\\`\\(Summary:\\)\\(.*\\)"
-     (1 font-lock-keyword-face)
-     (2 font-lock-function-name-face))))
+  ;; Copied/inspired by message-font-lock-keywords.
+  `((log-edit-match-to-eoh
+     (,(concat "^\\(\\([a-z]+\\):\\)" log-edit-header-contents-regexp
+               "\\|\\(.*\\)")
+      (progn (goto-char (match-beginning 0)) (match-end 0)) nil
+      (1 (if (assoc (match-string 2) log-edit-headers-alist)
+             'log-edit-header
+           'log-edit-unknown-header)
+         nil lax)
+      (3 (or (cdr (assoc (match-string 2) log-edit-headers-alist))
+             'log-edit-header)
+         nil lax)
+      (4 font-lock-warning-face)))))
 
 ;;;###autoload
-(defun log-edit (callback &optional setup params buffer &rest ignore)
+(defun log-edit (callback &optional setup params buffer mode &rest ignore)
   "Setup a buffer to enter a log message.
-\\<log-edit-mode-map>The buffer will be put in `log-edit-mode'.
+\\<log-edit-mode-map>The buffer will be put in mode MODE or `log-edit-mode'
+if MODE is nil.
 If SETUP is non-nil, the buffer is then erased and `log-edit-hook' is run.
 Mark and point will be set around the entire contents of the buffer so
 that it is easy to kill the contents of the buffer with \\[kill-region].
@@ -340,8 +386,13 @@ uses the current buffer."
     (if buffer (pop-to-buffer buffer))
     (when (and log-edit-setup-invert (not (eq setup 'force)))
       (setq setup (not setup)))
-    (when setup (erase-buffer))
-    (log-edit-mode)
+    (when setup
+      (erase-buffer)
+      (insert "Summary: ")
+      (save-excursion (insert "\n\n")))
+    (if mode
+	(funcall mode)
+      (log-edit-mode))
     (set (make-local-variable 'log-edit-callback) callback)
     (if (listp params)
 	(dolist (crt params)
@@ -367,7 +418,7 @@ commands (under C-x v for VC, for example).
 
 \\{log-edit-mode-map}"
   (set (make-local-variable 'font-lock-defaults)
-       '(log-edit-font-lock-keywords t))
+       '(log-edit-font-lock-keywords t t))
   (make-local-variable 'log-edit-comment-ring-index))
 
 (defun log-edit-hide-buf (&optional buf where)
@@ -380,6 +431,17 @@ commands (under C-x v for VC, for example).
   "Finish editing the log message and commit the files.
 If you want to abort the commit, simply delete the buffer."
   (interactive)
+  ;; Clean up empty headers.
+  (goto-char (point-min))
+  (while (looking-at (concat "^[a-z]*:" log-edit-header-contents-regexp))
+    (let ((beg (match-beginning 0)))
+      (goto-char (match-end 0))
+      (if (string-match "\\`[ \n\t]*\\'" (match-string 1))
+          (delete-region beg (point)))))
+  ;; Get rid of leading empty lines.
+  (goto-char (point-min))
+  (when (looking-at "\\([ \t]*\n\\)+")
+    (delete-region (match-beginning 0) (match-end 0)))
   ;; Get rid of trailing empty lines
   (goto-char (point-max))
   (skip-syntax-backward " ")
@@ -437,12 +499,13 @@ If you want to abort the commit, simply delete the buffer."
   "(Un)Indent the current buffer rigidly to `log-edit-common-indent'."
   (save-excursion
     (let ((common (point-max)))
-      (goto-char (point-min))
+      (rfc822-goto-eoh)
       (while (< (point) (point-max))
         (if (not (looking-at "^[ \t]*$"))
             (setq common (min common (current-indentation))))
         (forward-line 1))
-      (indent-rigidly (point-min) (point-max)
+      (rfc822-goto-eoh)
+      (indent-rigidly (point) (point-max)
 		      (- log-edit-common-indent common)))))
 
 (defun log-edit-show-diff ()
@@ -508,6 +571,16 @@ can thus take some time."
 	(log-edit-comment-to-change-log)))))
 
 (defvar log-edit-changelog-use-first nil)
+
+(defvar log-edit-rewrite-fixes nil
+  "Rule to rewrite bug numbers into Fixes: headers.
+The value should be of the form (REGEXP . REPLACEMENT)
+where REGEXP should match the expression referring to a bug number
+in the text, and REPLACEMENT is an expression to pass to `replace-match'
+to build the Fixes: header.")
+(put 'log-edit-rewrite-fixes 'safe-local-variable
+     (lambda (v) (and (stringp (car-safe v)) (stringp (cdr v)))))
+
 (defun log-edit-insert-changelog (&optional use-first)
   "Insert a log message by looking at the ChangeLog.
 The idea is to write your ChangeLog entries first, and then use this
@@ -525,18 +598,38 @@ If the optional prefix arg USE-FIRST is given (via \\[universal-argument]),
 or if the command is repeated a second time in a row, use the first log entry
 regardless of user name or time."
   (interactive "P")
-  (let ((log-edit-changelog-use-first
-	 (or use-first (eq last-command 'log-edit-insert-changelog))))
-    (log-edit-insert-changelog-entries (log-edit-files)))
-  (log-edit-set-common-indentation)
-  (goto-char (point-min))
-  (when (and log-edit-strip-single-file-name (looking-at "\\*\\s-+"))
-    (forward-line 1)
-    (when (not (re-search-forward "^\\*\\s-+" nil t))
-      (goto-char (point-min))
-      (skip-chars-forward "^():")
-      (skip-chars-forward ": ")
-      (delete-region (point-min) (point)))))
+  (let ((eoh (save-excursion (rfc822-goto-eoh) (point))))
+    (when (<= (point) eoh)
+      (goto-char eoh)
+      (if (looking-at "\n") (forward-char 1))))
+  (let ((author
+         (let ((log-edit-changelog-use-first
+                (or use-first (eq last-command 'log-edit-insert-changelog))))
+           (log-edit-insert-changelog-entries (log-edit-files)))))
+    (log-edit-set-common-indentation)
+    ;; Add an Author: field if appropriate.
+    (when author
+      (rfc822-goto-eoh)
+      (insert "Author: " author "\n" (if (looking-at "\n") "" "\n")))
+    ;; Add a Fixes: field if applicable.
+    (when (consp log-edit-rewrite-fixes)
+      (rfc822-goto-eoh)
+      (when (re-search-forward (car log-edit-rewrite-fixes) nil t)
+        (let ((start (match-beginning 0))
+              (end (match-end 0))
+              (fixes (match-substitute-replacement
+                      (cdr log-edit-rewrite-fixes))))
+          (delete-region start end)
+          (rfc822-goto-eoh)
+          (insert "Fixes: " fixes "\n" (if (looking-at "\n") "" "\n")))))
+    (goto-char (point-min))
+    (when (and log-edit-strip-single-file-name (looking-at "\\*\\s-+"))
+      (forward-line 1)
+      (when (not (re-search-forward "^\\*\\s-+" nil t))
+        (goto-char (point-min))
+        (skip-chars-forward "^():")
+        (skip-chars-forward ": ")
+        (delete-region (point-min) (point))))))
 
 ;;;;
 ;;;; functions for getting commit message from ChangeLog a file...
@@ -602,6 +695,9 @@ for more details."
 
 (defvar user-full-name)
 (defvar user-mail-address)
+
+(defvar log-edit-author)                ;Dynamically scoped.
+
 (defun log-edit-changelog-ours-p ()
   "See if ChangeLog entry at point is for the current user, today.
 Return non-nil if it is."
@@ -616,14 +712,28 @@ Return non-nil if it is."
 		       (functionp add-log-time-format)
 		       (funcall add-log-time-format))
 		  (format-time-string "%Y-%m-%d"))))
-    (looking-at (if log-edit-changelog-use-first
-                    "[^ \t]"
-                  (regexp-quote (format "%s  %s  <%s>" time name mail))))))
+    (if (null log-edit-changelog-use-first)
+        (looking-at (regexp-quote (format "%s  %s  <%s>" time name mail)))
+      ;; Check the author, to potentially add it as a "Author: " header.
+      (when (looking-at "[^ \t]")
+        (when (and (boundp 'log-edit-author)
+                   (not (looking-at (format ".+  .+  <%s>"
+                                            (regexp-quote mail))))
+                   (looking-at ".+  \\(.+  <.+>\\)"))
+          (let ((author (replace-regexp-in-string "  " " "
+                                                  (match-string 1))))
+            (unless (and log-edit-author
+                         (string-match (regexp-quote author) log-edit-author))
+              (setq log-edit-author
+                    (if log-edit-author
+                        (concat log-edit-author ", " author)
+                      author)))))
+        t))))
 
 (defun log-edit-changelog-entries (file)
   "Return the ChangeLog entries for FILE, and the ChangeLog they came from.
 The return value looks like this:
-  (LOGBUFFER (ENTRYSTART . ENTRYEND) ...)
+  (LOGBUFFER (ENTRYSTART ENTRYEND) ...)
 where LOGBUFFER is the name of the ChangeLog buffer, and each
 \(ENTRYSTART . ENTRYEND\) pair is a buffer region."
   (let ((changelog-file-name
@@ -681,34 +791,87 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
 
 	      (cons (current-buffer) texts))))))))
 
-(defun log-edit-changelog-insert-entries (buffer regions)
-  "Insert those regions in BUFFER specified in REGIONS.
-Sort REGIONS front-to-back first."
-  (let ((regions (sort regions 'car-less-than-car))
-        (last))
-    (dolist (region regions)
-      (when (and last (< last (car region))) (newline))
-      (setq last (elt region 1))
-      (apply 'insert-buffer-substring buffer region))))
+(defun log-edit-changelog-insert-entries (buffer beg end &rest files)
+  "Insert the text from BUFFER between BEG and END.
+Rename relative filenames in the ChangeLog entry as FILES."
+  (let ((opoint (point))
+	(log-name (buffer-file-name buffer))
+	(case-fold-search nil)
+	bound)
+    (insert-buffer-substring buffer beg end)
+    (setq bound (point-marker))
+    (when log-name
+      (dolist (f files)
+	(save-excursion
+	  (goto-char opoint)
+	  (when (re-search-forward
+		 (concat "\\(^\\|[ \t]\\)\\("
+			 (file-relative-name f (file-name-directory log-name))
+			 "\\)[, :\n]")
+		 bound t)
+	    (replace-match f t t nil 2)))))
+    ;; Eliminate tabs at the beginning of the line.
+    (save-excursion
+      (goto-char opoint)
+      (while (re-search-forward "^\\(\t+\\)" bound t)
+	(replace-match "")))))
 
 (defun log-edit-insert-changelog-entries (files)
   "Given a list of files FILES, insert the ChangeLog entries for them."
-  (let ((buffer-entries nil))
-
-    ;; Add each buffer to buffer-entries, and associate it with the list
-    ;; of entries we want from that file.
+  (let ((log-entries nil)
+        (log-edit-author nil))
+    ;; Note that any ChangeLog entry can apply to more than one file.
+    ;; Here we construct a log-entries list with elements of the form
+    ;;   ((LOGBUFFER ENTRYSTART ENTRYEND) FILE1 FILE2...)
     (dolist (file files)
       (let* ((entries (log-edit-changelog-entries file))
-             (pair (assq (car entries) buffer-entries)))
-        (if pair
-            (setcdr pair (cvs-union (cdr pair) (cdr entries)))
-          (push entries buffer-entries))))
+	     (buf (car entries))
+	     key entry)
+	(dolist (region (cdr entries))
+	  (setq key (cons buf region))
+	  (if (setq entry (assoc key log-entries))
+	      (setcdr entry (append (cdr entry) (list file)))
+	    (push (list key file) log-entries)))))
+    ;; Now map over log-entries, and extract the strings.
+    (dolist (log-entry (nreverse log-entries))
+      (apply 'log-edit-changelog-insert-entries
+	     (append (car log-entry) (cdr log-entry)))
+      (insert "\n"))
+    log-edit-author))
 
-    ;; Now map over each buffer in buffer-entries, sort the entries for
-    ;; each buffer, and extract them as strings.
-    (dolist (buffer-entry buffer-entries)
-      (log-edit-changelog-insert-entries (car buffer-entry) (cdr buffer-entry))
-      (when (cdr buffer-entry) (newline)))))
+(defun log-edit-extract-headers (headers comment)
+  "Extract headers from COMMENT to form command line arguments.
+HEADERS should be an alist with elements of the form (HEADER . CMDARG)
+associating header names to the corresponding cmdline option name and the
+result is then a list of the form (MSG CMDARG1 HDRTEXT1 CMDARG2 HDRTEXT2...).
+where MSG is the remaining text from STRING.
+If \"Summary\" is not in HEADERS, then the \"Summary\" header is extracted
+anyway and put back as the first line of MSG."
+  (with-temp-buffer
+    (insert comment)
+    (rfc822-goto-eoh)
+    (narrow-to-region (point-min) (point))
+    (let ((case-fold-search t)
+          (summary ())
+          (res ()))
+      (dolist (header (if (assoc "Summary" headers) headers
+                        (cons '("Summary" . t) headers)))
+        (goto-char (point-min))
+        (while (re-search-forward (concat "^" (car header)
+                                          ":" log-edit-header-contents-regexp)
+                                  nil t)
+          (if (eq t (cdr header))
+              (setq summary (match-string 1))
+            (push (match-string 1) res)
+            (push (or (cdr header) (car header)) res))
+          (replace-match "" t t)))
+      ;; Remove header separator if the header is empty.
+      (widen)
+      (goto-char (point-min))
+      (when (looking-at "\\([ \t]*\n\\)+")
+        (delete-region (match-beginning 0) (match-end 0)))
+      (if summary (insert summary "\n"))
+      (cons (buffer-string) res))))
 
 (provide 'log-edit)
 

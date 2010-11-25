@@ -224,6 +224,14 @@ down to an integer.
 @end example
 @end defun
 
+@defvar float-e
+The mathematical constant @math{e} (2.71828@dots{}).
+@end defvar
+
+@defvar float-pi
+The mathematical constant @math{pi} (3.14159@dots{}).
+@end defvar
+
 @node Predicates on Numbers
 @section Type Predicates for Numbers
 @cindex predicates for numbers

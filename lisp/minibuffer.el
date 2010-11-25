@@ -41,7 +41,7 @@
 ;;   provide the start info but not the end info in
 ;;   completion-base-position.
 ;; - quoting is problematic.  E.g. the double-dollar quoting used in
-;;   substitie-in-file-name (and hence read-file-name-internal) bumps
+;;   substitute-in-file-name (and hence read-file-name-internal) bumps
 ;;   into various bugs:
 ;; - choose-completion doesn't know how to quote the text it inserts.
 ;;   E.g. it fails to double the dollars in file-name completion, or
@@ -1075,6 +1075,7 @@ variables.")
   (interactive)
   (message "Making completion list...")
   (lexical-let* ((start (field-beginning))
+                 (end (field-end))
 		 (string (field-string))
 		 (completions (completion-all-completions
 			       string
@@ -1106,10 +1107,12 @@ variables.")
                             completions)))
             (with-current-buffer standard-output
               (set (make-local-variable 'completion-base-position)
-                   ;; FIXME: We should provide the END part as well, but
-                   ;; currently completion-all-completions does not give
-                   ;; us the necessary information.
-                   (list (+ start base-size) nil)))
+                   (list (+ start base-size)
+                         ;; FIXME: We should pay attention to completion
+                         ;; boundaries here, but currently
+                         ;; completion-all-completions does not give us the
+                         ;; necessary information.
+                         end)))
             (display-completion-list completions)))
 
       ;; If there are no completions, or if the current input is already the

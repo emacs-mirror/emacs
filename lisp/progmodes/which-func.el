@@ -154,7 +154,7 @@ mouse-3: go to end")
   :type 'sexp)
 ;;;###autoload (put 'which-func-format 'risky-local-variable t)
 
-(defvar which-func-imenu-joiner-function #'last
+(defvar which-func-imenu-joiner-function (lambda (x) (car (last x)))
   "Function to join together multiple levels of imenu nomenclature.
 Called with a single argument, a list of strings giving the names
 of the menus we had to traverse to get to the item.  Returns a
@@ -242,6 +242,9 @@ continuously displayed in the mode line, in certain major modes.
 With prefix ARG, turn Which Function mode on if arg is positive,
 and off otherwise."
   :global t :group 'which-func
+  (when (timerp which-func-update-timer)
+    (cancel-timer which-func-update-timer))
+  (setq which-func-update-timer nil)
   (if which-function-mode
       ;;Turn it on
       (progn
@@ -253,9 +256,6 @@ and off otherwise."
                   (or (eq which-func-modes t)
                       (member major-mode which-func-modes))))))
     ;; Turn it off
-    (when (timerp which-func-update-timer)
-      (cancel-timer which-func-update-timer))
-    (setq which-func-update-timer nil)
     (dolist (buf (buffer-list))
       (with-current-buffer buf (setq which-func-mode nil)))))
 

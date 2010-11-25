@@ -7,7 +7,7 @@
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
 ;; Version: 2.0.2
 ;; Keywords: comm languages processes
-;; URL: http://savannah.gnu.org/cgi-bin/viewcvs/emacs/emacs/lisp/progmodes/sql.el
+;; URL: http://savannah.gnu.org/projects/emacs/
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
 
 ;; This file is part of GNU Emacs.
@@ -2885,5 +2885,4 @@ parameters and command options."
 
 (provide 'sql)
 
-;; arch-tag: 7e1fa1c4-9ca2-402e-87d2-83a5eccb7ac3
 ;;; sql.el ends here

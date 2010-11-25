@@ -1,3 +1,15 @@
+2010-11-21  Ulrich Mueller  <ulm@gentoo.org>
+
+	* HELLO: Add ancient Greek (Bug#7418).
+
+2010-10-20  Richard Stallman  <rms@gnu.org>
+
+	* DISTRIB: Update donation section.
+
+2010-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* DISTRIB: Small updates.
+
 2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* tutorials/TUTORIAL.es: Fix typos.

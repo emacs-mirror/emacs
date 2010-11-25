@@ -594,7 +594,7 @@ headers.
 @vindex vc-handled-backends
 The variable @code{vc-handled-backends} determines which version
 control systems VC should handle.  The default value is @code{(RCS CVS
-SVN SCCS BZR GIT HG Arch)}, so it contains all the version systems
+SVN SCCS Bzr Git Hg Mtn Arch)}, so it contains all the version systems
 that are currently supported.  If you want VC to ignore one or more of
 these systems, exclude its name from the list.  To disable VC entirely,
 set this variable to @code{nil}.
@@ -657,8 +657,8 @@ variable does not affect @kbd{C-x v c}; that operation is so drastic
 that it should always ask for confirmation.)
 
 @vindex vc-command-messages
-  VC mode does much of its work by running the shell commands for RCS,
-CVS and SCCS.  If @code{vc-command-messages} is non-@code{nil}, VC
+  VC mode does much of its work by running the shell commands for the
+appropriate backend.  If @code{vc-command-messages} is non-@code{nil}, VC
 displays messages to indicate which shell commands it runs, and
 additional messages when the commands finish.
 

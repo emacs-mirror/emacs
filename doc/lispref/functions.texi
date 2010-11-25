@@ -818,7 +818,7 @@ length of @var{sequence}.  For example:
      @result{} (a c e)
 (mapcar '1+ [1 2 3])
      @result{} (2 3 4)
-(mapcar 'char-to-string "abc")
+(mapcar 'string "abc")
      @result{} ("a" "b" "c")
 @end group
 

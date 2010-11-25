@@ -141,7 +141,6 @@ preserve the setting."
 (defvar vc-log-operation nil)
 (defvar vc-log-after-operation-hook nil)
 (defvar vc-log-fileset)
-(defvar vc-log-extra)
 
 ;; In a log entry buffer, this is a local variable
 ;; that points to the buffer for which it was made
@@ -458,7 +457,7 @@ ARG and NO-CONFIRM are passed on to `revert-buffer'."
 (make-variable-buffer-local 'vc-mode-line-hook)
 (put 'vc-mode-line-hook 'permanent-local t)
 
-(defun vc-resynch-window (file &optional keep noquery)
+(defun vc-resynch-window (file &optional keep noquery reset-vc-info)
   "If FILE is in the current buffer, either revert or unvisit it.
 The choice between revert (to see expanded keywords) and unvisit
 depends on KEEP.  NOQUERY if non-nil inhibits confirmation for
@@ -469,6 +468,8 @@ editing!"
   (and (string= buffer-file-name file)
        (if keep
 	   (when (file-exists-p file)
+	     (when reset-vc-info
+	       (vc-file-clearprops file))
 	     (vc-revert-buffer-internal t noquery)
 
 	     ;; VC operations might toggle the read-only state.  In
@@ -490,24 +491,24 @@ editing!"
 (declare-function vc-dir-resynch-file "vc-dir" (&optional fname))
 (declare-function vc-string-prefix-p "vc" (prefix string))
 
-(defun vc-resynch-buffers-in-directory (directory &optional keep noquery)
+(defun vc-resynch-buffers-in-directory (directory &optional keep noquery reset-vc-info)
   "Resync all buffers that visit files in DIRECTORY."
   (dolist (buffer (buffer-list))
     (let ((fname (buffer-file-name buffer)))
       (when (and fname (vc-string-prefix-p directory fname))
 	(with-current-buffer buffer
-	  (vc-resynch-buffer fname keep noquery))))))
+	  (vc-resynch-buffer fname keep noquery reset-vc-info))))))
 
-(defun vc-resynch-buffer (file &optional keep noquery)
+(defun vc-resynch-buffer (file &optional keep noquery reset-vc-info)
   "If FILE is currently visited, resynch its buffer."
   (if (string= buffer-file-name file)
-      (vc-resynch-window file keep noquery)
+      (vc-resynch-window file keep noquery reset-vc-info)
     (if (file-directory-p file)
-	(vc-resynch-buffers-in-directory file keep noquery)
+	(vc-resynch-buffers-in-directory file keep noquery reset-vc-info)
       (let ((buffer (get-file-buffer file)))
 	(when buffer
 	  (with-current-buffer buffer
-	    (vc-resynch-window file keep noquery))))))
+	    (vc-resynch-window file keep noquery reset-vc-info))))))
   ;; Try to avoid unnecessary work, a *vc-dir* buffer is only present
   ;; if this is true.
   (when vc-dir-buffers
@@ -527,21 +528,26 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 
 ;; Set up key bindings for use while editing log messages
 
-(defun vc-log-edit (fileset)
+(defun vc-log-edit (fileset mode)
   "Set up `log-edit' for use on FILE."
   (setq default-directory
 	(with-current-buffer vc-parent-buffer default-directory))
   (log-edit 'vc-finish-logentry
 	    nil
-	    `((log-edit-listfun . (lambda () ',fileset))
-	      (log-edit-diff-function . (lambda () (vc-diff nil)))))
+	    `((log-edit-listfun . (lambda ()
+                                    ;; FIXME: Should expand the list
+                                    ;; for directories.
+                                    (mapcar 'file-relative-name
+                                            ',fileset)))
+	      (log-edit-diff-function . (lambda () (vc-diff nil))))
+	    nil
+	    mode)
   (set (make-local-variable 'vc-log-fileset) fileset)
-  (make-local-variable 'vc-log-extra)
   (set-buffer-modified-p nil)
   (setq buffer-file-name nil))
 
-(defun vc-start-logentry (files extra comment initial-contents msg logbuf action &optional after-hook)
-  "Accept a comment for an operation on FILES with extra data EXTRA.
+(defun vc-start-logentry (files comment initial-contents msg logbuf mode action &optional after-hook)
+  "Accept a comment for an operation on FILES.
 If COMMENT is nil, pop up a LOGBUF buffer, emit MSG, and set the
 action on close to ACTION.  If COMMENT is a string and
 INITIAL-CONTENTS is non-nil, then COMMENT is used as the initial
@@ -549,8 +555,9 @@ contents of the log entry buffer.  If COMMENT is a string and
 INITIAL-CONTENTS is nil, do action immediately as if the user had
 entered COMMENT.  If COMMENT is t, also do action immediately with an
 empty comment.  Remember the file's buffer in `vc-parent-buffer'
-\(current one if no file).  AFTER-HOOK specifies the local value
-for `vc-log-after-operation-hook'."
+\(current one if no file).  Puts the log-entry buffer in major-mode
+MODE, defaulting to `log-edit-mode' if MODE is nil.
+AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'."
   (let ((parent
          (if (vc-dispatcher-browsing)
              ;; If we are called from a directory browser, the parent buffer is
@@ -565,12 +572,11 @@ for `vc-log-after-operation-hook'."
     (set (make-local-variable 'vc-parent-buffer) parent)
     (set (make-local-variable 'vc-parent-buffer-name)
 	 (concat " from " (buffer-name vc-parent-buffer)))
-    (vc-log-edit files)
+    (vc-log-edit files mode)
     (make-local-variable 'vc-log-after-operation-hook)
     (when after-hook
       (setq vc-log-after-operation-hook after-hook))
     (setq vc-log-operation action)
-    (setq vc-log-extra extra)
     (when comment
       (erase-buffer)
       (when (stringp comment) (insert comment)))
@@ -579,7 +585,8 @@ for `vc-log-after-operation-hook'."
       (vc-finish-logentry (eq comment t)))))
 
 (declare-function vc-dir-move-to-goal-column "vc-dir" ())
-
+;; vc-finish-logentry is typically called from a log-edit buffer (see
+;; vc-start-logentry).
 (defun vc-finish-logentry (&optional nocomment)
   "Complete the operation implied by the current log entry.
 Use the contents of the current buffer as a check-in or registration
@@ -595,20 +602,21 @@ the buffer contents as a comment."
     (or (vc-dispatcher-browsing) (vc-buffer-sync)))
   (unless vc-log-operation
     (error "No log operation is pending"))
+
   ;; save the parameters held in buffer-local variables
   (let ((logbuf (current-buffer))
 	(log-operation vc-log-operation)
+        ;; FIXME: When coming from VC-Dir, we should check that the
+        ;; set of selected files is still equal to vc-log-fileset,
+        ;; to avoid surprises.
 	(log-fileset vc-log-fileset)
-	(log-extra vc-log-extra)
 	(log-entry (buffer-string))
-	(after-hook vc-log-after-operation-hook)
-	(tmp-vc-parent-buffer vc-parent-buffer))
+	(after-hook vc-log-after-operation-hook))
     (pop-to-buffer vc-parent-buffer)
     ;; OK, do it to it
     (save-excursion
       (funcall log-operation
 	       log-fileset
-	       log-extra
 	       log-entry))
     ;; Remove checkin window (after the checkin so that if that fails
     ;; we don't zap the log buffer and the typing therein).
@@ -617,9 +625,11 @@ the buffer contents as a comment."
 	   (delete-windows-on logbuf (selected-frame))
 	   ;; Kill buffer and delete any other dedicated windows/frames.
 	   (kill-buffer logbuf))
-	  (logbuf (pop-to-buffer logbuf)
-		  (bury-buffer)
-		  (pop-to-buffer tmp-vc-parent-buffer)))
+	  (logbuf
+           (with-selected-window (or (get-buffer-window logbuf 0)
+                                     (selected-window))
+             (with-current-buffer logbuf
+               (bury-buffer)))))
     ;; Now make sure we see the expanded headers
     (when log-fileset
       (mapc
