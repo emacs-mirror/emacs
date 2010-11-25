@@ -1,3 +1,8 @@
+2010-11-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-unfold-quoted-lines): Refactor out.
+	(nnimap-last-response-string): Unfold quoted lines, if they exist.
+
 2010-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-insert): Fix the way to fold lines.
