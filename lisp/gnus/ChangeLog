@@ -1,5 +1,9 @@
 2010-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* mml.el (mml-preview): Make sure to bind gnus-displaying-mime to nil,
+	assuming that article displaying or another mml-preview may be
+	interrupted for an error or for the like.
+
 	* shr.el (shr-get-background): Fix argument name.
 
 2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
