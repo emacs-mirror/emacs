@@ -1,3 +1,19 @@
+2010-11-25  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (emacs_mule_charset): Make it an array of charset ID;
+	i.e. integer.
+	(Fdefine_charset_internal): Adjusted for the above change.
+	(init_charset_once): Likewise.
+
+	* charset.h (emacs_mule_charset): Adjust the prototype.  Delete
+	duplicated extern.
+
+	* coding.c (emacs_mule_char): Adjust for the change of
+	emacs_mule_charset.
+
+	* lread.c (read_emacs_mule_char): Adjust for the change of
+	emacs_mule_charset.
+
 2010-11-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (_PROCESS_MEMORY_COUNTERS_EX): Don't define with versions
