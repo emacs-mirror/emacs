@@ -522,7 +522,7 @@ ones, in case fg and bg are nil."
 
 (defun shr-get-background (pos)
   "Return background color at POS."
-  (dolist (overlay (overlays-in start (1+ start)))
+  (dolist (overlay (overlays-in pos (1+ pos)))
     (let ((background (plist-get (overlay-get overlay 'face)
                                  :background)))
       (when background
