@@ -2078,7 +2078,7 @@ emacs_mule_char (coding, src, nbytes, nchars, id, cmp_status)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base = src;
   int multibytep = coding->src_multibyte;
-  struct charset *charset;
+  int charset_id;
   unsigned code;
   int c;
   int consumed_chars = 0;
@@ -2088,7 +2088,7 @@ emacs_mule_char (coding, src, nbytes, nchars, id, cmp_status)
   if (c < 0)
     {
       c = -c;
-      charset = emacs_mule_charset[0];
+      charset_id = emacs_mule_charset[0];
     }
   else
     {
@@ -2124,7 +2124,7 @@ emacs_mule_char (coding, src, nbytes, nchars, id, cmp_status)
       switch (emacs_mule_bytes[c])
 	{
 	case 2:
-	  if (! (charset = emacs_mule_charset[c]))
+	  if ((charset_id = emacs_mule_charset[c]) < 0)
 	    goto invalid_code;
 	  ONE_MORE_BYTE (c);
 	  if (c < 0xA0)
@@ -2137,7 +2137,7 @@ emacs_mule_char (coding, src, nbytes, nchars, id, cmp_status)
 	      || c == EMACS_MULE_LEADING_CODE_PRIVATE_12)
 	    {
 	      ONE_MORE_BYTE (c);
-	      if (c < 0xA0 || ! (charset = emacs_mule_charset[c]))
+	      if (c < 0xA0 || (charset_id = emacs_mule_charset[c]) < 0)
 		goto invalid_code;
 	      ONE_MORE_BYTE (c);
 	      if (c < 0xA0)
@@ -2146,7 +2146,7 @@ emacs_mule_char (coding, src, nbytes, nchars, id, cmp_status)
 	    }
 	  else
 	    {
-	      if (! (charset = emacs_mule_charset[c]))
+	      if ((charset_id = emacs_mule_charset[c]) < 0)
 		goto invalid_code;
 	      ONE_MORE_BYTE (c);
 	      if (c < 0xA0)
@@ -2161,7 +2161,7 @@ emacs_mule_char (coding, src, nbytes, nchars, id, cmp_status)
 
 	case 4:
 	  ONE_MORE_BYTE (c);
-	  if (c < 0 || ! (charset = emacs_mule_charset[c]))
+	  if (c < 0 || (charset_id = emacs_mule_charset[c]) < 0)
 	    goto invalid_code;
 	  ONE_MORE_BYTE (c);
 	  if (c < 0xA0)
@@ -2175,21 +2175,21 @@ emacs_mule_char (coding, src, nbytes, nchars, id, cmp_status)
 
 	case 1:
 	  code = c;
-	  charset = CHARSET_FROM_ID (ASCII_BYTE_P (code)
-				     ? charset_ascii : charset_eight_bit);
+	  charset_id = ASCII_BYTE_P (code) ? charset_ascii : charset_eight_bit;
 	  break;
 
 	default:
 	  abort ();
 	}
-      CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, code, c);
+      CODING_DECODE_CHAR (coding, src, src_base, src_end,
+			  CHARSET_FROM_ID (charset_id), code, c);
       if (c < 0)
 	goto invalid_code;
     }
   *nbytes = src - src_base;
   *nchars = consumed_chars;
   if (id)
-    *id = charset->id;
+    *id = charset_id;
   return (mseq_found ? -c : c);
 
  no_more_source:
