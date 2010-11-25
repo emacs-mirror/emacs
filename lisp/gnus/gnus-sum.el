@@ -1903,6 +1903,7 @@ increase the score of each group you read."
   "a" gnus-summary-post-news
   "x" gnus-summary-limit-to-unread
   "s" gnus-summary-isearch-article
+  [tab] gnus-summary-widget-forward
   "t" gnus-summary-toggle-header
   "g" gnus-summary-show-article
   "l" gnus-summary-goto-last-article
@@ -2066,6 +2067,7 @@ increase the score of each group you read."
   "W" gnus-warp-to-article
   "g" gnus-summary-show-article
   "s" gnus-summary-isearch-article
+  [tab] gnus-summary-widget-forward
   "P" gnus-summary-print-article
   "S" gnus-sticky-article
   "M" gnus-mailing-list-insinuate
@@ -8500,6 +8502,18 @@ fetched for this group."
       (gnus-summary-limit (append gnus-newsgroup-dormant gnus-newsgroup-limit))
     (gnus-summary-position-point)))
 
+(defun gnus-summary-include-articles (articles)
+  "Fetch the headers for ARTICLES and then display the summary lines."
+  (let ((gnus-inhibit-demon t)
+	(gnus-agent nil)
+	(gnus-read-all-available-headers t))
+    (setq gnus-newsgroup-headers
+	  (gnus-merge
+	   'list gnus-newsgroup-headers
+	   (gnus-fetch-headers articles nil t)
+	   'gnus-article-sort-by-number))
+    (gnus-summary-limit (append articles gnus-newsgroup-limit))))
+
 (defun gnus-summary-limit-exclude-dormant ()
   "Hide all dormant articles."
   (interactive)
@@ -9069,6 +9083,15 @@ Obeys the standard process/prefix convention."
        (cons (current-buffer) 'summary)))
      (t
       (error "Couldn't select virtual nndoc group")))))
+
+(defun gnus-summary-widget-forward (arg)
+  "Move point to the next field or button in the article.
+With optional ARG, move across that many fields."
+  (interactive "p")
+  (gnus-summary-select-article)
+  (gnus-configure-windows 'article)
+  (select-window (gnus-get-buffer-window gnus-article-buffer))
+  (widget-forward arg))
 
 (defun gnus-summary-isearch-article (&optional regexp-p)
   "Do incremental search forward on the current article.
@@ -9705,6 +9728,9 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 		  articles)
     (while articles
       (setq article (pop articles))
+      ;; Set any marks that may have changed in the summary buffer.
+      (when gnus-preserve-marks
+	(gnus-summary-push-marks-to-backend article))
       (let ((gnus-newsgroup-original-name gnus-newsgroup-name)
 	    (gnus-article-original-subject
 	     (mail-header-subject
@@ -9920,6 +9946,25 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
     (gnus-kill-buffer copy-buf)
     (gnus-summary-position-point)
     (gnus-set-mode-line 'summary)))
+
+(defun gnus-summary-push-marks-to-backend (article)
+  (let ((add nil)
+	(delete nil)
+	(marks gnus-article-mark-lists))
+    (if (memq article gnus-newsgroup-unreads)
+	(push 'read add)
+      (push 'read delete))
+    (while marks
+      (when (eq (gnus-article-mark-to-type (cdar marks)) 'list)
+	(if (memq article (symbol-value
+			   (intern (format "gnus-newsgroup-%s"
+					   (caar marks)))))
+	    (push (cdar marks) add)
+	  (push (cdar marks) delete)))
+      (pop marks))
+    (gnus-request-set-mark gnus-newsgroup-name
+			   `(((,article) add ,add)
+			     ((,article) del ,delete)))))
 
 (defun gnus-summary-copy-article (&optional n to-newsgroup select-method)
   "Copy the current article to some other group.
@@ -11232,6 +11277,7 @@ with that article."
 		  (mail-header-subject (gnus-data-header (car data)))))
 		(t nil)))
 	 (end-point (save-excursion
+		      (goto-char (gnus-data-pos (car data)))
 		      (if (gnus-summary-go-to-next-thread)
 			  (point) (point-max))))
 	 articles)

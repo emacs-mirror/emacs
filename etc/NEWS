@@ -317,6 +317,9 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** Archive Mode has basic support to browse 7z archives.
 
+** browse-url has gotten a new variable that is used for mailto: URLs,
+   `browse-url-mailto-function', which defaults to `browse-url-mail'.
+
 ** ERC changes
 
 *** New vars `erc-autojoin-timing' and `erc-autojoin-delay'.

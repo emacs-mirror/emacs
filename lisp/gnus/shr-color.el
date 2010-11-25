@@ -231,10 +231,10 @@ Like rgb() or hsl()."
   (when color
     (cond
      ;; Hexadecimal color: #abc or #aabbcc
-     ((string-match-p
-       "#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]\\{3\\}?"
+     ((string-match
+       "\\(#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]\\{3\\}?\\)"
        color)
-      color)
+      (match-string 1 color))
      ;; rgb() or rgba() colors
      ((or (string-match
            "rgb(\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*,\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*,\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*)"
@@ -260,8 +260,7 @@ Like rgb() or hsl()."
             (shr-color-hsl-to-rgb-fractions h s l)
           (format "#%02X%02X%02X" (* r 255) (* g 255) (* b 255)))))
      ;; Color names
-     ((assoc color shr-color-html-colors-alist)
-      (cdr (assoc-string color shr-color-html-colors-alist t)))
+     ((cdr (assoc-string color shr-color-html-colors-alist t)))
      ;; Unrecognized color :(
      (t
       nil))))
@@ -319,32 +318,42 @@ If FIXED is t, then val1 will not be touched."
 
 (defun shr-color-visible (bg fg &optional fixed-background)
   "Check that BG and FG colors are visible if they are drawn on each other.
-Return t if they are. If they are too similar, two new colors are
-returned instead.
+Return (bg fg) if they are. If they are too similar, two new
+colors are returned instead.
 If FIXED-BACKGROUND is set, and if the color are not visible, a
 new background color will not be computed. Only the foreground
 color will be adapted to be visible on BG."
   ;; Convert fg and bg to CIE Lab
-  (let* ((fg-lab (apply 'rgb->lab (rgb->normalize fg)))
-         (bg-lab (apply 'rgb->lab (rgb->normalize bg)))
-         ;; Compute color distance using CIE DE 2000
-         (fg-bg-distance (color-lab-ciede2000 fg-lab bg-lab))
-         ;; Compute luminance distance (substract L component)
-         (luminance-distance (abs (- (car fg-lab) (car bg-lab)))))
-    (if (and (>= fg-bg-distance shr-color-visible-distance-min)
-             (>= luminance-distance shr-color-visible-luminance-min))
-        (list bg fg)
-      ;; Not visible, try to change luminance to make them visible
-      (let ((Ls (set-minimum-interval (car bg-lab) (car fg-lab) 0 100
-                                      shr-color-visible-luminance-min
-                                      fixed-background)))
-        (setcar bg-lab (car Ls))
-        (setcar fg-lab (cadr Ls))
-        (list
-         (apply 'format "#%02x%02x%02x"
-                (mapcar (lambda (x) (* (max (min 1 x) 0) 255)) (apply 'lab->rgb bg-lab)))
-         (apply 'format "#%02x%02x%02x"
-                (mapcar (lambda (x) (* (max (min 1 x) 0) 255)) (apply 'lab->rgb fg-lab))))))))
+  (let ((fg-norm (rgb->normalize fg))
+	(bg-norm (rgb->normalize bg)))
+    (if (or (null fg-norm)
+	    (null bg-norm))
+	(list bg fg)
+      (let* ((fg-lab (apply 'rgb->lab fg-norm))
+	     (bg-lab (apply 'rgb->lab bg-norm))
+	     ;; Compute color distance using CIE DE 2000
+	     (fg-bg-distance (color-lab-ciede2000 fg-lab bg-lab))
+	     ;; Compute luminance distance (substract L component)
+	     (luminance-distance (abs (- (car fg-lab) (car bg-lab)))))
+	(if (and (>= fg-bg-distance shr-color-visible-distance-min)
+		 (>= luminance-distance shr-color-visible-luminance-min))
+	    (list bg fg)
+	  ;; Not visible, try to change luminance to make them visible
+	  (let ((Ls (set-minimum-interval (car bg-lab) (car fg-lab) 0 100
+					  shr-color-visible-luminance-min
+					  fixed-background)))
+	    (unless fixed-background
+	      (setcar bg-lab (car Ls)))
+	    (setcar fg-lab (cadr Ls))
+	    (list
+	     (if fixed-background
+		 bg
+	       (apply 'format "#%02x%02x%02x"
+		      (mapcar (lambda (x) (* (max (min 1 x) 0) 255))
+			      (apply 'lab->rgb bg-lab))))
+	     (apply 'format "#%02x%02x%02x"
+		    (mapcar (lambda (x) (* (max (min 1 x) 0) 255))
+			    (apply 'lab->rgb fg-lab))))))))))
 
 (provide 'shr-color)
 

@@ -46,6 +46,7 @@
 
 (require 'sendmail)   ;; for mail-sendmail-undelimit-header
 (require 'mail-utils) ;; for mail-fetch-field
+(require 'browse-url)
 
 (defcustom mailclient-place-body-on-clipboard-flag
   (fboundp 'w32-set-clipboard-data)
@@ -122,7 +123,10 @@ The mail client is taken to be the handler of mailto URLs."
 	  (while (and (re-search-forward "\n\n\n*" delimline t)
 		      (< (point) delimline))
 	    (replace-match "\n"))
-	  (let ((case-fold-search t))
+	  (let ((case-fold-search t)
+		;; Use the external browser function to send the
+		;; message.
+		(browse-url-mailto-function nil))
 	    ;; initialize limiter
 	    (setq mailclient-delim-static "?")
 	    ;; construct and call up mailto URL

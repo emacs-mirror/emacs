@@ -783,9 +783,6 @@ textual parts.")
 	(if internal-move-group
 	    (let ((result
 		   (with-current-buffer (nnimap-buffer)
-		     ;; Clear all flags before moving.
-		     (nnimap-send-command "UID STORE %d FLAGS.SILENT ()"
-					  article)
 		     (nnimap-command "UID COPY %d %S"
 				     article
 				     (utf7-encode internal-move-group t)))))

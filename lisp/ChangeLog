@@ -1,3 +1,29 @@
+2010-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/diff.el (diff): Fix last change.
+
+2010-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el: Improve pcase-let.  Use "pcase--" prefix.
+	(pcase--dontcare-upats): New var.
+	(pcase-let, pcase-let*): Generate better code.
+	Accept the same bodies as `let'.
+	(pcase-dolist): New macro.
+	(pcase--trivial-upat-p): New helper function.
+	(pcase--expand): Strip leading "(let nil" if any.
+
+2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/mailclient.el (browse-url): Require.
+	(mailclient-send-it): Bind `browse-url-mailto-function' to nil to
+	use the external browser function to send the mail (bug#7469).
+
+	* net/browse-url.el (browse-url-browser-function): Revert the
+	default back to the previous value, since the new value broke
+	mailclient.el.
+	(browse-url-mailto-function): New variable for mailto: URLs.
+	(browse-url): Use the new variable for mailto: URLs.
+
 2010-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eshell/esh-cmd.el (eshell-parse-command):

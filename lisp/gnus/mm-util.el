@@ -903,7 +903,7 @@ mail with multiple parts is preferred to sending a Unicode one.")
       "Set the multibyte flag of the current buffer.
 Only do this if the default value of `enable-multibyte-characters' is
 non-nil.  This is a no-op in XEmacs."
-      (set-buffer-multibyte t)))
+      (set-buffer-multibyte 'to)))
 
   (if (featurep 'xemacs)
       (defalias 'mm-disable-multibyte 'ignore)

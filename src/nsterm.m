@@ -233,9 +233,12 @@ static BOOL inNsSelect = 0;
 
 /* Convert modifiers in a NeXTSTEP event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
-#define NSRightAlternateKeyMask (0x000040 | NSAlternateKeyMask)
+#define NSLeftControlKeyMask    (0x000001 | NSControlKeyMask)
 #define NSRightControlKeyMask   (0x002000 | NSControlKeyMask)
+#define NSLeftCommandKeyMask    (0x000008 | NSCommandKeyMask)
 #define NSRightCommandKeyMask   (0x000010 | NSCommandKeyMask)
+#define NSLeftAlternateKeyMask  (0x000020 | NSAlternateKeyMask)
+#define NSRightAlternateKeyMask (0x000040 | NSAlternateKeyMask)
 #define EV_MODIFIERS(e)                               \
     ((([e modifierFlags] & NSHelpKeyMask) ?           \
            hyper_modifier : 0)                        \
@@ -4419,7 +4422,7 @@ ns_term_shutdown (int sig)
       code = ([[theEvent charactersIgnoringModifiers] length] == 0) ?
         0 : [[theEvent charactersIgnoringModifiers] characterAtIndex: 0];
       /* (Carbon way: [theEvent keyCode]) */
-
+      
       /* is it a "function key"? */
       fnKeysym = ns_convert_key (code);
       if (fnKeysym)
@@ -4442,15 +4445,16 @@ ns_term_shutdown (int sig)
       if (flags & NSShiftKeyMask)
         emacs_event->modifiers |= shift_modifier;
 
-      if (flags & NSCommandKeyMask)
+      if ((flags & NSRightCommandKeyMask) == NSRightCommandKeyMask)
+        emacs_event->modifiers |= parse_solitary_modifier
+          (EQ (ns_right_command_modifier, Qleft)
+           ? ns_command_modifier
+           : ns_right_command_modifier);
+
+      if ((flags & NSLeftCommandKeyMask) == NSLeftCommandKeyMask)
         {
-          if ((flags & NSRightCommandKeyMask) == NSRightCommandKeyMask
-              && !EQ (ns_right_command_modifier, Qleft))
-            emacs_event->modifiers |= parse_solitary_modifier
-              (ns_right_command_modifier);
-          else
-            emacs_event->modifiers |= parse_solitary_modifier
-              (ns_command_modifier);
+          emacs_event->modifiers |= parse_solitary_modifier
+            (ns_command_modifier);
 
           /* if super (default), take input manager's word so things like
              dvorak / qwerty layout work */
@@ -4484,30 +4488,43 @@ ns_term_shutdown (int sig)
             }
         }
 
-      if (flags & NSControlKeyMask)
-        {
-          if ((flags & NSRightControlKeyMask) == NSRightControlKeyMask
-              && !EQ (ns_right_control_modifier, Qleft))
-            emacs_event->modifiers |= parse_solitary_modifier
-              (ns_right_control_modifier);
-          else
-            emacs_event->modifiers |= parse_solitary_modifier
-              (ns_control_modifier);
-        }
+      if ((flags & NSRightControlKeyMask) == NSRightControlKeyMask)
+          emacs_event->modifiers |= parse_solitary_modifier
+              (EQ (ns_right_control_modifier, Qleft)
+               ? ns_control_modifier
+               : ns_right_control_modifier);
+
+      if ((flags & NSLeftControlKeyMask) == NSLeftControlKeyMask)
+        emacs_event->modifiers |= parse_solitary_modifier
+          (ns_control_modifier);
 
       if (flags & NS_FUNCTION_KEY_MASK && !fnKeysym)
           emacs_event->modifiers |=
             parse_solitary_modifier (ns_function_modifier);
 
-      if (!EQ (ns_right_alternate_modifier, Qleft)
-          && ((flags & NSRightAlternateKeyMask) == NSRightAlternateKeyMask)) 
-	{
-	  emacs_event->modifiers |= parse_solitary_modifier
-            (ns_right_alternate_modifier);
-	}
-      else if (flags & NSAlternateKeyMask) /* default = meta */
+      if ((flags & NSRightAlternateKeyMask) == NSRightAlternateKeyMask)
         {
-          if ((NILP (ns_alternate_modifier) || EQ (ns_alternate_modifier, Qnone))
+          if ((NILP (ns_right_alternate_modifier)
+               || EQ (ns_right_alternate_modifier, Qnone))
+              && !fnKeysym)
+            {   /* accept pre-interp alt comb */
+              if ([[theEvent characters] length] > 0)
+                code = [[theEvent characters] characterAtIndex: 0];
+              /*HACK: clear lone shift modifier to stop next if from firing */
+              if (emacs_event->modifiers == shift_modifier)
+                emacs_event->modifiers = 0;
+            }
+          else
+            emacs_event->modifiers |= parse_solitary_modifier
+              (EQ (ns_right_alternate_modifier, Qleft)
+               ? ns_alternate_modifier
+               : ns_right_alternate_modifier);
+        }
+
+      if ((flags & NSLeftAlternateKeyMask) == NSLeftAlternateKeyMask) /* default = meta */
+        {
+          if ((NILP (ns_alternate_modifier)
+               || EQ (ns_alternate_modifier, Qnone))
               && !fnKeysym)
             {   /* accept pre-interp alt comb */
               if ([[theEvent characters] length] > 0)
