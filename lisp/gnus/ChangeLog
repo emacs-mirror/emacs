@@ -1,3 +1,8 @@
+2010-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-called-interactively-p): A temporary macro.
+	(message-goto-body): Use it temporarily.
+
 2010-11-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-unfold-quoted-lines): Refactor out.
