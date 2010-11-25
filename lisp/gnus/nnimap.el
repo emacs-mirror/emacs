@@ -180,7 +180,14 @@ textual parts.")
 	  (when (eobp)
 	    (return)))
 	(setq article (match-string 1))
-	(nnimap-unfold-quoted-lines)
+	;; Unfold quoted {number} strings.
+	(while (re-search-forward "[^]][ (]{\\([0-9]+\\)}\r?\n"
+				  (1+ (line-end-position)) t)
+	  (setq size (string-to-number (match-string 1)))
+	  (delete-region (+ (match-beginning 0) 2) (point))
+	  (setq string (buffer-substring (point) (+ (point) size)))
+	  (delete-region (point) (+ (point) size))
+	  (insert (format "%S" string)))
 	(setq bytes (nnimap-get-length)
 	      lines nil)
 	(beginning-of-line)
@@ -212,12 +219,13 @@ textual parts.")
 
 (defun nnimap-unfold-quoted-lines ()
   ;; Unfold quoted {number} strings.
-  (while (re-search-forward "[^]][ (]{\\([0-9]+\\)}\r\n"
-			    (1+ (line-end-position)) t)
-    (setq size (string-to-number (match-string 1)))
-    (delete-region (+ (match-beginning 0) 2) (point))
-    (setq string (delete-region (point) (+ (point) size)))
-    (insert (format "%S" string))))
+  (let (size string)
+    (while (re-search-forward " {\\([0-9]+\\)}\r?\n" nil t)
+      (setq size (string-to-number (match-string 1)))
+      (delete-region (1+ (match-beginning 0)) (point))
+      (setq string (buffer-substring (point) (+ (point) size)))
+      (delete-region (point) (+ (point) size))
+      (insert (format "%S" string)))))
 
 (defun nnimap-get-length ()
   (and (re-search-forward "{\\([0-9]+\\)}" (line-end-position) t)
@@ -1607,11 +1615,11 @@ textual parts.")
     (let ((end (point)))
       ;; Unfold quoted {num} lines, if they exist.
       (when (search-backward "}" nil t)
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region (point-min) end)
-	    (goto-char (point-min))
-	    (nnimap-unfold-quoted-lines))))
+	(save-restriction
+	  (narrow-to-region (point-min) end)
+	  (goto-char (point-min))
+	  (nnimap-unfold-quoted-lines)
+	  (goto-char (setq end (point-max)))))
       (forward-line -1)
       (when (not (bobp))
 	(forward-line -1)
