@@ -84,14 +84,13 @@ When called interactively with a prefix argument, prompt
 interactively for diff switches.  Otherwise, the switches
 specified in `diff-switches' are passed to the diff command."
   (interactive
-   (let* ((newf (buffer-file-name))
-          (oldf (file-newest-backup newf)))
-     (setq newf (if (and newf (file-exists-p newf))
+   (let* ((newf (if (and buffer-file-name (file-exists-p buffer-file-name))
 		    (read-file-name
 		     (concat "Diff new file (default "
-			     (file-name-nondirectory newf) "): ")
-		     nil newf t)
+			     (file-name-nondirectory buffer-file-name) "): ")
+		     nil buffer-file-name t)
 		  (read-file-name "Diff new file: " nil nil t)))
+          (oldf (file-newest-backup newf)))
      (setq oldf (if (and oldf (file-exists-p oldf))
 		    (read-file-name
 		     (concat "Diff original file (default "
