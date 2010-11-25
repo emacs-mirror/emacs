@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(require 'color-lab)
+(require 'color)
 
 (defgroup shr-color nil
   "Simple HTML Renderer colors"
@@ -258,7 +258,7 @@ Like rgb() or hsl()."
             (l (/ (string-to-number (match-string-no-properties 3 color)) 100.0)))
         (destructuring-bind (r g b)
             (shr-color-hsl-to-rgb-fractions h s l)
-          (format "#%02X%02X%02X" (* r 255) (* g 255) (* b 255)))))
+          (color-rgb->hex r g b))))
      ;; Color names
      ((cdr (assoc-string color shr-color-html-colors-alist t)))
      ;; Unrecognized color :(
@@ -324,15 +324,15 @@ If FIXED-BACKGROUND is set, and if the color are not visible, a
 new background color will not be computed. Only the foreground
 color will be adapted to be visible on BG."
   ;; Convert fg and bg to CIE Lab
-  (let ((fg-norm (rgb->normalize fg))
-	(bg-norm (rgb->normalize bg)))
+  (let ((fg-norm (color-rgb->normalize fg))
+	(bg-norm (color-rgb->normalize bg)))
     (if (or (null fg-norm)
 	    (null bg-norm))
 	(list bg fg)
-      (let* ((fg-lab (apply 'rgb->lab fg-norm))
-	     (bg-lab (apply 'rgb->lab bg-norm))
+      (let* ((fg-lab (apply 'color-rgb->lab fg-norm))
+	     (bg-lab (apply 'color-rgb->lab bg-norm))
 	     ;; Compute color distance using CIE DE 2000
-	     (fg-bg-distance (color-lab-ciede2000 fg-lab bg-lab))
+	     (fg-bg-distance (color-cie-de2000 fg-lab bg-lab))
 	     ;; Compute luminance distance (substract L component)
 	     (luminance-distance (abs (- (car fg-lab) (car bg-lab)))))
 	(if (and (>= fg-bg-distance shr-color-visible-distance-min)
@@ -350,10 +350,10 @@ color will be adapted to be visible on BG."
 		 bg
 	       (apply 'format "#%02x%02x%02x"
 		      (mapcar (lambda (x) (* (max (min 1 x) 0) 255))
-			      (apply 'lab->rgb bg-lab))))
+			      (apply 'color-lab->rgb bg-lab))))
 	     (apply 'format "#%02x%02x%02x"
 		    (mapcar (lambda (x) (* (max (min 1 x) 0) 255))
-			    (apply 'lab->rgb fg-lab))))))))))
+			    (apply 'color-lab->rgb fg-lab))))))))))
 
 (provide 'shr-color)
 

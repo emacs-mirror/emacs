@@ -1,4 +1,4 @@
-;;; color-lab.el --- Color manipulation laboratory routines -*- coding: utf-8; -*-
+;;; color.el --- Color manipulation laboratory routines -*- coding: utf-8; -*-
 
 ;; Copyright (C) 2010 Free Software Foundation, Inc.
 
@@ -34,7 +34,24 @@
   (unless (boundp 'float-pi)
     (defconst float-pi (* 4 (atan 1)) "The value of Pi (3.1415926...).")))
 
-(defun rgb->hsv (red green blue)
+(defun color-rgb->hex  (red green blue)
+  "Return hexadecimal notation for RED GREEN BLUE color.
+RED GREEN BLUE must be values between [0,1]."
+  (format "#%02x%02x%02x"
+          (* red 255) (* green 255) (* blue 255)))
+
+(defun color-complement (color)
+  "Return the color that is the complement of COLOR."
+  (let ((color (color-rgb->normalize color)))
+    (list (- 1.0 (car color))
+          (- 1.0 (cadr color))
+          (- 1.0 (caddr color)))))
+
+(defun color-complement-hex (color)
+  "Return the color that is the complement of COLOR, in hexadecimal format."
+  (apply 'color-rgb->hex (color-complement color)))
+
+(defun color-rgb->hsv (red green blue)
   "Convert RED GREEN BLUE values to HSV representation.
 Hue is in radian. Saturation and values are between 0 and 1."
    (let* ((r (float red))
@@ -61,12 +78,12 @@ Hue is in radian. Saturation and values are between 0 and 1."
         (- 1 (/ min max)))
       (/ max 255.0))))
 
-(defun rgb->hsl (red green blue)
+(defun color-rgb->hsl (red green blue)
   "Convert RED GREEN BLUE colors to their HSL representation.
-RED, GREEN and BLUE must be between 0 and 255."
-  (let* ((r (/ red 255.0))
-         (g (/ green 255.0))
-         (b (/ blue 255.0))
+RED, GREEN and BLUE must be between [0,1]."
+  (let* ((r red)
+         (g green)
+         (b blue)
          (max (max r g b))
          (min (min r g b))
          (delta (- max min))
@@ -89,9 +106,9 @@ RED, GREEN and BLUE must be between 0 and 255."
          (/ delta (+ max min))))
      l)))
 
-(defun rgb->xyz (red green blue)
+(defun color-rgb->xyz (red green blue)
   "Converts RED GREEN BLUE colors to CIE XYZ representation.
-RED, BLUE and GREEN must be between 0 and 1."
+RED, BLUE and GREEN must be between [0,1]."
   (let ((r (if (<= red 0.04045)
                (/ red 12.95)
              (expt (/ (+ red 0.055) 1.055) 2.4)))
@@ -105,8 +122,8 @@ RED, BLUE and GREEN must be between 0 and 1."
           (+ (* 0.21266729 r) (* 0.7151522 g) (* 0.0721750 b))
           (+ (* 0.0193339 r) (* 0.1191920 g) (* 0.9503041 b)))))
 
-(defun xyz->rgb (X Y Z)
-  "Converts CIE XYZ colors to RGB."
+(defun color-xyz->rgb (X Y Z)
+  "Converts CIE X Y Z colors to RGB."
   (let ((r (+ (* 3.2404542 X) (* -1.5371385 Y) (* -0.4985314 Z)))
         (g (+ (* -0.9692660 X) (* 1.8760108 Y) (* 0.0415560 Z)))
         (b (+ (* 0.0556434 X) (* -0.2040259 Y) (* 1.0572252 Z))))
@@ -120,68 +137,68 @@ RED, BLUE and GREEN must be between 0 and 1."
               (* 12.92 b)
             (- (* 1.055 (expt b (/ 1 2.4))) 0.055)))))
 
-(defconst color-lab-d65-xyz '(0.950455 1.0 1.088753)
+(defconst color-d65-xyz '(0.950455 1.0 1.088753)
   "D65 white point in CIE XYZ.")
 
-(defconst color-lab-ε (/ 216 24389.0))
-(defconst color-lab-κ (/ 24389 27.0))
+(defconst color-cie-ε (/ 216 24389.0))
+(defconst color-cie-κ (/ 24389 27.0))
 
-(defun xyz->lab (X Y Z &optional white-point)
+(defun color-xyz->lab (X Y Z &optional white-point)
   "Converts CIE XYZ to CIE L*a*b*.
 WHITE-POINT can be specified as (X Y Z) white point to use. If
-none is set, `color-lab-d65-xyz' is used."
-  (destructuring-bind (Xr Yr Zr) (or white-point color-lab-d65-xyz)
+none is set, `color-d65-xyz' is used."
+  (destructuring-bind (Xr Yr Zr) (or white-point color-d65-xyz)
       (let* ((xr (/ X Xr))
              (yr (/ Y Yr))
              (zr (/ Z Zr))
-             (fx (if (> xr color-lab-ε)
+             (fx (if (> xr color-cie-ε)
                      (expt xr (/ 1 3.0))
-                   (/ (+ (* color-lab-κ xr) 16) 116.0)))
-             (fy (if (> yr color-lab-ε)
+                   (/ (+ (* color-cie-κ xr) 16) 116.0)))
+             (fy (if (> yr color-cie-ε)
                      (expt yr (/ 1 3.0))
-                   (/ (+ (* color-lab-κ yr) 16) 116.0)))
-             (fz (if (> zr color-lab-ε)
+                   (/ (+ (* color-cie-κ yr) 16) 116.0)))
+             (fz (if (> zr color-cie-ε)
                      (expt zr (/ 1 3.0))
-                   (/ (+ (* color-lab-κ zr) 16) 116.0))))
+                   (/ (+ (* color-cie-κ zr) 16) 116.0))))
         (list
          (- (* 116 fy) 16)                  ; L
          (* 500 (- fx fy))                  ; a
          (* 200 (- fy fz))))))              ; b
 
-(defun lab->xyz (L a b &optional white-point)
+(defun color-lab->xyz (L a b &optional white-point)
   "Converts CIE L*a*b* to CIE XYZ.
 WHITE-POINT can be specified as (X Y Z) white point to use. If
-none is set, `color-lab-d65-xyz' is used."
-  (destructuring-bind (Xr Yr Zr) (or white-point color-lab-d65-xyz)
+none is set, `color-d65-xyz' is used."
+  (destructuring-bind (Xr Yr Zr) (or white-point color-d65-xyz)
       (let* ((fy (/ (+ L 16) 116.0))
              (fz (- fy (/ b 200.0)))
              (fx (+ (/ a 500.0) fy))
-             (xr (if (> (expt fx 3.0) color-lab-ε)
+             (xr (if (> (expt fx 3.0) color-cie-ε)
                      (expt fx 3.0)
-               (/ (- (* fx 116) 16) color-lab-κ)))
-             (yr (if (> L (* color-lab-κ color-lab-ε))
+               (/ (- (* fx 116) 16) color-cie-κ)))
+             (yr (if (> L (* color-cie-κ color-cie-ε))
                      (expt (/ (+ L 16) 116.0) 3.0)
-                   (/ L color-lab-κ)))
-             (zr (if (> (expt fz 3) color-lab-ε)
+                   (/ L color-cie-κ)))
+             (zr (if (> (expt fz 3) color-cie-ε)
                      (expt fz 3.0)
-                   (/ (- (* 116 fz) 16) color-lab-κ))))
+                   (/ (- (* 116 fz) 16) color-cie-κ))))
         (list (* xr Xr)                 ; X
               (* yr Yr)                 ; Y
               (* zr Zr)))))             ; Z
 
-(defun rgb->lab (red green blue)
+(defun color-rgb->lab (red green blue)
   "Converts RGB to CIE L*a*b*."
-  (apply 'xyz->lab (rgb->xyz red green blue)))
+  (apply 'color-xyz->lab (color-rgb->xyz red green blue)))
 
-(defun rgb->normalize (color)
+(defun color-rgb->normalize (color)
   "Normalize a RGB color to values between [0,1]."
   (mapcar (lambda (x) (/ x 65535.0)) (x-color-values color)))
 
-(defun lab->rgb (L a b)
+(defun color-lab->rgb (L a b)
   "Converts CIE L*a*b* to RGB."
-  (apply 'xyz->rgb (lab->xyz L a b)))
+  (apply 'color-xyz->rgb (color-lab->xyz L a b)))
 
-(defun color-lab-ciede2000 (color1 color2 &optional kL kC kH)
+(defun color-cie-de2000 (color1 color2 &optional kL kC kH)
   "Computes the CIEDE2000 color distance between COLOR1 and COLOR2.
 Colors must be in CIE L*a*b* format."
   (destructuring-bind (L₁ a₁ b₁) color1
@@ -246,6 +263,6 @@ Colors must be in CIE L*a*b* format."
                  (expt (/ ΔH′ (* Sh kH)) 2.0)
                  (* Rt (/ ΔC′ (* Sc kC)) (/ ΔH′ (* Sh kH)))))))))
 
-(provide 'color-lab)
+(provide 'color)
 
-;;; color-lab.el ends here
+;;; color.el ends here
