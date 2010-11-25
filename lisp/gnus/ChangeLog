@@ -1,3 +1,8 @@
+2010-11-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr-color.el (shr-color-visible): Don't bug out if the colour names
+	don't exist.
+
 2010-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mml.el (mml-preview): Make sure to bind gnus-displaying-mime to nil,

@@ -324,29 +324,36 @@ If FIXED-BACKGROUND is set, and if the color are not visible, a
 new background color will not be computed. Only the foreground
 color will be adapted to be visible on BG."
   ;; Convert fg and bg to CIE Lab
-  (let* ((fg-lab (apply 'rgb->lab (rgb->normalize fg)))
-         (bg-lab (apply 'rgb->lab (rgb->normalize bg)))
-         ;; Compute color distance using CIE DE 2000
-         (fg-bg-distance (color-lab-ciede2000 fg-lab bg-lab))
-         ;; Compute luminance distance (substract L component)
-         (luminance-distance (abs (- (car fg-lab) (car bg-lab)))))
-    (if (and (>= fg-bg-distance shr-color-visible-distance-min)
-             (>= luminance-distance shr-color-visible-luminance-min))
-        (list bg fg)
-      ;; Not visible, try to change luminance to make them visible
-      (let ((Ls (set-minimum-interval (car bg-lab) (car fg-lab) 0 100
-                                      shr-color-visible-luminance-min
-                                      fixed-background)))
-        (unless fixed-background
-          (setcar bg-lab (car Ls)))
-        (setcar fg-lab (cadr Ls))
-        (list
-         (if fixed-background
-             bg
-           (apply 'format "#%02x%02x%02x"
-                  (mapcar (lambda (x) (* (max (min 1 x) 0) 255)) (apply 'lab->rgb bg-lab))))
-         (apply 'format "#%02x%02x%02x"
-                (mapcar (lambda (x) (* (max (min 1 x) 0) 255)) (apply 'lab->rgb fg-lab))))))))
+  (let ((fg-norm (rgb->normalize fg))
+	(bg-norm (rgb->normalize bg)))
+    (if (or (null fg-norm)
+	    (null bg-norm))
+	(list bg fg)
+      (let* ((fg-lab (apply 'rgb->lab fg-norm))
+	     (bg-lab (apply 'rgb->lab bg-norm))
+	     ;; Compute color distance using CIE DE 2000
+	     (fg-bg-distance (color-lab-ciede2000 fg-lab bg-lab))
+	     ;; Compute luminance distance (substract L component)
+	     (luminance-distance (abs (- (car fg-lab) (car bg-lab)))))
+	(if (and (>= fg-bg-distance shr-color-visible-distance-min)
+		 (>= luminance-distance shr-color-visible-luminance-min))
+	    (list bg fg)
+	  ;; Not visible, try to change luminance to make them visible
+	  (let ((Ls (set-minimum-interval (car bg-lab) (car fg-lab) 0 100
+					  shr-color-visible-luminance-min
+					  fixed-background)))
+	    (unless fixed-background
+	      (setcar bg-lab (car Ls)))
+	    (setcar fg-lab (cadr Ls))
+	    (list
+	     (if fixed-background
+		 bg
+	       (apply 'format "#%02x%02x%02x"
+		      (mapcar (lambda (x) (* (max (min 1 x) 0) 255))
+			      (apply 'lab->rgb bg-lab))))
+	     (apply 'format "#%02x%02x%02x"
+		    (mapcar (lambda (x) (* (max (min 1 x) 0) 255))
+			    (apply 'lab->rgb fg-lab))))))))))
 
 (provide 'shr-color)
 
