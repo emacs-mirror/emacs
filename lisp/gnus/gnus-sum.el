@@ -1903,6 +1903,7 @@ increase the score of each group you read."
   "a" gnus-summary-post-news
   "x" gnus-summary-limit-to-unread
   "s" gnus-summary-isearch-article
+  [tab] gnus-summary-widget-forward
   "t" gnus-summary-toggle-header
   "g" gnus-summary-show-article
   "l" gnus-summary-goto-last-article
@@ -2066,6 +2067,7 @@ increase the score of each group you read."
   "W" gnus-warp-to-article
   "g" gnus-summary-show-article
   "s" gnus-summary-isearch-article
+  [tab] gnus-summary-widget-forward
   "P" gnus-summary-print-article
   "S" gnus-sticky-article
   "M" gnus-mailing-list-insinuate
@@ -9081,6 +9083,15 @@ Obeys the standard process/prefix convention."
        (cons (current-buffer) 'summary)))
      (t
       (error "Couldn't select virtual nndoc group")))))
+
+(defun gnus-summary-widget-forward (arg)
+  "Move point to the next field or button in the article.
+With optional ARG, move across that many fields."
+  (interactive "p")
+  (gnus-summary-select-article)
+  (gnus-configure-windows 'article)
+  (select-window (gnus-get-buffer-window gnus-article-buffer))
+  (widget-forward arg))
 
 (defun gnus-summary-isearch-article (&optional regexp-p)
   "Do incremental search forward on the current article.
