@@ -1,3 +1,7 @@
+2010-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/diff.el (diff): Fix last change.
+
 2010-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el: Improve pcase-let.  Use "pcase--" prefix.

@@ -84,8 +84,8 @@ When called interactively with a prefix argument, prompt
 interactively for diff switches.  Otherwise, the switches
 specified in `diff-switches' are passed to the diff command."
   (interactive
-   (let ((newf (buffer-file-name))
-         (oldf (file-newest-backup newf)))
+   (let* ((newf (buffer-file-name))
+          (oldf (file-newest-backup newf)))
      (setq newf (if (and newf (file-exists-p newf))
 		    (read-file-name
 		     (concat "Diff new file (default "
