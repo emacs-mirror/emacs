@@ -12943,7 +12943,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 
 			  if (tem)
 			    cursor = glyph;
-			  for (glyph += incr;
+			  for ( ;
 			       (row->reversed_p ? glyph > stop : glyph < stop)
 				 && EQ (glyph->object, str);
 			       glyph += incr)
