@@ -1,3 +1,11 @@
+2010-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-prec2->grammar): Simplify handling
+	of :smie-open/close-alist.
+	(smie-next-sexp): Make it accept a "start token" as argument.
+	(smie-indent-keyword): Be careful not to misidentify tokens that span
+	more than one line, as empty lines.  Add argument `token'.
+
 2010-11-26  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmailmm.el (rmail-mime-insert-multipart): For unsupported
