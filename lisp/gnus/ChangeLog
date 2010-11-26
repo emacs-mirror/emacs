@@ -6,6 +6,7 @@
 	(nnimap-request-accept-article): Use the UID returned, if any.
 	(nnimap-request-move-article): Use the UID returned, if any.
 	(nnimap-get-groups): Reimplement to work with folded lines.
+	(nnimap-find-uid-response): The UID is the last element in the list.
 
 2010-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 

@@ -984,7 +984,7 @@ textual parts.")
 		       group message-id)))))))))
 
 (defun nnimap-find-uid-response (name list)
-  (let ((result (nth 2 (nnimap-find-response-element name list))))
+  (let ((result (car (last (nnimap-find-response-element name list)))))
     (and result
 	 (string-to-number result))))
 
