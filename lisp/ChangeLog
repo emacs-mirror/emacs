@@ -1,3 +1,7 @@
+2010-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/pc-win.el (x-get-selection-internal): Emulation for MS-DOS.
+
 2010-11-26  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-outlook-format-1): New function, so that
