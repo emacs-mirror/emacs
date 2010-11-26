@@ -1,5 +1,9 @@
 2010-11-26  Kenichi Handa  <handa@m17n.org>
 
+	* mail/rmail.el: Require rfc2047.
+
+2010-11-26  Kenichi Handa  <handa@m17n.org>
+
 	* mail/rmailmm.el (rmail-mime-entity, rmail-mime-entity-type)
 	(rmail-mime-entity-disposition)
 	(rmail-mime-entity-transfer-encoding, rmail-mime-entity-header)
