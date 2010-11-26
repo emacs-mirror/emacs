@@ -9384,6 +9384,8 @@ set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multiby
     Fset_buffer_multibyte (message_enable_multibyte ? Qt : Qnil);
 
   current_buffer->truncate_lines = message_truncate_lines ? Qt : Qnil;
+  if (!NILP (current_buffer->bidi_display_reordering))
+    current_buffer->bidi_paragraph_direction = Qleft_to_right;
 
   /* Insert new message at BEG.  */
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);

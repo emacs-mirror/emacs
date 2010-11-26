@@ -1,5 +1,8 @@
 2010-11-26  Eli Zaretskii  <eliz@gnu.org>
 
+	* simple.el (prog-mode): Set bidi-paragraph-direction to
+	left-to-right.
+
 	* term/pc-win.el (x-get-selection-internal): Emulation for MS-DOS.
 
 2010-11-26  Glenn Morris  <rgm@gnu.org>

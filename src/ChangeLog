@@ -1,5 +1,8 @@
 2010-11-26  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (set_message_1): Force paragraph direction in echo area
+	be left-to-right.
+
 	* keyboard.c (make_lispy_position): Put a meaningful value in yret
 	when the click is on the header or mode line.
 
