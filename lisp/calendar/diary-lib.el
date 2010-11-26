@@ -346,7 +346,7 @@ Returns a string using match elements 1-5, where:
     ;; Where: Meeting room B
     ("[ \t\n]*When: [[:alpha:]]+, \\([[:alpha:]]+\\) \\([0-9][0-9]*\\), \
 \\([0-9]\\{4\\}\\),? \\(.+\\)\n\
-\\(?:Where: \\(.+\n\\)\n*\\)?" . diary-outlook-format-1))
+\\(?:Where: \\(.+\n\\)\\)?" . diary-outlook-format-1))
   "Alist of regexps matching message text and replacement text.
 
 The regexp must match the start of the message text containing an
