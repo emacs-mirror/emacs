@@ -1089,12 +1089,12 @@ See `find-file-noselect' for the arguments."
 	       mark
 	       (cond
 		((eq what 'add)
-		 (gnus-range-add (cdr (assoc mark backend-marks)) range)
-		 ((eq what 'del)
-		  (gnus-remove-from-range
-		   (cdr (assoc mark backend-marks)) range))
-		 ((eq what 'set)
-		  range)))
+		 (gnus-range-add (cdr (assoc mark backend-marks)) range))
+		((eq what 'del)
+		 (gnus-remove-from-range
+		  (cdr (assoc mark backend-marks)) range))
+		((eq what 'set)
+		 range))
 	       backend-marks)))))
   backend-marks)
 

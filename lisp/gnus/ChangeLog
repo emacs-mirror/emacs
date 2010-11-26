@@ -1,5 +1,10 @@
 2010-11-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnheader.el (nnheader-update-marks-actions): Fix typo in last
+	checkin.
+
+	* gnus-art.el (gnus-url-mailto): Unfold URLs before using them.
+
 	* nnimap.el (nnimap-request-set-mark): Add is "+", not "-".
 
 	* gnus-sum.el (gnus-summary-push-marks-to-backend): Use 'set instead of
