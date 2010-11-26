@@ -1,3 +1,8 @@
+2010-11-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-get-groups): Allow non-quoted strings as mailbox
+	names.
+
 2010-11-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-insert): Revert last change.
