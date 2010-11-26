@@ -1,3 +1,8 @@
+2010-11-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/rfc2368.el (rfc2368-parse-mailto-url): Unfold URLs before
+	parsing them.  This makes mailto:...?subject=foo\nbar work.
+
 2010-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/diff.el (diff): Fix last change.
