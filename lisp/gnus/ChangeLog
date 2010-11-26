@@ -1,5 +1,10 @@
 2010-11-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnmail.el (nnmail-expiry-target-group): Protect against degenerate
+	results from -accept-article.
+
+	* shr-color.el: Require cl when compiling.
+
 	* nnheader.el (nnheader-update-marks-actions): Fix typo in last
 	checkin.
 

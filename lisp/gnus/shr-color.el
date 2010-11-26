@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'color)
+(eval-when-compile (require 'cl))
 
 (defgroup shr-color nil
   "Simple HTML Renderer colors"
