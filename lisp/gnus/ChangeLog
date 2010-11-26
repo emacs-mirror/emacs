@@ -1,3 +1,8 @@
+2010-11-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-last-response-string): Remove the unfolding -- it
+	introduces regressions in article selection.
+
 2010-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-called-interactively-p): A temporary macro.
