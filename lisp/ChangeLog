@@ -1,3 +1,13 @@
+2010-11-26  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-outlook-format-1): New function, so that
+	diary-outlook-formats can be sensitive to calendar-date-style.
+	(diary-outlook-formats): Simplify the default setting.
+	(diary-from-outlook-internal): Pass subject and body as arguments.
+	Use dolist rather than dotimes.  Don't save the diary buffer.
+	(diary-from-outlook-gnus, diary-from-outlook-rmail):
+	Pass subject and body as explicit arguments to the -internal function.
+
 2010-11-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/rfc2368.el (rfc2368-parse-mailto-url): Unfold URLs before
