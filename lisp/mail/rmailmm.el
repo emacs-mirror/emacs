@@ -681,9 +681,9 @@ modified."
 	  (dolist (child children)
 	    (rmail-mime-insert child nil disposition)))))
      (t
-      ;; Unsupported subtype.  Insert all as attachment.
+      ;; Unsupported subtype.  Insert all of them.
       (dolist (child children)
-	(rmail-mime-insert-bulk child))))))
+	(rmail-mime-insert child))))))
 
 (defun rmail-mime-parse ()
   "Parse the current Rmail message as a MIME message.
