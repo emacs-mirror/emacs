@@ -53,7 +53,7 @@ RED GREEN BLUE must be values between [0,1]."
 
 (defun color-rgb->hsv (red green blue)
   "Convert RED GREEN BLUE values to HSV representation.
-Hue is in radian. Saturation and values are between 0 and 1."
+Hue is in radian. Saturation and values are between [0,1]."
    (let* ((r (float red))
 	 (g (float green))
 	 (b (float blue))
@@ -106,8 +106,8 @@ RED, GREEN and BLUE must be between [0,1]."
          (/ delta (+ max min))))
      l)))
 
-(defun color-rgb->xyz (red green blue)
-  "Converts RED GREEN BLUE colors to CIE XYZ representation.
+(defun color-srgb->xyz (red green blue)
+  "Converts RED GREEN BLUE colors from the sRGB color space to CIE XYZ.
 RED, BLUE and GREEN must be between [0,1]."
   (let ((r (if (<= red 0.04045)
                (/ red 12.95)
@@ -122,8 +122,8 @@ RED, BLUE and GREEN must be between [0,1]."
           (+ (* 0.21266729 r) (* 0.7151522 g) (* 0.0721750 b))
           (+ (* 0.0193339 r) (* 0.1191920 g) (* 0.9503041 b)))))
 
-(defun color-xyz->rgb (X Y Z)
-  "Converts CIE X Y Z colors to RGB."
+(defun color-xyz->srgb (X Y Z)
+  "Converts CIE X Y Z colors to sRGB color space."
   (let ((r (+ (* 3.2404542 X) (* -1.5371385 Y) (* -0.4985314 Z)))
         (g (+ (* -0.9692660 X) (* 1.8760108 Y) (* 0.0415560 Z)))
         (b (+ (* 0.0556434 X) (* -0.2040259 Y) (* 1.0572252 Z))))
@@ -186,15 +186,15 @@ none is set, `color-d65-xyz' is used."
               (* yr Yr)                 ; Y
               (* zr Zr)))))             ; Z
 
-(defun color-rgb->lab (red green blue)
+(defun color-srgb->lab (red green blue)
   "Converts RGB to CIE L*a*b*."
-  (apply 'color-xyz->lab (color-rgb->xyz red green blue)))
+  (apply 'color-xyz->lab (color-srgb->xyz red green blue)))
 
 (defun color-rgb->normalize (color)
   "Normalize a RGB color to values between [0,1]."
   (mapcar (lambda (x) (/ x 65535.0)) (x-color-values color)))
 
-(defun color-lab->rgb (L a b)
+(defun color-lab->srgb (L a b)
   "Converts CIE L*a*b* to RGB."
   (apply 'color-xyz->rgb (color-lab->xyz L a b)))
 

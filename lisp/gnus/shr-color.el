@@ -330,8 +330,8 @@ color will be adapted to be visible on BG."
     (if (or (null fg-norm)
 	    (null bg-norm))
 	(list bg fg)
-      (let* ((fg-lab (apply 'color-rgb->lab fg-norm))
-	     (bg-lab (apply 'color-rgb->lab bg-norm))
+      (let* ((fg-lab (apply 'color-srgb->lab fg-norm))
+	     (bg-lab (apply 'color-srgb->lab bg-norm))
 	     ;; Compute color distance using CIE DE 2000
 	     (fg-bg-distance (color-cie-de2000 fg-lab bg-lab))
 	     ;; Compute luminance distance (substract L component)
@@ -351,10 +351,10 @@ color will be adapted to be visible on BG."
 		 bg
 	       (apply 'format "#%02x%02x%02x"
 		      (mapcar (lambda (x) (* (max (min 1 x) 0) 255))
-			      (apply 'color-lab->rgb bg-lab))))
+			      (apply 'color-lab->srgb bg-lab))))
 	     (apply 'format "#%02x%02x%02x"
 		    (mapcar (lambda (x) (* (max (min 1 x) 0) 255))
-			    (apply 'color-lab->rgb fg-lab))))))))))
+			    (apply 'color-lab->srgb fg-lab))))))))))
 
 (provide 'shr-color)
 
