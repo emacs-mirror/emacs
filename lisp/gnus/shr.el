@@ -254,7 +254,7 @@ redirects somewhere else."
 	(while (and (> (current-column) shr-width)
 		    (progn
 		      (setq found (shr-find-fill-point))
-		      (not (eolp))))
+		      (not (or (bolp) (eolp)))))
 	  (when (eq (preceding-char) ? )
 	    (delete-char -1))
 	  (insert "\n")

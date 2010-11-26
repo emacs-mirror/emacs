@@ -1,3 +1,9 @@
+2010-11-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't forget to consider the
+	`cursor' property of the first character in overlay strings.
+	(Bug#7474)  (Bug#7481)
+
 2010-11-24  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (NSLeftControlKeyMask, NSLeftCommandKeyMask)

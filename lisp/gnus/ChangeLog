@@ -1,4 +1,68 @@
+2010-11-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnmail.el (nnmail-expiry-target-group): Protect against degenerate
+	results from -accept-article.
+
+	* shr-color.el: Require cl when compiling.
+
+	* nnheader.el (nnheader-update-marks-actions): Fix typo in last
+	checkin.
+
+	* gnus-art.el (gnus-url-mailto): Unfold URLs before using them.
+
+	* nnimap.el (nnimap-request-set-mark): Add is "+", not "-".
+
+	* gnus-sum.el (gnus-summary-push-marks-to-backend): Use 'set instead of
+	'add and 'delete to set backend marks.
+
+	* nnmaildir.el (nnmaildir-request-set-mark): Be explicit about 'set.
+
+	* nnheader.el (nnheader-update-marks-actions): Refactor out.
+
+	* nntp.el (nntp-request-set-mark): Use it.
+
+	* nnfolder.el (nnfolder-request-set-mark): Ditto.
+
+	* nnml.el (nnml-request-set-mark): Ditto.
+
+	* nnimap.el (nnimap-last-response-string): Remove the unfolding -- it
+	introduces regressions in article selection.
+	(nnimap-find-uid-response): New function.
+	(nnimap-request-accept-article): Use the UID returned, if any.
+	(nnimap-request-move-article): Use the UID returned, if any.
+	(nnimap-get-groups): Reimplement to work with folded lines.
+	(nnimap-find-uid-response): The UID is the last element in the list.
+	(nnimap-request-set-mark): Extend syntax with 'set.
+
+	* nnml.el (nnml-request-set-mark): Ditto.
+
+	* nnfolder.el (nnfolder-request-set-mark): Ditto.
+
+	* nntp.el (nntp-request-set-mark): Ditto.
+
+2010-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-called-interactively-p): A temporary macro.
+	(message-goto-body): Use it temporarily.
+
+2010-11-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-unfold-quoted-lines): Refactor out.
+	(nnimap-last-response-string): Unfold quoted lines, if they exist.
+	(nnimap-last-response-string): Fix last unfolding fix.
+
+2010-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-insert): Fix the way to fold lines.
+
 2010-11-25  Julien Danjou  <julien@danjou.info>
+
+	* shr-color.el (shr-color->hexadecimal): Use color-rgb->hex
+
+	* color.el: Rename from color-lab.el
+	(color-rgb->hex): Add.
+	(color-complement): Add.
+	(color-complement-hex): Add.
 
 	* gnus-sum.el (gnus-summary-widget-forward): Add, and bind to [tab].
 

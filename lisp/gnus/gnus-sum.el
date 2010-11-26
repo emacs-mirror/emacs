@@ -9948,23 +9948,18 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
     (gnus-set-mode-line 'summary)))
 
 (defun gnus-summary-push-marks-to-backend (article)
-  (let ((add nil)
-	(delete nil)
+  (let ((set nil)
 	(marks gnus-article-mark-lists))
-    (if (memq article gnus-newsgroup-unreads)
-	(push 'read add)
-      (push 'read delete))
+    (when (memq article gnus-newsgroup-unreads)
+      (push 'read set))
     (while marks
-      (when (eq (gnus-article-mark-to-type (cdar marks)) 'list)
-	(if (memq article (symbol-value
-			   (intern (format "gnus-newsgroup-%s"
-					   (caar marks)))))
-	    (push (cdar marks) add)
-	  (push (cdar marks) delete)))
+      (when (and (eq (gnus-article-mark-to-type (cdar marks)) 'list)
+		 (memq article (symbol-value
+				(intern (format "gnus-newsgroup-%s"
+						(caar marks))))))
+	(push (cdar marks) set))
       (pop marks))
-    (gnus-request-set-mark gnus-newsgroup-name
-			   `(((,article) add ,add)
-			     ((,article) del ,delete)))))
+    (gnus-request-set-mark gnus-newsgroup-name `(((,article) set ,set)))))
 
 (defun gnus-summary-copy-article (&optional n to-newsgroup select-method)
   "Copy the current article to some other group.

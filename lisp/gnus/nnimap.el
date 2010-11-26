@@ -181,11 +181,12 @@ textual parts.")
 	    (return)))
 	(setq article (match-string 1))
 	;; Unfold quoted {number} strings.
-	(while (re-search-forward "[^]][ (]{\\([0-9]+\\)}\r\n"
+	(while (re-search-forward "[^]][ (]{\\([0-9]+\\)}\r?\n"
 				  (1+ (line-end-position)) t)
 	  (setq size (string-to-number (match-string 1)))
 	  (delete-region (+ (match-beginning 0) 2) (point))
-	  (setq string (delete-region (point) (+ (point) size)))
+	  (setq string (buffer-substring (point) (+ (point) size)))
+	  (delete-region (point) (+ (point) size))
 	  (insert (format "%S" string)))
 	(setq bytes (nnimap-get-length)
 	      lines nil)
@@ -215,6 +216,16 @@ textual parts.")
 	(delete-region (line-beginning-position) (line-end-position))
 	(insert ".")
 	(forward-line 1)))))
+
+(defun nnimap-unfold-quoted-lines ()
+  ;; Unfold quoted {number} strings.
+  (let (size string)
+    (while (re-search-forward " {\\([0-9]+\\)}\r?\n" nil t)
+      (setq size (string-to-number (match-string 1)))
+      (delete-region (1+ (match-beginning 0)) (point))
+      (setq string (buffer-substring (point) (+ (point) size)))
+      (delete-region (point) (+ (point) size))
+      (insert (format "%S" string)))))
 
 (defun nnimap-get-length ()
   (and (re-search-forward "{\\([0-9]+\\)}" (line-end-position) t)
@@ -789,8 +800,9 @@ textual parts.")
 	      (when (car result)
 		(nnimap-delete-article article)
 		(cons internal-move-group
-		      (nnimap-find-article-by-message-id
-		       internal-move-group message-id))))
+		      (or (nnimap-find-uid-response "COPYUID" (cadr result))
+			  (nnimap-find-article-by-message-id
+			   internal-move-group message-id)))))
 	  ;; Move the article to a different method.
 	  (let ((result (eval accept-form)))
 	    (when result
@@ -916,6 +928,7 @@ textual parts.")
     flags))
 
 (deffoo nnimap-request-set-mark (group actions &optional server)
+  (debug)
   (when (nnimap-possibly-change-group group server)
     (let (sequence)
       (with-current-buffer (nnimap-buffer)
@@ -929,9 +942,10 @@ textual parts.")
 		(setq sequence (nnimap-send-command
 				"UID STORE %s %sFLAGS.SILENT (%s)"
 				(nnimap-article-ranges range)
-				(if (eq action 'del)
-				    "-"
-				  "+")
+				(cond
+				 ((eq action 'del) "-")
+				 ((eq action 'add) "+")
+				 ((eq action 'set) ""))
 				(mapconcat #'identity flags " ")))))))
 	;; Wait for the last command to complete to avoid later
 	;; syncronisation problems with the stream.
@@ -967,7 +981,22 @@ textual parts.")
 		(nnheader-message 7 "%s" (nnheader-get-report-string 'nnimap))
 		nil)
 	    (cons group
-		  (nnimap-find-article-by-message-id group message-id))))))))
+		  (or (nnimap-find-uid-response "APPENDUID" (car result))
+		      (nnimap-find-article-by-message-id
+		       group message-id)))))))))
+
+(defun nnimap-find-uid-response (name list)
+  (let ((result (car (last (nnimap-find-response-element name list)))))
+    (and result
+	 (string-to-number result))))
+
+(defun nnimap-find-response-element (name list)
+  (let (result)
+    (dolist (elem list)
+      (when (and (consp elem)
+		 (equal name (car elem)))
+	(setq result elem)))
+    result))
 
 (deffoo nnimap-request-replace-article (article group buffer)
   (let (group-art)
@@ -986,15 +1015,22 @@ textual parts.")
     (replace-match "\r\n" t t)))
 
 (defun nnimap-get-groups ()
-  (let ((result (nnimap-command "LIST \"\" \"*\""))
+  (erase-buffer)
+  (let ((sequence (nnimap-send-command "LIST \"\" \"*\""))
 	groups)
-    (when (car result)
-      (dolist (line (cdr result))
-	(when (and (equal (car line) "LIST")
-		   (not (and (caadr line)
-			     (string-match "noselect" (caadr line)))))
-	  (push (car (last line)) groups)))
-      (nreverse groups))))
+    (nnimap-wait-for-response sequence)
+    (subst-char-in-region (point-min) (point-max)
+			  ?\\ ?% t)
+    (goto-char (point-min))
+    (nnimap-unfold-quoted-lines)
+    (goto-char (point-min))
+    (while (search-forward "* LIST " nil t)
+      (let ((flags (read (current-buffer)))
+	    (separator (read (current-buffer)))
+	    (group (read (current-buffer))))
+	(unless (member '%NoSelect flags)
+	  (push group groups))))
+    (nreverse groups)))
 
 (deffoo nnimap-request-list (&optional server)
   (nnimap-possibly-change-group nil server)

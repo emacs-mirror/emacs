@@ -1118,19 +1118,7 @@ command whose response triggered the error."
 	     nntp-marks-file-name)
     (nntp-possibly-create-directory group server)
     (nntp-open-marks group server)
-    (dolist (action actions)
-      (let ((range (nth 0 action))
-	    (what  (nth 1 action))
-	    (marks (nth 2 action)))
-	(assert (or (eq what 'add) (eq what 'del)) nil
-		"Unknown request-set-mark action: %s" what)
-	(dolist (mark marks)
-	  (setq nntp-marks (gnus-update-alist-soft
-			    mark
-			    (funcall (if (eq what 'add) 'gnus-range-add
-				       'gnus-remove-from-range)
-				     (cdr (assoc mark nntp-marks)) range)
-			    nntp-marks)))))
+    (setq nntp-marks (nnheader-update-marks-actions nntp-marks actions))
     (nntp-save-marks group server))
   nil)
 
