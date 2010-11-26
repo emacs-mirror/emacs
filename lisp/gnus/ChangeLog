@@ -1,5 +1,7 @@
 2010-11-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-request-set-mark): Add is "+", not "-".
+
 	* gnus-sum.el (gnus-summary-push-marks-to-backend): Use 'set instead of
 	'add and 'delete to set backend marks.
 

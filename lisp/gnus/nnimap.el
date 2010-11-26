@@ -928,6 +928,7 @@ textual parts.")
     flags))
 
 (deffoo nnimap-request-set-mark (group actions &optional server)
+  (debug)
   (when (nnimap-possibly-change-group group server)
     (let (sequence)
       (with-current-buffer (nnimap-buffer)
@@ -943,7 +944,7 @@ textual parts.")
 				(nnimap-article-ranges range)
 				(cond
 				 ((eq action 'del) "-")
-				 ((eq action 'add) "-")
+				 ((eq action 'add) "+")
 				 ((eq action 'set) ""))
 				(mapconcat #'identity flags " ")))))))
 	;; Wait for the last command to complete to avoid later
