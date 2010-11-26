@@ -1,3 +1,46 @@
+2010-11-26  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-entity, rmail-mime-entity-type)
+	(rmail-mime-entity-disposition)
+	(rmail-mime-entity-transfer-encoding, rmail-mime-entity-header)
+	(rmail-mime-entity-body, rmail-mime-entity-children): New functions.
+	(rmail-mime-save): Handle the case that the button's `data' is a
+	MIME entity.
+	(rmail-mime-insert-text): New function.
+	(rmail-mime-insert-image): Handle the case that DATA is a MIME
+	entity.
+	(rmail-mime-bulk-handler): Just call rmail-mime-insert-bulk.
+	(rmail-mime-insert-bulk): New function mostly copied from the old
+	rmail-mime-bulk-handler.
+	(rmail-mime-multipart-handler): Just call
+	rmail-mime-process-multipart.
+	(rmail-mime-process-multipart): New funciton mostly copied from
+	the old rmail-mime-multipart-handler.
+	(rmail-mime-show): Just call rmail-mime-process.
+	(rmail-mime-process): New funciton mostly copied from the old
+	rmail-mime-show.
+	(rmail-mime-insert-multipart, rmail-mime-parse)
+	(rmail-mime-insert, rmail-show-mime)
+	(rmail-insert-mime-forwarded-message)
+	(rmail-insert-mime-resent-message): New functions.
+	(rmail-insert-mime-forwarded-message-function): Set to
+	rmail-insert-mime-forwarded-message.
+	(rmail-insert-mime-resent-message-function): Set to
+	rmail-insert-mime-resent-message.
+
+	* mail/rmailsum.el: Require rfc2047.
+	(rmail-header-summary): Handle multiline Subject: field.
+	(rmail-summary-line-decoder): Change the default to
+	rfc2047-decode-string.
+
+	* mail/rmail.el (rmail-enable-mime): Change the default to t.
+	(rmail-mime-feature): Change the default to `rmailmm'.
+	(rmail-quit): Delete the specifal code for rmail-enable-mime.
+	(rmail-display-labels): Likewise.
+	(rmail-show-message-1): Check rmail-enable-mime, and use
+	rmail-show-mime-function for a MIME message.  Decode the headers
+	according to RFC2047.
+
 2010-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/which-func.el (which-func-imenu-joiner-function):
