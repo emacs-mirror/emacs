@@ -309,11 +309,10 @@ If this variable is nil, years must be written in full."
   "Return a replace-match template for an element of `diary-outlook-formats'.
 Returns a string using match elements 1-5, where:
 1 = month name, 2 = day, 3 = year, 4 = time, 5 = location; also uses
-%s = message subject.
-The argument BODY is not used."
-  (let* ((monthname (match-string 1))
-        (day (match-string 2))
-        (year (match-string 3))
+%s = message subject.  BODY is the string from which the matches derive."
+  (let* ((monthname (match-string 1 body))
+        (day (match-string 2 body))
+        (year (match-string 3 body))
         ;; Blech.
         (month (catch 'found
                  (dotimes (i (length calendar-month-name-array))
