@@ -254,7 +254,7 @@ redirects somewhere else."
 	(while (and (> (current-column) shr-width)
 		    (progn
 		      (setq found (shr-find-fill-point))
-		      (not (or (bolp) (eolp)))))
+		      (not (eolp))))
 	  (when (eq (preceding-char) ? )
 	    (delete-char -1))
 	  (insert "\n")
@@ -278,7 +278,8 @@ redirects somewhere else."
 	    (or (setq failed (= (current-column) shr-indentation))
 		(eq (preceding-char) ? )
 		(eq (following-char) ? )
-		(aref fill-find-break-point-function-table (preceding-char))))
+		(aref fill-find-break-point-function-table (preceding-char))
+		(aref (char-category-set (preceding-char)) ?>)))
       (backward-char 1))
     (if failed
 	;; There's no breakable point, so we give it up.
@@ -287,30 +288,52 @@ redirects somewhere else."
 	  (while (aref fill-find-break-point-function-table (preceding-char))
 	    (backward-char 1))
 	  nil)
-      (or (eolp)
-	  ;; Don't put kinsoku-bol characters at the beginning of a line,
-	  ;; or kinsoku-eol characters at the end of a line,
-	  (let ((count 4))
-	    (if (or shr-kinsoku-shorten
-		    (and (aref (char-category-set (preceding-char)) ?<)
-			 (progn
-			   (setq count (1- count))
-			   (backward-char 1)
-			   t)))
-		(while (and
-			(>= (setq count (1- count)) 0)
-			(not (memq (preceding-char) (list ?\C-@ ?\n ? )))
-			(or (aref (char-category-set (preceding-char)) ?<)
-			    (aref (char-category-set (following-char)) ?>)))
-		  (backward-char 1))
-	      (while (and (>= (setq count (1- count)) 0)
-			  (aref (char-category-set (following-char)) ?>)
-			  (aref fill-find-break-point-function-table
-				(following-char)))
-		(forward-char 1)))
-	    (when (eq (following-char) ? )
-	      (forward-char 1))
-	    t)))))
+      (or
+       (eolp)
+       (progn
+	 ;; Don't put kinsoku-bol characters at the beginning of a line,
+	 ;; or kinsoku-eol characters at the end of a line.
+	 (cond
+	  (shr-kinsoku-shorten
+	   (while (and
+		   (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
+		   (not (or (aref (char-category-set (preceding-char)) ?>)
+			    (aref (char-category-set (following-char)) ?<)))
+		   (or (aref (char-category-set (preceding-char)) ?<)
+		       (aref (char-category-set (following-char)) ?>)))
+	     (backward-char 1)))
+	  ((aref (char-category-set (preceding-char)) ?<)
+	   (let ((count 3))
+	     (while (progn
+		      (backward-char 1)
+		      (and
+		       (> (setq count (1- count)) 0)
+		       (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
+		       (or (aref (char-category-set (preceding-char)) ?<)
+			   (aref (char-category-set (following-char)) ?>))))))
+	   (if (and (setq failed (= (current-column) shr-indentation))
+		    (re-search-forward "\\c|" (line-end-position) 'move))
+	       ;; There's no breakable point that doesn't violate kinsoku,
+	       ;; so we look for the second best position.
+	       (let (bp)
+		 (while (and (<= (current-column) shr-width)
+			     (progn
+			       (setq bp (point))
+			       (not (eolp)))
+			     (aref fill-find-break-point-function-table
+				   (following-char)))
+		   (forward-char 1))
+		 (goto-char (or bp (line-end-position))))))
+	  (t
+	   (let ((count 4))
+	     (while (and (>= (setq count (1- count)) 0)
+			 (aref (char-category-set (following-char)) ?>)
+			 (aref fill-find-break-point-function-table
+			       (following-char)))
+	       (forward-char 1)))))
+	 (when (eq (following-char) ? )
+	   (forward-char 1))
+	 (not failed))))))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))

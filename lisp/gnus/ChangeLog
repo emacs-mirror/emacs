@@ -1,3 +1,9 @@
+2010-11-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-insert): Revert last change.
+	(shr-find-fill-point): Never leave point being at bol;
+	relax the kinsoku limitation when rendering tables.
+
 2010-11-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnmail.el (nnmail-expiry-target-group): Protect against degenerate
