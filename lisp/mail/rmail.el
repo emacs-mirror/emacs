@@ -39,6 +39,7 @@
 ;;
 
 (require 'mail-utils)
+(require 'rfc2047)
 
 (defconst rmail-attribute-header "X-RMAIL-ATTRIBUTES"
   "The header that stores the Rmail attribute data.")
