@@ -323,8 +323,7 @@ Returns a string using match elements 1-5, where:
     ;; If we could convert the monthname to a numeric month, we can
     ;; use the standard function calendar-date-string.
     (concat (if month
-                (calendar-date-string (list (string-to-number month)
-                                            (string-to-number day)
+                (calendar-date-string (list month (string-to-number day)
                                             (string-to-number year)))
               (cond ((eq calendar-date-style 'iso) "\\3 \\1 \\2") ; YMD
                     ((eq calendar-date-style 'european) "\\2 \\1 \\3") ; DMY
