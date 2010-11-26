@@ -44,8 +44,8 @@
 ;;    mnemonic support, with verification against an established passphrase
 ;;    (using a stashed encrypted dummy string) and user-supplied hint
 ;;    maintenance.  (See allout-toggle-current-subtree-encryption docstring.
-;;    Currently only GnuPG encryption is supported, and integration
-;;    with gpg-agent is not yet implemented.)
+;;    Currently only GnuPG encryption is supported
+;;PGG and integration with gpg-agent is not yet implemented.)
 ;;  - Automatic topic-number maintenance
 ;;  - "Hot-spot" operation, for single-keystroke maneuvering and
 ;;    exposure control (see the allout-mode docstring)
@@ -6006,10 +6006,8 @@ it forces prompting for the passphrase regardless of availability from the
 passphrase cache.  With no universal argument, the appropriate passphrase
 is obtained from the cache, if available, else from the user.
 
-Only GnuPG encryption is supported.
-
-\*NOTE WELL* that the encrypted text must be ascii-armored.  For gnupg
-encryption, include the option ``armor'' in your ~/.gnupg/gpg.conf file.
+Allout uses emacs 'epg' libary to perform encryption.  Allout
+encrypts with ascii armoring.
 
 Both symmetric-key and key-pair encryption is implemented.  Symmetric is
 the default, use a single (x4) universal argument for keypair mode.
@@ -6035,8 +6033,8 @@ encrypted.  If you want to encrypt the contents of a top-level topic, use
 The encryption passphrase is solicited if not currently available in the
 passphrase cache from a recent encryption action.
 
-The solicited passphrase is retained for reuse in a cache, if enabled.  See
-`pgg-cache-passphrase' and `pgg-passphrase-cache-expiry' for details.
+;;PGG The solicited passphrase is retained for reuse in a cache, if enabled.  See
+;;PGG `pgg-cache-passphrase' and `pgg-passphrase-cache-expiry' for details.
 
   Symmetric Passphrase Hinting and Verification
 
@@ -6079,8 +6077,7 @@ is obtained from the cache, if available, else from the user.
 Currently only GnuPG encryption is supported, and integration
 with gpg-agent is not yet implemented.
 
-\**NOTE WELL** that the encrypted text must be ascii-armored.  For gnupg
-encryption, include the option ``armor'' in your ~/.gnupg/gpg.conf file.
+NOTE that the encrypted text will be ascii-armored.
 
 See `allout-toggle-current-subtree-encryption' for more details."
 
@@ -6154,7 +6151,9 @@ See `allout-toggle-current-subtree-encryption' for more details."
       (setq result-text
             (allout-encrypt-string subject-text was-encrypted
                                     (current-buffer)
-                                    for-key-type for-key-identity fetch-pass))
+                                    for-key-type for-key-identity
+                                    ;;PGG fetch-pass
+                                    ))
 
        ;; Replace the subtree with the processed product.
       (allout-unprotected
@@ -6186,22 +6185,24 @@ See `allout-toggle-current-subtree-encryption' for more details."
       (run-hook-with-args 'allout-structure-added-hook
                           bullet-pos subtree-end))))
 ;;;_  > allout-encrypt-string (text decrypt allout-buffer key-type for-key
-;;;                                  fetch-pass &optional retried verifying
+;;;                                  ;;PGG fetch-pass
+;;;                                  &optional retried verifying
 ;;;                                  passphrase)
 (defun allout-encrypt-string (text decrypt allout-buffer key-type for-key
-                                   fetch-pass &optional retried rejected
+                                   ;;PGG fetch-pass
+                                   &optional retried rejected
                                    verifying passphrase)
   "Encrypt or decrypt message TEXT.
 
 If DECRYPT is true (default false), then decrypt instead of encrypt.
-
-FETCH-PASS (default false) forces fresh prompting for the passphrase.
 
 KEY-TYPE, either `symmetric' or `keypair', specifies which type
 of cypher to use.
 
 FOR-KEY is human readable identification of the first of the user's
 eligible secret keys a keypair decryption targets, or else nil.
+
+;;PGG FETCH-PASS (default false) forces fresh prompting for the passphrase.
 
 Optional RETRIED is for internal use -- conveys the number of failed keys
 that have been solicited in sequence leading to this current call.
@@ -6216,26 +6217,28 @@ rejections due to matches against
 
 Returns the resulting string, or nil if the transformation fails."
 
+  (require 'epa)
   (require 'pgg)
 
-  (let* ((scheme (upcase
-                  (format "%s" (or pgg-scheme pgg-default-scheme "GPG"))))
+  (let* ((epg-context (epg-make-context epa-protocol t))
+         ;;PGG (scheme (upcase
+         ;;PGG          (format "%s" (or pgg-scheme pgg-default-scheme "GPG"))))
          (for-key (and (equal key-type 'keypair)
                        (or for-key
                            (split-string (read-string
                                           (format "%s message recipients: "
-                                                  scheme))
+                                                  epa-protocol))
                                          "[ \t,]+"))))
          (target-prompt-id (if (equal key-type 'keypair)
                                (if (= (length for-key) 1)
                                    (car for-key) for-key)
                              (buffer-name allout-buffer)))
-         (target-cache-id (format "%s-%s"
-                                  key-type
-                                  (if (equal key-type 'keypair)
-                                      target-prompt-id
-                                    (or (buffer-file-name allout-buffer)
-                                        target-prompt-id))))
+         ;;PGG  (target-cache-id (format "%s-%s"
+         ;;PGG                           key-type
+         ;;PGG                           (if (equal key-type 'keypair)
+         ;;PGG                               target-prompt-id
+         ;;PGG                             (or (buffer-file-name allout-buffer)
+         ;;PGG                                 target-prompt-id))))
          (encoding (with-current-buffer allout-buffer
                      buffer-file-coding-system))
          (multibyte (with-current-buffer allout-buffer
@@ -6254,9 +6257,9 @@ Returns the resulting string, or nil if the transformation fails."
          result-text status
          )
 
-    (if (and fetch-pass (not passphrase))
-        ;; Force later fetch by evicting passphrase from the cache.
-        (pgg-remove-passphrase-from-cache target-cache-id t))
+    ;;PGG (if (and fetch-pass (not passphrase))
+    ;;PGG     ;; Force later fetch by evicting passphrase from the cache.
+    ;;PGG     (pgg-remove-passphrase-from-cache target-cache-id t))
 
     (catch 'encryption-failed
 
@@ -6264,11 +6267,13 @@ Returns the resulting string, or nil if the transformation fails."
         (if (and (not passphrase)
                  (not (equal key-type 'keypair)))
             (setq passphrase (allout-obtain-passphrase for-key
-                                                       target-cache-id
+                                                       ;;PGG target-cache-id
                                                        target-prompt-id
                                                        key-type
                                                        allout-buffer
-                                                       retried fetch-pass)))
+                                                       retried
+                                                       ;;PGG fetch-pass
+                                                       )))
 
         (with-temp-buffer
 
@@ -6307,7 +6312,7 @@ Returns the resulting string, or nil if the transformation fails."
               ;; failed -- handle passphrase caching
               (if verifying
                   (throw 'encryption-failed nil)
-                (pgg-remove-passphrase-from-cache target-cache-id t)
+                ;;PGG (pgg-remove-passphrase-from-cache target-cache-id t)
                 (error "Symmetric-cipher %scryption failed -- %s"
                        (if decrypt "de" "en")
                        "try again with different passphrase"))))
@@ -6322,7 +6327,7 @@ Returns the resulting string, or nil if the transformation fails."
 
             (if status
                 (pgg-situate-output (point-min) (point-max))
-              (error (pgg-remove-passphrase-from-cache target-cache-id t)
+              (error ;;PGG (pgg-remove-passphrase-from-cache target-cache-id t)
                      (error "encryption failed"))))
 
            ;; decrypt `keypair':
@@ -6333,7 +6338,7 @@ Returns the resulting string, or nil if the transformation fails."
 
             (if status
                 (pgg-situate-output (point-min) (point-max))
-              (error (pgg-remove-passphrase-from-cache target-cache-id t)
+              (error ;;PGG (pgg-remove-passphrase-from-cache target-cache-id t)
                      (error "decryption failed")))))
 
           (setq result-text
@@ -6346,9 +6351,10 @@ Returns the resulting string, or nil if the transformation fails."
                (if verifying
                    nil
                  ;; transform was fruitless, retry w/new passphrase.
-                 (pgg-remove-passphrase-from-cache target-cache-id t)
+                 ;;PGG (pgg-remove-passphrase-from-cache target-cache-id t)
                  (allout-encrypt-string text decrypt allout-buffer
-                                        key-type for-key nil
+                                        key-type for-key
+                                        ;;PGG nil
                                         (if retried (1+ retried) 1)
                                         rejected verifying nil)))
 
@@ -6369,7 +6375,8 @@ Returns the resulting string, or nil if the transformation fails."
                           allout-encryption-ciphertext-rejection-ceiling
                           'allout-encryption-ciphertext-rejection-regexps)
                  (allout-encrypt-string text decrypt allout-buffer
-                                        key-type for-key nil
+                                        key-type for-key
+                                        ;;PGG nil
                                         retried (1+ rejected)
                                         verifying passphrase)))
               ;; Barf if encryption yields extraordinary control chars:
@@ -6381,18 +6388,18 @@ Returns the resulting string, or nil if the transformation fails."
 
               ;; valid result and just verifying or non-symmetric:
               ((or verifying (not (equal key-type 'symmetric)))
-               (if (or verifying decrypt)
-                   (pgg-add-passphrase-to-cache target-cache-id
-                                                passphrase t))
+               ;;PGG (if (or verifying decrypt)
+               ;;PGG     (pgg-add-passphrase-to-cache target-cache-id
+               ;;PGG                                  passphrase t))
                result-text)
 
               ;; valid result and regular symmetric -- "register"
               ;; passphrase with mnemonic aids/cache.
               (t
                (set-buffer allout-buffer)
-               (if passphrase
-                   (pgg-add-passphrase-to-cache target-cache-id
-                                                passphrase t))
+               ;;PGG (if passphrase
+               ;;PGG     (pgg-add-passphrase-to-cache target-cache-id
+               ;;PGG                                  passphrase t))
                (allout-update-passphrase-mnemonic-aids for-key passphrase
                                                        allout-buffer)
                result-text)
@@ -6400,11 +6407,14 @@ Returns the resulting string, or nil if the transformation fails."
         )
     )
   )
-;;;_  > allout-obtain-passphrase (for-key cache-id prompt-id key-type
-;;;                                       allout-buffer retried fetch-pass)
-(defun allout-obtain-passphrase (for-key cache-id prompt-id key-type
-                                         allout-buffer retried fetch-pass)
-  "Obtain passphrase for a key from the cache or else from the user.
+;;;_  > allout-obtain-passphrase (for-key  ;;PGG cache-id
+;;;                               prompt-id key-type allout-buffer retried
+;;;                               ;;PGG fetch-pass)
+(defun allout-obtain-passphrase (for-key ;;PGG cache-id
+                                 prompt-id key-type allout-buffer retried
+                                 ;;fetch-pass
+                                 )
+  "Obtain passphrase for a key from the user.
 
 When obtaining from the user, symmetric-cipher passphrases are verified
 against either, if available and enabled, a random string that was
@@ -6413,7 +6423,7 @@ user for corroboration.
 
 FOR-KEY is the key for which the passphrase is being obtained.
 
-CACHE-ID is the cache id of the key for the passphrase.
+;;PGG CACHE-ID is the cache id of the key for the passphrase.
 
 PROMPT-ID is the id for use when prompting the user.
 
@@ -6423,8 +6433,9 @@ ALLOUT-BUFFER is the buffer containing the entry being en/decrypted.
 
 RETRIED is the number of this attempt to obtain this passphrase.
 
-FETCH-PASS causes the passphrase to be solicited from the user, regardless
-of the availability of a cached copy."
+;;PGG FETCH-PASS causes the passphrase to be solicited from the user, regardless
+;;PGG of the availability of a cached copy.
+"
 
   (if (not (equal key-type 'symmetric))
       ;; do regular passphrase read on non-symmetric passphrase:
@@ -6435,7 +6446,8 @@ of the availability of a cached copy."
                                      (if prompt-id
                                          (format " for %s" prompt-id)
                                        ""))
-                           cache-id t)
+                           for-key ;;PGG cache-id
+                           t)
 
     ;; Symmetric hereon:
 
@@ -6455,10 +6467,12 @@ of the availability of a cached copy."
              (prompt full-prompt)
              (verifier-string (allout-get-encryption-passphrase-verifier))
 
-             (cached (and (not fetch-pass)
-                          (pgg-read-passphrase-from-cache cache-id t)))
-             (got-pass (or cached
-                           (pgg-read-passphrase full-prompt cache-id t)))
+             ;;PGG (cached (and (not fetch-pass)
+             ;;PGG             (pgg-read-passphrase-from-cache cache-id t)))
+             (got-pass ;;PGG (or cached
+              (pgg-read-passphrase full-prompt ;;PGG cache-id
+                                   for-key t))
+             ;;PGG )
              confirmation)
 
         (if (not got-pass)
@@ -6471,8 +6485,9 @@ of the availability of a cached copy."
           (cond (verifier-string
                  (save-window-excursion
                    (if (allout-encrypt-string verifier-string 'decrypt
-                                              allout-buffer 'symmetric
-                                              for-key nil 0 0 'verifying
+                                              allout-buffer 'symmetric for-key
+                                              ;;PGG nil
+                                              0 0 'verifying
                                               (copy-sequence got-pass))
                        (setq confirmation (format "%s" got-pass))))
 
@@ -6483,33 +6498,38 @@ of the availability of a cached copy."
                               ;; deactivate password for subsequent
                               ;; confirmation:
                               (progn
-                                (pgg-remove-passphrase-from-cache cache-id t)
+                                ;;PGG (pgg-remove-passphrase-from-cache cache-id t)
                                 (setq prompt prompt-sans-hint)
                                 nil)
                             t))
-                     (progn (pgg-remove-passphrase-from-cache cache-id t)
-                            (error "Wrong passphrase"))))
+                     ;;PGG (progn (pgg-remove-passphrase-from-cache cache-id t)
+                     (error "Wrong passphrase")))
+                     ;;PGG)
                 ;; No verifier string -- force confirmation by repetition of
                 ;; (new) passphrase:
-                ((or fetch-pass (not cached))
-                 (pgg-remove-passphrase-from-cache cache-id t))))
+                ;;PGG ((or fetch-pass (not cached))
+                ;;PGG (pgg-remove-passphrase-from-cache cache-id t)))
+                )
         ;; confirmation vs new input -- doing pgg-read-passphrase will do the
         ;; right thing, in either case:
         (if (not confirmation)
             (setq confirmation
                   (pgg-read-passphrase (concat prompt
                                                " ... confirm spelling: ")
-                                       cache-id t)))
+                                       ;;PGG cache-id
+                                       for-key t)))
         (prog1
             (if (equal got-pass confirmation)
                 confirmation
               (if (yes-or-no-p (concat "spelling of original and"
                                        " confirmation differ -- retry? "))
                   (progn (setq retried (if retried (1+ retried) 1))
-                         (pgg-remove-passphrase-from-cache cache-id t)
+                         ;;PGG (pgg-remove-passphrase-from-cache cache-id
+                          for-key t)
                          ;; recurse to this routine:
-                         (pgg-read-passphrase prompt-sans-hint cache-id t))
-                (pgg-remove-passphrase-from-cache cache-id t)
+                         (pgg-read-passphrase prompt-sans-hint ;;PGG cache-id
+                                              for-key t))
+                ;;PGG (pgg-remove-passphrase-from-cache cache-id t)
                 (error "Confirmation failed"))))))))
 ;;;_  > allout-encrypted-topic-p ()
 (defun allout-encrypted-topic-p ()
@@ -6562,8 +6582,9 @@ An error is raised if the text is not encrypted."
   (let ((spew (make-string 20 ?\0)))
     (dotimes (i (length spew))
       (aset spew i (1+ (random 254))))
-    (allout-encrypt-string spew nil (current-buffer) 'symmetric
-                           nil nil 0 0 passphrase))
+    (allout-encrypt-string spew nil (current-buffer) 'symmetric nil
+                           ;;PGG nil
+                           nil 0 0 passphrase))
   )
 ;;;_  > allout-update-passphrase-mnemonic-aids (for-key passphrase
 ;;;                                                     outline-buffer)
@@ -6640,8 +6661,9 @@ Derived from value of `allout-passphrase-verifier-string'."
     (and (boundp 'allout-passphrase-verifier-string)
          allout-passphrase-verifier-string
          (allout-encrypt-string (allout-get-encryption-passphrase-verifier)
-                                 'decrypt allout-buffer 'symmetric
-                                 key nil 0 0 'verifying passphrase)
+                                 'decrypt allout-buffer 'symmetric key
+                                 ;;PGG nil
+                                 0 0 'verifying passphrase)
          t)))
 ;;;_  > allout-next-topic-pending-encryption (&optional except-mark)
 (defun allout-next-topic-pending-encryption (&optional except-mark)
