@@ -5283,9 +5283,9 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  xret = XINT (x) - window_box_left (w, TEXT_AREA);
 	  yret = wy - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
-      /* For mode line and header line clicks, return X relative to
-	 the left window edge; ignore Y.  Use mode_line_string to look
-	 for a string on the click position.  */
+      /* For mode line and header line clicks, return X, Y relative to
+	 the left window edge.  Use mode_line_string to look for a
+	 string on the click position.  */
       else if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
 	{
 	  Lisp_Object string;
@@ -5305,6 +5305,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	    ? PT : XMARKER (w->pointm)->charpos;
 
 	  xret = wx;
+	  yret = wy;
 	}
       /* For fringes and margins, Y is relative to the area's (and the
 	 window's) top edge, while X is meaningless.  */

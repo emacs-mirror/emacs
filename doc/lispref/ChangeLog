@@ -1,3 +1,9 @@
+2010-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Click Events): Document the values of X, Y and
+	COL, ROW in the event's position, when the click is on the header
+	or mode line, on the fringes, or in the margins.
+
 2010-11-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* customize.texi (Composite Types): Lower-case index entry.

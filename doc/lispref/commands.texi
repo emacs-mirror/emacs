@@ -1285,8 +1285,12 @@ input stream.  @xref{Key Sequence Input}.
 @item @var{x}, @var{y}
 These are the pixel coordinates of the click, relative to
 the top left corner of @var{window}, which is @code{(0 . 0)}.
-For the mode or header line, @var{y} does not have meaningful data.
-For the vertical line, @var{x} does not have meaningful data.
+For a click on text, these are relative to the top left corner of
+the window's text area.  For the mode or header line, they are
+relative to the top left window edge.  For fringes, margins, and the
+vertical border, @var{x} does not have meaningful data.  For fringes
+and margins, @var{y} is relative to the bottom edge of the header
+line.
 
 @item @var{timestamp}
 This is the time at which the event occurred, in milliseconds.
@@ -1316,7 +1320,12 @@ the window.
 @item @var{col}, @var{row}
 These are the actual coordinates of the glyph under the @var{x},
 @var{y} position, possibly padded with default character width
-glyphs if @var{x} is beyond the last glyph on the line.
+glyphs if @var{x} is beyond the last glyph on the line.  For clicks on
+the header or mode line, these are measured from the top left edge of
+the header or mode line.  For clicks on the fringes and on the
+vertical border, these have no meaningful data.  For clicks on the
+margins, @var{col} is measured from the left edge of the margin area
+and @var{row} is measured from the top of the margin area.
 
 @item @var{image}
 This is the image object on which the click occurred.  It is either
@@ -1333,7 +1342,7 @@ left corner of the character glyph clicked on.
 These are the pixel width and height of @var{object} or, if this is
 @code{nil}, those of the character glyph clicked on.
 @end table
- 
+
 @sp 1
 For mouse clicks on a scroll-bar, @var{position} has this form:
 

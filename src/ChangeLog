@@ -1,3 +1,8 @@
+2010-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (make_lispy_position): Put a meaningful value in yret
+	when the click is on the header or mode line.
+
 2010-11-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Don't forget to consider the
