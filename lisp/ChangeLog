@@ -1,5 +1,8 @@
 2010-11-26  Kenichi Handa  <handa@m17n.org>
 
+	* mail/rmailmm.el (rmail-mime-insert-multipart): For unsupported
+	multipart subtypes, insert all as usual.
+
 	* mail/rmail.el: Require rfc2047.
 
 2010-11-26  Kenichi Handa  <handa@m17n.org>
