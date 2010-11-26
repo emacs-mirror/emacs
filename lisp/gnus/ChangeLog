@@ -1,5 +1,18 @@
 2010-11-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-sum.el (gnus-summary-push-marks-to-backend): Use 'set instead of
+	'add and 'delete to set backend marks.
+
+	* nnmaildir.el (nnmaildir-request-set-mark): Be explicit about 'set.
+
+	* nnheader.el (nnheader-update-marks-actions): Refactor out.
+
+	* nntp.el (nntp-request-set-mark): Use it.
+
+	* nnfolder.el (nnfolder-request-set-mark): Ditto.
+
+	* nnml.el (nnml-request-set-mark): Ditto.
+
 	* nnimap.el (nnimap-last-response-string): Remove the unfolding -- it
 	introduces regressions in article selection.
 	(nnimap-find-uid-response): New function.
@@ -7,6 +20,13 @@
 	(nnimap-request-move-article): Use the UID returned, if any.
 	(nnimap-get-groups): Reimplement to work with folded lines.
 	(nnimap-find-uid-response): The UID is the last element in the list.
+	(nnimap-request-set-mark): Extend syntax with 'set.
+
+	* nnml.el (nnml-request-set-mark): Ditto.
+
+	* nnfolder.el (nnfolder-request-set-mark): Ditto.
+
+	* nntp.el (nntp-request-set-mark): Ditto.
 
 2010-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 

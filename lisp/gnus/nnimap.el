@@ -941,9 +941,10 @@ textual parts.")
 		(setq sequence (nnimap-send-command
 				"UID STORE %s %sFLAGS.SILENT (%s)"
 				(nnimap-article-ranges range)
-				(if (eq action 'del)
-				    "-"
-				  "+")
+				(cond
+				 ((eq action 'del) "-")
+				 ((eq action 'add) "-")
+				 ((eq action 'set) ""))
 				(mapconcat #'identity flags " ")))))))
 	;; Wait for the last command to complete to avoid later
 	;; syncronisation problems with the stream.

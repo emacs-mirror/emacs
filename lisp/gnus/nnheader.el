@@ -1078,6 +1078,26 @@ See `find-file-noselect' for the arguments."
 		   (truncate nnheader-read-timeout))
 		1000))))
 
+(defun nnheader-update-marks-actions (backend-marks actions)
+  (dolist (action actions)
+    (let ((range (nth 0 action))
+	  (what  (nth 1 action))
+	  (marks (nth 2 action)))
+      (dolist (mark marks)
+	(setq backend-marks
+	      (gnus-update-alist-soft
+	       mark
+	       (cond
+		((eq what 'add)
+		 (gnus-range-add (cdr (assoc mark backend-marks)) range)
+		 ((eq what 'del)
+		  (gnus-remove-from-range
+		   (cdr (assoc mark backend-marks)) range))
+		 ((eq what 'set)
+		  range)))
+	       backend-marks)))))
+  backend-marks)
+
 (when (featurep 'xemacs)
   (require 'nnheaderxm))
 

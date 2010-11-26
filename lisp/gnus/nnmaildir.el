@@ -1590,7 +1590,7 @@ by nnmaildir-request-article.")
 	(nnmaildir--nlist-iterate nlist ranges
 				  (cond ((eq 'del (cadr action)) del-action)
 					((eq 'add (cadr action)) add-action)
-					(t set-action))))
+					((eq 'set (cadr action)) set-action))))
       nil)))
 
 (defun nnmaildir-close-group (gname &optional server)
