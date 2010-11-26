@@ -800,8 +800,9 @@ textual parts.")
 	      (when (car result)
 		(nnimap-delete-article article)
 		(cons internal-move-group
-		      (nnimap-find-article-by-message-id
-		       internal-move-group message-id))))
+		      (or (nnimap-find-uid-response "COPYUID" (cadr result))
+			  (nnimap-find-article-by-message-id
+			   internal-move-group message-id)))))
 	  ;; Move the article to a different method.
 	  (let ((result (eval accept-form)))
 	    (when result
@@ -978,7 +979,22 @@ textual parts.")
 		(nnheader-message 7 "%s" (nnheader-get-report-string 'nnimap))
 		nil)
 	    (cons group
-		  (nnimap-find-article-by-message-id group message-id))))))))
+		  (or (nnimap-find-uid-response "APPENDUID" (car result))
+		      (nnimap-find-article-by-message-id
+		       group message-id)))))))))
+
+(defun nnimap-find-uid-response (name list)
+  (let ((result (nth 2 (nnimap-find-response-element name list))))
+    (and result
+	 (string-to-number result))))
+
+(defun nnimap-find-response-element (name list)
+  (let (result)
+    (dolist (elem list)
+      (when (and (consp elem)
+		 (equal name (car elem)))
+	(setq result elem)))
+    result))
 
 (deffoo nnimap-request-replace-article (article group buffer)
   (let (group-art)
@@ -997,15 +1013,22 @@ textual parts.")
     (replace-match "\r\n" t t)))
 
 (defun nnimap-get-groups ()
-  (let ((result (nnimap-command "LIST \"\" \"*\""))
+  (erase-buffer)
+  (let ((sequence (nnimap-send-command "LIST \"\" \"*\""))
 	groups)
-    (when (car result)
-      (dolist (line (cdr result))
-	(when (and (equal (car line) "LIST")
-		   (not (and (caadr line)
-			     (string-match "noselect" (caadr line)))))
-	  (push (car (last line)) groups)))
-      (nreverse groups))))
+    (nnimap-wait-for-response sequence)
+    (subst-char-in-region (point-min) (point-max)
+			  ?\\ ?% t)
+    (goto-char (point-min))
+    (nnimap-unfold-quoted-lines)
+    (goto-char (point-min))
+    (while (search-forward "* LIST " nil t)
+      (let ((flags (read (current-buffer)))
+	    (separator (read (current-buffer)))
+	    (group (read (current-buffer))))
+	(unless (member '%NoSelect flags)
+	  (push group groups))))
+    (nreverse groups)))
 
 (deffoo nnimap-request-list (&optional server)
   (nnimap-possibly-change-group nil server)

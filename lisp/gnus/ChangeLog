@@ -2,6 +2,10 @@
 
 	* nnimap.el (nnimap-last-response-string): Remove the unfolding -- it
 	introduces regressions in article selection.
+	(nnimap-find-uid-response): New function.
+	(nnimap-request-accept-article): Use the UID returned, if any.
+	(nnimap-request-move-article): Use the UID returned, if any.
+	(nnimap-get-groups): Reimplement to work with folded lines.
 
 2010-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
