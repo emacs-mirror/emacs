@@ -1,3 +1,9 @@
+2010-11-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* log-edit.el (log-edit-font-lock-keywords): Don't try matching
+	stand-alone lines, since that is handled by log-edit-match-to-eoh
+	(Bug#6465).
+
 2010-11-27  Eduard Wiebe  <usenet@pusto.de>
 
 	* dired.el (dired-get-filename): Replace backslashes with slashes
