@@ -383,15 +383,8 @@ The default value matches citations like `foo-bar>' plus whitespace."
     map))
 
 (autoload 'build-mail-aliases "mailalias"
-  "Read mail aliases from user's personal aliases file and set `mail-aliases'."
-  nil)
-
-(autoload 'expand-mail-aliases "mailalias"
-  "Expand all mail aliases in suitable header fields found between BEG and END.
-Suitable header fields are `To', `Cc' and `Bcc' and their `Resent-' variants.
-Optional second arg EXCLUDE may be a regular expression defining text to be
-removed from alias expansions."
-  nil)
+  "Read mail aliases from personal aliases file and set `mail-aliases'.
+By default, this is the file specified by `mail-personal-alias-file'.")
 
 ;;;###autoload
 (defcustom mail-signature t

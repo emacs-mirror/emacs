@@ -1,5 +1,8 @@
 2010-11-27  Glenn Morris  <rgm@gnu.org>
 
+	* mail/sendmail.el (build-mail-aliases): Doc fix for autoload.
+	(expand-mail-aliases): Remove unnecessary autoload.
+
 	* allout.el (allout-command-prefix, allout-mode-map): Declare.
 
 	* shell.el (shell-dir-cookie-re): Move definition before use.
