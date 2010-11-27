@@ -1,3 +1,12 @@
+2010-11-27  Eduard Wiebe  <usenet@pusto.de>
+
+	* dired.el (dired-get-filename): Replace backslashes with slashes
+	in file names on MS-Windows, needed by `locate'.  (Bug#7308)
+	* locate.el (locate-default-make-command-line): Don't consider
+	drive letter and root directory part of
+	`directory-listing-before-filename-regexp'.  (Bug#7308)
+	(locate-post-command-hook, locate-post-command-hook): New defcustoms.
+
 2010-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-prec2->grammar): Simplify handling
