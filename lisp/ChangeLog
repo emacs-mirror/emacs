@@ -1,5 +1,7 @@
 2010-11-27  Glenn Morris  <rgm@gnu.org>
 
+	* allout.el (allout-command-prefix, allout-mode-map): Declare.
+
 	* shell.el (shell-dir-cookie-re): Move definition before use.
 
 	* mail/emacsbug.el (report-emacs-bug-create-existing-bugs-buffer):

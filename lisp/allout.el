@@ -1,7 +1,7 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992, 1993, 1994, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
@@ -108,6 +108,9 @@
   :group 'allout)
 
 ;;;_ + Layout, Mode, and Topic Header Configuration
+
+(defvar allout-command-prefix)          ; defined below
+(defvar allout-mode-map)
 
 ;;;_  > allout-keybindings incidentals:
 ;;;_   > allout-bind-keys &optional varname value
