@@ -1,3 +1,8 @@
+2010-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el (glyphless-char-display-control):
+	Exclude newline and TAB from the c0-control group.
+
 2010-11-27  Glenn Morris  <rgm@gnu.org>
 
 	* mail/sendmail.el (build-mail-aliases): Doc fix for autoload.

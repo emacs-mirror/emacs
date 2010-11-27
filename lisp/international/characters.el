@@ -1305,7 +1305,12 @@ This function updates the char-table `glyphless-char-display'."
 	  (error "Invalid glyphless character display method: %s" method))
       (cond ((eq target 'c0-control)
 	     (set-char-table-range glyphless-char-display '(#x00 . #x1F)
-				   method))
+				   method)
+	     ;; Users will not expect their newlines and TABs be
+	     ;; displayed as anything but themselves, so exempt those
+	     ;; two characters from c0-control.
+	     (set-char-table-range glyphless-char-display #x9 nil)
+	     (set-char-table-range glyphless-char-display #xa nil))
 	    ((eq target 'c1-control)
 	     (set-char-table-range glyphless-char-display '(#x80 . #x9F)
 				   method))
@@ -1344,7 +1349,7 @@ specifying the method of displaying characters belonging to that
 group.
 
 GROUP must be one of these symbols:
-  `c0-control':     U+0000..U+001F.
+  `c0-control':     U+0000..U+001F, but excluding newline and TAB.
   `c1-control':     U+0080..U+009F.
   `format-control': Characters of Unicode General Category `Cf',
                     such as U+200C (ZWNJ), U+200E (LRM), but
