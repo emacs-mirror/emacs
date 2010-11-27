@@ -394,13 +394,13 @@ and send the mail again%s."
     (if bugs
 	(setq bug-choice-widget
 	      (apply 'widget-create 'radio-button-choice
-		     :value (car (first bugs))
+		     :value (caar bugs)
 		     (let (items)
 		       (dolist (bug bugs)
 			 (push (list
 				'url-link
 				:format (concat "Bug#" (number-to-string (third bug))
-						": " (second bug) "\n    %[%v%]\n")
+						": " (cadr bug) "\n    %[%v%]\n")
 				;; FIXME: Why is only the link of the
 				;; active item clickable?
 				(first bug))
@@ -420,7 +420,7 @@ and send the mail again%s."
 			       (let ((val (widget-value bug-choice-widget)))
 				 ;; TODO: Do something!
 				 (message "Appending to bug %s!"
-					  (third (assoc val bug-alist)))))
+					  (nth 2 (assoc val bug-alist)))))
 		     "Append to chosen bug"))
     (widget-insert " ")
     (widget-create 'push-button

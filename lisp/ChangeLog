@@ -1,3 +1,8 @@
+2010-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug-create-existing-bugs-buffer):
+	Replace undefined CL functions.
+
 2010-11-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (prog-mode): Set bidi-paragraph-direction to
