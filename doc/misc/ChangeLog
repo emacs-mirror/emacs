@@ -1,3 +1,8 @@
+2010-11-27  Glenn Morris  <rgm@gnu.org>
+	    James Clark  <none@example.com>
+
+	* nxml-mode.texi (Introduction): New section.
+
 2010-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Server Commands): Document gnus-server-show-server.

@@ -1,3 +1,7 @@
+2010-11-27  Ulrich Mueller  <ulm@gentoo.org>
+
+	* HELLO: Add ancient Greek (Bug#7418).
+
 2010-11-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* NEWS: Document display of glyphless characters.

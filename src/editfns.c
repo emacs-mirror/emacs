@@ -218,11 +218,13 @@ usage: (char-to-string CHAR)  */)
 }
 
 DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
-       doc: /* Convert arg BYTE to a string containing that byte.  */)
+       doc: /* Convert arg BYTE to a unibyte string containing that byte.  */)
   (Lisp_Object byte)
 {
   unsigned char b;
   CHECK_NUMBER (byte);
+  if (XINT (byte) < 0 || XINT (byte) > 255)
+    error ("Invalid byte");
   b = XINT (byte);
   return make_string_from_bytes (&b, 1, 1);
 }
