@@ -1,5 +1,7 @@
 2010-11-27  Glenn Morris  <rgm@gnu.org>
 
+	* shell.el (shell-dir-cookie-re): Move definition before use.
+
 	* mail/emacsbug.el (report-emacs-bug-create-existing-bugs-buffer):
 	Replace undefined CL functions.
 
