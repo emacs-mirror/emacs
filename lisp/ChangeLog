@@ -1,3 +1,8 @@
+2010-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (package-enable-at-startup, package-initialize):
+	Remove unnecessary declarations.
+
 2010-11-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/characters.el (glyphless-char-display-control):
