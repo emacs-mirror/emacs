@@ -331,9 +331,9 @@ empty string for the user name.
 
 See `tramp-methods' for a list of possibilities for METHOD."
   :group 'tramp
-  :type '(repeat (list (regexp :tag "Host regexp")
-		       (regexp :tag "User regexp")
-		       (string :tag "Method"))))
+  :type '(repeat (list (choice :tag "Host regexp" regexp sexp)
+		       (choice :tag "User regexp" regexp sexp)
+		       (choice :tag "Method name" string (const nil)))))
 
 (defcustom tramp-default-user nil
   "*Default user to use for transferring files.
@@ -355,9 +355,9 @@ matches, the variable `tramp-default-user' takes effect.
 If the file name does not specify the method, lookup is done using the
 empty string for the method name."
   :group 'tramp
-  :type '(repeat (list (regexp :tag "Method regexp")
-		       (regexp :tag "Host regexp")
-		       (string :tag "User"))))
+  :type '(repeat (list (choice :tag "Method regexp" regexp sexp)
+		       (choice :tag "  Host regexp" regexp sexp)
+		       (choice :tag "    User name" string (const nil)))))
 
 (defcustom tramp-default-host (system-name)
   "*Default host to use for transferring files.
@@ -382,7 +382,7 @@ interpreted as a regular expression which always matches."
   :group 'tramp
   :type '(repeat (list (choice :tag "Host regexp" regexp sexp)
 		       (choice :tag "User regexp" regexp sexp)
-		       (choice :tag "Proxy remote name" string (const nil)))))
+		       (choice :tag " Proxy name" string (const nil)))))
 
 (defconst tramp-local-host-regexp
   (concat

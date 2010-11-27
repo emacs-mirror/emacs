@@ -327,21 +327,22 @@ Returns the process associated with the connection."
 	      ;; gnutls-cli, openssl don't accept service names
 	      (if (equal port "pop3")
 		  (setq port 110))
-	      (let ((process (starttls-open-stream "POP" (current-buffer)
-						   mailhost (or port 110))))
-		(pop3-send-command process "STLS")
-		(let ((response (pop3-read-response process t)))
-		  (if (and response (string-match "+OK" response))
-		      (starttls-negotiate process)
-		    (pop3-quit process)
-		    (error "POP server doesn't support starttls")))
-		process))
+	      ;; Delay STLS until server greeting is read (Bug#7438).
+	      (starttls-open-stream "POP" (current-buffer)
+				    mailhost (or port 110)))
 	     (t
 	      (open-network-stream "POP" (current-buffer) mailhost port))))
       (let ((response (pop3-read-response process t)))
 	(setq pop3-timestamp
 	      (substring response (or (string-match "<" response) 0)
 			 (+ 1 (or (string-match ">" response) -1)))))
+      (when (eq pop3-stream-type 'starttls)
+	(pop3-send-command process "STLS")
+	(let ((response (pop3-read-response process t)))
+	  (if (and response (string-match "+OK" response))
+	      (starttls-negotiate process)
+	    (pop3-quit process)
+	    (error "POP server doesn't support starttls"))))
       (pop3-set-process-query-on-exit-flag process nil)
       process)))
 

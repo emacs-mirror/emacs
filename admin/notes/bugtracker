@@ -475,8 +475,8 @@ http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg00440.html
 ** Bazaar stuff
 
 *** You can use `bzr commit --fixes debbugs:123' to mark that a commit fixes
-Emacs bug 123.  You will first need to add a line to your ~/bazaar.conf
-or ~/locations.conf:
+Emacs bug 123.  You will first need to add a line to one of your
+configuration files, ~/.bazaar/bazaar.conf or ~/.bazaar/locations.conf:
 
 bugtracker_debbugs_url = http://debbugs.gnu.org/{id}
 
@@ -491,7 +491,7 @@ In the locations.conf file, it should go into the branch-specific
 configuration section for the branch where you want this to be in
 effect.  For example, if you want this to be in effect for the branch
 located at `/home/projects/emacs/trunk', you need to have this in your
-~/locations.conf file:
+~/.bazaar/locations.conf file:
 
 [/home/projects/emacs/trunk]
 bugtracker_debbugs_url = http://debbugs.gnu.org/{id}

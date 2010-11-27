@@ -544,21 +544,23 @@ not the buffer-local value.  (But you should not be making
 buffer-local bindings for a symbol that is defined with
 @code{defconst}.)
 
-Here, @code{pi} is a constant that presumably ought not to be changed
-by anyone (attempts by the Indiana State Legislature notwithstanding).
-As the second form illustrates, however, this is only advisory.
+An example of the use of @code{defconst} is Emacs' definition of
+@code{float-pi}---the mathematical constant @math{pi}, which ought not
+to be changed by anyone (attempts by the Indiana State Legislature
+notwithstanding).  As the second form illustrates, however,
+@code{defconst} is only advisory.
 
 @example
 @group
-(defconst pi 3.1415 "Pi to five places.")
-     @result{} pi
+(defconst float-pi 3.141592653589793 "The value of Pi.")
+     @result{} float-pi
 @end group
 @group
-(setq pi 3)
-     @result{} pi
+(setq float-pi 3)
+     @result{} float-pi
 @end group
 @group
-pi
+float-pi
      @result{} 3
 @end group
 @end example

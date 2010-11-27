@@ -2011,6 +2011,14 @@ Otherwise, an error occurs in these cases."
           ;; with quotation marks in their names.
 	  (while (string-match "\\(?:[^\\]\\|\\`\\)\\(\"\\)" file)
 	    (setq file (replace-match "\\\"" nil t file 1)))
+	  
+	  (when (eq system-type 'windows-nt)
+	    (save-match-data
+	      (let ((start 0))
+		(while (string-match "\\\\" file start)
+		  (aset file (match-beginning 0) ?/)
+		  (setq start (match-end 0))))))
+
           (setq file (read (concat "\"" file "\"")))
 	  ;; The above `read' will return a unibyte string if FILE
 	  ;; contains eight-bit-control/graphic characters.

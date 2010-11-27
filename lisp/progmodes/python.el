@@ -1462,6 +1462,16 @@ Default ignores all inputs of 0, 1, or 2 non-blank characters."
   :type 'regexp
   :group 'python)
 
+(defcustom python-remove-cwd-from-path t
+  "Whether to allow loading of Python modules from the current directory.
+If this is non-nil, Emacs removes '' from sys.path when starting
+an inferior Python process.  This is the default, for security
+reasons, as it is easy for the Python process to be started
+without the user's realization (e.g. to perform completion)."
+  :type 'boolean
+  :group 'python
+  :version "23.3")
+
 (defun python-input-filter (str)
   "`comint-input-filter' function for inferior Python.
 Don't save anything for STR matching `inferior-python-filter-regexp'."
@@ -1559,20 +1569,24 @@ print version_info >= (2, 2) and version_info < (3, 0)\""))))
 ;;;###autoload
 (defun run-python (&optional cmd noshow new)
   "Run an inferior Python process, input and output via buffer *Python*.
-CMD is the Python command to run.  NOSHOW non-nil means don't show the
-buffer automatically.
+CMD is the Python command to run.  NOSHOW non-nil means don't
+show the buffer automatically.
 
-Normally, if there is a process already running in `python-buffer',
-switch to that buffer.  Interactively, a prefix arg allows you to edit
-the initial command line (default is `python-command'); `-i' etc. args
-will be added to this as appropriate.  A new process is started if:
-one isn't running attached to `python-buffer', or interactively the
-default `python-command', or argument NEW is non-nil.  See also the
-documentation for `python-buffer'.
+Interactively, a prefix arg means to prompt for the initial
+Python command line (default is `python-command').
 
-Runs the hook `inferior-python-mode-hook' \(after the
-`comint-mode-hook' is run).  \(Type \\[describe-mode] in the process
-buffer for a list of commands.)"
+A new process is started if one isn't running attached to
+`python-buffer', or if called from Lisp with non-nil arg NEW.
+Otherwise, if a process is already running in `python-buffer',
+switch to that buffer.
+
+This command runs the hook `inferior-python-mode-hook' after
+running `comint-mode-hook'.  Type \\[describe-mode] in the
+process buffer for a list of commands.
+
+By default, Emacs inhibits the loading of Python modules from the
+current working directory, for security reasons.  To disable this
+behavior, change `python-remove-cwd-from-path' to nil."
   (interactive (if current-prefix-arg
 		   (list (read-string "Run Python: " python-command) nil t)
 		 (list python-command)))
@@ -1586,13 +1600,9 @@ buffer for a list of commands.)"
   (when (or new (not (comint-check-proc python-buffer)))
     (with-current-buffer
 	(let* ((cmdlist
-		(append (python-args-to-list cmd)
-                        ;; It's easy for the user to cause the process to be
-			;; started without realizing it (e.g. to perform
-			;; completion); for this reason loading files from the
-			;; current directory is a security risk.  See
-			;; http://article.gmane.org/gmane.emacs.devel/103569
-			'("-i" "-c" "import sys; sys.path.remove('')")))
+		(append (python-args-to-list cmd) '("-i")
+			(if python-remove-cwd-from-path
+			    '("-c" "import sys; sys.path.remove('')"))))
 	       (path (getenv "PYTHONPATH"))
 	       (process-environment	; to import emacs.py
 		(cons (concat "PYTHONPATH="

@@ -1,3 +1,8 @@
+2010-11-27  Yuri Karaban  <tech@askold.net>  (tiny change)
+
+	* pop3.el (pop3-open-server): Read server greeting before starting TLS
+	negotiation.
+
 2010-11-26  Julien Danjou  <julien@danjou.info>
 
 	* color.el: Rename various rgb functions to srgb.
