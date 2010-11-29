@@ -690,7 +690,9 @@ modified."
 The value is a MIME-entiy object (see `rmail-mime-enty-new')."
   (save-excursion
     (goto-char (point-min))
-    (rmail-mime-process nil t)))
+    (condition-case nil
+	(rmail-mime-process nil t)
+      (error nil))))
 
 (defun rmail-mime-insert (entity &optional content-type disposition)
   "Insert a MIME-entity ENTITY in the current buffer.
@@ -743,30 +745,31 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
 	 message type disposition encoding))
 
 (defun rmail-show-mime ()
-  (let ((mbox-buf rmail-buffer))
-    (condition-case nil
-	(let ((entity (rmail-mime-parse)))
-	  (with-current-buffer rmail-view-buffer
-	    (let ((inhibit-read-only t)
-		  (rmail-buffer mbox-buf))
-	      (erase-buffer)
-	      (rmail-mime-insert entity))))
-      (error
-       ;; Decoding failed.  Insert the original message body as is.
-       (let ((region (with-current-buffer mbox-buf
-		       (goto-char (point-min))
-		       (re-search-forward "^$" nil t)
-		       (forward-line 1)
-		       (cons (point) (point-max)))))
-	 (with-current-buffer rmail-view-buffer
-	   (let ((inhibit-read-only t))
-	     (erase-buffer)
-	     (insert-buffer-substring mbox-buf (car region) (cdr region))))
-	 (message "MIME decoding failed"))))))
+  "Function to set in `rmail-show-mime-function' (which see)."
+  (let ((mbox-buf rmail-buffer)
+	(entity (rmail-mime-parse)))
+    (if entity
+	(with-current-buffer rmail-view-buffer
+	  (let ((inhibit-read-only t)
+		(rmail-buffer mbox-buf))
+	    (erase-buffer)
+	    (rmail-mime-insert entity)))
+      ;; Decoding failed.  Insert the original message body as is.
+      (let ((region (with-current-buffer mbox-buf
+		      (goto-char (point-min))
+		      (re-search-forward "^$" nil t)
+		      (forward-line 1)
+		      (cons (point) (point-max)))))
+	(with-current-buffer rmail-view-buffer
+	  (let ((inhibit-read-only t))
+	    (erase-buffer)
+	    (insert-buffer-substring mbox-buf (car region) (cdr region))))
+	(message "MIME decoding failed")))))
 
 (setq rmail-show-mime-function 'rmail-show-mime)
 
 (defun rmail-insert-mime-forwarded-message (forward-buffer)
+  "Function to set in `rmail-insert-mime-forwarded-message-function' (which see)."
   (let ((mbox-buf (with-current-buffer forward-buffer rmail-view-buffer)))
     (save-restriction
       (narrow-to-region (point) (point))
@@ -776,6 +779,7 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
       'rmail-insert-mime-forwarded-message)
 
 (defun rmail-insert-mime-resent-message (forward-buffer)
+  "Function to set in `rmail-insert-mime-resent-message-function' (which see)."
   (insert-buffer-substring
    (with-current-buffer forward-buffer rmail-view-buffer))
   (goto-char (point-min))
@@ -785,6 +789,41 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
 
 (setq rmail-insert-mime-resent-message-function
       'rmail-insert-mime-resent-message)
+
+(defun rmail-search-mime-message (msg regexp)
+  "Function to set in `rmail-search-mime-message-function' (which see)."
+  (save-restriction
+    (narrow-to-region (rmail-msgbeg msg) (rmail-msgend msg))
+    (let ((mbox-buf (current-buffer))
+	  (header-end (save-excursion
+			(re-search-forward "^$" nil 'move) (point)))
+	  (body-end (point-max))
+	  (entity (rmail-mime-parse)))
+      (or 
+       ;; At first, just search the headers.
+       (with-temp-buffer
+	 (insert-buffer-substring mbox-buf nil header-end)
+	 (rfc2047-decode-region (point-min) (point))
+	 (goto-char (point-min))
+	 (re-search-forward regexp nil t))
+       ;; Next, search the body.
+       (if (and entity
+		(let* ((content-type (rmail-mime-entity-type entity))
+		       (charset (cdr (assq 'charset (cdr content-type)))))
+		  (or (not (string-match "text/.*" (car content-type))) 
+		      (and charset
+			   (not (string= (downcase charset) "us-ascii"))))))
+	   ;; Search the decoded MIME message.
+	   (with-temp-buffer
+	     (let ((rmail-buffer mbox-buf))
+	       (rmail-mime-insert entity))
+	     (goto-char (point-min))
+	     (re-search-forward regexp nil t))
+	 ;; Search the body without decoding.
+	 (goto-char header-end)
+	 (re-search-forward regexp nil t))))))
+
+(setq rmail-search-mime-message-function 'rmail-search-mime-message)
 
 (provide 'rmailmm)
 
