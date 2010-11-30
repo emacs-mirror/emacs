@@ -59,11 +59,6 @@ glyphs are displayed."
   :group 'nxml
   :type 'boolean)
 
-(defcustom nxml-mode-hook nil
-  "Hook run by command `nxml-mode'."
-  :group 'nxml
-  :type 'hook)
-
 (defcustom nxml-sexp-element-flag nil
   "*Non-nil means sexp commands treat an element as a single expression."
   :group 'nxml
@@ -354,6 +349,12 @@ The delimiters are <! and >."
 
 ;;; Global variables
 
+(defvar nxml-parent-document nil
+  "The parent document for a part of a modular document.
+Use `nxml-parent-document-set' to set it.")
+(make-variable-buffer-local 'nxml-parent-document)
+(put 'nxml-parent-document 'safe-local-variable 'stringp)
+
 (defvar nxml-prolog-regions nil
   "List of regions in the prolog to be fontified.
 See the function `xmltok-forward-prolog' for more information.")
@@ -430,8 +431,40 @@ reference.")
   (when (and face (< start end))
     (font-lock-append-text-property start end 'face face)))
 
+(defun nxml-parent-document-set (parent-document)
+  "Set `nxml-parent-document' and inherit the DTD &c."
+  ;; FIXME: this does not work.
+  ;;  the idea is that by inheriting some variables from the parent,
+  ;;  `rng-validate-mode' will validate entities declared in the parent.
+  ;;  alas, the most interesting variables (`rng-compile-table' et al)
+  ;;  are circular and cannot be printed even with `print-circle'.
+  (interactive "fParent document")
+  (let (dtd current-schema current-schema-file-name compile-table
+        ipattern-table last-ipattern-index)
+    (when (string= (file-truename parent-document)
+                   (file-truename buffer-file-name))
+      (error "Parent document cannot be the same as the document"))
+    (with-current-buffer (find-file-noselect parent-document)
+      (setq dtd rng-dtd
+            current-schema rng-current-schema
+            current-schema-file-name rng-current-schema-file-name
+            compile-table rng-compile-table
+            ipattern-table rng-ipattern-table
+            last-ipattern-index rng-last-ipattern-index
+            parent-document buffer-file-name))
+    (setq rng-dtd dtd
+          rng-current-schema current-schema
+          rng-current-schema-file-name current-schema-file-name
+          rng-compile-table compile-table
+          rng-ipattern-table ipattern-table
+          rng-last-ipattern-index last-ipattern-index
+          nxml-parent-document parent-document)
+    (message "Set parent document to %s" parent-document)
+    (when rng-validate-mode
+      (rng-validate-while-idle (current-buffer)))))
+
 ;;;###autoload
-(defun nxml-mode ()
+(define-derived-mode nxml-mode text-mode "nXML"
   ;; We use C-c C-i instead of \\[nxml-balanced-close-start-tag-inline]
   ;; because Emacs turns C-c C-i into C-c TAB which is hard to type and
   ;; not mnemonic.
@@ -485,10 +518,7 @@ be treated as a single markup item, set the variable
 
 Many aspects this mode can be customized using
 \\[customize-group] nxml RET."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'nxml-mode)
-  (setq mode-name "nXML")
+  ;; (kill-all-local-variables)
   (set (make-local-variable 'mode-line-process) '((nxml-degraded "/degraded")))
   ;; We'll determine the fill prefix ourselves
   (make-local-variable 'adaptive-fill-mode)
@@ -552,8 +582,7 @@ Many aspects this mode can be customized using
           (font-lock-unfontify-region-function . nxml-unfontify-region)))
 
   (rng-nxml-mode-init)
-  (nxml-enable-unicode-char-name-sets)
-  (run-mode-hooks 'nxml-mode-hook))
+  (nxml-enable-unicode-char-name-sets))
 
 (defun nxml-cleanup ()
   "Clean up after nxml-mode."

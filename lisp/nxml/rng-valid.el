@@ -518,6 +518,9 @@ Return t if there is work to do, nil otherwise."
 			     (goto-char pos))
 			    (t (rng-set-initial-state))))))))))
 
+(defun rng-dtd-trivial-p (dtd)
+  "Check whether the current dtd is different from the trivial default."
+  (or (null dtd) (eq dtd xmltok-predefined-entity-alist)))
 
 (defun rng-do-some-validation-1 (&optional continue-p-function)
   (let ((limit (+ rng-validate-up-to-date-end

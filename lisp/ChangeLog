@@ -1,3 +1,13 @@
+2010-11-30  Sam Steingold  <sds@gnu.org>
+
+	* nxml/nxml-mode.el (nxml-parent-document): Add a variable.
+	(nxml-parent-document-set): A function to set `nxml-parent-document'.
+	(nxml-mode): Define using `define-derived-mode' instead of `defun'.
+	(nxml-mode-hook): Remove `defcustom' (auto-defined by
+	define-derived-mode').
+	* nxml/rng-valid.el (rng-dtd-trivial-p): Add a helper function for
+	users who want to call `nxml-parent-document-set'.
+
 2010-11-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* log-edit.el (log-edit-font-lock-keywords): Don't try matching
