@@ -20,10 +20,10 @@ user.  For related topics such as keymaps and syntax tables, see
 @ref{Keymaps}, and @ref{Syntax Tables}.
 
 @menu
-* Hooks::              How to use hooks; how to write code that provides hooks.
-* Major Modes::        Defining major modes.
-* Minor Modes::        Defining minor modes.
-* Mode Line Format::   Customizing the text that appears in the mode line.
+* Hooks::                       How to use hooks; how to write code that provides hooks.
+* Major Modes::                 Defining major modes.
+* Minor Modes::                 Defining minor modes.
+* Mode Line Format::            Customizing the text that appears in the mode line.
 * Imenu::              How a mode can provide a menu
                          of definitions in the buffer.
 * Font Lock Mode::     How modes can highlight text according to syntax.
@@ -78,8 +78,8 @@ convention.
 its value is just a single function, not a list of functions.
 
 @menu
-* Running Hooks::      How to run a hook.
-* Setting Hooks::      How to put functions on a hook, or remove them.
+* Running Hooks::               How to run a hook.
+* Setting Hooks::               How to put functions on a hook, or remove them.
 @end menu
 
 @node Running Hooks
@@ -199,16 +199,16 @@ buffer, such as a local keymap.  The effect lasts until you switch
 to another major mode in the same buffer.
 
 @menu
-* Major Mode Basics::
-* Major Mode Conventions::  Coding conventions for keymaps, etc.
-* Auto Major Mode::         How Emacs chooses the major mode automatically.
-* Mode Help::               Finding out how to use a mode.
-* Derived Modes::           Defining a new major mode based on another major
+* Major Mode Basics::           
+* Major Mode Conventions::      Coding conventions for keymaps, etc.
+* Auto Major Mode::             How Emacs chooses the major mode automatically.
+* Mode Help::                   Finding out how to use a mode.
+* Derived Modes::               Defining a new major mode based on another major
                               mode.
-* Generic Modes::           Defining a simple major mode that supports
+* Generic Modes::               Defining a simple major mode that supports
                               comment syntax and Font Lock mode.
-* Mode Hooks::              Hooks run at the end of major mode functions.
-* Example Major Modes::     Text mode and Lisp modes.
+* Mode Hooks::                  Hooks run at the end of major mode functions.
+* Example Major Modes::         Text mode and Lisp modes.
 @end menu
 
 @node Major Mode Basics
@@ -238,9 +238,8 @@ mode except that it provides two additional commands.  Its definition
 is distinct from that of Text mode, but uses that of Text mode.
 
   Even if the new mode is not an obvious derivative of any other mode,
-it is convenient to use @code{define-derived-mode} with a @code{nil}
-parent argument, since it automatically enforces the most important
-coding conventions for you.
+we recommend to use @code{define-derived-mode}, since it automatically
+enforces the most important coding conventions for you.
 
   For a very simple programming language major mode that handles
 comments and fontification, you can use @code{define-generic-mode}.
@@ -429,6 +428,10 @@ The mode can specify a local value for
 this mode.
 
 @item
+The mode can specify how to complete various keywords by adding
+to the special hook @code{completion-at-point-functions}.
+
+@item
 Use @code{defvar} or @code{defcustom} to set mode-related variables, so
 that they are not reinitialized if they already have a value.  (Such
 reinitialization could discard customizations made by the user.)
@@ -492,7 +495,7 @@ The @code{define-derived-mode} macro automatically marks the derived
 mode as special if the parent mode is special.  The special mode
 @code{special-mode} provides a convenient parent for other special
 modes to inherit from; it sets @code{buffer-read-only} to @code{t},
-and does nothing else.
+and does little else.
 
 @item
 If you want to make the new mode the default for files with certain
@@ -737,8 +740,10 @@ documentation of the major mode.
 @subsection Defining Derived Modes
 @cindex derived mode
 
-  It's often useful to define a new major mode in terms of an existing
-one.  An easy way to do this is to use @code{define-derived-mode}.
+  The recommended way to define a new major mode is to derive it
+from an existing one using @code{define-derived-mode}.  If there is no
+closely related mode, you can inherit from @code{text-mode},
+@code{special-mode}, or in the worst case @code{fundamental-mode}.
 
 @defmac define-derived-mode variant parent name docstring keyword-args@dots{} body@dots{}
 This macro defines @var{variant} as a major mode command, using
@@ -979,8 +984,7 @@ You can thus get the full benefit of adaptive filling
 Turning on Text mode runs the normal hook `text-mode-hook'."
 @end group
 @group
-  (make-local-variable 'text-mode-variant)
-  (setq text-mode-variant t)
+  (set (make-local-variable 'text-mode-variant) t)
   ;; @r{These two lines are a feature added recently.}
   (set (make-local-variable 'require-final-newline)
        mode-require-final-newline)
@@ -998,9 +1002,8 @@ the default value, and we'll delete it in a future version.)
 @smallexample
 @group
 ;; @r{This isn't needed nowadays, since @code{define-derived-mode} does it.}
-(defvar text-mode-abbrev-table nil
+(define-abbrev-table 'text-mode-abbrev-table ()
   "Abbrev table used while in text mode.")
-(define-abbrev-table 'text-mode-abbrev-table ())
 @end group
 
 @group
@@ -1022,12 +1025,10 @@ Turning on text-mode runs the hook `text-mode-hook'."
   ;; @r{These four lines are absent from the current version}
   ;; @r{not because this is done some other way, but rather}
   ;; @r{because nowadays Text mode uses the normal definition of paragraphs.}
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "[ \t]*$\\|" page-delimiter))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'indent-relative-maybe)
+  (set (make-local-variable 'paragraph-start)
+       (concat "[ \t]*$\\|" page-delimiter))
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
+  (set (make-local-variable 'indent-line-function) 'indent-relative-maybe)
 @end group
 @group
   (setq mode-name "Text")
@@ -1115,15 +1116,12 @@ modes should understand the Lisp conventions for comments.  The rest of
 
 @smallexample
 @group
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat page-delimiter "\\|$" ))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
+  (set (make-local-variable 'paragraph-start) (concat page-delimiter "\\|$" ))
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
   @dots{}
 @end group
 @group
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'lisp-comment-indent))
+  (set (make-local-variable 'comment-indent-function) 'lisp-comment-indent))
   @dots{}
 @end group
 @end smallexample
@@ -1135,16 +1133,13 @@ common.  The following code sets up the common commands:
 
 @smallexample
 @group
-(defvar shared-lisp-mode-map ()
+(defvar shared-lisp-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key shared-lisp-mode-map "\e\C-q" 'indent-sexp)
+    (define-key shared-lisp-mode-map "\177"
+                'backward-delete-char-untabify)
+    map)
   "Keymap for commands shared by all sorts of Lisp modes.")
-
-;; @r{Putting this @code{if} after the @code{defvar} is an older style.}
-(if shared-lisp-mode-map
-    ()
-   (setq shared-lisp-mode-map (make-sparse-keymap))
-   (define-key shared-lisp-mode-map "\e\C-q" 'indent-sexp)
-   (define-key shared-lisp-mode-map "\177"
-               'backward-delete-char-untabify))
 @end group
 @end smallexample
 
@@ -1153,15 +1148,13 @@ And here is the code to set up the keymap for Lisp mode:
 
 @smallexample
 @group
-(defvar lisp-mode-map ()
+(defvar lisp-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map shared-lisp-mode-map)
+    (define-key map "\e\C-x" 'lisp-eval-defun)
+    (define-key map "\C-c\C-z" 'run-lisp)
+    map)
   "Keymap for ordinary Lisp mode...")
-
-(if lisp-mode-map
-    ()
-  (setq lisp-mode-map (make-sparse-keymap))
-  (set-keymap-parent lisp-mode-map shared-lisp-mode-map)
-  (define-key lisp-mode-map "\e\C-x" 'lisp-eval-defun)
-  (define-key lisp-mode-map "\C-c\C-z" 'run-lisp))
 @end group
 @end smallexample
 
@@ -1192,11 +1185,9 @@ if that value is non-nil."
                                          ;   @r{finds out what to describe.}
   (setq mode-name "Lisp")                ; @r{This goes into the mode line.}
   (lisp-mode-variables t)                ; @r{This defines various variables.}
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip
-        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
-  (make-local-variable 'font-lock-keywords-case-fold-search)
-  (setq font-lock-keywords-case-fold-search t)
+  (set (make-local-variable 'comment-start-skip)
+       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+  (set (make-local-variable 'font-lock-keywords-case-fold-search) t)
 @end group
 @group
   (setq imenu-case-fold-search t)
@@ -1580,14 +1571,14 @@ information displayed in the mode line relates to the enabled major and
 minor modes.
 
 @menu
-* Base: Mode Line Basics. Basic ideas of mode line control.
-* Data: Mode Line Data.   The data structure that controls the mode line.
-* Top: Mode Line Top.     The top level variable, mode-line-format.
-* Mode Line Variables::   Variables used in that data structure.
-* %-Constructs::          Putting information into a mode line.
-* Properties in Mode::    Using text properties in the mode line.
-* Header Lines::          Like a mode line, but at the top.
-* Emulating Mode Line::   Formatting text as the mode line would.
+* Base: Mode Line Basics.       Basic ideas of mode line control.
+* Data: Mode Line Data.         The data structure that controls the mode line.
+* Top: Mode Line Top.           The top level variable, mode-line-format.
+* Mode Line Variables::         Variables used in that data structure.
+* %-Constructs::                Putting information into a mode line.
+* Properties in Mode::          Using text properties in the mode line.
+* Header Lines::                Like a mode line, but at the top.
+* Emulating Mode Line::         Formatting text as the mode line would.
 @end menu
 
 @node Mode Line Basics
@@ -2361,7 +2352,7 @@ Search-based fontification happens second.
 * Other Font Lock Variables::   Additional customization facilities.
 * Levels of Font Lock::         Each mode can define alternative levels
                                   so that the user can select more or less.
-* Precalculated Fontification:: How Lisp programs that produce the buffer
+* Precalculated Fontification::  How Lisp programs that produce the buffer
                                   contents can also specify how to fontify it.
 * Faces for Font Lock::         Special faces specifically for Font Lock.
 * Syntactic Font Lock::         Fontification based on syntax tables.
@@ -3276,5 +3267,7 @@ optionally bound to @code{desktop-save-buffer}.
 @end defvar
 
 @ignore
-   arch-tag: 4c7bff41-36e6-4da6-9e7f-9b9289e27c8e
+   Local Variables:
+   fill-column: 72
+   End:
 @end ignore

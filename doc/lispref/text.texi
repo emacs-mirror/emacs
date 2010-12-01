@@ -2205,7 +2205,7 @@ The functions in this section return unpredictable values.
 @defvar indent-line-function
 This variable's value is the function to be used by @key{TAB} (and
 various commands) to indent the current line.  The command
-@code{indent-according-to-mode} does no more than call this function.
+@code{indent-according-to-mode} does little more than call this function.
 
 In Lisp mode, the value is the symbol @code{lisp-indent-line}; in C
 mode, @code{c-indent-line}; in Fortran mode, @code{fortran-indent-line}.
