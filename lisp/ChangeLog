@@ -1,3 +1,9 @@
+2010-12-01  Leo  <sdl.web@gmail.com>
+
+	* ido.el (ido-common-initilization): New function.  (bug#3274)
+	(ido-mode): Use it.
+	(ido-completing-read): Call it.
+
 2010-11-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* log-edit.el (log-edit-font-lock-keywords): Don't try matching
