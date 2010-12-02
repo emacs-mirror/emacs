@@ -160,11 +160,7 @@ If this variable is nil, no such courtesy message will be added."
   :group 'message-interface
   :type 'regexp)
 
-(defcustom message-from-style 'default
-  ;; In Emacs 24.1 this defaults to the value of `mail-from-style'
-  ;; that defaults to:
-  ;; `angles' in Emacs 22.1~23.1, XEmacs 21.4, 21.5, and SXEmacs 22.1;
-  ;; `system-default' in Emacs 23.2, and 24.1
+(defcustom message-from-style mail-from-style
   "Specifies how \"From\" headers look.
 
 If nil, they contain just the return address like:
