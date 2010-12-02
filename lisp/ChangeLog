@@ -58,17 +58,15 @@
 	(rmail-mime-save): Handle the case that the button's `data' is a
 	MIME entity.
 	(rmail-mime-insert-text): New function.
-	(rmail-mime-insert-image): Handle the case that DATA is a MIME
-	entity.
+	(rmail-mime-insert-image): Handle the case that DATA is a MIME entity.
 	(rmail-mime-bulk-handler): Just call rmail-mime-insert-bulk.
 	(rmail-mime-insert-bulk): New function mostly copied from the old
 	rmail-mime-bulk-handler.
-	(rmail-mime-multipart-handler): Just call
-	rmail-mime-process-multipart.
-	(rmail-mime-process-multipart): New funciton mostly copied from
+	(rmail-mime-multipart-handler): Just call rmail-mime-process-multipart.
+	(rmail-mime-process-multipart): New function mostly copied from
 	the old rmail-mime-multipart-handler.
 	(rmail-mime-show): Just call rmail-mime-process.
-	(rmail-mime-process): New funciton mostly copied from the old
+	(rmail-mime-process): New function mostly copied from the old
 	rmail-mime-show.
 	(rmail-mime-insert-multipart, rmail-mime-parse)
 	(rmail-mime-insert, rmail-show-mime)
@@ -12115,4 +12113,3 @@ See ChangeLog.14 for earlier changes.
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;; arch-tag: d3e45e38-19e2-49b6-8dc2-7cb26adcc5a1
