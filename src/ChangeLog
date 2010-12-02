@@ -1,3 +1,8 @@
+2010-12-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_draw_glyph_string): Switch fore- and background if
+	drawing text under filled box cursor (Bug#7479).
+
 2010-11-27  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (emacs_mule_charset): Make it an array of charset ID;
