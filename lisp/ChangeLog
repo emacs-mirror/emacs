@@ -1,3 +1,12 @@
+2010-12-01  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-parse): Call rmail-mime-process
+	within condition-case.
+	(rmail-show-mime): Don't use condition-case.
+	(rmail-search-mime-message): New function.
+	(rmail-search-mime-message-function): Set to
+	rmail-search-mime-message.
+
 2010-12-01  Leo  <sdl.web@gmail.com>
 
 	* ido.el (ido-common-initilization): New function.  (bug#3274)
@@ -26,6 +35,7 @@
 	(smie-next-sexp): Make it accept a "start token" as argument.
 	(smie-indent-keyword): Be careful not to misidentify tokens that span
 	more than one line, as empty lines.  Add argument `token'.
+>>>>>>> MERGE-SOURCE
 
 2010-11-26  Kenichi Handa  <handa@m17n.org>
 
