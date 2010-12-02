@@ -15,7 +15,7 @@
 
 2010-12-01  Leo  <sdl.web@gmail.com>
 
-	* ido.el (ido-common-initilization): New function.  (bug#3274)
+	* ido.el (ido-common-initialization): New function.  (bug#3274)
 	(ido-mode): Use it.
 	(ido-completing-read): Call it.
 

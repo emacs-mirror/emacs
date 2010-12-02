@@ -1439,7 +1439,7 @@ Removes badly formatted data and ignored directories."
   ;; ido kill emacs hook
   (ido-save-history))
 
-(defun ido-common-initilization ()
+(defun ido-common-initialization ()
   (ido-init-completion-maps)
   (add-hook 'minibuffer-setup-hook 'ido-minibuffer-setup)
   (add-hook 'choose-completion-string-functions 'ido-choose-completion-string))
@@ -1489,7 +1489,7 @@ This function also adds a hook to the minibuffer."
   (ido-everywhere (if ido-everywhere 1 -1))
 
   (when ido-mode
-    (ido-common-initilization)
+    (ido-common-initialization)
     (ido-load-history)
 
     (add-hook 'kill-emacs-hook 'ido-kill-emacs-hook)
@@ -4682,7 +4682,7 @@ DEF, if non-nil, is the default value."
 	(ido-context-switch-command 'ignore)
 	(ido-choice-list choices))
     ;; Initialize ido before invoking ido-read-internal
-    (ido-common-initilization)
+    (ido-common-initialization)
     (ido-read-internal 'list prompt hist def require-match initial-input)))
 
 (defun ido-unload-function ()
