@@ -1,3 +1,12 @@
+2010-12-02  Jan Djärv  <jhd@zeplinf.localdomain>
+
+	* nsterm.h (FRAME_NS_TOOLBAR_HEIGHT): Rename to FRAME_TOOLBAR_HEIGHT.
+
+	* nsterm.m (x_set_window_size, windowWillResize, initFrameFromEmacs):
+	Use FRAME_TOOLBAR_HEIGHT.
+	(x_set_offset): Handle XNegative and YNegative in
+	f->size_hint_flags (Bug#7510).
+
 2010-11-25  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (emacs_mule_charset): Make it an array of charset ID;

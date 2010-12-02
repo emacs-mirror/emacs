@@ -1082,16 +1082,31 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
 
   f->left_pos = xoff;
   f->top_pos = yoff;
-#ifdef NS_IMPL_GNUSTEP
-  if (xoff < 100)
-    f->left_pos = 100;  /* don't overlap menu */
-#endif
 
   if (view != nil && (screen = [[view window] screen]))
-    [[view window] setFrameTopLeftPoint:
-        NSMakePoint (SCREENMAXBOUND (f->left_pos),
-                     SCREENMAXBOUND ([screen frame].size.height
-                                     - NS_TOP_POS (f)))];
+    {
+      f->left_pos = f->size_hint_flags & XNegative
+        ? [screen visibleFrame].size.width + f->left_pos - FRAME_PIXEL_WIDTH (f)
+        : f->left_pos;
+      /* We use visibleFrame here to take menu bar into account.
+	 Ideally we should also adjust left/top with visibleFrame.offset.  */
+	 
+      f->top_pos = f->size_hint_flags & YNegative
+        ? ([screen visibleFrame].size.height + f->top_pos
+           - FRAME_PIXEL_HEIGHT (f) - FRAME_NS_TITLEBAR_HEIGHT (f)
+           - FRAME_TOOLBAR_HEIGHT (f))
+        : f->top_pos;
+#ifdef NS_IMPL_GNUSTEP
+      if (f->left_pos < 100)
+        f->left_pos = 100;  /* don't overlap menu */
+#endif
+      [[view window] setFrameTopLeftPoint:
+                       NSMakePoint (SCREENMAXBOUND (f->left_pos),
+                                    SCREENMAXBOUND ([screen frame].size.height
+                                                    - NS_TOP_POS (f)))];
+      f->size_hint_flags &= ~(XNegative|YNegative);
+    }
+
   UNBLOCK_INPUT;
 }
 
@@ -1148,15 +1163,15 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
     /* NOTE: previously this would generate wrong result if toolbar not
              yet displayed and fixing toolbar_height=32 helped, but
              now (200903) seems no longer needed */
-    FRAME_NS_TOOLBAR_HEIGHT (f) =
+    FRAME_TOOLBAR_HEIGHT (f) =
       NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
         - FRAME_NS_TITLEBAR_HEIGHT (f);
   else
-    FRAME_NS_TOOLBAR_HEIGHT (f) = 0;
+    FRAME_TOOLBAR_HEIGHT (f) = 0;
 
   wr.size.width = pixelwidth + f->border_width;
   wr.size.height = pixelheight + FRAME_NS_TITLEBAR_HEIGHT (f) 
-                  + FRAME_NS_TOOLBAR_HEIGHT (f);
+                  + FRAME_TOOLBAR_HEIGHT (f);
 
   /* constrain to screen if we can */
   if (screen)
@@ -4897,16 +4912,16 @@ ns_term_shutdown (int sig)
   rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe, frameSize.height
 #ifdef NS_IMPL_GNUSTEP
       - FRAME_NS_TITLEBAR_HEIGHT (emacsframe) + 3
-        - FRAME_NS_TOOLBAR_HEIGHT (emacsframe));
+        - FRAME_TOOLBAR_HEIGHT (emacsframe));
 #else
       - FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-        - FRAME_NS_TOOLBAR_HEIGHT (emacsframe));
+        - FRAME_TOOLBAR_HEIGHT (emacsframe));
 #endif
   if (rows < MINHEIGHT)
     rows = MINHEIGHT;
   frameSize.height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (emacsframe, rows)
                        + FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-                       + FRAME_NS_TOOLBAR_HEIGHT (emacsframe);
+                       + FRAME_TOOLBAR_HEIGHT (emacsframe);
 #ifdef NS_IMPL_COCOA
   {
     /* this sets window title to have size in it; the wm does this under GS */
@@ -5117,7 +5132,7 @@ ns_term_shutdown (int sig)
   [toggleButton setTarget: self];
   [toggleButton setAction: @selector (toggleToolbar: )];
 #endif
-  FRAME_NS_TOOLBAR_HEIGHT (f) = 0;
+  FRAME_TOOLBAR_HEIGHT (f) = 0;
 
   tem = f->icon_name;
   if (!NILP (tem))
