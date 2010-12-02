@@ -965,16 +965,25 @@ Valid clauses are:
 
 	       ((memq word '(window windows))
 		(let ((scr (and (memq (car loop-args) '(in of)) (cl-pop2 loop-args)))
-		      (temp (make-symbol "--cl-var--")))
+		      (temp (make-symbol "--cl-var--"))
+		      (minip (make-symbol "--cl-minip--")))
 		  (push (list var (if scr
 				      (list 'frame-selected-window scr)
 				    '(selected-window)))
+			loop-for-bindings)
+		  ;; If we started in the minibuffer, we need to
+		  ;; ensure that next-window will bring us back there
+		  ;; at some point.  (Bug#7492).
+		  ;; (Consider using walk-windows instead of loop if
+		  ;; you care about such things.)
+		  (push (list minip `(minibufferp (window-buffer ,var)))
 			loop-for-bindings)
 		  (push (list temp nil) loop-for-bindings)
 		  (push (list 'prog1 (list 'not (list 'eq var temp))
 			      (list 'or temp (list 'setq temp var)))
 			loop-body)
-		  (push (list var (list 'next-window var)) loop-for-steps)))
+		  (push (list var (list 'next-window var minip))
+			loop-for-steps)))
 
 	       (t
 		(let ((handler (and (symbolp word)

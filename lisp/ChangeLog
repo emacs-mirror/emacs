@@ -1,5 +1,8 @@
 2010-12-02  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl-macs.el (cl-parse-loop-clause):
+	Avoid infinite loop over windows.  (Bug#7492)
+
 	* progmodes/flymake.el (flymake-check-file-limit):
 	Allow nil to mean "no limit".
 	(flymake-check-patch-master-file-buffer): Update for above change.
