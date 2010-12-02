@@ -1,3 +1,7 @@
+2010-12-02  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (For Clauses): Small fixes for frames and windows.
+
 2010-11-23  Glenn Morris  <rgm@gnu.org>
 	    James Clark  <none@example.com>
 
