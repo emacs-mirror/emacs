@@ -145,6 +145,11 @@ the version.)"
   :type 'string
   :group 'locate)
 
+(defcustom locate-post-command-hook nil
+  "List of hook functions run after `locate' (see `run-hooks')."
+  :type  'hook
+  :group 'locate)
+
 (defvar locate-history-list nil
   "The history list used by the \\[locate] command.")
 
@@ -225,6 +230,11 @@ Setting this option non-nil actually inverts the meaning of a prefix arg;
 that is, with a prefix arg, you get the default behavior."
   :group 'locate
   :type 'boolean)
+
+(defcustom locate-mode-hook nil
+  "List of hook functions run by `locate-mode' (see `run-mode-hooks')."
+  :type  'hook
+  :group 'locate)
 
 ;; Functions
 
@@ -471,9 +481,9 @@ do not work in subdirectories.
   (make-local-variable 'directory-listing-before-filename-regexp)
   ;; This should support both Unix and Windoze style names
   (setq directory-listing-before-filename-regexp
-	(concat "^."
+	(concat "^.\\("
 		(make-string (1- locate-filename-indentation) ?\s)
-		"\\(/\\|[A-Za-z]:\\)\\|"
+		 "\\)\\|"
 		(default-value 'directory-listing-before-filename-regexp)))
   (make-local-variable 'dired-actual-switches)
   (setq dired-actual-switches "")

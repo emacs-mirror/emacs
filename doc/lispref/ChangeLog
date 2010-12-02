@@ -1,3 +1,10 @@
+2010-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* backups.texi (Making Backups):
+	* modes.texi (Example Major Modes): Use recommended coding style.
+	(Major Mode Basics, Derived Modes): Encourge more strongly use of
+	define-derived-mode.  Mention completion-at-point-functions.
+
 2010-11-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nonascii.texi (Converting Representations): Document

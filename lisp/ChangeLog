@@ -1,4 +1,4 @@
-2010-11-29  Kenichi Handa  <handa@m17n.org>
+2010-12-01  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmailmm.el (rmail-mime-parse): Call rmail-mime-process
 	within condition-case.
@@ -6,6 +6,36 @@
 	(rmail-search-mime-message): New function.
 	(rmail-search-mime-message-function): Set to
 	rmail-search-mime-message.
+
+2010-12-01  Leo  <sdl.web@gmail.com>
+
+	* ido.el (ido-common-initilization): New function.  (bug#3274)
+	(ido-mode): Use it.
+	(ido-completing-read): Call it.
+
+2010-11-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* log-edit.el (log-edit-font-lock-keywords): Don't try matching
+	stand-alone lines, since that is handled by log-edit-match-to-eoh
+	(Bug#6465).
+
+2010-11-27  Eduard Wiebe  <usenet@pusto.de>
+
+	* dired.el (dired-get-filename): Replace backslashes with slashes
+	in file names on MS-Windows, needed by `locate'.  (Bug#7308)
+	* locate.el (locate-default-make-command-line): Don't consider
+	drive letter and root directory part of
+	`directory-listing-before-filename-regexp'.  (Bug#7308)
+	(locate-post-command-hook, locate-post-command-hook): New defcustoms.
+
+2010-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-prec2->grammar): Simplify handling
+	of :smie-open/close-alist.
+	(smie-next-sexp): Make it accept a "start token" as argument.
+	(smie-indent-keyword): Be careful not to misidentify tokens that span
+	more than one line, as empty lines.  Add argument `token'.
+>>>>>>> MERGE-SOURCE
 
 2010-11-26  Kenichi Handa  <handa@m17n.org>
 

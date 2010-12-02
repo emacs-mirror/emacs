@@ -88,10 +88,8 @@ save disk space.  (You would put this code in your init file.)
 @smallexample
 @group
 (add-hook 'rmail-mode-hook
-          (function (lambda ()
-                      (make-local-variable
-                       'make-backup-files)
-                      (setq make-backup-files nil))))
+          (lambda ()
+            (set (make-local-variable 'make-backup-files) nil)))
 @end group
 @end smallexample
 @end defopt
