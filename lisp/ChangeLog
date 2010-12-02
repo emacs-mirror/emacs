@@ -1,3 +1,9 @@
+2010-12-02  Glenn Morris  <rgm@gnu.org>
+
+	* ps-print.el (ps-line-lengths-internal, ps-nb-pages):
+	Ensure ps-footer-font-size-internal is initialized.
+	Call ps-get-page-dimensions before trying to use ps-font-for-text.
+
 2010-12-01  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmailmm.el (rmail-mime-parse): Call rmail-mime-process
@@ -35,7 +41,6 @@
 	(smie-next-sexp): Make it accept a "start token" as argument.
 	(smie-indent-keyword): Be careful not to misidentify tokens that span
 	more than one line, as empty lines.  Add argument `token'.
->>>>>>> MERGE-SOURCE
 
 2010-11-26  Kenichi Handa  <handa@m17n.org>
 
