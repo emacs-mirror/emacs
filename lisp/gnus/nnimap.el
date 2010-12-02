@@ -45,6 +45,7 @@
 (require 'tls)
 (require 'parse-time)
 (require 'nnmail)
+(require 'proto-stream)
 
 (eval-when-compile
   (require 'gnus-sum))
@@ -62,9 +63,10 @@
 If nnimap-stream is `ssl', this will default to `imaps'.  If not,
 it will default to `imap'.")
 
-(defvoo nnimap-stream 'ssl
+(defvoo nnimap-stream 'undecided
   "How nnimap will talk to the IMAP server.
-Values are `ssl', `network', `starttls' or `shell'.")
+Values are `ssl', `network', `starttls' or `shell'.
+The default is to try `ssl' first, and then `network'.")
 
 (defvoo nnimap-shell-program (if (boundp 'imap-shell-program)
 				 (if (listp imap-shell-program)
@@ -271,16 +273,6 @@ textual parts.")
     (push (current-buffer) nnimap-process-buffers)
     (current-buffer)))
 
-(defun nnimap-open-shell-stream (name buffer host port)
-  (let ((process-connection-type nil))
-    (start-process name buffer shell-file-name
-		   shell-command-switch
-		   (format-spec
-		    nnimap-shell-program
-		    (format-spec-make
-		     ?s host
-		     ?p port)))))
-
 (defun nnimap-credentials (address ports &optional inhibit-create)
   (let (port credentials)
     ;; Request the credentials from all ports, but only query on the
@@ -310,111 +302,79 @@ textual parts.")
 			(* 5 60)))
 	    (nnimap-send-command "NOOP")))))))
 
-(declare-function gnutls-negotiate "gnutls"
-		  (proc type &optional priority-string trustfiles keyfiles))
-
 (defun nnimap-open-connection (buffer)
+  ;; Be backwards-compatible -- the earlier value of nnimap-stream was
+  ;; `ssl' when nnimap-server-port was nil.  Sort of.
+  (when (and nnimap-server-port
+	     (eq nnimap-stream 'undecided))
+    (setq nnimap-stream 'ssl))
+  (let ((stream
+	 (if (eq nnimap-stream 'undecided)
+	     (loop for type in '(ssl network)
+		   for stream = (let ((nnimap-stream type))
+				  (nnimap-open-connection-1 buffer))
+		   while (eq stream 'no-connect)
+		   finally (return stream))
+	   (nnimap-open-connection-1 buffer))))
+    (if (eq stream 'no-connect)
+	nil
+      stream)))
+
+(defun nnimap-open-connection-1 (buffer)
   (unless nnimap-keepalive-timer
     (setq nnimap-keepalive-timer (run-at-time (* 60 15) (* 60 15)
 					      'nnimap-keepalive)))
-  (block nil
-    (with-current-buffer (nnimap-make-process-buffer buffer)
-      (let* ((coding-system-for-read 'binary)
-	     (coding-system-for-write 'binary)
-	     (port nil)
-	     (ports
-	      (cond
-	       ((or (eq nnimap-stream 'network)
-		    (and (eq nnimap-stream 'starttls)
-			 (fboundp 'open-gnutls-stream)))
-		(nnheader-message 7 "Opening connection to %s..."
-				  nnimap-address)
-		(open-network-stream
-		 "*nnimap*" (current-buffer) nnimap-address
-		 (setq port
-		       (or nnimap-server-port
-			   (if (netrc-find-service-number "imap")
-			       "imap"
-			     "143"))))
-		'("143" "imap"))
-	       ((eq nnimap-stream 'shell)
-		(nnheader-message 7 "Opening connection to %s via shell..."
-				  nnimap-address)
-		(nnimap-open-shell-stream
-		 "*nnimap*" (current-buffer) nnimap-address
-		 (setq port (or nnimap-server-port "imap")))
-		'("imap"))
-	       ((eq nnimap-stream 'starttls)
-		(nnheader-message 7 "Opening connection to %s via starttls..."
-			 nnimap-address)
-		(let ((tls-program
-		       '("openssl s_client -connect %h:%p -no_ssl2 -ign_eof -starttls imap")))
-		  (open-tls-stream
-		   "*nnimap*" (current-buffer) nnimap-address
-		   (setq port (or nnimap-server-port "imap"))))
-		'("imap"))
-	       ((memq nnimap-stream '(ssl tls))
-		(nnheader-message 7 "Opening connection to %s via tls..."
-				  nnimap-address)
-		(funcall (if (fboundp 'open-gnutls-stream)
-			     'open-gnutls-stream
-			   'open-tls-stream)
-			 "*nnimap*" (current-buffer) nnimap-address
-			 (setq port
-			       (or nnimap-server-port
-				   (if (netrc-find-service-number "imaps")
-				       "imaps"
-				     "993"))))
-		'("143" "993" "imap" "imaps"))
-	       (t
-		(error "Unknown stream type: %s" nnimap-stream))))
-	     connection-result login-result credentials)
-	(setf (nnimap-process nnimap-object)
-	      (get-buffer-process (current-buffer)))
-	(if (not (and (nnimap-process nnimap-object)
-		      (memq (process-status (nnimap-process nnimap-object))
-			    '(open run))))
-	    (nnheader-report 'nnimap "Unable to contact %s:%s via %s"
-			     nnimap-address port nnimap-stream)
-	  (gnus-set-process-query-on-exit-flag
-	   (nnimap-process nnimap-object) nil)
-	  (if (not (setq connection-result (nnimap-wait-for-connection)))
-	      (nnheader-report 'nnimap
-			       "%s" (buffer-substring
-				     (point) (line-end-position)))
-	    ;; Store the greeting (for debugging purposes).
-	    (setf (nnimap-greeting nnimap-object)
-		  (buffer-substring (line-beginning-position)
-				    (line-end-position)))
-	    (nnimap-get-capabilities)
-	    (when nnimap-server-port
-	      (push (format "%s" nnimap-server-port) ports))
-	    ;; If this is a STARTTLS-capable server, then sever the
-	    ;; connection and start a STARTTLS connection instead.
+  (with-current-buffer (nnimap-make-process-buffer buffer)
+    (let* ((coding-system-for-read 'binary)
+	   (coding-system-for-write 'binary)
+	   (port nil)
+	   (ports
 	    (cond
-	     ((and (or (and (eq nnimap-stream 'network)
-			    (nnimap-capability "STARTTLS"))
-		       (eq nnimap-stream 'starttls))
-		   (fboundp 'open-gnutls-stream))
-	      (nnimap-command "STARTTLS")
-	      (gnutls-negotiate (nnimap-process nnimap-object) nil)
-	      ;; Get the capabilities again -- they may have changed
-	      ;; after doing STARTTLS.
-	      (nnimap-get-capabilities))
-	     ((and (eq nnimap-stream 'network)
-		   (nnimap-capability "STARTTLS"))
-	      (let ((nnimap-stream 'starttls))
-		(let ((tls-process
-		       (nnimap-open-connection buffer)))
-		  ;; If the STARTTLS connection was successful, we
-		  ;; kill our first non-encrypted connection.  If it
-		  ;; wasn't successful, we just use our unencrypted
-		  ;; connection.
-		  (when (memq (process-status tls-process) '(open run))
-		    (delete-process (nnimap-process nnimap-object))
-		    (kill-buffer (current-buffer))
-		    (return tls-process))))))
-	    (unless (equal connection-result "PREAUTH")
+	     ((or (eq nnimap-stream 'network)
+		  (eq nnimap-stream 'starttls))
+	      (nnheader-message 7 "Opening connection to %s..."
+				nnimap-address)
+	      '("143" "imap"))
+	     ((eq nnimap-stream 'shell)
+	      (nnheader-message 7 "Opening connection to %s via shell..."
+				nnimap-address)
+	      '("imap"))
+	     ((memq nnimap-stream '(ssl tls))
+	      (nnheader-message 7 "Opening connection to %s via tls..."
+				nnimap-address)
+	      '("143" "993" "imap" "imaps"))
+	     (t
+	      (error "Unknown stream type: %s" nnimap-stream))))
+	   (proto-stream-always-use-starttls t)
+           login-result credentials)
+      (when nnimap-server-port
+	(setq ports (append ports (list nnimap-server-port))))
+      (destructuring-bind (stream greeting capabilities)
+	  (open-protocol-stream
+	   "*nnimap*" (current-buffer) nnimap-address (car (last ports))
+	   :type nnimap-stream
+	   :shell-command nnimap-shell-program
+	   :capability-command "1 CAPABILITY\r\n"
+	   :success " OK "
+	   :starttls-function
+	   (lambda (capabilities)
+	     (when (gnus-string-match-p "STARTTLS" capabilities)
+	       "1 STARTTLS\r\n")))
+	(setf (nnimap-process nnimap-object) stream)
+	(if (not stream)
+	    (progn
+	      (nnheader-report 'nnimap "Unable to contact %s:%s via %s"
+			       nnimap-address port nnimap-stream)
+	      'no-connect)
+	  (gnus-set-process-query-on-exit-flag stream nil)
+	  (if (not (gnus-string-match-p "[*.] \\(OK\\|PREAUTH\\)" greeting))
+	      (nnheader-report 'nnimap "%s" greeting)
+	    ;; Store the greeting (for debugging purposes).
+	    (setf (nnimap-greeting nnimap-object) greeting)
+	    (setf (nnimap-capabilities nnimap-object)
+		  (mapcar #'upcase
+			  (split-string capabilities)))
+	    (unless (gnus-string-match-p "[*.] PREAUTH" greeting)
 	      (if (not (setq credentials
 			     (if (eq nnimap-authenticator 'anonymous)
 				 (list "anonymous"
@@ -455,13 +415,6 @@ textual parts.")
 	      (when (nnimap-capability "QRESYNC")
 		(nnimap-command "ENABLE QRESYNC"))
 	      (nnimap-process nnimap-object))))))))
-
-(defun nnimap-get-capabilities ()
-  (setf (nnimap-capabilities nnimap-object)
-	(mapcar
-	 #'upcase
-	 (nnimap-find-parameter
-	  "CAPABILITY" (cdr (nnimap-command "CAPABILITY"))))))
 
 (defun nnimap-quote-specials (string)
   (with-temp-buffer
@@ -1110,7 +1063,7 @@ textual parts.")
 		   uidvalidity
 		   modseq)
 	      (push
-	       (list (nnimap-send-command "EXAMINE %S (QRESYNC (%s %s))"
+	       (list (nnimap-send-command "EXAMINE %S (QRESYNC  (%s %s))"
 					  (utf7-encode group t)
 					  uidvalidity modseq)
 		     'qresync

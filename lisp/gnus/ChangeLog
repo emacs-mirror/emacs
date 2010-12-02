@@ -1,3 +1,228 @@
+2010-12-02  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-summary-line-format): New variable.
+	(nnir-mode): Use it.
+	(nnir-artlist-*,nnir-aritem-*): Reimplement as macros.
+	(nnir-article-ids): Reimplement as defsubst.
+	(nnir-retrieve-headers): Don't mangle the subject header.
+	(nnir-run-imap): Use 100 as RSV score.
+	(nnir-run-find-grep): Fix for full server searching.
+	(nnir-run-gmane): Better restriction to gmane groups.
+
+	* gnus-sum.el (gnus-summary-line-format-alist): Add specs for nnir
+	summary buffers.
+
+2010-12-02  Julien Danjou  <julien@danjou.info>
+
+	* gnus-win.el (gnus-configure-frame): Remove old compatibility code.
+
+	* gnus-msg.el: Mark gnus-outgoing-message-group as obsolete.
+
+	* gnus-win.el (gnus-configure-windows): Remove Gnus 3.x setting
+	support.
+
+2010-12-01  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el: Update to handle the registry better.
+	(autoload): Silence byte-compiler.
+	(nnir-open-server): Add a hook for nnir groups.
+	(nnir-request-move-article): Don't mangle the header. Better to use
+	formating variables (which will be added in the future).
+	(nnir-registry-action): Update the registry using the original article
+	group name.
+	(nnir-mode): Install nnir-specific hooks for updating the registry.
+
+	* gnus-sum.el
+	(gnus-article-original-subject,gnus-newsgroup-original-name): Remove
+	obsolete variables.
+	(gnus-summary-move-article): Remove use of obsolete variables.
+	(gnus-summary-local-variables): Make move and delete hooks local to
+	summary buffers.
+
+2010-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* rtree.el: New file.
+
+2010-12-01  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-user-organization): Do not use
+	gnus-local-organization.
+
+	* gnus.el: Remove gnus-local-organization.
+
+	* gnus-msg.el: Remove nastygram thing.
+
+2010-12-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnmaildir.el (nnmaildir-request-set-mark): Add article to add-mark
+	funcall.
+
+2010-12-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-gravatar.el (gnus-gravatar-insert): Allow LWSP in the middle of
+	names.
+
+	* shr.el (shr-find-fill-point): Don't break line between kinsoku-bol
+	characters.
+
+	* gnus-gravatar.el (gnus-gravatar-insert): Delete unnecessary binding
+	to t of inhibit-read-only since it is inside gnus-with-article-headers.
+	Suggested by Štěpán Němec <stepnem@gmail.com>.
+	(gnus-gravatar-transform-address): Use mail-extract-address-components
+	that supports non-ASCII names rather than mail-header-parse-addresses.
+
+2010-11-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* proto-stream.el (open-protocol-stream): All starttls connections are
+	handled by the network handler.
+
+2010-11-30  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-open-connection-1): Use gnus-string-match-p.
+	(nnimap-open-connection-1): Fix PREAUTH.
+
+	* gnus-gravatar.el (gnus-gravatar-size): Set gnus-gravatar-size to nil.
+
+2010-11-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-char-breakable-p, shr-char-nospace-p)
+	(shr-char-kinsoku-bol-p, shr-char-kinsoku-eol-p): New macros.
+	(shr-insert): Use them.
+	(shr-find-fill-point): Work better for kinsoku chars and apostrophes.
+
+2010-11-29  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-move-article): Bail out if original group
+	doesn't support article moves.
+	(nnir-get-active): Improve active list retrieval.
+
+2010-11-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-find-fill-point): Don't break before apostrophes.
+
+2010-11-29  Binjo  <binjo.cn@gmail.com>  (tiny change)
+
+	* nnimap.el (nnimap-open-connection-1): w32 open-network-stream doesn't
+	seem to accept strings-with-numbers as port numbers,
+
+2010-11-29  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-sum.el (gnus-summary-delete-article): If delete fails don't
+	change the registry.
+
+2010-11-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnir.el (nnir-run-gmane): Use mm-delete-duplicates instead of
+	delete-dups that is not available in XEmacs 21.4.
+
+	* mm-util.el (mm-delete-duplicates): Add comment.
+
+2010-11-28  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-ignored-newsgroups): New variable.
+	(nnir-get-active): Use it.
+
+2010-11-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* proto-stream.el (proto-stream-open-network): Add some comments.
+
+	* nntp.el (nntp-open-connection): Provide a :success condition.
+
+	* nnimap.el (nnimap-open-connection-1): Ditto.
+
+	* proto-stream.el (proto-stream-open-network): See what the response to
+	the STARTTLS command is.
+
+	* nnimap.el (nnimap-open-connection-1): Always upgrade to STARTTLS (for
+	backwards compatibility).
+	(nnimap-open-connection-1): Really respect nnimap-server-port.
+
+	* proto-stream.el (proto-stream-open-network): When doing opportunistic
+	TLS upgrades we don't really care about the identity of the peer.
+	(proto-stream-open-network): Force starttls.el to use gnutls-cli, since
+	that what we've checked for.
+	(proto-stream-always-use-starttls): Only default to t if
+	open-gnutls-stream exists.
+	(proto-stream-open-network): If STARTTLS failed, then just open a
+	normal connection.
+	(proto-stream-open-network): Wait until the greeting before doing
+	STARTTLS.
+
+	* nntp.el (nntp-open-connection): Report what the connection error is.
+
+	* proto-stream.el (open-protocol-stream): Renamed from
+	open-proto-stream.
+
+2010-11-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-stream): Change default to `undecided'.
+	(nnimap-open-connection): If `nnimap-stream' is `undecided', try ssl
+	first, and then network.
+	(nnimap-open-connection-1): Respect nnimap-server-port.
+	(nnimap-open-connection): Be more backwards-compatible.
+
+	* proto-stream.el (proto-stream-always-use-starttls): New variable.
+	(proto-stream-open-starttls): De-duplicate the starttls code.
+	(proto-stream-open-starttls): Folded back into the main function.
+	(proto-stream-open-network): Fix typo in the gnutls path.
+	(proto-stream-command): Refactor out.
+
+	* nntp.el (nntp-open-connection): Fix the STARTTLS command syntax.
+
+	* proto-stream.el (proto-stream-open-starttls): Actually implement the
+	starttls.el STARTTLS.
+
+	* color.el (color-lab->srgb): Fix function call name.
+
+	* proto-stream.el (proto-stream-open-tls): Delete output from openssl
+	if we're using tls.el.
+	(proto-stream-open-network): If we don't have gnutls-cli or gnutls
+	built in, then don't try to establish a STARTTLS connection.
+
+	* nntp.el (nntp-open-connection): Switch on STARTTLS on supported
+	servers.
+
+	* proto-stream.el (open-proto-stream): Use network, not stream.
+	(open-proto-stream): Add a way to specify what the end of a command is.
+
+	* nntp.el (nntp-open-connection): Use proto-streams for the relevant
+	connections types.
+	(nntp-open-network-stream): Remove.
+	(nntp-open-ssl-stream): Remove.
+	(nntp-open-tls-stream): Remove.
+	(nntp-ssl-program): Remove.
+
+	* nnimap.el (nnimap-open-connection): Check for "OK" from the greeting.
+
+2010-11-27  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el: Fix typos.
+	(nnir-retrieve-headers-override-function): Rename variable to reflect
+	new semantics.
+	(nnir-article-group, nnir-article-number, nnir-article-rsv): New helper
+	macros.
+	(nnir-request-article, nnir-request-move-article): Use them.
+	(nnir-categorize): New function.
+	(nnir-run-query): Use it.
+	(nnir-retrieve-headers): Rewrite to batch header retrieval.
+	(nnir-run-gmane): nnir-retrieve-headers now returns the headers already
+	sorted.
+	(nnir-group-full-name): Use gnus-group-full-name instead.
+	(nnir-artlist-artitem-group, nnir-artlist-artitem-number)
+	(nnir-artlist-artitem-rsv, nnir-sort-groups-by-server): Obsolete.
+
+2010-11-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection): Fix typo in STARTTLS command.
+
+	* proto-stream.el: New library to provide protocol-specific
+	TLS/STARTTLS connections for IMAP, NNTP, SMTP, POP3 and similar
+	protocols.
+	(open-proto-stream): Complete the documentation.
+	(proto-stream-open-network): Fix some typos.
+
+	* nnimap.el (nnimap-open-connection): Use it.
+
 2010-11-27  Yuri Karaban  <tech@askold.net>  (tiny change)
 
 	* pop3.el (pop3-open-server): Read server greeting before starting TLS

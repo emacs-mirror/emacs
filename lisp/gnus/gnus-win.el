@@ -228,50 +228,6 @@ See the Gnus manual for an explanation of the syntax used.")
     (pop list))
   (cadr (assq (car list) gnus-window-configuration)))
 
-(defun gnus-windows-old-to-new (setting)
-  ;; First we take care of the really, really old Gnus 3 actions.
-  (when (symbolp setting)
-    (setq setting
-	  ;; Take care of ooold GNUS 3.x values.
-	  (cond ((eq setting 'SelectArticle) 'article)
-		((memq setting '(SelectNewsgroup SelectSubject ExpandSubject))
-		 'summary)
-		((memq setting '(ExitNewsgroup)) 'group)
-		(t setting))))
-  (if (or (listp setting)
-	  (not (and gnus-window-configuration
-		    (memq setting '(group summary article)))))
-      setting
-    (let* ((elem
-	    (cond
-	     ((eq setting 'group)
-	      (gnus-window-configuration-element
-	       '(group newsgroups ExitNewsgroup)))
-	     ((eq setting 'summary)
-	      (gnus-window-configuration-element
-	       '(summary SelectNewsgroup SelectSubject ExpandSubject)))
-	     ((eq setting 'article)
-	      (gnus-window-configuration-element
-	       '(article SelectArticle)))))
-	   (total (apply '+ elem))
-	   (types '(group summary article))
-	   (pbuf (if (eq setting 'newsgroups) 'group 'summary))
-	   (i 0)
-	   perc out)
-      (while (< i 3)
-	(or (not (numberp (nth i elem)))
-	    (zerop (nth i elem))
-	    (progn
-	      (setq perc (if (= i 2)
-			     1.0
-			   (/ (float (nth i elem)) total)))
-	      (push (if (eq pbuf (nth i types))
-			(list (nth i types) perc 'point)
-		      (list (nth i types) perc))
-		    out)))
-	(incf i))
-      `(vertical 1.0 ,@(nreverse out)))))
-
 ;;;###autoload
 (defun gnus-add-configuration (conf)
   "Add the window configuration CONF to `gnus-buffer-configuration'."
@@ -293,18 +249,9 @@ See the Gnus manual for an explanation of the syntax used.")
 
 (defun gnus-configure-frame (split &optional window)
   "Split WINDOW according to SPLIT."
-  (let ((current-window
-	 (or (get-buffer-window (current-buffer)) (selected-window))))
-    (unless window
-      (setq window current-window))
+  (let* ((current-window (or (get-buffer-window (current-buffer)) (selected-window)))
+         (window (or window current-window)))
     (select-window window)
-    ;; This might be an old-style buffer config.
-    (when (vectorp split)
-      (setq split (append split nil)))
-    (when (or (consp (car split))
-	      (vectorp (car split)))
-      (push 1.0 split)
-      (push 'vertical split))
     ;; The SPLIT might be something that is to be evaled to
     ;; return a new SPLIT.
     (while (and (not (assq (car split) gnus-window-to-buffer))
@@ -423,56 +370,55 @@ See the Gnus manual for an explanation of the syntax used.")
       (set-window-configuration setting)
     (setq gnus-current-window-configuration setting)
     (setq force (or force gnus-always-force-window-configuration))
-    (setq setting (gnus-windows-old-to-new setting))
     (let ((split (if (symbolp setting)
-		     (cadr (assq setting gnus-buffer-configuration))
-		   setting))
-	  all-visible)
+                     (cadr (assq setting gnus-buffer-configuration))
+                   setting))
+          all-visible)
 
       (setq gnus-frame-split-p nil)
 
       (unless split
-	(error "No such setting in `gnus-buffer-configuration': %s" setting))
+        (error "No such setting in `gnus-buffer-configuration': %s" setting))
 
       (if (and (setq all-visible (gnus-all-windows-visible-p split))
-	       (not force))
-	  ;; All the windows mentioned are already visible, so we just
-	  ;; put point in the assigned buffer, and do not touch the
-	  ;; winconf.
-	  (select-window all-visible)
+               (not force))
+          ;; All the windows mentioned are already visible, so we just
+          ;; put point in the assigned buffer, and do not touch the
+          ;; winconf.
+          (select-window all-visible)
 
-	;; Make sure "the other" buffer, nntp-server-buffer, is live.
-	(unless (gnus-buffer-live-p nntp-server-buffer)
-	  (nnheader-init-server-buffer))
+        ;; Make sure "the other" buffer, nntp-server-buffer, is live.
+        (unless (gnus-buffer-live-p nntp-server-buffer)
+          (nnheader-init-server-buffer))
 
-	;; Either remove all windows or just remove all Gnus windows.
-	(let ((frame (selected-frame)))
-	  (unwind-protect
-	      (if gnus-use-full-window
-		  ;; We want to remove all other windows.
-		  (if (not gnus-frame-split-p)
-		      ;; This is not a `frame' split, so we ignore the
-		      ;; other frames.
-		      (delete-other-windows)
-		  ;; This is a `frame' split, so we delete all windows
-		    ;; on all frames.
-		    (gnus-delete-windows-in-gnusey-frames))
-		;; Just remove some windows.
-		(gnus-remove-some-windows)
-		(if (featurep 'xemacs)
-		    (switch-to-buffer nntp-server-buffer)
-		  (set-buffer nntp-server-buffer)))
-	    (select-frame frame)))
+        ;; Either remove all windows or just remove all Gnus windows.
+        (let ((frame (selected-frame)))
+          (unwind-protect
+              (if gnus-use-full-window
+                  ;; We want to remove all other windows.
+                  (if (not gnus-frame-split-p)
+                      ;; This is not a `frame' split, so we ignore the
+                      ;; other frames.
+                      (delete-other-windows)
+                    ;; This is a `frame' split, so we delete all windows
+                    ;; on all frames.
+                    (gnus-delete-windows-in-gnusey-frames))
+                ;; Just remove some windows.
+                (gnus-remove-some-windows)
+                (if (featurep 'xemacs)
+                    (switch-to-buffer nntp-server-buffer)
+                  (set-buffer nntp-server-buffer)))
+            (select-frame frame)))
 
-	(let (gnus-window-frame-focus)
-	  (if (featurep 'xemacs)
-	      (switch-to-buffer nntp-server-buffer)
-	    (set-buffer nntp-server-buffer))
-	  (gnus-configure-frame split)
-	  (run-hooks 'gnus-configure-windows-hook)
-	  (when gnus-window-frame-focus
-	    (gnus-select-frame-set-input-focus
-	     (window-frame gnus-window-frame-focus))))))))
+        (let (gnus-window-frame-focus)
+          (if (featurep 'xemacs)
+              (switch-to-buffer nntp-server-buffer)
+            (set-buffer nntp-server-buffer))
+          (gnus-configure-frame split)
+          (run-hooks 'gnus-configure-windows-hook)
+          (when gnus-window-frame-focus
+            (gnus-select-frame-set-input-focus
+             (window-frame gnus-window-frame-focus))))))))
 
 (defun gnus-delete-windows-in-gnusey-frames ()
   "Do a `delete-other-windows' in all frames that have Gnus windows."

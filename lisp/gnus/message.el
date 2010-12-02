@@ -160,8 +160,12 @@ If this variable is nil, no such courtesy message will be added."
   :group 'message-interface
   :type 'regexp)
 
-(defcustom message-from-style mail-from-style
-  "*Specifies how \"From\" headers look.
+(defcustom message-from-style 'default
+  ;; In Emacs 24.1 this defaults to the value of `mail-from-style'
+  ;; that defaults to:
+  ;; `angles' in Emacs 22.1~23.1, XEmacs 21.4, 21.5, and SXEmacs 22.1;
+  ;; `system-default' in Emacs 23.2, and 24.1
+  "Specifies how \"From\" headers look.
 
 If nil, they contain just the return address like:
 	king@grassland.com
@@ -507,14 +511,9 @@ This is used by `message-kill-buffer'."
   :group 'message-buffers
   :type 'boolean)
 
-(defvar gnus-local-organization)
 (defcustom message-user-organization
-  (or (and (boundp 'gnus-local-organization)
-	   (stringp gnus-local-organization)
-	   gnus-local-organization)
-      (getenv "ORGANIZATION")
-      t)
-  "*String to be used as an Organization header.
+  (or (getenv "ORGANIZATION") t)
+  "String to be used as an Organization header.
 If t, use `message-user-organization-file'."
   :group 'message-headers
   :type '(choice string

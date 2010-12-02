@@ -32,8 +32,6 @@
 
 (eval-when-compile (require 'cl))
 (require 'browse-url)
-(unless (aref (char-category-set (make-char 'japanese-jisx0208 33 35)) ?>)
-  (load "kinsoku" nil t))
 
 (defgroup shr nil
   "Simple HTML Renderer"
@@ -214,6 +212,26 @@ redirects somewhere else."
      ((listp (cdr sub))
       (shr-descend sub)))))
 
+(defmacro shr-char-breakable-p (char)
+  "Return non-nil if a line can be broken before and after CHAR."
+  `(aref fill-find-break-point-function-table ,char))
+(defmacro shr-char-nospace-p (char)
+  "Return non-nil if no space is required before and after CHAR."
+  `(aref fill-nospace-between-words-table ,char))
+
+;; KINSOKU is a Japanese word meaning a rule that should not be violated.
+;; In Emacs, it is a term used for characters, e.g. punctuation marks,
+;; parentheses, and so on, that should not be placed in the beginning
+;; of a line or the end of a line.
+(defmacro shr-char-kinsoku-bol-p (char)
+  "Return non-nil if a line ought not to begin with CHAR."
+  `(aref (char-category-set ,char) ?>))
+(defmacro shr-char-kinsoku-eol-p (char)
+  "Return non-nil if a line ought not to end with CHAR."
+  `(aref (char-category-set ,char) ?<))
+(unless (shr-char-kinsoku-bol-p (make-char 'japanese-jisx0208 33 35))
+  (load "kinsoku" nil t))
+
 (defun shr-insert (text)
   (when (and (eq shr-state 'image)
 	     (not (string-match "\\`[ \t\n]+\\'" text)))
@@ -242,12 +260,11 @@ redirects somewhere else."
       (let (prev)
 	(when (and (eq (preceding-char) ? )
 		   (or (= (line-beginning-position) (1- (point)))
-		       (and (aref fill-find-break-point-function-table
-				  (setq prev (char-after (- (point) 2))))
-			    (aref (char-category-set prev) ?>))
-		       (and (aref fill-nospace-between-words-table prev)
-			    (aref fill-nospace-between-words-table
-				  (aref elem 0)))))
+		       (and (shr-char-breakable-p
+			     (setq prev (char-after (- (point) 2))))
+			    (shr-char-kinsoku-bol-p prev))
+		       (and (shr-char-nospace-p prev)
+			    (shr-char-nospace-p (aref elem 0)))))
 	  (delete-char -1)))
       (insert elem)
       (let (found)
@@ -273,67 +290,88 @@ redirects somewhere else."
 (defun shr-find-fill-point ()
   (when (> (move-to-column shr-width) shr-width)
     (backward-char 1))
-  (let (failed)
-    (while (not
-	    (or (setq failed (= (current-column) shr-indentation))
-		(eq (preceding-char) ? )
-		(eq (following-char) ? )
-		(aref fill-find-break-point-function-table (preceding-char))
-		(aref (char-category-set (preceding-char)) ?>)))
+  (let ((bp (point))
+	failed)
+    (while (not (or (setq failed (= (current-column) shr-indentation))
+		    (eq (preceding-char) ? )
+		    (eq (following-char) ? )
+		    (shr-char-breakable-p (preceding-char))
+		    (shr-char-breakable-p (following-char))
+		    (and (eq (preceding-char) ?')
+			 (not (memq (char-after (- (point) 2))
+				    (list nil ?\n ? ))))
+		    ;; There're some kinsoku CJK chars that aren't breakable.
+		    (and (shr-char-kinsoku-bol-p (preceding-char))
+			 (not (shr-char-kinsoku-bol-p (following-char))))
+		    (shr-char-kinsoku-eol-p (following-char))))
       (backward-char 1))
+    (if (and (not (or failed (eolp)))
+	     (eq (preceding-char) ?'))
+	(while (not (or (setq failed (eolp))
+			(eq (following-char) ? )
+			(shr-char-breakable-p (following-char))
+			(shr-char-kinsoku-eol-p (following-char))))
+	  (forward-char 1)))
     (if failed
 	;; There's no breakable point, so we give it up.
-	(progn
-	  (end-of-line)
-	  (while (aref fill-find-break-point-function-table (preceding-char))
-	    (backward-char 1))
-	  nil)
+	(let (found)
+	  (goto-char bp)
+	  (unless shr-kinsoku-shorten
+	    (while (and (setq found (re-search-forward
+				     "\\(\\c>\\)\\| \\|\\c<\\|\\c|"
+				     (line-end-position) 'move))
+			(eq (preceding-char) ?')))
+	    (if (and found (not (match-beginning 1)))
+		(goto-char (match-beginning 0)))))
       (or
        (eolp)
-       (progn
-	 ;; Don't put kinsoku-bol characters at the beginning of a line,
-	 ;; or kinsoku-eol characters at the end of a line.
-	 (cond
-	  (shr-kinsoku-shorten
-	   (while (and
-		   (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
-		   (not (or (aref (char-category-set (preceding-char)) ?>)
-			    (aref (char-category-set (following-char)) ?<)))
-		   (or (aref (char-category-set (preceding-char)) ?<)
-		       (aref (char-category-set (following-char)) ?>)))
-	     (backward-char 1)))
-	  ((aref (char-category-set (preceding-char)) ?<)
-	   (let ((count 3))
-	     (while (progn
-		      (backward-char 1)
-		      (and
-		       (> (setq count (1- count)) 0)
-		       (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
-		       (or (aref (char-category-set (preceding-char)) ?<)
-			   (aref (char-category-set (following-char)) ?>))))))
-	   (if (and (setq failed (= (current-column) shr-indentation))
-		    (re-search-forward "\\c|" (line-end-position) 'move))
+       ;; Don't put kinsoku-bol characters at the beginning of a line,
+       ;; or kinsoku-eol characters at the end of a line.
+       (cond
+	(shr-kinsoku-shorten
+	 (while (and (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
+		     (shr-char-kinsoku-eol-p (preceding-char)))
+	   (backward-char 1))
+	 (when (setq failed (= (current-column) shr-indentation))
+	   ;; There's no breakable point that doesn't violate kinsoku,
+	   ;; so we look for the second best position.
+	   (while (and (progn
+			 (forward-char 1)
+			 (<= (current-column) shr-width))
+		       (progn
+			 (setq bp (point))
+			 (shr-char-kinsoku-eol-p (following-char)))))
+	   (goto-char bp)))
+	((shr-char-kinsoku-eol-p (preceding-char))
+	 (if (shr-char-kinsoku-eol-p (following-char))
+	     ;; There are consecutive kinsoku-eol characters.
+	     (setq failed t)
+	   (let ((count 4))
+	     (while
+		 (progn
+		   (backward-char 1)
+		   (and (> (setq count (1- count)) 0)
+			(not (memq (preceding-char) (list ?\C-@ ?\n ? )))
+			(or (shr-char-kinsoku-eol-p (preceding-char))
+			    (shr-char-kinsoku-bol-p (following-char)))))))
+	   (if (setq failed (= (current-column) shr-indentation))
 	       ;; There's no breakable point that doesn't violate kinsoku,
-	       ;; so we look for the second best position.
-	       (let (bp)
-		 (while (and (<= (current-column) shr-width)
-			     (progn
-			       (setq bp (point))
-			       (not (eolp)))
-			     (aref fill-find-break-point-function-table
-				   (following-char)))
-		   (forward-char 1))
-		 (goto-char (or bp (line-end-position))))))
-	  (t
+	       ;; so we go to the second best position.
+	       (if (looking-at "\\(\\c<+\\)\\c<")
+		   (goto-char (match-end 1))
+		 (forward-char 1)))))
+	(t
+	 (if (shr-char-kinsoku-bol-p (preceding-char))
+	     ;; There are consecutive kinsoku-bol characters.
+	     (setq failed t)
 	   (let ((count 4))
 	     (while (and (>= (setq count (1- count)) 0)
-			 (aref (char-category-set (following-char)) ?>)
-			 (aref fill-find-break-point-function-table
-			       (following-char)))
-	       (forward-char 1)))))
-	 (when (eq (following-char) ? )
-	   (forward-char 1))
-	 (not failed))))))
+			 (shr-char-kinsoku-bol-p (following-char))
+			 (shr-char-breakable-p (following-char)))
+	       (forward-char 1))))))
+       (when (eq (following-char) ? )
+	 (forward-char 1))))
+    (not failed)))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))

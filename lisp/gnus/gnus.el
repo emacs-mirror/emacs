@@ -1401,10 +1401,6 @@ no need to set this variable."
 		 string))
 (make-obsolete-variable 'gnus-local-domain nil "Emacs 24.1")
 
-(defvar gnus-local-organization nil
-  "String with a description of what organization (if any) the user belongs to.
-Obsolete variable; use `message-user-organization' instead.")
-
 ;; Customization variables
 
 (defcustom gnus-refer-article-method 'current

@@ -36,7 +36,7 @@
 
 (defun color-rgb->hex  (red green blue)
   "Return hexadecimal notation for RED GREEN BLUE color.
-RED GREEN BLUE must be values between [0,1]."
+RED GREEN BLUE must be values between 0 and 1 inclusively."
   (format "#%02x%02x%02x"
           (* red 255) (* green 255) (* blue 255)))
 
@@ -53,7 +53,8 @@ RED GREEN BLUE must be values between [0,1]."
 
 (defun color-rgb->hsv (red green blue)
   "Convert RED GREEN BLUE values to HSV representation.
-Hue is in radian. Saturation and values are between [0,1]."
+Hue is in radians. Saturation and values are between 0 and 1
+inclusively."
    (let* ((r (float red))
 	 (g (float green))
 	 (b (float blue))
@@ -80,7 +81,7 @@ Hue is in radian. Saturation and values are between [0,1]."
 
 (defun color-rgb->hsl (red green blue)
   "Convert RED GREEN BLUE colors to their HSL representation.
-RED, GREEN and BLUE must be between [0,1]."
+RED, GREEN and BLUE must be between 0 and 1 inclusively."
   (let* ((r red)
          (g green)
          (b blue)
@@ -108,7 +109,7 @@ RED, GREEN and BLUE must be between [0,1]."
 
 (defun color-srgb->xyz (red green blue)
   "Converts RED GREEN BLUE colors from the sRGB color space to CIE XYZ.
-RED, BLUE and GREEN must be between [0,1]."
+RED, BLUE and GREEN must be between 0 and 1 inclusively."
   (let ((r (if (<= red 0.04045)
                (/ red 12.95)
              (expt (/ (+ red 0.055) 1.055) 2.4)))
@@ -191,12 +192,12 @@ none is set, `color-d65-xyz' is used."
   (apply 'color-xyz->lab (color-srgb->xyz red green blue)))
 
 (defun color-rgb->normalize (color)
-  "Normalize a RGB color to values between [0,1]."
+  "Normalize a RGB color to values between 0 and 1 inclusively."
   (mapcar (lambda (x) (/ x 65535.0)) (x-color-values color)))
 
 (defun color-lab->srgb (L a b)
   "Converts CIE L*a*b* to RGB."
-  (apply 'color-xyz->rgb (color-lab->xyz L a b)))
+  (apply 'color-xyz->srgb (color-lab->xyz L a b)))
 
 (defun color-cie-de2000 (color1 color2 &optional kL kC kH)
   "Computes the CIEDE2000 color distance between COLOR1 and COLOR2.

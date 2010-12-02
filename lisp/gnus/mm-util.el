@@ -974,6 +974,7 @@ If the charset is `composition', return the actual one."
     ;; This is for XEmacs.
     (mm-mule-charset-to-mime-charset charset)))
 
+;; `delete-dups' is not available in XEmacs 21.4.
 (if (fboundp 'delete-dups)
     (defalias 'mm-delete-duplicates 'delete-dups)
   (defun mm-delete-duplicates (list)

@@ -13342,21 +13342,6 @@ case you should set @code{gnus-message-archive-group} to @code{nil};
 this will disable archiving.
 
 @table @code
-@item gnus-outgoing-message-group
-@vindex gnus-outgoing-message-group
-All outgoing messages will be put in this group.  If you want to store
-all your outgoing mail and articles in the group @samp{nnml:archive},
-you set this variable to that value.  This variable can also be a list of
-group names.
-
-If you want to have greater control over what group to put each
-message in, you can set this variable to a function that checks the
-current newsgroup name and then returns a suitable group name (or list
-of names).
-
-This variable can be used instead of @code{gnus-message-archive-group},
-but the latter is the preferred method.
-
 @item gnus-gcc-mark-as-read
 @vindex gnus-gcc-mark-as-read
 If non-@code{nil}, automatically mark @code{Gcc} articles as read.
@@ -14453,7 +14438,9 @@ functions is also affected by commonly understood variables
 @findex nntp-open-network-stream
 @item nntp-open-network-stream
 This is the default, and simply connects to some port or other on the
-remote system.
+remote system.  If both Emacs and the server supports it, the
+connection will be upgraded to an encrypted @acronym{STARTTLS}
+connection automatically.
 
 @findex nntp-open-tls-stream
 @item nntp-open-tls-stream
@@ -14887,12 +14874,17 @@ typical port would be @code{"imap"} or @code{"imaps"}.
 How @code{nnimap} should connect to the server.  Possible values are:
 
 @table @code
+@item undecided
+This is the default, and this first tries the @code{ssl} setting, and
+then tries the @code{network} setting.
+
 @item ssl
-This is the default, and this uses standard
-@acronym{TLS}/@acronym{SSL} connection.
+This uses standard @acronym{TLS}/@acronym{SSL} connections.
 
 @item network
-Non-encrypted and unsafe straight socket connection.
+Non-encrypted and unsafe straight socket connection, but will upgrade
+to encrypted @acronym{STARTTLS} if both Emacs and the server
+supports it.
 
 @item starttls
 Encrypted @acronym{STARTTLS} over the normal @acronym{IMAP} port.

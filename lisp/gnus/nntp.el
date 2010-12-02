@@ -34,6 +34,7 @@
 (require 'nnoo)
 (require 'gnus-util)
 (require 'gnus)
+(require 'proto-stream)
 (require 'gnus-group) ;; gnus-group-name-charset
 
 (nnoo-declare nntp)
@@ -304,13 +305,6 @@ update their active files often, this can help.")
 
 (defvar nntp-async-timer nil)
 (defvar nntp-async-process-list nil)
-
-(defvar nntp-ssl-program
-  "openssl s_client -quiet -ssl3 -connect %s:%p"
-"A string containing commands for SSL connections.
-Within a string, %s is replaced with the server address and %p with
-port number on server.  The program should accept IMAP commands on
-stdin and return responses to stdout.")
 
 (defvar nntp-authinfo-rejected nil
 "A custom error condition used to report 'Authentication Rejected' errors.
@@ -1268,11 +1262,28 @@ password contained in '~/.nntp-authinfo'."
 		`(lambda ()
 		   (nntp-kill-buffer ,pbuffer)))))
 	 (process
-	  (condition-case ()
+	  (condition-case err
 	      (let ((coding-system-for-read nntp-coding-system-for-read)
-		    (coding-system-for-write nntp-coding-system-for-write))
-		(funcall nntp-open-connection-function pbuffer))
-	    (error nil)
+		    (coding-system-for-write nntp-coding-system-for-write)
+		    (map '((nntp-open-network-stream network)
+			   (nntp-open-ssl-stream tls)
+			   (nntp-open-tls-stream tls))))
+		(if (assoc nntp-open-connection-function map)
+		    (car (open-protocol-stream
+			  "nntpd" pbuffer nntp-address nntp-port-number
+			  :type (cadr
+				 (assoc nntp-open-connection-function map))
+			  :end-of-command "^\\([2345]\\|[.]\\).*\n"
+			  :capability-command "CAPABILITIES\r\n"
+			  :success "^3"
+			  :starttls-function
+			  (lambda (capabilities)
+			    (if (not (string-match "STARTTLS" capabilities))
+				nil
+			      "STARTTLS\r\n"))))
+		  (funcall nntp-open-connection-function pbuffer)))
+	    (error
+	     (nnheader-report 'nntp "%s" err))
 	    (quit
 	     (message "Quit opening connection to %s" nntp-address)
 	     (nntp-kill-buffer pbuffer)
@@ -1299,40 +1310,6 @@ password contained in '~/.nntp-authinfo'."
 		(nntp-send-authinfo t))))
 	(nntp-kill-buffer (process-buffer process))
 	nil))))
-
-(defun nntp-open-network-stream (buffer)
-  (open-network-stream "nntpd" buffer nntp-address nntp-port-number))
-
-(autoload 'format-spec "format-spec")
-(autoload 'format-spec-make "format-spec")
-(autoload 'open-tls-stream "tls")
-
-(defun nntp-open-ssl-stream (buffer)
-  (let* ((process-connection-type nil)
-	 (proc (start-process "nntpd" buffer
-			      shell-file-name
-			      shell-command-switch
-			      (format-spec nntp-ssl-program
-					   (format-spec-make
-					    ?s nntp-address
-					    ?p nntp-port-number)))))
-    (gnus-set-process-query-on-exit-flag proc nil)
-    (with-current-buffer buffer
-      (let ((nntp-connection-alist (list proc buffer nil)))
-	(nntp-wait-for-string "^\r*20[01]"))
-      (beginning-of-line)
-      (delete-region (point-min) (point))
-      proc)))
-
-(defun nntp-open-tls-stream (buffer)
-  (let ((proc (open-tls-stream "nntpd" buffer nntp-address nntp-port-number)))
-    (gnus-set-process-query-on-exit-flag proc nil)
-    (with-current-buffer buffer
-      (let ((nntp-connection-alist (list proc buffer nil)))
-	(nntp-wait-for-string "^\r*20[01]"))
-      (beginning-of-line)
-      (delete-region (point-min) (point))
-      proc)))
 
 (defun nntp-read-server-type ()
   "Find out what the name of the server we have connected to is."
