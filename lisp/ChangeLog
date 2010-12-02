@@ -1,3 +1,11 @@
+2010-12-02  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/flymake.el (flymake-check-file-limit):
+	Allow nil to mean "no limit".
+	(flymake-check-patch-master-file-buffer): Update for above change.
+	Allow a .tex file-name extension to be optional.
+	(flymake-master-tex-init): Also match \include statements.
+
 2010-11-30  Sam Steingold  <sds@gnu.org>
 
 	* nxml/nxml-mode.el (nxml-parent-document): Add a variable.
