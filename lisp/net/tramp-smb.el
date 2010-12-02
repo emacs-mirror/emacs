@@ -49,7 +49,7 @@
 ;; Add a default for `tramp-default-user-alist'. Rule: For the SMB method,
 ;; the anonymous user is chosen.
 (add-to-list 'tramp-default-user-alist
-	     `(,tramp-smb-method nil ""))
+	     `(,(concat "\\`" tramp-smb-method "\\'") nil nil))
 
 ;; Add completion function for SMB method.
 (tramp-set-completion-function

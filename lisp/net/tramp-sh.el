@@ -91,7 +91,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-login-args           (("%h") ("-l" "%u")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "rcp")
-    (tramp-copy-args            (("-p" "%k") ("-r")))
+    (tramp-copy-args            (("%k" "-p") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)))
 ;;;###tramp-autoload
@@ -101,18 +101,17 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-login-args           (("%h") ("-l" "%u")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "rcp")
-    (tramp-copy-args            (("-p" "%k")))
+    (tramp-copy-args            (("%k" "-p")))
     (tramp-copy-keep-date       t)))
 ;;;###tramp-autoload
-(add-to-list
- 'tramp-methods
+(add-to-list 'tramp-methods
  '("scp"
    (tramp-login-program        "ssh")
    (tramp-login-args           (("-l" "%u") ("-p" "%p")	("-e" "none") ("%h")))
    (tramp-async-args           (("-q")))
    (tramp-remote-sh            "/bin/sh")
    (tramp-copy-program         "scp")
-   (tramp-copy-args            (("-P" "%p") ("-p" "%k")	("-q") ("-r")))
+   (tramp-copy-args            (("-P" "%p") ("%k" "-p")	("-q") ("-r")))
    (tramp-copy-keep-date       t)
    (tramp-copy-recursive       t)
    (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
@@ -128,7 +127,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-1") ("-P" "%p") ("-p" "%k") ("-q") ("-r")))
+    (tramp-copy-args            (("-1") ("-P" "%p") ("%k" "-p") ("-q") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
     (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
@@ -144,7 +143,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-2") ("-P" "%p") ("-p" "%k") ("-q") ("-r")))
+    (tramp-copy-args            (("-2") ("-P" "%p") ("%k" "-p") ("-q") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
     (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
@@ -162,7 +161,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q")
+    (tramp-copy-args            (("-P" "%p") ("%k" "-p") ("-q")
 				 ("-o" "ControlPath=%t.%%r@%%h:%%p")
 				 ("-o" "ControlMaster=auto")))
     (tramp-copy-keep-date       t)
@@ -180,7 +179,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-p" "%k")))
+    (tramp-copy-args            (("%k" "-p")))
     (tramp-copy-keep-date       t)
     (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
 				 ("-o" "UserKnownHostsFile=/dev/null")
@@ -202,7 +201,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "rsync")
-    (tramp-copy-args            (("-e" "ssh") ("-t" "%k") ("-r")))
+    (tramp-copy-args            (("-e" "ssh") ("%k" "-t") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-keep-tmpfile    t)
     (tramp-copy-recursive       t)))
@@ -217,7 +216,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "rsync")
-    (tramp-copy-args            (("-t" "%k") ("-r")))
+    (tramp-copy-args            (("%k" "-t") ("-r")))
     (tramp-copy-env             (("RSYNC_RSH")
 				 (,(concat
 				    "ssh"
@@ -347,8 +346,10 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-login-args           (("-l" "%u") ("-P" "%p") ("-ssh") ("%h")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "pscp")
-    (tramp-copy-args            (("-P" "%p") ("-scp") ("-p" "%k")))
+    (tramp-copy-args            (("-P" "%p") ("-scp") ("%k" "-p")
+				 ("-q") ("-r")))
     (tramp-copy-keep-date       t)
+    (tramp-copy-recursive       t)
     (tramp-password-end-of-line "xy") ;see docstring for "xy"
     (tramp-default-port         22)))
 ;;;###tramp-autoload
@@ -358,8 +359,10 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-login-args           (("-l" "%u") ("-P" "%p") ("-ssh") ("%h")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "pscp")
-    (tramp-copy-args            (("-P" "%p") ("-sftp") ("-p" "%k")))
+    (tramp-copy-args            (("-P" "%p") ("-sftp") ("%k" "-p")
+				 ("-q") ("-r")))
     (tramp-copy-keep-date       t)
+    (tramp-copy-recursive       t)
     (tramp-password-end-of-line "xy"))) ;see docstring for "xy"
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
@@ -368,7 +371,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-login-args           (("%h") ("-l" "%u") ("sh" "-i")))
     (tramp-remote-sh            "/bin/sh -i")
     (tramp-copy-program         "fcp")
-    (tramp-copy-args            (("-p" "%k")))
+    (tramp-copy-args            (("%k" "-p")))
     (tramp-copy-keep-date       t)))
 
 (add-to-list 'tramp-default-method-alist
@@ -1943,7 +1946,7 @@ file names."
 
 	       ;; Try out-of-band operation.
 	       ((tramp-method-out-of-band-p
-		 v1 (nth 7 (file-attributes filename)))
+		 v1 (nth 7 (file-attributes (file-truename filename))))
 		(tramp-do-copy-or-rename-file-out-of-band
 		 op filename newname keep-date))
 
@@ -1971,7 +1974,8 @@ file names."
 
 	   ;; If the Tramp file has an out-of-band method, the
 	   ;; corresponding copy-program can be invoked.
-	   ((tramp-method-out-of-band-p v (nth 7 (file-attributes filename)))
+	   ((tramp-method-out-of-band-p
+	     v (nth 7 (file-attributes (file-truename filename))))
 	    (tramp-do-copy-or-rename-file-out-of-band
 	     op filename newname keep-date))
 
@@ -2178,10 +2182,11 @@ the uid and gid from FILENAME."
 (defun tramp-do-copy-or-rename-file-out-of-band (op filename newname keep-date)
   "Invoke rcp program to copy.
 The method used must be an out-of-band method."
-  (let ((t1 (tramp-tramp-file-p filename))
-	(t2 (tramp-tramp-file-p newname))
-	copy-program copy-args copy-env copy-keep-date port spec
-	source target)
+  (let* ((t1 (tramp-tramp-file-p filename))
+	 (t2 (tramp-tramp-file-p newname))
+	 (orig-vec (tramp-dissect-file-name (if t1 filename newname)))
+	 copy-program copy-args copy-env copy-keep-date port spec
+	 source target)
 
     (with-parsed-tramp-file-name (if t1 filename newname) nil
       (if (and t1 t2)
@@ -2206,6 +2211,12 @@ The method used must be an out-of-band method."
 		    (tramp-compat-delete-directory
 		     (expand-file-name ".." tmpfile) 'recursive)
 		  (delete-file tmpfile)))))
+
+	;; Set variables for computing the prompt for reading
+	;; password.
+	(setq tramp-current-method (tramp-file-name-method v)
+	      tramp-current-user   (tramp-file-name-user v)
+	      tramp-current-host   (tramp-file-name-host v))
 
 	;; Expand hops.  Might be necessary for gateway methods.
 	(setq v (car (tramp-compute-multi-hops v)))
@@ -2239,16 +2250,20 @@ The method used must be an out-of-band method."
 	      copy-keep-date (tramp-get-method-parameter
 			      method 'tramp-copy-keep-date)
 	      copy-args
-	      (delq
-	       nil
-	       (mapcar
-		(lambda (x)
-		  (setq
-		   x
-		   ;; " " is indication for keep-date argument.
-		   (delete " " (mapcar (lambda (y) (format-spec y spec)) x)))
-		  (unless (member "" x) (mapconcat 'identity x " ")))
-		(tramp-get-method-parameter method 'tramp-copy-args)))
+	      (delete
+	       ;; " " has either been a replacement of "%k" (when
+	       ;; keep-date argument is non-nil), or a replacemtent
+	       ;; for the whole keep-date sublist.
+	       " "
+	       (dolist
+		   (x
+		    (tramp-get-method-parameter method 'tramp-copy-args)
+		    copy-args)
+		 (setq copy-args
+		       (append
+			copy-args
+			(let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
+			  (if (zerop (length (car y))) '(" ") y))))))
 	      copy-env
 	      (delq
 	       nil
@@ -2266,14 +2281,8 @@ The method used must be an out-of-band method."
 	  (tramp-error
 	   v 'file-error "Cannot find copy program: %s" copy-program))
 
-	;; Set variables for computing the prompt for reading
-	;; password.
-	(setq tramp-current-method (tramp-file-name-method v)
-	      tramp-current-user   (tramp-file-name-user v)
-	      tramp-current-host   (tramp-file-name-host v))
-
-	(unwind-protect
-	    (with-temp-buffer
+	(with-temp-buffer
+	  (unwind-protect
 	      ;; The default directory must be remote.
 	      (let ((default-directory
 		      (file-name-directory (if t1 filename newname)))
@@ -2284,7 +2293,8 @@ The method used must be an out-of-band method."
 		(tramp-set-connection-property
 		 v "process-buffer" (current-buffer))
 		(while copy-env
-		  (tramp-message v 5 "%s=\"%s\"" (car copy-env) (cadr copy-env))
+		  (tramp-message
+		   orig-vec 5 "%s=\"%s\"" (car copy-env) (cadr copy-env))
 		  (setenv (pop copy-env) (pop copy-env)))
 
 		;; Use an asynchronous process.  By this, password can
@@ -2295,20 +2305,20 @@ The method used must be an out-of-band method."
 		(let ((p (let ((default-directory
 				 (tramp-compat-temporary-file-directory)))
 			   (apply 'start-process
-				  (tramp-get-connection-property
-				   v "process-name" nil)
-				  (tramp-get-connection-property
-				   v "process-buffer" nil)
+				  (tramp-get-connection-name v)
+				  (tramp-get-connection-buffer v)
 				  copy-program
 				  (append copy-args (list source target))))))
 		  (tramp-message
-		   v 6 "%s" (mapconcat 'identity (process-command p) " "))
+		   orig-vec 6 "%s"
+		   (mapconcat 'identity (process-command p) " "))
 		  (tramp-compat-set-process-query-on-exit-flag p nil)
-		  (tramp-process-actions p v tramp-actions-copy-out-of-band))))
+		  (tramp-process-actions p v tramp-actions-copy-out-of-band)))
 
-	  ;; Reset the transfer process properties.
-	  (tramp-set-connection-property v "process-name" nil)
-	  (tramp-set-connection-property v "process-buffer" nil))
+	    ;; Reset the transfer process properties.
+	    (tramp-message orig-vec 6 "%s" (buffer-string))
+	    (tramp-set-connection-property v "process-name" nil)
+	    (tramp-set-connection-property v "process-buffer" nil)))
 
 	;; Handle KEEP-DATE argument.
 	(when (and keep-date (not copy-keep-date))
@@ -2895,7 +2905,7 @@ the result will be a local, non-Tramp, filename."
        v 'file-error
        "Cannot make local copy of non-existing file `%s'" filename))
 
-    (let* ((size (nth 7 (file-attributes filename)))
+    (let* ((size (nth 7 (file-attributes (file-truename filename))))
 	   (rem-enc (tramp-get-inline-coding v "remote-encoding" size))
 	   (loc-dec (tramp-get-inline-coding v "local-decoding" size))
 	   (tmpfile (tramp-compat-make-temp-file filename)))
@@ -4103,22 +4113,10 @@ Gateway hops are already opened."
       (let ((gw (pop target-alist))
 	    (hop (pop target-alist)))
 	;; Is the method prepared for gateways?
-	(unless (tramp-get-method-parameter
-		 (tramp-file-name-method hop) 'tramp-default-port)
+	(unless (tramp-file-name-port hop)
 	  (tramp-error
 	   vec 'file-error
-	   "Method `%s' is not supported for gateway access."
-	   (tramp-file-name-method hop)))
-	;; Add default port if needed.
-	(unless
-	    (string-match
-	     tramp-host-with-port-regexp (tramp-file-name-host hop))
-	  (aset hop 2
-		(concat
-		 (tramp-file-name-host hop) tramp-prefix-port-format
-		 (number-to-string
-		  (tramp-get-method-parameter
-		   (tramp-file-name-method hop) 'tramp-default-port)))))
+	   "Connection `%s' is not supported for gateway access." hop))
 	;; Open the gateway connection.
 	(add-to-list
 	 'target-alist
@@ -4238,7 +4236,7 @@ connection if a previous connection has died for some reason."
 		 (p (let ((default-directory
 			    (tramp-compat-temporary-file-directory)))
 		      (start-process
-		       (or process-name (tramp-buffer-name vec))
+		       (tramp-get-connection-name vec)
 		       (tramp-get-connection-buffer vec)
 		       tramp-encoding-shell))))
 

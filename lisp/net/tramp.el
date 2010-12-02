@@ -386,7 +386,10 @@ interpreted as a regular expression which always matches."
 
 (defconst tramp-local-host-regexp
   (concat
-   "^" (regexp-opt (list "localhost" (system-name) "127\.0\.0\.1" "::1") t) "$")
+   "\\`"
+   (regexp-opt
+    (list "localhost" "localhost6" (system-name) "127\.0\.0\.1" "::1") t)
+   "\\'")
   "*Host names which are regarded as local host.")
 
 (defvar tramp-completion-function-alist nil
@@ -1066,10 +1069,12 @@ calling HANDLER.")
 (defun tramp-file-name-port (vec)
   "Return the port number of VEC."
   (save-match-data
-    (let ((host (tramp-file-name-host vec)))
-      (and (stringp host)
-	   (string-match tramp-host-with-port-regexp host)
-	   (string-to-number (match-string 2 host))))))
+    (let ((method (tramp-file-name-method vec))
+	  (host (tramp-file-name-host vec)))
+      (or (and (stringp host)
+	       (string-match tramp-host-with-port-regexp host)
+	       (string-to-number (match-string 2 host)))
+	  (tramp-get-method-parameter method 'tramp-default-port)))))
 
 ;;;###tramp-autoload
 (defun tramp-tramp-file-p (name)
@@ -1205,13 +1210,18 @@ from `tramp-get-buffer'."
   (or (tramp-get-connection-property vec "process-buffer" nil)
       (tramp-get-buffer vec)))
 
+(defun tramp-get-connection-name (vec)
+  "Get the connection name to be used for VEC.
+In case a second asynchronous communication has been started, it is different
+from the default one."
+  (or (tramp-get-connection-property vec "process-name" nil)
+      (tramp-buffer-name vec)))
+
 (defun tramp-get-connection-process (vec)
   "Get the connection process to be used for VEC.
 In case a second asynchronous communication has been started, it is different
 from the default one."
-  (get-process
-   (or (tramp-get-connection-property vec "process-name" nil)
-       (tramp-buffer-name vec))))
+  (get-process (tramp-get-connection-name vec)))
 
 (defun tramp-debug-buffer-name (vec)
   "A name for the debug buffer for VEC."
@@ -1284,7 +1294,7 @@ ARGS to actually emit the message (if applicable)."
 	      (setq fn (symbol-name btf))
 	      (unless (and (string-match "^tramp" fn)
 			   (not (string-match
-				 "^tramp\\(-debug\\)?\\(-message\\|-error\\|-compat-funcall\\)$"
+				 "^tramp\\(-debug\\)?\\(-message\\|-error\\|-compat\\(-funcall\\|-with-temp-message\\)\\)$"
 				 fn)))
 		(setq fn nil)))
 	    (setq btn (1+ btn))))
@@ -1454,7 +1464,7 @@ progress reporter."
   (if (memq system-type '(cygwin windows-nt))
       (defun tramp-drop-volume-letter (name)
 	"Cut off unnecessary drive letter from file NAME.
-The function `tramp-handle-expand-file-name' calls `expand-file-name'
+The functions `tramp-*-handle-expand-file-name' call `expand-file-name'
 locally on a remote file name.  When the local system is a W32 system
 but the remote system is Unix, this introduces a superfluous drive
 letter into the file name.  This function removes it."
