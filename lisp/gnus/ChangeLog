@@ -1,6 +1,7 @@
 2010-12-03  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-util.el (gnus-macroexpand-all): Don't modify argument.
+	* gnus-util.el (gnus-macroexpand-all): Don't modify argument;
+	allow optional argument `environment'.
 
 2010-12-03  Glenn Morris  <rgm@gnu.org>
 
