@@ -1,6 +1,7 @@
 ;;; nxml-mode.el --- a new XML mode
 
-;; Copyright (C) 2003, 2004, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -52,7 +53,7 @@
   :group 'nxml)
 
 (defcustom nxml-char-ref-display-glyph-flag t
-  "*Non-nil means display glyph following character reference.
+  "Non-nil means display glyph following character reference.
 The glyph is displayed in face `nxml-glyph'.  The hook
 `nxml-glyph-set-hook' can be used to customize for which characters
 glyphs are displayed."
@@ -60,25 +61,25 @@ glyphs are displayed."
   :type 'boolean)
 
 (defcustom nxml-sexp-element-flag nil
-  "*Non-nil means sexp commands treat an element as a single expression."
+  "Non-nil means sexp commands treat an element as a single expression."
   :group 'nxml
   :type 'boolean)
 
 (defcustom nxml-slash-auto-complete-flag nil
-  "*Non-nil means typing a slash automatically completes the end-tag.
+  "Non-nil means typing a slash automatically completes the end-tag.
 This is used by `nxml-electric-slash'."
   :group 'nxml
   :type 'boolean)
 
 (defcustom nxml-child-indent 2
-  "*Indentation for the children of an element relative to the start-tag.
+  "Indentation for the children of an element relative to the start-tag.
 This only applies when the line or lines containing the start-tag contains
 nothing else other than that start-tag."
   :group 'nxml
   :type 'integer)
 
 (defcustom nxml-attribute-indent 4
-  "*Indentation for the attributes of an element relative to the start-tag.
+  "Indentation for the attributes of an element relative to the start-tag.
 This only applies when the first attribute of a tag starts a line.
 In other cases, the first attribute on one line is indented the same
 as the first attribute on the previous line."
@@ -86,7 +87,7 @@ as the first attribute on the previous line."
   :type 'integer)
 
 (defcustom nxml-bind-meta-tab-to-complete-flag (not window-system)
-  "*Non-nil means bind M-TAB in `nxml-mode-map' to `nxml-complete'.
+  "Non-nil means bind M-TAB in `nxml-mode-map' to `nxml-complete'.
 C-return will be bound to `nxml-complete' in any case.
 M-TAB gets swallowed by many window systems/managers, and
 `documentation' will show M-TAB rather than C-return as the
@@ -100,7 +101,7 @@ to bind M-TAB only when it will work."
   :type 'boolean)
 
 (defcustom nxml-prefer-utf-16-to-utf-8-flag nil
-  "*Non-nil means prefer UTF-16 to UTF-8 when saving a buffer.
+  "Non-nil means prefer UTF-16 to UTF-8 when saving a buffer.
 This is used only when a buffer does not contain an encoding declaration
 and when its current `buffer-file-coding-system' specifies neither UTF-16
 nor UTF-8."
@@ -109,7 +110,7 @@ nor UTF-8."
 
 (defcustom nxml-prefer-utf-16-little-to-big-endian-flag (eq system-type
 							    'windows-nt)
-  "*Non-nil means prefer little-endian to big-endian byte-order for UTF-16.
+  "Non-nil means prefer little-endian to big-endian byte-order for UTF-16.
 This is used only for saving a buffer; when reading the byte-order is
 auto-detected. It may be relevant both when there is no encoding declaration
 and when the encoding declaration specifies `UTF-16'."
@@ -117,14 +118,14 @@ and when the encoding declaration specifies `UTF-16'."
   :type 'boolean)
 
 (defcustom nxml-default-buffer-file-coding-system nil
-  "*Default value for `buffer-file-coding-system' for a buffer for a new file.
+  "Default value for `buffer-file-coding-system' for a buffer for a new file.
 A value of nil means use the default value of `buffer-file-coding-system' as normal.
 A buffer's `buffer-file-coding-system' affects what \\[nxml-insert-xml-declaration] inserts."
   :group 'nxml
   :type 'coding-system)
 
 (defcustom nxml-auto-insert-xml-declaration-flag nil
-  "*Non-nil means automatically insert an XML declaration in a new file.
+  "Non-nil means automatically insert an XML declaration in a new file.
 The XML declaration is inserted using `nxml-insert-xml-declaration'."
   :group 'nxml
   :type 'boolean)
@@ -2693,5 +2694,4 @@ With a prefix argument, inserts the character directly."
 
 (provide 'nxml-mode)
 
-;; arch-tag: 8603bc5f-1ef9-4021-b223-322fb2ca708e
 ;;; nxml-mode.el ends here

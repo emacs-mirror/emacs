@@ -1,5 +1,9 @@
 2010-12-03  Glenn Morris  <rgm@gnu.org>
 
+	* nxml/nxml-mode.el, nxml/nxml-outln.el, nxml/rng-loc.el:
+	* nxml/rng-nxml.el, nxml/rng-valid.el:
+	Remove leading `*' from defcustom docs.
+
 	* startup.el (normal-top-level-add-subdirs-to-load-path): Simplify.
 	(normal-top-level-add-to-load-path, tty-handle-args):
 	Convert comments to basic doc-strings.
