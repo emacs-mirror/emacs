@@ -1,5 +1,9 @@
 2010-12-03  Glenn Morris  <rgm@gnu.org>
 
+	* nxml/nxml-mode.el: Require rng-nxml.
+	(rng-nxml-mode-init, nxml-enable-unicode-char-name-sets):
+	Remove declarations.
+
 	* nxml/nxml-mode.el, nxml/nxml-outln.el, nxml/rng-loc.el:
 	* nxml/rng-nxml.el, nxml/rng-valid.el:
 	Remove leading `*' from defcustom docs.

@@ -38,9 +38,10 @@
 (require 'nxml-util)
 (require 'nxml-rap)
 (require 'nxml-outln)
-
-(declare-function rng-nxml-mode-init "rng-nxml")
-(declare-function nxml-enable-unicode-char-name-sets "nxml-uchnm")
+;; nxml-mode calls rng-nxml-mode-init, which is autoloaded from rng-nxml.
+;; So we might as well just require it and silence the compiler.
+(provide 'nxml-mode)			; avoid recursive require
+(require 'rng-nxml)
 
 ;;; Customization
 
