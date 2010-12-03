@@ -1,3 +1,14 @@
+2010-12-03  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el: Rearrange code to allow macros to be autoloaded by
+	gnus-sum.el.
+	(nnir-retrieve-headers-override-function): Make this variable
+	customizable.
+	(nnir-retrieve-headers): Remove obsolete subject-mangling code.
+
+	* gnus-sum.el (nnir-article-group,nnir-article-rsv): Autoload macros
+	from nnir.el.
+
 2010-12-03  Julien Danjou  <julien@danjou.info>
 
 	* gnus-demon.el (gnus-demon-init): Fix time computing when time is nil.
