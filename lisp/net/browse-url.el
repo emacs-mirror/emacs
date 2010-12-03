@@ -649,7 +649,6 @@ regarding its parameter treatment."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
 
-;;;###autoload
 (defun browse-url-url-at-point ()
   (let ((url (thing-at-point 'url)))
     (set-text-properties 0 (length url) nil url)
@@ -893,7 +892,6 @@ one showing the selected frame."
     (and (not (equal display (getenv "DISPLAY")))
          display)))
 
-;;;###autoload
 (defun browse-url-default-browser (url &rest args)
   "Find a suitable browser and ask it to load URL.
 Default to the URL around or before point.

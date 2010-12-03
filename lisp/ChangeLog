@@ -1,5 +1,8 @@
 2010-12-03  Glenn Morris  <rgm@gnu.org>
 
+	* net/browse-url.el (browse-url-url-at-point)
+	(browse-url-default-browser): Remove autoload cookies.
+
 	* mail/emacsbug.el (report-emacs-bug-create-existing-bugs-buffer):
 	Remove more undefined cl functions.
 
