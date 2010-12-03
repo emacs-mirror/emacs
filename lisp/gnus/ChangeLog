@@ -1,3 +1,7 @@
+2010-12-03  Julien Danjou  <julien@danjou.info>
+
+	* gnus-demon.el (gnus-demon-init): Fix time computing when time is nil.
+
 2010-12-03  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el (gnus-macroexpand-all): Don't modify argument;
