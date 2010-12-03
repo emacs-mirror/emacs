@@ -121,7 +121,7 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
            ;; If t, replace by 1
            (time (cond ((eq time t)
                         gnus-demon-timestep)
-                       ((null time))
+                       ((null time) nil)
                        (t (* time gnus-demon-timestep))))
            (timer
             (cond

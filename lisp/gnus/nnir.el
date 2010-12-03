@@ -163,7 +163,9 @@
 ;; `nnir-engines'.  Then, users can choose the backend by setting
 ;; `nnir-search-engine' as a server variable.
 
-;;; Setup Code:
+;;; Code:
+
+;;; Setup:
 
 ;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
@@ -171,12 +173,117 @@
 
 (require 'nnoo)
 (require 'gnus-group)
-(require 'gnus-sum)
 (require 'message)
 (require 'gnus-util)
 (eval-when-compile
   (require 'cl))
 
+;;; Internal Variables:
+
+(defvar nnir-current-query nil
+  "Internal: stores current query (= group name).")
+
+(defvar nnir-current-server nil
+  "Internal: stores current server (does it ever change?).")
+
+(defvar nnir-current-group-marked nil
+  "Internal: stores current list of process-marked groups.")
+
+(defvar nnir-artlist nil
+  "Internal: stores search result.")
+
+(defvar nnir-tmp-buffer " *nnir*"
+  "Internal: temporary buffer.")
+
+(defvar nnir-search-history ()
+  "Internal: the history for querying search options in nnir")
+
+(defvar nnir-extra-parms nil
+  "Internal: stores request for extra search parms")
+
+;; Imap variables
+
+(defvar nnir-imap-search-arguments
+  '(("Whole message" . "TEXT")
+    ("Subject" . "SUBJECT")
+    ("To" . "TO")
+    ("From" . "FROM")
+    ("Imap" . ""))
+  "Mapping from user readable keys to IMAP search items for use in nnir")
+
+(defvar nnir-imap-search-other "HEADER %S"
+  "The IMAP search item to use for anything other than
+  `nnir-imap-search-arguments'. By default this is the name of an
+  email header field")
+
+(defvar nnir-imap-search-argument-history ()
+  "The history for querying search options in nnir")
+
+;;; Helper macros
+
+;; Data type article list.
+
+(defmacro nnir-artlist-length (artlist)
+  "Returns number of articles in artlist."
+  `(length ,artlist))
+
+(defmacro nnir-artlist-article (artlist n)
+  "Returns from ARTLIST the Nth artitem (counting starting at 1)."
+  `(when (> ,n 0)
+     (elt ,artlist (1- ,n))))
+
+(defmacro nnir-artitem-group (artitem)
+  "Returns the group from the ARTITEM."
+  `(elt ,artitem 0))
+
+(defmacro nnir-artitem-number (artitem)
+  "Returns the number from the ARTITEM."
+  `(elt ,artitem 1))
+
+(defmacro nnir-artitem-rsv (artitem)
+  "Returns the Retrieval Status Value (RSV, score) from the ARTITEM."
+  `(elt ,artitem 2))
+
+(defmacro nnir-article-group (article)
+  "Returns the group for ARTICLE"
+  `(nnir-artitem-group (nnir-artlist-article nnir-artlist ,article)))
+
+(defmacro nnir-article-number (article)
+  "Returns the number for ARTICLE"
+  `(nnir-artitem-number (nnir-artlist-article nnir-artlist ,article)))
+
+(defmacro nnir-article-rsv (article)
+  "Returns the rsv for ARTICLE"
+  `(nnir-artitem-rsv (nnir-artlist-article nnir-artlist ,article)))
+
+(defsubst nnir-article-ids (article)
+  "Returns the pair `(nnir id . real id)' of ARTICLE"
+  (cons article (nnir-article-number article)))
+
+(defmacro nnir-categorize (sequence keyfunc &optional valuefunc)
+  "Sorts a sequence into categories and returns a list of the form
+`((key1 (element11 element12)) (key2 (element21 element22))'.
+The category key for a member of the sequence is obtained
+as `(keyfunc member)' and the corresponding element is just
+`member'. If `valuefunc' is non-nil, the element of the list
+is `(valuefunc member)'."
+  `(unless (null ,sequence)
+     (let (value)
+       (mapcar
+	(lambda (member)
+	  (let ((y (,keyfunc member))
+		(x ,(if valuefunc
+			`(,valuefunc member)
+		      'member)))
+	    (if (assoc y value)
+		(push x (cadr (assoc y value)))
+	      (push (list y (list x)) value))))
+	,sequence)
+       value)))
+
+;;; Finish setup:
+
+(require 'gnus-sum)
 
 (eval-when-compile
   (autoload 'nnimap-buffer "nnimap")
@@ -221,6 +328,17 @@ with three items unique to nnir summary buffers:
 
 If nil this will use `gnus-summary-line-format'."
   :type '(regexp)
+  :group 'nnir)
+
+(defcustom nnir-retrieve-headers-override-function nil
+  "*If non-nil, a function that accepts an article list and group
+and populates the `nntp-server-buffer' with the retrieved
+headers. Must return either 'nov or 'headers indicating the
+retrieved header format.
+
+If this variable is nil, or if the provided function returns nil for a search
+result, `gnus-retrieve-headers' will be called instead."
+  :type '(function)
   :group 'nnir)
 
 (defcustom nnir-imap-default-search-key "Whole message"
@@ -385,24 +503,6 @@ arrive at the correct group name, \"mail.misc\"."
   :type '(directory)
   :group 'nnir)
 
-;; Imap variables
-
-(defvar nnir-imap-search-arguments
-  '(("Whole message" . "TEXT")
-    ("Subject" . "SUBJECT")
-    ("To" . "TO")
-    ("From" . "FROM")
-    ("Imap" . ""))
-  "Mapping from user readable keys to IMAP search items for use in nnir")
-
-(defvar nnir-imap-search-other "HEADER %S"
-  "The IMAP search item to use for anything other than
-  `nnir-imap-search-arguments'. By default this is the name of an
-  email header field")
-
-(defvar nnir-imap-search-argument-history ()
-  "The history for querying search options in nnir")
-
 ;;; Developer Extension Variable:
 
 (defvar nnir-engines
@@ -444,101 +544,6 @@ needs the variables `nnir-namazu-program',
 
 Add an entry here when adding a new search engine.")
 
-(defvar nnir-retrieve-headers-override-function nil
-  "If non-nil, a function that accepts an article list and group
-and populates the `nntp-server-buffer' with the retrieved
-headers. Must return either 'nov or 'headers indicating the
-retrieved header format.
-
-If this variable is nil, or if the provided function returns nil for a search
-result, `gnus-retrieve-headers' will be called instead.")
-
-;;; Internal Variables:
-
-(defvar nnir-current-query nil
-  "Internal: stores current query (= group name).")
-
-(defvar nnir-current-server nil
-  "Internal: stores current server (does it ever change?).")
-
-(defvar nnir-current-group-marked nil
-  "Internal: stores current list of process-marked groups.")
-
-(defvar nnir-artlist nil
-  "Internal: stores search result.")
-
-(defvar nnir-tmp-buffer " *nnir*"
-  "Internal: temporary buffer.")
-
-(defvar nnir-search-history ()
-  "Internal: the history for querying search options in nnir")
-
-(defvar nnir-extra-parms nil
-  "Internal: stores request for extra search parms")
-
-;;; Code:
-
-;;; Helper macros
-
-;; Data type article list.
-
-(defmacro nnir-artlist-length (artlist)
-  "Returns number of articles in artlist."
-  `(length ,artlist))
-
-(defmacro nnir-artlist-article (artlist n)
-  "Returns from ARTLIST the Nth artitem (counting starting at 1)."
-  `(when (> ,n 0)
-     (elt ,artlist (1- ,n))))
-
-(defmacro nnir-artitem-group (artitem)
-  "Returns the group from the ARTITEM."
-  `(elt ,artitem 0))
-
-(defmacro nnir-artitem-number (artitem)
-  "Returns the number from the ARTITEM."
-  `(elt ,artitem 1))
-
-(defmacro nnir-artitem-rsv (artitem)
-  "Returns the Retrieval Status Value (RSV, score) from the ARTITEM."
-  `(elt ,artitem 2))
-
-(defmacro nnir-article-group (article)
-  "Returns the group for ARTICLE"
-  `(nnir-artitem-group (nnir-artlist-article nnir-artlist ,article)))
-
-(defmacro nnir-article-number (article)
-  "Returns the number for ARTICLE"
-  `(nnir-artitem-number (nnir-artlist-article nnir-artlist ,article)))
-
-(defmacro nnir-article-rsv (article)
-  "Returns the rsv for ARTICLE"
-  `(nnir-artitem-rsv (nnir-artlist-article nnir-artlist ,article)))
-
-(defsubst nnir-article-ids (article)
-  "Returns the pair `(nnir id . real id)' of ARTICLE"
-  (cons article (nnir-article-number article)))
-
-(defmacro nnir-categorize (sequence keyfunc &optional valuefunc)
-  "Sorts a sequence into categories and returns a list of the form
-`((key1 (element11 element12)) (key2 (element21 element22))'.
-The category key for a member of the sequence is obtained
-as `(keyfunc member)' and the corresponding element is just
-`member'. If `valuefunc' is non-nil, the element of the list
-is `(valuefunc member)'."
-  `(unless (null ,sequence)
-     (let (value)
-       (mapcar
-	(lambda (member)
-	  (let ((y (,keyfunc member))
-		(x ,(if valuefunc
-			`(,valuefunc member)
-		      'member)))
-	    (if (assoc y value)
-		(push x (cadr (assoc y value)))
-	      (push (list y (list x)) value))))
-	,sequence)
-       value)))
 
 ;; Gnus glue.
 
@@ -633,11 +638,6 @@ is `(valuefunc member)'."
 		   (art (car (rassoc artno articleids))))
 	      (when art
 		(mail-header-set-number novitem art)
-		;; (mail-header-set-subject
-		;;  novitem
-		;;  (format "[%d: %s/%d] %s"
-		;; 	 (nnir-article-rsv art) artgroup artno
-		;; 	 (mail-header-subject novitem)))
 		(push novitem headers))
 	      (forward-line 1)))))
       (setq headers
