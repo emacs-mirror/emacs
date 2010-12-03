@@ -1,20 +1,3 @@
-2010-12-03  Andreas Schwab  <schwab@linux-m68k.org>
-
-	* lisp.h (union Lisp_Object): Explicitly declare signedness of
-	bit-field.
-	(XINT): Remove variant for EXPLICIT_SIGN_EXTEND.
-	* m/alpha.h (EXPLICIT_SIGN_EXTEND): Don't define.
-	* m/amdx86-64.h (EXPLICIT_SIGN_EXTEND): Likewise.
-	* m/ia64.h (EXPLICIT_SIGN_EXTEND): Likewise.
-	* m/ibms390.h (EXPLICIT_SIGN_EXTEND): Likewise.
-	* m/ibms390x.h (EXPLICIT_SIGN_EXTEND): Likewise.
-	* m/iris4d.h (EXPLICIT_SIGN_EXTEND): Likewise.
-	* m/m68k.h (EXPLICIT_SIGN_EXTEND): Likewise.
-	* m/sparc.h (EXPLICIT_SIGN_EXTEND): Likewise.
-	* m/template.h (EXPLICIT_SIGN_EXTEND): Likewise.
-	* m/hp800.h: Remove file.
-	* m/mips.h: Remove file.
-
 2010-12-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_dumpglyphs_image): If drawing cursor, fill background

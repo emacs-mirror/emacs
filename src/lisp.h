@@ -267,9 +267,7 @@ union Lisp_Object
 
     struct
       {
-	/* Use explict signed, the signedness of a bit-field of type
-	   int is implementation defined.  */
-	signed EMACS_INT val  : VALBITS;
+	EMACS_INT val  : VALBITS;
 	enum Lisp_Type type : GCTYPEBITS;
       } s;
     struct
@@ -292,9 +290,7 @@ union Lisp_Object
     struct
       {
 	enum Lisp_Type type : GCTYPEBITS;
-	/* Use explict signed, the signedness of a bit-field of type
-	   int is implementation defined.  */
-	signed EMACS_INT val  : VALBITS;
+	EMACS_INT val  : VALBITS;
       } s;
     struct
       {
@@ -451,8 +447,20 @@ enum pvec_type
 #endif
 
 #define XHASH(a) ((a).i)
+
 #define XTYPE(a) ((enum Lisp_Type) (a).u.type)
+
+#ifdef EXPLICIT_SIGN_EXTEND
+/* Make sure we sign-extend; compilers have been known to fail to do so.
+   We additionally cast to EMACS_INT since it seems that some compilers
+   have been known to fail to do so, even though the bitfield is declared
+   as EMACS_INT already.  */
+#define XINT(a) ((((EMACS_INT) (a).s.val) << (BITS_PER_EMACS_INT - VALBITS)) \
+		 >> (BITS_PER_EMACS_INT - VALBITS))
+#else
 #define XINT(a) ((a).s.val)
+#endif /* EXPLICIT_SIGN_EXTEND */
+
 #define XUINT(a) ((a).u.val)
 
 #ifdef USE_LSB_TAG
