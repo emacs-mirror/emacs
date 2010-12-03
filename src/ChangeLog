@@ -1,3 +1,8 @@
+2010-12-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_dumpglyphs_image): If drawing cursor, fill background
+	with cursor color and draw a rectangle around the image (Bug#7412).
+
 2010-12-03  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* frame.c (x_set_font): Remove unused variable.
