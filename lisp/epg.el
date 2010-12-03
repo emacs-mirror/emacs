@@ -67,7 +67,7 @@
 (defconst epg-digest-algorithm-alist
   '((1 . "MD5")
     (2 . "SHA1")
-    (3 . "RMD160")
+    (3 . "RIPEMD160")
     (8 . "SHA256")
     (9 . "SHA384")
     (10 . "SHA512")
@@ -337,7 +337,13 @@ PASSPHRASE-CALLBACK is either a function, or a cons-cell whose
 car is a function and cdr is a callback data.
 
 The function gets three arguments: the context, the key-id in
-question, and the callback data (if any)."
+question, and the callback data (if any).
+
+The callback may not be called if you use GnuPG 2.x, which relies
+on the external program called `gpg-agent' for passphrase query.
+If you really want to intercept passphrase query, consider
+installing GnuPG 1.x _along with_ GnuPG 2.x, which does passphrase
+query by itself and Emacs can intercept them."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aset (cdr context) 7 (if (consp passphrase-callback)

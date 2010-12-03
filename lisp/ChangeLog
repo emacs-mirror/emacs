@@ -1,3 +1,10 @@
+2010-12-03  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg-digest-algorithm-alist): Replace "RMD160" with
+	"RIPEMD160" (Bug#7490).  Reported by Daniel Kahn Gillmor.
+	(epg-context-set-passphrase-callback): Mention that the callback
+	is not called when used with GnuPG 2.x.
+
 2010-12-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-local-host-regexp): Add "localhost6".
