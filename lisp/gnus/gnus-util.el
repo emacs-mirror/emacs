@@ -2041,7 +2041,7 @@ Same as `string-match' except this function does not change the match data."
 If no macros are expanded, FORM is returned unchanged."
     (if (consp form)
 	(let ((idx 1)
-	      (len (length form))
+	      (len (length (setq form (copy-sequence form))))
 	      expanded)
 	  (while (< idx len)
 	    (setcar (nthcdr idx form) (gnus-macroexpand-all (nth idx form)))
