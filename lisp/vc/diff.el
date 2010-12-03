@@ -57,7 +57,7 @@
 		       diff-switches
 		     (mapconcat 'identity diff-switches " ")))))
 
-(defun diff-sentinel (code old-temp-file new-temp-file)
+(defun diff-sentinel (code &optional old-temp-file new-temp-file)
   "Code run when the diff process exits.
 CODE is the exit code of the process.  It should be 0 only if no diffs
 were found."
@@ -223,5 +223,4 @@ This requires the external program `diff' to be in your `exec-path'."
 
 (provide 'diff)
 
-;; arch-tag: 7de2c29b-7ea5-4b85-9b9d-72dd860de2bd
 ;;; diff.el ends here

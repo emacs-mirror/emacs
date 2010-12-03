@@ -1,3 +1,8 @@
+2010-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* vc/diff.el (diff-sentinel): Make new arguments optional.
+	* ibuf-ext.el (diff-sentinel): Update declaration.
+
 2010-12-03  Daiki Ueno  <ueno@unixuser.org>
 
 	* epg.el (epg-digest-algorithm-alist): Replace "RMD160" with
