@@ -130,7 +130,6 @@ fi
 ### (Accept only absolute file names.)
 if [ $update = yes ];
 then
-  unset EMACS_UNIBYTE
   if [ -f src/emacs ];
   then
     EMACS=`pwd`/src/emacs

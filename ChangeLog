@@ -1,3 +1,7 @@
+2010-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Remove EMACS_UNIBYTE unsetting; it does nothing.
+
 2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in <AC_CHECK_HEADERS>: Remove sys/ioctl.h.
