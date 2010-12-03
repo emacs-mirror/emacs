@@ -2046,11 +2046,12 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 	      (len (length (setq form (copy-sequence form))))
 	      expanded)
 	  (while (< idx len)
-	    (setcar (nthcdr idx form) (gnus-macroexpand-all (nth idx form)))
+	    (setcar (nthcdr idx form) (gnus-macroexpand-all (nth idx form)
+							    environment))
 	    (setq idx (1+ idx)))
 	  (if (eq (setq expanded (macroexpand form environment)) form)
 	      form
-	    (gnus-macroexpand-all expanded)))
+	    (gnus-macroexpand-all expanded environment)))
       form)))
 
 (provide 'gnus-util)
