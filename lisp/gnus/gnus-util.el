@@ -2034,6 +2034,24 @@ Same as `string-match' except this function does not change the match data."
     (save-match-data
       (string-match regexp string start))))
 
+(if (fboundp 'macroexpand-all)
+    (defalias 'gnus-macroexpand-all 'macroexpand-all)
+  (defun gnus-macroexpand-all (form)
+    "Return result of expanding macros at all levels in FORM.
+If no macros are expanded, FORM is returned unchanged."
+    (if (consp form)
+	(let ((idx 1)
+	      (len (length form))
+	      elem expanded)
+	  (while (< idx len)
+	    (when (consp (setq elem (nth idx form)))
+	      (setcar (nthcdr idx form) (gnus-macroexpand-all elem)))
+	    (setq idx (1+ idx)))
+	  (if (eq (setq expanded (macroexpand form)) form)
+	      form
+	    (gnus-macroexpand-all expanded)))
+      form)))
+
 (provide 'gnus-util)
 
 ;;; gnus-util.el ends here

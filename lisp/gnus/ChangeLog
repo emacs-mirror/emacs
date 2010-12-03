@@ -1,3 +1,10 @@
+2010-12-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-macroexpand-all): New function.
+
+	* gnus-sum.el (gnus-summary-line-format-alist): Use gnus-macroexpand-all
+	instead of macroexpand-all that is unavailable in XEmacs.
+
 2010-12-02  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (nnir-summary-line-format): New variable.
