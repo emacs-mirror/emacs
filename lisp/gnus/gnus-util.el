@@ -2042,10 +2042,9 @@ If no macros are expanded, FORM is returned unchanged."
     (if (consp form)
 	(let ((idx 1)
 	      (len (length form))
-	      elem expanded)
+	      expanded)
 	  (while (< idx len)
-	    (when (consp (setq elem (nth idx form)))
-	      (setcar (nthcdr idx form) (gnus-macroexpand-all elem)))
+	    (setcar (nthcdr idx form) (gnus-macroexpand-all (nth idx form)))
 	    (setq idx (1+ idx)))
 	  (if (eq (setq expanded (macroexpand form)) form)
 	      form
