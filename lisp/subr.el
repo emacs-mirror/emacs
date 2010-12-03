@@ -2816,7 +2816,7 @@ but which should be robust in the unexpected case that an error is signaled."
   (let ((err (make-symbol "err")))
     `(condition-case-no-debug ,err
          (progn ,@body)
-       (error (message "Error: %s" ,err) nil))))
+       (error (message "Error: %S" ,err) nil))))
 
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.

@@ -1,5 +1,7 @@
 2010-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (with-demoted-errors): Distinguish symbols from strings.
+
 	* newcomment.el (comment-styles): Add docs to each style (bug#7509).
 	Improve docstring.
 	(comment-style): Use comment-styles's docs to describe values.
