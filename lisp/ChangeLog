@@ -1,3 +1,11 @@
+2010-12-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/common-win.el (x-setup-function-keys): Restore ns-new-frame
+	and ns-show-prefs (Bug#7535).
+
+	* term/ns-win.el (global-map): Restore ns-new-frame and ns-show-prefs
+	bindings (Bug#7535).
+
 2010-12-03  Glenn Morris  <rgm@gnu.org>
 
 	* nxml/nxml-mode.el: Require rng-nxml.
