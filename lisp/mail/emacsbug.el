@@ -399,11 +399,11 @@ and send the mail again%s."
 		       (dolist (bug bugs)
 			 (push (list
 				'url-link
-				:format (concat "Bug#" (number-to-string (third bug))
+				:format (concat "Bug#" (number-to-string (nth 2 bug))
 						": " (cadr bug) "\n    %[%v%]\n")
 				;; FIXME: Why is only the link of the
 				;; active item clickable?
-				(first bug))
+				(car bug))
 			       items))
 		       (nreverse items))))
       (widget-insert "No bugs maching your keywords found.\n"))
