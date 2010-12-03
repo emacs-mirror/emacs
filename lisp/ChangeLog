@@ -1,5 +1,9 @@
 2010-12-03  Glenn Morris  <rgm@gnu.org>
 
+	* startup.el (normal-top-level-add-subdirs-to-load-path): Simplify.
+	(normal-top-level-add-to-load-path, tty-handle-args):
+	Convert comments to basic doc-strings.
+
 	* net/browse-url.el (browse-url-url-at-point)
 	(browse-url-default-browser): Remove autoload cookies.
 

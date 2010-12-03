@@ -411,34 +411,31 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	     (default-directory this-dir)
 	     (canonicalized (if (fboundp 'untranslated-canonical-name)
 				(untranslated-canonical-name this-dir))))
-	;; The Windows version doesn't report meaningful inode
-	;; numbers, so use the canonicalized absolute file name of the
-	;; directory instead.
+	;; The Windows version doesn't report meaningful inode numbers, so
+	;; use the canonicalized absolute file name of the directory instead.
 	(setq attrs (or canonicalized
 			(nthcdr 10 (file-attributes this-dir))))
 	(unless (member attrs normal-top-level-add-subdirs-inode-list)
 	  (push attrs normal-top-level-add-subdirs-inode-list)
 	  (dolist (file contents)
-	    ;; The lower-case variants of RCS and CVS are for DOS/Windows.
-	    (unless (member file '("." ".." "RCS" "CVS" "rcs" "cvs"))
-	      (when (and (string-match "\\`[[:alnum:]]" file)
-			 ;; Avoid doing a `stat' when it isn't necessary
-			 ;; because that can cause trouble when an NFS server
-			 ;; is down.
-			 (not (string-match "\\.elc?\\'" file))
-			 (file-directory-p file))
-		(let ((expanded (expand-file-name file)))
-		  (unless (file-exists-p (expand-file-name ".nosearch"
-							   expanded))
-		    (setq pending (nconc pending (list expanded)))))))))))
+	    (and (string-match "\\`[[:alnum:]]" file)
+		 ;; The lower-case variants of RCS and CVS are for DOS/Windows.
+		 (not (member file '("RCS" "CVS" "rcs" "cvs")))
+		 ;; Avoid doing a `stat' when it isn't necessary because
+		 ;; that can cause trouble when an NFS server is down.
+		 (not (string-match "\\.elc?\\'" file))
+		 (file-directory-p file)
+		 (let ((expanded (expand-file-name file)))
+		   (or (file-exists-p (expand-file-name ".nosearch" expanded))
+		       (setq pending (nconc pending (list expanded))))))))))
     (normal-top-level-add-to-load-path (cdr (nreverse dirs)))))
 
-;; This function is called from a subdirs.el file.
-;; It assumes that default-directory is the directory
-;; in which the subdirs.el file exists,
-;; and it adds to load-path the subdirs of that directory
-;; as specified in DIRS.  Normally the elements of DIRS are relative.
 (defun normal-top-level-add-to-load-path (dirs)
+  "This function is called from a subdirs.el file.
+It assumes that `default-directory' is the directory in which the
+subdirs.el file exists, and it adds to `load-path' the subdirs of
+that directory as specified in DIRS.  Normally the elements of
+DIRS are relative."
   (let ((tail load-path)
 	(thisdir (directory-file-name default-directory)))
     (while (and tail
@@ -615,8 +612,8 @@ function to this list.  The function should take no arguments,
 and initialize the window system environment to prepare for
 opening the first frame (e.g. open a connection to an X server).")
 
-;; Handle the X-like command-line arguments "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
+  "Handle the X-like command-line arguments \"-fg\", \"-bg\", \"-name\", etc."
   (let (rest)
     (message "%S" args)
     (while (and args
