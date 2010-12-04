@@ -1,3 +1,8 @@
+2010-12-04  W. Martin Borgert <debacle@debian.org>  (tiny change)
+
+	* files.el (auto-mode-alist): Handle .dbk (DocBook) with xml-mode.
+	(Bug#7491).
+
 2010-12-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (transient-mark-mode): Doc fix (Bug#7465).
