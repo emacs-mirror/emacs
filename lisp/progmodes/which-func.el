@@ -198,7 +198,7 @@ It creates the Imenu index for the buffer, if necessary."
 	     (or (eq which-func-modes t)
 		 (member major-mode which-func-modes))))
 
-  (condition-case nil
+  (condition-case err
       (if (and which-func-mode
 	       (not (member major-mode which-func-non-auto-modes))
 	       (or (null which-func-maxout)
@@ -207,6 +207,7 @@ It creates the Imenu index for the buffer, if necessary."
 	  (setq imenu--index-alist
 		(save-excursion (funcall imenu-create-index-function))))
     (error
+     (message "which-func-ff-hook error: %S" err)
      (setq which-func-mode nil))))
 
 (defun which-func-update ()
@@ -225,7 +226,7 @@ It creates the Imenu index for the buffer, if necessary."
 	      (force-mode-line-update)))
 	(error
 	 (setq which-func-mode nil)
-	 (error "Error in which-func-update: %s" info))))))
+	 (error "Error in which-func-update: %S" info))))))
 
 ;;;###autoload
 (defalias 'which-func-mode 'which-function-mode)
@@ -294,29 +295,31 @@ If no function name is found, return nil."
         ;; ("submenu" ("name" . marker) ... ). The list can be
         ;; arbitrarily nested.
         (while (or alist imstack)
-          (if alist
-              (progn
-                (setq pair (car-safe alist)
-                      alist (cdr-safe alist))
+          (if (null alist)
+              (setq alist     (car imstack)
+                    namestack (cdr namestack)
+                    imstack   (cdr imstack))
 
-                (cond ((atom pair))     ; skip anything not a cons
+            (setq pair (car-safe alist)
+                  alist (cdr-safe alist))
 
-                      ((imenu--subalist-p pair)
-                       (setq imstack   (cons alist imstack)
-                             namestack (cons (car pair) namestack)
-                             alist     (cdr pair)))
+            (cond
+             ((atom pair))              ; Skip anything not a cons.
 
-                      ((number-or-marker-p (setq mark (cdr pair)))
-                       (if (>= (setq offset (- (point) mark)) 0)
-                           (if (< offset minoffset) ; find the closest item
-                               (setq minoffset offset
-                                     name (funcall
-                                           which-func-imenu-joiner-function
-					   (reverse (cons (car pair)
-							  namestack)))))))))
-            (setq alist     (car imstack)
-                  namestack (cdr namestack)
-                  imstack   (cdr imstack))))))
+             ((imenu--subalist-p pair)
+              (setq imstack   (cons alist imstack)
+                    namestack (cons (car pair) namestack)
+                    alist     (cdr pair)))
+
+             ((number-or-marker-p (setq mark (cdr pair)))
+              (when (and (>= (setq offset (- (point) mark)) 0)
+                         (< offset minoffset)) ; Find the closest item.
+                (setq minoffset offset
+                      name (if (null which-func-imenu-joiner-function)
+                               (car pair)
+                             (funcall
+                              which-func-imenu-joiner-function
+                              (reverse (cons (car pair) namestack))))))))))))
 
     ;; Try using add-log support.
     (when (and (null name) (boundp 'add-log-current-defun-function)

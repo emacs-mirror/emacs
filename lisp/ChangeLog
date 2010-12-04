@@ -1,3 +1,9 @@
+2010-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/which-func.el (which-func-ff-hook): Log the error message.
+	(which-func-update-1): Distinguish symbols from strings.
+	(which-function): Stay within 80 columns.
+
 2010-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (with-demoted-errors): Distinguish symbols from strings.
