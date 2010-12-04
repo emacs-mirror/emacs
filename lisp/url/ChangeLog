@@ -1,3 +1,8 @@
+2010-12-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-cookie.el (url-cookie-retrieve): Handle null LOCALPART.
+	Suggested by Lennart Borgman (Bug#7543).
+
 2010-09-18  Glenn Morris  <rgm@gnu.org>
 
 	* url-cache.el (url-is-cached): Doc fix.
