@@ -2755,7 +2755,8 @@ name, or the marker and a count of marked files."
 		    ;; that's possible.  (Bug#1806)
 		    (split-window-vertically))
 	       ;; Otherwise, try to split WINDOW sensibly.
-	       (split-window-sensibly window)))))
+	       (split-window-sensibly window))))
+	pop-up-frames)
     (pop-to-buffer (get-buffer-create buf)))
   ;; If dired-shrink-to-fit is t, make its window fit its contents.
   (when dired-shrink-to-fit

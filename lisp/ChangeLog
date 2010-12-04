@@ -1,3 +1,8 @@
+2010-12-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-pop-to-buffer): Bind pop-up-frames to nil
+	(Bug#7533).
+
 2010-12-04  W. Martin Borgert <debacle@debian.org>  (tiny change)
 
 	* files.el (auto-mode-alist): Handle .dbk (DocBook) with xml-mode.
