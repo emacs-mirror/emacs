@@ -1,3 +1,8 @@
+2010-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (file-relative-name): Handle UNC file names on
+	DOS/Windows.  (Bug#4674)
+
 2010-12-02  Glenn Morris  <rgm@gnu.org>
 
 	* ps-print.el (ps-line-lengths-internal, ps-nb-pages):
