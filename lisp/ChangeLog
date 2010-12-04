@@ -1,3 +1,7 @@
+2010-12-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (transient-mark-mode): Doc fix (Bug#7465).
+
 2010-12-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (file-relative-name): Handle UNC file names on
