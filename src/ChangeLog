@@ -1,3 +1,9 @@
+2010-12-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (M_FILE): Substitute @M_FILE@ instead of @machfile@.
+	(S_FILE): Substitute @S_FILE@ instead of @opsysfile@.
+	* m/arm.h, m/sh3.h, m/xtensa.h: Remove files.
+
 2010-12-03  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* lisp.h (union Lisp_Object): Explicitly declare signedness of

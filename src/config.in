@@ -1053,6 +1053,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
 
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t
+
 /* Define to any substitute for sys_siglist. */
 #undef sys_siglist
 
@@ -1089,7 +1092,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Include the os and machine dependent files.  */
 #include config_opsysfile
-#include config_machfile
+#ifdef config_machfile
+# include config_machfile
+#endif
 
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.

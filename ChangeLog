@@ -1,3 +1,9 @@
+2010-12-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Remove reference to removed machine description
+	files and allow $machine and $machfile to be empty.  Substitute
+	M_FILE/S_FILE instead of machfile/opsysfile.
+
 2010-12-03  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Remove EMACS_UNIBYTE unsetting; it does nothing.

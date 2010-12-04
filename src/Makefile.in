@@ -54,8 +54,8 @@ lwlibdir = ../lwlib
 lispdir = ../lisp
 
 # Configuration files for .o files to depend on.
-M_FILE = $(srcdir)/@machfile@
-S_FILE = $(srcdir)/@opsysfile@
+M_FILE = @M_FILE@
+S_FILE = @S_FILE@
 config_h = config.h $(M_FILE) $(S_FILE)
 
 bootstrap_exe = $(abs_builddir)/bootstrap-emacs$(EXEEXT)
