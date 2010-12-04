@@ -1,3 +1,10 @@
+2010-12-04  Tak Ota  <Takaaki.Ota@am.sony.com>
+
+	* replace.el: Add "collect" feature to occur.
+	(occur-collect-regexp-history): New var.
+	(occur-read-primary-args): Return a replace string for nlines, if needed.
+	(occur): Extend the meaning of nlines.
+
 2010-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/which-func.el (which-func-ff-hook): Log the error message.
