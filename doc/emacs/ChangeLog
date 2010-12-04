@@ -2,6 +2,8 @@
 
 	* msdog.texi (Windows HOME): Mention that HOME can also be set in the
 	registry, with a cross-reference.
+	(Windows Startup): New node.  Move the stuff about the current
+	directory from "Windows HOME".
 
 2010-11-23  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
 
