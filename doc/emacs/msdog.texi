@@ -341,6 +341,9 @@ Windows 2K/XP and later, and either @file{C:\WINDOWS\Application Data}
 or @file{C:\WINDOWS\Profiles\@var{username}\Application Data} on the
 older Windows 9X/ME systems.
 
+  @code{HOME} can also be set in the system registry, for details see
+@ref{MS-Windows Registry}.
+
 @cindex init file @file{.emacs} on MS-Windows
   The home directory is where your init file @file{.emacs} is stored.
 When Emacs starts, it first checks whether the environment variable

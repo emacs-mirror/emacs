@@ -1,3 +1,8 @@
+2010-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows HOME): Mention that HOME can also be set in the
+	registry, with a cross-reference.
+
 2010-11-23  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
 
 	* maintaining.texi (VC With A Locking VCS, VC Directory Commands):
