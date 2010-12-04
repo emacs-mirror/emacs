@@ -1,3 +1,8 @@
+2010-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Other Display Specs): Document left-fringe and
+	right-fringe display specs.
+
 2010-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* backups.texi (Making Backups):
