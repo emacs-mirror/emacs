@@ -1,5 +1,8 @@
 2010-12-04  Eli Zaretskii  <eliz@gnu.org>
 
+	* display.texi (Optional Mode Line): Make the description of
+	load-average more accurate.
+
 	* msdog.texi (Windows HOME): Mention that HOME can also be set in the
 	registry, with a cross-reference.
 	(Windows Startup): New node.  Move the stuff about the current
