@@ -80,8 +80,11 @@ If nil, `dired-listing-switches' is used.")
       "/etc/chown")))
   "Name of chown command (usually `chown' or `/etc/chown').")
 
-(defvar dired-use-ls-dired (not (not (string-match "gnu" system-configuration)))
-  "Non-nil means Dired should use `ls --dired'.")
+(defvar dired-use-ls-dired 'unspecified
+  "Non-nil means Dired should use \"ls --dired\".
+The special value of `unspecified' means to check explicitly, and
+save the result in this variable.  This is performed the first
+time `dired-insert-directory' is called.")
 
 (defvar dired-chmod-program "chmod"
   "Name of chmod command (usually `chmod').")
@@ -1057,7 +1060,14 @@ If HDR is non-nil, insert a header line with the directory name."
   (let ((opoint (point))
 	(process-environment (copy-sequence process-environment))
 	end)
-    (if (or dired-use-ls-dired (file-remote-p dir))
+    (if (or (if (eq dired-use-ls-dired 'unspecified)
+		;; Check whether "ls --dired" gives exit code 0, and
+		;; save the answer in `dired-use-ls-dired'.
+		(setq dired-use-ls-dired
+		      (eq (call-process insert-directory-program nil nil nil "--dired")
+			  0))
+	      dired-use-ls-dired)
+	    (file-remote-p dir))
 	(setq switches (concat "--dired " switches)))
     ;; We used to specify the C locale here, to force English month names;
     ;; but this should not be necessary any more,

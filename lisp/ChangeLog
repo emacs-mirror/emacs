@@ -1,3 +1,10 @@
+2010-12-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-use-ls-dired): Set default to a special
+	"unspecified" value.
+	(dired-insert-directory): When called the first time, check
+	whether "ls --dired" succeeds and set dired-use-ls-dired (Bug#7546).
+
 2010-12-04  Tak Ota  <Takaaki.Ota@am.sony.com>
 
 	* replace.el: Add "collect" feature to occur.
