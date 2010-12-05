@@ -916,8 +916,9 @@ Select the corresponding window as well."
 
 (defsubst posn-x-y (position)
   "Return the x and y coordinates in POSITION.
-POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+The return value has the form (X . Y), where X and Y are given in
+pixels.  POSITION should be a list of the form returned by
+`event-start' and `event-end'."
   (nth 2 position))
 
 (declare-function scroll-bar-scale "scroll-bar" (num-denom whole))
@@ -997,14 +998,15 @@ and `event-end' functions."
 
 (defsubst posn-object-x-y (position)
   "Return the x and y coordinates relative to the object of POSITION.
-POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+The return value has the form (DX . DY), where DX and DY are
+given in pixels.  POSITION should be a list of the form returned
+by `event-start' and `event-end'."
   (nth 8 position))
 
 (defsubst posn-object-width-height (position)
   "Return the pixel width and height of the object of POSITION.
-POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+The return value has the form (WIDTH . HEIGHT).  POSITION should
+be a list of the form returned by `event-start' and `event-end'."
   (nth 9 position))
 
 

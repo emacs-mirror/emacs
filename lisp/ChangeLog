@@ -1,3 +1,8 @@
+2010-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (posn-x-y, posn-object-x-y, posn-object-width-height):
+	Doc fix (Bug#7471).
+
 2010-12-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* dired.el (dired-pop-to-buffer): Bind pop-up-frames to nil
