@@ -3807,7 +3807,7 @@ usage: (make-network-process &rest ARGS)  */)
 }
 
 
-#if defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H)
+#if defined(HAVE_NET_IF_H)
 
 #ifdef SIOCGIFCONF
 DEFUN ("network-interface-list", Fnetwork_interface_list, Snetwork_interface_list, 0, 0, 0,
@@ -4050,7 +4050,7 @@ FLAGS is the current flags of the interface.  */)
   return any ? res : Qnil;
 }
 #endif
-#endif	/* defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H) */
+#endif	/* defined(HAVE_NET_IF_H) */
 
 /* Turn off input and output for process PROC.  */
 
@@ -7704,14 +7704,14 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sset_network_process_option);
   defsubr (&Smake_network_process);
   defsubr (&Sformat_network_address);
-#if defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H)
+#if defined(HAVE_NET_IF_H)
 #ifdef SIOCGIFCONF
   defsubr (&Snetwork_interface_list);
 #endif
 #if defined(SIOCGIFADDR) || defined(SIOCGIFHWADDR) || defined(SIOCGIFFLAGS)
   defsubr (&Snetwork_interface_info);
 #endif
-#endif /* defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H) */
+#endif /* defined(HAVE_NET_IF_H) */
 #ifdef DATAGRAM_SOCKETS
   defsubr (&Sprocess_datagram_address);
   defsubr (&Sset_process_datagram_address);

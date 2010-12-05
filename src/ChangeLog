@@ -1,3 +1,7 @@
+2010-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c: Remove checks for HAVE_SYS_IOCTL_H (Bug#7484).
+
 2010-12-04  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (M_FILE): Substitute @M_FILE@ instead of @machfile@.
