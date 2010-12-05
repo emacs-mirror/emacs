@@ -33,6 +33,13 @@
 	* files.el (file-relative-name): Handle UNC file names on
 	DOS/Windows.  (Bug#4674)
 
+2010-12-03  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg-digest-algorithm-alist): Replace "RMD160" with
+	"RIPEMD160" (Bug#7490).  Reported by Daniel Kahn Gillmor.
+	(epg-context-set-passphrase-callback): Mention that the callback
+	is not called when used with GnuPG 2.x.
+
 2010-12-02  Glenn Morris  <rgm@gnu.org>
 
 	* ps-print.el (ps-line-lengths-internal, ps-nb-pages):
