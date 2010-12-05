@@ -1,3 +1,8 @@
+2010-12-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_dumpglyphs_image): If drawing cursor, fill background
+	with cursor color and draw a rectangle around the image (Bug#7412).
+
 2010-12-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (try_scrolling): Avoid infloop if the first line is

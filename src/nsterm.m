@@ -2753,7 +2753,10 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   else
     face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
 
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f) set];
+  if (s->hl == DRAW_CURSOR)
+      [FRAME_CURSOR_COLOR (s->f) set];
+  else
+    [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f) set];
 
   if (bg_height > s->slice.height || s->img->hmargin || s->img->vmargin
       || s->img->mask || s->img->pixmap == 0 || s->width != s->background_width)
@@ -2815,6 +2818,16 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
                       s->slice.y + s->slice.height == s->img->height,
                       s->slice.x == 0,
                       s->slice.x + s->slice.width == s->img->width, s);
+    }
+
+  /* If there is no mask, the background won't be seen,
+     so draw a rectangle on the image for the cursor.
+     Do this for all images, getting trancparency right is not reliable.  */
+  if (s->hl == DRAW_CURSOR)
+    {
+      int thickness = abs (s->img->relief);
+      if (thickness == 0) thickness = 1;
+      ns_draw_box (br, thickness, FRAME_CURSOR_COLOR (s->f), 1, 1);
     }
 }
 
