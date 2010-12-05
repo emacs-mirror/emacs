@@ -753,12 +753,11 @@ To continue searching for next match, use command \\[tags-loop-continue]."
 
 (defun vc-dir-query-replace-regexp (from to &optional delimited)
   "Do `query-replace-regexp' of FROM with TO, on all marked files.
-For marked directories, use the files displayed from those directories.
 If a directory is marked, then use the files displayed for that directory.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue]."
-  ;; FIXME: this is almost a copy of `dired-do-replace-regexp'.  This
+  ;; FIXME: this is almost a copy of `dired-do-query-replace-regexp'.  This
   ;; should probably be made generic and used in both places instead of
   ;; duplicating it here.
   (interactive

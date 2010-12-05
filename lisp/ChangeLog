@@ -1,3 +1,7 @@
+2010-12-05  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
+
+	* vc/vc-dir.el (vc-dir-query-replace-regexp): Doc fix (Bug#7501).
+
 2010-12-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-use-ls-dired): Set default to a special
