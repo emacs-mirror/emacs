@@ -2037,25 +2037,26 @@ Same as `string-match' except this function does not change the match data."
     (save-match-data
       (string-match regexp string start))))
 
-(if (fboundp 'macroexpand-all)
-    (defalias 'gnus-macroexpand-all 'macroexpand-all)
-  (defun gnus-macroexpand-all (form &optional environment)
-    "Return result of expanding macros at all levels in FORM.
+(eval-and-compile
+  (if (fboundp 'macroexpand-all)
+      (defalias 'gnus-macroexpand-all 'macroexpand-all)
+    (defun gnus-macroexpand-all (form &optional environment)
+      "Return result of expanding macros at all levels in FORM.
 If no macros are expanded, FORM is returned unchanged.
 The second optional arg ENVIRONMENT specifies an environment of macro
 definitions to shadow the loaded ones for use in file byte-compilation."
-    (if (consp form)
-	(let ((idx 1)
-	      (len (length (setq form (copy-sequence form))))
-	      expanded)
-	  (while (< idx len)
-	    (setcar (nthcdr idx form) (gnus-macroexpand-all (nth idx form)
-							    environment))
-	    (setq idx (1+ idx)))
-	  (if (eq (setq expanded (macroexpand form environment)) form)
-	      form
-	    (gnus-macroexpand-all expanded environment)))
-      form)))
+      (if (consp form)
+	  (let ((idx 1)
+		(len (length (setq form (copy-sequence form))))
+		expanded)
+	    (while (< idx len)
+	      (setcar (nthcdr idx form) (gnus-macroexpand-all (nth idx form)
+							      environment))
+	      (setq idx (1+ idx)))
+	    (if (eq (setq expanded (macroexpand form environment)) form)
+		form
+	      (gnus-macroexpand-all expanded environment)))
+	form))))
 
 (provide 'gnus-util)
 
