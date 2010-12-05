@@ -1,5 +1,12 @@
 2010-12-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* comint.el (comint-dynamic-list-input-ring)
+	(comint-dynamic-complete-filename)
+	(comint-replace-by-expanded-filename)
+	(comint-dynamic-simple-complete)
+	(comint-dynamic-list-filename-completions)
+	(comint-dynamic-list-completions): Doc fix (Bug#7499).
+
 	* subr.el (posn-x-y, posn-object-x-y, posn-object-width-height):
 	Doc fix (Bug#7471).
 
