@@ -269,7 +269,7 @@ as `(keyfunc member)' and the corresponding element is just
 is `(valuefunc member)'."
   `(unless (null ,sequence)
      (let (value)
-       (mapcar
+       (mapc
 	(lambda (member)
 	  (let ((y (,keyfunc member))
 		(x ,(if valuefunc
@@ -1381,7 +1381,10 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 ;; gmane interface
 (defun nnir-run-gmane (query srv &optional groups)
   "Run a search against a gmane back-end server."
-  (if (gnus-string-match-p "gmane.org$" srv)
+  (if (gnus-string-match-p
+       "gmane.org$"
+       (or (cadr (assoc 'nntp-address  (cddr (gnus-server-to-method srv))))
+	   ""))
       (let* ((case-fold-search t)
 	     (qstring (cdr (assq 'query query)))
 	     (server (cadr (gnus-server-to-method srv)))

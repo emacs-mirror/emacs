@@ -9475,6 +9475,9 @@ C-u g', show the raw article."
    ((or (equal arg '(16))
 	(eq arg t))
     ;; C-u C-u g
+    (let ((gnus-inhibit-article-treatments t))
+      (gnus-summary-select-article nil 'force)))
+   (t
     ;; We have to require this here to make sure that the following
     ;; dynamic binding isn't shadowed by autoloading.
     (require 'gnus-async)
@@ -9492,9 +9495,6 @@ C-u g', show the raw article."
 	  ;; Set it to nil for safety reason.
 	  (setq gnus-article-mime-handle-alist nil)
 	  (setq gnus-article-mime-handles nil)))
-      (gnus-summary-select-article nil 'force)))
-   (t
-    (let ((gnus-inhibit-article-treatments t))
       (gnus-summary-select-article nil 'force))))
   (gnus-summary-goto-subject gnus-current-article)
   (gnus-summary-position-point))
@@ -9934,7 +9934,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 
         ;;;!!!Why is this necessary?
 	(set-buffer gnus-summary-buffer)
-	
+
 	(when (eq action 'move)
 	  (save-excursion
 	    (gnus-summary-goto-subject article)
@@ -10004,7 +10004,7 @@ current group into whatever groups they are destined to.  In the
 latter case, they will be copied into the relevant groups."
   (interactive
    (list current-prefix-arg
-	 (let* ((methods (gnus-methods-using 'respool))
+	 (let* ((methods (mapcar #'car (gnus-methods-using 'respool)))
 		(methname
 		 (symbol-name (or gnus-summary-respool-default-method
 				  (car (gnus-find-method-for-group

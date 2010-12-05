@@ -902,6 +902,7 @@ Bind `print-quoted' and `print-readably' to t, and `print-length' and
 
 (defun gnus-write-buffer (file)
   "Write the current buffer's contents to FILE."
+  (require 'nnmail)
   (let ((file-name-coding-system nnmail-pathname-coding-system))
     ;; Make sure the directory exists.
     (gnus-make-directory (file-name-directory file))
@@ -1137,6 +1138,7 @@ In Emacs 22 this writes Babyl format; in Emacs 23 it writes mbox unless
 FILENAME exists and is Babyl format."
   (require 'rmail)
   (require 'mm-util)
+  (require 'nnmail)
   ;; Some of this codes is borrowed from rmailout.el.
   (setq filename (expand-file-name filename))
   ;; FIXME should we really be messing with this defcustom?
@@ -1228,6 +1230,7 @@ FILENAME exists and is Babyl format."
 
 (defun gnus-output-to-mail (filename &optional ask)
   "Append the current article to a mail file named FILENAME."
+  (require 'nnmail)
   (setq filename (expand-file-name filename))
   (let ((artbuf (current-buffer))
 	(tmpbuf (get-buffer-create " *Gnus-output*")))

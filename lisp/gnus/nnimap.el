@@ -793,22 +793,42 @@ textual parts.")
 
 (defun nnimap-process-expiry-targets (articles group server)
   (let ((deleted-articles nil))
-    (dolist (article articles)
-      (let ((target nnmail-expiry-target))
-	(with-temp-buffer
-          (mm-disable-multibyte)
-	  (when (nnimap-request-article article group server (current-buffer))
-	    (nnheader-message 7 "Expiring article %s:%d" group article)
-	    (when (functionp target)
-	      (setq target (funcall target group)))
-	    (when (and target
-		       (not (eq target 'delete)))
-	      (if (or (gnus-request-group target t)
-		      (gnus-request-create-group target))
-		  (nnmail-expiry-target-group target group)
-		(setq target nil)))
-	    (when target
-	      (push article deleted-articles))))))
+    (cond
+     ;; shortcut further processing if we're going to delete the articles
+     ((eq nnmail-expiry-target 'delete)
+      (setq deleted-articles articles)
+      t)
+     ;; or just move them to another folder on the same IMAP server
+     ((and (not (functionp nnmail-expiry-target))
+	   (gnus-server-equal (gnus-group-method nnmail-expiry-target)
+			      (gnus-server-to-method
+			       (format "nnimap:%s" server))))
+      (and (nnimap-possibly-change-group group server)
+	   (with-current-buffer (nnimap-buffer)
+	     (nnheader-message 7 "Expiring articles from %s: %s" group articles)
+	     (nnimap-command
+	      "UID COPY %s %S"
+	      (nnimap-article-ranges (gnus-compress-sequence articles))
+	      (utf7-encode (gnus-group-real-name nnmail-expiry-target) t))
+	     (setq deleted-articles articles)))
+      t)
+     (t
+      (dolist (article articles)
+	(let ((target nnmail-expiry-target))
+	  (with-temp-buffer
+	    (mm-disable-multibyte)
+	    (when (nnimap-request-article article group server (current-buffer))
+	      (nnheader-message 7 "Expiring article %s:%d" group article)
+	      (when (functionp target)
+		(setq target (funcall target group)))
+	      (when (and target
+			 (not (eq target 'delete)))
+		(if (or (gnus-request-group target t)
+			(gnus-request-create-group target))
+		    (nnmail-expiry-target-group target group)
+		  (setq target nil)))
+	      (when target
+		(push article deleted-articles))))))))
     ;; Change back to the current group again.
     (nnimap-possibly-change-group group server)
     (setq deleted-articles (nreverse deleted-articles))

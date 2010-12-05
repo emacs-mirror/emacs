@@ -6152,10 +6152,10 @@ Scroll the current article one line backward
 @findex gnus-summary-show-article
 @vindex gnus-summary-show-article-charset-alist
 (Re)fetch the current article (@code{gnus-summary-show-article}).  If
-given a prefix, fetch the current article, but don't run any of the
-article treatment functions.  If given a prefix twice (i.e., @kbd{C-u
-C-u g'}), show a completely ``raw'' article, just the way it came from
-the server.
+given a prefix, show a completely ``raw'' article, just the way it
+came from the server.  If given a prefix twice (i.e., @kbd{C-u C-u
+g'}), fetch the current article, but don't run any of the article
+treatment functions.
 
 @cindex charset, view article with different charset
 If given a numerical prefix, you can do semi-manual charset stuff.

@@ -1,3 +1,8 @@
+2010-12-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Paging the Article): Note the reverse meanings of `C-u C-u
+	g'.
+
 2010-12-02  Julien Danjou  <julien@danjou.info>
 
 	* gnus.texi (Archived Messages): Remove gnus-outgoing-message-group.

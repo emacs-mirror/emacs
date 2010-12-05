@@ -398,7 +398,8 @@ be restored and the command retried."
       (cond ((looking-at "480")
 	     (nntp-handle-authinfo process))
 	    ((looking-at "482")
-	     (nnheader-report 'nntp (get 'nntp-authinfo-rejected 'error-message))
+	     (nnheader-report 'nntp "%s"
+			      (get 'nntp-authinfo-rejected 'error-message))
 	     (signal 'nntp-authinfo-rejected nil))
 	    ((looking-at "^.*\n")
 	     (delete-region (point) (progn (forward-line 1) (point)))))
@@ -1411,7 +1412,7 @@ password contained in '~/.nntp-authinfo'."
   (let ((message (buffer-string)))
     (while (string-match "[\r\n]+" message)
       (setq message (replace-match " " t t message)))
-    (nnheader-report 'nntp message)
+    (nnheader-report 'nntp "%s" message)
     message))
 
 (defun nntp-accept-process-output (process)

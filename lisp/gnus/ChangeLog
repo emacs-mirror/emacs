@@ -1,3 +1,57 @@
+2010-12-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-respool-article): The completion function
+	expects a list instead of an alist.
+
+	* nntp.el (nntp-snarf-error-message): nnheader-report takes a format
+	string as the parameter.
+
+	* gnus.el (gnus-valid-select-methods): Allow nnimap to respool.
+
+	* shr.el (shr-stylesheet): New dynamic variable for cascading the
+	styles.
+	(shr-colorize-region): New function.
+	(shr-insert-background-overlay): Remove.
+	(shr-render-td): Background setting should be taken care of on a higher
+	level.
+	(shr-tag-body): Use post-hoc colorizations.
+	(shr-tag-body): Set up a style sheet based on bgcolor/fgcolor.
+	(shr-put-color-1): Don't overwrite old colors.
+	(shr-colorize-region): When the background color isn't explicit, use
+	a fixed background.
+
+	* gnus-util.el (gnus-output-to-mail): Require nnmail before using
+	nnmail variables.
+
+2010-12-05  Bjørn Mork  <bjorn@mork.no>
+
+	* nnimap.el (nnimap-process-expiry-targets): Avoid downloading articles
+	unless necessary.
+
+2010-12-05  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-gmane): Use more careful test for gmane nntp
+	server.
+
+2010-12-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-put-image): Use widget instead of local maps
+	so that TAB works.
+
+	* gnus-sum.el (gnus-summary-show-article): Reverse the meanings of `C-u
+	C-u g' and `C-u g' so that `C-u g' does what it traditionally did.
+
+	* shr.el (shr-urlify): Show the URL before the title to avoid
+	misleading URLs.
+
+2010-12-04  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* shr.el (shr-urlify): Display the title in <a> tags.
+
+2010-12-04  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-categorize): Replace mapcar with mapc.
+
 2010-12-03  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el: Rearrange code to allow macros to be autoloaded by

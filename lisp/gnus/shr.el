@@ -94,6 +94,7 @@ cid: URL as the argument.")
 (defvar shr-content-cache nil)
 (defvar shr-kinsoku-shorten nil)
 (defvar shr-table-depth 0)
+(defvar shr-stylesheet nil)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -191,18 +192,21 @@ redirects somewhere else."
 (defun shr-descend (dom)
   (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray))
 	(style (cdr (assq :style (cdr dom))))
+	(shr-stylesheet shr-stylesheet)
 	(start (point)))
     (when (and style
 	       (string-match "color" style))
-      (setq style (shr-parse-style style)))
+      (setq shr-stylesheet (nconc (shr-parse-style style)
+				  shr-stylesheet)))
     (if (fboundp function)
 	(funcall function (cdr dom))
       (shr-generic (cdr dom)))
-    (when (consp style)
-      (shr-insert-background-overlay (cdr (assq 'background-color style))
-                                     start)
-      (shr-insert-foreground-overlay (cdr (assq 'color style))
-                                     start (point)))))
+    (let ((color (cdr (assq 'color shr-stylesheet)))
+	  (background (cdr (assq 'background-color
+				 shr-stylesheet))))
+      (when (and shr-stylesheet
+		 (or color background))
+	(shr-colorize-region start (point) color background)))))
 
 (defun shr-generic (cont)
   (dolist (sub cont)
@@ -544,10 +548,10 @@ START, and END."
 
 (autoload 'widget-convert-button "wid-edit")
 
-(defun shr-urlify (start url)
+(defun shr-urlify (start url &optional title)
   (widget-convert-button
    'url-link start (point)
-   :help-echo url
+   :help-echo (if title (format "%s (%s)" url title) url)
    :keymap shr-map
    url)
   (put-text-property start (point) 'shr-url url))
@@ -581,41 +585,58 @@ ones, in case fg and bg are nil."
               (t
                (shr-color-visible bg fg)))))))
 
-(defun shr-get-background (pos)
-  "Return background color at POS."
-  (dolist (overlay (overlays-in pos (1+ pos)))
-    (let ((background (plist-get (overlay-get overlay 'face)
-                                 :background)))
-      (when background
-        (return background)))))
-
-(defun shr-insert-foreground-overlay (fg start end)
+(defun shr-colorize-region (start end fg &optional bg)
   (when fg
-    (let ((bg (shr-get-background start)))
-      (let ((new-colors (shr-color-check fg bg)))
-        (when new-colors
-          (overlay-put (make-overlay start end) 'face
-                       (list :foreground (cadr new-colors))))))))
-
-(defun shr-insert-background-overlay (bg start)
-  "Insert an overlay with background color BG at START.
-The overlay has rear-advance set to t, so it will be used when
-text will be inserted at start."
-  (when bg
-    (let ((new-colors (shr-color-check nil bg)))
+    (let ((new-colors (shr-color-check fg bg)))
       (when new-colors
-        (overlay-put (make-overlay start start nil nil t) 'face
-                     (list :background (car new-colors)))))))
+	(shr-put-color start end :foreground (cadr new-colors))
+	(when bg
+	  (shr-put-color start end :background (car new-colors)))))))
+
+;; Put a color in the region, but avoid putting colors on on blank
+;; text at the start of the line, and the newline at the end, to avoid
+;; ugliness.  Also, don't overwrite any existing color information,
+;; since this can be called recursively, and we want the "inner" color
+;; to win.
+(defun shr-put-color (start end type color)
+  (save-excursion
+    (goto-char start)
+    (while (< (point) end)
+      (when (bolp)
+	(skip-chars-forward " "))
+      (when (> (line-end-position) (point))
+	(shr-put-color-1 (point) (min (line-end-position) end) type color))
+      (if (< (line-end-position) end)
+	  (forward-line 1)
+	(goto-char end)))))
+
+(defun shr-put-color-1 (start end type color)
+  (let* ((old-props (get-text-property start 'face))
+	 (do-put (not (memq type old-props)))
+	 change)
+    (while (< start end)
+      (setq change (next-single-property-change start 'face nil end))
+      (when do-put
+	(put-text-property start change 'face
+			   (nconc (list type color) old-props)))
+      (setq old-props (get-text-property change 'face))
+      (setq do-put (not (memq type old-props)))
+      (setq start change))
+    (when (and do-put
+	       (> end start))
+      (put-text-property start end 'face
+			 (nconc (list type color old-props))))))
 
 ;;; Tag-specific rendering rules.
 
 (defun shr-tag-body (cont)
-  (let ((start (point))
-        (fgcolor (cdr (assq :fgcolor cont)))
-        (bgcolor (cdr (assq :bgcolor cont))))
-    (shr-insert-background-overlay bgcolor start)
+  (let* ((start (point))
+	 (fgcolor (cdr (assq :fgcolor cont)))
+	 (bgcolor (cdr (assq :bgcolor cont)))
+	 (shr-stylesheet (list (cons :color fgcolor)
+			       (cons :background-color bgcolor))))
     (shr-generic cont)
-    (shr-insert-foreground-overlay fgcolor start (point))))
+    (shr-colorize-region start (point) fgcolor bgcolor)))
 
 (defun shr-tag-p (cont)
   (shr-ensure-paragraph)
@@ -669,10 +690,11 @@ text will be inserted at start."
 
 (defun shr-tag-a (cont)
   (let ((url (cdr (assq :href cont)))
+        (title (cdr (assq :title cont)))
 	(start (point))
 	shr-start)
     (shr-generic cont)
-    (shr-urlify (or shr-start start) url)))
+    (shr-urlify (or shr-start start) url title)))
 
 (defun shr-tag-object (cont)
   (let ((start (point))
@@ -818,7 +840,7 @@ text will be inserted at start."
   (let ((start (point))
         (color (cdr (assq :color cont))))
     (shr-generic cont)
-    (shr-insert-foreground-overlay color start (point))))
+    (shr-colorize-region start (point) color)))
 
 ;;; Table rendering algorithm.
 
@@ -870,7 +892,6 @@ text will be inserted at start."
 	 (nheader (if header (shr-max-columns header)))
 	 (nbody (if body (shr-max-columns body)))
 	 (nfooter (if footer (shr-max-columns footer))))
-    (shr-insert-background-overlay bgcolor (point))
     (shr-tag-table-1
      (nconc
       (if caption `((tr (td ,@caption))))
@@ -1013,48 +1034,44 @@ text will be inserted at start."
     (nreverse trs)))
 
 (defun shr-render-td (cont width fill)
-  (let ((background (shr-get-background (point))))
-    (with-temp-buffer
-      (let ((cache (cdr (assoc (cons width cont) shr-content-cache))))
-        (if cache
-            (insert cache)
-          (shr-insert-background-overlay (or (cdr (assq :bgcolor cont))
-                                             background)
-                                         (point))
-          (let ((shr-width width)
-                (shr-indentation 0))
-            (shr-generic cont))
-          (delete-region
-           (point)
-           (+ (point)
-              (skip-chars-backward " \t\n")))
-          (push (cons (cons width cont) (buffer-string))
-                shr-content-cache)))
-      (goto-char (point-min))
-      (let ((max 0))
-        (while (not (eobp))
-          (end-of-line)
-          (setq max (max max (current-column)))
-          (forward-line 1))
-        (when fill
-          (goto-char (point-min))
-          ;; If the buffer is totally empty, then put a single blank
-          ;; line here.
-          (if (zerop (buffer-size))
-              (insert (make-string width ? ))
-            ;; Otherwise, fill the buffer.
-            (while (not (eobp))
-              (end-of-line)
-              (when (> (- width (current-column)) 0)
-                (insert (make-string (- width (current-column)) ? )))
-              (forward-line 1))))
-        (if fill
-            (list max
-                  (count-lines (point-min) (point-max))
-                  (split-string (buffer-string) "\n")
-                  (shr-collect-overlays))
-          (list max
-                (shr-natural-width)))))))
+  (with-temp-buffer
+    (let ((cache (cdr (assoc (cons width cont) shr-content-cache))))
+      (if cache
+	  (insert cache)
+	(let ((shr-width width)
+	      (shr-indentation 0))
+	  (shr-generic cont))
+	(delete-region
+	 (point)
+	 (+ (point)
+	    (skip-chars-backward " \t\n")))
+	(push (cons (cons width cont) (buffer-string))
+	      shr-content-cache)))
+    (goto-char (point-min))
+    (let ((max 0))
+      (while (not (eobp))
+	(end-of-line)
+	(setq max (max max (current-column)))
+	(forward-line 1))
+      (when fill
+	(goto-char (point-min))
+	;; If the buffer is totally empty, then put a single blank
+	;; line here.
+	(if (zerop (buffer-size))
+	    (insert (make-string width ? ))
+	  ;; Otherwise, fill the buffer.
+	  (while (not (eobp))
+	    (end-of-line)
+	    (when (> (- width (current-column)) 0)
+	      (insert (make-string (- width (current-column)) ? )))
+	    (forward-line 1))))
+      (if fill
+	  (list max
+		(count-lines (point-min) (point-max))
+		(split-string (buffer-string) "\n")
+		(shr-collect-overlays))
+	(list max
+	      (shr-natural-width))))))
 
 (defun shr-natural-width ()
   (goto-char (point-min))

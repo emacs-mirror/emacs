@@ -259,20 +259,21 @@ If it is down, start it up (again)."
 	  (gnus-message 1 "Denied server %s" server)
 	  nil)
       ;; Open the server.
-      (let* ((open-server-function (gnus-get-function gnus-command-method 'open-server))
+      (let* ((open-server-function
+	      (gnus-get-function gnus-command-method 'open-server))
              (result
-             (condition-case err
-                 (funcall open-server-function
-                          (nth 1 gnus-command-method)
-                          (nthcdr 2 gnus-command-method))
-               (error
-                (gnus-message 1 "Unable to open server %s due to: %s"
-			      server (error-message-string err))
-                nil)
-               (quit
-                (gnus-message 1 "Quit trying to open server %s" server)
-                nil)))
-            open-offline)
+	      (condition-case err
+		  (funcall open-server-function
+			   (nth 1 gnus-command-method)
+			   (nthcdr 2 gnus-command-method))
+		(error
+		 (gnus-message 1 "Unable to open server %s due to: %s"
+			       server (error-message-string err))
+		 nil)
+		(quit
+		 (gnus-message 1 "Quit trying to open server %s" server)
+		 nil)))
+	     open-offline)
 	;; If this hasn't been opened before, we add it to the list.
 	(unless elem
 	  (setq elem (list gnus-command-method nil)
