@@ -12759,7 +12759,11 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 
       /* If cursor ends up on a partially visible line,
 	 treat that as being off the bottom of the screen.  */
-      if (! cursor_row_fully_visible_p (w, extra_scroll_margin_lines <= 1, 0))
+      if (! cursor_row_fully_visible_p (w, extra_scroll_margin_lines <= 1, 0)
+	  /* It's possible that the cursor is on the first line of the
+	     buffer, which is partially obscured due to a vscroll
+	     (Bug#7537).  In that case, avoid looping forever . */
+	  && extra_scroll_margin_lines < w->desired_matrix->nrows - 1)
 	{
 	  clear_glyph_matrix (w->desired_matrix);
 	  ++extra_scroll_margin_lines;

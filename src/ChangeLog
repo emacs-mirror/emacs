@@ -1,3 +1,8 @@
+2010-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_scrolling): Avoid infloop if the first line is
+	obscured due to a vscroll (Bug#7537).
+
 2010-12-02  Jan Djärv  <jhd@zeplinf.localdomain>
 
 	* nsterm.h (FRAME_NS_TOOLBAR_HEIGHT): Rename to FRAME_TOOLBAR_HEIGHT.
