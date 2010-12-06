@@ -676,10 +676,7 @@ Add an entry here when adding a new search engine.")
 	 (to-newsgroup (nth 1 accept-form))
 	 (to-method (gnus-find-method-for-group to-newsgroup))
 	 (from-method (gnus-find-method-for-group artfullgroup))
-	 (move-is-internal (gnus-server-equal from-method to-method))
-	 (artsubject (mail-header-subject
-		      (gnus-data-header
-		       (assoc article (gnus-data-list nil))))))
+	 (move-is-internal (gnus-server-equal from-method to-method)))
     (unless (gnus-check-backend-function
 	     'request-move-article artfullgroup)
       (error "The group %s does not support article moving" artfullgroup))

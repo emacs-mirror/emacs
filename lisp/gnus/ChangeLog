@@ -1,3 +1,11 @@
+2010-12-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-find-fill-point): Don't regard apostrophe as kinsoku-bol.
+
+2010-12-06  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-move-article): Remove obsolete code.
+
 2010-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el (gnus-macroexpand-all): Use eval-and-compile.
