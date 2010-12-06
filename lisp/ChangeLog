@@ -1,5 +1,9 @@
 2010-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (just-one-space): Delete newlines for negative arg.
+
+2010-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* ansi-color.el (ansi-color-unfontify-region): Replace by trivial def.
 	(ansi-color-filter-apply): Simplify.
 	(ansi-color-apply): Use `font-lock-face' rather than `face'.
@@ -19,7 +23,8 @@
 
 	* replace.el: Add "collect" feature to occur.
 	(occur-collect-regexp-history): New var.
-	(occur-read-primary-args): Return a replace string for nlines, if needed.
+	(occur-read-primary-args): Return a replace string for nlines,
+	if needed.
 	(occur): Extend the meaning of nlines.
 
 2010-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -93,8 +98,8 @@
 	* net/tramp-smb.el: Fix regexps added to `tramp-default-method-alist'
 	and `tramp-default-user-alist', respectively.
 
-	* net/tramp-gw.el (tramp-gw-open-connection): Use
-	`tramp-get-connection-name' and `tramp-get-connection-buffer'.
+	* net/tramp-gw.el (tramp-gw-open-connection):
+	Use `tramp-get-connection-name' and `tramp-get-connection-buffer'.
 
 	* net/tramp-imap.el (tramp-imap-make-iht): Use just
 	`tramp-file-name-port'.
@@ -694,7 +699,7 @@
 2010-11-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/characters.el (glyphless-char-display-control):
-	Renamed from glyphless-char-control; all users changed.  Doc fix.
+	Rename from glyphless-char-control; all users changed.  Doc fix.
 	Signal an error if display method is not one of the recognized
 	symbols.
 
@@ -4182,7 +4187,7 @@
 
 	* term/ns-win.el (x-setup-function-keys, ns-last-selected-text):
 	x-cut-buffer-or-selection-value renamed to x-selection-value
-	(x-selection-value): Renamed from x-cut-buffer-or-selection-value.
+	(x-selection-value): Rename from x-cut-buffer-or-selection-value.
 	(x-select-text): Remove argument PUSH, update documentation.
 
 	* emacs-lisp/cl-macs.el (x-get-cutbuffer, x-get-cut-buffer): Remove.
@@ -4694,7 +4699,7 @@
 	whitespace-toggle-options (Bug#6479).  Allow to use fill-column
 	instead of whitespace-line-column (from EmacsWiki).  New version
 	13.1.
-	(whitespace-style): Added new value 'face.  Adjust docstring.
+	(whitespace-style): Add new value 'face.  Adjust docstring.
 	(whitespace-space, whitespace-hspace, whitespace-tab):
 	Adjust foreground property face.
 	(whitespace-line-column): Adjust docstring and type declaration.
@@ -5648,9 +5653,9 @@
 	* progmodes/sql.el: Version 2.3.
 	(sql-connection-alist): Changed keys from symbols to strings;
 	enhanced the widget definition.
-	(sql-mode-menu): Added submenu to select connections.
-	(sql-interactive-mode-menu): Added "Save Connection" item.
-	(sql-add-product): Fixed menu item.
+	(sql-mode-menu): Add submenu to select connections.
+	(sql-interactive-mode-menu): Add "Save Connection" item.
+	(sql-add-product): Fix menu item.
 	(sql-get-product-feature): Improved error handling.
 	(sql--alt-buffer-part, sql--alt-if-not-empty): Removed.
 	(sql-make-alternate-buffer-name): Simplified.
@@ -5701,14 +5706,14 @@
 	(sql-ms-login-params, sql-postgres-login-params)
 	(sql-interbase-login-params, sql-db2-login-params)
 	(sql-linter-login-params): Add `port' option.
-	(sql-get-product-feature): Added NO-INDIRECT parameter.
+	(sql-get-product-feature): Add NO-INDIRECT parameter.
 	(sql-comint-oracle, sql-comint-sybase)
 	(sql-comint-informix, sql-comint-sqlite, sql-comint-mysql)
 	(sql-comint-solid, sql-comint-ingres, sql-comint-ms)
 	(sql-comint-postgres, sql-comint-interbase, sql-comint-db2)
-	(sql-comint-linter): Renamed sql-connect-* functions to
+	(sql-comint-linter): Rename sql-connect-* functions to
 	sql-comint-*.
-	(sql-product-alist, sql-mode-menu): Renamed as above and
+	(sql-product-alist, sql-mode-menu): Rename as above and
 	:sqli-connect-func to :sqli-comint-func.
 	(sql-connection): New variable.
 	(sql-interactive-mode): Set it.
@@ -10861,7 +10866,7 @@
 
 2009-12-25  Kenichi Handa  <handa@m17n.org>
 
-	* language/indian.el (devanagari-composable-pattern): Fixed to
+	* language/indian.el (devanagari-composable-pattern): Fix to
 	handle ZWNJ and ZWJ.  Use it in composition-function-table for
 	Devanagari.
 	(malayalam-composable-pattern): Fix previous change.
@@ -10876,8 +10881,8 @@
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar--convert-tz-offset):
-	Fixed timezone names.
-	(icalendar--convert-tz-offset): Fixed the "last-day-problem".
+	Fix timezone names.
+	(icalendar--convert-tz-offset): Fix the "last-day-problem".
 	(icalendar--add-diary-entry): Remove the trailing blank that
 	diary-make-entry inserts.
 
@@ -11498,7 +11503,7 @@
 	(newsticker-treeview-next-new-or-immortal-item): Doc change.
 	(newsticker--treeview-first-feed): Doc change.
 	(newsticker-treeview-list-menu)
-	(newsticker-treeview-item-menu): Added menu entries.
+	(newsticker-treeview-item-menu): Add menu entries.
 	(newsticker-treeview-item-mode): New.
 
 	* net/newst-backend.el (newsticker-customize): Delete other
@@ -17097,7 +17102,7 @@
 	Don't modify last-coding-system-used by accident.
 	(tramp-completion-file-name-handler): Apply the checks here,
 	instead during registration.
-	(tramp-register-file-name-handlers): Renamed from
+	(tramp-register-file-name-handlers): Rename from
 	`tramp-register-file-name-handler'.  Register both
 	`tramp-file-name-handler' and `tramp-completion-file-name-handler'.
 	(tramp-register-completion-file-name-handler): Remove.  (Bug#4260)
@@ -17889,7 +17894,7 @@
 	'update signal.  Instead, update all disassembly buffers only after
 	threads list.
 	(gdb): Send -target-detach when buffer is killed (Bug#3794).
-	(gdb-starting): Moved -data-list-register-names...
+	(gdb-starting): Move -data-list-register-names...
 	(gdb-stopped): ...here so it's sent when first thread stops.
 	(gdb-registers-handler-custom): Do nothing if register names are
 	unknown yet.
@@ -18028,8 +18033,8 @@
 
 	* progmodes/gdb-mi.el (gdb-var-create-regexp): Removed.
 	(gdb-var-create-handler): Rewritten using JSON parser.
-	(gdb-propertize-header): Moved earlier.
-	(gdb-set-header): Removed to avoid duplication.
+	(gdb-propertize-header): Move earlier.
+	(gdb-set-header): Remove to avoid duplication.
 	(gdb-thread-list-handler-custom, gdb-invalidate-disassembly):
 	Refresh disassembly buffers only after threads list have been
 	update.
@@ -18099,7 +18104,7 @@
 	(gdb-locals-handler-custom): Now prints data like in variable
 	declarations.
 	(gdb-jump-to, gdb-file-button, gdb-insert-file-location-button):
-	Removed confusing buttons.
+	Remove confusing buttons.
 	(gdb-invalidate-threads): Append --frame.
 	(gdb-threads-mode-map, gdb-breakpoints-mode-map): TAB to switch
 	between breakpoints/threads buffers.
@@ -18177,7 +18182,7 @@
 	(def-gdb-auto-update-handler): New nopreserve optional argument.
 	(gdb-stack-list-frames-custom): Print stack from top to bottom.
 
-	* progmodes/gdb-mi.el (gdb-pc-address): Removed unused variable.
+	* progmodes/gdb-mi.el (gdb-pc-address): Remove unused variable.
 	(gdb-threads-list, gdb-breakpoints-list): New assoc lists.
 	(gdb-parent-mode): New mode to derive other GDB modes from.
 	(gdb-display-disassembly-for-thread)
@@ -18201,7 +18206,7 @@
 	(gdb-display-registers-for-thread, gdb-frame-stack-for-thread)
 	(gdb-frame-locals-for-thread, gdb-frame-registers-for-thread):
 	New commands which show buffers bound to thread.
-	(gdb-stack-list-locals-regexp): Removed unused regexp.
+	(gdb-stack-list-locals-regexp): Remove unused regexp.
 
 	* progmodes/gdb-mi.el (gdb-breakpoints-buffer-name)
 	(gdb-locals-buffer-name, gdb-registers-buffer-name)
