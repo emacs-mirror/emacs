@@ -10,7 +10,7 @@
 	(image-dired-temp-rotate-image-file): Set default values relative
 	to image-dired-dir (Bug#7518).
 
-2010-12-06  Lawrence Mitchell  <lawrence.mitchell@ed.ac.uk>
+2010-12-06  Lawrence Mitchell  <wence@gmx.li>
 
 	* format.el (format-decode-run-method): Pass args FROM and TO, not
 	point-min and point-max, to shell-command-on-region (Bug#7488).
