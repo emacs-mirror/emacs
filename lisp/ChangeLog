@@ -1,3 +1,9 @@
+2010-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ansi-color.el (ansi-color-unfontify-region): Replace by trivial def.
+	(ansi-color-filter-apply): Simplify.
+	(ansi-color-apply): Use `font-lock-face' rather than `face'.
+
 2010-12-05  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
 
 	* vc/vc-dir.el (vc-dir-query-replace-regexp): Doc fix (Bug#7501).
