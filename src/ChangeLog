@@ -1,3 +1,9 @@
+2010-12-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (parse_region): Ignore blank HTML nodes.
+	(make_dom): Return CDATA sections (like <style>foo</style>) as
+	text nodes.
+
 2010-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (read1): Allow newstyle unquote outside of backquote.
