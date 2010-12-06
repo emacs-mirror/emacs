@@ -194,19 +194,19 @@ redirects somewhere else."
 	(style (cdr (assq :style (cdr dom))))
 	(shr-stylesheet shr-stylesheet)
 	(start (point)))
-    (when (and style
-	       (string-match "color" style))
-      (setq shr-stylesheet (nconc (shr-parse-style style)
-				  shr-stylesheet)))
+    (when style
+      (if (string-match "color" style)
+	  (setq shr-stylesheet (nconc (shr-parse-style style)
+				      shr-stylesheet))
+	(setq style nil)))
     (if (fboundp function)
 	(funcall function (cdr dom))
       (shr-generic (cdr dom)))
-    (let ((color (cdr (assq 'color shr-stylesheet)))
-	  (background (cdr (assq 'background-color
-				 shr-stylesheet))))
-      (when (and shr-stylesheet
-		 (or color background))
-	(shr-colorize-region start (point) color background)))))
+    ;; If style is set, then this node has set the color.
+    (when style
+      (shr-colorize-region start (point)
+			   (cdr (assq 'color shr-stylesheet))
+			   (cdr (assq 'background-color shr-stylesheet))))))
 
 (defun shr-generic (cont)
   (dolist (sub cont)
@@ -586,7 +586,7 @@ ones, in case fg and bg are nil."
                (shr-color-visible bg fg)))))))
 
 (defun shr-colorize-region (start end fg &optional bg)
-  (when fg
+  (when (or fg bg)
     (let ((new-colors (shr-color-check fg bg)))
       (when new-colors
 	(shr-put-color start end :foreground (cadr new-colors))
@@ -633,10 +633,13 @@ ones, in case fg and bg are nil."
   (let* ((start (point))
 	 (fgcolor (cdr (assq :fgcolor cont)))
 	 (bgcolor (cdr (assq :bgcolor cont)))
-	 (shr-stylesheet (list (cons :color fgcolor)
-			       (cons :background-color bgcolor))))
+	 (shr-stylesheet (list (cons 'color fgcolor)
+			       (cons 'background-color bgcolor))))
     (shr-generic cont)
     (shr-colorize-region start (point) fgcolor bgcolor)))
+
+(defun shr-tag-style (cont)
+  )
 
 (defun shr-tag-p (cont)
   (shr-ensure-paragraph)
@@ -837,10 +840,14 @@ ones, in case fg and bg are nil."
   (shr-heading cont 'bold 'underline))
 
 (defun shr-tag-font (cont)
-  (let ((start (point))
-        (color (cdr (assq :color cont))))
+  (let* ((start (point))
+         (color (cdr (assq :color cont)))
+         (shr-stylesheet (nconc (list (cons 'color color))
+				shr-stylesheet)))
     (shr-generic cont)
-    (shr-colorize-region start (point) color)))
+    (when color
+      (shr-colorize-region start (point) color
+			   (cdr (assq 'background-color shr-stylesheet))))))
 
 ;;; Table rendering algorithm.
 
@@ -1040,7 +1047,7 @@ ones, in case fg and bg are nil."
 	  (insert cache)
 	(let ((shr-width width)
 	      (shr-indentation 0))
-	  (shr-generic cont))
+	  (shr-descend (cons 'td cont)))
 	(delete-region
 	 (point)
 	 (+ (point)

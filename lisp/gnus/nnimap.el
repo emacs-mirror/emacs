@@ -47,9 +47,6 @@
 (require 'nnmail)
 (require 'proto-stream)
 
-(eval-when-compile
-  (require 'gnus-sum))
-
 (autoload 'auth-source-forget-user-or-password "auth-source")
 (autoload 'auth-source-user-or-password "auth-source")
 
@@ -1426,9 +1423,10 @@ textual parts.")
   (setq nnimap-status-string "Read-only server")
   nil)
 
-(deffoo nnimap-request-thread (id)
-  (let* ((refs (split-string
-		(or (mail-header-references (gnus-summary-article-header))
+(deffoo nnimap-request-thread (header)
+  (let* ((id (mail-header-id header))
+	 (refs (split-string
+		(or (mail-header-references header)
 		    "")))
 	 (cmd (let ((value
 		     (format

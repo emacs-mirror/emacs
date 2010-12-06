@@ -1,3 +1,27 @@
+2010-12-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-font): Colorize the region.
+	(shr-tag-body): Ditto.
+	(shr-tag-font): Actually let the styles be inherited instead of
+	overwriting them.
+	(shr-tag-font): Get the background color right.
+	(shr-tag-style): Ignore all <style> tags for the moment.
+
+	* gnus-int.el (gnus-request-thread): Rework to take a header instead of
+	a Message-ID to avoid having nnimap depend on gnus-sum.
+
+	* shr.el (shr-descend): Only colorize something if we have a node that
+	sets colors.
+
+2010-12-06  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-render-td): Render td content with shr-descend, so style
+	will be applied to <td> too.
+	(shr-colorize-region): Colorize region even if we only have a background.
+	(shr-tag-body): Fix color and background color inheritance.
+	Do not recolorize after shr-generic.
+	(shr-tag-font): Let shr-generic colorize via inheritance.
+
 2010-12-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-find-fill-point): Don't regard apostrophe as kinsoku-bol.
