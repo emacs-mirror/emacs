@@ -13885,6 +13885,9 @@ hence getting a correct total article count.
 
 @end table
 
+Some more commands for closing, disabling, and re-opening servers are
+listed in @ref{Unavailable Servers}.
+
 
 @node Example Methods
 @subsection Example Methods

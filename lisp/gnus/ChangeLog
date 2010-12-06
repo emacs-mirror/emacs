@@ -1,5 +1,8 @@
 2010-12-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* proto-stream.el (proto-stream-open-tls): Return nil if we don't get
+	any stream.
+
 	* shr.el (shr-tag-font): Colorize the region.
 	(shr-tag-body): Ditto.
 	(shr-tag-font): Actually let the styles be inherited instead of

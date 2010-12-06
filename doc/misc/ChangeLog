@@ -1,3 +1,8 @@
+2010-12-06  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* gnus.texi (Server Commands): Point to the rest of the server
+	commands.
+
 2010-12-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Paging the Article): Note the reverse meanings of `C-u C-u

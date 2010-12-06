@@ -219,16 +219,18 @@ command to switch on STARTTLS otherwise."
 			'open-gnutls-stream
 		      'open-tls-stream)
 		    name buffer host service)))
-      ;; If we're using tls.el, we have to delete the output from
-      ;; openssl/gnutls-cli.
-      (unless (fboundp 'open-gnutls-stream)
-	(proto-stream-get-response
-	 stream start (proto-stream-eoc parameters))
-	(goto-char (point-min))
-	(when (re-search-forward (proto-stream-eoc parameters) nil t)
-	  (goto-char (match-beginning 0))
-	  (delete-region (point-min) (line-beginning-position))))
-      (proto-stream-capability-open start stream parameters))))
+      (if (null stream)
+	  nil
+	;; If we're using tls.el, we have to delete the output from
+	;; openssl/gnutls-cli.
+	(unless (fboundp 'open-gnutls-stream)
+	  (proto-stream-get-response
+	   stream start (proto-stream-eoc parameters))
+	  (goto-char (point-min))
+	  (when (re-search-forward (proto-stream-eoc parameters) nil t)
+	    (goto-char (match-beginning 0))
+	    (delete-region (point-min) (line-beginning-position))))
+	(proto-stream-capability-open start stream parameters)))))
 
 (defun proto-stream-open-shell (name buffer host service parameters)
   (proto-stream-capability-open
