@@ -1,3 +1,8 @@
+2010-12-06  Lawrence Mitchell  <lawrence.mitchell@ed.ac.uk>
+
+	* format.el (format-decode-run-method): Pass args FROM and TO, not
+	point-min and point-max, to shell-command-on-region (Bug#7488).
+
 2010-12-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.el (blink-cursor-mode): Make default t for ns.
