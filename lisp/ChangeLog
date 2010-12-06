@@ -1,3 +1,10 @@
+2010-12-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-dired.el (image-dired-db-file)
+	(image-dired-temp-image-file, image-dired-gallery-dir)
+	(image-dired-temp-rotate-image-file): Set default values relative
+	to image-dired-dir (Bug#7518).
+
 2010-12-06  Lawrence Mitchell  <lawrence.mitchell@ed.ac.uk>
 
 	* format.el (format-decode-run-method): Pass args FROM and TO, not
