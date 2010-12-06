@@ -228,7 +228,7 @@ replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 +++
 ** There is a new command `count-words-region', which does what you expect.
 
-** completion-at-point is now an alias for complete-symbol.
+** completion-at-point now handles tags and semantic completion.
 
 ** The default value of `backup-by-copying-when-mismatch' is now t.
 
