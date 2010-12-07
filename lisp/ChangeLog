@@ -1,4 +1,14 @@
+2010-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-post-self-insert-function):
+	Delete trailing newlines even if we don't reindent.
+
 2010-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-at-point): Remove the `arg'.
+	* bindings.el (complete-symbol): Move back from minibuffer.el.
+
+2010-12-06  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* simple.el (just-one-space): Delete newlines for negative arg.
 

@@ -217,15 +217,15 @@ Returns nil when we can't find this char."
                (not (nth 8 (save-excursion (syntax-ppss pos)))))
       ;; For newline, we want to reindent both lines and basically behave like
       ;; reindent-then-newline-and-indent (whose code we hence copied).
-      (when (and (< (1- pos) (line-beginning-position))
-                 ;; Don't reindent the previous line if the indentation
-                 ;; function is not a real one.
-                 (not (memq indent-line-function
-                            '(indent-relative indent-relative-maybe))))
+      (when (< (1- pos) (line-beginning-position))
         (let ((before (copy-marker (1- pos) t)))
           (save-excursion
-            (goto-char before)
-            (indent-according-to-mode)
+            (unless (memq indent-line-function
+                          '(indent-relative indent-relative-maybe))
+              ;; Don't reindent the previous line if the indentation function
+              ;; is not a real one.
+              (goto-char before)
+              (indent-according-to-mode))
             ;; We are at EOL before the call to indent-according-to-mode, and
             ;; after it we usually are as well, but not always.  We tried to
             ;; address it with `save-excursion' but that uses a normal marker
