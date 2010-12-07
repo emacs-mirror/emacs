@@ -1,3 +1,10 @@
+2010-12-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-extra-numeric-entities): New variable.
+
+	* mm-url.el (mm-url-decode-entities):
+	* mm-decode.el (mm-shr): Use it to decode extra numeric entities.
+
 2010-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el: Use completion-at-point.

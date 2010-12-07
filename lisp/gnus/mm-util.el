@@ -866,6 +866,21 @@ variable is set, it overrides the default priority."
 Setting it to nil is useful on Emacsen supporting Unicode if sending
 mail with multiple parts is preferred to sending a Unicode one.")
 
+(defvar mm-extra-numeric-entities
+  (mapcar
+   (lambda (item)
+     (cons (car item) (mm-ucs-to-char (cdr item))))
+   '((#x80 . #x20AC) (#x82 . #x201A) (#x83 . #x0192) (#x84 . #x201E)
+     (#x85 . #x2026) (#x86 . #x2020) (#x87 . #x2021) (#x88 . #x02C6)
+     (#x89 . #x2030) (#x8A . #x0160) (#x8B . #x2039) (#x8C . #x0152)
+     (#x8E . #x017D) (#x91 . #x2018) (#x92 . #x2019) (#x93 . #x201C)
+     (#x94 . #x201D) (#x95 . #x2022) (#x96 . #x2013) (#x97 . #x2014)
+     (#x98 . #x02DC) (#x99 . #x2122) (#x9A . #x0161) (#x9B . #x203A)
+     (#x9C . #x0153) (#x9E . #x017E) (#x9F . #x0178)))
+  "*Alist of extra numeric entities and characters other than ISO 10646.
+This table is used for decoding extra numeric entities to characters,
+like \"&#128;\" to the euro sign, mainly in html messages.")
+
 ;;; Internal variables:
 
 ;;; Functions:
