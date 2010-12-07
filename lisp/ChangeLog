@@ -1,3 +1,8 @@
+2010-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-refine-hunk): Make it work when the hunk contains
+	empty lines without a leading space.
+
 2010-12-06  Leo <sdl.web@gmail.com>
 
 	* dired-aux.el (dired-do-redisplay): Postphone
