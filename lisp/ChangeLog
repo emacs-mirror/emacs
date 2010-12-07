@@ -1,3 +1,8 @@
+2010-12-07  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* simple.el (just-one-space): Make argument n default to 1 if
+	omitted.
+
 2010-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el (electric-indent-post-self-insert-function):
