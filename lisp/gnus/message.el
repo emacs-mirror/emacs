@@ -277,7 +277,7 @@ This is a list of regexps and regexp matches."
 		 regexp))
 
 (defcustom message-ignored-mail-headers
-  "^[GF]cc:\\|^Resent-Fcc:\\|^Xref:\\|^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:"
+  "^\\([GF]cc\\|Resent-Fcc\\|Xref\\|X-Draft-From\\|X-Gnus-Agent-Meta-Information\\):"
   "*Regexp of headers to be removed unconditionally before mailing."
   :group 'message-mail
   :group 'message-headers
@@ -2914,6 +2914,7 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
 	  (mail-aliases-setup))))
    ((message-mail-alias-type-p 'ecomplete)
     (ecomplete-setup)))
+  (add-hook 'completion-at-point-functions 'message-completion-function nil t)
   (unless buffer-file-name
     (message-set-auto-save-file-name))
   (unless (buffer-base-buffer)
@@ -7743,7 +7744,7 @@ When FORCE, rebuild the tool bar."
   :type '(alist :key-type regexp :value-type function))
 
 (defcustom message-expand-name-databases
-  (list 'bbdb 'eudc)
+  '(bbdb eudc)
   "List of databases to try for name completion (`message-expand-name').
 Each element is a symbol and can be `bbdb' or `eudc'."
   :group 'message
@@ -7765,15 +7766,25 @@ If nil, the function bound in `text-mode-map' or `global-map' is executed."
 Execute function specified by `message-tab-body-function' when not in
 those headers."
   (interactive)
+  (cond
+   ((if (and (boundp 'completion-fail-discreetly)
+             (fboundp 'completion-at-point))
+        (let ((completion-fail-discreetly t)) (completion-at-point))
+      (funcall (or (message-completion-function) #'ignore)))
+    ;; Completion was performed; nothing else to do.
+    nil)
+   (message-tab-body-function (funcall message-tab-body-function))
+   (t (funcall (or (lookup-key text-mode-map "\t")
+                   (lookup-key global-map "\t")
+                   'indent-relative)))))
+
+(defun message-completion-function ()
   (let ((alist message-completion-alist))
     (while (and alist
 		(let ((mail-abbrev-mode-regexp (caar alist)))
 		  (not (mail-abbrev-in-expansion-header-p))))
       (setq alist (cdr alist)))
-    (funcall (or (cdar alist) message-tab-body-function
-		 (lookup-key text-mode-map "\t")
-		 (lookup-key global-map "\t")
-		 'indent-relative))))
+    (cdar alist)))
 
 (eval-and-compile
   (condition-case nil

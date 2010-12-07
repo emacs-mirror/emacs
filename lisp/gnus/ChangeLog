@@ -1,3 +1,10 @@
+2010-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el: Use completion-at-point.
+	(message-completion-function): New fun, extracted from message-tab.
+	(message-mode): Use it for completion-at-point-functions.
+	(message-tab): Use it and completion-at-point.
+
 2010-12-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-find-fill-point): Don't break a line after a kinsoku-bol
