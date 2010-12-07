@@ -298,6 +298,10 @@ smc_die_CB (smcConn, clientData)
      SmcConn smcConn;
      SmPointer clientData;
 {
+  /* This may behave badly if desktop.el tries to ask questions.  */
+  Fkill_emacs (Qnil);
+
+  /* This will not be reached, but we want kill-emacs-hook to be run.  */
   SmcCloseConnection (smcConn, 0, 0);
   ice_connection_closed ();
 }

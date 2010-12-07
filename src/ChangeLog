@@ -1,3 +1,7 @@
+2010-12-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c (smc_die_CB): Call Fkill_emacs (Bug#7552).
+
 2010-12-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dispextern.h (struct it): New member overlay_strings_charpos.
