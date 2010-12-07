@@ -1384,7 +1384,7 @@ textual parts.")
 		 (goto-char start)
 		 (setq vanished
 		       (and (eq flag-sequence 'qresync)
-			    (re-search-forward "VANISHED.* \\([0-9:,]+\\)"
+			    (re-search-forward "^\\* VANISHED .* \\([0-9:,]+\\)"
 					       (or end (point-min)) t)
 			    (match-string 1)))
 		 (goto-char start)

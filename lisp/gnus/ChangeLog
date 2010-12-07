@@ -1,3 +1,13 @@
+2010-12-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-parse-flags): Tweak VANISHED regexp to avoid regexp
+	overflow, possibly.
+
+	* shr.el (shr-tag-table-1): Use bg/gfcolor specs on tables.
+	(shr-render-td): Handle td style="" better.
+	(shr-tag-table): Use the color from the style sheet.
+	(shr-render-td): Make sure we copy over all the overlays, too.
+
 2010-12-07  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (nnir-run-gmane): Restore sub-optimal test for gmane server.

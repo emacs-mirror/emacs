@@ -589,7 +589,8 @@ ones, in case fg and bg are nil."
   (when (or fg bg)
     (let ((new-colors (shr-color-check fg bg)))
       (when new-colors
-	(shr-put-color start end :foreground (cadr new-colors))
+	(when fg
+	  (shr-put-color start end :foreground (cadr new-colors)))
 	(when bg
 	  (shr-put-color start end :background (car new-colors)))))))
 
@@ -896,6 +897,9 @@ ones, in case fg and bg are nil."
 	 (body (or (cdr (assq 'tbody cont)) cont))
 	 (footer (cdr (assq 'tfoot cont)))
          (bgcolor (cdr (assq :bgcolor cont)))
+	 (start (point))
+	 (shr-stylesheet (nconc (list (cons 'background-color bgcolor))
+				shr-stylesheet))
 	 (nheader (if header (shr-max-columns header)))
 	 (nbody (if body (shr-max-columns body)))
 	 (nfooter (if footer (shr-max-columns footer))))
@@ -936,7 +940,10 @@ ones, in case fg and bg are nil."
 		       `((tr (td (table (tbody ,@footer))))))))
 	  (if caption
 	      `((tr (td (table (tbody ,@body)))))
-	    body)))))))
+	    body)))))
+    (when bgcolor
+      (shr-colorize-region start (point) (cdr (assq 'color shr-stylesheet))
+			   bgcolor))))
 
 (defun shr-find-elements (cont type)
   (let (result)
@@ -1042,43 +1049,73 @@ ones, in case fg and bg are nil."
 
 (defun shr-render-td (cont width fill)
   (with-temp-buffer
-    (let ((cache (cdr (assoc (cons width cont) shr-content-cache))))
-      (if cache
-	  (insert cache)
-	(let ((shr-width width)
-	      (shr-indentation 0))
-	  (shr-descend (cons 'td cont)))
-	(delete-region
-	 (point)
-	 (+ (point)
-	    (skip-chars-backward " \t\n")))
-	(push (cons (cons width cont) (buffer-string))
-	      shr-content-cache)))
-    (goto-char (point-min))
-    (let ((max 0))
-      (while (not (eobp))
-	(end-of-line)
-	(setq max (max max (current-column)))
-	(forward-line 1))
-      (when fill
-	(goto-char (point-min))
-	;; If the buffer is totally empty, then put a single blank
-	;; line here.
-	(if (zerop (buffer-size))
-	    (insert (make-string width ? ))
-	  ;; Otherwise, fill the buffer.
-	  (while (not (eobp))
-	    (end-of-line)
-	    (when (> (- width (current-column)) 0)
-	      (insert (make-string (- width (current-column)) ? )))
-	    (forward-line 1))))
-      (if fill
+    (let ((bgcolor (cdr (assq :bgcolor cont)))
+	  (fgcolor (cdr (assq :fgcolor cont)))
+	  (style (cdr (assq :style cont)))
+	  (shr-stylesheet shr-stylesheet)
+	  overlays)
+      (when style
+	(setq style (and (string-match "color" style)
+			 (shr-parse-style style))))
+      (when bgcolor
+	(setq style (nconc (list (cons 'background-color bgcolor)) style)))
+      (when fgcolor
+	(setq style (nconc (list (cons 'color fgcolor)) style)))
+      (when style
+	(setq shr-stylesheet (append style shr-stylesheet)))
+      (let ((cache (cdr (assoc (cons width cont) shr-content-cache))))
+	(if cache
+	    (progn
+	      (insert (car cache))
+	      (let ((end (length (car cache))))
+		(dolist (overlay (cadr cache))
+		  (let ((new-overlay
+			 (make-overlay (1+ (- end (nth 0 overlay)))
+				       (1+ (- end (nth 1 overlay)))))
+			(properties (nth 2 overlay)))
+		    (while properties
+		      (overlay-put new-overlay
+				   (pop properties) (pop properties)))))))
+	  (let ((shr-width width)
+		(shr-indentation 0))
+	    (shr-descend (cons 'td cont)))
+	  (delete-region
+	   (point)
+	   (+ (point)
+	      (skip-chars-backward " \t\n")))
+	  (push (list (cons width cont) (buffer-string)
+		      (shr-overlays-in-region (point-min) (point-max)))
+		shr-content-cache)))
+      (goto-char (point-min))
+      (let ((max 0))
+	(while (not (eobp))
+	  (end-of-line)
+	  (setq max (max max (current-column)))
+	  (forward-line 1))
+	(when fill
+	  (goto-char (point-min))
+	  ;; If the buffer is totally empty, then put a single blank
+	  ;; line here.
+	  (if (zerop (buffer-size))
+	      (insert (make-string width ? ))
+	    ;; Otherwise, fill the buffer.
+	    (while (not (eobp))
+	      (end-of-line)
+	      (when (> (- width (current-column)) 0)
+		(insert (make-string (- width (current-column)) ? )))
+	      (forward-line 1))))
+	(when style
+	  (shr-colorize-region
+	   (point-min) (point-max)
+	   (cdr (assq 'color shr-stylesheet))
+	   (cdr (assq 'background-color shr-stylesheet))))
+	(if fill
+	    (list max
+		  (count-lines (point-min) (point-max))
+		  (split-string (buffer-string) "\n")
+		  (shr-collect-overlays))
 	  (list max
-		(count-lines (point-min) (point-max))
-		(split-string (buffer-string) "\n")
-		(shr-collect-overlays))
-	(list max
-	      (shr-natural-width))))))
+		(shr-natural-width)))))))
 
 (defun shr-natural-width ()
   (goto-char (point-min))
