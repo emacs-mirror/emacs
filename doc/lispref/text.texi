@@ -2209,7 +2209,7 @@ various commands) to indent the current line.  The command
 
 In Lisp mode, the value is the symbol @code{lisp-indent-line}; in C
 mode, @code{c-indent-line}; in Fortran mode, @code{fortran-indent-line}.
-The default value is @code{indent-relative}.
+The default value is @code{indent-relative}.  @xref{Auto-Indentation}.
 @end defvar
 
 @deffn Command indent-according-to-mode
