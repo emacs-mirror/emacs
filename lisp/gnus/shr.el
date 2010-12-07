@@ -304,8 +304,8 @@ redirects somewhere else."
 		    (if (eq (preceding-char) ?')
 			(not (memq (char-after (- (point) 2))
 				   (list nil ?\n ? )))
-		      ;; There're some kinsoku CJK chars that aren't breakable.
 		      (and (shr-char-kinsoku-bol-p (preceding-char))
+			   (shr-char-breakable-p (following-char))
 			   (not (shr-char-kinsoku-bol-p (following-char)))))
 		    (shr-char-kinsoku-eol-p (following-char))))
       (backward-char 1))
