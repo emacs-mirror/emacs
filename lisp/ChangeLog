@@ -1,3 +1,33 @@
+2010-12-08  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Adjust parameter names and doc strings to resolve
+	confusion over whether "bookmark" meant a bookmark name or a
+	bookmark record.  Along the way, shorten one function's name for
+	similar reasons.  (Issue #7548)
+	(bookmark-name-from-record): New name for
+	`bookmark-name-from-full-record'.  All callers changed.
+	(bookmark-get-bookmark, bookmark-get-bookmark-record)
+	(bookmark-default-annotation-text, bookmark-prop-get, bookmark-prop-set)
+	(bookmark-get-annotation, bookmark-set-annotation)
+	(bookmark-get-filename, bookmark-set-filename)
+	(bookmark-get-position, bookmark-set-position)
+	(bookmark-get-front-context-string, bookmark-set-front-context-string)
+	(bookmark-get-rear-context-string, bookmark-set-rear-context-string)
+	(bookmark-get-handler, bookmark-edit-annotation, bookmark--jump-via)
+	(bookmark-handle-bookmark, bookmark-location, bookmark-show-annotation):
+	Rename `bookmark' parameter to `bookmark-name-or-record', to
+	clearly show its role, and shorten or adjust doc strings accordingly.
+	(bookmark-set-name): Same, and pass the parameter directly to
+	`bookmark-get-bookmark' instead of redundantly doing the callee's work.
+	(bookmark-default-annotation-text, bookmark-send-edited-annotation)
+	(bookmark-relocate, bookmark-insert-location, bookmark-insert)
+	(bookmark-delete): Rename `bookmark' parameter to `bookmark-name',
+	and in some cases shorten doc string accordingly.
+	(bookmark-rename): Change `old' and `new' parameters to `old-name'
+	and `new-name', and adjust an internal variable to avoid confusion.
+	(bookmark-jump, bookmark-jump-noselect): Clarify `bookmark'
+	parameter in doc string.
+
 2010-12-08  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/gdb-mi.el (gdb): Try to initialize comint input history
