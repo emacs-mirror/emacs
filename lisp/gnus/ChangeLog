@@ -1,3 +1,8 @@
+2010-12-08  Robert Pluim  <rpluim@gmail.com>
+
+	* gnus-demon.el (gnus-demon-init): Call run-with-timer with an integer
+	parameter, since XEmacs doesn't accept t as a parameter.
+
 2010-12-08  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (nnir-retrieve-headers): Use rassq when comparing article

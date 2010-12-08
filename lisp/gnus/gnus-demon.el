@@ -128,11 +128,11 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
              ;; (func number t)
              ;; Call when Emacs has been idle for `time'
              ((and (numberp time) (eq idle t))
-              (run-with-timer t time 'gnus-demon-run-callback func time))
+              (run-with-timer time time 'gnus-demon-run-callback func time))
              ;; (func number number)
              ;; Call every `time' when Emacs has been idle for `idle'
              ((and (numberp time) (numberp idle))
-              (run-with-timer t time 'gnus-demon-run-callback func idle))
+              (run-with-timer time time 'gnus-demon-run-callback func idle))
              ;; (func nil number)
              ;; Only call when Emacs has been idle for `idle'
              ((and (null time) (numberp idle))
