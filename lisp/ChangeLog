@@ -1,3 +1,8 @@
+2010-12-08   Jan Moringen  <jmoringe@techfak.uni-bielefeld.de>
+
+	* log-edit.el (log-edit-changelog-entries):
+	Regexp quote filename.  (Bug#7505)
+
 2010-12-08  Tom Breton  <tehom@panix.com>
 
 	* cus-edit.el (custom-save-all):
