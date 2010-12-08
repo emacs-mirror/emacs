@@ -647,7 +647,22 @@ detailed description of this mode.
   (gud-common-init command-line nil 'gud-gdbmi-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'gdbmi)
   (setq comint-input-sender 'gdb-send)
-
+  (when (ring-empty-p comint-input-ring) ; cf shell-mode
+    (let (hfile)
+      (when (catch 'done
+	      (dolist (file '(".gdbinit" "~/.gdbinit"))
+		(if (file-readable-p (setq file (expand-file-name file)))
+		    (with-temp-buffer
+		      (insert-file-contents file)
+		      (and (re-search-forward
+			    "^ *set history filename  *\\(.*\\)" nil t)
+			   (file-readable-p
+			    (setq hfile (expand-file-name
+					 (match-string 1)
+					 (file-name-directory file))))
+			   (throw 'done t))))))
+	(set (make-local-variable 'comint-input-ring-file-name) hfile)
+	(comint-read-input-ring t))))
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
 	   "Set temporary breakpoint at current line.")
   (gud-def gud-jump
@@ -4191,5 +4206,4 @@ BUFFER nil or omitted means use the current buffer."
 
 (provide 'gdb-mi)
 
-;; arch-tag: 1b41ea2b-f364-4cec-8f35-e02e4fe01912
 ;;; gdb-mi.el ends here

@@ -1,5 +1,8 @@
 2010-12-08  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/gdb-mi.el (gdb): Try to initialize comint input history
+	from gdb's history file.  (Bug#7575)
+
 	* mail/emacsbug.el (report-emacs-bug):
 	Try to handle some other mail clients.
 
