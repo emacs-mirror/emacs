@@ -1,3 +1,8 @@
+2010-12-08  Glenn Morris  <rgm@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Avoid colons in the queued
+	file names, for the sake of MS Windows.  (Bug#7588)
+
 2010-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-refine-hunk): Make it work when the hunk contains
