@@ -1,5 +1,8 @@
 2010-12-08  Glenn Morris  <rgm@gnu.org>
 
+	* mouse.el (mouse-menu-major-mode-map, mouse-menu-bar-map):
+	Run hooks to update menu contents.  (Bug#7586)
+
 	* mail/smtpmail.el (smtpmail-send-it): Avoid colons in the queued
 	file names, for the sake of MS Windows.  (Bug#7588)
 
