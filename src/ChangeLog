@@ -1,3 +1,7 @@
+2010-12-08  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Fverify_visited_file_modtime): Default to current buffer.
+
 2010-12-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* xml.c (parse_region): Ignore blank HTML nodes.

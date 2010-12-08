@@ -5044,9 +5044,10 @@ e_write (int desc, Lisp_Object string, int start, int end, struct coding_system 
 }
 
 DEFUN ("verify-visited-file-modtime", Fverify_visited_file_modtime,
-       Sverify_visited_file_modtime, 1, 1, 0,
+       Sverify_visited_file_modtime, 0, 1, 0,
        doc: /* Return t if last mod time of BUF's visited file matches what BUF records.
 This means that the file has not been changed since it was visited or saved.
+If BUF is omitted or nil, it defaults to the current buffer.
 See Info node `(elisp)Modification Time' for more details.  */)
   (Lisp_Object buf)
 {
@@ -5055,8 +5056,13 @@ See Info node `(elisp)Modification Time' for more details.  */)
   Lisp_Object handler;
   Lisp_Object filename;
 
-  CHECK_BUFFER (buf);
-  b = XBUFFER (buf);
+  if (NILP (buf))
+    b = current_buffer;
+  else
+    {
+      CHECK_BUFFER (buf);
+      b = XBUFFER (buf);
+    }
 
   if (!STRINGP (b->filename)) return Qt;
   if (b->modtime == 0) return Qt;
@@ -5863,5 +5869,3 @@ This includes interactive calls to `delete-file' and
 #endif
 }
 
-/* arch-tag: 64ba3fd7-f844-4fb2-ba4b-427eb928786c
-   (do not change this comment) */

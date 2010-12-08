@@ -1,7 +1,11 @@
+2010-12-08  Glenn Morris  <rgm@gnu.org>
+
+	* buffers.texi (Modification Time):
+	verify-visited-file-modtime now defaults to the current buffer.
+
 2010-11-27  Chong Yidong  <cyd@stupidchicken.com>
 
-	* nonascii.texi (Converting Representations): Document
-	byte-to-string.
+	* nonascii.texi (Converting Representations): Document byte-to-string.
 
 	* strings.texi (Creating Strings): Don't mention semi-obsolete
 	function char-to-string.
