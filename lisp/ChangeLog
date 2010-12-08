@@ -3,7 +3,7 @@
 	* diff-mode.el (diff-refine-hunk): Make it work when the hunk contains
 	empty lines without a leading space.
 
-2010-12-06  Leo <sdl.web@gmail.com>
+2010-12-06  Leo  <sdl.web@gmail.com>
 
 	* dired-aux.el (dired-do-redisplay): Postpone dired-after-readin-hook
 	while mapping over marks (Bug#6810).
