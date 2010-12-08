@@ -1,3 +1,8 @@
+2010-12-08  Tom Breton  <tehom@panix.com>
+
+	* cus-edit.el (custom-save-all):
+	Bind print-length and print-level to nil.  (Bug#7581)
+
 2010-12-08  Glenn Morris  <rgm@gnu.org>
 
 	* mouse.el (mouse-menu-major-mode-map, mouse-menu-bar-map):
