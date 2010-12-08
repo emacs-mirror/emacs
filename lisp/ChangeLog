@@ -1,3 +1,8 @@
+2010-12-08  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug):
+	Try to handle some other mail clients.
+
 2010-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (dir-locals-collect-variables): Don't let errors stop us.

@@ -288,7 +288,13 @@ usually do not have translators to read other languages for them.\n\n")
                  report-emacs-bug-send-hook 'mail-send-hook))
           ((eq mail-user-agent 'mh-e-user-agent)
            (setq report-emacs-bug-send-command "mh-send-letter"
-                 report-emacs-bug-send-hook 'mh-before-send-letter-hook)))
+                 report-emacs-bug-send-hook 'mh-before-send-letter-hook))
+	  ((eq mail-user-agent 'vm-user-agent)
+	   (setq report-emacs-bug-send-command "vm-mail-send-and-exit"
+		 report-emacs-bug-send-hook 'vm-mail-send-hook))
+	  ((eq mail-user-agent 'wl-user-agent)
+	   (setq report-emacs-bug-send-command "wl-draft-send-and-exit"
+		 report-emacs-bug-send-hook 'wl-draft-send-hook)))
     (unless report-emacs-bug-no-explanations
       (with-output-to-temp-buffer "*Bug Help*"
 	(princ "While in the mail buffer:\n\n")
