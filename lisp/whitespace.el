@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 13.1
+;; Version: 13.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -1652,12 +1652,12 @@ documentation."
 	    (whitespace-replace-action
 	     (if whitespace-indent-tabs-mode 'tabify 'untabify)
 	     rstart rend whitespace-space-before-tab-regexp
-	     (if whitespace-indent-tabs-mode 1 2)))
+	     (if whitespace-indent-tabs-mode 0 2)))
 	   ;; ACTION: replace SPACEs before TAB by TABs.
 	   ((memq 'space-before-tab::tab whitespace-style)
 	    (whitespace-replace-action
 	     'tabify rstart rend
-	     whitespace-space-before-tab-regexp 1))
+	     whitespace-space-before-tab-regexp 0))
 	   ;; ACTION: replace TABs by SPACEs.
 	   ((memq 'space-before-tab::space whitespace-style)
 	    (whitespace-replace-action

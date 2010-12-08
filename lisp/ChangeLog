@@ -1,3 +1,8 @@
+2010-12-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: New version 13.2.
+	(whitespace-cleanup-region): Tiny code fix.  (Bug#7582)
+
 2010-12-08  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el: Adjust parameter names and doc strings to resolve
