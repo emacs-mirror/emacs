@@ -1,3 +1,9 @@
+2010-12-08  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-retrieve-headers): Use rassq when comparing article
+	ids.
+	(nnir-run-gmane): Simplify groupspec formatting.
+
 2010-12-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-parse-flags): Tweak VANISHED regexp to avoid regexp

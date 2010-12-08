@@ -635,7 +635,7 @@ Add an entry here when adding a new search engine.")
 	  (while (not (eobp))
 	    (let* ((novitem (funcall parsefunc))
 		   (artno (mail-header-number novitem))
-		   (art (car (rassoc artno articleids))))
+		   (art (car (rassq artno articleids))))
 	      (when art
 		(mail-header-set-number novitem art)
 		(push novitem headers))
@@ -1379,11 +1379,10 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
       (let* ((case-fold-search t)
 	     (qstring (cdr (assq 'query query)))
 	     (server (cadr (gnus-server-to-method srv)))
-	     (groupspec (if groups
-			    (mapconcat
-			     (lambda (x)
-			       (format "group:%s" (gnus-group-short-name x)))
-			     groups " ") ""))
+	     (groupspec (mapconcat
+			 (lambda (x)
+			   (format "group:%s" (gnus-group-short-name x)))
+			 groups " "))
 	     (authorspec
 	      (if (assq 'author query)
 		  (format "author:%s" (cdr (assq 'author query))) ""))
