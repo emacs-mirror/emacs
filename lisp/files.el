@@ -3370,22 +3370,29 @@ ROOT is the root directory of the project.
 Return the new variables list."
   (let* ((file-name (buffer-file-name))
 	 (sub-file-name (if file-name
+                            ;; FIXME: Why not use file-relative-name?
 			    (substring file-name (length root)))))
-    (dolist (entry class-variables variables)
-      (let ((key (car entry)))
-	(cond
-	 ((stringp key)
-	  ;; Don't include this in the previous condition, because we
-	  ;; want to filter all strings before the next condition.
-	  (when (and sub-file-name
-		     (>= (length sub-file-name) (length key))
-		     (string= key (substring sub-file-name 0 (length key))))
-	    (setq variables (dir-locals-collect-variables
-			     (cdr entry) root variables))))
-	 ((or (not key)
-	      (derived-mode-p key))
-	  (setq variables (dir-locals-collect-mode-variables
-			   (cdr entry) variables))))))))
+    (condition-case err
+        (dolist (entry class-variables variables)
+          (let ((key (car entry)))
+            (cond
+             ((stringp key)
+              ;; Don't include this in the previous condition, because we
+              ;; want to filter all strings before the next condition.
+              (when (and sub-file-name
+                         (>= (length sub-file-name) (length key))
+                         (string-prefix-p key sub-file-name))
+                (setq variables (dir-locals-collect-variables
+                                 (cdr entry) root variables))))
+             ((or (not key)
+                  (derived-mode-p key))
+              (setq variables (dir-locals-collect-mode-variables
+                               (cdr entry) variables))))))
+      (error
+       ;; The file's content might be invalid (e.g. have a merge conflict), but
+       ;; that shouldn't prevent the user from opening the file.
+       (message ".dir-locals error: %s" (error-message-string err))
+       nil))))
 
 (defun dir-locals-set-directory-class (directory class &optional mtime)
   "Declare that the DIRECTORY root is an instance of CLASS.
@@ -3516,7 +3523,9 @@ and `file-local-variables-alist', without applying them."
 	  (dir-name nil))
       (cond
        ((stringp variables-file)
-	(setq dir-name (if (buffer-file-name) (file-name-directory (buffer-file-name)) default-directory))
+	(setq dir-name (if (buffer-file-name)
+                           (file-name-directory (buffer-file-name))
+                         default-directory))
 	(setq class (dir-locals-read-from-file variables-file)))
        ((consp variables-file)
 	(setq dir-name (nth 0 variables-file))
@@ -3826,21 +3835,25 @@ BACKUPNAME is the backup file name, which is the old file renamed."
   (and context
        (set-file-selinux-context to-name context)))
 
+(defvar file-name-version-regexp
+  "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+~\\)"
+  "Regular expression matching the backup/version part of a file name.
+Used by `file-name-sans-versions'.")
+
 (defun file-name-sans-versions (name &optional keep-backup-version)
   "Return file NAME sans backup versions or strings.
 This is a separate procedure so your site-init or startup file can
 redefine it.
 If the optional argument KEEP-BACKUP-VERSION is non-nil,
-we do not remove backup version numbers, only true file version numbers."
+we do not remove backup version numbers, only true file version numbers.
+See also `file-name-version-regexp'."
   (let ((handler (find-file-name-handler name 'file-name-sans-versions)))
     (if handler
 	(funcall handler 'file-name-sans-versions name keep-backup-version)
       (substring name 0
-		 (if keep-backup-version
-		     (length name)
-		   (or (string-match "\\.~[-[:alnum:]:#@^._]+~\\'" name)
-		       (string-match "~\\'" name)
-		       (length name)))))))
+		 (unless keep-backup-version
+                   (string-match (concat file-name-version-regexp "\\'")
+                                 name))))))
 
 (defun file-ownership-preserved-p (file)
   "Return t if deleting FILE and rewriting it would preserve the owner."

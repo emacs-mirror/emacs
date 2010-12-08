@@ -1,3 +1,14 @@
+2010-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (dir-locals-collect-variables): Don't let errors stop us.
+	Use string-prefix-p.
+	(file-name-version-regexp): New var.
+	(file-name-sans-versions):
+	* jka-cmpr-hook.el (jka-compr-build-file-regexp): Use it,
+	(jka-compr-get-compression-info): Use dolist.
+	(jka-compr-compression-info-list): Don't bother specifying
+	version/backup regexps.
+
 2010-12-07  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* simple.el (just-one-space): Make argument n default to 1 if
