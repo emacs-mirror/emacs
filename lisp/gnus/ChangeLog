@@ -3,6 +3,7 @@
 	* nnir.el (nnir-retrieve-headers): Use rassq when comparing article
 	ids.
 	(nnir-run-gmane): Simplify groupspec formatting.
+	(nnir-request-expire-articles): New function.
 
 2010-12-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

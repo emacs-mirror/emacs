@@ -687,6 +687,25 @@ Add an entry here when adding a new search engine.")
 	  to-newsgroup		; Not respooling
 	  (gnus-group-real-name to-newsgroup)))))
 
+(deffoo nnir-request-expire-articles (articles group &optional server force)
+  (let ((articles-by-group (nnir-categorize
+			    articles nnir-article-group nnir-article-ids))
+	not-deleted)
+    (while (not (null articles-by-group))
+      (let* ((group-articles (pop articles-by-group))
+	     (artgroup (car group-articles))
+	     (articleids (cadr group-articles))
+	     (artlist (sort (mapcar 'cdr articleids) '<)))
+	(unless (gnus-check-backend-function 'request-expire-articles
+					     artgroup)
+	  (error "The group %s does not support article deletion" artgroup))
+	(unless (gnus-check-server (gnus-find-method-for-group artgroup))
+	  (error "Couldn't open server for group %s" artgroup))
+	(push (gnus-request-expire-articles
+	       artlist artgroup force)
+	      not-deleted)))
+    (sort (delq nil not-deleted) '<)))
+
 (deffoo nnir-warp-to-article ()
   (let* ((cur (if (> (gnus-summary-article-number) 0)
 		  (gnus-summary-article-number)
