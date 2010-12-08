@@ -1,3 +1,10 @@
+2010-12-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-start-file-process): Protect
+	buffer-modified value.  (Bug#7557)
+	(tramp-action-password): Delete region, do not narrow.
+	(tramp-process-actions): Do not widen.
+
 2010-12-08   Jan Moringen  <jmoringe@techfak.uni-bielefeld.de>
 
 	* log-edit.el (log-edit-changelog-entries):
