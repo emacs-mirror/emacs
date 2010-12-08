@@ -43,9 +43,8 @@
 ;;  - Symmetric-key and key-pair topic encryption, plus symmetric passphrase
 ;;    mnemonic support, with verification against an established passphrase
 ;;    (using a stashed encrypted dummy string) and user-supplied hint
-;;    maintenance.  (See allout-toggle-current-subtree-encryption docstring.
-;;    Currently only GnuPG encryption is supported
-;;PGG and integration with gpg-agent is not yet implemented.)
+;;    maintenance.  Encryption is via the Emacs 'epg' library.  See
+;;    allout-toggle-current-subtree-encryption docstring.
 ;;  - Automatic topic-number maintenance
 ;;  - "Hot-spot" operation, for single-keystroke maneuvering and
 ;;    exposure control (see the allout-mode docstring)
@@ -84,11 +83,9 @@
 ;;;_* Dependency autoloads
 (require 'overlay)
 (eval-when-compile
-  ;; Most of the requires here are for stuff covered by autoloads.
-  ;; Since just byte-compiling doesn't trigger autoloads, so that
-  ;; "function not found" warnings would occur without these requires.
-  (require 'pgg)
-  (require 'pgg-gpg)
+  ;; Most of the requires here are for stuff covered by autoloads, which
+  ;; byte-compiling doesn't trigger.
+  (require 'epa)
   (require 'overlay)
   ;; `cl' is required for `assert'.  `assert' is not covered by a standard
   ;; autoload, but it is a macro, so that eval-when-compile is sufficient
@@ -1536,6 +1533,12 @@ wrapped within allout's automatic fill-prefix setting.")
   "Horrible hack used to prevent invalid multiple triggering of outline
 mode from prop-line file-var activation.  Used by `allout-mode' function
 to track repeats.")
+;;;_   = allout-epg-protocol
+(defvar allout-epg-protocol 'OpenPGP
+  "*The default protocol.
+The value can be either 'OpenPGP or 'CMS.
+
+You should bind this variable with `let', but do not set it globally.")
 ;;;_   = allout-passphrase-verifier-string
 (defvar allout-passphrase-verifier-string nil
   "Setting used to test solicited encryption passphrases against the one
@@ -1596,15 +1599,15 @@ substition is used against the regexp matches, a la `replace-match'.")
 (defvar allout-encryption-ciphertext-rejection-regexps nil
   "Variable for regexps matching plaintext to remove before encryption.
 
-This is for the sake of redoing encryption in cases where the ciphertext
-incidentally contains strings that would disrupt mode operation --
-for example, a line that happens to look like an allout-mode topic prefix.
+This is used to detect strings in encryption results that would
+register as allout mode structural elements, for exmple, as a
+topic prefix.
 
 Entries must be symbols that are bound to the desired regexp values.
 
-The encryption will be retried up to
-`allout-encryption-ciphertext-rejection-limit' times, after which an error
-is raised.")
+Encryptions that result in matches will be retried, up to
+`allout-encryption-ciphertext-rejection-limit' times, after which
+an error is raised.")
 
 (make-variable-buffer-local 'allout-encryption-ciphertext-rejection-regexps)
 ;;;_   = allout-encryption-ciphertext-rejection-ceiling
@@ -6033,9 +6036,6 @@ encrypted.  If you want to encrypt the contents of a top-level topic, use
 The encryption passphrase is solicited if not currently available in the
 passphrase cache from a recent encryption action.
 
-;;PGG The solicited passphrase is retained for reuse in a cache, if enabled.  See
-;;PGG `pgg-cache-passphrase' and `pgg-passphrase-cache-expiry' for details.
-
   Symmetric Passphrase Hinting and Verification
 
 If the file previously had no associated passphrase, or had a different
@@ -6115,6 +6115,7 @@ See `allout-toggle-current-subtree-encryption' for more details."
                                    (if was-encrypted "de" "en"))
                           nil))
            ;; Assess key parameters:
+           ;;PGG rework key-info!
            (key-info (or
                       ;; detect the type by which it is already encrypted
                       (and was-encrypted
@@ -6152,7 +6153,6 @@ See `allout-toggle-current-subtree-encryption' for more details."
             (allout-encrypt-string subject-text was-encrypted
                                     (current-buffer)
                                     for-key-type for-key-identity
-                                    ;;PGG fetch-pass
                                     ))
 
        ;; Replace the subtree with the processed product.
@@ -6184,65 +6184,29 @@ See `allout-toggle-current-subtree-encryption' for more details."
            (insert "*"))))
       (run-hook-with-args 'allout-structure-added-hook
                           bullet-pos subtree-end))))
-;;;_  > allout-encrypt-string (text decrypt allout-buffer key-type for-key
-;;;                                  ;;PGG fetch-pass
-;;;                                  &optional retried verifying
-;;;                                  passphrase)
-(defun allout-encrypt-string (text decrypt allout-buffer key-type for-key
-                                   ;;PGG fetch-pass
-                                   &optional retried rejected
-                                   verifying passphrase)
+;;;_  > allout-encrypt-string (text decrypt allout-buffer)
+(defun allout-encrypt-string (text decrypt allout-buffer &optional rejected)
   "Encrypt or decrypt message TEXT.
+
+Returns the resulting string, or nil if the transformation fails.
 
 If DECRYPT is true (default false), then decrypt instead of encrypt.
 
-KEY-TYPE, either `symmetric' or `keypair', specifies which type
-of cypher to use.
-
-FOR-KEY is human readable identification of the first of the user's
-eligible secret keys a keypair decryption targets, or else nil.
-
-;;PGG FETCH-PASS (default false) forces fresh prompting for the passphrase.
-
-Optional RETRIED is for internal use -- conveys the number of failed keys
-that have been solicited in sequence leading to this current call.
-
-Optional PASSPHRASE enables explicit delivery of the decryption passphrase,
-for verification purposes.
+ALLOUT-BUFFER identifies the buffer containing the text.
 
 Optional REJECTED is for internal use -- conveys the number of
 rejections due to matches against
 `allout-encryption-ciphertext-rejection-regexps', as limited by
 `allout-encryption-ciphertext-rejection-ceiling'.
+"
 
-Returns the resulting string, or nil if the transformation fails."
-
-  (require 'epa)
-  (require 'pgg)
+  (require 'epg)
 
   (let* ((epg-context (epg-make-context epa-protocol t))
-         ;;PGG (scheme (upcase
-         ;;PGG          (format "%s" (or pgg-scheme pgg-default-scheme "GPG"))))
-         (for-key (and (equal key-type 'keypair)
-                       (or for-key
-                           (split-string (read-string
-                                          (format "%s message recipients: "
-                                                  epa-protocol))
-                                         "[ \t,]+"))))
-         (target-prompt-id (if (equal key-type 'keypair)
-                               (if (= (length for-key) 1)
-                                   (car for-key) for-key)
-                             (buffer-name allout-buffer)))
-         ;;PGG  (target-cache-id (format "%s-%s"
-         ;;PGG                           key-type
-         ;;PGG                           (if (equal key-type 'keypair)
-         ;;PGG                               target-prompt-id
-         ;;PGG                             (or (buffer-file-name allout-buffer)
-         ;;PGG                                 target-prompt-id))))
          (encoding (with-current-buffer allout-buffer
                      buffer-file-coding-system))
          (multibyte (with-current-buffer allout-buffer
-                     enable-multibyte-characters))
+                      enable-multibyte-characters))
          (strip-plaintext-regexps
           (if (not decrypt)
               (allout-get-configvar-values
@@ -6254,160 +6218,186 @@ Returns the resulting string, or nil if the transformation fails."
          (rejected (or rejected 0))
          (rejections-left (- allout-encryption-ciphertext-rejection-ceiling
                              rejected))
-         result-text status
+         massaged-text result-text
          )
 
-    ;;PGG (if (and fetch-pass (not passphrase))
-    ;;PGG     ;; Force later fetch by evicting passphrase from the cache.
-    ;;PGG     (pgg-remove-passphrase-from-cache target-cache-id t))
+    ;; Massage the subject text for encoding and filtering.
+    (with-temp-buffer
+      (insert text)
+      ;; convey the text characteristics of the original buffer:
+      (allout-set-buffer-multibyte multibyte)
+      (when encoding
+        (set-buffer-file-coding-system encoding)
+        (if (not decrypt)
+            (encode-coding-region (point-min) (point-max) encoding)))
 
-    (catch 'encryption-failed
+      ;; remove sanitization regexps matches before encrypting:
+      (when (and strip-plaintext-regexps (not decrypt))
+        (dolist (re strip-plaintext-regexps)
+          (let ((re (if (listp re) (car re) re))
+                (replacement (if (listp re) (cadr re) "")))
+            (goto-char (point-min))
+            (save-match-data
+              (while (re-search-forward re nil t)
+                (replace-match replacement nil nil))))))
+      (setq massaged-text (buffer-substring-no-properties (point-min)
+                                                          (point-max))))
+    (setq result-text
 
-        ;; We handle only symmetric-key passphrase caching.
-        (if (and (not passphrase)
-                 (not (equal key-type 'keypair)))
-            (setq passphrase (allout-obtain-passphrase for-key
-                                                       ;;PGG target-cache-id
-                                                       target-prompt-id
-                                                       key-type
-                                                       allout-buffer
-                                                       retried
-                                                       ;;PGG fetch-pass
-                                                       )))
+          (if decrypt
 
-        (with-temp-buffer
+              (epg-decrypt-string epg-context
+                                  (encode-coding-string massaged-text
+                                                        (or encoding 'utf-8)))
 
-          (insert text)
+            (if (equal key-type 'symmetric)
+                ;; establish the passphrase callback.  it will only be used
+                ;; with gpgv1, but then it will handle hinting and verification.
+                (allout-set-epg-passphrase-callback epg-context allout-buffer))
 
-          ;; convey the text characteristics of the original buffer:
-          (allout-set-buffer-multibyte multibyte)
-          (when encoding
-            (set-buffer-file-coding-system encoding)
-            (if (not decrypt)
-                (encode-coding-region (point-min) (point-max) encoding)))
+            (epg-encrypt-string epg-context
+                                (encode-coding-string massaged-text
+                                                      (or encoding 'utf-8))
+                                nil)))
 
-          (when (and strip-plaintext-regexps (not decrypt))
-            (dolist (re strip-plaintext-regexps)
-              (let ((re (if (listp re) (car re) re))
-                    (replacement (if (listp re) (cadr re) "")))
-                (goto-char (point-min))
-                (save-match-data
-                  (while (re-search-forward re nil t)
-                    (replace-match replacement nil nil))))))
+    ;; validate result -- non-empty
+    (if (not result-text)
+        (error "%scryption failed." (if decrypt "De" "En"))
 
-          (cond
+      ;; Retry (within limit) if ciphertext contains rejections:
+      ((and (not decrypt)
+            ;; Check for disqualification of this ciphertext:
+            (let ((regexps reject-ciphertext-regexps)
+                  reject-it)
+              (while (and regexps (not reject-it))
+                (setq reject-it (string-match (car regexps) result-text))
+                (pop regexps))
+              reject-it))
+       (setq rejections-left (1- rejections-left))
+       (if (<= rejections-left 0)
+           (error (concat "Ciphertext rejected too many times"
+                          " (%s), per `%s'")
+                  allout-encryption-ciphertext-rejection-ceiling
+                  'allout-encryption-ciphertext-rejection-regexps)
+         ;; try again:
+         ;; XXX alas, we depend on external caching for the passphrase.
+         (allout-encrypt-string text decrypt allout-buffer
+                                (1+ rejected))))
 
-           ;; symmetric:
-           ((equal key-type 'symmetric)
-            (setq status
-                  (if decrypt
+      ;; Barf if encryption yields extraordinary control chars:
+      ((and (not decrypt)
+            (string-match "[\C-a\C-k\C-o-\C-z\C-@]"
+                          result-text))
+       (error (concat "Encryption produced non-armored text, which"
+                      "conflicts with allout mode -- reconfigure!")))
 
-                      (pgg-decrypt (point-min) (point-max) passphrase)
-
-                    (pgg-encrypt-symmetric (point-min) (point-max)
-                                           passphrase)))
-
-            (if status
-                (pgg-situate-output (point-min) (point-max))
-              ;; failed -- handle passphrase caching
-              (if verifying
-                  (throw 'encryption-failed nil)
-                ;;PGG (pgg-remove-passphrase-from-cache target-cache-id t)
-                (error "Symmetric-cipher %scryption failed -- %s"
-                       (if decrypt "de" "en")
-                       "try again with different passphrase"))))
-
-           ;; encrypt `keypair':
-           ((not decrypt)
-
-            (setq status
-
-                  (pgg-encrypt for-key
-                               nil (point-min) (point-max) passphrase))
-
-            (if status
-                (pgg-situate-output (point-min) (point-max))
-              (error ;;PGG (pgg-remove-passphrase-from-cache target-cache-id t)
-                     (error "encryption failed"))))
-
-           ;; decrypt `keypair':
-           (t
-
-            (setq status
-                  (pgg-decrypt (point-min) (point-max) passphrase))
-
-            (if status
-                (pgg-situate-output (point-min) (point-max))
-              (error ;;PGG (pgg-remove-passphrase-from-cache target-cache-id t)
-                     (error "decryption failed")))))
-
-          (setq result-text
-                (buffer-substring-no-properties
-                 1 (- (point-max) (if decrypt 0 1))))
-          )
-
-        ;; validate result -- non-empty
-        (cond ((not result-text)
-               (if verifying
-                   nil
-                 ;; transform was fruitless, retry w/new passphrase.
-                 ;;PGG (pgg-remove-passphrase-from-cache target-cache-id t)
-                 (allout-encrypt-string text decrypt allout-buffer
-                                        key-type for-key
-                                        ;;PGG nil
-                                        (if retried (1+ retried) 1)
-                                        rejected verifying nil)))
-
-              ;; Retry (within limit) if ciphertext contains rejections:
-              ((and (not decrypt)
-                    ;; Check for disqualification of this ciphertext:
-                    (let ((regexps reject-ciphertext-regexps)
-                          reject-it)
-                      (while (and regexps (not reject-it))
-                        (setq reject-it (string-match (car regexps)
-                                                      result-text))
-                        (pop regexps))
-                      reject-it))
-               (setq rejections-left (1- rejections-left))
-               (if (<= rejections-left 0)
-                   (error (concat "Ciphertext rejected too many times"
-                                  " (%s), per `%s'")
-                          allout-encryption-ciphertext-rejection-ceiling
-                          'allout-encryption-ciphertext-rejection-regexps)
-                 (allout-encrypt-string text decrypt allout-buffer
-                                        key-type for-key
-                                        ;;PGG nil
-                                        retried (1+ rejected)
-                                        verifying passphrase)))
-              ;; Barf if encryption yields extraordinary control chars:
-              ((and (not decrypt)
-                    (string-match "[\C-a\C-k\C-o-\C-z\C-@]"
-                                  result-text))
-               (error (concat "Encryption produced non-armored text, which"
-                              "conflicts with allout mode -- reconfigure!")))
-
-              ;; valid result and just verifying or non-symmetric:
-              ((or verifying (not (equal key-type 'symmetric)))
-               ;;PGG (if (or verifying decrypt)
-               ;;PGG     (pgg-add-passphrase-to-cache target-cache-id
-               ;;PGG                                  passphrase t))
-               result-text)
-
-              ;; valid result and regular symmetric -- "register"
-              ;; passphrase with mnemonic aids/cache.
-              (t
-               (set-buffer allout-buffer)
-               ;;PGG (if passphrase
-               ;;PGG     (pgg-add-passphrase-to-cache target-cache-id
-               ;;PGG                                  passphrase t))
-               (allout-update-passphrase-mnemonic-aids for-key passphrase
-                                                       allout-buffer)
-               result-text)
-              )
-        )
+      (t result-text)
+      )
     )
   )
-;;;_  > allout-obtain-passphrase (for-key  ;;PGG cache-id
+;;;_  . epg passphrase callback handling (epg uses only for GnuPG v1)
+;;;_   > allout-epg-passphrase-callback-function (context key-id state)
+(defun allout-epg-passphrase-callback-function (context key-id state)
+  "Handle allout passphrase prompting when used with the emacs epg library.
+
+Note that epg's passphrase callback provision only works when
+operating with GnuPG v1.  Check your GnuPG version using 'gpg
+--version' from the command line.
+
+CONTEXT is an epg context object, per 'epg-make-context'.
+
+KEY-ID is apparently either 'SYM, for symmetric passphrase, or
+something else for a key pair, per 'epg-passphrase-callback-function'.
+
+STATE is an allout passphrase state construct, per
+'allout-make-passphrase-state'."
+  (message "allout-passphrase-callback-function: in")(sit-for 1)
+  (let* ((allout-buffer (allout-passphrase-state-buffer state))
+         (provided (allout-passphrase-state-buffer state)))
+    (if (eq key-id 'SYM)
+        (if provided
+            provided
+          (let*
+              ((hint-string
+                (with-current-buffer allout-buffer
+                  (if (and (not (string= allout-passphrase-hint-string
+                                         ""))
+                           (or (equal allout-passphrase-hint-handling 'always)
+                               (and (equal allout-passphrase-hint-handling
+                                           'needed)
+                                    retried)))
+                      (format " [%s]" allout-passphrase-hint-string)
+                    "")))
+               (verifier-string (allout-get-encryption-passphrase-verifier))
+               (passphrase (read-passwd
+                            (format "Passphrase for %s symmetric encryption%s: "
+                                    (buffer-name allout-buffer) hint-string))))
+            (if allout-passphrase-verifier-handling
+                (if verifier-string
+                    ;; try verifying against existing verifier.
+                    ;; - successful: return the passphrase.
+                    ;; - unsuccessful: offer to change the verifier
+                    ;;   - if change accepted, change verifier and continue
+                    ;;   - if change refused, raise an encryption error.
+                    (if (condition-case err
+                            (epg-decrypt-string
+                             (allout-context-epg-passphrase-callback
+                              epg-context allout-buffer passphrase)
+                             verifier-string)
+                    (error nil))
+            ;;(allout-update-passphrase-mnemonic-aids for-key passphrase
+            ;;                                         allout-buffer)
+
+            )
+      (read-passwd
+       (if (eq key-id 'PIN)
+           "Passphrase for PIN: "
+         (let ((entry (assoc key-id epg-user-id-alist)))
+           (if entry
+               (format "Passphrase for %s %s: " key-id (cdr entry))
+             (format "Passphrase for %s: " key-id)))))))
+;;;_   > allout-context-epg-passphrase-callback (epg-context buffer
+;;;                                          &optional passphrase)
+(defun allout-context-epg-passphrase-callback (epg-context buffer
+                                           &optional passphrase)
+  "Return an epg-context which uses allout's passphrase callback with state.
+
+NOTE that epg's passphrase callback provision only works when
+operating with GnuPG v1.  Check your GnuPG version using 'gpg
+--version' from the command line.
+
+A deep copy of the specified EPG-CONTEXT, per 'epg-make-context',
+is used as a template.
+
+BUFFER is the allout outline buffer containing the target text.
+
+Optional PASSPHRASE is an already obtained passphrase to be used for
+multiple decryptions, eg when verifying symmetric passphrases."
+  (let ((new-epg-context (copy-tree epg-context)))
+    (epg-context-set-passphrase-callback
+     new-epg-context
+     (cons #'allout-epg-passphrase-callback-function
+           (allout-make-passphrase-state buffer passphrase)))
+    new-epg-context))
+;;;_   > allout-make-passphrase-state (buffer &optional passphrase)
+(defun allout-make-passphrase-state (buffer &optional passphrase)
+  "Return an allout passphrase state construct.
+
+BUFFER is the allout outline buffer.
+
+Optional PASSPHRASE is used when decrypting to convey an already
+obtained passphrase for doing multiple decryptions, eg when doing
+verification as part of symmetric passphrse decryption."
+  (cons buffer passphrase))
+;;;_   > allout-passphrase-state-buffer (state)
+(defun allout-passphrase-state-buffer (state)
+  "Given an allout passphrase STATE construct, return the buffer."
+  (car state))
+;;;_   > allout-passphrase-state-passphrase (state)
+(defun allout-passphrase-state-passphrase (state)
+  "Given an allout passphrase STATE construct, return the passphrase or nil."
+  (cdr state))
+;;;_  > ;;PGG allout-obtain-passphrase (for-key  ;;PGG cache-id
 ;;;                               prompt-id key-type allout-buffer retried
 ;;;                               ;;PGG fetch-pass)
 (defun allout-obtain-passphrase (for-key ;;PGG cache-id
@@ -6541,7 +6531,7 @@ RETRIED is the number of this attempt to obtain this passphrase.
          (save-match-data (looking-at "\\*")))
     )
   )
-;;;_  > allout-encrypted-key-info (text)
+;;;_  > ;;PGG allout-encrypted-key-info (text)
 ;; XXX gpg-specific, alas
 (defun allout-encrypted-key-info (text)
   "Return a pair of the key type and identity of a recipient's secret key.
@@ -6558,7 +6548,7 @@ An error is raised if the text is not encrypted."
     (with-temp-buffer
       (insert text)
       (let* ((parsed-armor (pgg-parse-armor-region (point-min) (point-max)))
-             (type (if (pgg-gpg-symmetric-key-p parsed-armor)
+             (type (if (assq 'symmetric-key-algorithm (car (cdr parsed-armor)))
                        'symmetric
                      'keypair))
              secret-keys first-secret-key for-key-owner)
