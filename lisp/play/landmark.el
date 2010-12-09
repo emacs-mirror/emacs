@@ -1137,7 +1137,7 @@ because it is overwritten by \"One moment please\"."
 
 (defun lm-weights-debug ()
   (if lm-debug
-      (progn (lm-print-wts) (lm-blackbox) (lm-print-y,s,noise)
+      (progn (lm-print-wts) (lm-blackbox) (lm-print-y-s-noise)
 	     (lm-print-smell))))
 
 ;;;_  - Printing various things
@@ -1187,7 +1187,7 @@ because it is overwritten by \"One moment please\"."
     (insert (format "%S\n" moves))))
 
 
-(defun lm-print-y,s,noise-int (direction)
+(defun lm-print-y-s-noise-int (direction)
   (insert (format "%S:lm-y %S, s %S, noise %S \n"
 		    (symbol-name direction)
 		    (get direction 'y_t)
@@ -1195,11 +1195,11 @@ because it is overwritten by \"One moment please\"."
 		    (get direction 'noise)
 		    )))
 
-(defun lm-print-y,s,noise ()
+(defun lm-print-y-s-noise ()
   (interactive)
   (with-current-buffer "*lm-y,s,noise*"
     (insert "==============================\n")
-    (mapc 'lm-print-y,s,noise-int lm-directions)))
+    (mapc 'lm-print-y-s-noise-int lm-directions)))
 
 (defun lm-print-smell-int (direction)
   (insert (format "%S: smell: %S \n"
