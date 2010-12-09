@@ -1103,7 +1103,7 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
   :init-value nil
   :global     nil
   :group      'whitespace
-  (let ((whitespace-style '(newline-mark newline)))
+  (let ((whitespace-style '(face newline-mark newline)))
     (whitespace-mode whitespace-newline-mode)
     ;; sync states (running a batch job)
     (setq whitespace-newline-mode whitespace-mode)))

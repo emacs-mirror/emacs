@@ -1,3 +1,7 @@
+2010-12-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el (whitespace-newline-mode): Code fix.
+
 2010-12-09  Glenn Morris  <rgm@gnu.org>
 
 	* play/landmark.el (lm-print-y,s,noise-int, lm-print-y,s,noise):
