@@ -1,3 +1,10 @@
+2010-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-frame-for-menubar, menu-bar-positive-p):
+	New functions.
+	(menu-bar-showhide-menu) <menu-bar-mode, showhide-tool-bar>: Use
+	them instead of `nil' and `>', respectively.  (Bug#1077)
+
 2010-12-09  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/diary-lib.el (diary-list-sexp-entries):
