@@ -1,3 +1,8 @@
+2010-12-09  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/diary-lib.el (diary-list-sexp-entries):
+	Handle case of no newline at end of file.  (Bug#7536)
+
 2010-12-09  Glenn Morris  <rgm@gnu.org>
 
 	* mail/smtpmail.el (smtpmail-send-it): Revert previous change.

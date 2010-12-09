@@ -1744,7 +1744,7 @@ best if they are non-marking."
         (forward-line 1)
         (while (looking-at "[ \t]")
           (forward-line 1))
-        (backward-char 1)
+        (if (bolp) (backward-char 1))
         (setq entry (buffer-substring-no-properties entry-start (point))))
       (setq diary-entry (diary-sexp-entry sexp entry date)
             literal entry               ; before evaluation
