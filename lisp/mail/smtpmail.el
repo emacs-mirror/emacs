@@ -379,7 +379,7 @@ The list is in preference order.")
 	    (let* ((file-data
 		    (expand-file-name
 		     (format "%s_%i"
-			     (format-time-string "%Y-%m-%d_%H-%M-%S")
+			     (format-time-string "%Y-%m-%d_%H:%M:%S")
 			     (setq smtpmail-queue-counter
 				   (1+ smtpmail-queue-counter)))
 		     smtpmail-queue-dir))
