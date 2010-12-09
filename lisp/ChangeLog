@@ -1,3 +1,15 @@
+2010-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-frame-for-menubar, menu-bar-positive-p):
+	New functions.
+	(menu-bar-showhide-menu) <menu-bar-mode, showhide-tool-bar>: Use
+	them instead of `nil' and `>', respectively.
+	(menu-bar-showhide-tool-bar-menu): Use menu-bar-frame-for-menubar
+	instead of `nil'.
+	(toggle-menu-bar-mode-from-frame): Use menu-bar-frame-for-menubar
+	and menu-bar-positive-p instead of `nil' and `>', respectively.
+	(Bug#1077)
+
 2010-12-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el (whitespace-newline-mode): Code fix.

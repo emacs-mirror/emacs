@@ -1020,10 +1020,24 @@ mail status in mode line"))
 	      :visible (and (display-graphic-p) (fboundp 'x-show-tip))
 	      :button (:toggle . tooltip-mode)))
 
+(defun menu-bar-frame-for-menubar ()
+  "Return the frame suitable for updating the menu bar."
+  (or (and (framep menu-updating-frame)
+	   menu-updating-frame)
+      (selected-frame)))
+
+(defun menu-bar-positive-p (val)
+  "Return non-nil iff VAL is a positive number."
+  (and (numberp val)
+       (> val 0)))
+
 (define-key menu-bar-showhide-menu [menu-bar-mode]
   `(menu-item ,(purecopy "Menu-bar") toggle-menu-bar-mode-from-frame
 	      :help ,(purecopy "Turn menu-bar on/off")
-	      :button (:toggle . (> (frame-parameter nil 'menu-bar-lines) 0))))
+	      :button
+	      (:toggle . (menu-bar-positive-p
+			  (frame-parameter (menu-bar-frame-for-menubar)
+					   'menu-bar-lines)))))
 
 (defun menu-bar-set-tool-bar-position (position)
   (customize-set-variable 'tool-bar-mode t)
@@ -1060,7 +1074,9 @@ mail status in mode line"))
 		    :visible (display-graphic-p)
 		    :button
 		    (:radio . (and tool-bar-mode
-				   (eq (frame-parameter nil 'tool-bar-position)
+				   (eq (frame-parameter
+					(menu-bar-frame-for-menubar)
+					'tool-bar-position)
 				       'left)))))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-right]
@@ -1070,7 +1086,9 @@ mail status in mode line"))
 		    :visible (display-graphic-p)
 		    :button
 		    (:radio . (and tool-bar-mode
-				   (eq (frame-parameter nil 'tool-bar-position)
+				   (eq (frame-parameter
+					(menu-bar-frame-for-menubar)
+					'tool-bar-position)
 				       'right)))))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-bottom]
@@ -1080,7 +1098,9 @@ mail status in mode line"))
 		    :visible (display-graphic-p)
 		    :button
 		    (:radio . (and tool-bar-mode
-				   (eq (frame-parameter nil 'tool-bar-position)
+				   (eq (frame-parameter
+					(menu-bar-frame-for-menubar)
+					'tool-bar-position)
 				       'bottom)))))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-top]
@@ -1090,7 +1110,9 @@ mail status in mode line"))
 		    :visible (display-graphic-p)
 		    :button
 		    (:radio . (and tool-bar-mode
-				   (eq (frame-parameter nil 'tool-bar-position)
+				   (eq (frame-parameter
+					(menu-bar-frame-for-menubar)
+					'tool-bar-position)
 				       'top)))))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-none]
@@ -1110,8 +1132,10 @@ mail status in mode line"))
     `(menu-item ,(purecopy "Tool-bar") toggle-tool-bar-mode-from-frame
 		:help ,(purecopy "Turn tool-bar on/off")
 		:visible (display-graphic-p)
-		:button (:toggle . (> (frame-parameter nil 'tool-bar-lines) 0))))
-)
+		:button
+		(:toggle . (menu-bar-positive-p
+			    (frame-parameter (menu-bar-frame-for-menubar)
+					     'tool-bar-lines))))))
 
 (define-key menu-bar-options-menu [showhide]
   `(menu-item ,(purecopy "Show/Hide") ,menu-bar-showhide-menu))
@@ -2109,7 +2133,10 @@ turn on menu bars; otherwise, turn off menu bars."
 See `menu-bar-mode' for more information."
   (interactive (list (or current-prefix-arg 'toggle)))
   (if (eq arg 'toggle)
-      (menu-bar-mode (if (> (frame-parameter nil 'menu-bar-lines) 0) 0 1))
+      (menu-bar-mode
+       (if (menu-bar-positive-p
+	    (frame-parameter (menu-bar-frame-for-menubar) 'menu-bar-lines))
+	    0 1))
     (menu-bar-mode arg)))
 
 (declare-function x-menu-bar-open "term/x-win" (&optional frame))
