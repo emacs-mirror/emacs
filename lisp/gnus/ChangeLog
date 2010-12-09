@@ -1,3 +1,7 @@
+2010-12-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-script): Ignore <script>.
+
 2010-12-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-image-displayer): Work for images lined side by side.
