@@ -644,6 +644,10 @@ ones, in case fg and bg are nil."
 (defun shr-tag-script (cont)
   )
 
+(defun shr-tag-label (cont)
+  (shr-generic cont)
+  (shr-ensure-paragraph))
+
 (defun shr-tag-p (cont)
   (shr-ensure-paragraph)
   (shr-indent)
