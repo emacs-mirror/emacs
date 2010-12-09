@@ -4,6 +4,8 @@
 
 2010-12-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* mm-util.el (mm-ucs-to-char): Use eval-and-compile.
+
 	* shr.el (shr-image-displayer): Work for images lined side by side.
 
 2010-12-08  Robert Pluim  <rpluim@gmail.com>

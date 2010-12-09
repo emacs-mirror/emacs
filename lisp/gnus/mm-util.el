@@ -220,42 +220,43 @@ to the contents of the accessible portion of the buffer."
      (t 'identity))))
 
 ;; `ucs-to-char' is a function that Mule-UCS provides.
-(if (featurep 'xemacs)
-    (cond ((and (fboundp 'unicode-to-char) ;; XEmacs 21.5.
-		(subrp (symbol-function 'unicode-to-char)))
-	   (if (featurep 'mule)
-	       (defalias 'mm-ucs-to-char 'unicode-to-char)
+(eval-and-compile
+  (if (featurep 'xemacs)
+      (cond ((and (fboundp 'unicode-to-char) ;; XEmacs 21.5.
+		  (subrp (symbol-function 'unicode-to-char)))
+	     (if (featurep 'mule)
+		 (defalias 'mm-ucs-to-char 'unicode-to-char)
+	       (defun mm-ucs-to-char (codepoint)
+		 "Convert Unicode codepoint to character."
+		 (or (unicode-to-char codepoint) ?#))))
+	    ((featurep 'mule)
 	     (defun mm-ucs-to-char (codepoint)
 	       "Convert Unicode codepoint to character."
-	       (or (unicode-to-char codepoint) ?#))))
-	  ((featurep 'mule)
-	   (defun mm-ucs-to-char (codepoint)
-	     "Convert Unicode codepoint to character."
-	     (if (fboundp 'ucs-to-char) ;; Mule-UCS is loaded.
-		 (progn
-		   (defalias 'mm-ucs-to-char
-		     (lambda (codepoint)
-		       "Convert Unicode codepoint to character."
-		       (condition-case nil
-			   (or (ucs-to-char codepoint) ?#)
-			 (error ?#))))
-		   (mm-ucs-to-char codepoint))
+	       (if (fboundp 'ucs-to-char) ;; Mule-UCS is loaded.
+		   (progn
+		     (defalias 'mm-ucs-to-char
+		       (lambda (codepoint)
+			 "Convert Unicode codepoint to character."
+			 (condition-case nil
+			     (or (ucs-to-char codepoint) ?#)
+			   (error ?#))))
+		     (mm-ucs-to-char codepoint))
+		 (condition-case nil
+		     (or (int-to-char codepoint) ?#)
+		   (error ?#)))))
+	    (t
+	     (defun mm-ucs-to-char (codepoint)
+	       "Convert Unicode codepoint to character."
 	       (condition-case nil
 		   (or (int-to-char codepoint) ?#)
 		 (error ?#)))))
-	  (t
-	   (defun mm-ucs-to-char (codepoint)
-	     "Convert Unicode codepoint to character."
-	     (condition-case nil
-		 (or (int-to-char codepoint) ?#)
-	       (error ?#)))))
-  (if (let ((char (make-char 'japanese-jisx0208 36 34)))
-	(eq char (decode-char 'ucs char)))
-      ;; Emacs 23.
-      (defalias 'mm-ucs-to-char 'identity)
-    (defun mm-ucs-to-char (codepoint)
-      "Convert Unicode codepoint to character."
-      (or (decode-char 'ucs codepoint) ?#))))
+    (if (let ((char (make-char 'japanese-jisx0208 36 34)))
+	  (eq char (decode-char 'ucs char)))
+	;; Emacs 23.
+	(defalias 'mm-ucs-to-char 'identity)
+      (defun mm-ucs-to-char (codepoint)
+	"Convert Unicode codepoint to character."
+	(or (decode-char 'ucs codepoint) ?#)))))
 
 ;; Fixme:  This seems always to be used to read a MIME charset, so it
 ;; should be re-named and fixed (in Emacs) to offer completion only on
