@@ -1,3 +1,17 @@
+2010-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/texinfo.el (texinfo-mode-map): Bind texinfo-insert-@end.
+	(texinfo-mode): Don't disable adaptive-fill-mode.
+	(texinfo-insert-block): Adjust cursor placement for blocks with arg.
+	(texinfo-insert-@end, texinfo-insert-braces, texinfo-insert-@code)
+	(texinfo-insert-@dfn, texinfo-insert-@email, texinfo-insert-@emph)
+	(texinfo-insert-@example, texinfo-insert-@file, texinfo-insert-@item)
+	(texinfo-insert-@kbd, texinfo-insert-@node, texinfo-insert-@noindent)
+	(texinfo-insert-@quotation, texinfo-insert-@samp)
+	(texinfo-insert-@strong, texinfo-insert-@table, texinfo-insert-@var)
+	(texinfo-insert-@uref): Use define-skeleton.
+	(texinfo-insert-@-with-arg): Delete.
+
 2010-12-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* arc-mode.el (archive-zip-extract): If w32-quote-process-args is
@@ -16,8 +30,8 @@
 
 	* menu-bar.el (menu-bar-frame-for-menubar, menu-bar-positive-p):
 	New functions.
-	(menu-bar-showhide-menu) <menu-bar-mode, showhide-tool-bar>: Use
-	them instead of `nil' and `>', respectively.
+	(menu-bar-showhide-menu) <menu-bar-mode, showhide-tool-bar>:
+	Use them instead of `nil' and `>', respectively.
 	(menu-bar-showhide-tool-bar-menu): Use menu-bar-frame-for-menubar
 	instead of `nil'.
 	(toggle-menu-bar-mode-from-frame): Use menu-bar-frame-for-menubar
