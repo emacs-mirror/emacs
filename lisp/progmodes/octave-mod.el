@@ -655,8 +655,7 @@ including a reproducible test case and send the message."
        'octave-beginning-of-defun)
 
   (easy-menu-add octave-mode-menu)
-  (octave-initialize-completions)
-  (run-mode-hooks 'octave-mode-hook))
+  (octave-initialize-completions))
 
 (defvar info-lookup-mode)
 

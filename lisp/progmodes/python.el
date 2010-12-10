@@ -1317,7 +1317,7 @@ See `python-check-command' for the default."
 				  (let ((name (buffer-file-name)))
 				    (if name
 					(file-name-nondirectory name))))))))
-  (setq python-saved-check-command command)
+  (set (make-local-variable 'python-saved-check-command) command)
   (require 'compile)                    ;To define compilation-* variables.
   (save-some-buffers (not compilation-ask-about-save) nil)
   (let ((compilation-error-regexp-alist
@@ -2522,7 +2522,6 @@ with skeleton expansions for compound statement templates.
   (set (make-local-variable 'outline-heading-end-regexp) ":\\s-*\n")
   (set (make-local-variable 'outline-level) #'python-outline-level)
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
-  (make-local-variable 'python-saved-check-command)
   (set (make-local-variable 'beginning-of-defun-function)
        'python-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function) 'python-end-of-defun)

@@ -572,10 +572,7 @@ documentation for details):
 
 Turning on Tcl mode runs `tcl-mode-hook'.  Read the documentation for
 `tcl-mode-hook' to see what kinds of interesting hook functions
-already exist.
-
-Commands:
-\\{tcl-mode-map}"
+already exist."
   (unless (and (boundp 'filladapt-mode) filladapt-mode)
     (set (make-local-variable 'paragraph-ignore-fill-prefix) t))
 
@@ -1064,7 +1061,7 @@ With argument, positions cursor at end of buffer."
 (defun inferior-tcl-proc ()
   "Return current inferior Tcl process.
 See variable `inferior-tcl-buffer'."
-  (let ((proc (get-buffer-process (if (eq major-mode 'inferior-tcl-mode)
+  (let ((proc (get-buffer-process (if (derived-mode-p 'inferior-tcl-mode)
 				      (current-buffer)
 				    inferior-tcl-buffer))))
     (or proc
@@ -1287,7 +1284,7 @@ to update the alist.")
 If FLAG is nil, just uses `current-word'.
 Otherwise scans backward for most likely Tcl command word."
   (if (and flag
-	   (memq major-mode '(tcl-mode inferior-tcl-mode)))
+	   (derived-mode-p 'tcl-mode 'inferior-tcl-mode))
       (condition-case nil
 	  (save-excursion
 	    ;; Look backward for first word actually in alist.
@@ -1363,7 +1360,7 @@ Prefix argument means switch to the Tcl buffer afterwards."
     ;; filename.
     (car (comint-get-source "Load Tcl file: "
 			    (or (and
-				 (eq major-mode 'tcl-mode)
+				 (derived-mode-p 'tcl-mode)
 				 (buffer-file-name))
 				tcl-previous-dir/file)
 			    '(tcl-mode) t))
@@ -1383,12 +1380,12 @@ Prefix argument means switch to the Tcl buffer afterwards."
    (list
     (car (comint-get-source "Restart with Tcl file: "
 			    (or (and
-				 (eq major-mode 'tcl-mode)
+				 (derived-mode-p 'tcl-mode)
 				 (buffer-file-name))
 				tcl-previous-dir/file)
 			    '(tcl-mode) t))
     current-prefix-arg))
-  (let* ((buf (if (eq major-mode 'inferior-tcl-mode)
+  (let* ((buf (if (derived-mode-p 'inferior-tcl-mode)
 		  (current-buffer)
 		inferior-tcl-buffer))
 	 (proc (and buf (get-process buf))))

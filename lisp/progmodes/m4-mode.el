@@ -143,27 +143,12 @@
   (switch-to-buffer-other-window "*m4-output*"))
 
 ;;;###autoload
-(defun m4-mode ()
-  "A major mode to edit m4 macro files.
-\\{m4-mode-map}
-"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map m4-mode-map)
-
-  (make-local-variable 'comment-start)
-  (setq comment-start "#")
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
-  (setq local-abbrev-table m4-mode-abbrev-table)
-
-  (make-local-variable	'font-lock-defaults)
-  (setq major-mode 'm4-mode
-	mode-name "m4"
-	font-lock-defaults '(m4-font-lock-keywords nil)
-	)
-  (set-syntax-table m4-mode-syntax-table)
-  (run-mode-hooks 'm4-mode-hook))
+(define-derived-mode m4-mode prog-mode "m4"
+  "A major mode to edit m4 macro files."
+  :abbrev-table m4-mode-abbrev-table
+  (set (make-local-variable 'comment-start) "#")
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'font-lock-defaults) '(m4-font-lock-keywords nil)))
 
 (provide 'm4-mode)
 ;;stuff to play with for debugging

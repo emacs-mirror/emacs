@@ -545,7 +545,7 @@ create a new comment."
   "Normal hook to run when entering Perl mode.")
 
 ;;;###autoload
-(defun perl-mode ()
+(define-derived-mode perl-mode prog-mode "Perl"
   "Major mode for editing Perl code.
 Expression and list commands understand all Perl brackets.
 Tab indents for Perl code.
@@ -592,33 +592,16 @@ Various indentation styles:       K&R  BSD  BLK  GNU  LW
   perl-label-offset               -5   -8   -2   -2   -2
 
 Turning on Perl mode runs the normal hook `perl-mode-hook'."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map perl-mode-map)
-  (setq major-mode 'perl-mode)
-  (setq mode-name "Perl")
-  (setq local-abbrev-table perl-mode-abbrev-table)
-  (set-syntax-table perl-mode-syntax-table)
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "$\\|" page-delimiter))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (setq paragraph-ignore-fill-prefix t)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'perl-indent-line)
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline mode-require-final-newline)
-  (make-local-variable 'comment-start)
-  (setq comment-start "# ")
-  (make-local-variable 'comment-end)
-  (setq comment-end "")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "\\(^\\|\\s-\\);?#+ *")
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'perl-comment-indent)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
+  :abbrev-table perl-mode-abbrev-table
+  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
+  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
+  (set (make-local-variable 'indent-line-function) #'perl-indent-line)
+  (set (make-local-variable 'comment-start) "# ")
+  (set (make-local-variable 'comment-end) "")
+  (set (make-local-variable 'comment-start-skip) "\\(^\\|\\s-\\);?#+ *")
+  (set (make-local-variable 'comment-indent-function) #'perl-comment-indent)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
   ;; Tell font-lock.el how to handle Perl.
   (setq font-lock-defaults '((perl-font-lock-keywords
 			      perl-font-lock-keywords-1
@@ -636,8 +619,7 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (setq imenu-case-fold-search nil)
   ;; Setup outline-minor-mode.
   (set (make-local-variable 'outline-regexp) perl-outline-regexp)
-  (set (make-local-variable 'outline-level) 'perl-outline-level)
-  (run-mode-hooks 'perl-mode-hook))
+  (set (make-local-variable 'outline-level) 'perl-outline-level))
 
 ;; This is used by indent-for-comment
 ;; to decide how much to indent a comment in Perl code

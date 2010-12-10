@@ -2533,7 +2533,7 @@ comint mode, which see."
   (gud-set-buffer))
 
 (defun gud-set-buffer ()
-  (when (eq major-mode 'gud-mode)
+  (when (derived-mode-p 'gud-mode)
     (setq gud-comint-buffer (current-buffer))))
 
 (defvar gud-filter-defer-flag nil
@@ -3344,10 +3344,8 @@ only tooltips in the buffer containing the overlay arrow."
 ACTIVATEP non-nil means activate mouse motion events."
   (if activatep
       (progn
-	(make-local-variable 'gud-tooltip-mouse-motions-active)
-	(setq gud-tooltip-mouse-motions-active t)
-	(make-local-variable 'track-mouse)
-	(setq track-mouse t))
+        (set (make-local-variable 'gud-tooltip-mouse-motions-active) t)
+        (set (make-local-variable 'track-mouse) t))
     (when gud-tooltip-mouse-motions-active
       (kill-local-variable 'gud-tooltip-mouse-motions-active)
       (kill-local-variable 'track-mouse))))

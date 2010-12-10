@@ -288,7 +288,7 @@ support."
 (declare-function idlwave-what-module-find-class "idlwave")
 (declare-function idlwave-where "idlwave")
 
-(defun idlwave-help-mode ()
+(define-derived-mode idlwave-help-mode special-mode "IDLWAVE Help"
   "Major mode for displaying IDL Help.
 
 This is a VIEW mode for the ASCII version of IDL Help files,
@@ -308,11 +308,7 @@ Jump:               [h] to function doclib header
 
 Here are all keybindings.
 \\{idlwave-help-mode-map}"
-  (kill-all-local-variables)
   (buffer-disable-undo)
-  (setq major-mode 'idlwave-help-mode
-	mode-name "IDLWAVE Help")
-  (use-local-map idlwave-help-mode-map)
   (easy-menu-add idlwave-help-menu idlwave-help-mode-map)
   (setq truncate-lines t)
   (setq case-fold-search t)
@@ -325,8 +321,7 @@ Here are all keybindings.
   (setq buffer-read-only t)
   (set (make-local-variable 'idlwave-help-def-pos) nil)
   (set (make-local-variable 'idlwave-help-args) nil)
-  (set (make-local-variable 'idlwave-help-in-header) nil)
-  (run-hooks 'idlwave-help-mode-hook))
+  (set (make-local-variable 'idlwave-help-in-header) nil))
 
 (defun idlwave-html-help-location ()
   "Return the help directory where HTML files are, or nil if that is unknown."

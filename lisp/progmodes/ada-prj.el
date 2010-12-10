@@ -514,11 +514,18 @@ If FILENAME is given, edit that file."
 
       (set (make-local-variable 'ada-prj-ada-buffer) ada-buffer)
 
-      (use-local-map (copy-keymap custom-mode-map))
-      (local-set-key "\C-x\C-s" 'ada-prj-save)
+      (use-local-map
+       (let ((map (make-sparse-keymap)))
+         (set-keymap-parent map custom-mode-map)
+         (define-key map "\C-x\C-s" 'ada-prj-save)
+         map))
 
-      (make-local-variable 'widget-keymap)
-      (define-key widget-keymap "\C-x\C-s" 'ada-prj-save)
+      ;; FIXME: Not sure if this works!!
+      (set (make-local-variable 'widget-keymap)
+           (let ((map (make-sparse-keymap)))
+             (set-keymap-parent map widget-keymap)
+             (define-key map "\C-x\C-s" 'ada-prj-save)
+             map))
 
       (set (make-local-variable 'ada-old-cross-prefix)
 	   (ada-xref-get-project-field 'cross-prefix))

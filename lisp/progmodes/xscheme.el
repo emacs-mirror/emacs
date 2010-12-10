@@ -186,8 +186,7 @@ With argument, asks for a command line."
   (setq-default xscheme-process-command-line command-line)
   (switch-to-buffer
    (xscheme-start-process command-line process-name buffer-name))
-  (make-local-variable 'xscheme-process-command-line)
-  (setq xscheme-process-command-line command-line))
+  (set (make-local-variable 'xscheme-process-command-line) command-line))
 
 (defun xscheme-read-command-line (arg)
   (let ((default
@@ -278,13 +277,11 @@ With argument, asks for a command line."
 		      xscheme-buffer-name
 		      t)))
   (let ((process-name (verify-xscheme-buffer buffer-name t)))
-    (make-local-variable 'xscheme-buffer-name)
-    (setq xscheme-buffer-name buffer-name)
-    (make-local-variable 'xscheme-process-name)
-    (setq xscheme-process-name process-name)
-    (make-local-variable 'xscheme-runlight)
-    (setq xscheme-runlight (with-current-buffer buffer-name
-                             xscheme-runlight))))
+    (set (make-local-variable 'xscheme-buffer-name) buffer-name)
+    (set (make-local-variable 'xscheme-process-name) process-name)
+    (set (make-local-variable 'xscheme-runlight)
+         (with-current-buffer buffer-name
+           xscheme-runlight))))
 
 (defun local-clear-scheme-interaction-buffer ()
   "Make the current buffer use the default scheme interaction buffer."
@@ -386,21 +383,19 @@ Entry to this mode calls the value of scheme-interaction-mode-hook
 with no args, if that value is non-nil.
  Likewise with the value of scheme-mode-hook.
  scheme-interaction-mode-hook is called after scheme-mode-hook."
+  ;; FIXME: Use define-derived-mode.
   (interactive "P")
   (if (not preserve)
       (let ((previous-mode major-mode))
         (kill-all-local-variables)
-        (make-local-variable 'xscheme-previous-mode)
-        (make-local-variable 'xscheme-buffer-name)
         (make-local-variable 'xscheme-process-name)
         (make-local-variable 'xscheme-previous-process-state)
         (make-local-variable 'xscheme-runlight-string)
         (make-local-variable 'xscheme-runlight)
-        (make-local-variable 'xscheme-last-input-end)
-        (setq xscheme-previous-mode previous-mode)
+        (set (make-local-variable 'xscheme-previous-mode) previous-mode)
         (let ((buffer (current-buffer)))
-          (setq xscheme-buffer-name (buffer-name buffer))
-          (setq xscheme-last-input-end (make-marker))
+          (set (make-local-variable 'xscheme-buffer-name) (buffer-name buffer))
+          (set (make-local-variable 'xscheme-last-input-end) (make-marker))
           (let ((process (get-buffer-process buffer)))
             (if process
                 (progn
@@ -420,7 +415,7 @@ with no args, if that value is non-nil.
 (defun exit-scheme-interaction-mode ()
   "Take buffer out of scheme interaction mode"
   (interactive)
-  (if (not (eq major-mode 'scheme-interaction-mode))
+  (if (not (derived-mode-p 'scheme-interaction-mode))
       (error "Buffer not in scheme interaction mode"))
   (let ((previous-state xscheme-previous-process-state))
     (funcall xscheme-previous-mode)
@@ -437,7 +432,7 @@ with no args, if that value is non-nil.
 
 (defun scheme-interaction-mode-initialize ()
   (use-local-map scheme-interaction-mode-map)
-  (setq major-mode 'scheme-interaction-mode)
+  (setq major-mode 'scheme-interaction-mode) ;FIXME: Use define-derived-mode.
   (setq mode-name "Scheme Interaction"))
 
 (defun scheme-interaction-mode-commands (keymap)
@@ -469,8 +464,8 @@ with no args, if that value is non-nil.
 
 (defun xscheme-enter-interaction-mode ()
   (with-current-buffer (xscheme-process-buffer)
-    (if (not (eq major-mode 'scheme-interaction-mode))
-	(if (eq major-mode 'scheme-debugger-mode)
+    (if (not (derived-mode-p 'scheme-interaction-mode))
+	(if (derived-mode-p 'scheme-debugger-mode)
 	    (scheme-interaction-mode-initialize)
 	    (scheme-interaction-mode t)))))
 
@@ -494,7 +489,7 @@ Commands:
 
 (defun scheme-debugger-mode-initialize ()
   (use-local-map scheme-debugger-mode-map)
-  (setq major-mode 'scheme-debugger-mode)
+  (setq major-mode 'scheme-debugger-mode) ;FIXME: Use define-derived-mode.
   (setq mode-name "Scheme Debugger"))
 
 (defun scheme-debugger-mode-commands (keymap)
@@ -518,9 +513,9 @@ Commands:
 
 (defun xscheme-enter-debugger-mode (prompt-string)
   (with-current-buffer (xscheme-process-buffer)
-    (if (not (eq major-mode 'scheme-debugger-mode))
+    (if (not (derived-mode-p 'scheme-debugger-mode))
 	(progn
-	  (if (not (eq major-mode 'scheme-interaction-mode))
+	  (if (not (derived-mode-p 'scheme-interaction-mode))
 	      (scheme-interaction-mode t))
 	  (scheme-debugger-mode-initialize)))))
 
@@ -528,7 +523,7 @@ Commands:
   (let ((buffer (xscheme-process-buffer)))
     (and buffer
 	 (with-current-buffer buffer
-	   (eq major-mode 'scheme-debugger-mode)))))
+	   (derived-mode-p 'scheme-debugger-mode)))))
 
 ;;;; Evaluation Commands
 
@@ -550,7 +545,7 @@ The strings are concatenated and terminated by a newline."
 (defun xscheme-send-string-1 (strings)
   (let ((string (apply 'concat strings)))
     (xscheme-send-string-2 string)
-    (if (eq major-mode 'scheme-interaction-mode)
+    (if (derived-mode-p 'scheme-interaction-mode)
 	(xscheme-insert-expression string))))
 
 (defun xscheme-send-string-2 (string)

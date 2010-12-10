@@ -487,15 +487,10 @@ that requires a literal mode spec at compile time."
 
   ;; these variables should always be buffer local; they do not affect
   ;; indentation style.
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (make-local-variable 'indent-line-function)
-  (make-local-variable 'indent-region-function)
-  (make-local-variable 'normal-auto-fill-function)
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-start-skip)
-  (make-local-variable 'comment-multi-line)
-  (make-local-variable 'comment-line-break-function)
+  
   (make-local-variable 'paragraph-start)
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-ignore-fill-prefix)
@@ -503,18 +498,18 @@ that requires a literal mode spec at compile time."
   (make-local-variable 'adaptive-fill-regexp)
 
   ;; now set their values
-  (setq parse-sexp-ignore-comments t
-	indent-line-function 'c-indent-line
-	indent-region-function 'c-indent-region
-	normal-auto-fill-function 'c-do-auto-fill
-	comment-multi-line t
-	comment-line-break-function 'c-indent-new-comment-line)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'indent-line-function) 'c-indent-line)
+  (set (make-local-variable 'indent-region-function) 'c-indent-region)
+  (set (make-local-variable 'normal-auto-fill-function) 'c-do-auto-fill)
+  (set (make-local-variable 'comment-multi-line) t)
+  (set (make-local-variable 'comment-line-break-function)
+       'c-indent-new-comment-line)
 
   ;; Install `c-fill-paragraph' on `fill-paragraph-function' so that a
   ;; direct call to `fill-paragraph' behaves better.  This still
   ;; doesn't work with filladapt but it's better than nothing.
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'c-fill-paragraph)
+  (set (make-local-variable 'fill-paragraph-function) 'c-fill-paragraph)
 
   ;; Initialise the cache of brace pairs, and opening braces/brackets/parens.
   (c-state-cache-init)
@@ -532,22 +527,19 @@ that requires a literal mode spec at compile time."
 
     ;; Emacs.
     (when (boundp 'parse-sexp-lookup-properties)
-      (make-local-variable 'parse-sexp-lookup-properties)
-      (setq parse-sexp-lookup-properties t))
+      (set (make-local-variable 'parse-sexp-lookup-properties) t))
 
     ;; Same as above for XEmacs.
     (when (boundp 'lookup-syntax-properties)
-      (make-local-variable 'lookup-syntax-properties)
-      (setq lookup-syntax-properties t)))
+      (set (make-local-variable 'lookup-syntax-properties) t)))
 
   ;; Use this in Emacs 21+ to avoid meddling with the rear-nonsticky
   ;; property on each character.
   (when (boundp 'text-property-default-nonsticky)
-    (make-local-variable 'text-property-default-nonsticky)
     (mapc (lambda (tprop)
 	    (unless (assq tprop text-property-default-nonsticky)
-	      (setq text-property-default-nonsticky
-		    (cons `(,tprop . t) text-property-default-nonsticky))))
+	      (set (make-local-variable 'text-property-default-nonsticky)
+                   (cons `(,tprop . t) text-property-default-nonsticky))))
 	  '(syntax-table category c-type)))
 
   ;; In Emacs 21 and later it's possible to turn off the ad-hoc
@@ -587,8 +579,7 @@ that requires a literal mode spec at compile time."
   (setq c-offsets-alist (copy-alist c-offsets-alist))
 
   ;; setup the comment indent variable in a Emacs version portable way
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'c-comment-indent)
+  (set (make-local-variable 'comment-indent-function) 'c-comment-indent)
 
 ;;   ;; Put submode indicators onto minor-mode-alist, but only once.
 ;;   (or (assq 'c-submode-indicators minor-mode-alist)
@@ -660,16 +651,14 @@ compatible with old code; callers should always specify it."
 	  (funcall c-before-font-lock-function (point-min) (point-max)
 		   (- (point-max) (point-min))))))
 
-  (make-local-variable 'outline-regexp)
-  (make-local-variable 'outline-level)
-  (setq outline-regexp "[^#\n\^M]"
-	outline-level 'c-outline-level)
+  (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
+  (set (make-local-variable 'outline-level) 'c-outline-level)
 
   (let ((rfn (assq mode c-require-final-newline)))
     (when rfn
-      (make-local-variable 'require-final-newline)
       (and (cdr rfn)
-	   (setq require-final-newline mode-require-final-newline)))))
+	   (set (make-local-variable 'require-final-newline)
+                mode-require-final-newline)))))
 
 (defun c-count-cfss (lv-alist)
   ;; LV-ALIST is an alist like `file-local-variables-alist'.  Count how many
@@ -1100,8 +1089,7 @@ Note that the style variables are always made local to the buffer."
 This does not load the font-lock package.  Use after
 `c-basic-common-init' and after cc-fonts has been loaded."
 
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
+  (set (make-local-variable 'font-lock-defaults)
 	`(,(if (c-major-mode-is 'awk-mode)
 	       ;; awk-mode currently has only one font lock level.
 	       'awk-font-lock-keywords
@@ -1206,7 +1194,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table c-mode-syntax-table)
-  (setq major-mode 'c-mode
+  (setq major-mode 'c-mode           ; FIXME: Use define-derived-mode.
 	mode-name "C"
 	local-abbrev-table c-mode-abbrev-table
 	abbrev-mode t)
@@ -1269,7 +1257,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table c++-mode-syntax-table)
-  (setq major-mode 'c++-mode
+  (setq major-mode 'c++-mode         ; FIXME: Use define-derived-mode.
 	mode-name "C++"
 	local-abbrev-table c++-mode-abbrev-table
 	abbrev-mode t)
@@ -1330,7 +1318,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table objc-mode-syntax-table)
-  (setq major-mode 'objc-mode
+  (setq major-mode 'objc-mode        ; FIXME: Use define-derived-mode.
 	mode-name "ObjC"
 	local-abbrev-table objc-mode-abbrev-table
 	abbrev-mode t)
@@ -1400,7 +1388,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table java-mode-syntax-table)
-  (setq major-mode 'java-mode
+  (setq major-mode 'java-mode        ; FIXME: Use define-derived-mode.
  	mode-name "Java"
  	local-abbrev-table java-mode-abbrev-table
 	abbrev-mode t)
@@ -1459,7 +1447,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table idl-mode-syntax-table)
-  (setq major-mode 'idl-mode
+  (setq major-mode 'idl-mode         ; FIXME: Use define-derived-mode.
 	mode-name "IDL"
 	local-abbrev-table idl-mode-abbrev-table)
   (use-local-map idl-mode-map)
@@ -1520,7 +1508,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table pike-mode-syntax-table)
-  (setq major-mode 'pike-mode
+  (setq major-mode 'pike-mode        ; FIXME: Use define-derived-mode.
  	mode-name "Pike"
  	local-abbrev-table pike-mode-abbrev-table
 	abbrev-mode t)
@@ -1594,7 +1582,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table awk-mode-syntax-table)
-  (setq major-mode 'awk-mode
+  (setq major-mode 'awk-mode         ; FIXME: Use define-derived-mode.
 	mode-name "AWK"
 	local-abbrev-table awk-mode-abbrev-table
 	abbrev-mode t)
@@ -1680,7 +1668,7 @@ Key bindings:
 		     adaptive-fill-regexp)
 		   nil)))
 	(mapc (lambda (var) (unless (boundp var)
-			      (setq vars (delq var vars))))
+                         (setq vars (delq var vars))))
 	      '(signal-error-on-buffer-boundary
 		filladapt-mode
 		defun-prompt-regexp

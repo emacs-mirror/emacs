@@ -1,5 +1,120 @@
 2010-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Derive from prog-mode, use derived-mode-p, and fix up various
+	minor style issues in lisp/progmodes.
+
+	* progmodes/vhdl-mode.el (vhdl-mode):
+	* progmodes/verilog-mode.el (verilog-mode):
+	* progmodes/vera-mode.el (vera-mode):
+	* progmodes/sql.el (sql-mode):
+	* progmodes/scheme.el (scheme-mode):
+	* progmodes/perl-mode.el (perl-mode):
+	* progmodes/octave-inf.el (inferior-octave-mode):
+	* progmodes/autoconf.el (autoconf-mode):
+	* progmodes/m4-mode.el (m4-mode):
+	* progmodes/inf-lisp.el (inferior-lisp-mode):
+	* progmodes/idlwave.el (idlwave-mode):
+	* progmodes/icon.el (icon-mode):
+	* progmodes/idlw-help.el (idlwave-help-mode):
+	* progmodes/dcl-mode.el (dcl-mode):
+	* progmodes/idlw-shell.el (idlwave-shell-mode):
+	* progmodes/ebrowse.el (ebrowse-tree-mode, ebrowse-electric-list-mode)
+	(ebrowse-member-mode, ebrowse-electric-position-mode):
+	Use define-derived-mode.
+
+	* progmodes/xscheme.el (exit-scheme-interaction-mode)
+	(xscheme-enter-interaction-mode, xscheme-enter-debugger-mode)
+	(xscheme-debugger-mode-p, xscheme-send-string-1):
+	* progmodes/tcl.el (inferior-tcl-proc, tcl-current-word)
+	(tcl-load-file, tcl-restart-with-file):
+	* progmodes/ps-mode.el (ps-run-running):
+	* progmodes/gdb-mi.el (gud-watch, gdb-mouse-set-clear-breakpoint):
+	* progmodes/js.el (js--get-all-known-symbols):
+	* progmodes/inf-lisp.el (inferior-lisp-proc):
+	* progmodes/idlwave.el (idlwave-beginning-of-statement)
+	(idlwave-template, idlwave-update-buffer-routine-info)
+	(idlwave-update-current-buffer-info)
+	(idlwave-get-routine-info-from-buffers, idlwave-choose)
+	(idlwave-scan-class-info, idlwave-fix-keywords)
+	(idlwave-list-buffer-load-path-shadows):
+	* progmodes/idlw-toolbar.el (idlwave-toolbar, idlwave-toolbar-add)
+	(idlwave-toolbar-remove):
+	* progmodes/idlw-shell.el (idlwave-shell-save-and-action)
+	(idlwave-shell-file-name, idlwave-shell-electric-debug-all-off)
+	(idlwave-shell-menu-def):
+	* progmodes/idlw-complete-structtag.el
+	(idlwave-prepare-structure-tag-completion):
+	* progmodes/gud.el (gud-set-buffer):
+	* progmodes/f90.el (f90-backslash-not-special):
+	* progmodes/delphi.el (delphi-find-unit): Use derived-mode-p.
+
+	* progmodes/xscheme.el (xscheme-start)
+	(local-set-scheme-interaction-buffer, scheme-interaction-mode):
+	* progmodes/which-func.el (which-function):
+	* progmodes/vhdl-mode.el (vhdl-set-style):
+	* progmodes/verilog-mode.el (verilog-set-compile-command)
+	(verilog-modify-compile-command, verilog-error-regexp-add-xemacs)
+	(verilog-set-define, verilog-auto-reeval-locals):
+	* progmodes/sql.el (sql-product-font-lock, sql-interactive-mode):
+	* progmodes/simula.el (simula-mode):
+	* progmodes/scheme.el (scheme-mode-variables, dsssl-mode):
+	* progmodes/python.el (python-check, python-mode):
+	* progmodes/prolog.el (prolog-mode-variables):
+	* progmodes/gud.el (gud-tooltip-activate-mouse-motions):
+	* progmodes/ebrowse.el (ebrowse-view-file-other-frame):
+	* progmodes/delphi.el (delphi-mode):
+	* progmodes/cc-styles.el (c-setup-paragraph-variables):
+	* progmodes/cc-mode.el (c-basic-common-init, c-common-init)
+	(c-font-lock-init): Move make-local-variable to their setq.
+
+	* progmodes/vhdl-mode.el (vhdl-write-file-hooks-init)
+	(vhdl-hs-minor-mode, vhdl-ps-print-init): Fix make-local-variable ->
+	make-local-hook.
+	* progmodes/sh-script.el (sh-require-final-newline): Remove.
+	(sh-set-shell): Don't set require-final-newline since it's already done
+	by prog-mode.
+	* progmodes/modula2.el (m2-mode): Don't make m2-end-comment-column
+	since we never set it.
+	* progmodes/ebrowse.el (ebrowse-set-tree-indentation):
+	Use read-string and standard prompt.
+	* progmodes/dcl-mode.el (dcl-mode-map): Move init into declaration.
+	* progmodes/meta-mode.el (meta-mode-abbrev-table): Merge init and decl.
+	(meta-common-mode-syntax-table): Rename from meta-mode-syntax-table.
+	(meta-common-mode-map): Rename from meta-mode-map.
+	Remove C-m binding, which is a user preference, not mode specific.
+	(meta-common-mode): New major mode; replace meta-common-initialization.
+	* progmodes/js.el (js-mode): Call syntax-propertize rather than messing
+	around with font-lock.
+	* progmodes/etags.el (select-tags-table-mode):
+	Derive from special-mode.
+	* progmodes/octave-mod.el (octave-mode):
+	* progmodes/gdb-mi.el (gdb-inferior-io-mode, gdb-threads-mode)
+	(gdb-memory-mode, gdb-disassembly-mode, gdb-breakpoints-mode)
+	(gdb-frames-mode, gdb-locals-mode, gdb-registers-mode):
+	Let define-derived-mode do its job.
+	* progmodes/cpp.el (cpp-edit-mode-map):
+	Move initialization into declaration.
+	(cpp-edit-mode): Use define-derived-mode.
+	(cpp-edit-load): Use derived-mode-p.
+	* progmodes/mixal-mode.el (mixal-mode):
+	* progmodes/f90.el (f90-mode):
+	* progmodes/cfengine.el (cfengine-mode): Don't bother setting
+	require-final-newline since prog-mode does it already.
+	* progmodes/cc-cmds.el (c-update-modeline): Use match-string.
+	* progmodes/asm-mode.el (asm-mode-map): Fix menu setup.
+	* progmodes/antlr-mode.el: Require cc-mode upfront.
+	(antlr-mode-syntax-table, antlr-action-syntax-table): Initialize in
+	the declaration.
+	(antlr-directory-dependencies, antlr-show-makefile-rules):
+	Use derived-mode-p.
+	(antlr-language-option): Don't assume point-min==1.
+	(antlr-mode): Use define-derived-mode.
+	* progmodes/ada-mode.el: Use derived-mode-p.
+	(ada-mode): Use define-derived-mode.
+	Use hack-local-variables-hook.
+
+2010-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* textmodes/texinfo.el (texinfo-mode-map): Bind texinfo-insert-@end.
 	(texinfo-mode): Don't disable adaptive-fill-mode.
 	(texinfo-insert-block): Adjust cursor placement for blocks with arg.

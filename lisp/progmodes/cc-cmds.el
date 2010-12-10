@@ -266,8 +266,10 @@ With universal argument, inserts the analysis as a comment on that line."
 			  (symbol-value 'subword-mode))
 			 "w"
 		       "")))
+        ;; FIXME: Derived modes might want to use something else
+        ;; than a string for `mode-name'.
 	(bare-mode-name (if (string-match "\\(^[^/]*\\)/" mode-name)
-			    (substring mode-name (match-beginning 1) (match-end 1))
+			    (match-string 1 mode-name)
 			  mode-name)))
 ;;     (setq c-submode-indicators
 ;; 	  (if (> (length fmt) 1)
