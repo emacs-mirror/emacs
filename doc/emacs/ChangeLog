@@ -1,3 +1,7 @@
+2010-12-10  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Fix typo in newsgroup name.
+
 2010-12-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* search.texi (Word Search): Note that the lazy highlight always
