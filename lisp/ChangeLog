@@ -19,10 +19,10 @@
 	* play/landmark.el (lm-print-y,s,noise-int, lm-print-y,s,noise):
 	Rename functions without commas, update callers.
 
-2010-12-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+2010-12-08  Jeff Dairiki  <dairiki@dairiki.org>  (tiny change)
 
-	* whitespace.el: New version 13.2.
-	(whitespace-cleanup-region): Tiny code fix.  (Bug#7582)
+	* whitespace.el (whitespace-cleanup-region):
+	Clean up spaces before tabs.  (Bug#7582)
 
 2010-12-08  Karl Fogel  <kfogel@red-bean.com>
 
