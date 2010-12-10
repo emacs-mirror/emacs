@@ -1,5 +1,7 @@
 2010-12-10  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (diff-no-select): Declare.
+
 	* mail/emacsbug.el (report-emacs-bug): Use mail-user-agent properties.
 	(report-emacs-bug-create-existing-bugs-buffer): Avoid free variables.
 

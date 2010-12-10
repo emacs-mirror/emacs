@@ -4500,6 +4500,9 @@ Before and after saving the buffer, this function runs
 		   (setq buffer-backed-up nil))))))
     setmodes))
 
+(declare-function diff-no-select "diff"
+		  (old new &optional switches no-async buf))
+
 (defvar save-some-buffers-action-alist
   `((?\C-r
      ,(lambda (buf)
