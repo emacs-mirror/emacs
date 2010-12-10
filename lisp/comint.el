@@ -244,8 +244,8 @@ This variable is buffer-local."
 (defcustom comint-input-ring-file-name nil
   "If non-nil, name of the file to read/write input history.
 See also `comint-read-input-ring' and `comint-write-input-ring'.
-
-This variable is buffer-local, and is a good thing to set in mode hooks."
+`comint-mode' makes this a buffer-local variable.  You probably want
+to set this in a mode hook, rather than customize the default value."
   :type '(choice (const :tag "nil" nil)
 		 file)
   :group 'comint)

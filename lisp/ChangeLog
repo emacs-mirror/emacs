@@ -1,3 +1,7 @@
+2010-12-10  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (comint-input-ring-file-name): Doc fix.
+
 2010-12-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (menu-bar-frame-for-menubar, menu-bar-positive-p):
