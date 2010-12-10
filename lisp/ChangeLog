@@ -1,3 +1,8 @@
+2010-12-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-action-password, tramp-process-actions):
+	Revert patch from 2010-12-08.  Use `save-restriction'.
+
 2010-12-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (menu-bar-frame-for-menubar, menu-bar-positive-p):
