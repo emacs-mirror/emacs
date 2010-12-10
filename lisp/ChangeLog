@@ -1,5 +1,8 @@
 2010-12-10  Glenn Morris  <rgm@gnu.org>
 
+	* mail/emacsbug.el (report-emacs-bug): Use mail-user-agent properties.
+	(report-emacs-bug-create-existing-bugs-buffer): Avoid free variables.
+
 	* comint.el (comint-input-ring-file-name): Doc fix.
 
 2010-12-09  Eli Zaretskii  <eliz@gnu.org>

@@ -279,22 +279,11 @@ usually do not have translators to read other languages for them.\n\n")
     (if can-xdg-email
 	(define-key (current-local-map) "\C-cm"
 	  'report-emacs-bug-insert-to-mailer))
-    ;; Could test major-mode instead.
-    (cond ((memq mail-user-agent '(message-user-agent gnus-user-agent))
-           (setq report-emacs-bug-send-command "message-send-and-exit"
-                 report-emacs-bug-send-hook 'message-send-hook))
-          ((eq mail-user-agent 'sendmail-user-agent)
-           (setq report-emacs-bug-send-command "mail-send-and-exit"
-                 report-emacs-bug-send-hook 'mail-send-hook))
-          ((eq mail-user-agent 'mh-e-user-agent)
-           (setq report-emacs-bug-send-command "mh-send-letter"
-                 report-emacs-bug-send-hook 'mh-before-send-letter-hook))
-	  ((eq mail-user-agent 'vm-user-agent)
-	   (setq report-emacs-bug-send-command "vm-mail-send-and-exit"
-		 report-emacs-bug-send-hook 'vm-mail-send-hook))
-	  ((eq mail-user-agent 'wl-user-agent)
-	   (setq report-emacs-bug-send-command "wl-draft-send-and-exit"
-		 report-emacs-bug-send-hook 'wl-draft-send-hook)))
+    (setq report-emacs-bug-send-command (get mail-user-agent 'sendfunc)
+	  report-emacs-bug-send-hook (get mail-user-agent 'hookvar))
+    (if report-emacs-bug-send-command
+	(setq report-emacs-bug-send-command
+	      (symbol-name report-emacs-bug-send-command)))
     (unless report-emacs-bug-no-explanations
       (with-output-to-temp-buffer "*Bug Help*"
 	(princ "While in the mail buffer:\n\n")
@@ -386,19 +375,22 @@ and send the mail again%s."
 
 ;; Querying the bug database
 
+(defvar report-emacs-bug-bug-alist nil)
+(make-variable-buffer-local 'report-emacs-bug-bug-alist)
+(defvar report-emacs-bug-choice-widget nil)
+(make-variable-buffer-local 'report-emacs-bug-choice-widget)
+
 (defun report-emacs-bug-create-existing-bugs-buffer (bugs keywords)
   (switch-to-buffer (get-buffer-create "*Existing Emacs Bugs*"))
   (setq buffer-read-only t)
   (let ((inhibit-read-only t))
     (erase-buffer)
-    (make-local-variable 'bug-alist)
-    (setq bug-alist bugs)
-    (make-local-variable 'bug-choice-widget)
+    (setq report-emacs-bug-bug-alist bugs)
     (widget-insert (propertize (concat "Already known bugs ("
 				       keywords "):\n\n")
 			       'face 'bold))
     (if bugs
-	(setq bug-choice-widget
+	(setq report-emacs-bug-choice-widget
 	      (apply 'widget-create 'radio-button-choice
 		     :value (caar bugs)
 		     (let (items)
@@ -423,10 +415,10 @@ and send the mail again%s."
       (widget-insert " ")
       (widget-create 'push-button
 		     :notify (lambda (&rest ignore)
-			       (let ((val (widget-value bug-choice-widget)))
+			       (let ((val (widget-value report-emacs-bug-choice-widget)))
 				 ;; TODO: Do something!
 				 (message "Appending to bug %s!"
-					  (nth 2 (assoc val bug-alist)))))
+					  (nth 2 (assoc val report-emacs-bug-bug-alist)))))
 		     "Append to chosen bug"))
     (widget-insert " ")
     (widget-create 'push-button
