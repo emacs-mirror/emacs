@@ -1492,7 +1492,7 @@ insert a template for the file depending on the mode of the buffer.
 
 ;;;### (autoloads (batch-update-autoloads update-directory-autoloads
 ;;;;;;  update-file-autoloads) "autoload" "emacs-lisp/autoload.el"
-;;;;;;  (19636 58496))
+;;;;;;  (19683 64086))
 ;;; Generated autoloads from emacs-lisp/autoload.el
 
 (put 'generated-autoload-file 'safe-local-variable 'stringp)
@@ -2601,19 +2601,14 @@ Like `bug-reference-mode', but only buttonize in comments and strings.
 ;;;### (autoloads (batch-byte-recompile-directory batch-byte-compile
 ;;;;;;  batch-byte-compile-if-not-done display-call-tree byte-compile
 ;;;;;;  compile-defun byte-compile-file byte-recompile-directory
-;;;;;;  byte-force-recompile byte-compile-enable-warning byte-compile-disable-warning
-;;;;;;  byte-compile-warnings-safe-p) "bytecomp" "emacs-lisp/bytecomp.el"
-;;;;;;  (19636 58496))
+;;;;;;  byte-force-recompile byte-compile-enable-warning byte-compile-disable-warning)
+;;;;;;  "bytecomp" "emacs-lisp/bytecomp.el" (19678 47007))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 (put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
 (put 'byte-compile-disable-print-circle 'safe-local-variable 'booleanp)
 (put 'byte-compile-dynamic-docstrings 'safe-local-variable 'booleanp)
-(put 'byte-compile-warnings 'safe-local-variable 'byte-compile-warnings-safe-p)
 
-(autoload 'byte-compile-warnings-safe-p "bytecomp" "\
-Return non-nil if X is valid as a value of `byte-compile-warnings'.
-
-\(fn X)" nil nil)
+(put 'byte-compile-warnings 'safe-local-variable (lambda (v) (or (symbolp v) (null (delq nil (mapcar (lambda (x) (not (symbolp x))) v))))))
 
 (autoload 'byte-compile-disable-warning "bytecomp" "\
 Change `byte-compile-warnings' to disable WARNING.
@@ -2860,8 +2855,8 @@ See the documentation for `calculator-mode' for more information.
 
 ;;;***
 
-;;;### (autoloads (calendar) "calendar" "calendar/calendar.el" (19636
-;;;;;;  58496))
+;;;### (autoloads (calendar) "calendar" "calendar/calendar.el" (19678
+;;;;;;  47007))
 ;;; Generated autoloads from calendar/calendar.el
 
 (autoload 'calendar "calendar" "\
@@ -3910,7 +3905,7 @@ is run).
 ;;;### (autoloads (comint-redirect-results-list-from-process comint-redirect-results-list
 ;;;;;;  comint-redirect-send-command-to-process comint-redirect-send-command
 ;;;;;;  comint-run make-comint make-comint-in-buffer) "comint" "comint.el"
-;;;;;;  (19652 24589))
+;;;;;;  (19706 58029))
 ;;; Generated autoloads from comint.el
 
 (defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom comint-watch-for-password-prompt) "\
@@ -4858,7 +4853,7 @@ Enable CUA selection mode without the C-z/C-x/C-c/C-v bindings.
 ;;;;;;  customize-mode customize customize-save-variable customize-set-variable
 ;;;;;;  customize-set-value custom-menu-sort-alphabetically custom-buffer-sort-alphabetically
 ;;;;;;  custom-browse-sort-alphabetically) "cus-edit" "cus-edit.el"
-;;;;;;  (19636 58496))
+;;;;;;  (19711 45554))
 ;;; Generated autoloads from cus-edit.el
 
 (defvar custom-browse-sort-alphabetically nil "\
@@ -5943,7 +5938,7 @@ Deuglify broken Outlook (Express) articles and redisplay.
 ;;;***
 
 ;;;### (autoloads (diary-mode diary-mail-entries diary) "diary-lib"
-;;;;;;  "calendar/diary-lib.el" (19636 58496))
+;;;;;;  "calendar/diary-lib.el" (19714 24709))
 ;;; Generated autoloads from calendar/diary-lib.el
 
 (autoload 'diary "diary-lib" "\
@@ -6024,7 +6019,7 @@ With prefix arg, prompt for diff switches.
 ;;;***
 
 ;;;### (autoloads (diff-minor-mode diff-mode) "diff-mode" "diff-mode.el"
-;;;;;;  (19661 51722))
+;;;;;;  (19711 45554))
 ;;; Generated autoloads from diff-mode.el
 
 (autoload 'diff-mode "diff-mode" "\
@@ -6065,7 +6060,7 @@ Optional arguments are passed to `dig-invoke'.
 
 ;;;### (autoloads (dired-mode dired-auto-revert-buffer dired-noselect
 ;;;;;;  dired-other-frame dired-other-window dired dired-trivial-filenames
-;;;;;;  dired-listing-switches) "dired" "dired.el" (19636 58496))
+;;;;;;  dired-listing-switches) "dired" "dired.el" (19714 24826))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches (purecopy "-al") "\
@@ -8268,7 +8263,7 @@ Minor mode to hook EasyPG into Mail mode.
 
 ;;;***
 
-;;;### (autoloads (epg-make-context) "epg" "epg.el" (19636 58496))
+;;;### (autoloads (epg-make-context) "epg" "epg.el" (19708 34240))
 ;;; Generated autoloads from epg.el
 
 (autoload 'epg-make-context "epg" "\
@@ -13688,8 +13683,8 @@ The main features of this mode are
 ;;;;;;  ido-find-alternate-file ido-find-file-other-window ido-find-file
 ;;;;;;  ido-find-file-in-dir ido-switch-buffer-other-frame ido-insert-buffer
 ;;;;;;  ido-kill-buffer ido-display-buffer ido-switch-buffer-other-window
-;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (19636
-;;;;;;  58496))
+;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (19705
+;;;;;;  10058))
 ;;; Generated autoloads from ido.el
 
 (defvar ido-mode nil "\
@@ -14165,7 +14160,7 @@ Example:
 ;;;;;;  image-dired-jump-thumbnail-buffer image-dired-delete-tag
 ;;;;;;  image-dired-tag-files image-dired-show-all-from-dir image-dired-display-thumbs
 ;;;;;;  image-dired-dired-with-window-configuration image-dired-dired-insert-marked-thumbs)
-;;;;;;  "image-dired" "image-dired.el" (19636 58496))
+;;;;;;  "image-dired" "image-dired.el" (19709 15556))
 ;;; Generated autoloads from image-dired.el
 
 (autoload 'image-dired-dired-insert-marked-thumbs "image-dired" "\
@@ -15945,7 +15940,7 @@ something strange, such as redefining an Emacs function.
 ;;;***
 
 ;;;### (autoloads (locate-with-filter locate locate-ls-subdir-switches)
-;;;;;;  "locate" "locate.el" (19662 53673))
+;;;;;;  "locate" "locate.el" (19697 24269))
 ;;; Generated autoloads from locate.el
 
 (defvar locate-ls-subdir-switches (purecopy "-al") "\
@@ -15997,7 +15992,7 @@ except that FILTER is not optional.
 
 ;;;***
 
-;;;### (autoloads (log-edit) "log-edit" "log-edit.el" (19661 52402))
+;;;### (autoloads (log-edit) "log-edit" "log-edit.el" (19714 24709))
 ;;; Generated autoloads from log-edit.el
 
 (autoload 'log-edit "log-edit" "\
@@ -16057,8 +16052,8 @@ are indicated with a symbol.
 ;;;***
 
 ;;;### (autoloads (print-region lpr-region print-buffer lpr-buffer
-;;;;;;  lpr-command lpr-switches printer-name) "lpr" "lpr.el" (19636
-;;;;;;  58496))
+;;;;;;  lpr-command lpr-switches printer-name) "lpr" "lpr.el" (19688
+;;;;;;  11756))
 ;;; Generated autoloads from lpr.el
 
 (defvar lpr-windows-system (memq system-type '(ms-dos windows-nt)))
@@ -16152,7 +16147,7 @@ for further customization of the printer command.
 ;;;***
 
 ;;;### (autoloads (ls-lisp-support-shell-wildcards) "ls-lisp" "ls-lisp.el"
-;;;;;;  (19672 43471))
+;;;;;;  (19678 47007))
 ;;; Generated autoloads from ls-lisp.el
 
 (defvar ls-lisp-support-shell-wildcards t "\
@@ -17575,8 +17570,8 @@ To test this function, evaluate:
 
 ;;;***
 
-;;;### (autoloads (mouse-sel-mode) "mouse-sel" "mouse-sel.el" (19636
-;;;;;;  58496))
+;;;### (autoloads (mouse-sel-mode) "mouse-sel" "mouse-sel.el" (19678
+;;;;;;  47007))
 ;;; Generated autoloads from mouse-sel.el
 
 (defvar mouse-sel-mode nil "\
@@ -18410,7 +18405,7 @@ Revert posting and mailing methods to the standard Emacs methods.
 ;;;***
 
 ;;;### (autoloads (disable-command enable-command disabled-command-function)
-;;;;;;  "novice" "novice.el" (19636 58496))
+;;;;;;  "novice" "novice.el" (19678 47007))
 ;;; Generated autoloads from novice.el
 
 (defvar disabled-command-function 'disabled-command-function "\
@@ -20721,7 +20716,7 @@ True if decoded armor MESSAGE-KEYS has symmetric encryption indicator.
 ;;;***
 
 ;;;### (autoloads (picture-mode) "picture" "textmodes/picture.el"
-;;;;;;  (19636 58496))
+;;;;;;  (19678 64521))
 ;;; Generated autoloads from textmodes/picture.el
 
 (autoload 'picture-mode "picture" "\
@@ -20899,7 +20894,7 @@ Ignores leading comment characters.
 ;;;;;;  pr-ps-buffer-print pr-ps-buffer-using-ghostscript pr-ps-buffer-preview
 ;;;;;;  pr-ps-directory-ps-print pr-ps-directory-print pr-ps-directory-using-ghostscript
 ;;;;;;  pr-ps-directory-preview pr-interface) "printing" "printing.el"
-;;;;;;  (19636 58496))
+;;;;;;  (19678 47007))
 ;;; Generated autoloads from printing.el
 
 (autoload 'pr-interface "printing" "\
@@ -21589,8 +21584,8 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 ;;;;;;  ps-spool-region ps-spool-buffer-with-faces ps-spool-buffer
 ;;;;;;  ps-print-region-with-faces ps-print-region ps-print-buffer-with-faces
 ;;;;;;  ps-print-buffer ps-print-customize ps-print-color-p ps-paper-type
-;;;;;;  ps-page-dimensions-database) "ps-print" "ps-print.el" (19641
-;;;;;;  1314))
+;;;;;;  ps-page-dimensions-database) "ps-print" "ps-print.el" (19705
+;;;;;;  10058))
 ;;; Generated autoloads from ps-print.el
 
 (defvar ps-page-dimensions-database (purecopy (list (list 'a4 (/ (* 72 21.0) 2.54) (/ (* 72 29.7) 2.54) "A4") (list 'a3 (/ (* 72 29.7) 2.54) (/ (* 72 42.0) 2.54) "A3") (list 'letter (* 72 8.5) (* 72 11.0) "Letter") (list 'legal (* 72 8.5) (* 72 14.0) "Legal") (list 'letter-small (* 72 7.68) (* 72 10.16) "LetterSmall") (list 'tabloid (* 72 11.0) (* 72 17.0) "Tabloid") (list 'ledger (* 72 17.0) (* 72 11.0) "Ledger") (list 'statement (* 72 5.5) (* 72 8.5) "Statement") (list 'executive (* 72 7.5) (* 72 10.0) "Executive") (list 'a4small (* 72 7.47) (* 72 10.85) "A4Small") (list 'b4 (* 72 10.125) (* 72 14.33) "B4") (list 'b5 (* 72 7.16) (* 72 10.125) "B5") '(addresslarge 236.0 99.0 "AddressLarge") '(addresssmall 236.0 68.0 "AddressSmall") '(cuthanging13 90.0 222.0 "CutHanging13") '(cuthanging15 90.0 114.0 "CutHanging15") '(diskette 181.0 136.0 "Diskette") '(eurofilefolder 139.0 112.0 "EuropeanFilefolder") '(eurofoldernarrow 526.0 107.0 "EuroFolderNarrow") '(eurofolderwide 526.0 136.0 "EuroFolderWide") '(euronamebadge 189.0 108.0 "EuroNameBadge") '(euronamebadgelarge 223.0 136.0 "EuroNameBadgeLarge") '(filefolder 230.0 37.0 "FileFolder") '(jewelry 76.0 136.0 "Jewelry") '(mediabadge 180.0 136.0 "MediaBadge") '(multipurpose 126.0 68.0 "MultiPurpose") '(retaillabel 90.0 104.0 "RetailLabel") '(shipping 271.0 136.0 "Shipping") '(slide35mm 26.0 104.0 "Slide35mm") '(spine8mm 187.0 26.0 "Spine8mm") '(topcoated 425.19685 136.0 "TopCoatedPaper") '(topcoatedpaper 396.0 136.0 "TopcoatedPaper150") '(vhsface 205.0 127.0 "VHSFace") '(vhsspine 400.0 50.0 "VHSSpine") '(zipdisk 156.0 136.0 "ZipDisk"))) "\
@@ -21787,7 +21782,7 @@ If EXTENSION is any other symbol, it is ignored.
 ;;;***
 
 ;;;### (autoloads (python-shell jython-mode python-mode run-python)
-;;;;;;  "python" "progmodes/python.el" (19672 43471))
+;;;;;;  "python" "progmodes/python.el" (19689 20360))
 ;;; Generated autoloads from progmodes/python.el
 
 (add-to-list 'interpreter-mode-alist (cons (purecopy "jython") 'jython-mode))
@@ -21798,20 +21793,24 @@ If EXTENSION is any other symbol, it is ignored.
 
 (autoload 'run-python "python" "\
 Run an inferior Python process, input and output via buffer *Python*.
-CMD is the Python command to run.  NOSHOW non-nil means don't show the
-buffer automatically.
+CMD is the Python command to run.  NOSHOW non-nil means don't
+show the buffer automatically.
 
-Normally, if there is a process already running in `python-buffer',
-switch to that buffer.  Interactively, a prefix arg allows you to edit
-the initial command line (default is `python-command'); `-i' etc. args
-will be added to this as appropriate.  A new process is started if:
-one isn't running attached to `python-buffer', or interactively the
-default `python-command', or argument NEW is non-nil.  See also the
-documentation for `python-buffer'.
+Interactively, a prefix arg means to prompt for the initial
+Python command line (default is `python-command').
 
-Runs the hook `inferior-python-mode-hook' (after the
-`comint-mode-hook' is run).  (Type \\[describe-mode] in the process
-buffer for a list of commands.)
+A new process is started if one isn't running attached to
+`python-buffer', or if called from Lisp with non-nil arg NEW.
+Otherwise, if a process is already running in `python-buffer',
+switch to that buffer.
+
+This command runs the hook `inferior-python-mode-hook' after
+running `comint-mode-hook'.  Type \\[describe-mode] in the
+process buffer for a list of commands.
+
+By default, Emacs inhibits the loading of Python modules from the
+current working directory, for security reasons.  To disable this
+behavior, change `python-remove-cwd-from-path' to nil.
 
 \(fn &optional CMD NOSHOW NEW)" t nil)
 
@@ -21873,7 +21872,7 @@ command is used to switch to an existing process, only when a new
 process is started.  If you use this, you will probably want to ensure
 that the current arguments are retained (they will be included in the
 prompt).  This argument is ignored when this function is called
-programmatically, or when running in Emacs 19.34 or older.
+programmatically.
 
 Note: You can toggle between using the CPython interpreter and the
 JPython interpreter by hitting \\[python-toggle-shells].  This toggles
@@ -22864,8 +22863,8 @@ variable.
 ;;;;;;  rmail-secondary-file-directory rmail-primary-inbox-list rmail-highlighted-headers
 ;;;;;;  rmail-retry-ignored-headers rmail-displayed-headers rmail-ignored-headers
 ;;;;;;  rmail-dont-reply-to-names rmail-user-mail-address-regexp
-;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (19641
-;;;;;;  1152))
+;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (19705
+;;;;;;  10467))
 ;;; Generated autoloads from mail/rmail.el
 
 (autoload 'rmail-movemail-variant-p "rmail" "\
@@ -24128,8 +24127,8 @@ Like `mail' command, but display mail buffer in another frame.
 ;;;***
 
 ;;;### (autoloads (server-save-buffers-kill-terminal server-mode
-;;;;;;  server-force-delete server-start) "server" "server.el" (19662
-;;;;;;  13261))
+;;;;;;  server-force-delete server-start) "server" "server.el" (19682
+;;;;;;  58511))
 ;;; Generated autoloads from server.el
 
 (autoload 'server-start "server" "\
@@ -24729,7 +24728,7 @@ interactively.  If there's no argument, do it at the current buffer.
 ;;;***
 
 ;;;### (autoloads (smtpmail-send-queued-mail smtpmail-send-it) "smtpmail"
-;;;;;;  "mail/smtpmail.el" (19636 58496))
+;;;;;;  "mail/smtpmail.el" (19714 24709))
 ;;; Generated autoloads from mail/smtpmail.el
 
 (autoload 'smtpmail-send-it "smtpmail" "\
@@ -25095,7 +25094,7 @@ Spam reports will be queued with the method used when
 ;;;***
 
 ;;;### (autoloads (speedbar-get-focus speedbar-frame-mode) "speedbar"
-;;;;;;  "speedbar.el" (19658 61388))
+;;;;;;  "speedbar.el" (19678 47007))
 ;;; Generated autoloads from speedbar.el
 
 (defalias 'speedbar 'speedbar-frame-mode)
@@ -26529,7 +26528,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 ;;;***
 
 ;;;### (autoloads (tcl-help-on-word inferior-tcl tcl-mode) "tcl"
-;;;;;;  "progmodes/tcl.el" (19636 58496))
+;;;;;;  "progmodes/tcl.el" (19673 50265))
 ;;; Generated autoloads from progmodes/tcl.el
 
 (autoload 'tcl-mode "tcl" "\
@@ -28011,7 +28010,7 @@ BUFFER defaults to `trace-buffer'.
 ;;;### (autoloads (tramp-unload-tramp tramp-completion-handle-file-name-completion
 ;;;;;;  tramp-completion-handle-file-name-all-completions tramp-unload-file-name-handlers
 ;;;;;;  tramp-file-name-handler tramp-syntax tramp-mode) "tramp"
-;;;;;;  "net/tramp.el" (19672 43471))
+;;;;;;  "net/tramp.el" (19714 24709))
 ;;; Generated autoloads from net/tramp.el
 
 (defvar tramp-mode t "\
@@ -29566,7 +29565,7 @@ Name of the directory containing Bzr repository status files.")
 
 ;;;***
 
-;;;### (autoloads (vc-dir) "vc-dir" "vc-dir.el" (19661 53223))
+;;;### (autoloads (vc-dir) "vc-dir" "vc-dir.el" (19706 58306))
 ;;; Generated autoloads from vc-dir.el
 
 (autoload 'vc-dir "vc-dir" "\
@@ -29625,7 +29624,7 @@ case, and the process object in the asynchronous case.
 
 ;;;***
 
-;;;### (autoloads nil "vc-hg" "vc-hg.el" (19661 52523))
+;;;### (autoloads nil "vc-hg" "vc-hg.el" (19683 64086))
 ;;; Generated autoloads from vc-hg.el
  (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
@@ -30940,7 +30939,7 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 ;;;***
 
 ;;;### (autoloads (which-function-mode) "which-func" "progmodes/which-func.el"
-;;;;;;  (19636 58496))
+;;;;;;  (19694 49287))
 ;;; Generated autoloads from progmodes/which-func.el
  (put 'which-func-format 'risky-local-variable t)
  (put 'which-func-current 'risky-local-variable t)
@@ -31401,8 +31400,8 @@ With arg, turn widget mode on if and only if arg is positive.
 ;;;***
 
 ;;;### (autoloads (widget-setup widget-insert widget-delete widget-create
-;;;;;;  widget-prompt-value widgetp) "wid-edit" "wid-edit.el" (19636
-;;;;;;  58496))
+;;;;;;  widget-prompt-value widgetp) "wid-edit" "wid-edit.el" (19678
+;;;;;;  47007))
 ;;; Generated autoloads from wid-edit.el
 
 (autoload 'widgetp "wid-edit" "\
@@ -32012,8 +32011,8 @@ Zone out, completely.
 ;;;;;;  "url/url-expand.el" "url/url-ftp.el" "url/url-history.el"
 ;;;;;;  "url/url-imap.el" "url/url-methods.el" "url/url-nfs.el" "url/url-proxy.el"
 ;;;;;;  "url/url-vars.el" "vc-dav.el" "vcursor.el" "vt-control.el"
-;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "x-dnd.el") (19672
-;;;;;;  46342 903499))
+;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "x-dnd.el") (19714
+;;;;;;  25843 484853))
 
 ;;;***
 

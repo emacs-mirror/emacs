@@ -4115,6 +4115,11 @@ into account variable-width characters and line continuation."
 	 ;; When already vscrolled, we vscroll some more if we can,
 	 ;; or clear vscroll and move forward at end of tall image.
 	 ((> (setq vs (window-vscroll nil t)) 0)
+
+	  ;; If we are vscrolling an image at the top of the screen,
+	  ;; we could actually advance point if this yields space
+	  ;; below....
+
 	  (when (> rbot 0)
 	    (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
 	 ;; If cursor just entered the bottom scroll margin, move forward,
