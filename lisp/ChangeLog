@@ -1,3 +1,8 @@
+2010-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* arc-mode.el (archive-zip-extract): If w32-quote-process-args is
+	nil, do quote archive member names.  (Bug#6144)
+
 2010-12-10  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (diff-no-select): Declare.
