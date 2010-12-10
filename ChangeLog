@@ -1,3 +1,7 @@
+2010-12-10  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Don't double machfile in final message.
+
 2010-12-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Fix last change.
