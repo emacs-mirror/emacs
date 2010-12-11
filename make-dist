@@ -441,7 +441,7 @@ echo "Making links to \`lwlib'"
 echo "Making links to \`etc' and its subdirectories"
 for f in `find etc -type f`; do
   case $f in
-    etc/DOC*) continue ;;
+    etc/DOC*|etc/*.pyc) continue ;;
   esac
   ln $f $tempdir/$f
 done
