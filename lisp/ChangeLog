@@ -1,3 +1,7 @@
+2010-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/sgml-mode.el (sgml-xml-guess): Add .xhtml extension.
+
 2010-12-11  Karel Klíč  <kklic@redhat.com>
 
 	* files.el (auto-mode-alist): Use html-mode for *.xhtml.  (Bug#7606)
