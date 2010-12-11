@@ -1454,11 +1454,10 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 }
 
 
-/* Return the next character from STR which is MAXLEN bytes long.
-   Return in *LEN the length of the character.  This is like
-   STRING_CHAR_AND_LENGTH but never returns an invalid character.  If
-   we find one, we return a `?', but with the length of the invalid
-   character.  */
+/* Return the next character from STR.  Return in *LEN the length of
+   the character.  This is like STRING_CHAR_AND_LENGTH but never
+   returns an invalid character.  If we find one, we return a `?', but
+   with the length of the invalid character.  */
 
 static INLINE int
 string_char_and_length (str, len)
@@ -1492,15 +1491,13 @@ string_pos_nchars_ahead (pos, string, nchars)
 
   if (STRING_MULTIBYTE (string))
     {
-      int rest = SBYTES (string) - BYTEPOS (pos);
       const unsigned char *p = SDATA (string) + BYTEPOS (pos);
       int len;
 
       while (nchars--)
 	{
 	  string_char_and_length (p, &len);
-	  p += len, rest -= len;
-	  xassert (rest >= 0);
+	  p += len;
 	  CHARPOS (pos) += 1;
 	  BYTEPOS (pos) += len;
 	}
@@ -1545,14 +1542,13 @@ c_string_pos (charpos, s, multibyte_p)
 
   if (multibyte_p)
     {
-      int rest = strlen (s), len;
+      int len;
 
       SET_TEXT_POS (pos, 0, 0);
       while (charpos--)
 	{
 	  string_char_and_length (s, &len);
-	  s += len, rest -= len;
-	  xassert (rest >= 0);
+	  s += len;
 	  CHARPOS (pos) += 1;
 	  BYTEPOS (pos) += len;
 	}
@@ -3614,7 +3610,6 @@ face_before_or_after_it_pos (it, before_p)
       if (STRING_MULTIBYTE (it->string))
 	{
 	  const unsigned char *p = SDATA (it->string) + BYTEPOS (pos);
-	  int rest = SBYTES (it->string) - BYTEPOS (pos);
 	  int c, len;
 	  struct face *face = FACE_FROM_ID (it->f, face_id);
 
@@ -6264,7 +6259,6 @@ next_element_from_string (it)
 	}
       else if (STRING_MULTIBYTE (it->string))
 	{
-	  int remaining = SBYTES (it->string) - IT_STRING_BYTEPOS (*it);
 	  const unsigned char *s = (SDATA (it->string)
 				    + IT_STRING_BYTEPOS (*it));
 	  it->c = string_char_and_length (s, &it->len);
@@ -6300,7 +6294,6 @@ next_element_from_string (it)
 	}
       else if (STRING_MULTIBYTE (it->string))
 	{
-	  int maxlen = SBYTES (it->string) - IT_STRING_BYTEPOS (*it);
 	  const unsigned char *s = (SDATA (it->string)
 				    + IT_STRING_BYTEPOS (*it));
 	  it->c = string_char_and_length (s, &it->len);
@@ -6354,13 +6347,7 @@ next_element_from_c_string (it)
       BYTEPOS (it->position) = CHARPOS (it->position) = -1;
     }
   else if (it->multibyte_p)
-    {
-      /* Implementation note: The calls to strlen apparently aren't a
-	 performance problem because there is no noticeable performance
-	 difference between Emacs running in unibyte or multibyte mode.  */
-      int maxlen = strlen (it->s) - IT_BYTEPOS (*it);
-      it->c = string_char_and_length (it->s + IT_BYTEPOS (*it), &it->len);
-    }
+    it->c = string_char_and_length (it->s + IT_BYTEPOS (*it), &it->len);
   else
     it->c = it->s[IT_BYTEPOS (*it)], it->len = 1;
 
@@ -20917,11 +20904,7 @@ produce_stretch_glyph (it)
 
       it2 = *it;
       if (it->multibyte_p)
-	{
-	  int maxlen = ((IT_BYTEPOS (*it) >= GPT ? ZV : GPT)
-			- IT_BYTEPOS (*it));
-	  it2.c = it2.char_to_display = STRING_CHAR_AND_LENGTH (p, it2.len);
-	}
+	it2.c = it2.char_to_display = STRING_CHAR_AND_LENGTH (p, it2.len);
       else
 	{
 	  it2.c = it2.char_to_display = *p, it2.len = 1;

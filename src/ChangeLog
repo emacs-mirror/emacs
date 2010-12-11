@@ -1,3 +1,13 @@
+2010-12-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (string_pos_nchars_ahead, c_string_pos)
+	(face_before_or_after_it_pos, next_element_from_string)
+	(next_element_from_c_string, produce_stretch_glyph): Remove unused
+	calculations of maximum string length before calling
+	string_char_and_length and STRING_CHAR_AND_LENGTH.
+	(string_char_and_length): Update commentary: MAXLEN is no longer
+	needed.
+
 2010-12-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (kbd_buffer_get_event): Construct SAVE_SESSION_EVENT
