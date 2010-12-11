@@ -5690,7 +5690,7 @@
 	* s/netbsd.h (LIB_GCC):
 	Move to configure.
 
-2010-05-11  Karel Klic  <kklic@redhat.com>
+2010-05-11  Karel Klíč  <kklic@redhat.com>
 
 	* ftfont.c: Fix incorrect parentheses of #if condition for
 	definining M17N_FLT_USE_NEW_FEATURE.
