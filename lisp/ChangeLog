@@ -1,3 +1,7 @@
+2010-12-11  Karel Klíč  <kklic@redhat.com>
+
+	* files.el (auto-mode-alist): Use html-mode for *.xhtml.  (Bug#7606)
+
 2010-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Derive from prog-mode, use derived-mode-p, and fix up various

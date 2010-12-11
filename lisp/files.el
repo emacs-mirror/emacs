@@ -2232,7 +2232,7 @@ since only a single case-insensitive search through the alist is made."
    (lambda (elt)
      (cons (purecopy (car elt)) (cdr elt)))
    `(;; do this first, so that .html.pl is Polish html, not Perl
-     ("\\.s?html?\\(\\.[a-zA-Z_]+\\)?\\'" . html-mode)
+     ("\\.[sx]?html?\\(\\.[a-zA-Z_]+\\)?\\'" . html-mode)
      ("\\.svgz?\\'" . image-mode)
      ("\\.svgz?\\'" . xml-mode)
      ("\\.x[bp]m\\'" . image-mode)
