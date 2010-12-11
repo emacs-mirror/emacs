@@ -14445,6 +14445,9 @@ remote system.  If both Emacs and the server supports it, the
 connection will be upgraded to an encrypted @acronym{STARTTLS}
 connection automatically.
 
+@item network-only
+The same as the above, but don't do automatic @acronym{STARTTLS} upgrades.
+
 @findex nntp-open-tls-stream
 @item nntp-open-tls-stream
 Opens a connection to a server over a @dfn{secure} channel.  To use

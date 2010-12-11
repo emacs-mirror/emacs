@@ -87,6 +87,8 @@ host.
 
 Direct connections:
 - `nntp-open-network-stream' (the default),
+- `network-only' (the same as the above, but don't do automatic
+  STARTTLS upgrades).
 - `nntp-open-ssl-stream',
 - `nntp-open-tls-stream',
 - `nntp-open-netcat-stream'.
@@ -1267,6 +1269,7 @@ password contained in '~/.nntp-authinfo'."
 	      (let ((coding-system-for-read nntp-coding-system-for-read)
 		    (coding-system-for-write nntp-coding-system-for-write)
 		    (map '((nntp-open-network-stream network)
+			   (network-only network-only)
 			   (nntp-open-ssl-stream tls)
 			   (nntp-open-tls-stream tls))))
 		(if (assoc nntp-open-connection-function map)

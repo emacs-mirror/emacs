@@ -1,3 +1,21 @@
+2010-12-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* proto-stream.el (proto-stream-open-network-only): New function to
+	have a way to specify non-STARTTLS upgrade connections.
+
+2010-12-10  Julien Danjou  <julien@danjou.info>
+
+	* gnus-gravatar.el (gnus-gravatar-transform-address): Fix error when
+	email address is nil.
+
+	* message.el (message-bogus-recipient-p): Set address to "" if nil.
+
+2010-12-10  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-expire-articles): Ignore expiry except for
+	deletion.
+	(nnir-run-imap): Only need to parse list once.
+
 2010-12-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-tag-script): Ignore <script>.

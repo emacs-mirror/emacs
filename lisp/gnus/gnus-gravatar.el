@@ -65,7 +65,7 @@ If nil, default to `gravatar-size'."
 	(when (or force
 		  (not (and gnus-gravatar-too-ugly
 			    (or (string-match gnus-gravatar-too-ugly
-					      (cadr address))
+					      (or (cadr address) ""))
 				(and name
 				     (string-match gnus-gravatar-too-ugly
 						   name))))))
