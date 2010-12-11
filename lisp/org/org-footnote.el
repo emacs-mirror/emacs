@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -303,7 +303,7 @@ or new, let the user edit the definition of the footnote."
      (t
       (setq re (concat "^" org-footnote-tag-for-non-org-mode-files "[ \t]*$"))
       (unless (re-search-forward re nil t)
-	(let ((max (if (and (eq major-mode 'message-mode)
+	(let ((max (if (and (derived-mode-p 'message-mode)
 			    (re-search-forward message-signature-separator nil t))
 		       (progn (beginning-of-line) (point))
 		     (goto-char (point-max)))))

@@ -1,27 +1,28 @@
 ;;; ob-lisp.el --- org-babel functions for Common Lisp
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010 Free Software Foundation
 
-;; Author: David T. O'Toole <dto@gnu.org>
-;;	Eric Schulte
+;; Author: David T. O'Toole <dto@gnu.org>, Eric Schulte
 ;; Keywords: literate programming, reproducible research, lisp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
-;; This file is part of GNU Emacs.
+;;; License:
 
-;; GNU Emacs is free software: you can redistribute it and/or modify
+;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-
-;; GNU Emacs is distributed in the hope that it will be useful,
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -40,16 +41,18 @@
 (require 'ob-ref)
 (require 'ob-comint)
 (require 'ob-eval)
-(declare-function slime-eval "ext:slime" (form))
+
+(declare-function slime-eval "ext:slime" (sexp &optional package))
+(declare-function slime-process "ext:slime" (&optional connection))
 (declare-function slime-connected-p "ext:slime" ())
-(declare-function slime-process "ext:slime" ())
-(require 'slime nil 'noerror)
 
 (defvar org-babel-default-header-args:lisp '()
   "Default header arguments for lisp code blocks.")
 
 (defcustom org-babel-lisp-cmd "sbcl --script"
-  "Name of command used to evaluate lisp blocks.")
+  "Name of command used to evaluate lisp blocks."
+  :group 'org-babel
+  :type 'string)
 
 (defun org-babel-expand-body:lisp (body params)
   "Expand BODY according to PARAMS, return the expanded body."
@@ -65,6 +68,7 @@
 (defun org-babel-execute:lisp (body params)
   "Execute a block of Lisp code with org-babel.
 This function is called by `org-babel-execute-src-block'"
+  (require 'slime)
   (message "executing Lisp source code block")
   (let* ((session (org-babel-lisp-initiate-session
 		   (cdr (assoc :session params))))
@@ -96,6 +100,7 @@ This function is called by `org-babel-execute-src-block'"
 (defun org-babel-lisp-initiate-session (&optional session)
   "If there is not a current inferior-process-buffer in SESSION
 then create.  Return the initialized session."
+  (require 'slime)
   (unless (string= session "none")
     (save-window-excursion
       (or (slime-connected-p)

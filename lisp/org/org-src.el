@@ -8,7 +8,7 @@
 ;;         Dan Davison <davison at stats dot ox dot ac dot uk>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -240,8 +240,8 @@ buffer."
 	    block-nindent (nth 5 info)
 	    lang-f (intern (concat lang "-mode"))
 	    begline (save-excursion (goto-char beg) (org-current-line)))
-      (if (and mark (>= mark beg) (<= mark end))
-	  (save-excursion (goto-char mark)
+      (if (and mark (>= mark beg) (<= mark (1+ end)))
+	  (save-excursion (goto-char (min mark end))
 			  (setq markline (org-current-line)
 				markcol (current-column))))
       (if (equal lang-f 'table.el-mode)

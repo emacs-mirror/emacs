@@ -1,11 +1,11 @@
 ;;; ob-sqlite.el --- org-babel functions for sqlite database interaction
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010  Free Software Foundation
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -28,6 +28,7 @@
 
 ;;; Code:
 (require 'ob)
+(require 'ob-eval)
 (require 'ob-ref)
 
 (declare-function org-fill-template "org" (template alist))
@@ -52,7 +53,6 @@
   "Execute a block of Sqlite code with Babel.
 This function is called by `org-babel-execute-src-block'."
   (let ((result-params (split-string (or (cdr (assoc :results params)) "")))
-	(vars (org-babel-get-header params :var))
 	(db (cdr (assoc :db params)))
 	(separator (cdr (assoc :separator params)))
 	(nullvalue (cdr (assoc :nullvalue params)))
@@ -65,15 +65,10 @@ This function is called by `org-babel-execute-src-block'."
     (unless db (error "ob-sqlite: can't evaluate without a database."))
     (with-temp-buffer
       (insert
-       (shell-command-to-string
+       (org-babel-eval
 	(org-fill-template
-	 "%cmd -init %body %header %separator %nullvalue %others %csv %db "
+	 "%cmd %header %separator %nullvalue %others %csv %db "
 	 (list
-	  (cons "body" ((lambda (sql-file)
-			  (with-temp-file sql-file
-			    (insert (org-babel-expand-body:sqlite body params)))
-			  sql-file)
-			(org-babel-temp-file "sqlite-sql-")))
 	  (cons "cmd" org-babel-sqlite3-command)
 	  (cons "header" (if headers-p "-header" "-noheader"))
 	  (cons "separator"
@@ -90,7 +85,9 @@ This function is called by `org-babel-execute-src-block'."
 			      (member :html others) separator)
 			  ""
 			"-csv"))
-	  (cons "db " db)))))
+	  (cons "db " db)))
+	;; body of the code block
+	(org-babel-expand-body:sqlite body params)))
       (if (or (member "scalar" result-params)
 	      (member "html" result-params)
 	      (member "code" result-params)

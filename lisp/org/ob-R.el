@@ -2,11 +2,10 @@
 
 ;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
-;; Author: Eric Schulte
-;;	Dan Davison
+;; Author: Eric Schulte, Dan Davison
 ;; Keywords: literate programming, reproducible research, R, statistics
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -277,16 +276,18 @@ last statement in BODY, as elisp."
       (butlast
        (delq nil
 	     (mapcar
-	      (lambda (line) ;; cleanup extra prompts left in output
-		(if (string-match
-		     "^\\([ ]*[>+][ ]?\\)+\\([[0-9]+\\|[ ]\\)" line)
-		    (substring line (match-end 1))
-		  line))
-	      (org-babel-comint-with-output (session org-babel-R-eoe-output)
-		(insert (mapconcat #'org-babel-chomp
-				   (list body org-babel-R-eoe-indicator)
-				   "\n"))
-		(inferior-ess-send-input)))) 2) "\n"))))
+	      (lambda (line) (when (> (length line) 0) line))
+	      (mapcar
+	       (lambda (line) ;; cleanup extra prompts left in output
+		 (if (string-match
+		      "^\\([ ]*[>+][ ]?\\)+\\([[0-9]+\\|[ ]\\)" line)
+		     (substring line (match-end 1))
+		   line))
+	       (org-babel-comint-with-output (session org-babel-R-eoe-output)
+		 (insert (mapconcat #'org-babel-chomp
+				    (list body org-babel-R-eoe-indicator)
+				    "\n"))
+		 (inferior-ess-send-input)))))) "\n"))))
 
 (defun org-babel-R-process-value-result (result column-names-p)
   "R-specific processing of return value.

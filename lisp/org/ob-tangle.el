@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -125,6 +125,7 @@ evaluating BODY."
 This function exports the source code using
 `org-babel-tangle' and then loads the resulting file using
 `load-file'."
+  (interactive "fFile to load: ")
   (flet ((age (file)
               (float-time
                (time-subtract (current-time)

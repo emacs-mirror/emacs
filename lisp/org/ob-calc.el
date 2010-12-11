@@ -1,11 +1,11 @@
 ;;; ob-calc.el --- org-babel functions for calc code evaluation
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010  Free Software Foundation, Inc
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -40,25 +40,55 @@
 
 (defun org-babel-execute:calc (body params)
   "Execute a block of calc code with Babel."
-  (mapcar
-   (lambda (line)
-     (when (> (length line) 0)
-       (if (string= "'" (substring line 0 1))
-	   (funcall (lookup-key calc-mode-map (substring line 1)) nil)
-	 (calc-push-list
-	  (list ((lambda (res)
-		   (cond
-		    ((numberp res) res)
-		    ((listp res) (error "calc error \"%s\" on input \"%s\""
-					(cadr res) line))
-		    (t res))
-		   (if (numberp res) res (math-read-number res)))
-		 (calc-eval line)))))))
-   (mapcar #'org-babel-trim
-	   (split-string (org-babel-expand-body:calc body params) "[\n\r]")))
+  (unless (get-buffer "*Calculator*")
+    (save-window-excursion (calc) (calc-quit)))
+  (let* ((vars (mapcar #'cdr (org-babel-get-header params :var)))
+	 (var-syms (mapcar #'car vars))
+	 (var-names (mapcar #'symbol-name var-syms)))
+    (mapc
+     (lambda (pair)
+       (calc-push-list (list (cdr pair)))
+       (calc-store-into (car pair)))
+     vars)
+    (mapc
+     (lambda (line)
+       (when (> (length line) 0)
+	 (cond
+	  ;; simple variable name
+	  ((member line var-names) (calc-recall (intern line)))
+	  ;; stack operation
+	  ((string= "'" (substring line 0 1))
+	   (funcall (lookup-key calc-mode-map (substring line 1)) nil))
+	  ;; complex expression
+	  (t
+	   (calc-push-list
+	    (list ((lambda (res)
+		     (cond
+		      ((numberp res) res)
+		      ((math-read-number res) (math-read-number res))
+		      ((listp res) (error "calc error \"%s\" on input \"%s\""
+					  (cadr res) line))
+		      (t (calc-eval
+			  (math-evaluate-expr
+			   ;; resolve user variables, calc built in
+			   ;; variables are handled automatically
+			   ;; upstream by calc
+			   (mapcar (lambda (el)
+				     (if (and (consp el) (equal 'var (car el))
+					      (member (cadr el) var-syms))
+					 (progn
+					   (calc-recall (cadr el))
+					   (prog1 (calc-top 1)
+					     (calc-pop 1)))
+				       el))
+				   ;; parse line into calc objects
+				   (car (math-read-exprs line))))))))
+		   (calc-eval line))))))))
+     (mapcar #'org-babel-trim
+	     (split-string (org-babel-expand-body:calc body params) "[\n\r]"))))
   (save-excursion
-    (set-buffer (get-buffer "*Calculator*"))
-    (calc-eval (calc-top 1))))
+    (with-current-buffer (get-buffer "*Calculator*")
+      (calc-eval (calc-top 1)))))
 
 (provide 'ob-calc)
 
