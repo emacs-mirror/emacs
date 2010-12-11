@@ -1,7 +1,7 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -105,8 +105,8 @@
 	 ,disposition ,description ,cache ,id))
 
 (defcustom mm-text-html-renderer
-  (cond ((fboundp 'libxml-parse-html-region) 'mm-shr)
-	((executable-find "w3m") 'gnus-article-html)
+  (cond ((fboundp 'libxml-parse-html-region) 'shr)
+	((executable-find "w3m") 'gnus-w3m)
 	((executable-find "links") 'links)
 	((executable-find "lynx") 'lynx)
 	((locate-library "w3") 'w3)
@@ -115,8 +115,8 @@
   "Render of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:
-`mm-shr': use Gnus simple HTML renderer;
-`gnus-article-html' : use Gnus renderer based on w3m;
+`shr': use Gnus simple HTML renderer;
+`gnus-w3m' : use Gnus renderer based on w3m;
 `w3m'  : use emacs-w3m;
 `w3m-standalone': use w3m;
 `links': use links;
@@ -125,8 +125,8 @@ The defined renderer types are:
 `html2text' : use html2text;
 nil    : use external viewer (default web browser)."
   :version "24.1"
-  :type '(choice (const mm-shr)
-                 (const gnus-article-html)
+  :type '(choice (const shr)
+                 (const gnus-w3m)
                  (const w3)
                  (const w3m :tag "emacs-w3m")
 		 (const w3m-standalone :tag "standalone w3m" )
@@ -136,10 +136,6 @@ nil    : use external viewer (default web browser)."
 		 (const nil :tag "External viewer")
 		 (function))
   :group 'mime-display)
-
-(defvar mm-inline-text-html-renderer nil
-  "Function used for rendering inline HTML contents.
-It is suggested to customize `mm-text-html-renderer' instead.")
 
 (defcustom mm-inline-text-html-with-images nil
   "If non-nil, Gnus will allow retrieving images in HTML contents with
@@ -245,8 +241,7 @@ before the external MIME handler is invoked."
     ("text/html"
      mm-inline-text-html
      (lambda (handle)
-       (or mm-inline-text-html-renderer
-	   mm-text-html-renderer)))
+       mm-text-html-renderer))
     ("text/x-vcard"
      mm-inline-text-vcard
      (lambda (handle)
@@ -629,7 +624,7 @@ Postpone undisplaying of viewers for types in
 	     no-strict-mime
 	     (and cd (mail-header-parse-content-disposition cd))
 	     description id)
-	    ctl))))
+	    ctl from))))
 	(when id
 	  (when (string-match " *<\\(.*\\)> *" id)
 	    (setq id (match-string 1 id)))
@@ -671,7 +666,7 @@ Postpone undisplaying of viewers for types in
 	(save-restriction
 	  (narrow-to-region start end)
 	  (setq parts (nconc (list (mm-dissect-buffer t nil from)) parts)))))
-    (mm-possibly-verify-or-decrypt (nreverse parts) ctl)))
+    (mm-possibly-verify-or-decrypt (nreverse parts) ctl from)))
 
 (defun mm-copy-to-buffer ()
   "Copy the contents of the current buffer to a fresh buffer."
@@ -701,13 +696,14 @@ Postpone undisplaying of viewers for types in
 (autoload 'mailcap-parse-mailcaps "mailcap")
 (autoload 'mailcap-mime-info "mailcap")
 
-(defun mm-display-part (handle &optional no-default)
+(defun mm-display-part (handle &optional no-default force)
   "Display the MIME part represented by HANDLE.
 Returns nil if the part is removed; inline if displayed inline;
 external if displayed external."
   (save-excursion
     (mailcap-parse-mailcaps)
-    (if (mm-handle-displayed-p handle)
+    (if (and (not force)
+	     (mm-handle-displayed-p handle))
 	(mm-remove-part handle)
       (let* ((ehandle (if (equal (mm-handle-media-type handle)
 				 "message/external-body")
@@ -1255,11 +1251,13 @@ PROMPT overrides the default one used to ask user for a file name."
       (setq filename (gnus-map-function mm-file-name-rewrite-functions
 					(file-name-nondirectory filename))))
     (setq file
-          (read-file-name (or prompt
-			      (format "Save MIME part to (default %s): "
-				      (or filename "")))
-                          (or mm-default-directory default-directory)
-			  (or filename "")))
+          (read-file-name
+	   (or prompt
+	       (format "Save MIME part to (default %s): "
+		       (or filename "")))
+	   (or mm-default-directory default-directory)
+	   (expand-file-name (or filename "")
+			     (or mm-default-directory default-directory))))
     (if (file-directory-p file)
 	(setq file (expand-file-name filename file))
       (setq file (expand-file-name
@@ -1327,6 +1325,8 @@ Use CMD as the process."
       (mm-add-meta-html-tag handle)
       (let ((coding-system-for-write 'binary))
 	(shell-command-on-region (point-min) (point-max) command nil)))))
+
+(autoload 'gnus-completing-read "gnus-util")
 
 (defun mm-interactively-view-part (handle)
   "Display HANDLE using METHOD."
@@ -1569,7 +1569,7 @@ If RECURSIVE, search recursively."
 
 (autoload 'mm-view-pkcs7 "mm-view")
 
-(defun mm-possibly-verify-or-decrypt (parts ctl)
+(defun mm-possibly-verify-or-decrypt (parts ctl &optional from)
   (let ((type (car ctl))
 	(subtype (cadr (split-string (car ctl) "/")))
 	(mm-security-handle ctl) ;; (car CTL) is the type.
@@ -1584,7 +1584,7 @@ If RECURSIVE, search recursively."
 		    ((eq mm-decrypt-option 'known) t)
 		    (t (y-or-n-p
 			(format "Decrypt (S/MIME) part? "))))
-		   (mm-view-pkcs7 parts))
+		   (mm-view-pkcs7 parts from))
 	  (setq parts (mm-dissect-buffer t)))))
      ((equal subtype "signed")
       (unless (and (setq protocol
@@ -1687,22 +1687,26 @@ If RECURSIVE, search recursively."
 		  (start end &optional base-url))
 (declare-function shr-insert-document "shr" (dom))
 (defvar shr-blocked-images)
+(defvar gnus-inhibit-images)
+(autoload 'gnus-blocked-images "gnus-art")
 
 (defun mm-shr (handle)
   ;; Require since we bind its variables.
   (require 'shr)
   (let ((article-buffer (current-buffer))
-	(shr-blocked-images (if (and (boundp 'gnus-summary-buffer)
-				     (buffer-name gnus-summary-buffer))
-				(with-current-buffer gnus-summary-buffer
-				  gnus-blocked-images)
-			      shr-blocked-images))
 	(shr-content-function (lambda (id)
 				(let ((handle (mm-get-content-id id)))
 				  (when handle
 				    (mm-with-part handle
 				      (buffer-string))))))
-	charset)
+	shr-inhibit-images shr-blocked-images charset char)
+    (if (and (boundp 'gnus-summary-buffer)
+	     (buffer-name gnus-summary-buffer))
+	(with-current-buffer gnus-summary-buffer
+	  (setq shr-inhibit-images gnus-inhibit-images
+		shr-blocked-images (gnus-blocked-images)))
+      (setq shr-inhibit-images gnus-inhibit-images
+	    shr-blocked-images (gnus-blocked-images)))
     (unless handle
       (setq handle (mm-dissect-buffer t)))
     (setq charset (mail-content-type-get (mm-handle-type handle) 'charset))
@@ -1710,14 +1714,32 @@ If RECURSIVE, search recursively."
       (narrow-to-region (point) (point))
       (shr-insert-document
        (mm-with-part handle
-	 (when (and charset
-		    (setq charset (mm-charset-to-coding-system charset))
-		    (not (eq charset 'ascii)))
-	   (insert (prog1
-		       (mm-decode-coding-string (buffer-string) charset)
-		     (erase-buffer)
-		     (mm-enable-multibyte))))
-	 (libxml-parse-html-region (point-min) (point-max)))))))
+	 (insert (prog1
+		     (if (and charset
+			      (setq charset
+				    (mm-charset-to-coding-system charset))
+			      (not (eq charset 'ascii)))
+			 (mm-decode-coding-string (buffer-string) charset)
+		       (mm-string-as-multibyte (buffer-string)))
+		   (erase-buffer)
+		   (mm-enable-multibyte)))
+	 (goto-char (point-min))
+	 (setq case-fold-search t)
+	 (while (re-search-forward
+		 "&#\\(?:x\\([89][0-9a-f]\\)\\|\\(1[2-5][0-9]\\)\\);" nil t)
+	   (when (setq char
+		       (cdr (assq (if (match-beginning 1)
+				      (string-to-number (match-string 1) 16)
+				    (string-to-number (match-string 2)))
+				  mm-extra-numeric-entities)))
+	     (replace-match (char-to-string char))))
+	 (libxml-parse-html-region (point-min) (point-max))))
+      (mm-handle-set-undisplayer
+       handle
+       `(lambda ()
+	  (let ((inhibit-read-only t))
+	    (delete-region ,(point-min-marker)
+			   ,(point-max-marker))))))))
 
 (provide 'mm-decode)
 

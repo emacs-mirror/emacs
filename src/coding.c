@@ -2053,7 +2053,7 @@ emacs_mule_char (struct coding_system *coding, const unsigned char *src,
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base = src;
   int multibytep = coding->src_multibyte;
-  struct charset *charset;
+  int charset_id;
   unsigned code;
   int c;
   int consumed_chars = 0;
@@ -2063,7 +2063,7 @@ emacs_mule_char (struct coding_system *coding, const unsigned char *src,
   if (c < 0)
     {
       c = -c;
-      charset = emacs_mule_charset[0];
+      charset_id = emacs_mule_charset[0];
     }
   else
     {
@@ -2099,7 +2099,7 @@ emacs_mule_char (struct coding_system *coding, const unsigned char *src,
       switch (emacs_mule_bytes[c])
 	{
 	case 2:
-	  if (! (charset = emacs_mule_charset[c]))
+	  if ((charset_id = emacs_mule_charset[c]) < 0)
 	    goto invalid_code;
 	  ONE_MORE_BYTE (c);
 	  if (c < 0xA0)
@@ -2112,7 +2112,7 @@ emacs_mule_char (struct coding_system *coding, const unsigned char *src,
 	      || c == EMACS_MULE_LEADING_CODE_PRIVATE_12)
 	    {
 	      ONE_MORE_BYTE (c);
-	      if (c < 0xA0 || ! (charset = emacs_mule_charset[c]))
+	      if (c < 0xA0 || (charset_id = emacs_mule_charset[c]) < 0)
 		goto invalid_code;
 	      ONE_MORE_BYTE (c);
 	      if (c < 0xA0)
@@ -2121,7 +2121,7 @@ emacs_mule_char (struct coding_system *coding, const unsigned char *src,
 	    }
 	  else
 	    {
-	      if (! (charset = emacs_mule_charset[c]))
+	      if ((charset_id = emacs_mule_charset[c]) < 0)
 		goto invalid_code;
 	      ONE_MORE_BYTE (c);
 	      if (c < 0xA0)
@@ -2136,7 +2136,7 @@ emacs_mule_char (struct coding_system *coding, const unsigned char *src,
 
 	case 4:
 	  ONE_MORE_BYTE (c);
-	  if (c < 0 || ! (charset = emacs_mule_charset[c]))
+	  if (c < 0 || (charset_id = emacs_mule_charset[c]) < 0)
 	    goto invalid_code;
 	  ONE_MORE_BYTE (c);
 	  if (c < 0xA0)
@@ -2150,21 +2150,21 @@ emacs_mule_char (struct coding_system *coding, const unsigned char *src,
 
 	case 1:
 	  code = c;
-	  charset = CHARSET_FROM_ID (ASCII_BYTE_P (code)
-				     ? charset_ascii : charset_eight_bit);
+	  charset_id = ASCII_BYTE_P (code) ? charset_ascii : charset_eight_bit;
 	  break;
 
 	default:
 	  abort ();
 	}
-      CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, code, c);
+      CODING_DECODE_CHAR (coding, src, src_base, src_end,
+			  CHARSET_FROM_ID (charset_id), code, c);
       if (c < 0)
 	goto invalid_code;
     }
   *nbytes = src - src_base;
   *nchars = consumed_chars;
   if (id)
-    *id = charset->id;
+    *id = charset_id;
   return (mseq_found ? -c : c);
 
  no_more_source:
@@ -9297,7 +9297,8 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
        doc: /* Internal use only.  */)
   (Lisp_Object coding_system, Lisp_Object terminal)
 {
-  struct coding_system *terminal_coding = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1));
+  struct terminal *term = get_terminal (terminal, 1);
+  struct coding_system *terminal_coding = TERMINAL_TERMINAL_CODING (term);
   CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system), terminal_coding);
   /* We had better not send unsafe characters to terminal.  */
@@ -9306,6 +9307,10 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
   terminal_coding->common_flags &= ~CODING_ANNOTATE_COMPOSITION_MASK;
   terminal_coding->src_multibyte = 1;
   terminal_coding->dst_multibyte = 0;
+  if (terminal_coding->common_flags & CODING_REQUIRE_ENCODING_MASK)
+    term->charset_list = coding_charset_list (terminal_coding);
+  else
+    term->charset_list = Fcons (make_number (charset_ascii), Qnil);
   return Qnil;
 }
 
@@ -10554,7 +10559,7 @@ associated with each coding-category one by one in this order.  When
 one algorithm agrees with a byte sequence of source text, the coding
 system bound to the corresponding coding-category is selected.
 
-Don't modify this variable directly, but use `set-coding-priority'.  */);
+Don't modify this variable directly, but use `set-coding-system-priority'.  */);
   {
     int i;
 

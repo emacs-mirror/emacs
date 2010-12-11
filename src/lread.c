@@ -1,7 +1,8 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
-                 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995, 1997,
+  1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -557,8 +558,6 @@ readbyte_from_string (int c, Lisp_Object readcharfun)
    encoded in `emacs-mule' and the first byte is already read in
    C.  */
 
-extern char emacs_mule_bytes[256];
-
 static int
 read_emacs_mule_char (int c, int (*readbyte) (int, Lisp_Object), Lisp_Object readcharfun)
 {
@@ -589,7 +588,7 @@ read_emacs_mule_char (int c, int (*readbyte) (int, Lisp_Object), Lisp_Object rea
 
   if (len == 2)
     {
-      charset = emacs_mule_charset[buf[0]];
+      charset = CHARSET_FROM_ID (emacs_mule_charset[buf[0]]);
       code = buf[1] & 0x7F;
     }
   else if (len == 3)
@@ -597,18 +596,18 @@ read_emacs_mule_char (int c, int (*readbyte) (int, Lisp_Object), Lisp_Object rea
       if (buf[0] == EMACS_MULE_LEADING_CODE_PRIVATE_11
 	  || buf[0] == EMACS_MULE_LEADING_CODE_PRIVATE_12)
 	{
-	  charset = emacs_mule_charset[buf[1]];
+	  charset = CHARSET_FROM_ID (emacs_mule_charset[buf[1]]);
 	  code = buf[2] & 0x7F;
 	}
       else
 	{
-	  charset = emacs_mule_charset[buf[0]];
+	  charset = CHARSET_FROM_ID (emacs_mule_charset[buf[0]]);
 	  code = ((buf[1] << 8) | buf[2]) & 0x7F7F;
 	}
     }
   else
     {
-      charset = emacs_mule_charset[buf[1]];
+      charset = CHARSET_FROM_ID (emacs_mule_charset[buf[1]]);
       code = ((buf[2] << 8) | buf[3]) & 0x7F7F;
     }
   c = DECODE_CHAR (charset, code);
@@ -1081,6 +1080,10 @@ and then the former.
 Loading a file records its definitions, and its `provide' and
 `require' calls, in an element of `load-history' whose
 car is the file name loaded.  See `load-history'.
+
+While the file is in the process of being loaded, the variable
+`load-in-progress' is non-nil and the variable `load-file-name'
+is bound to the file's name.
 
 Return t if the file exists and loads successfully.  */)
   (Lisp_Object file, Lisp_Object noerror, Lisp_Object nomessage, Lisp_Object nosuffix, Lisp_Object must_suffix)
@@ -2770,7 +2773,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	   old-style.  For Emacs-25, we should completely remove this
 	   first_in_list exception (old-style can still be obtained via
 	   "(\`" anyway).  */
-	if (first_in_list && next_char == ' ')
+	if (!new_backquote_flag && first_in_list && next_char == ' ')
 	  {
 	    Vold_style_backquotes = Qt;
 	    goto default_label;
@@ -2787,33 +2790,48 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  }
       }
     case ',':
-      if (new_backquote_flag)
-	{
-	  Lisp_Object comma_type = Qnil;
-	  Lisp_Object value;
-	  int ch = READCHAR;
+      {
+	int next_char = READCHAR;
+	UNREAD (next_char);
+	/* Transition from old-style to new-style:
+           It used to be impossible to have a new-style , other than within
+	   a new-style `.  This is sufficient when ` and , are used in the
+	   normal way, but ` and , can also appear in args to macros that
+	   will not interpret them in the usual way, in which case , may be
+	   used without any ` anywhere near.
+	   So we now use the same heuristic as for backquote: old-style
+	   unquotes are only recognized when first on a list, and when
+	   followed by a space.
+	   Because it's more difficult to peak 2 chars ahead, a new-style
+	   ,@ can still not be used outside of a `, unless it's in the middle
+	   of a list.  */
+	if (new_backquote_flag
+	    || !first_in_list
+	    || (next_char != ' ' && next_char != '@'))
+	  {
+	    Lisp_Object comma_type = Qnil;
+	    Lisp_Object value;
+	    int ch = READCHAR;
 
-	  if (ch == '@')
-	    comma_type = Qcomma_at;
-	  else if (ch == '.')
-	    comma_type = Qcomma_dot;
-	  else
-	    {
-	      if (ch >= 0) UNREAD (ch);
-	      comma_type = Qcomma;
-	    }
+	    if (ch == '@')
+	      comma_type = Qcomma_at;
+	    else if (ch == '.')
+	      comma_type = Qcomma_dot;
+	    else
+	      {
+		if (ch >= 0) UNREAD (ch);
+		comma_type = Qcomma;
+	      }
 
-	  new_backquote_flag--;
-	  value = read0 (readcharfun);
-	  new_backquote_flag++;
-	  return Fcons (comma_type, Fcons (value, Qnil));
-	}
-      else
-	{
-	  Vold_style_backquotes = Qt;
-	  goto default_label;
-	}
-
+	    value = read0 (readcharfun);
+	    return Fcons (comma_type, Fcons (value, Qnil));
+	  }
+	else
+	  {
+	    Vold_style_backquotes = Qt;
+	    goto default_label;
+	  }
+      }
     case '?':
       {
 	int modifiers;
@@ -2840,26 +2858,9 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	c |= modifiers;
 
 	next_char = READCHAR;
-	if (next_char == '.')
-	  {
-	    /* Only a dotted-pair dot is valid after a char constant.  */
-	    int next_next_char = READCHAR;
-	    UNREAD (next_next_char);
-
-	    ok = (next_next_char <= 040
-		  || (next_next_char < 0200
-		      && (strchr ("\"';([#?", next_next_char)
-			  || (!first_in_list && next_next_char == '`')
-			  || (new_backquote_flag && next_next_char == ','))));
-	  }
-	else
-	  {
-	    ok = (next_char <= 040
-		  || (next_char < 0200
-		      && (strchr ("\"';()[]#?", next_char)
-			  || (!first_in_list && next_char == '`')
-			  || (new_backquote_flag && next_char == ','))));
-	  }
+	ok = (next_char <= 040
+	      || (next_char < 0200
+		  && (strchr ("\"';()[]#?`,.", next_char))));
 	UNREAD (next_char);
 	if (ok)
 	  return make_number (c);
@@ -3001,9 +3002,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	if (next_char <= 040
 	    || (next_char < 0200
-		&& (strchr ("\"';([#?", next_char)
-		    || (!first_in_list && next_char == '`')
-		    || (new_backquote_flag && next_char == ','))))
+		&& (strchr ("\"';([#?`,", next_char))))
 	  {
 	    *pch = c;
 	    return Qnil;
@@ -3028,9 +3027,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  while (c > 040
 		 && c != 0x8a0 /* NBSP */
 		 && (c >= 0200
-		     || (!strchr ("\"';()[]#", c)
-			 && !(!first_in_list && c == '`')
-			 && !(new_backquote_flag && c == ','))))
+		     || !(strchr ("\"';()[]#`,", c))))
 	    {
 	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
@@ -4046,9 +4043,9 @@ defalias (sname, string)
 }
 #endif /* NOTDEF */
 
-/* Define an "integer variable"; a symbol whose value is forwarded
-   to a C variable of type int.  Sample call:
-   DEFVAR_INT ("emacs-priority", &emacs_priority, "Documentation");  */
+/* Define an "integer variable"; a symbol whose value is forwarded to a
+   C variable of type int.  Sample call (munged w "xx" to fool make-docfile):
+   DEFxxVAR_INT ("emacs-priority", &emacs_priority, "Documentation");  */
 void
 defvar_int (struct Lisp_Intfwd *i_fwd,
 	    const char *namestring, EMACS_INT *address)
@@ -4550,8 +4547,7 @@ to load.  See also `load-dangerous-libraries'.  */);
 	       doc: /* If non-nil, use lexical binding when evaluating code.
 This only applies to code evaluated by `eval-buffer' and `eval-region'.
 This variable is automatically set from the file variables of an interpreted
-  lisp file read using `load'.
-This variable automatically becomes buffer-local when set.  */);
+  lisp file read using `load'.  */);
   Fmake_variable_buffer_local (Qlexical_binding);
 
   DEFVAR_LISP ("eval-buffer-list", &Veval_buffer_list,
@@ -4646,5 +4642,3 @@ This variable automatically becomes buffer-local when set.  */);
   staticpro (&Qrehash_threshold);
 }
 
-/* arch-tag: a0d02733-0f96-4844-a659-9fd53c4f414d
-   (do not change this comment) */

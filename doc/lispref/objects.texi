@@ -582,7 +582,6 @@ makes it invalid as a number.
 @group
 foo                 ; @r{A symbol named @samp{foo}.}
 FOO                 ; @r{A symbol named @samp{FOO}, different from @samp{foo}.}
-char-to-string      ; @r{A symbol named @samp{char-to-string}.}
 @end group
 @group
 1+                  ; @r{A symbol named @samp{1+}}

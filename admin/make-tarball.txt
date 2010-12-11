@@ -4,7 +4,8 @@ Instructions to create pretest or release tarballs.
 
 For each step, check for possible errors.
 
-1.   cvs -q update -Pd
+1.  `bzr update' (for a bound branch), or `bzr pull'.
+     bzr status # check for locally modified files
 
 2.  Bootstrap to make 100% sure all elc files are up-to-date, and to
     make sure that the later tagged version will bootstrap, should it be
@@ -27,24 +28,23 @@ For each step, check for possible errors.
     refer to a newer release of Emacs.  (This is probably needed only
     when preparing a major Emacs release, or branching for it.)
 
-5.   rm configure; autoconf
+5.   rm configure src/config.in; autoconf; autoheader
      make bootstrap
 
-6.  Commit configure, README, doc/emacs/emacs.texi,
-    doc/lispref/elisp.texi, etc/AUTHORS, src/emacs.c, nt/emacs.rc,
-    and lisp/cus-edit.el (if modified).  Copy lisp/loaddefs.el to
-    lisp/ldefs-boot.el and commit lisp/ldefs-boot.el.  For a release,
-    also commit the ChangeLog files in all directories.
+6.  Commit configure, src/config.in, etc/AUTHORS, all the files changed
+    by M-x set-version, and lisp/cus-edit.el (if modified).
+    Copy lisp/loaddefs.el to lisp/ldefs-boot.el and commit lisp/ldefs-boot.el.
+    For a release, also commit the ChangeLog files in all directories.
 
 7.   make-dist --snapshot.  Check the contents of the new tar with
     admin/diff-tar-files against an older tar file.  Some old pretest
-    tarballs are kept under fencepost.gnu.org:~pot/emacs-pretest/, while
-    old emacs tarballs are at <ftp://ftp.gnu.org/pub/gnu/emacs/>.
+    tarballs may be found at <ftp://alpha.gnu.org/gnu/emacs/pretest>;
+    old release tarballs are at <ftp://ftp.gnu.org/pub/gnu/emacs/>.
 
     If this is the first pretest of a major release, just comparing
     with the previous release may overlook many new files.  You can try
-    something like `find -f | grep -v CVS...etc' in a clean CVS tree,
-    and compare the results against the new tar contents.
+    something like `find . | sort' in a clean bzr tree, and compare the
+    results against the new tar contents.
 
 8.   xdelta delta emacs-OLD.tar.gz emacs-NEW.tar.gz emacs-OLD-NEW.xdelta
 
@@ -108,5 +108,3 @@ For each step, check for possible errors.
     For a release, announce it on info-gnu@gnu.org,
     info-gnu-emacs@gnu.org, and emacs-devel.
 
-
-# arch-tag: c23c771f-ca26-4584-8a04-50ecf0989390

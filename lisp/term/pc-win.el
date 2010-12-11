@@ -1,7 +1,7 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is)
 
-;; Copyright (C) 1994, 1996, 1997, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1997, 1999, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Maintainer: FSF
@@ -203,9 +203,11 @@ the operating system.")
   "Non-nil means cutting and pasting uses the clipboard.
 This is in addition to, but in preference to, the primary selection.
 
-On MS-Windows, this is non-nil by default, since Windows does not
-support other types of selections.  \(The primary selection that is
-set by Emacs is not accessible to other programs on Windows.\)"
+Note that MS-Windows does not support selection types other than the
+clipboard.  (The primary selection that is set by Emacs is not
+accessible to other programs on MS-Windows.)
+
+This variable is not used by the Nextstep port."
   :type 'boolean
   :group 'killing)
 
@@ -285,6 +287,16 @@ anything that the functions on `selection-converter-alist' know about."
 Disowning it means there is no such selection."
   (if (x-selection-owner-p selection)
       t))
+
+;; x-get-selection-internal is used in select.el
+(defun x-get-selection-internal (selection type &optional time_stamp)
+  "Return text selected from some X window.
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+TYPE is the type of data desired, typically `STRING'.
+TIME_STAMP is the time to use in the XConvertSelection call for foreign
+selections.  If omitted, defaults to the time for the last event."
+  (x-get-selection-value))
 
 ;; From src/fontset.c:
 (fset 'query-fontset 'ignore)
@@ -408,5 +420,4 @@ Errors out because it is not supposed to be called, ever."
 
 (provide 'pc-win)
 
-;; arch-tag: 5cbdb455-b495-427b-95d0-e417d77d00b4
 ;;; pc-win.el ends here

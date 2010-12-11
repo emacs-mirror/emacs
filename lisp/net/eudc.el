@@ -830,10 +830,7 @@ see `eudc-inline-expansion-servers'"
   (let* ((end (point))
 	 (beg (save-excursion
 		(if (re-search-backward "\\([:,]\\|^\\)[ \t]*"
-					(save-excursion
-					  (beginning-of-line)
-					  (point))
-					'move)
+					(point-at-bol) 'move)
 		    (goto-char (match-end 0)))
 		(point)))
 	 (query-words (split-string (buffer-substring beg end) "[ \t]+"))
@@ -1295,5 +1292,4 @@ This does nothing except loading eudc by autoload side-effect."
 
 (provide 'eudc)
 
-;; arch-tag: e18872b6-db83-400b-869d-be54e9a4160c
 ;;; eudc.el ends here

@@ -288,14 +288,21 @@ Emacs repository might have been lost.
 
 With the inclusion of Gnus 5.10, Miles Bader has set up an Emacs-Gnus
 gateway to ensure the bug fixes from Emacs CVS are propagated to Gnus
-CVS semi-automatically.  These bug fixes are installed on the stable
-branch and on the trunk.  Basically the idea is that the gateway will
-cause all common files in Emacs and Gnus v5-10 to be identical except
-when there's a very good reason (e.g., the Gnus version string in Emacs
-says @samp{5.11}, but the v5-10 version string remains @samp{5.10.x}).
-Furthermore, all changes in these files in either Emacs or the v5-10
-branch will be installed into the Gnus CVS trunk, again except where
-there's a good reason.
+CVS semi-automatically.
+
+After Emacs moved to bzr and Gnus moved to git, Katsumi Yamaoka has
+taken over the chore of keeping Emacs and Gnus in sync.  In general,
+changes made to one repository will usually be replicated in the other
+within a few days.
+
+Basically the idea is that the gateway will cause all common files in
+Emacs and Gnus v5-13 to be identical except when there's a very good
+reason (e.g., the Gnus version string in Emacs says @samp{5.11}, but
+the v5-13 version string remains @samp{5.13.x}).  Furthermore, all
+changes in these files in either Emacs or the v5-13 branch will be
+installed into the Gnus git trunk, again except where there's a good
+reason.
+
 @c (typically so far the only exception has been that the changes
 @c already exist in the trunk in modified form).
 Because of this, when the next major version of Gnus will be included in
@@ -311,9 +318,9 @@ If it's a file which is thought of as being outside of Gnus (e.g., the
 new @file{encrypt.el}), you should probably make the change in the Emacs
 tree, and it will show up in the Gnus tree a few days later.
 
-If you don't have Emacs CVS access (or it's inconvenient), you can
+If you don't have Emacs bzr access (or it's inconvenient), you can
 change such a file in the v5-10 branch, and it should propagate to Emacs
-CVS -- however, it will get some extra scrutiny (by Miles) to see if the
+bzr -- however, it will get some extra scrutiny (by Miles) to see if the
 changes are possibly controversial and need discussion on the mailing
 list.  Many changes are obvious bug-fixes however, so often there won't
 be any problem.
@@ -321,12 +328,12 @@ be any problem.
 @item
 If it's to a Gnus file, and it's important enough that it should be part
 of Emacs and the v5-10 branch, then you can make the change on the v5-10
-branch, and it will go into Emacs CVS and the Gnus CVS trunk (a few days
+branch, and it will go into Emacs bzr and the Gnus git trunk (a few days
 later).  The most prominent examples for such changes are bug-fixed
 including improvements on the documentation.
 
 If you know that there will be conflicts (perhaps because the affected
-source code is different in v5-10 and the Gnus CVS trunk), then you can
+source code is different in v5-10 and the Gnus git trunk), then you can
 install your change in both places, and when I try to sync them, there
 will be a conflict -- however, since in most such cases there would be a
 conflict @emph{anyway}, it's often easier for me to resolve it simply if
@@ -338,9 +345,6 @@ For general Gnus development changes, of course you just make the
 change on the Gnus Git trunk and it goes into Emacs a few years
 later... :-)
 
-With the new Git repository, we'll probably set up something to
-automatically synchronize with Emacs when possible.  CVS was much less
-powerful for this kind of synchronization.
 @end itemize
 
 Of course in any case, if you just can't wait for me to sync your

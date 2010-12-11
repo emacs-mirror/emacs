@@ -1,8 +1,8 @@
 ;;; pascal.el --- major mode for editing pascal source in Emacs
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002
-;;               2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;               Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+;;   2002 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Espen Skoglund <esk@gnu.org>
 ;; Keywords: languages
@@ -274,22 +274,12 @@ are handled in another way, and should not be added to this list."
 ;;;  Macros
 ;;;
 
-(defsubst pascal-get-beg-of-line (&optional arg)
-  (save-excursion
-    (beginning-of-line arg)
-    (point)))
-
-(defsubst pascal-get-end-of-line (&optional arg)
-  (save-excursion
-    (end-of-line arg)
-    (point)))
-
 (defun pascal-declaration-end ()
   (let ((nest 1))
     (while (and (> nest 0)
 		(re-search-forward
 		 "[:=]\\|\\(\\<record\\>\\)\\|\\(\\<end\\>\\)"
-		 (save-excursion (end-of-line 2) (point)) t))
+		 (point-at-eol 2) t))
       (cond ((match-beginning 1) (setq nest (1+ nest)))
 	    ((match-beginning 2) (setq nest (1- nest)))
 	    ((looking-at "[^(\n]+)") (setq nest 0))))))
@@ -298,7 +288,7 @@ are handled in another way, and should not be added to this list."
 (defun pascal-declaration-beg ()
   (let ((nest 1))
     (while (and (> nest 0)
-		(re-search-backward "[:=]\\|\\<\\(type\\|var\\|label\\|const\\)\\>\\|\\(\\<record\\>\\)\\|\\(\\<end\\>\\)" (pascal-get-beg-of-line 0) t))
+		(re-search-backward "[:=]\\|\\<\\(type\\|var\\|label\\|const\\)\\>\\|\\(\\<record\\>\\)\\|\\(\\<end\\>\\)" (point-at-bol 0) t))
       (cond ((match-beginning 1) (setq nest 0))
 	    ((match-beginning 2) (setq nest (1- nest)))
 	    ((match-beginning 3) (setq nest (1+ nest)))))
@@ -306,8 +296,7 @@ are handled in another way, and should not be added to this list."
 
 
 (defsubst pascal-within-string ()
-  (save-excursion
-    (nth 3 (parse-partial-sexp (pascal-get-beg-of-line) (point)))))
+  (nth 3 (parse-partial-sexp (point-at-bol) (point))))
 
 
 ;;;###autoload
@@ -407,8 +396,7 @@ no args, if that value is non-nil."
 	     (forward-char 1)
 	     (delete-horizontal-space))
 	    ((and (looking-at "(\\*\\|\\*[^)]")
-		  (not (save-excursion
-			 (search-forward "*)" (pascal-get-end-of-line) t))))
+		  (not (save-excursion (search-forward "*)" (point-at-eol) t))))
 	     (setq setstar t))))
     ;; If last line was a star comment line then this one shall be too.
     (if (null setstar)
@@ -727,7 +715,7 @@ on the line which ends a function or procedure named NAME."
     (if (and (looking-at "\\<end;")
 	     (not (save-excursion
 		    (end-of-line)
-		    (search-backward "{" (pascal-get-beg-of-line) t))))
+		    (search-backward "{" (point-at-bol) t))))
 	(let ((type (car (pascal-calculate-indent))))
 	  (if (eq type 'declaration)
 	      ()
@@ -999,7 +987,7 @@ indent of the current line in parameterlist."
 	   (stpos (progn (goto-char (scan-lists (point) -1 1)) (point)))
 	   (stcol (1+ (current-column)))
 	   (edpos (progn (pascal-declaration-end)
-			 (search-backward ")" (pascal-get-beg-of-line) t)
+			 (search-backward ")" (point-at-bol) t)
 			 (point)))
 	   (usevar (re-search-backward "\\<var\\>" stpos t)))
       (if arg (progn
@@ -1046,7 +1034,7 @@ indent of the current line in parameterlist."
 	(setq ind (pascal-get-lineup-indent stpos edpos lineup))
 	(goto-char stpos)
 	(while (and (<= (point) edpos) (not (eobp)))
-	  (if (search-forward lineup (pascal-get-end-of-line) 'move)
+	  (if (search-forward lineup (point-at-eol) 'move)
 	      (forward-char -1))
 	  (delete-horizontal-space)
 	  (indent-to ind)
@@ -1073,7 +1061,7 @@ indent of the current line in parameterlist."
       (goto-char b)
       ;; Get rightmost position
       (while (< (point) e)
-	(and (re-search-forward reg (min e (pascal-get-end-of-line 2)) 'move)
+	(and (re-search-forward reg (min e (point-at-eol 2)) 'move)
 	     (cond ((match-beginning 1)
 		    ;; Skip record blocks
 		    (pascal-declaration-end))
@@ -1137,7 +1125,7 @@ indent of the current line in parameterlist."
 
       ;; Search through all reachable functions
       (while (pascal-beg-of-defun)
-        (if (re-search-forward pascal-str (pascal-get-end-of-line) t)
+        (if (re-search-forward pascal-str (point-at-eol) t)
             (progn (setq match (buffer-substring (match-beginning 2)
                                                  (match-end 2)))
                    (push match pascal-all)))
@@ -1154,17 +1142,17 @@ indent of the current line in parameterlist."
 	match)
     ;; Traverse lines
     (while (< (point) end)
-      (if (re-search-forward "[:=]" (pascal-get-end-of-line) t)
+      (if (re-search-forward "[:=]" (point-at-eol) t)
 	  ;; Traverse current line
 	  (while (and (re-search-backward
 		       (concat "\\((\\|\\<\\(var\\|type\\|const\\)\\>\\)\\|"
 			       pascal-symbol-re)
-		       (pascal-get-beg-of-line) t)
+		       (point-at-bol) t)
 		      (not (match-end 1)))
 	    (setq match (buffer-substring (match-beginning 0) (match-end 0)))
 	    (if (string-match (concat "\\<" pascal-str) match)
                 (push match pascal-all))))
-      (if (re-search-forward "\\<record\\>" (pascal-get-end-of-line) t)
+      (if (re-search-forward "\\<record\\>" (point-at-eol) t)
 	  (pascal-declaration-end)
 	(forward-line 1)))
 
@@ -1206,7 +1194,7 @@ indent of the current line in parameterlist."
           (if (> start (prog1 (save-excursion (pascal-end-of-defun)
                                               (point))))
               ()                        ; Declarations not reachable
-            (if (search-forward "(" (pascal-get-end-of-line) t)
+            (if (search-forward "(" (point-at-eol) t)
                 ;; Check parameterlist
                 ;; FIXME: pascal-get-completion-decl doesn't understand
                 ;; the var declarations in parameter lists :-(
@@ -1264,8 +1252,7 @@ indent of the current line in parameterlist."
                 (or (eq state 'declaration) (eq state 'paramlist)
                     (and (eq state 'defun)
                          (save-excursion
-                           (re-search-backward ")[ \t]*:"
-                                               (pascal-get-beg-of-line) t))))
+                           (re-search-backward ")[ \t]*:" (point-at-bol) t))))
                 (if (or (eq state 'paramlist) (eq state 'defun))
                     (pascal-beg-of-defun))
                 (nconc
@@ -1554,5 +1541,4 @@ Pascal Outline mode provides some additional commands.
 
 (provide 'pascal)
 
-;; arch-tag: 04535136-fd93-40b4-a505-c9bebdc051f5
 ;;; pascal.el ends here

@@ -9,7 +9,7 @@
 ;; Author: Ross Patterson <me AT rpatterson DOT net>
 ;; Maintainer: Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;; Keywords: org, emacsclient, wp
-;; Version: 7.01
+;; Version: 7.3
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -260,7 +260,7 @@ Here is an example:
   :group 'org-protocol
   :type '(alist))
 
-(defcustom org-protocol-default-template-key "w"
+(defcustom org-protocol-default-template-key nil
   "The default org-remember-templates key to use."
   :group 'org-protocol
   :type 'string)

@@ -1,7 +1,7 @@
 ;;; ede-pmake.el --- EDE Generic Project Makefile code generator.
 
-;;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;; 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -565,10 +565,7 @@ Argument THIS is the target that should insert stuff."
 	    (cond ((eq (cdr sv) 'share)
 		   ;; This variable may be shared between multiple targets.
 		   (if (re-search-backward (concat "\\$(" (car sv) ")")
-					   (save-excursion
-					     (beginning-of-line)
-					     (point))
-					   t)
+					   (point-at-bol) t)
 		       ;; If its already in the dist target, then skip it.
 		       nil
 		     (setq sv (car sv))))
@@ -693,5 +690,4 @@ Argument TARGETS are the targets we should depend on for TAGS."
 
 (provide 'ede/pmake)
 
-;; arch-tag: 7ad8e19f-cdee-484c-8caf-f15cb0fc4df2
 ;;; ede/pmake.el ends here

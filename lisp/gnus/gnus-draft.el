@@ -310,6 +310,8 @@ Obeys the standard process/prefix convention."
 	  (while buffs
 	    (set-buffer (setq buff (pop buffs)))
 	    (if (and buffer-file-name
+		     (equal (file-remote-p file)
+			    (file-remote-p buffer-file-name))
 		     (string-equal (file-truename buffer-file-name)
 				   (file-truename file))
 		     (buffer-modified-p))

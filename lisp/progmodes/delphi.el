@@ -1779,7 +1779,7 @@ If no extension is specified, .pas is assumed. Creates a buffer for the unit."
     (if (null file)
         (error "unit not found: %s" unit-file)
       (find-file file)
-      (if (not (eq major-mode 'delphi-mode))
+      (if (not (derived-mode-p 'delphi-mode))
           (delphi-mode)))
     file))
 
@@ -2015,7 +2015,7 @@ no args, if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
   (use-local-map delphi-mode-map)
-  (setq major-mode 'delphi-mode)
+  (setq major-mode 'delphi-mode)        ;FIXME: Use define-derived-mode.
   (setq mode-name "Delphi")
 
   (setq local-abbrev-table delphi-mode-abbrev-table)
@@ -2025,8 +2025,7 @@ no args, if that value is non-nil."
   (mapc #'(lambda (var)
 	    (let ((var-symb (car var))
 		  (var-val (cadr var)))
-	      (make-local-variable var-symb)
-	      (set var-symb var-val)))
+              (set (make-local-variable var-symb) var-val)))
 	(list '(indent-line-function delphi-indent-line)
 	      '(comment-indent-function delphi-indent-line)
 	      '(case-fold-search t)

@@ -94,8 +94,8 @@ NOTE: In process of obsoleting this."
 ;; Compiler options need to show up after path setup, but before
 ;; the preprocessor section.
 
-(when (member system-type '(gnu gnu/linux darwin cygwin))
-  (semantic-gcc-setup))
+(if (memq system-type '(gnu gnu/linux darwin cygwin))
+    (semantic-gcc-setup))
 
 ;;; Pre-processor maps
 ;;
@@ -1002,6 +1002,13 @@ if something is a constructor.  Value should be:
 where typename is the name of the type, and typeoftype is \"class\"
 or \"struct\".")
 
+(define-mode-local-override semantic-analyze-split-name c-mode (name)
+  "Split up tag names on colon (:) boundaries."
+  (let ((ans (split-string name ":")))
+    (if (= (length ans) 1)
+	name
+      (delete "" ans))))
+
 (defun semantic-c-reconstitute-token (tokenpart declmods typedecl)
   "Reconstitute a token TOKENPART with DECLMODS and TYPEDECL.
 This is so we don't have to match the same starting text several times.
@@ -1559,13 +1566,6 @@ These are constants which are of type TYPE."
 	   (string= (semantic-tag-type type) "enum"))
       (semantic-tag-type-members type)))
 
-(define-mode-local-override semantic-analyze-split-name c-mode (name)
-  "Split up tag names on colon (:) boundaries."
-  (let ((ans (split-string name ":")))
-    (if (= (length ans) 1)
-	name
-      (delete "" ans))))
-
 (define-mode-local-override semantic-analyze-unsplit-name c-mode (namelist)
   "Assemble the list of names NAMELIST into a namespace name."
   (mapconcat 'identity namelist "::"))
@@ -1871,5 +1871,4 @@ For types with a :parent, create faux namespaces to put TAG into."
 ;; generated-autoload-load-name: "semantic/bovine/c"
 ;; End:
 
-;; arch-tag: 263951a8-0f18-445d-8e73-eb8f9ac8e2a3
 ;;; semantic/bovine/c.el ends here

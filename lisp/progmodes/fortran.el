@@ -1315,8 +1315,7 @@ Directive lines are treated as comments."
     (if i
         (save-excursion
           (goto-char i)
-          (beginning-of-line)
-          (= (point) p)))))
+          (= (line-beginning-position) p)))))
 
 ;; Used in hs-special-modes-alist.
 (defun fortran-end-of-block (&optional num)
@@ -2207,5 +2206,4 @@ arg DO-SPACE prevents stripping the whitespace."
 
 (provide 'fortran)
 
-;; arch-tag: 74935096-21c4-4cab-8ee5-6ef16090dc04
 ;;; fortran.el ends here

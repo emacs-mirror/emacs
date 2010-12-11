@@ -266,8 +266,10 @@ With universal argument, inserts the analysis as a comment on that line."
 			  (symbol-value 'subword-mode))
 			 "w"
 		       "")))
+        ;; FIXME: Derived modes might want to use something else
+        ;; than a string for `mode-name'.
 	(bare-mode-name (if (string-match "\\(^[^/]*\\)/" mode-name)
-			    (substring mode-name (match-beginning 1) (match-end 1))
+			    (match-string 1 mode-name)
 			  mode-name)))
 ;;     (setq c-submode-indicators
 ;; 	  (if (> (length fmt) 1)
@@ -3974,17 +3976,19 @@ command to conveniently insert and align the necessary backslashes."
 		    ;; "Invalid search bound (wrong side of point)"
 		    ;; error in the subsequent re-search.  Maybe
 		    ;; another fix would be needed (2007-12-08).
-		    (or (<= (- (cdr c-lit-limits) 2) (point))
-			(and 
-			 (search-forward-regexp
-			  (concat "\\=[ \t]*\\(" c-current-comment-prefix "\\)")
-			  (- (cdr c-lit-limits) 2) t)
-			 (not (search-forward-regexp
-			       "\\(\\s \\|\\sw\\)"
-			       (- (cdr c-lit-limits) 2) 'limit))
-			 ;; The comment ender IS on its own line.  Exclude
-			 ;; this line from the filling.
-			 (set-marker end (c-point 'bol)))))
+;		    (or (<= (- (cdr c-lit-limits) 2) (point))
+; 2010-10-17  Construct removed.
+;		    (or (< (- (cdr c-lit-limits) 2) (point))
+		    (and 
+		     (search-forward-regexp
+		      (concat "\\=[ \t]*\\(" c-current-comment-prefix "\\)")
+		      (- (cdr c-lit-limits) 2) t)
+		     (not (search-forward-regexp
+			   "\\(\\s \\|\\sw\\)"
+			   (- (cdr c-lit-limits) 2) 'limit))
+		     ;; The comment ender IS on its own line.  Exclude this
+		     ;; line from the filling.
+		     (set-marker end (c-point 'bol))));)
 
 		;; The comment ender is hanging.  Replace all space between it
 		;; and the last word either by one or two 'x's (when

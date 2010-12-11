@@ -244,8 +244,8 @@ This variable is buffer-local."
 (defcustom comint-input-ring-file-name nil
   "If non-nil, name of the file to read/write input history.
 See also `comint-read-input-ring' and `comint-write-input-ring'.
-
-This variable is buffer-local, and is a good thing to set in mode hooks."
+`comint-mode' makes this a buffer-local variable.  You probably want
+to set this in a mode hook, rather than customize the default value."
   :type '(choice (const :tag "nil" nil)
 		 file)
   :group 'comint)
@@ -339,13 +339,15 @@ This variable is buffer-local."
 ;; Ubuntu's sudo prompts like `[sudo] password for user:'
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 ;; Something called "perforce" uses "Enter password:".
+;; See M-x comint-testsuite--test-comint-password-prompt-regexp.
 (defcustom comint-password-prompt-regexp
   (concat
-   "\\("
+   "\\(^ *\\|"
    (regexp-opt
-    '("Enter" "Enter same" "Old" "old" "New" "new" "'s" "login"
-      "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "[sudo]" "Repeat" "Bad"))
-   " +\\)?"
+    '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
+      "Old" "old" "New" "new" "'s" "login"
+      "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "[sudo]" "Repeat" "Bad") t)
+   " +\\)"
    (regexp-opt
     '("password" "Password" "passphrase" "Passphrase"
       "pass phrase" "Pass phrase"))
@@ -353,6 +355,7 @@ This variable is buffer-local."
 \\(?: for [^:]+\\)?:\\s *\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
+  :version "24.1"
   :type 'regexp
   :group 'comint)
 
@@ -2645,6 +2648,7 @@ updated using `comint-update-fence', if necessary."
 	(let ((inhibit-read-only t))
 	  (kill-region beg end yank-handler)
 	  (comint-update-fence))))))
+(set-advertised-calling-convention 'comint-kill-region '(beg end) "23.3")
 
 
 ;; Support for source-file processing commands.
@@ -3748,5 +3752,4 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 
 (provide 'comint)
 
-;; arch-tag: 1793314c-09db-40be-9549-9aeae3e75164
 ;;; comint.el ends here

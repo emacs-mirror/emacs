@@ -115,15 +115,17 @@ This variable is relevant only if `backup-by-copying' is nil."
   :type 'boolean
   :group 'backup)
 
-(defcustom backup-by-copying-when-mismatch nil
+(defcustom backup-by-copying-when-mismatch t
   "Non-nil means create backups by copying if this preserves owner or group.
 Renaming may still be used (subject to control of other variables)
 when it would not result in changing the owner or group of the file;
 that is, for files which are owned by you and whose group matches
 the default for a new file created there by you.
 This variable is relevant only if `backup-by-copying' is nil."
+  :version "24.1"
   :type 'boolean
   :group 'backup)
+(put 'backup-by-copying-when-mismatch 'permanent-local t)
 
 (defcustom backup-by-copying-when-privileged-mismatch 200
   "Non-nil means create backups by copying to preserve a privileged owner.
@@ -187,32 +189,6 @@ If the buffer is visiting a new file, the value is nil.")
 (defvar buffer-file-read-only nil
   "Non-nil if visited file was read-only when visited.")
 (make-variable-buffer-local 'buffer-file-read-only)
-
-(defcustom temporary-file-directory
-  (file-name-as-directory
-   ;; FIXME ? Should there be Ftemporary_file_directory to do the
-   ;; following more robustly (cf set_local_socket in emacsclient.c).
-   ;; It could be used elsewhere, eg Fcall_process_region, server-socket-dir.
-   ;; See bug#7135.
-   (cond ((memq system-type '(ms-dos windows-nt))
-	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
-	 ((eq system-type 'darwin)
-	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
-	      (let ((tmp (ignore-errors (shell-command-to-string ; bug#7135
-					 "getconf DARWIN_USER_TEMP_DIR"))))
-		(and (stringp tmp)
-		     (setq tmp (replace-regexp-in-string "\n\\'" "" tmp))
-		     ;; This handles "getconf: Unrecognized variable..."
-		     (file-directory-p tmp)
-		     tmp))
-	      "/tmp"))
-	 (t
-	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
-  "The directory for writing temporary files."
-  :group 'files
-  ;; Darwin section added 24.1, does not seem worth :version bump.
-  :initialize 'custom-initialize-delay
-  :type 'directory)
 
 (defcustom small-temporary-file-directory
   (if (eq system-type 'ms-dos) (getenv "TMPDIR"))
@@ -801,9 +777,10 @@ one or more of those symbols."
       ;; Switching from names to names+fullnames creates a non-monotonicity
       ;; which can cause problems with things like partial-completion.
       ;; To minimize the problem, filter out completion-regexp-list, so that
-      ;; M-x load-library RET t/x.e TAB finds some files.
-      (if completion-regexp-list
-          (setq names (all-completions "" names)))
+      ;; M-x load-library RET t/x.e TAB finds some files.  Also remove elements
+      ;; from `names' which only matched `string' when they still had
+      ;; their suffix.
+      (setq names (all-completions string names))
       ;; Remove duplicates of the first element, so that we can easily check
       ;; if `names' really only contains a single element.
       (when (cdr names) (setcdr names (delete (car names) (cdr names))))
@@ -3248,7 +3225,10 @@ It is safe if any of these conditions are met:
    evaluates to a non-nil value with VAL as an argument."
   (or (member (cons sym val) safe-local-variable-values)
       (let ((safep (get sym 'safe-local-variable)))
-        (and (functionp safep) (funcall safep val)))))
+        (and (functionp safep)
+             ;; If the function signals an error, that means it
+             ;; can't assure us that the value is safe.
+             (with-demoted-errors (funcall safep val))))))
 
 (defun risky-local-variable-p (sym &optional ignored)
   "Non-nil if SYM could be dangerous as a file-local variable.
@@ -3390,22 +3370,29 @@ ROOT is the root directory of the project.
 Return the new variables list."
   (let* ((file-name (buffer-file-name))
 	 (sub-file-name (if file-name
+                            ;; FIXME: Why not use file-relative-name?
 			    (substring file-name (length root)))))
-    (dolist (entry class-variables variables)
-      (let ((key (car entry)))
-	(cond
-	 ((stringp key)
-	  ;; Don't include this in the previous condition, because we
-	  ;; want to filter all strings before the next condition.
-	  (when (and sub-file-name
-		     (>= (length sub-file-name) (length key))
-		     (string= key (substring sub-file-name 0 (length key))))
-	    (setq variables (dir-locals-collect-variables
-			     (cdr entry) root variables))))
-	 ((or (not key)
-	      (derived-mode-p key))
-	  (setq variables (dir-locals-collect-mode-variables
-			   (cdr entry) variables))))))))
+    (condition-case err
+        (dolist (entry class-variables variables)
+          (let ((key (car entry)))
+            (cond
+             ((stringp key)
+              ;; Don't include this in the previous condition, because we
+              ;; want to filter all strings before the next condition.
+              (when (and sub-file-name
+                         (>= (length sub-file-name) (length key))
+                         (string-prefix-p key sub-file-name))
+                (setq variables (dir-locals-collect-variables
+                                 (cdr entry) root variables))))
+             ((or (not key)
+                  (derived-mode-p key))
+              (setq variables (dir-locals-collect-mode-variables
+                               (cdr entry) variables))))))
+      (error
+       ;; The file's content might be invalid (e.g. have a merge conflict), but
+       ;; that shouldn't prevent the user from opening the file.
+       (message ".dir-locals error: %s" (error-message-string err))
+       nil))))
 
 (defun dir-locals-set-directory-class (directory class &optional mtime)
   "Declare that the DIRECTORY root is an instance of CLASS.
@@ -3536,7 +3523,9 @@ and `file-local-variables-alist', without applying them."
 	  (dir-name nil))
       (cond
        ((stringp variables-file)
-	(setq dir-name (if (buffer-file-name) (file-name-directory (buffer-file-name)) default-directory))
+	(setq dir-name (if (buffer-file-name)
+                           (file-name-directory (buffer-file-name))
+                         default-directory))
 	(setq class (dir-locals-read-from-file variables-file)))
        ((consp variables-file)
 	(setq dir-name (nth 0 variables-file))
@@ -3846,21 +3835,25 @@ BACKUPNAME is the backup file name, which is the old file renamed."
   (and context
        (set-file-selinux-context to-name context)))
 
+(defvar file-name-version-regexp
+  "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+~\\)"
+  "Regular expression matching the backup/version part of a file name.
+Used by `file-name-sans-versions'.")
+
 (defun file-name-sans-versions (name &optional keep-backup-version)
   "Return file NAME sans backup versions or strings.
 This is a separate procedure so your site-init or startup file can
 redefine it.
 If the optional argument KEEP-BACKUP-VERSION is non-nil,
-we do not remove backup version numbers, only true file version numbers."
+we do not remove backup version numbers, only true file version numbers.
+See also `file-name-version-regexp'."
   (let ((handler (find-file-name-handler name 'file-name-sans-versions)))
     (if handler
 	(funcall handler 'file-name-sans-versions name keep-backup-version)
       (substring name 0
-		 (if keep-backup-version
-		     (length name)
-		   (or (string-match "\\.~[-[:alnum:]:#@^._]+~\\'" name)
-		       (string-match "~\\'" name)
-		       (length name)))))))
+		 (unless keep-backup-version
+                   (string-match (concat file-name-version-regexp "\\'")
+                                 name))))))
 
 (defun file-ownership-preserved-p (file)
   "Return t if deleting FILE and rewriting it would preserve the owner."
@@ -4507,28 +4500,8 @@ Before and after saving the buffer, this function runs
 		   (setq buffer-backed-up nil))))))
     setmodes))
 
-(defun diff-buffer-with-file (&optional buffer)
-  "View the differences between BUFFER and its associated file.
-This requires the external program `diff' to be in your `exec-path'."
-  (interactive "bBuffer: ")
-  (with-current-buffer (get-buffer (or buffer (current-buffer)))
-    (if (and buffer-file-name
-	     (file-exists-p buffer-file-name))
-	(let ((tempfile (make-temp-file "buffer-content-")))
-	  (unwind-protect
-	      (progn
-		(write-region nil nil tempfile nil 'nomessage)
-		(diff buffer-file-name tempfile nil t)
-		(sit-for 0))
-	    (when (file-exists-p tempfile)
-	      (delete-file tempfile))))
-      (message "Buffer %s has no associated file on disc" (buffer-name))
-      ;; Display that message for 1 second so that user can read it
-      ;; in the minibuffer.
-      (sit-for 1)))
-  ;; return always nil, so that save-buffers-kill-emacs will not move
-  ;; over to the next unsaved buffer when calling `d'.
-  nil)
+(declare-function diff-no-select "diff"
+		  (old new &optional switches no-async buf))
 
 (defvar save-some-buffers-action-alist
   `((?\C-r
@@ -4544,13 +4517,14 @@ This requires the external program `diff' to be in your `exec-path'."
     (?d ,(lambda (buf)
            (if (null (buffer-file-name buf))
                (message "Not applicable: no file")
-             (save-window-excursion (diff-buffer-with-file buf))
-             (if (not enable-recursive-minibuffers)
-                 (progn (display-buffer (get-buffer-create "*Diff*"))
-                        (setq other-window-scroll-buffer "*Diff*"))
-               (view-buffer (get-buffer-create "*Diff*")
-                            (lambda (_) (exit-recursive-edit)))
-               (recursive-edit)))
+             (require 'diff)            ;for diff-no-select.
+             (let ((diffbuf (diff-no-select (buffer-file-name buf) buf
+                                            nil 'noasync)))
+               (if (not enable-recursive-minibuffers)
+                   (progn (display-buffer diffbuf)
+                          (setq other-window-scroll-buffer diffbuf))
+                 (view-buffer diffbuf (lambda (_) (exit-recursive-edit)))
+                 (recursive-edit))))
            ;; Return nil to ask about BUF again.
            nil)
 	,(purecopy "view changes in this buffer")))
@@ -6469,5 +6443,4 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 (define-key ctl-x-5-map "r" 'find-file-read-only-other-frame)
 (define-key ctl-x-5-map "\C-o" 'display-buffer-other-frame)
 
-;; arch-tag: bc68d3ea-19ca-468b-aac6-3a4a7766101f
 ;;; files.el ends here

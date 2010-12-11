@@ -1,7 +1,7 @@
 ;;; startup.el --- process Emacs shell arguments
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -200,47 +200,47 @@ and VALUE is the value which is given to that frame parameter
     ;;("-bw" .              x-handle-numeric-switch)
     ;;("-d" .               x-handle-display)
     ;;("-display" .         x-handle-display)
-    ("-name" 1 ns-handle-name-switch)
-    ("-title" 1 ns-handle-switch title)
-    ("-T" 1 ns-handle-switch title)
-    ("-r" 0 ns-handle-switch reverse t)
-    ("-rv" 0 ns-handle-switch reverse t)
-    ("-reverse" 0 ns-handle-switch reverse t)
-    ("-fn" 1 ns-handle-switch font)
-    ("-font" 1 ns-handle-switch font)
-    ("-ib" 1 ns-handle-numeric-switch internal-border-width)
+    ("-name" 1 x-handle-name-switch)
+    ("-title" 1 x-handle-switch title)
+    ("-T" 1 x-handle-switch title)
+    ("-r" 0 x-handle-switch reverse t)
+    ("-rv" 0 x-handle-switch reverse t)
+    ("-reverse" 0 x-handle-switch reverse t)
+    ("-fn" 1 x-handle-switch font)
+    ("-font" 1 x-handle-switch font)
+    ("-ib" 1 x-handle-numeric-switch internal-border-width)
     ;;("-g" .               x-handle-geometry)
     ;;("-geometry" .        x-handle-geometry)
-    ("-fg" 1 ns-handle-switch foreground-color)
-    ("-foreground" 1 ns-handle-switch foreground-color)
-    ("-bg" 1 ns-handle-switch background-color)
-    ("-background" 1 ns-handle-switch background-color)
-;    ("-ms" 1 ns-handle-switch mouse-color)
-    ("-itype" 0 ns-handle-switch icon-type t)
-    ("-i" 0 ns-handle-switch icon-type t)
-    ("-iconic" 0 ns-handle-iconic icon-type t)
+    ("-fg" 1 x-handle-switch foreground-color)
+    ("-foreground" 1 x-handle-switch foreground-color)
+    ("-bg" 1 x-handle-switch background-color)
+    ("-background" 1 x-handle-switch background-color)
+;    ("-ms" 1 x-handle-switch mouse-color)
+    ("-itype" 0 x-handle-switch icon-type t)
+    ("-i" 0 x-handle-switch icon-type t)
+    ("-iconic" 0 x-handle-iconic icon-type t)
     ;;("-xrm" .             x-handle-xrm-switch)
-    ("-cr" 1 ns-handle-switch cursor-color)
-    ("-vb" 0 ns-handle-switch vertical-scroll-bars t)
-    ("-hb" 0 ns-handle-switch horizontal-scroll-bars t)
-    ("-bd" 1 ns-handle-switch)
-    ;; ("--border-width" 1 ns-handle-numeric-switch border-width)
+    ("-cr" 1 x-handle-switch cursor-color)
+    ("-vb" 0 x-handle-switch vertical-scroll-bars t)
+    ("-hb" 0 x-handle-switch horizontal-scroll-bars t)
+    ("-bd" 1 x-handle-switch)
+    ;; ("--border-width" 1 x-handle-numeric-switch border-width)
     ;; ("--display" 1 ns-handle-display)
-    ("--name" 1 ns-handle-name-switch)
-    ("--title" 1 ns-handle-switch title)
-    ("--reverse-video" 0 ns-handle-switch reverse t)
-    ("--font" 1 ns-handle-switch font)
-    ("--internal-border" 1 ns-handle-numeric-switch internal-border-width)
+    ("--name" 1 x-handle-name-switch)
+    ("--title" 1 x-handle-switch title)
+    ("--reverse-video" 0 x-handle-switch reverse t)
+    ("--font" 1 x-handle-switch font)
+    ("--internal-border" 1 x-handle-numeric-switch internal-border-width)
     ;; ("--geometry" 1 ns-handle-geometry)
-    ("--foreground-color" 1 ns-handle-switch foreground-color)
-    ("--background-color" 1 ns-handle-switch background-color)
-    ("--mouse-color" 1 ns-handle-switch mouse-color)
-    ("--icon-type" 0 ns-handle-switch icon-type t)
-    ("--iconic" 0 ns-handle-iconic)
+    ("--foreground-color" 1 x-handle-switch foreground-color)
+    ("--background-color" 1 x-handle-switch background-color)
+    ("--mouse-color" 1 x-handle-switch mouse-color)
+    ("--icon-type" 0 x-handle-switch icon-type t)
+    ("--iconic" 0 x-handle-iconic)
     ;; ("--xrm" 1 ns-handle-xrm-switch)
-    ("--cursor-color" 1 ns-handle-switch cursor-color)
-    ("--vertical-scroll-bars" 0 ns-handle-switch vertical-scroll-bars t)
-    ("--border-color" 1 ns-handle-switch border-width))
+    ("--cursor-color" 1 x-handle-switch cursor-color)
+    ("--vertical-scroll-bars" 0 x-handle-switch vertical-scroll-bars t)
+    ("--border-color" 1 x-handle-switch border-width))
   "Alist of NS options.
 Each element has the form
   (NAME NUMARGS HANDLER FRAME-PARAM VALUE)
@@ -411,34 +411,31 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	     (default-directory this-dir)
 	     (canonicalized (if (fboundp 'untranslated-canonical-name)
 				(untranslated-canonical-name this-dir))))
-	;; The Windows version doesn't report meaningful inode
-	;; numbers, so use the canonicalized absolute file name of the
-	;; directory instead.
+	;; The Windows version doesn't report meaningful inode numbers, so
+	;; use the canonicalized absolute file name of the directory instead.
 	(setq attrs (or canonicalized
 			(nthcdr 10 (file-attributes this-dir))))
 	(unless (member attrs normal-top-level-add-subdirs-inode-list)
 	  (push attrs normal-top-level-add-subdirs-inode-list)
 	  (dolist (file contents)
-	    ;; The lower-case variants of RCS and CVS are for DOS/Windows.
-	    (unless (member file '("." ".." "RCS" "CVS" "rcs" "cvs"))
-	      (when (and (string-match "\\`[[:alnum:]]" file)
-			 ;; Avoid doing a `stat' when it isn't necessary
-			 ;; because that can cause trouble when an NFS server
-			 ;; is down.
-			 (not (string-match "\\.elc?\\'" file))
-			 (file-directory-p file))
-		(let ((expanded (expand-file-name file)))
-		  (unless (file-exists-p (expand-file-name ".nosearch"
-							   expanded))
-		    (setq pending (nconc pending (list expanded)))))))))))
+	    (and (string-match "\\`[[:alnum:]]" file)
+		 ;; The lower-case variants of RCS and CVS are for DOS/Windows.
+		 (not (member file '("RCS" "CVS" "rcs" "cvs")))
+		 ;; Avoid doing a `stat' when it isn't necessary because
+		 ;; that can cause trouble when an NFS server is down.
+		 (not (string-match "\\.elc?\\'" file))
+		 (file-directory-p file)
+		 (let ((expanded (expand-file-name file)))
+		   (or (file-exists-p (expand-file-name ".nosearch" expanded))
+		       (setq pending (nconc pending (list expanded))))))))))
     (normal-top-level-add-to-load-path (cdr (nreverse dirs)))))
 
-;; This function is called from a subdirs.el file.
-;; It assumes that default-directory is the directory
-;; in which the subdirs.el file exists,
-;; and it adds to load-path the subdirs of that directory
-;; as specified in DIRS.  Normally the elements of DIRS are relative.
 (defun normal-top-level-add-to-load-path (dirs)
+  "This function is called from a subdirs.el file.
+It assumes that `default-directory' is the directory in which the
+subdirs.el file exists, and it adds to `load-path' the subdirs of
+that directory as specified in DIRS.  Normally the elements of
+DIRS are relative."
   (let ((tail load-path)
 	(thisdir (directory-file-name default-directory)))
     (while (and tail
@@ -466,9 +463,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; `user-full-name' is now known; reset its standard-value here.
     (put 'user-full-name 'standard-value
 	 (list (default-value 'user-full-name)))
-    ;; For root, preserve owner and group when editing files.
-    (if (equal (user-uid) 0)
-	(setq backup-by-copying-when-mismatch t))
     ;; Look in each dir in load-path for a subdirs.el file.
     ;; If we find one, load it, which will add the appropriate subdirs
     ;; of that dir into load-path,
@@ -618,8 +612,8 @@ function to this list.  The function should take no arguments,
 and initialize the window system environment to prepare for
 opening the first frame (e.g. open a connection to an X server).")
 
-;; Handle the X-like command-line arguments "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
+  "Handle the X-like command-line arguments \"-fg\", \"-bg\", \"-name\", etc."
   (let (rest)
     (message "%S" args)
     (while (and args
@@ -882,14 +876,15 @@ opening the first frame (e.g. open a connection to an X server).")
 
   ;; Under X, this creates the X frame and deletes the terminal frame.
   (unless (daemonp)
-    ;; Enable or disable the tool-bar and menu-bar.
-    ;; While we're at it, set `no-blinking-cursor' too.
+
+    ;; If X resources are available, use them to initialize the values
+    ;; of `tool-bar-mode' and `menu-bar-mode', as well as the value of
+    ;; `no-blinking-cursor' and the `cursor' face.
     (cond
      ((or noninteractive emacs-basic-display)
       (setq menu-bar-mode nil
 	    tool-bar-mode nil
 	    no-blinking-cursor t))
-     ;; Check X resources if available.
      ((memq initial-window-system '(x w32 ns))
       (let ((no-vals  '("no" "off" "false" "0")))
 	(if (member (x-get-resource "menuBar" "MenuBar") no-vals)
@@ -898,7 +893,13 @@ opening the first frame (e.g. open a connection to an X server).")
 	    (setq tool-bar-mode nil))
 	(if (member (x-get-resource "cursorBlink" "CursorBlink")
 		    no-vals)
-	    (setq no-blinking-cursor t)))))
+	    (setq no-blinking-cursor t)))
+      ;; If the cursorColor X resource exists, alter the `cursor' face
+      ;; spec, but mark it as changed outside of Customize.
+      (let ((color (x-get-resource "cursorColor" "CursorColor")))
+	(when color
+	  (face-spec-set 'cursor `((t (:background ,color))))
+	  (put 'cursor 'face-modified t)))))
     (frame-initialize))
 
   (when (fboundp 'x-create-frame)
@@ -1172,8 +1173,30 @@ the `--debug-init' option to view a complete error backtrace."
 		 (eq face-ignored-fonts old-face-ignored-fonts))
       (clear-face-cache)))
 
-  ;; Load ELPA packages.
-  (and user-init-file package-enable-at-startup (package-initialize))
+  ;; If any package directory exists, initialize the package system.
+  (and user-init-file
+       package-enable-at-startup
+       (catch 'package-dir-found
+	 (let (dirs)
+	   (if (boundp 'package-directory-list)
+	       (setq dirs package-directory-list)
+	     (dolist (f load-path)
+	       (and (stringp f)
+		    (equal (file-name-nondirectory f) "site-lisp")
+		    (push (expand-file-name "elpa" f) dirs))))
+	   (push (if (boundp 'package-user-dir)
+		     package-user-dir
+		   (locate-user-emacs-file "elpa"))
+		 dirs)
+	   (dolist (dir dirs)
+	     (when (file-directory-p dir)
+	       (dolist (subdir (directory-files dir))
+		 (when (and (file-directory-p (expand-file-name subdir dir))
+			    ;; package-subdirectory-regexp from package.el
+			    (string-match "^\\([^.].*\\)-\\([0-9]+\\(?:[.][0-9]+\\)*\\)$"
+					  subdir))
+		   (throw 'package-dir-found t)))))))
+       (package-initialize))
 
   (setq after-init-time (current-time))
   (run-hooks 'after-init-hook)
@@ -1563,21 +1586,26 @@ a face or button specification."
 		 (kill-buffer "*GNU Emacs*")))
        "  ")
       (when (or user-init-file custom-file)
-	(insert-button
-	 " "
-	 :on-glyph image-checkbox-checked
-	 :off-glyph image-checkbox-unchecked
-	 'checked nil 'display image-checkbox-unchecked 'follow-link t
-	 'action (lambda (button)
-		   (if (overlay-get button 'checked)
-		       (progn (overlay-put button 'checked nil)
-			      (overlay-put button 'display
-					   (overlay-get button :off-glyph))
-			      (setq startup-screen-inhibit-startup-screen nil))
-		     (overlay-put button 'checked t)
-		     (overlay-put button 'display
-				  (overlay-get button :on-glyph))
-		     (setq startup-screen-inhibit-startup-screen t))))
+	(let ((checked (create-image "checked.xpm"
+				     nil nil :ascent 'center))
+	      (unchecked (create-image "unchecked.xpm"
+				       nil nil :ascent 'center)))
+	  (insert-button
+	   " "
+	   :on-glyph checked
+	   :off-glyph unchecked
+	   'checked nil 'display unchecked 'follow-link t
+	   'action (lambda (button)
+		     (if (overlay-get button 'checked)
+			 (progn (overlay-put button 'checked nil)
+				(overlay-put button 'display
+					     (overlay-get button :off-glyph))
+				(setq startup-screen-inhibit-startup-screen
+				      nil))
+		       (overlay-put button 'checked t)
+		       (overlay-put button 'display
+				    (overlay-get button :on-glyph))
+		       (setq startup-screen-inhibit-startup-screen t)))))
 	(fancy-splash-insert :face '(variable-pitch (:height 0.9))
 			     " Never show it again.")))))
 
@@ -2354,5 +2382,4 @@ A fancy display is used on graphic displays, normal otherwise."
       (setq file (replace-match "/" t t file)))
     file))
 
-;; arch-tag: 7e294698-244d-4758-984b-4047f887a5db
 ;;; startup.el ends here

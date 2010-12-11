@@ -1,11 +1,11 @@
-;;; ob-run.el --- org-babel functions for external code evaluation
+;;; ob-eval.el --- org-babel functions for external code evaluation
 
 ;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, comint
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.3
 
 ;; This file is part of GNU Emacs.
 
@@ -42,7 +42,7 @@
 
 (defun org-babel-eval (cmd body)
   "Run CMD on BODY.
-If CMD succeeds then return it's results, otherwise display
+If CMD succeeds then return its results, otherwise display
 STDERR with `org-babel-eval-error-notify'."
   (let ((err-buff (get-buffer-create "*Org-Babel Error*")) exit-code)
     (with-current-buffer err-buff (erase-buffer))
@@ -60,8 +60,7 @@ STDERR with `org-babel-eval-error-notify'."
 
 (defun org-babel-eval-read-file (file)
   "Return the contents of FILE as a string."
-  (with-temp-buffer (insert-file-contents
-		     (org-babel-maybe-remote-file file))
+  (with-temp-buffer (insert-file-contents file)
 		    (buffer-string)))
 
 (defun org-babel-shell-command-on-region (start end command
@@ -252,4 +251,4 @@ specifies the value of ERROR-BUFFER."
 
 ;; arch-tag: 5328b17f-957d-42d9-94da-a2952682d04d
 
-;;; ob-comint.el ends here
+;;; ob-eval.el ends here

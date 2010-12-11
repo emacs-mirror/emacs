@@ -1,7 +1,7 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs
 
-;; Copyright (C) 1988, 1994, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Maintainer: FSF
@@ -195,8 +195,8 @@ Other useful commands:\n
 \\{gomoku-mode-map}"
   (gomoku-display-statistics)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(gomoku-font-lock-keywords t))
-  (toggle-read-only t))
+  (setq font-lock-defaults '(gomoku-font-lock-keywords t)
+	buffer-read-only t))
 
 ;;;
 ;;; THE BOARD.
@@ -278,7 +278,7 @@ Other useful commands:\n
 ;; its contents as a set, i.e. not considering the order of its elements. The
 ;; highest score is given to the "OOOO" qtuples because playing in such a
 ;; qtuple is winning the game. Just after this comes the "XXXX" qtuple because
-;; not playing in it is just loosing the game, and so on. Note that a
+;; not playing in it is just losing the game, and so on. Note that a
 ;; "polluted" qtuple, i.e. one containing at least one X and at least one O,
 ;; has score zero because there is no more any point in playing in it, from
 ;; both an attacking and a defending point of view.
@@ -299,15 +299,15 @@ Other useful commands:\n
 ;; these values will change (hopefully improve) the strength of the program
 ;; and may change its style (rather aggressive here).
 
-(defconst nil-score	  7  "Score of an empty qtuple.")
-(defconst Xscore	 15  "Score of a qtuple containing one X.")
-(defconst XXscore	400  "Score of a qtuple containing two X's.")
-(defconst XXXscore     1800  "Score of a qtuple containing three X's.")
-(defconst XXXXscore  100000  "Score of a qtuple containing four X's.")
-(defconst Oscore	 35  "Score of a qtuple containing one O.")
-(defconst OOscore	800  "Score of a qtuple containing two O's.")
-(defconst OOOscore    15000  "Score of a qtuple containing three O's.")
-(defconst OOOOscore  800000  "Score of a qtuple containing four O's.")
+(defconst gomoku-nil-score	  7  "Score of an empty qtuple.")
+(defconst gomoku-Xscore	 15  "Score of a qtuple containing one X.")
+(defconst gomoku-XXscore	400  "Score of a qtuple containing two X's.")
+(defconst gomoku-XXXscore     1800  "Score of a qtuple containing three X's.")
+(defconst gomoku-XXXXscore  100000  "Score of a qtuple containing four X's.")
+(defconst gomoku-Oscore	 35  "Score of a qtuple containing one O.")
+(defconst gomoku-OOscore	800  "Score of a qtuple containing two O's.")
+(defconst gomoku-OOOscore    15000  "Score of a qtuple containing three O's.")
+(defconst gomoku-OOOOscore  800000  "Score of a qtuple containing four O's.")
 
 ;; These values are not just random: if, given the following situation:
 ;;
@@ -320,7 +320,7 @@ Other useful commands:\n
 ;; you want Emacs to play in "a" and not in "b", then the parameters must
 ;; satisfy the inequality:
 ;;
-;;		   6 * XXscore > XXXscore + XXscore
+;;		   6 * gomoku-XXscore > gomoku-XXXscore + gomoku-XXscore
 ;;
 ;; because "a" mainly belongs to six "XX" qtuples (the others are less
 ;; important) while "b" belongs to one "XXX" and one "XX" qtuples.  Other
@@ -334,26 +334,26 @@ Other useful commands:\n
 ;; we just have to set up a translation table.
 
 (defconst gomoku-score-trans-table
-  (vector nil-score Xscore XXscore XXXscore XXXXscore 0
-	  Oscore    0	   0	   0	    0	      0
-	  OOscore   0	   0	   0	    0	      0
-	  OOOscore  0	   0	   0	    0	      0
-	  OOOOscore 0	   0	   0	    0	      0
+  (vector gomoku-nil-score gomoku-Xscore gomoku-XXscore gomoku-XXXscore gomoku-XXXXscore 0
+	  gomoku-Oscore    0	   0	   0	    0	      0
+	  gomoku-OOscore   0	   0	   0	    0	      0
+	  gomoku-OOOscore  0	   0	   0	    0	      0
+	  gomoku-OOOOscore 0	   0	   0	    0	      0
 	  0)
   "Vector associating qtuple contents to their score.")
 
 
 ;; If you do not modify drastically the previous constants, the only way for a
-;; square to have a score higher than OOOOscore is to belong to a "OOOO"
+;; square to have a score higher than gomoku-OOOOscore is to belong to a "OOOO"
 ;; qtuple, thus to be a winning move. Similarly, the only way for a square to
-;; have a score between XXXXscore and OOOOscore is to belong to a "XXXX"
+;; have a score between gomoku-XXXXscore and gomoku-OOOOscore is to belong to a "XXXX"
 ;; qtuple. We may use these considerations to detect when a given move is
-;; winning or loosing.
+;; winning or losing.
 
-(defconst gomoku-winning-threshold OOOOscore
+(defconst gomoku-winning-threshold gomoku-OOOOscore
   "Threshold score beyond which an Emacs move is winning.")
 
-(defconst gomoku-loosing-threshold XXXXscore
+(defconst gomoku-losing-threshold gomoku-XXXXscore
   "Threshold score beyond which a human move is winning.")
 
 
@@ -394,10 +394,10 @@ Other useful commands:\n
 ;;;
 
 ;; At initialization the board is empty so that every qtuple amounts for
-;; nil-score. Therefore, the score of any square is nil-score times the number
+;; gomoku-nil-score. Therefore, the score of any square is gomoku-nil-score times the number
 ;; of qtuples that pass through it. This number is 3 in a corner and 20 if you
 ;; are sufficiently far from the sides. As computing the number is time
-;; consuming, we initialize every square with 20*nil-score and then only
+;; consuming, we initialize every square with 20*gomoku-nil-score and then only
 ;; consider squares at less than 5 squares from one side. We speed this up by
 ;; taking symmetry into account.
 ;; Also, as it is likely that successive games will be played on a board with
@@ -421,7 +421,7 @@ Other useful commands:\n
       (setq gomoku-score-table (copy-sequence gomoku-saved-score-table))
       ;; No, compute it:
       (setq gomoku-score-table
-	    (make-vector gomoku-vector-length (* 20 nil-score)))
+	    (make-vector gomoku-vector-length (* 20 gomoku-nil-score)))
       (let (i j maxi maxj maxi2 maxj2)
 	(setq maxi  (/ (1+ gomoku-board-width) 2)
 	      maxj  (/ (1+ gomoku-board-height) 2)
@@ -872,7 +872,7 @@ If the game is finished, this command requests for another game."
 	    (t
 	     (setq score (aref gomoku-score-table square))
 	     (gomoku-play-move square 1)
-	     (cond ((and (>= score gomoku-loosing-threshold)
+	     (cond ((and (>= score gomoku-losing-threshold)
 			 ;; Just testing SCORE > THRESHOLD is not enough for
 			 ;; detecting wins, it just gives an indication that
 			 ;; we confirm with GOMOKU-FIND-FILLED-QTUPLE.
@@ -929,11 +929,7 @@ If the game is finished, this command requests for another game."
   "Display a message asking for Human's move."
   (message (if (zerop gomoku-number-of-human-moves)
 	       "Your move?  (Move to a free square and hit X, RET ...)"
-	       "Your move?"))
-  ;; This may seem silly, but if one omits the following line (or a similar
-  ;; one), the cursor may very well go to some place where POINT is not.
-  ;; FIXME: this can't be right!!  --Stef
-  (save-excursion (set-buffer (other-buffer))))
+	       "Your move?")))
 
 (defun gomoku-prompt-for-other-game ()
   "Ask for another game, and start it."
@@ -1206,5 +1202,4 @@ If the game is finished, this command requests for another game."
 
 (provide 'gomoku)
 
-;; arch-tag: b1b8205e-77fc-4597-b373-3ea2c04311eb
 ;;; gomoku.el ends here

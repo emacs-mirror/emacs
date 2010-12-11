@@ -1,7 +1,8 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs
 
 ;; Copyright (C) 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
 ;;      Bengt Martensson <bengt@mathematik.uni-Bremen.de>
@@ -3835,16 +3836,16 @@ Return t if test was successful, nil otherwise."
           (with-current-buffer (get-buffer-create err-buf)
             (setq default-directory dir)
             (unless (eq major-mode 'compilation-mode) (compilation-mode))
-            (toggle-read-only -1)
-            (delete-region (point-min) (point-max))
-            (insert "BibTeX mode command `bibtex-validate'\n"
-                    (if syntax-error
-                        "Maybe undetected errors due to syntax errors.  Correct and validate again.\n"
-                      "\n"))
-            (dolist (err error-list)
-              (insert (format "%s:%d: %s\n" file (car err) (cdr err))))
-            (set-buffer-modified-p nil)
-            (toggle-read-only 1)
+            (let ((inhibit-read-only t))
+              (delete-region (point-min) (point-max))
+              (insert "BibTeX mode command `bibtex-validate'\n"
+                      (if syntax-error
+                          "Maybe undetected errors due to syntax errors.  \
+Correct and validate again.\n"
+                        "\n"))
+              (dolist (err error-list)
+                (insert (format "%s:%d: %s\n" file (car err) (cdr err))))
+              (set-buffer-modified-p nil))
             (goto-char (point-min))
             (forward-line 2)) ; first error message
           (display-buffer err-buf)
@@ -3896,12 +3897,11 @@ Return t if test was successful, nil otherwise."
         (let ((err-buf "*BibTeX validation errors*"))
           (with-current-buffer (get-buffer-create err-buf)
             (unless (eq major-mode 'compilation-mode) (compilation-mode))
-            (toggle-read-only -1)
-            (delete-region (point-min) (point-max))
-            (insert "BibTeX mode command `bibtex-validate-globally'\n\n")
-            (dolist (err (sort error-list 'string-lessp)) (insert err))
-            (set-buffer-modified-p nil)
-            (toggle-read-only 1)
+            (let ((inhibit-read-only t))
+              (delete-region (point-min) (point-max))
+              (insert "BibTeX mode command `bibtex-validate-globally'\n\n")
+              (dolist (err (sort error-list 'string-lessp)) (insert err))
+              (set-buffer-modified-p nil))
             (goto-char (point-min))
             (forward-line 2)) ; first error message
           (display-buffer err-buf)
@@ -4778,5 +4778,4 @@ Return the URL or nil if none can be generated."
 
 (provide 'bibtex)
 
-;; arch-tag: ee2be3af-caad-427f-b42a-d20fad630d04
 ;;; bibtex.el ends here

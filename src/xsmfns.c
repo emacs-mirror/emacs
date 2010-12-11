@@ -410,8 +410,8 @@ create_client_leader_window (struct x_display_info *dpyinfo, char *client_id)
   XSetClassHint (dpyinfo->display, w, &class_hints);
   XStoreName (dpyinfo->display, w, class_hints.res_name);
 
-  sm_id = XInternAtom (dpyinfo->display, "SM_CLIENT_ID", False);
-  XChangeProperty (dpyinfo->display, w, sm_id, XA_STRING, 8, PropModeReplace,
+  XChangeProperty (dpyinfo->display, w, dpyinfo->Xatom_SM_CLIENT_ID,
+                   XA_STRING, 8, PropModeReplace,
                    (unsigned char *)client_id, strlen (client_id));
 
   dpyinfo->client_leader_window = w;

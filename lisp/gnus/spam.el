@@ -1287,6 +1287,7 @@ variable.  When the processor variable is nil, just the
 classification and spam-use-* check variable are used.  This is
 superseded by the new spam backend code, so it's only consulted
 for backwards compatibility.")
+(make-obsolete-variable 'spam-list-of-processors nil "22.1")
 
 (defun spam-group-processor-p (group backend &optional classification)
   "Checks if GROUP has a BACKEND with CLASSIFICATION registered.

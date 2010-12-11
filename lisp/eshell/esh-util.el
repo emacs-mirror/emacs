@@ -341,20 +341,6 @@ Prepend remote identification of `default-directory', if any."
   "Flatten and stringify all of the ARGS into a single string."
   (mapconcat 'eshell-stringify (eshell-flatten-list args) " "))
 
-;; the next two are from GNUS, and really should be made part of Emacs
-;; some day
-(defsubst eshell-time-less-p (t1 t2)
-  "Say whether time T1 is less than time T2."
-  (or (< (car t1) (car t2))
-      (and (= (car t1) (car t2))
-	   (< (nth 1 t1) (nth 1 t2)))))
-
-(defsubst eshell-time-to-seconds (time)
-  "Convert TIME to a floating point number."
-  (+ (* (car time) 65536.0)
-     (cadr time)
-     (/ (or (car (cdr (cdr time))) 0) 1000000.0)))
-
 (defsubst eshell-directory-files (regexp &optional directory)
   "Return a list of files in the given DIRECTORY matching REGEXP."
   (directory-files (or directory default-directory)
@@ -468,7 +454,7 @@ list."
   "Read the contents of /etc/passwd for user names."
   (if (or (not (symbol-value result-var))
 	  (not (symbol-value timestamp-var))
-	  (eshell-time-less-p
+	  (time-less-p
 	   (symbol-value timestamp-var)
 	   (nth 5 (file-attributes file))))
       (progn
@@ -522,7 +508,7 @@ list."
   "Read the contents of /etc/passwd for user names."
   (if (or (not (symbol-value result-var))
 	  (not (symbol-value timestamp-var))
-	  (eshell-time-less-p
+	  (time-less-p
 	   (symbol-value timestamp-var)
 	   (nth 5 (file-attributes file))))
       (progn
@@ -536,25 +522,18 @@ list."
       (eshell-read-hosts eshell-hosts-file 'eshell-host-names
 			 'eshell-host-timestamp)))
 
-(unless (fboundp 'line-end-position)
-  (defsubst line-end-position (&optional N)
-    (save-excursion (end-of-line N) (point))))
-
-(unless (fboundp 'line-beginning-position)
-  (defsubst line-beginning-position (&optional N)
-    (save-excursion (beginning-of-line N) (point))))
-
-(unless (fboundp 'subst-char-in-string)
-  (defun subst-char-in-string (fromchar tochar string &optional inplace)
-    "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
+(and (featurep 'xemacs)
+     (not (fboundp 'subst-char-in-string))
+     (defun subst-char-in-string (fromchar tochar string &optional inplace)
+       "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
 Unless optional argument INPLACE is non-nil, return a new string."
-    (let ((i (length string))
-	  (newstr (if inplace string (copy-sequence string))))
-      (while (> i 0)
-	(setq i (1- i))
-	(if (eq (aref newstr i) fromchar)
-	    (aset newstr i tochar)))
-      newstr)))
+       (let ((i (length string))
+	     (newstr (if inplace string (copy-sequence string))))
+	 (while (> i 0)
+	   (setq i (1- i))
+	   (if (eq (aref newstr i) fromchar)
+	       (aset newstr i tochar)))
+	 newstr)))
 
 (defsubst eshell-copy-environment ()
   "Return an unrelated copy of `process-environment'."
@@ -594,8 +573,9 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	  (substring string 0 sublen)
 	string)))
 
-(unless (fboundp 'directory-files-and-attributes)
-  (defun directory-files-and-attributes (directory &optional full match nosort id-format)
+(and (featurep 'xemacs)
+     (not (fboundp 'directory-files-and-attributes))
+     (defun directory-files-and-attributes (directory &optional full match nosort id-format)
     "Return a list of names of files and their attributes in DIRECTORY.
 There are three optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
@@ -607,7 +587,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
       (mapcar
        (function
 	(lambda (file)
-         (cons file (eshell-file-attributes (expand-file-name file directory)))))
+	  (cons file (eshell-file-attributes (expand-file-name file directory)))))
        (directory-files directory full match nosort)))))
 
 (defvar ange-cache)
@@ -802,5 +782,4 @@ gid format.  Valid values are 'string and 'integer, defaulting to
 
 (provide 'esh-util)
 
-;; arch-tag: 70159778-5c7a-480a-bae4-3ad332fca19d
 ;;; esh-util.el ends here

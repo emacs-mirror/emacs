@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.3
 
 ;; This file is part of GNU Emacs.
 
@@ -50,33 +50,37 @@
 
 (defvar org-babel-default-header-args:sql '())
 
-(defun org-babel-expand-body:sql (body params &optional processed-params)
-  "Expand BODY according to PARAMS, return the expanded body." body)
-
 (defun org-babel-execute:sql (body params)
   "Execute a block of Sql code with Babel.
 This function is called by `org-babel-execute-src-block'."
-  (let* ((result-params (split-string (or (cdr (assoc :results params)) "")))
-	 (processed-params (org-babel-process-params params))
+  (let* ((result-params (cdr (assoc :result-params params)))
          (cmdline (cdr (assoc :cmdline params)))
          (engine (cdr (assoc :engine params)))
-         (in-file (make-temp-file "org-babel-sql-in"))
+         (in-file (org-babel-temp-file "sql-in-"))
          (out-file (or (cdr (assoc :out-file params))
-                       (make-temp-file "org-babel-sql-out")))
+                       (org-babel-temp-file "sql-out-")))
          (command (case (intern engine)
                     ('mysql (format "mysql %s -e \"source %s\" > %s"
-                                    (or cmdline "") in-file out-file))
+                                    (or cmdline "")
+				    (org-babel-process-file-name in-file)
+				    (org-babel-process-file-name out-file)))
+		    ('postgresql (format "psql -A -P footer=off -F \"\t\"  -f %s -o %s %s"
+				    (org-babel-process-file-name in-file)
+				    (org-babel-process-file-name out-file)
+				    (or cmdline "")))
                     (t (error "no support for the %s sql engine" engine)))))
     (with-temp-file in-file
-      (insert (org-babel-expand-body:sql body params)))
+      (insert (org-babel-expand-body:generic body params)))
     (message command)
     (shell-command command)
     (with-temp-buffer
       (org-table-import out-file nil)
       (org-babel-reassemble-table
        (org-table-to-lisp)
-       (org-babel-pick-name (nth 4 processed-params) (cdr (assoc :colnames params)))
-       (org-babel-pick-name (nth 5 processed-params) (cdr (assoc :rownames params)))))))
+       (org-babel-pick-name (cdr (assoc :colname-names params))
+			    (cdr (assoc :colnames params)))
+       (org-babel-pick-name (cdr (assoc :rowname-names params))
+			    (cdr (assoc :rownames params)))))))
 
 
 (defun org-babel-prep-session:sql (session params)

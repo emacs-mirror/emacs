@@ -5057,7 +5057,7 @@ Focus only on the corner pattern.  Further cell validity check is required."
 	  (intersection-str (regexp-quote (char-to-string table-cell-intersection-char)))
 	  (v-border (format "[%c%c]" table-cell-vertical-char table-cell-intersection-char))
 	  (h-border (format "[%s%c]" table-cell-horizontal-chars table-cell-intersection-char))
-	  (limit (save-excursion (beginning-of-line) (point))))
+	  (limit (line-beginning-position)))
       (catch 'end
 	(while t
 	  (catch 'retry-horizontal
@@ -5095,7 +5095,7 @@ Focus only on the corner pattern.  Further cell validity check is required."
 	  (intersection-str (regexp-quote (char-to-string table-cell-intersection-char)))
 	  (v-border (format "[%c%c]" table-cell-vertical-char table-cell-intersection-char))
 	  (h-border (format "[%s%c]" table-cell-horizontal-chars table-cell-intersection-char))
-	  (limit (save-excursion (end-of-line) (point))))
+	  (limit (line-end-position)))
       (catch 'end
 	(while t
 	  (catch 'retry-horizontal
@@ -5589,5 +5589,4 @@ It returns COLUMN unless STR contains some wide characters."
 
 (provide 'table)
 
-;; arch-tag: 0d69b03e-aa5f-4e72-8806-5727217617e0
 ;;; table.el ends here

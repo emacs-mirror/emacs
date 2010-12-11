@@ -255,7 +255,7 @@ extern Lisp_Object Vcharset_list;
 extern Lisp_Object Viso_2022_charset_list;
 extern Lisp_Object Vemacs_mule_charset_list;
 
-extern struct charset *emacs_mule_charset[256];
+extern int emacs_mule_charset[256];
 
 extern Lisp_Object Vcurrent_iso639_language;
 

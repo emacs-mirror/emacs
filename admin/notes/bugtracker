@@ -384,6 +384,14 @@ fixed 123 23.0.60
 *** To remove a "fixed" mark:
 notfixed 123 23.0.60
 
+*** To make a bug as present in a particular version:
+found 123 23.2
+NB if there is no specified "fixed" version, or if there is one and it
+is earlier than the found version, this reopens a closed bug.
+
+The leading "23.1;" that M-x report-emacs-bug adds to bug subjects
+automatically sets a found version (if none is explicitly specified).
+
 *** To assign or reassign a bug to a package or list of packages:
 reassign 1234 emacs
 
@@ -466,16 +474,41 @@ http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg00440.html
 
 ** Bazaar stuff
 
-*** You can use `bzr commit --fixes emacs:123' to mark that a commit fixes
-Emacs bug 123.  You will first need to add a line to your bazaar.conf:
+*** You can use `bzr commit --fixes debbugs:123' to mark that a commit fixes
+Emacs bug 123.  You will first need to add a line to one of your
+configuration files, ~/.bazaar/bazaar.conf or ~/.bazaar/locations.conf:
 
-bugtracker_emacs_url = http://debbugs.gnu.org/{id}
+bugtracker_debbugs_url = http://debbugs.gnu.org/{id}
+
+Here "{id}" is a literal string, a placeholder that will be replaced
+by the bug number you specify after `--fixes debbugs:' in the bzr
+command line (123 in the example above).
+
+In the bazaar.conf file, this setting should go into the [DEFAULTS]
+section.
+
+In the locations.conf file, it should go into the branch-specific
+configuration section for the branch where you want this to be in
+effect.  For example, if you want this to be in effect for the branch
+located at `/home/projects/emacs/trunk', you need to have this in your
+~/.bazaar/locations.conf file:
+
+[/home/projects/emacs/trunk]
+bugtracker_debbugs_url = http://debbugs.gnu.org/{id}
+
+If you want to use this in all Emacs branches whose common parent is
+`/home/projects/emacs', put the setting in the [/home/projects/emacs]
+section.  See "bzr help configuration" for more information about
+the *.conf files, their location and formats.  See "bzr help bugs" for
+more information about the bugtracker_debbugs_url setting.
+
+See also log-edit-rewrite-fixes in .dir-locals.el.
 
 Note that all this does is add some metadata to the commit, it doesn't
-actually mark the bug as closed in the tracker.  There seems to be no
-way to see this "metadata" with `bzr log', which is rather poor, but
-it will show up as a link in a recent loggerhead installation, or with
-some of the graphical frontends to bzr log.
+actually mark the bug as closed in the tracker.  You can see this
+information with `bzr log', and it will show up as a link in a recent
+loggerhead installation, or with some of the graphical frontends to
+`bzr log'.
 
 ** Gnus-specific voodoo
 

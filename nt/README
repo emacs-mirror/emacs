@@ -1,7 +1,7 @@
 	     Emacs for Windows NT/2000 and Windows 95/98/ME
 
-  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006,
-     2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+    2010  Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
   This directory contains support for compiling and running GNU Emacs on
@@ -60,9 +60,6 @@
   + movemail.exe - A helper application for safely moving mail from
     a mail spool or POP server to a local user mailbox.  See the
     `Movemail' node of the Emacs manual.
-
-  + digest-doc.exe, sorted-doc.exe - Tools for rebuilding the
-  built-in documentation.
 
 * Further information
 

@@ -246,7 +246,7 @@ the form:
 
    (INCLUDE-REGEXP EXCLUDE-REGEXP (PRED-FUNC-LIST) (MOD-FUNC-LIST))"
   (let ((paths (eshell-split-path glob))
-	matches message-shown ange-cache)
+	eshell-glob-matches message-shown ange-cache)
     (unwind-protect
 	(if (and (cdr paths)
 		 (file-name-absolute-p (car paths)))
@@ -255,15 +255,15 @@ the form:
 	  (eshell-glob-entries (file-name-as-directory ".") paths))
       (if message-shown
 	  (message nil)))
-    (or (and matches (sort matches #'string<))
+    (or (and eshell-glob-matches (sort eshell-glob-matches #'string<))
 	(if eshell-error-if-no-glob
 	    (error "No matches found: %s" glob)
 	  glob))))
 
-(defvar matches)
+(defvar eshell-glob-matches)
 (defvar message-shown)
 
-;; FIXME does this really need to abuse matches, message-shown?
+;; FIXME does this really need to abuse eshell-glob-matches, message-shown?
 (defun eshell-glob-entries (path globs &optional recurse-p)
   "Glob the entries in PATHS, possibly recursing if RECURSE-P is non-nil."
   (let* ((entries (ignore-errors
@@ -319,7 +319,7 @@ the form:
 		   "\\`\\.")))
     (when (and recurse-p eshell-glob-show-progress)
       (message "Building file list...%d so far: %s"
-	       (length matches) path)
+	       (length eshell-glob-matches) path)
       (setq message-shown t))
     (if (equal path "./") (setq path ""))
     (while entries
@@ -332,7 +332,8 @@ the form:
 	  (if (cdr globs)
 	      (if isdir
 		  (setq dirs (cons (concat path name) dirs)))
-	    (setq matches (cons (concat path name) matches))))
+	    (setq eshell-glob-matches
+		  (cons (concat path name) eshell-glob-matches))))
       (if (and recurse-p isdir
 	       (or (> len 3)
 		   (not (or (and (= len 2) (equal name "./"))
@@ -358,5 +359,4 @@ the form:
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: d0548f54-fb7c-4978-a88e-f7c26f7f68ca
 ;;; em-glob.el ends here

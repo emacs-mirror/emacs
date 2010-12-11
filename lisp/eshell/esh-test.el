@@ -150,7 +150,7 @@
 (defun eshell-test (&optional arg)
   "Test Eshell to verify that it works as expected."
   (interactive "P")
-  (let* ((begin (eshell-time-to-seconds (current-time)))
+  (let* ((begin (float-time))
 	 (test-buffer (get-buffer-create "*eshell test*")))
     (set-buffer (let ((inhibit-redisplay t))
 		  (save-window-excursion (eshell t))))
@@ -176,8 +176,7 @@
     (with-current-buffer test-buffer
       (insert (format "\n\n--- %s --- (completed in %d seconds)\n"
 		      (current-time-string)
-		      (- (eshell-time-to-seconds (current-time))
-			 begin)))
+		      (- (float-time) begin)))
       (message "Eshell test suite completed: %s failure%s"
 	       (if (> eshell-test-failures 0)
 		   (number-to-string eshell-test-failures)
@@ -223,14 +222,13 @@
 		  (if (eq eshell-show-usage-metrics t)
 		      (- eshell-metric-after-command
 			 eshell-metric-before-command 7)
-		    (- (eshell-time-to-seconds
+		    (- (float-time
 			eshell-metric-after-command)
-		       (eshell-time-to-seconds
+		       (float-time
 			eshell-metric-before-command))))
 		 "\n"))))
 	    nil t))
 
 (provide 'esh-test)
 
-;; arch-tag: 6e32275a-8285-4a4e-b7cf-819aa7c86b8e
 ;;; esh-test.el ends here

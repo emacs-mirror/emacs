@@ -32,7 +32,7 @@
 (declare-function semanticdb-table-child-p "semantic/db" t t)
 (declare-function semanticdb-get-buffer "semantic/db")
 (declare-function semantic-dependency-find-file-on-path "semantic/dep")
-(declare-function ede-toplevel "ede/files")
+(declare-function ede-toplevel "ede/base")
 
 ;;; Code:
 
@@ -214,5 +214,4 @@ file prototypes belong in."
 ;; generated-autoload-load-name: "semantic/tag-file"
 ;; End:
 
-;; arch-tag: 71d4cf18-c1ec-414c-bb0a-c2ed914c1361
 ;;; semantic/tag-file.el ends here

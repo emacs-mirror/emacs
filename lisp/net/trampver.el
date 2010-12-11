@@ -32,7 +32,7 @@
 ;; should be changed only there.
 
 ;;;###tramp-autoload
-(defconst tramp-version "2.2.0-pre"
+(defconst tramp-version "2.2.1-pre"
   "This version of Tramp.")
 
 ;;;###tramp-autoload
@@ -45,7 +45,7 @@
 		      (= emacs-major-version 21)
 		      (>= emacs-minor-version 4)))
 	     "ok"
-	   (format "Tramp 2.2.0-pre is not fit for %s"
+	   (format "Tramp 2.2.1-pre is not fit for %s"
 		   (when (string-match "^.*$" (emacs-version))
 		     (match-string 0 (emacs-version)))))))
   (unless (string-match "\\`ok\\'" x) (error "%s" x)))
@@ -56,7 +56,6 @@
 
 (provide 'trampver)
 
-;; arch-tag: 443576ca-f8f1-4bb1-addc-5c70861e93b1
 ;;; trampver.el ends here
 
 ;; Local Variables:

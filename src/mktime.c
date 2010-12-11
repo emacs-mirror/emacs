@@ -110,9 +110,7 @@ const unsigned short int __mon_yday[2][13] =
    localtime to localtime_r, since many localtime_r implementations
    are buggy.  */
 static struct tm *
-my_mktime_localtime_r (t, tp)
-     const time_t *t;
-     struct tm *tp;
+my_mktime_localtime_r (const time_t *t,  struct tm *tp)
 {
   struct tm *l = localtime (t);
   if (! l)
@@ -130,9 +128,7 @@ my_mktime_localtime_r (t, tp)
    If TP is null, return a nonzero value.
    If overflow occurs, yield the low order bits of the correct answer.  */
 static time_t
-ydhms_tm_diff (year, yday, hour, min, sec, tp)
-     int year, yday, hour, min, sec;
-     const struct tm *tp;
+ydhms_tm_diff (int year, int yday, int hour, int min, int sec, const struct tm *tp)
 {
   if (!tp)
     return 1;
@@ -163,14 +159,8 @@ ydhms_tm_diff (year, yday, hour, min, sec, tp)
    If *T is out of range for conversion, adjust it so that
    it is the nearest in-range value and then convert that.  */
 static struct tm *
-ranged_convert (convert, t, tp)
-#ifdef PROTOTYPES
-     struct tm *(*convert) (const time_t *, struct tm *);
-#else
-     struct tm *(*convert)();
-#endif
-     time_t *t;
-     struct tm *tp;
+ranged_convert (struct tm *(*convert) (const time_t *, struct tm *),
+		time_t *t, struct tm *tp)
 {
   struct tm *r;
 
@@ -217,14 +207,8 @@ ranged_convert (convert, t, tp)
    compared to what the result would be for UTC without leap seconds.
    If *OFFSET's guess is correct, only one CONVERT call is needed.  */
 time_t
-__mktime_internal (tp, convert, offset)
-     struct tm *tp;
-#ifdef PROTOTYPES
-     struct tm *(*convert) (const time_t *, struct tm *);
-#else
-     struct tm *(*convert)();
-#endif
-     time_t *offset;
+__mktime_internal (struct tm *tp, struct tm *(*convert) (const time_t *, struct tm *),
+		   time_t *offset)
 {
   time_t t, dt, t0, t1, t2;
   struct tm tm;
@@ -558,5 +542,3 @@ compile-command: "gcc -DDEBUG -DHAVE_LIMITS_H -DSTDC_HEADERS -Wall -W -O -g mkti
 End:
 */
 
-/* arch-tag: 9456752f-7ddd-47cb-8286-fa807b1355ae
-   (do not change this comment) */

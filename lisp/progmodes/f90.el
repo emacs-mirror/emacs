@@ -657,6 +657,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
     (define-key map "\C-c\C-f" 'f90-fill-region)
     (define-key map "\C-c\C-p" 'f90-previous-statement)
     (define-key map "\C-c\C-n" 'f90-next-statement)
+    (define-key map "\C-c]"    'f90-insert-end)
     (define-key map "\C-c\C-w" 'f90-insert-end)
     ;; Standard tab binding will call this, and also handle regions.
 ;;;    (define-key map "\t"       'f90-indent-line)
@@ -1066,11 +1067,9 @@ Variables controlling indentation style and extra features:
 Turning on F90 mode calls the value of the variable `f90-mode-hook'
 with no args, if that value is non-nil."
   :group 'f90
-  :syntax-table f90-mode-syntax-table
   :abbrev-table f90-mode-abbrev-table
   (set (make-local-variable 'indent-line-function) 'f90-indent-line)
   (set (make-local-variable 'indent-region-function) 'f90-indent-region)
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
   (set (make-local-variable 'comment-start) "!")
   (set (make-local-variable 'comment-start-skip) "!+ *")
   (set (make-local-variable 'comment-indent-function) 'f90-comment-indent)
@@ -2206,7 +2205,7 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
 With optional argument ALL, change the default for all present
 and future F90 buffers.  F90 mode normally treats backslash as an
 escape character."
-  (or (eq major-mode 'f90-mode)
+  (or (derived-mode-p 'f90-mode)
       (error "This function should only be used in F90 buffers"))
   (when (equal (char-syntax ?\\ ) ?\\ )
     (or all (set-syntax-table (copy-syntax-table (syntax-table))))

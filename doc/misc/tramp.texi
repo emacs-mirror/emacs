@@ -1942,7 +1942,7 @@ understand this syntax and will emit a syntax error when it reaches
 this line.
 
 Another example is the tilde (@code{~}) character, say when adding
-@file{~/bin} to @code{$PATH}.  Many Bourne shells will not expand this
+@file{~/bin} to @code{PATH}.  Many Bourne shells will not expand this
 character, and since there is usually no directory whose name consists
 of the single character tilde, strange things will happen.
 
@@ -1968,6 +1968,38 @@ csh derivative like tcsh, or it could be zsh, or even rc.  If the
 shell is Bourne-ish already, then it might be prudent to omit the
 @command{exec /bin/sh} step.  But how to find out if the shell is
 Bourne-ish?
+
+
+@item Interactive shell prompt
+
+@value{tramp} redefines the shell prompt in order to parse the shell's
+output robustly.  When calling an interactive shell by @kbd{M-x
+shell}, this doesn't look nice.
+
+You can redefine the shell prompt by checking the environment variable
+@code{INSIDE_EMACS}, which is set by @value{tramp}, in your startup
+script @file{~/.emacs_SHELLNAME}. @code{SHELLNAME} might be the string
+@code{bash} or similar, in case of doubt you could set it the
+environment variable @code{ESHELL} in your @file{.emacs}:
+
+@lisp
+(setenv "ESHELL" "bash")
+@end lisp
+
+Your file @file{~/.emacs_SHELLNAME} could contain code like
+
+@example
+# Reset the prompt for remote Tramp shells.
+if [ "$@{INSIDE_EMACS/*tramp*/tramp@}" == "tramp" ] ; then
+   PS1="[\u@@\h \w]$ "
+fi
+@end example
+
+@ifinfo
+@ifset emacs
+@xref{Interactive Shell, , , @value{emacsdir}}.
+@end ifset
+@end ifinfo
 
 @end table
 
@@ -2493,7 +2525,7 @@ Adding an entry can be performed via @code{add-to-list}:
 Changing or removing an existing entry is not encouraged.  The default
 values are chosen for proper @value{tramp} work.  Nevertheless, if for
 example a paranoid system administrator disallows changing the
-@var{$HISTORY} environment variable, you can customize
+@code{HISTORY} environment variable, you can customize
 @code{tramp-remote-process-environment}, or you can apply the
 following code in your @file{.emacs}:
 
@@ -2512,7 +2544,7 @@ integrate them as well.  @xref{Bug Reports}.
 
 If you want to run a remote program, which shall connect the X11
 server you are using with your local host, you can set the
-@var{$DISPLAY} environment variable on the remote host:
+@code{DISPLAY} environment variable on the remote host:
 
 @lisp
 (add-to-list 'tramp-remote-process-environment

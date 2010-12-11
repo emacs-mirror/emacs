@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.3
 
 ;; This file is part of GNU Emacs.
 
@@ -90,7 +90,9 @@ or to a number smaller than this one.  In fact, when `org-cycle-max-level' is
 not set, it will be assumed to be one less than the value of smaller than
 the value of this variable."
   :group 'org-inlinetask
-  :type 'boolean)
+  :type '(choice
+	  (const :tag "Off" nil)
+	  (integer)))
 
 (defcustom org-inlinetask-export t
   "Non-nil means export inline tasks.
@@ -104,7 +106,7 @@ When nil, they will not be exported."
 (defvar org-complex-heading-regexp)
 (defvar org-property-end-re)
 
-(defcustom org-inlinetask-defaut-state nil
+(defcustom org-inlinetask-default-state nil
   "Non-nil means make inline tasks have a TODO keyword initially.
 This should be the state `org-inlinetask-insert-task' should use by
 default, or nil of no state should be assigned."
@@ -115,19 +117,35 @@ default, or nil of no state should be assigned."
 
 (defun org-inlinetask-insert-task (&optional no-state)
   "Insert an inline task.
-If prefix arg NO-STATE is set, ignore `org-inlinetask-defaut-state'."
+If prefix arg NO-STATE is set, ignore `org-inlinetask-default-state'."
   (interactive "P")
   (or (bolp) (newline))
   (let ((indent org-inlinetask-min-level))
     (if org-odd-levels-only
         (setq indent (- (* 2 indent) 1)))
     (insert (make-string indent ?*)
-            (if (or no-state (not org-inlinetask-defaut-state))
+            (if (or no-state (not org-inlinetask-default-state))
 		" \n"
-	      (concat " " org-inlinetask-defaut-state " \n"))
+	      (concat " " org-inlinetask-default-state " \n"))
             (make-string indent ?*) " END\n"))
   (end-of-line -1))
 (define-key org-mode-map "\C-c\C-xt" 'org-inlinetask-insert-task)
+
+(defun org-inlinetask-in-task-p ()
+  "Return true if point is inside an inline task."
+  (save-excursion
+    (let* ((nstars (if org-odd-levels-only
+		       (1- (* 2 (or org-inlinetask-min-level 200)))
+		     (or org-inlinetask-min-level 200)))
+	   (stars-re (concat "^\\(?:\\*\\{"
+			     (format "%d" (- nstars 1))
+			     ",\\}\\)[ \t]+"))
+	   (task-beg-re (concat stars-re "\\(?:.*\\)"))
+	   (task-end-re (concat stars-re "\\(?:END\\|end\\)")))
+      (beginning-of-line)
+      (or (looking-at task-beg-re)
+	  (and (re-search-forward "^\\*+[ \t]+" nil t)
+	       (progn (beginning-of-line) (looking-at task-end-re)))))))
 
 (defvar htmlp)  ; dynamically scoped into the next function
 (defvar latexp) ; dynamically scoped into the next function

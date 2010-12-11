@@ -1,7 +1,7 @@
 ;;; mailheader.el --- mail header parsing, merging, formatting
 
-;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: tools, mail, news
@@ -48,9 +48,6 @@
 
 (eval-when-compile
   (require 'cl))
-
-;; Make the byte-compiler shut up.
-(defvar headers)
 
 (defun mail-header-extract ()
   "Extract headers from current buffer after point.
@@ -104,6 +101,9 @@ value."
 	  (setf (cdr header)
 		(cons (cdr header) (funcall (cdr rule) (cdr header))))))))
   headers)
+
+;; Advertized part of the interface; see mail-header, mail-header-set.
+(defvar headers)
 
 (defsubst mail-header (header &optional header-alist)
   "Return the value associated with header HEADER in HEADER-ALIST.
@@ -191,5 +191,4 @@ A key of nil has as its value a list of defaulted headers to ignore."
 
 (provide 'mailheader)
 
-;; arch-tag: 6e7aa221-80b5-4b3d-b46f-fd66ab567be0
 ;;; mailheader.el ends here

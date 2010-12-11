@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-latex.el
-;; Version: 7.01
+;; Version: 7.3
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;; Keywords: org, wp, tex
@@ -280,6 +280,11 @@ markup defined, the first one in the association list will be used."
 		   (string :tag "Keyword")
 		   (string :tag "Markup")))))
 
+(defcustom org-export-latex-tag-markup "\\textbf{%s}"
+  "Markup for tags, as a printf format."
+  :group 'org-export-latex
+  :type 'string)
+
 (defcustom org-export-latex-timestamp-markup "\\textit{%s}"
   "A printf format string to be applied to time stamps."
   :group 'org-export-latex
@@ -371,12 +376,30 @@ for example using customize, or with something like
 
   (require 'org-latex)
   (add-to-list 'org-export-latex-packages-alist '(\"\" \"listings\"))
-  (add-to-list 'org-export-latex-packages-alist '(\"\" \"color\"))"
+  (add-to-list 'org-export-latex-packages-alist '(\"\" \"color\"))
+
+Alternatively,
+
+  (setq org-export-latex-listings 'minted)
+
+causes source code to be exported using the minted package as
+opposed to listings. If you want to use minted, you need to add
+the minted package to `org-export-latex-packages-alist', for
+example using customize, or with
+
+  (require 'org-latex)
+  (add-to-list 'org-export-latex-packages-alist '(\"\" \"minted\"))
+
+In addition, it is neccessary to install
+pygments (http://pygments.org), and to configure
+`org-latex-to-pdf-process' so that the -shell-escape option is
+passed to pdflatex.
+"
   :group 'org-export-latex
   :type 'boolean)
 
 (defcustom org-export-latex-listings-langs
-  '((emacs-lisp "Lisp") (lisp "Lisp")
+  '((emacs-lisp "Lisp") (lisp "Lisp") (clojure "Lisp")
     (c "C") (cc "C++")
     (fortran "fortran")
     (perl "Perl") (cperl "Perl") (python "Python") (ruby "Ruby")
@@ -397,6 +420,44 @@ hurt if it is present."
 	  (list
 	   (symbol :tag "Major mode       ")
 	   (string :tag "Listings language"))))
+
+(defcustom org-export-latex-listings-w-names t
+  "Non-nil means export names of named code blocks.
+Code blocks exported with the listings package (controlled by the
+`org-export-latex-listings' variable) can be named in the style
+of noweb."
+  :group 'org-export-latex
+  :type 'boolean)
+
+(defcustom org-export-latex-minted-langs
+  '((emacs-lisp "common-lisp")
+    (cc "c++")
+    (cperl "perl")
+    (shell-script "bash")
+    (caml "ocaml"))
+  "Alist mapping languages to their minted language counterpart.
+The key is a symbol, the major mode symbol without the \"-mode\".
+The value is the string that should be inserted as the language parameter
+for the minted package.  If the mode name and the listings name are
+the same, the language does not need an entry in this list - but it does not
+hurt if it is present.
+
+Note that minted uses all lower case for language identifiers,
+and that the full list of language identifiers can be obtained
+with:
+pygmentize -L lexers
+"
+  :group 'org-export-latex
+  :type '(repeat
+	  (list
+	   (symbol :tag "Major mode       ")
+	   (string :tag "Listings language"))))
+
+(defcustom org-export-latex-minted-with-line-numbers nil
+  "Should source code line numbers be included when exporting
+with the latex minted package?"
+  :group 'org-export-latex
+  :type 'boolean)
 
 (defcustom org-export-latex-remove-from-headlines
   '(:todo nil :priority nil :tags nil)
@@ -443,24 +504,53 @@ allowed.  The default we use here encompasses both."
   :group 'org-export)
 
 (defcustom org-latex-to-pdf-process
-  '("pdflatex -interaction nonstopmode %s"
-    "pdflatex -interaction nonstopmode %s")
+  '("pdflatex -interaction nonstopmode -output-directory %o %f"
+    "pdflatex -interaction nonstopmode -output-directory %o %f"
+    "pdflatex -interaction nonstopmode -output-directory %o %f")
   "Commands to process a LaTeX file to a PDF file.
 This is a list of strings, each of them will be given to the shell
-as a command.  %s in the command will be replaced by the full file name, %b
-by the file base name (i.e. without extension).
+as a command.  %f in the command will be replaced by the full file name, %b
+by the file base name (i.e. without extension) and %o by the base directory
+of the file.
+
 The reason why this is a list is that it usually takes several runs of
-pdflatex, maybe mixed with a call to bibtex.  Org does not have a clever
+`pdflatex', maybe mixed with a call to `bibtex'.  Org does not have a clever
 mechanism to detect which of these commands have to be run to get to a stable
 result, and it also does not do any error checking.
+
+By default, Org uses 3 runs of `pdflatex' to do the processing.  If you
+have texi2dvi on your system and if that does not cause the infamous
+egrep/locale bug:
+
+     http://lists.gnu.org/archive/html/bug-texinfo/2010-03/msg00031.html
+
+then `texi2dvi' is the superior choice.  Org does offer it as one
+of the customize options.
 
 Alternatively, this may be a Lisp function that does the processing, so you
 could use this to apply the machinery of AUCTeX or the Emacs LaTeX mode.
 This function should accept the file name as its single argument."
   :group 'org-export-pdf
-  :type '(choice (repeat :tag "Shell command sequence"
+  :type '(choice
+	  (repeat :tag "Shell command sequence"
 		  (string :tag "Shell command"))
-		 (function)))
+	  (const :tag "2 runs of pdflatex"
+		 ("pdflatex -interaction nonstopmode -output-directory %o %f"
+		   "pdflatex -interaction nonstopmode -output-directory %o %f"))
+	  (const :tag "3 runs of pdflatex"
+		 ("pdflatex -interaction nonstopmode -output-directory %o %f"
+		   "pdflatex -interaction nonstopmode -output-directory %o %f"
+		   "pdflatex -interaction nonstopmode -output-directory %o %f"))
+	  (const :tag "pdflatex,bibtex,pdflatex,pdflatex"
+		 ("pdflatex -interaction nonstopmode -output-directory %o %f"
+		   "bibtex %b"
+		   "pdflatex -interaction nonstopmode -output-directory %o %f"
+		   "pdflatex -interaction nonstopmode -output-directory %o %f"))
+	  (const :tag "texi2dvi"
+		 ("texi2dvi -p -b -c -V %f"))
+	  (const :tag "rubber"
+		 ("rubber -d --into %o %f"))
+	  (function)))
 
 (defcustom org-export-pdf-logfiles
   '("aux" "idx" "log" "out" "toc" "nav" "snm" "vrb")
@@ -832,9 +922,10 @@ when PUB-DIR is set, use this as the publishing directory."
 		     (save-excursion
 		       (goto-char (point-min))
 		       (re-search-forward "\\\\bibliography{" nil t))))
-	 cmd)
+	 cmd output-dir errors)
     (with-current-buffer outbuf (erase-buffer))
-    (message "Processing LaTeX file...")
+    (message (concat "Processing LaTeX file " file "..."))
+    (setq output-dir (file-name-directory file))
     (if (and cmds (symbolp cmds))
 	(funcall cmds (shell-quote-argument file))
       (while cmds
@@ -844,22 +935,51 @@ when PUB-DIR is set, use this as the publishing directory."
 		     (save-match-data
 		       (shell-quote-argument base))
 		     t t cmd)))
-	(while (string-match "%s" cmd)
+	(while (string-match "%f" cmd)
 	  (setq cmd (replace-match
 		     (save-match-data
 		       (shell-quote-argument file))
 		     t t cmd)))
-	(shell-command cmd outbuf outbuf)))
-    (message "Processing LaTeX file...done")
+	(while (string-match "%o" cmd)
+	  (setq cmd (replace-match
+		     (save-match-data
+		       (shell-quote-argument output-dir))
+		     t t cmd)))
+	(shell-command cmd outbuf)))
+    (message (concat "Processing LaTeX file " file "...done"))
+    (setq errors (org-export-latex-get-error outbuf))
     (if (not (file-exists-p pdffile))
-	(error "PDF file was not produced")
+	(error (concat "PDF file " pdffile " was not produced"
+		       (if errors (concat ":" errors "") "")))
       (set-window-configuration wconfig)
       (when org-export-pdf-remove-logfiles
 	(dolist (ext org-export-pdf-logfiles)
 	  (setq file (concat base "." ext))
 	  (and (file-exists-p file) (delete-file file))))
-      (message "Exporting to PDF...done")
+      (message (concat
+		"Exporting to PDF...done"
+		(if errors
+		    (concat ", with some errors:" errors)
+		  "")))
       pdffile)))
+
+(defun org-export-latex-get-error (buf)
+  "Collect the kinds of errors that remain in pdflatex processing."
+  (with-current-buffer buf
+    (save-excursion
+      (goto-char (point-max))
+      (when (re-search-backward "^[ \t]*This is pdf.*?TeX.*?Version" nil t)
+	;; OK, we are at the location of the final run
+	(let ((pos (point)) (errors "") (case-fold-search t))
+	  (if (re-search-forward "Reference.*?undefined" nil t)
+	      (setq errors (concat errors " [undefined reference]")))
+	  (goto-char pos)
+	  (if (re-search-forward "Citation.*?undefined" nil t)
+	      (setq errors (concat errors " [undefined citation]")))
+	  (goto-char pos)
+	  (if (re-search-forward "Undefined control sequence" nil t)
+	      (setq errors (concat errors " [undefined control sequence]")))
+	  (and (org-string-nw-p errors) errors))))))
 
 ;;;###autoload
 (defun org-export-as-pdf-and-open (arg)
@@ -1158,7 +1278,7 @@ OPT-PLIST is the options plist for current buffer."
        (plist-get opt-plist :latex-header-extra)))
      ;; append another special variable
      (org-export-apply-macros-in-string org-export-latex-append-header)
-     ;; define align if not yet defined
+     ;; define alert if not yet defined
      "\n\\providecommand{\\alert}[1]{\\textbf{#1}}"
      ;; insert the title
      (format
@@ -1227,9 +1347,13 @@ If END is non-nil, it is the end of the region."
 				'(:org-license-to-kill t))
 	   (save-excursion
 	     (goto-char pt)
-	     (while (re-search-forward "^[ \t]*#+.*\n?" limit t)
-	       (remove-text-properties (match-beginning 0) (match-end 0)
-				'(:org-license-to-kill t))))))))))
+	     (while (re-search-forward "^[ \t]*#\\+.*\n?" limit t)
+	       (let ((case-fold-search t))
+		 (unless (org-string-match-p
+			  "^[ \t]*#\\+\\(attr_\\|caption\\>\\|label\\>\\)"
+			  (match-string 0))
+		   (remove-text-properties (match-beginning 0) (match-end 0)
+					   '(:org-license-to-kill t))))))))))))
 	       
 
 (defvar org-export-latex-header-defs nil
@@ -1310,13 +1434,13 @@ links, keywords, lists, tables, fixed-width"
 	  (replace-match "")
 	(replace-match (format "\\textbf{%s}" (match-string 0)) t t)))
     ;; convert tags
-    (when (re-search-forward "\\(:[a-zA-Z0-9_@]+\\)+:" nil t)
+    (when (re-search-forward "\\(:[a-zA-Z0-9_@#%]+\\)+:" nil t)
       (if (or (not org-export-with-tags)
 	      (plist-get remove-list :tags))
 	  (replace-match "")
 	(replace-match
 	 (org-export-latex-protect-string
-	  (format "\\textbf{%s}"
+	  (format org-export-latex-tag-markup
 		  (save-match-data
 		    (replace-regexp-in-string
 		     "_" "\\\\_" (match-string 0)))))
@@ -1589,7 +1713,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
              (org-table-last-column-widths (copy-sequence
                                             org-table-last-column-widths))
              fnum fields line lines olines gr colgropen line-fmt align
-             caption shortn label attr floatp longtblp)
+             caption shortn label attr floatp placement longtblp)
         (if org-export-latex-tables-verbatim
             (let* ((tbl (concat "\\begin{verbatim}\n" raw-table
                                 "\\end{verbatim}\n")))
@@ -1609,7 +1733,12 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
                   align (and attr (stringp attr)
                              (string-match "\\<align=\\([^ \t\n\r]+\\)" attr)
                              (match-string 1 attr))
-                  floatp (or caption label))
+                  floatp (or caption label)
+		  placement     (if (and attr 
+					 (stringp attr)
+					 (string-match "[ \t]*\\<placement=\\(\\S-+\\)" attr))
+				    (match-string 1 attr)
+				  "[htb]"))
 	    (setq caption (and caption (org-export-latex-fontify-headline caption)))
             (setq lines (org-split-string raw-table "\n"))
             (apply 'delete-region (list beg end))
@@ -1664,12 +1793,13 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
                        (concat
                         (if longtblp
                             (concat "\\begin{longtable}{" align "}\n")
-                          (if floatp "\\begin{table}[htb]\n"))
+                          (if floatp (format "\\begin{table}%s\n" placement)))
                         (if floatp
                             (format
-                             "\\caption%s{%s}"
+                             "\\caption%s{%s} %s"
                              (if shortn (concat "[" shortn "]") "")
-                             (or caption "")))
+                             (or caption "")
+			     (if label (format "\\label{%s}" label) "")))
                         (if (and longtblp caption) "\\\\\n" "\n")
                         (if (and org-export-latex-tables-centered (not longtblp))
                             "\\begin{center}\n")
@@ -1741,7 +1871,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
       (setq tbl (concat "\\begin{center}\n" tbl "\\end{center}")))
     (when floatp
       (setq tbl (concat "\\begin{table}\n"
-			(format "\\caption%s{%s%s}\n"
+			(format "\\caption%s{%s}%s\n"
 				(if shortn (format "[%s]" shortn) "")
 				(if label (format "\\label{%s}" label) "")
 				(or caption ""))
@@ -2213,11 +2343,11 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
   "Convert plain text lists in current buffer into LaTeX lists."
   (let (res)
     (goto-char (point-min))
-    (while (org-re-search-forward-unprotected org-list-beginning-re nil t)
+    (while (org-search-forward-unenclosed org-item-beginning-re nil t)
       (beginning-of-line)
       (setq res (org-list-to-latex (org-list-parse-list t)
 				   org-export-latex-list-parameters))
-      (while (string-match "^\\(\\\\item[ \t]+\\)\\[@start:\\([0-9]+\\)\\]"
+      (while (string-match "^\\(\\\\item[ \t]+\\)\\[@\\(?:start:\\)?\\([0-9]+\\)\\]"
 			   res)
 	(setq res (replace-match
 		   (concat (format "\\setcounter{enumi}{%d}"

@@ -1,7 +1,7 @@
 ;;; calc-yank.el --- kill-ring functionality for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -282,11 +282,8 @@ With prefix arg, also delete the region."
 	    (setq single t)
 	  (setq arg (prefix-numeric-value arg))
 	  (if (= arg 0)
-	      (save-excursion
-		(beginning-of-line)
-		(setq top (point))
-		(end-of-line)
-		(setq bot (point)))
+	      (setq top (point-at-bol)
+		    bot (point-at-eol))
 	    (save-excursion
 	      (setq top (point))
 	      (forward-line arg)
@@ -713,5 +710,4 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 ;; generated-autoload-file: "calc-loaddefs.el"
 ;; End:
 
-;; arch-tag: ca61019e-caca-4daa-b32c-b6afe372d5b5
 ;;; calc-yank.el ends here

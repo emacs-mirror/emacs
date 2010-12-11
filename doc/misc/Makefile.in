@@ -37,12 +37,12 @@ VPATH=@srcdir@
 ## Note that the setfilename command in the .texi files assumes this.
 infodir=../../info
 ## Directory with emacsver.texi.
-## Currently only used by efaq; could be added to MAKEINFO.
+## Currently only used by efaq and calc.
 emacsdir = $(srcdir)/../emacs
 
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
-MAKEINFO = makeinfo --force
+MAKEINFO = makeinfo --force -I$(emacsdir)
 
 # Also add new entries to INFO_FILES in the top-level Makefile.in.
 INFO_TARGETS = \
@@ -198,7 +198,7 @@ PDF_TARGETS = \
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 
-ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
+ENVADD = TEXINPUTS="$(srcdir):$(emacsdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
 
 mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
@@ -244,12 +244,12 @@ autotype.pdf: ${srcdir}/autotype.texi
 	$(ENVADD) $(TEXI2PDF) $<
 
 calc : $(infodir)/calc
-$(infodir)/calc: calc.texi
+$(infodir)/calc: calc.texi $(emacsdir)/emacsver.texi
 	$(mkinfodir)
 	cd $(srcdir); $(MAKEINFO) $<
-calc.dvi: ${srcdir}/calc.texi
+calc.dvi: ${srcdir}/calc.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) $<
-calc.pdf: ${srcdir}/calc.texi
+calc.pdf: ${srcdir}/calc.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2PDF) $<
 
 ccmode : $(infodir)/ccmode
@@ -381,7 +381,7 @@ eudc.pdf: ${srcdir}/eudc.texi
 efaq : $(infodir)/efaq
 $(infodir)/efaq: faq.texi $(emacsdir)/emacsver.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) -I $(emacsdir) $<
+	cd $(srcdir); $(MAKEINFO) $<
 faq.dvi: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) $<
 faq.pdf: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi

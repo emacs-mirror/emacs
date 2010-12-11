@@ -1466,12 +1466,9 @@ Please send all bug fixes and enhancements to
 (require 'lpr)
 
 
-(or (featurep 'lisp-float-type)
-    (error "`ps-print' requires floating point support"))
-
-
 (if (featurep 'xemacs)
-    ()
+    (or (featurep 'lisp-float-type)
+	(error "`ps-print' requires floating point support"))
   (unless (and (boundp 'emacs-major-version)
 	       (>= emacs-major-version 23))
     (error "`ps-print' only supports Emacs 23 and higher")))
@@ -6726,5 +6723,4 @@ Finish printing job for multi-byte chars.
 
 (provide 'ps-print)
 
-;; arch-tag: fb06a585-1112-4206-885d-a57d95d50579
 ;;; ps-print.el ends here

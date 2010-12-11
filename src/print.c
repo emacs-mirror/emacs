@@ -163,7 +163,7 @@ Lisp_Object Vprint_number_table;
 void print_interval (INTERVAL interval, Lisp_Object printcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
-int print_output_debug_flag = 1;
+int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 
 
 /* Low level output routines for characters and strings */

@@ -23,7 +23,7 @@ Carbon version by Yamamoto Mitsuharu. */
 
 /* This should be the first include, as it may set up #defines affecting
    interpretation of even the system includes. */
-#include "config.h"
+#include <config.h>
 #include <setjmp.h>
 
 #include "lisp.h"
@@ -1049,10 +1049,15 @@ update_frame_tool_bar (FRAME_PTR f)
         {
           idx = -1;
         }
+      helpObj = TOOLPROP (TOOL_BAR_ITEM_HELP);
+      if (NILP (helpObj))
+        helpObj = TOOLPROP (TOOL_BAR_ITEM_CAPTION);
+      helpText = NILP (helpObj) ? "" : (char *)SDATA (helpObj);
+
       /* Ignore invalid image specifications.  */
       if (!valid_image_p (image))
         {
-          NSLog (@"Invalid image for toolbar item");
+          /* Don't log anything, GNUS makes invalid images all the time.  */
           continue;
         }
 
@@ -1065,11 +1070,6 @@ update_frame_tool_bar (FRAME_PTR f)
           NSLog (@"Could not prepare toolbar image for display.");
           continue;
         }
-
-      helpObj = TOOLPROP (TOOL_BAR_ITEM_HELP);
-      if (NILP (helpObj))
-        helpObj = TOOLPROP (TOOL_BAR_ITEM_CAPTION);
-      helpText = NILP (helpObj) ? "" : (char *)SDATA (helpObj);
 
       [toolbar addDisplayItemWithImage: img->pixmap idx: i helpText: helpText
                                enabled: enabled_p];

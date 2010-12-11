@@ -176,8 +176,26 @@
   "Electric behavior for self inserting keys."
   :group 'editing)
 
+(defun electric--after-char-pos ()
+  "Return the position after the char we just inserted.
+Returns nil when we can't find this char."
+  (let ((pos (point)))
+    (when (or (eq (char-before) last-command-event) ;; Sanity check.
+              (save-excursion
+                (or (progn (skip-chars-backward " \t")
+                           (setq pos (point))
+                           (eq (char-before) last-command-event))
+                    (progn (skip-chars-backward " \n\t")
+                           (setq pos (point))
+                           (eq (char-before) last-command-event)))))
+      pos)))
+
 ;; Electric indentation.
 
+;; Autoloading variables is generally undesirable, but major modes
+;; should usually set this variable by adding elements to the default
+;; value, which only works well if the variable is preloaded.
+;;;###autoload
 (defvar electric-indent-chars '(?\n)
   "Characters that should cause automatic reindentation.")
 
@@ -189,35 +207,35 @@
   ;; electric-pair-mode wrapping a region with a pair of parens.
   ;; There might be a way to get it working by analyzing buffer-undo-list, but
   ;; it looks challenging.
-  (when (and (memq last-command-event electric-indent-chars)
-             ;; Don't reindent while inserting spaces at beginning of line.
-             (or (not (memq last-command-event '(?\s ?\t)))
-                 (save-excursion (skip-chars-backward " \t") (not (bolp))))
-             ;; Not in a string or comment.
-             (not (nth 8 (syntax-ppss))))
-    ;; For newline, we want to reindent both lines and basically behave like
-    ;; reindent-then-newline-and-indent (whose code we hence copied).
-    (when (and (eq last-command-event ?\n)
-               ;; Don't reindent the previous line if the indentation function
-               ;; is not a real one.
-               (not (memq indent-line-function
-                          '(indent-relative indent-relative-maybe)))
-               ;; Sanity check.
-               (eq (char-before) last-command-event))
-      (let ((pos (copy-marker (1- (point)) t)))
-        (save-excursion
-          (goto-char pos)
-          (indent-according-to-mode)
-          ;; We are at EOL before the call to indent-according-to-mode, and
-          ;; after it we usually are as well, but not always.  We tried to
-          ;; address it with `save-excursion' but that uses a normal marker
-          ;; whereas we need `move after insertion', so we do the
-          ;; save/restore by hand.
-          (goto-char pos)
-          ;; Remove the trailing whitespace after indentation because
-          ;; indentation may (re)introduce the whitespace.
-          (delete-horizontal-space t))))
-    (indent-according-to-mode)))
+  (let (pos)
+    (when (and (memq last-command-event electric-indent-chars)
+               ;; Don't reindent while inserting spaces at beginning of line.
+               (or (not (memq last-command-event '(?\s ?\t)))
+                   (save-excursion (skip-chars-backward " \t") (not (bolp))))
+               (setq pos (electric--after-char-pos))
+               ;; Not in a string or comment.
+               (not (nth 8 (save-excursion (syntax-ppss pos)))))
+      ;; For newline, we want to reindent both lines and basically behave like
+      ;; reindent-then-newline-and-indent (whose code we hence copied).
+      (when (< (1- pos) (line-beginning-position))
+        (let ((before (copy-marker (1- pos) t)))
+          (save-excursion
+            (unless (memq indent-line-function
+                          '(indent-relative indent-relative-maybe))
+              ;; Don't reindent the previous line if the indentation function
+              ;; is not a real one.
+              (goto-char before)
+              (indent-according-to-mode))
+            ;; We are at EOL before the call to indent-according-to-mode, and
+            ;; after it we usually are as well, but not always.  We tried to
+            ;; address it with `save-excursion' but that uses a normal marker
+            ;; whereas we need `move after insertion', so we do the
+            ;; save/restore by hand.
+            (goto-char before)
+            ;; Remove the trailing whitespace after indentation because
+            ;; indentation may (re)introduce the whitespace.
+            (delete-horizontal-space t))))
+      (indent-according-to-mode))))
 
 ;;;###autoload
 (define-minor-mode electric-indent-mode
@@ -229,9 +247,24 @@
       (add-hook 'post-self-insert-hook
                 #'electric-indent-post-self-insert-function)
     (remove-hook 'post-self-insert-hook
-                 #'electric-indent-post-self-insert-function)))
+                 #'electric-indent-post-self-insert-function))
+  ;; FIXME: electric-indent-mode and electric-layout-mode interact
+  ;; in non-trivial ways.  It turns out that electric-indent-mode works
+  ;; better if it is run *after* electric-layout-mode's hook.
+  (when (memq #'electric-layout-post-self-insert-function
+              (memq #'electric-indent-post-self-insert-function
+                    (default-value 'post-self-insert-hook)))
+    (remove-hook 'post-self-insert-hook
+                 #'electric-layout-post-self-insert-function)
+    (add-hook 'post-self-insert-hook
+              #'electric-layout-post-self-insert-function)))
 
 ;; Electric pairing.
+
+(defcustom electric-pair-pairs
+  '((?\" . ?\"))
+  "Alist of pairs that should be used regardless of major mode."
+  :type '(repeat (cons character character)))
 
 (defcustom electric-pair-skip-self t
   "If non-nil, skip char instead of inserting a second closing paren.
@@ -243,13 +276,18 @@ This can be convenient for people who find it easier to hit ) than C-f."
 
 (defun electric-pair-post-self-insert-function ()
   (let* ((syntax (and (eq (char-before) last-command-event) ; Sanity check.
-                      (char-syntax last-command-event)))
+                      (let ((x (assq last-command-event electric-pair-pairs)))
+                        (cond
+                         (x (if (eq (car x) (cdr x)) ?\" ?\())
+                         ((rassq last-command-event electric-pair-pairs) ?\))
+                         (t (char-syntax last-command-event))))))
          ;; FIXME: when inserting the closer, we should maybe use
          ;; self-insert-command, although it may prove tricky running
          ;; post-self-insert-hook recursively, and we wouldn't want to trigger
          ;; blink-matching-open.
          (closer (if (eq syntax ?\()
-                     (cdr (aref (syntax-table) last-command-event))
+                     (cdr (or (assq last-command-event electric-pair-pairs)
+                              (aref (syntax-table) last-command-event)))
                    last-command-event)))
     (cond
      ;; Wrap a pair around the active region.
@@ -298,7 +336,51 @@ This can be convenient for people who find it easier to hit ) than C-f."
                 #'electric-pair-post-self-insert-function)
     (remove-hook 'post-self-insert-hook
                  #'electric-pair-post-self-insert-function)))
-        
+
+;; Automatically add newlines after/before/around some chars.
+
+(defvar electric-layout-rules '()
+  "List of rules saying where to automatically insert newlines.
+Each rule has the form (CHAR . WHERE) where CHAR is the char
+that was just inserted and WHERE specifies where to insert newlines
+and can be: nil, `before', `after', `around', or a function that returns
+one of those symbols.")
+
+(defun electric-layout-post-self-insert-function ()
+  (let* ((rule (cdr (assq last-command-event electric-layout-rules)))
+         pos)
+    (when (and rule
+               (setq pos (electric--after-char-pos))
+               ;; Not in a string or comment.
+               (not (nth 8 (save-excursion (syntax-ppss pos)))))
+      (let ((end (copy-marker (point) t)))
+        (goto-char pos)
+        (case (if (functionp rule) (funcall rule) rule)
+          ;; FIXME: we used `newline' down here which called
+          ;; self-insert-command and ran post-self-insert-hook recursively.
+          ;; It happened to make electric-indent-mode work automatically with
+          ;; electric-layout-mode (at the cost of re-indenting lines
+          ;; multiple times), but I'm not sure it's what we want.
+          (before (goto-char (1- pos)) (skip-chars-backward " \t")
+                  (unless (bolp) (insert "\n")))
+          (after  (insert "\n"))       ; FIXME: check eolp before inserting \n?
+          (around (save-excursion
+                    (goto-char (1- pos)) (skip-chars-backward " \t")
+                    (unless (bolp) (insert "\n")))
+                  (insert "\n")))      ; FIXME: check eolp before inserting \n?
+        (goto-char end)))))
+
+;;;###autoload
+(define-minor-mode electric-layout-mode
+  "Automatically insert newlines around some chars."
+  :global t
+  :group 'electricity
+  (if electric-layout-mode
+      (add-hook 'post-self-insert-hook
+                #'electric-layout-post-self-insert-function)
+    (remove-hook 'post-self-insert-hook
+                 #'electric-layout-post-self-insert-function)))
+
 (provide 'electric)
 
 ;; arch-tag: dae045eb-dc2d-4fb7-9f27-9cc2ce277be8

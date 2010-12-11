@@ -199,25 +199,6 @@
   (ignore-errors
     (tramp-compat-funcall 'font-lock-add-keywords mode keywords how)))
 
-(defsubst tramp-compat-line-beginning-position ()
-  "Return point at beginning of line (compat function).
-Calls `line-beginning-position' or `point-at-bol' if defined, else
-own implementation."
-  (cond
-   ((fboundp 'line-beginning-position)
-    (tramp-compat-funcall 'line-beginning-position))
-   ((fboundp 'point-at-bol) (tramp-compat-funcall 'point-at-bol))
-   (t (save-excursion (beginning-of-line) (point)))))
-
-(defsubst tramp-compat-line-end-position ()
-  "Return point at end of line (compat function).
-Calls `line-end-position' or `point-at-eol' if defined, else
-own implementation."
-  (cond
-   ((fboundp 'line-end-position) (tramp-compat-funcall 'line-end-position))
-   ((fboundp 'point-at-eol) (tramp-compat-funcall 'point-at-eol))
-   (t (save-excursion (end-of-line) (point)))))
-
 (defsubst tramp-compat-temporary-file-directory ()
   "Return name of directory for temporary files (compat function).
 For Emacs, this is the variable `temporary-file-directory', for XEmacs
@@ -529,5 +510,4 @@ EOL-TYPE can be one of `dos', `unix', or `mac'."
 
 ;;; TODO:
 
-;; arch-tag: 0e724b18-6699-4f87-ad96-640b272e5c85
 ;;; tramp-compat.el ends here

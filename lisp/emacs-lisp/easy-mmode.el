@@ -119,7 +119,8 @@ BODY contains code to execute each time the mode is enabled or disabled.
 		of the variable MODE to store the state of the mode.  PLACE
 		can also be of the form (GET . SET) where GET is an expression
 		that returns the current state and SET is a function that takes
-		a new state and sets it.
+		a new state and sets it.  If you specify a :variable, this
+		function assumes it is defined elsewhere.
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
@@ -196,6 +197,7 @@ For example, you could write
 	    `(:group ',(intern (replace-regexp-in-string
 				"-mode\\'" "" mode-name)))))
 
+    ;; TODO? Mark booleans as safe if booleanp?  Eg abbrev-mode.
     (unless type (setq type '(:type 'boolean)))
 
     `(progn
@@ -583,5 +585,4 @@ BODY is executed after moving to the destination location."
 
 (provide 'easy-mmode)
 
-;; arch-tag: d48a5250-6961-4528-9cb0-3c9ea042a66a
 ;;; easy-mmode.el ends here

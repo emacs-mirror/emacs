@@ -110,7 +110,8 @@
     (,(rx symbol-start (group "def") (1+ space) (group (1+ (or word ?_))))
      (1 font-lock-keyword-face) (2 font-lock-function-name-face))
     ;; Top-level assignments are worth highlighting.
-    (,(rx line-start (group (1+ (or word ?_))) (0+ space) "=")
+    (,(rx line-start (group (1+ (or word ?_))) (0+ space)
+	  (opt (or "+" "-" "*" "**" "/" "//" "&" "%" "|" "^" "<<" ">>")) "=")
      (1 font-lock-variable-name-face))
     ;; Decorators.
     (,(rx line-start (* (any " \t")) (group "@" (1+ (or word ?_))
@@ -171,21 +172,9 @@
   ;; string delimiters.  Fixme: Is there a better way?
   ;; First avoid a sequence preceded by an odd number of backslashes.
   (syntax-propertize-rules
-   (;; (rx (not (any ?\\))
-    ;;     ?\\ (* (and ?\\ ?\\))
-    ;;     (group (syntax string-quote))
-    ;;     (backref 1)
-    ;;     (group (backref 1)))
-    ;; ¡Backrefs don't work in syntax-propertize-rules!
-    "[^\\]\\\\\\(\\\\\\\\\\)*\\(?:''\\('\\)\\|\"\"\\(?2:\"\\)\\)"
-    (2 "\""))                           ; dummy
-   (;; (rx (optional (group (any "uUrR"))) ; prefix gets syntax property
-    ;;     (optional (any "rR"))           ; possible second prefix
-    ;;     (group (syntax string-quote))   ; maybe gets property
-    ;;     (backref 2)                     ; per first quote
-    ;;     (group (backref 2)))            ; maybe gets property
-    ;; ¡Backrefs don't work in syntax-propertize-rules!
-    "\\([RUru]\\)?[Rr]?\\(?:\\('\\)'\\('\\)\\|\\(?2:\"\\)\"\\(?3:\"\\)\\)"
+   (;; ¡Backrefs don't work in syntax-propertize-rules!
+    (concat "\\(?:\\([RUru]\\)[Rr]?\\|^\\|[^\\]\\(?:\\\\.\\)*\\)" ;Prefix.
+              "\\(?:\\('\\)'\\('\\)\\|\\(?2:\"\\)\"\\(?3:\"\\)\\)")
     (3 (ignore (python-quote-syntax))))
    ;; This doesn't really help.
    ;;((rx (and ?\\ (group ?\n))) (1 " "))
@@ -1328,7 +1317,7 @@ See `python-check-command' for the default."
 				  (let ((name (buffer-file-name)))
 				    (if name
 					(file-name-nondirectory name))))))))
-  (setq python-saved-check-command command)
+  (set (make-local-variable 'python-saved-check-command) command)
   (require 'compile)                    ;To define compilation-* variables.
   (save-some-buffers (not compilation-ask-about-save) nil)
   (let ((compilation-error-regexp-alist
@@ -1473,6 +1462,16 @@ Default ignores all inputs of 0, 1, or 2 non-blank characters."
   :type 'regexp
   :group 'python)
 
+(defcustom python-remove-cwd-from-path t
+  "Whether to allow loading of Python modules from the current directory.
+If this is non-nil, Emacs removes '' from sys.path when starting
+an inferior Python process.  This is the default, for security
+reasons, as it is easy for the Python process to be started
+without the user's realization (e.g. to perform completion)."
+  :type 'boolean
+  :group 'python
+  :version "23.3")
+
 (defun python-input-filter (str)
   "`comint-input-filter' function for inferior Python.
 Don't save anything for STR matching `inferior-python-filter-regexp'."
@@ -1570,20 +1569,24 @@ print version_info >= (2, 2) and version_info < (3, 0)\""))))
 ;;;###autoload
 (defun run-python (&optional cmd noshow new)
   "Run an inferior Python process, input and output via buffer *Python*.
-CMD is the Python command to run.  NOSHOW non-nil means don't show the
-buffer automatically.
+CMD is the Python command to run.  NOSHOW non-nil means don't
+show the buffer automatically.
 
-Normally, if there is a process already running in `python-buffer',
-switch to that buffer.  Interactively, a prefix arg allows you to edit
-the initial command line (default is `python-command'); `-i' etc. args
-will be added to this as appropriate.  A new process is started if:
-one isn't running attached to `python-buffer', or interactively the
-default `python-command', or argument NEW is non-nil.  See also the
-documentation for `python-buffer'.
+Interactively, a prefix arg means to prompt for the initial
+Python command line (default is `python-command').
 
-Runs the hook `inferior-python-mode-hook' \(after the
-`comint-mode-hook' is run).  \(Type \\[describe-mode] in the process
-buffer for a list of commands.)"
+A new process is started if one isn't running attached to
+`python-buffer', or if called from Lisp with non-nil arg NEW.
+Otherwise, if a process is already running in `python-buffer',
+switch to that buffer.
+
+This command runs the hook `inferior-python-mode-hook' after
+running `comint-mode-hook'.  Type \\[describe-mode] in the
+process buffer for a list of commands.
+
+By default, Emacs inhibits the loading of Python modules from the
+current working directory, for security reasons.  To disable this
+behavior, change `python-remove-cwd-from-path' to nil."
   (interactive (if current-prefix-arg
 		   (list (read-string "Run Python: " python-command) nil t)
 		 (list python-command)))
@@ -1597,8 +1600,9 @@ buffer for a list of commands.)"
   (when (or new (not (comint-check-proc python-buffer)))
     (with-current-buffer
 	(let* ((cmdlist
-		(append (python-args-to-list cmd)
-			'("-i" "-c" "import sys; sys.path.remove('')")))
+		(append (python-args-to-list cmd) '("-i")
+			(if python-remove-cwd-from-path
+			    '("-c" "import sys; sys.path.remove('')"))))
 	       (path (getenv "PYTHONPATH"))
 	       (process-environment	; to import emacs.py
 		(cons (concat "PYTHONPATH="
@@ -2518,7 +2522,6 @@ with skeleton expansions for compound statement templates.
   (set (make-local-variable 'outline-heading-end-regexp) ":\\s-*\n")
   (set (make-local-variable 'outline-level) #'python-outline-level)
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
-  (make-local-variable 'python-saved-check-command)
   (set (make-local-variable 'beginning-of-defun-function)
        'python-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function) 'python-end-of-defun)
@@ -2605,7 +2608,7 @@ This function is appropriate for `comint-output-filter-functions'."
               overlay-arrow-string "=>"
               python-pdbtrack-is-tracking-p t)
         (set-marker overlay-arrow-position
-                    (save-excursion (beginning-of-line) (point))
+                    (line-beginning-position)
                     (current-buffer)))
     (setq overlay-arrow-position nil
           python-pdbtrack-is-tracking-p nil)))
@@ -2814,7 +2817,7 @@ command is used to switch to an existing process, only when a new
 process is started.  If you use this, you will probably want to ensure
 that the current arguments are retained (they will be included in the
 prompt).  This argument is ignored when this function is called
-programmatically, or when running in Emacs 19.34 or older.
+programmatically.
 
 Note: You can toggle between using the CPython interpreter and the
 JPython interpreter by hitting \\[python-toggle-shells].  This toggles
@@ -2891,5 +2894,4 @@ filter."
 (provide 'python)
 (provide 'python-21)
 
-;; arch-tag: 6fce1d99-a704-4de9-ba19-c6e4912b0554
 ;;; python.el ends here

@@ -1061,9 +1061,9 @@ all.  This may very well take some time.")
 		   (file-directory-p dir))
 	  (nndiary-generate-nov-databases-1 dir seen))))
     ;; Do this directory.
-    (let ((files (sort (nnheader-article-to-file-alist dir)
+    (let ((nndiary-files (sort (nnheader-article-to-file-alist dir)
 		       'car-less-than-car)))
-      (if (not files)
+      (if (not nndiary-files)
 	  (let* ((group (nnheader-file-to-group
 			 (directory-file-name dir) nndiary-directory))
 		 (info (cadr (assoc group nndiary-group-alist))))
@@ -1071,11 +1071,11 @@ all.  This may very well take some time.")
 	      (setcar info (1+ (cdr info)))))
 	(funcall nndiary-generate-active-function dir)
 	;; Generate the nov file.
-	(nndiary-generate-nov-file dir files)
+	(nndiary-generate-nov-file dir nndiary-files)
 	(unless no-active
 	  (nnmail-save-active nndiary-group-alist nndiary-active-file))))))
 
-(defvar files)
+(defvar nndiary-files) ; dynamically bound in nndiary-generate-nov-databases-1
 (defun nndiary-generate-active-info (dir)
   ;; Update the active info for this group.
   (let* ((group (nnheader-file-to-group
@@ -1084,9 +1084,9 @@ all.  This may very well take some time.")
 	 (last (or (caadr entry) 0)))
     (setq nndiary-group-alist (delq entry nndiary-group-alist))
     (push (list group
-		(cons (or (caar files) (1+ last))
+		(cons (or (caar nndiary-files) (1+ last))
 		      (max last
-			   (or (caar (last files))
+			   (or (caar (last nndiary-files))
 			       0))))
 	  nndiary-group-alist)))
 

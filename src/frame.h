@@ -544,6 +544,20 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WINDOW_P(f) (0)
 #endif
 
+/* Return a pointer to the structure holding information about the
+   region of text, if any, that is currently shown in mouse-face on
+   frame F.  We need to define two versions because a TTY-only build
+   does not have FRAME_X_DISPLAY_INFO.  */
+#ifdef HAVE_WINDOW_SYSTEM
+# define MOUSE_HL_INFO(F)					\
+   (FRAME_WINDOW_P(F)						\
+    ? &(FRAME_X_DISPLAY_INFO(F)->mouse_highlight)		\
+    : &(((F)->output_data.tty->display_info)->mouse_highlight))
+#else
+# define MOUSE_HL_INFO(F)					\
+    (&(((F)->output_data.tty->display_info)->mouse_highlight))
+#endif
+
 /* Nonzero if frame F is still alive (not deleted).  */
 #define FRAME_LIVE_P(f) ((f)->terminal != 0)
 

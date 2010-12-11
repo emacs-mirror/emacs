@@ -87,6 +87,7 @@
   (require 'cl))
 
 (require 'easymenu)
+(require 'cc-mode)
 
 ;; Just to get the rid of the byte compiler warning.  The code for
 ;; this function and its friends are too complex for their own good.
@@ -1004,12 +1005,21 @@ The SYNTAX-ALIST element is also used to initialize
 (defvar antlr-mode-hook nil
   "Hook called by `antlr-mode'.")
 
-(defvar antlr-mode-syntax-table nil
+(defvar antlr-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (c-populate-syntax-table st)
+    st)
   "Syntax table used in `antlr-mode' buffers.
 If non-nil, it will be initialized in `antlr-mode'.")
 
 ;; used for "in Java/C++ code" = syntactic-depth>0
-(defvar antlr-action-syntax-table nil
+(defvar antlr-action-syntax-table
+  (let ((st (copy-syntax-table antlr-mode-syntax-table))
+        (slist (nth 3 antlr-font-lock-defaults)))
+    (while slist
+      (modify-syntax-entry (caar slist) (cdar slist) st)
+      (setq slist (cdr slist)))
+    st)
   "Syntax table used for ANTLR action parsing.
 Initialized by `antlr-mode-syntax-table', changed by SYNTAX-ALIST in
 `antlr-font-lock-defaults'.  This table should be selected if you use
@@ -2189,7 +2199,7 @@ export vocabulary specified in that file."
 		  (insert-file-contents file t nil nil t)
 		  (normal-mode t)	; necessary for major-mode, syntax
 					; table and `antlr-language'
-		  (when (eq major-mode 'antlr-mode)
+		  (when (derived-mode-p 'antlr-mode)
 		    (let* ((file-deps (antlr-file-dependencies))
 			   (file (car file-deps)))
 		      (when file-deps
@@ -2373,7 +2383,7 @@ are used according to variable `antlr-unknown-file-formats' and a
 commentary with value `antlr-help-unknown-file-text' is added.  The
 *Help* buffer always starts with the text in `antlr-help-rules-intro'."
   (interactive)
-  (if (null (eq major-mode 'makefile-mode))
+  (if (null (derived-mode-p 'makefile-mode))
       (antlr-with-displaying-help-buffer 'antlr-insert-makefile-rules)
     (push-mark)
     (antlr-insert-makefile-rules t)))
@@ -2563,13 +2573,15 @@ ANTLR's syntax and influences the auto indentation, see
   "Find language in `antlr-language-alist' for language option.
 If SEARCH is non-nil, find element for language option.  Otherwise, find
 the default language."
-  (let ((value (and search
-		    (save-excursion
-		      (goto-char (point-min))
-		      (re-search-forward (cdr antlr-language-limit-n-regexp)
-					 (car antlr-language-limit-n-regexp)
-					 t))
-		    (match-string 1)))
+  (let ((value
+         (and search
+              (save-excursion
+                (goto-char (point-min))
+                (re-search-forward (cdr antlr-language-limit-n-regexp)
+                                   (+ (point)
+                                      (car antlr-language-limit-n-regexp))
+                                   t))
+              (match-string 1)))
 	(seq antlr-language-alist)
 	r)
     ;; Like (find VALUE antlr-language-alist :key 'cddr :test 'member)
@@ -2581,35 +2593,20 @@ the default language."
     (car r)))
 
 ;;;###autoload
-(defun antlr-mode ()
-  "Major mode for editing ANTLR grammar files.
-\\{antlr-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
+(define-derived-mode antlr-mode prog-mode
+  ;; FIXME: Since it uses cc-mode, it bumps into c-update-modeline's
+  ;; limitation to mode-name being a string.
+  ;; '("Antlr." (:eval (cadr (assq antlr-language antlr-language-alist))))
+  "Antlr" 
+  "Major mode for editing ANTLR grammar files."
+  :abbrev-table antlr-mode-abbrev-table
   (c-initialize-cc-mode)		; cc-mode is required
   (unless (fboundp 'c-forward-sws)	; see above
     (fset 'antlr-c-forward-sws 'c-forward-syntactic-ws))
   ;; ANTLR specific ----------------------------------------------------------
-  (setq major-mode 'antlr-mode
-	mode-name "Antlr")
-  (setq local-abbrev-table antlr-mode-abbrev-table)
-  (unless antlr-mode-syntax-table
-    (setq antlr-mode-syntax-table (make-syntax-table))
-    (c-populate-syntax-table antlr-mode-syntax-table))
-  (set-syntax-table antlr-mode-syntax-table)
-  (unless antlr-action-syntax-table
-    (let ((slist (nth 3 antlr-font-lock-defaults)))
-      (setq antlr-action-syntax-table
-	    (copy-syntax-table antlr-mode-syntax-table))
-      (while slist
-	(modify-syntax-entry (caar slist) (cdar slist)
-			     antlr-action-syntax-table)
-	(setq slist (cdr slist)))))
-  (use-local-map antlr-mode-map)
-  (make-local-variable 'antlr-language)
   (unless antlr-language
-    (setq antlr-language
-	  (or (antlr-language-option t) (antlr-language-option nil))))
+    (set (make-local-variable 'antlr-language)
+         (or (antlr-language-option t) (antlr-language-option nil))))
   (if (stringp (cadr (assq antlr-language antlr-language-alist)))
       (setq mode-name
 	    (concat "Antlr."
@@ -2627,33 +2624,24 @@ the default language."
 	(t				; cc-mode upto 5.28
 	 (antlr-c-init-language-vars)))	; do it myself
   (c-basic-common-init antlr-language (or antlr-indent-style "gnu"))
-  (make-local-variable 'outline-regexp)
-  (make-local-variable 'outline-level)
-  (make-local-variable 'require-final-newline)
-  (make-local-variable 'indent-line-function)
-  (make-local-variable 'indent-region-function)
-  (setq outline-regexp "[^#\n\^M]"
-	outline-level 'c-outline-level)	; TODO: define own
-  (setq require-final-newline mode-require-final-newline)
-  (setq indent-line-function 'antlr-indent-line
-	indent-region-function nil)	; too lazy
+  (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
+  (set (make-local-variable 'outline-level) 'c-outline-level) ;TODO: define own
+  (set (make-local-variable 'indent-line-function) 'antlr-indent-line)
+  (set (make-local-variable 'indent-region-function) nil)	; too lazy
   (setq comment-start "// "
  	comment-end ""
 	comment-start-skip "/\\*+ *\\|// *")
   ;; various -----------------------------------------------------------------
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults antlr-font-lock-defaults)
+  (set (make-local-variable 'font-lock-defaults) antlr-font-lock-defaults)
   (easy-menu-add antlr-mode-menu)
-  (make-local-variable 'imenu-create-index-function)
-  (setq imenu-create-index-function 'antlr-imenu-create-index-function)
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression t)	; fool stupid test
+  (set (make-local-variable 'imenu-create-index-function)
+       'antlr-imenu-create-index-function)
+  (set (make-local-variable 'imenu-generic-expression) t) ; fool stupid test
   (and antlr-imenu-name			; there should be a global variable...
        (fboundp 'imenu-add-to-menubar)
        (imenu-add-to-menubar
 	(if (stringp antlr-imenu-name) antlr-imenu-name "Index")))
-  (antlr-set-tabs)
-  (run-mode-hooks 'antlr-mode-hook))
+  (antlr-set-tabs))
 
 ;; A smarter version of `group-buffers-menu-by-mode-then-alphabetically' (in
 ;; XEmacs) could use the following property.  The header of the submenu would

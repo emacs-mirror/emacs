@@ -1,3 +1,8 @@
+2010-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Rename the `count-words-region' example,
+	since there is now a standard command of that name.
+
 2010-10-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (.dvi.ps): Remove unnecessary suffix rule.

@@ -103,12 +103,19 @@ to them."
 		     (format "%s#%d" host port))
 		 host))
 	 (file (url-unhex-string (url-filename url)))
-	 (filename (if (or user (not (url-file-host-is-local-p host)))
-		       (concat "/" (or user "anonymous") "@" site ":" file)
-		     (if (and (memq system-type '(ms-dos windows-nt))
-			      (string-match "^/[a-zA-Z]:/" file))
-			 (substring file 1)
-		       file)))
+	 (filename (cond
+		    ;; ftp: URL.
+		    ((or user (not (url-file-host-is-local-p host)))
+		     (concat "/" (or user "anonymous") "@" site ":" file))
+		    ;; file: URL on Windows.
+		    ((and (string-match "\\`/[a-zA-Z]:/" file)
+			  (memq system-type '(ms-dos windows-nt)))
+		     (substring file 1))
+		    ;; file: URL with a file:/bar:/foo-like spec.
+		    ((string-match "\\`/[^/]+:/" file)
+		     (concat "/:" file))
+		    (t
+		     file)))
 	 pos-index)
 
     (and user pass

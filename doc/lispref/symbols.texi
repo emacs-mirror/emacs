@@ -383,7 +383,7 @@ See @code{documentation} in @ref{Accessing Documentation}, for another
 example using @code{mapatoms}.
 @end defun
 
-@defun unintern symbol &optional obarray
+@defun unintern symbol obarray
 This function deletes @var{symbol} from the obarray @var{obarray}.  If
 @code{symbol} is not actually in the obarray, @code{unintern} does
 nothing.  If @var{obarray} is @code{nil}, the current obarray is used.

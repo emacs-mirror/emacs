@@ -17,15 +17,21 @@ function res = tcomp (fn)
   cnty = repmat(x(:,1)(:), 10, 1);
 
   pop = x(:,1:10)(:);
-  bir = x(:,11:20)(:);
-  dth = x(:,21:30)(:);
-  imig = x(:,31:40)(:);
-  dmig = x(:,41:50)(:);
-  gq = x(:,51:60)(:);
-  
-  yrs = repmat(2000:2009, 39, 1)(:);
+    ## Here and below, we test if the indentation aligns with a previous
+    ## fixindented line.  This is important so as to make it easier for the
+    ## user to verride some indentation somewhere, and also because it
+    ## reflects the fact that the indentation decision is taken with a minimum
+    ## amount of work (i.e. in the present case, without having to walk back
+    ## until the `function' line).
+    bir = x(:,11:20)(:);        # fixindent
+    dth = x(:,21:30)(:);
+    imig = x(:,31:40)(:);
+    dmig = x(:,41:50)(:);
+    gq = x(:,51:60)(:);
 
-  res = [yrs, cnty, pop, bir, dth, imig, dmig, gq];
+    yrs = repmat(2000:2009, 39, 1)(:);
+
+    res = [yrs, cnty, pop, bir, dth, imig, dmig, gq];
 
 endfunction
 

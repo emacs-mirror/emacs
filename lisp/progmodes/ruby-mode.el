@@ -1,7 +1,7 @@
 ;;; ruby-mode.el --- Major mode for editing Ruby files
 
-;; Copyright (C) 1994, 1995, 1996 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1994, 1995, 1996 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Authors: Yukihiro Matsumoto
@@ -135,10 +135,8 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
 (defconst ruby-symbol-re (concat "[" ruby-symbol-chars "]")
   "Regexp to match symbols.")
 
-(defvar ruby-mode-abbrev-table nil
+(define-abbrev-table 'ruby-mode-abbrev-table ()
   "Abbrev table in use in Ruby mode buffers.")
-
-(define-abbrev-table 'ruby-mode-abbrev-table ())
 
 (defvar ruby-mode-map
   (let ((map (make-sparse-keymap)))
@@ -618,7 +616,7 @@ and `\\' when preceded by `?'."
           (setq re (regexp-quote (or (match-string 4) (match-string 2))))
           (if (match-beginning 1) (setq re (concat "\\s *" re)))
           (let* ((id-end (goto-char (match-end 0)))
-                 (line-end-position (save-excursion (end-of-line) (point)))
+                 (line-end-position (point-at-eol))
                  (state (list in-string nest depth pcol indent)))
             ;; parse the rest of the line
             (while (and (> line-end-position (point))
@@ -1110,6 +1108,8 @@ See `add-log-current-defun-function'."
               (if mlist (concat mlist mname) mname)
             mlist)))))
 
+(declare-function ruby-syntax-propertize-heredoc "ruby-mode" (limit))
+
 (if (eval-when-compile (fboundp #'syntax-propertize-rules))
     ;; New code that works independently from font-lock.
     (progn
@@ -1164,7 +1164,7 @@ See `add-log-current-defun-function'."
               ;; inf-loop.
               (if (< (point) start) (goto-char start))))))
       )
-      
+
   ;; For Emacsen where syntax-propertize-rules is not (yet) available,
   ;; fallback on the old font-lock-syntactic-keywords stuff.
 
@@ -1256,7 +1256,7 @@ buffer position `limit' or the end of the buffer."
     (save-excursion
       (beginning-of-line)
       (catch 'done
-        (let ((eol (save-excursion (end-of-line) (point)))
+        (let ((eol (point-at-eol))
               (case-fold-search nil)
               ;; Fake match data such that (match-end 0) is at eol
               (end-match-data (progn (looking-at ".*$") (match-data)))
@@ -1430,8 +1430,6 @@ See `font-lock-syntax-table'.")
    )
   "Additional expressions to highlight in Ruby mode.")
 
-(defvar electric-indent-chars)
-
 ;;;###autoload
 (define-derived-mode ruby-mode prog-mode "Ruby"
   "Major mode for editing Ruby scripts.
@@ -1456,8 +1454,7 @@ The variable `ruby-indent-level' controls the amount of indentation.
    'ruby-mode-set-encoding nil 'local)
 
   (set (make-local-variable 'electric-indent-chars)
-       (append '(?\{ ?\}) (if (boundp 'electric-indent-chars)
-                              (default-value 'electric-indent-chars))))
+       (append '(?\{ ?\}) electric-indent-chars))
 
   (set (make-local-variable 'font-lock-defaults)
        '((ruby-font-lock-keywords) nil nil))
@@ -1483,5 +1480,4 @@ The variable `ruby-indent-level' controls the amount of indentation.
 
 (provide 'ruby-mode)
 
-;; arch-tag: e6ecc893-8005-420c-b7f9-34ab99a1fff9
 ;;; ruby-mode.el ends here

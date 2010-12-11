@@ -743,7 +743,11 @@ When Auto Composition is enabled, text characters are automatically composed
 by functions registered in `composition-function-table' (which see).
 
 You can use `global-auto-composition-mode' to turn on
-Auto Composition mode in all buffers (this is the default).")
+Auto Composition mode in all buffers (this is the default)."
+  ;; It's defined in C, this stops the d-m-m macro defining it again.
+  :variable auto-composition-mode)
+;; It's not defined with DEFVAR_PER_BUFFER though.
+(make-variable-buffer-local 'auto-composition-mode)
 
 ;;;###autoload
 (define-minor-mode global-auto-composition-mode
@@ -757,5 +761,4 @@ See `auto-composition-mode' for more information on Auto-Composition mode."
 
 
 
-;; arch-tag: ee703d77-1723-45d4-a31f-e9f0f867aa33
 ;;; composite.el ends here

@@ -213,7 +213,7 @@ more niceties about GNU Emacs and MH@. Now I'm fully hooked on both of
 them.
 
 The MH-E package is distributed with GNU Emacs@footnote{Version
-@value{VERSION} of MH-E will appear in GNU Emacs 23.1. It is supported
+@value{VERSION} of MH-E appeared in GNU Emacs 23.1. It is supported
 in GNU Emacs 21 and 22, as well as XEmacs 21 (except for versions
 21.5.9-21.5.16). It is compatible with MH versions 6.8.4 and higher,
 all versions of nmh, and GNU mailutils 1.0 and higher.}, so you
@@ -8951,8 +8951,8 @@ files that were already part of Emacs) and the software was completely
 reorganized to push back two decades of entropy. Version 8 appeared in
 Emacs 22.1 in 2006.
 
-Development was then quiet for a couple of years. Emacs 23.1, which is
-due out in 2009, will contain version 8.1. This version includes a few
+Development was then quiet for a couple of years. Emacs 23.1, released
+in June 2009, contains version 8.2.  This version includes a few
 new features and several bug fixes.
 
 Bill Wohler, August 2008
@@ -9061,6 +9061,4 @@ Bill Wohler, August 2008
 @c sentence-end-double-space: nil
 @c End:
 
-@ignore
-   arch-tag: b778477d-1a10-4a99-84de-f877a2ea6bef
-@end ignore
+

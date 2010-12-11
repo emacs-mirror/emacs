@@ -355,12 +355,14 @@ hooks should be run before and after the command."
 	   (if (consp command)
 	       (eshell-parse-arguments (car command) (cdr command))
 	     (let ((here (point))
-		   (inhibit-point-motion-hooks t)
-		   after-change-functions)
-	       (insert command)
-	       (prog1
-		   (eshell-parse-arguments here (point))
-		 (delete-region here (point)))))
+		   (inhibit-point-motion-hooks t))
+               (with-silent-modifications
+                 ;; FIXME: Why not use a temporary buffer and avoid this
+                 ;; "insert&delete" business?  --Stef
+                 (insert command)
+                 (prog1
+                     (eshell-parse-arguments here (point))
+                   (delete-region here (point))))))
 	   args))
 	 (commands
 	  (mapcar

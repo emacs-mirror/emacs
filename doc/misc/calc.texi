@@ -7,6 +7,8 @@
 @setchapternewpage odd
 @comment %**end of header (This is for running Texinfo on a region.)
 
+@include emacsver.texi
+
 @c The following macros are used for conditional output for single lines.
 @c @texline foo
 @c    `foo' will appear only in TeX output
@@ -88,7 +90,8 @@
 This file documents Calc, the GNU Emacs calculator.
 @end ifinfo
 @ifnotinfo
-This file documents Calc, the GNU Emacs calculator, included with GNU Emacs 23.1.
+This file documents Calc, the GNU Emacs calculator, included with 
+GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
 Copyright @copyright{} 1990, 1991, 2001, 2002, 2003, 2004,
@@ -14119,6 +14122,10 @@ but
 @texline @math{\sin(2 + x)}.
 @infoline @expr{sin(2 + x)}.
 
+The @TeX{} specific unit names (@pxref{Predefined Units}) will not use
+the @samp{tex} prefix;  the unit name for a @TeX{} point will be
+@samp{pt} instead of @samp{texpt}, for example.
+
 Function and variable names not treated specially by @TeX{} and La@TeX{}
 are simply written out as-is, which will cause them to come out in
 italic letters in the printed document.  If you invoke @kbd{d T} or
@@ -27987,6 +27994,14 @@ than the point used by @TeX{}), @code{texdd} (a Didot point),
 @code{texcc} (a Cicero) and @code{texsp} (a scaled @TeX{} point, 
 all dimensions representable in @TeX{} are multiples of this value).
 
+When Calc is using the @TeX{} or La@TeX{} language mode (@pxref{TeX
+and LaTeX Language Modes}), the @TeX{} specific unit names will not
+use the @samp{tex} prefix; the unit name for a @TeX{} point will be
+@samp{pt} instead of @samp{texpt}, for example.  To avoid conflicts,
+the unit names for pint and parsec will simply be @samp{pint} and
+@samp{parsec} instead of @samp{pt} and @samp{pc}.
+
+
 The unit @code{e} stands for the elementary (electron) unit of charge;
 because algebra command could mistake this for the special constant
 @expr{e}, Calc provides the alternate unit name @code{ech} which is
@@ -36582,7 +36597,3 @@ the corresponding full Lisp name is derived by adding a prefix of
 
 @bye
 
-
-@ignore
-   arch-tag: 77a71809-fa4d-40be-b2cc-da3e8fb137c0
-@end ignore

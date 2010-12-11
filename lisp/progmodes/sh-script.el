@@ -1,7 +1,8 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2001, 2002, 2003,
-;;  2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;  2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -361,8 +362,6 @@ the car and cdr are the same symbol.")
   "The shell being programmed.  This is set by \\[sh-set-shell].")
 ;;;###autoload(put 'sh-shell 'safe-local-variable 'symbolp)
 
-(defvar sh-mode-abbrev-table nil)
-
 (define-abbrev-table 'sh-mode-abbrev-table ())
 
 
@@ -564,19 +563,6 @@ This is buffer-local in every such buffer.")
   "Functions for doing TAB dynamic completion."
   :type '(repeat function)
   :group 'sh-script)
-
-
-(defcustom sh-require-final-newline
-  '((csh . t)
-    (pdksh . t))
-  "Value of `require-final-newline' in Shell-Script mode buffers.
-\(SHELL . t) means use the value of `mode-require-final-newline' for SHELL.
-See `sh-feature'."
-  :type '(repeat (cons (symbol :tag "Shell")
-		       (choice (const :tag "require" t)
-			       (sexp :format "Evaluate: %v"))))
-  :group 'sh-script)
-
 
 (defcustom sh-assignment-regexp
   '((csh . "\\<\\([[:alnum:]_]+\\)\\(\\[.+\\]\\)?[ \t]*[-+*/%^]?=")
@@ -1716,10 +1702,6 @@ Calls the value of `sh-set-shell-hook' if set."
       (setq sh-shell-file
 	    (executable-set-magic shell (sh-feature sh-shell-arg)
 				  no-query-flag insert-flag)))
-  (let ((tem (sh-feature sh-require-final-newline)))
-    (if (eq tem t)
-	(set (make-local-variable 'require-final-newline)
-             mode-require-final-newline)))
   (setq mode-line-process (format "[%s]" sh-shell))
   (set (make-local-variable 'sh-shell-variables) nil)
   (set (make-local-variable 'sh-shell-variables-initialized) nil)
@@ -2136,11 +2118,7 @@ Return new point if successful, nil if an error occurred."
 (defun sh-handle-prev-do ()
   (cond
    ((save-restriction
-      (narrow-to-region
-       (point)
-       (save-excursion
-	 (beginning-of-line)
-	 (point)))
+      (narrow-to-region (point) (line-beginning-position))
       (sh-goto-match-for-done))
     (sh-debug "match for done found on THIS line")
     (list '(+ sh-indent-after-loop-construct)))
@@ -3840,5 +3818,4 @@ shell command and conveniently use this command."
 
 (provide 'sh-script)
 
-;; arch-tag: eccd8b72-f337-4fc2-ae86-18155a69d937
 ;;; sh-script.el ends here

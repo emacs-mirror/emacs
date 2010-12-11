@@ -215,48 +215,10 @@ This is a good function to put in `comint-output-filter-functions'."
 (add-hook 'comint-output-filter-functions
 	  'ansi-color-process-output)
 
-
-;; Alternative font-lock-unfontify-region-function for Emacs only
-
-(defun ansi-color-unfontify-region (beg end &rest xemacs-stuff)
-  "Replacement function for `font-lock-default-unfontify-region'.
-
-As text properties are implemented using extents in XEmacs, this
-function is probably not needed.  In Emacs, however, things are a bit
-different: When font-lock is active in a buffer, you cannot simply add
-face text properties to the buffer.  Font-lock will remove the face
-text property using `font-lock-unfontify-region-function'.  If you want
-to insert the strings returned by `ansi-color-apply' into such buffers,
-you must set `font-lock-unfontify-region-function' to
-`ansi-color-unfontify-region'.  This function will not remove all face
-text properties unconditionally.  It will keep the face text properties
-if the property `ansi-color' is set.
-
-The region from BEG to END is unfontified.  XEMACS-STUFF is ignored.
-
-A possible way to install this would be:
-
-\(add-hook 'font-lock-mode-hook
-	  \(function (lambda ()
-		      \(setq font-lock-unfontify-region-function
-			    'ansi-color-unfontify-region))))"
-  ;; Simplified now that font-lock-unfontify-region uses save-buffer-state.
-  (when (boundp 'font-lock-syntactic-keywords)
-    (remove-text-properties beg end '(syntax-table nil)))
-  ;; instead of just using (remove-text-properties beg end '(face
-  ;; nil)), we find regions with a non-nil face text-property, skip
-  ;; positions with the ansi-color property set, and remove the
-  ;; remaining face text-properties.
-  (while (setq beg (text-property-not-all beg end 'face nil))
-    (setq beg (or (text-property-not-all beg end 'ansi-color t) end))
-    (when (get-text-property beg 'face)
-      (let ((end-face (or (text-property-any beg end 'face nil)
-			  end)))
-	(remove-text-properties beg end-face '(face nil))
-	(setq beg end-face)))))
+(defalias 'ansi-color-unfontify-region 'font-lock-default-unfontify-region)
+(make-obsolete 'ansi-color-unfontify-region "not needed any more" "24.1")
 
 ;; Working with strings
-
 (defvar ansi-color-context nil
   "Context saved between two calls to `ansi-color-apply'.
 This is a list of the form (FACES FRAGMENT) or nil.  FACES is a list of
@@ -290,9 +252,7 @@ This function can be added to `comint-preoutput-filter-functions'."
 	    (setq fragment (substring string pos)
 		  result (concat result (substring string start pos))))
 	(setq result (concat result (substring string start))))
-      (if fragment
-	  (setq ansi-color-context (list nil fragment))
-	(setq ansi-color-context nil)))
+      (setq ansi-color-context (if fragment (list nil fragment))))
     result))
 
 (defun ansi-color-apply (string)
@@ -309,10 +269,7 @@ Every call to this function will set and use the buffer-local variable
 This information will be used for the next call to `ansi-color-apply'.
 Set `ansi-color-context' to nil if you don't want this.
 
-This function can be added to `comint-preoutput-filter-functions'.
-
-You cannot insert the strings returned into buffers using font-lock.
-See `ansi-color-unfontify-region' for a way around this."
+This function can be added to `comint-preoutput-filter-functions'."
   (let ((face (car ansi-color-context))
 	(start 0) end escape-sequence result
 	colorized-substring)
@@ -325,8 +282,7 @@ See `ansi-color-unfontify-region' for a way around this."
       (setq escape-sequence (match-string 1 string))
       ;; Colorize the old block from start to end using old face.
       (when face
-	(put-text-property start end 'ansi-color t string)
-	(put-text-property start end 'face face string))
+	(put-text-property start end 'font-lock-face face string))
       (setq colorized-substring (substring string start end)
 	    start (match-end 0))
       ;; Eliminate unrecognized ANSI sequences.
@@ -338,8 +294,7 @@ See `ansi-color-unfontify-region' for a way around this."
       (setq face (ansi-color-apply-sequence escape-sequence face)))
     ;; if the rest of the string should have a face, put it there
     (when face
-      (put-text-property start (length string) 'ansi-color t string)
-      (put-text-property start (length string) 'face face string))
+      (put-text-property start (length string) 'font-lock-face face string))
     ;; save context, add the remainder of the string to the result
     (let (fragment)
       (if (string-match "\033" string start)
@@ -347,9 +302,7 @@ See `ansi-color-unfontify-region' for a way around this."
 	    (setq fragment (substring string pos))
 	    (push (substring string start pos) result))
 	(push (substring string start) result))
-      (if (or face fragment)
-	  (setq ansi-color-context (list face fragment))
-	(setq ansi-color-context nil)))
+      (setq ansi-color-context (if (or face fragment) (list face fragment))))
     (apply 'concat (nreverse result))))
 
 ;; Working with regions

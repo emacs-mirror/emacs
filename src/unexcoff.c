@@ -141,8 +141,7 @@ report_error_1 (int fd, const char *msg, int a1, int a2)
   error (msg, a1, a2);
 }
 
-static int make_hdr (int, int, unsigned, unsigned, unsigned,
-		     const char *, const char *);
+static int make_hdr (int, int, const char *, const char *);
 static int copy_text_and_data (int, int);
 static int copy_sym (int, int, const char *, const char *);
 static void mark_x (const char *);

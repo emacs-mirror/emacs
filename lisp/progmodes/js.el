@@ -703,7 +703,7 @@ point at BOB."
                (setq str-terminator ?/))
              (re-search-forward
               (concat "\\([^\\]\\|^\\)" (string str-terminator))
-              (save-excursion (end-of-line) (point)) t))
+              (point-at-eol) t))
             ((nth 7 parse)
              (forward-line))
             ((or (nth 4 parse)
@@ -759,7 +759,7 @@ macro as normal text."
                (setq str-terminator ?/))
              (re-search-backward
               (concat "\\([^\\]\\|^\\)" (string str-terminator))
-              (save-excursion (beginning-of-line) (point)) t))
+              (point-at-bol) t))
             ((nth 7 parse)
              (goto-char (nth 8 parse)))
             ((or (nth 4 parse)
@@ -2135,7 +2135,7 @@ and each value is a marker giving the location of that symbol."
         with imenu-use-markers = t
         for buffer being the buffers
         for imenu-index = (with-current-buffer buffer
-                            (when (eq major-mode 'js-mode)
+                            (when (derived-mode-p 'js-mode)
                               (js--imenu-create-index)))
         do (js--imenu-to-flat imenu-index "" symbols)
         finally return symbols))
@@ -3286,15 +3286,9 @@ If one hasn't been set, or if it's stale, prompt for a new one."
 ;;; Main Function
 
 ;;;###autoload
-(define-derived-mode js-mode prog-mode "js"
-  "Major mode for editing JavaScript.
-
-Key bindings:
-
-\\{js-mode-map}"
-
+(define-derived-mode js-mode prog-mode "Javascript"
+  "Major mode for editing JavaScript."
   :group 'js
-  :syntax-table js-mode-syntax-table
 
   (set (make-local-variable 'indent-line-function) 'js-indent-line)
   (set (make-local-variable 'beginning-of-defun-function)
@@ -3330,9 +3324,6 @@ Key bindings:
   (set (make-local-variable 'imenu-create-index-function)
        #'js--imenu-create-index)
 
-  (setq major-mode 'js-mode)
-  (setq mode-name "Javascript")
-
   ;; for filling, pretend we're cc-mode
   (setq c-comment-prefix-regexp "//+\\|\\**"
         c-paragraph-start "$"
@@ -3363,10 +3354,9 @@ Key bindings:
   ;; the buffer containing the problem, JIT-lock will apply the
   ;; correct syntax to the regular expresion literal and the problem
   ;; will mysteriously disappear.
-  (font-lock-set-defaults)
-
-  (let (font-lock-keywords) ; leaves syntactic keywords intact
-    (font-lock-fontify-buffer)))
+  ;; FIXME: We should actually do this fontification lazily by adding
+  ;; calls to syntax-propertize wherever it's really needed.
+  (syntax-propertize (point-max)))
 
 ;;;###autoload
 (defalias 'javascript-mode 'js-mode)
@@ -3377,5 +3367,4 @@ Key bindings:
 
 (provide 'js)
 
-;; arch-tag: 1a0d0409-e87f-4fc7-a58c-3731c66ddaac
 ;; js.el ends here

@@ -1,7 +1,7 @@
 ;;; float-sup.el --- define some constants useful for floating point numbers.
 
-;; Copyright (C) 1985, 1986, 1987, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -26,15 +26,8 @@
 
 ;;; Code:
 
-;; Provide a meaningful error message if we are running on
-;; bare (non-float) emacs.
-
-(if (fboundp 'atan)
-    nil
-  (error "Floating point was disabled at compile time"))
-
-;; provide an easy hook to tell if we are running with floats or not.
-;; define pi and e via math-lib calls. (much less prone to killer typos.)
+;; Provide an easy hook to tell if we are running with floats or not.
+;; Define pi and e via math-lib calls (much less prone to killer typos).
 (defconst float-pi (* 4 (atan 1)) "The value of Pi (3.1415926...).")
 (defconst pi float-pi "Obsolete since Emacs-23.3.  Use `float-pi' instead.")
 
@@ -45,7 +38,7 @@
 (defconst radians-to-degrees (/ 180.0 float-pi)
   "Radian to degree conversion constant.")
 
-;; these expand to a single multiply by a float when byte compiled
+;; These expand to a single multiply by a float when byte compiled.
 
 (defmacro degrees-to-radians (x)
   "Convert X from degrees to radians."
@@ -56,5 +49,4 @@
 
 (provide 'lisp-float-type)
 
-;; arch-tag: e7837072-a4af-4d08-9953-8a3e755abf9d
 ;;; float-sup.el ends here

@@ -264,12 +264,12 @@ extern INTERVAL previous_interval (INTERVAL);
 extern INTERVAL merge_interval_left (INTERVAL);
 extern INTERVAL merge_interval_right (INTERVAL);
 extern void delete_interval (INTERVAL);
-extern INLINE void offset_intervals (struct buffer *, EMACS_INT, EMACS_INT);
+extern void offset_intervals (struct buffer *, EMACS_INT, EMACS_INT);
 extern void graft_intervals_into_buffer (INTERVAL, EMACS_INT, EMACS_INT,
                                          struct buffer *, int);
 extern void verify_interval_modification (struct buffer *, int, int);
 extern INTERVAL balance_intervals (INTERVAL);
-extern INLINE void copy_intervals_to_string (Lisp_Object, struct buffer *,
+extern void copy_intervals_to_string (Lisp_Object, struct buffer *,
                                              EMACS_INT, EMACS_INT);
 extern INTERVAL copy_intervals (INTERVAL, EMACS_INT, EMACS_INT);
 extern int compare_string_intervals (Lisp_Object, Lisp_Object);

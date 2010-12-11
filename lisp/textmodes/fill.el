@@ -1,7 +1,8 @@
 ;;; fill.el --- fill commands for Emacs		-*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1999, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1999, 2001,
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -137,7 +138,7 @@ The fill column to use for a line is the first column at which the column
 number equals or exceeds the local fill-column - right-margin difference."
   (save-excursion
     (if fill-column
-	(let* ((here (progn (beginning-of-line) (point)))
+	(let* ((here (line-beginning-position))
 	       (here-col 0)
 	       (eol (progn (end-of-line) (point)))
 	       margin fill-col change col)
@@ -1517,5 +1518,4 @@ Also, if CITATION-REGEXP is non-nil, don't fill header lines."
 	"")
     string))
 
-;; arch-tag: 727ad455-1161-4fa9-8df5-0f74b179216d
 ;;; fill.el ends here

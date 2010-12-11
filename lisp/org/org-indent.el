@@ -4,7 +4,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.3
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -135,11 +135,11 @@ FIXME:  How to update when broken?"
    ((org-bound-and-true-p org-inhibit-startup)
     (setq org-indent-mode nil))
    ((and org-indent-mode (featurep 'xemacs))
-    (message "org-indent-mode does not work in XEmacs - refused to turn it on")
+    (message "org-indent-mode does not work in XEmacs - refusing to turn it on")
     (setq org-indent-mode nil))
    ((and org-indent-mode
 	 (not (org-version-check "23.1.50" "Org Indent mode" :predicate)))
-    (message "org-indent-mode is can crash Emacs 23.1 - refused to turn it on!")
+    (message "org-indent-mode can crash Emacs 23.1 - refusing to turn it on!")
     (ding)
     (sit-for 1)
     (setq org-indent-mode nil))
@@ -203,8 +203,9 @@ useful to make it ever so slightly different."
 
 (defun org-indent-remove-properties (beg end)
   "Remove indentations between BEG and END."
-  (org-unmodified
-   (remove-text-properties beg end '(line-prefix nil wrap-prefix nil))))
+  (let ((inhibit-modification-hooks t))
+    (with-silent-modifications
+      (remove-text-properties beg end '(line-prefix nil wrap-prefix nil)))))
 
 (defun org-indent-remove-properties-from-string (string)
   "Remove indentations between BEG and END."
@@ -219,8 +220,9 @@ useful to make it ever so slightly different."
   "Add indentation properties between BEG and END.
 Assumes that BEG is at the beginning of a line."
   (when (or t org-indent-mode)
-    (let (ov b e n level exit nstars)
-      (org-unmodified
+    (let ((inhibit-modification-hooks t)
+	  ov b e n level exit nstars)
+      (with-silent-modifications
        (save-excursion
 	 (goto-char beg)
 	 (while (not exit)

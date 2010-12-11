@@ -365,16 +365,19 @@ If FOLLOW-REFRESH is non-nil, redirect refresh url in META."
 (defun mm-url-decode-entities ()
   "Decode all HTML entities."
   (goto-char (point-min))
-  (while (re-search-forward "&\\(#[0-9]+\\|#x[0-9a-f]+\\|[a-z]+[0-9]*\\);" nil t)
+  (while (re-search-forward "&\\(#[0-9]+\\|#x[0-9a-f]+\\|[a-z]+[0-9]*\\);"
+			    nil t)
     (let* ((entity (match-string 1))
 	   (elem (if (eq (aref entity 0) ?\#)
-		     (let ((c (mm-ucs-to-char
-			       ;; Hex number: &#x3212
-			       (if (eq (aref entity 1) ?x)
-				   (string-to-number (substring entity 2)
-						     16)
-				 ;; Decimal number: &#23
-				 (string-to-number (substring entity 1))))))
+		     (let ((c
+			    ;; Hex number: &#x3212
+			    (if (eq (aref entity 1) ?x)
+				(string-to-number (substring entity 2)
+						  16)
+			      ;; Decimal number: &#23
+			      (string-to-number (substring entity 1)))))
+		       (setq c (or (cdr (assq c mm-extra-numeric-entities))
+				   (mm-ucs-to-char c)))
 		       (if (mm-char-or-char-int-p c) c ?#))
 		   (or (cdr (assq (intern entity)
 				  mm-url-html-entities))

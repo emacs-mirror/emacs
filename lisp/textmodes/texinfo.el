@@ -443,7 +443,9 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
     (define-key map "\C-c\C-s"     'texinfo-show-structure)
 
     (define-key map "\C-c}"          'up-list)
+    ;; FIXME: This is often used for "close block" aka texinfo-insert-@end.
     (define-key map "\C-c]"          'up-list)
+    (define-key map "\C-c/"	     'texinfo-insert-@end)
     (define-key map "\C-c{"		'texinfo-insert-braces)
 
     ;; bindings for inserting strings
@@ -583,11 +585,8 @@ value of `texinfo-mode-hook'."
 	(concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-separate))
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-start))
-  (make-local-variable 'sentence-end-base)
-  (setq sentence-end-base
+  (set (make-local-variable 'sentence-end-base)
 	"\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'”)}]*")
-  (make-local-variable 'adaptive-fill-mode)
-  (setq adaptive-fill-mode nil)
   (make-local-variable 'fill-column)
   (setq fill-column 70)
   (make-local-variable 'comment-start)
@@ -646,7 +645,13 @@ Puts point on a blank line between them."
 	(completing-read (format "Block name [%s]: " texinfo-block-default)
 			 texinfo-environments
 			 nil nil nil nil texinfo-block-default))
-  \n "@" str \n _ \n "@end " str \n)
+  \n "@" str
+  ;; Blocks that take parameters: all the def* blocks take parameters,
+  ;;  plus a few others.
+  (if (or (string-match "\\`def" str)
+          (member str '("table" "ftable" "vtable")))
+      '(nil " " -))
+  \n _ \n "@end " str \n)
 
 (defun texinfo-inside-macro-p (macro &optional bound)
   "Non-nil if inside a macro matching the regexp MACRO."
@@ -717,163 +722,131 @@ With prefix argument or inside @code or @example, inserts a plain \"."
 		(not (looking-at "@end"))))
     (texinfo-next-unmatched-end)))
 
-(defun texinfo-insert-@end ()
+(define-skeleton texinfo-insert-@end
   "Insert the matching `@end' for the last Texinfo command that needs one."
-  (interactive)
-  (let ((string
 	 (ignore-errors
 	   (save-excursion
+      (backward-word 1)
 	     (texinfo-last-unended-begin)
-	     (match-string 1)))))
-    (insert "@end ")
-    (if string (insert string "\n"))))
+      (or (match-string 1) '-)))
+  \n "@end " str \n)
 
-;; The following insert commands accept a prefix arg N, which is the
-;; number of words (actually s-exprs) that should be surrounded by
-;; braces.  Thus you can first paste a variable name into a .texinfo
-;; buffer, then say C-u 1 C-c C-c v at the beginning of the just
-;; pasted variable name to put @var{...} *around* the variable name.
-;; Operate on previous word or words with negative arg.
-
-;; These commands use texinfo-insert-@-with-arg
-(defun texinfo-insert-@-with-arg (string &optional arg)
-  (if arg
-      (progn
-        (setq arg (prefix-numeric-value arg))
-        (if (< arg 0)
-            (progn
-              (skip-chars-backward " \t\n\r\f")
-              (save-excursion
-                (forward-sexp arg)
-                (insert "@" string "{"))
-              (insert "}"))
-          (skip-chars-forward " \t\n\r\f")
-          (insert "@" string "{")
-          (forward-sexp arg)
-          (insert "}")))
-    (insert "@" string "{}")
-    (backward-char)))
-
-(defun texinfo-insert-braces ()
+(define-skeleton texinfo-insert-braces
   "Make a pair of braces and be poised to type inside of them.
 Use \\[up-list] to move forward out of the braces."
-  (interactive)
-  (insert "{}")
-  (backward-char))
+  nil
+  "{" _ "}")
 
-(defun texinfo-insert-@code (&optional arg)
+(define-skeleton texinfo-insert-@code
   "Insert a `@code{...}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
-  (interactive "P")
-  (texinfo-insert-@-with-arg "code" arg))
+  nil
+  "@code{" _ "}")
 
-(defun texinfo-insert-@dfn (&optional arg)
+(define-skeleton texinfo-insert-@dfn
   "Insert a `@dfn{...}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
-  (interactive "P")
-  (texinfo-insert-@-with-arg "dfn" arg))
+  nil
+  "@dfn{" _ "}")
 
-(defun texinfo-insert-@email (&optional arg)
+(define-skeleton texinfo-insert-@email
   "Insert a `@email{...}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
-  (interactive "P")
-  (texinfo-insert-@-with-arg "email" arg))
+  nil
+  "@email{" _ "}")
 
-(defun texinfo-insert-@emph (&optional arg)
+(define-skeleton texinfo-insert-@emph
   "Insert a `@emph{...}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
-  (interactive "P")
-  (texinfo-insert-@-with-arg "emph" arg))
+  nil
+  "@emph{" _ "}")
 
-(defun texinfo-insert-@example ()
+(define-skeleton texinfo-insert-@example
   "Insert the string `@example' in a Texinfo buffer."
-  (interactive)
-  (insert "@example\n"))
+  nil
+  \n "@example" \n)
 
-(defun texinfo-insert-@file (&optional arg)
+(define-skeleton texinfo-insert-@file
   "Insert a `@file{...}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
-  (interactive "P")
-  (texinfo-insert-@-with-arg "file" arg))
+  nil
+  "@file{" _ "}")
 
-(defun texinfo-insert-@item ()
+(define-skeleton texinfo-insert-@item
   "Insert the string `@item' in a Texinfo buffer.
 If in a table defined by @table, follow said string with a space.
 Otherwise, follow with a newline."
-  (interactive)
-  (insert "@item"
+  nil
+  \n "@item"
 	  (if (equal (ignore-errors
 		      (save-excursion
 			(texinfo-last-unended-begin)
 			(match-string 1)))
 		     "table")
-	      ?\s
-	    ?\n)))
+      " " '\n)
+  _ \n)
 
-(defun texinfo-insert-@kbd (&optional arg)
+(define-skeleton texinfo-insert-@kbd
   "Insert a `@kbd{...}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
-  (interactive "P")
-  (texinfo-insert-@-with-arg "kbd" arg))
+  nil
+  "@kbd{" _ "}")
 
-(defun texinfo-insert-@node ()
+(define-skeleton texinfo-insert-@node
   "Insert the string `@node' in a Texinfo buffer.
 Insert a comment on the following line indicating the order of
 arguments to @node.  Insert a carriage return after the comment line.
 Leave point after `@node'."
-  (interactive)
-  (insert "@node \n@comment  node-name,  next,  previous,  up\n")
-  (forward-line -2)
-  (forward-char 6))
+  nil
+  \n "@node " _ \n)
 
-(defun texinfo-insert-@noindent ()
+(define-skeleton texinfo-insert-@noindent
   "Insert the string `@noindent' in a Texinfo buffer."
-  (interactive)
-  (insert "@noindent\n"))
+  nil
+  \n "@noindent" \n)
 
-(defun texinfo-insert-@quotation ()
+(define-skeleton texinfo-insert-@quotation
   "Insert the string `@quotation' in a Texinfo buffer."
-  (interactive)
-  (insert "@quotation\n"))
+  \n "@quotation" \n)
 
-(defun texinfo-insert-@samp (&optional arg)
+(define-skeleton texinfo-insert-@samp
   "Insert a `@samp{...}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
-  (interactive "P")
-  (texinfo-insert-@-with-arg "samp" arg))
+  nil
+  "@samp{" _ "}")
 
-(defun texinfo-insert-@strong (&optional arg)
+(define-skeleton texinfo-insert-@strong
   "Insert a `@strong{...}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
-  (interactive "P")
-  (texinfo-insert-@-with-arg "strong" arg))
+  nil
+  "@strong{" _ "}")
 
-(defun texinfo-insert-@table ()
+(define-skeleton texinfo-insert-@table
   "Insert the string `@table' in a Texinfo buffer."
-  (interactive)
-  (insert "@table "))
+  nil
+  \n "@table " _ \n)
 
-(defun texinfo-insert-@var (&optional arg)
+(define-skeleton texinfo-insert-@var
   "Insert a `@var{}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
-  (interactive "P")
-  (texinfo-insert-@-with-arg "var" arg))
+  nil
+  "@var{" _ "}")
 
-(defun texinfo-insert-@uref (&optional arg)
+(define-skeleton texinfo-insert-@uref
   "Insert a `@uref{}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
-  (interactive "P")
-  (texinfo-insert-@-with-arg "uref" arg))
+  nil
+  "@uref{" _ "}")
 (defalias 'texinfo-insert-@url 'texinfo-insert-@uref)
 
 ;;; Texinfo file structure

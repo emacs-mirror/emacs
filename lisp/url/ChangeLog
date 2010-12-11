@@ -1,3 +1,8 @@
+2010-11-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-file.el (url-file-build-filename): Avoid interpreting
+	file:/foo:/bar URLs via tramp.
+
 2010-10-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-gw.el (url-open-stream): Use open-gnutls-stream if it exists.
@@ -86,7 +91,8 @@
 
 2010-09-14  Julien Danjou  <julien@danjou.info>
 
-	* url-cache (url-store-in-cache): Make `buff' argument really optional.
+	* url-cache.el (url-store-in-cache):
+	Make `buff' argument really optional.
 
 2010-09-14  Glenn Morris  <rgm@gnu.org>
 
@@ -103,12 +109,12 @@
 
 2010-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
-	* url-http (url-http-parse-headers): Disable file name handlers at
+	* url-http.el (url-http-parse-headers): Disable file name handlers at
 	all (not only Tramp).  (Bug#6717)
 
 2010-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
-	* url-http (url-http-parse-headers): Disable Tramp.  (Bug#6717)
+	* url-http.el (url-http-parse-headers): Disable Tramp.  (Bug#6717)
 
 2010-07-01  Mark A. Hershberger  <mah@everybody.org>
 

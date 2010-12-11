@@ -212,6 +212,7 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 (defvar hexl-mode-old-syntax-table)
 (defvar hexl-mode-old-font-lock-keywords)
 (defvar hexl-mode-old-eldoc-documentation-function)
+(defvar hexl-mode-old-revert-buffer-function)
 
 (defvar hexl-ascii-overlay nil
   "Overlay used to highlight ASCII element corresponding to current point.")
@@ -373,10 +374,9 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (setq hexl-mode-old-font-lock-keywords font-lock-defaults)
     (setq font-lock-defaults '(hexl-font-lock-keywords t))
 
-    ;; Add hooks to rehexlify or dehexlify on various events.
-    (add-hook 'before-revert-hook 'hexl-before-revert-hook nil t)
-    (add-hook 'after-revert-hook 'hexl-after-revert-hook nil t)
-
+    (make-local-variable 'hexl-mode-old-revert-buffer-function)
+    (setq hexl-mode-old-revert-buffer-function revert-buffer-function)
+    (setq revert-buffer-function 'hexl-revert-buffer-function)
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
 
     ;; Set a callback function for eldoc.
@@ -412,12 +412,6 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 	 bound noerror count))
     (let ((isearch-search-fun-function nil))
       (isearch-search-fun))))
-
-(defun hexl-before-revert-hook ()
-  (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t))
-
-(defun hexl-after-revert-hook ()
-  (hexl-mode))
 
 (defvar hexl-in-save-buffer nil)
 
@@ -464,6 +458,23 @@ and edit the file in `hexl-mode'."
   (if (not (eq major-mode 'hexl-mode))
       (hexl-mode)))
 
+(defun hexl-revert-buffer-function (ignore-auto noconfirm)
+  (let ((coding-system-for-read 'no-conversion)
+	revert-buffer-function)
+    ;; Call the original `revert-buffer' without code conversion; also
+    ;; prevent it from changing the major mode to normal-mode, which
+    ;; calls `set-auto-mode'.
+    (revert-buffer nil nil t)
+    ;; A couple of hacks are necessary here:
+    ;; 1. change the major-mode to one other than hexl-mode since the
+    ;; function `hexl-mode' does nothing if the current major-mode is
+    ;; already hexl-mode.
+    ;; 2. reset change-major-mode-hook in case that `hexl-mode'
+    ;; previously added hexl-maybe-dehexlify-buffer to it.
+    (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
+    (setq major-mode 'fundamental-mode)
+    (hexl-mode)))
+
 (defun hexl-mode-exit (&optional arg)
   "Exit Hexl mode, returning to previous mode.
 With arg, don't unhexlify buffer."
@@ -483,8 +494,6 @@ With arg, don't unhexlify buffer."
 	  (or (bobp) (setq original-point (1+ original-point))))
 	(goto-char original-point)))
 
-  (remove-hook 'before-revert-hook 'hexl-before-revert-hook t)
-  (remove-hook 'after-revert-hook 'hexl-after-revert-hook t)
   (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
   (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
   (setq hexl-ascii-overlay nil)
@@ -512,6 +521,7 @@ With arg, don't unhexlify buffer."
   (set-syntax-table hexl-mode-old-syntax-table)
   (setq font-lock-defaults hexl-mode-old-font-lock-keywords)
   (setq major-mode hexl-mode-old-major-mode)
+  (setq revert-buffer-function hexl-mode-old-revert-buffer-function)
   (force-mode-line-update))
 
 (defun hexl-maybe-dehexlify-buffer ()

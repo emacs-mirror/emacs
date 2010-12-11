@@ -39,11 +39,6 @@
 (eval-when-compile
   (require 'cl))
 
-(eval-when-compile
-  (unless (fboundp 'with-no-warnings)
-    (defmacro with-no-warnings (&rest body)
-      `(progn ,@body))))
-
 (defcustom gnus-completing-read-function 'gnus-emacs-completing-read
   "Function use to do completing read."
   :version "24.1"
@@ -282,6 +277,24 @@ Uses `gnus-extract-address-components'."
       (setq start (when end
 		    (next-single-property-change start prop))))))
 
+(defun gnus-find-text-property-region (start end prop)
+  "Return a list of text property regions that has property PROP."
+  (let (regions value)
+    (unless (get-text-property start prop)
+      (setq start (next-single-property-change start prop)))
+    (while start
+      (setq value (get-text-property start prop)
+	    end (text-property-not-all start (point-max) prop value))
+      (if (not end)
+	  (setq start nil)
+	(when value
+	  (push (list (set-marker (make-marker) start)
+		      (set-marker (make-marker) end)
+		      value)
+		regions))
+	(setq start (next-single-property-change start prop))))
+    (nreverse regions)))
+
 (defun gnus-newsgroup-directory-form (newsgroup)
   "Make hierarchical directory name from NEWSGROUP name."
   (let* ((newsgroup (gnus-newsgroup-savable-name newsgroup))
@@ -320,13 +333,14 @@ Symbols are also allowed; their print names are used instead."
 	     (> (nth 1 fdate) (nth 1 date))))))
 
 (eval-and-compile
-  (if (and (fboundp 'float-time)
-	   (subrp (symbol-function 'float-time)))
+  (if (or (featurep 'emacs)
+	  (and (fboundp 'float-time)
+	       (subrp (symbol-function 'float-time))))
       (defalias 'gnus-float-time 'float-time)
     (defun gnus-float-time (&optional time)
       "Convert time value TIME to a floating point number.
 TIME defaults to the current time."
-      (with-no-warnings (time-to-seconds (or time (current-time)))))))
+      (time-to-seconds (or time (current-time))))))
 
 ;;; Keymap macros.
 
@@ -888,6 +902,7 @@ Bind `print-quoted' and `print-readably' to t, and `print-length' and
 
 (defun gnus-write-buffer (file)
   "Write the current buffer's contents to FILE."
+  (require 'nnmail)
   (let ((file-name-coding-system nnmail-pathname-coding-system))
     ;; Make sure the directory exists.
     (gnus-make-directory (file-name-directory file))
@@ -1123,6 +1138,7 @@ In Emacs 22 this writes Babyl format; in Emacs 23 it writes mbox unless
 FILENAME exists and is Babyl format."
   (require 'rmail)
   (require 'mm-util)
+  (require 'nnmail)
   ;; Some of this codes is borrowed from rmailout.el.
   (setq filename (expand-file-name filename))
   ;; FIXME should we really be messing with this defcustom?
@@ -1214,6 +1230,7 @@ FILENAME exists and is Babyl format."
 
 (defun gnus-output-to-mail (filename &optional ask)
   "Append the current article to a mail file named FILENAME."
+  (require 'nnmail)
   (setq filename (expand-file-name filename))
   (let ((artbuf (current-buffer))
 	(tmpbuf (get-buffer-create " *Gnus-output*")))
@@ -1651,10 +1668,16 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 		       initial-input history def))
 
 
-(autoload 'iswitchb-read-buffer "iswitchb")
+(declare-function iswitchb-read-buffer "iswitchb"
+		  (prompt &optional default require-match start matches-set))
+(defvar iswitchb-temp-buflist)
+
 (defun gnus-iswitchb-completing-read (prompt collection &optional require-match
                                             initial-input history def)
   "`iswitchb' based completing-read function."
+  ;; Make sure iswitchb is loaded before we let-bind its variables.
+  ;; If it is loaded inside the let, variables can become unbound afterwards.
+  (require 'iswitchb)
   (let ((iswitchb-make-buflist-hook
          (lambda ()
            (setq iswitchb-temp-buflist
@@ -1667,11 +1690,11 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
                    (nreverse filtered-choices))))))
     (unwind-protect
         (progn
-          (when (not iswitchb-mode)
-            (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup))
+          (or iswitchb-mode
+	      (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup))
           (iswitchb-read-buffer prompt def require-match))
-      (when (not iswitchb-mode)
-        (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))))
+      (or iswitchb-mode
+	  (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))))
 
 (defun gnus-graphic-display-p ()
   (if (featurep 'xemacs)
@@ -1758,14 +1781,16 @@ CHOICE is a list of the choice char and help message at IDX."
 	(kill-buffer buf))
     tchar))
 
-(if (fboundp 'select-frame-set-input-focus)
+(if (featurep 'emacs)
     (defalias 'gnus-select-frame-set-input-focus 'select-frame-set-input-focus)
-  ;; XEmacs 21.4, SXEmacs
-  (defun gnus-select-frame-set-input-focus (frame)
-    "Select FRAME, raise it, and set input focus, if possible."
-    (raise-frame frame)
-    (select-frame frame)
-    (focus-frame frame)))
+  (if (fboundp 'select-frame-set-input-focus)
+      (defalias 'gnus-select-frame-set-input-focus 'select-frame-set-input-focus)
+    ;; XEmacs 21.4, SXEmacs
+    (defun gnus-select-frame-set-input-focus (frame)
+      "Select FRAME, raise it, and set input focus, if possible."
+      (raise-frame frame)
+      (select-frame frame)
+      (focus-frame frame))))
 
 (defun gnus-frame-or-window-display-name (object)
   "Given a frame or window, return the associated display name.
@@ -1930,25 +1955,6 @@ empty directories from OLD-PATH."
   (defalias 'gnus-set-process-query-on-exit-flag
     'process-kill-without-query))
 
-(if (fboundp 'with-local-quit)
-    (defalias 'gnus-with-local-quit 'with-local-quit)
-  (defmacro gnus-with-local-quit (&rest body)
-    "Execute BODY, allowing quits to terminate BODY but not escape further.
-When a quit terminates BODY, `gnus-with-local-quit' returns nil but
-requests another quit.  That quit will be processed as soon as quitting
-is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
-    ;;(declare (debug t) (indent 0))
-    `(condition-case nil
-	 (let ((inhibit-quit nil))
-	   ,@body)
-       (quit (setq quit-flag t)
-	     ;; This call is to give a chance to handle quit-flag
-	     ;; in case inhibit-quit is nil.
-	     ;; Without this, it will not be handled until the next function
-	     ;; call, and that might allow it to exit thru a condition-case
-	     ;; that intends to handle the quit signal next time.
-	     (eval '(ignore nil))))))
-
 (defalias 'gnus-read-shell-command
   (if (fboundp 'read-shell-command) 'read-shell-command 'read-string))
 
@@ -1992,6 +1998,65 @@ Sizes are in pixels."
                                  :width new-width)
                    image)))
       image)))
+
+(defun gnus-list-memq-of-list (elements list)
+  "Return non-nil if any of the members of ELEMENTS are in LIST."
+  (let ((found nil))
+    (dolist (elem elements)
+      (setq found (or found
+		      (memq elem list))))
+    found))
+
+(eval-and-compile
+  (cond
+   ((fboundp 'match-substitute-replacement)
+    (defalias 'gnus-match-substitute-replacement 'match-substitute-replacement))
+   (t
+    (defun gnus-match-substitute-replacement (replacement &optional fixedcase literal string subexp)
+      "Return REPLACEMENT as it will be inserted by `replace-match'.
+In other words, all back-references in the form `\\&' and `\\N'
+are substituted with actual strings matched by the last search.
+Optional FIXEDCASE, LITERAL, STRING and SUBEXP have the same
+meaning as for `replace-match'.
+
+This is the definition of match-substitute-replacement in subr.el from GNU Emacs."
+      (let ((match (match-string 0 string)))
+	(save-match-data
+	  (set-match-data (mapcar (lambda (x)
+				    (if (numberp x)
+					(- x (match-beginning 0))
+				      x))
+				  (match-data t)))
+	  (replace-match replacement fixedcase literal match subexp)))))))
+
+(if (fboundp 'string-match-p)
+    (defalias 'gnus-string-match-p 'string-match-p)
+  (defsubst gnus-string-match-p (regexp string &optional start)
+    "\
+Same as `string-match' except this function does not change the match data."
+    (save-match-data
+      (string-match regexp string start))))
+
+(eval-and-compile
+  (if (fboundp 'macroexpand-all)
+      (defalias 'gnus-macroexpand-all 'macroexpand-all)
+    (defun gnus-macroexpand-all (form &optional environment)
+      "Return result of expanding macros at all levels in FORM.
+If no macros are expanded, FORM is returned unchanged.
+The second optional arg ENVIRONMENT specifies an environment of macro
+definitions to shadow the loaded ones for use in file byte-compilation."
+      (if (consp form)
+	  (let ((idx 1)
+		(len (length (setq form (copy-sequence form))))
+		expanded)
+	    (while (< idx len)
+	      (setcar (nthcdr idx form) (gnus-macroexpand-all (nth idx form)
+							      environment))
+	      (setq idx (1+ idx)))
+	    (if (eq (setq expanded (macroexpand form environment)) form)
+		form
+	      (gnus-macroexpand-all expanded environment)))
+	form))))
 
 (provide 'gnus-util)
 

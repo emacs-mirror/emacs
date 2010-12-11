@@ -1,7 +1,7 @@
 ;;; chart.el --- Draw charts (bar charts, etc)
 
-;; Copyright (C) 1996, 1998, 1999, 2001, 2004, 2005, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 1999, 2001, 2004, 2005, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
 ;; Version: 0.2
@@ -525,9 +525,9 @@ cons cells of the form (NAME . NUM).  See `sort' for more details."
 (defun chart-zap-chars (n)
   "Zap up to N chars without deleting EOLs."
   (if (not (eobp))
-      (if (< n (- (save-excursion (end-of-line) (point)) (point)))
+      (if (< n (- (point-at-eol) (point)))
 	  (delete-char n)
-	(delete-region (point) (save-excursion (end-of-line) (point))))))
+	(delete-region (point) (point-at-eol)))))
 
 (defun chart-display-label (label dir zone start end &optional face)
   "Display LABEL in direction DIR in column/row ZONE between START and END.
@@ -746,5 +746,4 @@ SORT-PRED if desired."
 
 (provide 'chart)
 
-;; arch-tag: 43847e44-5b45-465e-adc9-e505490a6b59
 ;;; chart.el ends here

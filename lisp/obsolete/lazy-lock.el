@@ -310,7 +310,7 @@ until TEST returns nil."
 ;; User Variables:
 
 (defcustom lazy-lock-minimum-size 25600
-  "*Minimum size of a buffer for demand-driven fontification.
+  "Minimum size of a buffer for demand-driven fontification.
 On-demand fontification occurs if the buffer size is greater than this value.
 If nil, means demand-driven fontification is never performed.
 If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
@@ -334,7 +334,7 @@ The value of this variable is used when Lazy Lock mode is turned on."
   :group 'lazy-lock)
 
 (defcustom lazy-lock-defer-on-the-fly t
-  "*If non-nil, means fontification after a change should be deferred.
+  "If non-nil, means fontification after a change should be deferred.
 If nil, means on-the-fly fontification is performed.  This means when changes
 occur in the buffer, those areas are immediately fontified.
 If a list, it should be a list of `major-mode' symbol names for which deferred
@@ -354,7 +354,7 @@ The value of this variable is used when Lazy Lock mode is turned on."
   :group 'lazy-lock)
 
 (defcustom lazy-lock-defer-on-scrolling nil
-  "*If non-nil, means fontification after a scroll should be deferred.
+  "If non-nil, means fontification after a scroll should be deferred.
 If nil, means demand-driven fontification is performed.  This means when
 scrolling into unfontified areas of the buffer, those areas are immediately
 fontified.  Thus scrolling never presents unfontified areas.  However, since
@@ -379,7 +379,7 @@ The value of this variable is used when Lazy Lock mode is turned on."
   :group 'lazy-lock)
 
 (defcustom lazy-lock-defer-contextually 'syntax-driven
-  "*If non-nil, means deferred fontification should be syntactically true.
+  "If non-nil, means deferred fontification should be syntactically true.
 If nil, means deferred fontification occurs only on those lines modified.  This
 means where modification on a line causes syntactic change on subsequent lines,
 those subsequent lines are not refontified to reflect their new context.
@@ -396,9 +396,8 @@ The value of this variable is used when Lazy Lock mode is turned on."
 		 (other :tag "syntax-driven" syntax-driven))
   :group 'lazy-lock)
 
-(defcustom lazy-lock-defer-time
-  (if (featurep 'lisp-float-type) (/ (float 1) (float 4)) 1)
-  "*Time in seconds to delay before beginning deferred fontification.
+(defcustom lazy-lock-defer-time 0.25
+  "Time in seconds to delay before beginning deferred fontification.
 Deferred fontification occurs if there is no input within this time.
 If nil, means fontification is never deferred, regardless of the values of the
 variables `lazy-lock-defer-on-the-fly', `lazy-lock-defer-on-scrolling' and
@@ -410,7 +409,7 @@ The value of this variable is used when Lazy Lock mode is turned on."
   :group 'lazy-lock)
 
 (defcustom lazy-lock-stealth-time 30
-  "*Time in seconds to delay before beginning stealth fontification.
+  "Time in seconds to delay before beginning stealth fontification.
 Stealth fontification occurs if there is no input within this time.
 If nil, means stealth fontification is never performed.
 
@@ -420,7 +419,7 @@ The value of this variable is used when Lazy Lock mode is turned on."
   :group 'lazy-lock)
 
 (defcustom lazy-lock-stealth-lines (if font-lock-maximum-decoration 100 250)
-  "*Maximum size of a chunk of stealth fontification.
+  "Maximum size of a chunk of stealth fontification.
 Each iteration of stealth fontification can fontify this number of lines.
 To speed up input response during stealth fontification, at the cost of stealth
 taking longer to fontify, you could reduce the value of this variable."
@@ -429,7 +428,7 @@ taking longer to fontify, you could reduce the value of this variable."
 
 (defcustom lazy-lock-stealth-load
   (if (condition-case nil (load-average) (error)) 200)
-  "*Load in percentage above which stealth fontification is suspended.
+  "Load in percentage above which stealth fontification is suspended.
 Stealth fontification pauses when the system short-term load average (as
 returned by the function `load-average' if supported) goes above this level,
 thus reducing the demand that stealth fontification makes on the system.
@@ -443,9 +442,8 @@ See also `lazy-lock-stealth-nice'."
 	  '(const :format "%t: unsupported\n" nil))
   :group 'lazy-lock)
 
-(defcustom lazy-lock-stealth-nice
-  (if (featurep 'lisp-float-type) (/ (float 1) (float 8)) 1)
-  "*Time in seconds to pause between chunks of stealth fontification.
+(defcustom lazy-lock-stealth-nice 0.125
+  "Time in seconds to pause between chunks of stealth fontification.
 Each iteration of stealth fontification is separated by this amount of time,
 thus reducing the demand that stealth fontification makes on the system.
 If nil, means stealth fontification is never paused.
@@ -457,9 +455,8 @@ See also `lazy-lock-stealth-load'."
   :group 'lazy-lock)
 
 (defcustom lazy-lock-stealth-verbose
-  (if (featurep 'lisp-float-type)
-      (and (not lazy-lock-defer-contextually) (not (null font-lock-verbose))))
-  "*If non-nil, means stealth fontification should show status messages."
+  (and (not lazy-lock-defer-contextually) (not (null font-lock-verbose)))
+  "If non-nil, means stealth fontification should show status messages."
   :type 'boolean
   :group 'lazy-lock)
 
@@ -1058,5 +1055,4 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 ;; byte-compile-warnings: (not obsolete)
 ;; End:
 
-;; arch-tag: c1776846-f046-4a45-9684-54b951b12fc9
 ;;; lazy-lock.el ends here

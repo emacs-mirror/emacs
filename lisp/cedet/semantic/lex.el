@@ -1427,10 +1427,7 @@ Return either a paren token or a semantic list token depending on
 	;; to work properly.  Lets try and move over
 	;; whatever white space we matched to begin
 	;; with.
-	(skip-syntax-forward "-.'"
-			     (save-excursion
-			       (end-of-line)
-			       (point)))
+	(skip-syntax-forward "-.'" (point-at-eol))
       ;; We may need to back up so newlines or whitespace is generated.
       (if (bolp)
 	  (backward-char 1)))
@@ -1997,10 +1994,7 @@ return LENGTH tokens."
                     ;; to work properly.  Lets try and move over
                     ;; whatever white space we matched to begin
                     ;; with.
-                    (skip-syntax-forward "-.'"
-                                         (save-excursion
-                                           (end-of-line)
-                                           (point)))
+                    (skip-syntax-forward "-.'" (point-at-eol))
                   ;;(forward-comment 1)
                   ;; Generate newline token if enabled
                   (if (and semantic-flex-enable-newlines
@@ -2049,5 +2043,4 @@ return LENGTH tokens."
 ;; generated-autoload-load-name: "semantic/lex"
 ;; End:
 
-;; arch-tag: a47664fc-48d9-4b36-921f-cab0ea8cdf92
 ;;; semantic/lex.el ends here

@@ -1,7 +1,8 @@
 ;;; buff-menu.el --- buffer menu main function and support functions -*- coding:utf-8 -*-
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 2000, 2001, 2002,
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience
@@ -303,9 +304,7 @@ negative ARG, display other buffers as well."
 
 (defun Buffer-menu-buffer (error-if-non-existent-p)
   "Return buffer described by this line of buffer menu."
-  (let* ((where (save-excursion
-		  (beginning-of-line)
-		  (+ (point) Buffer-menu-buffer-column)))
+  (let* ((where (+ (line-beginning-position) Buffer-menu-buffer-column))
 	 (name (and (not (eobp)) (get-text-property where 'buffer-name)))
 	 (buf (and (not (eobp)) (get-text-property where 'buffer))))
     (if name
@@ -924,5 +923,4 @@ For more information, see the function `buffer-menu'."
       (set-buffer-modified-p nil)
       (current-buffer))))
 
-;; arch-tag: e7dfcfc9-6cb2-46e4-bf55-8ef1936d83c6
 ;;; buff-menu.el ends here

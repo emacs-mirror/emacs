@@ -57,23 +57,23 @@
               "149597870691 m (*)")
               ;; (approx) NASA JPL (http://neo.jpl.nasa.gov/glossary/au.html)
     ( lyr     "c yr"                 "Light Year" )
-    ( pc      "3.0856775854*10^16 m" "Parsec" nil
+    ( pc      "3.0856775854*10^16 m" "Parsec  (**)" nil
               "3.0856775854 10^16 m (*)") ;; (approx) ESUWM
     ( nmi     "1852 m"               "Nautical Mile" )
     ( fath    "6 ft"                 "Fathom" )
     ( fur     "660 ft"               "Furlong")
     ( mu      "1 um"                 "Micron" )
     ( mil     "(1/1000) in"          "Mil" )
-    ( point   "(1/72) in"            "Point (1/72 inch)" )
+    ( point   "(1/72) in"            "Point  (PostScript convention)" )
     ( Ang     "10^(-10) m"           "Angstrom" )
     ( mfi     "mi+ft+in"             "Miles + feet + inches" )
     ;; TeX lengths
-    ( texpt   "(100/7227) in"        "Point (TeX conventions)" )
-    ( texpc   "12 texpt"             "Pica" )
-    ( texbp   "point"                "Big point (TeX conventions)" )
-    ( texdd   "(1238/1157) texpt"    "Didot point" )
-    ( texcc   "12 texdd"             "Cicero" )
-    ( texsp   "(1/65536) texpt"      "Scaled TeX point" )
+    ( texpt   "(100/7227) in"        "Point  (TeX convention) (**)" )
+    ( texpc   "12 texpt"             "Pica  (TeX convention) (**)" )
+    ( texbp   "point"                "Big point  (TeX convention) (**)" )
+    ( texdd   "(1238/1157) texpt"    "Didot point  (TeX convention) (**)" )
+    ( texcc   "12 texdd"             "Cicero  (TeX convention) (**)" )
+    ( texsp   "(1/65536) texpt"      "Scaled TeX point (TeX convention) (**)" )
 
     ;; Area
     ( hect    "10000 m^2"            "*Hectare" )
@@ -86,7 +86,7 @@
     ( l       "L"                    "Liter" )
     ( gal     "4 qt"                 "US Gallon" )
     ( qt      "2 pt"                 "Quart" )
-    ( pt      "2 cup"                "Pint" )
+    ( pt      "2 cup"                "Pint (**)" )
     ( cup     "8 ozfl"               "Cup" )
     ( ozfl    "2 tbsp"               "Fluid Ounce" )
     ( floz    "2 tbsp"               "Fluid Ounce" )
@@ -1531,7 +1531,12 @@ If EXPR is nil, return nil."
               (indent-to 15)
               (insert "   " (nth 2 u) "\n")
               (while (eq (car (car (setq uptr (cdr uptr)))) 0)))
-            (insert "\n"))
+            (insert "\n\n")
+            (insert "(**) When in TeX or LaTeX display mode, the TeX specific unit\n"
+                     "names will not use the `tex' prefix; the unit name for a\n"
+                     "TeX point will be `pt' instead of `texpt', for example.\n"
+                     "To avoid conflicts, the unit names for pint and parsec will\n"
+                     "be `pint' and `parsec' instead of `pt' and `pc'."))
 	  (view-mode)
 	  (message "Formatting units table...done"))
 	(setq math-units-table-buffer-valid t)

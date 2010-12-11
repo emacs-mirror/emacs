@@ -39,6 +39,10 @@
     (require 'timer)))
 
 (defvar mm-mime-mule-charset-alist )
+;; Note this is not presently used on Emacs >= 23, which is good,
+;; since it means standalone message-mode (which requires mml and
+;; hence mml-util) does not load gnus-util.
+(autoload 'gnus-completing-read "gnus-util")
 
 ;; Emulate functions that are not available in every (X)Emacs version.
 ;; The name of a function is prefixed with mm-, like `mm-char-int' for
@@ -202,19 +206,10 @@ to the contents of the accessible portion of the buffer."
     (defalias 'mm-decode-coding-region 'decode-coding-region)
     (defalias 'mm-encode-coding-region 'encode-coding-region)))
 
-;; `string-to-multibyte' is available only in Emacs 22.1 or greater.
-(defalias 'mm-string-to-multibyte
-  (cond
-   ((featurep 'xemacs)
-    'identity)
-   ((fboundp 'string-to-multibyte)
-    'string-to-multibyte)
-   (t
-    (lambda (string)
-      "Return a multibyte string with the same individual chars as STRING."
-      (mapconcat
-       (lambda (ch) (mm-string-as-multibyte (char-to-string ch)))
-       string "")))))
+;; `string-to-multibyte' is available only in Emacs.
+(defalias 'mm-string-to-multibyte (if (featurep 'xemacs)
+				      'identity
+				    'string-to-multibyte))
 
 ;; `char-or-char-int-p' is an XEmacs function, not available in Emacs.
 (eval-and-compile
@@ -225,42 +220,43 @@ to the contents of the accessible portion of the buffer."
      (t 'identity))))
 
 ;; `ucs-to-char' is a function that Mule-UCS provides.
-(if (featurep 'xemacs)
-    (cond ((and (fboundp 'unicode-to-char) ;; XEmacs 21.5.
-		(subrp (symbol-function 'unicode-to-char)))
-	   (if (featurep 'mule)
-	       (defalias 'mm-ucs-to-char 'unicode-to-char)
+(eval-and-compile
+  (if (featurep 'xemacs)
+      (cond ((and (fboundp 'unicode-to-char) ;; XEmacs 21.5.
+		  (subrp (symbol-function 'unicode-to-char)))
+	     (if (featurep 'mule)
+		 (defalias 'mm-ucs-to-char 'unicode-to-char)
+	       (defun mm-ucs-to-char (codepoint)
+		 "Convert Unicode codepoint to character."
+		 (or (unicode-to-char codepoint) ?#))))
+	    ((featurep 'mule)
 	     (defun mm-ucs-to-char (codepoint)
 	       "Convert Unicode codepoint to character."
-	       (or (unicode-to-char codepoint) ?#))))
-	  ((featurep 'mule)
-	   (defun mm-ucs-to-char (codepoint)
-	     "Convert Unicode codepoint to character."
-	     (if (fboundp 'ucs-to-char) ;; Mule-UCS is loaded.
-		 (progn
-		   (defalias 'mm-ucs-to-char
-		     (lambda (codepoint)
-		       "Convert Unicode codepoint to character."
-		       (condition-case nil
-			   (or (ucs-to-char codepoint) ?#)
-			 (error ?#))))
-		   (mm-ucs-to-char codepoint))
+	       (if (fboundp 'ucs-to-char) ;; Mule-UCS is loaded.
+		   (progn
+		     (defalias 'mm-ucs-to-char
+		       (lambda (codepoint)
+			 "Convert Unicode codepoint to character."
+			 (condition-case nil
+			     (or (ucs-to-char codepoint) ?#)
+			   (error ?#))))
+		     (mm-ucs-to-char codepoint))
+		 (condition-case nil
+		     (or (int-to-char codepoint) ?#)
+		   (error ?#)))))
+	    (t
+	     (defun mm-ucs-to-char (codepoint)
+	       "Convert Unicode codepoint to character."
 	       (condition-case nil
 		   (or (int-to-char codepoint) ?#)
 		 (error ?#)))))
-	  (t
-	   (defun mm-ucs-to-char (codepoint)
-	     "Convert Unicode codepoint to character."
-	     (condition-case nil
-		 (or (int-to-char codepoint) ?#)
-	       (error ?#)))))
-  (if (let ((char (make-char 'japanese-jisx0208 36 34)))
-	(eq char (decode-char 'ucs char)))
-      ;; Emacs 23.
-      (defalias 'mm-ucs-to-char 'identity)
-    (defun mm-ucs-to-char (codepoint)
-      "Convert Unicode codepoint to character."
-      (or (decode-char 'ucs codepoint) ?#))))
+    (if (let ((char (make-char 'japanese-jisx0208 36 34)))
+	  (eq char (decode-char 'ucs char)))
+	;; Emacs 23.
+	(defalias 'mm-ucs-to-char 'identity)
+      (defun mm-ucs-to-char (codepoint)
+	"Convert Unicode codepoint to character."
+	(or (decode-char 'ucs codepoint) ?#)))))
 
 ;; Fixme:  This seems always to be used to read a MIME charset, so it
 ;; should be re-named and fixed (in Emacs) to offer completion only on
@@ -272,18 +268,19 @@ to the contents of the accessible portion of the buffer."
 ;; Actually, there should be an `mm-coding-system-mime-charset'.
 (eval-and-compile
   (defalias 'mm-read-coding-system
-    (cond
-     ((fboundp 'read-coding-system)
-      (if (and (featurep 'xemacs)
-	       (<= (string-to-number emacs-version) 21.1))
-	  (lambda (prompt &optional default-coding-system)
-	    (read-coding-system prompt))
-	'read-coding-system))
-     (t (lambda (prompt &optional default-coding-system)
-	  "Prompt the user for a coding system."
-	  (gnus-completing-read
-	   prompt (mapcar (lambda (s) (symbol-name (car s)))
-			  mm-mime-mule-charset-alist)))))))
+    (if (featurep 'emacs) 'read-coding-system
+      (cond
+       ((fboundp 'read-coding-system)
+	(if (and (featurep 'xemacs)
+		 (<= (string-to-number emacs-version) 21.1))
+	    (lambda (prompt &optional default-coding-system)
+	      (read-coding-system prompt))
+	  'read-coding-system))
+       (t (lambda (prompt &optional default-coding-system)
+	    "Prompt the user for a coding system."
+	    (gnus-completing-read
+	     prompt (mapcar (lambda (s) (symbol-name (car s)))
+			    mm-mime-mule-charset-alist))))))))
 
 (defvar mm-coding-system-list nil)
 (defun mm-get-coding-system-list ()
@@ -870,6 +867,21 @@ variable is set, it overrides the default priority."
 Setting it to nil is useful on Emacsen supporting Unicode if sending
 mail with multiple parts is preferred to sending a Unicode one.")
 
+(defvar mm-extra-numeric-entities
+  (mapcar
+   (lambda (item)
+     (cons (car item) (mm-ucs-to-char (cdr item))))
+   '((#x80 . #x20AC) (#x82 . #x201A) (#x83 . #x0192) (#x84 . #x201E)
+     (#x85 . #x2026) (#x86 . #x2020) (#x87 . #x2021) (#x88 . #x02C6)
+     (#x89 . #x2030) (#x8A . #x0160) (#x8B . #x2039) (#x8C . #x0152)
+     (#x8E . #x017D) (#x91 . #x2018) (#x92 . #x2019) (#x93 . #x201C)
+     (#x94 . #x201D) (#x95 . #x2022) (#x96 . #x2013) (#x97 . #x2014)
+     (#x98 . #x02DC) (#x99 . #x2122) (#x9A . #x0161) (#x9B . #x203A)
+     (#x9C . #x0153) (#x9E . #x017E) (#x9F . #x0178)))
+  "*Alist of extra numeric entities and characters other than ISO 10646.
+This table is used for decoding extra numeric entities to characters,
+like \"&#128;\" to the euro sign, mainly in html messages.")
+
 ;;; Internal variables:
 
 ;;; Functions:
@@ -907,7 +919,7 @@ mail with multiple parts is preferred to sending a Unicode one.")
       "Set the multibyte flag of the current buffer.
 Only do this if the default value of `enable-multibyte-characters' is
 non-nil.  This is a no-op in XEmacs."
-      (set-buffer-multibyte t)))
+      (set-buffer-multibyte 'to)))
 
   (if (featurep 'xemacs)
       (defalias 'mm-disable-multibyte 'ignore)
@@ -978,6 +990,7 @@ If the charset is `composition', return the actual one."
     ;; This is for XEmacs.
     (mm-mule-charset-to-mime-charset charset)))
 
+;; `delete-dups' is not available in XEmacs 21.4.
 (if (fboundp 'delete-dups)
     (defalias 'mm-delete-duplicates 'delete-dups)
   (defun mm-delete-duplicates (list)

@@ -412,13 +412,27 @@ dnl quotation begins
 machine='' opsys='' unported=no
 case "${canonical}" in
 
+  ## GNU/Linux ports
+  *-*-linux-gnu*)
+    opsys=gnu-linux
+    case ${canonical} in
+      alpha*)	machine=alpha ;;
+      s390-*)	machine=ibms390 ;;
+      s390x-*)	machine=ibms390x ;;
+      powerpc*)	machine=macppc ;;
+      sparc*)	machine=sparc ;;
+      ia64*)	machine=ia64 ;;
+      m68k*)	machine=m68k ;;
+      x86_64*)	machine=amdx86-64 ;;
+    esac
+  ;;
+
   ## FreeBSD ports
   *-*-freebsd* )
     opsys=freebsd
     case "${canonical}" in
       alpha*)           machine=alpha ;;
       amd64-*|x86_64-*) machine=amdx86-64 ;;
-      arm*)             machine=arm ;;
       ia64-*)           machine=ia64 ;;
       i[3456]86-*)      machine=intel386 ;;
       powerpc-*)        machine=macppc ;;
@@ -447,13 +461,9 @@ case "${canonical}" in
     case "${canonical}" in
       alpha*)      machine=alpha ;;
       x86_64-*)    machine=amdx86-64 ;;
-      arm-*)       machine=arm ;;
-      hppa-*)      machine=hp800 ;;
       i[3456]86-*) machine=intel386 ;;
       m68k-*)      machine=m68k ;;
       powerpc-*)   machine=macppc ;;
-      mips-*)      machine=mips ;;
-      mipse[bl]-*) machine=mips ;;
       sparc*-)     machine=sparc ;;
       vax-*)       machine=vax ;;
     esac
@@ -465,21 +475,11 @@ case "${canonical}" in
     case "${canonical}" in
       alpha*)    machine=alpha ;;
       x86_64-*)  machine=amdx86-64 ;;
-      arm-*)     machine=arm ;;
-      hppa-*)    machine=hp800 ;;
       i386-*)    machine=intel386 ;;
       powerpc-*) machine=macppc ;;
       sparc*)    machine=sparc ;;
       vax-*)     machine=vax ;;
     esac
-  ;;
-
-  alpha*-*-linux-gnu* )
-    machine=alpha opsys=gnu-linux
-  ;;
-
-  arm*-*-linux-gnu* )
-    machine=arm opsys=gnu-linux
   ;;
 
   ## Apple Darwin / Mac OS X
@@ -503,24 +503,14 @@ case "${canonical}" in
 
   ## HP 9000 series 700 and 800, running HP/UX
   hppa*-hp-hpux10.2* )
-    machine=hp800 opsys=hpux10-20
+    opsys=hpux10-20
   ;;
   hppa*-hp-hpux1[1-9]* )
-    machine=hp800 opsys=hpux11
+    opsys=hpux11
     CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
   ;;
 
-  hppa*-*-linux-gnu* )
-    machine=hp800 opsys=gnu-linux
-  ;;
-
   ## IBM machines
-  s390-*-linux-gnu* )
-    machine=ibms390 opsys=gnu-linux
-  ;;
-  s390x-*-linux-gnu* )
-    machine=ibms390x opsys=gnu-linux
-  ;;
   rs6000-ibm-aix4.[23]* )
     machine=ibmrs6000 opsys=aix4-2
   ;;
@@ -532,11 +522,6 @@ case "${canonical}" in
   ;;
   powerpc-ibm-aix[56]*  )
     machine=ibmrs6000 opsys=aix4-2
-  ;;
-
-  ## Macintosh PowerPC
-  powerpc*-*-linux-gnu* )
-    machine=macppc opsys=gnu-linux
   ;;
 
   ## Silicon Graphics machines
@@ -551,10 +536,6 @@ case "${canonical}" in
   ;;
 
   ## Suns
-  sparc-*-linux-gnu* | sparc64-*-linux-gnu* )
-    machine=sparc opsys=gnu-linux
-  ;;
-
   *-sun-solaris* \
     | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* \
     | x86_64-*-solaris2*    | x86_64-*-sunos5*)
@@ -594,11 +575,6 @@ case "${canonical}" in
     esac
   ;;
 
-  ## IA-64
-  ia64*-*-linux* )
-    machine=ia64 opsys=gnu-linux
-  ;;
-
   ## Intel 386 machines where we don't care about the manufacturer.
   i[3456]86-*-* )
     machine=intel386
@@ -607,38 +583,11 @@ case "${canonical}" in
       *-darwin* )               opsys=darwin
                                 CPP="${CC-cc} -E -no-cpp-precomp"
  				;;
-      *-linux-gnu* )		opsys=gnu-linux ;;
       *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-sysv5uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-sysv5OpenUNIX* )  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
-  ;;
-
-  ## m68k Linux-based GNU system
-  m68k-*-linux-gnu* )
-    machine=m68k opsys=gnu-linux
-  ;;
-
-  ## Mips Linux-based GNU system
-  mips-*-linux-gnu* | mipsel-*-linux-gnu* \
-    | mips64-*-linux-gnu* | mips64el-*-linux-gnu* )
-    machine=mips opsys=gnu-linux
-  ;;
-
-  ## AMD x86-64 Linux-based GNU system
-  x86_64-*-linux-gnu* )
-    machine=amdx86-64 opsys=gnu-linux
-  ;;
-
-  ## Tensilica Xtensa Linux-based GNU system
-  xtensa*-*-linux-gnu* )
-    machine=xtensa opsys=gnu-linux
-    ;;
-
-  ## SuperH Linux-based GNU system
-  sh[34]*-*-linux-gnu* )
-    machine=sh3 opsys=gnu-linux
   ;;
 
   * )
@@ -669,7 +618,11 @@ if test $unported = yes; then
 Check `etc/MACHINES' for recognized configuration names.])
 fi
 
-machfile="m/${machine}.h"
+if test -n "$machine"; then
+  machfile="m/${machine}.h"
+else
+  machfile=
+fi
 opsysfile="s/${opsys}.h"
 
 
@@ -869,7 +822,7 @@ else
 fi
 
 AC_MSG_CHECKING([for -znocombreloc])
-AC_LINK_IFELSE([main(){return 0;}],
+AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
   [AC_MSG_RESULT(yes)],
   LDFLAGS=$late_LDFLAGS
   [AC_MSG_RESULT(no)])
@@ -936,7 +889,7 @@ case "$opsys" in
 
   gnu-linux)
    ## cpp test was "ifdef __mips__", but presumably this is equivalent...
-   test "$machine" = "mips" && LD_SWITCH_SYSTEM="-G 0"
+   case $host_cpu in mips*) LD_SWITCH_SYSTEM="-G 0";; esac
    ;;
 
   netbsd)
@@ -1218,10 +1171,10 @@ if test "${with_sound}" != "no"; then
 fi
 
 dnl checks for header files
-AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
-  linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
-  stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
-  sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
+AC_CHECK_HEADERS(sys/select.h sys/time.h unistd.h utime.h \
+  linux/version.h sys/systeminfo.h limits.h \
+  stdio_ext.h fcntl.h coff.h pty.h sys/mman.h \
+  sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
   sys/utsname.h pwd.h utmp.h dirent.h util.h)
 
 AC_MSG_CHECKING(if personality LINUX32 can be set)
@@ -1498,7 +1451,7 @@ if test "${with_ns}" != no; then
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=${ns_appdir}
+     ns_appbindir=${ns_appdir}/
      ns_appresdir=${ns_appdir}/Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
      dnl FIXME sourcing this several times in subshells seems inefficient.
@@ -1982,6 +1935,8 @@ if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
    PKG_CHECK_MODULES(GCONF, gconf-2.0 >= 2.13, HAVE_GCONF=yes, HAVE_GCONF=no)
    if test "$HAVE_GCONF" = yes; then
       AC_DEFINE(HAVE_GCONF, 1, [Define to 1 if using GConf.])
+      dnl Newer GConf doesn't link with g_objects, so this is not defined.
+      AC_CHECK_FUNCS([g_type_init])
    fi
 fi
 
@@ -2095,8 +2050,8 @@ AC_SUBST(LIBXTR6)
 dnl FIXME the logic here seems weird, but this is what cpp was doing.
 dnl Why not just test for libxmu in the normal way?
 LIBXMU=-lXmu
-case "$machine" in
-  ## These machines don't supply Xmu.
+case $opsys in
+  ## These systems don't supply Xmu.
   hpux* | aix4-2 )
     test "X$ac_cv_lib_Xmu_XmuConvertStandardSelection" != "Xyes" && LIBXMU=
     ;;
@@ -2952,14 +2907,6 @@ AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
 [if test x$ac_cv_func_tzset = xyes; then
 AC_TRY_RUN([#include <time.h>
-extern char **environ;
-unset_TZ ()
-{
-  char **from, **to;
-  for (to = from = environ; (*to = *from); from++)
-    if (! (to[0][0] == 'T' && to[0][1] == 'Z' && to[0][2] == '='))
-      to++;
-}
 char TZ_GMT0[] = "TZ=GMT0";
 char TZ_PST8[] = "TZ=PST8";
 main()
@@ -2969,13 +2916,13 @@ main()
   if (putenv (TZ_GMT0) != 0)
     exit (1);
   hour_GMT0 = localtime (&now)->tm_hour;
-  unset_TZ ();
+  unsetenv("TZ");
   hour_unset = localtime (&now)->tm_hour;
   if (putenv (TZ_PST8) != 0)
     exit (1);
   if (localtime (&now)->tm_hour == hour_GMT0)
     exit (1);
-  unset_TZ ();
+  unsetenv("TZ");
   if (localtime (&now)->tm_hour != hour_unset)
     exit (1);
   exit (0);
@@ -3033,8 +2980,6 @@ dnl Fixme: Not used.  Should this be HAVE_SOCKETS?
   AC_DEFINE(HAVE_INET_SOCKETS, 1,
 	    [Define to 1 if you have inet sockets.])
 fi
-
-AC_CHECK_HEADERS(sys/ioctl.h)
 
 if test -f /usr/lpp/X11/bin/smt.exp; then
   AC_DEFINE(HAVE_AIX_SMT_EXP, 1,
@@ -3163,8 +3108,14 @@ AC_SUBST(C_SWITCH_X_SYSTEM)
 AC_SUBST(CFLAGS)
 ## Used in lwlib/Makefile.in.
 AC_SUBST(X_TOOLKIT_TYPE)
-AC_SUBST(machfile)
-AC_SUBST(opsysfile)
+if test -n "${machfile}"; then
+  M_FILE="\$(srcdir)/${machfile}"
+else
+  M_FILE=
+fi
+S_FILE="\$(srcdir)/${opsysfile}"
+AC_SUBST(M_FILE)
+AC_SUBST(S_FILE)
 AC_SUBST(GETLOADAVG_LIBS)
 AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
@@ -3177,8 +3128,10 @@ AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}",
 		   [Define to the options passed to configure.])
-AC_DEFINE_UNQUOTED(config_machfile,  "${machfile}",
-		   [Define to the used machine dependent file.])
+if test -n "$machfile"; then
+  AC_DEFINE_UNQUOTED(config_machfile,  "${machfile}",
+		     [Define to the used machine dependent file.])
+fi
 AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}",
 		   [Define to the used os dependent file.])
 
@@ -3442,16 +3395,18 @@ if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
     gnu-*)
       ## armin76@gentoo.org reported that the lgcc_s flag is necessary to
       ## build on ARM EABI under GNU/Linux.  (Bug#5518)
-      ## Note that m/arm.h never bothered to undefine LIB_GCC first.
-      if test "$machine" = "arm"; then
+      case $host_cpu in
+      arm*)
         LIB_GCC="-lgcc_s"
-      else
+	;;
+      *)
         ## FIXME? s/gnu-linux.h used to define LIB_GCC as below, then
         ## immediately undefine it again and redefine it to empty.
         ## Was the C_SWITCH_X_SITE part really necessary?
 ##      LIB_GCC=`$CC $C_SWITCH_X_SITE -print-libgcc-file-name`
         LIB_GCC=
-      fi
+	;;
+      esac
       ;;
 
     ## Ask GCC where to find libgcc.a.
@@ -3517,7 +3472,7 @@ AH_BOTTOM([
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
-#if defined (__GNUC__) && defined (OPTIMIZE)
+#if defined (__GNUC__)
 #define INLINE __inline__
 #else
 #define INLINE
@@ -3533,7 +3488,9 @@ AH_BOTTOM([
 
 /* Include the os and machine dependent files.  */
 #include config_opsysfile
-#include config_machfile
+#ifdef config_machfile
+# include config_machfile
+#endif
 
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
@@ -3641,6 +3598,12 @@ typedef unsigned size_t;
 #define NO_INLINE
 #endif
 
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+#define EXTERNALLY_VISIBLE __attribute__((externally_visible))
+#else
+#define EXTERNALLY_VISIBLE
+#endif
+
 /* Some versions of GNU/Linux define noinline in their headers.  */
 #ifdef noinline
 #undef noinline
@@ -3680,7 +3643,7 @@ Configured for \`${canonical}'.
 
   Where should the build process find the source code?    ${srcdir}
   What operating system and machine description files should Emacs use?
-        \`${opsysfile}' and \`${machfile}'
+        \`${opsysfile}'${machfile:+ and \`${machfile}'}
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}
@@ -3712,7 +3675,7 @@ echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
-echo "  Does Emacs use -lgnutls (BROKEN)?                       ${HAVE_GNUTLS}"
+echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
@@ -3743,11 +3706,6 @@ You may need to run \"make install\" with sudo.  The application will fail
 to run if these resources are not installed."
    fi
    echo
-fi
-
-if test "$HAVE_DBUS" = yes && test "${opsys}" != "gnu-linux"; then
-  echo "D-Bus integration has been tested for GNU/Linux only."
-  echo
 fi
 
 

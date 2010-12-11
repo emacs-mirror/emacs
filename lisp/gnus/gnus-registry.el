@@ -551,8 +551,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 			    key
 			    gnus-registry-max-track-groups)))
 	       (dolist (group groups)
-		 (push group found-full)
-		 (setq found (append (list group) (delete group found)))))
+		 (when (and group (gnus-registry-follow-group-p group))
+		   (push group found-full)
+		   (setq found (append (list group) (delete group found))))))
 	     (push key matches)
 	     (gnus-message
 	      ;; raise level of messaging if gnus-registry-track-extra
@@ -580,8 +581,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 			    key
 			    gnus-registry-max-track-groups)))
 	       (dolist (group groups)
-		 (push group found-full)
-		 (setq found (append (list group) (delete group found)))))
+		 (when (and group (gnus-registry-follow-group-p group))
+		   (push group found-full)
+		   (setq found (append (list group) (delete group found))))))
 	     (push key matches)
 	     (gnus-message
 	      ;; raise level of messaging if gnus-registry-track-extra

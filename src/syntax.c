@@ -371,23 +371,10 @@ char_quoted (EMACS_INT charpos, EMACS_INT bytepos)
   return quoted;
 }
 
-/* Return the bytepos one character after BYTEPOS.
-   We assume that BYTEPOS is not at the end of the buffer.  */
-
-INLINE EMACS_INT
-inc_bytepos (EMACS_INT bytepos)
-{
-  if (NILP (current_buffer->enable_multibyte_characters))
-    return bytepos + 1;
-
-  INC_POS (bytepos);
-  return bytepos;
-}
-
 /* Return the bytepos one character before BYTEPOS.
    We assume that BYTEPOS is not at the start of the buffer.  */
 
-INLINE EMACS_INT
+static INLINE EMACS_INT
 dec_bytepos (EMACS_INT bytepos)
 {
   if (NILP (current_buffer->enable_multibyte_characters))

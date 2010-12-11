@@ -1049,10 +1049,6 @@ free_image (struct frame *f, struct image *img)
       /* Free resources, then free IMG.  */
       img->type->free (f, img);
       xfree (img);
-
-      /* As display glyphs may still be referring to the image ID, we
-	 must garbage the frame (Bug#6426).  */
-      SET_FRAME_GARBAGED (f);
     }
 }
 
@@ -1471,7 +1467,12 @@ uncache_image (struct frame *f, Lisp_Object spec)
 {
   struct image *img = search_image_cache (f, spec, sxhash (spec, 0));
   if (img)
-    free_image (f, img);
+    {
+      free_image (f, img);
+      /* As display glyphs may still be referring to the image ID, we
+	 must garbage the frame (Bug#6426).  */
+      SET_FRAME_GARBAGED (f);
+    }
 }
 
 
@@ -7096,12 +7097,15 @@ gif_read_from_memory (GifFileType *file, GifByteType *buf, int len)
 static const int interlace_start[] = {0, 4, 2, 1};
 static const int interlace_increment[] = {8, 8, 4, 2};
 
+#define GIF_LOCAL_DESCRIPTOR_EXTENSION 249
+
 static int
 gif_load (struct frame *f, struct image *img)
 {
   Lisp_Object file, specified_file;
   Lisp_Object specified_data;
   int rc, width, height, x, y, i;
+  boolean transparent_p;
   XImagePtr ximg;
   ColorMapObject *gif_color_map;
   unsigned long pixel_colors[256];
@@ -7110,6 +7114,7 @@ gif_load (struct frame *f, struct image *img)
   int ino, image_height, image_width;
   gif_memory_source memsrc;
   unsigned char *raster;
+  unsigned int transparency_color_index;
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
@@ -7182,6 +7187,18 @@ gif_load (struct frame *f, struct image *img)
       return 0;
     }
 
+  for (i = 0; i < gif->SavedImages[ino].ExtensionBlockCount; i++)
+    if ((gif->SavedImages[ino].ExtensionBlocks[i].Function
+	 == GIF_LOCAL_DESCRIPTOR_EXTENSION)
+	&& gif->SavedImages[ino].ExtensionBlocks[i].ByteCount == 4
+	/* Transparency enabled?  */
+	&& gif->SavedImages[ino].ExtensionBlocks[i].Bytes[0] & 1)
+      {
+	transparent_p = 1;
+	transparency_color_index
+	  = (unsigned char) gif->SavedImages[ino].ExtensionBlocks[i].Bytes[3];
+      }
+
   img->corners[TOP_CORNER] = gif->SavedImages[ino].ImageDesc.Top;
   img->corners[LEFT_CORNER] = gif->SavedImages[ino].ImageDesc.Left;
   image_height = gif->SavedImages[ino].ImageDesc.Height;
@@ -7220,10 +7237,22 @@ gif_load (struct frame *f, struct image *img)
   if (gif_color_map)
     for (i = 0; i < gif_color_map->ColorCount; ++i)
       {
-        int r = gif_color_map->Colors[i].Red << 8;
-        int g = gif_color_map->Colors[i].Green << 8;
-        int b = gif_color_map->Colors[i].Blue << 8;
-        pixel_colors[i] = lookup_rgb_color (f, r, g, b);
+	if (transparent_p && transparency_color_index == i)
+	  {
+	    Lisp_Object specified_bg
+	      = image_spec_value (img->spec, QCbackground, NULL);
+	    pixel_colors[i] = STRINGP (specified_bg)
+	      ? x_alloc_image_color (f, img, specified_bg,
+				     FRAME_BACKGROUND_PIXEL (f))
+	      : FRAME_BACKGROUND_PIXEL (f);
+	  }
+	else
+	  {
+	    int r = gif_color_map->Colors[i].Red << 8;
+	    int g = gif_color_map->Colors[i].Green << 8;
+	    int b = gif_color_map->Colors[i].Blue << 8;
+	    pixel_colors[i] = lookup_rgb_color (f, r, g, b);
+	  }
       }
 
 #ifdef COLOR_TABLE_SUPPORT

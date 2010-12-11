@@ -671,7 +671,7 @@ Used by `pages-directory' function."
       (setq position (make-marker))
       (set-marker position (point))
       (let ((start (point))
-            (end (save-excursion (end-of-line) (point)))
+            (end (line-end-position))
 	    inserted-at)
         ;; change to directory buffer
         (set-buffer standard-output)
@@ -783,7 +783,7 @@ directory."
             (delete-other-windows))
         (save-excursion
           (goto-char (point-min))
-          (delete-region (point) (save-excursion (end-of-line) (point)))
+          (delete-region (point) (line-end-position))
           (insert
            "=== Address List Directory: use `C-c C-c' to go to page under cursor. ===")
           (set-buffer-modified-p nil)
@@ -801,5 +801,4 @@ to the same line in the pages buffer."
 
 (provide 'page-ext)
 
-;; arch-tag: 2f311550-c6e0-4458-9c12-7f039c058bdb
 ;;; page-ext.el ends here

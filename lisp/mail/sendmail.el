@@ -383,15 +383,8 @@ The default value matches citations like `foo-bar>' plus whitespace."
     map))
 
 (autoload 'build-mail-aliases "mailalias"
-  "Read mail aliases from user's personal aliases file and set `mail-aliases'."
-  nil)
-
-(autoload 'expand-mail-aliases "mailalias"
-  "Expand all mail aliases in suitable header fields found between BEG and END.
-Suitable header fields are `To', `Cc' and `Bcc' and their `Resent-' variants.
-Optional second arg EXCLUDE may be a regular expression defining text to be
-removed from alias expansions."
-  nil)
+  "Read mail aliases from personal aliases file and set `mail-aliases'.
+By default, this is the file specified by `mail-personal-alias-file'.")
 
 ;;;###autoload
 (defcustom mail-signature t
@@ -718,7 +711,7 @@ Leave point at the start of the delimiter line."
   "Carry out Auto Fill for Mail mode.
 If within the headers, this makes the new lines into continuation lines."
   (if (< (point) (mail-header-end))
-      (let ((old-line-start (save-excursion (beginning-of-line) (point))))
+      (let ((old-line-start (line-beginning-position)))
 	(if (do-auto-fill)
 	    (save-excursion
 	      (beginning-of-line)
@@ -1149,8 +1142,7 @@ external program defined by `sendmail-program'."
 		   ;; should override any specified in the message itself.
 		     (when where-content-type
 		       (goto-char where-content-type)
-		       (beginning-of-line)
-		       (delete-region (point)
+		       (delete-region (point-at-bol)
 				      (progn (forward-line 1) (point)))))))
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
@@ -1955,5 +1947,4 @@ you can move to one of them and type C-c C-c to recover that one."
 
 (provide 'sendmail)
 
-;; arch-tag: 48bc1025-d993-4d31-8d81-2a29491f0626
 ;;; sendmail.el ends here

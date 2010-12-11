@@ -45,7 +45,7 @@
     ("white"         15 65535 65535 65535))
 "A list of VGA console colors, their indices and 16-bit RGB values.")
 
-(declare-function x-setup-function-keys "w32-fns" (frame))
+(declare-function x-setup-function-keys "term/common-win" (frame))
 
 (defun terminal-init-w32console ()
   "Terminal initialization function for w32 console."
@@ -62,4 +62,4 @@
   (tty-set-up-initial-frame-faces)
   (run-hooks 'terminal-init-w32-hook))
 
-;; arch-tag: 3195fd5e-ab86-4a46-b1dc-4f7a8c8deff3
+;;; w32console.el ends here

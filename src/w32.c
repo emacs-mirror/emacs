@@ -38,9 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* must include CRT headers *before* config.h */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #undef access
 #undef chdir
@@ -97,7 +95,7 @@ typedef struct _MEMORY_STATUS_EX {
 #include <w32api.h>
 #if !defined(__MINGW32__) || __W32API_MAJOR_VERSION < 3 || (__W32API_MAJOR_VERSION == 3 && __W32API_MINOR_VERSION < 15)
 /* This either is not in psapi.h or guarded by higher value of
-   _WIN32_WINNT than what we use.  w32api suplied with MinGW 3.15
+   _WIN32_WINNT than what we use.  w32api supplied with MinGW 3.15
    defines it in psapi.h  */
 typedef struct _PROCESS_MEMORY_COUNTERS_EX {
   DWORD cb;
@@ -6086,5 +6084,3 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
 
 /* end of w32.c */
 
-/* arch-tag: 90442dd3-37be-482b-b272-ac752e3049f1
-   (do not change this comment) */

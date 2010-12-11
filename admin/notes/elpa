@@ -1,0 +1,42 @@
+NOTES ON THE EMACS PACKAGE ARCHIVE
+
+Here are instructions on uploading files to the package archive at
+elpa.gnu.org, for Emacs maintainers.  (If you are not a maintainer,
+contact us if you want to submit a package.)
+
+1. You will need login access to elpa.gnu.org.  You will also need to
+   get the FSF sysadmins to allow ssh access through the FSF firewall
+   for your local machine.  Ensure that your uid, USER, is in the
+   `elpa' group on elpa.gnu.org; this gives you write access to the
+   bzr repository from which the packages are managed.
+
+2. Go to your bzr repository on your local machine.  Of, if you don't
+   have one (you should, if you're tracking Emacs bzr), make one:
+
+     cd $DEVHOME
+     bzr init-repo elpa/
+     cd elpa
+
+   Create a branch for elpa:
+
+     bzr branch bzr+ssh://USER@elpa.gnu.org/home/elpa/package-repo package-repo
+
+   Bind the branch:
+
+     cd package-repo/
+     echo "public_branch = bzr+ssh://USER@elpa.gnu.org/home/elpa/package-repo" >> .bzr/branch/branch.conf
+     bzr bind bzr+ssh://USER@elpa.gnu.org/home/elpa/package-repo
+
+   Now you should be able to do `bzr up' and `bzr commit'.
+
+3. Changes in bzr do not immediately propagate to the user-facing tree
+   (i.e., what users see when they do `M-x list-packages').  That tree
+   is created by a (daily) cron job that does "bzr export".  If for
+   some reason you need to refresh the user-facing tree immediately,
+   run /home/elpa/bin/package-update.sh as the "elpa" user.
+
+   The Org mode dailies are not part of the repository.  After the
+   package-update.sh script creates the user-facing tree, it copies
+   the daily tarfile hosted on orgmode.org directly into that tree.
+
+4. FIXME: How to actually upload a package file.

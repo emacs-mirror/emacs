@@ -748,7 +748,7 @@ VALUES may contain values for editable fields from current article."
     (define-key map [(e)] 'mairix-select-edit)
     (define-key map [(d)] 'mairix-select-delete)
     (define-key map [(s)] 'mairix-select-save)
-    (setq mairix-searches-mode-map map))
+    map)
   "'mairix-searches-mode' keymap.")
 
 (defvar mairix-searches-mode-font-lock-keywords)

@@ -298,8 +298,7 @@ buffer in your bug report.
 	(setq buffer-read-only nil)
 	(goto-char (point-min))
 	(while (not (eobp))
-	  (if (re-search-forward
-	       tramp-buf-regexp (tramp-compat-line-end-position) t)
+	  (if (re-search-forward tramp-buf-regexp (point-at-eol) t)
 	      (forward-line 1)
 	    (forward-line 0)
 	    (let ((start (point)))
@@ -364,13 +363,5 @@ please ensure that the buffers are attached to your email.\n\n")
 ;;   flavor)  (Reiner Steib)
 ;; * Let the user edit the connection properties interactively.
 ;;   Something like `gnus-server-edit-server' in Gnus' *Server* buffer.
-;; * It's just that when I come to Customize `tramp-default-user-alist'
-;;   I'm presented with a mismatch and raw lisp for a value.  It is my
-;;   understanding that a variable declared with defcustom is a User
-;;   Option and should not be modified by the code.  add-to-list is
-;;   called in several places. One way to handle that is to have a new
-;;   ordinary variable that gets its initial value from
-;;   tramp-default-user-alist and then is added to.  (Pete Forman)
 
-;; arch-tag: 190d4c33-76bb-4e99-8b6f-71741f23d98c
 ;;; tramp-cmds.el ends here

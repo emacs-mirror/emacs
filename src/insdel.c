@@ -73,9 +73,6 @@ Lisp_Object combine_after_change_list;
 Lisp_Object combine_after_change_buffer;
 
 Lisp_Object Qinhibit_modification_hooks;
-
-extern Lisp_Object Vselect_active_regions, Vsaved_region_selection, Qonly;
-
 
 /* Check all markers in the current buffer, looking for something invalid.  */
 
@@ -2051,6 +2048,7 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
 
   /* If `select-active-regions' is non-nil, save the region text.  */
   if (!NILP (current_buffer->mark_active)
+      && !inhibit_modification_hooks
       && XMARKER (current_buffer->mark)->buffer
       && NILP (Vsaved_region_selection)
       && (EQ (Vselect_active_regions, Qonly)
@@ -2394,5 +2392,3 @@ as well as hooks attached to text properties and overlays.  */);
   defsubr (&Scombine_after_change_execute);
 }
 
-/* arch-tag: 9b34b886-47d7-465e-a234-299af411b23d
-   (do not change this comment) */

@@ -19,22 +19,12 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include <stdio.h>
-
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifndef O_RDONLY
-#define O_RDONLY 0
 #endif
 
 /* Break string in two parts to avoid buggy C compilers that ignore characters
@@ -55,7 +45,7 @@ int
 cool_read (int fd, char *buf, size_t size)
 {
   ssize_t num;
-  size_t sofar = 0;
+  ssize_t sofar = 0;
 
   while (1)
     {

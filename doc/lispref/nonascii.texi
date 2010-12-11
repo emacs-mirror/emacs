@@ -199,6 +199,13 @@ unibyte string, it is returned unchanged.  Use this function for
 characters.
 @end defun
 
+@defun byte-to-string byte
+@cindex byte to string
+This function returns a unibyte string containing a single byte of
+character data, @var{character}.  It signals a error if
+@var{character} is not an integer between 0 and 255.
+@end defun
+
 @defun multibyte-char-to-unibyte char
 This converts the multibyte character @var{char} to a unibyte
 character, and returns that character.  If @var{char} is neither

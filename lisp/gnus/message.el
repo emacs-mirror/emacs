@@ -161,7 +161,7 @@ If this variable is nil, no such courtesy message will be added."
   :type 'regexp)
 
 (defcustom message-from-style mail-from-style
-  "*Specifies how \"From\" headers look.
+  "Specifies how \"From\" headers look.
 
 If nil, they contain just the return address like:
 	king@grassland.com
@@ -277,7 +277,7 @@ This is a list of regexps and regexp matches."
 		 regexp))
 
 (defcustom message-ignored-mail-headers
-  "^[GF]cc:\\|^Resent-Fcc:\\|^Xref:\\|^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:"
+  "^\\([GF]cc\\|Resent-Fcc\\|Xref\\|X-Draft-From\\|X-Gnus-Agent-Meta-Information\\):"
   "*Regexp of headers to be removed unconditionally before mailing."
   :group 'message-mail
   :group 'message-headers
@@ -306,7 +306,7 @@ any confusion."
 
 ;;; Start of variables adopted from `message-utils.el'.
 
-(defcustom message-subject-trailing-was-query 'ask
+(defcustom message-subject-trailing-was-query t
   "*What to do with trailing \"(was: <old subject>)\" in subject lines.
 If nil, leave the subject unchanged.  If it is the symbol `ask', query
 the user what do do.  In this case, the subject is matched against
@@ -314,7 +314,7 @@ the user what do do.  In this case, the subject is matched against
 `message-subject-trailing-was-query' is t, always strip the trailing
 old subject.  In this case, `message-subject-trailing-was-regexp' is
 used."
-  :version "22.1"
+  :version "24.1"
   :type '(choice (const :tag "never" nil)
 		 (const :tag "always strip" t)
 		 (const ask))
@@ -322,7 +322,7 @@ used."
   :group 'message-various)
 
 (defcustom message-subject-trailing-was-ask-regexp
-  "[ \t]*\\([[(]+[Ww][Aa][Ss][ \t]*.*[\])]+\\)"
+  "[ \t]*\\([[(]+[Ww][Aa][Ss]:?[ \t]*.*[])]+\\)"
   "*Regexp matching \"(was: <old subject>)\" in the subject line.
 
 The function `message-strip-subject-trailing-was' uses this regexp if
@@ -507,14 +507,9 @@ This is used by `message-kill-buffer'."
   :group 'message-buffers
   :type 'boolean)
 
-(defvar gnus-local-organization)
 (defcustom message-user-organization
-  (or (and (boundp 'gnus-local-organization)
-	   (stringp gnus-local-organization)
-	   gnus-local-organization)
-      (getenv "ORGANIZATION")
-      t)
-  "*String to be used as an Organization header.
+  (or (getenv "ORGANIZATION") t)
+  "String to be used as an Organization header.
 If t, use `message-user-organization-file'."
   :group 'message-headers
   :type '(choice string
@@ -1139,13 +1134,17 @@ It is a vector of the following headers:
   :error "All header lines must be newline terminated")
 
 (defcustom message-default-headers ""
-  "*A string containing header lines to be inserted in outgoing messages.
-It is inserted before you edit the message, so you can edit or delete
-these lines."
+  "Header lines to be inserted in outgoing messages.
+This can be set to a string containing or a function returning
+header lines to be inserted before you edit the message, so you
+can edit or delete these lines.  If set to a function, it is
+called and its result is inserted."
   :version "23.2"
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
-  :type 'message-header-lines)
+  :type '(choice
+          (message-header-lines :tag "String")
+          (function :tag "Function")))
 
 (defcustom message-default-mail-headers
   ;; Ease the transition from mail-mode to message-mode.  See bugs#4431, 5555.
@@ -2639,7 +2638,6 @@ PGG manual, depending on the value of `mml2015-use'."
 
   (define-key message-mode-map "\C-a" 'message-beginning-of-line)
   (define-key message-mode-map "\t" 'message-tab)
-  (define-key message-mode-map "\M-;" 'comment-region)
 
   (define-key message-mode-map "\M-n" 'message-display-abbrev))
 
@@ -2916,6 +2914,7 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
 	  (mail-aliases-setup))))
    ((message-mail-alias-type-p 'ecomplete)
     (ecomplete-setup)))
+  (add-hook 'completion-at-point-functions 'message-completion-function nil t)
   (unless buffer-file-name
     (message-set-auto-save-file-name))
   (unless (buffer-base-buffer)
@@ -3044,10 +3043,22 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (interactive)
   (message-position-on-field "Summary" "Subject"))
 
-(defun message-goto-body (&optional interactivep)
+(eval-when-compile
+  (defmacro message-called-interactively-p (kind)
+    (condition-case nil
+	(progn
+	  (eval '(called-interactively-p 'any))
+	  ;; Emacs >=23.2
+	  `(called-interactively-p ,kind))
+      ;; Emacs <23.2
+      (wrong-number-of-arguments '(called-interactively-p))
+      ;; XEmacs
+      (void-function '(interactive-p)))))
+
+(defun message-goto-body ()
   "Move point to the beginning of the message body."
-  (interactive (list t))
-  (when (and interactivep
+  (interactive)
+  (when (and (message-called-interactively-p 'any)
 	     (looking-at "[ \t]*\n"))
     (expand-abbrev))
   (goto-char (point-min))
@@ -3056,7 +3067,7 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
 
 (defun message-in-body-p ()
   "Return t if point is in the message body."
-  (let ((body (save-excursion (message-goto-body) (point))))
+  (let ((body (save-excursion (message-goto-body))))
     (>= (point) body)))
 
 (defun message-goto-eoh ()
@@ -4206,7 +4217,7 @@ conformance."
 		 (?r ,(format
 		       "Replace non-printable characters with \"%s\" and send"
 		       message-replacement-char))
-		 (?i "Ignore non-printable characters and send")
+		 (?s "Send as is without removing anything")
 		 (?e "Continue editing"))))
 	(if (eq choice ?e)
 	  (error "Non-printable characters"))
@@ -4479,6 +4490,8 @@ This function could be useful in `message-setup-hook'."
 	      (save-restriction
 		(message-narrow-to-headers)
 		(and news
+		     (not (message-fetch-field "List-Post"))
+		     (not (message-fetch-field "List-ID"))
 		     (or (message-fetch-field "cc")
 			 (message-fetch-field "bcc")
 			 (message-fetch-field "to"))
@@ -4495,7 +4508,9 @@ This function could be useful in `message-setup-hook'."
 			 (string= "base64"
 				  (message-fetch-field
 				   "content-transfer-encoding")))))))
-	    (message-insert-courtesy-copy))
+	    (message-insert-courtesy-copy
+	     (with-current-buffer mailbuf
+	       message-courtesy-message)))
           ;; Let's make sure we encoded all the body.
           (assert (save-excursion
                     (goto-char (point-min))
@@ -5936,7 +5951,7 @@ Headers already prepared in the buffer are not modified."
       ;; Check for IDNA
       (message-idna-to-ascii-rhs))))
 
-(defun message-insert-courtesy-copy ()
+(defun message-insert-courtesy-copy (message)
   "Insert a courtesy message in mail copies of combined messages."
   (let (newsgroups)
     (save-excursion
@@ -5946,12 +5961,12 @@ Headers already prepared in the buffer are not modified."
 	  (goto-char (point-max))
 	  (insert "Posted-To: " newsgroups "\n")))
       (forward-line 1)
-      (when message-courtesy-message
+      (when message
 	(cond
-	 ((string-match "%s" message-courtesy-message)
-	  (insert (format message-courtesy-message newsgroups)))
+	 ((string-match "%s" message)
+	  (insert (format message newsgroups)))
 	 (t
-	  (insert message-courtesy-message)))))))
+	  (insert message)))))))
 
 ;;;
 ;;; Setting up a message buffer
@@ -6363,7 +6378,10 @@ are not included."
    headers)
   (delete-region (point) (progn (forward-line -1) (point)))
   (when message-default-headers
-    (insert message-default-headers)
+    (insert
+     (if (functionp message-default-headers)
+         (funcall message-default-headers)
+       message-default-headers))
     (or (bolp) (insert ?\n)))
   (insert mail-header-separator "\n")
   (forward-line -1)
@@ -6568,6 +6586,10 @@ The function is called with one parameter, a cons cell ..."
     (save-match-data
       ;; Build (textual) list of new recipient addresses.
       (cond
+       (to-address
+	(setq recipients (concat ", " to-address))
+	;; If the author explicitly asked for a copy, we don't deny it to them.
+	(if mct (setq recipients (concat recipients ", " mct))))
        ((not wide)
 	(setq recipients (concat ", " author)))
        (address-headers
@@ -6603,10 +6625,6 @@ responses here are directed to other addresses.
 You may customize the variable `message-use-mail-followup-to', if you
 want to get rid of this query permanently.")))
 	(setq recipients (concat ", " mft)))
-       (to-address
-	(setq recipients (concat ", " to-address))
-	;; If the author explicitly asked for a copy, we don't deny it to them.
-	(if mct (setq recipients (concat recipients ", " mct))))
        (t
 	(setq recipients (if never-mct "" (concat ", " author)))
 	(if to (setq recipients (concat recipients ", " to)))
@@ -7422,7 +7440,11 @@ is for the internal use."
       (when (looking-at "From ")
 	(replace-match "X-From-Line: "))
       ;; Send it.
-      (let ((message-inhibit-body-encoding t)
+      (let ((message-inhibit-body-encoding
+	     ;; Don't do any further encoding if it looks like the
+	     ;; message has already been encoded.
+	     (let ((case-fold-search t))
+	       (re-search-forward "^mime-version:" nil t)))
 	    (message-inhibit-ecomplete t)
 	    message-required-mail-headers
 	    message-generate-hashcash
@@ -7722,7 +7744,7 @@ When FORCE, rebuild the tool bar."
   :type '(alist :key-type regexp :value-type function))
 
 (defcustom message-expand-name-databases
-  (list 'bbdb 'eudc)
+  '(bbdb eudc)
   "List of databases to try for name completion (`message-expand-name').
 Each element is a symbol and can be `bbdb' or `eudc'."
   :group 'message
@@ -7744,15 +7766,25 @@ If nil, the function bound in `text-mode-map' or `global-map' is executed."
 Execute function specified by `message-tab-body-function' when not in
 those headers."
   (interactive)
+  (cond
+   ((if (and (boundp 'completion-fail-discreetly)
+             (fboundp 'completion-at-point))
+        (let ((completion-fail-discreetly t)) (completion-at-point))
+      (funcall (or (message-completion-function) #'ignore)))
+    ;; Completion was performed; nothing else to do.
+    nil)
+   (message-tab-body-function (funcall message-tab-body-function))
+   (t (funcall (or (lookup-key text-mode-map "\t")
+                   (lookup-key global-map "\t")
+                   'indent-relative)))))
+
+(defun message-completion-function ()
   (let ((alist message-completion-alist))
     (while (and alist
 		(let ((mail-abbrev-mode-regexp (caar alist)))
 		  (not (mail-abbrev-in-expansion-header-p))))
       (setq alist (cdr alist)))
-    (funcall (or (cdar alist) message-tab-body-function
-		 (lookup-key text-mode-map "\t")
-		 (lookup-key global-map "\t")
-		 'indent-relative))))
+    (cdar alist)))
 
 (eval-and-compile
   (condition-case nil

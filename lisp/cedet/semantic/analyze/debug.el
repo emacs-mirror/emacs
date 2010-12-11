@@ -586,34 +586,28 @@ Look for key expressions, and add push-buttons near them."
     (set-marker orig-buffer (point) (current-buffer))
     ;; Get a buffer ready.
     (with-current-buffer "*Help*"
-      (toggle-read-only -1)
-      (goto-char (point-min))
-      (set (make-local-variable 'semantic-analyzer-debug-orig) orig-buffer)
-      ;; First, add do-in buttons to recommendations.
-      (while (re-search-forward "^\\s-*M-x \\(\\(\\w\\|\\s_\\)+\\) " nil t)
-	(let ((fcn (match-string 1)))
-	  (when (not (fboundp (intern-soft fcn)))
-	    (error "Help Err: Can't find %s" fcn))
-	  (end-of-line)
-	  (insert "   ")
-	  (insert-button "[ Do It ]"
-			 'mouse-face 'custom-button-pressed-face
-			 'do-fcn fcn
-			 'action `(lambda (arg)
-				    (let ((M semantic-analyzer-debug-orig))
-				      (set-buffer (marker-buffer M))
-				      (goto-char M))
-				    (call-interactively (quote ,(intern-soft fcn))))
-			 )
-	  ))
+      (let ((inhibit-read-only t))
+	(goto-char (point-min))
+	(set (make-local-variable 'semantic-analyzer-debug-orig) orig-buffer)
+	;; First, add do-in buttons to recommendations.
+	(while (re-search-forward "^\\s-*M-x \\(\\(\\w\\|\\s_\\)+\\) " nil t)
+	  (let ((fcn (match-string 1)))
+	    (when (not (fboundp (intern-soft fcn)))
+	      (error "Help Err: Can't find %s" fcn))
+	    (end-of-line)
+	    (insert "   ")
+	    (insert-button "[ Do It ]"
+			   'mouse-face 'custom-button-pressed-face
+			   'do-fcn fcn
+			   'action `(lambda (arg)
+				      (let ((M semantic-analyzer-debug-orig))
+					(set-buffer (marker-buffer M))
+					(goto-char M))
+				      (call-interactively (quote ,(intern-soft fcn))))))))
       ;; Do something else?
-
       ;; Clean up the mess
-      (toggle-read-only 1)
-      (set-buffer-modified-p nil)
-      )))
+      (set-buffer-modified-p nil))))
 
 (provide 'semantic/analyze/debug)
 
-;; arch-tag: 943db1e5-47e6-4bec-9989-78ebfadf0358
 ;;; semantic/analyze/debug.el ends here

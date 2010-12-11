@@ -328,6 +328,11 @@ struct terminal
   /* Parameter alist of this terminal.  */
   Lisp_Object param_alist;
 
+  /* List of charsets supported by the terminal.  It is set by
+     Fset_terminal_coding_system_internal along with
+     the member terminal_coding.  */
+  Lisp_Object charset_list;
+
   /* All fields before `next_terminal' should be Lisp_Object and are traced
      by the GC.  All fields afterwards are ignored by the GC.  */
 

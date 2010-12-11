@@ -135,21 +135,6 @@ args_out_of_range_3 (Lisp_Object a1, Lisp_Object a2, Lisp_Object a3)
   xsignal3 (Qargs_out_of_range, a1, a2, a3);
 }
 
-/* On some machines, XINT needs a temporary location.
-   Here it is, in case it is needed.  */
-
-int sign_extend_temp;
-
-/* On a few machines, XINT can only be done by calling this.  */
-
-int
-sign_extend_lisp_int (EMACS_INT num)
-{
-  if (num & (((EMACS_INT) 1) << (VALBITS - 1)))
-    return num | (((EMACS_INT) (-1)) << VALBITS);
-  else
-    return num & ((((EMACS_INT) 1) << VALBITS) - 1);
-}
 
 /* Data type predicates */
 

@@ -2,10 +2,11 @@
 
 ;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
-;; Author: Eric Schulte, Dan Davison
+;; Author: Eric Schulte
+;;	Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.3
 
 ;; This file is part of GNU Emacs.
 
@@ -57,36 +58,26 @@
 (declare-function org-at-table-p "org" (&optional table-type))
 (declare-function org-count "org" (CL-ITEM CL-SEQ))
 
-(defun org-babel-ref-variables (params)
-  "Convert PARAMS to variable names and values.
-Takes a parameter alist, and return an alist of variable names,
-and the emacs-lisp representation of the related value."
-  (let ((assignments
-	 (delq nil (mapcar (lambda (pair) (if (eq (car pair) :var) (cdr pair))) params)))
-	(others
-         (delq nil (mapcar (lambda (pair) (unless (eq :var (car pair)) pair)) params))))
-    (mapcar (lambda (assignment) (org-babel-ref-parse assignment)) assignments)))
-
 (defvar org-babel-ref-split-regexp
   "[ \f\t\n\r\v]*\\(.+?\\)[ \f\t\n\r\v]*=[ \f\t\n\r\v]*\\(.+\\)[ \f\t\n\r\v]*")
 
-(defun org-babel-ref-parse (assignment &optional params)
+(defun org-babel-ref-parse (assignment)
   "Parse a variable ASSIGNMENT in a header argument.
 If the right hand side of the assignment has a literal value
 return that value, otherwise interpret as a reference to an
 external resource and find it's value using
-`org-babel-ref-resolve-reference'.  Return a list with two
-elements.  The first element of the list will be the name of the
-variable, and the second will be an emacs-lisp representation of
-the value of the variable."
-  (if (string-match org-babel-ref-split-regexp assignment)
-      (let ((var (match-string 1 assignment))
-            (ref (match-string 2 assignment)))
-        (cons (intern var)
-	      ((lambda (val)
-		 (if (equal :ob-must-be-reference val)
-		     (org-babel-ref-resolve-reference ref params)
-		   val)) (org-babel-ref-literal ref))))))
+`org-babel-ref-resolve'.  Return a list with two elements.  The
+first element of the list will be the name of the variable, and
+the second will be an emacs-lisp representation of the value of
+the variable."
+  (when (string-match org-babel-ref-split-regexp assignment)
+    (let ((var (match-string 1 assignment))
+	  (ref (match-string 2 assignment)))
+      (cons (intern var)
+	    ((lambda (val)
+	       (if (equal :ob-must-be-reference val)
+		   (org-babel-ref-resolve ref) val))
+	     (org-babel-ref-literal ref))))))
 
 (defun org-babel-ref-literal (ref)
   "Return the value of REF if it is a literal value.
@@ -103,7 +94,7 @@ return nil."
       out)))
 
 (defvar org-babel-library-of-babel)
-(defun org-babel-ref-resolve-reference (ref &optional params)
+(defun org-babel-ref-resolve (ref)
   "Resolve the reference REF and return its value."
   (save-excursion
     (let ((case-fold-search t)
@@ -119,12 +110,10 @@ return nil."
       (when (string-match "^\\(.+?\\)\(\\(.*\\)\)$" ref)
         (setq new-refere (match-string 1 ref))
         (setq new-referent (match-string 2 ref))
-        ;; (message "new-refere=%S, new-referent=%S" new-refere new-referent) ;; debugging
         (when (> (length new-refere) 0)
           (if (> (length new-referent) 0)
               (setq args (mapcar (lambda (ref) (cons :var ref))
                                  (org-babel-ref-split-args new-referent))))
-          ;; (message "args=%S" args) ;; debugging
           (setq ref new-refere)))
       (when (string-match "^\\(.+\\):\\(.+\\)$" ref)
         (setq split-file (match-string 1 ref))
@@ -133,7 +122,8 @@ return nil."
       (save-restriction
 	(widen)
 	(goto-char (point-min))
-	(if (let ((result_regexp (concat "^[ \t]*#\\+\\(TBLNAME\\|RESNAME\\|RESULTS\\):[ \t]*"
+	(if (let ((result_regexp (concat "^[ \t]*#\\+\\(TBLNAME\\|RESNAME"
+					 "\\|RESULTS\\):[ \t]*"
 					 (regexp-quote ref) "[ \t]*$"))
 		  (regexp (concat org-babel-src-name-regexp
 				  (regexp-quote ref) "\\(\(.*\)\\)?" "[ \t]*$")))
@@ -144,7 +134,8 @@ return nil."
 		  (re-search-forward regexp nil t)
 		  (re-search-backward regexp nil t)
 		  ;; check the Library of Babel
-		  (setq lob-info (cdr (assoc (intern ref) org-babel-library-of-babel)))))
+		  (setq lob-info (cdr (assoc (intern ref)
+					     org-babel-library-of-babel)))))
 	    (unless lob-info (goto-char (match-beginning 0)))
 	  ;; ;; TODO: allow searching for names in other buffers
 	  ;; (setq id-loc (org-id-find ref 'marker)
@@ -159,14 +150,14 @@ return nil."
 	    (beginning-of-line)
 	    (if (or (= (point) (point-min)) (= (point) (point-max)))
 		(error "reference not found"))))
-	(setq params (org-babel-merge-params params args '((:results . "silent"))))
-	(setq result
-	      (case type
-		('results-line (org-babel-read-result))
-		('table (org-babel-read-table))
-		('file (org-babel-read-link))
-		('source-block (org-babel-execute-src-block nil nil params))
-		('lob (org-babel-execute-src-block nil lob-info params))))
+	(let ((params (append args '((:results . "silent")))))
+	  (setq result
+		(case type
+		  ('results-line (org-babel-read-result))
+		  ('table (org-babel-read-table))
+		  ('file (org-babel-read-link))
+		  ('source-block (org-babel-execute-src-block nil nil params))
+		  ('lob (org-babel-execute-src-block nil lob-info params)))))
 	(if (symbolp result)
 	    (format "%S" result)
 	  (if (and index (listp result))
@@ -199,7 +190,7 @@ to \"0:-1\"."
             (if (or (= 0 (length portion)) (string-match ind-re portion))
                 (mapcar
 		 (lambda (n) (nth n lis))
-		 (apply 'number-sequence
+		 (apply 'org-number-sequence
 			(if (and (> (length portion) 0) (match-string 2 portion))
 			    (list
 			     (wrap (string-to-number (match-string 2 portion)))

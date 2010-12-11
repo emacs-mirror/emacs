@@ -1,11 +1,11 @@
 ;;; ob-sqlite.el --- org-babel functions for sqlite database interaction
 
-;; Copyright (C) 2010  Free Software Foundation
+;; Copyright (C) 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.3
 
 ;; This file is part of GNU Emacs.
 
@@ -41,9 +41,10 @@
   '(db header echo bail csv column html line list separator nullvalue)
   "Sqlite specific header args.")
 
-(defun org-babel-expand-body:sqlite (body params &optional processed-params)
+(defun org-babel-expand-body:sqlite (body params)
+  "Expand BODY according to the values of PARAMS."
   (org-babel-sqlite-expand-vars
-   body (or (nth 1 processed-params) (org-babel-ref-variables params))))
+   body (mapcar #'cdr (org-babel-get-header params :var))))
 
 (defvar org-babel-sqlite3-command "sqlite3")
 
@@ -51,7 +52,7 @@
   "Execute a block of Sqlite code with Babel.
 This function is called by `org-babel-execute-src-block'."
   (let ((result-params (split-string (or (cdr (assoc :results params)) "")))
-	(vars (org-babel-ref-variables params))
+	(vars (org-babel-get-header params :var))
 	(db (cdr (assoc :db params)))
 	(separator (cdr (assoc :separator params)))
 	(nullvalue (cdr (assoc :nullvalue params)))
@@ -70,10 +71,9 @@ This function is called by `org-babel-execute-src-block'."
 	 (list
 	  (cons "body" ((lambda (sql-file)
 			  (with-temp-file sql-file
-			    (insert (org-babel-expand-body:sqlite
-				     body nil (list nil vars))))
+			    (insert (org-babel-expand-body:sqlite body params)))
 			  sql-file)
-			(make-temp-file "ob-sqlite-sql")))
+			(org-babel-temp-file "sqlite-sql-")))
 	  (cons "cmd" org-babel-sqlite3-command)
 	  (cons "header" (if headers-p "-header" "-noheader"))
 	  (cons "separator"
@@ -117,8 +117,8 @@ This function is called by `org-babel-execute-src-block'."
 							el
 						      (format "%S" el)))))))
 		      data-file)
-		    (make-temp-file "ob-sqlite-data"))
-		 (format "%S" val)))
+		    (org-babel-temp-file "sqlite-data-"))
+		 (if (stringp val) val (format "%S" val))))
 	     (cdr pair))
 	    body)))
    vars)

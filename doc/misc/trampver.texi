@@ -9,7 +9,7 @@
 @c In the Tramp CVS, the version number is auto-frobbed from
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
-@set trampver 2.2.0-pre
+@set trampver 2.2.0
 
 @c Other flags from configuration
 @set instprefix /usr/local
@@ -73,7 +73,3 @@
 @set emacsotherdir      emacs
 @set emacsotherfilename tramp-emacs.html
 @end ifset
-
-@ignore
-   arch-tag: e0fe322c-e06b-46eb-bb5b-d091b521f41c
-@end ignore

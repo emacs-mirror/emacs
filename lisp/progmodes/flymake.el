@@ -106,16 +106,6 @@ Zero-length substrings at the beginning and end of the list are omitted."
       'temp-directory
     (lambda () temporary-file-directory)))
 
-(defalias 'flymake-line-beginning-position
-  (if (fboundp 'line-beginning-position)
-      'line-beginning-position
-    (lambda (&optional arg) (save-excursion (beginning-of-line arg) (point)))))
-
-(defalias 'flymake-line-end-position
-  (if (fboundp 'line-end-position)
-      'line-end-position
-    (lambda (&optional arg) (save-excursion (end-of-line arg) (point)))))
-
 (defun flymake-posn-at-point-as-event (&optional position window dx dy)
   "Return pixel position of top left corner of glyph at POSITION,
 relative to top left corner of WINDOW, as a mouse-1 click
@@ -423,9 +413,11 @@ to the beginning of the list (File.h -> File.cpp moved to top)."
        (not (equal file-one file-two))))
 
 (defcustom flymake-check-file-limit 8192
-  "Max number of chars to look at when checking possible master file."
+  "Maximum number of chars to look at when checking possible master file.
+Nil means search the entire file."
   :group 'flymake
-  :type 'integer)
+  :type '(choice (const :tag "No limit" nil)
+                 (integer :tag "Characters")))
 
 (defun flymake-check-patch-master-file-buffer
        (master-file-temp-buffer
@@ -441,16 +433,26 @@ For example, foo.cpp is a master file if it includes foo.h.
 Whether a buffer for MATER-FILE-NAME exists, use it as a source
 instead of reading master file from disk."
   (let* ((source-file-nondir (file-name-nondirectory source-file-name))
+         (source-file-extension (file-name-extension source-file-nondir))
+         (source-file-nonext (file-name-sans-extension source-file-nondir))
          (found                     nil)
 	 (inc-name                  nil)
 	 (search-limit              flymake-check-file-limit))
     (setq regexp
           (format regexp	; "[ \t]*#[ \t]*include[ \t]*\"\\(.*%s\\)\""
-                  (regexp-quote source-file-nondir)))
+                  ;; Hack for tex files, where \include often excludes .tex.
+                  ;; Maybe this is safe generally.
+                  (if (and (> (length source-file-extension) 1)
+                           (string-equal source-file-extension "tex"))
+                      (format "%s\\(?:\\.%s\\)?"
+                              (regexp-quote source-file-nonext)
+                              (regexp-quote source-file-extension))
+                    (regexp-quote source-file-nondir))))
     (unwind-protect
         (with-current-buffer master-file-temp-buffer
-          (when (> search-limit (point-max))
-            (setq search-limit (point-max)))
+          (if (or (not search-limit)
+                  (> search-limit (point-max)))
+              (setq search-limit (point-max)))
           (flymake-log 3 "checking %s against regexp %s"
                        master-file-name regexp)
           (goto-char (point-min))
@@ -461,6 +463,11 @@ instead of reading master file from disk."
 
               (flymake-log 3 "found possible match for %s" source-file-nondir)
               (setq inc-name (match-string 1))
+              (and (> (length source-file-extension) 1)
+                   (string-equal source-file-extension "tex")
+                   (not (string-match (format "\\.%s\\'" source-file-extension)
+                                      inc-name))
+                   (setq inc-name (concat inc-name "." source-file-extension)))
               (when (eq t (compare-strings
                            source-file-nondir nil nil
                            inc-name (- (length inc-name)
@@ -808,8 +815,8 @@ Return t if it has at least one flymake overlay, nil if no overlay."
 Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
   (goto-char (point-min))
   (forward-line (1- line-no))
-  (let* ((line-beg (flymake-line-beginning-position))
-	 (line-end (flymake-line-end-position))
+  (let* ((line-beg (point-at-bol))
+	 (line-end (point-at-eol))
 	 (beg      line-beg)
 	 (end      line-end)
 	 (tooltip-text (flymake-ler-text (nth 0 line-err-info-list)))
@@ -1747,11 +1754,14 @@ Use CREATE-TEMP-F for creating temp copy."
 (defun flymake-simple-tex-init ()
   (flymake-get-tex-args (flymake-init-create-temp-buffer-copy 'flymake-create-temp-inplace)))
 
+;; Perhaps there should be a buffer-local variable flymake-master-file
+;; that people can set to override this stuff.  Could inherit from
+;; the similar AUCTeX variable.
 (defun flymake-master-tex-init ()
   (let* ((temp-master-file-name (flymake-init-create-temp-source-and-master-buffer-copy
                                  'flymake-get-include-dirs-dot 'flymake-create-temp-inplace
 				 '("\\.tex\\'")
-				 "[ \t]*\\input[ \t]*{\\(.*%s\\)}")))
+				 "[ \t]*\\in\\(?:put\\|clude\\)[ \t]*{\\(.*%s\\)}")))
     (when temp-master-file-name
       (flymake-get-tex-args temp-master-file-name))))
 
@@ -1764,5 +1774,4 @@ Use CREATE-TEMP-F for creating temp copy."
 
 (provide 'flymake)
 
-;; arch-tag: 8f0d6090-061d-4cac-8862-7c151c4a02dd
 ;;; flymake.el ends here

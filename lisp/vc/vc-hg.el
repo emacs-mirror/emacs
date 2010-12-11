@@ -134,6 +134,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "23.1"
   :group 'vc)
 
+(defcustom vc-hg-program "hg"
+  "Name of the Mercurial executable (excluding any arguments)."
+  :type 'string
+  :group 'vc)
 
 ;;; Properties of the backend
 
@@ -174,7 +178,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 			     (append (list "TERM=dumb" "LANGUAGE=C")
 				     process-environment)))
 			(process-file
-			 "hg" nil t nil
+			 vc-hg-program nil t nil
 			 "--config" "alias.status=status"
 			 "--config" "defaults.status="
 			 "status" "-A" (file-relative-name file)))
@@ -212,7 +216,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		      (let ((process-environment avoid-local-env))
 			;; Ignore all errors.
 			(process-file
-			 "hg" nil t nil
+			 vc-hg-program nil t nil
 			 "--config" "alias.parents=parents"
 			 "--config" "defaults.parents="
 			 "parents" "--template" "{rev}" (file-relative-name file)))
@@ -227,7 +231,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	    (condition-case nil
 		(let ((process-environment avoid-local-env))
 		  (process-file
-		   "hg" nil nil nil
+		   vc-hg-program nil nil nil
 		   ;; We use "log" here, if there's a faster command
 		   ;; that returns true for an 'added file and false
 		   ;; for an 'unregistered one, we could use that.
@@ -620,7 +624,7 @@ REV is the revision to check out into WORKFILE."
   "A wrapper around `vc-do-command' for use in vc-hg.el.
 The difference to vc-do-command is that this function always invokes `hg',
 and that it passes `vc-hg-global-switches' to it before FLAGS."
-  (apply 'vc-do-command (or buffer "*vc*") okstatus "hg" file-or-list
+  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-hg-program file-or-list
          (if (stringp vc-hg-global-switches)
              (cons vc-hg-global-switches flags)
            (append vc-hg-global-switches

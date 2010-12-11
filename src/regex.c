@@ -196,18 +196,14 @@
    even if config.h says that we can.  */
 # undef REL_ALLOC
 
-# if defined STDC_HEADERS || defined _LIBC
-#  include <stdlib.h>
-# else
-char *malloc ();
-char *realloc ();
+# ifdef HAVE_UNISTD_H
+#  include <unistd.h>
 # endif
 
 /* When used in Emacs's lib-src, we need xmalloc and xrealloc. */
 
 void *
-xmalloc (size)
-     size_t size;
+xmalloc (size_t size)
 {
   register void *val;
   val = (void *) malloc (size);
@@ -220,9 +216,7 @@ xmalloc (size)
 }
 
 void *
-xrealloc (block, size)
-     void *block;
-     size_t size;
+xrealloc (void *block, size_t size)
 {
   register void *val;
   /* We must call malloc explicitly when BLOCK is 0, since some
@@ -435,7 +429,7 @@ extern char *re_syntax_table;
 static char re_syntax_table[CHAR_SET_SIZE];
 
 static void
-init_syntax_once ()
+init_syntax_once (void)
 {
    register int c;
    static int done = 0;
@@ -4978,11 +4972,8 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, const re_char *p1, const r
 /* re_match is like re_match_2 except it takes only a single string.  */
 
 int
-re_match (bufp, string, size, pos, regs)
-     struct re_pattern_buffer *bufp;
-     const char *string;
-     int size, pos;
-     struct re_registers *regs;
+re_match (struct re_pattern_buffer *bufp, const char *string,
+	  int size, int pos, struct re_registers *regs)
 {
   int result = re_match_2_internal (bufp, NULL, 0, (re_char*) string, size,
 				    pos, regs, size);
@@ -6534,10 +6525,8 @@ re_exec (s)
    the return codes and their meanings.)  */
 
 int
-regcomp (preg, pattern, cflags)
-    regex_t *__restrict preg;
-    const char *__restrict pattern;
-    int cflags;
+regcomp (regex_t *__restrict preg, const char *__restrict pattern,
+	 int cflags)
 {
   reg_errcode_t ret;
   reg_syntax_t syntax
@@ -6619,12 +6608,8 @@ WEAK_ALIAS (__regcomp, regcomp)
    We return 0 if we find a match and REG_NOMATCH if not.  */
 
 int
-regexec (preg, string, nmatch, pmatch, eflags)
-    const regex_t *__restrict preg;
-    const char *__restrict string;
-    size_t nmatch;
-    regmatch_t pmatch[__restrict_arr];
-    int eflags;
+regexec (const regex_t *__restrict preg, const char *__restrict string,
+	 size_t nmatch, regmatch_t pmatch[__restrict_arr], int eflags)
 {
   int ret;
   struct re_registers regs;
@@ -6696,11 +6681,7 @@ WEAK_ALIAS (__regexec, regexec)
    error with msvc8 compiler.  */
 
 size_t
-regerror (err_code, preg, errbuf, errbuf_size)
-    int err_code;
-    const regex_t *preg;
-    char *errbuf;
-    size_t errbuf_size;
+regerror (int err_code, const regex_t *preg, char *errbuf, size_t errbuf_size)
 {
   const char *msg;
   size_t msg_size;
@@ -6736,8 +6717,7 @@ WEAK_ALIAS (__regerror, regerror)
 /* Free dynamically allocated space used by PREG.  */
 
 void
-regfree (preg)
-    regex_t *preg;
+regfree (regex_t *preg)
 {
   free (preg->buffer);
   preg->buffer = NULL;
@@ -6756,5 +6736,3 @@ WEAK_ALIAS (__regfree, regfree)
 
 #endif /* not emacs  */
 
-/* arch-tag: 4ffd68ba-2a9e-435b-a21a-018990f9eeb2
-   (do not change this comment) */

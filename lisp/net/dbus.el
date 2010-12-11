@@ -239,7 +239,7 @@ This handler is applied when a \"NameOwnerChanged\" signal has
 arrived.  SERVICE is the object name for which the name owner has
 been changed.  OLD-OWNER is the previous owner of SERVICE, or the
 empty string if SERVICE was not owned yet.  NEW-OWNER is the new
-owner of SERVICE, or the empty string if SERVICE looses any name owner.
+owner of SERVICE, or the empty string if SERVICE loses any name owner.
 
 usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
   (save-match-data
@@ -1010,5 +1010,4 @@ It will be registered for all objects created by `dbus-register-object'."
 
 (provide 'dbus)
 
-;; arch-tag: a47caf84-9162-4811-90cc-5d388e37b9bd
 ;;; dbus.el ends here

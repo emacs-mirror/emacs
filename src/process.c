@@ -56,12 +56,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-#if defined(HAVE_SYS_IOCTL_H)
 #include <sys/ioctl.h>
 #if defined(HAVE_NET_IF_H)
 #include <net/if.h>
 #endif /* HAVE_NET_IF_H */
-#endif /* HAVE_SYS_IOCTL_H */
 
 #ifdef NEED_BSDTTY
 #include <bsdtty.h>
@@ -114,8 +112,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
-
-extern int timers_run;
 
 Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
 Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
@@ -3811,7 +3807,7 @@ usage: (make-network-process &rest ARGS)  */)
 }
 
 
-#if defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H)
+#if defined(HAVE_NET_IF_H)
 
 #ifdef SIOCGIFCONF
 DEFUN ("network-interface-list", Fnetwork_interface_list, Snetwork_interface_list, 0, 0, 0,
@@ -4054,7 +4050,7 @@ FLAGS is the current flags of the interface.  */)
   return any ? res : Qnil;
 }
 #endif
-#endif	/* defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H) */
+#endif	/* defined(HAVE_NET_IF_H) */
 
 /* Turn off input and output for process PROC.  */
 
@@ -7708,14 +7704,14 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sset_network_process_option);
   defsubr (&Smake_network_process);
   defsubr (&Sformat_network_address);
-#if defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H)
+#if defined(HAVE_NET_IF_H)
 #ifdef SIOCGIFCONF
   defsubr (&Snetwork_interface_list);
 #endif
 #if defined(SIOCGIFADDR) || defined(SIOCGIFHWADDR) || defined(SIOCGIFFLAGS)
   defsubr (&Snetwork_interface_info);
 #endif
-#endif /* defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H) */
+#endif /* defined(HAVE_NET_IF_H) */
 #ifdef DATAGRAM_SOCKETS
   defsubr (&Sprocess_datagram_address);
   defsubr (&Sset_process_datagram_address);
@@ -7746,5 +7742,3 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sprocess_attributes);
 }
 
-/* arch-tag: 3706c011-7b9a-4117-bd4f-59e7f701a4c4
-   (do not change this comment) */

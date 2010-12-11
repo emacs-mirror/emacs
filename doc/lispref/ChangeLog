@@ -1,3 +1,77 @@
+2010-12-08  Glenn Morris  <rgm@gnu.org>
+
+	* buffers.texi (Modification Time):
+	verify-visited-file-modtime now defaults to the current buffer.
+
+2010-11-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Converting Representations): Document byte-to-string.
+
+	* strings.texi (Creating Strings): Don't mention semi-obsolete
+	function char-to-string.
+	(String Conversion): Shorten discussion of semi-obsolete function
+	string-to-char.  Link to Converting Representations.
+
+	* objects.texi (Symbol Type):
+	* text.texi (Near Point):
+	* help.texi (Help Functions):
+	* functions.texi (Mapping Functions): Use string instead of
+	char-to-string in examples.
+
+2010-11-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Kill Functions, Kill Functions)
+	(Low-Level Kill Ring, Low-Level Kill Ring): Remove obsolete
+	YANK-HANDLER args.
+
+	* symbols.texi (Creating Symbols): Using unintern without an
+	obarray arg is now obsolete.
+
+	* numbers.texi (Float Basics): Document float-e and float-pi.
+
+	* variables.texi (Defining Variables): Change "pi" example to
+	"float-pi".
+
+2010-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Click Events): Document the values of X, Y and
+	COL, ROW in the event's position, when the click is on the header
+	or mode line, on the fringes, or in the margins.
+
+2010-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* customize.texi (Composite Types): Lower-case index entry.
+
+	* loading.texi (How Programs Do Loading): Document
+	load-file-name.  (Bug#7346)
+
+2010-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (Kill Functions, Low-Level Kill Ring): Small fixes.
+
+2010-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Usual Display): Characters with no fonts are not
+	necessarily displayed as empty boxes.
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* maps.texi (Standard Keymaps): Update File menu description.
+
+2010-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (elisp.dvi, elisp.pdf): Also include $emacsdir.
+
+2010-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Window Systems): Deprecate use of window-system as
+	a predicate.
+
+2010-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Documentation Basics): Remove mentions of digest-doc and
+	sorted-doc.
+
 2010-10-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* os.texi (Dynamic Libraries): New node, with slightly modified

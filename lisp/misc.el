@@ -1,7 +1,7 @@
 ;;; misc.el --- some nonstandard basic editing commands for Emacs
 
-;; Copyright (C) 1989, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience
@@ -54,7 +54,7 @@ The characters copied are inserted in the buffer before point."
       (setq string (concat string
 			   (buffer-substring
 			    (point)
-			    (min (save-excursion (end-of-line) (point))
+			    (min (line-end-position)
 				 (+ n (point)))))))
     (insert string)))
 
@@ -132,5 +132,4 @@ variation of `C-x M-c M-butterfly' from url `http://xkcd.com/378/'."
 
 (provide 'misc)
 
-;; arch-tag: 908f7884-c19e-4388-920c-9cfa425e449b
 ;;; misc.el ends here

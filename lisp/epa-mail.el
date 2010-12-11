@@ -117,23 +117,29 @@ Don't use this command in Lisp programs!"
    (save-excursion
      (let ((verbose current-prefix-arg)
 	   (context (epg-make-context epa-protocol))
-	   recipients recipient-key)
+	   recipients-string recipients recipient-key)
        (goto-char (point-min))
        (save-restriction
 	 (narrow-to-region (point)
 			   (if (search-forward mail-header-separator nil 0)
 			       (match-beginning 0)
 			     (point)))
+	 (setq recipients-string
+	       (mapconcat #'identity
+			  (nconc (mail-fetch-field "to" nil nil t)
+				 (mail-fetch-field "cc" nil nil t)
+				 (mail-fetch-field "bcc" nil nil t))
+			  ","))
 	 (setq recipients
 	       (mail-strip-quoted-names
-		(mapconcat #'identity
-			   (nconc (mail-fetch-field "to" nil nil t)
-				  (mail-fetch-field "cc" nil nil t)
-				  (mail-fetch-field "bcc" nil nil t))
-			   ","))))
+		(with-temp-buffer
+		  (insert "to: " recipients-string "\n")
+		  (expand-mail-aliases (point-min) (point-max))
+		  (car (mail-fetch-field "to" nil nil t))))))
        (if recipients
 	   (setq recipients (delete ""
-				    (split-string recipients "[ \t\n]+"))))
+				    (split-string recipients
+						  "[ \t\n]*,[ \t\n]*"))))
        (goto-char (point-min))
        (if (search-forward mail-header-separator nil t)
 	   (forward-line))
@@ -154,7 +160,9 @@ If no one is selected, symmetric encryption will be performed.  "
 			    (epa-mail--find-usable-key
 			     (epg-list-keys
 			      (epg-make-context epa-protocol)
-			      (concat "<" recipient ">"))
+			      (if (string-match "@" recipient)
+				  (concat "<" recipient ">")
+				recipient))
 			     'encrypt))
 		      (unless (or recipient-key
 				  (y-or-n-p

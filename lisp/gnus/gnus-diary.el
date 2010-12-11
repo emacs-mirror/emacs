@@ -368,7 +368,7 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 				 header ": ")))
 	     (setq value
 		   (if (listp (nth 1 head))
-		       (gnus-completing-read prompt (cons '("*" nil) (nth 1 head))
+		       (gnus-completing-read prompt (cons "*" (mapcar 'car (nth 1 head)))
                                              t value
                                              'gnus-diary-header-value-history)
 		     (read-string prompt value

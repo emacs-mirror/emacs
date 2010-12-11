@@ -487,7 +487,7 @@ The most useful commands are:
       (let ((font-lock-fontify-region-function 'ignore))
         ;; insert-and-inherit will pick the right face automatically
         (while (search-forward-regexp "^:" nil t)
-          (setq bound (save-excursion (end-of-line) (point)))
+          (setq bound (point-at-eol))
           (while (search-forward cipher-string bound 'end)
             (decipher-insert plain-char)))))))
 
@@ -1062,5 +1062,4 @@ if it can't, it signals an error."
 ;;          (delete-char -1)
 ;;          (insert ")\n"))))))
 
-;; arch-tag: 8f094d88-ffe1-4f99-afe3-a5e81dd939d9
 ;;; decipher.el ends here

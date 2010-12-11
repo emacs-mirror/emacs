@@ -627,7 +627,9 @@ init_gconf (void)
 #if defined (HAVE_GCONF) && defined (HAVE_XFT)
   char *s;
 
+#ifdef HAVE_G_TYPE_INIT
   g_type_init ();
+#endif
   gconf_client = gconf_client_get_default ();
   s = gconf_client_get_string (gconf_client, SYSTEM_MONO_FONT, NULL);
   if (s)
@@ -656,17 +658,9 @@ init_gconf (void)
 static void
 init_xsettings (struct x_display_info *dpyinfo)
 {
-  char sel[64];
   Display *dpy = dpyinfo->display;
 
   BLOCK_INPUT;
-
-  sprintf (sel, "_XSETTINGS_S%d", XScreenNumberOfScreen (dpyinfo->screen));
-  dpyinfo->Xatom_xsettings_sel = XInternAtom (dpy, sel, False);
-  dpyinfo->Xatom_xsettings_prop = XInternAtom (dpy,
-                                               "_XSETTINGS_SETTINGS",
-                                               False);
-  dpyinfo->Xatom_xsettings_mgr = XInternAtom (dpy, "MANAGER", False);
 
   /* Select events so we can detect client messages sent when selection
      owner changes.  */

@@ -349,7 +349,7 @@ whether to remove it."
 	 (yes-or-no-p (format "Directory %s is empty; remove it? " dir))
 	 (delete-directory dir))))
 
-(defun vc-rcs-checkin (files rev comment &optional extra-args-ignored)
+(defun vc-rcs-checkin (files rev comment)
   "RCS-specific version of `vc-backend-checkin'."
   (let ((switches (vc-switches 'RCS 'checkin)))
     ;; Now operate on the files

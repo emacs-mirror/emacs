@@ -235,19 +235,18 @@ necessary but missing, please report it via M-x report-emacs-bug.
 On platforms such as Solaris, you can also work around this problem by
 configuring your compiler to use the native linker instead of GNU ld.
 
-** Emacs compiled with Gtk+ crashes when closing a display (x-close-connection).
+** When Emacs is compiled with Gtk+, closing a display kills Emacs.
 
-This happens because of bugs in Gtk+.  Gtk+ 2.10 seems to be OK.  See bug
-http://bugzilla.gnome.org/show_bug.cgi?id=85715.
+There is a long-standing bug in GTK that prevents it from recovering
+from disconnects: http://bugzilla.gnome.org/show_bug.cgi?id=85715.
 
-** Emacs compiled with Gtk+ may loop forever if a display crashes.
+Thus, for instance, when Emacs is run as a server on a text terminal,
+and an X frame is created, and the X server for that frame crashes or
+exits unexpectedly, Emacs must exit to prevent a GTK error that would
+result in an endless loop.
 
-This is related to the bug above.  A scenario for this is when emacs is run
-as a server, and an X frame is created.  If the X server for the frame
-crashes or exits unexpectedly and an attempt is made to create a new
-frame on another X display, then a Gtk+ error happens in the emacs
-server that results in an endless loop.  This is not fixed in any known
-Gtk+ version (2.14.4 being current).
+If you need Emacs to be able to recover from closing displays, compile
+it with the Lucid toolkit instead of GTK.
 
 * General runtime problems
 

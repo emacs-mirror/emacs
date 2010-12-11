@@ -235,7 +235,7 @@ Various new commands and features exist; see the Emacs manual.
 
 * Nroff mode and TeX mode.
 
-The are two new major modes for editing nroff input and TeX input.
+There are two new major modes for editing nroff input and TeX input.
 See the Emacs manual for full information.
 
 * New C indentation style variable `c-brace-imaginary-offset'.

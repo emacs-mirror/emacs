@@ -220,7 +220,7 @@ The first string is the URL, the second string is the title of that URL.
 DATA is encoded in utf-16.  Decode the URL and call `x-dnd-handle-uri-list'."
   ;; Mozilla and applications based on it (Galeon for example) uses
   ;; text/unicode, but it is impossible to tell if it is le or be.  Use what
-  ;; the machine Emacs runs on use.  This looses if dropping between machines
+  ;; the machine Emacs runs on use.  This loses if dropping between machines
   ;; with different endian, but it is the best we can do.
   (let* ((coding (if (eq (byteorder) ?B) 'utf-16be 'utf-16le))
 	 (string (decode-coding-string data coding))
@@ -766,5 +766,4 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 
 (provide 'x-dnd)
 
-;; arch-tag: b621fb7e-50da-4323-850b-5fc71ae64621
 ;;; x-dnd.el ends here

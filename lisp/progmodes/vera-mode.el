@@ -253,7 +253,7 @@ If nil, TAB always indents current line."
 ;;;###autoload (add-to-list 'auto-mode-alist (cons (purecopy "\\.vr[hi]?\\'")  'vera-mode))
 
 ;;;###autoload
-(defun vera-mode ()
+(define-derived-mode vera-mode prog-mode "Vera"
   "Major mode for editing Vera code.
 
 Usage:
@@ -301,13 +301,6 @@ Key bindings:
 -------------
 
 \\{vera-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'vera-mode)
-  (setq mode-name "Vera")
-  ;; set maps and tables
-  (use-local-map vera-mode-map)
-  (set-syntax-table vera-mode-syntax-table)
   ;; set local variables
   (require 'cc-cmds)
   (set (make-local-variable 'comment-start) "//")
@@ -328,9 +321,7 @@ Key bindings:
   ;; add menu (XEmacs)
   (easy-menu-add vera-mode-menu)
   ;; miscellaneous
-  (message "Vera Mode %s.  Type C-c C-h for documentation." vera-version)
-  ;; run hooks
-  (run-hooks 'vera-mode-hook))
+  (message "Vera Mode %s.  Type C-c C-h for documentation." vera-version))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -770,7 +761,7 @@ the offset is simply returned."
 	      relpos 0)
       (setq offset (vera-evaluate-offset offset langelem symbol)))
     (+ (if (and relpos
-		(< relpos (save-excursion (beginning-of-line) (point))))
+		(< relpos (line-beginning-position)))
 	   (save-excursion
 	     (goto-char relpos)
 	     (current-column))
@@ -1482,5 +1473,4 @@ If `vera-intelligent-tab' is nil, always indent line."
 
 (provide 'vera-mode)
 
-;; arch-tag: 22eae722-7ac5-47ac-a713-c4db1cf623a9
 ;;; vera-mode.el ends here

@@ -1,7 +1,7 @@
 ;;; viper-init.el --- some common definitions for Viper
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -63,9 +63,10 @@
 (defun viper-window-display-p ()
   (and (viper-device-type) (not (memq (viper-device-type) '(tty stream pc)))))
 
-(defcustom viper-ms-style-os-p (memq system-type
-				     '(ms-dos windows-nt windows-95))
-  "Tells if Emacs is running under an MS-style OS: ms-dos, windows-nt, W95."
+(defcustom viper-ms-style-os-p
+  (memq system-type (if (featurep 'emacs) '(ms-dos windows-nt)
+		      '(ms-dos windows-nt windows-95)))
+  "Non-nil if Emacs is running under an MS-style OS: MS-DOS, or MS-Windows."
   :type 'boolean
   :tag "Is it Microsoft-made OS?"
   :group 'viper-misc)
@@ -784,7 +785,7 @@ Related buffers can be cycled through via :R and :P commands."
 
 ;; These two vars control the interaction of jumps performed by ' and `.
 ;; In this new version, '' doesn't erase the marks set by ``, so one can
-;; use both kinds of jumps interchangeably and without loosing positions
+;; use both kinds of jumps interchangeably and without losing positions
 ;; inside the lines.
 
 ;; Remembers position of the last jump done using ``'.
@@ -996,5 +997,4 @@ on a dumb terminal."
 ;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
 ;; End:
 
-;; arch-tag: 4efa2416-1fcb-4690-be10-1a2a0248d250
 ;;; viper-init.el ends here

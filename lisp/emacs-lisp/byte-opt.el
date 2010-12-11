@@ -1317,36 +1317,39 @@
   "Don't call this!"
   ;; fetch and return the offset for the current opcode.
   ;; return nil if this opcode has no offset
-  ;; OP, PTR and BYTES are used and set dynamically
-  (defvar op)
-  (defvar ptr)
-  (defvar bytes)
-  (cond ((< op byte-nth)
-	 (let ((tem (logand op 7)))
-	   (setq op (logand op 248))
+  ;; Used and set dynamically in byte-decompile-bytecode-1.
+  (defvar bytedecomp-op)
+  (defvar bytedecomp-ptr)
+  (defvar bytedecomp-bytes)
+  (cond ((< bytedecomp-op byte-nth)
+	 (let ((tem (logand bytedecomp-op 7)))
+	   (setq bytedecomp-op (logand bytedecomp-op 248))
 	   (cond ((eq tem 6)
-		  (setq ptr (1+ ptr))	;offset in next byte
-		  (aref bytes ptr))
+		  ;; Offset in next byte.
+		  (setq bytedecomp-ptr (1+ bytedecomp-ptr))
+		  (aref bytedecomp-bytes bytedecomp-ptr))
 		 ((eq tem 7)
-		  (setq ptr (1+ ptr))	;offset in next 2 bytes
-		  (+ (aref bytes ptr)
-		     (progn (setq ptr (1+ ptr))
-			    (lsh (aref bytes ptr) 8))))
+		  ;; Offset in next 2 bytes.
+		  (setq bytedecomp-ptr (1+ bytedecomp-ptr))
+		  (+ (aref bytedecomp-bytes bytedecomp-ptr)
+		     (progn (setq bytedecomp-ptr (1+ bytedecomp-ptr))
+			    (lsh (aref bytedecomp-bytes bytedecomp-ptr) 8))))
 		 (t tem))))		;offset was in opcode
-	((>= op byte-constant)
-	 (prog1 (- op byte-constant)	;offset in opcode
-	   (setq op byte-constant)))
-	((or (and (>= op byte-constant2)
-		  (<= op byte-goto-if-not-nil-else-pop))
-	     (= op byte-stack-set2))
-	 (setq ptr (1+ ptr))		;offset in next 2 bytes
-	 (+ (aref bytes ptr)
-	    (progn (setq ptr (1+ ptr))
-		   (lsh (aref bytes ptr) 8))))
-	((and (>= op byte-listN)
-	      (<= op byte-discardN))
-	 (setq ptr (1+ ptr))		;offset in next byte
-	 (aref bytes ptr))))
+	((>= bytedecomp-op byte-constant)
+	 (prog1 (- bytedecomp-op byte-constant)	;offset in opcode
+	   (setq bytedecomp-op byte-constant)))
+	((or (and (>= bytedecomp-op byte-constant2)
+                  (<= bytedecomp-op byte-goto-if-not-nil-else-pop))
+             (= bytedecomp-op byte-stack-set2))
+	 ;; Offset in next 2 bytes.
+	 (setq bytedecomp-ptr (1+ bytedecomp-ptr))
+	 (+ (aref bytedecomp-bytes bytedecomp-ptr)
+	    (progn (setq bytedecomp-ptr (1+ bytedecomp-ptr))
+		   (lsh (aref bytedecomp-bytes bytedecomp-ptr) 8))))
+	((and (>= bytedecomp-op byte-listN)
+	      (<= bytedecomp-op byte-discardN))
+	 (setq bytedecomp-ptr (1+ bytedecomp-ptr)) ;offset in next byte
+	 (aref bytedecomp-bytes bytedecomp-ptr))))
 
 
 ;; This de-compiler is used for inline expansion of compiled functions,
@@ -1369,19 +1372,20 @@
 ;; If MAKE-SPLICEABLE is nil, we are being called for the disassembler.
 ;; In that case, we put a pc value into the list
 ;; before each insn (or its label).
-(defun byte-decompile-bytecode-1 (bytes constvec &optional make-spliceable)
-  (let ((length (length bytes))
-	(ptr 0) optr tags op offset
+(defun byte-decompile-bytecode-1 (bytedecomp-bytes constvec
+						   &optional make-spliceable)
+  (let ((length (length bytedecomp-bytes))
+	(bytedecomp-ptr 0) optr tags bytedecomp-op offset
 	lap tmp
 	endtag)
-    (while (not (= ptr length))
+    (while (not (= bytedecomp-ptr length))
       (or make-spliceable
-	  (setq lap (cons ptr lap)))
-      (setq op (aref bytes ptr)
-	    optr ptr
+	  (setq lap (cons bytedecomp-ptr lap)))
+      (setq bytedecomp-op (aref bytedecomp-bytes bytedecomp-ptr)
+	    optr bytedecomp-ptr
 	    offset (disassemble-offset)) ; this does dynamic-scope magic
-      (setq op (aref byte-code-vector op))
-      (cond ((memq op byte-goto-ops)
+      (setq bytedecomp-op (aref byte-code-vector bytedecomp-op))
+      (cond ((memq bytedecomp-op byte-goto-ops)
 	     ;; it's a pc
 	     (setq offset
 		   (cdr (or (assq offset tags)
@@ -1389,36 +1393,37 @@
 				       (cons (cons offset
 						   (byte-compile-make-tag))
 					     tags)))))))
-	    ((cond ((eq op 'byte-constant2) (setq op 'byte-constant) t)
-		   ((memq op byte-constref-ops)))
+	    ((cond ((eq bytedecomp-op 'byte-constant2)
+		    (setq bytedecomp-op 'byte-constant) t)
+		   ((memq bytedecomp-op byte-constref-ops)))
 	     (setq tmp (if (>= offset (length constvec))
 			   (list 'out-of-range offset)
 			 (aref constvec offset))
-		   offset (if (eq op 'byte-constant)
+		   offset (if (eq bytedecomp-op 'byte-constant)
 			      (byte-compile-get-constant tmp)
 			    (or (assq tmp byte-compile-variables)
 				(car (setq byte-compile-variables
 					   (cons (list tmp)
 						 byte-compile-variables)))))))
 	    ((and make-spliceable
-		  (eq op 'byte-return))
-	     (if (= ptr (1- length))
-		 (setq op nil)
+		  (eq bytedecomp-op 'byte-return))
+	     (if (= bytedecomp-ptr (1- length))
+		 (setq bytedecomp-op nil)
 	       (setq offset (or endtag (setq endtag (byte-compile-make-tag)))
-		     op 'byte-goto)))
-	    ((eq op 'byte-stack-set2)
-	     (setq op 'byte-stack-set))
-	    ((and (eq op 'byte-discardN) (>= offset #x80))
+		     bytedecomp-op 'byte-goto)))
+	    ((eq bytedecomp-op 'byte-stack-set2)
+	     (setq bytedecomp-op 'byte-stack-set))
+	    ((and (eq bytedecomp-op 'byte-discardN) (>= offset #x80))
 	     ;; The top bit of the operand for byte-discardN is a flag,
 	     ;; saying whether the top-of-stack is preserved.  In
 	     ;; lapcode, we represent this by using a different opcode
 	     ;; (with the flag removed from the operand).
-	     (setq op 'byte-discardN-preserve-tos)
+	     (setq bytedecomp-op 'byte-discardN-preserve-tos)
 	     (setq offset (- offset #x80))))
       ;; lap = ( [ (pc . (op . arg)) ]* )
-      (setq lap (cons (cons optr (cons op (or offset 0)))
+      (setq lap (cons (cons optr (cons bytedecomp-op (or offset 0)))
 		      lap))
-      (setq ptr (1+ ptr)))
+      (setq bytedecomp-ptr (1+ bytedecomp-ptr)))
     ;; take off the dummy nil op that we replaced a trailing "return" with.
     (let ((rest lap))
       (while rest
@@ -2211,5 +2216,4 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	       byte-optimize-lapcode))))
  nil)
 
-;; arch-tag: 0f14076b-737e-4bef-aae6-908826ec1ff1
 ;;; byte-opt.el ends here

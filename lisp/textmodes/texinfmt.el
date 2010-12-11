@@ -663,11 +663,12 @@ Do not append @refill to paragraphs containing @w{TEXT} or @*."
         ;; Else
         ;; 3. Do not refill a paragraph containing @w or @*, or ending
         ;;    with @<newline> followed by a newline.
-        (if  (or (>= (point) (point-max))
-		 (re-search-forward
-		  "@w{\\|@\\*\\|@\n\n"
-		  (save-excursion (forward-paragraph) (forward-line 1) (point))
-		  t))
+        (if (or (>= (point) (point-max))
+                (re-search-forward
+                 "@w{\\|@\\*\\|@\n\n"
+                 (save-excursion (forward-paragraph)
+                                 (line-beginning-position 2))
+                 t))
             ;; Go to end of paragraph and do nothing.
             (forward-paragraph)
           ;; 4. Else go to end of paragraph and insert @refill
@@ -944,8 +945,8 @@ insert the text with the @insertcopying command."
         (end  (progn (re-search-forward "^@end copying[ \t]*\n") (point))))
     (setq texinfo-copying-text
           (buffer-substring-no-properties
-           (save-excursion (goto-char beg) (forward-line 1) (point))
-           (save-excursion (goto-char end) (forward-line -1) (point))))
+           (save-excursion (goto-char beg) (line-beginning-position 2))
+           (save-excursion (goto-char end) (line-beginning-position 0))))
     (delete-region beg end)))
 
 (defun texinfo-insertcopying ()
@@ -4297,5 +4298,4 @@ For example, invoke
 ;;; Place `provide' at end of file.
 (provide 'texinfmt)
 
-;; arch-tag: 1e8d9a2d-bca0-40a0-ac6c-dab01bc6f725
 ;;; texinfmt.el ends here

@@ -979,9 +979,7 @@ plus the usually uncoded characters inserted on positions 1 through 28."
 
 (define-derived-mode ps-run-mode comint-mode "Interactive PS"
   "Major mode in interactive PostScript window.
-This mode is invoked from `ps-mode' and should not be called directly.
-
-\\{ps-run-mode-map}"
+This mode is invoked from `ps-mode' and should not be called directly."
   (set (make-local-variable 'font-lock-defaults)
        '((ps-run-font-lock-keywords
 	  ps-run-font-lock-keywords-1
@@ -991,7 +989,7 @@ This mode is invoked from `ps-mode' and should not be called directly.
 
 (defun ps-run-running ()
   "Error if not in `ps-mode' or not running PostScript."
-  (unless (equal major-mode 'ps-mode)
+  (unless (derived-mode-p 'ps-mode)
     (error "This function can only be called from PostScript mode"))
   (unless (equal (process-status "ps-run") 'run)
     (error "No PostScript process running")))

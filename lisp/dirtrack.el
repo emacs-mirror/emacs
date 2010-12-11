@@ -144,7 +144,7 @@ be on a single line."
   :type  'string)
 
 (defcustom dirtrack-directory-function
-  (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
+  (if (memq system-type '(ms-dos windows-nt cygwin))
       'dirtrack-windows-directory-function
     'file-name-as-directory)
   "Function to apply to the prompt directory for comparison purposes."
@@ -152,7 +152,7 @@ be on a single line."
   :type  'function)
 
 (defcustom dirtrack-canonicalize-function
-  (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
+  (if (memq system-type '(ms-dos windows-nt cygwin))
       'downcase 'identity)
   "Function to apply to the default directory for comparison purposes."
   :group 'dirtrack
@@ -269,5 +269,4 @@ function `dirtrack-debug-mode' to turn on debugging output."
 
 (provide 'dirtrack)
 
-;; arch-tag: 168de071-be88-4937-aff6-2aba9f328d5a
 ;;; dirtrack.el ends here

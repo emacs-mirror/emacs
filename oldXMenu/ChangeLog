@@ -1,3 +1,9 @@
+2010-11-09  Elias Pipping  <pipping.elias@googlemail.com>  (tiny change)
+
+	Make Emacs compile with clang (bug#7309).
+	* XMakeAssoc.c (XMakeAssoc):
+	* XDelAssoc.c (XDeleteAssoc): Declare the return type.
+
 2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* XMenu.h: Include <stdlib.h>.

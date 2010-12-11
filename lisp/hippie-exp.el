@@ -716,8 +716,7 @@ string).  It returns t if a new completion is found, nil otherwise."
 (defun he-line-beg (strip-prompt)
   (save-excursion
     (if (re-search-backward (he-line-search-regexp "" strip-prompt)
-			    (save-excursion (beginning-of-line)
-					    (point)) t)
+			    (line-beginning-position) t)
 	(match-beginning 2)
       (point))))
 
@@ -1184,5 +1183,4 @@ string).  It returns t if a new completion is found, nil otherwise."
 
 (provide 'hippie-exp)
 
-;; arch-tag: 5e6e00bf-b061-4a7a-9b46-de0ae105ab99
 ;;; hippie-exp.el ends here

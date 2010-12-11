@@ -324,6 +324,13 @@ Good luck."
   :type 'integer
   :group 'erc-server)
 
+(defcustom erc-coding-system-precedence '(utf-8 undecided)
+  "List of coding systems to be preferred when receiving a string from the server.
+This will only be consulted if the coding system in
+`erc-server-coding-system' is `undecided'."
+  :group 'erc-server
+  :type '(repeat coding-system))
+
 (defcustom erc-server-coding-system (if (and (fboundp 'coding-system-p)
                                              (coding-system-p 'undecided)
                                              (coding-system-p 'utf-8))
@@ -334,7 +341,9 @@ This is either a coding system, a cons, a function, or nil.
 
 If a cons, the encoding system for outgoing text is in the car
 and the decoding system for incoming text is in the cdr. The most
-interesting use for this is to put `undecided' in the cdr.
+interesting use for this is to put `undecided' in the cdr. This
+means that `erc-coding-system-precedence' will be consulted, and the
+first match there will be used.
 
 If a function, it is called with the argument `target' and should
 return a coding system or a cons as described above.
@@ -653,30 +662,31 @@ Conditionally try to reconnect and take appropriate action."
 
 (defun erc-process-sentinel (cproc event)
   "Sentinel function for ERC process."
-  (with-current-buffer (process-buffer cproc)
-    (erc-log (format
-              "SENTINEL: proc: %S	 status: %S  event: %S (quitting: %S)"
-              cproc (process-status cproc) event erc-server-quitting))
-    (if (string-match "^open" event)
-        ;; newly opened connection (no wait)
-        (erc-login)
-      ;; assume event is 'failed
-      (let ((buf (process-buffer cproc)))
-        (erc-with-all-buffers-of-server cproc nil
-                                        (setq erc-server-connected nil))
-        (when erc-server-ping-handler
-          (progn (erc-cancel-timer erc-server-ping-handler)
-                 (setq erc-server-ping-handler nil)))
-        (run-hook-with-args 'erc-disconnected-hook
-                            (erc-current-nick) (system-name) "")
-        ;; Remove the prompt
-        (goto-char (or (marker-position erc-input-marker) (point-max)))
-        (forward-line 0)
-        (erc-remove-text-properties-region (point) (point-max))
-        (delete-region (point) (point-max))
-        ;; Decide what to do with the buffer
-        ;; Restart if disconnected
-        (erc-process-sentinel-1 event buf)))))
+  (let ((buf (process-buffer cproc)))
+    (when (buffer-live-p buf)
+      (with-current-buffer buf
+        (erc-log (format
+                  "SENTINEL: proc: %S	 status: %S  event: %S (quitting: %S)"
+                  cproc (process-status cproc) event erc-server-quitting))
+        (if (string-match "^open" event)
+            ;; newly opened connection (no wait)
+            (erc-login)
+          ;; assume event is 'failed
+          (erc-with-all-buffers-of-server cproc nil
+                                          (setq erc-server-connected nil))
+          (when erc-server-ping-handler
+            (progn (erc-cancel-timer erc-server-ping-handler)
+                   (setq erc-server-ping-handler nil)))
+          (run-hook-with-args 'erc-disconnected-hook
+                              (erc-current-nick) (system-name) "")
+          ;; Remove the prompt
+          (goto-char (or (marker-position erc-input-marker) (point-max)))
+          (forward-line 0)
+          (erc-remove-text-properties-region (point) (point-max))
+          (delete-region (point) (point-max))
+          ;; Decide what to do with the buffer
+          ;; Restart if disconnected
+          (erc-process-sentinel-1 event buf))))))
 
 ;;;; Sending messages
 
@@ -704,6 +714,14 @@ This is indicated by `erc-encoding-coding-alist', defaulting to the value of
   (let ((coding (erc-coding-system-for-target target)))
     (when (consp coding)
       (setq coding (cdr coding)))
+    (when (eq coding 'undecided)
+      (let ((codings (detect-coding-string str))
+            (precedence erc-coding-system-precedence))
+        (while (and precedence
+                    (not (memq (car precedence) codings)))
+          (pop precedence))
+        (when precedence
+          (setq coding (car precedence)))))
     (erc-decode-coding-string str coding)))
 
 ;; proposed name, not used by anything yet
@@ -1195,7 +1213,7 @@ add things to `%s' instead."
                       (setq buffer (erc-open erc-session-server erc-session-port
                                              nick erc-session-user-full-name
                                              nil nil
-                                             erc-default-recipients chnl
+                                             (list chnl) chnl
                                              erc-server-process))
                       (when buffer
                         (set-buffer buffer)

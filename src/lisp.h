@@ -267,7 +267,9 @@ union Lisp_Object
 
     struct
       {
-	EMACS_INT val  : VALBITS;
+	/* Use explict signed, the signedness of a bit-field of type
+	   int is implementation defined.  */
+	signed EMACS_INT val  : VALBITS;
 	enum Lisp_Type type : GCTYPEBITS;
       } s;
     struct
@@ -290,7 +292,9 @@ union Lisp_Object
     struct
       {
 	enum Lisp_Type type : GCTYPEBITS;
-	EMACS_INT val  : VALBITS;
+	/* Use explict signed, the signedness of a bit-field of type
+	   int is implementation defined.  */
+	signed EMACS_INT val  : VALBITS;
       } s;
     struct
       {
@@ -447,20 +451,8 @@ enum pvec_type
 #endif
 
 #define XHASH(a) ((a).i)
-
 #define XTYPE(a) ((enum Lisp_Type) (a).u.type)
-
-#ifdef EXPLICIT_SIGN_EXTEND
-/* Make sure we sign-extend; compilers have been known to fail to do so.
-   We additionally cast to EMACS_INT since it seems that some compilers
-   have been known to fail to do so, even though the bitfield is declared
-   as EMACS_INT already.  */
-#define XINT(a) ((((EMACS_INT) (a).s.val) << (BITS_PER_EMACS_INT - VALBITS)) \
-		 >> (BITS_PER_EMACS_INT - VALBITS))
-#else
 #define XINT(a) ((a).s.val)
-#endif /* EXPLICIT_SIGN_EXTEND */
-
 #define XUINT(a) ((a).u.val)
 
 #ifdef USE_LSB_TAG
@@ -1589,6 +1581,41 @@ typedef struct {
 /* The ID of the mode line highlighting face.  */
 #define GLYPH_MODE_LINE_FACE 1
 
+/* Structure to hold mouse highlight data.  This is here because other
+   header files need it for defining struct x_output etc.  */
+typedef struct {
+  /* These variables describe the range of text currently shown in its
+     mouse-face, together with the window they apply to.  As long as
+     the mouse stays within this range, we need not redraw anything on
+     its account.  Rows and columns are glyph matrix positions in
+     MOUSE_FACE_WINDOW.  */
+  int mouse_face_beg_row, mouse_face_beg_col;
+  int mouse_face_beg_x, mouse_face_beg_y;
+  int mouse_face_end_row, mouse_face_end_col;
+  int mouse_face_end_x, mouse_face_end_y;
+  int mouse_face_past_end;
+  Lisp_Object mouse_face_window;
+  int mouse_face_face_id;
+  Lisp_Object mouse_face_overlay;
+
+  /* 1 if a mouse motion event came and we didn't handle it right away because
+     gc was in progress.  */
+  int mouse_face_deferred_gc;
+
+  /* FRAME and X, Y position of mouse when last checked for
+     highlighting.  X and Y can be negative or out of range for the frame.  */
+  struct frame *mouse_face_mouse_frame;
+  int mouse_face_mouse_x, mouse_face_mouse_y;
+
+  /* Nonzero means defer mouse-motion highlighting.  */
+  int mouse_face_defer;
+
+  /* Nonzero means that the mouse highlight should not be shown.  */
+  int mouse_face_hidden;
+
+  int mouse_face_image_state;
+} Mouse_HLInfo;
+
 /* Data type checking */
 
 #define NILP(x)  EQ (x, Qnil)
@@ -2665,11 +2692,15 @@ extern Lisp_Object Qimage, Qtext, Qboth, Qboth_horiz, Qtext_image_horiz;
 extern Lisp_Object Qspace, Qcenter, QCalign_to;
 extern Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
 extern Lisp_Object Qleft_margin, Qright_margin;
+extern Lisp_Object Qglyphless_char;
 extern Lisp_Object Vmessage_log_max;
 extern Lisp_Object QCdata, QCfile;
 extern Lisp_Object QCmap;
 extern Lisp_Object Qrisky_local_variable;
 extern Lisp_Object Vinhibit_redisplay;
+extern struct frame *last_glyphless_glyph_frame;
+extern unsigned last_glyphless_glyph_face_id;
+extern int last_glyphless_glyph_merged_face_id;
 extern int message_enable_multibyte;
 extern int noninteractive_need_newline;
 extern EMACS_INT scroll_margin;
@@ -2727,6 +2758,8 @@ extern void memory_full (void) NO_RETURN;
 extern void buffer_memory_full (void) NO_RETURN;
 extern int survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
+extern void refill_memory_reserve (void);
+extern const char *pending_malloc_warning;
 extern Lisp_Object Vpurify_flag;
 extern Lisp_Object Vmemory_full;
 extern Lisp_Object *stack_base;
@@ -2823,7 +2856,8 @@ extern void syms_of_chartab (void);
 /* Defined in print.c */
 extern Lisp_Object Vprin1_to_string_buffer;
 extern Lisp_Object Vprint_level, Vprint_length;
-extern void debug_print (Lisp_Object);
+extern void debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
+extern void safe_debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
 EXFUN (Fprin1, 2);
 EXFUN (Fprin1_to_string, 2);
 EXFUN (Fprinc, 2);
@@ -3226,6 +3260,8 @@ extern Lisp_Object Qdisabled, QCfilter;
 extern Lisp_Object Qabove_handle, Qhandle, Qbelow_handle;
 extern Lisp_Object Qup, Qdown, Qbottom, Qend_scroll;
 extern Lisp_Object Qtop, Qratio;
+extern Lisp_Object Vsaved_region_selection;
+extern Lisp_Object Vselect_active_regions;
 extern Lisp_Object Vtty_erase_char, Vhelp_form, Vtop_level;
 extern Lisp_Object Vthrow_on_input;
 extern int input_pending;
@@ -3595,7 +3631,6 @@ extern void syms_of_xfns (void);
 extern void syms_of_xsmfns (void);
 
 /* Defined in xselect.c */
-EXFUN (Fx_send_client_event, 6);
 extern void syms_of_xselect (void);
 
 /* Defined in xterm.c */

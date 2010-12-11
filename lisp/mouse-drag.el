@@ -1,7 +1,7 @@
 ;;; mouse-drag.el --- use mouse-2 to do a new style of scrolling
 
-;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@ISI.EDU>
 ;; Keywords: mouse
@@ -163,7 +163,7 @@ Basically, we check for existing horizontal scrolling."
        mouse-drag-electric-col-scrolling
        (save-excursion  ;; on a long line?
 	 (let
-	     ((beg (progn (beginning-of-line) (point)))
+	     ((beg (line-beginning-position))
 	      (end (progn (end-of-line) (point))))
 	   (if (> (- end beg) (window-width))
 	       (setq truncate-lines t)
@@ -326,5 +326,4 @@ To test this function, evaluate:
 
 (provide 'mouse-drag)
 
-;; arch-tag: e47354ff-82f5-42c4-b3dc-88dd9c04b770
 ;;; mouse-drag.el ends here

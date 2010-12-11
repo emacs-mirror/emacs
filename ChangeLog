@@ -1,3 +1,69 @@
+2010-12-10  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Don't double machfile in final message.
+
+2010-12-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Fix last change.
+
+2010-12-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Remove reference to removed machine description
+	files and allow $machine and $machfile to be empty.  Substitute
+	M_FILE/S_FILE instead of machfile/opsysfile.
+
+2010-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Remove EMACS_UNIBYTE unsetting; it does nothing.
+
+2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in <AC_CHECK_HEADERS>: Remove sys/ioctl.h.
+	(EXTERNALLY_VISIBLE): New definition.
+
+2010-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (INLINE): Do not depend on OPTIMIZE, unused.
+
+2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Do not check for unconditionally included headers.
+
+2010-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .dir-locals.el (log-edit-mode): Set log-edit-rewrite-fixes.
+
+2010-11-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in: Don't write a warning for D-Bus anymore.
+
+2010-11-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Fix indentation.
+
+2010-10-31  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.in (checking whether localtime caches TZ): Use
+	unsetenv instead of modifying environment directly.
+
+2010-10-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (checking for -znocombreloc): Use AC_LANG_PROGRAM
+	to avoid warning.
+
+2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in: Remove the BROKEN annotation from gnutls.
+
+2010-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Avoid listing .el files twice.  Don't try to run
+	autoconf if --no-update.
+
+2010-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: No longer create lisp/MANIFEST.
+
 2010-10-14  Glenn Morris  <rgm@gnu.org>
 
 	* BUGS, INSTALL.BZR, README: Updates.
@@ -2855,7 +2921,7 @@
 
 	* make-dist (lispref): Do include lispref/index.texi.
 
-2004-01-06  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2004-01-06  Eric Hanchrow  <offby1@blarg.net>
 
 	* make-dist (tempdir): Include cursors in nt/icons.
 

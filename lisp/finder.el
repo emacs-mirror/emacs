@@ -198,7 +198,8 @@ from; the default is `load-path'."
 	      (setq summary  (lm-synopsis)
 		    keywords (mapcar 'intern (lm-keywords-list))
 		    package  (or package-override
-				 (intern-soft (lm-header "package"))
+				 (let ((str (lm-header "package")))
+				   (if str (intern str)))
 				 base-name)
 		    version  (lm-header "version")))
 	    (when summary

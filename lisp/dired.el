@@ -73,15 +73,18 @@ If nil, `dired-listing-switches' is used.")
 ;;;###autoload
 (defvar dired-chown-program
   (purecopy
-  (if (memq system-type '(hpux usg-unix-v irix linux gnu/linux cygwin))
+  (if (memq system-type '(hpux usg-unix-v irix gnu/linux cygwin))
       "chown"
     (if (file-exists-p "/usr/sbin/chown")
 	"/usr/sbin/chown"
       "/etc/chown")))
   "Name of chown command (usually `chown' or `/etc/chown').")
 
-(defvar dired-use-ls-dired (not (not (string-match "gnu" system-configuration)))
-  "Non-nil means Dired should use `ls --dired'.")
+(defvar dired-use-ls-dired 'unspecified
+  "Non-nil means Dired should use \"ls --dired\".
+The special value of `unspecified' means to check explicitly, and
+save the result in this variable.  This is performed the first
+time `dired-insert-directory' is called.")
 
 (defvar dired-chmod-program "chmod"
   "Name of chmod command (usually `chmod').")
@@ -1057,7 +1060,14 @@ If HDR is non-nil, insert a header line with the directory name."
   (let ((opoint (point))
 	(process-environment (copy-sequence process-environment))
 	end)
-    (if (or dired-use-ls-dired (file-remote-p dir))
+    (if (or (if (eq dired-use-ls-dired 'unspecified)
+		;; Check whether "ls --dired" gives exit code 0, and
+		;; save the answer in `dired-use-ls-dired'.
+		(setq dired-use-ls-dired
+		      (eq (call-process insert-directory-program nil nil nil "--dired")
+			  0))
+	      dired-use-ls-dired)
+	    (file-remote-p dir))
 	(setq switches (concat "--dired " switches)))
     ;; We used to specify the C locale here, to force English month names;
     ;; but this should not be necessary any more,
@@ -2011,6 +2021,14 @@ Otherwise, an error occurs in these cases."
           ;; with quotation marks in their names.
 	  (while (string-match "\\(?:[^\\]\\|\\`\\)\\(\"\\)" file)
 	    (setq file (replace-match "\\\"" nil t file 1)))
+	  
+	  (when (eq system-type 'windows-nt)
+	    (save-match-data
+	      (let ((start 0))
+		(while (string-match "\\\\" file start)
+		  (aset file (match-beginning 0) ?/)
+		  (setq start (match-end 0))))))
+
           (setq file (read (concat "\"" file "\"")))
 	  ;; The above `read' will return a unibyte string if FILE
 	  ;; contains eight-bit-control/graphic characters.
@@ -2138,7 +2156,7 @@ Return the position of the beginning of the filename, or nil if none found."
       ;; case-fold-search is nil now, so we can test for capital F:
       (setq used-F (string-match "F" dired-actual-switches)
 	    opoint (point)
-	    eol (save-excursion (end-of-line) (point))
+	    eol (line-end-position)
 	    hidden (and selective-display
 			(save-excursion (search-forward "\r" eol t))))
       (if hidden
@@ -3539,7 +3557,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "416d272299fd4774c47c2f677ee640a4")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "1628b7a7d379fb4da8ae4bf29faad4b5")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4030,5 +4048,4 @@ For absolute symlinks, use \\[dired-do-symlink].
 
 (run-hooks 'dired-load-hook)		; for your customizations
 
-;; arch-tag: e1af7a8f-691c-41a0-aac1-ddd4d3c87517
 ;;; dired.el ends here
