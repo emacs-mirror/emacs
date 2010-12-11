@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -34,7 +34,7 @@
 (eval-when-compile
   (require 'cl))
 
-(declare-function calendar-absolute-from-iso    "cal-iso"    (&optional date))
+(declare-function calendar-absolute-from-iso "cal-iso" (&optional date))
 (declare-function notifications-notify "notifications" (&rest params))
 (defvar org-time-stamp-formats)
 
@@ -222,9 +222,46 @@ string as argument."
 	  (string :tag "Program")
 	  (function :tag "Function")))
 
-(defcustom org-clock-clocktable-default-properties '(:maxlevel 2 :scope file)
-  "Default properties for new clocktables."
+(defgroup org-clocktable nil
+  "Options concerning the clock table in Org-mode."
+  :tag "Org Clock Table"
+  :group 'org-clock)
+
+(defcustom org-clocktable-defaults
+  (list
+   :maxlevel 2
+   :scope 'file
+   :block nil
+   :tstart nil
+   :tend nil
+   :step nil
+   :stepskip0 nil
+   :fileskip0 nil
+   :tags nil
+   :emphasize nil
+   :link nil
+   :narrow '40!
+   :indent t
+   :formula nil
+   :timestamp nil
+   :level nil
+   :tcolumns nil
+   :formatter nil)
+  "Default properties for clock tables."
   :group 'org-clock
+  :type 'plist)
+
+(defcustom org-clock-clocktable-formatter 'org-clocktable-write-default
+  "Function to turn clocking data into a table.
+For more information, see `org-clocktable-write-default'."
+  :group 'org-clocktable
+  :type 'function)
+
+(defcustom org-clock-clocktable-default-properties '(:maxlevel 2 :scope file)
+  "Default properties for new clocktables.
+These will be inserted into the BEGIN line, to make it easy for users to
+play with them."
+  :group 'org-clocktable
   :type 'plist)
 
 (defcustom org-clock-idle-time nil
@@ -1586,7 +1623,7 @@ fontified, and then returned."
     (font-lock-fontify-buffer)
     (forward-line 2)
     (buffer-substring (point) (progn
-				(re-search-forward "^#\\+END" nil t)
+				(re-search-forward "^[ \t]*#\\+END" nil t)
 				(point-at-bol)))))
 
 (defun org-clock-report (&optional arg)
@@ -1611,11 +1648,67 @@ buffer and update it."
   (let ((pos (point)) start)
     (save-excursion
       (end-of-line 1)
-      (and (re-search-backward "^#\\+BEGIN:[ \t]+clocktable" nil t)
+      (and (re-search-backward "^[ \t]*#\\+BEGIN:[ \t]+clocktable" nil t)
 	   (setq start (match-beginning 0))
-	   (re-search-forward "^#\\+END:.*" nil t)
+	   (re-search-forward "^[ \t]*#\\+END:.*" nil t)
 	   (>= (match-end 0) pos)
 	   start))))
+
+(defun org-day-of-week (day month year)
+  "Returns the day of the week as an integer."
+  (nth 6
+       (decode-time
+	(date-to-time
+	 (format "%d-%02d-%02dT00:00:00" year month day)))))
+
+(defun org-quarter-to-date (quarter year)
+  "Get the date (week day year) of the first day of a given quarter."
+  (let (startday)
+    (cond
+     ((= quarter 1)
+      (setq startday (org-day-of-week 1 1 year))
+      (cond
+       ((= startday 0)
+	(list 52 7 (- year 1)))
+       ((= startday 6)
+	(list 52 6 (- year 1)))
+       ((<= startday 4)
+	(list 1 startday year))
+       ((> startday 4)
+	(list 53 startday (- year 1)))
+       )
+      )
+     ((= quarter 2)
+      (setq startday (org-day-of-week 1 4 year))
+      (cond
+       ((= startday 0)
+	(list 13 startday year))
+       ((< startday 4)
+	(list 14 startday year))
+       ((>= startday 4)
+	(list 13 startday year))
+       )
+      )
+     ((= quarter 3)
+      (setq startday (org-day-of-week 1 7 year))
+      (cond
+       ((= startday 0)
+	(list 26 startday year))
+       ((< startday 4)
+	(list 27 startday year))
+       ((>= startday 4)
+	(list 26 startday year))
+       )
+      )
+     ((= quarter 4)
+      (setq startday (org-day-of-week 1 10 year))
+      (cond
+       ((= startday 0)
+	(list 39 startday year))
+       ((<= startday 4)
+	(list 40 startday year))
+       ((> startday 4)
+	(list 39 startday year)))))))
 
 (defun org-clock-special-range (key &optional time as-strings)
   "Return two times bordering a special time range.
@@ -1633,7 +1726,12 @@ the returned times will be formatted strings."
 	 (dow (nth 6 tm))
 	 (skey (symbol-name key))
 	 (shift 0)
-	 s1 m1 h1 d1 month1 y1 diff ts te fm txt w date)
+         (q (cond ((>= (nth 4 tm) 10) 4)
+                  ((>= (nth 4 tm) 7) 3)
+                  ((>= (nth 4 tm) 4) 2)
+                  ((>= (nth 4 tm) 1) 1)))
+	 s1 m1 h1 d1 month1 y1 diff ts te fm txt w date
+	 interval tmp shiftedy shiftedm shiftedq)
     (cond
      ((string-match "^[0-9]+$" skey)
       (setq y (string-to-number skey) m 1 d 1 key 'year))
@@ -1650,6 +1748,15 @@ the returned times will be formatted strings."
       (setq d (nth 1 date) month (car date) y (nth 2 date)
 	    dow 1
 	    key 'week))
+      ((string-match "^\\([0-9]+\\)-[qQ]\\([1-4]\\)$" skey)
+       (require 'cal-iso)
+       (setq y (string-to-number (match-string 1 skey)))
+       (setq q (string-to-number (match-string 2 skey)))
+       (setq date (calendar-gregorian-from-absolute
+                   (calendar-absolute-from-iso (org-quarter-to-date q y))))
+       (setq d (nth 1 date) month (car date) y (nth 2 date)
+            dow 1
+            key 'quarter))
      ((string-match "^\\([0-9]+\\)-\\([0-9]\\{1,2\\}\\)-\\([0-9]\\{1,2\\}\\)$" skey)
       (setq y (string-to-number (match-string 1 skey))
 	    month (string-to-number (match-string 2 skey))
@@ -1657,12 +1764,17 @@ the returned times will be formatted strings."
 	    key 'day))
      ((string-match "\\([-+][0-9]+\\)$" skey)
       (setq shift (string-to-number (match-string 1 skey))
-	    key (intern (substring skey 0 (match-beginning 1))))))
+            key (intern (substring skey 0 (match-beginning 1))))
+       (if(and (memq key '(quarter thisq)) (> shift 0))
+         (error "Looking forward with quarters isn't implemented.")
+        ())))
+
     (when (= shift 0)
-      (cond ((eq key 'yesterday) (setq key 'today shift -1))
-	    ((eq key 'lastweek)  (setq key 'week  shift -1))
-	    ((eq key 'lastmonth) (setq key 'month shift -1))
-	    ((eq key 'lastyear)  (setq key 'year  shift -1))))
+       (cond ((eq key 'yesterday) (setq key 'today   shift -1))
+            ((eq key 'lastweek)  (setq key 'week    shift -1))
+            ((eq key 'lastmonth) (setq key 'month   shift -1))
+            ((eq key 'lastyear)  (setq key 'year    shift -1))
+            ((eq key 'lastq)     (setq key 'quarter shift -1))))
     (cond
      ((memq key '(day today))
       (setq d (+ d shift) h 0 m 0 h1 24 m1 0))
@@ -1671,6 +1783,28 @@ the returned times will be formatted strings."
 	    m 0 h 0 d (- d diff) d1 (+ 7 d)))
      ((memq key '(month thismonth))
       (setq d 1 h 0 m 0 d1 1 month (+ month shift) month1 (1+ month) h1 0 m1 0))
+     ((memq key '(quarter thisq))
+      ; compute if this shift remains in this year
+      ; if not, compute how many years and quarters we have to shift (via floor*)
+      ; and compute the shifted years, months and quarters
+      (cond
+       ((< (+ (- q 1) shift) 0) ; shift not in this year
+       (setq interval (* -1 (+ (- q 1) shift)))
+       ; set tmp to ((years to shift) (quarters to shift))
+       (setq tmp (org-floor* interval 4))
+       ; due to the use of floor, 0 quarters actually means 4
+       (if (= 0 (nth 1 tmp))
+           (setq shiftedy (- y (nth 0 tmp))
+                 shiftedm 1
+                 shiftedq 1)
+         (setq shiftedy (- y (+ 1 (nth 0 tmp)))
+               shiftedm (- 13 (* 3 (nth 1 tmp)))
+               shiftedq (- 5 (nth 1 tmp))))
+       (setq d 1 h 0 m 0 d1 1 month shiftedm month1 (+ 3 shiftedm) h1 0 m1 0 y shiftedy))
+       ((> (+ q shift) 0) ; shift is whitin this year
+       (setq shiftedq (+ q shift))
+       (setq shiftedy y)
+       (setq d 1 h 0 m 0 d1 1 month (+ 1 (* 3 (- (+ q shift) 1))) month1 (+ 4 (* 3 (- (+ q shift) 1))) h1 0 m1 0))))
      ((memq key '(year thisyear))
       (setq m 0 h 0 d 1 month 1 y (+ y shift) y1 (1+ y)))
      (t (error "No such time block %s" key)))
@@ -1686,10 +1820,20 @@ the returned times will be formatted strings."
      ((memq key '(month thismonth))
       (setq txt (format-time-string "%B %Y" ts)))
      ((memq key '(year thisyear))
-      (setq txt (format-time-string "the year %Y" ts))))
+      (setq txt (format-time-string "the year %Y" ts)))
+     ((memq key '(quarter thisq))
+      (setq txt (concatenate 'string (org-count-quarter shiftedq) " quarter of " (number-to-string shiftedy))))
+     )
     (if as-strings
 	(list (format-time-string fm ts) (format-time-string fm te) txt)
       (list ts te txt))))
+
+(defun org-count-quarter (n)
+  (cond
+   ((= n 1) "1st")
+   ((= n 2) "2nd")
+   ((= n 3) "3rd")
+   ((= n 4) "4th")))
 
 (defun org-clocktable-shift (dir n)
   "Try to shift the :block date of the clocktable at point.
@@ -1704,7 +1848,7 @@ the currently selected interval size."
   (and (memq dir '(left down)) (setq n (- n)))
   (save-excursion
     (goto-char (point-at-bol))
-    (if (not (looking-at "#\\+BEGIN: clocktable\\>.*?:block[ \t]+\\(\\S-+\\)"))
+    (if (not (looking-at "^[ \t]*#\\+BEGIN:[ \t]+clocktable\\>.*?:block[ \t]+\\(\\S-+\\)"))
 	(error "Line needs a :block definition before this command works")
       (let* ((b (match-beginning 1)) (e (match-end 1))
 	     (s (match-string 1))
@@ -1713,90 +1857,95 @@ the currently selected interval size."
 	 ((equal s "yesterday") (setq s "today-1"))
 	 ((equal s "lastweek") (setq s "thisweek-1"))
 	 ((equal s "lastmonth") (setq s "thismonth-1"))
-	 ((equal s "lastyear") (setq s "thisyear-1")))
-	(cond
-	 ((string-match "^\\(today\\|thisweek\\|thismonth\\|thisyear\\)\\([-+][0-9]+\\)?$" s)
-	  (setq block (match-string 1 s)
-		shift (if (match-end 2)
-			  (string-to-number (match-string 2 s))
-			0))
-	  (setq shift (+ shift n))
-	  (setq ins (if (= shift 0) block (format "%s%+d" block shift))))
-	 ((string-match "\\([0-9]+\\)\\(-\\([wW]?\\)\\([0-9]\\{1,2\\}\\)\\(-\\([0-9]\\{1,2\\}\\)\\)?\\)?" s)
-	  ;;               1        1  2   3       3  4                4  5   6                6  5   2
-	  (setq y (string-to-number (match-string 1 s))
-		wp (and (match-end 3) (match-string 3 s))
-		mw (and (match-end 4) (string-to-number (match-string 4 s)))
-		d (and (match-end 6) (string-to-number (match-string 6 s))))
-	  (cond
-	   (d (setq ins (format-time-string
-			 "%Y-%m-%d"
-			 (encode-time 0 0 0 (+ d n) m y))))
-	   ((and wp mw (> (length wp) 0))
-	    (require 'cal-iso)
-	    (setq date (calendar-gregorian-from-absolute (calendar-absolute-from-iso (list (+ mw n) 1 y))))
-	    (setq ins (format-time-string
-		       "%G-W%V"
-		       (encode-time 0 0 0 (nth 1 date) (car date) (nth 2 date)))))
-	   (mw
-	    (setq ins (format-time-string
-		       "%Y-%m"
-		       (encode-time 0 0 0 1 (+ mw n) y))))
-	   (y
-	    (setq ins (number-to-string (+ y n))))))
-	 (t (error "Cannot shift clocktable block")))
-	(when ins
-	  (goto-char b)
-	  (insert ins)
-	  (delete-region (point) (+ (point) (- e b)))
-	  (beginning-of-line 1)
-	  (org-update-dblock)
-	  t)))))
+	 ((equal s "lastyear") (setq s "thisyear-1"))
+	 ((equal s "lastq") (setq s "thisq-1")))
+
+       (cond
+        ((string-match "^\\(today\\|thisweek\\|thismonth\\|thisyear\\|thisq\\)\\([-+][0-9]+\\)?$" s)
+         (setq block (match-string 1 s)
+               shift (if (match-end 2)
+                         (string-to-number (match-string 2 s))
+                       0))
+         (setq shift (+ shift n))
+         (setq ins (if (= shift 0) block (format "%s%+d" block shift))))
+	((string-match "\\([0-9]+\\)\\(-\\([wWqQ]?\\)\\([0-9]\\{1,2\\}\\)\\(-\\([0-9]\\{1,2\\}\\)\\)?\\)?" s)
+        ;;               1        1  2   3       3  4                  4  5   6                6  5   2
+         (setq y (string-to-number (match-string 1 s))
+               wp (and (match-end 3) (match-string 3 s))
+               mw (and (match-end 4) (string-to-number (match-string 4 s)))
+	       d (and (match-end 6) (string-to-number (match-string 6 s))))
+	 (cond
+	  (d (setq ins (format-time-string
+                        "%Y-%m-%d"
+                        (encode-time 0 0 0 (+ d n) m y))))
+          ((and wp (string-match "w\\|W" wp) mw (> (length wp) 0))
+           (require 'cal-iso)
+           (setq date (calendar-gregorian-from-absolute (calendar-absolute-from-iso (list (+ mw n) 1 y))))
+           (setq ins (format-time-string
+                      "%G-W%V"
+                      (encode-time 0 0 0 (nth 1 date) (car date) (nth 2 date)))))
+	  ((and wp (string-match "q\\|Q" wp) mw (> (length wp) 0))
+           (require 'cal-iso)
+	   ; if the 4th + 1 quarter is requested we flip to the 1st quarter of the next year
+           (if (> (+ mw n) 4)
+               (setq mw 0
+                     y (+ 1 y))
+	     ())
+	   ; if the 1st - 1 quarter is requested we flip to the 4th quarter of the previous year
+           (if (= (+ mw n) 0)
+               (setq mw 5
+                     y (- y 1))
+             ())
+           (setq date (calendar-gregorian-from-absolute (calendar-absolute-from-iso (org-quarter-to-date (+ mw n) y))))
+           (setq ins (format-time-string
+                      (concatenate 'string (number-to-string y) "-Q" (number-to-string (+ mw n)))
+                      (encode-time 0 0 0 (nth 1 date) (car date) (nth 2 date)))))
+          (mw
+           (setq ins (format-time-string
+                      "%Y-%m"
+		      (encode-time 0 0 0 1 (+ mw n) y))))
+	  (y
+	   (setq ins (number-to-string (+ y n))))))
+	(t (error "Cannot shift clocktable block")))
+       (when ins
+	 (goto-char b)
+	 (insert ins)
+	 (delete-region (point) (+ (point) (- e b)))
+	 (beginning-of-line 1)
+	 (org-update-dblock)
+	 t)))))
 
 (defun org-dblock-write:clocktable (params)
   "Write the standard clocktable."
+  (setq params (org-combine-plists org-clocktable-defaults params))
   (catch 'exit
-    (let* ((hlchars '((1 . "*") (2 . "/")))
-	   (ins (make-marker))
-	   (total-time nil)
-	   (scope (plist-get params :scope))
-	   (tostring (plist-get  params :tostring))
-	   (multifile (plist-get  params :multifile))
-	   (header (plist-get  params :header))
-	   (maxlevel (or (plist-get params :maxlevel) 3))
-	   (step (plist-get params :step))
-	   (emph (plist-get params :emphasize))
-	   (timestamp (plist-get params :timestamp))
+    (let* ((scope (plist-get params :scope))
+	   (block (plist-get params :block))
 	   (ts (plist-get params :tstart))
 	   (te (plist-get params :tend))
-	   (block (plist-get params :block))
 	   (link (plist-get params :link))
-	   (tags (plist-get params :tags))
-	   (matcher (if tags (cdr (org-make-tags-matcher tags))))
-	   ipos time p level hlc hdl tsp props content recalc formula pcol
-	   cc beg end pos tbl tbl1 range-text rm-file-column scope-is-list st)
-      (setq org-clock-file-total-minutes nil)
+	   (maxlevel (or (plist-get params :maxlevel) 3))
+	   (step (plist-get params :step))
+	   (timestamp (plist-get params :timestamp))
+	   (formatter (or (plist-get params :formatter)
+			  org-clock-clocktable-formatter
+			  'org-clocktable-write-default))
+	   cc range-text ipos pos one-file-with-archives
+	   scope-is-list tbls level)
+
+      ;; Check if we need to do steps
+      (when block
+	;; Get the range text for the header
+	(setq cc (org-clock-special-range block nil t)
+	      ts (car cc) te (nth 1 cc) range-text (nth 2 cc)))
       (when step
+	;; Write many tables, in steps
 	(unless (or block (and ts te))
 	  (error "Clocktable `:step' can only be used with `:block' or `:tstart,:end'"))
 	(org-clocktable-steps params)
 	(throw 'exit nil))
-      (when block
-	(setq cc (org-clock-special-range block nil t)
-	      ts (car cc) te (nth 1 cc) range-text (nth 2 cc)))
-      (when (integerp ts) (setq ts (calendar-gregorian-from-absolute ts)))
-      (when (integerp te) (setq te (calendar-gregorian-from-absolute te)))
-      (when (and ts (listp ts))
-	(setq ts (format "%4d-%02d-%02d" (nth 2 ts) (car ts) (nth 1 ts))))
-      (when (and te (listp te))
-	(setq te (format "%4d-%02d-%02d" (nth 2 te) (car te) (nth 1 te))))
-      ;; Now the times are strings we can parse.
-      (if ts (setq ts (org-float-time
-		       (apply 'encode-time (org-parse-time-string ts)))))
-      (if te (setq te (org-float-time
-		       (apply 'encode-time (org-parse-time-string te)))))
-      (move-marker ins (point))
-      (setq ipos (point))
+
+      (setq ipos (point)) ; remember the insertion position
 
       ;; Get the right scope
       (setq pos (point))
@@ -1810,166 +1959,271 @@ the currently selected interval size."
 	(setq scope (org-add-archive-files scope)))
        ((eq scope 'file-with-archives)
 	(setq scope (org-add-archive-files (list (buffer-file-name)))
-	      rm-file-column t)))
+	      one-file-with-archives t)))
       (setq scope-is-list (and scope (listp scope)))
-      (save-restriction
-	(cond
-	 ((not scope))
-	 ((eq scope 'file) (widen))
-	 ((eq scope 'subtree) (org-narrow-to-subtree))
-	 ((eq scope 'tree)
-	  (while (org-up-heading-safe))
-	  (org-narrow-to-subtree))
-	 ((and (symbolp scope) (string-match "^tree\\([0-9]+\\)$"
-					     (symbol-name scope)))
-	  (setq level (string-to-number (match-string 1 (symbol-name scope))))
-	  (catch 'exit
-	    (while (org-up-heading-safe)
-	      (looking-at outline-regexp)
-	      (if (<= (org-reduced-level (funcall outline-level)) level)
-		  (throw 'exit nil))))
-	  (org-narrow-to-subtree))
-	 (scope-is-list
+      (if scope-is-list
+	  ;; we collect from several files
 	  (let* ((files scope)
-		 (scope 'agenda)
-		 (p1 (copy-sequence params))
 		 file)
-	    (setq p1 (plist-put p1 :tostring t))
-	    (setq p1 (plist-put p1 :multifile t))
-	    (setq p1 (plist-put p1 :scope 'file))
 	    (org-prepare-agenda-buffers files)
 	    (while (setq file (pop files))
 	      (with-current-buffer (find-buffer-visiting file)
-		(setq org-clock-file-total-minutes 0)
-		(setq tbl1 (org-dblock-write:clocktable p1))
-		(when tbl1
-		  (push (org-clocktable-add-file
-			 file
-			 (concat "| |*File time*|*"
-				 (org-minutes-to-hh:mm-string
-				  org-clock-file-total-minutes)
-				 "*|\n"
-				 tbl1)) tbl)
-		  (setq total-time (+ (or total-time 0)
-				      org-clock-file-total-minutes))))))))
-	(goto-char pos)
+		(save-excursion
+		  (save-restriction
+		    (push (org-clock-get-table-data file params) tbls))))))
+	;; Just from the current file
+	(save-restriction
+	  ;; get the right range into the restriction
+	  (org-prepare-agenda-buffers (list (buffer-file-name)))
+	  (cond
+	   ((not scope))  ; use the restriction as it is now
+	   ((eq scope 'file) (widen))
+	   ((eq scope 'subtree) (org-narrow-to-subtree))
+	   ((eq scope 'tree)
+	    (while (org-up-heading-safe))
+	    (org-narrow-to-subtree))
+	   ((and (symbolp scope) (string-match "^tree\\([0-9]+\\)$"
+					       (symbol-name scope)))
+	    (setq level (string-to-number (match-string 1 (symbol-name scope))))
+	    (catch 'exit
+	      (while (org-up-heading-safe)
+		(looking-at outline-regexp)
+		(if (<= (org-reduced-level (funcall outline-level)) level)
+		    (throw 'exit nil))))
+	    (org-narrow-to-subtree)))
+	  ;; do the table, with no file name.
+	  (push (org-clock-get-table-data nil params) tbls)))
 
-	(unless scope-is-list
-	  (org-clock-sum ts te
-			 (unless (null matcher)
-			   (lambda ()
-			     (let ((tags-list
-				    (org-split-string
-				     (or (org-entry-get (point) "ALLTAGS") "")
-				     ":")))
-			       (eval matcher)))))
-	  (goto-char (point-min))
-	  (setq st t)
-	  (while (or (and (bobp) (prog1 st (setq st nil))
-			  (get-text-property (point) :org-clock-minutes)
-			  (setq p (point-min)))
-		     (setq p (next-single-property-change (point) :org-clock-minutes)))
-	    (goto-char p)
-	    (when (setq time (get-text-property p :org-clock-minutes))
-	      (save-excursion
-		(beginning-of-line 1)
-		(when (and (looking-at (org-re "\\(\\*+\\)[ \t]+\\(.*?\\)\\([ \t]+:[[:alnum:]_@#%:]+:\\)?[ \t]*$"))
-			   (setq level (org-reduced-level
-					(- (match-end 1) (match-beginning 1))))
-			   (<= level maxlevel))
-		  (setq hlc (if emph (or (cdr (assoc level hlchars)) "") "")
-			hdl (if (not link)
-				(match-string 2)
-			      (org-make-link-string
-			       (format "file:%s::%s"
-				       (buffer-file-name)
-				       (save-match-data
-					 (org-make-org-heading-search-string
-					  (match-string 2))))
-			       (match-string 2)))
-			tsp (when timestamp
-			      (setq props (org-entry-properties (point)))
-			      (or (cdr (assoc "SCHEDULED" props))
-				  (cdr (assoc "TIMESTAMP" props))
-				  (cdr (assoc "DEADLINE" props))
-				  (cdr (assoc "TIMESTAMP_IA" props)))))
-		  (if (and (not multifile) (= level 1)) (push "|-" tbl))
-		  (push (concat
-			 "| " (int-to-string level) "|"
-			 (if timestamp (concat tsp "|") "")
-			 hlc hdl hlc " |"
-			 (make-string (1- level) ?|)
-			 hlc (org-minutes-to-hh:mm-string time) hlc
-			 " |") tbl))))))
-	(setq tbl (nreverse tbl))
-	(if tostring
-	    (if tbl (mapconcat 'identity tbl "\n") nil)
-	  (goto-char ins)
-	  (insert-before-markers
-	   (or header
-	       (concat
-		"Clock summary at ["
-		(substring
-		 (format-time-string (cdr org-time-stamp-formats))
-		 1 -1)
-		"]"
-		(if block (concat ", for " range-text ".") "")
-		"\n\n"))
-	   (if scope-is-list "|File" "")
-	   "|L|" (if timestamp "Timestamp|" "") "Headline|Time|\n")
-	  (setq total-time (or total-time org-clock-file-total-minutes))
-	  (insert-before-markers
-	   "|-\n|"
-	   (if scope-is-list "|" "")
-	   (if timestamp "|Timestamp|" "|")
-	   "*Total time*| *"
-	   (org-minutes-to-hh:mm-string (or total-time 0))
-	   "*|\n|-\n")
-	  (setq tbl (delq nil tbl))
-	  (if (and (stringp (car tbl)) (> (length (car tbl)) 1)
-		   (equal (substring (car tbl) 0 2) "|-"))
-	      (pop tbl))
-	  (insert-before-markers (mapconcat
-				  'identity (delq nil tbl)
-				  (if scope-is-list "\n|-\n" "\n")))
-	  (backward-delete-char 1)
-	  (if (setq formula (plist-get params :formula))
-	      (cond
-	       ((eq formula '%)
-		(setq pcol (+ (if scope-is-list 1 0) maxlevel 3))
-		(insert
-		 (format
-		  "\n#+TBLFM: $%d='(org-clock-time%% @%d$%d $%d..$%d);%%.1f"
-		  pcol
-		  2
-		  (+ 3 (if scope-is-list 1 0))
-		  (+ (if scope-is-list 1 0) 3)
-		  (1- pcol)))
-		(setq recalc t))
-	       ((stringp formula)
-		(insert "\n#+TBLFM: " formula)
-		(setq recalc t))
-	       (t (error "invalid formula in clocktable")))
-	    ;; Should we rescue an old formula?
-	    (when (stringp (setq content (plist-get params :content)))
-	      (when (string-match "^\\([ \t]*#\\+TBLFM:.*\\)" content)
-		(setq recalc t)
-		(insert "\n" (match-string 1 (plist-get params :content)))
-		(beginning-of-line 0))))
-	  (goto-char ipos)
-	  (skip-chars-forward "^|")
-	  (org-table-align)
-	  (when recalc
-	    (if (eq formula '%)
-		(save-excursion (org-table-goto-column pcol nil 'force)
-				(insert "%")))
-	    (org-table-recalculate 'all))
-	  (when rm-file-column
-	    (forward-char 1)
-	    (org-table-delete-column))
-	  total-time)))))
+      ;; OK, at this point we tbls as a list of tables, one per file
+      (setq tbls (nreverse tbls))
+
+      (setq params (plist-put params :multifile scope-is-list))
+      (setq params (plist-put params :one-file-with-archives
+			      one-file-with-archives))
+
+      (funcall formatter ipos tbls params))))
+
+(defun org-clocktable-write-default (ipos tables params)
+  "Write out a clock table at position IPOS in the current buffer.
+TABLES is a list of tables with clocking data as produced by
+`org-clock-get-table-data'.  PARAMS is the parameter property list obtained
+from the dynamic block defintion."
+  ;; This function looks quite complicated, mainly because there are a lot
+  ;; of options which can add or remove columns.  I have massively commented
+  ;; function, to I hope it is understandable.  If someone want to write
+  ;; there own special formatter, this maybe much easier because there can
+  ;; be a fixed format with a well-defined number of columns...
+  (let* ((hlchars '((1 . "*") (2 . "/")))
+	 (multifile (plist-get params :multifile))
+	 (block (plist-get params :block))
+	 (ts (plist-get params :tstart))
+	 (te (plist-get params :tend))
+	 (header (plist-get  params :header))
+	 (narrow (plist-get params :narrow))
+	 (link (plist-get params :link))
+	 (maxlevel (or (plist-get params :maxlevel) 3))
+	 (emph (plist-get params :emphasize))
+	 (level-p (plist-get params :level))
+	 (timestamp (plist-get params :timestamp))
+	 (ntcol (max 1 (or (plist-get params :tcolumns) 100)))
+	 (rm-file-column (plist-get params :one-file-with-archives))
+	 (indent (plist-get params :indent))
+	 range-text total-time tbl level hlc formula pcol
+	 file-time entries entry headline
+	 recalc content narrow-cut-p tcol)
+
+    ;; Implement abbreviations
+    (when (plist-get params :compact)
+      (setq level nil indent t narrow (or narrow '40!) ntcol 1))
+
+    ;; Some consistency test for parameters
+      (unless (integerp ntcol)
+	(setq params (plist-put params :tcolumns (setq ntcol 100))))
+
+      (when (and narrow (integerp narrow) link)
+	;; We cannot have both integer narrow and link
+	(message
+	 "Using hard narrowing in clocktable to allow for links")
+	(setq narrow (intern (format "%d!" narrow))))
+
+      (when narrow
+	(cond
+	 ((integerp narrow))
+	 ((and (symbolp narrow)
+	       (string-match "\\`[0-9]+!\\'" (symbol-name narrow)))
+	  (setq narrow-cut-p t
+		narrow (string-to-number (substring (symbol-name narrow)
+						    0 -1))))
+	 (t
+	  (error "Invalid value %s of :narrow property in clock table"
+		 narrow))))
+
+      (when block
+	;; Get the range text for the header
+	(setq range-text (nth 2 (org-clock-special-range block nil t))))
+
+      ;; Compute the total time
+      (setq total-time (apply '+ (mapcar 'cadr tables)))
+
+      ;; Now we need to output this tsuff
+      (goto-char ipos)
+
+      ;; Insert the text *before* the actual table
+      (insert-before-markers
+       (or header
+	   ;; Format the standard header
+	   (concat
+	    "Clock summary at ["
+	    (substring
+	     (format-time-string (cdr org-time-stamp-formats))
+	     1 -1)
+	    "]"
+	    (if block (concat ", for " range-text ".") "")
+	    "\n\n")))
+
+      ;; Insert the narrowing line
+      (when (and narrow (integerp narrow) (not narrow-cut-p))
+	(insert-before-markers
+	 "|"                            ; table line starter
+	 (if multifile "|" "")          ; file column, maybe
+	 (if level-p   "|" "")          ; level column, maybe
+	 (if timestamp "|" "")          ; timestamp column, maybe
+	 (format "<%d>| |\n" narrow)))  ; headline and time columns
+
+      ;; Insert the table header line
+      (insert-before-markers
+       "|"                              ; table line starter
+       (if multifile "File|"      "")   ; file column, maybe
+       (if level-p   "L|"         "")   ; level column, maybe
+       (if timestamp "Timestamp|" "")   ; timestamp column, maybe
+       "Headline|Time|\n")              ; headline and time columns
+
+      ;; Insert the total time in the table
+      (insert-before-markers
+       "|-\n"                           ; a hline
+       "|"                              ; table line starter
+       (if multifile "| ALL " "")       ; file column, maybe
+       (if level-p   "|"      "")       ; level column, maybe
+       (if timestamp "|"      "")       ; timestamp column, maybe
+       "*Total time*| "                 ; instead of a headline
+       "*"
+       (org-minutes-to-hh:mm-string (or total-time 0)) ; the time
+       "*|\n")                          ; close line
+
+      ;; Now iterate over the tables and insert the data
+      ;; but only if any time has been collected
+      (when (and total-time (> total-time 0))
+
+	(while (setq tbl (pop tables))
+	  ;; now tbl is the table resulting from one file.
+	  (setq file-time (nth 1 tbl))
+	  (when (or (and file-time (> file-time 0))
+		    (not (plist-get params :fileskip0)))
+	    (insert-before-markers "|-\n")  ; a hline because a new file starts
+	    ;; First the file time, if we have multiple files
+	    (when multifile
+	      ;; Summarize the time colleted from this file
+	      (insert-before-markers
+	       (format "| %s %s | %s*File time* | *%s*|\n"
+		       (file-name-nondirectory (car tbl))
+		       (if level-p   "| " "") ; level column, maybe
+		       (if timestamp "| " "") ; timestamp column, maybe
+		       (org-minutes-to-hh:mm-string (nth 1 tbl))))) ; the time
+
+	    ;; Get the list of node entries and iterate over it
+	    (setq entries (nth 2 tbl))
+	    (while (setq entry (pop entries))
+	      (setq level (car entry)
+		    headline (nth 1 entry)
+		    hlc (if emph (or (cdr (assoc level hlchars)) "") ""))
+	      (when narrow-cut-p
+		(if (and (string-match (concat "\\`" org-bracket-link-regexp
+					       "\\'")
+				       headline)
+			 (match-end 3))
+		    (setq headline
+			  (format "[[%s][%s]]"
+				  (match-string 1 headline)
+				  (org-shorten-string (match-string 3 headline)
+						      narrow)))
+		  (setq headline (org-shorten-string headline narrow))))
+	      (insert-before-markers
+	       "|"                      ; start the table line
+	       (if multifile "|" "")    ; free space for file name column?
+	       (if level-p (format "%d|" (car entry)) "")   ; level, maybe
+	       (if timestamp (concat (nth 2 entry) "|") "") ; timestamp, maybe
+	       (if indent (org-clocktable-indent-string level) "") ; indentation
+	       hlc headline hlc "|"                                ; headline
+	       (make-string (min (1- ntcol) (or (- level 1))) ?|)
+					; empty fields for higher levels
+	       hlc (org-minutes-to-hh:mm-string (nth 3 entry)) hlc ; time
+	       "|\n"                                               ; close line
+	       )))))
+      (backward-delete-char 1)
+      (if (setq formula (plist-get params :formula))
+	  (cond
+	   ((eq formula '%)
+	    ;; compute the column where the % numbers need to go
+	    (setq pcol (+ 2
+			  (if multifile 1 0)
+			  (if level-p 1 0)
+			  (if timestamp 1 0)
+			  (min maxlevel (or ntcol 100))))
+	    ;; compute the column where the total time is
+	    (setq tcol (+ 2
+			  (if multifile 1 0)
+			  (if level-p 1 0)
+			  (if timestamp 1 0)))
+	    (insert
+	     (format
+	      "\n#+TBLFM: $%d='(org-clock-time%% @%d$%d $%d..$%d);%%.1f"
+	      pcol            ; the column where the % numbers should go
+	      (if (and narrow (not narrow-cut-p)) 3 2) ; row of the total time
+	      tcol            ; column of the total time
+	      tcol (1- pcol)  ; range of columns where times can be found
+	      ))
+	    (setq recalc t))
+	   ((stringp formula)
+	    (insert "\n#+TBLFM: " formula)
+	    (setq recalc t))
+	   (t (error "invalid formula in clocktable")))
+	;; Should we rescue an old formula?
+	(when (stringp (setq content (plist-get params :content)))
+	  (when (string-match "^\\([ \t]*#\\+TBLFM:.*\\)" content)
+	    (setq recalc t)
+	    (insert "\n" (match-string 1 (plist-get params :content)))
+	    (beginning-of-line 0))))
+      ;; Back to beginning, align the table, recalculate if necessary
+      (goto-char ipos)
+      (skip-chars-forward "^|")
+      (org-table-align)
+      (when org-hide-emphasis-markers
+	;; we need to align a second time
+	(org-table-align))
+      (when recalc
+	(if (eq formula '%)
+	    (save-excursion
+	      (if (and narrow (not narrow-cut-p)) (beginning-of-line 2))
+	      (org-table-goto-column pcol nil 'force)
+	      (insert "%")))
+	(org-table-recalculate 'all))
+      (when rm-file-column
+	;; The file column is actually not wanted
+	(forward-char 1)
+	(org-table-delete-column))
+      total-time))
+
+(defun org-clocktable-indent-string (level)
+  (if (= level 1)
+      ""
+    (let ((str "\\__"))
+      (while (> level 2)
+	(setq level (1- level)
+	      str (concat str "___")))
+      (concat str " "))))
 
 (defun org-clocktable-steps (params)
+  "Step through the range to make a number of clock tables."
   (let* ((p1 (copy-sequence params))
 	 (ts (plist-get p1 :tstart))
 	 (te (plist-get p1 :tend))
@@ -2008,29 +2262,107 @@ the currently selected interval size."
       (setq p1 (plist-put p1 :tend (format-time-string
 				    (org-time-stamp-format nil t)
 				    (seconds-to-time (setq ts (+ ts step))))))
-      (insert "\n" (if (eq step0 'day) "Daily report: " "Weekly report starting on: ")
+      (insert "\n" (if (eq step0 'day) "Daily report: "
+		     "Weekly report starting on: ")
 	      (plist-get p1 :tstart) "\n")
       (setq step-time (org-dblock-write:clocktable p1))
-      (re-search-forward "#\\+END:")
+      (re-search-forward "^[ \t]*#\\+END:")
       (when (and (equal step-time 0) stepskip0)
 	;; Remove the empty table
 	(delete-region (point-at-bol)
 		       (save-excursion
-			 (re-search-backward "^\\(Daily\\|Weekly\\) report" nil t)
+			 (re-search-backward "^\\(Daily\\|Weekly\\) report"
+					     nil t)
 			 (point))))
       (end-of-line 0))))
 
-(defun org-clocktable-add-file (file table)
-  (if table
-      (let ((lines (org-split-string table "\n"))
-	    (ff (file-name-nondirectory file)))
-	(mapconcat 'identity
-		   (mapcar (lambda (x)
-			     (if (string-match org-table-dataline-regexp x)
-				 (concat "|" ff x)
-			       x))
-			   lines)
-		   "\n"))))
+(defun org-clock-get-table-data (file params)
+  "Get the clocktable data for file FILE, with parameters PARAMS.
+FILE is only for identification - this function assumes that
+the correct buffer is current, and that the wanted restriction is
+in place.
+The return value will be a list with the file name and the total
+file time (in minutes) as 1st and 2nd elements.  The third element
+of this list will be a list of headline entries.  Each entry has the
+following structure:
+
+  (LEVEL HEADLINE TIMESTAMP TIME)
+
+LEVEL:     The level of the headline, as an integer.  This will be
+           the reduced leve, so 1,2,3,... even if only odd levels
+           are being used.
+HEADLINE:  The text of the headline.  Depending on PARAMS, this may
+           already be formatted like a link.
+TIMESTAMP: If PARAMS require it, this will be a time stamp found in the
+           entry, any of SCHEDULED, DEADLINE, NORMAL, or first inactive,
+           in this sequence.
+TIME:      The sum of all time spend in this tree, in minutes.  This time
+           will of cause be restricted to the time block and tags match
+           specified in PARAMS."
+  (let* ((maxlevel (or (plist-get params :maxlevel) 3))
+	 (timestamp (plist-get params :timestamp))
+	 (ts (plist-get params :tstart))
+	 (te (plist-get params :tend))
+	 (block (plist-get params :block))
+	 (link (plist-get params :link))
+	 (tags (plist-get params :tags))
+	 (matcher (if tags (cdr (org-make-tags-matcher tags))))
+	 cc range-text st p time level hdl props tsp tbl)
+
+    (setq org-clock-file-total-minutes nil)
+    (when block
+      (setq cc (org-clock-special-range block nil t)
+	    ts (car cc) te (nth 1 cc) range-text (nth 2 cc)))
+    (when (integerp ts) (setq ts (calendar-gregorian-from-absolute ts)))
+    (when (integerp te) (setq te (calendar-gregorian-from-absolute te)))
+    (when (and ts (listp ts))
+      (setq ts (format "%4d-%02d-%02d" (nth 2 ts) (car ts) (nth 1 ts))))
+    (when (and te (listp te))
+      (setq te (format "%4d-%02d-%02d" (nth 2 te) (car te) (nth 1 te))))
+    ;; Now the times are strings we can parse.
+    (if ts (setq ts (org-float-time
+		     (apply 'encode-time (org-parse-time-string ts)))))
+    (if te (setq te (org-float-time
+		     (apply 'encode-time (org-parse-time-string te)))))
+    (save-excursion
+      (org-clock-sum ts te
+		     (unless (null matcher)
+		       (lambda ()
+			 (let ((tags-list (org-get-tags-at)))
+			   (eval matcher)))))
+      (goto-char (point-min))
+      (setq st t)
+      (while (or (and (bobp) (prog1 st (setq st nil))
+		      (get-text-property (point) :org-clock-minutes)
+		      (setq p (point-min)))
+		 (setq p (next-single-property-change
+			  (point) :org-clock-minutes)))
+	(goto-char p)
+	(when (setq time (get-text-property p :org-clock-minutes))
+	  (save-excursion
+	    (beginning-of-line 1)
+	    (when (and (looking-at (org-re "\\(\\*+\\)[ \t]+\\(.*?\\)\\([ \t]+:[[:alnum:]_@#%:]+:\\)?[ \t]*$"))
+		       (setq level (org-reduced-level
+				    (- (match-end 1) (match-beginning 1))))
+		       (<= level maxlevel))
+	      (setq hdl (if (not link)
+			    (match-string 2)
+			  (org-make-link-string
+			   (format "file:%s::%s"
+				   (buffer-file-name)
+				   (save-match-data
+				     (org-make-org-heading-search-string
+				      (match-string 2))))
+			   (match-string 2)))
+		    tsp (when timestamp
+			  (setq props (org-entry-properties (point)))
+			  (or (cdr (assoc "SCHEDULED" props))
+			      (cdr (assoc "DEADLINE" props))
+			      (cdr (assoc "TIMESTAMP" props))
+			      (cdr (assoc "TIMESTAMP_IA" props)))))
+	      (when (> time 0) (push (list level hdl tsp time) tbl))))))
+      (setq tbl (nreverse tbl))
+      (list file org-clock-file-total-minutes tbl))))
 
 (defun org-clock-time% (total &rest strings)
   "Compute a time fraction in percent.
@@ -2051,7 +2383,8 @@ This function is made for clock tables."
 	  (if (string-match "\\([0-9]+\\):\\([0-9]+\\)" s)
 	      (throw 'exit
 		     (/ (* 100.0 (+ (string-to-number (match-string 2 s))
-				    (* 60 (string-to-number (match-string 1 s)))))
+				    (* 60 (string-to-number
+					   (match-string 1 s)))))
 			tot))))
 	0))))
 
@@ -2081,7 +2414,8 @@ The details of what will be saved are regulated by the variable
 		   (buffer-file-name b)
 		   (or (not org-clock-persist-query-save)
 		       (y-or-n-p (concat "Save current clock ("
-					 (substring-no-properties org-clock-heading)
+					 (substring-no-properties
+					  org-clock-heading)
 					 ") "))))
 	      (insert "(setq resume-clock '(\""
 		      (buffer-file-name (org-clocking-buffer))
@@ -2162,3 +2496,4 @@ The details of what will be saved are regulated by the variable
 ;; arch-tag: 7b42c5d4-9b36-48be-97c0-66a869daed4c
 
 ;;; org-clock.el ends here
+

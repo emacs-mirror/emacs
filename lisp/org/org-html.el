@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1213,7 +1213,11 @@ lang=\"%s\" xml:lang=\"%s\">
 	    (throw 'nextline nil))
 
 	  ;; Protected HTML
-	  (when (get-text-property 0 'org-protected line)
+	  (when (and (get-text-property 0 'org-protected line)
+		     ;; Make sure it is the entire line that is protected
+		     (not (< (or (next-single-property-change
+				  0 'org-protected line) 10000)
+			     (length line))))
 	    (let (par (ind (get-text-property 0 'original-indentation line)))
 	      (when (re-search-backward
 		     "\\(<p>\\)\\([ \t\r\n]*\\)\\=" (- (point) 100) t)
@@ -2316,10 +2320,9 @@ When TITLE is nil, just close all open levels."
 	 (extra-class (and title (org-get-text-property-any 0 'html-container-class title)))
 	 (preferred (and target
 			 (cdr (assoc target org-export-preferred-target-alist))))
-	 (remove (or preferred target))
 	 (l org-level-max)
 	 snumber snu href suffix)
-    (setq extra-targets (remove remove extra-targets))
+    (setq extra-targets (remove (or preferred target) extra-targets))
     (setq extra-targets
 	  (mapconcat (lambda (x)
 		       (if (org-uuidgen-p x) (setq x (concat "ID-" x)))
@@ -2358,12 +2361,13 @@ When TITLE is nil, just close all open levels."
 		(progn
 		  (org-close-li)
 		  (if target
-		      (insert (format "<li id=\"%s\">" target) extra-targets title "<br/>\n")
+		      (insert (format "<li id=\"%s\">" (or preferred target))
+			      extra-targets title "<br/>\n")
 		    (insert "<li>" title "<br/>\n")))
 	      (aset org-levels-open (1- level) t)
 	      (org-close-par-maybe)
 	      (if target
-		  (insert (format "<ul>\n<li id=\"%s\">" target)
+		  (insert (format "<ul>\n<li id=\"%s\">" (or preferred target))
 			  extra-targets title "<br/>\n")
 		(insert "<ul>\n<li>" title "<br/>\n"))))
 	(aset org-levels-open (1- level) t)

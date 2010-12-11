@@ -2,11 +2,10 @@
 
 ;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
-;; Author: Eric Schulte
-;;	Dan Davison
+;; Author: Eric Schulte, Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -52,11 +51,13 @@
 ;;; Code:
 (require 'ob)
 (eval-when-compile
+  (require 'org-list)
   (require 'cl))
 
 (declare-function org-remove-if-not "org" (predicate seq))
 (declare-function org-at-table-p "org" (&optional table-type))
 (declare-function org-count "org" (CL-ITEM CL-SEQ))
+(declare-function org-in-item-p "org-list" ())
 
 (defvar org-babel-ref-split-regexp
   "[ \f\t\n\r\v]*\\(.+?\\)[ \f\t\n\r\v]*=[ \f\t\n\r\v]*\\(.+\\)[ \f\t\n\r\v]*")
@@ -74,46 +75,39 @@ the variable."
     (let ((var (match-string 1 assignment))
 	  (ref (match-string 2 assignment)))
       (cons (intern var)
-	    ((lambda (val)
-	       (if (equal :ob-must-be-reference val)
-		   (org-babel-ref-resolve ref) val))
-	     (org-babel-ref-literal ref))))))
-
-(defun org-babel-ref-literal (ref)
-  "Return the value of REF if it is a literal value.
-Determine if the right side of a header argument variable
-assignment is a literal value or is a reference to some external
-resource.  REF should be a string of the right hand side of the
-assignment.  If REF is literal then return it's value, otherwise
-return nil."
-  (let ((out (org-babel-read ref)))
-    (if (equal out ref)
-        (if (string-match "^\".+\"$" ref)
-            (read ref)
-	  :ob-must-be-reference)
-      out)))
+	    (let ((out (org-babel-read ref)))
+	      (if (equal out ref)
+		  (if (string-match "^\".+\"$" ref)
+		      (read ref)
+		    (org-babel-ref-resolve ref))
+		out))))))
 
 (defvar org-babel-library-of-babel)
 (defun org-babel-ref-resolve (ref)
   "Resolve the reference REF and return its value."
   (save-excursion
     (let ((case-fold-search t)
-          type args new-refere new-referent result lob-info split-file split-ref
-          index index-row index-col)
+          type args new-refere new-header-args new-referent result
+	  lob-info split-file split-ref index index-row index-col)
       ;; if ref is indexed grab the indices -- beware nested indices
-      (when (and (string-match "\\[\\(.+\\)\\]" ref)
+      (when (and (string-match "\\[\\([^\\[]+\\)\\]$" ref)
 		 (let ((str (substring ref 0 (match-beginning 0))))
 		   (= (org-count ?( str) (org-count ?) str))))
         (setq index (match-string 1 ref))
         (setq ref (substring ref 0 (match-beginning 0))))
       ;; assign any arguments to pass to source block
-      (when (string-match "^\\(.+?\\)\(\\(.*\\)\)$" ref)
-        (setq new-refere (match-string 1 ref))
-        (setq new-referent (match-string 2 ref))
+      (when (string-match
+	     "^\\(.+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)\(\\(.*\\)\)$" ref)
+        (setq new-refere      (match-string 1 ref))
+	(setq new-header-args (match-string 3 ref))
+        (setq new-referent    (match-string 5 ref))
         (when (> (length new-refere) 0)
-          (if (> (length new-referent) 0)
-              (setq args (mapcar (lambda (ref) (cons :var ref))
-                                 (org-babel-ref-split-args new-referent))))
+          (when (> (length new-referent) 0)
+	    (setq args (mapcar (lambda (ref) (cons :var ref))
+			       (org-babel-ref-split-args new-referent))))
+	  (when (> (length new-header-args) 0)
+	    (setq args (append (org-babel-parse-header-arguments new-header-args)
+			       args)))
           (setq ref new-refere)))
       (when (string-match "^\\(.+\\):\\(.+\\)$" ref)
         (setq split-file (match-string 1 ref))
@@ -155,6 +149,7 @@ return nil."
 		(case type
 		  ('results-line (org-babel-read-result))
 		  ('table (org-babel-read-table))
+		  ('list (org-babel-read-list))
 		  ('file (org-babel-read-link))
 		  ('source-block (org-babel-execute-src-block nil nil params))
 		  ('lob (org-babel-execute-src-block nil lob-info params)))))
@@ -222,6 +217,7 @@ to \"0:-1\"."
 Return nil if none of the supported reference types are found.
 Supported reference types are tables and source blocks."
   (cond ((org-at-table-p) 'table)
+	((org-in-item-p) 'list)
         ((looking-at "^[ \t]*#\\+BEGIN_SRC") 'source-block)
         ((looking-at org-bracket-link-regexp) 'file)
         ((looking-at org-babel-result-regexp) 'results-line)))

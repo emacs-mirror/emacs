@@ -1,3 +1,7 @@
+2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* refcards/orgcard.tex: Cleanup.
+
 2010-11-27  Ulrich Mueller  <ulm@gentoo.org>
 
 	* HELLO: Add ancient Greek (Bug#7418).

@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, comint
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +28,13 @@
 ;; shell commands.
 
 ;;; Code:
-(require 'ob)
 (eval-when-compile (require 'cl))
+
+(defvar org-babel-error-buffer-name "*Org-Babel Error Output*")
 
 (defun org-babel-eval-error-notify (exit-code stderr)
   "Open a buffer to display STDERR and a message with the value of EXIT-CODE."
-  (let ((buf (get-buffer-create "*Org-Babel Error Output*")))
+  (let ((buf (get-buffer-create org-babel-error-buffer-name)))
     (with-current-buffer buf
       (goto-char (point-max))
       (save-excursion (insert stderr)))
@@ -44,7 +45,7 @@
   "Run CMD on BODY.
 If CMD succeeds then return its results, otherwise display
 STDERR with `org-babel-eval-error-notify'."
-  (let ((err-buff (get-buffer-create "*Org-Babel Error*")) exit-code)
+  (let ((err-buff (get-buffer-create " *Org-Babel Error*")) exit-code)
     (with-current-buffer err-buff (erase-buffer))
     (with-temp-buffer
       (insert body)
@@ -138,9 +139,9 @@ specifies the value of ERROR-BUFFER."
 	 (if error-buffer
 	     (make-temp-file
 	      (expand-file-name "scor"
-				(or (unless (featurep 'xemacs)
-				      small-temporary-file-directory)
-				    temporary-file-directory)))
+                                (if (featurep 'xemacs)
+                                    (temp-directory)
+                                  temporary-file-directory)))
 	   nil))
 	exit-status)
     (if (or replace
@@ -246,6 +247,13 @@ specifies the value of ERROR-BUFFER."
 		 (display-buffer (current-buffer)))))
       (delete-file error-file))
     exit-status))
+
+(defun org-babel-eval-wipe-error-buffer ()
+  "Delete the contents of the Org code block error buffer.
+This buffer is named by `org-babel-error-buffer-name'."
+  (when (get-buffer org-babel-error-buffer-name)
+    (with-current-buffer org-babel-error-buffer-name
+      (delete-region (point-min) (point-max)))))
 
 (provide 'ob-eval)
 

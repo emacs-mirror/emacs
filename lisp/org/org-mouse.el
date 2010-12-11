@@ -1,11 +1,10 @@
 ;;; org-mouse.el --- Better mouse support for org-mode
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1101,10 +1100,10 @@ This means, between the beginning of line and the point."
 	 "--"
 	 ["Day View" org-agenda-day-view
 	  :active (org-agenda-check-type nil 'agenda)
-	  :style radio :selected (equal org-agenda-ndays 1)]
+	  :style radio :selected (eq org-agenda-current-span 'day)]
 	 ["Week View" org-agenda-week-view
 	  :active (org-agenda-check-type nil 'agenda)
-	  :style radio :selected (equal org-agenda-ndays 7)]
+	  :style radio :selected (eq org-agenda-current-span 'week)]
 	 "--"
 	 ["Show Logbook entries" org-agenda-log-mode
 	  :style toggle :selected org-agenda-show-log

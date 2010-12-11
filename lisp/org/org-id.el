@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -600,15 +600,18 @@ optional argument MARKERP, return the position as a new marker."
 (defun org-id-store-link ()
   "Store a link to the current entry, using its ID."
   (interactive)
-  (let* ((link (org-make-link "id:" (org-id-get-create)))
-	 (case-fold-search nil)
-	 (desc (save-excursion
-		 (org-back-to-heading t)
-		 (or (and (looking-at org-complex-heading-regexp)
-			  (if (match-end 4) (match-string 4) (match-string 0)))
-		     link))))
-    (org-store-link-props :link link :description desc :type "id")
-    link))
+  (when (and (buffer-file-name (buffer-base-buffer)) (org-mode-p))
+    (let* ((link (org-make-link "id:" (org-id-get-create)))
+	   (case-fold-search nil)
+	   (desc (save-excursion
+		   (org-back-to-heading t)
+		   (or (and (looking-at org-complex-heading-regexp)
+			    (if (match-end 4)
+				(match-string 4)
+			      (match-string 0)))
+		       link))))
+      (org-store-link-props :link link :description desc :type "id")
+      link)))
 
 (defun org-id-open (id)
   "Go to the entry with id ID."

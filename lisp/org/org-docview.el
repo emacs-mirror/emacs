@@ -5,7 +5,7 @@
 ;; Author: Jan Böcker <jan.boecker at jboecker dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;

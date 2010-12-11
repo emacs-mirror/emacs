@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -133,7 +133,10 @@ target       Specification of where the captured item should be placed.
                  File to the entry matching regexp
 
              (file+datetree \"path/to/file\")
-                 Will create a heading in a date tree
+                 Will create a heading in a date tree for today's date
+
+             (file+datetree+prompt \"path/to/file\")
+                 Will create a heading in a date tree, promts for date
 
              (file+function \"path/to/file\" function-finding-location)
                  A function to find the right location in the file
@@ -280,6 +283,9 @@ calendar                |  %:type %:date"
 		   (list :tag "File & Date tree"
 			 (const :format "" file+datetree)
 			 (file :tag "  File"))
+		   (list :tag "File & Date tree, prompt for date"
+			 (const :format "" file+datetree+prompt)
+			 (file :tag "  File"))
 		   (list :tag "File & function"
 			 (const :format "" file+function)
 			 (file :tag "  File    ")
@@ -310,6 +316,12 @@ calendar                |  %:type %:date"
 (defcustom org-capture-before-finalize-hook nil
   "Hook that is run right before a remember process is finalized.
 The remember buffer is still current when this hook runs."
+  :group 'org-capture
+  :type 'hook)
+
+(defcustom org-capture-after-finalize-hook nil
+  "Hook that is run right after a capture process is finalized.
+  Suitable for window cleanup"
   :group 'org-capture
   :type 'hook)
 
@@ -461,9 +473,11 @@ bypassed."
      (t (setq txt "* Invalid capture template")))
     (org-capture-put :template txt)))
 
-(defun org-capture-finalize ()
-  "Finalize the capture process."
-  (interactive)
+(defun org-capture-finalize (&optional stay-with-capture)
+  "Finalize the capture process.
+With prefix argument STAY-WITH-CAPTURE, jump to the location of the
+captured item after finalizing."
+  (interactive "P")
   (unless (and org-capture-mode
 	       (buffer-base-buffer (current-buffer)))
     (error "This does not seem to be a capture buffer for Org-mode"))
@@ -548,17 +562,25 @@ bypassed."
 
       ;; Restore the window configuration before capture
       (set-window-configuration return-wconf))
-    (when abort-note
+
+    (run-hooks 'org-capture-after-finalize-hook)
+    ;; Special cases
+    (cond
+     (abort-note
       (cond
        ((equal abort-note 'clean)
 	(message "Capture process aborted and target buffer cleaned up"))
        ((equal abort-note 'dirty)
-	(error "Capture process aborted, but target buffer could not be cleaned up correctly"))))))
+	(error "Capture process aborted, but target buffer could not be cleaned up correctly"))))
+     (stay-with-capture
+      (org-capture-goto-last-stored)))
+    ;; Return if we did store something
+    (not abort-note)))
 
 (defun org-capture-refile ()
   "Finalize the current capture and then refile the entry.
 Refiling is done from the base buffer, because the indirect buffer is then
-already gone."
+already gone.  Any prefix argument will be passed to the refile comand."
   (interactive)
   (unless (eq (org-capture-get :type 'local) 'entry)
     (error
@@ -640,19 +662,28 @@ already gone."
 	      (setq target-entry-p (and (org-mode-p) (org-at-heading-p))))
 	  (error "No match for target regexp in file %s" (nth 1 target))))
 
-       ((eq (car target) 'file+datetree)
+       ((memq (car target) '(file+datetree file+datetree+prompt))
 	(require 'org-datetree)
 	(set-buffer (org-capture-target-buffer (nth 1 target)))
 	;; Make a date tree entry, with the current date (or yesterday,
 	;; if we are extending dates for a couple of hours)
 	(org-datetree-find-date-create
 	 (calendar-gregorian-from-absolute
-	  (if org-overriding-default-time
-	      (time-to-days org-overriding-default-time)
-	    (time-to-days
-	     (time-subtract (current-time)
-			    (list 0 (* 3600 org-extend-today-until) 0)))))))
+	  (cond
 
+	   (org-overriding-default-time
+	    ;; use the overriding default time
+	    (time-to-days org-overriding-default-time))
+
+	   ((eq (car target) 'file+datetree+prompt)
+	    ;; prompt for date
+	    (time-to-days (org-read-date 
+			   nil t nil "Date for tree entry:"
+			   (days-to-time (org-today)))))
+	   (t
+	    ;; current date, possible corrected for late night workers
+	    (org-today))))))
+       
        ((eq (car target) 'file+function)
 	(set-buffer (org-capture-target-buffer (nth 1 target)))
 	(funcall (nth 2 target))
@@ -1358,5 +1389,3 @@ The template may still contain \"%?\" for cursor positioning."
 ;; arch-tag: 986bf41b-8ada-4e28-bf20-e8388a7205a0
 
 ;;; org-capture.el ends here
-
-
