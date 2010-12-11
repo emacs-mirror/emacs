@@ -1,7 +1,8 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -418,7 +419,7 @@ Unibyte strings are converted to multibyte for comparison."
   (assoc-string key alist nil))
 
 (defun member-ignore-case (elt list)
-  "Like `member', but ignores differences in case and text representation.
+  "Like `member', but ignore differences in case and text representation.
 ELT must be a string.  Upper-case and lower-case letters are treated as equal.
 Unibyte strings are converted to multibyte for comparison.
 Non-strings in LIST are ignored."
@@ -1392,9 +1393,8 @@ if it is empty or a duplicate."
 
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
-Execution is delayed if `delay-mode-hooks' is non-nil.
-If `delay-mode-hooks' is nil, run `after-change-major-mode-hook'
-after running the mode hooks.
+Execution is delayed if the variable `delay-mode-hooks' is non-nil.
+Otherwise, runs the mode hooks and then `after-change-major-mode-hook'.
 Major mode functions should use this instead of `run-hooks' when running their
 FOO-mode-hook."
   (if delay-mode-hooks
@@ -2495,7 +2495,7 @@ If PARAM is present and non-nil, it replaces STRING as the object
  `yank-rectangle', PARAM may be a list of strings to insert as a
  rectangle.
 If NOEXCLUDE is present and non-nil, the normal removal of the
- yank-excluded-properties is not performed; instead FUNCTION is
+ `yank-excluded-properties' is not performed; instead FUNCTION is
  responsible for removing those properties.  This may be necessary
  if FUNCTION adjusts point before or after inserting the object.
 If UNDO is present and non-nil, it is a function that will be called
@@ -2767,7 +2767,7 @@ See also `with-temp-file' and `with-output-to-string'."
                 (kill-buffer ,temp-buffer)))))))
 
 (defmacro with-silent-modifications (&rest body)
-  "Execute BODY, pretending it does not modifies the buffer.
+  "Execute BODY, pretending it does not modify the buffer.
 If BODY performs real modifications to the buffer's text, other
 than cosmetic ones, undo data may become corrupted.
 Typically used around modifications of text-properties which do not really
@@ -3778,9 +3778,9 @@ which is higher than \"1alpha\"."
 
 ;; The following statement ought to be in print.c, but `provide' can't
 ;; be used there.
+;; http://lists.gnu.org/archive/html/emacs-devel/2009-08/msg00236.html
 (when (hash-table-p (car (read-from-string
 			  (prin1-to-string (make-hash-table)))))
   (provide 'hashtable-print-readable))
 
-;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here
