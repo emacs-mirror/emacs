@@ -1,5 +1,11 @@
 2010-12-11  Eli Zaretskii  <eliz@gnu.org>
 
+	* processes.texi (Shell Arguments):
+	* strings.texi (Creating Strings): Don't mention "shell commands";
+	make it explicit that `split-string-and-unquote' and
+	`combine-and-quote-strings' are mainly for working with arguments
+	to call-process and start-process.
+
 	* processes.texi (Shell Arguments): Fix documentation of
 	`split-string-and-unquote'.  Add indexing.  (Bug#7563)
 
