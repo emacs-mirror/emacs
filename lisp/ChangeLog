@@ -1,5 +1,11 @@
 2010-12-11  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-bzr.el (vc-bzr-state-heuristic): Also check that the executable
+	state of the file matches.  (Bug#7544)
+	(vc-bzr-register, vc-bzr-checkin)
+	(vc-bzr-annotate-extract-revision-at-line): Doc fixes.
+	(vc-directory-exclusion-list): Remove unnecessary eval-after-load.
+
 	* textmodes/sgml-mode.el (sgml-xml-guess): Add .xhtml extension.
 
 2010-12-11  Karel Klíč  <kklic@redhat.com>
