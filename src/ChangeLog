@@ -1,3 +1,7 @@
+2010-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name): Doc fix.  (Bug#7617)
+
 2010-12-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (Fx_show_tip): Call try_window with last argument
