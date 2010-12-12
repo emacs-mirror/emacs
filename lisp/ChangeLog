@@ -1,3 +1,8 @@
+2010-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (posn-col-row): Evaluate header-line-format in the
+	context of the POSITION window's buffer.
+
 2010-12-11  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (member-ignore-case, run-mode-hooks, insert-for-yank-1)

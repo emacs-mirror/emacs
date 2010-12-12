@@ -958,7 +958,9 @@ and `event-end' functions."
 	       (setq spacing 0)))
 	(cons (/ (car pair) (frame-char-width frame))
 	      (- (/ (cdr pair) (+ (frame-char-height frame) spacing))
-		 (if (null header-line-format) 0 1))))))))
+		 (if (null (with-current-buffer (window-buffer window)
+			     header-line-format))
+		     0 1))))))))
 
 (defun posn-actual-col-row (position)
   "Return the actual column and row in POSITION, measured in characters.
