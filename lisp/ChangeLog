@@ -1,3 +1,8 @@
+2010-12-12  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-forward-type): Before scanning a
+	template arglist, check that the current language supports this.
+
 2010-12-11  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-bzr.el (vc-bzr-state-heuristic): Also check that the executable
