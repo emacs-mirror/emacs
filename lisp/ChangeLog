@@ -1,3 +1,11 @@
+2010-12-12  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-name-from-full-record): Rename back to
+	this original name from `bookmark-name-from-record' reverting part
+	of rev 102609 / kfogel@red-bean.com-20101208080927-5j9jqnb2xvcw4ogm.
+	As Drew Adams pointed out, there was no reason to cause churn for
+	third-party callers.
+
 2010-12-12  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-forward-type): Before scanning a

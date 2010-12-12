@@ -305,7 +305,7 @@ This point is in `bookmark-current-buffer'.")
 ;; need to know anything about the format of bookmark-alist entries.
 ;; Everyone else should go through them.
 
-(defun bookmark-name-from-record (bookmark-record)
+(defun bookmark-name-from-full-record (bookmark-record)
   "Return the name of BOOKMARK-RECORD.  BOOKMARK-RECORD is, e.g.,
 one element from `bookmark-alist'."
   (car bookmark-record))
@@ -314,7 +314,7 @@ one element from `bookmark-alist'."
 (defun bookmark-all-names ()
   "Return a list of all current bookmark names."
   (bookmark-maybe-load-default-file)
-  (mapcar 'bookmark-name-from-record bookmark-alist))
+  (mapcar 'bookmark-name-from-full-record bookmark-alist))
 
 
 (defun bookmark-get-bookmark (bookmark-name-or-record &optional noerror)
@@ -1391,13 +1391,13 @@ they conflict with existing bookmark names."
     (dolist (full-record new-list)
       (bookmark-maybe-rename full-record names)
       (setq bookmark-alist (nconc bookmark-alist (list full-record)))
-      (push (bookmark-name-from-record full-record) names))))
+      (push (bookmark-name-from-full-record full-record) names))))
 
 
 (defun bookmark-maybe-rename (full-record names)
   "Rename bookmark FULL-RECORD if its current name is already used.
 This is a helper for `bookmark-import-new-list'."
-  (let ((found-name (bookmark-name-from-record full-record)))
+  (let ((found-name (bookmark-name-from-full-record full-record)))
     (if (member found-name names)
         ;; We've got a conflict, so generate a new name
         (let ((count 2)
@@ -1555,7 +1555,7 @@ deletion, or > if it is flagged for displaying."
     (add-text-properties (point-min) (point)
 			 '(font-lock-face bookmark-menu-heading))
     (dolist (full-record (bookmark-maybe-sort-alist))
-      (let ((name        (bookmark-name-from-record full-record))
+      (let ((name        (bookmark-name-from-full-record full-record))
             (annotation  (bookmark-get-annotation full-record))
             (start       (point))
             end)
@@ -1745,7 +1745,7 @@ if an annotation exists."
     (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
     (delete-region (point-min) (point-max))
     (dolist (full-record bookmark-alist)
-      (let* ((name (bookmark-name-from-record full-record))
+      (let* ((name (bookmark-name-from-full-record full-record))
              (ann  (bookmark-get-annotation full-record)))
         (insert (concat name ":\n"))
         (if (and ann (not (string-equal ann "")))
