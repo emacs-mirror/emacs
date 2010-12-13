@@ -1,3 +1,7 @@
+2010-12-13  Romain Francoise  <romain@orebokech.com>
+
+	* net/gnutls.el (gnutls-negotiate): Fix setting of default trustfiles.
+
 2010-12-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (posn-col-row): Evaluate header-line-format in the
