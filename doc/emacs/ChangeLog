@@ -26,7 +26,6 @@
 	(Windows Startup): New node.  Move the stuff about the current
 	directory from "Windows HOME".
 
-2010-12-13  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
 2010-11-27  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
 
 	* maintaining.texi (VC With A Locking VCS, VC Directory Commands):
