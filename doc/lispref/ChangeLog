@@ -31,6 +31,7 @@
 
 	* nonascii.texi (Converting Representations):
 	Document byte-to-string.
+
 2010-12-08  Glenn Morris  <rgm@gnu.org>
 
 	* buffers.texi (Modification Time):
