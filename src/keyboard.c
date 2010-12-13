@@ -4102,7 +4102,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
       else if (event->kind == SAVE_SESSION_EVENT)
         {
-          obj = Fcons (Qsave_session, Qnil);
+          obj = Fcons (Qsave_session, Fcons (event->arg, Qnil));
 	  kbd_fetch_ptr = event + 1;
         }
       /* Just discard these, by returning nil.

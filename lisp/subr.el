@@ -417,7 +417,7 @@ Unibyte strings are converted to multibyte for comparison."
   (assoc-string key alist nil))
 
 (defun member-ignore-case (elt list)
-  "Like `member', but ignores differences in case and text representation.
+  "Like `member', but ignore differences in case and text representation.
 ELT must be a string.  Upper-case and lower-case letters are treated as equal.
 Unibyte strings are converted to multibyte for comparison.
 Non-strings in LIST are ignored."
@@ -915,8 +915,9 @@ Select the corresponding window as well."
 
 (defsubst posn-x-y (position)
   "Return the x and y coordinates in POSITION.
-POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+The return value has the form (X . Y), where X and Y are given in
+pixels.  POSITION should be a list of the form returned by
+`event-start' and `event-end'."
   (nth 2 position))
 
 (declare-function scroll-bar-scale "scroll-bar" (num-denom whole))
@@ -955,7 +956,9 @@ and `event-end' functions."
 	       (setq spacing 0)))
 	(cons (/ (car pair) (frame-char-width frame))
 	      (- (/ (cdr pair) (+ (frame-char-height frame) spacing))
-		 (if (null header-line-format) 0 1))))))))
+		 (if (null (with-current-buffer (window-buffer window)
+			     header-line-format))
+		     0 1))))))))
 
 (defun posn-actual-col-row (position)
   "Return the actual column and row in POSITION, measured in characters.
@@ -996,14 +999,15 @@ and `event-end' functions."
 
 (defsubst posn-object-x-y (position)
   "Return the x and y coordinates relative to the object of POSITION.
-POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+The return value has the form (DX . DY), where DX and DY are
+given in pixels.  POSITION should be a list of the form returned
+by `event-start' and `event-end'."
   (nth 8 position))
 
 (defsubst posn-object-width-height (position)
   "Return the pixel width and height of the object of POSITION.
-POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+The return value has the form (WIDTH . HEIGHT).  POSITION should
+be a list of the form returned by `event-start' and `event-end'."
   (nth 9 position))
 
 
@@ -1355,9 +1359,8 @@ if it is empty or a duplicate."
 
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
-Execution is delayed if `delay-mode-hooks' is non-nil.
-If `delay-mode-hooks' is nil, run `after-change-major-mode-hook'
-after running the mode hooks.
+Execution is delayed if the variable `delay-mode-hooks' is non-nil.
+Otherwise, runs the mode hooks and then `after-change-major-mode-hook'.
 Major mode functions should use this instead of `run-hooks' when running their
 FOO-mode-hook."
   (if delay-mode-hooks
@@ -2458,7 +2461,7 @@ If PARAM is present and non-nil, it replaces STRING as the object
  `yank-rectangle', PARAM may be a list of strings to insert as a
  rectangle.
 If NOEXCLUDE is present and non-nil, the normal removal of the
- yank-excluded-properties is not performed; instead FUNCTION is
+ `yank-excluded-properties' is not performed; instead FUNCTION is
  responsible for removing those properties.  This may be necessary
  if FUNCTION adjusts point before or after inserting the object.
 If UNDO is present and non-nil, it is a function that will be called
@@ -3818,9 +3821,9 @@ which is higher than \"1alpha\"."
 
 ;; The following statement ought to be in print.c, but `provide' can't
 ;; be used there.
+;; http://lists.gnu.org/archive/html/emacs-devel/2009-08/msg00236.html
 (when (hash-table-p (car (read-from-string
 			  (prin1-to-string (make-hash-table)))))
   (provide 'hashtable-print-readable))
 
-;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

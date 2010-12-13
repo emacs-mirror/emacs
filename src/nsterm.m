@@ -1106,16 +1106,31 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
 
   f->left_pos = xoff;
   f->top_pos = yoff;
-#ifdef NS_IMPL_GNUSTEP
-  if (xoff < 100)
-    f->left_pos = 100;  /* don't overlap menu */
-#endif
 
   if (view != nil && (screen = [[view window] screen]))
-    [[view window] setFrameTopLeftPoint:
-        NSMakePoint (SCREENMAXBOUND (f->left_pos),
-                     SCREENMAXBOUND ([screen frame].size.height
-                                     - NS_TOP_POS (f)))];
+    {
+      f->left_pos = f->size_hint_flags & XNegative
+        ? [screen visibleFrame].size.width + f->left_pos - FRAME_PIXEL_WIDTH (f)
+        : f->left_pos;
+      /* We use visibleFrame here to take menu bar into account.
+	 Ideally we should also adjust left/top with visibleFrame.offset.  */
+	 
+      f->top_pos = f->size_hint_flags & YNegative
+        ? ([screen visibleFrame].size.height + f->top_pos
+           - FRAME_PIXEL_HEIGHT (f) - FRAME_NS_TITLEBAR_HEIGHT (f)
+           - FRAME_TOOLBAR_HEIGHT (f))
+        : f->top_pos;
+#ifdef NS_IMPL_GNUSTEP
+      if (f->left_pos < 100)
+        f->left_pos = 100;  /* don't overlap menu */
+#endif
+      [[view window] setFrameTopLeftPoint:
+                       NSMakePoint (SCREENMAXBOUND (f->left_pos),
+                                    SCREENMAXBOUND ([screen frame].size.height
+                                                    - NS_TOP_POS (f)))];
+      f->size_hint_flags &= ~(XNegative|YNegative);
+    }
+
   UNBLOCK_INPUT;
 }
 

@@ -3077,26 +3077,27 @@ The terminal type can be configured with `tramp-terminal-type'."
   (tramp-compat-with-temp-message ""
     ;; Enable auth-source and password-cache.
     (tramp-set-connection-property vec "first-password-request" t)
-    (let (exit)
-      (while (not exit)
-	(tramp-message proc 3 "Waiting for prompts from remote shell")
-	(setq exit
-	      (catch 'tramp-action
-		(if timeout
-		    (with-timeout (timeout)
-		      (tramp-process-one-action proc vec actions))
-		  (tramp-process-one-action proc vec actions)))))
-      (with-current-buffer (tramp-get-connection-buffer vec)
-	(widen)
-	(tramp-message vec 6 "\n%s" (buffer-string)))
-      (unless (eq exit 'ok)
-	(tramp-clear-passwd vec)
-	(tramp-error-with-buffer
-	 nil vec 'file-error
-	 (cond
-	  ((eq exit 'permission-denied) "Permission denied")
-	  ((eq exit 'process-died) "Process died")
-	  (t "Login failed")))))))
+    (save-restriction
+      (let (exit)
+	(while (not exit)
+	  (tramp-message proc 3 "Waiting for prompts from remote shell")
+	  (setq exit
+		(catch 'tramp-action
+		  (if timeout
+		      (with-timeout (timeout)
+			(tramp-process-one-action proc vec actions))
+		    (tramp-process-one-action proc vec actions)))))
+	(with-current-buffer (tramp-get-connection-buffer vec)
+	  (widen)
+	  (tramp-message vec 6 "\n%s" (buffer-string)))
+	(unless (eq exit 'ok)
+	  (tramp-clear-passwd vec)
+	  (tramp-error-with-buffer
+	   nil vec 'file-error
+	   (cond
+	    ((eq exit 'permission-denied) "Permission denied")
+	    ((eq exit 'process-died) "Process died")
+	    (t "Login failed"))))))))
 
 :;; Utility functions:
 

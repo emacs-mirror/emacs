@@ -185,6 +185,7 @@ items `Turn Off' and `Help'."
     (minor-mode-menu-from-indicator indicator)))
 
 (defun mouse-menu-major-mode-map ()
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (let* (;; Keymap from which to inherit; may be null.
 	 (ancestor (mouse-menu-non-singleton
 		    (and (current-local-map)
@@ -217,6 +218,7 @@ Otherwise return the whole menu."
   "Return a keymap equivalent to the menu bar.
 The contents are the items that would be in the menu bar whether or
 not it is actually displayed."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (let* ((local-menu (and (current-local-map)
 			  (lookup-key (current-local-map) [menu-bar])))
 	 (global-menu (lookup-key global-map [menu-bar]))
@@ -2130,5 +2132,4 @@ choose a font."
 
 (provide 'mouse)
 
-;; arch-tag: 9a710ce1-914a-4923-9b81-697f7bf82ab3
 ;;; mouse.el ends here

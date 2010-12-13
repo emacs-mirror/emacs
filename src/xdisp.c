@@ -1544,11 +1544,10 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 }
 
 
-/* Return the next character from STR which is MAXLEN bytes long.
-   Return in *LEN the length of the character.  This is like
-   STRING_CHAR_AND_LENGTH but never returns an invalid character.  If
-   we find one, we return a `?', but with the length of the invalid
-   character.  */
+/* Return the next character from STR.  Return in *LEN the length of
+   the character.  This is like STRING_CHAR_AND_LENGTH but never
+   returns an invalid character.  If we find one, we return a `?', but
+   with the length of the invalid character.  */
 
 static INLINE int
 string_char_and_length (const unsigned char *str, int *len)
@@ -1577,15 +1576,13 @@ string_pos_nchars_ahead (struct text_pos pos, Lisp_Object string, EMACS_INT ncha
 
   if (STRING_MULTIBYTE (string))
     {
-      EMACS_INT rest = SBYTES (string) - BYTEPOS (pos);
       const unsigned char *p = SDATA (string) + BYTEPOS (pos);
       int len;
 
       while (nchars--)
 	{
 	  string_char_and_length (p, &len);
-	  p += len, rest -= len;
-	  xassert (rest >= 0);
+	  p += len;
 	  CHARPOS (pos) += 1;
 	  BYTEPOS (pos) += len;
 	}
@@ -1625,15 +1622,13 @@ c_string_pos (EMACS_INT charpos, const unsigned char *s, int multibyte_p)
 
   if (multibyte_p)
     {
-      EMACS_INT rest = strlen (s);
       int len;
 
       SET_TEXT_POS (pos, 0, 0);
       while (charpos--)
 	{
 	  string_char_and_length (s, &len);
-	  s += len, rest -= len;
-	  xassert (rest >= 0);
+	  s += len;
 	  CHARPOS (pos) += 1;
 	  BYTEPOS (pos) += len;
 	}
@@ -4823,6 +4818,7 @@ next_overlay_string (struct it *it)
 		   && it->stop_charpos <= it->end_charpos));
       it->current.overlay_string_index = -1;
       it->n_overlay_strings = 0;
+      it->overlay_strings_charpos = -1;
 
       /* If we're at the end of the buffer, record that we have
 	 processed the overlay strings there already, so that
@@ -4835,11 +4831,13 @@ next_overlay_string (struct it *it)
       /* There are more overlay strings to process.  If
 	 IT->current.overlay_string_index has advanced to a position
 	 where we must load IT->overlay_strings with more strings, do
-	 it.  */
+	 it.  We must load at the IT->overlay_strings_charpos where
+	 IT->n_overlay_strings was originally computed; when invisible
+	 text is present, this might not be IT_CHARPOS (Bug#7016).  */
       int i = it->current.overlay_string_index % OVERLAY_STRING_CHUNK_SIZE;
 
       if (it->current.overlay_string_index && i == 0)
-	load_overlay_strings (it, 0);
+	load_overlay_strings (it, it->overlay_strings_charpos);
 
       /* Initialize IT to deliver display elements from the overlay
          string.  */
@@ -5051,8 +5049,9 @@ load_overlay_strings (struct it *it, EMACS_INT charpos)
   if (n > 1)
     qsort (entries, n, sizeof *entries, compare_overlay_entries);
 
-  /* Record the total number of strings to process.  */
+  /* Record number of overlay strings, and where we computed it.  */
   it->n_overlay_strings = n;
+  it->overlay_strings_charpos = charpos;
 
   /* IT->current.overlay_string_index is the number of overlay strings
      that have already been consumed by IT.  Copy some of the
@@ -13426,7 +13425,11 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 
       /* If cursor ends up on a partially visible line,
 	 treat that as being off the bottom of the screen.  */
-      if (! cursor_row_fully_visible_p (w, extra_scroll_margin_lines <= 1, 0))
+      if (! cursor_row_fully_visible_p (w, extra_scroll_margin_lines <= 1, 0)
+	  /* It's possible that the cursor is on the first line of the
+	     buffer, which is partially obscured due to a vscroll
+	     (Bug#7537).  In that case, avoid looping forever . */
+	  && extra_scroll_margin_lines < w->desired_matrix->nrows - 1)
 	{
 	  clear_glyph_matrix (w->desired_matrix);
 	  ++extra_scroll_margin_lines;

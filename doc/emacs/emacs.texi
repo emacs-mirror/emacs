@@ -1192,6 +1192,7 @@ Emacs and Mac OS / GNUstep
 
 Emacs and Microsoft Windows/MS-DOS
 
+* Windows Startup::     How to start Emacs on Windows.
 * Text and Binary::     Text files use CRLF to terminate lines.
 * Windows Files::       File-name conventions on Windows.
 * ls in Lisp::          Emulation of @code{ls} for Dired.

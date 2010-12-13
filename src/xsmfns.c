@@ -172,6 +172,7 @@ smc_interact_CB (SmcConn smcConn, SmPointer clientData)
 {
   doing_interact = True;
   emacs_event.kind = SAVE_SESSION_EVENT;
+  emacs_event.arg = Qnil;
 }
 
 /* This is called when the session manager tells us to save ourselves.
@@ -308,8 +309,8 @@ smc_save_yourself_CB (SmcConn smcConn,
 static void
 smc_die_CB (SmcConn smcConn, SmPointer clientData)
 {
-  SmcCloseConnection (smcConn, 0, 0);
-  ice_connection_closed ();
+  emacs_event.kind = SAVE_SESSION_EVENT;
+  emacs_event.arg = Qt;
 }
 
 /* We don't use the next two but they are mandatory, leave them empty.
@@ -522,9 +523,12 @@ is told to abort the window system shutdown.
 Do not call this function yourself. */)
   (Lisp_Object event)
 {
+  int kill_emacs = CONSP (event) && CONSP (XCDR (event))
+    && EQ (Qt, XCAR (XCDR (event)));
+
   /* Check doing_interact so that we don't do anything if someone called
      this at the wrong time. */
-  if (doing_interact)
+  if (doing_interact && ! kill_emacs)
     {
       Bool cancel_shutdown = False;
 
@@ -535,9 +539,20 @@ Do not call this function yourself. */)
 
       doing_interact = False;
     }
+  else if (kill_emacs)
+    {
+      /* We should not do user interaction here, but it is not easy to
+         prevent.  Fix this in next version.  */
+      Fkill_emacs (Qnil);
 
+      /* This will not be reached, but we want kill-emacs-hook to be run.  */
+      SmcCloseConnection (smc_conn, 0, 0);
+      ice_connection_closed ();
+    }
+  
   return Qnil;
 }
+  
 
 
 /***********************************************************************

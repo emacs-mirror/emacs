@@ -1,3 +1,8 @@
+2010-12-13  W. Martin Borgert <debacle@debian.org>  (tiny change)
+
+	* schema/schemas.xml: Add DocBook (Bug#7491).
+
+2010-12-13  Ulrich Mueller  <ulm@gentoo.org>
 2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* refcards/orgcard.tex: Cleanup.

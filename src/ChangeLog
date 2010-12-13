@@ -1,3 +1,58 @@
+2010-12-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name): Doc fix.  (Bug#7617)
+
+2010-12-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (string_pos_nchars_ahead, c_string_pos)
+	(face_before_or_after_it_pos, next_element_from_string)
+	(next_element_from_c_string, produce_stretch_glyph): Remove unused
+	calculations of maximum string length before calling
+	string_char_and_length and STRING_CHAR_AND_LENGTH.
+	(string_char_and_length): Update commentary: MAXLEN is no longer
+	needed.
+
+2010-12-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (kbd_buffer_get_event): Construct SAVE_SESSION_EVENT
+	as (Qsave_session arg).
+
+	* xsmfns.c (smc_interact_CB): Set arg to Qnil.
+	(smc_die_CB): Make an event with arg Qt.
+	(Fhandle_save_session): If event has Qt as argument,
+	call Fkill_emacs (Bug#7552).
+
+2010-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.c (transient-mark-mode): Doc fix (Bug#7465).
+
+2010-12-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c (smc_die_CB): Call Fkill_emacs (Bug#7552).
+
+2010-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispextern.h (struct it): New member overlay_strings_charpos.
+
+	* xdisp.c (next_overlay_string, load_overlay_strings): Record the
+	charpos where we computed n_overlay_strings.
+	(next_overlay_string): Load overlay strings at recorded position,
+	which may not be the same as the iterator's charpos (Bug#7016).
+
+2010-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_scrolling): Avoid infloop if the first line is
+	obscured due to a vscroll (Bug#7537).
+
+2010-12-13  Jan Djärv  <jhd@zeplinf.localdomain>
+
+	* nsterm.h (FRAME_NS_TOOLBAR_HEIGHT): Rename to FRAME_TOOLBAR_HEIGHT.
+
+	* nsterm.m (x_set_window_size, windowWillResize, initFrameFromEmacs):
+	Use FRAME_TOOLBAR_HEIGHT.
+	(x_set_offset): Handle XNegative and YNegative in
+	f->size_hint_flags (Bug#7510).
+
 2010-12-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (Fx_show_tip): Call try_window with last argument

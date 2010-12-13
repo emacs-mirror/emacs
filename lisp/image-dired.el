@@ -187,19 +187,19 @@ that allows sharing of thumbnails across different programs."
   :group 'image-dired)
 
 (defcustom image-dired-db-file
-  (locate-user-emacs-file "image-dired/.image-dired_db")
+  (expand-file-name ".image-dired_db" image-dired-dir)
   "Database file where file names and their associated tags are stored."
   :type 'string
   :group 'image-dired)
 
 (defcustom image-dired-temp-image-file
-  (locate-user-emacs-file "image-dired/.image-dired_temp")
+  (expand-file-name ".image-dired_temp" image-dired-dir)
   "Name of temporary image file used by various commands."
   :type 'string
   :group 'image-dired)
 
 (defcustom image-dired-gallery-dir
-  (locate-user-emacs-file "image-dired/.image-dired_gallery")
+  (expand-file-name ".image-dired_gallery" image-dired-dir)
   "Directory to store generated gallery html pages.
 This path needs to be \"shared\" to the public so that it can access
 the index.html page that image-dired creates."
@@ -344,7 +344,7 @@ original image file name and %t which is replaced by
   :group 'image-dired)
 
 (defcustom image-dired-temp-rotate-image-file
-  (locate-user-emacs-file "image-dired/.image-dired_rotate_temp")
+  (expand-file-name ".image-dired_rotate_temp" image-dired-dir)
   "Temporary file for rotate operations."
   :type 'string
   :group 'image-dired)

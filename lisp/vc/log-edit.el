@@ -774,7 +774,7 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
 		(setq pattern (file-name-nondirectory file)))
 
             (setq pattern (concat "\\(^\\|[^[:alnum:]]\\)"
-                                  pattern
+                                  (regexp-quote pattern)
                                   "\\($\\|[^[:alnum:]]\\)"))
 
 	    (let (texts

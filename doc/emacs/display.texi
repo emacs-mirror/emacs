@@ -1010,11 +1010,12 @@ their parentheses.  It looks like this:
 @noindent
 @vindex display-time-24hr-format
 Here @var{hh} and @var{mm} are the hour and minute, followed always by
-@samp{am} or @samp{pm}.  @var{l.ll} is the average number of running
-processes in the whole system recently.  (Some fields may be missing if
-your operating system cannot support them.)  If you prefer time display
-in 24-hour format, set the variable @code{display-time-24hr-format}
-to @code{t}.
+@samp{am} or @samp{pm}.  @var{l.ll} is the average number, collected
+for the last few minutes, of processes in the whole system that were
+either running or ready to run (i.e.@: were waiting for an available
+processor).  (Some fields may be missing if your operating system
+cannot support them.)  If you prefer time display in 24-hour format,
+set the variable @code{display-time-24hr-format} to @code{t}.
 
 @cindex mail (on mode line)
 @vindex display-time-use-mail-icon
