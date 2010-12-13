@@ -1397,14 +1397,15 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 ;; gmane interface
 (defun nnir-run-gmane (query srv &optional groups)
   "Run a search against a gmane back-end server."
-  (if (gnus-string-match-p  "gmane" srv)
       (let* ((case-fold-search t)
 	     (qstring (cdr (assq 'query query)))
 	     (server (cadr (gnus-server-to-method srv)))
 	     (groupspec (mapconcat
 			 (lambda (x)
-			   (format "group:%s" (gnus-group-short-name x)))
-			 groups " "))
+			   (if (gnus-string-match-p "gmane" x)
+			       (format "group:%s" (gnus-group-short-name x))
+			     (error "Can't search non-gmane groups: %s" x)))
+			   groups " "))
 	     (authorspec
 	      (if (assq 'author query)
 		  (format "author:%s" (cdr (assq 'author query))) ""))
@@ -1439,9 +1440,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 		      (string-to-number (match-string 2 xref)) xscore)
 		     artlist)))))
 	    (forward-line 1)))
-	(apply 'vector (nreverse (mm-delete-duplicates artlist))))
-    (message "Can't search non-gmane nntp groups")
-    nil))
+	(apply 'vector (nreverse (mm-delete-duplicates artlist)))))
 
 ;;; Util Code:
 

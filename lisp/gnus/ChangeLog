@@ -1,3 +1,8 @@
+2010-12-13  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-gmane): Better check for gmane groups: error out if
+	groupname doesn't contain "gmane".
+
 2010-12-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-matches-options-n): Fix typo in last change.
