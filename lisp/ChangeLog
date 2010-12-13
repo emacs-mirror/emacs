@@ -1,3 +1,8 @@
+2010-12-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Write queued mail body with
+	Unix EOLs.  (Bug#7589)
+
 2010-12-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (posn-col-row): Evaluate header-line-format in the
