@@ -175,6 +175,9 @@
 
 	* org-compat.el (org-floor*): New function.
 
+2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
+	    John Wiegley  <jwiegley@gmail.com>
+
 	* org-complete.el: New file.
 
 2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -183,7 +186,7 @@
 
 2010-12-11  Matt Lundin  <mdl@imapmail.org>
 
-	* org-agenda.el: (org-format-agenda-item) The value of
+	* org-agenda.el (org-format-agenda-item): The value of
 	org-category is not converted to a string unless it is defined.
 
 2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
@@ -246,11 +249,6 @@
 2010-12-11  Julien Danjou  <julien@danjou.info>
 
 	* org.el (org-auto-repeat-maybe): Use org-today.
-
-2010-12-11  David Maus  <dmaus@ictsoc.de>
-
-	* test-org.el (test-org/org-link-escape-url-with-escaped-char): Add
-	test for escaping and unescaping url with already escaped char.
 
 2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -383,28 +381,10 @@
 	with-no-warnings.
 	(with-silent-modifications) Declare macro for Emacs < 23.2.
 
-2010-12-11  David Maus  <dmaus@ictsoc.de>
-
-	* org-test.el (org-test-current-file): New function.  Run all tests
-	for current file.
-
 2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob.el (org-babel-parse-header-arguments): Removed addition of
 	":" to singleton first header arguments as it was leading to errors.
-
-2010-12-11  David Maus  <dmaus@ictsoc.de>
-
-	* test-org.el (test-org/org-link-escape-ascii-character)
-	(test-org/org-link-escape-ascii-ctrl-character)
-	(test-org/org-link-escape-multibyte-character)
-	(test-org/org-link-escape-custom-table)
-	(test-org/org-link-escape-custom-table-merge)
-	(test-org/org-link-unescape-ascii-character)
-	(test-org/org-link-unescape-ascii-ctrl-character)
-	(test-org/org-link-unescape-multibyte-character)
-	(test-org/org-link-unescape-ascii-extended-char): New tests for
-	unicode aware percent escaping.
 
 2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -578,7 +558,7 @@
 
 2010-12-11  Dan Davison  <dandavison7@gmail.com>
 
-	* org-exp.el: (org-export-format-source-code-or-example):
+	* org-exp.el (org-export-format-source-code-or-example):
 	Remove hard-wired configuration of minted export
 	(org-export-latex-minted-with-line-numbers): Remove variable
 
@@ -616,8 +596,7 @@
 
 2010-12-11  Julien Danjou  <julien@danjou.info>
 
-	* list/org-agenda.el (org-agenda-category-icon-alist): Fix defcustom
-	type.
+	* org-agenda.el (org-agenda-category-icon-alist): Fix defcustom type.
 
 2010-12-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -660,11 +639,6 @@
 
 	* org-id.el (org-id-store-link): Test for org-mode before checking
 	for IDs.
-
-2010-12-11  David Maus  <dmaus@ictsoc.de>
-
-	* org-test.el (org-test-current-defun): `which-function' does not
-	return a list, but the name of the function.
 
 2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -931,9 +905,9 @@
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org-indent.el: (org-indent-add-properties): Use
-	`with-silent-modificaitons'.
-	(org-indent-remove-properties): Use `with-silent-modificaitons'.
+	* org-indent.el (org-indent-add-properties): Use
+	`with-silent-modificatons'.
+	(org-indent-remove-properties): Use `with-silent-modificatons'.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
