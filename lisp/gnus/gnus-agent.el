@@ -685,7 +685,6 @@ This will modify the `gnus-setup-news-hook', and
 minor mode in all Gnus buffers."
   (interactive)
   (gnus-open-agent)
-  (add-hook 'gnus-setup-news-hook 'gnus-agent-queue-setup)
   (unless gnus-agent-send-mail-function
     (setq gnus-agent-send-mail-function
 	  (or message-send-mail-real-function

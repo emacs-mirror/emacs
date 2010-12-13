@@ -1,5 +1,29 @@
 2010-12-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-start.el (gnus-matches-options-n): Fix typo in last change.
+	(gnus-1): Don't create the nndrafts group twice.
+	(gnus-setup-news): There's no need to read the active file here, since
+	that's done again later on a per-backend basis.
+	(gnus-start-draft-setup): Make sure that the new group is started out
+	empty.
+
+	* gnus-agent.el (gnus-agentize): Don't create the queue group
+	automatically on startup.  It'll be created later, if needed.
+
+	* gnus-start.el (gnus-auto-subscribed-groups): Add nnimap to the list
+	of automatically subscribed groups.
+	(gnus-auto-subscribed-categories): New variable.
+	(gnus-matches-options-n): Use it.
+	(gnus-default-subscribed-newsgroups): Remove unused variable.
+	(gnus-start-draft-setup): Message a bit less.
+
+2010-12-13  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-imap): Return article list in order of increasing
+	UID.
+
+2010-12-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* gnus-sum.el (gnus-summary-enter-digest-group): Mention
 	gnus-auto-select-on-ephemeral-exit.
 

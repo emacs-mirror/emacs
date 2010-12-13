@@ -804,7 +804,7 @@ details on the language and supported extensions"
 		      (message "Searching %s... %d matches" group arts)))
 		  (message "Searching %s...done" group))
 	      (quit nil))
-	    artlist))
+	    (nreverse artlist)))
 	groups)))))
 
 (defun nnir-imap-make-query (criteria qstring)

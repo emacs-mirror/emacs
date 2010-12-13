@@ -2,6 +2,12 @@
 
 	* net/gnutls.el (gnutls-negotiate): Fix setting of default trustfiles.
 
+2010-12-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/netrc.el (netrc-point-at-eol): Remove the unused
+	netrc-point-at-old and netrc-bound-and-true-p bindings.
+	(netrc-parse): Cache the netrc contents.
+
 2010-12-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (posn-col-row): Evaluate header-line-format in the

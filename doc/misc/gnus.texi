@@ -428,7 +428,6 @@ Other related manuals
 Starting Gnus
 
 * Finding the News::            Choosing a method for getting news.
-* The First Time::              What does Gnus do the first time you start it?
 * The Server is Down::          How can I read my mail then?
 * Slave Gnusae::                You can have more than one Gnus active at a time.
 * Fetching a Group::            Starting Gnus just to read a group.
@@ -959,7 +958,6 @@ terminology section (@pxref{Terminology}).
 
 @menu
 * Finding the News::      Choosing a method for getting news.
-* The First Time::        What does Gnus do the first time you start it?
 * The Server is Down::    How can I read my mail then?
 * Slave Gnusae::          You can have more than one Gnus active at a time.
 * New Groups::            What is Gnus supposed to do with new groups?
@@ -1050,31 +1048,6 @@ Note: the @acronym{NNTP} back end stores marks in marks files
 (@pxref{NNTP marks}).  This feature makes it easy to share marks between
 several Gnus installations, but may slow down things a bit when fetching
 new articles.  @xref{NNTP marks}, for more information.
-
-
-@node The First Time
-@section The First Time
-@cindex first time usage
-
-If no startup files exist (@pxref{Startup Files}), Gnus will try to
-determine what groups should be subscribed by default.
-
-@vindex gnus-default-subscribed-newsgroups
-If the variable @code{gnus-default-subscribed-newsgroups} is set, Gnus
-will subscribe you to just those groups in that list, leaving the rest
-killed.  Your system administrator should have set this variable to
-something useful.
-
-Since she hasn't, Gnus will just subscribe you to a few arbitrarily
-picked groups (i.e., @samp{*.newusers}).  (@dfn{Arbitrary} is defined
-here as @dfn{whatever Lars thinks you should read}.)
-
-You'll also be subscribed to the Gnus documentation group, which should
-help you with most common problems.
-
-If @code{gnus-default-subscribed-newsgroups} is @code{t}, Gnus will just
-use the normal functions for handling new groups, and not do anything
-special.
 
 
 @node The Server is Down
@@ -1321,11 +1294,18 @@ but I thought it would be nice to have two of these.  This variable is
 more meant for setting some ground rules, while the other variable is
 used more for user fiddling.  By default this variable makes all new
 groups that come from mail back ends (@code{nnml}, @code{nnbabyl},
-@code{nnfolder}, @code{nnmbox}, @code{nnmh}, and @code{nnmaildir})
-subscribed.  If you don't like that, just set this variable to
-@code{nil}.
+@code{nnfolder}, @code{nnmbox}, @code{nnmh}, @code{nnimap}, and
+@code{nnmaildir}) subscribed.  If you don't like that, just set this
+variable to @code{nil}.
 
-New groups that match this regexp are subscribed using
+@vindex gnus-auto-subscribed-categories
+As if that wasn't enough, @code{gnus-auto-subscribed-categories} also
+allows you to specify that new groups should be subcribed based on the
+category their select methods belong to.  The default is @samp{(mail
+post-mail)}, meaning that all new groups from mail-like backends
+should be subscribed automatically.
+
+New groups that match these variables are subscribed using
 @code{gnus-subscribe-options-newsgroup-method}.
 
 
