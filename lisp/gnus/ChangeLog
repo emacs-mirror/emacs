@@ -1,3 +1,11 @@
+2010-12-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-enter-digest-group): Mention
+	gnus-auto-select-on-ephemeral-exit.
+
+	* proto-stream.el (proto-stream-open-network-only): Fix the calling
+	convention of the network-only option.
+
 2010-12-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* proto-stream.el (proto-stream-open-network-only): New function to

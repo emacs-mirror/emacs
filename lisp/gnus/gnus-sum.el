@@ -8982,8 +8982,11 @@ variable."
 
 (defun gnus-summary-enter-digest-group (&optional force)
   "Enter an nndoc group based on the current article.
-If FORCE, force a digest interpretation.  If not, try
-to guess what the document format is."
+If FORCE, force a digest interpretation.  If not, try to guess
+what the document format is.
+
+To control what happens when you exit the group, see the
+`gnus-auto-select-on-ephemeral-exit' variable."
   (interactive "P")
   (let ((conf gnus-current-window-configuration))
     (save-window-excursion

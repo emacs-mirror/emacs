@@ -111,7 +111,12 @@ command to switch on STARTTLS otherwise."
 	    greeting capabilities))))
 
 (defun proto-stream-open-network-only (name buffer host service parameters)
-  (open-network-stream name buffer host service))
+  (let ((start (with-current-buffer buffer (point)))
+	(stream (open-network-stream name buffer host service)))
+    (list stream
+	  (proto-stream-get-response
+	   stream start (proto-stream-eoc parameters))
+	  nil)))
 
 (defun proto-stream-open-network (name buffer host service parameters)
   (let* ((start (with-current-buffer buffer (point)))
