@@ -2,7 +2,6 @@
 
 	* cl.texi (For Clauses): Small fixes for frames and windows.
 
-2010-12-13  Glenn Morris  <rgm@gnu.org>
 2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.texi (Using capture): Document using prefix arguments for
