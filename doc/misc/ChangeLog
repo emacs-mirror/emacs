@@ -1,3 +1,25 @@
+2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Using capture): Document using prefix arguments for
+	finalizing capture.
+	(Agenda commands): Document prefix argument for the bulk scatter
+	command.
+	(Beamer class export): Document that also overlay arguments can be
+	passed to the column environment.
+	(Template elements): Document the new entry type.
+
+2010-12-11  Puneeth Chaganti  <punchagan@gmail.com>
+
+	* org.texi (Include files): Document :minlevel.
+
+2010-12-11  Julien Danjou  <julien@danjou.info>
+
+	* org.texi (Categories): Document category icons.
+
+2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (noweb): Fix typo.
+
 2010-12-06  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* gnus.texi (Server Commands): Point to the rest of the server

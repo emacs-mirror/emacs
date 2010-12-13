@@ -1,3 +1,7 @@
+2010-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Exclude etc/*.pyc.
+
 2010-12-10  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in: Don't double machfile in final message.

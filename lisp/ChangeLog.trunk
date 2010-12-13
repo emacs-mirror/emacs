@@ -1,3 +1,30 @@
+2010-12-12  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-name-from-full-record): Rename back to
+	this original name from `bookmark-name-from-record' reverting part
+	of rev 102609 / kfogel@red-bean.com-20101208080927-5j9jqnb2xvcw4ogm.
+	As Drew Adams pointed out, there was no reason to cause churn for
+	third-party callers.
+
+2010-12-12  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-forward-type): Before scanning a
+	template arglist, check that the current language supports this.
+
+2010-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-state-heuristic): Also check that the executable
+	state of the file matches.  (Bug#7544)
+	(vc-bzr-register, vc-bzr-checkin)
+	(vc-bzr-annotate-extract-revision-at-line): Doc fixes.
+	(vc-directory-exclusion-list): Remove unnecessary eval-after-load.
+
+	* textmodes/sgml-mode.el (sgml-xml-guess): Add .xhtml extension.
+
+2010-12-11  Karel Klíč  <kklic@redhat.com>
+
+	* files.el (auto-mode-alist): Use html-mode for *.xhtml.  (Bug#7606)
+
 2010-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Derive from prog-mode, use derived-mode-p, and fix up various

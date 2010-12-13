@@ -9,7 +9,7 @@
 ;; Author: Ross Patterson <me AT rpatterson DOT net>
 ;; Maintainer: Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;; Keywords: org, emacsclient, wp
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -313,7 +313,7 @@ encodeURIComponent. E.g. `%C3%B6' is the german Umlaut `ü'."
       (let* ((start (match-beginning 0))
 	     (end (match-end 0))
 	     (hex (match-string 0 str))
-	     (replacement (org-protocol-unhex-compound hex)))
+	     (replacement (org-protocol-unhex-compound (upcase hex))))
 	(setq tmp (concat tmp (substring str 0 start) replacement))
 	(setq str (substring str end))))
     (setq tmp (concat tmp str))

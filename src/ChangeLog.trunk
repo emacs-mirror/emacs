@@ -1,3 +1,11 @@
+2010-12-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fx_show_tip): Call try_window with last argument
+	TRY_WINDOW_IGNORE_FONTS_CHANGE.  Delete the TODO ifdef: problem
+	solved.  Round up the tip height to an integral multiple of the
+	frame's line height.  Add FRAME_COLUMN_WIDTH to the tip width.
+	(Bug#7398)
+
 2010-12-08  Glenn Morris  <rgm@gnu.org>
 
 	* fileio.c (Fverify_visited_file_modtime): Default to current buffer.
@@ -5690,7 +5698,7 @@
 	* s/netbsd.h (LIB_GCC):
 	Move to configure.
 
-2010-05-11  Karel Klic  <kklic@redhat.com>
+2010-05-11  Karel Klíč  <kklic@redhat.com>
 
 	* ftfont.c: Fix incorrect parentheses of #if condition for
 	definining M17N_FLT_USE_NEW_FEATURE.

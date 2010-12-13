@@ -179,7 +179,7 @@ int handling_signal;
 Lisp_Object Vmacro_declaration_function;
 
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args,
-				 Lisp_Object lexenv)
+				 Lisp_Object lexenv);
 static Lisp_Object funcall_lambda (Lisp_Object, int, Lisp_Object *,
 				   Lisp_Object);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;

@@ -1,13 +1,13 @@
 ;;; vc-bzr.el --- VC backend for the bzr revision control system
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
+;; Maintainer: FSF
 ;; Keywords: vc tools
 ;; Created: Sept 2006
-;; Version: 2008-01-04
-;; URL: http://launchpad.net/vc-bzr
 ;; Package: vc
 
 ;; This file is part of GNU Emacs.
@@ -27,11 +27,9 @@
 
 ;;; Commentary:
 
-;; See <URL:http://bazaar-vcs.org/> concerning bzr.  See
-;; <URL:http://launchpad.net/vc-bzr> for alternate development
-;; branches of `vc-bzr'.
+;; See <URL:http://bazaar.canonical.com/> concerning bzr.
 
-;; Load this library to register bzr support in VC.
+;; This library provides bzr support in VC.
 
 ;; Known bugs
 ;; ==========
@@ -41,9 +39,6 @@
 ;; symlink, thereby not detecting whether the actual contents
 ;; (that is, the target contents) are changed.
 ;; See https://bugs.launchpad.net/vc-bzr/+bug/116607
-
-;; For an up-to-date list of bugs, please see:
-;;   https://bugs.launchpad.net/vc-bzr/+bugs
 
 ;;; Properties of the backend
 
@@ -104,6 +99,7 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
 ;;;###autoload
 (defconst vc-bzr-admin-dirname ".bzr"
   "Name of the directory containing Bzr repository status files.")
+;; Used in the autoloaded vc-bzr-registered; see below.
 ;;;###autoload
 (defconst vc-bzr-admin-checkout-format-file
   (concat vc-bzr-admin-dirname "/checkout/format"))
@@ -154,7 +150,7 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
 
 (defun vc-bzr-state-heuristic (file)
   "Like `vc-bzr-state' but hopefully without running Bzr."
-  ;; `bzr status' was excrutiatingly slow with large histories and
+  ;; `bzr status' was excruciatingly slow with large histories and
   ;; pending merges, so try to avoid using it until they fix their
   ;; performance problems.
   ;; This function tries first to parse Bzr internal file
@@ -188,12 +184,16 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
                                "\\([^\0]*\\)\0" ;"a/f/d", a=removed?
                                "\\([^\0]*\\)\0" ;sha1 (empty if conflicted)?
                                "\\([^\0]*\\)\0" ;size?p
-                               "[^\0]*\0"       ;"y/n", executable?
+                               ;; y/n.  Whether or not the current copy
+                               ;; was executable the last time bzr checked?
+                               "[^\0]*\0"
                                "[^\0]*\0"       ;?
                                "\\([^\0]*\\)\0" ;"a/f/d" a=added?
                                "\\([^\0]*\\)\0" ;sha1 again?
                                "\\([^\0]*\\)\0" ;size again?
-                               "[^\0]*\0" ;"y/n", executable again?
+                               ;; y/n.  Whether or not the repo thinks
+                               ;; the file should be executable?
+                               "\\([^\0]*\\)\0"
                                "[^\0]*\0" ;last revid?
                                ;; There are more fields when merges are pending.
                                )
@@ -207,8 +207,22 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
                        ((eq (char-after (match-beginning 4)) ?a) 'added)
                        ((or (and (eq (string-to-number (match-string 3))
                                  (nth 7 (file-attributes file)))
-                             (equal (match-string 5)
-                                    (vc-bzr-sha1 file)))
+                                 (equal (match-string 5)
+                                        (vc-bzr-sha1 file))
+                                 ;; For a file, does the executable state match?
+                                 ;; (Bug#7544)
+                                 (or (not
+                                      (eq (char-after (match-beginning 1)) ?f))
+                                     (let ((exe
+                                            (memq
+                                             ?x
+                                             (mapcar
+                                              'identity
+                                              (nth 8 (file-attributes file))))))
+                                       (if (eq (char-after (match-beginning 7))
+                                               ?y)
+                                           exe
+                                         (not exe)))))
 			    (and
 			     ;; It looks like for lightweight
 			     ;; checkouts \2 is empty and we need to
@@ -523,7 +537,7 @@ If any error occurred in running `bzr status', then return nil."
     (error "Don't know how to compute the next revision of %s" rev)))
 
 (defun vc-bzr-register (files &optional rev comment)
-  "Register FILE under bzr.
+  "Register FILES under bzr.
 Signal an error unless REV is nil.
 COMMENT is ignored."
   (if rev (error "Can't register explicit revision with bzr"))
@@ -555,7 +569,7 @@ or a superior directory.")
 (declare-function log-edit-extract-headers "log-edit" (headers string))
 
 (defun vc-bzr-checkin (files rev comment)
-  "Check FILE in to bzr with log message COMMENT.
+  "Check FILES in to bzr with log message COMMENT.
 REV non-nil gets an error."
   (if rev (error "Can't check in a specific revision with bzr"))
   (apply 'vc-bzr-command "commit" nil 0
@@ -744,7 +758,7 @@ property containing author and date information."
                       (string-to-number (substring str 0 4))))))))
 
 (defun vc-bzr-annotate-extract-revision-at-line ()
-  "Return revision for current line of annoation buffer, or nil.
+  "Return revision for current line of annotation buffer, or nil.
 Return nil if current line isn't annotated."
   (save-excursion
     (beginning-of-line)
@@ -1040,7 +1054,7 @@ stream.  Standard error output is discarded."
 (defun vc-bzr-shelve-delete-at-point ()
   (interactive)
   (let ((shelve (vc-bzr-shelve-get-at-point (point))))
-    (when (y-or-n-p (format "Remove shelf %s ?" shelve))
+    (when (y-or-n-p (format "Remove shelf %s ? " shelve))
       (vc-bzr-command "unshelve" nil 0 nil "--delete-only" shelve)
       (vc-dir-refresh))))
 
@@ -1150,9 +1164,6 @@ stream.  Standard error output is discarded."
                                                vc-bzr-revision-keywords))
                               string pred))))))
 
-(eval-after-load "vc"
-  '(add-to-list 'vc-directory-exclusion-list vc-bzr-admin-dirname t))
-
 (provide 'vc-bzr)
-;; arch-tag: 8101bad8-4e92-4e7d-85ae-d8e08b4e7c06
+
 ;;; vc-bzr.el ends here

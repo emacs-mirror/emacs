@@ -75,10 +75,11 @@ is a string representing the capabilities of the server (if any).
 The PARAMETERS is a keyword list that can have the following
 values:
 
-:type -- either `network', `tls', `shell' or `starttls'.  If
-omitted, the default is `network'.  `network' will be
-opportunistically upgraded to STARTTLS if both the server and
-Emacs supports it.
+:type -- either `network', `network-only, `tls', `shell' or
+`starttls'.  If omitted, the default is `network'.  `network'
+will be opportunistically upgraded to STARTTLS if both the server
+and Emacs supports it.  If you don't want STARTTLS upgrades, use
+`network-only'.
 
 :end-of-command -- a regexp saying what the end of a command is.
 This defaults to \"\\n\".
@@ -108,6 +109,9 @@ command to switch on STARTTLS otherwise."
 		       '(open run))
 		 stream)
 	    greeting capabilities))))
+
+(defun proto-stream-open-network-only (name buffer host service parameters)
+  (open-network-stream name buffer host service))
 
 (defun proto-stream-open-network (name buffer host service parameters)
   (let* ((start (with-current-buffer buffer (point)))

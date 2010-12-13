@@ -1,11 +1,11 @@
 ;;; ob-ruby.el --- org-babel functions for ruby evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010  Free Software Foundation
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -29,10 +29,10 @@
 ;;; Requirements:
 
 ;; - ruby and irb executables :: http://www.ruby-lang.org/
-;;
+;; 
 ;; - ruby-mode :: Can be installed through ELPA, or from
 ;;   http://github.com/eschulte/rinari/raw/master/util/ruby-mode.el
-;;
+;;   
 ;; - inf-ruby mode :: Can be installed through ELPA, or from
 ;;   http://github.com/eschulte/rinari/raw/master/util/inf-ruby.el
 
@@ -116,16 +116,7 @@ specifying a variable of the same value."
   "Convert RESULTS into an appropriate elisp value.
 If RESULTS look like a table, then convert them into an
 Emacs-lisp table, otherwise return the results as a string."
-  (org-babel-read
-   (if (and (stringp results) (string-match "^\\[.+\\]$" results))
-       (org-babel-read
-        (concat "'"
-                (replace-regexp-in-string
-                 "\\[" "(" (replace-regexp-in-string
-                            "\\]" ")" (replace-regexp-in-string
-                                       ", " " " (replace-regexp-in-string
-						 "'" "\"" results))))))
-     results)))
+  (org-babel-script-escape results))
 
 (defun org-babel-ruby-initiate-session (&optional session params)
   "Initiate a ruby session.

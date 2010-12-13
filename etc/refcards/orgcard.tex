@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{7.3}
+\def\orgversionnumber{7.4}
 \def\versionyear{2010}          % latest update
 \def\year{2010}                 % latest copyright year
 
@@ -266,6 +266,10 @@ are preserved on all copies.
 \def\threecol#1#2#3{\hskip\keyindent\relax#1\hfil&\kbd{#2}\hfil\quad
   &\kbd{#3}\hfil\quad\cr}
 
+\def\noteone{{\small \hfill [1]}}
+\def\notetwo{{\small \hfill [2]}}
+
+
 %**end of header
 
 
@@ -274,14 +278,6 @@ are preserved on all copies.
 \centerline{(for version \orgversionnumber)}
 
 \section{Getting Started}
-%
-%\vskip -2mm
-%\beginexample%
-%(add-to-list 'auto-mode-alist '("\\\\.org\$" . org-mode))
-%(define-key global-map "\\C-cl" 'org-store-link)$^1$
-%(define-key global-map "\\C-ca" 'org-agenda)$^1$
-%\endexample
-%
 \metax{To read the on-line documentation try}{M-x org-info}
 
 \section{Visibility Cycling}
@@ -298,7 +294,7 @@ are preserved on all copies.
 \key{next/previous heading, same level}{C-c C-f/b}
 \key{backward to higher level heading}{C-c C-u}
 \key{jump to another place in document}{C-c C-j}
-\key{previous/next plain list item}{S-UP/DOWN$^3$}
+\key{previous/next plain list item}{S-UP/DOWN\notetwo}
 
 \section{Structure Editing}
 
@@ -310,17 +306,16 @@ are preserved on all copies.
 \key{turn item/line into headline}{C-c *}
 \key{promote/demote heading}{M-LEFT/RIGHT}
 \metax{promote/demote current subtree}{M-S-LEFT/RIGHT}
-
 \metax{move subtree/list item up/down}{M-S-UP/DOWN}
 \metax{sort subtree/region/plain-list}{C-c \^{}}
 \metax{clone a subtree}{C-c C-x c}
-\metax{refile subtree}{C-c C-w}
 \metax{kill/copy subtree}{C-c C-x C-w/M-w}
 \metax{yank subtree}{C-c C-x C-y or C-y}
 \metax{narrow buffer to subtree / widen}{C-x n s/w}
 
-\section{Archiving}
-
+\section{Capture - Refile - Archiving}
+\key{capture a new item (C-u C-u = goto last)}{C-c c \noteone}
+\key{refile subtree (C-u C-u = goto last)}{C-c C-w}
 \key{archive subtree using the default command}{C-c C-x C-a}
 \key{move subtree to archive file}{C-c C-x C-s}
 \key{toggle ARCHIVE tag / to ARCHIVE sibling}{C-c C-x a/A}
@@ -330,7 +325,7 @@ are preserved on all copies.
 
 \key{construct a sparse tree by various criteria}{C-c /}
 \key{view TODO's in sparse tree}{C-c / t/T}
-\key{global TODO list in agenda mode}{C-c a t$^1$}
+\key{global TODO list in agenda mode}{C-c a t \noteone}
 \key{time sorted view of current org file}{C-c a L}
 
 \section{Tables}
@@ -428,7 +423,7 @@ formula, \kbd{:=} a field formula.
 
 \section{Links}
 
-\key{globally store link to the current location}{C-c l$^1$}
+\key{globally store link to the current location}{C-c l \noteone}
 \key{insert a link (TAB completes stored links)}{C-c C-l}
 \key{insert file link with file name completion}{C-u C-c C-l}
 \key{edit (also hidden part of) link at point}{C-c C-l}
@@ -443,35 +438,6 @@ formula, \kbd{:=} a field formula.
 \key{find previous link}{C-c C-x C-p}
 \key{edit code snippet of file at point}{C-c '}
 \key{toggle inline display of linked images}{C-c C-x C-v}
-
-% {\bf Internal Links}
-
-% \key{\kbd{<<My Target>>}}{\rm target}
-% \key{\kbd{<<<My Target>>>}}{\rm radio target$^2$}
-% \key{\kbd{[[*this text]]}}{\rm find headline}
-% \metax{\kbd{[[this text]]}}{\rm find target or text in buffer}
-% \metax{\kbd{[[this text][description]]}}{\rm optional link text}
-
-% {\bf External Links}
-
-% \key{\kbd{file:/home/dominik/img/mars.jpg}}{\rm file, absolute}
-% \key{\kbd{file:papers/last.pdf}}{\rm file, relative}
-% \key{\kbd{file:projects.org::*that text}}{\rm find headline}
-% \key{\kbd{file:projects.org::find me}}{\rm find trgt/string}
-% %\key{\kbd{file:projects.org::/regexp/}}{\rm regexp search}
-% \key{\kbd{http://www.astro.uva.nl/~dominik}}{\rm on the web}
-% \key{\kbd{mailto:adent@galaxy.net}}{\rm Email address}
-% \key{\kbd{news:comp.emacs}}{\rm Usenet group}
-% \key{\kbd{bbdb:Richard Stallman}}{\rm BBDB person}
-% \key{\kbd{gnus:group}}{\rm GNUS group}
-% \key{\kbd{gnus:group\#id}}{\rm GNUS message}
-% \key{\kbd{vm|wl|mhe|rmail:folder}}{\rm Mail folder}
-% \key{\kbd{vm|wl|mhe|rmail:folder\#id}}{\rm Mail message}
-% \key{\kbd{info:emacs:Regexps}}{\rm Info file:node}
-% \key{\kbd{shell:ls *.org}}{\rm shell command}
-% \key{\kbd{elisp:(calendar)}}{\rm elisp form}
-% \metax{\kbd{[[external link][description]]}}{\rm optional link text}
-% %\key{\kbd{vm://myself@some.where.org/folder\#id}}{\rm VM remote}
 
 \section{Working with Code (Babel)}
 
@@ -493,25 +459,6 @@ formula, \kbd{:=} a field formula.
 \key{switch to the session of the current code block}{C-c C-v z}
 \key{load expanded body of the current code block into a session}{C-c C-v l}
 \key{view sha1 hash of the current code block}{C-c C-v a}
-
-% \section{Remember-mode Integration}
-
-% See the manual for how to make remember.el use Org-mode links and
-% files.  The note-finishing command \kbd{C-c C-c} will first prompt for
-% an org file. In the file, find a location with:
-
-% \key{rotate subtree visibility}{TAB}
-% \key{next heading}{DOWN}
-% \key{previous heading}{UP}
-
-% Insert the note with one of the following: 
-
-% \key{as sublevel of heading at cursor}{RET}
-% \key{right here (cursor not on heading)}{RET}
-% \key{before current heading}{LEFT}
-% \key{after current heading}{RIGHT}
-% \key{shortcut to end of buffer (cursor at buf-start)}{RET}
-% \key{Abort}{q}
 
 \section{Completion}
 
@@ -538,11 +485,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 \key{set the priority of the current item}{C-c , [ABC]}
 \key{remove priority cookie from current item}{C-c , SPC}
-\key{raise/lower priority of current item}{S-UP/DOWN$^3$}
-%\key{lower priority of current item}{S-DOWN$^3$}
-
-%\key{\kbd{\#+SEQ_TODO: TODO TRY BLUFF DONE}}{\rm todo workflow}
-%\key{\kbd{\#+TYP_TODO: Phil home work DONE}}{\rm todo types}
+\key{raise/lower priority of current item}{S-UP/DOWN\notetwo}
 
 \key{insert new checkbox item in plain list}{M-S-RET}
 \key{toggle checkbox(es) in region/entry/at point}{C-c C-x C-b}
@@ -585,8 +528,8 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{insert SCHEDULED timestamp}{C-c C-s}
 \key{create sparse tree with all deadlines due}{C-c / d}
 \key{the time between 2 dates in a time range}{C-c C-y}
-\key{change timestamp at cursor by $\pm 1$ day}{S-RIGHT/LEFT$^3$}
-\key{change year/month/day at cursor by $\pm 1$}{S-UP/DOWN$^3$}
+\metax{change timestamp at cursor $\pm 1$ day}{S-RIGHT/LEFT\notetwo}
+\key{change year/month/day at cursor by $\pm 1$}{S-UP/DOWN\notetwo}
 \key{access the calendar for the current date}{C-c >}
 \key{insert timestamp matching date in calendar}{C-c <}
 \key{access agenda for current date}{C-c C-o}
@@ -615,15 +558,15 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{cycle through agenda file list}{C-'}
 \key{set/remove restriction lock}{C-c C-x </>}
 
-\key{compile agenda for the current week}{C-c a a$^1$}
-\key{compile global TODO list}{C-c a t$^1$}
-\key{compile TODO list for specific keyword}{C-c a T$^1$}
-\key{match tags, TODO kwds, properties}{C-c a m$^1$}
-\key{match only in TODO entries}{C-c a M$^1$}
-\key{find stuck projects}{C-c a \#$^1$}
-\key{show timeline of current org file}{C-c a L$^1$}
-\key{configure custom commands}{C-c a C$^1$}
-%\key{configure stuck projects}{C-c a !$^1$}
+\key{compile agenda for the current week}{C-c a a \noteone}
+\key{compile global TODO list}{C-c a t \noteone}
+\key{compile TODO list for specific keyword}{C-c a T \noteone}
+\key{match tags, TODO kwds, properties}{C-c a m \noteone}
+\key{match only in TODO entries}{C-c a M \noteone}
+\key{find stuck projects}{C-c a \# \noteone}
+\key{show timeline of current org file}{C-c a L \noteone}
+\key{configure custom commands}{C-c a C \noteone}
+%\key{configure stuck projects}{C-c a ! \noteone}
 \key{agenda for date at cursor}{C-c C-o}
 
 {\bf Commands available in an agenda buffer}
@@ -664,10 +607,10 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{set/show tags of current headline}{: / T}
 \key{set effort property (prefix=nth)}{e}
 \key{set / compute priority of current item}{, / P}
-\key{raise/lower priority of current item}{S-UP/DOWN$^3$}
+\key{raise/lower priority of current item}{S-UP/DOWN\notetwo}
 \key{run an attachment command}{C-c C-a}
 \key{schedule/set deadline for this item}{C-c C-s/d}
-\key{change timestamp to one day earlier/later}{S-LEFT/RIGHT$^3$}
+\metax{change timestamp one day earlier/later}{S-LEFT/RIGHT\notetwo}
 \key{change timestamp to today}{>}
 \key{insert new entry into diary}{i}
 \newcolumn
@@ -713,43 +656,6 @@ some other place.
 \key{toggle fixed width for entry or region}{C-c :}
 \key{toggle pretty display of scripts, entities}{C-c C-x {\tt\char`\\}}
 
-%{\bf HTML formatting}
-
-%\key{make words {\bf bold}}{*bold*}
-%\key{make words {\it italic}}{/italic/}
-%\key{make words \underbar{underlined}}{_underlined_}
-%\key{sub- and superscripts}{x\^{}3, J_dust}
-%\key{\TeX{}-like macros}{\\alpha, \\to}
-%\key{typeset lines in fixed width font}{start with :}
-%\key{tables are exported as HTML tables}{start with |}
-%\key{links become HTML links}{http:... etc}
-%\key{include html tags}{@<b>...@</b>}
-
-%{\bf Export options}
-%
-%Include additional information for export by putting these anywhere in the
-%org file.  Use {\tt M-TAB} completion to make sure to get the right
-%keywords. {\tt M-TAB} again just after keyword is complete inserts examples.
-%
-%\key{the title to be shown}{\#+TITLE:}
-%\key{the author}{\#+AUTHOR:}
-%\key{authors email address}{\#+EMAIL:}
-%\key{language code for html}{\#+LANGUAGE:}
-%\key{free text description of file}{\#+TEXT:}
-%\key{... which can carry over multiple lines}{\#+TEXT:}
-%\key{settings for the export process}{\#+OPTIONS:}
-
-%\key{set number of headline levels for export}{H:2}
-%\key{turn on/off section numbers}{num:t}
-%\key{turn on/off table of contents}{toc:t}
-%\key{turn on/off linebreak preservation}{\\n:nil}
-%\key{turn on/off quoted html tags}{@:t}
-%\key{turn on/off fixed width sections}{::t}
-%\key{turn on/off tables}{|:t}
-%\key{turn on/off \TeX\ syntax for sub/super-scripts}{\^{}:t}
-%\key{turn on/off emphasised text}{*:nil}
-%\key{turn on/off \TeX\ macros}{TeX:t}
-
 {\bf Comments: Text not being exported}
 
 Lines starting with \kbd{\#} and subtrees starting with COMMENT are
@@ -763,13 +669,10 @@ never exported.
 \metax{update all dynamic blocks}{C-u C-c C-x C-u}
 
 \section{Notes}
-$^1$ This is only a suggestion for a binding of this command.  Choose
+[1] This is only a suggestion for a binding of this command.  Choose
 your own key as shown under INSTALLATION.
 
-$^2$ After changing a \kbd{\#+KEYWORD} or \kbd{<<<target>>>} line,
-press \kbd{C-c C-c} with the cursor still in the line to update.
-
-$^3$ Keybinding affected by {\tt org-support-shift-select} and
+[2] Keybinding affected by {\tt org-support-shift-select} and also
  {\tt org-replace-disputed-keys}.
 
 \copyrightnotice

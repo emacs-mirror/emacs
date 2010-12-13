@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -984,7 +984,7 @@ value of `org-export-run-in-background'."
 	  (set-process-sentinel p 'org-export-process-sentinel)
 	  (message "Background process \"%s\": started" p))
       ;; background processing not requested, or not possible
-      (if subtree-p (progn (outline-mark-subtree) (activate-mark)))
+      (if subtree-p (progn (org-mark-subtree) (activate-mark)))
       (call-interactively (nth 1 ass))
       (when (and bpos (get-buffer-window cbuf))
 	(let ((cw (selected-window)))
@@ -1080,11 +1080,17 @@ on this string to produce the exported version."
       ;; Mark end of lists
       (org-export-mark-list-ending backend)
 
+      ;; Export code blocks
+      (org-export-blocks-preprocess)
+
       ;; Handle source code snippets
       (org-export-replace-src-segments-and-examples backend)
 
       ;; Protect short examples marked by a leading colon
       (org-export-protect-colon-examples)
+
+      ;; Protected spaces
+      (org-export-convert-protected-spaces backend)
 
       ;; Normalize footnotes
       (when (plist-get parameters :footnotes)
@@ -1535,6 +1541,26 @@ from the buffer."
       (end-of-line 1)
       (add-text-properties (point) (org-end-of-subtree t)
 			   '(org-protected t)))))
+
+(defun org-export-convert-protected-spaces (backend)
+  "Convert strings like \\____ to protected spaces in all backends."
+  (goto-char (point-min))
+  (while (re-search-forward "\\\\__+" nil t)
+    (org-if-unprotected-1
+     (replace-match
+      (org-add-props
+	  (cond
+	   ((eq backend 'latex)
+	    (format "\\hspace{%dex}" (- (match-end 0) (match-beginning 0))))
+	   ((eq backend 'html)
+	    (org-add-props (match-string 0) nil
+	      'org-whitespace (- (match-end 0) (match-beginning 0))))
+	   ;; ((eq backend 'docbook))
+	   ((eq backend 'ascii)
+	    (org-add-props (match-string 0) '(org-whitespace t)))
+	   (t (make-string (- (match-end 0) (match-beginning 0)) ?\ )))
+	  '(org-protected t))
+      t t))))
 
 (defun org-export-protect-verbatim ()
   "Mark verbatim snippets with the protection property."
@@ -2100,12 +2126,13 @@ TYPE must be a string, any of:
 (defun org-export-handle-include-files ()
   "Include the contents of include files, with proper formatting."
   (let ((case-fold-search t)
-	params file markup lang start end prefix prefix1 switches all)
+	params file markup lang start end prefix prefix1 switches all minlevel)
     (goto-char (point-min))
     (while (re-search-forward "^#\\+INCLUDE:?[ \t]+\\(.*\\)" nil t)
       (setq params (read (concat "(" (match-string 1) ")"))
 	    prefix (org-get-and-remove-property 'params :prefix)
 	    prefix1 (org-get-and-remove-property 'params :prefix1)
+	    minlevel (org-get-and-remove-property 'params :minlevel)
 	    file (org-symname-or-string (pop params))
 	    markup (org-symname-or-string (pop params))
 	    lang (and (member markup '("src" "SRC"))
@@ -2128,7 +2155,7 @@ TYPE must be a string, any of:
 		  end  (format "#+end_%s" markup))))
 	(insert (or start ""))
 	(insert (org-get-file-contents (expand-file-name file)
-				       prefix prefix1 markup))
+				       prefix prefix1 markup minlevel))
 	(or (bolp) (newline))
 	(insert (or end ""))))
     all))
@@ -2145,7 +2172,7 @@ TYPE must be a string, any of:
 	(when intersection
 	  (error "Recursive #+INCLUDE: %S" intersection))))))
 
-(defun org-get-file-contents (file &optional prefix prefix1 markup)
+(defun org-get-file-contents (file &optional prefix prefix1 markup minlevel)
   "Get the contents of FILE and return them as a string.
 If PREFIX is a string, prepend it to each line.  If PREFIX1
 is a string, prepend it to the first line instead of PREFIX.
@@ -2167,6 +2194,9 @@ take care of the block they are in."
 	(goto-char (match-beginning 0))
 	(insert ",")
 	(end-of-line 1)))
+    (when minlevel
+      (dotimes (lvl minlevel)
+	(org-map-region 'org-demote (point-min) (point-max))))
     (buffer-string)))
 
 (defun org-get-and-remove-property (listvar prop)
@@ -2235,8 +2265,6 @@ in the list) and remove property and value from the list in LISTVAR."
 (defvar org-export-latex-listings-langs) ;; defined in org-latex.el
 (defvar org-export-latex-listings-w-names) ;; defined in org-latex.el
 (defvar org-export-latex-minted-langs) ;; defined in org-latex.el
-(defvar org-export-latex-minted-with-line-numbers) ;; defined in org-latex.el
-
 (defun org-export-format-source-code-or-example
   (backend lang code &optional opts indent caption)
   "Format CODE from language LANG and return it formatted for export.
@@ -2403,8 +2431,7 @@ INDENT was the original indentation of the block."
 				     (format "\n%s $\\equiv$ \n"
 					     (replace-regexp-in-string
 					      "_" "\\\\_" caption)))
-				   (format
-				    "\\begin{minted}[mathescape,%s\nnumbersep=5pt,\nframe=lines,\nframesep=2mm]{%s}\n" (if org-export-latex-minted-with-line-numbers "\nlinenos," "") minted-lang)
+				   (format "\\begin{minted}{%s}\n" minted-lang)
 				   rtn "\\end{minted}\n"))))
 			    (t (concat (car org-export-latex-verbatim-wrap)
 				       rtn (cdr org-export-latex-verbatim-wrap))))
@@ -2585,9 +2612,10 @@ command."
 	;; does do the trick.
 	(if (looking-at "#[^\r\n]*")
 	    (append-to-buffer buffer (match-beginning 0) (1+ (match-end 0))))
-	(while (re-search-forward "[\n\r]#[^\n\r]*" nil t)
-	  (append-to-buffer buffer (1+ (match-beginning 0))
-			    (min (point-max) (1+ (match-end 0))))))
+	(when (re-search-forward "^\\*+[ \t]+" nil t)
+	  (while (re-search-backward "[\n\r]#[^\n\r]*" nil t)
+	    (append-to-buffer buffer (1+ (match-beginning 0))
+			      (min (point-max) (1+ (match-end 0)))))))
       (set-buffer buffer)
       (let ((buffer-file-name file)
 	    (org-inhibit-startup t))

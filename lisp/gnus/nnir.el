@@ -688,23 +688,25 @@ Add an entry here when adding a new search engine.")
 	  (gnus-group-real-name to-newsgroup)))))
 
 (deffoo nnir-request-expire-articles (articles group &optional server force)
-  (let ((articles-by-group (nnir-categorize
-			    articles nnir-article-group nnir-article-ids))
-	not-deleted)
-    (while (not (null articles-by-group))
-      (let* ((group-articles (pop articles-by-group))
-	     (artgroup (car group-articles))
-	     (articleids (cadr group-articles))
-	     (artlist (sort (mapcar 'cdr articleids) '<)))
-	(unless (gnus-check-backend-function 'request-expire-articles
-					     artgroup)
-	  (error "The group %s does not support article deletion" artgroup))
-	(unless (gnus-check-server (gnus-find-method-for-group artgroup))
-	  (error "Couldn't open server for group %s" artgroup))
-	(push (gnus-request-expire-articles
-	       artlist artgroup force)
-	      not-deleted)))
-    (sort (delq nil not-deleted) '<)))
+  (if force
+    (let ((articles-by-group (nnir-categorize
+			      articles nnir-article-group nnir-article-ids))
+	  not-deleted)
+      (while (not (null articles-by-group))
+	(let* ((group-articles (pop articles-by-group))
+	       (artgroup (car group-articles))
+	       (articleids (cadr group-articles))
+	       (artlist (sort (mapcar 'cdr articleids) '<)))
+	  (unless (gnus-check-backend-function 'request-expire-articles
+					       artgroup)
+	    (error "The group %s does not support article deletion" artgroup))
+	  (unless (gnus-check-server (gnus-find-method-for-group artgroup))
+	    (error "Couldn't open server for group %s" artgroup))
+	  (push (gnus-request-expire-articles
+		 artlist artgroup force)
+		not-deleted)))
+      (sort (delq nil not-deleted) '<))
+    articles))
 
 (deffoo nnir-warp-to-article ()
   (let* ((cur (if (> (gnus-summary-article-number) 0)
@@ -792,12 +794,13 @@ details on the language and supported extensions"
 						    (nnir-imap-make-query
 						     criteria qstring)))))
 		      (mapc
-		       (lambda (artnum) (push (vector group artnum 100) artlist)
-			 (setq arts (1+ arts)))
-		       (and (car result)
-			    (delete 0 (mapcar #'string-to-number
-					      (cdr (assoc "SEARCH"
-							  (cdr result)))))))
+		       (lambda (artnum)
+			 (let ((artn (string-to-number artnum)))
+			   (when (> artn 0)
+			     (push (vector group artn 100)
+				   artlist)
+			     (setq arts (1+ arts)))))
+		       (and (car result) (cdr (assoc "SEARCH" (cdr result)))))
 		      (message "Searching %s... %d matches" group arts)))
 		  (message "Searching %s...done" group))
 	      (quit nil))
@@ -1581,8 +1584,10 @@ server is of form 'backend:name'."
 	  (or nnir-summary-line-format gnus-summary-line-format))
     (remove-hook 'gnus-summary-article-delete-hook 'gnus-registry-action t)
     (remove-hook 'gnus-summary-article-move-hook 'gnus-registry-action t)
+    (remove-hook 'gnus-summary-article-expire-hook 'gnus-registry-action t)
     (add-hook 'gnus-summary-article-delete-hook 'nnir-registry-action t t)
-    (add-hook 'gnus-summary-article-move-hook 'nnir-registry-action t t)))
+    (add-hook 'gnus-summary-article-move-hook 'nnir-registry-action t t)
+    (add-hook 'gnus-summary-article-expire-hook 'nnir-registry-action t t)))
 
 
 
