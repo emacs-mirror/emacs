@@ -1,3 +1,17 @@
+2010-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make the effect of (defvar foo) local.
+	* eval.c (apply_lambda): Make static.  Remove eval_flag arg.
+	(Fsetq): Don't check declared_special.
+	(Fdefun, Fdefmacro): Use Ffunction.
+	(Fdefvar): Don't set declared_special for (defvar foo).
+	(FletX): Check locally-special vars.  Only do specbind once.
+	(Flet): Check locally-special vars.
+	(Feval): Don't check declared_special.
+	(funcall_lambda): Check locally-special vars.
+	* lisp.h (apply_lambda): Remove extern declaration.
+	* lread.c (readevalloop): CSE.
+
 2010-07-23  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* eval.c (funcall_funvec): Replace bcopy by memcpy.

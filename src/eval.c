@@ -81,9 +81,12 @@ Lisp_Object Vrun_hooks;
 Lisp_Object Vautoload_queue;
 
 /* When lexical binding is being used, this is non-nil, and contains an
-   alist of lexically-bound variable, or t, indicating an empty
+   alist of lexically-bound variable, or (t), indicating an empty
    environment.  The lisp name of this variable is
-   `internal-interpreter-lexical-environment'.  */
+   `internal-interpreter-environment'.  Every element of this list
+   can be either a cons (VAR . VAL) specifying a lexical binding,
+   or a single symbol VAR indicating that this variable should use
+   dynamic scoping.  */
 
 Lisp_Object Vinternal_interpreter_environment;
 
@@ -175,6 +178,8 @@ int handling_signal;
 
 Lisp_Object Vmacro_declaration_function;
 
+static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args,
+				 Lisp_Object lexenv)
 static Lisp_Object funcall_lambda (Lisp_Object, int, Lisp_Object *,
 				   Lisp_Object);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
@@ -505,10 +510,12 @@ usage: (setq [SYM VAL]...)  */)
       val = Feval (Fcar (Fcdr (args_left)));
       sym = Fcar (args_left);
 
-      if (!NILP (Vinternal_interpreter_environment)
+      /* Like for Feval, we do not check declared_special here since
+	 it's been done when let-binding.  */
+      if (!NILP (Vinternal_interpreter_environment) /* Mere optimization!  */
 	  && SYMBOLP (sym)
-	  && !XSYMBOL (sym)->declared_special
-	  && !NILP (lex_binding = Fassq (sym, Vinternal_interpreter_environment)))
+	  && !NILP (lex_binding
+		    = Fassq (sym, Vinternal_interpreter_environment)))
 	XSETCDR (lex_binding, val); /* SYM is lexically bound.  */
       else
 	Fset (sym, val);	/* SYM is dynamically bound.  */
@@ -667,8 +674,8 @@ usage: (defun NAME ARGLIST [DOCSTRING] BODY...)  */)
   fn_name = Fcar (args);
   CHECK_SYMBOL (fn_name);
   defn = Fcons (Qlambda, Fcdr (args));
-  if (! NILP (Vinternal_interpreter_environment))
-    defn = Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, defn));
+  if (!NILP (Vinternal_interpreter_environment)) /* Mere optimization!  */
+    defn = Ffunction (Fcons (defn, Qnil));
   if (!NILP (Vpurify_flag))
     defn = Fpurecopy (defn);
   if (CONSP (XSYMBOL (fn_name)->function)
@@ -742,8 +749,8 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
     tail = Fcons (lambda_list, Fcons (doc, tail));
   
   defn = Fcons (Qlambda, tail);
-  if (! NILP (Vinternal_interpreter_environment))
-    defn = Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, defn));
+  if (!NILP (Vinternal_interpreter_environment)) /* Mere optimization!  */
+    defn = Ffunction (Fcons (defn, Qnil));
   defn = Fcons (Qmacro, defn);
 
   if (!NILP (Vpurify_flag))
@@ -888,16 +895,23 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 	  Fput (sym, Qvariable_documentation, tem);
 	}
       LOADHIST_ATTACH (sym);
+
+      if (SYMBOLP (sym))
+	XSYMBOL (sym)->declared_special = 1;
     }
+  else if (!NILP (Vinternal_interpreter_environment)
+	   && !XSYMBOL (sym)->declared_special)
+    /* A simple (defvar foo) with lexical scoping does "nothing" except
+       declare that var to be dynamically scoped *locally* (i.e. within
+       the current file or let-block).  */
+    Vinternal_interpreter_environment =
+      Fcons (sym, Vinternal_interpreter_environment);
   else
     /* Simple (defvar <var>) should not count as a definition at all.
        It could get in the way of other definitions, and unloading this
        package could try to make the variable unbound.  */
     ;
-    
-  if (SYMBOLP (sym))
-    XSYMBOL (sym)->declared_special = 1;
-
+      
   return sym;
 }
 
@@ -1038,12 +1052,21 @@ usage: (let* VARLIST BODY...)  */)
 	  val = Feval (Fcar (Fcdr (elt)));
 	}
 
-      if (!NILP (lexenv) && SYMBOLP (var) && !XSYMBOL (var)->declared_special)
+      if (!NILP (lexenv) && SYMBOLP (var)
+	  && !XSYMBOL (var)->declared_special
+	  && NILP (Fmemq (var, Vinternal_interpreter_environment)))
 	/* Lexically bind VAR by adding it to the interpreter's binding
 	   alist.  */
 	{
-	  lexenv = Fcons (Fcons (var, val), lexenv);
-	  specbind (Qinternal_interpreter_environment, lexenv);
+	  Lisp_Object newenv
+	    = Fcons (Fcons (var, val), Vinternal_interpreter_environment);
+	  if (EQ (Vinternal_interpreter_environment, lexenv))
+	    /* Save the old lexical environment on the specpdl stack,
+	       but only for the first lexical binding, since we'll never
+	       need to revert to one of the intermediate ones.  */
+	    specbind (Qinternal_interpreter_environment, newenv);
+	  else
+	    Vinternal_interpreter_environment = newenv;
 	}
       else
 	specbind (var, val);
@@ -1110,7 +1133,9 @@ usage: (let VARLIST BODY...)  */)
       var = SYMBOLP (elt) ? elt : Fcar (elt);
       tem = temps[argnum++];
 
-      if (!NILP (lexenv) && SYMBOLP (var) && !XSYMBOL (var)->declared_special)
+      if (!NILP (lexenv) && SYMBOLP (var)
+	  && !XSYMBOL (var)->declared_special
+	  && NILP (Fmemq (var, Vinternal_interpreter_environment)))
 	/* Lexically bind VAR by adding it to the lexenv alist.  */
 	lexenv = Fcons (Fcons (var, tem), lexenv);
       else
@@ -2302,25 +2327,17 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 
   if (SYMBOLP (form))
     {
-      /* If there's an active lexical environment, and the variable
-	 isn't declared special, look up its binding in the lexical
-	 environment.  */
-      if (!NILP (Vinternal_interpreter_environment)
-	  && !XSYMBOL (form)->declared_special)
-	{
-	  Lisp_Object lex_binding
-	    = Fassq (form, Vinternal_interpreter_environment);
-
-	  /* If we found a lexical binding for FORM, return the value.
-	     Otherwise, we just drop through and look for a dynamic
-	     binding -- the variable isn't declared special, but there's
-	     not much else we can do, and Fsymbol_value will take care
-	     of signaling an error if there is no binding at all.  */
-	  if (CONSP (lex_binding))
-	    return XCDR (lex_binding);
-	}
-      
-      return Fsymbol_value (form);
+      /* Look up its binding in the lexical environment.
+	 We do not pay attention to the declared_special flag here, since we
+	 already did that when let-binding the variable.  */
+      Lisp_Object lex_binding
+	= !NILP (Vinternal_interpreter_environment) /* Mere optimization!  */
+	? Fassq (form, Vinternal_interpreter_environment)
+	: Qnil;
+      if (CONSP (lex_binding))
+	return XCDR (lex_binding);
+      else
+	return Fsymbol_value (form);
     }
 
   if (!CONSP (form))
@@ -2485,7 +2502,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	}
     }
   if (FUNVECP (fun))
-    val = apply_lambda (fun, original_args, 1, Qnil);
+    val = apply_lambda (fun, original_args, Qnil);
   else
     {
       if (EQ (fun, Qunbound))
@@ -2503,7 +2520,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
       if (EQ (funcar, Qmacro))
 	val = Feval (apply1 (Fcdr (fun), original_args));
       else if (EQ (funcar, Qlambda))
-	val = apply_lambda (fun, original_args, 1,
+	val = apply_lambda (fun, original_args,
 			    /* Only pass down the current lexical environment
 			       if FUN is lexically embedded in FORM.  */
 			    (CONSP (original_fun)
@@ -2513,7 +2530,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	       && CONSP (XCDR (fun))
 	       && CONSP (XCDR (XCDR (fun)))
 	       && EQ (XCAR (XCDR (XCDR (fun))), Qlambda))
-	val = apply_lambda (XCDR (XCDR (fun)), original_args, 1,
+	val = apply_lambda (XCDR (XCDR (fun)), original_args,
 			    XCAR (XCDR (fun)));
       else
 	xsignal1 (Qinvalid_function, original_fun);
@@ -3208,9 +3225,8 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   return val;
 }
 
-Lisp_Object
-apply_lambda (Lisp_Object fun, Lisp_Object args, int eval_flag,
-	      Lisp_Object lexenv)
+static Lisp_Object
+apply_lambda (Lisp_Object fun, Lisp_Object args, Lisp_Object lexenv)
 {
   Lisp_Object args_left;
   Lisp_Object numargs;
@@ -3230,18 +3246,15 @@ apply_lambda (Lisp_Object fun, Lisp_Object args, int eval_flag,
   for (i = 0; i < XINT (numargs);)
     {
       tem = Fcar (args_left), args_left = Fcdr (args_left);
-      if (eval_flag) tem = Feval (tem);
+      tem = Feval (tem);
       arg_vector[i++] = tem;
       gcpro1.nvars = i;
     }
 
   UNGCPRO;
 
-  if (eval_flag)
-    {
-      backtrace_list->args = arg_vector;
-      backtrace_list->nargs = i;
-    }
+  backtrace_list->args = arg_vector;
+  backtrace_list->nargs = i;
   backtrace_list->evalargs = 0;
   tem = funcall_lambda (fun, XINT (numargs), arg_vector, lexenv);
 
@@ -3387,8 +3400,11 @@ funcall_lambda (Lisp_Object fun, int nargs,
 	    val = Qnil;
 
 	  /* Bind the argument.  */
-	  if (!NILP (lexenv)
-	      && SYMBOLP (next) && !XSYMBOL (next)->declared_special)
+	  if (!NILP (lexenv) && SYMBOLP (next)
+	      /* FIXME: there's no good reason to allow dynamic-scoping
+		 on function arguments, other than consistency with let.  */
+	      && !XSYMBOL (next)->declared_special
+	      && NILP (Fmemq (next, Vinternal_interpreter_environment)))
 	    /* Lexically bind NEXT by adding it to the lexenv alist.  */
 	    lexenv = Fcons (Fcons (next, val), lexenv);
 	  else

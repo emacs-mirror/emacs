@@ -1767,10 +1767,9 @@ readevalloop (Lisp_Object readcharfun,
      the file's header, or via a buffer-local variable), create an empty
      lexical environment, otherwise, turn off lexical binding.  */
   lex_bound = find_symbol_value (Qlexical_binding);
-  if (NILP (lex_bound) || EQ (lex_bound, Qunbound))
-    specbind (Qinternal_interpreter_environment, Qnil);
-  else
-    specbind (Qinternal_interpreter_environment, Fcons (Qt, Qnil));
+  specbind (Qinternal_interpreter_environment,
+	    NILP (lex_bound) || EQ (lex_bound, Qunbound)
+	    ? Qnil : Fcons (Qt, Qnil));
 
   GCPRO4 (sourcename, readfun, start, end);
 

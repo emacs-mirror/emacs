@@ -427,11 +427,11 @@ Non-strings in LIST are ignored."
     (setq list (cdr list)))
   list)
 
-(defmacro with-lexical-binding (&rest body)
-  "Execute the statements in BODY using lexical binding."
-  `(let ((internal-interpreter-environment internal-interpreter-environment))
-     (setq internal-interpreter-environment '(t))
-     ,@body))
+;; Remove this since we don't know how to handle it in the byte-compiler yet.
+;; (defmacro with-lexical-binding (&rest body)
+;;   "Execute the statements in BODY using lexical binding."
+;;   `(let ((internal-interpreter-environment '(t)))
+;;      ,@body))
 
 (defun assq-delete-all (key alist)
   "Delete from ALIST all elements whose car is `eq' to KEY.
