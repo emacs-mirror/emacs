@@ -384,7 +384,7 @@ The default value matches citations like `foo-bar>' plus whitespace."
 
 (autoload 'build-mail-aliases "mailalias"
   "Read mail aliases from personal aliases file and set `mail-aliases'.
-By default, this is the file specified by `mail-personal-alias-file'.")
+By default, this is the file specified by `mail-personal-alias-file'." t)
 
 ;;;###autoload
 (defcustom mail-signature t

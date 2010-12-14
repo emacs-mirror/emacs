@@ -1,5 +1,8 @@
 2010-12-14  Glenn Morris  <rgm@gnu.org>
 
+	* mail/mailalias.el (build-mail-aliases): Make it interactive.
+	* mail/sendmail.el (build-mail-aliases): Update autoload.
+
 	* dired.el (dired-trivial-filenames, dired-chown-program)
 	(dired-auto-revert-buffer): Remove autoload cookies.
 	* mail/sendmail.el (mail-recover-1): Require 'dired.

@@ -1,12 +1,17 @@
+2010-12-14  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Expanding aliases when sending mail):
+	Now build-mail-aliases is interactive.
+
 2010-12-13  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* gnus.texi: First pass at adding (rough) nnir documentation.
 
 2010-12-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus.texi (Filtering New Groups): Mention
-	gnus-auto-subscribed-categories.
-	(The First Time): Removed, since default-subscribed-newsgroups has been
+	* gnus.texi (Filtering New Groups):
+	Mention gnus-auto-subscribed-categories.
+	(The First Time): Remove, since default-subscribed-newsgroups has been
 	removed.
 
 2010-12-13  Glenn Morris  <rgm@gnu.org>
