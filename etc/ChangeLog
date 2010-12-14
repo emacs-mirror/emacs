@@ -1,3 +1,7 @@
+2010-12-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Mention new Tramp method "ksu".
+
 2010-12-13  W. Martin Borgert <debacle@debian.org>  (tiny change)
 
 	* schema/schemas.xml: Add DocBook (Bug#7491).

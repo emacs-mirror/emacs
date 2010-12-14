@@ -542,6 +542,8 @@ system or session bus.
 
 ** Tramp
 
+*** There exists a new inline access method "ksu" (kerberized su).
+
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old" and "fish".
 
