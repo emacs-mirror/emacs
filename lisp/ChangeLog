@@ -1,5 +1,13 @@
 2010-12-14  Glenn Morris  <rgm@gnu.org>
 
+	* mail/sendmail.el: Don't require rmail or mailalias when compiling.
+	Require mail-utils.
+	(mail-alias-file): Don't autoload.  Doc fix.
+	(mail-bury-selects-summary, mail-send-nonascii): Don't autoload.
+	(mail-mailer-swallows-blank-line): Default to nil.  Doc fix.
+	Mark as obsolete, and risky.
+	(mail-setup): Simplify.
+
 	* mail/mailalias.el (build-mail-aliases): Make it interactive.
 	* mail/sendmail.el (build-mail-aliases): Update autoload.
 
