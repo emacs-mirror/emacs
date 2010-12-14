@@ -178,10 +178,8 @@ int handling_signal;
 
 Lisp_Object Vmacro_declaration_function;
 
-static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args,
-				 Lisp_Object lexenv);
-static Lisp_Object funcall_lambda (Lisp_Object, int, Lisp_Object *,
-				   Lisp_Object);
+static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
+static Lisp_Object funcall_lambda (Lisp_Object, int, Lisp_Object *);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
 
 void
@@ -308,7 +306,7 @@ usage: (or CONDITIONS...)  */)
 
   while (CONSP (args))
     {
-      val = Feval (XCAR (args));
+      val = eval_sub (XCAR (args));
       if (!NILP (val))
 	break;
       args = XCDR (args);
@@ -332,7 +330,7 @@ usage: (and CONDITIONS...)  */)
 
   while (CONSP (args))
     {
-      val = Feval (XCAR (args));
+      val = eval_sub (XCAR (args));
       if (NILP (val))
 	break;
       args = XCDR (args);
@@ -354,11 +352,11 @@ usage: (if COND THEN ELSE...)  */)
   struct gcpro gcpro1;
 
   GCPRO1 (args);
-  cond = Feval (Fcar (args));
+  cond = eval_sub (Fcar (args));
   UNGCPRO;
 
   if (!NILP (cond))
-    return Feval (Fcar (Fcdr (args)));
+    return eval_sub (Fcar (Fcdr (args)));
   return Fprogn (Fcdr (Fcdr (args)));
 }
 
@@ -382,7 +380,7 @@ usage: (cond CLAUSES...)  */)
   while (!NILP (args))
     {
       clause = Fcar (args);
-      val = Feval (Fcar (clause));
+      val = eval_sub (Fcar (clause));
       if (!NILP (val))
 	{
 	  if (!EQ (XCDR (clause), Qnil))
@@ -408,7 +406,7 @@ usage: (progn BODY...)  */)
 
   while (CONSP (args))
     {
-      val = Feval (XCAR (args));
+      val = eval_sub (XCAR (args));
       args = XCDR (args);
     }
 
@@ -438,9 +436,9 @@ usage: (prog1 FIRST BODY...)  */)
   do
     {
       if (!(argnum++))
-	val = Feval (Fcar (args_left));
+	val = eval_sub (Fcar (args_left));
       else
-	Feval (Fcar (args_left));
+	eval_sub (Fcar (args_left));
       args_left = Fcdr (args_left);
     }
   while (!NILP(args_left));
@@ -473,9 +471,9 @@ usage: (prog2 FORM1 FORM2 BODY...)  */)
   do
     {
       if (!(argnum++))
-	val = Feval (Fcar (args_left));
+	val = eval_sub (Fcar (args_left));
       else
-	Feval (Fcar (args_left));
+	eval_sub (Fcar (args_left));
       args_left = Fcdr (args_left);
     }
   while (!NILP (args_left));
@@ -507,10 +505,10 @@ usage: (setq [SYM VAL]...)  */)
 
   do
     {
-      val = Feval (Fcar (Fcdr (args_left)));
+      val = eval_sub (Fcar (Fcdr (args_left)));
       sym = Fcar (args_left);
 
-      /* Like for Feval, we do not check declared_special here since
+      /* Like for eval_sub, we do not check declared_special here since
 	 it's been done when let-binding.  */
       if (!NILP (Vinternal_interpreter_environment) /* Mere optimization!  */
 	  && SYMBOLP (sym)
@@ -870,7 +868,7 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 	}
 
       if (NILP (tem))
-	Fset_default (sym, Feval (Fcar (tail)));
+	Fset_default (sym, eval_sub (Fcar (tail)));
       else
 	{ /* Check if there is really a global binding rather than just a let
 	     binding that shadows the global unboundness of the var.  */
@@ -935,7 +933,7 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   if (!NILP (Fcdr (Fcdr (Fcdr (args)))))
     error ("Too many arguments");
 
-  tem = Feval (Fcar (Fcdr (args)));
+  tem = eval_sub (Fcar (Fcdr (args)));
   if (!NILP (Vpurify_flag))
     tem = Fpurecopy (tem);
   Fset_default (sym, tem);
@@ -1049,7 +1047,7 @@ usage: (let* VARLIST BODY...)  */)
       else
 	{
 	  var = Fcar (elt);
-	  val = Feval (Fcar (Fcdr (elt)));
+	  val = eval_sub (Fcar (Fcdr (elt)));
 	}
 
       if (!NILP (lexenv) && SYMBOLP (var)
@@ -1117,7 +1115,7 @@ usage: (let VARLIST BODY...)  */)
       else if (! NILP (Fcdr (Fcdr (elt))))
 	signal_error ("`let' bindings can have only one value-form", elt);
       else
-	temps [argnum++] = Feval (Fcar (Fcdr (elt)));
+	temps [argnum++] = eval_sub (Fcar (Fcdr (elt)));
       gcpro2.nvars = argnum;
     }
   UNGCPRO;
@@ -1166,7 +1164,7 @@ usage: (while TEST BODY...)  */)
 
   test = Fcar (args);
   body = Fcdr (args);
-  while (!NILP (Feval (test)))
+  while (!NILP (eval_sub (test)))
     {
       QUIT;
       Fprogn (body);
@@ -1268,7 +1266,7 @@ usage: (catch TAG BODY...)  */)
   struct gcpro gcpro1;
 
   GCPRO1 (args);
-  tag = Feval (Fcar (args));
+  tag = eval_sub (Fcar (args));
   UNGCPRO;
   return internal_catch (tag, Fprogn, Fcdr (args));
 }
@@ -1401,7 +1399,7 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   int count = SPECPDL_INDEX ();
 
   record_unwind_protect (Fprogn, Fcdr (args));
-  val = Feval (Fcar (args));
+  val = eval_sub (Fcar (args));
   return unbind_to (count, val);
 }
 
@@ -1502,7 +1500,7 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
   h.tag = &c;
   handlerlist = &h;
 
-  val = Feval (bodyform);
+  val = eval_sub (bodyform);
   catchlist = c.next;
   handlerlist = h.next;
   return val;
@@ -2317,6 +2315,16 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
        doc: /* Evaluate FORM and return its value.  */)
   (Lisp_Object form)
 {
+  int count = SPECPDL_INDEX ();
+  specbind (Qinternal_interpreter_environment, Qnil);
+  return unbind_to (count, eval_sub (form));
+}
+
+/* Eval a sub-expression of the current expression (i.e. in the same
+   lexical scope).  */
+Lisp_Object
+eval_sub (Lisp_Object form)
+{
   Lisp_Object fun, val, original_fun, original_args;
   Lisp_Object funcar;
   struct backtrace backtrace;
@@ -2424,7 +2432,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 
 	  while (!NILP (args_left))
 	    {
-	      vals[argnum++] = Feval (Fcar (args_left));
+	      vals[argnum++] = eval_sub (Fcar (args_left));
 	      args_left = Fcdr (args_left);
 	      gcpro3.nvars = argnum;
 	    }
@@ -2445,7 +2453,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
       maxargs = XSUBR (fun)->max_args;
       for (i = 0; i < maxargs; args_left = Fcdr (args_left))
 	{
-	  argvals[i] = Feval (Fcar (args_left));
+	  argvals[i] = eval_sub (Fcar (args_left));
 	  gcpro3.nvars = ++i;
 	}
 
@@ -2502,7 +2510,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	}
     }
   if (FUNVECP (fun))
-    val = apply_lambda (fun, original_args, Qnil);
+    val = apply_lambda (fun, original_args);
   else
     {
       if (EQ (fun, Qunbound))
@@ -2518,20 +2526,10 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  goto retry;
 	}
       if (EQ (funcar, Qmacro))
-	val = Feval (apply1 (Fcdr (fun), original_args));
-      else if (EQ (funcar, Qlambda))
-	val = apply_lambda (fun, original_args,
-			    /* Only pass down the current lexical environment
-			       if FUN is lexically embedded in FORM.  */
-			    (CONSP (original_fun)
-			     ? Vinternal_interpreter_environment
-			     : Qnil));
-      else if (EQ (funcar, Qclosure)
-	       && CONSP (XCDR (fun))
-	       && CONSP (XCDR (XCDR (fun)))
-	       && EQ (XCAR (XCDR (XCDR (fun))), Qlambda))
-	val = apply_lambda (XCDR (XCDR (fun)), original_args,
-			    XCAR (XCDR (fun)));
+	val = eval_sub (apply1 (Fcdr (fun), original_args));
+      else if (EQ (funcar, Qlambda)
+	       || EQ (funcar, Qclosure))
+	val = apply_lambda (fun, original_args);
       else
 	xsignal1 (Qinvalid_function, original_fun);
     }
@@ -3189,7 +3187,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
     }
 
   if (FUNVECP (fun))
-    val = funcall_lambda (fun, numargs, args + 1, Qnil);
+    val = funcall_lambda (fun, numargs, args + 1);
   else
     {
       if (EQ (fun, Qunbound))
@@ -3199,14 +3197,9 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
       funcar = XCAR (fun);
       if (!SYMBOLP (funcar))
 	xsignal1 (Qinvalid_function, original_fun);
-      if (EQ (funcar, Qlambda))
-	val = funcall_lambda (fun, numargs, args + 1, Qnil);
-      else if (EQ (funcar, Qclosure)
-	       && CONSP (XCDR (fun))
-	       && CONSP (XCDR (XCDR (fun)))
-	       && EQ (XCAR (XCDR (XCDR (fun))), Qlambda))
-	val = funcall_lambda (XCDR (XCDR (fun)), numargs, args + 1,
-			      XCAR (XCDR (fun)));
+      if (EQ (funcar, Qlambda)
+	  || EQ (funcar, Qclosure))
+	val = funcall_lambda (fun, numargs, args + 1);
       else if (EQ (funcar, Qautoload))
 	{
 	  do_autoload (fun, original_fun);
@@ -3226,7 +3219,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 }
 
 static Lisp_Object
-apply_lambda (Lisp_Object fun, Lisp_Object args, Lisp_Object lexenv)
+apply_lambda (Lisp_Object fun, Lisp_Object args)
 {
   Lisp_Object args_left;
   Lisp_Object numargs;
@@ -3246,7 +3239,7 @@ apply_lambda (Lisp_Object fun, Lisp_Object args, Lisp_Object lexenv)
   for (i = 0; i < XINT (numargs);)
     {
       tem = Fcar (args_left), args_left = Fcdr (args_left);
-      tem = Feval (tem);
+      tem = eval_sub (tem);
       arg_vector[i++] = tem;
       gcpro1.nvars = i;
     }
@@ -3256,7 +3249,7 @@ apply_lambda (Lisp_Object fun, Lisp_Object args, Lisp_Object lexenv)
   backtrace_list->args = arg_vector;
   backtrace_list->nargs = i;
   backtrace_list->evalargs = 0;
-  tem = funcall_lambda (fun, XINT (numargs), arg_vector, lexenv);
+  tem = funcall_lambda (fun, XINT (numargs), arg_vector);
 
   /* Do the debug-on-exit now, while arg_vector still exists.  */
   if (backtrace_list->debug_on_exit)
@@ -3321,10 +3314,9 @@ funcall_funvec (Lisp_Object fun, int nargs, Lisp_Object *args)
 
 static Lisp_Object
 funcall_lambda (Lisp_Object fun, int nargs,
-		register Lisp_Object *arg_vector,
-		Lisp_Object lexenv)
+		register Lisp_Object *arg_vector)
 {
-  Lisp_Object val, syms_left, next;
+  Lisp_Object val, syms_left, next, lexenv;
   int count = SPECPDL_INDEX ();
   int i, optional, rest;
 
@@ -3358,6 +3350,14 @@ funcall_lambda (Lisp_Object fun, int nargs,
 
   if (CONSP (fun))
     {
+      if (EQ (XCAR (fun), Qclosure))
+	{
+	  fun = XCDR (fun);	/* Drop `closure'.  */
+	  lexenv = XCAR (fun);
+	  fun = XCDR (fun);	/* Drop the lexical environment.  */
+	}
+      else
+	lexenv = Qnil;
       syms_left = XCDR (fun);
       if (CONSP (syms_left))
 	syms_left = XCAR (syms_left);
@@ -3365,7 +3365,10 @@ funcall_lambda (Lisp_Object fun, int nargs,
 	xsignal1 (Qinvalid_function, fun);
     }
   else if (COMPILEDP (fun))
-    syms_left = AREF (fun, COMPILED_ARGLIST);
+    {
+      syms_left = AREF (fun, COMPILED_ARGLIST);
+      lexenv = Qnil;
+    }
   else
     abort ();
 
@@ -3382,23 +3385,21 @@ funcall_lambda (Lisp_Object fun, int nargs,
 	rest = 1;
       else if (EQ (next, Qand_optional))
 	optional = 1;
-      else if (rest)
-	{
-	  specbind (next, Flist (nargs - i, &arg_vector[i]));
-	  i = nargs;
-	}
       else
 	{
 	  Lisp_Object val;
-
-	  /* Get the argument's actual value.  */
-	  if (i < nargs)
+	  if (rest)
+	    {
+	      val = Flist (nargs - i, &arg_vector[i]);
+	      i = nargs;
+	    }
+	  else if (i < nargs)
 	    val = arg_vector[i++];
 	  else if (!optional)
 	    xsignal2 (Qwrong_number_of_arguments, fun, make_number (nargs));
 	  else
 	    val = Qnil;
-
+	    
 	  /* Bind the argument.  */
 	  if (!NILP (lexenv) && SYMBOLP (next)
 	      /* FIXME: there's no good reason to allow dynamic-scoping

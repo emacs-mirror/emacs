@@ -2979,6 +2979,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 
 ;; Given BYTECOMP-BODY, compile it and return a new body.
 (defun byte-compile-top-level-body (bytecomp-body &optional for-effect)
+  ;; FIXME: lexbind.  Check all callers!
   (setq bytecomp-body
 	(byte-compile-top-level (cons 'progn bytecomp-body) for-effect t))
   (cond ((eq (car-safe bytecomp-body) 'progn)
@@ -4083,8 +4084,8 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
 
 (defun byte-compile-track-mouse (form)
   (byte-compile-form
-   `(funcall '(lambda nil
-		(track-mouse ,@(byte-compile-top-level-body (cdr form)))))))
+   `(funcall #'(lambda nil
+                 (track-mouse ,@(byte-compile-top-level-body (cdr form)))))))
 
 (defun byte-compile-condition-case (form)
   (let* ((var (nth 1 form))
@@ -4121,11 +4122,10 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
 ;;                   "`%s' is not a known condition name (in condition-case)"
 ;;                   condition))
 		)
-	  (setq compiled-clauses
-		(cons (cons condition
-			    (byte-compile-top-level-body
-			     (cdr clause) for-effect))
-		      compiled-clauses)))
+          (push (cons condition
+                      (byte-compile-top-level-body
+                       (cdr clause) for-effect))
+                compiled-clauses))
 	(setq clauses (cdr clauses)))
       (byte-compile-push-constant (nreverse compiled-clauses)))
     (byte-compile-out 'byte-condition-case 0)))
@@ -4244,7 +4244,7 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
 	      `(if (not (default-boundp ',var)) (setq-default ,var ,value))))
 	(when (eq fun 'defconst)
 	  ;; This will signal an appropriate error at runtime.
-	  `(eval ',form)))
+	  `(eval ',form)))              ;FIXME: lexbind
       `',var))))
 
 (defun byte-compile-autoload (form)

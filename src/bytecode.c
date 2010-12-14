@@ -901,7 +901,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	case Bsave_window_excursion:
 	  BEFORE_POTENTIAL_GC ();
-	  TOP = Fsave_window_excursion (TOP);
+	  TOP = Fsave_window_excursion (TOP); /* FIXME: lexbind */
 	  AFTER_POTENTIAL_GC ();
 	  break;
 
@@ -915,13 +915,13 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
-	    TOP = internal_catch (TOP, Feval, v1);
+	    TOP = internal_catch (TOP, Feval, v1); /* FIXME: lexbind */
 	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Bunwind_protect:
-	  record_unwind_protect (Fprogn, POP);
+	  record_unwind_protect (Fprogn, POP); /* FIXME: lexbind */
 	  break;
 
 	case Bcondition_case:
@@ -930,7 +930,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    handlers = POP;
 	    body = POP;
 	    BEFORE_POTENTIAL_GC ();
-	    TOP = internal_lisp_condition_case (TOP, body, handlers);
+	    TOP = internal_lisp_condition_case (TOP, body, handlers); /* FIXME: lexbind */
 	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }

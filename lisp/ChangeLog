@@ -1,3 +1,7 @@
+2010-12-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-condition-case): Use push.
+
 2010-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (with-lexical-binding): Remove.

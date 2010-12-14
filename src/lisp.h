@@ -2972,6 +2972,7 @@ extern void signal_error (const char *, Lisp_Object) NO_RETURN;
 EXFUN (Fautoload, 5);
 EXFUN (Fcommandp, 2);
 EXFUN (Feval, 1);
+extern Lisp_Object eval_sub (Lisp_Object form);
 EXFUN (Fapply, MANY);
 EXFUN (Ffuncall, MANY);
 EXFUN (Fbacktrace, 0);

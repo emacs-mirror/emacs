@@ -220,8 +220,7 @@ static Lisp_Object Vbytecomp_version_regexp;
 static int read_emacs_mule_char (int, int (*) (int, Lisp_Object),
                                  Lisp_Object);
 
-static void readevalloop (Lisp_Object, FILE*, Lisp_Object,
-                          Lisp_Object (*) (Lisp_Object), int,
+static void readevalloop (Lisp_Object, FILE*, Lisp_Object, int,
                           Lisp_Object, Lisp_Object,
                           Lisp_Object, Lisp_Object);
 static Lisp_Object load_unwind (Lisp_Object);
@@ -1355,13 +1354,13 @@ Return t if the file exists and loads successfully.  */)
 
   if (! version || version >= 22)
     readevalloop (Qget_file_char, stream, hist_file_name,
-		  Feval, 0, Qnil, Qnil, Qnil, Qnil);
+		  0, Qnil, Qnil, Qnil, Qnil);
   else
     {
       /* We can't handle a file which was compiled with
 	 byte-compile-dynamic by older version of Emacs.  */
       specbind (Qload_force_doc_strings, Qt);
-      readevalloop (Qget_emacs_mule_file_char, stream, hist_file_name, Feval,
+      readevalloop (Qget_emacs_mule_file_char, stream, hist_file_name,
 		    0, Qnil, Qnil, Qnil, Qnil);
     }
   unbind_to (count, Qnil);
@@ -1726,7 +1725,6 @@ static void
 readevalloop (Lisp_Object readcharfun,
 	      FILE *stream,
 	      Lisp_Object sourcename,
-	      Lisp_Object (*evalfun) (Lisp_Object),
 	      int printflag,
 	      Lisp_Object unibyte, Lisp_Object readfun,
 	      Lisp_Object start, Lisp_Object end)
@@ -1872,7 +1870,7 @@ readevalloop (Lisp_Object readcharfun,
       unbind_to (count1, Qnil);
 
       /* Now eval what we just read.  */
-      val = (*evalfun) (val);
+      val = eval_sub (val);
 
       if (printflag)
 	{
@@ -1935,7 +1933,7 @@ This function preserves the position of point.  */)
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   if (lisp_file_lexically_bound_p (buf))
     Fset (Qlexical_binding, Qt);
-  readevalloop (buf, 0, filename, Feval,
+  readevalloop (buf, 0, filename,
 		!NILP (printflag), unibyte, Qnil, Qnil, Qnil);
   unbind_to (count, Qnil);
 
@@ -1969,7 +1967,7 @@ This function does not move point.  */)
   specbind (Qeval_buffer_list, Fcons (cbuf, Veval_buffer_list));
 
   /* readevalloop calls functions which check the type of start and end.  */
-  readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval,
+  readevalloop (cbuf, 0, XBUFFER (cbuf)->filename,
 		!NILP (printflag), Qnil, read_function,
 		start, end);
 

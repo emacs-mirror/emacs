@@ -652,7 +652,7 @@ usage: (with-output-to-temp-buffer BUFNAME BODY...)  */)
   Lisp_Object buf, val;
 
   GCPRO1(args);
-  name = Feval (Fcar (args));
+  name = eval_sub (Fcar (args));
   CHECK_STRING (name);
   temp_output_buffer_setup (SDATA (name));
   buf = Vstandard_output;

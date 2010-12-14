@@ -1452,7 +1452,7 @@ usage: (setq-default [VAR VALUE]...)  */)
 
   do
     {
-      val = Feval (Fcar (Fcdr (args_left)));
+      val = eval_sub (Fcar (Fcdr (args_left)));
       symbol = XCAR (args_left);
       Fset_default (symbol, val);
       args_left = Fcdr (XCDR (args_left));

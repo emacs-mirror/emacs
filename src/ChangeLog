@@ -1,3 +1,19 @@
+2010-12-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Try and be more careful about propagation of lexical environment.
+	* eval.c (apply_lambda, funcall_lambda): Remove lexenv arg.
+	(Feval): Always eval in the empty environment.
+	(eval_sub): New function.  Use it for all calls to Feval that should
+	evaluate in the lexical environment of the caller.
+	Pass `closure's as is to apply_lambda.
+	(Ffuncall): Pass `closure's as is to funcall_lambda.
+	(funcall_lambda): Extract lexenv for `closure's, when applicable.
+	Also use lexical scoping for the &rest argument, if applicable.
+	* lisp.h (eval_sub): Declare.
+	* lread.c (readevalloop): Remove `evalfun' argument.
+	* print.c (Fwith_output_to_temp_buffer):
+	* data.c (Fsetq_default): Use eval_sub.
+
 2010-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Make the effect of (defvar foo) local.
