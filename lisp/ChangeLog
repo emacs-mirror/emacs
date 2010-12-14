@@ -1,3 +1,16 @@
+2010-12-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-temp-buffer-file-name): Make it permanent-local.
+	(tramp-handle-insert-file-contents): Do not set permanent-local
+	property.
+
+	* net/tramp-cache.el (tramp-persistency-file-name): Use
+	`locate-user-emacs-file' if fboundp.
+
+	* net/tramp-sh.el (tramp-methods): Add "ksu".
+	(tramp-default-user-alist): Add "ksu".  Use `regexp-opt' for
+	method list.
+
 2010-12-14  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/js.el: Doc't require font-lock, etags, or easymenu.
@@ -49,7 +62,7 @@
 2010-12-13  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-action-password, tramp-process-actions):
-	Revert patch from 2010-12-08.  Use `save-restriction'.
+	Revert previous from.  Use `save-restriction'.
 
 2010-12-13  Stephen Berman  <stephen.berman@gmx.net>
 
@@ -64,6 +77,7 @@
 
 	* net/tramp.el (tramp-action-password): Delete region, do not narrow.
 	(tramp-process-actions): Do not widen.
+
 	* net/tramp-sh.el (tramp-sh-handle-start-file-process):
 	Protect buffer-modified value.  (Bug#7557)
 

@@ -306,6 +306,12 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-remote-sh            "/bin/sh")))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
+  '("ksu"
+    (tramp-login-program        "ksu")
+    (tramp-login-args           (("%u") ("-q")))
+    (tramp-remote-sh            "/bin/sh")))
+;;;###tramp-autoload
+(add-to-list 'tramp-methods
   '("krlogin"
     (tramp-login-program        "krlogin")
     (tramp-login-args           (("%h") ("-l" "%u") ("-x")))
@@ -378,9 +384,16 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     `(,tramp-local-host-regexp "\\`root\\'" "su"))
 
 (add-to-list 'tramp-default-user-alist
-	     '("\\`su\\(do\\)?\\'" nil "root"))
+	     `(,(concat "\\`" (regexp-opt '("su" "sudo" "ksu")) "\\'")
+	       nil "root"))
 (add-to-list 'tramp-default-user-alist
-	     `("\\`r\\(em\\)?\\(cp\\|sh\\)\\|telnet\\|plink1?\\'"
+	     `(,(concat
+		 "\\`"
+		 (regexp-opt
+		  '("rcp" "remcp" "scp" "scp1" "scp2" "scpc" "scpx" "sftp"
+		    "rsync" "rsyncc" "rsh" "remsh" "ssh" "ssh1" "ssh2" "sshx"
+		    "telnet" "krlogin" "plink" "plink1" "pscp" "psftp" "fcp"))
+		 "\\'")
 	       nil ,(user-login-name)))
 
 (defconst tramp-completion-function-alist-rsh
@@ -437,6 +450,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
 (tramp-set-completion-function "telnet" tramp-completion-function-alist-telnet)
 (tramp-set-completion-function "su" tramp-completion-function-alist-su)
 (tramp-set-completion-function "sudo" tramp-completion-function-alist-su)
+(tramp-set-completion-function "ksu" tramp-completion-function-alist-su)
 (tramp-set-completion-function "krlogin" tramp-completion-function-alist-rsh)
 (tramp-set-completion-function "plink" tramp-completion-function-alist-ssh)
 (tramp-set-completion-function "plink1" tramp-completion-function-alist-ssh)
@@ -2672,20 +2686,20 @@ the result will be a local, non-Tramp, filename."
 		  (narrow-to-region (point-max) (point-max))
 		  (if command
 		      ;; Send the command.
-                      (tramp-send-command v command nil t) ; nooutput
-                    ;; Check, whether a pty is associated.
-                    (tramp-maybe-open-connection v)
-                    (unless (tramp-compat-process-get
-                             (tramp-get-connection-process v) 'remote-tty)
-                      (tramp-error
+		      (tramp-send-command v command nil t) ; nooutput
+		    ;; Check, whether a pty is associated.
+		    (tramp-maybe-open-connection v)
+		    (unless (tramp-compat-process-get
+			     (tramp-get-connection-process v) 'remote-tty)
+		      (tramp-error
 		       v 'file-error
 		       "pty association is not supported for `%s'" name)))))
-              (let ((p (tramp-get-connection-process v)))
-                ;; Set sentinel and query flag for this process.
-                (tramp-set-connection-property p "vector" v)
-                (set-process-sentinel p 'tramp-process-sentinel)
-                (tramp-compat-set-process-query-on-exit-flag p t)
-                ;; Return process.
+	      (let ((p (tramp-get-connection-process v)))
+		;; Set sentinel and query flag for this process.
+		(tramp-set-connection-property p "vector" v)
+		(set-process-sentinel p 'tramp-process-sentinel)
+		(tramp-compat-set-process-query-on-exit-flag p t)
+		;; Return process.
 		p)))
 	;; Save exit.
 	(with-current-buffer (tramp-get-connection-buffer v)
