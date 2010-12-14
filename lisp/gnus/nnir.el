@@ -289,7 +289,9 @@ is `(valuefunc member)'."
   (autoload 'nnimap-buffer "nnimap")
   (autoload 'nnimap-command "nnimap")
   (autoload 'nnimap-possibly-change-group "nnimap")
-  (autoload 'gnus-registry-action "gnus-registry"))
+  (autoload 'gnus-registry-action "gnus-registry")
+  (defvar gnus-registry-install))
+
 
 (nnoo-declare nnir)
 (nnoo-define-basics nnir)
@@ -1581,12 +1583,13 @@ server is of form 'backend:name'."
   (when (eq (car (gnus-find-method-for-group gnus-newsgroup-name)) 'nnir)
     (setq gnus-summary-line-format
 	  (or nnir-summary-line-format gnus-summary-line-format))
-    (remove-hook 'gnus-summary-article-delete-hook 'gnus-registry-action t)
-    (remove-hook 'gnus-summary-article-move-hook 'gnus-registry-action t)
-    (remove-hook 'gnus-summary-article-expire-hook 'gnus-registry-action t)
-    (add-hook 'gnus-summary-article-delete-hook 'nnir-registry-action t t)
-    (add-hook 'gnus-summary-article-move-hook 'nnir-registry-action t t)
-    (add-hook 'gnus-summary-article-expire-hook 'nnir-registry-action t t)))
+    (when (eq gnus-registry-install t)
+      (remove-hook 'gnus-summary-article-delete-hook 'gnus-registry-action t)
+      (remove-hook 'gnus-summary-article-move-hook 'gnus-registry-action t)
+      (remove-hook 'gnus-summary-article-expire-hook 'gnus-registry-action t)
+      (add-hook 'gnus-summary-article-delete-hook 'nnir-registry-action t t)
+      (add-hook 'gnus-summary-article-move-hook 'nnir-registry-action t t)
+      (add-hook 'gnus-summary-article-expire-hook 'nnir-registry-action t t))))
 
 
 
