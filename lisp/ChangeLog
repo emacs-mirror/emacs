@@ -1,5 +1,9 @@
 2010-12-14  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/js.el: Doc't require font-lock, etags, or easymenu.
+	(find-tag-marker-ring): Declare.
+	(js-find-symbol): Require etags.
+
 	* mail/sendmail.el: Don't require rmail or mailalias when compiling.
 	Require mail-utils.
 	(mail-alias-file): Don't autoload.  Doc fix.

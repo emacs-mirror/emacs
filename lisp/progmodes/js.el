@@ -47,12 +47,9 @@
 
 
 (require 'cc-mode)
-(require 'font-lock)
 (require 'newcomment)
+(require 'thingatpt)                    ; forward-symbol etc
 (require 'imenu)
-(require 'etags)
-(require 'thingatpt)
-(require 'easymenu)
 (require 'moz nil t)
 (require 'json nil t)
 
@@ -2171,12 +2168,15 @@ marker."
           (setf (car bounds) (point))))
       (buffer-substring (car bounds) (cdr bounds)))))
 
+(defvar find-tag-marker-ring)           ; etags
+
 (defun js-find-symbol (&optional arg)
   "Read a JavaScript symbol and jump to it.
 With a prefix argument, restrict symbols to those from the
 current buffer.  Pushes a mark onto the tag ring just like
 `find-tag'."
   (interactive "P")
+  (require 'etags)
   (let (symbols marker)
     (if (not arg)
         (setq symbols (js--get-all-known-symbols))
