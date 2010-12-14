@@ -1,3 +1,8 @@
+2010-12-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): Add "ksu" method.
+	(Remote processes): Add example with remote `default-directory'.
+
 2010-12-14  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (Expanding aliases when sending mail):
