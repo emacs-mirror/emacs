@@ -1,3 +1,7 @@
+2010-12-14  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mail-utils.el: No need to require lisp-mode, it's in loadup.
+
 2010-12-13  Romain Francoise  <romain@orebokech.com>
 
 	* net/gnutls.el (gnutls-negotiate): Fix setting of default trustfiles.
