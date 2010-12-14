@@ -1,3 +1,9 @@
+2010-12-14  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus.texi (The swish++ Engine): Add customizable parameters
+	descriptions.
+	(The swish-e Engine): Ditto.
+
 2010-12-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Inline methods): Add "ksu" method.

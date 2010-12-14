@@ -21231,6 +21231,21 @@ FIXEM: Say something more here.
 Documentation for swish++ may be found at the swish++ sourceforge page:
 @uref{http://swishplusplus.sourceforge.net}
 
+@table @code
+
+@item nnir-swish++-program
+The name of the swish++ executable. Defaults to @code{search}
+
+@item nnir-swish++-additional-switches
+A list of strings to be given as additional arguments to
+swish++. @code{nil} by default.
+
+@item nnir-swish++-remove-prefix
+The prefix to remove from each file name returned by swish++ in order
+to get a group name. By default this is @code{$HOME/Mail}.
+
+@end table
+
 @node The swish-e Engine
 @subsubsection The swish-e Engine
 
@@ -21238,6 +21253,21 @@ FIXEM: Say something more here.
 
 Documentation for swish-e may be found at the swish-e homepage
 @uref{http://swish-e.org}
+
+@table @code
+
+@item nnir-swish-e-program
+The name of the swish-e search program. Defaults to @code{swish-e}.
+
+@item nnir-swish-e-additional-switches
+A list of strings to be given as additional arguments to
+swish-e. @code{nil} by default.
+
+@item nnir-swish-e-remove-prefix
+The prefix to remove from each file name returned by swish-e in order
+to get a group name. By default this is @code{$HOME/Mail}.
+
+@end table
 
 @node The namazu Engine
 @subsubsection The namazu Engine
