@@ -69,7 +69,6 @@ If nil, `dired-listing-switches' is used."
    :type '(choice (const :tag "Use dired-listing-switches" nil)
                   (string :tag "Switches")))
 
-;;;###autoload
 (defcustom dired-chown-program
   (purecopy (cond ((executable-find "chown") "chown")
                   ((file-executable-p "/usr/sbin/chown") "/usr/sbin/chown")
@@ -115,7 +114,6 @@ always set this variable to t."
   :type 'boolean
   :group 'dired-mark)
 
-;;;###autoload
 (defcustom dired-trivial-filenames (purecopy "^\\.\\.?$\\|^#")
   "Regexp of files to skip when finding first file of a directory.
 A value of nil means move to the subdir line.
@@ -763,7 +761,6 @@ for a remote directory.  This feature is used by Auto Revert Mode."
 	 buffer-read-only
 	 (dired-directory-changed-p dirname))))
 
-;;;###autoload
 (defcustom dired-auto-revert-buffer nil
   "Automatically revert dired buffer on revisiting.
 If t, revisiting an existing dired buffer automatically reverts it.

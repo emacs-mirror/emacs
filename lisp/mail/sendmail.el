@@ -1817,6 +1817,9 @@ The seventh argument ACTIONS is a list of actions to take
       ;; names are normally ``trivial'', so Dired will set point after
       ;; all the files, at buffer bottom.  We want it on the first
       ;; file instead.
+      ;; Require dired so that dired-trivial-filenames does not get
+      ;; unbound on exit from the let.
+      (require 'dired)
       (let ((dired-trivial-filenames t))
 	(dired-other-window wildcard (concat dired-listing-switches "t")))
       (rename-buffer "*Auto-saved Drafts*" t)

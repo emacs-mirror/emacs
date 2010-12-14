@@ -1,5 +1,9 @@
 2010-12-14  Glenn Morris  <rgm@gnu.org>
 
+	* dired.el (dired-trivial-filenames, dired-chown-program)
+	(dired-auto-revert-buffer): Remove autoload cookies.
+	* mail/sendmail.el (mail-recover-1): Require 'dired.
+
 	* dired.el (dired-subdir-switches, dired-chown-program)
 	(dired-use-ls-dired, dired-chmod-program, dired-touch-program):
 	Make into defcustoms.
