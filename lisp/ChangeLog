@@ -9599,8 +9599,9 @@
 
 	Fix bug#5620: recalculate all markers on compilation buffer
 	modifications, not on file modifications.
-	* progmodes/compile.el (buffer-modtime): New buffer-local variable:
-	the buffer modification time, for buffers not associated with files.
+	* progmodes/compile.el (compilation-buffer-modtime): New buffer-local
+	variable: the buffer modification time, for buffers not associated with
+	files.
 	(compilation-mode): Create it.
 	(compilation-filter): Update it.
 	(compilation-next-error-function): Use it instead of
