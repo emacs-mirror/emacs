@@ -26,8 +26,8 @@
 
 ;;; Commentary:
 
-;; This is a major mode for directory browsing and editing.  It is
-;; documented in the Emacs manual.
+;; This is a major mode for directory browsing and editing.
+;; It is documented in the Emacs manual.
 
 ;; Rewritten in 1990/1991 to add tree features, file marking and
 ;; sorting by Sebastian Kremer <sk@thp.uni-koeln.de>.
@@ -62,35 +62,42 @@ some of the `ls' switches are not supported; see the doc string of
   :type 'string
   :group 'dired)
 
-(defvar dired-subdir-switches nil
+(defcustom dired-subdir-switches nil
   "If non-nil, switches passed to `ls' for inserting subdirectories.
-If nil, `dired-listing-switches' is used.")
-
-; Don't use absolute file names as /bin should be in any PATH and people
-; may prefer /usr/local/gnu/bin or whatever.  However, chown is
-; usually not in PATH.
+If nil, `dired-listing-switches' is used."
+   :group 'dired
+   :type '(choice (const :tag "Use dired-listing-switches" nil)
+                  (string :tag "Switches")))
 
 ;;;###autoload
-(defvar dired-chown-program
-  (purecopy
-  (if (memq system-type '(hpux usg-unix-v irix gnu/linux cygwin))
-      "chown"
-    (if (file-exists-p "/usr/sbin/chown")
-	"/usr/sbin/chown"
-      "/etc/chown")))
-  "Name of chown command (usually `chown' or `/etc/chown').")
+(defcustom dired-chown-program
+  (purecopy (cond ((executable-find "chown") "chown")
+                  ((file-executable-p "/usr/sbin/chown") "/usr/sbin/chown")
+                  ((file-executable-p "/etc/chown") "/etc/chown")
+                  (t "chown")))
+  "Name of chown command (usually `chown')."
+  :group 'dired
+  :type 'file)
 
-(defvar dired-use-ls-dired 'unspecified
+(defcustom dired-use-ls-dired 'unspecified
   "Non-nil means Dired should use \"ls --dired\".
 The special value of `unspecified' means to check explicitly, and
 save the result in this variable.  This is performed the first
-time `dired-insert-directory' is called.")
+time `dired-insert-directory' is called."
+  :group 'dired
+  :type '(choice (const :tag "Check for --dired support" unspecified)
+                 (const :tag "Do not use --dired" nil)
+                 (other :tag "Use --dired" t)))
 
-(defvar dired-chmod-program "chmod"
-  "Name of chmod command (usually `chmod').")
+(defcustom dired-chmod-program "chmod"
+  "Name of chmod command (usually `chmod')."
+  :group 'dired
+  :type 'file)
 
-(defvar dired-touch-program "touch"
-  "Name of touch command (usually `touch').")
+(defcustom dired-touch-program "touch"
+  "Name of touch command (usually `touch')."
+   :group 'dired
+   :type 'file)
 
 (defcustom dired-ls-F-marks-symlinks nil
   "Informs Dired about how `ls -lF' marks symbolic links.

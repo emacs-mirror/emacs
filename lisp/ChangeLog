@@ -1,5 +1,10 @@
 2010-12-14  Glenn Morris  <rgm@gnu.org>
 
+	* dired.el (dired-subdir-switches, dired-chown-program)
+	(dired-use-ls-dired, dired-chmod-program, dired-touch-program):
+	Make into defcustoms.
+	(dired-chown-program): Simplify initialization.
+
 	* mail/mail-utils.el: No need to require lisp-mode, it's in loadup.
 
 2010-12-13  Romain Francoise  <romain@orebokech.com>
