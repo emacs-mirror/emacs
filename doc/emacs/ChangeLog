@@ -1,3 +1,7 @@
+2010-12-14  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Mention not replying via news either.
+
 2010-12-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* custom.texi (Init Syntax): Add index entries for "character syntax".
@@ -7302,11 +7306,11 @@
 ;; Local Variables:
 ;; coding: utf-8
 ;; fill-column: 79
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-      2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
+    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+    Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -7323,4 +7327,3 @@
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; arch-tag: f1d62776-3ed5-4811-9d96-267252577dbd
