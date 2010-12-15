@@ -1482,26 +1482,6 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 
 ;;; Load history
 
-;; (defvar symbol-file-load-history-loaded nil
-;;   "Non-nil means we have loaded the file `fns-VERSION.el' in `exec-directory'.
-;; That file records the part of `load-history' for preloaded files,
-;; which is cleared out before dumping to make Emacs smaller.")
-
-;; (defun load-symbol-file-load-history ()
-;;   "Load the file `fns-VERSION.el' in `exec-directory' if not already done.
-;; That file records the part of `load-history' for preloaded files,
-;; which is cleared out before dumping to make Emacs smaller."
-;;   (unless symbol-file-load-history-loaded
-;;     (load (expand-file-name
-;; 	   ;; fns-XX.YY.ZZ.el does not work on DOS filesystem.
-;; 	   (if (eq system-type 'ms-dos)
-;; 	       "fns.el"
-;; 	     (format "fns-%s.el" emacs-version))
-;; 	   exec-directory)
-;; 	  ;; The file name fns-%s.el already has a .el extension.
-;; 	  nil nil t)
-;;     (setq symbol-file-load-history-loaded t)))
-
 (defun symbol-file (symbol &optional type)
   "Return the name of the file that defined SYMBOL.
 The value is normally an absolute file name.  It can also be nil,

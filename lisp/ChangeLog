@@ -1,3 +1,7 @@
+2010-12-15  Glenn Morris  <rgm@gnu.org>
+
+	* loadup.el (symbol-file-load-history-loaded): Remove; unused.
+
 2010-12-15  Jari Aalto  <jari.aalto@cante.net>
             Scott Evans <gse@antisleep.com>
 
