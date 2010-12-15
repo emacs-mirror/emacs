@@ -303,6 +303,10 @@ set `x-select-enable-clipboard' to nil.
 
 *** Support for X cut buffers has been removed.
 
+** New command `rectangle-number-lines', bound to `C-x r N', numbers
+the lines in the current rectangle.  With an prefix argument, this
+prompts for a number to count from and for a format string.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 

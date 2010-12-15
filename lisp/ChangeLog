@@ -1,3 +1,10 @@
+2010-12-15  Jari Aalto  <jari.aalto@cante.net>
+            Scott Evans <gse@antisleep.com>
+
+	* rect.el (rectange--default-line-number-format)
+	(rectangle-number-line-callback): New functions.
+	(rectangle-number-lines): New command, bound to C-x r N (Bug#4382).
+
 2010-12-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* rect.el (operate-on-rectangle-lines, string-rectangle-string):
