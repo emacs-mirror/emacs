@@ -1,3 +1,7 @@
+2010-12-15  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus.texi (The hyrex Engine): Say that this engine as obsolete.
+
 2010-12-14  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* gnus.texi (The swish++ Engine): Add customizable parameters

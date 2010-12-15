@@ -793,7 +793,7 @@ Searching
 
 nnir
 
-* What is nnir::                What does nnir do.
+* What is nnir?::               What does nnir do.
 * Basic Usage::                 How to perform simple searches.
 * Setting up nnir::             How to set up nnir.
 
@@ -21026,23 +21026,24 @@ This section describes how to use @code{nnir} to search for articles
 within gnus.
 
 @menu
-* What is nnir::                What does nnir do?
+* What is nnir?::               What does @code{nnir} do?
 * Basic Usage::                 How to perform simple searches.
-* Setting up nnir::             How to set up nnir.
+* Setting up nnir::             How to set up @code{nnir}.
 @end menu
 
-@node What is nnir
-@subsection What is nnir
+@node What is nnir?
+@subsection What is nnir?
 
-@code{nnir} is a gnus interface to a number of tools for searching
+@code{nnir} is a Gnus interface to a number of tools for searching
 through mail and news repositories. Different backends (like
 @code{nnimap} and @code{nntp}) work with different tools (called
-@dfn{engines} in nnir lingo), but all use the same basic search
+@dfn{engines} in @code{nnir} lingo), but all use the same basic search
 interface.
 
 The @code{nnimap} and @code{gmane} search engines should work with no
 configuration. Other engines require a local index that needs to be
 created and maintained outside of Gnus. 
+
 
 @node Basic Usage
 @subsection Basic Usage
@@ -21083,6 +21084,7 @@ to @code{gnus-group-make-nnir-group}. If you are searching multiple
 groups with different search engines you will be prompted for the
 special search features for each engine separately. 
 
+
 @node Setting up nnir
 @subsection Setting up nnir
 
@@ -21120,10 +21122,10 @@ name. For example to use the @code{namazu} engine to search the server
 named @code{home} you can use
 
 @lisp
-(setq gnus-secondary-select-methods '(
-      (nnml "home" 
-            (nnimap-address "localhost")
-            (nnir-search-engine namazu))))
+(setq gnus-secondary-select-methods
+      '((nnml "home" 
+         (nnimap-address "localhost")
+         (nnir-search-engine namazu))))
 @end lisp
 
 Alternatively you might want to use a particular engine for all servers
@@ -21335,7 +21337,7 @@ this command periodically, say every four hours.
 
 @node The hyrex Engine
 @subsubsection The hyrex Engine
-FIXME: Add documentation.
+This engine is obsolete.
 
 @node Customizations
 @subsubsection Custimozations

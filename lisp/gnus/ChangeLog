@@ -1,3 +1,10 @@
+2010-12-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-retrieve-group-data-early): Fix the syntax of the
+	QRESYNC command by deleting a superfluous space which broke Cyrus
+	servers.  This change will break other servers that are buggy the other
+	way around.
+
 2010-12-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* spam.el: Reindent and fix long lines.

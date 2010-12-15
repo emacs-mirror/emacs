@@ -1080,7 +1080,7 @@ textual parts.")
 		   uidvalidity
 		   modseq)
 	      (push
-	       (list (nnimap-send-command "EXAMINE %S (QRESYNC  (%s %s))"
+	       (list (nnimap-send-command "EXAMINE %S (QRESYNC (%s %s))"
 					  (utf7-encode group t)
 					  uidvalidity modseq)
 		     'qresync
