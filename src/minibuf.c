@@ -1026,10 +1026,10 @@ is a string to insert in the minibuffer before reading.
 Such arguments are used as in `read-from-minibuffer'.)  */)
   (Lisp_Object prompt, Lisp_Object initial_contents)
 {
-  /* FIXME: lexbind.  */
   return Feval (read_minibuf (Vread_expression_map, initial_contents,
 			      prompt, Qnil, 1, Qread_expression_history,
-			      make_number (0), Qnil, 0, 0));
+			      make_number (0), Qnil, 0, 0),
+		Qnil);
 }
 
 /* Functions that use the minibuffer to read various things. */

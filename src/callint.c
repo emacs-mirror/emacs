@@ -342,7 +342,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       input = specs;
       /* Compute the arg values using the user's expression.  */
       GCPRO2 (input, filter_specs);
-      specs = Feval (specs);	/* FIXME: lexbind */
+      specs = Feval (specs, Qnil); /* FIXME: lexbind */
       UNGCPRO;
       if (i != num_input_events || !NILP (record_flag))
 	{

@@ -1212,12 +1212,12 @@ this command arranges for all errors to enter the debugger."
 	 current-prefix-arg))
 
   (if (null eval-expression-debug-on-error)
-      (setq values (cons (eval eval-expression-arg) values))
+      (push (eval eval-expression-arg lexical-binding) values)
     (let ((old-value (make-symbol "t")) new-value)
       ;; Bind debug-on-error to something unique so that we can
       ;; detect when evaled code changes it.
       (let ((debug-on-error old-value))
-	(setq values (cons (eval eval-expression-arg) values))
+	(push (eval eval-expression-arg lexical-binding) values)
 	(setq new-value debug-on-error))
       ;; If evaled code has changed the value of debug-on-error,
       ;; propagate that change to the global binding.

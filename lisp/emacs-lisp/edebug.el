@@ -521,7 +521,7 @@ the minibuffer."
 	  ((and (eq (car form) 'defcustom)
 		(default-boundp (nth 1 form)))
 	   ;; Force variable to be bound.
-	   (set-default (nth 1 form) (eval (nth 2 form))))
+	   (set-default (nth 1 form) (eval (nth 2 form) lexical-binding)))
           ((eq (car form) 'defface)
            ;; Reset the face.
            (setq face-new-frame-defaults
@@ -534,7 +534,7 @@ the minibuffer."
 				(put ',(nth 1 form) 'customized-face
 				     ,(nth 2 form)))
 			(put (nth 1 form) 'saved-face nil)))))
-    (setq edebug-result (eval form))
+    (setq edebug-result (eval form lexical-binding))
     (if (not edebugging)
 	(princ edebug-result)
       edebug-result)))
@@ -2466,6 +2466,7 @@ MSG is printed after `::::} '."
 	    (if edebug-global-break-condition
 		(condition-case nil
 		    (setq edebug-global-break-result
+                          ;; FIXME: lexbind.
 			  (eval edebug-global-break-condition))
 		  (error nil))))
 	   (edebug-break))
@@ -2477,6 +2478,7 @@ MSG is printed after `::::} '."
 		(and edebug-break-data
 		     (or (not edebug-break-condition)
 			 (setq edebug-break-result
+                               ;; FIXME: lexbind.
 			       (eval edebug-break-condition))))))
       (if (and edebug-break
 	       (nth 2 edebug-break-data)) ; is it temporary?
@@ -3637,9 +3639,10 @@ Return the result of the last expression."
 
 (defun edebug-eval (edebug-expr)
   ;; Are there cl lexical variables active?
-  (if (bound-and-true-p cl-debug-env)
-      (eval (cl-macroexpand-all edebug-expr cl-debug-env))
-    (eval edebug-expr)))
+  (eval (if (bound-and-true-p cl-debug-env)
+            (cl-macroexpand-all edebug-expr cl-debug-env)
+          edebug-expr)
+        lexical-binding)) ;; FIXME: lexbind.
 
 (defun edebug-safe-eval (edebug-expr)
   ;; Evaluate EXPR safely.
@@ -4241,8 +4244,8 @@ It is removed when you hit any char."
 ;;; Menus
 
 (defun edebug-toggle (variable)
-  (set variable (not (eval variable)))
-  (message "%s: %s" variable (eval variable)))
+  (set variable (not (symbol-value variable)))
+  (message "%s: %s" variable (symbol-value variable)))
 
 ;; We have to require easymenu (even for Emacs 18) just so
 ;; the easy-menu-define macro call is compiled correctly.

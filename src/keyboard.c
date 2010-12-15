@@ -1327,7 +1327,7 @@ command_loop_2 (Lisp_Object ignore)
 Lisp_Object
 top_level_2 (void)
 {
-  return Feval (Vtop_level);
+  return Feval (Vtop_level, Qnil);
 }
 
 Lisp_Object
@@ -3255,7 +3255,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
 		 help_form_saved_window_configs);
       record_unwind_protect (read_char_help_form_unwind, Qnil);
 
-      tem0 = Feval (Vhelp_form);
+      tem0 = Feval (Vhelp_form, Qnil);
       if (STRINGP (tem0))
 	internal_with_output_to_temp_buffer ("*Help*", print_help, tem0);
 
@@ -7696,6 +7696,12 @@ menu_item_eval_property_1 (Lisp_Object arg)
   return Qnil;
 }
 
+static Lisp_Object
+eval_dyn (Lisp_Object form)
+{
+  return Feval (form, Qnil);
+}
+
 /* Evaluate an expression and return the result (or nil if something
    went wrong).  Used to evaluate dynamic parts of menu items.  */
 Lisp_Object
@@ -7704,7 +7710,7 @@ menu_item_eval_property (Lisp_Object sexpr)
   int count = SPECPDL_INDEX ();
   Lisp_Object val;
   specbind (Qinhibit_redisplay, Qt);
-  val = internal_condition_case_1 (Feval, sexpr, Qerror,
+  val = internal_condition_case_1 (eval_dyn, sexpr, Qerror,
 				   menu_item_eval_property_1);
   return unbind_to (count, val);
 }

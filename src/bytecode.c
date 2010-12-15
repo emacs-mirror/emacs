@@ -915,7 +915,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
-	    TOP = internal_catch (TOP, Feval, v1); /* FIXME: lexbind */
+	    TOP = internal_catch (TOP, eval_sub, v1); /* FIXME: lexbind */
 	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
