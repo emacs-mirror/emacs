@@ -1,3 +1,8 @@
+2010-12-15  Kevin Gallagher  <Kevin.Gallagher@boeing.com>
+
+	* emulation/edt-mapper.el: Override mapping of function keys so
+	that the later call to read-key-sequence works.
+
 2010-12-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/smtpmail.el (smtpmail-send-it): Write queued mail body with
