@@ -162,11 +162,12 @@
 
 (mapc
  (lambda (function-key)
-      (if (not (lookup-key (current-global-map) function-key))
-               (define-key (current-global-map) function-key 'forward-char)))
+   (if (not (lookup-key (current-global-map) function-key))
+       (define-key (current-global-map) function-key 'forward-char)))
  '([kp-0] [kp-1] [kp-2] [kp-3] [kp-4]
    [kp-5] [kp-6] [kp-7] [kp-8] [kp-9]
-   [kp-
+   [kp-space]
+   [kp-tab]
    [kp-enter]
    [kp-multiply]
    [kp-add]
