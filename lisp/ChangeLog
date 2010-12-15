@@ -1,3 +1,9 @@
+2010-12-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* rect.el (operate-on-rectangle-lines, string-rectangle-string):
+	Delete unused variables.
+	(move-to-column-force): Remove function obsolete since 21.2.
+
 2010-12-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-temp-buffer-file-name): Make it permanent-local.
