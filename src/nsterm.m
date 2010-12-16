@@ -2301,6 +2301,8 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   struct glyph *phys_cursor_glyph;
   int overspill;
   struct glyph *cursor_glyph;
+  struct face *face;
+  NSColor *hollow_color = FRAME_BACKGROUND_COLOR (f);
 
   /* If cursor is out of bounds, don't draw garbage.  This can happen
      in mini-buffer windows when switching between echo area glyphs
@@ -2310,7 +2312,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 //fprintf(stderr, "drawcursor (%d,%d) activep = %d\tonp = %d\tc_type = %d\twidth = %d\n",x,y, active_p,on_p,cursor_type,cursor_width);
 
   if (!on_p)
-	return;
+    return;
 
   w->phys_cursor_type = cursor_type;
   w->phys_cursor_on_p = on_p;
@@ -2349,7 +2351,17 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   /* TODO: only needed in rare cases with last-resort font in HELLO..
      should we do this more efficiently? */
   ns_clip_to_row (w, glyph_row, -1, NO); /* do ns_focus(f, &r, 1); if remove */
-  [FRAME_CURSOR_COLOR (f) set];
+
+
+  face = FACE_FROM_ID (f, phys_cursor_glyph->face_id);
+  if (face && NS_FACE_BACKGROUND (face)
+      == ns_index_color (FRAME_CURSOR_COLOR (f), f))
+    {
+      [ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), f) set];
+      hollow_color = FRAME_CURSOR_COLOR (f);
+    }
+  else
+    [FRAME_CURSOR_COLOR (f) set];
 
 #ifdef NS_IMPL_COCOA
   /* TODO: This makes drawing of cursor plus that of phys_cursor_glyph
@@ -2369,7 +2381,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       break;
     case HOLLOW_BOX_CURSOR:
       NSRectFill (r);
-      [FRAME_BACKGROUND_COLOR (f) set];
+      [hollow_color set];
       NSRectFill (NSInsetRect (r, 1, 1));
       [FRAME_CURSOR_COLOR (f) set];
       break;

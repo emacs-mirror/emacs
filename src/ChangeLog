@@ -1,3 +1,8 @@
+2010-12-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_draw_window_cursor): If the cursor color is the
+	same as the background, use the face forground as cursor.
+
 2010-12-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fexpand_file_name): Doc fix.  (Bug#7617)
