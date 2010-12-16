@@ -229,7 +229,7 @@ extern Lisp_Object do_mouse_tracking;
 extern int minibuffer_auto_raise;
 extern Lisp_Object Vminibuffer_list;
 
-extern Lisp_Object Qface;
+extern Lisp_Object Qface, Qdefault;
 extern Lisp_Object Qmode_line, Qmode_line_inactive, Qheader_line;
 
 extern Lisp_Object Voverriding_local_map;
@@ -17883,12 +17883,13 @@ DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
 First arg FORMAT specifies the mode line format (see `mode-line-format'
 for details) to use.
 
-Optional second arg FACE specifies the face property to put
-on all characters for which no face is specified.
-The value t means whatever face the window's mode line currently uses
-\(either `mode-line' or `mode-line-inactive', depending).
-A value of nil means the default is no face property.
-If FACE is an integer, the value string has no text properties.
+Optional second arg FACE specifies the face property to put on all
+characters for which no face is specified.  The value nil means the
+default face.  The value t means whatever face the window's mode line
+currently uses \(either `mode-line' or `mode-line-inactive',
+depending).  An integer value means the value string has no text
+properties.  Otherwise, the value should be one of `default',
+`mode-line', `mode-line-inactive', `header-line', or `tool-bar'.
 
 Optional third and fourth args WINDOW and BUFFER specify the window
 and buffer to use as the context for the formatting (defaults
@@ -17900,7 +17901,7 @@ are the selected window and the window's buffer).  */)
   int len;
   struct window *w;
   struct buffer *old_buffer = NULL;
-  int face_id = -1;
+  int face_id;
   int no_props = INTEGERP (face);
   int count = SPECPDL_INDEX ();
   Lisp_Object str;
@@ -17923,15 +17924,14 @@ are the selected window and the window's buffer).  */)
   if (no_props)
     face = Qnil;
 
-  if (!NILP (face))
-    {
-      if (EQ (face, Qt))
-	face = (EQ (window, selected_window) ? Qmode_line : Qmode_line_inactive);
-      face_id = lookup_named_face (XFRAME (WINDOW_FRAME (w)), face, 0);
-    }
-
-  if (face_id < 0)
-    face_id = DEFAULT_FACE_ID;
+  face_id = (NILP (face) || EQ (face, Qdefault)) ? DEFAULT_FACE_ID
+    : EQ (face, Qt) ? (EQ (window, selected_window)
+		       ? MODE_LINE_FACE_ID : MODE_LINE_INACTIVE_FACE_ID)
+    : EQ (face, Qmode_line) ? MODE_LINE_FACE_ID
+    : EQ (face, Qmode_line_inactive) ? MODE_LINE_FACE_ID
+    : EQ (face, Qheader_line) ? HEADER_LINE_FACE_ID
+    : EQ (face, Qtool_bar) ? TOOL_BAR_FACE_ID
+    : DEFAULT_FACE_ID;
 
   if (XBUFFER (buffer) != current_buffer)
     old_buffer = current_buffer;

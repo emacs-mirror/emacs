@@ -1,3 +1,8 @@
+2010-12-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (Fformat_mode_line): Restrict the FACE argument to basic
+	faces (Bug#7587).
+
 2010-12-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fexpand_file_name): One more doc fix.
