@@ -1919,6 +1919,14 @@ exposing the plain text of encrypted topics in the file system.
 If the content of the topic containing the cursor was encrypted
 for a save, it is automatically decrypted for continued editing.
 
+PROBLEM: Attempting symmetric decryption with an incorrect key
+not only fails, but the incorrect key seems to be associated with
+the specific entry in the gpg cache, so that you do not get an
+opportunity to override the incorrect key and decrypt that
+entry.  (Decryption of other entries is not affected.)  To clear
+this problem, clear your gpg-agent's cache by sending it a '-HUP'
+signal.
+
 See `allout-toggle-current-subtree-encryption' function docstring
 and `allout-encrypt-unencrypted-on-saves' customization variable
 for details.
@@ -5975,10 +5983,22 @@ Allout uses emacs 'epg' libary to perform encryption.  Symmetric
 and keypair encryption are supported.  All encryption is ascii
 armored.
 
-When encrypting, optional KEYMODE-CUE universal argument greater
-than 1 causes prompting for recipients for public-key keypair
-encryption.  Otherwise a symmetric mode is assumed for
+Entry encryption defaults to symmetric key mode unless keypair
+recipients are associated with the file \(see
+`epa-file-encrypt-to') or the function is invoked with a
+\(KEYMODE-CUE) universal argument greater than 1.
+
+When encrypting, KEYMODE-CUE universal argument greater than 1
+causes prompting for recipients for public-key keypair
+encryption.  Selecting no recipients results in symmetric key
 encryption.
+
+Further, encrypting with a KEYMODE-CUE universal argument greater
+than 4 - eg, preceded by a doubled Ctrl-U - causes association of
+the specified recipients with the file, replacing those currently
+associated with it.  This can be used to deassociate any
+recipients with the file, by selecting no recipients in the
+dialog.
 
 Encrypted topic's bullets are set to a `~' to signal that the
 contents of the topic (body and subtopics, but not heading) is
@@ -6004,11 +6024,24 @@ encrypted.  If you want to encrypt the contents of a top-level topic, use
 (defun allout-toggle-subtree-encryption (&optional keymode-cue)
   "Encrypt clear text or decrypt encoded topic contents (body and subtopics.)
 
-When encrypting, optional KEYMODE-CUE universal argument greater than
-1 provokes prompting for recipients for public-key keypair
-encryption, otherwise a symmetric-mode passphrase is solicited.
+Entry encryption defaults to symmetric key mode unless keypair
+recipients are associated with the file \(see
+`epa-file-encrypt-to') or the function is invoked with a
+\(KEYMODE-CUE) universal argument greater than 1.
 
-Encryption depends on the emacs epg library.
+When encrypting, KEYMODE-CUE universal argument greater than 1
+causes prompting for recipients for public-key keypair
+encryption.  Selecting no recipients results in symmetric key
+encryption.
+
+Further, encrypting with a KEYMODE-CUE universal argument greater
+than 4 - eg, preceded by a doubled Ctrl-U - causes association of
+the specified recipients with the file, replacing those currently
+associated with it.  This can be used to deassociate any
+recipients with the file, by selecting no recipients in the
+dialog.
+
+Encryption and decryption uses the emacs epg library.
 
 Encrypted text will be ascii-armored.
 
@@ -6030,7 +6063,6 @@ See `allout-toggle-current-subtree-encryption' for more details."
             (progn (if (= (point-max) after-bullet-pos)
                        (error "no body to encrypt"))
                    (allout-encrypted-topic-p)))
-           (keypair-mode (> (prefix-numeric-value keymode-cue) 1))
            (was-collapsed (if (not (search-forward "\n" nil t))
                               nil
                             (backward-char 1)
@@ -6074,7 +6106,7 @@ See `allout-toggle-current-subtree-encryption' for more details."
 
       (setq result-text
             (allout-encrypt-string subject-text was-encrypted
-                                   (current-buffer) keypair-mode))
+                                   (current-buffer) keymode-cue))
 
        ;; Replace the subtree with the processed product.
       (allout-unprotected
@@ -6105,9 +6137,9 @@ See `allout-toggle-current-subtree-encryption' for more details."
            (insert "*"))))
       (run-hook-with-args 'allout-structure-added-hook
                           bullet-pos subtree-end))))
-;;;_  > allout-encrypt-string (text decrypt allout-buffer keypair-mode
+;;;_  > allout-encrypt-string (text decrypt allout-buffer keymode-cue
 ;;;                                 &optional rejected)
-(defun allout-encrypt-string (text decrypt allout-buffer keypair-mode
+(defun allout-encrypt-string (text decrypt allout-buffer keymode-cue
                                    &optional rejected)
   "Encrypt or decrypt message TEXT.
 
@@ -6117,8 +6149,22 @@ If DECRYPT is true (default false), then decrypt instead of encrypt.
 
 ALLOUT-BUFFER identifies the buffer containing the text.
 
-If KEYPAIR-MODE is non-nil, encryption involves prompting for
-keypair recipients.
+Entry encryption defaults to symmetric key mode unless keypair
+recipients are associated with the file \(see
+`epa-file-encrypt-to') or the function is invoked with a
+\(KEYMODE-CUE) universal argument greater than 1.
+
+When encrypting, KEYMODE-CUE universal argument greater than 1
+causes prompting for recipients for public-key keypair
+encryption.  Selecting no recipients results in symmetric key
+encryption.
+
+Further, encrypting with a KEYMODE-CUE universal argument greater
+than 4 - eg, preceded by a doubled Ctrl-U - causes association of
+the specified recipients with the file, replacing those currently
+associated with it.  This can be used to deassociate any
+recipients with the file, by selecting no recipients in the
+dialog.
 
 Optional REJECTED is for internal use, to convey the number of
 rejections due to matches against
@@ -6128,7 +6174,10 @@ rejections due to matches against
   (require 'epg)
   (require 'epa)
 
-  (let* ((epg-context (epg-make-context nil t))
+  (let* ((epg-context (let* ((context (epg-make-context nil t)))
+                        (epg-context-set-passphrase-callback
+                         context #'epa-passphrase-callback-function)
+                        context))
          (encoding (with-current-buffer allout-buffer
                      buffer-file-coding-system))
          (multibyte (with-current-buffer allout-buffer
@@ -6145,9 +6194,17 @@ rejections due to matches against
          (rejected (or rejected 0))
          (rejections-left (- allout-encryption-ciphertext-rejection-ceiling
                              rejected))
-         (keypair-message (concat "Select encryption recipients.\n  Not"
-                                  " selecting any causes"
-                                  " symmetric encryption.  "))
+         (keypair-mode (cond (decrypt 'decrypting)
+                             ((<= (prefix-numeric-value keymode-cue) 1)
+                              'default)
+                             ((<= (prefix-numeric-value keymode-cue) 4)
+                              'prompt)
+                             ((> (prefix-numeric-value keymode-cue) 4)
+                              'prompt-save)))
+         (keypair-message (concat "Select encryption recipients.\n"
+                                  "Symmetric encryption is done if no"
+                                  " recipients are selected.  "))
+         (encrypt-to (and (boundp 'epa-file-encrypt-to) epa-file-encrypt-to))
          recipients
          massaged-text
          result-text
@@ -6174,6 +6231,18 @@ rejections due to matches against
                 (replace-match replacement nil nil))))))
       (setq massaged-text (buffer-substring-no-properties (point-min)
                                                           (point-max))))
+    ;; determine key mode and, if keypair, recipients:
+    (setq recipients
+          (case keypair-mode
+
+            (decrypting nil)
+
+            (default (if encrypt-to (epg-list-keys epg-context encrypt-to)))
+
+            ((prompt prompt-save)
+             (save-window-excursion
+               (epa-select-keys epg-context keypair-message)))))
+
     (setq result-text
           (if decrypt
               (epg-decrypt-string epg-context
@@ -6182,15 +6251,23 @@ rejections due to matches against
             (epg-encrypt-string epg-context
                                 (encode-coding-string massaged-text
                                                       (or encoding 'utf-8))
-                                (and keypair-mode
-                                     (epa-select-keys epg-context
-                                                      keypair-message)))))
+                                recipients)))
 
     ;; validate result -- non-empty
-    (cond
-     ((not result-text)
-      (error "%scryption failed." (if decrypt "De" "En")))
+    (if (not result-text)
+        (error "%scryption failed." (if decrypt "De" "En")))
 
+
+    (when (eq keypair-mode 'prompt-save)
+      ;; set epa-file-encrypt-to in the buffer:
+      (setq epa-file-encrypt-to (mapcar (lambda (key)
+                                          (epg-user-id-string
+                                           (car (epg-key-user-id-list key))))
+                                        recipients))
+      ;; change the file variable:
+      (allout-adjust-file-variable "epa-file-encrypt-to" epa-file-encrypt-to))
+
+    (cond
      ;; Retry (within limit) if ciphertext contains rejections:
      ((and (not decrypt)
            ;; Check for disqualification of this ciphertext:
