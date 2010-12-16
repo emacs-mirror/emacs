@@ -1,3 +1,8 @@
+2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-wait-for-response): Fix the end-point calculation
+	to really consider the last line.
+
 2010-12-16  Daiki Ueno  <ueno@unixuser.org>
 
 	* auth-source.el (auth-source-gpg-encrypt-to): New variable to set the
