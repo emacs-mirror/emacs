@@ -762,7 +762,7 @@ If BACKWARD-ONLY is non-nil, only delete them before point."
 
 (defun just-one-space (&optional n)
   "Delete all spaces and tabs around point, leaving one space (or N spaces).
-If N is negative, deletes carriage return and linefeed characters as well."
+If N is negative, delete newlines as well."
   (interactive "*p")
   (unless n (setq n 1))
   (let ((orig-pos (point))
