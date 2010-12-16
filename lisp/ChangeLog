@@ -1,3 +1,8 @@
+2010-12-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/rst.el (rst-compile-pdf-preview)
+	(rst-compile-slides-preview): Use make-temp-file (Bug#7646).
+
 2010-12-15  Kevin Gallagher  <Kevin.Gallagher@boeing.com>
 
 	* emulation/edt-mapper.el: Override mapping of function keys so
