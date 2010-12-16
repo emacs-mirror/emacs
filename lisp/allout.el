@@ -6544,7 +6544,8 @@ An error is raised if the text is not encrypted."
     (with-temp-buffer
       (insert text)
       (let* ((parsed-armor (pgg-parse-armor-region (point-min) (point-max)))
-             (type (if (pgg-gpg-symmetric-key-p parsed-armor)
+             ;; pgg-gpg-symmetric-key-p has lost track.
+             (type (if (assq 'symmetric-key-algorithm (car (cdr parsed-armor)))
                        'symmetric
                      'keypair))
              secret-keys first-secret-key for-key-owner)
