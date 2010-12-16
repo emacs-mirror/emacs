@@ -253,16 +253,12 @@ redirects somewhere else."
       (when (and (bolp)
 		 (> shr-indentation 0))
 	(shr-indent))
-      ;; The shr-start is a special variable that is used to pass
-      ;; upwards the first point in the buffer where the text really
-      ;; starts.
-      (unless shr-start
-	(setq shr-start (point)))
       ;; No space is needed behind a wide character categorized as
       ;; kinsoku-bol, between characters both categorized as nospace,
       ;; or at the beginning of a line.
       (let (prev)
-	(when (and (eq (preceding-char) ? )
+	(when (and (> (current-column) shr-indentation)
+		   (eq (preceding-char) ? )
 		   (or (= (line-beginning-position) (1- (point)))
 		       (and (shr-char-breakable-p
 			     (setq prev (char-after (- (point) 2))))
@@ -270,6 +266,11 @@ redirects somewhere else."
 		       (and (shr-char-nospace-p prev)
 			    (shr-char-nospace-p (aref elem 0)))))
 	  (delete-char -1)))
+      ;; The shr-start is a special variable that is used to pass
+      ;; upwards the first point in the buffer where the text really
+      ;; starts.
+      (unless shr-start
+	(setq shr-start (point)))
       (insert elem)
       (let (found)
 	(while (and (> (current-column) shr-width)

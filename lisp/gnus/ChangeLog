@@ -1,3 +1,8 @@
+2010-12-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-insert): Set shr-start after deleting trailing space;
+	don't delete it within indentation.
+
 2010-12-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-retrieve-group-data-early): Fix the syntax of the
