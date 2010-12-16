@@ -27,6 +27,8 @@
 (require 'url-util)
 (require 'url-parse)
 
+(eval-when-compile (require 'cl))	; defstruct
+
 (defgroup url-cookie nil
   "URL cookies."
   :prefix "url-"
