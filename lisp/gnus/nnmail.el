@@ -1915,7 +1915,7 @@ If TIME is nil, then return the cutoff time for oldness instead."
     (unless (eq target 'delete)
       (when (or (gnus-request-group target)
 		(gnus-request-create-group target))
-	(let ((group-art (gnus-request-accept-article target nil t t)))
+	(let ((group-art (gnus-request-accept-article target nil nil t)))
 	  (when (and (consp group-art)
 		     (cdr group-art))
 	    (gnus-group-mark-article-read target (cdr group-art))))))))

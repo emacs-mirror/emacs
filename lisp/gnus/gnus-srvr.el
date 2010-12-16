@@ -766,7 +766,8 @@ claim them."
       (with-current-buffer nntp-server-buffer
 	(let ((cur (current-buffer)))
 	  (goto-char (point-min))
-	  (unless (string= gnus-ignored-newsgroups "")
+         (unless (or (null gnus-ignored-newsgroups)
+                     (string= gnus-ignored-newsgroups ""))
 	    (delete-matching-lines gnus-ignored-newsgroups))
 	  ;; We treat NNTP as a special case to avoid problems with
 	  ;; garbage group names like `"foo' that appear in some badly
@@ -992,7 +993,8 @@ how new groups will be entered into the group buffer."
 		;; mechanism for new group subscription.
 		(gnus-call-subscribe-functions
 		 gnus-browse-subscribe-newsgroup-method
-		 group)))
+		 group)
+		(gnus-request-update-group-status group 'subscribe)))
 	    (delete-char 1)
 	    (insert (let ((lvl (gnus-group-level group)))
 		      (cond

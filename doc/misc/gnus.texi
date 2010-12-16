@@ -2512,6 +2512,15 @@ the command to be executed.
 @section Foreign Groups
 @cindex foreign groups
 
+If you recall how to subscribe to servers (@pxref{Finding the News})
+you will remember that @code{gnus-secondary-select-methods} and
+@code{gnus-select-method} let you write a definition in Emacs Lisp of
+what servers you want to see when you start up.  The alternate
+approach is to use foreign servers and groups.  ``Foreign'' here means
+they are not coming from the select methods.  All foreign server
+configuration and subscriptions are stored only in the
+@file{~/.newsrc.eld} file.
+
 Below are some group mode commands for making and editing general foreign
 groups, as well as commands to ease the creation of a few
 special-purpose groups.  All these commands insert the newly created
@@ -12611,9 +12620,6 @@ messages in one file per month:
           (concat "mail." (format-time-string "%Y-%m")))))
 @end lisp
 
-@c (XEmacs 19.13 doesn't have @code{format-time-string}, so you'll have to
-@c use a different value for @code{gnus-message-archive-group} there.)
-
 Now, when you send a message off, it will be stored in the appropriate
 group.  (If you want to disable storing for just one particular message,
 you can just remove the @code{Gcc} header that has been inserted.)  The
@@ -12624,11 +12630,6 @@ group.  If the group gets really big and annoying, you can simply rename
 if (using @kbd{G r} in the group buffer) to something
 nice---@samp{misc-mail-september-1995}, or whatever.  New messages will
 continue to be stored in the old (now empty) group.
-
-That's the default method of archiving sent messages.  Gnus offers a
-different way for the people who don't like the default method.  In that
-case you should set @code{gnus-message-archive-group} to @code{nil};
-this will disable archiving.
 
 @table @code
 @item gnus-gcc-mark-as-read

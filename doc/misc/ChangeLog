@@ -1,3 +1,11 @@
+2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Archived Messages): Remove outdated text.
+
+2010-12-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Foreign Groups): Added clarification of foreign groups.
+
 2010-12-15  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* gnus.texi (The hyrex Engine): Say that this engine as obsolete.

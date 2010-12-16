@@ -322,20 +322,20 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
   (when nnfolder-get-new-mail
     (nnfolder-possibly-change-group group server)
     (nnmail-get-new-mail
-     'nnfolder
-     (lambda ()
-       (let ((bufs nnfolder-buffer-alist))
-	 (save-excursion
-	   (while bufs
-	     (if (not (gnus-buffer-live-p (nth 1 (car bufs))))
-		 (setq nnfolder-buffer-alist
-		       (delq (car bufs) nnfolder-buffer-alist))
-	       (set-buffer (nth 1 (car bufs)))
-	       (nnfolder-save-buffer)
-	       (kill-buffer (current-buffer)))
-	     (setq bufs (cdr bufs))))))
-     nnfolder-directory
-     group)))
+     'nnfolder 'nnfolder-save-all-buffers
+     nnfolder-directory group)))
+
+(defun nnfolder-save-all-buffers ()
+  (let ((bufs nnfolder-buffer-alist))
+    (save-excursion
+      (while bufs
+	(if (not (gnus-buffer-live-p (nth 1 (car bufs))))
+	    (setq nnfolder-buffer-alist
+		  (delq (car bufs) nnfolder-buffer-alist))
+	  (set-buffer (nth 1 (car bufs)))
+	  (nnfolder-save-buffer)
+	  (kill-buffer (current-buffer)))
+	(setq bufs (cdr bufs))))))
 
 ;; Don't close the buffer if we're not shutting down the server.  This way,
 ;; we can keep the buffer in the group buffer cache, and not have to grovel
@@ -488,7 +488,8 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
       (nnfolder-save-buffer)
       (nnfolder-adjust-min-active newsgroup)
       (nnfolder-save-active nnfolder-group-alist nnfolder-active-file)
-      (gnus-sorted-difference articles (nreverse deleted-articles)))))
+      (gnus-sorted-difference articles (nreverse deleted-articles)))
+    (nnfolder-save-all-buffers)))
 
 (deffoo nnfolder-request-move-article (article group server accept-form
 					       &optional last move-is-internal)

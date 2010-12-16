@@ -1,7 +1,64 @@
+2010-12-16  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-gpg-encrypt-to): New variable to set the
+	list of recipient keys, or use symmetric encryption if not a list.
+	(auth-source-create): Use it to make `epa-file-encrypt-to' local for an
+	EPA override, replacing the call to `netrc-store-data'.
+
+2010-12-16  Dan Davison  <dandavison7@gmail.com>  (tiny change)
+
+	* gnus-srvr.el: Avoid passing nil regexp argument to
+	delete-matching-lines.
+
+2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Make sure the HTML
+	fetching stops when Gnus exits.
+
+	* nnfolder.el (nnfolder-save-all-buffers): Refactor out into its own
+	function.
+	(nnfolder-request-expire-articles): Save all the buffers after doing
+	expiry.
+
+	* nnmail.el (nnmail-expiry-target-group): Revert the "all articles are
+	the last article", since that led to serious performance regressions
+	when expiring nnml groups.
+
+2010-12-16  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el: Improve customizations.
+
+2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-subscribe-newsgroup): Notify the backend.
+
+	* gnus-group.el (gnus-group-kill-group): Notify the backend that the
+	group has been killed.
+	(gnus-group-yank-group): Ditto.
+
+	* gnus-srvr.el (gnus-browse-unsubscribe-group): Ditto.
+
+	* nnimap.el (nnimap-request-update-group-status): New function.
+
+	* gnus-int.el (gnus-request-update-group-status): New interface
+	function.
+
+	* gnus-sum.el (gnus-summary-push-marks-to-backend): Fix the logic for
+	copying read-ness to the backends.
+
+	* nnimap.el (nnimap-quirk): New function.
+	(nnimap-retrieve-group-data-early): Use it.
+	(nnimap-quirks): New alist.
+
 2010-12-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-insert): Set shr-start after deleting trailing space;
 	don't delete it within indentation.
+
+2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-wait-for-response): Always look (at least) at the
+	previous line.
 
 2010-12-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

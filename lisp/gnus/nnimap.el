@@ -139,6 +139,9 @@ textual parts.")
     (download "gnus-download")
     (forward "gnus-forward")))
 
+(defvar nnimap-quirks
+  '(("QRESYNC" "Zimbra" "QRESYNC ")))
+
 (defun nnimap-buffer ()
   (nnimap-find-process-buffer nntp-server-buffer))
 
@@ -897,6 +900,16 @@ textual parts.")
 	(push flag flags)))
     flags))
 
+(deffoo nnimap-request-update-group-status (group status &optional server)
+  (when (nnimap-possibly-change-group nil server)
+    (let ((command (assoc
+		    status
+		    '((subscribe "SUBSCRIBE")
+		      (unsubscribe "UNSUBSCRIBE")))))
+      (when command
+	(with-current-buffer (nnimap-buffer)
+	  (nnimap-command "%s %S" (cadr command) (utf7-encode group t)))))))
+
 (deffoo nnimap-request-set-mark (group actions &optional server)
   (when (nnimap-possibly-change-group group server)
     (let (sequence)
@@ -1080,8 +1093,9 @@ textual parts.")
 		   uidvalidity
 		   modseq)
 	      (push
-	       (list (nnimap-send-command "EXAMINE %S (QRESYNC (%s %s))"
+	       (list (nnimap-send-command "EXAMINE %S (%s (%s %s))"
 					  (utf7-encode group t)
+					  (nnimap-quirk "QRESYNC")
 					  uidvalidity modseq)
 		     'qresync
 		     nil group 'qresync)
@@ -1106,6 +1120,15 @@ textual parts.")
 			  start group command)
 		    sequences))))
 	sequences))))
+
+(defun nnimap-quirk (command)
+  (let ((quirk (assoc command nnimap-quirks)))
+    ;; If this server is of a type that matches a quirk, then return
+    ;; the "quirked" command instead of the proper one.
+    (if (or (null quirk)
+	    (not (string-match (nth 1 quirk) (nnimap-greeting nnimap-object))))
+	command
+      (nth 2 quirk))))
 
 (deffoo nnimap-finish-retrieve-group-infos (server infos sequences)
   (when (and sequences
@@ -1541,7 +1564,11 @@ textual parts.")
 		      (not (re-search-backward
 			    (format "^%d .*\n" sequence)
 			    (if nnimap-streaming
-				(max (point-min) (- (point) 500))
+				(max (point-min)
+				     (- (point) 500)
+				     (save-excursion
+				       (forward-line -1)
+				       (point)))
 			      (point-min))
 			    t)))
 	    (when messagep

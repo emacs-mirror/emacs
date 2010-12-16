@@ -9958,7 +9958,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 (defun gnus-summary-push-marks-to-backend (article)
   (let ((set nil)
 	(marks gnus-article-mark-lists))
-    (when (memq article gnus-newsgroup-unreads)
+    (unless (memq article gnus-newsgroup-unreads)
       (push 'read set))
     (while marks
       (when (and (eq (gnus-article-mark-to-type (cdar marks)) 'list)

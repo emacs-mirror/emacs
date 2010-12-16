@@ -305,13 +305,6 @@ is `(valuefunc member)'."
   "Search groups in Gnus with assorted seach engines."
   :group 'gnus)
 
-(defcustom nnir-method-default-engines
-  '((nnimap . imap)
-    (nntp . gmane))
-  "*Alist of default search engines keyed by server method."
-  :type '(alist)
-  :group 'nnir)
-
 (defcustom nnir-ignored-newsgroups ""
   "*A regexp to match newsgroups in the active file that should
   be skipped when searching."
@@ -329,7 +322,7 @@ with three items unique to nnir summary buffers:
 %g    Article original short group name (string)
 
 If nil this will use `gnus-summary-line-format'."
-  :type '(regexp)
+  :type '(string)
   :group 'nnir)
 
 (defcustom nnir-retrieve-headers-override-function nil
@@ -347,7 +340,8 @@ result, `gnus-retrieve-headers' will be called instead."
   "*The default IMAP search key for an nnir search. Must be one of
   the keys in `nnir-imap-search-arguments'. To use raw imap queries
   by default set this to \"Imap\"."
-  :type '(string)
+  :type `(choice ,@(mapcar (lambda (elem) (list 'const (car elem)))
+			   nnir-imap-search-arguments))
   :group 'nnir)
 
 (defcustom nnir-swish++-configuration-file
@@ -546,6 +540,18 @@ needs the variables `nnir-namazu-program',
 
 Add an entry here when adding a new search engine.")
 
+(defcustom nnir-method-default-engines
+  '((nnimap . imap)
+    (nntp . gmane))
+  "*Alist of default search engines keyed by server method."
+  :type `(repeat (cons (choice (const nnimap) (const nttp) (const nnspool)
+			       (const nneething) (const nndir) (const nnmbox)
+			       (const nnml) (const nnmh) (const nndraft)
+			       (const nnfolder) (const nnmaildir))
+		       (choice
+			,@(mapcar (lambda (elem) (list 'const (car elem)))
+				  nnir-engines))))
+  :group 'nnir)
 
 ;; Gnus glue.
 

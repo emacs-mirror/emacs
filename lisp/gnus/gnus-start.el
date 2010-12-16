@@ -645,6 +645,7 @@ the first newsgroup."
     (gnus-group-change-level
      newsgroup gnus-level-default-subscribed
      gnus-level-killed (gnus-group-entry (or next "dummy.group")))
+    (gnus-request-update-group-status newsgroup 'subscribe)
     (gnus-message 5 "Subscribe newsgroup: %s" newsgroup)
     (run-hook-with-args 'gnus-subscribe-newsgroup-hooks newsgroup)
     t))
