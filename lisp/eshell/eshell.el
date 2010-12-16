@@ -285,7 +285,8 @@ shells such as bash, zsh, rc, 4dos."
   "`eshell-buffer-name' is a member of `same-window-buffer-names'"
   (member eshell-buffer-name same-window-buffer-names))
 
-(defcustom eshell-directory-name (convert-standard-filename "~/.eshell/")
+(defcustom eshell-directory-name
+  (locate-user-emacs-file "eshell/" ".eshell/")
   "The directory where Eshell control files should be kept."
   :type 'directory
   :group 'eshell)
