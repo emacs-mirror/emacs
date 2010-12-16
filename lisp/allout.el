@@ -1920,12 +1920,12 @@ If the content of the topic containing the cursor was encrypted
 for a save, it is automatically decrypted for continued editing.
 
 PROBLEM: Attempting symmetric decryption with an incorrect key
-not only fails, but the incorrect key seems to be associated with
-the specific entry in the gpg cache, so that you do not get an
-opportunity to override the incorrect key and decrypt that
-entry.  (Decryption of other entries is not affected.)  To clear
-this problem, clear your gpg-agent's cache by sending it a '-HUP'
-signal.
+not only fails, but for some GnuPG v2 versions the incorrect key
+is apparently retained in the gpg cache and reused, preventing
+decryption, until the cache finally times out.  That can take
+several minutes.  \(Decryption of other entries is not affected.)
+To clear this problem before the cache times out, deliberately
+clear your gpg-agent's cache by sending it a '-HUP' signal.
 
 See `allout-toggle-current-subtree-encryption' function docstring
 and `allout-encrypt-unencrypted-on-saves' customization variable
@@ -6169,7 +6169,15 @@ dialog.
 Optional REJECTED is for internal use, to convey the number of
 rejections due to matches against
 `allout-encryption-ciphertext-rejection-regexps', as limited by
-`allout-encryption-ciphertext-rejection-ceiling'."
+`allout-encryption-ciphertext-rejection-ceiling'.
+
+PROBLEM: Attempting symmetric decryption with an incorrect key
+not only fails, but for some GnuPG v2 versions the incorrect key
+is apparently retained in the gpg cache and reused, preventing
+decryption, until the cache finally times out.  That can take
+several minutes.  \(Decryption of other entries is not affected.)
+To clear this problem before the cache times out, deliberately
+clear your gpg-agent's cache by sending it a '-HUP' signal."
 
   (require 'epg)
   (require 'epa)
