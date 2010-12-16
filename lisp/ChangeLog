@@ -1,3 +1,8 @@
+2010-12-16  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-select-keys): Accept 'silent to inhibit
+	key selection prompt; make 'silent as default (Bug#7487).
+
 2010-12-16  Leo  <sdl.web@gmail.com>
 
 	* eshell/eshell.el (eshell-directory-name): Use
