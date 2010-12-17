@@ -17928,7 +17928,7 @@ are the selected window and the window's buffer).  */)
     : EQ (face, Qt) ? (EQ (window, selected_window)
 		       ? MODE_LINE_FACE_ID : MODE_LINE_INACTIVE_FACE_ID)
     : EQ (face, Qmode_line) ? MODE_LINE_FACE_ID
-    : EQ (face, Qmode_line_inactive) ? MODE_LINE_FACE_ID
+    : EQ (face, Qmode_line_inactive) ? MODE_LINE_INACTIVE_FACE_ID
     : EQ (face, Qheader_line) ? HEADER_LINE_FACE_ID
     : EQ (face, Qtool_bar) ? TOOL_BAR_FACE_ID
     : DEFAULT_FACE_ID;

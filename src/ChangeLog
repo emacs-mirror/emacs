@@ -1,3 +1,7 @@
+2010-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fformat_mode_line): Fix last change.
+
 2010-12-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (Fformat_mode_line): Restrict the FACE argument to basic
