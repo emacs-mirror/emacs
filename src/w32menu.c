@@ -1326,20 +1326,6 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
 #endif  /* !HAVE_DIALOGS  */
 
 
-/* Is this item a separator? */
-static int
-name_is_separator (const char *name)
-{
-  const char *start = name;
-
-  /* Check if name string consists of only dashes ('-').  */
-  while (*name == '-') name++;
-  /* Separators can also be of the form "--:TripleSuperMegaEtched"
-     or "--deep-shadow".  We don't implement them yet, se we just treat
-     them like normal separators.  */
-  return (*name == '\0' || start + 2 == name);
-}
-
 /* UTF8: 0xxxxxxx, 110xxxxx 10xxxxxx, 1110xxxx, 10xxxxxx, 10xxxxxx */
 static void
 utf8to16 (unsigned char * src, int len, WCHAR * dest)
@@ -1388,7 +1374,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
   int return_value;
   size_t nlen, orig_len;
 
-  if (name_is_separator (wv->name))
+  if (menu_separator_name_p (wv->name))
     {
       fuFlags = MF_SEPARATOR;
       out_string = NULL;

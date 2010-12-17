@@ -2881,7 +2881,8 @@ enum tool_bar_item_idx
   /* The binding.  */
   TOOL_BAR_ITEM_BINDING,
 
-  /* Button type.  One of nil, `:radio' or `:toggle'.  */
+  /* Button type.  One of nil (default button), t (a separator),
+     `:radio', or `:toggle'.  The latter two currently do nothing.  */
   TOOL_BAR_ITEM_TYPE,
 
   /* Help string.  */

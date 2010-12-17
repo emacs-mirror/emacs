@@ -10317,6 +10317,10 @@ build_desired_tool_bar_string (struct frame *f)
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int hmargin, vmargin, relief, idx, end;
 
+      /* Ignore separator items.  */
+      if (EQ (PROP (TOOL_BAR_ITEM_TYPE), Qt))
+	continue;
+
       /* If image is a vector, choose the image according to the
 	 button state.  */
       image = PROP (TOOL_BAR_ITEM_IMAGES);

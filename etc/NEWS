@@ -690,6 +690,11 @@ The command `read-color' now requires a match for a color name or RGB
 triplet, instead of signalling an error if the user provides a invalid
 input.
 
+** Tool-bars can display separators.
+Tool-bar separators are handled like menu separators in menu-bar maps,
+i.e. with entries of the form `(menu-item "--")'.
+
+Currently, tool-bar separators are only displayed on GTK.
 
 ** Image API
 

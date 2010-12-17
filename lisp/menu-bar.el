@@ -523,7 +523,8 @@
 	      ,(purecopy "Cut (kill) text in region between mark and current position")))
 ;; ns-win.el said: Separate undo from cut/paste section.
 (if (featurep 'ns)
-    (define-key menu-bar-edit-menu [separator-undo] `(,(purecopy "--"))))
+    (define-key menu-bar-edit-menu [separator-undo] menu-bar-separator))
+
 (define-key menu-bar-edit-menu [undo]
   `(menu-item ,(purecopy "Undo") undo
 	      :enable (and (not buffer-read-only)

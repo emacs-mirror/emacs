@@ -7464,6 +7464,54 @@ static Lisp_Object menu_bar_one_keymap_changed_items;
 static Lisp_Object menu_bar_items_vector;
 static int menu_bar_items_index;
 
+
+static const char* separator_names[] = {
+  "space",
+  "no-line",
+  "single-line",
+  "double-line",
+  "single-dashed-line",
+  "double-dashed-line",
+  "shadow-etched-in",
+  "shadow-etched-out",
+  "shadow-etched-in-dash",
+  "shadow-etched-out-dash",
+  "shadow-double-etched-in",
+  "shadow-double-etched-out",
+  "shadow-double-etched-in-dash",
+  "shadow-double-etched-out-dash",
+  0,
+};
+
+/* Return non-zero if LABEL specifies a separator.  */
+
+int
+menu_separator_name_p (const char *label)
+{
+  if (!label)
+    return 0;
+  else if (strlen (label) > 3
+	   && strncmp (label, "--", 2) == 0
+	   && label[2] != '-')
+    {
+      int i;
+      label += 2;
+      for (i = 0; separator_names[i]; ++i)
+	if (strcmp (label, separator_names[i]) == 0)
+          return 1;
+    }
+  else
+    {
+      /* It's a separator if it contains only dashes.  */
+      while (*label == '-')
+	++label;
+      return (*label == 0);
+    }
+
+  return 0;
+}
+
+
 /* Return a vector of menu items for a menu bar, appropriate
    to the current buffer.  Each item has three elements in the vector:
    KEY STRING MAPLIST.
@@ -8201,10 +8249,14 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
      Rule out items that aren't lists, don't start with
      `menu-item' or whose rest following `tool-bar-item' is not a
      list.  */
-  if (!CONSP (item)
-      || !EQ (XCAR (item), Qmenu_item)
-      || (item = XCDR (item),
-	  !CONSP (item)))
+  if (!CONSP (item))
+    return 0;
+
+  /* As an exception, allow old-style menu separators.  */
+  if (STRINGP (XCAR (item)))
+    item = Fcons (XCAR (item), Qnil);
+  else if (!EQ (XCAR (item), Qmenu_item)
+	   || (item = XCDR (item), !CONSP (item)))
     return 0;
 
   /* Create tool_bar_item_properties vector if necessary.  Reset it to
@@ -8234,10 +8286,18 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
     }
   PROP (TOOL_BAR_ITEM_CAPTION) = caption;
 
-  /* Give up if rest following the caption is not a list.  */
+  /* If the rest following the caption is not a list, the menu item is
+     either a separator, or invalid.  */
   item = XCDR (item);
   if (!CONSP (item))
-    return 0;
+    {
+      if (menu_separator_name_p (SDATA (caption)))
+	{
+	  PROP (TOOL_BAR_ITEM_TYPE) = Qt;
+	  return 1;
+	}
+      return 0;
+    }
 
   /* Store the binding.  */
   PROP (TOOL_BAR_ITEM_BINDING) = XCAR (item);
@@ -8270,10 +8330,10 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 	  if (NILP (menu_item_eval_property (value)))
 	    return 0;
 	}
-      else if (EQ (key, QChelp)) 
+      else if (EQ (key, QChelp))
         /* `:help HELP-STRING'.  */
         PROP (TOOL_BAR_ITEM_HELP) = value;
-      else if (EQ (key, QCvert_only)) 
+      else if (EQ (key, QCvert_only))
         /* `:vert-only t/nil'.  */
         PROP (TOOL_BAR_ITEM_VERT_ONLY) = value;
       else if (EQ (key, QClabel))

@@ -1,3 +1,26 @@
+2010-12-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (parse_tool_bar_item): Allow menu separators in
+	tool-bar maps.
+	(menu_separator_name_p): New function, from gtkutil.c.
+	(separator_names): Move from gtkutil.c.
+
+	* keyboard.h (menu_separator_name_p): Add prototype.
+
+	* gtkutil.c (XG_BIN_CHILD): New macro.
+	(xg_get_menu_item_label, xg_update_menubar)
+	(xg_update_menu_item, xg_tool_bar_menu_proxy)
+	(xg_show_toolbar_item, update_frame_tool_bar): Use it.
+	(separator_names, xg_separator_p): Move to keyboard.c.
+	(create_menus, xg_update_submenu, update_frame_tool_bar): Use
+	menu_separator_name_p.
+
+	* nsmenu.m (name_is_separator): Function deleted.
+	(addItemWithWidgetValue): Use menu_separator_name_p.
+
+	* w32menu.c (name_is_separator): Function deleted.
+	(add_menu_item): Use menu_separator_name_p.
+
 2010-12-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_draw_window_cursor): If the cursor color is the

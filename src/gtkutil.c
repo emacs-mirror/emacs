@@ -72,6 +72,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define remove_submenu(w) gtk_menu_item_remove_submenu ((w))
 #endif
 
+#define XG_BIN_CHILD(x) gtk_bin_get_child (GTK_BIN (x))
+
 
 /***********************************************************************
                       Display handling functions
@@ -2128,54 +2130,6 @@ make_menu_item (const char *utf8_label,
   return w;
 }
 
-/* Return non-zero if LABEL specifies a separator (GTK only has one
-   separator type)  */
-
-static const char* separator_names[] = {
-  "space",
-  "no-line",
-  "single-line",
-  "double-line",
-  "single-dashed-line",
-  "double-dashed-line",
-  "shadow-etched-in",
-  "shadow-etched-out",
-  "shadow-etched-in-dash",
-  "shadow-etched-out-dash",
-  "shadow-double-etched-in",
-  "shadow-double-etched-out",
-  "shadow-double-etched-in-dash",
-  "shadow-double-etched-out-dash",
-  0,
-};
-
-static int
-xg_separator_p (const char *label)
-{
-  if (! label) return 0;
-  else if (strlen (label) > 3
-	   && strncmp (label, "--", 2) == 0
-	   && label[2] != '-')
-    {
-      int i;
-
-      label += 2;
-      for (i = 0; separator_names[i]; ++i)
-	if (strcmp (label, separator_names[i]) == 0)
-          return 1;
-    }
-  else
-    {
-      /* Old-style separator, maybe.  It's a separator if it contains
-	 only dashes.  */
-      while (*label == '-')
-	++label;
-      if (*label == 0) return 1;
-    }
-
-  return 0;
-}
-
 static int xg_detached_menus;
 
 /* Returns non-zero if there are detached menus.  */
@@ -2374,7 +2328,7 @@ create_menus (widget_value *data,
       GtkWidget *w;
 
       if (pop_up_p && !item->contents && !item->call_data
-          && !xg_separator_p (item->name))
+          && !menu_separator_name_p (item->name))
         {
           char *utf8_label;
           /* A title for a popup.  We do the same as GTK does when
@@ -2387,7 +2341,7 @@ create_menus (widget_value *data,
           gtk_widget_set_sensitive (w, FALSE);
           if (utf8_label) g_free (utf8_label);
         }
-      else if (xg_separator_p (item->name))
+      else if (menu_separator_name_p (item->name))
         {
           group = NULL;
           /* GTK only have one separator type.  */
@@ -2499,7 +2453,7 @@ xg_create_widget (const char *type, const char *name, FRAME_PTR f, widget_value 
 static const char *
 xg_get_menu_item_label (GtkMenuItem *witem)
 {
-  GtkLabel *wlabel = GTK_LABEL (gtk_bin_get_child (GTK_BIN (witem)));
+  GtkLabel *wlabel = GTK_LABEL (XG_BIN_CHILD (witem));
   return gtk_label_get_label (wlabel);
 }
 
@@ -2652,7 +2606,7 @@ xg_update_menubar (GtkWidget *menubar,
                 Rename X to B (minibuf to C-mode menu).
               If the X menu hasn't been invoked, the menu under B
               is up to date when leaving the minibuffer.  */
-          GtkLabel *wlabel = GTK_LABEL (gtk_bin_get_child (GTK_BIN (witem)));
+          GtkLabel *wlabel = GTK_LABEL (XG_BIN_CHILD (witem));
           char *utf8_label = get_utf8_string (val->name);
           GtkWidget *submenu = gtk_menu_item_get_submenu (witem);
 
@@ -2751,7 +2705,7 @@ xg_update_menu_item (widget_value *val,
   const char *old_key = 0;
   xg_menu_item_cb_data *cb_data;
 
-  wchild = gtk_bin_get_child (GTK_BIN (w));
+  wchild = XG_BIN_CHILD (w);
   utf8_label = get_utf8_string (val->name);
   utf8_key = get_utf8_string (val->key);
 
@@ -2910,7 +2864,7 @@ xg_update_submenu (GtkWidget *submenu,
 
     if (GTK_IS_SEPARATOR_MENU_ITEM (w))
       {
-        if (! xg_separator_p (cur->name))
+        if (! menu_separator_name_p (cur->name))
           break;
       }
     else if (GTK_IS_CHECK_MENU_ITEM (w))
@@ -2933,7 +2887,7 @@ xg_update_submenu (GtkWidget *submenu,
         GtkWidget *sub;
 
         if (cur->button_type != BUTTON_TYPE_NONE ||
-            xg_separator_p (cur->name))
+            menu_separator_name_p (cur->name))
           break;
 
         xg_update_menu_item (cur, w, select_cb, highlight_cb, cl_data);
@@ -3725,9 +3679,8 @@ xg_get_tool_bar_widgets (GtkWidget *vb, GtkWidget **wimage)
 static gboolean
 xg_tool_bar_menu_proxy (GtkToolItem *toolitem, gpointer user_data)
 {
-  GtkWidget *weventbox = gtk_bin_get_child (GTK_BIN (toolitem));
-  GtkButton *wbutton = GTK_BUTTON (gtk_bin_get_child (GTK_BIN (weventbox)));
-  GtkWidget *vb = gtk_bin_get_child (GTK_BIN (wbutton));
+  GtkButton *wbutton = GTK_BUTTON (XG_BIN_CHILD (XG_BIN_CHILD (toolitem)));
+  GtkWidget *vb = XG_BIN_CHILD (wbutton);
   GtkWidget *c1;
   GtkLabel *wlbl = GTK_LABEL (xg_get_tool_bar_widgets (vb, &c1));
   GtkImage *wimage = GTK_IMAGE (c1);
@@ -4180,9 +4133,9 @@ xg_show_toolbar_item (GtkToolItem *ti)
   int show_label = ! EQ (style, Qimage) && ! (vert_only && horiz);
   int show_image = ! EQ (style, Qtext);
 
-  GtkWidget *weventbox = gtk_bin_get_child (GTK_BIN (ti));
-  GtkWidget *wbutton = gtk_bin_get_child (GTK_BIN (weventbox));
-  GtkWidget *vb = gtk_bin_get_child (GTK_BIN (wbutton));
+  GtkWidget *weventbox = XG_BIN_CHILD (ti);
+  GtkWidget *wbutton = XG_BIN_CHILD (weventbox);
+  GtkWidget *vb = XG_BIN_CHILD (wbutton);
   GtkWidget *wimage;
   GtkWidget *wlbl = xg_get_tool_bar_widgets (vb, &wimage);
   GtkWidget *new_box = NULL;
@@ -4330,7 +4283,6 @@ update_frame_tool_bar (FRAME_PTR f)
       char *icon_name = NULL;
       Lisp_Object rtl;
       GtkWidget *wbutton = NULL;
-      GtkWidget *weventbox;
       Lisp_Object specified_file;
       const char *label = (STRINGP (PROP (TOOL_BAR_ITEM_LABEL))
                            ? SSDATA (PROP (TOOL_BAR_ITEM_LABEL)) : "");
@@ -4338,16 +4290,34 @@ update_frame_tool_bar (FRAME_PTR f)
 
       ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (wtoolbar), i);
 
+      /* If this is a separator, use a gtk separator item.  */
+      if (EQ (PROP (TOOL_BAR_ITEM_TYPE), Qt))
+	{
+	  if (ti == NULL || !GTK_IS_SEPARATOR_TOOL_ITEM (ti))
+	    {
+	      if (ti)
+		gtk_container_remove (GTK_CONTAINER (wtoolbar),
+				      GTK_WIDGET (ti));
+	      ti = gtk_separator_tool_item_new ();
+	      gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, i);
+	    }
+	  gtk_widget_show (GTK_WIDGET (ti));
+	  continue;
+	}
+
+      /* Otherwise, the tool-bar item is an ordinary button.  */
+
+      if (ti && GTK_IS_SEPARATOR_TOOL_ITEM (ti))
+	{
+	  gtk_container_remove (GTK_CONTAINER (wtoolbar), GTK_WIDGET (ti));
+	  ti = NULL;
+	}
+
       if (ti)
-        {
-          weventbox = gtk_bin_get_child (GTK_BIN (ti));
-          wbutton = gtk_bin_get_child (GTK_BIN (weventbox));
-        }
-
-
-      image = PROP (TOOL_BAR_ITEM_IMAGES);
+	wbutton = XG_BIN_CHILD (XG_BIN_CHILD (ti));
 
       /* Ignore invalid image specifications.  */
+      image = PROP (TOOL_BAR_ITEM_IMAGES);
       if (!valid_image_p (image))
         {
           if (wbutton) gtk_widget_hide (wbutton);
@@ -4426,7 +4396,7 @@ update_frame_tool_bar (FRAME_PTR f)
                 {
                   /* Insert an empty (non-image) button */
                   ti = xg_make_tool_item (f, NULL, NULL, "", i, 0);
-                  gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, -1);
+                  gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, i);
                 }
               continue;
             }
@@ -4460,17 +4430,17 @@ update_frame_tool_bar (FRAME_PTR f)
 
           gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
           ti = xg_make_tool_item (f, w, &wbutton, label, i, vert_only);
-          gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, -1);
+          gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, i);
           gtk_widget_set_sensitive (wbutton, enabled_p);
         }
       else
         {
-          GtkWidget *vb = gtk_bin_get_child (GTK_BIN (wbutton));
+          GtkWidget *vb = XG_BIN_CHILD (wbutton);
           GtkWidget *wimage;
           GtkWidget *wlbl = xg_get_tool_bar_widgets (vb, &wimage);
 
-          Pixmap old_img = (Pixmap)g_object_get_data (G_OBJECT (wimage),
-                                                      XG_TOOL_BAR_IMAGE_DATA);
+          Pixmap old_img = (Pixmap) g_object_get_data (G_OBJECT (wimage),
+						       XG_TOOL_BAR_IMAGE_DATA);
           gpointer old_stock_name = g_object_get_data (G_OBJECT (wimage),
                                                        XG_TOOL_BAR_STOCK_NAME);
           gpointer old_icon_name = g_object_get_data (G_OBJECT (wimage),
