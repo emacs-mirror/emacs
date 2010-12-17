@@ -2734,6 +2734,15 @@ server."
 	(lambda (group)
 	  (gnus-group-delete-group group nil t))))))
 
+(defun gnus-group-delete-articles (group)
+  "Delete all articles in the current group."
+  (interactive (list (gnus-group-group-name)))
+  (let ((articles (gnus-uncompress-range (gnus-active group))))
+    (when (gnus-yes-or-no-p
+	   (format "Do you really want to delete these %d articles forever? "
+		   (length articles)))
+      (gnus-request-expire-articles articles group 'force))))
+
 (defun gnus-group-delete-group (group &optional force no-prompt)
   "Delete the current group.  Only meaningful with editable groups.
 If FORCE (the prefix) is non-nil, all the articles in the group will

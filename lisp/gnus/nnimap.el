@@ -167,7 +167,8 @@ textual parts.")
 	  (nnimap-article-ranges (gnus-compress-sequence articles))
 	  (nnimap-header-parameters))
 	 t)
-	(nnimap-transform-headers))
+	(nnimap-transform-headers)
+	(nnheader-remove-cr-followed-by-lf))
       (insert-buffer-substring
        (nnimap-find-process-buffer (current-buffer))))
     'headers))
@@ -1568,7 +1569,7 @@ textual parts.")
 				     (min
 				      (- (point) 500)
 				      (save-excursion
-					(forward-line -1)
+					(forward-line -3)
 					(point))))
 			      (point-min))
 			    t)))

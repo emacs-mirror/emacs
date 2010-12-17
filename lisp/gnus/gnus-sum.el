@@ -8868,30 +8868,27 @@ fetch what's specified by the `gnus-refer-thread-limit'
 variable."
   (interactive "P")
   (gnus-warp-to-article)
-  (let ((id (mail-header-id (gnus-summary-article-header)))
-	(gnus-inhibit-demon t)
-	(gnus-agent nil)
-	(gnus-summary-ignore-duplicates t)
-	(gnus-read-all-available-headers t)
-	(limit (if limit (prefix-numeric-value limit)
-		 gnus-refer-thread-limit)))
+  (let* ((header (gnus-summary-article-header))
+	 (id (mail-header-id header))
+	 (gnus-inhibit-demon t)
+	 (gnus-summary-ignore-duplicates t)
+	 (gnus-read-all-available-headers t)
+	 (limit (if limit (prefix-numeric-value limit)
+		  gnus-refer-thread-limit)))
     (setq gnus-newsgroup-headers
 	  (gnus-merge
 	   'list gnus-newsgroup-headers
 	   (if (gnus-check-backend-function
 		'request-thread gnus-newsgroup-name)
-	       (gnus-request-thread (gnus-summary-article-header))
+	       (gnus-request-thread header)
 	     (let* ((last (if (numberp limit)
-			      (min (+ (mail-header-number
-				       (gnus-summary-article-header))
+			      (min (+ (mail-header-number header)
 				      limit)
 				   gnus-newsgroup-highest)
 			    gnus-newsgroup-highest))
 		    (subject (gnus-simplify-subject
-			      (mail-header-subject
-			       (gnus-summary-article-header))))
-		    (refs (split-string (or (mail-header-references
-					     (gnus-summary-article-header))
+			      (mail-header-subject header)))
+		    (refs (split-string (or (mail-header-references header)
 					    "")))
 		    (gnus-parse-headers-hook
 		     (lambda () (goto-char (point-min))

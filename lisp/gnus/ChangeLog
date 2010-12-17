@@ -1,3 +1,37 @@
+2010-12-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-delete-articles): New command.
+
+2010-12-17  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-mode): Make sure 'gnus-registry-install is bound.
+
+2010-12-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-get-newsgroup-headers): Revert the last change
+	here, since it's up to the backends to do CRLF removal if their
+	protocol has it.
+
+	* nnimap.el (nnimap-retrieve-headers): Remove CRLF from the headers.
+
+2010-12-17  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el (gnus-rescale-image): Allow to resize images even if
+	they are from file. Can also scale up.
+
+2010-12-17  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-sum.el (gnus-summary-refer-thread): Simplify code. Restore
+	gnus-use-agent.
+	(gnus-get-newsgroup-headers): Avoid unwanted spaces at eol.
+
+	* nnir.el (nnir-get-active): Ignore nnir-ignored-newsgroups if null.
+
+2010-12-17  Julien Danjou  <julien@danjou.info>
+
+	* gravatar.el (gravatar-retrieve-synchronously): New function.
+	(gravatar-get-data): Make more robust.
+
 2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-wait-for-response): Fix the end-point calculation

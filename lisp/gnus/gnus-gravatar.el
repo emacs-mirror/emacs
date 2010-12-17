@@ -56,7 +56,7 @@ If nil, default to `gravatar-size'."
     (let* ((mail-extr-disable-voodoo t)
 	   (addresses (mail-extract-address-components
 		       (or (mail-fetch-field header) "") t))
-	   (gravatar-size gnus-gravatar-size)
+	   (gravatar-size (or gnus-gravatar-size gravatar-size))
 	   name)
       (dolist (address addresses)
 	(when (and (setq name (car address))
