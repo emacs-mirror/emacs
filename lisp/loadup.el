@@ -342,7 +342,7 @@
       (dump-emacs "emacs" "temacs")
       (message "%d pure bytes used" pure-bytes-used)
       ;; Recompute NAME now, so that it isn't set when we dump.
-      (if (not (or (memq system-type '(ms-dos windows-nt cygwin))
+      (if (not (or (memq system-type '(ms-dos windows-nt))
                    ;; Don't bother adding another name if we're just
                    ;; building bootstrap-emacs.
                    (equal (nth 3 command-line-args) "bootstrap")

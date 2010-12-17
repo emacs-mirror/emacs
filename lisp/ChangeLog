@@ -1,3 +1,7 @@
+2010-12-17  Ken Brown  <kbrown@cornell.edu>
+
+	* loadup.el: Use version numbers in Cygwin build.
+
 2010-12-17  Ryan Twitchell  <metatheorem@gmail.com>  (tiny change)
 
 	* ido.el (ido-file-internal): Ask for confirmation before
