@@ -1,3 +1,8 @@
+2010-12-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help-fns.el (describe-variable): Don't emit trailing whitespace
+	(Bug#7511).
+
 2010-12-17  Leo  <sdl.web@gmail.com>
 
 	* eshell/em-hist.el (eshell-previous-matching-input): Signal error
