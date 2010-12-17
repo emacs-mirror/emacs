@@ -1,3 +1,8 @@
+2010-12-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Encrypting/decrypting *.gpg files): Mention
+	epa-file-select-keys.
+
 2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Archived Messages): Remove outdated text.
