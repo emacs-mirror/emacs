@@ -2430,7 +2430,7 @@ If cursor is not at the end of the user input, move to end of input."
 	(ido-record-command 'write-file filename)
 	(add-to-history 'file-name-history filename)
 	(ido-record-work-directory)
-	(write-file filename))
+	(write-file filename t))
 
        ((eq method 'read-only)
 	(ido-record-work-file filename)
