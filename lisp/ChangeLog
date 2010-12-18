@@ -13,6 +13,47 @@
 
 	* menu-bar.el (featurep): Use menu-bar-separator.
 
+2010-12-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	Migrate allout encryption provisions from pgg to epg.
+
+	* allout.el (allout-toggle-current-subtree-encryption)
+	(allout-toggle-subtree-encryption): Adjust docstrings to reflect
+	defaulting policy and other changes.  Change fetch-pass to keymode-cue,
+	for simpler universal argument interpretation.
+	(allout-toggle-subtree-encryption):  Adjust docstring to describe
+	changed encryption provisions.  Change fetch-pass to keymode-cue, for
+	simpler universal argument interpretation.  Remove provisions for
+	handling key type and identity - they'll all be within
+	allout-encrypt-string or epg/epg or even contained all the way in gpg.
+	(allout-encrypt-string): Include keymode-cue, for optionally prompting
+	for keypair recipients (universal argument > 1) and, in addition,
+	associating the specified recipients with the outline (universal
+	argument > 4) using a file local variable setting for
+	'epa-file-encrypt-to'.
+	Require epa, for recipients handling.
+	Change how regexp filtering elements are named.
+	Describe the problem with caching of incorrect symmetric-decryption
+	keys.
+	Use the epa-passphrase-callback-function, in case the user is using
+	GnuPG v1.
+	Support saving of the selected keypair recipients when invoked with a
+	keymode-cue > 4.
+	Remove obsolete arguments 'fetch-pass', 'target-cache-id', 'retried'.
+	Require 'epa.
+	Establish epg-context with armoring and default epg-protocol.
+	Remove all passphrase cache, verification, and hinting code.
+	(allout-passphrase-verifier-handling, allout-passphrase-hint-handling):
+	No longer used, delete.
+	(allout-mode): Adjust docstring to describe changed encryption
+	provisions.  Describe the problem with caching of incorrect
+	symmetric-decryption keys.
+	(allout-obtain-passphrase, allout-epg-passphrase-callback-function)
+	(allout-make-passphrase-state, allout-passphrase-state-passphrase)
+	(allout-encrypted-key-info, allout-update-passphrase-mnemonic-aids)
+	(allout-get-encryption-passphrase-verifier, allout-verify-passphrase):
+	Obsolete, remove.
+
 2010-12-16  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-file.el (epa-file-select-keys): Accept 'silent to inhibit
