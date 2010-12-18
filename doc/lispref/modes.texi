@@ -744,7 +744,8 @@ documentation of the major mode.
   The recommended way to define a new major mode is to derive it
 from an existing one using @code{define-derived-mode}.  If there is no
 closely related mode, you can inherit from @code{text-mode},
-@code{special-mode}, or in the worst case @code{fundamental-mode}.
+@code{special-mode}, @code{prog-mode}, or in the worst case
+@code{fundamental-mode}.
 
 @defmac define-derived-mode variant parent name docstring keyword-args@dots{} body@dots{}
 This macro defines @var{variant} as a major mode command, using

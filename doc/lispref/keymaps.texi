@@ -2072,21 +2072,6 @@ look at a menu.  This is because the X toolkit requires the whole tree
 of menus in advance.  To force recalculation of the menu bar, call
 @code{force-mode-line-update} (@pxref{Mode Line Format}).
 
-  You've probably noticed that menu items show the equivalent keyboard key
-sequence (if any) to invoke the same command.  To save time on
-recalculation, menu display caches this information in a sublist in the
-binding, like this:
-
-@c This line is not too long--rms.
-@example
-(@var{item-string} @r{[}@var{help}@r{]} (@var{key-binding-data}) . @var{real-binding})
-@end example
-
-@noindent
-Don't put these sublists in the menu item yourself; menu display
-calculates them automatically.  Don't mention keyboard equivalents in
-the item strings themselves, since that is redundant.
-
 @node Extended Menu Items
 @subsubsection Extended Menu Items
 @kindex menu-item
@@ -2118,14 +2103,6 @@ string.  Thus, the string need not be a constant.  The third element,
 @var{real-binding}, is the command to execute.  The tail of the list,
 @var{item-property-list}, has the form of a property list which contains
 other information.
-
-  When an equivalent keyboard key binding is cached, the extended menu
-item binding looks like this:
-
-@example
-(menu-item @var{item-name} @var{real-binding} (@var{key-binding-data})
-    . @var{item-property-list})
-@end example
 
   Here is a table of the properties that are supported:
 
