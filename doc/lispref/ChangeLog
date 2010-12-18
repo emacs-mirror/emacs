@@ -1,3 +1,8 @@
+2010-12-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (Emulating Mode Line): Update documentation of
+	format-mode-line according to changes that fixed bug #7587.
+
 2010-12-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* processes.texi (Shell Arguments):
