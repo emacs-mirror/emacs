@@ -1,3 +1,8 @@
+2010-12-18  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi: Move inclusion of emerge after EDE, so that it
+	matches its position in the menu.  (Bug#7674)
+
 2010-12-14  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Checklist): Mention not replying via news either.
