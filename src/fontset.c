@@ -225,8 +225,7 @@ static void set_fontset_font (Lisp_Object, Lisp_Object);
 /* Return 1 if ID is a valid fontset id, else return 0.  */
 
 static int
-fontset_id_valid_p (id)
-     int id;
+fontset_id_valid_p (int id)
 {
   return (id >= 0 && id < ASIZE (Vfontset_table) - 1);
 }
@@ -2128,8 +2127,7 @@ DEFUN ("fontset-list", Ffontset_list, Sfontset_list, 0, 0, 0,
 #ifdef FONTSET_DEBUG
 
 Lisp_Object
-dump_fontset (fontset)
-     Lisp_Object fontset;
+dump_fontset (Lisp_Object fontset)
 {
   Lisp_Object vec;
 

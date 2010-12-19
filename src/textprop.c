@@ -1604,17 +1604,19 @@ Return t if any property was actually removed, nil otherwise.  */)
       if (LENGTH (i) >= len)
 	{
 	  if (! interval_has_some_properties_list (properties, i))
-	    if (modified)
-	      {
-		if (BUFFERP (object))
-		  signal_after_change (XINT (start), XINT (end) - XINT (start),
-				       XINT (end) - XINT (start));
-		return Qt;
-	      }
-	    else
-	      return Qnil;
-
-	  if (LENGTH (i) == len)
+	    {
+	      if (modified)
+		{
+		  if (BUFFERP (object))
+		    signal_after_change (XINT (start),
+					 XINT (end) - XINT (start),
+					 XINT (end) - XINT (start));
+		  return Qt;
+		}
+	      else
+		return Qnil;
+	    }
+	  else if (LENGTH (i) == len)
 	    {
 	      if (!modified && BUFFERP (object))
 		modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
@@ -1624,20 +1626,20 @@ Return t if any property was actually removed, nil otherwise.  */)
 				     XINT (end) - XINT (start));
 	      return Qt;
 	    }
-
-	  /* i has the properties, and goes past the change limit */
-	  unchanged = i;
-	  i = split_interval_left (i, len);
-	  copy_properties (unchanged, i);
-	  if (!modified && BUFFERP (object))
-	    modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
-	  remove_properties (Qnil, properties, i, object);
-	  if (BUFFERP (object))
-	    signal_after_change (XINT (start), XINT (end) - XINT (start),
-				 XINT (end) - XINT (start));
-	  return Qt;
+	  else
+	    { /* i has the properties, and goes past the change limit.  */
+	      unchanged = i;
+	      i = split_interval_left (i, len);
+	      copy_properties (unchanged, i);
+	      if (!modified && BUFFERP (object))
+		modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
+	      remove_properties (Qnil, properties, i, object);
+	      if (BUFFERP (object))
+		signal_after_change (XINT (start), XINT (end) - XINT (start),
+				     XINT (end) - XINT (start));
+	      return Qt;
+	    }
 	}
-
       if (interval_has_some_properties_list (properties, i))
 	{
 	  if (!modified && BUFFERP (object))

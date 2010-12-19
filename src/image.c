@@ -3332,7 +3332,7 @@ xpm_image_p (Lisp_Object object)
 
 #if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
 int
-x_create_bitmap_from_xpm_data (struct frame *f, char **bits)
+x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   int id, rc;

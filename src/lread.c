@@ -2888,10 +2888,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	{
 	  char *end = read_buffer + read_buffer_size;
 
-	  while (c > 040
-		 && c != 0x8a0 /* NBSP */
-		 && (c >= 0200
-		     || !(strchr ("\"';()[]#`,", c))))
+	  do
 	    {
 	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
@@ -2915,7 +2912,10 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      else
 		*p++ = c;
 	      c = READCHAR;
-	    }
+	    } while (c > 040
+		     && c != 0x8a0 /* NBSP */
+		     && (c >= 0200
+			 || !(strchr ("\"';()[]#`,", c))));
 
 	  if (p == end)
 	    {

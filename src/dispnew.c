@@ -3447,7 +3447,9 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
 #endif
     }
 
+#if PERIODIC_PREEMPTION_CHECKING
  do_pause:
+#endif
   /* Reset flags indicating that a window should be updated.  */
   set_window_update_flags (root_window, 0);
 
@@ -4908,7 +4910,9 @@ update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
 	}
     }
 
+#if !PERIODIC_PREEMPTION_CHECKING
  do_pause:
+#endif
 
   clear_desired_matrices (f);
   return pause;

@@ -1767,13 +1767,13 @@ setup_otf_gstring (int size)
    position adjustment information in ADJUSTMENT.  */
 
 static int
-ftfont_drive_otf (font, spec, in, from, to, out, adjustment)
-     MFLTFont *font;
-     MFLTOtfSpec *spec;
-     MFLTGlyphString *in;
-     int from, to;
-     MFLTGlyphString *out;
-     MFLTGlyphAdjustment *adjustment;
+ftfont_drive_otf (MFLTFont *font,
+		  MFLTOtfSpec *spec,
+		  MFLTGlyphString *in,
+		  int from,
+		  int to,
+		  MFLTGlyphString *out,
+		  MFLTGlyphAdjustment *adjustment)
 {
   struct MFLTFontFT *flt_font_ft = (struct MFLTFontFT *) font;
   FT_Face ft_face = flt_font_ft->ft_face;

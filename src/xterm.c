@@ -489,14 +489,14 @@ x_set_frame_alpha (struct frame *f)
 			     &data);
 
     if (rc == Success && actual != None)
-      if (*(unsigned long *)data == opac)
-	{
-	  XFree ((void *) data);
-	  x_uncatch_errors ();
-	  return;
-	}
-      else
+      {
 	XFree ((void *) data);
+	if (*(unsigned long *)data == opac)
+	  {
+	    x_uncatch_errors ();
+	    return;
+	  }
+      }
     x_uncatch_errors ();
   }
 
@@ -6498,7 +6498,6 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
 	      {
 		/* Decode the input data.  */
 		int require;
-		unsigned char *p;
 
 		/* The input should be decoded with `coding_system'
 		   which depends on which X*LookupString function
@@ -8469,7 +8468,6 @@ do_ewmh_fullscreen (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   int have_net_atom = wm_supports (f, dpyinfo->Xatom_net_wm_state);
-  Lisp_Object lval = get_frame_param (f, Qfullscreen);
   int cur, dummy;
 
   get_current_wm_state (f, FRAME_OUTER_WINDOW (f), &cur, &dummy);
@@ -8992,7 +8990,6 @@ XTframe_raise_lower (FRAME_PTR f, int raise_flag)
 void
 xembed_set_info (struct frame *f, enum xembed_info flags)
 {
-  Atom atom;
   unsigned long data[2];
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 

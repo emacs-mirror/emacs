@@ -2291,14 +2291,12 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args < XINT (numargs)))
 	xsignal2 (Qwrong_number_of_arguments, original_fun, numargs);
 
-      if (XSUBR (fun)->max_args == UNEVALLED)
+      else if (XSUBR (fun)->max_args == UNEVALLED)
 	{
 	  backtrace.evalargs = 0;
 	  val = (XSUBR (fun)->function.aUNEVALLED) (args_left);
-	  goto done;
 	}
-
-      if (XSUBR (fun)->max_args == MANY)
+      else if (XSUBR (fun)->max_args == MANY)
 	{
 	  /* Pass a vector of evaluated arguments */
 	  Lisp_Object *vals;
@@ -2324,73 +2322,76 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  val = (XSUBR (fun)->function.aMANY) (XINT (numargs), vals);
 	  UNGCPRO;
 	  SAFE_FREE ();
-	  goto done;
 	}
-
-      GCPRO3 (args_left, fun, fun);
-      gcpro3.var = argvals;
-      gcpro3.nvars = 0;
-
-      maxargs = XSUBR (fun)->max_args;
-      for (i = 0; i < maxargs; args_left = Fcdr (args_left))
+      else
 	{
-	  argvals[i] = Feval (Fcar (args_left));
-	  gcpro3.nvars = ++i;
-	}
+	  GCPRO3 (args_left, fun, fun);
+	  gcpro3.var = argvals;
+	  gcpro3.nvars = 0;
 
-      UNGCPRO;
+	  maxargs = XSUBR (fun)->max_args;
+	  for (i = 0; i < maxargs; args_left = Fcdr (args_left))
+	    {
+	      argvals[i] = Feval (Fcar (args_left));
+	      gcpro3.nvars = ++i;
+	    }
 
-      backtrace.args = argvals;
-      backtrace.nargs = XINT (numargs);
+	  UNGCPRO;
 
-      switch (i)
-	{
-	case 0:
-	  val = (XSUBR (fun)->function.a0) ();
-	  goto done;
-	case 1:
-	  val = (XSUBR (fun)->function.a1) (argvals[0]);
-	  goto done;
-	case 2:
-	  val = (XSUBR (fun)->function.a2) (argvals[0], argvals[1]);
-	  goto done;
-	case 3:
-	  val = (XSUBR (fun)->function.a3) (argvals[0], argvals[1],
-					    argvals[2]);
-	  goto done;
-	case 4:
-	  val = (XSUBR (fun)->function.a4) (argvals[0], argvals[1],
-					    argvals[2], argvals[3]);
-	  goto done;
-	case 5:
-	  val = (XSUBR (fun)->function.a5) (argvals[0], argvals[1], argvals[2],
-					    argvals[3], argvals[4]);
-	  goto done;
-	case 6:
-	  val = (XSUBR (fun)->function.a6) (argvals[0], argvals[1], argvals[2],
-					    argvals[3], argvals[4], argvals[5]);
-	  goto done;
-	case 7:
-	  val = (XSUBR (fun)->function.a7) (argvals[0], argvals[1], argvals[2],
-					    argvals[3], argvals[4], argvals[5],
-					    argvals[6]);
-	  goto done;
+	  backtrace.args = argvals;
+	  backtrace.nargs = XINT (numargs);
 
-	case 8:
-	  val = (XSUBR (fun)->function.a8) (argvals[0], argvals[1], argvals[2],
-					    argvals[3], argvals[4], argvals[5],
-					    argvals[6], argvals[7]);
-	  goto done;
+	  switch (i)
+	    {
+	    case 0:
+	      val = (XSUBR (fun)->function.a0 ());
+	      break;
+	    case 1:
+	      val = (XSUBR (fun)->function.a1 (argvals[0]));
+	      break;
+	    case 2:
+	      val = (XSUBR (fun)->function.a2 (argvals[0], argvals[1]));
+	      break;
+	    case 3:
+	      val = (XSUBR (fun)->function.a3
+		     (argvals[0], argvals[1], argvals[2]));
+	      break;
+	    case 4:
+	      val = (XSUBR (fun)->function.a4
+		     (argvals[0], argvals[1], argvals[2], argvals[3]));
+	      break;
+	    case 5:
+	      val = (XSUBR (fun)->function.a5
+		     (argvals[0], argvals[1], argvals[2], argvals[3],
+		      argvals[4]));
+	      break;
+	    case 6:
+	      val = (XSUBR (fun)->function.a6
+		     (argvals[0], argvals[1], argvals[2], argvals[3],
+		      argvals[4], argvals[5]));
+	      break;
+	    case 7:
+	      val = (XSUBR (fun)->function.a7
+		     (argvals[0], argvals[1], argvals[2], argvals[3],
+		      argvals[4], argvals[5], argvals[6]));
+	      break;
 
-	default:
-	  /* Someone has created a subr that takes more arguments than
-	     is supported by this code.  We need to either rewrite the
-	     subr to use a different argument protocol, or add more
-	     cases to this switch.  */
-	  abort ();
+	    case 8:
+	      val = (XSUBR (fun)->function.a8
+		     (argvals[0], argvals[1], argvals[2], argvals[3],
+		      argvals[4], argvals[5], argvals[6], argvals[7]));
+	      break;
+
+	    default:
+	      /* Someone has created a subr that takes more arguments than
+		 is supported by this code.  We need to either rewrite the
+		 subr to use a different argument protocol, or add more
+		 cases to this switch.  */
+	      abort ();
+	    }
 	}
     }
-  if (COMPILEDP (fun))
+  else if (COMPILEDP (fun))
     val = apply_lambda (fun, original_args, 1);
   else
     {
@@ -2413,7 +2414,6 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
       else
 	xsignal1 (Qinvalid_function, original_fun);
     }
- done:
   CHECK_CONS_LIST ();
 
   lisp_eval_depth--;
@@ -2956,83 +2956,84 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 
   if (SUBRP (fun))
     {
-       if (numargs < XSUBR (fun)->min_args
+      if (numargs < XSUBR (fun)->min_args
 	  || (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args < numargs))
 	{
 	  XSETFASTINT (lisp_numargs, numargs);
 	  xsignal2 (Qwrong_number_of_arguments, original_fun, lisp_numargs);
 	}
 
-      if (XSUBR (fun)->max_args == UNEVALLED)
+      else if (XSUBR (fun)->max_args == UNEVALLED)
 	xsignal1 (Qinvalid_function, original_fun);
 
-      if (XSUBR (fun)->max_args == MANY)
-	{
-	  val = (XSUBR (fun)->function.aMANY) (numargs, args + 1);
-	  goto done;
-	}
-
-      if (XSUBR (fun)->max_args > numargs)
-	{
-	  internal_args = (Lisp_Object *) alloca (XSUBR (fun)->max_args * sizeof (Lisp_Object));
-	  memcpy (internal_args, args + 1, numargs * sizeof (Lisp_Object));
-	  for (i = numargs; i < XSUBR (fun)->max_args; i++)
-	    internal_args[i] = Qnil;
-	}
+      else if (XSUBR (fun)->max_args == MANY)
+	val = (XSUBR (fun)->function.aMANY) (numargs, args + 1);
       else
-	internal_args = args + 1;
-      switch (XSUBR (fun)->max_args)
 	{
-	case 0:
-	  val = (XSUBR (fun)->function.a0) ();
-	  goto done;
-	case 1:
-	  val = (XSUBR (fun)->function.a1) (internal_args[0]);
-	  goto done;
-	case 2:
-	  val = (XSUBR (fun)->function.a2) (internal_args[0], internal_args[1]);
-	  goto done;
-	case 3:
-	  val = (XSUBR (fun)->function.a3) (internal_args[0], internal_args[1],
-					    internal_args[2]);
-	  goto done;
-	case 4:
-	  val = (XSUBR (fun)->function.a4) (internal_args[0], internal_args[1],
-					    internal_args[2], internal_args[3]);
-	  goto done;
-	case 5:
-	  val = (XSUBR (fun)->function.a5) (internal_args[0], internal_args[1],
-					    internal_args[2], internal_args[3],
-					    internal_args[4]);
-	  goto done;
-	case 6:
-	  val = (XSUBR (fun)->function.a6) (internal_args[0], internal_args[1],
-					    internal_args[2], internal_args[3],
-					    internal_args[4], internal_args[5]);
-	  goto done;
-	case 7:
-	  val = (XSUBR (fun)->function.a7) (internal_args[0], internal_args[1],
-					    internal_args[2], internal_args[3],
-					    internal_args[4], internal_args[5],
-					    internal_args[6]);
-	  goto done;
+	  if (XSUBR (fun)->max_args > numargs)
+	    {
+	      internal_args = (Lisp_Object *) alloca (XSUBR (fun)->max_args * sizeof (Lisp_Object));
+	      memcpy (internal_args, args + 1, numargs * sizeof (Lisp_Object));
+	      for (i = numargs; i < XSUBR (fun)->max_args; i++)
+		internal_args[i] = Qnil;
+	    }
+	  else
+	    internal_args = args + 1;
+	  switch (XSUBR (fun)->max_args)
+	    {
+	    case 0:
+	      val = (XSUBR (fun)->function.a0 ());
+	      break;
+	    case 1:
+	      val = (XSUBR (fun)->function.a1 (internal_args[0]));
+	      break;
+	    case 2:
+	      val = (XSUBR (fun)->function.a2
+		     (internal_args[0], internal_args[1]));
+	      break;
+	    case 3:
+	      val = (XSUBR (fun)->function.a3
+		     (internal_args[0], internal_args[1], internal_args[2]));
+	      break;
+	    case 4:
+	      val = (XSUBR (fun)->function.a4
+		     (internal_args[0], internal_args[1], internal_args[2],
+		     internal_args[3]));
+	      break;
+	    case 5:
+	      val = (XSUBR (fun)->function.a5
+		     (internal_args[0], internal_args[1], internal_args[2],
+		      internal_args[3], internal_args[4]));
+	      break;
+	    case 6:
+	      val = (XSUBR (fun)->function.a6
+		     (internal_args[0], internal_args[1], internal_args[2],
+		      internal_args[3], internal_args[4], internal_args[5]));
+	      break;
+	    case 7:
+	      val = (XSUBR (fun)->function.a7
+		     (internal_args[0], internal_args[1], internal_args[2],
+		      internal_args[3], internal_args[4], internal_args[5],
+		      internal_args[6]));
+	      break;
 
-	case 8:
-	  val = (XSUBR (fun)->function.a8) (internal_args[0], internal_args[1],
-					    internal_args[2], internal_args[3],
-					    internal_args[4], internal_args[5],
-					    internal_args[6], internal_args[7]);
-	  goto done;
+	    case 8:
+	      val = (XSUBR (fun)->function.a8
+		     (internal_args[0], internal_args[1], internal_args[2],
+		      internal_args[3], internal_args[4], internal_args[5],
+		      internal_args[6], internal_args[7]));
+	      break;
 
-	default:
+	    default:
 
-	  /* If a subr takes more than 8 arguments without using MANY
-	     or UNEVALLED, we need to extend this function to support it.
-	     Until this is done, there is no way to call the function.  */
-	  abort ();
+	      /* If a subr takes more than 8 arguments without using MANY
+		 or UNEVALLED, we need to extend this function to support it.
+		 Until this is done, there is no way to call the function.  */
+	      abort ();
+	    }
 	}
     }
-  if (COMPILEDP (fun))
+  else if (COMPILEDP (fun))
     val = funcall_lambda (fun, numargs, args + 1);
   else
     {
@@ -3054,7 +3055,6 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
       else
 	xsignal1 (Qinvalid_function, original_fun);
     }
- done:
   CHECK_CONS_LIST ();
   lisp_eval_depth--;
   if (backtrace.debug_on_exit)

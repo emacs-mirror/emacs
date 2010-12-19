@@ -3131,7 +3131,7 @@ extern int x_create_bitmap_from_data (struct frame *, char *,
                                       unsigned int, unsigned int);
 extern int x_create_bitmap_from_file (struct frame *, Lisp_Object);
 #if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
-extern int x_create_bitmap_from_xpm_data (struct frame *f, char **bits);
+extern int x_create_bitmap_from_xpm_data (struct frame *f, const char **bits);
 #endif
 #ifndef x_destroy_bitmap
 extern void x_destroy_bitmap (struct frame *, int);

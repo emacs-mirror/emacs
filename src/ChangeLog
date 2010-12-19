@@ -1,3 +1,32 @@
+2010-12-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Minor clean up to silence some gcc warnings.
+	* window.c (Fset_window_buffer):
+	* xterm.c (x_set_frame_alpha): Restructure code to silence
+	compiler warning.
+	(handle_one_xevent): Remove unused var `p'.
+	(do_ewmh_fullscreen): Remove unused var `lval'.
+	(xembed_set_info): Remove unused var `atom'.
+	* textprop.c (Fremove_list_of_text_properties): Add braces to silence
+	compiler warning.
+	* fontset.c (fontset_id_valid_p, dump_fontset):
+	* ftfont.c (ftfont_drive_otf): Modernize k&r declaration.
+	* eval.c (Feval, Ffuncall): Avoid unneeded gotos.
+	* dispnew.c (update_frame, update_frame_1): Compile the `do_pause'
+	label only when it's used.
+	* image.c (x_create_bitmap_from_xpm_data):
+	* dispextern.h (x_create_bitmap_from_xpm_data): Use const char** like
+	its callers.
+	* coding.c (detect_coding_utf_16): Remove unused vars `src_base' and
+	`consumed_chars'.
+	(DECODE_EMACS_MULE_21_COMPOSITION): Remove unused var `charbuf_base'.
+	(decode_coding_emacs_mule): Remove unused label `retry'.
+	(detect_eol): Add parens to silence compiler warning.
+	* alloc.c (bytes_used_when_reconsidered): Move to the #ifdef where
+	it's used to silence the compiler.
+	(make_number): Modernize k&r declaration.
+	(mark_char_table): Add parens to silence compiler warning.
+
 2010-12-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (parse_tool_bar_item): Allow menu separators in
@@ -12,8 +41,8 @@
 	(xg_update_menu_item, xg_tool_bar_menu_proxy)
 	(xg_show_toolbar_item, update_frame_tool_bar): Use it.
 	(separator_names, xg_separator_p): Move to keyboard.c.
-	(create_menus, xg_update_submenu, update_frame_tool_bar): Use
-	menu_separator_name_p.
+	(create_menus, xg_update_submenu, update_frame_tool_bar):
+	Use menu_separator_name_p.
 
 	* nsmenu.m (name_is_separator): Function deleted.
 	(addItemWithWidgetValue): Use menu_separator_name_p.
@@ -947,8 +976,8 @@
 	strings and R2L glyph rows.  Fix comments.
 	(note_mouse_highlight): When bidi reordering is turned on in a
 	buffer, call next-single-property-change and
-	previous-single-property-change with last argument nil.  Clear
-	mouse highlight when mouse pointer is in a R2L row on the stretch
+	previous-single-property-change with last argument nil.
+	Clear mouse highlight when mouse pointer is in a R2L row on the stretch
 	glyph that stands for no text beyond the line end.
 	(row_containing_pos): Don't return too early when CHARPOS is in a
 	bidi-reordered continued line.  Return immediately when the first
@@ -1391,8 +1420,8 @@
 
 2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* eval.c (Fbacktrace): Don't overwrite print-level on exit.  Also
-	only override Vprint_level if it isn't already bound, and increase
+	* eval.c (Fbacktrace): Don't overwrite print-level on exit.
+	Also only override Vprint_level if it isn't already bound, and increase
 	the level to 8 to produce more useful backtraces for bug reports.
 
 2010-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -1531,7 +1560,7 @@
 
 2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnutls.c (gnutls_log_function): Added more debugging.
+	* gnutls.c (gnutls_log_function): Add more debugging.
 	(emacs_gnutls_read): Don't infloop while reading.
 
 2010-09-27  Kenichi Handa  <handa@m17n.org>
@@ -1573,7 +1602,7 @@
 
 	* process.c (gpm_wait_mask, max_gpm_desc): Remove.
 	(write_mask): New variable.
-	(max_input_desc): Renamed from max_keyboard_desc.
+	(max_input_desc): Rename from max_keyboard_desc.
 	(fd_callback_info): New variable.
 	(add_read_fd, delete_read_fd, add_write_fd, delete_write_fd):
 	New functions.
@@ -2192,7 +2221,7 @@
 
 2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* xml.c (parse_buffer): Renamed to parse_string(), since that's
+	* xml.c (parse_buffer): Rename to parse_string(), since that's
 	what it does.
 	(parse_string): Return nil when the document can't be parsed.
 
@@ -3350,7 +3379,7 @@
 	(xg_height_or_width_changed): Use FRAME_TOTAL_PIXEL_WIDTH.
 	(xg_create_frame_widgets): Create a hobox for placing widgets
 	vertically.  Use gtk_box_pack_start.
-	(xg_height_or_width_changed): Renamed from xg_height_changed.
+	(xg_height_or_width_changed): Rename from xg_height_changed.
 	(x_wm_set_size_hint): Add FRAME_TOOLBAR_WIDTH to base_width.
 	(xg_update_frame_menubar, free_frame_menubar): Change to
 	xg_height_or_width_changed.
@@ -3990,7 +4019,7 @@
 	(Ffont_get): If KEY is :otf and the font-object doesn't have the
 	property, get the property value dynamically.
 	(Ffont_put): Accept font-entity and font-object too.
-	(Ffont_get_glyhphs): Renamed from Fget_font_glyphs.  Arguments and
+	(Ffont_get_glyhphs): Rename from Fget_font_glyphs.  Arguments and
 	return value changed.
 	(syms_of_font): Adjust for the above change.
 
@@ -4063,7 +4092,7 @@
 	* doprnt.c (doprnt): Take a va_list argument instead of count and
 	pointer.
 	* eval.c (error): Change to a standard-C variadic function.
-	* xdisp.c (vmessage): Renamed from message, made static, and
+	* xdisp.c (vmessage): Rename from message, made static, and
 	changed to take a va_list argument.
 	(message): New variadic wrapper.
 	(message_nolog): Now a variadic function, calling vmessage.
@@ -5076,8 +5105,8 @@
 
 	* xdisp.c (try_scrolling): Compute the limit for searching point
 	in forward scroll from scroll_max, instead of an arbitrary limit
-	of 10 screen lines.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00766.html
+	of 10 screen lines.
+	See http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00766.html
 	and
 	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00773.html
 	for details.
@@ -5325,8 +5354,8 @@
 	Fix cursor motion in bidi-reordered continued lines.
 	* xdisp.c (try_cursor_movement): Backup to non-continuation line
 	only after finding point's row.  Fix the logic.  Rewrite the loop
-	over continuation lines in bidi-reordered buffers.  Return
-	CURSOR_MOVEMENT_MUST_SCROLL upon failure to find a suitable row,
+	over continuation lines in bidi-reordered buffers.
+	Return CURSOR_MOVEMENT_MUST_SCROLL upon failure to find a suitable row,
 	rather than CURSOR_MOVEMENT_CANNOT_BE_USED.
 
 2010-05-28  Michael Albinus  <michael.albinus@gmx.de>
@@ -6445,13 +6474,13 @@
 	store_config_changed_event.
 	(parse_settings): Rename from parse_xft_settings.
 	Read non-xft xsettings outside #ifdef HAVE_XFT.
-	(read_settings): Renamed from read_xft_settings.
+	(read_settings): Rename from read_xft_settings.
 	(apply_xft_settings): Take current settings as parameter.  Do not
 	call read_(xft)_settings.
 	(read_and_apply_settings): New function.
 	(xft_settings_event): Do non-xft stuff out of HAVE_XFT.
 	Call read_and_apply_settings if there are settings to be read.
-	(init_xsettings): Renamed from init_xfd_settings.
+	(init_xsettings): Rename from init_xfd_settings.
 	Call read_and_apply_settings unconditionally.
 	(xsettings_initialize): Call init_xsettings.
 	(Ftool_bar_get_system_style): New function.
@@ -9607,7 +9636,7 @@
 
 	* makefile.w32-in ($(BLD)/doc.$(O)): Depend on buildobj.h, not on
 	$(SRC)/buildobj.h.
-	(buildobj.h): Renamed from $(SRC)/buildobj.h.
+	(buildobj.h): Rename from $(SRC)/buildobj.h.
 	(make-buildobj-CMD, make-buildobj-SH): Create buildobj.h, not
 	$(SRC)/buildobj.h.
 	(clean): Add buildobj.h.
@@ -12651,12 +12680,12 @@
 
 2008-12-13  Kenichi Handa  <handa@m17n.org>
 
-	* font.c (font_rescale_ratio): Moved from xfaces.c.
+	* font.c (font_rescale_ratio): Move from xfaces.c.
 	Argument type changed.  Handle a font-spec too.
 	(font_score): Check Vface_font_rescale_alist.
 	(font_open_entity): Likewise.  (Bug#1547)
 
-	* xfaces.c (font_rescale_ratio): Moved to font.c.
+	* xfaces.c (font_rescale_ratio): Move to font.c.
 
 2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -12674,7 +12703,7 @@
 
 2008-12-11  Chong Yidong  <cyd@stupidchicken.com>
 
-	* term.c (tty_free_frame_resources): Renamed from delete_tty_output;
+	* term.c (tty_free_frame_resources): Rename from delete_tty_output;
 	all callers changed.  Call free_frame_faces to free the face cache.
 
 2008-12-11  Jason Rumney  <jasonr@gnu.org>
@@ -18004,7 +18033,7 @@
 	(FONT_WEIGHT_NAME_NUMERIC, FONT_SLANT_NAME_NUMERIC)
 	(FONT_WIDTH_NAME_NUMERIC, FONT_SET_STYLE): New macros.
 	(struct font_spec, struct font_entity): New structs.
-	(FONT_ENCODING_NOT_DECIDED): Moved from fontset.h.
+	(FONT_ENCODING_NOT_DECIDED): Move from fontset.h.
 	(struct font): Many members from old "struct font_info" moved to
 	here.  Members font and entity deleted.
 	(FONT_SPEC_P, FONT_ENTITY_P, FONT_OBJECT_P, FONTP): Modified for
@@ -18012,7 +18041,7 @@
 	(CHECK_FONT_SPEC, CHECK_FONT_ENTITY, CHECK_FONT_OBJECT)
 	(CHECK_FONT_GET_OBJECT): Likewise.
 	(XFONT_SPEC, XFONT_ENTITY, XFONT_OBJECT, XSETFONT): New macros.
-	(PT_PER_INCH, POINT_TO_PIXEL, PIXEL_TO_POINT): Moved from font.h.
+	(PT_PER_INCH, POINT_TO_PIXEL, PIXEL_TO_POINT): Move from font.h.
 	(struct font_driver): New members case_sensitive anc check.
 	Type of the member list and open changed.
 	(enable_font_backend, font_symbolic_weight, font_symbolic_slant)
@@ -18024,7 +18053,7 @@
 	(enable_font_backend): Delete it.
 	(Qfont_spec, Qfont_entity, Qfont_object): New variables.
 	(CHECK_VALIDATE_FONT_SPEC): Delete it.
-	(PT_PER_INCH, POINT_TO_PIXEL, PIXEL_TO_POINT): Moved to font.h.
+	(PT_PER_INCH, POINT_TO_PIXEL, PIXEL_TO_POINT): Move to font.h.
 	(null_string): Delete it.
 	(null_vector): Make it static.
 	(font_family_alist): Delete it.
@@ -18032,7 +18061,7 @@
 	(QCextra, QClanguage): Delete it.
 	(QClang, QCavgwidth, QCfont_entity, QCfc_unknown_spec): New variables.
 	(font_make_spec, font_make_entity, font_make_object)
-	(font_intern_prop): Renamed from intern_downcase.  Don't downcase
+	(font_intern_prop): Rename from intern_downcase.  Don't downcase
 	the string.  Callers changed.
 	(font_pixel_size): Adjust for the format change of font-related
 	objects.
@@ -18052,7 +18081,7 @@
 	(font_expand_wildcards, font_parse_xlfd, font_unparse_xlfd)
 	(font_parse_fcname, font_unparse_fcname)
 	(font_prepare_composition): Likewise.
-	(font_parse_family_registry): Renamed from font_merge_old_spec.
+	(font_parse_family_registry): Rename from font_merge_old_spec.
 	(otf_open): Delete the 1st arg entity.
 	(font_otf_capability): Adjust for the above change.
 	(font_score): New arg alternate_families.  Adjusted for the change
@@ -18080,7 +18109,7 @@
 	(Ffontp, Ffont_spec, Ffont_get, Ffont_put, Flist_fonts)
 	(Ffont_xlfd_name): Adjust for the change of font-related objects.
 	(Fcopy_font_spec, Fmerge_font_spec): New function.
-	(Ffont_family_list): Renamed from list-families.
+	(Ffont_family_list): Rename from list-families.
 	(Finternal_set_font_style_table): Arguments changed.
 	(Ffont_fill_gstring, Ffont_shape_text, Fopen_font)
 	(Ffont_drive_otf, Fquery_font, Ffont_match_p): Adjust for the
@@ -18089,7 +18118,7 @@
 
 	* fontset.h (struct font_info): Delete it.  Most members go to
 	struct font.
-	(FONT_ENCODING_NOT_DECIDED): Moved to font.h.
+	(FONT_ENCODING_NOT_DECIDED): Move to font.h.
 	(enum FONT_SPEC_INDEX): Delete it.
 	(font_info, list_fonts_func, load_font_func, query_font_func)
 	(set_frame_fontset_func, find_ccl_program_func)
@@ -18131,7 +18160,7 @@
 	(Fnew_fontset): Use font_unparse_xlfd to generate
 	FONTSET_ASCII (fontset).
 	(new_fontset_from_font_name): Deleted.
-	(fontset_from_font): Renamed from new_fontset_from_font.  Check if
+	(fontset_from_font): Rename from new_fontset_from_font.  Check if
 	a fontset is already created for the font.  FIx updating of
 	Vfontset_alias_alist.
 	(fontset_ascii_font): Deleted.
@@ -18240,7 +18269,7 @@
 	by FONTP.
 	(lface_fully_specified_p): Don't check LFACE_AVGWIDTH.
 	(set_lface_from_font_name): Delete it.
-	(set_lface_from_font): Renamed from
+	(set_lface_from_font): Rename from
 	set_lface_from_font_and_fontset.  Caller changed.  Don't set
 	LFACE_AVGWIDTH.  Use FONT_XXX_FOR_FACE to get a symbol suitable
 	for face.
@@ -18281,12 +18310,12 @@
 	* xfont.c: Include <stdlib.h> and "ccl.h".
 	(struct xfont_info): New structure.
 	(xfont_query_font): Deleted.
-	(xfont_find_ccl_program): Renamed from x_find_ccl_program and
+	(xfont_find_ccl_program): Rename from x_find_ccl_program and
 	moved from xterm.c.
 	(xfont_driver): Adjust for the change of struct font_driver.
 	(compare_font_names): New function.
-	(xfont_list_pattern): Sort font names case insensitively.  Make
-	font_entity by calling font_make_entity.  Avoid auto-scaled fonts.
+	(xfont_list_pattern): Sort font names case insensitively.
+	Make font_entity by calling font_make_entity.  Avoid auto-scaled fonts.
 	(xfont_list): Return a list, not vector.
 	(xfont_match): If the font doesn't have QCname property, generate
 	a name from the other font properties.
@@ -18334,12 +18363,12 @@
 	(x_draw_composite_glyph_string_foreground): Likewise.
 	(x_draw_glyph_string): Likewise.  Use font->underline_position and
 	font->underline_thickness.
-	(x_new_font): Renamed from x_new_fontset2.
+	(x_new_font): Rename from x_new_fontset2.
 	(x_new_fontset, x_get_font_info, x_list_fonts): Deleted.
 	(x_check_font): Call `check' method of a font driver.
 	(x_font_min_bounds, x_compute_min_glyph_bounds, x_load_font)
 	(x_query_font, x_get_font_repertory): Deleted.
-	(x_find_ccl_program): Renamed and moved to xfont.c.
+	(x_find_ccl_program): Rename and moved to xfont.c.
 	(x_redisplay_interface): Adjust for the change of `struct
 	redisplay_interface'.
 
@@ -18364,7 +18393,7 @@
 	(w32font_close): Don't free struct font.  Adjusted for the change
 	of struct w32font_info.
 	(w32font_encode_char, w32font_text_extents, w32font_draw):
-	Adjusted for the change of struct w32font_info.
+	Adjust for the change of struct w32font_info.
 	(w32font_draw): Likewise.
 	(w32font_list_internal): Return a list, not vector.
 	(w32font_open_internal): Change the 4th arg to font-object.
@@ -19766,11 +19795,11 @@
 	* xterm.c (handle_one_xevent): For Gtk+ and ConfigureNotify, call
 	xg_frame_resized when the event is for the edit widget.
 
-	* gtkutil.h (xg_frame_resized): Renamed from xg_resize_widgets.
+	* gtkutil.h (xg_frame_resized): Rename from xg_resize_widgets.
 
 	* gtkutil.c (xg_resize_outer_widget): Only do one of set_geometry or
 	set_char_size.
-	(xg_frame_resized): Renamed from xg_resize_widgets.  Remove all
+	(xg_frame_resized): Rename from xg_resize_widgets.  Remove all
 	operations on widgets here.  Just set frame size if needed.
 	(flush_and_sync, x_wm_size_hint_off, xg_pack_tool_bar): New functions.
 	(xg_frame_set_char_size): Call x_wm_size_hint_off before resizing.
@@ -22166,7 +22195,7 @@
 	* font.c (enum xlfd_field_index): Rename XLFD_XXX_SIZE_INDEX to
 	XLFD_XXX_INDEX.
 	(enum xlfd_field_mask): New enum.
-	(intern_font_field): Changed argument.  Change caller.  If digits
+	(intern_font_field): Change argument.  Change caller.  If digits
 	are followed by non-digits, return a symbol.
 	(font_expand_wildcards): New function.
 	(font_parse_xlfd): Fix wildcard handling.
@@ -24906,8 +24935,8 @@
 	(DECODE_EMACS_MULE_COMPOSITION_RULE_20): Rename from
 	DECODE_EMACS_MULE_COMPOSITION_RULE.  Change caller.
 	(DECODE_EMACS_MULE_COMPOSITION_RULE_21): New macro.
-	(DECODE_EMACS_MULE_21_COMPOSITION): Call
-	DECODE_EMACS_MULE_COMPOSITION_RULE_21.  Produce correct annotation
+	(DECODE_EMACS_MULE_21_COMPOSITION):
+	Call DECODE_EMACS_MULE_COMPOSITION_RULE_21.  Produce correct annotation
 	sequence.
 	(decode_coding_emacs_mule): Handle composition correctly.  Rewind
 	`src' and `consumed_chars' correctly before calling emacs_mule_char.
@@ -25328,7 +25357,7 @@
 	(SUB_CHAR_TABLE_P): Check PVEC_CHAR_TABLE.
 	(GC_SUB_CHAR_TABLE_P): New macro.
 	(Fencode_coding_string, Fdecode_coding_string): Update EXFUN.
-	(code_convert_string_norecord): Deleted extern.
+	(code_convert_string_norecord): Delete extern.
 	(init_character_once, syms_of_character, init_charset)
 	(syms_of_composite, Qeq, Fmakehash, insert_from_gap): Extern them.
 

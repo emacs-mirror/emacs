@@ -143,8 +143,6 @@ static pthread_mutex_t alloc_mutex;
 
 static __malloc_size_t bytes_used_when_full;
 
-static __malloc_size_t bytes_used_when_reconsidered;
-
 /* Mark, unmark, query mark bit of a Lisp string.  S must be a pointer
    to a struct Lisp_String.  */
 
@@ -1140,6 +1138,8 @@ static void * (*old_malloc_hook) (size_t, const void *);
 static void * (*old_realloc_hook) (void *,  size_t, const void*);
 static void (*old_free_hook) (void*, const void*);
 
+static __malloc_size_t bytes_used_when_reconsidered;
+
 /* This function is used as the hook for free to call.  */
 
 static void
@@ -1491,8 +1491,7 @@ mark_interval_tree (register INTERVAL tree)
    can't create number objects in macros.  */
 #ifndef make_number
 Lisp_Object
-make_number (n)
-     EMACS_INT n;
+make_number (EMACS_INT n)
 {
   Lisp_Object obj;
   obj.s.val = n;
@@ -5270,7 +5269,7 @@ mark_char_table (struct Lisp_Vector *ptr)
     {
       Lisp_Object val = ptr->contents[i];
 
-      if (INTEGERP (val) || SYMBOLP (val) && XSYMBOL (val)->gcmarkbit)
+      if (INTEGERP (val) || (SYMBOLP (val) && XSYMBOL (val)->gcmarkbit))
 	continue;
       if (SUB_CHAR_TABLE_P (val))
 	{

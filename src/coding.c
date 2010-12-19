@@ -1607,10 +1607,9 @@ static int
 detect_coding_utf_16 (struct coding_system *coding,
 		      struct coding_detection_info *detect_info)
 {
-  const unsigned char *src = coding->source, *src_base = src;
+  const unsigned char *src = coding->source;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
-  int consumed_chars = 0;
   int c1, c2;
 
   detect_info->checked |= CATEGORY_MASK_UTF_16;
@@ -2277,7 +2276,6 @@ emacs_mule_char (struct coding_system *coding, const unsigned char *src,
 #define DECODE_EMACS_MULE_21_COMPOSITION()				\
   do {									\
     enum composition_method method = c - 0xF2;				\
-    int *charbuf_base = charbuf;					\
     int nbytes, nchars;							\
     									\
     ONE_MORE_BYTE (c);							\
@@ -2633,7 +2631,6 @@ decode_coding_emacs_mule (struct coding_system *coding)
 	}
       continue;
 
-    retry:
       src = src_base;
       consumed_chars = consumed_chars_base;
       continue;
@@ -6260,8 +6257,9 @@ detect_eol (const unsigned char *source, EMACS_INT src_bytes,
 		{
 		  /* The found type is different from what found before.
 		     Allow for stray ^M characters in DOS EOL files.  */
-		  if (eol_seen == EOL_SEEN_CR && this_eol == EOL_SEEN_CRLF
-		      || eol_seen == EOL_SEEN_CRLF && this_eol == EOL_SEEN_CR)
+		  if ((eol_seen == EOL_SEEN_CR && this_eol == EOL_SEEN_CRLF)
+		      || (eol_seen == EOL_SEEN_CRLF
+			  && this_eol == EOL_SEEN_CR))
 		    eol_seen = EOL_SEEN_CRLF;
 		  else
 		    {
@@ -6276,42 +6274,40 @@ detect_eol (const unsigned char *source, EMACS_INT src_bytes,
 	}
     }
   else
-    {
-      while (src < src_end)
-	{
-	  c = *src++;
-	  if (c == '\n' || c == '\r')
-	    {
-	      int this_eol;
+    while (src < src_end)
+      {
+	c = *src++;
+	if (c == '\n' || c == '\r')
+	  {
+	    int this_eol;
 
-	      if (c == '\n')
-		this_eol = EOL_SEEN_LF;
-	      else if (src >= src_end || *src != '\n')
-		this_eol = EOL_SEEN_CR;
-	      else
-		this_eol = EOL_SEEN_CRLF, src++;
+	    if (c == '\n')
+	      this_eol = EOL_SEEN_LF;
+	    else if (src >= src_end || *src != '\n')
+	      this_eol = EOL_SEEN_CR;
+	    else
+	      this_eol = EOL_SEEN_CRLF, src++;
 
-	      if (eol_seen == EOL_SEEN_NONE)
-		/* This is the first end-of-line.  */
-		eol_seen = this_eol;
-	      else if (eol_seen != this_eol)
-		{
-		  /* The found type is different from what found before.
-		     Allow for stray ^M characters in DOS EOL files.  */
-		  if (eol_seen == EOL_SEEN_CR && this_eol == EOL_SEEN_CRLF
-		      || eol_seen == EOL_SEEN_CRLF && this_eol == EOL_SEEN_CR)
-		    eol_seen = EOL_SEEN_CRLF;
-		  else
-		    {
-		      eol_seen = EOL_SEEN_LF;
-		      break;
-		    }
-		}
-	      if (++total == MAX_EOL_CHECK_COUNT)
-		break;
-	    }
-	}
-    }
+	    if (eol_seen == EOL_SEEN_NONE)
+	      /* This is the first end-of-line.  */
+	      eol_seen = this_eol;
+	    else if (eol_seen != this_eol)
+	      {
+		/* The found type is different from what found before.
+		   Allow for stray ^M characters in DOS EOL files.  */
+		if ((eol_seen == EOL_SEEN_CR && this_eol == EOL_SEEN_CRLF)
+		    || (eol_seen == EOL_SEEN_CRLF && this_eol == EOL_SEEN_CR))
+		  eol_seen = EOL_SEEN_CRLF;
+		else
+		  {
+		    eol_seen = EOL_SEEN_LF;
+		    break;
+		  }
+	      }
+	    if (++total == MAX_EOL_CHECK_COUNT)
+	      break;
+	  }
+      }
   return eol_seen;
 }
 
