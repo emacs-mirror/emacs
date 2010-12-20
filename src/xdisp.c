@@ -10317,10 +10317,6 @@ build_desired_tool_bar_string (struct frame *f)
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int hmargin, vmargin, relief, idx, end;
 
-      /* Ignore separator items.  */
-      if (EQ (PROP (TOOL_BAR_ITEM_TYPE), Qt))
-	continue;
-
       /* If image is a vector, choose the image according to the
 	 button state.  */
       image = PROP (TOOL_BAR_ITEM_IMAGES);
@@ -10495,7 +10491,7 @@ display_tool_bar_line (struct it *it, int height)
 	      row->used[TEXT_AREA] = n_glyphs_before;
 	      *it = it_before;
 	      /* If this is the only glyph on this line, it will never fit on the
-		 toolbar, so skip it.  But ensure there is at least one glyph,
+		 tool-bar, so skip it.  But ensure there is at least one glyph,
 		 so we don't accidentally disable the tool-bar.  */
 	      if (n_glyphs_before == 0
 		  && (it->vpos > 0 || IT_STRING_CHARPOS (*it) < it->end_charpos-1))
@@ -26885,7 +26881,7 @@ vertical margin.  */);
   tool_bar_button_relief = DEFAULT_TOOL_BAR_BUTTON_RELIEF;
 
   DEFVAR_LISP ("tool-bar-style", &Vtool_bar_style,
-    doc: /* *Tool bar style to use.
+    doc: /* Tool bar style to use.
 It can be one of
  image            - show images only
  text             - show text only

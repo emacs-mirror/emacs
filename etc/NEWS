@@ -692,9 +692,7 @@ input.
 
 ** Tool-bars can display separators.
 Tool-bar separators are handled like menu separators in menu-bar maps,
-i.e. with entries of the form `(menu-item "--")'.
-
-Currently, tool-bar separators are only displayed on GTK.
+i.e. via menu entries of the form `(menu-item "--")'.
 
 ** Image API
 

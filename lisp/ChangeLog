@@ -1,3 +1,17 @@
+2010-12-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/diff.el (diff-better-file-name): Function deleted;
+	abbreviating file name creates problems with shell-quote-argument.
+	(diff-no-select): Just use expand-file-name.
+
+	* tool-bar.el (tool-bar--image-expression): New function.
+	(tool-bar-local-item, tool-bar--image-exp): Use it.
+	(tool-bar-setup): Initialize tool-bar-separator-image-expression.
+	Use :enable instead of :visible to avoid changing the tool-bar
+	configuration unnecessarily.
+
+	* info.el (info-tool-bar-map): Add separators.
+
 2010-12-17  Ken Brown  <kbrown@cornell.edu>
 
 	* loadup.el: Use version numbers in Cygwin build.

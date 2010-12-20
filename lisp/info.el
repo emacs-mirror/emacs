@@ -3769,14 +3769,17 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 				   :rtl "left-arrow"
 				   :label "Forward"
 				   :vert-only t)
+    (define-key-after map [separator-1] menu-bar-separator)
     (tool-bar-local-item-from-menu 'Info-prev "prev-node" map Info-mode-map
 				   :rtl "next-node")
     (tool-bar-local-item-from-menu 'Info-next "next-node" map Info-mode-map
 				   :rtl "prev-node")
     (tool-bar-local-item-from-menu 'Info-up "up-node" map Info-mode-map
 				   :vert-only t)
+    (define-key-after map [separator-2] menu-bar-separator)
     (tool-bar-local-item-from-menu 'Info-top-node "home" map Info-mode-map)
     (tool-bar-local-item-from-menu 'Info-goto-node "jump-to" map Info-mode-map)
+    (define-key-after map [separator-3] menu-bar-separator)
     (tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map
 				   :label "Index Search")
     (tool-bar-local-item-from-menu 'Info-search "search" map Info-mode-map)

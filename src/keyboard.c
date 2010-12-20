@@ -212,6 +212,12 @@ Lisp_Object Vprefix_help_command;
 /* List of items that should move to the end of the menu bar.  */
 Lisp_Object Vmenu_bar_final_items;
 
+/* Expression to evaluate for the tool bar separator image.
+   This is used for build_desired_tool_bar_string only.  For GTK, we
+   use GTK tool bar seperators.  */
+
+Lisp_Object Vtool_bar_separator_image_expression;
+
 /* Non-nil means show the equivalent key-binding for
    any M-x command that has one.
    The value can be a length of time to show the message for.
@@ -8294,6 +8300,15 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       if (menu_separator_name_p (SDATA (caption)))
 	{
 	  PROP (TOOL_BAR_ITEM_TYPE) = Qt;
+#if !defined (USE_GTK) && !defined (HAVE_NS)
+	  /* If we use build_desired_tool_bar_string to render the
+	     tool bar, the separator is rendered as an image.  */
+	  PROP (TOOL_BAR_ITEM_IMAGES)
+	    = menu_item_eval_property (Vtool_bar_separator_image_expression);
+	  PROP (TOOL_BAR_ITEM_ENABLED_P) = Qnil;
+	  PROP (TOOL_BAR_ITEM_SELECTED_P) = Qnil;
+	  PROP (TOOL_BAR_ITEM_CAPTION) = Qnil;
+#endif
 	  return 1;
 	}
       return 0;
@@ -12150,6 +12165,12 @@ might happen repeatedly and make Emacs nonfunctional.  */);
 	       doc: /* List of menu bar items to move to the end of the menu bar.
 The elements of the list are event types that may have menu bar bindings.  */);
   Vmenu_bar_final_items = Qnil;
+
+  DEFVAR_LISP ("tool-bar-separator-image-expression", &Vtool_bar_separator_image_expression,
+    doc: /* Expression evaluating to the image spec for a tool-bar separator.
+This is used internally by graphical displays that do not render
+tool-bar separators natively.  Otherwise it is unused (e.g. on GTK).  */);
+  Vtool_bar_separator_image_expression = Qnil;
 
   DEFVAR_KBOARD ("overriding-terminal-local-map",
 		 Voverriding_terminal_local_map,

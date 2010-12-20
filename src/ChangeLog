@@ -1,3 +1,12 @@
+2010-12-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (Vtool_bar_separator_image_expression): New variable.
+	(parse_tool_bar_item): Use it to obtain image separators for
+	displays not using native tool-bar separators.
+
+	* xdisp.c (build_desired_tool_bar_string): Don't handle separators
+	specially, since this is now done in parse_tool_bar_item.
+
 2010-12-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Minor clean up to silence some gcc warnings.

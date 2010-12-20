@@ -1,3 +1,7 @@
+2010-12-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/separator.xpm: Tweak colors.
+
 2010-12-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Mention new Tramp method "ksu".
