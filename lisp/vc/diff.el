@@ -110,18 +110,10 @@ specified in `diff-switches' are passed to the diff command."
           tempfile))
     (file-local-copy file-or-buf)))
 
-(defun diff-better-file-name (file)
-  (if (bufferp file) file
-    (let ((rel (file-relative-name file))
-          (abbr (abbreviate-file-name (expand-file-name file))))
-      (if (< (length abbr) (length rel))
-          abbr
-        rel))))
-
 (defun diff-no-select (old new &optional switches no-async buf)
   ;; Noninteractive helper for creating and reverting diff buffers
-  (setq new (diff-better-file-name new)
-	old (diff-better-file-name old))
+  (unless (bufferp new) (setq new (expand-file-name new)))
+  (unless (bufferp old) (setq old (expand-file-name old)))
   (or switches (setq switches diff-switches)) ; If not specified, use default.
   (unless (listp switches) (setq switches (list switches)))
   (or buf (setq buf (get-buffer-create "*Diff*")))
