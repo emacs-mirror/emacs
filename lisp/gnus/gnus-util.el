@@ -1983,16 +1983,21 @@ empty directories from OLD-PATH."
   "Rescale IMAGE to SIZE if possible.
 SIZE is in format (WIDTH . HEIGHT). Return a new image.
 Sizes are in pixels."
-  (when (fboundp 'imagemagick-types)
+  (if (or (not (fboundp 'imagemagick-types))
+	  (not (get-buffer-window (current-buffer))))
+      image
     (let ((new-width (car size))
           (new-height (cdr size)))
-      (unless (= (cdr (image-size image t)) new-height)
-        (setcdr image (plist-put (cdr image) :type 'imagemagick))
-        (setcdr image (plist-put (cdr image) :height new-height)))
-      (unless (= (car (image-size image t)) new-width)
-        (setcdr image (plist-put (cdr image) :type 'imagemagick))
-        (setcdr image (plist-put (cdr image) :width new-width)))))
-  image)
+      (when (> (cdr (image-size image t)) new-height)
+        (setq image (or (create-image (plist-get (cdr image) :data) 'imagemagick t
+                                      :height new-height)
+                        image)))
+      (when (> (car (image-size image t)) new-width)
+        (setq image (or
+                   (create-image (plist-get (cdr image) :data) 'imagemagick t
+                                 :width new-width)
+                   image)))
+      image)))
 
 (defun gnus-list-memq-of-list (elements list)
   "Return non-nil if any of the members of ELEMENTS are in LIST."

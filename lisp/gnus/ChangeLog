@@ -14,11 +14,6 @@
 
 	* nnimap.el (nnimap-retrieve-headers): Remove CRLF from the headers.
 
-2010-12-17  Julien Danjou  <julien@danjou.info>
-
-	* gnus-util.el (gnus-rescale-image): Allow to resize images even if
-	they are from file. Can also scale up.
-
 2010-12-17  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* gnus-sum.el (gnus-summary-refer-thread): Simplify code. Restore
