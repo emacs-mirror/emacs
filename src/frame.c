@@ -4602,15 +4602,7 @@ This variable is local to the current terminal and cannot be buffer-local.  */);
 You should set this variable to tell Emacs how your window manager
 handles focus, since there is no way in general for Emacs to find out
 automatically.  See also `mouse-autoselect-window'.  */);
-#ifdef HAVE_WINDOW_SYSTEM
-#if defined(HAVE_NTGUI) || defined(HAVE_NS)
   focus_follows_mouse = 0;
-#else
-  focus_follows_mouse = 1;
-#endif
-#else
-  focus_follows_mouse = 0;
-#endif
 
   staticpro (&Vframe_list);
 

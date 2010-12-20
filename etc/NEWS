@@ -222,6 +222,8 @@ the remote file-name cache is used for read access.
 ** The standalone programs lib-src/digest-doc and sorted-doc have been
 replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
+** The variable `focus-follows-mouse' now always defaults to nil.
+
 
 * Editing Changes in Emacs 24.1
 

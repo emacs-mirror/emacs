@@ -1,5 +1,9 @@
 2010-12-20  Chong Yidong  <cyd@stupidchicken.com>
 
+	* frame.c (focus_follows_mouse): Default to 0 (Bug#7269).
+
+2010-12-20  Chong Yidong  <cyd@stupidchicken.com>
+
 	* keyboard.c (Vtool_bar_separator_image_expression): New variable.
 	(parse_tool_bar_item): Use it to obtain image separators for
 	displays not using native tool-bar separators.
