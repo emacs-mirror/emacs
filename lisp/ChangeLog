@@ -1,8 +1,10 @@
 2010-12-20  Chong Yidong  <cyd@stupidchicken.com>
 
-	* color.el: Move from gnus/.
+	* menu-bar.el (menu-bar-kill-ring-save): Make obsolete.
+	(menu-bar-edit-menu): Bind "Copy" to kill-ring-save.  Don't use
+	mouse-region-match.
 
-2010-12-20  Chong Yidong  <cyd@stupidchicken.com>
+	* color.el: Move from gnus/.
 
 	* vc/diff.el (diff-better-file-name): Function deleted.
 	abbreviating file names causes problems with shell-quote-argument.

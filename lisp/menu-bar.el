@@ -479,8 +479,7 @@
 (define-key menu-bar-edit-menu [clear]
   `(menu-item ,(purecopy "Clear") delete-region
 	      :enable (and mark-active
-			   (not buffer-read-only)
-			   (not (mouse-region-match)))
+			   (not buffer-read-only))
 	      :help
 	      ,(purecopy "Delete the text in region between mark and current position")))
 (defvar yank-menu (cons (purecopy "Select Yank") nil))
@@ -510,7 +509,7 @@
   ;; under X (for GNUstep).
   `(menu-item ,(purecopy "Copy") ,(if (featurep 'ns)
                                       'ns-copy-including-secondary
-                                    'menu-bar-kill-ring-save)
+                                    'kill-ring-save)
               :enable mark-active
               :help ,(purecopy "Copy text in region between mark and current position")
               :keys ,(purecopy (if (featurep 'ns)
@@ -534,11 +533,8 @@
 			     (consp buffer-undo-list)))
 	      :help ,(purecopy "Undo last operation")))
 
-(defun menu-bar-kill-ring-save (beg end)
-  (interactive "r")
-  (if (mouse-region-match)
-      (message "Selecting a region with the mouse does `copy' automatically")
-    (kill-ring-save beg end)))
+(define-obsolete-function-alias
+  'menu-bar-kill-ring-save 'kill-ring-save "24.1")
 
 ;; These are alternative definitions for the cut, paste and copy
 ;; menu items.  Use them if your system expects these to use the clipboard.
