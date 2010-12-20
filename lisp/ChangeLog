@@ -1,3 +1,7 @@
+2010-12-20  Leo  <sdl.web@gmail.com>
+
+	* help-fns.el (describe-variable): Fix 2010-12-17 change.
+
 2010-12-20  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-lazy-highlight-error): New variable.

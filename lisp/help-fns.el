@@ -639,7 +639,7 @@ it is displayed along with the global value."
 		(let ((from (point)))
 		  (terpri)
 		  (pp val)
-		  (if (< (point) (- 68 (line-beginning-position -1)))
+		  (if (< (point) (+ 68 (line-beginning-position 0)))
 		      (delete-region from (1+ from))
 		    (delete-region (1- from) from)))))
 	    (terpri)
