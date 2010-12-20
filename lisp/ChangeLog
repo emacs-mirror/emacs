@@ -1,5 +1,9 @@
 2010-12-20  Chong Yidong  <cyd@stupidchicken.com>
 
+	* color.el: Move from gnus/.
+
+2010-12-20  Chong Yidong  <cyd@stupidchicken.com>
+
 	* vc/diff.el (diff-better-file-name): Function deleted.
 	abbreviating file names causes problems with shell-quote-argument.
 	(diff-no-select): Just use expand-file-name.
