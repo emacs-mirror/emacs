@@ -1,5 +1,8 @@
 2010-12-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* help-fns.el (find-lisp-object-file-name): Locate .emacs from
+	.emacs.elc (Bug#7530).
+
 	* wid-edit.el (widget-image-find): Remove bogus :ascent spec from
 	image spec (Bug#7480).
 
