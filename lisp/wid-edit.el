@@ -637,8 +637,8 @@ extension (xpm, xbm, gif, jpg, or png) located in
 		specs)
 	   (dolist (elt widget-image-conversion)
 	     (dolist (ext (cdr elt))
-	       (push (list :type (car elt) :file (concat image ext)
-			   :ascent 'center) specs)))
+	       (push (list :type (car elt) :file (concat image ext))
+		     specs)))
  	   (find-image (nreverse specs))))
 	(t
 	 ;; Oh well.

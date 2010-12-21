@@ -1,3 +1,8 @@
+2010-12-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-image-find): Remove bogus :ascent spec from
+	image spec (Bug#7480).
+
 2010-12-21  Daiki Ueno  <ueno@unixuser.org>
 
 	* obsolete/pgg-parse.el, obsolete/pgg-pgp5.el, obsolete/pgg-pgp.el,
