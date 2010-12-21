@@ -1,3 +1,9 @@
+2010-12-21  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml1991.el (pgg-sign-region, pgg-encrypt-region): 
+	* gnus-art.el (pgg-snarf-keys-region): Autoload since PGG is now
+	obsolete in Emacs.
+
 2010-12-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-group.el (gnus-group-delete-articles): New command.

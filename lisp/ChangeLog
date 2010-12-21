@@ -1,3 +1,9 @@
+2010-12-21  Daiki Ueno  <ueno@unixuser.org>
+
+	* obsolete/pgg-parse.el, obsolete/pgg-pgp5.el, obsolete/pgg-pgp.el,
+	* obsolete/pgg-gpg.el, obsolete/pgg-def.el, obsolete/pgg.el: Move
+	from lisp/.
+
 2010-12-20  Leo  <sdl.web@gmail.com>
 
 	* dnd.el (dnd-get-local-file-name): Unhex of file name shall

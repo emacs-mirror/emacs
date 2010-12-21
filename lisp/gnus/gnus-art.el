@@ -8086,6 +8086,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 	  (Info-index-next 1)))
       nil)))
 
+(autoload 'pgg-snarf-keys-region "pgg")
 ;; Called after pgg-snarf-keys-region, which autoloads pgg.el.
 (declare-function pgg-display-output-buffer "pgg" (start end status))
 
