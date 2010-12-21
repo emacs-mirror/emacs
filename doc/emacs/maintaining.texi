@@ -2288,10 +2288,6 @@ details.
   You can also use the collection of tag names to complete a symbol
 name in the buffer.  @xref{Symbol Completion}.
 
-@ifnottex
-@include emerge-xtra.texi
-@end ifnottex
-
 @node EDE
 @section Emacs Development Environment
 @cindex EDE (Emacs Development Environment)
@@ -2354,6 +2350,10 @@ can add more files to it by typing @kbd{C-c . a}
 To build all the targets in the project, type @kbd{C-c . C}
 (@code{ede-compile-project}).  EDE uses the file types to guess how
 the target should be built.
+
+@ifnottex
+@include emerge-xtra.texi
+@end ifnottex
 
 @ignore
    arch-tag: b9d83dfb-82ea-4ff6-bab5-05a3617091fb
