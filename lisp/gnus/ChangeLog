@@ -1,8 +1,12 @@
 2010-12-21  Daiki Ueno  <ueno@unixuser.org>
 
-	* mml1991.el (pgg-sign-region, pgg-encrypt-region): 
+	* mml1991.el (pgg-sign-region, pgg-encrypt-region):
 	* gnus-art.el (pgg-snarf-keys-region): Autoload since PGG is now
 	obsolete in Emacs.
+
+2010-12-20  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el (gnus-rescale-image): Revert last change.
 
 2010-12-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -19,6 +23,11 @@
 	protocol has it.
 
 	* nnimap.el (nnimap-retrieve-headers): Remove CRLF from the headers.
+
+2010-12-17  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el (gnus-rescale-image): Allow to resize images even if
+	they are from file. Can also scale up.
 
 2010-12-17  Andrew Cohen  <cohen@andy.bu.edu>
 
