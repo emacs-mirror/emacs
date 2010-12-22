@@ -1,3 +1,8 @@
+2010-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (print, print_preprocess, print_object): Use a hash table
+	rather than a linear table for Vprint_number_table.
+
 2010-12-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (focus_follows_mouse): Default to 0 (Bug#7269).
