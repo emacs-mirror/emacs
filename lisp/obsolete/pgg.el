@@ -7,6 +7,7 @@
 ;; Symmetric encryption added by: Sascha Wilde <wilde@sha-bang.de>
 ;; Created: 1999/10/28
 ;; Keywords: PGP
+;; Obsolete-since: 24.1
 
 ;; This file is part of GNU Emacs.
 
