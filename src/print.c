@@ -156,12 +156,6 @@ Lisp_Object Vprint_continuous_numbering;
 int print_number_index;
 Lisp_Object Vprint_number_table;
 
-/* PRINT_NUMBER_OBJECT returns the I'th object in Vprint_number_table TABLE.
-   PRINT_NUMBER_STATUS returns the status of the I'th object in TABLE.
-   See the comment of the variable Vprint_number_table.  */
-#define PRINT_NUMBER_OBJECT(table,i) XVECTOR ((table))->contents[(i) * 2]
-#define PRINT_NUMBER_STATUS(table,i) XVECTOR ((table))->contents[(i) * 2 + 1]
-
 void print_interval (INTERVAL interval, Lisp_Object printcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
@@ -1314,7 +1308,7 @@ print_preprocess (Lisp_Object obj)
 		  && SYMBOLP (obj)
 		  && !SYMBOL_INTERNED_P (obj)))
 	    { /* OBJ appears more than once.	Let's remember that.  */
-	      if (EQ (Qt, num))
+	      if (!INTEGERP (num))
 		{
 		  print_number_index++;
 		  /* Negative number indicates it hasn't been printed yet.  */

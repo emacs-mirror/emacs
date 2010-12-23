@@ -1,5 +1,8 @@
 2010-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* print.c (PRINT_NUMBER_OBJECT, PRINT_NUMBER_STATUS): Remove.
+	(print_preprocess): Fix handling of uninterned symbols in last change.
+
 	* print.c (print, print_preprocess, print_object): Use a hash table
 	rather than a linear table for Vprint_number_table.
 

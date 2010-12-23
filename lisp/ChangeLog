@@ -1,3 +1,8 @@
+2010-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-output-docform): Fix up use of
+	print-number-table.
+
 2010-12-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help-fns.el (find-lisp-object-file-name): Locate .emacs from
