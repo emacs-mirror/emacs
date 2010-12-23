@@ -1,3 +1,9 @@
+2010-12-23  Julien Danjou  <julien@danjou.info>
+
+	* gnus-gravatar.el (gnus-gravatar-transform-address): Set
+	`mail-extr-ignore-realname-equals-mailbox-name' to nil when extracting
+	the addresses, otherwise we might misplaced the gravatar.
+
 2010-12-21  Daiki Ueno  <ueno@unixuser.org>
 
 	* mml1991.el (pgg-sign-region, pgg-encrypt-region):

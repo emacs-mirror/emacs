@@ -54,6 +54,7 @@ If nil, default to `gravatar-size'."
 (defun gnus-gravatar-transform-address (header category &optional force)
   (gnus-with-article-headers
     (let* ((mail-extr-disable-voodoo t)
+           (mail-extr-ignore-realname-equals-mailbox-name nil)
 	   (addresses (mail-extract-address-components
 		       (or (mail-fetch-field header) "") t))
 	   (gravatar-size (or gnus-gravatar-size gravatar-size))
