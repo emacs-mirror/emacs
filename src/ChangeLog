@@ -1,3 +1,7 @@
+2010-12-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_check_fullscreen): Fix pixel/character mixup.
+
 2010-12-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fformat_mode_line): Fix last change.
