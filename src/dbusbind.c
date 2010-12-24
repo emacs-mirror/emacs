@@ -1175,6 +1175,10 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
 		    SDATA (interface),
 		    SDATA (method));
 
+  /* Check dbus-registered-objects-table.  */
+  if (!HASH_TABLE_P (Vdbus_registered_objects_table))
+    XD_SIGNAL1 (build_string ("dbus.el is not loaded"));
+
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus);
 
@@ -1863,6 +1867,10 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
     wrong_type_argument (intern ("functionp"), handler);
   GCPRO6 (bus, service, path, interface, signal, handler);
 
+  /* Check dbus-registered-objects-table.  */
+  if (!HASH_TABLE_P (Vdbus_registered_objects_table))
+    XD_SIGNAL1 (build_string ("dbus.el is not loaded"));
+
   /* Retrieve unique name of service.  If service is a known name, we
      will register for the corresponding unique name, if any.  Signals
      are sent always with the unique name as sender.  Note: the unique
@@ -1975,6 +1983,10 @@ used for composing the returning D-Bus message.  */)
     wrong_type_argument (intern ("functionp"), handler);
   /* TODO: We must check for a valid service name, otherwise there is
      a segmentation fault.  */
+
+  /* Check dbus-registered-objects-table.  */
+  if (!HASH_TABLE_P (Vdbus_registered_objects_table))
+    XD_SIGNAL1 (build_string ("dbus.el is not loaded"));
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus);

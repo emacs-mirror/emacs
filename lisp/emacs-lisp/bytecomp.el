@@ -294,21 +294,12 @@ suppress.  For example, (not mapcar) will suppress warnings about mapcar."
 		 (set :menu-tag "Some"
                       ,@(mapcar (lambda (x) `(const ,x))
                                 byte-compile-warning-types))))
-;;;###autoload(put 'byte-compile-warnings 'safe-local-variable 'byte-compile-warnings-safe-p)
 
 ;;;###autoload
-(defun byte-compile-warnings-safe-p (x)
-  "Return non-nil if X is valid as a value of `byte-compile-warnings'."
-  (or (booleanp x)
-      (and (listp x)
-           (if (eq (car x) 'not) (setq x (cdr x))
-             t)
-	   (equal (mapcar
-		   (lambda (e)
-		     (when (memq e byte-compile-warning-types)
-		       e))
-		   x)
-		  x))))
+(put 'byte-compile-warnings 'safe-local-variable
+     (lambda (v)
+       (or (symbolp v)
+           (null (delq nil (mapcar (lambda (x) (not (symbolp x))) v))))))
 
 (defun byte-compile-warning-enabled-p (warning)
   "Return non-nil if WARNING is enabled, according to `byte-compile-warnings'."

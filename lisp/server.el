@@ -485,7 +485,7 @@ See variable `server-auth-dir' for details."
 	(error "The directory `%s' is unsafe" dir)))))
 
 ;;;###autoload
-(defun server-start (&optional leave-dead)
+(defun server-start (&optional leave-dead inhibit-prompt)
   "Allow this Emacs process to be a server for client processes.
 This starts a server communications subprocess through which
 client \"editors\" can send your editing commands to this Emacs
@@ -495,7 +495,10 @@ Emacs distribution as your standard \"editor\".
 Optional argument LEAVE-DEAD (interactively, a prefix arg) means just
 kill any existing server communications subprocess.
 
-If a server is already running, the server is not started.
+If a server is already running, restart it.  If clients are
+running, ask the user for confirmation first, unless optional
+argument INHIBIT-PROMPT is non-nil.
+
 To force-start a server, do \\[server-force-delete] and then
 \\[server-start]."
   (interactive "P")
@@ -503,12 +506,14 @@ To force-start a server, do \\[server-force-delete] and then
 	    ;; Ask the user before deleting existing clients---except
 	    ;; when we can't get user input, which may happen when
 	    ;; doing emacsclient --eval "(kill-emacs)" in daemon mode.
-	    (if (and (daemonp)
-		     (null (cdr (frame-list)))
-		     (eq (selected-frame) terminal-frame))
-		leave-dead
-	      (yes-or-no-p
-	       "The current server still has clients; delete them? ")))
+	    (cond
+	     ((and (daemonp)
+		   (null (cdr (frame-list)))
+		   (eq (selected-frame) terminal-frame))
+	      leave-dead)
+	     (inhibit-prompt t)
+	     (t (yes-or-no-p
+		 "The current server still has clients; delete them? "))))
     (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
 	   (server-file (expand-file-name server-name server-dir)))
       (when server-process
@@ -545,7 +550,7 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 	  (add-hook 'delete-frame-functions 'server-handle-delete-frame)
 	  (add-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
 	  (add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
-	  (add-hook 'kill-emacs-hook (lambda () (server-mode -1))) ;Cleanup upon exit.
+	  (add-hook 'kill-emacs-hook 'server-force-stop) ;Cleanup upon exit.
 	  (setq server-process
 		(apply #'make-network-process
 		       :name server-name
@@ -585,6 +590,11 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 			 (process-contact server-process :local))
 			" " (int-to-string (emacs-pid))
 			"\n" auth-key)))))))))
+
+(defun server-force-stop ()
+  "Kill all connections to the current server.
+This function is meant to be called from `kill-emacs-hook'."
+  (server-start t t))
 
 ;;;###autoload
 (defun server-force-delete (&optional name)

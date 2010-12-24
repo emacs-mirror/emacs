@@ -67,6 +67,9 @@ bootstrap_exe = ../src/bootstrap-emacs${EXEEXT}
 
 OTHER_FILES = @OTHER_FILES@
 
+# Only used by amdx86-64 and ibms390x GNU/Linux.
+CRT_DIR=@CRT_DIR@
+
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 

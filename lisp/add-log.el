@@ -701,7 +701,7 @@ current buffer to the complete file name.
 Optional arg BUFFER-FILE overrides `buffer-file-name'."
   ;; If we are called from a diff, first switch to the source buffer;
   ;; in order to respect buffer-local settings of change-log-default-name, etc.
-  (with-current-buffer (let ((buff (if (eq major-mode 'diff-mode)
+  (with-current-buffer (let ((buff (if (derived-mode-p 'diff-mode)
 				       (car (ignore-errors
 					     (diff-find-source-location))))))
 			 (if (buffer-live-p buff) buff
@@ -1173,7 +1173,7 @@ Has a preference of looking backwards."
 		((apply 'derived-mode-p add-log-c-like-modes)
 		 (or (c-cpp-define-name)
 		     (c-defun-name)))
-		((memq major-mode add-log-tex-like-modes)
+		((apply #'derived-mode-p add-log-tex-like-modes)
 		 (if (re-search-backward
 		      "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)"
 		      nil t)

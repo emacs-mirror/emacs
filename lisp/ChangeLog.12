@@ -12997,8 +12997,8 @@
 
 2006-02-13  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el: Remove history section.  If someone needs the it, it
-	can always be found in CVS.
+	* tumme.el: Remove history section.  If someone needs it, it can
+	always be found in CVS.
 
 2006-02-12  Mathias Dahl  <mathias.dahl@gmail.com>
 

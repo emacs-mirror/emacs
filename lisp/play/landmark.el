@@ -255,8 +255,8 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
   (lm-display-statistics)
   (use-local-map lm-mode-map)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(lm-font-lock-keywords t))
-  (toggle-read-only t)
+  (setq font-lock-defaults '(lm-font-lock-keywords t)
+	buffer-read-only t)
   (run-mode-hooks 'lm-mode-hook))
 
 
@@ -1700,5 +1700,4 @@ Use \\[describe-mode] for more info."
 
 (provide 'landmark)
 
-;; arch-tag: ae5031be-96e6-459e-a3df-1df53117d3f2
 ;;; landmark.el ends here

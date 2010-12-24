@@ -37,7 +37,7 @@
 ;; "xxx" stands for 3 digits, representing a return code.  Return
 ;; codes "# 000" and "# 001" are reserved for fallback implementation
 ;; with native shell commands; they are not used inside the server.  See
-;; <http://cvs.savannah.gnu.org/viewcvs/mc/vfs/README.fish?root=mc&view=markup>
+;; <http://cvs.savannah.gnu.org/viewvc/mc/vfs/README.fish?root=mc&view=markup>
 ;; for details of original specification.
 
 ;; The GNU Midnight Commander implements the original fish protocol

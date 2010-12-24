@@ -211,11 +211,12 @@ extern Lisp_Object QCname, Qfont_param;
 
 DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a frame.
-Value is t for a termcap frame (a character-only terminal),
-`x' for an Emacs frame that is really an X window,
-`w32' for an Emacs frame that is a window on MS-Windows display,
-`ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
-`pc' for a direct-write MS-DOS frame.
+Value is:
+  t for a termcap frame (a character-only terminal),
+ 'x' for an Emacs frame that is really an X window,
+ 'w32' for an Emacs frame that is a window on MS-Windows display,
+ 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ 'pc' for a direct-write MS-DOS frame.
 See also `frame-live-p'.  */)
      (object)
      Lisp_Object object;
@@ -259,10 +260,18 @@ return values.  */)
 
 DEFUN ("window-system", Fwindow_system, Swindow_system, 0, 1, 0,
        doc: /* The name of the window system that FRAME is displaying through.
-The value is a symbol---for instance, 'x' for X windows.
-The value is nil if Emacs is using a text-only terminal.
+The value is a symbol:
+ nil for a termcap frame (a character-only terminal),
+ 'x' for an Emacs frame that is really an X window,
+ 'w32' for an Emacs frame that is a window on MS-Windows display,
+ 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ 'pc' for a direct-write MS-DOS frame.
 
-FRAME defaults to the currently selected frame.  */)
+FRAME defaults to the currently selected frame.
+
+Use of this function as a predicate is deprecated.  Instead,
+use `display-graphic-p' or any of the other `display-*-p'
+predicates which report frame's specific UI-related capabilities.  */)
   (frame)
      Lisp_Object frame;
 {

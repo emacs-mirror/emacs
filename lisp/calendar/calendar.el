@@ -736,14 +736,16 @@ calendar package is already loaded).  Rather, use either
 (defcustom diary-iso-date-forms
   '((month "[-/]" day "[^-/0-9]")
     (year "[-/]" month "[-/]" day "[^0-9]")
-    (monthname "-" day "[^-0-9]")
-    (year "-" monthname "-" day "[^0-9]")
+    ;; Cannot allow [-/] as separators here, since it would also match
+    ;; the first element (bug#7377).
+    (monthname " *" day "[^-0-9]")
+    (year " *" monthname " *" day "[^0-9]")
     (dayname "\\W"))
     "List of pseudo-patterns describing the ISO style of dates.
-The defaults are: MONTH[-/]DAY; YEAR[-/]MONTH[-/]DAY; MONTHNAME-DAY;
-YEAR-MONTHNAME-DAY; DAYNAME.  Normally you should not customize this,
+The defaults are: MONTH[-/]DAY; YEAR[-/]MONTH[-/]DAY; MONTHNAME DAY;
+YEAR MONTHNAME DAY; DAYNAME.  Normally you should not customize this,
 but `diary-date-forms' (which see)."
-    :version "23.1"
+    :version "23.3"                     ; bug#7377
     :type '(repeat (choice (cons :tag "Backup"
                                :value (backup . nil)
                                (const backup)
@@ -2570,5 +2572,4 @@ If called by a mouse-event, pops up a menu with the result."
 ;; byte-compile-dynamic: t
 ;; End:
 
-;; arch-tag: 19c61596-c8fb-4c69-bcf1-7dd739919cd8
 ;;; calendar.el ends here

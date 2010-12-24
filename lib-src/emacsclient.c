@@ -1251,6 +1251,9 @@ set_local_socket ()
 	if (!tmpdir)
           {
 #ifdef DARWIN_OS
+#ifndef _CS_DARWIN_USER_TEMP_DIR
+#define _CS_DARWIN_USER_TEMP_DIR 65537
+#endif
             size_t n = confstr (_CS_DARWIN_USER_TEMP_DIR, NULL, (size_t) 0);
             if (n > 0)
               {

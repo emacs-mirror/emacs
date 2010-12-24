@@ -1,3 +1,7 @@
+2010-10-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-exp.el (org-export-visible): Fix typo in docstring.
+
 2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org-agenda.el (org-prefix-category-length)
@@ -5191,7 +5195,7 @@
 
 2008-10-26  James TD Smith  <ahktenzero@mohorovi.cc>
 
-	* org.el (org-add-log-setup): Only skip drawers if the are
+	* org.el (org-add-log-setup): Only skip drawers if they are
 	immediately after the scheduling keywords.
 
 	* org-clock.el (org-clock-in-switch-to-state): Allow this to be a

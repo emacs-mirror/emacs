@@ -1,3 +1,8 @@
+2010-11-19  Yuri Karaban  <tech@askold.net>  (tiny change)
+
+	* pop3.el (pop3-open-server): Read server greeting before starting TLS
+	negotiation.
+
 2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* nnmail.el (nnmail-fancy-expiry-targets): Fix typo in docstring.

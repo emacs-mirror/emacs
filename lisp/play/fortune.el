@@ -1,7 +1,7 @@
 ;;; fortune.el --- use fortune to create signatures
 
-;; Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;  2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;  2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Holger Schauer <Holger.Schauer@gmx.de>
 ;; Keywords: games utils mail
@@ -285,48 +285,41 @@ and choose the directory as the fortune-file."
 ;;; Display fortune
 (defun fortune-in-buffer (interactive &optional file)
   "Put a fortune cookie in the *fortune* buffer.
-
-INTERACTIVE is ignored.  Optional argument FILE,
-when supplied, specifies the file to choose the fortune from."
+INTERACTIVE is ignored.  Optional argument FILE, when supplied,
+specifies the file to choose the fortune from."
   (let ((fortune-buffer (or (get-buffer fortune-buffer-name)
 			    (generate-new-buffer fortune-buffer-name)))
 	(fort-file (expand-file-name
 		    (substitute-in-file-name
 		     (or file fortune-file)))))
     (with-current-buffer fortune-buffer
-      (toggle-read-only 0)
-      (erase-buffer)
-
-      (if fortune-always-compile
-	  (fortune-compile fort-file))
-
-      (apply 'call-process
-             fortune-program            ; program to call
-             nil fortune-buffer nil     ; INFILE BUFFER DISPLAY
-             (append (if (stringp fortune-program-options)
-                         (split-string fortune-program-options)
-                       fortune-program-options) (list fort-file))))))
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (if fortune-always-compile
+            (fortune-compile fort-file))
+        (apply 'call-process
+               fortune-program            ; program to call
+               nil fortune-buffer nil     ; INFILE BUFFER DISPLAY
+               (append (if (stringp fortune-program-options)
+                           (split-string fortune-program-options)
+                         fortune-program-options) (list fort-file)))))))
 
 ;;;###autoload
 (defun fortune (&optional file)
   "Display a fortune cookie.
-
 If called with a prefix asks for the FILE to choose the fortune from,
 otherwise uses the value of `fortune-file'.  If you want to have fortune
 choose from a set of files in a directory, call interactively with prefix
 and choose the directory as the fortune-file."
-  (interactive
-    (list
-     (if current-prefix-arg
-	 (fortune-ask-file)
-       fortune-file)))
+  (interactive (list (if current-prefix-arg
+                         (fortune-ask-file)
+                       fortune-file)))
   (fortune-in-buffer t file)
   (switch-to-buffer (get-buffer fortune-buffer-name))
-  (toggle-read-only 1))
+  (setq buffer-read-only t))
 
 
 ;;; Provide ourselves.
 (provide 'fortune)
 
-;; arch-tag: a1e4cb8a-3792-40e7-86a7-fc75ce094bcc
 ;;; fortune.el ends here

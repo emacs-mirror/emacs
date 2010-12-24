@@ -312,7 +312,7 @@ a top-level keymap, `text-scale-increase' or
       (when step
 	(text-scale-increase step)
 	(setq inc 1 first nil)
-	(setq ev (read-event))))
+	(setq ev (read-event "+,-,0 for further adjustment: "))))
     (push ev unread-command-events)))
 
 

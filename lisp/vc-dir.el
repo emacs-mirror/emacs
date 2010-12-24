@@ -188,9 +188,18 @@ See `run-hooks'."
     (define-key map [diff]
       '(menu-item "Compare with Base Version" vc-diff
 		  :help "Compare file set with the base version"))
+    (define-key map [logo]
+      '(menu-item "Show Outgoing Log" vc-log-outgoing
+		  :help "Show a log of changes that will be sent with a push operation"))
+    (define-key map [logi]
+      '(menu-item "Show Incoming Log" vc-log-incoming
+		  :help "Show a log of changes that will be received with a pull operation"))
     (define-key map [log]
-     '(menu-item "Show history" vc-print-log
-     :help "List the change log of the current file set in a window"))
+      '(menu-item "Show history" vc-print-log
+		  :help "List the change log of the current file set in a window"))
+    (define-key map [rlog]
+      '(menu-item "Show Top of the Tree History " vc-print-root-log
+		  :help "List the change log for the current tree in a window"))
     ;; VC commands.
     (define-key map [sepvccmd] '("--"))
     (define-key map [update]
@@ -263,6 +272,7 @@ See `run-hooks'."
     (define-key map [mouse-2] 'vc-dir-toggle-mark)
     (define-key map [follow-link] 'mouse-face)
     (define-key map "x" 'vc-dir-hide-up-to-date)
+    (define-key map [?\C-k] 'vc-dir-kill-line)
     (define-key map "S" 'vc-dir-search) ;; FIXME: Maybe use A like dired?
     (define-key map "Q" 'vc-dir-query-replace-regexp)
     (define-key map (kbd "M-s a C-s")   'vc-dir-isearch)
@@ -738,12 +748,11 @@ To continue searching for next match, use command \\[tags-loop-continue]."
 
 (defun vc-dir-query-replace-regexp (from to &optional delimited)
   "Do `query-replace-regexp' of FROM with TO, on all marked files.
-For marked directories, use the files displayed from those directories.
 If a directory is marked, then use the files displayed for that directory.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue]."
-  ;; FIXME: this is almost a copy of `dired-do-replace-regexp'.  This
+  ;; FIXME: this is almost a copy of `dired-do-query-replace-regexp'.  This
   ;; should probably be made generic and used in both places instead of
   ;; duplicating it here.
   (interactive
@@ -963,7 +972,8 @@ specific headers."
    (propertize "VC backend : " 'face 'font-lock-type-face)
    (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
    (propertize "Working dir: " 'face 'font-lock-type-face)
-   (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
+   (propertize (format "%s\n" (abbreviate-file-name dir))
+               'face 'font-lock-variable-name-face)
    ;; Then the backend specific ones.
    (vc-call-backend backend 'dir-extra-headers dir)
    "\n"))
@@ -1100,6 +1110,13 @@ outside of VC) and one wants to do some operation on it."
 	    (ewoc-delete vc-ewoc crt))
 	  (setq crt prev)))))
 
+(defun vc-dir-kill-line ()
+  "Remove the current line from display."
+  (interactive)
+  (let ((crt (ewoc-locate vc-ewoc))
+        (inhibit-read-only t))
+    (ewoc-delete vc-ewoc crt)))
+
 (defun vc-dir-printer (fileentry)
   (vc-call-backend vc-dir-backend 'dir-printer fileentry))
 
@@ -1169,7 +1186,8 @@ These are the commands available for use in the file status buffer:
 	  nil t nil nil)))))
   (unless backend
     (setq backend (vc-responsible-backend dir)))
-  (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir backend))
+  (let (pop-up-windows)		      ; based on cvs-examine; bug#6204
+    (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir backend)))
   (if (derived-mode-p 'vc-dir-mode)
       (vc-dir-refresh)
     ;; FIXME: find a better way to pass the backend to `vc-dir-mode'.

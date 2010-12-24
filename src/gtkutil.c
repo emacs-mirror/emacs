@@ -2936,6 +2936,23 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
   gtk_widget_show_all (menubar);
 }
 
+/* Callback called when the menu bar W is mapped.
+   Used to find the height of the menu bar if we didn't get it
+   after showing the widget.  */
+
+static void
+menubar_map_cb (GtkWidget *w, gpointer user_data)
+{
+  GtkRequisition req;
+  FRAME_PTR f = (FRAME_PTR) user_data;
+  gtk_widget_size_request (w, &req);
+  if (FRAME_MENUBAR_HEIGHT (f) != req.height) 
+    {
+      FRAME_MENUBAR_HEIGHT (f) = req.height;
+      xg_height_changed (f);
+    }
+}
+
 /* Recompute all the widgets of frame F, when the menu bar has been
    changed.  Value is non-zero if widgets were updated.  */
 
@@ -2958,10 +2975,19 @@ xg_update_frame_menubar (f)
                       FALSE, FALSE, 0);
   gtk_box_reorder_child (GTK_BOX (x->vbox_widget), x->menubar_widget, 0);
 
+  g_signal_connect (x->menubar_widget, "map", G_CALLBACK (menubar_map_cb), f);
   gtk_widget_show_all (x->menubar_widget);
   gtk_widget_size_request (x->menubar_widget, &req);
-  FRAME_MENUBAR_HEIGHT (f) = req.height;
-  xg_height_changed (f);
+  /* If menu bar doesn't know its height yet, cheat a little so the frame
+     doesn't jump so much when resized later in menubar_map_cb.  */
+  if (req.height == 0)
+    req.height = 23;
+
+  if (FRAME_MENUBAR_HEIGHT (f) != req.height)
+    {
+      FRAME_MENUBAR_HEIGHT (f) = req.height;
+      xg_height_changed (f);
+    }
   UNBLOCK_INPUT;
 
   return 1;

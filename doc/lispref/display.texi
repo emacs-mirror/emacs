@@ -3890,6 +3890,13 @@ position as that text.  It is equivalent to using just @var{string},
 but it is done as a special case of marginal display (@pxref{Display
 Margins}).
 
+@item (left-fringe @var{bitmap} @r{[}@var{face}@r{]})
+@itemx (right-fringe @var{bitmap} @r{[}@var{face}@r{]})
+This display specification on any character of a line of text causes
+the specified @var{bitmap} be displayed in the left or right fringes
+for that line.  The optional @var{face} specifies the colors to be
+used for the bitmap.  @xref{Fringe Bitmaps}, for the details.
+
 @item (space-width @var{factor})
 This display specification affects all the space characters within the
 text that has the specification.  It displays all of these spaces
@@ -5877,6 +5884,14 @@ used for displaying @var{frame} (which defaults to the currently
 selected frame).  The list of possible symbols it returns is the same
 one documented for the variable @code{window-system} above.
 @end defun
+
+  Do @emph{not} use @code{window-system} and
+@code{initial-window-system} as predicates or boolean flag variables,
+if you want to write code that works differently on text terminals and
+graphic displays.  That is because @code{window-system} is not a good
+indicator of Emacs capabilities on a given display type.  Instead, use
+@code{display-graphic-p} or any of the other @code{display-*-p}
+predicates described in @ref{Display Feature Testing}.
 
 @defvar window-setup-hook
 This variable is a normal hook which Emacs runs after handling the

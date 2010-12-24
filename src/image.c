@@ -1094,10 +1094,6 @@ free_image (f, img)
       /* Free resources, then free IMG.  */
       img->type->free (f, img);
       xfree (img);
-
-      /* As display glyphs may still be referring to the image ID, we
-	 must garbage the frame (Bug#6426).  */
-      SET_FRAME_GARBAGED (f);
     }
 }
 
@@ -1544,7 +1540,12 @@ uncache_image (f, spec)
 {
   struct image *img = search_image_cache (f, spec, sxhash (spec, 0));
   if (img)
-    free_image (f, img);
+    {
+      free_image (f, img);
+      /* As display glyphs may still be referring to the image ID, we
+	 must garbage the frame (Bug#6426).  */
+      SET_FRAME_GARBAGED (f);
+    }
 }
 
 

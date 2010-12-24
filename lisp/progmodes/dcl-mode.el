@@ -409,7 +409,7 @@ A list of regexps that will trigger a reindent if the last letter
 is defined as dcl-electric-character.
 
 E.g.: if this list contains `endif', the key `f' is defined as
-dcl-electric-character and the you have just typed the `f' in
+dcl-electric-character and you have just typed the `f' in
 `endif', the line will be reindented."
   :type '(repeat regexp)
   :group 'dcl)

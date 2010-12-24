@@ -814,6 +814,11 @@ extern int font_put_frame_data P_ ((FRAME_PTR f,
 extern void *font_get_frame_data P_ ((FRAME_PTR f,
 				      struct font_driver *driver));
 
+extern void font_filter_properties (Lisp_Object font,
+				    Lisp_Object alist,
+				    const char *boolean_properties[],
+				    const char *non_boolean_properties[]);
+
 #ifdef HAVE_FREETYPE
 extern struct font_driver ftfont_driver;
 #endif	/* HAVE_FREETYPE */

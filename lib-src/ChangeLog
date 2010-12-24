@@ -1,3 +1,13 @@
+2010-11-27  Joe Matarazzo  <joe.matarazzo@gmail.com>  (tiny change)
+
+	* ebrowse.c (yylex): If end of input buffer encountered while
+	searching for a newline after "//", return YYEOF.  (Bug#7446)
+
+2010-11-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacsclient.c (set_local_socket) [DARWIN_OS]: Add fall-back
+	definition of _CS_DARWIN_USER_TEMP_DIR for Mac OS X 10.4 and older.
+
 2010-10-01  Glenn Morris  <rgm@gnu.org>
 
 	* emacsclient.c (set_local_socket) [DARWIN_OS]: Try as a fall-back

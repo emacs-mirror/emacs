@@ -1784,6 +1784,11 @@ yylex ()
             case '/':
 	      while (GET (c) && c != '\n')
 		;
+	      /* Don't try to read past the end of the input buffer if
+		 the file ends in a C++ comment without a newline.  */
+	      if (c == 0)
+		return YYEOF;
+
 	      INCREMENT_LINENO;
 	      break;
 

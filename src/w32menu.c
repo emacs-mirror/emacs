@@ -99,7 +99,7 @@ static int is_simple_dialog P_ ((Lisp_Object));
 static Lisp_Object simple_dialog_show P_ ((FRAME_PTR, Lisp_Object, Lisp_Object));
 #endif
 
-void w32_free_menu_strings P_((HWND));
+void w32_free_menu_strings P_ ((HWND));
 
 
 /* This is set nonzero after the user activates the menu bar, and set
@@ -1026,7 +1026,7 @@ w32_dialog_show (f, keymaps, title, header, error)
      Lisp_Object title, header;
      char **error;
 {
-  int i, nb_buttons=0;
+  int i, nb_buttons = 0;
   char dialog_name[6];
   int menu_item_selection;
 
@@ -1127,7 +1127,7 @@ w32_dialog_show (f, keymaps, title, header, error)
     /*  Frame title: 'Q' = Question, 'I' = Information.
         Can also have 'E' = Error if, one day, we want
         a popup for errors. */
-    if (NILP(header))
+    if (NILP (header))
       dialog_name[0] = 'Q';
     else
       dialog_name[0] = 'I';
@@ -1213,7 +1213,8 @@ w32_dialog_show (f, keymaps, title, header, error)
    anywhere in Emacs that uses the other specific dialog choices that
    MessageBox provides.  */
 
-static int is_simple_dialog (contents)
+static int
+is_simple_dialog (contents)
   Lisp_Object contents;
 {
   Lisp_Object options = XCDR (contents);
@@ -1249,7 +1250,8 @@ static int is_simple_dialog (contents)
   return !(CONSP (options));
 }
 
-static Lisp_Object simple_dialog_show (f, contents, header)
+static Lisp_Object
+simple_dialog_show (f, contents, header)
      FRAME_PTR f;
      Lisp_Object contents, header;
 {
@@ -1327,7 +1329,6 @@ name_is_separator (name)
      them like normal separators.  */
   return (*name == '\0' || start + 2 == name);
 }
-
 
 /* Indicate boundary between left and right.  */
 static int
@@ -1712,7 +1713,8 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
 #endif /* HAVE_MENUS */
 }
 
-void syms_of_w32menu ()
+void
+syms_of_w32menu ()
 {
   globals_of_w32menu ();
 
@@ -1734,9 +1736,10 @@ void syms_of_w32menu ()
 	variable initialized is 0 and directly from main when initialized
 	is non zero.
  */
-void globals_of_w32menu ()
+void
+globals_of_w32menu ()
 {
-	/* See if Get/SetMenuItemInfo functions are available.  */
+  /* See if Get/SetMenuItemInfo functions are available.  */
   HMODULE user32 = GetModuleHandle ("user32.dll");
   get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
   set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");

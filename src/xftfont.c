@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "character.h"
 #include "charset.h"
+#include "composite.h"
 #include "fontset.h"
 #include "font.h"
 #include "ftfont.h"
@@ -702,6 +703,23 @@ xftfont_draw (s, from, to, x, y, with_background)
   return len;
 }
 
+Lisp_Object
+xftfont_shape (Lisp_Object lgstring)
+{
+  struct font *font;
+  struct xftfont_info *xftfont_info;
+  FT_Face ft_face;
+  Lisp_Object val;
+
+  CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring), font);
+  xftfont_info = (struct xftfont_info *) font;
+  ft_face = XftLockFace (xftfont_info->xftfont);
+  xftfont_info->ft_size = ft_face->size;
+  val = ftfont_driver.shape (lgstring);
+  XftUnlockFace (xftfont_info->xftfont);
+  return val;
+}
+
 static int
 xftfont_end_for_frame (f)
      FRAME_PTR f;
@@ -796,6 +814,9 @@ syms_of_xftfont ()
   xftfont_driver.draw = xftfont_draw;
   xftfont_driver.end_for_frame = xftfont_end_for_frame;
   xftfont_driver.cached_font_ok = xftfont_cached_font_ok;
+#if defined (HAVE_M17N_FLT) && defined (HAVE_LIBOTF)
+  xftfont_driver.shape = xftfont_shape;
+#endif
 
   register_font_driver (&xftfont_driver, NULL);
 }

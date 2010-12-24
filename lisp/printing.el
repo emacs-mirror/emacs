@@ -1,7 +1,7 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -3453,12 +3453,7 @@ See `pr-ps-printer-alist'.")
 
 (defun pr-menu-bind ()
   "Install `printing' menu in the menubar.
-
-On Emacs 20, it replaces the Tools/Print menu by Tools/Printing menu.
-
-On Emacs 21 and 22, it replaces the File/Print* menu entries by File/Print
-menu.
-
+This replaces the File/Print* menu entries with a File/Print sub-menu.
 Calls `pr-update-menus' to adjust menus."
   (interactive)
   (pr-global-menubar pr-menu-spec)
@@ -6685,5 +6680,4 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 (provide 'printing)
 
 
-;; arch-tag: 9ce9ac3f-0f60-4370-900b-1943215d9d18
 ;;; printing.el ends here

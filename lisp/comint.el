@@ -340,13 +340,14 @@ This variable is buffer-local."
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 ;; Something called "perforce" uses "Enter password:".
 (defcustom comint-password-prompt-regexp
-  "\\(\\(Enter \\|[Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
+  "\\(\\([Ee]nter \\(?:same \\|the \\)?\\|[Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
 Kerberos \\|CVS \\|UNIX \\| SMB \\|LDAP \\|\\[sudo] \\|^\\)\
 \[Pp]assword\\( (again)\\)?\\|\
 pass phrase\\|\\(Enter \\|Repeat \\|Bad \\)?[Pp]assphrase\\)\
 \\(?:, try again\\)?\\(?: for [^:]+\\)?:\\s *\\'"
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
+  :version "23.3"
   :type 'regexp
   :group 'comint)
 
@@ -999,7 +1000,7 @@ See also `comint-read-input-ring'."
     (choose-completion-string completion buffer)))
 
 (defun comint-dynamic-list-input-ring ()
-  "List in help buffer the buffer's input history."
+  "Display a list of recent inputs entered into the current buffer."
   (interactive)
   (if (or (not (ring-p comint-input-ring))
 	  (ring-empty-p comint-input-ring))
@@ -2640,6 +2641,7 @@ updated using `comint-update-fence', if necessary."
 	(let ((inhibit-read-only t))
 	  (kill-region beg end yank-handler)
 	  (comint-update-fence))))))
+(set-advertised-calling-convention 'comint-kill-region '(beg end) "23.3")
 
 
 ;; Support for source-file processing commands.
@@ -2994,7 +2996,7 @@ Completes if after a filename.  See `comint-match-partial-filename' and
 This function is similar to `comint-replace-by-expanded-filename', except that
 it won't change parts of the filename already entered in the buffer; it just
 adds completion characters to the end of the filename.  A completions listing
-may be shown in a help buffer if completion is ambiguous.
+may be shown in a separate buffer if completion is ambiguous.
 
 Completion is dependent on the value of `comint-completion-addsuffix',
 `comint-completion-recexact' and `comint-completion-fignore', and the timing of
@@ -3081,11 +3083,11 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 
 (defun comint-replace-by-expanded-filename ()
   "Dynamically expand and complete the filename at point.
-Replace the filename with an expanded, canonicalized and completed replacement.
-\"Expanded\" means environment variables (e.g., $HOME) and `~'s are replaced
-with the corresponding directories.  \"Canonicalized\" means `..'  and `.' are
-removed, and the filename is made absolute instead of relative.  For expansion
-see `expand-file-name' and `substitute-in-file-name'.  For completion see
+Replace the filename with an expanded, canonicalized and
+completed replacement, i.e. substituting environment
+variables (e.g. $HOME), `~'s, `..', and `.', and making the
+filename absolute.  For expansion see `expand-file-name' and
+`substitute-in-file-name'.  For completion see
 `comint-dynamic-complete-filename'."
   (interactive)
   (let ((filename (comint-match-partial-filename)))
@@ -3096,15 +3098,16 @@ see `expand-file-name' and `substitute-in-file-name'.  For completion see
 
 (defun comint-dynamic-simple-complete (stub candidates)
   "Dynamically complete STUB from CANDIDATES list.
-This function inserts completion characters at point by completing STUB from
-the strings in CANDIDATES.  A completions listing may be shown in a help buffer
-if completion is ambiguous.
+This function inserts completion characters at point by
+completing STUB from the strings in CANDIDATES.  If completion is
+ambiguous, possibly show a completions listing in a separate
+buffer.
 
-Returns nil if no completion was inserted.
-Returns `sole' if completed with the only completion match.
-Returns `shortest' if completed with the shortest of the completion matches.
-Returns `partial' if completed as far as possible with the completion matches.
-Returns `listed' if a completion listing was shown.
+Return nil if no completion was inserted.
+Return `sole' if completed with the only completion match.
+Return `shortest' if completed with the shortest match.
+Return `partial' if completed as far as possible.
+Return `listed' if a completion listing was shown.
 
 See also `comint-dynamic-complete-filename'."
   (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
@@ -3152,7 +3155,7 @@ See also `comint-dynamic-complete-filename'."
 
 
 (defun comint-dynamic-list-filename-completions ()
-  "List in help buffer possible completions of the filename at point."
+  "Display a list of possible completions for the filename at point."
   (interactive)
   (let* ((completion-ignore-case read-file-name-completion-ignore-case)
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
@@ -3181,9 +3184,9 @@ See also `comint-dynamic-complete-filename'."
 (defvar comint-dynamic-list-completions-config nil)
 
 (defun comint-dynamic-list-completions (completions &optional common-substring)
-  "List in help buffer sorted COMPLETIONS.
+  "Display a list of sorted COMPLETIONS.
 The meaning of COMMON-SUBSTRING is the same as in `display-completion-list'.
-Typing SPC flushes the help buffer."
+Typing SPC flushes the completions buffer."
   (let ((window (get-buffer-window "*Completions*" 0)))
     (setq completions (sort completions 'string-lessp))
     (if (and (eq last-command this-command)

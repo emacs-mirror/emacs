@@ -1,7 +1,7 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs
 
-;; Copyright (C) 1988, 1994, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Maintainer: FSF
@@ -201,8 +201,8 @@ is non-nil."
   (gomoku-display-statistics)
   (use-local-map gomoku-mode-map)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(gomoku-font-lock-keywords t))
-  (toggle-read-only t)
+  (setq font-lock-defaults '(gomoku-font-lock-keywords t)
+	buffer-read-only t)
   (run-mode-hooks 'gomoku-mode-hook))
 
 ;;;
@@ -1213,5 +1213,4 @@ If the game is finished, this command requests for another game."
 
 (provide 'gomoku)
 
-;; arch-tag: b1b8205e-77fc-4597-b373-3ea2c04311eb
 ;;; gomoku.el ends here

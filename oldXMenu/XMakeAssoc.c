@@ -27,6 +27,7 @@ struct qelem {
  * meaningless (but cause no problems).  The queue in each association
  * bucket is sorted (lowest XId to highest XId).
  */
+void
 XMakeAssoc(dpy, table, x_id, data)
 	register Display *dpy;
 	register XAssocTable *table;

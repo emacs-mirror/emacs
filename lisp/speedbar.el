@@ -1,7 +1,8 @@
 ;;; speedbar --- quick access to files and tags in a frame
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -1128,9 +1129,9 @@ in the selected file.
     (setq font-lock-keywords nil) ;; no font-locking please
     (setq truncate-lines t)
     (make-local-variable 'frame-title-format)
-    (setq frame-title-format (concat "Speedbar " speedbar-version))
-    (setq case-fold-search nil)
-    (toggle-read-only 1)
+    (setq frame-title-format (concat "Speedbar " speedbar-version)
+	  case-fold-search nil
+	  buffer-read-only t)
     (speedbar-set-mode-line-format)
     ;; Add in our dframe hooks.
     (if speedbar-track-mouse-flag
@@ -1693,8 +1694,7 @@ variable `speedbar-obj-alist'."
     (speedbar-enable-update)))
 
 (defun speedbar-toggle-images ()
-  "Toggle use of images in the speedbar frame.
-Images are not available in Emacs 20 or earlier."
+  "Toggle use of images in the speedbar frame."
   (interactive)
   (setq speedbar-use-images (not speedbar-use-images))
   (speedbar-refresh))
@@ -4142,5 +4142,4 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 ;; run load-time hooks
 (run-hooks 'speedbar-load-hook)
 
-;; arch-tag: 4477e6d1-f78c-48b9-a503-387d3c9767d5
 ;;; speedbar ends here

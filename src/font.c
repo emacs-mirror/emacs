@@ -2821,6 +2821,14 @@ font_clear_cache (f, cache, driver)
 
 static Lisp_Object scratch_font_spec, scratch_font_prefer;
 
+/* Check each font-entity in VEC, and return a list of font-entities
+   that satisfy this condition:
+     (1) matches with SPEC and SIZE if SPEC is not nil, and
+     (2) doesn't match with any regexps in Vface_ignored_fonts (if non-nil).
+*/
+
+extern Lisp_Object Vface_ignored_fonts;
+
 Lisp_Object
 font_delete_unmatched (vec, spec, size)
      Lisp_Object vec, spec;
@@ -2833,6 +2841,29 @@ font_delete_unmatched (vec, spec, size)
   for (val = Qnil, i = ASIZE (vec) - 1; i >= 0; i--)
     {
       entity = AREF (vec, i);
+      if (! NILP (Vface_ignored_fonts))
+	{
+	  char name[256];
+	  Lisp_Object tail, regexp;
+
+	  if (font_unparse_xlfd (entity, 0, name, 256) >= 0)
+	    {
+	      for (tail = Vface_ignored_fonts; CONSP (tail); tail = XCDR (tail))
+		{
+		  regexp = XCAR (tail);
+		  if (STRINGP (regexp)
+		      && fast_c_string_match_ignore_case (regexp, name) >= 0)
+		    break;
+		}
+	      if (CONSP (tail))
+		continue;
+	    }
+	}
+      if (NILP (spec))
+	{
+	  val = Fcons (entity, val);
+	  continue;
+	}
       for (prop = FONT_WEIGHT_INDEX; prop < FONT_SIZE_INDEX; prop++)
 	if (INTEGERP (AREF (spec, prop))
 	    && ((XINT (AREF (spec, prop)) >> 8)
@@ -2932,8 +2963,10 @@ font_list_entities (frame, spec)
 	    ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
 	    XSETCDR (cache, Fcons (Fcons (copy, val), XCDR (cache)));
 	  }
-	if (ASIZE (val) > 0 && need_filtering)
-	  val = font_delete_unmatched (val, spec, size);
+	if (ASIZE (val) > 0
+	    && (need_filtering
+		|| ! NILP (Vface_ignored_fonts)))
+	  val = font_delete_unmatched (val, need_filtering ? spec : Qnil, size);
 	if (ASIZE (val) > 0)
 	  list = Fcons (val, list);
       }
@@ -3859,6 +3892,59 @@ font_get_frame_data (f, driver)
   if (! list)
     return NULL;
   return list->data;
+}
+
+
+/* Sets attributes on a font.  Any properties that appear in ALIST and
+   BOOLEAN_PROPERTIES or NON_BOOLEAN_PROPERTIES are set on the font.
+   BOOLEAN_PROPERTIES and NON_BOOLEAN_PROPERTIES are NULL-terminated
+   arrays of strings.  This function is intended for use by the font
+   drivers to implement their specific font_filter_properties.  */
+void
+font_filter_properties (font, alist, boolean_properties, non_boolean_properties)
+     Lisp_Object font;
+     Lisp_Object alist;
+     const char *boolean_properties[];
+     const char *non_boolean_properties[];
+{
+  Lisp_Object it;
+  int i;
+
+  /* Set boolean values to Qt or Qnil */
+  for (i = 0; boolean_properties[i] != NULL; ++i)
+    for (it = alist; ! NILP (it); it = XCDR (it))
+      {
+        Lisp_Object key = XCAR (XCAR (it));
+        Lisp_Object val = XCDR (XCAR (it));
+        char *keystr = SDATA (SYMBOL_NAME (key));
+
+        if (strcmp (boolean_properties[i], keystr) == 0)
+          {
+            const char *str = INTEGERP (val) ? (XINT (val) ? "true" : "false")
+	      : SYMBOLP (val) ? (const char *) SDATA (SYMBOL_NAME (val))
+	      : "true";
+
+            if (strcmp ("false", str) == 0 || strcmp ("False", str) == 0
+                || strcmp ("FALSE", str) == 0 || strcmp ("FcFalse", str) == 0
+                || strcmp ("off", str) == 0 || strcmp ("OFF", str) == 0
+                || strcmp ("Off", str) == 0)
+              val = Qnil;
+	    else
+              val = Qt;
+
+            Ffont_put (font, key, val);
+          }
+      }
+
+  for (i = 0; non_boolean_properties[i] != NULL; ++i)
+    for (it = alist; ! NILP (it); it = XCDR (it))
+      {
+        Lisp_Object key = XCAR (XCAR (it));
+        Lisp_Object val = XCDR (XCAR (it));
+        char *keystr = SDATA (SYMBOL_NAME (key));
+        if (strcmp (non_boolean_properties[i], keystr) == 0)
+          Ffont_put (font, key, val);
+      }
 }
 
 

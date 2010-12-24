@@ -55,8 +55,8 @@
 (defvar menu-bar-file-menu (make-sparse-keymap "File"))
 (define-key global-map [menu-bar file] (cons (purecopy "File") menu-bar-file-menu))
 
-;; This alias is for compatibility with 19.28 and before.
-(defvar menu-bar-files-menu menu-bar-file-menu)
+;; Only declared obsolete (and only made a proper alias) in 23.3.
+(define-obsolete-variable-alias 'menu-bar-files-menu 'menu-bar-file-menu "22.1")
 
 ;; This is referenced by some code below; it is defined in uniquify.el
 (defvar uniquify-buffer-name-style)
@@ -1997,5 +1997,4 @@ If FRAME is nil or not given, use the selected frame."
 
 (provide 'menu-bar)
 
-;; arch-tag: 6e6a3c22-4ec4-4d3d-8190-583f8ef94ced
 ;;; menu-bar.el ends here

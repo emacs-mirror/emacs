@@ -46,7 +46,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <windows.h>
 #ifdef __GNUC__
 /* This definition is missing from mingw32 headers. */
-extern BOOL WINAPI IsValidLocale(LCID, DWORD);
+extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 #endif
 
 #ifdef HAVE_LANGINFO_CODESET
@@ -167,7 +167,7 @@ new_child (void)
   child_process *cp;
   DWORD id;
 
-  for (cp = child_procs+(child_proc_count-1); cp >= child_procs; cp--)
+  for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
     if (!CHILD_ACTIVE (cp))
       goto Initialise;
   if (child_proc_count == MAX_CHILDREN)
@@ -175,7 +175,7 @@ new_child (void)
   cp = &child_procs[child_proc_count++];
 
  Initialise:
-  memset (cp, 0, sizeof(*cp));
+  memset (cp, 0, sizeof (*cp));
   cp->fd = -1;
   cp->pid = -1;
   cp->procinfo.hProcess = NULL;
@@ -267,7 +267,7 @@ find_child_pid (DWORD pid)
 {
   child_process *cp;
 
-  for (cp = child_procs+(child_proc_count-1); cp >= child_procs; cp--)
+  for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
     if (CHILD_ACTIVE (cp) && pid == cp->pid)
       return cp;
   return NULL;
@@ -398,7 +398,7 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   return TRUE;
 
  EH_Fail:
-  DebPrint (("create_child.CreateProcess failed: %ld\n", GetLastError()););
+  DebPrint (("create_child.CreateProcess failed: %ld\n", GetLastError ()););
   return FALSE;
 }
 
@@ -494,7 +494,7 @@ sys_wait (int *status)
     }
   else
     {
-      for (cp = child_procs+(child_proc_count-1); cp >= child_procs; cp--)
+      for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
 	/* some child_procs might be sockets; ignore them */
 	if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess
 	    && (cp->fd < 0 || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0))
@@ -891,7 +891,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 	escape_char = is_cygnus_app ? '"' : '\\';
     }
 
-  /* Cygwin apps needs quoting a bit more often */
+  /* Cygwin apps needs quoting a bit more often.  */
   if (escape_char == '"')
     sepchars = "\r\n\t\f '";
 
@@ -1241,7 +1241,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 count_children:
   /* Add handles of child processes.  */
   nc = 0;
-  for (cp = child_procs+(child_proc_count-1); cp >= child_procs; cp--)
+  for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
     /* Some child_procs might be sockets; ignore them.  Also some
        children may have died already, but we haven't finished reading
        the process output; ignore them too.  */
@@ -1719,7 +1719,7 @@ also loaded immediately if not already loaded.  If winsock is loaded,
 the winsock local hostname is returned (since this may be different from
 the value of `system-name' and should supplant it), otherwise t is
 returned to indicate winsock support is present.  */)
-  (load_now)
+     (load_now)
      Lisp_Object load_now;
 {
   int have_winsock;
@@ -1797,7 +1797,7 @@ DEFUN ("w32-long-file-name", Fw32_long_file_name, Sw32_long_file_name,
        doc: /* Return the long file name version of the full path of FILENAME.
 If FILENAME does not exist, return nil.
 All path elements in FILENAME are converted to their long names.  */)
-  (filename)
+     (filename)
      Lisp_Object filename;
 {
   char longname[ MAX_PATH ];
@@ -1835,7 +1835,7 @@ PRIORITY should be one of the symbols high, normal, or low;
 any other symbol will be interpreted as normal.
 
 If successful, the return value is t, otherwise nil.  */)
-  (process, priority)
+     (process, priority)
      Lisp_Object process, priority;
 {
   HANDLE proc_handle = GetCurrentProcess ();
@@ -1881,7 +1881,8 @@ If successful, the return value is t, otherwise nil.  */)
 
 #ifdef HAVE_LANGINFO_CODESET
 /* Emulation of nl_langinfo.  Used in fns.c:Flocale_info.  */
-char *nl_langinfo (nl_item item)
+char *
+nl_langinfo (nl_item item)
 {
   /* Conversion of Posix item numbers to their Windows equivalents.  */
   static const LCTYPE w32item[] = {
@@ -2009,13 +2010,14 @@ human-readable form.  */)
   return make_number (GetThreadLocale ());
 }
 
-DWORD int_from_hex (char * s)
+DWORD
+int_from_hex (char * s)
 {
   DWORD val = 0;
   static char hex[] = "0123456789abcdefABCDEF";
   char * p;
 
-  while (*s && (p = strchr(hex, *s)) != NULL)
+  while (*s && (p = strchr (hex, *s)) != NULL)
     {
       unsigned digit = p - hex;
       if (digit > 15)
@@ -2030,7 +2032,8 @@ DWORD int_from_hex (char * s)
    function isn't given a context pointer.  */
 Lisp_Object Vw32_valid_locale_ids;
 
-BOOL CALLBACK enum_locale_fn (LPTSTR localeNum)
+BOOL CALLBACK
+enum_locale_fn (LPTSTR localeNum)
 {
   DWORD id = int_from_hex (localeNum);
   Vw32_valid_locale_ids = Fcons (make_number (id), Vw32_valid_locale_ids);
@@ -2095,7 +2098,8 @@ If successful, the new locale id is returned, otherwise nil.  */)
    function isn't given a context pointer.  */
 Lisp_Object Vw32_valid_codepages;
 
-BOOL CALLBACK enum_codepage_fn (LPTSTR codepageNum)
+BOOL CALLBACK
+enum_codepage_fn (LPTSTR codepageNum)
 {
   DWORD id = atoi (codepageNum);
   Vw32_valid_codepages = Fcons (make_number (id), Vw32_valid_codepages);
@@ -2271,6 +2275,7 @@ If successful, the new layout id is returned, otherwise nil.  */)
 }
 
 
+void
 syms_of_ntproc ()
 {
   DEFSYM (Qhigh, "high");

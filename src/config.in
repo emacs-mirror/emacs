@@ -292,6 +292,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if GTK can handle more than one display. */
 #undef HAVE_GTK_MULTIDISPLAY
 
+/* Define to 1 if you have the `g_type_init' function. */
+#undef HAVE_G_TYPE_INIT
+
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
 
@@ -333,9 +336,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
 #undef HAVE_LANGINFO_CODESET
-
-/* Define to 1 if the directory /usr/lib64 exists. */
-#undef HAVE_LIB64_DIR
 
 /* Define to 1 if you have the `com_err' library (-lcom_err). */
 #undef HAVE_LIBCOM_ERR
@@ -1178,15 +1178,19 @@ extern char *getenv ();
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
-#ifndef __GNUC__
-# ifdef HAVE_ALLOCA_H
-#  include <alloca.h>
-# else /* AIX files deal with #pragma.  */
-#  ifndef alloca /* predefined by HP cc +Olibcalls */
-char *alloca ();
-#  endif
-# endif /* HAVE_ALLOCA_H */
-#endif /* __GNUC__ */
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#elif defined __GNUC__
+# define alloca __builtin_alloca
+#elif defined _AIX
+# define alloca __alloca
+#else
+# include <stddef.h>
+# ifdef  __cplusplus
+extern "C"
+# endif
+void *alloca (size_t);
+#endif
 #ifndef HAVE_SIZE_T
 typedef unsigned size_t;
 #endif
