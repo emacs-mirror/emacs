@@ -1,5 +1,13 @@
 2010-12-24  Kenichi Handa  <handa@m17n.org>
 
+	* mail/rmailmm.el (rmail-mime-parse): Perform parsing in
+	condition-case and return an error message string if something
+	goes wrong.
+	(rmail-show-mime): Adjusted for the above change.  Insert the
+	header by rmail-mime-insert-header.
+
+2010-12-24  Kenichi Handa  <handa@m17n.org>
+
 	* mail/rmailmm.el: New key bindings for rmail-mime-next-item,
 	rmail-mime-previous-item, and rmail-mime-toggle-hidden.
 	(rmail-mime-mbox-buffer)
