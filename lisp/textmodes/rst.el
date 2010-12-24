@@ -3307,7 +3307,7 @@ or of the entire buffer, if the region is not selected."
 (defun rst-compile-pdf-preview ()
   "Convert the document to a PDF file and launch a preview program."
   (interactive)
-  (let* ((tmp-filename "/tmp/out.pdf")
+  (let* ((tmp-filename (make-temp-file "rst-out" nil ".pdf"))
 	 (command (format "rst2pdf.py %s %s && %s %s"
 			  buffer-file-name tmp-filename
 			  rst-pdf-program tmp-filename)))
@@ -3322,7 +3322,7 @@ or of the entire buffer, if the region is not selected."
 (defun rst-compile-slides-preview ()
   "Convert the document to an S5 slide presentation and launch a preview program."
   (interactive)
-  (let* ((tmp-filename "/tmp/slides.html")
+  (let* ((tmp-filename (make-temp-file "rst-slides" nil ".html"))
 	 (command (format "rst2s5.py %s %s && %s %s"
 			  buffer-file-name tmp-filename
 			  rst-slides-program tmp-filename)))

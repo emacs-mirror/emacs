@@ -4522,60 +4522,65 @@ beginning of local filename are not substituted."
 (defun tramp-handle-start-file-process (name buffer program &rest args)
   "Like `start-file-process' for Tramp files."
   (with-parsed-tramp-file-name default-directory nil
-    (unwind-protect
-	;; When PROGRAM is nil, we just provide a tty.
-	(let ((command
-	       (when (stringp program)
-		 (format "cd %s; exec %s"
-			 (tramp-shell-quote-argument localname)
-			 (mapconcat 'tramp-shell-quote-argument
-				    (cons program args) " "))))
-	      (tramp-process-connection-type
-	       (or (null program) tramp-process-connection-type))
-	      (name1 name)
-	      (i 0))
-	  (unless buffer
-	    ;; BUFFER can be nil.  We use a temporary buffer.
-	    (setq buffer (generate-new-buffer tramp-temp-buffer-name)))
-	  (while (get-process name1)
-	    ;; NAME must be unique as process name.
-	    (setq i (1+ i)
-		  name1 (format "%s<%d>" name i)))
-	  (setq name name1)
-	  ;; Set the new process properties.
-	  (tramp-set-connection-property v "process-name" name)
-	  (tramp-set-connection-property v "process-buffer" buffer)
-	  ;; Activate narrowing in order to save BUFFER contents.
-	  ;; Clear also the modification time; otherwise we might be
-	  ;; interrupted by `verify-visited-file-modtime'.
-	  (with-current-buffer (tramp-get-connection-buffer v)
-	    (clear-visited-file-modtime)
-	    (narrow-to-region (point-max) (point-max)))
-	  (if command
-	      ;; Send the command.
-	      (tramp-send-command v command nil t) ; nooutput
-	    ;; Check, whether a pty is associated.
-	    (tramp-maybe-open-connection v)
-	    (unless (process-get (tramp-get-connection-process v) 'remote-tty)
-	      (tramp-error
-	       v 'file-error "pty association is not supported for `%s'" name)))
-	  (let ((p (tramp-get-connection-process v)))
-	    ;; Set sentinel and query flag for this process.
-	    (tramp-set-connection-property p "vector" v)
-	    (set-process-sentinel p 'tramp-process-sentinel)
-	    (tramp-set-process-query-on-exit-flag p t)
-	    ;; Return process.
-	    p))
-      ;; Save exit.
-      (with-current-buffer (tramp-get-connection-buffer v)
-	(if (string-match tramp-temp-buffer-name (buffer-name))
-	    (progn
-	      (set-process-buffer (tramp-get-connection-process v) nil)
-	      (kill-buffer (current-buffer)))
-	  (widen)
-	  (goto-char (point-max))))
-      (tramp-set-connection-property v "process-name" nil)
-      (tramp-set-connection-property v "process-buffer" nil))))
+    ;; When PROGRAM is nil, we just provide a tty.
+    (let ((command
+	   (when (stringp program)
+	     (format "cd %s; exec %s"
+		     (tramp-shell-quote-argument localname)
+		     (mapconcat 'tramp-shell-quote-argument
+				(cons program args) " "))))
+	  (tramp-process-connection-type
+	   (or (null program) tramp-process-connection-type))
+	  (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
+	  (name1 name)
+	  (i 0))
+      (unwind-protect
+	  (save-excursion
+	    (save-restriction
+	      (unless buffer
+		;; BUFFER can be nil.  We use a temporary buffer.
+		(setq buffer (generate-new-buffer tramp-temp-buffer-name)))
+	      (while (get-process name1)
+		;; NAME must be unique as process name.
+		(setq i (1+ i)
+		      name1 (format "%s<%d>" name i)))
+	      (setq name name1)
+	      ;; Set the new process properties.
+	      (tramp-set-connection-property v "process-name" name)
+	      (tramp-set-connection-property v "process-buffer" buffer)
+	      ;; Activate narrowing in order to save BUFFER contents.
+	      ;; Clear also the modification time; otherwise we might
+	      ;; be interrupted by `verify-visited-file-modtime'.
+	      (with-current-buffer (tramp-get-connection-buffer v)
+		(let ((buffer-undo-list t))
+		  (clear-visited-file-modtime)
+		  (narrow-to-region (point-max) (point-max))
+		  (if command
+		      ;; Send the command.
+		      (tramp-send-command v command nil t) ; nooutput
+		    ;; Check, whether a pty is associated.
+		    (tramp-maybe-open-connection v)
+		    (unless (process-get
+			     (tramp-get-connection-process v) 'remote-tty)
+		      (tramp-error
+		       v 'file-error
+		       "pty association is not supported for `%s'" name)))))
+	      (let ((p (tramp-get-connection-process v)))
+		;; Set sentinel and query flag for this process.
+		(tramp-set-connection-property p "vector" v)
+		(set-process-sentinel p 'tramp-process-sentinel)
+		(tramp-set-process-query-on-exit-flag p t)
+		;; Return process.
+		p)))
+	;; Save exit.
+	(with-current-buffer (tramp-get-connection-buffer v)
+	  (if (string-match tramp-temp-buffer-name (buffer-name))
+	      (progn
+		(set-process-buffer (tramp-get-connection-process v) nil)
+		(kill-buffer (current-buffer)))
+	    (set-buffer-modified-p bmp)))
+	(tramp-set-connection-property v "process-name" nil)
+	(tramp-set-connection-property v "process-buffer" nil)))))
 
 (defun tramp-handle-process-file
   (program &optional infile destination display &rest args)
@@ -6810,26 +6815,27 @@ The terminal type can be configured with `tramp-terminal-type'."
   (with-temp-message ""
     ;; Enable auth-source and password-cache.
     (tramp-set-connection-property vec "first-password-request" t)
-    (let (exit)
-      (while (not exit)
-	(tramp-message proc 3 "Waiting for prompts from remote shell")
-	(setq exit
-	      (catch 'tramp-action
-		(if timeout
-		    (with-timeout (timeout)
-		      (tramp-process-one-action proc vec actions))
-		  (tramp-process-one-action proc vec actions)))))
-      (with-current-buffer (tramp-get-connection-buffer vec)
-	(widen)
-	(tramp-message vec 6 "\n%s" (buffer-string)))
-      (unless (eq exit 'ok)
-	(tramp-clear-passwd vec)
-	(tramp-error-with-buffer
-	 nil vec 'file-error
-	 (cond
-	  ((eq exit 'permission-denied) "Permission denied")
-	  ((eq exit 'process-died) "Process died")
-	  (t "Login failed")))))))
+    (save-restriction
+      (let (exit)
+	(while (not exit)
+	  (tramp-message proc 3 "Waiting for prompts from remote shell")
+	  (setq exit
+		(catch 'tramp-action
+		  (if timeout
+		      (with-timeout (timeout)
+			(tramp-process-one-action proc vec actions))
+		    (tramp-process-one-action proc vec actions)))))
+	(with-current-buffer (tramp-get-connection-buffer vec)
+	  (widen)
+	  (tramp-message vec 6 "\n%s" (buffer-string)))
+	(unless (eq exit 'ok)
+	  (tramp-clear-passwd vec)
+	  (tramp-error-with-buffer
+	   nil vec 'file-error
+	   (cond
+	    ((eq exit 'permission-denied) "Permission denied")
+	    ((eq exit 'process-died) "Process died")
+	    (t "Login failed"))))))))
 
 ;; Utility functions.
 

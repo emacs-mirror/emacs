@@ -1,3 +1,7 @@
+2010-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Exclude etc/*.pyc.  [Backport from trunk]
+
 2010-11-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix alloca definition when using gcc on non-gnu systems.

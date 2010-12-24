@@ -72,6 +72,27 @@ Bazaar recognizes the headers "Author", "Date" and "Fixes".
 Git, Mercurial, and Monotone recognize "Author" and "Date".
 Any unknown header is left as is in the message, so it is not lost.
 
+** Rmail
+
+** The default value of `rmail-enable-mime' is now t.  Rmail decodes
+MIME contents automatically.  You can customize the variable
+`rmail-enable-mime' back to `nil' to disable this automatic MIME
+decoding.
+
+** The command `rmail-mime' change the displaying of a MIME message
+between decoded presentation form and raw data if `rmail-enable-mime'
+is non-nil.  And, with prefix argument, it change only the displaying
+of the MIME entity at point.
+
+** The new command TAB (rmail-mime-next-item) moves point to the next
+item of MIME message.
+
+** The new command backtab (rmail-mime-previous-item) moves point to
+the previous item of MIME message.
+
+** The new command RET (rmail-mime-toggle-hidden) hide or show the
+body of the MIME entity at point.
+
 ** Obsolete packages
 
 +++
@@ -1844,6 +1865,11 @@ checking/manipulating elements directly, use the new functions
 
 ** `mode-name' is no longer guaranteed to be a string.
 Use `(format-mode-line mode-name)' to ensure a string value.
+
+** `format-mode-line' now supports only a few basic faces as its FACE argument.
+The FACE argument to `format-mode-line' should be one of `default',
+`mode-line', `mode-line-inactive', `header-line', or `tool-bar'.  Any
+other face is treated as `default'.
 
 ** The function x-font-family-list has been removed.
 Use the new function font-family-list (see Lisp Changes, below).

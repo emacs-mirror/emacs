@@ -5892,7 +5892,7 @@ Text larger than the specified size is clipped.  */)
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
-  try_window (FRAME_ROOT_WINDOW (f), pos, 0);
+  try_window (FRAME_ROOT_WINDOW (f), pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
 
   /* Compute width and height of the tooltip.  */
   width = height = 0;
@@ -5909,9 +5909,7 @@ Text larger than the specified size is clipped.  */)
       /* Let the row go over the full width of the frame.  */
       row->full_width_p = 1;
 
-#ifdef TODO /* Investigate why some fonts need more width than is
-	       calculated for some tooltips.  */
-      /* There's a glyph at the end of rows that is use to place
+      /* There's a glyph at the end of rows that is used to place
 	 the cursor there.  Don't include the width of this glyph.  */
       if (row->used[TEXT_AREA])
 	{
@@ -5919,15 +5917,16 @@ Text larger than the specified size is clipped.  */)
 	  row_width = row->pixel_width - last->pixel_width;
 	}
       else
-#endif
 	row_width = row->pixel_width;
 
-      /* TODO: find why tips do not draw along baseline as instructed.  */
       height += row->height;
       width = max (width, row_width);
     }
 
-  /* Add the frame's internal border to the width and height the X
+  /* Round up the height to an integral multiple of FRAME_LINE_HEIGHT.  */
+  if (height % FRAME_LINE_HEIGHT (f) != 0)
+    height += FRAME_LINE_HEIGHT (f) - height % FRAME_LINE_HEIGHT (f);
+  /* Add the frame's internal border to the width and height the w32
      window should have.  */
   height += 2 * FRAME_INTERNAL_BORDER_WIDTH (f);
   width += 2 * FRAME_INTERNAL_BORDER_WIDTH (f);
@@ -5946,11 +5945,13 @@ Text larger than the specified size is clipped.  */)
 		      FRAME_EXTERNAL_MENU_BAR (f));
 
     /* Position and size tooltip, and put it in the topmost group.
-       The add-on of 3 to the 5th argument is a kludge: without it,
-       some fonts cause the last character of the tip to be truncated,
-       for some obscure reason.  */
+       The add-on of FRAME_COLUMN_WIDTH to the 5th argument is a
+       peculiarity of w32 display: without it, some fonts cause the
+       last character of the tip to be truncated or wrapped around to
+       the next line.  */
     SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
-		  root_x, root_y, rect.right - rect.left + 3,
+		  root_x, root_y,
+		  rect.right - rect.left + FRAME_COLUMN_WIDTH (f),
 		  rect.bottom - rect.top, SWP_NOACTIVATE);
 
     /* Ensure tooltip is on top of other topmost windows (eg menus).  */

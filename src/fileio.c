@@ -828,10 +828,15 @@ DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
 Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative
 \(does not start with slash or tilde); if DEFAULT-DIRECTORY is nil or missing,
 the current buffer's value of `default-directory' is used.
+NAME should be a string that is a valid file name for the underlying
+filesystem.
 File name components that are `.' are removed, and
 so are file name components followed by `..', along with the `..' itself;
 note that these simplifications are done without checking the resulting
 file names in the file system.
+Multiple consecutive slashes are collapsed into a single slash,
+except at the beginning of the file name when they are significant (e.g.,
+UNC file names on MS-Windows.)
 An initial `~/' expands to your home directory.
 An initial `~USER/' expands to USER's home directory.
 See also the function `substitute-in-file-name'.
@@ -839,7 +844,7 @@ See also the function `substitute-in-file-name'.
 For technical reasons, this function can return correct but
 non-intuitive results for the root directory; for instance,
 \(expand-file-name ".." "/") returns "/..".  For this reason, use
-(directory-file-name (file-name-directory dirname)) to traverse a
+\(directory-file-name (file-name-directory dirname)) to traverse a
 filesystem tree, not (expand-file-name ".."  dirname).  */)
      (name, default_directory)
      Lisp_Object name, default_directory;
