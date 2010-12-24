@@ -1,3 +1,46 @@
+2010-12-24  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el: New key bindings for rmail-mime-next-item,
+	rmail-mime-previous-item, and rmail-mime-toggle-hidden.
+	(rmail-mime-mbox-buffer)
+	(rmail-mime-view-buffer, rmail-mime-coding-system): New variables.
+	(rmail-mime-entity): Argument changed.  All codes handling an
+	entity object are changed.
+	(rmail-mime-entity-header, rmail-mime-entity-body): Adjusted for
+	the above change.
+	(rmail-mime-entity-children, rmail-mime-entity-handler)
+	(rmail-mime-entity-tagline): New functions.
+	(rmail-mime-message-p): New function.
+	(rmail-mime-save): Bind rmail-mime-mbox-buffer.
+	(rmail-mime-entity-segment, rmail-mime-next-item)
+	(rmail-mime-previous-item, rmail-mime-shown-mode)
+	(rmail-mime-hidden-mode, rmail-mime-raw-mode)
+	(rmail-mime-toggle-raw, rmail-mime-toggle-hidden)
+	(rmail-mime-insert-tagline, rmail-mime-insert-header): New
+	functions.
+	(rmail-mime-text-handler): Call rmail-mime-insert-text.
+	(rmail-mime-insert-decoded-text): New function.
+	(rmail-mime-insert-text): Call rmail-mime-insert-decoded-text.
+	(rmail-mime-insert-image): Argument changed.  Caller changed.
+	(rmail-mime-image): Call rmail-mime-toggle-hidden.
+	(rmail-mime-set-bulk-data): New funciton.
+	(rmail-mime-insert-bulk): Argument changed.
+	(rmail-mime-multipart-handler): Return t.
+	(rmail-mime-process-multipart): Argument changed.  Handle
+	"multipart/alternative" here.
+	(rmail-mime-process): Argument changed.
+	(rmail-mime-parse): Bind rmail-mime-mbox-buffer.
+	(rmail-mime-insert): Argument changed.  Handle raw display mode.
+	(rmail-mime): Argument changed.  Handle toggling of raw display
+	mode.
+	(rmail-show-mime): Bind rmail-mime-mbox-buffer and
+	rmail-mime-view-buffer.
+	(rmail-insert-mime-forwarded-message): Likewise.
+	(rmail-search-mime-message): Likewise.  Don't bind rmail-buffer.
+
+	* mail/rmail.el (rmail-show-message-1): If rmail-enable-mime is
+	non-nil, handle the header in rmail-show-mime-function.
+
 2010-12-20  Leo  <sdl.web@gmail.com>
 
 	* help-fns.el (describe-variable): Fix 2010-12-17 change.
