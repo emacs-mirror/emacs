@@ -1813,11 +1813,11 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		      {
 			Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);
 			if (INTEGERP (num))
-				{
-				  strout (" . ", 3, 3, printcharfun, 0);
-				  print_object (obj, printcharfun, escapeflag);
-			      goto end_of_list;
-			    }
+			  {
+			    strout (" . ", 3, 3, printcharfun, 0);
+			    print_object (obj, printcharfun, escapeflag);
+			    goto end_of_list;
+			  }
 		      }
 		  }
 
