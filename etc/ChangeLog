@@ -1,3 +1,7 @@
+2010-12-24  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS: Describe the changes for rmail's MIME handling.
+
 2010-12-04  W. Martin Borgert <debacle@debian.org>  (tiny change)
 
 	* schema/schemas.xml: Add DocBook (Bug#7491).
