@@ -348,9 +348,9 @@ practice:
      @result{} ("o" "o" "o")
 @end example
 
-If you need to split a string that is a shell command, where
-individual arguments could be quoted, see @ref{Shell Arguments,
-split-string-and-unquote}.
+If you need to split a string into a list of individual command-line
+arguments suitable for @code{call-process} or @code{start-process},
+see @ref{Shell Arguments, split-string-and-unquote}.
 @end defun
 
 @defvar split-string-default-separators

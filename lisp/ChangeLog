@@ -1,3 +1,169 @@
+2010-12-20  Leo  <sdl.web@gmail.com>
+
+	* help-fns.el (describe-variable): Fix 2010-12-17 change.
+
+2010-12-20  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-error): New variable.
+	(isearch-lazy-highlight-new-loop): Compare `isearch-error' and
+	`isearch-lazy-highlight-error'.  Set `isearch-lazy-highlight-error'
+	to the current value of `isearch-error' (Bug#7468).
+
+2010-12-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help-fns.el (describe-variable): Don't emit trailing whitespace
+	(Bug#7511).
+
+2010-12-17  Leo  <sdl.web@gmail.com>
+
+	* eshell/em-hist.el (eshell-previous-matching-input): Signal error
+	if point is not behind eshell-last-output-end (Bug#7585).
+
+2010-12-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/rst.el (rst-compile-pdf-preview)
+	(rst-compile-slides-preview): Use make-temp-file (Bug#7646).
+
+2010-12-15  Kevin Gallagher  <Kevin.Gallagher@boeing.com>
+
+	* emulation/edt-mapper.el: Override mapping of function keys so
+	that the later call to read-key-sequence works.
+
+2010-12-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Write queued mail body with
+	Unix EOLs.  (Bug#7589)
+
+2010-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (posn-col-row): Evaluate header-line-format in the
+	context of the POSITION window's buffer.
+
+2010-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (member-ignore-case, run-mode-hooks, insert-for-yank-1)
+	(with-silent-modifications): Doc fixes.
+
+2010-12-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-action-password, tramp-process-actions):
+	Revert patch from 2010-12-08.  Use `save-restriction'.
+
+2010-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-frame-for-menubar, menu-bar-positive-p):
+	New functions.
+	(menu-bar-showhide-menu) <menu-bar-mode, showhide-tool-bar>: Use
+	them instead of `nil' and `>', respectively.  (Bug#1077)
+
+2010-12-09  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/diary-lib.el (diary-list-sexp-entries):
+	Handle case of no newline at end of file.  (Bug#7536)
+
+2010-12-09  Glenn Morris  <rgm@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Revert previous change.
+
+2010-12-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-start-file-process): Protect
+	buffer-modified value.  (Bug#7557)
+	(tramp-action-password): Delete region, do not narrow.
+	(tramp-process-actions): Do not widen.
+
+2010-12-08   Jan Moringen  <jmoringe@techfak.uni-bielefeld.de>
+
+	* log-edit.el (log-edit-changelog-entries):
+	Regexp quote filename.  (Bug#7505)
+
+2010-12-08  Tom Breton  <tehom@panix.com>
+
+	* cus-edit.el (custom-save-all):
+	Bind print-length and print-level to nil.  (Bug#7581)
+
+2010-12-08  Glenn Morris  <rgm@gnu.org>
+
+	* mouse.el (mouse-menu-major-mode-map, mouse-menu-bar-map):
+	Run hooks to update menu contents.  (Bug#7586)
+
+	* mail/smtpmail.el (smtpmail-send-it): Avoid colons in the queued
+	file names, for the sake of MS Windows.  (Bug#7588)
+
+2010-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-refine-hunk): Make it work when the hunk contains
+	empty lines without a leading space.
+
+2010-12-06  Leo  <sdl.web@gmail.com>
+
+	* dired-aux.el (dired-do-redisplay): Postpone dired-after-readin-hook
+	while mapping over marks (Bug#6810).
+
+2010-12-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-dired.el (image-dired-db-file)
+	(image-dired-temp-image-file, image-dired-gallery-dir)
+	(image-dired-temp-rotate-image-file): Set default values relative
+	to image-dired-dir (Bug#7518).
+
+2010-12-06  Lawrence Mitchell  <wence@gmx.li>
+
+	* format.el (format-decode-run-method): Pass args FROM and TO, not
+	point-min and point-max, to shell-command-on-region (Bug#7488).
+
+2010-12-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.el (blink-cursor-mode): Make default t for ns.
+
+2010-12-05  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
+
+	* vc-dir.el (vc-dir-query-replace-regexp): Doc fix (Bug#7501).
+
+2010-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* comint.el (comint-dynamic-list-input-ring)
+	(comint-dynamic-complete-filename)
+	(comint-replace-by-expanded-filename)
+	(comint-dynamic-simple-complete)
+	(comint-dynamic-list-filename-completions)
+	(comint-dynamic-list-completions): Doc fix (Bug#7499).
+
+	* subr.el (posn-x-y, posn-object-x-y, posn-object-width-height):
+	Doc fix (Bug#7471).
+
+2010-12-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-pop-to-buffer): Bind pop-up-frames to nil
+	(Bug#7533).
+
+2010-12-04  W. Martin Borgert <debacle@debian.org>  (tiny change)
+
+	* files.el (auto-mode-alist): Handle .dbk (DocBook) with xml-mode.
+	(Bug#7491).
+
+2010-12-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (transient-mark-mode): Doc fix (Bug#7465).
+
+2010-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (file-relative-name): Handle UNC file names on
+	DOS/Windows.  (Bug#4674)
+
+2010-12-03  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg-digest-algorithm-alist): Replace "RMD160" with
+	"RIPEMD160" (Bug#7490).  Reported by Daniel Kahn Gillmor.
+	(epg-context-set-passphrase-callback): Mention that the callback
+	is not called when used with GnuPG 2.x.
+
+2010-12-02  Glenn Morris  <rgm@gnu.org>
+
+	* ps-print.el (ps-line-lengths-internal, ps-nb-pages):
+	Ensure ps-footer-font-size-internal is initialized.
+	Call ps-get-page-dimensions before trying to use ps-font-for-text.
+
 2010-12-01  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmailmm.el (rmail-mime-parse): Call rmail-mime-process
@@ -9,7 +175,7 @@
 
 2010-12-01  Leo  <sdl.web@gmail.com>
 
-	* ido.el (ido-common-initilization): New function.  (bug#3274)
+	* ido.el (ido-common-initialization): New function.  (bug#3274)
 	(ido-mode): Use it.
 	(ido-completing-read): Call it.
 
@@ -35,7 +201,6 @@
 	(smie-next-sexp): Make it accept a "start token" as argument.
 	(smie-indent-keyword): Be careful not to misidentify tokens that span
 	more than one line, as empty lines.  Add argument `token'.
->>>>>>> MERGE-SOURCE
 
 2010-11-26  Kenichi Handa  <handa@m17n.org>
 
@@ -53,17 +218,15 @@
 	(rmail-mime-save): Handle the case that the button's `data' is a
 	MIME entity.
 	(rmail-mime-insert-text): New function.
-	(rmail-mime-insert-image): Handle the case that DATA is a MIME
-	entity.
+	(rmail-mime-insert-image): Handle the case that DATA is a MIME entity.
 	(rmail-mime-bulk-handler): Just call rmail-mime-insert-bulk.
 	(rmail-mime-insert-bulk): New function mostly copied from the old
 	rmail-mime-bulk-handler.
-	(rmail-mime-multipart-handler): Just call
-	rmail-mime-process-multipart.
-	(rmail-mime-process-multipart): New funciton mostly copied from
+	(rmail-mime-multipart-handler): Just call rmail-mime-process-multipart.
+	(rmail-mime-process-multipart): New function mostly copied from
 	the old rmail-mime-multipart-handler.
 	(rmail-mime-show): Just call rmail-mime-process.
-	(rmail-mime-process): New funciton mostly copied from the old
+	(rmail-mime-process): New function mostly copied from the old
 	rmail-mime-show.
 	(rmail-mime-insert-multipart, rmail-mime-parse)
 	(rmail-mime-insert, rmail-show-mime)
@@ -12110,4 +12273,3 @@ See ChangeLog.14 for earlier changes.
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;; arch-tag: d3e45e38-19e2-49b6-8dc2-7cb26adcc5a1

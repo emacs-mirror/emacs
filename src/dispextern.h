@@ -1989,6 +1989,12 @@ struct it
      OVERLAY_STRING_CHUNK_SIZE.  */
   int n_overlay_strings;
 
+  /* The charpos where n_overlay_strings was calculated.  This should
+     be set at the same time as n_overlay_strings.  It is needed
+     because we show before-strings at the start of invisible text;
+     see handle_invisible_prop in xdisp.c.  */
+  int overlay_strings_charpos;
+
   /* Vector of overlays to process.  Overlay strings are processed
      OVERLAY_STRING_CHUNK_SIZE at a time.  */
 #define OVERLAY_STRING_CHUNK_SIZE 16

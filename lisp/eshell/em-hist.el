@@ -837,6 +837,8 @@ With prefix argument N, search for Nth previous match.
 If N is negative, find the next or Nth next match."
   (interactive (eshell-regexp-arg "Previous input matching (regexp): "))
   (setq arg (eshell-search-arg arg))
+  (if (> eshell-last-output-end (point))
+      (error "Point not located after prompt"))
   (let ((pos (eshell-previous-matching-input-string-position regexp arg)))
     ;; Has a match been found?
     (if (null pos)
@@ -844,7 +846,7 @@ If N is negative, find the next or Nth next match."
       (setq eshell-history-index pos)
       (unless (minibuffer-window-active-p (selected-window))
 	(message "History item: %d" (- (ring-length eshell-history-ring) pos)))
-       ;; Can't use kill-region as it sets this-command
+      ;; Can't use kill-region as it sets this-command
       (delete-region eshell-last-output-end (point))
       (insert-and-inherit (eshell-get-history pos)))))
 

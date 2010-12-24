@@ -3916,15 +3916,17 @@ Non-nil also enables highlighting of the region whenever the mark is active.
 The variable `highlight-nonselected-windows' controls whether to highlight
 all windows or just the selected window.
 
-If the value is `lambda', that enables Transient Mark mode temporarily.
-After any subsequent action that would normally deactivate the mark
-\(such as buffer modification), Transient Mark mode is turned off.
+Lisp programs may give this variable certain special values:
 
-If the value is (only . OLDVAL), that enables Transient Mark mode
-temporarily.  After any subsequent point motion command that is not
-shift-translated, or any other action that would normally deactivate
-the mark (such as buffer modification), the value of
-`transient-mark-mode' is set to OLDVAL.")
+- A value of `lambda' enables Transient Mark mode temporarily.
+  It is disabled again after any subsequent action that would
+  normally deactivate the mark (e.g. buffer modification).
+
+- A value of (only . OLDVAL) enables Transient Mark mode
+  temporarily.  After any subsequent point motion command that is
+  not shift-translated, or any other action that would normally
+  deactivate the mark (e.g. buffer modification), the value of
+  `transient-mark-mode' is set to OLDVAL.")
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.
@@ -4113,6 +4115,11 @@ into account variable-width characters and line continuation."
 	 ;; When already vscrolled, we vscroll some more if we can,
 	 ;; or clear vscroll and move forward at end of tall image.
 	 ((> (setq vs (window-vscroll nil t)) 0)
+
+	  ;; If we are vscrolling an image at the top of the screen,
+	  ;; we could actually advance point if this yields space
+	  ;; below....
+
 	  (when (> rbot 0)
 	    (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
 	 ;; If cursor just entered the bottom scroll margin, move forward,
