@@ -2119,22 +2119,17 @@ taken from @var{buffer}; by default, it comes from @var{window}'s
 buffer.
 
 The value string normally has text properties that correspond to the
-faces, keymaps, etc., that the mode line would have.  And any character
-for which no @code{face} property is specified gets a default value
-determined by @var{face}.  If @var{face} is @code{t}, that stands for
-either @code{mode-line} if @var{window} is selected, otherwise
-@code{mode-line-inactive}.  If @var{face} is @code{nil} or omitted, that
-stands for no face property.
-
-However, if @var{face} is an integer, the value has no text properties.
+faces, keymaps, etc., that the mode line would have.  Any character for
+which no @code{face} property is specified by @var{format} gets a
+default value determined by @var{face}.  If @var{face} is @code{t}, that
+stands for either @code{mode-line} if @var{window} is selected,
+otherwise @code{mode-line-inactive}.  If @var{face} is @code{nil} or
+omitted, that stands for the default face.  If @var{face} is an integer,
+the value returned by this function will have no text properties.
 
 You can also specify other valid faces as the value of @var{face}.
-If the value is a @dfn{basic face}, one of @code{default}, @code{mode-line},
-@code{mode-line-inactive}, @code{header-line}, or @code{tool-bar}, that
-face provides the @code{face} property for characters whose face is not
-specified by @var{format}.  Any other face is treated as @code{default},
-but you can remap one of the basic faces (@pxref{Face Remapping}) to get
-the same effect as with non-basic faces.
+If specified, that face provides the @code{face} property for characters
+whose face is not specified by @var{format}.
 
 Note that using @code{mode-line}, @code{mode-line-inactive}, or
 @code{header-line} as @var{face} will actually redisplay the mode line

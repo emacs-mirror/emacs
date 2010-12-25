@@ -1,3 +1,7 @@
+2010-12-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (Emulating Mode Line): Fix last change.
+
 2010-12-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* modes.texi (Emulating Mode Line): Update documentation of
