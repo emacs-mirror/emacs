@@ -1282,7 +1282,16 @@ regardless of where you click."
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((primary
 	 (cond
-	  ((fboundp 'x-get-selection-value) ; MS-DOS, MS-Windows and X.
+	  ((eq system-type 'windows-nt)
+	   ;; MS-Windows emulates PRIMARY in x-get-selection, but not
+	   ;; in x-get-selection-value (the latter only accesses the
+	   ;; clipboard).  So try PRIMARY first, in case they selected
+	   ;; something with the mouse in the current Emacs session.
+	   (or (x-get-selection 'PRIMARY)
+	       (x-get-selection-value)))
+	  ((fboundp 'x-get-selection-value) ; MS-DOS and X.
+	   ;; On X, x-get-selection-value supports more formats and
+	   ;; encodings, so use it in preference to x-get-selection.
 	   (or (x-get-selection-value)
 	       (x-get-selection 'PRIMARY)))
 	  ;; FIXME: What about xterm-mouse-mode etc.?

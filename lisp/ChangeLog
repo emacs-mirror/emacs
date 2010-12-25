@@ -1,3 +1,8 @@
+2010-12-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* mouse.el (mouse-yank-primary): On MS-Windows, try the (emulated)
+	PRIMARY first, then the clipboard.  (Bug#7699)
+
 2010-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-output-docform): Fix up use of
