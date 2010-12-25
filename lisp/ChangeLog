@@ -1,5 +1,8 @@
 2010-12-25  Eli Zaretskii  <eliz@gnu.org>
 
+	* time.el (display-time-mode): Mention display-time-interval in
+	the doc string.  (Bug#7713)
+
 	* simple.el (select-active-regions): Doc fix.  (Bug#7702)
 
 2010-12-24  Kenichi Handa  <handa@m17n.org>
