@@ -1,5 +1,9 @@
 2010-12-25  Eli Zaretskii  <eliz@gnu.org>
 
+	* keyboard.c (parse_menu_item): Prepend "  " to the key sequence
+	equivalent of a menu item when the key sequence is given by the
+	`:keys' attribute.  (Bug#7662)
+
 	* xdisp.c (Fformat_mode_line): Doc fix: no need to state that only
 	the basic faces are supported.
 
