@@ -806,6 +806,13 @@ This use of the debugger is possible only if you know how to make the
 bug happen again.  If you can't make it happen again, at least copy
 the whole error message.
 
+@vindex debug-on-quit
+If Emacs appears to be stuck in an infinite loop or in a very long
+operation, typing @kbd{C-g} with the variable @code{debug-on-quit}
+non-@code{nil} will start the Lisp debugger and show a backtrace.
+This backtrace is useful for debugging such long loops, so if you can
+produce it, copy it into the bug report.
+
 @item
 Check whether any programs you have loaded into the Lisp world,
 including your @file{.emacs} file, set any variables that may affect the

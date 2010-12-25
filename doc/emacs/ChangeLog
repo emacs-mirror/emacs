@@ -1,3 +1,7 @@
+2010-12-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* trouble.texi (Checklist): Mention debug-on-quit.  (Bug#7667)
+
 2010-12-18  Glenn Morris  <rgm@gnu.org>
 
 	* maintaining.texi: Move inclusion of emerge after EDE, so that it
