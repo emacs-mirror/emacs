@@ -250,10 +250,11 @@ contents of the primary selection are lost.
 
 @cindex MS-Windows, and primary selection
   MS-Windows provides no primary selection, but Emacs emulates it
-within a single Emacs session: all the features and commands related
-to the primary selection work as described for cutting and pasting
-within the same session, but not across Emacs sessions or with other
-applications.
+within a single Emacs session, by storing the selected text
+internally.  Therefore, all the features and commands related to the
+primary selection work on Windows as they do on X, for cutting and
+pasting within the same session, but not across Emacs sessions or with
+other applications.
 
   Whenever you kill some text using a command such as @kbd{C-w}
 (@code{kill-region}), or copy it into the kill ring using a command
