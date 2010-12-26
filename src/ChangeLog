@@ -1,3 +1,8 @@
+2010-12-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fmove_to_window_line): Avoid abort when called in a buffer
+	different from selected-window's.
+
 2010-12-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (parse_menu_item): Prepend "  " to the key sequence
