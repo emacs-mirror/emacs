@@ -2131,8 +2131,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 
 (def-edebug-spec with-custom-print body)
 
-(def-edebug-spec sregexq (&rest sexp))
-(def-edebug-spec rx (&rest sexp))
 
 ;;; The debugger itself
 

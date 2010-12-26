@@ -541,6 +541,8 @@ listing object name completions when being sent text via
 
 *** An API for manipulating SQL product definitions has been added.
 
+** sregex.el is now obsolete, since rx.el is a strict superset.
+
 ** s-region.el is now declared obsolete, superceded by shift-select-mode
 enabled by default in 23.1.
 

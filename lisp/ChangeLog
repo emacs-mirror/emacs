@@ -1,3 +1,17 @@
+2010-12-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/rx.el: Make it a superset of sregex.
+	(rx-constituents): Add `any => "."', mark `repeat' as taking any number
+	of args, add `regex' alias.
+	(rx-info): Add arg to distinguish head and standalone forms.
+	(rx-check, rx-form): Pass the corresponding arg.
+	(rx-**): Simplify.
+	(rx-repeat): Make it work for any number of args.
+	(rx-syntax): Make it accept syntax chars as is.
+	* obsolete/sregex.el: Move from emacs-lisp/.
+	* emacs-lisp/re-builder.el: Remove sregex support.
+	* emacs-lisp/edebug.el (sregexq, rx): Remove redundant defs.
+
 2010-12-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* mouse.el (mouse-yank-primary): On MS-Windows, try the (emulated)
@@ -19,8 +33,8 @@
 2010-12-21  Daiki Ueno  <ueno@unixuser.org>
 
 	* obsolete/pgg-parse.el, obsolete/pgg-pgp5.el, obsolete/pgg-pgp.el,
-	* obsolete/pgg-gpg.el, obsolete/pgg-def.el, obsolete/pgg.el: Move
-	from lisp/.
+	* obsolete/pgg-gpg.el, obsolete/pgg-def.el, obsolete/pgg.el:
+	Move from lisp/.
 
 2010-12-20  Leo  <sdl.web@gmail.com>
 
