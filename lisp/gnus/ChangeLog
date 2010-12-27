@@ -1,3 +1,8 @@
+2010-12-27  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt): Take care the
+	case when sender is not given.
+
 2010-12-23  Julien Danjou  <julien@danjou.info>
 
 	* gnus-gravatar.el (gnus-gravatar-transform-address): Set
