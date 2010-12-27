@@ -1,3 +1,8 @@
+2010-12-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-default-user-alist): Do not add "ssh" based
+	methods, otherwise ~/.ssh/config would be ignored.
+
 2010-12-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/rx.el: Make it a superset of sregex.
