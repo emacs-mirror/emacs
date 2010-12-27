@@ -3528,7 +3528,7 @@ a mistake; see the documentation of `set-mark'."
     (signal 'mark-inactive nil)))
 
 (defcustom select-active-regions nil
-  "If non-nil, an active region automatically becomes the window selection."
+  "If non-nil, an active region automatically sets the primary selection."
   :type 'boolean
   :group 'killing
   :version "23.1")

@@ -1130,11 +1130,12 @@ modified."
 
 (defun rmail-mime-parse ()
   "Parse the current Rmail message as a MIME message.
-The value is a MIME-entiy object (see `rmail-mime-entity')."
+The value is a MIME-entiy object (see `rmail-mime-entity').
+If an error occurs, return an error message string."
   (let ((rmail-mime-mbox-buffer (if (rmail-buffers-swapped-p)
 				    rmail-view-buffer
 				  (current-buffer))))
-    ;;(condition-case err
+    (condition-case err
 	(with-current-buffer rmail-mime-mbox-buffer
 	  (save-excursion
 	    (goto-char (point-min))
@@ -1148,8 +1149,7 @@ The value is a MIME-entiy object (see `rmail-mime-entity')."
 		  (aset new 1 (aset (rmail-mime-entity-tagline entity) 2 nil))
 		(aset new 1 (aset (rmail-mime-entity-tagline entity) 2 t)))
 	      entity)))
-	;;(error (error (format "%s" err))))
-    ))
+      (error (format "%s" err)))))
 
 (defun rmail-mime-insert (entity)
   "Insert a MIME-entity ENTITY in the current buffer.
@@ -1251,25 +1251,27 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
 	(rmail-mime-mbox-buffer rmail-buffer)
 	(rmail-mime-view-buffer rmail-view-buffer)
 	(rmail-mime-coding-system nil))
-    (if entity
+    (if (vectorp entity)
 	(with-current-buffer rmail-mime-view-buffer
 	  (erase-buffer)
 	  (rmail-mime-insert entity)
 	  (if rmail-mime-coding-system
 	      (set-buffer-file-coding-system rmail-mime-coding-system t t)))
-      ;; Decoding failed.  Insert the original message body as is.
+      ;; Decoding failed.  ENTITY is an error message.  Insert the
+      ;; original message body as is, and show warning.
       (let ((region (with-current-buffer rmail-mime-mbox-buffer
 		      (goto-char (point-min))
 		      (re-search-forward "^$" nil t)
 		      (forward-line 1)
-		      (cons (point) (point-max)))))
+		      (vector (point-min) (point) (point-max)))))
 	(with-current-buffer rmail-mime-view-buffer
 	  (let ((inhibit-read-only t))
 	    (erase-buffer)
+	    (rmail-mime-insert-header region)
 	    (insert-buffer-substring rmail-mime-mbox-buffer
-				     (car region) (cdr region))))
+				     (aref region 1) (aref region 2))))
 	(set-buffer-file-coding-system 'no-conversion t t)
-	(message "MIME decoding failed")))))
+	(message "MIME decoding failed: %s" entity)))))
 
 (setq rmail-show-mime-function 'rmail-show-mime)
 
