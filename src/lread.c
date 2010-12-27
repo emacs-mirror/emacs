@@ -650,7 +650,7 @@ static void substitute_in_interval (INTERVAL, Lisp_Object);
    If SECONDS is a number, we wait that many seconds for input, and
    return Qnil if no input arrives within that time.  */
 
-Lisp_Object
+static Lisp_Object
 read_filtered_event (int no_switch_frame, int ascii_required,
 		     int error_nonascii, int input_method, Lisp_Object seconds)
 {

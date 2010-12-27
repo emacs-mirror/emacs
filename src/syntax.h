@@ -299,7 +299,6 @@ struct gl_state_s
 
 extern struct gl_state_s gl_state;
 extern int parse_sexp_lookup_properties;
-extern INTERVAL interval_of (int, Lisp_Object);
 
 extern EMACS_INT scan_words (EMACS_INT, EMACS_INT);
 

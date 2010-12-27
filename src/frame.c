@@ -3982,7 +3982,7 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
   return Fcdr (tem);
 }
 
-Lisp_Object
+static Lisp_Object
 x_frame_get_arg (struct frame *f, Lisp_Object alist, Lisp_Object param,
 		 const char *attribute, const char *class,
 		 enum resource_types type)

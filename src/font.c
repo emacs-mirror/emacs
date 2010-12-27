@@ -123,7 +123,8 @@ static const struct table_entry width_table[] =
   { 200, { "ultra-expanded", "ultraexpanded", "wide" }}
 };
 
-Lisp_Object QCfoundry, QCadstyle, QCregistry;
+Lisp_Object QCfoundry;
+static Lisp_Object QCadstyle, QCregistry;
 /* Symbols representing keys of font extra info.  */
 Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClang, QCscript, QCavgwidth;
 Lisp_Object QCantialias, QCfont_entity, QCfc_unknown_spec;
@@ -164,7 +165,7 @@ static struct font_driver_list *font_driver_list;
 
 /* Creaters of font-related Lisp object.  */
 
-Lisp_Object
+static Lisp_Object
 font_make_spec (void)
 {
   Lisp_Object font_spec;
@@ -220,6 +221,7 @@ static int font_pixel_size (FRAME_PTR f, Lisp_Object);
 static Lisp_Object font_open_entity (FRAME_PTR, Lisp_Object, int);
 static Lisp_Object font_matching_entity (FRAME_PTR, Lisp_Object *,
                                          Lisp_Object);
+static unsigned font_encode_char (Lisp_Object, int);
 
 /* Number of registered font drivers.  */
 static int num_font_drivers;
@@ -1305,7 +1307,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 
    This function tries to guess which format it is.  */
 
-int
+static int
 font_parse_fcname (char *name, Lisp_Object font)
 {
   char *p, *q;
@@ -1673,90 +1675,6 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
       else
 	p += sprintf (p, ":scalable=false");
     }
-  return (p - name);
-}
-
-/* Store GTK-style font name of FONT (font-spec or font-entity) in
-   NAME (NBYTES length), and return the name length.  F is the frame
-   on which the font is displayed; it is used to calculate the point
-   size.  */
-
-int
-font_unparse_gtkname (Lisp_Object font, struct frame *f, char *name, int nbytes)
-{
-  char *p;
-  int len = 1;
-  Lisp_Object family, weight, slant, size;
-  int point_size = -1;
-
-  family = AREF (font, FONT_FAMILY_INDEX);
-  if (! NILP (family))
-    {
-      if (! SYMBOLP (family))
-	return -1;
-      family = SYMBOL_NAME (family);
-      len += SBYTES (family);
-    }
-
-  weight = font_style_symbolic (font, FONT_WEIGHT_INDEX, 0);
-  if (EQ (weight, Qnormal))
-    weight = Qnil;
-  else if (! NILP (weight))
-    {
-      weight = SYMBOL_NAME (weight);
-      len += SBYTES (weight);
-    }
-
-  slant = font_style_symbolic (font, FONT_SLANT_INDEX, 0);
-  if (EQ (slant, Qnormal))
-    slant = Qnil;
-  else if (! NILP (slant))
-    {
-      slant = SYMBOL_NAME (slant);
-      len += SBYTES (slant);
-    }
-
-  size = AREF (font, FONT_SIZE_INDEX);
-  /* Convert pixel size to point size.  */
-  if (INTEGERP (size))
-    {
-      Lisp_Object font_dpi = AREF (font, FONT_DPI_INDEX);
-      int dpi = 75;
-      if (INTEGERP (font_dpi))
-	dpi = XINT (font_dpi);
-      else if (f)
-	dpi = f->resy;
-      point_size = PIXEL_TO_POINT (XINT (size), dpi);
-      len += 11;
-    }
-  else if (FLOATP (size))
-    {
-      point_size = (int) XFLOAT_DATA (size);
-      len += 11;
-    }
-
-  if (len > nbytes)
-    return -1;
-
-  p = name + sprintf (name, "%s", SDATA (family));
-
-  if (! NILP (weight))
-    {
-      char *q = p;
-      p += sprintf (p, " %s", SDATA (weight));
-      q[1] = toupper (q[1]);
-    }
-
-  if (! NILP (slant))
-    {
-      char *q = p;
-      p += sprintf (p, " %s", SDATA (slant));
-      q[1] = toupper (q[1]);
-    }
-
-  if (point_size > 0)
-    p += sprintf (p, " %d", point_size);
-
   return (p - name);
 }
 
@@ -3039,7 +2957,7 @@ font_has_char (FRAME_PTR f, Lisp_Object font, int c)
 
 /* Return the glyph ID of FONT_OBJECT for character C.  */
 
-unsigned
+static unsigned
 font_encode_char (Lisp_Object font_object, int c)
 {
   struct font *font;
@@ -3143,50 +3061,6 @@ font_clear_prop (Lisp_Object *attrs, enum font_property_index prop)
     ASET (font, FONT_AVGWIDTH_INDEX, Qnil);
   attrs[LFACE_FONT_INDEX] = font;
 }
-
-void
-font_update_lface (FRAME_PTR f, Lisp_Object *attrs)
-{
-  Lisp_Object spec;
-
-  spec = attrs[LFACE_FONT_INDEX];
-  if (! FONT_SPEC_P (spec))
-    return;
-
-  if (! NILP (AREF (spec, FONT_FOUNDRY_INDEX)))
-    attrs[LFACE_FOUNDRY_INDEX] = SYMBOL_NAME (AREF (spec, FONT_FOUNDRY_INDEX));
-  if (! NILP (AREF (spec, FONT_FAMILY_INDEX)))
-    attrs[LFACE_FAMILY_INDEX] = SYMBOL_NAME (AREF (spec, FONT_FAMILY_INDEX));
-  if (! NILP (AREF (spec, FONT_WEIGHT_INDEX)))
-    attrs[LFACE_WEIGHT_INDEX] = FONT_WEIGHT_FOR_FACE (spec);
-  if (! NILP (AREF (spec, FONT_SLANT_INDEX)))
-    attrs[LFACE_SLANT_INDEX] = FONT_SLANT_FOR_FACE (spec);
-  if (! NILP (AREF (spec, FONT_WIDTH_INDEX)))
-    attrs[LFACE_SWIDTH_INDEX] = FONT_WIDTH_FOR_FACE (spec);
-  if (! NILP (AREF (spec, FONT_SIZE_INDEX)))
-    {
-      int point;
-
-      if (INTEGERP (AREF (spec, FONT_SIZE_INDEX)))
-	{
-	  Lisp_Object val;
-	  int dpi = f->resy;
-
-	  val = Ffont_get (spec, QCdpi);
-	  if (! NILP (val))
-	    dpi = XINT (val);
-	  point = PIXEL_TO_POINT (XINT (AREF (spec, FONT_SIZE_INDEX)) * 10,
-				  dpi);
-	  attrs[LFACE_HEIGHT_INDEX] = make_number (point);
-	}
-      else if (FLOATP (AREF (spec, FONT_SIZE_INDEX)))
-	{
-	  point = XFLOAT_DATA (AREF (spec, FONT_SIZE_INDEX)) * 10;
-	  attrs[LFACE_HEIGHT_INDEX] = make_number (point);
-	}
-    }
-}
-
 
 /* Selecte a font from ENTITIES (list of font-entity vectors) that
    supports C and matches best with ATTRS and PIXEL_SIZE.  */
@@ -3781,8 +3655,9 @@ font_filter_properties (Lisp_Object font,
    at index POS.  If C is negative, get C from the current buffer or
    STRING.  */
 
-Lisp_Object
-font_at (int c, EMACS_INT pos, struct face *face, struct window *w, Lisp_Object string)
+static Lisp_Object
+font_at (int c, EMACS_INT pos, struct face *face, struct window *w,
+	 Lisp_Object string)
 {
   FRAME_PTR f;
   int multibyte;

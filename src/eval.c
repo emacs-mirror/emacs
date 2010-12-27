@@ -167,6 +167,8 @@ Lisp_Object Vmacro_declaration_function;
 
 static Lisp_Object funcall_lambda (Lisp_Object, int, Lisp_Object*);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
+static int interactive_p (int);
+static Lisp_Object apply_lambda (Lisp_Object, Lisp_Object, int);
 
 void
 init_eval_once (void)
@@ -581,7 +583,7 @@ way to do this), or via (not (or executing-kbd-macro noninteractive)).  */)
     EXCLUDE_SUBRS_P non-zero means always return 0 if the function
     called is a built-in.  */
 
-int
+static int
 interactive_p (int exclude_subrs_p)
 {
   struct backtrace *btp;
@@ -2685,53 +2687,6 @@ run_hook_with_args (int nargs, Lisp_Object *args, enum run_hooks_condition cond)
     }
 }
 
-/* Run a hook symbol ARGS[0], but use FUNLIST instead of the actual
-   present value of that symbol.
-   Call each element of FUNLIST,
-   passing each of them the rest of ARGS.
-   The caller (or its caller, etc) must gcpro all of ARGS,
-   except that it isn't necessary to gcpro ARGS[0].  */
-
-Lisp_Object
-run_hook_list_with_args (Lisp_Object funlist, int nargs, Lisp_Object *args)
-{
-  Lisp_Object sym;
-  Lisp_Object val;
-  Lisp_Object globals;
-  struct gcpro gcpro1, gcpro2, gcpro3;
-
-  sym = args[0];
-  globals = Qnil;
-  GCPRO3 (sym, val, globals);
-
-  for (val = funlist; CONSP (val); val = XCDR (val))
-    {
-      if (EQ (XCAR (val), Qt))
-	{
-	  /* t indicates this hook has a local binding;
-	     it means to run the global binding too.  */
-
-	  for (globals = Fdefault_value (sym);
-	       CONSP (globals);
-	       globals = XCDR (globals))
-	    {
-	      args[0] = XCAR (globals);
-	      /* In a global value, t should not occur.  If it does, we
-		 must ignore it to avoid an endless loop.  */
-	      if (!EQ (args[0], Qt))
-		Ffuncall (nargs, args);
-	    }
-	}
-      else
-	{
-	  args[0] = XCAR (val);
-	  Ffuncall (nargs, args);
-	}
-    }
-  UNGCPRO;
-  return Qnil;
-}
-
 /* Run the hook HOOK, giving each function the two args ARG1 and ARG2.  */
 
 void
@@ -3063,7 +3018,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   return val;
 }
 
-Lisp_Object
+static Lisp_Object
 apply_lambda (Lisp_Object fun, Lisp_Object args, int eval_flag)
 {
   Lisp_Object args_left;

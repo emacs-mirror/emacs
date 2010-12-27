@@ -540,11 +540,11 @@ write_string (const char *data, int size)
   PRINTFINISH;
 }
 
-/* Used from outside of print.c to print a block of SIZE
-   single-byte chars at DATA on a specified stream PRINTCHARFUN.
+/* Used to print a block of SIZE single-byte chars at DATA on a
+   specified stream PRINTCHARFUN.
    Do not use this on the contents of a Lisp string.  */
 
-void
+static void
 write_string_1 (const char *data, int size, Lisp_Object printcharfun)
 {
   PRINTDECLARE;

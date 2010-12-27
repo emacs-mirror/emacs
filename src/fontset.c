@@ -64,8 +64,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define xassert(X)	(void) 0
 #endif	/* not FONTSET_DEBUG */
 
-EXFUN (Fclear_face_cache, 1);
-
 /* FONTSET
 
    A fontset is a collection of font related information to give
@@ -216,8 +214,6 @@ static Lisp_Object make_fontset (Lisp_Object, Lisp_Object, Lisp_Object);
 static Lisp_Object fontset_pattern_regexp (Lisp_Object);
 static void accumulate_script_ranges (Lisp_Object, Lisp_Object,
                                       Lisp_Object);
-Lisp_Object find_font_encoding (Lisp_Object);
-
 static void set_fontset_font (Lisp_Object, Lisp_Object);
 
 #ifdef FONTSET_DEBUG

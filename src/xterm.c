@@ -303,11 +303,34 @@ Lisp_Object Qx_gtk_map_stock;
 /* Some functions take this as char *, not const char *.  */
 static char emacs_class[] = EMACS_CLASS;
 
-/* Used in x_flush.  */
+/* XEmbed implementation.  */
 
-extern XrmDatabase x_load_resources (Display *, const char *, const char *,
-				     const char *);
-extern int x_bitmap_mask (FRAME_PTR, int);
+#define XEMBED_VERSION 0
+
+enum xembed_info
+  {
+    XEMBED_MAPPED = 1 << 0
+  };
+
+enum xembed_message
+  {
+    XEMBED_EMBEDDED_NOTIFY        = 0,
+    XEMBED_WINDOW_ACTIVATE        = 1,
+    XEMBED_WINDOW_DEACTIVATE      = 2,
+    XEMBED_REQUEST_FOCUS          = 3,
+    XEMBED_FOCUS_IN               = 4,
+    XEMBED_FOCUS_OUT              = 5,
+    XEMBED_FOCUS_NEXT             = 6,
+    XEMBED_FOCUS_PREV             = 7,
+
+    XEMBED_MODALITY_ON            = 10,
+    XEMBED_MODALITY_OFF           = 11,
+    XEMBED_REGISTER_ACCELERATOR   = 12,
+    XEMBED_UNREGISTER_ACCELERATOR = 13,
+    XEMBED_ACTIVATE_ACCELERATOR   = 14
+  };
+
+/* Used in x_flush.  */
 
 static int x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
 static void x_set_window_size_1 (struct frame *, int, int, int);
@@ -409,9 +432,8 @@ struct record event_record[100];
 
 int event_record_index;
 
-record_event (locus, type)
-     char *locus;
-     int type;
+void
+record_event (char *locus, int type)
 {
   if (event_record_index == sizeof (event_record) / sizeof (struct record))
     event_record_index = 0;
@@ -900,6 +922,7 @@ static void x_draw_relief_rect (struct frame *, int, int, int, int,
                                 XRectangle *);
 static void x_draw_box_rect (struct glyph_string *, int, int, int, int,
                              int, int, int, XRectangle *);
+static void x_scroll_bar_clear (struct frame *);
 
 #if GLYPH_DEBUG
 static void x_check_font (struct frame *, struct font *);
@@ -1457,22 +1480,6 @@ x_alloc_nearest_color_for_widget (Widget widget, Colormap cmap, XColor *color)
 {
   struct frame *f = x_frame_of_widget (widget);
   return x_alloc_nearest_color (f, cmap, color);
-}
-
-
-/* Allocate a color which is lighter or darker than *PIXEL by FACTOR
-   or DELTA.  Try a color with RGB values multiplied by FACTOR first.
-   If this produces the same color as PIXEL, try a color where all RGB
-   values have DELTA added.  Return the allocated color in *PIXEL.
-   DISPLAY is the X display, CMAP is the colormap to operate on.
-   Value is non-zero if successful.  */
-
-int
-x_alloc_lighter_color_for_widget (Widget widget, Display *display, Colormap cmap,
-				  unsigned long *pixel, double factor, int delta)
-{
-  struct frame *f = x_frame_of_widget (widget);
-  return x_alloc_lighter_color (f, display, cmap, pixel, factor, delta);
 }
 
 
@@ -5614,7 +5621,7 @@ x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window, enum scroll_
    Clear out the scroll bars, and ask for expose events, so we can
    redraw them.  */
 
-void
+static void
 x_scroll_bar_clear (FRAME_PTR f)
 {
 #ifndef USE_TOOLKIT_SCROLL_BARS
@@ -5763,6 +5770,10 @@ event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
 }
 #endif /* USE_GTK */
 
+
+static void xembed_send_message (struct frame *f, Time time,
+                                 enum xembed_message message,
+                                 long detail, long data1, long data2);
 
 /* Handles the XEvent EVENT on display DPYINFO.
 
@@ -8987,7 +8998,7 @@ XTframe_raise_lower (FRAME_PTR f, int raise_flag)
 
 /* XEmbed implementation.  */
 
-void
+static void
 xembed_set_info (struct frame *f, enum xembed_info flags)
 {
   unsigned long data[2];
@@ -9001,7 +9012,7 @@ xembed_set_info (struct frame *f, enum xembed_info flags)
 		   32, PropModeReplace, (unsigned char *) data, 2);
 }
 
-void
+static void
 xembed_send_message (struct frame *f, Time time, enum xembed_message message, long int detail, long int data1, long int data2)
 {
   XEvent event;

@@ -78,6 +78,9 @@ static Lisp_Object next_window (Lisp_Object, Lisp_Object,
                                 Lisp_Object, int);
 static void decode_next_window_args (Lisp_Object *, Lisp_Object *,
                                      Lisp_Object *);
+static void foreach_window (struct frame *,
+                            int (* fn) (struct window *, void *),
+                            void *);
 static int foreach_window_1 (struct window *,
                              int (* fn) (struct window *, void *),
                              void *);
@@ -1425,6 +1428,8 @@ DEFUN ("set-window-display-table", Fset_window_display_table, Sset_window_displa
   return table;
 }
 
+static void delete_window (Lisp_Object);
+
 /* Record info on buffer window w is displaying
    when it is about to cease to display that buffer.  */
 static void
@@ -1548,7 +1553,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
   return Qnil;
 }
 
-void
+static void
 delete_window (register Lisp_Object window)
 {
   register Lisp_Object tem, parent, sib;
@@ -3958,14 +3963,14 @@ fixed size windows is not altered by this function. */)
   return Qnil;
 }
 
-int
+static int
 window_height (Lisp_Object window)
 {
   register struct window *p = XWINDOW (window);
   return WINDOW_TOTAL_LINES (p);
 }
 
-int
+static int
 window_width (Lisp_Object window)
 {
   register struct window *p = XWINDOW (window);
@@ -6817,8 +6822,9 @@ If PIXELS-P is non-nil, the return value is VSCROLL.  */)
    first argument being a pointer to the leaf window, and with
    additional argument USER_DATA.  Stops when FN returns 0.  */
 
-void
-foreach_window (struct frame *f, int (*fn) (struct window *, void *), void *user_data)
+static void
+foreach_window (struct frame *f, int (*fn) (struct window *, void *),
+		void *user_data)
 {
   /* delete_frame may set FRAME_ROOT_WINDOW (f) to Qnil.  */
   if (WINDOWP (FRAME_ROOT_WINDOW (f)))

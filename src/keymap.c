@@ -122,6 +122,7 @@ static void describe_vector (Lisp_Object, Lisp_Object, Lisp_Object,
                              Lisp_Object, Lisp_Object, int *,
                              int, int, int);
 static void silly_event_symbol_error (Lisp_Object);
+static Lisp_Object get_keyelt (Lisp_Object, int);
 
 /* Keymap object support - constructors and predicates.			*/
 
@@ -758,7 +759,7 @@ usage: (map-keymap FUNCTION KEYMAP)  */)
 
    This can GC because menu_item_eval_property calls Feval.  */
 
-Lisp_Object
+static Lisp_Object
 get_keyelt (Lisp_Object object, int autoload)
 {
   while (1)

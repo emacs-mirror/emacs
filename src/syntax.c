@@ -167,7 +167,6 @@ int syntax_prefix_flag_p (int c)
 
 struct gl_state_s gl_state;		/* Global state of syntax parser.  */
 
-INTERVAL interval_of (int, Lisp_Object);
 #define INTERVALS_AT_ONCE 10		/* 1 + max-number of intervals
 					   to scan to property-change.  */
 

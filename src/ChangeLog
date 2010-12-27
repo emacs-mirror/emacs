@@ -1,5 +1,48 @@
 2010-12-27  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* buffer.c: Remove unused declarations.
+	* buffer.h: Likewise.
+	* charset.h: Likewise.
+	* composite.h: Likewise.
+	* dispextern.h: Likewise.
+	* dispnew.c: Likewise.
+	* font.h: Likewise.
+	* fontset.c: Likewise.
+	* fontset.h: Likewise.
+	* intervals.h: Likewise.
+	* keymap.h: Likewise.
+	* lisp.h: Likewise.
+	* syntax.c: Likewise.
+	* syntax.h: Likewise.
+	* termhooks.h: Likewise.
+	* window.h: Likewise.
+	* xsettings.h: Likewise.
+	* xterm.c: Likewise.
+	* xterm.h: Likewise.
+
+	* chartab.c (sub_char_table_ref): Make static.
+	* dispnew.c (line_hash_code, required_matrix_height)
+	(required_matrix_width): Likewise.
+	* eval.c (interactive_p, apply_lambda): Likewise.
+	* fns.c (string_make_multibyte, copy_hash_table, hash_clear):
+	Likewise.
+	* font.c (QCadstyle, QCregistry, font_make_spec)
+	(font_parse_fcname, font_encode_char, font_at): Likewise.
+	* frame.c (x_frame_get_arg): Likewise.
+	* keymap.c (get_keyelt): Likewise.
+	* lread.c (read_filtered_event): Likewise.
+	* print.c (write_string_1): Likewise.
+	* window.c (delete_window, window_height, window_width)
+	(foreach_window): Likewise.
+	* xrdb.c (x_get_customization_string, x_get_resource): Likewise.
+	* xterm.c (x_scroll_bar_clear, xembed_set_info)
+	(xembed_send_message): Likewise.
+
+	* eval.c (run_hook_list_with_args): Delete.
+	* font.c (font_unparse_gtkname, font_update_lface): Likewise.
+	* terminal.c (get_terminal_param): Likewise.
+	* xterm.c (x_alloc_lighter_color_for_widget): Likewise.
+
 	* scroll.c: Fix comment.
 
 	* dispnew.c (add_window_display_history)

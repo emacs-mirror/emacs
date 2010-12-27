@@ -3231,7 +3231,6 @@ void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 
 extern Lisp_Object tip_frame;
 extern Window tip_window;
-EXFUN (Fx_show_tip, 6);
 EXFUN (Fx_hide_tip, 0);
 extern void start_hourglass (void);
 extern void cancel_hourglass (void);
@@ -3275,8 +3274,6 @@ int popup_activated (void);
 /* Defined in dispnew.c  */
 
 extern int inverse_video;
-extern int required_matrix_width (struct window *);
-extern int required_matrix_height (struct window *);
 extern Lisp_Object buffer_posn_from_coords (struct window *,
                                             int *, int *,
                                             struct display_pos *,
@@ -3294,7 +3291,6 @@ extern void redraw_frame (struct frame *);
 extern void redraw_garbaged_frames (void);
 extern void cancel_line (int, struct frame *);
 extern void init_desired_glyphs (struct frame *);
-extern int scroll_frame_lines (struct frame *, int, int, int, int);
 extern int update_frame (struct frame *, int, int);
 extern int scrolling (struct frame *);
 extern void bitch_at_user (void);
@@ -3316,7 +3312,6 @@ void increment_row_positions (struct glyph_row *, EMACS_INT, EMACS_INT);
 void enable_glyph_matrix_rows (struct glyph_matrix *, int, int, int);
 void clear_glyph_row (struct glyph_row *);
 void prepare_desired_row (struct glyph_row *);
-int line_hash_code (struct glyph_row *);
 void set_window_update_flags (struct window *, int);
 void update_single_window (struct window *, int);
 void do_pending_window_change (int);
@@ -3393,9 +3388,6 @@ enum resource_types
 extern Lisp_Object x_get_arg (Display_Info *, Lisp_Object,
                               Lisp_Object, const char *, const char *class,
                               enum resource_types);
-extern Lisp_Object x_frame_get_arg (struct frame *, Lisp_Object,
-                                    Lisp_Object, const char *, const char *,
-                                    enum resource_types);
 extern Lisp_Object x_frame_get_and_record_arg (struct frame *, Lisp_Object,
                                                Lisp_Object,
 					       const char *, const char *,

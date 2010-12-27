@@ -168,7 +168,7 @@ copy_char_table (Lisp_Object table)
   return copy;
 }
 
-Lisp_Object
+static Lisp_Object
 sub_char_table_ref (Lisp_Object table, int c)
 {
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);

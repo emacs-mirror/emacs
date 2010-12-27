@@ -105,7 +105,6 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 
 int last_per_buffer_idx;
 
-EXFUN (Fset_buffer, 1);
 static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
                                     int after, Lisp_Object arg1,
                                     Lisp_Object arg2, Lisp_Object arg3);
@@ -3777,8 +3776,6 @@ modify_overlay (struct buffer *buf, EMACS_INT start, EMACS_INT end)
 }
 
 
-Lisp_Object Fdelete_overlay (Lisp_Object overlay);
-
 static struct Lisp_Overlay *
 unchain_overlay (struct Lisp_Overlay *list, struct Lisp_Overlay *overlay)
 {

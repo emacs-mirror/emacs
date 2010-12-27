@@ -121,6 +121,8 @@ static unsigned line_draw_cost (struct glyph_matrix *, int);
 static void update_frame_line (struct frame *, int);
 static struct dim allocate_matrices_for_frame_redisplay
      (Lisp_Object, int, int, int, int *);
+static int required_matrix_height (struct window *);
+static int required_matrix_width (struct window *);
 static void allocate_matrices_for_window_redisplay (struct window *);
 static int realloc_glyph_pool (struct glyph_pool *, struct dim);
 static void adjust_frame_glyphs (struct frame *);
@@ -167,14 +169,8 @@ static int update_window_tree (struct window *, int);
 static int update_window (struct window *, int);
 static int update_frame_1 (struct frame *, int, int);
 static void set_window_cursor_after_update (struct window *);
-static int row_equal_p (struct window *, struct glyph_row *,
-                        struct glyph_row *, int);
 static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
-static void reverse_rows (struct glyph_matrix *, int, int);
-static int margin_glyphs_to_reserve (struct window *, int, Lisp_Object);
-static void sync_window_with_frame_matrix_rows (struct window *);
-struct window *frame_row_to_window (struct window *, int);
 
 
 /* Non-zero means don't pause redisplay for pending input.  (This is
@@ -1296,7 +1292,7 @@ prepare_desired_row (struct glyph_row *row)
 
 /* Return a hash code for glyph row ROW.  */
 
-int
+static int
 line_hash_code (struct glyph_row *row)
 {
   int hash = 0;
@@ -1882,7 +1878,7 @@ allocate_matrices_for_frame_redisplay (Lisp_Object window, int x, int y,
 
 /* Return the required height of glyph matrices for window W.  */
 
-int
+static int
 required_matrix_height (struct window *w)
 {
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1908,7 +1904,7 @@ required_matrix_height (struct window *w)
 
 /* Return the required width of glyph matrices for window W.  */
 
-int
+static int
 required_matrix_width (struct window *w)
 {
 #ifdef HAVE_WINDOW_SYSTEM
