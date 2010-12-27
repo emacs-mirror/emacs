@@ -1,3 +1,8 @@
+2010-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .gdbinit (xgetptr): Fix the union+lsb case.
+	(xbacktrace): Fix the union case.
+
 2010-12-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Fmove_to_window_line): Avoid abort when called in a buffer
