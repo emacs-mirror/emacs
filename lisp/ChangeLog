@@ -1,5 +1,9 @@
 2010-12-27  Michael Albinus  <michael.albinus@gmx.de>
 
+	* net/secrets.el (secrets-delete-alias): New defun.
+
+2010-12-27  Michael Albinus  <michael.albinus@gmx.de>
+
 	* net/tramp.el (tramp-default-user-alist): Do not add "ssh" based
 	methods, otherwise ~/.ssh/config would be ignored.
 
