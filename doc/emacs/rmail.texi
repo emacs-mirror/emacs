@@ -1164,11 +1164,44 @@ Then you can browse these URLs by clicking on them with @kbd{Mouse-2}
 @key{RET}}.  @xref{Goto Address mode, Activating URLs, Activating URLs}.
 
 @cindex MIME messages (Rmail)
+@vindex rmail-enable-mime
+  Rmail, by default, decodes a MIME message and display the body
+part(s) in a humar readable way.  If the message contains multiple
+parts (entities), each part has an additional single tagline that
+contains the information about depth, index, and type of the part.  It
+may also contain buttons to handle the part (for saving or
+image-showing).
+
+  If you customize @code{rmail-enable-mime} to @code{nil} (the default
+is @code{t}), Rmail does not show MIME decoded message until a user
+explicitly requires it.
+
+@table @kbd
+@findex rmail-mime-toggle-hidden
+@item @key{RET}
+  Hide or show the body of a MIME entity at point.
+
+@findex rmail-mime-next-item
+@item @key{TAB}
+  Move point to the next displayed item of MIME entity (part).
+
+@findex rmail-mime-previous-item
+@item @key{BackTab}
+  Move point to the previous displayed item of MIME entity (part).
+
 @findex rmail-mime
+@item v
 @kindex v @r{(Rmail)}
-  The @kbd{v} (@code{rmail-mime}) command creates a temporary buffer
-displaying the current MIME message.  By default, it displays plain text
-and multipart messages, and offers buttons to save attachments.
+  The @kbd{v} (@code{rmail-mime}) command toggles the display of a
+MIME message between the raw mode and the default mode.  In the raw
+mode, the undecoded MIME data is displayed.  With a prefix argument,
+it toggles the display of only an entity at point.
+
+  But, if the variable @code{rmail-enable-mime} is @code{nil}, the
+command creates a temporary buffer displaying the current MIME
+message.  By default, it displays plain text and multipart messages,
+and offers buttons to save attachments.
+@end table
 
 @node Rmail Coding
 @section Rmail and Coding Systems

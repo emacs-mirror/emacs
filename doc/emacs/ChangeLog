@@ -1,3 +1,7 @@
+2010-12-27  Kenichi Handa  <handa@m17n.org>
+
+	* rmail.texi (Rmail Display): Describe new features of Rmail in Info.
+
 2010-12-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Cut and Paste): Modify the section's name and text:
