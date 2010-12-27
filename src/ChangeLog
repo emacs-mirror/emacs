@@ -1,3 +1,7 @@
+2010-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fdefvar): Record specialness before computing initial value.
+
 2010-12-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Feval): Add `lexical' argument.  Adjust callers.

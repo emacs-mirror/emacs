@@ -441,6 +441,7 @@ specify different fields to sort on."
 
 ;(defvar byte-compile-debug nil)
 (defvar byte-compile-debug t)
+(setq debug-on-error t)
 
 ;; (defvar byte-compile-overwrite-file t
 ;;   "If nil, old .elc files are deleted before the new is saved, and .elc
@@ -4084,8 +4085,21 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
 
 (defun byte-compile-track-mouse (form)
   (byte-compile-form
-   `(funcall #'(lambda nil
-                 (track-mouse ,@(byte-compile-top-level-body (cdr form)))))))
+   ;; Use quote rather that #' here, because we don't want to go
+   ;; through the body again, which would lead to an infinite recursion:
+   ;; "byte-compile-track-mouse" (0xbffc98e4)
+   ;; "byte-compile-form" (0xbffc9c54)
+   ;; "byte-compile-top-level" (0xbffc9fd4)
+   ;; "byte-compile-lambda" (0xbffca364)
+   ;; "byte-compile-closure" (0xbffca6d4)
+   ;; "byte-compile-function-form" (0xbffcaa44)
+   ;; "byte-compile-form" (0xbffcadc0)
+   ;; "mapc" (0xbffcaf74)
+   ;; "byte-compile-funcall" (0xbffcb2e4)
+   ;; "byte-compile-form" (0xbffcb654)
+   ;; "byte-compile-track-mouse" (0xbffcb9d4)
+   `(funcall '(lambda nil
+		(track-mouse ,@(byte-compile-top-level-body (cdr form)))))))
 
 (defun byte-compile-condition-case (form)
   (let* ((var (nth 1 form))

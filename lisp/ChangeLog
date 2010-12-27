@@ -1,3 +1,7 @@
+2010-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-track-mouse): Don't use #'.
+
 2010-12-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/edebug.el (edebug-eval-defun, edebug-eval):

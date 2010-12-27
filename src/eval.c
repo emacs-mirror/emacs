@@ -855,6 +855,10 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   tem = Fdefault_boundp (sym);
   if (!NILP (tail))
     {
+      if (SYMBOLP (sym))
+	/* Do it before evaluating the initial value, for self-references.  */
+	XSYMBOL (sym)->declared_special = 1;
+
       if (SYMBOL_CONSTANT_P (sym))
 	{
 	  /* For upward compatibility, allow (defvar :foo (quote :foo)).  */
@@ -893,9 +897,6 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 	  Fput (sym, Qvariable_documentation, tem);
 	}
       LOADHIST_ATTACH (sym);
-
-      if (SYMBOLP (sym))
-	XSYMBOL (sym)->declared_special = 1;
     }
   else if (!NILP (Vinternal_interpreter_environment)
 	   && !XSYMBOL (sym)->declared_special)
