@@ -358,10 +358,7 @@ static void add_window_display_history (struct window *, char *, int);
    has been interrupted for pending input.  */
 
 static void
-add_window_display_history (w, msg, paused_p)
-     struct window *w;
-     char *msg;
-     int paused_p;
+add_window_display_history (struct window *w, char *msg, int paused_p)
 {
   char *buf;
 
@@ -387,9 +384,7 @@ add_window_display_history (w, msg, paused_p)
    pending input.  */
 
 static void
-add_frame_display_history (f, paused_p)
-     struct frame *f;
-     int paused_p;
+add_frame_display_history (struct frame *f, int paused_p)
 {
   char *buf;
 
@@ -1244,8 +1239,7 @@ assign_row (struct glyph_row *to, struct glyph_row *from)
 #if GLYPH_DEBUG
 
 static int
-glyph_row_slice_p (window_row, frame_row)
-     struct glyph_row *window_row, *frame_row;
+glyph_row_slice_p (struct glyph_row *window_row, struct glyph_row *frame_row)
 {
   struct glyph *window_glyph_start = window_row->glyphs[0];
   struct glyph *frame_glyph_start = frame_row->glyphs[0];
@@ -1264,9 +1258,8 @@ glyph_row_slice_p (window_row, frame_row)
    in WINDOW_MATRIX is found satisfying the condition.  */
 
 static struct glyph_row *
-find_glyph_row_slice (window_matrix, frame_matrix, row)
-     struct glyph_matrix *window_matrix, *frame_matrix;
-     int row;
+find_glyph_row_slice (struct glyph_matrix *window_matrix,
+		      struct glyph_matrix *frame_matrix, int row)
 {
   int i;
 
@@ -1570,7 +1563,7 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
 */
 
 void
-flush_stdout ()
+flush_stdout (void)
 {
   fflush (stdout);
 }
@@ -1582,8 +1575,7 @@ flush_stdout ()
    MATRIX.  */
 
 void
-check_matrix_pointer_lossage (matrix)
-     struct glyph_matrix *matrix;
+check_matrix_pointer_lossage (struct glyph_matrix *matrix)
 {
   int i, j;
 
@@ -1598,9 +1590,7 @@ check_matrix_pointer_lossage (matrix)
 /* Get a pointer to glyph row ROW in MATRIX, with bounds checks.  */
 
 struct glyph_row *
-matrix_row (matrix, row)
-     struct glyph_matrix *matrix;
-     int row;
+matrix_row (struct glyph_matrix *matrix, int row)
 {
   xassert (matrix && matrix->rows);
   xassert (row >= 0 && row < matrix->nrows);
@@ -1624,8 +1614,7 @@ matrix_row (matrix, row)
    window W.  */
 
 static void
-check_matrix_invariants (w)
-     struct window *w;
+check_matrix_invariants (struct window *w)
 {
   struct glyph_matrix *matrix = w->current_matrix;
   int yb = window_text_bottom_y (w);
@@ -3146,8 +3135,7 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
    glyph pointers.  */
 
 void
-check_window_matrix_pointers (w)
-     struct window *w;
+check_window_matrix_pointers (struct window *w)
 {
   while (w)
     {
@@ -3173,8 +3161,8 @@ check_window_matrix_pointers (w)
    corresponding frame row.  If it isn't, abort.  */
 
 static void
-check_matrix_pointers (window_matrix, frame_matrix)
-     struct glyph_matrix *window_matrix, *frame_matrix;
+check_matrix_pointers (struct glyph_matrix *window_matrix,
+		       struct glyph_matrix *frame_matrix)
 {
   /* Row number in WINDOW_MATRIX.  */
   int i = 0;
@@ -3208,9 +3196,7 @@ check_matrix_pointers (window_matrix, frame_matrix)
    vertical position relative to W's frame.  */
 
 static int
-window_to_frame_vpos (w, vpos)
-     struct window *w;
-     int vpos;
+window_to_frame_vpos (struct window *w, int vpos)
 {
   struct frame *f = XFRAME (w->frame);
 
@@ -3226,9 +3212,7 @@ window_to_frame_vpos (w, vpos)
    a horizontal position relative to W's frame.  */
 
 static int
-window_to_frame_hpos (w, hpos)
-     struct window *w;
-     int hpos;
+window_to_frame_hpos (struct window *w, int hpos)
 {
   xassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
   hpos += WINDOW_LEFT_EDGE_COL (w);

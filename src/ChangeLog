@@ -1,3 +1,14 @@
+2010-12-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* dispnew.c (add_window_display_history)
+	(add_frame_display_history, glyph_row_slice_p)
+	(find_glyph_row_slice, flush_stdout)
+	(check_matrix_pointer_lossage, matrix_row)
+	(check_matrix_invariants, check_window_matrix_pointers)
+	(check_matrix_pointers, window_to_frame_vpos)
+	(window_to_frame_hpos): Prototize.
+	* textprop.c (erase_properties): Likewise.
+
 2010-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* print.c (PRINT_NUMBER_OBJECT, PRINT_NUMBER_STATUS): Remove.

@@ -501,8 +501,7 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
    if this changes the interval.  */
 
 static INLINE int
-erase_properties (i)
-     INTERVAL i;
+erase_properties (INTERVAL i)
 {
   if (NILP (i->plist))
     return 0;
