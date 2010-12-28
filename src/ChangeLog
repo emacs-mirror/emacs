@@ -1,3 +1,8 @@
+2010-12-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xterm.h (x_alloc_lighter_color_for_widget): Restore declaration.
+	* xterm.c (x_alloc_lighter_color_for_widget): Restore.
+
 2010-12-27  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* buffer.c: Remove unused declarations.

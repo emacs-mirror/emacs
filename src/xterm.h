@@ -974,6 +974,9 @@ extern void x_initialize (void);
 extern unsigned long x_copy_color (struct frame *, unsigned long);
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
+extern int x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
+                                             unsigned long *,
+                                             double, int);
 extern void x_activate_timeout_atimer (void);
 #endif
 extern int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
