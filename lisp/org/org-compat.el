@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -162,6 +162,15 @@ If DELETE is non-nil, delete all those overlays."
       (let ((x (org-get-x-clipboard-compat value)))
 	(if x (org-no-properties x)))))
 
+(defsubst org-decompose-region (beg end)
+  "Decompose from BEG to END."
+  (if (featurep 'xemacs)
+      (let ((modified-p (buffer-modified-p))
+	    (buffer-read-only nil))
+	(remove-text-properties beg end '(composition nil))
+	(set-buffer-modified-p modified-p))
+    (decompose-region beg end)))
+
 ;; Miscellaneous functions
 
 (defun org-add-hook (hook function &optional append local)
@@ -196,6 +205,26 @@ ignored in this case."
 	((fboundp 'shrink-window-if-larger-than-buffer)
 	 (shrink-window-if-larger-than-buffer window)))
   (or window (selected-window)))
+
+(defun org-number-sequence (from &optional to inc)
+  "Call `number-sequence or emulate it."
+  (if (fboundp 'number-sequence)
+      (number-sequence from to inc)
+    (if (or (not to) (= from to))
+	(list from)
+      (or inc (setq inc 1))
+      (when (zerop inc) (error "The increment can not be zero"))
+      (let (seq (n 0) (next from))
+	(if (> inc 0)
+	    (while (<= next to)
+	      (setq seq (cons next seq)
+		    n (1+ n)
+		    next (+ from (* n inc))))
+	  (while (>= next to)
+	    (setq seq (cons next seq)
+		  n (1+ n)
+		  next (+ from (* n inc)))))
+	(nreverse seq)))))
 
 ;; Region compatibility
 
@@ -343,17 +372,17 @@ TIME defaults to the current time."
       (time-to-seconds (or time (current-time)))
     (float-time time)))
 
-(defun org-string-match-p (&rest args)
-  (if (fboundp 'string-match-p)
-      (apply 'string-match-p args)
+(if (fboundp 'string-match-p)
+    (defalias 'org-string-match-p 'string-match-p)
+  (defun org-string-match-p (regexp string &optional start)
     (save-match-data
-      (apply 'string-match args))))
+      (funcall 'string-match regexp string start))))
 
-(defun org-looking-at-p (&rest args)
-  (if (fboundp 'looking-at-p)
-      (apply 'looking-at-p args)
+(if (fboundp 'looking-at-p)
+    (defalias 'org-looking-at-p 'looking-at-p)
+  (defun org-looking-at-p (&rest args)
     (save-match-data
-      (apply 'looking-at-p args))))
+      (apply 'looking-at args))))
 
 ; XEmacs does not have `looking-back'.
 (if (fboundp 'looking-back)
@@ -388,6 +417,12 @@ LIMIT."
 	      (goto-char pos)
 	      (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
       (not (null pos)))))
+
+(defun org-floor* (x &optional y)
+  "Return a list of the floor of X and the fractional part of X.
+With two arguments, return floor and remainder of their quotient."
+  (let ((q (floor x y)))
+    (list q (- x (if y (* y q) q)))))
 
 (provide 'org-compat)
 

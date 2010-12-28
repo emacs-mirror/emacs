@@ -76,8 +76,9 @@ char *x_customization_string;
 /* Return the value of the emacs.customization (Emacs.Customization)
    resource, for later use in search path decoding.  If we find no
    such resource, return zero.  */
-char *
-x_get_customization_string (XrmDatabase db, const char *name, const char *class)
+static char *
+x_get_customization_string (XrmDatabase db, const char *name,
+			    const char *class)
 {
   char *full_name
     = (char *) alloca (strlen (name) + sizeof ("customization") + 3);
@@ -609,8 +610,9 @@ x_load_resources (Display *display, const char *xrm_string,
 /* Retrieve the value of the resource specified by NAME with class CLASS
    and of type TYPE from database RDB.  The value is returned in RET_VALUE. */
 
-int
-x_get_resource (XrmDatabase rdb, const char *name, const char *class, XrmRepresentation expected_type, XrmValue *ret_value)
+static int
+x_get_resource (XrmDatabase rdb, const char *name, const char *class,
+		XrmRepresentation expected_type, XrmValue *ret_value)
 {
   XrmValue value;
   XrmName namelist[100];

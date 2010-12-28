@@ -890,7 +890,8 @@ symbol can be preceeded to the corresponding Lisp object. Basic D-Bus
 types are represented by the type symbols @code{:byte},
 @code{:boolean}, @code{:int16}, @code{:uint16}, @code{:int32},
 @code{:uint32}, @code{:int64}, @code{:uint64}, @code{:double},
-@code{:string}, @code{:object-path} and @code{:signature}.
+@code{:string}, @code{:object-path}, @code{:signature} and
+@code{:unix-fd}.
 
 @noindent
 Example:
@@ -1009,6 +1010,7 @@ objects.
 @item DBUS_TYPE_UINT16      @tab @expansion{} @tab natural number
 @item DBUS_TYPE_INT16       @tab @expansion{} @tab integer
 @item DBUS_TYPE_UINT32      @tab @expansion{} @tab natural number or float
+@item DBUS_TYPE_UNIX_FD     @tab @expansion{} @tab natural number or float
 @item DBUS_TYPE_INT32       @tab @expansion{} @tab integer or float
 @item DBUS_TYPE_UINT64      @tab @expansion{} @tab natural number or float
 @item DBUS_TYPE_INT64       @tab @expansion{} @tab integer or float
@@ -1024,9 +1026,9 @@ objects.
 @end example
 
 A float object in case of @code{DBUS_TYPE_UINT32},
-@code{DBUS_TYPE_INT32}, @code{DBUS_TYPE_UINT64} and
-@code{DBUS_TYPE_INT6432} is returned, when the C value exceeds the
-Emacs number size range.
+@code{DBUS_TYPE_INT32}, @code{DBUS_TYPE_UINT64},
+@code{DBUS_TYPE_INT64} and @code{DBUS_TYPE_UNIX_FD} is returned, when
+the C value exceeds the Emacs number size range.
 
 The resulting list of the last 4 D-Bus compound types contains as
 elements the elements of the D-Bus container, mapped according to the

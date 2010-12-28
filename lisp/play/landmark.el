@@ -826,11 +826,7 @@ If the game is finished, this command requests for another game."
   "Display a message asking for Human's move."
   (message (if (zerop lm-number-of-human-moves)
 	       "Your move? (move to a free square and hit X, RET ...)"
-	       "Your move?"))
-  ;; This may seem silly, but if one omits the following line (or a similar
-  ;; one), the cursor may very well go to some place where POINT is not.
-  ;; FIXME: this can't be right!!  --Stef
-  (save-excursion (set-buffer (other-buffer))))
+	       "Your move?")))
 
 (defun lm-prompt-for-other-game ()
   "Ask for another game, and start it."
@@ -1141,7 +1137,7 @@ because it is overwritten by \"One moment please\"."
 
 (defun lm-weights-debug ()
   (if lm-debug
-      (progn (lm-print-wts) (lm-blackbox) (lm-print-y,s,noise)
+      (progn (lm-print-wts) (lm-blackbox) (lm-print-y-s-noise)
 	     (lm-print-smell))))
 
 ;;;_  - Printing various things
@@ -1191,7 +1187,7 @@ because it is overwritten by \"One moment please\"."
     (insert (format "%S\n" moves))))
 
 
-(defun lm-print-y,s,noise-int (direction)
+(defun lm-print-y-s-noise-int (direction)
   (insert (format "%S:lm-y %S, s %S, noise %S \n"
 		    (symbol-name direction)
 		    (get direction 'y_t)
@@ -1199,11 +1195,11 @@ because it is overwritten by \"One moment please\"."
 		    (get direction 'noise)
 		    )))
 
-(defun lm-print-y,s,noise ()
+(defun lm-print-y-s-noise ()
   (interactive)
   (with-current-buffer "*lm-y,s,noise*"
     (insert "==============================\n")
-    (mapc 'lm-print-y,s,noise-int lm-directions)))
+    (mapc 'lm-print-y-s-noise-int lm-directions)))
 
 (defun lm-print-smell-int (direction)
   (insert (format "%S: smell: %S \n"

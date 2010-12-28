@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -43,20 +43,19 @@
 
 (defvar org-babel-default-header-args:sass '())
 
-(defun org-babel-expand-body:sass (body params &optional processed-params)
-  "Expand BODY according to PARAMS, return the expanded body." body)
-
 (defun org-babel-execute:sass (body params)
   "Execute a block of Sass code with Babel.
 This function is called by `org-babel-execute-src-block'."
   (let* ((result-params (split-string (or (cdr (assoc :results params)) "")))
          (file (cdr (assoc :file params)))
-         (out-file (or file (make-temp-file "org-babel-sass-out")))
+         (out-file (or file (org-babel-temp-file "sass-out-")))
          (cmdline (cdr (assoc :cmdline params)))
-         (in-file (make-temp-file "org-babel-sass-in"))
-         (cmd (concat "sass " (or cmdline "") in-file " " out-file)))
+         (in-file (org-babel-temp-file "sass-in-"))
+         (cmd (concat "sass " (or cmdline "")
+		      " " (org-babel-process-file-name in-file)
+		      " " (org-babel-process-file-name out-file))))
     (with-temp-file in-file
-      (insert (org-babel-expand-body:sass body params))) (shell-command cmd)
+      (insert (org-babel-expand-body:generic body params))) (shell-command cmd)
     (or file (with-temp-buffer (insert-file-contents out-file) (buffer-string)))))
 
 (defun org-babel-prep-session:sass (session params)

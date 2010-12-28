@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -311,7 +311,7 @@ publishing directory."
 		  :add-text (plist-get opt-plist :text))
 		 "\n"))
 	 thetoc have-headings first-heading-pos
-	 table-open table-buffer link-buffer link desc desc0 rpl wrap)
+	 table-open table-buffer link-buffer link type path desc desc0 rpl wrap fnc)
     (let ((inhibit-read-only t))
       (org-unmodified
        (remove-text-properties (point-min) (point-max)
@@ -347,7 +347,7 @@ publishing directory."
 
       (if (and (or author email)
 	       org-export-author-info)
-	  (insert(concat (nth 1 lang-words) ": " (or author "")
+	  (insert (concat (nth 1 lang-words) ": " (or author "")
 			  (if (and org-export-email-info
 				   email (string-match "\\S-" email))
 			      (concat " <" email ">") "")
@@ -400,7 +400,7 @@ publishing directory."
 
 			 (if (and (memq org-export-with-tags '(not-in-toc nil))
 				  (string-match
-				   (org-re "[ \t]+:[[:alnum:]_@:]+:[ \t]*$")
+				   (org-re "[ \t]+:[[:alnum:]_@#%:]+:[ \t]*$")
 				   txt))
 			     (setq txt (replace-match "" t t txt)))
 			 (if (string-match quote-re0 txt)
@@ -431,10 +431,12 @@ publishing directory."
       ;; Remove the quoted HTML tags.
       (setq line (org-html-expand-for-ascii line))
       ;; Replace links with the description when possible
-      (while (string-match org-bracket-link-regexp line)
-	(setq link (match-string 1 line)
-	      desc0 (match-string 3 line)
-	      desc (or desc0 (match-string 1 line)))
+      (while (string-match org-bracket-link-analytic-regexp++ line)
+	(setq path (match-string 3 line)
+	      link (concat (match-string 1 line) path)
+	      type (match-string 2 line)
+	      desc0 (match-string 5 line)
+	      desc (or desc0 link))
 	(if (and (> (length link) 8)
 		 (equal (substring link 0 8) "coderef:"))
 	    (setq line (replace-match
@@ -443,15 +445,18 @@ publishing directory."
 				      (substring link 8)
 				      org-export-code-refs)))
 			t t line))
-	  (setq rpl (concat "["
-			    (or (match-string 3 line) (match-string 1 line))
-			    "]"))
-	  (when (and desc0 (not (equal desc0 link)))
-	    (if org-export-ascii-links-to-notes
-		(push (cons desc0 link) link-buffer)
-	      (setq rpl (concat rpl " (" link ")")
-		    wrap (+ (length line) (- (length (match-string 0 line)))
-			    (length desc)))))
+	  (setq rpl (concat "[" desc "]"))
+	  (if (functionp (setq fnc (nth 2 (assoc type org-link-protocols))))
+	      (setq rpl (or (save-match-data
+			      (funcall fnc (org-link-unescape path)
+				       desc0 'ascii))
+			    rpl))
+	    (when (and desc0 (not (equal desc0 link)))
+	      (if org-export-ascii-links-to-notes
+		  (push (cons desc0 link) link-buffer)
+		(setq rpl (concat rpl " (" link ")")
+		      wrap (+ (length line) (- (length (match-string 0 line)))
+			      (length desc))))))
 	  (setq line (replace-match rpl t t line))))
       (when custom-times
 	(setq line (org-translate-time line)))
@@ -482,7 +487,8 @@ publishing directory."
 		   (org-format-table-ascii table-buffer)
 		   "\n") "\n")))
        (t
-	(if (string-match "^\\([ \t]*\\)\\([-+*][ \t]+\\)\\(.*?\\)\\( ::\\)" line)
+	(if (string-match "^\\([ \t]*\\)\\([-+*][ \t]+\\)\\(.*?\\)\\( ::\\)"
+			  line)
 	    (setq line (replace-match "\\1\\3:" t nil line)))
 	(setq line (org-fix-indentation line org-ascii-current-indentation))
 	;; Remove forced line breaks
@@ -571,9 +577,12 @@ publishing directory."
       (replace-match "\\1\\2")))
   ;; Remove list start counters
   (goto-char (point-min))
-  (while (re-search-forward  "\\[@start:[0-9]+\\] ?" nil t)
-    (org-if-unprotected
-     (replace-match ""))))
+  (while (org-search-forward-unenclosed
+	  "\\[@\\(?:start:\\)?[0-9]+\\][ \t]*" nil t)
+    (replace-match ""))
+  (remove-text-properties
+   (point-min) (point-max)
+   '(face nil font-lock-fontified nil font-lock-multiline nil line-prefix nil wrap-prefix nil)))
 
 (defun org-html-expand-for-ascii (line)
   "Handle quoted HTML for ASCII export."
@@ -586,7 +595,7 @@ publishing directory."
 (defun org-ascii-replace-entities ()
   "Replace entities with the ASCII representation."
   (let (e)
-    (while (re-search-forward "\\\\\\([a-zA-Z]+[0-9]*\\)" nil t)
+    (while (re-search-forward "\\\\\\([a-zA-Z]+[0-9]*\\)\\({}\\)?" nil t)
       (org-if-unprotected-at (match-beginning 1)
 	(setq e (org-entity-get-representation (match-string 1)
 					       org-export-ascii-entities))
@@ -645,7 +654,7 @@ publishing directory."
 	  (insert "\n"))
       (setq char (nth (- umax level) (reverse org-export-ascii-underline)))
       (unless org-export-with-tags
-	(if (string-match (org-re "[ \t]+\\(:[[:alnum:]_@:]+:\\)[ \t]*$") title)
+	(if (string-match (org-re "[ \t]+\\(:[[:alnum:]_@#%:]+:\\)[ \t]*$") title)
 	    (setq title (replace-match "" t t title))))
       (if org-export-with-section-numbers
 	  (setq title (concat (org-section-number level) " " title)))

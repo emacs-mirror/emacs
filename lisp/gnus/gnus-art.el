@@ -1636,6 +1636,12 @@ This requires GNU Libidn, and by default only enabled if it is found."
   :group 'gnus-article
   :type 'boolean)
 
+(defcustom gnus-inhibit-images nil
+  "Non-nil means inhibit displaying of images inline in the article body."
+  :version "24.1"
+  :group 'gnus-article
+  :type 'boolean)
+
 (defcustom gnus-blocked-images 'gnus-block-private-groups
   "Images that have URLs matching this regexp will be blocked.
 This can also be a function to be evaluated.  If so, it will be
@@ -2120,7 +2126,7 @@ try this wash."
   "Translate many Unicode characters into their ASCII equivalents."
   (interactive)
   (require 'org-entities)
-  (let ((table (make-char-table nil)))
+  (let ((table (make-char-table (if (featurep 'xemacs) 'generic))))
     (dolist (elem org-entities)
       (when (and (listp elem)
 		 (= (length (nth 6 elem)) 1))
@@ -2130,12 +2136,18 @@ try this wash."
     (save-excursion
       (when (article-goto-body)
 	(let ((inhibit-read-only t)
-	      replace)
+	      replace props)
 	  (while (not (eobp))
-	    (if (not (setq replace (aref table (following-char))))
+	    (if (not (setq replace (if (featurep 'xemacs)
+				       (get-char-table (following-char) table)
+				     (aref table (following-char)))))
 		(forward-char 1)
-	      (delete-char 1)
-	      (insert replace))))))))
+	      (if (prog1
+		      (setq props (text-properties-at (point)))
+		    (delete-char 1))
+		  (add-text-properties (point) (progn (insert replace) (point))
+				       props)
+		(insert replace)))))))))
 
 (defun article-translate-characters (from to)
   "Translate all characters in the body of the article according to FROM and TO.
@@ -2264,6 +2276,17 @@ unfolded."
   (gnus-with-article-buffer
     (dolist (elem gnus-article-image-alist)
       (gnus-delete-images (car elem)))))
+
+(defun gnus-article-show-images ()
+  "Show any images that are in the HTML-rendered article buffer.
+This only works if the article in question is HTML."
+  (interactive)
+  (gnus-with-article-buffer
+    (dolist (region (gnus-find-text-property-region (point-min) (point-max)
+						    'image-displayer))
+      (destructuring-bind (start end function) region
+	(funcall function (get-text-property start 'image-url)
+		 start end)))))
 
 (defun gnus-article-treat-fold-newsgroups ()
   "Unfold folded message headers.
@@ -5828,7 +5851,12 @@ If displaying \"text/html\" is discouraged \(see
 	(while ignored
 	  (when (string-match (pop ignored) type)
 	    (throw 'ignored nil)))
-	(if (and (setq not-attachment
+	(if (and (not (and (if (gnus-buffer-live-p gnus-summary-buffer)
+			       (with-current-buffer gnus-summary-buffer
+				 gnus-inhibit-images)
+			     gnus-inhibit-images)
+			   (string-match "\\`image/" type)))
+		 (setq not-attachment
 		       (and (not (mm-inline-override-p handle))
 			    (or (not (mm-handle-disposition handle))
 				(equal (car (mm-handle-disposition handle))
@@ -8058,6 +8086,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 	  (Info-index-next 1)))
       nil)))
 
+(autoload 'pgg-snarf-keys-region "pgg")
 ;; Called after pgg-snarf-keys-region, which autoloads pgg.el.
 (declare-function pgg-display-output-buffer "pgg" (start end status))
 
@@ -8118,6 +8147,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 
 (defun gnus-url-mailto (url)
   ;; Send mail to someone
+  (setq url (replace-regexp-in-string "\n" " " url))
   (when (string-match "mailto:/*\\(.*\\)" url)
     (setq url (substring url (match-beginning 1) nil)))
   (let (to args subject func)
@@ -8127,8 +8157,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 		  (if (string-match "^\\([^?]+\\)\\?\\(.*\\)" url)
 		      (concat "to=" (match-string 1 url) "&"
 			      (match-string 2 url))
-		    (concat "to=" url)))
-		t)
+		    (concat "to=" url))))
 	  subject (cdr-safe (assoc "subject" args)))
     (gnus-msg-mail)
     (while args

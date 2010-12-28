@@ -174,7 +174,7 @@
 	* erc-nicklist.el (erc-nicklist-insert-contents): Add missing
 	parenthesis.  Thanks to Stephan Stahl for the report.
 
-2006-09-10  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2006-09-10  Eric Hanchrow  <offby1@blarg.net>
 
 	* erc.el (erc-cmd-IGNORE): Prompt user if this might be a regexp
 	instead of a single user.

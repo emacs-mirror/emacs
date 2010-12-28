@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -49,6 +49,7 @@
 (declare-function org-in-verbatim-emphasis "org" ())
 (declare-function org-inside-latex-macro-p "org" ())
 (defvar org-odd-levels-only) ;; defined in org.el
+(defvar message-signature-separator) ;; defined in message.el
 
 (defconst org-footnote-re
   (concat "[^][\n]"   ; to make sure it is not at the beginning of a line
@@ -188,7 +189,7 @@ with start and label of the footnote if there is a definition at point."
       (message "Edit definition and go back with `C-c &' or, if unique, with `C-c C-c'."))))
 
 (defun org-footnote-goto-previous-reference (label)
-  "Find the next previous of the footnote with label LABEL."
+  "Find the first closest (to point) reference of footnote with label LABEL."
   (interactive "sLabel: ")
   (org-mark-ring-push)
   (setq label (org-footnote-normalize-label label))
@@ -302,15 +303,19 @@ or new, let the user edit the definition of the footnote."
      (t
       (setq re (concat "^" org-footnote-tag-for-non-org-mode-files "[ \t]*$"))
       (unless (re-search-forward re nil t)
-	(goto-char (point-max))
-	(skip-chars-backward " \t\r\n")
-	(insert "\n\n")
-	(delete-region (point) (point-max))
-	(insert org-footnote-tag-for-non-org-mode-files "\n"))
-      (goto-char (point-max))
-      (skip-chars-backward " \t\r\n")))
-    (insert "\n\n")
-    (insert "[" label "] ")
+	(let ((max (if (and (derived-mode-p 'message-mode)
+			    (re-search-forward message-signature-separator nil t))
+		       (progn (beginning-of-line) (point))
+		     (goto-char (point-max)))))
+	  (skip-chars-backward " \t\r\n")
+	  (delete-region (point) max)
+	  (insert "\n\n")
+	  (insert org-footnote-tag-for-non-org-mode-files "\n")))))
+    ;; Skip existing footnotes
+    (while (re-search-forward "^[[:space:]]*\\[[^]]+\\] " nil t)
+      (forward-line))
+    (insert "[" label "] \n")
+    (goto-char (1- (point)))
     (message "Edit definition and go back with `C-c &' or, if unique, with `C-c C-c'.")))
 
 ;;;###autoload
@@ -506,7 +511,8 @@ ENTRY is (fn-label num-mark definition)."
     (beginning-of-line 0))
   (if (looking-at "[ \t]*#\\+TBLFM:") (beginning-of-line 2))
   (end-of-line 1)
-  (skip-chars-backward "\n\r\t "))
+  (skip-chars-backward "\n\r\t ")
+  (forward-line))
 
 (defun org-footnote-delete (&optional label)
   "Delete the footnote at point.

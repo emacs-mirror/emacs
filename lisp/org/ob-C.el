@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +33,6 @@
 ;;; Code:
 (require 'ob)
 (require 'ob-eval)
-(require 'org)
 (require 'cc-mode)
 
 (declare-function org-entry-get "org"
@@ -65,31 +64,30 @@ is currently being evaluated.")
 called by `org-babel-execute-src-block'."
   (let ((org-babel-c-variant 'cpp)) (org-babel-C-execute body params)))
 
-(defun org-babel-expand-body:c++ (body params &optional processed-params)
+(defun org-babel-expand-body:c++ (body params)
   "Expand a block of C++ code with org-babel according to it's
 header arguments (calls `org-babel-C-expand')."
-  (let ((org-babel-c-variant 'cpp)) (org-babel-C-expand body params processed-params)))
+  (let ((org-babel-c-variant 'cpp)) (org-babel-C-expand body params)))
 
 (defun org-babel-execute:C (body params)
   "Execute a block of C code with org-babel.  This function is
 called by `org-babel-execute-src-block'."
   (let ((org-babel-c-variant 'c)) (org-babel-C-execute body params)))
 
-(defun org-babel-expand-body:c (body params &optional processed-params)
+(defun org-babel-expand-body:c (body params)
   "Expand a block of C code with org-babel according to it's
 header arguments (calls `org-babel-C-expand')."
-  (let ((org-babel-c-variant 'c)) (org-babel-C-expand body params processed-params)))
+  (let ((org-babel-c-variant 'c)) (org-babel-C-expand body params)))
 
 (defun org-babel-C-execute (body params)
   "This function should only be called by `org-babel-execute:C'
 or `org-babel-execute:c++'."
-  (let* ((processed-params (org-babel-process-params params))
-         (tmp-src-file (make-temp-file "org-babel-C-src" nil
-                                       (cond
-					((equal org-babel-c-variant 'c) ".c")
-					((equal org-babel-c-variant 'cpp) ".cpp"))))
-         (tmp-bin-file (make-temp-file "org-babel-C-bin"))
-         (tmp-out-file (make-temp-file "org-babel-C-out"))
+  (let* ((tmp-src-file (org-babel-temp-file
+			"C-src-"
+			(cond
+			 ((equal org-babel-c-variant 'c) ".c")
+			 ((equal org-babel-c-variant 'cpp) ".cpp"))))
+         (tmp-bin-file (org-babel-temp-file "C-bin-"))
          (cmdline (cdr (assoc :cmdline params)))
          (flags (cdr (assoc :flags params)))
          (full-body (org-babel-C-expand body params))
@@ -101,37 +99,35 @@ or `org-babel-execute:c++'."
 		     (cond
 		      ((equal org-babel-c-variant 'c) org-babel-C-compiler)
 		      ((equal org-babel-c-variant 'cpp) org-babel-c++-compiler))
-		     tmp-bin-file
+		     (org-babel-process-file-name tmp-bin-file)
 		     (mapconcat 'identity
 				(if (listp flags) flags (list flags)) " ")
-		     tmp-src-file) ""))))
+		     (org-babel-process-file-name tmp-src-file)) ""))))
     ((lambda (results)
        (org-babel-reassemble-table
-	(if (member "vector" (nth 2 processed-params))
-	    (let ((tmp-file (make-temp-file "ob-c")))
+	(if (member "vector" (cdr (assoc :result-params params)))
+	    (let ((tmp-file (org-babel-temp-file "c-")))
 	      (with-temp-file tmp-file (insert results))
 	      (org-babel-import-elisp-from-file tmp-file))
 	  (org-babel-read results))
 	(org-babel-pick-name
-	 (nth 4 processed-params) (cdr (assoc :colnames params)))
+	 (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
 	(org-babel-pick-name
-	 (nth 5 processed-params) (cdr (assoc :rownames params)))))
+	 (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params)))))
      (org-babel-trim
        (org-babel-eval
 	(concat tmp-bin-file (if cmdline (concat " " cmdline) "")) "")))))
 
-(defun org-babel-C-expand (body params &optional processed-params)
+(defun org-babel-C-expand (body params)
   "Expand a block of C or C++ code with org-babel according to
 it's header arguments."
-  (let ((vars (nth 1 (or processed-params
-                          (org-babel-process-params params))))
+  (let ((vars (mapcar #'cdr (org-babel-get-header params :var)))
         (main-p (not (string= (cdr (assoc :main params)) "no")))
         (includes (or (cdr (assoc :includes params))
                       (org-babel-read (org-entry-get nil "includes" t))))
         (defines (org-babel-read
                   (or (cdr (assoc :defines params))
                       (org-babel-read (org-entry-get nil "defines" t))))))
-    (org-babel-trim
      (mapconcat 'identity
 		(list
 		 ;; includes
@@ -147,11 +143,11 @@ it's header arguments."
 		 ;; body
 		 (if main-p
 		     (org-babel-C-ensure-main-wrap body)
-		   body) "\n") "\n"))))
+		   body) "\n") "\n")))
 
 (defun org-babel-C-ensure-main-wrap (body)
   "Wrap body in a \"main\" function call if none exists."
-  (if (string-match "^[ \t]*[intvod]+[ \t]*main[ \t]*(.*)" body)
+  (if (string-match "^[ \t]*[intvod]+[ \t\n\r]*main[ \t]*(.*)" body)
       body
     (format "int main() {\n%s\n}\n" body)))
 

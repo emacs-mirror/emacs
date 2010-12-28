@@ -2,7 +2,7 @@
 ;;
 ;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;
-;; Version: 7.01
+;; Version: 7.4
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;; Maintainer: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;; Keywords: org, wp, tex
@@ -246,14 +246,14 @@ in org-export-latex-classes."
       (if (and (string-match "\\`[0-9.]+\\'" tmp)
 	       (or (= (string-to-number tmp) 1.0)
 		   (= (string-to-number tmp) 0.0)))
-	  ;; column width 1 means cloase columns, go back to full width
+	  ;; column width 1 means close columns, go back to full width
 	  (org-beamer-close-columns-maybe)
 	(when (setq ass (assoc "BEAMER_envargs" props))
 	  (let (case-fold-search)
-	    (when (string-match "C\\(\\[[^][]*\\]\\)" (cdr ass))
+	    (while (string-match "C\\(\\[[^][]*\\]\\|<[^<>]*>\\)" (cdr ass))
 	      (setq columns-option (match-string 1 (cdr ass)))
 	      (setcdr ass (replace-match "" t t (cdr ass))))
-	    (when (string-match "c\\(\\[[^][]*\\]\\)" (cdr ass))
+	    (while (string-match "c\\(\\[[^][]*\\]\\|<[^<>]*>\\)" (cdr ass))
 	      (setq column-option (match-string 1 (cdr ass)))
 	      (setcdr ass (replace-match "" t t (cdr ass))))))
 	(org-beamer-open-columns-maybe columns-option)
@@ -373,7 +373,7 @@ The need to be after the begin statement of the environment."
     (let (dovl)
       (goto-char (point-min))
       (while (re-search-forward
-	      "^[ \t]*\\\\begin{\\(itemize\\|enumerate\\|desctiption\\)}[ \t\n]*\\\\item\\>\\( ?\\(<[^<>\n]*>\\|\\[[^][\n*]\\]\\)\\)?[ \t]*\\S-" nil t)
+	      "^[ \t]*\\\\begin{\\(itemize\\|enumerate\\|description\\)}[ \t\n]*\\\\item\\>\\( ?\\(<[^<>\n]*>\\|\\[[^][\n*]\\]\\)\\)?[ \t]*\\S-" nil t)
 	(if (setq dovl (cdr (assoc "BEAMER_dovl"
 				   (get-text-property (match-end 0)
 						      'org-props))))
@@ -382,7 +382,7 @@ The need to be after the begin statement of the environment."
 	      (insert dovl)))))))
 
 (defun org-beamer-amend-header ()
-  "Add `org-beamer-header-extra' to the LaTeX herder.
+  "Add `org-beamer-header-extra' to the LaTeX header.
 If the file contains the string BEAMER-HEADER-EXTRA-HERE on a line
 by itself, it will be replaced with `org-beamer-header-extra'.  If not,
 the value will be inserted right after the documentclass statement."

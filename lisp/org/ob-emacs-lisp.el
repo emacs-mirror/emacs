@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -36,16 +36,16 @@
 
 (declare-function orgtbl-to-generic "org-table" (table params))
 
-(defun org-babel-expand-body:emacs-lisp (body params &optional processed-params)
+(defun org-babel-expand-body:emacs-lisp (body params)
   "Expand BODY according to PARAMS, return the expanded body."
-  (let* ((processed-params (or processed-params (org-babel-process-params params)))
-         (vars (nth 1 processed-params))
-         (result-params (nth 2 processed-params))
+  (let* ((vars (mapcar #'cdr (org-babel-get-header params :var)))
+         (result-params (cdr (assoc :result-params params)))
          (print-level nil) (print-length nil)
          (body (if (> (length vars) 0)
 		   (concat "(let ("
 			 (mapconcat
-			  (lambda (var) (format "%S" (print `(,(car var) ',(cdr var)))))
+			  (lambda (var)
+			    (format "%S" (print `(,(car var) ',(cdr var)))))
 			  vars "\n      ")
 			 ")\n" body ")")
 		 body)))
@@ -56,13 +56,13 @@
 (defun org-babel-execute:emacs-lisp (body params)
   "Execute a block of emacs-lisp code with Babel."
   (save-window-excursion
-    (let ((processed-params (org-babel-process-params params)))
-      (org-babel-reassemble-table
-       (eval (read (format "(progn %s)"
-			   (org-babel-expand-body:emacs-lisp
-			    body params processed-params))))
-       (org-babel-pick-name (nth 4 processed-params) (cdr (assoc :colnames params)))
-       (org-babel-pick-name (nth 5 processed-params) (cdr (assoc :rownames params)))))))
+    (org-babel-reassemble-table
+     (eval (read (format "(progn %s)"
+			 (org-babel-expand-body:emacs-lisp body params))))
+     (org-babel-pick-name (cdr (assoc :colname-names params))
+			  (cdr (assoc :colnames params)))
+       (org-babel-pick-name (cdr (assoc :rowname-names params))
+			    (cdr (assoc :rownames params))))))
 
 (provide 'ob-emacs-lisp)
 

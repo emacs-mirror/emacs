@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -228,7 +228,9 @@ This is the compiled version of the format.")
        (overlay-put ov 'org-columns-value (cdr ass))
        (overlay-put ov 'org-columns-value-modified modval)
        (overlay-put ov 'org-columns-pom pom)
-       (overlay-put ov 'org-columns-format f))
+       (overlay-put ov 'org-columns-format f)
+       (overlay-put ov 'line-prefix "")
+       (overlay-put ov 'wrap-prefix ""))
       (if (or (not (char-after beg))
 	      (equal (char-after beg) ?\n))
 	  (let ((inhibit-read-only t))
@@ -241,6 +243,8 @@ This is the compiled version of the format.")
        (overlay-put ov 'invisible t)
        (overlay-put ov 'keymap org-columns-map)
        (overlay-put ov 'intangible t)
+       (overlay-put ov 'line-prefix "")
+       (overlay-put ov 'wrap-prefix "")
        (push ov org-columns-overlays)
        (setq ov (make-overlay (1- (point-at-eol)) (1+ (point-at-eol))))
        (overlay-put ov 'keymap org-columns-map)
@@ -464,7 +468,7 @@ Where possible, use the standard interface for changing this line."
 		    (call-interactively 'org-schedule))))
      ((equal key "BEAMER_env")
       (setq eval '(org-with-point-at pom
-		    (call-interactively 'org-beamer-set-environment-tag))))
+		    (call-interactively 'org-beamer-select-environment))))
      (t
       (setq allowed (org-property-get-allowed-values pom key 'table))
       (if allowed
@@ -515,7 +519,7 @@ Where possible, use the standard interface for changing this line."
 	  (txt (match-string 3))
 	  (post "")
 	  txt2)
-      (if (string-match (org-re "[ \t]+:[[:alnum:]:_@]+:[ \t]*$") txt)
+      (if (string-match (org-re "[ \t]+:[[:alnum:]:_@#%]+:[ \t]*$") txt)
 	  (setq post (match-string 0 txt)
 		txt (substring txt 0 (match-beginning 0))))
       (setq txt2 (read-string "Edit: " txt))
@@ -746,7 +750,8 @@ around it."
     ("@max" max_age max (lambda (x) (- org-columns-time x)))
     ("@mean" mean_age
      (lambda (&rest x) (/ (apply '+ x) (float (length x))))
-     (lambda (x) (- org-columns-time x))))
+     (lambda (x) (- org-columns-time x)))
+    ("est+" estimate org-estimate-combine))
   "Operator <-> format,function,calc  map.
 Used to compile/uncompile columns format and completing read in
 interactive function `org-columns-new'.
@@ -1031,6 +1036,7 @@ Don't set this, this is meant for dynamic scoping.")
 (defun org-columns-number-to-string (n fmt &optional printf)
   "Convert a computed column number to a string value, according to FMT."
   (cond
+   ((memq fmt '(estimate)) (org-estimate-print n printf))
    ((not (numberp n)) "")
    ((memq fmt '(add_times max_times min_times mean_times))
     (let* ((h (floor n)) (m (floor (+ 0.5 (* 60 (- n h))))))
@@ -1054,28 +1060,30 @@ Don't set this, this is meant for dynamic scoping.")
       (format "[%d/%d]" n m)
     (format "[%d%%]"(floor (+ 0.5 (* 100. (/ (* 1.0 n) m)))))))
 
+
 (defun org-columns-string-to-number (s fmt)
   "Convert a column value to a number that can be used for column computing."
   (if s
       (cond
        ((memq fmt '(min_age max_age mean_age))
-	(cond ((string= s "") org-columns-time)
-	      ((string-match
-		"\\([0-9]+\\)d \\([0-9]+\\)h \\([0-9]+\\)m \\([0-9]+\\)s"
-		s)
-	       (+ (* 60 (+ (* 60 (+ (* 24 (string-to-number (match-string 1 s)))
-				    (string-to-number (match-string 2 s))))
-			   (string-to-number (match-string 3 s))))
-		  (string-to-number (match-string 4 s))))
-	      (t (time-to-number-of-days (apply 'encode-time
-						(org-parse-time-string s t))))))
+        (cond ((string= s "") org-columns-time)
+              ((string-match
+                "\\([0-9]+\\)d \\([0-9]+\\)h \\([0-9]+\\)m \\([0-9]+\\)s"
+                s)
+               (+ (* 60 (+ (* 60 (+ (* 24 (string-to-number (match-string 1 s)))
+                                    (string-to-number (match-string 2 s))))
+                           (string-to-number (match-string 3 s))))
+                  (string-to-number (match-string 4 s))))
+              (t (time-to-number-of-days (apply 'encode-time
+                                                (org-parse-time-string s t))))))
        ((string-match ":" s)
-	(let ((l (nreverse (org-split-string s ":"))) (sum 0.0))
-	  (while l
-	    (setq sum (+ (string-to-number (pop l)) (/ sum 60))))
-	  sum))
+        (let ((l (nreverse (org-split-string s ":"))) (sum 0.0))
+          (while l
+            (setq sum (+ (string-to-number (pop l)) (/ sum 60))))
+          sum))
        ((memq fmt '(checkbox checkbox-n-of-m checkbox-percent))
-	(if (equal s "[X]") 1. 0.000001))
+        (if (equal s "[X]") 1. 0.000001))
+       ((memq fmt '(estimate)) (org-string-to-estimate s))
        (t (string-to-number s)))))
 
 (defun org-columns-uncompile-format (cfmt)
@@ -1491,6 +1499,41 @@ This will add overlays to the date lines, to show the summary for each day."
       (format "%dd %02dh %02dm %02ds" days hours minutes seconds))
     ""))
 
+(defun org-estimate-mean-and-var (v)
+  "Return the mean and variance of an estimate."
+  (let* ((low (float (car v)))
+         (high (float (cadr v)))
+         (mean (/ (+ low high) 2.0))
+         (var (/ (+ (expt (- mean low) 2.0) (expt (- high mean) 2.0)) 2.0)))
+    (list  mean var)))
+
+(defun org-estimate-combine (&rest el)
+  "Combine a list of estimates, using mean and variance.
+The mean and variance of the result will be the sum of the means
+and variances (respectively) of the individual estimates."
+  (let ((mean 0)
+        (var 0))
+    (mapc (lambda (e)
+              (let ((stats (org-estimate-mean-and-var e)))
+                (setq mean (+ mean (car stats)))
+                (setq var (+ var (cadr stats)))))
+            el)
+    (let ((stdev (sqrt var)))
+      (list (- mean stdev) (+ mean stdev)))))
+
+(defun org-estimate-print (e &optional fmt)
+  "Prepare a string representation of an estimate.
+This formats these numbers as two numbers with a \"-\" between them."
+  (if (null fmt) (set 'fmt "%.0f"))
+  (format "%s" (mapconcat (lambda (n) (format fmt n))  e "-")))
+
+(defun org-string-to-estimate (s)
+  "Convert a string to an estimate.
+The string should be two numbers joined with a \"-\"."
+  (if (string-match "\\(.*\\)-\\(.*\\)" s)
+      (list (string-to-number (match-string 1 s))
+	    (string-to-number(match-string 2 s)))
+    (list (string-to-number s) (string-to-number s))))
 
 (provide 'org-colview)
 

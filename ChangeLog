@@ -1,3 +1,43 @@
+2010-12-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-dep, uninstall): Remove code relating to the
+	long absent lib-src/fns-*.el.
+
+2010-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Exclude etc/*.pyc.
+
+2010-12-10  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Don't double machfile in final message.
+
+2010-12-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Fix last change.
+
+2010-12-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Remove reference to removed machine description
+	files and allow $machine and $machfile to be empty.  Substitute
+	M_FILE/S_FILE instead of machfile/opsysfile.
+
+2010-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Remove EMACS_UNIBYTE unsetting; it does nothing.
+
+2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in <AC_CHECK_HEADERS>: Remove sys/ioctl.h.
+	(EXTERNALLY_VISIBLE): New definition.
+
+2010-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (INLINE): Do not depend on OPTIMIZE, unused.
+
+2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Do not check for unconditionally included headers.
+
 2010-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* .dir-locals.el (log-edit-mode): Set log-edit-rewrite-fixes.
@@ -2890,7 +2930,7 @@
 
 	* make-dist (lispref): Do include lispref/index.texi.
 
-2004-01-06  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2004-01-06  Eric Hanchrow  <offby1@blarg.net>
 
 	* make-dist (tempdir): Include cursors in nt/icons.
 

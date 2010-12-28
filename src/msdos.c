@@ -2698,7 +2698,7 @@ dos_rawgetc (void)
 	      mouse_window = window_from_coordinates (SELECTED_FRAME(),
 						      mouse_last_x,
 						      mouse_last_y,
-						      0, 0, 0, 0);
+						      0, 0);
 	      /* A window will be selected only when it is not
 		 selected now, and the last mouse movement event was
 		 not in it.  A minibuffer window will be selected iff
@@ -2725,17 +2725,8 @@ dos_rawgetc (void)
 	  /* If the contents of the global variable help_echo has
 	     changed, generate a HELP_EVENT.  */
 	  if (!NILP (help_echo_string) || !NILP (previous_help_echo_string))
-	    {
-	      event.kind = HELP_EVENT;
-	      event.frame_or_window = selected_frame;
-	      event.arg = help_echo_object;
-	      event.x = WINDOWP (help_echo_window)
-		? help_echo_window : selected_frame;
-	      event.y = help_echo_string;
-	      event.timestamp = event_timestamp ();
-	      event.code = help_echo_pos;
-	      kbd_buffer_store_event (&event);
-	    }
+	    gen_help_event (help_echo_string, selected_frame, help_echo_window,
+			    help_echo_object, help_echo_pos);
 	}
 
       for (but = 0; but < NUM_MOUSE_BUTTONS; but++)

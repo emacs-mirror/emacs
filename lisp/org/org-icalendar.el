@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -47,13 +47,24 @@ The file name should be absolute, the file will be overwritten without warning."
   :group 'org-export-icalendar
   :type 'file)
 
+(defcustom org-icalendar-alarm-time 0
+  "Number of minutes for triggering an alarm for exported timed events.
+A zero value (the default) turns off the definition of an alarm trigger
+for timed events.  If non-zero, alarms are created.
+
+- a single alarm per entry is defined
+- The alarm will go off N minutes before the event
+- only a DISPLAY action is defined."
+  :group 'org-export-icalendar
+  :type 'integer)
+
 (defcustom org-icalendar-combined-name "OrgMode"
   "Calendar name for the combined iCalendar representing all agenda files."
   :group 'org-export-icalendar
   :type 'string)
 
 (defcustom org-icalendar-combined-description nil
-  "Calendar description for the combined iCalendar representing all agenda files."
+  "Calendar description for the combined iCalendar (all agenda files)."
   :group 'org-export-icalendar
   :type 'string)
 
@@ -183,6 +194,13 @@ When nil of the empty string, use the abbreviation retrieved from Emacs."
 	  (const :tag "Unspecified" nil)
 	  (string :tag "Time zone")))
 
+(defcustom org-icalendar-use-UTC-date-time ()
+  "Non-nil force the use of the universal time for iCalendar DATE-TIME.
+The iCalendar DATE-TIME can be expressed with local time or universal Time,
+universal time could be more compatible with some external tools."
+  :group 'org-export-icalendar
+  :type 'boolean)
+
 ;;; iCalendar export
 
 ;;;###autoload
@@ -282,7 +300,7 @@ When COMBINE is non nil, add the category to each line."
 	      "DTSTART"))
 	hd ts ts2 state status (inc t) pos b sexp rrule
 	scheduledp deadlinep todo prefix due start
-	tmp pri categories location summary desc uid
+	tmp pri categories location summary desc uid alarm
 	(sexp-buffer (get-buffer-create "*ical-tmp*")))
     (org-refresh-category-properties)
     (save-excursion
@@ -300,7 +318,7 @@ When COMBINE is non nil, add the category to each line."
 		inc t
 		hd (condition-case nil
 		       (org-icalendar-cleanup-string
-			(org-get-heading))
+			(org-get-heading t))
 		     (error (throw :skip nil)))
 		summary (org-icalendar-cleanup-string
 			 (org-entry-get nil "SUMMARY"))
@@ -314,6 +332,7 @@ When COMBINE is non nil, add the category to each line."
 			(org-id-get-create)
 		      (or (org-id-get) (org-id-new)))
 		categories (org-export-get-categories)
+		alarm ""
 		deadlinep nil scheduledp nil)
 	  (if (looking-at re2)
 	      (progn
@@ -362,6 +381,17 @@ When COMBINE is non nil, add the category to each line."
 			    ";INTERVAL=" (match-string 1 ts)))
 	    (setq rrule ""))
 	  (setq summary (or summary hd))
+	  ;; create an alarm entry if the entry is timed.  this is not very general in that:
+	  ;; (a) only one alarm per entry is defined,
+	  ;; (b) only minutes are allowed for the trigger period ahead of the start time, and
+	  ;; (c) only a DISPLAY action is defined.
+	  ;; [ESF]
+	  (let ((t1 (ignore-errors (org-parse-time-string ts 'nodefault))))
+	    (if (and (> org-icalendar-alarm-time 0) 
+		     (car t1) (nth 1 t1) (nth 2 t1))
+		(setq alarm (format "\nBEGIN:VALARM\nACTION:DISPLAY\nDESCRIPTION:%s\nTRIGGER:-P0D0H%dM0S\nEND:VALARM" summary org-icalendar-alarm-time))
+	      (setq alarm ""))
+	    )
 	  (if (string-match org-bracket-link-regexp summary)
 	      (setq summary
 		    (replace-match (if (match-end 3)
@@ -378,7 +408,7 @@ UID: %s
 %s
 %s%s
 SUMMARY:%s%s%s
-CATEGORIES:%s
+CATEGORIES:%s%s
 END:VEVENT\n"
 			   (concat prefix uid)
 			   (org-ical-ts-to-string ts "DTSTART")
@@ -388,7 +418,8 @@ END:VEVENT\n"
 			       (concat "\nDESCRIPTION: " desc) "")
 			   (if (and location (string-match "\\S-" location))
 			       (concat "\nLOCATION: " location) "")
-			   categories)))))
+			   categories
+			   alarm)))))
       (when (and org-icalendar-include-sexps
 		 (condition-case nil (require 'icalendar) (error nil))
 		 (fboundp 'icalendar-export-region))
@@ -415,7 +446,7 @@ END:VEVENT\n"
       (when org-icalendar-include-todo
 	(setq prefix "TODO-")
 	(goto-char (point-min))
-	(while (re-search-forward org-todo-line-regexp nil t)
+	(while (re-search-forward org-complex-heading-regexp nil t)
 	  (catch :skip
 	    (org-agenda-skip)
 	    (when org-icalendar-verify-function
@@ -447,7 +478,7 @@ END:VEVENT\n"
 			((eq org-icalendar-include-todo t)
 			 ;; include everything that is not done
 			 (member state org-not-done-keywords))))
-	      (setq hd (match-string 3)
+	      (setq hd (match-string 4)
 		    summary (org-icalendar-cleanup-string
 			     (org-entry-get nil "SUMMARY"))
 		    desc (org-icalendar-cleanup-string
@@ -610,8 +641,13 @@ a time), or the day by one (if it does not contain a time)."
 		(setq h (+ 2 h)))
 	    (setq d (1+ d))))
 	(setq time (encode-time s mi h d m y)))
-      (setq fmt (if have-time ":%Y%m%dT%H%M%S" ";VALUE=DATE:%Y%m%d"))
-      (concat keyword (format-time-string fmt time)))))
+      (setq fmt (if have-time (if org-icalendar-use-UTC-date-time 
+				  ":%Y%m%dT%H%M%SZ"
+				  ":%Y%m%dT%H%M%S")
+		    ";VALUE=DATE:%Y%m%d"))
+      (concat keyword (format-time-string fmt time 
+					  (and org-icalendar-use-UTC-date-time 
+					       have-time))))))
 
 (provide 'org-icalendar)
 

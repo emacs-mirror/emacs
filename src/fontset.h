@@ -33,7 +33,6 @@ extern void (*check_window_system_func) (void);
 struct face;
 
 extern void free_face_fontset (FRAME_PTR, struct face *);
-extern Lisp_Object fontset_font_pattern (FRAME_PTR, struct face *, int);
 extern int face_suitable_for_char_p (struct face *, int);
 extern int face_for_char (FRAME_PTR, struct face *, int,
                           int, Lisp_Object);
@@ -44,7 +43,6 @@ extern int fontset_from_font (Lisp_Object);
 extern int fs_query_fontset (Lisp_Object, int);
 EXFUN (Fquery_fontset, 2);
 extern Lisp_Object list_fontsets (struct frame *, Lisp_Object, int);
-extern Lisp_Object find_font_encoding (Lisp_Object);
 
 extern Lisp_Object Qlatin;
 extern Lisp_Object Vuse_default_ascent;
@@ -56,7 +54,6 @@ extern Lisp_Object Votf_script_alist;
 
 extern Lisp_Object fontset_name (int);
 extern Lisp_Object fontset_ascii (int);
-extern int fontset_height (int);
 
 struct font;
 extern int face_for_font (struct frame *, Lisp_Object, struct face *);

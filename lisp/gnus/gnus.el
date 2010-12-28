@@ -1401,10 +1401,6 @@ no need to set this variable."
 		 string))
 (make-obsolete-variable 'gnus-local-domain nil "Emacs 24.1")
 
-(defvar gnus-local-organization nil
-  "String with a description of what organization (if any) the user belongs to.
-Obsolete variable; use `message-user-organization' instead.")
-
 ;; Customization variables
 
 (defcustom gnus-refer-article-method 'current
@@ -1612,7 +1608,7 @@ slower."
     ("nnweb" none)
     ("nnrss" none)
     ("nnagent" post-mail)
-    ("nnimap" post-mail address prompt-address physical-address)
+    ("nnimap" post-mail address prompt-address physical-address respool)
     ("nnmaildir" mail respool address)
     ("nnnil" none))
   "*An alist of valid select methods.
@@ -2876,7 +2872,6 @@ gnus-registry.el will populate this if it's loaded.")
       gnus-start-date-timer gnus-stop-date-timer
       gnus-mime-view-all-parts)
      ("gnus-int" gnus-request-type)
-     ("gnus-html" gnus-html-show-images)
      ("gnus-start" gnus-newsrc-parse-options gnus-1 gnus-no-server-1
       gnus-dribble-enter gnus-read-init-file gnus-dribble-touch
       gnus-check-reasonable-setup)

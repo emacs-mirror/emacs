@@ -5,7 +5,7 @@
 ;; Author: Benjamin Andresen
 ;; Keywords: literate programming, interactive shell
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -45,28 +45,21 @@ In case you want to use a different screen than one selected by your $PATH")
   '((:results . "silent") (:session . "default") (:cmd . "sh") (:terminal . "xterm"))
   "Default arguments to use when running screen source blocks.")
 
-(defun org-babel-expand-body:screen (body params &optional processed-params)
-  "Expand BODY according to PARAMS, return the expanded body." body)
-
 (defun org-babel-execute:screen (body params)
   "Send a block of code via screen to a terminal using Babel.
-\"default\" session is be used when none is specified."
+\"default\" session is used when none is specified."
   (message "Sending source code block to interactive terminal session...")
   (save-window-excursion
-    (let* ((processed-params (org-babel-process-params params))
-           (session (nth 0 processed-params))
+    (let* ((session (cdr (assoc :session params)))
            (socket (org-babel-screen-session-socketname session)))
       (unless socket (org-babel-prep-session:screen session params))
       (org-babel-screen-session-execute-string
-       session (org-babel-expand-body:screen body params)))))
+       session (org-babel-expand-body:generic body params)))))
 
 (defun org-babel-prep-session:screen (session params)
   "Prepare SESSION according to the header arguments specified in PARAMS."
-  (let* ((processed-params (org-babel-process-params params))
-         (session (nth 0 processed-params))
-         (vars (nth 1 processed-params))
+  (let* ((session (cdr (assoc :session params)))
          (socket (org-babel-screen-session-socketname session))
-         (vars (org-babel-ref-variables params))
          (cmd (cdr (assoc :cmd params)))
          (terminal (cdr (assoc :terminal params)))
          (process-name (concat "org-babel: terminal (" session ")")))

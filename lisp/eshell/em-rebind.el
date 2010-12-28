@@ -91,7 +91,6 @@ This is default behavior of shells like bash."
   '(beginning-of-line-text
     beginning-of-line
     move-to-column
-    move-to-column-force
     move-to-left-margin
     move-to-tab-stop
     forward-char

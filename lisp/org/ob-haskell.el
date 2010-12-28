@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -59,23 +59,14 @@
 
 (defvar org-babel-haskell-eoe "\"org-babel-haskell-eoe\"")
 
-(defun org-babel-expand-body:haskell (body params &optional processed-params)
-  "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (nth 1 (or processed-params (org-babel-process-params params)))))
-    (concat
-     (mapconcat
-      (lambda (pair) (format "let %s = %s"
-			(car pair)
-			(org-babel-haskell-var-to-haskell (cdr pair))))
-      vars "\n") "\n" body "\n")))
-
 (defun org-babel-execute:haskell (body params)
   "Execute a block of Haskell code."
-  (let* ((processed-params (org-babel-process-params params))
-         (session (nth 0 processed-params))
-         (vars (nth 1 processed-params))
-         (result-type (nth 3 processed-params))
-         (full-body (org-babel-expand-body:haskell body params processed-params))
+  (let* ((session (cdr (assoc :session params)))
+         (vars (mapcar #'cdr (org-babel-get-header params :var)))
+         (result-type (cdr (assoc :result-type params)))
+         (full-body (org-babel-expand-body:generic
+		     body params
+		     (org-babel-variable-assignments:haskell params)))
          (session (org-babel-haskell-initiate-session session params))
          (raw (org-babel-comint-with-output
 		  (session org-babel-haskell-eoe t full-body)
@@ -93,8 +84,10 @@
        (mapconcat #'identity (reverse (cdr results)) "\n"))
       ((equal result-type 'value)
        (org-babel-haskell-table-or-string (car results))))
-     (org-babel-pick-name (nth 4 processed-params) (cdr (assoc :colnames params)))
-     (org-babel-pick-name (nth 5 processed-params) (cdr (assoc :rownames params))))))
+     (org-babel-pick-name (cdr (assoc :colname-names params))
+			  (cdr (assoc :colname-names params)))
+     (org-babel-pick-name (cdr (assoc :rowname-names params))
+			  (cdr (assoc :rowname-names params))))))
 
 (defun org-babel-haskell-read-string (string)
   "Strip \\\"s from around a haskell string."
@@ -110,48 +103,40 @@ then create one.  Return the initialized session."
   (or (get-buffer "*haskell*")
       (save-window-excursion (run-haskell) (sleep-for 0.25) (current-buffer))))
 
-(defun org-babel-load-session:haskell
-  (session body params &optional processed-params)
+(defun org-babel-load-session:haskell (session body params)
   "Load BODY into SESSION."
   (save-window-excursion
-    (let* ((buffer (org-babel-prep-session:haskell
-		    session params processed-params))
-           (load-file (concat (make-temp-file "org-babel-haskell-load") ".hs")))
+    (let* ((buffer (org-babel-prep-session:haskell session params))
+           (load-file (concat (org-babel-temp-file "haskell-load-") ".hs")))
       (with-temp-buffer
         (insert body) (write-file load-file)
         (haskell-mode) (inferior-haskell-load-file))
       buffer)))
 
-(defun org-babel-prep-session:haskell
-  (session params &optional processed-params)
+(defun org-babel-prep-session:haskell (session params)
   "Prepare SESSION according to the header arguments in PARAMS."
   (save-window-excursion
-    (let ((pp (or processed-params (org-babel-process-params params)))
-	  (buffer (org-babel-haskell-initiate-session session)))
+    (let ((buffer (org-babel-haskell-initiate-session session)))
       (org-babel-comint-in-buffer buffer
-      	(mapc
-      	 (lambda (pair)
-      	   (insert (format "let %s = %s"
-      			   (car pair)
-      			   (org-babel-haskell-var-to-haskell (cdr pair))))
-      	   (comint-send-input nil t))
-      	 (nth 1 pp)))
+      	(mapc (lambda (line)
+		(insert line)
+		(comint-send-input nil t))
+	      (org-babel-variable-assignments:haskell params)))
       (current-buffer))))
+
+(defun org-babel-variable-assignments:haskell (params)
+  "Return list of haskell statements assigning the block's variables"
+  (mapcar (lambda (pair)
+	    (format "let %s = %s"
+		    (car pair)
+		    (org-babel-haskell-var-to-haskell (cdr pair))))
+   (mapcar #'cdr (org-babel-get-header params :var))))
 
 (defun org-babel-haskell-table-or-string (results)
   "Convert RESULTS to an Emacs-lisp table or string.
 If RESULTS look like a table, then convert them into an
 Emacs-lisp table, otherwise return the results as a string."
-  (org-babel-read
-   (if (and (stringp results) (string-match "^\\[.+\\]$" results))
-       (org-babel-read
-        (concat "'"
-                (replace-regexp-in-string
-                 "\\[" "(" (replace-regexp-in-string
-                            "\\]" ")" (replace-regexp-in-string
-                                       "," " " (replace-regexp-in-string
-                                                "'" "\"" results))))))
-     results)))
+  (org-babel-script-escape results))
 
 (defun org-babel-haskell-var-to-haskell (var)
   "Convert an elisp value VAR into a haskell variable.
@@ -177,12 +162,14 @@ constructs (header arguments, no-web syntax etc...) are ignored."
           (concat "^\\([ \t]*\\)#\\+begin_src[ \t]haskell*\\(.*\\)?[\r\n]"
                   "\\([^\000]*?\\)[\r\n][ \t]*#\\+end_src.*"))
          (base-name (file-name-sans-extension (buffer-file-name)))
-         (tmp-file (make-temp-file "ob-haskell"))
+         (tmp-file (org-babel-temp-file "haskell-"))
          (tmp-org-file (concat tmp-file ".org"))
          (tmp-tex-file (concat tmp-file ".tex"))
          (lhs-file (concat base-name ".lhs"))
          (tex-file (concat base-name ".tex"))
-         (command (concat org-babel-haskell-lhs2tex-command " " lhs-file " > " tex-file))
+         (command (concat org-babel-haskell-lhs2tex-command
+			  " " (org-babel-process-file-name lhs-file)
+			  " > " (org-babel-process-file-name tex-file)))
          (preserve-indentp org-src-preserve-indentation)
          indentation)
     ;; escape haskell source-code blocks

@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -28,6 +28,7 @@
 
 ;;; Code:
 (require 'ob)
+(require 'ob-eval)
 (require 'ob-ref)
 
 (declare-function org-fill-template "org" (template alist))
@@ -41,9 +42,10 @@
   '(db header echo bail csv column html line list separator nullvalue)
   "Sqlite specific header args.")
 
-(defun org-babel-expand-body:sqlite (body params &optional processed-params)
+(defun org-babel-expand-body:sqlite (body params)
+  "Expand BODY according to the values of PARAMS."
   (org-babel-sqlite-expand-vars
-   body (or (nth 1 processed-params) (org-babel-ref-variables params))))
+   body (mapcar #'cdr (org-babel-get-header params :var))))
 
 (defvar org-babel-sqlite3-command "sqlite3")
 
@@ -51,7 +53,6 @@
   "Execute a block of Sqlite code with Babel.
 This function is called by `org-babel-execute-src-block'."
   (let ((result-params (split-string (or (cdr (assoc :results params)) "")))
-	(vars (org-babel-ref-variables params))
 	(db (cdr (assoc :db params)))
 	(separator (cdr (assoc :separator params)))
 	(nullvalue (cdr (assoc :nullvalue params)))
@@ -64,16 +65,10 @@ This function is called by `org-babel-execute-src-block'."
     (unless db (error "ob-sqlite: can't evaluate without a database."))
     (with-temp-buffer
       (insert
-       (shell-command-to-string
+       (org-babel-eval
 	(org-fill-template
-	 "%cmd -init %body %header %separator %nullvalue %others %csv %db "
+	 "%cmd %header %separator %nullvalue %others %csv %db "
 	 (list
-	  (cons "body" ((lambda (sql-file)
-			  (with-temp-file sql-file
-			    (insert (org-babel-expand-body:sqlite
-				     body nil (list nil vars))))
-			  sql-file)
-			(make-temp-file "ob-sqlite-sql")))
 	  (cons "cmd" org-babel-sqlite3-command)
 	  (cons "header" (if headers-p "-header" "-noheader"))
 	  (cons "separator"
@@ -90,7 +85,9 @@ This function is called by `org-babel-execute-src-block'."
 			      (member :html others) separator)
 			  ""
 			"-csv"))
-	  (cons "db " db)))))
+	  (cons "db " db)))
+	;; body of the code block
+	(org-babel-expand-body:sqlite body params)))
       (if (or (member "scalar" result-params)
 	      (member "html" result-params)
 	      (member "code" result-params)
@@ -117,8 +114,8 @@ This function is called by `org-babel-execute-src-block'."
 							el
 						      (format "%S" el)))))))
 		      data-file)
-		    (make-temp-file "ob-sqlite-data"))
-		 (format "%S" val)))
+		    (org-babel-temp-file "sqlite-data-"))
+		 (if (stringp val) val (format "%S" val))))
 	     (cdr pair))
 	    body)))
    vars)

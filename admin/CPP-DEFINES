@@ -62,7 +62,6 @@ SIGTYPE
 SYSTEM_TYPE
 
 ** Machine specific macros, decribed in detail in src/m/template.h
-EXPLICIT_SIGN_EXTEND
 LOAD_AVE_CVT
 LOAD_AVE_TYPE
 VIRT_ADDR_VARIES

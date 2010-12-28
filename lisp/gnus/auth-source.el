@@ -159,6 +159,15 @@ can get pretty complex."
                                                      (const :tag "Any" t)
                                                      (string :tag "Specific user name"))))))))
 
+(defcustom auth-source-gpg-encrypt-to t
+  "List of recipient keys that `authinfo.gpg' encrypted to.
+If the value is not a list, symmetric encryption will be used."
+  :group 'auth-source
+  :version "23.2" ;; No Gnus
+  :type '(choice (const :tag "Symmetric encryption" t)
+		 (repeat :tag "Recipient public keys"
+			 (string :tag "Recipient public key"))))
+
 ;; temp for debugging
 ;; (unintern 'auth-source-protocols)
 ;; (unintern 'auth-sources)
@@ -352,9 +361,28 @@ Return structure as specified by MODE."
       ;; netrc interface.
       (when (y-or-n-p (format "Do you want to save this password in %s? "
                               source))
-        (netrc-store-data source host prot
-                          (or user (cdr (assoc "login" result)))
-                          (cdr (assoc "password" result))))))
+	;; the code below is almost same as `netrc-store-data' except
+	;; the `epa-file-encrypt-to' hack (see bug#7487).
+	(with-temp-buffer
+	  (when (file-exists-p source)
+	    (insert-file-contents source))
+	  (when auth-source-gpg-encrypt-to
+	    ;; making `epa-file-encrypt-to' local to this buffer lets
+	    ;; epa-file skip the key selection query (see the
+	    ;; `local-variable-p' check in `epa-file-write-region').
+	    (unless (local-variable-p 'epa-file-encrypt-to)
+	      (make-local-variable 'epa-file-encrypt-to))
+	    (if (listp auth-source-gpg-encrypt-to)
+		(setq epa-file-encrypt-to auth-source-gpg-encrypt-to)))
+	  (goto-char (point-max))
+	  (unless (bolp)
+	    (insert "\n"))
+	  (insert (format "machine %s login %s password %s port %s\n"
+			  host
+			  (or user (cdr (assoc "login" result)))
+			  (cdr (assoc "password" result))
+			  prot))
+	  (write-region (point-min) (point-max) source nil 'silent)))))
     (if (consp mode)
         (mapcar #'cdr result)
       (cdar result))))

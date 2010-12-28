@@ -5846,7 +5846,8 @@ comment at the start of cc-engine.el for more info."
   ;; `c-record-type-identifiers' is non-nil.
   ;;
   ;; This function might do hidden buffer changes.
-  (when (looking-at "<")
+  (when (and c-recognize-<>-arglists
+	     (looking-at "<"))
     (c-forward-<>-arglist t)
     (c-forward-syntactic-ws))
 

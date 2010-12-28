@@ -2527,14 +2527,26 @@ are ignored.  */)
   (Lisp_Object display, Lisp_Object dest, Lisp_Object from, Lisp_Object message_type, Lisp_Object format, Lisp_Object values)
 {
   struct x_display_info *dpyinfo = check_x_display_info (display);
+
+  CHECK_STRING (message_type);
+  x_send_client_event(display, dest, from,
+                      XInternAtom (dpyinfo->display,
+                                   SDATA (message_type),
+                                   False),
+                      format, values);
+
+  return Qnil;
+}
+
+void
+x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from, Atom message_type, Lisp_Object format, Lisp_Object values)
+{
+  struct x_display_info *dpyinfo = check_x_display_info (display);
   Window wdest;
   XEvent event;
-  Lisp_Object cons;
-  int size;
   struct frame *f = check_x_frame (from);
   int to_root;
 
-  CHECK_STRING (message_type);
   CHECK_NUMBER (format);
   CHECK_CONS (values);
 
@@ -2579,13 +2591,9 @@ are ignored.  */)
   if (wdest == 0) wdest = dpyinfo->root_window;
   to_root = wdest == dpyinfo->root_window;
 
-  for (cons = values, size = 0; CONSP (cons); cons = XCDR (cons), ++size)
-    ;
-
   BLOCK_INPUT;
 
-  event.xclient.message_type
-    = XInternAtom (dpyinfo->display, SDATA (message_type), False);
+  event.xclient.message_type = message_type;
   event.xclient.display = dpyinfo->display;
 
   /* Some clients (metacity for example) expects sending window to be here
@@ -2610,8 +2618,6 @@ are ignored.  */)
   }
   x_uncatch_errors ();
   UNBLOCK_INPUT;
-
-  return Qnil;
 }
 
 

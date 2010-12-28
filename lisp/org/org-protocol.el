@@ -9,7 +9,7 @@
 ;; Author: Ross Patterson <me AT rpatterson DOT net>
 ;; Maintainer: Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;; Keywords: org, emacsclient, wp
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -260,7 +260,7 @@ Here is an example:
   :group 'org-protocol
   :type '(alist))
 
-(defcustom org-protocol-default-template-key "w"
+(defcustom org-protocol-default-template-key nil
   "The default org-remember-templates key to use."
   :group 'org-protocol
   :type 'string)
@@ -313,7 +313,7 @@ encodeURIComponent. E.g. `%C3%B6' is the german Umlaut `ü'."
       (let* ((start (match-beginning 0))
 	     (end (match-end 0))
 	     (hex (match-string 0 str))
-	     (replacement (org-protocol-unhex-compound hex)))
+	     (replacement (org-protocol-unhex-compound (upcase hex))))
 	(setq tmp (concat tmp (substring str 0 start) replacement))
 	(setq str (substring str end))))
     (setq tmp (concat tmp str))

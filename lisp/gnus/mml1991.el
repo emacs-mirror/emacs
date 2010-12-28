@@ -168,6 +168,9 @@ Whether the passphrase is cached at all is controlled by
 
 ;; pgg wrapper
 
+(autoload 'pgg-sign-region "pgg")
+(autoload 'pgg-encrypt-region "pgg")
+
 (defvar pgg-default-user-id)
 (defvar pgg-errors-buffer)
 (defvar pgg-output-buffer)

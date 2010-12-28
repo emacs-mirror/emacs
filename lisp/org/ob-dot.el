@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -46,10 +46,9 @@
   '((:results . "file") (:exports . "results"))
   "Default arguments to use when evaluating a dot source block.")
 
-(defun org-babel-expand-body:dot (body params &optional processed-params)
+(defun org-babel-expand-body:dot (body params)
   "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (nth 1 (or processed-params
-			 (org-babel-process-params params)))))
+  (let ((vars (mapcar #'cdr (org-babel-get-header params :var))))
     (mapc
      (lambda (pair)
        (let ((name (symbol-name (car pair)))
@@ -65,15 +64,19 @@
 (defun org-babel-execute:dot (body params)
   "Execute a block of Dot code with org-babel.
 This function is called by `org-babel-execute-src-block'."
-  (let ((processed-params (org-babel-process-params params))
-	(result-params (split-string (or (cdr (assoc :results params)) "")))
-        (out-file (cdr (assoc :file params)))
-        (cmdline (cdr (assoc :cmdline params)))
-        (cmd (or (cdr (assoc :cmd params)) "dot"))
-        (in-file (make-temp-file "org-babel-dot")))
+  (let* ((result-params (cdr (assoc :result-params params)))
+	 (out-file (cdr (assoc :file params)))
+	 (cmdline (or (cdr (assoc :cmdline params))
+		      (format "-T%s" (file-name-extension out-file))))
+	 (cmd (or (cdr (assoc :cmd params)) "dot"))
+	 (in-file (org-babel-temp-file "dot-")))
     (with-temp-file in-file
-      (insert (org-babel-expand-body:dot body params processed-params)))
-    (org-babel-eval (concat cmd " " in-file " " cmdline " -o " out-file) "")
+      (insert (org-babel-expand-body:dot body params)))
+    (org-babel-eval
+     (concat cmd
+	     " " (org-babel-process-file-name in-file)
+	     " " cmdline
+	     " -o " (org-babel-process-file-name out-file)) "")
     out-file))
 
 (defun org-babel-prep-session:dot (session params)

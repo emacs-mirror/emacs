@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -38,10 +38,33 @@
     (defmacro declare-function (fn file &optional arglist fileonly))))
 
 (declare-function org-add-props "org-compat" (string plist &rest props))
+(declare-function org-string-match-p "org-compat" (&rest args))
+
+(defmacro org-called-interactively-p (&optional kind)
+  `(if (featurep 'xemacs)
+       (interactive-p)
+     (if (or (> emacs-major-version 23)
+	     (and (>= emacs-major-version 23)
+		  (>= emacs-minor-version 2)))
+	 (with-no-warnings (called-interactively-p ,kind)) ;; defined with no argument in <=23.1
+       (interactive-p))))
+
+(if (and (not (fboundp 'with-silent-modifications))
+	 (or (< emacs-major-version 23)
+	     (and (= emacs-major-version 23)
+		  (< emacs-minor-version 2))))
+    (defmacro with-silent-modifications (&rest body)
+      `(org-unmodified ,@body)))
 
 (defmacro org-bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
+
+(defun org-string-nw-p (s)
+  "Is S a string with a non-white character?"
+  (and (stringp s)
+       (org-string-match-p "\\S-" s)
+       s))
 
 (defun org-not-nil (v)
   "If V not nil, and also not the string \"nil\", then return V.
@@ -283,63 +306,6 @@ This is in contrast to merely setting it to 0."
 					(match-beginning 0) string)))
   (replace-match newtext fixedcase literal string))
 
-(defmacro org-with-limited-levels (&rest body)
-  "Execute BODY with limited number of outline levels."
-  `(let* ((outline-regexp (org-get-limited-outline-regexp)))
-     ,@body))
-
-(defvar org-odd-levels-only) ; defined in org.el
-(defvar org-inlinetask-min-level) ; defined in org-inlinetask.el
-(defun org-get-limited-outline-regexp ()
-  "Return outline-regexp with limited number of levels.
-The number of levels is controlled by `org-inlinetask-min-level'"
-  (if (or (not (org-mode-p)) (not (featurep 'org-inlinetask)))
-
-      outline-regexp
-    (let* ((limit-level (1- org-inlinetask-min-level))
-	   (nstars (if org-odd-levels-only (1- (* limit-level 2)) limit-level)))
-      (format "\\*\\{1,%d\\} " nstars))))
-
-
-;;; Saving and restoring visibility
-
-(defun org-outline-overlay-data (&optional use-markers)
-  "Return a list of the locations of all outline overlays.
-The are overlays with the `invisible' property value `outline'.
-The return values is a list of cons cells, with start and stop
-positions for each overlay.
-If USE-MARKERS is set, return the positions as markers."
-  (let (beg end)
-    (save-excursion
-      (save-restriction
-	(widen)
-	(delq nil
-	      (mapcar (lambda (o)
-			(when (eq (overlay-get o 'invisible) 'outline)
-			  (setq beg (overlay-start o)
-				end (overlay-end o))
-			  (and beg end (> end beg)
-			       (if use-markers
-				   (cons (move-marker (make-marker) beg)
-					 (move-marker (make-marker) end))
-				 (cons beg end)))))
-		      (overlays-in (point-min) (point-max))))))))
-
-(autoload 'show-all "outline" nil t)
-
-(defun org-set-outline-overlay-data (data)
-  "Create visibility overlays for all positions in DATA.
-DATA should have been made by `org-outline-overlay-data'."
-  (let (o)
-    (save-excursion
-      (save-restriction
-	(widen)
-	(show-all)
-	(mapc (lambda (c)
-		(setq o (make-overlay (car c) (cdr c)))
-		(overlay-put o 'invisible 'outline))
-	      data)))))
-
 (defmacro org-save-outline-visibility (use-markers &rest body)
   "Save and restore outline visibility around BODY.
 If USE-MARKERS is non-nil, use markers for the positions.
@@ -359,6 +325,22 @@ point nowhere."
 		 (and (markerp (cdr c)) (move-marker (cdr c) nil)))
 	       data)))))
 
+(defmacro org-with-limited-levels (&rest body)
+  "Execute BODY with limited number of outline levels."
+  `(let* ((outline-regexp (org-get-limited-outline-regexp)))
+     ,@body))
+
+(defvar org-odd-levels-only) ; defined in org.el
+(defvar org-inlinetask-min-level) ; defined in org-inlinetask.el
+(defun org-get-limited-outline-regexp ()
+  "Return outline-regexp with limited number of levels.
+The number of levels is controlled by `org-inlinetask-min-level'"
+  (if (or (not (org-mode-p)) (not (featurep 'org-inlinetask)))
+
+      outline-regexp
+    (let* ((limit-level (1- org-inlinetask-min-level))
+	   (nstars (if org-odd-levels-only (1- (* limit-level 2)) limit-level)))
+      (format "\\*\\{1,%d\\} " nstars))))
 
 (provide 'org-macs)
 

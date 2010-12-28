@@ -1019,10 +1019,14 @@ See Info node `(emacs)Subdir switches' for more details."
     ;; message much faster than making dired-map-over-marks show progress
     (dired-uncache
      (if (consp dired-directory) (car dired-directory) dired-directory))
-    (dired-map-over-marks (let ((fname (dired-get-filename)))
+    (dired-map-over-marks (let ((fname (dired-get-filename))
+				;; Postphone readin hook till we map
+				;; over all marked files (Bug#6810).
+				(dired-after-readin-hook nil))
 			    (message "Redisplaying... %s" fname)
 			    (dired-update-file-line fname))
 			  arg)
+    (run-hooks 'dired-after-readin-hook)
     (dired-move-to-filename)
     (message "Redisplaying...done")))
 

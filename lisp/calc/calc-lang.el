@@ -540,6 +540,16 @@
     ( \\Psi        . var-Psi )
     ( \\omega      . var-omega )
     ( \\Omega      . var-Omega )
+    ;; Units
+    ( pt           . var-texpt )
+    ( pc           . var-texpc )
+    ( bp           . var-texbp )
+    ( dd           . var-texdd )
+    ( cc           . var-texcc )
+    ( sp           . var-texsp )
+    ( pint         . var-pt )
+    ( parsec       . var-pc)
+
     ;; Others
     ( \\ell        . var-ell )
     ( \\infty	   . var-inf )

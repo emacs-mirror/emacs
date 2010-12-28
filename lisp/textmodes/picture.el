@@ -226,16 +226,30 @@ Do \\[command-apropos]  picture-movement  to see commands which control motion."
   (picture-motion (- arg)))
 
 (defun picture-mouse-set-point (event)
-  "Move point to the position clicked on, making whitespace if necessary."
+  "Move point to the position of EVENT, making whitespace if necessary."
   (interactive "e")
-  (let* ((pos (posn-col-row (event-start event)))
-	 (x (car pos))
-	 (y (cdr pos))
-	 (current-row (count-lines (window-start) (line-beginning-position))))
-    (unless (equal x (current-column))
-      (picture-forward-column (- x (current-column))))
-    (unless (equal y current-row)
-      (picture-move-down (- y current-row)))))
+  (let ((position (event-start event)))
+    (unless (posn-area position) ; Ignore EVENT unless in text area
+      (let* ((window (posn-window position))
+	     (frame  (if (framep window) window (window-frame window)))
+	     (pair   (posn-x-y position))
+	     (start-pos (window-start window))
+	     (start-pair (posn-x-y (posn-at-point start-pos)))
+	     (dx (- (car pair) (car start-pair)))
+	     (dy (- (cdr pair) (cdr start-pair)))
+	     (char-ht (frame-char-height frame))
+	     (spacing (when (display-graphic-p frame)
+			(or (with-current-buffer (window-buffer window)
+			      line-spacing)
+			    (frame-parameter frame 'line-spacing))))
+	     rows cols)
+	(cond ((floatp spacing)
+	       (setq spacing (truncate (* spacing char-ht))))
+	      ((null spacing)
+	       (setq spacing 0)))
+	(goto-char start-pos)
+	(picture-move-down      (/ dy (+ char-ht spacing)))
+	(picture-forward-column (/ dx (frame-char-width frame)))))))
 
 
 ;; Picture insertion and deletion.

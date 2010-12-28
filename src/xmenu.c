@@ -89,7 +89,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Xaw/Paned.h>
 #endif /* HAVE_XAW3D */
 #endif /* USE_LUCID */
+#ifdef USE_MOTIF
 #include "../lwlib/lwlib.h"
+#endif
 #else /* not USE_X_TOOLKIT */
 #ifndef USE_GTK
 #include "../oldXMenu/XMenu.h"
@@ -2581,5 +2583,3 @@ syms_of_xmenu (void)
 #endif
 }
 
-/* arch-tag: 92ea573c-398e-496e-ac73-2436f7d63242
-   (do not change this comment) */

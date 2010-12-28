@@ -351,10 +351,11 @@ which prefers Cyrillic characters and files encoded in Windows-1255).
 @cindex Intlfonts package, installation
   To display the script(s) used by your language environment on a
 graphical display, you need to have a suitable font.  If some of the
-characters appear as empty boxes, you should install the GNU Intlfonts
-package, which includes fonts for most supported scripts.@footnote{If
-you run Emacs on X, you need to inform the X server about the location
-of the newly installed fonts with the following commands:
+characters appear as empty boxes or hex codes, you should install the
+GNU Intlfonts package, which includes fonts for most supported
+scripts.@footnote{If you run Emacs on X, you need to inform the X
+server about the location of the newly installed fonts with the
+following commands:
 
 @example
  xset fp+ /usr/local/share/emacs/fonts
@@ -1314,10 +1315,11 @@ characters the font does not cover.  The standard fontset is only used if
 explicitly requested, despite its name.
 
   A fontset does not necessarily specify a font for every character
-code.  If a fontset specifies no font for a certain character, or if it
-specifies a font that does not exist on your system, then it cannot
-display that character properly.  It will display that character as an
-empty box instead.
+code.  If a fontset specifies no font for a certain character, or if
+it specifies a font that does not exist on your system, then it cannot
+display that character properly.  It will display that character as a
+hex code or thin space or an empty box instead.  (@xref{Text Display, ,
+glyphless characters}, for details.)
 
 @node Defining Fontsets
 @section Defining fontsets

@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -37,14 +37,23 @@
 (declare-function org-splice-latex-header "org"
 		  (tpl def-pkg pkg snippets-p &optional extra))
 (declare-function org-export-latex-fix-inputenc "org-latex" ())
-
 (add-to-list 'org-babel-tangle-lang-exts '("latex" . "tex"))
+
+(defvar org-format-latex-header)
+(defvar org-format-latex-header-extra)
+(defvar org-export-latex-packages-alist)
+(defvar org-export-latex-default-packages-alist)
+(defvar org-export-pdf-logfiles)
+(defvar org-latex-to-pdf-process)
+(defvar org-export-pdf-remove-logfiles)
+(defvar org-format-latex-options)
+(defvar org-export-latex-packages-alist)
 
 (defvar org-babel-default-header-args:latex
   '((:results . "latex") (:exports . "results"))
   "Default arguments to use when evaluating a LaTeX source block.")
 
-(defun org-babel-expand-body:latex (body params &optional processed-params)
+(defun org-babel-expand-body:latex (body params)
   "Expand BODY according to PARAMS, return the expanded body."
   (mapc (lambda (pair) ;; replace variables
           (setq body
@@ -52,30 +61,62 @@
                  (regexp-quote (format "%S" (car pair)))
                  (if (stringp (cdr pair))
                      (cdr pair) (format "%S" (cdr pair)))
-                 body))) (nth 1 (org-babel-process-params params)))
-  body)
+                 body))) (mapcar #'cdr (org-babel-get-header params :var)))
+  (org-babel-trim body))
 
-(defvar org-format-latex-options)
-(defvar org-export-latex-packages-alist)
 (defun org-babel-execute:latex (body params)
   "Execute a block of Latex code with Babel.
 This function is called by `org-babel-execute-src-block'."
   (setq body (org-babel-expand-body:latex body params))
   (if (cdr (assoc :file params))
-      (let ((out-file (cdr (assoc :file params)))
-            (tex-file (make-temp-file "org-babel-latex" nil ".tex"))
-            (pdfheight (cdr (assoc :pdfheight params)))
-            (pdfwidth (cdr (assoc :pdfwidth params)))
-            (in-buffer (not (string= "no" (cdr (assoc :buffer params)))))
-            (org-export-latex-packages-alist
-             (append (cdr (assoc :packages params))
-                     org-export-latex-packages-alist)))
+      (let* ((out-file (cdr (assoc :file params)))
+	     (tex-file (org-babel-temp-file "latex-" ".tex"))
+	     (border (cdr (assoc :border params)))
+	     (fit (or (cdr (assoc :fit params)) border))
+	     (height (and fit (cdr (assoc :pdfheight params))))
+	     (width (and fit (cdr (assoc :pdfwidth params))))
+	     (headers (cdr (assoc :headers params)))
+	     (in-buffer (not (string= "no" (cdr (assoc :buffer params)))))
+	     (org-export-latex-packages-alist
+	      (append (cdr (assoc :packages params))
+		      org-export-latex-packages-alist)))
         (cond
          ((string-match "\\.png$" out-file)
           (org-create-formula-image
            body out-file org-format-latex-options in-buffer))
          ((string-match "\\.pdf$" out-file)
-          (org-babel-latex-body-to-tex-file tex-file body pdfheight pdfwidth)
+	  (require 'org-latex)
+	  (with-temp-file tex-file
+	    (insert
+	     (org-splice-latex-header
+	      org-format-latex-header
+	      (delq
+	       nil
+	       (mapcar
+		(lambda (el)
+		  (unless (and (listp el) (string= "hyperref" (cadr el)))
+		    el))
+		org-export-latex-default-packages-alist))
+	      org-export-latex-packages-alist
+	      org-format-latex-header-extra)
+	     (if fit "\n\\usepackage[active, tightpage]{preview}\n" "")
+	     (if border (format "\\setlength{\\PreviewBorder}{%s}" border) "")
+	     (if height (concat "\n" (format "\\pdfpageheight %s" height)) "")
+	     (if width  (concat "\n" (format "\\pdfpagewidth %s" width))   "")
+	     (if headers
+		 (concat "\n"
+			 (if (listp headers)
+			     (mapconcat #'identity headers "\n")
+			   headers) "\n")
+	       "")
+	     (if org-format-latex-header-extra
+		 (concat "\n" org-format-latex-header-extra)
+	       "")
+	     (if fit
+		 (concat "\n\\begin{document}\n\\begin{preview}\n" body
+			 "\n\\end{preview}\n\\end{document}\n")
+	       (concat "\n\\begin{document}\n" body "\n\\end{document}\n")))
+	    (org-export-latex-fix-inputenc))
           (when (file-exists-p out-file) (delete-file out-file))
           (rename-file (org-babel-latex-tex-to-pdf tex-file) out-file))
          ((string-match "\\.\\([^\\.]+\\)$" out-file)
@@ -84,67 +125,48 @@ This function is called by `org-babel-execute-src-block'."
         out-file)
     body))
 
-(defvar org-format-latex-header)
-(defvar org-format-latex-header-extra)
-(defvar org-export-latex-packages-alist)
-(defvar org-export-latex-default-packages-alist)
-(defun org-babel-latex-body-to-tex-file (tex-file body &optional height width)
-  "Place the contents of BODY into TEX-FILE.
-Extracted from `org-create-formula-image' in org.el."
-  (with-temp-file tex-file
-    (insert (org-splice-latex-header
-	       org-format-latex-header
-	       (delq
-		nil
-		(mapcar
-		 (lambda (el) (unless (and (listp el) (string= "hyperref" (cadr el)))
-			   el))
-		 org-export-latex-default-packages-alist))
-	       org-export-latex-packages-alist
-	       org-format-latex-header-extra)
-            (if height (concat "\n" (format "\\pdfpageheight %s" height)) "")
-            (if width (concat "\n" (format "\\pdfpagewidth %s" width)) "")
-            (if org-format-latex-header-extra
-                (concat "\n" org-format-latex-header-extra)
-              "")
-            "\n\\begin{document}\n" body "\n\\end{document}\n")
-    (org-export-latex-fix-inputenc)))
-
-(defvar org-export-pdf-logfiles)
-(defvar org-latex-to-pdf-process)
-(defvar org-export-pdf-remove-logfiles)
-(defun org-babel-latex-tex-to-pdf (tex-file)
-  "Generate a pdf file according to the contents TEX-FILE.
+(defun org-babel-latex-tex-to-pdf (file)
+  "Generate a pdf file according to the contents FILE.
 Extracted from `org-export-as-pdf' in org-latex.el."
   (let* ((wconfig (current-window-configuration))
-         (default-directory (file-name-directory tex-file))
-         (base (file-name-sans-extension tex-file))
+         (default-directory (file-name-directory file))
+         (base (file-name-sans-extension file))
          (pdffile (concat base ".pdf"))
          (cmds org-latex-to-pdf-process)
          (outbuf (get-buffer-create "*Org PDF LaTeX Output*"))
-         cmd)
+         output-dir cmd)
+    (with-current-buffer outbuf (erase-buffer))
+    (message (concat "Processing LaTeX file " file "..."))
+    (setq output-dir (file-name-directory file))
     (if (and cmds (symbolp cmds))
-        (funcall cmds tex-file)
+	(funcall cmds (shell-quote-argument file))
       (while cmds
-        (setq cmd (pop cmds))
-        (while (string-match "%b" cmd)
-          (setq cmd (replace-match
-                     (save-match-data
-                       (shell-quote-argument base))
-                     t t cmd)))
-        (while (string-match "%s" cmd)
-          (setq cmd (replace-match
-                     (save-match-data
-                       (shell-quote-argument tex-file))
-                     t t cmd)))
-        (shell-command cmd outbuf outbuf)))
+	(setq cmd (pop cmds))
+	(while (string-match "%b" cmd)
+	  (setq cmd (replace-match
+		     (save-match-data
+		       (shell-quote-argument base))
+		     t t cmd)))
+	(while (string-match "%f" cmd)
+	  (setq cmd (replace-match
+		     (save-match-data
+		       (shell-quote-argument file))
+		     t t cmd)))
+	(while (string-match "%o" cmd)
+	  (setq cmd (replace-match
+		     (save-match-data
+		       (shell-quote-argument output-dir))
+		     t t cmd)))
+	(shell-command cmd outbuf)))
+    (message (concat "Processing LaTeX file " file "...done"))
     (if (not (file-exists-p pdffile))
-        (error "PDF file was not produced from %s" tex-file)
+	(error (concat "PDF file " pdffile " was not produced"))
       (set-window-configuration wconfig)
       (when org-export-pdf-remove-logfiles
-        (dolist (ext org-export-pdf-logfiles)
-          (setq tex-file (concat base "." ext))
-          (and (file-exists-p tex-file) (delete-file tex-file))))
+	(dolist (ext org-export-pdf-logfiles)
+	  (setq file (concat base "." ext))
+	  (and (file-exists-p file) (delete-file file))))
+      (message "Exporting to PDF...done")
       pdffile)))
 
 (defun org-babel-prep-session:latex (session params)

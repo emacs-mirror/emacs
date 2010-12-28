@@ -154,7 +154,7 @@ mouse-3: go to end")
   :type 'sexp)
 ;;;###autoload (put 'which-func-format 'risky-local-variable t)
 
-(defvar which-func-imenu-joiner-function #'last
+(defvar which-func-imenu-joiner-function (lambda (x) (car (last x)))
   "Function to join together multiple levels of imenu nomenclature.
 Called with a single argument, a list of strings giving the names
 of the menus we had to traverse to get to the item.  Returns a
@@ -198,7 +198,7 @@ It creates the Imenu index for the buffer, if necessary."
 	     (or (eq which-func-modes t)
 		 (member major-mode which-func-modes))))
 
-  (condition-case nil
+  (condition-case err
       (if (and which-func-mode
 	       (not (member major-mode which-func-non-auto-modes))
 	       (or (null which-func-maxout)
@@ -207,6 +207,7 @@ It creates the Imenu index for the buffer, if necessary."
 	  (setq imenu--index-alist
 		(save-excursion (funcall imenu-create-index-function))))
     (error
+     (message "which-func-ff-hook error: %S" err)
      (setq which-func-mode nil))))
 
 (defun which-func-update ()
@@ -225,7 +226,7 @@ It creates the Imenu index for the buffer, if necessary."
 	      (force-mode-line-update)))
 	(error
 	 (setq which-func-mode nil)
-	 (error "Error in which-func-update: %s" info))))))
+	 (error "Error in which-func-update: %S" info))))))
 
 ;;;###autoload
 (defalias 'which-func-mode 'which-function-mode)
@@ -242,6 +243,9 @@ continuously displayed in the mode line, in certain major modes.
 With prefix ARG, turn Which Function mode on if arg is positive,
 and off otherwise."
   :global t :group 'which-func
+  (when (timerp which-func-update-timer)
+    (cancel-timer which-func-update-timer))
+  (setq which-func-update-timer nil)
   (if which-function-mode
       ;;Turn it on
       (progn
@@ -253,9 +257,6 @@ and off otherwise."
                   (or (eq which-func-modes t)
                       (member major-mode which-func-modes))))))
     ;; Turn it off
-    (when (timerp which-func-update-timer)
-      (cancel-timer which-func-update-timer))
-    (setq which-func-update-timer nil)
     (dolist (buf (buffer-list))
       (with-current-buffer buf (setq which-func-mode nil)))))
 
@@ -282,8 +283,7 @@ If no function name is found, return nil."
 	       (null which-function-imenu-failed))
       (imenu--make-index-alist t)
       (unless imenu--index-alist
-	(make-local-variable 'which-function-imenu-failed)
-	(setq which-function-imenu-failed t)))
+        (set (make-local-variable 'which-function-imenu-failed) t)))
     ;; If we have an index alist, use it.
     (when (and (null name)
 	       (boundp 'imenu--index-alist) imenu--index-alist)
@@ -294,29 +294,31 @@ If no function name is found, return nil."
         ;; ("submenu" ("name" . marker) ... ). The list can be
         ;; arbitrarily nested.
         (while (or alist imstack)
-          (if alist
-              (progn
-                (setq pair (car-safe alist)
-                      alist (cdr-safe alist))
+          (if (null alist)
+              (setq alist     (car imstack)
+                    namestack (cdr namestack)
+                    imstack   (cdr imstack))
 
-                (cond ((atom pair))     ; skip anything not a cons
+            (setq pair (car-safe alist)
+                  alist (cdr-safe alist))
 
-                      ((imenu--subalist-p pair)
-                       (setq imstack   (cons alist imstack)
-                             namestack (cons (car pair) namestack)
-                             alist     (cdr pair)))
+            (cond
+             ((atom pair))              ; Skip anything not a cons.
 
-                      ((number-or-marker-p (setq mark (cdr pair)))
-                       (if (>= (setq offset (- (point) mark)) 0)
-                           (if (< offset minoffset) ; find the closest item
-                               (setq minoffset offset
-                                     name (funcall
-                                           which-func-imenu-joiner-function
-					   (reverse (cons (car pair)
-							  namestack)))))))))
-            (setq alist     (car imstack)
-                  namestack (cdr namestack)
-                  imstack   (cdr imstack))))))
+             ((imenu--subalist-p pair)
+              (setq imstack   (cons alist imstack)
+                    namestack (cons (car pair) namestack)
+                    alist     (cdr pair)))
+
+             ((number-or-marker-p (setq mark (cdr pair)))
+              (when (and (>= (setq offset (- (point) mark)) 0)
+                         (< offset minoffset)) ; Find the closest item.
+                (setq minoffset offset
+                      name (if (null which-func-imenu-joiner-function)
+                               (car pair)
+                             (funcall
+                              which-func-imenu-joiner-function
+                              (reverse (cons (car pair) namestack))))))))))))
 
     ;; Try using add-log support.
     (when (and (null name) (boundp 'add-log-current-defun-function)

@@ -276,7 +276,7 @@ After insertion, the value of `auto-fill-function' is called if the
   (Lisp_Object n)
 {
   int remove_boundary = 1;
-  CHECK_NUMBER (n);
+  CHECK_NATNUM (n);
 
   if (!EQ (Vthis_command, current_kboard->Vlast_command))
     nonundocount = 0;

@@ -131,7 +131,7 @@ when the TAB command is used."
 
 
 ;;;###autoload
-(defun icon-mode ()
+(define-derived-mode icon-mode prog-mode "Icon"
   "Major mode for editing Icon code.
 Expression and list commands understand all Icon brackets.
 Tab indents for Icon code.
@@ -163,49 +163,33 @@ Variables controlling indentation style:
 
 Turning on Icon mode calls the value of the variable `icon-mode-hook'
 with no args, if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map icon-mode-map)
-  (setq major-mode 'icon-mode)
-  (setq mode-name "Icon")
-  (setq local-abbrev-table icon-mode-abbrev-table)
-  (set-syntax-table icon-mode-syntax-table)
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "$\\|" page-delimiter))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'icon-indent-line)
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline mode-require-final-newline)
-  (make-local-variable 'comment-start)
-  (setq comment-start "# ")
-  (make-local-variable 'comment-end)
-  (setq comment-end "")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "# *")
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'icon-comment-indent)
+  :abbrev-table icon-mode-abbrev-table
+  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
+  (set (make-local-variable 'indent-line-function) #'icon-indent-line)
+  (set (make-local-variable 'comment-start) "# ")
+  (set (make-local-variable 'comment-end) "")
+  (set (make-local-variable 'comment-start-skip) "# *")
+  (set (make-local-variable 'comment-indent-function) 'icon-comment-indent)
   (set (make-local-variable 'indent-line-function) 'icon-indent-line)
   ;; font-lock support
-  (setq font-lock-defaults
-	'((icon-font-lock-keywords
-	   icon-font-lock-keywords-1 icon-font-lock-keywords-2)
-	  nil nil ((?_ . "w")) beginning-of-defun
-	  ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
-	  ;(font-lock-comment-start-regexp . "#")
-	  (font-lock-mark-block-function . mark-defun)))
+  (set (make-local-variable 'font-lock-defaults)
+       '((icon-font-lock-keywords
+          icon-font-lock-keywords-1 icon-font-lock-keywords-2)
+         nil nil ((?_ . "w")) beginning-of-defun
+         ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
+         ;;(font-lock-comment-start-regexp . "#")
+         (font-lock-mark-block-function . mark-defun)))
   ;; imenu support
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression icon-imenu-generic-expression)
+  (set (make-local-variable 'imenu-generic-expression)
+       icon-imenu-generic-expression)
   ;; hideshow support
   ;; we start from the assertion that `hs-special-modes-alist' is autoloaded.
   (unless (assq 'icon-mode hs-special-modes-alist)
     (setq hs-special-modes-alist
 	  (cons '(icon-mode  "\\<procedure\\>" "\\<end\\>" nil
 			     icon-forward-sexp-function)
-		hs-special-modes-alist)))
-  (run-mode-hooks 'icon-mode-hook))
+		hs-special-modes-alist))))
 
 ;; This is used by indent-for-comment to decide how much to
 ;; indent a comment in Icon code based on its context.

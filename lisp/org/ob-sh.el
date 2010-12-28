@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +33,10 @@
 (require 'shell)
 (eval-when-compile (require 'cl))
 
-(declare-function org-babel-ref-variables "ob-ref" (params))
+(declare-function org-babel-comint-in-buffer "ob-comint" (buffer &rest body))
+(declare-function org-babel-comint-wait-for-output "ob-comint" (buffer))
+(declare-function org-babel-comint-buffer-livep "ob-comint" (buffer))
+(declare-function org-babel-comint-with-output "ob-comint" (meta &rest body))
 (declare-function orgtbl-to-generic "org-table" (table params))
 
 (defvar org-babel-default-header-args:sh '())
@@ -42,44 +45,25 @@
   "Command used to invoke a shell.
 This will be passed to  `shell-command-on-region'")
 
-(defun org-babel-expand-body:sh (body params &optional processed-params)
-  "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (nth 1 (or processed-params (org-babel-process-params params))))
-        (sep (cdr (assoc :separator params))))
-    (concat
-   (mapconcat ;; define any variables
-    (lambda (pair)
-      (format "%s=%s"
-              (car pair)
-              (org-babel-sh-var-to-sh (cdr pair) sep)))
-    vars "\n") "\n" body "\n\n")))
-
 (defun org-babel-execute:sh (body params)
   "Execute a block of Shell commands with Babel.
 This function is called by `org-babel-execute-src-block'."
-  (let* ((processed-params (org-babel-process-params params))
-         (session (org-babel-sh-initiate-session (nth 0 processed-params)))
-         (result-params (nth 2 processed-params)) 
-         (full-body (org-babel-expand-body:sh
-                     body params processed-params)))
+  (let* ((session (org-babel-sh-initiate-session
+		   (cdr (assoc :session params))))
+         (result-params (cdr (assoc :result-params params))) 
+         (full-body (org-babel-expand-body:generic
+		     body params (org-babel-variable-assignments:sh params))))
     (org-babel-reassemble-table
      (org-babel-sh-evaluate session full-body result-params)
      (org-babel-pick-name
-      (nth 4 processed-params) (cdr (assoc :colnames params)))
+      (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
      (org-babel-pick-name
-      (nth 5 processed-params) (cdr (assoc :rownames params))))))
+      (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params))))))
 
 (defun org-babel-prep-session:sh (session params)
   "Prepare SESSION according to the header arguments specified in PARAMS."
   (let* ((session (org-babel-sh-initiate-session session))
-         (vars (org-babel-ref-variables params))
-         (sep (cdr (assoc :separator params)))
-         (var-lines (mapcar ;; define any variables
-                     (lambda (pair)
-                       (format "%s=%s"
-                               (car pair)
-                               (org-babel-sh-var-to-sh (cdr pair) sep)))
-                     vars)))
+	 (var-lines (org-babel-variable-assignments:sh params)))
     (org-babel-comint-in-buffer session
       (mapc (lambda (var)
               (insert var) (comint-send-input nil t)
@@ -97,6 +81,16 @@ This function is called by `org-babel-execute-src-block'."
 
 ;; helper functions
 
+(defun org-babel-variable-assignments:sh (params)
+  "Return list of shell statements assigning the block's variables"
+  (let ((sep (cdr (assoc :separator params))))
+    (mapcar
+     (lambda (pair)
+       (format "%s=%s"
+	       (car pair)
+	       (org-babel-sh-var-to-sh (cdr pair) sep)))
+     (mapcar #'cdr (org-babel-get-header params :var)))))
+
 (defun org-babel-sh-var-to-sh (var &optional sep)
   "Convert an elisp value to a shell variable.
 Convert an elisp var into a string of shell commands specifying a
@@ -106,9 +100,10 @@ var of the same value."
                           (if (listp el)
                               (mapcar #'deep-string el)
 			    (org-babel-sh-var-to-sh el sep))))
-	(format "$(cat <<BABEL_TABLE\n%s\nBABEL_TABLE\n)"
+	(format "$(cat <<'BABEL_TABLE'\n%s\nBABEL_TABLE\n)"
 		(orgtbl-to-generic
-		 (deep-string var) (list :sep (or sep "\t")))))
+		 (deep-string (if (listp (car var)) var (list var)))
+		 (list :sep (or sep "\t")))))
     (if (stringp var)
 	(if (string-match "[\n\r]" var)
 	    (format "$(cat <<BABEL_STRING\n%s\nBABEL_STRING\n)" var)
@@ -119,16 +114,7 @@ var of the same value."
   "Convert RESULTS to an appropriate elisp value.
 If the results look like a table, then convert them into an
 Emacs-lisp table, otherwise return the results as a string."
-  (org-babel-read
-   (if (string-match "^\\[.+\\]$" results)
-       (org-babel-read
-        (concat "'"
-                (replace-regexp-in-string
-                 "\\[" "(" (replace-regexp-in-string
-                            "\\]" ")" (replace-regexp-in-string
-                                       ", " " " (replace-regexp-in-string
-                                                 "'" "\"" results))))))
-     results)))
+  (org-babel-script-escape results))
 
 (defun org-babel-sh-initiate-session (&optional session params)
   "Initiate a session named SESSION according to PARAMS."
@@ -148,29 +134,29 @@ If RESULT-TYPE equals 'output then return a list of the outputs
 of the statements in BODY, if RESULT-TYPE equals 'value then
 return the value of the last statement in BODY."
   ((lambda (results)
-     (if (or (member "scalar" result-params)
-	     (member "output" result-params))
-	 results
-       (let ((tmp-file (make-temp-file "org-babel-sh")))
-	 (with-temp-file tmp-file (insert results))
-	 (org-babel-import-elisp-from-file tmp-file))))
+     (when results
+       (if (or (member "scalar" result-params)
+	       (member "output" result-params))
+	   results
+	 (let ((tmp-file (org-babel-temp-file "sh-")))
+	   (with-temp-file tmp-file (insert results))
+	   (org-babel-import-elisp-from-file tmp-file)))))
    (if (not session)
        (org-babel-eval org-babel-sh-command (org-babel-trim body))
-     (let ((tmp-file (make-temp-file "org-babel-sh")))
-       (mapconcat
-	#'org-babel-sh-strip-weird-long-prompt
-	(mapcar
-	 #'org-babel-trim
-	 (butlast
-	  (org-babel-comint-with-output
-	      (session org-babel-sh-eoe-output t body)
-	    (mapc
-	     (lambda (line)
-	       (insert line) (comint-send-input nil t) (sleep-for 0.25))
-	     (append
-	      (split-string (org-babel-trim body) "\n")
-	      (list org-babel-sh-eoe-indicator))))
-	  2)) "\n")))))
+     (mapconcat
+      #'org-babel-sh-strip-weird-long-prompt
+      (mapcar
+       #'org-babel-trim
+       (butlast
+	(org-babel-comint-with-output
+	    (session org-babel-sh-eoe-output t body)
+	  (mapc
+	   (lambda (line)
+	     (insert line) (comint-send-input nil t) (sleep-for 0.25))
+	   (append
+	    (split-string (org-babel-trim body) "\n")
+	    (list org-babel-sh-eoe-indicator))))
+	2)) "\n"))))
 
 (defun org-babel-sh-strip-weird-long-prompt (string)
   "Remove prompt cruft from a string of shell output."

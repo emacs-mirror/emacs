@@ -288,6 +288,16 @@ Disowning it means there is no such selection."
   (if (x-selection-owner-p selection)
       t))
 
+;; x-get-selection-internal is used in select.el
+(defun x-get-selection-internal (selection type &optional time_stamp)
+  "Return text selected from some X window.
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+TYPE is the type of data desired, typically `STRING'.
+TIME_STAMP is the time to use in the XConvertSelection call for foreign
+selections.  If omitted, defaults to the time for the last event."
+  (x-get-selection-value))
+
 ;; From src/fontset.c:
 (fset 'query-fontset 'ignore)
 

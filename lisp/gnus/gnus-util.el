@@ -277,6 +277,24 @@ Uses `gnus-extract-address-components'."
       (setq start (when end
 		    (next-single-property-change start prop))))))
 
+(defun gnus-find-text-property-region (start end prop)
+  "Return a list of text property regions that has property PROP."
+  (let (regions value)
+    (unless (get-text-property start prop)
+      (setq start (next-single-property-change start prop)))
+    (while start
+      (setq value (get-text-property start prop)
+	    end (text-property-not-all start (point-max) prop value))
+      (if (not end)
+	  (setq start nil)
+	(when value
+	  (push (list (set-marker (make-marker) start)
+		      (set-marker (make-marker) end)
+		      value)
+		regions))
+	(setq start (next-single-property-change start prop))))
+    (nreverse regions)))
+
 (defun gnus-newsgroup-directory-form (newsgroup)
   "Make hierarchical directory name from NEWSGROUP name."
   (let* ((newsgroup (gnus-newsgroup-savable-name newsgroup))
@@ -884,6 +902,7 @@ Bind `print-quoted' and `print-readably' to t, and `print-length' and
 
 (defun gnus-write-buffer (file)
   "Write the current buffer's contents to FILE."
+  (require 'nnmail)
   (let ((file-name-coding-system nnmail-pathname-coding-system))
     ;; Make sure the directory exists.
     (gnus-make-directory (file-name-directory file))
@@ -1119,6 +1138,7 @@ In Emacs 22 this writes Babyl format; in Emacs 23 it writes mbox unless
 FILENAME exists and is Babyl format."
   (require 'rmail)
   (require 'mm-util)
+  (require 'nnmail)
   ;; Some of this codes is borrowed from rmailout.el.
   (setq filename (expand-file-name filename))
   ;; FIXME should we really be messing with this defcustom?
@@ -1210,6 +1230,7 @@ FILENAME exists and is Babyl format."
 
 (defun gnus-output-to-mail (filename &optional ask)
   "Append the current article to a mail file named FILENAME."
+  (require 'nnmail)
   (setq filename (expand-file-name filename))
   (let ((artbuf (current-buffer))
 	(tmpbuf (get-buffer-create " *Gnus-output*")))
@@ -2015,6 +2036,27 @@ This is the definition of match-substitute-replacement in subr.el from GNU Emacs
 Same as `string-match' except this function does not change the match data."
     (save-match-data
       (string-match regexp string start))))
+
+(eval-and-compile
+  (if (fboundp 'macroexpand-all)
+      (defalias 'gnus-macroexpand-all 'macroexpand-all)
+    (defun gnus-macroexpand-all (form &optional environment)
+      "Return result of expanding macros at all levels in FORM.
+If no macros are expanded, FORM is returned unchanged.
+The second optional arg ENVIRONMENT specifies an environment of macro
+definitions to shadow the loaded ones for use in file byte-compilation."
+      (if (consp form)
+	  (let ((idx 1)
+		(len (length (setq form (copy-sequence form))))
+		expanded)
+	    (while (< idx len)
+	      (setcar (nthcdr idx form) (gnus-macroexpand-all (nth idx form)
+							      environment))
+	      (setq idx (1+ idx)))
+	    (if (eq (setq expanded (macroexpand form environment)) form)
+		form
+	      (gnus-macroexpand-all expanded environment)))
+	form))))
 
 (provide 'gnus-util)
 

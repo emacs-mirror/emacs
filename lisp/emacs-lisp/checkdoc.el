@@ -434,7 +434,7 @@ be re-created.")
     ;; When dealing with syntax in doc strings, make sure that - are
     ;; encompassed in words so we can use cheap \\> to get the end of a symbol,
     ;; not the end of a word in a conglomerate.
-    (modify-syntax-entry ?- "w" checkdoc-syntax-table)
+    (modify-syntax-entry ?- "w" st)
     st)
   "Syntax table used by checkdoc in document strings.")
 
@@ -1370,12 +1370,8 @@ See the style guide in the Emacs Lisp manual for more details."
 documentation string")
 	      (point) (+ (point) 1) t)))))
     (if (and (not err) (looking-at "\""))
-	(let ((old-syntax-table (syntax-table)))
-	  (unwind-protect
-	      (progn
-		(set-syntax-table checkdoc-syntax-table)
-		(checkdoc-this-string-valid-engine fp))
-	    (set-syntax-table old-syntax-table)))
+        (with-syntax-table checkdoc-syntax-table
+          (checkdoc-this-string-valid-engine fp))
       err)))
 
 (defun checkdoc-this-string-valid-engine (fp)
@@ -1987,49 +1983,45 @@ internally skip over no answers.
 If the offending word is in a piece of quoted text, then it is skipped."
   (save-excursion
     (let ((case-fold-search nil)
-	  (errtxt nil) bb be
-	  (old-syntax-table (syntax-table)))
-      (unwind-protect
-	  (progn
-	    (set-syntax-table checkdoc-syntax-table)
-	    (goto-char begin)
-	    (while (re-search-forward checkdoc-proper-noun-regexp end t)
-	      (let ((text (match-string 1))
-		    (b (match-beginning 1))
-		    (e (match-end 1)))
-		(if (and (not (save-excursion
-				(goto-char b)
-				(forward-char -1)
-				(looking-at "`\\|\"\\|\\.\\|\\\\")))
-			 ;; surrounded by /, as in a URL or filename: /emacs/
-			 (not (and (= ?/ (char-after e))
-				   (= ?/ (char-before b))))
-			 (not (checkdoc-in-example-string-p begin end))
-			 ;; info or url links left alone
- 			 (not (thing-at-point-looking-at
- 			       help-xref-info-regexp))
-			 (not (thing-at-point-looking-at
- 			       help-xref-url-regexp)))
-		    (if (checkdoc-autofix-ask-replace
-			 b e (format "Text %s should be capitalized.  Fix? "
-				     text)
-			 (capitalize text) t)
-			nil
-		      (if errtxt
-			  ;; If there is already an error, then generate
-			  ;; the warning output if applicable
-			  (if checkdoc-generate-compile-warnings-flag
-			      (checkdoc-create-error
-			       (format
-				"Name %s should appear capitalized as %s"
-				text (capitalize text))
-			       b e))
-			(setq errtxt
-			      (format
-			       "Name %s should appear capitalized as %s"
-			       text (capitalize text))
-			      bb b be e)))))))
-	(set-syntax-table old-syntax-table))
+	  (errtxt nil) bb be)
+      (with-syntax-table checkdoc-syntax-table
+        (goto-char begin)
+        (while (re-search-forward checkdoc-proper-noun-regexp end t)
+          (let ((text (match-string 1))
+                (b (match-beginning 1))
+                (e (match-end 1)))
+            (if (and (not (save-excursion
+                            (goto-char b)
+                            (forward-char -1)
+                            (looking-at "`\\|\"\\|\\.\\|\\\\")))
+                     ;; surrounded by /, as in a URL or filename: /emacs/
+                     (not (and (= ?/ (char-after e))
+                               (= ?/ (char-before b))))
+                     (not (checkdoc-in-example-string-p begin end))
+                     ;; info or url links left alone
+                     (not (thing-at-point-looking-at
+                           help-xref-info-regexp))
+                     (not (thing-at-point-looking-at
+                           help-xref-url-regexp)))
+                (if (checkdoc-autofix-ask-replace
+                     b e (format "Text %s should be capitalized.  Fix? "
+                                 text)
+                     (capitalize text) t)
+                    nil
+                  (if errtxt
+                      ;; If there is already an error, then generate
+                      ;; the warning output if applicable
+                      (if checkdoc-generate-compile-warnings-flag
+                          (checkdoc-create-error
+                           (format
+                            "Name %s should appear capitalized as %s"
+                            text (capitalize text))
+                           b e))
+                    (setq errtxt
+                          (format
+                           "Name %s should appear capitalized as %s"
+                           text (capitalize text))
+                          bb b be e)))))))
       (if errtxt (checkdoc-create-error errtxt bb be)))))
 
 (defun checkdoc-sentencespace-region-engine (begin end)
@@ -2037,43 +2029,39 @@ If the offending word is in a piece of quoted text, then it is skipped."
   (if sentence-end-double-space
       (save-excursion
 	(let ((case-fold-search nil)
-	      (errtxt nil) bb be
-	      (old-syntax-table (syntax-table)))
-	  (unwind-protect
-	      (progn
-		(set-syntax-table checkdoc-syntax-table)
-		(goto-char begin)
-		(while (re-search-forward "[^ .0-9]\\(\\. \\)[^ \n]" end t)
-		  (let ((b (match-beginning 1))
-			(e (match-end 1)))
-		    (unless (or (checkdoc-in-sample-code-p begin end)
-				(checkdoc-in-example-string-p begin end)
-				(save-excursion
-				  (goto-char b)
-				  (condition-case nil
-				      (progn
-					(forward-sexp -1)
-					;; piece of an abbreviation
-					;; FIXME etc
-					(looking-at
-					 "\\([a-z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
-				    (error t))))
-		      (if (checkdoc-autofix-ask-replace
-			   b e
-			   "There should be two spaces after a period.  Fix? "
-			   ".  ")
-			  nil
-			(if errtxt
-			    ;; If there is already an error, then generate
-			    ;; the warning output if applicable
-			    (if checkdoc-generate-compile-warnings-flag
-				(checkdoc-create-error
-				 "There should be two spaces after a period"
-				 b e))
-			  (setq errtxt
-				"There should be two spaces after a period"
-				bb b be e)))))))
-	    (set-syntax-table old-syntax-table))
+	      (errtxt nil) bb be)
+	  (with-syntax-table checkdoc-syntax-table
+            (goto-char begin)
+            (while (re-search-forward "[^ .0-9]\\(\\. \\)[^ \n]" end t)
+              (let ((b (match-beginning 1))
+                    (e (match-end 1)))
+                (unless (or (checkdoc-in-sample-code-p begin end)
+                            (checkdoc-in-example-string-p begin end)
+                            (save-excursion
+                              (goto-char b)
+                              (condition-case nil
+                                  (progn
+                                    (forward-sexp -1)
+                                    ;; piece of an abbreviation
+                                    ;; FIXME etc
+                                    (looking-at
+                                     "\\([a-z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
+                                (error t))))
+                  (if (checkdoc-autofix-ask-replace
+                       b e
+                       "There should be two spaces after a period.  Fix? "
+                       ".  ")
+                      nil
+                    (if errtxt
+                        ;; If there is already an error, then generate
+                        ;; the warning output if applicable
+                        (if checkdoc-generate-compile-warnings-flag
+                            (checkdoc-create-error
+                             "There should be two spaces after a period"
+                             b e))
+                      (setq errtxt
+                            "There should be two spaces after a period"
+                            bb b be e)))))))
 	  (if errtxt (checkdoc-create-error errtxt bb be))))))
 
 ;;; Ispell engine

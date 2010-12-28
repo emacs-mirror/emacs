@@ -305,9 +305,10 @@ This point is in `bookmark-current-buffer'.")
 ;; need to know anything about the format of bookmark-alist entries.
 ;; Everyone else should go through them.
 
-(defun bookmark-name-from-full-record (full-record)
-  "Return name of FULL-RECORD (an alist element instead of a string)."
-  (car full-record))
+(defun bookmark-name-from-full-record (bookmark-record)
+  "Return the name of BOOKMARK-RECORD.  BOOKMARK-RECORD is, e.g.,
+one element from `bookmark-alist'."
+  (car bookmark-record))
 
 
 (defun bookmark-all-names ()
@@ -316,113 +317,100 @@ This point is in `bookmark-current-buffer'.")
   (mapcar 'bookmark-name-from-full-record bookmark-alist))
 
 
-(defun bookmark-get-bookmark (bookmark &optional noerror)
-  "Return the bookmark record corresponding to BOOKMARK.
-If BOOKMARK is a string, look for the corresponding bookmark record in
-`bookmark-alist'; return it if found, otherwise error.  Else if
-BOOKMARK is already a bookmark record, just return it."
+(defun bookmark-get-bookmark (bookmark-name-or-record &optional noerror)
+  "Return the bookmark record corresponding to BOOKMARK-NAME-OR-RECORD.
+If BOOKMARK-NAME-OR-RECORD is a string, look for the corresponding
+bookmark record in `bookmark-alist'; return it if found, otherwise
+error.  Else if BOOKMARK-NAME-OR-RECORD is already a bookmark record,
+just return it."
   (cond
-   ((consp bookmark) bookmark)
-   ((stringp bookmark)
-    (or (assoc-string bookmark bookmark-alist bookmark-completion-ignore-case)
-        (unless noerror (error "Invalid bookmark %s" bookmark))))))
+   ((consp bookmark-name-or-record) bookmark-name-or-record)
+   ((stringp bookmark-name-or-record)
+    (or (assoc-string bookmark-name-or-record bookmark-alist
+                      bookmark-completion-ignore-case)
+        (unless noerror (error "Invalid bookmark %s"
+                               bookmark-name-or-record))))))
 
 
-(defun bookmark-get-bookmark-record (bookmark)
-  "Return the record portion of the entry for BOOKMARK in
-`bookmark-alist' (that is, all information but the name).
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (let ((alist (cdr (bookmark-get-bookmark bookmark))))
+(defun bookmark-get-bookmark-record (bookmark-name-or-record)
+  "Return the record portion of the entry for BOOKMARK-NAME-OR-RECORD in
+`bookmark-alist' (that is, all information but the name)."
+  (let ((alist (cdr (bookmark-get-bookmark bookmark-name-or-record))))
     ;; The bookmark objects can either look like (NAME ALIST) or
     ;; (NAME . ALIST), so we have to distinguish the two here.
     (if (and (null (cdr alist)) (consp (caar alist)))
         (car alist) alist)))
 
 
-(defun bookmark-set-name (bookmark newname)
-  "Set BOOKMARK's name to NEWNAME.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (setcar
-   (if (stringp bookmark) (bookmark-get-bookmark bookmark) bookmark)
-   newname))
+(defun bookmark-set-name (bookmark-name-or-record newname)
+  "Set BOOKMARK-NAME-OR-RECORD's name to NEWNAME."
+  (setcar (bookmark-get-bookmark bookmark-name-or-record) newname))
 
-(defun bookmark-prop-get (bookmark prop)
-  "Return the property PROP of BOOKMARK, or nil if none.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (cdr (assq prop (bookmark-get-bookmark-record bookmark))))
+(defun bookmark-prop-get (bookmark-name-or-record prop)
+  "Return the property PROP of BOOKMARK-NAME-OR-RECORD, or nil if none."
+  (cdr (assq prop (bookmark-get-bookmark-record bookmark-name-or-record))))
 
-(defun bookmark-prop-set (bookmark prop val)
-  "Set the property PROP of BOOKMARK to VAL.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (let ((cell (assq prop (bookmark-get-bookmark-record bookmark))))
+(defun bookmark-prop-set (bookmark-name-or-record prop val)
+  "Set the property PROP of BOOKMARK-NAME-OR-RECORD to VAL."
+  (let ((cell (assq
+               prop (bookmark-get-bookmark-record bookmark-name-or-record))))
     (if cell
         (setcdr cell val)
-      (nconc (bookmark-get-bookmark-record bookmark)
+      (nconc (bookmark-get-bookmark-record bookmark-name-or-record)
              (list (cons prop val))))))
 
-(defun bookmark-get-annotation (bookmark)
-  "Return the annotation of BOOKMARK, or nil if none.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (bookmark-prop-get bookmark 'annotation))
+(defun bookmark-get-annotation (bookmark-name-or-record)
+  "Return the annotation of BOOKMARK-NAME-OR-RECORD, or nil if none."
+  (bookmark-prop-get bookmark-name-or-record 'annotation))
 
-(defun bookmark-set-annotation (bookmark ann)
-  "Set the annotation of BOOKMARK to ANN.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (bookmark-prop-set bookmark 'annotation ann))
+(defun bookmark-set-annotation (bookmark-name-or-record ann)
+  "Set the annotation of BOOKMARK-NAME-OR-RECORD to ANN."
+  (bookmark-prop-set bookmark-name-or-record 'annotation ann))
 
 
-(defun bookmark-get-filename (bookmark)
-  "Return the full filename of BOOKMARK, or nil if none.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (bookmark-prop-get bookmark 'filename))
+(defun bookmark-get-filename (bookmark-name-or-record)
+  "Return the full filename of BOOKMARK-NAME-OR-RECORD, or nil if none."
+  (bookmark-prop-get bookmark-name-or-record 'filename))
 
 
-(defun bookmark-set-filename (bookmark filename)
-  "Set the full filename of BOOKMARK to FILENAME.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (bookmark-prop-set bookmark 'filename filename))
+(defun bookmark-set-filename (bookmark-name-or-record filename)
+  "Set the full filename of BOOKMARK-NAME-OR-RECORD to FILENAME."
+  (bookmark-prop-set bookmark-name-or-record 'filename filename))
 
 
-(defun bookmark-get-position (bookmark)
-  "Return the position (i.e.: point) of BOOKMARK, or nil if none.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (bookmark-prop-get bookmark 'position))
+(defun bookmark-get-position (bookmark-name-or-record)
+  "Return the position (i.e.: point) of BOOKMARK-NAME-OR-RECORD, or nil if none."
+  (bookmark-prop-get bookmark-name-or-record 'position))
 
 
-(defun bookmark-set-position (bookmark position)
-  "Set the position (i.e.: point) of BOOKMARK to POSITION.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (bookmark-prop-set bookmark 'position position))
+(defun bookmark-set-position (bookmark-name-or-record position)
+  "Set the position (i.e.: point) of BOOKMARK-NAME-OR-RECORD to POSITION."
+  (bookmark-prop-set bookmark-name-or-record 'position position))
 
 
-(defun bookmark-get-front-context-string (bookmark)
-  "Return the front-context-string of BOOKMARK, or nil if none.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (bookmark-prop-get bookmark 'front-context-string))
+(defun bookmark-get-front-context-string (bookmark-name-or-record)
+  "Return the front-context-string of BOOKMARK-NAME-OR-RECORD, or nil if none."
+  (bookmark-prop-get bookmark-name-or-record 'front-context-string))
 
 
-(defun bookmark-set-front-context-string (bookmark string)
-  "Set the front-context-string of BOOKMARK to STRING.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (bookmark-prop-set bookmark 'front-context-string string))
+(defun bookmark-set-front-context-string (bookmark-name-or-record string)
+  "Set the front-context-string of BOOKMARK-NAME-OR-RECORD to STRING."
+  (bookmark-prop-set bookmark-name-or-record 'front-context-string string))
 
 
-(defun bookmark-get-rear-context-string (bookmark)
-  "Return the rear-context-string of BOOKMARK, or nil if none.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (bookmark-prop-get bookmark 'rear-context-string))
+(defun bookmark-get-rear-context-string (bookmark-name-or-record)
+  "Return the rear-context-string of BOOKMARK-NAME-OR-RECORD, or nil if none."
+  (bookmark-prop-get bookmark-name-or-record 'rear-context-string))
 
 
-(defun bookmark-set-rear-context-string (bookmark string)
-  "Set the rear-context-string of BOOKMARK to STRING.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (bookmark-prop-set bookmark 'rear-context-string string))
+(defun bookmark-set-rear-context-string (bookmark-name-or-record string)
+  "Set the rear-context-string of BOOKMARK-NAME-OR-RECORD to STRING."
+  (bookmark-prop-set bookmark-name-or-record 'rear-context-string string))
 
 
-(defun bookmark-get-handler (bookmark)
-  "Return the handler function for BOOKMARK, or nil if none.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
-  (bookmark-prop-get bookmark 'handler))
+(defun bookmark-get-handler (bookmark-name-or-record)
+  "Return the handler function for BOOKMARK-NAME-OR-RECORD, or nil if none."
+  (bookmark-prop-get bookmark-name-or-record 'handler))
 
 (defvar bookmark-history nil
   "The history list for bookmark functions.")
@@ -830,11 +818,11 @@ This is used in `bookmark-edit-annotation' to record the bookmark
 whose annotation is being edited.")
 
 
-(defun bookmark-default-annotation-text (bookmark)
-  "Return default annotation text for BOOKMARK (a string, not a record).
+(defun bookmark-default-annotation-text (bookmark-name)
+  "Return default annotation text for BOOKMARK-NAME.
 The default annotation text is simply some text explaining how to use
 annotations."
-  (concat "#  Type the annotation for bookmark '" bookmark "' here.\n"
+  (concat "#  Type the annotation for bookmark '" bookmark-name "' here.\n"
 	  "#  All lines which start with a '#' will be deleted.\n"
 	  "#  Type C-c C-c when done.\n#\n"
 	  "#  Author: " (user-full-name) " <" (user-login-name) "@"
@@ -856,22 +844,20 @@ It takes one argument, the name of the bookmark, as a string.")
   "Keymap for editing an annotation of a bookmark.")
 
 
-(defun bookmark-edit-annotation-mode (bookmark)
-  "Mode for editing the annotation of bookmark BOOKMARK.
+(defun bookmark-edit-annotation-mode (bookmark-name-or-record)
+  "Mode for editing the annotation of bookmark BOOKMARK-NAME-OR-RECORD.
 When you have finished composing, type \\[bookmark-send-annotation].
-
-BOOKMARK is a bookmark name (a string) or a bookmark record.
 
 \\{bookmark-edit-annotation-mode-map}"
   (interactive)
   (kill-all-local-variables)
   (make-local-variable 'bookmark-annotation-name)
-  (setq bookmark-annotation-name bookmark)
+  (setq bookmark-annotation-name bookmark-name-or-record)
   (use-local-map bookmark-edit-annotation-mode-map)
   (setq major-mode 'bookmark-edit-annotation-mode
         mode-name "Edit Bookmark Annotation")
-  (insert (funcall bookmark-edit-annotation-text-func bookmark))
-  (let ((annotation (bookmark-get-annotation bookmark)))
+  (insert (funcall bookmark-edit-annotation-text-func bookmark-name-or-record))
+  (let ((annotation (bookmark-get-annotation bookmark-name-or-record)))
     (if (and annotation (not (string-equal annotation "")))
 	(insert annotation)))
   (run-mode-hooks 'text-mode-hook))
@@ -890,19 +876,18 @@ Lines beginning with `#' are ignored."
       (forward-line 1)))
   ;; Take no chances with text properties.
   (let ((annotation (buffer-substring-no-properties (point-min) (point-max)))
-	(bookmark bookmark-annotation-name))
-    (bookmark-set-annotation bookmark annotation)
+	(bookmark-name bookmark-annotation-name))
+    (bookmark-set-annotation bookmark-name annotation)
     (setq bookmark-alist-modification-count
           (1+ bookmark-alist-modification-count))
     (bookmark-bmenu-surreptitiously-rebuild-list))
   (kill-buffer (current-buffer)))
 
 
-(defun bookmark-edit-annotation (bookmark)
-  "Pop up a buffer for editing bookmark BOOKMARK's annotation.
-BOOKMARK is a bookmark name (a string) or a bookmark record."
+(defun bookmark-edit-annotation (bookmark-name-or-record)
+  "Pop up a buffer for editing bookmark BOOKMARK-NAME-OR-RECORD's annotation."
   (pop-to-buffer (generate-new-buffer-name "*Bookmark Annotation Compose*"))
-  (bookmark-edit-annotation-mode bookmark))
+  (bookmark-edit-annotation-mode bookmark-name-or-record))
 
 
 (defun bookmark-insert-current-bookmark ()
@@ -1002,14 +987,14 @@ If `bookmark-sort-flag' is non-nil, then return a sorted copy of the alist."
   "Hook run after `bookmark-jump' jumps to a bookmark.
 Useful for example to unhide text in `outline-mode'.")
 
-(defun bookmark--jump-via (bookmark display-function)
-  "Handle BOOKMARK, then call DISPLAY-FUNCTION with current buffer as argument.
-Bookmark may be a bookmark name (a string) or a bookmark record.
+(defun bookmark--jump-via (bookmark-name-or-record display-function)
+  "Handle BOOKMARK-NAME-OR-RECORD, then call DISPLAY-FUNCTION with
+current buffer as argument.
 
 After calling DISPLAY-FUNCTION, set window point to the point specified
-by BOOKMARK, if necessary, run `bookmark-after-jump-hook', and then show
-any annotations for this bookmark."
-  (bookmark-handle-bookmark bookmark)
+by BOOKMARK-NAME-OR-RECORD, if necessary, run `bookmark-after-jump-hook',
+and then show any annotations for this bookmark."
+  (bookmark-handle-bookmark bookmark-name-or-record)
   (save-current-buffer
     (funcall display-function (current-buffer)))
   (let ((win (get-buffer-window (current-buffer) 0)))
@@ -1020,7 +1005,7 @@ any annotations for this bookmark."
   (if bookmark-automatically-show-annotations
       ;; if there is an annotation for this bookmark,
       ;; show it in a buffer.
-      (bookmark-show-annotation bookmark)))
+      (bookmark-show-annotation bookmark-name-or-record)))
 
 
 ;;;###autoload
@@ -1036,8 +1021,8 @@ if you wish to give the bookmark a new location, and `bookmark-jump'
 will then jump to the new location, as well as recording it in place
 of the old one in the permanent bookmark record.
 
-BOOKMARK may be a bookmark name (a string) or a bookmark record, but
-the latter is usually only used by programmatic callers.
+BOOKMARK is usually a bookmark name (a string).  It can also be a
+bookmark record, but this is usually only done by programmatic callers.
 
 If DISPLAY-FUNC is non-nil, it is a function to invoke to display the
 bookmark.  It defaults to `switch-to-buffer'.  A typical value for
@@ -1061,10 +1046,8 @@ DISPLAY-FUNC would be `switch-to-buffer-other-window'."
 
 
 (defun bookmark-jump-noselect (bookmark)
-  "Return the location pointed to by the bookmark BOOKMARK.
+  "Return the location pointed to by BOOKMARK (see `bookmark-jump').
 The return value has the form (BUFFER . POINT).
-
-BOOKMARK may be a bookmark name (a string) or a bookmark record.
 
 Note: this function is deprecated and is present for Emacs 22
 compatibility only."
@@ -1074,26 +1057,27 @@ compatibility only."
 
 (make-obsolete 'bookmark-jump-noselect 'bookmark-handle-bookmark "23.1")
 
-(defun bookmark-handle-bookmark (bookmark)
-  "Call BOOKMARK's handler or `bookmark-default-handler' if it has none.
-BOOKMARK may be a bookmark name (a string) or a bookmark record.
+(defun bookmark-handle-bookmark (bookmark-name-or-record)
+  "Call BOOKMARK-NAME-OR-RECORD's handler or `bookmark-default-handler'
+if it has none.  This changes current buffer and point and returns nil,
+or signals a `file-error'. 
 
-Changes current buffer and point and returns nil, or signals a `file-error'.
-
-If BOOKMARK has no file, this is a no-op.  If BOOKMARK has a file, but
-that file no longer exists, then offer interactively to relocate BOOKMARK."
+If BOOKMARK-NAME-OR-RECORD has no file, this is a no-op.  If
+BOOKMARK-NAME-OR-RECORD has a file, but that file no longer exists,
+then offer interactively to relocate BOOKMARK-NAME-OR-RECORD."
   (condition-case err
-      (funcall (or (bookmark-get-handler bookmark)
+      (funcall (or (bookmark-get-handler bookmark-name-or-record)
                    'bookmark-default-handler)
-               (bookmark-get-bookmark bookmark))
+               (bookmark-get-bookmark bookmark-name-or-record))
     (bookmark-error-no-filename         ;file-error
      ;; We were unable to find the marked file, so ask if user wants to
      ;; relocate the bookmark, else remind them to consider deletion.
-     (when (stringp bookmark)
-       ;; `bookmark' can be either a bookmark name (from `bookmark-alist')
-       ;; or a bookmark object.  If it's an object, we assume it's a
-       ;; bookmark used internally by some other package.
-       (let ((file (bookmark-get-filename bookmark)))
+     (when (stringp bookmark-name-or-record)
+       ;; `bookmark-name-or-record' can be either a bookmark name
+       ;; (from `bookmark-alist')  or a bookmark object.  If it's an
+       ;; object, we assume it's a bookmark used internally by some
+       ;; other package.
+       (let ((file (bookmark-get-filename bookmark-name-or-record)))
          (when file        ;Don't know how to relocate if there's no `file'.
            ;; If file is not a dir, directory-file-name just returns file.
            (let ((display-name (directory-file-name file)))
@@ -1106,20 +1090,20 @@ that file no longer exists, then offer interactively to relocate BOOKMARK."
              (let ((use-dialog-box nil)
                    (use-file-dialog nil))
                (if (y-or-n-p (concat display-name " nonexistent.  Relocate \""
-                                     bookmark "\"? "))
+                                     bookmark-name-or-record "\"? "))
                    (progn
-                     (bookmark-relocate bookmark)
+                     (bookmark-relocate bookmark-name-or-record)
                      ;; Try again.
-                     (funcall (or (bookmark-get-handler bookmark)
+                     (funcall (or (bookmark-get-handler bookmark-name-or-record)
                                   'bookmark-default-handler)
-                              (bookmark-get-bookmark bookmark)))
+                              (bookmark-get-bookmark bookmark-name-or-record)))
                  (message
                   "Bookmark not relocated; consider removing it (%s)."
-                  bookmark)
+                  bookmark-name-or-record)
                  (signal (car err) (cdr err))))))))))
   ;; Added by db.
-  (when (stringp bookmark)
-    (setq bookmark-current-bookmark bookmark))
+  (when (stringp bookmark-name-or-record)
+    (setq bookmark-current-bookmark bookmark-name-or-record))
   nil)
 
 (put 'bookmark-error-no-filename
@@ -1159,23 +1143,22 @@ Changes current buffer and point and returns nil, or signals a `file-error'."
     nil))
 
 ;;;###autoload
-(defun bookmark-relocate (bookmark)
-  "Relocate BOOKMARK to another file (reading file name with minibuffer).
-BOOKMARK is a bookmark name (a string), not a bookmark record.
+(defun bookmark-relocate (bookmark-name)
+  "Relocate BOOKMARK-NAME to another file, reading file name with minibuffer.
 
 This makes an already existing bookmark point to that file, instead of
 the one it used to point at.  Useful when a file has been renamed
 after a bookmark was set in it."
   (interactive (list (bookmark-completing-read "Bookmark to relocate")))
-  (bookmark-maybe-historicize-string bookmark)
+  (bookmark-maybe-historicize-string bookmark-name)
   (bookmark-maybe-load-default-file)
-  (let* ((bmrk-filename (bookmark-get-filename bookmark))
+  (let* ((bmrk-filename (bookmark-get-filename bookmark-name))
          (newloc (abbreviate-file-name
                   (expand-file-name
                    (read-file-name
-                    (format "Relocate %s to: " bookmark)
+                    (format "Relocate %s to: " bookmark-name)
                     (file-name-directory bmrk-filename))))))
-    (bookmark-set-filename bookmark newloc)
+    (bookmark-set-filename bookmark-name newloc)
     (setq bookmark-alist-modification-count
           (1+ bookmark-alist-modification-count))
     (if (bookmark-time-to-save-p)
@@ -1184,17 +1167,16 @@ after a bookmark was set in it."
 
 
 ;;;###autoload
-(defun bookmark-insert-location (bookmark &optional no-history)
-  "Insert the name of the file associated with BOOKMARK.
-BOOKMARK is a bookmark name (a string), not a bookmark record.
+(defun bookmark-insert-location (bookmark-name &optional no-history)
+  "Insert the name of the file associated with BOOKMARK-NAME.
 
 Optional second arg NO-HISTORY means don't record this in the
 minibuffer history list `bookmark-history'."
   (interactive (list (bookmark-completing-read "Insert bookmark location")))
-  (or no-history (bookmark-maybe-historicize-string bookmark))
+  (or no-history (bookmark-maybe-historicize-string bookmark-name))
   (let ((start (point)))
     (prog1
-	(insert (bookmark-location bookmark))
+	(insert (bookmark-location bookmark-name))
       (if (display-mouse-p)
 	  (add-text-properties
 	   start
@@ -1208,42 +1190,39 @@ minibuffer history list `bookmark-history'."
 ;;;###autoload
 (defalias 'bookmark-locate 'bookmark-insert-location)
 
-(defun bookmark-location (bookmark)
-  "Return a description of the location of BOOKMARK.
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
+(defun bookmark-location (bookmark-name-or-record)
+  "Return a description of the location of BOOKMARK-NAME-OR-RECORD."
   (bookmark-maybe-load-default-file)
   ;; We could call the `handler' and ask for it to construct a description
   ;; dynamically: it would open up several new possibilities, but it
   ;; would have the major disadvantage of forcing to load each and
   ;; every handler when the user calls bookmark-menu.
-  (or (bookmark-prop-get bookmark 'location)
-      (bookmark-get-filename bookmark)
+  (or (bookmark-prop-get bookmark-name-or-record 'location)
+      (bookmark-get-filename bookmark-name-or-record)
       "-- Unknown location --"))
 
 
 ;;;###autoload
-(defun bookmark-rename (old &optional new)
-  "Change the name of OLD bookmark to NEW name.
-If called from keyboard, prompt for OLD and NEW.  If called from
-menubar, select OLD from a menu and prompt for NEW.
+(defun bookmark-rename (old-name &optional new-name)
+  "Change the name of OLD-NAME bookmark to NEW-NAME name.
+If called from keyboard, prompt for OLD-NAME and NEW-NAME.
+If called from menubar, select OLD-NAME from a menu and prompt for NEW-NAME.
 
-Both OLD and NEW are bookmark names (strings), never bookmark records.
-
-If called from Lisp, prompt for NEW if only OLD was passed as an
-argument.  If called with two strings, then no prompting is done.  You
-must pass at least OLD when calling from Lisp.
+If called from Lisp, prompt for NEW-NAME if only OLD-NAME was passed
+as an argument.  If called with two strings, then no prompting is done.
+You must pass at least OLD-NAME when calling from Lisp.
 
 While you are entering the new name, consecutive C-w's insert
 consecutive words from the text of the buffer into the new bookmark
 name."
   (interactive (list (bookmark-completing-read "Old bookmark name")))
-  (bookmark-maybe-historicize-string old)
+  (bookmark-maybe-historicize-string old-name)
   (bookmark-maybe-load-default-file)
 
   (setq bookmark-yank-point (point))
   (setq bookmark-current-buffer (current-buffer))
-  (let ((newname
-         (or new   ; use second arg, if non-nil
+  (let ((final-new-name
+         (or new-name   ; use second arg, if non-nil
              (read-from-minibuffer
               "New name: "
               nil
@@ -1252,8 +1231,8 @@ name."
                 now-map)
               nil
               'bookmark-history))))
-    (bookmark-set-name old newname)
-    (setq bookmark-current-bookmark newname)
+    (bookmark-set-name old-name final-new-name)
+    (setq bookmark-current-bookmark final-new-name)
     (bookmark-bmenu-surreptitiously-rebuild-list)
     (setq bookmark-alist-modification-count
           (1+ bookmark-alist-modification-count))
@@ -1262,21 +1241,21 @@ name."
 
 
 ;;;###autoload
-(defun bookmark-insert (bookmark)
-  "Insert the text of the file pointed to by bookmark BOOKMARK.
-BOOKMARK is a bookmark name (a string), not a bookmark record.
+(defun bookmark-insert (bookmark-name)
+  "Insert the text of the file pointed to by bookmark BOOKMARK-NAME.
+BOOKMARK-NAME is a bookmark name (a string), not a bookmark record.
 
 You may have a problem using this function if the value of variable
 `bookmark-alist' is nil.  If that happens, you need to load in some
 bookmarks.  See help on function `bookmark-load' for more about
 this."
   (interactive (list (bookmark-completing-read "Insert bookmark contents")))
-  (bookmark-maybe-historicize-string bookmark)
+  (bookmark-maybe-historicize-string bookmark-name)
   (bookmark-maybe-load-default-file)
   (let ((orig-point (point))
 	(str-to-insert
 	 (save-current-buffer
-           (bookmark-handle-bookmark bookmark)
+           (bookmark-handle-bookmark bookmark-name)
 	   (buffer-string))))
     (insert str-to-insert)
     (push-mark)
@@ -1284,9 +1263,8 @@ this."
 
 
 ;;;###autoload
-(defun bookmark-delete (bookmark &optional batch)
-  "Delete BOOKMARK from the bookmark list.
-BOOKMARK is a bookmark name (a string), not a bookmark record.
+(defun bookmark-delete (bookmark-name &optional batch)
+  "Delete BOOKMARK-NAME from the bookmark list.
 
 Removes only the first instance of a bookmark with that name.  If
 there are one or more other bookmarks with the same name, they will
@@ -1297,9 +1275,9 @@ probably because we were called from there."
   (interactive
    (list (bookmark-completing-read "Delete bookmark"
 				   bookmark-current-bookmark)))
-  (bookmark-maybe-historicize-string bookmark)
+  (bookmark-maybe-historicize-string bookmark-name)
   (bookmark-maybe-load-default-file)
-  (let ((will-go (bookmark-get-bookmark bookmark 'noerror)))
+  (let ((will-go (bookmark-get-bookmark bookmark-name 'noerror)))
     (setq bookmark-alist (delq will-go bookmark-alist))
     ;; Added by db, nil bookmark-current-bookmark if the last
     ;; occurrence has been deleted
@@ -1747,16 +1725,15 @@ last full line, move to the last full line.  The return value is undefined."
     (get-text-property (point) 'bookmark-name-prop)))
 
 
-(defun bookmark-show-annotation (bookmark)
-  "Display the annotation for bookmark named BOOKMARK in a buffer,
+(defun bookmark-show-annotation (bookmark-name-or-record)
+  "Display the annotation for BOOKMARK-NAME-OR-RECORD in a buffer,
 if an annotation exists."
-  (let ((annotation (bookmark-get-annotation bookmark)))
+  (let ((annotation (bookmark-get-annotation bookmark-name-or-record)))
     (when (and annotation (not (string-equal annotation "")))
       (save-excursion
         (let ((old-buf (current-buffer)))
           (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
           (delete-region (point-min) (point-max))
-          ;; (insert (concat "Annotation for bookmark '" bookmark "':\n\n"))
           (insert annotation)
           (goto-char (point-min))
           (switch-to-buffer-other-window old-buf))))))

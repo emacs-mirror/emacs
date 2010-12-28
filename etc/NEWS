@@ -56,8 +56,8 @@ automatically select it.
 * Startup Changes in Emacs 24.1
 
 ** The --unibyte, --multibyte, --no-multibyte, and --no-unibyte
-command line arguments no longer have any effect.  (They were declared
-obsolete in Emacs 23.)
+command line arguments, and the EMACS_UNIBYTE environment variable, no
+longer have any effect.  (They were declared obsolete in Emacs 23.)
 
 
 * Changes in Emacs 24.1
@@ -138,6 +138,18 @@ with Xft.  To change font, use X resource faceName, for example:
 Emacs.pane.menubar.faceName:  Courier-12
 Set faceName to none and use font to use the old X fonts.
 
++++
+** Enhanced support for characters that have no glyphs in available fonts
+If a character has no glyphs in any of the available fonts, Emacs by
+default will display it either as a hexadecimal code in a box or as a
+thin 1-pixel space.  In addition to these two methods, Emacs can
+display these characters as empty box, as an acronym, or not display
+them at all.  To change how these characters are displayed, customize
+the variable `glyphless-char-display-control'.
+
+On character terminals these methods are used for characters that
+cannot be encoded by the `terminal-coding-system'.
+
 ** On graphical displays, the mode-line no longer ends in dashes.
 
 ** Basic SELinux support has been added.
@@ -210,10 +222,20 @@ the remote file-name cache is used for read access.
 ** The standalone programs lib-src/digest-doc and sorted-doc have been
 replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
+** The variable `focus-follows-mouse' now always defaults to nil.
+
 
 * Editing Changes in Emacs 24.1
 
-** completion-at-point is now an alias for complete-symbol.
++++
+** There is a new command `count-words-region', which does what you expect.
+
+** completion-at-point now handles tags and semantic completion.
+
+** The default value of `backup-by-copying-when-mismatch' is now t.
+
+** The command `just-one-space' (C-SPC), if given a negative argument,
+also deletes newlines around point.
 
 ** Deletion changes
 
@@ -286,14 +308,26 @@ set `x-select-enable-clipboard' to nil.
 
 *** Support for X cut buffers has been removed.
 
+** New command `rectangle-number-lines', bound to `C-x r N', numbers
+the lines in the current rectangle.  With an prefix argument, this
+prompts for a number to count from and for a format string.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
+
+** shell-mode can track your cwd by reading it from your prompt.
+Just set shell-dir-cookie-re to an appropriate regexp.
+
+** Modula-2 mode provides auto-indentation.
 
 ** latex-electric-env-pair-mode keeps \begin..\end matched on the fly.
 
 ** FIXME: xdg-open for browse-url and reportbug, 2010/08.
 
 ** Archive Mode has basic support to browse 7z archives.
+
+** browse-url has gotten a new variable that is used for mailto: URLs,
+   `browse-url-mailto-function', which defaults to `browse-url-mail'.
 
 ** ERC changes
 
@@ -307,6 +341,12 @@ after connecting.
 as the server coding system, this variable will then be consulted.
 The default is to decode strings that can be decoded as utf-8 as
 utf-8, and do the normal `undecided' decoding for the rest.
+
+** Eshell changes
+
+*** The default value of eshell-directory-name is a directory named
+"eshell" in `user-emacs-directory'.  If the old "~/.eshell/" directory
+exists, that is used instead.
 
 ** In ido-mode, C-v is no longer bound to ido-toggle-vc.
 The reason is that this interferes with cua-mode.
@@ -501,6 +541,8 @@ listing object name completions when being sent text via
 
 *** An API for manipulating SQL product definitions has been added.
 
+** sregex.el is now obsolete, since rx.el is a strict superset.
+
 ** s-region.el is now declared obsolete, superceded by shift-select-mode
 enabled by default in 23.1.
 
@@ -517,17 +559,36 @@ system or session bus.
 
 ** Tramp
 
+*** There exists a new inline access method "ksu" (kerberized su).
+
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old" and "fish".
+
+** VC and related modes
+
+*** Support for pulling on distributed version control systems.
+The vc-update command now runs a "pull" operation, if it is supported.
+This updates the current branch from upstream.  A prefix argument
+means to prompt the user for command specifics, e.g. a pull location.
+
+**** vc-pull is an alias for vc-update.
+
+**** Currently supported by Bzr.
+
+*** Support for merging on distributed version control systems.
+The vc-merge command now runs a "merge" operation, if it is supported.
+This merges another branch into the current one.  A prefix argument
+means to prompt the user for command specifics, e.g. a merge location.
+
+**** Currently supported by Bzr.
 
 
 * New Modes and Packages in Emacs 24.1
 
-** New global minor modes electric-pair-mode and electric-indent-mode.
+** New global minor modes electric-pair-mode, electric-indent-mode,
+and electric-layout-mode.
 
 ** pcase.el provides the ML-style pattern matching macro `pcase'.
-
-** smie.el is a package providing a simple generic indentation engine.
 
 ** secrets.el is an implementation of the Secret Service API, an
 interface to password managers like GNOME Keyring or KDE Wallet.  The
@@ -540,6 +601,11 @@ Notifications API.  It requires D-Bus for communication.
 
 
 * Incompatible Lisp Changes in Emacs 24.1
+
+** For mouse click input events in the text area, the Y pixel
+coordinate in the POSITION list now counts from the top of the text
+area, excluding any header line.  Previously, it counted from the top
+of the header line.
 
 ** Remove obsolete name `e' (use `float-e' instead).
 
@@ -628,6 +694,9 @@ The command `read-color' now requires a match for a color name or RGB
 triplet, instead of signalling an error if the user provides a invalid
 input.
 
+** Tool-bars can display separators.
+Tool-bar separators are handled like menu separators in menu-bar maps,
+i.e. via menu entries of the form `(menu-item "--")'.
 
 ** Image API
 

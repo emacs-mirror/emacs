@@ -144,10 +144,6 @@ int this_single_command_key_start;
 static int before_command_key_count;
 static int before_command_echo_length;
 
-extern int minbuf_level;
-
-extern int message_enable_multibyte;
-
 /* If non-nil, the function that implements the display of help.
    It's called with one argument, the help string to display.  */
 
@@ -215,6 +211,12 @@ Lisp_Object Vprefix_help_command;
 
 /* List of items that should move to the end of the menu bar.  */
 Lisp_Object Vmenu_bar_final_items;
+
+/* Expression to evaluate for the tool bar separator image.
+   This is used for build_desired_tool_bar_string only.  For GTK, we
+   use GTK tool bar seperators.  */
+
+Lisp_Object Vtool_bar_separator_image_expression;
 
 /* Non-nil means show the equivalent key-binding for
    any M-x command that has one.
@@ -431,8 +433,6 @@ FILE *dribble;
 /* Nonzero if input is available.  */
 int input_pending;
 
-extern char *pending_malloc_warning;
-
 /* Circular buffer for pre-read keyboard input.  */
 
 static struct input_event kbd_buffer[KBD_BUFFER_SIZE];
@@ -495,10 +495,10 @@ Lisp_Object Qconfig_changed_event;
 Lisp_Object Qevent_kind;
 Lisp_Object Qevent_symbol_elements;
 
-/* menu item parts */
+/* menu and tool bar item parts */
 Lisp_Object Qmenu_enable;
 Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCkeys, QCkey_sequence;
-Lisp_Object QCbutton, QCtoggle, QCradio, QClabel;
+Lisp_Object QCbutton, QCtoggle, QCradio, QClabel, QCvert_only;
 
 /* An event header symbol HEAD may have a property named
    Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
@@ -620,7 +620,7 @@ static Lisp_Object make_lispy_movement (struct frame *, Lisp_Object,
                                         unsigned long);
 #endif
 static Lisp_Object modify_event_symbol (EMACS_INT, unsigned, Lisp_Object,
-                                        Lisp_Object, const char **,
+                                        Lisp_Object, const char *const *,
                                         Lisp_Object *, unsigned);
 static Lisp_Object make_lispy_switch_frame (Lisp_Object);
 static void save_getcjmp (jmp_buf);
@@ -3601,6 +3601,7 @@ event_to_kboard (struct input_event *event)
     return FRAME_KBOARD (XFRAME (frame));
 }
 
+#ifdef subprocesses
 /* Return the number of slots occupied in kbd_buffer.  */
 
 static int
@@ -3613,6 +3614,7 @@ kbd_buffer_nr_stored (void)
        : ((kbd_buffer + KBD_BUFFER_SIZE) - kbd_fetch_ptr
           + (kbd_store_ptr - kbd_buffer)));
 }
+#endif	/* subprocesses */
 
 Lisp_Object Vthrow_on_input;
 
@@ -3734,6 +3736,7 @@ kbd_buffer_store_event_hold (register struct input_event *event,
     {
       *kbd_store_ptr = *event;
       ++kbd_store_ptr;
+#ifdef subprocesses
       if (kbd_buffer_nr_stored () > KBD_BUFFER_SIZE/2 && ! kbd_on_hold_p ())
         {
           /* Don't read keyboard input until we have processed kbd_buffer.
@@ -3745,6 +3748,7 @@ kbd_buffer_store_event_hold (register struct input_event *event,
 #endif
           stop_polling ();
         }
+#endif	/* subprocesses */
     }
 
   /* If we're inside while-no-input, and this event qualifies
@@ -3905,6 +3909,7 @@ kbd_buffer_get_event (KBOARD **kbp,
   register int c;
   Lisp_Object obj;
 
+#ifdef subprocesses
   if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE/4)
     {
       /* Start reading input again, we have processed enough so we can
@@ -3916,6 +3921,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif /* SIGIO */
       start_polling ();
     }
+#endif	/* subprocesses */
 
   if (noninteractive
       /* In case we are running as a daemon, only do this before
@@ -4102,7 +4108,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
       else if (event->kind == SAVE_SESSION_EVENT)
         {
-          obj = Fcons (Qsave_session, Qnil);
+          obj = Fcons (Qsave_session, Fcons (event->arg, Qnil));
 	  kbd_fetch_ptr = event + 1;
         }
       /* Just discard these, by returning nil.
@@ -4752,7 +4758,7 @@ static const int lispy_accent_codes[] =
 /* This is a list of Lisp names for special "accent" characters.
    It parallels lispy_accent_codes.  */
 
-static const char *lispy_accent_keys[] =
+static const char *const lispy_accent_keys[] =
 {
   "dead-circumflex",
   "dead-grave",
@@ -4779,7 +4785,7 @@ static const char *lispy_accent_keys[] =
 #ifdef HAVE_NTGUI
 #define FUNCTION_KEY_OFFSET 0x0
 
-char const *lispy_function_keys[] =
+const char *const lispy_function_keys[] =
   {
     0,                /* 0                      */
 
@@ -4973,7 +4979,7 @@ char const *lispy_function_keys[] =
 
 /* Some of these duplicate the "Media keys" on newer keyboards,
    but they are delivered to the application in a different way.  */
-static const char *lispy_multimedia_keys[] =
+static const char *const lispy_multimedia_keys[] =
   {
     0,
     "browser-back",
@@ -5037,7 +5043,7 @@ static const char *lispy_multimedia_keys[] =
    the XK_kana_A case below.  */
 #if 0
 #ifdef XK_kana_A
-static const char *lispy_kana_keys[] =
+static const char *const lispy_kana_keys[] =
   {
     /* X Keysym value */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x400 .. 0x40f */
@@ -5076,7 +5082,7 @@ static const char *lispy_kana_keys[] =
 
 /* You'll notice that this table is arranged to be conveniently
    indexed by X Windows keysym values.  */
-static const char *lispy_function_keys[] =
+static const char *const lispy_function_keys[] =
   {
     /* X Keysym value */
 
@@ -5162,7 +5168,7 @@ static const char *lispy_function_keys[] =
 /* ISO 9995 Function and Modifier Keys; the first byte is 0xFE.  */
 #define ISO_FUNCTION_KEY_OFFSET 0xfe00
 
-static const char *iso_lispy_function_keys[] =
+static const char *const iso_lispy_function_keys[] =
   {
     0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe00 */
     0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe08 */
@@ -5185,14 +5191,14 @@ static const char *iso_lispy_function_keys[] =
 
 Lisp_Object Vlispy_mouse_stem;
 
-static const char *lispy_wheel_names[] =
+static const char *const lispy_wheel_names[] =
 {
   "wheel-up", "wheel-down", "wheel-left", "wheel-right"
 };
 
 /* drag-n-drop events are generated when a set of selected files are
    dragged from another application and dropped onto an Emacs window.  */
-static const char *lispy_drag_n_drop_names[] =
+static const char *const lispy_drag_n_drop_names[] =
 {
   "drag-n-drop"
 };
@@ -5203,7 +5209,7 @@ Lisp_Object Qup, Qdown, Qbottom, Qend_scroll;
 Lisp_Object Qtop, Qratio;
 
 /* An array of scroll bar parts, indexed by an enum scroll_bar_part value.  */
-const Lisp_Object *scroll_bar_parts[] = {
+static Lisp_Object *const scroll_bar_parts[] = {
   &Qabove_handle, &Qhandle, &Qbelow_handle,
   &Qup, &Qdown, &Qtop, &Qbottom, &Qend_scroll, &Qratio
 };
@@ -5243,24 +5249,22 @@ EMACS_INT double_click_fuzz;
 
 int double_click_count;
 
-/* Return position of a mouse click or wheel event */
+/* X and Y are frame-relative coordinates for a click or wheel event.
+   Return a Lisp-style event list.  */
 
 static Lisp_Object
-make_lispy_position (struct frame *f, Lisp_Object *x, Lisp_Object *y,
+make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 		     unsigned long time)
 {
-  Lisp_Object window;
   enum window_part part;
   Lisp_Object posn = Qnil;
   Lisp_Object extra_info = Qnil;
-  int wx, wy;
-
-  /* Set `window' to the window under frame pixel coordinates (x,y)  */
-  if (f)
-    window = window_from_coordinates (f, XINT (*x), XINT (*y),
-				      &part, &wx, &wy, 0);
-  else
-    window = Qnil;
+  /* Coordinate pixel positions to return.  */
+  int xret = 0, yret = 0;
+  /* The window under frame pixel coordinates (x,y)  */
+  Lisp_Object window = f
+    ? window_from_coordinates (f, XINT (x), XINT (y), &part, 0)
+    : Qnil;
 
   if (WINDOWP (window))
     {
@@ -5268,102 +5272,114 @@ make_lispy_position (struct frame *f, Lisp_Object *x, Lisp_Object *y,
       struct window *w = XWINDOW (window);
       Lisp_Object string_info = Qnil;
       EMACS_INT textpos = -1;
-      int rx = -1, ry = -1;
-      int dx = -1, dy = -1;
+      int col = -1, row = -1;
+      int dx  = -1, dy  = -1;
       int width = -1, height = -1;
       Lisp_Object object = Qnil;
 
-      /* Set event coordinates to window-relative coordinates
-	 for constructing the Lisp event below.  */
-      XSETINT (*x, wx);
-      XSETINT (*y, wy);
+      /* Pixel coordinates relative to the window corner.  */
+      int wx = XINT (x) - WINDOW_LEFT_EDGE_X (w);
+      int wy = XINT (y) - WINDOW_TOP_EDGE_Y (w);
 
+      /* For text area clicks, return X, Y relative to the corner of
+	 this text area.  Note that dX, dY etc are set below, by
+	 buffer_posn_from_coords.  */
       if (part == ON_TEXT)
 	{
-	  wx += WINDOW_LEFT_MARGIN_WIDTH (w);
+	  xret = XINT (x) - window_box_left (w, TEXT_AREA);
+	  yret = wy - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
+      /* For mode line and header line clicks, return X, Y relative to
+	 the left window edge.  Use mode_line_string to look for a
+	 string on the click position.  */
       else if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
 	{
-	  /* Mode line or header line.  Look for a string under
-	     the mouse that may have a `local-map' property.  */
 	  Lisp_Object string;
 	  EMACS_INT charpos;
 
-	  posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
-	  rx = wx, ry = wy;
-	  string = mode_line_string (w, part, &rx, &ry, &charpos,
+	  posn = (part == ON_MODE_LINE) ? Qmode_line : Qheader_line;
+	  /* Note that mode_line_string takes COL, ROW as pixels and
+	     converts them to characters.  */
+	  col = wx;
+	  row = wy;
+	  string = mode_line_string (w, part, &col, &row, &charpos,
 				     &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
 	    string_info = Fcons (string, make_number (charpos));
-	  if (w == XWINDOW (selected_window)
-	      && current_buffer == XBUFFER (w->buffer))
-	    textpos = PT;
-	  else
-	    textpos = XMARKER (w->pointm)->charpos;
+	  textpos = (w == XWINDOW (selected_window)
+		     && current_buffer == XBUFFER (w->buffer))
+	    ? PT : XMARKER (w->pointm)->charpos;
+
+	  xret = wx;
+	  yret = wy;
 	}
-      else if (part == ON_VERTICAL_BORDER)
-	{
-	  posn = Qvertical_line;
-	  wx = -1;
-	  dx = 0;
-	  width = 1;
-	}
+      /* For fringes and margins, Y is relative to the area's (and the
+	 window's) top edge, while X is meaningless.  */
       else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
 	{
 	  Lisp_Object string;
 	  EMACS_INT charpos;
 
 	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
-	  rx = wx, ry = wy;
-	  string = marginal_area_string (w, part, &rx, &ry, &charpos,
+	  col = wx;
+	  row = wy;
+	  string = marginal_area_string (w, part, &col, &row, &charpos,
 					 &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
 	    string_info = Fcons (string, make_number (charpos));
-	  if (part == ON_LEFT_MARGIN)
-	    wx = 0;
-	  else
-	    wx = window_box_right_offset (w, TEXT_AREA) - 1;
+	  yret = wy - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
       else if (part == ON_LEFT_FRINGE)
 	{
 	  posn = Qleft_fringe;
-	  rx = 0;
-	  dx = wx;
-	  wx = (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
-		? 0
-		: window_box_width (w, LEFT_MARGIN_AREA));
-	  dx -= wx;
+	  col = 0;
+	  dx = wx
+	    - (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+	       ? 0 : window_box_width (w, LEFT_MARGIN_AREA));
+	  dy = yret = wy - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
       else if (part == ON_RIGHT_FRINGE)
 	{
 	  posn = Qright_fringe;
-	  rx = 0;
-	  dx = wx;
-	  wx = (window_box_width (w, LEFT_MARGIN_AREA)
-		+ window_box_width (w, TEXT_AREA)
-		+ (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
-		   ? window_box_width (w, RIGHT_MARGIN_AREA)
-		   : 0));
-	  dx -= wx;
+	  col = 0;
+	  dx = wx
+	    - window_box_width (w, LEFT_MARGIN_AREA)
+	    - window_box_width (w, TEXT_AREA)
+	    - (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+	       ? window_box_width (w, RIGHT_MARGIN_AREA)
+	       : 0);
+	  dy = yret = wy - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
-      else
+      else if (part == ON_VERTICAL_BORDER)
 	{
-	  /* Note: We have no special posn for part == ON_SCROLL_BAR.  */
-	  wx = max (WINDOW_LEFT_MARGIN_WIDTH (w), wx);
+	  posn = Qvertical_line;
+	  width = 1;
+	  dx = 0;
+	  dy = yret = wy;
 	}
+      /* Nothing special for part == ON_SCROLL_BAR.  */
 
+      /* For clicks in the text area, fringes, or margins, call
+	 buffer_posn_from_coords to extract TEXTPOS, the buffer
+	 position nearest to the click.  */
       if (textpos < 0)
 	{
 	  Lisp_Object string2, object2 = Qnil;
 	  struct display_pos p;
 	  int dx2, dy2;
 	  int width2, height2;
-	  string2 = buffer_posn_from_coords (w, &wx, &wy, &p,
+	  /* The pixel X coordinate passed to buffer_posn_from_coords
+	     is the X coordinate relative to the text area for
+	     text-area clicks, zero otherwise.  */
+	  int x2 = (part == ON_TEXT) ? xret : 0;
+	  int y2 = wy;
+
+	  string2 = buffer_posn_from_coords (w, &x2, &y2, &p,
 					     &object2, &dx2, &dy2,
 					     &width2, &height2);
 	  textpos = CHARPOS (p.pos);
-	  if (rx < 0) rx = wx;
-	  if (ry < 0) ry = wy;
+	  if (col < 0) col = x2;
+	  if (row < 0) row = y2;
 	  if (dx < 0) dx = dx2;
 	  if (dy < 0) dy = dy2;
 	  if (width < 0) width = width2;
@@ -5394,34 +5410,27 @@ make_lispy_position (struct frame *f, Lisp_Object *x, Lisp_Object *y,
 #endif
 
       /* Object info */
-      extra_info = Fcons (object,
-			  Fcons (Fcons (make_number (dx),
-					make_number (dy)),
-				 Fcons (Fcons (make_number (width),
-					       make_number (height)),
-					Qnil)));
+      extra_info
+	= list3 (object,
+		 Fcons (make_number (dx), make_number (dy)),
+		 Fcons (make_number (width), make_number (height)));
 
       /* String info */
       extra_info = Fcons (string_info,
 			  Fcons (make_number (textpos),
-				 Fcons (Fcons (make_number (rx),
-					       make_number (ry)),
+				 Fcons (Fcons (make_number (col),
+					       make_number (row)),
 					extra_info)));
     }
   else if (f != 0)
-    {
-      XSETFRAME (window, f);
-    }
+    XSETFRAME (window, f);
   else
-    {
-      window = Qnil;
-      XSETFASTINT (*x, 0);
-      XSETFASTINT (*y, 0);
-    }
+    window = Qnil;
 
   return Fcons (window,
 		Fcons (posn,
-		       Fcons (Fcons (*x, *y),
+		       Fcons (Fcons (make_number (xret),
+				     make_number (yret)),
 			      Fcons (make_number (time),
 				     extra_info))));
 }
@@ -5610,14 +5619,6 @@ make_lispy_event (struct input_event *event)
 		int hpos;
 		int i;
 
-#if 0
-		/* Activate the menu bar on the down event.  If the
-		   up event comes in before the menu code can deal with it,
-		   just ignore it.  */
-		if (! (event->modifiers & down_modifier))
-		  return Qnil;
-#endif
-
 		/* Find the menu bar item under `column'.  */
 		item = Qnil;
 		items = FRAME_MENU_BAR_ITEMS (f);
@@ -5649,7 +5650,7 @@ make_lispy_event (struct input_event *event)
 	      }
 #endif /* not USE_X_TOOLKIT && not USE_GTK && not HAVE_NS */
 
-	    position = make_lispy_position (f, &event->x, &event->y,
+	    position = make_lispy_position (f, event->x, event->y,
 					    event->timestamp);
 	  }
 #ifndef USE_TOOLKIT_SCROLL_BARS
@@ -5749,23 +5750,21 @@ make_lispy_event (struct input_event *event)
 	      return Qnil;
 
 	    event->modifiers &= ~up_modifier;
-#if 0 /* Formerly we treated an up with no down as a click event.  */
-	    if (!CONSP (start_pos))
-	      event->modifiers |= click_modifier;
-	    else
-#endif
+
 	      {
-		Lisp_Object down;
+		Lisp_Object new_down, down;
 		EMACS_INT xdiff = double_click_fuzz, ydiff = double_click_fuzz;
 
 		/* The third element of every position
 		   should be the (x,y) pair.  */
 		down = Fcar (Fcdr (Fcdr (start_pos)));
+		new_down = Fcar (Fcdr (Fcdr (position)));
+
 		if (CONSP (down)
 		    && INTEGERP (XCAR (down)) && INTEGERP (XCDR (down)))
 		  {
-		    xdiff = XINT (event->x) - XINT (XCAR (down));
-		    ydiff = XINT (event->y) - XINT (XCDR (down));
+		    xdiff = XINT (XCAR (new_down)) - XINT (XCAR (down));
+		    ydiff = XINT (XCDR (new_down)) - XINT (XCDR (down));
 		  }
 
 		if (ignore_mouse_drag_p)
@@ -5848,7 +5847,7 @@ make_lispy_event (struct input_event *event)
 	if (! FRAME_LIVE_P (f))
 	  return Qnil;
 
-	position = make_lispy_position (f, &event->x, &event->y,
+	position = make_lispy_position (f, event->x, event->y,
 					event->timestamp);
 
 	/* Set double or triple modifiers to indicate the wheel speed.  */
@@ -5868,10 +5867,8 @@ make_lispy_event (struct input_event *event)
 	  else
 	    abort ();
 
-	  if (FRAME_WINDOW_P (f))
-	    fuzz = double_click_fuzz;
-	  else
-	    fuzz = double_click_fuzz / 8;
+	  fuzz = FRAME_WINDOW_P (f)
+	    ? double_click_fuzz : double_click_fuzz / 8;
 
 	  if (event->modifiers & up_modifier)
 	    {
@@ -6009,7 +6006,7 @@ make_lispy_event (struct input_event *event)
 	if (! FRAME_LIVE_P (f))
 	  return Qnil;
 
-	position = make_lispy_position (f, &event->x, &event->y,
+	position = make_lispy_position (f, event->x, event->y,
 					event->timestamp);
 
 	head = modify_event_symbol (0, event->modifiers,
@@ -6092,8 +6089,8 @@ make_lispy_event (struct input_event *event)
 	start_pos_ptr = &AREF (button_down_location, button);
 	start_pos = *start_pos_ptr;
 
-	position = make_lispy_position (f, &event->x, &event->y,
-					    event->timestamp);
+	position = make_lispy_position (f, event->x, event->y,
+					event->timestamp);
 
  	if (event->modifiers & down_modifier)
 	  *start_pos_ptr = Fcopy_alist (position);
@@ -6152,25 +6149,19 @@ make_lispy_movement (FRAME_PTR frame, Lisp_Object bar_window, enum scroll_bar_pa
 
       part_sym = *scroll_bar_parts[(int) part];
       return Fcons (Qscroll_bar_movement,
-		    (Fcons (Fcons (bar_window,
-				   Fcons (Qvertical_scroll_bar,
-					  Fcons (Fcons (x, y),
-						 Fcons (make_number (time),
-							Fcons (part_sym,
-							       Qnil))))),
-			    Qnil)));
+		    Fcons (list5 (bar_window,
+				  Qvertical_scroll_bar,
+				  Fcons (x, y),
+				  make_number (time),
+				  part_sym),
+			   Qnil));
     }
-
   /* Or is it an ordinary mouse movement?  */
   else
     {
       Lisp_Object position;
-
-      position = make_lispy_position (frame, &x, &y, time);
-
-      return Fcons (Qmouse_movement,
-		    Fcons (position,
-			   Qnil));
+      position = make_lispy_position (frame, x, y, time);
+      return list2 (Qmouse_movement, position);
     }
 }
 
@@ -6351,7 +6342,7 @@ apply_modifiers_uncached (int modifiers, char *base, int base_len, int base_len_
 }
 
 
-static const char *modifier_names[] =
+static const char *const modifier_names[] =
 {
   "up", "down", "drag", "click", "double", "triple", 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -6571,7 +6562,7 @@ reorder_modifiers (Lisp_Object symbol)
 
 static Lisp_Object
 modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object symbol_kind,
-		     Lisp_Object name_alist_or_stem, const char **name_table,
+		     Lisp_Object name_alist_or_stem, const char *const *name_table,
 		     Lisp_Object *symbol_table, unsigned int table_size)
 {
   Lisp_Object value;
@@ -7074,10 +7065,12 @@ tty_read_avail_input (struct terminal *terminal,
   int n_to_read, i;
   struct tty_display_info *tty = terminal->display_info.tty;
   int nread = 0;
+#ifdef subprocesses
   int buffer_free = KBD_BUFFER_SIZE - kbd_buffer_nr_stored () - 1;
 
   if (kbd_on_hold_p () || buffer_free <= 0)
     return 0;
+#endif	/* subprocesses */
 
   if (!terminal->name)		/* Don't read from a dead terminal. */
     return 0;
@@ -7159,9 +7152,11 @@ tty_read_avail_input (struct terminal *terminal,
 #endif
 #endif
 
+#ifdef subprocesses
   /* Don't read more than we can store.  */
   if (n_to_read > buffer_free)
     n_to_read = buffer_free;
+#endif	/* subprocesses */
 
   /* Now read; for one reason or another, this will not block.
      NREAD is set to the number of chars read.  */
@@ -7474,6 +7469,54 @@ static Lisp_Object menu_bar_one_keymap_changed_items;
    for storing into that vector.  */
 static Lisp_Object menu_bar_items_vector;
 static int menu_bar_items_index;
+
+
+static const char* separator_names[] = {
+  "space",
+  "no-line",
+  "single-line",
+  "double-line",
+  "single-dashed-line",
+  "double-dashed-line",
+  "shadow-etched-in",
+  "shadow-etched-out",
+  "shadow-etched-in-dash",
+  "shadow-etched-out-dash",
+  "shadow-double-etched-in",
+  "shadow-double-etched-out",
+  "shadow-double-etched-in-dash",
+  "shadow-double-etched-out-dash",
+  0,
+};
+
+/* Return non-zero if LABEL specifies a separator.  */
+
+int
+menu_separator_name_p (const char *label)
+{
+  if (!label)
+    return 0;
+  else if (strlen (label) > 3
+	   && strncmp (label, "--", 2) == 0
+	   && label[2] != '-')
+    {
+      int i;
+      label += 2;
+      for (i = 0; separator_names[i]; ++i)
+	if (strcmp (label, separator_names[i]) == 0)
+          return 1;
+    }
+  else
+    {
+      /* It's a separator if it contains only dashes.  */
+      while (*label == '-')
+	++label;
+      return (*label == 0);
+    }
+
+  return 0;
+}
+
 
 /* Return a vector of menu items for a menu bar, appropriate
    to the current buffer.  Each item has three elements in the vector:
@@ -8212,10 +8255,14 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
      Rule out items that aren't lists, don't start with
      `menu-item' or whose rest following `tool-bar-item' is not a
      list.  */
-  if (!CONSP (item)
-      || !EQ (XCAR (item), Qmenu_item)
-      || (item = XCDR (item),
-	  !CONSP (item)))
+  if (!CONSP (item))
+    return 0;
+
+  /* As an exception, allow old-style menu separators.  */
+  if (STRINGP (XCAR (item)))
+    item = Fcons (XCAR (item), Qnil);
+  else if (!EQ (XCAR (item), Qmenu_item)
+	   || (item = XCDR (item), !CONSP (item)))
     return 0;
 
   /* Create tool_bar_item_properties vector if necessary.  Reset it to
@@ -8245,10 +8292,27 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
     }
   PROP (TOOL_BAR_ITEM_CAPTION) = caption;
 
-  /* Give up if rest following the caption is not a list.  */
+  /* If the rest following the caption is not a list, the menu item is
+     either a separator, or invalid.  */
   item = XCDR (item);
   if (!CONSP (item))
-    return 0;
+    {
+      if (menu_separator_name_p (SDATA (caption)))
+	{
+	  PROP (TOOL_BAR_ITEM_TYPE) = Qt;
+#if !defined (USE_GTK) && !defined (HAVE_NS)
+	  /* If we use build_desired_tool_bar_string to render the
+	     tool bar, the separator is rendered as an image.  */
+	  PROP (TOOL_BAR_ITEM_IMAGES)
+	    = menu_item_eval_property (Vtool_bar_separator_image_expression);
+	  PROP (TOOL_BAR_ITEM_ENABLED_P) = Qnil;
+	  PROP (TOOL_BAR_ITEM_SELECTED_P) = Qnil;
+	  PROP (TOOL_BAR_ITEM_CAPTION) = Qnil;
+#endif
+	  return 1;
+	}
+      return 0;
+    }
 
   /* Store the binding.  */
   PROP (TOOL_BAR_ITEM_BINDING) = XCAR (item);
@@ -8284,6 +8348,9 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       else if (EQ (key, QChelp))
         /* `:help HELP-STRING'.  */
         PROP (TOOL_BAR_ITEM_HELP) = value;
+      else if (EQ (key, QCvert_only))
+        /* `:vert-only t/nil'.  */
+        PROP (TOOL_BAR_ITEM_VERT_ONLY) = value;
       else if (EQ (key, QClabel))
         {
           const char *bad_label = "!!?GARBLED ITEM?!!";
@@ -11100,10 +11167,10 @@ See also `current-input-mode'.  */)
 #ifndef DOS_NT
       /* this causes startup screen to be restored and messes with the mouse */
       reset_all_sys_modes ();
-#endif
       interrupt_input = new_interrupt_input;
-#ifndef DOS_NT
       init_all_sys_modes ();
+#else
+      interrupt_input = new_interrupt_input;
 #endif
 
 #ifdef POLL_FOR_INPUT
@@ -11327,7 +11394,7 @@ The `posn-' functions access elements of such lists.  */)
 
   CHECK_LIVE_FRAME (frame_or_window);
 
-  return make_lispy_position (XFRAME (frame_or_window), &x, &y, 0);
+  return make_lispy_position (XFRAME (frame_or_window), x, y, 0);
 }
 
 DEFUN ("posn-at-point", Fposn_at_point, Sposn_at_point, 0, 2, 0,
@@ -11641,6 +11708,8 @@ syms_of_keyboard (void)
   staticpro (&QCradio);
   QClabel = intern_c_string (":label");
   staticpro (&QClabel);
+  QCvert_only = intern_c_string (":vert-only");
+  staticpro (&QCvert_only);
 
   Qmode_line = intern_c_string ("mode-line");
   staticpro (&Qmode_line);
@@ -12097,6 +12166,12 @@ might happen repeatedly and make Emacs nonfunctional.  */);
 The elements of the list are event types that may have menu bar bindings.  */);
   Vmenu_bar_final_items = Qnil;
 
+  DEFVAR_LISP ("tool-bar-separator-image-expression", &Vtool_bar_separator_image_expression,
+    doc: /* Expression evaluating to the image spec for a tool-bar separator.
+This is used internally by graphical displays that do not render
+tool-bar separators natively.  Otherwise it is unused (e.g. on GTK).  */);
+  Vtool_bar_separator_image_expression = Qnil;
+
   DEFVAR_KBOARD ("overriding-terminal-local-map",
 		 Voverriding_terminal_local_map,
 		 doc: /* Per-terminal keymap that overrides all other local keymaps.
@@ -12440,5 +12515,3 @@ mark_kboards (void)
   }
 }
 
-/* arch-tag: 774e34d7-6d31-42f3-8397-e079a4e4c9ca
-   (do not change this comment) */

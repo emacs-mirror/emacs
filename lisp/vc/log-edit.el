@@ -350,17 +350,16 @@ automatically."
 (defvar log-edit-font-lock-keywords
   ;; Copied/inspired by message-font-lock-keywords.
   `((log-edit-match-to-eoh
-     (,(concat "^\\(\\([a-z]+\\):\\)" log-edit-header-contents-regexp
-               "\\|\\(.*\\)")
+     (,(concat "^\\(\\([a-z]+\\):\\)" log-edit-header-contents-regexp)
       (progn (goto-char (match-beginning 0)) (match-end 0)) nil
       (1 (if (assoc (match-string 2) log-edit-headers-alist)
              'log-edit-header
            'log-edit-unknown-header)
          nil lax)
+      ;; From `log-edit-header-contents-regexp':
       (3 (or (cdr (assoc (match-string 2) log-edit-headers-alist))
              'log-edit-header)
-         nil lax)
-      (4 font-lock-warning-face)))))
+         nil lax)))))
 
 ;;;###autoload
 (defun log-edit (callback &optional setup params buffer mode &rest ignore)
@@ -775,7 +774,7 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
 		(setq pattern (file-name-nondirectory file)))
 
             (setq pattern (concat "\\(^\\|[^[:alnum:]]\\)"
-                                  pattern
+                                  (regexp-quote pattern)
                                   "\\($\\|[^[:alnum:]]\\)"))
 
 	    (let (texts

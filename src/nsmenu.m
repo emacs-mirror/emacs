@@ -23,7 +23,7 @@ Carbon version by Yamamoto Mitsuharu. */
 
 /* This should be the first include, as it may set up #defines affecting
    interpretation of even the system includes. */
-#include "config.h"
+#include <config.h>
 #include <setjmp.h>
 
 #include "lisp.h"
@@ -507,21 +507,6 @@ set_frame_menubar (struct frame *f, int first_time, int deep_p)
 }
 
 
-/* Utility (from macmenu.c): is this item a separator? */
-static int
-name_is_separator ( const char *name)
-{
-  const char *start = name;
-
-  /* Check if name string consists of only dashes ('-').  */
-  while (*name == '-') name++;
-  /* Separators can also be of the form "--:TripleSuperMegaEtched"
-     or "--deep-shadow".  We don't implement them yet, se we just treat
-     them like normal separators.  */
-  return (*name == '\0' || start + 2 == name);
-}
-
-
 /* ==========================================================================
 
     Menu: class implementation
@@ -624,7 +609,7 @@ name_is_separator ( const char *name)
   NSMenuItem *item;
   widget_value *wv = (widget_value *)wvptr;
 
-  if (name_is_separator (wv->name))
+  if (menu_separator_name_p (wv->name))
     {
       item = [NSMenuItem separatorItem];
       [self addItem: item];
@@ -1049,10 +1034,15 @@ update_frame_tool_bar (FRAME_PTR f)
         {
           idx = -1;
         }
+      helpObj = TOOLPROP (TOOL_BAR_ITEM_HELP);
+      if (NILP (helpObj))
+        helpObj = TOOLPROP (TOOL_BAR_ITEM_CAPTION);
+      helpText = NILP (helpObj) ? "" : (char *)SDATA (helpObj);
+
       /* Ignore invalid image specifications.  */
       if (!valid_image_p (image))
         {
-          NSLog (@"Invalid image for toolbar item");
+          /* Don't log anything, GNUS makes invalid images all the time.  */
           continue;
         }
 
@@ -1065,11 +1055,6 @@ update_frame_tool_bar (FRAME_PTR f)
           NSLog (@"Could not prepare toolbar image for display.");
           continue;
         }
-
-      helpObj = TOOLPROP (TOOL_BAR_ITEM_HELP);
-      if (NILP (helpObj))
-        helpObj = TOOLPROP (TOOL_BAR_ITEM_CAPTION);
-      helpText = NILP (helpObj) ? "" : (char *)SDATA (helpObj);
 
       [toolbar addDisplayItemWithImage: img->pixmap idx: i helpText: helpText
                                enabled: enabled_p];

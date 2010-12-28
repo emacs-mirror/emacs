@@ -55,7 +55,7 @@ method to use when posting."
 		 (sexp :tag "Methods" ,gnus-select-method)))
 
 (defcustom gnus-outgoing-message-group nil
-  "*All outgoing messages will be put in this group.
+  "All outgoing messages will be put in this group.
 If you want to store all your outgoing mail and articles in the group
 \"nnml:archive\", you set this variable to that value.  This variable
 can also be a list of group names.
@@ -69,6 +69,8 @@ of names)."
 		 (function)
 		 (string :tag "Group")
 		 (repeat :tag "List of groups" (string :tag "Group"))))
+
+(make-obsolete-variable 'gnus-outgoing-message-group 'gnus-message-archive-group "24.1")
 
 (defcustom gnus-mailing-list-groups nil
   "*If non-nil a regexp matching groups that are really mailing lists.
@@ -397,7 +399,6 @@ Thank you for your help in stamping out bugs.
 	   (message-mode-hook (copy-sequence message-mode-hook)))
        (setq mml-buffer-list nil)
        (add-hook 'message-header-setup-hook 'gnus-inews-insert-gcc)
-       (add-hook 'message-header-setup-hook 'gnus-inews-insert-archive-gcc)
        ;; message-newsreader and message-mailer were formerly set in
        ;; gnus-inews-add-send-actions, but this is too late when
        ;; message-generate-headers-first is used. --ansel
@@ -826,7 +827,6 @@ header line with the old Message-ID."
 	       (gnus-summary-mark-as-read ,article gnus-canceled-mark)))))
        message-send-actions)
       ;; Add Gcc header.
-      (gnus-inews-insert-archive-gcc)
       (gnus-inews-insert-gcc))))
 
 
@@ -1294,7 +1294,6 @@ composing a new message."
 	(goto-char (point-max))
 	(insert mail-header-separator)
 	;; Add Gcc header.
-	(gnus-inews-insert-archive-gcc)
 	(gnus-inews-insert-gcc)
 	(goto-char (point-min))
 	(when (re-search-forward "^To:\\|^Newsgroups:" nil 'move)
@@ -1306,24 +1305,6 @@ composing a new message."
 See `gnus-summary-mail-forward' for ARG."
   (interactive "P")
   (gnus-summary-mail-forward arg t))
-
-(defvar gnus-nastygram-message
-  "The following article was inappropriately posted to %s.\n\n"
-  "Format string to insert in nastygrams.
-The current group name will be inserted at \"%s\".")
-
-(defun gnus-summary-mail-nastygram (n)
-  "Send a nastygram to the author of the current article."
-  (interactive "P")
-  (when (or gnus-expert-user
-	    (gnus-y-or-n-p
-	     "Really send a nastygram to the author of the current article? "))
-    (let ((group gnus-newsgroup-name))
-      (gnus-summary-reply-with-original n)
-      (set-buffer gnus-message-buffer)
-      (message-goto-body)
-      (insert (format gnus-nastygram-message group))
-      (message-send-and-exit))))
 
 (defun gnus-summary-mail-crosspost-complaint (n)
   "Send a complaint about crossposting to the current article(s)."
@@ -1580,7 +1561,6 @@ this is a reply."
     (gnus-setup-message 'compose-bounce
       (message-bounce)
       ;; Add Gcc header.
-      (gnus-inews-insert-archive-gcc)
       (gnus-inews-insert-gcc)
       ;; If there are references, we fetch the article we answered to.
       (when parent
@@ -1694,44 +1674,13 @@ this is a reply."
 		(gnus-group-mark-article-read group (cdr group-art)))
 	      (kill-buffer (current-buffer)))))))))
 
-(defun gnus-inews-insert-gcc ()
-  "Insert Gcc headers based on `gnus-outgoing-message-group'."
-  (save-excursion
-    (save-restriction
-      (message-narrow-to-headers)
-      (let* ((group gnus-outgoing-message-group)
-	     (gcc (cond
-		   ((functionp group)
-		    (funcall group))
-		   ((or (stringp group) (listp group))
-		    group))))
-	(when gcc
-	  (insert "Gcc: "
-		  (if (stringp gcc)
-		      (if (string-match " " gcc)
-			  (concat "\"" gcc "\"")
-			gcc)
-		    (mapconcat (lambda (group)
-				 (if (string-match " " group)
-				     (concat "\"" group "\"")
-				   group))
-			       gcc " "))
-		  "\n"))))))
-
-(defun gnus-inews-insert-archive-gcc (&optional group)
+(defun gnus-inews-insert-gcc (&optional group)
   "Insert the Gcc to say where the article is to be archived."
-  (setq group (cond (group
-		     (gnus-group-decoded-name group))
-		    (gnus-newsgroup-name
-		     (gnus-group-decoded-name gnus-newsgroup-name))
-		    (t
-		     "")))
-  (let* ((var gnus-message-archive-group)
+  (let* ((group (or group gnus-newsgroup-name))
+         (group (when group (gnus-group-decoded-name group)))
+         (var (or gnus-outgoing-message-group gnus-message-archive-group))
 	 (gcc-self-val
-	  (and gnus-newsgroup-name
-	       (not (equal gnus-newsgroup-name ""))
-	       (gnus-group-find-parameter
-		gnus-newsgroup-name 'gcc-self)))
+	  (and group (gnus-group-find-parameter group 'gcc-self)))
 	 result
 	 (groups
 	  (cond

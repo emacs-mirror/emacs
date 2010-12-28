@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -57,9 +57,9 @@
   "Replace newline character with ellipses.
 If STRING ends in a newline character, then remove the newline
 character and replace it with ellipses."
-  (if (and (stringp string) (string-match "[\n\r]" string))
-      (concat (substring string 0 (match-beginning 0)) "...")
-    string))
+  (if (and (stringp string) (string-match "[\n\r]\\(.\\)?" string))
+      (concat (substring string 0 (match-beginning 0))
+	      (if (match-string 1 string) "...")) string))
 
 (defmacro sbe (source-block &rest variables)
   "Return the results of calling SOURCE-BLOCK with VARIABLES.
@@ -79,13 +79,24 @@ references to source-code blocks, to force interpretation of a
 cell's value as a string, prefix the identifier with two \"$\"s
 rather than a single \"$\" (i.e. \"$$2\" instead of \"$2\" in the
 example above."
-  (let ((variables (mapcar
-                    (lambda (var)
-                      (if (and (= 3 (length var)) (eq (nth 1 var) '$))
-                          (list (car var) (format "\"%s\"" (last var)))
-                        var))
-                    variables)))
-    (unless (stringp source-block) (setq source-block (symbol-name source-block)))
+  (let* (quote
+	 (variables
+	  (mapcar
+	   (lambda (var)
+	     ;; ensure that all cells prefixed with $'s are strings
+	     (cons (car var)
+		   (delq nil (mapcar
+			      (lambda (el)
+				(if (eq '$ el)
+				    (setq quote t)
+				  (prog1 (if quote
+					     (format "\"%s\"" el)
+					   (org-babel-clean-text-properties el))
+				    (setq quote nil))))
+			      (cdr var)))))
+	   variables)))
+    (unless (stringp source-block)
+      (setq source-block (symbol-name source-block)))
     (org-babel-table-truncate-at-newline ;; org-table cells can't be multi-line
      (if (and source-block (> (length source-block) 0))
          (let ((params
@@ -93,13 +104,18 @@ example above."
                         (concat ":var results="
                                 ,source-block
                                 "("
-                                (mapconcat (lambda (var-spec)
-                                             (format "%S=%s" (nth 0 var-spec) (nth 1 var-spec)))
-                                           ',variables ", ")
+                                (mapconcat
+				 (lambda (var-spec)
+				   (if (> (length (cdr var-spec)) 1)
+				       (format "%S='%S"
+					       (car var-spec)
+					       (mapcar #'read (cdr var-spec)))
+				     (format "%S=%s"
+					     (car var-spec) (cadr var-spec))))
+				 ',variables ", ")
                                 ")")))))
            (org-babel-execute-src-block
-            nil (list "emacs-lisp" "results"
-                      (org-babel-merge-params '((:results . "silent")) params))))
+            nil (list "emacs-lisp" "results" params) '((:results . "silent"))))
        ""))))
 
 (provide 'ob-table)

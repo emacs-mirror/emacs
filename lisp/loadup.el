@@ -292,46 +292,16 @@
       (error nil)))
 (message "Finding pointers to doc strings...done")
 
-;;;Note: You can cause additional libraries to be preloaded
-;;;by writing a site-init.el that loads them.
-;;;See also "site-load" above.
+;; Note: You can cause additional libraries to be preloaded
+;; by writing a site-init.el that loads them.
+;; See also "site-load" above.
 (load "site-init" t)
 (setq current-load-list nil)
 
-;; Write the value of load-history into fns-VERSION.el,
-;; then clear out load-history.
-;; (if (or (equal (nth 3 command-line-args) "dump")
-;; 	(equal (nth 4 command-line-args) "dump"))
-;;     (let ((buffer-undo-list t))
-;;       (princ "(setq load-history\n" (current-buffer))
-;;       (princ "      (nconc load-history\n" (current-buffer))
-;;       (princ "             '(" (current-buffer))
-;;       (let ((tem load-history))
-;; 	(while tem
-;; 	  (prin1 (car tem) (current-buffer))
-;; 	  (terpri (current-buffer))
-;; 	  (if (cdr tem)
-;; 	      (princ "               " (current-buffer)))
-;; 	  (setq tem (cdr tem))))
-;;       (princ ")))\n" (current-buffer))
-;;       (write-region (point-min) (point-max)
-;; 		    (expand-file-name
-;; 		     (cond
-;; 		      ((eq system-type 'ms-dos)
-;; 		       "../lib-src/fns.el")
-;; 		      ((eq system-type 'windows-nt)
-;; 		       (format "../../../lib-src/fns-%s.el" emacs-version))
-;; 		      (t
-;; 		       (format "../lib-src/fns-%s.el" emacs-version)))
-;; 		     invocation-directory))
-;;       (erase-buffer)
-;;       (setq load-history nil))
-;;   (setq symbol-file-load-history-loaded t))
-;; We don't use this fns-*.el file.  Instead we keep the data in PURE space.
+;; We keep the load-history data in PURE space.
 ;; Make sure that the spine of the list is not in pure space because it can
 ;; be destructively mutated in lread.c:build_load_history.
 (setq load-history (mapcar 'purecopy load-history))
-(setq symbol-file-load-history-loaded t)
 
 (set-buffer-modified-p nil)
 
@@ -372,7 +342,7 @@
       (dump-emacs "emacs" "temacs")
       (message "%d pure bytes used" pure-bytes-used)
       ;; Recompute NAME now, so that it isn't set when we dump.
-      (if (not (or (memq system-type '(ms-dos windows-nt cygwin))
+      (if (not (or (memq system-type '(ms-dos windows-nt))
                    ;; Don't bother adding another name if we're just
                    ;; building bootstrap-emacs.
                    (equal (nth 3 command-line-args) "bootstrap")

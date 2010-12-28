@@ -629,7 +629,7 @@ read the tracker's online documentation to see the various features
 you can use.
 
 All mail sent to the @samp{bug-gnu-emacs} mailing list is also
-gatewayed to the @samp{bug.gnu.emacs} newsgroup.  The reverse is also
+gatewayed to the @samp{gnu.emacs.bug} newsgroup.  The reverse is also
 true, but we ask you not to post bug reports via the newsgroup.  It
 can make it much harder to contact you if we need to ask for more
 information, and it does not integrate well with the bug tracker.
@@ -1127,6 +1127,3 @@ Emacs distribution.
 @lowersections
 @end ifnottex
 
-@ignore
-   arch-tag: c9cba76d-b2cb-4e0c-ae3f-19d5ef35817c
-@end ignore

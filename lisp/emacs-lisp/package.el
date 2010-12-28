@@ -753,6 +753,7 @@ Will throw an error if the archive version is too new."
 (defun package-read-all-archive-contents ()
   "Re-read `archive-contents', if it exists.
 If successful, set `package-archive-contents'."
+  (setq package-archive-contents nil)
   (dolist (archive package-archives)
     (package-read-archive-contents (car archive))))
 

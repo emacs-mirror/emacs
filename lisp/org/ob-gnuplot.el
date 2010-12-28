@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -68,11 +68,11 @@ code."
       (car pair) ;; variable name
       (if (listp (cdr pair)) ;; variable value
           (org-babel-gnuplot-table-to-data
-           (cdr pair) (make-temp-file "org-babel-gnuplot") params)
+           (cdr pair) (org-babel-temp-file "gnuplot-") params)
         (cdr pair))))
-   (org-babel-ref-variables params)))
+   (mapcar #'cdr (org-babel-get-header params :var))))
 
-(defun org-babel-expand-body:gnuplot (body params &optional processed-params)
+(defun org-babel-expand-body:gnuplot (body params)
   "Expand BODY according to PARAMS, return the expanded body."
   (save-window-excursion
     (let* ((vars (org-babel-gnuplot-process-vars params))
@@ -118,9 +118,9 @@ code."
         ;; insert variables into code body: this should happen last
         ;; placing the variables at the *top* of the code in case their
         ;; values are used later
-        (add-to-body (mapconcat
-                      (lambda (pair) (format "%s = \"%s\"" (car pair) (cdr pair)))
-                      vars "\n"))
+        (add-to-body (mapconcat #'identity
+				(org-babel-variable-assignments:gnuplot params)
+				"\n"))
         ;; replace any variable names preceded by '$' with the actual
         ;; value of the variable
         (mapc (lambda (pair)
@@ -141,12 +141,15 @@ This function is called by `org-babel-execute-src-block'."
     (save-window-excursion
       ;; evaluate the code body with gnuplot
       (if (string= session "none")
-          (let ((script-file (make-temp-file "org-babel-gnuplot-script")))
+          (let ((script-file (org-babel-temp-file "gnuplot-script-")))
             (with-temp-file script-file
               (insert (concat body "\n")))
             (message "gnuplot \"%s\"" script-file)
             (setq output
-                  (shell-command-to-string (format "gnuplot \"%s\"" script-file)))
+                  (shell-command-to-string
+		   (format
+		    "gnuplot \"%s\""
+		    (org-babel-process-file-name script-file))))
             (message output))
         (with-temp-buffer
           (insert (concat body "\n"))
@@ -159,10 +162,7 @@ This function is called by `org-babel-execute-src-block'."
 (defun org-babel-prep-session:gnuplot (session params)
   "Prepare SESSION according to the header arguments in PARAMS."
   (let* ((session (org-babel-gnuplot-initiate-session session))
-         (vars (org-babel-ref-variables params))
-         (var-lines (mapcar
-                     (lambda (pair) (format "%s = \"%s\"" (car pair) (cdr pair)))
-                     vars)))
+         (var-lines (org-babel-variable-assignments:gnuplot params)))
     (message "%S" session)
     (org-babel-comint-in-buffer session
       (mapc (lambda (var-line)
@@ -179,6 +179,12 @@ This function is called by `org-babel-execute-src-block'."
         (goto-char (process-mark (get-buffer-process (current-buffer))))
         (insert (org-babel-chomp body)))
       buffer)))
+
+(defun org-babel-variable-assignments:gnuplot (params)
+  "Return list of gnuplot statements assigning the block's variables"
+  (mapcar
+   (lambda (pair) (format "%s = \"%s\"" (car pair) (cdr pair)))
+   (org-babel-gnuplot-process-vars params)))
 
 (defvar gnuplot-buffer)
 (defun org-babel-gnuplot-initiate-session (&optional session params)

@@ -424,12 +424,6 @@ install-arch-dep: mkdir
 	-chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL)
 	rm -f $(DESTDIR)${bindir}/$(EMACS)
 	-ln $(DESTDIR)${bindir}/$(EMACSFULL) $(DESTDIR)${bindir}/$(EMACS)
-	-unset CDPATH; \
-	for f in `cd lib-src && echo fns-*.el`; do \
-	  if test -r lib-src/$$f ; then \
-	    ${INSTALL_DATA} lib-src/$$f $(DESTDIR)${archlibdir}/$$f; \
-	  else true; fi ; \
-	done
 	if test "${ns_appresdir}" != ""; then \
 	  ( cd ${ns_appresdir} ; \
 	    if test -d share/emacs ; then dir=share/emacs/*/*; $(MV_DIRS); fi;\
@@ -682,9 +676,6 @@ uninstall:
 	    esac ;					\
 	  fi ;						\
 	done
-	if [ -d $(DESTDIR)${archlibdir} ]; then \
-	  (cd $(DESTDIR)${archlibdir} && rm -f fns-*) \
-	fi
 	-rm -rf $(DESTDIR)${libexecdir}/emacs/${version}
 	(cd $(DESTDIR)${infodir} && \
 	  for elt in $(INFO_FILES); do \

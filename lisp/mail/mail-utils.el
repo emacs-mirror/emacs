@@ -28,10 +28,6 @@
 
 ;;; Code:
 
-;;; We require lisp-mode to make sure that lisp-mode-syntax-table has
-;;; been initialized.
-(require 'lisp-mode)
-
 ;;;###autoload
 (defcustom mail-use-rfc822 nil
   "If non-nil, use a full, hairy RFC822 parser on mail addresses.

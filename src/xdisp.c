@@ -971,7 +971,7 @@ Lisp_Object Vglyphless_char_display;
 Lisp_Object Qglyphless_char_display;
 
 /* Method symbols for Vglyphless_char_display.  */
-static Lisp_Object Qhexa_code, Qempty_box, Qthin_space, Qzero_width;
+static Lisp_Object Qhex_code, Qempty_box, Qthin_space, Qzero_width;
 
 /* Default pixel width of `thin-space' display method.  */
 #define THIN_SPACE_WIDTH 1
@@ -1544,11 +1544,10 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 }
 
 
-/* Return the next character from STR which is MAXLEN bytes long.
-   Return in *LEN the length of the character.  This is like
-   STRING_CHAR_AND_LENGTH but never returns an invalid character.  If
-   we find one, we return a `?', but with the length of the invalid
-   character.  */
+/* Return the next character from STR.  Return in *LEN the length of
+   the character.  This is like STRING_CHAR_AND_LENGTH but never
+   returns an invalid character.  If we find one, we return a `?', but
+   with the length of the invalid character.  */
 
 static INLINE int
 string_char_and_length (const unsigned char *str, int *len)
@@ -1577,15 +1576,13 @@ string_pos_nchars_ahead (struct text_pos pos, Lisp_Object string, EMACS_INT ncha
 
   if (STRING_MULTIBYTE (string))
     {
-      EMACS_INT rest = SBYTES (string) - BYTEPOS (pos);
       const unsigned char *p = SDATA (string) + BYTEPOS (pos);
       int len;
 
       while (nchars--)
 	{
 	  string_char_and_length (p, &len);
-	  p += len, rest -= len;
-	  xassert (rest >= 0);
+	  p += len;
 	  CHARPOS (pos) += 1;
 	  BYTEPOS (pos) += len;
 	}
@@ -1625,15 +1622,13 @@ c_string_pos (EMACS_INT charpos, const unsigned char *s, int multibyte_p)
 
   if (multibyte_p)
     {
-      EMACS_INT rest = strlen (s);
       int len;
 
       SET_TEXT_POS (pos, 0, 0);
       while (charpos--)
 	{
 	  string_char_and_length (s, &len);
-	  s += len, rest -= len;
-	  xassert (rest >= 0);
+	  s += len;
 	  CHARPOS (pos) += 1;
 	  BYTEPOS (pos) += len;
 	}
@@ -2218,7 +2213,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
      frame pixel coordinates X/Y on frame F.  */
 
   if (!f->glyphs_initialized_p
-      || (window = window_from_coordinates (f, gx, gy, &part, &x, &y, 0),
+      || (window = window_from_coordinates (f, gx, gy, &part, 0),
 	  NILP (window)))
     {
       width = FRAME_SMALLEST_CHAR_WIDTH (f);
@@ -2229,6 +2224,9 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
   w = XWINDOW (window);
   width = WINDOW_FRAME_COLUMN_WIDTH (w);
   height = WINDOW_FRAME_LINE_HEIGHT (w);
+
+  x = window_relative_x_coord (w, part, gx);
+  y = gy - WINDOW_TOP_EDGE_Y (w);
 
   r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   end_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
@@ -4820,6 +4818,7 @@ next_overlay_string (struct it *it)
 		   && it->stop_charpos <= it->end_charpos));
       it->current.overlay_string_index = -1;
       it->n_overlay_strings = 0;
+      it->overlay_strings_charpos = -1;
 
       /* If we're at the end of the buffer, record that we have
 	 processed the overlay strings there already, so that
@@ -4832,11 +4831,13 @@ next_overlay_string (struct it *it)
       /* There are more overlay strings to process.  If
 	 IT->current.overlay_string_index has advanced to a position
 	 where we must load IT->overlay_strings with more strings, do
-	 it.  */
+	 it.  We must load at the IT->overlay_strings_charpos where
+	 IT->n_overlay_strings was originally computed; when invisible
+	 text is present, this might not be IT_CHARPOS (Bug#7016).  */
       int i = it->current.overlay_string_index % OVERLAY_STRING_CHUNK_SIZE;
 
       if (it->current.overlay_string_index && i == 0)
-	load_overlay_strings (it, 0);
+	load_overlay_strings (it, it->overlay_strings_charpos);
 
       /* Initialize IT to deliver display elements from the overlay
          string.  */
@@ -5048,8 +5049,9 @@ load_overlay_strings (struct it *it, EMACS_INT charpos)
   if (n > 1)
     qsort (entries, n, sizeof *entries, compare_overlay_entries);
 
-  /* Record the total number of strings to process.  */
+  /* Record number of overlay strings, and where we computed it.  */
   it->n_overlay_strings = n;
+  it->overlay_strings_charpos = charpos;
 
   /* IT->current.overlay_string_index is the number of overlay strings
      that have already been consumed by IT.  Copy some of the
@@ -5813,8 +5815,8 @@ lookup_glyphless_char_display (int c, struct it *it)
     it->glyphless_method = GLYPHLESS_DISPLAY_THIN_SPACE;
   else if (EQ (glyphless_method, Qempty_box))
     it->glyphless_method = GLYPHLESS_DISPLAY_EMPTY_BOX;
-  else if (EQ (glyphless_method, Qhexa_code))
-    it->glyphless_method = GLYPHLESS_DISPLAY_HEXA_CODE;
+  else if (EQ (glyphless_method, Qhex_code))
+    it->glyphless_method = GLYPHLESS_DISPLAY_HEX_CODE;
   else if (STRINGP (glyphless_method))
     it->glyphless_method = GLYPHLESS_DISPLAY_ACRONYM;
   else
@@ -9381,6 +9383,8 @@ set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multiby
     Fset_buffer_multibyte (message_enable_multibyte ? Qt : Qnil);
 
   current_buffer->truncate_lines = message_truncate_lines ? Qt : Qnil;
+  if (!NILP (current_buffer->bidi_display_reordering))
+    current_buffer->bidi_paragraph_direction = Qleft_to_right;
 
   /* Insert new message at BEG.  */
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
@@ -10487,7 +10491,7 @@ display_tool_bar_line (struct it *it, int height)
 	      row->used[TEXT_AREA] = n_glyphs_before;
 	      *it = it_before;
 	      /* If this is the only glyph on this line, it will never fit on the
-		 toolbar, so skip it.  But ensure there is at least one glyph,
+		 tool-bar, so skip it.  But ensure there is at least one glyph,
 		 so we don't accidentally disable the tool-bar.  */
 	      if (n_glyphs_before == 0
 		  && (it->vpos > 0 || IT_STRING_CHARPOS (*it) < it->end_charpos-1))
@@ -12836,6 +12840,15 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	&& BUFFERP (glyph->object) && glyph->charpos == pt_old)
       && bpos_covered < pt_old)
     {
+      /* An empty line has a single glyph whose OBJECT is zero and
+	 whose CHARPOS is the position of a newline on that line.
+	 Note that on a TTY, there are more glyphs after that, which
+	 were produced by extend_face_to_end_of_line, but their
+	 CHARPOS is zero or negative.  */
+      int empty_line_p =
+	(row->reversed_p ? glyph > glyphs_end : glyph < glyphs_end)
+	&& INTEGERP (glyph->object) && glyph->charpos > 0;
+
       if (row->ends_in_ellipsis_p && pos_after == last_pos)
 	{
 	  EMACS_INT ellipsis_pos;
@@ -12871,10 +12884,11 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	       || (row->truncated_on_left_p && pt_old < bpos_min)
 	       || (row->truncated_on_right_p && pt_old > bpos_max)
 	       /* Zero-width characters produce no glyphs.  */
-	       || ((row->reversed_p
-		    ? glyph_after > glyphs_end
-		    : glyph_after < glyphs_end)
-		   && eabs (glyph_after - glyph_before) == 1))
+	       || (!string_seen
+		   && !empty_line_p
+		   && (row->reversed_p
+		       ? glyph_after > glyphs_end
+		       : glyph_after < glyphs_end)))
 	{
 	  cursor = glyph_after;
 	  x = -1;
@@ -12928,8 +12942,9 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 			     cursor on that character's glyph.  */
 			  EMACS_INT strpos = glyph->charpos;
 
-			  cursor = glyph;
-			  for (glyph += incr;
+			  if (tem)
+			    cursor = glyph;
+			  for ( ;
 			       (row->reversed_p ? glyph > stop : glyph < stop)
 				 && EQ (glyph->object, str);
 			       glyph += incr)
@@ -12945,7 +12960,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 				  cursor = glyph;
 				  break;
 				}
-			      if (glyph->charpos < strpos)
+			      if (tem && glyph->charpos < strpos)
 				{
 				  strpos = glyph->charpos;
 				  cursor = glyph;
@@ -12960,10 +12975,9 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 		    }
 		  /* This string is not what we want; skip all of the
 		     glyphs that came from it.  */
-		  do
-		    glyph += incr;
 		  while ((row->reversed_p ? glyph > stop : glyph < stop)
-			 && EQ (glyph->object, str));
+			 && EQ (glyph->object, str))
+		    glyph += incr;
 		}
 	      else
 		glyph += incr;
@@ -13411,7 +13425,11 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 
       /* If cursor ends up on a partially visible line,
 	 treat that as being off the bottom of the screen.  */
-      if (! cursor_row_fully_visible_p (w, extra_scroll_margin_lines <= 1, 0))
+      if (! cursor_row_fully_visible_p (w, extra_scroll_margin_lines <= 1, 0)
+	  /* It's possible that the cursor is on the first line of the
+	     buffer, which is partially obscured due to a vscroll
+	     (Bug#7537).  In that case, avoid looping forever . */
+	  && extra_scroll_margin_lines < w->desired_matrix->nrows - 1)
 	{
 	  clear_glyph_matrix (w->desired_matrix);
 	  ++extra_scroll_margin_lines;
@@ -22292,7 +22310,7 @@ calc_line_height_property (struct it *it, Lisp_Object val, struct font *font,
    and only if this is for a character for which no font was found.
 
    If the display method (it->glyphless_method) is
-   GLYPHLESS_DISPLAY_ACRONYM or GLYPHLESS_DISPLAY_HEXA_CODE, LEN is a
+   GLYPHLESS_DISPLAY_ACRONYM or GLYPHLESS_DISPLAY_HEX_CODE, LEN is a
    length of the acronym or the hexadecimal string, UPPER_XOFF and
    UPPER_YOFF are pixel offsets for the upper part of the string,
    LOWER_XOFF and LOWER_YOFF are for the lower part.
@@ -22441,7 +22459,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	}
       else
 	{
-	  xassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEXA_CODE);
+	  xassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEX_CODE);
 	  sprintf (buf, "%0*X", it->c < 0x10000 ? 4 : 6, it->c);
 	  str = buf;
 	}
@@ -25383,7 +25401,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
     }
 
   /* Which window is that in?  */
-  window = window_from_coordinates (f, x, y, &part, 0, 0, 1);
+  window = window_from_coordinates (f, x, y, &part, 1);
 
   /* If we were displaying active text in another window, clear that.
      Also clear if we move out of text area in same window.  */
@@ -26863,7 +26881,7 @@ vertical margin.  */);
   tool_bar_button_relief = DEFAULT_TOOL_BAR_BUTTON_RELIEF;
 
   DEFVAR_LISP ("tool-bar-style", &Vtool_bar_style,
-    doc: /* *Tool bar style to use.
+    doc: /* Tool bar style to use.
 It can be one of
  image            - show images only
  text             - show text only
@@ -27057,7 +27075,7 @@ cursor shapes.  */);
   hourglass_shown_p = 0;
 
   DEFSYM (Qglyphless_char, "glyphless-char");
-  DEFSYM (Qhexa_code, "hexa-code");
+  DEFSYM (Qhex_code, "hex-code");
   DEFSYM (Qempty_box, "empty-box");
   DEFSYM (Qthin_space, "thin-space");
   DEFSYM (Qzero_width, "zero-width");
@@ -27073,13 +27091,13 @@ cursor shapes.  */);
 	       doc: /* Char-table to control displaying of glyphless characters.
 Each element, if non-nil, is an ASCII acronym string (displayed in a box)
 or one of these symbols:
-  hexa-code: display with hexadecimal character code in a box
-  empty-box: display with an empty box
-  thin-space: display with 1-pixel width space
+  hex-code:   display the hexadecimal code of a character in a box
+  empty-box:  display as an empty box
+  thin-space: display as 1-pixel width space
   zero-width: don't display
 
 It has one extra slot to control the display of a character for which
-no font is found.  The value of the slot is `hexa-code' or `empty-box'.
+no font is found.  The value of the slot is `hex-code' or `empty-box'.
 The default is `empty-box'.  */);
   Vglyphless_char_display = Fmake_char_table (Qglyphless_char_display, Qnil);
   Fset_char_table_extra_slot (Vglyphless_char_display, make_number (0),

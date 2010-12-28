@@ -299,7 +299,10 @@ automatically, and you are prompted to fill in the variable parts.")))
 	(eolp (eolp)))
     ;; since Emacs doesn't show main window's cursor, do something noticeable
     (or eolp
-	(open-line 1))
+        ;; We used open-line before, but that can do a lot more than we want,
+	;; since it runs self-insert-command.  E.g. it may remove spaces
+	;; before point.
+        (save-excursion (insert "\n")))
     (unwind-protect
 	(setq prompt (if (stringp prompt)
 			 (read-string (format prompt skeleton-subprompt)
@@ -352,6 +355,16 @@ automatically, and you are prompted to fill in the variable parts.")))
       (signal 'quit 'recursive)
     recursive))
 
+(defun skeleton-newline ()
+  (if (or (eq (point) skeleton-point)
+          (eq (point) (car skeleton-positions)))
+      ;; If point is recorded, avoid `newline' since it may do things like
+      ;; strip trailing spaces, and since recorded points are commonly placed
+      ;; right after a trailing space, calling `newline' can destroy the
+      ;; position and renders the recorded position incorrect.
+      (insert "\n")
+    (newline)))
+
 (defun skeleton-internal-1 (element &optional literal recursive)
   (cond
    ((or (integerp element) (stringp element))
@@ -379,13 +392,13 @@ automatically, and you are prompted to fill in the variable parts.")))
 	(if pos (indent-according-to-mode)))
        (skeleton-newline-indent-rigidly
 	(let ((pt (point)))
-	  (newline)
+	  (skeleton-newline)
 	  (indent-to (save-excursion
 		       (goto-char pt)
 		       (if pos (indent-according-to-mode))
 		       (current-indentation)))))
        (t (if pos (reindent-then-newline-and-indent)
-	    (newline)
+	    (skeleton-newline)
 	    (indent-according-to-mode))))))
    ((eq element '>)
     (if (and skeleton-regions (eq (nth 1 skeleton-il) '_))

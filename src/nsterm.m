@@ -158,8 +158,18 @@ Lisp_Object ns_right_alternate_modifier;
 Lisp_Object ns_command_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
+   the right Command modifier.  Has same values as ns_command_modifier plus
+   the value Qleft which means whatever value ns_command_modifier has.  */
+Lisp_Object ns_right_command_modifier;
+
+/* Specifies which emacs modifier should be generated when NS receives
    the Control modifier.  May be any of the modifier lisp symbols. */
 Lisp_Object ns_control_modifier;
+
+/* Specifies which emacs modifier should be generated when NS receives
+   the right Control modifier.  Has same values as ns_control_modifier plus
+   the value Qleft which means whatever value ns_control_modifier has.  */
+Lisp_Object ns_right_control_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
    the Function modifier (laptops).  May be any of the modifier lisp symbols. */
@@ -223,6 +233,11 @@ static BOOL inNsSelect = 0;
 
 /* Convert modifiers in a NeXTSTEP event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
+#define NSLeftControlKeyMask    (0x000001 | NSControlKeyMask)
+#define NSRightControlKeyMask   (0x002000 | NSControlKeyMask)
+#define NSLeftCommandKeyMask    (0x000008 | NSCommandKeyMask)
+#define NSRightCommandKeyMask   (0x000010 | NSCommandKeyMask)
+#define NSLeftAlternateKeyMask  (0x000020 | NSAlternateKeyMask)
 #define NSRightAlternateKeyMask (0x000040 | NSAlternateKeyMask)
 #define EV_MODIFIERS(e)                               \
     ((([e modifierFlags] & NSHelpKeyMask) ?           \
@@ -235,10 +250,18 @@ static BOOL inNsSelect = 0;
            parse_solitary_modifier (ns_alternate_modifier) : 0)   \
      | (([e modifierFlags] & NSShiftKeyMask) ?     \
            shift_modifier : 0)                        \
+     | (!EQ (ns_right_control_modifier, Qleft) && \
+        (([e modifierFlags] & NSRightControlKeyMask) \
+         == NSRightControlKeyMask) ? \
+           parse_solitary_modifier (ns_right_control_modifier) : 0) \
      | (([e modifierFlags] & NSControlKeyMask) ?      \
            parse_solitary_modifier (ns_control_modifier) : 0)     \
      | (([e modifierFlags] & NS_FUNCTION_KEY_MASK) ?  \
            parse_solitary_modifier (ns_function_modifier) : 0)    \
+     | (!EQ (ns_right_command_modifier, Qleft) && \
+        (([e modifierFlags] & NSRightCommandKeyMask) \
+         == NSRightCommandKeyMask) ? \
+           parse_solitary_modifier (ns_right_command_modifier) : 0) \
      | (([e modifierFlags] & NSCommandKeyMask) ?      \
            parse_solitary_modifier (ns_command_modifier):0))
 
@@ -1083,16 +1106,31 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
 
   f->left_pos = xoff;
   f->top_pos = yoff;
-#ifdef NS_IMPL_GNUSTEP
-  if (xoff < 100)
-    f->left_pos = 100;  /* don't overlap menu */
-#endif
 
   if (view != nil && (screen = [[view window] screen]))
-    [[view window] setFrameTopLeftPoint:
-        NSMakePoint (SCREENMAXBOUND (f->left_pos),
-                     SCREENMAXBOUND ([screen frame].size.height
-                                     - NS_TOP_POS (f)))];
+    {
+      f->left_pos = f->size_hint_flags & XNegative
+        ? [screen visibleFrame].size.width + f->left_pos - FRAME_PIXEL_WIDTH (f)
+        : f->left_pos;
+      /* We use visibleFrame here to take menu bar into account.
+	 Ideally we should also adjust left/top with visibleFrame.offset.  */
+	 
+      f->top_pos = f->size_hint_flags & YNegative
+        ? ([screen visibleFrame].size.height + f->top_pos
+           - FRAME_PIXEL_HEIGHT (f) - FRAME_NS_TITLEBAR_HEIGHT (f)
+           - FRAME_TOOLBAR_HEIGHT (f))
+        : f->top_pos;
+#ifdef NS_IMPL_GNUSTEP
+      if (f->left_pos < 100)
+        f->left_pos = 100;  /* don't overlap menu */
+#endif
+      [[view window] setFrameTopLeftPoint:
+                       NSMakePoint (SCREENMAXBOUND (f->left_pos),
+                                    SCREENMAXBOUND ([screen frame].size.height
+                                                    - NS_TOP_POS (f)))];
+      f->size_hint_flags &= ~(XNegative|YNegative);
+    }
+
   UNBLOCK_INPUT;
 }
 
@@ -2263,6 +2301,8 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   struct glyph *phys_cursor_glyph;
   int overspill;
   struct glyph *cursor_glyph;
+  struct face *face;
+  NSColor *hollow_color = FRAME_BACKGROUND_COLOR (f);
 
   /* If cursor is out of bounds, don't draw garbage.  This can happen
      in mini-buffer windows when switching between echo area glyphs
@@ -2272,7 +2312,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 //fprintf(stderr, "drawcursor (%d,%d) activep = %d\tonp = %d\tc_type = %d\twidth = %d\n",x,y, active_p,on_p,cursor_type,cursor_width);
 
   if (!on_p)
-	return;
+    return;
 
   w->phys_cursor_type = cursor_type;
   w->phys_cursor_on_p = on_p;
@@ -2311,7 +2351,17 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   /* TODO: only needed in rare cases with last-resort font in HELLO..
      should we do this more efficiently? */
   ns_clip_to_row (w, glyph_row, -1, NO); /* do ns_focus(f, &r, 1); if remove */
-  [FRAME_CURSOR_COLOR (f) set];
+
+
+  face = FACE_FROM_ID (f, phys_cursor_glyph->face_id);
+  if (face && NS_FACE_BACKGROUND (face)
+      == ns_index_color (FRAME_CURSOR_COLOR (f), f))
+    {
+      [ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), f) set];
+      hollow_color = FRAME_CURSOR_COLOR (f);
+    }
+  else
+    [FRAME_CURSOR_COLOR (f) set];
 
 #ifdef NS_IMPL_COCOA
   /* TODO: This makes drawing of cursor plus that of phys_cursor_glyph
@@ -2331,7 +2381,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       break;
     case HOLLOW_BOX_CURSOR:
       NSRectFill (r);
-      [FRAME_BACKGROUND_COLOR (f) set];
+      [hollow_color set];
       NSRectFill (NSInsetRect (r, 1, 1));
       [FRAME_CURSOR_COLOR (f) set];
       break;
@@ -2756,7 +2806,10 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   else
     face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
 
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f) set];
+  if (s->hl == DRAW_CURSOR)
+      [FRAME_CURSOR_COLOR (s->f) set];
+  else
+    [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f) set];
 
   if (bg_height > s->slice.height || s->img->hmargin || s->img->vmargin
       || s->img->mask || s->img->pixmap == 0 || s->width != s->background_width)
@@ -2818,6 +2871,16 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
                       s->slice.y + s->slice.height == s->img->height,
                       s->slice.x == 0,
                       s->slice.x + s->slice.width == s->img->width, s);
+    }
+
+  /* If there is no mask, the background won't be seen,
+     so draw a rectangle on the image for the cursor.
+     Do this for all images, getting trancparency right is not reliable.  */
+  if (s->hl == DRAW_CURSOR)
+    {
+      int thickness = abs (s->img->relief);
+      if (thickness == 0) thickness = 1;
+      ns_draw_box (br, thickness, FRAME_CURSOR_COLOR (s->f), 1, 1);
     }
 }
 
@@ -2973,10 +3036,24 @@ ns_draw_glyph_string (struct glyph_string *s)
       if (ns_tmp_font == NULL)
           ns_tmp_font = (struct nsfont_info *)FRAME_FONT (s->f);
 
+      if (s->hl == DRAW_CURSOR && s->w->phys_cursor_type == FILLED_BOX_CURSOR)
+        {
+          unsigned long tmp = NS_FACE_BACKGROUND (s->face);
+          NS_FACE_BACKGROUND (s->face) = NS_FACE_FOREGROUND (s->face);
+          NS_FACE_FOREGROUND (s->face) = tmp;
+        }
+                    
       ns_tmp_font->font.driver->draw
         (s, 0, s->nchars, s->x, s->y,
          (ns_tmp_flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
          || ns_tmp_flags == NS_DUMPGLYPH_MOUSEFACE);
+
+      if (s->hl == DRAW_CURSOR && s->w->phys_cursor_type == FILLED_BOX_CURSOR)
+        {
+          unsigned long tmp = NS_FACE_BACKGROUND (s->face);
+          NS_FACE_BACKGROUND (s->face) = NS_FACE_FOREGROUND (s->face);
+          NS_FACE_FOREGROUND (s->face) = tmp;
+        }
 
       ns_unfocus (s->f);
       break;
@@ -4399,7 +4476,7 @@ ns_term_shutdown (int sig)
       code = ([[theEvent charactersIgnoringModifiers] length] == 0) ?
         0 : [[theEvent charactersIgnoringModifiers] characterAtIndex: 0];
       /* (Carbon way: [theEvent keyCode]) */
-
+      
       /* is it a "function key"? */
       fnKeysym = ns_convert_key (code);
       if (fnKeysym)
@@ -4422,9 +4499,17 @@ ns_term_shutdown (int sig)
       if (flags & NSShiftKeyMask)
         emacs_event->modifiers |= shift_modifier;
 
-      if (flags & NSCommandKeyMask)
+      if ((flags & NSRightCommandKeyMask) == NSRightCommandKeyMask)
+        emacs_event->modifiers |= parse_solitary_modifier
+          (EQ (ns_right_command_modifier, Qleft)
+           ? ns_command_modifier
+           : ns_right_command_modifier);
+
+      if ((flags & NSLeftCommandKeyMask) == NSLeftCommandKeyMask)
         {
-          emacs_event->modifiers |= parse_solitary_modifier (ns_command_modifier);
+          emacs_event->modifiers |= parse_solitary_modifier
+            (ns_command_modifier);
+
           /* if super (default), take input manager's word so things like
              dvorak / qwerty layout work */
           if (EQ (ns_command_modifier, Qsuper)
@@ -4457,23 +4542,43 @@ ns_term_shutdown (int sig)
             }
         }
 
-      if (flags & NSControlKeyMask)
-          emacs_event->modifiers |=
-            parse_solitary_modifier (ns_control_modifier);
+      if ((flags & NSRightControlKeyMask) == NSRightControlKeyMask)
+          emacs_event->modifiers |= parse_solitary_modifier
+              (EQ (ns_right_control_modifier, Qleft)
+               ? ns_control_modifier
+               : ns_right_control_modifier);
+
+      if ((flags & NSLeftControlKeyMask) == NSLeftControlKeyMask)
+        emacs_event->modifiers |= parse_solitary_modifier
+          (ns_control_modifier);
 
       if (flags & NS_FUNCTION_KEY_MASK && !fnKeysym)
           emacs_event->modifiers |=
             parse_solitary_modifier (ns_function_modifier);
 
-      if (!EQ (ns_right_alternate_modifier, Qleft)
-          && ((flags & NSRightAlternateKeyMask) == NSRightAlternateKeyMask)) 
-	{
-	  emacs_event->modifiers |= parse_solitary_modifier
-            (ns_right_alternate_modifier);
-	}
-      else if (flags & NSAlternateKeyMask) /* default = meta */
+      if ((flags & NSRightAlternateKeyMask) == NSRightAlternateKeyMask)
         {
-          if ((NILP (ns_alternate_modifier) || EQ (ns_alternate_modifier, Qnone))
+          if ((NILP (ns_right_alternate_modifier)
+               || EQ (ns_right_alternate_modifier, Qnone))
+              && !fnKeysym)
+            {   /* accept pre-interp alt comb */
+              if ([[theEvent characters] length] > 0)
+                code = [[theEvent characters] characterAtIndex: 0];
+              /*HACK: clear lone shift modifier to stop next if from firing */
+              if (emacs_event->modifiers == shift_modifier)
+                emacs_event->modifiers = 0;
+            }
+          else
+            emacs_event->modifiers |= parse_solitary_modifier
+              (EQ (ns_right_alternate_modifier, Qleft)
+               ? ns_alternate_modifier
+               : ns_right_alternate_modifier);
+        }
+
+      if ((flags & NSLeftAlternateKeyMask) == NSLeftAlternateKeyMask) /* default = meta */
+        {
+          if ((NILP (ns_alternate_modifier)
+               || EQ (ns_alternate_modifier, Qnone))
               && !fnKeysym)
             {   /* accept pre-interp alt comb */
               if ([[theEvent characters] length] > 0)
@@ -6246,10 +6351,26 @@ at all, allowing it to be used at a lower level for accented character entry.");
 Set to control, meta, alt, super, or hyper means it is taken to be that key.");
   ns_command_modifier = Qsuper;
 
+  DEFVAR_LISP ("ns-right-command-modifier", &ns_right_command_modifier,
+               "This variable describes the behavior of the right command key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to left means be the same key as `ns-command-modifier'.\n\
+Set to none means that the command / option key is not interpreted by Emacs\n\
+at all, allowing it to be used at a lower level for accented character entry.");
+  ns_right_command_modifier = Qleft;
+
   DEFVAR_LISP ("ns-control-modifier", &ns_control_modifier,
                "This variable describes the behavior of the control key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.");
   ns_control_modifier = Qcontrol;
+
+  DEFVAR_LISP ("ns-right-control-modifier", &ns_right_control_modifier,
+               "This variable describes the behavior of the right control key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to left means be the same key as `ns-control-modifier'.\n\
+Set to none means that the control / option key is not interpreted by Emacs\n\
+at all, allowing it to be used at a lower level for accented character entry.");
+  ns_right_control_modifier = Qleft;
 
   DEFVAR_LISP ("ns-function-modifier", &ns_function_modifier,
                "This variable describes the behavior of the function key (on laptops).\n\

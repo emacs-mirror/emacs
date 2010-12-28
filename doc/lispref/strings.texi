@@ -126,9 +126,8 @@ This function returns a string made up of @var{count} repetitions of
      @result{} ""
 @end example
 
-  Other functions to compare with this one include @code{char-to-string}
-(@pxref{String Conversion}), @code{make-vector} (@pxref{Vectors}), and
-@code{make-list} (@pxref{Building Lists}).
+  Other functions to compare with this one include @code{make-vector}
+(@pxref{Vectors}) and @code{make-list} (@pxref{Building Lists}).
 @end defun
 
 @defun string &rest characters
@@ -349,9 +348,9 @@ practice:
      @result{} ("o" "o" "o")
 @end example
 
-If you need to split a string that is a shell command, where
-individual arguments could be quoted, see @ref{Shell Arguments,
-split-string-and-unquote}.
+If you need to split a string into a list of individual command-line
+arguments suitable for @code{call-process} or @code{start-process},
+see @ref{Shell Arguments, split-string-and-unquote}.
 @end defun
 
 @defvar split-string-default-separators
@@ -565,38 +564,6 @@ of text characters and general input events
 (@code{single-key-description} and @code{text-char-description}).  These
 are used primarily for making help messages.
 
-@defun char-to-string character
-@cindex character to string
-This function returns a new string containing one character,
-@var{character}.  This function is semi-obsolete because the function
-@code{string} is more general.  @xref{Creating Strings}.
-@end defun
-
-@defun string-to-char string
-@cindex string to character
-  This function returns the first character in @var{string}.  If the
-string is empty, the function returns 0.  The value is also 0 when the
-first character of @var{string} is the null character, @acronym{ASCII} code
-0.
-
-@example
-(string-to-char "ABC")
-     @result{} 65
-
-(string-to-char "xyz")
-     @result{} 120
-(string-to-char "")
-     @result{} 0
-@group
-(string-to-char "\000")
-     @result{} 0
-@end group
-@end example
-
-This function may be eliminated in the future if it does not seem useful
-enough to retain.
-@end defun
-
 @defun number-to-string number
 @cindex integer to string
 @cindex integer to decimal
@@ -659,19 +626,39 @@ this function returns 0.
 @code{string-to-int} is an obsolete alias for this function.
 @end defun
 
+@defun char-to-string character
+@cindex character to string
+This function returns a new string containing one character,
+@var{character}.  This function is semi-obsolete because the function
+@code{string} is more general.  @xref{Creating Strings}.
+@end defun
+
+@defun string-to-char string
+  This function returns the first character in @var{string}.  This
+mostly identical to @code{(aref string 0)}, except that it returns 0
+if the string is empty.  (The value is also 0 when the first character
+of @var{string} is the null character, @acronym{ASCII} code 0.)  This
+function may be eliminated in the future if it does not seem useful
+enough to retain.
+@end defun
+
   Here are some other functions that can convert to or from a string:
 
 @table @code
 @item concat
-@code{concat} can convert a vector or a list into a string.
+This function converts a vector or a list into a string.
 @xref{Creating Strings}.
 
 @item vconcat
-@code{vconcat} can convert a string into a vector.  @xref{Vector
+This function converts a string into a vector.  @xref{Vector
 Functions}.
 
 @item append
-@code{append} can convert a string into a list.  @xref{Building Lists}.
+This function converts a string into a list.  @xref{Building Lists}.
+
+@item byte-to-string
+This function converts a byte of character data into a unibyte string.
+@xref{Converting Representations}.
 @end table
 
 @node Formatting Strings

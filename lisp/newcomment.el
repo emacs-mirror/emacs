@@ -187,21 +187,58 @@ This should generally stay 0, except for a few modes like Lisp where
 it is 1 so that regions are commented with two or three semi-colons.")
 
 (defconst comment-styles
-  '((plain	. (nil nil nil nil))
-    (indent	. (nil nil nil t))
-    (indent-or-triple
-                . (nil nil nil multi-char))
-    (aligned	. (nil t nil t))
-    (multi-line	. (t nil nil t))
-    (extra-line	. (t nil t t))
-    (box	. (nil t t t))
-    (box-multi	. (t t t t)))
-  "Comment region styles of the form (STYLE . (MULTI ALIGN EXTRA INDENT)).
+  '((plain      nil nil nil nil
+                "Start in column 0 (do not indent), as in Emacs-20")
+    (indent-or-triple nil nil nil multi-char
+              "Start in column 0, but only for single-char starters")
+    (indent     nil nil nil t
+                "Full comment per line, ends not aligned")
+    (aligned	nil t   nil t
+                "Full comment per line, ends aligned")
+    (box	nil t   t   t
+                "Full comment per line, ends aligned, + top and bottom")
+    (extra-line	t   nil t   t
+                "One comment for all lines, end on a line by itself")
+    (multi-line	t   nil nil t
+                "One comment for all lines, end on last commented line")
+    (box-multi	t   t   t   t
+                "One comment for all lines, + top and bottom"))
+  "Comment region style definitions.
+Each style is defined with a form (STYLE . (MULTI ALIGN EXTRA INDENT DOC)).
+DOC should succinctly describe the style.
 STYLE should be a mnemonic symbol.
 MULTI specifies that comments are allowed to span multiple lines.
+  e.g. in C it comments regions as
+     /* blabla
+      * bli */
+  rather than
+     /* blabla */
+     /* bli */
+  if `comment-end' is empty, this has no effect.
+
 ALIGN specifies that the `comment-end' markers should be aligned.
+  e.g. in C it comments regions as
+     /* blabla */
+     /* bli    */
+  rather than
+     /* blabla */
+     /* bli */
+  if `comment-end' is empty, this has no effect, unless EXTRA is also set,
+  in which case the comment gets wrapped in a box.
+  
 EXTRA specifies that an extra line should be used before and after the
   region to comment (to put the `comment-end' and `comment-start').
+  e.g. in C it comments regions as
+     /*
+      * blabla
+      * bli
+      */
+  rather than
+     /* blabla
+      * bli */
+  if the comment style is not multi line, this has no effect, unless ALIGN
+  is also set, in which case the comment gets wrapped in a box.
+
 INDENT specifies that the `comment-start' markers should not be put at the
   left margin but at the current indentation of the region to comment.
 If INDENT is `multi-char', that means indent multi-character
@@ -212,8 +249,11 @@ If INDENT is `multi-char', that means indent multi-character
   "Style to be used for `comment-region'.
 See `comment-styles' for a list of available styles."
   :type (if (boundp 'comment-styles)
-	    `(choice ,@(mapcar (lambda (s) `(const ,(car s)))
-			       comment-styles))
+	    `(choice
+              ,@(mapcar (lambda (s)
+                          `(const :tag ,(format "%s: %s" (car s) (nth 5 s))
+                                  ,(car s)))
+                        comment-styles))
 	  'symbol)
   :version "23.1"
   :group 'comment)

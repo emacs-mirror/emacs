@@ -540,13 +540,12 @@ variables."
 
     (when (boundp 'adaptive-fill-first-line-regexp)
       ;; XEmacs adaptive fill mode doesn't have this.
-      (make-local-variable 'adaptive-fill-first-line-regexp)
-      (setq adaptive-fill-first-line-regexp
-	    (concat "\\`" comment-line-prefix
-		    ;; Maybe we should incorporate the old value here,
-		    ;; but then we have to do all sorts of kludges to
-		    ;; deal with the \` and \' it probably contains.
-		    "\\'"))))
+      (set (make-local-variable 'adaptive-fill-first-line-regexp)
+           (concat "\\`" comment-line-prefix
+                   ;; Maybe we should incorporate the old value here,
+                   ;; but then we have to do all sorts of kludges to
+                   ;; deal with the \` and \' it probably contains.
+                   "\\'"))))
 
   ;; Set up the values for use in strings.  These are the default
   ;; paragraph-start/separate values, enhanced to accept escaped EOLs as

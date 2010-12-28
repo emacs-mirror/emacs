@@ -11494,7 +11494,7 @@
 	* net/zone-mode.el (zone-mode): Use write-file-functions, not
 	write-file-hooks.
 
-2003-12-29  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2003-12-29  Eric Hanchrow  <offby1@blarg.net>
 
 	* autorevert.el (auto-revert-interval): Doc fix.
 
@@ -12922,7 +12922,7 @@
 
 	* emacs-lisp/tq.el (tq-create): Fix mixed up unquote style.
 
-2003-09-12  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2003-09-12  Eric Hanchrow  <offby1@blarg.net>
 
 	* dired.el (dired-mode-map): Fix typo.
 

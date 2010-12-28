@@ -4,7 +4,7 @@
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
-;; Version: 7.01
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -148,6 +148,7 @@
 (declare-function org-agenda-change-all-lines "org-agenda"
 		  (newhead hdmarker &optional fixface just-this))
 (declare-function org-verify-change-for-undo "org-agenda" (l1 l2))
+(declare-function org-apply-on-list "org-list" (function init-value &rest args))
 
 (defvar org-mouse-plain-list-regexp "\\([ \t]*\\)\\([-+*]\\|[0-9]+[.)]\\) "
   "Regular expression that matches a plain list.")
@@ -576,14 +577,11 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	(goto-char (second contextdata))
 	(re-search-forward ".*" (third contextdata))))))
 
-(defun org-mouse-for-each-item (function)
-  (save-excursion
-    (ignore-errors
-      (while t (org-previous-item)))
-    (ignore-errors
-      (while t
-	(funcall function)
-	(org-next-item)))))
+(defun org-mouse-for-each-item (funct)
+  ;; Functions called by `org-apply-on-list' need an argument
+  (let ((wrap-fun (lambda (c) (funcall funct))))
+    (when (org-in-item-p)
+      (org-apply-on-list wrap-fun nil))))
 
 (defun org-mouse-bolp ()
   "Return true if there only spaces, tabs, and '*' before point.
@@ -1102,10 +1100,10 @@ This means, between the beginning of line and the point."
 	 "--"
 	 ["Day View" org-agenda-day-view
 	  :active (org-agenda-check-type nil 'agenda)
-	  :style radio :selected (equal org-agenda-ndays 1)]
+	  :style radio :selected (eq org-agenda-current-span 'day)]
 	 ["Week View" org-agenda-week-view
 	  :active (org-agenda-check-type nil 'agenda)
-	  :style radio :selected (equal org-agenda-ndays 7)]
+	  :style radio :selected (eq org-agenda-current-span 'week)]
 	 "--"
 	 ["Show Logbook entries" org-agenda-log-mode
 	  :style toggle :selected org-agenda-show-log

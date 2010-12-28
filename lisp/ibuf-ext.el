@@ -1308,7 +1308,8 @@ a prefix argument reverses the meaning of that variable."
 	  (error "No buffer with name %s" name)
 	(goto-char buf-point)))))
 
-(declare-function diff-sentinel "diff" (code))
+(declare-function diff-sentinel "diff"
+		  (code &optional old-temp-file new-temp-file))
 
 (defun ibuffer-diff-buffer-with-file-1 (buffer)
   (let ((bufferfile (buffer-local-value 'buffer-file-name buffer))
@@ -1594,5 +1595,4 @@ defaults to one."
 ;; generated-autoload-file: "ibuffer.el"
 ;; End:
 
-;; arch-tag: 9af21953-deda-4c30-b76d-f81d9128e76d
 ;;; ibuf-ext.el ends here

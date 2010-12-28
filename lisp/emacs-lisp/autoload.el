@@ -575,8 +575,8 @@ removes any prior now out-of-date autoload entries."
            (autoload-ensure-default-file (autoload-generated-file)))
         ;; This is to make generated-autoload-file have Unix EOLs, so
         ;; that it is portable to all platforms.
-        (unless (zerop (coding-system-eol-type buffer-file-coding-system))
-          (set-buffer-file-coding-system 'unix))
+        (or (eq 0 (coding-system-eol-type buffer-file-coding-system))
+	    (set-buffer-file-coding-system 'unix))
         (or (> (buffer-size) 0)
             (error "Autoloads file %s lacks boilerplate" buffer-file-name))
         (or (file-writable-p buffer-file-name)

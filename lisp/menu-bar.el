@@ -479,8 +479,7 @@
 (define-key menu-bar-edit-menu [clear]
   `(menu-item ,(purecopy "Clear") delete-region
 	      :enable (and mark-active
-			   (not buffer-read-only)
-			   (not (mouse-region-match)))
+			   (not buffer-read-only))
 	      :help
 	      ,(purecopy "Delete the text in region between mark and current position")))
 (defvar yank-menu (cons (purecopy "Select Yank") nil))
@@ -510,7 +509,7 @@
   ;; under X (for GNUstep).
   `(menu-item ,(purecopy "Copy") ,(if (featurep 'ns)
                                       'ns-copy-including-secondary
-                                    'menu-bar-kill-ring-save)
+                                    'kill-ring-save)
               :enable mark-active
               :help ,(purecopy "Copy text in region between mark and current position")
               :keys ,(purecopy (if (featurep 'ns)
@@ -523,7 +522,8 @@
 	      ,(purecopy "Cut (kill) text in region between mark and current position")))
 ;; ns-win.el said: Separate undo from cut/paste section.
 (if (featurep 'ns)
-    (define-key menu-bar-edit-menu [separator-undo] `(,(purecopy "--"))))
+    (define-key menu-bar-edit-menu [separator-undo] menu-bar-separator))
+
 (define-key menu-bar-edit-menu [undo]
   `(menu-item ,(purecopy "Undo") undo
 	      :enable (and (not buffer-read-only)
@@ -533,11 +533,8 @@
 			     (consp buffer-undo-list)))
 	      :help ,(purecopy "Undo last operation")))
 
-(defun menu-bar-kill-ring-save (beg end)
-  (interactive "r")
-  (if (mouse-region-match)
-      (message "Selecting a region with the mouse does `copy' automatically")
-    (kill-ring-save beg end)))
+(define-obsolete-function-alias
+  'menu-bar-kill-ring-save 'kill-ring-save "24.1")
 
 ;; These are alternative definitions for the cut, paste and copy
 ;; menu items.  Use them if your system expects these to use the clipboard.
@@ -1020,10 +1017,24 @@ mail status in mode line"))
 	      :visible (and (display-graphic-p) (fboundp 'x-show-tip))
 	      :button (:toggle . tooltip-mode)))
 
+(defun menu-bar-frame-for-menubar ()
+  "Return the frame suitable for updating the menu bar."
+  (or (and (framep menu-updating-frame)
+	   menu-updating-frame)
+      (selected-frame)))
+
+(defun menu-bar-positive-p (val)
+  "Return non-nil iff VAL is a positive number."
+  (and (numberp val)
+       (> val 0)))
+
 (define-key menu-bar-showhide-menu [menu-bar-mode]
   `(menu-item ,(purecopy "Menu-bar") toggle-menu-bar-mode-from-frame
 	      :help ,(purecopy "Turn menu-bar on/off")
-	      :button (:toggle . (> (frame-parameter nil 'menu-bar-lines) 0))))
+	      :button
+	      (:toggle . (menu-bar-positive-p
+			  (frame-parameter (menu-bar-frame-for-menubar)
+					   'menu-bar-lines)))))
 
 (defun menu-bar-set-tool-bar-position (position)
   (customize-set-variable 'tool-bar-mode t)
@@ -1060,7 +1071,9 @@ mail status in mode line"))
 		    :visible (display-graphic-p)
 		    :button
 		    (:radio . (and tool-bar-mode
-				   (eq (frame-parameter nil 'tool-bar-position)
+				   (eq (frame-parameter
+					(menu-bar-frame-for-menubar)
+					'tool-bar-position)
 				       'left)))))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-right]
@@ -1070,7 +1083,9 @@ mail status in mode line"))
 		    :visible (display-graphic-p)
 		    :button
 		    (:radio . (and tool-bar-mode
-				   (eq (frame-parameter nil 'tool-bar-position)
+				   (eq (frame-parameter
+					(menu-bar-frame-for-menubar)
+					'tool-bar-position)
 				       'right)))))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-bottom]
@@ -1080,7 +1095,9 @@ mail status in mode line"))
 		    :visible (display-graphic-p)
 		    :button
 		    (:radio . (and tool-bar-mode
-				   (eq (frame-parameter nil 'tool-bar-position)
+				   (eq (frame-parameter
+					(menu-bar-frame-for-menubar)
+					'tool-bar-position)
 				       'bottom)))))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-top]
@@ -1090,7 +1107,9 @@ mail status in mode line"))
 		    :visible (display-graphic-p)
 		    :button
 		    (:radio . (and tool-bar-mode
-				   (eq (frame-parameter nil 'tool-bar-position)
+				   (eq (frame-parameter
+					(menu-bar-frame-for-menubar)
+					'tool-bar-position)
 				       'top)))))
 
       (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-none]
@@ -1110,8 +1129,10 @@ mail status in mode line"))
     `(menu-item ,(purecopy "Tool-bar") toggle-tool-bar-mode-from-frame
 		:help ,(purecopy "Turn tool-bar on/off")
 		:visible (display-graphic-p)
-		:button (:toggle . (> (frame-parameter nil 'tool-bar-lines) 0))))
-)
+		:button
+		(:toggle . (menu-bar-positive-p
+			    (frame-parameter (menu-bar-frame-for-menubar)
+					     'tool-bar-lines))))))
 
 (define-key menu-bar-options-menu [showhide]
   `(menu-item ,(purecopy "Show/Hide") ,menu-bar-showhide-menu))
@@ -2109,7 +2130,10 @@ turn on menu bars; otherwise, turn off menu bars."
 See `menu-bar-mode' for more information."
   (interactive (list (or current-prefix-arg 'toggle)))
   (if (eq arg 'toggle)
-      (menu-bar-mode (if (> (frame-parameter nil 'menu-bar-lines) 0) 0 1))
+      (menu-bar-mode
+       (if (menu-bar-positive-p
+	    (frame-parameter (menu-bar-frame-for-menubar) 'menu-bar-lines))
+	    0 1))
     (menu-bar-mode arg)))
 
 (declare-function x-menu-bar-open "term/x-win" (&optional frame))

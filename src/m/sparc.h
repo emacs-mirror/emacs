@@ -20,10 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* __sparc__ is defined by the compiler by default.  */
 
-/* XINT must explicitly sign-extend
-   This flag only matters if you use USE_LISP_UNION_TYPE.  */
-#define EXPLICIT_SIGN_EXTEND
-
 /* Data type of load average, as read out of kmem.  */
 #define LOAD_AVE_TYPE long
 

@@ -322,8 +322,6 @@ extern int composition_update_it (struct composition_it *,
 
 extern EMACS_INT composition_adjust_point (EMACS_INT, EMACS_INT);
 
-EXFUN (Fcompose_region_internal, 4);
-EXFUN (Fcompose_string_internal, 5);
 EXFUN (Fcomposition_get_gstring, 4);
 
 #endif /* not EMACS_COMPOSITE_H */

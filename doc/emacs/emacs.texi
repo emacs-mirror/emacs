@@ -771,6 +771,7 @@ Version Control
 * Introduction to VC::  How version control works in general.
 * VC Mode Line::        How the mode line shows version control status.
 * Basic VC Editing::    How to edit a file under version control.
+* Log Buffer::          Features available in log entry buffers.
 * Old Revisions::       Examining and comparing old versions.
 * Secondary VC Commands:: The commands used a little less frequently.
 * VC Directory Mode::   Listing files managed by version control.
@@ -785,6 +786,9 @@ Introduction to Version Control
 * Why Version Control?::    Understanding the problems it addresses.
 * Version Control Systems:: Supported version control back-end systems.
 * VCS Concepts::            Words and concepts related to version control.
+* VCS Merging::             How file conflicts are handled.
+* VCS Changesets::          Changesets in version control.
+* VCS Repositories::        Where version control repositories are stored.
 * Types of Log File::       The VCS log in contrast to the ChangeLog.
 
 Basic Editing under Version Control
@@ -792,7 +796,6 @@ Basic Editing under Version Control
 * VC With A Merging VCS::  Without locking: default mode for CVS.
 * VC With A Locking VCS::  RCS in its default mode, SCCS, and optionally CVS.
 * Advanced C-x v v::       Advanced features available with a prefix argument.
-* Log Buffer::             Features available in log entry buffers.
 
 The Secondary Commands of VC
 
@@ -1189,6 +1192,7 @@ Emacs and Mac OS / GNUstep
 
 Emacs and Microsoft Windows/MS-DOS
 
+* Windows Startup::     How to start Emacs on Windows.
 * Text and Binary::     Text files use CRLF to terminate lines.
 * Windows Files::       File-name conventions on Windows.
 * ls in Lisp::          Emulation of @code{ls} for Dired.

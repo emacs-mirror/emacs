@@ -1875,15 +1875,6 @@ lookup_char_property (Lisp_Object plist, register Lisp_Object prop, int textprop
 }
 
 
-/* Set point "temporarily", without checking any text properties.  */
-
-INLINE void
-temp_set_point (struct buffer *buffer, EMACS_INT charpos)
-{
-  temp_set_point_both (buffer, charpos,
-		       buf_charpos_to_bytepos (buffer, charpos));
-}
-
 /* Set point in BUFFER "temporarily" to CHARPOS, which corresponds to
    byte position BYTEPOS.  */
 
@@ -1904,6 +1895,15 @@ temp_set_point_both (struct buffer *buffer,
 
   BUF_PT_BYTE (buffer) = bytepos;
   BUF_PT (buffer) = charpos;
+}
+
+/* Set point "temporarily", without checking any text properties.  */
+
+INLINE void
+temp_set_point (struct buffer *buffer, EMACS_INT charpos)
+{
+  temp_set_point_both (buffer, charpos,
+		       buf_charpos_to_bytepos (buffer, charpos));
 }
 
 /* Set point in BUFFER to CHARPOS.  If the target position is

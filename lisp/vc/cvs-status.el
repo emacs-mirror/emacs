@@ -223,7 +223,6 @@ The tree will be printed no closer than column COLUMN."
   (let* ((eol (save-excursion (end-of-line) (current-column)))
 	 (column (max (+ eol 2) column)))
     (if (null tags) column
-      ;;(move-to-column-force column)
       (let* ((rev (cvs-car tags))
 	     (name (funcall printer (cvs-car rev)))
 	     (rest (append (cvs-cdr name) (cvs-cdr tags)))

@@ -1692,8 +1692,7 @@ variable `speedbar-obj-alist'."
     (speedbar-enable-update)))
 
 (defun speedbar-toggle-images ()
-  "Toggle use of images in the speedbar frame.
-Images are not available in Emacs 20 or earlier."
+  "Toggle use of images in the speedbar frame."
   (interactive)
   (setq speedbar-use-images (not speedbar-use-images))
   (speedbar-refresh))

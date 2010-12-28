@@ -1509,7 +1509,8 @@ or the `pop-to-buffer' function."
 	      (mm-disable-multibyte)
 	      (insert s)))
 	(let ((gnus-newsgroup-charset (car message-posting-charset))
-	      gnus-article-prepare-hook gnus-original-article-buffer)
+	      gnus-article-prepare-hook gnus-original-article-buffer
+	      gnus-displaying-mime)
 	  (run-hooks 'gnus-article-decode-hook)
 	  (let ((gnus-newsgroup-name "dummy")
 		(gnus-newsrc-hashtb (or gnus-newsrc-hashtb

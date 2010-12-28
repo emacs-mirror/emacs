@@ -5,7 +5,7 @@
 ;; Author: Dan Davison, Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -38,38 +38,34 @@
 (defvar org-babel-perl-command "perl"
   "Name of command to use for executing perl code.")
 
-(defun org-babel-expand-body:perl (body params &optional processed-params)
-  "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (nth 1 (or processed-params (org-babel-process-params params)))))
-    (concat
-     (mapconcat ;; define any variables
-      (lambda (pair)
-        (format "$%s=%s;"
-                (car pair)
-                (org-babel-perl-var-to-perl (cdr pair))))
-      vars "\n") "\n" (org-babel-trim body) "\n")))
-
 (defun org-babel-execute:perl (body params)
   "Execute a block of Perl code with Babel.
 This function is called by `org-babel-execute-src-block'."
-  (let* ((processed-params (org-babel-process-params params))
-         (session (nth 0 processed-params))
-         (vars (nth 1 processed-params))
-         (result-params (nth 2 processed-params))
-         (result-type (nth 3 processed-params))
-         (full-body (org-babel-expand-body:perl
-                     body params processed-params))
+  (let* ((session (cdr (assoc :session params)))
+         (result-params (cdr (assoc :result-params params)))
+         (result-type (cdr (assoc :result-type params)))
+         (full-body (org-babel-expand-body:generic
+		     body params (org-babel-variable-assignments:perl params)))
 	(session (org-babel-perl-initiate-session session)))
     (org-babel-reassemble-table
      (org-babel-perl-evaluate session full-body result-type)
      (org-babel-pick-name
-      (nth 4 processed-params) (cdr (assoc :colnames params)))
+      (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
      (org-babel-pick-name
-      (nth 5 processed-params) (cdr (assoc :rownames params))))))
+      (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params))))))
 
 (defun org-babel-prep-session:perl (session params)
   "Prepare SESSION according to the header arguments in PARAMS."
   (error "Sessions are not supported for Perl."))
+
+(defun org-babel-variable-assignments:perl (params)
+  "Return list of perl statements assigning the block's variables"
+  (mapcar
+   (lambda (pair)
+     (format "$%s=%s;"
+	     (car pair)
+	     (org-babel-perl-var-to-perl (cdr pair))))
+   (mapcar #'cdr (org-babel-get-header params :var))))
 
 ;; helper functions
 
@@ -107,10 +103,11 @@ return the value of the last statement in BODY, as elisp."
   (when session (error "Sessions are not supported for Perl."))
   (case result-type
     (output (org-babel-eval org-babel-perl-command body))
-    (value (let ((tmp-file (make-temp-file "org-babel-perl-results-")))
+    (value (let ((tmp-file (org-babel-temp-file "perl-")))
 	     (org-babel-eval
 	      org-babel-perl-command
-	      (format org-babel-perl-wrapper-method body tmp-file))
+	      (format org-babel-perl-wrapper-method body
+		      (org-babel-process-file-name tmp-file 'noquote)))
 	     (org-babel-eval-read-file tmp-file)))))
 
 (provide 'ob-perl)

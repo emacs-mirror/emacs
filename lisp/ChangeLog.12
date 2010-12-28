@@ -2528,7 +2528,7 @@
 	* files.el (find-alternate-file): Revert query message to Emacs 21
 	version.
 
-2007-01-20  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2007-01-20  Eric Hanchrow  <offby1@blarg.net>
 
 	* progmodes/cperl-mode.el (cperl-electric-keywords): Document in
 	the doc string how to use personal abbrevs without electric keywords.
@@ -7791,7 +7791,7 @@
 	* textmodes/table.el: Add move-beginning-of-line and
 	move-end-of-line to Point Motion Only Group.
 
-2006-07-22  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2006-07-22  Eric Hanchrow  <offby1@blarg.net>
 
 	* progmodes/delphi.el (delphi-fill-comment): Use save-restriction.
 
@@ -20588,7 +20588,7 @@
 	* progmodes/gud.el (gud-speedbar-menu-items): Use :visible
 	instead of :active.
 
-2005-10-08  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2005-10-08  Eric Hanchrow  <offby1@blarg.net>
 
 	* textmodes/ispell.el (ispell-check-version):
 	Ignore hyphen, and all that follows, in aspell's version text.
@@ -29165,7 +29165,7 @@
 	* jit-lock.el (jit-lock-stealth-time): Change default value to 16.
 	(jit-lock-stealth-nice): Change default value to 0.5.
 
-2005-04-23  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2005-04-23  Eric Hanchrow  <offby1@blarg.net>
 
 	* abbrev.el (write-abbrev-file): Write table entries in
 	alphabetical order by table name.

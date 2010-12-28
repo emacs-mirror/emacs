@@ -248,10 +248,14 @@ This option is enabled by default because it reduces Emacs memory usage."
   :type 'boolean)
 ;;;###autoload(put 'byte-compile-dynamic-docstrings 'safe-local-variable 'booleanp)
 
+(defconst byte-compile-log-buffer "*Compile-Log*"
+  "Name of the byte-compiler's log buffer.")
+
 (defcustom byte-optimize-log nil
-  "If true, the byte-compiler will log its optimizations into *Compile-Log*.
+  "If non-nil, the byte-compiler will log its optimizations.
 If this is 'source, then only source-level optimizations will be logged.
-If it is 'byte, then only byte-level optimizations will be logged."
+If it is 'byte, then only byte-level optimizations will be logged.
+The information is logged to `byte-compile-log-buffer'."
   :group 'bytecomp
   :type '(choice (const :tag "none" nil)
 		 (const :tag "all" t)
@@ -297,21 +301,12 @@ suppress.  For example, (not mapcar) will suppress warnings about mapcar."
 		 (set :menu-tag "Some"
                       ,@(mapcar (lambda (x) `(const ,x))
                                 byte-compile-warning-types))))
-;;;###autoload(put 'byte-compile-warnings 'safe-local-variable 'byte-compile-warnings-safe-p)
 
 ;;;###autoload
-(defun byte-compile-warnings-safe-p (x)
-  "Return non-nil if X is valid as a value of `byte-compile-warnings'."
-  (or (booleanp x)
-      (and (listp x)
-           (if (eq (car x) 'not) (setq x (cdr x))
-             t)
-	   (equal (mapcar
-		   (lambda (e)
-		     (when (memq e byte-compile-warning-types)
-		       e))
-		   x)
-		  x))))
+(put 'byte-compile-warnings 'safe-local-variable
+     (lambda (v)
+       (or (symbolp v)
+           (null (delq nil (mapcar (lambda (x) (not (symbolp x))) v))))))
 
 (defun byte-compile-warning-enabled-p (warning)
   "Return non-nil if WARNING is enabled, according to `byte-compile-warnings'."
@@ -885,7 +880,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 
 ;; Log something that isn't a warning.
 (defun byte-compile-log-1 (string)
-  (with-current-buffer "*Compile-Log*"
+  (with-current-buffer byte-compile-log-buffer
     (let ((inhibit-read-only t))
       (goto-char (point-max))
       (byte-compile-warning-prefix nil nil)
@@ -993,13 +988,13 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 ;; (compile-mode) will cause this to be loaded.
 (declare-function compilation-forget-errors "compile" ())
 
-;; Log the start of a file in *Compile-Log*, and mark it as done.
+;; Log the start of a file in `byte-compile-log-buffer', and mark it as done.
 ;; Return the position of the start of the page in the log buffer.
 ;; But do nothing in batch mode.
 (defun byte-compile-log-file ()
   (and (not (equal byte-compile-current-file byte-compile-last-logged-file))
        (not noninteractive)
-       (with-current-buffer (get-buffer-create "*Compile-Log*")
+       (with-current-buffer (get-buffer-create byte-compile-log-buffer)
 	 (goto-char (point-max))
 	 (let* ((inhibit-read-only t)
 		(dir (and byte-compile-current-file
@@ -1030,14 +1025,14 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	   (compilation-forget-errors)
 	   pt))))
 
-;; Log a message STRING in *Compile-Log*.
+;; Log a message STRING in `byte-compile-log-buffer'.
 ;; Also log the current function and file if not already done.
 (defun byte-compile-log-warning (string &optional fill level)
   (let ((warning-prefix-function 'byte-compile-warning-prefix)
 	(warning-type-format "")
 	(warning-fill-prefix (if fill "    "))
 	(inhibit-read-only t))
-    (display-warning 'bytecomp string level "*Compile-Log*")))
+    (display-warning 'bytecomp string level byte-compile-log-buffer)))
 
 (defun byte-compile-warn (format &rest args)
   "Issue a byte compiler warning; use (format FORMAT ARGS...) for message."
@@ -1453,7 +1448,7 @@ symbol itself."
 	  (warning-series-started
 	   (and (markerp warning-series)
 		(eq (marker-buffer warning-series)
-		    (get-buffer "*Compile-Log*")))))
+		    (get-buffer byte-compile-log-buffer)))))
      (byte-compile-find-cl-functions)
      (if (or (eq warning-series 'byte-compile-warning-series)
 	     warning-series-started)
@@ -1515,7 +1510,7 @@ that already has a `.elc' file."
       nil
     (save-some-buffers)
     (force-mode-line-update))
-  (with-current-buffer (get-buffer-create "*Compile-Log*")
+  (with-current-buffer (get-buffer-create byte-compile-log-buffer)
     (setq default-directory (expand-file-name bytecomp-directory))
     ;; compilation-mode copies value of default-directory.
     (unless (eq major-mode 'compilation-mode)
@@ -2063,9 +2058,9 @@ list that represents a doc string reference.
                         ;; to objects already output
                         ;; (for instance, gensyms in the arg list).
                         (let (non-nil)
-                          (dotimes (i (length print-number-table))
-                            (if (aref print-number-table i)
-                                (setq non-nil t)))
+                          (when (hash-table-p print-number-table)
+                            (maphash (lambda (k v) (if v (setq non-nil t)))
+                                     print-number-table))
                           (not non-nil)))
                    ;; Output the byte code and constants specially
                    ;; for lazy dynamic loading.

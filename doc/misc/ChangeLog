@@ -1,3 +1,261 @@
+2010-12-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Encrypting/decrypting *.gpg files): Mention
+	epa-file-select-keys.
+
+2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Archived Messages): Remove outdated text.
+
+2010-12-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Foreign Groups): Added clarification of foreign groups.
+
+2010-12-15  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus.texi (The hyrex Engine): Say that this engine as obsolete.
+
+2010-12-14  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus.texi (The swish++ Engine): Add customizable parameters
+	descriptions.
+	(The swish-e Engine): Ditto.
+
+2010-12-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): Add "ksu" method.
+	(Remote processes): Add example with remote `default-directory'.
+
+2010-12-14  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Expanding aliases when sending mail):
+	Now build-mail-aliases is interactive.
+
+2010-12-13  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus.texi: First pass at adding (rough) nnir documentation.
+
+2010-12-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Filtering New Groups):
+	Mention gnus-auto-subscribed-categories.
+	(The First Time): Remove, since default-subscribed-newsgroups has been
+	removed.
+
+2010-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (For Clauses): Small fixes for frames and windows.
+
+2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Using capture): Document using prefix arguments for
+	finalizing capture.
+	(Agenda commands): Document prefix argument for the bulk scatter
+	command.
+	(Beamer class export): Document that also overlay arguments can be
+	passed to the column environment.
+	(Template elements): Document the new entry type.
+
+2010-12-11  Puneeth Chaganti  <punchagan@gmail.com>
+
+	* org.texi (Include files): Document :minlevel.
+
+2010-12-11  Julien Danjou  <julien@danjou.info>
+
+	* org.texi (Categories): Document category icons.
+
+2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (noweb): Fix typo.
+
+2010-12-06  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* gnus.texi (Server Commands): Point to the rest of the server
+	commands.
+
+2010-12-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Paging the Article): Note the reverse meanings of `C-u C-u
+	g'.
+
+2010-12-02  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi (Archived Messages): Remove gnus-outgoing-message-group.
+
+2010-11-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing the IMAP Connection): Note the new defaults.
+	(Direct Functions): Note the STARTTLS upgrade.
+
+2010-11-27  Glenn Morris  <rgm@gnu.org>
+	    James Clark  <none@example.com>
+
+	* nxml-mode.texi (Introduction): New section.
+
+2010-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Server Commands): Document gnus-server-show-server.
+
+2010-11-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.0.
+
+	* trampver.texi: Update release number.
+
+2010-11-19  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (TeX and LaTeX Language Modes, Predefined Units):
+	Mention that the TeX specific units won't use the `tex' prefix
+	in TeX mode.
+
+2010-11-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Misc Article): Document gnus-inhibit-images.
+
+2010-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* edt.texi: Remove information about Emacs 19.
+
+2010-11-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trampver.texi: Update release number.
+
+2010-11-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Article Washing): Fix typo.
+
+2010-11-11  Noorul Islam  <noorul@noorul.com>
+
+	* org.texi: Fix typo.
+
+2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Using capture): Explain that refiling is
+	sensitive to cursor position.
+
+2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Images and tables): Add cross reference to link section.
+
+2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi: Document the <c> cookie.
+
+2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi: multi-line header arguments :PROPERTIES: :ID:
+	b77c8857-6c76-4ea9-8a61-ddc2648d96c4 :END:.
+
+2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (CSS support): Document :HTML_CONTAINER_CLASS: property.
+
+2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Project alist): Mention that this is a property list.
+
+2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Setting up the staging area): Document that
+	file names remain visible when encrypting the MobileOrg files.
+
+2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Setting up the staging area): Document which
+	versions are needed for encryption.
+
+2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (noweb): Update :noweb documentation to
+	reflect the new "tangle" argument.
+
+2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Batch execution): Improve tangling script in
+	documentation.
+
+2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Handling links):
+	(In-buffer settings): Document inlining images on startup.
+
+2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Setting up the staging area): Document use of
+	crypt password.
+
+2010-11-11  David Maus  <dmaus@ictsoc.de>
+
+	* org.texi (Template expansion): Add date related link type escapes.
+
+2010-11-11  David Maus  <dmaus@ictsoc.de>
+
+	* org.texi (Template expansion): Add mew in table for link type
+	escapes.
+
+2010-11-11  David Maus  <dmaus@ictsoc.de>
+
+	* org.texi (Template expansion): Fix typo in link type escapes.
+
+2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Structure of code blocks): Another documentation tweak.
+
+2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Structure of code blocks): Documentation tweak.
+
+2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Structure of code blocks):
+	Update documentation to mention inline code block syntax.
+
+2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (comments): Improve wording.
+
+2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (comments): Document the new :comments header arguments.
+
+2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Installation): Remove the special
+	installation instructions for XEmacs.
+
+2010-11-11  Jambunathan K  <kjambunathan@gmail.com>  (tiny change)
+
+	* org.texi (Easy Templates): New section.  Documents quick
+	insertion of empty structural elements.
+
+2010-11-11  Noorul Islam  <noorul@noorul.com>
+
+	* org.texi: Fix doc.
+
+2010-11-11  Jambunathan K  <kjambunathan@gmail.com>  (tiny change)
+
+	* org.texi (The date/time prompt): Document specification
+	of time ranges.
+
+2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Internal links): Document the changes in
+	internal links.
+
+2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Agenda commands): Document the limitation for
+	the filter preset - it can only be used for an entire agenda
+	view, not in an individual block in a block agenda.
+
+2010-11-11  Eric S Fraga  <e.fraga@ucl.ac.uk>
+
+	* org.texi (iCalendar export): Document alarm creation.
+
+2010-11-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Type Conversion): Introduce `:unix-fd' type mapping.
+
 2010-11-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Article Washing): Document gnus-article-treat-non-ascii.

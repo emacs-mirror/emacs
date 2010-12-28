@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -66,9 +66,19 @@
 	     (to (vm-get-header-contents message "To"))
 	     (from (vm-get-header-contents message "From"))
 	     (message-id (vm-su-message-id message))
+	     (date (vm-get-header-contents message "Date"))
+	     (date-ts (and date (format-time-string
+				 (org-time-stamp-format t)
+				 (date-to-time date))))
+	     (date-ts-ia (and date (format-time-string
+				    (org-time-stamp-format t t)
+				    (date-to-time date))))
 	     desc link)
 	(org-store-link-props :type "vm" :from from :to to :subject subject
 			      :message-id message-id)
+	(when date
+	  (org-add-link-props :date date :date-timestamp date-ts
+			      :date-timestamp-inactive date-ts-ia))
 	(setq message-id (org-remove-angle-brackets message-id))
 	(setq folder (abbreviate-file-name folder))
 	(if (and vm-folder-directory

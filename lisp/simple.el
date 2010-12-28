@@ -441,7 +441,9 @@ Other major modes are defined by comparison with this one."
 (define-derived-mode prog-mode fundamental-mode "Prog"
   "Major mode for editing programming language source code."
   (set (make-local-variable 'require-final-newline) mode-require-final-newline)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t))
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  ;; Any programming language is always written left to right.
+  (setq bidi-paragraph-direction 'left-to-right))
 
 ;; Making and deleting lines.
 
@@ -512,7 +514,7 @@ With arg N, insert N newlines."
   (interactive "*p")
   (let* ((do-fill-prefix (and fill-prefix (bolp)))
 	 (do-left-margin (and (bolp) (> (current-left-margin) 0)))
-	 (loc (point))
+	 (loc (point-marker))
 	 ;; Don't expand an abbrev before point.
 	 (abbrev-mode nil))
     (newline n)
@@ -759,10 +761,14 @@ If BACKWARD-ONLY is non-nil, only delete them before point."
        (constrain-to-field nil orig-pos)))))
 
 (defun just-one-space (&optional n)
-  "Delete all spaces and tabs around point, leaving one space (or N spaces)."
+  "Delete all spaces and tabs around point, leaving one space (or N spaces).
+If N is negative, delete newlines as well."
   (interactive "*p")
-  (let ((orig-pos (point)))
-    (skip-chars-backward " \t")
+  (unless n (setq n 1))
+  (let ((orig-pos (point))
+        (skip-characters (if (< n 0) " \t\n\r" " \t"))
+        (n (abs n)))
+    (skip-chars-backward skip-characters)
     (constrain-to-field nil orig-pos)
     (dotimes (i (or n 1))
       (if (= (following-char) ?\s)
@@ -771,7 +777,7 @@ If BACKWARD-ONLY is non-nil, only delete them before point."
     (delete-region
      (point)
      (progn
-       (skip-chars-forward " \t")
+       (skip-chars-forward skip-characters)
        (constrain-to-field nil orig-pos t)))))
 
 (defun beginning-of-buffer (&optional arg)
@@ -972,6 +978,21 @@ rather than line counts."
     (if (eq selective-display t)
 	(re-search-forward "[\n\C-m]" nil 'end (1- line))
       (forward-line (1- line)))))
+
+(defun count-words-region (start end)
+  "Print the number of words in the region.
+When called interactively, the word count is printed in echo area."
+  (interactive "r")
+  (let ((count 0))
+    (save-excursion
+      (save-restriction
+        (narrow-to-region start end)
+        (goto-char (point-min))
+        (while (forward-word 1)
+          (setq count (1+ count)))))
+    (if (interactive-p)
+        (message "Region has %d words" count))
+    count))
 
 (defun count-lines-region (start end)
   "Print number of lines and characters in the region."
@@ -2975,11 +2996,6 @@ If `interprogram-cut-function' is non-nil, apply it to STRING.
 Optional second argument REPLACE non-nil means that STRING will replace
 the front of the kill ring, rather than being added to the list.
 
-Optional third arguments YANK-HANDLER controls how the STRING is later
-inserted into a buffer; see `insert-for-yank' for details.
-When a yank handler is specified, STRING must be non-empty (the yank
-handler, if non-nil, is stored as a `yank-handler' text property on STRING).
-
 When `save-interprogram-paste-before-kill' and `interprogram-paste-function'
 are non-nil, saves the interprogram paste string(s) into `kill-ring' before
 STRING.
@@ -3019,22 +3035,19 @@ argument should still be a \"useful\" string for such uses."
   (setq kill-ring-yank-pointer kill-ring)
   (if interprogram-cut-function
       (funcall interprogram-cut-function string)))
+(set-advertised-calling-convention
+ 'kill-new '(string &optional replace) "23.3")
 
 (defun kill-append (string before-p &optional yank-handler)
   "Append STRING to the end of the latest kill in the kill ring.
 If BEFORE-P is non-nil, prepend STRING to the kill.
-Optional third argument YANK-HANDLER, if non-nil, specifies the
-yank-handler text property to be set on the combined kill ring
-string.  If the specified yank-handler arg differs from the
-yank-handler property of the latest kill string, this function
-adds the combined string to the kill ring as a new element,
-instead of replacing the last kill with it.
 If `interprogram-cut-function' is set, pass the resulting kill to it."
   (let* ((cur (car kill-ring)))
     (kill-new (if before-p (concat string cur) (concat cur string))
 	      (or (= (length cur) 0)
 		  (equal yank-handler (get-text-property 0 'yank-handler cur)))
 	      yank-handler)))
+(set-advertised-calling-convention 'kill-append '(string before-p) "23.3")
 
 (defcustom yank-pop-change-selection nil
   "If non-nil, rotating the kill ring changes the window system selection."
@@ -3115,11 +3128,7 @@ Supply two arguments, character positions indicating the stretch of text
 Any command that calls this function is a \"kill command\".
 If the previous command was also a kill command,
 the text killed this time appends to the text killed last time
-to make one entry in the kill ring.
-
-In Lisp code, optional third arg YANK-HANDLER, if non-nil,
-specifies the yank-handler text property to be set on the killed
-text.  See `insert-for-yank'."
+to make one entry in the kill ring."
   ;; Pass point first, then mark, because the order matters
   ;; when calling kill-append.
   (interactive (list (point) (mark)))
@@ -3151,6 +3160,7 @@ text.  See `insert-for-yank'."
        (barf-if-buffer-read-only)
        ;; If the buffer isn't read-only, the text is.
        (signal 'text-read-only (list (current-buffer)))))))
+(set-advertised-calling-convention 'kill-region '(beg end) "23.3")
 
 ;; copy-region-as-kill no longer sets this-command, because it's confusing
 ;; to get two copies of the text when the user accidentally types M-w and

@@ -368,6 +368,17 @@ Thus, this does not include the shell's current directory.")
 
 ;;; Basic Procedures
 
+(defcustom shell-dir-cookie-re nil
+  "Regexp matching your prompt, including some part of the current directory.
+If your prompt includes the current directory or the last few elements of it,
+set this to a pattern that matches your prompt and whose subgroup 1 matches
+the directory part of it.
+This is used by `shell-dir-cookie-watcher' to try and use this info
+to track your current directory.  It can be used instead of or in addition
+to `dirtrack-mode'."
+  :group 'shell
+  :type '(choice (const nil) regexp))
+
 (put 'shell-mode 'mode-class 'special)
 
 (define-derived-mode shell-mode comint-mode "Shell"
@@ -472,6 +483,10 @@ buffer."
       (when (string-equal shell "bash")
         (add-hook 'comint-output-filter-functions
                   'shell-filter-ctrl-a-ctrl-b nil t)))
+    (when shell-dir-cookie-re
+      ;; Watch for magic cookies in the output to track the current dir.
+      (add-hook 'comint-output-filter-functions
+		'shell-dir-cookie-watcher nil t))
     (comint-read-input-ring t)))
 
 (defun shell-filter-ctrl-a-ctrl-b (string)
@@ -550,13 +565,19 @@ Otherwise, one argument `-i' is passed to the shell.
 			  (generate-new-buffer-name "*shell*"))
 	   (if (file-remote-p default-directory)
 	       ;; It must be possible to declare a local default-directory.
+               ;; FIXME: This can't be right: it changes the default-directory
+               ;; of the current-buffer rather than of the *shell* buffer.
 	       (setq default-directory
 		     (expand-file-name
 		      (read-file-name
 		       "Default directory: " default-directory default-directory
 		       t nil 'file-directory-p))))))))
   (require 'ansi-color)
-  (setq buffer (get-buffer-create (or buffer "*shell*")))
+  (setq buffer (if (or buffer (not (derived-mode-p 'shell-mode))
+                       (comint-check-proc (current-buffer)))
+                   (get-buffer-create (or buffer "*shell*"))
+                 ;; If the current buffer is a dead shell buffer, use it.
+                 (current-buffer)))
   ;; Pop to buffer, so that the buffer's window will be correctly set
   ;; when we call comint (so that comint sets the COLUMNS env var properly).
   (pop-to-buffer buffer)
@@ -618,6 +639,20 @@ Otherwise, one argument `-i' is passed to the shell.
 ;; directory tracking machinery currently used in this package, and
 ;; replace it with a process filter that watches for and strips out
 ;; these messages.
+
+(defun shell-dir-cookie-watcher (text)
+  ;; This is fragile: the TEXT could be split into several chunks and we'd
+  ;; miss it.  Oh well.  It's a best effort anyway.  I'd expect that it's
+  ;; rather unusual to have the prompt split into several packets, but
+  ;; I'm sure Murphy will prove me wrong.
+  (when (and shell-dir-cookie-re (string-match shell-dir-cookie-re text))
+    (let ((dir (match-string 1 text)))
+      (cond
+       ((file-name-absolute-p dir) (shell-cd dir))
+       ;; Let's try and see if it seems to be up or down from where we were.
+       ((string-match "\\`\\(.*\\)\\(?:/.*\\)?\n\\(.*/\\)\\1\\(?:/.*\\)?\\'"
+		      (setq text (concat dir "\n" default-directory)))
+	(shell-cd (concat (match-string 2 text) dir)))))))
 
 (defun shell-directory-tracker (str)
   "Tracks cd, pushd and popd commands issued to the shell.

@@ -624,7 +624,7 @@ Postpone undisplaying of viewers for types in
 	     no-strict-mime
 	     (and cd (mail-header-parse-content-disposition cd))
 	     description id)
-	    ctl))))
+	    ctl from))))
 	(when id
 	  (when (string-match " *<\\(.*\\)> *" id)
 	    (setq id (match-string 1 id)))
@@ -666,7 +666,7 @@ Postpone undisplaying of viewers for types in
 	(save-restriction
 	  (narrow-to-region start end)
 	  (setq parts (nconc (list (mm-dissect-buffer t nil from)) parts)))))
-    (mm-possibly-verify-or-decrypt (nreverse parts) ctl)))
+    (mm-possibly-verify-or-decrypt (nreverse parts) ctl from)))
 
 (defun mm-copy-to-buffer ()
   "Copy the contents of the current buffer to a fresh buffer."
@@ -1569,7 +1569,7 @@ If RECURSIVE, search recursively."
 
 (autoload 'mm-view-pkcs7 "mm-view")
 
-(defun mm-possibly-verify-or-decrypt (parts ctl)
+(defun mm-possibly-verify-or-decrypt (parts ctl &optional from)
   (let ((type (car ctl))
 	(subtype (cadr (split-string (car ctl) "/")))
 	(mm-security-handle ctl) ;; (car CTL) is the type.
@@ -1584,7 +1584,7 @@ If RECURSIVE, search recursively."
 		    ((eq mm-decrypt-option 'known) t)
 		    (t (y-or-n-p
 			(format "Decrypt (S/MIME) part? "))))
-		   (mm-view-pkcs7 parts))
+		   (mm-view-pkcs7 parts from))
 	  (setq parts (mm-dissect-buffer t)))))
      ((equal subtype "signed")
       (unless (and (setq protocol
@@ -1687,23 +1687,26 @@ If RECURSIVE, search recursively."
 		  (start end &optional base-url))
 (declare-function shr-insert-document "shr" (dom))
 (defvar shr-blocked-images)
+(defvar gnus-inhibit-images)
 (autoload 'gnus-blocked-images "gnus-art")
 
 (defun mm-shr (handle)
   ;; Require since we bind its variables.
   (require 'shr)
   (let ((article-buffer (current-buffer))
-	(shr-blocked-images (if (and (boundp 'gnus-summary-buffer)
-				     (buffer-name gnus-summary-buffer))
-				(with-current-buffer gnus-summary-buffer
-				  (gnus-blocked-images))
-			      shr-blocked-images))
 	(shr-content-function (lambda (id)
 				(let ((handle (mm-get-content-id id)))
 				  (when handle
 				    (mm-with-part handle
 				      (buffer-string))))))
-	charset)
+	shr-inhibit-images shr-blocked-images charset char)
+    (if (and (boundp 'gnus-summary-buffer)
+	     (buffer-name gnus-summary-buffer))
+	(with-current-buffer gnus-summary-buffer
+	  (setq shr-inhibit-images gnus-inhibit-images
+		shr-blocked-images (gnus-blocked-images)))
+      (setq shr-inhibit-images gnus-inhibit-images
+	    shr-blocked-images (gnus-blocked-images)))
     (unless handle
       (setq handle (mm-dissect-buffer t)))
     (setq charset (mail-content-type-get (mm-handle-type handle) 'charset))
@@ -1711,13 +1714,25 @@ If RECURSIVE, search recursively."
       (narrow-to-region (point) (point))
       (shr-insert-document
        (mm-with-part handle
-	 (when (and charset
-		    (setq charset (mm-charset-to-coding-system charset))
-		    (not (eq charset 'ascii)))
-	   (insert (prog1
-		       (mm-decode-coding-string (buffer-string) charset)
-		     (erase-buffer)
-		     (mm-enable-multibyte))))
+	 (insert (prog1
+		     (if (and charset
+			      (setq charset
+				    (mm-charset-to-coding-system charset))
+			      (not (eq charset 'ascii)))
+			 (mm-decode-coding-string (buffer-string) charset)
+		       (mm-string-as-multibyte (buffer-string)))
+		   (erase-buffer)
+		   (mm-enable-multibyte)))
+	 (goto-char (point-min))
+	 (setq case-fold-search t)
+	 (while (re-search-forward
+		 "&#\\(?:x\\([89][0-9a-f]\\)\\|\\(1[2-5][0-9]\\)\\);" nil t)
+	   (when (setq char
+		       (cdr (assq (if (match-beginning 1)
+				      (string-to-number (match-string 1) 16)
+				    (string-to-number (match-string 2)))
+				  mm-extra-numeric-entities)))
+	     (replace-match (char-to-string char))))
 	 (libxml-parse-html-region (point-min) (point-max))))
       (mm-handle-set-undisplayer
        handle

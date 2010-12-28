@@ -5,7 +5,7 @@
 ;; Author: John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -149,15 +149,17 @@ This list represents a \"habit\" for the rest of this module."
     (assert (org-is-habit-p (point)))
     (let* ((scheduled (org-get-scheduled-time (point)))
 	   (scheduled-repeat (org-get-repeat org-scheduled-string))
-	   (sr-days (org-habit-duration-to-days scheduled-repeat))
 	   (end (org-entry-end-position))
-	   (habit-entry (org-no-properties (nth 5 (org-heading-components))))
-	   closed-dates deadline dr-days)
+	   (habit-entry (org-no-properties (nth 4 (org-heading-components))))
+	   closed-dates deadline dr-days sr-days)
       (if scheduled
 	  (setq scheduled (time-to-days scheduled))
 	(error "Habit %s has no scheduled date" habit-entry))
       (unless scheduled-repeat
-	(error "Habit %s has no scheduled repeat period" habit-entry))
+	(error
+	 "Habit '%s' has no scheduled repeat period or has an incorrect one"
+	 habit-entry))
+      (setq sr-days (org-habit-duration-to-days scheduled-repeat))
       (unless (> sr-days 0)
 	(error "Habit %s scheduled repeat period is less than 1d" habit-entry))
       (when (string-match "/\\([0-9]+[dwmy]\\)" scheduled-repeat)
@@ -195,10 +197,7 @@ This list represents a \"habit\" for the rest of this module."
   "Determine the relative priority of a habit.
 This must take into account not just urgency, but consistency as well."
   (let ((pri 1000)
-	(now (time-to-days
-	      (or moment
-		  (time-subtract (current-time)
-				 (list 0 (* 3600 org-extend-today-until) 0)))))
+	(now (if moment (time-to-days moment) (org-today)))
 	(scheduled (org-habit-scheduled habit))
 	(deadline (org-habit-deadline habit)))
     ;; add 10 for every day past the scheduled date, and subtract for every

@@ -411,34 +411,31 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	     (default-directory this-dir)
 	     (canonicalized (if (fboundp 'untranslated-canonical-name)
 				(untranslated-canonical-name this-dir))))
-	;; The Windows version doesn't report meaningful inode
-	;; numbers, so use the canonicalized absolute file name of the
-	;; directory instead.
+	;; The Windows version doesn't report meaningful inode numbers, so
+	;; use the canonicalized absolute file name of the directory instead.
 	(setq attrs (or canonicalized
 			(nthcdr 10 (file-attributes this-dir))))
 	(unless (member attrs normal-top-level-add-subdirs-inode-list)
 	  (push attrs normal-top-level-add-subdirs-inode-list)
 	  (dolist (file contents)
-	    ;; The lower-case variants of RCS and CVS are for DOS/Windows.
-	    (unless (member file '("." ".." "RCS" "CVS" "rcs" "cvs"))
-	      (when (and (string-match "\\`[[:alnum:]]" file)
-			 ;; Avoid doing a `stat' when it isn't necessary
-			 ;; because that can cause trouble when an NFS server
-			 ;; is down.
-			 (not (string-match "\\.elc?\\'" file))
-			 (file-directory-p file))
-		(let ((expanded (expand-file-name file)))
-		  (unless (file-exists-p (expand-file-name ".nosearch"
-							   expanded))
-		    (setq pending (nconc pending (list expanded)))))))))))
+	    (and (string-match "\\`[[:alnum:]]" file)
+		 ;; The lower-case variants of RCS and CVS are for DOS/Windows.
+		 (not (member file '("RCS" "CVS" "rcs" "cvs")))
+		 ;; Avoid doing a `stat' when it isn't necessary because
+		 ;; that can cause trouble when an NFS server is down.
+		 (not (string-match "\\.elc?\\'" file))
+		 (file-directory-p file)
+		 (let ((expanded (expand-file-name file)))
+		   (or (file-exists-p (expand-file-name ".nosearch" expanded))
+		       (setq pending (nconc pending (list expanded))))))))))
     (normal-top-level-add-to-load-path (cdr (nreverse dirs)))))
 
-;; This function is called from a subdirs.el file.
-;; It assumes that default-directory is the directory
-;; in which the subdirs.el file exists,
-;; and it adds to load-path the subdirs of that directory
-;; as specified in DIRS.  Normally the elements of DIRS are relative.
 (defun normal-top-level-add-to-load-path (dirs)
+  "This function is called from a subdirs.el file.
+It assumes that `default-directory' is the directory in which the
+subdirs.el file exists, and it adds to `load-path' the subdirs of
+that directory as specified in DIRS.  Normally the elements of
+DIRS are relative."
   (let ((tail load-path)
 	(thisdir (directory-file-name default-directory)))
     (while (and tail
@@ -466,9 +463,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; `user-full-name' is now known; reset its standard-value here.
     (put 'user-full-name 'standard-value
 	 (list (default-value 'user-full-name)))
-    ;; For root, preserve owner and group when editing files.
-    (if (equal (user-uid) 0)
-	(setq backup-by-copying-when-mismatch t))
     ;; Look in each dir in load-path for a subdirs.el file.
     ;; If we find one, load it, which will add the appropriate subdirs
     ;; of that dir into load-path,
@@ -618,8 +612,8 @@ function to this list.  The function should take no arguments,
 and initialize the window system environment to prepare for
 opening the first frame (e.g. open a connection to an X server).")
 
-;; Handle the X-like command-line arguments "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
+  "Handle the X-like command-line arguments \"-fg\", \"-bg\", \"-name\", etc."
   (let (rest)
     (message "%S" args)
     (while (and args
@@ -691,9 +685,6 @@ opening the first frame (e.g. open a connection to an X server).")
 
 (defvar server-name)
 (defvar server-process)
-;; Autoload in package.el, but when we bootstrap, we don't have loaddefs yet.
-(defvar package-enable-at-startup)
-(declare-function package-initialize "package" (&optional no-activate))
 
 (defun command-line ()
   (setq before-init-time (current-time)
@@ -885,14 +876,15 @@ opening the first frame (e.g. open a connection to an X server).")
 
   ;; Under X, this creates the X frame and deletes the terminal frame.
   (unless (daemonp)
-    ;; Enable or disable the tool-bar and menu-bar.
-    ;; While we're at it, set `no-blinking-cursor' too.
+
+    ;; If X resources are available, use them to initialize the values
+    ;; of `tool-bar-mode' and `menu-bar-mode', as well as the value of
+    ;; `no-blinking-cursor' and the `cursor' face.
     (cond
      ((or noninteractive emacs-basic-display)
       (setq menu-bar-mode nil
 	    tool-bar-mode nil
 	    no-blinking-cursor t))
-     ;; Check X resources if available.
      ((memq initial-window-system '(x w32 ns))
       (let ((no-vals  '("no" "off" "false" "0")))
 	(if (member (x-get-resource "menuBar" "MenuBar") no-vals)
@@ -901,7 +893,13 @@ opening the first frame (e.g. open a connection to an X server).")
 	    (setq tool-bar-mode nil))
 	(if (member (x-get-resource "cursorBlink" "CursorBlink")
 		    no-vals)
-	    (setq no-blinking-cursor t)))))
+	    (setq no-blinking-cursor t)))
+      ;; If the cursorColor X resource exists, alter the `cursor' face
+      ;; spec, but mark it as changed outside of Customize.
+      (let ((color (x-get-resource "cursorColor" "CursorColor")))
+	(when color
+	  (face-spec-set 'cursor `((t (:background ,color))))
+	  (put 'cursor 'face-modified t)))))
     (frame-initialize))
 
   (when (fboundp 'x-create-frame)

@@ -1010,11 +1010,12 @@ their parentheses.  It looks like this:
 @noindent
 @vindex display-time-24hr-format
 Here @var{hh} and @var{mm} are the hour and minute, followed always by
-@samp{am} or @samp{pm}.  @var{l.ll} is the average number of running
-processes in the whole system recently.  (Some fields may be missing if
-your operating system cannot support them.)  If you prefer time display
-in 24-hour format, set the variable @code{display-time-24hr-format}
-to @code{t}.
+@samp{am} or @samp{pm}.  @var{l.ll} is the average number, collected
+for the last few minutes, of processes in the whole system that were
+either running or ready to run (i.e.@: were waiting for an available
+processor).  (Some fields may be missing if your operating system
+cannot support them.)  If you prefer time display in 24-hour format,
+set the variable @code{display-time-24hr-format} to @code{t}.
 
 @cindex mail (on mode line)
 @vindex display-time-use-mail-icon
@@ -1135,6 +1136,48 @@ prefix these characters with an escape character.
   You can customize the way any particular character code is displayed
 by means of a display table.  @xref{Display Tables,, Display Tables,
 elisp, The Emacs Lisp Reference Manual}.
+
+@cindex glyphless characters
+@cindex characters with no font glyphs
+  On graphics displays, some characters could have no glyphs in any of
+the fonts available to Emacs.  On text terminals, some characters
+could be impossible to encode with the terminal coding system
+(@pxref{Terminal Coding}).  Emacs can display such @dfn{glyphless}
+characters using one of the following methods:
+
+@table @code
+@item zero-width
+Don't display the character.
+
+@item thin-space
+Display a thin space, 1-pixel wide on graphics displays or 1-character
+wide on text terminals.
+
+@item empty-box
+Display an empty box.
+
+@item acronym
+Display the acronym of the character's name (such as @sc{zwnj} or
+@sc{rlm}) in a box.
+
+@item hex-code
+Display the Unicode codepoint of the character in hexadecimal
+notation, in a box.
+@end table
+
+@noindent
+@cindex @code{glyphless-char} face
+With the exception of @code{zero-width}, all other methods draw these
+characters in a special face @code{glyphless-char}, which you can
+customize.
+
+@vindex glyphless-char-display-control
+@vindex char-acronym-table
+To control what glyphless characters are displayed using which method,
+customize the variable @code{glyphless-char-display-control}; see its
+doc string for the details.  For even finer control, set the elements
+of 2 char-tables: @code{glyphless-char-display} and
+@code{char-acronym-table}.
 
 @node Cursor Display
 @section Displaying the Cursor

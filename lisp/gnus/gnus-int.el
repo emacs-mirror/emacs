@@ -259,20 +259,21 @@ If it is down, start it up (again)."
 	  (gnus-message 1 "Denied server %s" server)
 	  nil)
       ;; Open the server.
-      (let* ((open-server-function (gnus-get-function gnus-command-method 'open-server))
+      (let* ((open-server-function
+	      (gnus-get-function gnus-command-method 'open-server))
              (result
-             (condition-case err
-                 (funcall open-server-function
-                          (nth 1 gnus-command-method)
-                          (nthcdr 2 gnus-command-method))
-               (error
-                (gnus-message 1 "Unable to open server %s due to: %s"
-			      server (error-message-string err))
-                nil)
-               (quit
-                (gnus-message 1 "Quit trying to open server %s" server)
-                nil)))
-            open-offline)
+	      (condition-case err
+		  (funcall open-server-function
+			   (nth 1 gnus-command-method)
+			   (nthcdr 2 gnus-command-method))
+		(error
+		 (gnus-message 1 "Unable to open server %s due to: %s"
+			       server (error-message-string err))
+		 nil)
+		(quit
+		 (gnus-message 1 "Quit trying to open server %s" server)
+		 nil)))
+	     open-offline)
 	;; If this hasn't been opened before, we add it to the list.
 	(unless elem
 	  (setq elem (list gnus-command-method nil)
@@ -472,6 +473,18 @@ If FETCH-OLD, retrieve all headers (or some subset thereof) in the group."
       (funcall (gnus-get-function gnus-command-method 'request-type)
 	       (gnus-group-real-name group) article))))
 
+(defun gnus-request-update-group-status (group status)
+  "Change the status of a group.
+Valid statuses include `subscribe' and `unsubscribe'."
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (if (not (gnus-check-backend-function
+	      'request-update-group-status (car gnus-command-method)))
+	nil
+      (funcall
+       (gnus-get-function gnus-command-method 'request-update-group-status)
+       (gnus-group-real-name group) status
+       (nth 1 gnus-command-method)))))
+
 (defun gnus-request-set-mark (group action)
   "Set marks on articles in the back end."
   (let ((gnus-command-method (gnus-find-method-for-group group)))
@@ -502,12 +515,11 @@ If BUFFER, insert the article in that group."
 	     article (gnus-group-real-name group)
 	     (nth 1 gnus-command-method) buffer)))
 
-(defun gnus-request-thread (id)
-  "Request the headers in the thread containing the article
-specified by Message-ID id."
+(defun gnus-request-thread (header)
+  "Request the headers in the thread containing the article specified by HEADER."
   (let ((gnus-command-method (gnus-find-method-for-group gnus-newsgroup-name)))
     (funcall (gnus-get-function gnus-command-method 'request-thread)
-	     id)))
+	     header)))
 
 (defun gnus-warp-to-article ()
   "Warps from an article in a virtual group to the article in its

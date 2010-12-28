@@ -696,6 +696,14 @@ This method is also similar to @option{ssh}.  It only uses the
 @command{krlogin -x} command to log in to the remote host.
 
 
+@item @option{ksu}
+@cindex method ksu
+@cindex ksu method
+@cindex Kerberos (with ksu method)
+
+This is another method from the Kerberos suite.  It behaves like @option{su}.
+
+
 @item @option{plink}
 @cindex method plink
 @cindex plink method
@@ -2483,6 +2491,15 @@ remote file names.  It does not work for the @option{ftp} and
 @option{smb} methods.  Association of a pty, as specified in
 @code{start-file-process}, is not supported.
 
+@code{process-file} and @code{start-file-process} work on the remote
+host, when the variable @code{default-directory} is remote:
+
+@lisp
+(let ((default-directory "/ssh:remote.host:"))
+  (start-file-process "grep" (get-buffer-create "*grep*")
+                      "/bin/sh" "-c" "grep -e tramp *"))
+@end lisp
+
 @ifset emacsgvfs
 If the remote host is mounted via GVFS (see @ref{GVFS based methods}),
 the remote filesystem is mounted locally.  Therefore, there are no
@@ -3665,7 +3682,3 @@ for @value{emacsothername}.
 @c * Use `filename' resp. `file name' consistently.
 @c * Use `host' resp. `machine' consistently.
 @c * Consistent small or capitalized words especially in menues.
-
-@ignore
-   arch-tag: f96dd66e-6dd3-4c92-8d77-9c56205ba808
-@end ignore

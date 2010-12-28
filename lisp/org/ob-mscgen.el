@@ -5,7 +5,7 @@
 ;; Author: Juan Pechiar
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -61,9 +61,6 @@
 (defvar org-babel-default-header-args:mscgen
   '((:results . "file") (:exports . "results"))
   "Default arguments to use when evaluating a mscgen source block.")
-
-(defun org-babel-expand-body:mscgen (body params &optional processed-params)
-  "Expand BODY according to PARAMS, return the expanded body." body)
 
 (defun org-babel-execute:mscgen (body params)
   "Execute a block of Mscgen code with Babel.

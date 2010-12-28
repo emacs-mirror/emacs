@@ -4,7 +4,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -26,10 +26,11 @@
 ;;; Commentary:
 ;;
 ;; This file contains the code to interact with Richard Moreland's iPhone
-;; application MobileOrg.  This code is documented in Appendix B of the
-;; Org-mode manual.  The code is not specific for the iPhone, however.
-;; Any external viewer/flagging/editing application that uses the same
-;; conventions could be used.
+;; application MobileOrg, as well as with the Android version by Matthew Jones.
+;; This code is documented in Appendix B of the Org-mode manual.  The code is
+;; not specific for the iPhone and Android - any external
+;; viewer/flagging/editing application that uses the same conventions could
+;; be used.
 
 (require 'org)
 (require 'org-agenda)
@@ -90,11 +91,28 @@ You might want to put this file into a directory where only you have access."
 This is a single password which is used for AES-256 encryption.  The same
 password must also be set in the MobileOrg application.  All Org files,
 including mobileorg.org will be encrypted using this password.
+
+SECURITY CONSIDERATIONS:
+
 Note that, when Org runs the encryption commands, the password could
-be visible on your system with the `ps' command.  So this method is only
-intended to keep the files secure on the server, not on your own machine."
+be visible briefly on your system with the `ps' command.  So this method is
+only intended to keep the files secure on the server, not on your own machine.
+
+Also, if you set this variable in an init file (.emacs or .emacs.d/init.el
+or custom.el...) and if that file is stored in a way so that other can read
+it, this also limits the security of this approach.  You can also leave
+this variable empty - Org will then ask for the password once per Emacs
+session."
   :group 'org-mobile
   :type '(string :tag "Password"))
+
+(defvar org-mobile-encryption-password-session nil)
+
+(defun org-mobile-encryption-password ()
+  (or (org-string-nw-p org-mobile-encryption-password)
+      (org-string-nw-p org-mobile-encryption-password-session)
+      (setq org-mobile-encryption-password-session
+	    (read-passwd "Password for MobileOrg: " t))))
 
 (defcustom org-mobile-inbox-for-pull "~/org/from-mobile.org"
   "The file where captured notes and flags will be appended to.
@@ -133,7 +151,7 @@ list     a list of selection key(s) as string."
 		  (string :tag "Selection Keys"))))
 
 (defcustom org-mobile-force-id-on-agenda-items t
-  "Non-nil means make all agenda items carry and ID."
+  "Non-nil means make all agenda items carry an ID."
   :group 'org-mobile
   :type 'boolean)
 
@@ -331,6 +349,7 @@ agenda view showing the flagged items."
 
 (defun org-mobile-check-setup ()
   "Check if org-mobile-directory has been set up."
+  (org-mobile-cleanup-encryption-tempfile)
   (unless (and org-directory
 	       (stringp org-directory)
 	       (string-match "\\S-" org-directory)
@@ -356,7 +375,7 @@ agenda view showing the flagged items."
 	       (string-match "\\S-" org-mobile-checksum-binary))
     (error "No executable found to compute checksums"))
   (when org-mobile-use-encryption
-    (unless (string-match "\\S-" org-mobile-encryption-password)
+    (unless (string-match "\\S-" (org-mobile-encryption-password))
       (error
        "To use encryption, you must set `org-mobile-encryption-password'"))
     (unless (file-writable-p org-mobile-encryption-tempfile)
@@ -371,6 +390,8 @@ agenda view showing the flagged items."
 			   (lambda (a b) (string< (cdr a) (cdr b)))))
 	(def-todo (default-value 'org-todo-keywords))
 	(def-tags (default-value 'org-tag-alist))
+	(target-file (expand-file-name org-mobile-index-file
+				       org-mobile-directory))
 	file link-name todo-kwds done-kwds tags drawers entry kwds dwds twds)
 
     (org-prepare-agenda-buffers (mapcar 'car files-alist))
@@ -389,7 +410,9 @@ agenda view showing the flagged items."
 			       (t nil)))
 		       org-tag-alist-for-agenda))))
     (with-temp-file
-	(expand-file-name org-mobile-index-file org-mobile-directory)
+	(if org-mobile-use-encryption
+	    org-mobile-encryption-tempfile
+	  target-file)
       (while (setq entry (pop def-todo))
 	(insert "#+READONLY\n")
 	(setq kwds (mapcar (lambda (x) (if (string-match "(" x)
@@ -430,7 +453,11 @@ agenda view showing the flagged items."
 	(insert (format "* [[file:%s][%s]]\n"
 			link-name link-name)))
       (push (cons org-mobile-index-file (md5 (buffer-string)))
-	    org-mobile-checksum-files))))
+	    org-mobile-checksum-files))
+    (when org-mobile-use-encryption
+      (org-mobile-encrypt-and-move org-mobile-encryption-tempfile
+				   target-file)
+      (org-mobile-cleanup-encryption-tempfile))))
 
 (defun org-mobile-copy-agenda-files ()
   "Copy all agenda files to the stage or WebDAV directory."
@@ -452,14 +479,20 @@ agenda view showing the flagged items."
 	(when (string-match "[a-fA-F0-9]\\{30,40\\}" check)
 	  (push (cons link-name (match-string 0 check))
 		org-mobile-checksum-files))))
+
     (setq file (expand-file-name org-mobile-capture-file
 				 org-mobile-directory))
     (save-excursion
       (setq buf (find-file file))
-      (and (= (point-min) (point-max)) (insert "\n"))
-      (save-buffer)
+      (when (and (= (point-min) (point-max))) 
+	(insert "\n")
+	(save-buffer)
+	(when org-mobile-use-encryption
+	  (write-file org-mobile-encryption-tempfile)
+	  (org-mobile-encrypt-and-move org-mobile-encryption-tempfile file)))
       (push (cons org-mobile-capture-file (md5 (buffer-string)))
 	    org-mobile-checksum-files))
+    (org-mobile-cleanup-encryption-tempfile)
     (kill-buffer buf)))
 
 (defun org-mobile-write-checksums ()
@@ -606,13 +639,29 @@ The table of checksums is written to the file mobile-checksums."
 			(if (org-bound-and-true-p
 			     org-mobile-force-id-on-agenda-items)
 			    (org-id-get m 'create)
-			  (org-entry-get m "ID")))
+			  (or (org-entry-get m "ID")
+			      (org-mobile-get-outline-path-link m))))
 	      (insert "   :PROPERTIES:\n   :ORIGINAL_ID: " id
 		      "\n   :END:\n")))))
 	(beginning-of-line 2))
-      (push (cons (file-name-nondirectory file) (md5 (buffer-string)))
+      (push (cons "agendas.org" (md5 (buffer-string)))
 	    org-mobile-checksum-files))
     (message "Agenda written to Org file %s" file)))
+
+(defun org-mobile-get-outline-path-link (pom)
+  (org-with-point-at pom
+    (concat "olp:"
+	    (org-mobile-escape-olp (file-name-nondirectory buffer-file-name))
+	    "/"
+	    (mapconcat 'org-mobile-escape-olp
+		       (org-get-outline-path)
+		       "/")
+	    "/"
+	    (org-mobile-escape-olp (nth 4 (org-heading-components))))))
+
+(defun org-mobile-escape-olp (s)
+  (let  ((table '((?: . "%3a") (?\[ . "%5b") (?\] . "%5d") (?/ . "%2f"))))
+    (org-link-escape s table)))
 
 ;;;###autoload
 (defun org-mobile-create-sumo-agenda ()
@@ -632,8 +681,9 @@ The table of checksums is written to the file mobile-checksums."
     (when sumo
       (org-store-agenda-views))
     (when org-mobile-use-encryption
-      (org-mobile-encrypt-file file1 file)
-      (delete-file file1))))
+      (org-mobile-encrypt-and-move file1 file)
+      (delete-file file1)
+      (org-mobile-cleanup-encryption-tempfile))))
 
 (defun org-mobile-encrypt-and-move (infile outfile)
   "Encrypt INFILE locally to INFILE_enc, then move it to OUTFILE.
@@ -649,7 +699,8 @@ encryption program does not understand them."
   "Encrypt INFILE to OUTFILE, using `org-mobile-encryption-password'."
   (shell-command
    (format "openssl enc -aes-256-cbc -salt -pass %s -in %s -out %s"
-	   (shell-quote-argument (concat "pass:" org-mobile-encryption-password))
+	   (shell-quote-argument (concat "pass:"
+					 (org-mobile-encryption-password)))
 	   (shell-quote-argument (expand-file-name infile))
 	   (shell-quote-argument (expand-file-name outfile)))))
 
@@ -657,9 +708,16 @@ encryption program does not understand them."
   "Decrypt INFILE to OUTFILE, using `org-mobile-encryption-password'."
   (shell-command
    (format "openssl enc -d -aes-256-cbc -salt -pass %s -in %s -out %s"
-	   (shell-quote-argument (concat "pass:" org-mobile-encryption-password))
+	   (shell-quote-argument (concat "pass:"
+					 (org-mobile-encryption-password)))
 	   (shell-quote-argument (expand-file-name infile))
 	   (shell-quote-argument (expand-file-name outfile)))))
+
+(defun org-mobile-cleanup-encryption-tempfile ()
+  "Remove the encryption tempfile if it exists."
+  (and (stringp org-mobile-encryption-tempfile)
+       (file-exists-p org-mobile-encryption-tempfile)
+       (delete-file org-mobile-encryption-tempfile)))
 
 (defun org-mobile-move-capture ()
   "Move the contents of the capture file to the inbox file.
@@ -673,7 +731,7 @@ If nothing new has been added, return nil."
 	 (capture-buffer
 	  (if (not org-mobile-use-encryption)
 	      (find-file-noselect capture-file)
-	    (delete-file org-mobile-encryption-tempfile)
+	    (org-mobile-cleanup-encryption-tempfile)
 	    (setq encfile (concat org-mobile-encryption-tempfile "_enc"))
 	    (copy-file capture-file encfile)
 	    (org-mobile-decrypt-file encfile org-mobile-encryption-tempfile)
@@ -698,7 +756,8 @@ If nothing new has been added, return nil."
     (kill-buffer capture-buffer)
     (when org-mobile-use-encryption
       (org-mobile-encrypt-and-move org-mobile-encryption-tempfile
-				   capture-file))
+				   capture-file)
+      (org-mobile-cleanup-encryption-tempfile))
     (if not-empty insertion-point)))
 
 (defun org-mobile-update-checksum-for-capture-file (buffer-string)

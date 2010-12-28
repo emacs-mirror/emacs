@@ -1,7 +1,8 @@
 ;;; diary-lib.el --- diary functions
 
 ;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1995, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -304,28 +305,48 @@ If this variable is nil, years must be written in full."
   :type 'boolean
   :group 'diary)
 
+(defun diary-outlook-format-1 (body)
+  "Return a replace-match template for an element of `diary-outlook-formats'.
+Returns a string using match elements 1-5, where:
+1 = month name, 2 = day, 3 = year, 4 = time, 5 = location; also uses
+%s = message subject.  BODY is the string from which the matches derive."
+  (let* ((monthname (match-string 1 body))
+        (day (match-string 2 body))
+        (year (match-string 3 body))
+        ;; Blech.
+        (month (catch 'found
+                 (dotimes (i (length calendar-month-name-array))
+                   (if (string-equal (aref calendar-month-name-array i)
+                                     monthname)
+                       (throw 'found (1+ i))))
+                 nil)))
+    ;; If we could convert the monthname to a numeric month, we can
+    ;; use the standard function calendar-date-string.
+    (concat (if month
+                (calendar-date-string (list month (string-to-number day)
+                                            (string-to-number year)))
+              (cond ((eq calendar-date-style 'iso) "\\3 \\1 \\2") ; YMD
+                    ((eq calendar-date-style 'european) "\\2 \\1 \\3") ; DMY
+                    (t "\\1 \\2 \\3"))) ; MDY
+            "\n \\4 %s, \\5")))
+;; TODO Sometimes the time is in a different time-zone to the one you
+;; are in.  Eg in PST, you might still get an email referring to:
+;; "7:00 PM-8:00 PM. Greenwich Standard Time".
+;; Note that it doesn't use a standard abbreviation for the timezone,
+;; or anything helpful like that.
+;; Sigh, this could cause the meeting to even be on a different day
+;; to that given in the When: string.
+;; These things seem to come in a multipart mail with a calendar part,
+;; it's probably better to use that rather than this whole thing.
+;; So this is unlikely to get improved.
+
+;; TODO Is the format of these messages actually documented anywhere?
 (defcustom diary-outlook-formats
-  '(
-    ;; When: 11 October 2001 12:00-14:00 (GMT) Greenwich Mean Time : Dublin, ...
-    ;; [Current UK format?  The timezone is meaningless.  Sometimes the
-    ;; Where is missing.]
-    ("When: \\([0-9]+ [[:alpha:]]+ [0-9]+\\) \
-\\([^ ]+\\) [^\n]+
-\[^\n]+
-\\(?:Where: \\([^\n]+\\)\n+\\)?
-\\*~\\*~\\*~\\*~\\*~\\*~\\*~\\*~\\*~\\*"
-     . "\\1\n \\2 %s, \\3")
-    ;; When: Tuesday, April 30, 2002 03:00 PM-03:30 PM (GMT) Greenwich Mean ...
-    ;; [Old UK format?]
-    ("^When: [[:alpha:]]+, \\([[:alpha:]]+\\) \\([0-9][0-9]*\\), \\([0-9]\\{4\\}\\) \
-\\([^ ]+\\) [^\n]+
-\[^\n]+
-\\(?:Where: \\([^\n]+\\)\\)?\n+"
-     . "\\2 \\1 \\3\n \\4 %s, \\5")
-    (
-     ;; German format, apparently.
-     "^Zeit: [^ ]+, +\\([0-9]+\\)\. +\\([[:upper:]][[:lower:]][[:lower:]]\\)[^ ]* +\\([0-9]+\\) +\\([^ ]+\\).*$"
-     . "\\1 \\2 \\3\n \\4 %s"))
+  '(;; When: Tuesday, November 9, 2010 7:00 PM-8:00 PM. Greenwich Standard Time
+    ;; Where: Meeting room B
+    ("[ \t\n]*When: [[:alpha:]]+, \\([[:alpha:]]+\\) \\([0-9][0-9]*\\), \
+\\([0-9]\\{4\\}\\),? \\(.+\\)\n\
+\\(?:Where: \\(.+\n\\)\\)?" . diary-outlook-format-1))
   "Alist of regexps matching message text and replacement text.
 
 The regexp must match the start of the message text containing an
@@ -835,7 +856,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
   (kill-local-variable 'mode-line-format))
 
 (defvar original-date)                  ; bound in diary-list-entries
-(defvar number)
+;(defvar number)                         ; already declared above
 
 (defun diary-include-other-diary-files ()
   "Include the diary entries from other diary files with those of `diary-file'.
@@ -1743,7 +1764,7 @@ best if they are non-marking."
         (forward-line 1)
         (while (looking-at "[ \t]")
           (forward-line 1))
-        (backward-char 1)
+        (if (bolp) (backward-char 1))
         (setq entry (buffer-substring-no-properties entry-start (point))))
       (setq diary-entry (diary-sexp-entry sexp entry date)
             literal entry               ; before evaluation
@@ -2331,6 +2352,7 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
 
 ;;; Fancy Diary Mode.
 
+;; FIXME does not update upon changes to the name-arrays.
 (defvar diary-fancy-date-pattern
   (concat
    (let ((dayname (diary-name-pattern calendar-day-name-array nil t))
@@ -2412,37 +2434,27 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
 ;; functions `diary-from-outlook-gnus' and `diary-from-outlook-rmail',
 ;; could be run from hooks to notice appointments automatically (in
 ;; which case they will prompt about adding to the diary).  The
-;; message formats recognized are customizable through
-;; `diary-outlook-formats'.
+;; message formats recognized are customizable through `diary-outlook-formats'.
 
-(defvar subject)                        ; bound in diary-from-outlook-gnus
-(defvar body)
-
-(defun diary-from-outlook-internal (&optional test-only)
+(defun diary-from-outlook-internal (subject body &optional test-only)
   "Snarf a diary entry from a message assumed to be from MS Outlook.
-Assumes `body' is bound to a string comprising the body of the message and
-`subject' is bound to a string comprising its subject.
+SUBJECT and BODY are strings giving the message subject and body.
 Arg TEST-ONLY non-nil means return non-nil if and only if the
 message contains an appointment, don't make a diary entry."
   (catch 'finished
     (let (format-string)
-      (dotimes (i (length diary-outlook-formats))
-        (when (eq 0 (string-match (car (nth i diary-outlook-formats))
-                                  body))
+      (dolist (fmt diary-outlook-formats)
+        (when (eq 0 (string-match (car fmt) body))
           (unless test-only
-            (setq format-string (cdr (nth i diary-outlook-formats)))
+            (setq format-string (cdr fmt))
             (save-excursion
               (save-window-excursion
-                ;; Fixme: References to optional fields in the format
-                ;; are treated literally, not replaced by the empty
-                ;; string.  I think this is an Emacs bug.
                 (diary-make-entry
                  (format (replace-match (if (functionp format-string)
                                             (funcall format-string body)
                                           format-string)
                                         t nil (match-string 0 body))
-                         subject))
-                (save-buffer))))
+                         subject)))))
           (throw 'finished t))))
     nil))
 
@@ -2470,9 +2482,9 @@ automatically."
                   (save-restriction
                     (gnus-narrow-to-body)
                     (buffer-string)))))
-      (when (diary-from-outlook-internal t)
+      (when (diary-from-outlook-internal subject body t)
         (when (or noconfirm (y-or-n-p "Snarf diary entry? "))
-          (diary-from-outlook-internal)
+          (diary-from-outlook-internal subject body)
           (message "Diary entry added"))))))
 
 (custom-add-option 'gnus-article-prepare-hook 'diary-from-outlook-gnus)
@@ -2485,15 +2497,17 @@ Unless the optional argument NOCONFIRM is non-nil (which is the case when
 this function is called interactively), then if an entry is found the
 user is asked to confirm its addition."
   (interactive "p")
+  ;; FIXME maybe the body needs rmail-mm decoding, in which case
+  ;; there is no single buffer with both body and subject, sigh.
   (with-current-buffer rmail-buffer
     (let ((subject (mail-fetch-field "subject"))
           (body (buffer-substring (save-excursion
                                     (rfc822-goto-eoh)
                                     (point))
                                   (point-max))))
-      (when (diary-from-outlook-internal t)
+      (when (diary-from-outlook-internal subject body t)
         (when (or noconfirm (y-or-n-p "Snarf diary entry? "))
-          (diary-from-outlook-internal)
+          (diary-from-outlook-internal subject body)
           (message "Diary entry added"))))))
 
 (defun diary-from-outlook (&optional noconfirm)
@@ -2513,5 +2527,4 @@ user is asked to confirm its addition."
 
 (provide 'diary-lib)
 
-;; arch-tag: 22dd506e-2e33-410d-9ae1-095a0c1b2010
 ;;; diary-lib.el ends here

@@ -733,7 +733,7 @@ The value must be a valid color name, and you can do completion with
 
 @node Composite Types
 @subsection Composite Types
-@cindex Composite Types (customization)
+@cindex composite types (customization)
 
   When none of the simple types is appropriate, you can use composite
 types, which build new types from other types or from specified data.

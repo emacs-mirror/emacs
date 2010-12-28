@@ -143,8 +143,6 @@ static pthread_mutex_t alloc_mutex;
 
 static __malloc_size_t bytes_used_when_full;
 
-static __malloc_size_t bytes_used_when_reconsidered;
-
 /* Mark, unmark, query mark bit of a Lisp string.  S must be a pointer
    to a struct Lisp_String.  */
 
@@ -351,7 +349,6 @@ enum mem_type
 
 static POINTER_TYPE *lisp_align_malloc (size_t, enum mem_type);
 static POINTER_TYPE *lisp_malloc (size_t, enum mem_type);
-void refill_memory_reserve (void);
 
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
@@ -1141,6 +1138,8 @@ static void * (*old_malloc_hook) (size_t, const void *);
 static void * (*old_realloc_hook) (void *,  size_t, const void*);
 static void (*old_free_hook) (void*, const void*);
 
+static __malloc_size_t bytes_used_when_reconsidered;
+
 /* This function is used as the hook for free to call.  */
 
 static void
@@ -1492,8 +1491,7 @@ mark_interval_tree (register INTERVAL tree)
    can't create number objects in macros.  */
 #ifndef make_number
 Lisp_Object
-make_number (n)
-     EMACS_INT n;
+make_number (EMACS_INT n)
 {
   Lisp_Object obj;
   obj.s.val = n;
@@ -3987,8 +3985,14 @@ DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
 static INLINE void
 mark_maybe_object (Lisp_Object obj)
 {
-  void *po = (void *) XPNTR (obj);
-  struct mem_node *m = mem_find (po);
+  void *po;
+  struct mem_node *m;
+
+  if (INTEGERP (obj))
+    return;
+
+  po = (void *) XPNTR (obj);
+  m = mem_find (po);
 
   if (m != MEM_NIL)
     {
@@ -5265,7 +5269,7 @@ mark_char_table (struct Lisp_Vector *ptr)
     {
       Lisp_Object val = ptr->contents[i];
 
-      if (INTEGERP (val) || SYMBOLP (val) && XSYMBOL (val)->gcmarkbit)
+      if (INTEGERP (val) || (SYMBOLP (val) && XSYMBOL (val)->gcmarkbit))
 	continue;
       if (SUB_CHAR_TABLE_P (val))
 	{
@@ -5638,13 +5642,14 @@ mark_terminals (void)
   for (t = terminal_list; t; t = t->next_terminal)
     {
       eassert (t->name != NULL);
-      if (!VECTOR_MARKED_P (t))
-	{
 #ifdef HAVE_WINDOW_SYSTEM
-	  mark_image_cache (t->image_cache);
+      /* If a terminal object is reachable from a stacpro'ed object,
+	 it might have been marked already.  Make sure the image cache
+	 gets marked.  */
+      mark_image_cache (t->image_cache);
 #endif /* HAVE_WINDOW_SYSTEM */
-	  mark_vectorlike ((struct Lisp_Vector *)t);
-	}
+      if (!VECTOR_MARKED_P (t))
+	mark_vectorlike ((struct Lisp_Vector *)t);
     }
 }
 

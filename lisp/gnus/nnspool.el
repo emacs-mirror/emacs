@@ -399,15 +399,16 @@ there.")
   "Read the head of ARTICLE, convert to NOV headers, and insert."
   (save-excursion
     (let ((cur (current-buffer))
-	  buf)
+          buf)
       (setq buf (nnheader-set-temp-buffer " *nnspool head*"))
       (when (nnheader-insert-head
-	     (nnspool-article-pathname nnspool-current-group article))
-	(nnheader-insert-article-line article)
-	(let ((headers (nnheader-parse-head)))
-	  (set-buffer cur)
-	  (goto-char (point-max))
-	  (nnheader-insert-nov headers)))
+             (nnspool-article-pathname nnspool-current-group article))
+        (nnheader-insert-article-line article)
+        (goto-char (point-min))
+        (let ((headers (nnheader-parse-head)))
+          (set-buffer cur)
+          (goto-char (point-max))
+          (nnheader-insert-nov headers)))
       (kill-buffer buf))))
 
 (defun nnspool-sift-nov-with-sed (articles file)

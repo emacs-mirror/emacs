@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -55,32 +55,30 @@
   '((:results . "file") (:exports . "results"))
   "Default arguments when evaluating an Asymptote source block.")
 
-(defun org-babel-expand-body:asymptote (body params &optional processed-params)
-  "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (nth 1 (or processed-params
-                          (org-babel-process-params params)))))
-    (concat (mapconcat 'org-babel-asymptote-var-to-asymptote vars "\n")
-	    "\n" body "\n")))
-
 (defun org-babel-execute:asymptote (body params)
   "Execute a block of Asymptote code.
 This function is called by `org-babel-execute-src-block'."
-  (let* ((processed-params (org-babel-process-params params))
-         (result-params (split-string (or (cdr (assoc :results params)) "")))
+  (let* ((result-params (split-string (or (cdr (assoc :results params)) "")))
          (out-file (cdr (assoc :file params)))
          (format (or (and out-file
                           (string-match ".+\\.\\(.+\\)" out-file)
                           (match-string 1 out-file))
                      "pdf"))
          (cmdline (cdr (assoc :cmdline params)))
-         (in-file (make-temp-file "org-babel-asymptote"))
-         (cmd (concat "asy "
-                      (if out-file
-                          (concat "-globalwrite -f " format " -o " out-file)
-                        "-V")
-                      " " cmdline " " in-file)))
+         (in-file (org-babel-temp-file "asymptote-"))
+         (cmd
+	  (concat "asy "
+		  (if out-file
+		      (concat
+		       "-globalwrite -f " format
+		       " -o " (org-babel-process-file-name out-file))
+		    "-V")
+		  " " cmdline
+		  " " (org-babel-process-file-name in-file))))
     (with-temp-file in-file
-      (insert (org-babel-expand-body:asymptote body params processed-params)))
+      (insert (org-babel-expand-body:generic
+	       body params
+	       (org-babel-variable-assignments:asymptote params))))
     (message cmd) (shell-command cmd)
     out-file))
 
@@ -88,6 +86,11 @@ This function is called by `org-babel-execute-src-block'."
   "Return an error if the :session header argument is set.
 Asymptote does not support sessions"
   (error "Asymptote does not support sessions"))
+
+(defun org-babel-variable-assignments:asymptote (params)
+  "Return list of asymptote statements assigning the block's variables"
+  (mapcar #'org-babel-asymptote-var-to-asymptote
+	  (mapcar #'cdr (org-babel-get-header params :var))))
 
 (defun org-babel-asymptote-var-to-asymptote (pair)
   "Convert an elisp value into an Asymptote variable.

@@ -5,7 +5,7 @@
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Carsten Dominik <carsten DOT dominik AT gmail DOT com>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -71,11 +71,14 @@ Each element of the alist is a publishing 'project.'  The CAR of
 each element is a string, uniquely identifying the project.  The
 CDR of each element is in one of the following forms:
 
-  (:property value :property value ... )
+1. A well-formed property list with an even number of elements, alternating
+   keys and values, specifying parameters for the publishing process.
 
-OR,
+     (:property value :property value ... )
 
-  (:components (\"project-1\" \"project-2\" ...))
+2. A meta-project definition, specifying of a list of sub-projects:
+
+     (:components (\"project-1\" \"project-2\" ...))
 
 When the CDR of an element of org-publish-project-alist is in
 this second form, the elements of the list after :components are
@@ -92,7 +95,8 @@ Most properties are optional, but some should always be set:
 
   :base-directory        Directory containing publishing source files
   :base-extension        Extension (without the dot!) of source files.
-                         This can be a regular expression.
+                         This can be a regular expression.  If not given,
+                         \"org\" will be used as default extension.
   :publishing-directory  Directory (possibly remote) where output
                          files will be published
 
@@ -188,7 +192,14 @@ sitemap of files or summary page for a given project.
 
 The following properties control the creation of a concept index.
 
-  :makeindex             Create a concept index."
+  :makeindex             Create a concept index.
+
+Other properties affecting publication.
+
+  :body-only              Set this to 't' to publish only the body of the
+                         documents, excluding everything outside and 
+                         including the <body> tags in HTML, or 
+                         \begin{document}..\end{document} in LaTeX."
   :group 'org-publish
   :type 'alist)
 
@@ -464,13 +475,19 @@ matching filenames."
 	(unless (plist-get (cdr prj) :components)
 	  ;; [[info:org:Selecting%20files]] shows how this is supposed to work:
 	  (let* ((r (plist-get (cdr prj) :recursive))
-		 (b (expand-file-name (plist-get (cdr prj) :base-directory)))
+		 (b (expand-file-name (file-name-as-directory
+				       (plist-get (cdr prj) :base-directory))))
 		 (x (or (plist-get (cdr prj) :base-extension) "org"))
 		 (e (plist-get (cdr prj) :exclude))
 		 (i (plist-get (cdr prj) :include))
 		 (xm (concat "^" b (if r ".+" "[^/]+") "\\.\\(" x "\\)$")))
 	    (when (or
-		   (and i (string-match i filename))
+		   (and 
+		    i 
+		    (member filename 
+			    (mapcar 
+			     (lambda (file) (expand-file-name file b))
+			     i)))
 		   (and
 		    (not (and e (string-match e filename)))
 		    (string-match xm filename)))
@@ -507,7 +524,9 @@ PUB-DIR is the publishing directory."
 	(setq export-buf-or-file
 	      (funcall (intern (concat "org-export-as-" format))
 		       (plist-get plist :headline-levels)
-		       nil plist nil nil pub-dir))
+		       nil plist nil 
+		       (plist-get plist :body-only) 
+		       pub-dir))
 	(when (and (bufferp export-buf-or-file)
 		   (buffer-live-p export-buf-or-file))
 	  (set-buffer export-buf-or-file)
@@ -558,14 +577,32 @@ See `org-publish-org-to' to the list of arguments."
 See `org-publish-org-to' to the list of arguments."
   (org-publish-org-to "org" plist filename pub-dir))
 
+(defun org-publish-org-to-ascii (plist filename pub-dir)
+  "Publish an org file to ASCII.
+See `org-publish-org-to' to the list of arguments."
+  (org-publish-with-aux-preprocess-maybe
+    (org-publish-org-to "ascii" plist filename pub-dir)))
+
+(defun org-publish-org-to-latin1 (plist filename pub-dir)
+  "Publish an org file to Latin-1.
+See `org-publish-org-to' to the list of arguments."
+  (org-publish-with-aux-preprocess-maybe
+    (org-publish-org-to "latin1" plist filename pub-dir)))
+
+(defun org-publish-org-to-utf8 (plist filename pub-dir)
+  "Publish an org file to UTF-8.
+See `org-publish-org-to' to the list of arguments."
+  (org-publish-with-aux-preprocess-maybe
+    (org-publish-org-to "utf8" plist filename pub-dir)))
+
 (defun org-publish-attachment (plist filename pub-dir)
   "Publish a file with no transformation of any kind.
 See `org-publish-org-to' to the list of arguments."
   ;; make sure eshell/cp code is loaded
-  (unless (file-directory-p pub-dir)
-    (make-directory pub-dir t))
-  (or (equal (expand-file-name (file-name-directory filename))
-	     (file-name-as-directory (expand-file-name pub-dir)))
+    (unless (file-directory-p pub-dir)
+      (make-directory pub-dir t))
+    (or (equal (expand-file-name (file-name-directory filename))
+	       (file-name-as-directory (expand-file-name pub-dir)))
       (copy-file filename
 		 (expand-file-name (file-name-nondirectory filename) pub-dir)
 		 t)))
@@ -585,14 +622,22 @@ See `org-publish-projects'."
 		  (error "File %s not part of any known project"
 			 (abbreviate-file-name filename)))))
 	 (project-plist (cdr project))
-	 (ftname (file-truename filename))
+	 (ftname (expand-file-name filename))
 	 (publishing-function
 	  (or (plist-get project-plist :publishing-function)
 	      'org-publish-org-to-html))
-	 (base-dir (file-name-as-directory
-		    (file-truename (plist-get project-plist :base-directory))))
-	 (pub-dir (file-name-as-directory
-		   (file-truename (plist-get project-plist :publishing-directory))))
+	 (base-dir
+	  (file-name-as-directory
+	   (expand-file-name
+	    (or (plist-get project-plist :base-directory)
+		(error "Project %s does not have :base-directory defined"
+		       (car project))))))
+	 (pub-dir
+	  (file-name-as-directory
+	   (file-truename
+	    (or (plist-get project-plist :publishing-directory)
+		(error "Project %s does not have :publishing-directory defined"
+		       (car project))))))
 	 tmp-pub-dir)
 
     (unless no-cache
@@ -770,7 +815,6 @@ directory and force publishing all files."
   (interactive "P")
   (when force
     (org-publish-remove-all-timestamps))
-  ;;  (org-publish-initialize-files-alist force)
   (save-window-excursion
     (let ((org-publish-use-timestamps-flag
 	   (if force nil org-publish-use-timestamps-flag)))

@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-taskjuggler.el
-;; Version: 7.01
+;; Version: 7.4
 ;; Author: Christian Egli
 ;; Maintainer: Christian Egli
 ;; Keywords: org, taskjuggler, project planning
@@ -503,7 +503,7 @@ finally add more underscore characters (\"_\")."
 	 (parts (split-string headline))
 	 (id (org-taskjuggler-clean-id (downcase (pop parts)))))
     ; try to add more parts of the headline to make it unique
-    (while (member id unique-ids)
+    (while (and (member id unique-ids) (car parts))
       (setq id (concat id "_" (org-taskjuggler-clean-id (downcase (pop parts))))))
     ; if its still not unique add "_"
     (while (member id unique-ids)

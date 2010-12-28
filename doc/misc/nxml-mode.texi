@@ -8,7 +8,8 @@
 This manual documents nxml-mode, an Emacs major mode for editing
 XML with RELAX NG support.
 
-Copyright @copyright{} 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 2007, 2008, 2009, 2010
+Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -43,6 +44,7 @@ license to the document, as described in section 6 of the license.
 This manual is not yet complete.
 
 @menu
+* Introduction::
 * Completion::
 * Inserting end-tags::
 * Paragraphs::
@@ -51,6 +53,58 @@ This manual is not yet complete.
 * DTDs::
 * Limitations::
 @end menu
+
+@node Introduction
+@chapter Introduction
+
+nXML mode is an Emacs major-mode for editing XML documents.  It supports
+editing well-formed XML documents, and provides schema-sensitive editing
+using RELAX NG Compact Syntax.  To get started, visit a file containing an
+XML document, and, if necessary, use @kbd{M-x nxml-mode} to switch to nXML
+mode.  By default, @code{auto-mode-alist} and @code{magic-fallback-alist}
+put buffers in nXML mode if they have recognizable XML content or file
+extensions.  You may wish to customize the settings, for example to
+recognize different file extensions.
+
+Once in nXML mode, you can type @kbd{C-h m} for basic information on the
+mode.
+
+The @file{etc/nxml} directory in the Emacs distribution contains some data
+files used by nXML mode, and includes two files (@file{test.valid.xml} and
+@file{test.invalid.xml}) that provide examples of valid and invalid XML
+documents.
+
+To get validation and schema-sensitive editing, you need a RELAX NG Compact
+Syntax (RNC) schema for your document (@pxref{Locating a schema}).  The
+@file{etc/schema} directory includes some schemas for popular document
+types.  See @url{http://relaxng.org/} for more information on RELAX NG.
+You can use the @samp{Trang} program from
+@url{http://www.thaiopensource.com/relaxng/trang.html} to
+automatically create RNC schemas.  This program can:
+
+@itemize @bullet
+@item
+infer an RNC schema from an instance document;
+@item
+convert a DTD to an RNC schema;
+@item
+convert a RELAX NG XML syntax schema to an RNC schema.
+@end itemize
+
+@noindent To convert a RELAX NG XML syntax (@samp{.rng}) schema to a RNC
+one, you can also use the XSLT stylesheet from
+@url{http://www.pantor.com/download.html}.
+
+To convert a W3C XML Schema to an RNC schema, you need first to convert it
+to RELAX NG XML syntax using the RELAX NG converter tool @code{rngconv}
+(built on top of MSV).  See @url{https://github.com/kohsuke/msv}
+and @url{https://msv.dev.java.net/}.
+
+For historical discussions only, see the mailing list archives at
+@url{http://groups.yahoo.com/group/emacs-nxml-mode/}.  Please make all new
+discussions on the @samp{help-gnu-emacs} and @samp{emacs-devel} mailing
+lists.  Report any bugs with @kbd{M-x report-emacs-bug}.
+
 
 @node Completion
 @chapter Completion
@@ -855,6 +909,3 @@ specification are not enforced.
 
 @bye
 
-@ignore
-   arch-tag: 3b6e8ac2-ae8d-4f38-bd43-ce9f80be04d6
-@end ignore

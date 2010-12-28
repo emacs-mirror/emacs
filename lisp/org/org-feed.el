@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -99,11 +99,11 @@
 (declare-function xml-get-children "xml" (node child-name))
 (declare-function xml-get-attribute "xml" (node attribute))
 (declare-function xml-get-attribute-or-nil "xml" (node attribute))
-(defvar xml-entity-alist)
+(declare-function xml-substitute-special "xml" (string))
 
 (defgroup org-feed  nil
   "Options concerning RSS feeds as inputs for Org files."
-  :tag "Org ID"
+  :tag "Org Feed"
   :group 'org)
 
 (defcustom org-feed-alist nil
@@ -268,17 +268,6 @@ have been saved."
 
 (defvar org-feed-buffer "*Org feed*"
   "The buffer used to retrieve a feed.")
-
-(defun org-feed-unescape (s)
-  "Unescape protected entities in S."
-  (require 'xml)
-  (let ((re (concat "&\\("
-		    (mapconcat 'car xml-entity-alist "\\|")
-		    "\\);")))
-    (while (string-match re s)
-      (setq s (replace-match
-	       (cdr (assoc (match-string 1 s) xml-entity-alist)) nil nil s)))
-    s))
 
 ;;;###autoload
 (defun org-feed-update-all ()
@@ -553,7 +542,8 @@ If that property is already present, nothing changes."
 		  (setq tmp (org-feed-make-indented-block
 			     tmp (org-get-indentation))))))
 	    (replace-match tmp t t))))
-	(buffer-string)))))
+	(decode-coding-string
+	 (buffer-string) (detect-coding-region (point-min) (point-max) t))))))
 
 (defun org-feed-make-indented-block (s n)
   "Add indentation of N spaces to a multiline string S."
@@ -613,6 +603,7 @@ containing the properties `:guid' and `:item-full-text'."
 
 (defun org-feed-parse-rss-entry (entry)
   "Parse the `:item-full-text' field for xml tags and create new properties."
+  (require 'xml)
   (with-temp-buffer
     (insert (plist-get entry :item-full-text))
     (goto-char (point-min))
@@ -620,7 +611,7 @@ containing the properties `:guid' and `:item-full-text'."
 			      nil t)
       (setq entry (plist-put entry
 			     (intern (concat ":" (match-string 1)))
-			     (org-feed-unescape (match-string 2)))))
+			     (xml-substitute-special (match-string 2)))))
     (goto-char (point-min))
     (unless (re-search-forward "isPermaLink[ \t]*=[ \t]*\"false\"" nil t)
       (setq entry (plist-put entry :guid-permalink t))))
@@ -654,7 +645,7 @@ formatted as a string, not the original XML data."
 			    'href)))
     ;; Add <title/> as :title.
     (setq entry (plist-put entry :title
-			   (org-feed-unescape
+			   (xml-substitute-special
 			    (car (xml-node-children
 				  (car (xml-get-children xml 'title)))))))
     (let* ((content (car (xml-get-children xml 'content)))
@@ -664,12 +655,12 @@ formatted as a string, not the original XML data."
 	 ((string= type "text")
 	  ;; We like plain text.
 	  (setq entry (plist-put entry :description
-				 (org-feed-unescape
+				 (xml-substitute-special
 				  (car (xml-node-children content))))))
 	 ((string= type "html")
 	  ;; TODO: convert HTML to Org markup.
 	  (setq entry (plist-put entry :description
-				 (org-feed-unescape
+				 (xml-substitute-special
 				  (car (xml-node-children content))))))
 	 ((string= type "xhtml")
 	  ;; TODO: convert XHTML to Org markup.

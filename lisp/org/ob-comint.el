@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, comint
 ;; Homepage: http://orgmode.org
-;; Version: 7.01
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -34,6 +34,8 @@
 (require 'ob)
 (require 'comint)
 (eval-when-compile (require 'cl))
+(declare-function with-parsed-tramp-file-name "tramp" (filename var &rest body))
+(declare-function tramp-flush-directory-property "tramp" (vec directory))
 
 (defun org-babel-comint-buffer-livep (buffer)
   "Check if BUFFER is a comint buffer with a live process."
@@ -43,7 +45,7 @@
 (defmacro org-babel-comint-in-buffer (buffer &rest body)
   "Check BUFFER and execute BODY.
 BUFFER is checked with `org-babel-comint-buffer-livep'.  BODY is
-executed inside the protection of `save-window-excursion' and
+executed inside the protection of `save-excursion' and
 `save-match-data'."
   (declare (indent 1))
   `(save-excursion
@@ -135,6 +137,24 @@ statement (not large blocks of code)."
                        (string= (face-name (face-at-point))
                                 "comint-highlight-prompt"))))
       (accept-process-output (get-buffer-process buffer)))))
+
+(defun org-babel-comint-eval-invisibly-and-wait-for-file
+  (buffer file string &optional period)
+  "Evaluate STRING in BUFFER invisibly.
+Don't return until FILE exists. Code in STRING must ensure that
+FILE exists at end of evaluation."
+  (unless (org-babel-comint-buffer-livep buffer)
+    (error "buffer %s doesn't exist or has no process" buffer))
+  (if (file-exists-p file) (delete-file file))
+  (process-send-string
+   (get-buffer-process buffer)
+   (if (string-match "\n$" string) string (concat string "\n")))
+  ;; From Tramp 2.1.19 the following cache flush is not necessary
+  (if (file-remote-p default-directory)
+      (let (v)
+	(with-parsed-tramp-file-name default-directory nil
+	  (tramp-flush-directory-property v ""))))
+  (while (not (file-exists-p file)) (sit-for (or period 0.25))))
 
 (provide 'ob-comint)
 

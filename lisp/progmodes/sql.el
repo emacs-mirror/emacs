@@ -2303,20 +2303,21 @@ also be configured."
 	 '((?_ . "w") (?. . "w")))))
 
     ;; Get the product-specific keywords.
-    (setq sql-mode-font-lock-keywords
-	  (append
-	   (unless (eq sql-product 'ansi)
-	     (sql-get-product-feature sql-product :font-lock))
-	   ;; Always highlight ANSI keywords
-	   (sql-get-product-feature 'ansi :font-lock)
-	   ;; Fontify object names in CREATE, DROP and ALTER DDL
-	   ;; statements
-	   (list sql-mode-font-lock-object-name)))
+    (set (make-local-variable 'sql-mode-font-lock-keywords)
+         (append
+          (unless (eq sql-product 'ansi)
+            (sql-get-product-feature sql-product :font-lock))
+          ;; Always highlight ANSI keywords
+          (sql-get-product-feature 'ansi :font-lock)
+          ;; Fontify object names in CREATE, DROP and ALTER DDL
+          ;; statements
+          (list sql-mode-font-lock-object-name)))
 
     ;; Setup font-lock.  Force re-parsing of `font-lock-defaults'.
     (kill-local-variable 'font-lock-set-defaults)
-    (setq font-lock-defaults (list 'sql-mode-font-lock-keywords
-				   keywords-only t syntax-alist))
+    (set (make-local-variable 'font-lock-defaults)
+         (list 'sql-mode-font-lock-keywords
+               keywords-only t syntax-alist))
 
     ;; Force font lock to reinitialize if it is already on
     ;; Otherwise, we can wait until it can be started.
@@ -3232,7 +3233,7 @@ buffer is popped into a view window. "
 ;;; SQL mode -- uses SQL interactive mode
 
 ;;;###autoload
-(defun sql-mode ()
+(define-derived-mode sql-mode prog-mode "SQL"
   "Major mode to edit SQL.
 
 You can send SQL statements to the SQLi buffer using
@@ -3259,18 +3260,11 @@ you must tell Emacs.  Here's how to do that in your `~/.emacs' file:
 \(add-hook 'sql-mode-hook
           (lambda ()
 	    (modify-syntax-entry ?\\\\ \".\" sql-mode-syntax-table)))"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'sql-mode)
-  (setq mode-name "SQL")
-  (use-local-map sql-mode-map)
+  :abbrev-table sql-mode-abbrev-table
   (if sql-mode-menu
       (easy-menu-add sql-mode-menu)); XEmacs
-  (set-syntax-table sql-mode-syntax-table)
-  (make-local-variable 'font-lock-defaults)
-  (make-local-variable 'sql-mode-font-lock-keywords)
-  (make-local-variable 'comment-start)
-  (setq comment-start "--")
+  
+  (set (make-local-variable 'comment-start) "--")
   ;; Make each buffer in sql-mode remember the "current" SQLi buffer.
   (make-local-variable 'sql-buffer)
   ;; Add imenu support for sql-mode.  Note that imenu-generic-expression
@@ -3280,17 +3274,11 @@ you must tell Emacs.  Here's how to do that in your `~/.emacs' file:
 	imenu-case-fold-search t)
   ;; Make `sql-send-paragraph' work on paragraphs that contain indented
   ;; lines.
-  (make-local-variable 'paragraph-separate)
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-separate "[\f]*$"
-	paragraph-start "[\n\f]")
+  (set (make-local-variable 'paragraph-separate) "[\f]*$")
+  (set (make-local-variable 'paragraph-start) "[\n\f]")
   ;; Abbrevs
-  (setq local-abbrev-table sql-mode-abbrev-table)
   (setq abbrev-all-caps 1)
-  ;; Run hook
-  (run-mode-hooks 'sql-mode-hook)
   ;; Catch changes to sql-product and highlight accordingly
-  (sql-highlight-product)
   (add-hook 'hack-local-variables-hook 'sql-highlight-product t t))
 
 
@@ -3375,15 +3363,14 @@ you entered, right above the output it created.
 	   sql-product))
 
   ;; Setup the mode.
-  (setq major-mode 'sql-interactive-mode)
-  (setq mode-name (concat "SQLi[" (or (sql-get-product-feature sql-product :name)
-				      (symbol-name sql-product)) "]"))
+  (setq major-mode 'sql-interactive-mode) ;FIXME: Use define-derived-mode.
+  (setq mode-name
+        (concat "SQLi[" (or (sql-get-product-feature sql-product :name)
+                            (symbol-name sql-product)) "]"))
   (use-local-map sql-interactive-mode-map)
   (if sql-interactive-mode-menu
       (easy-menu-add sql-interactive-mode-menu)) ; XEmacs
   (set-syntax-table sql-mode-syntax-table)
-  (make-local-variable 'sql-mode-font-lock-keywords)
-  (make-local-variable 'font-lock-defaults)
 
   ;; Note that making KEYWORDS-ONLY nil will cause havoc if you try
   ;; SELECT 'x' FROM DUAL with SQL*Plus, because the title of the column
@@ -3392,8 +3379,7 @@ you entered, right above the output it created.
   (sql-product-font-lock t nil)
 
   ;; Enable commenting and uncommenting of the region.
-  (make-local-variable 'comment-start)
-  (setq comment-start "--")
+  (set (make-local-variable 'comment-start) "--")
   ;; Abbreviation table init and case-insensitive.  It is not activated
   ;; by default.
   (setq local-abbrev-table sql-mode-abbrev-table)
@@ -3403,8 +3389,8 @@ you entered, right above the output it created.
   ;; Save the connection name
   (make-local-variable 'sql-connection)
   ;; Create a usefull name for renaming this buffer later.
-  (make-local-variable 'sql-alternate-buffer-name)
-  (setq sql-alternate-buffer-name (sql-make-alternate-buffer-name))
+  (set (make-local-variable 'sql-alternate-buffer-name)
+       (sql-make-alternate-buffer-name))
   ;; User stuff.  Initialize before the hook.
   (set (make-local-variable 'sql-prompt-regexp)
        (sql-get-product-feature sql-product :prompt-regexp))

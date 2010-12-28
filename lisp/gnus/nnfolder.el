@@ -322,20 +322,20 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
   (when nnfolder-get-new-mail
     (nnfolder-possibly-change-group group server)
     (nnmail-get-new-mail
-     'nnfolder
-     (lambda ()
-       (let ((bufs nnfolder-buffer-alist))
-	 (save-excursion
-	   (while bufs
-	     (if (not (gnus-buffer-live-p (nth 1 (car bufs))))
-		 (setq nnfolder-buffer-alist
-		       (delq (car bufs) nnfolder-buffer-alist))
-	       (set-buffer (nth 1 (car bufs)))
-	       (nnfolder-save-buffer)
-	       (kill-buffer (current-buffer)))
-	     (setq bufs (cdr bufs))))))
-     nnfolder-directory
-     group)))
+     'nnfolder 'nnfolder-save-all-buffers
+     nnfolder-directory group)))
+
+(defun nnfolder-save-all-buffers ()
+  (let ((bufs nnfolder-buffer-alist))
+    (save-excursion
+      (while bufs
+	(if (not (gnus-buffer-live-p (nth 1 (car bufs))))
+	    (setq nnfolder-buffer-alist
+		  (delq (car bufs) nnfolder-buffer-alist))
+	  (set-buffer (nth 1 (car bufs)))
+	  (nnfolder-save-buffer)
+	  (kill-buffer (current-buffer)))
+	(setq bufs (cdr bufs))))))
 
 ;; Don't close the buffer if we're not shutting down the server.  This way,
 ;; we can keep the buffer in the group buffer cache, and not have to grovel
@@ -488,7 +488,8 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
       (nnfolder-save-buffer)
       (nnfolder-adjust-min-active newsgroup)
       (nnfolder-save-active nnfolder-group-alist nnfolder-active-file)
-      (gnus-sorted-difference articles (nreverse deleted-articles)))))
+      (gnus-sorted-difference articles (nreverse deleted-articles)))
+    (nnfolder-save-all-buffers)))
 
 (deffoo nnfolder-request-move-article (article group server accept-form
 					       &optional last move-is-internal)
@@ -1186,19 +1187,7 @@ This command does not work if you use short group names."
     (nnfolder-open-server server))
   (unless nnfolder-marks-is-evil
     (nnfolder-open-marks group server)
-    (dolist (action actions)
-      (let ((range (nth 0 action))
-	    (what  (nth 1 action))
-	    (marks (nth 2 action)))
-	(assert (or (eq what 'add) (eq what 'del)) nil
-		"Unknown request-set-mark action: %s" what)
-	(dolist (mark marks)
-	  (setq nnfolder-marks (gnus-update-alist-soft
-			    mark
-			    (funcall (if (eq what 'add) 'gnus-range-add
-				       'gnus-remove-from-range)
-				     (cdr (assoc mark nnfolder-marks)) range)
-			    nnfolder-marks)))))
+    (setq nnfolder-marks (nnheader-update-marks-actions nnfolder-marks actions))
     (nnfolder-save-marks group server))
   nil)
 

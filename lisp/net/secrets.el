@@ -448,10 +448,9 @@ If there is no such COLLECTION, return nil."
    ;; Check the collections.
    (catch 'collection-found
      (dolist (collection-path (secrets-get-collections) nil)
-       (when
-	   (string-equal
-	    collection
-	    (secrets-get-collection-property collection-path "Label"))
+       (when (string-equal
+	      collection
+	      (secrets-get-collection-property collection-path "Label"))
 	 (throw 'collection-found collection-path))))))
 
 (defun secrets-create-collection (collection)
@@ -489,6 +488,13 @@ For the time being, only the alias \"default\" is supported."
        :session secrets-service secrets-path
        secrets-interface-service "SetAlias"
        alias :object-path collection-path))))
+
+(defun secrets-delete-alias (alias)
+  "Delete ALIAS, referencing to a collection."
+  (dbus-call-method
+   :session secrets-service secrets-path
+   secrets-interface-service "SetAlias"
+   alias :object-path secrets-empty-path))
 
 (defun secrets-unlock-collection (collection)
   "Unlock collection labelled COLLECTION.

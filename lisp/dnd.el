@@ -135,6 +135,16 @@ Return nil if URI is not a local file."
 		 (string-equal system-name-no-dot hostname)))
 	(concat "file://" (substring uri (+ 7 (length hostname)))))))
 
+(defsubst dnd-unescape-uri (uri)
+  (replace-regexp-in-string
+   "%[A-Fa-f0-9][A-Fa-f0-9]"
+   (lambda (arg)
+     (let ((str (make-string 1 0)))
+       (aset str 0 (string-to-number (substring arg 1) 16))
+       str))
+   uri t t))
+
+;; http://lists.gnu.org/archive/html/emacs-devel/2006-05/msg01060.html
 (defun dnd-get-local-file-name (uri &optional must-exist)
   "Return file name converted from file:/// or file: syntax.
 URI is the uri for the file.  If MUST-EXIST is given and non-nil,
@@ -144,21 +154,11 @@ Return nil if URI is not a local file."
 		  (substring uri (1- (match-end 0))))
 		 ((string-match "^file:" uri)		; Old KDE, Motif, Sun
 		  (substring uri (match-end 0))))))
-    (when (and f must-exist)
-      (setq f (replace-regexp-in-string
-	       "%[A-Fa-f0-9][A-Fa-f0-9]"
-	       (lambda (arg)
-		 (let ((str (make-string 1 0)))
-		   (aset str 0 (string-to-number (substring arg 1) 16))
-		   str))
-	       f t t))
-      (let* ((decoded-f (decode-coding-string
-			 f
-			 (or file-name-coding-system
-			     default-file-name-coding-system))))
-	(setq f (cond ((file-readable-p decoded-f) decoded-f)
-		      ((file-readable-p f) f)
-		      (t nil)))))
+    (and f (setq f (decode-coding-string (dnd-unescape-uri f)
+                                         (or file-name-coding-system
+                                             default-file-name-coding-system))))
+    (when (and f must-exist (not (file-readable-p f)))
+      (setq f nil))
     f))
 
 (defun dnd-open-local-file (uri action)

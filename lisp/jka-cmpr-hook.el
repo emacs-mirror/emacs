@@ -73,10 +73,18 @@ Otherwise, it is nil.")
 
 (defun jka-compr-build-file-regexp ()
   (purecopy
-  (mapconcat
-   'jka-compr-info-regexp
-   jka-compr-compression-info-list
-   "\\|")))
+   (let ((re-anchored '())
+         (re-free '()))
+     (dolist (e jka-compr-compression-info-list)
+       (let ((re (jka-compr-info-regexp e)))
+         (if (string-match "\\\\'\\'" re)
+             (push (substring re 0 (match-beginning 0)) re-anchored)
+           (push re re-free))))
+     (concat
+      (if re-free (concat (mapconcat 'identity re-free "\\|") "\\|"))
+      "\\(?:"
+      (mapconcat 'identity re-anchored "\\|")
+      "\\)" file-name-version-regexp "?\\'"))))
 
 ;; Functions for accessing the return value of jka-compr-get-compression-info
 (defun jka-compr-info-regexp               (info)  (aref info 0))
@@ -97,11 +105,9 @@ The determination as to which compression scheme, if any, to use is
 based on the filename itself and `jka-compr-compression-info-list'."
   (catch 'compression-info
     (let ((case-fold-search nil))
-      (mapc
-       (function (lambda (x)
-		   (and (string-match (jka-compr-info-regexp x) filename)
-			(throw 'compression-info x))))
-       jka-compr-compression-info-list)
+      (dolist (x jka-compr-compression-info-list)
+        (and (string-match (jka-compr-info-regexp x) filename)
+             (throw 'compression-info x)))
       nil)))
 
 (defun jka-compr-install ()
@@ -198,7 +204,7 @@ options through Custom does this automatically."
   ;; uncomp-message uncomp-prog uncomp-args
   ;; can-append strip-extension-flag file-magic-bytes]
   (mapcar 'purecopy
-  '(["\\.Z\\(~\\|\\.~[0-9]+~\\)?\\'"
+  '(["\\.Z\\'"
      "compressing"    "compress"     ("-c")
      ;; gzip is more common than uncompress. It can only read, not write.
      "uncompressing"  "gzip"   ("-c" "-q" "-d")
@@ -206,7 +212,7 @@ options through Custom does this automatically."
      ;; Formerly, these had an additional arg "-c", but that fails with
      ;; "Version 0.1pl2, 29-Aug-97." (RedHat 5.1 GNU/Linux) and
      ;; "Version 0.9.0b, 9-Sept-98".
-    ["\\.bz2\\(~\\|\\.~[0-9]+~\\)?\\'"
+    ["\\.bz2\\'"
      "bzip2ing"        "bzip2"         nil
      "bunzip2ing"      "bzip2"         ("-d")
      nil t "BZh"]
@@ -214,15 +220,15 @@ options through Custom does this automatically."
      "bzip2ing"        "bzip2"         nil
      "bunzip2ing"      "bzip2"         ("-d")
      nil nil "BZh"]
-    ["\\.\\(?:tgz\\|svgz\\|sifz\\)\\(~\\|\\.~[0-9]+~\\)?\\'"
+    ["\\.\\(?:tgz\\|svgz\\|sifz\\)\\'"
      "compressing"        "gzip"         ("-c" "-q")
      "uncompressing"      "gzip"         ("-c" "-q" "-d")
      t nil "\037\213"]
-    ["\\.g?z\\(~\\|\\.~[0-9]+~\\)?\\'"
+    ["\\.g?z\\'"
      "compressing"        "gzip"         ("-c" "-q")
      "uncompressing"      "gzip"         ("-c" "-q" "-d")
      t t "\037\213"]
-    ["\\.xz\\(~\\|\\.~[0-9]+~\\)?\\'"
+    ["\\.xz\\'"
      "XZ compressing"     "xz"           ("-c" "-q")
      "XZ uncompressing"   "xz"           ("-c" "-q" "-d")
      t t "\3757zXZ\0"]
