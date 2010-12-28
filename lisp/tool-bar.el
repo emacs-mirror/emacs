@@ -252,26 +252,16 @@ holds a keymap."
   (tool-bar-add-item-from-menu 'dired "diropen" nil :vert-only t)
   (tool-bar-add-item-from-menu 'kill-this-buffer "close" nil :vert-only t)
   (tool-bar-add-item-from-menu 'save-buffer "save" nil
-			       :label "Save"
-			       :enable '(or buffer-file-name
-					     (not (eq 'special
-						      (get major-mode
-							   'mode-class)))))
+			       :label "Save")
   (define-key-after (default-value 'tool-bar-map) [separator-1] menu-bar-separator)
-  (tool-bar-add-item-from-menu 'undo "undo" nil :vert-only t
-			       :enable '(not (eq 'special (get major-mode
-								'mode-class))))
+  (tool-bar-add-item-from-menu 'undo "undo" nil :vert-only t)
   (define-key-after (default-value 'tool-bar-map) [separator-2] menu-bar-separator)
   (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [cut])
-			       "cut" nil :vert-only t
-			       :enable '(not (eq 'special (get major-mode
-								'mode-class))))
+			       "cut" nil :vert-only t)
   (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [copy])
 			       "copy" nil :vert-only t)
   (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [paste])
-			       "paste" nil :vert-only t
-			       :enable '(not (eq 'special (get major-mode
-								'mode-class))))
+			       "paste" nil :vert-only t)
   (define-key-after (default-value 'tool-bar-map) [separator-3] menu-bar-separator)
   (tool-bar-add-item-from-menu 'nonincremental-search-forward "search"
 			       nil :label "Search")
