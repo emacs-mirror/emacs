@@ -7204,6 +7204,7 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Sprevious_window);
   defsubr (&Sother_window);
   defsubr (&Sget_lru_window);
+  defsubr (&Swindow_use_time);
   defsubr (&Sget_largest_window);
   defsubr (&Sget_buffer_window);
   defsubr (&Sdelete_other_windows);

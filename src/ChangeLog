@@ -1,3 +1,8 @@
+2010-12-29  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* window.c (syms_of_window): Add missing defsubr for
+	window-use-time.
+
 2010-12-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* xterm.h (x_alloc_lighter_color_for_widget): Restore declaration.
