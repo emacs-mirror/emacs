@@ -1,3 +1,9 @@
+2010-12-29  Karl Fogel  <kfogel@red-bean.com>
+
+	* saveplace.el (save-place-alist-to-file): Save list sorted and
+	pretty-printed, so that it is mergeable by line-based text merging,
+	as suggested by Iain Dalton <iain.dalton {_AT_} gmail.com>.
+
 2010-12-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tool-bar.el (tool-bar-setup): Remove :enable conditions, which
