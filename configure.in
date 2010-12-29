@@ -45,8 +45,6 @@ archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 gamedir='${localstatedir}/games/emacs'
 
-gameuser=games
-
 dnl OPTION_DEFAULT_OFF(NAME, HELP-STRING)
 dnl Create a new --with option that defaults to being disabled.
 dnl NAME is the base name of the option.  The shell variable with_NAME
@@ -202,6 +200,12 @@ AC_ARG_WITH([crt-dir],dnl
 [AS_HELP_STRING([--with-crt-dir=DIR],[directory containing crtn.o etc.
 The default is /usr/lib, or /usr/lib64 on some platforms.])])
 CRT_DIR="${with_crt_dir}"
+
+AC_ARG_WITH(gameuser,dnl
+[AS_HELP_STRING([--with-gameuser=USER],[user for shared game score files])])
+test "X${with_gameuser}" != X && test "${with_gameuser}" != yes \
+  && gameuser="${with_gameuser}"
+test "X$gameuser" = X && gameuser=games
 
 AC_ARG_WITH([gnustep-conf],dnl
 [AS_HELP_STRING([--with-gnustep-conf=PATH],[path to GNUstep.conf; default $GNUSTEP_CONFIG_FILE, or /etc/GNUstep/GNUstep.conf])])
