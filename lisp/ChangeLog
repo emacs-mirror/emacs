@@ -1,3 +1,13 @@
+2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el: Implement viewing of OpenDocument (and Microsoft
+	Office) files.  Not yet enabled via auto-mode-list.
+	(doc-view-unoconv-program): New custom variable.
+	(doc-view-mode-p): Handle new odf document type.
+	(doc-view-odf->pdf): New conversion function.
+	(doc-view-convert-current-doc): Call it for odf files.
+	(doc-view-mode): Recognize newly supported file extensions.
+
 2010-12-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-default-method-alist)

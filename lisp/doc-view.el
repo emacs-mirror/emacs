@@ -190,6 +190,13 @@ If this and `doc-view-dvipdfm-program' are set,
   :type 'file
   :group 'doc-view)
 
+(defcustom doc-view-unoconv-program (executable-find "unoconv")
+  "Program to convert any file type readable by OpenOffice.org to PDF.
+
+Needed for viewing OpenOffice.org (and MS Office) files."
+  :type 'file
+  :group 'doc-view)
+
 (defcustom doc-view-ps2pdf-program (executable-find "ps2pdf")
   "Program to convert PS files to PDF.
 
@@ -604,8 +611,9 @@ It's a subdirectory of `doc-view-cache-directory'."
 
 ;;;###autoload
 (defun doc-view-mode-p (type)
-  "Return non-nil if image type TYPE is available for `doc-view'.
-Image types are symbols like `dvi', `postscript' or `pdf'."
+  "Return non-nil if document type TYPE is available for `doc-view'.
+Document types are symbols like `dvi', `ps', `pdf', or `odf' (any
+OpenDocument format)."
   (and (display-graphic-p)
        (image-type-available-p 'png)
        (cond
@@ -619,6 +627,10 @@ Image types are symbols like `dvi', `postscript' or `pdf'."
 	     (eq type 'pdf))
 	 (and doc-view-ghostscript-program
 	      (executable-find doc-view-ghostscript-program)))
+	((eq type 'odf)
+	 (and doc-view-unoconv-program
+	      (executable-find doc-view-unoconv-program)
+	      (doc-view-mode-p 'pdf)))
 	(t ;; unknown image type
 	 nil))))
 
@@ -692,6 +704,13 @@ Should be invoked when the cached images aren't up-to-date."
 			    (list "-o" pdf dvi)
 			    callback)))
 
+(defun doc-view-odf->pdf (odf callback)
+  "Convert ODF to PDF asynchronously and call CALLBACK when finished.
+The converted PDF is put into the current cache directory, and it
+is named like ODF with the extension turned to pdf."
+  (doc-view-start-process "odf->pdf" doc-view-unoconv-program
+			  (list "-f" "pdf" "-o" (doc-view-current-cache-dir) odf)
+			  callback))
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
   "Convert PDF-PS to PNG asynchronously."
@@ -838,6 +857,24 @@ Those files are saved in the directory given by the function
             (png-file png-file))
          (doc-view-dvi->pdf doc-view-buffer-file-name pdf
                             (lambda () (doc-view-pdf/ps->png pdf png-file)))))
+      (odf
+       ;; ODF files have to be converted to PDF before Ghostscript can
+       ;; process it.
+       (lexical-let
+           ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir))
+	    (opdf (expand-file-name (concat (file-name-sans-extension
+					     (file-name-nondirectory doc-view-buffer-file-name))
+					    ".pdf")
+				    doc-view-current-cache-dir))
+            (png-file png-file))
+	 ;; The unoconv tool only supports a output directory, but no
+	 ;; file name.  It's named like the input file with the
+	 ;; extension replaced by pdf.
+         (doc-view-odf->pdf doc-view-buffer-file-name
+                            (lambda ()
+			      ;; Rename to doc.pdf
+			      (rename-file opdf pdf)
+			      (doc-view-pdf/ps->png pdf png-file)))))
       (pdf
        (let ((pages (doc-view-active-pages)))
          ;; Convert PDF to PNG images starting with the active pages.
@@ -1236,11 +1273,20 @@ toggle between displaying the document or editing it as text.
     (let ((name-types
 	   (when buffer-file-name
 	     (cdr (assoc (file-name-extension buffer-file-name)
-			 '(("dvi" dvi)
-			   ("pdf" pdf)
-			   ("epdf" pdf)
-			   ("ps" ps)
-			   ("eps" ps))))))
+			 '(
+			   ;; DVI
+			   ("dvi" dvi)
+			   ;; PDF
+			   ("pdf" pdf) ("epdf" pdf)
+			   ;; PostScript
+			   ("ps" ps) ("eps" ps)
+			   ;; OpenDocument formats
+			   ("odt" odf) ("ods" odf) ("odp" odf) ("odg" odf)
+			   ("odc" odf) ("odi" odf) ("odm" odf) ("ott" odf)
+			   ("ots" odf) ("otp" odf) ("otg" odf)
+			   ;; Microsoft Office formats (also handled
+			   ;; by the odf conversion chain)
+			   ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf))))))
 	  (content-types
 	   (save-excursion
 	     (goto-char (point-min))
