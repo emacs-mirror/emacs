@@ -1,5 +1,11 @@
 2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
 
+	* doc-view.el (doc-view-mode, doc-view-toggle-display): Use
+	normal-mode without doc-view-mode bindings in auto-mode-alist as
+	fallback instead of hard coding fundamental mode.
+
+2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
+
 	* doc-view.el (doc-view-doc->txt): Handle OpenDocument (or MS
 	Office) files also for searching.
 

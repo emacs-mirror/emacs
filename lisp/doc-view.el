@@ -1047,7 +1047,6 @@ For now these keys are useful:
 
 ;;;;; Toggle between editing and viewing
 
-
 (defun doc-view-toggle-display ()
   "Toggle between editing a document as text or viewing it."
   (interactive)
@@ -1058,11 +1057,12 @@ For now these keys are useful:
 	(setq buffer-read-only nil)
 	(remove-overlays (point-min) (point-max) 'doc-view t)
 	(set (make-local-variable 'image-mode-winprops-alist) t)
-	;; Switch to the previously used major mode or fall back to fundamental
-	;; mode.
+	;; Switch to the previously used major mode or fall back to
+	;; normal mode.
 	(if doc-view-previous-major-mode
 	    (funcall doc-view-previous-major-mode)
-	  (fundamental-mode))
+	  (let ((auto-mode-alist (rassq-delete-all 'doc-view-mode auto-mode-alist)))
+	    (normal-mode)))
 	(doc-view-minor-mode 1))
     ;; Switch to doc-view-mode
     (when (and (buffer-modified-p)
@@ -1271,7 +1271,8 @@ toggle between displaying the document or editing it as text.
 
     (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
 				doc-view-previous-major-mode
-			      major-mode)))
+			      (when (not (eq major-mode 'fundamental-mode))
+				major-mode))))
       (kill-all-local-variables)
       (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
 
