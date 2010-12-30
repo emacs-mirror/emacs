@@ -1061,7 +1061,8 @@ For now these keys are useful:
 	;; normal mode.
 	(if doc-view-previous-major-mode
 	    (funcall doc-view-previous-major-mode)
-	  (let ((auto-mode-alist (rassq-delete-all 'doc-view-mode auto-mode-alist)))
+	  (let ((auto-mode-alist (rassq-delete-all 'doc-view-mode
+						   (copy-alist auto-mode-alist))))
 	    (normal-mode)))
 	(doc-view-minor-mode 1))
     ;; Switch to doc-view-mode
