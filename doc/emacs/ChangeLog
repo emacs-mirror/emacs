@@ -1,3 +1,7 @@
+2010-12-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* rmail.texi (Rmail Display): Edit for grammar and conciseness.
+
 2010-12-27  Kenichi Handa  <handa@m17n.org>
 
 	* rmail.texi (Rmail Display): Describe new features of Rmail in Info.
