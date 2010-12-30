@@ -1,3 +1,16 @@
+2010-12-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* coding.h (ENCODE_UTF_8): Remove "Used by ..." comment.
+
+	* nsfns.m (ns_set_name_iconic): Remove.
+	(ns_set_name_internal): New function (Bug#7517).
+	(Vicon_title_format): Extern declare.
+	(ns_set_name): Call ns_set_name_internal.
+	(x_explicitly_set_name): Remove call to ns_set_name_iconic.
+	(x_implicitly_set_name): Ditto.
+	(x_set_title): Remove commet about EXPLICIT.  Call ns_set_name_internal.
+	(ns_set_name_as_filename): Encode name with ENCODE_UTF_8 (Bug#7517).
+
 2010-12-29  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* window.c (syms_of_window): Add missing defsubr for
