@@ -1,3 +1,8 @@
+2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* misc.texi (Document View): Update DocView section with newly
+	supported document formats.
+
 2010-12-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* killing.texi: Resection the Info version to conform to the
