@@ -767,7 +767,7 @@ of all atomic regexps."
     (unless syntax
       ;; Try sregex compatibility.
       (cond
-       ((character sym) (setq syntax sym))
+       ((characterp sym) (setq syntax sym))
        ((symbolp sym)
         (let ((name (symbol-name sym)))
           (if (= 1 (length name))
