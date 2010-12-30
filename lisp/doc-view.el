@@ -813,6 +813,12 @@ Start by converting PAGES, and then the rest."
      (doc-view-pdf->txt (expand-file-name "doc.pdf"
                                           (doc-view-current-cache-dir))
                         txt callback))
+    (odf
+     ;; Doc is some ODF (or MS Office) doc.  This means that a doc.pdf
+     ;; already exists in its cache subdirectory.
+     (doc-view-pdf->txt (expand-file-name "doc.pdf"
+                                          (doc-view-current-cache-dir))
+                        txt callback))
     (t (error "DocView doesn't know what to do"))))
 
 (defun doc-view-ps->pdf (ps pdf callback)
