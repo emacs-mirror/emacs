@@ -1059,11 +1059,7 @@ For now these keys are useful:
 	(set (make-local-variable 'image-mode-winprops-alist) t)
 	;; Switch to the previously used major mode or fall back to
 	;; normal mode.
-	(if doc-view-previous-major-mode
-	    (funcall doc-view-previous-major-mode)
-	  (let ((auto-mode-alist (rassq-delete-all 'doc-view-mode
-						   (copy-alist auto-mode-alist))))
-	    (normal-mode)))
+	(doc-view-fallback-mode)
 	(doc-view-minor-mode 1))
     ;; Switch to doc-view-mode
     (when (and (buffer-modified-p)
@@ -1250,6 +1246,41 @@ If BACKWARD is non-nil, jump to the previous match."
     (dolist (x l1) (if (memq x l2) (push x l)))
     l))
 
+(defun doc-view-set-doc-type ()
+  "Figure out the current document type (`doc-view-doc-type')."
+  (let ((name-types
+	 (when buffer-file-name
+	   (cdr (assoc (file-name-extension buffer-file-name)
+		       '(
+			 ;; DVI
+			 ("dvi" dvi)
+			 ;; PDF
+			 ("pdf" pdf) ("epdf" pdf)
+			 ;; PostScript
+			 ("ps" ps) ("eps" ps)
+			 ;; OpenDocument formats
+			 ("odt" odf) ("ods" odf) ("odp" odf) ("odg" odf)
+			 ("odc" odf) ("odi" odf) ("odm" odf) ("ott" odf)
+			 ("ots" odf) ("otp" odf) ("otg" odf)
+			 ;; Microsoft Office formats (also handled
+			 ;; by the odf conversion chain)
+			 ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf)
+			 ("ppt" odf) ("pptx" odf))))))
+	(content-types
+	 (save-excursion
+	   (goto-char (point-min))
+	   (cond
+	    ((looking-at "%!") '(ps))
+	    ((looking-at "%PDF") '(pdf))
+	    ((looking-at "\367\002") '(dvi))))))
+    (set (make-local-variable 'doc-view-doc-type)
+	 (car (or (doc-view-intersection name-types content-types)
+		  (when (and name-types content-types)
+		    (error "Conflicting types: name says %s but content says %s"
+			   name-types content-types))
+		  name-types content-types
+		  (error "Cannot determine the document type"))))))
+
 ;;;###autoload
 (defun doc-view-mode ()
   "Major mode in DocView buffers.
@@ -1266,49 +1297,19 @@ toggle between displaying the document or editing it as text.
       ;; The doc is empty or doesn't exist at all, so fallback to
       ;; another mode.  We used to also check file-exists-p, but this
       ;; returns nil for tar members.
-      (let ((auto-mode-alist (remq (rassq 'doc-view-mode auto-mode-alist)
-				   auto-mode-alist)))
-	(normal-mode))
+      (doc-view-fallback-mode)
 
     (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
 				doc-view-previous-major-mode
-			      (when (not (eq major-mode 'fundamental-mode))
+			      (when (not (memq major-mode
+					       '(doc-view-mode fundamental-mode)))
 				major-mode))))
       (kill-all-local-variables)
       (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
 
     ;; Figure out the document type.
-    (let ((name-types
-	   (when buffer-file-name
-	     (cdr (assoc (file-name-extension buffer-file-name)
-			 '(
-			   ;; DVI
-			   ("dvi" dvi)
-			   ;; PDF
-			   ("pdf" pdf) ("epdf" pdf)
-			   ;; PostScript
-			   ("ps" ps) ("eps" ps)
-			   ;; OpenDocument formats
-			   ("odt" odf) ("ods" odf) ("odp" odf) ("odg" odf)
-			   ("odc" odf) ("odi" odf) ("odm" odf) ("ott" odf)
-			   ("ots" odf) ("otp" odf) ("otg" odf)
-			   ;; Microsoft Office formats (also handled
-			   ;; by the odf conversion chain)
-			   ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf))))))
-	  (content-types
-	   (save-excursion
-	     (goto-char (point-min))
-	     (cond
-	      ((looking-at "%!") '(ps))
-	      ((looking-at "%PDF") '(pdf))
-	      ((looking-at "\367\002") '(dvi))))))
-      (set (make-local-variable 'doc-view-doc-type)
-	   (car (or (doc-view-intersection name-types content-types)
-		    (when (and name-types content-types)
-		      (error "Conflicting types: name says %s but content says %s"
-			     name-types content-types))
-		    name-types content-types
-		    (error "Cannot determine the document type")))))
+    (unless doc-view-doc-type
+      (doc-view-set-doc-type))
 
     (doc-view-make-safe-dir doc-view-cache-directory)
     ;; Handle compressed files, remote files, files inside archives
@@ -1375,6 +1376,28 @@ toggle between displaying the document or editing it as text.
     ;; `view-read-only'.
     (set (make-local-variable 'view-read-only) nil)
     (run-mode-hooks 'doc-view-mode-hook)))
+
+(defun doc-view-fallback-mode ()
+  "Fallback to the previous or next best major mode."
+  (if doc-view-previous-major-mode
+      (funcall doc-view-previous-major-mode)
+    (let ((auto-mode-alist (rassq-delete-all
+			    'doc-view-mode-maybe
+			    (rassq-delete-all 'doc-view-mode
+					      (copy-alist auto-mode-alist)))))
+      (normal-mode))))
+
+;;;###autoload
+(defun doc-view-mode-maybe ()
+  "Switch to `doc-view-mode' if possible.
+If the required external tools are not available, then fallback
+to the next best mode."
+  (condition-case nil
+      (doc-view-set-doc-type)
+    (error (doc-view-fallback-mode)))
+  (if (doc-view-mode-p doc-view-doc-type)
+      (doc-view-mode)
+    (doc-view-fallback-mode)))
 
 ;;;###autoload
 (define-minor-mode doc-view-minor-mode
