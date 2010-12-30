@@ -1,3 +1,18 @@
+2010-12-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-default-method-alist)
+	(tramp-default-user-alist)
+	(tramp-local-host-regexp, tramp-prefix-domain-format)
+	(tramp-prefix-domain-regexp): Set tramp-autoload cookie.
+
+	* net/tramp-ftp.el:
+	* net/tramp-gvfs.el:
+	* net/tramp-gw.el:
+	* net/tramp-imap.el:
+	* net/tramp-sh.el:
+	* net/tramp-smb.el: Add tramp-autoload cookie for initialisation
+	code of `tramp-default-method-alist' and `tramp-default-user-alist'.
+
 2010-12-29  Karl Fogel  <kfogel@red-bean.com>
 
 	* saveplace.el (save-place-alist-to-file): Save list sorted and

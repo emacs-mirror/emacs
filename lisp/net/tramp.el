@@ -318,6 +318,7 @@ Also see `tramp-default-method-alist'."
   :group 'tramp
   :type 'string)
 
+;;;###tramp-autoload
 (defcustom tramp-default-method-alist nil
   "*Default method to use for specific host/user pairs.
 This is an alist of items (HOST USER METHOD).  The first matching item
@@ -344,6 +345,7 @@ This variable is regarded as obsolete, and will be removed soon."
   :group 'tramp
   :type '(choice (const nil) string))
 
+;;;###tramp-autoload
 (defcustom tramp-default-user-alist nil
   "*Default user to use for specific method/host pairs.
 This is an alist of items (METHOD HOST USER).  The first matching item
@@ -384,6 +386,7 @@ interpreted as a regular expression which always matches."
 		       (choice :tag "User regexp" regexp sexp)
 		       (choice :tag " Proxy name" string (const nil)))))
 
+;;;###tramp-autoload
 (defconst tramp-local-host-regexp
   (concat
    "\\`"
@@ -666,9 +669,11 @@ Derived from `tramp-postfix-method-format'.")
 (defconst tramp-user-regexp "[^:/ \t]+"
   "*Regexp matching user names.")
 
+;;;###tramp-autoload
 (defconst tramp-prefix-domain-format "%"
   "*String matching delimeter between user and domain names.")
 
+;;;###tramp-autoload
 (defconst tramp-prefix-domain-regexp
   (regexp-quote tramp-prefix-domain-format)
   "*Regexp matching delimeter between user and domain names.

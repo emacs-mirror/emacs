@@ -72,6 +72,7 @@
   (list "Default server" "socks" tramp-gw-default-socks-port 5))
 
 ;; Add a default for `tramp-default-user-alist'.  Default is the local user.
+;;;###tramp-autoload
 (add-to-list
  'tramp-default-user-alist
  (list (concat "\\`"

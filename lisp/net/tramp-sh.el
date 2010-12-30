@@ -380,13 +380,16 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-copy-args            (("%k" "-p")))
     (tramp-copy-keep-date       t)))
 
+;;;###tramp-autoload
 (add-to-list 'tramp-default-method-alist
 	     `(,tramp-local-host-regexp "\\`root\\'" "su"))
 
+;;;###tramp-autoload
 (add-to-list 'tramp-default-user-alist
 	     `(,(concat "\\`" (regexp-opt '("su" "sudo" "ksu")) "\\'")
 	       nil "root"))
 ;; Do not add "ssh" based methods, otherwise ~/.ssh/config would be ignored.
+;;;###tramp-autoload
 (add-to-list 'tramp-default-user-alist
 	     `(,(concat
 		 "\\`"
