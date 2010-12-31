@@ -5,6 +5,9 @@
 	version of PNG library we were compiled with.
 	(my_png_error, png_load): Avoid GCC warnings about direct access
 	to png_ptr->jmpbuf.  (Bug#7716)
+	(png_jmpbuf): New macro.
+	(my_png_error, png_load): Use it instead of #ifdef'ing according
+	to PNG_LIBPNG_VER_MAJOR and PNG_LIBPNG_VER_MINOR.
 
 2010-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
