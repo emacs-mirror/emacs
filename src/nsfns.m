@@ -602,12 +602,13 @@ void
 ns_set_name_as_filename (struct frame *f)
 {
   NSView *view;
-  Lisp_Object name;
+  Lisp_Object name, filename;
   Lisp_Object buf = XWINDOW (f->selected_window)->buffer;
   const char *title;
   NSAutoreleasePool *pool;
   struct gcpro gcpro1;
-  Lisp_Object encoded_name;
+  Lisp_Object encoded_name, encoded_filename;
+  NSString *str;
   NSTRACE (ns_set_name_as_filename);
 
   if (f->explicit_name || ! NILP (f->title) || ns_in_resize)
@@ -615,16 +616,16 @@ ns_set_name_as_filename (struct frame *f)
 
   BLOCK_INPUT;
   pool = [[NSAutoreleasePool alloc] init];
-  name = XBUFFER (buf)->filename;
-  if (NILP (name) || FRAME_ICONIFIED_P (f)) name = XBUFFER (buf)->name;
-
-  if (FRAME_ICONIFIED_P (f) && !NILP (f->icon_name))
-    name = f->icon_name;
+  filename = XBUFFER (buf)->filename;
+  name = XBUFFER (buf)->name;
 
   if (NILP (name))
-    name = build_string ([ns_app_name UTF8String]);
-  else
-    CHECK_STRING (name);
+    {
+      if (! NILP (filename))
+        name = Ffile_name_nondirectory (filename);
+      else
+        name = build_string ([ns_app_name UTF8String]);
+    }
 
   GCPRO1 (name);
   encoded_name = ENCODE_UTF_8 (name);
@@ -642,33 +643,39 @@ ns_set_name_as_filename (struct frame *f)
       return;
     }
 
-  if (! FRAME_ICONIFIED_P (f))
+  str = [NSString stringWithUTF8String: SDATA (encoded_name)];
+  if (str == nil) str = @"Bad coding";
+
+  if (FRAME_ICONIFIED_P (f))
+    [[view window] setMiniwindowTitle: str];
+  else 
     {
-#ifdef NS_IMPL_COCOA
-      /* work around a bug observed on 10.3 where
-         setTitleWithRepresentedFilename does not clear out previous state
-         if given filename does not exist */
-      NSString *str = [NSString stringWithUTF8String: SDATA (encoded_name)];
-      if (![[NSFileManager defaultManager] fileExistsAtPath: str])
+      NSString *fstr;
+
+      if (! NILP (filename))
         {
-          [[view window] setTitleWithRepresentedFilename: @""];
-          [[view window] setTitle: str];
+          GCPRO1 (filename);
+          encoded_filename = ENCODE_UTF_8 (filename);
+          UNGCPRO;
+
+          fstr = [NSString stringWithUTF8String: SDATA (encoded_filename)];
+          if (fstr == nil) fstr = @"";
+#ifdef NS_IMPL_COCOA
+          /* work around a bug observed on 10.3 and later where
+             setTitleWithRepresentedFilename does not clear out previous state
+             if given filename does not exist */
+          if (! [[NSFileManager defaultManager] fileExistsAtPath: fstr])
+            [[view window] setRepresentedFilename: @""];
+#endif
         }
       else
-        {
-          [[view window] setTitleWithRepresentedFilename: str];
-        }
-#else
-      [[view window] setTitleWithRepresentedFilename:
-                         [NSString stringWithUTF8String: SDATA (encoded_name)]];
-#endif
+        fstr = @"";
+
+      [[view window] setRepresentedFilename: fstr];
+      [[view window] setTitle: str];
       f->name = name;
     }
-  else
-    {
-      [[view window] setMiniwindowTitle:
-            [NSString stringWithUTF8String: SDATA (encoded_name)]];
-    }
+
   [pool release];
   UNBLOCK_INPUT;
 }

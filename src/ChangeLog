@@ -1,3 +1,9 @@
+2010-12-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_set_name_as_filename): Always use buffer name for
+	title and buffer filename only for RepresentedFilename.
+	Handle bad UTF-8 in buffer name (Bug#7517).
+
 2010-12-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* coding.h (ENCODE_UTF_8): Remove "Used by ..." comment.
