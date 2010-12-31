@@ -1,3 +1,11 @@
+2010-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c <Qlibpng_version>: New variable.
+	(syms_of_image): Intern and staticpro it.  Set its value to the
+	version of PNG library we were compiled with.
+	(my_png_error, png_load): Avoid GCC warnings about direct access
+	to png_ptr->jmpbuf.  (Bug#7716)
+
 2010-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* .gdbinit (xgetptr): Fix the union+lsb case.

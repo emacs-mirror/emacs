@@ -1,3 +1,8 @@
+2010-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (image-library-alist): Set up correctly for
+	libpng versions both before and after 1.4.0.  (Bug#7716)
+
 2010-12-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* time.el (display-time-mode): Mention display-time-interval in

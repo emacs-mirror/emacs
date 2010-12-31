@@ -94,6 +94,11 @@ typedef struct w32_bitmap_record Bitmap_Record;
    without modifying lots of files).  */
 extern void x_query_colors (struct frame *f, XColor *colors, int ncolors);
 extern void x_query_color (struct frame *f, XColor *color);
+
+/* Version of libpng that we were compiled with, or -1 if no PNG
+   support was compiled in.  This is tested by w32-win.el to correctly
+   set up the alist used to search for PNG libraries.  */
+Lisp_Object Qlibpng_version;
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
@@ -5652,8 +5657,15 @@ my_png_error (png_ptr, msg)
      char *msg;
 {
   xassert (png_ptr != NULL);
+  /* Avoid compiler warning about deprecated direct access to
+     png_ptr's fields in libpng versions 1.4.x.  */
   image_error ("PNG error: %s", build_string (msg), Qnil);
+#if PNG_LIBPNG_VER_MAJOR > 1					\
+  || (PNG_LIBPNG_VER_MAJOR == 1 && PNG_LIBPNG_VER_MINOR >= 4)
+  longjmp (png_jmpbuf (png_ptr), 1);
+#else
   longjmp (png_ptr->jmpbuf, 1);
+#endif
 }
 
 
@@ -5827,9 +5839,16 @@ png_load (f, img)
       return 0;
     }
 
+  /* Avoid compiler warning about deprecated direct access to
+     png_ptr's fields in libpng versions 1.4.x.  */
+#if PNG_LIBPNG_VER_MAJOR > 1					\
+  || (PNG_LIBPNG_VER_MAJOR == 1 && PNG_LIBPNG_VER_MINOR >= 4)
   /* Set error jump-back.  We come back here when the PNG library
      detects an error.  */
+  if (setjmp (png_jmpbuf (png_ptr)))
+#else
   if (setjmp (png_ptr->jmpbuf))
+#endif
     {
     error:
       if (png_ptr)
@@ -8452,6 +8471,16 @@ non-numeric, there is no explicit limit on the size of images.  */);
   QCpt_height = intern_c_string (":pt-height");
   staticpro (&QCpt_height);
 #endif /* HAVE_GHOSTSCRIPT */
+
+#ifdef HAVE_NTGUI
+  Qlibpng_version = intern_c_string ("libpng-version");
+  staticpro (&Qlibpng_version);
+#if HAVE_PNG
+  SET_SYMBOL_VAL (XSYMBOL (Qlibpng_version), make_number (PNG_LIBPNG_VER));
+#else
+  SET_SYMBOL_VAL (XSYMBOL (Qlibpng_version), make_number (-1));
+#endif
+#endif
 
 #if defined (HAVE_XPM) || defined (HAVE_NS)
   Qxpm = intern_c_string ("xpm");
