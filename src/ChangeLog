@@ -1,3 +1,16 @@
+2011-01-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gtkutil.c (xg_get_tool_bar_widgets): Use NULL for a missing
+	image or label in the container.
+	(xg_make_tool_item): Replace VERT_ONLY arg with HORIZ, TEXT_IMAGE.
+	(xg_show_toolbar_item): Function deleted.
+	(xg_tool_item_stale_p): New function.
+	(update_frame_tool_bar): Calculate tool-bar style once per call.
+	Instead of hiding text labels, omit them.  Don't use
+	xg_show_toolbar_item; create new GtkToolItems from scratch if
+	necessary, instead of trying to re-use them.  This avoids an
+	annoying animation when changing tool-bars.
+
 2010-12-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (ns_set_name_as_filename): Always use buffer name for
