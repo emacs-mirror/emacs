@@ -1,5 +1,5 @@
 ;; unidata-gen.el -- Create files containing character property data.
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
@@ -1261,5 +1261,4 @@ Property value is a character."
 
 
 
-;; arch-tag: 961c862e-b821-447e-9b8a-bfbab9c2d525
 ;;; unidata-gen.el ends here
