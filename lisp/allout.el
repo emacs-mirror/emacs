@@ -1432,6 +1432,8 @@ their settings before allout-mode was started."
 ;;;_   = allout-mode-deactivate-hook
 (defvar allout-mode-deactivate-hook nil
   "*Hook that's run when allout mode ends.")
+(define-obsolete-variable-alias 'allout-mode-deactivate-hook
+  'allout-mode-off-hook "future")
 ;;;_   = allout-exposure-category
 (defvar allout-exposure-category nil
   "Symbol for use as allout invisible-text overlay category.")
@@ -3983,9 +3985,13 @@ Maintains outline hanging topic indentation if
                                    (make-string (progn (allout-end-of-prefix)
                                                        (current-column))
                                                 ?\ ))))))
-          (use-auto-fill-function (or allout-outside-normal-auto-fill-function
-                                      auto-fill-function
-                                      'do-auto-fill)))
+          (use-auto-fill-function
+           (if (and (eq allout-outside-normal-auto-fill-function
+                        'allout-auto-fill)
+                    (eq auto-fill-function 'allout-auto-fill))
+               'do-auto-fill
+             (or allout-outside-normal-auto-fill-function
+                 auto-fill-function))))
       (if (or allout-former-auto-filler allout-use-hanging-indents)
           (funcall use-auto-fill-function)))))
 ;;;_    > allout-reindent-body (old-depth new-depth &optional number)
