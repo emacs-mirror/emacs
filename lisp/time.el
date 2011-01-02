@@ -463,7 +463,9 @@ update which can wait for the next redisplay."
   "Toggle display of time, load level, and mail flag in mode lines.
 With a numeric arg, enable this display if arg is positive.
 
-When this display is enabled, it updates automatically every minute.
+When this display is enabled, it updates automatically every minute
+\(you can control the number of seconds between updates by
+customizing `display-time-interval').
 If `display-time-day-and-date' is non-nil, the current day and date
 are displayed as well.
 This runs the normal hook `display-time-hook' after each update."

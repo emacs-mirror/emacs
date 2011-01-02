@@ -1,3 +1,9 @@
+2011-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* ebrowse.c (version) <emacs_copyright>:
+	* etags.c (print_version) <emacs_copyright>:
+	* rcs2log (Copyright): Set short copyright year to 2011.
+
 2010-11-27  Joe Matarazzo  <joe.matarazzo@gmail.com>  (tiny change)
 
 	* ebrowse.c (yylex): If end of input buffer encountered while

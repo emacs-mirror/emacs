@@ -67,6 +67,27 @@ Bazaar recognizes the headers "Author", "Date" and "Fixes".
 Git, Mercurial, and Monotone recognize "Author" and "Date".
 Any unknown header is left as is in the message, so it is not lost.
 
+** Rmail
+
+*** The default value of `rmail-enable-mime' is now t.  Rmail decodes
+MIME contents automatically.  You can customize the variable
+`rmail-enable-mime' back to `nil' to disable this automatic MIME
+decoding.
+
+*** The command `rmail-mime' change the displaying of a MIME message
+between decoded presentation form and raw data if `rmail-enable-mime'
+is non-nil.  And, with prefix argument, it change only the displaying
+of the MIME entity at point.
+
+*** The new command `rmail-mime-next-item' (bound to TAB) moves point
+to the next item of MIME message.
+
+*** The new command `rmail-mime-previous-item' (bound to backtab) moves
+point to the previous item of MIME message.
+
+*** The new command `rmail-mime-toggle-hidden' (RET) hide or show the
+body of the MIME entity at point.
+
 ** Obsolete packages
 
 +++

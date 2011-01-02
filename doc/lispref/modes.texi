@@ -2112,29 +2112,38 @@ the text that would appear in a mode line or header line
 based on a certain mode-line specification.
 
 @defun format-mode-line format &optional face window buffer
-This function formats a line of text according to @var{format} as if
-it were generating the mode line for @var{window}, but instead of
-displaying the text in the mode line or the header line, it returns
-the text as a string.  The argument @var{window} defaults to the
-selected window.  If @var{buffer} is non-@code{nil}, all the
-information used is taken from @var{buffer}; by default, it comes from
-@var{window}'s buffer.
+This function formats a line of text according to @var{format} as if it
+were generating the mode line for @var{window}, but it also returns the
+text as a string.  The argument @var{window} defaults to the selected
+window.  If @var{buffer} is non-@code{nil}, all the information used is
+taken from @var{buffer}; by default, it comes from @var{window}'s
+buffer.
 
 The value string normally has text properties that correspond to the
-faces, keymaps, etc., that the mode line would have.  And any character
-for which no @code{face} property is specified gets a default
-value which is usually @var{face}.  (If @var{face} is @code{t},
-that stands for either @code{mode-line} if @var{window} is selected,
+faces, keymaps, etc., that the mode line would have.  Any character for
+which no @code{face} property is specified by @var{format} gets a
+default value determined by @var{face}.  If @var{face} is @code{t}, that
+stands for either @code{mode-line} if @var{window} is selected,
 otherwise @code{mode-line-inactive}.  If @var{face} is @code{nil} or
-omitted, that stands for no face property.)
+omitted, that stands for the default face.  If @var{face} is an integer,
+the value returned by this function will have no text properties.
 
-However, if @var{face} is an integer, the value has no text properties.
+You can also specify other valid faces as the value of @var{face}.
+If specified, that face provides the @code{face} property for characters
+whose face is not specified by @var{format}.
+
+Note that using @code{mode-line}, @code{mode-line-inactive}, or
+@code{header-line} as @var{face} will actually redisplay the mode line
+or the header line, respectively, using the current definitions of the
+corresponding face, in addition to returning the formatted string.
+(Other faces do not cause redisplay.)
 
 For example, @code{(format-mode-line header-line-format)} returns the
 text that would appear in the selected window's header line (@code{""}
 if it has no header line).  @code{(format-mode-line header-line-format
 'header-line)} returns the same text, with each character
-carrying the face that it will have in the header line itself.
+carrying the face that it will have in the header line itself, and also
+redraws the header line.
 @end defun
 
 @node Imenu

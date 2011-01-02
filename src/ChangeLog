@@ -1,3 +1,54 @@
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (Vselect_active_regions): Doc fix.  (Bug#7702)
+
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c <Qlibpng_version>: New variable.
+	(syms_of_image): Intern and staticpro it.  Set its value to the
+	version of PNG library we were compiled with.
+	(my_png_error, png_load): Avoid GCC warnings about direct access
+	to png_ptr->jmpbuf.  (Bug#7716)
+	(png_jmpbuf): New macro.
+	(my_png_error, png_load): Use it instead of #ifdef'ing according
+	to PNG_LIBPNG_VER_MAJOR and PNG_LIBPNG_VER_MINOR.
+
+2011-01-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .gdbinit (xgetptr): Fix the union+lsb case.
+	(xbacktrace): Fix the union case.
+
+2011-01-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fmove_to_window_line): Avoid abort when called in a buffer
+	different from selected-window's.
+
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (parse_menu_item): Prepend "  " to the key sequence
+	equivalent of a menu item when the key sequence is given by the
+	`:keys' attribute.  (Bug#7662)
+
+	* xdisp.c (Fformat_mode_line): Doc fix: no need to state that only
+	the basic faces are supported.
+
+2011-01-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_check_fullscreen): Fix pixel/character mixup.
+
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fformat_mode_line): Fix last change.
+
+2011-01-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (Fformat_mode_line): Restrict the FACE argument to basic
+	faces (Bug#7587).
+
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name): One more doc fix.
+
 2011-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* gtkutil.c (xg_get_tool_bar_widgets): Use NULL for a missing

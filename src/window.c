@@ -5762,6 +5762,12 @@ zero means top of window, negative means relative to bottom of window.  */)
   int this_scroll_margin;
 #endif
 
+  if (!(BUFFERP (w->buffer)
+	&& XBUFFER (w->buffer) == current_buffer))
+    /* This test is needed to make sure PT/PT_BYTE make sense in w->buffer
+       when passed below to set_marker_both.  */
+    error ("move-to-window-line called from unrelated buffer");
+  
   window = selected_window;
   start = marker_position (w->start);
   if (start < BEGV || start > ZV)

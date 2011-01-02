@@ -1,3 +1,7 @@
+2011-01-02  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS.23: Describe the changes for rmail's MIME handling.
+
 2010-12-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* images/separator.xpm: Tweak colors.
