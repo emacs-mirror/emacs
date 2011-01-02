@@ -2581,6 +2581,7 @@ since they have special meaning in a regexp."
 (defvar isearch-lazy-highlight-regexp nil)
 (defvar isearch-lazy-highlight-space-regexp nil)
 (defvar isearch-lazy-highlight-forward nil)
+(defvar isearch-lazy-highlight-error nil)
 
 (defun lazy-highlight-cleanup (&optional force)
   "Stop lazy highlighting and remove extra highlighting from current buffer.
@@ -2622,9 +2623,13 @@ by other Emacs features."
                  (not (= (window-end)   ; Window may have been split/joined.
 			 isearch-lazy-highlight-window-end))
 		 (not (eq isearch-forward
-			  isearch-lazy-highlight-forward))))
+			  isearch-lazy-highlight-forward))
+		 ;; In case we are recovering from an error.
+		 (not (equal isearch-error
+			     isearch-lazy-highlight-error))))
     ;; something important did indeed change
     (lazy-highlight-cleanup t) ;kill old loop & remove overlays
+    (setq isearch-lazy-highlight-error isearch-error)
     (when (not isearch-error)
       (setq isearch-lazy-highlight-start-limit beg
 	    isearch-lazy-highlight-end-limit end)

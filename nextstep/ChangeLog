@@ -1,3 +1,10 @@
+2011-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* Cocoa/Emacs.base/Contents/Info.plist:
+	* Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:
+	* GNUstep/Emacs.base/Resources/Info-gnustep.plist:
+	Set short copyright year to 2011.
+
 2010-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* README: Remove information duplicated in AUTHORS.

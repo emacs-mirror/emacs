@@ -7968,7 +7968,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
     /* The previous code preferred :key-sequence to :keys, so we
        preserve this behavior.  */
     if (STRINGP (keyeq) && !CONSP (keyhint))
-      keyeq = Fsubstitute_command_keys (keyeq);
+      keyeq = concat2 (build_string ("  "), Fsubstitute_command_keys (keyeq));
     else
       {
 	Lisp_Object prefix = keyeq;
@@ -12386,7 +12386,7 @@ and tool-bar buttons.  */);
 
   DEFVAR_LISP ("select-active-regions",
 	       &Vselect_active_regions,
-	       doc: /* If non-nil, an active region automatically becomes the window selection.
+	       doc: /* If non-nil, an active region automatically sets the primary selection.
 If the value is `only', only temporarily active regions (usually made
 by mouse-dragging or shift-selection) set the window selection.
 

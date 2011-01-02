@@ -2354,7 +2354,3 @@ the target should be built.
 @ifnottex
 @include emerge-xtra.texi
 @end ifnottex
-
-@ignore
-   arch-tag: b9d83dfb-82ea-4ff6-bab5-05a3617091fb
-@end ignore

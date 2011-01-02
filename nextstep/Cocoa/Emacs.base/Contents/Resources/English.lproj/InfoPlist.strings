@@ -3,4 +3,4 @@
 CFBundleName = "Emacs";
 CFBundleShortVersionString = "Version 24.0.50";
 CFBundleGetInfoString = "Emacs version 24.0.50, NS Windowing";
-NSHumanReadableCopyright = "Copyright (C) 2010 Free Software Foundation, Inc.";
+NSHumanReadableCopyright = "Copyright (C) 2011 Free Software Foundation, Inc.";
