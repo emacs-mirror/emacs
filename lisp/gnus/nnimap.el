@@ -1,6 +1,6 @@
 ;;; nnimap.el --- IMAP interface for Gnus
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Simon Josefsson <simon@josefsson.org>
@@ -639,7 +639,7 @@ textual parts.")
   (let ((result (nnimap-possibly-change-group
 		 ;; Don't SELECT the group if we're going to select it
 		 ;; later, anyway.
-		 (if (and dont-check
+		 (if (and (not dont-check)
 			  (assoc group nnimap-current-infos))
 		     nil
 		   group)

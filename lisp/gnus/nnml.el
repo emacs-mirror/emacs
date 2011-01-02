@@ -1,7 +1,8 @@
 ;;; nnml.el --- mail spool access for Gnus
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software
+;;   Foundation, Inc.
 
 ;; Authors: Didier Verna <didier@xemacs.org> (adding compaction)
 ;;	Simon Josefsson <simon@josefsson.org> (adding MARKS)
@@ -235,7 +236,11 @@ non-nil.")
 			  (nnheader-article-to-file-alist
 			   (setq gpath (nnml-group-pathname (car group-num)
 							    nil server))))))
-	  (setq path (concat gpath (int-to-string (cdr group-num)))))
+	  (nnml-update-file-alist)
+	  (setq path (concat gpath (if nnml-use-compressed-files
+				       (cdr (assq (cdr group-num)
+						  nnml-article-file-alist))
+				     (number-to-string (cdr group-num))))))
       (setq path (nnml-article-to-file id)))
     (cond
      ((not path)

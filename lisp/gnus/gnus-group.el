@@ -1,7 +1,8 @@
 ;;; gnus-group.el --- group mode commands for Gnus
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software
+;;   Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -3790,7 +3791,8 @@ of groups killed."
 		  gnus-list-of-killed-groups))
 	  (gnus-group-change-level
 	   (if entry entry group) gnus-level-killed (if entry nil level))
-	  (gnus-request-update-group-status group 'unsubscribe)
+	  (when (numberp (gnus-group-unread group))
+	    (gnus-request-update-group-status group 'unsubscribe))
 	  (message "Killed group %s" (gnus-group-decoded-name group)))
       ;; If there are lots and lots of groups to be killed, we use
       ;; this thing instead.
@@ -3814,7 +3816,8 @@ of groups killed."
 	;; There may be more than one instance displayed.
 	(while (gnus-group-goto-group group)
 	  (gnus-delete-line))
-	(gnus-request-update-group-status group 'unsubscribe))
+	(when (numberp (gnus-group-unread group))
+	  (gnus-request-update-group-status group 'unsubscribe)))
       (gnus-make-hashtable-from-newsrc-alist))
 
     (gnus-group-position-point)

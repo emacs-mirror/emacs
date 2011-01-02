@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -370,7 +370,7 @@ Return structure as specified by MODE."
 	    ;; making `epa-file-encrypt-to' local to this buffer lets
 	    ;; epa-file skip the key selection query (see the
 	    ;; `local-variable-p' check in `epa-file-write-region').
-	    (unless (local-variable-p 'epa-file-encrypt-to)
+	    (unless (local-variable-p 'epa-file-encrypt-to (current-buffer))
 	      (make-local-variable 'epa-file-encrypt-to))
 	    (if (listp auth-source-gpg-encrypt-to)
 		(setq epa-file-encrypt-to auth-source-gpg-encrypt-to)))

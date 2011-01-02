@@ -1,3 +1,43 @@
+2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-view.el (mml-smime): Require.
+
+2010-12-20  David Engster  <deng@eml.cc>
+
+	* mm-view.el (mm-view-pkcs7-decrypt): If mml-smime-use is set to 'epg,
+	use EPG to decrypt S/MIME messages instead of openssl.
+
+2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-group): Avoid double SELECT on `M-g'.
+
+	* gnus-group.el (gnus-group-kill-group): Don't try to update the group
+	status is the group clearly is unreachable.
+
+	* auth-source.el (auth-source-create): Add the optional second
+	parameter to `local-variable-p' to be compatible with XEmacs.
+
+2011-01-02  Wang Diancheng  <dcwang@kingbase.com.cn>  (tiny change)
+
+	* nnml.el (nnml-request-article): Allow requesting by Message-ID to
+	work when using a compressed nnml folder.
+
+2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-select-newsgroup): Don't propagate marks to
+	backends after sanitising on entry, because this never makes sense:
+	If the articles have gone missing, then the data no longer exists on
+	the backend, and if they haven't, then Gnus is wrong, and shouldn't
+	overwrite anything anyway.
+
+	* shr.el (shr-insert-document): Bind shr-width dynamically to
+	window-width if it's nil.
+
+2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* shr.el (shr-width, shr-insert-document): Allow nil as shr-width value
+	with the meaning of using the full emacs window width for rendering.
+
 2010-12-27  Daiki Ueno  <ueno@unixuser.org>
 
 	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt): Take care the

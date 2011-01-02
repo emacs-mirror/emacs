@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -74,8 +74,12 @@ fit these criteria."
   :type 'character)
 
 (defcustom shr-width fill-column
-  "Frame width to use for rendering."
-  :type 'integer
+  "Frame width to use for rendering.
+May either be an integer specifying a fixed width in characters,
+or nil, meaning that the full width of the window should be
+used."
+  :type '(choice (integer :tag "Fixed width in characters")
+		 (const   :tag "Use the width of the window" nil))
   :group 'shr)
 
 (defvar shr-content-function nil
@@ -113,7 +117,8 @@ cid: URL as the argument.")
 (defun shr-insert-document (dom)
   (setq shr-content-cache nil)
   (let ((shr-state nil)
-	(shr-start nil))
+	(shr-start nil)
+	(shr-width (or shr-width (window-width))))
     (shr-descend (shr-transform-dom dom))))
 
 (defun shr-copy-url ()

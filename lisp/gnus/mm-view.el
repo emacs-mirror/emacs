@@ -1,7 +1,7 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -32,6 +32,7 @@
 (require 'mm-bodies)
 (require 'mm-decode)
 (require 'smime)
+(require 'mml-smime)
 
 (autoload 'gnus-completing-read "gnus-util")
 (autoload 'gnus-window-inside-pixel-edges "gnus-ems")
@@ -683,17 +684,23 @@
 (defun mm-view-pkcs7-decrypt (handle &optional from)
   (insert-buffer-substring (mm-handle-buffer handle))
   (goto-char (point-min))
-  (insert "MIME-Version: 1.0\n")
-  (mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")
-  (smime-decrypt-region
-   (point-min) (point-max)
-   (if (= (length smime-keys) 1)
-       (cadar smime-keys)
-     (smime-get-key-by-email
-      (gnus-completing-read
-       "Decipher using key"
-       smime-keys nil nil nil (car-safe (car-safe smime-keys)))))
-   from)
+  (if (eq mml-smime-use 'epg)
+      ;; Use EPG/gpgsm
+      (let ((part (base64-decode-string (buffer-string))))
+	(erase-buffer)
+	(insert (epg-decrypt-string (epg-make-context 'CMS) part)))
+    ;; Use openssl
+    (insert "MIME-Version: 1.0\n")
+    (mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")
+    (smime-decrypt-region
+     (point-min) (point-max)
+     (if (= (length smime-keys) 1)
+	 (cadar smime-keys)
+       (smime-get-key-by-email
+	(gnus-completing-read
+	 "Decipher using key"
+	 smime-keys nil nil nil (car-safe (car-safe smime-keys)))))
+     from))
   (goto-char (point-min))
   (while (search-forward "\r\n" nil t)
     (replace-match "\n"))
