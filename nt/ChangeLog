@@ -1,3 +1,11 @@
+2010-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (end): Unset environment variables used by this
+	batch file.
+
+	* INSTALL: Update the information about PNG support libraries.
+	(Bug#7716)
+
 2010-08-02  Óscar Fuentes  <ofv@wanadoo.es>
 
 	* cmdproxy.c (main): Use _snprintf instead of wsprintf,

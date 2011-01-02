@@ -1,3 +1,20 @@
+2010-12-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* rmail.texi (Rmail Display): Edit for grammar and conciseness.
+
+2010-12-27  Kenichi Handa  <handa@m17n.org>
+
+	* rmail.texi (Rmail Display): Describe new features of Rmail in Info.
+
+2010-12-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Cut and Paste): Modify the section's name and text:
+	don't mix "cut/paste" with "kill/yank".
+	(Cut/Paste Other App): Describe the per-session emulation of PRIMARY.
+	(Bug#7702)
+
+	* trouble.texi (Checklist): Mention debug-on-quit.  (Bug#7667)
+
 2010-12-18  Glenn Morris  <rgm@gnu.org>
 
 	* maintaining.texi: Move inclusion of emerge after EDE, so that it

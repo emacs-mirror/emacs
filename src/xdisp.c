@@ -17883,17 +17883,19 @@ DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
 First arg FORMAT specifies the mode line format (see `mode-line-format'
 for details) to use.
 
+By default, the format is evaluated for the currently selected window.
+
 Optional second arg FACE specifies the face property to put on all
 characters for which no face is specified.  The value nil means the
 default face.  The value t means whatever face the window's mode line
-currently uses \(either `mode-line' or `mode-line-inactive',
-depending).  An integer value means the value string has no text
-properties.  Otherwise, the value should be one of `default',
-`mode-line', `mode-line-inactive', `header-line', or `tool-bar'.
+currently uses (either `mode-line' or `mode-line-inactive',
+depending on whether the window is the selected window or not).
+An integer value means the value string has no text
+properties.
 
 Optional third and fourth args WINDOW and BUFFER specify the window
 and buffer to use as the context for the formatting (defaults
-are the selected window and the window's buffer).  */)
+are the selected window and the WINDOW's buffer).  */)
      (format, face, window, buffer)
      Lisp_Object format, face, window, buffer;
 {
