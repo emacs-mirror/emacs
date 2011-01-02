@@ -237,12 +237,12 @@ Return a modified address list."
 				      nil 'literal address 2)))
        address))))
 
-;;; The following piece of ugliness is legacy code.  The name was an
-;;; unfortunate choice --- a flagrant violation of the Emacs Lisp
-;;; coding conventions.  `mail-dont-reply-to' would have been
-;;; infinitely better.  Also, `rmail-dont-reply-to-names' might have
-;;; been better named `mail-dont-reply-to-names' and sourced from this
-;;; file instead of in rmail.el.  Yuck.  -pmr
+;; The following piece of ugliness is legacy code.  The name was an
+;; unfortunate choice --- a flagrant violation of the Emacs Lisp
+;; coding conventions.  `mail-dont-reply-to' would have been
+;; infinitely better.  Also, `rmail-dont-reply-to-names' might have
+;; been better named `mail-dont-reply-to-names' and sourced from this
+;; file instead of in rmail.el.  Yuck.  -pmr
 (defun rmail-dont-reply-to (destinations)
   "Prune addresses from DESTINATIONS, a list of recipient addresses.
 All addresses matching `rmail-dont-reply-to-names' are removed from
