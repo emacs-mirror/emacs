@@ -189,8 +189,7 @@ Return a modified address list."
        ;; Detect nested comments.
        (if (string-match "[ \t]*(\\([^)\\]\\|\\\\.\\|\\\\\n\\)*(" address)
 	   ;; Strip nested comments.
-	   (with-current-buffer (get-buffer-create " *temp*")
-	     (erase-buffer)
+	   (with-temp-buffer
 	     (insert address)
 	     (set-syntax-table lisp-mode-syntax-table)
 	     (goto-char 1)
@@ -203,8 +202,7 @@ Return a modified address list."
 				    (forward-sexp 1)
 				  (error (goto-char (point-max))))
 				  (point))))
-	     (setq address (buffer-string))
-	     (erase-buffer))
+	     (setq address (buffer-string)))
 	 ;; Strip non-nested comments an easier way.
 	 (while (setq pos (string-match
 			    ;; This doesn't hack rfc822 nested comments

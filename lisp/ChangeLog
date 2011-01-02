@@ -1,3 +1,8 @@
+2011-01-02  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
+
+	* mail/mail-utils.el (mail-strip-quoted-names): Avoid clobbering
+	an existing temp buffer.  (Bug#7746)
+
 2011-01-02  Glenn Morris  <rgm@gnu.org>
 
 	* mail/mail-utils.el (mail-mbox-from): Handle From: headers with
