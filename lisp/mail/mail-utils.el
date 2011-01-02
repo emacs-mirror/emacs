@@ -1,7 +1,7 @@
 ;;; mail-utils.el --- utility functions used both by rmail and rnews
 
 ;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;;   2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail, news
@@ -398,13 +398,19 @@ matches may be returned from the message body."
 (defun mail-mbox-from ()
   "Return an mbox \"From \" line for the current message.
 The buffer should be narrowed to just the header."
-  (let ((from (or (mail-fetch-field "from")
-		  (mail-fetch-field "really-from")
-		  (mail-fetch-field "sender")
-		  (mail-fetch-field "return-path")
-		  "unknown"))
-	(date (mail-fetch-field "date")))
-    (format "From %s %s\n" (mail-strip-quoted-names from)
+  (let* ((from (mail-strip-quoted-names (or (mail-fetch-field "from")
+					    (mail-fetch-field "really-from")
+					    (mail-fetch-field "sender")
+					    (mail-fetch-field "return-path")
+					    "unknown")))
+	 (date (mail-fetch-field "date"))
+	 ;; A From: header can contain multiple addresses, a "From "
+	 ;; line must contain only one.  (Bug#7760)
+	 ;; See eg RFC 5322, 3.6.2. Originator Fields.
+	 (end (string-match "[ \t]*[,\n]" from)))
+    (format "From %s %s\n" (if end
+			       (substring from 0 end)
+			     from)
 	    (or (and date
 		     (ignore-errors
 		      (current-time-string (date-to-time date))))

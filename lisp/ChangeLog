@@ -1,3 +1,8 @@
+2011-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mail-utils.el (mail-mbox-from): Handle From: headers with
+	multiple addresses.  (Bug#7760)
+
 2010-12-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods): Add recursive options to "scpc",
@@ -12324,7 +12329,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
