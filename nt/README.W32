@@ -140,7 +140,7 @@ See the end of the file for license conditions.
       called giflib4.dll, libungif4.dll or libungif.dll.
 
    If you have image support DLLs under different names, customize the
-   value of `image-library-alist'.
+   value of `dynamic-library-alist'.
 
    In addition, Emacs can be compiled to support SVG.  This precompiled
    distribution has not been compiled that way, since the SVG library

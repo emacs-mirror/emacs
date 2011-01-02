@@ -6,6 +6,8 @@
 	* INSTALL: Update the information about PNG support libraries.
 	(Bug#7716)
 
+	* README.W32: Update the information about PNG support libraries.
+
 2010-11-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (EXTERNALLY_VISIBLE): Define.

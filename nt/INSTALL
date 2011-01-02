@@ -299,12 +299,12 @@
   earlier versions, so Emacs will only look for libpng libraries which
   are compatible with the version it was compiled against.  That
   version is given by the value of the Lisp variable `libpng-version';
-  e.g., 10403 means version 1.4.3.  The variable `image-library-alist'
+  e.g., 10403 means version 1.4.3.  The variable `dynamic-library-alist'
   is automatically set to name only those DLL names that are known to
   be compatible with the version given by `libpng-version'.  If PNG
   support does not work for you even though you have the support DLL
   installed, check the name of the installed DLL against
-  `image-library-alist' and the value of `libpng-version', and
+  `dynamic-library-alist' and the value of `libpng-version', and
   download compatible DLLs if needed.
 
 * Experimental SVG support
