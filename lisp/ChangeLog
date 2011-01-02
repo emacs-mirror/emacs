@@ -3,11 +3,6 @@
 	* files.el (file-local-variables-alist):
 	Make permanent-local (bug#7767).
 
-2011-01-02  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
-
-	* mail/mail-utils.el (mail-strip-quoted-names): Don't modify the
-	" *temp*" buffer (bug#7746).
-
 2011-01-02  Glenn Morris  <rgm@gnu.org>
 
 	* version.el (emacs-copyright): Set short copyright year to 2011.
