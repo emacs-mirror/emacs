@@ -390,17 +390,7 @@ textual parts.")
 				(nnimap-credentials nnimap-address ports)))))
 		  (setq nnimap-object nil)
 		(setq login-result
-		      (if (and (nnimap-capability "AUTH=PLAIN")
-			       (nnimap-capability "LOGINDISABLED"))
-			  (nnimap-command
-			   "AUTHENTICATE PLAIN %s"
-			   (base64-encode-string
-			    (format "\000%s\000%s"
-				    (nnimap-quote-specials (car credentials))
-				    (nnimap-quote-specials (cadr credentials)))))
-			(nnimap-command "LOGIN %S %S"
-					(car credentials)
-					(cadr credentials))))
+		      (nnimap-login (car credentials) (cadr credentials)))
 		(unless (car login-result)
 		  ;; If the login failed, then forget the credentials
 		  ;; that are now possibly cached.
@@ -416,6 +406,33 @@ textual parts.")
 	      (when (nnimap-capability "QRESYNC")
 		(nnimap-command "ENABLE QRESYNC"))
 	      (nnimap-process nnimap-object))))))))
+
+(autoload 'rfc2104-hash "rfc2104")
+
+(defun nnimap-login (user password)
+  (cond
+   ((nnimap-capability "AUTH=CRAM-MD5")
+    (erase-buffer)
+    (let ((sequence (nnimap-send-command "AUTHENTICATE CRAM-MD5"))
+	  (challenge (nnimap-wait-for-line "^\\+\\(.*\\)\n")))
+      (process-send-string
+       (get-buffer-process (current-buffer))
+       (concat
+	(base64-encode-string
+	 (concat user " "
+		 (rfc2104-hash 'md5 64 16 password
+			       (base64-decode-string challenge))))
+	"\r\n"))
+      (nnimap-wait-for-response sequence)))
+   ((not (nnimap-capability "LOGINDISABLED"))
+    (nnimap-command "LOGIN %S %S" user password))
+   ((nnimap-capability "AUTH=PLAIN")
+    (nnimap-command
+     "AUTHENTICATE PLAIN %s"
+     (base64-encode-string
+      (format "\000%s\000%s"
+	      (nnimap-quote-specials user)
+	      (nnimap-quote-specials password)))))))
 
 (defun nnimap-quote-specials (string)
   (with-temp-buffer
@@ -1541,8 +1558,9 @@ textual parts.")
   (nnimap-parse-response))
 
 (defun nnimap-wait-for-connection (&optional regexp)
-  (unless regexp
-    (setq regexp "^[*.] .*\n"))
+  (nnimap-wait-for-line (or regexp "^[*.] .*\n") "[*.] \\([A-Z0-9]+\\)"))
+
+(defun nnimap-wait-for-line (regexp &optional response-regexp)
   (let ((process (get-buffer-process (current-buffer))))
     (goto-char (point-min))
     (while (and (memq (process-status process)
@@ -1551,7 +1569,7 @@ textual parts.")
       (nnheader-accept-process-output process)
       (goto-char (point-min)))
     (forward-line -1)
-    (and (looking-at "[*.] \\([A-Z0-9]+\\)")
+    (and (looking-at (or response-regexp regexp))
 	 (match-string 1))))
 
 (defun nnimap-wait-for-response (sequence &optional messagep)

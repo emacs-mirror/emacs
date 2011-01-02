@@ -507,6 +507,9 @@ redirects somewhere else."
 		     (create-image data 'imagemagick t
 				   :width window-width)
 		     image)))
+      (when (and (fboundp 'create-animated-image)
+		 (eq (image-type data nil t) 'gif))
+	(setq image (create-animated-image data 'gif t)))
       image)))
 
 ;; url-cache-extract autoloads url-cache.
