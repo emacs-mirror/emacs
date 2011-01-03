@@ -1,4 +1,4 @@
-2011-01-03  Brent Goodrick  <bgoodr@gmail.com>
+2011-01-03  Brent Goodrick  <bgoodr@gmail.com>  (tiny change)
 
 	* abbrev.el (prepare-abbrev-list-buffer): If listing local abbrev
 	table, get the value before switching to the output buffer.  (Bug#7733)
