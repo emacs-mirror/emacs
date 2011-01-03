@@ -125,17 +125,18 @@ Otherwise display all abbrevs."
     found))
 
 (defun prepare-abbrev-list-buffer (&optional local)
-  (with-current-buffer (get-buffer-create "*Abbrevs*")
-    (erase-buffer)
-    (if local
-        (insert-abbrev-table-description
-         (abbrev-table-name local-abbrev-table) t)
-      (dolist (table abbrev-table-name-list)
-        (insert-abbrev-table-description table t)))
-    (goto-char (point-min))
-    (set-buffer-modified-p nil)
-    (edit-abbrevs-mode)
-    (current-buffer)))
+  (let ((local-table local-abbrev-table))
+    (with-current-buffer (get-buffer-create "*Abbrevs*")
+      (erase-buffer)
+      (if local
+          (insert-abbrev-table-description
+           (abbrev-table-name local-table) t)
+        (dolist (table abbrev-table-name-list)
+          (insert-abbrev-table-description table t)))
+      (goto-char (point-min))
+      (set-buffer-modified-p nil)
+      (edit-abbrevs-mode)
+      (current-buffer))))
 
 (defun edit-abbrevs-mode ()
   "Major mode for editing the list of abbrev definitions.

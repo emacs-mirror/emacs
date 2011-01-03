@@ -1,3 +1,8 @@
+2011-01-03  Brent Goodrick  <bgoodr@gmail.com>
+
+	* abbrev.el (prepare-abbrev-list-buffer): If listing local abbrev
+	table, get the value before switching to the output buffer.  (Bug#7733)
+
 2011-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-mode): Don't impose font-lock (bug#3628).
