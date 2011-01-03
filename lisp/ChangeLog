@@ -114,6 +114,13 @@
 	* mail/mail-utils.el (mail-mbox-from): Handle From: headers with
 	multiple addresses.  (Bug#7760)
 
+2011-01-01  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	allout.el (allout-auto-fill): Do not infinitely recurse - use
+	do-auto-fill if everything points back to allout-auto-fill.
+	(allout-mode-deactivate-hook): Declare obsolete, in favor of
+	standard-formed minor-mode deactivate hook, allout-mode-off-hook.
+
 2010-12-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-methods): Add recursive options to "scpc"
@@ -182,6 +189,21 @@
 	* saveplace.el (save-place-alist-to-file): Save list sorted and
 	pretty-printed, so that it is mergeable by line-based text merging,
 	as suggested by Iain Dalton <iain.dalton {_AT_} gmail.com>.
+
+2010-12-28  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	allout.el (allout-v18/19-file-var-hack): Obsolete, remove.
+	(allout-mode): Argument "toggle" => "force".
+	Refine the docstring.
+	Remove special provisions for reactivation, besides the 'force'
+	argument.
+	Consolidate layout provisions coce directly into the activation
+	condition branch, now that we've removed those provisions.
+	(allout-unload-function): Explicitly activate the mode before
+	deactivating, if it's initially deactivated.
+	(allout-set-buffer-multibyte): Properly prevent byte-compiler
+	warnings for version of function used only where
+	set-buffer-multibyte is unavailable.
 
 2010-12-28  Chong Yidong  <cyd@stupidchicken.com>
 
