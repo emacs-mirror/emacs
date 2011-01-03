@@ -5648,12 +5648,6 @@ init_png_functions (Lisp_Object libraries)
 
 #endif /* HAVE_NTGUI */
 
-/* libpng before 1.4.0 didn't have png_jmpbuf; v1.4.0 and later
-   deprecate direct access to png_ptr fields.  */
-#ifndef png_jmpbuf
-# define png_jmpbuf(PTR)  ((PTR)->jmpbuf)
-#endif
-
 /* Error and warning handlers installed when the PNG library
    is initialized.  */
 
@@ -5666,7 +5660,7 @@ my_png_error (png_ptr, msg)
   /* Avoid compiler warning about deprecated direct access to
      png_ptr's fields in libpng versions 1.4.x.  */
   image_error ("PNG error: %s", build_string (msg), Qnil);
-  longjmp (png_jmpbuf (png_ptr), 1);
+  longjmp (png_ptr->jmpbuf, 1);
 }
 
 
@@ -5842,7 +5836,7 @@ png_load (f, img)
 
   /* Set error jump-back.  We come back here when the PNG library
      detects an error.  */
-  if (setjmp (png_jmpbuf (png_ptr)))
+  if (setjmp (png_ptr->jmpbuf))
     {
     error:
       if (png_ptr)
