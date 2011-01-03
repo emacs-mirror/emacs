@@ -2552,7 +2552,6 @@ with skeleton expansions for compound statement templates.
 	 (^ '(- (1+ (current-indentation))))))
   ;; Python defines TABs as being 8-char wide.
   (set (make-local-variable 'tab-width) 8)
-  (unless font-lock-mode (font-lock-mode 1))
   (when python-guess-indent (python-guess-indent))
   ;; Let's make it harder for the user to shoot himself in the foot.
   (unless (= tab-width python-indent)
