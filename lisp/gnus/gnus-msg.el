@@ -1,7 +1,8 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software
+;;   Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -243,10 +244,10 @@ See also the `mml-default-sign-method' variable."
   :group 'gnus-message
   :type 'boolean)
 
-(defcustom gnus-message-replyencrypt
-  nil
+(defcustom gnus-message-replyencrypt t
   "Automatically encrypt replies to encrypted messages.
 See also the `mml-default-encrypt-method' variable."
+  :version "22.1"
   :group 'gnus-message
   :type 'boolean)
 
