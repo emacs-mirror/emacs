@@ -1,5 +1,7 @@
 2011-01-03  Glenn Morris  <rgm@gnu.org>
 
+	* sieve-manage.el (sieve-manage-open): Correctly set sieve-manage-port.
+
 	* sieve.el (sieve-open-server): Give a more explicit error if
 	sieve-manage-open returns nil.  (Bug#7720)
 

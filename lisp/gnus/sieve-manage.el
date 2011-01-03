@@ -390,13 +390,14 @@ Optional argument AUTH indicates authenticator to use, see
 If nil, chooses the best stream the server is capable of.
 Optional argument BUFFER is buffer (buffer, or string naming buffer)
 to work in."
-  (setq buffer (or buffer (format " *sieve* %s:%s" server (or port sieve-manage-default-port))))
+  (or port (setq port sieve-manage-default-port))
+  (setq buffer (or buffer (format " *sieve* %s:%s" server port)))
   (with-current-buffer (get-buffer-create buffer)
     (mapc 'make-local-variable sieve-manage-local-variables)
     (sieve-manage-disable-multibyte)
     (buffer-disable-undo)
     (setq sieve-manage-server (or server sieve-manage-server))
-    (setq sieve-manage-port (or port sieve-manage-port))
+    (setq sieve-manage-port port)
     (setq sieve-manage-stream (or stream sieve-manage-stream))
     (message "sieve: Connecting to %s..." sieve-manage-server)
     (if (let ((sieve-manage-stream
