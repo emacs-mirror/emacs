@@ -70,8 +70,8 @@ Once in nXML mode, you can type @kbd{C-h m} for basic information on the
 mode.
 
 The @file{etc/nxml} directory in the Emacs distribution contains some data
-files used by nXML mode, and includes two files (@file{test.valid.xml} and
-@file{test.invalid.xml}) that provide examples of valid and invalid XML
+files used by nXML mode, and includes two files (@file{test-valid.xml} and
+@file{test-invalid.xml}) that provide examples of valid and invalid XML
 documents.
 
 To get validation and schema-sensitive editing, you need a RELAX NG Compact
