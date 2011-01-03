@@ -686,8 +686,7 @@ struct coding_system
    ? code_convert_string_norecord (str, Vlocale_coding_system, 0)	   \
    : str)
 
-/* Used by the gtk menu code.  Note that this encodes utf-8, not
-   utf-8-emacs, so it's not a no-op.  */
+/* Note that this encodes utf-8, not utf-8-emacs, so it's not a no-op.  */
 #define ENCODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 1)
 
 /* Extern declarations.  */
