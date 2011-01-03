@@ -1,3 +1,8 @@
+2011-01-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (png_jmpbuf): Remove definition.
+	(my_png_error, png_load): Don't use png_jmpbuf.
+
 2011-01-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (Vselect_active_regions): Doc fix.  (Bug#7702)
