@@ -1241,7 +1241,7 @@ Property value is a character."
 		(byte-compile describer)
 		(setq describer (symbol-function describer)))
 	      (set-char-table-extra-slot table 3 describer))
-	    (insert ";; Copyright (C) 1991-2009, 2010 Unicode, Inc.
+	    (insert ";; Copyright (C) 1991-2009 Unicode, Inc.
 ;; This file was generated from the Unicode data file at
 ;; http://www.unicode.org/Public/UNIDATA/UnicodeData.txt.
 ;; See lisp/international/README for the copyright and permission notice.\n"
