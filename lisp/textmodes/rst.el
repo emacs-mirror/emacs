@@ -3364,7 +3364,6 @@ or of the entire buffer, if the region is not selected."
   (let* ((tmp-filename (make-temp-file "rst-out" nil ".pdf"))
 	 (command (format "%s %s %s && %s %s"
 			  (cadr (assq 'pdf rst-compile-toolsets))
-	 (command (format "rst2pdf.py %s %s && %s %s"
 			  buffer-file-name tmp-filename
 			  rst-pdf-program tmp-filename)))
     (start-process-shell-command "rst-pdf-preview" nil command)
@@ -3381,8 +3380,6 @@ or of the entire buffer, if the region is not selected."
   (let* ((tmp-filename (make-temp-file "rst-slides" nil ".html"))
 	 (command (format "%s %s %s && %s %s"
 			  (cadr (assq 's5 rst-compile-toolsets))
-	 (command (format "rst2s5.py %s %s && %s %s"
-
 			  buffer-file-name tmp-filename
 			  rst-slides-program tmp-filename)))
     (start-process-shell-command "rst-slides-preview" nil command)

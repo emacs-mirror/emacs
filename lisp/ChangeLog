@@ -1,3 +1,8 @@
+2011-01-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* textmodes/rst.el (rst-compile-pdf-preview)
+	(rst-compile-slides-preview): Remove extra line.
+
 2011-01-04  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/rst.el (rst-compile-toolsets): Make it a defcustom.
