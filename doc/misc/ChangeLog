@@ -1,3 +1,8 @@
+2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* dbus.texi (Receiving Method Calls): Describe new optional
+	parameter dont-register-service of dbus-register-{method,property}.
+
 2010-12-17  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.texi (Encrypting/decrypting *.gpg files): Mention
