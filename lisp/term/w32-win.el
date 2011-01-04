@@ -1,7 +1,7 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system
 
 ;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -200,17 +200,25 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;;; Set default known names for image libraries
 (setq image-library-alist
-      '((xpm "libxpm.dll" "xpm4.dll" "libXpm-nox4.dll")
-        (png "libpng12d.dll" "libpng12.dll" "libpng.dll"
-	 ;; these are libpng 1.2.8 from GTK+
-	 "libpng13d.dll" "libpng13.dll")
-        (jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
-        (tiff "libtiff3.dll" "libtiff.dll")
-        (gif "giflib4.dll" "libungif4.dll" "libungif.dll")
-        (svg "librsvg-2-2.dll")
-        (gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
-        (glib "libglib-2.0-0.dll")
-	(gobject "libgobject-2.0-0.dll")))
+      (list
+       '(xpm "libxpm.dll" "xpm4.dll" "libXpm-nox4.dll")
+       ;; Versions of libpng 1.4.x and later are incompatible with
+       ;; earlier versions.  Set up the list of libraries according to
+       ;; the version we were compiled against.  (If we were compiled
+       ;; without PNG support, libpng-version's value is -1.)
+       (if (>= libpng-version 10400)
+	   ;; libpng14-14.dll is libpng 1.4.3 from GTK+
+	   '(png "libpng14-14.dll" "libpng14.dll")
+	 '(png "libpng12d.dll" "libpng12.dll" "libpng3.dll" "libpng.dll"
+	       ;; these are libpng 1.2.8 from GTK+
+	       "libpng13d.dll" "libpng13.dll"))
+        '(jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
+        '(tiff "libtiff3.dll" "libtiff.dll")
+        '(gif "giflib4.dll" "libungif4.dll" "libungif.dll")
+        '(svg "librsvg-2-2.dll")
+        '(gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
+        '(glib "libglib-2.0-0.dll")
+	'(gobject "libgobject-2.0-0.dll")))
 
 ;;; multi-tty support
 (defvar w32-initialized nil

@@ -1,7 +1,7 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; (copyright statements below in code to be updated with the above notice)
 
@@ -553,10 +553,11 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
-	     (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q")
+	     (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q") ("-r")
 					  ("-o" "ControlPath=%t.%%r@%%h:%%p")
 					  ("-o" "ControlMaster=auto")))
 	     (tramp-copy-keep-date       t)
+	     (tramp-copy-recursive       t)
 	     (tramp-password-end-of-line nil)
 	     (tramp-gw-args              (("-o"
 					   "GlobalKnownHostsFile=/dev/null")
@@ -570,8 +571,10 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
-	     (tramp-copy-args            (("-p" "%k")))
+	     (tramp-copy-args            (("-P" "%p") ("-p" "%k")
+					  ("-q") ("-r")))
 	     (tramp-copy-keep-date       t)
+	     (tramp-copy-recursive       t)
 	     (tramp-password-end-of-line nil)
 	     (tramp-gw-args              (("-o"
 					   "GlobalKnownHostsFile=/dev/null")
@@ -640,8 +643,10 @@ detected as prompt when being sent on echoing hosts, therefore.")
 					  ("-ssh") ("%h")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "pscp")
-	     (tramp-copy-args            (("-P" "%p") ("-scp") ("-p" "%k")))
+	     (tramp-copy-args            (("-P" "%p") ("-scp") ("-p" "%k")
+					  ("-r")))
 	     (tramp-copy-keep-date       t)
+	     (tramp-copy-recursive       t)
 	     (tramp-password-end-of-line "xy") ;see docstring for "xy"
 	     (tramp-default-port         22))
     ("psftp" (tramp-login-program        "plink")
@@ -649,8 +654,10 @@ detected as prompt when being sent on echoing hosts, therefore.")
 					  ("-ssh") ("%h")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "pscp")
-	     (tramp-copy-args            (("-P" "%p") ("-sftp") ("-p" "%k")))
+	     (tramp-copy-args            (("-P" "%p") ("-sftp") ("-p" "%k")
+					  ("-r")))
 	     (tramp-copy-keep-date       t)
+	     (tramp-copy-recursive       t)
 	     (tramp-password-end-of-line "xy")) ;see docstring for "xy"
     ("fcp"   (tramp-login-program        "fsh")
              (tramp-login-args           (("%h") ("-l" "%u") ("sh" "-i")))
@@ -1897,7 +1904,7 @@ on the remote host.")
 (defconst tramp-perl-encode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   Free Software Foundation, Inc.
 use strict;
 
@@ -1939,7 +1946,7 @@ This string is passed to `format', so percent characters need to be doubled.")
 (defconst tramp-perl-decode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   Free Software Foundation, Inc.
 use strict;
 
