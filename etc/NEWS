@@ -715,8 +715,8 @@ by the Graphic Control Extension of the image.
 
 *** If Emacs is compiled with libxml2 support (which is the default),
 two new Emacs Lisp-level functions are defined:
-`xml-parse-html-string-internal' (which will parse "real world" HTML)
-and `xml-parse-string-internal' (which parses XML).  Both return an
+`libxml-parse-html-region' (which will parse "real world" HTML)
+and `libxml-parse-xml-region' (which parses XML).  Both return an
 Emacs Lisp parse tree.
 
 FIXME: These should be front-ended by xml.el.
