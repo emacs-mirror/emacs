@@ -1,7 +1,7 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
 Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999,
-  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -94,8 +94,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* If you change the following line, remember to update
    msdos/mainmake.v2 which gleans the Emacs version from it!  */
-static const char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
 static const char emacs_version[] = "24.0.50";
+static const char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
