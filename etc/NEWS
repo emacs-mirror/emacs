@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2010, 2011  Free Software Foundation, Inc.
+Copyright (C) 2010 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -557,6 +557,8 @@ threads simultaneously.
 *** It is possible now, to access alternative buses than the default
 system or session bus.
 
+*** dbus-register-{method,property} do not necessarily register names anymore.
+
 ** Tramp
 
 *** There exists a new inline access method "ksu" (kerberized su).
@@ -713,8 +715,8 @@ by the Graphic Control Extension of the image.
 
 *** If Emacs is compiled with libxml2 support (which is the default),
 two new Emacs Lisp-level functions are defined:
-`libxml-parse-html-region' (which will parse "real world" HTML)
-and `libxml-parse-xml-region' (which parses XML).  Both return an
+`xml-parse-html-string-internal' (which will parse "real world" HTML)
+and `xml-parse-string-internal' (which parses XML).  Both return an
 Emacs Lisp parse tree.
 
 FIXME: These should be front-ended by xml.el.

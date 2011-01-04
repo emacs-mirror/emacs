@@ -1,3 +1,7 @@
+2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* NEWS: Extended behaviour of dbus-register-{method,property}.
+
 2011-01-02  Kenichi Handa  <handa@m17n.org>
 
 	* NEWS.23: Describe the changes for rmail's MIME handling.
