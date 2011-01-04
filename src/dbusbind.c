@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1983,21 +1983,32 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
 }
 
 DEFUN ("dbus-register-method", Fdbus_register_method, Sdbus_register_method,
-       6, 6, 0,
+       6, 7, 0,
        doc: /* Register for method METHOD on the D-Bus BUS.
 
 BUS is either a Lisp symbol, `:system' or `:session', or a string
 denoting the bus address.
 
 SERVICE is the D-Bus service name of the D-Bus object METHOD is
-registered for.  It must be a known name.
+registered for.  It must be a known name (See discussion of
+DONT-REGISTER-SERVICE below).
 
-PATH is the D-Bus object path SERVICE is registered.  INTERFACE is the
-interface offered by SERVICE.  It must provide METHOD.  HANDLER is a
-Lisp function to be called when a method call is received.  It must
-accept the input arguments of METHOD.  The return value of HANDLER is
-used for composing the returning D-Bus message.  */)
-  (Lisp_Object bus, Lisp_Object service, Lisp_Object path, Lisp_Object interface, Lisp_Object method, Lisp_Object handler)
+PATH is the D-Bus object path SERVICE is registered (See discussion of
+DONT-REGISTER-SERVICE below).  INTERFACE is the interface offered by
+SERVICE.  It must provide METHOD.  HANDLER is a Lisp function to be
+called when a method call is received.  It must accept the input
+arguments of METHOD.  The return value of HANDLER is used for
+composing the returning D-Bus message.
+
+When DONT-REGISTER-SERVICE is non-nil, the known name SERVICE is not
+registered.  This means that other D-Bus clients have no way of
+noticing the newly registered method.  When interfaces are constructed
+incrementally by adding single methods or properties at a time,
+DONT-REGISTER-SERVICE can be use to prevent other clients from
+discovering the still incomplete interface.*/)
+  (Lisp_Object bus, Lisp_Object service, Lisp_Object path,
+   Lisp_Object interface, Lisp_Object method, Lisp_Object handler,
+   Lisp_Object dont_register_service)
 {
   Lisp_Object key, key1, value;
   DBusConnection *connection;
@@ -2019,10 +2030,16 @@ used for composing the returning D-Bus message.  */)
 
   /* Request the known name from the bus.  We can ignore the result,
      it is set to -1 if there is an error - kind of redundancy.  */
-  dbus_error_init (&derror);
-  result = dbus_bus_request_name (connection, SDATA (service), 0, &derror);
-  if (dbus_error_is_set (&derror))
-    XD_ERROR (derror);
+  if (NILP (dont_register_service))
+    {
+      dbus_error_init (&derror);
+      result = dbus_bus_request_name (connection, SDATA (service), 0, &derror);
+      if (dbus_error_is_set (&derror))
+	XD_ERROR (derror);
+
+      /* Cleanup.  */
+      dbus_error_free (&derror);
+    }
 
   /* Create a hash table entry.  We use nil for the unique name,
      because the method might be called from anybody.  */
@@ -2032,9 +2049,6 @@ used for composing the returning D-Bus message.  */)
 
   if (NILP (Fmember (key1, value)))
     Fputhash (key, Fcons (key1, value), Vdbus_registered_objects_table);
-
-  /* Cleanup.  */
-  dbus_error_free (&derror);
 
   /* Return object.  */
   return list2 (key, list3 (service, path, handler));
