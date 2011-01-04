@@ -1,3 +1,10 @@
+2011-01-04  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-bulk): Display an unknown
+	part as a plain text.
+	(rmail-mime-process-multipart): Set the default content-type to
+	nil for unknown multipart subtypes (bug#7651).
+
 2011-01-03  Brent Goodrick  <bgoodr@gmail.com>  (tiny change)
 
 	* abbrev.el (prepare-abbrev-list-buffer): If listing local abbrev
