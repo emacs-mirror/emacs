@@ -1,6 +1,6 @@
 ;;; dbus.el --- Elisp bindings for D-Bus.
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -868,21 +868,23 @@ name of the property, and its value.  If there are no properties,
 	(add-to-list 'result (cons (car dict) (caadr dict)) 'append)))))
 
 (defun dbus-register-property
-  (bus service path interface property access value &optional emits-signal)
+  (bus service path interface property access value
+   &optional emits-signal dont-register-service)
   "Register property PROPERTY on the D-Bus BUS.
 
 BUS is either a Lisp symbol, `:system' or `:session', or a string
 denoting the bus address.
 
 SERVICE is the D-Bus service name of the D-Bus.  It must be a
-known name.
+known name (See discussion of DONT-REGISTER-SERVICE below).
 
-PATH is the D-Bus object path SERVICE is registered.  INTERFACE
-is the name of the interface used at PATH, PROPERTY is the name
-of the property of INTERFACE.  ACCESS indicates, whether the
-property can be changed by other services via D-Bus.  It must be
-either the symbol `:read' or `:readwrite'.  VALUE is the initial
-value of the property, it can be of any valid type (see
+PATH is the D-Bus object path SERVICE is registered (See
+discussion of DONT-REGISTER-SERVICE below).  INTERFACE is the
+name of the interface used at PATH, PROPERTY is the name of the
+property of INTERFACE.  ACCESS indicates, whether the property
+can be changed by other services via D-Bus.  It must be either
+the symbol `:read' or `:readwrite'.  VALUE is the initial value
+of the property, it can be of any valid type (see
 `dbus-call-method' for details).
 
 If PROPERTY already exists on PATH, it will be overwritten.  For
@@ -894,12 +896,20 @@ The interface \"org.freedesktop.DBus.Properties\" is added to
 PATH, including a default handler for the \"Get\", \"GetAll\" and
 \"Set\" methods of this interface.  When EMITS-SIGNAL is non-nil,
 the signal \"PropertiesChanged\" is sent when the property is
-changed by `dbus-set-property'."
+changed by `dbus-set-property'.
+
+When DONT-REGISTER-SERVICE is non-nil, the known name SERVICE is
+not registered.  This means that other D-Bus clients have no way
+of noticing the newly registered property.  When interfaces are
+constructed incrementally by adding single methods or properties
+at a time, DONT-REGISTER-SERVICE can be used to prevent other
+clients from discovering the still incomplete interface."
   (unless (member access '(:read :readwrite))
     (signal 'dbus-error (list "Access type invalid" access)))
 
   ;; Register SERVICE.
-  (unless (member service (dbus-list-names bus))
+  (unless (or dont-register-service
+	      (member service (dbus-list-names bus)))
     (dbus-call-method
      bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
      "RequestName" service 0))
@@ -907,11 +917,14 @@ changed by `dbus-set-property'."
   ;; Add the handler.  We use `dbus-service-emacs' as service name, in
   ;; order to let unregister SERVICE despite of this default handler.
   (dbus-register-method
-   bus service path dbus-interface-properties "Get" 'dbus-property-handler)
+   bus service path dbus-interface-properties "Get" 'dbus-property-handler
+   dont-register-service)
   (dbus-register-method
-   bus service path dbus-interface-properties "GetAll" 'dbus-property-handler)
+   bus service path dbus-interface-properties "GetAll" 'dbus-property-handler
+   dont-register-service)
   (dbus-register-method
-   bus service path dbus-interface-properties "Set" 'dbus-property-handler)
+   bus service path dbus-interface-properties "Set" 'dbus-property-handler
+   dont-register-service)
 
   ;; Send the PropertiesChanged signal.
   (when emits-signal
