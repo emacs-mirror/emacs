@@ -3255,7 +3255,7 @@ document with \\[rst-compile]."
 An association list of the toolset to a list of the (command to use,
 extension of produced filename, options to the tool (nil or a
 string)) to be used for converting the document."
-  :type '(alist :options (html latex newlatex pseudoxml xml)
+  :type '(alist :options (html latex newlatex pseudoxml xml pdf s5)
                 :key-type symbol
                 :value-type (list :tag "Specification"
                              (file :tag "Command")

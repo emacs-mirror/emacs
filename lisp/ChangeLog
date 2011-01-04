@@ -1,3 +1,8 @@
+2011-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/rst.el (rst-compile-toolsets):
+	Add pdf and s5 to option alist.
+
 2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
 	* net/dbus.el (dbus-register-property): Added optional parameter
