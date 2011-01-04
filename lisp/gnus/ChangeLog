@@ -1,3 +1,7 @@
+2011-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* flow-fill.el (fill-flowed-encode): Do encoding citation-aware.
+
 2011-01-03  Glenn Morris  <rgm@gnu.org>
 
 	* sieve-manage.el (sieve-manage-open): Correctly set sieve-manage-port.

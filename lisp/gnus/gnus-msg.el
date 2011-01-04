@@ -247,7 +247,7 @@ See also the `mml-default-sign-method' variable."
 (defcustom gnus-message-replyencrypt t
   "Automatically encrypt replies to encrypted messages.
 See also the `mml-default-encrypt-method' variable."
-  :version "22.1"
+  :version "24.1"
   :group 'gnus-message
   :type 'boolean)
 
