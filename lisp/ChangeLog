@@ -1,3 +1,12 @@
+2011-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/rst.el (rst-compile-toolsets): Make it a defcustom.
+	Add `pdf' and `s5' entries.  Use `prog.py' if found, otherwise
+	default to `prog' without a .py extension.
+	(rst-compile-pdf-preview, rst-compile-slides-preview):
+	Use program names from rst-compile-toolsets, rather than hard-coding.
+	(rst-portable-mark-active-p): Fix presumed typo.
+
 2011-01-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* term/w32-win.el (dynamic-library-alist): Set up correctly for
