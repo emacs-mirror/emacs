@@ -3327,6 +3327,7 @@ Move to buffer limit in indicated direction if headings are exhausted."
   (let* ((inhibit-field-text-motion t)
          (backward (if (< arg 0) (setq arg (* -1 arg))))
 	 (step (if backward -1 1))
+         (progress (allout-current-bullet-pos))
 	 prev got)
 
     (while (> arg 0)
@@ -3336,7 +3337,17 @@ Move to buffer limit in indicated direction if headings are exhausted."
               ;; Move, skipping over all concealed lines in one fell swoop:
               (prog1 (condition-case nil (or (line-move step) t)
                        (error nil))
-                (allout-beginning-of-current-line))
+                (allout-beginning-of-current-line)
+                ;; line-move can wind up on the same line if long.
+                ;; when moving forward, that would yield no-progress
+                (when (and (not backward)
+                           (<= (point) progress))
+                  ;; ensure progress by doing line-move from end-of-line:
+                  (end-of-line)
+                  (condition-case nil (or (line-move step) t)
+                    (error nil))
+                  (allout-beginning-of-current-line)
+                  (setq progress (point))))
               ;; Deal with apparent header line:
               (save-match-data
                 (if (not (looking-at allout-regexp))
@@ -5074,7 +5085,8 @@ default, they are treated as being uncollapsed."
       (and
        ;; Is the topic all on one line (allowing for trailing blank line)?
        (>= (progn (allout-back-to-current-heading)
-                  (move-end-of-line 1)
+                  (let ((inhibit-field-text-motion t))
+                    (move-end-of-line 1))
                   (point))
            (allout-end-of-current-subtree (not (looking-at "\n\n"))))
 
