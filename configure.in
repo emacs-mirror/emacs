@@ -791,9 +791,12 @@ fi
 ## should test for it as it does for any other build requirement.
 ## We use the presence of $srcdir/info/emacs to distinguish a release,
 ## with pre-built manuals, from a Bazaar checkout.
+HAVE_MAKEINFO=yes
+
 if test "$MAKEINFO" = "no"; then
+  MAKEINFO=makeinfo
   if test "x${with_makeinfo}" = "xno"; then
-    MAKEINFO=off
+    HAVE_MAKEINFO=no
   elif test ! -e $srcdir/info/emacs; then
     AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.6, and your
 source tree does not seem to have pre-built manuals in the `info' directory.
@@ -801,6 +804,7 @@ Either install a suitable version of makeinfo, or re-run configure
 with the `--without-makeinfo' option to build without the manuals.] )
   fi
 fi
+AC_SUBST(HAVE_MAKEINFO)
 
 dnl Add our options to ac_link now, after it is set up.
 
