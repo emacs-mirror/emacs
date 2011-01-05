@@ -1,3 +1,7 @@
+2011-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/rx.el (rx-repeat): Replace CL function.
+
 2011-01-04  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el: Reconcile with changes in line movement behavior for
