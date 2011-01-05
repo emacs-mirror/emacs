@@ -654,7 +654,7 @@ OpenDocument format)."
 	(set (make-local-variable 'doc-view-image-width)
 	     (ceiling (* factor doc-view-image-width)))
 	(doc-view-insert-image (plist-get (cdr (doc-view-current-image)) :file)
-			       :width doc-view-resolution))
+			       :width doc-view-image-width))
     (set (make-local-variable 'doc-view-resolution)
 	 (ceiling (* factor doc-view-resolution)))
     (doc-view-reconvert-doc)))
