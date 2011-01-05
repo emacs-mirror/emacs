@@ -1,3 +1,7 @@
+2011-01-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* alloc.c (mark_stack): Use __builtin_unwind_init if available.
+
 2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
 	* dbusbind.c (Fdbus_register_method): Added optional parameter
@@ -29431,7 +29435,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007, 2008, 2009, 2010
+  Copyright (C) 2007, 2008, 2009, 2010, 2011
     Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.

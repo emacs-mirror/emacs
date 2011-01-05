@@ -5,7 +5,7 @@ dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
 dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004,
-dnl    2005, 2006, 2007, 2008, 2009, 2010
+dnl    2005, 2006, 2007, 2008, 2009, 2010, 2011
 dnl    Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
@@ -2634,6 +2634,17 @@ sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap memmove fsync sync \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
 cfmakeraw cfsetspeed isnan copysign __executable_start)
+
+dnl Cannot use AC_CHECK_FUNCS
+AC_CACHE_CHECK([for __builtin_unwind_init],
+	       emacs_cv_func___builtin_unwind_init,
+[AC_LINK_IFELSE([AC_LANG_PROGRAM([], [__builtin_unwind_init ();])],
+		emacs_cv_func___builtin_unwind_init=yes,
+		emacs_cv_func___builtin_unwind_init=no)])
+if test $emacs_cv_func___builtin_unwind_init = yes; then
+  AC_DEFINE(HAVE___BUILTIN_UNWIND_INIT, 1,
+	    [Define to 1 if you have the `__builtin_unwind_init' function.])
+fi
 
 AC_CHECK_HEADERS(sys/un.h)
 
