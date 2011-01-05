@@ -1,3 +1,10 @@
+2011-01-05  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-image-width): New variable.
+	(doc-view-enlarge, doc-view-insert-image): Prefer imagemagick
+	backend for PNG images, and do dynamic rescaling instead of
+	reconverting the whole doc.
+
 2011-01-05  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/rx.el (rx-repeat): Replace CL function.
