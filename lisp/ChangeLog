@@ -1,9 +1,8 @@
 2011-01-04  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* Summary: Reconcile with changes in line movement behavior for
+	* allout.el: Reconcile with changes in line movement behavior for
 	long text lines that cross more than a single physical window
 	line, ie when truncate-lines is nil.
-
 	(allout-next-visible-heading): Provide for change in line-move
 	behavior on long lines when truncate-lines is nil.  In that case,
 	line-move can wind up on the same textual line when it moves to
@@ -16,7 +15,6 @@
 	which can yield false negatives in this function.  Avoid
 	difference by applying move-end-of-line while field-text-motion is
 	inhibited.
-
 
 2011-01-04  Glenn Morris  <rgm@gnu.org>
 
