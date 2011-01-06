@@ -1437,14 +1437,6 @@ their settings before allout-mode was started."
 ;;;_   = allout-exposure-category
 (defvar allout-exposure-category nil
   "Symbol for use as allout invisible-text overlay category.")
-;;;_   x allout-view-change-hook
-(defvar allout-view-change-hook nil
-  "*(Deprecated) A hook run after allout outline exposure changes.
-
-Switch to using `allout-exposure-change-hook' instead.  Both hooks are
-currently respected, but the other conveys the details of the exposure
-change via explicit parameters, and this one will eventually be disabled in
-a subsequent allout version.")
 ;;;_   = allout-exposure-change-hook
 (defvar allout-exposure-change-hook nil
   "*Hook that's run after allout outline subtree exposure changes.
@@ -1457,10 +1449,7 @@ Functions on the hook must take three arguments:
  - TO -- integer indicating the point of the end of the change.
  - FLAG -- change mode: nil for exposure, otherwise concealment.
 
-This hook might be invoked multiple times by a single command.
-
-This hook is replacing `allout-view-change-hook', which is being deprecated
-and eventually will not be invoked.")
+This hook might be invoked multiple times by a single command.")
 ;;;_   = allout-structure-added-hook
 (defvar allout-structure-added-hook nil
   "*Hook that's run after addition of items to the outline.
@@ -2996,13 +2985,19 @@ of (before any) topics, in which case we return nil."
 
   (allout-beginning-of-current-line)
   (let ((bol-point (point)))
-    (if (allout-goto-prefix-doublechecked)
-        (if (<= (point) bol-point)
+    (when (allout-goto-prefix-doublechecked)
+      (if (<= (point) bol-point)
+          (progn
+            (setq bol-point (point))
+            (allout-beginning-of-current-line)
+            (if (not (= bol-point (point)))
+                (if (looking-at allout-regexp)
+                    (allout-prefix-data)))
             (if interactive
                 (allout-end-of-prefix)
-              (point))
-          (goto-char (point-min))
-          nil))))
+              (point)))
+        (goto-char (point-min))
+        nil))))
 ;;;_   > allout-back-to-heading ()
 (defalias 'allout-back-to-heading 'allout-back-to-current-heading)
 ;;;_   > allout-pre-next-prefix ()
@@ -4867,9 +4862,7 @@ by pops to non-distinctive yanks.  Bug..."
   "Conceal text between FROM and TO if FLAG is non-nil, else reveal it.
 
 Exposure-change hook `allout-exposure-change-hook' is run with the same
-arguments as this function, after the exposure changes are made.  (The old
-`allout-view-change-hook' is being deprecated, and eventually will not be
-invoked.)"
+arguments as this function, after the exposure changes are made."
 
   ;; We use outline invisibility spec.
   (remove-overlays from to 'category 'allout-exposure-category)
@@ -4883,7 +4876,6 @@ invoked.)"
                 ;; as of 2008-02-27, xemacs lacks modification-hooks
                 (overlay-put o (pop props) (pop props))
               (error nil)))))))
-  (run-hooks 'allout-view-change-hook)
   (run-hook-with-args 'allout-exposure-change-hook from to flag))
 ;;;_   > allout-flag-current-subtree (flag)
 (defun allout-flag-current-subtree (flag)
