@@ -1,7 +1,6 @@
 ;;; vc-bzr.el --- VC backend for the bzr revision control system
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
@@ -720,7 +719,11 @@ property containing author and date information."
        (when (process-buffer proc)
          (with-current-buffer (process-buffer proc)
            (setq string (concat (process-get proc :vc-left-over) string))
-           (while (string-match "^\\( *[0-9.]+ *\\) \\([^\n ]+\\) +\\([0-9]\\{8\\}\\)\\( |.*\n\\)" string)
+           ;; Eg: 102020      Gnus developers          20101020 | regexp."
+           ;; As of bzr 2.2.2, no email address in whoami (which can
+           ;; lead to spaces in the author field) is allowed but discouraged.
+           ;; See bug#7792.
+           (while (string-match "^\\( *[0-9.]+ *\\) \\(.+?\\) +\\([0-9]\\{8\\}\\)\\( |.*\n\\)" string)
              (let* ((rev (match-string 1 string))
                     (author (match-string 2 string))
                     (date (match-string 3 string))
@@ -747,7 +750,7 @@ property containing author and date information."
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 
 (defun vc-bzr-annotate-time ()
-  (when (re-search-forward "^ *[0-9.]+ +[^\n ]* +|" nil t)
+  (when (re-search-forward "^ *[0-9.]+ +.* +|" nil t)
     (let ((prop (get-text-property (line-beginning-position) 'help-echo)))
       (string-match "[0-9]+\\'" prop)
       (let ((str (match-string-no-properties 0 prop)))
@@ -762,7 +765,7 @@ property containing author and date information."
 Return nil if current line isn't annotated."
   (save-excursion
     (beginning-of-line)
-    (if (looking-at "^ *\\([0-9.]+\\) +[^\n ]* +|")
+    (if (looking-at "^ *\\([0-9.]+\\) +.* +|")
         (match-string-no-properties 1))))
 
 (defun vc-bzr-command-discarding-stderr (command &rest args)
