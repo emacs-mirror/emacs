@@ -1,4 +1,10 @@
-2011-01-02  Paul Eggert  <eggert@cs.ucla.edu>
+2011-01-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* notes/copyright: There's only one install-sh, not two, so fix a
+	typo claiming that there's two.  Add move-if-change to the list of
+	GPL files imported from gnulib.
+
+2011-01-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* notes/copyright: Report status more accurately for non-GPL files.
 	Report copyright status more accurately for mkinstalldirs,
