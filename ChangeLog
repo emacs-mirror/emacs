@@ -1,3 +1,7 @@
+2011-01-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.guess, config.sub: Updated from master source.
+
 2011-01-05  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in: Check for __builtin_unwind_init.
@@ -8700,4 +8704,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
