@@ -1,6 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3225,6 +3225,9 @@ extern int noninteractive;
 /* Nonzero means don't load X resources or Windows Registry settings.  */
 extern int inhibit_x_resources;
 
+/* Nonzero means remove site-lisp directories from load-path.  */
+extern int no_site_lisp;
+
 /* Pipe used to send exit notification to the daemon parent at
    startup.  */
 extern int daemon_pipe[2];
@@ -3668,5 +3671,3 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 
 #endif /* EMACS_LISP_H */
 
-/* arch-tag: 9b2ed020-70eb-47ac-94ee-e1c2a5107d5e
-   (do not change this comment) */

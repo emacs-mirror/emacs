@@ -1,9 +1,12 @@
+2011-01-07  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (EMACSOPT): Add --no-site-lisp.
+
 2011-01-06  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el: (allout-back-to-current-heading): Ensure return to
+	* allout.el (allout-back-to-current-heading): Ensure return to
 	the visible containing topic, rather than a collapsed one.
-	(allout-view-change-hook): Remove hook that was deprecated long
-	ago.
+	(allout-view-change-hook): Remove hook that was deprecated long ago.
 	(allout-exposure-change-hook): Remove documentation remarks
 	concerning removed allout-view-change-hook.
 	(allout-flag-region): Remove invocation of and documentation

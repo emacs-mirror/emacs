@@ -231,6 +231,9 @@ int noninteractive1;
 /* Nonzero means Emacs was run in --quick mode.  */
 int inhibit_x_resources;
 
+/* Nonzero means remove site-lisp directories from load-path.  */
+int no_site_lisp;
+
 /* Name for the server started by the daemon.*/
 static char *daemon_name;
 
@@ -268,9 +271,11 @@ Initialization options:\n\
 --no-init-file, -q          load neither ~/.emacs nor default.el\n\
 --no-shared-memory, -nl     do not use shared memory\n\
 --no-site-file              do not load site-start.el\n\
+--no-site-lisp, -nsl        do not add site-lisp directories to load-path\n\
 --no-splash                 do not display a splash screen on startup\n\
 --no-window-system, -nw     do not communicate with X, ignoring $DISPLAY\n\
---quick, -Q                 equivalent to -q --no-site-file --no-splash\n\
+--quick, -Q                 equivalent to:\n\
+                              -q --no-site-file --no-site-lisp --no-splash\n\
 --script FILE               run FILE as an Emacs Lisp script\n\
 --terminal, -t DEVICE       use DEVICE for terminal I/O\n\
 --user, -u USER             load ~USER/.emacs instead of your own\n\
@@ -1341,6 +1346,9 @@ main (int argc, char **argv)
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
+  no_site_lisp
+    = argmatch (argv, argc, "-nsl", "--no-site-lisp", 11, NULL, &skip_args);
+
 #ifdef HAVE_NS
   ns_alloc_autorelease_pool();
   if (!noninteractive)
@@ -1409,7 +1417,25 @@ main (int argc, char **argv)
 	     && argv[count_before + 1][1] == '-')
       argv[count_before + 1] = "-d";
 
+    if (! no_site_lisp)
+      {
+        if (argmatch (argv, argc, "-Q", "--quick", 3, NULL, &skip_args)
+            || argmatch (argv, argc, "-quick", 0, 2, NULL, &skip_args))
+          no_site_lisp = 1;
+      }
+
     /* Don't actually discard this arg.  */
+    skip_args = count_before;
+  }
+#else  /* !HAVE_X_WINDOWS */
+  if (! no_site_lisp)
+  {
+    int count_before = skip_args;
+
+    if (argmatch (argv, argc, "-Q", "--quick", 3, NULL, &skip_args)
+        || argmatch (argv, argc, "-quick", 0, 2, NULL, &skip_args))
+      no_site_lisp = 1;
+
     skip_args = count_before;
   }
 #endif
@@ -1743,10 +1769,12 @@ const struct standard_args standard_args[] =
   { "-daemon", "--daemon", 99, 0 },
   { "-help", "--help", 90, 0 },
   { "-nl", "--no-loadup", 70, 0 },
+  { "-nsl", "--no-site-lisp", 65, 0 },
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },
   /* Now for the options handled in `command-line' (startup.el).  */
+  /* (Note that to imply -nsl, -Q is partially handled here.)  */
   { "-Q", "--quick", 55, 0 },
   { "-quick", 0, 55, 0 },
   { "-q", "--no-init-file", 50, 0 },

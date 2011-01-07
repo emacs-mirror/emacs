@@ -59,6 +59,9 @@ automatically select it.
 command line arguments, and the EMACS_UNIBYTE environment variable, no
 longer have any effect.  (They were declared obsolete in Emacs 23.)
 
+** New command line option `--no-site-lisp' removes site-lisp directories
+from load-path.  -Q now implies this.
+
 
 * Changes in Emacs 24.1
 
