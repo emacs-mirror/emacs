@@ -1,3 +1,9 @@
+2011-01-07  Sam Steingold  <sds@gnu.org>
+
+	* w32-fns.el (w32-shell-name): Use `shell-file-name' instead of
+	the `explicit-shell-file-name' because that is the
+	non-interactive shell.
+
 2011-01-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (y-or-n-p): Accept format string args.
