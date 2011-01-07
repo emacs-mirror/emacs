@@ -1,9 +1,39 @@
+2011-01-07  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (EMACSOPT): Add --no-site-lisp.
+
+2011-01-06  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-back-to-current-heading): Ensure return to
+	the visible containing topic, rather than a collapsed one.
+	(allout-view-change-hook): Remove hook that was deprecated long ago.
+	(allout-exposure-change-hook): Remove documentation remarks
+	concerning removed allout-view-change-hook.
+	(allout-flag-region): Remove invocation of and documentation
+	remarks concerning allout-view-change-hook.
+
+2011-01-06  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-annotate-command, vc-bzr-annotate-time)
+	(vc-bzr-annotate-extract-revision-at-line):
+	Handle authors with embedded spaces.  (Bug#7792)
+
+2011-01-05  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-image-width): New variable.
+	(doc-view-enlarge, doc-view-insert-image): Prefer imagemagick
+	backend for PNG images, and do dynamic rescaling instead of
+	reconverting the whole doc.
+
+2011-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/rx.el (rx-repeat): Replace CL function.
+
 2011-01-04  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* Summary: Reconcile with changes in line movement behavior for
+	* allout.el: Reconcile with changes in line movement behavior for
 	long text lines that cross more than a single physical window
 	line, ie when truncate-lines is nil.
-
 	(allout-next-visible-heading): Provide for change in line-move
 	behavior on long lines when truncate-lines is nil.  In that case,
 	line-move can wind up on the same textual line when it moves to
@@ -16,7 +46,6 @@
 	which can yield false negatives in this function.  Avoid
 	difference by applying move-end-of-line while field-text-motion is
 	inhibited.
-
 
 2011-01-04  Glenn Morris  <rgm@gnu.org>
 

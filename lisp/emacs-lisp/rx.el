@@ -1,7 +1,7 @@
 ;;; rx.el --- sexp notation for regular expressions
 
 ;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
@@ -412,7 +412,7 @@ Only both edges of each range is checked."
 	(setcdr m (1- char)))))
     ranges))
 
-    
+
 (defun rx-any-condense-range (args)
   "Condense by side effect ARGS as range for Rx `any'."
   (let (str
@@ -575,7 +575,7 @@ ARG is optional."
 				 (condition-case nil
 				     (rx-form arg)
 				   (error ""))))
-	      (eq arg 'word-boundary) 
+	      (eq arg 'word-boundary)
 	      (and (consp arg)
 		   (memq (car arg) '(not any in syntax category))))
     (error "rx `not' syntax error: %s" arg))
@@ -664,7 +664,7 @@ FORM is either `(repeat N FORM1)' or `(repeat N M FORMS...)'."
   (if (> (length form) 4)
       (setq form (rx-trans-forms form 2)))
   (if (null (nth 2 form))
-      (setq form (list* (nth 0 form) (nth 1 form) (nthcdr 3 form))))
+      (setq form (cons (nth 0 form) (cons (nth 1 form) (nthcdr 3 form)))))
   (cond ((= (length form) 3)
 	 (unless (and (integerp (nth 1 form))
 		      (> (nth 1 form) 0))
@@ -1161,5 +1161,4 @@ enclosed in `(and ...)'.
 
 (provide 'rx)
 
-;; arch-tag: 12d01a63-0008-42bb-ab8c-1c7d63be370b
 ;;; rx.el ends here

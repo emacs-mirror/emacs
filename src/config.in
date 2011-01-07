@@ -816,6 +816,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you want to use the X window system. */
 #undef HAVE_X_WINDOWS
 
+/* Define to 1 if you have the `__builtin_unwind_init' function. */
+#undef HAVE___BUILTIN_UNWIND_INIT
+
 /* Define to 1 if you have the `__executable_start' function. */
 #undef HAVE___EXECUTABLE_START
 
@@ -1052,6 +1055,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t
 
 /* Define to any substitute for sys_siglist. */
 #undef sys_siglist

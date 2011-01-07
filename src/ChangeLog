@@ -1,3 +1,17 @@
+2011-01-07  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (no_site_lisp): New int.
+	(USAGE1): Add --no-site-lisp, mention -Q uses it.
+	(main): Set no_site_lisp.
+	(standard_args): Add --no-site-lisp.
+	* lisp.h (no_site_lisp): New int.
+	* lread.c (init_lread): If no_site_lisp, don't re-add site-lisp
+	directories to Vload_path.
+
+2011-01-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* alloc.c (mark_stack): Use __builtin_unwind_init if available.
+
 2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
 	* dbusbind.c (Fdbus_register_method): Added optional parameter
@@ -29431,7 +29445,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007, 2008, 2009, 2010
+  Copyright (C) 2007, 2008, 2009, 2010, 2011
     Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.

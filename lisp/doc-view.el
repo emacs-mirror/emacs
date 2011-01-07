@@ -168,6 +168,12 @@ Higher values result in larger images."
   :type 'number
   :group 'doc-view)
 
+(defcustom doc-view-image-width 850
+  "Default image width.
+Has only an effect if imagemagick support is compiled into emacs."
+  :type 'number
+  :group 'doc-view)
+
 (defcustom doc-view-dvipdfm-program (executable-find "dvipdfm")
   "Program to convert DVI files to PDF.
 
@@ -641,9 +647,17 @@ OpenDocument format)."
 (defun doc-view-enlarge (factor)
   "Enlarge the document."
   (interactive (list doc-view-shrink-factor))
-  (set (make-local-variable 'doc-view-resolution)
-       (* factor doc-view-resolution))
-  (doc-view-reconvert-doc))
+  (if (eq (plist-get (cdr (doc-view-current-image)) :type)
+	  'imagemagick)
+      ;; ImageMagick supports on-the-fly-rescaling
+      (progn
+	(set (make-local-variable 'doc-view-image-width)
+	     (ceiling (* factor doc-view-image-width)))
+	(doc-view-insert-image (plist-get (cdr (doc-view-current-image)) :file)
+			       :width doc-view-image-width))
+    (set (make-local-variable 'doc-view-resolution)
+	 (ceiling (* factor doc-view-resolution)))
+    (doc-view-reconvert-doc)))
 
 (defun doc-view-shrink (factor)
   "Shrink the document."
@@ -949,7 +963,11 @@ ARGS is a list of image descriptors."
     (setq doc-view-pending-cache-flush nil))
   (let ((ol (doc-view-current-overlay))
         (image (if (and file (file-readable-p file))
-                   (apply 'create-image file 'png nil args)))
+		   (if (not (fboundp 'imagemagick-types))
+		       (apply 'create-image file 'png nil args)
+		     (unless (member :width args)
+		       (setq args (append args (list :width doc-view-image-width))))
+		     (apply 'create-image file 'imagemagick nil args))))
         (slice (doc-view-current-slice)))
     (setf (doc-view-current-image) image)
     (move-overlay ol (point-min) (point-max))
