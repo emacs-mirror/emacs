@@ -742,6 +742,7 @@ Whether the passphrase is cached at all is controlled by
 (autoload 'epg-key-sub-key-list "epg")
 (autoload 'epg-sub-key-capability "epg")
 (autoload 'epg-sub-key-validity "epg")
+(autoload 'epg-sub-key-fingerprint "epg")
 (autoload 'epg-configuration "epg-config")
 (autoload 'epg-expand-group "epg-config")
 (autoload 'epa-select-keys "epa")
@@ -783,6 +784,24 @@ Whether the passphrase is cached at all is controlled by
 	      (throw 'found (car keys)))
 	  (setq pointer (cdr pointer))))
       (setq keys (cdr keys)))))
+
+;; XXX: since gpg --list-secret-keys does not return validity of each
+;; key, `mml2015-epg-find-usable-key' defined above is not enough for
+;; secret keys.  The function `mml2015-epg-find-usable-secret-key'
+;; below looks at appropriate public keys to check usability.
+(defun mml2015-epg-find-usable-secret-key (context name usage)
+  (let ((secret-keys (epg-list-keys context name t))
+	secret-key)
+    (while (and (not secret-key) secret-keys)
+      (if (mml2015-epg-find-usable-key
+	   (epg-list-keys context (epg-sub-key-fingerprint
+				   (car (epg-key-sub-key-list
+					 (car secret-keys)))))
+	   usage)
+	  (setq secret-key (car secret-keys)
+		secret-keys nil)
+	(setq secret-keys (cdr secret-keys))))
+    secret-key))
 
 (defun mml2015-epg-decrypt (handle ctl)
   (catch 'error
@@ -960,9 +979,9 @@ If no one is selected, default secret key is used.  "
 		     (delq nil
 			   (mapcar
 			    (lambda (signer)
-			      (setq signer-key (mml2015-epg-find-usable-key
-						(epg-list-keys context signer t)
-						'sign))
+			      (setq signer-key
+				    (mml2015-epg-find-usable-secret-key
+				     context signer 'sign))
 			      (unless (or signer-key
 					  (y-or-n-p
 					   (format
@@ -1081,9 +1100,9 @@ If no one is selected, default secret key is used.  "
 		       (delq nil
 			     (mapcar
 			      (lambda (signer)
-				(setq signer-key (mml2015-epg-find-usable-key
-						  (epg-list-keys context signer t)
-						  'sign))
+				(setq signer-key
+				      (mml2015-epg-find-usable-secret-key
+				       context signer 'sign))
 				(unless (or signer-key
 					    (y-or-n-p
 					     (format

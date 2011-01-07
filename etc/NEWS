@@ -662,6 +662,8 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** `y-or-n-p' and `yes-or-no-p' now accept format string arguments.
+
 ** `image-library-alist' is renamed to `dynamic-library-alist'.
 The variable is now used to load all kind of supported dynamic libraries,
 not just image libraries.  The previous name is still available as an
