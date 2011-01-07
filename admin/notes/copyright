@@ -138,8 +138,7 @@ configure
 m4/getopt.m4
  - copyright FSF, with MIT-like license
 
-<top-level>/install-sh
-lispintro/install-sh
+install-sh
  - this file is copyright MIT, which is OK. Leave the copyright alone.
 
 mkinstalldirs
@@ -621,6 +620,7 @@ of writing) GPL >= 2. rms says may as well leave the licenses of these
 alone (may import them from Gnulib again). These are:
 
     Gnulib:
+    move-if-change
     src/getloadavg.c
     src/gmalloc.c
     src/md5.c
