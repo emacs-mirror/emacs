@@ -1933,10 +1933,13 @@ The variable @code{directory-abbrev-alist} contains an alist of
 abbreviations to use for file directories.  Each element has the form
 @code{(@var{from} . @var{to})}, and says to replace @var{from} with
 @var{to} when it appears in a directory name.  The @var{from} string is
-actually a regular expression; it should always start with @samp{\`}.
-The @var{to} string should be an ordinary absolute directory name.  Do
-not use @samp{~} to stand for a home directory in that string.  The
-function @code{abbreviate-file-name} performs these substitutions.
+actually a regular expression; it is matched against directory names
+anchored at the first character, so it should start with @samp{\`}, to
+support directory names with embedded newlines (which will defeat
+@samp{^}).  The @var{to} string should be an ordinary absolute
+directory name.  Do not use @samp{~} to stand for a home directory in
+that string.  The function @code{abbreviate-file-name} performs these
+substitutions.
 
 You can set this variable in @file{site-init.el} to describe the
 abbreviations appropriate for your site.
