@@ -2011,6 +2011,55 @@ floating point support."
 	    (push read unread-command-events)
 	    nil))))))
 (set-advertised-calling-convention 'sit-for '(seconds &optional nodisp) "22.1")
+
+(defun y-or-n-p (prompt &rest args)
+  "Ask user a \"y or n\" question.  Return t if answer is \"y\".
+The argument PROMPT is the string to display to ask the question.
+It should end in a space; `y-or-n-p' adds `(y or n) ' to it.
+No confirmation of the answer is requested; a single character is enough.
+Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses
+the bindings in `query-replace-map'; see the documentation of that variable
+for more information.  In this case, the useful bindings are `act', `skip',
+`recenter', and `quit'.\)
+
+Under a windowing system a dialog box will be used if `last-nonmenu-event'
+is nil and `use-dialog-box' is non-nil."
+  ;; ¡Beware! when I tried to edebug this code, Emacs got into a weird state
+  ;; where all the keys were unbound (i.e. it somehow got triggered
+  ;; within read-key, apparently).  I had to kill it.
+  (let ((answer 'recenter))
+    (if (and (display-popup-menus-p)
+             (listp last-nonmenu-event)
+             use-dialog-box)
+        (setq answer
+              (x-popup-dialog t `(,prompt ("yes" . act) ("No" . skip))))
+      (setq prompt (concat (apply 'format prompt args)
+                           (if (eq ?\s (aref prompt (1- (length prompt))))
+                               "" " ")
+                           "(y or n) "))
+      (while
+          (let* ((key
+                  (let ((cursor-in-echo-area t))
+                    (when minibuffer-auto-raise
+                      (raise-frame (window-frame (minibuffer-window))))
+                    (read-key (propertize (if (eq answer 'recenter)
+                                              prompt
+                                            (concat "Please answer y or n.  "
+                                                    prompt))
+                                          'face 'minibuffer-prompt)))))
+            (setq answer (lookup-key query-replace-map (vector key) t))
+            (cond
+             ((memq answer '(skip act)) nil)
+             ((eq answer 'recenter) (recenter) t)
+             ((memq answer '(exit-prefix quit)) (signal 'quit nil) t)
+             (t t)))
+        (ding)
+        (discard-input)))
+    (let ((ret (eq answer 'act)))
+      (unless noninteractive
+        (message "%s %s" prompt (if ret "y" "n")))
+      ret)))
+
 
 ;;; Atomic change groups.
 
@@ -3305,56 +3354,6 @@ clone should be incorporated in the clone."
     (overlay-put ol2 'evaporate t)
     (overlay-put ol2 'text-clones dups)))
 
-;;;; Misc functions moved over from the C side.
-
-(defun y-or-n-p (prompt)
-  "Ask user a \"y or n\" question.  Return t if answer is \"y\".
-The argument PROMPT is the string to display to ask the question.
-It should end in a space; `y-or-n-p' adds `(y or n) ' to it.
-No confirmation of the answer is requested; a single character is enough.
-Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses
-the bindings in `query-replace-map'; see the documentation of that variable
-for more information.  In this case, the useful bindings are `act', `skip',
-`recenter', and `quit'.\)
-
-Under a windowing system a dialog box will be used if `last-nonmenu-event'
-is nil and `use-dialog-box' is non-nil."
-  ;; ¡Beware! when I tried to edebug this code, Emacs got into a weird state
-  ;; where all the keys were unbound (i.e. it somehow got triggered
-  ;; within read-key, apparently).  I had to kill it.
-  (let ((answer 'recenter))
-    (if (and (display-popup-menus-p)
-             (listp last-nonmenu-event)
-             use-dialog-box)
-        (setq answer
-              (x-popup-dialog t `(,prompt ("yes" . act) ("No" . skip))))
-      (setq prompt (concat prompt
-                           (if (eq ?\s (aref prompt (1- (length prompt))))
-                               "" " ")
-                           "(y or n) "))
-      (while
-          (let* ((key
-                  (let ((cursor-in-echo-area t))
-                    (when minibuffer-auto-raise
-                      (raise-frame (window-frame (minibuffer-window))))
-                    (read-key (propertize (if (eq answer 'recenter)
-                                              prompt
-                                            (concat "Please answer y or n.  "
-                                                    prompt))
-                                          'face 'minibuffer-prompt)))))
-            (setq answer (lookup-key query-replace-map (vector key) t))
-            (cond
-             ((memq answer '(skip act)) nil)
-             ((eq answer 'recenter) (recenter) t)
-             ((memq answer '(exit-prefix quit)) (signal 'quit nil) t)
-             (t t)))
-        (ding)
-        (discard-input)))
-    (let ((ret (eq answer 'act)))
-      (unless noninteractive
-        (message "%s %s" prompt (if ret "y" "n")))
-      ret)))
-
 ;;;; Mail user agents.
 
 ;; Here we include just enough for other packages to be able
