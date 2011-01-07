@@ -1,7 +1,7 @@
 /* Functions for image support on window system.
    Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+		 2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7561,9 +7561,15 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       exception = AcquireExceptionInfo ();
 
       im_image = ReadImage (image_info, exception);
-      CatchException (exception);
+      DestroyExceptionInfo (exception);
 
-      image_wand = NewMagickWandFromImage (im_image);
+      if (im_image != NULL)
+	{
+	  image_wand = NewMagickWandFromImage (im_image);
+	  status = MagickTrue;
+	}
+      else
+	status = MagickFalse;
     }
   else
     {
@@ -7666,11 +7672,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
      width, height, and then transfer ownerwship to Emacs.  */
   height = MagickGetImageHeight (image_wand);
   width = MagickGetImageWidth (image_wand);
-  if (status == MagickFalse)
-    {
-      image_error ("Imagemagick image get size failed", Qnil, Qnil);
-      goto imagemagick_error;
-    }
 
   if (! check_image_size (f, width, height))
     {
@@ -7690,6 +7691,9 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       if (!x_create_x_image_and_pixmap (f, width, height, 0,
                                         &ximg, &img->pixmap))
         {
+#ifdef COLOR_TABLE_SUPPORT
+	  free_color_table ();
+#endif
           image_error("Imagemagick X bitmap allocation failure", Qnil, Qnil);
           goto imagemagick_error;
         }
@@ -7702,6 +7706,10 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       iterator = NewPixelIterator (image_wand);
       if (iterator == (PixelIterator *) NULL)
         {
+#ifdef COLOR_TABLE_SUPPORT
+	  free_color_table ();
+#endif
+	  x_destroy_x_image (ximg);
           image_error ("Imagemagick pixel iterator creation failed",
                        Qnil, Qnil);
           goto imagemagick_error;
@@ -7736,6 +7744,9 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       if (!x_create_x_image_and_pixmap (f, width, height, imagedepth,
                                         &ximg, &img->pixmap))
 	{
+#ifdef COLOR_TABLE_SUPPORT
+	  free_color_table ();
+#endif
 	  image_error("Imagemagick X bitmap allocation failure", Qnil, Qnil);
 	  goto imagemagick_error;
 	}
@@ -7798,6 +7809,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   return 1;
 
  imagemagick_error:
+  DestroyMagickWand (image_wand);
   /* TODO more cleanup.  */
   image_error ("Error parsing IMAGEMAGICK image `%s'", img->spec, Qnil);
   return 0;

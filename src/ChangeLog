@@ -1,3 +1,8 @@
+2011-01-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (imagemagick_load_image): Fix some resource leaks and
+	error handling.
+
 2011-01-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fns.c (Fyes_or_no_p): Accept format string args.
