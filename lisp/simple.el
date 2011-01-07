@@ -387,7 +387,9 @@ Other major modes are defined by comparison with this one."
 (define-derived-mode prog-mode fundamental-mode "Prog"
   "Major mode for editing programming language source code."
   (set (make-local-variable 'require-final-newline) mode-require-final-newline)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t))
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  ;; Any programming language is always written left to right.
+  (setq bidi-paragraph-direction 'left-to-right))
 
 ;; Making and deleting lines.
 
@@ -705,10 +707,14 @@ If BACKWARD-ONLY is non-nil, only delete them before point."
        (constrain-to-field nil orig-pos)))))
 
 (defun just-one-space (&optional n)
-  "Delete all spaces and tabs around point, leaving one space (or N spaces)."
+  "Delete all spaces and tabs around point, leaving one space (or N spaces).
+If N is negative, delete newlines as well."
   (interactive "*p")
-  (let ((orig-pos (point)))
-    (skip-chars-backward " \t")
+  (unless n (setq n 1))
+  (let ((orig-pos (point))
+        (skip-characters (if (< n 0) " \t\n\r" " \t"))
+        (n (abs n)))
+    (skip-chars-backward skip-characters)
     (constrain-to-field nil orig-pos)
     (dotimes (i (or n 1))
       (if (= (following-char) ?\s)
@@ -717,7 +723,7 @@ If BACKWARD-ONLY is non-nil, only delete them before point."
     (delete-region
      (point)
      (progn
-       (skip-chars-forward " \t")
+       (skip-chars-forward skip-characters)
        (constrain-to-field nil orig-pos t)))))
 
 (defun beginning-of-buffer (&optional arg)

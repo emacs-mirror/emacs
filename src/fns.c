@@ -872,7 +872,7 @@ string_byte_to_char (Lisp_Object string, EMACS_INT byte_index)
 
 /* Convert STRING to a multibyte string.  */
 
-Lisp_Object
+static Lisp_Object
 string_make_multibyte (Lisp_Object string)
 {
   unsigned char *buf;
@@ -3701,7 +3701,7 @@ make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
 /* Return a copy of hash table H1.  Keys and values are not copied,
    only the table itself is.  */
 
-Lisp_Object
+static Lisp_Object
 copy_hash_table (struct Lisp_Hash_Table *h1)
 {
   Lisp_Object table;
@@ -3909,7 +3909,7 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
 
 /* Clear hash table H.  */
 
-void
+static void
 hash_clear (struct Lisp_Hash_Table *h)
 {
   if (h->count > 0)

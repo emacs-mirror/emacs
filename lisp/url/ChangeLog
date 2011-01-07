@@ -1,3 +1,20 @@
+2010-12-16  Miles Bader  <Miles Bader <miles@gnu.org>>
+
+	* url-cookie.el: Require 'cl when compiling -- it's necessary for
+	defstruct.
+
+2010-12-14  Glenn Morris  <rgm@gnu.org>
+
+	* url-cookie.el: Don't require cl when compiling.
+	(url-cookie-clean-up, url-cookie-generate-header-lines): Use dolist.
+	(url-cookie-parse-file, url-cookie-store, url-cookie-retrieve)
+	(url-cookie-handle-set-cookie): Simplify.
+
+2010-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-cookie.el (url-cookie-retrieve): Handle null LOCALPART.
+	Suggested by Lennart Borgman (Bug#7543).
+
 2010-11-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-file.el (url-file-build-filename): Avoid interpreting
@@ -14,8 +31,8 @@
 
 2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* url-http.el (url-http-wait-for-headers-change-function): Protect
-	against url-http-response-status for degenerate documents.
+	* url-http.el (url-http-wait-for-headers-change-function):
+	Protect against url-http-response-status for degenerate documents.
 	(url-http-wait-for-headers-change-function): Revert previous
 	change.  It lead to really slow loads.
 
@@ -31,7 +48,7 @@
 
 2010-10-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* url-vars.el (url-mime-charset-string): Changed the default to
+	* url-vars.el (url-mime-charset-string): Change the default to
 	nil to avoid sending 1171 bytes of not very useful data to the
 	HTTP server every request.
 
@@ -91,7 +108,8 @@
 
 2010-09-14  Julien Danjou  <julien@danjou.info>
 
-	* url-cache (url-store-in-cache): Make `buff' argument really optional.
+	* url-cache.el (url-store-in-cache):
+	Make `buff' argument really optional.
 
 2010-09-14  Glenn Morris  <rgm@gnu.org>
 
@@ -108,18 +126,18 @@
 
 2010-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
-	* url-http (url-http-parse-headers): Disable file name handlers at
+	* url-http.el (url-http-parse-headers): Disable file name handlers at
 	all (not only Tramp).  (Bug#6717)
 
 2010-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
-	* url-http (url-http-parse-headers): Disable Tramp.  (Bug#6717)
+	* url-http.el (url-http-parse-headers): Disable Tramp.  (Bug#6717)
 
 2010-07-01  Mark A. Hershberger  <mah@everybody.org>
 
 	* url-http.el (url-http-create-request): Add a CRLF on the end so
-	that POSTs with content to https urls work.  See
-	<https://bugs.launchpad.net/mediawiki-el/+bug/540759>
+	that POSTs with content to https urls work.
+	See <https://bugs.launchpad.net/mediawiki-el/+bug/540759>
 
 2010-06-22  Mark A. Hershberger  <mah@everybody.org>
 
@@ -601,8 +619,8 @@
 	* url-http.el (url-http-proxy): New variable.
 	(url-http-create-request): Use it.  Don't use `url-proxy-object'.
 	(url-http): Treat `url' argument as resource to download, and
-	dynamic variable `url-using-proxy' as proxy to use.  Set
-	`url-current-object' to actual URL, and `url-http-proxy' to proxy
+	dynamic variable `url-using-proxy' as proxy to use.
+	Set `url-current-object' to actual URL, and `url-http-proxy' to proxy
 	used.
 	(url-http-handle-cookies): Assume that `url-current-object' does
 	not point to the proxy used.
@@ -618,24 +636,24 @@
 	(url-proxy): Bind it instead of `proxy-object'.
 
 	* url-http.el (url-http-create-request): Remove url argument, use
-	the buffer-local variable `url-http-target-url' instead.  Both
-	callers updated.  Simplify proxy handling.
+	the buffer-local variable `url-http-target-url' instead.
+	Both callers updated.  Simplify proxy handling.
 	(url-http): Don't make proxy-object buffer local.
 
 	* url.el (url-retrieve-internal): Bind url-proxy-object to nil.
 
 2006-11-26  Magnus Henoch  <mange@freemail.hu>
 
-	* url-http.el (url-http-wait-for-headers-change-function): Use
-	`when' instead of `if' when possible.
+	* url-http.el (url-http-wait-for-headers-change-function):
+	Use `when' instead of `if' when possible.
 	(url-http): Define url-http-response-version.
 	(url-http-parse-response): Set it.
 	(url-http-parse-headers): Use it to determine keep-alive behavior.
 
 2006-11-23  Diane Murray  <disumu@x3y2z1.net>  (tiny change)
 
-	* url-http.el (url-http-content-length-after-change-function): Use
-	`url-lazy-message'.
+	* url-http.el (url-http-content-length-after-change-function):
+	Use `url-lazy-message'.
 
 	* url-util.el (url-display-percentage): Only show a message if
 	`url-show-status' is non-nil.
@@ -1017,8 +1035,8 @@
 	(url-cookie-generate-header-lines): Likewise.
 	(url-cookie-handle-set-cookie): Likewise.
 	(url-cookie-create): Expect :localpart instead of :path.
-	(url-cookie-localpart): Renamed from url-cookie-path.
-	(url-cookie-set-localpart): Renamed from url-cookie-set-path.
+	(url-cookie-localpart): Rename from url-cookie-path.
+	(url-cookie-set-localpart): Rename from url-cookie-set-path.
 	(url-cookie-file): Doc fix.
 	(url-cookie-p): Add doc string.
 
@@ -2235,7 +2253,7 @@
 	message when we have to contact a host so the user always gets
 	at least some feedback.
 
-	* lisp/url-expand.el (url-expander-remove-relative-links): Moved and
+	* lisp/url-expand.el (url-expander-remove-relative-links): Move and
 	renamed function.
 	(url-default-expander): Use it.
 
@@ -2357,11 +2375,10 @@
 
 ;; Local variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1999, 2001, 2002, 2004, 2005,
-	2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 1999, 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009,
+    2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -2378,4 +2395,3 @@
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;; arch-tag: ac117078-3091-4533-be93-098162ac2926

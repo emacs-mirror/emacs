@@ -1,3 +1,17 @@
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* nt/README.W32: Update the information about PNG support libraries.
+	(Bug#7716)
+
+2010-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bzrmerge.el: New file to help merge branches while skipping
+	some revisions (e.g. from emacs-23 to trunk).
+
+2010-12-03  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* CPP-DEFINES (EXPLICIT_SIGN_EXTEND): Remove.
+
 2010-10-12  Glenn Morris  <rgm@gnu.org>
 
 	* notes/nextstep: Move here from ../nextstep/DEV-NOTES.

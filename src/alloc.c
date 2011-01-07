@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
    Copyright (C) 1985, 1986, 1988, 1993, 1994, 1995, 1997, 1998, 1999,
-      2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+      2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -142,8 +142,6 @@ static pthread_mutex_t alloc_mutex;
 /* Value of _bytes_used, when spare_memory was freed.  */
 
 static __malloc_size_t bytes_used_when_full;
-
-static __malloc_size_t bytes_used_when_reconsidered;
 
 /* Mark, unmark, query mark bit of a Lisp string.  S must be a pointer
    to a struct Lisp_String.  */
@@ -1140,6 +1138,8 @@ static void * (*old_malloc_hook) (size_t, const void *);
 static void * (*old_realloc_hook) (void *,  size_t, const void*);
 static void (*old_free_hook) (void*, const void*);
 
+static __malloc_size_t bytes_used_when_reconsidered;
+
 /* This function is used as the hook for free to call.  */
 
 static void
@@ -1491,8 +1491,7 @@ mark_interval_tree (register INTERVAL tree)
    can't create number objects in macros.  */
 #ifndef make_number
 Lisp_Object
-make_number (n)
-     EMACS_INT n;
+make_number (EMACS_INT n)
 {
   Lisp_Object obj;
   obj.s.val = n;
@@ -3986,8 +3985,14 @@ DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
 static INLINE void
 mark_maybe_object (Lisp_Object obj)
 {
-  void *po = (void *) XPNTR (obj);
-  struct mem_node *m = mem_find (po);
+  void *po;
+  struct mem_node *m;
+
+  if (INTEGERP (obj))
+    return;
+
+  po = (void *) XPNTR (obj);
+  m = mem_find (po);
 
   if (m != MEM_NIL)
     {
@@ -4217,7 +4222,7 @@ Please mail the result to <emacs-devel@gnu.org>.\n\
    can prove that.  */
 
 static void
-test_setjmp ()
+test_setjmp (void)
 {
   char buf[10];
   register int x;
@@ -4265,7 +4270,7 @@ test_setjmp ()
 /* Abort if anything GCPRO'd doesn't survive the GC.  */
 
 static void
-check_gcpros ()
+check_gcpros (void)
 {
   struct gcpro *p;
   int i;
@@ -4281,7 +4286,7 @@ check_gcpros ()
 #elif GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
 
 static void
-dump_zombies ()
+dump_zombies (void)
 {
   int i;
 
@@ -4315,6 +4320,11 @@ dump_zombies ()
    to see in a jmp_buf which itself lies on the stack.  This doesn't
    have to be true!  It must be verified for each system, possibly
    by taking a look at the source code of setjmp.
+
+   If __builtin_unwind_init is available (defined by GCC >= 2.8) we
+   can use it as a machine independent method to store all registers
+   to the stack.  In this case the macros described in the previous
+   two paragraphs are not used.
 
    Stack Layout
 
@@ -4354,6 +4364,13 @@ mark_stack (void)
   volatile int stack_grows_down_p = (char *) &j > (char *) stack_base;
   void *end;
 
+#ifdef HAVE___BUILTIN_UNWIND_INIT
+  /* Force callee-saved registers and register windows onto the stack.
+     This is the preferred method if available, obviating the need for
+     machine dependent methods.  */
+  __builtin_unwind_init ();
+  end = &end;
+#else /* not HAVE___BUILTIN_UNWIND_INIT */
   /* This trick flushes the register windows so that all the state of
      the process is contained in the stack.  */
   /* Fixme: Code in the Boehm GC suggests flushing (with `flushrs') is
@@ -4389,6 +4406,7 @@ mark_stack (void)
   setjmp (j.j);
   end = stack_grows_down_p ? (char *) &j + sizeof j : (char *) &j;
 #endif /* not GC_SAVE_REGISTERS_ON_STACK */
+#endif /* not HAVE___BUILTIN_UNWIND_INIT */
 
   /* This assumes that the stack is a contiguous region in memory.  If
      that's not the case, something has to be done here to iterate
@@ -5264,7 +5282,7 @@ mark_char_table (struct Lisp_Vector *ptr)
     {
       Lisp_Object val = ptr->contents[i];
 
-      if (INTEGERP (val) || SYMBOLP (val) && XSYMBOL (val)->gcmarkbit)
+      if (INTEGERP (val) || (SYMBOLP (val) && XSYMBOL (val)->gcmarkbit))
 	continue;
       if (SUB_CHAR_TABLE_P (val))
 	{
@@ -5637,13 +5655,14 @@ mark_terminals (void)
   for (t = terminal_list; t; t = t->next_terminal)
     {
       eassert (t->name != NULL);
-      if (!VECTOR_MARKED_P (t))
-	{
 #ifdef HAVE_WINDOW_SYSTEM
-	  mark_image_cache (t->image_cache);
+      /* If a terminal object is reachable from a stacpro'ed object,
+	 it might have been marked already.  Make sure the image cache
+	 gets marked.  */
+      mark_image_cache (t->image_cache);
 #endif /* HAVE_WINDOW_SYSTEM */
-	  mark_vectorlike ((struct Lisp_Vector *)t);
-	}
+      if (!VECTOR_MARKED_P (t))
+	mark_vectorlike ((struct Lisp_Vector *)t);
     }
 }
 

@@ -1,5 +1,5 @@
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000, 2001,
-#   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+#   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -51,7 +51,7 @@ handle SIGALRM ignore
 # Using a constant runs into GDB bugs sometimes.
 define xgetptr
   set $bugfix = $arg0
-  set $ptr = (gdb_use_union ? $bugfix.u.val : $bugfix & $valmask) | gdb_data_seg_bits
+  set $ptr = (gdb_use_union ? (gdb_use_lsb ? $bugfix.u.val << gdb_gctypebits : $bugfix.u.val) : $bugfix & $valmask) | gdb_data_seg_bits
 end
 
 define xgetint
@@ -1227,7 +1227,8 @@ define xbacktrace
       xprintsym (*$bt->function)
       printf " (0x%x)\n", $bt->args
     else
-      printf "0x%x ", *$bt->function
+      xgetptr *$bt->function
+      printf "0x%x ", $ptr
       if $type == Lisp_Vectorlike
 	xgetptr (*$bt->function)
         set $size = ((struct Lisp_Vector *) $ptr)->size

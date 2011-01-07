@@ -663,9 +663,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `sysinfo' function. */
 #undef HAVE_SYSINFO
 
-/* Define to 1 if you have the <sys/ioctl.h> header file. */
-#undef HAVE_SYS_IOCTL_H
-
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #undef HAVE_SYS_MMAN_H
 
@@ -818,6 +815,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you want to use the X window system. */
 #undef HAVE_X_WINDOWS
+
+/* Define to 1 if you have the `__builtin_unwind_init' function. */
+#undef HAVE___BUILTIN_UNWIND_INIT
 
 /* Define to 1 if you have the `__executable_start' function. */
 #undef HAVE___EXECUTABLE_START
@@ -1056,6 +1056,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
 
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t
+
 /* Define to any substitute for sys_siglist. */
 #undef sys_siglist
 
@@ -1076,7 +1079,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
-#if defined (__GNUC__) && defined (OPTIMIZE)
+#if defined (__GNUC__)
 #define INLINE __inline__
 #else
 #define INLINE
@@ -1092,7 +1095,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Include the os and machine dependent files.  */
 #include config_opsysfile
-#include config_machfile
+#ifdef config_machfile
+# include config_machfile
+#endif
 
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
@@ -1198,6 +1203,12 @@ typedef unsigned size_t;
 #define NO_INLINE __attribute__((noinline))
 #else
 #define NO_INLINE
+#endif
+
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+#define EXTERNALLY_VISIBLE __attribute__((externally_visible))
+#else
+#define EXTERNALLY_VISIBLE
 #endif
 
 /* Some versions of GNU/Linux define noinline in their headers.  */

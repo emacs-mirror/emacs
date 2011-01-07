@@ -459,11 +459,13 @@ for a forward search, or @kbd{M-s w C-r @key{RET}} for a backward search.
 These run the commands @code{word-search-forward} and
 @code{word-search-backward} respectively.
 
-  A nonincremental word search differs slightly from the incremental
-version in the way it finds a match: the last word in the search
-string must be an exact match for a whole word.  In an incremental
-word search, the last word in the search string can match part of a
-word; this allows the matching to proceed incrementally as you type.
+  Incremental and nonincremental word searches differ slightly in the
+way they find a match.  In a nonincremental word search, the last word
+in the search string must exactly match a whole word.  In an
+incremental word search, the matching is more lax: the last word in
+the search string can match part of a word, so that the matching
+proceeds incrementally as you type.  This additional laxity does not
+apply to the lazy highlight, which always matches whole words.
 
 @node Regexp Search
 @section Regular Expression Search

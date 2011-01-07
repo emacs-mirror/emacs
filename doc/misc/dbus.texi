@@ -9,7 +9,8 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 2007, 2008, 2009, 2010,
+2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1264,7 +1265,7 @@ paths, used by offered methods or signals, shall start with this
 string.
 @end deffn
 
-@defun dbus-register-method bus service path interface method handler
+@defun dbus-register-method bus service path interface method handler dont-register-service
 With this function, an application registers @var{method} on the D-Bus
 @var{bus}.
 
@@ -1272,10 +1273,11 @@ With this function, an application registers @var{method} on the D-Bus
 @code{:session}.
 
 @var{service} is the D-Bus service name of the D-Bus object
-@var{method} is registered for.  It must be a known name.
+@var{method} is registered for.  It must be a known name (See
+discussion of @var{dont-register-service} below).
 
-@var{path} is the D-Bus object path @var{service} is
-registered.
+@var{path} is the D-Bus object path @var{service} is registered (See
+discussion of @var{dont-register-service} below).
 
 @var{interface} is the interface offered by @var{service}.  It must
 provide @var{method}.
@@ -1293,6 +1295,13 @@ returning a list containing the object.
 
 In case @var{handler} shall return a reply message with an empty
 argument list, @var{handler} must return the symbol @code{:ignore}.
+
+When @var{dont-register-service} is non-@code{nil}, the known name
+@var{service} is not registered.  This means that other D-Bus clients
+have no way of noticing the newly registered method.  When interfaces
+are constructed incrementally by adding single methods or properties
+at a time, @var{dont-register-service} can be use to prevent other
+clients from discovering the still incomplete interface.
 
 The default D-Bus timeout when waiting for a message reply is 25
 seconds.  This value could be even smaller, depending on the calling
@@ -1368,7 +1377,7 @@ The test runs then
 @end example
 @end defun
 
-@defun dbus-register-property bus service path interface property access value &optional emits-signal
+@defun dbus-register-property bus service path interface property access value &optional emits-signal dont-register-service
 With this function, an application declares a @var{property} on the D-Bus
 @var{bus}.
 
@@ -1378,8 +1387,8 @@ With this function, an application declares a @var{property} on the D-Bus
 @var{service} is the D-Bus service name of the D-Bus.  It must be a
 known name.
 
-@var{path} is the D-Bus object path @var{service} is
-registered.
+@var{path} is the D-Bus object path @var{service} is registered (See
+discussion of @var{dont-register-service} below).
 
 @var{interface} is the name of the interface used at @var{path},
 @var{property} is the name of the property of @var{interface}.
@@ -1400,6 +1409,13 @@ The interface @samp{org.freedesktop.DBus.Properties} is added to
 @var{emits-signal} is non-@code{nil}, the signal
 @samp{PropertiesChanged} is sent when the property is changed by
 @code{dbus-set-property}.
+
+When @var{dont-register-service} is non-@code{nil}, the known name
+@var{service} is not registered.  This means that other D-Bus clients
+have no way of noticing the newly registered method.  When interfaces
+are constructed incrementally by adding single methods or properties
+at a time, @var{dont-register-service} can be use to prevent other
+clients from discovering the still incomplete interface.
 
 @noindent Example:
 

@@ -280,7 +280,7 @@ buffer-local and set them to nil."
 (defun tags-table-mode ()
   "Major mode for tags table file buffers."
   (interactive)
-  (setq major-mode 'tags-table-mode
+  (setq major-mode 'tags-table-mode     ;FIXME: Use define-derived-mode.
         mode-name "Tags Table"
         buffer-undo-list t)
   (initialize-new-tags-table))
@@ -2033,10 +2033,8 @@ see the doc of that variable if you want to add names to the list."
     (define-key map "q" 'select-tags-table-quit)
     map))
 
-(define-derived-mode select-tags-table-mode fundamental-mode "Select Tags Table"
-  "Major mode for choosing a current tags table among those already loaded.
-
-\\{select-tags-table-mode-map}"
+(define-derived-mode select-tags-table-mode special-mode "Select Tags Table"
+  "Major mode for choosing a current tags table among those already loaded."
   (setq buffer-read-only t))
 
 (defun select-tags-table-select (button)

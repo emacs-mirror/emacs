@@ -1,7 +1,8 @@
 ;;; nnml.el --- mail spool access for Gnus
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software
+;;   Foundation, Inc.
 
 ;; Authors: Didier Verna <didier@xemacs.org> (adding compaction)
 ;;	Simon Josefsson <simon@josefsson.org> (adding MARKS)
@@ -235,7 +236,11 @@ non-nil.")
 			  (nnheader-article-to-file-alist
 			   (setq gpath (nnml-group-pathname (car group-num)
 							    nil server))))))
-	  (setq path (concat gpath (int-to-string (cdr group-num)))))
+	  (nnml-update-file-alist)
+	  (setq path (concat gpath (if nnml-use-compressed-files
+				       (cdr (assq (cdr group-num)
+						  nnml-article-file-alist))
+				     (number-to-string (cdr group-num))))))
       (setq path (nnml-article-to-file id)))
     (cond
      ((not path)
@@ -1033,19 +1038,7 @@ Use the nov database for the current group if available."
   (nnml-possibly-change-directory group server)
   (unless nnml-marks-is-evil
     (nnml-open-marks group server)
-    (dolist (action actions)
-      (let ((range (nth 0 action))
-	    (what  (nth 1 action))
-	    (marks (nth 2 action)))
-	(assert (or (eq what 'add) (eq what 'del)) nil
-		"Unknown request-set-mark action: %s" what)
-	(dolist (mark marks)
-	  (setq nnml-marks (gnus-update-alist-soft
-			    mark
-			    (funcall (if (eq what 'add) 'gnus-range-add
-				       'gnus-remove-from-range)
-				     (cdr (assoc mark nnml-marks)) range)
-			    nnml-marks)))))
+    (setq nnml-marks (nnheader-update-marks-actions nnml-marks actions))
     (nnml-save-marks group server))
   nil)
 

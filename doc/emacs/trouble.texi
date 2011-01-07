@@ -629,10 +629,11 @@ read the tracker's online documentation to see the various features
 you can use.
 
 All mail sent to the @samp{bug-gnu-emacs} mailing list is also
-gatewayed to the @samp{bug.gnu.emacs} newsgroup.  The reverse is also
-true, but we ask you not to post bug reports via the newsgroup.  It
-can make it much harder to contact you if we need to ask for more
-information, and it does not integrate well with the bug tracker.
+gatewayed to the @samp{gnu.emacs.bug} newsgroup.  The reverse is also
+true, but we ask you not to post bug reports (or replies) via the
+newsgroup.  It can make it much harder to contact you if we need to ask
+for more information, and it does not integrate well with the bug
+tracker.
 
 If your data is more than 500,000 bytes, please don't include it
 directly in the bug report; instead, offer to send it on request, or
@@ -804,6 +805,13 @@ debugging Emacs Lisp programs with the Edebug package.
 This use of the debugger is possible only if you know how to make the
 bug happen again.  If you can't make it happen again, at least copy
 the whole error message.
+
+@vindex debug-on-quit
+If Emacs appears to be stuck in an infinite loop or in a very long
+operation, typing @kbd{C-g} with the variable @code{debug-on-quit}
+non-@code{nil} will start the Lisp debugger and show a backtrace.
+This backtrace is useful for debugging such long loops, so if you can
+produce it, copy it into the bug report.
 
 @item
 Check whether any programs you have loaded into the Lisp world,
@@ -1127,6 +1135,3 @@ Emacs distribution.
 @lowersections
 @end ifnottex
 
-@ignore
-   arch-tag: c9cba76d-b2cb-4e0c-ae3f-19d5ef35817c
-@end ignore

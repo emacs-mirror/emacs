@@ -1,7 +1,7 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -1594,6 +1594,7 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   "Fill long lines.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles'."
+  :version "24.1"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -8086,6 +8087,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 	  (Info-index-next 1)))
       nil)))
 
+(autoload 'pgg-snarf-keys-region "pgg")
 ;; Called after pgg-snarf-keys-region, which autoloads pgg.el.
 (declare-function pgg-display-output-buffer "pgg" (start end status))
 
@@ -8146,6 +8148,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 
 (defun gnus-url-mailto (url)
   ;; Send mail to someone
+  (setq url (replace-regexp-in-string "\n" " " url))
   (when (string-match "mailto:/*\\(.*\\)" url)
     (setq url (substring url (match-beginning 1) nil)))
   (let (to args subject func)
@@ -8155,8 +8158,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 		  (if (string-match "^\\([^?]+\\)\\?\\(.*\\)" url)
 		      (concat "to=" (match-string 1 url) "&"
 			      (match-string 2 url))
-		    (concat "to=" url)))
-		t)
+		    (concat "to=" url))))
 	  subject (cdr-safe (assoc "subject" args)))
     (gnus-msg-mail)
     (while args

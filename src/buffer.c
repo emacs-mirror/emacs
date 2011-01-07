@@ -105,7 +105,6 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 
 int last_per_buffer_idx;
 
-EXFUN (Fset_buffer, 1);
 static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
                                     int after, Lisp_Object arg1,
                                     Lisp_Object arg2, Lisp_Object arg3);
@@ -3642,8 +3641,6 @@ modify_overlay (struct buffer *buf, EMACS_INT start, EMACS_INT end)
 }
 
 
-Lisp_Object Fdelete_overlay (Lisp_Object overlay);
-
 static struct Lisp_Overlay *
 unchain_overlay (struct Lisp_Overlay *list, struct Lisp_Overlay *overlay)
 {
@@ -5971,15 +5968,17 @@ Non-nil also enables highlighting of the region whenever the mark is active.
 The variable `highlight-nonselected-windows' controls whether to highlight
 all windows or just the selected window.
 
-If the value is `lambda', that enables Transient Mark mode temporarily.
-After any subsequent action that would normally deactivate the mark
-\(such as buffer modification), Transient Mark mode is turned off.
+Lisp programs may give this variable certain special values:
 
-If the value is (only . OLDVAL), that enables Transient Mark mode
-temporarily.  After any subsequent point motion command that is not
-shift-translated, or any other action that would normally deactivate
-the mark (such as buffer modification), the value of
-`transient-mark-mode' is set to OLDVAL.  */);
+- A value of `lambda' enables Transient Mark mode temporarily.
+  It is disabled again after any subsequent action that would
+  normally deactivate the mark (e.g. buffer modification).
+
+- A value of (only . OLDVAL) enables Transient Mark mode
+  temporarily.  After any subsequent point motion command that is
+  not shift-translated, or any other action that would normally
+  deactivate the mark (e.g. buffer modification), the value of
+  `transient-mark-mode' is set to OLDVAL.  */);
   Vtransient_mark_mode = Qnil;
 
   DEFVAR_LISP ("inhibit-read-only", &Vinhibit_read_only,

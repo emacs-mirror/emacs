@@ -1,6 +1,7 @@
 ;;; nxml-mode.el --- a new XML mode
 
-;; Copyright (C) 2003, 2004, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -37,9 +38,10 @@
 (require 'nxml-util)
 (require 'nxml-rap)
 (require 'nxml-outln)
-
-(declare-function rng-nxml-mode-init "rng-nxml")
-(declare-function nxml-enable-unicode-char-name-sets "nxml-uchnm")
+;; nxml-mode calls rng-nxml-mode-init, which is autoloaded from rng-nxml.
+;; So we might as well just require it and silence the compiler.
+(provide 'nxml-mode)			; avoid recursive require
+(require 'rng-nxml)
 
 ;;; Customization
 
@@ -52,38 +54,33 @@
   :group 'nxml)
 
 (defcustom nxml-char-ref-display-glyph-flag t
-  "*Non-nil means display glyph following character reference.
+  "Non-nil means display glyph following character reference.
 The glyph is displayed in face `nxml-glyph'.  The hook
 `nxml-glyph-set-hook' can be used to customize for which characters
 glyphs are displayed."
   :group 'nxml
   :type 'boolean)
 
-(defcustom nxml-mode-hook nil
-  "Hook run by command `nxml-mode'."
-  :group 'nxml
-  :type 'hook)
-
 (defcustom nxml-sexp-element-flag nil
-  "*Non-nil means sexp commands treat an element as a single expression."
+  "Non-nil means sexp commands treat an element as a single expression."
   :group 'nxml
   :type 'boolean)
 
 (defcustom nxml-slash-auto-complete-flag nil
-  "*Non-nil means typing a slash automatically completes the end-tag.
+  "Non-nil means typing a slash automatically completes the end-tag.
 This is used by `nxml-electric-slash'."
   :group 'nxml
   :type 'boolean)
 
 (defcustom nxml-child-indent 2
-  "*Indentation for the children of an element relative to the start-tag.
+  "Indentation for the children of an element relative to the start-tag.
 This only applies when the line or lines containing the start-tag contains
 nothing else other than that start-tag."
   :group 'nxml
   :type 'integer)
 
 (defcustom nxml-attribute-indent 4
-  "*Indentation for the attributes of an element relative to the start-tag.
+  "Indentation for the attributes of an element relative to the start-tag.
 This only applies when the first attribute of a tag starts a line.
 In other cases, the first attribute on one line is indented the same
 as the first attribute on the previous line."
@@ -91,7 +88,7 @@ as the first attribute on the previous line."
   :type 'integer)
 
 (defcustom nxml-bind-meta-tab-to-complete-flag (not window-system)
-  "*Non-nil means bind M-TAB in `nxml-mode-map' to `nxml-complete'.
+  "Non-nil means bind M-TAB in `nxml-mode-map' to `nxml-complete'.
 C-return will be bound to `nxml-complete' in any case.
 M-TAB gets swallowed by many window systems/managers, and
 `documentation' will show M-TAB rather than C-return as the
@@ -105,7 +102,7 @@ to bind M-TAB only when it will work."
   :type 'boolean)
 
 (defcustom nxml-prefer-utf-16-to-utf-8-flag nil
-  "*Non-nil means prefer UTF-16 to UTF-8 when saving a buffer.
+  "Non-nil means prefer UTF-16 to UTF-8 when saving a buffer.
 This is used only when a buffer does not contain an encoding declaration
 and when its current `buffer-file-coding-system' specifies neither UTF-16
 nor UTF-8."
@@ -114,7 +111,7 @@ nor UTF-8."
 
 (defcustom nxml-prefer-utf-16-little-to-big-endian-flag (eq system-type
 							    'windows-nt)
-  "*Non-nil means prefer little-endian to big-endian byte-order for UTF-16.
+  "Non-nil means prefer little-endian to big-endian byte-order for UTF-16.
 This is used only for saving a buffer; when reading the byte-order is
 auto-detected. It may be relevant both when there is no encoding declaration
 and when the encoding declaration specifies `UTF-16'."
@@ -122,14 +119,14 @@ and when the encoding declaration specifies `UTF-16'."
   :type 'boolean)
 
 (defcustom nxml-default-buffer-file-coding-system nil
-  "*Default value for `buffer-file-coding-system' for a buffer for a new file.
+  "Default value for `buffer-file-coding-system' for a buffer for a new file.
 A value of nil means use the default value of `buffer-file-coding-system' as normal.
 A buffer's `buffer-file-coding-system' affects what \\[nxml-insert-xml-declaration] inserts."
   :group 'nxml
   :type 'coding-system)
 
 (defcustom nxml-auto-insert-xml-declaration-flag nil
-  "*Non-nil means automatically insert an XML declaration in a new file.
+  "Non-nil means automatically insert an XML declaration in a new file.
 The XML declaration is inserted using `nxml-insert-xml-declaration'."
   :group 'nxml
   :type 'boolean)
@@ -354,6 +351,12 @@ The delimiters are <! and >."
 
 ;;; Global variables
 
+(defvar nxml-parent-document nil
+  "The parent document for a part of a modular document.
+Use `nxml-parent-document-set' to set it.")
+(make-variable-buffer-local 'nxml-parent-document)
+(put 'nxml-parent-document 'safe-local-variable 'stringp)
+
 (defvar nxml-prolog-regions nil
   "List of regions in the prolog to be fontified.
 See the function `xmltok-forward-prolog' for more information.")
@@ -430,8 +433,40 @@ reference.")
   (when (and face (< start end))
     (font-lock-append-text-property start end 'face face)))
 
+(defun nxml-parent-document-set (parent-document)
+  "Set `nxml-parent-document' and inherit the DTD &c."
+  ;; FIXME: this does not work.
+  ;;  the idea is that by inheriting some variables from the parent,
+  ;;  `rng-validate-mode' will validate entities declared in the parent.
+  ;;  alas, the most interesting variables (`rng-compile-table' et al)
+  ;;  are circular and cannot be printed even with `print-circle'.
+  (interactive "fParent document")
+  (let (dtd current-schema current-schema-file-name compile-table
+        ipattern-table last-ipattern-index)
+    (when (string= (file-truename parent-document)
+                   (file-truename buffer-file-name))
+      (error "Parent document cannot be the same as the document"))
+    (with-current-buffer (find-file-noselect parent-document)
+      (setq dtd rng-dtd
+            current-schema rng-current-schema
+            current-schema-file-name rng-current-schema-file-name
+            compile-table rng-compile-table
+            ipattern-table rng-ipattern-table
+            last-ipattern-index rng-last-ipattern-index
+            parent-document buffer-file-name))
+    (setq rng-dtd dtd
+          rng-current-schema current-schema
+          rng-current-schema-file-name current-schema-file-name
+          rng-compile-table compile-table
+          rng-ipattern-table ipattern-table
+          rng-last-ipattern-index last-ipattern-index
+          nxml-parent-document parent-document)
+    (message "Set parent document to %s" parent-document)
+    (when rng-validate-mode
+      (rng-validate-while-idle (current-buffer)))))
+
 ;;;###autoload
-(defun nxml-mode ()
+(define-derived-mode nxml-mode text-mode "nXML"
   ;; We use C-c C-i instead of \\[nxml-balanced-close-start-tag-inline]
   ;; because Emacs turns C-c C-i into C-c TAB which is hard to type and
   ;; not mnemonic.
@@ -485,10 +520,7 @@ be treated as a single markup item, set the variable
 
 Many aspects this mode can be customized using
 \\[customize-group] nxml RET."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'nxml-mode)
-  (setq mode-name "nXML")
+  ;; (kill-all-local-variables)
   (set (make-local-variable 'mode-line-process) '((nxml-degraded "/degraded")))
   ;; We'll determine the fill prefix ourselves
   (make-local-variable 'adaptive-fill-mode)
@@ -552,8 +584,7 @@ Many aspects this mode can be customized using
           (font-lock-unfontify-region-function . nxml-unfontify-region)))
 
   (rng-nxml-mode-init)
-  (nxml-enable-unicode-char-name-sets)
-  (run-mode-hooks 'nxml-mode-hook))
+  (nxml-enable-unicode-char-name-sets))
 
 (defun nxml-cleanup ()
   "Clean up after nxml-mode."
@@ -2664,5 +2695,4 @@ With a prefix argument, inserts the character directly."
 
 (provide 'nxml-mode)
 
-;; arch-tag: 8603bc5f-1ef9-4021-b223-322fb2ca708e
 ;;; nxml-mode.el ends here

@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2010 Free Software Foundation, Inc.
+Copyright (C) 2010, 2011  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -56,8 +56,11 @@ automatically select it.
 * Startup Changes in Emacs 24.1
 
 ** The --unibyte, --multibyte, --no-multibyte, and --no-unibyte
-command line arguments no longer have any effect.  (They were declared
-obsolete in Emacs 23.)
+command line arguments, and the EMACS_UNIBYTE environment variable, no
+longer have any effect.  (They were declared obsolete in Emacs 23.)
+
+** New command line option `--no-site-lisp' removes site-lisp directories
+from load-path.  -Q now implies this.
 
 
 * Changes in Emacs 24.1
@@ -222,13 +225,20 @@ the remote file-name cache is used for read access.
 ** The standalone programs lib-src/digest-doc and sorted-doc have been
 replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
+** The variable `focus-follows-mouse' now always defaults to nil.
+
 
 * Editing Changes in Emacs 24.1
 
 +++
 ** There is a new command `count-words-region', which does what you expect.
 
-** completion-at-point is now an alias for complete-symbol.
+** completion-at-point now handles tags and semantic completion.
+
+** The default value of `backup-by-copying-when-mismatch' is now t.
+
+** The command `just-one-space' (C-SPC), if given a negative argument,
+also deletes newlines around point.
 
 ** Deletion changes
 
@@ -301,6 +311,10 @@ set `x-select-enable-clipboard' to nil.
 
 *** Support for X cut buffers has been removed.
 
+** New command `rectangle-number-lines', bound to `C-x r N', numbers
+the lines in the current rectangle.  With an prefix argument, this
+prompts for a number to count from and for a format string.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
@@ -315,6 +329,9 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** Archive Mode has basic support to browse 7z archives.
 
+** browse-url has gotten a new variable that is used for mailto: URLs,
+   `browse-url-mailto-function', which defaults to `browse-url-mail'.
+
 ** ERC changes
 
 *** New vars `erc-autojoin-timing' and `erc-autojoin-delay'.
@@ -327,6 +344,12 @@ after connecting.
 as the server coding system, this variable will then be consulted.
 The default is to decode strings that can be decoded as utf-8 as
 utf-8, and do the normal `undecided' decoding for the rest.
+
+** Eshell changes
+
+*** The default value of eshell-directory-name is a directory named
+"eshell" in `user-emacs-directory'.  If the old "~/.eshell/" directory
+exists, that is used instead.
 
 ** In ido-mode, C-v is no longer bound to ido-toggle-vc.
 The reason is that this interferes with cua-mode.
@@ -521,6 +544,8 @@ listing object name completions when being sent text via
 
 *** An API for manipulating SQL product definitions has been added.
 
+** sregex.el is now obsolete, since rx.el is a strict superset.
+
 ** s-region.el is now declared obsolete, superceded by shift-select-mode
 enabled by default in 23.1.
 
@@ -535,10 +560,32 @@ threads simultaneously.
 *** It is possible now, to access alternative buses than the default
 system or session bus.
 
+*** dbus-register-{method,property} do not necessarily register names anymore.
+
 ** Tramp
+
+*** There exists a new inline access method "ksu" (kerberized su).
 
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old" and "fish".
+
+** VC and related modes
+
+*** Support for pulling on distributed version control systems.
+The vc-update command now runs a "pull" operation, if it is supported.
+This updates the current branch from upstream.  A prefix argument
+means to prompt the user for command specifics, e.g. a pull location.
+
+**** vc-pull is an alias for vc-update.
+
+**** Currently supported by Bzr.
+
+*** Support for merging on distributed version control systems.
+The vc-merge command now runs a "merge" operation, if it is supported.
+This merges another branch into the current one.  A prefix argument
+means to prompt the user for command specifics, e.g. a merge location.
+
+**** Currently supported by Bzr.
 
 
 * New Modes and Packages in Emacs 24.1
@@ -652,6 +699,9 @@ The command `read-color' now requires a match for a color name or RGB
 triplet, instead of signalling an error if the user provides a invalid
 input.
 
+** Tool-bars can display separators.
+Tool-bar separators are handled like menu separators in menu-bar maps,
+i.e. via menu entries of the form `(menu-item "--")'.
 
 ** Image API
 
@@ -668,8 +718,8 @@ by the Graphic Control Extension of the image.
 
 *** If Emacs is compiled with libxml2 support (which is the default),
 two new Emacs Lisp-level functions are defined:
-`xml-parse-html-string-internal' (which will parse "real world" HTML)
-and `xml-parse-string-internal' (which parses XML).  Both return an
+`libxml-parse-html-region' (which will parse "real world" HTML)
+and `libxml-parse-xml-region' (which parses XML).  Both return an
 Emacs Lisp parse tree.
 
 FIXME: These should be front-ended by xml.el.

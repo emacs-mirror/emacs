@@ -2058,9 +2058,9 @@ list that represents a doc string reference.
                         ;; to objects already output
                         ;; (for instance, gensyms in the arg list).
                         (let (non-nil)
-                          (dotimes (i (length print-number-table))
-                            (if (aref print-number-table i)
-                                (setq non-nil t)))
+                          (when (hash-table-p print-number-table)
+                            (maphash (lambda (k v) (if v (setq non-nil t)))
+                                     print-number-table))
                           (not non-nil)))
                    ;; Output the byte code and constants specially
                    ;; for lazy dynamic loading.

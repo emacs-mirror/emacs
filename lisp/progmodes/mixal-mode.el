@@ -1106,8 +1106,7 @@ Assumes that file has been compiled with debugging support."
 
 ;;;###autoload
 (define-derived-mode mixal-mode fundamental-mode "mixal"
-  "Major mode for the mixal asm language.
-\\{mixal-mode-map}"
+  "Major mode for the mixal asm language."
   (set (make-local-variable 'comment-start) "*")
   (set (make-local-variable 'comment-start-skip) "^\\*[ \t]*")
   (set (make-local-variable 'font-lock-defaults)
@@ -1117,11 +1116,7 @@ Assumes that file has been compiled with debugging support."
   ;; might add an indent function in the future
   ;;  (set (make-local-variable 'indent-line-function) 'mixal-indent-line)
   (set (make-local-variable 'compile-command) (concat "mixasm "
-						      buffer-file-name))
-  ;; mixasm will do strange when there is no final newline,
-  ;; so let Emacs ensure that it is always there
-  (set (make-local-variable 'require-final-newline)
-       mode-require-final-newline))
+						      buffer-file-name)))
 
 (provide 'mixal-mode)
 

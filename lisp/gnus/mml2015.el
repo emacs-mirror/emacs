@@ -951,7 +951,11 @@ Whether the passphrase is cached at all is controlled by
 		   (epa-select-keys context "\
 Select keys for signing.
 If no one is selected, default secret key is used.  "
-				    (cons sender mml2015-signers) t)
+				    (if sender
+					(cons (concat "<" sender ">")
+					      mml2015-signers)
+				      mml2015-signers)
+				    t)
 		 (if (or sender mml2015-signers)
 		     (delq nil
 			   (mapcar
@@ -966,7 +970,10 @@ If no one is selected, default secret key is used.  "
 					    signer)))
 				(error "No secret key for %s" signer))
 			      signer-key)
-			    (cons sender mml2015-signers))))))))
+			    (if sender
+				(cons (concat "<" sender ">")
+				      mml2015-signers)
+			      mml2015-signers))))))))
 	 signature micalg)
     (epg-context-set-armor context t)
     (epg-context-set-textmode context t)
@@ -1029,7 +1036,10 @@ If no one is selected, default secret key is used.  "
       (when mml2015-encrypt-to-self
 	(unless (or sender mml2015-signers)
 	  (error "Message sender and mml2015-signers not set"))
-	(setq recipients (nconc recipients (cons sender mml2015-signers))))
+	(setq recipients (nconc recipients (if sender
+					       (cons (concat "<" sender ">")
+						     mml2015-signers)
+					     mml2015-signers))))
       (if (eq mm-encrypt-option 'guided)
 	  (setq recipients
 		(epa-select-keys context "\
@@ -1062,7 +1072,11 @@ If no one is selected, symmetric encryption will be performed.  "
 		     (epa-select-keys context "\
 Select keys for signing.
 If no one is selected, default secret key is used.  "
-				      (cons sender mml2015-signers) t)
+				      (if sender
+					  (cons (concat "<" sender ">")
+						mml2015-signers)
+					mml2015-signers)
+				      t)
 		   (if (or sender mml2015-signers)
 		       (delq nil
 			     (mapcar
@@ -1077,7 +1091,9 @@ If no one is selected, default secret key is used.  "
 					      signer)))
 				  (error "No secret key for %s" signer))
 				signer-key)
-			      (cons sender mml2015-signers))))))))
+			      (if sender
+				  (cons (concat "<" sender ">") mml2015-signers)
+				mml2015-signers))))))))
       (epg-context-set-signers context signers))
     (epg-context-set-armor context t)
     (epg-context-set-textmode context t)

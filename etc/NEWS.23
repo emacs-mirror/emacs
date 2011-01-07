@@ -21,9 +21,6 @@ with a prefix argument or by typing C-u C-h C-n.
 
 * Changes in Emacs 23.3
 
-** The nextstep port can have different modifiers for the left and right
-alt/option key by customizing the value for ns-right-alternate-modifier.
-
 
 * Editing Changes in Emacs 23.3
 
@@ -34,6 +31,63 @@ alt/option key by customizing the value for ns-right-alternate-modifier.
 ** The appt-add command takes an optional argument for the warning time.
 This can be used in place of the default appt-message-warning-time.
 
+---
+** You can allow inferior Python processes to load modules from the
+current directory by setting `python-remove-cwd-from-path' to nil.
+
+** VC and related modes
+
+*** New VC command `vc-log-incoming', bound to `C-x v I'.
+This shows a log of changes to be received with a pull operation.
+For Git, this runs "git fetch" to make the necessary data available
+locally; this requires version 1.7 or newer.
+
+*** New VC command `vc-log-outgoing', bound to `C-x v O'.
+This shows a log of changes to be sent in the next commit.
+
+*** New VC command vc-find-conflicted-file.
+
++++
+*** The 'g' key in VC diff, log, log-incoming and log-outgoing buffers
+reruns the corresponding VC command to compute an up to date version
+of the buffer.
+
+*** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
+
++++
+*** Special markup can be added to log-edit buffers.
+You can add headers specifying additional information to be supplied
+to the version control system.  For example:
+
+  Author: J. R. Hacker <jrh@example.com>
+  Fixes: 4204
+  Actual text of log entry...
+
+Bazaar recognizes the headers "Author", "Date" and "Fixes".
+Git, Mercurial, and Monotone recognize "Author" and "Date".
+Any unknown header is left as is in the message, so it is not lost.
+
+** Rmail
+
+*** The default value of `rmail-enable-mime' is now t.  Rmail decodes
+MIME contents automatically.  You can customize the variable
+`rmail-enable-mime' back to `nil' to disable this automatic MIME
+decoding.
+
+*** The command `rmail-mime' change the displaying of a MIME message
+between decoded presentation form and raw data if `rmail-enable-mime'
+is non-nil.  And, with prefix argument, it change only the displaying
+of the MIME entity at point.
+
+*** The new command `rmail-mime-next-item' (bound to TAB) moves point
+to the next item of MIME message.
+
+*** The new command `rmail-mime-previous-item' (bound to backtab) moves
+point to the previous item of MIME message.
+
+*** The new command `rmail-mime-toggle-hidden' (RET) hide or show the
+body of the MIME entity at point.
+
 ** Obsolete packages
 
 +++
@@ -41,10 +95,12 @@ This can be used in place of the default appt-message-warning-time.
 
 
 * New Modes and Packages in Emacs 23.3
+
 ** smie.el is a generic navigation and indentation engine.
 It takes a simple BNF description of the grammar, and provides both
 sexp-style navigation (jumping over begin..end pairs) as well as
 indentation, which can be adjusted via ad-hoc indentation rules.
+
 
 * Incompatible Lisp Changes in Emacs 23.3
 
@@ -55,15 +111,28 @@ starting from the first line of text below the header line.
 
 * Lisp changes in Emacs 23.3
 
++++
 ** `e' and `pi' are now called `float-e' and `float-pi'.
   The old names are obsolete.
-** The use of unintern without an obarray arg is declared obsolete.
-** The function `princ-list' is declared obsolete.
-** The yank-handler argument to kill-region and friends is declared obsolete.
+
++++
+** The use of unintern without an obarray arg is now obsolete.
+
+---
+** The function `princ-list' is now obsolete.
+
++++
+** The yank-handler argument to kill-region and friends is now obsolete.
+
++++
 ** New function byte-to-string, like char-to-string but for bytes.
 
 
 * Changes in Emacs 23.3 on non-free operating systems
+
++++
+** The nextstep port can have different modifiers for the left and right
+alt/option key by customizing the value for ns-right-alternate-modifier.
 
 
 * Installation Changes in Emacs 23.2

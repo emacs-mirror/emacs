@@ -3,7 +3,7 @@
 # DIST: that first.
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-#   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+#   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -73,7 +73,6 @@ CFLAGS=@CFLAGS@
 LDFLAGS=@LDFLAGS@
 CPPFLAGS=@CPPFLAGS@
 EXEEXT=@EXEEXT@
-MAKEINFO=@MAKEINFO@
 
 ### These help us choose version- and architecture-specific directories
 ### to install files in.
@@ -139,6 +138,9 @@ INFO_FILES=ada-mode auth autotype calc ccmode cl dbus dired-x ebrowse	\
 	   message mh-e newsticker nxml-mode org pcl-cvs pgg rcirc	\
 	   reftex remember sasl sc semantic ses sieve smtpmail speedbar \
 	   tramp url vip viper widget woman
+
+# If no makeinfo was found and configured --without-makeinfo, "no"; else "yes".
+HAVE_MAKEINFO=@HAVE_MAKEINFO@
 
 # Directory for local state files for all programs.
 localstatedir=@localstatedir@
@@ -424,12 +426,6 @@ install-arch-dep: mkdir
 	-chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL)
 	rm -f $(DESTDIR)${bindir}/$(EMACS)
 	-ln $(DESTDIR)${bindir}/$(EMACSFULL) $(DESTDIR)${bindir}/$(EMACS)
-	-unset CDPATH; \
-	for f in `cd lib-src && echo fns-*.el`; do \
-	  if test -r lib-src/$$f ; then \
-	    ${INSTALL_DATA} lib-src/$$f $(DESTDIR)${archlibdir}/$$f; \
-	  else true; fi ; \
-	done
 	if test "${ns_appresdir}" != ""; then \
 	  ( cd ${ns_appresdir} ; \
 	    if test -d share/emacs ; then dir=share/emacs/*/*; $(MV_DIRS); fi;\
@@ -578,7 +574,7 @@ install-arch-indep: mkdir info install-etc
 	   fi; \
 	   cd ${srcdir}/info ; \
 	   for elt in $(INFO_FILES); do \
-	      test "$(MAKEINFO)" = "off" && ! test -e $$elt && continue; \
+	      test "$(HAVE_MAKEINFO)" = "no" && ! test -e $$elt && continue; \
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
 	        ${INSTALL_DATA} $$f $(DESTDIR)${infodir}/$$f; \
 	        chmod a+r $(DESTDIR)${infodir}/$$f; \
@@ -594,7 +590,7 @@ install-arch-indep: mkdir info install-etc
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd $(DESTDIR)${infodir} && /bin/pwd)` ]; \
 	then \
 	  for elt in $(INFO_FILES); do \
-	    test "$(MAKEINFO)" = "off" && ! test -e $$elt && continue; \
+	    test "$(HAVE_MAKEINFO)" = "no" && ! test -e $$elt && continue; \
 	    (cd $${thisdir}; \
 	     ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	  done; \
@@ -682,9 +678,6 @@ uninstall:
 	    esac ;					\
 	  fi ;						\
 	done
-	if [ -d $(DESTDIR)${archlibdir} ]; then \
-	  (cd $(DESTDIR)${archlibdir} && rm -f fns-*) \
-	fi
 	-rm -rf $(DESTDIR)${libexecdir}/emacs/${version}
 	(cd $(DESTDIR)${infodir} && \
 	  for elt in $(INFO_FILES); do \
@@ -843,7 +836,7 @@ force-info:
 # and it's not worth it.  This case is only relevant if you download a
 # release, then change the .texi files.
 info: force-info
-	@if test "$(MAKEINFO)" = "off"; then \
+	@if test "$(HAVE_MAKEINFO)" = "no"; then \
 	  echo "Configured --without-makeinfo, not building manuals" ; \
 	else \
 	  $(MAKE) $(MFLAGS) info-real ; \

@@ -28,6 +28,7 @@ However, a few special considerations apply, and they are described
 here.
 
 @menu
+* Windows Startup::     How to start Emacs on Windows.
 * Text and Binary::     Text files use CRLF to terminate lines.
 * Windows Files::       File-name conventions on Windows.
 * ls in Lisp::          Emulation of @code{ls} for Dired.
@@ -43,6 +44,68 @@ here.
 * MS-DOS::              Using Emacs on MS-DOS (otherwise known as @dfn{MS-DOG}).
 @end ifnottex
 @end menu
+
+@node Windows Startup
+@section How to Start Emacs on MS-Windows
+@cindex starting Emacs on MS-Windows
+
+  There are several ways of starting Emacs on MS-Windows:
+
+@enumerate
+@item
+@pindex runemacs.exe
+@cindex desktop shortcut, MS-Windows
+@cindex start directory, MS-Windows
+@cindex directory where Emacs starts on MS-Windows
+From the desktop shortcut icon: either double-click the left mouse
+button on the icon, or click once, then press @key{RET}.  The desktop
+shortcut should specify as its ``Target'' (in the ``Properties'' of
+the shortcut) the full absolute file name of @file{runemacs.exe},
+@emph{not} of @file{emacs.exe}.  This is because @file{runemacs.exe}
+hides the console window that would have been created if the target of
+the shortcut were @file{emacs.exe} (which is a console program, as far
+as Windows is concerned).  If you use this method, Emacs starts in the
+directory specified by the shortcut.  To control where that is,
+right-click on the shortcut, select ``Properties'', and in the
+``Shortcut'' tab modify the ``Start in'' field to your liking.
+
+@item
+From the Command Prompt window, by typing @kbd{emacs @key{RET}} at the
+prompt.  The Command Prompt window where you did that will not be
+available for invoking other commands until Emacs exits.  In this
+case, Emacs will start in the current directory of the Windows shell.
+
+@item
+From the Command Prompt window, by typing @kbd{runemacs @key{RET}} at
+the prompt.  The Command Prompt window where you did that will be
+immediately available for invoking other commands.  In this case,
+Emacs will start in the current directory of the Windows shell.
+
+@item
+@cindex invoking Emacs from Windows Explorer
+@pindex emacsclient.exe
+@pindex emacsclientw.exe
+Via the Emacs client program, @file{emacsclient.exe} or
+@file{emacsclientw.exe}.  This allows to invoke Emacs from other
+programs, and to reuse a running Emacs process for serving editing
+jobs required by other programs.  @xref{Emacs Server}.  The difference
+between @file{emacsclient.exe} and @file{emacsclientw.exe} is that the
+former waits for Emacs to signal that the editing job is finished,
+while the latter does not wait.  Which one of them to use in each case
+depends on the expectations of the program that needs editing
+services.  If the program will use the edited files, it needs to wait
+for Emacs, so you should use @file{emacsclient.exe}.  By contrast, if
+the results of editing are not needed by the invoking program, you
+will be better off using @file{emacsclientw.exe}.  A notable situation
+where you would want @file{emacsclientw.exe} is when you right-click
+on a file in the Windows Explorer and select ``Open With'' from the
+pop-up menu.  Use the @samp{--alternate-editor=} or @samp{-a} options
+if Emacs might not be running (or not running as a server) when
+@command{emacsclient} is invoked---that will always give you an
+editor.  When invoked via @command{emacsclient}, Emacs will start in
+the current directory of the program that invoked
+@command{emacsclient}.
+@end enumerate
 
 @node Text and Binary
 @section Text Files and Binary Files
@@ -342,6 +405,9 @@ Windows 2K/XP and later, and either @file{C:\WINDOWS\Application Data}
 or @file{C:\WINDOWS\Profiles\@var{username}\Application Data} on the
 older Windows 9X/ME systems.
 
+  @code{HOME} can also be set in the system registry, for details see
+@ref{MS-Windows Registry}.
+
 @cindex init file @file{.emacs} on MS-Windows
   The home directory is where your init file @file{.emacs} is stored.
 When Emacs starts, it first checks whether the environment variable
@@ -372,13 +438,6 @@ because older Windows systems made it hard to create files with such
 names, the Windows port of Emacs supports an alternative name
 @file{_emacs} as a fallback, if such a file exists in the home
 directory, whereas @file{.emacs} does not.
-
-@cindex start directory, MS-Windows
-@cindex directory where Emacs starts on MS-Windows
-  If you use a Windows desktop shortcut to start Emacs, it starts in
-the directory specified by the shortcut.  To control where that is,
-right-click on the shortcut, select ``Properties'', and in the
-``Shortcut'' tab modify the ``Start in'' field to your liking.
 
 @node Windows Keyboard
 @section Keyboard Usage on MS-Windows

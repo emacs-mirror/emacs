@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -32,8 +32,6 @@
 
 (eval-when-compile (require 'cl))
 (require 'browse-url)
-(unless (aref (char-category-set (make-char 'japanese-jisx0208 33 35)) ?>)
-  (load "kinsoku" nil t))
 
 (defgroup shr nil
   "Simple HTML Renderer"
@@ -76,8 +74,12 @@ fit these criteria."
   :type 'character)
 
 (defcustom shr-width fill-column
-  "Frame width to use for rendering."
-  :type 'integer
+  "Frame width to use for rendering.
+May either be an integer specifying a fixed width in characters,
+or nil, meaning that the full width of the window should be
+used."
+  :type '(choice (integer :tag "Fixed width in characters")
+		 (const   :tag "Use the width of the window" nil))
   :group 'shr)
 
 (defvar shr-content-function nil
@@ -96,6 +98,7 @@ cid: URL as the argument.")
 (defvar shr-content-cache nil)
 (defvar shr-kinsoku-shorten nil)
 (defvar shr-table-depth 0)
+(defvar shr-stylesheet nil)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -114,7 +117,8 @@ cid: URL as the argument.")
 (defun shr-insert-document (dom)
   (setq shr-content-cache nil)
   (let ((shr-state nil)
-	(shr-start nil))
+	(shr-start nil)
+	(shr-width (or shr-width (window-width))))
     (shr-descend (shr-transform-dom dom))))
 
 (defun shr-copy-url ()
@@ -191,10 +195,23 @@ redirects somewhere else."
     (nreverse result)))
 
 (defun shr-descend (dom)
-  (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray)))
+  (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray))
+	(style (cdr (assq :style (cdr dom))))
+	(shr-stylesheet shr-stylesheet)
+	(start (point)))
+    (when style
+      (if (string-match "color" style)
+	  (setq shr-stylesheet (nconc (shr-parse-style style)
+				      shr-stylesheet))
+	(setq style nil)))
     (if (fboundp function)
 	(funcall function (cdr dom))
-      (shr-generic (cdr dom)))))
+      (shr-generic (cdr dom)))
+    ;; If style is set, then this node has set the color.
+    (when style
+      (shr-colorize-region start (point)
+			   (cdr (assq 'color shr-stylesheet))
+			   (cdr (assq 'background-color shr-stylesheet))))))
 
 (defun shr-generic (cont)
   (dolist (sub cont)
@@ -203,6 +220,26 @@ redirects somewhere else."
       (shr-insert (cdr sub)))
      ((listp (cdr sub))
       (shr-descend sub)))))
+
+(defmacro shr-char-breakable-p (char)
+  "Return non-nil if a line can be broken before and after CHAR."
+  `(aref fill-find-break-point-function-table ,char))
+(defmacro shr-char-nospace-p (char)
+  "Return non-nil if no space is required before and after CHAR."
+  `(aref fill-nospace-between-words-table ,char))
+
+;; KINSOKU is a Japanese word meaning a rule that should not be violated.
+;; In Emacs, it is a term used for characters, e.g. punctuation marks,
+;; parentheses, and so on, that should not be placed in the beginning
+;; of a line or the end of a line.
+(defmacro shr-char-kinsoku-bol-p (char)
+  "Return non-nil if a line ought not to begin with CHAR."
+  `(aref (char-category-set ,char) ?>))
+(defmacro shr-char-kinsoku-eol-p (char)
+  "Return non-nil if a line ought not to end with CHAR."
+  `(aref (char-category-set ,char) ?<))
+(unless (shr-char-kinsoku-bol-p (make-char 'japanese-jisx0208 33 35))
+  (load "kinsoku" nil t))
 
 (defun shr-insert (text)
   (when (and (eq shr-state 'image)
@@ -221,24 +258,24 @@ redirects somewhere else."
       (when (and (bolp)
 		 (> shr-indentation 0))
 	(shr-indent))
+      ;; No space is needed behind a wide character categorized as
+      ;; kinsoku-bol, between characters both categorized as nospace,
+      ;; or at the beginning of a line.
+      (let (prev)
+	(when (and (> (current-column) shr-indentation)
+		   (eq (preceding-char) ? )
+		   (or (= (line-beginning-position) (1- (point)))
+		       (and (shr-char-breakable-p
+			     (setq prev (char-after (- (point) 2))))
+			    (shr-char-kinsoku-bol-p prev))
+		       (and (shr-char-nospace-p prev)
+			    (shr-char-nospace-p (aref elem 0)))))
+	  (delete-char -1)))
       ;; The shr-start is a special variable that is used to pass
       ;; upwards the first point in the buffer where the text really
       ;; starts.
       (unless shr-start
 	(setq shr-start (point)))
-      ;; No space is needed behind a wide character categorized as
-      ;; kinsoku-bol, between characters both categorized as nospace,
-      ;; or at the beginning of a line.
-      (let (prev)
-	(when (and (eq (preceding-char) ? )
-		   (or (= (line-beginning-position) (1- (point)))
-		       (and (aref fill-find-break-point-function-table
-				  (setq prev (char-after (- (point) 2))))
-			    (aref (char-category-set prev) ?>))
-		       (and (aref fill-nospace-between-words-table prev)
-			    (aref fill-nospace-between-words-table
-				  (aref elem 0)))))
-	  (delete-char -1)))
       (insert elem)
       (let (found)
 	(while (and (> (current-column) shr-width)
@@ -263,44 +300,88 @@ redirects somewhere else."
 (defun shr-find-fill-point ()
   (when (> (move-to-column shr-width) shr-width)
     (backward-char 1))
-  (let (failed)
-    (while (not
-	    (or (setq failed (= (current-column) shr-indentation))
-		(eq (preceding-char) ? )
-		(eq (following-char) ? )
-		(aref fill-find-break-point-function-table (preceding-char))))
+  (let ((bp (point))
+	failed)
+    (while (not (or (setq failed (= (current-column) shr-indentation))
+		    (eq (preceding-char) ? )
+		    (eq (following-char) ? )
+		    (shr-char-breakable-p (preceding-char))
+		    (shr-char-breakable-p (following-char))
+		    (if (eq (preceding-char) ?')
+			(not (memq (char-after (- (point) 2))
+				   (list nil ?\n ? )))
+		      (and (shr-char-kinsoku-bol-p (preceding-char))
+			   (shr-char-breakable-p (following-char))
+			   (not (shr-char-kinsoku-bol-p (following-char)))))
+		    (shr-char-kinsoku-eol-p (following-char))))
       (backward-char 1))
+    (if (and (not (or failed (eolp)))
+	     (eq (preceding-char) ?'))
+	(while (not (or (setq failed (eolp))
+			(eq (following-char) ? )
+			(shr-char-breakable-p (following-char))
+			(shr-char-kinsoku-eol-p (following-char))))
+	  (forward-char 1)))
     (if failed
 	;; There's no breakable point, so we give it up.
-	(progn
-	  (end-of-line)
-	  (while (aref fill-find-break-point-function-table (preceding-char))
-	    (backward-char 1))
-	  nil)
-      (or (eolp)
-	  ;; Don't put kinsoku-bol characters at the beginning of a line,
-	  ;; or kinsoku-eol characters at the end of a line,
-	  (let ((count 4))
-	    (if (or shr-kinsoku-shorten
-		    (and (aref (char-category-set (preceding-char)) ?<)
-			 (progn
-			   (setq count (1- count))
-			   (backward-char 1)
-			   t)))
-		(while (and
-			(>= (setq count (1- count)) 0)
+	(let (found)
+	  (goto-char bp)
+	  (unless shr-kinsoku-shorten
+	    (while (and (setq found (re-search-forward
+				     "\\(\\c>\\)\\| \\|\\c<\\|\\c|"
+				     (line-end-position) 'move))
+			(eq (preceding-char) ?')))
+	    (if (and found (not (match-beginning 1)))
+		(goto-char (match-beginning 0)))))
+      (or
+       (eolp)
+       ;; Don't put kinsoku-bol characters at the beginning of a line,
+       ;; or kinsoku-eol characters at the end of a line.
+       (cond
+	(shr-kinsoku-shorten
+	 (while (and (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
+		     (shr-char-kinsoku-eol-p (preceding-char)))
+	   (backward-char 1))
+	 (when (setq failed (= (current-column) shr-indentation))
+	   ;; There's no breakable point that doesn't violate kinsoku,
+	   ;; so we look for the second best position.
+	   (while (and (progn
+			 (forward-char 1)
+			 (<= (current-column) shr-width))
+		       (progn
+			 (setq bp (point))
+			 (shr-char-kinsoku-eol-p (following-char)))))
+	   (goto-char bp)))
+	((shr-char-kinsoku-eol-p (preceding-char))
+	 (if (shr-char-kinsoku-eol-p (following-char))
+	     ;; There are consecutive kinsoku-eol characters.
+	     (setq failed t)
+	   (let ((count 4))
+	     (while
+		 (progn
+		   (backward-char 1)
+		   (and (> (setq count (1- count)) 0)
 			(not (memq (preceding-char) (list ?\C-@ ?\n ? )))
-			(or (aref (char-category-set (preceding-char)) ?<)
-			    (aref (char-category-set (following-char)) ?>)))
-		  (backward-char 1))
-	      (while (and (>= (setq count (1- count)) 0)
-			  (aref (char-category-set (following-char)) ?>)
-			  (aref fill-find-break-point-function-table
-				(following-char)))
-		(forward-char 1)))
-	    (when (eq (following-char) ? )
-	      (forward-char 1))
-	    t)))))
+			(or (shr-char-kinsoku-eol-p (preceding-char))
+			    (shr-char-kinsoku-bol-p (following-char)))))))
+	   (if (setq failed (= (current-column) shr-indentation))
+	       ;; There's no breakable point that doesn't violate kinsoku,
+	       ;; so we go to the second best position.
+	       (if (looking-at "\\(\\c<+\\)\\c<")
+		   (goto-char (match-end 1))
+		 (forward-char 1)))))
+	(t
+	 (if (shr-char-kinsoku-bol-p (preceding-char))
+	     ;; There are consecutive kinsoku-bol characters.
+	     (setq failed t)
+	   (let ((count 4))
+	     (while (and (>= (setq count (1- count)) 0)
+			 (shr-char-kinsoku-bol-p (following-char))
+			 (shr-char-breakable-p (following-char)))
+	       (forward-char 1))))))
+       (when (eq (following-char) ? )
+	 (forward-char 1))))
+    (not failed)))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))
@@ -426,6 +507,9 @@ redirects somewhere else."
 		     (create-image data 'imagemagick t
 				   :width window-width)
 		     image)))
+      (when (and (fboundp 'create-animated-image)
+		 (eq (image-type data nil t) 'gif))
+	(setq image (create-animated-image data 'gif t)))
       image)))
 
 ;; url-cache-extract autoloads url-cache.
@@ -449,7 +533,7 @@ Return a string with image data."
   "Return a function to display an image.
 CONTENT-FUNCTION is a function to retrieve an image for a cid url that
 is an argument.  The function to be returned takes three arguments URL,
-START, and END."
+START, and END.  Note that START and END should be merkers."
   `(lambda (url start end)
      (when url
        (if (string-match "\\`cid:" url)
@@ -459,9 +543,8 @@ START, and END."
 		 (when image
 		   (goto-char start)
 		   (shr-put-image image
-				  (prog1
-				      (buffer-substring-no-properties start end)
-				    (delete-region start end))))))
+				  (buffer-substring-no-properties start end))
+		   (delete-region (point) end))))
 	 (url-retrieve url 'shr-image-fetched
 		       (list (current-buffer) start end)
 		       t)))))
@@ -473,10 +556,10 @@ START, and END."
 
 (autoload 'widget-convert-button "wid-edit")
 
-(defun shr-urlify (start url)
+(defun shr-urlify (start url &optional title)
   (widget-convert-button
    'url-link start (point)
-   :help-echo url
+   :help-echo (if title (format "%s (%s)" url title) url)
    :keymap shr-map
    url)
   (put-text-property start (point) 'shr-url url))
@@ -485,7 +568,94 @@ START, and END."
   "Encode URL."
   (browse-url-url-encode-chars url "[)$ ]"))
 
+(autoload 'shr-color-visible "shr-color")
+(autoload 'shr-color->hexadecimal "shr-color")
+
+(defun shr-color-check (fg bg)
+  "Check that FG is visible on BG.
+Returns (fg bg) with corrected values.
+Returns nil if the colors that would be used are the default
+ones, in case fg and bg are nil."
+  (when (or fg bg)
+    (let ((fixed (cond ((null fg) 'fg)
+                       ((null bg) 'bg))))
+      ;; Convert colors to hexadecimal, or set them to default.
+      (let ((fg (or (shr-color->hexadecimal fg)
+                    (frame-parameter nil 'foreground-color)))
+            (bg (or (shr-color->hexadecimal bg)
+                    (frame-parameter nil 'background-color))))
+        (cond ((eq fixed 'bg)
+               ;; Only return the new fg
+               (list nil (cadr (shr-color-visible bg fg t))))
+              ((eq fixed 'fg)
+               ;; Invert args and results and return only the new bg
+               (list (cadr (shr-color-visible fg bg t)) nil))
+              (t
+               (shr-color-visible bg fg)))))))
+
+(defun shr-colorize-region (start end fg &optional bg)
+  (when (or fg bg)
+    (let ((new-colors (shr-color-check fg bg)))
+      (when new-colors
+	(when fg
+	  (shr-put-color start end :foreground (cadr new-colors)))
+	(when bg
+	  (shr-put-color start end :background (car new-colors)))))))
+
+;; Put a color in the region, but avoid putting colors on on blank
+;; text at the start of the line, and the newline at the end, to avoid
+;; ugliness.  Also, don't overwrite any existing color information,
+;; since this can be called recursively, and we want the "inner" color
+;; to win.
+(defun shr-put-color (start end type color)
+  (save-excursion
+    (goto-char start)
+    (while (< (point) end)
+      (when (bolp)
+	(skip-chars-forward " "))
+      (when (> (line-end-position) (point))
+	(shr-put-color-1 (point) (min (line-end-position) end) type color))
+      (if (< (line-end-position) end)
+	  (forward-line 1)
+	(goto-char end)))))
+
+(defun shr-put-color-1 (start end type color)
+  (let* ((old-props (get-text-property start 'face))
+	 (do-put (not (memq type old-props)))
+	 change)
+    (while (< start end)
+      (setq change (next-single-property-change start 'face nil end))
+      (when do-put
+	(put-text-property start change 'face
+			   (nconc (list type color) old-props)))
+      (setq old-props (get-text-property change 'face))
+      (setq do-put (not (memq type old-props)))
+      (setq start change))
+    (when (and do-put
+	       (> end start))
+      (put-text-property start end 'face
+			 (nconc (list type color old-props))))))
+
 ;;; Tag-specific rendering rules.
+
+(defun shr-tag-body (cont)
+  (let* ((start (point))
+	 (fgcolor (cdr (assq :fgcolor cont)))
+	 (bgcolor (cdr (assq :bgcolor cont)))
+	 (shr-stylesheet (list (cons 'color fgcolor)
+			       (cons 'background-color bgcolor))))
+    (shr-generic cont)
+    (shr-colorize-region start (point) fgcolor bgcolor)))
+
+(defun shr-tag-style (cont)
+  )
+
+(defun shr-tag-script (cont)
+  )
+
+(defun shr-tag-label (cont)
+  (shr-generic cont)
+  (shr-ensure-paragraph))
 
 (defun shr-tag-p (cont)
   (shr-ensure-paragraph)
@@ -519,6 +689,9 @@ START, and END."
 
 (defun shr-parse-style (style)
   (when style
+    (save-match-data
+      (when (string-match "\n" style)
+        (setq style (replace-match " " t t style))))
     (let ((plist nil))
       (dolist (elem (split-string style ";"))
 	(when elem
@@ -527,6 +700,8 @@ START, and END."
 		     (cadr elem))
 	    (let ((name (replace-regexp-in-string "^ +\\| +$" "" (car elem)))
 		  (value (replace-regexp-in-string "^ +\\| +$" "" (cadr elem))))
+	      (when (string-match " *!important\\'" value)
+		(setq value (substring value 0 (match-beginning 0))))
 	      (push (cons (intern name obarray)
 			  value)
 		    plist)))))
@@ -534,10 +709,11 @@ START, and END."
 
 (defun shr-tag-a (cont)
   (let ((url (cdr (assq :href cont)))
+        (title (cdr (assq :title cont)))
 	(start (point))
 	shr-start)
     (shr-generic cont)
-    (shr-urlify (or shr-start start) url)))
+    (shr-urlify (or shr-start start) url title)))
 
 (defun shr-tag-object (cont)
   (let ((start (point))
@@ -676,6 +852,19 @@ START, and END."
   (shr-ensure-newline)
   (insert (make-string shr-width shr-hr-line) "\n"))
 
+(defun shr-tag-title (cont)
+  (shr-heading cont 'bold 'underline))
+
+(defun shr-tag-font (cont)
+  (let* ((start (point))
+         (color (cdr (assq :color cont)))
+         (shr-stylesheet (nconc (list (cons 'color color))
+				shr-stylesheet)))
+    (shr-generic cont)
+    (when color
+      (shr-colorize-region start (point) color
+			   (cdr (assq 'background-color shr-stylesheet))))))
+
 ;;; Table rendering algorithm.
 
 ;; Table rendering is the only complicated thing here.  We do this by
@@ -722,6 +911,10 @@ START, and END."
 	 (header (cdr (assq 'thead cont)))
 	 (body (or (cdr (assq 'tbody cont)) cont))
 	 (footer (cdr (assq 'tfoot cont)))
+         (bgcolor (cdr (assq :bgcolor cont)))
+	 (start (point))
+	 (shr-stylesheet (nconc (list (cons 'background-color bgcolor))
+				shr-stylesheet))
 	 (nheader (if header (shr-max-columns header)))
 	 (nbody (if body (shr-max-columns body)))
 	 (nfooter (if footer (shr-max-columns footer))))
@@ -762,7 +955,10 @@ START, and END."
 		       `((tr (td (table (tbody ,@footer))))))))
 	  (if caption
 	      `((tr (td (table (tbody ,@body)))))
-	    body)))))))
+	    body)))))
+    (when bgcolor
+      (shr-colorize-region start (point) (cdr (assq 'color shr-stylesheet))
+			   bgcolor))))
 
 (defun shr-find-elements (cont type)
   (let (result)
@@ -868,43 +1064,73 @@ START, and END."
 
 (defun shr-render-td (cont width fill)
   (with-temp-buffer
-    (let ((cache (cdr (assoc (cons width cont) shr-content-cache))))
-      (if cache
-	  (insert cache)
-	(let ((shr-width width)
-	      (shr-indentation 0))
-	  (shr-generic cont))
-	(delete-region
-	 (point)
-	 (+ (point)
-	    (skip-chars-backward " \t\n")))
-	(push (cons (cons width cont) (buffer-string))
-	      shr-content-cache)))
-    (goto-char (point-min))
-    (let ((max 0))
-      (while (not (eobp))
-	(end-of-line)
-	(setq max (max max (current-column)))
-	(forward-line 1))
-      (when fill
-	(goto-char (point-min))
-	;; If the buffer is totally empty, then put a single blank
-	;; line here.
-	(if (zerop (buffer-size))
-	    (insert (make-string width ? ))
-	  ;; Otherwise, fill the buffer.
-	  (while (not (eobp))
-	    (end-of-line)
-	    (when (> (- width (current-column)) 0)
-	      (insert (make-string (- width (current-column)) ? )))
-	    (forward-line 1))))
-      (if fill
+    (let ((bgcolor (cdr (assq :bgcolor cont)))
+	  (fgcolor (cdr (assq :fgcolor cont)))
+	  (style (cdr (assq :style cont)))
+	  (shr-stylesheet shr-stylesheet)
+	  overlays)
+      (when style
+	(setq style (and (string-match "color" style)
+			 (shr-parse-style style))))
+      (when bgcolor
+	(setq style (nconc (list (cons 'background-color bgcolor)) style)))
+      (when fgcolor
+	(setq style (nconc (list (cons 'color fgcolor)) style)))
+      (when style
+	(setq shr-stylesheet (append style shr-stylesheet)))
+      (let ((cache (cdr (assoc (cons width cont) shr-content-cache))))
+	(if cache
+	    (progn
+	      (insert (car cache))
+	      (let ((end (length (car cache))))
+		(dolist (overlay (cadr cache))
+		  (let ((new-overlay
+			 (make-overlay (1+ (- end (nth 0 overlay)))
+				       (1+ (- end (nth 1 overlay)))))
+			(properties (nth 2 overlay)))
+		    (while properties
+		      (overlay-put new-overlay
+				   (pop properties) (pop properties)))))))
+	  (let ((shr-width width)
+		(shr-indentation 0))
+	    (shr-descend (cons 'td cont)))
+	  (delete-region
+	   (point)
+	   (+ (point)
+	      (skip-chars-backward " \t\n")))
+	  (push (list (cons width cont) (buffer-string)
+		      (shr-overlays-in-region (point-min) (point-max)))
+		shr-content-cache)))
+      (goto-char (point-min))
+      (let ((max 0))
+	(while (not (eobp))
+	  (end-of-line)
+	  (setq max (max max (current-column)))
+	  (forward-line 1))
+	(when fill
+	  (goto-char (point-min))
+	  ;; If the buffer is totally empty, then put a single blank
+	  ;; line here.
+	  (if (zerop (buffer-size))
+	      (insert (make-string width ? ))
+	    ;; Otherwise, fill the buffer.
+	    (while (not (eobp))
+	      (end-of-line)
+	      (when (> (- width (current-column)) 0)
+		(insert (make-string (- width (current-column)) ? )))
+	      (forward-line 1))))
+	(when style
+	  (shr-colorize-region
+	   (point-min) (point-max)
+	   (cdr (assq 'color shr-stylesheet))
+	   (cdr (assq 'background-color shr-stylesheet))))
+	(if fill
+	    (list max
+		  (count-lines (point-min) (point-max))
+		  (split-string (buffer-string) "\n")
+		  (shr-collect-overlays))
 	  (list max
-		(count-lines (point-min) (point-max))
-		(split-string (buffer-string) "\n")
-		(shr-collect-overlays))
-	(list max
-	      (shr-natural-width))))))
+		(shr-natural-width)))))))
 
 (defun shr-natural-width ()
   (goto-char (point-min))

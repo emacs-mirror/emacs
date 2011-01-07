@@ -47,9 +47,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #endif /* makedev */
 
-#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
-#endif /* ! defined (HAVE_SYS_IOCTL_H) */
 
 #include "systime.h"
 
@@ -305,11 +303,34 @@ Lisp_Object Qx_gtk_map_stock;
 /* Some functions take this as char *, not const char *.  */
 static char emacs_class[] = EMACS_CLASS;
 
-/* Used in x_flush.  */
+/* XEmbed implementation.  */
 
-extern XrmDatabase x_load_resources (Display *, const char *, const char *,
-				     const char *);
-extern int x_bitmap_mask (FRAME_PTR, int);
+#define XEMBED_VERSION 0
+
+enum xembed_info
+  {
+    XEMBED_MAPPED = 1 << 0
+  };
+
+enum xembed_message
+  {
+    XEMBED_EMBEDDED_NOTIFY        = 0,
+    XEMBED_WINDOW_ACTIVATE        = 1,
+    XEMBED_WINDOW_DEACTIVATE      = 2,
+    XEMBED_REQUEST_FOCUS          = 3,
+    XEMBED_FOCUS_IN               = 4,
+    XEMBED_FOCUS_OUT              = 5,
+    XEMBED_FOCUS_NEXT             = 6,
+    XEMBED_FOCUS_PREV             = 7,
+
+    XEMBED_MODALITY_ON            = 10,
+    XEMBED_MODALITY_OFF           = 11,
+    XEMBED_REGISTER_ACCELERATOR   = 12,
+    XEMBED_UNREGISTER_ACCELERATOR = 13,
+    XEMBED_ACTIVATE_ACCELERATOR   = 14
+  };
+
+/* Used in x_flush.  */
 
 static int x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
 static void x_set_window_size_1 (struct frame *, int, int, int);
@@ -411,9 +432,8 @@ struct record event_record[100];
 
 int event_record_index;
 
-record_event (locus, type)
-     char *locus;
-     int type;
+void
+record_event (char *locus, int type)
 {
   if (event_record_index == sizeof (event_record) / sizeof (struct record))
     event_record_index = 0;
@@ -491,14 +511,14 @@ x_set_frame_alpha (struct frame *f)
 			     &data);
 
     if (rc == Success && actual != None)
-      if (*(unsigned long *)data == opac)
-	{
-	  XFree ((void *) data);
-	  x_uncatch_errors ();
-	  return;
-	}
-      else
+      {
 	XFree ((void *) data);
+	if (*(unsigned long *)data == opac)
+	  {
+	    x_uncatch_errors ();
+	    return;
+	  }
+      }
     x_uncatch_errors ();
   }
 
@@ -902,6 +922,7 @@ static void x_draw_relief_rect (struct frame *, int, int, int, int,
                                 XRectangle *);
 static void x_draw_box_rect (struct glyph_string *, int, int, int, int,
                              int, int, int, XRectangle *);
+static void x_scroll_bar_clear (struct frame *);
 
 #if GLYPH_DEBUG
 static void x_check_font (struct frame *, struct font *);
@@ -5616,7 +5637,7 @@ x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window, enum scroll_
    Clear out the scroll bars, and ask for expose events, so we can
    redraw them.  */
 
-void
+static void
 x_scroll_bar_clear (FRAME_PTR f)
 {
 #ifndef USE_TOOLKIT_SCROLL_BARS
@@ -5765,6 +5786,10 @@ event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
 }
 #endif /* USE_GTK */
 
+
+static void xembed_send_message (struct frame *f, Time time,
+                                 enum xembed_message message,
+                                 long detail, long data1, long data2);
 
 /* Handles the XEvent EVENT on display DPYINFO.
 
@@ -6500,7 +6525,6 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
 	      {
 		/* Decode the input data.  */
 		int require;
-		unsigned char *p;
 
 		/* The input should be decoded with `coding_system'
 		   which depends on which X*LookupString function
@@ -8471,7 +8495,6 @@ do_ewmh_fullscreen (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   int have_net_atom = wm_supports (f, dpyinfo->Xatom_net_wm_state);
-  Lisp_Object lval = get_frame_param (f, Qfullscreen);
   int cur, dummy;
 
   get_current_wm_state (f, FRAME_OUTER_WINDOW (f), &cur, &dummy);
@@ -8589,9 +8612,13 @@ x_check_fullscreen (struct frame *f)
   if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
     return; /* Only fullscreen without WM or with EWM hints (above). */
 
+  /* Setting fullscreen to nil doesn't do anything.  We could save the
+     last non-fullscreen size and restore it, but it seems like a
+     lot of work for this unusual case (no window manager running).  */
+
   if (f->want_fullscreen != FULLSCREEN_NONE)
     {
-      int width = FRAME_COLS (f), height = FRAME_LINES (f);
+      int width = FRAME_PIXEL_WIDTH (f), height = FRAME_PIXEL_HEIGHT (f);
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
       switch (f->want_fullscreen)
@@ -8609,12 +8636,8 @@ x_check_fullscreen (struct frame *f)
           height = x_display_pixel_height (dpyinfo);
         }
 
-      if (FRAME_COLS (f) != width || FRAME_LINES (f) != height)
-        {
-          change_frame_size (f, height, width, 0, 1, 0);
-          SET_FRAME_GARBAGED (f);
-          cancel_mouse_face (f);
-        }
+      XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+                     width, height);
     }
 }
 
@@ -8991,10 +9014,9 @@ XTframe_raise_lower (FRAME_PTR f, int raise_flag)
 
 /* XEmbed implementation.  */
 
-void
+static void
 xembed_set_info (struct frame *f, enum xembed_info flags)
 {
-  Atom atom;
   unsigned long data[2];
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
@@ -9006,7 +9028,7 @@ xembed_set_info (struct frame *f, enum xembed_info flags)
 		   32, PropModeReplace, (unsigned char *) data, 2);
 }
 
-void
+static void
 xembed_send_message (struct frame *f, Time time, enum xembed_message message, long int detail, long int data1, long int data2)
 {
   XEvent event;

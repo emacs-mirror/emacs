@@ -1,7 +1,7 @@
 ;;; mail-utils.el --- utility functions used both by rmail and rnews
 
 ;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;;   2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail, news
@@ -27,10 +27,6 @@
 ;; points of header parsing.
 
 ;;; Code:
-
-;;; We require lisp-mode to make sure that lisp-mode-syntax-table has
-;;; been initialized.
-(require 'lisp-mode)
 
 ;;;###autoload
 (defcustom mail-use-rfc822 nil
@@ -189,8 +185,7 @@ Return a modified address list."
        ;; Detect nested comments.
        (if (string-match "[ \t]*(\\([^)\\]\\|\\\\.\\|\\\\\n\\)*(" address)
 	   ;; Strip nested comments.
-	   (with-current-buffer (get-buffer-create " *temp*")
-	     (erase-buffer)
+	   (with-temp-buffer
 	     (insert address)
 	     (set-syntax-table lisp-mode-syntax-table)
 	     (goto-char 1)
@@ -203,8 +198,7 @@ Return a modified address list."
 				    (forward-sexp 1)
 				  (error (goto-char (point-max))))
 				  (point))))
-	     (setq address (buffer-string))
-	     (erase-buffer))
+	     (setq address (buffer-string)))
 	 ;; Strip non-nested comments an easier way.
 	 (while (setq pos (string-match
 			    ;; This doesn't hack rfc822 nested comments
@@ -239,12 +233,12 @@ Return a modified address list."
 				      nil 'literal address 2)))
        address))))
 
-;;; The following piece of ugliness is legacy code.  The name was an
-;;; unfortunate choice --- a flagrant violation of the Emacs Lisp
-;;; coding conventions.  `mail-dont-reply-to' would have been
-;;; infinitely better.  Also, `rmail-dont-reply-to-names' might have
-;;; been better named `mail-dont-reply-to-names' and sourced from this
-;;; file instead of in rmail.el.  Yuck.  -pmr
+;; The following piece of ugliness is legacy code.  The name was an
+;; unfortunate choice --- a flagrant violation of the Emacs Lisp
+;; coding conventions.  `mail-dont-reply-to' would have been
+;; infinitely better.  Also, `rmail-dont-reply-to-names' might have
+;; been better named `mail-dont-reply-to-names' and sourced from this
+;; file instead of in rmail.el.  Yuck.  -pmr
 (defun rmail-dont-reply-to (destinations)
   "Prune addresses from DESTINATIONS, a list of recipient addresses.
 All addresses matching `rmail-dont-reply-to-names' are removed from
@@ -398,13 +392,19 @@ matches may be returned from the message body."
 (defun mail-mbox-from ()
   "Return an mbox \"From \" line for the current message.
 The buffer should be narrowed to just the header."
-  (let ((from (or (mail-fetch-field "from")
-		  (mail-fetch-field "really-from")
-		  (mail-fetch-field "sender")
-		  (mail-fetch-field "return-path")
-		  "unknown"))
-	(date (mail-fetch-field "date")))
-    (format "From %s %s\n" (mail-strip-quoted-names from)
+  (let* ((from (mail-strip-quoted-names (or (mail-fetch-field "from")
+					    (mail-fetch-field "really-from")
+					    (mail-fetch-field "sender")
+					    (mail-fetch-field "return-path")
+					    "unknown")))
+	 (date (mail-fetch-field "date"))
+	 ;; A From: header can contain multiple addresses, a "From "
+	 ;; line must contain only one.  (Bug#7760)
+	 ;; See eg RFC 5322, 3.6.2. Originator Fields.
+	 (end (string-match "[ \t]*[,\n]" from)))
+    (format "From %s %s\n" (if end
+			       (substring from 0 end)
+			     from)
 	    (or (and date
 		     (ignore-errors
 		      (current-time-string (date-to-time date))))

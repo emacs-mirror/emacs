@@ -290,6 +290,23 @@
   If GTK 2.0 is installed, addpm will arrange for its image libraries
   to be on the DLL search path for Emacs.
 
+  For PNG images, we recommend to use versions 1.4.x and later of
+  libpng, because previous versions had security issues.  You can find
+  precompiled libraries and headers on the GTK download page for
+  Windows (http://www.gtk.org/download-windows.html).
+
+  Versions 1.4.0 and later of libpng are binary incompatible with
+  earlier versions, so Emacs will only look for libpng libraries which
+  are compatible with the version it was compiled against.  That
+  version is given by the value of the Lisp variable `libpng-version';
+  e.g., 10403 means version 1.4.3.  The variable `dynamic-library-alist'
+  is automatically set to name only those DLL names that are known to
+  be compatible with the version given by `libpng-version'.  If PNG
+  support does not work for you even though you have the support DLL
+  installed, check the name of the installed DLL against
+  `dynamic-library-alist' and the value of `libpng-version', and
+  download compatible DLLs if needed.
+
 * Experimental SVG support
 
   SVG support is currently experimental, and not built by default.

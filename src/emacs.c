@@ -1,7 +1,7 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
 Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999,
-  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -94,33 +94,33 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* If you change the following line, remember to update
    msdos/mainmake.v2 which gleans the Emacs version from it!  */
-static const char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
 static const char emacs_version[] = "24.0.50";
+static const char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
 #ifdef USE_LSB_TAG
-int gdb_use_lsb = 1;
+int gdb_use_lsb EXTERNALLY_VISIBLE = 1;
 #else
-int gdb_use_lsb = 0;
+int gdb_use_lsb EXTERNALLY_VISIBLE = 0;
 #endif
 #ifndef USE_LISP_UNION_TYPE
-int gdb_use_union = 0;
+int gdb_use_union EXTERNALLY_VISIBLE  = 0;
 #else
-int gdb_use_union = 1;
+int gdb_use_union EXTERNALLY_VISIBLE = 1;
 #endif
-EMACS_INT gdb_valbits = VALBITS;
-EMACS_INT gdb_gctypebits = GCTYPEBITS;
+EMACS_INT gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
+EMACS_INT gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;
 #if defined (DATA_SEG_BITS) && ! defined (USE_LSB_TAG)
-EMACS_INT gdb_data_seg_bits = DATA_SEG_BITS;
+EMACS_INT gdb_data_seg_bits EXTERNALLY_VISIBLE = DATA_SEG_BITS;
 #else
-EMACS_INT gdb_data_seg_bits = 0;
+EMACS_INT gdb_data_seg_bits EXTERNALLY_VISIBLE = 0;
 #endif
-EMACS_INT PVEC_FLAG = PSEUDOVECTOR_FLAG;
-EMACS_INT gdb_array_mark_flag = ARRAY_MARK_FLAG;
+EMACS_INT PVEC_FLAG EXTERNALLY_VISIBLE = PSEUDOVECTOR_FLAG;
+EMACS_INT gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
 /* GDB might say "No enum type named pvec_type" if we don't have at
    least one symbol with that type, and then xbacktrace could fail.  */
-enum pvec_type gdb_pvec_type = PVEC_TYPE_MASK;
+enum pvec_type gdb_pvec_type EXTERNALLY_VISIBLE = PVEC_TYPE_MASK;
 
 /* Command line args from shell, as list of strings.  */
 Lisp_Object Vcommand_line_args;
@@ -195,11 +195,6 @@ Lisp_Object Vdynamic_library_alist;
    but instead should use the virtual terminal under which it was started.  */
 int inhibit_window_system;
 
-/* If nonzero, set Emacs to run at this priority.  This is also used
-   in child_setup and sys_suspend to make sure subshells run at normal
-   priority; those functions have their own extern declaration.  */
-EMACS_INT emacs_priority;
-
 /* If non-zero, a filter or a sentinel is running.  Tested to save the match
    data on the first attempt to change it inside asynchronous code.  */
 int running_asynch_code;
@@ -235,6 +230,9 @@ int noninteractive1;
 
 /* Nonzero means Emacs was run in --quick mode.  */
 int inhibit_x_resources;
+
+/* Nonzero means remove site-lisp directories from load-path.  */
+int no_site_lisp;
 
 /* Name for the server started by the daemon.*/
 static char *daemon_name;
@@ -273,9 +271,11 @@ Initialization options:\n\
 --no-init-file, -q          load neither ~/.emacs nor default.el\n\
 --no-shared-memory, -nl     do not use shared memory\n\
 --no-site-file              do not load site-start.el\n\
+--no-site-lisp, -nsl        do not add site-lisp directories to load-path\n\
 --no-splash                 do not display a splash screen on startup\n\
 --no-window-system, -nw     do not communicate with X, ignoring $DISPLAY\n\
---quick, -Q                 equivalent to -q --no-site-file --no-splash\n\
+--quick, -Q                 equivalent to:\n\
+                              -q --no-site-file --no-site-lisp --no-splash\n\
 --script FILE               run FILE as an Emacs Lisp script\n\
 --terminal, -t DEVICE       use DEVICE for terminal I/O\n\
 --user, -u USER             load ~USER/.emacs instead of your own\n\
@@ -1346,6 +1346,9 @@ main (int argc, char **argv)
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
+  no_site_lisp
+    = argmatch (argv, argc, "-nsl", "--no-site-lisp", 11, NULL, &skip_args);
+
 #ifdef HAVE_NS
   ns_alloc_autorelease_pool();
   if (!noninteractive)
@@ -1414,7 +1417,25 @@ main (int argc, char **argv)
 	     && argv[count_before + 1][1] == '-')
       argv[count_before + 1] = "-d";
 
+    if (! no_site_lisp)
+      {
+        if (argmatch (argv, argc, "-Q", "--quick", 3, NULL, &skip_args)
+            || argmatch (argv, argc, "-quick", 0, 2, NULL, &skip_args))
+          no_site_lisp = 1;
+      }
+
     /* Don't actually discard this arg.  */
+    skip_args = count_before;
+  }
+#else  /* !HAVE_X_WINDOWS */
+  if (! no_site_lisp)
+  {
+    int count_before = skip_args;
+
+    if (argmatch (argv, argc, "-Q", "--quick", 3, NULL, &skip_args)
+        || argmatch (argv, argc, "-quick", 0, 2, NULL, &skip_args))
+      no_site_lisp = 1;
+
     skip_args = count_before;
   }
 #endif
@@ -1748,10 +1769,12 @@ const struct standard_args standard_args[] =
   { "-daemon", "--daemon", 99, 0 },
   { "-help", "--help", 90, 0 },
   { "-nl", "--no-loadup", 70, 0 },
+  { "-nsl", "--no-site-lisp", 65, 0 },
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },
   /* Now for the options handled in `command-line' (startup.el).  */
+  /* (Note that to imply -nsl, -Q is partially handled here.)  */
   { "-Q", "--quick", 55, 0 },
   { "-quick", 0, 55, 0 },
   { "-q", "--no-init-file", 50, 0 },
@@ -2438,15 +2461,6 @@ see `kill-emacs-query-functions' instead.
 Before Emacs 24.1, the hook was not run in batch mode, i.e., if
 `noninteractive' was non-nil.  */);
   Vkill_emacs_hook = Qnil;
-
-  DEFVAR_INT ("emacs-priority", &emacs_priority,
-	      doc: /* Priority for Emacs to run at.
-This value is effective only if set before Emacs is dumped,
-and only if the Emacs executable is installed with setuid to permit
-it to change priority.  (Emacs sets its uid back to the real uid.)
-Currently, you need to define SET_EMACS_PRIORITY in `config.h'
-before you compile Emacs, to enable the code for this feature.  */);
-  emacs_priority = 0;
 
   DEFVAR_LISP ("path-separator", &Vpath_separator,
 	       doc: /* String containing the character that separates directories in

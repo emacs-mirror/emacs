@@ -31,6 +31,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defgroup diff nil
   "Comparing files with `diff'."
   :group 'tools)
@@ -47,11 +49,6 @@
   :type 'string
   :group 'diff)
 
-(defvar diff-old-temp-file nil
-  "This is the name of a temp file to be deleted after diff finishes.")
-(defvar diff-new-temp-file nil
-  "This is the name of a temp file to be deleted after diff finishes.")
-
 ;; prompt if prefix arg present
 (defun diff-switches ()
   (if current-prefix-arg
@@ -60,12 +57,12 @@
 		       diff-switches
 		     (mapconcat 'identity diff-switches " ")))))
 
-(defun diff-sentinel (code)
+(defun diff-sentinel (code &optional old-temp-file new-temp-file)
   "Code run when the diff process exits.
 CODE is the exit code of the process.  It should be 0 only if no diffs
 were found."
-  (if diff-old-temp-file (delete-file diff-old-temp-file))
-  (if diff-new-temp-file (delete-file diff-new-temp-file))
+  (if old-temp-file (delete-file old-temp-file))
+  (if new-temp-file (delete-file new-temp-file))
   (save-excursion
     (goto-char (point-max))
     (let ((inhibit-read-only t))
@@ -74,10 +71,6 @@ were found."
 			    ((equal 2 code) " (diff error)")
 			    (t ""))
 		      (current-time-string))))))
-
-(defvar diff-old-file nil)
-(defvar diff-new-file nil)
-(defvar diff-extra-args nil)
 
 ;;;###autoload
 (defun diff (old new &optional switches no-async)
@@ -91,16 +84,14 @@ When called interactively with a prefix argument, prompt
 interactively for diff switches.  Otherwise, the switches
 specified in `diff-switches' are passed to the diff command."
   (interactive
-   (let (oldf newf)
-     (setq newf (buffer-file-name)
-	   newf (if (and newf (file-exists-p newf))
+   (let* ((newf (if (and buffer-file-name (file-exists-p buffer-file-name))
 		    (read-file-name
 		     (concat "Diff new file (default "
-			     (file-name-nondirectory newf) "): ")
-		     nil newf t)
+			     (file-name-nondirectory buffer-file-name) "): ")
+		     nil buffer-file-name t)
 		  (read-file-name "Diff new file: " nil nil t)))
-     (setq oldf (file-newest-backup newf)
-	   oldf (if (and oldf (file-exists-p oldf))
+          (oldf (file-newest-backup newf)))
+     (setq oldf (if (and oldf (file-exists-p oldf))
 		    (read-file-name
 		     (concat "Diff original file (default "
 			     (file-name-nondirectory oldf) "): ")
@@ -108,59 +99,74 @@ specified in `diff-switches' are passed to the diff command."
 		  (read-file-name "Diff original file: "
 				  (file-name-directory newf) nil t)))
      (list oldf newf (diff-switches))))
-  (setq new (expand-file-name new)
-	old (expand-file-name old))
+  (display-buffer
+   (diff-no-select old new switches no-async)))
+
+(defun diff-file-local-copy (file-or-buf)
+  (if (bufferp file-or-buf)
+      (with-current-buffer file-or-buf
+        (let ((tempfile (make-temp-file "buffer-content-")))
+          (write-region nil nil tempfile nil 'nomessage)
+          tempfile))
+    (file-local-copy file-or-buf)))
+
+(defun diff-no-select (old new &optional switches no-async buf)
+  ;; Noninteractive helper for creating and reverting diff buffers
+  (unless (bufferp new) (setq new (expand-file-name new)))
+  (unless (bufferp old) (setq old (expand-file-name old)))
   (or switches (setq switches diff-switches)) ; If not specified, use default.
-  (let* ((old-alt (file-local-copy old))
-	(new-alt (file-local-copy new))
+  (unless (listp switches) (setq switches (list switches)))
+  (or buf (setq buf (get-buffer-create "*Diff*")))
+  (let* ((old-alt (diff-file-local-copy old))
+	 (new-alt (diff-file-local-copy new))
 	 (command
 	  (mapconcat 'identity
 		     `(,diff-command
 		       ;; Use explicitly specified switches
-		       ,@(if (listp switches) switches (list switches))
-		       ,@(if (or old-alt new-alt)
-			     (list "-L" old "-L" new))
-		       ,(shell-quote-argument (or old-alt old))
-		       ,(shell-quote-argument (or new-alt new)))
+		       ,@switches
+                       ,@(mapcar #'shell-quote-argument
+                                 (nconc
+                                  (when (or old-alt new-alt)
+                                    (list "-L" (if (stringp old)
+                                                   old (prin1-to-string old))
+                                          "-L" (if (stringp new)
+                                                   new (prin1-to-string new))))
+                                  (list (or old-alt old)
+                                        (or new-alt new)))))
 		     " "))
-	 (buf (get-buffer-create "*Diff*"))
-	 (thisdir default-directory)
-	 proc)
-    (save-excursion
-      (display-buffer buf)
-      (set-buffer buf)
-      (setq buffer-read-only nil)
+	 (thisdir default-directory))
+    (with-current-buffer buf
+      (setq buffer-read-only t)
       (buffer-disable-undo (current-buffer))
       (let ((inhibit-read-only t))
 	(erase-buffer))
       (buffer-enable-undo (current-buffer))
       (diff-mode)
-      ;; Use below 2 vars for backward-compatibility.
-      (set (make-local-variable 'diff-old-file) old)
-      (set (make-local-variable 'diff-new-file) new)
-      (set (make-local-variable 'diff-extra-args) (list switches no-async))
       (set (make-local-variable 'revert-buffer-function)
-	   (lambda (ignore-auto noconfirm)
-             (apply 'diff diff-old-file diff-new-file diff-extra-args)))
-      (set (make-local-variable 'diff-old-temp-file) old-alt)
-      (set (make-local-variable 'diff-new-temp-file) new-alt)
+           (lexical-let ((old old) (new new)
+                         (switches switches)
+                         (no-async no-async))
+             (lambda (ignore-auto noconfirm)
+               (diff-no-select old new switches no-async (current-buffer)))))
       (setq default-directory thisdir)
       (let ((inhibit-read-only t))
 	(insert command "\n"))
       (if (and (not no-async) (fboundp 'start-process))
-	  (progn
-	    (setq proc (start-process "Diff" buf shell-file-name
-				      shell-command-switch command))
+	  (let ((proc (start-process "Diff" buf shell-file-name
+                                     shell-command-switch command)))
 	    (set-process-filter proc 'diff-process-filter)
-	    (set-process-sentinel
-	     proc (lambda (proc msg)
-		    (with-current-buffer (process-buffer proc)
-		      (diff-sentinel (process-exit-status proc))))))
+            (lexical-let ((old-alt old-alt) (new-alt new-alt))
+              (set-process-sentinel
+               proc (lambda (proc msg)
+                      (with-current-buffer (process-buffer proc)
+                        (diff-sentinel (process-exit-status proc)
+                                       old-alt new-alt))))))
 	;; Async processes aren't available.
 	(let ((inhibit-read-only t))
 	  (diff-sentinel
 	   (call-process shell-file-name nil buf nil
-			 shell-command-switch command)))))
+			 shell-command-switch command)
+           old-alt new-alt))))
     buf))
 
 (defun diff-process-filter (proc string)
@@ -199,7 +205,14 @@ With prefix arg, prompt for diff switches."
 	(funcall handler 'diff-latest-backup-file fn)
       (file-newest-backup fn))))
 
+;;;###autoload
+(defun diff-buffer-with-file (&optional buffer)
+  "View the differences between BUFFER and its associated file.
+This requires the external program `diff' to be in your `exec-path'."
+  (interactive "bBuffer: ")
+  (with-current-buffer (get-buffer (or buffer (current-buffer)))
+    (diff buffer-file-name (current-buffer) nil 'noasync)))
+
 (provide 'diff)
 
-;; arch-tag: 7de2c29b-7ea5-4b85-9b9d-72dd860de2bd
 ;;; diff.el ends here

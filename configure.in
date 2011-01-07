@@ -5,7 +5,7 @@ dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
 dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004,
-dnl    2005, 2006, 2007, 2008, 2009, 2010
+dnl    2005, 2006, 2007, 2008, 2009, 2010, 2011
 dnl    Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
@@ -44,8 +44,6 @@ etcdir='${datadir}/emacs/${version}/etc'
 archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 gamedir='${localstatedir}/games/emacs'
-
-gameuser=games
 
 dnl OPTION_DEFAULT_OFF(NAME, HELP-STRING)
 dnl Create a new --with option that defaults to being disabled.
@@ -202,6 +200,12 @@ AC_ARG_WITH([crt-dir],dnl
 [AS_HELP_STRING([--with-crt-dir=DIR],[directory containing crtn.o etc.
 The default is /usr/lib, or /usr/lib64 on some platforms.])])
 CRT_DIR="${with_crt_dir}"
+
+AC_ARG_WITH(gameuser,dnl
+[AS_HELP_STRING([--with-gameuser=USER],[user for shared game score files])])
+test "X${with_gameuser}" != X && test "${with_gameuser}" != yes \
+  && gameuser="${with_gameuser}"
+test "X$gameuser" = X && gameuser=games
 
 AC_ARG_WITH([gnustep-conf],dnl
 [AS_HELP_STRING([--with-gnustep-conf=PATH],[path to GNUstep.conf; default $GNUSTEP_CONFIG_FILE, or /etc/GNUstep/GNUstep.conf])])
@@ -412,13 +416,27 @@ dnl quotation begins
 machine='' opsys='' unported=no
 case "${canonical}" in
 
+  ## GNU/Linux ports
+  *-*-linux-gnu*)
+    opsys=gnu-linux
+    case ${canonical} in
+      alpha*)	machine=alpha ;;
+      s390-*)	machine=ibms390 ;;
+      s390x-*)	machine=ibms390x ;;
+      powerpc*)	machine=macppc ;;
+      sparc*)	machine=sparc ;;
+      ia64*)	machine=ia64 ;;
+      m68k*)	machine=m68k ;;
+      x86_64*)	machine=amdx86-64 ;;
+    esac
+  ;;
+
   ## FreeBSD ports
   *-*-freebsd* )
     opsys=freebsd
     case "${canonical}" in
       alpha*)           machine=alpha ;;
       amd64-*|x86_64-*) machine=amdx86-64 ;;
-      arm*)             machine=arm ;;
       ia64-*)           machine=ia64 ;;
       i[3456]86-*)      machine=intel386 ;;
       powerpc-*)        machine=macppc ;;
@@ -447,13 +465,9 @@ case "${canonical}" in
     case "${canonical}" in
       alpha*)      machine=alpha ;;
       x86_64-*)    machine=amdx86-64 ;;
-      arm-*)       machine=arm ;;
-      hppa-*)      machine=hp800 ;;
       i[3456]86-*) machine=intel386 ;;
       m68k-*)      machine=m68k ;;
       powerpc-*)   machine=macppc ;;
-      mips-*)      machine=mips ;;
-      mipse[bl]-*) machine=mips ;;
       sparc*-)     machine=sparc ;;
       vax-*)       machine=vax ;;
     esac
@@ -465,21 +479,11 @@ case "${canonical}" in
     case "${canonical}" in
       alpha*)    machine=alpha ;;
       x86_64-*)  machine=amdx86-64 ;;
-      arm-*)     machine=arm ;;
-      hppa-*)    machine=hp800 ;;
       i386-*)    machine=intel386 ;;
       powerpc-*) machine=macppc ;;
       sparc*)    machine=sparc ;;
       vax-*)     machine=vax ;;
     esac
-  ;;
-
-  alpha*-*-linux-gnu* )
-    machine=alpha opsys=gnu-linux
-  ;;
-
-  arm*-*-linux-gnu* )
-    machine=arm opsys=gnu-linux
   ;;
 
   ## Apple Darwin / Mac OS X
@@ -503,24 +507,14 @@ case "${canonical}" in
 
   ## HP 9000 series 700 and 800, running HP/UX
   hppa*-hp-hpux10.2* )
-    machine=hp800 opsys=hpux10-20
+    opsys=hpux10-20
   ;;
   hppa*-hp-hpux1[1-9]* )
-    machine=hp800 opsys=hpux11
+    opsys=hpux11
     CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
   ;;
 
-  hppa*-*-linux-gnu* )
-    machine=hp800 opsys=gnu-linux
-  ;;
-
   ## IBM machines
-  s390-*-linux-gnu* )
-    machine=ibms390 opsys=gnu-linux
-  ;;
-  s390x-*-linux-gnu* )
-    machine=ibms390x opsys=gnu-linux
-  ;;
   rs6000-ibm-aix4.[23]* )
     machine=ibmrs6000 opsys=aix4-2
   ;;
@@ -532,11 +526,6 @@ case "${canonical}" in
   ;;
   powerpc-ibm-aix[56]*  )
     machine=ibmrs6000 opsys=aix4-2
-  ;;
-
-  ## Macintosh PowerPC
-  powerpc*-*-linux-gnu* )
-    machine=macppc opsys=gnu-linux
   ;;
 
   ## Silicon Graphics machines
@@ -551,10 +540,6 @@ case "${canonical}" in
   ;;
 
   ## Suns
-  sparc-*-linux-gnu* | sparc64-*-linux-gnu* )
-    machine=sparc opsys=gnu-linux
-  ;;
-
   *-sun-solaris* \
     | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* \
     | x86_64-*-solaris2*    | x86_64-*-sunos5*)
@@ -594,11 +579,6 @@ case "${canonical}" in
     esac
   ;;
 
-  ## IA-64
-  ia64*-*-linux* )
-    machine=ia64 opsys=gnu-linux
-  ;;
-
   ## Intel 386 machines where we don't care about the manufacturer.
   i[3456]86-*-* )
     machine=intel386
@@ -607,38 +587,11 @@ case "${canonical}" in
       *-darwin* )               opsys=darwin
                                 CPP="${CC-cc} -E -no-cpp-precomp"
  				;;
-      *-linux-gnu* )		opsys=gnu-linux ;;
       *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-sysv5uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-sysv5OpenUNIX* )  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
-  ;;
-
-  ## m68k Linux-based GNU system
-  m68k-*-linux-gnu* )
-    machine=m68k opsys=gnu-linux
-  ;;
-
-  ## Mips Linux-based GNU system
-  mips-*-linux-gnu* | mipsel-*-linux-gnu* \
-    | mips64-*-linux-gnu* | mips64el-*-linux-gnu* )
-    machine=mips opsys=gnu-linux
-  ;;
-
-  ## AMD x86-64 Linux-based GNU system
-  x86_64-*-linux-gnu* )
-    machine=amdx86-64 opsys=gnu-linux
-  ;;
-
-  ## Tensilica Xtensa Linux-based GNU system
-  xtensa*-*-linux-gnu* )
-    machine=xtensa opsys=gnu-linux
-    ;;
-
-  ## SuperH Linux-based GNU system
-  sh[34]*-*-linux-gnu* )
-    machine=sh3 opsys=gnu-linux
   ;;
 
   * )
@@ -669,7 +622,11 @@ if test $unported = yes; then
 Check `etc/MACHINES' for recognized configuration names.])
 fi
 
-machfile="m/${machine}.h"
+if test -n "$machine"; then
+  machfile="m/${machine}.h"
+else
+  machfile=
+fi
 opsysfile="s/${opsys}.h"
 
 
@@ -834,9 +791,12 @@ fi
 ## should test for it as it does for any other build requirement.
 ## We use the presence of $srcdir/info/emacs to distinguish a release,
 ## with pre-built manuals, from a Bazaar checkout.
+HAVE_MAKEINFO=yes
+
 if test "$MAKEINFO" = "no"; then
+  MAKEINFO=makeinfo
   if test "x${with_makeinfo}" = "xno"; then
-    MAKEINFO=off
+    HAVE_MAKEINFO=no
   elif test ! -e $srcdir/info/emacs; then
     AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.6, and your
 source tree does not seem to have pre-built manuals in the `info' directory.
@@ -844,6 +804,7 @@ Either install a suitable version of makeinfo, or re-run configure
 with the `--without-makeinfo' option to build without the manuals.] )
   fi
 fi
+AC_SUBST(HAVE_MAKEINFO)
 
 dnl Add our options to ac_link now, after it is set up.
 
@@ -936,7 +897,7 @@ case "$opsys" in
 
   gnu-linux)
    ## cpp test was "ifdef __mips__", but presumably this is equivalent...
-   test "$machine" = "mips" && LD_SWITCH_SYSTEM="-G 0"
+   case $host_cpu in mips*) LD_SWITCH_SYSTEM="-G 0";; esac
    ;;
 
   netbsd)
@@ -1498,7 +1459,7 @@ if test "${with_ns}" != no; then
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=${ns_appdir}
+     ns_appbindir=${ns_appdir}/
      ns_appresdir=${ns_appdir}/Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
      dnl FIXME sourcing this several times in subshells seems inefficient.
@@ -2097,8 +2058,8 @@ AC_SUBST(LIBXTR6)
 dnl FIXME the logic here seems weird, but this is what cpp was doing.
 dnl Why not just test for libxmu in the normal way?
 LIBXMU=-lXmu
-case "$machine" in
-  ## These machines don't supply Xmu.
+case $opsys in
+  ## These systems don't supply Xmu.
   hpux* | aix4-2 )
     test "X$ac_cv_lib_Xmu_XmuConvertStandardSelection" != "Xyes" && LIBXMU=
     ;;
@@ -2674,6 +2635,17 @@ gai_strerror mkstemp getline getdelim mremap memmove fsync sync \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
 cfmakeraw cfsetspeed isnan copysign __executable_start)
 
+dnl Cannot use AC_CHECK_FUNCS
+AC_CACHE_CHECK([for __builtin_unwind_init],
+	       emacs_cv_func___builtin_unwind_init,
+[AC_LINK_IFELSE([AC_LANG_PROGRAM([], [__builtin_unwind_init ();])],
+		emacs_cv_func___builtin_unwind_init=yes,
+		emacs_cv_func___builtin_unwind_init=no)])
+if test $emacs_cv_func___builtin_unwind_init = yes; then
+  AC_DEFINE(HAVE___BUILTIN_UNWIND_INIT, 1,
+	    [Define to 1 if you have the `__builtin_unwind_init' function.])
+fi
+
 AC_CHECK_HEADERS(sys/un.h)
 
 AC_FUNC_MKTIME
@@ -3028,8 +3000,6 @@ dnl Fixme: Not used.  Should this be HAVE_SOCKETS?
 	    [Define to 1 if you have inet sockets.])
 fi
 
-AC_CHECK_HEADERS(sys/ioctl.h)
-
 if test -f /usr/lpp/X11/bin/smt.exp; then
   AC_DEFINE(HAVE_AIX_SMT_EXP, 1,
 	    [Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists.])
@@ -3157,8 +3127,14 @@ AC_SUBST(C_SWITCH_X_SYSTEM)
 AC_SUBST(CFLAGS)
 ## Used in lwlib/Makefile.in.
 AC_SUBST(X_TOOLKIT_TYPE)
-AC_SUBST(machfile)
-AC_SUBST(opsysfile)
+if test -n "${machfile}"; then
+  M_FILE="\$(srcdir)/${machfile}"
+else
+  M_FILE=
+fi
+S_FILE="\$(srcdir)/${opsysfile}"
+AC_SUBST(M_FILE)
+AC_SUBST(S_FILE)
 AC_SUBST(GETLOADAVG_LIBS)
 AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
@@ -3171,8 +3147,10 @@ AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}",
 		   [Define to the options passed to configure.])
-AC_DEFINE_UNQUOTED(config_machfile,  "${machfile}",
-		   [Define to the used machine dependent file.])
+if test -n "$machfile"; then
+  AC_DEFINE_UNQUOTED(config_machfile,  "${machfile}",
+		     [Define to the used machine dependent file.])
+fi
 AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}",
 		   [Define to the used os dependent file.])
 
@@ -3436,16 +3414,18 @@ if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
     gnu-*)
       ## armin76@gentoo.org reported that the lgcc_s flag is necessary to
       ## build on ARM EABI under GNU/Linux.  (Bug#5518)
-      ## Note that m/arm.h never bothered to undefine LIB_GCC first.
-      if test "$machine" = "arm"; then
+      case $host_cpu in
+      arm*)
         LIB_GCC="-lgcc_s"
-      else
+	;;
+      *)
         ## FIXME? s/gnu-linux.h used to define LIB_GCC as below, then
         ## immediately undefine it again and redefine it to empty.
         ## Was the C_SWITCH_X_SITE part really necessary?
 ##      LIB_GCC=`$CC $C_SWITCH_X_SITE -print-libgcc-file-name`
         LIB_GCC=
-      fi
+	;;
+      esac
       ;;
 
     ## Ask GCC where to find libgcc.a.
@@ -3511,7 +3491,7 @@ AH_BOTTOM([
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
-#if defined (__GNUC__) && defined (OPTIMIZE)
+#if defined (__GNUC__)
 #define INLINE __inline__
 #else
 #define INLINE
@@ -3527,7 +3507,9 @@ AH_BOTTOM([
 
 /* Include the os and machine dependent files.  */
 #include config_opsysfile
-#include config_machfile
+#ifdef config_machfile
+# include config_machfile
+#endif
 
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
@@ -3635,6 +3617,12 @@ typedef unsigned size_t;
 #define NO_INLINE
 #endif
 
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+#define EXTERNALLY_VISIBLE __attribute__((externally_visible))
+#else
+#define EXTERNALLY_VISIBLE
+#endif
+
 /* Some versions of GNU/Linux define noinline in their headers.  */
 #ifdef noinline
 #undef noinline
@@ -3669,12 +3657,17 @@ if test "${HAVE_GTK}" = "yes"; then
   USE_X_TOOLKIT=GTK
 fi
 
+and_machfile=
+if test -n "$machfile"; then
+  and_machfile=" and \`${machfile}'"
+fi
+
 echo "
 Configured for \`${canonical}'.
 
   Where should the build process find the source code?    ${srcdir}
   What operating system and machine description files should Emacs use?
-        \`${opsysfile}' and \`${machfile}'
+        \`${opsysfile}'${and_machfile}
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}

@@ -268,7 +268,8 @@ shells such as bash, zsh, rc, 4dos."
   :type 'string
   :group 'eshell)
 
-(defcustom eshell-directory-name (convert-standard-filename "~/.eshell/")
+(defcustom eshell-directory-name
+  (locate-user-emacs-file "eshell/" ".eshell/")
   "The directory where Eshell control files should be kept."
   :type 'directory
   :group 'eshell)

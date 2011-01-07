@@ -142,6 +142,48 @@
   (setq edt-term (getenv "TERM")))
 
 ;;;
+;;; Implements a workaround for a feature that was added to simple.el.
+;;;
+;;; Many function keys have no Emacs functions assigned to them by
+;;; default. A subset of these are typically assigned functions in the
+;;; EDT emulation. This includes all the keypad keys and a some others
+;;; like Delete.
+;;;
+;;; Logic in simple.el maps some of these unassigned function keys to
+;;; ordinary typing keys.  Where this is the case, a call to
+;;; read-key-sequence, below, does not return the name of the function
+;;; key pressd by the user but, instead, it returns the name of the
+;;; key to which it has been mapped.  It needs to know the name of the
+;;; key pressed by the user. As a workaround, we assign a function to
+;;; each of the unassigned function keys of interest, here.  These
+;;; assignments override the mapping to other keys and are only
+;;; temporary since, when edt-mapper is finished executing, it causes
+;;; Emacs to exit.
+;;;
+
+(mapc
+ (lambda (function-key)
+   (if (not (lookup-key (current-global-map) function-key))
+       (define-key (current-global-map) function-key 'forward-char)))
+ '([kp-0] [kp-1] [kp-2] [kp-3] [kp-4]
+   [kp-5] [kp-6] [kp-7] [kp-8] [kp-9]
+   [kp-space]
+   [kp-tab]
+   [kp-enter]
+   [kp-multiply]
+   [kp-add]
+   [kp-separator]
+   [kp-subtract]
+   [kp-decimal]
+   [kp-divide]
+   [kp-equal]
+   [backspace]
+   [delete]
+   [tab]
+   [linefeed]
+   [clear]))
+
+;;;
 ;;;  Make sure the window is big enough to display the instructions,
 ;;;  except where window cannot be re-sized.
 ;;;

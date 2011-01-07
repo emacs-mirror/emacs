@@ -1607,7 +1607,7 @@ Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
   ;; Let windows scroll along with the output.
   (set (make-local-variable 'window-point-insertion-type) t)
   (set (make-local-variable 'tool-bar-map) compilation-mode-tool-bar-map)
-  (setq major-mode 'compilation-mode
+  (setq major-mode 'compilation-mode ; FIXME: Use define-derived-mode.
 	mode-name (or name-of-mode "Compilation"))
   (set (make-local-variable 'page-delimiter)
        compilation-page-delimiter)

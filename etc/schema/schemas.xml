@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>. -->
   <uri pattern="*.html" typeId="XHTML"/>
   <uri pattern="*.rng" typeId="RELAX NG"/>
   <uri pattern="*.rdf" typeId="RDF"/>
+  <uri pattern="*.dbk" typeId="DocBook"/>
 
   <namespace ns="http://www.w3.org/1999/XSL/Transform" typeId="XSLT"/>
   <namespace ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" typeId="RDF"/>

@@ -167,7 +167,7 @@ an up-to-date completion list."
 (defun idlwave-prepare-structure-tag-completion (var)
   "Find and parse the tag list for structure tag completion."
   ;; This works differently in source buffers and in the shell
-  (if (eq major-mode 'idlwave-shell-mode)
+  (if (derived-mode-p 'idlwave-shell-mode)
       ;; OK, we are in the shell, do it dynamically
       (progn
         (message "preparing shell tags") 

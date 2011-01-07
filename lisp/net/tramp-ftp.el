@@ -105,13 +105,13 @@ present for backward compatibility."
 ;; ... and add it to the method list.
 ;;;###tramp-autoload
 (unless (featurep 'xemacs)
-  (add-to-list 'tramp-methods (cons tramp-ftp-method nil)))
+  (add-to-list 'tramp-methods (cons tramp-ftp-method nil))
 
-;; Add some defaults for `tramp-default-method-alist'
-(add-to-list 'tramp-default-method-alist
-	     (list "\\`ftp\\." "" tramp-ftp-method))
-(add-to-list 'tramp-default-method-alist
-	     (list "" "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method))
+  ;; Add some defaults for `tramp-default-method-alist'.
+  (add-to-list 'tramp-default-method-alist
+	       (list "\\`ftp\\." nil tramp-ftp-method))
+  (add-to-list 'tramp-default-method-alist
+	       (list nil "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method)))
 
 ;; Add completion function for FTP method.
 (tramp-set-completion-function
@@ -221,5 +221,4 @@ pass to the OPERATION."
 
 ;; * There are no backup files on FTP hosts.
 
-;; arch-tag: 759fb338-5c63-4b99-bd36-b4d59db91cff
 ;;; tramp-ftp.el ends here

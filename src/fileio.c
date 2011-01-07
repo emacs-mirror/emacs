@@ -782,10 +782,15 @@ DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
 Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative
 \(does not start with slash or tilde); if DEFAULT-DIRECTORY is nil or missing,
 the current buffer's value of `default-directory' is used.
+NAME should be a string that is a valid file name for the underlying
+filesystem.
 File name components that are `.' are removed, and
 so are file name components followed by `..', along with the `..' itself;
 note that these simplifications are done without checking the resulting
 file names in the file system.
+Multiple consecutive slashes are collapsed into a single slash,
+except at the beginning of the file name when they are significant (e.g.,
+UNC file names on MS-Windows.)
 An initial `~/' expands to your home directory.
 An initial `~USER/' expands to USER's home directory.
 See also the function `substitute-in-file-name'.
@@ -793,7 +798,7 @@ See also the function `substitute-in-file-name'.
 For technical reasons, this function can return correct but
 non-intuitive results for the root directory; for instance,
 \(expand-file-name ".." "/") returns "/..".  For this reason, use
-(directory-file-name (file-name-directory dirname)) to traverse a
+\(directory-file-name (file-name-directory dirname)) to traverse a
 filesystem tree, not (expand-file-name ".."  dirname).  */)
   (Lisp_Object name, Lisp_Object default_directory)
 {
@@ -5044,9 +5049,10 @@ e_write (int desc, Lisp_Object string, int start, int end, struct coding_system 
 }
 
 DEFUN ("verify-visited-file-modtime", Fverify_visited_file_modtime,
-       Sverify_visited_file_modtime, 1, 1, 0,
+       Sverify_visited_file_modtime, 0, 1, 0,
        doc: /* Return t if last mod time of BUF's visited file matches what BUF records.
 This means that the file has not been changed since it was visited or saved.
+If BUF is omitted or nil, it defaults to the current buffer.
 See Info node `(elisp)Modification Time' for more details.  */)
   (Lisp_Object buf)
 {
@@ -5055,8 +5061,13 @@ See Info node `(elisp)Modification Time' for more details.  */)
   Lisp_Object handler;
   Lisp_Object filename;
 
-  CHECK_BUFFER (buf);
-  b = XBUFFER (buf);
+  if (NILP (buf))
+    b = current_buffer;
+  else
+    {
+      CHECK_BUFFER (buf);
+      b = XBUFFER (buf);
+    }
 
   if (!STRINGP (b->filename)) return Qt;
   if (b->modtime == 0) return Qt;
@@ -5863,5 +5874,3 @@ This includes interactive calls to `delete-file' and
 #endif
 }
 
-/* arch-tag: 64ba3fd7-f844-4fb2-ba4b-427eb928786c
-   (do not change this comment) */

@@ -216,13 +216,13 @@
 
 ;;;###autoload
 (defcustom browse-url-browser-function
-  `(("\\`mailto:" . browse-url-mail)
-    ("." .
-     ,(cond
-       ((memq system-type '(windows-nt ms-dos cygwin))
-	'browse-url-default-windows-browser)
-       ((memq system-type '(darwin)) 'browse-url-default-macosx-browser)
-       (t 'browse-url-default-browser))))
+  (cond
+   ((memq system-type '(windows-nt ms-dos cygwin))
+    'browse-url-default-windows-browser)
+   ((memq system-type '(darwin))
+    'browse-url-default-macosx-browser)
+   (t
+    'browse-url-default-browser))
   "Function to display the current buffer in a WWW browser.
 This is used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.
@@ -262,6 +262,18 @@ regexp should probably be \".\" to specify a default browser."
 	  (function :tag "Your own function")
 	  (alist :tag "Regexp/function association list"
 		 :key-type regexp :value-type function))
+  :version "24.1"
+  :group 'browse-url)
+
+(defcustom browse-url-mailto-function 'browse-url-mail
+  "Function to display mailto: links.
+This variable uses the same syntax as the
+`browse-url-browser-function' variable.  If the
+`browse-url-mailto-function' variable is nil, that variable will
+be used instead."
+  :type '(choice
+	  (function-item :tag "Emacs Mail" :value browse-url-mail)
+	  (function-item :tag "None" nil))
   :version "24.1"
   :group 'browse-url)
 
@@ -637,7 +649,6 @@ regarding its parameter treatment."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
 
-;;;###autoload
 (defun browse-url-url-at-point ()
   (let ((url (thing-at-point 'url)))
     (set-text-properties 0 (length url) nil url)
@@ -780,22 +791,27 @@ narrowed."
 (defun browse-url (url &rest args)
   "Ask a WWW browser to load URL.
 Prompts for a URL, defaulting to the URL at or before point.  Variable
-`browse-url-browser-function' says which browser to use."
+`browse-url-browser-function' says which browser to use.
+If the URL is a mailto: URL, consult `browse-url-mailto-function'
+first, if that exists."
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (called-interactively-p 'interactive)
     (setq args (or args (list browse-url-new-window-flag))))
-  (let ((process-environment (copy-sequence process-environment)))
+  (let ((process-environment (copy-sequence process-environment))
+	(function (or (and (string-match "\\`mailto:" url)
+			   browse-url-mailto-function)
+		      browse-url-browser-function)))
     ;; When connected to various displays, be careful to use the display of
     ;; the currently selected frame, rather than the original start display,
     ;; which may not even exist any more.
     (if (stringp (frame-parameter (selected-frame) 'display))
         (setenv "DISPLAY" (frame-parameter (selected-frame) 'display)))
-    (if (and (consp browse-url-browser-function)
-	     (not (functionp browse-url-browser-function)))
+    (if (and (consp function)
+	     (not (functionp function)))
 	;; The `function' can be an alist; look down it for first match
 	;; and apply the function (which might be a lambda).
 	(catch 'done
-	  (dolist (bf browse-url-browser-function)
+	  (dolist (bf function)
 	    (when (string-match (car bf) url)
 	      (apply (cdr bf) url args)
 	      (throw 'done t)))
@@ -803,7 +819,7 @@ Prompts for a URL, defaulting to the URL at or before point.  Variable
 		 url))
       ;; Unbound symbols go down this leg, since void-function from
       ;; apply is clearer than wrong-type-argument from dolist.
-      (apply browse-url-browser-function url args))))
+      (apply function url args))))
 
 ;;;###autoload
 (defun browse-url-at-point (&optional arg)
@@ -876,7 +892,6 @@ one showing the selected frame."
     (and (not (equal display (getenv "DISPLAY")))
          display)))
 
-;;;###autoload
 (defun browse-url-default-browser (url &rest args)
   "Find a suitable browser and ask it to load URL.
 Default to the URL around or before point.

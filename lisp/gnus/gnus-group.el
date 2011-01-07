@@ -1,7 +1,8 @@
 ;;; gnus-group.el --- group mode commands for Gnus
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software
+;;   Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -2734,6 +2735,15 @@ server."
 	(lambda (group)
 	  (gnus-group-delete-group group nil t))))))
 
+(defun gnus-group-delete-articles (group)
+  "Delete all articles in the current group."
+  (interactive (list (gnus-group-group-name)))
+  (let ((articles (gnus-uncompress-range (gnus-active group))))
+    (when (gnus-yes-or-no-p
+	   (format "Do you really want to delete these %d articles forever? "
+		   (length articles)))
+      (gnus-request-expire-articles articles group 'force))))
+
 (defun gnus-group-delete-group (group &optional force no-prompt)
   "Delete the current group.  Only meaningful with editable groups.
 If FORCE (the prefix) is non-nil, all the articles in the group will
@@ -3781,6 +3791,8 @@ of groups killed."
 		  gnus-list-of-killed-groups))
 	  (gnus-group-change-level
 	   (if entry entry group) gnus-level-killed (if entry nil level))
+	  (when (numberp (gnus-group-unread group))
+	    (gnus-request-update-group-status group 'unsubscribe))
 	  (message "Killed group %s" (gnus-group-decoded-name group)))
       ;; If there are lots and lots of groups to be killed, we use
       ;; this thing instead.
@@ -3803,7 +3815,9 @@ of groups killed."
 	  (setq gnus-zombie-list (delete group gnus-zombie-list))))
 	;; There may be more than one instance displayed.
 	(while (gnus-group-goto-group group)
-	  (gnus-delete-line)))
+	  (gnus-delete-line))
+	(when (numberp (gnus-group-unread group))
+	  (gnus-request-update-group-status group 'unsubscribe)))
       (gnus-make-hashtable-from-newsrc-alist))
 
     (gnus-group-position-point)
@@ -3831,6 +3845,7 @@ yanked) a list of yanked groups is returned."
        (and prev (gnus-group-entry prev))
        t)
       (gnus-group-insert-group-line-info group)
+      (gnus-request-update-group-status group 'subscribe)
       (gnus-undo-register
 	`(when (gnus-group-goto-group ,group)
 	   (gnus-group-kill-group 1))))

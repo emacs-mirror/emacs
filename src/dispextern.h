@@ -2178,6 +2178,12 @@ struct it
      OVERLAY_STRING_CHUNK_SIZE.  */
   int n_overlay_strings;
 
+  /* The charpos where n_overlay_strings was calculated.  This should
+     be set at the same time as n_overlay_strings.  It is needed
+     because we show before-strings at the start of invisible text;
+     see handle_invisible_prop in xdisp.c.  */
+  int overlay_strings_charpos;
+
   /* Vector of overlays to process.  Overlay strings are processed
      OVERLAY_STRING_CHUNK_SIZE at a time.  */
 #define OVERLAY_STRING_CHUNK_SIZE 16
@@ -2875,7 +2881,8 @@ enum tool_bar_item_idx
   /* The binding.  */
   TOOL_BAR_ITEM_BINDING,
 
-  /* Button type.  One of nil, `:radio' or `:toggle'.  */
+  /* Button type.  One of nil (default button), t (a separator),
+     `:radio', or `:toggle'.  The latter two currently do nothing.  */
   TOOL_BAR_ITEM_TYPE,
 
   /* Help string.  */
@@ -2886,6 +2893,9 @@ enum tool_bar_item_idx
 
   /* Label to show when text labels are enabled.  */
   TOOL_BAR_ITEM_LABEL,
+
+  /* If we shall show the label only below the icon and not beside it.  */
+  TOOL_BAR_ITEM_VERT_ONLY,
 
   /* Sentinel = number of slots in tool_bar_items occupied by one
      tool-bar item.  */
@@ -3121,7 +3131,7 @@ extern int x_create_bitmap_from_data (struct frame *, char *,
                                       unsigned int, unsigned int);
 extern int x_create_bitmap_from_file (struct frame *, Lisp_Object);
 #if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
-extern int x_create_bitmap_from_xpm_data (struct frame *f, char **bits);
+extern int x_create_bitmap_from_xpm_data (struct frame *f, const char **bits);
 #endif
 #ifndef x_destroy_bitmap
 extern void x_destroy_bitmap (struct frame *, int);
@@ -3175,7 +3185,6 @@ char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
 int ascii_face_of_lisp_face (struct frame *, int);
 void prepare_face_for_display (struct frame *, struct face *);
 int xstrcasecmp (const unsigned char *, const unsigned char *);
-int lookup_face (struct frame *, Lisp_Object *);
 int lookup_named_face (struct frame *, Lisp_Object, int);
 int lookup_basic_face (struct frame *, int);
 int smaller_face (struct frame *, int, int);
@@ -3222,7 +3231,6 @@ void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 
 extern Lisp_Object tip_frame;
 extern Window tip_window;
-EXFUN (Fx_show_tip, 6);
 EXFUN (Fx_hide_tip, 0);
 extern void start_hourglass (void);
 extern void cancel_hourglass (void);
@@ -3266,8 +3274,6 @@ int popup_activated (void);
 /* Defined in dispnew.c  */
 
 extern int inverse_video;
-extern int required_matrix_width (struct window *);
-extern int required_matrix_height (struct window *);
 extern Lisp_Object buffer_posn_from_coords (struct window *,
                                             int *, int *,
                                             struct display_pos *,
@@ -3285,7 +3291,6 @@ extern void redraw_frame (struct frame *);
 extern void redraw_garbaged_frames (void);
 extern void cancel_line (int, struct frame *);
 extern void init_desired_glyphs (struct frame *);
-extern int scroll_frame_lines (struct frame *, int, int, int, int);
 extern int update_frame (struct frame *, int, int);
 extern int scrolling (struct frame *);
 extern void bitch_at_user (void);
@@ -3307,7 +3312,6 @@ void increment_row_positions (struct glyph_row *, EMACS_INT, EMACS_INT);
 void enable_glyph_matrix_rows (struct glyph_matrix *, int, int, int);
 void clear_glyph_row (struct glyph_row *);
 void prepare_desired_row (struct glyph_row *);
-int line_hash_code (struct glyph_row *);
 void set_window_update_flags (struct window *, int);
 void update_single_window (struct window *, int);
 void do_pending_window_change (int);
@@ -3384,9 +3388,6 @@ enum resource_types
 extern Lisp_Object x_get_arg (Display_Info *, Lisp_Object,
                               Lisp_Object, const char *, const char *class,
                               enum resource_types);
-extern Lisp_Object x_frame_get_arg (struct frame *, Lisp_Object,
-                                    Lisp_Object, const char *, const char *,
-                                    enum resource_types);
 extern Lisp_Object x_frame_get_and_record_arg (struct frame *, Lisp_Object,
                                                Lisp_Object,
 					       const char *, const char *,

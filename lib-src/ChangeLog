@@ -1,3 +1,14 @@
+2011-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* ebrowse.c (version) <emacs_copyright>:
+	* etags.c (print_version) <emacs_copyright>:
+	* rcs2log (Copyright): Set short copyright year to 2011.
+
+2010-11-27  Joe Matarazzo  <joe.matarazzo@gmail.com>  (tiny change)
+
+	* ebrowse.c (yylex): If end of input buffer encountered while
+	searching for a newline after "//", return YYEOF.  (Bug#7446)
+
 2010-11-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* emacsclient.c (set_local_socket) [DARWIN_OS]: Add fall-back

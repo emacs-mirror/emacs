@@ -685,7 +685,6 @@ This will modify the `gnus-setup-news-hook', and
 minor mode in all Gnus buffers."
   (interactive)
   (gnus-open-agent)
-  (add-hook 'gnus-setup-news-hook 'gnus-agent-queue-setup)
   (unless gnus-agent-send-mail-function
     (setq gnus-agent-send-mail-function
 	  (or message-send-mail-real-function
@@ -1514,7 +1513,7 @@ downloaded into the agent."
   "Fetch ARTICLES from GROUP and put them into the Agent."
   (when articles
     (gnus-agent-load-alist group)
-    (let* ((alist   gnus-agent-article-alist)
+    (let* ((alist gnus-agent-article-alist)
            (headers (if (< (length articles) 2) nil gnus-newsgroup-headers))
            (selected-sets (list nil))
            (current-set-size 0)
@@ -1556,9 +1555,9 @@ downloaded into the agent."
                                       ;; 65 char/line.  If the line count
                                       ;; is missing, arbitrarily assume a
                                       ;; size of 1000 characters.
-                                    (max (* 65 (mail-header-lines
-                                                (car headers)))
-                                         1000)
+				      (max (* 65 (mail-header-lines
+						  (car headers)))
+					   1000)
                                     char-size))
 			      0))))
             (setcar selected-sets (nreverse (car selected-sets)))

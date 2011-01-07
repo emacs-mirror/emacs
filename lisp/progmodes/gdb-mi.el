@@ -647,7 +647,22 @@ detailed description of this mode.
   (gud-common-init command-line nil 'gud-gdbmi-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'gdbmi)
   (setq comint-input-sender 'gdb-send)
-
+  (when (ring-empty-p comint-input-ring) ; cf shell-mode
+    (let (hfile)
+      (when (catch 'done
+	      (dolist (file '(".gdbinit" "~/.gdbinit"))
+		(if (file-readable-p (setq file (expand-file-name file)))
+		    (with-temp-buffer
+		      (insert-file-contents file)
+		      (and (re-search-forward
+			    "^ *set history filename  *\\(.*\\)" nil t)
+			   (file-readable-p
+			    (setq hfile (expand-file-name
+					 (match-string 1)
+					 (file-name-directory file))))
+			   (throw 'done t))))))
+	(set (make-local-variable 'comint-input-ring-file-name) hfile)
+	(comint-read-input-ring t))))
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
 	   "Set temporary breakpoint at current line.")
   (gud-def gud-jump
@@ -1001,7 +1016,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 					'gud-gdb-complete-command)
 		     (if (and transient-mark-mode mark-active)
 			 (buffer-substring (region-beginning) (region-end))
-		       (concat (if (eq major-mode 'gdb-registers-mode) "$")
+		       (concat (if (derived-mode-p 'gdb-registers-mode) "$")
 			       (tooltip-identifier-from-point (point)))))))
 	      (set-text-properties 0 (length expr) nil expr)
 	      (gdb-input
@@ -1468,14 +1483,9 @@ DOC is an optional documentation string."
 
 ;; We want to use comint because it has various nifty and familiar features.
 (define-derived-mode gdb-inferior-io-mode comint-mode "Inferior I/O"
-  "Major mode for gdb inferior-io.
-
-The following commands are available:
-\\{gdb-inferior-io-mode-map}"
-
+  "Major mode for gdb inferior-io."
   :syntax-table nil :abbrev-table nil
-
-(make-comint-in-buffer "gdb-inferior" (current-buffer)  nil))
+  (make-comint-in-buffer "gdb-inferior" (current-buffer) nil))
 
 (defun gdb-inferior-filter (proc string)
   (unless (string-equal string "")
@@ -2428,7 +2438,7 @@ If not in a source or disassembly buffer just set point."
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
     (with-selected-window (posn-window posn)
-      (if (or (buffer-file-name) (eq major-mode 'gdb-disassembly-mode))
+      (if (or (buffer-file-name) (derived-mode-p 'gdb-disassembly-mode))
 	  (if (numberp (posn-point posn))
 	      (save-excursion
 		(goto-char (posn-point posn))
@@ -2612,15 +2622,12 @@ corresponding to the mode line clicked."
 			  nil nil mode-line)))
 
 (define-derived-mode gdb-threads-mode gdb-parent-mode "Threads"
-  "Major mode for GDB threads.
-
-\\{gdb-threads-mode-map}"
+  "Major mode for GDB threads."
   (setq gdb-thread-position (make-marker))
   (add-to-list 'overlay-arrow-variable-list 'gdb-thread-position)
   (setq header-line-format gdb-threads-header)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-threads-font-lock-keywords))
-  (run-mode-hooks 'gdb-threads-mode-hook)
   'gdb-invalidate-threads)
 
 (defun gdb-thread-list-handler-custom ()
@@ -3146,13 +3153,10 @@ DOC is an optional documentation string."
   "Header line used in `gdb-memory-mode'.")
 
 (define-derived-mode gdb-memory-mode gdb-parent-mode "Memory"
-  "Major mode for examining memory.
-
-\\{gdb-memory-mode-map}"
+  "Major mode for examining memory."
   (setq header-line-format gdb-memory-header)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-memory-font-lock-keywords))
-  (run-mode-hooks 'gdb-memory-mode-hook)
   'gdb-invalidate-memory)
 
 (defun gdb-memory-buffer-name ()
@@ -3241,16 +3245,13 @@ DOC is an optional documentation string."
      map))
 
 (define-derived-mode gdb-disassembly-mode gdb-parent-mode "Disassembly"
-  "Major mode for GDB disassembly information.
-
-\\{gdb-disassembly-mode-map}"
+  "Major mode for GDB disassembly information."
   ;; TODO Rename overlay variable for disassembly mode
   (add-to-list 'overlay-arrow-variable-list 'gdb-disassembly-position)
   (setq fringes-outside-margins t)
   (set (make-local-variable 'gdb-disassembly-position) (make-marker))
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-disassembly-font-lock-keywords))
-  (run-mode-hooks 'gdb-disassembly-mode-hook)
   'gdb-invalidate-disassembly)
 
 (defun gdb-disassembly-handler-custom ()
@@ -3308,11 +3309,8 @@ DOC is an optional documentation string."
 
 ;;; Breakpoints view
 (define-derived-mode gdb-breakpoints-mode gdb-parent-mode "Breakpoints"
-  "Major mode for gdb breakpoints.
-
-\\{gdb-breakpoints-mode-map}"
+  "Major mode for gdb breakpoints."
   (setq header-line-format gdb-breakpoints-header)
-  (run-mode-hooks 'gdb-breakpoints-mode-hook)
   'gdb-invalidate-breakpoints)
 
 (defun gdb-toggle-breakpoint ()
@@ -3451,15 +3449,12 @@ member."
   "Font lock keywords used in `gdb-frames-mode'.")
 
 (define-derived-mode gdb-frames-mode gdb-parent-mode "Frames"
-  "Major mode for gdb call stack.
-
-\\{gdb-frames-mode-map}"
+  "Major mode for gdb call stack."
   (setq gdb-stack-position (make-marker))
   (add-to-list 'overlay-arrow-variable-list 'gdb-stack-position)
   (setq truncate-lines t)  ;; Make it easier to see overlay arrow.
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-frames-font-lock-keywords))
-  (run-mode-hooks 'gdb-frames-mode-hook)
   'gdb-invalidate-frames)
 
 (defun gdb-select-frame (&optional event)
@@ -3573,11 +3568,8 @@ member."
      map))
 
 (define-derived-mode gdb-locals-mode gdb-parent-mode "Locals"
-  "Major mode for gdb locals.
-
-\\{gdb-locals-mode-map}"
+  "Major mode for gdb locals."
   (setq header-line-format gdb-locals-header)
-  (run-mode-hooks 'gdb-locals-mode-hook)
   'gdb-invalidate-locals)
 
 (defun gdb-locals-buffer-name ()
@@ -3672,11 +3664,8 @@ member."
 			  nil nil mode-line)))
 
 (define-derived-mode gdb-registers-mode gdb-parent-mode "Registers"
-  "Major mode for gdb registers.
-
-\\{gdb-registers-mode-map}"
+  "Major mode for gdb registers."
   (setq header-line-format gdb-registers-header)
-  (run-mode-hooks 'gdb-registers-mode-hook)
   'gdb-invalidate-registers)
 
 (defun gdb-registers-buffer-name ()
@@ -4191,5 +4180,4 @@ BUFFER nil or omitted means use the current buffer."
 
 (provide 'gdb-mi)
 
-;; arch-tag: 1b41ea2b-f364-4cec-8f35-e02e4fe01912
 ;;; gdb-mi.el ends here

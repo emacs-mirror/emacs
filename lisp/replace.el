@@ -532,6 +532,9 @@ which will run faster and will not set the mark or print anything."
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
 
+(defvar occur-collect-regexp-history '("\\1")
+  "History of regexp for occur's collect operation")
+
 (defun read-regexp (prompt &optional default-value)
   "Read regexp as a string using the regexp history and some useful defaults.
 Prompt for a regular expression with PROMPT (without a colon and
@@ -1002,10 +1005,25 @@ which means to discard all text properties."
   :version "22.1")
 
 (defun occur-read-primary-args ()
-  (list (read-regexp "List lines matching regexp"
-		     (car regexp-history))
-	(when current-prefix-arg
-	  (prefix-numeric-value current-prefix-arg))))
+  (let* ((perform-collect (consp current-prefix-arg))
+         (regexp (read-regexp (if perform-collect
+                                  "Collect strings matching regexp"
+                                "List lines matching regexp")
+                              (car regexp-history))))
+    (list regexp
+	  (if perform-collect
+	      ;; Perform collect operation
+	      (if (zerop (regexp-opt-depth regexp))
+		  ;; No subexpression so collect the entire match.
+		  "\\&"
+		;; Get the regexp for collection pattern.
+		(let ((default (car occur-collect-regexp-history)))
+		  (read-string
+		   (format "Regexp to collect (default %s): " default)
+		   nil 'occur-collect-regexp-history default)))
+	    ;; Otherwise normal occur takes numerical prefix argument.
+	    (when current-prefix-arg
+	      (prefix-numeric-value current-prefix-arg))))))
 
 (defun occur-rename-buffer (&optional unique-p interactive-p)
   "Rename the current *Occur* buffer to *Occur: original-buffer-name*.
@@ -1038,7 +1056,18 @@ It serves as a menu to find any of the occurrences in this buffer.
 \\<occur-mode-map>\\[describe-mode] in that buffer will explain how.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\')
-and `search-upper-case' is non-nil, the matching is case-sensitive."
+and `search-upper-case' is non-nil, the matching is case-sensitive.
+
+When NLINES is a string or when the function is called
+interactively with prefix argument without a number (`C-u' alone
+as prefix) the matching strings are collected into the `*Occur*'
+buffer by using NLINES as a replacement regexp.  NLINES may
+contain \\& and \\N which convention follows `replace-match'.
+For example, providing \"defun\\s +\\(\\S +\\)\" for REGEXP and
+\"\\1\" for NLINES collects all the function names in a lisp
+program.  When there is no parenthesized subexpressions in REGEXP
+the entire match is collected.  In any case the searched buffers
+are not modified."
   (interactive (occur-read-primary-args))
   (occur-1 regexp nlines (list (current-buffer))))
 
@@ -1120,20 +1149,43 @@ See also `multi-occur'."
     (setq occur-buf (get-buffer-create buf-name))
 
     (with-current-buffer occur-buf
-      (occur-mode)
+      (if (stringp nlines)
+	  (fundamental-mode) ;; This is for collect opeartion.
+	(occur-mode))
       (let ((inhibit-read-only t)
 	    ;; Don't generate undo entries for creation of the initial contents.
 	    (buffer-undo-list t))
 	(erase-buffer)
-	(let ((count (occur-engine
-		      regexp active-bufs occur-buf
-		      (or nlines list-matching-lines-default-context-lines)
-		      (if (and case-fold-search search-upper-case)
-			  (isearch-no-upper-case-p regexp t)
-			case-fold-search)
-		      list-matching-lines-buffer-name-face
-		      nil list-matching-lines-face
-		      (not (eq occur-excluded-properties t)))))
+	(let ((count
+	       (if (stringp nlines)
+                   ;; Treat nlines as a regexp to collect.
+		   (let ((bufs active-bufs)
+			 (count 0))
+		     (while bufs
+		       (with-current-buffer (car bufs)
+			 (save-excursion
+			   (goto-char (point-min))
+			   (while (re-search-forward regexp nil t)
+                             ;; Insert the replacement regexp.
+			     (let ((str (match-substitute-replacement nlines)))
+			       (if str
+				   (with-current-buffer occur-buf
+				     (insert str)
+				     (setq count (1+ count))
+				     (or (zerop (current-column))
+					 (insert "\n"))))))))
+                       (setq bufs (cdr bufs)))
+                     count)
+		 ;; Perform normal occur.
+		 (occur-engine
+		  regexp active-bufs occur-buf
+		  (or nlines list-matching-lines-default-context-lines)
+		  (if (and case-fold-search search-upper-case)
+		      (isearch-no-upper-case-p regexp t)
+		    case-fold-search)
+		  list-matching-lines-buffer-name-face
+		  nil list-matching-lines-face
+		  (not (eq occur-excluded-properties t))))))
 	  (let* ((bufcount (length active-bufs))
 		 (diff (- (length bufs) bufcount)))
 	    (message "Searched %d buffer%s%s; %s match%s%s"

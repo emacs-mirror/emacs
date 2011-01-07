@@ -1829,10 +1829,13 @@ For use in `add-log-current-defun-function'."
   (eval-and-compile (require 'smerge-mode))
   (save-excursion
     (diff-beginning-of-hunk 'try-harder)
-    (let* ((style (diff-hunk-style))    ;Skips the hunk header as well.
+    (let* ((start (point))
+           (style (diff-hunk-style))    ;Skips the hunk header as well.
            (beg (point))
            (props '((diff-mode . fine) (face diff-refine-change)))
-           (end (progn (diff-end-of-hunk) (point))))
+           ;; Be careful to go back to `start' so diff-end-of-hunk gets
+           ;; to read the hunk header's line info.
+           (end (progn (goto-char start) (diff-end-of-hunk) (point))))
 
       (remove-overlays beg end 'diff-mode 'fine)
 

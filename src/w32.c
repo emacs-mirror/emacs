@@ -95,7 +95,7 @@ typedef struct _MEMORY_STATUS_EX {
 #include <w32api.h>
 #if !defined(__MINGW32__) || __W32API_MAJOR_VERSION < 3 || (__W32API_MAJOR_VERSION == 3 && __W32API_MINOR_VERSION < 15)
 /* This either is not in psapi.h or guarded by higher value of
-   _WIN32_WINNT than what we use.  w32api suplied with MinGW 3.15
+   _WIN32_WINNT than what we use.  w32api supplied with MinGW 3.15
    defines it in psapi.h  */
 typedef struct _PROCESS_MEMORY_COUNTERS_EX {
   DWORD cb;

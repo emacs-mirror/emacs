@@ -39,6 +39,7 @@
 ;;
 
 (require 'mail-utils)
+(require 'rfc2047)
 
 (defconst rmail-attribute-header "X-RMAIL-ATTRIBUTES"
   "The header that stores the Rmail attribute data.")
@@ -638,7 +639,7 @@ Element N specifies the summary line for message N+1.")
 
 This is set to nil by default.")
 
-(defcustom rmail-enable-mime nil
+(defcustom rmail-enable-mime t
   "If non-nil, RMAIL uses MIME features.
 If the value is t, RMAIL automatically shows MIME decoded message.
 If the value is neither t nor nil, RMAIL does not show MIME decoded message
@@ -649,6 +650,7 @@ unless the feature specified by `rmail-mime-feature' is available."
   :type '(choice (const :tag "on" t)
 		 (const :tag "off" nil)
 		 (other :tag "when asked" ask))
+  :version "23.3"
   :group 'rmail)
 
 (defvar rmail-enable-mime-composing nil
@@ -693,13 +695,12 @@ start of the header) with three arguments MSG, REGEXP, and LIMIT,
 where MSG is the message number, REGEXP is the regular
 expression, LIMIT is the position specifying the end of header.")
 
-(defvar rmail-mime-feature 'rmail-mime
+(defvar rmail-mime-feature 'rmailmm
   "Feature to require to load MIME support in Rmail.
 When starting Rmail, if `rmail-enable-mime' is non-nil,
 this feature is required with `require'.
 
-The default value is `rmail-mime'.  This feature is provided by
-the rmail-mime package available at <http://www.m17n.org/rmail-mime/>.")
+The default value is `rmailmm'")
 
 ;; FIXME this is unused.
 (defvar rmail-decode-mime-charset t
@@ -1509,17 +1510,9 @@ Hook `rmail-quit-hook' is run after expunging."
       (set-buffer-modified-p nil))
     (replace-buffer-in-windows rmail-summary-buffer)
     (bury-buffer rmail-summary-buffer))
-  (if rmail-enable-mime
-      (let ((obuf rmail-buffer)
-	    (ovbuf rmail-view-buffer))
-	(set-buffer rmail-view-buffer)
-	(quit-window)
-	(replace-buffer-in-windows ovbuf)
-	(replace-buffer-in-windows obuf)
-	(bury-buffer obuf))
-    (let ((obuf (current-buffer)))
-      (quit-window)
-      (replace-buffer-in-windows obuf))))
+  (let ((obuf (current-buffer)))
+    (quit-window)
+    (replace-buffer-in-windows obuf)))
 
 (defun rmail-bury ()
   "Bury current Rmail buffer and its summary buffer."
@@ -2219,15 +2212,7 @@ If nil, that means the current message."
   (let ((blurb (rmail-get-labels)))
     (setq mode-line-process
 	  (format " %d/%d%s"
-		  rmail-current-message rmail-total-messages blurb))
-    ;; If rmail-enable-mime is non-nil, we may have to update
-    ;; `mode-line-process' of rmail-view-buffer too.
-    (if (and rmail-enable-mime
-	     (not (eq (current-buffer) rmail-view-buffer))
-	     (buffer-live-p rmail-view-buffer))
-	(let ((mlp mode-line-process))
-	  (with-current-buffer rmail-view-buffer
-	    (setq mode-line-process mlp))))))
+		  rmail-current-message rmail-total-messages blurb))))
 
 (defun rmail-get-attr-value (attr state)
   "Return the character value for ATTR.
@@ -2706,65 +2691,71 @@ The current mail message becomes the message displayed."
 	  (message "Showing message %d" msg))
 	(narrow-to-region beg end)
 	(goto-char beg)
-	(setq body-start (search-forward "\n\n" nil t))
-	(narrow-to-region beg (point))
-	(goto-char beg)
-	(save-excursion
-	  (if (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t)
-	      (setq coding-system (intern (match-string 1)))
-	    (setq coding-system (rmail-get-coding-system))))
-	(setq character-coding (mail-fetch-field "content-transfer-encoding")
-	      is-text-message (rmail-is-text-p))
-	(if character-coding
-	    (setq character-coding (downcase character-coding)))
-	(narrow-to-region beg end)
-	;; Decode the message body into an empty view buffer using a
-	;; unibyte temporary buffer where the character decoding takes
-	;; place.
 	(with-current-buffer rmail-view-buffer
 	  ;; We give the view buffer a buffer-local value of
 	  ;; rmail-header-style based on the binding in effect when
 	  ;; this function is called; `rmail-toggle-headers' can
 	  ;; inspect this value to determine how to toggle.
-	  (set (make-local-variable 'rmail-header-style) header-style)
-	  (erase-buffer))
-	(if (null character-coding)
-	    ;; Do it directly since that is fast.
-	    (rmail-decode-region body-start end coding-system view-buf)
-	  ;; Can this be done directly, skipping the temp buffer?
-	  (with-temp-buffer
-	    (set-buffer-multibyte nil)
-	    (insert-buffer-substring mbox-buf body-start end)
-	    (cond
-	     ((string= character-coding "quoted-printable")
-	      ;; See bug#5441.
-	      (or (mail-unquote-printable-region (point-min) (point-max)
-						 nil t 'unibyte)
-		  (message "Malformed MIME quoted-printable message")))
-	     ((and (string= character-coding "base64") is-text-message)
-	      (condition-case err
-		  (base64-decode-region (point-min) (point-max))
-		(error (message "%s" (cdr err)))))
-	     ((eq character-coding 'uuencode)
-	      (error "uuencoded messages are not supported yet"))
-	     (t))
-	    (rmail-decode-region (point-min) (point-max)
-				 coding-system view-buf)))
-	(with-current-buffer rmail-view-buffer
-	  ;; Unquote quoted From lines
-	  (goto-char (point-min))
-	  (while (re-search-forward "^>+From " nil t)
-	    (beginning-of-line)
-	    (delete-char 1)
-	    (forward-line))
-	  (goto-char (point-min)))
-	;; Copy the headers to the front of the message view buffer.
-	(rmail-copy-headers beg end)
-	;; Add the separator (blank line) between headers and body;
+	  (set (make-local-variable 'rmail-header-style) header-style))
+	(if (and rmail-enable-mime
+		 (re-search-forward "mime-version: 1.0" nil t))
+	    (let ((rmail-buffer mbox-buf)
+		  (rmail-view-buffer view-buf))
+	      (funcall rmail-show-mime-function))
+	  (setq body-start (search-forward "\n\n" nil t))
+	  (narrow-to-region beg (point))
+	  (goto-char beg)
+	  (save-excursion
+	    (if (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t)
+		(setq coding-system (intern (match-string 1)))
+	      (setq coding-system (rmail-get-coding-system))))
+	  (setq character-coding (mail-fetch-field "content-transfer-encoding")
+		is-text-message (rmail-is-text-p))
+	  (if character-coding
+	      (setq character-coding (downcase character-coding)))
+	  (narrow-to-region beg end)
+	  ;; Decode the message body into an empty view buffer using a
+	  ;; unibyte temporary buffer where the character decoding takes
+	  ;; place.
+	  (with-current-buffer rmail-view-buffer
+	    (erase-buffer))
+	  (if (null character-coding)
+	      ;; Do it directly since that is fast.
+	      (rmail-decode-region body-start end coding-system view-buf)
+	    ;; Can this be done directly, skipping the temp buffer?
+	    (with-temp-buffer
+	      (set-buffer-multibyte nil)
+	      (insert-buffer-substring mbox-buf body-start end)
+	      (cond
+	       ((string= character-coding "quoted-printable")
+		;; See bug#5441.
+		(or (mail-unquote-printable-region (point-min) (point-max)
+						   nil t 'unibyte)
+		    (message "Malformed MIME quoted-printable message")))
+	       ((and (string= character-coding "base64") is-text-message)
+		(condition-case err
+		    (base64-decode-region (point-min) (point-max))
+		  (error (message "%s" (cdr err)))))
+	       ((eq character-coding 'uuencode)
+		(error "uuencoded messages are not supported yet"))
+	       (t))
+	      (rmail-decode-region (point-min) (point-max)
+				   coding-system view-buf)))
+	  (with-current-buffer rmail-view-buffer
+	    ;; Prepare the separator (blank line) before the body.
+	    (goto-char (point-min))
+	    (insert "\n")
+	    ;; Unquote quoted From lines
+	    (while (re-search-forward "^>+From " nil t)
+	      (beginning-of-line)
+	      (delete-char 1)
+	      (forward-line))
+	    (goto-char (point-min)))
+	  ;; Copy the headers to the front of the message view buffer.
+	  (rmail-copy-headers beg end))
 	;; highlight the message, activate any URL like text and add
 	;; special highlighting for and quoted material.
 	(with-current-buffer rmail-view-buffer
-	  (insert "\n")
 	  (goto-char (point-min))
 	  (rmail-highlight-headers)
 					;(rmail-activate-urls)
@@ -4295,18 +4286,28 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "9f67f3b67de9b700b128b73c52abfefa")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "3735f9bfe6ff3e612091857cc6b401b6")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
-Process the current Rmail message as a MIME message.
-This creates a temporary \"*RMAIL*\" buffer holding a decoded
-copy of the message.  Inline content-types are handled according to
+Toggle displaying of a MIME message.
+
+The actualy behavior depends on the value of `rmail-enable-mime'.
+
+If `rmail-enable-mime' is t (default), this command change the
+displaying of a MIME message between decoded presentation form
+and raw data.
+
+With ARG, toggle the displaying of the current MIME entity only.
+
+If `rmail-enable-mime' is nil, this creates a temporary
+\"*RMAIL*\" buffer holding a decoded copy of the message.  Inline
+content-types are handled according to
 `rmail-mime-media-type-handlers-alist'.  By default, this
 displays text and multipart messages, and offers to download
 attachments as specfied by `rmail-mime-attachment-dirs-alist'.
 
-\(fn)" t nil)
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
@@ -4386,7 +4387,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "4715fb58fb191bf6b192458ea75524b2")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "666a5db1021cdcba6e68a18a553d65f1")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\

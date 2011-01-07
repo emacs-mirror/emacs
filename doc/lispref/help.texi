@@ -546,7 +546,7 @@ follows:
 
 @smallexample
 @group
-(define-key global-map (char-to-string help-char) 'help-command)
+(define-key global-map (string help-char) 'help-command)
 (fset 'help-command help-map)
 @end group
 @end smallexample

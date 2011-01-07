@@ -1116,7 +1116,7 @@ if for some reason a circle is in the inheritance graph."
 ;;; Tree-mode - mode for tree buffers
 
 ;;;###autoload
-(defun ebrowse-tree-mode ()
+(define-derived-mode ebrowse-tree-mode special-mode "Ebrowse-Tree"
   "Major mode for Ebrowse class tree buffers.
 Each line corresponds to a class in a class tree.
 Letters do not insert themselves, they are commands.
@@ -1125,12 +1125,10 @@ E.g.\\[save-buffer] writes the tree to the file it was loaded from.
 
 Tree mode key bindings:
 \\{ebrowse-tree-mode-map}"
-  (interactive)
   (let* ((ident (propertized-buffer-identification "C++ Tree"))
-	 header tree buffer-read-only)
+	 (inhibit-read-only t)
+         header tree)
 
-    (kill-all-local-variables)
-    (use-local-map ebrowse-tree-mode-map)
     (buffer-disable-undo)
 
     (unless (zerop (buffer-size))
@@ -1141,38 +1139,27 @@ Tree mode key bindings:
       (erase-buffer)
       (message nil))
 
-    (mapc 'make-local-variable
-	  '(ebrowse--tags-file-name
-	    ebrowse--indentation
-	    ebrowse--tree
-	    ebrowse--header
-	    ebrowse--show-file-names-flag
-	    ebrowse--frozen-flag
-	    ebrowse--tree-obarray
-	    revert-buffer-function))
+    (set (make-local-variable 'ebrowse--show-file-names-flag) nil)
+    (set (make-local-variable 'ebrowse--tree-obarray) (make-vector 127 0))
+    (set (make-local-variable 'ebrowse--frozen-flag) nil)
+    (setq mode-line-buffer-identification ident)
+    (setq buffer-read-only t)
+    (setq selective-display t)
+    (setq selective-display-ellipses t)
+    (set (make-local-variable 'revert-buffer-function)
+         #'ebrowse-revert-tree-buffer-from-file)
+    (set (make-local-variable 'ebrowse--header) header)
+    (set (make-local-variable 'ebrowse--tree) tree)
+    (set (make-local-variable 'ebrowse--tags-file-name) buffer-file-name)
+    (set (make-local-variable 'ebrowse--tree-obarray)
+         (and tree (ebrowse-build-tree-obarray tree)))
+    (set (make-local-variable 'ebrowse--frozen-flag) nil)
 
-    (setf ebrowse--show-file-names-flag nil
-	  ebrowse--tree-obarray (make-vector 127 0)
-	  ebrowse--frozen-flag nil
-	  major-mode 'ebrowse-tree-mode
-	  mode-name "Ebrowse-Tree"
-	  mode-line-buffer-identification ident
-	  buffer-read-only t
-	  selective-display t
-	  selective-display-ellipses t
-	  revert-buffer-function 'ebrowse-revert-tree-buffer-from-file
-	  ebrowse--header header
-	  ebrowse--tree tree
-	  ebrowse--tags-file-name (buffer-file-name)
-	  ebrowse--tree-obarray (and tree (ebrowse-build-tree-obarray tree))
-	  ebrowse--frozen-flag nil)
-
-    (add-hook 'local-write-file-hooks 'ebrowse-write-file-hook-fn)
+    (add-hook 'local-write-file-hooks 'ebrowse-write-file-hook-fn nil t)
     (modify-syntax-entry ?_ (char-to-string (char-syntax ?a)))
     (when tree
       (ebrowse-redraw-tree)
-      (set-buffer-modified-p nil))
-    (run-mode-hooks 'ebrowse-tree-mode-hook)))
+      (set-buffer-modified-p nil))))
 
 
 
@@ -1340,6 +1327,7 @@ With PREFIX, insert that many filenames."
 
 (defun ebrowse-member-buffer-p (buffer)
   "Value is non-nil if BUFFER is a member buffer."
+  ;; FIXME: Why not (buffer-local-value 'major-mode buffer)?
   (eq (cdr (assoc 'major-mode (buffer-local-variables buffer)))
       'ebrowse-member-mode))
 
@@ -1459,12 +1447,13 @@ Pop to member buffer if no prefix ARG, to tree buffer otherwise."
 (defun ebrowse-set-tree-indentation ()
   "Set the indentation width of the tree display."
   (interactive)
-  (let ((width (string-to-number (read-from-minibuffer
-                                  (concat "Indentation ("
+  (let ((width (string-to-number (read-string
+                                  (concat "Indentation (default "
                                           (int-to-string ebrowse--indentation)
-                                          "): ")))))
+                                          "): ")
+                                  nil nil ebrowse--indentation))))
     (when (plusp width)
-      (setf ebrowse--indentation width)
+      (set (make-local-variable 'ebrowse--indentation) width)
       (ebrowse-redraw-tree))))
 
 
@@ -1632,13 +1621,12 @@ The new frame is deleted when you quit viewing the file in that frame."
 	(had-a-buf (get-file-buffer file))
 	(buf-to-view (find-file-noselect file)))
     (switch-to-buffer-other-frame buf-to-view)
-    (make-local-variable 'ebrowse--frame-configuration)
-    (setq ebrowse--frame-configuration old-frame-configuration)
-    (make-local-variable 'ebrowse--view-exit-action)
-    (setq ebrowse--view-exit-action
-	  (and (not had-a-buf)
-	       (not (buffer-modified-p buf-to-view))
-	       'kill-buffer))
+    (set (make-local-variable 'ebrowse--frame-configuration)
+         old-frame-configuration)
+    (set (make-local-variable 'ebrowse--view-exit-action)
+         (and (not had-a-buf)
+              (not (buffer-modified-p buf-to-view))
+              'kill-buffer))
     (view-mode-enter nil 'ebrowse-view-exit-fn)))
 
 (defun ebrowse-view/find-file-and-search-pattern
@@ -2005,21 +1993,16 @@ COLLAPSE non-nil means collapse the branch."
 (put 'ebrowse-electric-list-undefined 'suppress-keymap t)
 
 
-(defun ebrowse-electric-list-mode ()
+(define-derived-mode ebrowse-electric-list-mode
+  fundamental-mode "Electric Position Menu"
   "Mode for electric tree list mode."
-  (kill-all-local-variables)
-  (use-local-map ebrowse-electric-list-mode-map)
-  (setq mode-name "Electric Position Menu"
-	mode-line-buffer-identification "Electric Tree Menu")
+  (setq mode-line-buffer-identification "Electric Tree Menu")
   (when (memq 'mode-name mode-line-format)
     (setq mode-line-format (copy-sequence mode-line-format))
     (setcar (memq 'mode-name mode-line-format) "Tree Buffers"))
-  (make-local-variable 'Helper-return-blurb)
-  (setq Helper-return-blurb "return to buffer editing"
-	truncate-lines t
-	buffer-read-only t
-	major-mode 'ebrowse-electric-list-mode)
-  (run-mode-hooks 'ebrowse-electric-list-mode-hook))
+  (set (make-local-variable 'Helper-return-blurb) "return to buffer editing")
+  (setq truncate-lines t
+	buffer-read-only t))
 
 
 (defun ebrowse-list-tree-buffers ()
@@ -2225,13 +2208,8 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
 ;;; Member mode
 
 ;;;###autoload
-(defun ebrowse-member-mode ()
-  "Major mode for Ebrowse member buffers.
-
-\\{ebrowse-member-mode-map}"
-  (kill-all-local-variables)
-  (use-local-map ebrowse-member-mode-map)
-  (setq major-mode 'ebrowse-member-mode)
+(define-derived-mode ebrowse-member-mode special-mode "Ebrowse-Members"
+  "Major mode for Ebrowse member buffers."
   (mapc 'make-local-variable
 	'(ebrowse--decl-column	        ;display column
 	  ebrowse--n-columns		;number of short columns
@@ -2254,8 +2232,7 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
 	  ebrowse--const-display-flag
 	  ebrowse--pure-display-flag
 	  ebrowse--frozen-flag))	;buffer not automagically reused
-  (setq mode-name "Ebrowse-Members"
-	mode-line-buffer-identification
+  (setq mode-line-buffer-identification
 	(propertized-buffer-identification "C++ Members")
 	buffer-read-only t
 	ebrowse--long-display-flag nil
@@ -2269,8 +2246,7 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
 	ebrowse--inline-display-flag nil
 	ebrowse--const-display-flag nil
 	ebrowse--pure-display-flag nil)
-  (modify-syntax-entry ?_ (char-to-string (char-syntax ?a)))
-  (run-mode-hooks 'ebrowse-member-mode-hook))
+  (modify-syntax-entry ?_ (char-to-string (char-syntax ?a))))
 
 
 
@@ -3966,22 +3942,17 @@ Prefix arg ARG says how much."
 (put 'ebrowse-electric-position-undefined 'suppress-keymap t)
 
 
-(defun ebrowse-electric-position-mode ()
+(define-derived-mode ebrowse-electric-position-mode
+  fundamental-mode "Electric Position Menu"
   "Mode for electric position buffers.
 Runs the hook `ebrowse-electric-position-mode-hook'."
-  (kill-all-local-variables)
-  (use-local-map ebrowse-electric-position-mode-map)
-  (setq mode-name "Electric Position Menu"
-	mode-line-buffer-identification "Electric Position Menu")
+  (setq mode-line-buffer-identification "Electric Position Menu")
   (when (memq 'mode-name mode-line-format)
     (setq mode-line-format (copy-sequence mode-line-format))
     (setcar (memq 'mode-name mode-line-format) "Positions"))
-  (make-local-variable 'Helper-return-blurb)
-  (setq Helper-return-blurb "return to buffer editing"
-	truncate-lines t
-	buffer-read-only t
-	major-mode 'ebrowse-electric-position-mode)
-  (run-mode-hooks 'ebrowse-electric-position-mode-hook))
+  (set (make-local-variable 'Helper-return-blurb) "return to buffer editing")
+  (setq truncate-lines t
+	buffer-read-only t))
 
 
 (defun ebrowse-draw-position-buffer ()

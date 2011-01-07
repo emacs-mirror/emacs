@@ -742,11 +742,8 @@ EXFUN (Fmerge_font_spec, 2);
 EXFUN (Ffont_get, 2);
 EXFUN (Ffont_put, 3);
 EXFUN (Flist_fonts, 4);
-EXFUN (Ffont_family_list, 1);
-EXFUN (Fclear_font_cache, 0);
 EXFUN (Ffont_xlfd_name, 2);
 
-extern Lisp_Object font_make_spec (void);
 extern Lisp_Object font_make_entity (void);
 extern Lisp_Object font_make_object (int, Lisp_Object, int);
 
@@ -767,11 +764,9 @@ extern Lisp_Object font_get_name (Lisp_Object font_object);
 extern Lisp_Object font_spec_from_name (Lisp_Object font_name);
 extern Lisp_Object font_get_frame (Lisp_Object font_object);
 extern int font_has_char (FRAME_PTR, Lisp_Object, int);
-extern unsigned font_encode_char (Lisp_Object, int);
 
 extern void font_clear_prop (Lisp_Object *attrs,
                              enum font_property_index prop);
-extern void font_update_lface (FRAME_PTR f, Lisp_Object *attrs);
 extern Lisp_Object font_find_for_lface (FRAME_PTR f, Lisp_Object *lface,
                                         Lisp_Object spec, int c);
 extern Lisp_Object font_open_for_lface (FRAME_PTR f, Lisp_Object entity,
@@ -792,21 +787,15 @@ extern void font_update_sort_order (int *order);
 extern void font_parse_family_registry (Lisp_Object family,
                                         Lisp_Object registry,
                                         Lisp_Object spec);
-extern Lisp_Object font_spec_from_family_registry (Lisp_Object family,
-                                                   Lisp_Object registry);
 
 extern int font_parse_xlfd (char *name, Lisp_Object font);
 extern int font_unparse_xlfd (Lisp_Object font, int pixel_size,
                               char *name, int bytes);
-extern int font_parse_fcname (char *name, Lisp_Object font);
 extern int font_unparse_fcname (Lisp_Object font, int pixel_size,
                                 char *name, int bytes);
-extern int font_unparse_gtkname (Lisp_Object, struct frame *, char *, int);
 extern void register_font_driver (struct font_driver *driver, FRAME_PTR f);
 extern void free_font_driver_list (FRAME_PTR f);
 extern Lisp_Object font_update_drivers (FRAME_PTR f, Lisp_Object list);
-extern Lisp_Object font_at (int c, EMACS_INT pos, struct face *face,
-                            struct window *w, Lisp_Object object);
 extern Lisp_Object font_range (EMACS_INT, EMACS_INT *,
 			       struct window *, struct face *,
 			       Lisp_Object);
@@ -858,7 +847,7 @@ extern void syms_of_nsfont (void);
 #define FONT_DEBUG
 #endif
 
-extern Lisp_Object QCfoundry, QCadstyle, QCregistry;
+extern Lisp_Object QCfoundry;
 
 extern Lisp_Object Vfont_log;
 extern void font_add_log (const char *, Lisp_Object, Lisp_Object);

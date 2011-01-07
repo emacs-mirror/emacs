@@ -1776,7 +1776,7 @@ If NOPREFIX is non-nil, don't prepend prefix character.  Installs into
 (defvar idlwave-mode-debug-menu)
 
 ;;;###autoload
-(defun idlwave-mode ()
+(define-derived-mode idlwave-mode prog-mode "IDLWAVE"
   "Major mode for editing IDL source files (version 6.1_em22).
 
 The main features of this mode are
@@ -1895,21 +1895,15 @@ The main features of this mode are
    followed by the key sequence to see what the key sequence does.
 
 \\{idlwave-mode-map}"
-
-  (interactive)
-  (kill-all-local-variables)
-
+  :abbrev-table idlwave-mode-abbrev-table
   (if idlwave-startup-message
       (message "Emacs IDLWAVE mode version %s." idlwave-mode-version))
   (setq idlwave-startup-message nil)
 
-  (setq local-abbrev-table idlwave-mode-abbrev-table)
-  (set-syntax-table idlwave-mode-syntax-table)
-
   (set (make-local-variable 'indent-line-function) 'idlwave-indent-and-action)
 
-  (make-local-variable idlwave-comment-indent-function)
-  (set idlwave-comment-indent-function 'idlwave-comment-hook)
+  (set (make-local-variable idlwave-comment-indent-function)
+       #'idlwave-comment-hook)
 
   (set (make-local-variable 'comment-start-skip) ";+[ \t]*")
   (set (make-local-variable 'comment-start) ";")
@@ -1919,14 +1913,10 @@ The main features of this mode are
   (set (make-local-variable 'indent-tabs-mode) nil)
   (set (make-local-variable 'completion-ignore-case) t)
 
-  (use-local-map idlwave-mode-map)
-
   (when (featurep 'easymenu)
     (easy-menu-add idlwave-mode-menu idlwave-mode-map)
     (easy-menu-add idlwave-mode-debug-menu idlwave-mode-map))
 
-  (setq mode-name "IDLWAVE")
-  (setq major-mode 'idlwave-mode)
   (setq abbrev-mode t)
 
   (set (make-local-variable idlwave-fill-function) 'idlwave-auto-fill)
@@ -1991,10 +1981,7 @@ The main features of this mode are
   (idlwave-new-buffer-update)
 
   ;; Check help location
-  (idlwave-help-check-locations)
-
-  ;; Run the mode hook
-  (run-mode-hooks 'idlwave-mode-hook))
+  (idlwave-help-check-locations))
 
 (defvar idlwave-setup-done nil)
 (defun idlwave-setup ()
@@ -2543,7 +2530,7 @@ Point is placed at the beginning of the line whether or not this is an
 actual statement."
   (interactive)
   (cond
-   ((eq major-mode 'idlwave-shell-mode)
+   ((derived-mode-p 'idlwave-shell-mode)
     (if (re-search-backward idlwave-shell-prompt-pattern nil t)
 	(goto-char (match-end 0))))
    (t
@@ -3732,7 +3719,7 @@ expression to enter.
 
 The lines containing S1 and S2 are reindented using `indent-region'
 unless the optional second argument NOINDENT is non-nil."
-  (if (eq major-mode 'idlwave-shell-mode)
+  (if (derived-mode-p 'idlwave-shell-mode)
       ;; This is a gross hack to avoit template abbrev expansion
       ;; in the shell.  FIXME: This is a dirty hack.
       (if (and (eq this-command 'self-insert-command)
@@ -5088,7 +5075,7 @@ Cache to disk for quick recovery."
       (setq res nil))
      (t
       ;; Just scan this buffer
-      (if (eq major-mode 'idlwave-mode)
+      (if (derived-mode-p 'idlwave-mode)
 	  (progn
 	    (message "Scanning current buffer...")
 	    (setq res (idlwave-get-routine-info-from-buffers
@@ -5142,7 +5129,7 @@ Cache to disk for quick recovery."
 (defun idlwave-update-current-buffer-info (why)
   "Update `idlwave-routines' for current buffer.
 Can run from `after-save-hook'."
-  (when (and (eq major-mode 'idlwave-mode)
+  (when (and (derived-mode-p 'idlwave-mode)
 	     (or (eq t idlwave-auto-routine-info-updates)
 		 (memq why idlwave-auto-routine-info-updates))
 	     idlwave-scan-all-buffers-for-routine-info
@@ -5188,7 +5175,7 @@ Can run from `after-save-hook'."
     (save-excursion
       (while (setq buf (pop buffers))
 	(set-buffer buf)
-	(if (and (eq major-mode 'idlwave-mode)
+	(if (and (derived-mode-p 'idlwave-mode)
 		 buffer-file-name)
 	    ;; yes, this buffer has the right mode.
 	    (progn (setq res (condition-case nil
@@ -7030,7 +7017,7 @@ sort the list before displaying."
   "Call FUNCTION as a completion chooser and pass ARGS to it."
   (let ((completion-ignore-case t))	    ; install correct value
     (apply function args))
-  (if (and (eq major-mode 'idlwave-shell-mode)
+  (if (and (derived-mode-p 'idlwave-shell-mode)
 	   (boundp 'font-lock-mode)
 	   (not font-lock-mode))
       ;; For the shell, remove the fontification of the word before point
@@ -7431,7 +7418,7 @@ class/struct definition."
 	  ;; Read the file in temporarily
 	  (set-buffer (get-buffer-create " *IDLWAVE-tmp*"))
 	  (erase-buffer)
-	  (unless (eq major-mode 'idlwave-mode)
+	  (unless (derived-mode-p 'idlwave-mode)
 	    (idlwave-mode))
 	  (insert-file-contents file))
 	(save-excursion
@@ -8183,8 +8170,7 @@ demand _EXTRA in the keyword list."
     ;; If this is the OBJ_NEW function, try to figure out the class and use
     ;; the keywords from the corresponding INIT method.
     (if (and (equal (upcase name) "OBJ_NEW")
-	     (or (eq major-mode 'idlwave-mode)
-		 (eq major-mode 'idlwave-shell-mode)))
+	     (derived-mode-p 'idlwave-mode 'idlwave-shell-mode))
 	(let* ((bos (save-excursion (idlwave-beginning-of-statement) (point)))
 	       (string (buffer-substring bos (point)))
 	       (case-fold-search t)
@@ -8634,7 +8620,7 @@ was pressed."
   "List the load path shadows of all routines defined in current buffer."
   (interactive "P")
   (idlwave-routines)
-  (if (eq major-mode 'idlwave-mode)
+  (if (derived-mode-p 'idlwave-mode)
       (idlwave-list-load-path-shadows
        nil (idlwave-update-current-buffer-info 'save-buffer)
        "in current buffer")

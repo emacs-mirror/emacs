@@ -3901,6 +3901,13 @@ position as that text.  It is equivalent to using just @var{string},
 but it is done as a special case of marginal display (@pxref{Display
 Margins}).
 
+@item (left-fringe @var{bitmap} @r{[}@var{face}@r{]})
+@itemx (right-fringe @var{bitmap} @r{[}@var{face}@r{]})
+This display specification on any character of a line of text causes
+the specified @var{bitmap} be displayed in the left or right fringes
+for that line.  The optional @var{face} specifies the colors to be
+used for the bitmap.  @xref{Fringe Bitmaps}, for the details.
+
 @item (space-width @var{factor})
 This display specification affects all the space characters within the
 text that has the specification.  It displays all of these spaces

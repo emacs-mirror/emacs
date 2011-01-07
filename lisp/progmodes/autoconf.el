@@ -78,14 +78,8 @@ searching backwards at another AC_... command."
 	  (match-string-no-properties 3)))))
 
 ;;;###autoload
-(defun autoconf-mode ()
+(define-derived-mode autoconf-mode prog-mode "Autoconf"
   "Major mode for editing Autoconf configure.in files."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map autoconf-mode-map)
-  (setq major-mode 'autoconf-mode)
-  (setq mode-name "Autoconf")
-  (set-syntax-table autoconf-mode-syntax-table)
   (set (make-local-variable 'parens-require-spaces) nil) ; for M4 arg lists
   (set (make-local-variable 'defun-prompt-regexp)
        "^[ \t]*A[CM]_\\(\\sw\\|\\s_\\)+")
@@ -100,8 +94,7 @@ searching backwards at another AC_... command."
   (set (make-local-variable 'imenu-syntax-alist) '(("_" . "w")))
   (set (make-local-variable 'indent-line-function) #'indent-relative)
   (set (make-local-variable 'add-log-current-defun-function)
-	#'autoconf-current-defun-function)
-  (run-mode-hooks 'autoconf-mode-hook))
+	#'autoconf-current-defun-function))
 
 (provide 'autoconf-mode)
 (provide 'autoconf)

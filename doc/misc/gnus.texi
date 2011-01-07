@@ -407,6 +407,7 @@ This manual corresponds to Gnus v5.13
 * Composing Messages::       Information on sending mail and news.
 * Select Methods::           Gnus reads all messages from various select methods.
 * Scoring::                  Assigning values to articles.
+* Searching::                Mail and News search engines.
 * Various::                  General purpose settings.
 * The End::                  Farewell and goodbye.
 * Appendices::               Terminology, Emacs intro, @acronym{FAQ}, History, Internals.
@@ -428,7 +429,6 @@ Other related manuals
 Starting Gnus
 
 * Finding the News::            Choosing a method for getting news.
-* The First Time::              What does Gnus do the first time you start it?
 * The Server is Down::          How can I read my mail then?
 * Slave Gnusae::                You can have more than one Gnus active at a time.
 * Fetching a Group::            Starting Gnus just to read a group.
@@ -786,6 +786,21 @@ Advanced Scoring
 * Advanced Scoring Examples::   What they look like.
 * Advanced Scoring Tips::       Getting the most out of it.
 
+Searching
+
+* nnir::                        Searching with various engines.
+* nnmairix::                    Searching with Mairix.
+
+nnir
+
+* What is nnir?::               What does nnir do.
+* Basic Usage::                 How to perform simple searches.
+* Setting up nnir::             How to set up nnir.
+
+Setting up nnir
+
+* Associating Engines::         How to associate engines.
+
 Various
 
 * Process/Prefix::              A convention used by many treatment commands.
@@ -959,7 +974,6 @@ terminology section (@pxref{Terminology}).
 
 @menu
 * Finding the News::      Choosing a method for getting news.
-* The First Time::        What does Gnus do the first time you start it?
 * The Server is Down::    How can I read my mail then?
 * Slave Gnusae::          You can have more than one Gnus active at a time.
 * New Groups::            What is Gnus supposed to do with new groups?
@@ -1050,31 +1064,6 @@ Note: the @acronym{NNTP} back end stores marks in marks files
 (@pxref{NNTP marks}).  This feature makes it easy to share marks between
 several Gnus installations, but may slow down things a bit when fetching
 new articles.  @xref{NNTP marks}, for more information.
-
-
-@node The First Time
-@section The First Time
-@cindex first time usage
-
-If no startup files exist (@pxref{Startup Files}), Gnus will try to
-determine what groups should be subscribed by default.
-
-@vindex gnus-default-subscribed-newsgroups
-If the variable @code{gnus-default-subscribed-newsgroups} is set, Gnus
-will subscribe you to just those groups in that list, leaving the rest
-killed.  Your system administrator should have set this variable to
-something useful.
-
-Since she hasn't, Gnus will just subscribe you to a few arbitrarily
-picked groups (i.e., @samp{*.newusers}).  (@dfn{Arbitrary} is defined
-here as @dfn{whatever Lars thinks you should read}.)
-
-You'll also be subscribed to the Gnus documentation group, which should
-help you with most common problems.
-
-If @code{gnus-default-subscribed-newsgroups} is @code{t}, Gnus will just
-use the normal functions for handling new groups, and not do anything
-special.
 
 
 @node The Server is Down
@@ -1321,11 +1310,18 @@ but I thought it would be nice to have two of these.  This variable is
 more meant for setting some ground rules, while the other variable is
 used more for user fiddling.  By default this variable makes all new
 groups that come from mail back ends (@code{nnml}, @code{nnbabyl},
-@code{nnfolder}, @code{nnmbox}, @code{nnmh}, and @code{nnmaildir})
-subscribed.  If you don't like that, just set this variable to
-@code{nil}.
+@code{nnfolder}, @code{nnmbox}, @code{nnmh}, @code{nnimap}, and
+@code{nnmaildir}) subscribed.  If you don't like that, just set this
+variable to @code{nil}.
 
-New groups that match this regexp are subscribed using
+@vindex gnus-auto-subscribed-categories
+As if that wasn't enough, @code{gnus-auto-subscribed-categories} also
+allows you to specify that new groups should be subcribed based on the
+category their select methods belong to.  The default is @samp{(mail
+post-mail)}, meaning that all new groups from mail-like backends
+should be subscribed automatically.
+
+New groups that match these variables are subscribed using
 @code{gnus-subscribe-options-newsgroup-method}.
 
 
@@ -1680,7 +1676,6 @@ long as Gnus is active.
 * Exiting Gnus::                Stop reading news and get some work done.
 * Group Topics::                A folding group mode divided into topics.
 * Non-ASCII Group Names::       Accessing groups of non-English names.
-* Searching::                   Mail search engines.
 * Misc Group Stuff::            Other stuff that you can to do.
 @end menu
 
@@ -2516,6 +2511,15 @@ the command to be executed.
 @node Foreign Groups
 @section Foreign Groups
 @cindex foreign groups
+
+If you recall how to subscribe to servers (@pxref{Finding the News})
+you will remember that @code{gnus-secondary-select-methods} and
+@code{gnus-select-method} let you write a definition in Emacs Lisp of
+what servers you want to see when you start up.  The alternate
+approach is to use foreign servers and groups.  ``Foreign'' here means
+they are not coming from the select methods.  All foreign server
+configuration and subscriptions are stored only in the
+@file{~/.newsrc.eld} file.
 
 Below are some group mode commands for making and editing general foreign
 groups, as well as commands to ease the creation of a few
@@ -4302,712 +4306,6 @@ names should be the same in both groups.  Otherwise the Newsgroups
 header will be displayed incorrectly in the article buffer.
 
 
-@node Searching
-@section Searching
-
-@menu
-* nnir::                     Searching on IMAP, with swish, namazu, etc.
-* nnmairix::                 Searching maildir, MH or mbox with Mairix.
-@end menu
-
-@cindex Searching
-
-FIXME: This node is a stub.
-
-FIXME: Add a brief overview of Gnus search capabilities.  A brief
-comparison of nnir, nnmairix, contrib/gnus-namazu would be nice
-as well.
-
-FIXME: Explain difference to @ref{Searching for Articles}, add reference
-and back-reference.
-
-@node nnir
-@subsection nnir
-
-FIXME: As a first step, convert the commentary of @file{nnir} to texi.
-@cindex nnir
-
-@node nnmairix
-@subsection nnmairix
-
-@cindex mairix
-@cindex nnmairix
-This paragraph describes how to set up mairix and the back end
-@code{nnmairix} for indexing and searching your mail from within
-Gnus.  Additionally, you can create permanent ``smart'' groups which are
-bound to mairix searches and are automatically updated.
-
-@menu
-* About mairix::                About the mairix mail search engine
-* nnmairix requirements::       What you will need for using nnmairix
-* What nnmairix does::          What does nnmairix actually do?
-* Setting up mairix::           Set up your mairix installation
-* Configuring nnmairix::        Set up the nnmairix back end
-* nnmairix keyboard shortcuts:: List of available keyboard shortcuts
-* Propagating marks::           How to propagate marks from nnmairix groups
-* nnmairix tips and tricks::    Some tips, tricks and examples
-* nnmairix caveats::            Some more stuff you might want to know
-@end menu
-
-@c FIXME: The markup in this section might need improvement.
-@c E.g. adding @samp, @var, @file, @command, etc.
-@c Cf. (info "(texinfo)Indicating")
-
-@node About mairix
-@subsubsection About mairix
-
-Mairix is a tool for indexing and searching words in locally stored
-mail.  It was written by Richard Curnow and is licensed under the
-GPL.  Mairix comes with most popular GNU/Linux distributions, but it also
-runs under Windows (with cygwin), Mac OS X and Solaris.  The homepage can
-be found at
-@uref{http://www.rpcurnow.force9.co.uk/mairix/index.html}
-
-Though mairix might not be as flexible as other search tools like
-swish++ or namazu, which you can use via the @code{nnir} back end, it
-has the prime advantage of being incredibly fast.  On current systems, it
-can easily search through headers and message bodies of thousands and
-thousands of mails in well under a second.  Building the database
-necessary for searching might take a minute or two, but only has to be
-done once fully.  Afterwards, the updates are done incrementally and
-therefore are really fast, too.  Additionally, mairix is very easy to set
-up.
-
-For maximum speed though, mairix should be used with mails stored in
-@code{Maildir} or @code{MH} format (this includes the @code{nnml} back
-end), although it also works with mbox.  Mairix presents the search
-results by populating a @emph{virtual} maildir/MH folder with symlinks
-which point to the ``real'' message files (if mbox is used, copies are
-made).  Since mairix already presents search results in such a virtual
-mail folder, it is very well suited for using it as an external program
-for creating @emph{smart} mail folders, which represent certain mail
-searches.
-
-@node nnmairix requirements
-@subsubsection nnmairix requirements
-
-Mairix searches local mail---that means, mairix absolutely must have
-direct access to your mail folders.  If your mail resides on another
-server (e.g. an @acronym{IMAP} server) and you happen to have shell
-access, @code{nnmairix} supports running mairix remotely, e.g. via ssh.
-
-Additionally, @code{nnmairix} only supports the following Gnus back
-ends: @code{nnml}, @code{nnmaildir}, and @code{nnimap}.  You must use
-one of these back ends for using @code{nnmairix}.  Other back ends, like
-@code{nnmbox}, @code{nnfolder} or @code{nnmh}, won't work.
-
-If you absolutely must use mbox and still want to use @code{nnmairix},
-you can set up a local @acronym{IMAP} server, which you then access via
-@code{nnimap}.  This is a rather massive setup for accessing some mbox
-files, so just change to MH or Maildir already...  However, if you're
-really, really passionate about using mbox, you might want to look into
-the package @file{mairix.el}, which comes with Emacs 23.
-
-@node What nnmairix does
-@subsubsection What nnmairix does
-
-The back end @code{nnmairix} enables you to call mairix from within Gnus,
-either to query mairix with a search term or to update the
-database.  While visiting a message in the summary buffer, you can use
-several pre-defined shortcuts for calling mairix, e.g. to quickly
-search for all mails from the sender of the current message or to
-display the whole thread associated with the message, even if the
-mails are in different folders.
-
-Additionally, you can create permanent @code{nnmairix} groups which are bound
-to certain mairix searches.  This way, you can easily create a group
-containing mails from a certain sender, with a certain subject line or
-even for one specific thread based on the Message-ID.  If you check for
-new mail in these folders (e.g. by pressing @kbd{g} or @kbd{M-g}), they
-automatically update themselves by calling mairix.
-
-You might ask why you need @code{nnmairix} at all, since mairix already
-creates the group, populates it with links to the mails so that you can
-then access it with Gnus, right?  Well, this @emph{might} work, but often
-does not---at least not without problems.  Most probably you will get
-strange article counts, and sometimes you might see mails which Gnus
-claims have already been canceled and are inaccessible.  This is due to
-the fact that Gnus isn't really amused when things are happening behind
-its back.  Another problem can be the mail back end itself, e.g. if you
-use mairix with an @acronym{IMAP} server (I had Dovecot complaining
-about corrupt index files when mairix changed the contents of the search
-group).  Using @code{nnmairix} should circumvent these problems.
-
-@code{nnmairix} is not really a mail back end---it's actually more like
-a wrapper, sitting between a ``real'' mail back end where mairix stores
-the searches and the Gnus front end.  You can choose between three
-different mail back ends for the mairix folders: @code{nnml},
-@code{nnmaildir} or @code{nnimap}.  @code{nnmairix} will call the mairix
-binary so that the search results are stored in folders named
-@code{zz_mairix-<NAME>-<NUMBER>} on this mail back end, but it will
-present these folders in the Gnus front end only with @code{<NAME>}.
-You can use an existing mail back end where you already store your mail,
-but if you're uncomfortable with @code{nnmairix} creating new mail
-groups alongside your other mail, you can also create e.g. a new
-@code{nnmaildir} or @code{nnml} server exclusively for mairix, but then
-make sure those servers do not accidentally receive your new mail
-(@pxref{nnmairix caveats}).  A special case exists if you want to use
-mairix remotely on an IMAP server with @code{nnimap}---here the mairix
-folders and your other mail must be on the same @code{nnimap} back end.
-
-@node Setting up mairix
-@subsubsection Setting up mairix
-
-First: create a backup of your mail folders (@pxref{nnmairix caveats}).
-
-Setting up mairix is easy: simply create a @file{.mairixrc} file with
-(at least) the following entries:
-
-@example
-# Your Maildir/MH base folder
-base=~/Maildir
-@end example
-
-This is the base folder for your mails.  All the following directories
-are relative to this base folder.  If you want to use @code{nnmairix}
-with @code{nnimap}, this base directory has to point to the mail
-directory where the @acronym{IMAP} server stores the mail folders!
-
-@example
-maildir= ... your maildir folders which should be indexed ...
-mh= ... your nnml/mh folders which should be indexed ...
-mbox = ... your mbox files which should be indexed ...
-@end example
-
-This specifies all your mail folders and mbox files (relative to the
-base directory!) you want to index with mairix.  Note that the
-@code{nnml} back end saves mails in MH format, so you have to put those
-directories in the @code{mh} line.  See the example at the end of this
-section and mairixrc's man-page for further details.
-
-@example
-omit=zz_mairix-*
-@end example
-
-@vindex nnmairix-group-prefix
-This should make sure that you don't accidentally index the mairix
-search results.  You can change the prefix of these folders with the
-variable @code{nnmairix-group-prefix}.
-
-@example
-mformat= ... 'maildir' or 'mh' ...
-database= ... location of database file ...
-@end example
-
-The @code{format} setting specifies the output format for the mairix
-search folder.  Set this to @code{mh} if you want to access search results
-with @code{nnml}.  Otherwise choose @code{maildir}.
-
-To summarize, here is my shortened @file{.mairixrc} file as an example:
-
-@example
-base=~/Maildir
-maildir=.personal:.work:.logcheck:.sent
-mh=../Mail/nnml/*...
-mbox=../mboxmail/mailarchive_year*
-mformat=maildir
-omit=zz_mairix-*
-database=~/.mairixdatabase
-@end example
-
-In this case, the base directory is @file{~/Maildir}, where all my Maildir
-folders are stored.  As you can see, the folders are separated by
-colons.  If you wonder why every folder begins with a dot: this is
-because I use Dovecot as @acronym{IMAP} server, which again uses
-@code{Maildir++} folders.  For testing nnmairix, I also have some
-@code{nnml} mail, which is saved in @file{~/Mail/nnml}.  Since this has
-to be specified relative to the @code{base} directory, the @code{../Mail}
-notation is needed.  Note that the line ends in @code{*...}, which means
-to recursively scan all files under this directory.  Without the three
-dots, the wildcard @code{*} will not work recursively.  I also have some
-old mbox files with archived mail lying around in @file{~/mboxmail}.
-The other lines should be obvious.
-
-See the man page for @code{mairixrc} for details and further options,
-especially regarding wildcard usage, which may be a little different
-than you are used to.
-
-Now simply call @code{mairix} to create the index for the first time.
-Note that this may take a few minutes, but every following index will do
-the updates incrementally and hence is very fast.
-
-@node Configuring nnmairix
-@subsubsection Configuring nnmairix
-
-In group mode, type @kbd{G b c}
-(@code{nnmairix-create-server-and-default-group}).  This will ask you for all
-necessary information and create a @code{nnmairix} server as a foreign
-server.  You will have to specify the following:
-
-@itemize @bullet
-
-@item
-The @strong{name} of the @code{nnmairix} server---choose whatever you
-want.
-
-@item
-The name of the @strong{back end server} where mairix should store its
-searches.  This must be a full server name, like @code{nnml:mymail}.
-Just hit @kbd{TAB} to see the available servers.  Currently, servers
-which are accessed through @code{nnmaildir}, @code{nnimap} and
-@code{nnml} are supported.  As explained above, for locally stored
-mails, this can be an existing server where you store your mails.
-However, you can also create e.g. a new @code{nnmaildir} or @code{nnml}
-server exclusively for @code{nnmairix} in your secondary select methods
-(@pxref{Finding the News}).  If you use a secondary @code{nnml} server
-just for mairix, make sure that you explicitly set the server variable
-@code{nnml-get-new-mail} to @code{nil}, or you might lose mail
-(@pxref{nnmairix caveats}).  If you want to use mairix remotely on an
-@acronym{IMAP} server, you have to choose the corresponding
-@code{nnimap} server here.
-
-@item
-@vindex nnmairix-mairix-search-options
-The @strong{command} to call the mairix binary.  This will usually just
-be @code{mairix}, but you can also choose something like @code{ssh
-SERVER mairix} if you want to call mairix remotely, e.g. on your
-@acronym{IMAP} server.  If you want to add some default options to
-mairix, you could do this here, but better use the variable
-@code{nnmairix-mairix-search-options} instead.
-
-@item
-The name of the @strong{default search group}.  This will be the group
-where all temporary mairix searches are stored, i.e. all searches which
-are not bound to permanent @code{nnmairix} groups.  Choose whatever you
-like.
-
-@item
-If the mail back end is @code{nnimap} or @code{nnmaildir}, you will be
-asked if you work with @strong{Maildir++}, i.e. with hidden maildir
-folders (=beginning with a dot).  For example, you have to answer
-@samp{yes} here if you work with the Dovecot @acronym{IMAP}
-server.  Otherwise, you should answer @samp{no} here.
-
-@end itemize
-
-@node nnmairix keyboard shortcuts
-@subsubsection nnmairix keyboard shortcuts
-
-In group mode:
-
-@table @kbd
-
-@item G b c
-@kindex G b c (Group)
-@findex nnmairix-create-server-and-default-group
-Creates @code{nnmairix} server and default search group for this server
-(@code{nnmairix-create-server-and-default-group}).  You should have done
-this by now (@pxref{Configuring nnmairix}).
-
-@item G b s
-@kindex G b s (Group)
-@findex nnmairix-search
-Prompts for query which is then sent to the mairix binary.  Search
-results are put into the default search group which is automatically
-displayed (@code{nnmairix-search}).
-
-@item G b m
-@kindex G b m (Group)
-@findex nnmairix-widget-search
-Allows you to create a mairix search or a permanent group more
-comfortably using graphical widgets, similar to a customization
-group.  Just try it to see how it works (@code{nnmairix-widget-search}).
-
-@item G b i
-@kindex G b i (Group)
-@findex nnmairix-search-interactive
-Another command for creating a mairix query more comfortably, but uses
-only the minibuffer (@code{nnmairix-search-interactive}).
-
-@item G b g
-@kindex G b g (Group)
-@findex nnmairix-create-search-group
-Creates a permanent group which is associated with a search query
-(@code{nnmairix-create-search-group}).  The @code{nnmairix} back end
-automatically calls mairix when you update this group with @kbd{g} or
-@kbd{M-g}.
-
-@item G b q
-@kindex G b q (Group)
-@findex nnmairix-group-change-query-this-group
-Changes the search query for the @code{nnmairix} group under cursor
-(@code{nnmairix-group-change-query-this-group}).
-
-@item G b t
-@kindex G b t (Group)
-@findex nnmairix-group-toggle-threads-this-group
-Toggles the 'threads' parameter for the @code{nnmairix} group under cursor,
-i.e.  if you want see the whole threads of the found messages
-(@code{nnmairix-group-toggle-threads-this-group}).
-
-@item G b u
-@kindex G b u (Group)
-@findex nnmairix-update-database
-@vindex nnmairix-mairix-update-options
-Calls mairix binary for updating the database
-(@code{nnmairix-update-database}).  The default parameters are @code{-F}
-and @code{-Q} for making this as fast as possible (see variable
-@code{nnmairix-mairix-update-options} for defining these default
-options).
-
-@item G b r
-@kindex G b r (Group)
-@findex nnmairix-group-toggle-readmarks-this-group
-Keep articles in this @code{nnmairix} group always read or unread, or leave the
-marks unchanged (@code{nnmairix-group-toggle-readmarks-this-group}).
-
-@item G b d
-@kindex G b d (Group)
-@findex nnmairix-group-delete-recreate-this-group
-Recreate @code{nnmairix} group on the ``real'' mail back end
-(@code{nnmairix-group-delete-recreate-this-group}).  You can do this if
-you always get wrong article counts with a @code{nnmairix} group.
-
-@item G b a
-@kindex G b a (Group)
-@findex nnmairix-group-toggle-allowfast-this-group
-Toggles the @code{allow-fast} parameters for group under cursor
-(@code{nnmairix-group-toggle-allowfast-this-group}).  The default
-behavior of @code{nnmairix} is to do a mairix search every time you
-update or enter the group.  With the @code{allow-fast} parameter set,
-mairix will only be called when you explicitly update the group, but not
-upon entering.  This makes entering the group faster, but it may also
-lead to dangling symlinks if something changed between updating and
-entering the group which is not yet in the mairix database.
-
-@item G b p
-@kindex G b p (Group)
-@findex nnmairix-group-toggle-propmarks-this-group
-Toggle marks propagation for this group
-(@code{nnmairix-group-toggle-propmarks-this-group}).  (@pxref{Propagating
-marks}).
-
-@item G b o
-@kindex G b o (Group)
-@findex nnmairix-propagate-marks
-Manually propagate marks (@code{nnmairix-propagate-marks}); needed only when
-@code{nnmairix-propagate-marks-upon-close} is set to @code{nil}.
-
-@end table
-
-In summary mode:
-
-@table @kbd
-
-@item $ m
-@kindex $ m (Summary)
-@findex nnmairix-widget-search-from-this-article
-Allows you to create a mairix query or group based on the current
-message using graphical widgets (same as @code{nnmairix-widget-search})
-(@code{nnmairix-widget-search-from-this-article}).
-
-@item $ g
-@kindex $ g (Summary)
-@findex nnmairix-create-search-group-from-message
-Interactively creates a new search group with query based on the current
-message, but uses the minibuffer instead of graphical widgets
-(@code{nnmairix-create-search-group-from-message}).
-
-@item $ t
-@kindex $ t (Summary)
-@findex nnmairix-search-thread-this-article
-Searches thread for the current article
-(@code{nnmairix-search-thread-this-article}).  This is effectively a
-shortcut for calling @code{nnmairix-search} with @samp{m:msgid} of the
-current article and enabled threads.
-
-@item $ f
-@kindex $ f (Summary)
-@findex nnmairix-search-from-this-article
-Searches all messages from sender of the current article
-(@code{nnmairix-search-from-this-article}).  This is a shortcut for
-calling @code{nnmairix-search} with @samp{f:From}.
-
-@item $ o
-@kindex $ o (Summary)
-@findex nnmairix-goto-original-article
-(Only in @code{nnmairix} groups!) Tries determine the group this article
-originally came from and displays the article in this group, so that
-e.g. replying to this article the correct posting styles/group
-parameters are applied (@code{nnmairix-goto-original-article}).  This
-function will use the registry if available, but can also parse the
-article file name as a fallback method.
-
-@item $ u
-@kindex $ u (Summary)
-@findex nnmairix-remove-tick-mark-original-article
-Remove possibly existing tick mark from original article
-(@code{nnmairix-remove-tick-mark-original-article}).  (@pxref{nnmairix
-tips and tricks}).
-
-@end table
-
-@node Propagating marks
-@subsubsection Propagating marks
-
-First of: you really need a patched mairix binary for using the marks
-propagation feature efficiently. Otherwise, you would have to update
-the mairix database all the time. You can get the patch at
-
-@uref{http://www.randomsample.de/mairix-maildir-patch.tar}
-
-You need the mairix v0.21 source code for this patch; everything else
-is explained in the accompanied readme file. If you don't want to use
-marks propagation, you don't have to apply these patches, but they also
-fix some annoyances regarding changing maildir flags, so it might still
-be useful to you.
-
-With the patched mairix binary, you can use @code{nnmairix} as an
-alternative to mail splitting (@pxref{Fancy Mail Splitting}). For
-example, instead of splitting all mails from @samp{david@@foobar.com}
-into a group, you can simply create a search group with the query
-@samp{f:david@@foobar.com}. This is actually what ``smart folders'' are
-all about: simply put everything in one mail folder and dynamically
-create searches instead of splitting. This is more flexible, since you
-can dynamically change your folders any time you want to. This also
-implies that you will usually read your mails in the @code{nnmairix}
-groups instead of your ``real'' mail groups.
-
-There is one problem, though: say you got a new mail from
-@samp{david@@foobar.com}; it will now show up in two groups, the
-``real'' group (your INBOX, for example) and in the @code{nnmairix}
-search group (provided you have updated the mairix database). Now you
-enter the @code{nnmairix} group and read the mail. The mail will be
-marked as read, but only in the @code{nnmairix} group---in the ``real''
-mail group it will be still shown as unread.
-
-You could now catch up the mail group (@pxref{Group Data}), but this is
-tedious and error prone, since you may overlook mails you don't have
-created @code{nnmairix} groups for. Of course, you could first use
-@code{nnmairix-goto-original-article} (@pxref{nnmairix keyboard
-shortcuts}) and then read the mail in the original group, but that's
-even more cumbersome.
-
-Clearly, the easiest way would be if marks could somehow be
-automatically set for the original article. This is exactly what
-@emph{marks propagation} is about.
-
-Marks propagation is deactivated by default. You can activate it for a
-certain @code{nnmairix} group with
-@code{nnmairix-group-toggle-propmarks-this-group} (bound to @kbd{G b
-p}). This function will warn you if you try to use it with your default
-search group; the reason is that the default search group is used for
-temporary searches, and it's easy to accidentally propagate marks from
-this group. However, you can ignore this warning if you really want to.
-
-With marks propagation enabled, all the marks you set in a @code{nnmairix}
-group should now be propagated to the original article. For example,
-you can now tick an article (by default with @kbd{!}) and this mark should
-magically be set for the original article, too.
-
-A few more remarks which you may or may not want to know:
-
-@vindex nnmairix-propagate-marks-upon-close
-Marks will not be set immediately, but only upon closing a group. This
-not only makes marks propagation faster, it also avoids problems with
-dangling symlinks when dealing with maildir files (since changing flags
-will change the file name). You can also control when to propagate marks
-via @code{nnmairix-propagate-marks-upon-close} (see the doc-string for
-details).
-
-Obviously, @code{nnmairix} will have to look up the original group for every
-article you want to set marks for. If available, @code{nnmairix} will first use
-the registry for determining the original group. The registry is very
-fast, hence you should really, really enable the registry when using
-marks propagation. If you don't have to worry about RAM and disc space,
-set @code{gnus-registry-max-entries} to a large enough value; to be on
-the safe side, choose roughly the amount of mails you index with mairix.
-
-@vindex nnmairix-only-use-registry
-If you don't want to use the registry or the registry hasn't seen the
-original article yet, @code{nnmairix} will use an additional mairix
-search for determining the file name of the article. This, of course, is
-way slower than the registry---if you set hundreds or even thousands of
-marks this way, it might take some time. You can avoid this situation by
-setting @code{nnmairix-only-use-registry} to t.
-
-Maybe you also want to propagate marks the other way round, i.e. if you
-tick an article in a "real" mail group, you'd like to have the same
-article in a @code{nnmairix} group ticked, too. For several good
-reasons, this can only be done efficiently if you use maildir. To
-immediately contradict myself, let me mention that it WON'T work with
-@code{nnmaildir}, since @code{nnmaildir} stores the marks externally and
-not in the file name. Therefore, propagating marks to @code{nnmairix}
-groups will usually only work if you use an IMAP server which uses
-maildir as its file format.
-
-@vindex nnmairix-propagate-marks-to-nnmairix-groups
-If you work with this setup, just set
-@code{nnmairix-propagate-marks-to-nnmairix-groups} to @code{t} and see what
-happens. If you don't like what you see, just set it to @code{nil} again. One
-problem might be that you get a wrong number of unread articles; this
-usually happens when you delete or expire articles in the original
-groups. When this happens, you can recreate the @code{nnmairix} group on the
-back end using @kbd{G b d}.
-
-@node nnmairix tips and tricks
-@subsubsection nnmairix tips and tricks
-
-@itemize
-@item
-Checking Mail
-
-@findex nnmairix-update-groups
-I put all my important mail groups at group level 1. The mairix groups
-have group level 5, so they do not get checked at start up (@pxref{Group
-Levels}).
-
-I use the following to check for mails:
-
-@lisp
-(defun my-check-mail-mairix-update (level)
-  (interactive "P")
-  ;; if no prefix given, set level=1
-  (gnus-group-get-new-news (or level 1))
-  (nnmairix-update-groups "mairixsearch" t t)
-  (gnus-group-list-groups))
-
-(define-key gnus-group-mode-map "g" 'my-check-mail-mairix-update)
-@end lisp
-
-Instead of @samp{"mairixsearch"} use the name of your @code{nnmairix}
-server. See the doc string for @code{nnmairix-update-groups} for
-details.
-
-@item
-Example: search group for ticked articles
-
-For example, you can create a group for all ticked articles, where the
-articles always stay unread:
-
-Hit @kbd{G b g}, enter group name (e.g. @samp{important}), use
-@samp{F:f} as query and do not include threads.
-
-Now activate marks propagation for this group by using @kbd{G b p}. Then
-activate the always-unread feature by using @kbd{G b r} twice.
-
-So far so good---but how do you remove the tick marks in the @code{nnmairix}
-group?  There are two options: You may simply use
-@code{nnmairix-remove-tick-mark-original-article} (bound to @kbd{$ u}) to remove
-tick marks from the original article. The other possibility is to set
-@code{nnmairix-propagate-marks-to-nnmairix-groups} to @code{t}, but see the above
-comments about this option.  If it works for you, the tick marks should
-also exist in the @code{nnmairix} group and you can remove them as usual,
-e.g. by marking an article as read.
-
-When you have removed a tick mark from the original article, this
-article should vanish from the @code{nnmairix} group after you have updated the
-mairix database and updated the group.  Fortunately, there is a function
-for doing exactly that: @code{nnmairix-update-groups}. See the previous code
-snippet and the doc string for details.
-
-@item
-Dealing with auto-subscription of mail groups
-
-As described before, all @code{nnmairix} groups are in fact stored on
-the mail back end in the form @samp{zz_mairix-<NAME>-<NUMBER>}. You can
-see them when you enter the back end server in the server buffer. You
-should not subscribe these groups! Unfortunately, these groups will
-usually get @emph{auto-subscribed} when you use @code{nnmaildir} or
-@code{nnml}, i.e. you will suddenly see groups of the form
-@samp{zz_mairix*} pop up in your group buffer. If this happens to you,
-simply kill these groups with C-k.  For avoiding this, turn off
-auto-subscription completely by setting the variable
-@code{gnus-auto-subscribed-groups} to @code{nil} (@pxref{Filtering New
-Groups}), or if you like to keep this feature use the following kludge
-for turning it off for all groups beginning with @samp{zz_}:
-
-@lisp
-(setq gnus-auto-subscribed-groups
-      "^\\(nnml\\|nnfolder\\|nnmbox\\|nnmh\\|nnbabyl\\|nnmaildir\\).*:\\([^z]\\|z$\\|\\z[^z]\\|zz$\\|zz[^_]\\|zz_$\\).*")
-@end lisp
-
-@end itemize
-
-@node nnmairix caveats
-@subsubsection nnmairix caveats
-
-@itemize
-@item
-You can create a secondary @code{nnml} server just for nnmairix, but then
-you have to explicitly set the corresponding server variable
-@code{nnml-get-new-mail} to @code{nil}.  Otherwise, new mail might get
-put into this secondary server (and would never show up again).  Here's
-an example server definition:
-
-@lisp
-(nnml "mairix" (nnml-directory "mairix") (nnml-get-new-mail nil))
-@end lisp
-
-(The @code{nnmaildir} back end also has a server variabe
-@code{get-new-mail}, but its default value is @code{nil}, so you don't
-have to explicitly set it if you use a @code{nnmaildir} server just for
-mairix.)
-
-@item
-If you use the Gnus registry: don't use the registry with
-@code{nnmairix} groups (put them in
-@code{gnus-registry-unfollowed-groups}).  Be @emph{extra careful} if
-you use @code{gnus-registry-split-fancy-with-parent}; mails which are
-split into @code{nnmairix} groups are usually gone for good as soon as
-you check the group for new mail (yes, it has happened to me...).
-
-@item
-Therefore: @emph{Never ever} put ``real'' mails into @code{nnmairix}
-groups (you shouldn't be able to, anyway).
-
-@item
-If you use the Gnus agent (@pxref{Gnus Unplugged}): don't agentize
-@code{nnmairix} groups (though I have no idea what happens if you do).
-
-@item
-mairix does only support us-ascii characters.
-
-@item
-@code{nnmairix} uses a rather brute force method to force Gnus to
-completely reread the group on the mail back end after mairix was
-called---it simply deletes and re-creates the group on the mail
-back end. So far, this has worked for me without any problems, and I
-don't see how @code{nnmairix} could delete other mail groups than its
-own, but anyway: you really should have a backup of your mail
-folders.
-
-@item
-All necessary information is stored in the group parameters
-(@pxref{Group Parameters}). This has the advantage that no active file
-is needed, but also implies that when you kill a @code{nnmairix} group,
-it is gone for good.
-
-@item
-@findex nnmairix-purge-old-groups
-If you create and kill a lot of @code{nnmairix} groups, the
-``zz_mairix-*'' groups will accumulate on the mail back end server. To
-delete old groups which are no longer needed, call
-@code{nnmairix-purge-old-groups}. Note that this assumes that you don't
-save any ``real'' mail in folders of the form
-@code{zz_mairix-<NAME>-<NUMBER>}. You can change the prefix of
-@code{nnmairix} groups by changing the variable
-@code{nnmairix-group-prefix}.
-
-@item
-The following only applies if you @emph{don't} use the mentioned patch
-for mairix (@pxref{Propagating marks}):
-
-A problem can occur when using @code{nnmairix} with maildir folders and
-comes with the fact that maildir stores mail flags like @samp{Seen} or
-@samp{Replied} by appending chars @samp{S} and @samp{R} to the message
-file name, respectively. This implies that currently you would have to
-update the mairix database not only when new mail arrives, but also when
-mail flags are changing. The same applies to new mails which are indexed
-while they are still in the @samp{new} folder but then get moved to
-@samp{cur} when Gnus has seen the mail. If you don't update the database
-after this has happened, a mairix query can lead to symlinks pointing to
-non-existing files. In Gnus, these messages will usually appear with
-``(none)'' entries in the header and can't be accessed. If this happens
-to you, using @kbd{G b u} and updating the group will usually fix this.
-
-@end itemize
-
 @node Misc Group Stuff
 @section Misc Group Stuff
 
@@ -6152,10 +5450,10 @@ Scroll the current article one line backward
 @findex gnus-summary-show-article
 @vindex gnus-summary-show-article-charset-alist
 (Re)fetch the current article (@code{gnus-summary-show-article}).  If
-given a prefix, fetch the current article, but don't run any of the
-article treatment functions.  If given a prefix twice (i.e., @kbd{C-u
-C-u g'}), show a completely ``raw'' article, just the way it came from
-the server.
+given a prefix, show a completely ``raw'' article, just the way it
+came from the server.  If given a prefix twice (i.e., @kbd{C-u C-u
+g'}), fetch the current article, but don't run any of the article
+treatment functions.
 
 @cindex charset, view article with different charset
 If given a numerical prefix, you can do semi-manual charset stuff.
@@ -13322,9 +12620,6 @@ messages in one file per month:
           (concat "mail." (format-time-string "%Y-%m")))))
 @end lisp
 
-@c (XEmacs 19.13 doesn't have @code{format-time-string}, so you'll have to
-@c use a different value for @code{gnus-message-archive-group} there.)
-
 Now, when you send a message off, it will be stored in the appropriate
 group.  (If you want to disable storing for just one particular message,
 you can just remove the @code{Gcc} header that has been inserted.)  The
@@ -13336,27 +12631,7 @@ if (using @kbd{G r} in the group buffer) to something
 nice---@samp{misc-mail-september-1995}, or whatever.  New messages will
 continue to be stored in the old (now empty) group.
 
-That's the default method of archiving sent messages.  Gnus offers a
-different way for the people who don't like the default method.  In that
-case you should set @code{gnus-message-archive-group} to @code{nil};
-this will disable archiving.
-
 @table @code
-@item gnus-outgoing-message-group
-@vindex gnus-outgoing-message-group
-All outgoing messages will be put in this group.  If you want to store
-all your outgoing mail and articles in the group @samp{nnml:archive},
-you set this variable to that value.  This variable can also be a list of
-group names.
-
-If you want to have greater control over what group to put each
-message in, you can set this variable to a function that checks the
-current newsgroup name and then returns a suitable group name (or list
-of names).
-
-This variable can be used instead of @code{gnus-message-archive-group},
-but the latter is the preferred method.
-
 @item gnus-gcc-mark-as-read
 @vindex gnus-gcc-mark-as-read
 If non-@code{nil}, automatically mark @code{Gcc} articles as read.
@@ -13840,6 +13115,11 @@ Add a new server (@code{gnus-server-add-server}).
 @findex gnus-server-edit-server
 Edit a server (@code{gnus-server-edit-server}).
 
+@item S
+@kindex S (Server)
+@findex gnus-server-show-server
+Show the definition of a server (@code{gnus-server-show-server}).
+
 @item SPACE
 @kindex SPACE (Server)
 @findex gnus-server-read-server
@@ -13894,6 +13174,9 @@ nnml (@pxref{Mail Spool}).  This removes gaps between article numbers,
 hence getting a correct total article count.
 
 @end table
+
+Some more commands for closing, disabling, and re-opening servers are
+listed in @ref{Unavailable Servers}.
 
 
 @node Example Methods
@@ -14448,7 +13731,12 @@ functions is also affected by commonly understood variables
 @findex nntp-open-network-stream
 @item nntp-open-network-stream
 This is the default, and simply connects to some port or other on the
-remote system.
+remote system.  If both Emacs and the server supports it, the
+connection will be upgraded to an encrypted @acronym{STARTTLS}
+connection automatically.
+
+@item network-only
+The same as the above, but don't do automatic @acronym{STARTTLS} upgrades.
 
 @findex nntp-open-tls-stream
 @item nntp-open-tls-stream
@@ -14882,12 +14170,17 @@ typical port would be @code{"imap"} or @code{"imaps"}.
 How @code{nnimap} should connect to the server.  Possible values are:
 
 @table @code
+@item undecided
+This is the default, and this first tries the @code{ssl} setting, and
+then tries the @code{network} setting.
+
 @item ssl
-This is the default, and this uses standard
-@acronym{TLS}/@acronym{SSL} connection.
+This uses standard @acronym{TLS}/@acronym{SSL} connections.
 
 @item network
-Non-encrypted and unsafe straight socket connection.
+Non-encrypted and unsafe straight socket connection, but will upgrade
+to encrypted @acronym{STARTTLS} if both Emacs and the server
+supports it.
 
 @item starttls
 Encrypted @acronym{STARTTLS} over the normal @acronym{IMAP} port.
@@ -21707,6 +21000,1071 @@ the new score, which should be an integer.
 
 Gnus will try to decay scores once a day.  If you haven't run Gnus for
 four days, Gnus will decay the scores four times, for instance.
+
+@node Searching
+@chapter Searching
+@cindex searching
+
+FIXME: Add a brief overview of Gnus search capabilities.  A brief
+comparison of nnir, nnmairix, contrib/gnus-namazu would be nice
+as well.
+
+This chapter describes tools for searching groups and servers for
+articles matching a query and then retrieving those articles. Gnus
+provides a simpler mechanism for searching through articles in a summary buffer 
+to find those matching a pattern. @xref{Searching for Articles}. 
+
+@menu
+* nnir::                     Searching with various engines.
+* nnmairix::                 Searching with Mairix.
+@end menu
+
+@node nnir
+@section nnir
+@cindex nnir
+
+This section describes how to use @code{nnir} to search for articles
+within gnus.
+
+@menu
+* What is nnir?::               What does @code{nnir} do?
+* Basic Usage::                 How to perform simple searches.
+* Setting up nnir::             How to set up @code{nnir}.
+@end menu
+
+@node What is nnir?
+@subsection What is nnir?
+
+@code{nnir} is a Gnus interface to a number of tools for searching
+through mail and news repositories. Different backends (like
+@code{nnimap} and @code{nntp}) work with different tools (called
+@dfn{engines} in @code{nnir} lingo), but all use the same basic search
+interface.
+
+The @code{nnimap} and @code{gmane} search engines should work with no
+configuration. Other engines require a local index that needs to be
+created and maintained outside of Gnus. 
+
+
+@node Basic Usage
+@subsection Basic Usage
+
+In the group buffer typing @kbd{G G} will search the group on the
+current line by calling @code{gnus-group-make-nnir-group}.  This prompts
+for a query string, creates an ephemeral @code{nnir} group containing
+the articles that match this query, and takes you to a summary buffer
+showing these articles. Articles may then be read, moved and deleted
+using the usual commands.
+
+The @code{nnir} group made in this way is an @code{ephemeral} group, and
+some changes are not permanent: aside from reading, moving, and
+deleting, you can't act on the original article. But there is an
+alternative: you can @emph{warp} to the original group for the article
+on the current line with @kbd{A W}, aka
+@code{gnus-warp-to-article}. Even better, the function
+@code{gnus-summary-refer-thread}, bound by default in summary buffers to
+@kbd{A T}, will first warp to the original group before it works its
+magic and includes all the articles in the thread. From here you can
+read, move and delete articles, but also copy them, alter article marks,
+whatever. Go nuts.
+
+You say you want to search more than just the group on the current line?
+No problem: just process-mark the groups you want to search. You want
+even more? Calling for an nnir search with the cursor on a topic heading
+will search all the groups under that heading.
+
+Still not enough? OK, in the server buffer
+@code{gnus-group-make-nnir-group} (now bound to @kbd{G}) will search all
+groups from the server on the current line. Too much? Want to ignore
+certain groups when searching, like spam groups? Just customize
+@code{nnir-ignored-newsgroups}.
+
+One more thing: individual search engines may have special search
+features. You can access these special features by giving a prefix-arg
+to @code{gnus-group-make-nnir-group}. If you are searching multiple
+groups with different search engines you will be prompted for the
+special search features for each engine separately. 
+
+
+@node Setting up nnir
+@subsection Setting up nnir
+
+To set up nnir you may need to do some prep work. Firstly, you may need
+to configure the search engines you plan to use. Some of them, like
+@code{imap} and @code{gmane}, need no special configuration. Others,
+like @code{namazu} and @code{swish}, require configuration as described
+below. Secondly, you need to associate a search engine with a server or
+a backend.
+
+If you just want to use the @code{imap} engine to search @code{nnimap}
+servers, and the @code{gmane} engine to search @code{gmane} then you
+don't have to do anything. But you might want to read the details of the
+query language anyway.
+
+@menu
+* Associating Engines::                 How to associate engines.
+* The imap Engine::                     Imap configuration and usage.
+* The gmane Engine::                    Gmane configuration and usage.
+* The swish++ Engine::                  Swish++ configuration and usage.
+* The swish-e Engine::                  Swish-e configuration and usage.
+* The namazu Engine::                   Namazu configuration and usage.
+* The hyrex Engine::                    Hyrex configuration and usage.
+* Customizations::                      User customizable settings.
+@end menu
+
+@node Associating Engines
+@subsubsection Associating Engines
+
+
+When searching a group, @code{nnir} needs to know which search engine to
+use. You can configure a given server to use a particular engine by
+setting the server variable @code{nnir-search-engine} to the engine
+name. For example to use the @code{namazu} engine to search the server
+named @code{home} you can use
+
+@lisp
+(setq gnus-secondary-select-methods
+      '((nnml "home" 
+         (nnimap-address "localhost")
+         (nnir-search-engine namazu))))
+@end lisp
+
+Alternatively you might want to use a particular engine for all servers
+with a given backend. For example, you might want to use the @code{imap}
+engine for all servers using the @code{nnimap} backend. In this case you
+can customize the variable @code{nnir-method-default-engines}. This is
+an alist of pairs of the form @code{(backend . engine)}. By default this
+variable is set to use the @code{imap} engine for all servers using the
+@code{nnimap} backend, and the @code{gmane} backend for @code{nntp}
+servers. (Don't worry, the @code{gmane} search engine won't actually try
+to search non-gmane @code{nntp} servers.) But if you wanted to use
+@code{namazu} for all your servers with an @code{nnimap} backend you
+could change this to
+
+@lisp
+'((nnimap . namazu)
+  (nntp . gmane))
+@end lisp
+
+@node The imap Engine
+@subsubsection The imap Engine
+
+The @code{imap} engine requires no configuration. 
+
+Queries using the @code{imap} engine follow a simple query language. 
+The search is always case-insensitive and supports the following
+features (inspired by the Google search input language):
+
+@table @samp
+
+@item Boolean query operators
+AND, OR, and NOT are supported, and parentheses can be used to control
+operator precedence, e.g. (emacs OR xemacs) AND linux. Note that
+operators must be written with all capital letters to be
+recognised. Also preceding a term with a - sign is equivalent to NOT
+term.
+
+@item Automatic AND queries 
+If you specify multiple words then they will be treated as an AND
+expression intended to match all components.
+
+@item Phrase searches
+If you wrap your query in double-quotes then it will be treated as a
+literal string.
+
+@end table
+
+By default the whole message will be searched. The query can be limited
+to a specific part of a message by using a prefix-arg. After inputting
+the query this will prompt (with completion) for a message part.
+Choices include ``Whole message'', ``Subject'', ``From'', and
+``To''. Any unrecognized input is interpreted as a header name. For
+example, typing @kbd{Message-ID} in response to this prompt will limit
+the query to the Message-ID header.
+
+Finally selecting ``Imap'' will interpret the query as a raw
+@acronym{IMAP} search query. The format of such queries can be found in
+RFC3501.
+
+If you don't like the default of searching whole messages you can
+customize @code{nnir-imap-default-search-key}. For example to use
+@acronym{IMAP} queries by default
+
+@lisp
+(setq nnir-imap-default-search-key "Imap")
+@end lisp
+
+@node The gmane Engine
+@subsubsection The gmane Engine
+
+The @code{gmane} engine requires no configuration. 
+
+Gmane queries follow a simple query language:
+
+@table @samp
+@item Boolean query operators
+AND, OR, NOT (or AND NOT), and XOR are supported, and brackets can be
+used to control operator precedence, e.g. (emacs OR xemacs) AND linux.
+Note that operators must be written with all capital letters to be
+recognised.
+
+@item Required and excluded terms
++ and - can be used to require or exclude terms, e.g. football -american
+
+@item Unicode handling 
+The search engine converts all text to utf-8, so searching should work
+in any language.
+
+@item Stopwords 
+Common English words (like 'the' and 'a') are ignored by default. You
+can override this by prefixing such words with a + (e.g. +the) or
+enclosing the word in quotes (e.g. "the").
+
+@end table
+
+The query can be limited to articles by a specific author using a
+prefix-arg. After inputting the query this will prompt for an author
+name (or part of a name) to match.
+
+@node The swish++ Engine
+@subsubsection The swish++ Engine
+
+FIXEM: Say something more here.
+
+Documentation for swish++ may be found at the swish++ sourceforge page:
+@uref{http://swishplusplus.sourceforge.net}
+
+@table @code
+
+@item nnir-swish++-program
+The name of the swish++ executable. Defaults to @code{search}
+
+@item nnir-swish++-additional-switches
+A list of strings to be given as additional arguments to
+swish++. @code{nil} by default.
+
+@item nnir-swish++-remove-prefix
+The prefix to remove from each file name returned by swish++ in order
+to get a group name. By default this is @code{$HOME/Mail}.
+
+@end table
+
+@node The swish-e Engine
+@subsubsection The swish-e Engine
+
+FIXEM: Say something more here.
+
+Documentation for swish-e may be found at the swish-e homepage
+@uref{http://swish-e.org}
+
+@table @code
+
+@item nnir-swish-e-program
+The name of the swish-e search program. Defaults to @code{swish-e}.
+
+@item nnir-swish-e-additional-switches
+A list of strings to be given as additional arguments to
+swish-e. @code{nil} by default.
+
+@item nnir-swish-e-remove-prefix
+The prefix to remove from each file name returned by swish-e in order
+to get a group name. By default this is @code{$HOME/Mail}.
+
+@end table
+
+@node The namazu Engine
+@subsubsection The namazu Engine
+
+Using the namazu engine requires creating and maintaining index files.
+One directory should contain all the index files, and nnir must be told
+where to find them by setting the @code{nnir-namazu-index-directory}
+variable.  
+
+To work correctly the @code{nnir-namazu-remove-prefix} variable must
+also be correct. This is the prefix to remove from each file name
+returned by Namazu in order to get a proper group name (albeit with `/'
+instead of `.').
+
+For example, suppose that Namazu returns file names such as
+@samp{/home/john/Mail/mail/misc/42}.  For this example, use the
+following setting: @code{(setq nnir-namazu-remove-prefix
+"/home/john/Mail/")} Note the trailing slash.  Removing this prefix from
+the directory gives @samp{mail/misc/42}.  @code{nnir} knows to remove
+the @samp{/42} and to replace @samp{/} with @samp{.} to arrive at the
+correct group name @samp{mail.misc}.
+
+Extra switches may be passed to the namazu search command by setting the
+variable @code{nnir-namazu-additional-switches}.  It is particularly
+important not to pass any any switches to namazu that will change the
+output format.  Good switches to use include `--sort', `--ascending',
+`--early' and `--late'.  Refer to the Namazu documentation for further
+information on valid switches.
+
+Mail must first be indexed  with the `mknmz' program.  Read the documentation
+for namazu to create a configuration file. Here is an example:
+
+@cartouche
+@example
+ package conf;  # Don't remove this line!
+
+ # Paths which will not be indexed. Don't use `^' or `$' anchors.
+ $EXCLUDE_PATH = "spam|sent";
+
+ # Header fields which should be searchable. case-insensitive
+ $REMAIN_HEADER = "from|date|message-id|subject";
+
+ # Searchable fields. case-insensitive
+ $SEARCH_FIELD = "from|date|message-id|subject";
+
+ # The max length of a word.
+ $WORD_LENG_MAX = 128;
+
+ # The max length of a field.
+ $MAX_FIELD_LENGTH = 256;
+@end example
+@end cartouche
+
+For this example, mail is stored in the directories @samp{~/Mail/mail/},
+@samp{~/Mail/lists/} and @samp{~/Mail/archive/}, so to index them go to
+the index directory set in @code{nnir-namazu-index-directory} and issue
+the following command:
+
+@example
+mknmz --mailnews ~/Mail/archive/ ~/Mail/mail/ ~/Mail/lists/
+@end example
+
+For maximum searching efficiency you might want to have a cron job run
+this command periodically, say every four hours.
+
+@node The hyrex Engine
+@subsubsection The hyrex Engine
+This engine is obsolete.
+
+@node Customizations
+@subsubsection Custimozations
+
+@table @code
+
+@item nnir-method-default-engines
+Alist of server backend - search engine pairs. The default associations
+are
+@example
+(nnimap . imap)
+(nntp . gmane)
+@end example
+
+@item nnir-ignored-newsgroups
+A regexp to match newsgroups in the active file that should be skipped
+when searching all groups on a server.
+
+@item nnir-summary-line-format
+The format specification to be used for lines in an nnir summary buffer.
+All the items from `gnus-summary-line-format' are available, along with
+three items unique to nnir summary buffers:
+
+@example
+%Z    Search retrieval score value (integer)
+%G    Article original full group name (string)
+%g    Article original short group name (string)
+@end example
+
+If nil (the default) this will use @code{gnus-summary-line-format}.
+
+@item nnir-retrieve-headers-override-function
+If non-nil, a function that retrieves article headers rather than using
+the gnus built-in function.  This function takes an article list and
+group as arguments and populates the `nntp-server-buffer' with the
+retrieved headers. It should then return either 'nov or 'headers
+indicating the retrieved header format. Failure to retrieve headers
+should return @code{nil}
+
+If this variable is nil, or if the provided function returns nil for a
+search result, @code{gnus-retrieve-headers} will be called instead."
+
+
+@end table
+
+
+@node nnmairix
+@section nnmairix
+
+@cindex mairix
+@cindex nnmairix
+This paragraph describes how to set up mairix and the back end
+@code{nnmairix} for indexing and searching your mail from within
+Gnus.  Additionally, you can create permanent ``smart'' groups which are
+bound to mairix searches and are automatically updated.
+
+@menu
+* About mairix::                About the mairix mail search engine
+* nnmairix requirements::       What you will need for using nnmairix
+* What nnmairix does::          What does nnmairix actually do?
+* Setting up mairix::           Set up your mairix installation
+* Configuring nnmairix::        Set up the nnmairix back end
+* nnmairix keyboard shortcuts:: List of available keyboard shortcuts
+* Propagating marks::           How to propagate marks from nnmairix groups
+* nnmairix tips and tricks::    Some tips, tricks and examples
+* nnmairix caveats::            Some more stuff you might want to know
+@end menu
+
+@c FIXME: The markup in this section might need improvement.
+@c E.g. adding @samp, @var, @file, @command, etc.
+@c Cf. (info "(texinfo)Indicating")
+
+@node About mairix
+@subsection About mairix
+
+Mairix is a tool for indexing and searching words in locally stored
+mail.  It was written by Richard Curnow and is licensed under the
+GPL.  Mairix comes with most popular GNU/Linux distributions, but it also
+runs under Windows (with cygwin), Mac OS X and Solaris.  The homepage can
+be found at
+@uref{http://www.rpcurnow.force9.co.uk/mairix/index.html}
+
+Though mairix might not be as flexible as other search tools like
+swish++ or namazu, which you can use via the @code{nnir} back end, it
+has the prime advantage of being incredibly fast.  On current systems, it
+can easily search through headers and message bodies of thousands and
+thousands of mails in well under a second.  Building the database
+necessary for searching might take a minute or two, but only has to be
+done once fully.  Afterwards, the updates are done incrementally and
+therefore are really fast, too.  Additionally, mairix is very easy to set
+up.
+
+For maximum speed though, mairix should be used with mails stored in
+@code{Maildir} or @code{MH} format (this includes the @code{nnml} back
+end), although it also works with mbox.  Mairix presents the search
+results by populating a @emph{virtual} maildir/MH folder with symlinks
+which point to the ``real'' message files (if mbox is used, copies are
+made).  Since mairix already presents search results in such a virtual
+mail folder, it is very well suited for using it as an external program
+for creating @emph{smart} mail folders, which represent certain mail
+searches.
+
+@node nnmairix requirements
+@subsection nnmairix requirements
+
+Mairix searches local mail---that means, mairix absolutely must have
+direct access to your mail folders.  If your mail resides on another
+server (e.g. an @acronym{IMAP} server) and you happen to have shell
+access, @code{nnmairix} supports running mairix remotely, e.g. via ssh.
+
+Additionally, @code{nnmairix} only supports the following Gnus back
+ends: @code{nnml}, @code{nnmaildir}, and @code{nnimap}.  You must use
+one of these back ends for using @code{nnmairix}.  Other back ends, like
+@code{nnmbox}, @code{nnfolder} or @code{nnmh}, won't work.
+
+If you absolutely must use mbox and still want to use @code{nnmairix},
+you can set up a local @acronym{IMAP} server, which you then access via
+@code{nnimap}.  This is a rather massive setup for accessing some mbox
+files, so just change to MH or Maildir already...  However, if you're
+really, really passionate about using mbox, you might want to look into
+the package @file{mairix.el}, which comes with Emacs 23.
+
+@node What nnmairix does
+@subsection What nnmairix does
+
+The back end @code{nnmairix} enables you to call mairix from within Gnus,
+either to query mairix with a search term or to update the
+database.  While visiting a message in the summary buffer, you can use
+several pre-defined shortcuts for calling mairix, e.g. to quickly
+search for all mails from the sender of the current message or to
+display the whole thread associated with the message, even if the
+mails are in different folders.
+
+Additionally, you can create permanent @code{nnmairix} groups which are bound
+to certain mairix searches.  This way, you can easily create a group
+containing mails from a certain sender, with a certain subject line or
+even for one specific thread based on the Message-ID.  If you check for
+new mail in these folders (e.g. by pressing @kbd{g} or @kbd{M-g}), they
+automatically update themselves by calling mairix.
+
+You might ask why you need @code{nnmairix} at all, since mairix already
+creates the group, populates it with links to the mails so that you can
+then access it with Gnus, right?  Well, this @emph{might} work, but often
+does not---at least not without problems.  Most probably you will get
+strange article counts, and sometimes you might see mails which Gnus
+claims have already been canceled and are inaccessible.  This is due to
+the fact that Gnus isn't really amused when things are happening behind
+its back.  Another problem can be the mail back end itself, e.g. if you
+use mairix with an @acronym{IMAP} server (I had Dovecot complaining
+about corrupt index files when mairix changed the contents of the search
+group).  Using @code{nnmairix} should circumvent these problems.
+
+@code{nnmairix} is not really a mail back end---it's actually more like
+a wrapper, sitting between a ``real'' mail back end where mairix stores
+the searches and the Gnus front end.  You can choose between three
+different mail back ends for the mairix folders: @code{nnml},
+@code{nnmaildir} or @code{nnimap}.  @code{nnmairix} will call the mairix
+binary so that the search results are stored in folders named
+@code{zz_mairix-<NAME>-<NUMBER>} on this mail back end, but it will
+present these folders in the Gnus front end only with @code{<NAME>}.
+You can use an existing mail back end where you already store your mail,
+but if you're uncomfortable with @code{nnmairix} creating new mail
+groups alongside your other mail, you can also create e.g. a new
+@code{nnmaildir} or @code{nnml} server exclusively for mairix, but then
+make sure those servers do not accidentally receive your new mail
+(@pxref{nnmairix caveats}).  A special case exists if you want to use
+mairix remotely on an IMAP server with @code{nnimap}---here the mairix
+folders and your other mail must be on the same @code{nnimap} back end.
+
+@node Setting up mairix
+@subsection Setting up mairix
+
+First: create a backup of your mail folders (@pxref{nnmairix caveats}).
+
+Setting up mairix is easy: simply create a @file{.mairixrc} file with
+(at least) the following entries:
+
+@example
+# Your Maildir/MH base folder
+base=~/Maildir
+@end example
+
+This is the base folder for your mails.  All the following directories
+are relative to this base folder.  If you want to use @code{nnmairix}
+with @code{nnimap}, this base directory has to point to the mail
+directory where the @acronym{IMAP} server stores the mail folders!
+
+@example
+maildir= ... your maildir folders which should be indexed ...
+mh= ... your nnml/mh folders which should be indexed ...
+mbox = ... your mbox files which should be indexed ...
+@end example
+
+This specifies all your mail folders and mbox files (relative to the
+base directory!) you want to index with mairix.  Note that the
+@code{nnml} back end saves mails in MH format, so you have to put those
+directories in the @code{mh} line.  See the example at the end of this
+section and mairixrc's man-page for further details.
+
+@example
+omit=zz_mairix-*
+@end example
+
+@vindex nnmairix-group-prefix
+This should make sure that you don't accidentally index the mairix
+search results.  You can change the prefix of these folders with the
+variable @code{nnmairix-group-prefix}.
+
+@example
+mformat= ... 'maildir' or 'mh' ...
+database= ... location of database file ...
+@end example
+
+The @code{format} setting specifies the output format for the mairix
+search folder.  Set this to @code{mh} if you want to access search results
+with @code{nnml}.  Otherwise choose @code{maildir}.
+
+To summarize, here is my shortened @file{.mairixrc} file as an example:
+
+@example
+base=~/Maildir
+maildir=.personal:.work:.logcheck:.sent
+mh=../Mail/nnml/*...
+mbox=../mboxmail/mailarchive_year*
+mformat=maildir
+omit=zz_mairix-*
+database=~/.mairixdatabase
+@end example
+
+In this case, the base directory is @file{~/Maildir}, where all my Maildir
+folders are stored.  As you can see, the folders are separated by
+colons.  If you wonder why every folder begins with a dot: this is
+because I use Dovecot as @acronym{IMAP} server, which again uses
+@code{Maildir++} folders.  For testing nnmairix, I also have some
+@code{nnml} mail, which is saved in @file{~/Mail/nnml}.  Since this has
+to be specified relative to the @code{base} directory, the @code{../Mail}
+notation is needed.  Note that the line ends in @code{*...}, which means
+to recursively scan all files under this directory.  Without the three
+dots, the wildcard @code{*} will not work recursively.  I also have some
+old mbox files with archived mail lying around in @file{~/mboxmail}.
+The other lines should be obvious.
+
+See the man page for @code{mairixrc} for details and further options,
+especially regarding wildcard usage, which may be a little different
+than you are used to.
+
+Now simply call @code{mairix} to create the index for the first time.
+Note that this may take a few minutes, but every following index will do
+the updates incrementally and hence is very fast.
+
+@node Configuring nnmairix
+@subsection Configuring nnmairix
+
+In group mode, type @kbd{G b c}
+(@code{nnmairix-create-server-and-default-group}).  This will ask you for all
+necessary information and create a @code{nnmairix} server as a foreign
+server.  You will have to specify the following:
+
+@itemize @bullet
+
+@item
+The @strong{name} of the @code{nnmairix} server---choose whatever you
+want.
+
+@item
+The name of the @strong{back end server} where mairix should store its
+searches.  This must be a full server name, like @code{nnml:mymail}.
+Just hit @kbd{TAB} to see the available servers.  Currently, servers
+which are accessed through @code{nnmaildir}, @code{nnimap} and
+@code{nnml} are supported.  As explained above, for locally stored
+mails, this can be an existing server where you store your mails.
+However, you can also create e.g. a new @code{nnmaildir} or @code{nnml}
+server exclusively for @code{nnmairix} in your secondary select methods
+(@pxref{Finding the News}).  If you use a secondary @code{nnml} server
+just for mairix, make sure that you explicitly set the server variable
+@code{nnml-get-new-mail} to @code{nil}, or you might lose mail
+(@pxref{nnmairix caveats}).  If you want to use mairix remotely on an
+@acronym{IMAP} server, you have to choose the corresponding
+@code{nnimap} server here.
+
+@item
+@vindex nnmairix-mairix-search-options
+The @strong{command} to call the mairix binary.  This will usually just
+be @code{mairix}, but you can also choose something like @code{ssh
+SERVER mairix} if you want to call mairix remotely, e.g. on your
+@acronym{IMAP} server.  If you want to add some default options to
+mairix, you could do this here, but better use the variable
+@code{nnmairix-mairix-search-options} instead.
+
+@item
+The name of the @strong{default search group}.  This will be the group
+where all temporary mairix searches are stored, i.e. all searches which
+are not bound to permanent @code{nnmairix} groups.  Choose whatever you
+like.
+
+@item
+If the mail back end is @code{nnimap} or @code{nnmaildir}, you will be
+asked if you work with @strong{Maildir++}, i.e. with hidden maildir
+folders (=beginning with a dot).  For example, you have to answer
+@samp{yes} here if you work with the Dovecot @acronym{IMAP}
+server.  Otherwise, you should answer @samp{no} here.
+
+@end itemize
+
+@node nnmairix keyboard shortcuts
+@subsection nnmairix keyboard shortcuts
+
+In group mode:
+
+@table @kbd
+
+@item G b c
+@kindex G b c (Group)
+@findex nnmairix-create-server-and-default-group
+Creates @code{nnmairix} server and default search group for this server
+(@code{nnmairix-create-server-and-default-group}).  You should have done
+this by now (@pxref{Configuring nnmairix}).
+
+@item G b s
+@kindex G b s (Group)
+@findex nnmairix-search
+Prompts for query which is then sent to the mairix binary.  Search
+results are put into the default search group which is automatically
+displayed (@code{nnmairix-search}).
+
+@item G b m
+@kindex G b m (Group)
+@findex nnmairix-widget-search
+Allows you to create a mairix search or a permanent group more
+comfortably using graphical widgets, similar to a customization
+group.  Just try it to see how it works (@code{nnmairix-widget-search}).
+
+@item G b i
+@kindex G b i (Group)
+@findex nnmairix-search-interactive
+Another command for creating a mairix query more comfortably, but uses
+only the minibuffer (@code{nnmairix-search-interactive}).
+
+@item G b g
+@kindex G b g (Group)
+@findex nnmairix-create-search-group
+Creates a permanent group which is associated with a search query
+(@code{nnmairix-create-search-group}).  The @code{nnmairix} back end
+automatically calls mairix when you update this group with @kbd{g} or
+@kbd{M-g}.
+
+@item G b q
+@kindex G b q (Group)
+@findex nnmairix-group-change-query-this-group
+Changes the search query for the @code{nnmairix} group under cursor
+(@code{nnmairix-group-change-query-this-group}).
+
+@item G b t
+@kindex G b t (Group)
+@findex nnmairix-group-toggle-threads-this-group
+Toggles the 'threads' parameter for the @code{nnmairix} group under cursor,
+i.e.  if you want see the whole threads of the found messages
+(@code{nnmairix-group-toggle-threads-this-group}).
+
+@item G b u
+@kindex G b u (Group)
+@findex nnmairix-update-database
+@vindex nnmairix-mairix-update-options
+Calls mairix binary for updating the database
+(@code{nnmairix-update-database}).  The default parameters are @code{-F}
+and @code{-Q} for making this as fast as possible (see variable
+@code{nnmairix-mairix-update-options} for defining these default
+options).
+
+@item G b r
+@kindex G b r (Group)
+@findex nnmairix-group-toggle-readmarks-this-group
+Keep articles in this @code{nnmairix} group always read or unread, or leave the
+marks unchanged (@code{nnmairix-group-toggle-readmarks-this-group}).
+
+@item G b d
+@kindex G b d (Group)
+@findex nnmairix-group-delete-recreate-this-group
+Recreate @code{nnmairix} group on the ``real'' mail back end
+(@code{nnmairix-group-delete-recreate-this-group}).  You can do this if
+you always get wrong article counts with a @code{nnmairix} group.
+
+@item G b a
+@kindex G b a (Group)
+@findex nnmairix-group-toggle-allowfast-this-group
+Toggles the @code{allow-fast} parameters for group under cursor
+(@code{nnmairix-group-toggle-allowfast-this-group}).  The default
+behavior of @code{nnmairix} is to do a mairix search every time you
+update or enter the group.  With the @code{allow-fast} parameter set,
+mairix will only be called when you explicitly update the group, but not
+upon entering.  This makes entering the group faster, but it may also
+lead to dangling symlinks if something changed between updating and
+entering the group which is not yet in the mairix database.
+
+@item G b p
+@kindex G b p (Group)
+@findex nnmairix-group-toggle-propmarks-this-group
+Toggle marks propagation for this group
+(@code{nnmairix-group-toggle-propmarks-this-group}).  (@pxref{Propagating
+marks}).
+
+@item G b o
+@kindex G b o (Group)
+@findex nnmairix-propagate-marks
+Manually propagate marks (@code{nnmairix-propagate-marks}); needed only when
+@code{nnmairix-propagate-marks-upon-close} is set to @code{nil}.
+
+@end table
+
+In summary mode:
+
+@table @kbd
+
+@item $ m
+@kindex $ m (Summary)
+@findex nnmairix-widget-search-from-this-article
+Allows you to create a mairix query or group based on the current
+message using graphical widgets (same as @code{nnmairix-widget-search})
+(@code{nnmairix-widget-search-from-this-article}).
+
+@item $ g
+@kindex $ g (Summary)
+@findex nnmairix-create-search-group-from-message
+Interactively creates a new search group with query based on the current
+message, but uses the minibuffer instead of graphical widgets
+(@code{nnmairix-create-search-group-from-message}).
+
+@item $ t
+@kindex $ t (Summary)
+@findex nnmairix-search-thread-this-article
+Searches thread for the current article
+(@code{nnmairix-search-thread-this-article}).  This is effectively a
+shortcut for calling @code{nnmairix-search} with @samp{m:msgid} of the
+current article and enabled threads.
+
+@item $ f
+@kindex $ f (Summary)
+@findex nnmairix-search-from-this-article
+Searches all messages from sender of the current article
+(@code{nnmairix-search-from-this-article}).  This is a shortcut for
+calling @code{nnmairix-search} with @samp{f:From}.
+
+@item $ o
+@kindex $ o (Summary)
+@findex nnmairix-goto-original-article
+(Only in @code{nnmairix} groups!) Tries determine the group this article
+originally came from and displays the article in this group, so that
+e.g. replying to this article the correct posting styles/group
+parameters are applied (@code{nnmairix-goto-original-article}).  This
+function will use the registry if available, but can also parse the
+article file name as a fallback method.
+
+@item $ u
+@kindex $ u (Summary)
+@findex nnmairix-remove-tick-mark-original-article
+Remove possibly existing tick mark from original article
+(@code{nnmairix-remove-tick-mark-original-article}).  (@pxref{nnmairix
+tips and tricks}).
+
+@end table
+
+@node Propagating marks
+@subsection Propagating marks
+
+First of: you really need a patched mairix binary for using the marks
+propagation feature efficiently. Otherwise, you would have to update
+the mairix database all the time. You can get the patch at
+
+@uref{http://www.randomsample.de/mairix-maildir-patch.tar}
+
+You need the mairix v0.21 source code for this patch; everything else
+is explained in the accompanied readme file. If you don't want to use
+marks propagation, you don't have to apply these patches, but they also
+fix some annoyances regarding changing maildir flags, so it might still
+be useful to you.
+
+With the patched mairix binary, you can use @code{nnmairix} as an
+alternative to mail splitting (@pxref{Fancy Mail Splitting}). For
+example, instead of splitting all mails from @samp{david@@foobar.com}
+into a group, you can simply create a search group with the query
+@samp{f:david@@foobar.com}. This is actually what ``smart folders'' are
+all about: simply put everything in one mail folder and dynamically
+create searches instead of splitting. This is more flexible, since you
+can dynamically change your folders any time you want to. This also
+implies that you will usually read your mails in the @code{nnmairix}
+groups instead of your ``real'' mail groups.
+
+There is one problem, though: say you got a new mail from
+@samp{david@@foobar.com}; it will now show up in two groups, the
+``real'' group (your INBOX, for example) and in the @code{nnmairix}
+search group (provided you have updated the mairix database). Now you
+enter the @code{nnmairix} group and read the mail. The mail will be
+marked as read, but only in the @code{nnmairix} group---in the ``real''
+mail group it will be still shown as unread.
+
+You could now catch up the mail group (@pxref{Group Data}), but this is
+tedious and error prone, since you may overlook mails you don't have
+created @code{nnmairix} groups for. Of course, you could first use
+@code{nnmairix-goto-original-article} (@pxref{nnmairix keyboard
+shortcuts}) and then read the mail in the original group, but that's
+even more cumbersome.
+
+Clearly, the easiest way would be if marks could somehow be
+automatically set for the original article. This is exactly what
+@emph{marks propagation} is about.
+
+Marks propagation is deactivated by default. You can activate it for a
+certain @code{nnmairix} group with
+@code{nnmairix-group-toggle-propmarks-this-group} (bound to @kbd{G b
+p}). This function will warn you if you try to use it with your default
+search group; the reason is that the default search group is used for
+temporary searches, and it's easy to accidentally propagate marks from
+this group. However, you can ignore this warning if you really want to.
+
+With marks propagation enabled, all the marks you set in a @code{nnmairix}
+group should now be propagated to the original article. For example,
+you can now tick an article (by default with @kbd{!}) and this mark should
+magically be set for the original article, too.
+
+A few more remarks which you may or may not want to know:
+
+@vindex nnmairix-propagate-marks-upon-close
+Marks will not be set immediately, but only upon closing a group. This
+not only makes marks propagation faster, it also avoids problems with
+dangling symlinks when dealing with maildir files (since changing flags
+will change the file name). You can also control when to propagate marks
+via @code{nnmairix-propagate-marks-upon-close} (see the doc-string for
+details).
+
+Obviously, @code{nnmairix} will have to look up the original group for every
+article you want to set marks for. If available, @code{nnmairix} will first use
+the registry for determining the original group. The registry is very
+fast, hence you should really, really enable the registry when using
+marks propagation. If you don't have to worry about RAM and disc space,
+set @code{gnus-registry-max-entries} to a large enough value; to be on
+the safe side, choose roughly the amount of mails you index with mairix.
+
+@vindex nnmairix-only-use-registry
+If you don't want to use the registry or the registry hasn't seen the
+original article yet, @code{nnmairix} will use an additional mairix
+search for determining the file name of the article. This, of course, is
+way slower than the registry---if you set hundreds or even thousands of
+marks this way, it might take some time. You can avoid this situation by
+setting @code{nnmairix-only-use-registry} to t.
+
+Maybe you also want to propagate marks the other way round, i.e. if you
+tick an article in a "real" mail group, you'd like to have the same
+article in a @code{nnmairix} group ticked, too. For several good
+reasons, this can only be done efficiently if you use maildir. To
+immediately contradict myself, let me mention that it WON'T work with
+@code{nnmaildir}, since @code{nnmaildir} stores the marks externally and
+not in the file name. Therefore, propagating marks to @code{nnmairix}
+groups will usually only work if you use an IMAP server which uses
+maildir as its file format.
+
+@vindex nnmairix-propagate-marks-to-nnmairix-groups
+If you work with this setup, just set
+@code{nnmairix-propagate-marks-to-nnmairix-groups} to @code{t} and see what
+happens. If you don't like what you see, just set it to @code{nil} again. One
+problem might be that you get a wrong number of unread articles; this
+usually happens when you delete or expire articles in the original
+groups. When this happens, you can recreate the @code{nnmairix} group on the
+back end using @kbd{G b d}.
+
+@node nnmairix tips and tricks
+@subsection nnmairix tips and tricks
+
+@itemize
+@item
+Checking Mail
+
+@findex nnmairix-update-groups
+I put all my important mail groups at group level 1. The mairix groups
+have group level 5, so they do not get checked at start up (@pxref{Group
+Levels}).
+
+I use the following to check for mails:
+
+@lisp
+(defun my-check-mail-mairix-update (level)
+  (interactive "P")
+  ;; if no prefix given, set level=1
+  (gnus-group-get-new-news (or level 1))
+  (nnmairix-update-groups "mairixsearch" t t)
+  (gnus-group-list-groups))
+
+(define-key gnus-group-mode-map "g" 'my-check-mail-mairix-update)
+@end lisp
+
+Instead of @samp{"mairixsearch"} use the name of your @code{nnmairix}
+server. See the doc string for @code{nnmairix-update-groups} for
+details.
+
+@item
+Example: search group for ticked articles
+
+For example, you can create a group for all ticked articles, where the
+articles always stay unread:
+
+Hit @kbd{G b g}, enter group name (e.g. @samp{important}), use
+@samp{F:f} as query and do not include threads.
+
+Now activate marks propagation for this group by using @kbd{G b p}. Then
+activate the always-unread feature by using @kbd{G b r} twice.
+
+So far so good---but how do you remove the tick marks in the @code{nnmairix}
+group?  There are two options: You may simply use
+@code{nnmairix-remove-tick-mark-original-article} (bound to @kbd{$ u}) to remove
+tick marks from the original article. The other possibility is to set
+@code{nnmairix-propagate-marks-to-nnmairix-groups} to @code{t}, but see the above
+comments about this option.  If it works for you, the tick marks should
+also exist in the @code{nnmairix} group and you can remove them as usual,
+e.g. by marking an article as read.
+
+When you have removed a tick mark from the original article, this
+article should vanish from the @code{nnmairix} group after you have updated the
+mairix database and updated the group.  Fortunately, there is a function
+for doing exactly that: @code{nnmairix-update-groups}. See the previous code
+snippet and the doc string for details.
+
+@item
+Dealing with auto-subscription of mail groups
+
+As described before, all @code{nnmairix} groups are in fact stored on
+the mail back end in the form @samp{zz_mairix-<NAME>-<NUMBER>}. You can
+see them when you enter the back end server in the server buffer. You
+should not subscribe these groups! Unfortunately, these groups will
+usually get @emph{auto-subscribed} when you use @code{nnmaildir} or
+@code{nnml}, i.e. you will suddenly see groups of the form
+@samp{zz_mairix*} pop up in your group buffer. If this happens to you,
+simply kill these groups with C-k.  For avoiding this, turn off
+auto-subscription completely by setting the variable
+@code{gnus-auto-subscribed-groups} to @code{nil} (@pxref{Filtering New
+Groups}), or if you like to keep this feature use the following kludge
+for turning it off for all groups beginning with @samp{zz_}:
+
+@lisp
+(setq gnus-auto-subscribed-groups
+      "^\\(nnml\\|nnfolder\\|nnmbox\\|nnmh\\|nnbabyl\\|nnmaildir\\).*:\\([^z]\\|z$\\|\\z[^z]\\|zz$\\|zz[^_]\\|zz_$\\).*")
+@end lisp
+
+@end itemize
+
+@node nnmairix caveats
+@subsection nnmairix caveats
+
+@itemize
+@item
+You can create a secondary @code{nnml} server just for nnmairix, but then
+you have to explicitly set the corresponding server variable
+@code{nnml-get-new-mail} to @code{nil}.  Otherwise, new mail might get
+put into this secondary server (and would never show up again).  Here's
+an example server definition:
+
+@lisp
+(nnml "mairix" (nnml-directory "mairix") (nnml-get-new-mail nil))
+@end lisp
+
+(The @code{nnmaildir} back end also has a server variabe
+@code{get-new-mail}, but its default value is @code{nil}, so you don't
+have to explicitly set it if you use a @code{nnmaildir} server just for
+mairix.)
+
+@item
+If you use the Gnus registry: don't use the registry with
+@code{nnmairix} groups (put them in
+@code{gnus-registry-unfollowed-groups}).  Be @emph{extra careful} if
+you use @code{gnus-registry-split-fancy-with-parent}; mails which are
+split into @code{nnmairix} groups are usually gone for good as soon as
+you check the group for new mail (yes, it has happened to me...).
+
+@item
+Therefore: @emph{Never ever} put ``real'' mails into @code{nnmairix}
+groups (you shouldn't be able to, anyway).
+
+@item
+If you use the Gnus agent (@pxref{Gnus Unplugged}): don't agentize
+@code{nnmairix} groups (though I have no idea what happens if you do).
+
+@item
+mairix does only support us-ascii characters.
+
+@item
+@code{nnmairix} uses a rather brute force method to force Gnus to
+completely reread the group on the mail back end after mairix was
+called---it simply deletes and re-creates the group on the mail
+back end. So far, this has worked for me without any problems, and I
+don't see how @code{nnmairix} could delete other mail groups than its
+own, but anyway: you really should have a backup of your mail
+folders.
+
+@item
+All necessary information is stored in the group parameters
+(@pxref{Group Parameters}). This has the advantage that no active file
+is needed, but also implies that when you kill a @code{nnmairix} group,
+it is gone for good.
+
+@item
+@findex nnmairix-purge-old-groups
+If you create and kill a lot of @code{nnmairix} groups, the
+``zz_mairix-*'' groups will accumulate on the mail back end server. To
+delete old groups which are no longer needed, call
+@code{nnmairix-purge-old-groups}. Note that this assumes that you don't
+save any ``real'' mail in folders of the form
+@code{zz_mairix-<NAME>-<NUMBER>}. You can change the prefix of
+@code{nnmairix} groups by changing the variable
+@code{nnmairix-group-prefix}.
+
+@item
+The following only applies if you @emph{don't} use the mentioned patch
+for mairix (@pxref{Propagating marks}):
+
+A problem can occur when using @code{nnmairix} with maildir folders and
+comes with the fact that maildir stores mail flags like @samp{Seen} or
+@samp{Replied} by appending chars @samp{S} and @samp{R} to the message
+file name, respectively. This implies that currently you would have to
+update the mairix database not only when new mail arrives, but also when
+mail flags are changing. The same applies to new mails which are indexed
+while they are still in the @samp{new} folder but then get moved to
+@samp{cur} when Gnus has seen the mail. If you don't update the database
+after this has happened, a mairix query can lead to symlinks pointing to
+non-existing files. In Gnus, these messages will usually appear with
+``(none)'' entries in the header and can't be accessed. If this happens
+to you, using @kbd{G b u} and updating the group will usually fix this.
+
+@end itemize
 
 @iftex
 @iflatex

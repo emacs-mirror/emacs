@@ -384,6 +384,9 @@ a DOCTYPE or an XML declaration."
   (save-excursion
     (goto-char (point-min))
     (or (string= "xml" (file-name-extension (or buffer-file-name "")))
+        ;; Maybe the buffer-size check isn't needed, I don't know.
+        (and (zerop (buffer-size))
+             (string= "xhtml" (file-name-extension (or buffer-file-name ""))))
 	(looking-at "\\s-*<\\?xml")
 	(when (re-search-forward
 	       (eval-when-compile
@@ -2153,5 +2156,4 @@ Can be used as a value for `html-mode-hook'."
 
 (provide 'sgml-mode)
 
-;; arch-tag: 9675da94-b7f9-4bda-ad19-73ed7b4fb401
 ;;; sgml-mode.el ends here

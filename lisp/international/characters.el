@@ -1293,52 +1293,24 @@ Setup char-width-table appropriate for non-CJK language environment."
   (aset char-acronym-table (+ #xE0021 i) (format " %c TAG" (+ 33 i))))
 (aset char-acronym-table #xE007F "->|TAG") ; CANCEL TAG
 
-;;; Control of displaying glyphless characters.
-(defvar glyphless-char-display-control
-  '((format-control . thin-space)
-    (no-font . hex-code))
-  "List of directives to control display of glyphless characters.
-
-Each element has the form (GROUP . METHOD), where GROUP is a
-symbol specifying the character group, and METHOD is a symbol
-specifying the method of displaying characters belonging to that
-group.
-
-GROUP must be one of these symbols:
-  `c0-control':     U+0000..U+001F.
-  `c1-control':     U+0080..U+009F.
-  `format-control': Characters of Unicode General Category `Cf',
-                    such as U+200C (ZWNJ), U+200E (LRM), but
-                    excluding characters that have graphic images,
-                    such as U+00AD (SHY).
-  `no-font':        characters for which no suitable font is found.
-                    For character terminals, characters that cannot
-                    be encoded by `terminal-coding-system'.
-
-METHOD must be one of these symbols:
-  `zero-width': don't display.
-  `thin-space': display a thin (1-pixel width) space.  On character
-                terminals, display as 1-character space.
-  `empty-box':  display an empty box.
-  `acronym':    display an acronym of the character in a box.  The
-                acronym is taken from `char-acronym-table', which see.
-  `hex-code':   display the hexadecimal character code in a box.
-
-Just setting this variable does not take effect.  Call the
-function `update-glyphless-char-display' (which see) after
-setting this variable.")
-
-(defun update-glyphless-char-display ()
+(defun update-glyphless-char-display (&optional variable value)
   "Make the setting of `glyphless-char-display-control' take effect.
 This function updates the char-table `glyphless-char-display'."
-  (dolist (elt glyphless-char-display-control)
+  (when value
+    (set-default variable value))
+  (dolist (elt value)
     (let ((target (car elt))
 	  (method (cdr elt)))
       (or (memq method '(zero-width thin-space empty-box acronym hex-code))
 	  (error "Invalid glyphless character display method: %s" method))
       (cond ((eq target 'c0-control)
 	     (set-char-table-range glyphless-char-display '(#x00 . #x1F)
-				   method))
+				   method)
+	     ;; Users will not expect their newlines and TABs be
+	     ;; displayed as anything but themselves, so exempt those
+	     ;; two characters from c0-control.
+	     (set-char-table-range glyphless-char-display #x9 nil)
+	     (set-char-table-range glyphless-char-display #xa nil))
 	    ((eq target 'c1-control)
 	     (set-char-table-range glyphless-char-display '(#x80 . #x9F)
 				   method))
@@ -1365,7 +1337,66 @@ This function updates the char-table `glyphless-char-display'."
 	    (t
 	     (error "Invalid glyphless character group: %s" target))))))
 
-(update-glyphless-char-display)
+;;; Control of displaying glyphless characters.
+(defcustom glyphless-char-display-control
+  '((format-control . thin-space)
+    (no-font . hex-code))
+  "List of directives to control display of glyphless characters.
+
+Each element has the form (GROUP . METHOD), where GROUP is a
+symbol specifying the character group, and METHOD is a symbol
+specifying the method of displaying characters belonging to that
+group.
+
+GROUP must be one of these symbols:
+  `c0-control':     U+0000..U+001F, but excluding newline and TAB.
+  `c1-control':     U+0080..U+009F.
+  `format-control': Characters of Unicode General Category `Cf',
+                    such as U+200C (ZWNJ), U+200E (LRM), but
+                    excluding characters that have graphic images,
+                    such as U+00AD (SHY).
+  `no-font':        characters for which no suitable font is found.
+                    For character terminals, characters that cannot
+                    be encoded by `terminal-coding-system'.
+
+METHOD must be one of these symbols:
+  `zero-width': don't display.
+  `thin-space': display a thin (1-pixel width) space.  On character
+                terminals, display as 1-character space.
+  `empty-box':  display an empty box.
+  `acronym':    display an acronym of the character in a box.  The
+                acronym is taken from `char-acronym-table', which see.
+  `hex-code':   display the hexadecimal character code in a box."
+
+  :type '(alist :key-type (symbol :tag "Character Group")
+		:value-type (symbol :tag "Display Method"))
+  :options '((c0-control
+	      (choice (const :tag "Don't display" zero-width)
+		      (const :tag "Display as thin space" thin-space)
+		      (const :tag "Display as empty box" empty-box)
+		      (const :tag "Display acronym" acronym)
+		      (const :tag "Display hex code in a box" hex-code)))
+	     (c1-control
+	      (choice (const :tag "Don't display" zero-width)
+		      (const :tag "Display as thin space" thin-space)
+		      (const :tag "Display as empty box" empty-box)
+		      (const :tag "Display acronym" acronym)
+		      (const :tag "Display hex code in a box" hex-code)))
+	     (format-control
+	      (choice (const :tag "Don't display" zero-width)
+		      (const :tag "Display as thin space" thin-space)
+		      (const :tag "Display as empty box" empty-box)
+		      (const :tag "Display acronym" acronym)
+		      (const :tag "Display hex code in a box" hex-code)))
+	     (no-font
+	      (choice (const :tag "Don't display" zero-width)
+		      (const :tag "Display as thin space" thin-space)
+		      (const :tag "Display as empty box" empty-box)
+		      (const :tag "Display acronym" acronym)
+		      (const :tag "Display hex code in a box" hex-code))))
+  :set 'update-glyphless-char-display
+  :group 'display)
+
 
 ;;; Setting word boundary.
 

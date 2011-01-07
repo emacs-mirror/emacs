@@ -212,6 +212,12 @@ Lisp_Object Vprefix_help_command;
 /* List of items that should move to the end of the menu bar.  */
 Lisp_Object Vmenu_bar_final_items;
 
+/* Expression to evaluate for the tool bar separator image.
+   This is used for build_desired_tool_bar_string only.  For GTK, we
+   use GTK tool bar seperators.  */
+
+Lisp_Object Vtool_bar_separator_image_expression;
+
 /* Non-nil means show the equivalent key-binding for
    any M-x command that has one.
    The value can be a length of time to show the message for.
@@ -489,10 +495,10 @@ Lisp_Object Qconfig_changed_event;
 Lisp_Object Qevent_kind;
 Lisp_Object Qevent_symbol_elements;
 
-/* menu item parts */
+/* menu and tool bar item parts */
 Lisp_Object Qmenu_enable;
 Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCkeys, QCkey_sequence;
-Lisp_Object QCbutton, QCtoggle, QCradio, QClabel;
+Lisp_Object QCbutton, QCtoggle, QCradio, QClabel, QCvert_only;
 
 /* An event header symbol HEAD may have a property named
    Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
@@ -4102,7 +4108,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
       else if (event->kind == SAVE_SESSION_EVENT)
         {
-          obj = Fcons (Qsave_session, Qnil);
+          obj = Fcons (Qsave_session, Fcons (event->arg, Qnil));
 	  kbd_fetch_ptr = event + 1;
         }
       /* Just discard these, by returning nil.
@@ -5283,9 +5289,9 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  xret = XINT (x) - window_box_left (w, TEXT_AREA);
 	  yret = wy - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
-      /* For mode line and header line clicks, return X relative to
-	 the left window edge; ignore Y.  Use mode_line_string to look
-	 for a string on the click position.  */
+      /* For mode line and header line clicks, return X, Y relative to
+	 the left window edge.  Use mode_line_string to look for a
+	 string on the click position.  */
       else if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
 	{
 	  Lisp_Object string;
@@ -5305,6 +5311,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	    ? PT : XMARKER (w->pointm)->charpos;
 
 	  xret = wx;
+	  yret = wy;
 	}
       /* For fringes and margins, Y is relative to the area's (and the
 	 window's) top edge, while X is meaningless.  */
@@ -7463,6 +7470,54 @@ static Lisp_Object menu_bar_one_keymap_changed_items;
 static Lisp_Object menu_bar_items_vector;
 static int menu_bar_items_index;
 
+
+static const char* separator_names[] = {
+  "space",
+  "no-line",
+  "single-line",
+  "double-line",
+  "single-dashed-line",
+  "double-dashed-line",
+  "shadow-etched-in",
+  "shadow-etched-out",
+  "shadow-etched-in-dash",
+  "shadow-etched-out-dash",
+  "shadow-double-etched-in",
+  "shadow-double-etched-out",
+  "shadow-double-etched-in-dash",
+  "shadow-double-etched-out-dash",
+  0,
+};
+
+/* Return non-zero if LABEL specifies a separator.  */
+
+int
+menu_separator_name_p (const char *label)
+{
+  if (!label)
+    return 0;
+  else if (strlen (label) > 3
+	   && strncmp (label, "--", 2) == 0
+	   && label[2] != '-')
+    {
+      int i;
+      label += 2;
+      for (i = 0; separator_names[i]; ++i)
+	if (strcmp (label, separator_names[i]) == 0)
+          return 1;
+    }
+  else
+    {
+      /* It's a separator if it contains only dashes.  */
+      while (*label == '-')
+	++label;
+      return (*label == 0);
+    }
+
+  return 0;
+}
+
+
 /* Return a vector of menu items for a menu bar, appropriate
    to the current buffer.  Each item has three elements in the vector:
    KEY STRING MAPLIST.
@@ -7913,7 +7968,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
     /* The previous code preferred :key-sequence to :keys, so we
        preserve this behavior.  */
     if (STRINGP (keyeq) && !CONSP (keyhint))
-      keyeq = Fsubstitute_command_keys (keyeq);
+      keyeq = concat2 (build_string ("  "), Fsubstitute_command_keys (keyeq));
     else
       {
 	Lisp_Object prefix = keyeq;
@@ -8200,10 +8255,14 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
      Rule out items that aren't lists, don't start with
      `menu-item' or whose rest following `tool-bar-item' is not a
      list.  */
-  if (!CONSP (item)
-      || !EQ (XCAR (item), Qmenu_item)
-      || (item = XCDR (item),
-	  !CONSP (item)))
+  if (!CONSP (item))
+    return 0;
+
+  /* As an exception, allow old-style menu separators.  */
+  if (STRINGP (XCAR (item)))
+    item = Fcons (XCAR (item), Qnil);
+  else if (!EQ (XCAR (item), Qmenu_item)
+	   || (item = XCDR (item), !CONSP (item)))
     return 0;
 
   /* Create tool_bar_item_properties vector if necessary.  Reset it to
@@ -8233,10 +8292,27 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
     }
   PROP (TOOL_BAR_ITEM_CAPTION) = caption;
 
-  /* Give up if rest following the caption is not a list.  */
+  /* If the rest following the caption is not a list, the menu item is
+     either a separator, or invalid.  */
   item = XCDR (item);
   if (!CONSP (item))
-    return 0;
+    {
+      if (menu_separator_name_p (SDATA (caption)))
+	{
+	  PROP (TOOL_BAR_ITEM_TYPE) = Qt;
+#if !defined (USE_GTK) && !defined (HAVE_NS)
+	  /* If we use build_desired_tool_bar_string to render the
+	     tool bar, the separator is rendered as an image.  */
+	  PROP (TOOL_BAR_ITEM_IMAGES)
+	    = menu_item_eval_property (Vtool_bar_separator_image_expression);
+	  PROP (TOOL_BAR_ITEM_ENABLED_P) = Qnil;
+	  PROP (TOOL_BAR_ITEM_SELECTED_P) = Qnil;
+	  PROP (TOOL_BAR_ITEM_CAPTION) = Qnil;
+#endif
+	  return 1;
+	}
+      return 0;
+    }
 
   /* Store the binding.  */
   PROP (TOOL_BAR_ITEM_BINDING) = XCAR (item);
@@ -8272,6 +8348,9 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       else if (EQ (key, QChelp))
         /* `:help HELP-STRING'.  */
         PROP (TOOL_BAR_ITEM_HELP) = value;
+      else if (EQ (key, QCvert_only))
+        /* `:vert-only t/nil'.  */
+        PROP (TOOL_BAR_ITEM_VERT_ONLY) = value;
       else if (EQ (key, QClabel))
         {
           const char *bad_label = "!!?GARBLED ITEM?!!";
@@ -11629,6 +11708,8 @@ syms_of_keyboard (void)
   staticpro (&QCradio);
   QClabel = intern_c_string (":label");
   staticpro (&QClabel);
+  QCvert_only = intern_c_string (":vert-only");
+  staticpro (&QCvert_only);
 
   Qmode_line = intern_c_string ("mode-line");
   staticpro (&Qmode_line);
@@ -12085,6 +12166,12 @@ might happen repeatedly and make Emacs nonfunctional.  */);
 The elements of the list are event types that may have menu bar bindings.  */);
   Vmenu_bar_final_items = Qnil;
 
+  DEFVAR_LISP ("tool-bar-separator-image-expression", &Vtool_bar_separator_image_expression,
+    doc: /* Expression evaluating to the image spec for a tool-bar separator.
+This is used internally by graphical displays that do not render
+tool-bar separators natively.  Otherwise it is unused (e.g. on GTK).  */);
+  Vtool_bar_separator_image_expression = Qnil;
+
   DEFVAR_KBOARD ("overriding-terminal-local-map",
 		 Voverriding_terminal_local_map,
 		 doc: /* Per-terminal keymap that overrides all other local keymaps.
@@ -12299,7 +12386,7 @@ and tool-bar buttons.  */);
 
   DEFVAR_LISP ("select-active-regions",
 	       &Vselect_active_regions,
-	       doc: /* If non-nil, an active region automatically becomes the window selection.
+	       doc: /* If non-nil, an active region automatically sets the primary selection.
 If the value is `only', only temporarily active regions (usually made
 by mouse-dragging or shift-selection) set the window selection.
 

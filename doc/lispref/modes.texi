@@ -20,14 +20,15 @@ user.  For related topics such as keymaps and syntax tables, see
 @ref{Keymaps}, and @ref{Syntax Tables}.
 
 @menu
-* Hooks::              How to use hooks; how to write code that provides hooks.
-* Major Modes::        Defining major modes.
-* Minor Modes::        Defining minor modes.
-* Mode Line Format::   Customizing the text that appears in the mode line.
-* Imenu::              How a mode can provide a menu
+* Hooks::                       How to use hooks; how to write code that provides hooks.
+* Major Modes::                 Defining major modes.
+* Minor Modes::                 Defining minor modes.
+* Mode Line Format::            Customizing the text that appears in the mode line.
+* Imenu::                       How a mode can provide a menu
                          of definitions in the buffer.
-* Font Lock Mode::     How modes can highlight text according to syntax.
-* Desktop Save Mode::  How modes can have buffer state saved between
+* Font Lock Mode::              How modes can highlight text according to syntax.
+* Auto-Indentation::            How to teach Emacs to indent for a major mode.
+* Desktop Save Mode::           How modes can have buffer state saved between
                          Emacs sessions.
 @end menu
 
@@ -78,8 +79,8 @@ convention.
 its value is just a single function, not a list of functions.
 
 @menu
-* Running Hooks::      How to run a hook.
-* Setting Hooks::      How to put functions on a hook, or remove them.
+* Running Hooks::               How to run a hook.
+* Setting Hooks::               How to put functions on a hook, or remove them.
 @end menu
 
 @node Running Hooks
@@ -199,16 +200,16 @@ buffer, such as a local keymap.  The effect lasts until you switch
 to another major mode in the same buffer.
 
 @menu
-* Major Mode Basics::
-* Major Mode Conventions::  Coding conventions for keymaps, etc.
-* Auto Major Mode::         How Emacs chooses the major mode automatically.
-* Mode Help::               Finding out how to use a mode.
-* Derived Modes::           Defining a new major mode based on another major
+* Major Mode Basics::           
+* Major Mode Conventions::      Coding conventions for keymaps, etc.
+* Auto Major Mode::             How Emacs chooses the major mode automatically.
+* Mode Help::                   Finding out how to use a mode.
+* Derived Modes::               Defining a new major mode based on another major
                               mode.
-* Generic Modes::           Defining a simple major mode that supports
+* Generic Modes::               Defining a simple major mode that supports
                               comment syntax and Font Lock mode.
-* Mode Hooks::              Hooks run at the end of major mode functions.
-* Example Major Modes::     Text mode and Lisp modes.
+* Mode Hooks::                  Hooks run at the end of major mode functions.
+* Example Major Modes::         Text mode and Lisp modes.
 @end menu
 
 @node Major Mode Basics
@@ -238,9 +239,8 @@ mode except that it provides two additional commands.  Its definition
 is distinct from that of Text mode, but uses that of Text mode.
 
   Even if the new mode is not an obvious derivative of any other mode,
-it is convenient to use @code{define-derived-mode} with a @code{nil}
-parent argument, since it automatically enforces the most important
-coding conventions for you.
+we recommend to use @code{define-derived-mode}, since it automatically
+enforces the most important coding conventions for you.
 
   For a very simple programming language major mode that handles
 comments and fontification, you can use @code{define-generic-mode}.
@@ -333,7 +333,7 @@ In a major mode for editing some kind of structured text, such as a
 programming language, indentation of text according to structure is
 probably useful.  So the mode should set @code{indent-line-function}
 to a suitable function, and probably customize other variables
-for indentation.
+for indentation.  @xref{Auto-Indentation}.
 
 @item
 @cindex keymaps in modes
@@ -429,6 +429,10 @@ The mode can specify a local value for
 this mode.
 
 @item
+The mode can specify how to complete various keywords by adding
+to the special hook @code{completion-at-point-functions}.
+
+@item
 Use @code{defvar} or @code{defcustom} to set mode-related variables, so
 that they are not reinitialized if they already have a value.  (Such
 reinitialization could discard customizations made by the user.)
@@ -492,7 +496,7 @@ The @code{define-derived-mode} macro automatically marks the derived
 mode as special if the parent mode is special.  The special mode
 @code{special-mode} provides a convenient parent for other special
 modes to inherit from; it sets @code{buffer-read-only} to @code{t},
-and does nothing else.
+and does little else.
 
 @item
 If you want to make the new mode the default for files with certain
@@ -737,8 +741,11 @@ documentation of the major mode.
 @subsection Defining Derived Modes
 @cindex derived mode
 
-  It's often useful to define a new major mode in terms of an existing
-one.  An easy way to do this is to use @code{define-derived-mode}.
+  The recommended way to define a new major mode is to derive it
+from an existing one using @code{define-derived-mode}.  If there is no
+closely related mode, you can inherit from @code{text-mode},
+@code{special-mode}, @code{prog-mode}, or in the worst case
+@code{fundamental-mode}.
 
 @defmac define-derived-mode variant parent name docstring keyword-args@dots{} body@dots{}
 This macro defines @var{variant} as a major mode command, using
@@ -979,8 +986,7 @@ You can thus get the full benefit of adaptive filling
 Turning on Text mode runs the normal hook `text-mode-hook'."
 @end group
 @group
-  (make-local-variable 'text-mode-variant)
-  (setq text-mode-variant t)
+  (set (make-local-variable 'text-mode-variant) t)
   ;; @r{These two lines are a feature added recently.}
   (set (make-local-variable 'require-final-newline)
        mode-require-final-newline)
@@ -998,9 +1004,8 @@ the default value, and we'll delete it in a future version.)
 @smallexample
 @group
 ;; @r{This isn't needed nowadays, since @code{define-derived-mode} does it.}
-(defvar text-mode-abbrev-table nil
+(define-abbrev-table 'text-mode-abbrev-table ()
   "Abbrev table used while in text mode.")
-(define-abbrev-table 'text-mode-abbrev-table ())
 @end group
 
 @group
@@ -1022,12 +1027,10 @@ Turning on text-mode runs the hook `text-mode-hook'."
   ;; @r{These four lines are absent from the current version}
   ;; @r{not because this is done some other way, but rather}
   ;; @r{because nowadays Text mode uses the normal definition of paragraphs.}
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "[ \t]*$\\|" page-delimiter))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'indent-relative-maybe)
+  (set (make-local-variable 'paragraph-start)
+       (concat "[ \t]*$\\|" page-delimiter))
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
+  (set (make-local-variable 'indent-line-function) 'indent-relative-maybe)
 @end group
 @group
   (setq mode-name "Text")
@@ -1115,15 +1118,12 @@ modes should understand the Lisp conventions for comments.  The rest of
 
 @smallexample
 @group
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat page-delimiter "\\|$" ))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
+  (set (make-local-variable 'paragraph-start) (concat page-delimiter "\\|$" ))
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
   @dots{}
 @end group
 @group
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'lisp-comment-indent))
+  (set (make-local-variable 'comment-indent-function) 'lisp-comment-indent))
   @dots{}
 @end group
 @end smallexample
@@ -1135,16 +1135,13 @@ common.  The following code sets up the common commands:
 
 @smallexample
 @group
-(defvar shared-lisp-mode-map ()
+(defvar shared-lisp-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key shared-lisp-mode-map "\e\C-q" 'indent-sexp)
+    (define-key shared-lisp-mode-map "\177"
+                'backward-delete-char-untabify)
+    map)
   "Keymap for commands shared by all sorts of Lisp modes.")
-
-;; @r{Putting this @code{if} after the @code{defvar} is an older style.}
-(if shared-lisp-mode-map
-    ()
-   (setq shared-lisp-mode-map (make-sparse-keymap))
-   (define-key shared-lisp-mode-map "\e\C-q" 'indent-sexp)
-   (define-key shared-lisp-mode-map "\177"
-               'backward-delete-char-untabify))
 @end group
 @end smallexample
 
@@ -1153,15 +1150,13 @@ And here is the code to set up the keymap for Lisp mode:
 
 @smallexample
 @group
-(defvar lisp-mode-map ()
+(defvar lisp-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map shared-lisp-mode-map)
+    (define-key map "\e\C-x" 'lisp-eval-defun)
+    (define-key map "\C-c\C-z" 'run-lisp)
+    map)
   "Keymap for ordinary Lisp mode...")
-
-(if lisp-mode-map
-    ()
-  (setq lisp-mode-map (make-sparse-keymap))
-  (set-keymap-parent lisp-mode-map shared-lisp-mode-map)
-  (define-key lisp-mode-map "\e\C-x" 'lisp-eval-defun)
-  (define-key lisp-mode-map "\C-c\C-z" 'run-lisp))
 @end group
 @end smallexample
 
@@ -1192,11 +1187,9 @@ if that value is non-nil."
                                          ;   @r{finds out what to describe.}
   (setq mode-name "Lisp")                ; @r{This goes into the mode line.}
   (lisp-mode-variables t)                ; @r{This defines various variables.}
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip
-        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
-  (make-local-variable 'font-lock-keywords-case-fold-search)
-  (setq font-lock-keywords-case-fold-search t)
+  (set (make-local-variable 'comment-start-skip)
+       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+  (set (make-local-variable 'font-lock-keywords-case-fold-search) t)
 @end group
 @group
   (setq imenu-case-fold-search t)
@@ -1580,14 +1573,14 @@ information displayed in the mode line relates to the enabled major and
 minor modes.
 
 @menu
-* Base: Mode Line Basics. Basic ideas of mode line control.
-* Data: Mode Line Data.   The data structure that controls the mode line.
-* Top: Mode Line Top.     The top level variable, mode-line-format.
-* Mode Line Variables::   Variables used in that data structure.
-* %-Constructs::          Putting information into a mode line.
-* Properties in Mode::    Using text properties in the mode line.
-* Header Lines::          Like a mode line, but at the top.
-* Emulating Mode Line::   Formatting text as the mode line would.
+* Base: Mode Line Basics.       Basic ideas of mode line control.
+* Data: Mode Line Data.         The data structure that controls the mode line.
+* Top: Mode Line Top.           The top level variable, mode-line-format.
+* Mode Line Variables::         Variables used in that data structure.
+* %-Constructs::                Putting information into a mode line.
+* Properties in Mode::          Using text properties in the mode line.
+* Header Lines::                Like a mode line, but at the top.
+* Emulating Mode Line::         Formatting text as the mode line would.
 @end menu
 
 @node Mode Line Basics
@@ -2119,29 +2112,38 @@ the text that would appear in a mode line or header line
 based on a certain mode-line specification.
 
 @defun format-mode-line format &optional face window buffer
-This function formats a line of text according to @var{format} as if
-it were generating the mode line for @var{window}, but instead of
-displaying the text in the mode line or the header line, it returns
-the text as a string.  The argument @var{window} defaults to the
-selected window.  If @var{buffer} is non-@code{nil}, all the
-information used is taken from @var{buffer}; by default, it comes from
-@var{window}'s buffer.
+This function formats a line of text according to @var{format} as if it
+were generating the mode line for @var{window}, but it also returns the
+text as a string.  The argument @var{window} defaults to the selected
+window.  If @var{buffer} is non-@code{nil}, all the information used is
+taken from @var{buffer}; by default, it comes from @var{window}'s
+buffer.
 
 The value string normally has text properties that correspond to the
-faces, keymaps, etc., that the mode line would have.  And any character
-for which no @code{face} property is specified gets a default
-value which is usually @var{face}.  (If @var{face} is @code{t},
-that stands for either @code{mode-line} if @var{window} is selected,
+faces, keymaps, etc., that the mode line would have.  Any character for
+which no @code{face} property is specified by @var{format} gets a
+default value determined by @var{face}.  If @var{face} is @code{t}, that
+stands for either @code{mode-line} if @var{window} is selected,
 otherwise @code{mode-line-inactive}.  If @var{face} is @code{nil} or
-omitted, that stands for no face property.)
+omitted, that stands for the default face.  If @var{face} is an integer,
+the value returned by this function will have no text properties.
 
-However, if @var{face} is an integer, the value has no text properties.
+You can also specify other valid faces as the value of @var{face}.
+If specified, that face provides the @code{face} property for characters
+whose face is not specified by @var{format}.
+
+Note that using @code{mode-line}, @code{mode-line-inactive}, or
+@code{header-line} as @var{face} will actually redisplay the mode line
+or the header line, respectively, using the current definitions of the
+corresponding face, in addition to returning the formatted string.
+(Other faces do not cause redisplay.)
 
 For example, @code{(format-mode-line header-line-format)} returns the
 text that would appear in the selected window's header line (@code{""}
 if it has no header line).  @code{(format-mode-line header-line-format
 'header-line)} returns the same text, with each character
-carrying the face that it will have in the header line itself.
+carrying the face that it will have in the header line itself, and also
+redraws the header line.
 @end defun
 
 @node Imenu
@@ -2361,7 +2363,7 @@ Search-based fontification happens second.
 * Other Font Lock Variables::   Additional customization facilities.
 * Levels of Font Lock::         Each mode can define alternative levels
                                   so that the user can select more or less.
-* Precalculated Fontification:: How Lisp programs that produce the buffer
+* Precalculated Fontification::  How Lisp programs that produce the buffer
                                   contents can also specify how to fontify it.
 * Faces for Font Lock::         Special faces specifically for Font Lock.
 * Syntactic Font Lock::         Fontification based on syntax tables.
@@ -3223,6 +3225,659 @@ Since this function is called after every buffer change, it should be
 reasonably fast.
 @end defvar
 
+@node Auto-Indentation
+@section Auto-indention of code
+
+For programming languages, an important feature of a major mode is to
+provide automatic indentation.  This is controlled in Emacs by
+@code{indent-line-function} (@pxref{Mode-Specific Indent}).
+Writing a good indentation function can be difficult and to a large
+extent it is still a black art.
+
+Many major mode authors will start by writing a simple indentation
+function that works for simple cases, for example by comparing with the
+indentation of the previous text line.  For most programming languages
+that are not really line-based, this tends to scale very poorly:
+improving such a function to let it handle more diverse situations tends
+to become more and more difficult, resulting in the end with a large,
+complex, unmaintainable indentation function which nobody dares to touch.
+
+A good indentation function will usually need to actually parse the
+text, according to the syntax of the language.  Luckily, it is not
+necessary to parse the text in as much detail as would be needed
+for a compiler, but on the other hand, the parser embedded in the
+indentation code will want to be somewhat friendly to syntactically
+incorrect code.
+
+Good maintainable indentation functions usually fall into 2 categories:
+either parsing forward from some ``safe'' starting point until the
+position of interest, or parsing backward from the position of interest.
+Neither of the two is a clearly better choice than the other: parsing
+backward is often more difficult than parsing forward because
+programming languages are designed to be parsed forward, but for the
+purpose of indentation it has the advantage of not needing to
+guess a ``safe'' starting point, and it generally enjoys the property
+that only a minimum of text will be analyzed to decide the indentation
+of a line, so indentation will tend to be unaffected by syntax errors in
+some earlier unrelated piece of code.  Parsing forward on the other hand
+is usually easier and has the advantage of making it possible to
+reindent efficiently a whole region at a time, with a single parse.
+
+Rather than write your own indentation function from scratch, it is
+often preferable to try and reuse some existing ones or to rely
+on a generic indentation engine.  There are sadly few such
+engines.  The CC-mode indentation code (used with C, C++, Java, Awk
+and a few other such modes) has been made more generic over the years,
+so if your language seems somewhat similar to one of those languages,
+you might try to use that engine.  @c FIXME: documentation?
+Another one is SMIE which takes an approach in the spirit
+of Lisp sexps and adapts it to non-Lisp languages.
+
+@menu
+* SMIE::                        A simple minded indentation engine
+@end menu
+
+@node SMIE
+@subsection Simple Minded Indentation Engine
+
+SMIE is a package that provides a generic navigation and indentation
+engine.  Based on a very simple parser using an ``operator precedence
+grammar'', it lets major modes extend the sexp-based navigation of Lisp
+to non-Lisp languages as well as provide a simple to use but reliable
+auto-indentation.
+
+Operator precedence grammar is a very primitive technology for parsing
+compared to some of the more common techniques used in compilers.
+It has the following characteristics: its parsing power is very limited,
+and it is largely unable to detect syntax errors, but it has the
+advantage of being algorithmically efficient and able to parse forward
+just as well as backward.  In practice that means that SMIE can use it
+for indentation based on backward parsing, that it can provide both
+@code{forward-sexp} and @code{backward-sexp} functionality, and that it
+will naturally work on syntactically incorrect code without any extra
+effort.  The downside is that it also means that most programming
+languages cannot be parsed correctly using SMIE, at least not without
+resorting to some special tricks (@pxref{SMIE Tricks}).
+
+@menu
+* SMIE setup::                  SMIE setup and features
+* Operator Precedence Grammars::  A very simple parsing technique
+* SMIE Grammar::                Defining the grammar of a language
+* SMIE Lexer::                  Defining tokens
+* SMIE Tricks::                 Working around the parser's limitations
+* SMIE Indentation::            Specifying indentation rules
+* SMIE Indentation Helpers::    Helper functions for indentation rules
+* SMIE Indentation Example::    Sample indentation rules
+@end menu
+
+@node SMIE setup
+@subsubsection SMIE Setup and Features
+
+SMIE is meant to be a one-stop shop for structural navigation and
+various other features which rely on the syntactic structure of code, in
+particular automatic indentation.  The main entry point is
+@code{smie-setup} which is a function typically called while setting
+up a major mode.
+
+@defun smie-setup grammar rules-function &rest keywords
+Setup SMIE navigation and indentation.
+@var{grammar} is a grammar table generated by @code{smie-prec2->grammar}.
+@var{rules-function} is a set of indentation rules for use on
+@code{smie-rules-function}.
+@var{keywords} are additional arguments, which can include the following
+keywords:
+@itemize
+@item
+@code{:forward-token} @var{fun}: Specify the forward lexer to use.
+@item
+@code{:backward-token} @var{fun}: Specify the backward lexer to use.
+@end itemize
+@end defun
+
+Calling this function is sufficient to make commands such as
+@code{forward-sexp}, @code{backward-sexp}, and @code{transpose-sexps} be
+able to properly handle structural elements other than just the paired
+parentheses already handled by syntax tables.  For example, if the
+provided grammar is precise enough, @code{transpose-sexps} can correctly
+transpose the two arguments of a @code{+} operator, taking into account
+the precedence rules of the language.
+
+Calling `smie-setup' is also sufficient to make TAB indentation work in
+the expected way, extends @code{blink-matching-paren} to apply to
+elements like @code{begin...end}, and provides some commands that you
+can bind in the major mode keymap.
+
+@deffn Command smie-close-block
+This command closes the most recently opened (and not yet closed) block.
+@end deffn
+
+@deffn Command smie-down-list &optional arg
+This command is like @code{down-list} but it also pays attention to
+nesting of tokens other than parentheses, such as @code{begin...end}.
+@end deffn
+
+@node Operator Precedence Grammars
+@subsubsection Operator Precedence Grammars
+
+SMIE's precedence grammars simply give to each token a pair of
+precedences: the left-precedence and the right-precedence.  We say
+@code{T1 < T2} if the right-precedence of token @code{T1} is less than
+the left-precedence of token @code{T2}.  A good way to read this
+@code{<} is as a kind of parenthesis: if we find @code{... T1 something
+T2 ...}  then that should be parsed as @code{... T1 (something T2 ...}
+rather than as @code{... T1 something) T2 ...}.  The latter
+interpretation would be the case if we had @code{T1 > T2}.  If we have
+@code{T1 = T2}, it means that token T2 follows token T1 in the same
+syntactic construction, so typically we have @code{"begin" = "end"}.
+Such pairs of precedences are sufficient to express left-associativity
+or right-associativity of infix operators, nesting of tokens like
+parentheses and many other cases.
+
+@c ¡Let's leave this undocumented to leave it more open for change!
+@c @defvar smie-grammar
+@c The value of this variable is an alist specifying the left and right
+@c precedence of each token.  It is meant to be initialized by using one of
+@c the functions below.
+@c @end defvar
+
+@defun smie-prec2->grammar table
+This function takes a @emph{prec2} grammar @var{table} and returns an
+alist suitable for use in @code{smie-setup}.  The @emph{prec2}
+@var{table} is itself meant to be built by one of the functions below.
+@end defun
+
+@defun smie-merge-prec2s &rest tables
+This function takes several @emph{prec2} @var{tables} and merges them
+into a new @emph{prec2} table.
+@end defun
+
+@defun smie-precs->prec2 precs
+This function builds a @emph{prec2} table from a table of precedences
+@var{precs}.  @var{precs} should be a list, sorted by precedence (for
+example @code{"+"} will come before @code{"*"}), of elements of the form
+@code{(@var{assoc} @var{op} ...)}, where each @var{op} is a token that
+acts as an operator; @var{assoc} is their associativity, which can be
+either @code{left}, @code{right}, @code{assoc}, or @code{nonassoc}.
+All operators in a given element share the same precedence level
+and associativity.
+@end defun
+
+@defun smie-bnf->prec2 bnf &rest resolvers
+This function lets you specify the grammar using a BNF notation.
+It accepts a @var{bnf} description of the grammar along with a set of
+conflict resolution rules @var{resolvers}, and
+returns a @emph{prec2} table.
+
+@var{bnf} is a list of nonterminal definitions of the form
+@code{(@var{nonterm} @var{rhs1} @var{rhs2} ...)} where each @var{rhs}
+is a (non-empty) list of terminals (aka tokens) or non-terminals.
+
+Not all grammars are accepted:
+@itemize
+@item
+An @var{rhs} cannot be an empty list (an empty list is never needed,
+since SMIE allows all non-terminals to match the empty string anyway).
+@item
+An @var{rhs} cannot have 2 consecutive non-terminals: each pair of
+non-terminals needs to be separated by a terminal (aka token).
+This is a fundamental limitation of operator precedence grammars.
+@end itemize
+
+Additionally, conflicts can occur:
+@itemize
+@item
+The returned @emph{prec2} table holds constraints between pairs of tokens, and
+for any given pair only one constraint can be present: T1 < T2,
+T1 = T2, or T1 > T2.
+@item
+A token can be an @code{opener} (something similar to an open-paren),
+a @code{closer} (like a close-paren), or @code{neither} of the two
+(e.g. an infix operator, or an inner token like @code{"else"}).
+@end itemize
+
+Precedence conflicts can be resolved via @var{resolvers}, which
+is a list of @emph{precs} tables (see @code{smie-precs->prec2}): for
+each precedence conflict, if those @code{precs} tables
+specify a particular constraint, then the conflict is resolved by using
+this constraint instead, else a conflict is reported and one of the
+conflicting constraints is picked arbitrarily and the others are
+simply ignored.
+@end defun
+
+@node SMIE Grammar
+@subsubsection Defining the Grammar of a Language
+
+The usual way to define the SMIE grammar of a language is by
+defining a new global variable that holds the precedence table by
+giving a set of BNF rules.
+For example, the grammar definition for a small Pascal-like language
+could look like:
+@example
+@group
+(require 'smie)
+(defvar sample-smie-grammar
+  (smie-prec2->grammar
+   (smie-bnf->prec2
+@end group
+@group
+    '((id)
+      (inst ("begin" insts "end")
+            ("if" exp "then" inst "else" inst)
+            (id ":=" exp)
+            (exp))
+      (insts (insts ";" insts) (inst))
+      (exp (exp "+" exp)
+           (exp "*" exp)
+           ("(" exps ")"))
+      (exps (exps "," exps) (exp)))
+@end group
+@group
+    '((assoc ";"))
+    '((assoc ","))
+    '((assoc "+") (assoc "*")))))
+@end group
+@end example
+
+@noindent
+A few things to note:
+
+@itemize
+@item
+The above grammar does not explicitly mention the syntax of function
+calls: SMIE will automatically allow any sequence of sexps, such as
+identifiers, balanced parentheses, or @code{begin ... end} blocks
+to appear anywhere anyway.
+@item
+The grammar category @code{id} has no right hand side: this does not
+mean that it can match only the empty string, since as mentioned any
+sequence of sexps can appear anywhere anyway.
+@item
+Because non terminals cannot appear consecutively in the BNF grammar, it
+is difficult to correctly handle tokens that act as terminators, so the
+above grammar treats @code{";"} as a statement @emph{separator} instead,
+which SMIE can handle very well.
+@item
+Separators used in sequences (such as @code{","} and @code{";"} above)
+are best defined with BNF rules such as @code{(foo (foo "separator" foo) ...)}
+which generate precedence conflicts which are then resolved by giving
+them an explicit @code{(assoc "separator")}.
+@item
+The @code{("(" exps ")")} rule was not needed to pair up parens, since
+SMIE will pair up any characters that are marked as having paren syntax
+in the syntax table.  What this rule does instead (together with the
+definition of @code{exps}) is to make it clear that @code{","} should
+not appear outside of parentheses.
+@item
+Rather than have a single @emph{precs} table to resolve conflicts, it is
+preferable to have several tables, so as to let the BNF part of the
+grammar specify relative precedences where possible.
+@item
+Unless there is a very good reason to prefer @code{left} or
+@code{right}, it is usually preferable to mark operators as associative,
+using @code{assoc}.  For that reason @code{"+"} and @code{"*"} are
+defined above as @code{assoc}, although the language defines them
+formally as left associative.
+@end itemize
+
+@node SMIE Lexer
+@subsubsection Defining Tokens
+
+SMIE comes with a predefined lexical analyzer which uses syntax tables
+in the following way: any sequence of characters that have word or
+symbol syntax is considered a token, and so is any sequence of
+characters that have punctuation syntax.  This default lexer is
+often a good starting point but is rarely actually correct for any given
+language.  For example, it will consider @code{"2,+3"} to be composed
+of 3 tokens: @code{"2"}, @code{",+"}, and @code{"3"}.
+
+To describe the lexing rules of your language to SMIE, you need
+2 functions, one to fetch the next token, and another to fetch the
+previous token.  Those functions will usually first skip whitespace and
+comments and then look at the next chunk of text to see if it
+is a special token.  If so it should skip the token and
+return a description of this token.  Usually this is simply the string
+extracted from the buffer, but it can be anything you want.
+For example:
+@example
+@group
+(defvar sample-keywords-regexp
+  (regexp-opt '("+" "*" "," ";" ">" ">=" "<" "<=" ":=" "=")))
+@end group
+@group
+(defun sample-smie-forward-token ()
+  (forward-comment (point-max))
+  (cond
+   ((looking-at sample-keywords-regexp)
+    (goto-char (match-end 0))
+    (match-string-no-properties 0))
+   (t (buffer-substring-no-properties
+       (point)
+       (progn (skip-syntax-forward "w_")
+              (point))))))
+@end group
+@group
+(defun sample-smie-backward-token ()
+  (forward-comment (- (point)))
+  (cond
+   ((looking-back sample-keywords-regexp (- (point) 2) t)
+    (goto-char (match-beginning 0))
+    (match-string-no-properties 0))
+   (t (buffer-substring-no-properties
+       (point)
+       (progn (skip-syntax-backward "w_")
+              (point))))))
+@end group
+@end example
+
+Notice how those lexers return the empty string when in front of
+parentheses.  This is because SMIE automatically takes care of the
+parentheses defined in the syntax table.  More specifically if the lexer
+returns nil or an empty string, SMIE tries to handle the corresponding
+text as a sexp according to syntax tables.
+
+@node SMIE Tricks
+@subsubsection Living With a Weak Parser
+
+The parsing technique used by SMIE does not allow tokens to behave
+differently in different contexts.  For most programming languages, this
+manifests itself by precedence conflicts when converting the
+BNF grammar.
+
+Sometimes, those conflicts can be worked around by expressing the
+grammar slightly differently.  For example, for Modula-2 it might seem
+natural to have a BNF grammar that looks like this:
+
+@example
+  ...
+  (inst ("IF" exp "THEN" insts "ELSE" insts "END")
+        ("CASE" exp "OF" cases "END")
+        ...)
+  (cases (cases "|" cases) (caselabel ":" insts) ("ELSE" insts))
+  ...
+@end example
+
+But this will create conflicts for @code{"ELSE"}: on the one hand, the
+IF rule implies (among many other things) that @code{"ELSE" = "END"};
+but on the other hand, since @code{"ELSE"} appears within @code{cases},
+which appears left of @code{"END"}, we also have @code{"ELSE" > "END"}.
+We can solve the conflict either by using:
+@example
+  ...
+  (inst ("IF" exp "THEN" insts "ELSE" insts "END")
+        ("CASE" exp "OF" cases "END")
+        ("CASE" exp "OF" cases "ELSE" insts "END")
+        ...)
+  (cases (cases "|" cases) (caselabel ":" insts))
+  ...
+@end example
+or
+@example
+  ...
+  (inst ("IF" exp "THEN" else "END")
+        ("CASE" exp "OF" cases "END")
+        ...)
+  (else (insts "ELSE" insts))
+  (cases (cases "|" cases) (caselabel ":" insts) (else))
+  ...
+@end example
+
+Reworking the grammar to try and solve conflicts has its downsides, tho,
+because SMIE assumes that the grammar reflects the logical structure of
+the code, so it is preferable to keep the BNF closer to the intended
+abstract syntax tree.
+
+Other times, after careful consideration you may conclude that those
+conflicts are not serious and simply resolve them via the
+@var{resolvers} argument of @code{smie-bnf->prec2}.  Usually this is
+because the grammar is simply ambiguous: the conflict does not affect
+the set of programs described by the grammar, but only the way those
+programs are parsed.  This is typically the case for separators and
+associative infix operators, where you want to add a resolver like
+@code{'((assoc "|"))}.  Another case where this can happen is for the
+classic @emph{dangling else} problem, where you will use @code{'((assoc
+"else" "then"))}.  It can also happen for cases where the conflict is
+real and cannot really be resolved, but it is unlikely to pose a problem
+in practice.
+
+Finally, in many cases some conflicts will remain despite all efforts to
+restructure the grammar.  Do not despair: while the parser cannot be
+made more clever, you can make the lexer as smart as you want.  So, the
+solution is then to look at the tokens involved in the conflict and to
+split one of those tokens into 2 (or more) different tokens.  E.g. if
+the grammar needs to distinguish between two incompatible uses of the
+token @code{"begin"}, make the lexer return different tokens (say
+@code{"begin-fun"} and @code{"begin-plain"}) depending on which kind of
+@code{"begin"} it finds.  This pushes the work of distinguishing the
+different cases to the lexer, which will thus have to look at the
+surrounding text to find ad-hoc clues.
+
+@node SMIE Indentation
+@subsubsection Specifying Indentation Rules
+
+Based on the provided grammar, SMIE will be able to provide automatic
+indentation without any extra effort.  But in practice, this default
+indentation style will probably not be good enough.  You will want to
+tweak it in many different cases.
+
+SMIE indentation is based on the idea that indentation rules should be
+as local as possible.  To this end, it relies on the idea of
+@emph{virtual} indentation, which is the indentation that a particular
+program point would have if it were at the beginning of a line.
+Of course, if that program point is indeed at the beginning of a line,
+its virtual indentation is its current indentation.  But if not, then
+SMIE uses the indentation algorithm to compute the virtual indentation
+of that point.  Now in practice, the virtual indentation of a program
+point does not have to be identical to the indentation it would have if
+we inserted a newline before it.  To see how this works, the SMIE rule
+for indentation after a @code{@{} in C does not care whether the
+@code{@{} is standing on a line of its own or is at the end of the
+preceding line.  Instead, these different cases are handled in the
+indentation rule that decides how to indent before a @code{@{}.
+
+Another important concept is the notion of @emph{parent}: The
+@emph{parent} of a token, is the head token of the nearest enclosing
+syntactic construct.  For example, the parent of an @code{else} is the
+@code{if} to which it belongs, and the parent of an @code{if}, in turn,
+is the lead token of the surrounding construct.  The command
+@code{backward-sexp} jumps from a token to its parent, but there are
+some caveats: for @emph{openers} (tokens which start a construct, like
+@code{if}), you need to start with point before the token, while for
+others you need to start with point after the token.
+@code{backward-sexp} stops with point before the parent token if that is
+the @emph{opener} of the token of interest, and otherwise it stops with
+point after the parent token.
+
+SMIE indentation rules are specified using a function that takes two
+arguments @var{method} and @var{arg} where the meaning of @var{arg} and the
+expected return value depend on @var{method}.
+
+@var{method} can be:
+@itemize
+@item
+@code{:after}, in which case @var{arg} is a token and the function
+should return the @var{offset} to use for indentation after @var{arg}.
+@item
+@code{:before}, in which case @var{arg} is a token and the function
+should return the @var{offset} to use to indent @var{arg} itself.
+@item
+@code{:elem}, in which case the function should return either the offset
+to use to indent function arguments (if @var{arg} is the symbol
+@code{arg}) or the basic indentation step (if @var{arg} is the symbol
+@code{basic}).
+@item
+@code{:list-intro}, in which case @var{arg} is a token and the function
+should return non-@code{nil} if the token is followed by a list of
+expressions (not separated by any token) rather than an expression.
+@end itemize
+
+When @var{arg} is a token, the function is called with point just before
+that token.  A return value of nil always means to fallback on the
+default behavior, so the function should return nil for arguments it
+does not expect.
+
+@var{offset} can be:
+@itemize
+@item
+@code{nil}: use the default indentation rule.
+@item
+@code{(column . @var{column})}: indent to column @var{column}.
+@item
+@var{number}: offset by @var{number}, relative to a base token which is
+the current token for @code{:after} and its parent for @code{:before}.
+@end itemize
+
+@node SMIE Indentation Helpers
+@subsubsection Helper Functions for Indentation Rules
+
+SMIE provides various functions designed specifically for use in the
+indentation rules function (several of those functions break if used in
+another context).  These functions all start with the prefix
+@code{smie-rule-}.
+
+@defun smie-rule-bolp
+Return non-@code{nil} if the current token is the first on the line.
+@end defun
+
+@defun smie-rule-hanging-p
+Return non-@code{nil} if the current token is @emph{hanging}.
+A token is @emph{hanging} if it is the last token on the line
+and if it is preceded by other tokens: a lone token on a line is not
+hanging.
+@end defun
+
+@defun smie-rule-next-p &rest tokens
+Return non-@code{nil} if the next token is among @var{tokens}.
+@end defun
+
+@defun smie-rule-prev-p &rest tokens
+Return non-@code{nil} if the previous token is among @var{tokens}.
+@end defun
+
+@defun smie-rule-parent-p &rest parents
+Return non-@code{nil} if the current token's parent is among @var{parents}.
+@end defun
+
+@defun smie-rule-sibling-p
+Return non-nil if the current token's parent is actually a sibling.
+This is the case for example when the parent of a @code{","} is just the
+previous @code{","}.
+@end defun
+
+@defun smie-rule-parent &optional offset
+Return the proper offset to align the current token with the parent.
+If non-@code{nil}, @var{offset} should be an integer giving an
+additional offset to apply.
+@end defun
+
+@defun smie-rule-separator method
+Indent current token as a @emph{separator}.
+
+By @emph{separator}, we mean here a token whose sole purpose is to
+separate various elements within some enclosing syntactic construct, and
+which does not have any semantic significance in itself (i.e. it would
+typically not exist as a node in an abstract syntax tree).
+
+Such a token is expected to have an associative syntax and be closely
+tied to its syntactic parent.  Typical examples are @code{","} in lists
+of arguments (enclosed inside parentheses), or @code{";"} in sequences
+of instructions (enclosed in a @code{@{...@}} or @code{begin...end}
+block).
+
+@var{method} should be the method name that was passed to
+`smie-rules-function'.
+@end defun
+
+@node SMIE Indentation Example
+@subsubsection Sample Indentation Rules
+
+Here is an example of an indentation function:
+
+@example
+(defun sample-smie-rules (kind token)
+  (pcase (cons kind token)
+    (`(:elem . basic) sample-indent-basic)
+    (`(,_ . ",") (smie-rule-separator kind))
+    (`(:after . ":=") sample-indent-basic)
+    (`(:before . ,(or `"begin" `"(" `"@{")))
+     (if (smie-rule-hanging-p) (smie-rule-parent)))
+    (`(:before . "if")
+     (and (not (smie-rule-bolp)) (smie-rule-prev-p "else")
+          (smie-rule-parent)))))
+@end example
+
+@noindent
+A few things to note:
+
+@itemize
+@item
+The first case indicates the basic indentation increment to use.
+If @code{sample-indent-basic} is nil, then SMIE uses the global
+setting @code{smie-indent-basic}.  The major mode could have set
+@code{smie-indent-basic} buffer-locally instead, but that
+is discouraged.
+
+@item
+The rule for the token @code{","} make SMIE try to be more clever when
+the comma separator is placed at the beginning of lines.  It tries to
+outdent the separator so as to align the code after the comma; for
+example:
+
+@example
+x = longfunctionname (
+        arg1
+      , arg2
+    );
+@end example
+
+@item
+The rule for indentation after @code{":="} exists because otherwise
+SMIE would treat @code{":="} as an infix operator and would align the
+right argument with the left one.
+
+@item
+The rule for indentation before @code{"begin"} is an example of the use
+of virtual indentation:  This rule is used only when @code{"begin"} is
+hanging, which can happen only when @code{"begin"} is not at the
+beginning of a line.  So this is not used when indenting
+@code{"begin"} itself but only when indenting something relative to this
+@code{"begin"}.  Concretely, this rule changes the indentation from:
+
+@example
+    if x > 0 then begin
+            dosomething(x);
+        end
+@end example
+to
+@example
+    if x > 0 then begin
+        dosomething(x);
+    end
+@end example
+
+@item
+The rule for indentation before @code{"if"} is similar to the one for
+@code{"begin"}, but where the purpose is to treat @code{"else if"}
+as a single unit, so as to align a sequence of tests rather than indent
+each test further to the right.  This function does this only in the
+case where the @code{"if"} is not placed on a separate line, hence the
+@code{smie-rule-bolp} test.
+
+If we know that the @code{"else"} is always aligned with its @code{"if"}
+and is always at the beginning of a line, we can use a more efficient
+rule:
+@example
+((equal token "if")
+ (and (not (smie-rule-bolp)) (smie-rule-prev-p "else")
+      (save-excursion
+        (sample-smie-backward-token)  ;Jump before the "else".
+        (cons 'column (current-column)))))
+@end example
+
+The advantage of this formulation is that it reuses the indentation of
+the previous @code{"else"}, rather than going all the way back to the
+first @code{"if"} of the sequence.
+@end itemize
+
 @node Desktop Save Mode
 @section Desktop Save Mode
 @cindex desktop save mode
@@ -3276,5 +3931,7 @@ optionally bound to @code{desktop-save-buffer}.
 @end defvar
 
 @ignore
-   arch-tag: 4c7bff41-36e6-4da6-9e7f-9b9289e27c8e
+   Local Variables:
+   fill-column: 72
+   End:
 @end ignore

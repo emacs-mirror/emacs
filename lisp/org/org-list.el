@@ -7,7 +7,7 @@
 ;;	   Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -462,7 +462,8 @@ List ending is determined by indentation of text. See
 	(forward-line -1)
 	(catch 'exit
 	  (while t
-	    (let ((ind (org-get-indentation)))
+	    (let ((ind (+ (or (get-text-property (point) 'original-indentation) 0)
+			(org-get-indentation))))
 	      (cond
 	       ((looking-at "^[ \t]*:END:")
 		(throw 'exit item-ref))
@@ -502,7 +503,8 @@ List ending is determined by the indentation of text. See
       (catch 'exit
 	(while t
 	  (skip-chars-forward " \t")
-	  (let ((ind (org-get-indentation)))
+	  (let ((ind (+ (or (get-text-property (point) 'original-indentation) 0)
+			(org-get-indentation))))
 	    (cond
 	     ((or (>= (point) limit)
 		  (looking-at ":END:"))
@@ -518,7 +520,11 @@ List ending is determined by the indentation of text. See
 	      (setq ind-ref ind)
 	      (forward-line 1))
 	     ((<= ind ind-ref)
-	      (throw 'exit (point-at-bol)))
+	      (throw 'exit (progn
+			     ;; Again, ensure bottom is just after a
+			     ;; non-blank line.
+			     (skip-chars-backward " \r\t\n")
+			     (min (point-max) (1+ (point-at-eol))))))
 	     ((looking-at "#\\+begin_")
 	      (re-search-forward "[ \t]*#\\+end_")
 	      (forward-line 1))
@@ -636,7 +642,7 @@ function ends."
 	    ;; insert bullet above item in order to avoid bothering
 	    ;; with possible blank lines ending last item.
 	    (goto-char (org-get-item-beginning))
-            (indent-to-column ind)
+            (org-indent-to-column ind)
 	    (insert (concat bullet (when checkbox "[ ] ") after-bullet))
 	    ;; Stay between after-bullet and before text.
 	    (save-excursion
@@ -1060,7 +1066,7 @@ so this really moves item trees."
 	(org-list-exchange-items actual-item next-item bottom)
 	(org-list-repair nil nil bottom)
 	(goto-char (org-get-next-item (point) bottom))
-	(move-to-column col)))))
+	(org-move-to-column col)))))
 
 (defun org-move-item-up ()
   "Move the plain list item at point up, i.e. swap with previous item.
@@ -1081,7 +1087,7 @@ so this really moves item trees."
 	    (error "Cannot move this item further up"))
 	(org-list-exchange-items prev-item actual-item bottom)
 	(org-list-repair nil top bottom)
-	(move-to-column col)))))
+	(org-move-to-column col)))))
 
 (defun org-insert-item (&optional checkbox)
   "Insert a new item at the current level.
@@ -1481,7 +1487,7 @@ BOTTOM is position at list ending."
           ;; this is not an empty line
           (let ((i (org-get-indentation)))
             (when (and (> i 0) (> (+ i delta) 0))
-              (indent-line-to (+ i delta)))))
+              (org-indent-line-to (+ i delta)))))
         (beginning-of-line 0)))))
 
 (defun org-outdent-item ()
@@ -1543,7 +1549,7 @@ Return t at each successful move."
 		   (ignore-errors
 		     (org-list-indent-item-generic 1 t top bottom))))
 	     (t (back-to-indentation)
-		(indent-to-column (car org-tab-ind-state))
+		(org-indent-to-column (car org-tab-ind-state))
 		(end-of-line)
 		(org-list-repair (cdr org-tab-ind-state))
 		;; Break cycle
@@ -1629,35 +1635,36 @@ If WHICH is a valid string, use that as the new bullet. If WHICH
 is an integer, 0 means `-', 1 means `+' etc. If WHICH is
 'previous, cycle backwards."
   (interactive "P")
-  (let* ((top (org-list-top-point))
-	 (bullet (save-excursion
-		   (goto-char (org-get-beginning-of-list top))
-		   (org-get-bullet)))
-	 (current (cond
-		   ((string-match "\\." bullet) "1.")
-		   ((string-match ")" bullet) "1)")
-		   (t bullet)))
-	 (bullet-rule-p (cdr (assq 'bullet org-list-automatic-rules)))
-	 (bullet-list (append '("-" "+" )
-			      ;; *-bullets are not allowed at column 0
-			      (unless (and bullet-rule-p
-					   (looking-at "\\S-")) '("*"))
-			      ;; Description items cannot be numbered
-			      (unless (and bullet-rule-p
-					   (or (eq org-plain-list-ordered-item-terminator ?\))
-					       (org-at-item-description-p))) '("1."))
-			      (unless (and bullet-rule-p
-					   (or (eq org-plain-list-ordered-item-terminator ?.)
-					       (org-at-item-description-p))) '("1)"))))
-	 (len (length bullet-list))
-	 (item-index (- len (length (member current bullet-list))))
-	 (get-value (lambda (index) (nth (mod index len) bullet-list)))
-	 (new (cond
-	       ((member which bullet-list) which)
-	       ((numberp which) (funcall get-value which))
-	       ((eq 'previous which) (funcall get-value (1- item-index)))
-	       (t (funcall get-value (1+ item-index))))))
-    (org-list-repair new top)))
+  (save-excursion
+    (let* ((top (org-list-top-point))
+	   (bullet (progn
+		     (goto-char (org-get-beginning-of-list top))
+		     (org-get-bullet)))
+	   (current (cond
+		     ((string-match "\\." bullet) "1.")
+		     ((string-match ")" bullet) "1)")
+		     (t bullet)))
+	   (bullet-rule-p (cdr (assq 'bullet org-list-automatic-rules)))
+	   (bullet-list (append '("-" "+" )
+				;; *-bullets are not allowed at column 0
+				(unless (and bullet-rule-p
+					     (looking-at "\\S-")) '("*"))
+				;; Description items cannot be numbered
+				(unless (and bullet-rule-p
+					     (or (eq org-plain-list-ordered-item-terminator ?\))
+						 (org-at-item-description-p))) '("1."))
+				(unless (and bullet-rule-p
+					     (or (eq org-plain-list-ordered-item-terminator ?.)
+						 (org-at-item-description-p))) '("1)"))))
+	   (len (length bullet-list))
+	   (item-index (- len (length (member current bullet-list))))
+	   (get-value (lambda (index) (nth (mod index len) bullet-list)))
+	   (new (cond
+		 ((member which bullet-list) which)
+		 ((numberp which) (funcall get-value which))
+		 ((eq 'previous which) (funcall get-value (1- item-index)))
+		 (t (funcall get-value (1+ item-index))))))
+      (org-list-repair new top))))
 
 ;;; Checkboxes
 
@@ -2029,7 +2036,7 @@ sublevels as a list of strings."
     (while (org-search-forward-unenclosed org-item-beginning-re end t)
       (save-excursion
 	(beginning-of-line)
-	(setq ltype (cond ((looking-at-p "^[ \t]*[0-9]") 'ordered)
+	(setq ltype (cond ((org-looking-at-p "^[ \t]*[0-9]") 'ordered)
 			  ((org-at-item-description-p) 'descriptive)
 			  (t 'unordered))))
       (let* ((indent1 (org-get-indentation))

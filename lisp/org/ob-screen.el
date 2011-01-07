@@ -1,11 +1,11 @@
 ;;; ob-screen.el --- org-babel support for interactive terminal
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010  Free Software Foundation
 
 ;; Author: Benjamin Andresen
 ;; Keywords: literate programming, interactive shell
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 

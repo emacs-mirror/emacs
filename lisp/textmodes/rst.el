@@ -1,6 +1,6 @@
 ;;; rst.el --- Mode for viewing and editing reStructuredText-documents.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Authors: Martin Blais <blais@furius.ca>,
@@ -3234,16 +3234,37 @@ document with \\[rst-compile]."
   :group 'rst
   :version "21.1")
 
-(defvar rst-compile-toolsets
-  '((html . ("rst2html.py" ".html" nil))
-    (latex . ("rst2latex.py" ".tex" nil))
-    (newlatex . ("rst2newlatex.py" ".tex" nil))
-    (pseudoxml . ("rst2pseudoxml.py" ".xml" nil))
-    (xml . ("rst2xml.py" ".xml" nil)))
+(defcustom rst-compile-toolsets
+  `((html ,(if (executable-find "rst2html.py") "rst2html.py" "rst2html")
+          ".html" nil)
+    (latex ,(if (executable-find "rst2latex.py") "rst2latex.py" "rst2latex")
+           ".tex" nil)
+    (newlatex ,(if (executable-find "rst2newlatex.py") "rst2newlatex.py"
+                 "rst2newlatex")
+              ".tex" nil)
+    (pseudoxml ,(if (executable-find "rst2pseudoxml.py") "rst2pseudoxml.py"
+                  "rst2pseudoxml")
+               ".xml" nil)
+    (xml ,(if (executable-find "rst2xml.py") "rst2xml.py" "rst2xml")
+         ".xml" nil)
+    (pdf ,(if (executable-find "rst2pdf.py") "rst2pdf.py" "rst2pdf")
+         ".pdf" nil)
+    (s5 ,(if (executable-find "rst2s5.py") "rst2s5.py" "rst2s5")
+        ".html" nil))
   "Table describing the command to use for each toolset.
 An association list of the toolset to a list of the (command to use,
 extension of produced filename, options to the tool (nil or a
-string)) to be used for converting the document.")
+string)) to be used for converting the document."
+  :type '(alist :options (html latex newlatex pseudoxml xml pdf s5)
+                :key-type symbol
+                :value-type (list :tag "Specification"
+                             (file :tag "Command")
+                             (string :tag "File extension")
+                             (choice :tag "Command options"
+                                     (const :tag "No options" nil)
+                                     (string :tag "Options"))))
+  :group 'rst
+  :version "24.1")
 
 ;; Note for Python programmers not familiar with association lists: you can set
 ;; values in an alists like this, e.g. :
@@ -3331,7 +3352,7 @@ or of the entire buffer, if the region is not selected."
     (shell-command-on-region
      (if mark-active (region-beginning) (point-min))
      (if mark-active (region-end) (point-max))
-     "rst2pseudoxml.py"
+     (cadr (assq 'pseudoxml rst-compile-toolsets))
      standard-output)))
 
 (defvar rst-pdf-program "xpdf"
@@ -3340,8 +3361,9 @@ or of the entire buffer, if the region is not selected."
 (defun rst-compile-pdf-preview ()
   "Convert the document to a PDF file and launch a preview program."
   (interactive)
-  (let* ((tmp-filename "/tmp/out.pdf")
-	 (command (format "rst2pdf.py %s %s && %s %s"
+  (let* ((tmp-filename (make-temp-file "rst-out" nil ".pdf"))
+	 (command (format "%s %s %s && %s %s"
+			  (cadr (assq 'pdf rst-compile-toolsets))
 			  buffer-file-name tmp-filename
 			  rst-pdf-program tmp-filename)))
     (start-process-shell-command "rst-pdf-preview" nil command)
@@ -3355,8 +3377,9 @@ or of the entire buffer, if the region is not selected."
 (defun rst-compile-slides-preview ()
   "Convert the document to an S5 slide presentation and launch a preview program."
   (interactive)
-  (let* ((tmp-filename "/tmp/slides.html")
-	 (command (format "rst2s5.py %s %s && %s %s"
+  (let* ((tmp-filename (make-temp-file "rst-slides" nil ".html"))
+	 (command (format "%s %s %s && %s %s"
+			  (cadr (assq 's5 rst-compile-toolsets))
 			  buffer-file-name tmp-filename
 			  rst-slides-program tmp-filename)))
     (start-process-shell-command "rst-slides-preview" nil command)
@@ -3454,11 +3477,10 @@ column is used (fill-column vs. end of previous/next line)."
   "A portable function that returns non-nil if the mark is active."
   (cond
    ((fboundp 'region-active-p) (region-active-p))
-   ((boundp 'transient-mark-mode) transient-mark-mode mark-active)))
-
+   ((boundp 'transient-mark-mode) (and transient-mark-mode mark-active))
+   (t mark-active)))
 
 
 (provide 'rst)
 
-;; arch-tag: 255ac0a3-a689-44cb-8643-04ca55ae490d
 ;;; rst.el ends here

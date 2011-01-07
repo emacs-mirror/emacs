@@ -461,6 +461,7 @@ The extensions should include a `.' if needed.")
 
 (defvar ada-mode-abbrev-table nil
   "Local abbrev table for Ada mode.")
+(define-abbrev-table 'ada-mode-abbrev-table ())
 
 (defvar ada-mode-syntax-table nil
   "Syntax table to be used for editing Ada source code.")
@@ -1123,16 +1124,8 @@ the file name."
 (defvar ada-font-lock-syntactic-keywords) ; defined below
 
 ;;;###autoload
-(defun ada-mode ()
-  "Ada mode is the major mode for editing Ada code.
-\\{ada-mode-map}"
-
-  (interactive)
-  (kill-all-local-variables)
-
-  (set-syntax-table ada-mode-syntax-table)
-
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
+(define-derived-mode ada-mode prog-mode "Ada"
+  "Ada mode is the major mode for editing Ada code."
 
   ;;  Set the paragraph delimiters so that one can select a whole block
   ;;  simply with M-h
@@ -1303,64 +1296,54 @@ the file name."
       (define-key ada-mode-map ada-popup-key 'ada-popup-menu))
 
   ;;  Support for Abbreviations (the user still need to "M-x abbrev-mode"
-  (define-abbrev-table 'ada-mode-abbrev-table ())
   (setq local-abbrev-table ada-mode-abbrev-table)
 
   ;;  Support for which-function mode
-  (make-local-variable 'which-func-functions)
-  (setq which-func-functions '(ada-which-function))
+  (set (make-local-variable 'which-func-functions) '(ada-which-function))
 
   ;;  Support for indent-new-comment-line (Especially for XEmacs)
   (set (make-local-variable 'comment-multi-line) nil)
 
   ;;  Support for add-log
-  (set (make-local-variable 'add-log-current-defun-function) 'ada-which-function)
-
-  (setq major-mode 'ada-mode
-	mode-name "Ada")
-
-  (use-local-map ada-mode-map)
+  (set (make-local-variable 'add-log-current-defun-function)
+       'ada-which-function)
 
   (easy-menu-add ada-mode-menu ada-mode-map)
-
-  (set-syntax-table ada-mode-syntax-table)
 
   (set (make-local-variable 'skeleton-further-elements)
        '((< '(backward-delete-char-untabify
 	      (min ada-indent (current-column))))))
   (add-hook 'skeleton-end-hook  'ada-adjust-case-skeleton nil t)
 
-  (run-mode-hooks 'ada-mode-hook)
-
   ;;  To be run after the hook, in case the user modified
   ;;  ada-fill-comment-prefix
-  ;; FIXME: if the user modified ada-fill-comment-prefix in his .emacs
-  ;; then it was already available before running the hook, and if he
-  ;; modifies it in the hook, he might as well modify comment-start instead.
-  (set (make-local-variable 'comment-start) (or ada-fill-comment-prefix "-- "))
+  (add-hook 'hack-local-variables-hook
+            (lambda ()
+              (set (make-local-variable 'comment-start)
+                   (or ada-fill-comment-prefix "-- "))
 
-  ;;  Run this after the hook to give the users a chance to activate
-  ;;  font-lock-mode
+              ;; Run this after the hook to give the users a chance
+              ;; to activate font-lock-mode.
 
-  (unless (or (eval-when-compile (fboundp 'syntax-propertize-via-font-lock))
-              (featurep 'xemacs))
-    (ada-initialize-syntax-table-properties)
-    (add-hook 'font-lock-mode-hook 'ada-handle-syntax-table-properties nil t))
+              (unless (or (eval-when-compile (fboundp 'syntax-propertize-via-font-lock))
+                          (featurep 'xemacs))
+                (ada-initialize-syntax-table-properties)
+                (add-hook 'font-lock-mode-hook
+                          'ada-handle-syntax-table-properties nil t))
 
-  ;; the following has to be done after running the ada-mode-hook
-  ;; because users might want to set the values of these variable
-  ;; inside the hook
-  ;; FIXME: it might even be set later on via file-local vars, no?
-  ;; so maybe ada-keywords should be set lazily.
-  (cond ((eq ada-language-version 'ada83)
-	 (setq ada-keywords ada-83-keywords))
-	((eq ada-language-version 'ada95)
-	 (setq ada-keywords ada-95-keywords))
-	((eq ada-language-version 'ada2005)
-	 (setq ada-keywords ada-2005-keywords)))
+              ;; FIXME: ada-language-version might be set in the mode
+              ;; hook or it might even be set later on via file-local
+              ;; vars, so ada-keywords should be set lazily.
+              (cond ((eq ada-language-version 'ada83)
+                     (setq ada-keywords ada-83-keywords))
+                    ((eq ada-language-version 'ada95)
+                     (setq ada-keywords ada-95-keywords))
+                    ((eq ada-language-version 'ada2005)
+                     (setq ada-keywords ada-2005-keywords)))
 
-  (if ada-auto-case
-      (ada-activate-keys-for-case)))
+              (if ada-auto-case
+                  (ada-activate-keys-for-case)))
+            nil 'local))
 
 (defun ada-adjust-case-skeleton ()
   "Adjust the case of the text inserted by a skeleton."
@@ -4632,7 +4615,7 @@ Moves to 'begin' if in a declarative part."
 	      ["Gdb Documentation"      (info "gdb")
 	       (eq ada-which-compiler 'gnat)]
 	      ["Ada95 Reference Manual" (info "arm95") t])
-	     ("Options"  :included (eq major-mode 'ada-mode)
+	     ("Options"  :included (derived-mode-p 'ada-mode)
 	      ["Auto Casing" (setq ada-auto-case (not ada-auto-case))
 	       :style toggle :selected ada-auto-case]
 	      ["Auto Indent After Return"
@@ -4669,7 +4652,7 @@ Moves to 'begin' if in a declarative part."
 	      ["Load..."      ada-set-default-project-file t]
 	      ["New..."       ada-prj-new                  t]
 	      ["Edit..."      ada-prj-edit                 t])
-	     ("Goto"   :included (eq major-mode 'ada-mode)
+	     ("Goto"   :included (derived-mode-p 'ada-mode)
 	      ["Goto Declaration/Body"   ada-goto-declaration
 	       (eq ada-which-compiler 'gnat)]
 	      ["Goto Body"               ada-goto-body
@@ -4698,7 +4681,7 @@ Moves to 'begin' if in a declarative part."
 	      ["-"                       nil                    nil]
 	      ["Other File"              ff-find-other-file     t]
 	      ["Other File Other Window" ada-ff-other-window    t])
-	     ("Edit"   :included (eq major-mode 'ada-mode)
+	     ("Edit"   :included (derived-mode-p 'ada-mode)
 	      ["Search File On Source Path"  ada-find-file                t]
 	      ["------"                      nil                          nil]
 	      ["Complete Identifier"         ada-complete-identifier      t]
@@ -4730,7 +4713,7 @@ Moves to 'begin' if in a declarative part."
 	      ["-----"                       nil                          nil]
 	      ["Narrow to subprogram"        ada-narrow-to-defun          t])
 	     ("Templates"
-	      :included  (eq major-mode 'ada-mode)
+	      :included  (derived-mode-p 'ada-mode)
 	      ["Header"          ada-header          t]
 	      ["-"               nil                 nil]
 	      ["Package Body"    ada-package-body    t]

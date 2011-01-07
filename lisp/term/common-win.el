@@ -125,9 +125,9 @@ is not used)."
 ;;;	       (cons (logior (lsh 0 16)   9) 'ns-insert-working-text)
 ;;;	       (cons (logior (lsh 0 16)  10) 'ns-delete-working-text)
 	       (cons (logior (lsh 0 16)  11) 'ns-spi-service-call)
-;;;	       (cons (logior (lsh 0 16)  12) 'ns-new-frame)
+	       (cons (logior (lsh 0 16)  12) 'ns-new-frame)
 	       (cons (logior (lsh 0 16)  13) 'ns-toggle-toolbar)
-;;;	       (cons (logior (lsh 0 16)  14) 'ns-show-prefs)
+	       (cons (logior (lsh 0 16)  14) 'ns-show-prefs)
 	       ))))
     (set-terminal-parameter frame 'x-setup-function-keys t)))
 

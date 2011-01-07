@@ -178,7 +178,7 @@ not align (only setting space according to `conf-assignment-space')."
 
 
 (defvar conf-font-lock-keywords
-  `(;; [section] (do this first because it may look like a parameter)
+  '(;; [section] (do this first because it may look like a parameter)
     ("^[ \t]*\\[\\(.+\\)\\]" 1 'font-lock-type-face)
     ;; var=val or var[index]=val
     ("^[ \t]*\\(.+?\\)\\(?:\\[\\(.*?\\)\\]\\)?[ \t]*="

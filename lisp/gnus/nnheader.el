@@ -366,15 +366,13 @@ on your system, you could say something like:
 	      (setq num 0
 		    beg (point-min)
 		    end (point-max))
-	    (goto-char (point-min))
 	    ;; Search to the beginning of the next header.  Error
 	    ;; messages do not begin with 2 or 3.
 	    (when (re-search-forward "^[23][0-9]+ " nil t)
-	      (end-of-line)
 	      (setq num (read cur)
 		    beg (point)
 		    end (if (search-forward "\n.\n" nil t)
-			    (- (point) 2)
+			    (goto-char  (- (point) 2))
 			  (point)))))
       (with-temp-buffer
 	(insert-buffer-substring cur beg end)
@@ -1079,6 +1077,26 @@ See `find-file-noselect' for the arguments."
    (truncate (* (- nnheader-read-timeout
 		   (truncate nnheader-read-timeout))
 		1000))))
+
+(defun nnheader-update-marks-actions (backend-marks actions)
+  (dolist (action actions)
+    (let ((range (nth 0 action))
+	  (what  (nth 1 action))
+	  (marks (nth 2 action)))
+      (dolist (mark marks)
+	(setq backend-marks
+	      (gnus-update-alist-soft
+	       mark
+	       (cond
+		((eq what 'add)
+		 (gnus-range-add (cdr (assoc mark backend-marks)) range))
+		((eq what 'del)
+		 (gnus-remove-from-range
+		  (cdr (assoc mark backend-marks)) range))
+		((eq what 'set)
+		 range))
+	       backend-marks)))))
+  backend-marks)
 
 (when (featurep 'xemacs)
   (require 'nnheaderxm))

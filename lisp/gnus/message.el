@@ -161,7 +161,7 @@ If this variable is nil, no such courtesy message will be added."
   :type 'regexp)
 
 (defcustom message-from-style mail-from-style
-  "*Specifies how \"From\" headers look.
+  "Specifies how \"From\" headers look.
 
 If nil, they contain just the return address like:
 	king@grassland.com
@@ -277,7 +277,7 @@ This is a list of regexps and regexp matches."
 		 regexp))
 
 (defcustom message-ignored-mail-headers
-  "^[GF]cc:\\|^Resent-Fcc:\\|^Xref:\\|^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:"
+  "^\\([GF]cc\\|Resent-Fcc\\|Xref\\|X-Draft-From\\|X-Gnus-Agent-Meta-Information\\):"
   "*Regexp of headers to be removed unconditionally before mailing."
   :group 'message-mail
   :group 'message-headers
@@ -507,14 +507,9 @@ This is used by `message-kill-buffer'."
   :group 'message-buffers
   :type 'boolean)
 
-(defvar gnus-local-organization)
 (defcustom message-user-organization
-  (or (and (boundp 'gnus-local-organization)
-	   (stringp gnus-local-organization)
-	   gnus-local-organization)
-      (getenv "ORGANIZATION")
-      t)
-  "*String to be used as an Organization header.
+  (or (getenv "ORGANIZATION") t)
+  "String to be used as an Organization header.
 If t, use `message-user-organization-file'."
   :group 'message-headers
   :type '(choice string
@@ -2919,6 +2914,7 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
 	  (mail-aliases-setup))))
    ((message-mail-alias-type-p 'ecomplete)
     (ecomplete-setup)))
+  (add-hook 'completion-at-point-functions 'message-completion-function nil t)
   (unless buffer-file-name
     (message-set-auto-save-file-name))
   (unless (buffer-base-buffer)
@@ -3047,10 +3043,22 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (interactive)
   (message-position-on-field "Summary" "Subject"))
 
-(defun message-goto-body (&optional interactivep)
+(eval-when-compile
+  (defmacro message-called-interactively-p (kind)
+    (condition-case nil
+	(progn
+	  (eval '(called-interactively-p 'any))
+	  ;; Emacs >=23.2
+	  `(called-interactively-p ,kind))
+      ;; Emacs <23.2
+      (wrong-number-of-arguments '(called-interactively-p))
+      ;; XEmacs
+      (void-function '(interactive-p)))))
+
+(defun message-goto-body ()
   "Move point to the beginning of the message body."
-  (interactive (list t))
-  (when (and interactivep
+  (interactive)
+  (when (and (message-called-interactively-p 'any)
 	     (looking-at "[ \t]*\n"))
     (expand-abbrev))
   (goto-char (point-min))
@@ -3059,7 +3067,7 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
 
 (defun message-in-body-p ()
   "Return t if point is in the message body."
-  (let ((body (save-excursion (message-goto-body) (point))))
+  (let ((body (save-excursion (message-goto-body))))
     (>= (point) body)))
 
 (defun message-goto-eoh ()
@@ -4253,9 +4261,10 @@ matching entry in `message-bogus-addresses'."
   ;; FIXME: How about "foo@subdomain", when the MTA adds ".domain.tld"?
   (let (found)
     (mapc (lambda (address)
-	    (setq address (cadr address))
+	    (setq address (or (cadr address) ""))
 	    (when
-		(or (not
+		(or (string= "" address)
+                    (not
 		     (or
 		      (not (string-match "@" address))
 		      (string-match
@@ -4269,7 +4278,7 @@ matching entry in `message-bogus-addresses'."
 					       "\\|")
 				  message-bogus-addresses)))
 			   (string-match re address))))
-			 (push address found)))
+              (push address found)))
 	  ;;
 	  (mail-extract-address-components recipients t))
     found))
@@ -7720,7 +7729,7 @@ When FORCE, rebuild the tool bar."
   :type '(alist :key-type regexp :value-type function))
 
 (defcustom message-expand-name-databases
-  (list 'bbdb 'eudc)
+  '(bbdb eudc)
   "List of databases to try for name completion (`message-expand-name').
 Each element is a symbol and can be `bbdb' or `eudc'."
   :group 'message
@@ -7742,15 +7751,25 @@ If nil, the function bound in `text-mode-map' or `global-map' is executed."
 Execute function specified by `message-tab-body-function' when not in
 those headers."
   (interactive)
+  (cond
+   ((if (and (boundp 'completion-fail-discreetly)
+             (fboundp 'completion-at-point))
+        (let ((completion-fail-discreetly t)) (completion-at-point))
+      (funcall (or (message-completion-function) #'ignore)))
+    ;; Completion was performed; nothing else to do.
+    nil)
+   (message-tab-body-function (funcall message-tab-body-function))
+   (t (funcall (or (lookup-key text-mode-map "\t")
+                   (lookup-key global-map "\t")
+                   'indent-relative)))))
+
+(defun message-completion-function ()
   (let ((alist message-completion-alist))
     (while (and alist
 		(let ((mail-abbrev-mode-regexp (caar alist)))
 		  (not (mail-abbrev-in-expansion-header-p))))
       (setq alist (cdr alist)))
-    (funcall (or (cdar alist) message-tab-body-function
-		 (lookup-key text-mode-map "\t")
-		 (lookup-key global-map "\t")
-		 'indent-relative))))
+    (cdar alist)))
 
 (eval-and-compile
   (condition-case nil

@@ -28,11 +28,7 @@
 ;; documented in the Emacs user's manual.
 
 ;;; Code:
-(eval-when-compile
-  ;; Necessary to avoid recursive `require's.
-  (provide 'sendmail)
-  (require 'rmail)
-  (require 'mailalias))
+(require 'mail-utils)
 
 (autoload 'rfc2047-encode-string "rfc2047")
 
@@ -203,13 +199,14 @@ when you first send mail."
   :type '(choice (const nil) string)
   :group 'sendmail)
 
-;;;###autoload
 (defcustom mail-alias-file nil
-  "If non-nil, the name of a file to use instead of `/usr/lib/aliases'.
+  "If non-nil, the name of a file to use instead of the sendmail default.
 This file defines aliases to be expanded by the mailer; this is a different
 feature from that of defining aliases in `.mailrc' to be expanded in Emacs.
-This variable has no effect unless your system uses sendmail as its mailer."
-  :type '(choice (const nil) file)
+This variable has no effect unless your system uses sendmail as its mailer.
+The default file is defined in sendmail's configuration file, e.g.
+`/etc/aliases'."
+  :type '(choice (const :tag "Sendmail default" nil) file)
   :group 'sendmail)
 
 ;;;###autoload
@@ -383,15 +380,8 @@ The default value matches citations like `foo-bar>' plus whitespace."
     map))
 
 (autoload 'build-mail-aliases "mailalias"
-  "Read mail aliases from user's personal aliases file and set `mail-aliases'."
-  nil)
-
-(autoload 'expand-mail-aliases "mailalias"
-  "Expand all mail aliases in suitable header fields found between BEG and END.
-Suitable header fields are `To', `Cc' and `Bcc' and their `Resent-' variants.
-Optional second arg EXCLUDE may be a regular expression defining text to be
-removed from alias expansions."
-  nil)
+  "Read mail aliases from personal aliases file and set `mail-aliases'.
+By default, this is the file specified by `mail-personal-alias-file'." t)
 
 ;;;###autoload
 (defcustom mail-signature t
@@ -440,8 +430,6 @@ before you edit the message, so you can edit or delete the lines."
   :type '(choice (const nil) string)
   :group 'sendmail)
 
-;; FIXME no need for autoload
-;;;###autoload
 (defcustom mail-bury-selects-summary t
   "If non-nil, try to show Rmail summary buffer after returning from mail.
 The functions \\[mail-send-on-exit] or \\[mail-dont-send] select
@@ -450,8 +438,6 @@ is non-nil."
   :type 'boolean
   :group 'sendmail)
 
-;; FIXME no need for autoload
-;;;###autoload
 (defcustom mail-send-nonascii 'mime
   "Specify whether to allow sending non-ASCII characters in mail.
 If t, that means do allow it.  nil means don't allow it.
@@ -475,23 +461,16 @@ support Delivery Status Notification."
 
 ;; Note: could use /usr/ucb/mail instead of sendmail;
 ;; options -t, and -v if not interactive.
-(defvar mail-mailer-swallows-blank-line
-  (if (and (string-match "sparc-sun-sunos\\(\\'\\|[^5]\\)" system-configuration)
-	   (file-readable-p "/etc/sendmail.cf")
-           (with-temp-buffer
-             (insert-file-contents "/etc/sendmail.cf")
-             (goto-char (point-min))
-             (let ((case-fold-search nil))
-               (re-search-forward "^OR\\>" nil t))))
-      ;; According to RFC822, "The field-name must be composed of printable
-      ;; ASCII characters (i.e. characters that have decimal values between
-      ;; 33 and 126, except colon)", i.e. any chars except ctl chars,
-      ;; space, or colon.
-      '(looking-at "[ \t]\\|[][!\"#$%&'()*+,-./0-9;<=>?@A-Z\\\\^_`a-z{|}~]+:"))
+(defvar mail-mailer-swallows-blank-line nil
   "Set this non-nil if the system's mailer runs the header and body together.
-\(This problem exists on Sunos 4 when sendmail is run in remote mode.)
-The value should be an expression to test whether the problem will
-actually occur.")
+The actual value should be an expression to evaluate that returns
+non-nil if the problem will actually occur.
+\(As far as we know, this is not an issue on any system still supported
+by Emacs.)")
+
+(put 'mail-mailer-swallows-blank-line 'risky-local-variable t) ; gets evalled
+(make-obsolete-variable 'mail-mailer-swallows-blank-line
+			"no need to set this on any modern system." "24.1")
 
 (defvar mail-mode-syntax-table
   ;; define-derived-mode will make it inherit from text-mode-syntax-table.
@@ -546,12 +525,11 @@ actually occur.")
   (or mail-default-reply-to
       (setq mail-default-reply-to (getenv "REPLYTO")))
   (sendmail-sync-aliases)
-  (if (eq mail-aliases t)
-      (progn
-	(setq mail-aliases nil)
-	(when mail-personal-alias-file
-	  (if (file-exists-p mail-personal-alias-file)
-	      (build-mail-aliases)))))
+  (when (eq mail-aliases t)
+    (setq mail-aliases nil)
+    (and mail-personal-alias-file
+	 (file-exists-p mail-personal-alias-file)
+	 (build-mail-aliases)))
   ;; Don't leave this around from a previous message.
   (kill-local-variable 'buffer-file-coding-system)
   ;; This doesn't work for enable-multibyte-characters.
@@ -1826,6 +1804,9 @@ The seventh argument ACTIONS is a list of actions to take
       ;; names are normally ``trivial'', so Dired will set point after
       ;; all the files, at buffer bottom.  We want it on the first
       ;; file instead.
+      ;; Require dired so that dired-trivial-filenames does not get
+      ;; unbound on exit from the let.
+      (require 'dired)
       (let ((dired-trivial-filenames t))
 	(dired-other-window wildcard (concat dired-listing-switches "t")))
       (rename-buffer "*Auto-saved Drafts*" t)

@@ -3212,7 +3212,7 @@ x_set_screen_gamma (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 void
 x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  Lisp_Object frame, font_object, font_param = Qnil;
+  Lisp_Object font_object, font_param = Qnil;
   int fontset = -1;
 
   /* Set the frame parameter back to the old value because we may
@@ -3883,7 +3883,7 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
   return Fcdr (tem);
 }
 
-Lisp_Object
+static Lisp_Object
 x_frame_get_arg (struct frame *f, Lisp_Object alist, Lisp_Object param,
 		 const char *attribute, const char *class,
 		 enum resource_types type)
@@ -4503,15 +4503,7 @@ This variable is local to the current terminal and cannot be buffer-local.  */);
 You should set this variable to tell Emacs how your window manager
 handles focus, since there is no way in general for Emacs to find out
 automatically.  See also `mouse-autoselect-window'.  */);
-#ifdef HAVE_WINDOW_SYSTEM
-#if defined(HAVE_NTGUI) || defined(HAVE_NS)
   focus_follows_mouse = 0;
-#else
-  focus_follows_mouse = 1;
-#endif
-#else
-  focus_follows_mouse = 0;
-#endif
 
   staticpro (&Vframe_list);
 

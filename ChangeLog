@@ -1,3 +1,54 @@
+2011-01-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Check for __builtin_unwind_init.
+
+2011-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_MAKEINFO): New output variable.
+	(MAKEINFO): Reset to "makeinfo" if not found.
+	* Makefile.in (install-arch-indep, info):
+	Replace MAKEINFO = off with HAVE_MAKEINFO = no.
+
+2010-12-29  Ulrich Mueller  <ulm@gentoo.org>
+
+	* configure.in: Make gameuser configurable (Bug#7717).
+
+2010-12-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-dep, uninstall): Remove code relating to the
+	long absent lib-src/fns-*.el.
+
+2010-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Exclude etc/*.pyc.
+
+2010-12-10  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Don't double machfile in final message.
+
+2010-12-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Fix last change.
+
+2010-12-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Remove reference to removed machine description
+	files and allow $machine and $machfile to be empty.  Substitute
+	M_FILE/S_FILE instead of machfile/opsysfile.
+
+2010-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Remove EMACS_UNIBYTE unsetting; it does nothing.
+
+2010-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in <AC_CHECK_HEADERS>: Remove sys/ioctl.h.
+	(EXTERNALLY_VISIBLE): New definition.
+
+2010-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (INLINE): Do not depend on OPTIMIZE, unused.
+
 2010-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Do not check for unconditionally included headers.
@@ -8630,11 +8681,10 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-	2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+	2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -8651,4 +8701,3 @@
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; arch-tag: ac61a779-1480-4884-b292-d0c39c127a73

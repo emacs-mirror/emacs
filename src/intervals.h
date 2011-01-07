@@ -264,12 +264,12 @@ extern INTERVAL previous_interval (INTERVAL);
 extern INTERVAL merge_interval_left (INTERVAL);
 extern INTERVAL merge_interval_right (INTERVAL);
 extern void delete_interval (INTERVAL);
-extern INLINE void offset_intervals (struct buffer *, EMACS_INT, EMACS_INT);
+extern void offset_intervals (struct buffer *, EMACS_INT, EMACS_INT);
 extern void graft_intervals_into_buffer (INTERVAL, EMACS_INT, EMACS_INT,
                                          struct buffer *, int);
 extern void verify_interval_modification (struct buffer *, int, int);
 extern INTERVAL balance_intervals (INTERVAL);
-extern INLINE void copy_intervals_to_string (Lisp_Object, struct buffer *,
+extern void copy_intervals_to_string (Lisp_Object, struct buffer *,
                                              EMACS_INT, EMACS_INT);
 extern INTERVAL copy_intervals (INTERVAL, EMACS_INT, EMACS_INT);
 extern int compare_string_intervals (Lisp_Object, Lisp_Object);
@@ -283,6 +283,7 @@ extern INTERVAL update_interval (INTERVAL, EMACS_INT);
 extern void set_intervals_multibyte (int);
 extern INTERVAL validate_interval_range (Lisp_Object, Lisp_Object *,
                                          Lisp_Object *, int);
+extern INTERVAL interval_of (int, Lisp_Object);
 
 /* Defined in xdisp.c */
 extern int invisible_p (Lisp_Object, Lisp_Object);
@@ -312,7 +313,6 @@ extern Lisp_Object Vtext_property_default_nonsticky;
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
 EXFUN (Fget_char_property, 3);
-EXFUN (Fget_char_property_and_overlay, 3);
 EXFUN (Fget_text_property, 3);
 EXFUN (Ftext_properties_at, 2);
 EXFUN (Fnext_property_change, 3);
@@ -321,7 +321,6 @@ EXFUN (Fadd_text_properties, 4);
 EXFUN (Fset_text_properties, 4);
 EXFUN (Fremove_text_properties, 4);
 EXFUN (Ftext_property_any, 5);
-EXFUN (Ftext_property_not_all, 5);
 EXFUN (Fprevious_single_char_property_change, 4);
 extern Lisp_Object copy_text_properties (Lisp_Object, Lisp_Object,
                                          Lisp_Object, Lisp_Object,

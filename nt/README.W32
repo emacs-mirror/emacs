@@ -116,14 +116,19 @@ See the end of the file for license conditions.
   libXpm library from X11R7.3.
 
   Emacs can also support some other image formats with appropriate
-  libraries.  These libraries are all available as part of GTK, or from
-  gnuwin32.sourceforge.net.  Emacs will find them if the directory they
-  are installed in is on the PATH.
+  libraries.  These libraries are all available as part of GTK
+  download for Windows (http://www.gtk.org/download-windows.html), or
+  from the GnuWin32 project.  Emacs will find them if the directory
+  they are installed in is on the PATH.
 
-      PNG: requires the PNG reference library 1.2 or later, which will
-      be named libpng13d.dll, libpng13.dll, libpng12d.dll, libpng12.dll
-      or libpng.dll.  LibPNG requires zlib, which should come from the same
-      source as you got libpng.
+      PNG: requires the PNG reference library 1.4 or later, which will
+      be named libpng14.dll or libpng14-14.dll.  LibPNG requires zlib,
+      which should come from the same source as you got libpng.
+      Starting with Emacs 23.3, the precompiled Emacs binaries are
+      built with libpng 1.4.x and later, and are incompatible with
+      earlier versions of libpng DLLs.  So if you have libpng 1.2.x,
+      the PNG support will not work, and you will have to download
+      newer versions.
 
       JPEG: requires the Independant JPEG Group's libjpeg 6b or later,
       which will be called jpeg62.dll, libjpeg.dll, jpeg-62.dll or jpeg.dll.
@@ -133,6 +138,9 @@ See the end of the file for license conditions.
 
       GIF: requires libungif or giflib 4.1 or later, which will be
       called giflib4.dll, libungif4.dll or libungif.dll.
+
+   If you have image support DLLs under different names, customize the
+   value of `dynamic-library-alist'.
 
    In addition, Emacs can be compiled to support SVG.  This precompiled
    distribution has not been compiled that way, since the SVG library

@@ -4299,12 +4299,12 @@ file.
 Normally, Emacs expands aliases when you send the message.
 To expand them before this, use @kbd{M-x expand-mail-aliases}.
 
-@c FIXME there should be an interactive rebuild command for this.
 @item
-Emacs normally only reads the @file{.mailrc} file once per session,
-when you start to compose your first mail message.  If you edit
-@file{.mailrc}, you can type @kbd{M-: (build-mail-aliases) @key{RET}} to
-make Emacs reread @file{~/.mailrc}.
+Emacs normally only reads the @file{.mailrc} file once per session, when
+you start to compose your first mail message.  If you edit the file
+after this, you can use @kbd{M-x build-mail-aliases} to make Emacs
+reread it.  Prior to Emacs 24.1, this is not an interactive command, so
+you must instead type @kbd{M-: (build-mail-aliases) @key{RET}}.
 
 @item
 If you like, you can expand mail aliases as abbrevs, as soon as you

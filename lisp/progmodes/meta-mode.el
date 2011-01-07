@@ -474,6 +474,7 @@ If the list was changed, sort the list and remove duplicates first."
 
 (defun meta-complete-symbol ()
   "Perform completion on Metafont or MetaPost symbol preceding point."
+  ;; FIXME: Use completion-at-point-functions.
   (interactive "*")
   (let ((list meta-complete-list)
         entry)
@@ -844,11 +845,10 @@ The environment marked is the one that contains point or follows point."
 
 ;;; Syntax table, keymap and menu.
 
-(defvar meta-mode-abbrev-table nil
+(define-abbrev-table 'meta-mode-abbrev-table ()
   "Abbrev table used in Metafont or MetaPost mode.")
-(define-abbrev-table 'meta-mode-abbrev-table ())
 
-(defvar meta-mode-syntax-table
+(defvar meta-common-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; underscores are word constituents
     (modify-syntax-entry ?_  "w"  st)
@@ -885,9 +885,8 @@ The environment marked is the one that contains point or follows point."
     st)
   "Syntax table used in Metafont or MetaPost mode.")
 
-(defvar meta-mode-map
+(defvar meta-common-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-m"      'reindent-then-newline-and-indent)
     ;; Comment Paragraphs:
     ;; (define-key map "\M-a"      'backward-sentence)
     ;; (define-key map "\M-e"      'forward-sentence)
@@ -915,10 +914,10 @@ The environment marked is the one that contains point or follows point."
     ;; (define-key map "\C-c\C-l"  'meta-recenter-output)
     map)
   "Keymap used in Metafont or MetaPost mode.")
-
+(define-obsolete-variable-alias 'meta-mode-map 'meta-common-mode-map "24.1")
 
 (easy-menu-define
- meta-mode-menu meta-mode-map
+ meta-mode-menu meta-common-mode-map
  "Menu used in Metafont or MetaPost mode."
  (list "Meta"
        ["Forward Environment"           meta-beginning-of-defun t]
@@ -976,106 +975,62 @@ The environment marked is the one that contains point or follows point."
 
 ;;; Initialization.
 
-(defun meta-common-initialization ()
+(define-derived-mode meta-common-mode prog-mode "-Meta-common-"
   "Common initialization for Metafont or MetaPost mode."
-  (kill-all-local-variables)
+  :abbrev-table meta-mode-abbrev-table
+  (set (make-local-variable 'paragraph-start)
+       (concat page-delimiter "\\|$"))
+  (set (make-local-variable 'paragraph-separate)
+       (concat page-delimiter "\\|$"))
 
-  (make-local-variable 'paragraph-start)
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-start
-        (concat page-delimiter "\\|$"))
-  (setq paragraph-separate
-        (concat page-delimiter "\\|$"))
+  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
 
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (setq paragraph-ignore-fill-prefix t)
-
-  (make-local-variable 'comment-start-skip)
-  (make-local-variable 'comment-start)
-  (make-local-variable 'comment-end)
-  (make-local-variable 'comment-multi-line)
-  (setq comment-start-skip "%+[ \t\f]*")
-  (setq comment-start "%")
-  (setq comment-end "")
-  (setq comment-multi-line nil)
+  (set (make-local-variable 'comment-start-skip) "%+[ \t\f]*")
+  (set (make-local-variable 'comment-start) "%")
+  (set (make-local-variable 'comment-end) "")
+  (set (make-local-variable 'comment-multi-line) nil)
 
   ;; We use `back-to-indentation' but \f is no indentation sign.
   (modify-syntax-entry ?\f "_   ")
 
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
 
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'meta-comment-indent)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'meta-indent-line)
+  (set (make-local-variable 'comment-indent-function) #'meta-comment-indent)
+  (set (make-local-variable 'indent-line-function) #'meta-indent-line)
   ;; No need to define a mode-specific 'indent-region-function.
   ;; Simply use the generic 'indent-region and 'comment-region.
 
   ;; Set defaults for font-lock mode.
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
-        '(meta-font-lock-keywords
-          nil nil ((?_ . "w")) nil
-          (font-lock-comment-start-regexp . "%")))
+  (set (make-local-variable 'font-lock-defaults)
+       '(meta-font-lock-keywords
+         nil nil ((?_ . "w")) nil
+         (font-lock-comment-start-regexp . "%")))
 
   ;; Activate syntax table, keymap and menu.
-  (setq local-abbrev-table meta-mode-abbrev-table)
-  (set-syntax-table meta-mode-syntax-table)
-  (use-local-map meta-mode-map)
-  (easy-menu-add meta-mode-menu)
-  )
+  (easy-menu-add meta-mode-menu))
 
 
 ;;;###autoload
-(defun metafont-mode ()
-  "Major mode for editing Metafont sources.
-Special commands:
-\\{meta-mode-map}
-
-Turning on Metafont mode calls the value of the variables
-`meta-common-mode-hook' and `metafont-mode-hook'."
-  (interactive)
-  (meta-common-initialization)
-  (setq mode-name "Metafont")
-  (setq major-mode 'metafont-mode)
-
+(define-derived-mode metafont-mode meta-common-mode "Metafont"
+  "Major mode for editing Metafont sources."
   ;; Set defaults for completion function.
-  (make-local-variable 'meta-symbol-list)
-  (make-local-variable 'meta-symbol-changed)
-  (make-local-variable 'meta-complete-list)
-  (setq meta-symbol-list nil)
-  (setq meta-symbol-changed nil)
+  (set (make-local-variable 'meta-symbol-list) nil)
+  (set (make-local-variable 'meta-symbol-changed) nil)
   (apply 'meta-add-symbols metafont-symbol-list)
-  (setq meta-complete-list
+  (set (make-local-variable 'meta-complete-list)
         (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
-              (list "" 'ispell-complete-word)))
-  (run-mode-hooks 'meta-common-mode-hook 'metafont-mode-hook))
+              (list "" 'ispell-complete-word))))
 
 ;;;###autoload
-(defun metapost-mode ()
-  "Major mode for editing MetaPost sources.
-Special commands:
-\\{meta-mode-map}
-
-Turning on MetaPost mode calls the value of the variable
-`meta-common-mode-hook' and `metafont-mode-hook'."
-  (interactive)
-  (meta-common-initialization)
-  (setq mode-name "MetaPost")
-  (setq major-mode 'metapost-mode)
-
+(define-derived-mode metapost-mode meta-common-mode "MetaPost"
+  "Major mode for editing MetaPost sources."
   ;; Set defaults for completion function.
-  (make-local-variable 'meta-symbol-list)
-  (make-local-variable 'meta-symbol-changed)
-  (make-local-variable 'meta-complete-list)
-  (setq meta-symbol-list nil)
-  (setq meta-symbol-changed nil)
+  (set (make-local-variable 'meta-symbol-list) nil)
+  (set (make-local-variable 'meta-symbol-changed) nil)
   (apply 'meta-add-symbols metapost-symbol-list)
-  (setq meta-complete-list
+  (set (make-local-variable 'meta-complete-list)
         (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
-              (list "" 'ispell-complete-word)))
-  (run-mode-hooks 'meta-common-mode-hook 'metapost-mode-hook))
+              (list "" 'ispell-complete-word))))
 
 
 ;;; Just in case ...

@@ -1246,31 +1246,23 @@ Currently supported properties are:
  `:predicate'           a predicate that completion candidates need to satisfy.
  `:annotation-function' the value to use for `completion-annotate-function'.")
 
-(defun completion-at-point (&optional arg)
+(defun completion-at-point ()
   "Perform completion on the text around point.
-The completion method is determined by `completion-at-point-functions'.
-
-With a prefix argument, this command does completion within
-the collection of symbols listed in the index of the manual for the
-language you are using."
-  (interactive "P")
-  (if arg
-      (info-complete-symbol)
-    (let ((res (run-hook-with-args-until-success
-		'completion-at-point-functions)))
-      (cond
-       ((functionp res) (funcall res))
-       (res
-	(let* ((plist (nthcdr 3 res))
-	       (start (nth 0 res))
-	       (end (nth 1 res))
-	       (completion-annotate-function
-		(or (plist-get plist :annotation-function)
-		    completion-annotate-function)))
-	  (completion-in-region start end (nth 2 res)
-				(plist-get plist :predicate))))))))
-
-(define-obsolete-function-alias 'complete-symbol 'completion-at-point "24.1")
+The completion method is determined by `completion-at-point-functions'."
+  (interactive)
+  (let ((res (run-hook-with-args-until-success
+              'completion-at-point-functions)))
+    (cond
+     ((functionp res) (funcall res))
+     (res
+      (let* ((plist (nthcdr 3 res))
+             (start (nth 0 res))
+             (end (nth 1 res))
+             (completion-annotate-function
+              (or (plist-get plist :annotation-function)
+                  completion-annotate-function)))
+        (completion-in-region start end (nth 2 res)
+                              (plist-get plist :predicate)))))))
 
 ;;; Key bindings.
 

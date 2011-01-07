@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -57,9 +57,9 @@
   "Replace newline character with ellipses.
 If STRING ends in a newline character, then remove the newline
 character and replace it with ellipses."
-  (if (and (stringp string) (string-match "[\n\r]" string))
-      (concat (substring string 0 (match-beginning 0)) "...")
-    string))
+  (if (and (stringp string) (string-match "[\n\r]\\(.\\)?" string))
+      (concat (substring string 0 (match-beginning 0))
+	      (if (match-string 1 string) "...")) string))
 
 (defmacro sbe (source-block &rest variables)
   "Return the results of calling SOURCE-BLOCK with VARIABLES.

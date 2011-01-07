@@ -1,6 +1,6 @@
 # Maintenance productions for the Lisp directory
 # Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-#   2009, 2010  Free Software Foundation, Inc.
+#   2009, 2010, 2011  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -35,7 +35,7 @@ EMACS = ${abs_top_builddir}/src/emacs
 
 # Command line flags for Emacs.
 
-EMACSOPT = -batch --no-site-file
+EMACSOPT = -batch --no-site-file --no-site-lisp
 
 # Extra flags to pass to the byte compiler
 BYTE_COMPILE_EXTRA_FLAGS =
@@ -180,7 +180,6 @@ TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptags
 	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4) | sed -e "s,$(lisp)/[^ ]*loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
 	${ETAGS} -o $@ $$els
 
-	$(lisp)/emacs-lisp/smie.elc \
 # The src/Makefile.in has its own set of dependencies and when they decide
 # that one Lisp file needs to be re-compiled, we had better recompile it as
 # well, otherwise every subsequent make will again call us, until we finally

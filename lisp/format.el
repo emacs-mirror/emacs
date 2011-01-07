@@ -181,8 +181,7 @@ it should be a Lisp function.  Decoding is done for the given BUFFER."
 	;; We should perhaps go via a temporary buffer and copy it
 	;; back, in case of errors.
 	(if (and (zerop (save-window-excursion
-			  (shell-command-on-region (point-min) (point-max)
-						   method t t
+			  (shell-command-on-region from to method t t
 						   error-buff)))
 		 ;; gzip gives zero exit status with bad args, for instance.
 		 (zerop (with-current-buffer error-buff

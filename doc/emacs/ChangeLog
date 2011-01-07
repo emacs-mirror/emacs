@@ -1,3 +1,93 @@
+2011-01-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* rmail.texi (Rmail Display): Edit for grammar and conciseness.
+
+2011-01-02  Kenichi Handa  <handa@m17n.org>
+
+	* rmail.texi (Rmail Display): Describe new features of Rmail in Info.
+
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Cut and Paste): Modify the section's name and text:
+	don't mix "cut/paste" with "kill/yank".
+	(Cut/Paste Other App): Describe the per-session emulation of PRIMARY.
+	(Bug#7702)
+
+	* trouble.texi (Checklist): Mention debug-on-quit.  (Bug#7667)
+
+2011-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi: Move inclusion of emerge after EDE, so that it
+	matches its position in the menu.  (Bug#7674)
+
+2011-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Mention not replying via news either.
+
+2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* misc.texi (Document View): Update DocView section with newly
+	supported document formats.
+
+2010-12-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* killing.texi: Resection the Info version to conform to the
+	printed manual, to avoid making sections on Accumulating Text, CUA
+	and Rectangles into full chapters.
+
+2010-12-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* custom.texi (Init Syntax): Add index entries for "character syntax".
+	(Bug#7576)
+
+2010-12-13  Karel Klíč  <kklic@redhat.com>
+
+	* text.texi (HTML Mode): Small fixes.  (Bug#7607)
+
+2010-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Fix typo in newsgroup name.
+
+2010-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.texi (Word Search): Note that the lazy highlight always
+	matches to whole words (Bug#7470).
+
+2010-12-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Optional Mode Line): Make the description of
+	load-average more accurate.
+
+	* msdog.texi (Windows HOME): Mention that HOME can also be set in the
+	registry, with a cross-reference.
+	(Windows Startup): New node.  Move the stuff about the current
+	directory from "Windows HOME".
+
+2010-11-27  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
+
+	* maintaining.texi (VC With A Locking VCS, VC Directory Commands):
+	* vc1-xtra.texi (Customizing VC, General VC Options): Small fixes.
+
+2010-11-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* maintaining.texi (Version Control Systems): Fix repeated sentence.
+	Suggested by Štěpán Němec.
+
+2010-11-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* maintaining.texi (Version Control): Say "commit", not "check in".
+	(Version Control Systems): Simplify descriptions.
+	(VCS Merging, VCS Changesets, VCS Repositories): New nodes, split from
+	VCS Concepts.
+	(VC Mode Line): Update example.
+	(Old Revisions): Document revert-buffer for vc-diff.
+	(Log Buffer): Promote to a subsection.  Document header lines.
+
+	* macos.texi (Mac / GNUstep Basics): Document
+	ns-right-alternate-modifier.
+
+	* emacs.texi (Top): Update node listing.
+
 2010-11-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* rmail.texi (Rmail Coding): Characters with no fonts are not

@@ -1557,7 +1557,7 @@ cursor display.  On a text-only terminal, this is not implemented."
   :init-value (not (or noninteractive
 		       no-blinking-cursor
 		       (eq system-type 'ms-dos)
-		       (not (memq window-system '(x w32)))))
+		       (not (memq window-system '(x w32 ns)))))
   :initialize 'custom-initialize-delay
   :group 'cursor
   :global t

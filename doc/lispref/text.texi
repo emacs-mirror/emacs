@@ -87,7 +87,7 @@ buffer is @samp{@@}:
 
 @example
 @group
-(char-to-string (char-after 1))
+(string (char-after 1))
      @result{} "@@"
 @end group
 @end example
@@ -122,9 +122,9 @@ but there is no peace.
 @end group
 
 @group
-(char-to-string (preceding-char))
+(string (preceding-char))
      @result{} "a"
-(char-to-string (following-char))
+(string (following-char))
      @result{} "c"
 @end group
 @end example
@@ -866,7 +866,7 @@ adds it to the most recent element.  It determines automatically (using
 @code{last-command}) whether the previous command was a kill command,
 and if so appends the killed text to the most recent entry.
 
-@deffn Command kill-region start end &optional yank-handler
+@deffn Command kill-region start end
 This function kills the text in the region defined by @var{start} and
 @var{end}.  The text is deleted but saved in the kill ring, along with
 its text properties.  The value is always @code{nil}.
@@ -874,17 +874,10 @@ its text properties.  The value is always @code{nil}.
 In an interactive call, @var{start} and @var{end} are point and
 the mark.
 
-@c Emacs 19 feature
 If the buffer or text is read-only, @code{kill-region} modifies the kill
 ring just the same, then signals an error without modifying the buffer.
 This is convenient because it lets the user use a series of kill
 commands to copy text from a read-only buffer into the kill ring.
-
-If @var{yank-handler} is non-@code{nil}, this puts that value onto
-the string of killed text, as a @code{yank-handler} text property.
-@xref{Yanking}.  Note that if @var{yank-handler} is @code{nil}, any
-@code{yank-handler} properties present on the killed text are copied
-onto the kill ring, like other text properties.
 @end deffn
 
 @defopt kill-read-only-ok
@@ -1069,7 +1062,7 @@ it returns the entry pointed at by the yanking pointer and does not
 move the yanking pointer.
 @end defun
 
-@defun kill-new string &optional replace yank-handler
+@defun kill-new string &optional replace
 This function pushes the text @var{string} onto the kill ring and
 makes the yanking pointer point to it.  It discards the oldest entry
 if appropriate.  It also invokes the value of
@@ -1078,25 +1071,15 @@ if appropriate.  It also invokes the value of
 If @var{replace} is non-@code{nil}, then @code{kill-new} replaces the
 first element of the kill ring with @var{string}, rather than pushing
 @var{string} onto the kill ring.
-
-If @var{yank-handler} is non-@code{nil}, this puts that value onto
-the string of killed text, as a @code{yank-handler} property.
-@xref{Yanking}.  Note that if @var{yank-handler} is @code{nil}, then
-@code{kill-new} copies any @code{yank-handler} properties present on
-@var{string} onto the kill ring, as it does with other text properties.
 @end defun
 
-@defun kill-append string before-p &optional yank-handler
+@defun kill-append string before-p
 This function appends the text @var{string} to the first entry in the
 kill ring and makes the yanking pointer point to the combined entry.
 Normally @var{string} goes at the end of the entry, but if
 @var{before-p} is non-@code{nil}, it goes at the beginning.  This
 function also invokes the value of @code{interprogram-cut-function}
-(see below).  This handles @var{yank-handler} just like
-@code{kill-new}, except that if @var{yank-handler} is different from
-the @code{yank-handler} property of the first entry of the kill ring,
-@code{kill-append} pushes the concatenated string onto the kill ring,
-instead of replacing the original first entry with it.
+(see below).
 @end defun
 
 @defvar interprogram-paste-function
@@ -2220,11 +2203,11 @@ The functions in this section return unpredictable values.
 @defvar indent-line-function
 This variable's value is the function to be used by @key{TAB} (and
 various commands) to indent the current line.  The command
-@code{indent-according-to-mode} does no more than call this function.
+@code{indent-according-to-mode} does little more than call this function.
 
 In Lisp mode, the value is the symbol @code{lisp-indent-line}; in C
 mode, @code{c-indent-line}; in Fortran mode, @code{fortran-indent-line}.
-The default value is @code{indent-relative}.
+The default value is @code{indent-relative}.  @xref{Auto-Indentation}.
 @end defvar
 
 @deffn Command indent-according-to-mode

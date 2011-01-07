@@ -1,3 +1,112 @@
+2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* dbus.texi (Receiving Method Calls): Describe new optional
+	parameter dont-register-service of dbus-register-{method,property}.
+
+2010-12-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Encrypting/decrypting *.gpg files): Mention
+	epa-file-select-keys.
+
+2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Archived Messages): Remove outdated text.
+
+2010-12-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Foreign Groups): Added clarification of foreign groups.
+
+2010-12-15  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus.texi (The hyrex Engine): Say that this engine is obsolete.
+
+2010-12-14  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus.texi (The swish++ Engine): Add customizable parameters
+	descriptions.
+	(The swish-e Engine): Ditto.
+
+2010-12-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): Add "ksu" method.
+	(Remote processes): Add example with remote `default-directory'.
+
+2010-12-14  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Expanding aliases when sending mail):
+	Now build-mail-aliases is interactive.
+
+2010-12-13  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus.texi: First pass at adding (rough) nnir documentation.
+
+2010-12-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Filtering New Groups):
+	Mention gnus-auto-subscribed-categories.
+	(The First Time): Remove, since default-subscribed-newsgroups has been
+	removed.
+
+2010-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (For Clauses): Small fixes for frames and windows.
+
+2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Using capture): Document using prefix arguments for
+	finalizing capture.
+	(Agenda commands): Document prefix argument for the bulk scatter
+	command.
+	(Beamer class export): Document that also overlay arguments can be
+	passed to the column environment.
+	(Template elements): Document the new entry type.
+
+2010-12-11  Puneeth Chaganti  <punchagan@gmail.com>
+
+	* org.texi (Include files): Document :minlevel.
+
+2010-12-11  Julien Danjou  <julien@danjou.info>
+
+	* org.texi (Categories): Document category icons.
+
+2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (noweb): Fix typo.
+
+2010-12-06  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* gnus.texi (Server Commands): Point to the rest of the server
+	commands.
+
+2010-12-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Paging the Article): Note the reverse meanings of `C-u C-u
+	g'.
+
+2010-12-02  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi (Archived Messages): Remove gnus-outgoing-message-group.
+
+2010-11-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing the IMAP Connection): Note the new defaults.
+	(Direct Functions): Note the STARTTLS upgrade.
+
+2010-11-27  Glenn Morris  <rgm@gnu.org>
+	    James Clark  <none@example.com>
+
+	* nxml-mode.texi (Introduction): New section.
+
+2010-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Server Commands): Document gnus-server-show-server.
+
+2010-11-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.0.
+
+	* trampver.texi: Update release number.
+
 2010-11-19  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (TeX and LaTeX Language Modes, Predefined Units):
@@ -7420,7 +7529,7 @@
 ;; End:
 
   Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
     Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.

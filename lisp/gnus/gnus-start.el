@@ -86,14 +86,6 @@ If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
   :group 'gnus-start
   :type '(choice file (const nil)))
 
-(defcustom gnus-default-subscribed-newsgroups nil
-  "List of newsgroups to subscribe, when a user runs Gnus the first time.
-The value should be a list of strings.
-If it is t, Gnus will not do anything special the first time it is
-started; it'll just use the normal newsgroups subscription methods."
-  :group 'gnus-start
-  :type '(choice (repeat string) (const :tag "Nothing special" t)))
-
 (defcustom gnus-use-dribble-file t
   "*Non-nil means that Gnus will use a dribble file to store user updates.
 If Emacs should crash without saving the .newsrc files, complete
@@ -341,8 +333,17 @@ hierarchy in its entirety."
   :group 'gnus-group-new
   :type 'boolean)
 
+(defcustom gnus-auto-subscribed-categories '(mail post-mail)
+  "*New groups from methods of these categories will be subscribed automatically.
+Note that this variable only deals with new groups.  It has no
+effect whatsoever on old groups.  The default is to automatically
+subscribe all groups from mail-like backends."
+  :version "24.1"
+  :group 'gnus-group-new
+  :type '(repeat symbol))
+
 (defcustom gnus-auto-subscribed-groups
-  "^nnml\\|^nnfolder\\|^nnmbox\\|^nnmh\\|^nnbabyl\\|^nnmaildir"
+  "^nnml\\|^nnfolder\\|^nnmbox\\|^nnmh\\|^nnbabyl\\|^nnmaildir\\|^nnimap"
   "*All new groups that match this regexp will be subscribed automatically.
 Note that this variable only deals with new groups.  It has no effect
 whatsoever on old groups.
@@ -644,6 +645,7 @@ the first newsgroup."
     (gnus-group-change-level
      newsgroup gnus-level-default-subscribed
      gnus-level-killed (gnus-group-entry (or next "dummy.group")))
+    (gnus-request-update-group-status newsgroup 'subscribe)
     (gnus-message 5 "Subscribe newsgroup: %s" newsgroup)
     (run-hook-with-args 'gnus-subscribe-newsgroup-hooks newsgroup)
     t))
@@ -784,10 +786,9 @@ prompt the user for the name of an NNTP server to use."
 		    (gnus-start-news-server (and arg (not level))))))
 	(if (and (not dont-connect)
 		 (not did-connect))
+	    ;; Couldn't connect to the server, so bail out.
 	    (gnus-group-quit)
 	  (gnus-run-hooks 'gnus-startup-hook)
-	  ;; NNTP server is successfully open.
-
 	  ;; Find the current startup file name.
 	  (setq gnus-current-startup-file
 		(gnus-make-newsrc-file gnus-startup-file))
@@ -797,11 +798,10 @@ prompt the user for the name of an NNTP server to use."
 	    (gnus-dribble-read-file))
 
 	  ;; Do the actual startup.
-	  (if gnus-agent
-	      (gnus-request-create-group "queue" '(nndraft "")))
-	  (gnus-request-create-group "drafts" '(nndraft ""))
 	  (gnus-setup-news nil level dont-connect)
 	  (gnus-run-hooks 'gnus-setup-news-hook)
+	  (when gnus-agent
+	    (gnus-request-create-group "queue" '(nndraft "")))
 	  (gnus-start-draft-setup)
 	  ;; Generate the group buffer.
 	  (gnus-group-list-groups level)
@@ -816,10 +816,10 @@ prompt the user for the name of an NNTP server to use."
   (gnus-request-create-group "drafts" '(nndraft ""))
   (unless (gnus-group-entry "nndraft:drafts")
     (let ((gnus-level-default-subscribed 1))
-      (gnus-subscribe-group "nndraft:drafts" nil '(nndraft ""))))
+      (gnus-subscribe-group "nndraft:drafts" nil '(nndraft "")))
+    (setcar (gnus-group-entry "nndraft:drafts") 0))
   (unless (equal (gnus-group-get-parameter "nndraft:drafts" 'gnus-dummy t)
 		 '((gnus-draft-mode)))
-    (gnus-message 3 "Setting up drafts group")
     (gnus-group-set-parameter
      "nndraft:drafts" 'gnus-dummy '((gnus-draft-mode)))))
 
@@ -996,27 +996,8 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
     (when (or (null gnus-read-active-file)
 	      (eq gnus-read-active-file 'some))
       (gnus-update-active-hashtb-from-killed))
-
-    ;; Validate agent covered methods now that gnus-server-alist has
-    ;; been initialized.
-    ;; NOTE: This is here for one purpose only.  By validating the
-    ;; agentized server's, it converts the old 5.10.3, and earlier,
-    ;; format to the current format.  That enables the agent code
-    ;; within gnus-read-active-file to function correctly.
-    (if gnus-agent
-        (gnus-agent-read-servers-validate))
-
-    ;; Read the active file and create `gnus-active-hashtb'.
-    ;; If `gnus-read-active-file' is nil, then we just create an empty
-    ;; hash table.  The partial filling out of the hash table will be
-    ;; done in `gnus-get-unread-articles'.
-    (and gnus-read-active-file
-	 (not level)
-	 (gnus-read-active-file nil dont-connect))
-
     (unless gnus-active-hashtb
       (setq gnus-active-hashtb (gnus-make-hashtable 4096)))
-
     ;; Initialize the cache.
     (when gnus-use-cache
       (gnus-cache-open))
@@ -1157,6 +1138,12 @@ for new groups, and subscribe the new groups as zombies."
   (cond
    ((and gnus-options-subscribe
 	 (string-match gnus-options-subscribe group))
+    'subscribe)
+   ((let ((do-subscribe nil))
+      (dolist (category gnus-auto-subscribed-categories)
+	(when (gnus-member-of-valid category group)
+	  (setq do-subscribe t)))
+      do-subscribe)
     'subscribe)
    ((and gnus-auto-subscribed-groups
 	 (string-match gnus-auto-subscribed-groups group))

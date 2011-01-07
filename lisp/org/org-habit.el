@@ -5,7 +5,7 @@
 ;; Author: John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -197,10 +197,7 @@ This list represents a \"habit\" for the rest of this module."
   "Determine the relative priority of a habit.
 This must take into account not just urgency, but consistency as well."
   (let ((pri 1000)
-	(now (time-to-days
-	      (or moment
-		  (time-subtract (current-time)
-				 (list 0 (* 3600 org-extend-today-until) 0)))))
+	(now (if moment (time-to-days moment) (org-today)))
 	(scheduled (org-habit-scheduled habit))
 	(deadline (org-habit-deadline habit)))
     ;; add 10 for every day past the scheduled date, and subtract for every

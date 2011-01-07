@@ -1,8 +1,8 @@
 ;;; files.el --- file input and output commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
-;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Package: emacs
@@ -115,13 +115,14 @@ This variable is relevant only if `backup-by-copying' is nil."
   :type 'boolean
   :group 'backup)
 
-(defcustom backup-by-copying-when-mismatch nil
+(defcustom backup-by-copying-when-mismatch t
   "Non-nil means create backups by copying if this preserves owner or group.
 Renaming may still be used (subject to control of other variables)
 when it would not result in changing the owner or group of the file;
 that is, for files which are owned by you and whose group matches
 the default for a new file created there by you.
 This variable is relevant only if `backup-by-copying' is nil."
+  :version "24.1"
   :type 'boolean
   :group 'backup)
 (put 'backup-by-copying-when-mismatch 'permanent-local t)
@@ -2137,7 +2138,7 @@ since only a single case-insensitive search through the alist is made."
    (lambda (elt)
      (cons (purecopy (car elt)) (cdr elt)))
    `(;; do this first, so that .html.pl is Polish html, not Perl
-     ("\\.s?html?\\(\\.[a-zA-Z_]+\\)?\\'" . html-mode)
+     ("\\.[sx]?html?\\(\\.[a-zA-Z_]+\\)?\\'" . html-mode)
      ("\\.svgz?\\'" . image-mode)
      ("\\.svgz?\\'" . xml-mode)
      ("\\.x[bp]m\\'" . image-mode)
@@ -2242,6 +2243,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.oak\\'" . scheme-mode)
      ("\\.sgml?\\'" . sgml-mode)
      ("\\.x[ms]l\\'" . xml-mode)
+     ("\\.dbk\\'" . xml-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.js\\'" . js-mode)		; javascript-mode would be better
@@ -2276,7 +2278,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
      ("\\.\\(dif\\|pat\\)\\'" . diff-mode) ; for MSDOG
      ("\\.[eE]?[pP][sS]\\'" . ps-mode)
-     ("\\.\\(?:PDF\\|DVI\\|pdf\\|dvi\\)\\'" . doc-view-mode)
+     ("\\.\\(?:PDF\\|DVI\\|OD[FGPST]\\|DOCX?\\|XLSX?\\|PPTX?\\|pdf\\|dvi\\|od[fgpst]\\|docx?\\|xlsx?\\|pptx?\\)\\'" . doc-view-mode-maybe)
      ("configure\\.\\(ac\\|in\\)\\'" . autoconf-mode)
      ("\\.s\\(v\\|iv\\|ieve\\)\\'" . sieve-mode)
      ("BROWSE\\'" . ebrowse-tree-mode)
@@ -2780,6 +2782,7 @@ is a file-local variable (a symbol) and VALUE is the value
 specified.  The actual value in the buffer may differ from VALUE,
 if it is changed by the major or minor modes, or by the user.")
 (make-variable-buffer-local 'file-local-variables-alist)
+(put 'file-local-variables-alist 'permanent-local t)
 
 (defvar dir-local-variables-alist nil
   "Alist of directory-local variable settings in the current buffer.
@@ -3275,22 +3278,29 @@ ROOT is the root directory of the project.
 Return the new variables list."
   (let* ((file-name (buffer-file-name))
 	 (sub-file-name (if file-name
+                            ;; FIXME: Why not use file-relative-name?
 			    (substring file-name (length root)))))
-    (dolist (entry class-variables variables)
-      (let ((key (car entry)))
-	(cond
-	 ((stringp key)
-	  ;; Don't include this in the previous condition, because we
-	  ;; want to filter all strings before the next condition.
-	  (when (and sub-file-name
-		     (>= (length sub-file-name) (length key))
-		     (string= key (substring sub-file-name 0 (length key))))
-	    (setq variables (dir-locals-collect-variables
-			     (cdr entry) root variables))))
-	 ((or (not key)
-	      (derived-mode-p key))
-	  (setq variables (dir-locals-collect-mode-variables
-			   (cdr entry) variables))))))))
+    (condition-case err
+        (dolist (entry class-variables variables)
+          (let ((key (car entry)))
+            (cond
+             ((stringp key)
+              ;; Don't include this in the previous condition, because we
+              ;; want to filter all strings before the next condition.
+              (when (and sub-file-name
+                         (>= (length sub-file-name) (length key))
+                         (string-prefix-p key sub-file-name))
+                (setq variables (dir-locals-collect-variables
+                                 (cdr entry) root variables))))
+             ((or (not key)
+                  (derived-mode-p key))
+              (setq variables (dir-locals-collect-mode-variables
+                               (cdr entry) variables))))))
+      (error
+       ;; The file's content might be invalid (e.g. have a merge conflict), but
+       ;; that shouldn't prevent the user from opening the file.
+       (message ".dir-locals error: %s" (error-message-string err))
+       nil))))
 
 (defun dir-locals-set-directory-class (directory class &optional mtime)
   "Declare that the DIRECTORY root is an instance of CLASS.
@@ -3421,7 +3431,9 @@ and `file-local-variables-alist', without applying them."
 	  (dir-name nil))
       (cond
        ((stringp variables-file)
-	(setq dir-name (if (buffer-file-name) (file-name-directory (buffer-file-name)) default-directory))
+	(setq dir-name (if (buffer-file-name)
+                           (file-name-directory (buffer-file-name))
+                         default-directory))
 	(setq class (dir-locals-read-from-file variables-file)))
        ((consp variables-file)
 	(setq dir-name (nth 0 variables-file))
@@ -3731,21 +3743,25 @@ BACKUPNAME is the backup file name, which is the old file renamed."
   (and context
        (set-file-selinux-context to-name context)))
 
+(defvar file-name-version-regexp
+  "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+~\\)"
+  "Regular expression matching the backup/version part of a file name.
+Used by `file-name-sans-versions'.")
+
 (defun file-name-sans-versions (name &optional keep-backup-version)
   "Return file NAME sans backup versions or strings.
 This is a separate procedure so your site-init or startup file can
 redefine it.
 If the optional argument KEEP-BACKUP-VERSION is non-nil,
-we do not remove backup version numbers, only true file version numbers."
+we do not remove backup version numbers, only true file version numbers.
+See also `file-name-version-regexp'."
   (let ((handler (find-file-name-handler name 'file-name-sans-versions)))
     (if handler
 	(funcall handler 'file-name-sans-versions name keep-backup-version)
       (substring name 0
-		 (if keep-backup-version
-		     (length name)
-		   (or (string-match "\\.~[-[:alnum:]:#@^._]+~\\'" name)
-		       (string-match "~\\'" name)
-		       (length name)))))))
+		 (unless keep-backup-version
+                   (string-match (concat file-name-version-regexp "\\'")
+                                 name))))))
 
 (defun file-ownership-preserved-p (file)
   "Return t if deleting FILE and rewriting it would preserve the owner."
@@ -4059,11 +4075,29 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
           (dremote (file-remote-p directory)))
       (if ;; Conditions for separate trees
 	  (or
-	   ;; Test for different drives on DOS/Windows
+	   ;; Test for different filesystems on DOS/Windows
 	   (and
 	    ;; Should `cygwin' really be included here?  --stef
 	    (memq system-type '(ms-dos cygwin windows-nt))
-	    (not (eq t (compare-strings filename 0 2 directory 0 2))))
+	    (or
+	     ;; Test for different drive letters
+	     (not (eq t (compare-strings filename 0 2 directory 0 2)))
+	     ;; Test for UNCs on different servers
+	     (not (eq t (compare-strings
+			 (progn
+			   (if (string-match "\\`//\\([^:/]+\\)/" filename)
+			       (match-string 1 filename)
+			     ;; Windows file names cannot have ? in
+			     ;; them, so use that to detect when
+			     ;; neither FILENAME nor DIRECTORY is a
+			     ;; UNC.
+			     "?"))
+			 0 nil
+			 (progn
+			   (if (string-match "\\`//\\([^:/]+\\)/" directory)
+			       (match-string 1 directory)
+			     "?"))
+			 0 nil t)))))
 	   ;; Test for different remote file system identification
 	   (not (equal fremote dremote)))
 	  filename
@@ -4392,28 +4426,8 @@ Before and after saving the buffer, this function runs
 		   (setq buffer-backed-up nil))))))
     setmodes))
 
-(defun diff-buffer-with-file (&optional buffer)
-  "View the differences between BUFFER and its associated file.
-This requires the external program `diff' to be in your `exec-path'."
-  (interactive "bBuffer: ")
-  (with-current-buffer (get-buffer (or buffer (current-buffer)))
-    (if (and buffer-file-name
-	     (file-exists-p buffer-file-name))
-	(let ((tempfile (make-temp-file "buffer-content-")))
-	  (unwind-protect
-	      (progn
-		(write-region nil nil tempfile nil 'nomessage)
-		(diff buffer-file-name tempfile nil t)
-		(sit-for 0))
-	    (when (file-exists-p tempfile)
-	      (delete-file tempfile))))
-      (message "Buffer %s has no associated file on disc" (buffer-name))
-      ;; Display that message for 1 second so that user can read it
-      ;; in the minibuffer.
-      (sit-for 1)))
-  ;; return always nil, so that save-buffers-kill-emacs will not move
-  ;; over to the next unsaved buffer when calling `d'.
-  nil)
+(declare-function diff-no-select "diff"
+		  (old new &optional switches no-async buf))
 
 (defvar save-some-buffers-action-alist
   `((?\C-r
@@ -4429,13 +4443,14 @@ This requires the external program `diff' to be in your `exec-path'."
     (?d ,(lambda (buf)
            (if (null (buffer-file-name buf))
                (message "Not applicable: no file")
-             (save-window-excursion (diff-buffer-with-file buf))
-             (if (not enable-recursive-minibuffers)
-                 (progn (display-buffer (get-buffer-create "*Diff*"))
-                        (setq other-window-scroll-buffer "*Diff*"))
-               (view-buffer (get-buffer-create "*Diff*")
-                            (lambda (_) (exit-recursive-edit)))
-               (recursive-edit)))
+             (require 'diff)            ;for diff-no-select.
+             (let ((diffbuf (diff-no-select (buffer-file-name buf) buf
+                                            nil 'noasync)))
+               (if (not enable-recursive-minibuffers)
+                   (progn (display-buffer diffbuf)
+                          (setq other-window-scroll-buffer diffbuf))
+                 (view-buffer diffbuf (lambda (_) (exit-recursive-edit)))
+                 (recursive-edit))))
            ;; Return nil to ask about BUF again.
            nil)
 	,(purecopy "view changes in this buffer")))

@@ -31,13 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_INT               long
 #define EMACS_UINT              unsigned long
 
-/* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
-   the 24-bit bit field into an int.  In other words, if bit fields
-   are always unsigned.
-
-   This flag only matters if you use USE_LISP_UNION_TYPE.  */
-#define EXPLICIT_SIGN_EXTEND
-
 /* Data type of load average, as read out of kmem.  */
 #define LOAD_AVE_TYPE long
 

@@ -84,10 +84,6 @@
   (add-to-list 'tramp-methods
 	       (list tramp-imap-method '(tramp-default-port 143))))
 
-;; Add a default for `tramp-default-user-alist'.  Default is the local user.
-(add-to-list 'tramp-default-user-alist
-	     `(,tramp-imap-method nil ,(user-login-name)))
-
 ;; Define Tramp IMAPS method ...
 ;;;###tramp-autoload
 (defconst tramp-imaps-method "imaps"
@@ -100,8 +96,13 @@
 	       (list tramp-imaps-method '(tramp-default-port 993))))
 
 ;; Add a default for `tramp-default-user-alist'.  Default is the local user.
-(add-to-list 'tramp-default-user-alist
-	     `(,tramp-imaps-method nil ,(user-login-name)))
+;;;###tramp-autoload
+(add-to-list
+ 'tramp-default-user-alist
+ (list (concat "\\`"
+	       (regexp-opt (list tramp-imap-method tramp-imaps-method))
+	       "\\'")
+       nil (user-login-name)))
 
 ;; Add completion function for IMAP method.
 ;; (tramp-set-completion-function
@@ -746,8 +747,7 @@ With NEEDED-SUBJECT, alters the imap-hash test accordingly."
 	 (method (tramp-file-name-method vec))
 	 (user (tramp-file-name-user vec))
 	 (ssl (string-equal method tramp-imaps-method))
-	 (port (or (tramp-file-name-port vec)
-		   (tramp-get-method-parameter method 'tramp-default-port)))
+	 (port (tramp-file-name-port vec))
 	 (result (imap-hash-make server port mbox user nil ssl)))
     ;; Return the IHT with a test override to look for the subject
     ;; marker.
@@ -842,5 +842,3 @@ With NEEDED-SUBJECT, alters the imap-hash test accordingly."
 ;;; (tramp-imap-make-iht (tramp-dissect-file-name "/imap:yourhosthere.com:/test/welcommen"))
 ;;; (tramp-imap-make-iht (tramp-dissect-file-name "/imap:yourhosthere.com:/INBOX.test/4"))
 ;;; (tramp-imap-make-iht (tramp-dissect-file-name "/imap:yourhosthere.com:/INBOX.test/4") "extra")
-
-;; arch-tag: f2723749-58fb-4f29-894e-39708096e850

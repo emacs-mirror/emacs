@@ -26,8 +26,8 @@
 
 ;;; Commentary:
 
-;; This is a major mode for directory browsing and editing.  It is
-;; documented in the Emacs manual.
+;; This is a major mode for directory browsing and editing.
+;; It is documented in the Emacs manual.
 
 ;; Rewritten in 1990/1991 to add tree features, file marking and
 ;; sorting by Sebastian Kremer <sk@thp.uni-koeln.de>.
@@ -62,32 +62,41 @@ some of the `ls' switches are not supported; see the doc string of
   :type 'string
   :group 'dired)
 
-(defvar dired-subdir-switches nil
+(defcustom dired-subdir-switches nil
   "If non-nil, switches passed to `ls' for inserting subdirectories.
-If nil, `dired-listing-switches' is used.")
+If nil, `dired-listing-switches' is used."
+   :group 'dired
+   :type '(choice (const :tag "Use dired-listing-switches" nil)
+                  (string :tag "Switches")))
 
-; Don't use absolute file names as /bin should be in any PATH and people
-; may prefer /usr/local/gnu/bin or whatever.  However, chown is
-; usually not in PATH.
+(defcustom dired-chown-program
+  (purecopy (cond ((executable-find "chown") "chown")
+                  ((file-executable-p "/usr/sbin/chown") "/usr/sbin/chown")
+                  ((file-executable-p "/etc/chown") "/etc/chown")
+                  (t "chown")))
+  "Name of chown command (usually `chown')."
+  :group 'dired
+  :type 'file)
 
-;;;###autoload
-(defvar dired-chown-program
-  (purecopy
-  (if (memq system-type '(hpux usg-unix-v irix gnu/linux cygwin))
-      "chown"
-    (if (file-exists-p "/usr/sbin/chown")
-	"/usr/sbin/chown"
-      "/etc/chown")))
-  "Name of chown command (usually `chown' or `/etc/chown').")
+(defcustom dired-use-ls-dired 'unspecified
+  "Non-nil means Dired should use \"ls --dired\".
+The special value of `unspecified' means to check explicitly, and
+save the result in this variable.  This is performed the first
+time `dired-insert-directory' is called."
+  :group 'dired
+  :type '(choice (const :tag "Check for --dired support" unspecified)
+                 (const :tag "Do not use --dired" nil)
+                 (other :tag "Use --dired" t)))
 
-(defvar dired-use-ls-dired (not (not (string-match "gnu" system-configuration)))
-  "Non-nil means Dired should use `ls --dired'.")
+(defcustom dired-chmod-program "chmod"
+  "Name of chmod command (usually `chmod')."
+  :group 'dired
+  :type 'file)
 
-(defvar dired-chmod-program "chmod"
-  "Name of chmod command (usually `chmod').")
-
-(defvar dired-touch-program "touch"
-  "Name of touch command (usually `touch').")
+(defcustom dired-touch-program "touch"
+  "Name of touch command (usually `touch')."
+   :group 'dired
+   :type 'file)
 
 (defcustom dired-ls-F-marks-symlinks nil
   "Informs Dired about how `ls -lF' marks symbolic links.
@@ -105,7 +114,6 @@ always set this variable to t."
   :type 'boolean
   :group 'dired-mark)
 
-;;;###autoload
 (defcustom dired-trivial-filenames (purecopy "^\\.\\.?$\\|^#")
   "Regexp of files to skip when finding first file of a directory.
 A value of nil means move to the subdir line.
@@ -753,7 +761,6 @@ for a remote directory.  This feature is used by Auto Revert Mode."
 	 buffer-read-only
 	 (dired-directory-changed-p dirname))))
 
-;;;###autoload
 (defcustom dired-auto-revert-buffer nil
   "Automatically revert dired buffer on revisiting.
 If t, revisiting an existing dired buffer automatically reverts it.
@@ -1057,7 +1064,14 @@ If HDR is non-nil, insert a header line with the directory name."
   (let ((opoint (point))
 	(process-environment (copy-sequence process-environment))
 	end)
-    (if (or dired-use-ls-dired (file-remote-p dir))
+    (if (or (if (eq dired-use-ls-dired 'unspecified)
+		;; Check whether "ls --dired" gives exit code 0, and
+		;; save the answer in `dired-use-ls-dired'.
+		(setq dired-use-ls-dired
+		      (eq (call-process insert-directory-program nil nil nil "--dired")
+			  0))
+	      dired-use-ls-dired)
+	    (file-remote-p dir))
 	(setq switches (concat "--dired " switches)))
     ;; We used to specify the C locale here, to force English month names;
     ;; but this should not be necessary any more,
@@ -2011,6 +2025,14 @@ Otherwise, an error occurs in these cases."
           ;; with quotation marks in their names.
 	  (while (string-match "\\(?:[^\\]\\|\\`\\)\\(\"\\)" file)
 	    (setq file (replace-match "\\\"" nil t file 1)))
+
+	  (when (eq system-type 'windows-nt)
+	    (save-match-data
+	      (let ((start 0))
+		(while (string-match "\\\\" file start)
+		  (aset file (match-beginning 0) ?/)
+		  (setq start (match-end 0))))))
+
           (setq file (read (concat "\"" file "\"")))
 	  ;; The above `read' will return a unibyte string if FILE
 	  ;; contains eight-bit-control/graphic characters.
@@ -3531,7 +3553,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "1628b7a7d379fb4da8ae4bf29faad4b5")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "2e8658304f56098052e312d01c8763a2")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\

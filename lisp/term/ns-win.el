@@ -171,7 +171,9 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-change-font] 'ns-respond-to-change-font)
 (define-key global-map [ns-open-file-line] 'ns-open-file-select-line)
 (define-key global-map [ns-spi-service-call] 'ns-spi-service-call)
+(define-key global-map [ns-new-frame] 'make-frame)
 (define-key global-map [ns-toggle-toolbar] 'ns-toggle-toolbar)
+(define-key global-map [ns-show-prefs] 'customize)
 
 
 ;; Set up a number of aliases and other layers to pretend we're using
@@ -179,7 +181,9 @@ The properties returned may include `top', `left', `height', and `width'."
 
 (defvaralias 'mac-allow-anti-aliasing 'ns-antialias-text)
 (defvaralias 'mac-command-modifier 'ns-command-modifier)
+(defvaralias 'mac-right-command-modifier 'ns-right-command-modifier)
 (defvaralias 'mac-control-modifier 'ns-control-modifier)
+(defvaralias 'mac-right-control-modifier 'ns-right-control-modifier)
 (defvaralias 'mac-option-modifier 'ns-option-modifier)
 (defvaralias 'mac-right-option-modifier 'ns-right-option-modifier)
 (defvaralias 'mac-function-modifier 'ns-function-modifier)
@@ -514,6 +518,8 @@ unless the current buffer is a scratch buffer."
 ;; nsterm.m
 (defvar ns-alternate-modifier)
 (defvar ns-right-alternate-modifier)
+(defvar ns-right-command-modifier)
+(defvar ns-right-control-modifier)
 
 ;; You say tomAYto, I say tomAHto..
 (defvaralias 'ns-option-modifier 'ns-alternate-modifier)

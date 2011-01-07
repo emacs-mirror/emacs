@@ -1,3 +1,7 @@
+2010-12-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* sed1v2.inp (M_FILE, S_FILE): Add $(srcdir)/ prefix.
+
 2010-10-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp: Use $(..) instead of ${..} in all edit commands.

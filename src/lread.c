@@ -2,7 +2,7 @@
 
 Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995, 1997,
   1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010  Free Software Foundation, Inc.
+  2009, 2010, 2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -582,7 +582,7 @@ read_emacs_mule_char (int c, int (*readbyte) (int, Lisp_Object), Lisp_Object rea
 
   if (len == 2)
     {
-      charset = emacs_mule_charset[buf[0]];
+      charset = CHARSET_FROM_ID (emacs_mule_charset[buf[0]]);
       code = buf[1] & 0x7F;
     }
   else if (len == 3)
@@ -590,18 +590,18 @@ read_emacs_mule_char (int c, int (*readbyte) (int, Lisp_Object), Lisp_Object rea
       if (buf[0] == EMACS_MULE_LEADING_CODE_PRIVATE_11
 	  || buf[0] == EMACS_MULE_LEADING_CODE_PRIVATE_12)
 	{
-	  charset = emacs_mule_charset[buf[1]];
+	  charset = CHARSET_FROM_ID (emacs_mule_charset[buf[1]]);
 	  code = buf[2] & 0x7F;
 	}
       else
 	{
-	  charset = emacs_mule_charset[buf[0]];
+	  charset = CHARSET_FROM_ID (emacs_mule_charset[buf[0]]);
 	  code = ((buf[1] << 8) | buf[2]) & 0x7F7F;
 	}
     }
   else
     {
-      charset = emacs_mule_charset[buf[1]];
+      charset = CHARSET_FROM_ID (emacs_mule_charset[buf[1]]);
       code = ((buf[2] << 8) | buf[3]) & 0x7F7F;
     }
   c = DECODE_CHAR (charset, code);
@@ -650,7 +650,7 @@ static void substitute_in_interval (INTERVAL, Lisp_Object);
    If SECONDS is a number, we wait that many seconds for input, and
    return Qnil if no input arrives within that time.  */
 
-Lisp_Object
+static Lisp_Object
 read_filtered_event (int no_switch_frame, int ascii_required,
 		     int error_nonascii, int input_method, Lisp_Object seconds)
 {
@@ -2637,7 +2637,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	   old-style.  For Emacs-25, we should completely remove this
 	   first_in_list exception (old-style can still be obtained via
 	   "(\`" anyway).  */
-	if (first_in_list && next_char == ' ')
+	if (!new_backquote_flag && first_in_list && next_char == ' ')
 	  {
 	    Vold_style_backquotes = Qt;
 	    goto default_label;
@@ -2654,33 +2654,48 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  }
       }
     case ',':
-      if (new_backquote_flag)
-	{
-	  Lisp_Object comma_type = Qnil;
-	  Lisp_Object value;
-	  int ch = READCHAR;
+      {
+	int next_char = READCHAR;
+	UNREAD (next_char);
+	/* Transition from old-style to new-style:
+           It used to be impossible to have a new-style , other than within
+	   a new-style `.  This is sufficient when ` and , are used in the
+	   normal way, but ` and , can also appear in args to macros that
+	   will not interpret them in the usual way, in which case , may be
+	   used without any ` anywhere near.
+	   So we now use the same heuristic as for backquote: old-style
+	   unquotes are only recognized when first on a list, and when
+	   followed by a space.
+	   Because it's more difficult to peak 2 chars ahead, a new-style
+	   ,@ can still not be used outside of a `, unless it's in the middle
+	   of a list.  */
+	if (new_backquote_flag
+	    || !first_in_list
+	    || (next_char != ' ' && next_char != '@'))
+	  {
+	    Lisp_Object comma_type = Qnil;
+	    Lisp_Object value;
+	    int ch = READCHAR;
 
-	  if (ch == '@')
-	    comma_type = Qcomma_at;
-	  else if (ch == '.')
-	    comma_type = Qcomma_dot;
-	  else
-	    {
-	      if (ch >= 0) UNREAD (ch);
-	      comma_type = Qcomma;
-	    }
+	    if (ch == '@')
+	      comma_type = Qcomma_at;
+	    else if (ch == '.')
+	      comma_type = Qcomma_dot;
+	    else
+	      {
+		if (ch >= 0) UNREAD (ch);
+		comma_type = Qcomma;
+	      }
 
-	  new_backquote_flag--;
-	  value = read0 (readcharfun);
-	  new_backquote_flag++;
-	  return Fcons (comma_type, Fcons (value, Qnil));
-	}
-      else
-	{
-	  Vold_style_backquotes = Qt;
-	  goto default_label;
-	}
-
+	    value = read0 (readcharfun);
+	    return Fcons (comma_type, Fcons (value, Qnil));
+	  }
+	else
+	  {
+	    Vold_style_backquotes = Qt;
+	    goto default_label;
+	  }
+      }
     case '?':
       {
 	int modifiers;
@@ -2707,26 +2722,9 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	c |= modifiers;
 
 	next_char = READCHAR;
-	if (next_char == '.')
-	  {
-	    /* Only a dotted-pair dot is valid after a char constant.  */
-	    int next_next_char = READCHAR;
-	    UNREAD (next_next_char);
-
-	    ok = (next_next_char <= 040
-		  || (next_next_char < 0200
-		      && (strchr ("\"';([#?", next_next_char)
-			  || (!first_in_list && next_next_char == '`')
-			  || (new_backquote_flag && next_next_char == ','))));
-	  }
-	else
-	  {
-	    ok = (next_char <= 040
-		  || (next_char < 0200
-		      && (strchr ("\"';()[]#?", next_char)
-			  || (!first_in_list && next_char == '`')
-			  || (new_backquote_flag && next_char == ','))));
-	  }
+	ok = (next_char <= 040
+	      || (next_char < 0200
+		  && (strchr ("\"';()[]#?`,.", next_char))));
 	UNREAD (next_char);
 	if (ok)
 	  return make_number (c);
@@ -2868,9 +2866,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	if (next_char <= 040
 	    || (next_char < 0200
-		&& (strchr ("\"';([#?", next_char)
-		    || (!first_in_list && next_char == '`')
-		    || (new_backquote_flag && next_char == ','))))
+		&& (strchr ("\"';([#?`,", next_char))))
 	  {
 	    *pch = c;
 	    return Qnil;
@@ -2892,12 +2888,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	{
 	  char *end = read_buffer + read_buffer_size;
 
-	  while (c > 040
-		 && c != 0x8a0 /* NBSP */
-		 && (c >= 0200
-		     || (!strchr ("\"';()[]#", c)
-			 && !(!first_in_list && c == '`')
-			 && !(new_backquote_flag && c == ','))))
+	  do
 	    {
 	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
@@ -2921,7 +2912,10 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      else
 		*p++ = c;
 	      c = READCHAR;
-	    }
+	    } while (c > 040
+		     && c != 0x8a0 /* NBSP */
+		     && (c >= 0200
+			 || !(strchr ("\"';()[]#`,", c))));
 
 	  if (p == end)
 	    {
@@ -4092,7 +4086,7 @@ init_lread (void)
 			Vload_path = Fcons (tem, Vload_path);
 		    }
 		}
-	      if (!NILP (sitelisp))
+	      if (!NILP (sitelisp) && !no_site_lisp)
 		Vload_path = nconc2 (Fnreverse (sitelisp), Vload_path);
 	    }
 	}

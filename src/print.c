@@ -145,25 +145,21 @@ Lisp_Object Vprint_circle;
 
 Lisp_Object Vprint_continuous_numbering;
 
-/* Vprint_number_table is a vector like [OBJ1 STAT1 OBJ2 STAT2 ...],
-   where OBJn are objects going to be printed, and STATn are their status,
-   which may be different meanings during process.  See the comments of
-   the functions print and print_preprocess for details.
-   print_number_index keeps the last position the next object should be added,
-   twice of which is the actual vector position in Vprint_number_table.  */
+/* Vprint_number_table is a table, that keeps objects that are going to
+   be printed, to allow use of #n= and #n# to express sharing.
+   For any given object, the table can give the following values:
+     t    the object will be printed only once.
+     -N   the object will be printed several times and will take number N.
+     N    the object has been printed so we can refer to it as #N#.
+   print_number_index holds the largest N already used.
+   N has to be striclty larger than 0 since we need to distinguish -N.  */
 int print_number_index;
 Lisp_Object Vprint_number_table;
-
-/* PRINT_NUMBER_OBJECT returns the I'th object in Vprint_number_table TABLE.
-   PRINT_NUMBER_STATUS returns the status of the I'th object in TABLE.
-   See the comment of the variable Vprint_number_table.  */
-#define PRINT_NUMBER_OBJECT(table,i) XVECTOR ((table))->contents[(i) * 2]
-#define PRINT_NUMBER_STATUS(table,i) XVECTOR ((table))->contents[(i) * 2 + 1]
 
 void print_interval (INTERVAL interval, Lisp_Object printcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
-int print_output_debug_flag = 1;
+int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 
 
 /* Low level output routines for characters and strings */
@@ -544,11 +540,11 @@ write_string (const char *data, int size)
   PRINTFINISH;
 }
 
-/* Used from outside of print.c to print a block of SIZE
-   single-byte chars at DATA on a specified stream PRINTCHARFUN.
+/* Used to print a block of SIZE single-byte chars at DATA on a
+   specified stream PRINTCHARFUN.
    Do not use this on the contents of a Lisp string.  */
 
-void
+static void
 write_string_1 (const char *data, int size, Lisp_Object printcharfun)
 {
   PRINTDECLARE;
@@ -1228,33 +1224,24 @@ print (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag)
   /* Construct Vprint_number_table for print-gensym and print-circle.  */
   if (!NILP (Vprint_gensym) || !NILP (Vprint_circle))
     {
-      int i, start, index;
-      start = index = print_number_index;
       /* Construct Vprint_number_table.
 	 This increments print_number_index for the objects added.  */
       print_depth = 0;
       print_preprocess (obj);
 
-      /* Remove unnecessary objects, which appear only once in OBJ;
-	 that is, whose status is Qnil.  Compactify the necessary objects.  */
-      for (i = start; i < print_number_index; i++)
-	if (!NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
-	  {
-	    PRINT_NUMBER_OBJECT (Vprint_number_table, index)
-	      = PRINT_NUMBER_OBJECT (Vprint_number_table, i);
-	    index++;
-	  }
+      if (HASH_TABLE_P (Vprint_number_table))
+	{ /* Remove unnecessary objects, which appear only once in OBJ;
+	     that is, whose status is Qt.
+	     Maybe a better way to do that is to copy elements to
+	     a new hash table.  */
+	  struct Lisp_Hash_Table *h = XHASH_TABLE (Vprint_number_table);
+	  int i;
 
-      /* Clear out objects outside the active part of the table.  */
-      for (i = index; i < print_number_index; i++)
-	PRINT_NUMBER_OBJECT (Vprint_number_table, i) = Qnil;
-
-      /* Reset the status field for the next print step.  Now this
-	 field means whether the object has already been printed.  */
-      for (i = start; i < print_number_index; i++)
-	PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qnil;
-
-      print_number_index = index;
+	  for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
+	    if (!NILP (HASH_HASH (h, i))
+		&& EQ (HASH_VALUE (h, i), Qt))
+	      Fremhash (HASH_KEY (h, i), Vprint_number_table);
+	}
     }
 
   print_depth = 0;
@@ -1302,48 +1289,40 @@ print_preprocess (Lisp_Object obj)
 	  && SYMBOLP (obj)
 	  && !SYMBOL_INTERNED_P (obj)))
     {
+      if (!HASH_TABLE_P (Vprint_number_table))
+	{
+	  Lisp_Object args[2];
+	  args[0] = QCtest;
+	  args[1] = Qeq;
+	  Vprint_number_table = Fmake_hash_table (2, args);
+	}
+
       /* In case print-circle is nil and print-gensym is t,
 	 add OBJ to Vprint_number_table only when OBJ is a symbol.  */
       if (! NILP (Vprint_circle) || SYMBOLP (obj))
 	{
-	  for (i = 0; i < print_number_index; i++)
-	    if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i), obj))
-	      {
-		/* OBJ appears more than once.	Let's remember that.  */
-		PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
-                print_depth--;
-		return;
-	      }
-
-	  /* OBJ is not yet recorded.  Let's add to the table.  */
-	  if (print_number_index == 0)
-	    {
-	      /* Initialize the table.  */
-	      Vprint_number_table = Fmake_vector (make_number (40), Qnil);
-	    }
-	  else if (XVECTOR (Vprint_number_table)->size == print_number_index * 2)
-	    {
-	      /* Reallocate the table.  */
-	      int i = print_number_index * 4;
-	      Lisp_Object old_table = Vprint_number_table;
-	      Vprint_number_table = Fmake_vector (make_number (i), Qnil);
-	      for (i = 0; i < print_number_index; i++)
+	  Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);
+	  if (!NILP (num)
+	      /* If Vprint_continuous_numbering is non-nil and OBJ is a gensym,
+		 always print the gensym with a number.  This is a special for
+		 the lisp function byte-compile-output-docform.  */
+	      || (!NILP (Vprint_continuous_numbering)
+		  && SYMBOLP (obj)
+		  && !SYMBOL_INTERNED_P (obj)))
+	    { /* OBJ appears more than once.	Let's remember that.  */
+	      if (!INTEGERP (num))
 		{
-		  PRINT_NUMBER_OBJECT (Vprint_number_table, i)
-		    = PRINT_NUMBER_OBJECT (old_table, i);
-		  PRINT_NUMBER_STATUS (Vprint_number_table, i)
-		    = PRINT_NUMBER_STATUS (old_table, i);
+		  print_number_index++;
+		  /* Negative number indicates it hasn't been printed yet.  */
+		  Fputhash (obj, make_number (- print_number_index),
+			    Vprint_number_table);
 		}
+	      print_depth--;
+	      return;
 	    }
-	  PRINT_NUMBER_OBJECT (Vprint_number_table, print_number_index) = obj;
-	  /* If Vprint_continuous_numbering is non-nil and OBJ is a gensym,
-	     always print the gensym with a number.  This is a special for
-	     the lisp function byte-compile-output-docform.  */
-	  if (!NILP (Vprint_continuous_numbering)
-	      && SYMBOLP (obj)
-	      && !SYMBOL_INTERNED_P (obj))
-	    PRINT_NUMBER_STATUS (Vprint_number_table, print_number_index) = Qt;
-	  print_number_index++;
+	  else
+	    /* OBJ is not yet recorded.  Let's add to the table.  */
+	    Fputhash (obj, Qt, Vprint_number_table);
 	}
 
       switch (XTYPE (obj))
@@ -1374,8 +1353,8 @@ print_preprocess (Lisp_Object obj)
 	    print_preprocess (XVECTOR (obj)->contents[i]);
 	  if (HASH_TABLE_P (obj))
 	    { /* For hash tables, the key_and_value slot is past
-	        `size' because it needs to be marked specially in case
-	        the table is weak.  */
+		 `size' because it needs to be marked specially in case
+		 the table is weak.  */
 	      struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
 	      print_preprocess (h->key_and_value);
 	    }
@@ -1512,28 +1491,26 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
       else
 	{
 	  /* With the print-circle feature.  */
-	  int i;
-	  for (i = 0; i < print_number_index; i++)
-	    if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i), obj))
-	      {
-		if (NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
-		  {
-		    /* Add a prefix #n= if OBJ has not yet been printed;
-		       that is, its status field is nil.  */
-		    sprintf (buf, "#%d=", i + 1);
-		    strout (buf, -1, -1, printcharfun, 0);
-		    /* OBJ is going to be printed.  Set the status to t.  */
-		    PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
-		    break;
-		  }
-		else
-		  {
-		    /* Just print #n# if OBJ has already been printed.  */
-		    sprintf (buf, "#%d#", i + 1);
-		    strout (buf, -1, -1, printcharfun, 0);
-		    return;
-		  }
-	      }
+	  Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);
+	  if (INTEGERP (num))
+	    {
+	      int n = XINT (num);
+	      if (n < 0)
+		{ /* Add a prefix #n= if OBJ has not yet been printed;
+		     that is, its status field is nil.  */
+		  sprintf (buf, "#%d=", -n);
+		  strout (buf, -1, -1, printcharfun, 0);
+		  /* OBJ is going to be printed.  Remember that fact.  */
+		  Fputhash (obj, make_number (- n), Vprint_number_table);
+		}
+	      else
+		{
+		  /* Just print #n# if OBJ has already been printed.  */
+		  sprintf (buf, "#%d#", n);
+		  strout (buf, -1, -1, printcharfun, 0);
+		  return;
+		}
+	    }
 	}
     }
 
@@ -1836,23 +1813,13 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		    /* With the print-circle feature.  */
 		    if (i != 0)
 		      {
-			int i;
-			for (i = 0; i < print_number_index; i++)
-			  if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i),
-				  obj))
-			    {
-			      if (NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
-				{
-				  strout (" . ", 3, 3, printcharfun, 0);
-				  print_object (obj, printcharfun, escapeflag);
-				}
-			      else
-				{
-				  sprintf (buf, " . #%d#", i + 1);
-				  strout (buf, -1, -1, printcharfun, 0);
-				}
-			      goto end_of_list;
-			    }
+			Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);
+			if (INTEGERP (num))
+			  {
+			    strout (" . ", 3, 3, printcharfun, 0);
+			    print_object (obj, printcharfun, escapeflag);
+			    goto end_of_list;
+			  }
 		      }
 		  }
 

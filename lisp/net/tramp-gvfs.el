@@ -124,8 +124,8 @@
 
 ;; Add a default for `tramp-default-user-alist'.  Rule: For the SYNCE
 ;; method, no user is chosen.
-(add-to-list 'tramp-default-user-alist
-	     '("synce" nil nil))
+;;;###tramp-autoload
+(add-to-list 'tramp-default-user-alist '("\\`synce\\'" nil nil))
 
 (defcustom tramp-gvfs-zeroconf-domain "local"
   "*Zeroconf domain to be used for discovering services, like host names."
@@ -1432,5 +1432,4 @@ They are retrieved from the hal daemon."
 ;;   capability.
 ;; * Implement obex for other serial communication but bluetooth.
 
-;; arch-tag: f7f660ce-77f4-4132-9663-f5c25a47f7ed
 ;;; tramp-gvfs.el ends here

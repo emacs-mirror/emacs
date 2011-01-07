@@ -43,13 +43,15 @@
 
 ;; Add a default for `tramp-default-method-alist'. Rule: If there is
 ;; a domain in USER, it must be the SMB method.
+;;;###tramp-autoload
 (add-to-list 'tramp-default-method-alist
 	     `(nil ,tramp-prefix-domain-regexp ,tramp-smb-method))
 
 ;; Add a default for `tramp-default-user-alist'. Rule: For the SMB method,
 ;; the anonymous user is chosen.
+;;;###tramp-autoload
 (add-to-list 'tramp-default-user-alist
-	     `(,tramp-smb-method nil ""))
+	     `(,(concat "\\`" tramp-smb-method "\\'") nil nil))
 
 ;; Add completion function for SMB method.
 (tramp-set-completion-function

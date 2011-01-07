@@ -237,9 +237,9 @@ This function is controlled by the settings of reftex-insert-label-flags."
         (setq label default))
 
       ;; Insert the label into the label list
-      (let* ((here-I-am-info 
+      (let* ((here-I-am-info
               (save-excursion
-                (if (and (or naked no-insert) 
+                (if (and (or naked no-insert)
                          (integerp (cdr macro-cell)))
                     (goto-char (cdr macro-cell)))
                 (reftex-where-am-I)))
@@ -830,13 +830,16 @@ Optional prefix argument OTHER-WINDOW goes to the label in another window."
   (reftex-access-scan-info)
   (let* ((wcfg (current-window-configuration))
          (docstruct (symbol-value reftex-docstruct-symbol))
-         (label (completing-read "Label: " docstruct
-                                 (lambda (x) (stringp (car x))) t
-				 ;; If point is inside a \ref{} or
-				 ;; \pageref{}, use that as initial
-				 ;; input.
-				 (when (looking-back "\\\\\\(?:page\\)?ref{[-a-zA-Z0-9_*.:]*")
-				   (reftex-this-word "-a-zA-Z0-9_*.:"))))
+	 ;; If point is inside a \ref{} or \pageref{}, use that as
+	 ;; default value.
+	 (default (when (looking-back "\\\\\\(?:page\\)?ref{[-a-zA-Z0-9_*.:]*")
+		    (reftex-this-word "-a-zA-Z0-9_*.:")))
+         (label (completing-read (if default
+				     (format "Label (default %s): " default)
+				   "Label: ")
+				 docstruct
+                                 (lambda (x) (stringp (car x))) t nil nil
+				 default))
          (selection (assoc label docstruct))
          (where (progn
                   (reftex-show-label-location selection t nil 'stay)

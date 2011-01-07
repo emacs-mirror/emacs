@@ -1,7 +1,7 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+  2010  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -40,7 +40,6 @@ make it.
   fix_submap_inheritance hack and to more cleanly express the
   relationship between minibuffer-local-*-map): I've had this locally
   for a long time, but the details of the semantics is somewhat ... delicate.
-*** Derive from prog-mode in more places, close bug#5532.
 *** prog-mode could/should provide a better fill-paragraph default
   that uses syntax-tables to recognize string/comment boundaries.
 *** provide more completion-at-point-functions.  Make existing
@@ -55,8 +54,6 @@ make it.
 suitable for anyone from beginners to experts.
 
 ** Convert modes that use view-mode to be derived from special-mode instead.
-
-** Replace some uses of the preprocessor code in Makefile.in with the equivalent autoconf.
 
 ** Major modes should have a menu entry.  Examples of modes that do
 not have one at the moment and probably should: text-mode, inferior-lisp-mode.
@@ -206,8 +203,7 @@ Perspectives also need to interact with the tabs.
 ** Imenu could be extended into a file-structure browsing mechanism
 using code like that of customize-groups.
 
-** Display something in the margin on lines that have compilation
-errors.
+** Display something in the margin on lines that have compilation errors.
 
 ** Compilation error navigation bar, parallel to the scroll bar,
 indicating where in the buffer there are compilation errors.
@@ -325,8 +321,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 
 ** ange-ftp
 *** understand sftp
-   This is hard to make work because sftp doesn't print status
-   messages.
+   This is hard to make work because sftp doesn't print status messages.
 
 *** Use MLS for ange-ftp-insert-directory if a list of files is specified.
 
@@ -364,8 +359,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   will then come in encoded in UTF-16.
 
   One advantage of switching to Unicode is to toss encoded-kbd usage,
-  which will solve the problem with binding non-ASCII keys with
-  modifiers.
+  which will solve the problem with binding non-ASCII keys with modifiers.
 
   Problem: using this on Windows 9x/ME requires installing the
   Microsoft Layer for Unicode (MSLU), which might not implement all
@@ -391,8 +385,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 ** Make desktop.el save the "frame configuration" of Emacs (in some
   useful sense).
 
-** Give desktop.el a feature to switch between different named
-  desktops.
+** Give desktop.el a feature to switch between different named desktops.
 
 ** Add a cpio mode, more or less like tar mode.
 
@@ -447,13 +440,12 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
 
 ** Eliminate the storm of warnings concerning char/unsigned char
   mismatches that we get with GCC 4.x and proprietary compilers on
-  various systems.  They make it difficult to spot the important
-  warnings.
+  various systems.  They make it difficult to spot the important warnings.
 
 ** Fix anything necessary to use `long long' EMACS_INTs with GCC.
 
-** Split out parts of lisp.h and generate Makefile dependencies
-  automatically.
+** Split out parts of lisp.h [and generate Makefile dependencies automatically.]
+[the last bit is done, see DEPFLAGS etc in src/Makefile.in ]
 
 ** Update the FAQ.
 
@@ -466,8 +458,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
   [Do the existing -Q and -D cover this, or is more needed?]
 
 ** Improve the GC (generational, incremental).  (We may be able to use
-  the Boehm collector.)  [See the Boehm-GC branch in CVS for work on
-  this.]
+  the Boehm collector.)  [See the Boehm-GC branch in CVS for work on this.]
 
 ** Check what hooks would help Emacspeak -- see the defadvising in W3.
 
@@ -527,8 +518,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
 ** Reorder defcustom's in each package so that the more important
   options come first in the Customize buffers.  This could be done by
   either rearranging the file (since options are shown in the order
-  they appear in the *.el files), or by adding a few :set-after
-  attributes.
+  they appear in the *.el files), or by adding a few :set-after attributes.
 
 ** Maybe document the features of libraries missing from the manual (or
   ancillary manuals, including the Lisp manual in some cases).
@@ -1230,4 +1220,3 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; arch-tag: b0a3e40b-726a-457d-9999-ba848321b036

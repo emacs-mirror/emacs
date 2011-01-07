@@ -227,10 +227,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   (temp_set_point ((buffer), (position)))
 
 extern void set_point (EMACS_INT);
-extern INLINE void temp_set_point (struct buffer *, EMACS_INT);
+extern void temp_set_point (struct buffer *, EMACS_INT);
 extern void set_point_both (EMACS_INT, EMACS_INT);
-extern INLINE void temp_set_point_both (struct buffer *,
-                                        EMACS_INT, EMACS_INT);
+extern void temp_set_point_both (struct buffer *,
+				 EMACS_INT, EMACS_INT);
 extern void enlarge_buffer_text (struct buffer *, EMACS_INT);
 
 
@@ -895,14 +895,11 @@ extern void mmap_set_vars (int);
       }									\
   } while (0)
 
-EXFUN (Fbuffer_list, 1);
 EXFUN (Fbuffer_live_p, 1);
 EXFUN (Fbuffer_name, 1);
-EXFUN (Fget_file_buffer, 1);
 EXFUN (Fnext_overlay_change, 1);
 EXFUN (Fdelete_overlay, 1);
 EXFUN (Fbuffer_local_value, 2);
-EXFUN (Fgenerate_new_buffer_name, 2);
 
 /* Functions to call before and after each text change.  */
 extern Lisp_Object Vbefore_change_functions;

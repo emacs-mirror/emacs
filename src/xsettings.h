@@ -20,8 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef XSETTINGS_H
 #define XSETTINGS_H
 
-EXFUN (Ffont_get_system_font, 0);
-EXFUN (Ffont_get_system_normal_font, 0);
 EXFUN (Ftool_bar_get_system_style, 0);
 
 extern void xsettings_initialize (struct x_display_info *dpyinfo);

@@ -1,8 +1,8 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
 Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-              2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-              Free Software Foundation, Inc.
+  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1700,6 +1700,11 @@ yylex (void)
             case '/':
 	      while (GET (c) && c != '\n')
 		;
+	      /* Don't try to read past the end of the input buffer if
+		 the file ends in a C++ comment without a newline.  */
+	      if (c == 0)
+		return YYEOF;
+
 	      INCREMENT_LINENO;
 	      break;
 
@@ -3572,7 +3577,7 @@ void
 version (void)
 {
   /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
+  char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
 
   printf ("ebrowse %s\n", VERSION);
   puts (emacs_copyright);
@@ -3871,8 +3876,5 @@ main (int argc, char **argv)
 
   return EXIT_SUCCESS;
 }
-
-/* arch-tag: fc03b4bc-91a9-4c3d-b3b9-12a77fa86dd8
-   (do not change this comment) */
 
 /* ebrowse.c ends here */

@@ -353,16 +353,21 @@ key in the recipient list, use @samp{encrypt-to} option in
 
 @node Encrypting/decrypting *.gpg files
 @section Encrypting/decrypting *.gpg files
-By default, every file whose extension is @samp{.gpg} will be treated
-as encrypted.  That is, when you attempt to open such a file which
-already exists, the decrypted text is inserted in the buffer rather
-than encrypted one.  On the other hand, when you attempt to save the
-buffer to a file whose extension is @samp{.gpg}, encrypted data is
-written.
+By default, every file whose name ends with @samp{.gpg} will be
+treated as encrypted.  That is, when you open such a file, the
+decrypted text is inserted in the buffer rather than encrypted one.
+Similarly, when you save the buffer to a @samp{foo.gpg} file,
+encrypted data is written.
 
-If you want to temporarily disable this behavior, use @kbd{M-x
-epa-file-disable}, and then to enable this behavior use @kbd{M-x
-epa-file-enable}.
+The file name pattern for encrypted files can be controlled by
+@var{epa-file-name-regexp}.
+
+@defvar epa-file-name-regexp
+Regexp which matches filenames treated as encrypted.
+@end defvar
+
+You can disable this behavior with @kbd{M-x epa-file-disable}, and
+then get it back with @kbd{M-x epa-file-enable}.
 
 @deffn Command epa-file-disable
 Disable automatic encryption/decryption of *.gpg files.
@@ -373,10 +378,32 @@ Enable automatic encryption/decryption of *.gpg files.
 @end deffn
 
 @noindent
-@code{epa-file} will let you select recipients.  If you want to
-suppress this question, it might be a good idea to put the following
-line on the first line of the text being encrypted.
+By default, @code{epa-file} will try to use symmetric encryption, aka
+password-based encryption.  If you want to use public key encryption
+instead, do @kbd{M-x epa-file-select-keys}, which will pops up the key
+selection dialog.
+
+@deffn Command epa-file-select-keys
+Select recipient keys to encrypt the currently visiting file with
+public key encryption.
+@end deffn
+
+You can also change the default behavior with the variable
+@var{epa-file-select-keys}.
+
+@defvar epa-file-select-keys
+Control whether or not to pop up the key selection dialog.
+@end defvar
+
+For frequently visited files, it might be a good idea to tell Emacs
+which encryption method should be used through @xref{File Variables, ,
+, emacs, the Emacs Manual}.  Use the @code{epa-file-encrypt-to} local
+variable for this.
 @vindex epa-file-encrypt-to
+
+For example, if you want an Elisp file should be encrypted with a
+public key associated with an email address @samp{ueno@@unixuser.org},
+add the following line to the beginning of the file.
 
 @cartouche
 @lisp
@@ -384,12 +411,15 @@ line on the first line of the text being encrypted.
 @end lisp
 @end cartouche
 
-The file name extension of encrypted files can be controlled by
-@var{epa-file-name-regexp}.
+Instead, if you want the file always (regardless of the value of the
+@code{epa-file-select-keys} variable) encrypted with symmetric
+encryption, change the line as follows.
 
-@defvar epa-file-name-regexp
-Regexp which matches filenames treated as encrypted.
-@end defvar
+@cartouche
+@lisp
+;; -*- epa-file-encrypt-to: nil -*-
+@end lisp
+@end cartouche
 
 Other variables which control the automatic encryption/decryption
 behavior are below.

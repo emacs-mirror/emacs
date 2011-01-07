@@ -8,23 +8,22 @@
 @cindex Macintosh
 @cindex GNUstep
 
-  This section briefly describes the peculiarities of using Emacs built with
-the GNUstep libraries on GNU/Linux or other operating systems, or on Mac OS X
-with native window system support.  For Mac OS X, Emacs can be built either
-without window system support, with X11, or with the Cocoa interface.  This
-section only applies to the Cocoa build.  Emacs 23 does not support Mac OS
-Classic.
+  This section describes the peculiarities of using Emacs built with
+the GNUstep libraries on GNU/Linux or other operating systems, or on
+Mac OS X with native window system support.  On Mac OS X, Emacs can be
+built either without window system support, with X11, or with the
+Cocoa interface; this section only applies to the Cocoa build.  Emacs
+does not support earlier versions of Mac OS.
 
-  Emacs, when built on Mac OS X, uses the Cocoa application interface.  For
-various historical and technical reasons, Emacs uses the term @samp{Nextstep}
-internally, instead of ``Cocoa'' or ``Mac OS X''; for instance, most of the
-commands and variables described in the following sections begin with
-@samp{ns-}, which is short for @samp{Nextstep}.  NeXTstep was an application
-interface released by NeXT Inc during the 1980s, of which Cocoa is a direct
-descendant.  Apart from Cocoa, there is another NeXTstep-style system:
-GNUstep, which is free software.  As of this writing, the GNUstep support is
-alpha status (@pxref{GNUstep Support}), but we hope to improve it in the
-future.
+  For various historical and technical reasons, Emacs uses the term
+@samp{Nextstep} internally, instead of ``Cocoa'' or ``Mac OS X''; for
+instance, most of the commands and variables described in this section
+begin with @samp{ns-}, which is short for @samp{Nextstep}.  NeXTstep
+was an application interface released by NeXT Inc during the 1980s, of
+which Cocoa is a direct descendant.  Apart from Cocoa, there is
+another NeXTstep-style system: GNUstep, which is free software.  As of
+this writing, the GNUstep support is alpha status (@pxref{GNUstep
+Support}), but we hope to improve it in the future.
 
 @menu
 * Mac / GNUstep Basics::        Basic Emacs usage under GNUstep or Mac OS.
@@ -37,19 +36,24 @@ future.
 @section Basic Emacs usage under Mac OS and GNUstep
 
   By default, the @key{alt} and @key{option} keys are the same as
-@key{Meta} when running under Mac OS.  The Mac @key{Cmd} key is the
-same as @key{Super}, and Emacs provides a set of keybindings using
-this modifier key that mimic other Mac / GNUstep applications (@pxref{Mac /
-GNUstep Events}).  You can change these bindings in the usual way (@pxref{Key
-Bindings}).
+@key{Meta}.  The Mac @key{Cmd} key is the same as @key{Super}, and
+Emacs provides a set of keybindings using this modifier key that mimic
+other Mac / GNUstep applications (@pxref{Mac / GNUstep Events}).  You
+can change these bindings in the usual way (@pxref{Key Bindings}).
 
-  The standard Mac / GNUstep font and color panels are accessible via Lisp commands.
-  To use the color panel, drag from it to an Emacs frame to change the
-foreground color of the face at that position (if the @key{shift} key
-is held down, it changes the background color instead). To discard the
-settings, create a new frame and close the altered one.
-@c [unclear if the following holds.]
-@c  To finalize the settings for either color or font, choose @samp{Save Options} in the @samp{Options} menu. 
+  The variable @code{ns-right-alternate-modifier} controls the
+behavior of the right @key{alt} and @key{option} keys.  These keys
+behave like the left-hand keys if the value is @code{left} (the
+default).  A value of @code{control}, @code{meta}, @code{alt},
+@code{super}, or @code{hyper} makes them behave like the corresponding
+modifier keys; a value of @code{none} tells Emacs to ignore them.
+
+  The standard Mac / GNUstep font and color panels are accessible via
+Lisp commands.  To use the color panel, drag from it to an Emacs frame
+to change the foreground color of the face at that position (if the
+@key{shift} key is held down, it changes the background color
+instead). To discard the settings, create a new frame and close the
+altered one.
 
   @key{S-Mouse-1} (i.e., clicking the left mouse button
 while holding down the @key{Shift} key) adjusts the region to the
@@ -58,7 +62,7 @@ it does not pop up a menu for changing the default face, as
 @key{S-Mouse-1} normally does (@pxref{Temporary Face Changes}).  This
 change makes Emacs behave more like other Mac / GNUstep applications.
 
-  When you open or save files using the menus, or using the 
+  When you open or save files using the menus, or using the
 @key{Cmd-o} and @key{Cmd-S} bindings, Emacs uses graphical file
 dialogs to read file names.  However, if you use the regular Emacs key
 sequences, such as @key{C-x C-f}, Emacs uses the minibuffer to read
@@ -110,7 +114,7 @@ dragging will alter the foreground color.  Shift dragging will alter the
 background color.
 
 @c To make the changes permanent select the "Save Options"
-@c item in the "Options" menu, or run @code{menu-bar-options-save}. 
+@c item in the "Options" menu, or run @code{menu-bar-options-save}.
 
 Useful in this context is the listing of all faces obtained by @key{M-x}
 @code{list-faces-display}.
@@ -193,7 +197,7 @@ font are stored in the variables @code{ns-input-font} and
 @code{ns-input-fontsize}, respectively.
 
 @item ns-power-off
-This event occurs when the user logs out and Emacs is still running, or when 
+This event occurs when the user logs out and Emacs is still running, or when
 `Quit Emacs' is chosen from the application menu.
 The default behavior is to save all file-visiting buffers.
 @end table
@@ -208,26 +212,9 @@ and return the result as a string.  You can also use the Lisp function
 services and receive the results back.  Note that you may need to
 restart Emacs to access newly-available services.
 
-
 @node GNUstep Support, , Mac / GNUstep Events, Mac OS / GNUstep
 @section GNUstep Support
 
-Emacs can be built and run under GNUstep, however there are still some
+Emacs can be built and run under GNUstep, but there are still some
 issues to be addressed.  Interested developers should contact
 @email{emacs-devel@@gnu.org}.
-
-@c Presumably no longer relevant since CANNOT_DUMP removed 2009-05-06:
-@ignore
-In particular, it may be necessary to run @samp{make bootstrap} with a
-plain X configuration, then @samp{make clean} and @samp{./configure
---with-ns} followed by @samp{make install}.
-
-Currently CANNOT_DUMP is automatically enabled in GNUstep configurations,
-because the unex file(s) for GNUstep, mainly @samp{unexelf.c}, have not been
-updated yet with the ``zone'' code in and related to @samp{unexmacosx.c}.
-@end ignore
-
-
-@ignore
-   arch-tag: a822c2ab-4273-4997-927e-c153bb71dcf6
-@end ignore

@@ -58,10 +58,10 @@ so that you can use many of the features described in this chapter.
 @end menu
 
 @node Cut and Paste
-@section Killing and Yanking on Graphical Displays
+@section Cutting and Pasting on Graphical Displays
 
-  This section describes commands for selecting a region, killing, and
-yanking using the mouse.
+  This section describes commands for selecting a region, cutting, and
+pasting using the mouse.
 
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
@@ -247,6 +247,14 @@ Unlike the Emacs kill ring (@pxref{Kill Ring}), the primary selection
 has no ``memory'': each time you save something in the primary
 selection, either in Emacs or in another X application, the previous
 contents of the primary selection are lost.
+
+@cindex MS-Windows, and primary selection
+  MS-Windows provides no primary selection, but Emacs emulates it
+within a single Emacs session, by storing the selected text
+internally.  Therefore, all the features and commands related to the
+primary selection work on Windows as they do on X, for cutting and
+pasting within the same session, but not across Emacs sessions or with
+other applications.
 
   Whenever you kill some text using a command such as @kbd{C-w}
 (@code{kill-region}), or copy it into the kill ring using a command

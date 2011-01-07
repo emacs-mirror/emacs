@@ -180,12 +180,9 @@ When nil, send actual operating system end of file."
     (`(:after . ,(or `":-" `"->")) prolog-indent-width)))
 
 (defun prolog-mode-variables ()
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate (concat "%%\\|$\\|" page-delimiter)) ;'%%..'
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (setq paragraph-ignore-fill-prefix t)
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression '((nil "^\\sw+" 0)))
+  (set (make-local-variable 'paragraph-separate) (concat "%%\\|$\\|" page-delimiter)) ;'%%..'
+  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
+  (set (make-local-variable 'imenu-generic-expression) '((nil "^\\sw+" 0)))
 
   ;; Setup SMIE.
   (smie-setup prolog-smie-grammar #'prolog-smie-rules
@@ -197,14 +194,10 @@ When nil, send actual operating system end of file."
   ;; There's no real closer in Prolog anyway.
   (set (make-local-variable 'smie-blink-matching-inners) t)
 
-  (make-local-variable 'comment-start)
-  (setq comment-start "%")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "\\(?:%+\\|/\\*+\\)[ \t]*")
-  (make-local-variable 'comment-end-skip)
-  (setq comment-end-skip "[ \t]*\\(\n\\|\\*+/\\)")
-  (make-local-variable 'comment-column)
-  (setq comment-column 48))
+  (set (make-local-variable 'comment-start) "%")
+  (set (make-local-variable 'comment-start-skip) "\\(?:%+\\|/\\*+\\)[ \t]*")
+  (set (make-local-variable 'comment-end-skip) "[ \t]*\\(\n\\|\\*+/\\)")
+  (set (make-local-variable 'comment-column) 48))
 
 (defvar prolog-mode-map
   (let ((map (make-sparse-keymap)))

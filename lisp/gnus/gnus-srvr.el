@@ -115,6 +115,7 @@ If nil, a faster, but more primitive, buffer is used instead."
        ["Kill" gnus-server-kill-server t]
        ["Yank" gnus-server-yank-server t]
        ["Copy" gnus-server-copy-server t]
+       ["Show" gnus-server-show-server t]
        ["Edit" gnus-server-edit-server t]
        ["Regenerate" gnus-server-regenerate-server t]
        ["Compact" gnus-server-compact-server t]
@@ -152,6 +153,7 @@ If nil, a faster, but more primitive, buffer is used instead."
     "c" gnus-server-copy-server
     "a" gnus-server-add-server
     "e" gnus-server-edit-server
+    "S" gnus-server-show-server
     "s" gnus-server-scan-server
 
     "O" gnus-server-open-server
@@ -609,6 +611,18 @@ The following commands are available:
 	(gnus-server-position-point))
      'edit-server)))
 
+(defun gnus-server-show-server (server)
+  "Show the definition of the server on the current line."
+  (interactive (list (gnus-server-server-name)))
+  (unless server
+    (error "No server on current line"))
+  (let ((info (gnus-server-to-method server)))
+    (gnus-edit-form
+     info "Showing the server."
+     `(lambda (form)
+	(gnus-server-position-point))
+     'edit-server)))
+
 (defun gnus-server-scan-server (server)
   "Request a scan from the current server."
   (interactive (list (gnus-server-server-name)))
@@ -752,7 +766,8 @@ claim them."
       (with-current-buffer nntp-server-buffer
 	(let ((cur (current-buffer)))
 	  (goto-char (point-min))
-	  (unless (string= gnus-ignored-newsgroups "")
+         (unless (or (null gnus-ignored-newsgroups)
+                     (string= gnus-ignored-newsgroups ""))
 	    (delete-matching-lines gnus-ignored-newsgroups))
 	  ;; We treat NNTP as a special case to avoid problems with
 	  ;; garbage group names like `"foo' that appear in some badly
@@ -978,7 +993,8 @@ how new groups will be entered into the group buffer."
 		;; mechanism for new group subscription.
 		(gnus-call-subscribe-functions
 		 gnus-browse-subscribe-newsgroup-method
-		 group)))
+		 group)
+		(gnus-request-update-group-status group 'subscribe)))
 	    (delete-char 1)
 	    (insert (let ((lvl (gnus-group-level group)))
 		      (cond

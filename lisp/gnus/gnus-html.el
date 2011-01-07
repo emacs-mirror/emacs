@@ -199,8 +199,11 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 				   (gnus-html-display-image url start end
 							    ,alt-text))
 	       'gnus-image (list url start end alt-text)))
-	(gnus-overlay-put (gnus-make-overlay start end)
-			  'local-map gnus-html-image-map)
+	(widget-convert-button
+	 'url-link start (point)
+	 :help-echo alt-text
+	 :keymap gnus-html-image-map
+	 url)
 	(if (string-match "\\`cid:" url)
 	    ;; URLs with cid: have their content stashed in other
 	    ;; parts of the MIME structure, so just insert them
@@ -392,7 +395,7 @@ Use ALT-TEXT for the image string."
 	     4)
       (setq args (nconc args (list t))))
     (ignore-errors
-      (apply #'url-retrieve args))))
+      (push (apply #'url-retrieve args) gnus-buffers))))
 
 (defun gnus-html-image-fetched (status buffer image)
   "Callback function called when image has been fetched."
@@ -473,10 +476,11 @@ Return a string with image data."
                   (let ((image (gnus-rescale-image image (gnus-html-maximum-image-size))))
                     (delete-region start end)
                     (gnus-put-image image alt-text 'external)
-                    (gnus-put-text-property start (point) 'help-echo alt-text)
-                    (gnus-overlay-put
-		     (gnus-make-overlay start (point)) 'local-map
-		     gnus-html-displayed-image-map)
+		    (widget-convert-button
+		     'url-link start (point)
+		     :help-echo alt-text
+		     :keymap gnus-html-displayed-image-map
+		     url)
                     (gnus-put-text-property start (point)
 					    'gnus-alt-text alt-text)
                     (when url

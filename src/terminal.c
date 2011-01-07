@@ -429,16 +429,6 @@ selected frame's terminal). */)
 
 
 
-/* Return the value of terminal parameter PARAM in terminal T.  */
-Lisp_Object
-get_terminal_param (struct terminal *t, Lisp_Object param)
-{
-  Lisp_Object tem = Fassq (param, t->param_alist);
-  if (EQ (tem, Qnil))
-    return tem;
-  return Fcdr (tem);
-}
-
 /* Set the value of terminal parameter PARAMETER in terminal D to VALUE.
    Return the previous value.  */
 

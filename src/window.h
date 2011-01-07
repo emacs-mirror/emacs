@@ -828,12 +828,8 @@ extern Lisp_Object Vmouse_event;
 EXFUN (Fnext_window, 3);
 EXFUN (Fselect_window, 2);
 EXFUN (Fset_window_buffer, 3);
-EXFUN (Fset_window_hscroll, 2);
-EXFUN (Fwindow_hscroll, 1);
 EXFUN (Fset_window_vscroll, 3);
-EXFUN (Fwindow_vscroll, 2);
 EXFUN (Fset_window_margins, 3);
-EXFUN (Fwindow_live_p, 1);
 EXFUN (Fset_window_point, 2);
 extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
@@ -844,9 +840,6 @@ extern int window_width (Lisp_Object);
 extern void resize_frame_windows (struct frame *, int, int);
 extern void delete_all_subwindows (Lisp_Object);
 extern void freeze_window_starts (struct frame *, int);
-extern void foreach_window (struct frame *,
-                            int (* fn) (struct window *, void *),
-			    void *);
 extern void grow_mini_window (struct window *, int);
 extern void shrink_mini_window (struct window *);
 extern int window_relative_x_coord (struct window *, enum window_part, int);
@@ -927,7 +920,6 @@ struct glyph *get_phys_cursor_glyph (struct window *w);
 extern Lisp_Object Qwindowp, Qwindow_live_p;
 extern Lisp_Object Vwindow_list;
 
-EXFUN (Fwindow_end, 2);
 EXFUN (Fselected_window, 0);
 EXFUN (Fwindow_minibuffer_p, 1);
 EXFUN (Fwindow_buffer, 1);
@@ -936,16 +928,12 @@ EXFUN (Fsave_window_excursion, UNEVALLED);
 EXFUN (Fset_window_configuration, 1);
 EXFUN (Fcurrent_window_configuration, 1);
 extern int compare_window_configurations (Lisp_Object, Lisp_Object, int);
-EXFUN (Fcoordinates_in_window_p, 2);
-EXFUN (Fwindow_at, 3);
 EXFUN (Fpos_visible_in_window_p, 3);
 extern void mark_window_cursors_off (struct window *);
 extern int window_internal_height (struct window *);
 extern int window_body_lines (struct window *w);
 extern int window_body_cols (struct window *w);
 EXFUN (Frecenter, 1);
-EXFUN (Fscroll_other_window, 1);
-EXFUN (Fset_window_start, 3);
 extern void temp_output_buffer_show (Lisp_Object);
 extern void replace_buffer_in_windows_safely (Lisp_Object);
 extern void init_window_once (void);

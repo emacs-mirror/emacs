@@ -66,6 +66,10 @@ extern int tgetent (char *, const char *);
 extern int tgetflag (char *id);
 extern int tgetnum (char *id);
 
+char *tparam (char *, char *, int, int, ...);
+
+extern char *tgetstr (char *, char **);
+
 #include "cm.h"
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
@@ -176,9 +180,6 @@ static int no_controlling_tty;
 
 static int system_uses_terminfo;
 
-char *tparam (char *, char *, int, int, ...);
-
-extern char *tgetstr (char *, char **);
 
 
 #ifdef HAVE_GPM
@@ -1914,12 +1915,6 @@ append_glyphless_glyph (struct it *it, int face_id, char *str)
     }
 }
 
-/* Declared in xdisp.c */
-extern struct frame *last_glyphless_glyph_frame;
-extern unsigned last_glyphless_glyph_face_id;
-extern int last_glyphless_glyph_merged_face_id;
-extern Lisp_Object Qglyphless_char;
-
 /* Produce glyphs for a glyphless character for iterator IT.
    IT->glyphless_method specifies which method to use for displaying
    the character.  See the description of enum
@@ -1936,7 +1931,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 {
   int face_id;
   int len;
-  char buf[11], *str = "    ";
+  char buf[9], *str = "    ";
 
   /* Get a face ID for the glyph by utilizing a cache (the same way as
      done for `escape-glyph' in get_next_display_element).  */
@@ -1987,10 +1982,9 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
       else
 	{
 	  xassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEX_CODE);
-	  len = (it->c < 0x100 ? sprintf (buf, "[U+%02X]", it->c)
-		 : it->c < 0x10000 ? sprintf (buf, "[U+%04X]", it->c)
-		 : it->c <= MAX_UNICODE_CHAR ? sprintf (buf, "[U+%06X]", it->c)
-		 : sprintf (buf, "[E+%06X]", it->c));
+	  len = (it->c < 0x10000 ? sprintf (buf, "\\u%04X", it->c)
+		 : it->c <= MAX_UNICODE_CHAR ? sprintf (buf, "\\U%06X", it->c)
+		 : sprintf (buf, "\\x%06X", it->c));
 	}
       str = buf;
     }

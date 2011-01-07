@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -47,6 +47,12 @@
 (defvar orgtbl-mode-menu) ; defined when orgtbl mode get initialized
 (defvar org-export-html-table-tag) ; defined in org-exp.el
 (defvar constants-unit-system)
+
+(defvar orgtbl-after-send-table-hook nil
+  "Hook for functions attaching to `C-c C-c', if the table is sent.
+This can be used to add additional functionality after the table is sent
+to the receiver position, othewise, if table is not sent, the functions 
+are not run.")
 
 (defcustom orgtbl-optimized (eq org-enable-table-editor 'optimized)
   "Non-nil means use the optimized table editor version for `orgtbl-mode'.
@@ -3729,7 +3735,8 @@ With prefix arg, also recompute table."
 	  (call-interactively 'org-table-recalculate)
 	(org-table-maybe-recalculate-line))
       (call-interactively 'org-table-align)
-      (orgtbl-send-table 'maybe))
+      (when (orgtbl-send-table 'maybe)
+	(run-hooks 'orgtbl-after-send-table-hook)))
      ((eq action 'recalc)
       (save-excursion
 	(beginning-of-line 1)
@@ -3943,7 +3950,10 @@ this table."
 	  (orgtbl-send-replace-tbl name txt))
 	(setq ntbl (1+ ntbl)))
       (message "Table converted and installed at %d receiver location%s"
-	       ntbl (if (> ntbl 1) "s" "")))))
+			   ntbl (if (> ntbl 1) "s" ""))
+      (if (> ntbl 0)
+	  ntbl
+	nil))))
 
 (defun org-remove-by-index (list indices &optional i0)
   "Remove the elements in LIST with indices in INDICES.

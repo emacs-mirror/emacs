@@ -1,3 +1,17 @@
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (end): Unset environment variables used by this
+	batch file.
+
+	* INSTALL: Update the information about PNG support libraries.
+	(Bug#7716)
+
+	* README.W32: Update the information about PNG support libraries.
+
+2010-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (EXTERNALLY_VISIBLE): Define.
+
 2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* INSTALL: Refer to `dynamic-library-alist'.

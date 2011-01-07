@@ -75,6 +75,9 @@ static Lisp_Object next_window (Lisp_Object, Lisp_Object,
                                 Lisp_Object, int);
 static void decode_next_window_args (Lisp_Object *, Lisp_Object *,
                                      Lisp_Object *);
+static void foreach_window (struct frame *,
+                            int (* fn) (struct window *, void *),
+                            void *);
 static int foreach_window_1 (struct window *,
                              int (* fn) (struct window *, void *),
                              void *);
@@ -5214,6 +5217,12 @@ zero means top of window, negative means relative to bottom of window.  */)
   int this_scroll_margin;
 #endif
 
+  if (!(BUFFERP (w->buffer)
+	&& XBUFFER (w->buffer) == current_buffer))
+    /* This test is needed to make sure PT/PT_BYTE make sense in w->buffer
+       when passed below to set_marker_both.  */
+    error ("move-to-window-line called from unrelated buffer");
+
   window = selected_window;
   start = marker_position (w->start);
   if (start < BEGV || start > ZV)
@@ -6218,8 +6227,9 @@ If PIXELS-P is non-nil, the return value is VSCROLL.  */)
    first argument being a pointer to the leaf window, and with
    additional argument USER_DATA.  Stops when FN returns 0.  */
 
-void
-foreach_window (struct frame *f, int (*fn) (struct window *, void *), void *user_data)
+static void
+foreach_window (struct frame *f, int (*fn) (struct window *, void *),
+		void *user_data)
 {
   /* delete_frame may set FRAME_ROOT_WINDOW (f) to Qnil.  */
   if (WINDOWP (FRAME_ROOT_WINDOW (f)))

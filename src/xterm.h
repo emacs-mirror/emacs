@@ -933,11 +933,7 @@ void x_handle_property_notify (XPropertyEvent *);
 
 /* From xfns.c.  */
 
-Lisp_Object display_x_get_resource (struct x_display_info *,
-                                    Lisp_Object, Lisp_Object,
-                                    Lisp_Object, Lisp_Object);
 struct frame *check_x_frame (Lisp_Object);
-EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
 extern void x_free_gcs (struct frame *);
 extern int gray_bitmap_width, gray_bitmap_height;
@@ -945,25 +941,11 @@ extern char *gray_bitmap_bits;
 
 /* From xrdb.c.  */
 
-char *x_get_customization_string (XrmDatabase, const char *, const char *);
 XrmDatabase x_load_resources (Display *, const char *, const char *,
 			      const char *);
-int x_get_resource (XrmDatabase, const char *, const char *,
-                    XrmRepresentation, XrmValue *);
-void x_delete_display (struct x_display_info *);
-void x_make_frame_visible (struct frame *);
-void x_iconify_frame (struct frame *);
-void x_wm_set_size_hint (struct frame *, long, int);
-int x_text_icon (struct frame *, const char *);
-int x_bitmap_icon (struct frame *, Lisp_Object);
-void x_set_window_size (struct frame *, int, int, int);
-void x_wm_set_window_state (struct frame *, int);
-int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 
 /* Defined in xterm.c */
 
-extern void cancel_mouse_face (struct frame *);
-extern void x_scroll_bar_clear (struct frame *);
 extern int x_text_icon (struct frame *, const char *);
 extern int x_bitmap_icon (struct frame *, Lisp_Object);
 extern void x_catch_errors (Display *);
@@ -992,11 +974,12 @@ extern void x_initialize (void);
 extern unsigned long x_copy_color (struct frame *, unsigned long);
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
-extern int x_alloc_lighter_color_for_widget (Widget, Display*, Colormap,
+extern int x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
                                              unsigned long *,
                                              double, int);
 extern void x_activate_timeout_atimer (void);
 #endif
+extern int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 extern void x_query_colors (struct frame *f, XColor *, int);
 extern void x_query_color (struct frame *f, XColor *);
 extern void x_clear_area (Display *, Window, int, int, int, int, int);
@@ -1076,8 +1059,6 @@ extern void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 
 /* Defined in xfaces.c */
 
-extern int compute_glyph_face (struct frame *, int, int);
-extern int compute_glyph_face_1 (struct frame *, Lisp_Object, int);
 extern void x_free_dpy_colors (Display *, Screen *, Colormap,
                                unsigned long *, int);
 
@@ -1104,61 +1085,9 @@ extern int x_session_have_connection (void);
 extern void x_session_close (void);
 #endif
 
-/* XEmbed implementation.  */
-
-#define XEMBED_VERSION 0
-
-enum xembed_info
-  {
-    XEMBED_MAPPED = 1 << 0
-  };
-
-enum xembed_message
-  {
-    XEMBED_EMBEDDED_NOTIFY        = 0,
-    XEMBED_WINDOW_ACTIVATE        = 1,
-    XEMBED_WINDOW_DEACTIVATE      = 2,
-    XEMBED_REQUEST_FOCUS          = 3,
-    XEMBED_FOCUS_IN               = 4,
-    XEMBED_FOCUS_OUT              = 5,
-    XEMBED_FOCUS_NEXT             = 6,
-    XEMBED_FOCUS_PREV             = 7,
-
-    XEMBED_MODALITY_ON            = 10,
-    XEMBED_MODALITY_OFF           = 11,
-    XEMBED_REGISTER_ACCELERATOR   = 12,
-    XEMBED_UNREGISTER_ACCELERATOR = 13,
-    XEMBED_ACTIVATE_ACCELERATOR   = 14
-  };
-
-enum xembed_focus
-  {
-    XEMBED_FOCUS_CURRENT = 0,
-    XEMBED_FOCUS_FIRST   = 1,
-    XEMBED_FOCUS_LAST    = 2
-  };
-
-enum xembed_modifier
-  {
-    XEMBED_MODIFIER_SHIFT   = 1 << 0,
-    XEMBED_MODIFIER_CONTROL = 1 << 1,
-    XEMBED_MODIFIER_ALT     = 1 << 2,
-    XEMBED_MODIFIER_SUPER   = 1 << 3,
-    XEMBED_MODIFIER_HYPER   = 1 << 4
-  };
-
-enum xembed_accelerator
-  {
-    XEMBED_ACCELERATOR_OVERLOADED = 1 << 0
-  };
-
 /* Defined in xterm.c */
 
 extern Lisp_Object Qx_gtk_map_stock;
-extern void xembed_set_info (struct frame *f, enum xembed_info flags);
-extern void xembed_send_message (struct frame *f, Time time,
-                                 enum xembed_message message,
-                                 long detail, long data1, long data2);
 
 /* Is the frame embedded into another application? */
 

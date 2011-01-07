@@ -650,6 +650,16 @@ is okay.  See `mode-line-format'.")
 
 (define-key esc-map "\t" 'complete-symbol)
 
+(defun complete-symbol (arg)
+  "Perform completion on the text around point.
+The completion method is determined by `completion-at-point-functions'.
+
+With a prefix argument, this command does completion within
+the collection of symbols listed in the index of the manual for the
+language you are using."
+  (interactive "P")
+  (if arg (info-complete-symbol) (completion-at-point)))
+
 ;; Reduce total amount of space we must allocate during this function
 ;; that we will not need to keep permanently.
 (garbage-collect)

@@ -492,6 +492,7 @@ extern int quit_char;
 
 extern int timers_run;
 
+extern int menu_separator_name_p (const char *);
 extern int parse_menu_item (Lisp_Object, int);
 
 extern void echo_now (void);

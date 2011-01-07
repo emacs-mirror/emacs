@@ -47,12 +47,9 @@
 
 
 (require 'cc-mode)
-(require 'font-lock)
 (require 'newcomment)
+(require 'thingatpt)                    ; forward-symbol etc
 (require 'imenu)
-(require 'etags)
-(require 'thingatpt)
-(require 'easymenu)
 (require 'moz nil t)
 (require 'json nil t)
 
@@ -2135,7 +2132,7 @@ and each value is a marker giving the location of that symbol."
         with imenu-use-markers = t
         for buffer being the buffers
         for imenu-index = (with-current-buffer buffer
-                            (when (eq major-mode 'js-mode)
+                            (when (derived-mode-p 'js-mode)
                               (js--imenu-create-index)))
         do (js--imenu-to-flat imenu-index "" symbols)
         finally return symbols))
@@ -2171,12 +2168,15 @@ marker."
           (setf (car bounds) (point))))
       (buffer-substring (car bounds) (cdr bounds)))))
 
+(defvar find-tag-marker-ring)           ; etags
+
 (defun js-find-symbol (&optional arg)
   "Read a JavaScript symbol and jump to it.
 With a prefix argument, restrict symbols to those from the
 current buffer.  Pushes a mark onto the tag ring just like
 `find-tag'."
   (interactive "P")
+  (require 'etags)
   (let (symbols marker)
     (if (not arg)
         (setq symbols (js--get-all-known-symbols))
@@ -3286,15 +3286,9 @@ If one hasn't been set, or if it's stale, prompt for a new one."
 ;;; Main Function
 
 ;;;###autoload
-(define-derived-mode js-mode prog-mode "js"
-  "Major mode for editing JavaScript.
-
-Key bindings:
-
-\\{js-mode-map}"
-
+(define-derived-mode js-mode prog-mode "Javascript"
+  "Major mode for editing JavaScript."
   :group 'js
-  :syntax-table js-mode-syntax-table
 
   (set (make-local-variable 'indent-line-function) 'js-indent-line)
   (set (make-local-variable 'beginning-of-defun-function)
@@ -3330,9 +3324,6 @@ Key bindings:
   (set (make-local-variable 'imenu-create-index-function)
        #'js--imenu-create-index)
 
-  (setq major-mode 'js-mode)
-  (setq mode-name "Javascript")
-
   ;; for filling, pretend we're cc-mode
   (setq c-comment-prefix-regexp "//+\\|\\**"
         c-paragraph-start "$"
@@ -3363,10 +3354,9 @@ Key bindings:
   ;; the buffer containing the problem, JIT-lock will apply the
   ;; correct syntax to the regular expresion literal and the problem
   ;; will mysteriously disappear.
-  (font-lock-set-defaults)
-
-  (let (font-lock-keywords) ; leaves syntactic keywords intact
-    (font-lock-fontify-buffer)))
+  ;; FIXME: We should actually do this fontification lazily by adding
+  ;; calls to syntax-propertize wherever it's really needed.
+  (syntax-propertize (point-max)))
 
 ;;;###autoload
 (defalias 'javascript-mode 'js-mode)
