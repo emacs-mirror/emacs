@@ -18,7 +18,7 @@
 
 2010-12-15  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* gnus.texi (The hyrex Engine): Say that this engine as obsolete.
+	* gnus.texi (The hyrex Engine): Say that this engine is obsolete.
 
 2010-12-14  Andrew Cohen  <cohen@andy.bu.edu>
 
@@ -7529,7 +7529,7 @@
 ;; End:
 
   Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
     Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
