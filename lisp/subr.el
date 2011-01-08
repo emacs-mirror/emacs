@@ -1970,6 +1970,35 @@ The value of DEFAULT is inserted into PROMPT."
 	    t)))
     n))
 
+(defun read-char-choice (prompt chars &optional inhibit-keyboard-quit)
+  "Read and return one of CHARS, prompting for PROMPT.
+Any input that is not one of CHARS is ignored.
+
+If optional argument INHIBIT-KEYBOARD-QUIT is non-nil, ignore
+keyboard-quit events while waiting for a valid input."
+  (unless (consp chars)
+    (error "Called `read-char-choice' without valid char choices"))
+  (let ((cursor-in-echo-area t)
+	(executing-kbd-macro executing-kbd-macro)
+	char done)
+    (while (not done)
+      (unless (get-text-property 0 'face prompt)
+	(setq prompt (propertize prompt 'face 'minibuffer-prompt)))
+      (setq char (let ((inhibit-quit inhibit-keyboard-quit))
+		   (read-event prompt)))
+      (cond
+       ((not (numberp char)))
+       ((memq char chars)
+	(setq done t))
+       ((and executing-kbd-macro (= char -1))
+	;; read-event returns -1 if we are in a kbd macro and
+	;; there are no more events in the macro.  Attempt to
+	;; get an event interactively.
+	(setq executing-kbd-macro nil))))
+    ;; Display the question with the answer.
+    (message "%s%s" prompt (char-to-string char))
+    char))
+
 (defun sit-for (seconds &optional nodisp obsolete)
   "Perform redisplay, then wait for SECONDS seconds or until input is available.
 SECONDS may be a floating-point value.

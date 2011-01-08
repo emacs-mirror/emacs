@@ -821,8 +821,8 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 	       (let ((out-name (concat file ".gz")))
 		 (and (or (not (file-exists-p out-name))
 			  (y-or-n-p
-			   (format "File %s already exists.  Really compress? "
-				   out-name)))
+			   "File %s already exists.  Really compress? "
+			   out-name))
 		      (not (dired-check-process (concat "Compressing " file)
 						"gzip" "-f" file))
 		      (or (file-exists-p out-name)
@@ -889,55 +889,35 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 		   (downcase string) count total (dired-plural-s total))
 	   failures)))))
 
-(defvar dired-query-alist
-  '((?y . y) (?\040 . y)		; `y' or SPC means accept once
-    (?n . n) (?\177 . n)		; `n' or DEL skips once
-    (?! . yes)				; `!' accepts rest
-    (?q . no) (?\e . no)		; `q' or ESC skips rest
-    ;; None of these keys quit - use C-g for that.
-    ))
-
 ;;;###autoload
-(defun dired-query (qs-var qs-prompt &rest qs-args)
-  "Query user and return nil or t.
-Store answer in symbol VAR (which must initially be bound to nil).
-Format PROMPT with ARGS.
-Binding variable `help-form' will help the user who types the help key."
-  (let* ((char (symbol-value qs-var))
-	 (action (cdr (assoc char dired-query-alist))))
-    (cond ((eq 'yes action)
-	   t)				; accept, and don't ask again
-	  ((eq 'no action)
-	   nil)				; skip, and don't ask again
-	  (t;; no lasting effects from last time we asked - ask now
-	   (let ((cursor-in-echo-area t)
-		 (executing-kbd-macro executing-kbd-macro)
-		 (qprompt (concat qs-prompt
-				  (if help-form
-				      (format " [Type yn!q or %s] "
-					      (key-description
-					       (char-to-string help-char)))
-				    " [Type y, n, q or !] ")))
-		 done result elt)
-	     (while (not done)
-	       (apply 'message qprompt qs-args)
-	       (setq char (set qs-var (read-event)))
-	       (if (numberp char)
-		   (cond ((and executing-kbd-macro (= char -1))
-			  ;; read-event returns -1 if we are in a kbd
-			  ;; macro and there are no more events in the
-			  ;; macro.  Attempt to get an event
-			  ;; interactively.
-			  (setq executing-kbd-macro nil))
-			 ((eq (key-binding (vector char)) 'keyboard-quit)
-			  (keyboard-quit))
-			 (t
-			  (setq done (setq elt (assoc char
-						      dired-query-alist)))))))
-	     ;; Display the question with the answer.
-	     (message "%s" (concat (apply 'format qprompt qs-args)
-				   (char-to-string char)))
-	     (memq (cdr elt) '(t y yes)))))))
+(defun dired-query (sym prompt &rest args)
+  "Format PROMPT with ARGS, query user, and store the result in SYM.
+The return value is either nil or t.
+
+The user may type y or SPC to accept once; n or DEL to skip once;
+! to accept this and subsequent queries; or q or ESC to decline
+this and subsequent queries.
+
+If SYM is already bound to a non-nil value, this function may
+return automatically without querying the user.  If SYM is !,
+return t; if SYM is q or ESC, return nil."
+  (let* ((char (symbol-value sym))
+	 (char-choices '(?y ?\s ?n ?\177 ?! ?q ?\e)))
+    (cond ((eq char ?!)
+	   t)       ; accept, and don't ask again
+	  ((memq char '(?q ?\e))
+	   nil)     ; skip, and don't ask again
+	  (t        ; no previous answer - ask now
+	   (setq prompt
+		 (concat (apply 'format prompt args)
+			 (if help-form
+			     (format " [Type yn!q or %s] "
+				     (key-description
+				      (char-to-string help-char)))
+			   " [Type y, n, q or !] ")))
+	   (set sym (setq char (read-char-choice prompt char-choices)))
+	   (if (memq char '(?y ?\s ?!)) t)))))
+
 
 ;;;###autoload
 (defun dired-do-compress (&optional arg)

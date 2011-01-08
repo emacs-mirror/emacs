@@ -1,3 +1,18 @@
+2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (read-char-choice): New function, factored out from
+	dired-query and hack-local-variables-confirm.
+
+	* dired-aux.el (dired-query):
+	* files.el (hack-local-variables-confirm): Use it.
+
+	* dired-aux.el (dired-compress-file):
+	* files.el (abort-if-file-too-large, find-alternate-file)
+	(set-visited-file-name, write-file, backup-buffer)
+	(basic-save-buffer, basic-save-buffer-2, save-some-buffers)
+	(delete-directory, revert-buffer, recover-file, kill-buffer-ask):
+	Use new format string args for y-or-n-p and yes-or-no-p.
+
 2011-01-08  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist)
