@@ -128,8 +128,6 @@ DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
 SCRIPTS= rcs2log vcdiff
 STAMP_SCRIPTS= stamp-rcs2log stamp-vcdiff
 
-EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
-
 # Specify additional -D flags for movemail. Options:
 # -DMAIL_USE_FLOCK or -DMAIL_USE_LOCKF (use flock or lockf for file locking).
 # See the comments about locking in movemail.c.  Normally the values
