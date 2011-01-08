@@ -1,5 +1,8 @@
 2011-01-08  Glenn Morris  <rgm@gnu.org>
 
+	* makefile.w32-in ($(EMACS)):
+	* Makefile.in (emacs$(EXEEXT)): -batch implies -q.
+
 	* xdisp.c (syms_of_xdisp) <Qrisky_local_variable>: Move from here...
 	* emacs.c (syms_of_emacs) <Qrisky_local_variable>: ...to here.
 
