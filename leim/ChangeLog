@@ -1,3 +1,11 @@
+2011-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (RUN_EMACS):
+	* Makefile.in (RUN-EMACS): Add --no-site-lisp.
+
+	* makefile.w32-in (RUN_EMACS):
+	* Makefile.in (RUN-EMACS): -batch implies --no-init-file.
+
 2010-08-28  Kenichi Handa  <handa@m17n.org>
 
 	* quail/japanese.el (quail-japanese-update-translation): Fix

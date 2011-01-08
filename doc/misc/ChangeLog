@@ -1,3 +1,8 @@
+2011-01-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update to version 2010-12-23.17 from gnulib,
+	which in turn is copied from ftp://tug.org/tex/.
+
 2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
 	* dbus.texi (Receiving Method Calls): Describe new optional

@@ -1,3 +1,7 @@
+2011-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE___BUILTIN_UNWIND_INIT) [GCC >= 2.8]: Define.
+
 2011-01-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat (end): Unset environment variables used by this

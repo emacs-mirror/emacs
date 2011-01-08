@@ -1,3 +1,9 @@
+2011-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (EMACSOPT): Add --no-site-lisp.
+
+	* makefile.w32-in (EMACSOPT): -batch implies --no-init-file.
+
 2011-01-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* buff-menu.el (Buffer-menu-switch-other-window): Use
@@ -99,6 +105,16 @@
 	(display-buffer-mark-dedicated): Rewrite obsolete declarations.
 	(special-display-p, same-window-p): Rewrite with new display
 	specifiers.
+
+2011-01-07  Sam Steingold  <sds@gnu.org>
+
+	* w32-fns.el (w32-shell-name): Use `shell-file-name' instead of
+	the `explicit-shell-file-name' because that is the
+	non-interactive shell.
+
+2011-01-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (y-or-n-p): Accept format string args.
 
 2011-01-07  Glenn Morris  <rgm@gnu.org>
 

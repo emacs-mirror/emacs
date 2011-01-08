@@ -287,6 +287,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EXTERNALLY_VISIBLE
 #endif
 
+#if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8))
+#define HAVE___BUILTIN_UNWIND_INIT 1
+#endif
+
 #undef EMACS_CONFIGURATION
 
 #undef EMACS_CONFIG_OPTIONS

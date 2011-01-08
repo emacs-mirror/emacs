@@ -57,7 +57,7 @@ That includes all Windows systems except for 9X/Me."
 
 (defun w32-shell-name ()
   "Return the name of the shell being used."
-  (or (bound-and-true-p explicit-shell-file-name)
+  (or (bound-and-true-p shell-file-name)
       (getenv "ESHELL")
       (getenv "SHELL")
       (and (w32-using-nt) "cmd.exe")

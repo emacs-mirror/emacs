@@ -1,10 +1,10 @@
 #! /bin/sh
 # Attempt to guess a canonical system name.
 #   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-#   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+#   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #   Free Software Foundation, Inc.
 
-timestamp='2009-09-18'
+timestamp='2010-09-24'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -56,8 +56,9 @@ version="\
 GNU config.guess ($timestamp)
 
 Originally written by Per Bothner.
-Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free
+Software Foundation, Inc.
 
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
@@ -91,7 +92,7 @@ if test $# != 0; then
   exit 1
 fi
 
-trap 'exit 1' 1 2 15
+trap 'exit 1' HUP INT TERM
 
 # CC_FOR_BUILD -- compiler used by this script. Note that the use of a
 # compiler to aid in system detection is discouraged as it requires
@@ -105,7 +106,7 @@ trap 'exit 1' 1 2 15
 
 set_cc_for_build='
 trap "exitcode=\$?; (rm -f \$tmpfiles 2>/dev/null; rmdir \$tmp 2>/dev/null) && exit \$exitcode" 0 ;
-trap "rm -f \$tmpfiles 2>/dev/null; rmdir \$tmp 2>/dev/null; exit 1" 1 2 13 15 ;
+trap "rm -f \$tmpfiles 2>/dev/null; rmdir \$tmp 2>/dev/null; exit 1" HUP INT PIPE TERM ;
 : ${TMPDIR=/tmp} ;
  { tmp=`(umask 077 && mktemp -d "$TMPDIR/cgXXXXXX") 2>/dev/null` && test -n "$tmp" && test -d "$tmp" ; } ||
  { test -n "$RANDOM" && tmp=$TMPDIR/cg$$-$RANDOM && (umask 077 && mkdir $tmp) ; } ||
@@ -333,6 +334,9 @@ case "${UNAME_MACHINE}:${UNAME_SYSTEM}:${UNAME_RELEASE}:${UNAME_VERSION}" in
     sun4*:SunOS:5.*:* | tadpole*:SunOS:5.*:*)
 	echo sparc-sun-solaris2`echo ${UNAME_RELEASE}|sed -e 's/[^.]*//'`
 	exit ;;
+    i86pc:AuroraUX:5.*:* | i86xen:AuroraUX:5.*:*)
+	echo i386-pc-auroraux${UNAME_RELEASE}
+	exit ;;
     i86pc:SunOS:5.*:* | i86xen:SunOS:5.*:*)
 	eval $set_cc_for_build
 	SUN_ARCH="i386"
@@ -548,7 +552,7 @@ EOF
 		echo rs6000-ibm-aix3.2
 	fi
 	exit ;;
-    *:AIX:*:[456])
+    *:AIX:*:[4567])
 	IBM_CPU_ID=`/usr/sbin/lsdev -C -c processor -S available | sed 1q | awk '{ print $1 }'`
 	if /usr/sbin/lsattr -El ${IBM_CPU_ID} | grep ' POWER' >/dev/null 2>&1; then
 		IBM_ARCH=rs6000
@@ -807,12 +811,12 @@ EOF
     i*:PW*:*)
 	echo ${UNAME_MACHINE}-pc-pw32
 	exit ;;
-    *:Interix*:[3456]*)
+    *:Interix*:*)
     	case ${UNAME_MACHINE} in
 	    x86)
 		echo i586-pc-interix${UNAME_RELEASE}
 		exit ;;
-	    EM64T | authenticamd | genuineintel)
+	    authenticamd | genuineintel | EM64T)
 		echo x86_64-unknown-interix${UNAME_RELEASE}
 		exit ;;
 	    IA64)
@@ -891,7 +895,15 @@ EOF
     	echo frv-unknown-linux-gnu
 	exit ;;
     i*86:Linux:*:*)
-	echo ${UNAME_MACHINE}-pc-linux-gnu
+	LIBC=gnu
+	eval $set_cc_for_build
+	sed 's/^	//' << EOF >$dummy.c
+	#ifdef __dietlibc__
+	LIBC=dietlibc
+	#endif
+EOF
+	eval `$CC_FOR_BUILD -E $dummy.c 2>/dev/null | grep '^LIBC'`
+	echo "${UNAME_MACHINE}-pc-linux-${LIBC}"
 	exit ;;
     ia64:Linux:*:*)
 	echo ${UNAME_MACHINE}-unknown-linux-gnu
@@ -918,11 +930,7 @@ EOF
 	#endif
 	#endif
 EOF
-	eval "`$CC_FOR_BUILD -E $dummy.c 2>/dev/null | sed -n '
-	    /^CPU/{
-		s: ::g
-		p
-	    }'`"
+	eval `$CC_FOR_BUILD -E $dummy.c 2>/dev/null | grep '^CPU'`
 	test x"${CPU}" != x && { echo "${CPU}-unknown-linux-gnu"; exit; }
 	;;
     or32:Linux:*:*)
@@ -959,6 +967,9 @@ EOF
 	exit ;;
     sparc:Linux:*:* | sparc64:Linux:*:*)
 	echo ${UNAME_MACHINE}-unknown-linux-gnu
+	exit ;;
+    tile*:Linux:*:*)
+	echo ${UNAME_MACHINE}-tilera-linux-gnu
 	exit ;;
     vax:Linux:*:*)
 	echo ${UNAME_MACHINE}-dec-linux-gnu
@@ -1222,6 +1233,9 @@ EOF
 	exit ;;
     *:QNX:*:4*)
 	echo i386-pc-qnx
+	exit ;;
+    NEO-?:NONSTOP_KERNEL:*:*)
+	echo neo-tandem-nsk${UNAME_RELEASE}
 	exit ;;
     NSE-?:NONSTOP_KERNEL:*:*)
 	echo nse-tandem-nsk${UNAME_RELEASE}

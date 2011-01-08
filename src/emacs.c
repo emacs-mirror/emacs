@@ -178,6 +178,8 @@ Lisp_Object Vsystem_configuration_options;
 
 Lisp_Object Qfile_name_handler_alist;
 
+Lisp_Object Qrisky_local_variable;
+
 /* Current and previous system locales for messages and time.  */
 Lisp_Object Vsystem_messages_locale;
 Lisp_Object Vprevious_system_messages_locale;
@@ -2407,6 +2409,8 @@ syms_of_emacs (void)
 {
   Qfile_name_handler_alist = intern_c_string ("file-name-handler-alist");
   staticpro (&Qfile_name_handler_alist);
+  Qrisky_local_variable = intern_c_string ("risky-local-variable");
+  staticpro (&Qrisky_local_variable);
 
 #ifndef CANNOT_DUMP
   defsubr (&Sdump_emacs);

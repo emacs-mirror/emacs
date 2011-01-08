@@ -132,10 +132,16 @@ Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings
 GNUstep/Emacs.base/Resources/Info-gnustep.plist
    `set-copyright' in admin.el will do all the above.
 
-<top-level>/install-sh
-lispintro/install-sh
+configure
+ - copyright FSF, with unlimited permission to copy, distribute and modify
+
+m4/getopt.m4
+ - copyright FSF, with MIT-like license
+
+install-sh
  - this file is copyright MIT, which is OK. Leave the copyright alone.
 
+mkinstalldirs
 src/m/news-r6.h
   public domain, leave alone.
 
@@ -328,6 +334,9 @@ msdos/is_exec.c, sigaction.c - these files are copyright DJ Delorie.
 Leave the copyrights alone. Leave the Eli Zaretskii copyright in
 is_exec.c alone. See the msdos/README file for the legal history of
 these files.
+
+msdos/sed*.inp - These files are copyright FSF and distributed under
+an MIT-like license.
 
 
 oldXMenu/
@@ -611,6 +620,7 @@ of writing) GPL >= 2. rms says may as well leave the licenses of these
 alone (may import them from Gnulib again). These are:
 
     Gnulib:
+    move-if-change
     src/getloadavg.c
     src/gmalloc.c
     src/md5.c

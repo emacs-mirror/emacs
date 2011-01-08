@@ -1,3 +1,11 @@
+2011-01-07  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (epg-sub-key-fingerprint): Autoload.
+	(mml2015-epg-find-usable-secret-key): New function.
+	(mml2015-epg-sign): Use mml2015-epg-find-usable-secret-key instead of
+	mml2015-epg-find-usable-key (Bug#7797).
+	(mml2015-epg-encrypt): Ditto.
+
 2011-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* flow-fill.el (fill-flowed-encode): Do encoding citation-aware.

@@ -1,3 +1,20 @@
+2011-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in ($(EMACS)):
+	* Makefile.in (emacs$(EXEEXT)): -batch implies -q.
+
+	* xdisp.c (syms_of_xdisp) <Qrisky_local_variable>: Move from here...
+	* emacs.c (syms_of_emacs) <Qrisky_local_variable>: ...to here.
+
+2011-01-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (imagemagick_load_image): Fix some resource leaks and
+	error handling.
+
+2011-01-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fns.c (Fyes_or_no_p): Accept format string args.
+
 2011-01-07  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (no_site_lisp): New int.
