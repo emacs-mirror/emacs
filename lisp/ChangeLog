@@ -1,5 +1,10 @@
 2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* custom.el (custom-safe-theme-files): New defcustom.
+	(custom-theme-load-confirm): New function.
+	(load-theme): Load theme using `load', confirming with
+	custom-theme-load-confirm if necessary.
+
 	* subr.el (read-char-choice): New function, factored out from
 	dired-query and hack-local-variables-confirm.
 
