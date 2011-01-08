@@ -1,3 +1,8 @@
+2011-01-08  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode-p): Check for png or imagemagick
+	image backend support.  Either of them is fine.
+
 2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (y-or-n-p): Doc fix.
