@@ -1,3 +1,8 @@
+2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (Directory Names): Explain why directory-abbrev-alist
+	elements should be anchored (Bug#7777).
+
 2011-01-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.texi (Directory Names): Explain why FROM in
