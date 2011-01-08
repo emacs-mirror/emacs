@@ -27,6 +27,7 @@ AC_PREREQ(2.65)
 AC_INIT(emacs, 24.0.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
+AM_INIT_AUTOMAKE
 
 dnl Support for --program-prefix, --program-suffix and
 dnl --program-transform-name options
@@ -638,6 +639,10 @@ SPECIFIED_CFLAGS="$CFLAGS"
 
 dnl Sets GCC=yes if using gcc.
 AC_PROG_CC
+AM_PROG_CC_C_O
+
+# Initialize gnulib right after verifying that the C compiler works.
+gl_EARLY
 
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
@@ -2668,6 +2673,9 @@ AC_SUBST(GETOPTOBJS)
 
 AC_FUNC_GETPGRP
 
+# Configure gnulib.
+gl_INIT
+
 AC_FUNC_STRFTIME
 
 # UNIX98 PTYs.
@@ -3747,7 +3755,7 @@ dnl Secondly, the GNU Coding standards require that one should be able
 dnl to run `make prefix=/some/where/else' and override the values set
 dnl by configure.  This also explains the `move-if-change' test and
 dnl the use of force in the `epaths-force' rule in Makefile.in.
-AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile \
+AC_OUTPUT(Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile \
 	doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
 	doc/lispref/Makefile src/Makefile \
 	lwlib/Makefile lisp/Makefile leim/Makefile, [

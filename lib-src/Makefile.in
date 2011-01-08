@@ -128,6 +128,9 @@ DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
 SCRIPTS= rcs2log vcdiff
 STAMP_SCRIPTS= stamp-rcs2log stamp-vcdiff
 
+# All files that are created by the linker, i.e., whose names end in ${EXEEXT}.
+EXE_FILES = ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
+
 # Specify additional -D flags for movemail. Options:
 # -DMAIL_USE_FLOCK or -DMAIL_USE_LOCKF (use flock or lockf for file locking).
 # See the comments about locking in movemail.c.  Normally the values
@@ -166,13 +169,15 @@ LIBS_SYSTEM = @LIBS_SYSTEM@
 # defined before they know they can take advantage of the information
 # in ../src/config.h.
 BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) ${C_WARNINGS_SWITCH} \
-	      -DHAVE_CONFIG_H -I. -I../src -I${srcdir} -I${srcdir}/../src
+	      -DHAVE_CONFIG_H -I. -I../src -I../lib \
+	      -I${srcdir} -I${srcdir}/../src -I${srcdir}/../lib
 
 ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
 LINK_CFLAGS = ${BASE_CFLAGS} ${LDFLAGS} ${CFLAGS}
 CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 
-LOADLIBES=$(LIBS_SYSTEM)
+LOADLIBES = ../lib/libgnu.a $(LIBS_SYSTEM)
+$(EXE_FILES): ../lib/libgnu.a
 
 ## This is the default compilation command.
 ## But we should never rely on it, because some make version failed to
@@ -319,6 +324,9 @@ getopt.o: ${srcdir}/getopt.c $(GETOPT_H) ${srcdir}/gettext.h
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt.c
 getopt1.o: ${srcdir}/getopt1.c $(GETOPT_H)
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
+
+../lib/libgnu.a: ../src/config.h
+	cd ../lib && $(MAKE) libgnu.a
 
 REGEXPOBJ = regex.o
 REGEXPDEPS = $(REGEXPOBJ) $(srcdir)/../src/regex.h

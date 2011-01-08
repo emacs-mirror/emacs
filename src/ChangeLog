@@ -1,3 +1,11 @@
+2011-01-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Automate syncing from gnulib.
+	* Makefile.in (lib): New macro.
+	(ALL_CFLAGS): Add -I$(lib) -I$(srcdir)/../lib.
+	($(lib)/libgnu.a): New rule.
+	(temacs$(EXEEXT)): Also link $(lib)/libgnu.a.
+
 2011-01-08  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* fns.c (Fyes_or_no_p): Add usage.
@@ -29483,4 +29491,3 @@ See ChangeLog.10 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
