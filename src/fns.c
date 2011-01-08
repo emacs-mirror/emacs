@@ -1,7 +1,7 @@
 /* Random utility Lisp functions.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997,
                  1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010
+                 2005, 2006, 2007, 2008, 2009, 2010, 2011
 		 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2468,7 +2468,8 @@ The user must confirm the answer with RET,
 and can edit it until it has been confirmed.
 
 Under a windowing system a dialog box will be used if `last-nonmenu-event'
-is nil, and `use-dialog-box' is non-nil.  */)
+is nil, and `use-dialog-box' is non-nil.
+usage: (yes-or-no-p PROMPT &rest ARGS)  */)
   (int nargs, Lisp_Object *args)
 {
   register Lisp_Object ans;

@@ -1,3 +1,7 @@
+2011-01-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fns.c (Fyes_or_no_p): Add usage.
+
 2011-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in ($(EMACS)):
