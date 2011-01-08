@@ -1,3 +1,7 @@
+2011-01-08  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* net/ldap.el (ldap-search-internal): Discard stderr output.
+
 2011-01-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (directory-abbrev-alist): Doc fix.  (Bug#7777)
