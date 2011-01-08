@@ -233,7 +233,7 @@ symbol: gcc-include
 The last file, i.e. the one you are compiling, is the interesting one.
 
 In file included from /usr/include/c++/3.3/backward/warn.h:4,
-                 from /usr/include/c++/3.3/backward/iostream.h:31,
+                 from /usr/include/c++/3.3/backward/iostream.h:31:0,
                  from test_clt.cc:1:
 
 

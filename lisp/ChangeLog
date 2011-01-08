@@ -1,3 +1,9 @@
+2011-01-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist)
+	[gcc-include]: Tighten file name match, add match for column
+	number.  (Bug#7806)
+
 2011-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in (EMACSOPT): Add --no-site-lisp.
