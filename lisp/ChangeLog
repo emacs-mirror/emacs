@@ -1,5 +1,7 @@
 2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* subr.el (y-or-n-p): Doc fix.
+
 	* custom.el (custom-safe-theme-files): New defcustom.
 	(custom-theme-load-confirm): New function.
 	(load-theme): Load theme using `load', confirming with

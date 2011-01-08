@@ -2043,8 +2043,11 @@ floating point support."
 
 (defun y-or-n-p (prompt &rest args)
   "Ask user a \"y or n\" question.  Return t if answer is \"y\".
-The argument PROMPT is the string to display to ask the question.
-It should end in a space; `y-or-n-p' adds `(y or n) ' to it.
+The string to display to ask the question is obtained by
+formatting the string PROMPT with arguments ARGS (see `format').
+The result should end in a space; `y-or-n-p' adds \"(y or n) \"
+to it.
+
 No confirmation of the answer is requested; a single character is enough.
 Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses
 the bindings in `query-replace-map'; see the documentation of that variable
