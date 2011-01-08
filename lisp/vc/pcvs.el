@@ -495,11 +495,9 @@ If non-nil, NEW means to create a new buffer no matter what."
     (cvs-mode-run cmd flags fis
 		  :cvsargs cvsargs :dont-change-disc dont-change-disc)
 
-    (if noshow cvsbuf
-      (let ((pop-up-windows nil)) (pop-to-buffer cvsbuf)))))
-;;      (funcall (if (and (boundp 'pop-up-frames) pop-up-frames)
-;;		   'pop-to-buffer 'switch-to-buffer)
-;;	       cvsbuf))))
+    (if noshow
+	cvsbuf
+      (pop-to-buffer cvsbuf))))
 
 (defun cvs-run-process (args fis postprocess &optional single-dir)
   (assert (cvs-buffer-p cvs-buffer))
@@ -1018,8 +1016,9 @@ FLAGS is ignored."
 			    (eq cvs-auto-remove-handled t)
 			    cvs-auto-remove-directories
 			    nil)
-    (if noshow cvsbuf
-      (let ((pop-up-windows nil)) (pop-to-buffer cvsbuf)))))
+    (if noshow
+	cvsbuf
+      (pop-to-buffer cvsbuf))))
 
 ;;;###autoload
 (defun cvs-examine (directory flags &optional noshow)
@@ -2148,7 +2147,7 @@ Returns a list of FIS that should be `cvs remove'd."
       (with-current-buffer tmpbuf
 	(let ((inhibit-read-only t))
 	  (cvs-insert-strings (mapcar 'cvs-fileinfo->full-name fis))
-	  (cvs-pop-to-buffer-same-frame (current-buffer))
+	  (pop-to-buffer-same-frame (current-buffer))
 	  (shrink-window-if-larger-than-buffer))))
     (if (not (or silent
 		 (unwind-protect

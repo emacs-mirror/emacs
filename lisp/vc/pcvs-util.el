@@ -81,14 +81,6 @@ the other elements.  The ordering among elements is maintained."
 ;;; frame, window, buffer handling
 ;;;
 
-(defun cvs-pop-to-buffer-same-frame (buf)
-  "Pop to BUF like `pop-to-buffer' but staying on the same frame.
-If `pop-to-buffer' would have opened a new frame, this function would
-try to split a new window instead."
-  (pop-to-buffer
-   (current-buffer) '(same-frame (new-window (selected . below))
-				 (reuse-buffer-window . nil))))
-
 (defun cvs-bury-buffer (buf &optional mainbuf)
   "Hide the buffer BUF that was temporarily popped up.
 BUF is assumed to be a temporary buffer used from the buffer MAINBUF."

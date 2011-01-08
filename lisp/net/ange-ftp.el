@@ -1485,9 +1485,8 @@ only return the directory part of FILE."
 ;; USER pair, and signal an error including MSG in the text.
 (defun ange-ftp-error (host user msg)
   (save-excursion  ;; Prevent pop-to-buffer from changing current buffer.
-    (let ((cur (selected-window))
-	  (pop-up-windows t))
-      (pop-to-buffer
+    (let ((cur (selected-window)))
+      (pop-to-buffer-same-frame-other-window
        (get-buffer-create
 	(ange-ftp-ftp-process-buffer host user)))
       (goto-char (point-max))

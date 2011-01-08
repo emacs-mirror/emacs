@@ -1,3 +1,19 @@
+2011-01-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* net/ange-ftp.el (ange-ftp-error): Use
+	pop-to-buffer-same-frame-other-window.
+
+	* vc/log-edit.el (log-edit-show-files): Use
+	pop-to-buffer-same-frame.
+
+	* vc/pcvs-util.el (cvs-pop-to-buffer-same-frame): Remove.
+
+	* vc/pcvs.el (cvs-cmd-do, cvs-quickdir): Do not bind
+	pop-up-windows.
+	(cvs-do-removal): Call pop-to-buffer-same-frame.
+
+	* vc/vc-dir.el (vc-dir): Do not bind pop-up-windows.
+
 2011-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in (EMACSOPT): Add --no-site-lisp.

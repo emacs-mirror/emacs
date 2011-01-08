@@ -528,7 +528,7 @@ If you want to abort the commit, simply delete the buffer."
       (setq buffer-read-only t)
       (goto-char (point-min))
       (save-selected-window
-	(cvs-pop-to-buffer-same-frame buf)
+	(pop-to-buffer-same-frame buf)
 	(shrink-window-if-larger-than-buffer)
 	(selected-window)))))
 
