@@ -3,6 +3,7 @@
 	* progmodes/compile.el (compilation-error-regexp-alist-alist)
 	[gcc-include]: Tighten file name match, add match for column
 	number.  (Bug#7806)
+	[gnu]: Remove unused group.
 
 2011-01-08  Glenn Morris  <rgm@gnu.org>
 
