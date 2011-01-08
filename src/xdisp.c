@@ -2,7 +2,7 @@
 
 Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1997, 1998,
   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010  Free Software Foundation, Inc.
+  2010, 2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -335,8 +335,6 @@ Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
 
 /* Pointer shapes */
 Lisp_Object Qarrow, Qhand, Qtext;
-
-Lisp_Object Qrisky_local_variable;
 
 /* Holds the list (error).  */
 Lisp_Object list_of_error;
@@ -26581,8 +26579,6 @@ syms_of_xdisp (void)
   staticpro (&Qarrow);
   Qtext = intern_c_string ("text");
   staticpro (&Qtext);
-  Qrisky_local_variable = intern_c_string ("risky-local-variable");
-  staticpro (&Qrisky_local_variable);
   Qinhibit_free_realized_faces = intern_c_string ("inhibit-free-realized-faces");
   staticpro (&Qinhibit_free_realized_faces);
 
