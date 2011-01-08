@@ -1,5 +1,13 @@
 2011-01-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Regenerate.
+	* aclocal.m4, compile, depcomp, lib/Makefile.in, lib/dummy.c:
+	* lib/gnulib.mk, m4/00gnulib.m4, m4/gnulib-cache.m4:
+	* m4/gnulib-common.m4, m4/gnulib-comp.m4, m4/gnulib-tool.m4, missing:
+	New files, generated automatically, with 'make sync-from-gnulib'
+	followed by 'make'.
+	* configure, lisp/dired.el, src/config.in: Regenerate.
+
 	Automate syncing from gnulib.
 	* INSTALL, README: Document new subdirectory 'lib'.
 	* Makefile.in (SUBDIR): Add lib.
