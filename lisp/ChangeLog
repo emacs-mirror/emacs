@@ -1,5 +1,7 @@
 2011-01-08  Glenn Morris  <rgm@gnu.org>
 
+	* makefile.w32-in (EMACSOPT): Add --no-site-lisp.
+
 	* makefile.w32-in (EMACSOPT): -batch implies --no-init-file.
 
 2011-01-07  Sam Steingold  <sds@gnu.org>

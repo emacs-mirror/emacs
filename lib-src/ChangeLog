@@ -1,5 +1,7 @@
 2011-01-08  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (EMACSOPT): Add --no-site-lisp.
+
 	* Makefile.in (EMACSOPT): Remove --multibyte, it does nothing any more.
 
 2011-01-02  Glenn Morris  <rgm@gnu.org>

@@ -34,7 +34,7 @@ EMACS = $(THISDIR)/../bin/emacs.exe
 
 # Command line flags for Emacs.
 
-EMACSOPT = -batch --no-site-file
+EMACSOPT = -batch --no-site-file --no-site-lisp
 
 # Extra flags to pass to the byte compiler
 BYTE_COMPILE_EXTRA_FLAGS =
