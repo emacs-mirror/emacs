@@ -1,3 +1,105 @@
+2011-01-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* buff-menu.el (Buffer-menu-switch-other-window): Use
+	display-buffer-same-frame-other-window.
+	(Buffer-menu-2-window): Use
+	pop-to-buffer-same-frame-other-window.
+
+	* progmodes/compile.el (compilation-start): Use
+	pop-up-window-set-height specifier.
+	(compilation-goto-locus): Rewrite window-setup code with new
+	display method specifiers.
+
+	* vc/ediff-mult.el (ediff-collect-custom-diffs)
+	(ediff-meta-show-patch): Use display-buffer-other-window.
+
+	* files.el (ctl-x-5-map): Remove binding for
+	display-buffer-other-frame.
+
+	* frame.el (pop-up-frame-alist, pop-up-frame-function)
+	(special-display-frame-alist): Update obsolescence declaration.
+
+	* mail/reporter.el (reporter-submit-bug-report): Adapt to new
+	display specifiers.
+
+	* man.el (Man-notify-when-ready): Use
+	display-buffer-other-window.
+
+	* pcomplete.el (pcomplete-show-completions): Use
+	display-buffer-other-window.
+
+	* ps-print.el (ps-line-lengths-internal, ps-nb-pages): Use
+	display-buffer-other-window.
+
+	* term.el (term-display-buffer-line): Call
+	display-buffer-other-window.
+
+	* window.el (window-child-count): New function.
+	(walk-window-tree-1, walk-window-tree, walk-window-subtree):
+	Move them here.
+	(windows-with-parameter, window-with-parameter)
+	(window-atom-root, make-window-atom, window-atom-check-1)
+	(window-atom-check): New functions.
+	(window-sides-vertical, window-sides-slots, window-sides-alist):
+	New options.
+	(window-side-check, window-check): New functions.
+	(composite-window-p, composite-root-window-p)
+	(composite-main-window-p, composite-support-window-p)
+	(composite-root-window, composite-major-window)
+	(composite-main-sibling, composite-lowest-child-role)
+	(compound-window-p, compound-main-window-p)
+	(compound-root-window, group-window-p, group-root-window): Remove,
+	their functionality is now provided by atomic and side windows.
+	(other-window): Check other-window-function parameter and rewrite
+	handling of no-other-window parameter.
+	(window-deletable-p, delete-window, delete-other-windows)
+	(split-window): Handle ignore-window-parameters, atomic and side
+	windows.  Call window-check.
+	(make-compound-window, make-window-group, make-support-window):
+	Remove, replaced by atomic and side windows.
+	(display-buffer-names, display-buffer-regexps): Remove, replaced
+	by display-buffer-alist.
+	(display-buffer-method-specifiers)
+	(display-buffer-macro-specifiers): New constants.
+	(display-buffer-default-specifiers): Rewrite.
+	(display-buffer-alist): New variable.
+	(display-buffer-other-window-specifiers)
+	(display-buffer-same-frame-specifiers)
+	(display-buffer-other-window-same-frame-specifiers)
+	(display-buffer-other-frame-specifiers): Rewrite with new
+	display specifiers.
+	(display-buffer-function, display-buffer-window)
+	(display-buffer-even-sizes, display-buffer-select-window, display-buffer-in-window):
+	Rewrite doc-string.
+	(display-buffer-set-height): Rename from display-buffer-adjust-height.
+	(display-buffer-set-width): Rename from display-buffer-adjust-width.
+	(display-buffer-in-window): Install no-other-window parameter if
+	required.
+	(display-buffer-reuse-window): New function.
+	(display-buffer-split-window-1, display-buffer-split-window):
+	Rewrite.
+	(display-buffer-split-atom-window, display-buffer-pop-up-window)
+	(display-buffer-pop-up-frame, display-buffer-pop-up-side-window):
+	New functions.
+	(display-buffer-normalize-specifiers-1)
+	(display-buffer-normalize-specifiers, display-buffer
+	(display-buffer-same-window, display-buffer-same-frame)
+	(display-buffer-other-window)
+	(display-buffer-same-frame-other-window, pop-to-buffer)
+	(pop-to-buffer-same-window, pop-to-buffer-same-frame)
+	(pop-to-buffer-other-window)
+	(pop-to-buffer-same-frame-other-window)
+	(pop-to-buffer-other-frame): Rewrite using new display
+	specifiers.
+	(special-display-regexps, special-display-function)
+	(same-window-buffer-names, same-window-regexps, pop-up-frames)
+	(display-buffer-reuse-frames, pop-up-windows)
+	(split-window-preferred-function, split-height-threshold)
+	(split-width-threshold, even-window-heights)
+	(display-buffer-mark-dedicated): Rewrite obsolete declarations.
+	(special-display-p, same-window-p): Rewrite with new display
+	specifiers.
+
 2011-01-07  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (EMACSOPT): Add --no-site-lisp.

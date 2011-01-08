@@ -1761,7 +1761,7 @@ all marked sessions must be active."
     (if (> (ediff-operate-on-marked-sessions 'ediff-append-custom-diff) 0)
 	;; did something
 	(progn
-	  (display-buffer ediff-meta-diff-buffer 'not-this-window)
+	  (display-buffer-other-window ediff-meta-diff-buffer)
 	  (ediff-with-current-buffer ediff-meta-diff-buffer
 				     (set-buffer-modified-p nil)
 				     (setq buffer-read-only t))
@@ -1790,7 +1790,7 @@ all marked sessions must be active."
 	    (erase-buffer)
 	    (insert-buffer-substring patchbuffer)
 	    (goto-char (point-min))
-	    (display-buffer ediff-tmp-buffer 'not-this-window)
+	    (display-buffer-other-window ediff-tmp-buffer)
 	    ))
       (error "The patch buffer wasn't found"))))
 

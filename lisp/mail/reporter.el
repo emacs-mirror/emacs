@@ -339,7 +339,7 @@ mail-sending package is used for editing and sending the message."
     ;; back somewhere.
     (display-buffer
      reporter-eval-buffer
-     '(same-frame (not-this-window . t) (reuse-buffer-window . nil)))
+     '(same-frame-other-window (reuse-window 'other 'same 0)))
     (goto-char (point-min))
     (mail-position-on-field "to")
     (insert address)

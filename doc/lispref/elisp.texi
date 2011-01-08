@@ -935,8 +935,6 @@ Frames
 * Frame Titles::            Automatic updating of frame titles.
 * Deleting Frames::         Frames last until explicitly deleted.
 * Finding All Frames::      How to examine all existing frames.
-* Frames and Windows::      A frame contains windows;
-                              display of text always works through windows.
 * Minibuffers and Frames::  How a frame finds the minibuffer to use.
 * Input Focus::             Specifying the selected frame.
 * Visibility of Frames::    Frames may be visible or invisible, or icons.
@@ -978,7 +976,7 @@ Window Frame Parameters
 Windows
 
 * Basic Windows::           Basic information on using windows.
-* Frames and Windows::      Relating windows to the frame they appear on.
+* Windows and Frames::      Relating windows to the frame they appear on.
 * Window Sizes::            Accessing a window's size.
 * Resizing Windows::        Changing the sizes of windows.
 * Splitting Windows::       Splitting one window into two windows.
@@ -986,9 +984,9 @@ Windows
 * Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
+* Displaying Buffers::	    How to choose a window for displaying a buffer.
 * Switching Buffers::       Higher-level functions for switching to a buffer
                               in some window.
-* Displaying Buffers::	    How to choose a window for displaying a buffer.
 * Dedicated Windows::	    How to avoid displaying another buffer in
                               a specific window.          
 * Window Point::            Each window has its own location of point.
@@ -1000,9 +998,8 @@ Windows
 * Coordinates and Windows:: Converting coordinates to windows.
 * Window Configurations::   Saving and restoring the state of the screen.
 * Window Parameters::       Associating additional information with windows.
-* Composite Windows::       Composing aggregations of windows.
-* Compound Windows::        Making several windows behave like a single one.
-* Window Groups::           Implementing IDE style window compositions.
+* Atomic Windows::          Gluing windows together.
+* Side Windows::            Grouping side windows around a main window.
 * Window Hooks::            Hooks for scrolling, window size changes,
                               redisplay going past a certain point,
                               or window configuration changes.

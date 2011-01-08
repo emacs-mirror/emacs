@@ -440,7 +440,7 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
                               (if (string-match re c)
                                   (substring c (match-end 0))))
                             res))))))))))
-        
+
 ;; I don't think such commands are usable before first setting up buffer-local
 ;; variables to parse args, so there's no point autoloading it.
 ;; ;;;###autoload
@@ -1175,8 +1175,8 @@ Typing SPC flushes the help buffer."
                   ;; Needed on a terminal
                   (pcomplete-event-matches-key-specifier-p event 9))
               (let ((win (or (get-buffer-window "*Completions*" 0)
-                             (display-buffer "*Completions*"
-                                             'not-this-window))))
+                             (display-buffer-other-window
+			      "*Completions*"))))
                 (with-selected-window win
                   (if (pos-visible-in-window-p (point-max))
                       (goto-char (point-min))

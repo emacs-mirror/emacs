@@ -4366,7 +4366,7 @@ Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
       (insert (format "%16d   %s\n" nb-cpl fs))
       (setq nb-cpl (1+ nb-cpl)))
     (insert "\n")
-    (display-buffer buf 'not-this-window)))
+    (display-buffer-other-window buf)))
 
 (defun ps-nb-pages (nb-lines)
   "Display correspondence between font size and the number of pages.
@@ -4427,7 +4427,7 @@ and on the current ps-print setup."
       (insert (format "%7d   %s\n" nb-page fs))
       (setq nb-page (1+ nb-page)))
     (insert "\n")
-    (display-buffer buf 'not-this-window)))
+    (display-buffer-other-window buf)))
 
 ;; macros used in `ps-select-font'
 (defmacro ps-lookup (key) `(cdr (assq ,key font-entry)))

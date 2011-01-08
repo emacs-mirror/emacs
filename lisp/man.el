@@ -1004,7 +1004,7 @@ See the variable `Man-notify-method' for the different notification behaviors."
      (friendly
       (and (frame-live-p saved-frame)
 	   (select-frame saved-frame))
-      (display-buffer man-buffer 'not-this-window))
+      (display-buffer-other-window man-buffer))
      (polite
       (beep)
       (message "Manual buffer %s is ready" (buffer-name man-buffer)))

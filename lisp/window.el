@@ -80,6 +80,16 @@ be any window."
   "Return WINDOW's first child window."
   (or (window-vchild window) (window-hchild window)))
 
+(defun window-child-count (window)
+  "Return number of WINDOW's children."
+  (let ((count 0))
+    (when (and (windowp window) (setq window (window-child window)))
+      (while window
+	(setq count (1+ count))
+	(setq window (window-next window))))
+
+    count))
+
 (defsubst window-internal-p (object)
   "Return t if OBJECT is an internal window and nil otherwise.
 An internal window is a window that has either a vertical or a
@@ -244,6 +254,420 @@ number of horizontally arranged subwindows of WINDOW."
 	(setq child (window-right child)))
       count))))
 
+(defun walk-window-tree-1 (proc walk-window-tree-window any &optional sub-only)
+  "Helper function for `walk-window-tree' and `walk-window-subtree'."
+  (let (walk-window-tree-buffer)
+    (while walk-window-tree-window
+      (setq walk-window-tree-buffer
+	    (window-buffer walk-window-tree-window))
+      (when (or walk-window-tree-buffer any)
+	(funcall proc walk-window-tree-window))
+      (unless walk-window-tree-buffer
+	(walk-window-tree-1
+	 proc (window-hchild walk-window-tree-window) any)
+	(walk-window-tree-1
+	 proc (window-vchild walk-window-tree-window) any))
+      (if sub-only
+	  (setq walk-window-tree-window nil)
+	(setq walk-window-tree-window
+	      (window-right walk-window-tree-window))))))
+
+(defun walk-window-tree (proc &optional frame any)
+  "Run function PROC on each live window of FRAME.
+PROC must be a function with one argument - a window.  FRAME must
+be a live frame and defaults to the selected one.  ANY, if
+non-nil means to run PROC on all live and internal windows of
+FRAME.
+
+This function performs a pre-order, depth-first traversal of the
+window tree.  If PROC changes the window tree, the result is
+unpredictable."
+  (let ((walk-window-tree-frame (normalize-live-frame frame)))
+    (walk-window-tree-1
+     proc (frame-root-window walk-window-tree-frame) any)))
+
+(defun walk-window-subtree (proc &optional window any)
+  "Run function PROC on each live subwindow of WINDOW.
+WINDOW defaults to the selected window.  PROC must be a function
+with one argument - a window.  ANY, if non-nil means to run PROC
+on all live and internal subwindows of WINDOW.
+
+This function performs a pre-order, depth-first traversal of the
+window tree rooted at WINDOW.  If PROC changes that window tree,
+the result is unpredictable."
+  (setq window (normalize-any-window window))
+  (walk-window-tree-1 proc window any t))
+
+(defun windows-with-parameter (parameter &optional value frame any values)
+  "Return a list of all windows on FRAME with PARAMETER non-nil.
+FRAME defaults to the selected frame.  Optional argument VALUE
+non-nil means only return windows whose window-parameter value of
+PARAMETER equals VALUE \(comparison is done using `equal').
+Optional argument ANY non-nil means consider internal windows
+too.  Optional argument VALUES non-nil means return a list of cons
+cells whose car is the value of the parameter and whose cdr is
+the window."
+  (let (this-value windows)
+    (walk-window-tree
+     (lambda (window)
+       (when (and (setq this-value (window-parameter window parameter))
+		  (or (not value) (or (equal value this-value))))
+	   (setq windows
+		 (if values
+		     (cons (cons this-value window) windows)
+		   (cons window windows)))))
+     frame any)
+
+    (nreverse windows)))
+
+(defun window-with-parameter (parameter &optional value frame any)
+  "Return first window on FRAME with PARAMETER non-nil.
+FRAME defaults to the selected frame.  Optional argument VALUE
+non-nil means only return a window whose window-parameter value
+for PARAMETER equals VALUE \(comparison is done with `equal').
+Optional argument ANY non-nil means consider internal windows
+too."
+  (let (this-value windows)
+    (catch 'found
+      (walk-window-tree
+       (lambda (window)
+	 (when (and (setq this-value (window-parameter window parameter))
+		    (or (not value) (equal value this-value)))
+	   (throw 'found window)))
+       frame any))))
+
+;;; Atomic windows.
+(defun window-atom-root (&optional window)
+  "Return root of atomic window WINDOW is a part of.
+WINDOW can be any window and defaults to the selected one.
+Return nil if WINDOW is not part of a atomic window."
+  (setq window (normalize-any-window window))
+  (let (root)
+    (while (and window (window-parameter window 'window-atom))
+      (setq root window)
+      (setq window (window-parent window)))
+    root))
+
+(defun make-window-atom (window)
+  "Make WINDOW an atomic window.
+WINDOW must be an internal window.  Return WINDOW."
+  (if (not (window-internal-p window))
+      (error "Window %s is not an internal window" window)
+    (walk-window-subtree
+     (lambda (window)
+       (set-window-parameter window 'window-atom t))
+     window t)
+    window))
+
+
+(defun window-atom-check-1 (window)
+  "Subroutine of `window-atom-check'."
+  (when window
+    (if (window-parameter window 'window-atom)
+	(let ((count 0))
+	  (when (or (catch 'reset
+		      (walk-window-subtree
+		       (lambda (window)
+			 (if (window-parameter window 'window-atom)
+			     (setq count (1+ count))
+			   (throw 'reset t)))
+		       window t))
+		    (zerop count))
+	    ;; Dissolve atomic window.
+	    (walk-window-subtree
+	     (lambda (window)
+	       (set-window-parameter window 'window-atom nil))
+	     window t)))
+      ;; Check children.
+      (unless (window-buffer window)
+	(window-atom-check-1 (window-hchild window))
+	(window-atom-check-1 (window-vchild window)))
+      ;; Check right sibling
+      (window-atom-check-1 (window-right window)))))
+
+(defun window-atom-check (&optional frame)
+  "Check atomicity of all windows on FRAME.
+FRAME defaults to the selected frame.  If an atomic window is
+wrongly configured, reset the atomicity of all its subwindows to
+nil.  An atomic window is wrongly configured if it has no
+subwindows or one of its subwindows is not atomic."
+  (window-atom-check-1 (frame-root-window frame)))
+
+;; Side windows.
+(defvar window-sides '(left top right bottom)
+  "Window sides.")
+
+(defcustom window-sides-vertical nil
+  "If non-nil, left and right side windows are full height.
+Otherwise, top and bottom side windows are full width."
+  :type 'boolean
+  :group 'windows
+  :version "24.1")
+
+(defcustom window-sides-slots '(nil nil nil nil)
+  "Maximum number of side window slots.
+The value is a list of four elements specifying the number of
+side window slots on \(in this order) the left, top, right and
+bottom side of each frame.  If an element is a number, this means
+to display at most that many side windows on the corresponding
+side.  If an element is nil, this means there's no bound on the
+number of slots on that side."
+  :risky t
+  :type
+  '(list
+    :value (nil nil nil nil)
+    (choice
+     :tag "Left"
+     :help-echo "Maximum slots of left side window."
+     :value nil
+     :format "%[Left%] %v\n"
+     (const :tag "Unlimited" :format "%t" nil)
+     (integer :tag "Number" :value 2 :size 5))
+    (choice
+     :tag "Top"
+     :help-echo "Maximum slots of top side window."
+     :value nil
+     :format "%[Top%] %v\n"
+     (const :tag "Unlimited" :format "%t" nil)
+     (integer :tag "Number" :value 3 :size 5))
+    (choice
+     :tag "Right"
+     :help-echo "Maximum slots of right side window."
+     :value nil
+     :format "%[Right%] %v\n"
+     (const :tag "Unlimited" :format "%t" nil)
+     (integer :tag "Number" :value 2 :size 5))
+    (choice
+     :tag "Bottom"
+     :help-echo "Maximum slots of bottom side window."
+     :value nil
+     :format "%[Bottom%] %v\n"
+     (const :tag "Unlimited" :format "%t" nil)
+     (integer :tag "Number" :value 3 :size 5)))
+  :group 'windows
+  :group 'display-buffer)
+
+(defcustom window-sides-alist nil
+  "Association list for side windows.
+Each entry of this list must be a list whose first element is
+either `left', `top', `right' or`bottom'.  The second element of
+each entry specifies the minimum size of windows on that side
+\(either the default value, a number of lines or columns, or a
+fraction of the frame size).  The third element specifies the
+desired size of windows on that side \(either the default value,
+a number of lines or columns, or a fraction of the frame size).
+The fourth element specifies the upper bound on the number of
+slots on that side, nil if there's no bound."
+  :risky t
+  :type
+  '(set
+    ;;; :format "%v %t"
+    :inline t
+    ;; Left side window.
+    (list
+     :value (left nil nil nil)
+     :format "Left:   %v\n"
+     (const :format "" left)
+     ;; Minimum width of left side windows.
+     (choice
+      :tag "Minimum width"
+      :help-echo "The minimum width of left side windows."
+      :value nil
+      :format "%[Minimum%] %v"
+      (const :tag "Default" :format "%t" nil)
+      (integer :tag "Columns" :value 12 :size 5)
+      (float :tag "Fraction" :value .25 :size 5))
+     ;; Desired width of left side windows.
+     (choice
+      :tag "Desired width"
+      :help-echo "The desired width of left side windows."
+      :value nil
+      :format "  %[Desired%] %v"
+      (const :tag "Default" :format "%t" nil)
+      (integer :tag "Columns" :value 12 :size 5)
+      (float :tag "Fraction" :value .25 :size 5))
+     ;; The maximum number of slots of left side windows.
+     (choice
+      :tag "Slots"
+      :help-echo "The maximum number of slots in left side windows."
+      :value nil
+      :format "  %[Slots%] %v"
+      (const :tag "Unspecified" :format "%t" nil)
+      (integer :tag "Number" :format "%v" :value 3 :size 5)))
+    ;; Top side windows.
+    (list
+     :value (top nil nil nil)
+     :format "Top:    %v\n"
+     (const :format "" top)
+     ;; Minimum height of top windows.
+     (choice
+      :tag "Minimum height"
+      :help-echo "The minimum height of top windows."
+      :value nil
+      :format "%[Minimum%]  %v"
+      (const :tag "Default" :format "%t" nil)
+      (integer :tag "Lines" :value 6 :size 5)
+      (float :tag "Fraction" :value .25 :size 5))
+     ;; Desired size of left side windows.
+     (choice
+      :tag "Desired height"
+      :help-echo "The desired height of top windows."
+      :value nil
+      :format "  %[Desired%]  %v"
+      (const :tag "Default" :format "%t" nil)
+      (integer :tag "Lines" :value 6 :size 5)
+      (float :tag "Fraction" :value .25 :size 5))
+     ;; The maximum number of slots of top windows.
+     (choice
+      :tag "Slots"
+      :help-echo "The maximum number of slots in top windows."
+      :value nil
+      :format "  %[Slots%] %v"
+      (const :tag "Unspecified" :format "%t" nil)
+      (integer :tag "Number" :value 3 :format "%v" :size 5)))
+    ;; Right side windows.
+    (list
+     :value (right nil nil nil)
+     :format "Right:  %v\n"
+     (const :format "" right)
+     ;; Minimum width of right side windows.
+     (choice
+      :tag "Minimum width"
+      :help-echo "The minimum width of windows on the right."
+      :value nil
+      :format "%[Minimum%]  %v"
+      (const :tag "Default" :format "%t" nil)
+      (integer :tag "Columns" :value 12 :size 5)
+      (float :tag "Fraction" :value .25 :size 5))
+     ;; Desired width of right side windows.
+     (choice
+      :tag "Desired width"
+      :help-echo "The desired width of windows on the left."
+      :value nil
+      :format "  %[Desired%]  %v"
+      (const :tag "Default" :format "%t" nil)
+      (integer :tag "Columns" :value 12 :size 5)
+      (float :tag "Fraction" :value .25 :size 5))
+     ;; The maximum number of slots of right side windows.
+     (choice
+      :tag "Slots"
+      :help-echo "The maximum number of slots in right side windows."
+      :value nil
+      :format "  %[Slots%] %v"
+      (const :tag "Unspecified" :format "%t" nil)
+      (integer :tag "Number" :value 3 :format "%v" :size 5)))
+    ;; Bottom side windows.
+    (list
+     :value (bottom nil nil nil)
+     :format "Bottom: %v\n"
+     (const :format "" bottom)
+     ;; Minimum height of bottom windows.
+     (choice
+      :tag "Minimum height"
+      :help-echo "The minimum height of bottom windows."
+      :value nil
+      :format "%[Minimum%]  %v"
+      (const :tag "Default" :format "%t" nil)
+      (integer :tag "Lines" :value 6 :size 5)
+      (float :tag "Fraction" :value .25 :size 5))
+     ;; Desired height of bottom windows.
+     (choice
+      :tag "Desired height"
+      :help-echo "The desired height of bottom windows."
+      :value nil
+      :format "  %[Desired%]  %v"
+      (const :tag "Default" :format "%t" nil)
+      (integer :tag "Lines" :value 6 :size 5)
+      (float :tag "Fraction" :value .25 :size 5))
+     ;; The maximum number of slots of bottom windows.
+     (choice
+      :tag "Slots"
+      :help-echo "The maximum number of slots in botom windows."
+      :value nil
+      :format "  %[Slots%] %v"
+      (const :tag "Unspecified" :format "%t" nil)
+      (integer :tag "Number" :value 3 :format "%v" :size 5))))
+  :group 'windows
+  :group 'display-buffer)
+
+(defun window-side-check (&optional frame)
+  "Check the window-side parameter of all windows on FRAME.
+FRAME defaults to the selected frame.  If the configuration is
+invalid, reset all window-side parameters to nil.
+
+A valid configuration has to preserve the following invariant:
+
+- If a window has a non-nil window-side parameter, it must have a
+  parent window and the parent window's window-side parameter
+  must be either nil or the same as for window.
+
+- If windows with non-nil window-side parameters exist, there
+  must be at most one window of each side and non-side with a
+  parent whose window-side parameter is nil and there must be no
+  leaf window whose window-side parameter is nil."
+  (let (normal none left top right bottom
+	side parent parent-side code)
+    (when (or (catch 'reset
+		(walk-window-tree
+		 (lambda (window)
+		   (setq side (window-parameter window 'window-side))
+		   (setq parent (window-parent window))
+		   (setq parent-side
+			 (and parent (window-parameter parent 'window-side)))
+		   ;; The following `cond' seems a bit tedious, but I'd
+		   ;; rather stick to using just the stack.
+		   (cond
+		    (parent-side
+		     (when (not (eq parent-side side))
+		       ;; A parent whose window-side is non-nil must
+		       ;; have a child with the same window-side.
+		       (throw 'reset t)))
+		    ;; Now check that there's more than one main window
+		    ;; for any of none, left, top, right and bottom.
+		    ((eq side 'none)
+		     (if none
+			 (throw 'reset t)
+		       (setq none t)))
+		    ((eq side 'left)
+		     (if left
+			 (throw 'reset t)
+		       (setq left t)))
+		    ((eq side 'top)
+		     (if top
+			 (throw 'reset t)
+		       (setq top t)))
+		    ((eq side 'right)
+		     (if right
+			 (throw 'reset t)
+		       (setq right t)))
+		    ((eq side 'bottom)
+		     (if bottom
+			 (throw 'reset t)
+		       (setq bottom t)))
+		    ((window-buffer window)
+		     ;; A leaf window without window-side parameter,
+		     ;; record its existence.
+		     (setq normal t))))
+		 frame t))
+	      (if none
+		  ;; At least one non-side window exists, so there must
+		  ;; be at least one side-window and no normal window.
+		  (or (not (or left top right bottom)) normal)
+		;; No non-side window exists, so there must be no side
+		;; window either.
+		(or left top right bottom)))
+      (walk-window-tree
+       (lambda (window)
+	 (set-window-parameter window 'window-side nil))
+       frame t))))
+
+(defun window-check (&optional frame)
+  "Check atomic and side windows on FRAME.
+FRAME defaults to the selected frame."
+  (window-side-check frame)
+  (window-atom-check frame))
+
+;;; Window sizes.
 (defvar window-size-fixed nil
   "Non-nil in a buffer means windows displaying the buffer are fixed-size.
 If the value is `height', then only the window's height is fixed.
@@ -762,36 +1186,6 @@ windows nor the buffer list."
       (select-window (frame-first-window all-frames) 'norecord))
     (dolist (walk-windows-window (window-list-1 nil minibuf all-frames))
       (funcall proc walk-windows-window))))
-
-(defun walk-window-tree-1 (proc walk-window-tree-window any)
-  "Helper function for `walk-window-tree'."
-  (let (walk-window-tree-buffer)
-    (while walk-window-tree-window
-      (setq walk-window-tree-buffer
-	    (window-buffer walk-window-tree-window))
-      (when (or walk-window-tree-buffer any)
-	(funcall proc walk-window-tree-window))
-      (unless walk-window-tree-buffer
-	(walk-window-tree-1
-	 proc (window-hchild walk-window-tree-window) any)
-	(walk-window-tree-1
-	 proc (window-vchild walk-window-tree-window) any))
-      (setq walk-window-tree-window
-	    (window-right walk-window-tree-window)))))
-
-(defun walk-window-tree (proc &optional frame any)
-  "Run function PROC on each live window of FRAME.
-PROC must be a function with one argument - a window.  FRAME must
-be a live frame and defaults to the selected one.  ANY, if
-non-nil means to run PROC on all live and internal windows of
-FRAME.
-
-This function performs a pre-order, depth-first traversal of the
-window tree.  If PROC changes the window tree, the result is
-unpredictable."
-  (let ((walk-window-tree-frame (normalize-live-frame frame)))
-    (walk-window-tree-1
-     proc (frame-root-window walk-window-tree-frame) any)))
 
 (defun window-in-direction-2 (window posn &optional horizontal)
   "Support function for `window-in-direction'."
@@ -1840,162 +2234,6 @@ TOP RIGHT BOTTOM) as returned by `window-edges'."
   (setq frame (normalize-live-frame frame))
   (window-tree-1 (frame-root-window frame) t))
 
-;;; Composite Windows
-
-;; The basic invariant of the composite window code is:
-
-;; \A window \in Windows:
-;;    \A sibling \in Siblings [window]:
-;;      composite-window-p [window] =>
-;;        /\ composite-window-p [sibling]
-;;        /\ composite-root-window [window] = composite-root-window [sibling]
-
-;; that is, for any window that is part of a composite window, any
-;; sibling of that window is a subwindow of the same composite window.
-
-;; This is usually not called as a "predicate" but it's more consistent
-;; to maintain our defsubsts as predicate.
-(defsubst composite-window-p (window)
-  "Return non-nil if WINDOW is a subwindow of a composite window.
-The return value is the value of the `composite' window parameter
-of WINDOW."
-  (window-parameter window 'composite))
-
-(defsubst composite-root-window-p (window)
-  "Return non-nil if WINDOW is the root of a composite window.
-The return value is the type of that composite window, either
-`compound' or `group'."
-  (or (window-parameter window 'compound)
-      (window-parameter window 'group)))
-
-(defsubst composite-main-window-p (window)
-  "Return t if WINDOW is a main window of a composite window."
-  (eq (cdr-safe (composite-window-p window)) 'main))
-
-(defsubst composite-support-window-p (window)
-  "Return t if WINDOW is a support window of a composite window."
-  (eq (cdr-safe (composite-window-p window)) 'support))
-
-(defun composite-root-window (window)
-  "Return root window of the composite window WINDOW is a part of.
-Return nil if WINDOW is not part of a composite window or the
-path from WINDOW to the root of the composite window is broken."
-  (let ((type (car-safe (window-parameter window 'composite))))
-    (when type
-      (setq window (window-parent window))
-      (catch 'done
-	(while window
-	  (cond
-	   ((window-parameter window type)
-	    (throw 'done window))
-	   ((eq (car-safe (window-parameter window 'composite)) type))
-	   (t
-	    ;; Broken path.
-	    (throw 'done nil)))
-	  (setq window (window-parent window)))))))
-
-(defun composite-major-window (window)
-  "Return major window of composite window WINDOW belongs to.
-The major window is the last main or root window found by
-following the path from WINDOW to the root of the composite
-window WINDOW belongs to.  Each composite window should have one
-and only one major window to make sure that functions on its
-component windows behave \"as intended\".
-
-This function returns a meaningful result if and only if WINDOW
-is a main window."
-  (let ((main window))
-    (setq window (window-parent window))
-    (while (and window (composite-main-window-p window)
-		(not (composite-root-window-p window)))
-      (setq main window)
-      (setq window (window-parent window)))
-    ;; We can't go up any further but maybe the window we're looking at
-    ;; is the root window.
-    (when (composite-root-window-p window)
-      (let ((sibling (window-child window)))
-	;; Make sure that all children of the group root window are main
-	;; windows.
-	(catch 'done
-	  (while sibling
-	    (if (not (composite-main-window-p sibling))
-		(throw 'done nil)
-	      (setq sibling (window-right sibling))))
-	  (setq main window))))
-    main))
-
-(defun composite-main-sibling (window)
-  "Return first \"main\" sibling of WINDOW.
-A main sibling is a main window of a composite window.  Both,
-WINDOW and the main sibling must have the same parent window and
-thus be part of one and the same composite window.  Return nil if
-no such window can be found."
-  (let ((parent (window-parent window))
-	sibling)
-    (when parent
-      (setq sibling (window-child parent))
-      (catch 'done
-	(while sibling
-	  (if (and (not (eq sibling window))
-		   (eq (cdr-safe (window-parameter sibling 'composite)) 'main))
-	      (throw 'done sibling)
-	    (setq sibling (window-right sibling))))))))
-
-(defun composite-lowest-child-role (window)
-  "Return lowest \"non-main\" role among WINDOW's children."
-  (let ((sibling (window-child window))
-	(highest 'main)
-	role)
-    (catch 'done
-      (while sibling
-	(setq role (cdr-safe (window-parameter sibling 'composite)))
-	(cond
-	 ((eq role t)
-	  (setq highest t))
-	 ((eq role 'support)
-	  (throw 'done 'support)))
-      (setq sibling (window-right sibling)))
-      highest)))
-
-(defsubst compound-window-p (window)
-  "Return non-nil if WINDOW is a subwindow of a compound window."
-  (eq (car-safe (window-parameter window 'composite)) 'compound))
-
-(defsubst compound-main-window-p (window)
-  "Return non-nil if WINDOW is a main window of a compound window."
-  (let ((composite (composite-window-p window)))
-    (and (eq (car-safe composite) 'compound)
-	 (eq (cdr-safe composite) 'main))))
-
-(defun compound-root-window (window)
-  "Return topmost root window of compound window WINDOW belongs to."
-  (while (and window (compound-window-p window))
-    (setq window (window-parent window)))
-  (when (window-parameter window 'compound)
-    window))
-
-(defsubst group-window-p (window)
-  "Return non-nil if WINDOW is a subwindow of a window group."
-  (eq (car-safe (window-parameter window 'composite)) 'group))
-
-(defsubst group-window-main-p (window)
-  "Return non-nil if WINDOW is a main window of a window group."
-  (let ((composite (composite-window-p window)))
-    (and (eq (car-safe composite) 'group)
-	 (eq (cdr-safe composite) 'main))))
-
-(defun group-root-window (window)
-  "Return root window of window group WINDOW belongs to.
-If WINDOW is part of a compound window, return the root window of
-the group the root of the compound window belongs too."
-  (while (and window (compound-window-p window))
-    (setq window (window-parent window)))
-  (while (and window (group-window-p window)
-	      (not (composite-root-window-p window)))
-    (setq window (window-parent window)))
-  (when (window-parameter window 'group)
-    window))
-
 ;;; Getting the "other" window.
 ;; FIXME: Handle `ignore-window-parameters' and some other things maybe.
 (defun other-window (count &optional all-frames)
@@ -2007,10 +2245,10 @@ skip -COUNT windows backwards.  COUNT zero means do not skip any
 window, so select the selected window.  In an interactive call,
 COUNT is the numeric prefix argument.  Return nil.
 
-This function does not select a window whose `no-other-window'
-parameter is non-nil.  Also, this function never selects the
-support window of a composite window unless the support window's
-`maybe-other-window' parameter is non-nil.
+Do not select a window whose `no-other-window' window parameter
+is non-nil.  If the `other-window-function' parameter of WINDOW
+is a function call that function with the arguments COUNT and
+ALL-FRAMES.
 
 This function uses `next-window' for finding the window to
 select.  The argument ALL-FRAMES has the same meaning as in
@@ -2018,7 +2256,7 @@ select.  The argument ALL-FRAMES has the same meaning as in
 always effectively nil."
   (interactive "p")
   (let* ((window (selected-window))
-	 (function (window-parameter window 'other-window))
+	 (function (window-parameter window 'other-window-function))
 	 old-window old-count)
     (if (functionp function)
 	(funcall function count all-frames)
@@ -2034,12 +2272,10 @@ always effectively nil."
 	      ;; Keep out of infinite loops.  When COUNT has not changed
 	      ;; since we last looked at `window' we're probably in one.
 	      (throw 'exit nil)))
-	   ((or (and (composite-support-window-p window)
-		     (not (window-parameter window 'maybe-other-window)))
-		(window-parameter window 'no-other-window))
-	    ;; The first non-selectable window `next-window' got us:
-	    ;; Remember it and the current value of COUNT.
+	   ((window-parameter window 'no-other-window)
 	    (unless old-window
+	      ;; The first non-selectable window `next-window' got us:
+	      ;; Remember it and the current value of COUNT.
 	      (setq old-window window)
 	      (setq old-count count)))
 	   (t
@@ -2052,21 +2288,20 @@ always effectively nil."
 	      ;; Keep out of infinite loops.  When COUNT has not changed
 	      ;; since we last looked at `window' we're probably in one.
 	      (throw 'exit nil)))
-	   ((or (and (composite-support-window-p window)
-		     (not (window-parameter window 'maybe-other-window)))
-		(window-parameter window 'no-other-window))
-	    ;; The first non-selectable window `previous-window' got us:
-	    ;; Remember it and the current value of COUNT.
+	   ((window-parameter window 'no-other-window)
 	    (unless old-window
+	      ;; The first non-selectable window `previous-window' got
+	      ;; us: Remember it and the current value of COUNT.
 	      (setq old-window window)
 	      (setq old-count count)))
 	   (t
 	    (setq count (1+ count)))))
+
 	(select-window window)
 	nil))))
 
 ;; This should probably return non-nil when the selected window is part
-;; of a compound window whose root is the frame's root window.
+;; of an atomic window whose root is the frame's root window.
 (defun one-window-p (&optional nomini all-frames)
   "Return non-nil if the selected window is the only window.
 Optional arg NOMINI non-nil means don't count the minibuffer
@@ -2104,10 +2339,14 @@ and no others."
 Return `frame' if deleting WINDOW should delete its frame
 instead."
   (setq window (normalize-any-window window))
-  (let ((frame (window-frame window))
+  (unless ignore-window-parameters
+    ;; Handle atomicity.
+    (when (window-parameter window 'window-atom)
+      (setq window (window-atom-root window))))
+  (let ((parent (window-parent window))
+	(frame (window-frame window))
 	(dedicated (and (window-buffer window) (window-dedicated-p window)))
-	(quit-restore (window-parameter window 'quit-restore))
-	composite type role root)
+	(quit-restore (window-parameter window 'quit-restore)))
     (cond
      ((frame-root-window-p window)
       (when (and (or dedicated
@@ -2119,27 +2358,12 @@ instead."
 	;; is new-frame and the window still displays the same buffer
 	;; and (2) there are other frames left.
 	'frame))
-     ((setq composite (window-parameter window 'composite))
-      (setq type (car-safe composite))
-      (setq role (cdr-safe composite))
-      (setq root (composite-root-window window))
-      (cond
-       ;; When `ignore-window-parameters' or the `delete-window'
-       ;; parameter say or WINDOW is part of a broken composite window,
-       ;; WINDOW is deletable.  We cannot handle the case where WINDOW's
-       ;; `delete-window' parameter is a function (that's impossible).
-       ((or (not (memq ignore-window-parameters '(nil post)))
-	    (eq (window-parameter window 'delete-window) t)
-	    (not root) (not type) (not role))
-	t)
-       ((eq type 'compound)
-	;; A component of a compound window is deletable if and only if
-	;; its root is deletable.
-	(window-deletable-p root))
-       ((eq type 'group)
-	;; In a window group only a main window with a main sibling is
-	;; deletable.
-	(and (eq role 'main) (composite-main-sibling window)))))
+     ((and (not ignore-window-parameters)
+	   (eq (window-parameter window 'window-side) 'none)
+	   (or (not parent)
+	       (not (eq (window-parameter parent 'window-side) 'none))))
+      ;; Can't delete last main window.
+      nil)
      (t))))
 
 (defun window-or-subwindow-p (subwindow window)
@@ -2157,82 +2381,49 @@ instead."
 WINDOW can be an arbitrary window and defaults to the selected
 one.  Return nil.
 
-This function respects the variable `ignore-window-parameters'
-when processing window parameters so any processing of WINDOW's
-parameters may be suppressed.
+If `ignore-window-parameters' is non-nil any parameters of WINDOW
+are ignored.  Otherwise, if the `delete-window-function'
+parameter of WINDOW equals t, delete WINDOW ignoring any other
+window parameters.  If the `delete-window-function' parameter
+specifies a function, call that function with WINDOW as its sole
+argument.  It's the responsibility of that function to adjust the
+parameters of all remaining windows.
 
-If the `delete-window' parameter WINDOW equals t, delete WINDOW
-ignoring any other window parameters.  If the `delete-window'
-parameter specifies a function, call that function with WINDOW as
-its sole argument.  It's the responsibility of that function to
-adjust the parameters of all remaining windows.
-
-Otherwise, if WINDOW is part of a compound window, call this
-function with the root of the compound window as its argument.
-If WINDOW is either the only window on its frame, or a support
-window or the last main window of a window group, signal an error
-and don't delete WINDOW.
-
-This function makes sure that window parameters are reset or
-inherited when WINDOW is part of a combination of two windows."
+Otherwise, if WINDOW is part of an atomic window, call
+`delete-window' with the root of the atomic window as its
+argument.  If WINDOW is the only window on its frame or the last
+non-side window, signal an error."
   (interactive)
   (setq window (normalize-any-window window))
-  (let* ((function (window-parameter window 'delete-window))
-	 ;; COMPOSITE non-nil means WINDOW is part of a composite
-	 ;; window.
-	 (composite (window-parameter window 'composite))
-	 ;; TYPE is the type of the composite window (either `compound'
-	 ;; or `group').  ROLE is the role of WINDOW within the
-	 ;; composite window (either `main', `support', or t).  ROOT is
-	 ;; the root window of the composite window.
-	 (type (car-safe composite))
-	 (role (cdr-safe composite))
-	 (root (and composite (composite-root-window window)))
-	 parent)
+  (let* ((frame (window-frame window))
+	 (function (window-parameter window 'delete-window-function))
+	 (parent (window-parent window))
+	 atom-root)
+    (window-check frame)
     (catch 'done
       ;; Handle window parameters.
       (cond
        ;; Ignore window parameters if `ignore-window-parameters' tells
-       ;; so or the `delete-window' parameter equals t.
-       ((or (not (memq ignore-window-parameters '(nil post)))
-	    (eq function t)))
+       ;; us so or `delete-window-function' equals t.
+       ((or ignore-window-parameters (eq function t)))
        ((functionp function)
-	;; The `delete-window' parameter specifies the function to call
-	;; instead.  If that function is `ignore' nothing is done.  It's
+	;; The `delete-window-function' parameter specifies the function
+	;; to call.  If that function is `ignore' nothing is done.  It's
 	;; up to the function called here to avoid infinite recursion.
 	(throw 'done (funcall function window)))
-       (composite
-	(cond
-	 ((or (not root) (not type) (not role))
-	  ;; Something is broken in this composite window.  Signal a
-	  ;; message but let the deletion pass through (we might signal
-	  ;; an error here but for everday work this is too nasty).
-	  (message "Broken component %s of composite window" window))
-	 ((eq type 'compound)
-	  ;; Deleting a component of a compound window deletes the
-	  ;; entire compound window.
-	  (throw 'done (delete-window root)))
-	 ((eq type 'group)
-	  (cond
-	   ((not (eq role 'main))
-	    ;; WINDOW is _not_ a main window of a window group.  There's
-	    ;; no rule for deleting such a window so we signal an error.
-	    ;; We might swallow this error silently.
-	    (error "Cannot delete non-main window of a window group"))
-	   ((not (composite-main-sibling window))
-	    ;; WINDOW has no main sibling and we can't delete the last
-	    ;; main window of a window group.  We might swallow this
-	    ;; error silently.
-	    (error "Cannot delete last main window of a window group")))))))
-
-      ;; Set PARENT to WINDOW's parent in the window tree.  If there's
-      ;; no such parent signal an error.
-      (unless (setq parent (window-parent window))
-	(error "Attempt to delete minibuffer or sole ordinary window"))
+       ((and (window-parameter window 'window-atom)
+	     (setq atom-root (window-atom-root window))
+	     (not (eq atom-root window)))
+	(throw 'done (delete-window atom-root)))
+       ((and (eq (window-parameter window 'window-side) 'none)
+	     (or (not parent)
+		 (not (eq (window-parameter parent 'window-side) 'none))))
+	(error "Attempt to delete last non-side window"))
+       ((not parent)
+	(error "Attempt to delete minibuffer or sole ordinary window")))
 
       (let* ((horizontal (window-hchild parent))
 	     (size (window-total-size window horizontal))
-	     (frame (window-frame window))
 	     (frame-selected
 	      (window-or-subwindow-p (frame-selected-window frame) window))
 	     ;; LEFT is WINDOW's _left_ sibling - traditionally LEFT
@@ -2244,15 +2435,7 @@ inherited when WINDOW is part of a combination of two windows."
 	     ;; child windows of PARENT.
 	     (sibling
 	      (or (and left (not right) (not (window-left left)) left)
-		  (and right (not left) (not (window-right right)) right)))
-	     ;; Record some of PARENT's parameters (just in case we have
-	     ;; WINDOW replace it in the window tree).
-	     (parent-compound
-	      (and sibling (window-parameter parent 'compound)))
-	     (parent-group
-	      (and sibling (window-parameter parent 'group)))
-	     (parent-composite
-	      (and sibling (window-parameter parent 'composite))))
+		  (and right (not left) (not (window-right right)) right))))
 	(resize-window-reset frame horizontal)
 	(cond
 	 ((or (and (eq window-splits 'nest)
@@ -2289,118 +2472,63 @@ inherited when WINDOW is part of a combination of two windows."
 		   (window-parameter
 		    (frame-selected-window frame) 'no-other-window))
 	  ;; `delete-window-internal' has selected a window that should
-	  ;; not be selected, fix this here (I hate `other-window').
+	  ;; not be selected, fix this here.
 	  (other-window -1 frame))
-	;; Handle composite windows (unless we ignore window
-	;; parameters).
-	(when (and (memq ignore-window-parameters '(nil pre))
-		   sibling (not (eq parent (window-parent sibling)))
-		   (or parent-compound parent-group))
-	  ;; At this moment we know that WINDOW and SIBLING are part of
-	  ;; a composite window and the _sole_ child windows of PARENT.
-	  ;; SIBLING replaces PARENT.
-	  (when parent-group
-	    ;; SIBLING becomes the new root of the window group earlier
-	    ;; headed by PARENT.  If PARENT was the root of a compound
-	    ;; window that compound window gets dissolved.
-	    (set-window-parameter sibling 'group t))
-	  (if parent-composite
-	      ;; `sibling' inherits composite state of `parent'.
-	      (set-window-parameter sibling 'composite parent-composite)
-	    ;; `sibling' is no longer part of a composite window.
-	    (set-window-parameter sibling 'composite nil)))
+
 	(run-window-configuration-change-hook frame)
+	(window-check frame)
 	nil))))
 
 (defun delete-other-windows (&optional window)
   "Make WINDOW fill its frame.
 WINDOW may be any window and defaults to the selected one.
 
-This function respects the variable `ignore-window-parameters'
-when processing window parameters so any processing of WINDOW's
-parameters may be suppressed.
-
-If the `delete-other-windows' parameter of WINDOW equals t,
-delete WINDOW ignoring any other window parameters.  If the
-`delete-other-windows' parameter specifies a function, call that
-function with WINDOW as its sole argument.  It's the
+If the variable `ignore-window-parameters' is non-nil do not
+process any parameters of WINDOW.  Otherwise, if the
+`delete-other-windows-function' parameter of WINDOW equals t,
+delete WINDOW ignoring other window parameters.  If the
+`delete-other-windows-function' parameter specifies a function,
+call that function with WINDOW as its sole argument.  It's the
 responsibility of that function to adjust the parameters of all
 remaining windows.
 
-Otherwise, if WINDOW is part of a compound window, call this
-function with the root of the compound window as its argument.
-If WINDOW is a main window in a window group, make WINDOW the
-only main window in this group.  Any support windows of the group
-are left alone.  If WINDOW is a support window of a window group,
-signal an error and don't delete any windows."
+Otherwise, if WINDOW is part of an atomic window, call this
+function with the root of the atomic window as its argument.  If
+WINDOW is a non-side window, make WINDOW the only non-side window
+on the frame.  Side windows are not deleted. If WINDOW is a side
+window signal an error."
   (interactive)
   (setq window (normalize-any-window window))
-  (let* ((function (window-parameter window 'delete-other-windows))
-	 (composite (window-parameter window 'composite))
-	 ;; COMPOSITE non-nil means WINDOW is part of a composite
-	 ;; window.
-	 (type (car-safe composite))
-	 (role (cdr-safe composite))
-	 (root (and composite (composite-root-window window)))
-	 ;; TYPE is the type of the composite window (either `compound'
-	 ;; or `group').  ROLE is the role of WINDOW within the
-	 ;; composite window (either `main', `support', or t).  ROOT is
-	 ;; the root window of the composite window.
-	 main)
+  (let* ((frame (window-frame window))
+	 (function (window-parameter window 'delete-other-windows-function))
+	 (window-side (window-parameter window 'window-side))
+	 atom-root side-main)
+    (window-check frame)
     (catch 'done
-      ;; Handle composite window parameter.
       (cond
-       ;; Ignore window parameters if `ignore-window-parameters' tells
-       ;; so or the `delete-other-windows' parameter equals t.
-       ((or (not (memq ignore-window-parameters '(nil post)))
-	    (eq function t)))
+       ;; Ignore window parameters if `ignore-window-parameters' is t or
+       ;; `delete-other-windows-function' is t.
+       ((or ignore-window-parameters (eq function t)))
        ((functionp function)
-	;; The `delete-other-windows' parameter specifies the function
-	;; to call instead.  If the function is `ignore' no windows are
+	;; The `delete-other-windows-function' parameter specifies the
+	;; function to call.  If the function is `ignore' no windows are
 	;; deleted.  It's up to the function called to avoid infinite
 	;; recursion.
 	(throw 'done (funcall function window)))
-       (composite
-	(cond
-	 ((or (not root) (not type) (not role))
-	  ;; Something is broken in this composite window.  Signal a
-	  ;; message but let the deletion pass through (we might signal
-	  ;; an error here but for everday work this is too nasty).
-	  (message "Broken composite window"))
-	 ((eq type 'compound)
-	  ;; In a compound window call `delete-other-windows' with the
-	  ;; root window as its argument.
-	  (throw 'done (delete-other-windows root)))
-	 ((eq type 'group)
-	  (if (eq role 'main)
-	      ;; In a window group we are allowed to delete main windows
-	      ;; only.  Moreover we need an ancestor which is the last
-	      ;; main window found when following the path to the group
-	      ;; root window.
-	      (progn
-		(setq main (composite-major-window window))
-		(when (or (not main) (eq main window))
-		  ;; If we don't find an ancestor or the ancestor is
-		  ;; WINDOW itself there's nothing we can delete.
-		  ;; Swallow this quietly.
-		  (throw 'done nil))
-		(when (and (eq main root)
-			   (memq ignore-window-parameters '(nil pre)))
-		  ;; If we delete right up to the root of this group
-		  ;; (that is, there are no support windows around) give
-		  ;; WINDOW the parameters of `root'.
-		  (set-window-parameter window 'group t)
-		  (set-window-parameter
-		   window 'composite (window-parameter root 'composite))))
-	    ;; We might swallow this message.
-	    (error
-	     "Cannot delete other windows for non-main window %s" window))))))
+       ((and (window-parameter window 'window-atom)
+	     (setq atom-root (window-atom-root window))
+	     (not (eq atom-root window)))
+	(throw 'done (delete-other-windows atom-root)))
+       ((eq window-side 'none)
+	;; Set side-main to the major non-side window.
+	(setq side-main (window-with-parameter 'window-side 'none nil t)))
+       ((memq window-side window-sides)
+	(error "Cannot make side window the only window")))
 
-      (delete-other-windows-internal window main)
-      (when (and (memq ignore-window-parameters '(nil pre))
-		 (frame-root-window-p window))
-	;; Clean up for the case where we did something special.
-	(set-window-parameter window 'composite nil))
+      (unless (eq window side-main)
+	(delete-other-windows-internal window side-main)
+	(run-window-configuration-change-hook frame)
+	(window-check frame))
       nil)))
 
 (defun delete-other-windows-vertically (&optional window)
@@ -2800,6 +2928,9 @@ frames left."
 	;; If a window doesn't show BUFFER, unrecord it nevertheless.
 	(unrecord-window-buffer window buffer)))))
 
+;;; (defun delete-buffer-window (&optional buffer-or-name frames)
+;;;   .... WRITE THIS
+
 (defun replace-buffer-in-windows (&optional buffer-or-name)
   "Replace BUFFER-OR-NAME with some other buffer in all windows showing it.
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer
@@ -2919,6 +3050,7 @@ absolute value can be less than `window-min-height' or
 small as one line or two columns.  SIZE defaults to half of
 WINDOW's size.  The variable `window-splits' determines whether
 the size of other windows is affected by this function.
+Interactively, SIZE is the prefix argument.
 
 Optional third argument HORIZONTAL nil (or `below') specifies
 that the new window shall be located below WINDOW.  HORIZONTAL
@@ -2935,82 +3067,41 @@ window provided SIZE is negative) including space reserved for
 fringes and the scrollbar or a divider column.  Any other non-nil
 value for HORIZONTAL is currently handled like t (or `right').
 
-If WINDOW is a component of a compound window \"split\" the root
-of the compound window instead.  The new window does not become a
-member of the compound window.  If WINDOW is a main window of a
-window group, the new window becomes a main window in that window
-group.  If WINDOW is a non-main component of a window group
-signal an error.
+If WINDOW is part of an atomic window, \"split\" the root of the
+atomic window instead.  The new window does not become a member
+of the atomic window.  If WINDOW is a die window, signal an
+error.
 
 If you split a live window, properties of the new window like
 margins and scrollbars are inherited from WINDOW.  If you split
 an internal window, these properties as well as the buffer
-displayed in the new window are inherited from the selected
-window on WINDOW's frame."
+displayed in the new window are inherited from the window
+selected on WINDOW's frame."
   (interactive "i")
   (setq window (normalize-any-window window))
   (let* ((horflag (and horizontal (not (memq horizontal '(below above)))))
-	 (function (window-parameter window 'split-window))
+	 (frame (window-frame window))
+	 (function (window-parameter window 'split-window-function))
 	 ;; Rebind this locally since in some cases we do have to nest.
 	 (window-splits window-splits)
-	 ;; COMPOSITE non-nil means WINDOW is part of a composite
-	 ;; window.  TYPE is the type of the composite window (either
-	 ;; `compound' or `group').  ROLE is the role of WINDOW within
-	 ;; the composite window (either `main', `support', or t).  ROOT
-	 ;; is the root window of the composite window.
-	 (composite (window-parameter window 'composite))
-	 (type (car-safe composite))
-	 (role (cdr-safe composite))
-	 (root (and composite (composite-root-window window)))
-	 old-composite new-root new-main)
+	 atom-root)
+    (window-check frame)
     (catch 'done
       (cond
-       ;; Ignore window parameters if `ignore-window-parameters' tells
-       ;; so or the `split-window' window parameter equals t.
-       ((or (not (memq ignore-window-parameters '(nil post)))
-	    (eq function t)))
+       ;; Ignore window parameters if `ignore-window-parameters' is t or
+       ;; `split-window-function' is t.
+       ((or ignore-window-parameters (eq function t)))
        ((functionp function)
-	;; The `split-window' parameter specifies the function to call
-	;; instead.  If this is `ignore', WINDOW won't be split.
+	;; The `split-window-function' parameter specifies the function
+	;; to call instead.  If this is `ignore', WINDOW won't be split.
 	(throw 'done (funcall function window size horizontal)))
-       ((and (not composite) (window-parameter window 'group)
-	     (window-live-p window))
-	;; WINDOW is a live group root window and not part of a
-	;; composite window so we need a new group root window.  Note
-	;; that if WINDOW is also the root of a compound window, that
-	;; part remains unaffected by what we do here - WINDOW remains
-	;; root of the compound window which is now a component of a
-	;; window group.
-	(setq window-splits 'nest)
-	(setq new-root t))
-       (composite
-	(cond
-	 ((or (not root) (not type) (not role))
-	  ;; Something is broken in this composite window.  Signal a
-	  ;; message but let the split pass through (we might signal
-	  ;; an error here but for everday work this is too nasty).
-	  (message "Broken component %s of composite window" window))
-	 ((eq type 'compound)
-	  ;; In a compound window split the root window.
-	  (throw 'done (split-window root size horizontal)))
-	 ((eq type 'group)
-	  (cond
-	   ((not (eq role 'main))
-	    ;; In a window group we are only allowed to split main
-	    ;; windows.  We might swallow this error silently.
-	    (error "Cannot split non-main window %s in a window group" window))
-	   ((or (not (window-parent window)) ; Should have been handled above.
-		(not (eq (composite-lowest-child-role (window-parent window))
-			 'main)))
-	    (setq new-main t)
-	    ;; We must nest since otherwise we might end up with a
-	    ;; window group having two dominating main windows.
-	    (setq window-splits 'nest)))))))
+       ;; For an atomic window split the entire atomic window instead.
+       ((and (window-parameter window 'window-atom)
+	     (setq atom-root (window-atom-root window))
+	     (not (eq atom-root window)))
+	(throw 'done (split-window atom-root size horizontal))))
 
-      ;; The following line is hopefully not needed ...
-      ;; (setq window-splits (if (eq window root) 'nest window-splits))
-      (let* ((frame (window-frame window))
-	     (parent (window-parent window))
+      (let* ((parent (window-parent window))
 	     ;; Size calculations.
 	     (parent-size
 	      (when parent (window-total-size parent horflag)))
@@ -3056,7 +3147,17 @@ window on WINDOW's frame."
 	       (t
 		;; SIZE negative specifies the size of the new window.
 		(- size))))
-	     (root (window-parameter window 'root)))
+	     (root (window-parameter window 'root))
+	     (window-side (window-parameter window 'window-side)))
+	;; Check window types and handle `window-splits' with sides.
+	(when (and window-side
+		   (or (not parent)
+		       (not (window-parameter parent 'window-side))))
+	  ;; A side root window.  Make sure a new parent gets created.
+	  ;; Reset `resize' to nil too.
+	  (setq window-splits 'nest)
+	  (setq resize nil))
+
 	;; Check the sizes.
 	(cond
 	 ((not size)
@@ -3093,7 +3194,7 @@ window on WINDOW's frame."
 		 (if horflag window-safe-min-width window-safe-min-height)))
 	  (error "Cannot resize %s" window)))
 
-	(resize-window-reset (window-frame window) horflag)
+	(resize-window-reset frame horflag)
 	(cond
 	 (resize
 	  ;; Try to get space from OLD's siblings.  We could go "up" and
@@ -3128,32 +3229,14 @@ window on WINDOW's frame."
 
 	(let* ((new (split-window-internal window new-size horizontal))
 	       (new-parent (window-parent new)))
-	  (when (memq ignore-window-parameters '(nil pre))
-	    (cond
-	     ((and new-root (not (eq parent new-parent)))
-	      ;; `new-parent' becomes the new group root window
-	      ;; inheriting WINDOW's composite status.  WINDOW and `new'
-	      ;; become main windows of that group.
-	      (set-window-parameter new-parent 'group t)
-	      (set-window-parameter new-parent 'composite composite)
-	      (set-window-parameter window 'group nil)
-	      (set-window-parameter window 'composite (cons 'group 'main))
-	      (set-window-parameter new 'composite (cons 'group 'main)))
-	     ((and new-main (not (eq parent new-parent)))
-	      ;; `new-parent' becomes the new dominating main window of
-	      ;; WINDOW's group.
-	      (set-window-parameter new-parent 'composite (cons 'group 'main))
-	      (set-window-parameter window 'composite (cons 'group 'main))
-	      (set-window-parameter new 'composite (cons 'group 'main)))
-	     (composite
-	      ;; `new' inherits parameters from WINDOW.
-	      (set-window-parameter new 'composite composite)
-	      (when (not (eq parent new-parent))
-		;; `new-parent' "inherits" the parameters as well
-		(set-window-parameter new-parent 'composite composite)))))
-	  ;; We have to check once more how often these hooks are run.
+	  (when window-side
+	    ;; Inherit window-side parameters, if necessary.
+	    (unless (eq parent new-parent)
+	      (set-window-parameter new-parent 'window-side window-side))
+	    (set-window-parameter new 'window-side window-side))
+
 	  (run-window-configuration-change-hook frame)
-	  ;; Return the new window.
+	  (window-check frame)
 	  new)))))
 
 ;; I think this should be the default; I think people will prefer it--rms.
@@ -3248,137 +3331,6 @@ The selected window remains selected.  Return the new window."
       (when quit-restore
 	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
-
-;;; Composite windows.
-(defun make-compound-window (&optional window main size horizontal)
-  "Make WINDOW the main window of a new compound window.
-This function creates a new internal window with WINDOW and a new
-leaf window as its only children.  WINDOW must be a leaf window
-and defaults to the selected window.
-
-Optional argument MAIN non-nil makes the new leaf window a main
-window.  MAIN nil or not provided means the new leaf window
-becomes a support window.  WINDOW itself becomes a main window.
-
-Optional arguments SIZE and HORIZONTAL are as for `split-window'.
-
-Return the new leaf window."
-  (setq window (normalize-any-window window))
-  (unless (or (window-live-p window) (composite-root-window-p window))
-    (error "Window %s must be live or a composite root window" window))
-  (let* ((composite (window-parameter window 'composite))
-	 ;; FORCE and NEST.
-	 (ignore-window-parameters t)
-	 (window-splits 'nest)
-	 (new (split-window window size horizontal))
-	 (new-parent (window-parent new)))
-    (set-window-parameter new-parent 'compound t)
-    (when composite (set-window-parameter new-parent 'composite composite))
-    (set-window-parameter window 'composite (cons 'compound 'main))
-    (set-window-parameter
-     new 'composite (cons 'compound (if main 'main 'support)))
-    new))
-
-(defun make-window-group (&optional window)
-  "Make WINDOW main and root window of a new window group.
-WINDOW must be a live window and defaults to the selected one.
-Return WINDOW."
-  (setq window (normalize-live-window window))
-  (set-window-parameter window 'composite (cons 'group 'main)))
-
-(defun make-support-window (window support &optional size horizontal)
-  "Add support window of type SUPPORT to WINDOW."
-  (let* ((compound (window-parameter window 'compound))
-	 (group (window-parameter window 'group))
-	 (composite (window-parameter window 'composite))
-	 (type (car-safe composite))
-	 (role (cdr-safe composite))
-	 ;; `type' is the type of the composite window (either
-	 ;; `compound' or `group').  `role' is the role of WINDOW within
-	 ;; the composite window (either `main', `support', or t).
-	 (root (when composite (composite-root-window window)))
-	 (parent (window-parent window))
-	 (ignore-window-parameters t)
-	 (window-splits 'nest)
-	 new new-parent)
-    (cond
-     ((not (memq support '(compound group)))
-      (error "Invalid support argument %s" support))
-     ((and (eq support 'compound) (not compound) (not (eq type 'compound)))
-      (error "Window %s is not a component of a compound window" window))
-     ((and (eq support 'group) (not group) (not (eq type 'group)))
-      (error "Window %s is not a component of a window group" window))
-     ((and (eq type 'main) (not (eq window (composite-major-window window))))
-      (error "Can't embed support window in main window")))
-    (setq new (split-window window size horizontal))
-    (unless (eq parent (window-parent window))
-      (setq new-parent (window-parent window)))
-    (cond
-     ;; This conditional looks incredibly tedious but let's keep the
-     ;; distinct cases self-contained to avoid further confusion.
-     ((and compound (eq support 'compound))
-      (when new-parent
-	;; `new-parent' inherits the compound status of `window'
-	(set-window-parameter new-parent 'compound t)
-	(set-window-parameter window 'compound nil)
-	(when composite
-	  ;; `new-parent' inherits the composite status of `window'.
-	  (set-window-parameter new-parent 'composite composite)
-	  (set-window-parameter
-	   ;; Give `window' the highest role of its children.
-	   window 'composite (cons 'compound
-				   (composite-lowest-child-role window)))))
-      (when group
-	;; `new-parent' does not inherit the group status of `window'
-	;; (but make sure `window' retains it).
-	(set-window-parameter window 'group t))
-      (set-window-parameter new 'composite (cons 'compound 'support)))
-     ((and group (eq support 'group))
-      (when new-parent
-	;; `new-parent' inherits the group status of `window'
-	(set-window-parameter new-parent 'group t)
-	(set-window-parameter window 'group nil)
-	(when composite
-	  ;; `new-parent' inherits the composite status of `window'.
-	  (set-window-parameter new-parent 'composite composite)
-	  (set-window-parameter
-	   ;; Give `window' the highest role of its children.
-	   window 'composite (cons 'group
-				   (composite-lowest-child-role window)))))
-      (when compound
-	;; `new-parent' does not inherit the compound status of `window'
-	;; (but make sure `window' retains it).
-	(set-window-parameter window 'compound t))
-      (set-window-parameter new 'composite (cons 'group 'support)))
-     ((and (eq type 'compound) (eq support 'compound))
-      (cond
-       (new-parent
-	(let ((role (if (eq role 'support) 'support t)))
-	  (set-window-parameter new-parent 'composite (cons 'compound role))))
-       ((not (compound-window-p parent))
-	(let ((role (if (composite-support-window-p parent) 'support t)))
-	  (set-window-parameter parent 'composite (cons 'compound role)))))
-      (when group
-	;; `new-parent' does not inherit the group status of `window'
-	;; (but make sure `window' retains it).
-	(set-window-parameter window 'group t))
-      (set-window-parameter window 'composite composite)
-      (set-window-parameter new 'composite (cons 'compound 'support)))
-     ((and (eq type 'group) (eq support 'group))
-      (cond
-       (new-parent
-	(let ((role (if (eq role 'support) 'support t)))
-	  (set-window-parameter new-parent 'composite (cons 'group role))))
-       ((not (compound-window-p parent))
-	(let ((role (if (composite-support-window-p parent) 'support t)))
-	  (set-window-parameter parent 'composite (cons 'group role)))))
-      (when compound
-	;; `new-parent' does not inherit the compound status of `window'
-	;; (but make sure `window' retains it).
-	(set-window-parameter window 'compound t))
-      (set-window-parameter window 'composite composite)
-      (set-window-parameter new 'composite (cons 'group 'support))))
-    new))
 
 ;;; Balancing windows.
 (defun balance-windows (&optional window-or-frame)
@@ -3608,128 +3560,212 @@ specific buffers."
   :version "24.1"
   :group 'windows)
 
-(defcustom display-buffer-names nil
-  "List associating buffer names with buffer display specifiers.
-The car of each element of this list specifies a set of buffer
-names.  `display-buffer' displays a buffer whose name is a member
-of that set according to the display specifiers in the element's
-cdr \(note that elements are true lists).
+(defconst display-buffer-method-specifiers '(reuse-window pop-up-window pop-up-frame)
+  "Buffer display method specifiers.")
 
-Valid display specifiers are symbols, cons cells, or lists.
-Buffer display specifiers that are symbols specify the location
-for showing the buffer.  Three such specifiers are predefined:
+(defconst display-buffer-default-specifiers
+  '((reuse-window nil same visible)
+    (pop-up-window (largest . nil) (lru . nil))
+    (pop-up-frame)
+    (pop-up-frame-alist
+     (height . 24) (width . 80) (unsplittable . t))
+    (reuse-window nil other visible)
+    (reuse-window-even-sizes . t))
+  "Buffer display default specifiers.
+The value specified here is used when no other specifiers have
+been specified by the user or the application.  Consult the
+documentation of `display-buffer-alist' for a description of
+buffer display specifiers.")
 
-- `same-window' to preferably use the selected window,
+(defconst display-buffer-macro-specifiers
+  '((same-window
+     ;; Use the same window.
+     (reuse-window same nil nil))
+    (same-frame
+     ;; Avoid other frames.
+     (reuse-window nil same nil)
+     (pop-up-window (largest . nil) (lru . nil))
+     (reuse-window nil other nil))
+    (other-window
+     ;; Avoid selected window.
+     (reuse-window other same visible)
+     (pop-up-window (largest . nil) (lru . nil))
+     (pop-up-frame)
+     (reuse-window other other visible))
+    (same-frame-other-window
+     ;; Avoid other frames and selected window.
+     (reuse-window other same nil)
+     (pop-up-window (largest . nil) (lru . nil))
+     (reuse-window other other nil))
+    (other-visible-frame
+     ;; Avoid selected frame.
+     (reuse-window nil same other)
+     (pop-up-frame)
+     (reuse-window nil other other))
+    (default
+      ;; The default specifiers.
+      display-buffer-default-specifiers))
+  "Buffer display macro specifiers.")
 
-- `same-frame' to show the buffer on the selected frame, or
+(defcustom display-buffer-alist
+  '((((regexp . ".*"))
+     reuse-window (reuse-window nil same visible)
+     pop-up-window
+     (pop-up-window (largest . nil) (lru . nil))
+     (pop-up-window-min-height . 24)
+     (pop-up-window-min-width . 60)
+     pop-up-frame
+     (pop-up-frame)
+     (pop-up-frame-alist
+      (height . 24) (width . 80) (unsplittable . t))
+     reuse-window (reuse-window nil other visible)
+     (reuse-window-even-sizes . t)))
+  "List associating buffer identifiers with display specifiers.
+The car of each element of this list is built from a set of cons
+cells called buffer identifiers.  `display-buffer' shows a buffer
+according to the display specifiers in the element's cdr
+\(elements are true lists) if at least one of the identifiers
+matches the first or third argument of `display-buffer'.  Such a
+match occurs in one of the following three cases:
 
-- `other-frame' to show the buffer on another frame.
+- The car of the buffer identifier is the symbol `name' and its
+  cdr is a string equalling the name of the buffer specified by
+  the first \(BUFFER-OR-NAME) argument of `display-buffer'.
 
-Any other symbol with a function definition means to call that
-function to display the buffer.  The function is called with two
-arguments - the buffer to display and a list of specifiers - and
-is supposed to display the buffer and return the window used for
-that purpose.  The function is also responsible for giving the
-variable `display-buffer-window' and the
-`quit-restore' parameter of the window used a meaningful value.
+- The car is the symbol `regexp' and the cdr is a regular
+  expression matching the name of the buffer specified by the
+  first \(BUFFER-OR-NAME) argument of `display-buffer'.
 
-The remaining display specifiers are cons cells \(occasionally
-also true lists) whose components are listed below.  The
-specifiers listed below are useful if the location specifier
-equals either `same-frame' or `other-frame':
+- The car is the symbol `label' and the cdr is a symbol equalling
+  the third \(LABEL) argument of `display-buffer'.
 
-- `not-this-window' with a non-nil cdr can be used to specify
-  that the selected window must not be used for displaying the
-  buffer regardless of whether it shows that buffer or any other
-  buffer.
+Display specifiers are either symbols, cons cells, or lists.
+Three specifiers indicate the basic method for displaying the
+buffer: `reuse-window', `pop-up-window', `pop-up-frame' and
+`use-side-window'.
 
-- `reuse-buffer-window' is used to specify whether a window
-  currently showing the buffer may be reused and where to look
-  for such a window.  The possible values for the cdr are
+A list whose car is the symbol `reuse-window' indicates that an
+existing window shall be reused for displaying the buffer.  The
+second element of this list specifies the window to use and can
+be one of the following symbols:
 
-  - `none', to never reuse a window showing the buffer,
+  nil stands for any window.
 
-  - nil, a reused window must be on the selected frame,
+  `same' stands for the selected window.
 
-  - `visible', any such window must be on a visible frame,
+  `other' stands for any but the selected window.
 
-  - 0 \(the number zero), meaning that any such window must be on
-    a visible or iconified frame, and
+The third element specifies whether the buffer shown in a window
+that shall be reused must be the same buffer that shall be
+displayed or another buffer and can be one of the following:
 
-  - t, the window may be on an arbitrary frame, including
-    invisible ones.
+  nil means to not care about the window's buffer.
 
-- `reuse-other-window' is used to specify whether a window
-  currently _not_ showing the buffer may be reused and where to
-  look for such a window.  The possible values for the cdr are
-  the same as for the `reuse-buffer-window' specifier.
+  `same' means the window must show the buffer already.
 
-- `even-window-sizes' with a non-nil cdr means even out the sizes
-  of a reused window and the selected window provided they (1)
-  appear adjacent to each other and (2) the selected window is
-  larger than the window chosen.
+  `other' means the window must not show the buffer yet.
 
-The following display specifiers are useful if the location
-specifier equals 'same-frame:
+The fourth element specifies the set of frames to search for a
+suitable window and can be one of the following:
 
-- `new-window' specifies whether a new window shall be made on
-  the selected frame.  For convenience, this specifier is
-  represented by a true list.  The cdr of the specifier is built
-  from cons cells representing window/side pairings.  The car of
-  each cell identifies the window that shall be split.  Possible
-  values are `largest', `lru', `selected', `root' and `first' to
-  split the largest, least recently used, selected, root or first
-  window of the selected frame.
+  nil to reuse a window on the selected frame.
 
-  The cdr specifies on which side of the window to split the new
-  window shall appear and can be one of `below', `right',
-  `above', or `left' with the obvious meanings.  If the cdr is
-  nil, the window is split in a fashion suitable for its current
-  dimensions.  If the cdr specifies a function, that function is
-  called with two arguments - the window to split and a list of
-  display specifiers.  The function is supposed to split that
-  window and return the new window.
+  `visible' to search visible frames only.
 
-  `display-buffer' scans these pairings until it can either
-  produce a suitable window or fails.  The default value for
-  `display-buffer-regexps' contains (split-largest . nil) and
-  (split-lru . nil) in order to make `display-buffer' try
-  splitting the largest window first and, if that fails, the
-  least recently used one.
+  `other' stands for any visible frame but the selected one.
 
-- The symbol `split-unsplittable-frame' with a non-nil cdr allows
-  to make a new window on an unsplittable frame.  This specifier
-  should be used in special cases only since frames are usually
-  made unsplittable in order to prevent `display-buffer' from
-  splitting them.
+  0 \(the number zero) to search visible and iconified frames.
 
-- `min-height' specifies the minimum height of a new window used
-  for displaying the buffer.  An integer number specifies the
-  minimum number of lines of the window.  A floating point number
-  gives the minimum fraction of the window height with respect to
-  the frame's root window.  A new window will be made if and only
-  if it can be made at least as high as specified by the number.
+  t to search arbitrary frames including invisible ones.
 
-- `min-width' specifies the minimum width of a new window used
-  for displaying the buffer.  An integer number specifies the
-  minimum number of columns of the window.  A floating point
-  number gives the minimum fraction of the window width with
-  respect to the frame's root window.  A new window will be made
-  if and only if it can be made at least as wide as specified by
-  the number.
+If more than one window fits the constraints imposed by these
+elements, the least recently used candidate is chosen.  A side
+window is never reused unless it already shows the buffer.
 
-- `adjust-height' with the following interpretations for the cdr:
+The following two specifiers are useful when the method equals
+`reuse-window':
 
-  - nil means do not adjust the height of the new window.
+- A cons cell whose car is the symbol `reuse-window-even-sizes'
+  and whose cdr is non-nil means to even out the sizes of a
+  reused window and the selected window provided they (1) appear
+  adjacent to each other and (2) the selected window is larger
+  than the window chosen.  If the cdr is nil, this means that the
+  window sizes are left alone.
 
-  - A number specifying the desided height of the new window.  An
-    integer number specifies the minimum number of lines of the
-    window.  A floating point number gives the minimum fraction
-    of the window height with respect to the frame's root window.
+- A cons cell whose car is the symbol `reuse-window-dedicated'
+  and whose cdr is non-nil means that a window can be reused even
+  if it's weakly dedicated to its buffer.  If the cdr is t, a
+  strongly dedicated window can be reused to show the buffer.
+  Any other non-nil value means only weakly dedicated windows can
+  be reused.  If the cdr is nil, dedicated windows are not
+  reused.
 
-  - `even-window-heights' means to even the height of the new
-    window with the height of the selected window provided these
-    windows appear above each other.
+  This specifier should be used in emergency cases only since
+  windows are usually made dedicated in order to prevent
+  `display-buffer' from reusing them.
+
+A list whose car is the symbol `pop-up-window' and whose cdr is
+built from cons cells representing window/side tuples indicates
+that a new window shall be made for displaying the buffer on the
+selected frame.
+
+Window/side tuples are cons cells.  The car of such a tuple
+identifies the window that shall be split.  Possible values are
+`largest', `lru', `selected', and `root' to split the largest,
+least recently used, selected or root window of the selected
+frame.
+
+If the frame has side windows, these values do allow to split
+only the selected frame's main window or one of its subwindows.
+Setting the car to one of `left', `top', `right' and `bottom'
+splits the corresponding side window, provided such a window
+exists.
+
+The cdr of each pair specifies on which side of the window to
+split the new window shall appear and can be one of `below',
+`right', `above', or `left' with the obvious meanings.  If the
+cdr is nil, the window is split in a fashion suitable for its
+current dimensions.  If the cdr specifies a function, that
+function is called with two arguments - the window to split and a
+list of display specifiers.  The function is supposed to split
+that window and return the new window.
+
+`display-buffer' scans these tuples until it can either produce a
+suitable window or fails.  The default value for
+`display-buffer-alist' contains the tuples \(largest . nil) and
+\(lru . nil) in order to split the largest window first and, if
+that fails, the least recently used one.
+
+The following specifiers are useful if the method specifier is
+`pop-up-window'.
+
+- A cons cell whose car is the symbol `pop-up-window-min-height'
+  specifiies the minimum height of the new window.  If the cdr is
+  an integer number, it specifies the minimum number of lines of
+  the window.  A floating point number gives the minimum fraction
+  of the window height with respect to the height of the frame's
+  root window.  A new window is created only if it can be made at
+  least as high as specified by the number.  If the cdr is nil,
+  this means to use the value of `window-min-height'.
+
+- A cons cell whose car is the symbol `pop-up-window-min-width'
+  specifies the minimum width of the new window.  If the cdr is
+  an integer number, it specifies the minimum number of columns
+  of the window.  A floating point number gives the minimum
+  fraction of the window width with respect to the width of the
+  frame's root window.  A new window is created only if it can be
+  made at least as wide as specified by the number.  If the cdr
+  is nil, this means to use the value of `window-min-width'.
+
+- A cons cell whose car is `pop-up-window-set-height' with
+  the following interpretations for the cdr:
+
+  - nil means leave the height of the new window alone.
+
+  - A number specifies the desired height of the new window.  An
+    integer number specifies the number of lines of the window.
+    A floating point number gives the fraction of the window
+    height with respect to the height of the frame's root window.
 
   - If the cdr specifies a function, that function is called with
     one argument - the new window.  The function is supposed to
@@ -3737,318 +3773,368 @@ specifier equals 'same-frame:
     Suitable functions are `shrink-window-if-larger-than-buffer'
     and `fit-window-to-buffer'.
 
-- `adjust-width' with the following interpretations for the cdr:
+- A cons cell whose car equals `pop-up-window-set-width' with
+  the following interpretations for the cdr:
 
-  - nil means do not adjust the width of the new window.
+  - nil means leave the width of the new window alone.
 
-  - A number specifying the desided width of the new window.  An
-    integer number specifies the minimum number of columns of the
-    window.  A floating point number gives the minimum fraction
-    of the window width with respect to the frame's root window.
-
-  - `even-window-widths' means to even the wdith of the new
-    window with the width of the selected window provided these
-    windows appear besides ach other.
+  - A number specifies the desired width of the new window.  An
+    integer number specifies the number of columns of the window.
+    A floating point number gives the fraction of the window
+    width with respect to the width of the frame's root window.
 
   - If the cdr specifies a function, that function is called with
     one argument - the new window.  The function is supposed to
-    adjust the width of the window, its return value is ignored.
+    adjust the width of the window; its return value is ignored.
 
-  Observe that specifying `adjust-height' or `adjust-width' may
-  override restrictions given by the `min-height' or `min-width'
-  specifiers.
+  Observe that specifying `pop-up-window-height' or
+  `pop-up-window-height' may override restrictions given by the
+  `pop-up-min-height' or `pop-up-min-width' specifiers.
 
-The specifiers listed next are useful if the location specifier
-equals 'other-frame:
+- A cons cell whose car is `pop-up-window-split-unsplittable' and
+  whose cdr is non-nil allows to make a new window on an
+  unsplittable frame.  If the cdr is nil, unsplittable frames are
+  not split.  This specifier should be used in special cases only
+  since frames are usually made unsplittable in order to prevent
+  `display-buffer' from splitting them.
 
-- `not-this-frame' with a non-nil cdr means that the selected
-  frame shall not be used for displaying the buffer.
+A list whose car is the symbol `pop-up-frame' specifies that a
+new frame shall be made for displaying the buffer.  The second
+element, if non-nil, allows popping up a new frame on graphic
+displays only.
 
-- `graphic-only' with a non-nil cdr means that a new frame shall
-  be made on graphic displays only.
+The following specifiers are useful if the method specifier is
+`pop-up-frame'.
 
-- `popup-frame-function' together with a valid function as cdr
-  specifies the function for creating a new frame.  The default
-  function is `make-frame'.  The function is called with the
+- A list whose car is the symbol `popup-frame-function' together
+  with a valid function as cdr specifies the function for
+  creating a new frame.  If the cdr is nil, the default function
+  `make-frame' is called.  The function is called with the
   parameters and values provided by the specifier described next.
 
-- `popup-frame-alist' followed by an arbitrary number of frame
-  parameter/value pairs, each given as a cons cell, specifies the
-  parameters passed to the popup frame function.  For
-  convenience, this specifier is not a cons cell but a list whose
-  first element is the symbol `popup-frame-alist' and whose
-  remaining elements are pairs of parameters and values.
+- A list whose car is the symbol `popup-frame-alist' followed by
+  an arbitrary number of frame parameter/value tuples, each given
+  as a cons cell, specifies the parameters passed to the popup
+  frame function.
 
-One specifier is useful with any of the 'same-window,
-'same-frame, 'other-frame location specifiers: `dedicated' with a
-non-nil cdr can be used to dedicate a new window to the buffer.
-The cdr is either
+A list of three elements whose car is the symbol
+`use-side-window' specifies that the buffer shall be displayed in
+a side window of the selected frame.  The second element denotes
+the side of the frame where the window appears or shall be made.
+The third element denotes the slot used by the window.  If a side
+window with the specified slot exists already, that window is
+reused.  If no such window exists it is created.
 
-- nil, to not dedicate the window to the buffer,
+The following specifiers are useful in connection with the
+`use-side-window' method specifier: `reuse-window-dedicated',
+`pop-up-window-min-height', `pop-up-window-min-width',
+`pop-up-window-set-height' and `pop-up-window-set-width'.
 
-- `weak', the window shall be weakly dedicated to its buffer, or
+Instead of supplying basic method specifiers, it's sometimes more
+convenient to use macro specifiers.  They provide some commonly
+used display methods but do not support the fine control provided
+by the basic method specifiers.  Macro specifiers are symbols.
+The following macro specifiers are provided:
 
-- t, to strongly dedicate the window to the buffer.
+  `same-window' to display the buffer in the selected window.
+
+  `same-frame' to display the buffer on the selected frame.
+
+  `other-window' to display the buffer in any window but the
+   selected one.
+
+  `same-frame-other-window' as `other-window' but stay on the
+  selected frame.
+
+  `other-visible-frame' to display the buffer on another visible
+  frame.
+
+  `default' to use the default value of `display-buffer-alist'.
+
+One specifier is useful with any method specifier: A list whose
+car is the symbol `dedicate' and whose cdr is non-nil will
+dedicate the window to its buffer.  The following values are
+supported:
+
+- nil to not dedicate the window to the buffer.
+
+- `weak' to weakly dedicate the window to the buffer.
+
+- t to strongly dedicate the window to the buffer.
 
 Usually, applications are free to override the specifiers of
-`display-buffer-names' by passing its own specifiers as second
-argument of `display-buffer'.  For every `display-buffer-names'
+`display-buffer-alist' by passing their own specifiers as second
+argument of `display-buffer'.  For every `display-buffer-alist'
 entry you can, however, add a cons cell whose car is the symbol
 `override' and whose cdr is non-nil, to explicitly override any
 value supplied by the application.
 
 Overriding specifiers supplied by the calling application is, in
 general, not advisable.  It permits, for example, to change the
-semantics of a function like `switch-to-buffer-other-window' by
+semantics of a function like `display-buffer-other-window' by
 using the location specifiers `same-window' or `other-frame'."
   :risky t
   :type
   '(repeat
     :offset 9
+    ;; Associations of buffer identifiers and display specifiers.
     (list
-     :tag "Association"
+     :format "%v"
+     ;; Buffer identifiers.
      (repeat
-      :tag "Buffer names"
-      (string :format "%v\n" :size 24))
+      :tag "Buffer identifiers"
+      (choice
+       :tag "Identifier"
+       :format "%[%t%] %v" :size 15
+       (cons
+	:tag "Name"
+	:format "%v"
+	:help-echo "A buffer name."
+	(const :format "" name)
+	(string :format "Name: %v\n" :size 32))
+       (cons
+	:tag "Regexp"
+	:format "%v"
+	:help-echo "A regular expression matching buffer names."
+	(const :format "" regexp)
+	(string :format "Regexp: %v\n" :size 32))
+       (cons
+	:tag "Label"
+	:format "%v"
+	:help-echo "A symbol equalling the buffer display label."
+	(const :format "" symbol)
+	(symbol :format "Label: %v\n" :size 32))))
+
+     ;; Display specifiers.
      (repeat
       :offset 9
       :tag "Display specifiers"
       :inline t
       (list
-       :tag "Specifiers"
        :inline t
        :format "%v"
        (choice
-	:tag "Locations"
+	:tag "Method"
+	:value (reuse-window
+		(reuse-window nil same nil)
+		(reuse-window-even-sizes . t))
 	:inline t
-	:help-echo "Choose a location for displaying the buffer(s)."
-	:value (same-frame
-		(reuse-buffer-window . nil)
-		(even-window-sizes . t)
-		(new-window (largest . nil) (lru . nil))
-		(min-height . 24) (min-width . 60))
-	:format "%[Location%] %v" :size 15
+	:help-echo "Method for displaying the buffer."
+	:format "%[Method%] %v" :size 15
 
-	;; Same window.
+	;; Reuse window specifiers.
 	(list
-	 :tag "Same window"
-	 :format "%t%v"
+	 :tag "Reuse window"
+	 :value (reuse-window
+		 (reuse-window nil same nil)
+		 (reuse-window-even-sizes . t))
+	 :format "%t\n%v"
 	 :inline t
-	 (const :format "\n" same-window)
+	 ;; For customization purposes only.
+	 (const :format "" reuse-window)
 	 (set
-	  :format "%v" :inline t
-	  (cons
-	   :format "%v"
-	   (const :format "" dedicated)
+	  :format "%v"
+	  :inline t
+	  ;; The window to reuse.
+	  (list
+	   :format "%v\n"
+	   (const :format "" reuse-window)
+	   ;; The window type.
 	   (choice
-	    :tag "Dedicate window to buffer" :value nil
-	    :help-echo "Mark window as dedicated to its buffer."
-	    :format "%[%t%] %v\n" :size 15
-	    (const :tag "Off" :format "%t" nil)
-	    (const :tag "Weak" :format "%t" weak)
-	    (const :tag "Strong" :format "%t" t)))))
-
-	;; Same frame.
-	(list
-	 :tag "Same frame"
-	 :value (same-frame
-		 (reuse-buffer-window . nil)
-		 (even-window-sizes . t)
-		 (new-window (largest . nil) (lru . nil))
-		 (min-height . 24) (min-width . 60))
-	 :format "%t%v"
-	 :inline t
-	 (const :format "\n" same-frame)
-	 (set
-	  :format "%v" :inline t
-	  (cons
-	   :tag "Avoid selected window"
-	   :format "%v%t\n"
-	   (const :format "" not-this-window)
-	   (const :format "" t))
-	  (cons
-	   :format "%v"
-	   (const
-	    :format "" reuse-buffer-window)
+	    :tag "Window"
+	    :help-echo "Window to reuse."
+	    :value nil
+	    :format "%[Window%] %v" :size 15
+	    (const :tag "Any" :format "%t" nil)
+	    (const :tag "Selected only" :format "%t" same)
+	    (const :tag "Any but selected" :format "%t" other))
+	   ;; The window's buffer.
 	   (choice
-	    :tag "Reuse buffer window"
-	    :help-echo "Frames to search for a window showing the buffer."
-	    :value nil :format "%[Reuse buffer window%] %v\n" :size 15
-	    (const :tag "None" :format "%t" none)
+	    :tag "Buffer"
+	    :help-echo "Buffer shown by reused window."
+	    :value t
+	    :format " %[Buffer%] %v" :size 15
+	    (const :tag "Any buffer" :format "%t" nil)
+	    (const :tag "Same buffer" :format "%t" same)
+	    (const :tag "Other buffer" :format "%t" other))
+	   ;; The window's frame.
+	   (choice
+	    :help-echo "Frame to search for a window to reuse."
+	    :tag "Frame"
+	    :value nil
+	    :format " %[Frame%] %v" :size 15
 	    (const :tag "Selected frame only" :format "%t" nil)
 	    (const :tag "Visible frames" :format "%t" visible)
-	    (const :tag "Visible and iconified frames" :format "%t" 0)
-	    (const :tag "All frames" :format "%t" t)))
+	    (const :tag "Visible but unselected" :format "%t" other)
+	    (const :tag "Visible and iconified" :format "%t" 0)
+	    (const :tag "Any frame" :format "%t" t)))
+	  ;; Whether window sizes should be evened out.
 	  (cons
-	   :format "%v"
-	   (const
-	    :format "" reuse-other-window)
-	   (choice
-	    :tag "Reuse other window"
-	    :help-echo "Frames to search for a window not showing the buffer."
-	    :value nil :format "%[Reuse other window%] %v\n" :size 15
-	    (const :tag "None" :format "%t" none)
-	    (const :tag "Selected frame only" :format "%t" nil)
-	    (const :tag "Visible frames" :format "%t" visible)
-	    (const :tag "Visible and iconified frames" :format "%t" 0)
-	    (const :tag "All frames" :format "%t" t)))
-	  (cons
+	   :format "%v\n"
 	   :tag "Even window sizes"
-	   :format "%v%t\n"
-	   (const :format "" even-window-sizes)
-	   (const :format "" t))
+	   (const :format "" reuse-window-even-sizes)
+	   (choice
+	    :tag "Even window sizes"
+	    :help-echo "Whether to even sizes of selected and reused window."
+   	    :value t
+	    :format "%[Even window sizes%] %v" :size 15
+	    (const :tag "Off" :format "%t" nil)
+	    (const :tag "Even window sizes" :format "%t" t)))
+	  ;; Whether to reuse a dedicated window
+	  (cons
+	   :format "%v\n"
+	   (const :format "" reuse-window-dedicated)
+	   (choice
+	    :tag "Reuse dedicated window" :value nil
+	    :help-echo "Reuse a window even if it is dedicated to its buffer."
+	    :format "%[Reuse dedicated window%] %v" :size 15
+	    (const :tag "Off" :format "%t" nil)
+	    (const :tag "Reuse weakly dedicated windows" :format "%t" weak)
+	    (const :tag "Reuse any dedicated window" :format "%t" t)))))
+
+	;; Pop-up window specifiers.
+	(list
+	 :tag "Pop-up window"
+	 :value (pop-up-window (pop-up-window (largest . nil) (lru . nil)))
+	 :format "%t\n%v"
+	 :inline t
+	 (const :format "" pop-up-window)
+	 (set
+	  :format "%v"
+	  :inline t
+	  ;; Pop-up window list.
 	  (list
 	   :format "%v"
-	   :value (new-window (largest . nil) (lru . nil))
-	   (const :format "" new-window)
+	   :value (pop-up-window (largest . nil) (lru . nil))
+	   (const :format "" pop-up-window)
 	   (repeat
+	    :tag "Window / Side tuples"
 	    :inline t
-	    :tag "Window / Side pairings"
 	    (cons
-	     :format "%v"
+	     :format "%v\n"
 	     (choice
-	      :tag "Window" :help-echo "The window to split."
-	      :value largest :format "%[Window%] %v" :size 15
+	      :tag "Window"
+	      :help-echo "The window to split."
+	      :value largest
+	      :format "%[Window%] %v"
 	      (const :tag "Largest" :format "%t" largest)
 	      (const :tag "Least recently used" :format "%t" lru)
 	      (const :tag "Selected" :format "%t" selected)
 	      (const :tag "Root" :format "%t" root)
-	      (const :tag "First" :format "%t" first))
+	      (const :tag "Left" :format "%t" left)
+	      (const :tag "Top" :format "%t" top)
+	      (const :tag "Right" :format "%t" right)
+	      (const :tag "Bottom" :format "%t" bottom))
 	     (choice
 	      :tag "Side"
 	      :help-echo "The position of the new window with respect to the window to split."
-	      :value nil :format "  %[Side%] %v" :size 15
-	      (const :tag "Dynamic" nil)
-	      (const :tag "Below" below)
-	      (const :tag "Right" right)
-	      (const :tag "Above" above)
-	      (const :tag "Left" left)
+	      :value nil
+	      :format " %[Side%] %v"
+	      (const :tag "Dynamic" :format "%t" nil)
+	      (const :tag "Below" :format "%t" below)
+	      (const :tag "Right" :format "%t" right)
+	      (const :tag "Above" :format "%t" above)
+	      (const :tag "Left" :format "%t" left)
 	      (function
-	       :tag "Function" :format "%v\n" :size 25)))))
-	  (cons
-	   :tag "Make new window even if frame is unsplittable" :size 5
-	   :format "%v%t\n"
-	   (const :format "" split-unsplittable-frame)
-	   (const :format "" t))
+	       :tag "Function" :format "%v" :size 25)))))
+	  ;; Minimum height of pop-up windows.
 	  (cons
 	   :format "%v\n"
-	   (const :format "" min-height)
-	   (number
-	    :tag "Minimum height of new window" :value 12 :size 5))
+	   (const :format "" pop-up-window-min-height)
+	   (choice
+	    :help-echo "Minimum height of popped-up window."
+	    :format "%[Minimum height%] %v"
+	    (const :tag "Default" :format "%t" :value nil)
+	    (integer :tag "Number of lines" :value 12 :size 5)
+	    (float :tag "Fraction of frame height" :value .25 :size 5)))
+	  ;; Minimum width of pop-up windows.
 	  (cons
 	   :format "%v\n"
-	   (const :format "" min-width)
-	   (number
-	    :tag "Minimum width of new window" :value 60 :size 5))
-	  (cons
-	   :format "%v"
-	   (const :format "" adjust-height)
+	   (const :format "" pop-up-window-min-width)
 	   (choice
-	    :tag "Adjust window height"
-	    :help-echo "Whether window height shall be adjusted."
-	    :format "%[Adjust height%] %v\n" :size 15
-	    ;; nil matters when we want to override.
-	    (const :tag "Do not adjust heights" :format "%t" nil)
-	    (number :tag "Desired height" :value 60 :size 5)
+	    :help-echo "Minimum width of popped-up window."
+	    :format "%[Minimum width%] %v"
+	    (const :tag "Default" :format "%t" :value nil)
+	    (integer :tag "Number of columns" :value 12 :size 5)
+	    (float :tag "Fraction of frame width" :value .25 :size 5)))
+	  ;; Desired height of pop-up windows.
+	  (cons
+	   :format "%v\n"
+	   (const :format "" pop-up-window-set-height)
+	   (choice
+	    :help-echo "Desired height of popped-up window."
+	    :format "%[Desired height%] %v"
+	    (const :tag "Default" :format "%t" :value nil)
+	    (integer :tag "Number of lines" :value 12 :size 5)
+	    (float :tag "Fraction of frame height" :value .25 :size 5)
 	    (function :tag "Function" :size 25)))
+	  ;; Desired width of pop-up windows.
 	  (cons
-	   :format "%v"
-	   (const :format "" adjust-width)
+	   :format "%v\n"
+	   (const :format "" pop-up-window-set-width)
 	   (choice
-	    :tag "Adjust window width" :value nil
-	    :help-echo "Whether window width shall be adjusted."
-	    :format "%[Adjust width%] %v\n" :size 15
-	    ;; nil matters when we want to override.
-	    (const :tag "Do not adjust widths" :format "%t" nil)
-	    (number :tag "Desired width" :value 120 :size 5)
+	    :help-echo "Desired width of popped-up window."
+	    :format "%[Desired width%] %v"
+	    (const :tag "Default" :format "%t" :value nil)
+	    (integer :tag "Number of column" :value 12 :size 5)
+	    (float :tag "Fraction of frame width" :value .25 :size 5)
 	    (function :tag "Function" :size 25)))
+	  ;; Split unsplittable frames.
 	  (cons
-	   :format "%v"
-	   :inline t
-	   (const :format "" dedicated)
+	   :format "%v\n"
+	   (const :format "" pop-up-window-unsplittable)
 	   (choice
-	    :tag "Dedicate window to buffer" :value nil
-	    :help-echo "Mark window as dedicated to its buffer."
-	    :format "%[%t%] %v\n" :size 15
+	    :help-echo "Allow popping up a window on \"unsplittable\" frames."
+	    :format "%[Split unsplittable frame%] %v"
 	    (const :tag "Off" :format "%t" nil)
-	    (const :tag "Weak" :format "%t" weak)
-	    (const :tag "Strong" :format "%t" t)))))
+	    (const :tag "Allow" :format "%t" t)))))
 
-	;; Other frame.
+	;; Pop-up frame specifiers.
 	(list
-	 :tag "Other frame"
-	 :value (other-frame
-		 (reuse-buffer-window . visible)
-		 (graphic-only . t)
-		 (popup-frame-alist
+	 :tag "Pop-up frame"
+	 :value (pop-up-frame
+		 (pop-up-frame)
+		 (pop-up-frame-alist
 		  (height . 24) (width . 80) (unsplittable . t)))
-	 :format "%t%v"
+	 :format "%t\n%v"
 	 :inline t
-	 (const :format "\n" other-frame)
+	 (const :format "" pop-up-frame)
 	 (set
 	  :format "%v"
 	  :inline t
-	  (cons
-	   :tag "Avoid selected window"
-	   :format "%v%t\n"
-	   (const :format "" other-window)
-	   (const :format "" t))
-	  (cons
+	  ;; Pop-up frame.
+	  (list
+	   :tag "Pop-up a new frame"
+	   :value (pop-up-frame)
 	   :format "%v"
-	   (const
-	    :format "" reuse-buffer-window)
+	   (const :format "" pop-up-frame)
 	   (choice
-	    :tag "Reuse buffer window"
-	    :help-echo "Frames to search for a window showing the buffer."
-	    :value nil :format "%[Reuse buffer window%] %v\n" :size 15
-	    (const :tag "None" :format "%t" none)
-	    (const :tag "Selected frame only" :format "%t" nil)
-	    (const :tag "Visible frames" :format "%t" visible)
-	    (const :tag "Visible and iconified frames" :format "%t" 0)
-	    (const :tag "All frames" :format "%t" t)))
+	    :tag "Pop-up a new frame"
+	    :help-echo "Whether to pop-up a new frame on a display."
+	    :format "%[Display%] %v\n" :size 15
+	    (const :tag "On any display" :format "%t" nil)
+	    (const :tag "On graphic displays only" :format "%t" t)))
+	  ;; Pop-up frame function
 	  (cons
-	   :format "%v"
-	   (const
-	    :format "" reuse-other-window)
+	   :format "%v\n"
+	   (const :format "" pop-up-frame-function)
 	   (choice
-	    :tag "Reuse other window"
-	    :help-echo "Frames to search for a window not showing the buffer."
-	    :value nil :format "%[Reuse other window%] %v\n" :size 15
-	    (const :tag "None" :format "%t" none)
-	    (const :tag "Selected frame only" :format "%t" nil)
-	    (const :tag "Visible frames" :format "%t" visible)
-	    (const :tag "Visible and iconified frames" :format "%t" 0)
-	    (const :tag "All frames" :format "%t" t)))
-	  (cons
-	   :tag "Even window sizes"
-	   :format "%v%t\n"
-	   (const :format "" even-window-sizes)
-	   (const :format "" t))
-	  (cons
-	   :tag "Avoid selected frame"
-	   :format "%v%t\n"
-	   (const :format "" not-this-frame)
-	   (const :format "" t))
-	  (cons
-	   :tag "Switch to another frame on graphic displays only"
-	   :format "%v%t\n"
-	   (const :format "" graphic-only)
-	   (const :format "" t))
-	  (cons
-	   :format "%v"
-	   (const :format "" popup-frame-function)
-	   (function
-	    :tag "Popup frame function"
-	    :value make-frame
-	    :format "%t: %v\n"
-	    :size 25))
+	    :tag "Pop-up frame function"
+	    :value nil
+	    :help-echo "Function to use to pop-up a new frame."
+	    :format "%[Function%] %v" :size 15
+	    (const :tag "Default" :format "%t" nil)
+	    (function
+	     :value make-frame
+	     :format "%t: %v"
+	     :size 25)))
+	  ;; Pop-up frame alist.
 	  (list
 	   :format "%v"
-	   :value (popup-frame-alist (height . 24) (width . 80) (unsplittable . t))
-	   (const :format "" popup-frame-alist)
+	   (const :format "" pop-up-frame-alist)
 	   (repeat
-	    :tag "Parameter / Value pairings"
-	    :inline t 
+	    :tag "Parameter / Value tuples"
+	    :inline t
 	    (cons
 	     :format "%v\n"
 	     (symbol
@@ -4058,499 +4144,178 @@ using the location specifiers `same-window' or `other-frame'."
 	     (sexp
 	      :tag "Value"
 	      :format "  Value: %v"
-	      :size 8))))
-	  (cons
-	   :format "%v"
-	   (const :format "" dedicated)
-	   (choice
-	    :tag "Dedicate window to buffer" :value nil
-	    :help-echo "Mark window as dedicated to its buffer."
-	    :format "%[%t%] %v\n" :size 15
-	    (const :tag "Off" :format "%t" nil)
-	    (const :tag "Weak" :format "%t" weak)
-	    (const :tag "Strong" :format "%t" t)))))
+	      :size 8))))))
 
-	;; Function.
+	;; Use side-window specifiers.
 	(list
-	 :tag "Function"
-	 :format "%t%v\n"
+	 :tag "Use side-window"
+	 :value (use-side-window (use-side-window bottom 0))
+	 :format "%t\n%v"
 	 :inline t
-	 (function
-	  :tag ""
-	  :size 25)))))
-
-     ;; Specifiers that are not location specific.
-     (set
-      :format "%v"
-      :inline t
-      (cons
-       :tag "Override other specifiers"
-       :format "%v%t\n"
-       (const :format "" override)
-       (const :format "" t)))))
-  :group 'windows
-  :group 'frames)
-
-(defcustom display-buffer-regexps
-  '(((".*")
-     same-frame
-     (reuse-buffer-window . nil)
-     (new-window (largest . nil) (lru . nil))
-     (min-height . 24) (min-width . 60)
-     (even-window-sizes . t)
-     other-frame
-     (reuse-buffer-window . visible)
-     (graphic-only . t)
-     (popup-frame-alist
-      (height . 24) (width . 80) (unsplittable . t))))
-  "List associating regexps with buffer display specifiers.
-The car of each element of this list is a list of regular
-expressions.  Buffers whose name matches that expression are
-displayed according to the list of buffer display specifiers
-constituting the cdr of the element.  Consult the documentation
-of the variable `display-buffer-names' for a description of valid
-display specifiers.
-
-The default value of this variable provides one element matching
-all buffers.  It states that any buffer shall be displayed
-preferably on the selected frame.  If, however, there already
-exists a window showing the buffer on the selected frame,
-`display-buffer' returns that window.  Otherwise, it tries to
-split either the largest or the least recently used window with
-the new window below or on the right of the window that is split.
-The minimum height of the new window shall be 24 lines, its
-minimum width 60 columns.  If a window above or below the
-selected window is used, the heights of both windows shall be
-evened out.
-
-If these specifiers fail to produce a suitable window and a
-graphic display is used, then the buffer shall be displayed on a
-new frame unless a window showing the buffer can be found on some
-visible.  The function to pop up a new frame is given three
-parameters: A frame height of 24 lines, a frame width of 80
-lines, and a non-nil unsplittable property."
-  :risky t
-  :type
-  '(repeat
-    :offset 9
-    (list
-     :tag "Association"
-     (repeat
-      :tag "Regular expressions that match buffer names"
-      (string :format "%v\n" :size 48))
-     (repeat
-      :offset 9
-      :tag "Display specifiers"
-      :inline t
-      (list
-       :tag "Specifiers"
-       :inline t
-       :format "%v"
-       (choice
-	:tag "Locations"
-	:inline t
-	:help-echo "Choose a location for displaying the buffer(s)."
-	:value (same-frame
-		(reuse-buffer-window . nil)
-		(even-window-sizes . t)
-		(new-window (largest . nil) (lru . nil))
-		(min-height . 24) (min-width . 60))
-	:format "%[Location%] %v" :size 15
-
-	;; Same window.
-	(list
-	 :tag "Same window"
-	 :format "%t%v"
-	 :inline t
-	 (const :format "\n" same-window)
-	 (set
-	  :format "%v" :inline t
-	  (cons
-	   :format "%v"
-	   (const :format "" dedicated)
-	   (choice
-	    :tag "Dedicate window to buffer" :value nil
-	    :help-echo "Mark window as dedicated to its buffer."
-	    :format "%[%t%] %v\n" :size 15
-	    (const :tag "Off" :format "%t" nil)
-	    (const :tag "Weak" :format "%t" weak)
-	    (const :tag "Strong" :format "%t" t)))))
-
-	;; Same frame.
-	(list
-	 :tag "Same frame"
-	 :value (same-frame
-		 (reuse-buffer-window . nil)
-		 (even-window-sizes . t)
-		 (new-window (largest . nil) (lru . nil))
-		 (min-height . 24) (min-width . 60))
-	 :format "%t%v"
-	 :inline t
-	 (const :format "\n" same-frame)
-	 (set
-	  :format "%v" :inline t
-	  (cons
-	   :tag "Avoid selected window"
-	   :format "%v%t\n"
-	   (const :format "" not-this-window)
-	   (const :format "" t))
-	  (cons
-	   :format "%v"
-	   (const
-	    :format "" reuse-buffer-window)
-	   (choice
-	    :tag "Reuse buffer window"
-	    :help-echo "Frames to search for a window showing the buffer."
-	    :value nil :format "%[Reuse buffer window%] %v\n" :size 15
-	    (const :tag "None" :format "%t" none)
-	    (const :tag "Selected frame only" :format "%t" nil)
-	    (const :tag "Visible frames" :format "%t" visible)
-	    (const :tag "Visible and iconified frames" :format "%t" 0)
-	    (const :tag "All frames" :format "%t" t)))
-	  (cons
-	   :format "%v"
-	   (const
-	    :format "" reuse-other-window)
-	   (choice
-	    :tag "Reuse other window"
-	    :help-echo "Frames to search for a window not showing the buffer."
-	    :value nil :format "%[Reuse other window%] %v\n" :size 15
-	    (const :tag "None" :format "%t" none)
-	    (const :tag "Selected frame only" :format "%t" nil)
-	    (const :tag "Visible frames" :format "%t" visible)
-	    (const :tag "Visible and iconified frames" :format "%t" 0)
-	    (const :tag "All frames" :format "%t" t)))
-	  (cons
-	   :tag "Even window sizes"
-	   :format "%v%t\n"
-	   (const :format "" even-window-sizes)
-	   (const :format "" t))
-	  (list
-	   :format "%v"
-	   :value (new-window (largest . nil) (lru . nil))
-	   (const :format "" new-window)
-	   (repeat
-	    :inline t
-	    :tag "Window / Side pairings"
-	    (cons
-	     :format "%v"
-	     (choice
-	      :tag "Window" :help-echo "The window to split."
-	      :value largest :format "%[Window%] %v" :size 15
-	      (const :tag "Largest" :format "%t" largest)
-	      (const :tag "Least recently used" :format "%t" lru)
-	      (const :tag "Selected" :format "%t" selected)
-	      (const :tag "Root" :format "%t" root)
-	      (const :tag "First" :format "%t" first))
-	     (choice
-	      :tag "Side"
-	      :help-echo "The position of the new window with respect to the window to split."
-	      :value nil :format "  %[Side%] %v" :size 15
-	      (const :tag "Dynamic" nil)
-	      (const :tag "Below" below)
-	      (const :tag "Right" right)
-	      (const :tag "Above" above)
-	      (const :tag "Left" left)
-	      (function
-	       :tag "Function" :format "%v\n" :size 25)))))
-	  (cons
-	   :tag "Make new window even if frame is unsplittable" :size 5
-	   :format "%v%t\n"
-	   (const :format "" split-unsplittable-frame)
-	   (const :format "" t))
-	  (cons
-	   :format "%v\n"
-	   (const :format "" min-height)
-	   (number
-	    :tag "Minimum height of new window" :value 12 :size 5))
-	  (cons
-	   :format "%v\n"
-	   (const :format "" min-width)
-	   (number
-	    :tag "Minimum width of new window" :value 60 :size 5))
-	  (cons
-	   :format "%v"
-	   (const :format "" adjust-height)
-	   (choice
-	    :tag "Adjust window height"
-	    :help-echo "Whether window height shall be adjusted."
-	    :format "%[Adjust height%] %v\n" :size 15
-	    ;; nil matters when we want to override.
-	    (const :tag "Do not adjust heights" :format "%t" nil)
-	    (number :tag "Desired height" :value 60 :size 5)
-	    (function :tag "Function" :size 25)))
-	  (cons
-	   :format "%v"
-	   (const :format "" adjust-width)
-	   (choice
-	    :tag "Adjust window width" :value nil
-	    :help-echo "Whether window width shall be adjusted."
-	    :format "%[Adjust width%] %v\n" :size 15
-	    ;; nil matters when we want to override.
-	    (const :tag "Do not adjust widths" :format "%t" nil)
-	    (number :tag "Desired width" :value 120 :size 5)
-	    (function :tag "Function" :size 25)))
-	  (cons
-	   :format "%v"
-	   :inline t
-	   (const :format "" dedicated)
-	   (choice
-	    :tag "Dedicate window to buffer" :value nil
-	    :help-echo "Mark window as dedicated to its buffer."
-	    :format "%[%t%] %v\n" :size 15
-	    (const :tag "Off" :format "%t" nil)
-	    (const :tag "Weak" :format "%t" weak)
-	    (const :tag "Strong" :format "%t" t)))))
-
-	;; Other frame.
-	(list
-	 :tag "Other frame"
-	 :value (other-frame
-		 (reuse-buffer-window . visible)
-		 (graphic-only . t)
-		 (popup-frame-alist
-		  (height . 24) (width . 80) (unsplittable . t)))
-	 :format "%t%v"
-	 :inline t
-	 (const :format "\n" other-frame)
+	 ;; For customization purposes only.
+	 (const :format "" use-side-window)
 	 (set
 	  :format "%v"
 	  :inline t
-	  (cons
-	   :tag "Avoid selected window"
-	   :format "%v%t\n"
-	   (const :format "" other-window)
-	   (const :format "" t))
-	  (cons
-	   :format "%v"
-	   (const
-	    :format "" reuse-buffer-window)
-	   (choice
-	    :tag "Reuse buffer window"
-	    :help-echo "Frames to search for a window showing the buffer."
-	    :value nil :format "%[Reuse buffer window%] %v\n" :size 15
-	    (const :tag "None" :format "%t" none)
-	    (const :tag "Selected frame only" :format "%t" nil)
-	    (const :tag "Visible frames" :format "%t" visible)
-	    (const :tag "Visible and iconified frames" :format "%t" 0)
-	    (const :tag "All frames" :format "%t" t)))
-	  (cons
-	   :format "%v"
-	   (const
-	    :format "" reuse-other-window)
-	   (choice
-	    :tag "Reuse other window"
-	    :help-echo "Frames to search for a window not showing the buffer."
-	    :value nil :format "%[Reuse other window%] %v\n" :size 15
-	    (const :tag "None" :format "%t" none)
-	    (const :tag "Selected frame only" :format "%t" nil)
-	    (const :tag "Visible frames" :format "%t" visible)
-	    (const :tag "Visible and iconified frames" :format "%t" 0)
-	    (const :tag "All frames" :format "%t" t)))
-	  (cons
-	   :tag "Even window sizes"
-	   :format "%v%t\n"
-	   (const :format "" even-window-sizes)
-	   (const :format "" t))
-	  (cons
-	   :tag "Avoid selected frame"
-	   :format "%v%t\n"
-	   (const :format "" not-this-frame)
-	   (const :format "" t))
-	  (cons
-	   :tag "Switch to another frame on graphic displays only"
-	   :format "%v%t\n"
-	   (const :format "" graphic-only)
-	   (const :format "" t))
-	  (cons
-	   :format "%v"
-	   (const :format "" popup-frame-function)
-	   (function
-	    :tag "Popup frame function"
-	    :value make-frame
-	    :format "%t: %v\n"
-	    :size 25))
+	  ;; Side and slot.
 	  (list
-	   :format "%v"
-	   :value (popup-frame-alist (height . 24) (width . 80) (unsplittable . t))
-	   (const :format "" popup-frame-alist)
-	   (repeat
-	    :tag "Parameter / Value pairings"
-	    :inline t 
-	    (cons
-	     :format "%v\n"
-	     (symbol
-	      :tag "Parameter"
-	      :format "Parameter: %v"
-	      :size 16)
-	     (sexp
-	      :tag "Value"
-	      :format "  Value: %v"
-	      :size 8))))
-	  (cons
-	   :format "%v"
-	   (const :format "" dedicated)
+	   :format "%v\n"
+	   :value (use-side-window bottom 0)
+	   (const :format "" use-side-window)
+	   ;; The side.
 	   (choice
-	    :tag "Dedicate window to buffer" :value nil
-	    :help-echo "Mark window as dedicated to its buffer."
-	    :format "%[%t%] %v\n" :size 15
+	    :tag "Side"
+	    :help-echo "Side of frame."
+	    :value bottom
+	    :format "%[Side%] %v" :size 15
+	    (const :tag "Left" :format "%t" left)
+	    (const :tag "Top" :format "%t" top)
+	    (const :tag "Right" :format "%t" right)
+	    (const :tag "Bottom" :format "%t" bottom))
+	   ;; The slot
+	   (number
+	    :tag "Slot"
+	    :help-echo "The slot (an arbitrary number, where 0 stands for the center slot)."
+	    :value 0
+	    :format "   Slot: %v" :size 8))
+	  ;; Whether to reuse a dedicated side window
+	  (cons
+	   :format "%v\n"
+	   (const :format "" reuse-window-dedicated)
+	   (choice
+	    :tag "Reuse dedicated side window" :value nil
+	    :help-echo "Reuse a side window even if it is dedicated to its buffer."
+	    :format "%[Reuse dedicated side window%] %v" :size 15
 	    (const :tag "Off" :format "%t" nil)
-	    (const :tag "Weak" :format "%t" weak)
-	    (const :tag "Strong" :format "%t" t)))))
+	    (const :tag "Reuse weakly dedicated side windows" :format "%t" weak)
+	    (const :tag "Reuse any dedicated side window" :format "%t" t)))
+	  ;; Minimum height of pop-up side windows.
+	  (cons
+	   :format "%v\n"
+	   (const :format "" pop-up-window-min-height)
+	   (choice
+	    :help-echo "Minimum height of popped-up side window."
+	    :format "%[Minimum height%] %v"
+	    (const :tag "Default" :format "%t" :value nil)
+	    (integer :tag "Number of lines" :value 12 :size 5)
+	    (float :tag "Fraction of frame height" :value .25 :size 5)))
+	  ;; Minimum width of pop-up windows.
+	  (cons
+	   :format "%v\n"
+	   (const :format "" pop-up-window-min-width)
+	   (choice
+	    :help-echo "Minimum width of popped-up side window."
+	    :format "%[Minimum width%] %v"
+	    (const :tag "Default" :format "%t" :value nil)
+	    (integer :tag "Number of columns" :value 12 :size 5)
+	    (float :tag "Fraction of frame width" :value .25 :size 5)))
+	  ;; Desired height of pop-up windows.
+	  (cons
+	   :format "%v\n"
+	   (const :format "" pop-up-window-set-height)
+	   (choice
+	    :help-echo "Desired height of popped-up side window."
+	    :format "%[Desired height%] %v"
+	    (const :tag "Default" :format "%t" :value nil)
+	    (integer :tag "Number of lines" :value 12 :size 5)
+	    (float :tag "Fraction of frame height" :value .25 :size 5)
+	    (function :tag "Function" :size 25)))
+	  ;; Desired width of pop-up windows.
+	  (cons
+	   :format "%v\n"
+	   (const :format "" pop-up-window-set-width)
+	   (choice
+	    :help-echo "Desired width of popped-up side window."
+	    :format "%[Desired width%] %v"
+	    (const :tag "Default" :format "%t" :value nil)
+	    (integer :tag "Number of column" :value 12 :size 5)
+	    (float :tag "Fraction of frame width" :value .25 :size 5)
+	    (function :tag "Function" :size 25)))))
 
-	;; Function.
+	;; Macro specifiers.
 	(list
-	 :tag "Function"
-	 :format "%t%v\n"
+	 :tag "Same frame only"
+	 :format "%t%v"
 	 :inline t
-	 (function
-	  :tag ""
-	  :size 25)))))
+	 (const :format "\n" same-frame))
+	(list
+	 :tag "Other window"
+	 :format "%t%v"
+	 :inline t
+	 (const :format "\n" other-window))
+	(list
+	 :tag "Same frame other window"
+	 :format "%t%v"
+	 :inline t
+	 (const :format "\n" same-frame-other-window))
+	(list
+	 :tag "Other frame only"
+	 :format "%t%v"
+	 :inline t
+	 (const :format "\n" other-visible-frame))
+	(list
+	 :tag "Default"
+	 :format "%t%v"
+	 :inline t
+	 (const :format "\n" default)))))
 
-     ;; Specifiers that are not location specific.
      (set
       :format "%v"
       :inline t
+      ;; Dedicate window to buffer.
       (cons
-       :tag "Override other specifiers"
-       :format "%v%t\n"
+       :format "%v"
+       (const :format "" dedicate)
+       (choice
+	:help-echo "Mark window as dedicated to its buffer."
+	:format "%[Dedicate window to buffer%] %v\n" :size 15
+	(const :tag "Off" :format "%t" nil)
+	(const :tag "Weak" :format "%t" weak)
+	(const :tag "Strong" :format "%t" t)))
+      ;; No other window.
+      (cons
+       :format "%v"
+       (const :format "" no-other-window)
+       (choice
+	:help-echo "Whether `other-window' shall ignore the window."
+	:format "%[No other window%] %v\n" :size 15
+	(const :tag "Off" :format "%t" nil)
+	(const :tag "Ignore" :format "%t" t)))
+      ;; Overriding.
+      (cons
+       :format "%v\n"
        (const :format "" override)
-       (const :format "" t)))))
+       (choice
+	:help-echo "Override application supplied specifiers."
+	:format "%[Override%] %v"
+	(const :tag "Off" :format "%t" nil)
+	(const :tag "Override" :format "%t" t))))))
   :group 'windows
   :group 'frames)
 
-;; Minibuffer-only frames should be documented better.  They really
-;; deserve a separate section in the manual.  Also
-;; `last-nonminibuffer-frame' is nowhere documented in the manual.
-(defun display-buffer-frame (&optional frame)
-  "Return FRAME if it is live and not a minibuffer-only frame.
-Return the value of `last-nonminibuffer-frame' otherwise."
-  (setq frame (normalize-live-frame frame))
-  (if (and (frame-live-p frame)
-	   ;; A not very nice way to get that information.
-	   (not (window-minibuffer-p (frame-root-window frame))))
-      frame
-    (last-nonminibuffer-frame)))
+(defcustom display-buffer-function nil
+  "If non-nil, function to call to display a buffer.
+`display-buffer' calls this function with two arguments, the
+buffer to display and a list of buffer display specifiers, see
+`display-buffer-alist'.
 
-(defconst display-buffer-locations '(same-window same-frame other-frame)
-  "Buffer display location specifiers.")
+The function is supposed to choose or create a window, display
+the specified buffer in it, and return the window.  It is also
+responsible for giving the variable `display-buffer-window' and
+the `quit-restore' parameter of the window used a meaningful
+value.
 
-(defconst display-buffer-default-specifiers
-  '(same-frame
-    (reuse-buffer-window . nil)
-    (new-window (largest . nil) (lru . nil))
-    (min-height . 24) (min-width . 60)
-    other-frame
-    (reuse-buffer-window . visible)
-    (popup-frame-alist
-     (height . 24) (width . 80) (unsplittable . t)))
-  "The default buffer display specifiers.
-The value specified here is used when no other specifiers have
-been specified by the user or the application.  Consult the
-documentation of `display-buffer-names' for a description of
-buffer display specifiers.")
+The function specified here overrides all specifiers of the
+variable `display-buffer-alist' any specifiers passed to
+`display-buffer'.
 
-(defconst display-buffer-other-window-specifiers
-  '(same-frame (reuse-buffer-window . nil)
-    other-frame (reuse-buffer-window . visible)
-    (not-this-window . t))
-  "Specifiers for displaying a buffer in any but the selected window.
-These are the specifiers applied when `display-buffer' is called
-with the second argument equal t.")
-
-(defconst display-buffer-same-frame-specifiers
-  '(same-frame (reuse-buffer-window . nil))
-  "Specifiers for displaying a buffer in a window on the selected frame.")
-
-(defconst display-buffer-other-window-same-frame-specifiers
-  '(same-frame (reuse-buffer-window . nil) (not-this-window . t))
-  "Specifiers for displaying a buffer in another window on the selected frame.")
-
-(defconst display-buffer-other-frame-specifiers
-  '(other-frame (reuse-buffer-window . visible)
-    (not-this-window . t) (not-this-frame . t))
-  "Specifiers for displaying a buffer in any but the selected frame.
-These should avoid the selected window and the selected frame.")
-
-(defun display-buffer-normalize-specifiers-1 (specifiers)
-  "Subroutine of `display-buffer-normalize-specifiers'.
-SPECIFIERS is the homonymous argument for `display-buffer'."
-  (cond
-   ((memq specifiers '(t other-window))
-    ;; Historically t means "other window".  'other-window is
-    ;; occasionally used with the same meaning.
-    display-buffer-other-window-specifiers)
-   ((or (memq specifiers display-buffer-locations)
-	(functionp specifiers))
-    ;; A single specifier à la 'same-window - make it a list.
-    (list specifiers))
-   ((or (not specifiers) (not (listp specifiers)))
-    ;; Not a valid specifier.
-    nil)
-   (t specifiers)))
-
-(defun display-buffer-normalize-specifiers (buffer-name specifiers)
-  "Return normalized specifiers for displaying a buffer called BUFFER-NAME.
-BUFFER-NAME must be a string specifying a valid buffer name.
-SPECIFIERS is the homonymous argument of `display-buffer'.
-
-The method for displaying the buffer specified by BUFFER-NAME is
-established by appending the following five lists of specifiers:
-
-- The specifiers in `display-buffer-names' whose name component
-  contains BUFFER-NAME and whose 'override component is set.
-
-- The specifiers in `display-buffer-regexps' whose name component
-  matches BUFFER-NAME and whose 'override component is set.
-
-- SPECIFIERS.
-
-- The list of specifiers in `display-buffer-names' whose name
-  component contains BUFFER-NAME and whose 'override component is
-  not set.
-
-- The list of specifiers in `display-buffer-regexps' whose name
-  component matches BUFFER-NAME and whose 'override component is
-  not set.
-
-The return value is always a list.  The first element of that
-list is not necessarily a location specifier."
-  (let (names-over regexps-over names-no regexps-no)
-    (dolist (entry display-buffer-names)
-      (when (and (listp entry) (member buffer-name (car entry)))
-	(let ((specifier (cdr entry)))
-	  (if (assq 'override specifier)
-	      (setq names-over
-		    (if names-over
-			(append names-over specifier)
-		      specifier))
-	    (setq names-no
-		  (if names-no
-		      (append names-no specifier)
-		    specifier))))))
-    (dolist (entry display-buffer-regexps)
-      (when (and (listp entry)
-		 (catch 'match
-		   (dolist (regexp (car entry))
-		     (when (and (stringp regexp)
-				(string-match-p regexp buffer-name))
-		       (throw 'match t)))))
-	(let ((specifier (cdr entry)))
-	  (if (assq 'override specifier)
-	      (setq regexps-over
-		    (if regexps-over
-			(append regexps-over specifier)
-		      specifier))
-	    (setq regexps-no
-		  (if regexps-no
-		      (append regexps-no specifier)
-		    specifier))))))
-    (append
-     names-over regexps-over
-     (display-buffer-normalize-specifiers-1 specifiers)
-     names-no regexps-no
-     ;; Append the default specifiers.
-     display-buffer-default-specifiers)))
+If you call `display-buffer' within the body of the function,
+bind the value of `display-buffer-function' to nil around that
+call to avoid that the function recursively calls itself."
+  :type '(choice
+	  (const nil)
+	  (function :tag "Function"))
+  :group 'display-buffer)
 
 ;; The following is a global variable which is used externally (by
 ;; help.el) to (1) know which window was used for displaying a buffer
@@ -4568,14 +4333,13 @@ If the buffer display location specifier is one of 'same-window,
 assign the value of this variable.  If the location specifier is
 a function, that function becomes responsible for assigning a
 meaningful value to this variable.  See the functions
-`display-buffer-in-lru-buffer-window',
-`display-buffer-in-lru-window', `display-buffer-in-new-window'
-and `display-buffer-in-new-frame' for how this is done.")
+`display-buffer-reuse-window', `display-buffer-pop-up-window' and
+`display-buffer-pop-up-frame' for how this can be done.")
 
 (defun display-buffer-even-sizes (window specifiers)
   "Even sizes of WINDOW and selected window according to SPECIFIERS.
 SPECIFIERS must be a list of buffer display specifiers, see the
-documentation of `display-buffer-names' for a description.
+documentation of `display-buffer-alist' for a description.
 
 Sizes are evened out if and only if WINDOW and the selected
 window appear next to each other and the selected window is
@@ -4610,183 +4374,191 @@ larger than WINDOW."
 	window (/ (- (window-total-width) (window-total-width window))
 		  2) t))))))
 
-(defun display-buffer-adjust-height (window specifiers)
+(defun display-buffer-set-height (window specifiers)
   "Adjust height of WINDOW according to SPECIFIERS.
 SPECIFIERS must be a list of buffer display specifiers, see the
-documentation of `display-buffer-names' for a description."
-  (let ((adjust-height (cdr (assq 'adjust-height specifiers))))
+documentation of `display-buffer-alist' for a description."
+  (let ((set-height (cdr (assq 'pop-up-window-set-height specifiers))))
     (cond
-     ((numberp adjust-height)
-      (let* ((height (if (integerp adjust-height)
-			 adjust-height
-		       (* (window-total-size (frame-root-window window))
-			  adjust-height)))
+     ((numberp set-height)
+      (let* ((height (if (integerp set-height)
+			 set-height
+		       (round
+			(* (window-total-size (frame-root-window window))
+			   set-height))))
 	     (delta (- height (window-total-size window))))
-	(when (and (window-resizable-p window delta)
+	(when (and (window-resizable-p window delta nil 'safe)
 		   (window-iso-combined-p window))
-	  (resize-window window delta))))
-     ((functionp adjust-height)
-      (ignore-errors (funcall adjust-height window))))))
+	  (resize-window window delta nil 'safe))))
+     ((functionp set-height)
+      (ignore-errors (funcall set-height window))))))
 
-(defun display-buffer-adjust-width (window specifiers)
+(defun display-buffer-set-width (window specifiers)
   "Adjust width of WINDOW according to SPECIFIERS.
 SPECIFIERS must be a list of buffer display specifiers, see the
-documentation of `display-buffer-names' for a description."
-  (let ((adjust-width (cdr (assq 'adjust-width specifiers))))
+documentation of `display-buffer-alist' for a description."
+  (let ((set-width (cdr (assq 'pop-up-window-set-width specifiers))))
     (cond
-     ((numberp adjust-width)
-      (let* ((width (if (integerp adjust-width)
-			adjust-width
-		      (* (window-total-size (frame-root-window window) t)
-			 adjust-width)))
+     ((numberp set-width)
+      (let* ((width (if (integerp set-width)
+			set-width
+		      (round
+		       (* (window-total-size (frame-root-window window) t)
+			  set-width))))
 	     (delta (- width (window-total-size window t))))
-	(when (and (window-resizable-p window delta t)
+	(when (and (window-resizable-p window delta t 'safe)
 		   (window-iso-combined-p window t))
-	  (resize-window window delta t))))
-     ((functionp adjust-width)
-      (ignore-errors (funcall adjust-width window))))))
+	  (resize-window window delta t 'safe))))
+     ((functionp set-width)
+      (ignore-errors (funcall set-width window))))))
 
+;; We have to work around the deficiency that the command loop does not
+;; preserve the selected window when it is on a frame that hasn't been
+;; raised or given input focus.  So we have to (1) select the window
+;; used for displaying a buffer and (2) raise its frame if necessary,
+;; thus defeating one primary principle of `display-buffer' namely to
+;; _not_ select the window chosen for displaying the buffer :-(
 (defun display-buffer-select-window (window &optional norecord)
-  "Select WINDOW  and make sure it's frame is risen."
+  "Select WINDOW and raise its frame if necessary."
   (let ((old-frame (selected-frame))
 	(new-frame (window-frame window)))
+    ;; Select WINDOW _before_ raising the frame to assure that the mouse
+    ;; cursor moves into the correct window.
     (select-window window norecord)
     (unless (eq old-frame new-frame)
       (select-frame-set-input-focus new-frame))))
 
 (defun display-buffer-in-window (buffer window specifiers)
-  "Display BUFFER in WINDOW and raise its frame.
+  "Display BUFFER in WINDOW and raise its frame if needed.
 WINDOW must be a live window and defaults to the selected one.
 Return WINDOW.
 
 SPECIFIERS must be a list of buffer display specifiers, see the
-documentation of `display-buffer-names' for a description."
+documentation of `display-buffer-alist' for a description."
   (setq buffer (normalize-live-buffer buffer))
   (setq window (normalize-live-window window))
   (let* ((old-frame (selected-frame))
 	 (new-frame (window-frame window))
-	 (dedicated (cdr (assq 'dedicated specifiers))))
+	 (dedicated (cdr (assq 'dedicated specifiers)))
+	 (no-other-window (cdr (assq 'no-other-window specifiers))))
     ;; Show BUFFER in WINDOW.
     (set-window-dedicated-p window nil)
     (set-window-buffer window buffer)
     (when dedicated
       (set-window-dedicated-p window dedicated))
-    ;; Raise the frame if it's new (no use to check all sorts of things
-    ;; as we did earlier).  I'm not sure what gets broken by this but at
-    ;; least the case where the buffer is already shown on another frame
-    ;; should be handled correctly this time (Emacs 23 apparently always
-    ;; raises the frame and selects the window).
-
-    ;; The "do not raise new frame" case is too difficult to handle (see
-    ;; also the problems with the old `display-buffer-other-frame').
+    (when no-other-window
+      (set-window-parameter window 'no-other-window t))
     (unless (eq old-frame new-frame)
-      ;; Maybe we should call this with NORECORD non-nil.
       (display-buffer-select-window window))
     ;; Return window.
     window))
 
-(defun display-buffer-in-lru-buffer-window (buffer frames &optional specifiers)
-  "Display BUFFER in least recently used window showing BUFFER.
-FRAMES specifies the set of frames to consider.  Return the
-window displaying BUFFER if done, nil otherwise.
+(defun display-buffer-reuse-window (buffer method &optional specifiers)
+  "Display BUFFER in an existing window.
+METHOD must be a list in the form of the cdr of a `reuse-window'
+buffer display specifier, see `display-buffer-alist' for an
+explanation.  The first element must specifiy the window to use,
+and can be either nil, `same', `other', or a live window.  The
+second element must specify the window's buffer and can be either
+nil, `same', `other', or a live buffer.  The third element is the
+frame to use - either nil, 0, `visible', `other', t, or a live
+frame.
 
-Optional argument SPECIFIERS must be a list of buffer display
-specifiers, see the documentation of `display-buffer-names' for a
-description."
-  ;; Try to return the least recently used window showing BUFFER
-  ;; avoiding the selected window.  `get-buffer-window-list' starts with
-  ;; the first window on the selected frame showing BUFFER (provided
-  ;; there is such a window).
-  (let ((windows (get-buffer-window-list buffer 'nomini frames))
-	(not-this-window
-	 (let ((spec-cdr (cdr (assq 'not-this-window specifiers))))
-	   (cond
-	    ((eq spec-cdr t)
-	     (selected-window))
-	    (spec-cdr))))
-	(not-this-frame
-	 (let ((spec-cdr (cdr (assq 'not-this-frame specifiers))))
-	   (cond
-	    ((eq spec-cdr t)
-	     (selected-frame))
-	    (spec-cdr))))
-	best-window best-time time)
-    (dolist (window windows)
-      ;; Take care of `not-this-window' and `not-this-frame' specifiers.
-      (unless (or (eq window not-this-window)
-		  (eq (window-frame window) not-this-frame)
-		  (window-minibuffer-p window))
-	(setq time (window-use-time window))
-	(when (or (not best-window) (< time best-time))
-	  (setq best-window window)
-	  (setq best-time time))))
+Optional argument SPECIFIERS must be a list of valid display
+specifiers.  Return the window chosen to display BUFFER, nil if
+none was found."
+  (let* ((method-window (nth 0 method))
+	 (method-buffer (nth 1 method))
+	 (method-frame (nth 2 method))
+	 (reuse-dedicated (assq 'reuse-window-dedicated specifiers))
+	 windows other-frame dedicated time best-window best-time)
+    (when (eq method-frame 'other)
+      ;; `other' is not handled by `window-list-1'.
+      (setq other-frame t)
+      (setq method-frame t))
+    (dolist (window (window-list-1 nil 'nomini method-frame))
+      (let ((window-buffer (window-buffer window)))
+	(when (and (not (window-minibuffer-p window))
+		   ;; Don't reuse a side window.
+		   (or (not (eq (window-parameter window 'window-side) 'side))
+		       (eq window-buffer buffer))
+		   (or (not method-window)
+		       (and (eq method-window 'same)
+			    (eq window (selected-window)))
+		       (and (eq method-window 'other)
+			    (not (eq window (selected-window))))
+		       ;; Special case for applications that specifiy
+		       ;; the window explicitly.
+		       (eq method-window window))
+		   (or (not method-buffer)
+		       (and (eq method-buffer 'same)
+			    (eq window-buffer buffer))
+		       (and (eq method-buffer 'other)
+			    (not (eq window-buffer buffer)))
+		       ;; Special case for applications that specifiy
+		       ;; the window's buffer explicitly.
+		       (eq method-buffer window-buffer))
+		   (or (not other-frame)
+		       (not (eq (window-frame window) (selected-frame))))
+		   ;; Handle dedicatedness.
+		   (or (eq window-buffer buffer)
+		       ;; The window does not show the same buffer.
+		       (not (setq dedicated (window-dedicated-p window)))
+		       ;; If the window is weakly dedicated to its
+		       ;; buffer, reuse-dedicated must be non-nil.
+		       (and (not (eq dedicated t)) reuse-dedicated)
+		       ;; If the window is strongly dedicated to its
+		       ;; buffer, reuse-dedicated must be t.
+		       (eq reuse-dedicated t)))
+	  (setq windows (cons window windows)))))
+
+    (if (eq method-buffer 'same)
+	;; When reusing a window on the same buffer use the lru one.
+	(dolist (window windows)
+	  (setq time (window-use-time window))
+	  (when (or (not best-window) (< time best-time))
+	    (setq best-window window)
+	    (setq best-time time)))
+      ;; Otherwise, sort windows according to their use-time.
+      (setq windows
+	    (sort windows
+		  '(lambda (window-1 window-2)
+		     (<= (window-use-time window-1)
+			 (window-use-time window-2)))))
+      (setq best-window
+	    ;; Try to get a full-width window (this is silly and can
+	    ;; get us to another frame but let's ignore these issues
+	    ;; for the moment).
+	    (catch 'found
+	      (dolist (window windows)
+		(when (window-full-width-p window)
+		  (throw 'found window)))
+	      ;; If there's no full-width window return the lru window.
+	      (car windows))))
 
     (when best-window
       (display-buffer-even-sizes best-window specifiers)
       ;; Never change the quit-restore parameter of a window here.
-      (setq display-buffer-window
-	    (cons best-window 'reuse-buffer-window))
+      (if (eq (window-buffer best-window) buffer)
+	  (setq display-buffer-window
+		(cons best-window 'reuse-buffer-window))
+	(setq display-buffer-window
+	      (cons best-window 'reuse-other-window))
+	(unless (window-parameter best-window 'quit-restore)
+	  ;; Don't overwrite an existing quit-restore entry.
+	  (set-window-parameter
+	   best-window 'quit-restore
+	   (list (window-buffer best-window) (window-start best-window)
+		 (window-point best-window) buffer
+		 (window-total-size best-window) (selected-window)))))
+
       (display-buffer-in-window buffer best-window specifiers))))
 
-(defun display-buffer-in-lru-window (buffer frames &optional specifiers)
-  "Display BUFFER in least recently used window.
-FRAMES specifies the set of frames to consider.  Return the
-window displaying BUFFER if done, nil otherwise.
+(defconst display-buffer-split-specifiers '(largest lru selected root left top right bottom)
+  "List of symbols identifying window that shall be split.")
 
-Optional argument SPECIFIERS must be a list of buffer display
-specifiers, see the documentation of `display-buffer-names' for a
-description."
-  (let ((window
-	 (catch 'found
-	   (let ((windows
-		  (window-list-1
-		   (frame-first-window (display-buffer-frame)) 'nomini frames))
-		 (not-this-window
-		  (let ((spec-cdr (cdr (assq 'not-this-window specifiers))))
-		    (cond
-		     ((eq spec-cdr t)
-		      (selected-window))
-		     (spec-cdr))))
-		 (not-this-frame
-		  (let ((spec-cdr (cdr (assq 'not-this-frame specifiers))))
-		    (cond
-		     ((eq spec-cdr t)
-		      (selected-frame))
-		     (spec-cdr))))
-		 ;; lru-windows is a list of (window . use-time) pairs.
-		 lru-windows)
-	     (dolist (window windows)
-	       ;; Take care of `not-this-window' and `not-this-frame'
-	       ;; specifiers.
-	       (unless (or (eq window not-this-window)
-			   (eq (window-frame window) not-this-frame)
-			   (window-minibuffer-p window)
-			   (window-dedicated-p window))
-		 (setq lru-windows (cons (cons window (window-use-time window))
-					 lru-windows))))
-	     ;; Sort pairs according to their use-time.
-	     (setq lru-windows
-		   (sort lru-windows '(lambda (pair1 pair2)
-					(<= (cdr pair1) (cdr pair2)))))
-	     ;; Try to get a full-width window.
-	     (dolist (pair lru-windows)
-	       (when (window-full-width-p (car pair))
-		 (throw 'found (car pair))))
-
-	     ;; If there's no full-width window return the lru window.
-	     (caar lru-windows)))))
-    (when window
-      (display-buffer-even-sizes window specifiers)
-      (unless (window-parameter window 'quit-restore)
-	;; Don't overwrite an existing quit-restore entry.
-	(set-window-parameter
-	 window 'quit-restore
-	 (list (window-buffer window) (window-start window)
-	       (window-point window) buffer
-	       (window-total-size window) (selected-window))))
-      (setq display-buffer-window
-	    (cons window 'reuse-other-window))
-      (display-buffer-in-window buffer window specifiers))))
+(defconst display-buffer-side-specifiers '(below right above left nil)
+  "List of symbols identifying side of split-off window.")
 
 (defun display-buffer-split-window-1 (window side min-size)
   "Subroutine of `display-buffer-split-window'."
@@ -4841,11 +4613,11 @@ description."
 Optional argument SIDE must be a side specifier \(one of the
 symbols below, right, above, left, or nil).  SPECIFIERS must be a
 list of buffer display specifiers, see the documentation of
-`display-buffer-names' for a description.
+`display-buffer-alist' for a description.
 
 Return the new window, nil if it could not be created."
-  (let ((min-height (cdr (assq 'min-height specifiers)))
-	(min-width (cdr (assq 'min-width specifiers)))
+  (let ((min-height (cdr (assq 'pop-up-window-min-height specifiers)))
+	(min-width (cdr (assq 'pop-up-window-min-width specifiers)))
 	size)
     ;; Normalize min-height and min-width, we might need both.
     (setq min-height
@@ -4899,78 +4671,111 @@ Return the new window, nil if it could not be created."
 	     (display-buffer-split-window-1
 	      window (or side 'below) window-min-height)))))
 
-(defconst display-buffer-split-specifiers '(largest lru selected root first)
-  "Buffer display window split specifiers.")
+(defun display-buffer-split-atom-window (window &optional side nest specifiers)
+  "Make WINDOW part of an atomic window."
+  (let ((ignore-window-parameters t)
+	(window-splits 'nest)
+	(selected-window (selected-window))
+	root new new-parent)
 
-(defconst display-buffer-side-specifiers '(below right above left nil)
-  "Buffer display window side specifiers.")
+      ;; We are in an atomic window.
+    (when (and (window-parameter window 'window-atom) (not nest))
+      ;; Split the root window.
+      (setq window (window-atom-root window)))
 
-(defun display-buffer-in-new-window (buffer specifiers)
+    (when (setq new (display-buffer-split-window window side specifiers))
+      (setq new-parent (window-parent window))
+      ;; WINDOW is or becomes atomic.
+      (unless (window-parameter window 'window-atom)
+	(walk-window-subtree
+	 (lambda (window)
+	   (set-window-parameter window 'window-atom t))
+	 window t))
+      ;; New window and any new parent get their window-atom parameter
+      ;; set too.
+      (set-window-parameter new 'window-atom t)
+      (set-window-parameter new-parent 'window-atom t)
+      new)))
+
+(defun display-buffer-pop-up-window (buffer methods &optional specifiers)
   "Display BUFFER in a new window.
-Return the window displaying BUFFER if creating the new window
-was successful, nil otherwise.
+Return the window displaying BUFFER, nil if popping up the window
+failed.  METHODS must be a list of window/side tuples like those
+forming the cdr of the `pop-up-window' buffer display specifier.
+As a special case, the car of such a tuple can be also a live
+window.
 
-SPECIFIERS must be a list of buffer display specifiers, see the
-documentation of `display-buffer-names' for a description."
+Optional argument SPECIFIERS must be a list of buffer display
+specifiers, see the doc-string of `display-buffer-alist' for a
+description."
   (let* ((frame (display-buffer-frame))
 	 (selected-window (frame-selected-window frame))
-	 window window-specifier side-specifier)
-    (unless (or (and (cdr (assq 'unsplittable (frame-parameters frame)))
-		     ;; Don't split an unsplittable frame unless
-		     ;; SPECIFIERS allow it.
-		     (not (cdr (assq 'split-unsplittable-frame specifiers))))
-		(let ((spec-cdr (cdr (assq 'not-this-frame specifiers))))
-		  ;; Don't split a window on the selected frame if
-		  ;; `not-this-frame' disallows it.
-		  (or (eq spec-cdr t) (eq spec-cdr (selected-frame)))))
+	 window side atomic)
+    (unless (and (cdr (assq 'unsplittable (frame-parameters frame)))
+		 ;; Don't split an unsplittable frame unless
+		 ;; SPECIFIERS allow it.
+		 (not (cdr (assq 'split-unsplittable-frame specifiers))))
       (catch 'done
-	(dolist (specifier specifiers)
-	  (when (and (consp specifier) (eq (car specifier) 'new-window))
-	    (dolist (window-side-specifier (cdr specifier))
-	      (setq window-specifier (car window-side-specifier))
-	      (setq side-specifier (cdr window-side-specifier))
-	      (setq window
-		    (cond
-		     ((eq window-specifier 'largest)
-		      (get-largest-window frame t))
-		     ((eq window-specifier 'lru)
-		      (get-lru-window frame t))
-		     ((eq window-specifier 'selected)
-		      (frame-selected-window frame))
-		     ((eq window-specifier 'root)
-		      (frame-root-window frame))
-		     ((eq window-specifier 'first)
-		      (frame-first-window frame))))
-	      (and window (eq (window-frame window) frame)
-		   (not (window-minibuffer-p window))
-		   (setq window
-			 (cond
-			  ((memq
-			    side-specifier display-buffer-side-specifiers)
-			   (display-buffer-split-window
-			    window side-specifier specifiers))
-			  ((functionp side-specifier)
-			   (ignore-errors
-			    (funcall side-specifier window (cdr specifiers))))))
-		   (throw 'done window))))))
+	(dolist (method methods)
+	  (setq window (car method))
+	  (setq side (cdr method))
+	  (and (setq window
+		     (cond
+		      ((eq window 'largest)
+		       (get-largest-window frame t))
+		      ((eq window 'lru)
+		       (get-lru-window frame t))
+		      ((eq window 'selected)
+		       (frame-selected-window frame))
+		      ((eq window 'root)
+		       ;; If there are side windows, split the main
+		       ;; window else the frame root window.
+		       (or (window-with-parameter 'window-side 'none nil t)
+			   (frame-root-window frame)))
+		      ((memq window window-sides)
+		       ;; This should gets us the "root" side
+		       ;; window if there exists more than one.
+		       (window-with-parameter 'window-side window nil t))
+		      ((windowp window)
+		       ;; A window, directly specified.
+		       window)))
+	       ;; The window must be on the selected frame,
+	       (eq (window-frame window) frame)
+	       ;; and must be neither a minibuffer window,
+	       (not (window-minibuffer-p window))
+	       ;; nor a side window.
+	       (not (eq (window-parameter window 'window-side) 'side))
+	       (setq window
+		     (cond
+		      ((memq side display-buffer-side-specifiers)
+		       (if (and (window-buffer window)
+				(setq atomic (cdr (assq 'atomic specifiers))))
+			   (display-buffer-split-atom-window
+			    window side (eq atomic 'nest) specifiers)
+		       (display-buffer-split-window window side specifiers)))
+		      ((functionp side)
+		       (ignore-errors
+			 (funcall side window specifiers)))))
+	       (throw 'done window))))
+
       (when window
 	;; Adjust sizes if asked for.
-	(display-buffer-adjust-height window specifiers)
-	(display-buffer-adjust-width window specifiers)
+	(display-buffer-set-height window specifiers)
+	(display-buffer-set-width window specifiers)
 	(set-window-parameter
 	 window 'quit-restore (list 'new-window buffer selected-window))
 	(setq display-buffer-window (cons window 'new-window))
 	(display-buffer-in-window buffer window specifiers)))))
 
-(defun display-buffer-in-new-frame (buffer specifiers)
+(defun display-buffer-pop-up-frame (buffer &optional graphic-only specifiers)
   "Make a new frame for displaying BUFFER.
 Return the window displaying BUFFER if creating the new frame was
-successful, nil otherwise.
+successful, nil otherwise.  Optional argument GRAPHIC-ONLY
+non-nil means to make a new frame on graphic displays only.
 
 SPECIFIERS must be a list of buffer display specifiers, see the
-documentation of `display-buffer-names' for a description."
-  (unless (and (cdr (assq 'graphic-only specifiers))
-	       (not (display-graphic-p)))
+documentation of `display-buffer-alist' for a description."
+  (unless (and graphic-only (not (display-graphic-p)))
     (let* ((selected-window (selected-window))
 	   (function (or (cdr (assq 'popup-frame-function specifiers))
 			 'make-frame))
@@ -4982,6 +4787,174 @@ documentation of `display-buffer-names' for a description."
 	   window 'quit-restore (list 'new-frame buffer selected-window))
 	  (setq display-buffer-window (cons window 'new-frame))
 	  (display-buffer-in-window buffer window specifiers))))))
+
+(defun display-buffer-pop-up-side-window (buffer side slot &optional specifiers)
+  "Display BUFFER in a new window on SIDE of the selected frame.
+SLOT specifies the slot to use.  SPECIFIERS must be a list of
+buffer display specifiers.
+
+Return the window displaying BUFFER, nil if popping up the window
+failed."
+  (let* ((root (frame-root-window))
+	 (main (window-with-parameter 'window-side 'none nil t))
+	 (left-or-right (memq side '(left right)))
+	 (main-or-root
+	  (if (and main
+		   (or (and left-or-right (not window-sides-vertical))
+		       (and (not left-or-right) window-sides-vertical)))
+	      main
+	    root))
+	 (selected-window (selected-window))
+	 (on-side (cond
+		   ((eq side 'top) 'above)
+		   ((eq side 'bottom) 'below)
+		   (t side)))
+	 (window
+	  (display-buffer-split-window main-or-root on-side specifiers))
+	 fun)
+    (when window
+      (unless main
+	(walk-window-subtree
+	 (lambda (window)
+	   ;; Make all main-or-root subwindows main windows.
+	   (set-window-parameter window 'window-side 'none))
+	 main-or-root t))
+      ;; Make sure that parent's window-side is nil.
+      (set-window-parameter (window-parent window) 'window-side nil)
+      ;; Initialize side.
+      (set-window-parameter window 'window-side side)
+      ;; Adjust sizes if asked for.
+      (display-buffer-set-height window specifiers)
+      (display-buffer-set-width window specifiers)
+      ;; Set window parameters.
+      (set-window-parameter
+       window 'quit-restore (list 'new-window buffer selected-window))
+      (setq display-buffer-window (cons window 'new-window))
+      (set-window-parameter window 'window-slot slot)
+      (display-buffer-in-window buffer window specifiers))))
+
+(defun display-buffer-in-side-window (buffer side &optional slot specifiers)
+  "Display BUFFER in a window on SIDE of the selected frame.
+SLOT, if non-nil, specifies the window slot where to display the
+BUFFER.  SLOT zero or nil means use the central slot on SIDE.
+SLOT negative means use a slot preceding the central window.
+SLOT positive means use a slot following the central window.
+
+SPECIFIERS must be a list of buffer display specifiers."
+  (unless (memq side window-sides)
+    (error "Invalid side %s specified" side))
+  (let* ((major (window-with-parameter 'window-side side nil t))
+	 ;; `major' is the major window on SIDE, `windows' the life
+	 ;; windows on SIDE.
+	 (windows (when major (windows-with-parameter 'window-side side)))
+	 (slots (when major (window-child-count major)))
+	 (max-slots
+	  (nth (cond
+		((eq side 'left) 0)
+		((eq side 'top) 1)
+		((eq side 'right) 2)
+		((eq side 'bottom) 3))
+		window-sides-slots))
+	 (selected-window (selected-window))
+	 window this-window this-slot prev-window next-window
+	 best-window best-slot abs-slot)
+
+    (unless (numberp slot)
+      (setq slot 0))
+    (if (not windows)
+	;; No suitable side window exists, make one.
+	(display-buffer-pop-up-side-window buffer side slot specifiers)
+      ;; Scan windows on SIDE.
+      (catch 'found
+	(dolist (window windows)
+	  (setq this-slot (window-parameter window 'window-slot))
+	  (cond
+	   ((not (numberp this-slot)))
+	   ((and (= this-slot slot)
+		 ;; Dedicatedness check.
+		 (or (not (window-dedicated-p window))
+		     (assq 'reuse-window-dedicated specifiers)))
+	    ;; Window with matching SLOT, use it.
+	    (setq this-window window)
+	    (throw 'found t))
+	   (t
+	    (setq abs-slot (abs (- (abs slot) (abs this-slot))))
+	    (unless (and best-slot (<= best-slot abs-slot))
+	      (setq best-window window)
+	      (setq best-slot abs-slot))
+	    (cond
+	     ((<= this-slot slot)
+	      (setq prev-window window))
+	     ((not next-window)
+	      (setq next-window window)))))))
+
+      ;; `this-window' is the first window with the same SLOT.
+      ;; `prev-window' is the window with the largest slot < SLOT.  A new
+      ;; window will be created after it.
+      ;; `next-window' is the window with the smallest slot > SLOT.  A new
+      ;; window will be created before it.
+      ;; `best-window' is the window with the smallest absolute difference
+      ;; of its slot and SLOT.
+      (or (and this-window
+	       ;; Reuse this window.
+	       (prog1
+		   (setq window this-window)
+		 (if (eq (window-buffer window) buffer)
+		     (setq display-buffer-window
+			   (cons window 'reuse-buffer-window))
+		   (setq display-buffer-window
+			 (cons window 'reuse-other-window))
+		   (unless (window-parameter window 'quit-restore)
+		     ;; Don't overwrite an existing quit-restore entry.
+		     (set-window-parameter
+		      window 'quit-restore
+		      (list (window-buffer window) (window-start window)
+			    (window-point window) buffer
+			    (window-total-size window) (selected-window)))))))
+	  (and (or (not max-slots) (< slots max-slots))
+	       (or (and next-window
+			;; Make new window before next-window.
+			(let ((next-side
+			       (if (memq side '(left right)) 'above 'left)))
+			  (setq window (display-buffer-split-window
+					next-window next-side specifiers))))
+		   (and prev-window
+			;; Make new window after prev-window.
+			(let ((prev-side
+			       (if (memq side '(left right)) 'below 'right)))
+			  (setq window (display-buffer-split-window
+					prev-window prev-side specifiers)))))
+	       (progn
+		 (display-buffer-set-height window specifiers)
+		 (display-buffer-set-width window specifiers)
+		 (set-window-parameter
+		  window 'quit-restore
+		  (list 'new-window buffer selected-window))
+		 (setq display-buffer-window (cons window 'new-window))
+		 window))
+	  (and best-window
+	       (setq window best-window)
+	       ;; Reuse best window (the window nearest to SLOT).
+	       (if (eq (window-buffer window) buffer)
+		   (setq display-buffer-window
+			 (cons window 'reuse-buffer-window))
+		 (setq display-buffer-window
+		       (cons window 'reuse-other-window))
+
+		 (unless (window-parameter window 'quit-restore)
+		   ;; Don't overwrite an existing quit-restore entry.
+		   (set-window-parameter
+		    window 'quit-restore
+		    (list (window-buffer window) (window-start window)
+			  (window-point window) buffer
+			  (window-total-size window) (selected-window)))))
+	       window))
+
+      (when window
+	(unless (window-parameter window 'window-slot)
+	  ;; Don't change exisiting slot value.
+	  (set-window-parameter window 'window-slot slot))
+	(display-buffer-in-window buffer window specifiers)))))
 
 (defun normalize-buffer-to-display (buffer-or-name)
   "Normalize BUFFER-OR-NAME argument for buffer display functions.
@@ -4996,7 +4969,107 @@ BUFFER-OR-NAME and return that buffer."
 	    buffer))
     (current-buffer)))
 
-(defun display-buffer (&optional buffer-or-name specifiers ignore)
+(defun display-buffer-normalize-specifiers-1 (specifiers)
+  "Subroutine of `display-buffer-normalize-specifiers'."
+  (let (normalized)
+    (cond
+     ((listp specifiers)
+      (dolist (specifier specifiers)
+	(cond
+	 ((consp specifier)
+	  (setq normalized (cons specifier normalized)))
+	 ((symbolp specifier)
+	  ;; Might be a macro specifier, try to expand it (the cdr is a
+	  ;; list and we have to reverse it later, so do it one at a
+	  ;; time).
+	  (let ((entry (assq specifier display-buffer-macro-specifiers)))
+	    (dolist (item (cdr entry))
+	      (setq normalized (cons item normalized)))))))
+      ;; Reverse list.
+      (setq normalized (nreverse normalized)))
+     ;; The two cases below must come from the SPECIFIERS argument of
+     ;; `display-buffer'.
+     ((eq specifiers 't)
+      ;; Historically t means "other window".  Eventually we should get
+      ;; rid of this.
+      (setq normalized
+	    (cdr (assq 'other-window display-buffer-macro-specifiers))
+	    normalized))
+     ((symbolp specifiers)
+      ;; We allow scalar specifiers in calls of `display-buffer'.
+      (let ((entry (assq specifiers display-buffer-macro-specifiers)))
+	(when entry (setq normalized (cdr entry))))))
+
+    normalized))
+
+(defun display-buffer-normalize-specifiers (buffer-name specifiers label)
+  "Return normalized specifiers for a buffer matching BUFFER-NAME or LABEL.
+BUFFER-NAME must be a string specifying a valid buffer name.
+SPECIFIERS and LABEL are the homonymous arguments of
+`display-buffer'.
+
+The method for displaying the buffer specified by BUFFER-NAME or
+LABEL is established by appending the following four lists of
+specifiers:
+
+- The specifiers in `display-buffer-alist' whose buffer
+  identifier matches BUFFER-NAME or LABEL and whose 'override
+  component is set.
+
+- SPECIFIERS.
+
+- The specifiers in `display-buffer-alist' whose buffer
+  identifier matches BUFFER-NAME or LABEL and whose 'override
+  component is not set.
+
+- `display-buffer-default-specifiers'."
+  (let (list-1 list-2)
+    (dolist (entry display-buffer-alist)
+      (when (and (listp entry)
+		 (catch 'match
+		   (dolist (id (car entry))
+		     (when (consp id)
+		       (let ((type (car id))
+			     (value (cdr id)))
+			 (when (or (and (eq type 'name) (stringp value)
+					(equal value buffer-name))
+				   (and (eq type 'regexp) (stringp value)
+					(string-match-p value buffer-name))
+				   (and (eq type 'label) (eq value label)))
+			   (throw 'match t)))))))
+	(let* ((raw (cdr entry))
+	       (normalized (display-buffer-normalize-specifiers-1 raw)))
+	  (if (assq 'override raw)
+	      (setq list-1
+		    (if list-1
+			(append list-1 normalized)
+		      normalized))
+	    (setq list-2
+		  (if list-2
+		      (append list-2 normalized)
+		    normalized))))))
+
+    (append
+     list-1
+     (display-buffer-normalize-specifiers-1 specifiers)
+     list-2
+     ;; Append the default specifiers.
+     display-buffer-default-specifiers)))
+
+;; Minibuffer-only frames should be documented better.  They really
+;; deserve a separate section in the manual.  Also
+;; `last-nonminibuffer-frame' is nowhere documented in the manual.
+(defun display-buffer-frame (&optional frame)
+  "Return FRAME if it is live and not a minibuffer-only frame.
+Return the value of `last-nonminibuffer-frame' otherwise."
+  (setq frame (normalize-live-frame frame))
+  (if (and (frame-live-p frame)
+	   ;; A not very nice way to get that information.
+	   (not (window-minibuffer-p (frame-root-window frame))))
+      frame
+    (last-nonminibuffer-frame)))
+
+(defun display-buffer (&optional buffer-or-name specifiers label)
   "Make the buffer specified by BUFFER-OR-NAME appear in some window.
 Optional argument BUFFER-OR-NAME may be a buffer, a string \(a
 buffer name), or nil.  If BUFFER-OR-NAME is a string not naming
@@ -5005,209 +5078,132 @@ BUFFER-OR-NAME is nil or omitted, display the current buffer.
 Interactively, prompt for the buffer name using the minibuffer.
 
 Return the window chosen to display the buffer or nil if no such
-window is found.  Do not change the selected window unless a new
-frame is created.
+window is found.  Do not change the selected window unless the
+buffer is shown on a different frame than the selected one.
 
 Optional argument SPECIFIERS must be a list of buffer display
-specifiers, see the documentation of `display-buffer-names' for a
+specifiers, see the documentation of `display-buffer-alist' for a
 description.
 
 For convenience, SPECIFIERS may also consist of a single buffer
 display location specifier or t, where the latter means to
 display the buffer in any but the selected window.  If SPECIFIERS
-is nil or omitted, this means to exclusively use the values
-provided by `display-buffer-names' and `display-buffer-regexps'.
-If these values are nil too, all specifiers are provided by the
-constant `display-buffer-default-specifiers'.
+is nil or omitted, this means to exclusively use the specifiers
+provided by `display-buffer-alist'.  If the value of the latter
+is nil too, all specifiers are provided by the constant
+`display-buffer-default-specifiers'.
 
-In addition, the `not-this-window' specifier allows as cdr to
-specify an arbitrary window in order to not use that window for
-displaying the buffer.  The `not-this-frame' specifier allows as
-cdr to also specify an arbitrary frame in order to not use that
-frame for displaying the buffer.
+As a special case, the `reuse-window' specifier allows to specify
+as second element an arbitrary window, as third element an
+arbitrary buffer, and as fourth element an arbitrary frame.  As
+first element of a window/side pair of the `pop-up-window'
+specifier you can specifiy an arbitrary window.
 
-The optional third argument IGNORE is ignored.
+The optional third argument LABEL, if non-nil, must be a symbol
+specifiying the buffer display label.  Applications should set
+this when the buffer shall be displayed in some special way but
+BUFFER-OR-NAME does not identify the buffer as special.  Typical
+buffers that fit into this category are those whose names are
+derived from the name of the file they are visiting.  A user can
+override SPECIFIERS by adding an entry to `display-buffer-alist'
+whose car contains LABEL and whose cdr specifies the preferred
+alternative display method.
 
 The method to display the buffer is derived by combining the
-values of `display-buffer-names', `display-buffer-regexps', and
-SPECIFIERS.  Highest priority is given to overriding elements of
-`display-buffer-names' followed by overriding elements of
-`display-buffer-regexps'.  Next come the elements specified by
+values of `display-buffer-alist' and SPECIFIERS.  Highest
+priority is given to overriding elements of
+`display-buffer-alist'.  Next come the elements specified by
 SPECIFIERS, followed by the non-overriding elements of
-`display-buffer-names' and the non-overriding elements of
-`display-buffer-regexps'.
+`display-buffer-alist'.
 
 The result must be a list of valid buffer display specifiers.  If
 `display-buffer-function' is non-nil, call it with the buffer and
-this list as arguments.  Otherwise, `display-buffer' scans this
-list from front to back until it finds a location specifier and
-attempts to use that specifier in order to produce a suitable
-window.  For this purpose, all non-symbolic specifiers following
-the location specifier in the list are considered additional
-specifiers.  If an attempt fails to produce a window,
-`display-buffer' continues with the next location specifier on
-the list.  Additional specifiers preceding the currently chosen
-location specifier in the list are ignored."
+this list as arguments."
   (interactive "BDisplay buffer:\nP")
   (let* ((buffer (normalize-buffer-to-display buffer-or-name))
 	 (buffer-name (buffer-name buffer))
 	 (specifiers
 	  ;; Normalize specifiers.
-	  (display-buffer-normalize-specifiers buffer-name specifiers))
+	  (display-buffer-normalize-specifiers buffer-name specifiers label))
 	 ;; Don't use a minibuffer frame.
 	 (frame (display-buffer-frame))
 	 ;; `window' is the window we use for showing `buffer'.
-	 specifier location window type
-	 reuse-buffer-window reuse-other-window)
+	 window specifier method)
     ;; Reset this.
     (setq display-buffer-window nil)
     (if display-buffer-function
-	;; Let `display-buffer-function' do the job handing it the list
-	;; of our specifiers.
+	;; Let `display-buffer-function' do the job.
 	(funcall display-buffer-function buffer specifiers)
       ;; Retrieve the next location specifier while there a specifiers
       ;; left and we don't have a valid window.
-      (while (and specifiers (or (not window) (not (window-live-p window))))
-	(setq location (car specifiers))
+      (while (and specifiers (not (window-live-p window)))
+	(setq specifier (car specifiers))
 	(setq specifiers (cdr specifiers))
-	(when (symbolp location)
-	  (setq window
-		(or (and (eq location 'same-window)
-			 (or (not (window-dedicated-p))
-			     (eq (window-buffer) buffer))
-			 (let ((selected-window
-				;; If the selected window is a minibuffer
-				;; window, use the selected window of the
-				;; last nonminibuffer frame instead.
-				(if (window-minibuffer-p)
-				    (frame-selected-window
-				     (last-nonminibuffer-frame))
-				  (selected-window))))
-			   (display-buffer-in-window
-			    buffer selected-window specifiers)))
-		    (and (memq location '(same-frame other-frame))
-			 (not (eq (setq reuse-buffer-window
-					(cdr
-					 (assq 'reuse-buffer-window specifiers)))
-				  'never))
-			 ;; Try to reuse a window showing BUFFER.  If
-			 ;; reuse-buffer-window was set, it will specify
-			 ;; the frames to consider, otherwise look at the
-			 ;; selected frame's windows only.
-			 (display-buffer-in-lru-buffer-window
-			  buffer reuse-buffer-window specifiers))
-		    (and (eq location 'same-frame)
-			 (not (frame-parameter frame 'unsplittable))
-			 (cdr (assq 'new-window specifiers))
-			 ;; Try making a new window.
-			 (display-buffer-in-new-window buffer specifiers))
-		    (and (eq location 'other-frame)
-			 ;; Try making a new frame.
-			 (display-buffer-in-new-frame buffer specifiers))
-		    (and (eq location 'same-frame)
-			 (not (eq (setq reuse-other-window
-					(cdr
-					 (assq 'reuse-other-window specifiers)))
-				  'never))
-			 ;; Try to reuse a window not showing BUFFER.  If
-			 ;; reuse-buffer-window was set, it will specify
-			 ;; the frames to consider, otherwise look at the
-			 ;; selected frame's windows only.
-			 (display-buffer-in-lru-window
-			  buffer reuse-other-window specifiers))
-		    (and (not (memq location display-buffer-locations))
-			 (functionp location)
-			 ;; Separate function.
-			 (funcall location buffer specifiers))))))
+	(setq method (car specifier))
+	(setq window
+	      (cond
+	       ((eq method 'reuse-window)
+		(display-buffer-reuse-window
+		 buffer (cdr specifier) specifiers))
+	       ((eq method 'pop-up-window)
+		(display-buffer-pop-up-window
+		 buffer (cdr specifier) specifiers))
+	       ((eq method 'pop-up-frame)
+		(display-buffer-pop-up-frame
+		 buffer (cdr specifier) specifiers))
+	       ((eq method 'use-side-window)
+		(display-buffer-in-side-window
+		 buffer (nth 1 specifier) (nth 2 specifier) specifiers)))))
 
-      ;; If we don't have a window yet, try a fallback method.  Note: All
+      ;; If we don't have a window yet, try a fallback method.  All
       ;; specifiers have been used up by now.
       (or (and (window-live-p window) window)
-	  ;; Try reusing any window showing BUFFER on a visible or
+	  ;; Try reusing a window showing BUFFER on any visible or
 	  ;; iconfied frame.
-	  (display-buffer-in-lru-buffer-window buffer 0)
-	  ;; Try reusing a window on the selected frame.
-	  (display-buffer-in-lru-window buffer nil)
-	  ;; Try reusing a window on a visible frame.
-	  (display-buffer-in-lru-window buffer 'visible)
-	  ;; Try reusing a window on a visible or iconified frame.
-	  (display-buffer-in-lru-window buffer 0)
-	  ;; Try reusing any window showing BUFFER on any frame.
-	  (display-buffer-in-lru-buffer-window buffer t)
-	  ;; Try reusing a window on any frame.
-	  (display-buffer-in-lru-window buffer t)
-	  ;; Try making a new window.
-	  (display-buffer-in-new-window buffer nil)
-	  ;; Try making a new frame
-	  (display-buffer-in-new-frame buffer nil)
-	  ;; Use the selected window and let errors show trough.
-	  (display-buffer-in-window buffer (selected-window) nil)))))
+	  (display-buffer-reuse-window buffer '(nil buffer 0))
+	  ;; Try reusing a window not showing BUFFER on any visible or
+	  ;; iconified frame.
+	  (display-buffer-reuse-window buffer '(nil other 0))
+	  ;; Try making a new frame.
+	  (display-buffer-pop-up-frame buffer)
+	  ;; Try using weakly dedicated windows.
+	  (display-buffer-reuse-window
+	   buffer '(nil nil t) '((reuse-window-dedicated . weak)))
+	  ;; Try using strongly dedicated windows.
+	  (display-buffer-reuse-window
+	   buffer '(nil nil t) '((reuse-window-dedicated . t)))))))
 
-(defun display-buffer-same-window (&optional buffer-or-name) 
+(defsubst display-buffer-same-window (&optional buffer-or-name label) 
   "Display buffer specified by BUFFER-OR-NAME in the selected window.
 Another window will be used only if the buffer can't be shown in
 the selected window, usually because it is dedicated to another
-buffer.
+buffer.  Optional argument BUFFER-OR-NAME and LABEL are as for
+`display-buffer'."
+  (display-buffer buffer-or-name 'same-window label))
 
-Optional argument BUFFER-OR-NAME may be a buffer, a string \(a
-buffer name), or nil.  If BUFFER-OR-NAME is a string not naming
-an existent buffer, create a buffer with that name.  If
-BUFFER-OR-NAME is nil or omitted, display the current buffer.
-
-Return the window chosen to display BUFFER-OR-NAME or
-nil if no such window is found.  Do not change the selected
-window unless a new frame is created."
-  (display-buffer buffer-or-name 'same-window))
-
-(defun display-buffer-same-frame (&optional buffer-or-name) 
+(defsubst display-buffer-same-frame (&optional buffer-or-name label) 
   "Display buffer specified by BUFFER-OR-NAME in a window on the same frame.
 Another frame will be used only if there is no other choice.
+Optional argument BUFFER-OR-NAME and LABEL are as for
+`display-buffer'."
+  (display-buffer buffer-or-name 'same-frame label))
 
-Optional argument BUFFER-OR-NAME may be a buffer, a string \(a
-buffer name), or nil.  If BUFFER-OR-NAME is a string not naming
-an existent buffer, create a buffer with that name.  If
-BUFFER-OR-NAME is nil or omitted, display the current buffer.
-
-Return the window chosen to display BUFFER-OR-NAME or
-nil if no such window is found.  Do not change the selected
-window unless a new frame is created."
-  (display-buffer
-   buffer-or-name display-buffer-same-frame-specifiers))
-
-(defun display-buffer-other-window (&optional buffer-or-name) 
+(defsubst display-buffer-other-window (&optional buffer-or-name label) 
   "Display buffer specified by BUFFER-OR-NAME in another window.
 The selected window will be used only if there is no other
 choice.  Windows on the selected frame are preferred to windows
-on other frames.
+on other frames.  Optional argument BUFFER-OR-NAME and LABEL are as
+for `display-buffer'."
+  (display-buffer buffer-or-name 'other-window label))
 
-Optional argument BUFFER-OR-NAME may be a buffer, a string \(a
-buffer name), or nil.  If BUFFER-OR-NAME is a string not naming
-an existent buffer, create a buffer with that name.  If
-BUFFER-OR-NAME is nil or omitted, display the current buffer.
-
-Return the window chosen to display BUFFER-OR-NAME or
-nil if no such window is found.  Do not change the selected
-window unless a new frame is created."
-  (display-buffer
-   buffer-or-name display-buffer-other-window-specifiers))
-
-(defun display-buffer-other-window-same-frame (&optional buffer-or-name) 
+(defun display-buffer-same-frame-other-window (&optional buffer-or-name label) 
   "Display buffer specified by BUFFER-OR-NAME in another window on the same frame.
 The selected window or another frame will be used only if there
-is no other choice.
+is no other choice.  Optional argument BUFFER-OR-NAME and LABEL are
+as for `display-buffer'."
+  (display-buffer buffer-or-name 'same-frame-other-window label))
 
-Optional argument BUFFER-OR-NAME may be a buffer, a string \(a
-buffer name), or nil.  If BUFFER-OR-NAME is a string not naming
-an existent buffer, create a buffer with that name.  If
-BUFFER-OR-NAME is nil or omitted, display the current buffer.
-
-Return the window chosen to display BUFFER-OR-NAME or
-nil if no such window is found.  Do not change the selected
-window unless a new frame is created."
-  (display-buffer
-   buffer-or-name display-buffer-other-window-same-frame-specifiers))
-
-(defun pop-to-buffer (&optional buffer-or-name specifiers norecord)
+(defun pop-to-buffer (&optional buffer-or-name specifiers norecord label)
   "Display buffer specified by BUFFER-OR-NAME and select the window used.
 Optional argument BUFFER-OR-NAME may be a buffer, a string \(a
 buffer name), or nil.  If BUFFER-OR-NAME is a string not naming
@@ -5226,85 +5222,68 @@ specified by BUFFER-OR-NAME at the front of the buffer list and
 do not make the window displaying it the most recently selected
 one.
 
+The optional argument LABEL, if non-nil, is a symbol specifying the
+display purpose.  Applications should set this when the buffer
+shall be displayed in a special way but BUFFER-OR-NAME does not
+identify the buffer as special.  Buffers that typically fit into
+this category are those whose names have been derived from the
+name of the file they are visiting.
+
 Return the buffer specified by BUFFER-OR-NAME or nil if
 displaying the buffer failed.
 
 This uses the function `display-buffer' as a subroutine; see the
-documentations of `display-buffer', `display-buffer-names' and
-`display-buffer-regexps' for additional information."
+documentations of `display-buffer' and `display-buffer-alist' for
+additional information."
   (interactive "BPop to buffer:\nP")
   (let ((buffer (normalize-buffer-to-display buffer-or-name))
 	window)
     (set-buffer buffer)
-    (when (setq window (display-buffer buffer specifiers))
-      (display-buffer-select-window window norecord)
+    (when (setq window (display-buffer buffer specifiers label))
+      (select-window window norecord)
       buffer)))
 
-(defun pop-to-buffer-same-window (&optional buffer-or-name norecord) 
+(defsubst pop-to-buffer-same-window (&optional buffer-or-name norecord label)
   "Pop to buffer specified by BUFFER-OR-NAME in the selected window.
 Another window will be used only if the buffer can't be shown in
 the selected window, usually because it is dedicated to another
-buffer.  Select the window used for displaying the buffer and
-return the buffer specified by BUFFER-OR-NAME or nil if
-displaying the buffer failed.
-
-Optional arguments BUFFER-OR-NAME and NORECORD are as for
-`pop-to-buffer'."
+buffer.  Optional arguments BUFFER-OR-NAME, NORECORD and LABEL are
+as for `pop-to-buffer'."
   (interactive "BPop to buffer in selected window:\nP")
-  (pop-to-buffer buffer-or-name 'same-window norecord))
+  (pop-to-buffer buffer-or-name 'same-window norecord label))
 
-(defun pop-to-buffer-same-frame (&optional buffer-or-name norecord) 
+(defsubst pop-to-buffer-same-frame (&optional buffer-or-name norecord label) 
   "Pop to buffer specified by BUFFER-OR-NAME in a window on the selected frame.
 Another frame will be used only if there is no other choice.
-Select the window used for displaying the buffer and return the
-buffer specified by BUFFER-OR-NAME or nil if displaying the
-buffer failed.
-
-Optional arguments BUFFER-OR-NAME and NORECORD are as for
+Optional arguments BUFFER-OR-NAME, NORECORD and LABEL are as for
 `pop-to-buffer'."
   (interactive "BPop to buffer in another window:\nP")
-  (pop-to-buffer
-   buffer-or-name display-buffer-same-frame-specifiers norecord))
+  (pop-to-buffer buffer-or-name 'same-frame norecord label))
 
-(defun pop-to-buffer-other-window (&optional buffer-or-name norecord) 
+(defsubst pop-to-buffer-other-window (&optional buffer-or-name norecord label)
   "Pop to buffer specified by BUFFER-OR-NAME in another window.
 The selected window will be used only if there is no other
 choice.  Windows on the selected frame are preferred to windows
-on other frames.  Select the window used for displaying the
-buffer and return the buffer specified by BUFFER-OR-NAME or nil
-if displaying the buffer failed.
-
-Optional arguments BUFFER-OR-NAME and NORECORD are as for
-`pop-to-buffer'."
+on other frames.  Optional arguments BUFFER-OR-NAME, NORECORD and
+LABEL are as for `pop-to-buffer'."
   (interactive "BPop to buffer in another window:\nP")
-  (pop-to-buffer
-   buffer-or-name display-buffer-other-window-specifiers norecord))
+  (pop-to-buffer buffer-or-name 'other-window norecord))
 
-(defun pop-to-buffer-other-window-same-frame (&optional buffer-or-name norecord) 
+(defsubst pop-to-buffer-same-frame-other-window (&optional buffer-or-name norecord label) 
   "Pop to buffer specified by BUFFER-OR-NAME in another window on the selected frame.
 The selected window or another frame will be used only if there
-is no other choice.  Select the window used for displaying the
-buffer and return the buffer specified by BUFFER-OR-NAME or nil
-if displaying the buffer failed.
-
-Optional arguments BUFFER-OR-NAME and NORECORD are as for
-`pop-to-buffer'."
+is no other choice.  Optional arguments BUFFER-OR-NAME, NORECORD
+and LABEL are as for `pop-to-buffer'."
   (interactive "BPop to buffer in another window:\nP")
-  (pop-to-buffer
-   buffer-or-name display-buffer-other-window-same-frame-specifiers norecord))
+  (pop-to-buffer buffer-or-name 'same-frame-other-window norecord label))
 
-(defun pop-to-buffer-other-frame (&optional buffer-or-name norecord) 
+(defsubst pop-to-buffer-other-frame (&optional buffer-or-name norecord label)
   "Pop to buffer specified by BUFFER-OR-NAME on another frame.
 The selected frame will be used only if there's no other choice.
-Select the window used for displaying the buffer and return the
-buffer specified by BUFFER-OR-NAME or nil if displaying the
-buffer failed.
-
-Optional arguments BUFFER-OR-NAME and NORECORD are as for
+Optional arguments BUFFER-OR-NAME, NORECORD and LABEL are as for
 `pop-to-buffer'."
   (interactive "BPop to buffer on another frame:\nP")
-  (pop-to-buffer
-   buffer-or-name display-buffer-other-frame-specifiers norecord))
+  (pop-to-buffer buffer-or-name 'other-frame norecord label))
 
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to, prompting with PROMPT.
@@ -5360,8 +5339,8 @@ specified by BUFFER-OR-NAME at the front of the buffer list and
 do not make the window displaying it the most recently selected
 one.  Return the buffer switched to.
 
-This function is intended for interactive use.  Lisp functions
-should call `pop-to-buffer-same-window' instead."
+This function is intended for interactive use only.  Lisp
+functions should call `pop-to-buffer-same-window' instead."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer: ")))
   (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
@@ -5383,154 +5362,56 @@ should call `pop-to-buffer-same-window' instead."
 (defun switch-to-buffer-same-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in a window on the selected frame.
 Another frame will be used only if there is no other choice.
+Optional arguments BUFFER-OR-NAME and NORECORD have the same
+meaning as for `switch-to-buffer'.
 
-If called interactively, prompt for the buffer name using the
-minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
-determines whether to request confirmation before creating a new
-buffer.
-
-When called from Lisp, BUFFER-OR-NAME may be a buffer, a string
-\(a buffer name), or nil.  If BUFFER-OR-NAME is a string that
-does not identify an existing buffer, create a buffer with that
-name.  If BUFFER-OR-NAME is nil, switch to the buffer returned by
-`other-buffer'.
-
-Optional argument NORECORD non-nil means do not put the buffer
-specified by BUFFER-OR-NAME at the front of the buffer list and
-do not make the window displaying it the most recently selected
-one.  Return the buffer switched to.
-
-This uses the function `display-buffer' as a subroutine; see the
-documentations of `display-buffer', `display-buffer-names' and
-`display-buffer-regexps' for additional information.
-
-This function is intended for interactive use.  Lisp functions
-should call `pop-to-buffer-other-window' instead."
+This function is intended for interactive use only.  Lisp
+functions should call `pop-to-buffer-same-frame' instead."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other window: ")))
   (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
-    (pop-to-buffer
-     buffer display-buffer-same-frame-specifiers norecord)))
+    (pop-to-buffer buffer 'same-frame norecord)))
 
 (defun switch-to-buffer-other-window (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in another window.
 The selected window will be used only if there is no other
 choice.  Windows on the selected frame are preferred to windows
-on other frames.
+on other frames.  Optional arguments BUFFER-OR-NAME and NORECORD
+have the same meaning as for `switch-to-buffer'.
 
-If called interactively, prompt for the buffer name using the
-minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
-determines whether to request confirmation before creating a new
-buffer.
-
-When called from Lisp, BUFFER-OR-NAME may be a buffer, a string
-\(a buffer name), or nil.  If BUFFER-OR-NAME is a string that
-does not identify an existing buffer, create a buffer with that
-name.  If BUFFER-OR-NAME is nil, switch to the buffer returned by
-`other-buffer'.
-
-Optional argument NORECORD non-nil means do not put the buffer
-specified by BUFFER-OR-NAME at the front of the buffer list and
-do not make the window displaying it the most recently selected
-one.  Return the buffer switched to.
-
-This uses the function `display-buffer' as a subroutine; see the
-documentations of `display-buffer', `display-buffer-names' and
-`display-buffer-regexps' for additional information.
-
-This function is intended for interactive use.  Lisp functions
-should call `pop-to-buffer-other-window' instead."
+This function is intended for interactive use only.  Lisp
+functions should call `pop-to-buffer-other-window' instead."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other window: ")))
   (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
-    (pop-to-buffer
-     buffer display-buffer-other-window-specifiers norecord)))
+    (pop-to-buffer buffer 'other-window norecord)))
 
 (defun switch-to-buffer-other-window-same-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in another window on the selected frame.
 The selected window or another frame will be used only if there
-is no other choice.
+is no other choice.  Optional arguments BUFFER-OR-NAME and
+NORECORD have the same meaning as for `switch-to-buffer'.
 
-If called interactively, prompt for the buffer name using the
-minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
-determines whether to request confirmation before creating a new
-buffer.
-
-When called from Lisp, BUFFER-OR-NAME may be a buffer, a string
-\(a buffer name), or nil.  If BUFFER-OR-NAME is a string that
-does not identify an existing buffer, create a buffer with that
-name.  If BUFFER-OR-NAME is nil, switch to the buffer returned by
-`other-buffer'.
-
-Optional argument NORECORD non-nil means do not put the buffer
-specified by BUFFER-OR-NAME at the front of the buffer list and
-do not make the window displaying it the most recently selected
-one.  Return the buffer switched to.
-
-This uses the function `display-buffer' as a subroutine; see the
-documentations of `display-buffer', `display-buffer-names' and
-`display-buffer-regexps' for additional information.
-
-This function is intended for interactive use.  Lisp functions
-should call `pop-to-buffer-other-window' instead."
+This function is intended for interactive use only.  Lisp
+functions should call `pop-to-buffer-other-window-same-frame'
+instead."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other window: ")))
   (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
-    (pop-to-buffer
-     buffer display-buffer-other-window-same-frame-specifiers norecord)))
+    (pop-to-buffer buffer 'same-frame-other-window norecord)))
 
 (defun switch-to-buffer-other-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME on another frame.
-If called interactively, prompt for the buffer name using the
-minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
-determines whether to request confirmation before creating a new
-buffer.
+The same frame will be used only if there is no other choice.
+Optional arguments BUFFER-OR-NAME and NORECORD have the same
+meaning as for `switch-to-buffer'.
 
-When called from Lisp, BUFFER-OR-NAME may be a buffer, a string
-\(a buffer name), or nil.  If BUFFER-OR-NAME is a string that
-does not identify an existing buffer, create a buffer with that
-name.  If BUFFER-OR-NAME is nil, switch to the buffer returned by
-`other-buffer'.
-
-Optional argument NORECORD non-nil means do not put the buffer
-specified by BUFFER-OR-NAME at the front of the buffer list and
-do not make the window displaying it the most recently selected
-one.  Return the buffer switched to.
-
-This uses the function `display-buffer' as a subroutine; see the
-documentations of `display-buffer', `display-buffer-names' and
-`display-buffer-regexps' for additional information.
-
-This function is intended for interactive use.  Lisp functions
-should call `pop-to-buffer-other-frame' instead."
+This function is intended for interactive use only.  Lisp
+functions should call `pop-to-buffer-other-frame' instead."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
   (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
-    (pop-to-buffer buffer display-buffer-other-frame-specifiers norecord)))
-
-(defcustom display-buffer-function nil
-  "If non-nil, function to call to display a buffer.
-`display-buffer' calls this function with two arguments, the
-buffer to display and a list of buffer display specifiers, see
-`display-buffer-names'. 
-
-The function is supposed to choose or create a window, display
-the specified buffer in it, and return the window.  It is also
-responsible for giving the variable `display-buffer-window' and
-the `quit-restore' parameter of the window used a meaningful
-value.
-
-The function specified here overrides all specifiers of the
-variables `display-buffer-names' and `display-buffer-regexps' and
-any specifiers passed to `display-buffer'.
-
-If you call `display-buffer' within the body of the function,
-bind the value of `display-buffer-function' to nil around that
-call to avoid that the function recursively calls itself."
-  :type '(choice
-	  (const nil)
-	  (function :tag "Function"))
-  :group 'display-buffer)
+    (pop-to-buffer buffer 'other-frame norecord)))
 
 ;;; Obsolete definitions of `display-buffer' below.
 (defcustom special-display-buffer-names nil
@@ -5598,7 +5479,7 @@ See also `special-display-regexps'."
   :group 'frames)
 (make-obsolete-variable
  'special-display-buffer-names
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 ;;;###autoload
@@ -5672,33 +5553,27 @@ See also `special-display-buffer-names'."
   :group 'frames)
 (make-obsolete-variable
  'special-display-regexps
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defun special-display-p (buffer-name)
   "Return non-nil if a buffer named BUFFER-NAME gets a special frame.
-More precisely, return t if `special-display-buffer-names' or
-`special-display-regexps' contain a string entry equaling or
-matching BUFFER-NAME.  If `special-display-buffer-names' or
-`special-display-regexps' contain a list entry whose car equals
-or matches BUFFER-NAME, the return value is the cdr of that
-entry."
-  (let (tmp)
-    (cond
-     ((not (stringp buffer-name)))
-     ((member buffer-name special-display-buffer-names)
-      t)
-     ((setq tmp (assoc buffer-name special-display-buffer-names))
-      (cdr tmp))
-     ((catch 'found
-	(dolist (regexp special-display-regexps)
-	  (cond
-	   ((stringp regexp)
-	    (when (string-match-p regexp buffer-name)
-	      (throw 'found t)))
-	   ((and (consp regexp) (stringp (car regexp))
-		 (string-match-p (car regexp) buffer-name))
-	    (throw 'found (cdr regexp))))))))))
+More precisely, return t if `display-buffer-alist' would ask for
+displayin BUFFER-NAME in a special way."
+  (catch 'found
+    (dolist (entry display-buffer-alist)
+      (when (and (listp entry)
+		 (catch 'match
+		   (dolist (id (car entry))
+		     (when (consp id)
+		       (let ((type (car id))
+			     (value (cdr id)))
+			 (when (or (and (eq type 'name) (stringp value)
+					(equal value buffer-name))
+				   (and (eq type 'regexp) (stringp value)
+					(string-match-p value buffer-name)))
+			   (throw 'match t)))))))
+	(throw 'found (cdr entry))))))
 (make-obsolete 'special-display-p "pass argument to buffer display function instead." "24.1")
 
 (defcustom special-display-function 'special-display-popup-frame
@@ -5717,7 +5592,7 @@ A buffer is special when its name is either listed in
   :group 'frames)
 (make-obsolete-variable
  'special-display-function
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defcustom same-window-buffer-names nil
@@ -5736,7 +5611,7 @@ See also `same-window-regexps'."
  :group 'display-buffer)
 (make-obsolete-variable
  'same-window-buffer-names
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defcustom same-window-regexps nil
@@ -5755,30 +5630,29 @@ See also `same-window-buffer-names'."
   :group 'display-buffer)
 (make-obsolete-variable
  'same-window-regexps
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defun same-window-p (buffer-name)
   "Return non-nil if a buffer named BUFFER-NAME would be shown in the \"same\" window.
-This function returns non-nil if `display-buffer' or
-`pop-to-buffer' would show a buffer named BUFFER-NAME in the
-selected rather than \(as usual\) some other window.  See
-`same-window-buffer-names' and `same-window-regexps'."
-  (cond
-   ((not (stringp buffer-name)))
-   ;; The elements of `same-window-buffer-names' can be buffer
-   ;; names or cons cells whose cars are buffer names.
-   ((member buffer-name same-window-buffer-names))
-   ((assoc buffer-name same-window-buffer-names))
-   ((catch 'found
-      (dolist (regexp same-window-regexps)
-	;; The elements of `same-window-regexps' can be regexps
-	;; or cons cells whose cars are regexps.
-	(when (or (and (stringp regexp)
-		       (string-match regexp buffer-name))
-		  (and (consp regexp) (stringp (car regexp))
-		       (string-match-p (car regexp) buffer-name)))
-	  (throw 'found t)))))))
+This function returns non-nil if `display-buffer-alist' contains
+an entry stating that a buffer named BUFFER-NAME should be
+displayed in the selected rather than some other window."
+  (catch 'found
+    (dolist (entry display-buffer-alist)
+      (when (and (listp entry)
+		 (catch 'match
+		   (dolist (id (car entry))
+		     (when (consp id)
+		       (let ((type (car id))
+			     (value (cdr id)))
+			 (when (or (and (eq type 'name) (stringp value)
+					(equal value buffer-name))
+				   (and (eq type 'regexp) (stringp value)
+					(string-match-p value buffer-name)))
+			   (throw 'match t)))))))
+	(when (eq (cadr entry) 'same-window)
+	  (throw 'found t))))))
 (make-obsolete 'same-window-p "pass argument to buffer display function instead." "24.1")
 
 (defcustom pop-up-frames nil
@@ -5795,7 +5669,7 @@ Any other non-nil value means always make a separate frame."
   :group 'frames)
 (make-obsolete-variable
  'pop-up-frames
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defcustom display-buffer-reuse-frames nil
@@ -5808,7 +5682,7 @@ that frame."
   :group 'frames)
 (make-obsolete-variable
  'display-buffer-reuse-frames
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defcustom pop-up-windows t
@@ -5837,7 +5711,7 @@ window and, if that fails, the least recently used window."
   :group 'display-buffer)
 (make-obsolete-variable
  'pop-up-windows
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defcustom split-window-preferred-function 'split-window-sensibly
@@ -5867,7 +5741,7 @@ not want to split the selected window."
   :group 'display-buffer)
 (make-obsolete-variable
  'split-window-preferred-function
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defcustom split-height-threshold 80
@@ -5882,7 +5756,7 @@ split it vertically disregarding the value of this variable."
   :group 'display-buffer)
 (make-obsolete-variable
  'split-height-threshold
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defcustom split-width-threshold 160
@@ -5895,7 +5769,7 @@ is nil, `display-buffer' cannot split windows horizontally."
   :group 'display-buffer)
 (make-obsolete-variable
  'split-width-threshold
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defcustom even-window-heights t
@@ -5907,7 +5781,7 @@ window that appears above or below the selected window."
   :group 'display-buffer)
 (make-obsolete-variable
  'even-window-heights
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defvar display-buffer-mark-dedicated nil
@@ -5916,7 +5790,7 @@ The actual non-nil value of this variable will be copied to the
 `window-dedicated-p' flag.")
 (make-obsolete-variable
  'display-buffer-mark-dedicated
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defun set-window-text-height (window height)

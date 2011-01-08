@@ -116,7 +116,7 @@ affected by this variable."
   :group 'frames)
 (make-obsolete-variable
  'pop-up-frame-alist
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defcustom pop-up-frame-function
@@ -129,7 +129,7 @@ frame.  The default value calls `make-frame' with the argument
   :group 'frames)
 (make-obsolete-variable
  'pop-up-frame-function
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defcustom special-display-frame-alist
@@ -150,7 +150,7 @@ These supersede the values given in `default-frame-alist'."
   :group 'frames)
 (make-obsolete-variable
  'special-display-frame-alist
- "use `display-buffer-names', `display-buffer-regexps' or 2nd arg of `display-buffer' instead."
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
 (defun special-display-popup-frame (buffer &optional args)

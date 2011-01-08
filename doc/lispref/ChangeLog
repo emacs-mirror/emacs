@@ -1,3 +1,24 @@
+2011-01-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Windows): Rename sections "Frames and Windows"
+	to "Windows and Frames", "Compound Windows" to "Atomic Windows",
+	and "Window Groups" to "Side Windows".
+	(Splitting Windows, Deleting Windows): Rewrite sections dealing
+	with window parameters and ignore-window-parameters.  Describe
+	handling of atomic windows and side windows.
+	(Displaying Buffers): Describe method and other new display
+	specifiers, display-buffer-alist, and the new functions
+	display-buffer-reuse-window, display-buffer-pop-up-window,
+	display-buffer-pop-up-frame, and display-buffer-in-side-window.
+	Add description of specifier normalization
+	(Window Parameters): Describe functions windows-with-parameter
+	and window-with-parameter and the window parameters used by the
+	window handling routines.
+	(Composite Windows, Compound Windows, Window Groups): Sections
+	removed.
+	(Atomic Windows): New section on atomic windows.
+	(Side Windows): New section on side windows.
+
 2011-01-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* modes.texi (Emulating Mode Line): Fix last change.

@@ -1325,7 +1325,8 @@ Returns the compilation buffer created."
 	  ;; Pop up the compilation buffer.
 	  (setq outwin
 		(display-buffer
-		 outbuf `(same-frame (adjust-height . ,height)))))
+		 outbuf
+		 `(same-frame (pop-up-window-set-height . ,height)))))
 
 	(set-window-start outwin (point-min))
 	;; Position point as the user will see it.
@@ -2098,23 +2099,23 @@ and overlay is highlighted between MK and END-MK."
   (let* ((msg-buffer (marker-buffer msg))
 	 (mk-buffer (marker-buffer mk))
          (msg-buffer-window
-	    ;; Pop up a window, if possible reusing a window on a
-	    ;; visible or iconified frame.
-	    (let ((height (buffer-local-value
-			   'compilation-window-height msg-buffer)))
-	      (display-buffer
-	       msg-buffer `(same-frame (reuse-buffer-window . 0)
-				       (adjust-height . ,height)))))
-	 (mk-buffer-window
-	  (pop-to-buffer
-	   mk-buffer
-	   ;; Do not use msg-buffer-window.
-	   `(same-frame (not-this-window . ,msg-buffer-window)
-			(reuse-buffer-window . 0))))
+	  (let ((height (buffer-local-value
+			 'compilation-window-height msg-buffer)))
+	    (display-buffer
+	     msg-buffer
+	     `(same-frame (pop-up-window-set-height . ,height)))))
 	 (highlight-regexp (with-current-buffer msg-buffer
 			     ;; also do this while we change buffer
 			     (compilation-set-window msg-buffer-window msg)
-			     compilation-highlight-regexp)))
+			     compilation-highlight-regexp))
+	 (mk-buffer (marker-buffer mk))
+	 (mk-buffer-window
+	  ;; Temporarily select msg-buffer-window to make sure it's not
+	  ;; reused by `display-buffer'.
+	  (with-selected-window msg-buffer-window
+	    (display-buffer mk-buffer 'same-frame-other-window))))
+    ;; Now select mk-buffer-window.
+    (select-window mk-buffer-window)
     (unless (eq (goto-char mk) (point))
       ;; If narrowing gets in the way of going to the right place, widen.
       (widen)

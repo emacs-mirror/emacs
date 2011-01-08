@@ -6367,6 +6367,5 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 (define-key ctl-x-5-map "f" 'find-file-other-frame)
 (define-key ctl-x-5-map "\C-f" 'find-file-other-frame)
 (define-key ctl-x-5-map "r" 'find-file-read-only-other-frame)
-(define-key ctl-x-5-map "\C-o" 'display-buffer-other-frame)
 
 ;;; files.el ends here

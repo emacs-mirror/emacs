@@ -3423,7 +3423,7 @@ The top-most line is line 0."
   (term-display-buffer-line (find-file-noselect true-file) line))
 
 (defun term-display-buffer-line (buffer line)
-  (let* ((window (display-buffer buffer t))
+  (let* ((window (display-buffer-other-window buffer))
 	 (pos))
     (with-current-buffer buffer
       (save-restriction

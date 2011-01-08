@@ -578,7 +578,7 @@ in the selected frame."
   "Make the other window select this line's buffer.
 The current window remains selected."
   (interactive)
-  (display-buffer (Buffer-menu-buffer t) t))
+  (display-buffer-same-frame-other-window (Buffer-menu-buffer t)))
 
 (defun Buffer-menu-2-window ()
   "Select this line's buffer, with previous buffer in second window."
@@ -587,7 +587,7 @@ The current window remains selected."
 	(menu (current-buffer)))
     (delete-other-windows)
     (display-buffer-same-window (other-buffer))
-    (pop-to-buffer buff t)
+    (pop-to-buffer-same-frame-other-window buff)
     (bury-buffer menu)))
 
 (defun Buffer-menu-toggle-read-only ()
