@@ -1,7 +1,7 @@
 Known Problems with GNU Emacs
 
 Copyright (C) 1987, 1988, 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
   Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
@@ -102,7 +102,7 @@ This can be another symptom of stale *.elc files in your load-path.
 The following command will print any duplicate Lisp files that are
 present in load-path:
 
-    emacs -q -batch -f list-load-path-shadows
+    emacs -batch -f list-load-path-shadows
 
 If this command prints any file names, some of these files are stale,
 and should be deleted or their directories removed from your
@@ -3244,5 +3244,3 @@ Local variables:
 mode: outline
 paragraph-separate: "[  ]*$"
 end:
-
-arch-tag: 49fc0d95-88cb-4715-b21c-f27fb5a4764a
