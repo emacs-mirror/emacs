@@ -1,7 +1,7 @@
 2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
 
-	* files.texi (Directory Names): Explain why directory-abbrev-alist
-	elements should be anchored (Bug#7777).
+	* files.texi (Directory Names): Move directory-abbrev-alist doc to
+	Emacs manual.
 
 2011-01-07  Eli Zaretskii  <eliz@gnu.org>
 
