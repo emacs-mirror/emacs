@@ -1,3 +1,9 @@
+2011-01-08  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* buff-menu.el (Buffer-menu-buffer-list): New var.
+	(Buffer-menu-revert-function, list-buffers-noselect): Use it, so a
+	restricted buffer list is not lost on revert (Bug#7749).
+
 2011-01-08  Eric Hanchrow  <eric.hanchrow@gmail.com>
 
 	* net/ldap.el (ldap-search-internal): Discard stderr output.
