@@ -50,35 +50,11 @@ Lisp_Object Vfloat_output_format, Qfloat_output_format;
 #if STDC_HEADERS
 #include <float.h>
 #endif
+#include <ftoastr.h>
 
 /* Default to values appropriate for IEEE floating point.  */
-#ifndef FLT_RADIX
-#define FLT_RADIX 2
-#endif
-#ifndef DBL_MANT_DIG
-#define DBL_MANT_DIG 53
-#endif
 #ifndef DBL_DIG
 #define DBL_DIG 15
-#endif
-#ifndef DBL_MIN
-#define DBL_MIN 2.2250738585072014e-308
-#endif
-
-#ifdef DBL_MIN_REPLACEMENT
-#undef DBL_MIN
-#define DBL_MIN DBL_MIN_REPLACEMENT
-#endif
-
-/* Define DOUBLE_DIGITS_BOUND, an upper bound on the number of decimal digits
-   needed to express a float without losing information.
-   The general-case formula is valid for the usual case, IEEE floating point,
-   but many compilers can't optimize the formula to an integer constant,
-   so make a special case for it.  */
-#if FLT_RADIX == 2 && DBL_MANT_DIG == 53
-#define DOUBLE_DIGITS_BOUND 17 /* IEEE floating point */
-#else
-#define DOUBLE_DIGITS_BOUND ((int) ceil (log10 (pow (FLT_RADIX, DBL_MANT_DIG))))
 #endif
 
 /* Avoid actual stack overflow in print.  */
@@ -1125,19 +1101,8 @@ float_to_string (unsigned char *buf, double data)
     {
       /* Generate the fewest number of digits that represent the
 	 floating point value without losing information.
-	 The following method is simple but a bit slow.
-	 For ideas about speeding things up, please see:
-
-	 Guy L Steele Jr & Jon L White, How to print floating-point numbers
-	 accurately.  SIGPLAN notices 25, 6 (June 1990), 112-126.
-
-	 Robert G Burger & R Kent Dybvig, Printing floating point numbers
-	 quickly and accurately, SIGPLAN notices 31, 5 (May 1996), 108-116.  */
-
-      width = fabs (data) < DBL_MIN ? 1 : DBL_DIG;
-      do
-	sprintf (buf, "%.*g", width, data);
-      while (width++ < DOUBLE_DIGITS_BOUND && atof (buf) != data);
+         The 350 is by convention, e.g., this file's pigbuf.  */
+      dtoastr (buf, 350, 0, 0, data);
     }
   else			/* oink oink */
     {

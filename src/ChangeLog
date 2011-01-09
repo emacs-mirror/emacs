@@ -1,3 +1,12 @@
+2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use gnulib's ftoastr module.
+	* print.c: Include ftoastr.h.
+	(FLT_RADIX, DBL_MANT_DIG, DBL_DIG, DBL_MIN, DOUBLE_DIGITS_BOUND):
+	Remove; no longer needed.
+	(float_to_string): Use dtoastr rather than rolling our own code,
+	which had an off-by-one bug on non-IEEE hosts.
+
 2011-01-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Automate syncing from gnulib.

@@ -1,3 +1,8 @@
+2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use gnulib ftoastr module.
+	* Makefile.in (GNULIB_MODULES): Add ftoastr.  Remove dummy.
+
 2011-01-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Regenerate.
