@@ -2771,8 +2771,8 @@ name, or the marker and a count of marked files."
 
 (defun dired-pop-to-buffer (buf)
   "Pop up buffer BUF in a way suitable for Dired.
-Curently this means just above the echo area."
-  (pop-to-buffer (get-buffer-create buf) '(same-frame (split-root . below)))
+Currently this means in another window on the same frame."
+  (pop-to-buffer-same-frame-other-window (get-buffer-create buf))
   ;; If dired-shrink-to-fit is t, make its window fit its contents.
   (when dired-shrink-to-fit
     ;; Try to not delete window when we want to display less than
@@ -3553,7 +3553,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "db61da0d98435f468e41e92c12f99d3b")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "2fbc81b9fecc09f713ec022d1f0365fa")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\

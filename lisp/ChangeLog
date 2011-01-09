@@ -1,3 +1,8 @@
+2011-01-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-pop-to-buffer): Call
+	pop-to-buffer-same-frame-other-window.
+
 2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (read-char-choice): Use read-key.
