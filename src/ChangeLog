@@ -1,5 +1,7 @@
 2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* mktime.c: Remove; moving to ../lib.
+
 	Use gnulib's mktime module.
 	* deps.mk (mktime.o): Remove rule.
 
