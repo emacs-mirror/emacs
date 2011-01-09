@@ -1,3 +1,9 @@
+2011-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/grep.el (grep-compute-defaults): Quote the program
+	file name after the pipe symbol in Grep templates.  (Bug#6784)
+	* jka-compr.el (jka-compr-partial-uncompress): Likewise.
+
 2011-01-08  Lennart Borgman  <lennart.borgman@gmail.com>
 
 	* buff-menu.el (Buffer-menu-buffer-list): New var.
