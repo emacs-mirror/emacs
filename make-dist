@@ -288,6 +288,7 @@ ln config.bat make-dist update-subdirs vpath.sed .dir-locals.el ${tempdir}
 ln mkinstalldirs config.sub config.guess install-sh ${tempdir}
 ln aclocal.m4 ${tempdir}
 ln compile depcomp missing ${tempdir}
+ln arg-nonnull.h c++defs.h warn-on-use.h ${tempdir}
 
 echo "Creating subdirectories"
 for subdir in site-lisp \

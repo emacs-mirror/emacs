@@ -330,7 +330,7 @@ $(gnulib_srcdir):
 # Update modules from gnulib, for maintainers, who should have it in
 # $(gnulib_srcdir) (relative to $(srcdir) and should have build tools
 # as per $(gnulib_srcdir)/DEPENDENCIES.
-GNULIB_MODULES = ftoastr
+GNULIB_MODULES = ftoastr mktime
 GNULIB_TOOL_FLAGS = \
  --import --no-changelog --no-vc-files --makefile-name=gnulib.mk
 sync-from-gnulib: $(gnulib_srcdir)

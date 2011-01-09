@@ -1,6 +1,18 @@
 2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Use gnulib ftoastr module.
+	Use gnulib's mktime module.
+	* Makefile.in (GNULIB_MODULES): Add mktime.
+	* configure.in: Remove code no longer needed, as gnulib now does it.
+	(AC_CHECK_FUNCS): Remove mktime.
+	(AC_FUNC_MKTIME, BROKEN_MKTIME): Remove.
+	(__restrict): Remove, as this now gets in the way of the C99
+	support for 'restrict' pulled in by the gnulib mktime module.
+	Code should now use 'restrict' and not '__restrict".
+	(mktime): Remove.
+	* make-dist: Put gnulib-generated files arg-nonnull.h, c++defs.h,
+	and warn-on-use.h into the distribution.
+	
+	Use gnulib's ftoastr module.
 	* Makefile.in (GNULIB_MODULES): Add ftoastr.  Remove dummy.
 
 2011-01-08  Paul Eggert  <eggert@cs.ucla.edu>

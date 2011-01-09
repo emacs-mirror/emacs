@@ -1,5 +1,8 @@
 2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use gnulib's mktime module.
+	* deps.mk (mktime.o): Remove rule.
+
 	Use gnulib's ftoastr module.
 	* print.c: Include ftoastr.h.
 	(FLT_RADIX, DBL_MANT_DIG, DBL_DIG, DBL_MIN, DOUBLE_DIGITS_BOUND):
