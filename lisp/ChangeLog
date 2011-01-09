@@ -1,5 +1,12 @@
 2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
+	* custom.el (custom-safe-themes): Rename from
+	custom-safe-theme-files.  Add :risky tag.
+	(load-theme, custom-theme-load-confirm): Save sha1 hashes to
+	custom-safe-themes, not filenames.  Suggested by Stefan Monnier.
+
+2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
 	* tool-bar.el (tool-bar-setup): Remove Help button.  Remove label
 	from Search and add a label to Undo.
 
