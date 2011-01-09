@@ -26,8 +26,19 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_LIBOBJS$])dnl a variable
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
   AC_REQUIRE([AC_PROG_RANLIB])
+  # Code from module arg-nonnull:
+  # Code from module c++defs:
+  # Code from module extensions:
+  AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   # Code from module ftoastr:
+  # Code from module include_next:
   # Code from module intprops:
+  # Code from module mktime:
+  # Code from module multiarch:
+  # Code from module stddef:
+  # Code from module time:
+  # Code from module time_r:
+  # Code from module warn-on-use:
 ])
 
 # This macro should be invoked from ./configure.in, in the section
@@ -46,9 +57,26 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([gl_LIBSOURCES_DIR], [])
   gl_COMMON
   gl_source_base='lib'
+  # Code from module arg-nonnull:
+  # Code from module c++defs:
+  # Code from module extensions:
   # Code from module ftoastr:
   AC_REQUIRE([gl_C99_STRTOLD])
+  # Code from module include_next:
   # Code from module intprops:
+  # Code from module mktime:
+  gl_FUNC_MKTIME
+  gl_TIME_MODULE_INDICATOR([mktime])
+  # Code from module multiarch:
+  gl_MULTIARCH
+  # Code from module stddef:
+  gl_STDDEF_H
+  # Code from module time:
+  gl_HEADER_TIME_H
+  # Code from module time_r:
+  gl_TIME_R
+  gl_TIME_MODULE_INDICATOR([time_r])
+  # Code from module warn-on-use:
   # End of code from modules
   m4_ifval(gl_LIBSOURCES_LIST, [
     m4_syscmd([test ! -d ]m4_defn([gl_LIBSOURCES_DIR])[ ||
@@ -189,12 +217,29 @@ AC_DEFUN([gltests_LIBSOURCES], [
 # This macro records the list of files which have been installed by
 # gnulib-tool and may be removed by future gnulib-tool invocations.
 AC_DEFUN([gl_FILE_LIST], [
+  build-aux/arg-nonnull.h
+  build-aux/c++defs.h
+  build-aux/warn-on-use.h
   lib/dtoastr.c
   lib/ftoastr.c
   lib/ftoastr.h
   lib/intprops.h
   lib/ldtoastr.c
+  lib/mktime-internal.h
+  lib/mktime.c
+  lib/stddef.in.h
+  lib/time.in.h
+  lib/time_r.c
   m4/00gnulib.m4
   m4/c-strtod.m4
+  m4/extensions.m4
   m4/gnulib-common.m4
+  m4/include_next.m4
+  m4/mktime.m4
+  m4/multiarch.m4
+  m4/stddef_h.m4
+  m4/time_h.m4
+  m4/time_r.m4
+  m4/warn-on-use.m4
+  m4/wchar_t.m4
 ])

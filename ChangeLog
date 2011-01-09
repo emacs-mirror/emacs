@@ -1,5 +1,18 @@
 2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Regenerate.
+	* arg-nonnull.h, c++defs.h, lib/mktime-internal.h, lib/mktime.c:
+	* lib/stddef.in.h, lib/time.h, lib/time.in.h, lib/time_r.c:
+	* m4/extensions.m4, m4/include_next.m4, m4/mktime.m4:
+	* m4/multiarch.m4, m4/stddef_h.m4, m4/time_h.m4, m4/time_r.m4:
+	* m4/extensions.m4, m4/include_next.m4, m4/mktime.m4, m4/multiarch.m4:
+	* m4/stddef_h.m4, m4/time_h.m4, m4/time_r.m4, m4/warn-on-use.m4:
+	* m4/wchar_t.m4, warn-on-use.h:
+	New files, copied from gnulib by gnulib-tool.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk:
+	* m4/gnulib-cache.m4, m4/gnulib-comp.m4, src/config.in:
+	Regenerate.
+
 	Use gnulib's mktime module.
 	* Makefile.in (GNULIB_MODULES): Add mktime.
 	* configure.in: Remove code no longer needed, as gnulib now does it.
@@ -11,6 +24,15 @@
 	(mktime): Remove.
 	* make-dist: Put gnulib-generated files arg-nonnull.h, c++defs.h,
 	and warn-on-use.h into the distribution.
+
+	Regenerate.
+	* lib/dtoastr.c, lib/ftoastr.c, lib/ftoastr.h, lib/intprops.h:
+	* lib/ldtoastr.c, m4/c-strtod.m4:
+	New files, copied from gnulib by gnulib-tool.
+	* lib/dummy.c: Remove.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk:
+	* m4/gnulib-cache.m4, m4/gnulib-comp.m4, src/config.in:
+	Regenerate.
 	
 	Use gnulib's ftoastr module.
 	* Makefile.in (GNULIB_MODULES): Add ftoastr.  Remove dummy.
