@@ -1,5 +1,11 @@
 2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* .bzrignore: Add .h files that are host-dependent.
+	Add lib/.deps/, lib/arg-nonnull.h, lib/c++defs.h, lib/getopt.h,
+	lib/time.h, lib/unistd.h, lib/warn-on-use.h.  These are
+	host-dependent and are built as part of an ordinary 'make', and
+	should not be checked in.
+
 	* lib/Makefile.in: Regenerate.
 	* lib/COPYING: New file, a copy of COPYING.
 	
