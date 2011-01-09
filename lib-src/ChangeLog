@@ -1,3 +1,15 @@
+2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove unused files.
+	* getopt.c, getopt1.c, getopt_.h, getopt_int.h: Remove.
+	These files are now in ../lib, copied from gnulib.
+
+	Use gnulib's getopt-gnu module.
+	* Makefile.in (mostlyclean): Do not clean getopt.h or getopt.h-t,
+	as these are now done by gnulib.
+	(GETOPT_H, getopt.h, GETOPTOBJS, GETOPTDEPS, getopt.o, getopt1.o):
+	Remove; now done by gnulib.  All uses removed.
+
 2011-01-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Automate syncing from gnulib.

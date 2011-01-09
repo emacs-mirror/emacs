@@ -1,5 +1,13 @@
 2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Regenerate.
+	* lib/getopt.c, lib/getopt.in.h, lib/getopt1.c, lib/getopt_int.h:
+	* lib/gettext.h, lib/unistd.in.h, m4/unistd_h.m4:
+	New files, copied from gnulib by gnulib-tool.
+	* aclocal.m4, configure, lib/Makefile.in, m4/getopt.m4:
+	* m4/gnulib-cache.m4, m4/gnulib-comp.m4, src/config.in:
+	Regenerate.
+	
 	Use gnulib's getopt-gnu module.
 	* Makefile.in (GNULIB_MODULES): Add getopt-gnu.
 	(AUTOCONF_INPUTS): Remove getopt.m4; aclocal.m4 is a good-enough

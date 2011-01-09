@@ -31,6 +31,9 @@ AC_DEFUN([gl_EARLY],
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   # Code from module ftoastr:
+  # Code from module getopt-gnu:
+  # Code from module getopt-posix:
+  # Code from module gettext-h:
   # Code from module include_next:
   # Code from module intprops:
   # Code from module mktime:
@@ -38,6 +41,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module stddef:
   # Code from module time:
   # Code from module time_r:
+  # Code from module unistd:
   # Code from module warn-on-use:
 ])
 
@@ -62,6 +66,14 @@ AC_DEFUN([gl_INIT],
   # Code from module extensions:
   # Code from module ftoastr:
   AC_REQUIRE([gl_C99_STRTOLD])
+  # Code from module getopt-gnu:
+  gl_FUNC_GETOPT_GNU
+  gl_MODULE_INDICATOR_FOR_TESTS([getopt-gnu])
+  # Code from module getopt-posix:
+  gl_FUNC_GETOPT_POSIX
+  # Code from module gettext-h:
+  AC_SUBST([LIBINTL])
+  AC_SUBST([LTLIBINTL])
   # Code from module include_next:
   # Code from module intprops:
   # Code from module mktime:
@@ -76,6 +88,8 @@ AC_DEFUN([gl_INIT],
   # Code from module time_r:
   gl_TIME_R
   gl_TIME_MODULE_INDICATOR([time_r])
+  # Code from module unistd:
+  gl_UNISTD_H
   # Code from module warn-on-use:
   # End of code from modules
   m4_ifval(gl_LIBSOURCES_LIST, [
@@ -223,6 +237,11 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/dtoastr.c
   lib/ftoastr.c
   lib/ftoastr.h
+  lib/getopt.c
+  lib/getopt.in.h
+  lib/getopt1.c
+  lib/getopt_int.h
+  lib/gettext.h
   lib/intprops.h
   lib/ldtoastr.c
   lib/mktime-internal.h
@@ -230,9 +249,11 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stddef.in.h
   lib/time.in.h
   lib/time_r.c
+  lib/unistd.in.h
   m4/00gnulib.m4
   m4/c-strtod.m4
   m4/extensions.m4
+  m4/getopt.m4
   m4/gnulib-common.m4
   m4/include_next.m4
   m4/mktime.m4
@@ -240,6 +261,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/stddef_h.m4
   m4/time_h.m4
   m4/time_r.m4
+  m4/unistd_h.m4
   m4/warn-on-use.m4
   m4/wchar_t.m4
 ])
