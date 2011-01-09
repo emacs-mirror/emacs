@@ -1,3 +1,14 @@
+2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Update copyright notes to match recent gnulib-related changes.
+	* notes/copyright: Add aclocal.m4, m4/*.m4, lib/Makefile.in,
+	arg-nonnull.h, c++defs.h, compile, depcomp, missing,
+	warn-on-use.h, lib/*.[ch], lib/gnulib.mk.  Remove src/mktime.c,
+	lib-src/getopt1.c, lib-src/getopt_int.h (files are now in lib and
+	are subsumed by the lib/*.[ch] rule).  Remove m4/getopt.m4 (now
+	subsumed by m4/*.m4 rule).  config.guess, config.sub, and
+	doc/man/texinfo.tex are now copied in from gnulib.
+
 2011-01-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* notes/copyright: There's only one install-sh, not two, so fix a
