@@ -26,7 +26,8 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_LIBOBJS$])dnl a variable
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
   AC_REQUIRE([AC_PROG_RANLIB])
-  # Code from module dummy:
+  # Code from module ftoastr:
+  # Code from module intprops:
 ])
 
 # This macro should be invoked from ./configure.in, in the section
@@ -45,7 +46,9 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([gl_LIBSOURCES_DIR], [])
   gl_COMMON
   gl_source_base='lib'
-  # Code from module dummy:
+  # Code from module ftoastr:
+  AC_REQUIRE([gl_C99_STRTOLD])
+  # Code from module intprops:
   # End of code from modules
   m4_ifval(gl_LIBSOURCES_LIST, [
     m4_syscmd([test ! -d ]m4_defn([gl_LIBSOURCES_DIR])[ ||
@@ -186,7 +189,12 @@ AC_DEFUN([gltests_LIBSOURCES], [
 # This macro records the list of files which have been installed by
 # gnulib-tool and may be removed by future gnulib-tool invocations.
 AC_DEFUN([gl_FILE_LIST], [
-  lib/dummy.c
+  lib/dtoastr.c
+  lib/ftoastr.c
+  lib/ftoastr.h
+  lib/intprops.h
+  lib/ldtoastr.c
   m4/00gnulib.m4
+  m4/c-strtod.m4
   m4/gnulib-common.m4
 ])

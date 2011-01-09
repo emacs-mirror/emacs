@@ -984,4 +984,7 @@ AC_SUBST([am__tar])
 AC_SUBST([am__untar])
 ]) # _AM_PROG_TAR
 
+m4_include([m4/00gnulib.m4])
+m4_include([m4/c-strtod.m4])
+m4_include([m4/gnulib-common.m4])
 m4_include([m4/gnulib-comp.m4])

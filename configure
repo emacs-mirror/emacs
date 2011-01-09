@@ -2943,6 +2943,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MKDIR_P" >&5
 $as_echo "$MKDIR_P" >&6; }
 
+
 mkdir_p="$MKDIR_P"
 case $mkdir_p in
   [\\/$]* | ?:[\\/]*) ;;
@@ -5183,7 +5184,8 @@ fi
 
 
 
-  # Code from module dummy:
+  # Code from module ftoastr:
+  # Code from module intprops:
 
 
 # On Suns, sometimes $CPP names a directory.
@@ -13737,6 +13739,57 @@ fi
 
 # Configure gnulib.
 
+
+
+
+          LIBC_FATAL_STDERR_=1
+  export LIBC_FATAL_STDERR_
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether strtold conforms to C99" >&5
+$as_echo_n "checking whether strtold conforms to C99... " >&6; }
+if ${gl_cv_func_c99_strtold+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* On HP-UX before 11.23, strtold returns a struct instead of
+                long double.  Reject implementations like that, by requiring
+                compatibility with the C99 prototype.  */
+             #include <stdlib.h>
+             static long double (*p) (char const *, char **) = strtold;
+             static long double
+             test (char const *nptr, char **endptr)
+             {
+               long double r;
+               r = strtold (nptr, endptr);
+               return r;
+             }
+int
+main ()
+{
+return test ("1.0", NULL) != 1 || p ("1.0", NULL) != 1;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  gl_cv_func_c99_strtold=yes
+else
+  gl_cv_func_c99_strtold=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_c99_strtold" >&5
+$as_echo "$gl_cv_func_c99_strtold" >&6; }
+  if test $gl_cv_func_c99_strtold = yes; then
+
+$as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
+
+  fi
+
+
    if false; then
   GL_COND_LIBTOOL_TRUE=
   GL_COND_LIBTOOL_FALSE='#'
@@ -13754,9 +13807,14 @@ fi
 
 
 
-  gl_COMMON
+
+
+
+
   gl_source_base='lib'
-  # Code from module dummy:
+  # Code from module ftoastr:
+
+  # Code from module intprops:
   # End of code from modules
 
 
@@ -13772,7 +13830,10 @@ fi
 
 
 
-  gl_COMMON
+
+
+
+
   gl_source_base='tests'
   gltests_WITNESS=IN_`echo "${PACKAGE-$PACKAGE_TARNAME}" | LC_ALL=C tr abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ | LC_ALL=C sed -e 's/[^A-Z0-9_]/_/g'`_GNULIB_TESTS
 
