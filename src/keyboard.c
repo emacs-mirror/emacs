@@ -58,10 +58,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "syssignal.h"
 
 #include <sys/types.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
 #include <fcntl.h>
 
 /* This is to get the definitions of the XK_ symbols.  */

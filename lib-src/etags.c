@@ -172,9 +172,8 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # endif
 #endif /* !WINDOWSNT */
 
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#else
+#include <unistd.h>
+#ifndef HAVE_UNISTD_H
 # if defined (HAVE_GETCWD) && !defined (WINDOWSNT)
     extern char *getcwd (char *buf, size_t size);
 # endif

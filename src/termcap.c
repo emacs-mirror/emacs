@@ -22,9 +22,7 @@ Boston, MA 02110-1301, USA.  */
 #include <setjmp.h>
 #include <sys/file.h>
 #include <fcntl.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include "lisp.h"
 

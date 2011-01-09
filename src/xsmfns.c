@@ -26,10 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
 #include <sys/param.h>
 #include <stdio.h>
 #include <setjmp.h>

@@ -19,9 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef HAVE_GETPAGESIZE
 
-# ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-# endif
+# include <unistd.h>
 
 # ifdef _SC_PAGESIZE
 #  define getpagesize() sysconf(_SC_PAGESIZE)

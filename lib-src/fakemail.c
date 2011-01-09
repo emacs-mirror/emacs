@@ -62,9 +62,7 @@ main ()
 #include <stdlib.h>
 
 /* This is to declare cuserid.  */
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 /* Type definitions */
 

@@ -196,9 +196,7 @@
    even if config.h says that we can.  */
 # undef REL_ALLOC
 
-# ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-# endif
+# include <unistd.h>
 
 /* When used in Emacs's lib-src, we need xmalloc and xrealloc. */
 

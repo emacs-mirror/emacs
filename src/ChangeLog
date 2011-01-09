@@ -1,5 +1,15 @@
 2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Include <unistd.h> unilaterally.
+	* alloc.c, atimer.c, buffer.c, callproc.c, dired.c, dispnew.c, doc.c:
+	* doprnt.c, editfns.c, emacs.c, fileio.c, filelock.c, fns.c:
+	* getloadavg.c, getpagesize.h, gmalloc.c, image.c, keyboard.c:
+	* lread.c, process.c, process.h, ralloc.c, regex.c, sysdep.c:
+	* systty.h, term.c, termcap.c, xfns.c, xrdb.c, xselect.c, xsmfns.c:
+	* xterm.c:
+	Include <unistd.h> without worrying about HAVE_UNISTD_H, since
+	unistd.h is always present now, possibly supplied by gnulib.
+
 	* mktime.c: Remove; moving to ../lib.
 
 	Use gnulib's mktime module.

@@ -26,10 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "blockinput.h"
 #include "atimer.h"
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>

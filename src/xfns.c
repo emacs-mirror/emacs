@@ -24,10 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <setjmp.h>
 #include <ctype.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 /* This makes the fields of a Display accessible, in Xlib header files.  */
 

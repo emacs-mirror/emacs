@@ -1,5 +1,11 @@
 2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Include <unistd.h> unilaterally.
+	* emacsclient.c, etags.c, fakemail.c, make-docfile.c, movemail.c:
+	* pop.c, test-distrib.c, update-game-score.c:
+	Include <unistd.h> without worrying about HAVE_UNISTD_H, since
+	unistd.h is always present now, possibly supplied by gnulib.
+
 	Include <getopt.h> not "getopt.h".
 	* ebrowse.c, emacsclient.c: Include <getopt.h>, not "getopt.h".
 	Since getopt.h is no longer in this directory, there's no point

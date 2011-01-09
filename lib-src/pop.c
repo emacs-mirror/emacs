@@ -68,9 +68,7 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 #include <string.h>
 #define index strchr
 #endif
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef KERBEROS
 # ifdef HAVE_KRB5_H

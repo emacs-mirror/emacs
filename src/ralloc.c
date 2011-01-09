@@ -30,9 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"		/* Needed for VALBITS.  */
 #include "blockinput.h"
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 typedef POINTER_TYPE *POINTER;
 typedef size_t SIZE;
