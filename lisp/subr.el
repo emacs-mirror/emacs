@@ -1985,7 +1985,7 @@ keyboard-quit events while waiting for a valid input."
       (unless (get-text-property 0 'face prompt)
 	(setq prompt (propertize prompt 'face 'minibuffer-prompt)))
       (setq char (let ((inhibit-quit inhibit-keyboard-quit))
-		   (read-event prompt)))
+		   (read-key prompt)))
       (cond
        ((not (numberp char)))
        ((memq char chars)

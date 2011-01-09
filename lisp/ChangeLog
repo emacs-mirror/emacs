@@ -1,5 +1,7 @@
 2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
+	* subr.el (read-char-choice): Use read-key.
+
 	* custom.el (custom-safe-themes): Rename from
 	custom-safe-theme-files.  Add :risky tag.
 	(load-theme, custom-theme-load-confirm): Save sha1 hashes to
