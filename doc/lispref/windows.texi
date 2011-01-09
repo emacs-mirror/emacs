@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/windows
@@ -22,10 +22,10 @@ windows.
 * Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each live window displays the contents of a buffer.
-* Displaying Buffers::	    How to choose a window for displaying a buffer.
+* Displaying Buffers::      How to choose a window for displaying a buffer.
 * Switching Buffers::       Higher-level functions for switching to a buffer
                               in some window.
-* Dedicated Windows::	    How to avoid displaying another buffer in
+* Dedicated Windows::       How to avoid displaying another buffer in
                               a specific window.
 * Window Point::            Each window has its own location of point.
 * Window Start and End::    Buffer positions indicating which text is
@@ -43,6 +43,7 @@ windows.
                               redisplay going past a certain point,
                               or window configuration changes.
 @end menu
+
 
 @node Basic Windows
 @section Basic Concepts of Emacs Windows
@@ -331,6 +332,7 @@ The @var{edges} element is a list @code{(@var{left}@var{ top}@var{
 right}@var{ bottom})} similar to the value returned by
 @code{window-edges}, see @ref{Coordinates and Windows}.
 @end defun
+
 
 @node Window Sizes
 @section Window Sizes
@@ -853,6 +855,7 @@ This function minimizes @var{window}.  More precisely, this makes
 frame.  @var{window} can be any window and defaults to the selected one.
 @end deffn
 
+
 @node Splitting Windows
 @section Splitting Windows
 @cindex splitting windows
@@ -1068,6 +1071,7 @@ columns.  If @var{size} is negative, the rightmost window gets
 selected.
 @end deffn
 
+
 @node Deleting Windows
 @section Deleting Windows
 @cindex deleting windows
@@ -1168,6 +1172,7 @@ means operate on that frame.
 @end itemize
 @end deffn
 
+
 @node Selecting Windows
 @section Selecting Windows
 @cindex selecting a window
@@ -1264,6 +1269,7 @@ Optional argument @var{norecord} non-@code{nil} means to neither change
 the list of most recently selected windows (@pxref{Selecting Windows})
 nor the buffer list (@pxref{The Buffer List}).
 @end defun
+
 
 @node Cyclic Window Ordering
 @section Cyclic Ordering of Windows
@@ -1470,6 +1476,7 @@ The optional arguments @var{minibuf} and @var{all-frames} specify the
 set of windows to investigate.  See the description of
 @code{next-window} for details.
 @end defun
+
 
 @node Buffers and Windows
 @section Buffers and Windows
@@ -1744,7 +1751,7 @@ by the variable @code{display-buffer-alist}.  If that variable is nil
 too, default specifiers are used.
 
 The optional third argument @var{label}, if non-@code{nil}, is a symbol
-specifiying the buffer display label.  Applications should set this when
+specifying the buffer display label.  Applications should set this when
 the buffer shall be displayed in some special way but
 @var{buffer-or-name} alone does not identify the buffer as special.
 Typical buffers that fit into this category are those whose names are
@@ -2360,24 +2367,24 @@ following the central window.
 
 The following functions are simple interfaces to @code{display-buffer}.
 
-@defun display-buffer-same-window &optional buffer-or-name
+@defun display-buffer-same-window &optional buffer-or-name label
 This function is like @code{display-buffer} but preferably displays the
 buffer specified by @var{buffer-or-name} in the selected window.
 Another window will be used only if the buffer can't be shown in the
 selected window, usually because it is dedicated to some other buffer.
 @end defun
 
-@defun display-buffer-same-frame &optional buffer-or-name
+@defun display-buffer-same-frame &optional buffer-or-name label
 This function is like @code{display-buffer} but tries to avoid using
 another frame.
 @end defun
 
-@defun display-buffer-other-window &optional buffer-or-name
+@defun display-buffer-other-window &optional buffer-or-name label
 This function is like @code{display-buffer} but tries to avoid using the
 selected window.
 @end defun
 
-@defun display-buffer-other-window-same-frame &optional buffer-or-name
+@defun display-buffer-other-window-same-frame &optional buffer-or-name label
 This function is like @code{display-buffer-other-window} but tries to
 avoid using another frame.
 @end defun
@@ -2446,6 +2453,7 @@ simply puts @var{window}'s buffer at the end of the buffer list.
 Interactively, @var{kill} is the prefix argument.
 @end deffn
 
+
 @node Switching Buffers
 @section Switching to a Buffer in Some Window
 @cindex switching to a buffer
@@ -2465,13 +2473,61 @@ windows, which would be gratuitous and surprise the user.  Instead, use
 Buffer}), which designate buffers as current for programmed access
 without affecting the display of buffers in windows.
 
+   The functions described here can be roughly divided into two groups
+whose major representatives are the functions @code{switch-to-buffer}
+and @code{pop-to-buffer} respectively.  Functions in the
+@code{switch-to-buffer} group have the following distinguishing
+characteristics:
+
+@itemize @bullet
+@item
+They are reserved for interactive use; many of them have a predefined
+keybinding.  Lisp code should @emph{never} call them.
+
+@item
+They can show a buffer in a window even if that window is dedicated to
+another buffer.
+
+@item
+They do not have a @code{specifiers} or a @var{label} argument like
+@code{display-buffer}.
+
+@item
+When the argument specifying the buffer that shall be displayed is
+@code{nil}, they display the buffer returned by @code{other-buffer}.
+@end itemize
+
+Functions in the @code{pop-to-buffer} group have the following
+characteristics.
+
+@itemize @bullet
+@item
+They can be called interactively and from Lisp code.
+
+@item
+They respect the user customizations of @code{display-buffer-alist} and
+@code{display-buffer-function}.  In particular, they try to not reuse a
+dedicated window unless they are explicitly advised to do so.
+
+@item
+They can be passed a @code{specifiers} and a @var{label} argument, just
+as @code{display-buffer}.
+
+@item
+When the argument specifying the buffer that shall be displayed is
+@code{nil}, they try to display the current buffer.
+@end itemize
+
+For historical reasons, many Lisp function call @code{switch-to-buffer}.
+These calls should be converted to @code{pop-to-buffer} calls.
+
 @deffn Command switch-to-buffer buffer-or-name &optional norecord
-This function makes the buffer specified by @var{buffer-or-name} current
-and displays it in the selected window.  This means that a human can see
-the buffer and subsequent keyboard commands will apply to it.  Contrast
-this with @code{set-buffer}, which makes @var{buffer-or-name} the
-current buffer but does not display it in the selected window; see
-@ref{Current Buffer}.
+This function makes the buffer specified by @var{buffer-or-name}
+current, displays it in the selected window, and returns the buffer.
+This means that a human can see the buffer and subsequent keyboard
+commands will apply to it.  Contrast this with @code{set-buffer}, which
+makes @var{buffer-or-name} the current buffer but does not display it in
+the selected window; see @ref{Current Buffer}.
 
 If @var{buffer-or-name} is @code{nil}, @code{switch-to-buffer} chooses a
 buffer using @code{other-buffer}.  If @var{buffer-or-name} is a string
@@ -2496,8 +2552,10 @@ is not done.  Also, if @var{norecord} is non-@code{nil}, the window
 chosen for displaying the buffer is not automatically made the most
 recently selected one.
 
-@code{switch-to-buffer} is often used interactively, as the binding of
-@kbd{C-x b}.  It returns the buffer that it switched to.
+This function is intended for interactive use, as the binding of
+@kbd{C-x b}.  Do @emph{not} call this function from Lisp code.  The
+function @code{pop-to-buffer-same-window} should be used for that
+purpose.
 @end deffn
 
 The next functions are similar to @code{switch-to-buffer}, except for
@@ -2516,6 +2574,10 @@ display it in as well.
 
 The arguments @var{buffer-or-name} and @var{norecord} have the same
 meaning as for @code{switch-to-buffer}.
+
+This function is for interactive use, as the binding of @kbd{C-x 4 b}.
+Do @emph{not} call this function from Lisp code.  The function
+@code{pop-to-buffer-other-window} should be used for this purpose.
 @end deffn
 
 @deffn Command switch-to-buffer-same-frame buffer-or-name &optional norecord
@@ -2531,10 +2593,16 @@ use or make a window on the selected frame.
 
 @deffn Command switch-to-buffer-other-frame buffer-or-name &optional norecord
 This command is like @code{switch-to-buffer-other-window} but tries to
-display the buffer on another frame.                                            
+display the buffer on another frame.  This function has the binding
+@kbd{C-x 4 b}.
 @end deffn
 
-@deffn Command pop-to-buffer buffer-or-name &optional specifiers norecord
+The following functions take a @var{specifiers} and a @var{label}
+argument and respect the same customizations as @code{display-buffer}.
+Their only difference to the latter is that they @emph{always} select
+the window chosen for displaying the buffer argument.
+
+@deffn Command pop-to-buffer buffer-or-name &optional specifiers norecord label
 This command makes @var{buffer-or-name} the current buffer and switches
 to it in some window.  The ``popped-to'' window becomes the selected
 window.  Its frame is given the X server's focus, if possible; see
@@ -2553,43 +2621,45 @@ documentations of @code{display-buffer} and @code{display-buffer-alist}.
 If @var{specifiers} is @code{t}, it means to pop to the buffer in any
 but the selected window.  If @var{specifiers} is @code{nil} or omitted,
 this means to exclusively use the values provided by
-@code{display-buffer-alist} (@pxref{Displaying Buffers}).  If their
+@code{display-buffer-alist} (@pxref{Displaying Buffers}).  If these
 values are nil too, default specifiers are used.
 
-   The optional argument @var{norecord} is handled just as by
-@code{switch-to-buffer}.
+   The optional third argument @var{norecord} is handled just as by
+@code{switch-to-buffer}.  The optional fourth argument @var{label}
+specifies the buffer display label just as for @code{display-buffer}.
 @end deffn
 
 The following commands are similar to @code{pop-to-buffer} but for the
 mentioned differences.
 
-@deffn Command pop-to-buffer-same-window &optional buffer-or-name norecord
+@deffn Command pop-to-buffer-same-window &optional buffer-or-name norecord label
 This command is like @code{pop-to-buffer} but tries to display the
 buffer in the selected window.  Another window will be used only if the
 buffer can't be shown in the selected window, usually because the window
 is dedicated to another buffer.
 @end deffn
 
-@deffn Command pop-to-buffer-same-frame &optional buffer-or-name norecord
+@deffn Command pop-to-buffer-same-frame &optional buffer-or-name norecord label
 This command is like @code{pop-to-buffer} but tries to make or use a
 window on the selected frame.
 @end deffn
 
-@deffn Command pop-to-buffer-other-window &optional buffer-or-name norecord
+@deffn Command pop-to-buffer-other-window &optional buffer-or-name norecord label
 This command is like @code{pop-to-buffer} but tries to avoid the
 selected window.  Windows on the selected frame are preferred to windows
 on other frames.
 @end deffn
 
-@deffn Command pop-to-buffer-other-window-same-frame &optional buffer-or-name norecord
+@deffn Command pop-to-buffer-other-window-same-frame &optional buffer-or-name norecord label
 This command is like @code{pop-to-buffer-other-window} but tries to make
 or use a window on the selected frame.
 @end deffn
 
-@deffn Command pop-to-buffer-other-frame &optional buffer-or-name norecord
+@deffn Command pop-to-buffer-other-frame &optional buffer-or-name norecord label
 This command is like @code{pop-to-buffer} but preferably displays the
 buffer on another frame.
 @end deffn
+
 
 @node Dedicated Windows
 @section Dedicated Windows
@@ -2643,6 +2713,7 @@ its buffer and does not already display the buffer it is asked to
 display.  Other functions do not treat @code{t} differently from any
 non-@code{nil} value.
 @end defun
+
 
 @node Window Point
 @section Windows and Point
@@ -2705,6 +2776,7 @@ This variable specifies the marker insertion type (@pxref{Marker
 Insertion Types}) of @code{window-point}.  The default is @code{nil},
 so @code{window-point} will stay behind text inserted there.
 @end defvar
+
 
 @node Window Start and End
 @section The Window Start and End Positions
@@ -2905,6 +2977,7 @@ pixels of the line relative to the top of the first text line, and
 text line.  If there are off-window pixels at the top of the (first)
 text line, @var{ypos} is negative.
 @end defun
+
 
 @node Textual Scrolling
 @section Textual Scrolling
@@ -3114,6 +3187,7 @@ Replaces three keystroke sequence C-u 0 C-l."
 @end example
 @end deffn
 
+
 @node Vertical Scrolling
 @section Vertical Fractional Scrolling
 @cindex vertical fractional scrolling
@@ -3182,6 +3256,7 @@ scroll-down functions will automatically modify the vertical scroll
 position to scroll through display rows that are taller than the height
 of the window, for example in the presence of large images.
 @end defvar
+
 
 @node Horizontal Scrolling
 @section Horizontal Scrolling
@@ -3321,6 +3396,7 @@ is off the screen due to horizontal scrolling:
         (window-width window)))))
 @end group
 @end example
+
 
 @node Coordinates and Windows
 @section Coordinates and Windows
@@ -3481,6 +3557,7 @@ The function @code{coordinates-in-window-p} does not require a frame as
 argument because it always uses the frame that @var{window} is on.
 @end defun
 
+
 @node Window Configurations
 @section Window Configurations
 @cindex window configurations
@@ -3601,6 +3678,7 @@ This function returns the frame for which the window configuration
 sense, but are not implemented because we did not need them.  See the
 file @file{winner.el} for some more operations on windows
 configurations.
+
 
 @node Window Parameters
 @section Window Parameters

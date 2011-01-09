@@ -1,3 +1,9 @@
+2011-01-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Switching Buffers): Emphasize distinction of
+	switch-to-buffer and pop-to-buffer function families.  Fix
+	argument description for these functions.
+
 2011-01-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Windows): Rename sections "Frames and Windows"
