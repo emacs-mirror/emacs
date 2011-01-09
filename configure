@@ -5893,8 +5893,6 @@ else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
-
-
 ### Use -Wno-pointer-sign if the compiler supports it
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gcc understands -Wno-pointer-sign" >&5
 $as_echo_n "checking whether gcc understands -Wno-pointer-sign... " >&6; }

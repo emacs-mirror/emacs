@@ -1,5 +1,6 @@
 2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* configure: Regenerate.
 	* configure.in (AC_USE_SYSTEM_EXTENSIONS): Remove: gnulib does this.
 
 	Regenerate.
