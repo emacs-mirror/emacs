@@ -1,4 +1,4 @@
-;;; dev-tsdh-dark-theme.el --- Tassilo's dark custom theme
+;;; tsdh-dark-theme.el --- Tassilo's dark custom theme
 
 ;; Copyright (C) 2011 Free Software Foundation, Inc.
 
@@ -19,11 +19,11 @@
 
 ;;; Code:
 
-(deftheme dev-tsdh-dark
+(deftheme tsdh-dark
   "Theme with dark background used and created by Tassilo Horn.")
 
 (custom-theme-set-faces
- 'dev-tsdh-dark
+ 'tsdh-dark
  '(default ((t (:background "gray20" :foreground "white smoke"))))
  '(diff-added ((t (:inherit diff-changed :background "light green"))))
  '(diff-changed ((t (:background "light steel blue"))))
@@ -31,6 +31,7 @@
  '(diff-indicator-changed ((t (:weight bold))))
  '(diff-indicator-removed ((t (:inherit diff-indicator-changed))))
  '(diff-removed ((t (:inherit diff-changed :background "sandy brown"))))
+ '(dired-directory ((t (:inherit font-lock-function-name-face :weight bold))))
  '(hl-line ((t (:background "grey28"))))
  '(message-header-subject ((t (:foreground "SkyBlue"))))
  '(minibuffer-prompt ((t (:background "yellow" :foreground "medium blue" :box (:line-width -1 :color "red" :style released-button) :weight bold))))
@@ -55,5 +56,4 @@
  '(show-paren-mismatch ((t (:background "deep pink"))))
  '(window-number-face ((t (:foreground "red" :weight bold)))))
 
-(provide-theme 'dev-tsdh-dark)
-
+(provide-theme 'tsdh-dark)

@@ -1,4 +1,4 @@
-;;; dev-tsdh-light-theme.el --- Tassilo's light custom theme
+;;; tsdh-light-theme.el --- Tassilo's light custom theme
 
 ;; Copyright (C) 2011 Free Software Foundation, Inc.
 
@@ -19,11 +19,11 @@
 
 ;;; Code:
 
-(deftheme dev-tsdh-light
+(deftheme tsdh-light
   "Black on white theme used and created by Tassilo Horn.")
 
 (custom-theme-set-faces
- 'dev-tsdh-light
+ 'tsdh-light
  '(default ((t (:background "white" :foreground "black"))))
  '(diff-added ((t (:inherit diff-changed :background "light green"))))
  '(diff-changed ((t (:background "light steel blue"))))
@@ -31,6 +31,7 @@
  '(diff-indicator-changed ((t (:weight bold))))
  '(diff-indicator-removed ((t (:inherit diff-indicator-changed))))
  '(diff-removed ((t (:inherit diff-changed :background "sandy brown"))))
+ '(dired-directory ((t (:inherit font-lock-function-name-face :weight bold))))
  '(hl-line ((t (:background "grey95"))))
  '(minibuffer-prompt ((t (:background "yellow" :foreground "medium blue" :box (:line-width -1 :color "red" :style released-button) :weight bold))))
  '(mode-line ((t (:box (:line-width -1 :color "red" :style released-button) :family "DejaVu Sans"))))
@@ -54,5 +55,4 @@
  '(show-paren-mismatch ((t (:background "deep pink"))))
  '(window-number-face ((t (:foreground "red" :weight bold)))))
 
-(provide-theme 'dev-tsdh-light)
-
+(provide-theme 'tsdh-light)

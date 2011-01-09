@@ -219,6 +219,11 @@ Emacs no longer looks for custom themes in `load-path'.  The default
 is to search in `custom-theme-directory', followed by a built-in theme
 directory named "themes/" in `data-directory'.
 
+*** New option `custom-safe-themes' records known-safe theme files.
+If a theme is not in this list, Emacs queries before loading it, and
+offers to save the theme to `custom-safe-themes' automatically.  By
+default, all themes included in Emacs are treated as safe.
+
 ** The user option `remote-file-name-inhibit-cache' controls whether
 the remote file-name cache is used for read access.
 
@@ -661,6 +666,9 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 
 * Lisp changes in Emacs 24.1
+
+** New function `read-char-choice' reads a restricted set of characters,
+discarding any inputs not inside the set.
 
 ** `y-or-n-p' and `yes-or-no-p' now accept format string arguments.
 

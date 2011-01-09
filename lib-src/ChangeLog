@@ -1,3 +1,7 @@
+2011-01-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (EXECUTABLES): Remove; macro unused since 1993.
+
 2011-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (EMACSOPT): Add --no-site-lisp.

@@ -1,3 +1,25 @@
+2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (read-char-choice): Use read-key.
+
+	* custom.el (custom-safe-themes): Rename from
+	custom-safe-theme-files.  Add :risky tag.
+	(load-theme, custom-theme-load-confirm): Save sha1 hashes to
+	custom-safe-themes, not filenames.  Suggested by Stefan Monnier.
+
+2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tool-bar.el (tool-bar-setup): Remove Help button.  Remove label
+	from Search and add a label to Undo.
+
+	* vc/vc-dir.el (vc-dir-tool-bar-map): Rearrange, removing
+	inappropriate buttons and adding :vert-only tags.
+
+	* progmodes/compile.el (compilation-mode-tool-bar-map): Adjust to
+	removal of Help tool-bar button.  Remove Undo button for space.
+
+	* info.el (info-tool-bar-map): Add :vert-only tags.
+
 2011-01-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* net/ange-ftp.el (ange-ftp-error): Use
@@ -13,6 +35,40 @@
 	(cvs-do-removal): Call pop-to-buffer-same-frame.
 
 	* vc/vc-dir.el (vc-dir): Do not bind pop-up-windows.
+
+2011-01-08  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode-p): Check for png or imagemagick
+	image backend support.  Either of them is fine.
+
+2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (y-or-n-p): Doc fix.
+
+	* custom.el (custom-safe-theme-files): New defcustom.
+	(custom-theme-load-confirm): New function.
+	(load-theme): Load theme using `load', confirming with
+	custom-theme-load-confirm if necessary.
+
+	* subr.el (read-char-choice): New function, factored out from
+	dired-query and hack-local-variables-confirm.
+
+	* dired-aux.el (dired-query):
+	* files.el (hack-local-variables-confirm): Use it.
+
+	* dired-aux.el (dired-compress-file):
+	* files.el (abort-if-file-too-large, find-alternate-file)
+	(set-visited-file-name, write-file, backup-buffer)
+	(basic-save-buffer, basic-save-buffer-2, save-some-buffers)
+	(delete-directory, revert-buffer, recover-file, kill-buffer-ask):
+	Use new format string args for y-or-n-p and yes-or-no-p.
+
+2011-01-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist)
+	[gcc-include]: Tighten file name match, add match for column
+	number.  (Bug#7806)
+	[gnu]: Remove unused group.
 
 2011-01-08  Glenn Morris  <rgm@gnu.org>
 

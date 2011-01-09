@@ -1,3 +1,16 @@
+2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gtkutil.c (update_frame_tool_bar): Don't advance tool-bar index
+	when removing extra buttons.
+
+2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fns.c (Fyes_or_no_p): Doc fix.
+
+2011-01-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fns.c (Fyes_or_no_p): Add usage.
+
 2011-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in ($(EMACS)):

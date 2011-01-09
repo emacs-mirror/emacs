@@ -239,7 +239,9 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (gcc-include
      "^\\(?:In file included \\|                 \\|\t\\)from \
-\\(.+\\):\\([0-9]+\\)\\(?:\\(:\\)\\|\\(,\\|$\\)\\)?" 1 2 nil (3 . 4))
+\\([0-9]*[^0-9\n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\):\
+\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?\\(?:\\(:\\)\\|\\(,\\|$\\)\\)?"
+     1 2 3 (4 . 5))
 
     (gnu
      ;; The first line matches the program name for
@@ -268,12 +270,12 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; The "in \\|from " exception was added to handle messages from Ruby.
      "^\\(?:[[:alpha:]][-[:alnum:].]+: ?\\|[ \t]+\\(?:in \\|from \\)\\)?\
 \\([0-9]*[^0-9\n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\): ?\
-\\([0-9]+\\)\\(?:\\([.:]\\)\\([0-9]+\\)\\)?\
+\\([0-9]+\\)\\(?:[.:]\\([0-9]+\\)\\)?\
 \\(?:-\\([0-9]+\\)?\\(?:\\.\\([0-9]+\\)\\)?\\)?:\
 \\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
  *\\([Ii]nfo\\(?:\\>\\|rmationa?l?\\)\\|I:\\|instantiated from\\|[Nn]ote\\)\\|\
 \[0-9]?\\(?:[^0-9\n]\\|$\\)\\|[0-9][0-9][0-9]\\)"
-     1 (2 . 5) (4 . 6) (7 . 8))
+     1 (2 . 4) (3 . 5) (6 . 7))
 
     (lcc
      "^\\(?:E\\|\\(W\\)\\), \\([^(\n]+\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)"
@@ -1569,9 +1571,11 @@ Returns the compilation buffer created."
 (defvar compilation-mode-tool-bar-map
   ;; When bootstrapping, tool-bar-map is not properly initialized yet,
   ;; so don't do anything.
-  (when (keymapp (butlast tool-bar-map))
-    (let ((map (butlast (copy-keymap tool-bar-map)))
-	  (help (last tool-bar-map))) ;; Keep Help last in tool bar
+  (when (keymapp tool-bar-map)
+    (let ((map (copy-keymap tool-bar-map)))
+      (define-key map [undo] nil)
+      (define-key map [separator-2] nil)
+      (define-key-after map [separator-compile] menu-bar-separator)
       (tool-bar-local-item
        "left-arrow" 'previous-error-no-select 'previous-error-no-select map
        :rtl "right-arrow"
@@ -1588,7 +1592,7 @@ Returns the compilation buffer created."
       (tool-bar-local-item
        "refresh" 'recompile 'recompile map
        :help "Restart compilation")
-      (append map help))))
+      map)))
 
 (put 'compilation-mode 'mode-class 'special)
 

@@ -1105,15 +1105,28 @@ property `theme-feature' (which is usually a symbol created by
     (let ((custom-enabling-themes t))
       (enable-theme 'user))))
 
+(defcustom custom-safe-themes '(default)
+  "List of themes that are considered safe to load.
+Each list element should be the `sha1' hash of a theme file, or
+the symbol `default', which stands for any theme in the built-in
+Emacs theme directory (a directory named \"themes\" in
+`data-directory')."
+  :type '(repeat
+	  (choice string (const :tag "Built-in themes" default)))
+  :group 'customize
+  :risky t
+  :version "24.1")
+
 (defvar safe-functions) ; From unsafep.el
 
 (defun load-theme (theme &optional no-enable)
   "Load a theme's settings from its file.
 Normally, this also enables the theme; use `disable-theme' to
 disable it.  If optional arg NO-ENABLE is non-nil, don't enable
-the theme."
-  ;; Note we do no check for validity of the theme here.
-  ;; This allows to pull in themes by a file-name convention
+the theme.
+
+A theme file is named THEME-theme.el, where THEME is the theme name,
+in one of the directories specified by `custom-theme-load-path'."
   (interactive
    (list
     (intern (completing-read "Load custom theme: "
@@ -1129,38 +1142,74 @@ the theme."
     (put theme 'theme-documentation nil))
   (let ((fn (locate-file (concat (symbol-name theme) "-theme.el")
 			 (custom-theme--load-path)
-			 '("" "c"))))
+			 '("" "c")))
+	hash)
     (unless fn
       (error "Unable to find theme file for `%s'." theme))
-    ;; Instead of simply loading the theme file, read it manually.
     (with-temp-buffer
       (insert-file-contents fn)
-      (require 'unsafep)
-      (let ((custom--inhibit-theme-enable no-enable)
-	    (safe-functions (append '(custom-theme-set-variables
-				      custom-theme-set-faces)
-				    safe-functions))
-	    form scar)
-	(while (setq form (let ((read-circle nil))
-			    (condition-case nil
-				(read (current-buffer))
-			      (end-of-file nil))))
-	  (cond
-	   ;; Check `deftheme' expressions.
-	   ((eq (setq scar (car form)) 'deftheme)
-	    (unless (eq (cadr form) theme)
-	      (error "Incorrect theme name in `deftheme'"))
-	    (and (symbolp (nth 1 form))
-		 (stringp (nth 2 form))
-		 (eval (list scar (nth 1 form) (nth 2 form)))))
-	   ;; Check `provide-theme' expressions.
-	   ((and (eq scar 'provide-theme)
-		 (equal (cadr form) `(quote ,theme))
-		 (= (length form) 2))
-	    (eval form))
-	   ;; All other expressions need to be safe.
-	   ((not (unsafep form))
-	    (eval form))))))))
+      (setq hash (sha1 (current-buffer)))
+      ;; Check file safety.
+      (when (or (and (memq 'default custom-safe-themes)
+		     (equal (file-name-directory fn)
+			    (expand-file-name "themes/" data-directory)))
+		(member hash custom-safe-themes)
+		;; If the theme is not in `custom-safe-themes', check
+		;; it with unsafep.
+		(progn
+		  (require 'unsafep)
+		  (let ((safe-functions
+			 (append '(provide-theme deftheme
+				   custom-theme-set-variables
+				   custom-theme-set-faces)
+				 safe-functions))
+			unsafep form)
+		    (while (and (setq form (condition-case nil
+					       (let ((read-circle nil))
+						 (read (current-buffer)))
+					     (end-of-file nil)))
+				(null (setq unsafep (unsafep form)))))
+		    (or (null unsafep)
+			(custom-theme-load-confirm hash)))))
+	(let ((custom--inhibit-theme-enable no-enable))
+	  (eval-buffer))))))
+
+(defun custom-theme-load-confirm (hash)
+  "Query the user about loading a Custom theme that may not be safe.
+The theme should be in the current buffer.  If the user agrees,
+query also about adding HASH to `custom-safe-themes'."
+  (if noninteractive
+      nil
+    (let ((exit-chars '(?y ?n ?\s))
+	  prompt char)
+      (save-window-excursion
+	(rename-buffer "*Custom Theme*" t)
+	(emacs-lisp-mode)
+	(display-buffer (current-buffer))
+	(setq prompt
+	      (format "This theme is not guaranteed to be safe.  Really load? %s"
+		      (if (< (line-number-at-pos (point-max))
+			     (window-body-height))
+			  "(y or n) "
+			(push ?\C-v exit-chars)
+			"Type y or n, or C-v to scroll: ")))
+	(goto-char (point-min))
+	(while (null char)
+	  (setq char (read-char-choice prompt exit-chars))
+	  (when (eq char ?\C-v)
+	    (condition-case nil
+		(scroll-up)
+	      (error (goto-char (point-min))))
+	    (setq char nil)))
+	(when (memq char '(?\s ?y))
+	  (push hash custom-safe-themes)
+	  ;; Offer to save to `custom-safe-themes'.
+	  (and (or custom-file user-init-file)
+	       (y-or-n-p "Treat this theme as safe for future loads? ")
+	       (let ((coding-system-for-read nil))
+		 (customize-save-variable 'custom-safe-themes
+					  custom-safe-themes)))
+	  t)))))
 
 (defun custom-theme-name-valid-p (name)
   "Return t if NAME is a valid name for a Custom theme, nil otherwise.
