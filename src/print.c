@@ -1054,6 +1054,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
  * case of -1e307 in 20d float_output_format. What is one to do (short of
  * re-writing _doprnt to be more sane)?
  * 			-wsr
+ * Given the above, the buffer must be least FLOAT_TO_STRING_BUFSIZE bytes.
  */
 
 void
@@ -1100,9 +1101,8 @@ float_to_string (unsigned char *buf, double data)
   lose:
     {
       /* Generate the fewest number of digits that represent the
-	 floating point value without losing information.
-         The 350 is by convention, e.g., this file's pigbuf.  */
-      dtoastr (buf, 350, 0, 0, data);
+	 floating point value without losing information.  */
+      dtoastr (buf, FLOAT_TO_STRING_BUFSIZE, 0, 0, data);
     }
   else			/* oink oink */
     {
@@ -1493,7 +1493,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 
     case Lisp_Float:
       {
-	char pigbuf[350];	/* see comments in float_to_string */
+	char pigbuf[FLOAT_TO_STRING_BUFSIZE];
 
 	float_to_string (pigbuf, XFLOAT_DATA (obj));
 	strout (pigbuf, -1, -1, printcharfun, 0);

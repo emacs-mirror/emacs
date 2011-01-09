@@ -1,5 +1,10 @@
 2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Give a name FLOAT_TO_STRING_BUFSIZE to the constant 350.
+	* lisp.h (FLOAT_TO_STRING_BUFSIZE): New macro.
+	* data.c (Fnumber_to_string): Use it.
+	* print.c (float_to_string, print_object): Likewise.
+
 	Include <unistd.h> unilaterally.
 	* alloc.c, atimer.c, buffer.c, callproc.c, dired.c, dispnew.c, doc.c:
 	* doprnt.c, editfns.c, emacs.c, fileio.c, filelock.c, fns.c:
