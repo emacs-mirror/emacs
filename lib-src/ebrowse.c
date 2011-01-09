@@ -30,7 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-#include "getopt.h"
+#include <getopt.h>
 
 /* The SunOS compiler doesn't have SEEK_END.  */
 #ifndef SEEK_END

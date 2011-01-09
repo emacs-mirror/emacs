@@ -1,5 +1,10 @@
 2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Include <getopt.h> not "getopt.h".
+	* ebrowse.c, emacsclient.c: Include <getopt.h>, not "getopt.h".
+	Since getopt.h is no longer in this directory, there's no point
+	using the form with double-quotes.
+
 	Remove unused files.
 	* getopt.c, getopt1.c, getopt_.h, getopt_int.h: Remove.
 	These files are now in ../lib, copied from gnulib.
