@@ -1,3 +1,16 @@
+2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (visibility): Replace :on-image and :off-image
+	widget properties with :on-glyph and :off-glyph, for consistency
+	with the `visibility' widget.
+	(widget-toggle-value-create, widget-visibility-value-create):
+	Merge into a single function `widget-toggle-value-create'.
+
+	* cus-edit.el (custom-variable-value-create, custom-visibility)
+	(custom-face-edit-value-create, custom-face-value-create): Replace
+	:on-image and :off-image widget properties with :on-glyph and
+	:off-glyph, for consistency with the `visibility' widget.
+
 2011-01-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* net/ldap.el (ldap-search-internal): Don't use eval.

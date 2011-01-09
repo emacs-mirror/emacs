@@ -2551,9 +2551,9 @@ try matching its doc string against `custom-guess-doc-alist'."
 	   (push (widget-create-child-and-convert
 		  widget 'custom-visibility
 		  :help-echo "Show the value of this option."
-		  :on-image "down"
+		  :on-glyph "down"
 		  :on "Hide"
-		  :off-image "right"
+		  :off-glyph "right"
 		  :off "Show Value"
 		  :action 'custom-toggle-hide-variable
 		  nil)
@@ -2573,8 +2573,8 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  :help-echo "Hide the value of this option."
 		  :on "Hide"
 		  :off "Show"
-		  :on-image "down"
-		  :off-image "right"
+		  :on-glyph "down"
+		  :off-glyph "right"
 		  :action 'custom-toggle-hide-variable
 		  t)
 		 buttons)
@@ -2603,8 +2603,8 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  :help-echo "Hide or show this option."
 		  :on "Hide"
 		  :off "Show"
-		  :on-image "down"
-		  :off-image "right"
+		  :on-glyph "down"
+		  :off-glyph "right"
 		  :action 'custom-toggle-hide-variable
 		  t)
 		 buttons)
@@ -3056,8 +3056,8 @@ to switch between two values."
   :pressed-face 'custom-visibility
   :mouse-face 'highlight
   :pressed-face 'highlight
-  :on-image nil
-  :off-image nil)
+  :on-glyph nil
+  :off-glyph nil)
 
 (defface custom-visibility
   '((t :height 0.8 :inherit link))
@@ -3120,7 +3120,7 @@ face attributes (as specified by a `default' defface entry)."
 	   :pressed-face 'custom-visibility
 	   :mouse-face 'highlight
 	   :on "Hide Unused Attributes"    :off "Show All Attributes"
-	   :on-image nil :off-image nil
+	   :on-glyph nil :off-glyph nil
 	   :always-active t
 	   :action 'custom-face-edit-value-visibility-action
 	   show-all)
@@ -3475,7 +3475,7 @@ the present value is saved to its :shown-value property instead."
 	       widget 'custom-visibility
 	       :help-echo "Hide or show this face."
 	       :on "Hide" :off "Show"
-	       :on-image "down" :off-image "right"
+	       :on-glyph "down" :off-glyph "right"
 	       :action 'custom-toggle-hide-face
 	       (not hiddenp))
 	      buttons)
