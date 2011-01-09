@@ -1,5 +1,7 @@
 2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* configure.in (AC_USE_SYSTEM_EXTENSIONS): Remove: gnulib does this.
+
 	Regenerate.
 	* lib/getopt.c, lib/getopt.in.h, lib/getopt1.c, lib/getopt_int.h:
 	* lib/gettext.h, lib/unistd.in.h, m4/unistd_h.m4:
