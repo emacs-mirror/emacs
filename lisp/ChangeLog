@@ -1,3 +1,7 @@
+2011-01-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* net/ldap.el (ldap-search-internal): Don't use eval.
+
 2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (read-char-choice): Use read-key.
