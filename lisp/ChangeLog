@@ -1,3 +1,16 @@
+2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tool-bar.el (tool-bar-setup): Remove Help button.  Remove label
+	from Search and add a label to Undo.
+
+	* vc/vc-dir.el (vc-dir-tool-bar-map): Rearrange, removing
+	inappropriate buttons and adding :vert-only tags.
+
+	* progmodes/compile.el (compilation-mode-tool-bar-map): Adjust to
+	removal of Help tool-bar button.  Remove Undo button for space.
+
+	* info.el (info-tool-bar-map): Add :vert-only tags.
+
 2011-01-08  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-mode-p): Check for png or imagemagick

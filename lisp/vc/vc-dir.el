@@ -196,7 +196,7 @@ See `run-hooks'."
       '(menu-item "Show Incoming Log" vc-log-incoming
 		  :help "Show a log of changes that will be received with a pull operation"))
     (define-key map [log]
-      '(menu-item "Show history" vc-print-log
+      '(menu-item "Show History" vc-print-log
 		  :help "List the change log of the current file set in a window"))
     (define-key map [rlog]
       '(menu-item "Show Top of the Tree History " vc-print-root-log
@@ -307,33 +307,36 @@ If BODY uses EVENT, it should be a variable,
 
 (defvar vc-dir-tool-bar-map
   (let ((map (make-sparse-keymap)))
-    (tool-bar-local-item-from-menu 'vc-dir-find-file "open"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item "bookmark_add"
-			 'vc-dir-toggle-mark 'vc-dir-toggle-mark map
-			 :help "Toggle mark on current item"
-			 :label "Toggle Mark")
-    (tool-bar-local-item-from-menu 'vc-dir-previous-line "left-arrow"
-				   map vc-dir-mode-map
-				   :rtl "right-arrow")
-    (tool-bar-local-item-from-menu 'vc-dir-next-line "right-arrow"
-				   map vc-dir-mode-map
-				   :rtl "left-arrow")
+    (tool-bar-local-item-from-menu 'find-file "new" map nil
+				   :label "New File" :vert-only t)
+    (tool-bar-local-item-from-menu 'menu-find-file-existing "open" map nil
+				   :label "Open" :vert-only t)
+    (tool-bar-local-item-from-menu 'dired "diropen" map nil
+				   :vert-only t)
+    (tool-bar-local-item-from-menu 'quit-window "close" map vc-dir-mode-map
+				   :vert-only t)
+    (tool-bar-local-item-from-menu 'vc-next-action "saveas" map
+				   vc-dir-mode-map :label "Commit")
     (tool-bar-local-item-from-menu 'vc-print-log "info"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'revert-buffer "refresh"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'nonincremental-search-forward
-				   "search" map nil
-				   :label "Search")
-    (tool-bar-local-item-from-menu 'vc-dir-query-replace-regexp
-				   "search-replace" map vc-dir-mode-map
-				   :label "Replace")
+    				   map vc-dir-mode-map
+				   :label "Log")
+    (define-key-after map [separator-1] menu-bar-separator)
     (tool-bar-local-item-from-menu 'vc-dir-kill-dir-status-process "cancel"
 				   map vc-dir-mode-map
-				   :label "Cancel")
-    (tool-bar-local-item-from-menu 'quit-window "exit"
-				   map vc-dir-mode-map)
+				   :label "Stop" :vert-only t)
+    (tool-bar-local-item-from-menu 'revert-buffer "refresh"
+				   map vc-dir-mode-map :vert-only t)
+    (define-key-after map [separator-2] menu-bar-separator)
+    (tool-bar-local-item-from-menu (lookup-key menu-bar-edit-menu [cut])
+				   "cut" map nil :vert-only t)
+    (tool-bar-local-item-from-menu (lookup-key menu-bar-edit-menu [copy])
+				   "copy" map nil :vert-only t)
+    (tool-bar-local-item-from-menu (lookup-key menu-bar-edit-menu [paste])
+				   "paste" map nil :vert-only t)
+    (define-key-after map [separator-3] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'isearch-forward
+    				   "search" map nil
+				   :label "Search" :vert-only t)
     map))
 
 (defun vc-dir-node-directory (node)
