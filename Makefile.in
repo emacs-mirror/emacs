@@ -330,7 +330,7 @@ $(gnulib_srcdir):
 # Update modules from gnulib, for maintainers, who should have it in
 # $(gnulib_srcdir) (relative to $(srcdir) and should have build tools
 # as per $(gnulib_srcdir)/DEPENDENCIES.
-GNULIB_MODULES = ftoastr mktime
+GNULIB_MODULES = ftoastr getopt-gnu mktime
 GNULIB_TOOL_FLAGS = \
  --import --no-changelog --no-vc-files --makefile-name=gnulib.mk
 sync-from-gnulib: $(gnulib_srcdir)
@@ -401,7 +401,7 @@ Makefile: config.status $(srcdir)/src/config.in \
 config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	./config.status --recheck
 
-AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/m4/getopt.m4 $(srcdir)/aclocal.m4
+AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/aclocal.m4
 
 $(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoconf

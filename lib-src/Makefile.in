@@ -279,7 +279,7 @@ uninstall:
 	fi
 
 mostlyclean:
-	-rm -f core *.o getopt.h getopt.h-t
+	-rm -f core *.o
 
 clean: mostlyclean
 	-rm -f ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
@@ -311,20 +311,6 @@ test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
 	$(CC) ${ALL_CFLAGS} -o test-distrib ${srcdir}/test-distrib.c
 	./test-distrib ${srcdir}/testfile
 
-## We need the following in order to create a <getopt.h> when the system
-## does not have one that works with the given compiler.
-GETOPT_H = @GETOPT_H@
-getopt.h: getopt_.h
-	cp $(srcdir)/getopt_.h $@-t
-	mv $@-t $@
-
-GETOPTOBJS = @GETOPTOBJS@
-GETOPTDEPS = $(GETOPTOBJS) $(GETOPT_H)
-getopt.o: ${srcdir}/getopt.c $(GETOPT_H) ${srcdir}/gettext.h
-	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt.c
-getopt1.o: ${srcdir}/getopt1.c $(GETOPT_H)
-	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
-
 ../lib/libgnu.a: ../src/config.h
 	cd ../lib && $(MAKE) libgnu.a
 
@@ -335,20 +321,20 @@ regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h ../src/config.h
 	${CC} -c ${CPP_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
 	  ${srcdir}/../src/regex.c
 
-etags${EXEEXT}: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
+etags${EXEEXT}: ${srcdir}/etags.c $(REGEXPDEPS) ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DEMACS_NAME="\"GNU Emacs\"" \
-	  -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) \
+	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
 	  $(REGEXPOBJ) $(LOADLIBES) -o etags
 
-ebrowse${EXEEXT}: ${srcdir}/ebrowse.c $(GETOPTDEPS) ../src/config.h
+ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" \
-	  ${srcdir}/ebrowse.c $(GETOPTOBJS) $(LOADLIBES) -o ebrowse
+	  ${srcdir}/ebrowse.c $(LOADLIBES) -o ebrowse
 
 ## We depend on etags to assure that parallel makes do not write two
 ## etags.o files on top of each other.
 ctags${EXEEXT}: etags${EXEEXT}
 	$(CC) ${ALL_CFLAGS} -DCTAGS -DEMACS_NAME="\"GNU Emacs\"" \
-	  -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) \
+	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
 	  $(REGEXPOBJ) $(LOADLIBES) -o ctags
 
 profile${EXEEXT}: ${srcdir}/profile.c ../src/config.h
@@ -358,11 +344,11 @@ make-docfile${EXEEXT}: ${srcdir}/make-docfile.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) \
 	  -o make-docfile
 
-movemail${EXEEXT}: movemail.o pop.o $(GETOPTDEPS)
+movemail${EXEEXT}: movemail.o pop.o
 	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o \
-	  $(GETOPTOBJS) $(LOADLIBES) $(LIBS_MOVE) -o movemail
+	  $(LOADLIBES) $(LIBS_MOVE) -o movemail
 
-movemail.o: ${srcdir}/movemail.c ../src/config.h $(GETOPT_H)
+movemail.o: ${srcdir}/movemail.c ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c
 
 pop.o: ${srcdir}/pop.c  ../src/config.h
@@ -371,19 +357,19 @@ pop.o: ${srcdir}/pop.c  ../src/config.h
 fakemail${EXEEXT}: ${srcdir}/fakemail.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/fakemail.c $(LOADLIBES) -o fakemail
 
-emacsclient${EXEEXT}: ${srcdir}/emacsclient.c ../src/config.h $(GETOPTDEPS)
-	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c $(GETOPTOBJS)  \
+emacsclient${EXEEXT}: ${srcdir}/emacsclient.c ../src/config.h
+	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c \
 	   -DVERSION="\"${version}\"" \
 	   $(LOADLIBES) -o emacsclient
 
 hexl${EXEEXT}: ${srcdir}/hexl.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
-update-game-score${EXEEXT}: update-game-score.o $(GETOPTDEPS)
-	$(CC) ${LINK_CFLAGS} update-game-score.o $(GETOPTOBJS) \
+update-game-score${EXEEXT}: update-game-score.o
+	$(CC) ${LINK_CFLAGS} update-game-score.o \
 	  $(LOADLIBES) -o update-game-score
 
-update-game-score.o: ${srcdir}/update-game-score.c ../src/config.h $(GETOPT_H)
+update-game-score.o: ${srcdir}/update-game-score.c ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} ${srcdir}/update-game-score.c \
 	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\""
 
