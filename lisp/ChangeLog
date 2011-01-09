@@ -1,5 +1,7 @@
 2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
+	* comint.el (comint-highlight-prompt): Inherit minibuffer-prompt.
+
 	* wid-edit.el (visibility): Replace :on-image and :off-image
 	widget properties with :on-glyph and :off-glyph, for consistency
 	with the `visibility' widget.
