@@ -1888,8 +1888,8 @@ Example:
   => :primary-owner.
 
 \(dbus-register-service
-:session "org.freedesktop.TextEditor"
-dbus-service-allow-replacement dbus-service-replace-existing)
+  :session "org.freedesktop.TextEditor"
+  dbus-service-allow-replacement dbus-service-replace-existing)
 
   => :already-owner.
 
@@ -1939,18 +1939,20 @@ usage: (dbus-register-service BUS SERVICE &rest FLAGS)  */)
   dbus_error_free (&derror);
 
   /* Return object.  */
-  switch (result) {
-  case DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER:
-    return QCdbus_request_name_reply_primary_owner;
-  case DBUS_REQUEST_NAME_REPLY_IN_QUEUE:
-    return QCdbus_request_name_reply_in_queue;
-  case DBUS_REQUEST_NAME_REPLY_EXISTS:
-    return QCdbus_request_name_reply_exists;
-  case DBUS_REQUEST_NAME_REPLY_ALREADY_OWNER:
-    return QCdbus_request_name_reply_already_owner;
-  default:
-    return Qnil;
-  }
+  switch (result)
+    {
+    case DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER:
+      return QCdbus_request_name_reply_primary_owner;
+    case DBUS_REQUEST_NAME_REPLY_IN_QUEUE:
+      return QCdbus_request_name_reply_in_queue;
+    case DBUS_REQUEST_NAME_REPLY_EXISTS:
+      return QCdbus_request_name_reply_exists;
+    case DBUS_REQUEST_NAME_REPLY_ALREADY_OWNER:
+      return QCdbus_request_name_reply_already_owner;
+    default:
+      /* This should not happen.  */
+      XD_SIGNAL2 (build_string ("Could not register service"), service);
+    }
 }
 
 DEFUN ("dbus-register-signal", Fdbus_register_signal, Sdbus_register_signal,
@@ -2129,8 +2131,6 @@ discovering the still incomplete interface.*/)
    Lisp_Object dont_register_service)
 {
   Lisp_Object key, key1, value;
-  DBusConnection *connection;
-  int result;
   DBusError derror;
   Lisp_Object args[2] = { bus, service };
 
@@ -2144,11 +2144,8 @@ discovering the still incomplete interface.*/)
   /* TODO: We must check for a valid service name, otherwise there is
      a segmentation fault.  */
 
-  /* Open a connection to the bus.  */
-  connection = xd_initialize (bus, TRUE);
-
   /* Request the name.  */
-  if (NILP(dont_register_service))
+  if (NILP (dont_register_service))
     Fdbus_register_service (2, args);
 
   /* Create a hash table entry.  We use nil for the unique name,

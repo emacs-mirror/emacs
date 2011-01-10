@@ -1,4 +1,10 @@
-2011-01-08  Jan Moringen  <jmoringe@techfak.uni-bielefeld.de>
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_register_service): Raise an error in case of
+	unexpected return values.
+	(Fdbus_register_method): Remove connection initialization.
+
+2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
 	* dbusbind.c (QCdbus_request_name_allow_replacement): New symbol;
 	used by Fdbus_register_service.
