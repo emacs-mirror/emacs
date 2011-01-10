@@ -193,9 +193,14 @@ denoting the bus address.  SERVICE must be a known service name."
 	       (puthash key (delete elt value) dbus-registered-objects-table)
 	     (remhash key dbus-registered-objects-table))))))
    dbus-registered-objects-table)
-  (dbus-call-method
-   bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
-   "ReleaseName" service))
+  (let ((reply (dbus-call-method
+		bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+		"ReleaseName" service)))
+    (case reply
+      (1 :released)
+      (2 :non-existent)
+      (3 :not-owner)
+      (t (signal 'dbus-error "Could not unregister service")))))
 
 (defun dbus-call-method-non-blocking-handler (&rest args)
   "Handler for reply messages of asynchronous D-Bus message calls.
@@ -914,17 +919,20 @@ clients from discovering the still incomplete interface."
      bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
      "RequestName" service 0))
 
-  ;; Add the handler.  We use `dbus-service-emacs' as service name, in
-  ;; order to let unregister SERVICE despite of this default handler.
+  ;; Add handlers for the three property-related methods.
   (dbus-register-method
-   bus service path dbus-interface-properties "Get" 'dbus-property-handler
-   dont-register-service)
+   bus service path dbus-interface-properties "Get"
+   'dbus-property-handler t)
   (dbus-register-method
-   bus service path dbus-interface-properties "GetAll" 'dbus-property-handler
-   dont-register-service)
+   bus service path dbus-interface-properties "GetAll" 
+   'dbus-property-handler t)
   (dbus-register-method
-   bus service path dbus-interface-properties "Set" 'dbus-property-handler
-   dont-register-service)
+   bus service path dbus-interface-properties "Set" 
+   'dbus-property-handler t)
+
+  ;; Register the name SERVICE with BUS.
+  (unless dont-register-service
+    (dbus-register-service bus service))
 
   ;; Send the PropertiesChanged signal.
   (when emits-signal

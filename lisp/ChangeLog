@@ -1,3 +1,10 @@
+2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* net/dbus.el (dbus-unregister-service): Translate returned
+	integer into a symbol.
+	(dbus-register-property): Use `dbus-register-service' to do the
+	name registration.
+
 2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/idlw-help.el (idlwave-help-link): Inherit from link
