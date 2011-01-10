@@ -1,3 +1,10 @@
+2011-01-10  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	allout.el: Add 2011 to the file copyright.
+	(allout-encrypt-string): Prevent encryption from adding an extra
+	newline at the end of the topic body.
+	(allout-version): Increment to 2.3.
+
 2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-unregister-service): Complete doc.  Fix
