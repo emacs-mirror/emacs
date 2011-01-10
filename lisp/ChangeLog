@@ -1,5 +1,11 @@
 2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
 
+	* net/tramp.el (tramp-find-inline-compress)
+	(tramp-get-inline-coding): Quote command after pipe symbol for
+	local calls under W32.  (Bug#6784)
+
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
 	* net/tramp.el (tramp-default-method): Initialize with pscp/plink
 	only when running under W32.
 
