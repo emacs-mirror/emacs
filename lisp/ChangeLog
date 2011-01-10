@@ -1,14 +1,19 @@
+2011-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/diary-lib.el (diary-mode): Refresh *Calendar* after
+	refreshing the diary buffer.
+
 2011-01-10  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	allout.el: Add 2011 to the file copyright.
+	* allout.el: Add 2011 to the file copyright.
 	(allout-encrypt-string): Prevent encryption from adding an extra
 	newline at the end of the topic body.
 	(allout-version): Increment to 2.3.
 
 2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/dbus.el (dbus-unregister-service): Complete doc.  Fix
-	call of dbus-error signal.
+	* net/dbus.el (dbus-unregister-service): Complete doc.
+	Fix call of dbus-error signal.
 	(dbus-register-property): Use `dont-register' keyword.
 
 2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
@@ -20,8 +25,8 @@
 
 2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/idlw-help.el (idlwave-help-link): Inherit from link
-	face.  Suggested by Joakim Verona.
+	* progmodes/idlw-help.el (idlwave-help-link): Inherit from link face.
+	Suggested by Joakim Verona.
 
 	* comint.el (comint-highlight-prompt): Inherit minibuffer-prompt.
 
@@ -32,8 +37,8 @@
 	Merge into a single function `widget-toggle-value-create'.
 
 	* cus-edit.el (custom-variable-value-create, custom-visibility)
-	(custom-face-edit-value-create, custom-face-value-create): Replace
-	:on-image and :off-image widget properties with :on-glyph and
+	(custom-face-edit-value-create, custom-face-value-create):
+	Replace :on-image and :off-image widget properties with :on-glyph and
 	:off-glyph, for consistency with the `visibility' widget.
 
 2011-01-09  Andreas Schwab  <schwab@linux-m68k.org>
@@ -168,7 +173,7 @@
 
 2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
-	* net/dbus.el (dbus-register-property): Added optional parameter
+	* net/dbus.el (dbus-register-property): Add optional parameter
 	dont-register-service.  Updated docstring accordingly.
 
 2011-01-04  Andreas Schwab  <schwab@linux-m68k.org>
@@ -337,8 +342,8 @@
 
 2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
 
-	* doc-view.el (doc-view-mode, doc-view-toggle-display): Use
-	normal-mode without doc-view-mode bindings in auto-mode-alist as
+	* doc-view.el (doc-view-mode, doc-view-toggle-display):
+	Use normal-mode without doc-view-mode bindings in auto-mode-alist as
 	fallback instead of hard coding fundamental mode.
 
 2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
@@ -533,8 +538,8 @@
 
 2010-12-16  Leo  <sdl.web@gmail.com>
 
-	* eshell/eshell.el (eshell-directory-name): Use
-	locate-user-emacs-file (Bug#7578).
+	* eshell/eshell.el (eshell-directory-name):
+	Use locate-user-emacs-file (Bug#7578).
 
 2010-12-15  Glenn Morris  <rgm@gnu.org>
 
@@ -559,8 +564,8 @@
 	(tramp-handle-insert-file-contents): Do not set permanent-local
 	property.
 
-	* net/tramp-cache.el (tramp-persistency-file-name): Use
-	`locate-user-emacs-file' if fboundp.
+	* net/tramp-cache.el (tramp-persistency-file-name):
+	Use `locate-user-emacs-file' if fboundp.
 
 	* net/tramp-sh.el (tramp-methods): Add "ksu".
 	(tramp-default-user-alist): Add "ksu".  Use `regexp-opt' for
