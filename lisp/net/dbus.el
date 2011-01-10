@@ -183,7 +183,18 @@ association to the service from D-Bus."
 (defun dbus-unregister-service (bus service)
   "Unregister all objects related to SERVICE from D-Bus BUS.
 BUS is either a Lisp symbol, `:system' or `:session', or a string
-denoting the bus address.  SERVICE must be a known service name."
+denoting the bus address.  SERVICE must be a known service name.
+
+The function returns a keyword, indicating the result of the
+operation.  One of the following keywords is returned:
+
+`:released': Service has become the primary owner of the name.
+
+`:non-existent': Service name does not exist on this bus.
+
+`:not-owner': We are neither the primary owner nor waiting in the
+queue of this service."
+
   (maphash
    (lambda (key value)
      (dolist (elt value)
@@ -200,7 +211,7 @@ denoting the bus address.  SERVICE must be a known service name."
       (1 :released)
       (2 :non-existent)
       (3 :not-owner)
-      (t (signal 'dbus-error "Could not unregister service")))))
+      (t (signal 'dbus-error (list "Could not unregister service" service))))))
 
 (defun dbus-call-method-non-blocking-handler (&rest args)
   "Handler for reply messages of asynchronous D-Bus message calls.
