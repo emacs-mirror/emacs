@@ -922,13 +922,13 @@ clients from discovering the still incomplete interface."
   ;; Add handlers for the three property-related methods.
   (dbus-register-method
    bus service path dbus-interface-properties "Get"
-   'dbus-property-handler t)
+   'dbus-property-handler 'dont-register)
   (dbus-register-method
-   bus service path dbus-interface-properties "GetAll" 
-   'dbus-property-handler t)
+   bus service path dbus-interface-properties "GetAll"
+   'dbus-property-handler 'dont-register)
   (dbus-register-method
-   bus service path dbus-interface-properties "Set" 
-   'dbus-property-handler t)
+   bus service path dbus-interface-properties "Set"
+   'dbus-property-handler 'dont-register)
 
   ;; Register the name SERVICE with BUS.
   (unless dont-register-service

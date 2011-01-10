@@ -1,3 +1,7 @@
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-register-property): Use `dont-register' keyword.
+
 2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
 	* net/dbus.el (dbus-unregister-service): Translate returned
