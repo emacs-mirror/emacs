@@ -565,7 +565,12 @@ threads simultaneously.
 *** It is possible now, to access alternative buses than the default
 system or session bus.
 
-*** dbus-register-{method,property} do not necessarily register names anymore.
+*** dbus-register-{service,method,property}
+The -method and -property functions do not automatically register
+names anymore.
+
+The new function dbus-register-service registers a service known name
+on a D-Bus without simultaneously registering a property or a method.
 
 ** Tramp
 

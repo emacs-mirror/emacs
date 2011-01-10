@@ -1,3 +1,7 @@
+2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* NEWS: Add new function dbus-register-service.
+
 2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* themes/tango-theme.el, themes/tango-dark-theme.el: Let-bind
