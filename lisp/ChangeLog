@@ -1,3 +1,8 @@
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-default-method): Initialize with pscp/plink
+	only when running under W32.
+
 2011-01-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/grep.el (grep-compute-defaults): Quote the program
