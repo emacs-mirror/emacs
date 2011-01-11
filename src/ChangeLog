@@ -1,3 +1,9 @@
+2011-01-11  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* image.c (imagemagick_load_image, Finit_image_library): Free
+	intermediate image after creating a MagickWand from it.  Terminate
+	MagickWand environment after image loading.
+
 2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (Fdbus_register_service): Raise an error in case of
