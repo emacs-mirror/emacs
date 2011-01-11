@@ -2225,8 +2225,8 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
 	(compilation-set-window
 	 ;; Apparently the window should be made on the same frame.  If
 	 ;; it should be made in another window but the selected one
-	 ;; replace same-frame by t.
-	 (display-buffer (marker-buffer marker) 'same-frame) marker)
+	 ;; call display-buffer-same-frame-other-window.
+	 (display-buffer-same-frame (marker-buffer marker)) marker)
 	(let* ((name (read-file-name
 		      (format "Find this %s in (default %s): "
 			      compilation-error filename)

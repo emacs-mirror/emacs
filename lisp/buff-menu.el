@@ -47,20 +47,6 @@
 
 ;;; Code:
 
-;;Trying to preserve the old window configuration works well in
-;;simple scenarios, when you enter the buffer menu, use it, and exit it.
-;;But it does strange things when you switch back to the buffer list buffer
-;;with C-x b, later on, when the window configuration is different.
-;;The choice seems to be, either restore the window configuration
-;;in all cases, or in no cases.
-;;I decided it was better not to restore the window config at all. -- rms.
-
-;;But since then, I changed buffer-menu to use the selected window,
-;;so q now once again goes back to the previous window configuration.
-
-;;(defvar Buffer-menu-window-config nil
-;;  "Window configuration saved from entry to `buffer-menu'.")
-
 ;; Put buffer *Buffer List* into proper mode right away
 ;; so that from now on even list-buffers is enough to get a buffer menu.
 
@@ -155,7 +141,7 @@ Auto Revert Mode.")
     (define-key map (kbd "M-s a M-C-s") 'Buffer-menu-isearch-buffers-regexp)
     (define-key map [menu-bar Buffer-menu-mode] (cons (purecopy "Buffer-Menu") menu-map))
     (define-key menu-map [quit]
-      `(menu-item ,(purecopy "Quit") quit-window
+      `(menu-item ,(purecopy "Quit") quit-restore-window
 		 :help ,(purecopy "Remove the buffer menu from the display")))
     (define-key menu-map [rev]
       `(menu-item ,(purecopy "Refresh") revert-buffer
@@ -335,8 +321,8 @@ or `S' if you have marked it for saving.
 After this come the buffer name, its size in characters,
 its major mode, and the visited file name (if any)."
   (interactive "P")
-;;;  (setq Buffer-menu-window-config (current-window-configuration))
-  (switch-to-buffer (list-buffers-noselect arg))
+  (pop-to-buffer-same-window
+   (list-buffers-noselect arg) nil 'buffer-menu)
   (message
    "Commands: d, s, x, u; f, o, 1, 2, m, v; ~, %%; q to quit; ? for help."))
 
@@ -348,8 +334,8 @@ Type ? after invocation to get help on commands available.
 Type q to remove the buffer menu from the display.
 For more information, see the function `buffer-menu'."
   (interactive "P")
-;;;  (setq Buffer-menu-window-config (current-window-configuration))
-  (switch-to-buffer-other-window (list-buffers-noselect arg))
+  (pop-to-buffer-other-window
+   (list-buffers-noselect arg) nil 'buffer-menu-other-window)
   (message
    "Commands: d, s, x, u; f, o, 1, 2, m, v; ~, %%; q to quit; ? for help."))
 
@@ -484,8 +470,7 @@ in the selected frame."
   (interactive)
   (let ((buff (Buffer-menu-buffer t))
 	(menu (current-buffer))
-	(others ())
-	tem)
+	others tem buff-window)
     (Buffer-menu-beginning)
     (while (re-search-forward "^>" nil t)
       (setq tem (Buffer-menu-buffer t))
@@ -493,28 +478,27 @@ in the selected frame."
 	(delete-char -1)
 	(insert ?\s))
       (or (eq tem buff) (memq tem others) (setq others (cons tem others))))
-    (setq others (nreverse others)
-	  tem (/ (1- (frame-height)) (1+ (length others))))
+    (setq others (nreverse others))
+    ;; Now start displaying the buffers.
     (delete-other-windows)
-    (switch-to-buffer buff)
-    (or (eq menu buff)
-	(bury-buffer menu))
-    (if (equal (length others) 0)
-	(progn
-;;;	  ;; Restore previous window configuration before displaying
-;;;	  ;; selected buffers.
-;;;	  (if Buffer-menu-window-config
-;;;	      (progn
-;;;		(set-window-configuration Buffer-menu-window-config)
-;;;		(setq Buffer-menu-window-config nil)))
-	  (switch-to-buffer buff))
-      (while others
-	(split-window nil tem)
-	(other-window 1)
-	(switch-to-buffer (car others))
-	(setq others (cdr others)))
-      (other-window 1)  			;back to the beginning!
-)))
+    (setq buff-window (display-buffer-same-window
+		       buff 'Buffer-menu-select-buff))
+    (unless (eq menu buff)
+      (bury-buffer menu))
+    (when others
+      ;; Never rebind `window-splits' to anything but 'binary ...
+      (let ((window-splits 'resize)
+	    (window buff-window)
+	    other)
+	(while (and window others)
+	  (setq other (car others))
+	  ;; Try to always split the last window, so we get them in the
+	  ;; appropriate order.  This will fail when the frame is full,
+	  ;; which means that the user has marked too many buffers.
+	  (setq window (display-buffer
+			other `((pop-up-window (,window . below)))
+			'Buffer-menu-select-other))
+	  (setq others (cdr others)))))))
 
 (defun Buffer-menu-marked-buffers ()
   "Return a list of buffers marked with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] command."
@@ -546,9 +530,11 @@ in the selected frame."
 (defun Buffer-menu-1-window ()
   "Select this line's buffer, alone, in full frame."
   (interactive)
-  (switch-to-buffer (Buffer-menu-buffer t))
-  (bury-buffer (other-buffer))
-  (delete-other-windows))
+  (let ((menu (current-buffer)))
+    (pop-to-buffer-same-window
+     (Buffer-menu-buffer t) nil 'buffer-menu-1-window)
+    (bury-buffer menu)
+    (delete-other-windows)))
 
 (defun Buffer-menu-mouse-select (event)
   "Select the buffer whose line you click on."
@@ -559,26 +545,28 @@ in the selected frame."
 	(goto-char (posn-point (event-end event)))
 	(setq buffer (Buffer-menu-buffer t))))
     (select-window (posn-window (event-end event)))
-    (if (and (window-dedicated-p (selected-window))
-	     (eq (selected-window) (frame-root-window)))
-	(switch-to-buffer-other-frame buffer)
-      (switch-to-buffer buffer))))
+    (pop-to-buffer-same-window buffer nil 'Buffer-menu-mouse-select)))
 
 (defun Buffer-menu-this-window ()
   "Select this line's buffer in this window."
   (interactive)
-  (switch-to-buffer (Buffer-menu-buffer t)))
+  (pop-to-buffer-same-window
+   (Buffer-menu-buffer t) nil 'Buffer-menu-this-window))
 
 (defun Buffer-menu-other-window ()
   "Select this line's buffer in other window, leaving buffer menu visible."
   (interactive)
-  (switch-to-buffer-other-window (Buffer-menu-buffer t)))
+  (pop-to-buffer-other-window
+   (Buffer-menu-buffer t) nil 'Buffer-menu-other-window))
 
+;; Name and doc-string of this function are confusing.
 (defun Buffer-menu-switch-other-window ()
   "Make the other window select this line's buffer.
 The current window remains selected."
   (interactive)
-  (display-buffer-same-frame-other-window (Buffer-menu-buffer t)))
+  (display-buffer-same-frame-other-window
+   ;; Maybe we should insist on reusing another window here.
+   (Buffer-menu-buffer t) 'Buffer-menu-switch-other-window))
 
 (defun Buffer-menu-2-window ()
   "Select this line's buffer, with previous buffer in second window."
@@ -586,8 +574,11 @@ The current window remains selected."
   (let ((buff (Buffer-menu-buffer t))
 	(menu (current-buffer)))
     (delete-other-windows)
-    (display-buffer-same-window (other-buffer))
-    (pop-to-buffer-same-frame-other-window buff)
+    ;; It's very difficult to understand where we want to display what.
+    (display-buffer-same-window
+     (other-buffer) 'Buffer-menu-2-window-first)
+    (pop-to-buffer-same-frame-other-window
+     buff 'Buffer-menu-2-window-second)
     (bury-buffer menu)))
 
 (defun Buffer-menu-toggle-read-only ()

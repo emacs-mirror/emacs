@@ -86,23 +86,16 @@ the other elements.  The ordering among elements is maintained."
 BUF is assumed to be a temporary buffer used from the buffer MAINBUF."
   (interactive (list (current-buffer)))
   (save-current-buffer
-    (let ((win (if (eq buf (window-buffer (selected-window))) (selected-window)
+    (let ((win (if (eq buf (window-buffer))
+		   (selected-window)
 		 (get-buffer-window buf t))))
       (when win
 	(if (window-dedicated-p win)
 	    (condition-case ()
 		(delete-window win)
 	      (error (iconify-frame (window-frame win))))
-;;; 	  (if (and mainbuf (get-buffer-window mainbuf))
-;;; 	      ;; FIXME: if the buffer popped into a pre-existing window,
-;;; 	      ;; we don't want to delete that window.
-;;; 	      t ;;(delete-window win)
-;;; 	      )
-	  )))
-    (with-current-buffer buf
-      (bury-buffer (unless (and (eq buf (window-buffer (selected-window)))
-				(not (window-dedicated-p (selected-window))))
-		     buf)))
+	  (quit-restore-window win))))
+
     (when mainbuf
       (let ((mainwin (or (get-buffer-window mainbuf)
 			 (get-buffer-window mainbuf 'visible))))

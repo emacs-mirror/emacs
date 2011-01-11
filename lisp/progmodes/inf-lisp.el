@@ -374,8 +374,9 @@ With argument, positions cursor at end of buffer."
   (interactive "P")
   (if (get-buffer-process inferior-lisp-buffer)
       (pop-to-buffer
-       ;; Trying to guess what was here previously.
-       inferior-lisp-buffer '(other-frame (reuse-buffer-window . t) same-window))
+       ;; Try to reuse some window showing inferior-lisp-buffer on a
+       ;; visible frame, else stay on the selected frame.
+       inferior-lisp-buffer '((reuse-window nil same visible) same-frame))
     (run-lisp inferior-lisp-program))
   (when eob-p
 	 (push-mark)

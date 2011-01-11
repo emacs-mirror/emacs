@@ -380,7 +380,8 @@ from the current buffer."
       ;; Strangely, if no window is created, `display-buffer' ends up
       ;; doing a `switch-to-buffer' which does a `set-buffer', hence
       ;; the need for `save-excursion'.
-      (unless nosetup (save-excursion (display-buffer buf)))
+      (unless nosetup (save-excursion
+			(display-buffer-other-window buf)))
       ;; FIXME: this doesn't do the right thing if the user later on
       ;; does a `find-file-other-window' and `scroll-other-window'
       (set (make-local-variable 'other-window-scroll-buffer) buf))
@@ -1709,7 +1710,7 @@ Signal an error if there is no backup file."
   ;; switch back to the *cvs* buffer
   (when (and cvs-buf (buffer-live-p cvs-buf)
 	     (not (get-buffer-window cvs-buf t)))
-    (ignore-errors (switch-to-buffer cvs-buf))))
+    (ignore-errors (pop-to-buffer-same-window cvs-buf))))
 
 (defun cvs-ediff-diff (b1 b2)
   (let ((ediff-after-quit-destination-buffer (current-buffer))
@@ -2018,7 +2019,7 @@ to hear about anymore."
 	(string-to-number (match-string 1))
       1)))
 
-
+;; Someone should explain what these arguments are.
 (defun cvs-mode-find-file (e &optional other view)
   "Select a buffer containing the file.
 With a prefix, opens the buffer in an OTHER window."
@@ -2040,7 +2041,7 @@ With a prefix, opens the buffer in an OTHER window."
 		   (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
 	     (cond ((eq other 'dont-select)
 		    (display-buffer (find-file-noselect default-directory)))
-		   (other (dired-other-window default-directory))
+		   (other (display-buffer-other-window default-directory))
 		   (t (dired default-directory)))
 	     (set-buffer cvs-buf)
 	     (setq default-directory odir))
@@ -2048,9 +2049,12 @@ With a prefix, opens the buffer in an OTHER window."
 		      (find-file-noselect (cvs-fileinfo->full-name fi)))))
 	   (funcall (cond ((eq other 'dont-select) 'display-buffer)
 			  (other
-			   (if view 'view-buffer-other-window
-			     'switch-to-buffer-other-window))
-			  (t (if view 'view-buffer 'switch-to-buffer)))
+			   (if view
+			       'view-buffer-other-window
+			     'pop-to-buffer-other-window))
+			  (t (if view
+				 'view-buffer
+			       'pop-to-buffer-same-window)))
 		    buf)
 	   (when (and cvs-find-file-and-jump (cvs-applicable-p fi 'diff-base))
 	     (save-restriction

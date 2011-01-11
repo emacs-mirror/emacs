@@ -1,3 +1,46 @@
+2011-01-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* buff-menu.el (Buffer-menu-mode-map): Bind "q" to
+	quit-restore-window.
+	(buffer-menu): Call pop-to-buffer-same-window.
+	(buffer-menu-other-window): Call pop-to-buffer-other-window.
+	(Buffer-menu-select): Rewrite using display-buffer-same-window
+	and display-buffer.
+	(Buffer-menu-1-window, Buffer-menu-mouse-select)
+	(Buffer-menu-this-window): Call pop-to-buffer-same-window.
+	(Buffer-menu-other-window): Call pop-to-buffer-other-window.
+	(Buffer-menu-switch-other-window): Call
+	display-buffer-same-frame-other-window.
+	(Buffer-menu-2-window): Add label argument in calls of
+	display-buffer-same-window and
+	pop-to-buffer-same-frame-other-window.
+
+	* mail/reporter.el (reporter-submit-bug-report): Use
+	display-buffer-same-frame-other-window.
+
+	* progmodes/compile.el (compilation-find-file): Use
+	display-buffer-same-frame.
+
+	* progmodes/inf-lisp.el (switch-to-lisp): Rewrite with new buffer
+	display method specifiers.
+
+	* vc/ediff-ptch.el (ediff-get-patch-buffer): Use
+	pop-to-buffer-other-window.
+	(ediff-patch-file-internal): Replace switch-to-buffer by
+	pop-to-buffer-same-window and switch-to-buffer-other-window by
+	pop-to-buffer-other-window.
+
+	* vc/pcvs.el (cvs-ediff-exit-hook): Call
+	pop-to-buffer-same-window instead of switch-to-buffer.
+	(cvs-mode-find-file): Replace switch-to-buffer and
+	switch-to-buffer-other-window by pop-to-buffer-same-window and
+	pop-to-buffer-other-window.  Replace call to dired-other-window
+	by call to display-buffer-other-window.
+	(cvs-temp-buffer): Call display-buffer-other-window instead of
+	display-buffer.
+
+	* vc/pcvs-util.el (cvs-bury-buffer): Call quit-restore-window.
+
 2011-01-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* dired.el (dired-pop-to-buffer): Call

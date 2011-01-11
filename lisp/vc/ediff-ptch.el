@@ -547,7 +547,7 @@ optional argument, then use it."
       (goto-char (point-min))
       (or (ediff-get-visible-buffer-window patch-buf)
 	  (progn
-	    (pop-to-buffer patch-buf 'other-window)
+	    (pop-to-buffer-other-window patch-buf)
 	    (select-window (previous-window)))))
     (ediff-map-patch-buffer patch-buf)
     patch-buf))
@@ -712,7 +712,7 @@ optional argument, then use it."
     (message "Applying patch ... done")
     (message "")
 
-    (switch-to-buffer patch-diagnostics)
+    (pop-to-buffer-same-window patch-diagnostics)
     (sit-for 0) ; synchronize - let the user see diagnostics
 
     (or (and (ediff-patch-return-code-ok patch-return-code)
@@ -751,7 +751,7 @@ you can still examine the changes via M-x ediff-files"
 	      (progn
 		(select-window aux-wind)
 		(goto-char (point-max))))
-	  (switch-to-buffer-other-window patch-diagnostics)
+	  (pop-to-buffer-other-window patch-diagnostics)
 	  (error "Patch appears to have failed")))
 
     ;; If black magic is involved, apply patch to a temp copy of the
