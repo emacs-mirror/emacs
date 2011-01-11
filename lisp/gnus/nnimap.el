@@ -582,7 +582,7 @@ textual parts.")
     ;; Collect all the body parts.
     (while (looking-at ".*BODY\\[\\([.0-9]+\\)\\]")
       (setq id (match-string 1)
-	    bytes (nnimap-get-length))
+	    bytes (or (nnimap-get-length) 0))
       (beginning-of-line)
       (delete-region (point) (progn (forward-line 1) (point)))
       (push (list id (buffer-substring (point) (+ (point) bytes)))
