@@ -1,6 +1,9 @@
 ;;; tango-theme.el --- Tango-based custom theme for faces
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+
+;; Authors: Chong Yidong <cyd@stupidchicken>
+;;          Jan Moringen <jan.moringen@uni-bielefeld.de>
 
 ;; This file is part of GNU Emacs.
 
@@ -25,63 +28,117 @@
 ;;; Code:
 
 (deftheme tango
-  "Theme for faces, based on the Tango palette on a light background.
-Basic, Font Lock, Isearch, Gnus, and Message faces are included.")
+  "Theme for faces, based on the Tango palette with a light background.
+Basic, Font Lock, Isearch, Gnus, Message, Ediff, Flyspell,
+Semantic, and Ansi-Color faces are included.")
 
-(custom-theme-set-faces
- 'tango
- '(default ((t (:foreground "#16191a" :background "#eeeeec"))))
- '(cursor ((t (:foreground "#eeeeec" :background "#204a87"))))
- '(highlight ((t (:background "#babdb6"))))
- '(region ((t (:background "#babdb6"))))
- '(font-lock-builtin-face ((t (:weight bold :foreground "#204a87"))))
- '(font-lock-comment-face ((t (:foreground "#204a87"))))
- '(font-lock-constant-face ((t (:weight bold :foreground "#5c3566"))))
- '(font-lock-function-name-face ((t (:weight bold :foreground "#ce5c00"))))
- '(font-lock-keyword-face ((t (:foreground "#a40000"))))
- '(font-lock-string-face ((t (:foreground "#5c3566"))))
- '(font-lock-type-face ((t (:weight bold :foreground "#4e9a06"))))
- '(font-lock-variable-name-face ((t (:weight bold :foreground "#c17d11"))))
- '(font-lock-warning-face ((t (:foreground "#cc0000"))))
- '(button ((t (:underline t :foreground "#204a87"))))
- '(link ((t (:underline t :foreground "#204a87"))))
- '(link-visited ((t (:underline t :foreground "#3465a4"))))
- '(mode-line ((t (:box (:line-width -1 :style released-button)
-		       :background "#d3d7cf" :foreground "black"))))
- '(mode-line-inactive ((t (:box (:line-width -1 :style released-button)
-				:background "#babdb6" :foreground "black"))))
- '(isearch ((t (:foreground "#ffffff" :background "#ce5c00"))))
- '(lazy-highlight ((t (:background "#e9b96e"))))
- '(gnus-group-news-1 ((t (:weight bold :foreground "#5c3566"))))
- '(gnus-group-news-1-low ((t (:foreground "#5c3566"))))
- '(gnus-group-news-2 ((t (:weight bold :foreground "#204a87"))))
- '(gnus-group-news-2-low ((t (:foreground "#204a87"))))
- '(gnus-group-news-3 ((t (:weight bold :foreground "#4e0a06"))))
- '(gnus-group-news-3-low ((t (:foreground "#4e0a06"))))
- '(gnus-group-news-4 ((t (:weight bold :foreground "#7a4c02"))))
- '(gnus-group-news-4-low ((t (:foreground "#7a4c02"))))
- '(gnus-group-news-5 ((t (:weight bold :foreground "#ce5c00"))))
- '(gnus-group-news-5-low ((t (:foreground "#ce5c00"))))
- '(gnus-group-news-low ((t (:foreground "#888a85"))))
- '(gnus-group-mail-1 ((t (:weight bold :foreground "#5c3566"))))
- '(gnus-group-mail-1-low ((t (:foreground "#5c3566"))))
- '(gnus-group-mail-2 ((t (:weight bold :foreground "#204a87"))))
- '(gnus-group-mail-2-low ((t (:foreground "#204a87"))))
- '(gnus-group-mail-3 ((t (:weight bold :foreground "#4e0a06"))))
- '(gnus-group-mail-3-low ((t (:foreground "#4e0a06"))))
- '(gnus-group-mail-low ((t (:foreground "#888a85"))))
- '(gnus-header-content ((t (:foreground "#4e9a06"))))
- '(gnus-header-from ((t (:weight bold :foreground "#c4a000"))))
- '(gnus-header-subject ((t (:foreground "#4e0a06"))))
- '(gnus-header-name ((t (:foreground "#204a87"))))
- '(gnus-header-newsgroups ((t (:foreground "#888a85"))))
- '(message-header-name ((t (:foreground "#204a87"))))
- '(message-header-cc ((t (:foreground "#c4a000"))))
- '(message-header-other ((t (:foreground "#c17d11"))))
- '(message-header-subject ((t (:foreground "#4e0a06"))))
- '(message-header-to ((t (:weight bold :foreground "#c4a000"))))
- '(message-cited-text ((t (:foreground "#888a85"))))
- '(message-separator ((t (:weight bold :foreground "#4e9a06")))))
+(let ((class '((class color) (min-colors 89)))
+      ;; Tango palette colors.
+      (butter-1 "#fce94f") (butter-2 "#edd400") (butter-3 "#c4a000")
+      (orange-1 "#fcaf3e") (orange-2 "#f57900") (orange-3 "#ce5c00")
+      (choc-1 "#e9b96e") (choc-2 "#c17d11") (choc-3 "#8f5902")
+      (cham-1 "#8ae234") (cham-2 "#73d216") (cham-3 "#4e9a06")
+      (blue-1 "#729fcf") (blue-2 "#3465a4") (blue-3 "#204a87")
+      (plum-1 "#ad7fa8") (plum-2 "#75507b") (plum-3 "#5c3566")
+      (red-1 "#ef2929")  (red-2 "#cc0000")  (red-3 "#a40000")
+      (alum-1 "#eeeeec") (alum-2 "#d3d7cf") (alum-3 "#babdb6")
+      (alum-4 "#888a85") (alum-5 "#555753") (alum-6 "#2e3436")
+      ;; Not in Tango palette; used for better contrast.
+      (cham-4 "#346604") (blue-0 "#8cc4ff"))
+
+  (custom-theme-set-faces
+   'tango
+   `(default ((,class (:foreground ,"#16191a" :background ,alum-1))))
+   `(cursor ((,class (:foreground ,alum-1 :background ,blue-3))))
+   ;; Highlighting faces
+   `(fringe ((,class (:background ,alum-2))))
+   `(highlight ((,class (:background ,alum-3))))
+   `(region ((,class (:background ,alum-3))))
+   `(secondary-selection ((,class (:background ,blue-0))))
+   `(isearch ((,class (:foreground ,"#ffffff" :background ,orange-3))))
+   `(lazy-highlight ((,class (:background ,choc-1))))
+   `(trailing-whitespace ((,class (:background ,red-1))))
+   ;; Mode line faces
+   `(mode-line ((,class (:box (:line-width -1 :style released-button)
+			 :background ,alum-2 :foreground ,alum-6))))
+   `(mode-line-inactive ((,class (:box (:line-width -1 :style released-button)
+				  :background ,alum-4 :foreground ,alum-6))))
+   ;; Escape and prompt faces
+   `(minibuffer-prompt ((,class (:weight bold :foreground ,blue-3))))
+   `(escape-glyph ((,class (:foreground ,red-3))))
+   ;; Font lock faces
+   `(font-lock-builtin-face ((,class (:weight bold :foreground ,plum-3))))
+   `(font-lock-comment-face ((,class (:foreground ,cham-4))))
+   `(font-lock-constant-face ((,class (:weight bold :foreground ,blue-3))))
+   `(font-lock-function-name-face ((,class (:foreground ,red-3))))
+   `(font-lock-keyword-face ((,class (:weight bold :foreground ,choc-2))))
+   `(font-lock-string-face ((,class (:foreground ,plum-3))))
+   `(font-lock-type-face ((,class (:foreground ,blue-3))))
+   `(font-lock-variable-name-face ((,class (:weight bold :foreground ,orange-3))))
+   `(font-lock-warning-face ((,class (:foreground ,red-2))))
+   ;; Button and link faces
+   `(button ((,class (:underline t :foreground ,blue-3))))
+   `(link ((,class (:underline t :foreground ,blue-3))))
+   `(link-visited ((,class (:underline t :foreground ,blue-2))))
+   ;; Gnus faces
+   `(gnus-group-news-1 ((,class (:weight bold :foreground ,plum-3))))
+   `(gnus-group-news-1-low ((,class (:foreground ,plum-3))))
+   `(gnus-group-news-2 ((,class (:weight bold :foreground ,blue-3))))
+   `(gnus-group-news-2-low ((,class (:foreground ,blue-3))))
+   `(gnus-group-news-3 ((,class (:weight bold :foreground ,"#4e0a06"))))
+   `(gnus-group-news-3-low ((,class (:foreground ,"#4e0a06"))))
+   `(gnus-group-news-4 ((,class (:weight bold :foreground ,"#7a4c02"))))
+   `(gnus-group-news-4-low ((,class (:foreground ,"#7a4c02"))))
+   `(gnus-group-news-5 ((,class (:weight bold :foreground ,orange-3))))
+   `(gnus-group-news-5-low ((,class (:foreground ,orange-3))))
+   `(gnus-group-news-low ((,class (:foreground ,"#888a85"))))
+   `(gnus-group-mail-1 ((,class (:weight bold :foreground ,plum-3))))
+   `(gnus-group-mail-1-low ((,class (:foreground ,plum-3))))
+   `(gnus-group-mail-2 ((,class (:weight bold :foreground ,blue-3))))
+   `(gnus-group-mail-2-low ((,class (:foreground ,blue-3))))
+   `(gnus-group-mail-3 ((,class (:weight bold :foreground ,"#4e0a06"))))
+   `(gnus-group-mail-3-low ((,class (:foreground ,"#4e0a06"))))
+   `(gnus-group-mail-low ((,class (:foreground ,"#888a85"))))
+   `(gnus-header-content ((,class (:foreground ,cham-3))))
+   `(gnus-header-from ((,class (:weight bold :foreground ,butter-3))))
+   `(gnus-header-subject ((,class (:foreground ,"#4e0a06"))))
+   `(gnus-header-name ((,class (:foreground ,blue-3))))
+   `(gnus-header-newsgroups ((,class (:foreground ,"#888a85"))))
+   ;; Message faces
+   `(message-header-name ((,class (:foreground ,blue-3))))
+   `(message-header-cc ((,class (:foreground ,butter-3))))
+   `(message-header-other ((,class (:foreground ,choc-2))))
+   `(message-header-subject ((,class (:foreground ,"#4e0a06"))))
+   `(message-header-to ((,class (:weight bold :foreground ,butter-3))))
+   `(message-cited-text ((,class (:foreground ,"#888a85"))))
+   `(message-separator ((,class (:weight bold :foreground ,cham-3))))
+   ;; SMerge
+   `(smerge-refined-change ((,class (:background ,plum-1))))
+   ;; Ediff
+   `(ediff-current-diff-A ((,class (:background ,blue-1))))
+   `(ediff-fine-diff-A ((,class (:background ,plum-1))))
+   `(ediff-current-diff-B ((,class (:background ,butter-1))))
+   `(ediff-fine-diff-B ((,class (:background ,orange-1))))
+   ;; Flyspell
+   `(flyspell-duplicate ((,class (:underline ,orange-1))))
+   `(flyspell-incorrect ((,class (:underline ,red-1))))
+   ;; Semantic faces
+   `(semantic-decoration-on-includes ((,class (:underline  ,cham-4))))
+   `(semantic-decoration-on-private-members-face
+     ((,class (:background ,alum-2))))
+   `(semantic-decoration-on-protected-members-face
+     ((,class (:background ,alum-2))))
+   `(semantic-decoration-on-unknown-includes
+     ((,class (:background ,choc-3))))
+   `(semantic-decoration-on-unparsed-includes
+     ((,class (:underline  ,orange-3))))
+   `(semantic-tag-boundary-face ((,class (:overline   ,blue-1))))
+   `(semantic-unmatched-syntax-face ((,class (:underline  ,red-1)))))
+
+  (custom-theme-set-variables
+   'tango
+   `(ansi-color-names-vector [,alum-6 ,red-3 ,cham-3 ,butter-3
+				      ,blue-3 ,plum-3 ,blue-1 ,alum-1])))
 
 (provide-theme 'tango)
 

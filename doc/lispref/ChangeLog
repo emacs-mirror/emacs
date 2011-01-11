@@ -1,3 +1,7 @@
+2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* loading.texi (Hooks for Loading): Adjust doc of eval-after-load.
+
 2011-01-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Switching Buffers): Emphasize distinction of
@@ -9024,7 +9028,7 @@
 ;; End:
 
   Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-    2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+    2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

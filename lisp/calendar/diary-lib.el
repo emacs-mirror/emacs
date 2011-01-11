@@ -1,7 +1,7 @@
 ;;; diary-lib.el --- diary functions
 
 ;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1995, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -2346,6 +2346,9 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
        '(diary-font-lock-keywords t))
   (add-to-invisibility-spec '(diary . nil))
   (add-hook 'after-save-hook 'diary-redraw-calendar nil t)
+  ;; In case the file was modified externally, refresh the calendar
+  ;; after refreshing the diary buffer.
+  (add-hook 'after-revert-hook 'diary-redraw-calendar nil t)
   (if diary-header-line-flag
       (setq header-line-format diary-header-line-format)))
 

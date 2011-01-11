@@ -41,10 +41,99 @@
 
 	* vc/pcvs-util.el (cvs-bury-buffer): Call quit-restore-window.
 
+2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/prolog.el: Fix up coding convention and such.
+	(prolog-indent-width): Use the same default as in
+	previous prolog.el rather than tab-width which depends on which buffer
+	is current when the file is loaded.
+	(prolog-electric-newline-flag): Only enable if electric-indent-mode
+	is not available.
+	(prolog-emacs): Remove.  Use (featurep 'xemacs) instead.
+	(prolog-known-systems): Remove.
+	(prolog-mode-syntax-table, prolog-inferior-mode-map):
+	Move initialization into declaration.
+	(prolog-mode-map): Move initialization into declaration.
+	Remove system-specific mode-map vars, since they referred to the same
+	keymap anyway.
+	(prolog-mode-variables): Obey the user's preference w.r.t
+	adaptive-fill-mode.  Prefer symbol-value to `eval'.
+	(prolog-mode-keybindings-edit): Add compatibility bindings.
+	(prolog-mode): Use define-derived-mode.  Don't handle mercury here.
+	(mercury-mode-map): New var.
+	(mercury-mode, prolog-inferior-mode): Use define-derived-mode.
+	(prolog-ensure-process, prolog-process-insert-string)
+	(prolog-consult-compile): Use with-current-buffer.
+	(prolog-guess-fill-prefix): Simplify data flow.
+	(prolog-replace-in-string): New function to use instead of
+	replace-in-string.
+	(prolog-enable-sicstus-sd): Don't abuse `eval'.
+	(prolog-uncomment-region): Use `uncomment-region' when available.
+	(prolog-electric-colon, prolog-electric-dash): Use `eolp'.
+	(prolog-int-to-char, prolog-char-to-int): New functions to use instead
+	of int-to-char and char-to-int.
+	(prolog-mode-hook, prolog-inferior-mode-hook): Don't force font-lock.
+
+2011-01-11  Stefan Bruda  <stefan@bruda.ca>
+
+	* progmodes/prolog.el: Replace by a whole new file.
+
+2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (eval-after-load): Fix timing for features (bug#7769).
+	(declare-function, undefined, insert-for-yank)
+	(replace-regexp-in-string): Follow checkdoc's recommendations.
+
+2011-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/diary-lib.el (diary-mode): Refresh *Calendar* after
+	refreshing the diary buffer.
+
+2011-01-10  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Add 2011 to the file copyright.
+	(allout-encrypt-string): Prevent encryption from adding an extra
+	newline at the end of the topic body.
+	(allout-version): Increment to 2.3.
+
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-unregister-service): Complete doc.
+	Fix call of dbus-error signal.
+	(dbus-register-property): Use `dont-register' keyword.
+
+2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* net/dbus.el (dbus-unregister-service): Translate returned
+	integer into a symbol.
+	(dbus-register-property): Use `dbus-register-service' to do the
+	name registration.
+
 2011-01-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* dired.el (dired-pop-to-buffer): Call
 	pop-to-buffer-same-frame-other-window.
+2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/idlw-help.el (idlwave-help-link): Inherit from link face.
+	Suggested by Joakim Verona.
+
+	* comint.el (comint-highlight-prompt): Inherit minibuffer-prompt.
+
+	* wid-edit.el (visibility): Replace :on-image and :off-image
+	widget properties with :on-glyph and :off-glyph, for consistency
+	with the `visibility' widget.
+	(widget-toggle-value-create, widget-visibility-value-create):
+	Merge into a single function `widget-toggle-value-create'.
+
+	* cus-edit.el (custom-variable-value-create, custom-visibility)
+	(custom-face-edit-value-create, custom-face-value-create):
+	Replace :on-image and :off-image widget properties with :on-glyph and
+	:off-glyph, for consistency with the `visibility' widget.
+
+2011-01-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* net/ldap.el (ldap-search-internal): Don't use eval.
 
 2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -292,7 +381,7 @@
 
 2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
-	* net/dbus.el (dbus-register-property): Added optional parameter
+	* net/dbus.el (dbus-register-property): Add optional parameter
 	dont-register-service.  Updated docstring accordingly.
 
 2011-01-04  Andreas Schwab  <schwab@linux-m68k.org>
@@ -461,8 +550,8 @@
 
 2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
 
-	* doc-view.el (doc-view-mode, doc-view-toggle-display): Use
-	normal-mode without doc-view-mode bindings in auto-mode-alist as
+	* doc-view.el (doc-view-mode, doc-view-toggle-display):
+	Use normal-mode without doc-view-mode bindings in auto-mode-alist as
 	fallback instead of hard coding fundamental mode.
 
 2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
@@ -657,8 +746,8 @@
 
 2010-12-16  Leo  <sdl.web@gmail.com>
 
-	* eshell/eshell.el (eshell-directory-name): Use
-	locate-user-emacs-file (Bug#7578).
+	* eshell/eshell.el (eshell-directory-name):
+	Use locate-user-emacs-file (Bug#7578).
 
 2010-12-15  Glenn Morris  <rgm@gnu.org>
 
@@ -683,8 +772,8 @@
 	(tramp-handle-insert-file-contents): Do not set permanent-local
 	property.
 
-	* net/tramp-cache.el (tramp-persistency-file-name): Use
-	`locate-user-emacs-file' if fboundp.
+	* net/tramp-cache.el (tramp-persistency-file-name):
+	Use `locate-user-emacs-file' if fboundp.
 
 	* net/tramp-sh.el (tramp-methods): Add "ksu".
 	(tramp-default-user-alist): Add "ksu".  Use `regexp-opt' for

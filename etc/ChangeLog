@@ -1,3 +1,14 @@
+2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* NEWS: Add new function dbus-register-service.
+
+2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/tango-theme.el, themes/tango-dark-theme.el: Let-bind
+	tango palette colors.  Only define faces for color displays.
+	Customize the ansi-color-names-vector variable.  Add Ediff,
+	Flyspell, and Semantic faces as suggested by Jan Moringen.
+
 2011-01-08  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* compilation.txt: Add column to gcc-include sample.

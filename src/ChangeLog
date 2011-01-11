@@ -1,3 +1,26 @@
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_register_service): Raise an error in case of
+	unexpected return values.
+	(Fdbus_register_method): Remove connection initialization.
+
+2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* dbusbind.c (QCdbus_request_name_allow_replacement): New symbol;
+	used by Fdbus_register_service.
+	(QCdbus_request_name_replace_existing): Likewise.
+	(QCdbus_request_name_do_not_queue): Likewise.
+	(QCdbus_request_name_reply_primary_owner): Likewise.
+	(QCdbus_request_name_reply_in_queue): Likewise.
+	(QCdbus_request_name_reply_exists): Likewise.
+	(QCdbus_request_name_reply_already_owner): Likewise.
+	(Fdbus_register_service): New function.
+	(Fdbus_register_method): Use Fdbus_register_service to do the name
+	registration.
+	(syms_of_dbusbind): Add symbols dbus-register-service,
+	:allow-replacement, :replace-existing, :do-not-queue,
+	:primary-owner, :existing, :in-queue and :already-owner.
+
 2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* gtkutil.c (update_frame_tool_bar): Don't advance tool-bar index

@@ -1,6 +1,6 @@
 ;;; org-faces.el --- Face definitions for Org-mode.
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
@@ -247,9 +247,7 @@ column view defines special faces for each outline level.  See the file
   :group 'org-faces)
 
 (defface org-link
-  '((((class color) (background light)) (:foreground "Purple" :underline t))
-    (((class color) (background dark)) (:foreground "Cyan" :underline t))
-    (t (:underline t)))
+  '((t :inherit link))
   "Face for links."
   :group 'org-faces)
 

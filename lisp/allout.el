@@ -1,12 +1,12 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
 ;; Copyright (C) 1992, 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Created: Dec 1991 -- first release to usenet
-;; Version: 2.2.2
+;; Version: 2.3
 ;; Keywords: outlines wp languages
 ;; Website: http://myriadicity.net/Sundry/EmacsAllout
 
@@ -569,7 +569,7 @@ themselves:
  `!' - exclamation point/bang -- emphatic
  `[' - open square bracket -- meta-note, about item instead of item's subject
  `\"' - double quote -- a quotation or other citation
- `=' - equal sign -- an assignement, equating a name with some connotation
+ `=' - equal sign -- an assignment, some kind of definition
  `^' - carat -- relates to something above
 
 Some are more elusive, but their rationale may be recognizable:
@@ -891,7 +891,7 @@ For details, see `allout-toggle-current-subtree-encryption's docstring."
 ;;;_ #1 Internal Outline Formatting and Configuration
 ;;;_  : Version
 ;;;_   = allout-version
-(defvar allout-version "2.2.2"
+(defvar allout-version "2.3"
   "Version of currently loaded outline package.  (allout.el)")
 ;;;_   > allout-version
 (defun allout-version (&optional here)
@@ -6226,10 +6226,11 @@ signal."
               (epg-decrypt-string epg-context
                                   (encode-coding-string massaged-text
                                                         (or encoding 'utf-8)))
-            (epg-encrypt-string epg-context
-                                (encode-coding-string massaged-text
-                                                      (or encoding 'utf-8))
-                                recipients)))
+            (replace-regexp-in-string "\n$" ""
+             (epg-encrypt-string epg-context
+                                 (encode-coding-string massaged-text
+                                                       (or encoding 'utf-8))
+                                 recipients))))
 
     ;; validate result -- non-empty
     (if (not result-text)

@@ -323,6 +323,10 @@ prompts for a number to count from and for a format string.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** Prolog mode has been completely revamped, with lots of additional
+functionality such as more intelligent indentation, electricty, support for
+more variants, including Mercury, and a lot more.
+
 ** shell-mode can track your cwd by reading it from your prompt.
 Just set shell-dir-cookie-re to an appropriate regexp.
 
@@ -565,7 +569,12 @@ threads simultaneously.
 *** It is possible now, to access alternative buses than the default
 system or session bus.
 
-*** dbus-register-{method,property} do not necessarily register names anymore.
+*** dbus-register-{service,method,property}
+The -method and -property functions do not automatically register
+names anymore.
+
+The new function dbus-register-service registers a service known name
+on a D-Bus without simultaneously registering a property or a method.
 
 ** Tramp
 
