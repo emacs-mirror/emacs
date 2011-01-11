@@ -355,7 +355,7 @@ Other major modes are defined by comparison with this one."
 (defvar special-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    (define-key map "q" 'quit-window)
+    (define-key map "q" 'quit-restore-window)
     (define-key map " " 'scroll-up)
     (define-key map "\C-?" 'scroll-down)
     (define-key map "?" 'describe-mode)
@@ -913,8 +913,9 @@ rather than line counts."
   ;; Switch to the desired buffer, one way or another.
   (if buffer
       (let ((window (get-buffer-window buffer)))
-	(if window (select-window window)
-	  (switch-to-buffer-other-window buffer))))
+	(if window
+	    (select-window window)
+	  (pop-to-buffer-other-window buffer))))
   ;; Leave mark at previous position
   (or (region-active-p) (push-mark))
   ;; Move to the specified line number in that buffer.
@@ -4046,7 +4047,7 @@ for it.")
 	    (widen)
 	  (error "Global mark position is outside accessible part of buffer")))
     (goto-char position)
-    (switch-to-buffer buffer)))
+    (pop-to-buffer-same-window buffer)))
 
 (defcustom next-line-add-newlines nil
   "If non-nil, `next-line' inserts newline to avoid `end of buffer' error."
@@ -5759,7 +5760,7 @@ To disable this warning, set `compose-mail-user-agent-warnings' to nil."
   (interactive
    (list nil nil nil current-prefix-arg))
   (compose-mail to subject other-headers continue
-		'switch-to-buffer-other-window yank-action send-actions))
+		'pop-to-buffer-other-window yank-action send-actions))
 
 
 (defun compose-mail-other-frame (&optional to subject other-headers continue
@@ -5768,7 +5769,7 @@ To disable this warning, set `compose-mail-user-agent-warnings' to nil."
   (interactive
    (list nil nil nil current-prefix-arg))
   (compose-mail to subject other-headers continue
-		'switch-to-buffer-other-frame yank-action send-actions))
+		'pop-to-buffer-other-frame yank-action send-actions))
 
 (defvar set-variable-value-history nil
   "History of values entered with `set-variable'.

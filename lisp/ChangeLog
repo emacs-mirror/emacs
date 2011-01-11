@@ -1,5 +1,14 @@
 2011-01-11  Martin Rudalics  <rudalics@gmx.at>
 
+	* simple.el (goto-line, compose-mail-other-window): Replace
+	switch-to-buffer-other-window by pop-to-buffer-other-window.
+	(pop-global-mark): Use pop-to-buffer-same-window instead of
+	switch-to-buffer.
+	(compose-mail-other-frame): Use pop-to-buffer-other-frame
+	instead of switch-to-buffer-other-frame.
+	(special-mode-map): Bind "q" to quit-restore-window instead of
+	quit-window.
+
 	* buff-menu.el (Buffer-menu-mode-map): Bind "q" to
 	quit-restore-window.
 	(buffer-menu): Call pop-to-buffer-same-window.
