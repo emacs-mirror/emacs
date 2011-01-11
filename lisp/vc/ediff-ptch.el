@@ -472,7 +472,7 @@ are two possible targets for this patch.  However, these files do not exist."
 	 (set-window-buffer ediff-window-A ediff-patch-diagnostics))
 	((window-live-p ediff-window-B)
 	 (set-window-buffer ediff-window-B ediff-patch-diagnostics))
-	(t (display-buffer ediff-patch-diagnostics 'not-this-window))))
+	(t (display-buffer-other-window ediff-patch-diagnostics))))
 
 ;; prompt for file, get the buffer
 (defun ediff-prompt-for-patch-file ()

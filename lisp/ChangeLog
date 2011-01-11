@@ -1,5 +1,8 @@
 2011-01-11  Martin Rudalics  <rudalics@gmx.at>
 
+	* vc/ediff-ptch.el (ediff-show-patch-diagnostics): Use
+	display-buffer-other-window.
+
 	* simple.el (goto-line, compose-mail-other-window): Replace
 	switch-to-buffer-other-window by pop-to-buffer-other-window.
 	(pop-global-mark): Use pop-to-buffer-same-window instead of
