@@ -1,3 +1,8 @@
+2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* whitespace.el (global-whitespace-newline-mode): Fix call (bug#7810)
+	to minor mode which used nil accidentally to mean "turn off".
+
 2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-find-inline-compress)
