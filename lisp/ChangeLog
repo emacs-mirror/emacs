@@ -1,3 +1,7 @@
+2011-01-11  Stefan Bruda  <stefan@bruda.ca>
+
+	* progmodes/prolog.el: Replace by a whole new file.
+
 2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (eval-after-load): Fix timing for features (bug#7769).
