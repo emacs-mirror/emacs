@@ -1,7 +1,7 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -60,7 +60,7 @@ function-definitions that `check-declare' does not recognize, e.g.
 `defstruct'.
 
 To specify a value for FILEONLY without passing an argument list,
-set ARGLIST to `t'.  This is necessary because `nil' means an
+set ARGLIST to t.  This is necessary because nil means an
 empty argument list, rather than an unspecified one.
 
 Note that for the purposes of `check-declare', this statement
@@ -483,6 +483,7 @@ saving keyboard macros (see `edmacro-mode')."
   (read-kbd-macro keys))
 
 (defun undefined ()
+  "Beep to tell the user this binding is undefined."
   (interactive)
   (ding))
 
@@ -1599,11 +1600,7 @@ extension for a compressed format \(e.g. \".gz\") on FILE will not affect
 this name matching.
 
 Alternatively, FILE can be a feature (i.e. a symbol), in which case FORM
-is evaluated whenever that feature is `provide'd.  Note that although
-provide statements are usually at the end of files, this is not always
-the case (e.g., sometimes they are at the start to avoid a recursive
-load error).  If your FORM should not be evaluated until the code in
-FILE has been, do not use the symbol form for FILE in such cases.
+is evaluated at the end of any file that `provide's this feature.
 
 Usually FILE is just a library name like \"font-lock\" or a feature name
 like 'font-lock.
@@ -1612,11 +1609,27 @@ This function makes or adds to an entry on `after-load-alist'."
   ;; Add this FORM into after-load-alist (regardless of whether we'll be
   ;; evaluating it now).
   (let* ((regexp-or-feature
-	  (if (stringp file) (setq file (purecopy (load-history-regexp file))) file))
+	  (if (stringp file)
+              (setq file (purecopy (load-history-regexp file)))
+            file))
 	 (elt (assoc regexp-or-feature after-load-alist)))
     (unless elt
       (setq elt (list regexp-or-feature))
       (push elt after-load-alist))
+    (when (symbolp regexp-or-feature)
+      ;; For features, the after-load-alist elements get run when `provide' is
+      ;; called rather than at the end of the file.  So add an indirection to
+      ;; make sure that `form' is really run "after-load" in case the provide
+      ;; call happens early.
+      (setq form
+            `(when load-file-name
+               (let ((fun (make-symbol "eval-after-load-helper")))
+                 (fset fun `(lambda (file)
+                              (if (not (equal file ',load-file-name))
+                                  nil
+                                (remove-hook 'after-load-functions ',fun)
+                                ,',form)))
+                 (add-hook 'after-load-functions fun)))))
     ;; Add FORM to the element unless it's already there.
     (unless (member form (cdr elt))
       (nconc elt (purecopy (list form))))
@@ -1872,7 +1885,7 @@ This function echoes `.' for each character that the user types.
 The user ends with RET, LFD, or ESC.  DEL or C-h rubs out.
 C-y yanks the current kill.  C-u kills line.
 C-g quits; if `inhibit-quit' was non-nil around this function,
-then it returns nil if the user types C-g, but quit-flag remains set.
+then it returns nil if the user types C-g, but `quit-flag' remains set.
 
 Once the caller uses the password, it can erase the password
 by doing (clear-string STRING)."
@@ -2496,7 +2509,7 @@ Replaces `category' properties with their defined properties."
 (defvar yank-undo-function)
 
 (defun insert-for-yank (string)
-  "Calls `insert-for-yank-1' repetitively for each `yank-handler' segment.
+  "Call `insert-for-yank-1' repetitively for each `yank-handler' segment.
 
 See `insert-for-yank-1' for more details."
   (let (to)
@@ -3180,7 +3193,7 @@ is non-nil, start replacements at that index in STRING.
 REP is either a string used as the NEWTEXT arg of `replace-match' or a
 function.  If it is a function, it is called with the actual text of each
 match, and its value is used as the replacement text.  When REP is called,
-the match-data are the result of matching REGEXP against a substring
+the match data are the result of matching REGEXP against a substring
 of STRING.
 
 To replace only the first match (if any), make REGEXP match up to \\'

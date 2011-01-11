@@ -962,7 +962,8 @@ example, @file{my_inst.elc} or @file{my_inst.elc.gz} in some directory
 @end example
 
 @var{library} can also be a feature (i.e.@: a symbol), in which case
-@var{form} is evaluated when @code{(provide @var{library})} is called.
+@var{form} is evaluated at the end of any file where
+@code{(provide @var{library})} is called.
 
 An error in @var{form} does not undo the load, but does prevent
 execution of the rest of @var{form}.

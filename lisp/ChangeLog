@@ -1,3 +1,9 @@
+2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (eval-after-load): Fix timing for features (bug#7769).
+	(declare-function, undefined, insert-for-yank)
+	(replace-regexp-in-string): Follow checkdoc's recommendations.
+
 2011-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/diary-lib.el (diary-mode): Refresh *Calendar* after
