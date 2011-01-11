@@ -1,5 +1,9 @@
 2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* tmm.el (tmm-get-keymap): Skip bindings without labels (bug#7721).
+	(tmm-prompt): Simplify.
+	(tmm-add-prompt): Remove unused var `win'.
+
 	* whitespace.el (global-whitespace-newline-mode): Fix call (bug#7810)
 	to minor mode which used nil accidentally to mean "turn off".
 
