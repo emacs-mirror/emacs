@@ -1,5 +1,9 @@
 2011-01-12  Chong Yidong  <cyd@stupidchicken.com>
 
+	* menu-bar.el (menu-bar-custom-menu): Tweak Mule and Customize
+	menus.  Add menu item for customize-themes.
+
+	* cus-theme.el (customize-themes):
 	* emacs-lisp/package.el (package--list-packages): Use
 	switch-to-buffer.
 
