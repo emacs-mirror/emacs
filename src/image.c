@@ -7522,7 +7522,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
      image to see how many sub-images it contains. Pinging is faster
      than loading the image to find out things about it.  */
 
-  /* MagickWandGenesis() initializes the imagemagick library.  */
+  /* `MagickWandGenesis' initializes the imagemagick environment.  */
   MagickWandGenesis ();
   image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
@@ -7810,6 +7810,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
 
   /* Final cleanup. image_wand should be the only resource left. */
   DestroyMagickWand (image_wand);
+  /* `MagickWandTerminus' terminates the imagemagick environment.  */
   MagickWandTerminus ();
 
   return 1;
