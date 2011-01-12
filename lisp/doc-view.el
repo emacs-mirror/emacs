@@ -621,7 +621,8 @@ It's a subdirectory of `doc-view-cache-directory'."
 Document types are symbols like `dvi', `ps', `pdf', or `odf' (any
 OpenDocument format)."
   (and (display-graphic-p)
-       (image-type-available-p 'png)
+       (or (image-type-available-p 'imagemagick)
+	   (image-type-available-p 'png))
        (cond
 	((eq type 'dvi)
 	 (and (doc-view-mode-p 'pdf)

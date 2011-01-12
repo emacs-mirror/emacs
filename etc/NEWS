@@ -219,9 +219,10 @@ Emacs no longer looks for custom themes in `load-path'.  The default
 is to search in `custom-theme-directory', followed by a built-in theme
 directory named "themes/" in `data-directory'.
 
-*** New option `custom-safe-theme-files' lists known-safe theme files.
-If a theme is not in this list, Emacs queries before loading it.
-The default value treats all themes included in Emacs as safe.
+*** New option `custom-safe-themes' records known-safe theme files.
+If a theme is not in this list, Emacs queries before loading it, and
+offers to save the theme to `custom-safe-themes' automatically.  By
+default, all themes included in Emacs are treated as safe.
 
 ** The user option `remote-file-name-inhibit-cache' controls whether
 the remote file-name cache is used for read access.
@@ -321,6 +322,10 @@ prompts for a number to count from and for a format string.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
+
+** Prolog mode has been completely revamped, with lots of additional
+functionality such as more intelligent indentation, electricty, support for
+more variants, including Mercury, and a lot more.
 
 ** shell-mode can track your cwd by reading it from your prompt.
 Just set shell-dir-cookie-re to an appropriate regexp.
@@ -564,7 +569,12 @@ threads simultaneously.
 *** It is possible now, to access alternative buses than the default
 system or session bus.
 
-*** dbus-register-{method,property} do not necessarily register names anymore.
+*** dbus-register-{service,method,property}
+The -method and -property functions do not automatically register
+names anymore.
+
+The new function dbus-register-service registers a service known name
+on a D-Bus without simultaneously registering a property or a method.
 
 ** Tramp
 

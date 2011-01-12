@@ -4439,7 +4439,7 @@ update_frame_tool_bar (FRAME_PTR f)
   /* Remove buttons not longer needed.  */
   do
     {
-      ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (wtoolbar), j++);
+      ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (wtoolbar), j);
       if (ti)
 	gtk_container_remove (GTK_CONTAINER (wtoolbar), GTK_WIDGET (ti));
     } while (ti != NULL);

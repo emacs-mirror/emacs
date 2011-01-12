@@ -2460,10 +2460,13 @@ do_yes_or_no_p (Lisp_Object prompt)
 
 DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, MANY, 0,
        doc: /* Ask user a yes-or-no question.  Return t if answer is yes.
-Takes one argument, which is the string to display to ask the question.
-It should end in a space; `yes-or-no-p' adds `(yes or no) ' to it.
-The user must confirm the answer with RET,
-and can edit it until it has been confirmed.
+The string to display to ask the question is obtained by
+formatting the string PROMPT with arguments ARGS (see `format').
+The result should end in a space; `yes-or-no-p' adds
+\"(yes or no) \" to it.
+
+The user must confirm the answer with RET, and can edit it until it
+has been confirmed.
 
 Under a windowing system a dialog box will be used if `last-nonmenu-event'
 is nil, and `use-dialog-box' is non-nil.

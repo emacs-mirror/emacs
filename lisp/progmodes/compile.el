@@ -1569,9 +1569,11 @@ Returns the compilation buffer created."
 (defvar compilation-mode-tool-bar-map
   ;; When bootstrapping, tool-bar-map is not properly initialized yet,
   ;; so don't do anything.
-  (when (keymapp (butlast tool-bar-map))
-    (let ((map (butlast (copy-keymap tool-bar-map)))
-	  (help (last tool-bar-map))) ;; Keep Help last in tool bar
+  (when (keymapp tool-bar-map)
+    (let ((map (copy-keymap tool-bar-map)))
+      (define-key map [undo] nil)
+      (define-key map [separator-2] nil)
+      (define-key-after map [separator-compile] menu-bar-separator)
       (tool-bar-local-item
        "left-arrow" 'previous-error-no-select 'previous-error-no-select map
        :rtl "right-arrow"
@@ -1588,7 +1590,7 @@ Returns the compilation buffer created."
       (tool-bar-local-item
        "refresh" 'recompile 'recompile map
        :help "Restart compilation")
-      (append map help))))
+      map)))
 
 (put 'compilation-mode 'mode-class 'special)
 

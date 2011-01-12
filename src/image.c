@@ -7518,6 +7518,9 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
      image.  Interface :index is same as for GIF.  First we "ping" the
      image to see how many sub-images it contains. Pinging is faster
      than loading the image to find out things about it.  */
+
+  /* MagickWandGenesis() initializes the imagemagick library.  */
+  MagickWandGenesis ();
   image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
   ping_wand = NewMagickWand ();
@@ -7546,6 +7549,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
                     img->data.lisp_val));
 
   DestroyMagickWand (ping_wand);
+
   /* Now, after pinging, we know how many images are inside the
      file. If its not a bundle, just one.  */
 
@@ -7563,6 +7567,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       if (im_image != NULL)
 	{
 	  image_wand = NewMagickWandFromImage (im_image);
+          DestroyImage(im_image);
 	  status = MagickTrue;
 	}
       else
@@ -7573,7 +7578,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       image_wand = NewMagickWand ();
       status = MagickReadImageBlob (image_wand, contents, size);
     }
-  image_error ("im read failed", Qnil, Qnil);
+
   if (status == MagickFalse) goto imagemagick_error;
 
   /* If width and/or height is set in the display spec assume we want
@@ -7802,11 +7807,13 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
 
   /* Final cleanup. image_wand should be the only resource left. */
   DestroyMagickWand (image_wand);
+  MagickWandTerminus ();
 
   return 1;
 
  imagemagick_error:
   DestroyMagickWand (image_wand);
+  MagickWandTerminus ();
   /* TODO more cleanup.  */
   image_error ("Error parsing IMAGEMAGICK image `%s'", img->spec, Qnil);
   return 0;
@@ -8678,8 +8685,6 @@ of `dynamic-library-alist', which see).  */)
 #if defined (HAVE_IMAGEMAGICK)
   if (EQ (type, Qimagemagick))
     {
-      /* MagickWandGenesis() initializes the imagemagick library.  */
-      MagickWandGenesis ();
       return CHECK_LIB_AVAILABLE (&imagemagick_type, init_imagemagick_functions,
 				  libraries);
     }

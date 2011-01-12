@@ -2162,21 +2162,13 @@ when he invoked the menu."
 
 (defun widget-toggle-value-create (widget)
   "Insert text representing the `on' and `off' states."
-  (if (widget-value widget)
-      (let ((image (widget-get widget :on-glyph)))
-	(and (display-graphic-p)
-	     (listp image)
-	     (not (eq (car image) 'image))
-	     (widget-put widget :on-glyph (setq image (eval image))))
-	(widget-image-insert widget
-			     (widget-get widget :on)
-			     image))
-    (let ((image (widget-get widget :off-glyph)))
-      (and (display-graphic-p)
-	   (listp image)
-	   (not (eq (car image) 'image))
-	   (widget-put widget :off-glyph (setq image (eval image))))
-      (widget-image-insert widget (widget-get widget :off) image))))
+  (let* ((val (widget-value widget))
+	 (text (widget-get widget (if val :on :off)))
+	 (img (widget-image-find
+	       (widget-get widget (if val :on-glyph :off-glyph)))))
+    (widget-image-insert widget (or text "")
+			 (if img
+			     (append img '(:ascent center))))))
 
 (defun widget-toggle-action (widget &optional event)
   ;; Toggle value.
@@ -2816,34 +2808,22 @@ Return an alist of (TYPE MATCH)."
   "An indicator and manipulator for hidden items.
 
 The following properties have special meanings for this widget:
-:on-image  Image filename or spec to display when the item is visible.
+:on-glyph  Image filename or spec to display when the item is visible.
 :on        Text shown if the \"on\" image is nil or cannot be displayed.
-:off-image Image filename or spec to display when the item is hidden.
+:off-glyph Image filename or spec to display when the item is hidden.
 :off       Text shown if the \"off\" image is nil cannot be displayed."
   :format "%[%v%]"
   :button-prefix ""
   :button-suffix ""
-  :on-image "down"
+  :on-glyph "down"
   :on "Hide"
-  :off-image "right"
+  :off-glyph "right"
   :off "Show"
   :value-create 'widget-visibility-value-create
   :action 'widget-toggle-action
   :match (lambda (widget value) t))
 
-(defun widget-visibility-value-create (widget)
-  ;; Insert text representing the `on' and `off' states.
-  (let* ((val (widget-value widget))
-	 (text (widget-get widget (if val :on :off)))
-	 (img (widget-image-find
-	       (widget-get widget (if val :on-image :off-image)))))
-    (widget-image-insert widget
-			 (if text
-			     (concat widget-push-button-prefix text
-				     widget-push-button-suffix)
-			   "")
-			 (if img
-			     (append img '(:ascent center))))))
+(defalias 'widget-visibility-value-create 'widget-toggle-value-create)
 
 ;;; The `documentation-link' Widget.
 ;;

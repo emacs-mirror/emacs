@@ -202,6 +202,9 @@ UNSAFEP-VARS is a list of symbols with local bindings."
 	      (dolist (x (nthcdr 3 form))
 		(setq reason (unsafep-progn (cdr x)))
 		(if reason (throw 'unsafep reason))))))
+       ((eq fun '\`)
+	;; Backquoted form - safe if its expansion is.
+	(unsafep (cdr (backquote-process (cadr form)))))
        (t
 	;;First unsafep-function call above wasn't nil, no special case applies
 	reason)))))

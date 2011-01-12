@@ -1,6 +1,6 @@
 ;;; proto-stream.el --- negotiating TLS, STARTTLS and other connections
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network
@@ -101,14 +101,17 @@ command to switch on STARTTLS otherwise."
       (setq type 'network))
      ((eq type 'ssl)
       (setq type 'tls)))
-    (destructuring-bind (stream greeting capabilities)
-	(funcall (intern (format "proto-stream-open-%s" type) obarray)
-		 name buffer host service parameters)
-      (list (and stream
-		 (memq (process-status stream)
-		       '(open run))
-		 stream)
-	    greeting capabilities))))
+    (let ((open-result
+	   (funcall (intern (format "proto-stream-open-%s" type) obarray)
+		    name buffer host service parameters)))
+      (if (null open-result)
+	  (list nil nil nil)
+	(destructuring-bind (stream greeting capabilities) open-result
+	  (list (and stream
+		     (memq (process-status stream)
+			   '(open run))
+		     stream)
+		greeting capabilities))))))
 
 (defun proto-stream-open-network-only (name buffer host service parameters)
   (let ((start (with-current-buffer buffer (point)))

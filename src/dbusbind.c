@@ -38,6 +38,7 @@ Lisp_Object Qdbus_call_method_asynchronously;
 Lisp_Object Qdbus_method_return_internal;
 Lisp_Object Qdbus_method_error_internal;
 Lisp_Object Qdbus_send_signal;
+Lisp_Object Qdbus_register_service;
 Lisp_Object Qdbus_register_signal;
 Lisp_Object Qdbus_register_method;
 
@@ -49,6 +50,17 @@ Lisp_Object QCdbus_system_bus, QCdbus_session_bus;
 
 /* Lisp symbol for method call timeout.  */
 Lisp_Object QCdbus_timeout;
+
+/* Lisp symbols for name request flags.  */
+Lisp_Object QCdbus_request_name_allow_replacement;
+Lisp_Object QCdbus_request_name_replace_existing;
+Lisp_Object QCdbus_request_name_do_not_queue;
+
+/* Lisp symbols for name request replies.  */
+Lisp_Object QCdbus_request_name_reply_primary_owner;
+Lisp_Object QCdbus_request_name_reply_in_queue;
+Lisp_Object QCdbus_request_name_reply_exists;
+Lisp_Object QCdbus_request_name_reply_already_owner;
 
 /* Lisp symbols of D-Bus types.  */
 Lisp_Object QCdbus_type_byte, QCdbus_type_boolean;
@@ -1835,6 +1847,114 @@ xd_read_queued_messages (int fd, void *data, int for_read)
   xd_in_read_queued_messages = 0;
 }
 
+DEFUN ("dbus-register-service", Fdbus_register_service, Sdbus_register_service,
+       2, MANY, 0,
+       doc: /* Register known name SERVICE on the D-Bus BUS.
+
+BUS is either a Lisp symbol, `:system' or `:session', or a string
+denoting the bus address.
+
+SERVICE is the D-Bus service name that should be registered.  It must
+be a known name.
+
+FLAGS are keywords, which control how the service name is registered.
+The following keywords are recognized:
+
+`:allow-replacement': Allow another service to become the primary
+owner if requested.
+
+`:replace-existing': Request to replace the current primary owner.
+
+`:do-not-queue': If we can not become the primary owner do not place
+us in the queue.
+
+The function returns a keyword, indicating the result of the
+operation.  One of the following keywords is returned:
+
+`:primary-owner': Service has become the primary owner of the
+requested name.
+
+`:in-queue': Service could not become the primary owner and has been
+placed in the queue.
+
+`:exists': Service is already in the queue.
+
+`:already-owner': Service is already the primary owner.
+
+Example:
+
+\(dbus-register-service :session dbus-service-emacs)
+
+  => :primary-owner.
+
+\(dbus-register-service
+  :session "org.freedesktop.TextEditor"
+  dbus-service-allow-replacement dbus-service-replace-existing)
+
+  => :already-owner.
+
+usage: (dbus-register-service BUS SERVICE &rest FLAGS)  */)
+  (int nargs, register Lisp_Object *args)
+{
+  Lisp_Object bus, service;
+  struct gcpro gcpro1, gcpro2;
+  DBusConnection *connection;
+  unsigned int i;
+  unsigned int value;
+  unsigned int flags = 0;
+  int result;
+  DBusError derror;
+
+  bus = args[0];
+  service = args[1];
+
+  /* Check parameters.  */
+  CHECK_STRING (service);
+
+  /* Process flags.  */
+  for (i = 2; i < nargs; ++i) {
+    value = ((EQ (args[i], QCdbus_request_name_replace_existing))
+	     ? DBUS_NAME_FLAG_REPLACE_EXISTING
+	     : (EQ (args[i], QCdbus_request_name_allow_replacement))
+	     ? DBUS_NAME_FLAG_ALLOW_REPLACEMENT
+	     : (EQ (args[i], QCdbus_request_name_do_not_queue))
+	     ? DBUS_NAME_FLAG_DO_NOT_QUEUE
+	     : -1);
+    if (value == -1)
+      XD_SIGNAL2 (build_string ("Unrecognized name request flag"), args[i]);
+    flags |= value;
+  }
+
+  /* Open a connection to the bus.  */
+  connection = xd_initialize (bus, TRUE);
+
+  /* Request the known name from the bus.  */
+  dbus_error_init (&derror);
+  result = dbus_bus_request_name (connection, SDATA (service), flags,
+				  &derror);
+  if (dbus_error_is_set (&derror))
+    XD_ERROR (derror);
+
+  /* Cleanup.  */
+  dbus_error_free (&derror);
+
+  /* Return object.  */
+  switch (result)
+    {
+    case DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER:
+      return QCdbus_request_name_reply_primary_owner;
+    case DBUS_REQUEST_NAME_REPLY_IN_QUEUE:
+      return QCdbus_request_name_reply_in_queue;
+    case DBUS_REQUEST_NAME_REPLY_EXISTS:
+      return QCdbus_request_name_reply_exists;
+    case DBUS_REQUEST_NAME_REPLY_ALREADY_OWNER:
+      return QCdbus_request_name_reply_already_owner;
+    default:
+      /* This should not happen.  */
+      XD_SIGNAL2 (build_string ("Could not register service"), service);
+    }
+}
+
 DEFUN ("dbus-register-signal", Fdbus_register_signal, Sdbus_register_signal,
        6, MANY, 0,
        doc: /* Register for signal SIGNAL on the D-Bus BUS.
@@ -2011,9 +2131,8 @@ discovering the still incomplete interface.*/)
    Lisp_Object dont_register_service)
 {
   Lisp_Object key, key1, value;
-  DBusConnection *connection;
-  int result;
   DBusError derror;
+  Lisp_Object args[2] = { bus, service };
 
   /* Check parameters.  */
   CHECK_STRING (service);
@@ -2025,21 +2144,9 @@ discovering the still incomplete interface.*/)
   /* TODO: We must check for a valid service name, otherwise there is
      a segmentation fault.  */
 
-  /* Open a connection to the bus.  */
-  connection = xd_initialize (bus, TRUE);
-
-  /* Request the known name from the bus.  We can ignore the result,
-     it is set to -1 if there is an error - kind of redundancy.  */
+  /* Request the name.  */
   if (NILP (dont_register_service))
-    {
-      dbus_error_init (&derror);
-      result = dbus_bus_request_name (connection, SDATA (service), 0, &derror);
-      if (dbus_error_is_set (&derror))
-	XD_ERROR (derror);
-
-      /* Cleanup.  */
-      dbus_error_free (&derror);
-    }
+    Fdbus_register_service (2, args);
 
   /* Create a hash table entry.  We use nil for the unique name,
      because the method might be called from anybody.  */
@@ -2091,6 +2198,10 @@ syms_of_dbusbind (void)
   staticpro (&Qdbus_send_signal);
   defsubr (&Sdbus_send_signal);
 
+  Qdbus_register_service = intern_c_string ("dbus-register-service");
+  staticpro (&Qdbus_register_service);
+  defsubr (&Sdbus_register_service);
+
   Qdbus_register_signal = intern_c_string ("dbus-register-signal");
   staticpro (&Qdbus_register_signal);
   defsubr (&Sdbus_register_signal);
@@ -2111,6 +2222,27 @@ syms_of_dbusbind (void)
 
   QCdbus_session_bus = intern_c_string (":session");
   staticpro (&QCdbus_session_bus);
+
+  QCdbus_request_name_allow_replacement = intern_c_string (":allow-replacement");
+  staticpro (&QCdbus_request_name_allow_replacement);
+
+  QCdbus_request_name_replace_existing = intern_c_string (":replace-existing");
+  staticpro (&QCdbus_request_name_replace_existing);
+
+  QCdbus_request_name_do_not_queue = intern_c_string (":do-not-queue");
+  staticpro (&QCdbus_request_name_do_not_queue);
+
+  QCdbus_request_name_reply_primary_owner = intern_c_string (":primary-owner");
+  staticpro (&QCdbus_request_name_reply_primary_owner);
+
+  QCdbus_request_name_reply_exists = intern_c_string (":exists");
+  staticpro (&QCdbus_request_name_reply_exists);
+
+  QCdbus_request_name_reply_in_queue = intern_c_string (":in-queue");
+  staticpro (&QCdbus_request_name_reply_in_queue);
+
+  QCdbus_request_name_reply_already_owner = intern_c_string (":already-owner");
+  staticpro (&QCdbus_request_name_reply_already_owner);
 
   QCdbus_timeout = intern_c_string (":timeout");
   staticpro (&QCdbus_timeout);

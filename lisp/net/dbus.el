@@ -183,7 +183,18 @@ association to the service from D-Bus."
 (defun dbus-unregister-service (bus service)
   "Unregister all objects related to SERVICE from D-Bus BUS.
 BUS is either a Lisp symbol, `:system' or `:session', or a string
-denoting the bus address.  SERVICE must be a known service name."
+denoting the bus address.  SERVICE must be a known service name.
+
+The function returns a keyword, indicating the result of the
+operation.  One of the following keywords is returned:
+
+`:released': Service has become the primary owner of the name.
+
+`:non-existent': Service name does not exist on this bus.
+
+`:not-owner': We are neither the primary owner nor waiting in the
+queue of this service."
+
   (maphash
    (lambda (key value)
      (dolist (elt value)
@@ -193,9 +204,14 @@ denoting the bus address.  SERVICE must be a known service name."
 	       (puthash key (delete elt value) dbus-registered-objects-table)
 	     (remhash key dbus-registered-objects-table))))))
    dbus-registered-objects-table)
-  (dbus-call-method
-   bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
-   "ReleaseName" service))
+  (let ((reply (dbus-call-method
+		bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+		"ReleaseName" service)))
+    (case reply
+      (1 :released)
+      (2 :non-existent)
+      (3 :not-owner)
+      (t (signal 'dbus-error (list "Could not unregister service" service))))))
 
 (defun dbus-call-method-non-blocking-handler (&rest args)
   "Handler for reply messages of asynchronous D-Bus message calls.
@@ -914,17 +930,20 @@ clients from discovering the still incomplete interface."
      bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
      "RequestName" service 0))
 
-  ;; Add the handler.  We use `dbus-service-emacs' as service name, in
-  ;; order to let unregister SERVICE despite of this default handler.
+  ;; Add handlers for the three property-related methods.
   (dbus-register-method
-   bus service path dbus-interface-properties "Get" 'dbus-property-handler
-   dont-register-service)
+   bus service path dbus-interface-properties "Get"
+   'dbus-property-handler 'dont-register)
   (dbus-register-method
-   bus service path dbus-interface-properties "GetAll" 'dbus-property-handler
-   dont-register-service)
+   bus service path dbus-interface-properties "GetAll"
+   'dbus-property-handler 'dont-register)
   (dbus-register-method
-   bus service path dbus-interface-properties "Set" 'dbus-property-handler
-   dont-register-service)
+   bus service path dbus-interface-properties "Set"
+   'dbus-property-handler 'dont-register)
+
+  ;; Register the name SERVICE with BUS.
+  (unless dont-register-service
+    (dbus-register-service bus service))
 
   ;; Send the PropertiesChanged signal.
   (when emits-signal
