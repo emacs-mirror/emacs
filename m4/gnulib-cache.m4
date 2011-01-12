@@ -15,12 +15,12 @@
 
 
 # Specification in the form of a command-line invocation:
-#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=. --makefile-name=gnulib.mk --no-libtool --macro-prefix=gl --no-vc-files ftoastr getopt-gnu mktime
+#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=. --makefile-name=gnulib.mk --no-libtool --macro-prefix=gl --no-vc-files dtoastr getopt-gnu mktime
 
 # Specification in the form of a few gnulib-tool.m4 macro invocations:
 gl_LOCAL_DIR([])
 gl_MODULES([
-  ftoastr
+  dtoastr
   getopt-gnu
   mktime
 ])

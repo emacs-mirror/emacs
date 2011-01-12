@@ -5808,9 +5808,9 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
 
   # Code from module arg-nonnull:
   # Code from module c++defs:
+  # Code from module dtoastr:
   # Code from module extensions:
 
-  # Code from module ftoastr:
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
   # Code from module gettext-h:
@@ -14642,9 +14642,9 @@ fi
   gl_source_base='lib'
   # Code from module arg-nonnull:
   # Code from module c++defs:
-  # Code from module extensions:
-  # Code from module ftoastr:
+  # Code from module dtoastr:
 
+  # Code from module extensions:
   # Code from module getopt-gnu:
 
 

@@ -28,9 +28,9 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([AC_PROG_RANLIB])
   # Code from module arg-nonnull:
   # Code from module c++defs:
+  # Code from module dtoastr:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
-  # Code from module ftoastr:
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
   # Code from module gettext-h:
@@ -63,9 +63,9 @@ AC_DEFUN([gl_INIT],
   gl_source_base='lib'
   # Code from module arg-nonnull:
   # Code from module c++defs:
-  # Code from module extensions:
-  # Code from module ftoastr:
+  # Code from module dtoastr:
   AC_REQUIRE([gl_C99_STRTOLD])
+  # Code from module extensions:
   # Code from module getopt-gnu:
   gl_FUNC_GETOPT_GNU
   gl_MODULE_INDICATOR_FOR_TESTS([getopt-gnu])
@@ -243,7 +243,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/getopt_int.h
   lib/gettext.h
   lib/intprops.h
-  lib/ldtoastr.c
   lib/mktime-internal.h
   lib/mktime.c
   lib/stddef.in.h
