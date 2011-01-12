@@ -111,8 +111,14 @@ A nil value means sort by visited order (the default).")
 This variable determines whether reverting the buffer lists only
 file buffers.  It affects both manual reverting and reverting by
 Auto Revert Mode.")
-
 (make-variable-buffer-local 'Buffer-menu-files-only)
+
+(defvar Buffer-menu--buffers nil
+  "If non-nil, list of buffers shown in the current buffer-menu.
+This variable determines whether reverting the buffer lists only
+this buffers.  It affects both manual reverting and reverting by
+Auto Revert Mode.")
+(make-variable-buffer-local 'Buffer-menu--buffers)
 
 (defvar Info-current-file) ;; from info.el
 (defvar Info-current-node) ;; from info.el
@@ -281,7 +287,7 @@ Letters do not insert themselves; instead, they are commands.
     ;; interactively current buffer is correctly identified with a `.'
     ;; by `list-buffers-noselect'.
     (with-current-buffer (window-buffer)
-      (list-buffers-noselect Buffer-menu-files-only))
+      (list-buffers-noselect Buffer-menu-files-only Buffer-menu--buffers))
     (if oline
 	(while (setq prop (next-single-property-change prop 'buffer))
 	  (when (eq (get-text-property prop 'buffer) oline)
@@ -920,6 +926,7 @@ For more information, see the function `buffer-menu'."
       (and desired-point
 	   (goto-char desired-point))
       (setq Buffer-menu-files-only files-only)
+      (setq Buffer-menu--buffers buffer-list)
       (set-buffer-modified-p nil)
       (current-buffer))))
 

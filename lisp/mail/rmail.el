@@ -4232,7 +4232,7 @@ encoded string (and the same mask) will decode the string."
 ;;; Start of automatically extracted autoloads.
 
 ;;;### (autoloads (rmail-edit-current-message) "rmailedit" "rmailedit.el"
-;;;;;;  "60db8013bf16d7999914a16cda435287")
+;;;;;;  "ecd28d8d92983488673388eced6fbf50")
 ;;; Generated autoloads from rmailedit.el
 
 (autoload 'rmail-edit-current-message "rmailedit" "\
@@ -4244,7 +4244,7 @@ Edit the contents of this message.
 
 ;;;### (autoloads (rmail-next-labeled-message rmail-previous-labeled-message
 ;;;;;;  rmail-read-label rmail-kill-label rmail-add-label) "rmailkwd"
-;;;;;;  "rmailkwd.el" "7027ce1ac922c0dd51262b641e4d42c1")
+;;;;;;  "rmailkwd.el" "bc72ffe3652be6f4c72048ae8f226fce")
 ;;; Generated autoloads from rmailkwd.el
 
 (autoload 'rmail-add-label "rmailkwd" "\
@@ -4287,7 +4287,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "6c12c2d0563ae855f1069d7a80b8244a")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "420a9c4619672f1f60f675126fbc9c08")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
@@ -4313,7 +4313,7 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'.
 ;;;***
 
 ;;;### (autoloads (set-rmail-inbox-list) "rmailmsc" "rmailmsc.el"
-;;;;;;  "b2a72d4e370f2d2b31b6f8f0794820e4")
+;;;;;;  "9319e5b606ad5786c0c5994a307a38e8")
 ;;; Generated autoloads from rmailmsc.el
 
 (autoload 'set-rmail-inbox-list "rmailmsc" "\
@@ -4329,7 +4329,7 @@ This applies only to the current session.
 
 ;;;### (autoloads (rmail-sort-by-labels rmail-sort-by-lines rmail-sort-by-correspondent
 ;;;;;;  rmail-sort-by-recipient rmail-sort-by-author rmail-sort-by-subject
-;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "5a3b5ee477d2fbf79d0c566d776a7fd4")
+;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "16144a77fdc880034875fd624e4d73e6")
 ;;; Generated autoloads from rmailsort.el
 
 (autoload 'rmail-sort-by-date "rmailsort" "\
@@ -4388,7 +4388,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "d855683972baef7111d4508dffbb54b6")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "6bcfd5937a56902944a929b89b33adaa")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\
@@ -4436,7 +4436,7 @@ SENDERS is a string of regexps separated by commas.
 ;;;***
 
 ;;;### (autoloads (unforward-rmail-message undigestify-rmail-message)
-;;;;;;  "undigest" "undigest.el" "8cf8a8ffa48eeddf0bde388fa8de1783")
+;;;;;;  "undigest" "undigest.el" "2869c38a0051d0acab1a5968627fa57d")
 ;;; Generated autoloads from undigest.el
 
 (autoload 'undigestify-rmail-message "undigest" "\

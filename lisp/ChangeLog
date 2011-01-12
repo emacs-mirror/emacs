@@ -37,6 +37,51 @@
 	(rmail-mime-previous-item): Skip the body of a non-multipart
 	entity if a tagline is shown.
 
+2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-get-keymap): Skip bindings without labels (bug#7721).
+	(tmm-prompt): Simplify.
+	(tmm-add-prompt): Remove unused var `win'.
+
+	* whitespace.el (global-whitespace-newline-mode): Fix call (bug#7810)
+	to minor mode which used nil accidentally to mean "turn off".
+
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-find-inline-compress)
+	(tramp-get-inline-coding): Quote command after pipe symbol for
+	local calls under W32.  (Bug#6784)
+
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-default-method): Initialize with pscp/plink
+	only when running under W32.
+
+2011-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/grep.el (grep-compute-defaults): Quote the program
+	file name after the pipe symbol in Grep templates.  (Bug#6784)
+	* jka-compr.el (jka-compr-partial-uncompress): Likewise.
+
+2011-01-08  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* buff-menu.el (Buffer-menu-buffer-list): New var.
+	(Buffer-menu-revert-function, list-buffers-noselect): Use it, so a
+	restricted buffer list is not lost on revert (Bug#7749).
+
+2011-01-08  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* net/ldap.el (ldap-search-internal): Discard stderr output.
+
+2011-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (directory-abbrev-alist): Doc fix.  (Bug#7777)
+
+2011-01-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-annotate-command, vc-bzr-annotate-time):
+	Author names can have spaces (bug#7792).
+
 2011-01-04  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmailmm.el (rmail-mime-insert-bulk): Display an unknown

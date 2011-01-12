@@ -1,3 +1,8 @@
+2011-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-mail): A compose-mail function should
+	accept headers as strings.
+
 2010-11-19  Yuri Karaban  <tech@askold.net>  (tiny change)
 
 	* pop3.el (pop3-open-server): Read server greeting before starting TLS
@@ -13920,4 +13925,3 @@ See ChangeLog.2 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-;;; arch-tag: 3f33a3e7-090d-492b-bedd-02a1417d32b4

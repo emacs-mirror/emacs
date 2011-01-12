@@ -1,3 +1,8 @@
+2011-01-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in [netbsd systems]: Check for tputs definition
+	(Bug#7642).
+
 2010-12-11  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Exclude etc/*.pyc.  [Backport from trunk]

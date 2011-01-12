@@ -2372,6 +2372,15 @@ AC_CHECK_FUNCS(getpt)
 # than to expect to find it in ncurses.
 AC_CHECK_LIB(ncurses, tparm)
 
+case "$opsys" in
+  netbsd)
+    AC_SEARCH_LIBS(tputs, [ncurses terminfo termcap])
+    if test $ac_cv_search_tputs = -lterminfo; then
+      AC_DEFINE(TERMINFO, 1, [Define to 1 if you use terminfo instead of termcap.])
+    fi
+    ;;
+esac
+
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
 
 resolv=no

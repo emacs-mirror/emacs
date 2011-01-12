@@ -1,3 +1,14 @@
+2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (File Aliases): Move directory-abbrev-alist doc from Lisp
+	manual.  Explain why directory-abbrev-alist elements should be anchored
+	(Bug#7777).
+
+2011-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Startup): Correct inaccurate description of
+	differences between emacsclient.exe and emacsclientw.exe.
+
 2010-12-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* rmail.texi (Rmail Display): Edit for grammar and conciseness.
