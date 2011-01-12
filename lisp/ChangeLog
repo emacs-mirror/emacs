@@ -1,3 +1,13 @@
+2011-01-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-display-file, dired-why): Use
+	display-buffer-other-window with label.
+	(dired-pop-to-buffer): Remove.
+	(dired-mark-pop-up): Use display-buffer and quit-restore-window.
+
+	* proced.el (proced-send-signal): Use display-buffer and
+	quit-restore-window.
+
 2011-01-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* vc/ediff-ptch.el (ediff-show-patch-diagnostics): Use

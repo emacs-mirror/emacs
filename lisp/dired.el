@@ -1994,7 +1994,8 @@ Otherwise, display it in another buffer."
 (defun dired-display-file ()
   "In Dired, display this file or directory in another window."
   (interactive)
-  (display-buffer (find-file-noselect (dired-get-file-for-visit))))
+  (display-buffer-other-window
+   (find-file-noselect (dired-get-file-for-visit)) 'dired-display-file))
 
 ;;; Functions for extracting and manipulating file names in Dired buffers.
 
@@ -2769,16 +2770,6 @@ name, or the marker and a count of marked files."
 	  (format "[next %d files]" arg)
 	(format "%c [%d files]" dired-marker-char count)))))
 
-(defun dired-pop-to-buffer (buf)
-  "Pop up buffer BUF in a way suitable for Dired.
-Currently this means in another window on the same frame."
-  (pop-to-buffer-same-frame-other-window (get-buffer-create buf))
-  ;; If dired-shrink-to-fit is t, make its window fit its contents.
-  (when dired-shrink-to-fit
-    ;; Try to not delete window when we want to display less than
-    ;; `window-min-height' lines.
-    (fit-window-to-buffer (get-buffer-window buf) nil 1)))
-
 (defcustom dired-no-confirm nil
   "A list of symbols for commands Dired should not confirm, or t.
 Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
@@ -2820,10 +2811,15 @@ just the current file."
       ;; just one file that was marked, rather than the current line file.
       (dired-format-columns-of-files (if (eq (car files) t) (cdr files) files))
       (remove-text-properties (point-min) (point-max)
-			      '(mouse-face nil help-echo nil)))
-    (save-window-excursion
-      (dired-pop-to-buffer bufname)
-      (apply function args))))
+			      '(mouse-face nil help-echo nil))
+
+      (let ((window (display-buffer nil nil 'dired-mark-pop-up)))
+	(when dired-shrink-to-fit
+	  (fit-window-to-buffer window nil 1))
+	(select-window window t)
+	(apply function args)
+	;; We could kill the buffer here.
+	(quit-restore-window window)))))
 
 (defun dired-format-columns-of-files (files)
   (let ((beg (point)))
@@ -3191,7 +3187,8 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
   (interactive)
   (if (get-buffer dired-log-buffer)
       (let ((owindow (selected-window))
-	    (window (display-buffer (get-buffer dired-log-buffer))))
+	    (window (display-buffer-other-window
+		     (get-buffer dired-log-buffer) 'dired-why)))
 	(unwind-protect
 	    (progn
 	      (select-window window)

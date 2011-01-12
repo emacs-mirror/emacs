@@ -1725,23 +1725,24 @@ After sending the signal, this command runs the normal hook
             (setq buffer-read-only t)
             (dolist (process process-alist)
               (insert "  " (cdr process) "\n")))
-          (save-window-excursion
-            ;; Analogous to `dired-pop-to-buffer'
-            ;; Don't split window horizontally.  (Bug#1806)
-            (let (split-width-threshold)
-              (pop-to-buffer (current-buffer)))
-            (fit-window-to-buffer (get-buffer-window) nil 1)
-            (let* ((completion-ignore-case t)
-                   (pnum (if (= 1 (length process-alist))
-                             "1 process"
-                           (format "%d processes" (length process-alist))))
-                   (completion-annotate-function
-                    (lambda (s) (cdr (assoc s proced-signal-list)))))
-              (setq signal
-                    (completing-read (concat "Send signal [" pnum
-                                             "] (default TERM): ")
-                                     proced-signal-list
-                                     nil nil nil nil "TERM")))))))
+	  ;; Don't split window horizontally.  (Bug#1806) We now do
+	  ;; split windows horizontally again - override this via
+	  ;; `display-buffer-alist' if you want to.
+          (let* ((window (display-buffer nil nil 'proced-send-signal))
+		 (completion-ignore-case t)
+		 (pnum (if (= 1 (length process-alist))
+			   "1 process"
+			 (format "%d processes" (length process-alist))))
+		 (completion-annotate-function
+		  (lambda (s) (cdr (assoc s proced-signal-list)))))
+            (fit-window-to-buffer window nil 1)
+	    (select-window window t)
+	    (setq signal
+		  (completing-read (concat "Send signal [" pnum
+					   "] (default TERM): ")
+				   proced-signal-list
+				   nil nil nil nil "TERM"))
+	    (quit-restore-window window)))))
     ;; send signal
     (let ((count 0)
           failures)
