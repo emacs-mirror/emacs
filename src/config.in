@@ -895,6 +895,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Process async input synchronously. */
 #undef SYNC_INPUT
 
+/* Define to 1 if you use terminfo instead of termcap. */
+#undef TERMINFO
+
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
