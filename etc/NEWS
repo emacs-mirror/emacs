@@ -210,6 +210,10 @@ automatically when Emacs starts up.  To disable this, set
 `package-enable-at-startup' to nil.  To change which packages are
 loaded, customize `package-load-list'.
 
+** An Emacs Lisp testing tool is now included.
+Emacs Lisp developers can use this tool to write automated tests for
+their code.  See the ERT info manual for details.
+
 ** Custom Themes
 
 *** `M-x customize-themes' lists Custom themes which can be enabled.

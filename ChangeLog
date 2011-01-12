@@ -1,3 +1,12 @@
+2011-01-13  Christian Ohler  <ohler@gnu.org>
+
+	* Makefile.in (INFO_FILES): Add ERT.
+
+	* Makefile.in (check): Run tests in test/automated.
+
+	* Makefile.in:
+	* configure.in: Add test/automated/Makefile.
+
 2011-01-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* install-sh, mkinstalldirs, move-if-change: Update from master
