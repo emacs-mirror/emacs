@@ -11442,6 +11442,8 @@ else
 # ifdef _MSC_VER
 #  include <malloc.h>
 #  define alloca _alloca
+# elif defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__)
+#   include <stdlib.h>
 # else
 #  ifdef HAVE_ALLOCA_H
 #   include <alloca.h>
@@ -15039,7 +15041,7 @@ test "${prefix}" != NONE &&
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 
-ac_config_files="$ac_config_files Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+ac_config_files="$ac_config_files Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile test/automated/Makefile"
 
 ac_config_commands="$ac_config_commands default"
 
@@ -15767,6 +15769,7 @@ do
     "lwlib/Makefile") CONFIG_FILES="$CONFIG_FILES lwlib/Makefile" ;;
     "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile" ;;
     "leim/Makefile") CONFIG_FILES="$CONFIG_FILES leim/Makefile" ;;
+    "test/automated/Makefile") CONFIG_FILES="$CONFIG_FILES test/automated/Makefile" ;;
     "default") CONFIG_COMMANDS="$CONFIG_COMMANDS default" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
