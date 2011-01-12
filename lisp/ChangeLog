@@ -63,6 +63,10 @@
 
 	* vc/pcvs-util.el (cvs-bury-buffer): Call quit-restore-window.
 
+2011-01-11  Johan Bockgård  <bojohan@gnu.org>
+
+	* emacs-lisp/unsafep.el (unsafep): Handle backquoted forms.
+
 2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/prolog.el: Fix up coding convention and such.

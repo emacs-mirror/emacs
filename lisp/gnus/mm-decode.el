@@ -1,7 +1,7 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -1367,13 +1367,18 @@ Use CMD as the process."
 
 (defun mm-preferred-alternative-precedence (handles)
   "Return the precedence based on HANDLES and `mm-discouraged-alternatives'."
-  (let ((seq (nreverse (mapcar #'mm-handle-media-type
-			       handles))))
-    (dolist (disc (reverse mm-discouraged-alternatives))
-      (dolist (elem (copy-sequence seq))
-	(when (string-match disc elem)
-	  (setq seq (nconc (delete elem seq) (list elem))))))
-    seq))
+  (setq handles (reverse handles))
+  (dolist (disc (reverse mm-discouraged-alternatives))
+    (dolist (handle (copy-sequence handles))
+      (when (string-match disc (mm-handle-media-type handle))
+	(setq handles (nconc (delete handle handles) (list handle))))))
+  ;; Remove empty parts.
+  (dolist (handle (copy-sequence handles))
+    (unless (with-current-buffer (mm-handle-buffer handle)
+	      (goto-char (point-min))
+	      (re-search-forward "[^ \t\n]" nil t))
+      (setq handles (nconc (delete handle handles) (list handle)))))
+  (mapcar #'mm-handle-media-type handles))
 
 (defun mm-get-content-id (id)
   "Return the handle(s) referred to by ID."

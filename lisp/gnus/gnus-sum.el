@@ -7687,9 +7687,6 @@ If BACKWARD, the previous article is selected instead of the next."
 	   (if (eq gnus-keep-same-level 'best)
 	       (gnus-summary-best-group gnus-newsgroup-name)
 	     (gnus-summary-search-group backward gnus-keep-same-level))))
-      ;; For some reason, the group window gets selected.  We change
-      ;; it back.
-      (select-window (get-buffer-window (current-buffer)))
       ;; Select next unread newsgroup automagically.
       (cond
        ((or (not gnus-auto-select-next)
