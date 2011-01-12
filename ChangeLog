@@ -1,4 +1,8 @@
-2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
+2011-01-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (GNULIB_MODULES): Change ftoastr to dtoastr.
+	This avoids building ftoastr and ldtoastr, which aren't needed.  See
+	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00199.html>.
 
 	* .bzrignore: Add .h files that are host-dependent.
 	Add lib/.deps/, lib/arg-nonnull.h, lib/c++defs.h, lib/getopt.h,
@@ -8,7 +12,7 @@
 
 	* lib/Makefile.in: Regenerate.
 	* lib/COPYING: New file, a copy of COPYING.
-	
+
 	* configure: Regenerate.
 	* configure.in (AC_USE_SYSTEM_EXTENSIONS): Remove: gnulib does this.
 
@@ -19,7 +23,7 @@
 	* aclocal.m4, configure, lib/Makefile.in, m4/getopt.m4:
 	* m4/gnulib-cache.m4, m4/gnulib-comp.m4, src/config.in:
 	Regenerate.
-	
+
 	Use gnulib's getopt-gnu module.
 	* Makefile.in (GNULIB_MODULES): Add getopt-gnu.
 	(AUTOCONF_INPUTS): Remove getopt.m4; aclocal.m4 is a good-enough
@@ -27,7 +31,7 @@
 	* configure.in: Do not configure getopt, as gnulib does that now.
 	* make-dist: Do not worry about lib-src/getopt.h, as gnulib handles
 	getopt now, in lib.
-	
+
 	Regenerate.
 	* arg-nonnull.h, c++defs.h, lib/mktime-internal.h, lib/mktime.c:
 	* lib/stddef.in.h, lib/time.h, lib/time.in.h, lib/time_r.c:
@@ -61,7 +65,7 @@
 	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk:
 	* m4/gnulib-cache.m4, m4/gnulib-comp.m4, src/config.in:
 	Regenerate.
-	
+
 	Use gnulib's ftoastr module.
 	* Makefile.in (GNULIB_MODULES): Add ftoastr.  Remove dummy.
 
