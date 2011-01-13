@@ -2,6 +2,35 @@
 
 	* emacs-lisp/ert.el, emacs-lisp/ert-x.el: New files.
 
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font-lock.el (font-lock-verbose): Default to nil.
+
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (sendmail-user-agent-compose): Move to sendmail.el.
+	(compose-mail): New arg RETURN-ACTION.
+	(compose-mail-other-window, compose-mail-other-frame): Likewise.
+
+	* mail/sendmail.el (mail-return-action): New var.
+	(mail-mode): Make it buffer-local.
+	(mail-bury): Obey it.  Move special Rmail window handling to
+	rmail-mail-return.
+	(mail, mail-setup): New arg RETURN-ACTION.
+	(sendmail-user-agent-compose): Move from simple.el.
+
+	* mail/rmail.el (rmail-mail-return): New function.
+	(rmail-start-mail): Pass it to compose-mail.
+
+2011-01-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-custom-menu): Tweak Mule and Customize
+	menus.  Add menu item for customize-themes.
+
+	* cus-theme.el (customize-themes):
+	* emacs-lisp/package.el (package--list-packages): Use
+	switch-to-buffer.
+
 2011-01-11  Johan Bockgård  <bojohan@gnu.org>
 
 	* emacs-lisp/unsafep.el (unsafep): Handle backquoted forms.

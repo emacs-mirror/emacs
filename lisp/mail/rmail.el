@@ -3441,30 +3441,62 @@ does not pop any summary buffer."
 ;;;; *** Rmail Mailing Commands ***
 
 (defun rmail-start-mail (&optional noerase to subject in-reply-to cc
-				   replybuffer sendactions same-window others)
-  (let (yank-action)
+				   replybuffer sendactions same-window
+				   other-headers)
+  (let ((switch-function
+	 (cond (same-window nil)
+	       (rmail-mail-new-frame 'switch-to-buffer-other-frame)
+	       (t 'switch-to-buffer-other-window)))
+	yank-action)
     (if replybuffer
 	;; The function used here must behave like insert-buffer wrt
 	;; point and mark (see doc of sc-cite-original).
 	(setq yank-action (list 'insert-buffer replybuffer)))
-    (setq others (cons (cons "cc" cc) others))
-    (setq others (cons (cons "in-reply-to" in-reply-to) others))
-    (if same-window
-	(compose-mail to subject others
-		      noerase nil
-		      yank-action sendactions)
-      (if rmail-mail-new-frame
-	  (prog1
-	      (compose-mail to subject others
-			    noerase 'switch-to-buffer-other-frame
-			    yank-action sendactions)
-	    ;; This is not a standard frame parameter;
-	    ;; nothing except sendmail.el looks at it.
-	    (modify-frame-parameters (selected-frame)
-				     '((mail-dedicated-frame . t))))
-	(compose-mail to subject others
-		      noerase 'switch-to-buffer-other-window
-		      yank-action sendactions)))))
+    (push (cons "cc" cc) other-headers)
+    (push (cons "in-reply-to" in-reply-to) other-headers)
+    (prog1
+	(compose-mail to subject other-headers noerase
+		      switch-function yank-action sendactions
+		      '(rmail-mail-return))
+      (if (eq switch-function 'switch-to-buffer-other-frame)
+	  ;; This is not a standard frame parameter; nothing except
+	  ;; sendmail.el looks at it.
+	  (modify-frame-parameters (selected-frame)
+				   '((mail-dedicated-frame . t)))))))
+
+(defun rmail-mail-return ()
+  (cond
+   ;; If there is only one visible frame with no special handling,
+   ;; consider deleting the mail window to return to Rmail.
+   ((or (null (delq (selected-frame) (visible-frame-list)))
+	(not (or (window-dedicated-p (frame-selected-window))
+		 (and pop-up-frames (one-window-p))
+		 (cdr (assq 'mail-dedicated-frame
+			    (frame-parameters))))))
+    (let (rmail-flag summary-buffer)
+      (and (not (one-window-p))
+	   (with-current-buffer
+	       (window-buffer (next-window (selected-window) 'not))
+	     (setq rmail-flag (eq major-mode 'rmail-mode))
+	     (setq summary-buffer
+		   (and (boundp 'mail-bury-selects-summary)
+			mail-bury-selects-summary
+			(boundp 'rmail-summary-buffer)
+			rmail-summary-buffer
+			(buffer-name rmail-summary-buffer)
+			(not (get-buffer-window rmail-summary-buffer))
+			rmail-summary-buffer))))
+      (if rmail-flag
+	  ;; If the Rmail buffer has a summary, show that.
+	  (if summary-buffer (switch-to-buffer summary-buffer)
+	    (delete-window)))))
+   ;; If the frame was probably made for this buffer, the user
+   ;; probably wants to delete it now.
+   ((display-multi-frame-p)
+    (delete-frame (selected-frame)))
+   ;; The previous frame is where normally they have the Rmail buffer
+   ;; displayed.
+   (t (other-frame -1))))
 
 (defun rmail-mail ()
   "Send mail in another window.
