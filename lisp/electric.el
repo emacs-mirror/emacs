@@ -151,24 +151,23 @@
 
 (defun Electric-pop-up-window (buffer &optional max-height)
   (let* ((win (or (get-buffer-window buffer) (selected-window)))
-	 (buf (get-buffer buffer))
-	 (one-window (one-window-p t)))
-    (if (not buf)
-	(error "Buffer %s does not exist" buffer)
-      (cond ((and (eq (window-buffer win) buf))
-	     (select-window win))
-	    (one-window
-	     (pop-to-buffer
-	      ;; Try to do what the comment above says.
-	      buffer '(same-frame (new-window (selected . below))))
-	     (setq win (selected-window)))
-	    (t
-	     (switch-to-buffer buf)))
-      ;; Don't shrink the window, but expand it if necessary.
-      (goto-char (point-min))
-      (unless (= (point-max) (window-end win t))
-	(fit-window-to-buffer win max-height))
-      win)))
+	 (buf (get-buffer buffer)))
+    (cond
+     ((not buf)
+      (error "Buffer %s does not exist" buffer))
+     ((eq (window-buffer win) buf)
+      (select-window win))
+     ((eq win (frame-root-window))
+      ;; Try to do what the comment above says.
+      (pop-to-buffer buffer '((pop-up-window (selected . below)))))
+     (t
+      (pop-to-buffer-same-window buf)))
+
+    ;; Don't shrink the window, but expand it if necessary.
+    (goto-char (point-min))
+    (unless (= (point-max) (window-end nil t))
+      (fit-window-to-buffer nil max-height))
+    (selected-window)))
 
 ;;; Electric keys.
 

@@ -1,3 +1,8 @@
+2011-01-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* electric.el (Electric-pop-up-window): Adapt to new buffer
+	display specifiers.
+
 2011-01-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* dired.el (dired-display-file, dired-why): Use
