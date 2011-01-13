@@ -1,3 +1,43 @@
+2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/prolog.el: Use syntax-propertize.  Further code cleanup.
+	(prolog-use-prolog-tokenizer-flag): Change default when
+	syntax-propertize can be used.
+	(prolog-syntax-propertize-function): New var.
+	(prolog-mode-variables): Move make-local-variable into `set'.
+	Don't make comment-column local since we don't set it.
+	Set comment-add (as it was in previous prolog.el).  Use dolist.
+	Set syntax-propertize-function.
+	(prolog-mode, prolog-inferior-mode):
+	Call prolog(-inferior)-menu directly, not through the mode-hook.
+	(prolog-buffer-module, prolog-indent-level)
+	(prolog-paren-is-the-first-on-line-p, prolog-paren-balance)
+	(prolog-comment-limits, prolog-goto-comment-column):
+	Use line-(end|beginning)-position.
+	(prolog-build-prolog-command): Tighten up regexp.
+	(prolog-consult-compile): Move make-local-variable into `set'.
+	(prolog-consult-compile-filter, prolog-goto-next-paren)
+	(prolog-help-on-predicate, prolog-clause-info)
+	(prolog-mark-predicate): Don't let+setq.
+	(prolog-indent-line): Use indent-line-to.
+	Only call prolog-goto-comment-column if necessary.
+	(prolog-indent-level): Use bobp.
+	(prolog-first-pos-on-line): Remove, not used any more.
+	(prolog-in-string-or-comment): Use syntax-ppss if available.
+	(prolog-help-on-predicate): Use read-string.
+	(prolog-goto-predicate-info): Simplify.
+	(prolog-read-predicate): Use `default' rather than `initial'.
+	(prolog-temporary-file): Use make-temp-file to close a security hole.
+	(prolog-toggle-sicstus-sd): New command.
+	(prolog-electric-underscore, prolog-variables-to-anonymous):
+	Use dynamic-scoping as it was meant.
+	(prolog-menu): Move menu definitions to top-level.
+	Use a toggle-button for Sicstus's source debugger.
+	Change "Code" to the more usual "Prolog", and hence change "Prolog"
+	to "System".
+	(prolog-inferior-menu): Reuse prolog-menu's help menu.
+	Move other menu definition to top-level.
+
 2011-01-13  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-open-text): Use meaningful text buffer
