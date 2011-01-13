@@ -182,56 +182,37 @@ Return a modified address list."
 	       (mapconcat 'identity (rfc822-addresses address) ", "))
       (let (pos)
 
-       ;; Detect nested comments.
-       (if (string-match "[ \t]*(\\([^)\\]\\|\\\\.\\|\\\\\n\\)*(" address)
-	   ;; Strip nested comments.
-	   (with-temp-buffer
-	     (insert address)
-	     (set-syntax-table lisp-mode-syntax-table)
-	     (goto-char 1)
-	     (while (search-forward "(" nil t)
-	       (forward-char -1)
-	       (skip-chars-backward " \t")
-	       (delete-region (point)
-			      (save-excursion
-				(condition-case ()
-				    (forward-sexp 1)
-				  (error (goto-char (point-max))))
-				  (point))))
-	     (setq address (buffer-string)))
-	 ;; Strip non-nested comments an easier way.
-	 (while (setq pos (string-match
-			    ;; This doesn't hack rfc822 nested comments
-			    ;;  `(xyzzy (foo) whinge)' properly.  Big deal.
-			    "[ \t]*(\\([^)\\]\\|\\\\.\\|\\\\\n\\)*)"
-			    address))
-	   (setq address (replace-match "" nil nil address 0))))
+        ;; Strip comments.
+        (while (setq pos (string-match
+                          "[ \t]*(\\([^()\\]\\|\\\\.\\|\\\\\n\\)*)"
+                          address))
+          (setq address (replace-match "" nil nil address 0)))
 
-       ;; strip surrounding whitespace
-       (string-match "\\`[ \t\n]*" address)
-       (setq address (substring address
-				(match-end 0)
-				(string-match "[ \t\n]*\\'" address
-					      (match-end 0))))
+        ;; strip surrounding whitespace
+        (string-match "\\`[ \t\n]*" address)
+        (setq address (substring address
+                                 (match-end 0)
+                                 (string-match "[ \t\n]*\\'" address
+                                               (match-end 0))))
 
-       ;; strip `quoted' names (This is supposed to hack `"Foo Bar" <bar@host>')
-       (setq pos 0)
-       (while (setq pos (string-match
+        ;; strip `quoted' names (This is supposed to hack `"Foo Bar" <bar@host>')
+        (setq pos 0)
+        (while (setq pos (string-match
                           "\\([ \t]?\\)\\([ \t]*\"\\([^\"\\]\\|\\\\.\\|\\\\\n\\)*\"[ \t\n]*\\)"
 			  address pos))
-	 ;; If the next thing is "@", we have "foo bar"@host.  Leave it.
-	 (if (and (> (length address) (match-end 0))
-		  (= (aref address (match-end 0)) ?@))
-	     (setq pos (match-end 0))
-	   ;; Otherwise discard the "..." part.
-	   (setq address (replace-match "" nil nil address 2))))
-       ;; If this address contains <...>, replace it with just
-       ;; the part between the <...>.
-       (while (setq pos (string-match "\\(,\\s-*\\|\\`\\)\\([^,]*<\\([^>,:]*\\)>[^,]*\\)\\(\\s-*,\\|\\'\\)"
-				      address))
-	 (setq address (replace-match (match-string 3 address)
-				      nil 'literal address 2)))
-       address))))
+          ;; If the next thing is "@", we have "foo bar"@host.  Leave it.
+          (if (and (> (length address) (match-end 0))
+                   (= (aref address (match-end 0)) ?@))
+              (setq pos (match-end 0))
+            ;; Otherwise discard the "..." part.
+            (setq address (replace-match "" nil nil address 2))))
+        ;; If this address contains <...>, replace it with just
+        ;; the part between the <...>.
+        (while (setq pos (string-match "\\(,\\s-*\\|\\`\\)\\([^,]*<\\([^>,:]*\\)>[^,]*\\)\\(\\s-*,\\|\\'\\)"
+                                       address))
+          (setq address (replace-match (match-string 3 address)
+                                       nil 'literal address 2)))
+        address))))
 
 ;; The following piece of ugliness is legacy code.  The name was an
 ;; unfortunate choice --- a flagrant violation of the Emacs Lisp

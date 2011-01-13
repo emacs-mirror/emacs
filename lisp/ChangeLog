@@ -1,5 +1,8 @@
 2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mail/mail-utils.el (mail-strip-quoted-names): Make the regexp code
+	work for nested comments.
+
 	* progmodes/prolog.el: Use syntax-propertize.  Further code cleanup.
 	(prolog-use-prolog-tokenizer-flag): Change default when
 	syntax-propertize can be used.
