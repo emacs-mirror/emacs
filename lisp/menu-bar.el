@@ -584,18 +584,15 @@ Do the same for the keys of the same name."
 
 (defvar menu-bar-custom-menu (make-sparse-keymap "Customize"))
 
-(define-key menu-bar-custom-menu [customize-apropos-groups]
-  `(menu-item ,(purecopy "Groups Matching Regexp...") customize-apropos-groups
-	      :help ,(purecopy "Browse groups whose names match regexp")))
 (define-key menu-bar-custom-menu [customize-apropos-faces]
-  `(menu-item ,(purecopy "Faces Matching Regexp...") customize-apropos-faces
-	      :help ,(purecopy "Browse faces whose names match regexp")))
+  `(menu-item ,(purecopy "Faces Matching...") customize-apropos-faces
+	      :help ,(purecopy "Browse faces matching a regexp or word list")))
 (define-key menu-bar-custom-menu [customize-apropos-options]
-  `(menu-item ,(purecopy "Options Matching Regexp...") customize-apropos-options
-	      :help ,(purecopy "Browse options whose names match regexp")))
+  `(menu-item ,(purecopy "Options Matching...") customize-apropos-options
+	      :help ,(purecopy "Browse options matching a regexp or word list")))
 (define-key menu-bar-custom-menu [customize-apropos]
-  `(menu-item ,(purecopy "Settings Matching Regexp...") customize-apropos
-	      :help ,(purecopy "Browse customizable settings whose names match regexp")))
+  `(menu-item ,(purecopy "All Settings Matching...") customize-apropos
+	      :help ,(purecopy "Browse customizable settings matching a regexp or word list")))
 (define-key menu-bar-custom-menu [separator-1]
   menu-bar-separator)
 (define-key menu-bar-custom-menu [customize-group]
@@ -623,6 +620,9 @@ Do the same for the keys of the same name."
 (define-key menu-bar-custom-menu [customize]
   `(menu-item ,(purecopy "Top-level Customization Group") customize
 	      :help ,(purecopy "The master group called `Emacs'")))
+(define-key menu-bar-custom-menu [customize-themes]
+  `(menu-item ,(purecopy "Custom Themes") customize-themes
+	      :help ,(purecopy "Choose a pre-defined customization theme")))
 
 ;(defvar menu-bar-preferences-menu (make-sparse-keymap "Preferences"))
 
@@ -1144,7 +1144,7 @@ mail status in mode line"))
   ;; It is better not to use backquote here,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
-  `(menu-item ,(purecopy "Mule (Multilingual Environment)") ,mule-menu-keymap
+  `(menu-item ,(purecopy "Multilingual Environment") ,mule-menu-keymap
 ;; Most of the MULE menu actually does make sense in unibyte mode,
 ;; e.g. language selection.
 ;;;	:visible '(default-value 'enable-multibyte-characters)

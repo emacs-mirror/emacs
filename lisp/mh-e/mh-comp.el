@@ -198,7 +198,8 @@ applications should use `mh-user-agent-compose'."
 ;;;###autoload
 (defun mh-user-agent-compose (&optional to subject other-headers continue
                                         switch-function yank-action
-                                        send-actions)
+                                        send-actions return-action
+                                        &rest ignored)
   "Set up mail composition draft with the MH mail system.
 This is the `mail-user-agent' entry point to MH-E. This function
 conforms to the contract specified by `define-mail-user-agent'
@@ -212,8 +213,8 @@ OTHER-HEADERS is an alist specifying additional header fields.
 Elements look like (HEADER . VALUE) where both HEADER and VALUE
 are strings.
 
-CONTINUE, SWITCH-FUNCTION, YANK-ACTION and SEND-ACTIONS are
-ignored."
+CONTINUE, SWITCH-FUNCTION, YANK-ACTION, SEND-ACTIONS, and
+RETURN-ACTION are ignored."
   (mh-find-path)
   (let ((mh-error-if-no-draft t))
     (mh-send to "" subject)

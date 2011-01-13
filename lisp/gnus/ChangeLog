@@ -1,3 +1,16 @@
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-tool-bar-gnome): Tweak tool-bar items.  Add
+	:vert-only tags.
+	(message-mail): New arg RETURN-ACTION.
+	(message-return-action): New var.
+	(message-bury): Use it.
+	(message-mode): Make it buffer-local.
+	(message-send-and-exit): Always call message-bury.
+
+	* gnus-msg.el (gnus-msg-mail): New arg RETURN-ACTION.  Pass it to
+	message-mail.
+
 2011-01-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-convert-partial-article): Protect against

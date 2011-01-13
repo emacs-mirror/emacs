@@ -419,8 +419,7 @@ in `message-auto-save-directory'."
 (defvar mail-reply-action nil)
 (defvar mail-send-actions nil
   "A list of actions to be performed upon successful sending of a message.")
-(put 'mail-reply-action 'permanent-local t)
-(put 'mail-send-actions 'permanent-local t)
+(defvar mail-return-action nil)
 
 ;;;###autoload
 (defcustom mail-default-headers nil
@@ -521,7 +520,42 @@ by Emacs.)")
 	  (setq mail-alias-modtime modtime
 		mail-aliases t)))))
 
-(defun mail-setup (to subject in-reply-to cc replybuffer actions)
+
+;;;###autoload
+(define-mail-user-agent 'sendmail-user-agent
+  'sendmail-user-agent-compose
+  'mail-send-and-exit)
+
+;;;###autoload
+(defun sendmail-user-agent-compose (&optional to subject other-headers
+				    continue switch-function yank-action
+				    send-actions return-action
+				    &rest ignored)
+  (if switch-function
+      (funcall switch-function "*mail*"))
+  (let ((cc (cdr (assoc-string "cc" other-headers t)))
+	(in-reply-to (cdr (assoc-string "in-reply-to" other-headers t)))
+	(body (cdr (assoc-string "body" other-headers t))))
+    (or (mail continue to subject in-reply-to cc yank-action
+	      send-actions return-action)
+	continue
+	(error "Message aborted"))
+    (save-excursion
+      (rfc822-goto-eoh)
+      (while other-headers
+	(unless (member-ignore-case (car (car other-headers))
+				    '("in-reply-to" "cc" "body"))
+	  (insert (car (car other-headers)) ": "
+		  (cdr (car other-headers))
+		  (if use-hard-newlines hard-newline "\n")))
+	(setq other-headers (cdr other-headers)))
+      (when body
+	(forward-line 1)
+	(insert body))
+      t)))
+
+(defun mail-setup (to subject in-reply-to cc replybuffer
+		   actions return-action)
   (or mail-default-reply-to
       (setq mail-default-reply-to (getenv "REPLYTO")))
   (sendmail-sync-aliases)
@@ -537,8 +571,12 @@ by Emacs.)")
   (set-buffer-multibyte (default-value 'enable-multibyte-characters))
   (if current-input-method
       (inactivate-input-method))
+
+  ;; Local variables for Mail mode.
   (setq mail-send-actions actions)
   (setq mail-reply-action replybuffer)
+  (setq mail-return-action return-action)
+
   (goto-char (point-min))
   (if mail-setup-with-from
       (mail-insert-from-field))
@@ -629,6 +667,7 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
 `mail-mode-hook' (in that order)."
   (make-local-variable 'mail-reply-action)
   (make-local-variable 'mail-send-actions)
+  (make-local-variable 'mail-return-action)
   (setq buffer-offer-save t)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mail-font-lock-keywords t t))
@@ -760,46 +799,11 @@ Prefix arg means don't delete this window."
 
 (defun mail-bury (&optional arg)
   "Bury this mail buffer."
-  (let ((newbuf (other-buffer (current-buffer))))
-    (bury-buffer (current-buffer))
-    ;; The inherent assumption is that we are in the selected window so
-    ;; using `frame-selected-window' doesn't make any sense.  We should
-    ;; be able to use `quit-restore-window' here but I don't understand
-    ;; all implications of the code so try to do what was done before.
-    (if (and (or nil
-		 ;; In this case, we need to go to a different frame.
-		 (window-dedicated-p)
-		 (let ((quit-restore (window-parameter nil 'quit-restore)))
-		   (and (memq (car-safe quit-restore) '(new-window new-frame))
-			;; Check that WINDOW's buffer is still the same.
-			(eq (window-buffer) (nth 1 quit-restore))))
-		 (cdr (assq 'mail-dedicated-frame (frame-parameters))))
-	     (other-visible-frames-p))
+    (if (and (null arg) mail-return-action)
 	(progn
-	  (if (display-multi-frame-p)
-	      (delete-frame (selected-frame))
-	    ;; The previous frame is where normally they have the
-	    ;; Rmail buffer displayed.
-	    (other-frame -1)))
-
-      (let (rmail-flag summary-buffer)
-	(and (not arg)
-	     (not (one-window-p))
-	     (with-current-buffer
-                 (window-buffer (next-window (selected-window) 'not))
-	       (setq rmail-flag (eq major-mode 'rmail-mode))
-	       (setq summary-buffer
-		     (and mail-bury-selects-summary
-			  (boundp 'rmail-summary-buffer)
-			  rmail-summary-buffer
-			  (buffer-name rmail-summary-buffer)
-			  (not (get-buffer-window rmail-summary-buffer))
-			  rmail-summary-buffer))))
-	(if rmail-flag
-	    ;; If the Rmail buffer has a summary, show that.
-	    (if summary-buffer (switch-to-buffer summary-buffer)
-	      (delete-window))
-	  (switch-to-buffer newbuf))))))
+	  (bury-buffer (current-buffer))
+	  (apply (car mail-return-action) (cdr mail-return-action)))
+      (quit-restore-window)))
 
 (defcustom mail-send-hook nil
   "Hook run just before sending a message."
@@ -1645,7 +1649,8 @@ If the current line has `mail-yank-prefix', insert it on the new line."
 ;; in middle of loading the file.
 
 ;;;###autoload
-(defun mail (&optional noerase to subject in-reply-to cc replybuffer actions)
+(defun mail (&optional noerase to subject in-reply-to cc replybuffer
+		       actions return-action)
   "Edit a message to be sent.  Prefix arg means resume editing (don't erase).
 When this function returns, the buffer `*mail*' is selected.
 The value is t if the message was newly initialized; otherwise, nil.
@@ -1693,49 +1698,6 @@ The seventh argument ACTIONS is a list of actions to take
  when the message is sent, we apply FUNCTION to ARGS.
  This is how Rmail arranges to mark messages `answered'."
   (interactive "P")
- ;; This is commented out because I found it was confusing in practice.
- ;; It is easy enough to rename *mail* by hand with rename-buffer
- ;; if you want to have multiple mail buffers.
- ;; And then you can control which messages to save. --rms.
- ;; (let ((index 1)
- ;;        buffer)
- ;;   ;; If requested, look for a mail buffer that is modified and go to it.
- ;;   (if noerase
- ;;        (progn
- ;;          (while (and (setq buffer
- ;;        		    (get-buffer (if (= 1 index) "*mail*"
- ;;        				  (format "*mail*<%d>" index))))
- ;;        	      (not (buffer-modified-p buffer)))
- ;;            (setq index (1+ index)))
- ;;          (if buffer (switch-to-buffer buffer)
- ;;            ;; If none exists, start a new message.
- ;;            ;; This will never re-use an existing unmodified mail buffer
- ;;            ;; (since index is not 1 anymore).  Perhaps it should.
- ;;            (setq noerase nil))))
- ;;   ;; Unless we found a modified message and are happy, start a new message.
- ;;   (if (not noerase)
- ;;        (progn
- ;;          ;; Look for existing unmodified mail buffer.
- ;;          (while (and (setq buffer
- ;;        		    (get-buffer (if (= 1 index) "*mail*"
- ;;        				  (format "*mail*<%d>" index))))
- ;;        	      (buffer-modified-p buffer))
- ;;            (setq index (1+ index)))
- ;;          ;; If none, make a new one.
- ;;          (or buffer
- ;;              (setq buffer (generate-new-buffer "*mail*")))
- ;;          ;; Go there and initialize it.
- ;;          (switch-to-buffer buffer)
- ;;          (erase-buffer)
- ;;         (setq default-directory (expand-file-name "~/"))
- ;;         (auto-save-mode auto-save-default)
- ;;         (mail-mode)
- ;;         (mail-setup to subject in-reply-to cc replybuffer actions)
- ;;          (if (and buffer-auto-save-file-name
- ;;        	   (file-exists-p buffer-auto-save-file-name))
- ;;              (message "Auto save file for draft message exists; consider M-x mail-recover"))
- ;;         t))
-
   (if (eq noerase 'new)
       (pop-to-buffer-same-window (generate-new-buffer "*mail*"))
     (and noerase
@@ -1774,7 +1736,8 @@ The seventh argument ACTIONS is a list of actions to take
 	     t))
 	 (let ((inhibit-read-only t))
 	   (erase-buffer)
-	   (mail-setup to subject in-reply-to cc replybuffer actions)
+	   (mail-setup to subject in-reply-to cc replybuffer actions
+		       return-action)
 	   (setq initialized t)))
     (if (and buffer-auto-save-file-name
 	     (file-exists-p buffer-auto-save-file-name))

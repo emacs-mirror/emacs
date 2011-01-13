@@ -1,3 +1,7 @@
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mh-comp.el (mh-user-agent-compose): New arg RETURN-ACTION.
+
 2010-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* mh-seq.el (mh-read-msg-list): Use point-at-eol.

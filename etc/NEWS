@@ -210,6 +210,10 @@ automatically when Emacs starts up.  To disable this, set
 `package-enable-at-startup' to nil.  To change which packages are
 loaded, customize `package-load-list'.
 
+** An Emacs Lisp testing tool is now included.
+Emacs Lisp developers can use this tool to write automated tests for
+their code.  See the ERT info manual for details.
+
 ** Custom Themes
 
 *** `M-x customize-themes' lists Custom themes which can be enabled.
@@ -620,6 +624,11 @@ Notifications API.  It requires D-Bus for communication.
 
 
 * Incompatible Lisp Changes in Emacs 24.1
+
+** `compose-mail' now accepts an optional 8th arg, RETURN-ACTION, and
+passes it to the mail user agent function.  This argument specifies an
+action for returning to the caller after finishing with the mail.
+This is currently used by Rmail to delete a mail window.
 
 ** For mouse click input events in the text area, the Y pixel
 coordinate in the POSITION list now counts from the top of the text

@@ -1,7 +1,47 @@
 2011-01-13  Martin Rudalics  <rudalics@gmx.at>
 
+	* mail/sendmail.el (sendmail-user-agent-compose): Remove let
+	bindings around funcall of switch-function.
+	(mail-bury): Merge change from trunk with quit-restore-window.
+
 	* electric.el (Electric-pop-up-window): Adapt to new buffer
 	display specifiers.
+
+2011-01-13  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-may-cache-directory): Move "too-big" check later.
+	(ido-next-match, ido-prev-match): Fix stray reordering of matching
+	items when cycling through the matches.
+
+2011-01-13  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* dired-x.el (dired-omit-verbose): New defcustom that allows
+	disabling the omit messages.
+	(dired-omit-expunge): Use it.
+
+2011-01-13  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/ert.el, emacs-lisp/ert-x.el: New files.
+
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font-lock.el (font-lock-verbose): Default to nil.
+
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (sendmail-user-agent-compose): Move to sendmail.el.
+	(compose-mail): New arg RETURN-ACTION.
+	(compose-mail-other-window, compose-mail-other-frame): Likewise.
+
+	* mail/sendmail.el (mail-return-action): New var.
+	(mail-mode): Make it buffer-local.
+	(mail-bury): Obey it.  Move special Rmail window handling to
+	rmail-mail-return.
+	(mail, mail-setup): New arg RETURN-ACTION.
+	(sendmail-user-agent-compose): Move from simple.el.
+
+	* mail/rmail.el (rmail-mail-return): New function.
+	(rmail-start-mail): Pass it to compose-mail.
 
 2011-01-12  Martin Rudalics  <rudalics@gmx.at>
 
@@ -12,6 +52,14 @@
 
 	* proced.el (proced-send-signal): Use display-buffer and
 	quit-restore-window.
+
+2011-01-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-custom-menu): Tweak Mule and Customize
+	menus.  Add menu item for customize-themes.
+
+	* cus-theme.el (customize-themes):
+	* emacs-lisp/package.el (package--list-packages): Use
 
 2011-01-11  Martin Rudalics  <rudalics@gmx.at>
 
