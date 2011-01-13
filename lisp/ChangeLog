@@ -1,5 +1,9 @@
 2011-01-13  Tassilo Horn  <tassilo@member.fsf.org>
 
+	* doc-view.el (doc-view-open-text): Use meaningful text buffer
+	name.  Keep original document's directory as default-directory
+	(bug#6446).
+
 	* simple.el (shell-command): Don't error out if shell command
 	buffer contains text with non-nil read-only property when erasing
 	the buffer.

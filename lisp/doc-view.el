@@ -1061,7 +1061,12 @@ For now these keys are useful:
       (message "DocView: please wait till conversion finished.")
     (let ((txt (expand-file-name "doc.txt" (doc-view-current-cache-dir))))
       (if (file-readable-p txt)
-	  (find-file txt)
+	  (let ((name (concat "Text contents of "
+			      (file-name-nondirectory buffer-file-name)))
+		(dir (file-name-directory buffer-file-name)))
+	    (with-current-buffer (find-file txt)
+	      (rename-buffer name)
+	      (setq default-directory dir)))
 	(doc-view-doc->txt txt 'doc-view-open-text)))))
 
 ;;;;; Toggle between editing and viewing
