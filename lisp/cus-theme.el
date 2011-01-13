@@ -541,7 +541,7 @@ Do not call this mode function yourself.  It is meant for internal use."
 When called from Lisp, BUFFER should be the buffer to use; if
 omitted, a buffer named *Custom Themes* is used."
   (interactive)
-  (pop-to-buffer (get-buffer-create (or buffer "*Custom Themes*")))
+  (switch-to-buffer (get-buffer-create (or buffer "*Custom Themes*")))
   (let ((inhibit-read-only t))
     (erase-buffer))
   (custom-theme-choose-mode)

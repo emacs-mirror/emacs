@@ -189,6 +189,12 @@ files and lock files."
   :type 'regexp
   :group 'dired-x)
 
+(defcustom dired-omit-verbose t
+  "When non-nil, show messages when omitting files.
+When nil, don't show messages."
+  :type 'boolean
+  :group 'dired-x)
+
 (defcustom dired-find-subdir nil           ; t is pretty near to DWIM...
   "If non-nil, Dired always finds a directory in a buffer of its own.
 If nil, Dired finds the directory as a subdirectory in some other buffer
@@ -613,8 +619,9 @@ This functions works by temporarily binding `dired-marker-char' to
                (not dired-omit-size-limit)
                (< (buffer-size) dired-omit-size-limit)
 	       (progn
-		 (message "Not omitting: directory larger than %d characters."
-			  dired-omit-size-limit)
+		 (when dired-omit-verbose
+		   (message "Not omitting: directory larger than %d characters."
+			    dired-omit-size-limit))
 		 (setq dired-omit-mode nil)
 		 nil)))
       (let ((omit-re (or regexp (dired-omit-regexp)))
@@ -622,12 +629,14 @@ This functions works by temporarily binding `dired-marker-char' to
             count)
         (or (string= omit-re "")
             (let ((dired-marker-char dired-omit-marker-char))
-              (message "Omitting...")
+              (when dired-omit-verbose (message "Omitting..."))
               (if (dired-mark-unmarked-files omit-re nil nil dired-omit-localp)
                   (progn
-                    (setq count (dired-do-kill-lines nil "Omitted %d line%s."))
+                    (setq count (dired-do-kill-lines
+				 nil
+				 (if dired-omit-verbose "Omitted %d line%s." "")))
                     (force-mode-line-update))
-                (message "(Nothing to omit)"))))
+                (when dired-omit-verbose (message "(Nothing to omit)")))))
         ;; Try to preserve modified state of buffer.  So `%*' doesn't appear
         ;; in mode-line of omitted buffers.
         (set-buffer-modified-p (and old-modified-p

@@ -1,3 +1,11 @@
+2011-01-13  Christian Ohler  <ohler@gnu.org>
+
+	* automated: New directory for automated tests.
+
+	* automated/ert-tests.el, automated/ert-x-tests.el: New files.
+
+	* automated/Makefile.in: New file.
+
 2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent/modula2.mod: New file.

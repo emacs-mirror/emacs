@@ -1,3 +1,7 @@
+2011-01-13  Christian Ohler  <ohler@gnu.org>
+
+	* NEWS: Mention ERT.
+
 2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
 	* NEWS: Add new function dbus-register-service.

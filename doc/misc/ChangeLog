@@ -1,3 +1,10 @@
+2011-01-13  Christian Ohler  <ohler@gnu.org>
+
+	* ert.texi: New file.
+
+	* Makefile.in:
+	* makefile.w32-in: Add ert.texi.
+
 2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
 	* dbus.texi (Receiving Method Calls): New function

@@ -1,4 +1,4 @@
-2011-01-11  Paul Eggert  <eggert@cs.ucla.edu>
+2011-01-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (GNULIB_MODULES): Change ftoastr to dtoastr.
 	This avoids building ftoastr and ldtoastr, which aren't needed.  See
@@ -105,6 +105,15 @@
 	* lib/Makefile.am: New file.
 	* make-dist: Also put into the distribution aclocal.m4,
 	compile, depcomp, missing, and the files under lib/.
+
+2011-01-13  Christian Ohler  <ohler@gnu.org>
+
+	* Makefile.in (INFO_FILES): Add ERT.
+
+	* Makefile.in (check): Run tests in test/automated.
+
+	* Makefile.in:
+	* configure.in: Add test/automated/Makefile.
 
 2011-01-07  Paul Eggert  <eggert@cs.ucla.edu>
 

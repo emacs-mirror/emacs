@@ -1663,15 +1663,15 @@ A value of nil means to display all packages.")
 Optional PACKAGES is a list of names of packages (symbols) to
 list; the default is to display everything in `package-alist'."
   (require 'finder-inf nil t)
-  (with-current-buffer (get-buffer-create "*Packages*")
-    (package-menu-mode)
-    (set (make-local-variable 'package-menu-package-list) packages)
-    (set (make-local-variable 'package-menu-sort-key) nil)
-    (package--generate-package-list)
-    ;; It's okay to use pop-to-buffer here.  The package menu buffer
-    ;; has keybindings, and the user just typed `M-x list-packages',
-    ;; suggesting that they might want to use them.
-    (pop-to-buffer (current-buffer))))
+  (let ((buf (get-buffer-create "*Packages*")))
+    (with-current-buffer buf
+      (package-menu-mode)
+      (set (make-local-variable 'package-menu-package-list) packages)
+      (set (make-local-variable 'package-menu-sort-key) nil)
+      (package--generate-package-list))
+    ;; The package menu buffer has keybindings.  If the user types
+    ;; `M-x list-packages', that suggests it should become current.
+    (switch-to-buffer buf)))
 
 ;;;###autoload
 (defun list-packages ()
