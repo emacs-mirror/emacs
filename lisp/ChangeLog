@@ -1,3 +1,9 @@
+2011-01-13  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-may-cache-directory): Move "too-big" check later.
+	(ido-next-match, ido-prev-match): Fix stray reordering of matching
+	items when cycling through the matches.
+
 2011-01-13  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* dired-x.el (dired-omit-verbose): New defcustom that allows
