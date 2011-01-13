@@ -621,6 +621,11 @@ Notifications API.  It requires D-Bus for communication.
 
 * Incompatible Lisp Changes in Emacs 24.1
 
+** `compose-mail' now accepts an optional 8th arg, RETURN-ACTION, and
+passes it to the mail user agent function.  This argument specifies an
+action for returning to the caller after finishing with the mail.
+This is currently used by Rmail to delete a mail window.
+
 ** For mouse click input events in the text area, the Y pixel
 coordinate in the POSITION list now counts from the top of the text
 area, excluding any header line.  Previously, it counted from the top
