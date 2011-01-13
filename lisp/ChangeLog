@@ -1,5 +1,9 @@
 2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
 
+	* font-lock.el (font-lock-verbose): Default to nil.
+
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
 	* simple.el (sendmail-user-agent-compose): Move to sendmail.el.
 	(compose-mail): New arg RETURN-ACTION.
 	(compose-mail-other-window, compose-mail-other-frame): Likewise.
