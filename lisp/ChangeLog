@@ -1,3 +1,9 @@
+2011-01-13  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* dired-x.el (dired-omit-verbose): New defcustom that allows
+	disabling the omit messages.
+	(dired-omit-expunge): Use it.
+
 2011-01-13  Christian Ohler  <ohler@gnu.org>
 
 	* emacs-lisp/ert.el, emacs-lisp/ert-x.el: New files.
