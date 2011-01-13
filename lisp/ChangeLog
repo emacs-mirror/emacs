@@ -1,3 +1,7 @@
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (event-start, event-end): Doc fix (Bug#7826).
+
 2011-01-12  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmailmm.el (rmail-mime-next-item)
