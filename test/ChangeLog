@@ -1,3 +1,7 @@
+2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/prolog.prolog: Add tokenizing tests.
+
 2011-01-13  Christian Ohler  <ohler@gnu.org>
 
 	* automated: New directory for automated tests.
@@ -229,7 +233,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+    Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
