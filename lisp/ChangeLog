@@ -3,6 +3,9 @@
 	* doc-view.el (doc-view-open-text): Use meaningful text buffer
 	name.  Keep original document's directory as default-directory
 	(bug#6446).
+	(doc-view-initiate-display): Fall back to normal mode when
+	doc-view-mode cannot be enabled, also when extracting the document
+	text into a separate buffer (bug#6446).
 
 	* simple.el (shell-command): Don't error out if shell command
 	buffer contains text with non-nil read-only property when erasing

@@ -1243,11 +1243,11 @@ If BACKWARD is non-nil, jump to the previous match."
      (concat "No PNG support is available, or some conversion utility for "
 	     (file-name-extension doc-view-buffer-file-name)
 	     " files is missing."))
-    (if (and (executable-find doc-view-pdftotext-program)
-	     (y-or-n-p
-	      "Unable to render file.  View extracted text instead? "))
-	(doc-view-open-text)
-      (doc-view-toggle-display))))
+    (when (and (executable-find doc-view-pdftotext-program)
+	       (y-or-n-p
+		"Unable to render file.  View extracted text instead? "))
+      (doc-view-open-text))
+    (doc-view-toggle-display)))
 
 (defvar bookmark-make-record-function)
 
