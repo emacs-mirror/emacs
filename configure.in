@@ -3750,7 +3750,7 @@ dnl the use of force in the `epaths-force' rule in Makefile.in.
 AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile \
 	doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
 	doc/lispref/Makefile src/Makefile \
-	lwlib/Makefile lisp/Makefile leim/Makefile, [
+	lwlib/Makefile lisp/Makefile leim/Makefile test/automated/Makefile, [
 
 ### Make the necessary directories, if they don't exist.
 for dir in etc lisp ; do

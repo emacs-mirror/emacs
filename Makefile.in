@@ -134,7 +134,7 @@ MAN_PAGES=ctags.1 ebrowse.1 emacs.1 emacsclient.1 etags.1 \
 infodir=@infodir@
 INFO_FILES=ada-mode auth autotype calc ccmode cl dbus dired-x ebrowse	\
            ede ediff edt eieio efaq eintr elisp emacs emacs-mime epa erc \
-	   eshell eudc flymake forms gnus idlwave info mairix-el	\
+	   ert eshell eudc flymake forms gnus idlwave info mairix-el	\
 	   message mh-e newsticker nxml-mode org pcl-cvs pgg rcirc	\
 	   reftex remember sasl sc semantic ses sieve smtpmail speedbar \
 	   tramp url vip viper widget woman
@@ -267,7 +267,7 @@ EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 SUBDIR = lib-src src lisp
 
 # The subdir makefiles created by config.status.
-SUBDIR_MAKEFILES = lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispref/Makefile doc/lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile lisp/Makefile
+SUBDIR_MAKEFILES = lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispref/Makefile doc/lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile lisp/Makefile test/automated/Makefile
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
@@ -368,7 +368,8 @@ Makefile: config.status $(srcdir)/src/config.in \
           $(srcdir)/oldXMenu/Makefile.in \
           $(srcdir)/lwlib/Makefile.in \
           $(srcdir)/leim/Makefile.in \
-          $(srcdir)/lisp/Makefile.in
+          $(srcdir)/lisp/Makefile.in \
+          $(srcdir)/test/automated/Makefile.in
 	./config.status
 
 config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
@@ -810,7 +811,7 @@ TAGS tags: lib-src src
 	cd src; $(MAKE) tags
 
 check:
-	@echo "We don't have any tests for GNU Emacs yet."
+	cd test/automated; $(MAKE) check
 
 dist:
 	cd ${srcdir}; ./make-dist

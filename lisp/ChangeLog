@@ -1,3 +1,7 @@
+2011-01-13  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/ert.el, emacs-lisp/ert-x.el: New files.
+
 2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font-lock.el (font-lock-verbose): Default to nil.
