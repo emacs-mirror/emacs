@@ -1,3 +1,9 @@
+2011-01-13  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* simple.el (shell-command): Don't error out if shell command
+	buffer contains text with non-nil read-only property when erasing
+	the buffer.
+
 2011-01-13  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-may-cache-directory): Move "too-big" check later.

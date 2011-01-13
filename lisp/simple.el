@@ -2341,7 +2341,11 @@ the use of a shell (with its need to quote arguments)."
 		      (error "Shell command in progress")))
 		(with-current-buffer buffer
 		  (setq buffer-read-only nil)
-		  (erase-buffer)
+		  ;; Setting buffer-read-only to nil doesn't suffice
+		  ;; if some text has a non-nil read-only property,
+		  ;; which comint sometimes adds for prompts.
+		  (let ((inhibit-read-only t))
+		    (erase-buffer))
 		  (display-buffer buffer)
 		  (setq default-directory directory)
 		  (setq proc (start-process "Shell" buffer shell-file-name
