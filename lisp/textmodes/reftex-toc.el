@@ -1,7 +1,7 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -32,8 +32,98 @@
 (require 'reftex)
 ;;;
 
-(defvar reftex-toc-map (make-sparse-keymap)
+(defvar reftex-toc-mode-map
+  (let ((map (make-sparse-keymap)))
+    
+    (define-key map (if (featurep 'xemacs) [(button2)] [(mouse-2)])
+      'reftex-toc-mouse-goto-line-and-hide)
+    (define-key map [follow-link] 'mouse-face)
+
+    (substitute-key-definition
+     'next-line 'reftex-toc-next map global-map)
+    (substitute-key-definition
+     'previous-line 'reftex-toc-previous map global-map)
+
+    (loop for x in
+          '(("n"        . reftex-toc-next)
+            ("p"        . reftex-toc-previous)
+            ("?"        . reftex-toc-show-help)
+            (" "        . reftex-toc-view-line)
+            ("\C-m"     . reftex-toc-goto-line-and-hide)
+            ("\C-i"     . reftex-toc-goto-line)
+            ("\C-c>"    . reftex-toc-display-index)
+            ("r"        . reftex-toc-rescan)
+            ("R"        . reftex-toc-Rescan)
+            ("g"        . revert-buffer)
+            ("q"        . reftex-toc-quit) ;
+            ("k"        . reftex-toc-quit-and-kill)
+            ("f"        . reftex-toc-toggle-follow) ;
+            ("a"        . reftex-toggle-auto-toc-recenter)
+            ("d"        . reftex-toc-toggle-dedicated-frame)
+            ("F"        . reftex-toc-toggle-file-boundary)
+            ("i"        . reftex-toc-toggle-index)
+            ("l"        . reftex-toc-toggle-labels)
+            ("t"        . reftex-toc-max-level)
+            ("c"        . reftex-toc-toggle-context)
+            ;; ("%"        . reftex-toc-toggle-commented)
+            ("\M-%"     . reftex-toc-rename-label)
+            ("x"        . reftex-toc-external)
+            ("z"        . reftex-toc-jump)
+            ("."        . reftex-toc-show-calling-point)
+            ("\C-c\C-n" . reftex-toc-next-heading)
+            ("\C-c\C-p" . reftex-toc-previous-heading)
+            (">"        . reftex-toc-demote)
+            ("<"        . reftex-toc-promote))
+          do (define-key map (car x) (cdr x)))
+
+    (loop for key across "0123456789" do
+          (define-key map (vector (list key)) 'digit-argument))
+    (define-key map "-" 'negative-argument)
+
+    (easy-menu-define
+      reftex-toc-menu map
+      "Menu for Table of Contents buffer"
+      '("TOC"
+        ["Show Location" reftex-toc-view-line t]
+        ["Go To Location" reftex-toc-goto-line t]
+        ["Exit & Go To Location" reftex-toc-goto-line-and-hide t]
+        ["Show Calling Point" reftex-toc-show-calling-point t]
+        ["Quit" reftex-toc-quit t]
+        "--"
+        ("Edit"
+         ["Promote" reftex-toc-promote t]
+         ["Demote" reftex-toc-demote t]
+         ["Rename Label" reftex-toc-rename-label t])
+        "--"
+        ["Index" reftex-toc-display-index t]
+        ["External Document TOC  " reftex-toc-external t]
+        "--"
+        ("Update"
+         ["Rebuilt *toc* Buffer" revert-buffer t]
+         ["Rescan One File" reftex-toc-rescan reftex-enable-partial-scans]
+         ["Rescan Entire Document" reftex-toc-Rescan t])
+        ("Options"
+         "TOC Items"
+         ["File Boundaries" reftex-toc-toggle-file-boundary :style toggle
+          :selected reftex-toc-include-file-boundaries]
+         ["Labels" reftex-toc-toggle-labels :style toggle
+          :selected reftex-toc-include-labels]
+         ["Index Entries" reftex-toc-toggle-index :style toggle
+          :selected reftex-toc-include-index-entries]
+         ["Context" reftex-toc-toggle-context :style toggle
+          :selected reftex-toc-include-context]
+         "--"
+         ["Follow Mode" reftex-toc-toggle-follow :style toggle
+          :selected reftex-toc-follow-mode]
+         ["Auto Recenter" reftex-toggle-auto-toc-recenter :style toggle
+          :selected reftex-toc-auto-recenter-timer]
+         ["Dedicated Frame" reftex-toc-toggle-dedicated-frame t])
+        "--"
+        ["Help" reftex-toc-show-help t]))
+
+    map)
   "Keymap used for *toc* buffer.")
+(define-obsolete-variable-alias 'reftex-toc-map 'reftex-toc-mode-map "24.1")
 
 (defvar reftex-toc-menu)
 (defvar reftex-last-window-height nil)
@@ -42,19 +132,14 @@
 (defvar reftex-toc-include-index-indicator nil)
 (defvar reftex-toc-max-level-indicator nil)
 
-(defun reftex-toc-mode ()
+(define-derived-mode reftex-toc-mode fundamental-mode "TOC"
   "Major mode for managing Table of Contents for LaTeX files.
 This buffer was created with RefTeX.
 Press `?' for a summary of important key bindings.
 
 Here are all local bindings.
 
-\\{reftex-toc-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'reftex-toc-mode
-        mode-name "TOC")
-  (use-local-map reftex-toc-map)
+\\{reftex-toc-mode-map}"
   (set (make-local-variable 'transient-mark-mode) t)
   (when (featurep 'xemacs)
     (set (make-local-variable 'zmacs-regions) t))
@@ -79,8 +164,7 @@ Here are all local bindings.
   (make-local-variable 'reftex-last-follow-point)
   (add-hook 'post-command-hook 'reftex-toc-post-command-hook nil t)
   (add-hook 'pre-command-hook  'reftex-toc-pre-command-hook nil t)
-  (easy-menu-add reftex-toc-menu reftex-toc-map)
-  (run-hooks 'reftex-toc-mode-hook))
+  (easy-menu-add reftex-toc-menu reftex-toc-mode-map))
 
 (defvar reftex-last-toc-file nil
   "Stores the file name from which `reftex-toc' was called.  For redo command.")
@@ -1005,93 +1089,5 @@ always show the current section in connection with the option
            (reftex-toc-dframe-p frame))
       (progn
       (reftex-toggle-auto-toc-recenter))))
-
-;; Table of Contents map
-(define-key reftex-toc-map (if (featurep 'xemacs) [(button2)] [(mouse-2)])
-  'reftex-toc-mouse-goto-line-and-hide)
-(define-key reftex-toc-map [follow-link] 'mouse-face)
-
-(substitute-key-definition
- 'next-line 'reftex-toc-next reftex-toc-map global-map)
-(substitute-key-definition
- 'previous-line 'reftex-toc-previous reftex-toc-map global-map)
-
-(loop for x in
-      '(("n"        . reftex-toc-next)
-        ("p"        . reftex-toc-previous)
-        ("?"        . reftex-toc-show-help)
-        (" "        . reftex-toc-view-line)
-        ("\C-m"     . reftex-toc-goto-line-and-hide)
-        ("\C-i"     . reftex-toc-goto-line)
-        ("\C-c>"    . reftex-toc-display-index)
-        ("r"        . reftex-toc-rescan)
-        ("R"        . reftex-toc-Rescan)
-        ("g"        . revert-buffer)
-        ("q"        . reftex-toc-quit);
-        ("k"        . reftex-toc-quit-and-kill)
-        ("f"        . reftex-toc-toggle-follow);
-        ("a"        . reftex-toggle-auto-toc-recenter)
-        ("d"        . reftex-toc-toggle-dedicated-frame)
-        ("F"        . reftex-toc-toggle-file-boundary)
-        ("i"        . reftex-toc-toggle-index)
-        ("l"        . reftex-toc-toggle-labels)
-        ("t"        . reftex-toc-max-level)
-        ("c"        . reftex-toc-toggle-context)
-;        ("%"        . reftex-toc-toggle-commented)
-        ("\M-%"     . reftex-toc-rename-label)
-        ("x"        . reftex-toc-external)
-        ("z"        . reftex-toc-jump)
-        ("."        . reftex-toc-show-calling-point)
-        ("\C-c\C-n" . reftex-toc-next-heading)
-        ("\C-c\C-p" . reftex-toc-previous-heading)
-        (">"        . reftex-toc-demote)
-        ("<"        . reftex-toc-promote))
-      do (define-key reftex-toc-map (car x) (cdr x)))
-
-(loop for key across "0123456789" do
-      (define-key reftex-toc-map (vector (list key)) 'digit-argument))
-(define-key reftex-toc-map "-" 'negative-argument)
-
-(easy-menu-define
- reftex-toc-menu reftex-toc-map
- "Menu for Table of Contents buffer"
- '("TOC"
-   ["Show Location" reftex-toc-view-line t]
-   ["Go To Location" reftex-toc-goto-line t]
-   ["Exit & Go To Location" reftex-toc-goto-line-and-hide t]
-   ["Show Calling Point" reftex-toc-show-calling-point t]
-   ["Quit" reftex-toc-quit t]
-   "--"
-   ("Edit"
-    ["Promote" reftex-toc-promote t]
-    ["Demote" reftex-toc-demote t]
-    ["Rename Label" reftex-toc-rename-label t])
-   "--"
-   ["Index" reftex-toc-display-index t]
-   ["External Document TOC  " reftex-toc-external t]
-   "--"
-   ("Update"
-    ["Rebuilt *toc* Buffer" revert-buffer t]
-    ["Rescan One File" reftex-toc-rescan reftex-enable-partial-scans]
-    ["Rescan Entire Document" reftex-toc-Rescan t])
-   ("Options"
-    "TOC Items"
-    ["File Boundaries" reftex-toc-toggle-file-boundary :style toggle
-     :selected reftex-toc-include-file-boundaries]
-    ["Labels" reftex-toc-toggle-labels :style toggle
-     :selected reftex-toc-include-labels]
-    ["Index Entries" reftex-toc-toggle-index :style toggle
-     :selected reftex-toc-include-index-entries]
-    ["Context" reftex-toc-toggle-context :style toggle
-     :selected reftex-toc-include-context]
-    "--"
-    ["Follow Mode" reftex-toc-toggle-follow :style toggle
-     :selected reftex-toc-follow-mode]
-    ["Auto Recenter" reftex-toggle-auto-toc-recenter :style toggle
-     :selected reftex-toc-auto-recenter-timer]
-    ["Dedicated Frame" reftex-toc-toggle-dedicated-frame t])
-   "--"
-   ["Help" reftex-toc-show-help t]))
-
 
 ;;; reftex-toc.el ends here

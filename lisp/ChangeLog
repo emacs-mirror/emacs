@@ -1,5 +1,33 @@
 2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Use run-mode-hooks for major mode hooks (bug#513).
+	* textmodes/reftex-toc.el (reftex-toc-mode-map):
+	Rename from reftex-toc-map.
+	(reftex-toc-mode): Use define-derived-mode.
+	* textmodes/reftex-sel.el (reftex-select-shared-map): New map.
+	(reftex-select-label-mode-map, reftex-select-bib-mode-map):
+	Rename from reftex-select-(label|bib)-map.  Move init into declaration.
+	(reftex-select-label-mode, reftex-select-bib-mode):
+	Use define-derived-mode.
+	* textmodes/reftex-index.el (reftex-index-phrases-mode-map)
+	(reftex-index-mode-map): Rename from reftex-index(-phrases)-map.
+	Move init into delcaration.
+	(reftex-index-mode, reftex-index-phrases-mode):
+	Use define-derived-mode.
+	* speedbar.el (speedbar-mode-syntax-table): Renaqme from
+	speedbar-syntax-table.  Move init into declaration.
+	(speedbar-mode-map): Rename from speedbar-key-map.
+	Move init into declaration.
+	(speedbar-file-key-map): Move init into declaration.
+	(speedbar-mode): Use define-derived-mode.
+	* recentf.el (recentf-mode): Don't run hook (or message) redundantly.
+	* net/rcirc.el (rcirc-mode): Use run-mode-hooks.
+	* emacs-lisp/chart.el (chart-mode-map): Rename from chart-map.
+	(chart-face-list): Move initialization into declaration.
+	(chart-mode): Use define-derived-mode.
+	* calculator.el (calculator-mode-map): Move init into declaration.
+	(calculator-mode): Use define-derived-mode.
+
 	* mail/mail-utils.el (mail-strip-quoted-names): Make the regexp code
 	work for nested comments.
 
