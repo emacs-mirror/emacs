@@ -1,5 +1,8 @@
 2011-01-14  Martin Rudalics  <rudalics@gmx.at>
 
+	* simple.el (compose-mail-other-frame): Fix typo introduced in
+	last change.
+
 	* window.el (window-safely-shrinkable-p): Remove.
 
 	* calendar/calendar.el (calendar-generate-window): Only fit a

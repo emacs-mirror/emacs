@@ -5746,7 +5746,7 @@ To disable this warning, set `compose-mail-user-agent-warnings' to nil."
   "Like \\[compose-mail], but edit the outgoing message in another frame."
   (interactive (list nil nil nil current-prefix-arg))
   (compose-mail to subject other-headers continue
-		'pop-to-buffer-other-frame yank-action send-actions))
+		'pop-to-buffer-other-frame yank-action send-actions
 		return-action))
 
 (defvar set-variable-value-history nil
