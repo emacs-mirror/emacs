@@ -24,8 +24,11 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl))                        ; assert
+
 (defun bzrmerge-merges ()
-  "Return the list of already merged (not not committed) revisions.
+  "Return the list of already merged (not yet committed) revisions.
 The list returned is sorted by oldest-first."
   (with-current-buffer (get-buffer-create "*bzrmerge*")
     (erase-buffer)
