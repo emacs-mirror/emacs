@@ -1,3 +1,14 @@
+2011-01-14  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-header): Set
+	rmail-mime-coding-system to a cons whose car is the last coding
+	system used to decode the header.
+	(rmail-mime-find-header-encoding): New function.
+	(rmail-mime-insert-decoded-text): Override
+	rmail-mime-coding-system if it is a cons.
+	(rmail-show-mime): If only a header part was decoded, find the
+	coding system while ignoring mm-charset-override-alist.
+
 2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (event-start, event-end): Doc fix (Bug#7826).
