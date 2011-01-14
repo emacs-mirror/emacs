@@ -172,6 +172,9 @@ This only affects frames wider than the default value of
                  (integer))
   :version "23.2"
   :group 'calendar)
+(make-obsolete-variable
+ 'calendar-split-width-threshold
+ "customize `display-buffer-alist' instead." "24.1")
 
 (defcustom calendar-week-start-day 0
   "The day of the week on which a week in the calendar begins.
@@ -1295,12 +1298,7 @@ display the generated calendar."
   (let ((buff (current-buffer)))
     (set-buffer (get-buffer-create calendar-buffer))
     (calendar-mode)
-    (let* ((pop-up-windows t)
-           ;; Not really needed now, but means we use exactly the same
-           ;; behavior as before in the non-wide case (see below).
-           (split-height-threshold 1000)
-           (split-width-threshold calendar-split-width-threshold)
-           (date (if arg (calendar-read-date t)
+    (let* ((date (if arg (calendar-read-date t)
                    (calendar-current-date)))
            (month (calendar-extract-month date))
            (year (calendar-extract-year date)))
@@ -1333,27 +1331,26 @@ display the generated calendar."
         ;;
         ;; Is this a wide frame?  If so, split it horizontally.
 
-	;; FIXME: Adapt to new splitting code.
-        ;; (if (window-sensibly-splittable-p t) (split-window-horizontally))
-        (pop-to-buffer calendar-buffer)
-        ;; Has the window already been split vertically?
-        (when (and (not (window-dedicated-p))
-                   (window-full-height-p))
-          (let ((win (split-window-vertically)))
-            ;; In the upper window, show whatever was visible before.
-            ;; This looks better than using other-buffer.
-            (switch-to-buffer buff)
-            ;; Switch to the lower window with the calendar buffer.
-            (select-window win))))
+	;; Try to make the new window at the bottom of the frame.  If
+	;; there's real urgent need, we could also try to split the last
+	;; full width window on the frame (provided we write a function
+	;; to do that) and split it into two side-by-side windows with
+	;; the calendar in the right window.  Hopefully, users will
+	;; eventually start using the rightmost bottom side window for
+	;; the calendar.  Using (pop-up-window (bottom . 1000)), for
+	;; example, in `display-buffer-alist', with (override . t),
+	;; should do the job.
+	(pop-to-buffer calendar-buffer '((pop-up-window (root . below)))))
       (calendar-generate-window month year)
       (if (and calendar-view-diary-initially-flag
                (calendar-date-is-visible-p date))
           (diary-view-entries))))
   (if calendar-view-holidays-initially-flag
       (let* ((diary-buffer (get-file-buffer diary-file))
-             (diary-window (if diary-buffer (get-buffer-window diary-buffer)))
-             (split-height-threshold (if diary-window 2 1000)))
-        ;; FIXME display buffer?
+             (diary-window (if diary-buffer (get-buffer-window diary-buffer))))
+        ;; This used to bind `split-height-threshold'.  Since that
+	;; variable is no longer supported we have to find a different
+	;; solution if needed.
         (calendar-list-holidays)))
   (run-hooks 'calendar-initial-window-hook))
 
@@ -1378,17 +1375,12 @@ Optional integers MON and YR are used instead of today's date."
     ;; Don't do any window-related stuff if we weren't called from a
     ;; window displaying the calendar.
     (when in-calendar-window
-      ;; The second test used to be window-full-width-p.
-      ;; Not sure what it was/is for, except perhaps some way of saying
-      ;; "try not to mess with existing configurations".
-      ;; If did the wrong thing on wide frames, where we have done a
-      ;; horizontal split in calendar-basic-setup.
-      (if (or (one-window-p t) (not (window-safely-shrinkable-p)))
-          ;; Don't mess with the window size, but ensure that the first
-          ;; line is fully visible.
-          (set-window-vscroll nil 0)
-        ;; Adjust the window to exactly fit the displayed calendar.
-        (fit-window-to-buffer nil nil calendar-minimum-window-height))
+      (if (window-iso-combined-p)
+	  ;; Adjust the window to exactly fit the displayed calendar.
+	  (fit-window-to-buffer nil nil calendar-minimum-window-height)
+	;; For a full height window or a window that is horizontally
+	;; combined don't fit height to that of its buffer.
+	(set-window-vscroll nil 0))
       (sit-for 0))
     (and (bound-and-true-p font-lock-mode)
          (font-lock-fontify-buffer))
