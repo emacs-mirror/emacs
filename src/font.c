@@ -1,9 +1,8 @@
 /* font.c -- "Font" primitives.
-
-Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-Copyright (C) 2006, 2007, 2008, 2009, 2010
-  National Institute of Advanced Industrial Science and Technology (AIST)
-  Registration Number H13PRO009
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 

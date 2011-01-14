@@ -1,7 +1,7 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev convenience
@@ -118,17 +118,18 @@ Otherwise display all abbrevs."
     found))
 
 (defun prepare-abbrev-list-buffer (&optional local)
-  (with-current-buffer (get-buffer-create "*Abbrevs*")
-    (erase-buffer)
-    (if local
-        (insert-abbrev-table-description
-         (abbrev-table-name local-abbrev-table) t)
-      (dolist (table abbrev-table-name-list)
-        (insert-abbrev-table-description table t)))
-    (goto-char (point-min))
-    (set-buffer-modified-p nil)
-    (edit-abbrevs-mode)
-    (current-buffer)))
+  (let ((local-table local-abbrev-table))
+    (with-current-buffer (get-buffer-create "*Abbrevs*")
+      (erase-buffer)
+      (if local
+          (insert-abbrev-table-description
+           (abbrev-table-name local-table) t)
+        (dolist (table abbrev-table-name-list)
+          (insert-abbrev-table-description table t)))
+      (goto-char (point-min))
+      (set-buffer-modified-p nil)
+      (edit-abbrevs-mode)
+      (current-buffer))))
 
 (defun edit-abbrevs-mode ()
   "Major mode for editing the list of abbrev definitions.
