@@ -7,33 +7,6 @@
 
 	* progmodes/python.el (python-mode): Don't impose font-lock (bug#3628).
 
-2011-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* files.el (file-local-variables-alist):
-	Make permanent-local (bug#7767).
-
-2011-01-14  Glenn Morris  <rgm@gnu.org>
-
-	* version.el (emacs-copyright): Set short copyright year to 2011.
-
-2011-01-14  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
-
-	* mail/mail-utils.el (mail-strip-quoted-names): Avoid clobbering
-	an existing temp buffer.  (Bug#7746)
-
-2011-01-14  Glenn Morris  <rgm@gnu.org>
-
-	* mail/mail-utils.el (mail-mbox-from): Handle From: headers with
-	multiple addresses.  (Bug#7760)
-
-2011-01-14  Michael Albinus  <michael.albinus@gmx.de>
-
-	* net/tramp.el (tramp-methods): Add recursive options to "scpc",
-	"scpx", "pscp" and "psftp".
-
-2011-01-14  Eli Zaretskii  <eliz@gnu.org>
-
-	* term/w32-win.el (image-library-alist): Set up correctly for
 2011-01-14  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua--init-keymaps):

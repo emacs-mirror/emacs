@@ -1,9 +1,3 @@
-2011-01-14  Eli Zaretskii  <eliz@gnu.org>
-
-	* image.c (png_jmpbuf): Remove definition.
-	(my_png_error, png_load): Don't use png_jmpbuf.
-
-2011-01-14  Eli Zaretskii  <eliz@gnu.org>
 2011-01-11  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* image.c (imagemagick_load_image, Finit_image_library): Free

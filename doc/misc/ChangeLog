@@ -2,7 +2,6 @@
 
 	* nxml-mode.texi (Introduction): Fix file name typos.
 
-2011-01-14  Glenn Morris  <rgm@gnu.org>
 2011-01-13  Christian Ohler  <ohler@gnu.org>
 
 	* ert.texi: New file.

@@ -2,7 +2,6 @@
 
 	* admin.el (set-copyright): Also handle \year in refcards/*.tex.
 
-2011-01-14  Eli Zaretskii  <eliz@gnu.org>
 2011-01-14  Glenn Morris  <rgm@gnu.org>
 
 	* bzrmerge.el: Require cl when compiling.

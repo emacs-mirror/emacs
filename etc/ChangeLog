@@ -12,11 +12,6 @@
 	* refcards/vipcard.tex, refcards/viperCard.tex:
 	Update short copyright year to 2011.
 
-2011-01-14  Kenichi Handa  <handa@m17n.org>
-
-	* NEWS: Describe the changes for rmail's MIME handling.
-
-2011-01-14  W. Martin Borgert <debacle@debian.org>  (tiny change)
 2011-01-13  Christian Ohler  <ohler@gnu.org>
 
 	* NEWS: Mention ERT.
