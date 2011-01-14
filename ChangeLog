@@ -1,4 +1,4 @@
-2011-01-13  Paul Eggert  <eggert@cs.ucla.edu>
+2011-01-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (GNULIB_MODULES): Change ftoastr to dtoastr.
 	This avoids building ftoastr and ldtoastr, which aren't needed.  See
@@ -69,8 +69,6 @@
 	Use gnulib's ftoastr module.
 	* Makefile.in (GNULIB_MODULES): Add ftoastr.  Remove dummy.
 
-2011-01-08  Paul Eggert  <eggert@cs.ucla.edu>
-
 	Regenerate.
 	* aclocal.m4, compile, depcomp, lib/Makefile.in, lib/dummy.c:
 	* lib/gnulib.mk, m4/00gnulib.m4, m4/gnulib-cache.m4:
@@ -105,6 +103,14 @@
 	* lib/Makefile.am: New file.
 	* make-dist: Also put into the distribution aclocal.m4,
 	compile, depcomp, missing, and the files under lib/.
+
+2011-01-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-dist: Distribute test/ files too.
+	Distribute every file under test/ that is under version control,
+	using patterns like *.el to capture files that are added later.
+	Without this change, "configure" would fail, because it would
+	attempt to build from a Makefile.in that was not distributed.
 
 2011-01-13  Christian Ohler  <ohler@gnu.org>
 
