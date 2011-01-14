@@ -1,3 +1,12 @@
+2011-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/smerge-mode.el: Resolve comment conflicts more aggressively.
+	(smerge-resolve--normalize-re): New var.
+	(smerge-resolve--extract-comment, smerge-resolve--normalize): New funs.
+	(smerge-resolve): Use them.
+	* newcomment.el (comment-only-p): New function.
+	(comment-or-uncomment-region): Use it.
+
 2011-01-14  Brent Goodrick  <bgoodr@gmail.com>  (tiny change)
 
 	* abbrev.el (prepare-abbrev-list-buffer): If listing local abbrev
