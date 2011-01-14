@@ -1,3 +1,12 @@
+2011-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el: Add :enable (bug#7754), and obey :label.
+	Require CL.
+	(easy-menu-create-menu, easy-menu-convert-item-1):
+	Use :label rather than nil for labels.  Use `case'.
+	Add :enable as alias for :active.
+	(easy-menu-binding): Obey :label.
+
 2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Use run-mode-hooks for major mode hooks (bug#513).
