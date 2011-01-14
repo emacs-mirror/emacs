@@ -460,11 +460,26 @@ See `rmail-mime-entity' for the detail."
 	    (rmail-copy-headers (point) (aref header 1)))))
       (rfc2047-decode-region pos (point))
       (if (and last-coding-system-used (not rmail-mime-coding-system))
-	  (setq rmail-mime-coding-system last-coding-system-used))
+	  (setq rmail-mime-coding-system (cons last-coding-system-used nil)))
       (goto-char (point-min))
       (rmail-highlight-headers)
       (goto-char (point-max))
       (insert "\n"))))
+
+(defun rmail-mime-find-header-encoding (header)
+  "Retun the last coding system used to decode HEADER.
+HEADER is a header component of a MIME-entity object (see
+`rmail-mime-entity')."
+  (with-temp-buffer
+    (let ((last-coding-system-used nil))
+      (with-current-buffer rmail-mime-mbox-buffer
+	(let ((rmail-buffer rmail-mime-mbox-buffer)
+	      (rmail-view-buffer rmail-mime-view-buffer))
+	  (save-excursion
+	    (goto-char (aref header 0))
+	    (rmail-copy-headers (point) (aref header 1)))))
+      (rfc2047-decode-region (point-min) (point-max))
+      last-coding-system-used)))
 
 (defun rmail-mime-text-handler (content-type
 				content-disposition
@@ -498,7 +513,7 @@ See `rmail-mime-entity' for the detail."
 	      ((string= transfer-encoding "quoted-printable")
 	       (quoted-printable-decode-region pos (point))))))
     (decode-coding-region pos (point) coding-system)
-    (or rmail-mime-coding-system
+    (if (or (not rmail-mime-coding-system) (consp rmail-mime-coding-system))
 	(setq rmail-mime-coding-system coding-system))
     (or (bolp) (insert "\n"))))
 
@@ -1274,8 +1289,19 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
 	(with-current-buffer rmail-mime-view-buffer
 	  (erase-buffer)
 	  (rmail-mime-insert entity)
-	  (if rmail-mime-coding-system
-	      (set-buffer-file-coding-system rmail-mime-coding-system t t)))
+	  (if (consp rmail-mime-coding-system)
+	      ;; Decoding is done by rfc2047-decode-region only for a
+	      ;; header.  But, as the used coding system may have been
+	      ;; overriden by mm-charset-override-alist, we can't
+	      ;; trust (car rmail-mime-coding-system).  So, here we
+	      ;; try the decoding again with mm-charset-override-alist
+	      ;; bound to nil.
+	      (let ((mm-charset-override-alist nil))
+		(setq rmail-mime-coding-system
+		      (rmail-mime-find-header-encoding
+		       (rmail-mime-entity-header entity)))))
+	  (set-buffer-file-coding-system
+	   (coding-system-base rmail-mime-coding-system) t t))
       ;; Decoding failed.  ENTITY is an error message.  Insert the
       ;; original message body as is, and show warning.
       (let ((region (with-current-buffer rmail-mime-mbox-buffer
