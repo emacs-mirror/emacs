@@ -1,3 +1,7 @@
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-bury): Add special-case handling for Rmail.
+
 2011-01-12  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-mail): A compose-mail function should

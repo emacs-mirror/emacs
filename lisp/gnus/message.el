@@ -4023,12 +4023,32 @@ Instead, just auto-save the buffer and then bury it."
 
 (defun message-bury (buffer)
   "Bury this mail BUFFER."
-  (let ((newbuf (other-buffer buffer)))
-    (bury-buffer buffer)
-    (if (and (window-dedicated-p (selected-window))
+  (let ((newbuf (other-buffer (current-buffer))))
+    (bury-buffer (current-buffer))
+    (if (and (window-dedicated-p (frame-selected-window))
 	     (not (null (delq (selected-frame) (visible-frame-list)))))
 	(delete-frame (selected-frame))
-      (switch-to-buffer newbuf))))
+      ;; Temporary hack to make this behave like `mail-bury', when
+      ;; used with Rmail.  Replaced in Emacs 24 with
+      (let (rmail-flag summary-buffer)
+	(and (not (one-window-p))
+	     (with-current-buffer
+                 (window-buffer (next-window (selected-window) 'not))
+	       (setq rmail-flag (eq major-mode 'rmail-mode))
+	       (setq summary-buffer
+		     (and (if (boundp 'mail-bury-selects-summary)
+			      mail-bury-selects-summary
+			    t)
+			  (boundp 'rmail-summary-buffer)
+			  rmail-summary-buffer
+			  (buffer-name rmail-summary-buffer)
+			  (not (get-buffer-window rmail-summary-buffer))
+			  rmail-summary-buffer))))
+	(if rmail-flag
+	    ;; If the Rmail buffer has a summary, show that.
+	    (if summary-buffer (switch-to-buffer summary-buffer)
+	      (delete-window))
+	  (switch-to-buffer newbuf))))))
 
 (defun message-send (&optional arg)
   "Send the message in the current buffer.
