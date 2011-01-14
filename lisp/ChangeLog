@@ -1,5 +1,14 @@
 2011-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* hexl.el (hexl-mode-old-*): Remove.
+	(hexl-mode--old-var-vals): New var to replace them.
+	(hexl-mode--minor-mode-p, hexl-mode--setq-local): New funs.
+	(hexl-mode, hexl-follow-line, hexl-activate-ruler):
+	Use them to set local vars (bug#7846).
+	(hexl-mode-exit): Use hexl-mode--old-var-vals to restore state.
+	(hexl-backward-short, hexl-backward-word, hexl-scroll-down)
+	(hexl-scroll-up, hexl-end-of-1k-page, hexl-end-of-512b-page): Simplify.
+
 	* vc/smerge-mode.el: Resolve comment conflicts more aggressively.
 	(smerge-resolve--normalize-re): New var.
 	(smerge-resolve--extract-comment, smerge-resolve--normalize): New funs.
