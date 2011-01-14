@@ -1,7 +1,7 @@
 ;;; reftex-index.el --- index support with RefTeX
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -275,8 +275,111 @@ will prompt for other arguments."
     (and newtag (cdr cell) (not (member newtag (cdr cell)))
          (push newtag (cdr cell)))))
 
-(defvar reftex-index-map (make-sparse-keymap)
+(defvar reftex-index-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Index map
+    (define-key map (if (featurep 'xemacs) [(button2)] [(mouse-2)])
+      'reftex-index-mouse-goto-line-and-hide)
+    (define-key map [follow-link] 'mouse-face)
+
+    (substitute-key-definition
+     'next-line 'reftex-index-next map global-map)
+    (substitute-key-definition
+     'previous-line 'reftex-index-previous map global-map)
+
+    (loop for x in
+          '(("n"    . reftex-index-next)
+            ("p"    . reftex-index-previous)
+            ("?"    . reftex-index-show-help)
+            (" "    . reftex-index-view-entry)
+            ("\C-m" . reftex-index-goto-entry-and-hide)
+            ("\C-i" . reftex-index-goto-entry)
+            ("\C-k" . reftex-index-kill)
+            ("r"    . reftex-index-rescan)
+            ("R"    . reftex-index-Rescan)
+            ("g"    . revert-buffer)
+            ("q"    . reftex-index-quit)
+            ("k"    . reftex-index-quit-and-kill)
+            ("f"    . reftex-index-toggle-follow)
+            ("s"    . reftex-index-switch-index-tag)
+            ("e"    . reftex-index-edit)
+            ("^"    . reftex-index-level-up)
+            ("_"    . reftex-index-level-down)
+            ("}"    . reftex-index-restrict-to-section)
+            ("{"    . reftex-index-widen)
+            (">"    . reftex-index-restriction-forward)
+            ("<"    . reftex-index-restriction-backward)
+            ("("    . reftex-index-toggle-range-beginning)
+            (")"    . reftex-index-toggle-range-end)
+            ("|"    . reftex-index-edit-attribute)
+            ("@"    . reftex-index-edit-visual)
+            ("*"    . reftex-index-edit-key)
+            ("\C-c=". reftex-index-goto-toc)
+            ("c"    . reftex-index-toggle-context))
+          do (define-key map (car x) (cdr x)))
+
+    (loop for key across "0123456789" do
+          (define-key map (vector (list key)) 'digit-argument))
+    (define-key map "-" 'negative-argument)
+
+    ;; The capital letters and the exclamation mark
+    (loop for key across (concat "!" reftex-index-section-letters) do
+          (define-key map (vector (list key))
+            (list 'lambda '() '(interactive)
+                  (list 'reftex-index-goto-letter key))))
+
+    (easy-menu-define reftex-index-menu map
+      "Menu for Index buffer"
+      '("Index"
+        ["Goto section A-Z"
+         (message "To go to a section, just press any of: !%s"
+                  reftex-index-section-letters) t]
+        ["Show Entry" reftex-index-view-entry t]
+        ["Go To Entry" reftex-index-goto-entry t]
+        ["Exit & Go To Entry" reftex-index-goto-entry-and-hide t]
+        ["Table of Contents" reftex-index-goto-toc t]
+        ["Quit" reftex-index-quit t]
+        "--"
+        ("Update"
+         ["Rebuilt *Index* Buffer" revert-buffer t]
+         "--"
+         ["Rescan One File" reftex-index-rescan reftex-enable-partial-scans]
+         ["Rescan Entire Document" reftex-index-Rescan t])
+        ("Restrict"
+         ["Restrict to section" reftex-index-restrict-to-section t]
+         ["Widen" reftex-index-widen reftex-index-restriction-indicator]
+         ["Next Section" reftex-index-restriction-forward
+          reftex-index-restriction-indicator]
+         ["Previous Section" reftex-index-restriction-backward
+          reftex-index-restriction-indicator])
+        ("Edit"
+         ["Edit Entry" reftex-index-edit t]
+         ["Edit Key" reftex-index-edit-key t]
+         ["Edit Attribute" reftex-index-edit-attribute t]
+         ["Edit Visual" reftex-index-edit-visual t]
+         "--"
+         ["Add Parentkey" reftex-index-level-down t]
+         ["Remove Parentkey " reftex-index-level-up t]
+         "--"
+         ["Make Start-of-Range" reftex-index-toggle-range-beginning t]
+         ["Make End-of-Range" reftex-index-toggle-range-end t]
+         "--"
+         ["Kill Entry" reftex-index-kill nil]
+         "--"
+         ["Undo" reftex-index-undo nil])
+        ("Options"
+         ["Context" reftex-index-toggle-context :style toggle
+          :selected reftex-index-include-context]
+         "--"
+         ["Follow Mode" reftex-index-toggle-follow :style toggle
+          :selected reftex-index-follow-mode])
+        "--"
+        ["Help" reftex-index-show-help t]))
+
+    map)
   "Keymap used for *Index* buffers.")
+(define-obsolete-variable-alias
+  'reftex-index-map 'reftex-index-mode-map "24.1")
 
 (defvar reftex-index-menu)
 
@@ -291,19 +394,14 @@ will prompt for other arguments."
 (defvar reftex-index-restriction-indicator nil)
 (defvar reftex-index-restriction-data nil)
 
-(defun reftex-index-mode ()
+(define-derived-mode reftex-index-mode fundamental-mode "RefTeX Index"
   "Major mode for managing Index buffers for LaTeX files.
 This buffer was created with RefTeX.
 Press `?' for a summary of important key bindings, or check the menu.
 
 Here are all local bindings.
 
-\\{reftex-index-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'reftex-index-mode
-        mode-name "RefTeX Index")
-  (use-local-map reftex-index-map)
+\\{reftex-index-mode-map}"
   (set (make-local-variable 'revert-buffer-function) 'reftex-index-revert)
   (set (make-local-variable 'reftex-index-restriction-data) nil)
   (set (make-local-variable 'reftex-index-restriction-indicator) nil)
@@ -318,10 +416,9 @@ Here are all local bindings.
     (make-local-hook 'post-command-hook)
     (make-local-hook 'pre-command-hook))
   (make-local-variable 'reftex-last-follow-point)
-  (easy-menu-add reftex-index-menu reftex-index-map)
+  (easy-menu-add reftex-index-menu reftex-index-mode-map)
   (add-hook 'post-command-hook 'reftex-index-post-command-hook nil t)
-  (add-hook 'pre-command-hook  'reftex-index-pre-command-hook nil t)
-  (run-hooks 'reftex-index-mode-hook))
+  (add-hook 'pre-command-hook  'reftex-index-pre-command-hook nil t))
 
 (defconst reftex-index-help
 "                      AVAILABLE KEYS IN INDEX BUFFER
@@ -1032,57 +1129,6 @@ When index is restricted, select the previous section as restriction criterion."
     (setq reftex-last-follow-point 1)
     (and message (message "%s" message))))
 
-;; Index map
-(define-key reftex-index-map (if (featurep 'xemacs) [(button2)] [(mouse-2)])
-  'reftex-index-mouse-goto-line-and-hide)
-(define-key reftex-index-map [follow-link] 'mouse-face)
-
-(substitute-key-definition
- 'next-line 'reftex-index-next reftex-index-map global-map)
-(substitute-key-definition
- 'previous-line 'reftex-index-previous reftex-index-map global-map)
-
-(loop for x in
-      '(("n"    . reftex-index-next)
-        ("p"    . reftex-index-previous)
-        ("?"    . reftex-index-show-help)
-        (" "    . reftex-index-view-entry)
-        ("\C-m" . reftex-index-goto-entry-and-hide)
-        ("\C-i" . reftex-index-goto-entry)
-        ("\C-k" . reftex-index-kill)
-        ("r"    . reftex-index-rescan)
-        ("R"    . reftex-index-Rescan)
-        ("g"    . revert-buffer)
-        ("q"    . reftex-index-quit)
-        ("k"    . reftex-index-quit-and-kill)
-        ("f"    . reftex-index-toggle-follow)
-        ("s"    . reftex-index-switch-index-tag)
-        ("e"    . reftex-index-edit)
-        ("^"    . reftex-index-level-up)
-        ("_"    . reftex-index-level-down)
-        ("}"    . reftex-index-restrict-to-section)
-        ("{"    . reftex-index-widen)
-        (">"    . reftex-index-restriction-forward)
-        ("<"    . reftex-index-restriction-backward)
-        ("("    . reftex-index-toggle-range-beginning)
-        (")"    . reftex-index-toggle-range-end)
-        ("|"    . reftex-index-edit-attribute)
-        ("@"    . reftex-index-edit-visual)
-        ("*"    . reftex-index-edit-key)
-        ("\C-c=". reftex-index-goto-toc)
-        ("c"    . reftex-index-toggle-context))
-      do (define-key reftex-index-map (car x) (cdr x)))
-
-(loop for key across "0123456789" do
-      (define-key reftex-index-map (vector (list key)) 'digit-argument))
-(define-key reftex-index-map "-" 'negative-argument)
-
-;; The capital letters and the exclamation mark
-(loop for key across (concat "!" reftex-index-section-letters) do
-      (define-key reftex-index-map (vector (list key))
-        (list 'lambda '() '(interactive)
-              (list 'reftex-index-goto-letter key))))
-
 (defun reftex-index-goto-letter (char)
   "Go to the CHAR section in the index."
   (let ((pos (point))
@@ -1100,55 +1146,6 @@ When index is restricted, select the previous section as restriction criterion."
                  reftex-index-tag)
         (error "This <%s> index does not contain entries starting with `%c'"
                reftex-index-tag char)))))
-
-(easy-menu-define
- reftex-index-menu reftex-index-map
- "Menu for Index buffer"
- `("Index"
-   ["Goto section A-Z"
-    (message "To go to a section, just press any of: !%s"
-             reftex-index-section-letters) t]
-   ["Show Entry" reftex-index-view-entry t]
-   ["Go To Entry" reftex-index-goto-entry t]
-   ["Exit & Go To Entry" reftex-index-goto-entry-and-hide t]
-   ["Table of Contents" reftex-index-goto-toc t]
-   ["Quit" reftex-index-quit t]
-   "--"
-   ("Update"
-    ["Rebuilt *Index* Buffer" revert-buffer t]
-    "--"
-    ["Rescan One File" reftex-index-rescan reftex-enable-partial-scans]
-    ["Rescan Entire Document" reftex-index-Rescan t])
-   ("Restrict"
-    ["Restrict to section" reftex-index-restrict-to-section t]
-    ["Widen" reftex-index-widen reftex-index-restriction-indicator]
-    ["Next Section" reftex-index-restriction-forward
-     reftex-index-restriction-indicator]
-    ["Previous Section" reftex-index-restriction-backward
-     reftex-index-restriction-indicator])
-   ("Edit"
-    ["Edit Entry" reftex-index-edit t]
-    ["Edit Key" reftex-index-edit-key t]
-    ["Edit Attribute" reftex-index-edit-attribute t]
-    ["Edit Visual" reftex-index-edit-visual t]
-    "--"
-    ["Add Parentkey" reftex-index-level-down t]
-    ["Remove Parentkey " reftex-index-level-up t]
-    "--"
-    ["Make Start-of-Range" reftex-index-toggle-range-beginning t]
-    ["Make End-of-Range" reftex-index-toggle-range-end t]
-    "--"
-    ["Kill Entry" reftex-index-kill nil]
-    "--"
-    ["Undo" reftex-index-undo nil])
-   ("Options"
-    ["Context" reftex-index-toggle-context :style toggle
-     :selected reftex-index-include-context]
-    "--"
-    ["Follow Mode" reftex-index-toggle-follow :style toggle
-     :selected reftex-index-follow-mode])
-   "--"
-   ["Help" reftex-index-show-help t]))
 
 
 ;;----------------------------------------------------------------------
@@ -1183,8 +1180,73 @@ This gets refreshed in every phrases command.")
   "Font lock keywords for reftex-index-phrases-mode.")
 (defvar reftex-index-phrases-font-lock-defaults nil
   "Font lock defaults for reftex-index-phrases-mode.")
-(defvar reftex-index-phrases-map (make-sparse-keymap)
+(defvar reftex-index-phrases-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Keybindings and Menu for phrases buffer
+    (loop for x in
+          '(("\C-c\C-c" . reftex-index-phrases-save-and-return)
+            ("\C-c\C-x" . reftex-index-this-phrase)
+            ("\C-c\C-f" . reftex-index-next-phrase)
+            ("\C-c\C-r" . reftex-index-region-phrases)
+            ("\C-c\C-a" . reftex-index-all-phrases)
+            ("\C-c\C-d" . reftex-index-remaining-phrases)
+            ("\C-c\C-s" . reftex-index-sort-phrases)
+            ("\C-c\C-n" . reftex-index-new-phrase)
+            ("\C-c\C-m" . reftex-index-phrases-set-macro-key)
+            ("\C-c\C-i" . reftex-index-phrases-info)
+            ("\C-c\C-t" . reftex-index-find-next-conflict-phrase)
+            ("\C-i"     . self-insert-command))
+          do (define-key map (car x) (cdr x)))
+
+    (easy-menu-define reftex-index-phrases-menu map
+      "Menu for Phrases buffer"
+      '("Phrases"
+        ["New Phrase" reftex-index-new-phrase t]
+        ["Set Phrase Macro" reftex-index-phrases-set-macro-key t]
+        ["Recreate File Header" reftex-index-initialize-phrases-buffer t]
+        "--"
+        ("Sort Phrases"
+         ["Sort" reftex-index-sort-phrases t]
+         "--"
+         "Sort Options"
+         ["by Search Phrase" (setq reftex-index-phrases-sort-prefers-entry nil)
+          :style radio :selected (not reftex-index-phrases-sort-prefers-entry)]
+         ["by Index Entry" (setq reftex-index-phrases-sort-prefers-entry t)
+          :style radio :selected reftex-index-phrases-sort-prefers-entry]
+         ["in Blocks" (setq reftex-index-phrases-sort-in-blocks
+                            (not reftex-index-phrases-sort-in-blocks))
+          :style toggle :selected reftex-index-phrases-sort-in-blocks])
+        ["Describe Phrase" reftex-index-phrases-info t]
+        ["Next Phrase Conflict" reftex-index-find-next-conflict-phrase t]
+        "--"
+        ("Find and Index in Document"
+         ["Current Phrase" reftex-index-this-phrase t]
+         ["Next Phrase" reftex-index-next-phrase t]
+         ["Current and Following" reftex-index-remaining-phrases t]
+         ["Region Phrases" reftex-index-region-phrases t]
+         ["All Phrases" reftex-index-all-phrases t]
+         "--"
+         "Options"
+         ["Match Whole Words" (setq reftex-index-phrases-search-whole-words
+                                    (not reftex-index-phrases-search-whole-words))
+          :style toggle :selected reftex-index-phrases-search-whole-words]
+         ["Case Sensitive Search" (setq reftex-index-phrases-case-fold-search
+                                        (not  reftex-index-phrases-case-fold-search))
+          :style toggle :selected (not
+                                   reftex-index-phrases-case-fold-search)]
+         ["Wrap Long Lines" (setq reftex-index-phrases-wrap-long-lines
+                                  (not reftex-index-phrases-wrap-long-lines))
+          :style toggle :selected reftex-index-phrases-wrap-long-lines]
+         ["Skip Indexed Matches" (setq reftex-index-phrases-skip-indexed-matches
+                                       (not reftex-index-phrases-skip-indexed-matches))
+          :style toggle :selected reftex-index-phrases-skip-indexed-matches])
+        "--"
+        ["Save and Return" reftex-index-phrases-save-and-return t]))
+
+    map)
   "Keymap used for *toc* buffer.")
+(define-obsolete-variable-alias
+  'reftex-index-phrases-map 'reftex-index-phrases-mode-map "24.1")
 
 
 (defun reftex-index-phrase-selection-or-word (arg)
@@ -1288,7 +1350,7 @@ If the buffer is non-empty, delete the old header first."
 (defvar reftex-index-phrases-marker)
 (defvar reftex-index-phrases-restrict-file nil)
 ;;;###autoload
-(defun reftex-index-phrases-mode ()
+(define-derived-mode reftex-index-phrases-mode fundamental-mode "Phrases"
   "Major mode for managing the Index phrases of a LaTeX document.
 This buffer was created with RefTeX.
 
@@ -1311,18 +1373,12 @@ For more information see the RefTeX User Manual.
 
 Here are all local bindings.
 
-\\{reftex-index-phrases-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'reftex-index-phrases-mode
-        mode-name "Phrases")
-  (use-local-map reftex-index-phrases-map)
+\\{reftex-index-phrases-mode-map}"
   (set (make-local-variable 'font-lock-defaults)
        reftex-index-phrases-font-lock-defaults)
-  (easy-menu-add reftex-index-phrases-menu reftex-index-phrases-map)
-  (set (make-local-variable 'reftex-index-phrases-marker) (make-marker))
-  (run-hooks 'reftex-index-phrases-mode-hook))
-(add-hook 'reftex-index-phrases-mode-hook 'turn-on-font-lock)
+  (easy-menu-add reftex-index-phrases-menu reftex-index-phrases-mode-map)
+  (set (make-local-variable 'reftex-index-phrases-marker) (make-marker)))
+;; (add-hook 'reftex-index-phrases-mode-hook 'turn-on-font-lock)
 
 ;; Font Locking stuff
 (let ((ss (if (featurep 'xemacs) 'secondary-selection ''secondary-selection)))
@@ -2039,69 +2095,6 @@ Does not do a save-excursion."
                                             (car x) (nth 1 x)))
                                   reftex-index-phrases-macro-data "\n"))))
     (reftex-select-with-char prompt help delay)))
-
-;; Keybindings and Menu for phrases buffer
-
-(loop for x in
-      '(("\C-c\C-c" . reftex-index-phrases-save-and-return)
-        ("\C-c\C-x" . reftex-index-this-phrase)
-        ("\C-c\C-f" . reftex-index-next-phrase)
-        ("\C-c\C-r" . reftex-index-region-phrases)
-        ("\C-c\C-a" . reftex-index-all-phrases)
-        ("\C-c\C-d" . reftex-index-remaining-phrases)
-        ("\C-c\C-s" . reftex-index-sort-phrases)
-        ("\C-c\C-n" . reftex-index-new-phrase)
-        ("\C-c\C-m" . reftex-index-phrases-set-macro-key)
-        ("\C-c\C-i" . reftex-index-phrases-info)
-        ("\C-c\C-t" . reftex-index-find-next-conflict-phrase)
-        ("\C-i"     . self-insert-command))
-      do (define-key reftex-index-phrases-map (car x) (cdr x)))
-
-(easy-menu-define
- reftex-index-phrases-menu reftex-index-phrases-map
- "Menu for Phrases buffer"
- '("Phrases"
-   ["New Phrase" reftex-index-new-phrase t]
-   ["Set Phrase Macro" reftex-index-phrases-set-macro-key t]
-   ["Recreate File Header" reftex-index-initialize-phrases-buffer t]
-   "--"
-   ("Sort Phrases"
-    ["Sort" reftex-index-sort-phrases t]
-    "--"
-    "Sort Options"
-    ["by Search Phrase" (setq reftex-index-phrases-sort-prefers-entry nil)
-     :style radio :selected (not reftex-index-phrases-sort-prefers-entry)]
-    ["by Index Entry" (setq reftex-index-phrases-sort-prefers-entry t)
-     :style radio :selected reftex-index-phrases-sort-prefers-entry]
-    ["in Blocks" (setq reftex-index-phrases-sort-in-blocks
-                          (not reftex-index-phrases-sort-in-blocks))
-     :style toggle :selected reftex-index-phrases-sort-in-blocks])
-   ["Describe Phrase" reftex-index-phrases-info t]
-   ["Next Phrase Conflict" reftex-index-find-next-conflict-phrase t]
-   "--"
-   ("Find and Index in Document"
-    ["Current Phrase" reftex-index-this-phrase t]
-    ["Next Phrase" reftex-index-next-phrase t]
-    ["Current and Following" reftex-index-remaining-phrases t]
-    ["Region Phrases" reftex-index-region-phrases t]
-    ["All Phrases" reftex-index-all-phrases t]
-    "--"
-    "Options"
-    ["Match Whole Words" (setq reftex-index-phrases-search-whole-words
-                          (not reftex-index-phrases-search-whole-words))
-     :style toggle :selected reftex-index-phrases-search-whole-words]
-    ["Case Sensitive Search" (setq reftex-index-phrases-case-fold-search
-                                  (not  reftex-index-phrases-case-fold-search))
-     :style toggle :selected (not
-                              reftex-index-phrases-case-fold-search)]
-    ["Wrap Long Lines" (setq reftex-index-phrases-wrap-long-lines
-                             (not reftex-index-phrases-wrap-long-lines))
-    :style toggle :selected reftex-index-phrases-wrap-long-lines]
-    ["Skip Indexed Matches" (setq reftex-index-phrases-skip-indexed-matches
-                                  (not reftex-index-phrases-skip-indexed-matches))
-     :style toggle :selected reftex-index-phrases-skip-indexed-matches])
-   "--"
-   ["Save and Return" reftex-index-phrases-save-and-return t]))
 
 
 ;;; reftex-index.el ends here
