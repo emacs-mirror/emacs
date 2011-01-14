@@ -1,3 +1,8 @@
+2011-01-14  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* progmodes/sh-script.el (sh-other-keywords): Add ZSH's foreach
+	loop keyword.
+
 2011-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easymenu.el: Add :enable (bug#7754), and obey :label.

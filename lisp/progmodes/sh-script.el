@@ -762,7 +762,7 @@ flow of control or syntax.  See `sh-feature'."
     (shell "break" "case" "continue" "exec" "exit")
 
     (zsh sh-append bash
-	 "select"))
+	 "select" "foreach"))
   "List of keywords not in `sh-leading-keywords'.
 See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
