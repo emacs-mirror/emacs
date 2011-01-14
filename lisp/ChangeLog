@@ -1,3 +1,8 @@
+2011-01-14  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--init-keymaps):
+	Remap exchange-point-and-mark in cua-global-keymap.
+
 2011-01-14  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* progmodes/sh-script.el (sh-other-keywords): Add ZSH's foreach
