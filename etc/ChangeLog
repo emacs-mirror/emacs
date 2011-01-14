@@ -1,3 +1,17 @@
+2011-01-14  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
+	* refcards/cs-refcard.tex, refcards/cs-survival.tex:
+	* refcards/de-refcard.tex, refcards/dired-ref.tex:
+	* refcards/fr-dired-ref.tex, refcards/fr-refcard.tex:
+	* refcards/fr-survival.tex, refcards/orgcard.tex:
+	* refcards/pl-refcard.tex, refcards/pt-br-refcard.tex:
+	* refcards/refcard.tex, refcards/ru-refcard.tex:
+	* refcards/sk-dired-ref.tex, refcards/sk-refcard.tex:
+	* refcards/sk-survival.tex, refcards/survival.tex:
+	* refcards/vipcard.tex, refcards/viperCard.tex:
+	Update short copyright year to 2011.
+
 2011-01-13  Christian Ohler  <ohler@gnu.org>
 
 	* NEWS: Mention ERT.

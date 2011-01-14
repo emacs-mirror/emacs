@@ -3,8 +3,9 @@
 ;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
-;; Author: Ryan Yeske
-;; URL: http://www.nongnu.org/rcirc
+;; Author: Ryan Yeske <rcyeske@gmail.com>
+;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
+;;              Deniz Dogan <deniz.a.m.dogan@gmail.com>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
