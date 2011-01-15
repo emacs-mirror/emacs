@@ -1,3 +1,11 @@
+2011-01-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (inhibit_point_swap): New variable.
+	(Fselect_window): If inhibit_point_swap is nonzero, avoid swapping
+	point this time.
+	(Fset_window_configuration): Set inhibit_point_swap to 1 instead
+	of setting selected_window to nil (Bug#7728).
+
 2011-01-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* config.in (TERMINFO): New definition.
