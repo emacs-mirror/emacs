@@ -34,5 +34,3 @@ extern void xgselect_initialize (void);
 
 #endif /* XGSELECT_H */
 
-/* arch-tag: 0c5392a8-3a41-41eb-839c-58e6595926f0
-   (do not change this comment) */

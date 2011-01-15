@@ -422,4 +422,3 @@ NOW is position of point currently."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 57aefab4-63e0-4c48-91d5-6efa145487e0

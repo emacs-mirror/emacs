@@ -177,5 +177,4 @@ PROMPT overrides the default one used to ask user for a file name."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 1e3638af-cad3-4c69-8427-bc8eb6e5e4fa
 ;;; mh-gnus.el ends here

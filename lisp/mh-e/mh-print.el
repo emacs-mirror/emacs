@@ -248,5 +248,4 @@ Consider using \\[mh-ps-print-msg] instead."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 8d84d50b-2a49-4d0d-b51e-ba9c9b6fc679
 ;;; mh-print.el ends here

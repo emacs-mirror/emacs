@@ -2062,5 +2062,4 @@ E.g. &a' -> á"
 
 (provide 'rfc1345)
 
-;; arch-tag: a951cfd9-1d19-44a7-aa98-04515fc4e502
 ;;; rfc1345.el ends here

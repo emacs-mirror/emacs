@@ -677,5 +677,4 @@
 
 (provide 'calc-mode)
 
-;; arch-tag: ecc70eea-c712-43f2-9085-4205e58d6ddf
 ;;; calc-mode.el ends here

@@ -2338,5 +2338,3 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
 /*  defsubr (&Scopy_text_properties); */
 }
 
-/* arch-tag: 454cdde8-5f86-4faa-a078-101e3625d479
-   (do not change this comment) */

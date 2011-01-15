@@ -49,5 +49,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #endif /* no HAVE_GETPAGESIZE */
 
-/* arch-tag: ff6206e3-97e2-4763-923a-e84bf28eabbc
-   (do not change this comment) */

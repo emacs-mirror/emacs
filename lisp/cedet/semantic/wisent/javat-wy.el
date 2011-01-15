@@ -679,5 +679,4 @@ It ignores whitespaces, newlines and comments."
 
 (provide 'semantic/wisent/javat-wy)
 
-;; arch-tag: b035ba00-e014-4c71-9bc7-a9dbf3d5b911
 ;;; semantic/wisent/javat-wy.el ends here

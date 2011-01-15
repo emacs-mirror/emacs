@@ -148,4 +148,3 @@ ERC menu yet.")
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 671219f2-b082-4753-a185-1d0c7e0c05bd

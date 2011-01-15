@@ -1194,7 +1194,3 @@ Connect directly.
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: c96be356-7e2d-4196-bcda-b13246c5c3f0
-@end ignore

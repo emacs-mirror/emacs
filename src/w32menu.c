@@ -1734,5 +1734,3 @@ globals_of_w32menu (void)
   unicode_message_box = (MessageBoxW_Proc) GetProcAddress (user32, "MessageBoxW");
 }
 
-/* arch-tag: 0eaed431-bb4e-4aac-a527-95a1b4f1fed0
-   (do not change this comment) */

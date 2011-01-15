@@ -44,5 +44,3 @@ extern Lisp_Object Vtruncate_partial_width_windows;
    used for Emacs and another for all else. */
 extern int no_redraw_on_reenter;
 
-/* arch-tag: 35d4d284-dc1a-4fff-97fa-0154a21aebdb
-   (do not change this comment) */

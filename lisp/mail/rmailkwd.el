@@ -194,5 +194,4 @@ With prefix argument N moves forward N messages with these labels."
 ;; generated-autoload-file: "rmail.el"
 ;; End:
 
-;; arch-tag: 1149979c-8e47-4333-9629-cf3dc887a6a7
 ;;; rmailkwd.el ends here

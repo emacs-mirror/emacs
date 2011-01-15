@@ -83,5 +83,4 @@ The function returns the size of the final size of the log buffer."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 812e9f29-78b8-4e73-ada9-aa61dc1ceecb
 ;;; mh-buffers.el ends here

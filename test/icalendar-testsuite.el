@@ -1855,5 +1855,4 @@ SUMMARY:and diary-anniversary
 
 (provide 'icalendar-testsuite)
 
-;; arch-tag: 33a98396-90e9-49c8-b0e9-b606386d6e8c
 ;;; icalendar-testsuite.el ends here

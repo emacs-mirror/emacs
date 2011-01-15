@@ -1440,5 +1440,4 @@ that need to be preserved in later phase of DocBook exporting."
 
 (provide 'org-docbook)
 
-;; arch-tag: a24a127c-d365-4c2a-9e9b-f7dcb0ebfdc3
 ;;; org-docbook.el ends here

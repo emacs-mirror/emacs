@@ -933,7 +933,5 @@ strerror (errnum)
 
 #endif /* ! HAVE_STRERROR */
 
-/* arch-tag: 1c323112-41fe-4fe5-8de9-494de631f73f
-   (do not change this comment) */
 
 /* movemail.c ends here */

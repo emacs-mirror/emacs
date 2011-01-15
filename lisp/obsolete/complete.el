@@ -1120,5 +1120,4 @@ This is only used by "
 
 (provide 'complete)
 
-;; arch-tag: fc7e2768-ff44-4e22-b579-4d825b968458
 ;;; complete.el ends here

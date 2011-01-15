@@ -1453,5 +1453,4 @@ p3p
 
 (provide 'url-http)
 
-;; arch-tag: ba7c59ae-c0f4-4a31-9617-d85f221732ee
 ;;; url-http.el ends here

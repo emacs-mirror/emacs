@@ -818,5 +818,4 @@ That is, if TREE :args is nil."
 
 (provide 'tree-widget)
 
-;; arch-tag: c3a1ada2-1663-41dc-9d16-2479ed8320e8
 ;;; tree-widget.el ends here

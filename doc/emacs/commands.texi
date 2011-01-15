@@ -195,7 +195,3 @@ specific variables will make sense.
 @ifnottex
 @lowersections
 @end ifnottex
-
-@ignore
-   arch-tag: 9be43eef-d1f4-4d03-a916-c741ea713a45
-@end ignore

@@ -890,5 +890,4 @@ To specify a nil argument interactively, exit with an empty minibuffer."
 
 (provide 'debug)
 
-;; arch-tag: b6ec7047-f801-4103-9c63-d69322db9d3b
 ;;; debug.el ends here

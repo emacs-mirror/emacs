@@ -184,5 +184,4 @@ or `eshell-printn' for display."
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 385a31b1-cb95-46f0-9829-9d352ee77db8
 ;;; em-basic.el ends here

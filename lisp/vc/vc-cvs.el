@@ -1210,5 +1210,4 @@ is non-nil."
 
 (provide 'vc-cvs)
 
-;; arch-tag: 60e1402a-aa53-4607-927a-cf74f144b432
 ;;; vc-cvs.el ends here

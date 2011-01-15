@@ -3401,5 +3401,3 @@ extern Lisp_Object x_default_parameter (struct frame *, Lisp_Object,
 
 #endif /* not DISPEXTERN_H_INCLUDED */
 
-/* arch-tag: c65c475f-1c1e-4534-8795-990b8509fd65
-   (do not change this comment) */

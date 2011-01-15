@@ -1992,5 +1992,4 @@ like an INI file.  You can add this hook to `find-file-hook'."
 
 (provide 'generic-x)
 
-;; arch-tag: cde692a5-9ff6-4506-9999-c67999c2bdb5
 ;;; generic-x.el ends here

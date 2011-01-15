@@ -322,5 +322,4 @@
 
 (provide 'pcmpl-rpm)
 
-;; arch-tag: 4e64b490-fecf-430e-b2b9-70a8ad64b8c1
 ;;; pcmpl-rpm.el ends here

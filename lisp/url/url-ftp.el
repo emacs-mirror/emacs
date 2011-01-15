@@ -41,5 +41,4 @@
 
 (provide 'url-ftp)
 
-;; arch-tag: 9c3e70c4-350f-4d4a-bb51-a1e9b459e7dc
 ;;; url-ftp.el ends here

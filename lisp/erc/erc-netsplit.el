@@ -209,4 +209,3 @@ join from that split has been detected or not.")
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 61a85cb0-7e7b-4312-a4f6-313c7a25a6e8

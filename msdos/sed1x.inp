@@ -31,4 +31,3 @@ s/DOC/DOC-X/g
 /^WINDOW_SUPPORT *=/s!= *!= $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT)!
 /^temacs *:/s!OLDXMENU!LIBXMENU!
 
-# arch-tag: 3e8a78f2-3dec-44f3-81f6-3785a562da19

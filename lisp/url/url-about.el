@@ -99,5 +99,4 @@
 
 (provide 'url-about)
 
-;; arch-tag: 65dd7fca-db3f-4cb1-8026-7dd37d4a460e
 ;;; url-about.el ends here

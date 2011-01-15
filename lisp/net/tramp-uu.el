@@ -94,7 +94,6 @@
 
 (provide 'tramp-uu)
 
-;; arch-tag: 7153f2c6-8be5-4cd2-8c06-0fbcf5190ef6
 ;;; tramp-uu.el ends here
 
 ;; Local Variables:

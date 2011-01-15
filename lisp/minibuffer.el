@@ -2320,5 +2320,4 @@ filter out additional entries (because TABLE migth not obey PRED)."
 
 (provide 'minibuffer)
 
-;; arch-tag: ef8a0a15-1080-4790-a754-04017c02f08f
 ;;; minibuffer.el ends here

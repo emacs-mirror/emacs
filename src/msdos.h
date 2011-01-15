@@ -113,5 +113,3 @@ void XMenuDestroy (Display *, XMenu *);
 
 #endif /* not EMACS_MSDOS_H */
 
-/* arch-tag: ad21eeed-8fdb-4357-8007-36368a6bdbf3
-   (do not change this comment) */

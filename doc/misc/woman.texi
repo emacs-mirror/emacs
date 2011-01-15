@@ -1430,7 +1430,3 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: a1a6b715-396f-4378-9b94-0b2ca0aa5028
-@end ignore

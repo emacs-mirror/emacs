@@ -665,5 +665,4 @@ A string is considered new if it had not previously been used in a call to
 
 (provide 'hi-lock)
 
-;; arch-tag: d2e8fd07-4cc9-4c6f-a200-1e729bc54066
 ;;; hi-lock.el ends here

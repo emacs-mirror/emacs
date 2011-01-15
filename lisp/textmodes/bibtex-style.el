@@ -151,5 +151,4 @@
 
 
 (provide 'bibtex-style)
-;; arch-tag: b20ad41a-fd36-466e-8fd2-cc6137f9c55c
 ;;; bibtex-style.el ends here

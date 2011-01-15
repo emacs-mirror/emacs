@@ -609,4 +609,3 @@ The functions are called with one argument, the selection type\n\
   staticpro (&Qforeign_selection);
 }
 
-// arch-tag: 39d1dde7-06a6-49ff-95a7-0e7af12d2218

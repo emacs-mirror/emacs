@@ -202,5 +202,3 @@ set_user_model_id (void)
     }
 }
 
-/* arch-tag: 7e02df73-4df7-4aa0-baea-99c6d047a384
-   (do not change this comment) */

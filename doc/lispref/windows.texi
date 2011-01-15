@@ -2607,7 +2607,3 @@ frame selected.
 Lock fontification function, which will be called whenever parts of a
 buffer are (re)fontified because a window was scrolled or its size
 changed.  @xref{Other Font Lock Variables}.
-
-@ignore
-   arch-tag: 3f6c36e8-df49-4986-b757-417feed88be3
-@end ignore

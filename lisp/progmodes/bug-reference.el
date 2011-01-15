@@ -151,5 +151,4 @@ so that it is considered safe, see `enable-local-variables'.")
       (widen)
       (bug-reference-unfontify (point-min) (point-max)))))
 
-;; arch-tag: b138abce-e5c3-475e-bd58-7afba40387ea
 ;;; bug-reference.el ends here

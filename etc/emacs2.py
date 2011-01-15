@@ -234,4 +234,3 @@ Assumes that MODULE.py and MODULE.pyc are in the same directory."""
 
 # print '_emacs_ok'             # ready for input and can call continuation
 
-# arch-tag: d90408f3-90e2-4de4-99c2-6eb9c7b9ca46

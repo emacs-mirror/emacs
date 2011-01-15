@@ -483,5 +483,4 @@ If NAME is nil or a revision number string it's just passed through."
 
 (provide 'vc-sccs)
 
-;; arch-tag: d751dee3-d7b3-47e1-95e3-7ae98c052041
 ;;; vc-sccs.el ends here

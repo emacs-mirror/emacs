@@ -395,5 +395,3 @@ This is nil when not executing a keyboard macro.  */);
 		 doc: /* Last kbd macro defined, as a string or vector; nil if none defined.  */);
 }
 
-/* arch-tag: d293fcc9-2266-4163-9198-7fa0de12ec9e
-   (do not change this comment) */

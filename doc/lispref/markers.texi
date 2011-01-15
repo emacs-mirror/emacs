@@ -674,7 +674,3 @@ mark is active, and there's a valid region in the buffer.  Commands
 that operate on the region (instead of on text near point) when
 there's an active mark should use this to test whether to do that.
 @end defun
-
-@ignore
-   arch-tag: b1ba2e7a-a0f3-4c5e-875c-7d8e22d73299
-@end ignore

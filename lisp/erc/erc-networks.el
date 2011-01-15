@@ -865,4 +865,3 @@ VALUE is the options value.")
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 68cccabd-f66b-456c-9abe-5f993a2dc91c

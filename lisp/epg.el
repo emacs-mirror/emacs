@@ -2650,5 +2650,4 @@ Type names are resolved using `epg-dn-type-alist'."
 
 (provide 'epg)
 
-;; arch-tag: de8f0acc-1bcf-4c14-a09e-bfffe1b579b7
 ;;; epg.el ends here

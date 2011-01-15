@@ -2393,5 +2393,3 @@ priorities.  */);
   defsubr (&Swith_output_to_temp_buffer);
 }
 
-/* arch-tag: bc797170-94ae-41de-86e3-75e20f8f7a39
-   (do not change this comment) */

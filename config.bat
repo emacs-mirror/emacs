@@ -316,6 +316,3 @@ set djgpp_ver=
 set sys_malloc=
 set libxml=
 
-goto skipArchTag
-   arch-tag: 2d2fed23-4dc6-4006-a2e4-49daf0031f33
-:skipArchTag

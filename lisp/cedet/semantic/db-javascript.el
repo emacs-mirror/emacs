@@ -307,5 +307,4 @@ Return a list of tags."
 
 (provide 'semantic/db-javascript)
 
-;; arch-tag: 69cf8ad1-7ea9-41af-851c-41f24c873374
 ;;; semantic/db-javascript.el ends here

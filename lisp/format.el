@@ -1087,5 +1087,4 @@ OLD and NEW are the values."
 
 (provide 'format)
 
-;; arch-tag: c387e9c7-a93d-47bf-89bc-8ca67e96755a
 ;;; format.el ends here

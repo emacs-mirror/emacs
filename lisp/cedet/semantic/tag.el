@@ -1369,5 +1369,4 @@ and `semantic-tag-type-interfaces' instead" "23.2")
 ;; generated-autoload-load-name: "semantic/tag"
 ;; End:
 
-;; arch-tag: f7813634-c4f0-4817-a487-cbaa84333353
 ;;; semantic/tag.el ends here

@@ -112,6 +112,5 @@ return the value of the last statement in BODY, as elisp."
 
 (provide 'ob-perl)
 
-;; arch-tag: 88ef9396-d857-4dc3-8946-5a72bdfa2337
 
 ;;; ob-perl.el ends here

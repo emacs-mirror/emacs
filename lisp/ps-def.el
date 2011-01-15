@@ -402,5 +402,4 @@
 
 (provide 'ps-def)
 
-;; arch-tag: 4edde45b-af10-4685-b8ee-7cd0f951095a
 ;;; ps-def.el ends here

@@ -558,5 +558,3 @@ or some time later.  */);
   Fprovide (intern_c_string ("multi-tty"), Qnil);
 }
 
-/* arch-tag: e9af6f27-b483-47dc-bb1a-730c1c5cab03
-   (do not change this comment) */

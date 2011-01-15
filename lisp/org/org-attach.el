@@ -418,5 +418,4 @@ prefix."
 
 (provide 'org-attach)
 
-;; arch-tag: fce93c2e-fe07-4fa3-a905-e10dcc7a6248
 ;;; org-attach.el ends here

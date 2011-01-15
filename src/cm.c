@@ -462,5 +462,3 @@ Wcm_init (struct tty_display_info *tty)
   return 0;
 }
 
-/* arch-tag: bcf64c02-00f6-44ef-94b6-c56eab5b3dc4
-   (do not change this comment) */

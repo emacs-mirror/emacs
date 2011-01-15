@@ -412,7 +412,3 @@ commands.
 @ifnottex
 @xref{Hooks}.
 @end ifnottex
-
-@ignore
-   arch-tag: cda63f09-9c5f-4ea1-adb9-4a820fdfb24e
-@end ignore

@@ -35,5 +35,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #endif  /* __arch64__ */
 
-/* arch-tag: 0a6f7882-33fd-4811-9832-7466c51e50f7
-   (do not change this comment) */

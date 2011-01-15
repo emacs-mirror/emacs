@@ -409,5 +409,4 @@
 
 (provide 'newsticker)
 
-;; arch-tag: ab761dfa-67bc-4207-bc64-4307271dc381
 ;;; newsticker.el ends here

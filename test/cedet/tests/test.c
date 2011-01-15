@@ -241,5 +241,3 @@ int funk4_fixme(arg_61, arg_62)
 
 /* End of C tests */
 
-/* arch-tag: ac9c7740-05ad-4821-a0b4-5db4357750ae
-   (do not change this comment) */

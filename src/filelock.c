@@ -746,5 +746,3 @@ syms_of_filelock (void)
 #endif
 }
 
-/* arch-tag: e062676d-50b2-4be0-ab96-197c81b181a1
-   (do not change this comment) */

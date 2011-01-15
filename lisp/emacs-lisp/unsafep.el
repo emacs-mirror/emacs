@@ -261,5 +261,4 @@ If TO-BIND is t, check whether SYM is safe to bind."
 	     (local-variable-p sym)))
     `(global-variable ,sym))))
 
-;; arch-tag: 6216f98b-eb8f-467a-9c33-7a7644f50658
 ;;; unsafep.el ends here

@@ -175,6 +175,5 @@ Extracted from `org-export-as-pdf' in org-latex.el."
 
 (provide 'ob-latex)
 
-;; arch-tag: 1f13f7e2-26de-4c24-9274-9f331d4c6ff3
 
 ;;; ob-latex.el ends here

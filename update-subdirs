@@ -55,5 +55,3 @@ else
   mv subdirs.el~ subdirs.el
   fi
 fi
-
-# arch-tag: 56ebcf1b-5c30-4934-b0b4-72d374064704

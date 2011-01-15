@@ -1163,5 +1163,3 @@ extern void set_frame_menubar (FRAME_PTR, int, int);
 
 #endif /* not EMACS_FRAME_H */
 
-/* arch-tag: 0df048ee-e6bf-4f48-bd56-e3cd055dd8c4
-   (do not change this comment) */

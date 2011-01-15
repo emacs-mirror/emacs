@@ -81,5 +81,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Send signals to subprocesses by "typing" special chars at them.  */
 #define SIGNALS_VIA_CHARACTERS
 
-/* arch-tag: 0c367245-bde3-492e-9029-3ff6898beb95
-   (do not change this comment) */

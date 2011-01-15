@@ -211,5 +211,4 @@ If `url-standalone-mode' is non-nil, cached items never expire."
 
 (provide 'url-cache)
 
-;; arch-tag: 95b050a6-8e81-4f23-8e63-191b9d1d657c
 ;;; url-cache.el ends here

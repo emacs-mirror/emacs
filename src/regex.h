@@ -626,5 +626,3 @@ extern void re_set_whitespace_regexp (const char *regexp);
 
 #endif /* regex.h */
 
-/* arch-tag: bda6e3ec-3c02-4237-a55a-01ad2e120083
-   (do not change this comment) */

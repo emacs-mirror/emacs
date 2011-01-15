@@ -2605,7 +2605,3 @@ stop working.  It is therefore advisable to use one and only one
 coding system, for your init file as well as the files you edit.  For
 example, don't mix the @samp{latin-1} and @samp{latin-9} coding
 systems.
-
-@ignore
-   arch-tag: c68abddb-4410-4fb5-925f-63394e971d93
-@end ignore

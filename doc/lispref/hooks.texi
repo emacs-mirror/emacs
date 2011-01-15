@@ -343,7 +343,3 @@ Manual}.
 @item write-region-annotate-functions
 @xref{Format Conversion}.
 @end table
-
-@ignore
-   arch-tag: 55fd0296-d906-4551-b300-979d3846aa88
-@end ignore

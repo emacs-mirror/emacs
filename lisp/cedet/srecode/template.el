@@ -72,5 +72,4 @@
 ;; generated-autoload-load-name: "srecode/template"
 ;; End:
 
-;; arch-tag: 037fbca7-e846-4521-b801-3463f50c3080
 ;;; srecode/template.el ends here

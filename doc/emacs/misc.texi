@@ -2883,7 +2883,3 @@ idle.
 @ifnottex
 @lowersections
 @end ifnottex
-
-@ignore
-   arch-tag: 8f094220-c0d5-4e9e-af7d-3e0da8187474
-@end ignore

@@ -282,7 +282,5 @@ usage (void)
   exit (EXIT_FAILURE);
 }
 
-/* arch-tag: 20e04fb7-926e-4e48-be86-64fe869ecdaa
-   (do not change this comment) */
 
 /* hexl.c ends here */

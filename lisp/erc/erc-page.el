@@ -109,4 +109,3 @@ receive pages if `erc-page-mode' is on."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 82fd2e0e-6060-4dd2-9788-8c1411e844de

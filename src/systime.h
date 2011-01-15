@@ -174,5 +174,3 @@ extern int lisp_time_argument (Lisp_Object, time_t *, int *);
 
 #endif /* EMACS_SYSTIME_H */
 
-/* arch-tag: dcb79915-cf99-4bce-9778-aade71d07651
-   (do not change this comment) */

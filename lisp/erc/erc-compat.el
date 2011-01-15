@@ -165,4 +165,3 @@ If START or END is negative, it counts from the end."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 8948ffe0-aff8-4ad8-a196-368ebbfd58ff

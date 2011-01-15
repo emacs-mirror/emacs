@@ -1378,7 +1378,3 @@ it never deletes lines that are only partially contained in the region
 
 If a match is split across lines, this command keeps all those lines.
 @end table
-
-@ignore
-   arch-tag: fd9d8e77-66af-491c-b212-d80999613e3e
-@end ignore

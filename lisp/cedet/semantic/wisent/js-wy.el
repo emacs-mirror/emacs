@@ -488,5 +488,4 @@
 
 (provide 'semantic/wisent/js-wy)
 
-;; arch-tag: ff9ecf05-18e6-46a6-a3bb-e7f43f04640f
 ;;; semantic/wisent/js-wy.el ends here

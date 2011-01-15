@@ -1309,5 +1309,3 @@ temacs:
     fatal ("Can't chmod (%s): errno %d\n", new_name, errno);
 }
 
-/* arch-tag: e02e1512-95e2-4ef0-bba7-b6bce658f1e3
-   (do not change this comment) */

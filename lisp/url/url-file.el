@@ -241,5 +241,4 @@ to them."
 
 (provide 'url-file)
 
-;; arch-tag: 010e914a-7313-494b-8a8c-6495a862157d
 ;;; url-file.el ends here

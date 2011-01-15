@@ -320,7 +320,3 @@ items, and then you can type @key{RET} to select the item.
 that item; it is usually the initial of some word in the item's name.
 This letter or digit is separated from the item name by @samp{=>}.  You
 can type the item's letter or digit to select the item.
-
-@ignore
-   arch-tag: 104ba40e-d972-4866-a542-a98be94bdf2f
-@end ignore

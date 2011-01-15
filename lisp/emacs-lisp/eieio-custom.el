@@ -461,5 +461,4 @@ Return the symbol for the group, or nil"
 
 (provide 'eieio-custom)
 
-;; arch-tag: bc122762-a771-48d5-891b-7835b16dd924
 ;;; eieio-custom.el ends here

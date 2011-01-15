@@ -2106,7 +2106,3 @@ that for two strings to be equal, they have the same text properties.
 @end group
 @end example
 @end defun
-
-@ignore
-   arch-tag: 9711a66e-4749-4265-9e8c-972d55b67096
-@end ignore

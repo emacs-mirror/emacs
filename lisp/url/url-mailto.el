@@ -142,5 +142,4 @@
 
 (provide 'url-mailto)
 
-;; arch-tag: 7b7ad52e-8760-497b-9444-75fae14e34c5
 ;;; url-mailto.el ends here

@@ -1107,5 +1107,3 @@ ends in a slash.  */);
   Vcompletion_ignored_extensions = Qnil;
 }
 
-/* arch-tag: 1ac8deca-4d8f-4d41-ade9-089154d98c03
-   (do not change this comment) */

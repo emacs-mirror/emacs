@@ -94,5 +94,3 @@ report_sheap_usage (int die_if_pure_storage_exceeded)
   message ("%s", buf);
 }
 
-/* arch-tag: 1bc386e8-71c2-4da4-b8b5-c1674a9cf926
-   (do not change this comment) */

@@ -323,6 +323,5 @@ inhibit insertion of results into the buffer."
 
 (provide 'ob-exp)
 
-;; arch-tag: 523abf4c-76d1-44ed-9f27-e3bddf34bf0f
 
 ;;; ob-exp.el ends here

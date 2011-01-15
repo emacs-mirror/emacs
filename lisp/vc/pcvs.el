@@ -2439,5 +2439,4 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 
 (provide 'pcvs)
 
-;; arch-tag: 8e3a7494-0453-4389-9ab3-a557ce9fab61
 ;;; pcvs.el ends here

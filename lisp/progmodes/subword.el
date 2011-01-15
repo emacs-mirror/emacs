@@ -277,5 +277,4 @@ Optional argument ARG is the same as for `capitalize-word'."
 
 (provide 'subword)
 
-;; arch-tag: b8a01202-8a52-4a71-ae0a-d753fafd67ef
 ;;; subword.el ends here

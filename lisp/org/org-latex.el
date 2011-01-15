@@ -2573,6 +2573,5 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 (provide 'org-export-latex)
 (provide 'org-latex)
 
-;; arch-tag: 23c2b87d-da04-4c2d-ad2d-1eb6487bc3ad
 
 ;;; org-latex.el ends here

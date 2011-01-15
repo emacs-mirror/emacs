@@ -372,5 +372,4 @@ See `mh-store-msg' for a description of DIRECTORY."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 1936c4f1-4843-438e-bc4b-a63bb75a7762
 ;;; mh-funcs.el ends here

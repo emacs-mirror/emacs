@@ -754,5 +754,3 @@ XMenuCreate(Display *display, Window parent, register char *def_env)
   return(menu);
 }
 
-/* arch-tag: 6945b7d2-3b13-40b9-8b6e-56b1b20f3463
-   (do not change this comment) */

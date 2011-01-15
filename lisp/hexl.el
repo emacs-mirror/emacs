@@ -1112,5 +1112,4 @@ This function is assumed to be used as callback function for `hl-line-mode'."
 
 (provide 'hexl)
 
-;; arch-tag: d5a7aa8a-9bce-480b-bcff-6c4c7ca5ea4a
 ;;; hexl.el ends here

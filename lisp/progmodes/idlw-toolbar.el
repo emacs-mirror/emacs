@@ -969,5 +969,4 @@ static char * file[] = {
 (provide 'idlw-toolbar)
 (provide 'idlwave-toolbar)
 
-;; arch-tag: ec9a3717-c44c-4716-9bda-cdacbe5ddb62
 ;;; idlw-toolbar.el ends here

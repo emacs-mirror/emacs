@@ -167,5 +167,4 @@
 
 (provide 'ld-script)
 
-;; arch-tag: 83280b6b-e6fc-4d00-a630-922d7aec5593
 ;;; ld-script.el ends here

@@ -88,7 +88,5 @@ have been corrupted in the files of Emacs, and it will not work.\n",
   return EXIT_SUCCESS;
 }
 
-/* arch-tag: 3a89005d-df98-4c32-aa9f-33570e16a26a
-   (do not change this comment) */
 
 /* test-distrib.c ends here */

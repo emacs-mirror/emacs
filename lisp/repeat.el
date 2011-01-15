@@ -392,5 +392,4 @@ recently executed command not bound to an input event\"."
 
 (provide 'repeat)
 
-;; arch-tag: cd569600-a1ad-4fa7-9062-bb91dfeaf1db
 ;;; repeat.el ends here

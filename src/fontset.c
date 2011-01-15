@@ -2264,5 +2264,3 @@ at the vertical center of lines.  */);
 #endif
 }
 
-/* arch-tag: ea861585-2f5f-4e5b-9849-d04a9c3a3537
-   (do not change this comment) */

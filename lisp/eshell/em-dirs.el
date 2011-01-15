@@ -573,5 +573,4 @@ in the minibuffer:
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 1e9c5a95-f1bd-45f8-ad36-55aac706e787
 ;;; em-dirs.el ends here

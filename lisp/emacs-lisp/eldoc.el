@@ -540,5 +540,4 @@ The words \"&rest\", \"&optional\" are returned unchanged."
 
 (provide 'eldoc)
 
-;; arch-tag: c9a58f9d-2055-46c1-9b82-7248b71a8375
 ;;; eldoc.el ends here

@@ -1422,5 +1422,3 @@ lw_separator_p (const char *label, enum menu_separator *type, int motif_p)
   return separator_p;
 }
 
-/* arch-tag: 3d730f36-a441-4a71-9971-48ef3b5a4d9f
-   (do not change this comment) */

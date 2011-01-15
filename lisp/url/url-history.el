@@ -184,5 +184,4 @@ user for what type to save as."
 
 (provide 'url-history)
 
-;; arch-tag: fbbbaf63-db36-4e88-bc9f-2939aa93afb2
 ;;; url-history.el ends here

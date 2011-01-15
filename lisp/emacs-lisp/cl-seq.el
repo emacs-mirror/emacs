@@ -1018,5 +1018,4 @@ Atoms are compared by `eql'; cons cells are compared recursively.
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 
-;; arch-tag: ec1cc072-9006-4225-b6ba-d6b07ed1710c
 ;;; cl-seq.el ends here

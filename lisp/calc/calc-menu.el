@@ -1461,4 +1461,3 @@
 
 (provide 'calc-menu)
 
-;; arch-tag: 9612c86a-cd4f-4baa-ab0b-40af7344d21f

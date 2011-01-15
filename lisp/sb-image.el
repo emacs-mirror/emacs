@@ -105,5 +105,4 @@ See `speedbar-expand-image-button-alist' for details."
 
 (provide 'sb-image)
 
-;; arch-tag: 6b05accd-e8b8-4290-8379-f063f3dacabb
 ;;; sb-image.el ends here

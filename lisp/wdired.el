@@ -841,5 +841,4 @@ Like original function but it skips read-only words."
 ;; byte-compile-dynamic: t
 ;; End:
 
-;; arch-tag: bc00902e-526f-4305-bc7f-8862a559184f
 ;;; wdired.el ends here

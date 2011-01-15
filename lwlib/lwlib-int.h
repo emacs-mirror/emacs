@@ -80,5 +80,3 @@ widget_instance * lw_get_widget_instance (Widget);
 
 #endif /* LWLIB_INTERNAL_H */
 
-/* arch-tag: ae02f67d-ef25-421c-b956-b01a4b0aac76
-   (do not change this comment) */

@@ -29,5 +29,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-/* arch-tag: 41913e4e-e7d1-4023-aadb-210cc31712ed
-   (do not change this comment) */

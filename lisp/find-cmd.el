@@ -240,5 +240,4 @@ them into valid switches.  The result is -and(ed) together."
 
 (provide 'find-cmd)
 
-;; arch-tag: 9687fd9e-4e90-4022-864a-f904526e2046
 ;;; find-cmd.el ends here

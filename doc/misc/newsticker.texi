@@ -315,7 +315,3 @@ Byte-compiling newsticker.el is recommended.
 @bye
 
 
-
-@ignore
-   arch-tag: 7a4de539-117c-4658-b799-0b9e3d0ccec0
-@end ignore

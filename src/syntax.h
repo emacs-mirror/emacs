@@ -302,5 +302,3 @@ extern int parse_sexp_lookup_properties;
 
 extern EMACS_INT scan_words (EMACS_INT, EMACS_INT);
 
-/* arch-tag: 28833cca-cd73-4741-8c85-a3111166a0e0
-   (do not change this comment) */

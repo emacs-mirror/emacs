@@ -174,5 +174,4 @@ in the alist is `nil', prompt for the appropriate values."
 
 (provide 'erc-ezbounce)
 
-;; arch-tag: e972aa7b-a9f4-4d16-a489-074ec7a1002e
 ;;; erc-ezbounce.el ends here

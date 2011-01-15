@@ -299,5 +299,3 @@ memory_warnings (POINTER start, void (*warnfun) (const char *))
   lim_data = 0;
 }
 
-/* arch-tag: eab04eda-1f69-447a-8d9f-95f0a3983ca5
-   (do not change this comment) */

@@ -280,4 +280,3 @@ Subtests signal errors if something goes wrong."
 
 (provide 'byte-opt-testsuite)
 
-;; arch-tag: 01cb2664-5e7f-4213-ace0-91447d70b7dc

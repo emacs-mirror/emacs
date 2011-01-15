@@ -475,5 +475,4 @@
 
 (provide 'semantic/grammar-wy)
 
-;; arch-tag: dd050eb7-84a8-421c-b734-478dd2bd55bc
 ;;; semantic/grammar-wy.el ends here

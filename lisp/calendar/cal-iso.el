@@ -155,5 +155,4 @@ Interactively, goes to the first day of the specified week."
 
 (provide 'cal-iso)
 
-;; arch-tag: 3c0154cc-d30f-4981-9f60-42bdf7a468f6
 ;;; cal-iso.el ends here

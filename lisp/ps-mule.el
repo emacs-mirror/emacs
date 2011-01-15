@@ -1211,5 +1211,4 @@ V%s 0 /%s-latin1 /%s Latin1Encoding put\n"
 ;; generated-autoload-file: "ps-print.el"
 ;; End:
 
-;; arch-tag: bca017b2-66a7-4e59-8584-103e749eadbe
 ;;; ps-mule.el ends here

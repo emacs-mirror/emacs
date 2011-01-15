@@ -661,5 +661,4 @@ Return a list of tags."
 
 (provide 'semantic/db-ebrowse)
 
-;; arch-tag: e7d15223-6074-4c87-baf0-98fdd22ff873
 ;;; semantic/db-ebrowse.el ends here

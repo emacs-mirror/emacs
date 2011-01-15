@@ -473,5 +473,4 @@ In other words, \"undo\" changes in window configuration."
 	minor-mode-map-alist))
 
 (provide 'winner)
-;; arch-tag: 686d1c1b-010e-42ca-a192-b5685112418f
 ;;; winner.el ends here

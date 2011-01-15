@@ -365,5 +365,4 @@
 
 (provide 'calc-mtx)
 
-;; arch-tag: fc0947b1-90e1-4a23-8950-d8ead9c3a306
 ;;; calc-mtx.el ends here

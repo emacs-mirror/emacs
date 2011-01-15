@@ -99,5 +99,3 @@ void widget_store_internal_border (Widget widget);
 
 #endif /* _EmacsFrame_h */
 
-/* arch-tag: 98be17cc-8878-4701-abfa-66f1c04e9cb7
-   (do not change this comment) */

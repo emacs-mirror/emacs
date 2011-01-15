@@ -1994,4 +1994,3 @@ See `erc-display-error-notice'." nil
 ;; indent-tabs-mode: nil
 ;; End:
 
-;; arch-tag: a64e6bb7-a780-4efd-8f98-083b18c7c84a

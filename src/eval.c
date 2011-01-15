@@ -3699,5 +3699,3 @@ The value the function returns is not used.  */);
   defsubr (&Sbacktrace_frame);
 }
 
-/* arch-tag: 014a07aa-33ab-4a8f-a3d2-ee8a4a9ff7fb
-   (do not change this comment) */

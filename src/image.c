@@ -8908,5 +8908,3 @@ init_image (void)
 {
 }
 
-/* arch-tag: 123c2a5e-14a8-4c53-ab95-af47d7db49b9
-   (do not change this comment) */

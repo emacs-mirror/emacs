@@ -104,5 +104,3 @@ XMenuAddSelection(Display *display, register XMenu *menu, register int p_num, ch
     return((pane->s_count - 1));
 }
 
-/* arch-tag: 0161f024-c739-440d-9498-050280c6c355
-   (do not change this comment) */

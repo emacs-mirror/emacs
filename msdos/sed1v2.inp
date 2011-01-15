@@ -178,4 +178,3 @@ s/echo.*buildobj.lst/dj&/
 /^	 *THEFILE=/s|$|\; cd ../src|
 /^	echo.* buildobj.h/s|echo |djecho |
 
-# arch-tag: c7e3aacb-4162-460e-99f9-4252bca68d2c

@@ -75,5 +75,3 @@ extern int pop_reset (popserver server);
 extern int pop_quit (popserver server);
 extern void pop_close (popserver);
 
-/* arch-tag: 76cc5f58-8e86-48fa-bc72-a7c6cb1c4f1c
-   (do not change this comment) */

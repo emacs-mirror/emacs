@@ -713,7 +713,3 @@ buffer, and their commands are different as well.
   Similarly, to specify your preferred method for reading mail,
 customize the variable @code{read-mail-command}.  The default is
 @code{rmail} (@pxref{Rmail}).
-
-@ignore
-   arch-tag: d8a3dfc3-5d87-45c5-a7f2-69871b8e4fd6
-@end ignore

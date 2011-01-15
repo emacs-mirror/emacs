@@ -84,5 +84,4 @@ It relies on the `gpm' daemon being activated."
 
 (provide 't-mouse)
 
-;; arch-tag: a63163b3-bfbe-4eb2-ab4f-201cd164b05d
 ;;; t-mouse.el ends here

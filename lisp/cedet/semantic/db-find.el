@@ -1369,5 +1369,4 @@ Return a table of all matching tags."
 ;; generated-autoload-load-name: "semantic/db-find"
 ;; End:
 
-;; arch-tag: 5d4162f5-5092-46d7-beed-55c78aab4116
 ;;; semantic/db-find.el ends here

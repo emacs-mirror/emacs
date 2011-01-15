@@ -221,4 +221,3 @@ elisp2-init: vol2.texi
 # You should have received a copy of the GNU General Public License
 # along with this file.  If not, see <http://www.gnu.org/licenses/>.
  
-# arch-tag: 5c258a2e-d4a9-4d0e-b279-fb3a6faa27eb

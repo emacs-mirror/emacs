@@ -251,4 +251,3 @@ with args, toggle notify status of people."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 0fb19dd0-1359-458a-89b7-81dc195a588e

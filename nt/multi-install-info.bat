@@ -39,6 +39,3 @@ if .%1% == . goto EndLoop
 goto Loop
 :EndLoop
 
-goto skipArchTag
-   arch-tag: 4f590862-8ead-497a-a71c-fb4b0e5d50db
-:skipArchTag

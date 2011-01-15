@@ -447,5 +447,3 @@ init_atimer (void)
   signal (SIGALRM, alarm_signal_handler);
 }
 
-/* arch-tag: e6308261-eec6-404b-89fb-6e5909518d70
-   (do not change this comment) */

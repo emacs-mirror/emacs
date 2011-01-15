@@ -3548,5 +3548,3 @@ In both cases, LIMIT bounds the search. */);
   defsubr (&Sparse_partial_sexp);
 }
 
-/* arch-tag: 3e297b9f-088e-4b64-8f4c-fb0b3443e412
-   (do not change this comment) */

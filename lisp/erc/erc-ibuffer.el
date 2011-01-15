@@ -190,4 +190,3 @@
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: fbad56a5-8595-45e0-a8c8-d8bb91e26944

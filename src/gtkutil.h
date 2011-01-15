@@ -185,5 +185,3 @@ extern int xg_ignore_gtk_scrollbar;
 #endif /* USE_GTK */
 #endif /* GTKUTIL_H */
 
-/* arch-tag: 0757f3dc-00c7-4cee-9e4c-282cf1d34c72
-   (do not change this comment) */

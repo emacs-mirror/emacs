@@ -86,5 +86,3 @@ extern void xlwmenu_redisplay (Widget);
 
 #endif /* _XlwMenu_h */
 
-/* arch-tag: 0c019735-d61b-4080-be85-4fdd6e50ae07
-   (do not change this comment) */

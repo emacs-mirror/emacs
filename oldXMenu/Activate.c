@@ -608,5 +608,3 @@ XMenuActivate(
 
 }
 
-/* arch-tag: 6b90b578-ecea-4328-b460-a0c96963f872
-   (do not change this comment) */

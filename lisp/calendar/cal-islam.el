@@ -345,5 +345,4 @@ Prefix argument ARG makes the entry nonmarking."
 
 (provide 'cal-islam)
 
-;; arch-tag: a951b6c1-6f47-48d5-bac3-1b505cd719f7
 ;;; cal-islam.el ends here

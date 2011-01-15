@@ -53,5 +53,3 @@ extern Lisp_Object xmenu_show (FRAME_PTR, int, int, int, int,
 			       Lisp_Object, const char **, EMACS_UINT);
 #endif /* MENU_H */
 
-/* arch-tag: c32b2778-724d-4e85-81d7-45f98530a988
-   (do not change this comment) */

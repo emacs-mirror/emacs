@@ -2622,5 +2622,4 @@ tags to their respective image file.  Internal function used by
 
 (provide 'image-dired)
 
-;; arch-tag: 9d11411d-331f-4380-8b44-8adfe3a0343e
 ;;; image-dired.el ends here

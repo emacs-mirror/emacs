@@ -917,5 +917,4 @@ See also `mh-folder-mode'.
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 8607a80a-9b5c-43a7-a25d-d7e4a848c25b
 ;;; mh-show.el ends here

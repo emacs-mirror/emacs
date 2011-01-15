@@ -1641,7 +1641,3 @@ both modes it has the effect of installing the function definition
 that point is in, but the way of doing so is different according to
 where the relevant Lisp environment is found.
 
-
-@ignore
-   arch-tag: 9c3c2f71-b332-4144-8500-3ff9945a50ed
-@end ignore

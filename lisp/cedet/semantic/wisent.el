@@ -343,5 +343,4 @@ the standard function `semantic-parse-region'."
 
 (provide 'semantic/wisent)
 
-;; arch-tag: c24ddd69-d41c-4604-8221-29a93fc4fa79
 ;;; semantic/wisent.el ends here

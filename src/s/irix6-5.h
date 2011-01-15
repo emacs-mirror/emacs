@@ -97,8 +97,4 @@ char *_getpty();
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 
-/* arch-tag: ad0660e0-acf8-46ae-b866-4f3df5b1101b
-   (do not change this comment) */
 
-/* arch-tag: d7ad9ec2-54ad-4b2f-adf2-0070c5c63e83
-   (do not change this comment) */

@@ -57,5 +57,4 @@
     (define-key local-function-key-map [ALT] [27])
     ))
 
-;; arch-tag: abec1b03-582f-49f8-b8cb-e2fd52ea4bd7
 ;;; AT386.el ends here

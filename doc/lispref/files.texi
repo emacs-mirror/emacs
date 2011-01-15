@@ -3158,7 +3158,3 @@ will produce good, general extensions we can install in Emacs.
 names or values---because a program that general is probably difficult
 to write, and slow.  Instead, choose a set of possible data types that
 are reasonably flexible, and not too hard to encode.
-
-@ignore
-   arch-tag: 141f74ce-6ae3-40dc-a6c4-ef83fc4ec35c
-@end ignore

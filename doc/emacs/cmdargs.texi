@@ -1163,7 +1163,3 @@ test case that simplifies debugging of display problems.
 
   The @samp{--xrm} option (@pxref{Resources}) specifies additional
 X resource values.
-
-@ignore
-   arch-tag: fffecd9e-7329-4a51-a3cc-dd4a9889340e
-@end ignore

@@ -269,5 +269,4 @@ Echo French Revolutionary date unless NOECHO is non-nil."
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 7e8045a3-8609-46b5-9cde-cf40ce541cf9
 ;;; cal-french.el ends here

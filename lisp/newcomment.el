@@ -1390,5 +1390,4 @@ unless optional argument SOFT is non-nil."
 
 (provide 'newcomment)
 
-;; arch-tag: 01e3320a-00c8-44ea-a696-8f8e7354c858
 ;;; newcomment.el ends here

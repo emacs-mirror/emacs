@@ -1946,7 +1946,3 @@ file.
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: 7c5d17b9-1d21-4261-a88a-b9fdbbf1020b
-@end ignore

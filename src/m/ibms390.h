@@ -33,5 +33,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    numerically.  */
 #define VIRT_ADDR_VARIES
 
-/* arch-tag: d8a0ffa4-a8f0-4736-90d3-7fd7b21b8314
-   (do not change this comment) */

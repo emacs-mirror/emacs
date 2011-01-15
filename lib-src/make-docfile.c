@@ -1201,7 +1201,5 @@ scan_lisp_file (const char *filename, const char *mode)
   return 0;
 }
 
-/* arch-tag: f7203aaf-991a-4238-acb5-601db56f2894
-   (do not change this comment) */
 
 /* make-docfile.c ends here */

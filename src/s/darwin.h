@@ -149,5 +149,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the stack.  */
 #define GC_MARK_STACK   GC_MAKE_GCPROS_NOOPS
 
-/* arch-tag: 481d443d-4f89-43ea-b5fb-49706d95fa41
-   (do not change this comment) */

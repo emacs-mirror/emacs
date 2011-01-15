@@ -963,5 +963,4 @@ Returns nil if URL contains no name starting with FILE."
 
 (provide 'url-dav)
 
-;; arch-tag: 2b14b7b3-888a-49b8-a490-17276a40e78e
 ;;; url-dav.el ends here

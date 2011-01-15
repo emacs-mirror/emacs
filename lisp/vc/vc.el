@@ -2775,5 +2775,4 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
 
 (provide 'vc)
 
-;; arch-tag: ca82c1de-3091-4e26-af92-460abc6213a6
 ;;; vc.el ends here

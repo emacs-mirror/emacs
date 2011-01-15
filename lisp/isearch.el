@@ -2767,5 +2767,4 @@ CASE-FOLD non-nil means the search was case-insensitive."
   (isearch-search)
   (isearch-update))
 
-;; arch-tag: 74850515-f7d8-43a6-8a2c-ca90a4c1e675
 ;;; isearch.el ends here

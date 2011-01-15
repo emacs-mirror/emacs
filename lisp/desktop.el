@@ -1312,5 +1312,4 @@ If there are no buffers left to create, kill the timer."
 
 (provide 'desktop)
 
-;; arch-tag: 221907c3-1771-4fd3-9c2e-c6f700c6ede9
 ;;; desktop.el ends here

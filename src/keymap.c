@@ -4013,5 +4013,3 @@ keys_of_keymap (void)
   initial_define_key (global_map, Ctl ('X'), "Control-X-prefix");
 }
 
-/* arch-tag: 6dd15c26-7cf1-41c4-b904-f42f7ddda463
-   (do not change this comment) */

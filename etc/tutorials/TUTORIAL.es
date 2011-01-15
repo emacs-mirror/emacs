@@ -1205,4 +1205,3 @@ compartiendo software libre!
 ;;;   coding: latin-1
 ;;; End:
 
-;;; arch-tag: 66aae86e-6f86-4a3e-b82a-44a783f774fd

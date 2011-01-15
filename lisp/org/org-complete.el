@@ -274,6 +274,5 @@ Complete a language in the first field, the header arguments and switches."
 
 (provide 'org-complete)
 
-;; arch-tag: 
 
 ;;; org-complete.el ends here

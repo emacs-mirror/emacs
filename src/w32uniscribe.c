@@ -965,5 +965,3 @@ syms_of_w32uniscribe (void)
   register_font_driver (&uniscribe_font_driver, NULL);
 }
 
-/* arch-tag: 9530f0e1-7471-47dd-a780-94330af87ea0
-   (do not change this comment) */

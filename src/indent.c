@@ -2171,5 +2171,3 @@ syms_of_indent (void)
   defsubr (&Scompute_motion);
 }
 
-/* arch-tag: 9adfea44-71f7-4988-8ee3-96da15c502cc
-   (do not change this comment) */

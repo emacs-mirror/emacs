@@ -1434,5 +1434,4 @@ messages, and errors."
 
 (provide 'esh-cmd)
 
-;; arch-tag: 8e4f3867-a0c5-441f-96ba-ddd142d94366
 ;;; esh-cmd.el ends here

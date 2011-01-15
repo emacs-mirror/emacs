@@ -102,5 +102,3 @@ XMenuAddPane(Display *display, register XMenu *menu, register char *label, int a
     return((menu->p_count - 1));
 }
 
-/* arch-tag: 62a26021-f29d-48ba-96ef-3b6c4ebd6547
-   (do not change this comment) */

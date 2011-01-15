@@ -365,5 +365,4 @@ Return the new status of auto compression (non-nil means on)."
 
 (provide 'jka-cmpr-hook)
 
-;; arch-tag: 4bd73429-f400-45fe-a065-270a113e31a8
 ;;; jka-cmpr-hook.el ends here

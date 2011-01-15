@@ -423,5 +423,4 @@ Besides the choice of face, it is the same as `buffer-face-mode'."
 
 (provide 'face-remap)
 
-;; arch-tag: 5c5f034b-8d58-4967-82bd-d61fd364e686
 ;;; face-remap.el ends here

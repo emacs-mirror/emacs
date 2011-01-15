@@ -1009,5 +1009,4 @@
 
 (provide 'calc-funcs)
 
-;; arch-tag: 421ddb7a-550f-4dda-a31c-06638ebfc43a
 ;;; calc-funcs.el ends here

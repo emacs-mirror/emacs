@@ -537,5 +537,4 @@ a new topic."
 
 (provide 'org-ctags)
 
-;; arch-tag: 4b1ddd5a-8529-4b17-bcde-96a922d26343
 ;;; org-ctags.el ends here

@@ -366,4 +366,3 @@ The INDENT level is ignored."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 7a6558a4-3308-4bf5-a284-e1d042c933c6

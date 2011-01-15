@@ -293,5 +293,4 @@ Dump out the extracted dictionary."
 	  (princ "\n--------------------------------------------\n")
 	  (srecode-dump extract))))))
 
-;; arch-tag: 7a467849-b415-4bdc-ba2a-284ace156a65
 ;;; srecode-tests.el ends here

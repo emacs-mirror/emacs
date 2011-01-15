@@ -62,5 +62,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 
-/* arch-tag: 71ea3857-89dc-4395-9623-77964e6ed3ca
-   (do not change this comment) */

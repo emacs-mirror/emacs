@@ -653,5 +653,4 @@ For example, to retrieve the second element of a user's record in
       (setq pcomplete-stub (substring arg pos))
       (throw 'pcomplete-completions (pcomplete-entries)))))
 
-;; arch-tag: 393654fe-bdad-4f27-9a10-b1472ded14cf
 ;;; esh-var.el ends here

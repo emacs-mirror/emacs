@@ -1439,7 +1439,3 @@ again.
 In the console on GNU/Linux, you can use @kbd{M-x gpm-mouse-mode} to
 enable terminal mouse support.  You must have the gpm package
 installed and running on your system in order for this to work.
-
-@ignore
-   arch-tag: 7dcf3a31-a43b-45d4-a900-445b10d77e49
-@end ignore

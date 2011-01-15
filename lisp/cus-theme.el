@@ -663,5 +663,4 @@ Theme files are named *-theme.el in `"))
   (widget-toggle-action widget event)
   (setq custom-theme-allow-multiple-selections (widget-value widget)))
 
-;; arch-tag: cd6919bc-63af-410e-bae2-b6702e762344
 ;;; cus-theme.el ends here

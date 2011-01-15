@@ -91,5 +91,4 @@ PASSWORD - What password to use"
 
 (provide 'url-irc)
 
-;; arch-tag: 2e5eecf8-9eb3-436b-9fbd-c26f2fb2bf3e
 ;;; url-irc.el ends here

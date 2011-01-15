@@ -1557,5 +1557,4 @@ If EXPR is nil, return nil."
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: e993314f-3adc-4191-be61-4ef8874881c4
 ;;; calc-units.el ends here

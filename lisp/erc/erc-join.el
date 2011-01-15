@@ -202,4 +202,3 @@ This function is run from `erc-nickserv-identified-hook'."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: d62d8b15-8e31-49d6-8a73-12f11e717414

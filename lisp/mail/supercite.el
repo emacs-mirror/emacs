@@ -1997,5 +1997,4 @@ version at point."
 (provide 'supercite)
 (run-hooks 'sc-load-hook)
 
-;; arch-tag: a5d5bfa6-3bd5-4414-8c65-0afc83e45cd3
 ;;; supercite.el ends here

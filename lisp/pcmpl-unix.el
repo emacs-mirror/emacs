@@ -171,5 +171,4 @@ Includes files as well as host names followed by a colon."
 
 (provide 'pcmpl-unix)
 
-;; arch-tag: 3f9eb5af-7e0e-449d-b586-381cbbf8fc5c
 ;;; pcmpl-unix.el ends here

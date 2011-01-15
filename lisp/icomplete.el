@@ -376,5 +376,4 @@ are exhibited within the square braces.)"
 ;;allout-layout: (-2 :)
 ;;End:
 
-;; arch-tag: 339ec25a-0741-4eb6-be63-997532e89b0f
 ;;; icomplete.el ends here

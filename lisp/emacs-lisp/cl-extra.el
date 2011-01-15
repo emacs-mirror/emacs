@@ -826,5 +826,4 @@ This also does some trivial optimizations to make the form prettier."
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 
-;; arch-tag: bcd03437-0871-43fb-a8f1-ad0e0b5427ed
 ;;; cl-extra.el ends here

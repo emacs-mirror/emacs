@@ -1400,7 +1400,3 @@ Symbol indicating the type of process: @code{real}, @code{network},
 @code{serial}
 
 @end table
-
-@ignore
-   arch-tag: 4b2c33bc-d7e4-43f5-bc20-27c0db52a53e
-@end ignore

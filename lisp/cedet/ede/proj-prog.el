@@ -141,5 +141,4 @@ Optional COMMAND is the command to run in place of asking the user."
 
 (provide 'ede/proj-prog)
 
-;; arch-tag: 0bfa9364-f385-4745-a846-462146a79a25
 ;;; ede/proj-prog.el ends here

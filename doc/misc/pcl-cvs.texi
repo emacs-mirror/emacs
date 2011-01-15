@@ -1432,7 +1432,3 @@ this manual.
 @printindex ky
 
 @bye
-
-@ignore
-   arch-tag: 5c7178ce-56fa-40b0-abd7-f4a09758b235
-@end ignore

@@ -155,5 +155,4 @@
 	(eval (car hooks))
 	(setq hooks (cdr hooks))))))
 
-;; arch-tag: db761d47-fd7d-42b4-aae1-04fa116b6ba6
 ;;; sun.el ends here

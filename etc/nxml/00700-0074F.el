@@ -72,4 +72,3 @@
     ("SYRIAC BARREKH" #x074A)
     ))
 
-;; arch-tag: c008122a-484e-4253-b18f-eb215dbd1ecf

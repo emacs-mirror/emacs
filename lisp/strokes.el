@@ -1749,5 +1749,4 @@ Store XPM in buffer BUFNAME if supplied \(default is ` *strokes-xpm*'\)"
 (run-hooks 'strokes-load-hook)
 (provide 'strokes)
 
-;; arch-tag: 8377f60e-43fb-467a-bbcd-2774f91f833e
 ;;; strokes.el ends here

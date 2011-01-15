@@ -809,5 +809,4 @@ This is meant to be added buffer-locally to `write-file-functions'."
 
 (provide 'whitespace)
 
-;; arch-tag: 4ff44e87-b63c-402d-95a6-15e51e58bd0c
 ;;; whitespace.el ends here

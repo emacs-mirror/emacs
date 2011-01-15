@@ -2465,5 +2465,4 @@ Constrain the cursor to the flow of the text.
 
 (provide 'tpu-edt)
 
-;; arch-tag: f3dfe61c-2cbd-4f73-b9cc-eb215020b857
 ;;; tpu-edt.el ends here

@@ -1385,6 +1385,5 @@ The template may still contain \"%?\" for cursor positioning."
 
 (provide 'org-capture)
 
-;; arch-tag: 986bf41b-8ada-4e28-bf20-e8388a7205a0
 
 ;;; org-capture.el ends here

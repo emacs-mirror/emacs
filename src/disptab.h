@@ -104,5 +104,3 @@ extern Lisp_Object Vglyph_table;
 #define SET_GLYPH_FROM_CHAR(glyph, c) \
   SET_GLYPH (glyph, c, DEFAULT_FACE_ID)
 
-/* arch-tag: d7f792d2-f59c-4904-a91e-91522e3ab349
-   (do not change this comment) */

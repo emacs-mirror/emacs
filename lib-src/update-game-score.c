@@ -498,7 +498,5 @@ unlock_file (const char *filename, void *state)
   return ret;
 }
 
-/* arch-tag: 2bf5c52e-4beb-463a-954e-c58b9c64736b
-   (do not change this comment) */
 
 /* update-game-score.c ends here */

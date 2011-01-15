@@ -706,5 +706,4 @@ around literals."
 
 (provide 'time-stamp)
 
-;; arch-tag: 8a12c5c3-25d6-4a71-adc5-24b0e025a1e7
 ;;; time-stamp.el ends here

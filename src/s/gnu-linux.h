@@ -160,5 +160,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-/* arch-tag: 6244ea2a-abd0-44ec-abec-ff3dcc9afea9
-   (do not change this comment) */

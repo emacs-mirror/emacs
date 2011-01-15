@@ -154,5 +154,4 @@ it has not already been loaded."
 
 (provide 'url-methods)
 
-;; arch-tag: 336863f8-5a07-4906-9be5-b3c6bcebbe67
 ;;; url-methods.el ends here

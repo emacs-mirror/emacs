@@ -85,5 +85,3 @@ Lisp_Object intern_font_name (char *);
 
 #endif
 
-/* arch-tag: ef9d9675-a2a5-4d01-9526-815e9a3da7cb
-   (do not change this comment) */

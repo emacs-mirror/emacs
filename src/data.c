@@ -3338,5 +3338,3 @@ init_data (void)
 #endif /* uts */
 }
 
-/* arch-tag: 25879798-b84d-479a-9c89-7d148e2109f7
-   (do not change this comment) */

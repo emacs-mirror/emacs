@@ -1061,7 +1061,3 @@ We switched to using git for our version control system.
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: cf9cfaff-fc12-4297-ad15-ec2493002b1e
-@end ignore

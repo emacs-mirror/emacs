@@ -110,5 +110,3 @@ extern int region_cache_backward (struct buffer *BUF,
                                   EMACS_INT POS,
                                   EMACS_INT *NEXT);
 
-/* arch-tag: 70f79125-ef22-4f58-9aec-a48ca2791435
-   (do not change this comment) */

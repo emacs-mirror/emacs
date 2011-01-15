@@ -46,5 +46,3 @@ extern char *start_of_data (void);
 #define EXCEEDS_LISP_PTR(ptr) ((EMACS_UINT) (ptr) >> VALBITS)
 #endif
 
-/* arch-tag: fe39244e-e54f-4208-b7aa-02556f7841c5
-   (do not change this comment) */

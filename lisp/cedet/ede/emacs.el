@@ -299,5 +299,4 @@ Knows about how the Emacs source tree is organized."
 ;; generated-autoload-load-name: "ede/emacs"
 ;; End:
 
-;; arch-tag: 7cd0be95-663d-4101-8799-2f8216fd8233
 ;;; ede/emacs.el ends here

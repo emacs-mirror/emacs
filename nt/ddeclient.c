@@ -72,5 +72,3 @@ main (int argc, char *argv[])
   return (0);
 }
 
-/* arch-tag: 360d7a99-2cae-447e-8d06-41ca41987e30
-   (do not change this comment) */

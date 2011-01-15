@@ -422,5 +422,3 @@ void w32_abort (void) NO_RETURN;
 /* Make a leaner executable.  */
 #define WIN32_LEAN_AND_MEAN 1
 
-/* arch-tag: df720992-aa5a-499a-882d-958dc5eeb5e9
-   (do not change this comment) */

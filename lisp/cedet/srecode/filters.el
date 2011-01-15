@@ -54,4 +54,3 @@
 
 ;;; srecode/filters.el ends here
 
-;; arch-tag: fcc95ddc-8d9a-4b15-bb51-2707ead986c7

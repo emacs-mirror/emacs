@@ -118,4 +118,3 @@ The default port is specified by `erc-identd-port'."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: e0b5f926-0f35-40b9-8ddb-ca06b62a7544

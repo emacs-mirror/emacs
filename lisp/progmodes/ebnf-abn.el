@@ -664,5 +664,4 @@ See documentation for variable `ebnf-abn-lex'."
 
 (provide 'ebnf-abn)
 
-;; arch-tag: 8d1b3c4d-4226-4393-b9ae-b7ccf07cf779
 ;;; ebnf-abn.el ends here

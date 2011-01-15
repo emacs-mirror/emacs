@@ -293,5 +293,4 @@ list of semantic tokens found."
 ;; generated-autoload-load-name: "semantic/bovine"
 ;; End:
 
-;; arch-tag: 1e820899-2a26-499a-b0c0-57301365a6b0
 ;;; semantic/bovine.el ends here

@@ -233,4 +233,3 @@
     ("CIRCLED KATAKANA WO" #x32FE)
     ))
 
-;; arch-tag: 56d35bfa-c41b-4779-be54-3999fbe11265

@@ -1460,5 +1460,4 @@ Return t if new char is non-empty."
 
 (provide 'bubbles)
 
-;; arch-tag: 2cd7237a-b0ad-400d-a7fd-75f676dceb70
 ;;; bubbles.el ends here

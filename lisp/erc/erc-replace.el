@@ -94,4 +94,3 @@ It replaces text according to `erc-replace-alist'."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: dd904a59-d8a6-47f8-ac3a-76b698289a18

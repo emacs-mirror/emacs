@@ -350,5 +350,4 @@ See `ezimage-expand-image-button-alist' for details."
 
 (provide 'ezimage)
 
-;; arch-tag: d4ea2d93-3c7a-4cb3-b5a6-c1b9178183aa
 ;;; sb-image.el ends here

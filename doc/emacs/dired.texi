@@ -1404,7 +1404,3 @@ it onto a Dired buffer; this either moves, copies, or creates a link
 to the file in that directory.  Precisely which action is taken is
 determined by the originating program.  Dragging files out of a Dired
 buffer is currently not supported.
-
-@ignore
-   arch-tag: d105f9b9-fc1b-4c5f-a949-9b2cf3ca2fc1
-@end ignore

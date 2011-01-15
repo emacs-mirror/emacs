@@ -107,5 +107,4 @@
 
 (provide 'semantic/db-debug)
 
-;; arch-tag: 9bdc11bd-fb76-4a32-9545-78ed143b7184
 ;;; semantic/db-debug.el ends here

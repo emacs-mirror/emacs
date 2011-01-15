@@ -797,5 +797,4 @@ started, play around with the following keys:
 
 (provide 'footnote)
 
-;; arch-tag: 9bcfb6d7-2161-4caf-8793-700f62400398
 ;;; footnote.el ends here

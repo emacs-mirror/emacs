@@ -102,5 +102,4 @@
 
 (provide 'url-ns)
 
-;; arch-tag: 69520992-cf97-40b4-9ad1-c866d3cae5bf
 ;;; url-ns.el ends here

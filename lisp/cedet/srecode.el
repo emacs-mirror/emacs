@@ -52,5 +52,4 @@
 
 (provide 'srecode)
 
-;; arch-tag: 6c671a1c-40e5-4ed3-ab05-84249c3afdaf
 ;;; srecode.el ends here

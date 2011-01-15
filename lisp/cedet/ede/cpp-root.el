@@ -538,5 +538,4 @@ Note: This needs some work."
 ;; generated-autoload-load-name: "ede/cpp-root"
 ;; End:
 
-;; arch-tag: c3ac8160-cba6-447e-8b9c-accb7e2d942e
 ;;; ede/cpp-root.el ends here

@@ -2047,5 +2047,4 @@ make, or the user didn't cancel the call."
     (lazy-highlight-cleanup lazy-highlight-cleanup)
     (setq isearch-lazy-highlight-last-string nil)))
 
-;; arch-tag: 16b4cd61-fd40-497b-b86f-b667c4cf88e4
 ;;; replace.el ends here

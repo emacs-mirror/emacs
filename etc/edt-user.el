@@ -166,5 +166,4 @@ G-C-\\: Split Window
   (interactive)
   (describe-function 'edt-user-keypad-help))
 
-;; arch-tag: a4671ca7-34b7-43a5-844c-2b2a89134ff4
 ;;; edt-user.el ends here

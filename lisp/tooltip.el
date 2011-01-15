@@ -385,5 +385,4 @@ Value is non-nil if this function handled the tip."
 
 (provide 'tooltip)
 
-;; arch-tag: 3d61135e-4618-4a78-af28-183f6df5636f
 ;;; tooltip.el ends here

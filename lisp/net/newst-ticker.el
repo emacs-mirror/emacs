@@ -290,5 +290,4 @@ running already."
 
 (provide 'newst-ticker)
 
-;; arch-tag: faee3ebb-749b-4935-9835-7f36d4b700f0
 ;;; newst-ticker.el ends here

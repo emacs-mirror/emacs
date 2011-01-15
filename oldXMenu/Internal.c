@@ -1015,5 +1015,3 @@ _XMRefreshSelection(register Display *display, register XMenu *menu, register XM
     }
 }
 
-/* arch-tag: 3ac61957-0852-4e72-8b88-7dfab1a5dee9
-   (do not change this comment) */

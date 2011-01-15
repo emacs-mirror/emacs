@@ -35,5 +35,4 @@
 
 (provide 'org-install)
 
-;; arch-tag: 0614acb4-47a3-4e7b-918a-aa3149792bcc
 ;;; org-install.el ends here

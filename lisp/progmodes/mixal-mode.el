@@ -1120,5 +1120,4 @@ Assumes that file has been compiled with debugging support."
 
 (provide 'mixal-mode)
 
-;; arch-tag: be7c128a-bf61-4951-a90e-9398267ce3f3
 ;;; mixal-mode.el ends here

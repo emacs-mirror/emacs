@@ -390,5 +390,4 @@ Echo Mayan date unless NOECHO is non-nil."
 
 (provide 'cal-mayan)
 
-;; arch-tag: 54f35144-cd0f-4873-935a-a60129de07df
 ;;; cal-mayan.el ends here

@@ -1508,7 +1508,3 @@ topics discussed in this document.
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: 965c1638-01d6-4156-9227-b10418b9d8e8
-@end ignore

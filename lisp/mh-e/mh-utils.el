@@ -1013,5 +1013,4 @@ If the current line is too long truncate a part of it as well."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 1af39fdf-f66f-4b06-9b48-18a7656c8e36
 ;;; mh-utils.el ends here

@@ -237,5 +237,4 @@ URL can be a URL string, or a URL vector of the type returned by
 
 (provide 'url-ldap)
 
-;; arch-tag: 6230e21c-41ae-4174-bd83-82c835676fc8
 ;;; url-ldap.el ends here

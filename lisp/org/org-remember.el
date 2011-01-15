@@ -1148,7 +1148,6 @@ See also the variable `org-reverse-note-order'."
 
 (provide 'org-remember)
 
-;; arch-tag: 497f30d0-4bc3-4097-8622-2d27ac5f2698
 
 ;;; org-remember.el ends here
 

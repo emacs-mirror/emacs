@@ -2041,5 +2041,3 @@ See also the documentation of `auto-composition-mode'.  */);
   defsubr (&Scomposition_get_gstring);
 }
 
-/* arch-tag: 79cefaf8-ca48-4eed-97e5-d5afb290d272
-   (do not change this comment) */

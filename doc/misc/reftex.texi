@@ -5890,7 +5890,3 @@ released on 7 Jan 1997.
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: 1e055774-0576-4b1b-b47f-550d0961fd43
-@end ignore

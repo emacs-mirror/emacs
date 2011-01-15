@@ -154,7 +154,3 @@ Many variables have been removed, including @code{read-circle},
 @code{inhibit-changing-match-data}, @code{wrap-prefix}, and
 @code{line-prefix},
 @end itemize
-
-@ignore
-   arch-tag: 1d0ef137-2bad-430e-ae8e-d820d569b5a6
-@end ignore

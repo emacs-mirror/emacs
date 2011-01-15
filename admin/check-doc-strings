@@ -301,4 +301,3 @@ foreach my $fun (sort keys %texi_funtype) {
   }
 }
 
-# arch-tag: e75331f5-5d1b-4393-ad5b-b0f87b5d47b0

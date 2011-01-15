@@ -3727,5 +3727,4 @@ The background and foreground are used in the image."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: cce884de-bd37-4104-9963-e4439d5ed22b
 ;;; mh-e.el ends here

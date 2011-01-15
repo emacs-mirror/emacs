@@ -1840,7 +1840,3 @@ whether a given D-Bus error is related to them.
 @include doclicense.texi
 
 @bye
-
-@ignore
-   arch-tag: 2eeec19d-0caf-44e0-a193-329d7f9951d8
-@end ignore

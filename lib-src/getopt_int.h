@@ -130,5 +130,3 @@ extern int _getopt_long_only_r (int ___argc, char **___argv,
 
 #endif /* getopt_int.h */
 
-/* arch-tag: 8bfc548f-23d6-46aa-b5b5-2739b0edaf79
-   (do not change this comment) */

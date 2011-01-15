@@ -1244,4 +1244,3 @@ GNU Emacs to your friends.  Help stamp out software obstructionism
 ;;;   coding: latin-1
 ;;; End:
 
-;;; arch-tag: 3399e308-e605-4125-8fbb-b2fe91ac3149

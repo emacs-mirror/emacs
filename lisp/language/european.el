@@ -639,5 +639,4 @@ method and applying Turkish case rules for the characters i, I, $(D)E(B, $(D*
 
 (provide 'european)
 
-;; arch-tag: 9e018b12-fb02-4120-907b-9adeaf84b5c2
 ;;; european.el ends here

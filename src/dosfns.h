@@ -43,5 +43,3 @@ extern Lisp_Object msdos_stdcolor_name (int);
 extern void        x_set_title (struct frame *, Lisp_Object);
 #endif
 
-/* arch-tag: a83b8c4c-63c8-451e-9e94-bc72e3e2f8bc
-   (do not change this comment) */

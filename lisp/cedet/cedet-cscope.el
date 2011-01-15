@@ -173,5 +173,4 @@ there is already a database in DIR."
 
 (provide 'cedet-cscope)
 
-;; arch-tag: 9973f1ad-f13b-4399-bc67-7f488478d78d
 ;;; cedet-cscope.el ends here

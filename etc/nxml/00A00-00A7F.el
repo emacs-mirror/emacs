@@ -76,4 +76,3 @@
     ("GURMUKHI EK ONKAR" #x0A74)
     ))
 
-;; arch-tag: e97fe67c-79ac-48f8-8274-22436eec2f01

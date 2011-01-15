@@ -178,4 +178,3 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
     (test-redisplay-3)
     (goto-char (point-min))))
 
-;; arch-tag: fcee53c8-024f-403d-9154-61ae3ce0bfb8

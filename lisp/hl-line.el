@@ -219,5 +219,4 @@ the line including the point by OVERLAY."
 
 (provide 'hl-line)
 
-;; arch-tag: ac806940-0876-4959-8c89-947563ee2833
 ;;; hl-line.el ends here

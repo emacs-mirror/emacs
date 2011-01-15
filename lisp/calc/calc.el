@@ -3838,5 +3838,4 @@ See Info node `(calc)Defining Functions'."
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 0c3b170c-4ce6-4eaf-8d9b-5834d1fe938f
 ;;; calc.el ends here

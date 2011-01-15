@@ -471,5 +471,4 @@ The argument CHANGE is ignored."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: a79dd33f-d0e5-4b19-a53a-be690f90229a
 ;;; mh-xface.el ends here

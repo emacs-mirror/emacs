@@ -1506,7 +1506,3 @@ include the following in the Rmail inbox list:
 @smallexample
 maildir://var/spool/mail/in
 @end smallexample
-
-@ignore
-   arch-tag: 034965f6-38df-47a2-a9f1-b8bc8ab37e23
-@end ignore

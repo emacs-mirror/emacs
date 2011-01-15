@@ -2202,7 +2202,3 @@ arrives, whichever comes first.  If @var{args} is non-@code{nil}, the
 actual message is obtained by passing @var{string} and @var{args}
 through @code{format}.  @xref{Formatting Strings}.
 @end defun
-
-@ignore
-   arch-tag: bba7f945-9078-477f-a2ce-18818a6e1218
-@end ignore

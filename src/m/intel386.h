@@ -29,5 +29,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define ULIMIT_BREAK_VALUE (32*1024*1024)
 #endif
 
-/* arch-tag: 746338f0-cb7b-4f49-a98c-cb50817cf2ec
-   (do not change this comment) */

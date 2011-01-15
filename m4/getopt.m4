@@ -77,6 +77,3 @@ AC_DEFUN([gl_GETOPT], [gl_GETOPT_IFELSE([gl_GETOPT_SUBSTITUTE])])
 # Prerequisites of lib/getopt*.
 AC_DEFUN([gl_PREREQ_GETOPT], [:])
 
-ifelse(dnl	Do not change this comment
-   arch-tag: 6c64a021-551c-4a7f-9c63-cd7e1ce54707
-)dnl
