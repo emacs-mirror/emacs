@@ -1,3 +1,8 @@
+2011-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-missing): Add another skip indicator.
+	(bzrmerge-resolve): Also ignore cl-loaddefs.el.
+
 2011-01-14  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-copyright): Also handle \year in refcards/*.tex.
