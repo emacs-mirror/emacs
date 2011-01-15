@@ -1,6 +1,6 @@
 2011-01-15  Glenn Morris  <rgm@gnu.org>
 
-	* charsets/eucjp-ms.awk: No longer print arch-tag.
+	* charsets/cp51932.awk, charsets/eucjp-ms.awk: No longer print arch-tag.
 
 	* bzrmerge.el (bzrmerge-missing): Add another skip indicator.
 	(bzrmerge-resolve): Also ignore cl-loaddefs.el.
