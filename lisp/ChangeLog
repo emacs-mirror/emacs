@@ -1,3 +1,11 @@
+2011-01-15  Mark Diekhans  <markd@soe.ucsc.edu>
+
+	* files.el (backup-buffer): Make last-resort backup file in
+	.emacs.d (Bug#6953).
+
+	* subr.el (locate-user-emacs-file): If .emacs.d does not exist,
+	make it with permission 700.
+
 2011-01-14  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmailmm.el (rmail-mime-insert-header): Set

@@ -26,6 +26,10 @@ used on x86-64 and s390x GNU/Linux architectures.
 
 * Changes in Emacs 23.3
 
++++
+** The last-resort backup file `%backup%~' is now written to
+`user-emacs-directory', instead of the user's home directory.
+
 
 * Editing Changes in Emacs 23.3
 
