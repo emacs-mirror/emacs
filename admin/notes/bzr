@@ -38,3 +38,32 @@ Or use shelves; or rebase; or do something else.  See the thread for
 yet another fun excursion into the exciting world of version control.
 
 http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00086.html
+
+* How to merge changes from emacs-23 to trunk
+
+The following description uses bound branches, presumably it works in
+a similar way with unbound ones.
+
+1) Get clean, up-to-date copies of the emacs-23 and trunk branches.
+Check for any uncommitted changes with bzr status.
+
+2) M-x cd /path/to/trunk
+
+3) load admin/bzrmerge.el
+
+4) M-x bzrmerge RET /path/to/emacs-23 RET
+
+It will prompt about revisions that should be skipped, based on the
+regexp in bzrmerge-missing.  If there are more revisions that you know
+need skipping, you'll have to do that by hand.
+
+5) It will stop if there are any conflicts. Resolve them.
+Using smerge-mode, there are menu items to skip to the next conflict,
+and to take either the trunk, branch, or both copies.
+
+6) After resolving all conflicts, you might need to run the command
+again if there are more revisions still to merge.
+You can commit either before you do this (eg if you had a lot of
+conflicts to resolve and don't want to get confused), or refrain from
+committing until bzrmerge has merged all revisions.
+
