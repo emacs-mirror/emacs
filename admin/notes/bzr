@@ -67,3 +67,8 @@ You can commit either before you do this (eg if you had a lot of
 conflicts to resolve and don't want to get confused), or refrain from
 committing until bzrmerge has merged all revisions.
 
+Before committing, check bzr status and bzr diff output.
+
+Note that ChangeLog entries are automatically merged to the top with
+today's date, but you still might want to check them to see that too
+much is not being included.
