@@ -1,3 +1,65 @@
+2011-01-15  Mark Diekhans  <markd@soe.ucsc.edu>
+
+	* files.el (backup-buffer): Make last-resort backup file in
+	.emacs.d (Bug#6953).
+
+	* subr.el (locate-user-emacs-file): If .emacs.d does not exist,
+	make it with permission 700.
+
+2011-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-header): Set
+	rmail-mime-coding-system to a cons whose car is the last coding
+	system used to decode the header.
+	(rmail-mime-find-header-encoding): New function.
+	(rmail-mime-insert-decoded-text): Override
+	rmail-mime-coding-system if it is a cons.
+	(rmail-show-mime): If only a header part was decoded, find the
+	coding system while ignoring mm-charset-override-alist.
+
+2011-01-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (event-start, event-end): Doc fix (Bug#7826).
+
+2011-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-next-item)
+	(rmail-mime-previous-item): Delete them.
+	(rmail-mime-shown-mode): Recursively call for children.
+	(rmail-mime-hidden-mode): Delete the 2nd arg TOP.  Callers
+	changed.
+	(rmail-mime-raw-mode): Recursively call for children.
+	(rmail-mode-map): Change mapping of tab and backtab to
+	forward-button and backward-button respectively.
+	(rmail-mime-insert-tagline): Always insert "Hide" or "Show"
+	button.
+	(rmail-mime-update-tagline): New function.
+	(rmail-mime-insert-text): Call rmail-mime-update-tagline if the
+	body display is changed.
+	(rmail-mime-toggle-button): Renamed from rmail-mime-image.
+	(rmail-mime-image): Delete this button type.
+	(rmail-mime-toggle): New button type.
+	(rmail-mime-insert-bulk): Call rmail-mime-update-tagline if the
+	body display is changed.  Change the save button label to "Save".
+	Don't process show/hide button here.
+	(rmail-mime-insert-multipart): Call rmail-mime-update-tagline if
+	the body display is changed.  Unconditionally call
+	rmail-mime-insert for children.
+	(rmail-mime-handle): Update `display' vector of the just inserted
+	entity.
+	(rmail-mime-process): If mail-header-parse-content-type returns
+	nil, use "text/plain" as the fallback type.
+	(rmail-mime-insert): For raw-mode, recursively call
+	rmail-mim-insert for children.
+	(rmail-mime): Handle the case that the current buffer is not rmail
+	buffer (e.g. in summary buffer).
+
+2011-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-next-item)
+	(rmail-mime-previous-item): Skip the body of a non-multipart
+	entity if a tagline is shown.
+
 2011-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tmm.el (tmm-get-keymap): Skip bindings without labels (bug#7721).

@@ -568,10 +568,10 @@ another from the newly saved contents if you save again.
 appending @samp{~} to the file name being edited; thus, the backup
 file for @file{eval.c} would be @file{eval.c~}.
 
-  If access control stops Emacs from writing backup files under the usual
-names, it writes the backup file as @file{%backup%~} in your home
-directory.  Only one such file can exist, so only the most recently
-made such backup is available.
+  If access control stops Emacs from writing backup files under the
+usual names, it writes the backup file as @file{~/.emacs.d/%backup%~}.
+Only one such file can exist, so only the most recently made such
+backup is available.
 
   Emacs can also make @dfn{numbered backup files}.  Numbered backup
 file names contain @samp{.~}, the number, and another @samp{~} after

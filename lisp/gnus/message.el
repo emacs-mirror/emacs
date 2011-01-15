@@ -6512,7 +6512,13 @@ is a function used to switch to and display the mail buffer."
     (message-setup
      (nconc
       `((To . ,(or to "")) (Subject . ,(or subject "")))
-      (when other-headers other-headers))
+      ;; C-h f compose-mail says that headers should be specified as
+      ;; (string . value); however all the rest of message expects
+      ;; headers to be symbols, not strings (eg message-header-format-alist).
+      ;; http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00337.html
+      ;; We need to convert any string input, eg from rmail-start-mail.
+      (dolist (h other-headers other-headers)
+ 	(if (stringp (car h)) (setcar h (intern (capitalize (car h)))))))
      yank-action send-actions continue switch-function
      return-action)
     ;; FIXME: Should return nil if failure.

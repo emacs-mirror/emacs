@@ -3778,10 +3778,9 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 			(rename-file real-file-name backupname t)
 			(setq setmodes (list modes context backupname)))
 		    (file-error
-		     ;; If trouble writing the backup, write it in ~.
-		     (setq backupname (expand-file-name
-				       (convert-standard-filename
-					"~/%backup%~")))
+		     ;; If trouble writing the backup, write it in
+		     ;; .emacs.d/%backup%.
+		     (setq backupname (locate-user-emacs-file "%backup%~"))
 		     (message "Cannot write backup file; backing up in %s"
 			      backupname)
 		     (sleep-for 1)

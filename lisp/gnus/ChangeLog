@@ -1,3 +1,8 @@
+2011-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-mail): A compose-mail function should
+	accept headers as strings.
+
 2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* message.el (message-tool-bar-gnome): Tweak tool-bar items.  Add

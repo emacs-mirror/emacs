@@ -1,5 +1,11 @@
 2011-01-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* building.texi (Compilation): Improve instructions for running two
+	compilations (Bug#7573).
+
+	* files.texi (Backup Names): Document the new location of the
+	last-resort backup file.
+
 	* files.texi (File Aliases): Move directory-abbrev-alist doc from Lisp
 	manual.  Explain why directory-abbrev-alist elements should be anchored
 	(Bug#7777).
