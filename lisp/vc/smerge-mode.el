@@ -1,7 +1,7 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
@@ -46,7 +46,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'diff-mode)                    ;For diff-auto-refine-mode.
-
+(require 'newcomment)
 
 ;;; The real definition comes later.
 (defvar smerge-mode)
@@ -455,6 +455,37 @@ BUF contains a plain diff between match-1 and match-3."
               (insert ">>>>>>> " name3 "\n")
               (setq line endline))))))))
 
+(defconst smerge-resolve--normalize-re "[\n\t][ \t\n]*\\| [ \t\n]+")
+
+(defun smerge-resolve--extract-comment (beg end)
+  "Extract the text within the comments that span BEG..END."
+  (save-excursion
+    (let ((comments ())
+          combeg)
+      (goto-char beg)
+      (while (and (< (point) end)
+                  (setq combeg (comment-search-forward end t)))
+        (let ((beg (point)))
+          (goto-char combeg)
+          (comment-forward 1)
+          (save-excursion
+            (comment-enter-backward)
+            (push " " comments)
+            (push (buffer-substring-no-properties beg (point)) comments))))
+      (push " " comments)
+      (with-temp-buffer
+        (apply #'insert (nreverse comments))
+        (goto-char (point-min))
+        (while (re-search-forward smerge-resolve--normalize-re
+                                  nil t)
+          (replace-match " "))
+        (buffer-string)))))
+
+(defun smerge-resolve--normalize (beg end)
+  (replace-regexp-in-string
+   smerge-resolve--normalize-re " "
+   (concat " " (buffer-substring-no-properties beg end) " ")))
+
 (defun smerge-resolve (&optional safe)
   "Resolve the conflict at point intelligently.
 This relies on mode-specific knowledge and thus only works in some
@@ -472,7 +503,8 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
 	(m2e (match-end 2))
 	(m3e (match-end 3))
 	(buf (generate-new-buffer " *smerge*"))
-        m b o)
+        m b o
+        choice)
     (unwind-protect
 	(progn
           (cond
@@ -557,6 +589,43 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
 	      (narrow-to-region m0b m0e)
               (smerge-remove-props m0b m0e)
 	      (insert-file-contents m nil nil nil t)))
+           ;; If the conflict is only made of comments, and one of the two
+           ;; changes is only rearranging spaces (e.g. reflowing text) while
+           ;; the other is a real change, drop the space-rearrangement.
+           ((and m2e
+                 (comment-only-p m1b m1e)
+                 (comment-only-p m2b m2e)
+                 (comment-only-p m3b m3e)
+                 (let ((t1 (smerge-resolve--extract-comment m1b m1e))
+                       (t2 (smerge-resolve--extract-comment m2b m2e))
+                       (t3 (smerge-resolve--extract-comment m3b m3e)))
+                   (cond
+                    ((and (equal t1 t2) (not (equal t2 t3)))
+                     (setq choice 3))
+                    ((and (not (equal t1 t2)) (equal t2 t3))
+                     (setq choice 1)))))
+            (set-match-data md)
+	    (smerge-keep-n choice))
+           ;; Idem, when the conflict is contained within a single comment.
+           ((save-excursion
+              (and m2e
+                   (nth 4 (syntax-ppss m0b))
+                   ;; If there's a conflict earlier in the file,
+                   ;; syntax-ppss is not reliable.
+                   (not (re-search-backward smerge-begin-re nil t))
+                   (progn (goto-char (nth 8 (syntax-ppss m0b)))
+                          (forward-comment 1)
+                          (> (point) m0e))
+                   (let ((t1 (smerge-resolve--normalize m1b m1e))
+                         (t2 (smerge-resolve--normalize m2b m2e))
+                         (t3 (smerge-resolve--normalize m3b m3e)))
+                     (cond
+                    ((and (equal t1 t2) (not (equal t2 t3)))
+                     (setq choice 3))
+                    ((and (not (equal t1 t2)) (equal t2 t3))
+                     (setq choice 1))))))
+            (set-match-data md)
+	    (smerge-keep-n choice))
            (t
             (error "Don't know how to resolve"))))
       (if (buffer-name buf) (kill-buffer buf))

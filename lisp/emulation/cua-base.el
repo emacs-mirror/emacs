@@ -1,7 +1,7 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua
@@ -1438,6 +1438,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (define-key cua-global-keymap [remap yank-pop]		'cua-paste-pop)
   ;; set mark
   (define-key cua-global-keymap [remap set-mark-command]	'cua-set-mark)
+  (define-key cua-global-keymap [remap exchange-point-and-mark] 'cua-exchange-point-and-mark)
 
   ;; scrolling
   (define-key cua-global-keymap [remap scroll-up]	'cua-scroll-up)
@@ -1452,7 +1453,6 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (when cua-remap-control-v
     (define-key cua--cua-keys-keymap [(control v)] 'yank)
     (define-key cua--cua-keys-keymap [(meta v)] 'cua-repeat-replace-region))
-  (define-key cua--cua-keys-keymap [remap exchange-point-and-mark] 'cua-exchange-point-and-mark)
 
   (define-key cua--prefix-override-keymap [(control x)] 'cua--prefix-override-handler)
   (define-key cua--prefix-override-keymap [(control c)] 'cua--prefix-override-handler)

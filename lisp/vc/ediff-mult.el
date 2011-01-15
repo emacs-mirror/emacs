@@ -1,7 +1,7 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -458,6 +458,7 @@ It is entered through one of the following commands:
 
 Commands:
 \\{ediff-meta-buffer-map}"
+  ;; FIXME: Use define-derived-mode.
   (kill-all-local-variables)
   (setq major-mode 'ediff-meta-mode)
   (setq mode-name "MetaEdiff")

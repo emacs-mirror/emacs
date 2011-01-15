@@ -1,8 +1,8 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -2288,7 +2288,11 @@ the use of a shell (with its need to quote arguments)."
 		      (error "Shell command in progress")))
 		(with-current-buffer buffer
 		  (setq buffer-read-only nil)
-		  (erase-buffer)
+		  ;; Setting buffer-read-only to nil doesn't suffice
+		  ;; if some text has a non-nil read-only property,
+		  ;; which comint sometimes adds for prompts.
+		  (let ((inhibit-read-only t))
+		    (erase-buffer))
 		  (display-buffer buffer)
 		  (setq default-directory directory)
 		  (setq proc (start-process "Shell" buffer shell-file-name

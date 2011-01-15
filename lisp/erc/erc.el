@@ -1,7 +1,7 @@
 ;; erc.el --- An Emacs Internet Relay Chat client
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Alexander L. Belikoff (alexander@belikoff.net)
 ;; Contributors: Sergey Berezin (sergey.berezin@cs.cmu.edu),
@@ -1439,28 +1439,16 @@ Defaults to the server buffer."
 
 ;; Mode activation routines
 
-(defun erc-mode ()
-  "Major mode for Emacs IRC.
-Special commands:
-
-\\{erc-mode-map}
-
-Turning on `erc-mode' runs the hook `erc-mode-hook'."
-  (kill-all-local-variables)
-  (use-local-map erc-mode-map)
-  (setq mode-name "ERC"
-	major-mode 'erc-mode
-	local-abbrev-table erc-mode-abbrev-table)
-  (set-syntax-table erc-mode-syntax-table)
+(define-derived-mode erc-mode fundamental-mode "ERC"
+  "Major mode for Emacs IRC."
+  (setq local-abbrev-table erc-mode-abbrev-table)
   (when (boundp 'next-line-add-newlines)
     (set (make-local-variable 'next-line-add-newlines) nil))
   (setq line-move-ignore-invisible t)
   (set (make-local-variable 'paragraph-separate)
        (concat "\C-l\\|\\(^" (regexp-quote (erc-prompt)) "\\)"))
   (set (make-local-variable 'paragraph-start)
-       (concat "\\(" (regexp-quote (erc-prompt)) "\\)"))
-  ;; Run the mode hooks
-  (run-hooks 'erc-mode-hook))
+       (concat "\\(" (regexp-quote (erc-prompt)) "\\)")))
 
 ;; activation
 

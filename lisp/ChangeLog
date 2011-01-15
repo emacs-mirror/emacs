@@ -12,6 +12,52 @@
 	split-height-threshold binding around call of
 	calendar-list-holidays, this must be handled separately.
 
+2011-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hexl.el (hexl-mode-old-*): Remove.
+	(hexl-mode--old-var-vals): New var to replace them.
+	(hexl-mode--minor-mode-p, hexl-mode--setq-local): New funs.
+	(hexl-mode, hexl-follow-line, hexl-activate-ruler):
+	Use them to set local vars (bug#7846).
+	(hexl-mode-exit): Use hexl-mode--old-var-vals to restore state.
+	(hexl-backward-short, hexl-backward-word, hexl-scroll-down)
+	(hexl-scroll-up, hexl-end-of-1k-page, hexl-end-of-512b-page): Simplify.
+
+	* vc/smerge-mode.el: Resolve comment conflicts more aggressively.
+	(smerge-resolve--normalize-re): New var.
+	(smerge-resolve--extract-comment, smerge-resolve--normalize): New funs.
+	(smerge-resolve): Use them.
+	* newcomment.el (comment-only-p): New function.
+	(comment-or-uncomment-region): Use it.
+
+2011-01-14  Brent Goodrick  <bgoodr@gmail.com>  (tiny change)
+
+	* abbrev.el (prepare-abbrev-list-buffer): If listing local abbrev
+	table, get the value before switching to the output buffer.  (Bug#7733)
+
+2011-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-mode): Don't impose font-lock (bug#3628).
+
+2011-01-14  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--init-keymaps):
+	Remap exchange-point-and-mark in cua-global-keymap.
+
+2011-01-14  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* progmodes/sh-script.el (sh-other-keywords): Add ZSH's foreach
+	loop keyword.
+
+2011-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el: Add :enable (bug#7754), and obey :label.
+	Require CL.
+	(easy-menu-create-menu, easy-menu-convert-item-1):
+	Use :label rather than nil for labels.  Use `case'.
+	Add :enable as alias for :active.
+	(easy-menu-binding): Obey :label.
+
 2011-01-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* mail/sendmail.el (sendmail-user-agent-compose): Remove let
@@ -20,6 +66,89 @@
 
 	* electric.el (Electric-pop-up-window): Adapt to new buffer
 	display specifiers.
+2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use run-mode-hooks for major mode hooks (bug#513).
+	* textmodes/reftex-toc.el (reftex-toc-mode-map):
+	Rename from reftex-toc-map.
+	(reftex-toc-mode): Use define-derived-mode.
+	* textmodes/reftex-sel.el (reftex-select-shared-map): New map.
+	(reftex-select-label-mode-map, reftex-select-bib-mode-map):
+	Rename from reftex-select-(label|bib)-map.  Move init into declaration.
+	(reftex-select-label-mode, reftex-select-bib-mode):
+	Use define-derived-mode.
+	* textmodes/reftex-index.el (reftex-index-phrases-mode-map)
+	(reftex-index-mode-map): Rename from reftex-index(-phrases)-map.
+	Move init into delcaration.
+	(reftex-index-mode, reftex-index-phrases-mode):
+	Use define-derived-mode.
+	* speedbar.el (speedbar-mode-syntax-table): Renaqme from
+	speedbar-syntax-table.  Move init into declaration.
+	(speedbar-mode-map): Rename from speedbar-key-map.
+	Move init into declaration.
+	(speedbar-file-key-map): Move init into declaration.
+	(speedbar-mode): Use define-derived-mode.
+	* recentf.el (recentf-mode): Don't run hook (or message) redundantly.
+	* net/rcirc.el (rcirc-mode): Use run-mode-hooks.
+	* emacs-lisp/chart.el (chart-mode-map): Rename from chart-map.
+	(chart-face-list): Move initialization into declaration.
+	(chart-mode): Use define-derived-mode.
+	* calculator.el (calculator-mode-map): Move init into declaration.
+	(calculator-mode): Use define-derived-mode.
+
+	* mail/mail-utils.el (mail-strip-quoted-names): Make the regexp code
+	work for nested comments.
+
+	* progmodes/prolog.el: Use syntax-propertize.  Further code cleanup.
+	(prolog-use-prolog-tokenizer-flag): Change default when
+	syntax-propertize can be used.
+	(prolog-syntax-propertize-function): New var.
+	(prolog-mode-variables): Move make-local-variable into `set'.
+	Don't make comment-column local since we don't set it.
+	Set comment-add (as it was in previous prolog.el).  Use dolist.
+	Set syntax-propertize-function.
+	(prolog-mode, prolog-inferior-mode):
+	Call prolog(-inferior)-menu directly, not through the mode-hook.
+	(prolog-buffer-module, prolog-indent-level)
+	(prolog-paren-is-the-first-on-line-p, prolog-paren-balance)
+	(prolog-comment-limits, prolog-goto-comment-column):
+	Use line-(end|beginning)-position.
+	(prolog-build-prolog-command): Tighten up regexp.
+	(prolog-consult-compile): Move make-local-variable into `set'.
+	(prolog-consult-compile-filter, prolog-goto-next-paren)
+	(prolog-help-on-predicate, prolog-clause-info)
+	(prolog-mark-predicate): Don't let+setq.
+	(prolog-indent-line): Use indent-line-to.
+	Only call prolog-goto-comment-column if necessary.
+	(prolog-indent-level): Use bobp.
+	(prolog-first-pos-on-line): Remove, not used any more.
+	(prolog-in-string-or-comment): Use syntax-ppss if available.
+	(prolog-help-on-predicate): Use read-string.
+	(prolog-goto-predicate-info): Simplify.
+	(prolog-read-predicate): Use `default' rather than `initial'.
+	(prolog-temporary-file): Use make-temp-file to close a security hole.
+	(prolog-toggle-sicstus-sd): New command.
+	(prolog-electric-underscore, prolog-variables-to-anonymous):
+	Use dynamic-scoping as it was meant.
+	(prolog-menu): Move menu definitions to top-level.
+	Use a toggle-button for Sicstus's source debugger.
+	Change "Code" to the more usual "Prolog", and hence change "Prolog"
+	to "System".
+	(prolog-inferior-menu): Reuse prolog-menu's help menu.
+	Move other menu definition to top-level.
+
+2011-01-13  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-open-text): Use meaningful text buffer
+	name.  Keep original document's directory as default-directory
+	(bug#6446).
+	(doc-view-initiate-display): Fall back to normal mode when
+	doc-view-mode cannot be enabled, also when extracting the document
+	text into a separate buffer (bug#6446).
+
+	* simple.el (shell-command): Don't error out if shell command
+	buffer contains text with non-nil read-only property when erasing
+	the buffer.
 
 2011-01-13  Kim F. Storm  <storm@cua.dk>
 

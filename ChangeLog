@@ -1,3 +1,15 @@
+2011-01-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Bump min libxml2 version to 2.6.17 (Bug#7603).
+
+2011-01-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-dist: Distribute test/ files too.
+	Distribute every file under test/ that is under version control,
+	using patterns like *.el to capture files that are added later.
+	Without this change, "configure" would fail, because it would
+	attempt to build from a Makefile.in that was not distributed.
+
 2011-01-13  Christian Ohler  <ohler@gnu.org>
 
 	* Makefile.in (INFO_FILES): Add ERT.

@@ -1,10 +1,11 @@
 ;;; rcirc.el --- default, simple IRC client.
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
-;; Author: Ryan Yeske
-;; URL: http://www.nongnu.org/rcirc
+;; Author: Ryan Yeske <rcyeske@gmail.com>
+;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
+;;              Deniz Dogan <deniz.a.m.dogan@gmail.com>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -895,6 +896,7 @@ Each element looks like (FILENAME . TEXT).")
 This number is independent of the number of lines in the buffer.")
 
 (defun rcirc-mode (process target)
+  ;; FIXME: Use define-derived-mode.
   "Major mode for IRC channel buffers.
 
 \\{rcirc-mode-map}"
@@ -973,7 +975,7 @@ This number is independent of the number of lines in the buffer.")
   (add-hook 'completion-at-point-functions
             'rcirc-completion-at-point nil 'local)
 
-  (run-hooks 'rcirc-mode-hook))
+  (run-mode-hooks 'rcirc-mode-hook))
 
 (defun rcirc-update-prompt (&optional all)
   "Reset the prompt string in the current buffer.

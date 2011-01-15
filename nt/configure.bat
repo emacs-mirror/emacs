@@ -2,7 +2,7 @@
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MS Windows operating systems
 rem   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-rem      2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+rem      2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 

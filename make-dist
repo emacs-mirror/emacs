@@ -2,7 +2,7 @@
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
 ## Copyright (C) 1995, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
-##   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+##   2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -295,6 +295,7 @@ for subdir in site-lisp \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      `find etc lisp -type d` \
 	      doc doc/emacs doc/misc doc/man doc/lispref doc/lispintro \
+	      test test/automated test/cedet test/cedet/tests test/indent \
 	      info m4 msdos \
 	      nextstep nextstep/Cocoa nextstep/Cocoa/Emacs.base \
 	      nextstep/Cocoa/Emacs.base/Contents \
@@ -473,6 +474,26 @@ echo "Making links to \`doc/man'"
 (cd doc/man
  ln ChangeLog* *.1 ../../${tempdir}/doc/man
  cd ../../${tempdir}/doc/man)
+
+echo "Making links to \`test'"
+(cd test
+ ln *.el ChangeLog README ../${tempdir}/test)
+
+echo "Making links to \`test/automated'"
+(cd test/automated
+ ln *.el Makefile.in ../../${tempdir}/test/automated)
+
+echo "Making links to \`test/cedet'"
+(cd test/cedet
+ ln *.el ../../${tempdir}/test/cedet)
+
+echo "Making links to \`test/cedet/tests'"
+(cd test/cedet/tests
+ ln *.c *.[ch]pp *.el *.hh *.java *.make ../../../${tempdir}/test/cedet/tests)
+
+echo "Making links to \`test/indent'"
+(cd test/indent
+ ln *.m *.mod *.prolog Makefile ../../${tempdir}/test/indent)
 
 ### It would be nice if they could all be symlinks to top-level copy, but
 ### you're not supposed to have any symlinks in distribution tar files.

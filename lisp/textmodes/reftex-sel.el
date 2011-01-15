@@ -1,7 +1,7 @@
 ;;; reftex-sel.el --- the selection modes for RefTeX
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -32,12 +32,81 @@
 (require 'reftex)
 ;;;
 
-(defvar reftex-select-label-map nil
+;; Common bindings in reftex-select-label-mode-map
+;; and reftex-select-bib-mode-map.
+(defvar reftex-select-shared-map
+  (let ((map (make-sparse-keymap)))
+    (substitute-key-definition
+     'next-line 'reftex-select-next                      map global-map)
+    (substitute-key-definition
+     'previous-line 'reftex-select-previous              map global-map)
+    (substitute-key-definition
+     'keyboard-quit 'reftex-select-keyboard-quit         map global-map)
+    (substitute-key-definition
+     'newline 'reftex-select-accept                      map global-map)
+
+    (loop for x in
+          '((" "        . reftex-select-callback)
+            ("n"        . reftex-select-next)
+            ([(down)]   . reftex-select-next)
+            ("p"        . reftex-select-previous)
+            ([(up)]     . reftex-select-previous)
+            ("f"        . reftex-select-toggle-follow)
+            ("\C-m"     . reftex-select-accept)
+            ([(return)] . reftex-select-accept)
+            ("q"        . reftex-select-quit)
+            ("."        . reftex-select-show-insertion-point)
+            ("?"        . reftex-select-help))
+          do (define-key map (car x) (cdr x)))
+
+    ;; The mouse-2 binding
+    (if (featurep 'xemacs)
+        (define-key map [(button2)] 'reftex-select-mouse-accept)
+      (define-key map [(mouse-2)] 'reftex-select-mouse-accept)
+      (define-key map [follow-link] 'mouse-face))
+
+
+    ;; Digit arguments
+    (loop for key across "0123456789" do
+          (define-key map (vector (list key)) 'digit-argument))
+    (define-key map "-" 'negative-argument)
+    map))
+
+(defvar reftex-select-label-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map reftex-select-shared-map)
+
+    (loop for key across "aAcgFlrRstx#%" do
+          (define-key map (vector (list key))
+            (list 'lambda '()
+                  "Press `?' during selection to find out about this key."
+                  '(interactive) (list 'throw '(quote myexit) key))))
+
+    (loop for x in
+          '(("b"        . reftex-select-jump-to-previous)
+            ("z"        . reftex-select-jump)
+            ("v"        . reftex-select-toggle-varioref)
+            ("V"        . reftex-select-toggle-fancyref)
+            ("m"        . reftex-select-mark)
+            ("u"        . reftex-select-unmark)
+            (","        . reftex-select-mark-comma)
+            ("-"        . reftex-select-mark-to)
+            ("+"        . reftex-select-mark-and)
+            ([(tab)]    . reftex-select-read-label)
+            ("\C-i"     . reftex-select-read-label)
+            ("\C-c\C-n" . reftex-select-next-heading)
+            ("\C-c\C-p" . reftex-select-previous-heading))
+          do
+          (define-key map (car x) (cdr x)))
+
+    map)
   "Keymap used for *RefTeX Select* buffer, when selecting a label.
 This keymap can be used to configure the label selection process which is
 started with the command \\[reftex-reference].")
+(define-obsolete-variable-alias
+  'reftex-select-label-map 'reftex-select-label-mode-map "24.1")
 
-(defun reftex-select-label-mode ()
+(define-derived-mode reftex-select-label-mode fundamental-mode "LSelect"
   "Major mode for selecting a label in a LaTeX document.
 This buffer was created with RefTeX.
 It only has a meaningful keymap when you are in the middle of a
@@ -47,28 +116,42 @@ Press `?' for a summary of important key bindings.
 
 During a selection process, these are the local bindings.
 
-\\{reftex-select-label-map}"
-
-  (interactive)
-  (kill-all-local-variables)
+\\{reftex-select-label-mode-map}"
   (when (featurep 'xemacs)
     ;; XEmacs needs the call to make-local-hook
     (make-local-hook 'pre-command-hook)
     (make-local-hook 'post-command-hook))
-  (setq major-mode 'reftex-select-label-mode
-        mode-name "LSelect")
   (set (make-local-variable 'reftex-select-marked) nil)
   (when (syntax-table-p reftex-latex-syntax-table)
     (set-syntax-table reftex-latex-syntax-table))
   ;; We do not set a local map - reftex-select-item does this.
-  (run-hooks 'reftex-select-label-mode-hook))
+  )
 
-(defvar reftex-select-bib-map nil
+(defvar reftex-select-bib-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map reftex-select-shared-map)
+
+    (loop for key across "grRaAeE" do
+          (define-key map (vector (list key))
+            (list 'lambda '()
+                  "Press `?' during selection to find out about this key."
+                  '(interactive) (list 'throw '(quote myexit) key))))
+
+    (loop for x in
+          '(("\C-i"  . reftex-select-read-cite)
+            ([(tab)] . reftex-select-read-cite)
+            ("m"     . reftex-select-mark)
+            ("u"     . reftex-select-unmark))
+          do (define-key map (car x) (cdr x)))
+
+    map)
   "Keymap used for *RefTeX Select* buffer, when selecting a BibTeX entry.
 This keymap can be used to configure the BibTeX selection process which is
 started with the command \\[reftex-citation].")
+(define-obsolete-variable-alias
+  'reftex-select-bib-map 'reftex-select-bib-mode-map "24.1")
 
-(defun reftex-select-bib-mode ()
+(define-derived-mode reftex-select-bib-mode fundamental-mode "BSelect"
   "Major mode for selecting a citation key in a LaTeX document.
 This buffer was created with RefTeX.
 It only has a meaningful keymap when you are in the middle of a
@@ -78,18 +161,14 @@ Press `?' for a summary of important key bindings.
 
 During a selection process, these are the local bindings.
 
-\\{reftex-select-label-map}"
-  (interactive)
-  (kill-all-local-variables)
+\\{reftex-select-label-mode-map}"
   (when (featurep 'xemacs)
     ;; XEmacs needs the call to make-local-hook
     (make-local-hook 'pre-command-hook)
     (make-local-hook 'post-command-hook))
-  (setq major-mode 'reftex-select-bib-mode
-        mode-name "BSelect")
   (set (make-local-variable 'reftex-select-marked) nil)
   ;; We do not set a local map - reftex-select-item does this.
-  (run-hooks 'reftex-select-bib-mode-hook))
+  )
 
 ;; (defun reftex-get-offset (buf here-am-I &optional typekey toc index file)
 ;;   ;; Find the correct offset data, like insert-docstruct would, but faster.
@@ -656,85 +735,5 @@ Useful for large TOC's."
   (with-output-to-temp-buffer "*RefTeX Help*"
     (princ help-string))
   (reftex-enlarge-to-fit "*RefTeX Help*" t))
-
-;; Common bindings in reftex-select-label-map and reftex-select-bib-map
-(let ((map (make-sparse-keymap)))
-  (substitute-key-definition
-   'next-line 'reftex-select-next                      map global-map)
-  (substitute-key-definition
-   'previous-line 'reftex-select-previous              map global-map)
-  (substitute-key-definition
-   'keyboard-quit 'reftex-select-keyboard-quit         map global-map)
-  (substitute-key-definition
-   'newline 'reftex-select-accept                      map global-map)
-
-  (loop for x in
-        '((" "        . reftex-select-callback)
-          ("n"        . reftex-select-next)
-          ([(down)]   . reftex-select-next)
-          ("p"        . reftex-select-previous)
-          ([(up)]     . reftex-select-previous)
-          ("f"        . reftex-select-toggle-follow)
-          ("\C-m"     . reftex-select-accept)
-          ([(return)] . reftex-select-accept)
-          ("q"        . reftex-select-quit)
-          ("."        . reftex-select-show-insertion-point)
-          ("?"        . reftex-select-help))
-        do (define-key map (car x) (cdr x)))
-
-  ;; The mouse-2 binding
-  (if (featurep 'xemacs)
-      (define-key map [(button2)] 'reftex-select-mouse-accept)
-    (define-key map [(mouse-2)] 'reftex-select-mouse-accept)
-    (define-key map [follow-link] 'mouse-face))
-
-
-  ;; Digit arguments
-  (loop for key across "0123456789" do
-        (define-key map (vector (list key)) 'digit-argument))
-  (define-key map "-" 'negative-argument)
-
-  ;; Make two maps
-  (setq reftex-select-label-map map)
-  (setq reftex-select-bib-map (copy-keymap map)))
-
-;; Specific bindings in reftex-select-label-map
-(loop for key across "aAcgFlrRstx#%" do
-      (define-key reftex-select-label-map (vector (list key))
-        (list 'lambda '()
-              "Press `?' during selection to find out about this key."
-              '(interactive) (list 'throw '(quote myexit) key))))
-
-(loop for x in
-      '(("b"        . reftex-select-jump-to-previous)
-        ("z"        . reftex-select-jump)
-        ("v"        . reftex-select-toggle-varioref)
-        ("V"        . reftex-select-toggle-fancyref)
-        ("m"        . reftex-select-mark)
-        ("u"        . reftex-select-unmark)
-        (","        . reftex-select-mark-comma)
-        ("-"        . reftex-select-mark-to)
-        ("+"        . reftex-select-mark-and)
-        ([(tab)]    . reftex-select-read-label)
-        ("\C-i"     . reftex-select-read-label)
-        ("\C-c\C-n" . reftex-select-next-heading)
-        ("\C-c\C-p" . reftex-select-previous-heading))
-      do
-      (define-key reftex-select-label-map (car x) (cdr x)))
-
-;; Specific bindings in reftex-select-bib-map
-(loop for key across "grRaAeE" do
-      (define-key reftex-select-bib-map (vector (list key))
-        (list 'lambda '()
-              "Press `?' during selection to find out about this key."
-              '(interactive) (list 'throw '(quote myexit) key))))
-
-(loop for x in
-      '(("\C-i"  . reftex-select-read-cite)
-        ([(tab)] . reftex-select-read-cite)
-        ("m"     . reftex-select-mark)
-        ("u"     . reftex-select-unmark))
-      do (define-key reftex-select-bib-map (car x) (cdr x)))
-
 
 ;;; reftex-sel.el ends here

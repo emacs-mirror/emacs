@@ -1,6 +1,6 @@
 ;;; python.el --- silly walks for Python  -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
@@ -2545,7 +2545,6 @@ with skeleton expansions for compound statement templates.
 	 (^ '(- (1+ (current-indentation))))))
   ;; Python defines TABs as being 8-char wide.
   (set (make-local-variable 'tab-width) 8)
-  (unless font-lock-mode (font-lock-mode 1))
   (when python-guess-indent (python-guess-indent))
   ;; Let's make it harder for the user to shoot himself in the foot.
   (unless (= tab-width python-indent)

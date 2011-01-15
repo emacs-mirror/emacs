@@ -1,7 +1,7 @@
 ;;; speedbar --- quick access to files and tags in a frame
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -515,7 +515,7 @@ hierarchy would be replaced with the new directory."
   :type 'hook)
 
 (defcustom speedbar-mode-hook nil
-  "Hooks called after creating a speedbar buffer."
+  "Hook run after creating a speedbar buffer."
   :group 'speedbar
   :type 'hook)
 
@@ -769,98 +769,94 @@ to toggle this value.")
 (defvar speedbar-update-flag-disable nil
   "Permanently disable changing of the update flag.")
 
-(defvar speedbar-syntax-table nil
+(defvar speedbar-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    ;; Turn off paren matching around here.
+    (modify-syntax-entry ?\' " " st)
+    (modify-syntax-entry ?\" " " st)
+    (modify-syntax-entry ?\( " " st)
+    (modify-syntax-entry ?\) " " st)
+    (modify-syntax-entry ?\{ " " st)
+    (modify-syntax-entry ?\} " " st)
+    (modify-syntax-entry ?\[ " " st)
+    (modify-syntax-entry ?\]  " " st)
+    st)
   "Syntax-table used on the speedbar.")
+(define-obsolete-variable-alias
+  'speedbar-syntax-table 'speedbar-mode-syntax-table "24.1")
 
-(if speedbar-syntax-table
-    nil
-  (setq speedbar-syntax-table (make-syntax-table))
-  ;; turn off paren matching around here.
-  (modify-syntax-entry ?\' " " speedbar-syntax-table)
-  (modify-syntax-entry ?\" " " speedbar-syntax-table)
-  (modify-syntax-entry ?( " " speedbar-syntax-table)
-  (modify-syntax-entry ?) " " speedbar-syntax-table)
-  (modify-syntax-entry ?{ " " speedbar-syntax-table)
-  (modify-syntax-entry ?} " " speedbar-syntax-table)
-  (modify-syntax-entry ?[ " " speedbar-syntax-table)
-  (modify-syntax-entry ?] " " speedbar-syntax-table))
 
-(defvar speedbar-key-map nil
+(defvar speedbar-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map t)
+
+    ;; Control.
+    (define-key map "t" 'speedbar-toggle-updates)
+    (define-key map "g" 'speedbar-refresh)
+
+    ;; Navigation.
+    (define-key map "n" 'speedbar-next)
+    (define-key map "p" 'speedbar-prev)
+    (define-key map "\M-n" 'speedbar-restricted-next)
+    (define-key map "\M-p" 'speedbar-restricted-prev)
+    (define-key map "\C-\M-n" 'speedbar-forward-list)
+    (define-key map "\C-\M-p" 'speedbar-backward-list)
+    ;; These commands never seemed useful.
+    ;;  (define-key map " " 'speedbar-scroll-up)
+    ;;  (define-key map [delete] 'speedbar-scroll-down)
+
+    ;; Short cuts I happen to find useful.
+    (define-key map "r"
+      (lambda () (interactive)
+        (speedbar-change-initial-expansion-list
+         speedbar-previously-used-expansion-list-name)))
+    (define-key map "b"
+      (lambda () (interactive)
+        (speedbar-change-initial-expansion-list "quick buffers")))
+    (define-key map "f"
+      (lambda () (interactive)
+        (speedbar-change-initial-expansion-list "files")))
+
+    (dframe-update-keymap map)
+    map)
   "Keymap used in speedbar buffer.")
-
-(if speedbar-key-map
-    nil
-  (setq speedbar-key-map (make-keymap))
-  (suppress-keymap speedbar-key-map t)
-
-  ;; control
-  (define-key speedbar-key-map "t" 'speedbar-toggle-updates)
-  (define-key speedbar-key-map "g" 'speedbar-refresh)
-
-  ;; navigation
-  (define-key speedbar-key-map "n" 'speedbar-next)
-  (define-key speedbar-key-map "p" 'speedbar-prev)
-  (define-key speedbar-key-map "\M-n" 'speedbar-restricted-next)
-  (define-key speedbar-key-map "\M-p" 'speedbar-restricted-prev)
-  (define-key speedbar-key-map "\C-\M-n" 'speedbar-forward-list)
-  (define-key speedbar-key-map "\C-\M-p" 'speedbar-backward-list)
-;; These commands never seemed useful.
-;;  (define-key speedbar-key-map " " 'speedbar-scroll-up)
-;;  (define-key speedbar-key-map [delete] 'speedbar-scroll-down)
-
-  ;; Short cuts I happen to find useful
-  (define-key speedbar-key-map "r"
-    (lambda () (interactive)
-      (speedbar-change-initial-expansion-list
-       speedbar-previously-used-expansion-list-name)))
-  (define-key speedbar-key-map "b"
-    (lambda () (interactive)
-      (speedbar-change-initial-expansion-list "quick buffers")))
-  (define-key speedbar-key-map "f"
-    (lambda () (interactive)
-      (speedbar-change-initial-expansion-list "files")))
-
-  (dframe-update-keymap speedbar-key-map)
-)
+(define-obsolete-variable-alias 'speedbar-key-map 'speedbar-mode-map "24.1")
 
 (defun speedbar-make-specialized-keymap ()
   "Create a keymap for use with a speedbar major or minor display mode.
 This basically creates a sparse keymap, and makes its parent be
-`speedbar-key-map'."
+`speedbar-mode-map'."
   (let ((k (make-sparse-keymap)))
-    (set-keymap-parent k speedbar-key-map)
+    (set-keymap-parent k speedbar-mode-map)
     k))
 
-(defvar speedbar-file-key-map nil
+(defvar speedbar-file-key-map
+  (let ((map (speedbar-make-specialized-keymap)))
+
+    ;; Basic tree features.
+    (define-key map "e" 'speedbar-edit-line)
+    (define-key map "\C-m" 'speedbar-edit-line)
+    (define-key map "+" 'speedbar-expand-line)
+    (define-key map "=" 'speedbar-expand-line)
+    (define-key map "-" 'speedbar-contract-line)
+
+    (define-key map "[" 'speedbar-expand-line-descendants)
+    (define-key map "]" 'speedbar-contract-line-descendants)
+
+    (define-key map " " 'speedbar-toggle-line-expansion)
+
+    ;; File based commands.
+    (define-key map "U" 'speedbar-up-directory)
+    (define-key map "I" 'speedbar-item-info)
+    (define-key map "B" 'speedbar-item-byte-compile)
+    (define-key map "L" 'speedbar-item-load)
+    (define-key map "C" 'speedbar-item-copy)
+    (define-key map "D" 'speedbar-item-delete)
+    (define-key map "O" 'speedbar-item-object-delete)
+    (define-key map "R" 'speedbar-item-rename)
+    (define-key map "M" 'speedbar-create-directory)
+    map)
   "Keymap used in speedbar buffer while files are displayed.")
-
-(if speedbar-file-key-map
-    nil
-  (setq speedbar-file-key-map (speedbar-make-specialized-keymap))
-
-  ;; Basic tree features
-  (define-key speedbar-file-key-map "e" 'speedbar-edit-line)
-  (define-key speedbar-file-key-map "\C-m" 'speedbar-edit-line)
-  (define-key speedbar-file-key-map "+" 'speedbar-expand-line)
-  (define-key speedbar-file-key-map "=" 'speedbar-expand-line)
-  (define-key speedbar-file-key-map "-" 'speedbar-contract-line)
-
-  (define-key speedbar-file-key-map "[" 'speedbar-expand-line-descendants)
-  (define-key speedbar-file-key-map "]" 'speedbar-contract-line-descendants)
-
-  (define-key speedbar-file-key-map " " 'speedbar-toggle-line-expansion)
-
-  ;; file based commands
-  (define-key speedbar-file-key-map "U" 'speedbar-up-directory)
-  (define-key speedbar-file-key-map "I" 'speedbar-item-info)
-  (define-key speedbar-file-key-map "B" 'speedbar-item-byte-compile)
-  (define-key speedbar-file-key-map "L" 'speedbar-item-load)
-  (define-key speedbar-file-key-map "C" 'speedbar-item-copy)
-  (define-key speedbar-file-key-map "D" 'speedbar-item-delete)
-  (define-key speedbar-file-key-map "O" 'speedbar-item-object-delete)
-  (define-key speedbar-file-key-map "R" 'speedbar-item-rename)
-  (define-key speedbar-file-key-map "M" 'speedbar-create-directory)
-  )
 
 (defvar speedbar-easymenu-definition-base
   (append
@@ -1080,7 +1076,7 @@ selected.  If the speedbar frame is active, then select the attached frame."
 Return nil if it doesn't exist."
   (frame-width speedbar-frame))
 
-(defun speedbar-mode ()
+(define-derived-mode speedbar-mode fundamental-mode "Speedbar"
   "Major mode for managing a display of directories and tags.
 \\<speedbar-key-map>
 The first line represents the default directory of the speedbar frame.
@@ -1120,12 +1116,7 @@ tags start with >.  Click the name of the tag to go to that position
 in the selected file.
 
 \\{speedbar-key-map}"
-  ;; NOT interactive
   (save-excursion
-    (kill-all-local-variables)
-    (setq major-mode 'speedbar-mode)
-    (setq mode-name "Speedbar")
-    (set-syntax-table speedbar-syntax-table)
     (setq font-lock-keywords nil) ;; no font-locking please
     (setq truncate-lines t)
     (make-local-variable 'frame-title-format)
@@ -1138,8 +1129,7 @@ in the selected file.
 	(setq dframe-track-mouse-function #'speedbar-track-mouse))
     (setq dframe-help-echo-function #'speedbar-item-info
 	  dframe-mouse-click-function #'speedbar-click
-	  dframe-mouse-position-function #'speedbar-position-cursor-on-line)
-    (run-hooks 'speedbar-mode-hook))
+	  dframe-mouse-position-function #'speedbar-position-cursor-on-line))
   speedbar-buffer)
 
 (defmacro speedbar-message (fmt &rest args)

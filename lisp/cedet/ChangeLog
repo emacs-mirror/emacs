@@ -1,3 +1,9 @@
+2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* srecode/srt-mode.el (srecode-template-mode): Use define-derived-mode.
+	* semantic/symref/list.el (semantic-symref-results-mode):
+	Use run-mode-hooks.
+
 2010-11-12  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/wisent/comp.el: Remove unnecessary eval-when-compiles.
@@ -60,8 +66,8 @@
 	* semantic/db-typecache.el (semanticdb-typecache-find-default):
 	* semantic/imenu.el (semantic-create-imenu-index):
 	* semantic/grammar.el (semantic--grammar-macro-function-tag):
-	* semantic/fw.el (semanticdb-without-unloaded-file-searches): Fix
-	require.  Suggested by David Engster.
+	* semantic/fw.el (semanticdb-without-unloaded-file-searches):
+	Fix require.  Suggested by David Engster.
 
 	* semantic/bovine/c-by.el: Regenerate.
 
@@ -105,8 +111,8 @@
 	* srecode/texi.el (srecode-texi-insert-tag-as-doc): New function.
 	(semantic-insert-foreign-tag): Use it.
 
-	* srecode/mode.el (srecode-bind-insert): Call
-	srecode-load-tables-for-mode.
+	* srecode/mode.el (srecode-bind-insert):
+	Call srecode-load-tables-for-mode.
 	(srecode-minor-mode-templates-menu): Do not list templates that
 	are not in the current project.
 	(srecode-menu-bar): Add binding for srecode-macro-help.
@@ -159,8 +165,8 @@
 	compare of built-in templates.  Give built-ins lower piority.
 	Support special variable "project".
 	(srecode-compile-template-table): Set :project slot of new tables.
-	(srecode-compile-one-template-tag): Use
-	srecode-create-dictionaries-from-tags.
+	(srecode-compile-one-template-tag):
+	Use srecode-create-dictionaries-from-tags.
 
 2010-09-21  Eric Ludlam  <zappo@gnu.org>
 
@@ -210,8 +216,8 @@
 	(autoconf-new-automake-string): Deleted.
 	(autoconf-new-program): Use SRecode to fill an empty file.
 
-	* ede/cpp-root.el (ede-create-lots-of-projects-under-dir): New
-	function.
+	* ede/cpp-root.el (ede-create-lots-of-projects-under-dir):
+	New function.
 
 	* ede/files.el (ede-flush-project-hash): New command.
 	(ede-convert-path): Add optional PROJECT arg.
@@ -232,8 +238,8 @@
 	list whether or not the vars are already in the Makefile.
 	(ede-pmake-insert-variable-once): New macro.
 
-	* ede/project-am.el (project-am-with-makefile-current): Add
-	recentf-exclude.
+	* ede/project-am.el (project-am-with-makefile-current):
+	Add recentf-exclude.
 	(project-am-load-makefile): Obey an optional suggested name.
 	(project-am-expand-subdirlist): New function.
 	(project-am-makefile::project-rescan): Use it.  Combine SUBDIRS
@@ -248,16 +254,16 @@
 	(project-am-extract-package-info): Fix separators.
 
 	* ede/proj.el (project-run-target): New method.
-	(project-make-dist, project-compile-project): Use
-	ede-proj-automake-p to determine which kind of compile to use.
+	(project-make-dist, project-compile-project):
+	Use ede-proj-automake-p to determine which kind of compile to use.
 	(project-rescan): Call ede-load-project-file.
 	(ede-buffer-mine): Add more file names that belong to the project.
 	(ede-proj-compilers): Improve error message.
 
 	* ede/proj-obj.el (ede-ld-linker): Use the LDDEPS variable.
 	(ede-source-c++): Add more C++ extensions.
-	(ede-proj-target-makefile-objectcode): Quote initforms.  Support
-	lex and yacc.
+	(ede-proj-target-makefile-objectcode): Quote initforms.
+	Support lex and yacc.
 
 	* ede/proj-prog.el (ede-proj-makefile-insert-rules): Removed.
 	(ede-proj-makefile-insert-variables): New, add LDDEPS.
@@ -267,8 +273,8 @@
 	they show up in the same order as in the command line.
 	(ede-proj-target-makefile-program): Add ldlibs-local slot.
 
-	* ede/proj-shared.el (ede-g++-libtool-shared-compiler): Fix
-	inference rule to use cpp files.
+	* ede/proj-shared.el (ede-g++-libtool-shared-compiler):
+	Fix inference rule to use cpp files.
 	(ede-proj-target-makefile-shared-object): Quote initforms.
 
 	* ede/proj-misc.el (ede-proj-target-makefile-miscelaneous):
@@ -327,8 +333,8 @@
 	(semantic-analyze-scoped-inherited-tag-map): Take the tag we are
 	looking for as part of the scoped tags list.
 
-	* semantic/html.el (semantic-default-html-setup): Add
-	senator-step-at-tag-classes.
+	* semantic/html.el (semantic-default-html-setup):
+	Add senator-step-at-tag-classes.
 
 	* semantic/decorate/include.el
 	(semantic-decoration-on-unknown-includes): Change light bgcolor.
@@ -355,8 +361,8 @@
 	* semantic/util.el (semantic-hack-search)
 	(semantic-recursive-find-nonterminal-by-name)
 	(semantic-current-tag-interactive): Deleted.
-	(semantic-describe-buffer): Fix expand-nonterminal.  Add
-	lex-syntax-mods, type relation separator char, and command
+	(semantic-describe-buffer): Fix expand-nonterminal.
+	Add lex-syntax-mods, type relation separator char, and command
 	separation char.
 	(semantic-sanity-check): Only message if called interactively.
 
@@ -372,8 +378,8 @@
 	* semantic/idle.el: Add breadcrumbs support.
 	(semantic-idle-summary-current-symbol-info-default)
 	(semantic-idle-tag-highlight)
-	(semantic-idle-completion-list-default): Use
-	semanticdb-without-unloaded-file-searches for speed, and to
+	(semantic-idle-completion-list-default):
+	Use semanticdb-without-unloaded-file-searches for speed, and to
 	conform to the controls that specify if the idle timer is supposed
 	to be parsing unparsed includes.
 	(semantic-idle-symbol-highlight-face)
@@ -448,8 +454,8 @@
 	(semantic-analyze-find-tag-sequence-default): Be robust to
 	calculated scopes being nil.
 
-	* semantic/bovine/c.el (semantic-c-describe-environment): Add
-	project macro symbol array.
+	* semantic/bovine/c.el (semantic-c-describe-environment):
+	Add project macro symbol array.
 	(semantic-c-parse-lexical-token): Add recursion limit.
 	(semantic-ctxt-imported-packages, semanticdb-expand-nested-tag):
 	New overrides.
@@ -458,8 +464,8 @@
 	(semantic-expand-c-tag-namelist): Do not split out a typedef'd
 	inline type if it is an anonymous type.
 	(semantic-c-reconstitute-token): Use the optional initializers as
-	a clue that some function is probably a constructor.  When
-	defining the type of these constructors, split the parent name,
+	a clue that some function is probably a constructor.
+	When defining the type of these constructors, split the parent name,
 	and use only the class part, if applicable.
 
 	* semantic/bovine/c-by.el:
@@ -594,8 +600,8 @@
 
 	* semantic/db-find.el
 	(semanticdb-find-translate-path-brutish-default):
-	* ede/make.el (ede-make-check-version): Use
-	with-current-buffer instead of save-excursion.
+	* ede/make.el (ede-make-check-version):
+	Use with-current-buffer instead of save-excursion.
 
 2010-02-24  Eduard Wiebe  <usenet@pusto.de>
 
@@ -783,8 +789,8 @@
 	* ede.el (ede-apply-preprocessor-map): Accept lists of
 	ede-objects as targets.
 
-	* ede/pmake.el (ede-proj-makefile-insert-variables): Output
-	a target's object list even if compiler vars are already in the
+	* ede/pmake.el (ede-proj-makefile-insert-variables):
+	Output a target's object list even if compiler vars are already in the
 	Makefile.
 
 	* ede/emacs.el (ede-preprocessor-map): Add config.h to the
@@ -880,8 +886,8 @@
 
 2009-11-08  Chong Yidong  <cyd@stupidchicken.com>
 
-	* semantic/ctxt.el (semantic-get-local-variables): Disable
-	the progress reporter entirely.
+	* semantic/ctxt.el (semantic-get-local-variables):
+	Disable the progress reporter entirely.
 
 2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1511,3 +1517,24 @@
 	* inversion.el:
 	* mode-local.el:
 	* pulse.el: New files.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
+
+  Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
