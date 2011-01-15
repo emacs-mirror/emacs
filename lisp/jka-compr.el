@@ -166,8 +166,11 @@ to keep: LEN chars starting BEG chars from the beginning."
 	  (unwind-protect
 	      (or (memq (call-process
 			 jka-compr-shell infile t nil "-c"
+			 ;; Windows shells need the program file name
+			 ;; after the pipe symbol be quoted if they use
+			 ;; forward slashes as directory separators.
 			 (format
-			  "%s %s 2> %s | %s bs=%d skip=%d %s 2> %s"
+			  "%s %s 2> %s | \"%s\" bs=%d skip=%d %s 2> %s"
 			  prog
 			  (mapconcat 'identity args " ")
 			  err-file

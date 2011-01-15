@@ -750,7 +750,7 @@ property containing author and date information."
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 
 (defun vc-bzr-annotate-time ()
-  (when (re-search-forward "^ *[0-9.]+ +.* +|" nil t)
+  (when (re-search-forward "^ *[0-9.]+ +.+? +|" nil t)
     (let ((prop (get-text-property (line-beginning-position) 'help-echo)))
       (string-match "[0-9]+\\'" prop)
       (let ((str (match-string-no-properties 0 prop)))

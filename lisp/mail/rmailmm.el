@@ -742,7 +742,11 @@ directly."
 	  (cond ((eq (cdr bulk-data) 'text)
 		 (rmail-mime-insert-decoded-text entity))
 		((cdr bulk-data)
-		 (rmail-mime-insert-image entity)))))
+		 (rmail-mime-insert-image entity))
+		(t
+		 ;; As we don't know how to display the body, just
+		 ;; insert it as a text.
+		 (rmail-mime-insert-decoded-text entity)))))
     (put-text-property beg (point) 'rmail-mime-entity entity)))
 
 (defun test-rmail-mime-bulk-handler ()
@@ -820,7 +824,9 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
     (cond ((string-match "mixed" subtype)
 	   (setq content-type '("text/plain")))
 	  ((string-match "digest" subtype)
-	   (setq content-type '("message/rfc822"))))
+	   (setq content-type '("message/rfc822")))
+	  (t
+	   (setq content-type nil)))
 
     ;; Loop over all body parts, where beg points at the beginning of
     ;; the part and end points at the end of the part.  next points at

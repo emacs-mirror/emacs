@@ -1,3 +1,54 @@
+2011-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-get-keymap): Skip bindings without labels (bug#7721).
+	(tmm-prompt): Simplify.
+	(tmm-add-prompt): Remove unused var `win'.
+
+	* whitespace.el (global-whitespace-newline-mode): Fix call (bug#7810)
+	to minor mode which used nil accidentally to mean "turn off".
+
+2011-01-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-find-inline-compress)
+	(tramp-get-inline-coding): Quote command after pipe symbol for
+	local calls under W32.  (Bug#6784)
+
+2011-01-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-default-method): Initialize with pscp/plink
+	only when running under W32.
+
+2011-01-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/grep.el (grep-compute-defaults): Quote the program
+	file name after the pipe symbol in Grep templates.  (Bug#6784)
+	* jka-compr.el (jka-compr-partial-uncompress): Likewise.
+
+2011-01-15  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* buff-menu.el (Buffer-menu-buffer-list): New var.
+	(Buffer-menu-revert-function, list-buffers-noselect): Use it, so a
+	restricted buffer list is not lost on revert (Bug#7749).
+
+2011-01-15  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* net/ldap.el (ldap-search-internal): Discard stderr output.
+
+2011-01-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (directory-abbrev-alist): Doc fix.  (Bug#7777)
+
+2011-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-annotate-time): Tweak previous change.
+
+2011-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-bulk): Display an unknown
+	part as a plain text.
+	(rmail-mime-process-multipart): Set the default content-type to
+	nil for unknown multipart subtypes (bug#7651).
+
 2011-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* hexl.el (hexl-mode-old-*): Remove.

@@ -57,7 +57,10 @@ when it has unsaved changes."
 A list of elements of the form (FROM . TO), each meaning to replace
 FROM with TO when it appears in a directory name.  This replacement is
 done when setting up the default directory of a newly visited file.
-*Every* FROM string ought to start with \"\\\\`\".
+
+FROM is matched against directory names anchored at the first
+character, so it should start with a \"\\\\`\", or, if directory
+names cannot have embedded newlines, with a \"^\".
 
 FROM and TO should be equivalent names, which refer to the
 same directory.  Do not use `~' in the TO strings;
