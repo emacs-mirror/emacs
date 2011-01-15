@@ -1,3 +1,7 @@
+2011-01-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Bump min libxml2 version to 2.6.17 (Bug#7603).
+
 2011-01-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* make-dist: Distribute test/ files too.
