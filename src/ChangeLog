@@ -1,3 +1,7 @@
+2011-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image.c (syms_of_image): Don't access XSYMBOL's internals directly.
+
 2011-01-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* image.c (syms_of_image): Don't use SET_SYMBOL_VALUE.  (Bug#7848)
