@@ -1,6 +1,7 @@
 2011-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* info-xref.el (info-xref-docstrings): Replace cl function.
+	Also skip directories.
 
 2011-01-16  Kevin Ryde  <user42@zip.com.au>
 

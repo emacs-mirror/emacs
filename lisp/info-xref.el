@@ -493,6 +493,7 @@ the sources handy."
      (setq filename-list
            (dolist (file filename-list (nreverse newlist))
              (or (info-xref-lock-file-p file)
+                 (file-directory-p file)
                  (push file newlist))))
      (unless filename-list
        (error "No files: %S" pattern))
