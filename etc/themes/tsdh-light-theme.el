@@ -32,6 +32,7 @@
  '(diff-indicator-removed ((t (:inherit diff-indicator-changed))))
  '(diff-removed ((t (:inherit diff-changed :background "sandy brown"))))
  '(dired-directory ((t (:inherit font-lock-function-name-face :weight bold))))
+ '(header-line ((t (:inherit mode-line :inverse-video t))))
  '(hl-line ((t (:background "grey95"))))
  '(minibuffer-prompt ((t (:background "yellow" :foreground "medium blue" :box (:line-width -1 :color "red" :style released-button) :weight bold))))
  '(mode-line ((t (:box (:line-width -1 :color "red" :style released-button) :family "DejaVu Sans"))))
