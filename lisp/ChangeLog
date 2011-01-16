@@ -1,3 +1,8 @@
+2011-01-16  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-abort): Don't quit if search has
+	an incomplete regexp (isearch-error is non-nil).  (Bug#7534)
+
 2011-01-15  Mark Diekhans  <markd@soe.ucsc.edu>
 
 	* files.el (backup-buffer): Make last-resort backup file in

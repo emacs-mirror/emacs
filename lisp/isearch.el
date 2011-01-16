@@ -1244,9 +1244,9 @@ Use `isearch-exit' to quit without signaling."
   (interactive)
 ;;  (ding)  signal instead below, if quitting
   (discard-input)
-  (if isearch-success
-      ;; If search is successful, move back to starting point
-      ;; and really do quit.
+  (if (and isearch-success (not isearch-error))
+      ;; If search is successful and has no incomplete regexp,
+      ;; move back to starting point and really do quit.
       (progn
         (setq isearch-success nil)
         (isearch-cancel))
