@@ -1,3 +1,9 @@
+2011-01-16  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* strokes.el (strokes-read-stroke): Re-fill strokes buffer with
+	spaces if the frame was resized, so that the full visible buffer
+	serves as canvas for strokes.
+
 2011-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* info-xref.el (info-xref-docstrings): Replace cl function.

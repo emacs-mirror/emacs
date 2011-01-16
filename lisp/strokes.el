@@ -736,6 +736,11 @@ Optional EVENT is acceptable as the starting event of the stroke."
 	  ;; display the stroke as it's being read
 	  (save-window-excursion
 	    (set-window-configuration strokes-window-configuration)
+	    ;; The frame has been resized, so we need to refill the
+	    ;; strokes buffer so that the strokes canvas is the whole
+	    ;; visible buffer.
+	    (unless (> 1 (abs (- (line-end-position) (window-width))))
+	      (strokes-fill-current-buffer-with-whitespace))
 	    (when prompt
 	      (message "%s" prompt)
 	      (setq event (read-event))
@@ -1000,7 +1005,7 @@ If you'd like to create graphical files with strokes, you'll have to
 be running a version of Emacs with XPM support.  You use the binding
 to `strokes-compose-complex-stroke' to start drawing your strokes.
 These are just complex strokes, and thus continue drawing with mouse-1
-or mouse-2 and end with mouse-3.  Then the stroke image gets inserted
+or mouse-2 and   end with mouse-3.  Then the stroke image gets inserted
 into the buffer.  You treat it somewhat like any other character,
 which you can copy, paste, delete, move, etc.  When all is done, you
 may want to send the file, or save it.  This is done with
