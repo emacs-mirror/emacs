@@ -8464,9 +8464,9 @@ non-numeric, there is no explicit limit on the size of images.  */);
   Qlibpng_version = intern_c_string ("libpng-version");
   staticpro (&Qlibpng_version);
 #if HAVE_PNG
-  SET_SYMBOL_VAL (XSYMBOL (Qlibpng_version), make_number (PNG_LIBPNG_VER));
+  XSYMBOL (Qlibpng_version)->value = make_number (PNG_LIBPNG_VER);
 #else
-  SET_SYMBOL_VAL (XSYMBOL (Qlibpng_version), make_number (-1));
+  XSYMBOL (Qlibpng_version)->value = make_number (-1));
 #endif
 #endif
 

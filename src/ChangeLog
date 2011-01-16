@@ -1,3 +1,7 @@
+2011-01-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (syms_of_image): Don't use SET_SYMBOL_VALUE.  (Bug#7848)
+
 2011-01-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (inhibit_point_swap): New variable.
