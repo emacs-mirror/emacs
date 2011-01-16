@@ -1,3 +1,33 @@
+2011-01-16  Kevin Ryde  <user42@zip.com.au>
+
+	* info-xref.el: Version 3.
+	(info-xref-check, info-xref-check-all): Move commentary details
+	into docstrings for better visibility.
+	Use compilation-mode for the results buffer.
+	(info-xref-output, info-xref-output-error, info-xref-with-output)
+	(info-xref-filename, info-xref-in-progress):
+	New internals for this.
+	(info-xref-check-list, info-xref-check-buffer)
+	(info-xref-check-all-custom): Use those.
+	(info-xref-output-buffer): Rename from info-xref-results-buffer.
+	(info-xref-output-heading): Rename from info-xref-filename-heading.
+	(info-xref-good, info-xref-bad, info-xref-xfile-alist)
+	(info-xref-filename-heading): Move to output managing section.
+	(info-xref-docstrings): New command checking "Info node	`(foo)Bar'"
+	(info-xref-lock-file-p, info-xref-with-file): New helpers for it.
+	(info-xref-subfile-p): Move to generic section with those two.
+	(info-xref-check-node): New function split from
+	info-xref-check-buffer, shared by info-xref-docstrings.
+	(info-xref-goto-node-p): Move to a checking section with that func.
+	(info-xref-unavail): New counter.
+	(info-xref-check-node): Use it.
+	(info-xref-with-output): Show count of unavailables at end of output.
+	(info-xref-all-info-files): Exclude ".*" dotfiles.  Ignore broken
+	symlinks.  Exclude .texi files.	 Exclude Emacs backup files.
+	(info-xref-check-all-custom): Fix quietening viper-mode and
+	gnus-registry-install -- use setq not let so as not to unbind
+	after load.
+
 2011-01-16  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-abort): Don't quit if search has
