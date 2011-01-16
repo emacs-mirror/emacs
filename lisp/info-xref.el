@@ -479,20 +479,21 @@ in the files, the Lisp code checked doesn't have to be loaded,
 and links can be in the file commentary or elsewhere too.  Even
 .elc files can usually be checked successfully if you don't have
 the sources handy."
-
   (interactive
-   (let* ((default       (and buffer-file-name
+   (let* ((default (and buffer-file-name
                               (file-relative-name buffer-file-name)))
-          (prompt        (if default
-                             (format "Filename with wildcards (%s): "
-                                     default)
-                           "Filename with wildcards: "))
-          (pattern       (read-file-name prompt nil default))
-          (filename-list (file-expand-wildcards pattern
-                                                t))) ;; absolute filenames
-     (eval-and-compile
-       (require 'cl)) ;; for `remove-if'
-     (setq filename-list (remove-if 'info-xref-lock-file-p filename-list))
+          (prompt (if default
+                      (format "Filename with wildcards (%s): "
+                              default)
+                    "Filename with wildcards: "))
+          (pattern (read-file-name prompt nil default))
+          ;; absolute filenames
+          (filename-list (file-expand-wildcards pattern t))
+          newlist)
+     (setq filename-list
+           (dolist (file filename-list (nreverse newlist))
+             (or (info-xref-lock-file-p file)
+                 (push file newlist))))
      (unless filename-list
        (error "No files: %S" pattern))
      (list filename-list)))
