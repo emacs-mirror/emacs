@@ -3,11 +3,11 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2010-12-23.17}
+\def\texinfoversion{2011-01-15.17}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-% 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+% 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -849,6 +849,7 @@ where each line of input produces a line of output.}
     \makevalueexpandable  % we want to expand any @value in FILE.
     \turnoffactive        % and allow special characters in the expansion
     \indexnofonts         % Allow `@@' and other weird things in file names.
+    \wlog{texinfo.tex: doing @include of #1^^J}%
     \edef\temp{\noexpand\input #1 }%
     %
     % This trickery is to read FILE outside of a group, in case it makes
@@ -2070,7 +2071,7 @@ end
 %
 \parseargdef\fonttextsize{%
   \def\textsizearg{#1}%
-  \wlog{doing @fonttextsize \textsizearg}%
+  %\wlog{doing @fonttextsize \textsizearg}%
   %
   % Set \globaldefs so that documents can use this inside @tex, since
   % makeinfo 4.8 does not support it, but we need it nonetheless.
@@ -6505,6 +6506,7 @@ end
     \makevalueexpandable
     \setupverbatim
     \indexnofonts       % Allow `@@' and other weird things in file names.
+    \wlog{texinfo.tex: doing @verbatiminclude of #1^^J}%
     \input #1
     \afterenvbreak
   }%
@@ -8547,7 +8549,7 @@ directory should work if nowhere else does.}
 
   \gdef\DeclareUnicodeCharacter#1#2{%
     \countUTFz = "#1\relax
-    \wlog{\space\space defining Unicode char U+#1 (decimal \the\countUTFz)}%
+    %\wlog{\space\space defining Unicode char U+#1 (decimal \the\countUTFz)}%
     \begingroup
       \parseXMLCharref
       \def\UTFviiiTwoOctets##1##2{%
