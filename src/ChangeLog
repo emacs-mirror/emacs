@@ -33,6 +33,34 @@
 	($(lib)/libgnu.a): New rule.
 	(temacs$(EXEEXT)): Also link $(lib)/libgnu.a.
 
+	* xfns.c (x_real_positions): Fix signedness of local var 'ign'.
+	XGetGeometry wants unsigned int *, not int *, for its last 4 args,
+	so change the type of 'ign' to unsigned int from int.
+
+	* regex.c (analyse_first): Remove unreachable 'continue' statement.
+
+	* xterm.h (struct x_display_info): Remove stray semicolon.
+	The extra semicolon didn't conform to the C standard.
+	Problem reported by Sun cc.
+
+	* lisp.h: Redo flags and XSET slightly to avoid overflow diagnostics.
+	These changes make compilation easier to follow with Sun cc.
+	(ARRAY_MARK_FLAG): Make it signed, so that it can be assigned to
+	EMACS_INT values without provoking overflow diagnostics.
+	(PSEUDOVECTOR_FLAG): Likewise, for consistency.
+	(XSET) [! USE_LSB_TAG]: Use unsigned left shift to avoid overflow
+	diagnostic with signed left shift.
+
+	* fileio.c (make_temp_name): Remove unreachable code.
+
+	* fontset.c (free_realized_fontset): Mark unreachable code with if (0).
+	Previously it was marked by preceding it with "return;", but
+	Sun cc complains about this.
+
+	* coding.c (decode_coding_emacs_mule): Remove unreachable code.
+	This is a typo left over from revno 95090 dated 2009-03-06,
+	which fixed Bug#2370.  Caught by Sun cc.
+
 2011-01-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (inhibit_point_swap): New variable.

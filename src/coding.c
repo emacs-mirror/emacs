@@ -2631,10 +2631,6 @@ decode_coding_emacs_mule (struct coding_system *coding)
 	}
       continue;
 
-      src = src_base;
-      consumed_chars = consumed_chars_base;
-      continue;
-
     invalid_code:
       EMACS_MULE_MAYBE_FINISH_COMPOSITION ();
       src = src_base;
@@ -10901,4 +10897,3 @@ emacs_strerror (int error_number)
 }
 
 #endif /* emacs */
-

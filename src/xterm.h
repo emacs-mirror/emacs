@@ -270,8 +270,8 @@ struct x_display_info
   Atom Xatom_Scrollbar;
 
   /* Atom used in XEmbed client messages.  */
-  Atom Xatom_XEMBED, Xatom_XEMBED_INFO;;
- 
+  Atom Xatom_XEMBED, Xatom_XEMBED_INFO;
+
   /* The frame (if any) which has the X window that has keyboard focus.
      Zero if none.  This is examined by Ffocus_frame in xfns.c.  Note
      that a mere EnterNotify event can set this; if you need to know the
@@ -1112,4 +1112,3 @@ extern Lisp_Object Qx_gtk_map_stock;
    (nr).y = (ry),					\
    (nr).width = (rwidth),				\
    (nr).height = (rheight))
-
