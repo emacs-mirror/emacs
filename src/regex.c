@@ -3999,7 +3999,6 @@ analyse_first (const re_char *p, const re_char *pend, char *fastmap, const int m
 	{
 	case succeed:
 	  return 1;
-	  continue;
 
 	case duplicate:
 	  /* If the first character has to match a backreference, that means
@@ -6735,4 +6734,3 @@ regfree (regex_t *preg)
 WEAK_ALIAS (__regfree, regfree)
 
 #endif /* not emacs  */
-
