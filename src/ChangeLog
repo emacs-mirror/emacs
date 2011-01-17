@@ -1,3 +1,9 @@
+2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* coding.c (decode_coding_emacs_mule): Remove unreachable code.
+	This is a typo left over from revno 95090 dated 2009-03-06,
+	which fixed Bug#2370.  Caught by Sun cc.
+
 2011-01-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (inhibit_point_swap): New variable.
