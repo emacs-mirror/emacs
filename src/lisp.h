@@ -327,13 +327,14 @@ typedef EMACS_INT Lisp_Object;
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #endif /* USE_LISP_UNION_TYPE */
 
-/* In the size word of a vector, this bit means the vector has been marked.  */
+/* In the size word of a vector, this bit means the vector has been marked.
+   (Shift -1 left, not 1, to avoid provoking overflow diagnostics.)  */
 
-#define ARRAY_MARK_FLAG ((EMACS_UINT) 1 << (BITS_PER_EMACS_INT - 1))
+#define ARRAY_MARK_FLAG ((EMACS_INT) -1 << (BITS_PER_EMACS_INT - 1))
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
    some other vector-like object.  */
-#define PSEUDOVECTOR_FLAG ((ARRAY_MARK_FLAG >> 1))
+#define PSEUDOVECTOR_FLAG ((EMACS_INT) 1 << (BITS_PER_EMACS_INT - 2))
 
 /* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
@@ -437,8 +438,9 @@ enum pvec_type
   ((((EMACS_INT) (N)) & VALMASK) | ((EMACS_INT) Lisp_Int) << VALBITS)
 #endif
 
-#define XSET(var, type, ptr) \
-   ((var) = ((EMACS_INT)(type) << VALBITS) + ((EMACS_INT) (ptr) & VALMASK))
+#define XSET(var, type, ptr)				  \
+   ((var) = ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS) \
+	     + ((EMACS_INT) (ptr) & VALMASK)))
 
 #define XPNTR(a) ((EMACS_UINT) ((a) & VALMASK))
 
@@ -3670,4 +3672,3 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 
 
 #endif /* EMACS_LISP_H */
-
