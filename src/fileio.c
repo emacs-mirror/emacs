@@ -740,17 +740,13 @@ make_temp_name (Lisp_Object prefix, int base64_p)
 	       as bad as (and in many cases worse than) throwing the
 	       error, or to ignore the error, which will likely result
 	       in looping through 225307 stat's, which is not only
-	       dog-slow, but also useless since it will fallback to
-	       the errow below, anyway.  */
+	       dog-slow, but also useless since eventually nil would
+	       have to be returned anyway.  */
 	    report_file_error ("Cannot create temporary name for prefix",
 			       Fcons (prefix, Qnil));
 	  /* not reached */
 	}
     }
-
-  error ("Cannot create temporary name for prefix `%s'",
-	 SDATA (prefix));
-  return Qnil;
 }
 
 
@@ -5232,7 +5228,7 @@ auto_save_1 (void)
 
 static Lisp_Object
 do_auto_save_unwind (Lisp_Object arg)  /* used as unwind-protect function */
-                     
+
 {
   FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
   auto_saving = 0;
@@ -5247,7 +5243,7 @@ do_auto_save_unwind (Lisp_Object arg)  /* used as unwind-protect function */
 
 static Lisp_Object
 do_auto_save_unwind_1 (Lisp_Object value)  /* used as unwind-protect function */
-                       
+
 {
   minibuffer_auto_raise = XINT (value);
   return Qnil;
@@ -5873,4 +5869,3 @@ This includes interactive calls to `delete-file' and
   defsubr (&Sunix_sync);
 #endif
 }
-

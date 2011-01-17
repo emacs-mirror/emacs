@@ -1,5 +1,7 @@
 2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c (make_temp_name): Remove unreachable code.
+
 	* fontset.c (free_realized_fontset): Mark unreachable code with if (0).
 	Previously it was marked by preceding it with "return;", but
 	Sun cc complains about this.
