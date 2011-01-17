@@ -629,7 +629,7 @@ x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
       if (rc == Success && actual_type == target_type && !x_had_errors_p (dpy)
           && actual_size == 4 && actual_format == 32)
         {
-          int ign;
+          unsigned int ign;
           Window rootw;
           long *fe = (long *)tmp_data;
 
@@ -759,7 +759,7 @@ x_set_tool_bar_position (struct frame *f,
   if (EQ (new_value, old_value)) return;
 
 #ifdef USE_GTK
-  if (xg_change_toolbar_position (f, new_value)) 
+  if (xg_change_toolbar_position (f, new_value))
     f->tool_bar_position = new_value;
 #endif
 }
@@ -3513,7 +3513,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     }
 
   BLOCK_INPUT;
-                       
+
   /* Set machine name and pid for the purpose of window managers.  */
   set_machine_and_pid_properties(f);
 
@@ -5068,7 +5068,7 @@ Text larger than the specified size is clipped.  */)
 #ifdef USE_GTK
   if (x_gtk_use_system_tooltips)
     {
-      int ok; 
+      int ok;
 
       /* Hide a previous tip, if any.  */
       Fx_hide_tip ();
@@ -6104,4 +6104,3 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
 }
 
 #endif /* HAVE_X_WINDOWS */
-
