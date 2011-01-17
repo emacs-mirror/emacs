@@ -1,4 +1,4 @@
-2011-01-09  Paul Eggert  <eggert@cs.ucla.edu>
+2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Include <unistd.h> unilaterally.
 	* emacsclient.c, etags.c, fakemail.c, make-docfile.c, movemail.c:
@@ -20,8 +20,6 @@
 	as these are now done by gnulib.
 	(GETOPT_H, getopt.h, GETOPTOBJS, GETOPTDEPS, getopt.o, getopt1.o):
 	Remove; now done by gnulib.  All uses removed.
-
-2011-01-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Automate syncing from gnulib.
 	* Makefile.in (EXE_FILES): New macro.
