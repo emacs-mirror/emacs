@@ -1,5 +1,13 @@
 2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Makefile.in: tidy up the building of lib
+	* Makefile.in (am--refresh): Mark as .PHONY.
+	(top_maintainer_clean): Don't remove lib/gnulib.mk m4/gnulib-cache.m4,
+	as they're not rebuilt unless you do a "make sync-from-gnulib"
+	and the former is needed for "configure".
+	(maintainer-clean): Don't recurse into lib, as "make bootstrap-clean"
+	has already removed lib/Makefile.
+
 	* Makefile.in (GNULIB_MODULES): Change ftoastr to dtoastr.
 	This avoids building ftoastr and ldtoastr, which aren't needed.  See
 	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00199.html>.
