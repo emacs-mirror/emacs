@@ -90,5 +90,4 @@
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 3713cf2a-6082-4cb4-8ce2-99d9acaba835
 ;;; mh-inc.el ends here

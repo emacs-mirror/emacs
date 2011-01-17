@@ -144,5 +144,4 @@ path components followed by `..' are removed, along with the `..' itself."
 
 (provide 'url-expand)
 
-;; arch-tag: 7b5f744b-b721-49da-be47-484631680a5a
 ;;; url-expand.el ends here

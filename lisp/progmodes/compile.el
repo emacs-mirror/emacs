@@ -2431,5 +2431,4 @@ The file-structure looks like this:
 
 (provide 'compile)
 
-;; arch-tag: 12465727-7382-4f72-b234-79855a00dd8c
 ;;; compile.el ends here

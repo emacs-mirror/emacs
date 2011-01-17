@@ -991,5 +991,4 @@ system, including many technical ones.  Examples:
  ("\\textreferencemark" ?※)
  )
 
-;; arch-tag: 3daae613-2c53-446e-a0a1-ee2e1ebed15f
 ;;; latin-ltx.el ends here

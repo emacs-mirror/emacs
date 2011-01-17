@@ -197,5 +197,4 @@ dd -> ð"
  ("DD" ?Ð)
  ("Dd" ?Ð))
 
-;; arch-tag: 8cb44078-9c51-4e81-9ef8-7d5b89f62e31
 ;;; croatian.el ends here

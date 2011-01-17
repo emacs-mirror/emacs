@@ -491,5 +491,4 @@ Emacs."
 
 (provide 'eshell)
 
-;; arch-tag: 9d4d5214-0e4e-4e02-b349-39add640d63f
 ;;; eshell.el ends here

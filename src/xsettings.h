@@ -31,5 +31,3 @@ extern const char *xsettings_get_system_normal_font (void);
 
 #endif /* XSETTINGS_H */
 
-/* arch-tag: 2c0f5c49-e925-4452-b778-4c082da6dd72
-   (do not change this comment) */

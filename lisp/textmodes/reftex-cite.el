@@ -1174,5 +1174,4 @@ The sequence in the new file is the same as it was in the old database."
              (length entries))))
 
 
-;; arch-tag: d53d0a5a-ab32-4b52-a846-2a7c3527cd89
 ;;; reftex-cite.el ends here

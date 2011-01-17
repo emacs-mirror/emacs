@@ -532,5 +532,4 @@ Creates FILE and its parent directories if they do not exist."
 
 (provide 'url-util)
 
-;; arch-tag: 24352abc-5a5a-412e-90cd-313b26bed5c9
 ;;; url-util.el ends here

@@ -1169,5 +1169,4 @@ The default is 20.  If LIMIT is negative, do not limit the listing."
 
 (provide 'mule-diag)
 
-;; arch-tag: cd3b607c-2893-45a0-a4fa-a6535754dbee
 ;;; mule-diag.el ends here

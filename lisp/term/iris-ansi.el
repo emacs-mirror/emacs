@@ -328,5 +328,4 @@
     (set-keymap-parent m (keymap-parent input-decode-map))
     (set-keymap-parent input-decode-map m)))
 
-;; arch-tag: b1d0e73a-bb7d-47be-9fb2-6fb126469a1b
 ;;; iris-ansi.el ends here

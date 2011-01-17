@@ -61,5 +61,3 @@ XMenuFindPane(register XMenu *menu, register char *label)
     return (XM_FAILURE);
 }
 
-/* arch-tag: b6c94285-0d1d-4569-a071-b34b63c67a54
-   (do not change this comment) */

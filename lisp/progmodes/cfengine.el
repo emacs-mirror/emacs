@@ -250,5 +250,4 @@ to the action header."
 
 (provide 'cfengine)
 
-;; arch-tag: 6b931be2-1505-4124-afa6-9675971e26d4
 ;;; cfengine.el ends here

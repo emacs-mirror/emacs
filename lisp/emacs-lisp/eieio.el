@@ -2956,5 +2956,4 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 
 (provide 'eieio)
 
-;; arch-tag: c1aeab9c-2938-41a3-842b-1a38bd26e9f2
 ;;; eieio ends here

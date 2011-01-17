@@ -707,5 +707,3 @@ typedef BOOL (WINAPI * AppendMenuW_Proc) (
     IN UINT_PTR,
     IN LPCWSTR);
 
-/* arch-tag: f201d05a-1240-4fc5-8ea4-ca24d4ee5671
-   (do not change this comment) */

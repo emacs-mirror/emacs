@@ -638,5 +638,4 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 
 (provide 'vc-arch)
 
-;; arch-tag: a35c7c1c-5237-429d-88ef-3d718fd2e704
 ;;; vc-arch.el ends here

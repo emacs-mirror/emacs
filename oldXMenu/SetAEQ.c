@@ -28,5 +28,3 @@ XMenuSetAEQ(register XMenu *menu, register int aeq)
     menu->aeq = aeq;
 }
 
-/* arch-tag: 48fc22b4-0722-4852-a044-788444e4a9dc
-   (do not change this comment) */

@@ -60,5 +60,3 @@ extern int face_for_font (struct frame *, Lisp_Object, struct face *);
 
 #endif /* EMACS_FONTSET_H */
 
-/* arch-tag: c27cef7b-3cab-488a-8398-7a4daa96bb77
-   (do not change this comment) */

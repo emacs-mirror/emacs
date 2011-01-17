@@ -1,6 +1,6 @@
 ;;; color.el --- Color manipulation laboratory routines -*- coding: utf-8; -*-
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: html

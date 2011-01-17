@@ -361,5 +361,4 @@ Prefix argument ARG will make the entry nonmarking."
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: c1cb1d67-862a-4264-a01c-41cb4df01f14
 ;;; cal-bahai.el ends here

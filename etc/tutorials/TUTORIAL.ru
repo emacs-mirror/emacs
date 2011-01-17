@@ -1156,4 +1156,3 @@ Copyright (C) 1985, 1996, 1998, 2001, 2002, 2003, 2004,
 ;;; sentence-end-double-space: nil
 ;;; End:
 
-;;; arch-tag: ad4e5698-ea8b-45b7-b236-ed5ad5b72d2b

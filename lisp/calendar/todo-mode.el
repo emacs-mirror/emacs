@@ -973,5 +973,4 @@ If INCLUDE-SEP is non-nil, return point after the separator."
 
 (provide 'todo-mode)
 
-;; arch-tag: 6fd91be5-776e-4464-a109-da4ea0e4e497
 ;;; todo-mode.el ends here

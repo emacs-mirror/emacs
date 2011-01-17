@@ -445,4 +445,3 @@ When called interactively, read the password using `read-passwd'."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: d401c8aa-d938-4255-96a9-3efb64c47e58

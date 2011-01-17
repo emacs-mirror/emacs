@@ -2352,5 +2352,3 @@ used by CCL.  */);
   defsubr (&Sregister_code_conversion_map);
 }
 
-/* arch-tag: bb9a37be-68ce-4576-8d3d-15d750e4a860
-   (do not change this comment) */

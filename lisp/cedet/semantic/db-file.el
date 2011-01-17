@@ -452,5 +452,4 @@ Optional NOERROR prevents errors from being displayed."
 ;; generated-autoload-load-name: "semantic/db-file"
 ;; End:
 
-;; arch-tag: f4a0d9de-6c25-4bf3-aff3-a10c58fd575d
 ;;; semantic/db-file.el ends here

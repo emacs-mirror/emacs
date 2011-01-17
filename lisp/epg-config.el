@@ -147,5 +147,4 @@ Note that the buffer name starts with a space."
 
 (provide 'epg-config)
 
-;; arch-tag: 9aca7cb8-5f63-4bcb-84ee-46fd2db0763f
 ;;; epg-config.el ends here

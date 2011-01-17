@@ -1282,7 +1282,3 @@ the inferior widgets will convert @emph{their} inferior widgets.  If
 the data structure is itself recursive, this conversion is an infinite
 recursion.  The @code{lazy} widget prevents the recursion: it convert
 its @code{:type} argument only when needed.
-
-@ignore
-   arch-tag: d1b8fad3-f48c-4ce4-a402-f73b5ef19bd2
-@end ignore

@@ -2237,7 +2237,3 @@ be loaded through it.
 This variable is ignored if the given @var{library} is statically
 linked into Emacs.
 @end defvar
-
-@ignore
-   arch-tag: 8378814a-30d7-467c-9615-74a80b9988a7
-@end ignore

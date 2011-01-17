@@ -276,5 +276,4 @@ FLAGS can be any number of:
 ;; generated-autoload-load-name: "semantic/analyze/complete"
 ;; End:
 
-;; arch-tag: 97071c7e-2459-4e7a-8875-8cc5bbbc1f4d
 ;;; semantic/analyze/complete.el ends here

@@ -265,5 +265,4 @@ down the SHIFT key while pressing the mouse button."
 
 (provide 'xt-mouse)
 
-;; arch-tag: 84962d4e-fae9-4c13-a9d7-ef4925a4ac03
 ;;; xt-mouse.el ends here

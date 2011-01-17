@@ -111,5 +111,3 @@ XMenuInsertPane(register XMenu *menu, register int p_num, char *label, int activ
     return(p_num);
 }
 
-/* arch-tag: ab94d53d-f05b-4273-82d3-f1b01eb9dc9e
-   (do not change this comment) */

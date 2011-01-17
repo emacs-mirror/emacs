@@ -116,5 +116,3 @@ extern Lisp_Object _temp_category_set;
 extern int word_boundary_p (int, int);
 extern void set_category_set (Lisp_Object, Lisp_Object, Lisp_Object);
 
-/* arch-tag: 309dfe83-c3e2-4d22-8e81-faae5aece0ff
-   (do not change this comment) */

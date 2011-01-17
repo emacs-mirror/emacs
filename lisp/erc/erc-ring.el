@@ -144,4 +144,3 @@ containing a password."
 ;; indent-tabs-mode: nil
 ;; End:
 
-;; arch-tag: b77924a8-a80e-489d-84cd-b351761ea5c8

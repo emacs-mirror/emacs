@@ -59,5 +59,4 @@ This applies only to the current session."
 ;; generated-autoload-file: "rmail.el"
 ;; End:
 
-;; arch-tag: 94614a62-2a0a-4e25-bac9-06f461ed4c60
 ;;; rmailmsc.el ends here

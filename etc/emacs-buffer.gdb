@@ -268,4 +268,3 @@ end
 # mode: gdb-script
 # end:
 
-# arch-tag: 02087f62-2663-4868-977a-1fbb2fc2e7ef

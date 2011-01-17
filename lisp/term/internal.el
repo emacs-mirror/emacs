@@ -604,5 +604,4 @@ list.  You can (and should) also run it if and when the value of
     (run-hooks 'dos-codepage-setup-hook)
     ))
 
-;; arch-tag: eea04c06-7311-4b5a-b531-3c1be1b070af
 ;;; internal.el ends here

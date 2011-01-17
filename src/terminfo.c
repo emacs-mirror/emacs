@@ -49,5 +49,3 @@ tparam (char *string, char *outstring,
   return outstring;
 }
 
-/* arch-tag: a6f96a69-e68f-4e9d-a223-f0b0da26ead5
-   (do not change this comment) */

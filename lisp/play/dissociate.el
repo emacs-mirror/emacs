@@ -99,5 +99,4 @@ Default is 2."
 
 (provide 'dissociate)
 
-;; arch-tag: 90d197d1-409b-45c5-a0b5-fbfb2e06334f
 ;;; dissociate.el ends here

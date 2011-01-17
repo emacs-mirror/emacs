@@ -200,5 +200,4 @@ redisplayed as output is inserted."
 
 (provide 'metamail)
 
-;; arch-tag: 52c0cb6f-d800-4776-9789-f0275cb5490e
 ;;; metamail.el ends here

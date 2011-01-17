@@ -245,5 +245,4 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 
 (provide 'unrmail)
 
-;; arch-tag: 14c6290d-60b2-456f-8909-5c2387de6acb
 ;;; unrmail.el ends here

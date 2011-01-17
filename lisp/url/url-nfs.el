@@ -89,5 +89,4 @@ Each can be used any number of times.")
 
 (provide 'url-nfs)
 
-;; arch-tag: cdf9c9ba-b7d2-4c29-8b48-7ae9bbc0d437
 ;;; url-nfs.el ends here

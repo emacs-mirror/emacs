@@ -667,7 +667,3 @@ navigate to each of the words you want in the list, mark it (e.g. with
 @kbd{S-M-f}), copy it to the list with @kbd{C-c} or @kbd{M-w}, and
 insert a newline after the word in the target list by pressing
 @key{RET}.
-
-@ignore
-   arch-tag: d8da8f96-0928-449a-816e-ff2d3497866c
-@end ignore

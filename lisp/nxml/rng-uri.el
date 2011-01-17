@@ -352,5 +352,4 @@ Both FULL and BASE must be absolute URIs."
 
 (provide 'rng-uri)
 
-;; arch-tag: c7b7b8b8-61d1-48ec-82bc-7001c70b2e9d
 ;;; rng-uri.el ends here

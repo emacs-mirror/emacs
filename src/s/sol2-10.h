@@ -8,5 +8,3 @@
 /* This is needed for the system_process_attributes implementation.  */
 #define _STRUCTURED_PROC 1
 
-/* arch-tag: 7c51a134-5469-4d16-aa00-d69224640eeb
-   (do not change this comment) */

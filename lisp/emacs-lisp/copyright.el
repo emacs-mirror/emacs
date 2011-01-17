@@ -311,5 +311,4 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: b4991afb-b6b1-4590-bebe-e076d9d4aee8
 ;;; copyright.el ends here

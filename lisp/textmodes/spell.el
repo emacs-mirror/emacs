@@ -1,7 +1,7 @@
 ;;; spell.el --- spelling correction interface for Emacs
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp, unix
@@ -168,5 +168,4 @@ for example, \"word\"."
 
 (provide 'spell)
 
-;; arch-tag: 7eabb848-9c76-431a-bcdb-0e0592d2db04
 ;;; spell.el ends here

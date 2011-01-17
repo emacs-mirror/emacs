@@ -91,4 +91,3 @@ s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 /^#undef BSTRING/s|#undef|# undef|
 /^#undef .*$/s|^.*$|/* & */|
 
-# arch-tag: 2acb5571-ff53-4822-9175-95b864b59f7c

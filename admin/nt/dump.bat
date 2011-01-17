@@ -18,6 +18,3 @@ copy temacs.exe obj\i386
 obj\i386\temacs -batch -l loadup dump
 copy obj\i386\emacs.exe .
 
-goto skipArchTag
-   arch-tag: 0ca3036d-3a1e-47ea-87c6-9c0845253496
-:skipArchTag

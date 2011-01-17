@@ -109,5 +109,4 @@ Return the new status of auto encryption (non-nil means on)."
 
 (provide 'epa-hook)
 
-;; arch-tag: f75c8a50-d32e-4eb3-9ec6-9e940c1fc8b5
 ;;; epa-hook.el ends here

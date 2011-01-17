@@ -639,5 +639,3 @@ start_of_text (void)
   return ((char *) 0x10000000);
 }
 
-/* arch-tag: 0783857a-7c2d-456f-a426-58b722d69fd0
-   (do not change this comment) */

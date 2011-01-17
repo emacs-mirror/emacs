@@ -1,6 +1,6 @@
-/* Functions for handle font and other changes dynamically.
-   Copyright (C) 2009, 2010, 2011
-                 Free Software Foundation, Inc.
+/* Functions for handling font and other changes dynamically.
+
+Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -777,5 +777,3 @@ If this variable is nil, Emacs ignores system font changes.  */);
   Fprovide (intern_c_string ("dynamic-setting"), Qnil);
 }
 
-/* arch-tag: 541716ed-2e6b-42e1-8212-3197e01ea61d
-   (do not change this comment) */

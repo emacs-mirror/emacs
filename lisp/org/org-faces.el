@@ -716,6 +716,5 @@ level org-n-level-faces"
 
 (provide 'org-faces)
 
-;; arch-tag: 9dab5f91-c4b9-4d6f-bac3-1f6211ad0a04
 
 ;;; org-faces.el ends here

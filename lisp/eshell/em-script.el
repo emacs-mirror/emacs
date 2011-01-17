@@ -142,5 +142,4 @@ environment, binding ARGS to $1, $2, etc.")
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: a346439d-5ba8-4faf-ac2b-3aacfeaa4647
 ;;; em-script.el ends here

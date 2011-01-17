@@ -1524,7 +1524,3 @@ autofill the current comment.
 @printindex fn
 
 @bye
-
-@ignore
-   arch-tag: 68cf0d8a-55cc-4190-a28d-4984fa56ed1e
-@end ignore

@@ -835,5 +835,3 @@ xaw_creation_table [] =
   {NULL, NULL}
 };
 
-/* arch-tag: fbbd3589-ae1c-41a0-9142-f628cfee6564
-   (do not change this comment) */

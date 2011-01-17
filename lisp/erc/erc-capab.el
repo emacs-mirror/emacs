@@ -202,5 +202,4 @@ PARSED is an `erc-parsed' response struct."
 
 (provide 'erc-capab)
 
-;; arch-tag: 27b6d668-7ee5-4e47-b9f0-27d7a4362062
 ;;; erc-capab.el ends here

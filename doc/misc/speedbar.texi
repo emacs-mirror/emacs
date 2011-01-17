@@ -1253,7 +1253,3 @@ Two good values are @code{nil} and @code{statictag}.
 @bye
 @c  LocalWords:  speedbar's xref slowbar kbd subsubsection
 @c  LocalWords:  keybindings
-
-@ignore
-   arch-tag: e1fc85f0-1eeb-489f-a8d4-a2bfe711fa02
-@end ignore

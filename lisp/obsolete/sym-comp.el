@@ -227,5 +227,4 @@ completion:
 
 (provide 'sym-comp)
 
-;; arch-tag: 6fcce616-f3c4-4751-94b4-710e83144124
 ;;; sym-comp.el ends here

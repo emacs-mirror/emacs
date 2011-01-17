@@ -483,5 +483,4 @@
         (indent-line-to indent)))))
 
 (provide 'css-mode)
-;; arch-tag: b4d8b8e2-b130-4e74-b3aa-cd8f1ab659d0
 ;;; css-mode.el ends here

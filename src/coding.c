@@ -10902,5 +10902,3 @@ emacs_strerror (int error_number)
 
 #endif /* emacs */
 
-/* arch-tag: 3a3a2b01-5ff6-4071-9afe-f5b808d9229d
-   (do not change this comment) */

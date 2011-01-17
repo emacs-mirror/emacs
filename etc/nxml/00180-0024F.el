@@ -180,4 +180,3 @@
     ("LATIN SMALL LETTER Y WITH MACRON" #x0233)
     ))
 
-;; arch-tag: d2a4e7e0-0d3a-4a29-994e-f5d0ed62cea2

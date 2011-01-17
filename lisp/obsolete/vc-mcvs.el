@@ -585,5 +585,4 @@ and that it passes `vc-mcvs-global-switches' to it before FLAGS."
 ;;
 ;; ********** READ THIS! **********
 
-;; arch-tag: a39c7c1c-5247-429d-88df-dd7187d2e704
 ;;; vc-mcvs.el ends here

@@ -106,5 +106,3 @@ int fchown (int fd, unsigned uid, unsigned gid);
 
 /* end of ntlib.h */
 
-/* arch-tag: 93444f66-7b98-4aa5-a5cd-01444094af28
-   (do not change this comment) */

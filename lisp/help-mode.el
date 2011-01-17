@@ -829,5 +829,4 @@ help buffer by other means."
 
 (provide 'help-mode)
 
-;; arch-tag: 850954ae-3725-4cb4-8e91-0bf6d52d6b0b
 ;;; help-mode.el ends here

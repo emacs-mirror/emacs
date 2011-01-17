@@ -59,5 +59,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    this avoids the assembler bug.  */
 #define DBL_MIN_REPLACEMENT 2.2250738585072019e-308
 
-/* arch-tag: 978cb578-1e25-4a60-819b-adae0972aa78
-   (do not change this comment) */

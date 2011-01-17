@@ -374,5 +374,3 @@ stat (const char * path, struct stat * buf)
   return 0;
 }
 
-/* arch-tag: 7b63fb83-70ee-4124-8822-54e53e5d0773
-   (do not change this comment) */

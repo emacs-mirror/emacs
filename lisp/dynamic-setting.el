@@ -107,4 +107,3 @@ Changes can be
 (define-key special-event-map [config-changed-event]
   'dynamic-setting-handle-config-changed-event)
 
-;; arch-tag: 3a57e78f-1cd6-48b6-ab75-98f160dcc017

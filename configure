@@ -12262,23 +12262,23 @@ fi
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 > 2.2.0" >&5
-$as_echo_n "checking for libxml-2.0 > 2.2.0... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 > 2.6.17" >&5
+$as_echo_n "checking for libxml-2.0 > 2.6.17... " >&6; }
 
-        if $PKG_CONFIG --exists "libxml-2.0 > 2.2.0" 2>&5; then
+        if $PKG_CONFIG --exists "libxml-2.0 > 2.6.17" 2>&5; then
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
             succeeded=yes
 
             { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBXML2_CFLAGS" >&5
 $as_echo_n "checking LIBXML2_CFLAGS... " >&6; }
-            LIBXML2_CFLAGS=`$PKG_CONFIG --cflags "libxml-2.0 > 2.2.0"|sed -e 's,///*,/,g'`
+            LIBXML2_CFLAGS=`$PKG_CONFIG --cflags "libxml-2.0 > 2.6.17"|sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBXML2_CFLAGS" >&5
 $as_echo "$LIBXML2_CFLAGS" >&6; }
 
             { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBXML2_LIBS" >&5
 $as_echo_n "checking LIBXML2_LIBS... " >&6; }
-            LIBXML2_LIBS=`$PKG_CONFIG --libs "libxml-2.0 > 2.2.0"|sed -e 's,///*,/,g'`
+            LIBXML2_LIBS=`$PKG_CONFIG --libs "libxml-2.0 > 2.6.17"|sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBXML2_LIBS" >&5
 $as_echo "$LIBXML2_LIBS" >&6; }
         else
@@ -12288,7 +12288,7 @@ $as_echo "no" >&6; }
             LIBXML2_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
             ## do set a variable so people can do so.
-            LIBXML2_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "libxml-2.0 > 2.2.0"`
+            LIBXML2_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "libxml-2.0 > 2.6.17"`
 
         fi
 

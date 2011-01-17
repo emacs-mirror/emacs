@@ -982,7 +982,3 @@ Jean-Philippe Theberge @email{jphil@@acs.pagesjaunes.fr}
 @include doclicense.texi
 
 @bye
-
-@ignore
-   arch-tag: 10a4ee1c-7ef4-4c06-8b7a-f975e39f0dec
-@end ignore

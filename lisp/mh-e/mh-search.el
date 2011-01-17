@@ -1931,5 +1931,4 @@ folder buffer."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 607762ad-0dff-4fe1-a27e-6c0dde0dcc47
 ;;; mh-search ends here

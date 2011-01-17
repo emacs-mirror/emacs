@@ -371,5 +371,3 @@ main (int argc, char *argv[])
   return 0;
 }
 
-/* arch-tag: f923609d-b781-4ef4-abce-ca0da29cbbf0
-   (do not change this comment) */

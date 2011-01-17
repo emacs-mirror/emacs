@@ -134,4 +134,3 @@
     ("BLACK CIRCLE WITH TWO WHITE DOTS" #x2689)
     ))
 
-;; arch-tag: b976b52e-eefc-4aa3-b96c-7f4998429f77

@@ -1192,7 +1192,3 @@ category table.  It inserts the descriptions in a buffer, and then
 displays that buffer.  If @var{buffer-or-name} is non-@code{nil}, it
 describes the category table of that buffer instead.
 @end deffn
-
-@ignore
-   arch-tag: 4d914e96-0283-445c-9233-75d33662908c
-@end ignore

@@ -159,5 +159,3 @@ extern pthread_t main_thread;
 #else /* not FORWARD_SIGNAL_TO_MAIN_THREAD */
 #define SIGNAL_THREAD_CHECK(signo)
 #endif /* not FORWARD_SIGNAL_TO_MAIN_THREAD */
-/* arch-tag: 4580e86a-340d-4574-9e11-a742b6e1a152
-   (do not change this comment) */

@@ -281,5 +281,4 @@ is non-nil."
 
 (provide 'cal-menu)
 
-;; arch-tag: aa81cf73-ce89-48a4-97ec-9ef861e87fe9
 ;;; cal-menu.el ends here

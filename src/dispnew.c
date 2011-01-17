@@ -6646,5 +6646,3 @@ If nil, never pre-empt redisplay.  */);
     }
 }
 
-/* arch-tag: 8d812b1f-04a2-4195-a9c4-381f8457a413
-   (do not change this comment) */

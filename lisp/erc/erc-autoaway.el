@@ -286,4 +286,3 @@ activer server buffer available."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 16fc241e-8358-4b56-9fe2-116bdd0ba3bc

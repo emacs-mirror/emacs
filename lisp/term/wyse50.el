@@ -156,5 +156,4 @@ M-r	M-x move-to-window-line, Funct up-arrow or down-arrow are similar"
   ;;                   (nth 1 key-definition)))
   (fset 'enable-arrow-keys nil))
 
-;; arch-tag: b6a05d37-eead-4cf6-b997-0f956c68881c
 ;;; wyse50.el ends here

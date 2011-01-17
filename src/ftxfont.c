@@ -385,5 +385,3 @@ syms_of_ftxfont (void)
   register_font_driver (&ftxfont_driver, NULL);
 }
 
-/* arch-tag: 59bd3469-5330-413f-b29d-1aa36492abe8
-   (do not change this comment) */

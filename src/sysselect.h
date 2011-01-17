@@ -54,5 +54,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define select sys_select
 #endif
 
-/* arch-tag: 36d05500-8cf6-4847-8e78-6721f18c06ef
-   (do not change this comment) */

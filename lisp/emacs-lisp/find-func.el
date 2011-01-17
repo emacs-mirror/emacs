@@ -563,5 +563,4 @@ Set mark before moving, if the buffer already existed."
 
 (provide 'find-func)
 
-;; arch-tag: 43ecd81c-74dc-4d9a-8f63-a61e55670d64
 ;;; find-func.el ends here

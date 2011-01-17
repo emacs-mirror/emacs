@@ -45,4 +45,3 @@ export texinputdir := $(srcdir)";"$(TEXINPUTS)
 
 /^mkinfodir *=/s| @.*$|@command.com /c if not exist ..\\..\\info\\emacs mkdir ..\\..\\info|
 
-# arch-tag: defe1001-f35a-47f7-9635-3f5d33ee5e97

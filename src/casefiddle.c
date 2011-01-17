@@ -443,5 +443,3 @@ keys_of_casefiddle (void)
   initial_define_key (meta_map, 'c', "capitalize-word");
 }
 
-/* arch-tag: 60a73c66-5489-47e7-a81f-cead4057c526
-   (do not change this comment) */

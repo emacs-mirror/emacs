@@ -676,5 +676,4 @@ If ALIST is non-nil, the new pairs are prepended to it."
 ;; byte-compile-warnings: (not cl-functions)
 ;; End:
 
-;; arch-tag: 5f07fa74-f153-4524-9303-21f5be125851
 ;;; cl.el ends here

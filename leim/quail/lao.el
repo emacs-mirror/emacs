@@ -210,5 +210,4 @@ you need to re-load it to properly re-initialize related alists.")
     (v-state (lao-vowel-key-alist . t-state))
     (t-state lao-tone-key-alist))))
 
-;; arch-tag: 23863a30-a8bf-402c-b7ce-c517a7aa8570
 ;;; lao.el ends here

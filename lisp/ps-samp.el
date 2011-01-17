@@ -309,5 +309,4 @@
 
 (provide 'ps-samp)
 
-;; arch-tag: 99c415d3-be39-43c6-aa32-7ee33ba19600
 ;;; ps-samp.el ends here

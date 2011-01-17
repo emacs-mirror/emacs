@@ -981,5 +981,3 @@ a way to turn themselves off when a mouse command switches windows.  */);
   defsubr (&Sprefix_numeric_value);
 }
 
-/* arch-tag: a3a7cad7-bcac-42ce-916e-1bd2546ebf37
-   (do not change this comment) */

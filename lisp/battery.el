@@ -553,5 +553,4 @@ MATCH-NUM in the match.  Otherwise, return nil."
 
 (provide 'battery)
 
-;; arch-tag: 65916f50-4754-4b6b-ac21-0b510f545a37
 ;;; battery.el ends here

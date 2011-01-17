@@ -1405,5 +1405,4 @@ keys as being transformed into ( and ) respectively.  For ( and ), use
 ;; coding: iso-2022-7bit
 ;; End:
 
-;; arch-tag: e6d34b16-8710-4181-a17e-819a1df0334f
 ;;; cyrillic.el ends here

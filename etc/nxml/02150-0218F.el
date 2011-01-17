@@ -50,4 +50,3 @@
     ("ROMAN NUMERAL REVERSED ONE HUNDRED" #x2183)
     ))
 
-;; arch-tag: 9931b436-670d-471f-8214-f4c4454ae841

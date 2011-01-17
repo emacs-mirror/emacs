@@ -171,5 +171,4 @@ refreshed before dumping the result."
 
 (provide 'semantic/db-ref)
 
-;; arch-tag: bea73e70-dbbe-4c30-a58d-289dc3a40172
 ;;; semantic/db-ref.el ends here

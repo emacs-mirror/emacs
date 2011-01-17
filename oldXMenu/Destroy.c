@@ -115,5 +115,3 @@ XMenuDestroy(Display *display, register XMenu *menu)
     free(menu);
 }
 
-/* arch-tag: 44c9589f-5893-46fc-bc23-1b03a7f9c015
-   (do not change this comment) */

@@ -1,6 +1,7 @@
 /* machine description file for AMD x86-64.
-   Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-     Free Software Foundation, Inc.
+
+Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+  2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -39,5 +40,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 #undef DATA_SEG_BITS
 
-/* arch-tag: 8a5e001d-e12e-4692-a3a6-0b15ba271c6e
-   (do not change this comment) */

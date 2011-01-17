@@ -2076,5 +2076,4 @@ POS gives the position where EVENT occurred."
 
 (provide 'newst-treeview)
 
-;; arch-tag: 5dbaff48-1f3e-4fc6-8ebd-e966fc90d2d4
 ;;; newst-treeview.el ends here

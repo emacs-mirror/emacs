@@ -1141,5 +1141,3 @@ See The Unicode Standard for the meaning of those values.  */);
 
 #endif /* emacs */
 
-/* arch-tag: b6665960-3c3d-4184-85cd-af4318197999
-   (do not change this comment) */

@@ -196,5 +196,4 @@ TYPE USER PASSWORD HOST PORTSPEC FILENAME TARGET ATTRIBUTES FULLNESS."
 
 (provide 'url-parse)
 
-;; arch-tag: f338325f-71ab-4bee-93cc-78fb9a03d403
 ;;; url-parse.el ends here

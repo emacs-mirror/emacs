@@ -121,5 +121,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    you should also check `etc/MACHINES' to make sure its descriptions
    of known problems in that configuration should be updated.  */
 
-/* arch-tag: 4b426b11-cb2e-4c0e-a488-e663f76a0515
-   (do not change this comment) */

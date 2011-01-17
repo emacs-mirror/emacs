@@ -223,4 +223,3 @@ to RFC and send the LIST header (#321) at start of list transmission."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 99c5f9cb-6bac-4224-86bf-e394768cd1d0

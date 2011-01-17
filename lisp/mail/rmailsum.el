@@ -1847,5 +1847,4 @@ the summary is only showing a subset of messages."
 ;; generated-autoload-file: "rmail.el"
 ;; End:
 
-;; arch-tag: 80b0a27a-a50d-4f37-9466-83d32d1e0ca8
 ;;; rmailsum.el ends here

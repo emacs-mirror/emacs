@@ -1958,5 +1958,3 @@ xm_manage_resizing (Widget w, Boolean flag)
   XtVaSetValues (w, XtNallowShellResize, flag, NULL);
 }
 
-/* arch-tag: 73976f64-73b2-4600-aa13-d9ede20ee965
-   (do not change this comment) */

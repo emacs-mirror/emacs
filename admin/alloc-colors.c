@@ -112,5 +112,3 @@ main (int argc, char **argv)
   return 0;
 }
 
-/* arch-tag: f1be90ac-5b70-43c2-835e-5a6432a25145
-   (do not change this comment) */

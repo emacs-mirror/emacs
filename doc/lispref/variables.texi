@@ -1929,7 +1929,3 @@ Attempting to assign them any other value will result in an error:
 (setq window-min-height 5.0)
 @error{} Wrong type argument: integerp, 5.0
 @end example
-
-@ignore
-   arch-tag: 5ff62c44-2b51-47bb-99d4-fea5aeec5d3e
-@end ignore

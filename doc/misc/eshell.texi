@@ -1015,7 +1015,3 @@ Since it keeps the cursor up where the command was invoked.
 
 @printindex ky
 @bye
-
-@ignore
-   arch-tag: 776409ba-cb15-42b9-b2b6-d2bdc7ebad01
-@end ignore

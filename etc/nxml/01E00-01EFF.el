@@ -247,4 +247,3 @@
     ("LATIN SMALL LETTER Y WITH TILDE" #x1EF9)
     ))
 
-;; arch-tag: 67862606-3d2a-4063-b666-45ccd6edff6b

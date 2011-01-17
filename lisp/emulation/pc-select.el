@@ -983,5 +983,4 @@ but before calling PC Selection mode):
       (setq pc-select-key-bindings-alist nil
 	    pc-select-saved-settings-alist nil))))
 
-;; arch-tag: 10697b70-ae07-4f3e-ad23-7814a3f418c2
 ;;; pc-select.el ends here

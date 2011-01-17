@@ -1467,5 +1467,4 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
 
 (provide 'vc-rcs)
 
-;; arch-tag: 759b4916-5b0d-431d-b647-b185b8c652cf
 ;;; vc-rcs.el ends here

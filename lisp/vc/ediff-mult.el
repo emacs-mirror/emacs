@@ -2474,5 +2474,4 @@ for operation, or simply indicate which are equal files.  If it is nil, then
 ;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;; End:
 
-;; arch-tag: c8a76898-f96f-4d9c-be9d-129134017188
 ;;; ediff-mult.el ends here

@@ -346,4 +346,3 @@
     ("ETHIOPIC NUMBER TEN THOUSAND" #x137C)
     ))
 
-;; arch-tag: a34092f4-c605-4c01-b619-222a1241853d

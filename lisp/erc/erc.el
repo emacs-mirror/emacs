@@ -6529,4 +6529,3 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: d19587f6-627e-48c1-8d86-58595fa3eca3

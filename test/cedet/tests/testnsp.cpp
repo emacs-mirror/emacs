@@ -27,4 +27,3 @@ void myfcn_not_in_ns (void) {
     ; // #1# ( "fromchild" "fromroot" )
 }
 
-// arch-tag: 2e9c6bf7-1574-440f-ba66-5c8fe034cdec

@@ -525,5 +525,4 @@ Pass ARGS to format to create the log message."
 
 (provide 'semantic-ia-utest)
 
-;; arch-tag: 03ede3fb-7ef0-4500-a7c2-bbf647957310
 ;;; semantic-ia-utest.el ends here

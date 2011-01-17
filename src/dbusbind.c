@@ -2360,5 +2360,3 @@ be called when the D-Bus reply message arrives.  */);
 
 #endif /* HAVE_DBUS */
 
-/* arch-tag: 0e828477-b571-4fe4-b559-5c9211bc14b8
-   (do not change this comment) */

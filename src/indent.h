@@ -76,5 +76,3 @@ void recompute_width_table (struct buffer *buf,
                             struct Lisp_Char_Table *disptab);
 
 
-/* arch-tag: f9feb373-5bff-4f4f-9198-94805d00cfd7
-   (do not change this comment) */

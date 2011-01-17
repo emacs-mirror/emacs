@@ -177,5 +177,4 @@ Signals an error if something goes wrong."
 
 (provide 'newsticker-testsuite)
 
-;; arch-tag: e6c09af2-cc7a-4373-8f5f-9c36699ec34c
 ;;; newsticker-testsuite.el ends here

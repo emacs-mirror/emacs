@@ -1181,5 +1181,4 @@ static char * visit_xpm[] = {
 
 (provide 'newst-reader)
 
-;; arch-tag: c604b701-bdf1-4fc1-8d05-5fabd1939533
 ;;; newst-reader.el ends here

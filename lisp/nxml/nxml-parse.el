@@ -315,5 +315,4 @@ same way as well-formedness error."
 
 (provide 'nxml-parse)
 
-;; arch-tag: fc19639b-1bff-4673-9992-f539da89ba1e
 ;;; nxml-parse.el ends here

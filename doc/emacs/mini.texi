@@ -654,7 +654,3 @@ password (@pxref{Killing}).  You may type either @key{RET} or
 @key{ESC} to submit the password.  Any other self-inserting character
 key inserts the associated character into the password, and all other
 input is ignored.
-
-@ignore
-   arch-tag: ba913cfd-b70e-400f-b663-22b2c309227f
-@end ignore

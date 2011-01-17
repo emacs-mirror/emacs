@@ -329,5 +329,4 @@ following the containing message."
 ;; generated-autoload-file: "rmail.el"
 ;; End:
 
-;; arch-tag: 3a28b9fb-c1f5-43ef-9278-285f3e4b874d
 ;;; undigest.el ends here

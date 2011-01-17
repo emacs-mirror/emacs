@@ -58,5 +58,3 @@ extern void map_keymap_canonical (Lisp_Object map,
 
 #endif
 
-/* arch-tag: 7400d5a1-ef0b-43d0-b366-f4d678bf3ba2
-   (do not change this comment) */

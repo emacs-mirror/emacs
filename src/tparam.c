@@ -278,5 +278,3 @@ main (argc, argv)
 
 #endif /* DEBUG */
 
-/* arch-tag: 83f7b5ac-a808-4f75-b87a-123de009b402
-   (do not change this comment) */

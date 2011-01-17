@@ -850,5 +850,4 @@ Loads the variable `hfy-rgb-txt-colour-map', which is used by
 ;; generated-autoload-file: "htmlfontify.el"
 ;; End:
 
-;; arch-tag: dff7feea-add4-48ba-937c-e79ac40cec9b
 ;;; hfy-cmap.el ends here

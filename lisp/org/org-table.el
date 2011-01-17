@@ -4393,6 +4393,5 @@ list of the fields in the rectangle ."
 
 (provide 'org-table)
 
-;; arch-tag: 4d21cfdd-0268-440a-84b0-09237a0fe0ef
 
 ;;; org-table.el ends here

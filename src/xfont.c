@@ -1114,5 +1114,3 @@ syms_of_xfont (void)
   register_font_driver (&xfont_driver, NULL);
 }
 
-/* arch-tag: 23c5f366-a5ee-44b7-a3b7-90d6da7fd749
-   (do not change this comment) */

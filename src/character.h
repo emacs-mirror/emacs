@@ -644,5 +644,3 @@ extern Lisp_Object Vscript_representative_chars;
 
 #endif /* EMACS_CHARACTER_H */
 
-/* arch-tag: 4ef86004-2eff-4073-8cea-cfcbcf7188ac
-   (do not change this comment) */

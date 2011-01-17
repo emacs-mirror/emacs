@@ -1052,5 +1052,4 @@ current, and kill the buffer that visits the link."
 
 (provide 'vc-hooks)
 
-;; arch-tag: 2e5a6fa7-1d30-48e2-8bd0-e3d335f04f32
 ;;; vc-hooks.el ends here

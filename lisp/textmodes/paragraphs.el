@@ -529,5 +529,4 @@ the current sentence with the one containing the mark."
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: e727eb1a-527a-4464-b9d7-9d3ec0d1a575
 ;;; paragraphs.el ends here

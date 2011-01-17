@@ -281,5 +281,4 @@ in `.emacs'."
 
 (provide 'disp-table)
 
-;; arch-tag: ffe4c28c-960c-47aa-b8a8-ae89d371ffc7
 ;;; disp-table.el ends here

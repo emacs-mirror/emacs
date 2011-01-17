@@ -609,5 +609,4 @@ In other respects, this behaves like `end-of-buffer', which see."
 
 (provide 'mailabbrev)
 
-;; arch-tag: 5aa2d901-73f8-4ad7-b73c-4802282ad2ff
 ;;; mailabbrev.el ends here

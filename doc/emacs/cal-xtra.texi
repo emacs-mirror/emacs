@@ -900,7 +900,3 @@ for example in the European style to @var{day}, @var{month}, @var{year}.)
 @var{mark} which specifies how to mark the date in the calendar display.
 If one of these functions decides that it applies to a certain date,
 it returns a value that contains @var{mark}, as described above.
-
-@ignore
-   arch-tag: 52cb299f-fd1f-4616-bfe6-91b988669431
-@end ignore

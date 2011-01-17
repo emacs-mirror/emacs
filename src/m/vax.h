@@ -32,5 +32,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_FTIME
 
-/* arch-tag: 508bdf7a-01a0-4ce0-8eba-0704d0df55a0
-   (do not change this comment) */

@@ -466,5 +466,4 @@ If there is no such element in the tree, the value is nil."
 
 (provide 'avl-tree)
 
-;; arch-tag: 47e26701-43c9-4222-bd79-739eac6357a9
 ;;; avl-tree.el ends here

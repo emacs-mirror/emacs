@@ -200,5 +200,3 @@ extern void delete_read_fd (int fd);
 extern void add_write_fd (int fd, fd_callback func, void *data);
 extern void delete_write_fd (int fd);
 
-/* arch-tag: dffedfc4-d7bc-4b58-a26f-c16155449c72
-   (do not change this comment) */

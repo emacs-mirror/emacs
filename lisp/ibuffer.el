@@ -3015,5 +3015,4 @@ defaults to one.
 ;; coding: iso-8859-1
 ;; End:
 
-;; arch-tag: 72581688-0603-4954-b8cf-837c700f62e8
 ;;; ibuffer.el ends here

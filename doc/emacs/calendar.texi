@@ -1709,7 +1709,3 @@ data in Emacs from the file.
 @ifnottex
 @include cal-xtra.texi
 @end ifnottex
-
-@ignore
-   arch-tag: 4531ef09-9df3-449d-9c52-2b5a4a337f92
-@end ignore

@@ -1,7 +1,7 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-                 Free Software Foundation, Inc.
+		 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+		 2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3699,5 +3699,3 @@ The value the function returns is not used.  */);
   defsubr (&Sbacktrace_frame);
 }
 
-/* arch-tag: 014a07aa-33ab-4a8f-a3d2-ee8a4a9ff7fb
-   (do not change this comment) */

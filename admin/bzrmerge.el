@@ -115,7 +115,7 @@ are both lists of revnos, in oldest-first order."
               (re-search-forward "^message:\n")
               (while (and (not skip)
                           (re-search-forward
-                           "back[- ]?port\\|merge\\|re-?generate\\|bump version" nil t))
+                           "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version" nil t))
                 (let ((str (buffer-substring (line-beginning-position)
                                              (line-end-position))))
                   (when (string-match "\\` *" str)
@@ -173,7 +173,8 @@ are both lists of revnos, in oldest-first order."
             ))
           ;; Try to resolve the conflicts.
           (cond
-           ((member file '("configure" "lisp/ldefs-boot.el"))
+           ((member file '("configure" "lisp/ldefs-boot.el"
+                           "lisp/emacs-lisp/cl-loaddefs.el"))
             (call-process "bzr" nil t nil "revert" file)
             (revert-buffer nil 'noconfirm))
            (t

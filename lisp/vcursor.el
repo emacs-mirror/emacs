@@ -1144,5 +1144,4 @@ line is treated like ordinary characters."
 
 (provide 'vcursor)
 
-;; arch-tag: cdfe1cdc-2c46-4046-88e4-ed57d20f7aca
 ;;; vcursor.el ends here

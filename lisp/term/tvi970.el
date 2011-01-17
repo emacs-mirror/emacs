@@ -117,5 +117,4 @@ With a negative argument, select numeric keypad mode."
   (send-string-to-terminal
    (if (terminal-parameter nil 'tvi970-keypad-numeric) "\e=" "\e>")))
 
-;; arch-tag: c1334cf0-1462-41c3-a963-c077d175f8f0
 ;;; tvi970.el ends here

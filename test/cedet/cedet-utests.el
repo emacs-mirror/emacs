@@ -512,5 +512,4 @@ When optional NO-ERROR don't throw an error if we can't run tests."
 
 (provide 'cedet-utests)
 
-;; arch-tag: ace16290-4119-4df0-b33c-8c6b809f420d
 ;;; cedet-utests.el ends here

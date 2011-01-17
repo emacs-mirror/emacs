@@ -1068,4 +1068,3 @@ switch back to the last non-ERC buffer visited.  Next is defined by
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 11b439f5-e5d7-4c6c-bb3f-eda98f9b0ac1

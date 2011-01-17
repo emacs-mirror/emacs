@@ -447,7 +447,3 @@ mode only until the mark is deactivated.  One reason you may want to
 use them is that some commands operate on the entire buffer instead of
 the region when Transient Mark mode is off.  Enabling Transient Mark
 mode momentarily gives you a way to use these commands on the region.
-
-@ignore
-   arch-tag: f35e4d82-911b-4cfc-a3d7-3c87b2abba20
-@end ignore

@@ -938,4 +938,3 @@ Current token after parse is token following ]."
 
 ;;; rng-cmpct.el
 
-;; arch-tag: 90395eb1-283b-4146-bbc1-6d6ef1704e57

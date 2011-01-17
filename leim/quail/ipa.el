@@ -516,5 +516,4 @@ displays them, incorrectly, as separate from the modified glyphs.")
   (quail-defrule (format "%s_" implosive-x-sampa)
 		 'ipa-x-sampa-underscore-implosive))
 
-;; arch-tag: cf2614cc-ecce-4ef5-ba51-37faeed41691
 ;;; ipa.el ends here

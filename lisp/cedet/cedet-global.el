@@ -186,5 +186,4 @@ If a database already exists, then just update it."
 
 (provide 'cedet-global)
 
-;; arch-tag: 0d0d3ac2-91ef-4820-bb2b-1d59ccf38392
 ;;; cedet-global.el ends here

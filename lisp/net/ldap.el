@@ -557,7 +557,8 @@ an alist of attribute/value pairs."
 	       (not (equal "" sizelimit)))
 	  (setq arglist (nconc arglist (list (format "-z%s" sizelimit)))))
       (apply #'call-process ldap-ldapsearch-prog
-	     nil buf nil
+	     ;; Ignore stderr, which can corrupt results
+	     nil (list buf nil) nil
 	     (append arglist ldap-ldapsearch-args filter))
       (insert "\n")
       (goto-char (point-min))

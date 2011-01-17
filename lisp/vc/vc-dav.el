@@ -186,5 +186,4 @@ It should return a status of either 0 (no differences found), or
 
 (provide 'vc-dav)
 
-;; arch-tag: 0a0fb9fe-8190-4c0a-a179-5c291d3a467e
 ;;; vc-dav.el ends here

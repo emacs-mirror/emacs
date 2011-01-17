@@ -2676,5 +2676,3 @@ syms_of_ftfont (void)
   register_font_driver (&ftfont_driver, NULL);
 }
 
-/* arch-tag: 7cfa432c-33a6-4988-83d2-a82ed8604aca
-   (do not change this comment) */

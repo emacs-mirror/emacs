@@ -1083,7 +1083,6 @@ A and B must be strings or nil."
 
 (provide 'org-mobile)
 
-;; arch-tag: ace0e26c-58f2-4309-8a61-05ec1535f658
 
 ;;; org-mobile.el ends here
 

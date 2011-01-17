@@ -808,5 +808,3 @@ pp_cache (struct region_cache *c)
     }
 }
 
-/* arch-tag: 98c29f3f-2ca2-4e3a-92f0-f2249200a17d
-   (do not change this comment) */

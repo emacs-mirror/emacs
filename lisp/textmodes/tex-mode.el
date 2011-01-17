@@ -2915,5 +2915,4 @@ There might be text before point."
 
 (provide 'tex-mode)
 
-;; arch-tag: c0a680b1-63aa-4547-84b9-4193c29c0080
 ;;; tex-mode.el ends here

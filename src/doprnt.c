@@ -279,5 +279,3 @@ doprnt (char *buffer, register int bufsize, const char *format,
   return bufptr - buffer;
 }
 
-/* arch-tag: aa0ab528-7c5f-4c73-894c-aa2526a1efb3
-   (do not change this comment) */

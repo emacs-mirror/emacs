@@ -894,5 +894,3 @@ extern int window_box_text_cols (struct window *w);
 
 #endif /* not WINDOW_H_INCLUDED */
 
-/* arch-tag: d4a6942f-e433-4ffe-ac10-2c3574f28577
-   (do not change this comment) */

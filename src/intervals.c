@@ -2565,5 +2565,3 @@ set_intervals_multibyte (int multi_flag)
 			       BEG, BEG_BYTE, Z, Z_BYTE);
 }
 
-/* arch-tag: 3d402b60-083c-4271-b4a3-ebd9a74bfe27
-   (do not change this comment) */

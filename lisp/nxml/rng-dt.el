@@ -61,5 +61,4 @@ a datatype library.")
 
 (provide 'rng-dt)
 
-;; arch-tag: 1dca90f1-8dae-4dd4-b61f-fade4452c014
 ;;; rng-dt.el ends here

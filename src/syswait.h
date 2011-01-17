@@ -58,5 +58,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #endif /* EMACS_SYSWAIT_H */
 
-/* arch-tag: 7e5d9719-ec66-4b6f-89bb-563eea16a899
-   (do not change this comment) */

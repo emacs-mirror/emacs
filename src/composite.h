@@ -326,5 +326,3 @@ EXFUN (Fcomposition_get_gstring, 4);
 
 #endif /* not EMACS_COMPOSITE_H */
 
-/* arch-tag: 59524d89-c645-47bd-b5e6-65e861690118
-   (do not change this comment) */

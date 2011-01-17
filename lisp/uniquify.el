@@ -508,5 +508,4 @@ For use on `kill-buffer-hook'."
 
 (provide 'uniquify)
 
-;; arch-tag: e763faa3-56c9-4903-8eb8-26e1c45a0065
 ;;; uniquify.el ends here

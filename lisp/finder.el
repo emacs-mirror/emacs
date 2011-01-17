@@ -428,5 +428,4 @@ Delete the window and kill all Finder-related buffers."
 
 (provide 'finder)
 
-;; arch-tag: ec85ff49-8cb8-41f5-a63f-9131d53ce2c5
 ;;; finder.el ends here

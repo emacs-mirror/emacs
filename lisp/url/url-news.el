@@ -130,5 +130,4 @@
 
 (provide 'url-news)
 
-;; arch-tag: 8975be13-04e8-4d38-bfff-47918e3ad311
 ;;; url-news.el ends here

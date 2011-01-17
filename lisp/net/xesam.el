@@ -918,5 +918,4 @@ Example:
 ;;     yahoo, ebay, ...
 ;;   - Construct complex queries via widgets, like in mairix.el.
 
-;; arch-tag: 7fb9fc6c-c2ff-4bc7-bb42-bacb80cce2b2
 ;;; xesam.el ends here

@@ -147,4 +147,3 @@ See also `play-sound-file'."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 53657d1d-007f-4a20-91c1-588e71cf0cee

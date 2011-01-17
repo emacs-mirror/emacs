@@ -189,5 +189,4 @@ See `calendar-frame-setup' for more information."
 
 (provide 'cal-x)
 
-;; arch-tag: c6dbddca-ae84-442d-87fc-244b76e38e17
 ;;; cal-x.el ends here

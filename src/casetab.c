@@ -304,5 +304,3 @@ syms_of_casetab (void)
   defsubr (&Sset_standard_case_table);
 }
 
-/* arch-tag: e06388ad-99fe-40ec-ba67-9d010fcc4916
-   (do not change this comment) */

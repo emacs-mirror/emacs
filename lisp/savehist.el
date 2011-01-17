@@ -389,6 +389,5 @@ trimming of history lists to `history-length' items."
 
 (provide 'savehist)
 
-;; arch-tag: b3ce47f4-c5ad-4ebc-ad02-73aba705cf9f
 
 ;;; savehist.el ends here

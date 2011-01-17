@@ -75,5 +75,4 @@
 
 (provide 'url-privacy)
 
-;; arch-tag: fdaf95e4-98f0-4680-94c3-f3eadafabe1d
 ;;; url-privacy.el ends here

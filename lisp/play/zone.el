@@ -684,5 +684,4 @@ If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
 ;;;;;;;;;;;;;;;
 (provide 'zone)
 
-;; arch-tag: 7092503d-74a9-4325-a55c-a026ede58cea
 ;;; zone.el ends here

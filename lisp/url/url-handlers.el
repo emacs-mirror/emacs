@@ -325,5 +325,4 @@ They count bytes from the beginning of the body."
 
 (provide 'url-handlers)
 
-;; arch-tag: 7300b99c-cc83-42ff-9147-79b2723c62ac
 ;;; url-handlers.el ends here

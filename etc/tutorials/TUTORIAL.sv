@@ -1143,4 +1143,3 @@ GNU Emacs to your friends.  Help stamp out software obstructionism
 ;;;   sentence-end-double-space: nil
 ;;; End:
 
-;;; arch-tag: b352f774-622b-4cc6-85ce-43e3baf4fc1b

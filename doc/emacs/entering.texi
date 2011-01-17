@@ -181,7 +181,3 @@ keys to run any commands of your choice (@pxref{Keymaps}).
 @ifnottex
 @lowersections
 @end ifnottex
-
-@ignore
-   arch-tag: df798d8b-f253-4113-b585-f528f078a944
-@end ignore

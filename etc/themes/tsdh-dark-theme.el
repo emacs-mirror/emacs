@@ -32,6 +32,7 @@
  '(diff-indicator-removed ((t (:inherit diff-indicator-changed))))
  '(diff-removed ((t (:inherit diff-changed :background "dark red"))))
  '(dired-directory ((t (:inherit font-lock-function-name-face :weight bold))))
+ '(header-line ((t (:inherit mode-line :inverse-video t))))
  '(hl-line ((t (:background "grey28"))))
  '(message-header-subject ((t (:foreground "SkyBlue"))))
  '(minibuffer-prompt ((t (:background "yellow" :foreground "medium blue" :box (:line-width -1 :color "red" :style released-button) :weight bold))))

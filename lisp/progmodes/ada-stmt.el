@@ -484,5 +484,4 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
 
 (provide 'ada-stmt)
 
-;; arch-tag: 94f51555-cc0e-44e5-8865-8788aae8ecd3
 ;;; ada-stmt.el ends here

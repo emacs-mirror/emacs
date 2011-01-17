@@ -1,3 +1,13 @@
+2011-01-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (Directory Names): Move directory-abbrev-alist doc to
+	Emacs manual.
+
+2011-01-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Directory Names): Explain why FROM in
+	directory-abbrev-alist should begin with \`.  (Bug#7777)
+
 2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* loading.texi (Hooks for Loading): Adjust doc of eval-after-load.

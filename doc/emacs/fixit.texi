@@ -423,7 +423,3 @@ that it only checks words in comments and string constants.  This
 feature is useful for editing programs.  Type @kbd{M-x
 flyspell-prog-mode} to enable or disable this mode in the current
 buffer.
-
-@ignore
-   arch-tag: 3359a443-96ed-448f-9f05-c8111ba8eac0
-@end ignore

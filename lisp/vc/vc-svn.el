@@ -744,5 +744,4 @@ information about FILENAME and return its status."
 
 (provide 'vc-svn)
 
-;; arch-tag: 02f10c68-2b4d-453a-90fc-1eee6cfb268d
 ;;; vc-svn.el ends here

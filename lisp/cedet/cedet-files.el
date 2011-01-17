@@ -90,5 +90,4 @@ specific conversions during tests."
 
 (provide 'cedet-files)
 
-;; arch-tag: 4884c616-82c3-475d-ac9f-039e3431a702
 ;;; cedet-files.el ends here

@@ -85,5 +85,3 @@ XMenuFindSelection(register XMenu *menu, int p_num, register char *label)
     return (XM_FAILURE);
 }
 
-/* arch-tag: 564a4a95-9ab0-4580-b05f-6970c4b25dd4
-   (do not change this comment) */

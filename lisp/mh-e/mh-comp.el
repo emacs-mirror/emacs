@@ -1113,5 +1113,4 @@ doesn't exist there."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 62865511-e610-4923-b0b5-f45a8ab70a34
 ;;; mh-comp.el ends here

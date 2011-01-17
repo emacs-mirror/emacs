@@ -146,5 +146,3 @@ extern int _sys_wait_accept (int fd);
 
 #endif /* EMACS_W32_H */
 
-/* arch-tag: 02c36b00-312b-4c4d-a1d9-f905c5e968f0
-   (do not change this comment) */

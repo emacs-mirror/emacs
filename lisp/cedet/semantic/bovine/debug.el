@@ -144,5 +144,4 @@ Argument CONDITION is the thrown error condition."
 
 (provide 'semantic/bovine/debug)
 
-;; arch-tag: d1bf98b3-faeb-4dc3-ac34-cac6264fd94e
 ;;; semantic/bovine/debug.el ends here

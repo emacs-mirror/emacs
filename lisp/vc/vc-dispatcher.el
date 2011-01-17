@@ -692,5 +692,4 @@ the buffer contents as a comment."
 
 (provide 'vc-dispatcher)
 
-;; arch-tag: 7d08b17f-5470-4799-914b-bfb9fcf6a246
 ;;; vc-dispatcher.el ends here

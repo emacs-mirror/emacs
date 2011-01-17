@@ -503,5 +503,4 @@ This is called by `window-configuration-change-hook'."
 
 (provide 'longlines)
 
-;; arch-tag: 3489d225-5506-47b9-8659-d8807b77c624
 ;;; longlines.el ends here

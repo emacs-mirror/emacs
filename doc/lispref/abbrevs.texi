@@ -512,7 +512,3 @@ added to the table.
 
 @end table
 
-
-@ignore
-   arch-tag: 5ffdbe08-2cd4-48ec-a5a8-080f95756eec
-@end ignore

@@ -217,5 +217,4 @@ Argument NEW-TABLE is the new table of tags."
 ;; generated-autoload-load-name: "semantic/db-mode"
 ;; End:
 
-;; arch-tag: f5da903d-2d34-4adf-8572-e60340e1ad59
 ;;; semantic/db-mode.el ends here

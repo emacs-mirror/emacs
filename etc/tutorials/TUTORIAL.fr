@@ -1192,4 +1192,3 @@ Cette traduction française a été effectuée par Éric Jacoboni
 ;;;   sentence-end-double-space: nil
 ;;; End:
 
-;;; arch-tag: f6c5c2ff-bf24-477c-bd18-32f76f51ba65

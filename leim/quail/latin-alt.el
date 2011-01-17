@@ -1713,5 +1713,4 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("z~~" ["z~"])
  )
 
-;; arch-tag: 722466a6-363d-431c-9161-879e16e2da5d
 ;;; latin-alt.el ends here

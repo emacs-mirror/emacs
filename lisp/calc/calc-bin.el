@@ -854,5 +854,4 @@ the size of a Calc bignum digit.")
 
 (provide 'calc-bin)
 
-;; arch-tag: f6dba7bc-53b2-41ae-919c-c266ab0ca8b3
 ;;; calc-bin.el ends here

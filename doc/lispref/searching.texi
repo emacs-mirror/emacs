@@ -1831,7 +1831,3 @@ values of the variables @code{sentence-end-double-space}
 @code{sentence-end-without-period} and
 @code{sentence-end-without-space}.
 @end defun
-
-@ignore
-   arch-tag: c2573ca2-18aa-4839-93b8-924043ef831f
-@end ignore

@@ -212,5 +212,3 @@ extern struct tty_display_info *tty_list;
 
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())
 
-/* arch-tag: bf9f0d49-842b-42fb-9348-ec8759b27193
-   (do not change this comment) */

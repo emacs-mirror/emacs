@@ -963,5 +963,4 @@ Currently this feature is only used in `help-with-tutorial'."
 
 (provide 'tutorial)
 
-;; arch-tag: c8e80aef-c3bb-4ffb-8af6-22171bf0c100
 ;;; tutorial.el ends here

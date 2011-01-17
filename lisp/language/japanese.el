@@ -274,5 +274,4 @@ and the second is a glyph for a variation selector."
 
 (provide 'japanese)
 
-;; arch-tag: 450f5537-9d53-4d5e-b731-4cf116d8cbc9
 ;;; japanese.el ends here

@@ -89,4 +89,3 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'.")
  'hangul390-input-method
  "Input method: korean-hangul390 (mode line indicator:한390)\n\nHangul 3-Bulsik 390 input method.")
 
-;; arch-tag: 75cfdfc7-de85-44f9-b408-ff67d1ec664e

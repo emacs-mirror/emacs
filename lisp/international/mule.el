@@ -2444,5 +2444,4 @@ added by processing software."
 ;;;
 (provide 'mule)
 
-;; arch-tag: 9aebaa6e-0e8a-40a9-b857-cb5d04a39e7c
 ;;; mule.el ends here

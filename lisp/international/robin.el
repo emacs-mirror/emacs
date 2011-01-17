@@ -571,5 +571,4 @@ used."
 ;; coding: utf-8-emacs
 ;; End:
 
-;; arch-tag: ba995140-7436-4a57-b875-747fc340f605
 ;;; robin.el ends here

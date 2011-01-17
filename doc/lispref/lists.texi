@@ -1888,7 +1888,3 @@ use the ring as a first-in-first-out queue.  For example:
         (ring-remove fifo)))
      @result{} (0 t one t "two")
 @end lisp
-
-@ignore
-   arch-tag: 31fb8a4e-4aa8-4a74-a206-aa00451394d4
-@end ignore

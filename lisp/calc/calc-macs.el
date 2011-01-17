@@ -207,5 +207,4 @@
 
 (provide 'calc-macs)
 
-;; arch-tag: 08ba8ec2-fcff-4b80-a079-ec661bdb057e
 ;;; calc-macs.el ends here

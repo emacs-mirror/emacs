@@ -378,5 +378,4 @@ whose file names match the specified wildcard."
 
 (provide 'multi-isearch)
 
-;; arch-tag: a6d38ffa-4d14-4e39-8ac6-46af9d6a6773
 ;;; misearch.el ends here

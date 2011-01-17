@@ -1367,5 +1367,4 @@ that were operated on recently."
 
 (run-hooks 'recentf-load-hook)
 
-;; arch-tag: 78f1eec9-0d16-4d19-a4eb-2e4529edb62a
 ;;; recentf.el ends here

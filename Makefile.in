@@ -300,8 +300,7 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
 	  -e 's;\(#.*PATH_GAME\).*$$;\1 "${gamedir}";' \
-	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";' \
-	  -e 's;/[*] *arch-tag:.*;/*;') &&		\
+	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
 	${srcdir}/move-if-change epaths.h.$$$$ src/epaths.h
 
 # For parallel make, src should be built before leim.

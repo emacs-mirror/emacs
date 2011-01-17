@@ -61,5 +61,4 @@ This makes sure that the archive is removed with 'make clean'."
 
 (provide 'ede/proj-archive)
 
-;; arch-tag: a0b2cfe8-0d11-4a4f-8e47-ebfb11b6ac33
 ;;; ede/proj-archive.el ends here

@@ -25,4 +25,3 @@ export FNCASE=y
 /^top_srcdir *=/s|@top_srcdir@|./..|
 /^abs_top_builddir *=/s|@abs_top_builddir@|$(CURDIR)/..|
 
-# arch-tag: da7a3cff-4839-4ad7-bbe3-e2b61c84c38e

@@ -565,7 +565,10 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 	(unless grep-find-command
 	  (setq grep-find-command
 		(cond ((eq grep-find-use-xargs 'gnu)
-		       (format "%s . -type f -print0 | %s -0 -e %s"
+		       ;; Windows shells need the program file name
+		       ;; after the pipe symbol be quoted if they use
+		       ;; forward slashes as directory separators.
+		       (format "%s . -type f -print0 | \"%s\" -0 -e %s"
 			       find-program xargs-program grep-command))
 		      ((eq grep-find-use-xargs 'exec)
 		       (let ((cmd0 (format "%s . -type f -exec %s"
@@ -576,21 +579,21 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 				  (shell-quote-argument ";"))
 			  (1+ (length cmd0)))))
 		      (t
-		       (format "%s . -type f -print | %s %s"
+		       (format "%s . -type f -print | \"%s\" %s"
 			       find-program xargs-program grep-command)))))
 	(unless grep-find-template
 	  (setq grep-find-template
 		(let ((gcmd (format "%s <C> %s <R>"
 				    grep-program grep-options)))
 		  (cond ((eq grep-find-use-xargs 'gnu)
-			 (format "%s . <X> -type f <F> -print0 | %s -0 -e %s"
+			 (format "%s . <X> -type f <F> -print0 | \"%s\" -0 -e %s"
 				 find-program xargs-program gcmd))
 			((eq grep-find-use-xargs 'exec)
 			 (format "%s . <X> -type f <F> -exec %s {} %s %s"
 				 find-program gcmd null-device
 				 (shell-quote-argument ";")))
 			(t
-			 (format "%s . <X> -type f <F> -print | %s %s"
+			 (format "%s . <X> -type f <F> -print | \"%s\" %s"
 				 find-program xargs-program gcmd))))))))
     (when (eq grep-highlight-matches 'auto-detect)
       (setq grep-highlight-matches
@@ -1046,5 +1049,4 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
 
 (provide 'grep)
 
-;; arch-tag: 5a5b9169-a79d-4f38-9c38-f69615f39c4d
 ;;; grep.el ends here

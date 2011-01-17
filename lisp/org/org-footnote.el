@@ -585,6 +585,5 @@ and all references of a footnote label."
 
 (provide 'org-footnote)
 
-;; arch-tag: 1b5954df-fb5d-4da5-8709-78d944dbfc37
 
 ;;; org-footnote.el ends here

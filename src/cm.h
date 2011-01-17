@@ -170,5 +170,3 @@ extern void cmgoto (struct tty_display_info *, int, int);
 extern void Wcm_clear (struct tty_display_info *);
 extern int Wcm_init (struct tty_display_info *);
 
-/* arch-tag: acc1535a-7136-49d6-b22d-9bc85702251b
-   (do not change this comment) */

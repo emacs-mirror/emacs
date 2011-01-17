@@ -167,5 +167,4 @@ This produces more reliable results with some processes."
 
 (provide 'tq)
 
-;; arch-tag: 65dea08c-4edd-4cde-83a5-e8a15b993b79
 ;;; tq.el ends here

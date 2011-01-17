@@ -1113,5 +1113,3 @@ extern Lisp_Object Qx_gtk_map_stock;
    (nr).width = (rwidth),				\
    (nr).height = (rheight))
 
-/* arch-tag: 78a7972a-b18f-4694-861a-0780c4b3090e
-   (do not change this comment) */

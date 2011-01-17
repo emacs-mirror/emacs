@@ -691,5 +691,4 @@ For example, the function `case' has an indent property
 ;(put 'defclass 'common-lisp-indent-function '((&whole 2 &rest (&whole 2 &rest 1) &rest (&whole 2 &rest 1)))
 ;(put 'defgeneric 'common-lisp-indent-function 'defun)
 
-;; arch-tag: 7914d50f-92ec-4476-93fc-0f043a380e03
 ;;; cl-indent.el ends here

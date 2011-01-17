@@ -1745,7 +1745,3 @@ highlighted region covering a contiguous range of character positions
 may look discontinuous if the region spans reordered text.  This is
 normal and similar to behavior of other programs that support
 bidirectional text.
-
-@ignore
-   arch-tag: 310ba60d-31ef-4ce7-91f1-f282dd57b6b3
-@end ignore

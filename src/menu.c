@@ -1354,5 +1354,3 @@ syms_of_menu (void)
   defsubr (&Sx_popup_menu);
 }
 
-/* arch-tag: 78bbc7cf-8025-4156-aa8a-6c7fd99bf51d
-   (do not change this comment) */

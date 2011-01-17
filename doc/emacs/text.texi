@@ -2925,7 +2925,3 @@ then inserts the generated table in the proper syntax into the
 destination buffer.  The default destination buffer is
 @code{table.@var{lang}}, where @var{lang} is the language you
 specified.
-
-@ignore
-   arch-tag: 8db54ed8-2036-49ca-b0df-23811d03dc70
-@end ignore

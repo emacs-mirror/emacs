@@ -1300,5 +1300,4 @@ If no conflict maker is found, turn off `smerge-mode'."
 
 (provide 'smerge-mode)
 
-;; arch-tag: 605c8d1e-e43d-4943-a6f3-1bcc4333e690
 ;;; smerge-mode.el ends here

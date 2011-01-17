@@ -736,7 +736,5 @@ main (int argc, char **argv)
 #endif /* not MSDOS */
 #endif /* not BSD 4.2 (or newer) */
 
-/* arch-tag: acb0afa6-315a-4c5b-b9e3-def5725c8783
-   (do not change this comment) */
 
 /* fakemail.c ends here */

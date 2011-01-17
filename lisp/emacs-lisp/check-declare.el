@@ -314,5 +314,4 @@ Returns non-nil if any false statements are found."
 
 (provide 'check-declare)
 
-;; arch-tag: a4d6cdc4-deb7-4502-b327-0e4ef3d82d96
 ;;; check-declare.el ends here.

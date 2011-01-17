@@ -603,5 +603,4 @@ than appending to it.  Deletes the message after writing if
   (if rmail-delete-after-output
       (rmail-delete-forward)))
 
-;; arch-tag: 4059abf0-f249-4be4-8e0d-602d370d01d1
 ;;; rmailout.el ends here

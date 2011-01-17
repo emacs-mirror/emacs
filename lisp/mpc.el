@@ -2611,5 +2611,4 @@ This is used so that they can be compared with `eq', which is needed for
 
 (provide 'mpc)
 
-;; arch-tag: 4794b2f5-59e6-4f26-b695-650b3e002f37
 ;;; mpc.el ends here

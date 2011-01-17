@@ -107,5 +107,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This definition was suggested for next release.  So give it a try.  */
 #define HAVE_SOCKETS
 
-/* arch-tag: 1a0ed909-5faa-434b-b7c3-9d86c63d53a6
-   (do not change this comment) */
