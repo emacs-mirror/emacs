@@ -1,5 +1,13 @@
 2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h: Redo flags and XSET slightly to avoid overflow diagnostics.
+	These changes make compilation easier to follow with Sun cc.
+	(ARRAY_MARK_FLAG): Make it signed, so that it can be assigned to
+	EMACS_INT values without provoking overflow diagnostics.
+	(PSEUDOVECTOR_FLAG): Likewise, for consistency.
+	(XSET) [! USE_LSB_TAG]: Use unsigned left shift to avoid overflow
+	diagnostic with signed left shift.
+
 	* fileio.c (make_temp_name): Remove unreachable code.
 
 	* fontset.c (free_realized_fontset): Mark unreachable code with if (0).
