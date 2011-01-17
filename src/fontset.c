@@ -849,12 +849,12 @@ free_realized_fontset (FRAME_PTR f, Lisp_Object fontset)
 {
   Lisp_Object tail;
 
-  return;
-  for (tail = FONTSET_OBJLIST (fontset); CONSP (tail); tail = XCDR (tail))
-    {
-      xassert (FONT_OBJECT_P (XCAR (tail)));
-      font_close_object (f, XCAR (tail));
-    }
+  if (0)
+    for (tail = FONTSET_OBJLIST (fontset); CONSP (tail); tail = XCDR (tail))
+      {
+	xassert (FONT_OBJECT_P (XCAR (tail)));
+	font_close_object (f, XCAR (tail));
+      }
 }
 
 /* Free fontset of FACE defined on frame F.  Called from
@@ -2263,4 +2263,3 @@ at the vertical center of lines.  */);
   defsubr (&Sfontset_list_all);
 #endif
 }
-
