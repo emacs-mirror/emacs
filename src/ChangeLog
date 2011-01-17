@@ -1,5 +1,9 @@
 2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfns.c (x_real_positions): Fix signedness of local var 'ign'.
+	XGetGeometry wants unsigned int *, not int *, for its last 4 args,
+	so change the type of 'ign' to unsigned int from int.
+
 	* regex.c (analyse_first): Remove unreachable 'continue' statement.
 
 	* xterm.h (struct x_display_info): Remove stray semicolon.
