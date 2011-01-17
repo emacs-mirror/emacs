@@ -47,6 +47,7 @@ version = @version@
 LIBOBJS = @LIBOBJS@
 
 lispsource = $(srcdir)/../lisp
+lib = ../lib
 libsrc = ../lib-src
 etc = ../etc
 oldXMenudir = ../oldXMenu
@@ -320,6 +321,7 @@ MKDEPDIR=@MKDEPDIR@
 ##
 ## FIXME? MYCPPFLAGS only referenced in etc/DEBUG.
 ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I$(srcdir) \
+  -I$(lib) -I$(srcdir)/../lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(C_SWITCH_X_SYSTEM) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
   $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) \
@@ -644,10 +646,12 @@ $(libsrc)/make-docfile$(EXEEXT):
 buildobj.h: Makefile
 	echo "#define BUILDOBJ \"$(obj) $(otherobj) " "\"" > buildobj.h
 
+$(lib)/libgnu.a: $(config_h)
+	cd $(lib) && $(MAKE) libgnu.a
 
-temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj)
+temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj) $(lib)/libgnu.a
 	$(CC) $(LD_FIRSTFLAG) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(TEMACS_LDFLAGS2) \
-	  -o temacs $(START_FILES) $(obj) $(otherobj) $(LIBES)
+	  -o temacs $(START_FILES) $(obj) $(otherobj) $(lib)/libgnu.a $(LIBES)
 
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them

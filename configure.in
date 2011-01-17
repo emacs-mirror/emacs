@@ -27,6 +27,7 @@ AC_PREREQ(2.65)
 AC_INIT(emacs, 24.0.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
+AM_INIT_AUTOMAKE
 
 dnl Support for --program-prefix, --program-suffix and
 dnl --program-transform-name options
@@ -638,6 +639,10 @@ SPECIFIED_CFLAGS="$CFLAGS"
 
 dnl Sets GCC=yes if using gcc.
 AC_PROG_CC
+AM_PROG_CC_C_O
+
+# Initialize gnulib right after verifying that the C compiler works.
+gl_EARLY
 
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
@@ -684,9 +689,6 @@ if test x$GCC = xyes; then
 else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
-
-dnl checks for Unix variants
-AC_USE_SYSTEM_EXTENSIONS
 
 ### Use -Wno-pointer-sign if the compiler supports it
 AC_MSG_CHECKING([whether gcc understands -Wno-pointer-sign])
@@ -2627,7 +2629,7 @@ AC_SUBST(BLESSMAIL_TARGET)
 AC_CHECK_FUNCS(gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt ftime setsid \
-strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
+strerror fpathconf select euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm strchr strrchr \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
@@ -2648,25 +2650,14 @@ fi
 
 AC_CHECK_HEADERS(sys/un.h)
 
-AC_FUNC_MKTIME
-if test "$ac_cv_func_working_mktime" = no; then
-  AC_DEFINE(BROKEN_MKTIME, 1, [Define to 1 if the mktime function is broken.])
-fi
-
 AC_FUNC_GETLOADAVG
 
 AC_FUNC_FSEEKO
 
-# Configure getopt.
-m4_include([m4/getopt.m4])
-gl_GETOPT_IFELSE([
-  gl_GETOPT_SUBSTITUTE_HEADER
-  gl_PREREQ_GETOPT
-  GETOPTOBJS='getopt.o getopt1.o'
-])
-AC_SUBST(GETOPTOBJS)
-
 AC_FUNC_GETPGRP
+
+# Configure gnulib.
+gl_INIT
 
 AC_FUNC_STRFTIME
 
@@ -3030,24 +3021,6 @@ fi
 AC_CHECK_TYPES(size_t)
 
 AC_TYPE_MBSTATE_T
-
-dnl Restrict could probably be used effectively other than in regex.c.
-AC_CACHE_CHECK([for C restrict keyword], emacs_cv_c_restrict,
-  [AC_TRY_COMPILE([void fred (int *restrict x);], [],
-                  emacs_cv_c_restrict=yes,
-                  [AC_TRY_COMPILE([void fred (int *__restrict x);], [],
-                                  emacs_cv_c_restrict=__restrict,
-				  emacs_cv_c_restrict=no)])])
-case "$emacs_cv_c_restrict" in
-  yes) emacs_restrict=restrict;;
-  no) emacs_restrict="";;
-  *) emacs_restrict="$emacs_cv_c_restrict";;
-esac
-if test "$emacs_restrict" != __restrict; then
-  AC_DEFINE_UNQUOTED(__restrict, $emacs_restrict,
-    [Define to compiler's equivalent of C99 restrict keyword.
-     Don't define if equivalent is `__restrict'.])
-fi
 
 AC_CACHE_CHECK([for C restricted array declarations], emacs_cv_c_restrict_arr,
   [AC_TRY_COMPILE([void fred (int x[__restrict]);], [],
@@ -3538,11 +3511,6 @@ AH_BOTTOM([
 #endif
 #endif
 
-/* Avoid link-time collision with system mktime if we will use our own.  */
-#if ! HAVE_MKTIME || BROKEN_MKTIME
-#define mktime emacs_mktime
-#endif
-
 #define my_strftime nstrftime	/* for strftime.c */
 
 /* These default definitions are good for almost all machines.
@@ -3747,7 +3715,7 @@ dnl Secondly, the GNU Coding standards require that one should be able
 dnl to run `make prefix=/some/where/else' and override the values set
 dnl by configure.  This also explains the `move-if-change' test and
 dnl the use of force in the `epaths-force' rule in Makefile.in.
-AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile \
+AC_OUTPUT(Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile \
 	doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
 	doc/lispref/Makefile src/Makefile \
 	lwlib/Makefile lisp/Makefile leim/Makefile test/automated/Makefile, [

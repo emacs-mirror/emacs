@@ -1,3 +1,117 @@
+2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Makefile.in: tidy up the building of lib
+	* Makefile.in (am--refresh): Mark as .PHONY.
+	(top_maintainer_clean): Don't remove lib/gnulib.mk m4/gnulib-cache.m4,
+	as they're not rebuilt unless you do a "make sync-from-gnulib"
+	and the former is needed for "configure".
+	(maintainer-clean): Don't recurse into lib, as "make bootstrap-clean"
+	has already removed lib/Makefile.
+
+	* Makefile.in (GNULIB_MODULES): Change ftoastr to dtoastr.
+	This avoids building ftoastr and ldtoastr, which aren't needed.  See
+	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00199.html>.
+
+	* .bzrignore: Add .h files that are host-dependent.
+	Add lib/.deps/, lib/arg-nonnull.h, lib/c++defs.h, lib/getopt.h,
+	lib/time.h, lib/unistd.h, lib/warn-on-use.h.  These are
+	host-dependent and are built as part of an ordinary 'make', and
+	should not be checked in.
+
+	* lib/Makefile.in: Regenerate.
+	* lib/COPYING: New file, a copy of COPYING.
+
+	* configure: Regenerate.
+	* configure.in (AC_USE_SYSTEM_EXTENSIONS): Remove: gnulib does this.
+
+	Regenerate.
+	* lib/getopt.c, lib/getopt.in.h, lib/getopt1.c, lib/getopt_int.h:
+	* lib/gettext.h, lib/unistd.in.h, m4/unistd_h.m4:
+	New files, copied from gnulib by gnulib-tool.
+	* aclocal.m4, configure, lib/Makefile.in, m4/getopt.m4:
+	* m4/gnulib-cache.m4, m4/gnulib-comp.m4, src/config.in:
+	Regenerate.
+
+	Use gnulib's getopt-gnu module.
+	* Makefile.in (GNULIB_MODULES): Add getopt-gnu.
+	(AUTOCONF_INPUTS): Remove getopt.m4; aclocal.m4 is a good-enough
+	representative of the dependencies.
+	* configure.in: Do not configure getopt, as gnulib does that now.
+	* make-dist: Do not worry about lib-src/getopt.h, as gnulib handles
+	getopt now, in lib.
+
+	Regenerate.
+	* arg-nonnull.h, c++defs.h, lib/mktime-internal.h, lib/mktime.c:
+	* lib/stddef.in.h, lib/time.h, lib/time.in.h, lib/time_r.c:
+	* m4/extensions.m4, m4/include_next.m4, m4/mktime.m4:
+	* m4/multiarch.m4, m4/stddef_h.m4, m4/time_h.m4, m4/time_r.m4:
+	* m4/extensions.m4, m4/include_next.m4, m4/mktime.m4, m4/multiarch.m4:
+	* m4/stddef_h.m4, m4/time_h.m4, m4/time_r.m4, m4/warn-on-use.m4:
+	* m4/wchar_t.m4, warn-on-use.h:
+	New files, copied from gnulib by gnulib-tool.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk:
+	* m4/gnulib-cache.m4, m4/gnulib-comp.m4, src/config.in:
+	Regenerate.
+
+	Use gnulib's mktime module.
+	* Makefile.in (GNULIB_MODULES): Add mktime.
+	* configure.in: Remove code no longer needed, as gnulib now does it.
+	(AC_CHECK_FUNCS): Remove mktime.
+	(AC_FUNC_MKTIME, BROKEN_MKTIME): Remove.
+	(__restrict): Remove, as this now gets in the way of the C99
+	support for 'restrict' pulled in by the gnulib mktime module.
+	Code should now use 'restrict' and not '__restrict".
+	(mktime): Remove.
+	* make-dist: Put gnulib-generated files arg-nonnull.h, c++defs.h,
+	and warn-on-use.h into the distribution.
+
+	Regenerate.
+	* lib/dtoastr.c, lib/ftoastr.c, lib/ftoastr.h, lib/intprops.h:
+	* lib/ldtoastr.c, m4/c-strtod.m4:
+	New files, copied from gnulib by gnulib-tool.
+	* lib/dummy.c: Remove.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk:
+	* m4/gnulib-cache.m4, m4/gnulib-comp.m4, src/config.in:
+	Regenerate.
+
+	Use gnulib's ftoastr module.
+	* Makefile.in (GNULIB_MODULES): Add ftoastr.  Remove dummy.
+
+	Regenerate.
+	* aclocal.m4, compile, depcomp, lib/Makefile.in, lib/dummy.c:
+	* lib/gnulib.mk, m4/00gnulib.m4, m4/gnulib-cache.m4:
+	* m4/gnulib-common.m4, m4/gnulib-comp.m4, m4/gnulib-tool.m4, missing:
+	New files, generated automatically, with 'make sync-from-gnulib'
+	followed by 'make'.
+	* configure, lisp/dired.el, src/config.in: Regenerate.
+
+	Automate syncing from gnulib.
+	* INSTALL, README: Document new subdirectory 'lib'.
+	* Makefile.in (SUBDIR): Add lib.
+	(SUBDIR_MAKEFILES): Add lib/Makefile.
+	(lib-src, src, TAGS, tags): Depend on lib.
+	(gnulib_srcdir, GNULIB_MODULES, GNULIB_TOOL_FLAGS): New macros.
+	($(gnulib_srcdir)): New rule.
+	(sync-from-gnulib): New rule, which is .PHONY.
+	(lib): New rule, which is like lib-src.
+	(Makefile): Depend on lib/Makefile.in.
+	(AUTOCONF_INPUTS): Depend on aclocal.m4.
+	(ACLOCAL_INPUTS, AUTOMAKE_INPUTS): New macros.
+	($(srcdir)/aclocal.m4, $(srcdir)/lib/Makefile.in): New rules.
+	(am--refresh): New rule, to pacify Automake.
+	(mostlyclean, clean, distclean, bootstrap-clean, maintainer-clean):
+	Clean lib, too.
+	(top_maintainer_clean): New macro, to remove gnulib-tool and Automake
+	droppings.
+	(maintainer-clean, extraclean): Use it.
+	* configure.in: Initialize for automake and gnulib, by invoking
+	AM_INIT_AUTOMAKE, AM_PROG_CC_C_O, gl_EARLY, and gl_INIT.  Output
+	lib/Makefile, too.  Use automake to build gnulib, as gnulib works
+	more conveniently with automake.
+	* lib/Makefile.am: New file.
+	* make-dist: Also put into the distribution aclocal.m4,
+	compile, depcomp, missing, and the files under lib/.
+
 2011-01-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (epaths-force): No more arch-tag to edit.

@@ -26,10 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <setjmp.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #if !defined (S_ISLNK) && defined (S_IFLNK)
 #  define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)

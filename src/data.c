@@ -2375,7 +2375,7 @@ NUMBER may be an integer or a floating point number.  */)
 
   if (FLOATP (number))
     {
-      char pigbuf[350];	/* see comments in float_to_string */
+      char pigbuf[FLOAT_TO_STRING_BUFSIZE];
 
       float_to_string (pigbuf, XFLOAT_DATA (number));
       return build_string (pigbuf);

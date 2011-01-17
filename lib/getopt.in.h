@@ -1,40 +1,56 @@
 /* Declarations for getopt.
-   Copyright (C) 1989, 1990, 1991, 1992, 1993, 1994, 1996, 1997, 1998, 1999,
-                 2001, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1989-1994, 1996-1999, 2001, 2003-2007, 2009-2011 Free Software
+   Foundation, Inc.
    This file is part of the GNU C Library.
 
-   This program is free software; you can redistribute it and/or modify
+   This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3, or (at your option)
-   any later version.
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public License along
-   with this program; if not, write to the Free Software Foundation,
-   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef _GETOPT_H
+#ifndef _GL_GETOPT_H
+
+#if __GNUC__ >= 3
+@PRAGMA_SYSTEM_HEADER@
+#endif
+@PRAGMA_COLUMNS@
+
+/* The include_next requires a split double-inclusion guard.  We must
+   also inform the replacement unistd.h to not recursively use
+   <getopt.h>; our definitions will be present soon enough.  */
+#if @HAVE_GETOPT_H@
+# define _GL_SYSTEM_GETOPT
+# @INCLUDE_NEXT@ @NEXT_GETOPT_H@
+# undef _GL_SYSTEM_GETOPT
+#endif
+
+#ifndef _GL_GETOPT_H
 
 #ifndef __need_getopt
-# define _GETOPT_H 1
+# define _GL_GETOPT_H 1
 #endif
 
 /* Standalone applications should #define __GETOPT_PREFIX to an
    identifier that prefixes the external functions and variables
    defined in this header.  When this happens, include the
    headers that might declare getopt so that they will not cause
-   confusion if included after this file.  Then systematically rename
+   confusion if included after this file (if the system had <getopt.h>,
+   we have already included it).  Then systematically rename
    identifiers so that they do not collide with the system functions
    and variables.  Renaming avoids problems with some compilers and
    linkers.  */
 #if defined __GETOPT_PREFIX && !defined __need_getopt
-# include <stdlib.h>
-# include <stdio.h>
-# if HAVE_UNISTD_H
+# if !@HAVE_GETOPT_H@
+#  include <stdlib.h>
+#  include <stdio.h>
 #  include <unistd.h>
 # endif
 # undef __need_getopt
@@ -45,6 +61,7 @@
 # undef opterr
 # undef optind
 # undef optopt
+# undef option
 # define __GETOPT_CONCAT(x, y) x ## y
 # define __GETOPT_XCONCAT(x, y) __GETOPT_CONCAT (x, y)
 # define __GETOPT_ID(y) __GETOPT_XCONCAT (__GETOPT_PREFIX, y)
@@ -55,6 +72,8 @@
 # define opterr __GETOPT_ID (opterr)
 # define optind __GETOPT_ID (optind)
 # define optopt __GETOPT_ID (optopt)
+# define option __GETOPT_ID (option)
+# define _getopt_internal __GETOPT_ID (getopt_internal)
 #endif
 
 /* Standalone applications get correct prototypes for getopt_long and
@@ -97,13 +116,15 @@
 #  define __GNUC_PREREQ(maj, min) (0)
 # endif
 # if defined __cplusplus && __GNUC_PREREQ (2,8)
-#  define __THROW	throw ()
+#  define __THROW       throw ()
 # else
 #  define __THROW
 # endif
 #endif
 
-#ifdef	__cplusplus
+/* The definition of _GL_ARG_NONNULL is copied here.  */
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -145,9 +166,9 @@ extern int optopt;
    zero.
 
    The field `has_arg' is:
-   no_argument		(or 0) if the option does not take an argument,
-   required_argument	(or 1) if the option requires an argument,
-   optional_argument	(or 2) if the option takes an optional argument.
+   no_argument          (or 0) if the option does not take an argument,
+   required_argument    (or 1) if the option requires an argument,
+   optional_argument    (or 2) if the option takes an optional argument.
 
    If the field `flag' is not NULL, it points to a variable that is set
    to the value given in the field `val' when the option is found, but
@@ -172,10 +193,10 @@ struct option
 
 /* Names for the values of the `has_arg' field of `struct option'.  */
 
-# define no_argument		0
-# define required_argument	1
-# define optional_argument	2
-#endif	/* need getopt */
+# define no_argument            0
+# define required_argument      1
+# define optional_argument      2
+#endif  /* need getopt */
 
 
 /* Get definitions and prototypes for functions to process the
@@ -198,26 +219,27 @@ struct option
    scanning, explicitly telling `getopt' that there are no more
    options.
 
-   If OPTS begins with `--', then non-option arguments are treated as
-   arguments to the option '\0'.  This behavior is specific to the GNU
-   `getopt'.  */
+   If OPTS begins with `-', then non-option arguments are treated as
+   arguments to the option '\1'.  This behavior is specific to the GNU
+   `getopt'.  If OPTS begins with `+', or POSIXLY_CORRECT is set in
+   the environment, then do not permute arguments.  */
 
 extern int getopt (int ___argc, char *const *___argv, const char *__shortopts)
-       __THROW;
+       __THROW _GL_ARG_NONNULL ((2, 3));
 
 #ifndef __need_getopt
 extern int getopt_long (int ___argc, char *__getopt_argv_const *___argv,
-			const char *__shortopts,
-		        const struct option *__longopts, int *__longind)
-       __THROW;
+                        const char *__shortopts,
+                        const struct option *__longopts, int *__longind)
+       __THROW _GL_ARG_NONNULL ((2, 3));
 extern int getopt_long_only (int ___argc, char *__getopt_argv_const *___argv,
-			     const char *__shortopts,
-		             const struct option *__longopts, int *__longind)
-       __THROW;
+                             const char *__shortopts,
+                             const struct option *__longopts, int *__longind)
+       __THROW _GL_ARG_NONNULL ((2, 3));
 
 #endif
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 
@@ -225,4 +247,4 @@ extern int getopt_long_only (int ___argc, char *__getopt_argv_const *___argv,
 #undef __need_getopt
 
 #endif /* getopt.h */
-
+#endif /* getopt.h */

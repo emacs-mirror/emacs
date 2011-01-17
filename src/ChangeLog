@@ -1,5 +1,38 @@
 2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Give a name FLOAT_TO_STRING_BUFSIZE to the constant 350.
+	* lisp.h (FLOAT_TO_STRING_BUFSIZE): New macro.
+	* data.c (Fnumber_to_string): Use it.
+	* print.c (float_to_string, print_object): Likewise.
+
+	Include <unistd.h> unilaterally.
+	* alloc.c, atimer.c, buffer.c, callproc.c, dired.c, dispnew.c, doc.c:
+	* doprnt.c, editfns.c, emacs.c, fileio.c, filelock.c, fns.c:
+	* getloadavg.c, getpagesize.h, gmalloc.c, image.c, keyboard.c:
+	* lread.c, process.c, process.h, ralloc.c, regex.c, sysdep.c:
+	* systty.h, term.c, termcap.c, xfns.c, xrdb.c, xselect.c, xsmfns.c:
+	* xterm.c:
+	Include <unistd.h> without worrying about HAVE_UNISTD_H, since
+	unistd.h is always present now, possibly supplied by gnulib.
+
+	* mktime.c: Remove; moving to ../lib.
+
+	Use gnulib's mktime module.
+	* deps.mk (mktime.o): Remove rule.
+
+	Use gnulib's ftoastr module.
+	* print.c: Include ftoastr.h.
+	(FLT_RADIX, DBL_MANT_DIG, DBL_DIG, DBL_MIN, DOUBLE_DIGITS_BOUND):
+	Remove; no longer needed.
+	(float_to_string): Use dtoastr rather than rolling our own code,
+	which had an off-by-one bug on non-IEEE hosts.
+
+	Automate syncing from gnulib.
+	* Makefile.in (lib): New macro.
+	(ALL_CFLAGS): Add -I$(lib) -I$(srcdir)/../lib.
+	($(lib)/libgnu.a): New rule.
+	(temacs$(EXEEXT)): Also link $(lib)/libgnu.a.
+
 	* xfns.c (x_real_positions): Fix signedness of local var 'ign'.
 	XGetGeometry wants unsigned int *, not int *, for its last 4 args,
 	so change the type of 'ign' to unsigned int from int.

@@ -37,9 +37,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/pty.h>
 #endif /* AIX */
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 
 /* Special cases - inhibiting the use of certain features.  */
