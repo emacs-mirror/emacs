@@ -1,5 +1,9 @@
 2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.h (struct x_display_info): Remove stray semicolon.
+	The extra semicolon didn't conform to the C standard.
+	Problem reported by Sun cc.
+
 	* lisp.h: Redo flags and XSET slightly to avoid overflow diagnostics.
 	These changes make compilation easier to follow with Sun cc.
 	(ARRAY_MARK_FLAG): Make it signed, so that it can be assigned to
