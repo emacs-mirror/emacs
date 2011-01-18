@@ -20,9 +20,11 @@ conftest*
 core
 DOC
 DOC-*
+emacs-*/
 makefile
 Makefile
 Makefile.c
+stamp-h1
 stamp_BLD
 subdirs.el
 TAGS

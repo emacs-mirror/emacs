@@ -787,7 +787,7 @@ top_bootclean=\
 ###      distribution.
 top_distclean=\
 	${top_bootclean}; \
-	rm -f config.status Makefile ${SUBDIR_MAKEFILES}
+	rm -f config.status Makefile stamp-h1 ${SUBDIR_MAKEFILES}
 distclean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) distclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) distclean)

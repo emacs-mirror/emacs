@@ -1,5 +1,10 @@
 2011-01-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Minor cleanups for 'bzr status'
+	* .bzrignore: Add emacs-*/, the output of make-dist, and stamp-h1,
+	the output of config.guess.
+	* Makefile.in (top_distclean): Remove stamp-h1 too.
+
 	* configure.in (HAVE_ATTRIBUTE_ALIGNED): Arrange for this to be
 	defined if the compiler supports GCC-style __attribute__
 	((__aligned__ ...)).  IBM AIX and Oracle Solaris Studio support
