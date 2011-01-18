@@ -7380,7 +7380,6 @@ gif_load (struct frame *f, struct image *img)
 				 imagemagick
 ***********************************************************************/
 #if defined (HAVE_IMAGEMAGICK)
-Lisp_Object Vimagemagick_render_type;
 
 /* The symbol `imagemagick' identifying images of this type.  */
 

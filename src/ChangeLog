@@ -1,5 +1,10 @@
 2011-01-18  Tom Tromey  <tromey@redhat.com>
 
+	* image.c (Vimagemagick_render_type): Remove redundant
+	definition.
+
+2011-01-18  Tom Tromey  <tromey@redhat.com>
+
 	* xdisp.c (emacs_scroll_step): Rename from scroll_step.
 	(try_scrolling): Rename argument to 'arg_scroll_conservatively'.
 	(redisplay_window): Update.
