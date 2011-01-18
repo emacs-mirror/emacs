@@ -1,3 +1,10 @@
+2011-01-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (HAVE_ATTRIBUTE_ALIGNED): Arrange for this to be
+	defined if the compiler supports GCC-style __attribute__
+	((__aligned__ ...)).  IBM AIX and Oracle Solaris Studio support
+	this syntax.
+
 2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Makefile.in: tidy up the building of lib

@@ -1,3 +1,11 @@
+2011-01-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (DECL_ALIGN): Define if HAVE_ATTRIBUTE_ALIGNED, not if
+	defined __GNUC__.  ../configure now checks for this GCC feature,
+	which is now also supported by IBM and Oracle compilers.
+	(USE_LSB_TAG) [defined DECL_ALIGN]: Also define if defined __sun,
+	since Solaris malloc returns mult-of-8.
+
 2011-01-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* image.c (syms_of_image): Don't access XSYMBOL's internals directly.

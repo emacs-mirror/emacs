@@ -122,16 +122,18 @@ extern void die (const char *, const char *, int) NO_RETURN;
    TYPEBITS-aligned. */
 #ifndef NO_DECL_ALIGN
 # ifndef DECL_ALIGN
-/* What compiler directive should we use for non-gcc compilers?  -stef  */
-#  if defined (__GNUC__)
+#  if HAVE_ATTRIBUTE_ALIGNED
 #   define DECL_ALIGN(type, var) \
      type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
+#  else
+     /* What directives do other compilers use?  */
 #  endif
 # endif
 #endif
 
 /* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
-#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined DARWIN_OS
+#if (defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ \
+     || defined DARWIN_OS || defined __sun)
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
 #  define USE_LSB_TAG
