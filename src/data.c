@@ -94,8 +94,6 @@ Lisp_Object Qinteractive_form;
 
 static void swap_in_symval_forwarding (struct Lisp_Symbol *, struct Lisp_Buffer_Local_Value *);
 
-Lisp_Object Vmost_positive_fixnum, Vmost_negative_fixnum;
-
 
 void
 circular_list_error (Lisp_Object list)
@@ -3300,12 +3298,12 @@ syms_of_data (void)
 
   XSYMBOL (Qwholenump)->function = XSYMBOL (Qnatnump)->function;
 
-  DEFVAR_LISP ("most-positive-fixnum", &Vmost_positive_fixnum,
+  DEFVAR_LISP ("most-positive-fixnum", Vmost_positive_fixnum,
 	       doc: /* The largest value that is representable in a Lisp integer.  */);
   Vmost_positive_fixnum = make_number (MOST_POSITIVE_FIXNUM);
   XSYMBOL (intern_c_string ("most-positive-fixnum"))->constant = 1;
 
-  DEFVAR_LISP ("most-negative-fixnum", &Vmost_negative_fixnum,
+  DEFVAR_LISP ("most-negative-fixnum", Vmost_negative_fixnum,
 	       doc: /* The smallest value that is representable in a Lisp integer.  */);
   Vmost_negative_fixnum = make_number (MOST_NEGATIVE_FIXNUM);
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;

@@ -1305,11 +1305,6 @@ setup_pty (int fd)
 }
 #endif /* HAVE_PTYS */
 
-/* init_system_name sets up the string for the Lisp function
-   system-name to return. */
-
-extern Lisp_Object Vsystem_name;
-
 #ifdef HAVE_SOCKETS
 #include <sys/socket.h>
 #include <netdb.h>

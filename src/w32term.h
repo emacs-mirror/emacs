@@ -61,12 +61,6 @@ struct w32_bitmap_record
   int height, width, depth;
 };
 
-/* Palette book-keeping stuff for mapping requested colors into the
-   system palette.  Keep a ref-counted list of requested colors and
-   regenerate the app palette whenever the requested list changes. */
-
-extern Lisp_Object Vw32_enable_palette;
-
 struct w32_palette_entry {
   struct w32_palette_entry * next;
   PALETTEENTRY entry;
@@ -193,9 +187,6 @@ extern struct w32_display_info one_w32_display_info;
    NAME is the name of the frame.
    FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
 extern Lisp_Object w32_display_name_list;
-
-/* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
-extern Lisp_Object Vx_pixel_size_width_font_regexp;
 
 extern struct frame *x_window_to_frame (struct w32_display_info *, HWND);
 

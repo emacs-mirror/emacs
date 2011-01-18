@@ -66,15 +66,6 @@ static char *client_id;
 
 static char *emacs_program;
 
-/* The client session id for this session as a lisp object.  */
-
-Lisp_Object Vx_session_id;
-
-/* The id we had the previous session.  This is only available if we
-   have been started by the session manager with SMID_OPT.  */
-
-Lisp_Object Vx_session_previous_id;
-
 /* The option we tell the session manager to start Emacs with when
    restarting Emacs.  The client_id is appended.  */
 
@@ -558,7 +549,7 @@ Do not call this function yourself. */)
 void
 syms_of_xsmfns (void)
 {
-  DEFVAR_LISP ("x-session-id", &Vx_session_id,
+  DEFVAR_LISP ("x-session-id", Vx_session_id,
     doc: /* The session id Emacs got from the session manager for this session.
 Changing the value does not change the session id used by Emacs.
 The value is nil if no session manager is running.
@@ -566,7 +557,7 @@ See also `x-session-previous-id', `emacs-save-session-functions',
 `emacs-session-save' and `emacs-session-restore'." */);
   Vx_session_id = Qnil;
 
-  DEFVAR_LISP ("x-session-previous-id", &Vx_session_previous_id,
+  DEFVAR_LISP ("x-session-previous-id", Vx_session_previous_id,
     doc: /* The previous session id Emacs got from session manager.
 If Emacs is running on a window system that has a session manager, the
 session manager gives Emacs a session id.  It is feasible for Emacs Lisp

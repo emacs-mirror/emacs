@@ -72,13 +72,6 @@ static DWORD	prev_console_mode;
 static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
 
-extern Lisp_Object Vtty_defined_color_alist;
-
-/* Determine whether to make frame dimensions match the screen buffer,
-   or the current window size.  The former is desirable when running
-   over telnet, while the latter is more useful when working directly at
-   the console with a large scroll-back buffer.  */
-int w32_use_full_screen_buffer;
 HANDLE  keyboard_handle;
 
 
@@ -747,7 +740,7 @@ void
 syms_of_ntterm (void)
 {
   DEFVAR_BOOL ("w32-use-full-screen-buffer",
-               &w32_use_full_screen_buffer,
+               w32_use_full_screen_buffer,
 	       doc: /* Non-nil means make terminal frames use the full screen buffer dimensions.
 This is desirable when running Emacs over telnet.
 A value of nil means use the current console window dimensions; this

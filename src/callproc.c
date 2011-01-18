@@ -72,16 +72,8 @@ extern char **environ;
 #endif
 #endif
 
-Lisp_Object Vexec_path, Vexec_directory, Vexec_suffixes;
-Lisp_Object Vdata_directory, Vdoc_directory;
-Lisp_Object Vconfigure_info_directory, Vshared_game_score_directory;
-
 /* Pattern used by call-process-region to make temp files.  */
 static Lisp_Object Vtemp_file_name_pattern;
-
-Lisp_Object Vshell_file_name;
-
-Lisp_Object Vprocess_environment, Vinitial_environment;
 
 #ifdef DOS_NT
 Lisp_Object Qbuffer_file_type;
@@ -1526,41 +1518,41 @@ syms_of_callproc (void)
 #endif
   staticpro (&Vtemp_file_name_pattern);
 
-  DEFVAR_LISP ("shell-file-name", &Vshell_file_name,
+  DEFVAR_LISP ("shell-file-name", Vshell_file_name,
 	       doc: /* *File name to load inferior shells from.
 Initialized from the SHELL environment variable, or to a system-dependent
 default if SHELL is not set.  */);
 
-  DEFVAR_LISP ("exec-path", &Vexec_path,
+  DEFVAR_LISP ("exec-path", Vexec_path,
 	       doc: /* *List of directories to search programs to run in subprocesses.
 Each element is a string (directory name) or nil (try default directory).  */);
 
-  DEFVAR_LISP ("exec-suffixes", &Vexec_suffixes,
+  DEFVAR_LISP ("exec-suffixes", Vexec_suffixes,
 	       doc: /* *List of suffixes to try to find executable file names.
 Each element is a string.  */);
   Vexec_suffixes = Qnil;
 
-  DEFVAR_LISP ("exec-directory", &Vexec_directory,
+  DEFVAR_LISP ("exec-directory", Vexec_directory,
 	       doc: /* Directory for executables for Emacs to invoke.
 More generally, this includes any architecture-dependent files
 that are built and installed from the Emacs distribution.  */);
 
-  DEFVAR_LISP ("data-directory", &Vdata_directory,
+  DEFVAR_LISP ("data-directory", Vdata_directory,
 	       doc: /* Directory of machine-independent files that come with GNU Emacs.
 These are files intended for Emacs to use while it runs.  */);
 
-  DEFVAR_LISP ("doc-directory", &Vdoc_directory,
+  DEFVAR_LISP ("doc-directory", Vdoc_directory,
 	       doc: /* Directory containing the DOC file that comes with GNU Emacs.
 This is usually the same as `data-directory'.  */);
 
-  DEFVAR_LISP ("configure-info-directory", &Vconfigure_info_directory,
+  DEFVAR_LISP ("configure-info-directory", Vconfigure_info_directory,
 	       doc: /* For internal use by the build procedure only.
 This is the name of the directory in which the build procedure installed
 Emacs's info files; the default value for `Info-default-directory-list'
 includes this.  */);
   Vconfigure_info_directory = build_string (PATH_INFO);
 
-  DEFVAR_LISP ("shared-game-score-directory", &Vshared_game_score_directory,
+  DEFVAR_LISP ("shared-game-score-directory", Vshared_game_score_directory,
 	       doc: /* Directory of score files for games which come with GNU Emacs.
 If this variable is nil, then Emacs is unable to use a shared directory.  */);
 #ifdef DOS_NT
@@ -1569,13 +1561,13 @@ If this variable is nil, then Emacs is unable to use a shared directory.  */);
   Vshared_game_score_directory = build_string (PATH_GAME);
 #endif
 
-  DEFVAR_LISP ("initial-environment", &Vinitial_environment,
+  DEFVAR_LISP ("initial-environment", Vinitial_environment,
 	       doc: /* List of environment variables inherited from the parent process.
 Each element should be a string of the form ENVVARNAME=VALUE.
 The elements must normally be decoded (using `locale-coding-system') for use.  */);
   Vinitial_environment = Qnil;
 
-  DEFVAR_LISP ("process-environment", &Vprocess_environment,
+  DEFVAR_LISP ("process-environment", Vprocess_environment,
 	       doc: /* List of overridden environment variables for subprocesses to inherit.
 Each element should be a string of the form ENVVARNAME=VALUE.
 

@@ -122,17 +122,6 @@ int auto_save_error_occurred;
    auto saving and recovering a file.  */
 Lisp_Object Qauto_save_coding;
 
-/* Coding system for file names, or nil if none.  */
-Lisp_Object Vfile_name_coding_system;
-
-/* Coding system for file names used only when
-   Vfile_name_coding_system is nil.  */
-Lisp_Object Vdefault_file_name_coding_system;
-
-/* Alist of elements (REGEXP . HANDLER) for file names
-   whose I/O is done with a special handler.  */
-Lisp_Object Vfile_name_handler_alist;
-
 /* Property name of a file name handler,
    which gives a list of operations it handles..  */
 Lisp_Object Qoperations;
@@ -140,46 +129,17 @@ Lisp_Object Qoperations;
 /* Lisp functions for translating file formats */
 Lisp_Object Qformat_decode, Qformat_annotate_function;
 
-/* Function to be called to decide a coding system of a reading file.  */
-Lisp_Object Vset_auto_coding_function;
-
-/* Functions to be called to process text properties in inserted file.  */
-Lisp_Object Vafter_insert_file_functions;
-
 /* Lisp function for setting buffer-file-coding-system and the
    multibyteness of the current buffer after inserting a file.  */
 Lisp_Object Qafter_insert_file_set_coding;
 
-/* Functions to be called to create text property annotations for file.  */
-Lisp_Object Vwrite_region_annotate_functions;
 Lisp_Object Qwrite_region_annotate_functions;
-Lisp_Object Vwrite_region_post_annotation_function;
-
-/* During build_annotations, each time an annotation function is called,
-   this holds the annotations made by the previous functions.  */
-Lisp_Object Vwrite_region_annotations_so_far;
-
 /* Each time an annotation function changes the buffer, the new buffer
    is added here.  */
 Lisp_Object Vwrite_region_annotation_buffers;
 
-/* File name in which we write a list of all our auto save files.  */
-Lisp_Object Vauto_save_list_file_name;
-
-/* Whether or not files are auto-saved into themselves.  */
-Lisp_Object Vauto_save_visited_file_name;
-
-/* Whether or not to continue auto-saving after a large deletion.  */
-Lisp_Object Vauto_save_include_big_deletions;
-
 #ifdef HAVE_FSYNC
-/* Nonzero means skip the call to fsync in Fwrite-region.  */
-int write_region_inhibit_fsync;
 #endif
-
-/* Non-zero means call move-file-to-trash in Fdelete_file or
-   Fdelete_directory_internal.  */
-int delete_by_moving_to_trash;
 
 Lisp_Object Qdelete_by_moving_to_trash;
 
@@ -193,18 +153,7 @@ Lisp_Object Qcopy_directory;
 Lisp_Object Qdelete_directory;
 
 #ifdef WINDOWSNT
-extern Lisp_Object Vw32_get_true_file_attributes;
 #endif
-
-/* These variables describe handlers that have "already" had a chance
-   to handle the current operation.
-
-   Vinhibit_file_name_handlers is a list of file name handlers.
-   Vinhibit_file_name_operation is the operation being handled.
-   If we try to handle that operation, we ignore those handlers.  */
-
-static Lisp_Object Vinhibit_file_name_handlers;
-static Lisp_Object Vinhibit_file_name_operation;
 
 Lisp_Object Qfile_error, Qfile_already_exists, Qfile_date_error;
 Lisp_Object Qexcl;
@@ -5638,13 +5587,13 @@ syms_of_fileio (void)
   staticpro (&Qfind_buffer_file_type);
 #endif /* DOS_NT */
 
-  DEFVAR_LISP ("file-name-coding-system", &Vfile_name_coding_system,
+  DEFVAR_LISP ("file-name-coding-system", Vfile_name_coding_system,
 	       doc: /* *Coding system for encoding file names.
 If it is nil, `default-file-name-coding-system' (which see) is used.  */);
   Vfile_name_coding_system = Qnil;
 
   DEFVAR_LISP ("default-file-name-coding-system",
-	       &Vdefault_file_name_coding_system,
+	       Vdefault_file_name_coding_system,
 	       doc: /* Default coding system for encoding file names.
 This variable is used only when `file-name-coding-system' is nil.
 
@@ -5679,7 +5628,7 @@ of file names regardless of the current language environment.  */);
   Fput (Qfile_date_error, Qerror_message,
 	make_pure_c_string ("Cannot set file date"));
 
-  DEFVAR_LISP ("file-name-handler-alist", &Vfile_name_handler_alist,
+  DEFVAR_LISP ("file-name-handler-alist", Vfile_name_handler_alist,
 	       doc: /* *Alist of elements (REGEXP . HANDLER) for file names handled specially.
 If a file name matches REGEXP, then all I/O on that file is done by calling
 HANDLER.
@@ -5695,7 +5644,7 @@ for its argument.  */);
   Vfile_name_handler_alist = Qnil;
 
   DEFVAR_LISP ("set-auto-coding-function",
-	       &Vset_auto_coding_function,
+	       Vset_auto_coding_function,
 	       doc: /* If non-nil, a function to call to decide a coding system of file.
 Two arguments are passed to this function: the file name
 and the length of a file contents following the point.
@@ -5707,7 +5656,7 @@ specified in the heading lines with the format:
 or local variable spec of the tailing lines with `coding:' tag.  */);
   Vset_auto_coding_function = Qnil;
 
-  DEFVAR_LISP ("after-insert-file-functions", &Vafter_insert_file_functions,
+  DEFVAR_LISP ("after-insert-file-functions", Vafter_insert_file_functions,
 	       doc: /* A list of functions to be called at the end of `insert-file-contents'.
 Each is passed one argument, the number of characters inserted,
 with point at the start of the inserted text.  Each function
@@ -5717,7 +5666,7 @@ If `insert-file-contents' is intercepted by a handler from
 functions in `after-insert-file-functions' if appropriate.  */);
   Vafter_insert_file_functions = Qnil;
 
-  DEFVAR_LISP ("write-region-annotate-functions", &Vwrite_region_annotate_functions,
+  DEFVAR_LISP ("write-region-annotate-functions", Vwrite_region_annotate_functions,
 	       doc: /* A list of functions to be called at the start of `write-region'.
 Each is passed two arguments, START and END as for `write-region'.
 These are usually two numbers but not always; see the documentation
@@ -5746,7 +5695,7 @@ buffer current.  */);
     = intern_c_string ("write-region-annotate-functions");
 
   DEFVAR_LISP ("write-region-post-annotation-function",
-	       &Vwrite_region_post_annotation_function,
+	       Vwrite_region_post_annotation_function,
 	       doc: /* Function to call after `write-region' completes.
 The function is called with no arguments.  If one or more of the
 annotation functions in `write-region-annotate-functions' changed the
@@ -5757,34 +5706,34 @@ buffer.  The relevant buffer is current during each function call.  */);
   staticpro (&Vwrite_region_annotation_buffers);
 
   DEFVAR_LISP ("write-region-annotations-so-far",
-	       &Vwrite_region_annotations_so_far,
+	       Vwrite_region_annotations_so_far,
 	       doc: /* When an annotation function is called, this holds the previous annotations.
 These are the annotations made by other annotation functions
 that were already called.  See also `write-region-annotate-functions'.  */);
   Vwrite_region_annotations_so_far = Qnil;
 
-  DEFVAR_LISP ("inhibit-file-name-handlers", &Vinhibit_file_name_handlers,
+  DEFVAR_LISP ("inhibit-file-name-handlers", Vinhibit_file_name_handlers,
 	       doc: /* A list of file name handlers that temporarily should not be used.
 This applies only to the operation `inhibit-file-name-operation'.  */);
   Vinhibit_file_name_handlers = Qnil;
 
-  DEFVAR_LISP ("inhibit-file-name-operation", &Vinhibit_file_name_operation,
+  DEFVAR_LISP ("inhibit-file-name-operation", Vinhibit_file_name_operation,
 	       doc: /* The operation for which `inhibit-file-name-handlers' is applicable.  */);
   Vinhibit_file_name_operation = Qnil;
 
-  DEFVAR_LISP ("auto-save-list-file-name", &Vauto_save_list_file_name,
+  DEFVAR_LISP ("auto-save-list-file-name", Vauto_save_list_file_name,
 	       doc: /* File name in which we write a list of all auto save file names.
 This variable is initialized automatically from `auto-save-list-file-prefix'
 shortly after Emacs reads your `.emacs' file, if you have not yet given it
 a non-nil value.  */);
   Vauto_save_list_file_name = Qnil;
 
-  DEFVAR_LISP ("auto-save-visited-file-name", &Vauto_save_visited_file_name,
+  DEFVAR_LISP ("auto-save-visited-file-name", Vauto_save_visited_file_name,
 	       doc: /* Non-nil says auto-save a buffer in the file it is visiting, when practical.
 Normally auto-save files are written under other names.  */);
   Vauto_save_visited_file_name = Qnil;
 
-  DEFVAR_LISP ("auto-save-include-big-deletions", &Vauto_save_include_big_deletions,
+  DEFVAR_LISP ("auto-save-include-big-deletions", Vauto_save_include_big_deletions,
 	       doc: /* If non-nil, auto-save even if a large part of the text is deleted.
 If nil, deleting a substantial portion of the text disables auto-save
 in the buffer; this is the default behavior, because the auto-save
@@ -5792,14 +5741,14 @@ file is usually more useful if it contains the deleted text.  */);
   Vauto_save_include_big_deletions = Qnil;
 
 #ifdef HAVE_FSYNC
-  DEFVAR_BOOL ("write-region-inhibit-fsync", &write_region_inhibit_fsync,
+  DEFVAR_BOOL ("write-region-inhibit-fsync", write_region_inhibit_fsync,
 	       doc: /* *Non-nil means don't call fsync in `write-region'.
 This variable affects calls to `write-region' as well as save commands.
 A non-nil value may result in data loss!  */);
   write_region_inhibit_fsync = 0;
 #endif
 
-  DEFVAR_BOOL ("delete-by-moving-to-trash", &delete_by_moving_to_trash,
+  DEFVAR_BOOL ("delete-by-moving-to-trash", delete_by_moving_to_trash,
                doc: /* Specifies whether to use the system's trash can.
 When non-nil, certain file deletion commands use the function
 `move-file-to-trash' instead of deleting files outright.

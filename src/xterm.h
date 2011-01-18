@@ -388,9 +388,6 @@ extern struct x_display_info *x_display_list;
    FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
 extern Lisp_Object x_display_name_list;
 
-/* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
-extern Lisp_Object Vx_pixel_size_width_font_regexp;
-
 extern struct x_display_info *x_display_info_for_display (Display *);
 extern struct x_display_info *x_display_info_for_name (Lisp_Object);
 extern void x_set_frame_alpha (struct frame *);

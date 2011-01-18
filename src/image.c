@@ -124,10 +124,6 @@ typedef struct ns_bitmap_record Bitmap_Record;
 #endif /* HAVE_NS */
 
 
-/* Search path for bitmap files.  */
-
-Lisp_Object Vx_bitmap_file_path;
-
 /* The symbol `postscript' identifying images of this type.  */
 
 Lisp_Object Qpostscript;
@@ -565,10 +561,6 @@ x_create_bitmap_mask (struct frame *f, int id)
 
 static struct image_type *image_types;
 
-/* A list of symbols, one for each supported image type.  */
-
-Lisp_Object Vimage_types;
-
 /* Cache for delayed-loading image types.  */
 
 static Lisp_Object Vimage_type_cache;
@@ -586,11 +578,6 @@ Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask, QCgeometry, QCcrop, Q
 /* Other symbols.  */
 
 Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
-
-/* Time in seconds after which images should be removed from the cache
-   if not displayed.  */
-
-Lisp_Object Vimage_cache_eviction_delay;
 
 /* Function prototypes.  */
 
@@ -1003,8 +990,6 @@ static void free_image (struct frame *f, struct image *img);
 static int check_image_size (struct frame *f, int width, int height);
 
 #define MAX_IMAGE_SIZE 6.0
-Lisp_Object Vmax_image_size;
-
 /* Allocate and return a new image structure for image specification
    SPEC.  SPEC has a hash value of HASH.  */
 
@@ -4407,11 +4392,6 @@ static void x_detect_edges (struct frame *, struct image *, int[9], int);
 static void XPutPixel (XImagePtr , int, int, COLORREF);
 #endif /* HAVE_NTGUI */
 
-/* Non-zero means draw a cross on images having `:conversion
-   disabled'.  */
-
-int cross_disabled_images;
-
 /* Edge detection matrices for different edge-detection
    strategies.  */
 
@@ -7384,8 +7364,6 @@ gif_load (struct frame *f, struct image *img)
 /* The symbol `imagemagick' identifying images of this type.  */
 
 Lisp_Object Qimagemagick;
-Lisp_Object Vimagemagick_render_type;
-
 /* Indices of image specification fields in imagemagick_format, below.  */
 
 enum imagemagick_keyword_index
@@ -8710,13 +8688,13 @@ syms_of_image (void)
 
   /* Must be defined now becase we're going to update it below, while
      defining the supported image types.  */
-  DEFVAR_LISP ("image-types", &Vimage_types,
+  DEFVAR_LISP ("image-types", Vimage_types,
     doc: /* List of potentially supported image types.
 Each element of the list is a symbol for an image type, like 'jpeg or 'png.
 To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
 
-  DEFVAR_LISP ("max-image-size", &Vmax_image_size,
+  DEFVAR_LISP ("max-image-size", Vmax_image_size,
     doc: /* Maximum size of images.
 Emacs will not load an image into memory if its pixel width or
 pixel height exceeds this limit.
@@ -8875,17 +8853,17 @@ non-numeric, there is no explicit limit on the size of images.  */);
   defsubr (&Slookup_image);
 #endif
 
-  DEFVAR_BOOL ("cross-disabled-images", &cross_disabled_images,
+  DEFVAR_BOOL ("cross-disabled-images", cross_disabled_images,
     doc: /* Non-nil means always draw a cross over disabled images.
 Disabled images are those having a `:conversion disabled' property.
 A cross is always drawn on black & white displays.  */);
   cross_disabled_images = 0;
 
-  DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
+  DEFVAR_LISP ("x-bitmap-file-path", Vx_bitmap_file_path,
     doc: /* List of directories to search for window system bitmap files.  */);
   Vx_bitmap_file_path = decode_env_path ((char *) 0, PATH_BITMAPS);
 
-  DEFVAR_LISP ("image-cache-eviction-delay", &Vimage_cache_eviction_delay,
+  DEFVAR_LISP ("image-cache-eviction-delay", Vimage_cache_eviction_delay,
     doc: /* Maximum time after which images are removed from the cache.
 When an image has not been displayed this many seconds, Emacs
 automatically removes it from the image cache.  If the cache contains
@@ -8895,7 +8873,7 @@ The value can also be nil, meaning the cache is never cleared.
 The function `clear-image-cache' disregards this variable.  */);
   Vimage_cache_eviction_delay = make_number (300);
 #ifdef HAVE_IMAGEMAGICK
-  DEFVAR_LISP ("imagemagick-render-type", &Vimagemagick_render_type,
+  DEFVAR_LISP ("imagemagick-render-type", Vimagemagick_render_type,
                doc: /* Choose between ImageMagick render methods.  */);
 #endif
 

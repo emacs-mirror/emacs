@@ -114,41 +114,9 @@ Lisp_Object minibuf_window;
 
 Lisp_Object minibuf_selected_window;
 
-/* Non-nil means it is the window for C-M-v to scroll
-   when the mini-buffer is selected.  */
-
-Lisp_Object Vminibuf_scroll_window;
-
-/* Non-nil means this is the buffer whose window C-M-v should scroll.  */
-
-Lisp_Object Vother_window_scroll_buffer;
-
-/* Non-nil means it's function to call to display temp buffers.  */
-
-Lisp_Object Vtemp_buffer_show_function;
-
-/* Non-zero means line and page scrolling on tall lines (with images)
-   does partial scrolling by modifying window-vscroll.  */
-
-int auto_window_vscroll_p;
-
-/* Non-zero means to use mode-line-inactive face in all windows but the
-   selected-window and the minibuffer-scroll-window when the
-   minibuffer is active.  */
-int mode_line_in_non_selected_windows;
-
-/* If a window gets smaller than either of these, it is removed. */
-
-EMACS_INT window_min_height;
-EMACS_INT window_min_width;
-
 /* Hook run at end of temp_output_buffer_show.  */
 
 Lisp_Object Qtemp_buffer_show_hook;
-
-/* Number of lines of continuity in scrolling by screenfuls.  */
-
-EMACS_INT next_screen_context_lines;
 
 /* Incremented for each window created.  */
 
@@ -166,17 +134,6 @@ static int inhibit_point_swap;
 /* Hook to run when window config changes.  */
 
 static Lisp_Object Qwindow_configuration_change_hook;
-static Lisp_Object Vwindow_configuration_change_hook;
-
-/* Non-nil means scroll commands try to put point
-   at the same screen height as previously.  */
-
-Lisp_Object Vscroll_preserve_screen_position;
-
-/* Non-nil means that text is inserted before window's markers.  */
-
-Lisp_Object Vwindow_point_insertion_type;
-
 /* Incremented by 1 whenever a window is deleted.  */
 
 int window_deletion_count;
@@ -194,17 +151,7 @@ static int window_scroll_preserve_vpos;
 #if 0 /* This isn't used anywhere.  */
 /* Nonzero means we can split a frame even if it is "unsplittable".  */
 static int inhibit_frame_unsplittable;
-#endif /* 0 */
-
-extern EMACS_INT scroll_margin;
-
-extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
-
-/* If non-nil, then the `recenter' command with a nil argument
-   the entire frame to be redrawn; the special value `tty' causes the
-   frame to be redrawn only if it is a tty frame.  */
-
-static Lisp_Object Vrecenter_redisplay;
+#endif extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
@@ -7101,7 +7048,7 @@ syms_of_window (void)
 
   inhibit_point_swap = 0;
 
-  DEFVAR_LISP ("temp-buffer-show-function", &Vtemp_buffer_show_function,
+  DEFVAR_LISP ("temp-buffer-show-function", Vtemp_buffer_show_function,
 	       doc: /* Non-nil means call as function to display a help buffer.
 The function is called with one argument, the buffer to be displayed.
 Used by `with-output-to-temp-buffer'.
@@ -7109,29 +7056,29 @@ If this function is used, then it must do the entire job of showing
 the buffer; `temp-buffer-show-hook' is not run unless this function runs it.  */);
   Vtemp_buffer_show_function = Qnil;
 
-  DEFVAR_LISP ("minibuffer-scroll-window", &Vminibuf_scroll_window,
+  DEFVAR_LISP ("minibuffer-scroll-window", Vminibuf_scroll_window,
 	       doc: /* Non-nil means it is the window that C-M-v in minibuffer should scroll.  */);
   Vminibuf_scroll_window = Qnil;
 
-  DEFVAR_BOOL ("mode-line-in-non-selected-windows", &mode_line_in_non_selected_windows,
+  DEFVAR_BOOL ("mode-line-in-non-selected-windows", mode_line_in_non_selected_windows,
 	       doc: /* Non-nil means to use `mode-line-inactive' face in non-selected windows.
 If the minibuffer is active, the `minibuffer-scroll-window' mode line
 is displayed in the `mode-line' face.  */);
   mode_line_in_non_selected_windows = 1;
 
-  DEFVAR_LISP ("other-window-scroll-buffer", &Vother_window_scroll_buffer,
+  DEFVAR_LISP ("other-window-scroll-buffer", Vother_window_scroll_buffer,
 	       doc: /* If non-nil, this is a buffer and \\[scroll-other-window] should scroll its window.  */);
   Vother_window_scroll_buffer = Qnil;
 
-  DEFVAR_BOOL ("auto-window-vscroll", &auto_window_vscroll_p,
+  DEFVAR_BOOL ("auto-window-vscroll", auto_window_vscroll_p,
 	       doc: /* *Non-nil means to automatically adjust `window-vscroll' to view tall lines.  */);
   auto_window_vscroll_p = 1;
 
-  DEFVAR_INT ("next-screen-context-lines", &next_screen_context_lines,
+  DEFVAR_INT ("next-screen-context-lines", next_screen_context_lines,
 	      doc: /* *Number of lines of continuity when scrolling by screenfuls.  */);
   next_screen_context_lines = 2;
 
-  DEFVAR_INT ("window-min-height", &window_min_height,
+  DEFVAR_INT ("window-min-height", window_min_height,
 	      doc: /* Allow deleting windows less than this tall.
 The value is measured in line units.  If a window wants a modeline it
 is counted as one line.
@@ -7140,7 +7087,7 @@ Emacs honors settings of this variable when enlarging or shrinking
 windows vertically.  A value less than 1 is invalid.  */);
   window_min_height = 4;
 
-  DEFVAR_INT ("window-min-width", &window_min_width,
+  DEFVAR_INT ("window-min-width", window_min_width,
 	      doc: /* Allow deleting windows less than this wide.
 The value is measured in characters and includes any fringes or
 the scrollbar.
@@ -7150,7 +7097,7 @@ windows horizontally.  A value less than 2 is invalid.  */);
   window_min_width = 10;
 
   DEFVAR_LISP ("scroll-preserve-screen-position",
-	       &Vscroll_preserve_screen_position,
+	       Vscroll_preserve_screen_position,
 	       doc: /* *Controls if scroll commands move point to keep its screen position unchanged.
 A value of nil means point does not keep its screen position except
 at the scroll margin or window boundary respectively.
@@ -7162,19 +7109,19 @@ Scroll commands should have the `scroll-command' property
 on their symbols to be controlled by this variable.  */);
   Vscroll_preserve_screen_position = Qnil;
 
-  DEFVAR_LISP ("window-point-insertion-type", &Vwindow_point_insertion_type,
+  DEFVAR_LISP ("window-point-insertion-type", Vwindow_point_insertion_type,
 	       doc: /* Type of marker to use for `window-point'.  */);
   Vwindow_point_insertion_type = Qnil;
 
   DEFVAR_LISP ("window-configuration-change-hook",
-	       &Vwindow_configuration_change_hook,
+	       Vwindow_configuration_change_hook,
 	       doc: /* Functions to call when window configuration changes.
 The buffer-local part is run once per window, with the relevant window
 selected; while the global part is run only once for the modified frame,
 with the relevant frame selected.  */);
   Vwindow_configuration_change_hook = Qnil;
 
-  DEFVAR_LISP ("recenter-redisplay", &Vrecenter_redisplay,
+  DEFVAR_LISP ("recenter-redisplay", Vrecenter_redisplay,
 	       doc: /* If non-nil, then the `recenter' command with a nil argument
 will redraw the entire frame; the special value `tty' causes the
 frame to be redrawn only if it is a tty frame.  */);

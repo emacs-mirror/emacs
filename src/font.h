@@ -849,7 +849,6 @@ extern void syms_of_nsfont (void);
 
 extern Lisp_Object QCfoundry;
 
-extern Lisp_Object Vfont_log;
 extern void font_add_log (const char *, Lisp_Object, Lisp_Object);
 extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
 

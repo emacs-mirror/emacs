@@ -121,9 +121,6 @@ Lisp_Object QCname, QCtype;
 
 static int kbd_is_on_hold;
 
-/* Nonzero means delete a process right away if it exits.  */
-static int delete_exited_processes;
-
 /* Nonzero means don't run process sentinels.  This is used
    when exiting.  */
 int inhibit_sentinels;
@@ -174,10 +171,6 @@ extern void serial_configure (struct Lisp_Process *p, Lisp_Object contact);
 #ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif
-
-/* t means use pty, nil means use a pipe,
-   maybe other values to come.  */
-static Lisp_Object Vprocess_connection_type;
 
 /* These next two vars are non-static since sysdep.c uses them in the
    emulation of `select'.  */
@@ -247,11 +240,6 @@ static int process_output_delay_count;
 
 static int process_output_skip;
 
-/* Non-nil means to delay reading process output to improve buffering.
-   A value of t means that delay is reset after each send, any other
-   non-nil value does not reset the delay.  A value of nil disables
-   adaptive read buffering completely.  */
-static Lisp_Object Vprocess_adaptive_read_buffering;
 #else
 #define process_output_delay_count 0
 #endif
@@ -7642,14 +7630,14 @@ syms_of_process (void)
   Qargs = intern_c_string ("args");
   staticpro (&Qargs);
 
-  DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
+  DEFVAR_BOOL ("delete-exited-processes", delete_exited_processes,
 	       doc: /* *Non-nil means delete processes immediately when they exit.
 A value of nil means don't delete them until `list-processes' is run.  */);
 
   delete_exited_processes = 1;
 
 #ifdef subprocesses
-  DEFVAR_LISP ("process-connection-type", &Vprocess_connection_type,
+  DEFVAR_LISP ("process-connection-type", Vprocess_connection_type,
 	       doc: /* Control type of device used to communicate with subprocesses.
 Values are nil to use a pipe, or t or `pty' to use a pty.
 The value has no effect if the system has no ptys or if all ptys are busy:
@@ -7658,7 +7646,7 @@ The value takes effect when `start-process' is called.  */);
   Vprocess_connection_type = Qt;
 
 #ifdef ADAPTIVE_READ_BUFFERING
-  DEFVAR_LISP ("process-adaptive-read-buffering", &Vprocess_adaptive_read_buffering,
+  DEFVAR_LISP ("process-adaptive-read-buffering", Vprocess_adaptive_read_buffering,
 	       doc: /* If non-nil, improve receive buffering by delaying after short reads.
 On some systems, when Emacs reads the output from a subprocess, the output data
 is read in very small blocks, potentially resulting in very poor performance.

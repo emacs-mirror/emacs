@@ -1,3 +1,482 @@
+2011-01-18  Tom Tromey  <tromey@parfait>
+
+	* globals.h: New file.
+	* xterm.h (Vx_pixel_size_width_font_regexp): Remove declaration.
+	* window.h (Vinitial_window_system, Vminibuf_scroll_window)
+	(Vwindow_system_version): Remove declaration.
+	* w32term.h (Vw32_enable_palette)
+	(Vx_pixel_size_width_font_regexp): Remove declaration.
+	* w32menu.c (Voverriding_local_map)
+	(Voverriding_local_map_menu_flag): Remove declaration.
+	* w32inevt.c (Vw32_alt_is_meta, Vw32_apps_modifier)
+	(Vw32_capslock_is_shiftlock, Vw32_enable_caps_lock)
+	(Vw32_enable_num_lock, Vw32_lwindow_modifier)
+	(Vw32_pass_lwindow_to_system, Vw32_pass_rwindow_to_system)
+	(Vw32_phantom_key_code, Vw32_recognize_altgr)
+	(Vw32_rwindow_modifier, Vw32_scroll_lock_modifier)
+	(w32_use_full_screen_buffer): Remove declaration.
+	* w32.c (Vsystem_configuration, Vw32_downcase_file_names)
+	(Vw32_generate_fake_inodes, Vw32_get_true_file_attributes)
+	(w32_num_mouse_buttons, w32_pipe_read_delay): Remove declaration.
+	* termopts.h (Vtruncate_partial_width_windows, inverse_video)
+	(no_redraw_on_reenter, visible_bell): Remove declaration.
+	* sysdep.c (Vsystem_name): Remove declaration.
+	* syntax.h (parse_sexp_lookup_properties): Remove declaration.
+	* menu.h (Vmenu_updating_frame): Remove declaration.
+	* macros.h (Vexecuting_kbd_macro, executing_kbd_macro_index):
+	Remove declaration.
+	* lisp.h (Vafter_init_time, Vafter_load_alist)
+	(Vauto_save_list_file_name, Vbefore_init_time, Vcommand_history)
+	(Vcompletion_regexp_list, Vcurrent_load_list)
+	(Vcurrent_prefix_arg, Vdata_directory, Vdebug_on_error)
+	(Vdoc_directory, Vdoc_file_name, Vdynamic_library_alist)
+	(Vexec_directory, Vexec_path, Vexec_suffixes)
+	(Vface_font_rescale_alist, Vface_ignored_fonts, Vfeatures)
+	(Vhelp_form, Vhistory_length, Vinhibit_field_text_motion)
+	(Vinhibit_quit, Vinhibit_read_only, Vinhibit_redisplay)
+	(Vinstallation_directory, Vinvocation_directory)
+	(Vinvocation_name, Vload_file_rep_suffixes, Vload_history)
+	(Vload_suffixes, Vmark_even_if_inactive, Vmemory_full)
+	(Vmessage_log_max, Vobarray, Vprint_length, Vprint_level)
+	(Vpurify_flag, Vquit_flag, Vsaved_region_selection)
+	(Vscalable_fonts_allowed, Vselect_active_regions)
+	(Vshell_file_name, Vstandard_input, Vstandard_output)
+	(Vsystem_name, Vtemporary_file_directory, Vthrow_on_input)
+	(Vtop_level, Vtty_erase_char, Vundo_outer_limit)
+	(Vuser_login_name, Vwindow_scroll_functions)
+	(Vwindow_system_version, Vx_no_window_manager)
+	(Vx_resource_class, Vx_resource_name, baud_rate)
+	(completion_ignore_case, debug_on_next_call, gc_cons_threshold)
+	(history_delete_duplicates, inhibit_x_resources)
+	(last_nonmenu_event, load_in_progress, max_specpdl_size)
+	(minibuffer_auto_raise, print_escape_newlines, scroll_margin)
+	(use_dialog_box, use_file_dialog): Remove declaration.  Include
+	globals.h.
+	* keymap.h (Voverriding_local_map)
+	(Voverriding_local_map_menu_flag, meta_prefix_char): Remove
+	declaration.
+	* keyboard.h (Vdouble_click_time, Vfunction_key_map)
+	(Vinput_method_function, Vkey_translation_map)
+	(Vlucid_menu_bar_dirty_flag, Vthis_original_command)
+	(do_mouse_tracking, extra_keyboard_modifiers)
+	(num_nonmacro_input_events): Remove declaration.
+	* intervals.h (Vchar_property_alias_alist)
+	(Vdefault_text_properties, Vinhibit_point_motion_hooks)
+	(Vtext_property_default_nonsticky): Remove declaration.
+	* gtkutil.h (x_gtk_file_dialog_help_text)
+	(x_gtk_show_hidden_files, x_gtk_use_old_file_dialog)
+	(x_gtk_whole_detached_tool_bar): Remove declaration.
+	* frame.h (Vdefault_frame_alist, Vframe_alpha_lower_limit)
+	(Vmenu_bar_mode, Vmouse_highlight, Vterminal_frame)
+	(Vtool_bar_mode, Vx_resource_class, Vx_resource_name)
+	(focus_follows_mouse): Remove declaration.
+	* fontset.h (Valternate_fontname_alist, Vfontset_alias_alist)
+	(Vignore_relative_composition, Votf_script_alist)
+	(Vuse_default_ascent, Vvertical_centering_font_regexp): Remove
+	declaration.
+	* font.h (Vfont_log): Remove declaration.
+	* dosfns.h (Vdos_display_scancodes, Vdos_version)
+	(Vdos_windows_version, dos_codepage, dos_country_code)
+	(dos_decimal_point, dos_hyper_key, dos_keyboard_layout)
+	(dos_keypad_mode, dos_super_key, dos_timezone_offset): Remove
+	declaration.
+	* disptab.h (Vglyph_table, Vstandard_display_table): Remove
+	declaration.
+	* dispextern.h (Vface_remapping_alist, Vglyphless_char_display)
+	(Vmouse_autoselect_window, Voverflow_newline_into_fringe)
+	(Vshow_trailing_whitespace, Vtool_bar_button_margin)
+	(Vtool_bar_style, cursor_in_echo_area, display_hourglass_p)
+	(inverse_video, mode_line_in_non_selected_windows)
+	(tool_bar_button_relief, tool_bar_max_label_size)
+	(underline_minimum_offset)
+	(unibyte_display_via_language_environment, x_stretch_cursor_p):
+	Remove declaration.
+	* composite.h (Vauto_composition_function)
+	(Vcomposition_function_table): Remove declaration.
+	* commands.h (Vexecuting_kbd_macro)
+	(Vminibuffer_local_completion_map)
+	(Vminibuffer_local_filename_completion_map)
+	(Vminibuffer_local_filename_must_match_map)
+	(Vminibuffer_local_map, Vminibuffer_local_must_match_map)
+	(Vminibuffer_local_ns_map, Vthis_command)
+	(Vunread_command_events, cursor_in_echo_area)
+	(last_command_event, last_nonmenu_event, unread_command_char):
+	Remove declaration.
+	* coding.h (Vcoding_system_for_read, Vcoding_system_for_write)
+	(Vdefault_file_name_coding_system)
+	(Vdefault_process_coding_system, Vfile_name_coding_system)
+	(Vlast_coding_system_used, Vlocale_coding_system)
+	(Vselect_safe_coding_system_function)
+	(Vtranslation_table_for_input, coding_system_require_warning)
+	(eol_mnemonic_dos, eol_mnemonic_mac, eol_mnemonic_undecided)
+	(eol_mnemonic_unix, inherit_process_coding_system): Remove
+	declaration.
+	* charset.h (Vcharset_list, Vcurrent_iso639_language): Remove
+	declaration.
+	* character.h (Vauto_fill_chars, Vchar_direction_table)
+	(Vchar_script_table, Vchar_width_table, Vprintable_chars)
+	(Vscript_representative_chars, Vtranslation_table_vector)
+	(Vunicode_category_table): Remove declaration.
+	* ccl.h (Vfont_ccl_encoder_alist): Remove declaration.
+	* buffer.h (Vafter_change_functions, Vbefore_change_functions)
+	(Vdeactivate_mark, Vfirst_change_hook, Vtransient_mark_mode)
+	(inhibit_modification_hooks): Remove declaration.
+	* xterm.c (syms_of_xterm): Update.
+	(Vx_alt_keysym, Vx_hyper_keysym, Vx_keysym_table)
+	(Vx_meta_keysym, Vx_super_keysym, Vx_toolkit_scroll_bars)
+	(x_mouse_click_focus_ignore_position)
+	(x_underline_at_descent_line)
+	(x_use_underline_position_properties): Remove.
+	* xsmfns.c (syms_of_xsmfns): Update.
+	(Vx_session_id, Vx_session_previous_id): Remove.
+	* xsettings.c (syms_of_xsettings): Update.
+	(Vxft_settings, use_system_font): Remove.
+	* xselect.c (syms_of_xselect): Update.
+	(Vselection_converter_alist, Vx_lost_selection_functions)
+	(Vx_sent_selection_functions, x_selection_timeout): Remove.
+	* xfns.c (syms_of_xfns): Update.
+	(Vgtk_version_string, Vmotif_version_string)
+	(Vx_cursor_fore_pixel, Vx_hourglass_pointer_shape)
+	(Vx_max_tooltip_size, Vx_mode_pointer_shape)
+	(Vx_no_window_manager, Vx_nontext_pointer_shape)
+	(Vx_pixel_size_width_font_regexp, Vx_pointer_shape)
+	(Vx_sensitive_text_pointer_shape)
+	(Vx_window_horizontal_drag_shape, x_gtk_file_dialog_help_text)
+	(x_gtk_show_hidden_files, x_gtk_use_old_file_dialog)
+	(x_gtk_use_system_tooltips, x_gtk_whole_detached_tool_bar):
+	Remove.
+	* xfaces.c (syms_of_xfaces): Update.
+	(Vface_default_stipple, Vface_font_rescale_alist)
+	(Vface_ignored_fonts, Vface_new_frame_defaults)
+	(Vface_remapping_alist, Vfont_list_limit)
+	(Vscalable_fonts_allowed, Vtty_defined_color_alist): Remove.
+	* xdisp.c (syms_of_xdisp): Update.
+	(Vauto_resize_tool_bars, Vblink_cursor_alist)
+	(Vdisplay_pixels_per_inch, Vfontification_functions)
+	(Vframe_title_format, Vglobal_mode_string)
+	(Vglyphless_char_display, Vhourglass_delay, Vhscroll_step)
+	(Vicon_title_format, Vinhibit_redisplay)
+	(Vline_number_display_limit, Vline_prefix)
+	(Vmax_mini_window_height, Vmenu_bar_update_hook)
+	(Vmenu_updating_frame, Vmessage_log_max)
+	(Vmouse_autoselect_window, Vnobreak_char_display)
+	(Voverlay_arrow_position, Voverlay_arrow_string)
+	(Voverlay_arrow_variable_list, Vredisplay_end_trigger_functions)
+	(Vresize_mini_windows, Vshow_trailing_whitespace)
+	(Vtool_bar_border, Vtool_bar_button_margin, Vtool_bar_style)
+	(Vtruncate_partial_width_windows, Vvoid_text_area_pointer)
+	(Vwindow_scroll_functions, Vwindow_size_change_functions)
+	(Vwindow_text_change_functions, Vwrap_prefix)
+	(auto_raise_tool_bar_buttons_p, automatic_hscrolling_p)
+	(debug_end_pos, display_hourglass_p, emacs_scroll_step)
+	(highlight_nonselected_windows, hscroll_margin)
+	(inhibit_eval_during_redisplay, inhibit_free_realized_faces)
+	(inhibit_menubar_update, inhibit_try_cursor_movement)
+	(inhibit_try_window_id, inhibit_try_window_reusing)
+	(line_number_display_limit_width)
+	(make_cursor_line_fully_visible_p, message_truncate_lines)
+	(mode_line_inverse_video, multiple_frames, overline_margin)
+	(scroll_conservatively, scroll_margin, tool_bar_button_relief)
+	(tool_bar_max_label_size, underline_minimum_offset)
+	(unibyte_display_via_language_environment, x_stretch_cursor_p):
+	Remove.
+	* window.c (syms_of_window): Update.
+	(Vminibuf_scroll_window, Vother_window_scroll_buffer)
+	(Vrecenter_redisplay, Vscroll_preserve_screen_position)
+	(Vtemp_buffer_show_function, Vwindow_configuration_change_hook)
+	(Vwindow_point_insertion_type, auto_window_vscroll_p)
+	(mode_line_in_non_selected_windows, next_screen_context_lines)
+	(window_min_height, window_min_width): Remove.
+	(scroll_margin): Remove declaration.
+	* w32term.c (syms_of_w32term): Update.
+	(Vw32_capslock_is_shiftlock, Vw32_grab_focus_on_raise)
+	(Vw32_recognize_altgr, Vw32_swap_mouse_buttons)
+	(Vx_toolkit_scroll_bars, w32_num_mouse_buttons)
+	(w32_use_visible_system_caret, x_underline_at_descent_line)
+	(x_use_underline_position_properties): Remove.
+	(Vcommand_line_args, Vsystem_name, extra_keyboard_modifiers):
+	Remove declaration.
+	* w32select.c (syms_of_w32select): Update.
+	(Vnext_selection_coding_system, Vselection_coding_system): Remove.
+	* w32proc.c (syms_of_ntproc): Update.
+	(Vw32_downcase_file_names, Vw32_generate_fake_inodes)
+	(Vw32_get_true_file_attributes, Vw32_quote_process_args)
+	(Vw32_start_process_inherit_error_mode)
+	(Vw32_start_process_share_console)
+	(Vw32_start_process_show_window, w32_pipe_read_delay): Remove.
+	(Vsystem_name): Remove declaration.
+	* w32font.c (syms_of_w32font): Update.
+	(Vw32_charset_info_alist): Remove.
+	* w32fns.c (globals_of_w32fns, syms_of_w32fns): Update.
+	(Vw32_alt_is_meta, Vw32_apps_modifier, Vw32_bdf_filename_alist)
+	(Vw32_color_map, Vw32_enable_caps_lock, Vw32_enable_num_lock)
+	(Vw32_enable_palette, Vw32_lwindow_modifier)
+	(Vw32_pass_alt_to_system, Vw32_pass_lwindow_to_system)
+	(Vw32_pass_rwindow_to_system, Vw32_phantom_key_code)
+	(Vw32_rwindow_modifier, Vw32_scroll_lock_modifier)
+	(Vx_cursor_fore_pixel, Vx_hourglass_pointer_shape)
+	(Vx_max_tooltip_size, Vx_mode_pointer_shape)
+	(Vx_no_window_manager, Vx_nontext_pointer_shape)
+	(Vx_pixel_size_width_font_regexp, Vx_pointer_shape)
+	(Vx_sensitive_text_pointer_shape)
+	(Vx_window_horizontal_drag_shape, w32_ansi_code_page)
+	(w32_enable_synthesized_fonts, w32_mouse_button_tolerance)
+	(w32_mouse_move_interval)
+	(w32_pass_extra_mouse_buttons_to_system)
+	(w32_pass_multimedia_buttons_to_system, w32_quit_key)
+	(w32_strict_fontnames, w32_strict_painting): Remove.
+	(Vhourglass_delay, Vmenu_bar_mode, Vtool_bar_mode)
+	(Vw32_recognize_altgr, Vwindow_system_version)
+	(w32_num_mouse_buttons, w32_use_visible_system_caret): Remove
+	declaration.
+	* w32console.c (syms_of_ntterm): Update.
+	(w32_use_full_screen_buffer): Remove.
+	(Vtty_defined_color_alist): Remove declaration.
+	* w16select.c (syms_of_win16select): Update.
+	(Vnext_selection_coding_system, Vselection_coding_system): Remove.
+	* undo.c (syms_of_undo): Update.
+	(Vundo_outer_limit, Vundo_outer_limit_function)
+	(undo_inhibit_record_point, undo_limit, undo_strong_limit):
+	Remove.
+	* textprop.c (syms_of_textprop): Update.
+	(Vchar_property_alias_alist, Vdefault_text_properties)
+	(Vinhibit_point_motion_hooks, Vtext_property_default_nonsticky):
+	Remove.
+	* terminal.c (syms_of_terminal): Update.
+	(Vdelete_terminal_functions, Vring_bell_function): Remove.
+	* term.c (syms_of_term): Update.
+	(Vresume_tty_functions, Vsuspend_tty_functions)
+	(no_redraw_on_reenter, system_uses_terminfo, visible_cursor):
+	Remove.
+	* syntax.c (syms_of_syntax): Update.
+	(Vfind_word_boundary_function_table, multibyte_syntax_as_symbol)
+	(open_paren_in_column_0_is_defun_start)
+	(parse_sexp_ignore_comments, parse_sexp_lookup_properties)
+	(words_include_escapes): Remove.
+	* search.c (syms_of_search): Update.
+	(Vinhibit_changing_match_data, Vsearch_spaces_regexp): Remove.
+	* process.c (syms_of_process): Update.
+	(Vprocess_adaptive_read_buffering, Vprocess_connection_type)
+	(delete_exited_processes): Remove.
+	* print.c (syms_of_print): Update.
+	(Vfloat_output_format, Vprint_charset_text_property)
+	(Vprint_circle, Vprint_continuous_numbering, Vprint_gensym)
+	(Vprint_length, Vprint_level, Vprint_number_table)
+	(Vstandard_output, print_escape_multibyte)
+	(print_escape_newlines, print_escape_nonascii, print_quoted):
+	Remove.
+	* msdos.c (syms_of_msdos): Update.
+	(Vdos_unsupported_char_glyph): Remove.
+	(unibyte_display_via_language_environment): Remove declaration.
+	* minibuf.c (syms_of_minibuf): Update.
+	(Vcompletion_regexp_list, Vhistory_add_new_input)
+	(Vhistory_length, Vminibuffer_completing_file_name)
+	(Vminibuffer_completion_confirm)
+	(Vminibuffer_completion_predicate, Vminibuffer_completion_table)
+	(Vminibuffer_exit_hook, Vminibuffer_help_form)
+	(Vminibuffer_history_position, Vminibuffer_history_variable)
+	(Vminibuffer_prompt_properties, Vminibuffer_setup_hook)
+	(Vread_buffer_function, Vread_expression_map)
+	(completion_ignore_case, enable_recursive_minibuffers)
+	(history_delete_duplicates, minibuffer_allow_text_properties)
+	(minibuffer_auto_raise, read_buffer_completion_ignore_case):
+	Remove.
+	* marker.c (syms_of_marker): Update.
+	(byte_debug_flag): Remove.
+	* macros.c (syms_of_macros): Update.
+	(Vexecuting_kbd_macro, executing_kbd_macro_index): Remove.
+	* lread.c (syms_of_lread): Update.
+	(Vafter_load_alist, Vbyte_boolean_vars)
+	(Vbytecomp_version_regexp, Vcurrent_load_list)
+	(Veval_buffer_list, Vload_file_name, Vload_file_rep_suffixes)
+	(Vload_history, Vload_path, Vload_read_function)
+	(Vload_source_file_function, Vload_suffixes, Vobarray)
+	(Vold_style_backquotes, Vpreloaded_file_list, Vread_circle)
+	(Vread_symbol_positions_list, Vread_with_symbol_positions)
+	(Vsource_directory, Vstandard_input, Vuser_init_file, Vvalues)
+	(force_load_messages, load_convert_to_unibyte)
+	(load_dangerous_libraries, load_force_doc_strings)
+	(load_in_progress): Remove.
+	* keymap.c (syms_of_keymap): Update.
+	(Vdefine_key_rebound_commands, Vemulation_mode_map_alists)
+	(Vminibuffer_local_completion_map)
+	(Vminibuffer_local_filename_completion_map)
+	(Vminibuffer_local_filename_must_match_map)
+	(Vminibuffer_local_map, Vminibuffer_local_must_match_map)
+	(Vminibuffer_local_ns_map, Vminor_mode_map_alist)
+	(Vminor_mode_overriding_map_alist, Vwhere_is_preferred_modifier):
+	Remove.
+	* keyboard.c (syms_of_keyboard): Update.
+	(Vauto_save_timeout, Vcommand_error_function)
+	(Vcommand_hook_internal, Vdeactivate_mark)
+	(Vdeferred_action_function, Vdeferred_action_list)
+	(Vdisable_point_adjustment, Vdouble_click_time)
+	(Vecho_keystrokes, Venable_disabled_menus_and_buttons)
+	(Vfunction_key_map, Vglobal_disable_point_adjustment)
+	(Vhelp_char, Vhelp_event_list, Vhelp_form)
+	(Vinput_method_function, Vinput_method_previous_message)
+	(Vkey_translation_map, Vlast_event_frame)
+	(Vlucid_menu_bar_dirty_flag, Vmenu_bar_final_items)
+	(Vminibuffer_message_timeout, Voverriding_local_map)
+	(Voverriding_local_map_menu_flag, Vpost_command_hook)
+	(Vpre_command_hook, Vprefix_help_command)
+	(Vsaved_region_selection, Vselect_active_regions)
+	(Vshow_help_function, Vspecial_event_map, Vsuggest_key_bindings)
+	(Vthis_command, Vthis_command_keys_shift_translated)
+	(Vthis_original_command, Vthrow_on_input, Vtimer_idle_list)
+	(Vtimer_list, Vtool_bar_separator_image_expression, Vtop_level)
+	(Vtty_erase_char, Vunread_command_events)
+	(Vunread_input_method_events, Vunread_post_input_method_events)
+	(auto_save_interval, cannot_suspend, do_mouse_tracking)
+	(double_click_fuzz, extra_keyboard_modifiers)
+	(inhibit_local_menu_bar_menus, last_command_event)
+	(last_input_event, last_nonmenu_event, menu_prompt_more_char)
+	(menu_prompting, meta_prefix_char, num_input_keys)
+	(num_nonmacro_input_events, polling_period, unread_command_char):
+	Remove.
+	* insdel.c (syms_of_insdel): Update.
+	(Vcombine_after_change_calls, check_markers_debug_flag): Remove.
+	* indent.c (syms_of_indent): Update.
+	(indent_tabs_mode): Remove.
+	* image.c (syms_of_image): Update.
+	(Vimage_cache_eviction_delay, Vimage_types)
+	(Vimagemagick_render_type, Vmax_image_size, Vx_bitmap_file_path)
+	(cross_disabled_images): Remove.
+	* fringe.c (syms_of_fringe): Update.
+	(Vfringe_bitmaps, Voverflow_newline_into_fringe): Remove.
+	* frame.c (syms_of_frame): Update.
+	(Vdefault_frame_alist, Vdefault_frame_scroll_bars)
+	(Vdelete_frame_functions, Vframe_alpha_lower_limit)
+	(Vmake_pointer_invisible, Vmenu_bar_mode, Vmouse_highlight)
+	(Vmouse_position_function, Vterminal_frame, Vtool_bar_mode)
+	(Vx_resource_class, Vx_resource_name, focus_follows_mouse):
+	Remove.
+	* fontset.c (syms_of_fontset): Update.
+	(Valternate_fontname_alist, Vfont_encoding_charset_alist)
+	(Vfontset_alias_alist, Vignore_relative_composition)
+	(Votf_script_alist, Vuse_default_ascent)
+	(Vvertical_centering_font_regexp): Remove.
+	* font.c (syms_of_font): Update.
+	(Vfont_encoding_alist, Vfont_log, Vfont_slant_table)
+	(Vfont_weight_table, Vfont_width_table): Remove.
+	* fns.c (syms_of_fns): Update.
+	(Vfeatures, use_dialog_box, use_file_dialog): Remove.
+	* filelock.c (syms_of_filelock): Update.
+	(Vtemporary_file_directory): Remove.
+	* fileio.c (syms_of_fileio): Update.
+	(Vafter_insert_file_functions, Vauto_save_include_big_deletions)
+	(Vauto_save_list_file_name, Vauto_save_visited_file_name)
+	(Vdefault_file_name_coding_system, Vfile_name_coding_system)
+	(Vfile_name_handler_alist, Vinhibit_file_name_handlers)
+	(Vinhibit_file_name_operation, Vset_auto_coding_function)
+	(Vwrite_region_annotate_functions)
+	(Vwrite_region_annotations_so_far)
+	(Vwrite_region_post_annotation_function)
+	(delete_by_moving_to_trash, write_region_inhibit_fsync): Remove.
+	(Vw32_get_true_file_attributes): Remove declaration.
+	* eval.c (syms_of_eval): Update.
+	(Vdebug_ignored_errors, Vdebug_on_error, Vdebug_on_signal)
+	(Vdebugger, Vinhibit_quit, Vmacro_declaration_function)
+	(Vquit_flag, Vsignal_hook_function, Vstack_trace_on_error)
+	(debug_on_next_call, debug_on_quit, debugger_may_continue)
+	(max_lisp_eval_depth, max_specpdl_size): Remove.
+	* emacs.c (syms_of_emacs): Update.
+	(Vafter_init_time, Vbefore_init_time, Vcommand_line_args)
+	(Vdynamic_library_alist, Vemacs_copyright, Vemacs_version)
+	(Vinstallation_directory, Vinvocation_directory)
+	(Vinvocation_name, Vkill_emacs_hook, Vpath_separator)
+	(Vprevious_system_messages_locale, Vprevious_system_time_locale)
+	(Vsystem_configuration, Vsystem_configuration_options)
+	(Vsystem_messages_locale, Vsystem_time_locale, Vsystem_type)
+	(inhibit_x_resources, noninteractive1): Remove.
+	* editfns.c (syms_of_editfns): Update.
+	(Vbuffer_access_fontified_property)
+	(Vbuffer_access_fontify_functions, Vinhibit_field_text_motion)
+	(Voperating_system_release, Vsystem_name, Vuser_full_name)
+	(Vuser_login_name, Vuser_real_login_name): Remove.
+	* dosfns.c (syms_of_dosfns): Update.
+	(Vdos_display_scancodes, Vdos_version, Vdos_windows_version)
+	(dos_codepage, dos_country_code, dos_decimal_point)
+	(dos_hyper_key, dos_keyboard_layout, dos_keypad_mode)
+	(dos_super_key, dos_timezone_offset): Remove.
+	* doc.c (syms_of_doc): Update.
+	(Vbuild_files, Vdoc_file_name): Remove.
+	* dispnew.c (syms_of_display): Update.
+	(Vglyph_table, Vinitial_window_system)
+	(Vredisplay_preemption_period, Vstandard_display_table)
+	(Vwindow_system_version, baud_rate, cursor_in_echo_area)
+	(inverse_video, redisplay_dont_pause, visible_bell): Remove.
+	* dired.c (syms_of_dired): Update.
+	(Vcompletion_ignored_extensions): Remove.
+	(Vw32_get_true_file_attributes): Remove declaration.
+	* dbusbind.c (syms_of_dbusbind): Update.
+	(Vdbus_debug, Vdbus_registered_buses)
+	(Vdbus_registered_objects_table): Remove.
+	* data.c (syms_of_data): Update.
+	(Vmost_negative_fixnum, Vmost_positive_fixnum): Remove.
+	* composite.c (syms_of_composite): Update.
+	(Vauto_composition_function, Vauto_composition_mode)
+	(Vcompose_chars_after_function, Vcomposition_function_table):
+	Remove.
+	* coding.c (syms_of_coding): Update.
+	(Vcharset_revision_table, Vcoding_category_list)
+	(Vcoding_system_alist, Vcoding_system_for_read)
+	(Vcoding_system_for_write, Vcoding_system_list)
+	(Vdefault_process_coding_system, Venable_character_translation)
+	(Vfile_coding_system_alist, Vlast_code_conversion_error)
+	(Vlast_coding_system_used, Vlatin_extra_code_table)
+	(Vlocale_coding_system, Vnetwork_coding_system_alist)
+	(Vprocess_coding_system_alist)
+	(Vselect_safe_coding_system_function)
+	(Vstandard_translation_table_for_decode)
+	(Vstandard_translation_table_for_encode)
+	(Vtranslation_table_for_input, coding_system_require_warning)
+	(eol_mnemonic_dos, eol_mnemonic_mac, eol_mnemonic_undecided)
+	(eol_mnemonic_unix, inherit_process_coding_system)
+	(inhibit_eol_conversion, inhibit_iso_escape_detection)
+	(inhibit_null_byte_detection): Remove.
+	* cmds.c (syms_of_cmds): Update.
+	(Vpost_self_insert_hook): Remove.
+	* charset.c (syms_of_charset): Update.
+	(Vcharset_list, Vcharset_map_path, Vcurrent_iso639_language)
+	(inhibit_load_charset_map): Remove.
+	* character.c (syms_of_character): Update.
+	(Vauto_fill_chars, Vchar_direction_table, Vchar_script_table)
+	(Vchar_width_table, Vprintable_chars)
+	(Vscript_representative_chars, Vtranslation_table_vector)
+	(Vunicode_category_table): Remove.
+	* ccl.c (syms_of_ccl): Update.
+	(Vcode_conversion_map_vector, Vfont_ccl_encoder_alist)
+	(Vtranslation_hash_table_vector): Remove.
+	* category.c (syms_of_category): Update.
+	(Vword_combining_categories, Vword_separating_categories): Remove.
+	* callproc.c (syms_of_callproc): Update.
+	(Vconfigure_info_directory, Vdata_directory, Vdoc_directory)
+	(Vexec_directory, Vexec_path, Vexec_suffixes)
+	(Vinitial_environment, Vprocess_environment)
+	(Vshared_game_score_directory, Vshell_file_name): Remove.
+	* callint.c (syms_of_callint): Update.
+	(Vcommand_debug_status, Vcommand_history, Vcurrent_prefix_arg)
+	(Vmark_even_if_inactive, Vmouse_leave_buffer_hook): Remove.
+	* bytecode.c (syms_of_bytecode): Update.
+	(Vbyte_code_meter, byte_metering_on): Remove.
+	* buffer.c (syms_of_buffer): Update.
+	(Vafter_change_functions, Vbefore_change_functions)
+	(Vchange_major_mode_hook, Vfirst_change_hook)
+	(Vinhibit_read_only, Vkill_buffer_query_functions)
+	(Vtransient_mark_mode, inhibit_modification_hooks): Remove.
+	* alloc.c (syms_of_alloc): Update.
+	(Vgc_cons_percentage, Vgc_elapsed, Vmemory_full)
+	(Vmemory_signal_data, Vpost_gc_hook, Vpurify_flag)
+	(cons_cells_consed, floats_consed, garbage_collection_messages)
+	(gc_cons_threshold, gcs_done, intervals_consed)
+	(misc_objects_consed, pure_bytes_used, string_chars_consed)
+	(strings_consed, symbols_consed, vector_cells_consed): Remove.
+
+	* lisp.h (DEFVAR_LISP, DEFVAR_LISP_NOPRO, DEFVAR_BOOL)
+	(DEFVAR_INT): Assume global is in `globals'.
+	* alloc.c (globals): Define.
+
 2011-01-18  Tom Tromey  <tromey@redhat.com>
 
 	* image.c (Vimagemagick_render_type): Remove redundant

@@ -148,13 +148,8 @@ typedef HRESULT (WINAPI * ShGetFolderPath_fn)
 void globals_of_w32 (void);
 static DWORD get_rid (PSID);
 
-extern Lisp_Object Vw32_downcase_file_names;
-extern Lisp_Object Vw32_generate_fake_inodes;
-extern Lisp_Object Vw32_get_true_file_attributes;
 /* Defined in process.c for its own purpose.  */
 extern Lisp_Object Qlocal;
-
-extern int w32_num_mouse_buttons;
 
 
 /* Initialization states.
@@ -1514,8 +1509,6 @@ w32_get_resource (char *key, LPDWORD lpdwtype)
 }
 
 char *get_emacs_configuration (void);
-extern Lisp_Object Vsystem_configuration;
-
 void
 init_environment (char ** argv)
 {
@@ -5183,9 +5176,6 @@ sys_pipe (int * phandles)
 
   return rc;
 }
-
-/* From ntproc.c */
-extern int w32_pipe_read_delay;
 
 /* Function to do blocking read of one byte, needed to implement
    select.  It is only allowed on sockets and pipes. */

@@ -35,12 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "buildobj.h"
 
-Lisp_Object Vdoc_file_name;
-
 Lisp_Object Qfunction_documentation;
-
-/* A list of files used to build this Emacs binary.  */
-static Lisp_Object Vbuild_files;
 
 /* Buffer used for reading from documentation file.  */
 static char *get_doc_string_buffer;
@@ -930,11 +925,11 @@ syms_of_doc (void)
   Qfunction_documentation = intern_c_string ("function-documentation");
   staticpro (&Qfunction_documentation);
 
-  DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,
+  DEFVAR_LISP ("internal-doc-file-name", Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
   Vdoc_file_name = Qnil;
 
-  DEFVAR_LISP ("build-files", &Vbuild_files,
+  DEFVAR_LISP ("build-files", Vbuild_files,
                doc: /* A list of files used to build this Emacs binary.  */);
   Vbuild_files = Qnil;
 

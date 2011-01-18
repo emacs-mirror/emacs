@@ -70,11 +70,11 @@ Lisp_Object Qrehash_size;
 Lisp_Object Qrehash_threshold;
 
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
-Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
+Lisp_Object Qvariable_documentation;
 Lisp_Object Qascii_character, Qload, Qload_file_name;
 Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 Lisp_Object Qinhibit_file_name_operation;
-Lisp_Object Qeval_buffer_list, Veval_buffer_list;
+Lisp_Object Qeval_buffer_list;
 Lisp_Object Qfile_truename, Qdo_after_load_evaluation; /* ACM 2006/5/16 */
 
 /* Used instead of Qget_file_char while loading *.elc files compiled
@@ -83,37 +83,7 @@ static Lisp_Object Qget_emacs_mule_file_char;
 
 static Lisp_Object Qload_force_doc_strings;
 
-/* non-zero if inside `load' */
-int load_in_progress;
 static Lisp_Object Qload_in_progress;
-
-/* Directory in which the sources were found.  */
-Lisp_Object Vsource_directory;
-
-/* Search path and suffixes for files to be loaded. */
-Lisp_Object Vload_path, Vload_suffixes, Vload_file_rep_suffixes;
-
-/* File name of user's init file.  */
-Lisp_Object Vuser_init_file;
-
-/* This is the user-visible association list that maps features to
-   lists of defs in their load files. */
-Lisp_Object Vload_history;
-
-/* This is used to build the load history. */
-Lisp_Object Vcurrent_load_list;
-
-/* List of files that were preloaded.  */
-Lisp_Object Vpreloaded_file_list;
-
-/* Name of file actually being read by `load'.  */
-Lisp_Object Vload_file_name;
-
-/* Function to use for reading, in `load' and friends.  */
-Lisp_Object Vload_read_function;
-
-/* Non-nil means read recursive structures using #n= and #n# syntax.  */
-Lisp_Object Vread_circle;
 
 /* The association list of objects read with the #n=object form.
    Each member of the list has the form (n . object), and is used to
@@ -121,30 +91,10 @@ Lisp_Object Vread_circle;
    It must be set to nil before all top-level calls to read0.  */
 Lisp_Object read_objects;
 
-/* Nonzero means load should forcibly load all dynamic doc strings.  */
-static int load_force_doc_strings;
-
-/* Nonzero means read should convert strings to unibyte.  */
-static int load_convert_to_unibyte;
-
 /* Nonzero means READCHAR should read bytes one by one (not character)
    when READCHARFUN is Qget_file_char or Qget_emacs_mule_file_char.
    This is set to 1 by read1 temporarily while handling #@NUMBER.  */
 static int load_each_byte;
-
-/* Function to use for loading an Emacs Lisp source file (not
-   compiled) instead of readevalloop.  */
-Lisp_Object Vload_source_file_function;
-
-/* List of all DEFVAR_BOOL variables.  Used by the byte optimizer.  */
-Lisp_Object Vbyte_boolean_vars;
-
-/* Whether or not to add a `read-positions' property to symbols
-   read. */
-Lisp_Object Vread_with_symbol_positions;
-
-/* List of (SYMBOL . POSITION) accumulated so far. */
-Lisp_Object Vread_symbol_positions_list;
 
 /* List of descriptors now open for Fload.  */
 static Lisp_Object load_descriptor_list;
@@ -189,24 +139,12 @@ static file_offset prev_saved_doc_string_position;
    Fread initializes this to zero, so we need not specbind it
    or worry about what happens to it when there is an error.  */
 static int new_backquote_flag;
-static Lisp_Object Vold_style_backquotes, Qold_style_backquotes;
+static Lisp_Object Qold_style_backquotes;
 
 /* A list of file names for files being loaded in Fload.  Used to
    check for recursive loads.  */
 
 static Lisp_Object Vloads_in_progress;
-
-/* Non-zero means load dangerous compiled Lisp files.  */
-
-int load_dangerous_libraries;
-
-/* Non-zero means force printing messages when loading Lisp files.  */
-
-int force_load_messages;
-
-/* A regular expression used to detect files compiled with Emacs.  */
-
-static Lisp_Object Vbytecomp_version_regexp;
 
 static int read_emacs_mule_char (int, int (*) (int, Lisp_Object),
                                  Lisp_Object);
@@ -3500,7 +3438,6 @@ read_list (int flag, register Lisp_Object readcharfun)
     }
 }
 
-Lisp_Object Vobarray;
 Lisp_Object initial_obarray;
 
 /* oblookup stores the bucket number here, for the sake of Funintern.  */
@@ -4182,22 +4119,22 @@ syms_of_lread (void)
   defsubr (&Smapatoms);
   defsubr (&Slocate_file_internal);
 
-  DEFVAR_LISP ("obarray", &Vobarray,
+  DEFVAR_LISP ("obarray", Vobarray,
 	       doc: /* Symbol table for use by `intern' and `read'.
 It is a vector whose length ought to be prime for best results.
 The vector's contents don't make sense if examined from Lisp programs;
 to find all the symbols in an obarray, use `mapatoms'.  */);
 
-  DEFVAR_LISP ("values", &Vvalues,
+  DEFVAR_LISP ("values", Vvalues,
 	       doc: /* List of values of all expressions which were read, evaluated and printed.
 Order is reverse chronological.  */);
 
-  DEFVAR_LISP ("standard-input", &Vstandard_input,
+  DEFVAR_LISP ("standard-input", Vstandard_input,
 	       doc: /* Stream for read to get input from.
 See documentation of `read' for possible values.  */);
   Vstandard_input = Qt;
 
-  DEFVAR_LISP ("read-with-symbol-positions", &Vread_with_symbol_positions,
+  DEFVAR_LISP ("read-with-symbol-positions", Vread_with_symbol_positions,
 	       doc: /* If non-nil, add position of read symbols to `read-symbol-positions-list'.
 
 If this variable is a buffer, then only forms read from that buffer
@@ -4211,7 +4148,7 @@ The positions are relative to the last call to `read' or
 the toplevel; bind it instead. */);
   Vread_with_symbol_positions = Qnil;
 
-  DEFVAR_LISP ("read-symbol-positions-list", &Vread_symbol_positions_list,
+  DEFVAR_LISP ("read-symbol-positions-list", Vread_symbol_positions_list,
 	       doc: /* A list mapping read symbols to their positions.
 This variable is modified during calls to `read' or
 `read-from-string', but only when `read-with-symbol-positions' is
@@ -4226,24 +4163,24 @@ read multiple times.  The list is in the same order as the symbols
 were read in. */);
   Vread_symbol_positions_list = Qnil;
 
-  DEFVAR_LISP ("read-circle", &Vread_circle,
+  DEFVAR_LISP ("read-circle", Vread_circle,
 	       doc: /* Non-nil means read recursive structures using #N= and #N# syntax.  */);
   Vread_circle = Qt;
 
-  DEFVAR_LISP ("load-path", &Vload_path,
+  DEFVAR_LISP ("load-path", Vload_path,
 	       doc: /* *List of directories to search for files to load.
 Each element is a string (directory name) or nil (try default directory).
 Initialized based on EMACSLOADPATH environment variable, if any,
 otherwise to default specified by file `epaths.h' when Emacs was built.  */);
 
-  DEFVAR_LISP ("load-suffixes", &Vload_suffixes,
+  DEFVAR_LISP ("load-suffixes", Vload_suffixes,
 	       doc: /* List of suffixes for (compiled or source) Emacs Lisp files.
 This list should not include the empty string.
 `load' and related functions try to append these suffixes, in order,
 to the specified file name if a Lisp suffix is allowed or required.  */);
   Vload_suffixes = Fcons (make_pure_c_string (".elc"),
 			  Fcons (make_pure_c_string (".el"), Qnil));
-  DEFVAR_LISP ("load-file-rep-suffixes", &Vload_file_rep_suffixes,
+  DEFVAR_LISP ("load-file-rep-suffixes", Vload_file_rep_suffixes,
 	       doc: /* List of suffixes that indicate representations of \
 the same file.
 This list should normally start with the empty string.
@@ -4258,12 +4195,12 @@ the loading functions recognize as compression suffixes, you should
 customize `jka-compr-load-suffixes' rather than the present variable.  */);
   Vload_file_rep_suffixes = Fcons (empty_unibyte_string, Qnil);
 
-  DEFVAR_BOOL ("load-in-progress", &load_in_progress,
+  DEFVAR_BOOL ("load-in-progress", load_in_progress,
 	       doc: /* Non-nil if inside of `load'.  */);
   Qload_in_progress = intern_c_string ("load-in-progress");
   staticpro (&Qload_in_progress);
 
-  DEFVAR_LISP ("after-load-alist", &Vafter_load_alist,
+  DEFVAR_LISP ("after-load-alist", Vafter_load_alist,
 	       doc: /* An alist of expressions to be evalled when particular files are loaded.
 Each element looks like (REGEXP-OR-FEATURE FORMS...).
 
@@ -4278,7 +4215,7 @@ An error in FORMS does not undo the load, but does prevent execution of
 the rest of the FORMS.  */);
   Vafter_load_alist = Qnil;
 
-  DEFVAR_LISP ("load-history", &Vload_history,
+  DEFVAR_LISP ("load-history", Vload_history,
 	       doc: /* Alist mapping loaded file names to symbols and features.
 Each alist element should be a list (FILE-NAME ENTRIES...), where
 FILE-NAME is the name of a file that has been loaded into Emacs.
@@ -4298,11 +4235,11 @@ During preloading, the file name recorded is relative to the main Lisp
 directory.  These file names are converted to absolute at startup.  */);
   Vload_history = Qnil;
 
-  DEFVAR_LISP ("load-file-name", &Vload_file_name,
+  DEFVAR_LISP ("load-file-name", Vload_file_name,
 	       doc: /* Full name of file being loaded by `load'.  */);
   Vload_file_name = Qnil;
 
-  DEFVAR_LISP ("user-init-file", &Vuser_init_file,
+  DEFVAR_LISP ("user-init-file", Vuser_init_file,
 	       doc: /* File name, including directory, of user's initialization file.
 If the file loaded had extension `.elc', and the corresponding source file
 exists, this variable contains the name of source file, suitable for use
@@ -4311,16 +4248,16 @@ While Emacs loads and evaluates the init file, value is the real name
 of the file, regardless of whether or not it has the `.elc' extension.  */);
   Vuser_init_file = Qnil;
 
-  DEFVAR_LISP ("current-load-list", &Vcurrent_load_list,
+  DEFVAR_LISP ("current-load-list", Vcurrent_load_list,
 	       doc: /* Used for internal purposes by `load'.  */);
   Vcurrent_load_list = Qnil;
 
-  DEFVAR_LISP ("load-read-function", &Vload_read_function,
+  DEFVAR_LISP ("load-read-function", Vload_read_function,
 	       doc: /* Function used by `load' and `eval-region' for reading expressions.
 The default is nil, which means use the function `read'.  */);
   Vload_read_function = Qnil;
 
-  DEFVAR_LISP ("load-source-file-function", &Vload_source_file_function,
+  DEFVAR_LISP ("load-source-file-function", Vload_source_file_function,
 	       doc: /* Function called in `load' for loading an Emacs Lisp source file.
 This function is for doing code conversion before reading the source file.
 If nil, loading is done without any code conversion.
@@ -4329,45 +4266,45 @@ Arguments are FULLNAME, FILE, NOERROR, NOMESSAGE, where
 See `load' for the meaning of the remaining arguments.  */);
   Vload_source_file_function = Qnil;
 
-  DEFVAR_BOOL ("load-force-doc-strings", &load_force_doc_strings,
+  DEFVAR_BOOL ("load-force-doc-strings", load_force_doc_strings,
 	       doc: /* Non-nil means `load' should force-load all dynamic doc strings.
 This is useful when the file being loaded is a temporary copy.  */);
   load_force_doc_strings = 0;
 
-  DEFVAR_BOOL ("load-convert-to-unibyte", &load_convert_to_unibyte,
+  DEFVAR_BOOL ("load-convert-to-unibyte", load_convert_to_unibyte,
 	       doc: /* Non-nil means `read' converts strings to unibyte whenever possible.
 This is normally bound by `load' and `eval-buffer' to control `read',
 and is not meant for users to change.  */);
   load_convert_to_unibyte = 0;
 
-  DEFVAR_LISP ("source-directory", &Vsource_directory,
+  DEFVAR_LISP ("source-directory", Vsource_directory,
 	       doc: /* Directory in which Emacs sources were found when Emacs was built.
 You cannot count on them to still be there!  */);
   Vsource_directory
     = Fexpand_file_name (build_string ("../"),
 			 Fcar (decode_env_path (0, PATH_DUMPLOADSEARCH)));
 
-  DEFVAR_LISP ("preloaded-file-list", &Vpreloaded_file_list,
+  DEFVAR_LISP ("preloaded-file-list", Vpreloaded_file_list,
 	       doc: /* List of files that were preloaded (when dumping Emacs).  */);
   Vpreloaded_file_list = Qnil;
 
-  DEFVAR_LISP ("byte-boolean-vars", &Vbyte_boolean_vars,
+  DEFVAR_LISP ("byte-boolean-vars", Vbyte_boolean_vars,
 	       doc: /* List of all DEFVAR_BOOL variables, used by the byte code optimizer.  */);
   Vbyte_boolean_vars = Qnil;
 
-  DEFVAR_BOOL ("load-dangerous-libraries", &load_dangerous_libraries,
+  DEFVAR_BOOL ("load-dangerous-libraries", load_dangerous_libraries,
 	       doc: /* Non-nil means load dangerous compiled Lisp files.
 Some versions of XEmacs use different byte codes than Emacs.  These
 incompatible byte codes can make Emacs crash when it tries to execute
 them.  */);
   load_dangerous_libraries = 0;
 
-  DEFVAR_BOOL ("force-load-messages", &force_load_messages,
+  DEFVAR_BOOL ("force-load-messages", force_load_messages,
 	       doc: /* Non-nil means force printing messages when loading Lisp files.
 This overrides the value of the NOMESSAGE argument to `load'.  */);
   force_load_messages = 0;
 
-  DEFVAR_LISP ("bytecomp-version-regexp", &Vbytecomp_version_regexp,
+  DEFVAR_LISP ("bytecomp-version-regexp", Vbytecomp_version_regexp,
 	       doc: /* Regular expression matching safe to load compiled Lisp files.
 When Emacs loads a compiled Lisp file, it reads the first 512 bytes
 from the file, and matches them against this regular expression.
@@ -4376,11 +4313,11 @@ to load.  See also `load-dangerous-libraries'.  */);
   Vbytecomp_version_regexp
     = make_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
 
-  DEFVAR_LISP ("eval-buffer-list", &Veval_buffer_list,
+  DEFVAR_LISP ("eval-buffer-list", Veval_buffer_list,
 	       doc: /* List of buffers being read from by calls to `eval-buffer' and `eval-region'.  */);
   Veval_buffer_list = Qnil;
 
-  DEFVAR_LISP ("old-style-backquotes", &Vold_style_backquotes,
+  DEFVAR_LISP ("old-style-backquotes", Vold_style_backquotes,
 	       doc: /* Set to non-nil when `read' encounters an old-style backquote.  */);
   Vold_style_backquotes = Qnil;
   Qold_style_backquotes = intern_c_string ("old-style-backquotes");

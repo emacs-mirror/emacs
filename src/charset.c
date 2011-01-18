@@ -54,10 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 */
 
-/* List of all charsets.  This variable is used only from Emacs
-   Lisp.  */
-Lisp_Object Vcharset_list;
-
 /* Hash table that contains attributes of each charset.  Keys are
    charset symbols, and values are vectors of charset attributes.  */
 Lisp_Object Vcharset_hash_table;
@@ -119,13 +115,6 @@ int emacs_mule_charset[256];
 /* Mapping table from ISO2022's charset (specified by DIMENSION,
    CHARS, and FINAL-CHAR) to Emacs' charset.  */
 int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
-
-Lisp_Object Vcharset_map_path;
-
-/* If nonzero, don't load charset maps.  */
-int inhibit_load_charset_map;
-
-Lisp_Object Vcurrent_iso639_language;
 
 #define CODE_POINT_TO_INDEX(charset, code)				\
   ((charset)->code_linear_p						\
@@ -2404,19 +2393,19 @@ syms_of_charset (void)
   defsubr (&Scharset_id_internal);
   defsubr (&Ssort_charsets);
 
-  DEFVAR_LISP ("charset-map-path", &Vcharset_map_path,
+  DEFVAR_LISP ("charset-map-path", Vcharset_map_path,
 	       doc: /* *List of directories to search for charset map files.  */);
   Vcharset_map_path = Qnil;
 
-  DEFVAR_BOOL ("inhibit-load-charset-map", &inhibit_load_charset_map,
+  DEFVAR_BOOL ("inhibit-load-charset-map", inhibit_load_charset_map,
 	       doc: /* Inhibit loading of charset maps.  Used when dumping Emacs.  */);
   inhibit_load_charset_map = 0;
 
-  DEFVAR_LISP ("charset-list", &Vcharset_list,
+  DEFVAR_LISP ("charset-list", Vcharset_list,
 	       doc: /* List of all charsets ever defined.  */);
   Vcharset_list = Qnil;
 
-  DEFVAR_LISP ("current-iso639-language", &Vcurrent_iso639_language,
+  DEFVAR_LISP ("current-iso639-language", Vcurrent_iso639_language,
 	       doc: /* ISO639 language mnemonic symbol for the current language environment.
 If the current language environment is for multiple languages (e.g. "Latin-1"),
 the value may be a list of mnemonics.  */);

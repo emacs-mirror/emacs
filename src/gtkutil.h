@@ -182,11 +182,6 @@ extern void xg_initialize (void);
    to indicate that the callback should do nothing.  */
 extern int xg_ignore_gtk_scrollbar;
 
-extern int x_gtk_use_old_file_dialog;
-extern int x_gtk_show_hidden_files;
-extern int x_gtk_file_dialog_help_text;
-extern int x_gtk_whole_detached_tool_bar;
-
 #endif /* USE_GTK */
 #endif /* GTKUTIL_H */
 

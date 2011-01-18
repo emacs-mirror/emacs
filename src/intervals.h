@@ -304,11 +304,6 @@ extern Lisp_Object Qkeymap;
 extern Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
 extern Lisp_Object Qinvisible, Qintangible, Qread_only;
 
-extern Lisp_Object Vinhibit_point_motion_hooks;
-extern Lisp_Object Vdefault_text_properties;
-extern Lisp_Object Vchar_property_alias_alist;
-extern Lisp_Object Vtext_property_default_nonsticky;
-
 /* Sticky properties */
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
 

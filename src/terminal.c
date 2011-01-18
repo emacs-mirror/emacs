@@ -37,9 +37,6 @@ static int next_terminal_id;
 /* The initial terminal device, created by initial_term_init. */
 struct terminal *initial_terminal;
 
-/* Function to use to ring the bell.  */
-Lisp_Object Vring_bell_function;
-
 static void delete_initial_terminal (struct terminal *);
 
 
@@ -291,8 +288,6 @@ delete_terminal (struct terminal *terminal)
 
 Lisp_Object Qrun_hook_with_args;
 static Lisp_Object Qdelete_terminal_functions;
-static Lisp_Object Vdelete_terminal_functions;
-
 DEFUN ("delete-terminal", Fdelete_terminal, Sdelete_terminal, 0, 2, 0,
        doc: /* Delete TERMINAL by deleting all frames on it and closing the terminal.
 TERMINAL may be a terminal object, a frame, or nil (meaning the
@@ -530,12 +525,12 @@ void
 syms_of_terminal (void)
 {
 
-  DEFVAR_LISP ("ring-bell-function", &Vring_bell_function,
+  DEFVAR_LISP ("ring-bell-function", Vring_bell_function,
     doc: /* Non-nil means call this function to ring the bell.
 The function should accept no arguments.  */);
   Vring_bell_function = Qnil;
 
-  DEFVAR_LISP ("delete-terminal-functions", &Vdelete_terminal_functions,
+  DEFVAR_LISP ("delete-terminal-functions", Vdelete_terminal_functions,
     doc: /* Special hook run when a terminal is deleted.
 Each function is called with argument, the terminal.
 This may be called just before actually deleting the terminal,

@@ -100,9 +100,6 @@ static Lisp_Object Qw32_charset_arabic, Qw32_charset_greek;
 static Lisp_Object Qw32_charset_hebrew, Qw32_charset_vietnamese;
 static Lisp_Object Qw32_charset_thai, Qw32_charset_johab, Qw32_charset_mac;
 
-/* Associative list linking character set strings to Windows codepages. */
-static Lisp_Object Vw32_charset_info_alist;
-
 /* Font spacing symbols - defined in font.c.  */
 extern Lisp_Object Qc, Qp, Qm;
 
@@ -2535,7 +2532,7 @@ syms_of_w32font (void)
 
   /* W32 font encodings.  */
   DEFVAR_LISP ("w32-charset-info-alist",
-               &Vw32_charset_info_alist,
+               Vw32_charset_info_alist,
                doc: /* Alist linking Emacs character sets to Windows fonts and codepages.
 Each entry should be of the form:
 

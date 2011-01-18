@@ -18,14 +18,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* Kbd macro currently being executed (a string or vector).  */
-
-extern Lisp_Object Vexecuting_kbd_macro;
-
-/* Index of next character to fetch from that macro.  */
-
-extern EMACS_INT executing_kbd_macro_index;
-
 /* Number of successful iterations so far
    for innermost keyboard macro.
    This is not bound at each level,

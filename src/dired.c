@@ -93,9 +93,6 @@ extern void filemodestring (struct stat *, char *);
 #define lstat stat
 #endif
 
-extern Lisp_Object Vw32_get_true_file_attributes;
-
-Lisp_Object Vcompletion_ignored_extensions;
 Lisp_Object Qdirectory_files;
 Lisp_Object Qdirectory_files_and_attributes;
 Lisp_Object Qfile_name_completion;
@@ -1095,7 +1092,7 @@ syms_of_dired (void)
   defsubr (&Sfile_attributes);
   defsubr (&Sfile_attributes_lessp);
 
-  DEFVAR_LISP ("completion-ignored-extensions", &Vcompletion_ignored_extensions,
+  DEFVAR_LISP ("completion-ignored-extensions", Vcompletion_ignored_extensions,
 	       doc: /* Completion ignores file names ending in any string in this list.
 It does not ignore them if all possible completions end in one of
 these strings or when displaying a list of completions.

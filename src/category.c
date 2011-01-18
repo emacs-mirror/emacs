@@ -50,9 +50,6 @@ static int category_table_version;
 
 Lisp_Object Qcategory_table, Qcategoryp, Qcategorysetp, Qcategory_table_p;
 
-/* Variables to determine word boundary.  */
-Lisp_Object Vword_combining_categories, Vword_separating_categories;
-
 /* Temporary internal variable used in macro CHAR_HAS_CATEGORY.  */
 Lisp_Object _temp_category_set;
 
@@ -481,7 +478,7 @@ syms_of_category (void)
   Qcategory_table_p = intern_c_string ("category-table-p");
   staticpro (&Qcategory_table_p);
 
-  DEFVAR_LISP ("word-combining-categories", &Vword_combining_categories,
+  DEFVAR_LISP ("word-combining-categories", Vword_combining_categories,
 	       doc: /* List of pair (cons) of categories to determine word boundary.
 
 Emacs treats a sequence of word constituent characters as a single
@@ -519,7 +516,7 @@ the element `(?H . ?K) should be in this list.  */);
 
   Vword_combining_categories = Qnil;
 
-  DEFVAR_LISP ("word-separating-categories", &Vword_separating_categories,
+  DEFVAR_LISP ("word-separating-categories", Vword_separating_categories,
 	       doc: /* List of pair (cons) of categories to determine word boundary.
 See the documentation of the variable `word-combining-categories'.  */);
 

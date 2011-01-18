@@ -45,13 +45,6 @@ EXFUN (Fquery_fontset, 2);
 extern Lisp_Object list_fontsets (struct frame *, Lisp_Object, int);
 
 extern Lisp_Object Qlatin;
-extern Lisp_Object Vuse_default_ascent;
-extern Lisp_Object Vignore_relative_composition;
-extern Lisp_Object Valternate_fontname_alist;
-extern Lisp_Object Vfontset_alias_alist;
-extern Lisp_Object Vvertical_centering_font_regexp;
-extern Lisp_Object Votf_script_alist;
-
 extern Lisp_Object fontset_name (int);
 extern Lisp_Object fontset_ascii (int);
 
