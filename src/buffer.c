@@ -5362,147 +5362,147 @@ syms_of_buffer (void)
   /* All these use DEFVAR_LISP_NOPRO because the slots in
      buffer_defaults will all be marked via Vbuffer_defaults.  */
 
-  DEFVAR_LISP_NOPRO ("default-mode-line-format",
-		     &buffer_defaults.mode_line_format,
-		     doc: /* Default value of `mode-line-format' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-mode-line-format",
+			  mode_line_format,
+			  doc: /* Default value of `mode-line-format' for buffers that don't override it.
 This is the same as (default-value 'mode-line-format).  */);
 
-  DEFVAR_LISP_NOPRO ("default-header-line-format",
-		     &buffer_defaults.header_line_format,
-		     doc: /* Default value of `header-line-format' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-header-line-format",
+			  header_line_format,
+			  doc: /* Default value of `header-line-format' for buffers that don't override it.
 This is the same as (default-value 'header-line-format).  */);
 
-  DEFVAR_LISP_NOPRO ("default-cursor-type", &buffer_defaults.cursor_type,
-		     doc: /* Default value of `cursor-type' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-cursor-type", cursor_type,
+			  doc: /* Default value of `cursor-type' for buffers that don't override it.
 This is the same as (default-value 'cursor-type).  */);
 
-  DEFVAR_LISP_NOPRO ("default-line-spacing",
-		     &buffer_defaults.extra_line_spacing,
-		     doc: /* Default value of `line-spacing' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-line-spacing",
+			  extra_line_spacing,
+			  doc: /* Default value of `line-spacing' for buffers that don't override it.
 This is the same as (default-value 'line-spacing).  */);
 
-  DEFVAR_LISP_NOPRO ("default-cursor-in-non-selected-windows",
-		     &buffer_defaults.cursor_in_non_selected_windows,
-		     doc: /* Default value of `cursor-in-non-selected-windows'.
+  DEFVAR_BUFFER_DEFAULTS ("default-cursor-in-non-selected-windows",
+			  cursor_in_non_selected_windows,
+			  doc: /* Default value of `cursor-in-non-selected-windows'.
 This is the same as (default-value 'cursor-in-non-selected-windows).  */);
 
-  DEFVAR_LISP_NOPRO ("default-abbrev-mode",
-		     &buffer_defaults.abbrev_mode,
-		     doc: /* Default value of `abbrev-mode' for buffers that do not override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-abbrev-mode",
+			  abbrev_mode,
+			  doc: /* Default value of `abbrev-mode' for buffers that do not override it.
 This is the same as (default-value 'abbrev-mode).  */);
 
-  DEFVAR_LISP_NOPRO ("default-ctl-arrow",
-		     &buffer_defaults.ctl_arrow,
-		     doc: /* Default value of `ctl-arrow' for buffers that do not override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-ctl-arrow",
+			  ctl_arrow,
+			  doc: /* Default value of `ctl-arrow' for buffers that do not override it.
 This is the same as (default-value 'ctl-arrow).  */);
 
-  DEFVAR_LISP_NOPRO ("default-enable-multibyte-characters",
-                     &buffer_defaults.enable_multibyte_characters,
-                     doc: /* *Default value of `enable-multibyte-characters' for buffers not overriding it.
+  DEFVAR_BUFFER_DEFAULTS ("default-enable-multibyte-characters",
+			  enable_multibyte_characters,
+			  doc: /* *Default value of `enable-multibyte-characters' for buffers not overriding it.
 This is the same as (default-value 'enable-multibyte-characters).  */);
 
-  DEFVAR_LISP_NOPRO ("default-buffer-file-coding-system",
-                     &buffer_defaults.buffer_file_coding_system,
-                     doc: /* Default value of `buffer-file-coding-system' for buffers not overriding it.
+  DEFVAR_BUFFER_DEFAULTS ("default-buffer-file-coding-system",
+			  buffer_file_coding_system,
+			  doc: /* Default value of `buffer-file-coding-system' for buffers not overriding it.
 This is the same as (default-value 'buffer-file-coding-system).  */);
 
-  DEFVAR_LISP_NOPRO ("default-truncate-lines",
-		     &buffer_defaults.truncate_lines,
-		     doc: /* Default value of `truncate-lines' for buffers that do not override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-truncate-lines",
+			  truncate_lines,
+			  doc: /* Default value of `truncate-lines' for buffers that do not override it.
 This is the same as (default-value 'truncate-lines).  */);
 
-  DEFVAR_LISP_NOPRO ("default-fill-column",
-		     &buffer_defaults.fill_column,
-		     doc: /* Default value of `fill-column' for buffers that do not override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-fill-column",
+			  fill_column,
+			  doc: /* Default value of `fill-column' for buffers that do not override it.
 This is the same as (default-value 'fill-column).  */);
 
-  DEFVAR_LISP_NOPRO ("default-left-margin",
-		     &buffer_defaults.left_margin,
-		     doc: /* Default value of `left-margin' for buffers that do not override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-left-margin",
+			  left_margin,
+			  doc: /* Default value of `left-margin' for buffers that do not override it.
 This is the same as (default-value 'left-margin).  */);
 
-  DEFVAR_LISP_NOPRO ("default-tab-width",
-		     &buffer_defaults.tab_width,
-		     doc: /* Default value of `tab-width' for buffers that do not override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-tab-width",
+			  tab_width,
+			  doc: /* Default value of `tab-width' for buffers that do not override it.
 This is the same as (default-value 'tab-width).  */);
 
-  DEFVAR_LISP_NOPRO ("default-case-fold-search",
-		     &buffer_defaults.case_fold_search,
-		     doc: /* Default value of `case-fold-search' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-case-fold-search",
+			  case_fold_search,
+			  doc: /* Default value of `case-fold-search' for buffers that don't override it.
 This is the same as (default-value 'case-fold-search).  */);
 
 #ifdef DOS_NT
-  DEFVAR_LISP_NOPRO ("default-buffer-file-type",
-		     &buffer_defaults.buffer_file_type,
-		     doc: /* Default file type for buffers that do not override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-buffer-file-type",
+			  buffer_file_type,
+			  doc: /* Default file type for buffers that do not override it.
 This is the same as (default-value 'buffer-file-type).
 The file type is nil for text, t for binary.  */);
 #endif
 
-  DEFVAR_LISP_NOPRO ("default-left-margin-width",
-		     &buffer_defaults.left_margin_cols,
-		     doc: /* Default value of `left-margin-width' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-left-margin-width",
+			  left_margin_cols,
+			  doc: /* Default value of `left-margin-width' for buffers that don't override it.
 This is the same as (default-value 'left-margin-width).  */);
 
-  DEFVAR_LISP_NOPRO ("default-right-margin-width",
-		     &buffer_defaults.right_margin_cols,
-		     doc: /* Default value of `right-margin-width' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-right-margin-width",
+			  right_margin_cols,
+			  doc: /* Default value of `right-margin-width' for buffers that don't override it.
 This is the same as (default-value 'right-margin-width).  */);
 
-  DEFVAR_LISP_NOPRO ("default-left-fringe-width",
-		     &buffer_defaults.left_fringe_width,
-		     doc: /* Default value of `left-fringe-width' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-left-fringe-width",
+			  left_fringe_width,
+			  doc: /* Default value of `left-fringe-width' for buffers that don't override it.
 This is the same as (default-value 'left-fringe-width).  */);
 
-  DEFVAR_LISP_NOPRO ("default-right-fringe-width",
-		     &buffer_defaults.right_fringe_width,
-		     doc: /* Default value of `right-fringe-width' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-right-fringe-width",
+			  right_fringe_width,
+			  doc: /* Default value of `right-fringe-width' for buffers that don't override it.
 This is the same as (default-value 'right-fringe-width).  */);
 
-  DEFVAR_LISP_NOPRO ("default-fringes-outside-margins",
-		     &buffer_defaults.fringes_outside_margins,
-		     doc: /* Default value of `fringes-outside-margins' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-fringes-outside-margins",
+			  fringes_outside_margins,
+			  doc: /* Default value of `fringes-outside-margins' for buffers that don't override it.
 This is the same as (default-value 'fringes-outside-margins).  */);
 
-  DEFVAR_LISP_NOPRO ("default-scroll-bar-width",
-		     &buffer_defaults.scroll_bar_width,
-		     doc: /* Default value of `scroll-bar-width' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-scroll-bar-width",
+			  scroll_bar_width,
+			  doc: /* Default value of `scroll-bar-width' for buffers that don't override it.
 This is the same as (default-value 'scroll-bar-width).  */);
 
-  DEFVAR_LISP_NOPRO ("default-vertical-scroll-bar",
-		     &buffer_defaults.vertical_scroll_bar_type,
-		     doc: /* Default value of `vertical-scroll-bar' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-vertical-scroll-bar",
+			  vertical_scroll_bar_type,
+			  doc: /* Default value of `vertical-scroll-bar' for buffers that don't override it.
 This is the same as (default-value 'vertical-scroll-bar).  */);
 
-  DEFVAR_LISP_NOPRO ("default-indicate-empty-lines",
-		     &buffer_defaults.indicate_empty_lines,
-		     doc: /* Default value of `indicate-empty-lines' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-indicate-empty-lines",
+			  indicate_empty_lines,
+			  doc: /* Default value of `indicate-empty-lines' for buffers that don't override it.
 This is the same as (default-value 'indicate-empty-lines).  */);
 
-  DEFVAR_LISP_NOPRO ("default-indicate-buffer-boundaries",
-		     &buffer_defaults.indicate_buffer_boundaries,
-		     doc: /* Default value of `indicate-buffer-boundaries' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-indicate-buffer-boundaries",
+			  indicate_buffer_boundaries,
+			  doc: /* Default value of `indicate-buffer-boundaries' for buffers that don't override it.
 This is the same as (default-value 'indicate-buffer-boundaries).  */);
 
-  DEFVAR_LISP_NOPRO ("default-fringe-indicator-alist",
-		     &buffer_defaults.fringe_indicator_alist,
-		     doc: /* Default value of `fringe-indicator-alist' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-fringe-indicator-alist",
+			  fringe_indicator_alist,
+			  doc: /* Default value of `fringe-indicator-alist' for buffers that don't override it.
 This is the same as (default-value 'fringe-indicator-alist').  */);
 
-  DEFVAR_LISP_NOPRO ("default-fringe-cursor-alist",
-		     &buffer_defaults.fringe_cursor_alist,
-		     doc: /* Default value of `fringe-cursor-alist' for buffers that don't override it.
+  DEFVAR_BUFFER_DEFAULTS ("default-fringe-cursor-alist",
+			  fringe_cursor_alist,
+			  doc: /* Default value of `fringe-cursor-alist' for buffers that don't override it.
 This is the same as (default-value 'fringe-cursor-alist').  */);
 
-  DEFVAR_LISP_NOPRO ("default-scroll-up-aggressively",
-		     &buffer_defaults.scroll_up_aggressively,
-		     doc: /* Default value of `scroll-up-aggressively'.
+  DEFVAR_BUFFER_DEFAULTS ("default-scroll-up-aggressively",
+			  scroll_up_aggressively,
+			  doc: /* Default value of `scroll-up-aggressively'.
 This value applies in buffers that don't have their own local values.
 This is the same as (default-value 'scroll-up-aggressively).  */);
 
-  DEFVAR_LISP_NOPRO ("default-scroll-down-aggressively",
-		     &buffer_defaults.scroll_down_aggressively,
-		     doc: /* Default value of `scroll-down-aggressively'.
+  DEFVAR_BUFFER_DEFAULTS ("default-scroll-down-aggressively",
+			  scroll_down_aggressively,
+			  doc: /* Default value of `scroll-down-aggressively'.
 This value applies in buffers that don't have their own local values.
 This is the same as (default-value 'scroll-down-aggressively).  */);
 
@@ -5567,8 +5567,8 @@ A string is printed verbatim in the mode line except for %-constructs:
   %% -- print %.   %- -- print infinitely many dashes.
 Decimal digits after the % specify field width to which to pad.  */);
 
-  DEFVAR_LISP_NOPRO ("default-major-mode", &buffer_defaults.major_mode,
-		     doc: /* *Value of `major-mode' for new buffers.  */);
+  DEFVAR_BUFFER_DEFAULTS ("default-major-mode", major_mode,
+			  doc: /* *Value of `major-mode' for new buffers.  */);
 
   DEFVAR_PER_BUFFER ("major-mode", &current_buffer->major_mode,
 		     make_number (Lisp_Symbol),

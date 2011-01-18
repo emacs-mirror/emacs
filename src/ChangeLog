@@ -1,3 +1,8 @@
+2011-01-18  Tom Tromey  <tromey@redhat.com>
+
+	* lisp.h (DEFVAR_BUFFER_DEFAULTS): New macro.
+	* buffer.c (syms_of_buffer): Use DEFVAR_BUFFER_DEFAULTS.
+
 2011-01-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (DECL_ALIGN): Define if HAVE_ATTRIBUTE_ALIGNED, not if

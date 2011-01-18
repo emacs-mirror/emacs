@@ -1866,6 +1866,12 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd *, const char *, int);
     defvar_int (&i_fwd, lname, vname);		\
   } while (0)
 
+#define DEFVAR_BUFFER_DEFAULTS(lname, vname, doc)		\
+  do {								\
+    static struct Lisp_Objfwd o_fwd;				\
+    defvar_lisp_nopro (&o_fwd, lname, &buffer_defaults.vname);	\
+  } while (0)
+
 #define DEFVAR_KBOARD(lname, vname, doc)			\
   do {								\
     static struct Lisp_Kboard_Objfwd ko_fwd;			\
