@@ -791,20 +791,23 @@ Not smaller than the value set by `tex-suscript-height-minimum'."
 (defun tex-font-lock-verb (start delim)
   "Place syntax table properties on the \verb construct.
 START is the position of the \\ and DELIM is the delimiter char."
-    ;; Do nothing if the \verb construct is itself inside a comment or
-    ;; verbatim env.
+  ;; Do nothing if the \verb construct is itself inside a comment or
+  ;; verbatim env.
   (unless (nth 8 (save-excursion (syntax-ppss start)))
-      ;; Let's find the end and mark it.
-    ;; This may span more than a single line, but we don't bother
-    ;; placing a syntax-multiline property since such multiline verbs aren't
-    ;; valid anyway.
-    (skip-chars-forward (string ?^ delim))
-        (unless (eobp)
-      (when (eq (char-syntax (preceding-char)) ?/)
-        (put-text-property (1- (point)) (point)
-                           'syntax-table (string-to-syntax ".")))
-      (put-text-property (point) (1+ (point))
-                         'syntax-table (string-to-syntax "\"")))))
+    ;; Let's find the end and mark it.
+    (let ((afterdelim (point)))
+      (skip-chars-forward (string ?^ delim) (line-end-position))
+      (if (eolp)
+          ;; "LaTeX Error: \verb ended by end of line."
+          ;; Remove the syntax-table property we've just put on the
+          ;; start-delimiter, so it doesn't spill over subsequent lines.
+          (put-text-property (1- afterdelim) afterdelim
+                             'syntax-table nil)
+        (when (eq (char-syntax (preceding-char)) ?/)
+          (put-text-property (1- (point)) (point)
+                             'syntax-table (string-to-syntax ".")))
+        (put-text-property (point) (1+ (point))
+                           'syntax-table (string-to-syntax "\""))))))
 
 ;; Use string syntax but math face for $...$.
 (defun tex-font-lock-syntactic-face-function (state)

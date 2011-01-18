@@ -1,9 +1,10 @@
 2011-01-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/tex-mode.el (tex-font-lock-verb): Make sure \verb
+	highlighting doesn't spill over subsequent lines.
+
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't re-evaluate the
 	keymap expression.  Improve docstring.
-
-2011-01-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el (electric-indent-post-self-insert-function):
 	Don't auto-indent for indent-to-left-margin, it's too often
