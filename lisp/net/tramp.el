@@ -1293,7 +1293,8 @@ ARGS to actually emit the message (if applicable)."
       (let ((now (current-time)))
         (insert (format-time-string "%T." now))
         (insert (format "%06d " (nth 2 now))))
-      ;; Calling function.
+      ;; Calling Tramp function.  We suppress compat and trace
+      ;; functions from being displayed.
       (let ((btn 1) btf fn)
 	(while (not fn)
 	  (setq btf (nth 1 (backtrace-frame btn)))
@@ -1301,10 +1302,23 @@ ARGS to actually emit the message (if applicable)."
 	      (setq fn "")
 	    (when (symbolp btf)
 	      (setq fn (symbol-name btf))
-	      (unless (and (string-match "^tramp" fn)
-			   (not (string-match
-				 "^tramp\\(-debug\\)?\\(-message\\|-error\\|-compat\\(-funcall\\|-with-temp-message\\)\\)$"
-				 fn)))
+	      (unless
+		  (and
+		   (string-match "^tramp" fn)
+		   (not
+		    (string-match
+		     (concat
+		      "^"
+		      (regexp-opt
+		       '("tramp-compat-funcall"
+			 "tramp-compat-with-temp-message"
+			 "tramp-debug-message"
+			 "tramp-error"
+			 "tramp-error-with-buffer"
+			 "tramp-message")
+		       t)
+		      "$")
+		     fn)))
 		(setq fn nil)))
 	    (setq btn (1+ btn))))
 	;; The following code inserts filename and line number.
