@@ -1,3 +1,7 @@
+2011-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* PROBLEMS: Add note about svn+ssh.  (Bug#7791)
+
 2011-01-14  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/calccard.tex, refcards/cs-dired-ref.tex:

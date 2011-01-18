@@ -281,7 +281,7 @@ Does not make other difference."
                   ;; are conflicts.
                   (display-warning 'bzrmerge "Resolve conflicts manually.
 ¡BEWARE!  Important metadata is kept in this Emacs session!
-Do not commit without re-running `M-x bzrmerge' first!")))
+Do not commit without re-running `M-x bzrmerge' first!"))
               (error "Resolve conflicts manually")))))
         (cons merge skip)))))
 
