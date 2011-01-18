@@ -85,7 +85,7 @@ and to take either the trunk, branch, or both copies.
 6) After resolving all conflicts, you might need to run the bzmerge
 command again if there are more revisions still to merge.
 
-Do not commit (or exit Emacs) until you have run bzrmerge to compeltion.
+Do not commit (or exit Emacs) until you have run bzrmerge to completion.
 
 Before committing, check bzr status and bzr diff output.
 If you have run bzrmerge enough times, the "pending merge tip" in bzr
@@ -111,6 +111,6 @@ delete the .OTHER etc files by hand and use bzr resolve path/to/file.
 
 3) Conflicts in autoload md5sums in comments.  Strictly speaking, the
 right thing to do is merge everything else, resolve the conflict by
-choosig either the trunk or branch version, then run `make -C lisp
+choosing either the trunk or branch version, then run `make -C lisp
 autoloads' to update the md5sums to the correct trunk value before
 committing.
