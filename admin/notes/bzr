@@ -82,15 +82,19 @@ need skipping, you'll have to do that by hand.
 Using smerge-mode, there are menu items to skip to the next conflict,
 and to take either the trunk, branch, or both copies.
 
-6) After resolving all conflicts, you might need to run the command
-again if there are more revisions still to merge.
-Do not commit (or exit Emacs) until bzrmerge has merged all revisions!
+6) After resolving all conflicts, you might need to run the bzmerge
+command again if there are more revisions still to merge.
+
+Do not commit (or exit Emacs) until you have run bzrmerge to compeltion.
 
 Before committing, check bzr status and bzr diff output.
+If you have run bzrmerge enough times, the "pending merge tip" in bzr
+status should be the last revision from the emacs-23 branch, and
+bzr status -v should show all the revisions you expect to merge.
 
 Note that ChangeLog entries are automatically merged to the top with
 today's date, but you still might want to check them to see that too
-much is not being included.
+much is not being included, or whitespace between entries is not missing.
 
 Notes:
 
@@ -104,3 +108,9 @@ get a "contents conflict".  Assuming the changes don't need to be in
 the trunk at all, use `bzr resolve path/to/file --take-this' to keep the
 trunk version.  Prior to bzr 2.2.3, this may fail.  You can just
 delete the .OTHER etc files by hand and use bzr resolve path/to/file.
+
+3) Conflicts in autoload md5sums in comments.  Strictly speaking, the
+right thing to do is merge everything else, resolve the conflict by
+choosig either the trunk or branch version, then run `make -C lisp
+autoloads' to update the md5sums to the correct trunk value before
+committing.
