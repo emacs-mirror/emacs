@@ -1,5 +1,14 @@
 2011-01-18  Tom Tromey  <tromey@redhat.com>
 
+	* gtkutil.h (x_gtk_use_old_file_dialog, x_gtk_show_hidden_files)
+	(x_gtk_file_dialog_help_text, x_gtk_whole_detached_tool_bar):
+	Declare.
+	* gtkutil.c (xg_uses_old_file_dialog):
+	(xg_get_file_with_chooser):
+	(xg_tool_bar_detach_callback): Don't redeclare globals.
+
+2011-01-18  Tom Tromey  <tromey@redhat.com>
+
 	* lisp.h (DEFVAR_BUFFER_DEFAULTS): New macro.
 	* buffer.c (syms_of_buffer): Use DEFVAR_BUFFER_DEFAULTS.
 
