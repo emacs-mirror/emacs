@@ -1395,15 +1395,15 @@ Miller, Lawrence Mitchell, Richard Mlynarik, Gerd Moellmann, Stefan
 Monnier, Morioka Tomohiko, Keith Moore, Jan Moringen, Glenn Morris,
 Diane Murray, Sen Nagata, Erik Naggum, Thomas Neumann, Thien-Thi Nguyen,
 Mike Newton, Jurgen Nickelsen, Dan Nicolaescu, Hrvoje Niksic, Jeff
-Norden, Andrew Norman, Alexandre Oliva, Bob Olson, Michael Olson,
-Takaaki Ota, Pieter E.@: J.@: Pareit, Ross Patterson, David Pearson,
-Jeff Peck, Damon Anton Permezel, Tom Perrine, William M.@: Perry, Per
-Persson, Jens Petersen, Daniel Pfeiffer, Richard L.@: Pieri, Fred
-Pierresteguy, Christian Plaunt, David Ponce, Francesco A.@: Potorti,
-Michael D. Prange, Mukesh Prasad, Ken Raeburn, Marko Rahamaa, Ashwin
-Ram, Eric S. Raymond, Paul Reilly, Edward M. Reingold, Alex Rezinsky,
-Rob Riepel, David Reitter, Adrian Robert, Nick Roberts, Roland B.@:
-Roberts, John Robinson, Danny Roozendaal, Sebastian Rose, William
+Norden, Andrew Norman, Christian Ohler, Alexandre Oliva, Bob Olson,
+Michael Olson, Takaaki Ota, Pieter E.@: J.@: Pareit, Ross Patterson,
+David Pearson, Jeff Peck, Damon Anton Permezel, Tom Perrine, William
+M.@: Perry, Per Persson, Jens Petersen, Daniel Pfeiffer, Richard L.@:
+Pieri, Fred Pierresteguy, Christian Plaunt, David Ponce, Francesco A.@:
+Potorti, Michael D. Prange, Mukesh Prasad, Ken Raeburn, Marko Rahamaa,
+Ashwin Ram, Eric S. Raymond, Paul Reilly, Edward M. Reingold, Alex
+Rezinsky, Rob Riepel, David Reitter, Adrian Robert, Nick Roberts, Roland
+B.@: Roberts, John Robinson, Danny Roozendaal, Sebastian Rose, William
 Rosenblatt, Guillermo J.@: Rozas, Martin Rudalics, Ivar Rummelhoff,
 Jason Rumney, Wolfgang Rupprecht, Kevin Ryde, James B. Salem, Masahiko
 Sato, Jorgen Schaefer, Holger Schauer, William Schelter, Ralph
