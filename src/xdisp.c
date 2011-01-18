@@ -593,7 +593,7 @@ int highlight_nonselected_windows;
 /* If cursor motion alone moves point off frame, try scrolling this
    many lines up or down if that will bring it back.  */
 
-static EMACS_INT scroll_step;
+static EMACS_INT emacs_scroll_step;
 
 /* Nonzero means scroll just far enough to bring point back on the
    screen, when appropriate.  */
@@ -13166,7 +13166,7 @@ cursor_row_fully_visible_p (struct window *w, int force_p, int current_matrix_p)
 
 /* Try scrolling PT into view in window WINDOW.  JUST_THIS_ONE_P
    non-zero means only WINDOW is redisplayed in redisplay_internal.
-   TEMP_SCROLL_STEP has the same meaning as scroll_step, and is used
+   TEMP_SCROLL_STEP has the same meaning as emacs_scroll_step, and is used
    in redisplay_window to bring a partially visible line into view in
    the case that only the cursor has moved.
 
@@ -13191,7 +13191,7 @@ enum
 
 static int
 try_scrolling (Lisp_Object window, int just_this_one_p,
-	       EMACS_INT scroll_conservatively, EMACS_INT scroll_step,
+	       EMACS_INT arg_scroll_conservatively, EMACS_INT scroll_step,
 	       int temp_scroll_step, int last_line_misfit)
 {
   struct window *w = XWINDOW (window);
@@ -13218,20 +13218,20 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
   else
     this_scroll_margin = 0;
 
-  /* Force scroll_conservatively to have a reasonable value, to avoid
+  /* Force arg_scroll_conservatively to have a reasonable value, to avoid
      overflow while computing how much to scroll.  Note that the user
      can supply scroll-conservatively equal to `most-positive-fixnum',
      which can be larger than INT_MAX.  */
-  if (scroll_conservatively > scroll_limit)
+  if (arg_scroll_conservatively > scroll_limit)
     {
-      scroll_conservatively = scroll_limit;
+      arg_scroll_conservatively = scroll_limit;
       scroll_max = INT_MAX;
     }
-  else if (scroll_step || scroll_conservatively || temp_scroll_step)
+  else if (scroll_step || arg_scroll_conservatively || temp_scroll_step)
     /* Compute how much we should try to scroll maximally to bring
        point into view.  */
     scroll_max = (max (scroll_step,
-		       max (scroll_conservatively, temp_scroll_step))
+		       max (arg_scroll_conservatively, temp_scroll_step))
 		  * FRAME_LINE_HEIGHT (f));
   else if (NUMBERP (current_buffer->scroll_down_aggressively)
 	   || NUMBERP (current_buffer->scroll_up_aggressively))
@@ -13262,7 +13262,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  /* Compute how many pixels below window bottom to stop searching
 	     for PT.  This avoids costly search for PT that is far away if
 	     the user limited scrolling by a small number of lines, but
-	     always finds PT if scroll_conservatively is set to a large
+	     always finds PT if arg_scroll_conservatively is set to a large
 	     number, such as most-positive-fixnum.  */
 	  int slack = max (scroll_max, 10 * FRAME_LINE_HEIGHT (f));
 	  int y_to_move =
@@ -13291,10 +13291,10 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	 window start down.  If scrolling conservatively, move it just
 	 enough down to make point visible.  If scroll_step is set,
 	 move it down by scroll_step.  */
-      if (scroll_conservatively)
+      if (arg_scroll_conservatively)
 	amount_to_scroll
 	  = min (max (dy, FRAME_LINE_HEIGHT (f)),
-		 FRAME_LINE_HEIGHT (f) * scroll_conservatively);
+		 FRAME_LINE_HEIGHT (f) * arg_scroll_conservatively);
       else if (scroll_step || temp_scroll_step)
 	amount_to_scroll = scroll_max;
       else
@@ -13375,7 +13375,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  /* Compute new window start.  */
 	  start_display (&it, w, startp);
 
-	  if (scroll_conservatively)
+	  if (arg_scroll_conservatively)
 	    amount_to_scroll
 	      = max (dy, FRAME_LINE_HEIGHT (f) * max (scroll_step, temp_scroll_step));
 	  else if (scroll_step || temp_scroll_step)
@@ -14359,7 +14359,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
   /* Try to scroll by specified few lines.  */
   if ((scroll_conservatively
-       || scroll_step
+       || emacs_scroll_step
        || temp_scroll_step
        || NUMBERP (current_buffer->scroll_up_aggressively)
        || NUMBERP (current_buffer->scroll_down_aggressively))
@@ -14371,7 +14371,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	 successful, 0 if not successful.  */
       int rc = try_scrolling (window, just_this_one_p,
 			      scroll_conservatively,
-			      scroll_step,
+			      emacs_scroll_step,
 			      temp_scroll_step, last_line_misfit);
       switch (rc)
 	{
@@ -26689,7 +26689,7 @@ where to display overlay arrows.  */);
   Voverlay_arrow_variable_list
     = Fcons (intern_c_string ("overlay-arrow-position"), Qnil);
 
-  DEFVAR_INT ("scroll-step", &scroll_step,
+  DEFVAR_INT ("scroll-step", &emacs_scroll_step,
     doc: /* *The number of lines to try scrolling a window by when point moves out.
 If that fails to bring point back on frame, point is centered instead.
 If this is zero, point is always centered after it moves off frame.
