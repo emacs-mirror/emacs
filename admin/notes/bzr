@@ -78,18 +78,29 @@ It will prompt about revisions that should be skipped, based on the
 regexp in bzrmerge-missing.  If there are more revisions that you know
 need skipping, you'll have to do that by hand.
 
-5) It will stop if there are any conflicts. Resolve them.
+5) It will stop if there are any conflicts.  Resolve them.
 Using smerge-mode, there are menu items to skip to the next conflict,
 and to take either the trunk, branch, or both copies.
 
 6) After resolving all conflicts, you might need to run the command
 again if there are more revisions still to merge.
-You can commit either before you do this (eg if you had a lot of
-conflicts to resolve and don't want to get confused), or refrain from
-committing until bzrmerge has merged all revisions.
+Do not commit (or exit Emacs) until bzrmerge has merged all revisions!
 
 Before committing, check bzr status and bzr diff output.
 
 Note that ChangeLog entries are automatically merged to the top with
 today's date, but you still might want to check them to see that too
 much is not being included.
+
+Notes:
+
+1) A lot that was in tramp.el in emacs-23 has moved to tramp-sh.el in
+the trunk.  If you end up with a conflict in tramp.el, the changes may
+need to go to tramp-sh.el instead.  Remember to update the file name in
+the ChangeLog.
+
+2) If a file is modified in emacs-23, and deleted in the trunk, you
+get a "contents conflict".  Assuming the changes don't need to be in
+the trunk at all, use `bzr resolve path/to/file --take-this' to keep the
+trunk version.  Prior to bzr 2.2.3, this may fail.  You can just
+delete the .OTHER etc files by hand and use bzr resolve path/to/file.
