@@ -1,3 +1,10 @@
+2011-01-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor Makefile.in tweaks to build from gnulib better.
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00673.html>
+	* Makefile.in (sync-from-gnulib): Also run autoreconf -I m4.
+	(top_maintainer_clean): Don't remove aclocal.m4.
+
 2011-01-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor cleanups for 'bzr status'
