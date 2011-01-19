@@ -404,9 +404,6 @@ static unsigned long screen_old_address = 0;
 /* Segment and offset of the virtual screen.  If 0, DOS/V is NOT loaded.  */
 static unsigned short screen_virtual_segment = 0;
 static unsigned short screen_virtual_offset = 0;
-/* A flag to control how to display unibyte 8-bit characters.  */
-extern int unibyte_display_via_language_environment;
-
 extern Lisp_Object Qcursor_type;
 extern Lisp_Object Qbar, Qhbar;
 
@@ -846,7 +843,6 @@ IT_set_face (int face)
    accomodate the screen attribute byte.  */
 #define MAX_SCREEN_BUF 160*2
 
-Lisp_Object Vdos_unsupported_char_glyph;
 extern unsigned char *encode_terminal_code (struct glyph *, int,
 					    struct coding_system *);
 static void
@@ -4226,7 +4222,7 @@ syms_of_msdos (void)
   Qreverse = intern_c_string ("reverse");
   staticpro (&Qreverse);
 
-  DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
+  DEFVAR_LISP ("dos-unsupported-char-glyph", Vdos_unsupported_char_glyph,
 	       doc: /* *Glyph to display instead of chars not supported by current codepage.
 This variable is used only by MS-DOS terminals.  */);
   Vdos_unsupported_char_glyph = make_number ('\177');

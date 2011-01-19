@@ -32,19 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Non-nil means that newline may flow into the right fringe.  */
-
-Lisp_Object Voverflow_newline_into_fringe;
-
-/* List of known fringe bitmap symbols.
-
-   The fringe bitmap number is stored in the `fringe' property on
-   those symbols.  Names for the built-in bitmaps are installed by
-   loading fringe.el.
- */
-
-Lisp_Object Vfringe_bitmaps;
-
 /* Fringe bitmaps are represented in three different ways:
 
    Logical bitmaps are used internally to denote things like
@@ -1756,7 +1743,7 @@ syms_of_fringe (void)
   defsubr (&Sfringe_bitmaps_at_pos);
   defsubr (&Sset_fringe_bitmap_face);
 
-  DEFVAR_LISP ("overflow-newline-into-fringe", &Voverflow_newline_into_fringe,
+  DEFVAR_LISP ("overflow-newline-into-fringe", Voverflow_newline_into_fringe,
     doc: /* *Non-nil means that newline may flow into the right fringe.
 This means that display lines which are exactly as wide as the window
 (not counting the final newline) will only occupy one screen line, by
@@ -1765,7 +1752,7 @@ is at the final newline, the cursor is shown in the right fringe.
 If nil, also continue lines which are exactly as wide as the window.  */);
   Voverflow_newline_into_fringe = Qt;
 
-  DEFVAR_LISP ("fringe-bitmaps", &Vfringe_bitmaps,
+  DEFVAR_LISP ("fringe-bitmaps", Vfringe_bitmaps,
     doc: /* List of fringe bitmap symbols.  */);
   Vfringe_bitmaps = Qnil;
 }

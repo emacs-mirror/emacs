@@ -2350,7 +2350,7 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
 
 
 ;;;### (autoloads (hfy-fallback-colour-values htmlfontify-load-rgb-file)
-;;;;;;  "hfy-cmap" "hfy-cmap.el" "5314c2706e20292f96206daa0eb96caa")
+;;;;;;  "hfy-cmap" "hfy-cmap.el" "f7f81749b08e0aec14aac431f8b5ac8b")
 ;;; Generated autoloads from hfy-cmap.el
 
 (autoload 'htmlfontify-load-rgb-file "hfy-cmap" "\

@@ -25,11 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <errno.h>
 #include <sys/file.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
 #include <signal.h>
 #include <stdarg.h>
 #include <setjmp.h>
@@ -125,26 +121,10 @@ static void vfatal (const char *str, va_list ap) NO_RETURN;
 
 #define OUTPUT1_IF(tty, a) do { if (a) emacs_tputs ((tty), a, 1, cmputc); } while (0)
 
-/* If true, use "vs", otherwise use "ve" to make the cursor visible.  */
-
-static int visible_cursor;
-
 /* Display space properties */
-
-/* Functions to call after suspending a tty. */
-Lisp_Object Vsuspend_tty_functions;
-
-/* Functions to call after resuming a tty. */
-Lisp_Object Vresume_tty_functions;
 
 /* Chain of all tty device parameters. */
 struct tty_display_info *tty_list;
-
-/* Nonzero means no need to redraw the entire frame on resuming a
-   suspended Emacs.  This is useful on terminals with multiple
-   pages, where one page is used for Emacs and another for all
-   else. */
-int no_redraw_on_reenter;
 
 /* Meaning of bits in no_color_video.  Each bit set means that the
    corresponding attribute cannot be combined with colors.  */
@@ -175,10 +155,6 @@ int max_frame_lines;
 /* Non-zero if we have dropped our controlling tty and therefore
    should not open a frame on stdout. */
 static int no_controlling_tty;
-
-/* Provided for lisp packages.  */
-
-static int system_uses_terminfo;
 
 
 
@@ -3774,7 +3750,7 @@ mark_ttys (void)
 void
 syms_of_term (void)
 {
-  DEFVAR_BOOL ("system-uses-terminfo", &system_uses_terminfo,
+  DEFVAR_BOOL ("system-uses-terminfo", system_uses_terminfo,
     doc: /* Non-nil means the system uses terminfo rather than termcap.
 This variable can be used by terminal emulator packages.  */);
 #ifdef TERMINFO
@@ -3783,20 +3759,20 @@ This variable can be used by terminal emulator packages.  */);
   system_uses_terminfo = 0;
 #endif
 
-  DEFVAR_LISP ("suspend-tty-functions", &Vsuspend_tty_functions,
+  DEFVAR_LISP ("suspend-tty-functions", Vsuspend_tty_functions,
     doc: /* Functions to be run after suspending a tty.
 The functions are run with one argument, the terminal object to be suspended.
 See `suspend-tty'.  */);
   Vsuspend_tty_functions = Qnil;
 
 
-  DEFVAR_LISP ("resume-tty-functions", &Vresume_tty_functions,
+  DEFVAR_LISP ("resume-tty-functions", Vresume_tty_functions,
     doc: /* Functions to be run after resuming a tty.
 The functions are run with one argument, the terminal object that was revived.
 See `resume-tty'.  */);
   Vresume_tty_functions = Qnil;
 
-  DEFVAR_BOOL ("visible-cursor", &visible_cursor,
+  DEFVAR_BOOL ("visible-cursor", visible_cursor,
 	       doc: /* Non-nil means to make the cursor very visible.
 This only has an effect when running in a text terminal.
 What means \"very visible\" is up to your terminal.  It may make the cursor

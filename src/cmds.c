@@ -320,7 +320,7 @@ After insertion, the value of `auto-fill-function' is called if the
    A value of 2 means this did things that call for an undo boundary.  */
 
 static Lisp_Object Qexpand_abbrev;
-static Lisp_Object Qpost_self_insert_hook, Vpost_self_insert_hook;
+static Lisp_Object Qpost_self_insert_hook;
 
 static int
 internal_self_insert (int c, EMACS_INT n)
@@ -523,7 +523,7 @@ syms_of_cmds (void)
   Qpost_self_insert_hook = intern_c_string ("post-self-insert-hook");
   staticpro (&Qpost_self_insert_hook);
 
-  DEFVAR_LISP ("post-self-insert-hook", &Vpost_self_insert_hook,
+  DEFVAR_LISP ("post-self-insert-hook", Vpost_self_insert_hook,
 	       doc: /* Hook run at the end of `self-insert-command'.
 This is run after inserting the character.  */);
   Vpost_self_insert_hook = Qnil;

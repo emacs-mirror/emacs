@@ -221,7 +221,8 @@ Returns nil when we can't find this char."
         (let ((before (copy-marker (1- pos) t)))
           (save-excursion
             (unless (memq indent-line-function
-                          '(indent-relative indent-relative-maybe))
+                          '(indent-relative indent-to-left-margin
+                            indent-relative-maybe))
               ;; Don't reindent the previous line if the indentation function
               ;; is not a real one.
               (goto-char before)
@@ -235,7 +236,8 @@ Returns nil when we can't find this char."
             ;; Remove the trailing whitespace after indentation because
             ;; indentation may (re)introduce the whitespace.
             (delete-horizontal-space t))))
-      (indent-according-to-mode))))
+      (unless (memq indent-line-function '(indent-to-left-margin))
+        (indent-according-to-mode)))))
 
 ;;;###autoload
 (define-minor-mode electric-indent-mode

@@ -74,10 +74,8 @@ char *w32_getenv (char *);
 #include <stdarg.h>
 #include <ctype.h>
 #include <stdio.h>
-#include "getopt.h"
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <getopt.h>
+#include <unistd.h>
 
 #include <pwd.h>
 #include <sys/stat.h>

@@ -55,23 +55,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 
-/* If we shall make pointer invisible when typing or not.  */
-Lisp_Object Vmake_pointer_invisible;
-
 #ifdef HAVE_WINDOW_SYSTEM
-
-/* The name we're using in resource queries.  Most often "emacs".  */
-
-Lisp_Object Vx_resource_name;
-
-/* The application class we're using in resource queries.
-   Normally "Emacs".  */
-
-Lisp_Object Vx_resource_class;
-
-/* Lower limit value of the frame opacity (alpha transparency).  */
-
-Lisp_Object Vframe_alpha_lower_limit;
 
 #endif
 
@@ -122,7 +106,6 @@ Lisp_Object Qtitle, Qname;
 Lisp_Object Qexplicit_name;
 Lisp_Object Qunsplittable;
 Lisp_Object Qmenu_bar_lines, Qtool_bar_lines, Qtool_bar_position;
-Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
 Lisp_Object Qleft_fringe, Qright_fringe;
 Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
 Lisp_Object Qtty_color_mode;
@@ -135,14 +118,8 @@ Lisp_Object Qalpha;
 
 Lisp_Object Qface_set_after_frame_default;
 
-Lisp_Object Vterminal_frame;
-Lisp_Object Vdefault_frame_alist;
-Lisp_Object Vdefault_frame_scroll_bars;
-Lisp_Object Vmouse_position_function;
-Lisp_Object Vmouse_highlight;
-static Lisp_Object Vdelete_frame_functions, Qdelete_frame_functions;
+static Lisp_Object Qdelete_frame_functions;
 
-int focus_follows_mouse;
 
 static void
 set_menu_bar_lines_1 (Lisp_Object window, int n)
@@ -4464,7 +4441,7 @@ syms_of_frame (void)
   }
 
 #ifdef HAVE_WINDOW_SYSTEM
-  DEFVAR_LISP ("x-resource-name", &Vx_resource_name,
+  DEFVAR_LISP ("x-resource-name", Vx_resource_name,
     doc: /* The name Emacs uses to look up X resources.
 `x-get-resource' uses this as the first component of the instance name
 when requesting resource values.
@@ -4476,7 +4453,7 @@ It may be useful to bind this variable locally around a call
 to `x-get-resource'.  See also the variable `x-resource-class'.  */);
   Vx_resource_name = Qnil;
 
-  DEFVAR_LISP ("x-resource-class", &Vx_resource_class,
+  DEFVAR_LISP ("x-resource-class", Vx_resource_class,
     doc: /* The class Emacs uses to look up X resources.
 `x-get-resource' uses this as the first component of the instance class
 when requesting resource values.
@@ -4488,7 +4465,7 @@ but binding this variable locally around a call to `x-get-resource'
 is a reasonable practice.  See also the variable `x-resource-name'.  */);
   Vx_resource_class = build_string (EMACS_CLASS);
 
-  DEFVAR_LISP ("frame-alpha-lower-limit", &Vframe_alpha_lower_limit,
+  DEFVAR_LISP ("frame-alpha-lower-limit", Vframe_alpha_lower_limit,
     doc: /* The lower limit of the frame opacity (alpha transparency).
 The value should range from 0 (invisible) to 100 (completely opaque).
 You can also use a floating number between 0.0 and 1.0.
@@ -4496,7 +4473,7 @@ The default is 20.  */);
   Vframe_alpha_lower_limit = make_number (20);
 #endif
 
-  DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
+  DEFVAR_LISP ("default-frame-alist", Vdefault_frame_alist,
 	       doc: /* Alist of default values for frame creation.
 These may be set in your init file, like this:
   (setq default-frame-alist '((width . 80) (height . 55) (menu-bar-lines . 1)))
@@ -4511,7 +4488,7 @@ The `menu-bar-lines' element of the list controls whether new frames
 Setting this variable does not affect existing frames, only new ones.  */);
   Vdefault_frame_alist = Qnil;
 
-  DEFVAR_LISP ("default-frame-scroll-bars", &Vdefault_frame_scroll_bars,
+  DEFVAR_LISP ("default-frame-scroll-bars", Vdefault_frame_scroll_bars,
 	       doc: /* Default position of scroll bars on this window-system.  */);
 #ifdef HAVE_WINDOW_SYSTEM
 #if defined(HAVE_NTGUI) || defined(NS_IMPL_COCOA) || (defined(USE_GTK) && defined(USE_TOOLKIT_SCROLL_BARS))
@@ -4525,10 +4502,10 @@ Setting this variable does not affect existing frames, only new ones.  */);
   Vdefault_frame_scroll_bars = Qnil;
 #endif
 
-  DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
+  DEFVAR_LISP ("terminal-frame", Vterminal_frame,
                doc: /* The initial frame-object, which represents Emacs's stdout.  */);
 
-  DEFVAR_LISP ("mouse-position-function", &Vmouse_position_function,
+  DEFVAR_LISP ("mouse-position-function", Vmouse_position_function,
 	       doc: /* If non-nil, function to transform normal value of `mouse-position'.
 `mouse-position' calls this function, passing its usual return value as
 argument, and returns whatever this function returns.
@@ -4536,7 +4513,7 @@ This abnormal hook exists for the benefit of packages like `xt-mouse.el'
 which need to do mouse handling at the Lisp level.  */);
   Vmouse_position_function = Qnil;
 
-  DEFVAR_LISP ("mouse-highlight", &Vmouse_highlight,
+  DEFVAR_LISP ("mouse-highlight", Vmouse_highlight,
 	       doc: /* If non-nil, clickable text is highlighted when mouse is over it.
 If the value is an integer, highlighting is only shown after moving the
 mouse, while keyboard input turns off the highlight even when the mouse
@@ -4544,12 +4521,12 @@ is over the clickable text.  However, the mouse shape still indicates
 when the mouse is over clickable text.  */);
   Vmouse_highlight = Qt;
 
-  DEFVAR_LISP ("make-pointer-invisible", &Vmake_pointer_invisible,
+  DEFVAR_LISP ("make-pointer-invisible", Vmake_pointer_invisible,
                doc: /* If non-nil, make pointer invisible while typing.
 The pointer becomes visible again when the mouse is moved.  */);
   Vmake_pointer_invisible = Qt;
 
-  DEFVAR_LISP ("delete-frame-functions", &Vdelete_frame_functions,
+  DEFVAR_LISP ("delete-frame-functions", Vdelete_frame_functions,
 	       doc: /* Functions to be run before deleting a frame.
 The functions are run with one arg, the frame to be deleted.
 See `delete-frame'.
@@ -4562,7 +4539,7 @@ recursively).  */);
   Qdelete_frame_functions = intern_c_string ("delete-frame-functions");
   staticpro (&Qdelete_frame_functions);
 
-  DEFVAR_LISP ("menu-bar-mode", &Vmenu_bar_mode,
+  DEFVAR_LISP ("menu-bar-mode", Vmenu_bar_mode,
                doc: /* Non-nil if Menu-Bar mode is enabled.
 See the command `menu-bar-mode' for a description of this minor mode.
 Setting this variable directly does not take effect;
@@ -4570,7 +4547,7 @@ either customize it (see the info node `Easy Customization')
 or call the function `menu-bar-mode'.  */);
   Vmenu_bar_mode = Qt;
 
-  DEFVAR_LISP ("tool-bar-mode", &Vtool_bar_mode,
+  DEFVAR_LISP ("tool-bar-mode", Vtool_bar_mode,
                doc: /* Non-nil if Tool-Bar mode is enabled.
 See the command `tool-bar-mode' for a description of this minor mode.
 Setting this variable directly does not take effect;
@@ -4597,7 +4574,7 @@ displayed.
 
 This variable is local to the current terminal and cannot be buffer-local.  */);
 
-  DEFVAR_BOOL ("focus-follows-mouse", &focus_follows_mouse,
+  DEFVAR_BOOL ("focus-follows-mouse", focus_follows_mouse,
 	       doc: /* Non-nil if window system changes focus when you move the mouse.
 You should set this variable to tell Emacs how your window manager
 handles focus, since there is no way in general for Emacs to find out

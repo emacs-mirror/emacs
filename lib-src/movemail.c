@@ -63,9 +63,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 
 #include <getopt.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif

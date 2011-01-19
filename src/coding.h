@@ -769,11 +769,6 @@ extern Lisp_Object Qunix, Qdos, Qmac;
 extern Lisp_Object Qtranslation_table;
 extern Lisp_Object Qtranslation_table_id;
 
-/* Mnemonic strings to indicate each type of end-of-line.  */
-extern Lisp_Object eol_mnemonic_unix, eol_mnemonic_dos, eol_mnemonic_mac;
-/* Mnemonic string to indicate type of end-of-line is not yet decided.  */
-extern Lisp_Object eol_mnemonic_undecided;
-
 #ifdef emacs
 extern Lisp_Object Qfile_coding_system;
 extern Lisp_Object Qcall_process, Qcall_process_region;
@@ -782,43 +777,9 @@ extern Lisp_Object Qwrite_region;
 
 extern char *emacs_strerror (int);
 
-/* Coding-system for reading files and receiving data from process.  */
-extern Lisp_Object Vcoding_system_for_read;
-/* Coding-system for writing files and sending data to process.  */
-extern Lisp_Object Vcoding_system_for_write;
-/* Coding-system actually used in the latest I/O.  */
-extern Lisp_Object Vlast_coding_system_used;
-/* Coding-system to use with system messages (e.g. strerror).  */
-extern Lisp_Object Vlocale_coding_system;
-
-/* If non-zero, process buffer inherits the coding system used to decode
-   the subprocess output.  */
-extern int inherit_process_coding_system;
-
 /* Coding system to be used to encode text for terminal display when
    terminal coding system is nil.  */
 extern struct coding_system safe_terminal_coding;
-
-/* Default coding systems used for process I/O.  */
-extern Lisp_Object Vdefault_process_coding_system;
-
-/* Char table for translating Quail and self-inserting input.  */
-extern Lisp_Object Vtranslation_table_for_input;
-
-/* Function to call to force a user to force select a propert coding
-   system.  */
-extern Lisp_Object Vselect_safe_coding_system_function;
-
-/* If nonzero, on writing a file, Vselect_safe_coding_system_function
-   is called even if Vcoding_system_for_write is non-nil.  */
-extern int coding_system_require_warning;
-
-/* Coding system for file names, or nil if none.  */
-extern Lisp_Object Vfile_name_coding_system;
-
-/* Coding system for file names used only when
-   Vfile_name_coding_system is nil.  */
-extern Lisp_Object Vdefault_file_name_coding_system;
 
 #endif
 

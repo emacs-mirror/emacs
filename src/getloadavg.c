@@ -355,10 +355,7 @@ extern int errno;
 #  define LDAV_SYMBOL "avenrun"
 # endif
 
-# ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-# endif
-
+# include <unistd.h>
 # include <stdio.h>
 
 /* LOAD_AVE_TYPE should only get defined if we're going to use the

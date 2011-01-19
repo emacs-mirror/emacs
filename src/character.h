@@ -618,26 +618,13 @@ extern EMACS_INT c_string_width (const unsigned char *, EMACS_INT, int,
 extern EMACS_INT lisp_string_width (Lisp_Object, int,
 				    EMACS_INT *, EMACS_INT *);
 
-extern Lisp_Object Vprintable_chars;
-
 extern Lisp_Object Qcharacterp, Qauto_fill_chars;
-extern Lisp_Object Vtranslation_table_vector;
-extern Lisp_Object Vchar_width_table;
-extern Lisp_Object Vchar_direction_table;
 extern Lisp_Object Vchar_unify_table;
-extern Lisp_Object Vunicode_category_table;
-
 extern Lisp_Object string_escape_byte8 (Lisp_Object);
 
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
   (XCDR(XVECTOR(Vtranslation_table_vector)->contents[(id)]))
-
-/* A char-table for characters which may invoke auto-filling.  */
-extern Lisp_Object Vauto_fill_chars;
-
-extern Lisp_Object Vchar_script_table;
-extern Lisp_Object Vscript_representative_chars;
 
 #define DEFSYM(sym, name)	\
   do { (sym) = intern_c_string ((name)); staticpro (&(sym)); } while (0)

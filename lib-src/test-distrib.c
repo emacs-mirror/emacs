@@ -22,10 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <fcntl.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 /* Break string in two parts to avoid buggy C compilers that ignore characters
    after nulls in strings.  */

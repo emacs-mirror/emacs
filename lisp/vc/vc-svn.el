@@ -171,15 +171,18 @@ want to force an empty list of arguments, use t."
                      (?? . unregistered)
                      ;; This is what vc-svn-parse-status does.
                      (?~ . edited)))
-	(re (if remote "^\\(.\\)......? \\([ *]\\) +\\(?:[-0-9]+\\)?   \\(.*\\)$"
-	      ;; Subexp 2 is a dummy in this case, so the numbers match.
-	      "^\\(.\\)....\\(.\\) \\(.*\\)$"))
+	(re (if remote "^\\(.\\)\\(.\\).....? \\([ *]\\) +\\(?:[-0-9]+\\)?   \\(.*\\)$"
+	      ;; Subexp 3 is a dummy in this case, so the numbers match.
+	      "^\\(.\\)\\(.\\)...\\(.\\) \\(.*\\)$"))
        result)
     (goto-char (point-min))
     (while (re-search-forward re nil t)
       (let ((state (cdr (assq (aref (match-string 1) 0) state-map)))
-	    (filename (match-string 3)))
-	(and remote (string-equal (match-string 2) "*")
+            (propstat (cdr (assq (aref (match-string 2) 0) state-map)))
+	    (filename (match-string 4)))
+        (if (memq propstat '(conflict edited))
+            (setq state propstat))
+	(and remote (string-equal (match-string 3) "*")
 	     ;; FIXME are there other possible combinations?
 	     (cond ((eq state 'edited) (setq state 'needs-merge))
 		   ((not state) (setq state 'needs-update))))
@@ -643,7 +646,7 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
   "Parse output of \"svn status\" command in the current buffer.
 Set file properties accordingly.  Unless FILENAME is non-nil, parse only
 information about FILENAME and return its status."
-  (let (file status)
+  (let (file status propstat)
     (goto-char (point-min))
     (while (re-search-forward
             ;; Ignore the files with status X.
@@ -653,7 +656,9 @@ information about FILENAME and return its status."
       (setq file (or filename
                      (expand-file-name
                       (buffer-substring (point) (line-end-position)))))
-      (setq status (char-after (line-beginning-position)))
+      (setq status (char-after (line-beginning-position))
+            ;; Status of the item's properties ([ MC]).
+            propstat (char-after (1+ (line-beginning-position))))
       (if (eq status ??)
 	  (vc-file-setprop file 'vc-state 'unregistered)
 	;; Use the last-modified revision, so that searching in vc-print-log
@@ -664,7 +669,7 @@ information about FILENAME and return its status."
 	(vc-file-setprop
 	 file 'vc-state
 	 (cond
-	  ((eq status ?\ )
+	  ((and (eq status ?\ ) (eq propstat ?\ ))
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-update
              (vc-file-setprop file 'vc-checkout-time
@@ -675,9 +680,11 @@ information about FILENAME and return its status."
 	   (vc-file-setprop file 'vc-working-revision "0")
 	   (vc-file-setprop file 'vc-checkout-time 0)
 	   'added)
-	  ((eq status ?C)
+	  ;; Conflict in contents or properties.
+	  ((or (eq status ?C) (eq propstat ?C))
 	   (vc-file-setprop file 'vc-state 'conflict))
-	  ((eq status '?M)
+	  ;; Modified contents or properties.
+	  ((or (eq status ?M) (eq propstat ?M))
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-merge
 	     'edited))

@@ -21,9 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #include <time.h>
 #include <setjmp.h>
 
@@ -52,14 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef NULL
 #define NULL ((POINTER_TYPE *)0)
 #endif
-
-/* Nonzero enables use of dialog boxes for questions
-   asked by mouse commands.  */
-int use_dialog_box;
-
-/* Nonzero enables use of a file dialog for file name
-   questions asked by mouse commands.  */
-int use_file_dialog;
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
@@ -2560,7 +2550,7 @@ advisable.  */)
   return ret;
 }
 
-Lisp_Object Vfeatures, Qsubfeatures;
+Lisp_Object Qsubfeatures;
 
 DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 2, 0,
        doc: /* Return t if FEATURE is present in this Emacs.
@@ -4838,7 +4828,7 @@ syms_of_fns (void)
 
   Fset (Qyes_or_no_p_history, Qnil);
 
-  DEFVAR_LISP ("features", &Vfeatures,
+  DEFVAR_LISP ("features", Vfeatures,
     doc: /* A list of symbols which are the features of the executing Emacs.
 Used by `featurep' and `require', and altered by `provide'.  */);
   Vfeatures = Fcons (intern_c_string ("emacs"), Qnil);
@@ -4856,7 +4846,7 @@ Used by `featurep' and `require', and altered by `provide'.  */);
   staticpro (&Qpaper);
 #endif	/* HAVE_LANGINFO_CODESET */
 
-  DEFVAR_BOOL ("use-dialog-box", &use_dialog_box,
+  DEFVAR_BOOL ("use-dialog-box", use_dialog_box,
     doc: /* *Non-nil means mouse commands use dialog boxes to ask questions.
 This applies to `y-or-n-p' and `yes-or-no-p' questions asked by commands
 invoked by mouse clicks and mouse menu items.
@@ -4865,7 +4855,7 @@ On some platforms, file selection dialogs are also enabled if this is
 non-nil.  */);
   use_dialog_box = 1;
 
-  DEFVAR_BOOL ("use-file-dialog", &use_file_dialog,
+  DEFVAR_BOOL ("use-file-dialog", use_file_dialog,
     doc: /* *Non-nil means mouse commands use a file dialog to ask for files.
 This applies to commands from menus and tool bar buttons even when
 they are initiated from the keyboard.  If `use-dialog-box' is nil,

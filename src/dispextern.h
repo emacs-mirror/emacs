@@ -1145,12 +1145,6 @@ extern struct window *updated_window;
 extern struct glyph_row *updated_row;
 extern int updated_area;
 
-/* Non-zero means reading single-character input with prompt so put
-   cursor on mini-buffer after the prompt.  Positive means at end of
-   text in echo area; negative means at beginning of line.  */
-
-extern int cursor_in_echo_area;
-
 /* Non-zero means last display completed.  Zero means it was
    preempted.  */
 
@@ -2914,22 +2908,7 @@ enum tool_bar_item_image
   TOOL_BAR_IMAGE_DISABLED_DESELECTED
 };
 
-/* Margin around tool-bar buttons in pixels.  */
-
-extern Lisp_Object Vtool_bar_button_margin;
-
-/* Tool bar style */
-
-extern Lisp_Object Vtool_bar_style;
-
-/* Maximum number of characters a label can have to be shown.  */
-
-extern EMACS_INT tool_bar_max_label_size;
 #define DEFAULT_TOOL_BAR_LABEL_SIZE 14
-
-/* Thickness of relief to draw around tool-bar buttons.  */
-
-extern EMACS_INT tool_bar_button_relief;
 
 /* Default values of the above variables.  */
 
@@ -3020,8 +2999,6 @@ int in_display_vector_p (struct it *);
 int frame_mode_line_height (struct frame *);
 void highlight_trailing_whitespace (struct frame *, struct glyph_row *);
 extern Lisp_Object Qtool_bar;
-extern Lisp_Object Vshow_trailing_whitespace;
-extern int mode_line_in_non_selected_windows;
 extern int redisplaying_p;
 extern int help_echo_showing_p;
 extern int current_mode_line_height, current_header_line_height;
@@ -3030,11 +3007,6 @@ extern Lisp_Object help_echo_object, previous_help_echo_string;
 extern EMACS_INT help_echo_pos;
 extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
-extern Lisp_Object Vmouse_autoselect_window;
-extern int unibyte_display_via_language_environment;
-extern EMACS_INT underline_minimum_offset;
-extern Lisp_Object Vglyphless_char_display;
-
 extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern int calc_pixel_width_or_height (double *, struct it *, Lisp_Object,
@@ -3054,7 +3026,6 @@ extern void x_write_glyphs (struct glyph *, int);
 extern void x_insert_glyphs (struct glyph *, int len);
 extern void x_clear_end_of_line (int);
 
-extern int x_stretch_cursor_p;
 extern struct cursor_pos output_cursor;
 
 extern void x_fix_overlapping_area (struct window *, struct glyph_row *,
@@ -3105,9 +3076,6 @@ extern void tty_draw_row_with_mouse_face (struct window *, struct glyph_row *,
 #define TRY_WINDOW_CHECK_MARGINS	(1 << 0)
 #define TRY_WINDOW_IGNORE_FONTS_CHANGE	(1 << 1)
 
-/* Defined in fringe.c */
-
-extern Lisp_Object Voverflow_newline_into_fringe;
 int lookup_fringe_bitmap (Lisp_Object);
 void draw_fringe_bitmap (struct window *, struct glyph_row *, int);
 void draw_row_fringe_bitmaps (struct window *, struct glyph_row *);
@@ -3213,8 +3181,6 @@ extern Lisp_Object Qforeground_color, Qbackground_color;
 extern Lisp_Object Qframe_set_background_mode;
 extern char unspecified_fg[], unspecified_bg[];
 
-extern Lisp_Object Vface_remapping_alist;
-
 /* Defined in xfns.c  */
 
 #ifdef HAVE_X_WINDOWS
@@ -3235,7 +3201,6 @@ EXFUN (Fx_hide_tip, 0);
 extern void start_hourglass (void);
 extern void cancel_hourglass (void);
 extern int hourglass_started (void);
-extern int display_hourglass_p;
 extern int hourglass_shown_p;
 struct atimer;			/* Defined in atimer.h.  */
 /* If non-null, an asynchronous timer that, when it expires, displays
@@ -3271,9 +3236,6 @@ extern void hide_hourglass (void);
 
 int popup_activated (void);
 
-/* Defined in dispnew.c  */
-
-extern int inverse_video;
 extern Lisp_Object buffer_posn_from_coords (struct window *,
                                             int *, int *,
                                             struct display_pos *,

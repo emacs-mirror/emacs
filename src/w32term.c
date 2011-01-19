@@ -65,10 +65,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static int max_fringe_bmp = 0;
 static HBITMAP *fringe_bmp = 0;
 
-/* Non-nil means Emacs uses toolkit scroll bars.  */
-
-Lisp_Object Vx_toolkit_scroll_bars;
-
 /* Temporary variables for w32_read_socket.  */
 
 static int last_mousemove_x = 0;
@@ -86,13 +82,6 @@ static int any_help_event_p;
 
 /* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_window;
-
-/* Non-zero means make use of UNDERLINE_POSITION font properties.  */
-int x_use_underline_position_properties;
-
-/* Non-zero means to draw the underline at the same place as the descent line.  */
-
-int x_underline_at_descent_line;
 
 extern unsigned int msh_mousewheel;
 
@@ -166,8 +155,6 @@ HWND w32_system_caret_hwnd;
 int w32_system_caret_height;
 int w32_system_caret_x;
 int w32_system_caret_y;
-int w32_use_visible_system_caret;
-
 DWORD dwWindowsThreadId = 0;
 HANDLE hWindowsThread = NULL;
 DWORD dwMainThreadId = 0;
@@ -185,19 +172,6 @@ int last_scroll_bar_drag_pos;
 static RECT last_mouse_glyph;
 static FRAME_PTR last_mouse_glyph_frame;
 static Lisp_Object last_mouse_press_frame;
-
-int w32_num_mouse_buttons;
-
-Lisp_Object Vw32_swap_mouse_buttons;
-
-/* Control whether x_raise_frame also sets input focus.  */
-Lisp_Object Vw32_grab_focus_on_raise;
-
-/* Control whether Caps Lock affects non-ascii characters.  */
-Lisp_Object Vw32_capslock_is_shiftlock;
-
-/* Control whether right-alt and left-ctrl should be recognized as AltGr.  */
-Lisp_Object Vw32_recognize_altgr;
 
 /* The scroll bar in which the last motion event occurred.
 
@@ -225,11 +199,6 @@ static int volatile input_signal_count;
 #else
 static int input_signal_count;
 #endif
-
-extern Lisp_Object Vcommand_line_args, Vsystem_name;
-
-/* A mask of extra modifier bits to put into every keyboard char.  */
-extern EMACS_INT extra_keyboard_modifiers;
 
 /* Keyboard code page - may be changed by language-change events.  */
 static int keyboard_codepage;
@@ -6383,18 +6352,18 @@ syms_of_w32term (void)
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
 
   DEFVAR_INT ("w32-num-mouse-buttons",
-	      &w32_num_mouse_buttons,
+	      w32_num_mouse_buttons,
 	      doc: /* Number of physical mouse buttons.  */);
   w32_num_mouse_buttons = 2;
 
   DEFVAR_LISP ("w32-swap-mouse-buttons",
-	      &Vw32_swap_mouse_buttons,
+	      Vw32_swap_mouse_buttons,
 	       doc: /* Swap the mapping of middle and right mouse buttons.
 When nil, middle button is mouse-2 and right button is mouse-3.  */);
   Vw32_swap_mouse_buttons = Qnil;
 
   DEFVAR_LISP ("w32-grab-focus-on-raise",
-	       &Vw32_grab_focus_on_raise,
+	       Vw32_grab_focus_on_raise,
 	       doc: /* Raised frame grabs input focus.
 When t, `raise-frame' grabs input focus as well.  This fits well
 with the normal Windows click-to-focus policy, but might not be
@@ -6402,20 +6371,20 @@ desirable when using a point-to-focus policy.  */);
   Vw32_grab_focus_on_raise = Qt;
 
   DEFVAR_LISP ("w32-capslock-is-shiftlock",
-	       &Vw32_capslock_is_shiftlock,
+	       Vw32_capslock_is_shiftlock,
 	       doc: /* Apply CapsLock state to non character input keys.
 When nil, CapsLock only affects normal character input keys.  */);
   Vw32_capslock_is_shiftlock = Qnil;
 
   DEFVAR_LISP ("w32-recognize-altgr",
-	       &Vw32_recognize_altgr,
+	       Vw32_recognize_altgr,
 	       doc: /* Recognize right-alt and left-ctrl as AltGr.
 When nil, the right-alt and left-ctrl key combination is
 interpreted normally.  */);
   Vw32_recognize_altgr = Qt;
 
   DEFVAR_BOOL ("w32-use-visible-system-caret",
-	       &w32_use_visible_system_caret,
+	       w32_use_visible_system_caret,
 	       doc: /* Flag to make the system caret visible.
 When this is non-nil, Emacs will indicate the position of point by
 using the system caret instead of drawing its own cursor.  Some screen
@@ -6432,7 +6401,7 @@ the cursor have no effect.  */);
   /* We don't yet support this, but defining this here avoids whining
      from cus-start.el and other places, like "M-x set-variable".  */
   DEFVAR_BOOL ("x-use-underline-position-properties",
-	       &x_use_underline_position_properties,
+	       x_use_underline_position_properties,
      doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
 A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
@@ -6442,14 +6411,14 @@ sizes.  */);
   x_use_underline_position_properties = 0;
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
-	       &x_underline_at_descent_line,
+	       x_underline_at_descent_line,
      doc: /* *Non-nil means to draw the underline at the same place as the descent line.
 A value of nil means to draw the underline according to the value of the
 variable `x-use-underline-position-properties', which is usually at the
 baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = 0;
 
-  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
+  DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,
 	       doc: /* Which toolkit scroll bars Emacs uses, if any.
 A value of nil means Emacs doesn't use toolkit scroll bars.
 With the X Window system, the value is a symbol describing the

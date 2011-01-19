@@ -68,11 +68,6 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
    traversing plists.  */
 #define PLIST_ELT_P(o1, o2) (CONSP (o1) && ((o2)=XCDR (o1), CONSP (o2)))
 
-Lisp_Object Vinhibit_point_motion_hooks;
-Lisp_Object Vdefault_text_properties;
-Lisp_Object Vchar_property_alias_alist;
-Lisp_Object Vtext_property_default_nonsticky;
-
 /* verify_interval_modification saves insertion hooks here
    to be run later by report_interval_modification.  */
 Lisp_Object interval_insert_behind_hooks;
@@ -2234,13 +2229,13 @@ report_interval_modification (Lisp_Object start, Lisp_Object end)
 void
 syms_of_textprop (void)
 {
-  DEFVAR_LISP ("default-text-properties", &Vdefault_text_properties,
+  DEFVAR_LISP ("default-text-properties", Vdefault_text_properties,
 	       doc: /* Property-list used as default values.
 The value of a property in this list is seen as the value for every
 character that does not have its own value for that property.  */);
   Vdefault_text_properties = Qnil;
 
-  DEFVAR_LISP ("char-property-alias-alist", &Vchar_property_alias_alist,
+  DEFVAR_LISP ("char-property-alias-alist", Vchar_property_alias_alist,
 	       doc: /* Alist of alternative properties for properties without a value.
 Each element should look like (PROPERTY ALTERNATIVE1 ALTERNATIVE2...).
 If a piece of text has no direct value for a particular property, then
@@ -2249,13 +2244,13 @@ the first non-nil value from the associated alternative properties is
 returned. */);
   Vchar_property_alias_alist = Qnil;
 
-  DEFVAR_LISP ("inhibit-point-motion-hooks", &Vinhibit_point_motion_hooks,
+  DEFVAR_LISP ("inhibit-point-motion-hooks", Vinhibit_point_motion_hooks,
 	       doc: /* If non-nil, don't run `point-left' and `point-entered' text properties.
 This also inhibits the use of the `intangible' text property.  */);
   Vinhibit_point_motion_hooks = Qnil;
 
   DEFVAR_LISP ("text-property-default-nonsticky",
-	       &Vtext_property_default_nonsticky,
+	       Vtext_property_default_nonsticky,
 	       doc: /* Alist of properties vs the corresponding non-stickinesses.
 Each element has the form (PROPERTY . NONSTICKINESS).
 

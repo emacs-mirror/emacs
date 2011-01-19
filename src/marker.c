@@ -34,10 +34,6 @@ static int cached_modiff;
 
 static void byte_char_debug_check (struct buffer *, EMACS_INT, EMACS_INT);
 
-/* Nonzero means enable debugging checks on byte/char correspondences.  */
-
-static int byte_debug_flag;
-
 void
 clear_charpos_cache (struct buffer *b)
 {
@@ -897,7 +893,7 @@ syms_of_marker (void)
   defsubr (&Sset_marker_insertion_type);
   defsubr (&Sbuffer_has_markers_at);
 
-  DEFVAR_BOOL ("byte-debug-flag", &byte_debug_flag,
+  DEFVAR_BOOL ("byte-debug-flag", byte_debug_flag,
 	       doc: /* Non-nil enables debugging checks in byte/char position conversions.  */);
   byte_debug_flag = 0;
 }

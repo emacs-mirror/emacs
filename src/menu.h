@@ -19,8 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef MENU_H
 #define MENU_H
 
-extern Lisp_Object Vmenu_updating_frame;
-
 extern void x_set_menu_bar_lines (struct frame *f,
                                   Lisp_Object value,
                                   Lisp_Object oldval);

@@ -32,10 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/file.h>
 #include <fcntl.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef __FreeBSD__
 #include <sys/sysctl.h>
@@ -48,10 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "coding.h"
 #include "systime.h"
-
-/* The directory for writing temporary files.  */
-
-Lisp_Object Vtemporary_file_directory;
 
 #ifdef CLASH_DETECTION
 
@@ -735,7 +728,7 @@ init_filelock (void)
 void
 syms_of_filelock (void)
 {
-  DEFVAR_LISP ("temporary-file-directory", &Vtemporary_file_directory,
+  DEFVAR_LISP ("temporary-file-directory", Vtemporary_file_directory,
 	       doc: /* The directory for writing temporary files.  */);
   Vtemporary_file_directory = Qnil;
 

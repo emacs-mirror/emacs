@@ -63,8 +63,6 @@ static Lisp_Object QCf;
    font_driver *)->list when a specified font is not found. */
 static Lisp_Object null_vector;
 
-static Lisp_Object Vfont_weight_table, Vfont_slant_table, Vfont_width_table;
-
 /* Vector of Vfont_weight_table, Vfont_slant_table, and Vfont_width_table. */
 static Lisp_Object font_style_table;
 
@@ -136,8 +134,6 @@ Lisp_Object Qc, Qm, Qp, Qd;
 Lisp_Object Qja, Qko;
 
 Lisp_Object QCuser_spec;
-
-Lisp_Object Vfont_encoding_alist;
 
 /* Alist of font registry symbol and the corresponding charsets
    information.  The information is retrieved from
@@ -4976,8 +4972,6 @@ build_style_table (const struct table_entry *entry, int nelement)
   return table;
 }
 
-Lisp_Object Vfont_log;
-
 /* The deferred font-log data of the form [ACTION ARG RESULT].
    If ACTION is not nil, that is added to the log when font_add_log is
    called next time.  At that time, ACTION is set back to nil.  */
@@ -5183,7 +5177,7 @@ syms_of_font (void)
   defsubr (&Sfont_info);
 #endif
 
-  DEFVAR_LISP ("font-encoding-alist", &Vfont_encoding_alist,
+  DEFVAR_LISP ("font-encoding-alist", Vfont_encoding_alist,
 	       doc: /*
 Alist of fontname patterns vs the corresponding encoding and repertory info.
 Each element looks like (REGEXP . (ENCODING . REPERTORY)),
@@ -5210,7 +5204,7 @@ gets the repertory information by an opened font and ENCODING.  */);
      table used by the font display code.  So we make them read-only,
      to avoid this confusing situation.  */
 
-  DEFVAR_LISP_NOPRO ("font-weight-table", &Vfont_weight_table,
+  DEFVAR_LISP_NOPRO ("font-weight-table", Vfont_weight_table,
 	       doc: /*  Vector of valid font weight values.
 Each element has the form:
     [NUMERIC-VALUE SYMBOLIC-NAME ALIAS-NAME ...]
@@ -5218,13 +5212,13 @@ NUMERIC-VALUE is an integer, and SYMBOLIC-NAME and ALIAS-NAME are symbols. */);
   Vfont_weight_table = BUILD_STYLE_TABLE (weight_table);
   XSYMBOL (intern_c_string ("font-weight-table"))->constant = 1;
 
-  DEFVAR_LISP_NOPRO ("font-slant-table", &Vfont_slant_table,
+  DEFVAR_LISP_NOPRO ("font-slant-table", Vfont_slant_table,
 	       doc: /*  Vector of font slant symbols vs the corresponding numeric values.
 See `font-weight-table' for the format of the vector. */);
   Vfont_slant_table = BUILD_STYLE_TABLE (slant_table);
   XSYMBOL (intern_c_string ("font-slant-table"))->constant = 1;
 
-  DEFVAR_LISP_NOPRO ("font-width-table", &Vfont_width_table,
+  DEFVAR_LISP_NOPRO ("font-width-table", Vfont_width_table,
 	       doc: /*  Alist of font width symbols vs the corresponding numeric values.
 See `font-weight-table' for the format of the vector. */);
   Vfont_width_table = BUILD_STYLE_TABLE (width_table);
@@ -5236,7 +5230,7 @@ See `font-weight-table' for the format of the vector. */);
   ASET (font_style_table, 1, Vfont_slant_table);
   ASET (font_style_table, 2, Vfont_width_table);
 
-  DEFVAR_LISP ("font-log", &Vfont_log, doc: /*
+  DEFVAR_LISP ("font-log", Vfont_log, doc: /*
 *Logging list of font related actions and results.
 The value t means to suppress the logging.
 The initial value is set to nil if the environment variable

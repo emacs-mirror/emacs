@@ -18,12 +18,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* Nonzero means flash the screen instead of ringing the bell.  */
-extern int visible_bell;
-
-/* Nonzero means invert white and black for the entire screen.  */
-extern int inverse_video;
-
 /* Nonzero means use ^S/^Q as cretinous flow control.  */
 extern int flow_control;
 
@@ -35,12 +29,4 @@ extern int interrupts_deferred;
 
 /* Terminal has meta key */
 extern int meta_key;
-
-/* Defined in xdisp.c */
-extern Lisp_Object Vtruncate_partial_width_windows;
-
-/* Nonzero means no need to redraw the entire frame on resuming a suspended
-   Emacs.  This is useful on terminals with multiple pages, where one page is
-   used for Emacs and another for all else. */
-extern int no_redraw_on_reenter;
 

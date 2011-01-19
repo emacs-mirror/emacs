@@ -29,14 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qexecute_kbd_macro, Qkbd_macro_termination_hook;
 
-/* Kbd macro currently being executed (a string or vector).  */
-
-Lisp_Object Vexecuting_kbd_macro;
-
-/* Index of next character to fetch from that macro.  */
-
-EMACS_INT executing_kbd_macro_index;
-
 /* Number of successful iterations so far
    for innermost keyboard macro.
    This is not bound at each level,
@@ -384,11 +376,11 @@ syms_of_macros (void)
 The value is the symbol `append' while appending to the definition of
 an existing macro.  */);
 
-  DEFVAR_LISP ("executing-kbd-macro", &Vexecuting_kbd_macro,
+  DEFVAR_LISP ("executing-kbd-macro", Vexecuting_kbd_macro,
 	       doc: /* Currently executing keyboard macro (string or vector).
 This is nil when not executing a keyboard macro.  */);
 
-  DEFVAR_INT ("executing-kbd-macro-index", &executing_kbd_macro_index,
+  DEFVAR_INT ("executing-kbd-macro-index", executing_kbd_macro_index,
 	      doc: /* Index in currently executing keyboard macro; undefined if none executing.  */);
 
   DEFVAR_KBOARD ("last-kbd-macro", Vlast_kbd_macro,

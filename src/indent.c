@@ -38,11 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "region-cache.h"
 
-/* Indentation can insert tabs if this is non-zero;
-   otherwise always uses spaces.  */
-
-static int indent_tabs_mode;
-
 #define CR 015
 
 /* These three values memorize the current column to avoid recalculation.  */
@@ -2159,7 +2154,7 @@ whether or not it is currently displayed in some window.  */)
 void
 syms_of_indent (void)
 {
-  DEFVAR_BOOL ("indent-tabs-mode", &indent_tabs_mode,
+  DEFVAR_BOOL ("indent-tabs-mode", indent_tabs_mode,
 	       doc: /* *Indentation can insert tabs if this is non-nil.  */);
   indent_tabs_mode = 1;
 
