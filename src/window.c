@@ -151,7 +151,7 @@ static int window_scroll_preserve_vpos;
 #if 0 /* This isn't used anywhere.  */
 /* Nonzero means we can split a frame even if it is "unsplittable".  */
 static int inhibit_frame_unsplittable;
-#endif extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
+#endif
 
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,

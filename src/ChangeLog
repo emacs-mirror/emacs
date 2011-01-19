@@ -1,3 +1,7 @@
+2011-01-19  Tom Tromey  <tromey@redhat.com>
+
+	* window.c: Fix error introduced by previous patch.
+
 2011-01-18  Tom Tromey  <tromey@parfait>
 
 	* globals.h: New file.
