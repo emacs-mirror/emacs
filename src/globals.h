@@ -1701,7 +1701,7 @@ struct emacs_globals
     f_ns_input_line;
   Lisp_Object f_ns_input_color, f_ns_input_text, f_ns_working_text;
   Lisp_Object f_ns_input_spi_name, f_ns_input_spi_arg;
-  
+
   /* Specifies which emacs modifier should be generated when NS receives
      the Alternate modifier.  May be Qnone or any of the modifier lisp symbols.
   */
@@ -1751,6 +1751,19 @@ struct emacs_globals
 
   Lisp_Object f_Vns_sent_selection_hooks;
   Lisp_Object f_Vns_lost_selection_hooks;
+
+  /* This is an association list whose elements are of the form
+       ( SELECTION-NAME SELECTION-VALUE SELECTION-TIMESTAMP FRAME)
+     SELECTION-NAME is a lisp symbol, whose name is the name of an X Atom.
+     SELECTION-VALUE is the value that emacs owns for that selection.
+       It may be any kind of Lisp object.
+     SELECTION-TIMESTAMP is the time at which emacs began owning this
+       selection, as a cons of two 16-bit numbers (making a 32 bit time.)
+     FRAME is the frame for which we made the selection.
+     If there is an entry in this alist, then it can be assumed that Emacs owns
+      that selection.
+     The only (eq) parts of this list that are visible from Lisp are the
+      selection-values.  */
   Lisp_Object f_Vselection_alist;
 
   Lisp_Object f_Vns_reg_to_script;
@@ -2882,5 +2895,3 @@ extern struct emacs_globals globals;
     globals.f_Vselection_alist
 #define Vns_reg_to_script \
     globals.f_Vns_reg_to_script
-
-
