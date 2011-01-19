@@ -1,3 +1,8 @@
+2011-01-19  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-svn.el (vc-svn-after-dir-status, vc-svn-parse-status):
+	Also check the property status.  (Bug#7861)
+
 2011-01-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-debug-message): Extend function exclude
