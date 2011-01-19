@@ -91,6 +91,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <stdarg.h>
 #include <sys/types.h>
+#include <config.h>
+#undef malloc
+#undef realloc
+#undef free
 #include <unistd.h>
 #include <mach/mach.h>
 #include <mach-o/loader.h>
@@ -98,10 +102,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined (__ppc__)
 #include <mach-o/ppc/reloc.h>
 #endif
-#include <config.h>
-#undef malloc
-#undef realloc
-#undef free
 #ifdef HAVE_MALLOC_MALLOC_H
 #include <malloc/malloc.h>
 #else

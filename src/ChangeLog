@@ -1,5 +1,7 @@
 2011-01-19  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* unexmacosx.c: Include config.h before unistd.h (Bug#7859).
+
 	* nsterm.m (ns_input_file, ns_input_font, ns_input_fontsize)
 	(ns_input_line, ns_input_color, ns_input_text, ns_working_text)
 	(ns_input_spi_name, ns_input_spi_arg)
