@@ -89,8 +89,6 @@ extern const char *const lispy_function_keys[];
 static unsigned hourglass_timer = 0;
 static HWND hourglass_hwnd = NULL;
 
-#if 0 #endif
-
 #ifndef IDC_HAND
 #define IDC_HAND MAKEINTRESOURCE(32649)
 #endif

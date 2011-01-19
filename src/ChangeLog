@@ -2,6 +2,7 @@
 
 	* w32.c (check_windows_init_file): Remove declarations of
 	Vwindow_system, Vload_path, Qfile_exists_p to fix compilation.
+	* w32fns.c: Fix an error introduced by the previous patch.
 
 2011-01-19  Tom Tromey  <tromey@redhat.com>
 
