@@ -5656,7 +5656,6 @@ check_windows_init_file (void)
 
   if (!noninteractive && !inhibit_window_system)
     {
-      extern Lisp_Object Vwindow_system, Vload_path, Qfile_exists_p;
       Lisp_Object objs[2];
       Lisp_Object full_load_path;
       Lisp_Object init_file;

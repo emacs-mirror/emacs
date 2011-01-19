@@ -1,3 +1,8 @@
+2011-01-19  Sam Steingold  <sds@gnu.org>
+
+	* w32.c (check_windows_init_file): Remove declarations of
+	Vwindow_system, Vload_path, Qfile_exists_p to fix compilation.
+
 2011-01-19  Tom Tromey  <tromey@redhat.com>
 
 	* window.c: Fix error introduced by previous patch.
