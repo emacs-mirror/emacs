@@ -65,8 +65,7 @@ extern Lisp_Object Qundefined, Qmenu_enable, Qmenu_bar_update_hook;
 extern Lisp_Object QCtoggle, QCradio;
 
 Lisp_Object Qdebug_on_next_call;
-extern Lisp_Object Voverriding_local_map, Voverriding_local_map_menu_flag,
-		   Qoverriding_local_map, Qoverriding_terminal_local_map;
+extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 
 extern long context_menu_value;
 EmacsMenu *mainMenu, *svcsMenu, *dockMenu;

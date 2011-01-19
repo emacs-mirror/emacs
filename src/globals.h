@@ -1695,6 +1695,67 @@ struct emacs_globals
   Lisp_Object f_Vx_super_keysym;
 
   Lisp_Object f_Vx_keysym_table;
+
+  /* Lisp communications */
+  Lisp_Object f_ns_input_file, f_ns_input_font, f_ns_input_fontsize,
+    f_ns_input_line;
+  Lisp_Object f_ns_input_color, f_ns_input_text, f_ns_working_text;
+  Lisp_Object f_ns_input_spi_name, f_ns_input_spi_arg;
+  
+  /* Specifies which emacs modifier should be generated when NS receives
+     the Alternate modifier.  May be Qnone or any of the modifier lisp symbols.
+  */
+  Lisp_Object f_ns_alternate_modifier;
+
+  /* Specifies which emacs modifier should be generated when NS receives
+     the right Alternate modifier.  Has same values as ns_alternate_modifier
+     plus the value Qleft which means whatever value ns_alternate_modifier has.
+  */
+  Lisp_Object f_ns_right_alternate_modifier;
+
+  /* Specifies which emacs modifier should be generated when NS receives
+     the Command modifier.  May be any of the modifier lisp symbols. */
+  Lisp_Object f_ns_command_modifier;
+
+  /* Specifies which emacs modifier should be generated when NS receives
+     the right Command modifier.  Has same values as ns_command_modifier plus
+     the value Qleft which means whatever value ns_command_modifier has.  */
+  Lisp_Object f_ns_right_command_modifier;
+
+  /* Specifies which emacs modifier should be generated when NS receives
+     the Control modifier.  May be any of the modifier lisp symbols. */
+  Lisp_Object f_ns_control_modifier;
+
+  /* Specifies which emacs modifier should be generated when NS receives
+     the right Control modifier.  Has same values as ns_control_modifier plus
+     the value Qleft which means whatever value ns_control_modifier has.  */
+  Lisp_Object f_ns_right_control_modifier;
+
+  /* Specifies which emacs modifier should be generated when NS receives
+     the Function modifier (laptops).  May be any of the modifier lisp symbols.
+  */
+  Lisp_Object f_ns_function_modifier;
+
+  /* Control via default 'GSFontAntiAlias' on OS X and GNUstep. */
+  Lisp_Object f_ns_antialias_text;
+
+  /* Confirm on exit. */
+  Lisp_Object f_ns_confirm_quit;
+
+  /* Alist of elements (REGEXP . IMAGE) for images of icons associated
+     to frames.*/
+  Lisp_Object f_Vns_icon_type_alist;
+
+  /* Toolkit version support. */
+  Lisp_Object f_Vns_version_string;
+
+  Lisp_Object f_Vns_sent_selection_hooks;
+  Lisp_Object f_Vns_lost_selection_hooks;
+  Lisp_Object f_Vselection_alist;
+
+  Lisp_Object f_Vns_reg_to_script;
+
+
 };
 
 extern struct emacs_globals globals;
@@ -2773,3 +2834,53 @@ extern struct emacs_globals globals;
     globals.f_x_underline_at_descent_line
 #define x_use_underline_position_properties \
     globals.f_x_use_underline_position_properties
+#define ns_input_file \
+    globals.f_ns_input_file
+#define ns_input_font \
+    globals.f_ns_input_font
+#define ns_input_fontsize \
+    globals.f_ns_input_fontsize
+#define ns_input_line \
+    globals.f_ns_input_line
+#define ns_input_color \
+    globals.f_ns_input_color
+#define ns_input_text \
+    globals.f_ns_input_text
+#define ns_working_text \
+    globals.f_ns_working_text
+#define ns_input_spi_name \
+    globals.f_ns_input_spi_name
+#define ns_input_spi_arg \
+    globals.f_ns_input_spi_arg
+#define ns_alternate_modifier \
+    globals.f_ns_alternate_modifier
+#define ns_right_alternate_modifier \
+    globals.f_ns_right_alternate_modifier
+#define ns_command_modifier \
+    globals.f_ns_command_modifier
+#define ns_right_command_modifier \
+    globals.f_ns_right_command_modifier
+#define ns_control_modifier \
+    globals.f_ns_control_modifier
+#define ns_right_control_modifier \
+    globals.f_ns_right_control_modifier
+#define ns_function_modifier \
+    globals.f_ns_function_modifier
+#define ns_antialias_text \
+    globals.f_ns_antialias_text
+#define ns_confirm_quit \
+    globals.f_ns_confirm_quit
+#define Vns_icon_type_alist \
+    globals.f_Vns_icon_type_alist
+#define Vns_version_string \
+    globals.f_Vns_version_string
+#define Vns_sent_selection_hooks \
+    globals.f_Vns_sent_selection_hooks
+#define Vns_lost_selection_hooks \
+    globals.f_Vns_lost_selection_hooks
+#define Vselection_alist \
+    globals.f_Vselection_alist
+#define Vns_reg_to_script \
+    globals.f_Vns_reg_to_script
+
+

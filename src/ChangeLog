@@ -1,3 +1,44 @@
+2011-01-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_input_file, ns_input_font, ns_input_fontsize)
+	(ns_input_line, ns_input_color, ns_input_text, ns_working_text)
+	(ns_input_spi_name, ns_input_spi_arg)
+	(ns_alternate_modifier, ns_right_alternate_modifier)
+	(ns_command_modifier, ns_right_command_modifier, ns_control_modifier)
+	(ns_right_control_modifier, ns_function_modifier)
+	(ns_antialias_text, ns_confirm_quit): Move to globals.h.
+	(Vx_toolkit_scroll_bars, x_use_underline_position_properties)
+	(x_underline_at_descent_line): Remove declaration.
+	(syms_of_nsterm): Remove & from DEFVAR_LISP and DEFVAR_BOOL.
+
+	* nsselect.m (Vns_sent_selection_hooks, Vns_lost_selection_hooks
+	(Vselection_alist, Vselection_converter_alist): Move to globals.h.
+	(syms_of_nsselect): Remove & from DEFVAR_LISP.
+
+	* nsmenu.m (Voverriding_local_map, Voverriding_local_map_menu_flag):
+	Remove declaration.
+
+	* nsfont.m (Vns_reg_to_script, ns_antialias_text): Move to
+	globals.h.
+	(syms_of_nsfont): Remove & from DEFVAR_LISP.
+
+	* nsfns.m (Vmenu_bar_mode, Vtool_bar_mode): Remove declaration.
+	(Vns_icon_type_alist, Vns_version_string): Move to globals.h.
+	(syms_of_nsfns): Remove & from DEFVAR_LISP calls.
+
+	* globals.h (struct emacs_globals): Add f_ns_input_file,
+	f_ns_input_font, f_ns_input_fontsize, f_ns_input_line,
+	f_ns_input_color, f_ns_input_text, f_ns_working_text,
+	f_ns_input_spi_name, f_ns_input_spi_arg, f_ns_alternate_modifier,
+	f_ns_right_alternate_modifier, f_ns_command_modifier,
+	f_ns_right_command_modifier, f_ns_control_modifier,
+	f_ns_right_control_modifier, f_ns_function_modifier,
+	f_ns_antialias_text, f_ns_confirm_quit, f_Vns_icon_type_alist,
+	f_Vns_version_string, f_Vns_sent_selection_hooks,
+	f_Vns_lost_selection_hooks, f_Vselection_alist, f_Vns_reg_to_script
+	and corresponding defines.
+
+
 2011-01-19  Sam Steingold  <sds@gnu.org>
 
 	* w32.c (check_windows_init_file): Remove declarations of
