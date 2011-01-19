@@ -2726,9 +2726,8 @@ With a non-nil REMOVE, remove the ADDRESSES."
               (with-current-buffer summary-buffer-name
                 (setq article-string (spam-get-article-as-string article)))
               (when (stringp article-string)
-                (insert "From \n") ; mbox separator (sa-learn only checks the
-                                   ; first five chars, so we can get away with
-                                   ; a bogus line))
+                ;; mbox separator
+                (insert (concat "From nobody " (current-time-string) "\n"))
                 (insert article-string)
                 (insert "\n"))))
           ;; call sa-learn on all messages at the same time

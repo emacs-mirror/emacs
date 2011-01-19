@@ -135,48 +135,9 @@ static unsigned convert_ns_to_X_keysym[] =
 };
 
 
-/* Lisp communications */
-Lisp_Object ns_input_file, ns_input_font, ns_input_fontsize, ns_input_line;
-Lisp_Object ns_input_color, ns_input_text, ns_working_text;
-Lisp_Object ns_input_spi_name, ns_input_spi_arg;
-Lisp_Object Vx_toolkit_scroll_bars;
 static Lisp_Object Qmodifier_value;
 Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper, Qnone;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the Alternate modifier.  May be Qnone or any of the modifier lisp symbols. */
-Lisp_Object ns_alternate_modifier;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the right Alternate modifier.  Has same values as ns_alternate_modifier plus
-   the value Qleft which means whatever value ns_alternate_modifier has.  */
-Lisp_Object ns_right_alternate_modifier;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the Command modifier.  May be any of the modifier lisp symbols. */
-Lisp_Object ns_command_modifier;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the right Command modifier.  Has same values as ns_command_modifier plus
-   the value Qleft which means whatever value ns_command_modifier has.  */
-Lisp_Object ns_right_command_modifier;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the Control modifier.  May be any of the modifier lisp symbols. */
-Lisp_Object ns_control_modifier;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the right Control modifier.  Has same values as ns_control_modifier plus
-   the value Qleft which means whatever value ns_control_modifier has.  */
-Lisp_Object ns_right_control_modifier;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the Function modifier (laptops).  May be any of the modifier lisp symbols. */
-Lisp_Object ns_function_modifier;
-
-/* Control via default 'GSFontAntiAlias' on OS X and GNUstep. */
-Lisp_Object ns_antialias_text;
 
 /* On OS X picks up the default NSGlobalDomain AppleAntiAliasingThreshold,
    the maximum font size to NOT antialias.  On GNUstep there is currently
@@ -185,9 +146,6 @@ float ns_antialias_threshold;
 
 /* Used to pick up AppleHighlightColor on OS X */
 NSString *ns_selection_color;
-
-/* Confirm on exit. */
-Lisp_Object ns_confirm_quit;
 
 NSArray *ns_send_types =0, *ns_return_types =0, *ns_drag_types =0;
 NSString *ns_app_name = @"Emacs";  /* default changed later */
@@ -303,8 +261,6 @@ static void ns_condemn_scroll_bars (struct frame *f);
 static void ns_judge_scroll_bars (struct frame *f);
 void x_set_frame_alpha (struct frame *f);
 
-/* unused variables needed for compatibility reasons */
-int x_use_underline_position_properties, x_underline_at_descent_line;
 /* FIXME: figure out what to do with underline_minimum_offset. */
 
 
@@ -3980,7 +3936,6 @@ ns_term_init (Lisp_Object display_name)
 }
 
 
-extern Lisp_Object Vauto_save_list_file_name;
 void
 ns_term_shutdown (int sig)
 {
@@ -6295,50 +6250,50 @@ syms_of_nsterm (void)
   Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
   Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
 
-  DEFVAR_LISP ("ns-input-file", &ns_input_file,
+  DEFVAR_LISP ("ns-input-file", ns_input_file,
               "The file specified in the last NS event.");
   ns_input_file =Qnil;
 
-  DEFVAR_LISP ("ns-input-text", &ns_input_text,
+  DEFVAR_LISP ("ns-input-text", ns_input_text,
               "The data received in the last NS text drag event.");
   ns_input_text =Qnil;
 
-  DEFVAR_LISP ("ns-working-text", &ns_working_text,
+  DEFVAR_LISP ("ns-working-text", ns_working_text,
               "String for visualizing working composition sequence.");
   ns_working_text =Qnil;
 
-  DEFVAR_LISP ("ns-input-font", &ns_input_font,
+  DEFVAR_LISP ("ns-input-font", ns_input_font,
               "The font specified in the last NS event.");
   ns_input_font =Qnil;
 
-  DEFVAR_LISP ("ns-input-fontsize", &ns_input_fontsize,
+  DEFVAR_LISP ("ns-input-fontsize", ns_input_fontsize,
               "The fontsize specified in the last NS event.");
   ns_input_fontsize =Qnil;
 
-  DEFVAR_LISP ("ns-input-line", &ns_input_line,
+  DEFVAR_LISP ("ns-input-line", ns_input_line,
                "The line specified in the last NS event.");
   ns_input_line =Qnil;
 
-  DEFVAR_LISP ("ns-input-color", &ns_input_color,
+  DEFVAR_LISP ("ns-input-color", ns_input_color,
                "The color specified in the last NS event.");
   ns_input_color =Qnil;
 
-  DEFVAR_LISP ("ns-input-spi-name", &ns_input_spi_name,
+  DEFVAR_LISP ("ns-input-spi-name", ns_input_spi_name,
                "The service name specified in the last NS event.");
   ns_input_spi_name =Qnil;
 
-  DEFVAR_LISP ("ns-input-spi-arg", &ns_input_spi_arg,
+  DEFVAR_LISP ("ns-input-spi-arg", ns_input_spi_arg,
                "The service argument specified in the last NS event.");
   ns_input_spi_arg =Qnil;
 
-  DEFVAR_LISP ("ns-alternate-modifier", &ns_alternate_modifier,
+  DEFVAR_LISP ("ns-alternate-modifier", ns_alternate_modifier,
                "This variable describes the behavior of the alternate or option key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to none means that the alternate / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
   ns_alternate_modifier = Qmeta;
 
-  DEFVAR_LISP ("ns-right-alternate-modifier", &ns_right_alternate_modifier,
+  DEFVAR_LISP ("ns-right-alternate-modifier", ns_right_alternate_modifier,
                "This variable describes the behavior of the right alternate or option key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to left means be the same key as `ns-alternate-modifier'.\n\
@@ -6346,12 +6301,12 @@ Set to none means that the alternate / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
   ns_right_alternate_modifier = Qleft;
 
-  DEFVAR_LISP ("ns-command-modifier", &ns_command_modifier,
+  DEFVAR_LISP ("ns-command-modifier", ns_command_modifier,
                "This variable describes the behavior of the command key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.");
   ns_command_modifier = Qsuper;
 
-  DEFVAR_LISP ("ns-right-command-modifier", &ns_right_command_modifier,
+  DEFVAR_LISP ("ns-right-command-modifier", ns_right_command_modifier,
                "This variable describes the behavior of the right command key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to left means be the same key as `ns-command-modifier'.\n\
@@ -6359,12 +6314,12 @@ Set to none means that the command / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
   ns_right_command_modifier = Qleft;
 
-  DEFVAR_LISP ("ns-control-modifier", &ns_control_modifier,
+  DEFVAR_LISP ("ns-control-modifier", ns_control_modifier,
                "This variable describes the behavior of the control key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.");
   ns_control_modifier = Qcontrol;
 
-  DEFVAR_LISP ("ns-right-control-modifier", &ns_right_control_modifier,
+  DEFVAR_LISP ("ns-right-control-modifier", ns_right_control_modifier,
                "This variable describes the behavior of the right control key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to left means be the same key as `ns-control-modifier'.\n\
@@ -6372,18 +6327,18 @@ Set to none means that the control / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
   ns_right_control_modifier = Qleft;
 
-  DEFVAR_LISP ("ns-function-modifier", &ns_function_modifier,
+  DEFVAR_LISP ("ns-function-modifier", ns_function_modifier,
                "This variable describes the behavior of the function key (on laptops).\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to none means that the function key is not interpreted by Emacs at all,\n\
 allowing it to be used at a lower level for accented character entry.");
   ns_function_modifier = Qnone;
 
-  DEFVAR_LISP ("ns-antialias-text", &ns_antialias_text,
+  DEFVAR_LISP ("ns-antialias-text", ns_antialias_text,
                "Non-nil (the default) means to render text antialiased. Only has an effect on OS X Panther and above.");
   ns_antialias_text = Qt;
 
-  DEFVAR_LISP ("ns-confirm-quit", &ns_confirm_quit,
+  DEFVAR_LISP ("ns-confirm-quit", ns_confirm_quit,
                "Whether to confirm application quit using dialog.");
   ns_confirm_quit = Qnil;
 
@@ -6394,7 +6349,7 @@ allowing it to be used at a lower level for accented character entry.");
   last_mouse_motion_frame = Qnil;
 
   /* TODO: move to common code */
-  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
+  DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
   Vx_toolkit_scroll_bars = Qt;
@@ -6405,7 +6360,7 @@ allowing it to be used at a lower level for accented character entry.");
   /* these are unsupported but we need the declarations to avoid whining
      messages from cus-start.el */
   DEFVAR_BOOL ("x-use-underline-position-properties",
-	       &x_use_underline_position_properties,
+	       x_use_underline_position_properties,
      doc: /* NOT SUPPORTED UNDER NS.
 *Non-nil means make use of UNDERLINE_POSITION font properties.
 A value of nil means ignore them.  If you encounter fonts with bogus
@@ -6416,7 +6371,7 @@ NOTE: Not supported on Mac yet.  */);
   x_use_underline_position_properties = 0;
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
-	       &x_underline_at_descent_line,
+	       x_underline_at_descent_line,
      doc: /* NOT SUPPORTED UNDER NS.
 *Non-nil means to draw the underline at the same place as the descent line.
 A value of nil means to draw the underline according to the value of the
