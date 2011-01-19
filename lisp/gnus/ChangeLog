@@ -1,3 +1,15 @@
+2011-01-19  Tom Rauchenwald  <sehnsucht.nach.unendlichkeit@quantentunnel.de>  (tiny change)
+
+	* spam.el (spam-spamassassin-register-with-sa-learn): Insert a full
+	From header with a date and "nobody" as the sender.
+
+2011-01-19  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-article-add-buttons): Simplify condition.
+	(gnus-button-push): Remove gnus-button-entry function, it fails heavily
+	if you have the same regexp several times.
+	(gnus-button-push): Fix matching when regexp is symbol.
+
 2011-01-15  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-mail): A compose-mail function should
