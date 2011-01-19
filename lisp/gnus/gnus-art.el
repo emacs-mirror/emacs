@@ -7651,7 +7651,7 @@ do the highlighting.  See the documentation for those functions."
   (gnus-article-highlight-headers)
   (gnus-article-highlight-citation force)
   (gnus-article-highlight-signature)
-  (gnus-article-add-buttons force)
+  (gnus-article-add-buttons)
   (gnus-article-add-buttons-to-head))
 
 (defun gnus-article-highlight-some (&optional force)

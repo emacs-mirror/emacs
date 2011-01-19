@@ -1,3 +1,8 @@
+2011-01-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-highlight): Remove argument passed to
+	gnus-article-add-buttons.
+
 2011-01-19  Tom Rauchenwald  <sehnsucht.nach.unendlichkeit@quantentunnel.de>  (tiny change)
 
 	* spam.el (spam-spamassassin-register-with-sa-learn): Insert a full
