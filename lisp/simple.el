@@ -1142,8 +1142,6 @@ in *Help* buffer.  See also the command `describe-char'."
   (set-keymap-parent m minibuffer-local-map)
   (setq read-expression-map m))
 
-(defvar read-expression-history nil)
-
 (defvar minibuffer-completing-symbol nil
   "Non-nil means completing a Lisp symbol in the minibuffer.")
 

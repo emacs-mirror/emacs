@@ -1,7 +1,8 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-                 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+   2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2015,6 +2016,11 @@ syms_of_minibuf (void)
 
   Qcase_fold_search = intern_c_string ("case-fold-search");
   staticpro (&Qcase_fold_search);
+
+  DEFVAR_LISP ("read-expression-history", Vread_expression_history,
+	       doc: /* A history list for arguments that are Lisp expressions to evaluate.
+For example, `eval-expression' uses this.  */);
+  Vread_expression_history = Qnil;
 
   Qread_expression_history = intern_c_string ("read-expression-history");
   staticpro (&Qread_expression_history);

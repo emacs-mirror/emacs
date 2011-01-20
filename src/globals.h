@@ -983,6 +983,8 @@ struct emacs_globals
 
   Lisp_Object f_Vminibuffer_exit_hook;
 
+  Lisp_Object f_Vread_expression_history;
+
   /* Function to call to read a buffer name.  */
   Lisp_Object f_Vread_buffer_function;
 
@@ -2268,6 +2270,8 @@ extern struct emacs_globals globals;
     globals.f_Vquit_flag
 #define Vread_buffer_function \
     globals.f_Vread_buffer_function
+#define Vread_expression_history \
+    globals.f_Vread_expression_history
 #define Vread_circle \
     globals.f_Vread_circle
 #define Vread_expression_map \

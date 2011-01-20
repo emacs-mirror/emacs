@@ -1,3 +1,7 @@
+2011-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (read-expression-history): Remove, it's in minibuf.c.
+
 2011-01-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (y-or-n-p): Revert 2011-01-07 change, removing ARGS.

@@ -1,5 +1,9 @@
 2011-01-20  Glenn Morris  <rgm@gnu.org>
 
+	* minibuf.c (syms_of_minibuf) <read-expression-history>:
+	Give it a doc string.
+	* globals.h: Add Vread_expression_history.
+
 	* macros.c (syms_of_macros) <kbd-macro-termination-hook>:
 	Give it a doc string.
 	* globals.h: Add Vkbd_macro_termination_hook.
