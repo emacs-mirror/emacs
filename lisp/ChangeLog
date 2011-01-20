@@ -1,5 +1,7 @@
 2011-01-20  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-svn.el (vc-svn-after-dir-status): Tweak previous change.
+
 	* simple.el (read-expression-history): Remove, it's in minibuf.c.
 
 2011-01-20  Chong Yidong  <cyd@stupidchicken.com>

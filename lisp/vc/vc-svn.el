@@ -180,8 +180,9 @@ want to force an empty list of arguments, use t."
       (let ((state (cdr (assq (aref (match-string 1) 0) state-map)))
             (propstat (cdr (assq (aref (match-string 2) 0) state-map)))
 	    (filename (match-string 4)))
-        (if (memq propstat '(conflict edited))
-            (setq state propstat))
+        (and (memq propstat '(conflict edited))
+             (not (eq state 'conflict)) ; conflict always wins
+             (setq state propstat))
 	(and remote (string-equal (match-string 3) "*")
 	     ;; FIXME are there other possible combinations?
 	     (cond ((eq state 'edited) (setq state 'needs-merge))
