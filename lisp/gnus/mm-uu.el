@@ -186,7 +186,15 @@ This can be either \"inline\" or \"attachment\".")
      "^\\\\end{document}"
      mm-uu-latex-extract
      nil
-     mm-uu-latex-test))
+     mm-uu-latex-test)
+    (org-src-code-block
+     "^[ \t]*#\\+begin_"
+     "^[ \t]*#\\+end_"
+     mm-uu-org-src-code-block-extract)
+    (org-meta-line
+     "^[ \t]*#\\+[[:alpha:]]+: "
+     "$"
+     mm-uu-org-src-code-block-extract))
   "A list of specifications for non-MIME attachments.
 Each element consist of the following entries: label,
 start-regexp, end-regexp, extract-function, test-function.
@@ -382,6 +390,10 @@ apply the face `mm-uu-extract'."
 		  nil nil
 		  (list mm-dissect-disposition
 			(cons 'filename file-name))))
+
+(defun mm-uu-org-src-code-block-extract ()
+  (mm-make-handle (mm-uu-copy-to-buffer start-point end-point)
+                  '("text/org")))
 
 (defvar gnus-newsgroup-name)
 

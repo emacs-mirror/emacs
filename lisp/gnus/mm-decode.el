@@ -237,7 +237,11 @@ before the external MIME handler is invoked."
      (lambda (handle) (fboundp 'diff-mode)))
     ("application/emacs-lisp" mm-display-elisp-inline identity)
     ("application/x-emacs-lisp" mm-display-elisp-inline identity)
+    ("application/x-shellscript" mm-display-shell-script-inline identity)
+    ("application/x-sh" mm-display-shell-script-inline identity)
+    ("text/x-sh" mm-display-shell-script-inline identity)
     ("text/dns" mm-display-dns-inline identity)
+    ("text/org" mm-display-org-inline identity)
     ("text/html"
      mm-inline-text-html
      (lambda (handle)
@@ -313,7 +317,8 @@ when selecting a different article."
     "application/pkcs7-signature" "application/x-pkcs7-mime"
     "application/pkcs7-mime"
     ;; Mutt still uses this even though it has already been withdrawn.
-    "application/pgp\\'")
+    "application/pgp\\'"
+     "text/org")
   "A list of MIME types to be displayed automatically."
   :type '(repeat regexp)
   :group 'mime-display)

@@ -4,6 +4,27 @@
 	the temp buffer.
 	* message.el (message-mailer-swallows-blank-line): Use with-temp-buffer.
 
+2011-01-20  Julien Danjou  <julien@danjou.info>
+
+	* mm-decode.el (mm-inline-media-tests): Add text/x-sh.
+
+	* gnus-art.el (gnus-mime-inline-part): Use mm-display-inline rather
+	than mm-insert-inline to insert inline part: this respect
+	mm-inline-media-tests displayers.
+
+	* mm-view.el (mm-display-shell-script-inline): New function.
+
+	* mm-decode.el (mm-inline-media-tests): Add x-shellscript and x-sh.
+
+	* mm-uu.el (mm-uu-type-alist): Add org block.
+	(mm-uu-org-src-code-block-extract): New function.
+
+	* mm-view.el (mm-display-org-inline): New function.
+
+	* mm-decode.el (mm-automatic-display): Add text/org.
+
+	* mailcap.el (mailcap-mime-extensions): Add .org.
+
 2011-01-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-highlight): Remove argument passed to

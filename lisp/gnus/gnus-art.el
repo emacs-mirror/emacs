@@ -5249,15 +5249,7 @@ Compressed files like .gz and .bz2 are decompressed."
 	  (if (mm-handle-undisplayer handle)
 	      (mm-remove-part handle))))
 	(forward-line 2)
-	(mm-insert-inline
-	 handle
-	 (if (or coding-system
-		 (and charset
-		      (setq coding-system
-			    (mm-charset-to-coding-system charset))
-		      (not (eq coding-system 'ascii))))
-	     (mm-decode-coding-string contents coding-system)
-	   (mm-string-to-multibyte contents)))
+        (mm-display-inline handle)
 	(goto-char b)))))
 
 (defun gnus-mime-set-charset-parameters (handle charset)
