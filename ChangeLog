@@ -1,3 +1,12 @@
+2011-01-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	aclocal.m4: omit auto-generated file from repository
+	* Makefile.in (top_maintainer_clean): Remove aclocal.m4; this undoes
+	the most recent change here.
+	* aclocal.m4: Remove from bzr repository.  This file is
+	auto-generated and isn't needed to run 'configure'.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00698.html>.
+
 2011-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor Makefile.in tweaks to build from gnulib better.

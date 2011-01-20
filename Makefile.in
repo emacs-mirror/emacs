@@ -833,7 +833,8 @@ bootstrap-clean: FRC
 ###      begin to build the program.
 top_maintainer_clean=\
 	${top_distclean}; \
-	rm -fr autom4te.cache
+	rm -fr autom4te.cache; \
+	rm -f aclocal.m4
 maintainer-clean: bootstrap-clean FRC
 	(cd src;      $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lisp;     $(MAKE) $(MFLAGS) maintainer-clean)
