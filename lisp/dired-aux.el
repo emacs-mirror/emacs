@@ -821,8 +821,8 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 	       (let ((out-name (concat file ".gz")))
 		 (and (or (not (file-exists-p out-name))
 			  (y-or-n-p
-			   "File %s already exists.  Really compress? "
-			   out-name))
+			   (format "File %s already exists.  Really compress? "
+				   out-name)))
 		      (not (dired-check-process (concat "Compressing " file)
 						"gzip" "-f" file))
 		      (or (file-exists-p out-name)

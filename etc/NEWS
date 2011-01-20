@@ -688,8 +688,6 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 ** New function `read-char-choice' reads a restricted set of characters,
 discarding any inputs not inside the set.
 
-** `y-or-n-p' and `yes-or-no-p' now accept format string arguments.
-
 ** `image-library-alist' is renamed to `dynamic-library-alist'.
 The variable is now used to load all kind of supported dynamic libraries,
 not just image libraries.  The previous name is still available as an

@@ -2450,24 +2450,23 @@ do_yes_or_no_p (Lisp_Object prompt)
 
 /* Anything that calls this function must protect from GC!  */
 
-DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, MANY, 0,
+DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
        doc: /* Ask user a yes-or-no question.  Return t if answer is yes.
-The string to display to ask the question is obtained by
-formatting the string PROMPT with arguments ARGS (see `format').
-The result should end in a space; `yes-or-no-p' adds
-\"(yes or no) \" to it.
+PROMPT is the string to display to ask the question.  It should end in
+a space; `yes-or-no-p' adds \"(yes or no) \" to it.
 
 The user must confirm the answer with RET, and can edit it until it
 has been confirmed.
 
 Under a windowing system a dialog box will be used if `last-nonmenu-event'
-is nil, and `use-dialog-box' is non-nil.
-usage: (yes-or-no-p PROMPT &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+is nil, and `use-dialog-box' is non-nil.  */)
+  (Lisp_Object prompt)
 {
   register Lisp_Object ans;
+  Lisp_Object args[2];
   struct gcpro gcpro1;
-  Lisp_Object prompt = Fformat (nargs, args);
+
+  CHECK_STRING (prompt);
 
 #ifdef HAVE_MENUS
   if (FRAME_WINDOW_P (SELECTED_FRAME ())
@@ -2488,7 +2487,10 @@ usage: (yes-or-no-p PROMPT &rest ARGS)  */)
     }
 #endif /* HAVE_MENUS */
 
-  prompt = concat2 (prompt, build_string ("(yes or no) "));
+  args[0] = prompt;
+  args[1] = build_string ("(yes or no) ");
+  prompt = Fconcat (2, args);
+
   GCPRO1 (prompt);
 
   while (1)

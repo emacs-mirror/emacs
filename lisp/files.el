@@ -1558,8 +1558,8 @@ killed."
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
     (error "Aborted"))
   (when (and (buffer-modified-p) buffer-file-name)
-    (if (yes-or-no-p "Buffer %s is modified; save it first? "
-		     (buffer-name))
+    (if (yes-or-no-p (format "Buffer %s is modified; save it first? "
+			     (buffer-name)))
         (save-buffer)
       (unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
         (error "Aborted"))))
@@ -1762,9 +1762,9 @@ When nil, never request confirmation."
 OP-TYPE specifies the file operation being performed (for message to user)."
   (when (and large-file-warning-threshold size
 	     (> size large-file-warning-threshold)
-	     (not (y-or-n-p "File %s is large (%dMB), really %s? "
-			    (file-name-nondirectory filename)
-			    (/ size 1048576) op-type)))
+	     (not (y-or-n-p (format "File %s is large (%dMB), really %s? "
+				    (file-name-nondirectory filename)
+				    (/ size 1048576) op-type))))
     (error "Aborted")))
 
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
@@ -3584,8 +3584,8 @@ the old visited file has been renamed to the new name FILENAME."
     (let ((buffer (and filename (find-buffer-visiting filename))))
       (and buffer (not (eq buffer (current-buffer)))
 	   (not no-query)
-	   (not (y-or-n-p "A buffer is visiting %s; proceed? "
-			  filename))
+	   (not (y-or-n-p (format "A buffer is visiting %s; proceed? "
+				  filename)))
 	   (error "Aborted")))
     (or (equal filename buffer-file-name)
 	(progn
@@ -3696,7 +3696,7 @@ Interactively, confirmation is required unless you supply a prefix argument."
 				    (or buffer-file-name (buffer-name))))))
 	(and confirm
 	     (file-exists-p filename)
-	     (or (y-or-n-p "File `%s' exists; overwrite? " filename)
+	     (or (y-or-n-p (format "File `%s' exists; overwrite? " filename))
 		 (error "Canceled")))
 	(set-visited-file-name filename (not confirm))))
   (set-buffer-modified-p t)
@@ -3750,8 +3750,8 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		       (and targets
 			    (or (eq delete-old-versions t) (eq delete-old-versions nil))
 			    (or delete-old-versions
-				(y-or-n-p "Delete excess backup versions of %s? "
-					  real-file-name))))
+				(y-or-n-p (format "Delete excess backup versions of %s? "
+						  real-file-name)))))
 		      (modes (file-modes buffer-file-name))
 		      (context (file-selinux-context buffer-file-name)))
 		  ;; Actually write the back up file.
@@ -4324,8 +4324,8 @@ Before and after saving the buffer, this function runs
 			;; Signal an error if the user specified the name of an
 			;; existing directory.
 			(error "%s is a directory" filename)
-		      (unless (y-or-n-p "File `%s' exists; overwrite? "
-					filename)
+		      (unless (y-or-n-p (format "File `%s' exists; overwrite? "
+						filename))
 			(error "Canceled")))
 		  ;; Signal an error if the specified name refers to a
 		  ;; non-existing directory.
@@ -4338,8 +4338,9 @@ Before and after saving the buffer, this function runs
 	  (or (verify-visited-file-modtime (current-buffer))
 	      (not (file-exists-p buffer-file-name))
 	      (yes-or-no-p
-	       "%s has changed since visited or saved.  Save anyway? "
-	       (file-name-nondirectory buffer-file-name))
+	       (format
+		"%s has changed since visited or saved.  Save anyway? "
+		(file-name-nondirectory buffer-file-name)))
 	      (error "Save not confirmed"))
 	  (save-restriction
 	    (widen)
@@ -4353,8 +4354,8 @@ Before and after saving the buffer, this function runs
 		       (eq require-final-newline 'visit-save)
 		       (and require-final-newline
 			    (y-or-n-p
-			     "Buffer %s does not end in newline.  Add one? "
-			     (buffer-name))))
+			     (format "Buffer %s does not end in newline.  Add one? "
+				     (buffer-name)))))
 		   (save-excursion
 		     (goto-char (point-max))
 		     (insert ?\n))))
@@ -4416,9 +4417,10 @@ Before and after saving the buffer, this function runs
 	    (if (not (file-exists-p buffer-file-name))
 		(error "Directory %s write-protected" dir)
 	      (if (yes-or-no-p
-		   "File %s is write-protected; try to save anyway? "
-		   (file-name-nondirectory
-		    buffer-file-name))
+		   (format
+		    "File %s is write-protected; try to save anyway? "
+		    (file-name-nondirectory
+		     buffer-file-name)))
 		  (setq tempsetmodes t)
 		(error "Attempt to save to a file which you aren't allowed to write"))))))
     (or buffer-backed-up
@@ -4609,7 +4611,7 @@ change the additional actions you can take on files."
 	   (progn
 	     (if (or arg
 		     (eq save-abbrevs 'silently)
-		     (y-or-n-p "Save abbrevs in %s? " abbrev-file-name))
+		     (y-or-n-p (format "Save abbrevs in %s? " abbrev-file-name)))
 		 (write-abbrev-file nil))
 	     ;; Don't keep bothering user if he says no.
 	     (setq abbrevs-changed nil)
@@ -4784,8 +4786,8 @@ given.  With a prefix argument, TRASH is nil."
      (list dir
 	   (if (directory-files	dir nil directory-files-no-dot-files-regexp)
 	       (y-or-n-p
-		"Directory `%s' is not empty, really %s? "
-		dir (if trashing "trash" "delete"))
+		(format "Directory `%s' is not empty, really %s? "
+			dir (if trashing "trash" "delete")))
 	     nil)
 	   (null current-prefix-arg))))
   ;; If default-directory is a remote directory, make sure we find its
@@ -4984,8 +4986,8 @@ non-nil, it is called instead of rereading visited file contents."
 			  (dolist (regexp revert-without-query)
 			    (when (string-match regexp file-name)
 			      (throw 'found t)))))
-		   (yes-or-no-p "Revert buffer from file %s? "
-				file-name))
+		   (yes-or-no-p (format "Revert buffer from file %s? "
+					file-name)))
 	       (run-hooks 'before-revert-hook)
 	       ;; If file was backed up but has changed since,
 	       ;; we should make another backup.
@@ -5105,7 +5107,7 @@ non-nil, it is called instead of rereading visited file contents."
 		   ;; to emulate what `ls' did in that case.
 		   (insert-directory-safely file switches)
 		   (insert-directory-safely file-name switches))))
-	     (yes-or-no-p "Recover auto save file %s? " file-name))
+	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
 	   (switch-to-buffer (find-file-noselect file t))
 	   (let ((inhibit-read-only t)
 		 ;; Keep the current buffer-file-coding-system.
@@ -5225,10 +5227,10 @@ This command is used in the special Dired buffer created by
 
 (defun kill-buffer-ask (buffer)
   "Kill BUFFER if confirmed."
-  (when (yes-or-no-p
-	 "Buffer %s %s.  Kill? " (buffer-name buffer)
-	 (if (buffer-modified-p buffer)
-	     "HAS BEEN EDITED" "is unmodified"))
+  (when (yes-or-no-p (format "Buffer %s %s.  Kill? "
+			     (buffer-name buffer)
+			     (if (buffer-modified-p buffer)
+				 "HAS BEEN EDITED" "is unmodified")))
     (kill-buffer buffer)))
 
 (defun kill-some-buffers (&optional list)

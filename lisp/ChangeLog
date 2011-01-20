@@ -1,3 +1,14 @@
+2011-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (y-or-n-p): Revert 2011-01-07 change, removing ARGS.
+
+	* files.el (find-alternate-file, basic-save-buffer)
+	(basic-save-buffer-2, revert-buffer, recover-file)
+	(kill-buffer-ask, abort-if-file-too-large)
+	(set-visited-file-name, write-file, backup-buffer)
+	(basic-save-buffer, save-some-buffers):
+	* dired-aux.el (dired-compress-file): Callers changed.
+
 2011-01-19  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-svn.el (vc-svn-after-dir-status, vc-svn-parse-status):

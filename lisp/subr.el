@@ -2067,12 +2067,10 @@ floating point support."
 	    nil))))))
 (set-advertised-calling-convention 'sit-for '(seconds &optional nodisp) "22.1")
 
-(defun y-or-n-p (prompt &rest args)
+(defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.  Return t if answer is \"y\".
-The string to display to ask the question is obtained by
-formatting the string PROMPT with arguments ARGS (see `format').
-The result should end in a space; `y-or-n-p' adds \"(y or n) \"
-to it.
+PROMPT is the string to display to ask the question.  It should
+end in a space; `y-or-n-p' adds \"(y or n) \" to it.
 
 No confirmation of the answer is requested; a single character is enough.
 Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses
@@ -2091,7 +2089,7 @@ is nil and `use-dialog-box' is non-nil."
              use-dialog-box)
         (setq answer
               (x-popup-dialog t `(,prompt ("yes" . act) ("No" . skip))))
-      (setq prompt (concat (apply 'format prompt args)
+      (setq prompt (concat prompt
                            (if (eq ?\s (aref prompt (1- (length prompt))))
                                "" " ")
                            "(y or n) "))
