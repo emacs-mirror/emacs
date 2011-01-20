@@ -1,3 +1,16 @@
+2011-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Don't mess with *temp*.
+	* obsolete/spell.el: Move from textmodes/spell.el.
+	(spell-string):
+	* term.el (term-read-input-ring):
+	* startup.el (display-startup-echo-area-message):
+	* progmodes/antlr-mode.el (antlr-directory-dependencies):
+	* comint.el (comint-read-input-ring): Use with-temp-buffer.
+	* international/mule.el (ctext-pre-write-conversion): Don't hardcode
+	point-min==1.
+
+
 2011-01-20  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el: Summary - migrate to defining allout mode using
@@ -8,8 +21,8 @@
 	allout-mode-map is now a keymap by virtue of being a defalias to
 	allout-mode-map-value, which contains the actual keymap structure.
 
-	(allout-mode): Use define-minor-mode rather than defun.  Remove
-	now-unnecessary minor-mode setup activities from the body.
+	(allout-mode): Use define-minor-mode rather than defun.
+	Remove now-unnecessary minor-mode setup activities from the body.
 	Specify :keymap as allout-mode-map so the minor-mode-map-alist
 	entry will be '(allout-mode . allout-mode-map) - see
 	allout-mode-map-value, below.  Adjust docstring to track changes.
@@ -19,7 +32,7 @@
 	keymap is allout-mode-map-value, via defalias.
 	(allout-mode-map-value): The variable holding the actual mode
 	keymap structure, by virtue of defalias from allout-mode-map.
-	(allout-compose-and-institute-keymap): Renamed from
+	(allout-compose-and-institute-keymap): Rename from
 	allout-bind-keys, and including the binding-composition
 	functionality of the former produce-allout-mode-map and
 	allout-setup-mode-map.
@@ -27,14 +40,14 @@
 	allout-setup-mode-map.  Reassign allout-mode-map-value value and
 	update the defalias.
 	(allout-command-prefix) (allout-prefixed-keybindings)
-	(allout-unprefixed-keybindings): Use
-	allout-compose-and-institute-keymap to process the bindings.
+	(allout-unprefixed-keybindings):
+	Use allout-compose-and-institute-keymap to process the bindings.
 	(allout-unprefixed-keybindings): Remove extraneous '?' question
 	marks.
 	(allout-prefixed-keybindings): Elide binding to (prefixed) \C-h -
-	user can customize if they want to use that binding.  Bind
-	allout-copy-topic-as-kill to (prefixed) \M-k.  Bind
-	allout-up-current-level to (prefixed) \C-u.  (I think i mistakenly
+	user can customize if they want to use that binding.
+	Bind allout-copy-topic-as-kill to (prefixed) \M-k.
+	Bind allout-up-current-level to (prefixed) \C-u.  (I think i mistakenly
 	elided that, previously, instead of the one for \C-h.)
 	(allout-hotspot-key-handler): Remove attempt to resolve the key
 	through the literal key-string lookup on allout-keybindings-list.

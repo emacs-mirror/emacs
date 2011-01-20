@@ -1184,14 +1184,11 @@ called and its result is inserted."
   (if (and (string-match "sparc-sun-sunos\\(\\'\\|[^5]\\)"
 			 system-configuration)
 	   (file-readable-p "/etc/sendmail.cf")
-	   (let ((buffer (get-buffer-create " *temp*")))
-	     (unwind-protect
-		 (with-current-buffer buffer
-		   (insert-file-contents "/etc/sendmail.cf")
-		   (goto-char (point-min))
-		   (let ((case-fold-search nil))
-		     (re-search-forward "^OR\\>" nil t)))
-	       (kill-buffer buffer))))
+	   (with-temp-buffer
+             (insert-file-contents "/etc/sendmail.cf")
+             (goto-char (point-min))
+             (let ((case-fold-search nil))
+               (re-search-forward "^OR\\>" nil t))))
       ;; According to RFC822, "The field-name must be composed of printable
       ;; ASCII characters (i. e., characters that have decimal values between
       ;; 33 and 126, except colon)", i. e., any chars except ctl chars,

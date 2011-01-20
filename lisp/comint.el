@@ -918,41 +918,36 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 	     (message "Cannot read history file %s"
 		      comint-input-ring-file-name)))
 	(t
-	 (let* ((history-buf (get-buffer-create " *temp*"))
-		(file comint-input-ring-file-name)
+	 (let* ((file comint-input-ring-file-name)
 		(count 0)
 		(size comint-input-ring-size)
 		(ring (make-ring size)))
-	   (unwind-protect
-	       (with-current-buffer history-buf
-		 (widen)
-		 (erase-buffer)
-		 (insert-file-contents file)
-		 ;; Save restriction in case file is already visited...
-		 ;; Watch for those date stamps in history files!
-		 (goto-char (point-max))
-		 (let (start end history)
-		   (while (and (< count size)
-			       (re-search-backward comint-input-ring-separator
-                                                   nil t)
-			       (setq end (match-beginning 0)))
-		     (setq start
-                           (if (re-search-backward comint-input-ring-separator
-                                                   nil t)
-                               (match-end 0)
-                             (point-min)))
-		     (setq history (buffer-substring start end))
-		     (goto-char start)
-		     (if (and (not (string-match comint-input-history-ignore
-                                                 history))
-			      (or (null comint-input-ignoredups)
-				  (ring-empty-p ring)
-				  (not (string-equal (ring-ref ring 0)
-                                                     history))))
-			 (progn
-			   (ring-insert-at-beginning ring history)
-			   (setq count (1+ count)))))))
-	     (kill-buffer history-buf))
+	   (with-temp-buffer
+             (insert-file-contents file)
+             ;; Save restriction in case file is already visited...
+             ;; Watch for those date stamps in history files!
+             (goto-char (point-max))
+             (let (start end history)
+               (while (and (< count size)
+                           (re-search-backward comint-input-ring-separator
+                                               nil t)
+                           (setq end (match-beginning 0)))
+                 (setq start
+                       (if (re-search-backward comint-input-ring-separator
+                                               nil t)
+                           (match-end 0)
+                         (point-min)))
+                 (setq history (buffer-substring start end))
+                 (goto-char start)
+                 (if (and (not (string-match comint-input-history-ignore
+                                             history))
+                          (or (null comint-input-ignoredups)
+                              (ring-empty-p ring)
+                              (not (string-equal (ring-ref ring 0)
+                                                 history))))
+                     (progn
+                       (ring-insert-at-beginning ring history)
+                       (setq count (1+ count)))))))
 	   (setq comint-input-ring ring
 		 comint-input-ring-index nil)))))
 

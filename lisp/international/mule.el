@@ -1611,7 +1611,7 @@ in-place."
       (set-buffer (generate-new-buffer " *temp"))
       (set-buffer-multibyte (multibyte-string-p from))
       (insert from)
-      (setq from 1 to (point-max)))
+      (setq from (point-min) to (point-max)))
     (save-restriction
       (narrow-to-region from to)
       (goto-char from)

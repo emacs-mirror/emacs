@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: wp, unix
+;; Obsolete-since: 23.1
 
 ;; This file is part of GNU Emacs.
 
@@ -146,22 +147,21 @@ for example, \"word\"."
 (defun spell-string (string)
   "Check spelling of string supplied as argument."
   (interactive "sSpell string: ")
-  (let ((buf (get-buffer-create " *temp*")))
-    (with-current-buffer buf
-      (widen)
-      (erase-buffer)
-      (insert string "\n")
-      (if (string= "spell" spell-command)
-          (call-process-region (point-min) (point-max) "spell"
-                               t t)
-        (call-process-region (point-min) (point-max) shell-file-name
-                             t t nil "-c" spell-command))
-      (if (= 0 (buffer-size))
-          (message "%s is correct" string)
-        (goto-char (point-min))
-        (while (search-forward "\n" nil t)
-          (replace-match " "))
-        (message "%sincorrect" (buffer-substring 1 (point-max)))))))
+  (with-temp-buffer
+    (widen)
+    (erase-buffer)
+    (insert string "\n")
+    (if (string= "spell" spell-command)
+        (call-process-region (point-min) (point-max) "spell"
+                             t t)
+      (call-process-region (point-min) (point-max) shell-file-name
+                           t t nil "-c" spell-command))
+    (if (= 0 (buffer-size))
+        (message "%s is correct" string)
+      (goto-char (point-min))
+      (while (search-forward "\n" nil t)
+        (replace-match " "))
+      (message "%sincorrect" (buffer-substring 1 (point-max))))))
 ;;;###autoload
 (make-obsolete 'spell-string "The `spell' package is obsolete - use `ispell'."
                "23.1")

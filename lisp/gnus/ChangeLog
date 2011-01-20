@@ -1,3 +1,9 @@
+2011-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-util.el (mm-find-buffer-file-coding-system): Don't forget to kill
+	the temp buffer.
+	* message.el (message-mailer-swallows-blank-line): Use with-temp-buffer.
+
 2011-01-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-highlight): Remove argument passed to
@@ -22,8 +28,8 @@
 
 2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
 
-	* message.el (message-tool-bar-gnome): Tweak tool-bar items.  Add
-	:vert-only tags.
+	* message.el (message-tool-bar-gnome): Tweak tool-bar items.
+	Add :vert-only tags.
 	(message-mail): New arg RETURN-ACTION.
 	(message-return-action): New var.
 	(message-bury): Use it.
@@ -38,8 +44,8 @@
 	* nnimap.el (nnimap-convert-partial-article): Protect against
 	zero-length body parts.
 
-	* mm-decode.el (mm-preferred-alternative-precedence): Discourage
-	showing empty parts.
+	* mm-decode.el (mm-preferred-alternative-precedence):
+	Discourage showing empty parts.
 
 	* gnus-int.el (gnus-request-accept-article): Don't try to update marks
 	and stuff if the backend didn't return the article number.  This fixes
@@ -295,8 +301,8 @@
 
 2010-12-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-sum.el (gnus-summary-enter-digest-group): Mention
-	gnus-auto-select-on-ephemeral-exit.
+	* gnus-sum.el (gnus-summary-enter-digest-group):
+	Mention gnus-auto-select-on-ephemeral-exit.
 
 	* proto-stream.el (proto-stream-open-network-only): Fix the calling
 	convention of the network-only option.
@@ -535,8 +541,8 @@
 	(nnir-mode): Install nnir-specific hooks for updating the registry.
 
 	* gnus-sum.el
-	(gnus-article-original-subject,gnus-newsgroup-original-name): Remove
-	obsolete variables.
+	(gnus-article-original-subject,gnus-newsgroup-original-name):
+	Remove obsolete variables.
 	(gnus-summary-move-article): Remove use of obsolete variables.
 	(gnus-summary-local-variables): Make move and delete hooks local to
 	summary buffers.
@@ -652,7 +658,7 @@
 
 	* nntp.el (nntp-open-connection): Report what the connection error is.
 
-	* proto-stream.el (open-protocol-stream): Renamed from
+	* proto-stream.el (open-protocol-stream): Rename from
 	open-proto-stream.
 
 2010-11-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -933,8 +939,8 @@
 
 	* shr.el (shr-parse-style): Replace \n with space in style parsing.
 
-	* shr-color.el (shr-color-hsl-to-rgb-fractions): Use
-	shr-color-hue-to-rgb.
+	* shr-color.el (shr-color-hsl-to-rgb-fractions):
+	Use shr-color-hue-to-rgb.
 	(shr-color->hexadecimal): Call shr-color-hsl-to-rgb-fractions.
 
 2010-11-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>

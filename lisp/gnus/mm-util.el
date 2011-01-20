@@ -1604,7 +1604,7 @@ gzip, bzip2, etc. are allowed."
 	(insert decomp)
 	(setq filename (file-name-sans-extension filename)))
       (goto-char (point-min))
-      (prog1
+      (unwind-protect
 	  (cond
 	   ((boundp 'set-auto-coding-function) ;; Emacs
 	    (if filename

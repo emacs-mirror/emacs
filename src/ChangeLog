@@ -667,9 +667,9 @@
 
 2011-01-11  Tassilo Horn  <tassilo@member.fsf.org>
 
-	* image.c (imagemagick_load_image, Finit_image_library): Free
-	intermediate image after creating a MagickWand from it.  Terminate
-	MagickWand environment after image loading.
+	* image.c (imagemagick_load_image, Finit_image_library):
+	Free intermediate image after creating a MagickWand from it.
+	Terminate MagickWand environment after image loading.
 
 2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -740,7 +740,7 @@
 
 2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
-	* dbusbind.c (Fdbus_register_method): Added optional parameter
+	* dbusbind.c (Fdbus_register_method): Add optional parameter
 	dont_register_service.  Updated docstring accordingly.
 
 2011-01-04  Glenn Morris  <rgm@gnu.org>
