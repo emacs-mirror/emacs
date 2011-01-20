@@ -937,6 +937,9 @@ struct emacs_globals
 
   Lisp_Object f_Vobarray;
 
+  /* Normal hook run whenever a keyboard macro terminates.  */
+  Lisp_Object f_Vkbd_macro_termination_hook;
+
   /* Kbd macro currently being executed (a string or vector).  */
   Lisp_Object f_Vexecuting_kbd_macro;
 
@@ -1951,6 +1954,8 @@ extern struct emacs_globals globals;
     globals.f_Vexec_path
 #define Vexec_suffixes \
     globals.f_Vexec_suffixes
+#define Vkbd_macro_termination_hook \
+    globals.f_Vkbd_macro_termination_hook
 #define Vexecuting_kbd_macro \
     globals.f_Vexecuting_kbd_macro
 #define Vface_default_stipple \

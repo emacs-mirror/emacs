@@ -1,3 +1,9 @@
+2011-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* macros.c (syms_of_macros) <kbd-macro-termination-hook>:
+	Give it a doc string.
+	* globals.h: Add Vkbd_macro_termination_hook.
+
 2011-01-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fns.c (Fyes_or_no_p): Revert 2011-01-07 change, removing ARGS.
