@@ -1,3 +1,61 @@
+2011-01-20  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Summary - migrate to defining allout mode using
+	define-minor-mode instead of defun.  Significantly clean-up
+	internal keymap provisions, refactoring and, in the process,
+	removing a lot of accumulated cruft.
+
+	allout-mode-map is now a keymap by virtue of being a defalias to
+	allout-mode-map-value, which contains the actual keymap structure.
+
+	(allout-mode): Use define-minor-mode rather than defun.  Remove
+	now-unnecessary minor-mode setup activities from the body.
+	Specify :keymap as allout-mode-map so the minor-mode-map-alist
+	entry will be '(allout-mode . allout-mode-map) - see
+	allout-mode-map-value, below.  Adjust docstring to track changes.
+	(allout-minor-mode): Remove this defalias, now that we're using
+	define-minor-mode.
+	(allout-mode-map): Set value to be 'allout-mode-map.  The actual
+	keymap is allout-mode-map-value, via defalias.
+	(allout-mode-map-value): The variable holding the actual mode
+	keymap structure, by virtue of defalias from allout-mode-map.
+	(allout-compose-and-institute-keymap): Renamed from
+	allout-bind-keys, and including the binding-composition
+	functionality of the former produce-allout-mode-map and
+	allout-setup-mode-map.
+	(allout-institute-keymap): Take over the "setup" part of the former
+	allout-setup-mode-map.  Reassign allout-mode-map-value value and
+	update the defalias.
+	(allout-command-prefix) (allout-prefixed-keybindings)
+	(allout-unprefixed-keybindings): Use
+	allout-compose-and-institute-keymap to process the bindings.
+	(allout-unprefixed-keybindings): Remove extraneous '?' question
+	marks.
+	(allout-prefixed-keybindings): Elide binding to (prefixed) \C-h -
+	user can customize if they want to use that binding.  Bind
+	allout-copy-topic-as-kill to (prefixed) \M-k.  Bind
+	allout-up-current-level to (prefixed) \C-u.  (I think i mistakenly
+	elided that, previously, instead of the one for \C-h.)
+	(allout-hotspot-key-handler): Remove attempt to resolve the key
+	through the literal key-string lookup on allout-keybindings-list.
+	That probably hasn't worked for a Long Time, and removal of
+	allout-keybindings-list further simplifies the keybindings
+	situation.
+	(allout-pre-command-business): Use allout-mode-map-value instead
+	of allout-mode-map.
+	(allout-preempt-trailing-ctrl-h): Remove.  The user can customize
+	the bindings if they want to use a keybinding having a trailing
+	\C-h.  No deprecation needed since this feature was never in a
+	release.
+	(allout-keybindings-list): Remove.  It's not been useful for a
+	while.  (See allout-hotspot-key-handler changes, above.)
+	(produce-allout-mode-map): Remove.  Consolidate into
+	allout-compose-and-institute-keymap.
+	(allout-mode-map-adjustments): Remove.  No longer necessary with
+	removal of allout-preempt-trailing-ctrl-h.
+	(allout-setup-mode-map): Remove.  Consolidate into
+	allout-compose-and-institute-keymap and allout-institute-keymap.
+
 2011-01-20  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-svn.el (vc-svn-after-dir-status): Tweak previous change.
