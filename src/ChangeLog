@@ -1,3 +1,7 @@
+2011-01-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* unexmacosx.c: Add comment about include order.
+
 2011-01-20  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.c (syms_of_minibuf) <read-expression-history>:
