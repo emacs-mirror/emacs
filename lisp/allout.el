@@ -169,10 +169,11 @@ respective allout-mode keybinding variables, `allout-command-prefix',
   ;; used in minor-mode-map-alist to indirect to the actual
   ;; allout-mode-map-var value, which can be adjusted and reassigned.
 
+  ;; allout-mode-map-value for keymap reference in various places:
   (setq allout-mode-map-value map)
-  ;; The defalias reexecution is necessary when allout-mode-map-value is
-  ;; changing from nil, and it doesn't hurt to do it every time, so:
-  (defalias 'allout-mode-map allout-mode-map-value))
+  ;; the function value keymap of allout-mode-map is used in
+  ;; minor-mode-map-alist - update it:
+  (fset allout-mode-map allout-mode-map-value))
 ;;;_  * intialize the mode map:
 ;; ensure that allout-mode-map has some setting even if allout-mode hasn't
 ;; been invoked:
@@ -3416,13 +3417,18 @@ Returns the qualifying command, if any, else nil."
            (not modified)
            (<= 33 key-num)
            (setq mapped-binding
-                 ;; translate as a keybinding:
-                 (key-binding (vconcat allout-command-prefix
-                                       (vector
-                                        (if (and (<= 97 key-num) ; "a"
-                                                 (>= 122 key-num)) ; "z"
-                                            (- key-num 96) key-num)))
-                              t)))
+                 (or
+                  ;; try control-modified versions of keys:
+                  (key-binding (vconcat allout-command-prefix
+                                        (vector
+                                         (if (and (<= 97 key-num) ; "a"
+                                                  (>= 122 key-num)) ; "z"
+                                             (- key-num 96) key-num)))
+                               t)
+                  ;; try non-modified versions of keys:
+                  (key-binding (vconcat allout-command-prefix
+                                        (vector key-num))
+                               t))))
           ;; Qualified as an allout command -- do hot-spot operation.
           (setq allout-post-goto-bullet t)
         ;; accept-defaults nil, or else we get allout-item-icon-key-handler.
