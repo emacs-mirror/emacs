@@ -32,6 +32,7 @@
 
 ;;; Undo.
 
+;;;###autoload
 (defun calc-undo (n)
   (interactive "p")
   (when calc-executing-macro

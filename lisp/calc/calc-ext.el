@@ -136,7 +136,6 @@
   (define-key calc-mode-map "\C-w" 'calc-kill-region)
   (define-key calc-mode-map "\M-w" 'calc-copy-region-as-kill)
   (define-key calc-mode-map "\M-\C-w" 'kill-ring-save)
-  (define-key calc-mode-map [remap undo] 'calc-undo)
   (define-key calc-mode-map "\M-\C-m" 'calc-last-args)
 
   (define-key calc-mode-map "a" nil)
@@ -1155,7 +1154,7 @@ calc-trail-kill calc-trail-last calc-trail-marker calc-trail-next
 calc-trail-out calc-trail-previous calc-trail-scroll-left
 calc-trail-scroll-right calc-trail-yank)
 
- ("calc-undo" calc-last-args calc-redo calc-undo)
+ ("calc-undo" calc-last-args calc-redo)
 
  ("calc-units" calc-autorange-units calc-base-units
 calc-convert-temperature calc-convert-units calc-define-unit

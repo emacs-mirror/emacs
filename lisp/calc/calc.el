@@ -1061,6 +1061,7 @@ Used by `calc-user-invocation'.")
     (define-key map "\C-j" 'calc-over)
     (define-key map "\C-y" 'calc-yank)
     (define-key map [mouse-2] 'calc-yank)
+    (define-key map [remap undo] 'calc-undo)
 
     (mapc (lambda (x) (define-key map (char-to-string x) 'undefined))
           "lOW")
