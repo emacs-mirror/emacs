@@ -1,3 +1,8 @@
+2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-art.el (gnus-button-alist, gnus-button-handle-info-keystrokes):
+	Don't confuse the "ret" of "retrograde" with RET.
+
 2011-01-21  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-remove-images, gnus-article-show-images):

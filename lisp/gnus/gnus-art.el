@@ -7479,17 +7479,17 @@ positives are possible."
      ;; Info links like `C-h i d m Gnus RET' or `C-h i d m Gnus RET i partial RET'
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-info-keystrokes 0)
     ;; This is custom
-    ("M-x[ \t\n]\\(customize-[^ ]+\\)[ \t\n]RET[ \t\n]\\([^ ]+\\)[ \t\n]RET" 0
+    ("M-x[ \t\n]\\(customize-[^ ]+\\)[ \t\n]RET[ \t\n]\\([^ ]+\\)[ \t\n]RET\\>" 0
      (>= gnus-button-emacs-level 1) gnus-button-handle-custom 1 2)
     ;; Emacs help commands
-    ("M-x[ \t\n]+apropos[ \t\n]+RET[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET"
+    ("M-x[ \t\n]+apropos[ \t\n]+RET[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET\\>"
      ;; regexp doesn't match arguments containing ` '.
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-apropos 1)
-    ("M-x[ \t\n]+apropos-command[ \t\n]+RET[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET"
+    ("M-x[ \t\n]+apropos-command[ \t\n]+RET[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET\\>"
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-apropos-command 1)
-    ("M-x[ \t\n]+apropos-variable[ \t\n]+RET[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET"
+    ("M-x[ \t\n]+apropos-variable[ \t\n]+RET[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET\\>"
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-apropos-variable 1)
-    ("M-x[ \t\n]+apropos-documentation[ \t\n]+RET[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET"
+    ("M-x[ \t\n]+apropos-documentation[ \t\n]+RET[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET\\>"
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-apropos-documentation 1)
     ;; The following entries may lead to many false positives so don't enable
     ;; them by default (use a high button level).
@@ -7504,11 +7504,11 @@ positives are possible."
      0 (>= gnus-button-emacs-level 9) gnus-button-handle-symbol 1)
     ("(setq[ \t\n]+\\([a-z][a-z0-9]+-[-a-z0-9]+\\)[ \t\n]+.+)"
      1 (>= gnus-button-emacs-level 7) gnus-button-handle-describe-variable 1)
-    ("\\bM-x[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET"
+    ("\\bM-x[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET\\>"
      1 (>= gnus-button-emacs-level 7) gnus-button-handle-describe-function 1)
-    ("\\b\\(C-h\\|<?[Ff]1>?\\)[ \t\n]+f[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET"
+    ("\\b\\(C-h\\|<?[Ff]1>?\\)[ \t\n]+f[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET\\>"
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-describe-function 2)
-    ("\\b\\(C-h\\|<?[Ff]1>?\\)[ \t\n]+v[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET"
+    ("\\b\\(C-h\\|<?[Ff]1>?\\)[ \t\n]+v[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET\\>"
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-describe-variable 2)
     ("`\\(\\(C-h\\|<?[Ff]1>?\\)[ \t\n]+k[ \t\n]+\\([^']+\\)\\)'"
      ;; Unlike the other regexps we really have to require quoting
@@ -8033,7 +8033,7 @@ url is put as the `gnus-button-url' overlay property on the button."
     (if (string-match
 	 (concat "\\b\\(C-h\\|<?[Ff]1>?\\)[ \t\n]+i[ \t\n]+d?[ \t\n]?m[ \t\n]+"
 		 "\\([^ ]+ ?[^ ]+\\)[ \t\n]+RET"
-		 "\\([ \t\n]+i[ \t\n]+[^ ]+ ?[^ ]+[ \t\n]+RET"
+		 "\\([ \t\n]+i[ \t\n]+[^ ]+ ?[^ ]+[ \t\n]+RET\\>"
 		 "\\(?:[ \t\n,]*\\)\\)?")
 	 url)
 	(setq node (match-string 2 url)
@@ -8043,7 +8043,7 @@ url is put as the `gnus-button-url' overlay property on the button."
     (Info-directory)
     (Info-menu node)
     (when (> (length indx) 0)
-      (string-match (concat "[ \t\n]+i[ \t\n]+\\([^ ]+ ?[^ ]+\\)[ \t\n]+RET"
+      (string-match (concat "[ \t\n]+i[ \t\n]+\\([^ ]+ ?[^ ]+\\)[ \t\n]+RET\\>"
 			    "\\([ \t\n,]*\\)")
 		    indx)
       (setq comma (match-string 2 indx))
