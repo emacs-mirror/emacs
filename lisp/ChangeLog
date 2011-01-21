@@ -1,3 +1,8 @@
+2011-01-21  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* calc/calc-ext.el (calc-init-extensions): Map all `undo'
+	keybindings to `calc-undo'.
+
 2011-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Don't mess with *temp*.
