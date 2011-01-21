@@ -5897,18 +5897,7 @@ If displaying \"text/html\" is discouraged \(see
 	      (forward-line -1)
 	      (setq beg (point)))
 	    (gnus-article-insert-newline)
-	    (mm-insert-inline
-	     handle
-	     (let ((charset (or (mail-content-type-get (mm-handle-type handle)
-						       'charset)
-				(and (equal type "text/calendar") 'utf-8))))
-	       (cond ((not charset)
-		      (mm-string-as-multibyte (mm-get-part handle)))
-		     ((eq charset 'gnus-decoded)
-		      (with-current-buffer (mm-handle-buffer handle)
-			(buffer-string)))
-		     (t
-		      (mm-decode-string (mm-get-part handle) charset)))))
+	    (mm-display-inline handle)
 	    (goto-char (point-max))))
 	  ;; Do highlighting.
 	  (save-excursion

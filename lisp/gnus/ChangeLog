@@ -3,6 +3,11 @@
 	* gnus-art.el (gnus-button-alist, gnus-button-handle-info-keystrokes):
 	Don't confuse the "ret" of "retrograde" with RET.
 
+2011-01-21  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-mime-display-single): Use mm-display-inline rather
+	than mm-insert-inline.
+
 2011-01-21  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-remove-images, gnus-article-show-images):
