@@ -28,6 +28,13 @@
 
 2011-01-20  Ken Manheimer  <ken.manheimer@gmail.com>
 
+	* allout.el: (allout-institute-keymap): Use fset instead of
+	reapplying defalias.
+
+	(allout-hotspot-key-handler): Check for non-control-modified
+	bindings for hotspot characters if there are no control-modified
+	versions.
+
 	* allout.el: Summary - migrate to defining allout mode using
 	define-minor-mode instead of defun.  Significantly clean-up
 	internal keymap provisions, refactoring and, in the process,
