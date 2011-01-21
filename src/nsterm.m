@@ -1053,8 +1053,10 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
      External: Position the window
    -------------------------------------------------------------------------- */
 {
-  NSScreen *screen;
   NSView *view = FRAME_NS_VIEW (f);
+  NSArray *screens = [NSScreen screens];
+  NSScreen *fscreen = [screens objectAtIndex: 0];
+  NSScreen *screen = [[view window] screen];
 
   NSTRACE (x_set_offset);
 
@@ -1063,7 +1065,7 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
   f->left_pos = xoff;
   f->top_pos = yoff;
 
-  if (view != nil && (screen = [[view window] screen]))
+  if (view != nil && screen && fscreen)
     {
       f->left_pos = f->size_hint_flags & XNegative
         ? [screen visibleFrame].size.width + f->left_pos - FRAME_PIXEL_WIDTH (f)
@@ -1082,7 +1084,7 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
 #endif
       [[view window] setFrameTopLeftPoint:
                        NSMakePoint (SCREENMAXBOUND (f->left_pos),
-                                    SCREENMAXBOUND ([screen frame].size.height
+                                    SCREENMAXBOUND ([fscreen frame].size.height
                                                     - NS_TOP_POS (f)))];
       f->size_hint_flags &= ~(XNegative|YNegative);
     }
@@ -1096,13 +1098,12 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
 /* --------------------------------------------------------------------------
      Adjust window pixel size based on given character grid size
      Impl is a bit more complex than other terms, need to do some
-     internal clipping and also pay attention to screen constraints.
+     internal clipping.
    -------------------------------------------------------------------------- */
 {
   EmacsView *view = FRAME_NS_VIEW (f);
   EmacsToolbar *toolbar = [view toolbar];
   NSWindow *window = [view window];
-  NSScreen *screen = [window screen];
   NSRect wr = [window frame];
   int tb = FRAME_EXTERNAL_TOOL_BAR (f);
   int pixelwidth, pixelheight;
@@ -1153,31 +1154,13 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   wr.size.height = pixelheight + FRAME_NS_TITLEBAR_HEIGHT (f) 
                   + FRAME_TOOLBAR_HEIGHT (f);
 
-  /* constrain to screen if we can */
-  if (screen)
-    {
-      NSSize sz = [screen visibleFrame].size;
-      NSSize ez = { wr.size.width - sz.width, wr.size.height - sz.height };
-      if (ez.width > 0)
-        {
-          int cr = ez.width / FRAME_COLUMN_WIDTH (f) + 1;
-          cols -= cr;
-          oldCols = cols;
-          wr.size.width -= cr * FRAME_COLUMN_WIDTH (f);
-          pixelwidth -= cr * FRAME_COLUMN_WIDTH (f);
-        }
-      if (ez.height > 0)
-        {
-          int rr = ez.height / FRAME_LINE_HEIGHT (f) + 1;
-          rows -= rr;
-          oldRows = rows;
-          wr.size.height -= rr * FRAME_LINE_HEIGHT (f);
-          pixelheight -= rr * FRAME_LINE_HEIGHT (f);
-        }
-      wr.origin.x = f->left_pos;
-      wr.origin.y = [screen frame].size.height - NS_TOP_POS (f)
-        - wr.size.height;
-    }
+  /* Do not try to constrain to this screen.  We may have multiple
+     screens, and want Emacs to span those.  Constraining to screen
+     prevents that, and that is not nice to the user.  */
+ if (f->output_data.ns->zooming)
+   f->output_data.ns->zooming = 0;
+ else
+   wr.origin.y += FRAME_PIXEL_HEIGHT (f) - pixelheight;
 
   [view setRows: rows andColumns: cols];
   [window setFrame: wr display: YES];
@@ -4987,7 +4970,6 @@ ns_term_shutdown (int sig)
 #endif
   if (cols < MINWIDTH)
     cols = MINWIDTH;
-  frameSize.width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (emacsframe, cols);
 
   rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe, frameSize.height
 #ifdef NS_IMPL_GNUSTEP
@@ -4999,9 +4981,6 @@ ns_term_shutdown (int sig)
 #endif
   if (rows < MINHEIGHT)
     rows = MINHEIGHT;
-  frameSize.height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (emacsframe, rows)
-                       + FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-                       + FRAME_TOOLBAR_HEIGHT (emacsframe);
 #ifdef NS_IMPL_COCOA
   {
     /* this sets window title to have size in it; the wm does this under GS */
@@ -5069,7 +5048,7 @@ ns_term_shutdown (int sig)
      a "windowDidResize" which calls x_set_window_size).  */
 #ifndef NS_IMPL_GNUSTEP
   if (cols > 0 && rows > 0)
-     x_set_window_size (emacsframe, 0, cols, rows);
+    x_set_window_size (emacsframe, 0, cols, rows);
 #endif
 
   ns_send_appdefined (-1);
@@ -5084,6 +5063,7 @@ ns_term_shutdown (int sig)
 
   NSTRACE (windowDidBecomeKey);
 
+  emacsframe->output_data.ns->dont_constrain = 1;
   if (emacsframe != old_focus)
     dpyinfo->x_focus_frame = emacsframe;
 
@@ -5162,6 +5142,7 @@ ns_term_shutdown (int sig)
 
 /*fprintf (stderr,"init with %d, %d\n",f->text_cols, f->text_lines); */
 
+  ns_userRect = NSMakeRect (0, 0, 0, 0);
   r = NSMakeRect (0, 0, FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols),
                  FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines));
   [self initWithFrame: r];
@@ -5248,7 +5229,8 @@ ns_term_shutdown (int sig)
 {
   NSWindow *win = [self window];
   NSRect r = [win frame];
-  NSScreen *screen = [win screen];
+  NSArray *screens = [NSScreen screens];
+  NSScreen *screen = [screens objectAtIndex: 0];
 
   NSTRACE (windowDidMove);
 
@@ -5268,10 +5250,7 @@ ns_term_shutdown (int sig)
    location so set_window_size moves the frame. */
 - (BOOL)windowShouldZoom: (NSWindow *)sender toFrame: (NSRect)newFrame
 {
-  NSTRACE (windowShouldZoom);
-  emacsframe->left_pos = (int)newFrame.origin.x;
-  emacsframe->top_pos = [[sender screen] frame].size.height
-                            - (newFrame.origin.y+newFrame.size.height);
+  emacsframe->output_data.ns->zooming = 1;
   return YES;
 }
 
@@ -5283,7 +5262,6 @@ ns_term_shutdown (int sig)
                         defaultFrame:(NSRect)defaultFrame
 {
   NSRect result = [sender frame];
-  static NSRect ns_userRect = { 0, 0, 0, 0 };
 
   NSTRACE (windowWillUseStandardFrame);
 
@@ -5301,7 +5279,11 @@ ns_term_shutdown (int sig)
           > FRAME_COLUMN_WIDTH (emacsframe))
         result = defaultFrame;  /* second click */
       else
-        result = ns_userRect.size.height ? ns_userRect : result;  /* restore */
+        {
+          /* restore */
+          result = ns_userRect.size.height ? ns_userRect : result;
+          ns_userRect = NSMakeRect (0, 0, 0, 0);
+        }
     }
 
   [self windowWillResize: sender toSize: result.size];
@@ -5686,9 +5668,25 @@ ns_term_shutdown (int sig)
 
 @implementation EmacsWindow
 
+/* If we have multiple monitors, one above the other, we don't want to
+   restrict the height to just one monitor.  So we override this.  */
+- (NSRect)constrainFrameRect:(NSRect)frameRect toScreen:(NSScreen *)screen
+{
+  /* When making the frame visible for the first time, we want to
+     constrain.  Other times not.  */
+  struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
+  if (f->output_data.ns->dont_constrain)
+    return frameRect;
+
+  return [super constrainFrameRect:frameRect toScreen:screen];
+}
+
+
 /* called only on resize clicks by special case in EmacsApp-sendEvent */
 - (void)mouseDown: (NSEvent *)theEvent
 {
+  struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
+  f->output_data.ns->dont_constrain = 1;
   if (ns_in_resize)
     {
       NSSize size = [[theEvent window] frame].size;
@@ -5731,12 +5729,9 @@ ns_term_shutdown (int sig)
         return;
 
       vettedSize = [[self delegate] windowWillResize: self toSize: size];
-      if (vettedSize.width != size.width || vettedSize.height != size.height)
-        {
-          [[NSNotificationCenter defaultCenter]
+      [[NSNotificationCenter defaultCenter]
             postNotificationName: NSWindowDidResizeNotification
                           object: self];
-        }
     }
   else
     [super mouseDragged: theEvent];

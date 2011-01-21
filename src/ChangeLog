@@ -1,5 +1,23 @@
 2011-01-21  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (x_set_offset, windowDidMove): When calculating y, use first
+	screen, not the window screen.
+	(x_set_window_size): Remove constraints.
+	Calculate origin.y only if zooming is 0 and without referring to a
+	screen.
+	(windowWillResize): Don't modify frameSize.
+	(windowDidBecomeKey, mouseDown): Set dont_constrain to 1.
+	(initFrameFromEmacs): Initialize ns_userRect.
+	(windowShouldZoom): Set zooming to one.  Remove all other code.
+	(windowWillUseStandardFrame): Move static ns_userRect to EmacsView.
+	Zero it after restore.
+	(constrainFrameRect): New method for EmacsWindow.
+	(mouseDragged): Always post NSWindowDidResizeNotification after call to
+	windowWillResize.
+
+	* nsterm.h (ns_output): Add dont_constrain and zooming.
+	(EmacsView): Add ns_userRect.
+
 	* nsterm.m (keyDown): If ns_right_alternate_modifier is Qleft, check
 	if ns_alternate_modifier is none.
 

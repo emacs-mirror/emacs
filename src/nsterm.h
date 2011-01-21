@@ -66,6 +66,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    int rows, cols;
    int scrollbarsNeedingUpdate;
    EmacsToolbar *toolbar;
+   NSRect ns_userRect;
    }
 
 /* AppKit-side interface */
@@ -565,6 +566,12 @@ struct ns_output
 
   /* This is the Emacs structure for the NS display this frame is on.  */
   struct ns_display_info *display_info;
+
+  /* Non-zero if we want to constrain the frame to the screen.  */
+  int dont_constrain;
+
+  /* Non-zero if we are zooming (maximizing) the frame.  */
+  int zooming;
 };
 
 /* this dummy decl needed to support TTYs */
