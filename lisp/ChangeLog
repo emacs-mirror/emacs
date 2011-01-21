@@ -1,3 +1,8 @@
+2011-01-21  Jari Aalto  <jari.aalto@cante.net>
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine): (bug#7705)
+	Assume foo(bar) is a manpage reference rather than some unquoted symbol.
+
 2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (shell-quote-argument): Properly quote \n (bug#7687).
