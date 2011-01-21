@@ -1,3 +1,7 @@
+2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/js.el (js--regexp-literal): Count backslashes (bug#7882).
+
 2011-01-21  Jari Aalto  <jari.aalto@cante.net>
 
 	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine): (bug#7705)
@@ -28,12 +32,12 @@
 
 2011-01-14  Kenichi Handa  <handa@m17n.org>
 
-	* mail/rmailmm.el (rmail-mime-insert-header): Set
-	rmail-mime-coding-system to a cons whose car is the last coding
+	* mail/rmailmm.el (rmail-mime-insert-header):
+	Set rmail-mime-coding-system to a cons whose car is the last coding
 	system used to decode the header.
 	(rmail-mime-find-header-encoding): New function.
-	(rmail-mime-insert-decoded-text): Override
-	rmail-mime-coding-system if it is a cons.
+	(rmail-mime-insert-decoded-text):
+	Override rmail-mime-coding-system if it is a cons.
 	(rmail-show-mime): If only a header part was decoded, find the
 	coding system while ignoring mm-charset-override-alist.
 
@@ -46,8 +50,8 @@
 	* mail/rmailmm.el (rmail-mime-next-item)
 	(rmail-mime-previous-item): Delete them.
 	(rmail-mime-shown-mode): Recursively call for children.
-	(rmail-mime-hidden-mode): Delete the 2nd arg TOP.  Callers
-	changed.
+	(rmail-mime-hidden-mode): Delete the 2nd arg TOP.
+	Callers changed.
 	(rmail-mime-raw-mode): Recursively call for children.
 	(rmail-mode-map): Change mapping of tab and backtab to
 	forward-button and backward-button respectively.
@@ -56,7 +60,7 @@
 	(rmail-mime-update-tagline): New function.
 	(rmail-mime-insert-text): Call rmail-mime-update-tagline if the
 	body display is changed.
-	(rmail-mime-toggle-button): Renamed from rmail-mime-image.
+	(rmail-mime-toggle-button): Rename from rmail-mime-image.
 	(rmail-mime-image): Delete this button type.
 	(rmail-mime-toggle): New button type.
 	(rmail-mime-insert-bulk): Call rmail-mime-update-tagline if the
