@@ -1,11 +1,17 @@
+2011-01-21  Roland McGrath  <roland@frob.com>
+
+	* comint.el (comint-replace-by-expanded-history-before-point): Fix
+	expansion of !$ and !!:N syntax to pick the indicated word (bug#7883).
+
 2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/js.el (js--regexp-literal): Count backslashes (bug#7882).
 
 2011-01-21  Jari Aalto  <jari.aalto@cante.net>
 
-	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine): (bug#7705)
-	Assume foo(bar) is a manpage reference rather than some unquoted symbol.
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Assume foo(bar) is a manpage reference rather than some unquoted
+	symbol (bug#7705).
 
 2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
