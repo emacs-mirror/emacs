@@ -4388,6 +4388,7 @@ ns_term_shutdown (int sig)
   int flags;
   static NSMutableArray *nsEvArray;
   static BOOL firstTime = YES;
+  int left_is_none;
 
   NSTRACE (keyDown);
 
@@ -4511,10 +4512,14 @@ ns_term_shutdown (int sig)
           emacs_event->modifiers |=
             parse_solitary_modifier (ns_function_modifier);
 
+      left_is_none = NILP (ns_alternate_modifier)
+        || EQ (ns_alternate_modifier, Qnone);
+
       if ((flags & NSRightAlternateKeyMask) == NSRightAlternateKeyMask)
         {
           if ((NILP (ns_right_alternate_modifier)
-               || EQ (ns_right_alternate_modifier, Qnone))
+               || EQ (ns_right_alternate_modifier, Qnone)
+               || (EQ (ns_right_alternate_modifier, Qleft) && left_is_none))
               && !fnKeysym)
             {   /* accept pre-interp alt comb */
               if ([[theEvent characters] length] > 0)
@@ -4532,9 +4537,7 @@ ns_term_shutdown (int sig)
 
       if ((flags & NSLeftAlternateKeyMask) == NSLeftAlternateKeyMask) /* default = meta */
         {
-          if ((NILP (ns_alternate_modifier)
-               || EQ (ns_alternate_modifier, Qnone))
-              && !fnKeysym)
+          if (left_is_none && !fnKeysym)
             {   /* accept pre-interp alt comb */
               if ([[theEvent characters] length] > 0)
                 code = [[theEvent characters] characterAtIndex: 0];

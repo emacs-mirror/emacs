@@ -1,3 +1,8 @@
+2011-01-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (keyDown): If ns_right_alternate_modifier is Qleft, check
+	if ns_alternate_modifier is none.
+
 2011-01-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* unexmacosx.c: Add comment about include order.
