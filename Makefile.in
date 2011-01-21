@@ -260,7 +260,7 @@ EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution.
 # leim is not included because it needs special handling.
-# 
+#
 # Actually, we now include `lisp' as well, since the compiled files
 # are not included any more in case of bootstrap or in case Emacs was
 # checked out from a VCS.
@@ -414,7 +414,7 @@ $(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
 AUTOMAKE_INPUTS = @MAINT@ $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am
 $(srcdir)/lib/Makefile.in: $(AUTOMAKE_INPUTS)
 	cd $(srcdir) && automake --gnu -a -c lib/Makefile
-am--refresh:
+am--refresh: $(srcdir)/aclocal.m4 $(srcdir)/configure $(srcdir)/src/config.in
 .PHONY: am--refresh
 
 $(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
@@ -863,7 +863,7 @@ dist:
 
 .PHONY: info dvi dist check html
 
-info-real: 
+info-real:
 	(cd doc/emacs; $(MAKE) $(MFLAGS) info)
 	(cd doc/misc; $(MAKE) $(MFLAGS) info)
 	(cd doc/lispref; $(MAKE) $(MFLAGS) info)
