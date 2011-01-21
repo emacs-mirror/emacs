@@ -1,3 +1,8 @@
+2011-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Fix custom type.  (Bug#7812)
+
 2011-01-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't re-evaluate the
@@ -12487,4 +12492,3 @@ See ChangeLog.14 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
