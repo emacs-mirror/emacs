@@ -1,3 +1,11 @@
+2011-01-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	aclocal.m4: tweaks to regenerate more conveniently
+	This attempts to act better when the source is in a weird state.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00734.html>.
+	* Makefile.in (am--refresh): Add aclocal.m4, configure, config.in.
+	* .bzrignore: Add aclocal.m4.
+
 2011-01-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	aclocal.m4: omit auto-generated file from repository
