@@ -1,3 +1,8 @@
+2011-01-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-remove-images, gnus-article-show-images):
+	Widen article buffer.
+
 2011-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-util.el (mm-find-buffer-file-coding-system): Don't forget to kill

@@ -2275,19 +2275,23 @@ unfolded."
   "Remove all images from the article buffer."
   (interactive)
   (gnus-with-article-buffer
-    (dolist (elem gnus-article-image-alist)
-      (gnus-delete-images (car elem)))))
+    (save-restriction
+      (widen)
+      (dolist (elem gnus-article-image-alist)
+	(gnus-delete-images (car elem))))))
 
 (defun gnus-article-show-images ()
   "Show any images that are in the HTML-rendered article buffer.
 This only works if the article in question is HTML."
   (interactive)
   (gnus-with-article-buffer
-    (dolist (region (gnus-find-text-property-region (point-min) (point-max)
-						    'image-displayer))
-      (destructuring-bind (start end function) region
-	(funcall function (get-text-property start 'image-url)
-		 start end)))))
+    (save-restriction
+      (widen)
+      (dolist (region (gnus-find-text-property-region (point-min) (point-max)
+						      'image-displayer))
+	(destructuring-bind (start end function) region
+	  (funcall function (get-text-property start 'image-url)
+		   start end))))))
 
 (defun gnus-article-treat-fold-newsgroups ()
   "Unfold folded message headers.
