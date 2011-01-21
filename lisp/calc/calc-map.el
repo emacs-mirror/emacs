@@ -572,7 +572,7 @@
 	     (and nargs forcenargs (/= nargs forcenargs) (>= nargs 0)
 		  (error "Must be a %d-argument operator" nargs)))
 	    ((memq key '(?\$ ?\'))
-	     (let* ((arglist nil)
+	     (let* ((math-arglist nil)
 		    (has-args nil)
 		    (record-entry nil)
 		    (expr (if (eq key ?\$)
@@ -592,13 +592,13 @@
 			      (if (> calc-dollar-used 0)
 				  (progn
 				    (setq has-args calc-dollar-used
-					  arglist (calc-invent-args has-args))
+					  math-arglist (calc-invent-args has-args))
 				    (math-multi-subst (car func)
-						      (reverse arglist)
-						      arglist))
+						      (reverse math-arglist)
+						      math-arglist))
 				(if (> calc-hashes-used 0)
 				    (setq has-args calc-hashes-used
-					  arglist (calc-invent-args has-args)))
+					  math-arglist (calc-invent-args has-args)))
 				(car func))))))
 	       (if (eq (car-safe expr) 'calcFunc-lambda)
 		   (setq oper (list "$" (- (length expr) 2) expr)
@@ -607,16 +607,16 @@
 		     (progn
 		       (calc-default-formula-arglist expr)
 		       (setq record-entry t
-			     arglist (sort arglist 'string-lessp))
+			     math-arglist (sort math-arglist 'string-lessp))
 		       (if calc-verify-arglist
-			   (setq arglist (read-from-minibuffer
+			   (setq math-arglist (read-from-minibuffer
 					  "Function argument list: "
-					  (if arglist
-					      (prin1-to-string arglist)
+					  (if math-arglist
+					      (prin1-to-string math-arglist)
 					    "()")
 					  minibuffer-local-map
 					  t)))
-		       (setq arglist (mapcar (function
+		       (setq math-arglist (mapcar (function
 					      (lambda (x)
 						(list 'var
 						      x
@@ -624,10 +624,10 @@
 						       (concat
 							"var-"
 							(symbol-name x))))))
-					     arglist))))
+					     math-arglist))))
 		 (setq oper (list "$"
-				  (length arglist)
-				  (append '(calcFunc-lambda) arglist
+				  (length math-arglist)
+				  (append '(calcFunc-lambda) math-arglist
 					  (list expr)))
 		       done t))
 	       (if record-entry

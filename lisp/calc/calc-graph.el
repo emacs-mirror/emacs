@@ -575,16 +575,16 @@
 		(setq calc-graph-xstep 1)
 	      (error "%s is not a suitable basis for %s" calc-graph-xname calc-graph-yname)))))
     (or (math-realp calc-graph-yvalue)
-	(let ((arglist nil))
+	(let ((math-arglist nil))
 	  (setq calc-graph-yvalue (math-evaluate-expr calc-graph-yvalue))
 	  (calc-default-formula-arglist calc-graph-yvalue)
-	  (or arglist
+	  (or math-arglist
 	      (error "%s does not contain any unassigned variables" calc-graph-yname))
-	  (and (cdr arglist)
+	  (and (cdr math-arglist)
 	       (error "%s contains more than one variable: %s"
-		      calc-graph-yname arglist))
+		      calc-graph-yname math-arglist))
 	  (setq calc-graph-yvalue (math-expr-subst calc-graph-yvalue
-					(math-build-var-name (car arglist))
+					(math-build-var-name (car math-arglist))
 					'(var DUMMY var-DUMMY)))))
     (setq calc-graph-ycache (assoc calc-graph-yvalue calc-graph-data-cache))
     (delq calc-graph-ycache calc-graph-data-cache)
@@ -736,17 +736,17 @@
 	      calc-graph-zp calc-graph-yvalue
 	      calc-graph-xvec t))
     (or (math-realp calc-graph-yvalue)
-	(let ((arglist nil))
+	(let ((math-arglist nil))
 	  (setq calc-graph-yvalue (math-evaluate-expr calc-graph-yvalue))
 	  (calc-default-formula-arglist calc-graph-yvalue)
-	  (setq arglist (sort arglist 'string-lessp))
-	  (or (cdr arglist)
+	  (setq math-arglist (sort math-arglist 'string-lessp))
+	  (or (cdr math-arglist)
 	      (error "%s does not contain enough unassigned variables" calc-graph-yname))
-	  (and (cdr (cdr arglist))
-	       (error "%s contains too many variables: %s" calc-graph-yname arglist))
+	  (and (cdr (cdr math-arglist))
+	       (error "%s contains too many variables: %s" calc-graph-yname math-arglist))
 	  (setq calc-graph-yvalue (math-multi-subst calc-graph-yvalue
 					 (mapcar 'math-build-var-name
-						 arglist)
+						 math-arglist)
 					 '((var DUMMY var-DUMMY)
 					   (var DUMMY2 var-DUMMY2))))))
     (if (setq calc-graph-xvec (eq (car-safe calc-graph-xvalue) 'vec))
