@@ -1,3 +1,33 @@
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Fix logic error in
+	"Case sensitive" menu item.
+
+2011-01-22  Roland McGrath  <roland@frob.com>
+
+	* comint.el (comint-replace-by-expanded-history-before-point): Fix
+	expansion of !$ and !!:N syntax to pick the indicated word (bug#7883).
+
+2011-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/js.el (js--regexp-literal): Count backslashes (bug#7882).
+
+2011-01-22  Jari Aalto  <jari.aalto@cante.net>
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Assume foo(bar) is a manpage reference rather than some unquoted
+	symbol (bug#7705).
+
+2011-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (shell-quote-argument): Properly quote \n (bug#7687).
+	Suggested by Flo <sensorflo@gmail.com>.
+
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Fix custom type.  (Bug#7812)
+
 2011-01-22  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-prefixed-keybindings): Bind (prefixed) '#' to
@@ -45,7 +75,6 @@
 	* comint.el (comint-read-input-ring): Use with-temp-buffer.
 	* international/mule.el (ctext-pre-write-conversion): Don't hardcode
 	point-min==1.
-
 
 2011-01-20  Ken Manheimer  <ken.manheimer@gmail.com>
 

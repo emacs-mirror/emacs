@@ -2461,13 +2461,8 @@ Note: :data and :device are currently not supported on Windows."
         "''"
       ;; Quote everything except POSIX filename characters.
       ;; This should be safe enough even for really weird shells.
-      (let ((result "") (start 0) end)
-        (while (string-match "[^-0-9a-zA-Z_./]" argument start)
-          (setq end (match-beginning 0)
-                result (concat result (substring argument start end)
-                               "\\" (substring argument end (1+ end)))
-                start (1+ end)))
-        (concat result (substring argument start))))))
+      (replace-regexp-in-string "\n" "'\n'"
+       (replace-regexp-in-string "[^-0-9a-zA-Z_./\n]" "\\\\\\&" argument)))))
 
 (defun string-or-null-p (object)
   "Return t if OBJECT is a string or nil.
