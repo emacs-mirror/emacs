@@ -1,3 +1,7 @@
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* man.el (Man-highlight-references0): Use make-button (Bug#7881).
+
 2011-01-22  Phil Hagelberg  <phil@evri.com>
 
 	* pcmpl-unix.el (pcmpl-ssh-config-file): New option.

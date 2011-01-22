@@ -1154,7 +1154,9 @@ default type, `Man-xref-man-page' is used for the buttons."
 		 (goto-char (point-min))
 		 nil)))
       (while (re-search-forward regexp end t)
-	(make-text-button
+	;; An overlay button is preferable because the underlying text
+	;; may have text property highlights (Bug#7881).
+	(make-button
 	 (match-beginning button-pos)
 	 (match-end button-pos)
 	 'type type
