@@ -1,4 +1,4 @@
-# getopt.m4 serial 32
+# getopt.m4 serial 33
 dnl Copyright (C) 2002-2006, 2008-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -56,7 +56,6 @@ AC_DEFUN([gl_GETOPT_CHECK_HEADERS],
   AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
 
   gl_CHECK_NEXT_HEADERS([getopt.h])
-  AC_CHECK_HEADERS_ONCE([getopt.h])
   if test $ac_cv_header_getopt_h = yes; then
     HAVE_GETOPT_H=1
   else

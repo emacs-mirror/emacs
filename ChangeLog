@@ -1,5 +1,15 @@
 2011-01-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	src/config.in: shrink slightly
+	* configure.in: Invoke the new gnulib macro gl_ASSERT_NO_GNULIB_TESTS.
+	This makes src/config.in a bit smaller, by removing identifiers
+	like GNULIB_TEST_MKTIME that Emacs does not need.
+	* m4/getopt.m4, m4/gnulib-common.m4, m4/include_next.m4:
+	* m4/multiarch.m4, m4/stddef_h.m4, m4/time_h.m4, m4/unistd_h.m4:
+	Sync from gnulib.  This removes a few more unnecessary symbols from
+	src/config.in, such as AA_APPLE_UNIVERSAL_BUILD and HAVE_STDDEF_H.
+	* configure, src/config.in: Regenerate.
+
 	aclocal.m4: tweaks to regenerate more conveniently
 	This attempts to act better when the source is in a weird state.  See
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00734.html>.

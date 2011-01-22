@@ -1,4 +1,4 @@
-# multiarch.m4 serial 5
+# multiarch.m4 serial 6
 dnl Copyright (C) 2008-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -16,8 +16,7 @@ dnl with or without modifications, as long as this notice is preserved.
 #                 CXX="g++ -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
 #                 CPP="gcc -E" CXXCPP="g++ -E"
 #
-# Detect this situation and set the macro AA_APPLE_UNIVERSAL_BUILD at the
-# beginning of config.h and set APPLE_UNIVERSAL_BUILD accordingly.
+# Detect this situation and set APPLE_UNIVERSAL_BUILD accordingly.
 
 AC_DEFUN_ONCE([gl_MULTIARCH],
 [
@@ -55,8 +54,6 @@ AC_DEFUN_ONCE([gl_MULTIARCH],
      done
     ])
   if test $gl_cv_c_multiarch = yes; then
-    AC_DEFINE([AA_APPLE_UNIVERSAL_BUILD], [1],
-      [Define if the compiler is building for multiple architectures of Apple platforms at once.])
     APPLE_UNIVERSAL_BUILD=1
   else
     APPLE_UNIVERSAL_BUILD=0
