@@ -60,7 +60,9 @@
 (defun diff-sentinel (code &optional old-temp-file new-temp-file)
   "Code run when the diff process exits.
 CODE is the exit code of the process.  It should be 0 only if no diffs
-were found."
+were found.
+If optional args OLD-TEMP-FILE and/or NEW-TEMP-FILE are non-nil,
+delete the temporary files so named."
   (if old-temp-file (delete-file old-temp-file))
   (if new-temp-file (delete-file new-temp-file))
   (save-excursion
