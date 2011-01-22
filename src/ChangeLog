@@ -1,3 +1,10 @@
+2011-01-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (select_window): New function.
+	(Fselect_window): Call it.
+	(inhibit_point_swap): Variable deleted.
+	(Fset_window_configuration): Call select_window directly.
+
 2011-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* image.c (syms_of_image): Don't access XSYMBOL's internals directly.
