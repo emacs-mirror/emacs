@@ -1,3 +1,11 @@
+2011-01-22  Phil Hagelberg  <phil@evri.com>
+
+	* pcmpl-unix.el (pcmpl-ssh-config-file): New option.
+	(pcmpl-ssh-known-hosts): Rename from pcmpl-ssh-hosts.
+	(pcmpl-ssh-config-hosts): New function.
+	(pcmpl-ssh-hosts): Use pcmpl-ssh-config-hosts in addition to
+	pcmpl-ssh-known-hosts.
+
 2011-01-21  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-undo.el (calc-undo): Autoload it.
