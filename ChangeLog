@@ -1,3 +1,14 @@
+2011-01-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	aclocal.m4: put this file back into repository
+	This way, we don't have to assume that the maintainer has
+	the automake package installed.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00746.html>.
+	* .bzrignore: Remove aclocal.m4, undoing the previous change.
+	* Makefile.in (top_maintainer_clean): Do not remove aclocal.m4,
+	undoing the previous change.
+	* aclocal.m4: New file (actually, resurrected).
+
 2011-01-22  Miles Bader  <miles@gnu.org>
 
 	* configure.in: Don't zero-out FONTCONFIG_CFLAGS and
