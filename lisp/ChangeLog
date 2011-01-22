@@ -5,6 +5,8 @@
 
 2011-01-22  Glenn Morris  <rgm@gnu.org>
 
+	* simple.el (do-auto-fill): Give it a doc string.
+
 	* button.el (make-text-button): Doc fix.  (See bug#7881)
 
 2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
