@@ -85,7 +85,7 @@ static int foreach_window_1 P_ ((struct window *,
 				 int (* fn) (struct window *, void *),
 				 void *));
 static Lisp_Object window_list_1 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-static Lisp_Object select_window _P ((Lisp_Object, Lisp_Object, int));
+static Lisp_Object select_window P_ ((Lisp_Object, Lisp_Object, int));
 
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
