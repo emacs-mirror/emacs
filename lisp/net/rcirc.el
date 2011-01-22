@@ -1029,6 +1029,9 @@ If ALL is non-nil, update prompts in all IRC buffers."
 (defun rcirc-kill-buffer-hook ()
   "Part the channel when killing an rcirc buffer."
   (when (eq major-mode 'rcirc-mode)
+    (when (and rcirc-log-flag
+               rcirc-log-directory)
+      (rcirc-log-write))
     (rcirc-clean-up-buffer "Killed buffer")))
 
 (defun rcirc-change-major-mode-hook ()
