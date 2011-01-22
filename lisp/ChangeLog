@@ -1,3 +1,11 @@
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-find-copyright): New function,
+	split out from copyright-update-year.
+	(copyright-update): Don't mess with the GPL version if we don't own the
+	copyright.  Update license regexp, and remove no longer needed
+	Esperanto stuff.
+
 2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/diff.el (diff-sentinel): Doc fix (Bug#7682).
