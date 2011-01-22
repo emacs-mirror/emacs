@@ -255,7 +255,7 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
   (interactive)
   (widen)
   (goto-char (copyright-start-point))
-  (if (copyright-re-search copyright-regexp (copyright-limit) t)
+  (if (copyright-find-copyright)
       (let ((s (match-beginning 2))
 	    (e (copy-marker (1+ (match-end 2))))
 	    (p (make-marker))
