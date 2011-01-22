@@ -1,5 +1,7 @@
 2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* simple.el (line-move-visual): Doc fix (Bug#7594).
+
 	* emacs-lisp/re-builder.el (reb-mode-map): Fix logic error in
 	"Case sensitive" menu item.
 

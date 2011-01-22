@@ -4073,9 +4073,11 @@ Outline mode sets this."
   "When non-nil, `line-move' moves point by visual lines.
 This movement is based on where the cursor is displayed on the
 screen, instead of relying on buffer contents alone.  It takes
-into account variable-width characters and line continuation."
+into account variable-width characters and line continuation.
+If nil, `line-move' moves point by logical lines."
   :type 'boolean
-  :group 'editing-basics)
+  :group 'editing-basics
+  :version "23.1")
 
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
