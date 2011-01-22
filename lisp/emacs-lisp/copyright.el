@@ -125,6 +125,8 @@ When this is `function', only ask when called non-interactively."
   "Return non-nil if a copyright header suitable for updating is found.
 The header must match `copyright-regexp' and `copyright-names-regexp', if set.
 This function sets the match-data that `copyright-update-year' uses."
+  (widen)
+  (goto-char (copyright-start-point))
   (condition-case err
       ;; (1) Need the extra \\( \\) around copyright-regexp because we
       ;; goto (match-end 1) below. See note (2) below.
@@ -214,8 +216,6 @@ interactively."
 		       (and (eq copyright-query 'function) interactivep))))
       (save-excursion
 	(save-restriction
-	  (widen)
-	  (goto-char (copyright-start-point))
 	  ;; If names-regexp doesn't match, we should not mess with
 	  ;; the years _or_ the GPL version.
 	  (when (copyright-find-copyright)
@@ -253,8 +253,6 @@ interactively."
   "Convert 2 digit years to 4 digit years.
 Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
   (interactive)
-  (widen)
-  (goto-char (copyright-start-point))
   (if (copyright-find-copyright)
       (let ((s (match-beginning 2))
 	    (e (copy-marker (1+ (match-end 2))))
