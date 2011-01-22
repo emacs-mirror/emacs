@@ -1,3 +1,24 @@
+2011-01-22  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-prefixed-keybindings): Bind (prefixed) '#' to
+	allout-number-siblings, in keeping with what obtained due to
+	(now-defunct) allout-keybindings-list.  Ditch repeat binding to
+	(prefixed) ?i.
+	(allout-before-change-handler): Better expose spots affected by
+	undo.
+
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* man.el (Man-highlight-references0): Use make-button (Bug#7881).
+
+2011-01-22  Phil Hagelberg  <phil@evri.com>
+
+	* pcmpl-unix.el (pcmpl-ssh-config-file): New option.
+	(pcmpl-ssh-known-hosts): Rename from pcmpl-ssh-hosts.
+	(pcmpl-ssh-config-hosts): New function.
+	(pcmpl-ssh-hosts): Use pcmpl-ssh-config-hosts in addition to
+	pcmpl-ssh-known-hosts.
+
 2011-01-21  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-undo.el (calc-undo): Autoload it.
