@@ -204,7 +204,6 @@ willing to let allout use a bunch of \C-c keybindings."
     ("[(control ?a)]" allout-beginning-of-current-entry)
     ("[(control ?e)]" allout-end-of-entry)
     ("[(control ?i)]" allout-show-children)
-    ("[(control ?i)]" allout-show-children)
     ("[(control ?s)]" allout-show-current-subtree)
     ("[(control ?t)]" allout-toggle-current-subtree-exposure)
 ;; Let user customize if they want to preempt describe-prefix-bindings ^h use.
@@ -221,7 +220,7 @@ willing to let allout use a bunch of \C-c keybindings."
     ("[?<]" allout-shift-out)
     ("[(control ?m)]" allout-rebullet-topic)
     ("[?*]" allout-rebullet-current-heading)
-    ("[?']" allout-number-siblings)
+    ("[?#]" allout-number-siblings)
     ("[(control ?k)]" allout-kill-topic)
     ("[(meta ?k)]" allout-copy-topic-as-kill)
     ("[?@]" allout-resolve-xref)
@@ -1412,9 +1411,6 @@ Functions on the hook should take two arguments:
  - NEW-START -- integer indicating position of start of the first new item.
  - NEW-END -- integer indicating position of end of the last new item.
 
-Some edits that introduce new items may missed by this hook:
-specifically edits that native allout routines do not control.
-
 This hook might be invoked multiple times by a single command.")
 ;;;_   = allout-structure-deleted-hook
 (defvar allout-structure-deleted-hook nil
@@ -2192,8 +2188,8 @@ internal functions use this feature cohesively bunch changes."
 
 See `allout-overlay-interior-modification-handler' for details."
 
-  (if (and (allout-mode-p) undo-in-progress (allout-hidden-p))
-      (allout-show-to-offshoot))
+  (when (and (allout-mode-p) undo-in-progress (allout-hidden-p))
+    (allout-show-children))
 
   ;; allout-overlay-interior-modification-handler on an overlay handles
   ;; this in other emacs, via `allout-exposure-category's 'modification-hooks.

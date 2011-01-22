@@ -1,3 +1,12 @@
+2011-01-22  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-prefixed-keybindings): Bind (prefixed) '#' to
+	allout-number-siblings, in keeping with what obtained due to
+	(now-defunct) allout-keybindings-list.  Ditch repeat binding to
+	(prefixed) ?i.
+	(allout-before-change-handler): Better expose spots affected by
+	undo.
+
 2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* man.el (Man-highlight-references0): Use make-button (Bug#7881).
