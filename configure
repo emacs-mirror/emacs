@@ -2658,8 +2658,6 @@ as_fn_append ac_header_list " sys/param.h"
 gl_getopt_required=GNU
 as_fn_append ac_header_list " getopt.h"
 as_fn_append ac_func_list " alarm"
-as_fn_append ac_header_list " stddef.h"
-as_fn_append ac_header_list " time.h"
 as_fn_append ac_header_list " sys/time.h"
 as_fn_append ac_func_list " localtime_r"
 # Check that the precious variables saved in the cache have kept the same
@@ -13570,6 +13568,9 @@ fi
 
 
 
+
+
+
           LIBC_FATAL_STDERR_=1
   export LIBC_FATAL_STDERR_
 
@@ -13851,6 +13852,9 @@ $as_echo "$gl_cv_pragma_columns" >&6; }
 
 
 
+
+
+
      if test $gl_cv_have_include_next = yes; then
        gl_cv_next_getopt_h='<'getopt.h'>'
      else
@@ -13860,26 +13864,29 @@ if ${gl_cv_next_getopt_h+:} false; then :
   $as_echo_n "(cached) " >&6
 else
 
-          if test $ac_cv_header_getopt_h = yes; then
-            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+             if test $ac_cv_header_getopt_h = yes; then
+
+
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <getopt.h>
 
 _ACEOF
-                                                                                                case "$host_os" in
-              aix*) gl_absname_cpp="$ac_cpp -C" ;;
-              *)    gl_absname_cpp="$ac_cpp" ;;
-            esac
-                                                gl_cv_next_getopt_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-               sed -n '\#/getopt.h#{
-                 s#.*"\(.*/getopt.h\)".*#\1#
-                 s#^/[^/]#//&#
-                 p
-                 q
-               }'`'"'
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+                                                            gl_cv_next_getopt_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                  sed -n '\#/getopt.h#{
+                    s#.*"\(.*/getopt.h\)".*#\1#
+                    s#^/[^/]#//&#
+                    p
+                    q
+                  }'`'"'
           else
-            gl_cv_next_getopt_h='<'getopt.h'>'
-          fi
+               gl_cv_next_getopt_h='<'getopt.h'>'
+             fi
+
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_getopt_h" >&5
@@ -14337,9 +14344,6 @@ if ac_fn_c_try_compile "$LINENO"; then :
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
   if test $gl_cv_c_multiarch = yes; then
-
-$as_echo "#define AA_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
-
     APPLE_UNIVERSAL_BUILD=1
   else
     APPLE_UNIVERSAL_BUILD=0
@@ -14426,8 +14430,6 @@ $as_echo "#define HAVE_WCHAR_T 1" >>confdefs.h
 
   fi
 
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for C/C++ restrict keyword" >&5
 $as_echo_n "checking for C/C++ restrict keyword... " >&6; }
 if ${ac_cv_c_restrict+:} false; then :
@@ -14473,8 +14475,6 @@ $as_echo "$ac_cv_c_restrict" >&6; }
 _ACEOF
  ;;
  esac
-
-
 
 
 
@@ -14586,6 +14586,8 @@ $as_echo "$gl_cv_sys_struct_timespec_in_pthread_h" >&6; }
 
 
 
+
+
      if test $gl_cv_have_include_next = yes; then
        gl_cv_next_time_h='<'time.h'>'
      else
@@ -14595,26 +14597,23 @@ if ${gl_cv_next_time_h+:} false; then :
   $as_echo_n "(cached) " >&6
 else
 
-          if test $ac_cv_header_time_h = yes; then
-            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <time.h>
 
 _ACEOF
-                                                                                                case "$host_os" in
-              aix*) gl_absname_cpp="$ac_cpp -C" ;;
-              *)    gl_absname_cpp="$ac_cpp" ;;
-            esac
-                                                gl_cv_next_time_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-               sed -n '\#/time.h#{
-                 s#.*"\(.*/time.h\)".*#\1#
-                 s#^/[^/]#//&#
-                 p
-                 q
-               }'`'"'
-          else
-            gl_cv_next_time_h='<'time.h'>'
-          fi
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+                                                            gl_cv_next_time_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                  sed -n '\#/time.h#{
+                    s#.*"\(.*/time.h\)".*#\1#
+                    s#^/[^/]#//&#
+                    p
+                    q
+                  }'`'"'
+
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_time_h" >&5
@@ -14630,6 +14629,7 @@ $as_echo "$gl_cv_next_time_h" >&6; }
        gl_next_as_first_directive=$gl_cv_next_time_h
      fi
      NEXT_AS_FIRST_DIRECTIVE_TIME_H=$gl_next_as_first_directive
+
 
 
 
@@ -14681,10 +14681,6 @@ fi
 
 
 
-
-
-
-$as_echo "#define GNULIB_TEST_GETOPT_GNU 1" >>confdefs.h
 
 
   # Code from module getopt-posix:
@@ -14989,10 +14985,6 @@ fi
 
 
 
-$as_echo "#define GNULIB_TEST_MKTIME 1" >>confdefs.h
-
-
-
   # Code from module multiarch:
 
   # Code from module stddef:
@@ -15041,6 +15033,8 @@ $as_echo "$gl_cv_decl_null_works" >&6; }
 
 
 
+
+
      if test $gl_cv_have_include_next = yes; then
        gl_cv_next_stddef_h='<'stddef.h'>'
      else
@@ -15050,26 +15044,23 @@ if ${gl_cv_next_stddef_h+:} false; then :
   $as_echo_n "(cached) " >&6
 else
 
-          if test $ac_cv_header_stddef_h = yes; then
-            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <stddef.h>
 
 _ACEOF
-                                                                                                case "$host_os" in
-              aix*) gl_absname_cpp="$ac_cpp -C" ;;
-              *)    gl_absname_cpp="$ac_cpp" ;;
-            esac
-                                                gl_cv_next_stddef_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-               sed -n '\#/stddef.h#{
-                 s#.*"\(.*/stddef.h\)".*#\1#
-                 s#^/[^/]#//&#
-                 p
-                 q
-               }'`'"'
-          else
-            gl_cv_next_stddef_h='<'stddef.h'>'
-          fi
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+                                                            gl_cv_next_stddef_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                  sed -n '\#/stddef.h#{
+                    s#.*"\(.*/stddef.h\)".*#\1#
+                    s#^/[^/]#//&#
+                    p
+                    q
+                  }'`'"'
+
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_stddef_h" >&5
@@ -15085,6 +15076,7 @@ $as_echo "$gl_cv_next_stddef_h" >&6; }
        gl_next_as_first_directive=$gl_cv_next_stddef_h
      fi
      NEXT_AS_FIRST_DIRECTIVE_STDDEF_H=$gl_next_as_first_directive
+
 
 
 
@@ -15174,11 +15166,10 @@ $as_echo "$gl_cv_time_r_posix" >&6; }
 
 
 
-$as_echo "#define GNULIB_TEST_TIME_R 1" >>confdefs.h
-
-
-
   # Code from module unistd:
+
+
+
 
 
 
@@ -15198,26 +15189,29 @@ if ${gl_cv_next_unistd_h+:} false; then :
   $as_echo_n "(cached) " >&6
 else
 
-          if test $ac_cv_header_unistd_h = yes; then
-            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+             if test $ac_cv_header_unistd_h = yes; then
+
+
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <unistd.h>
 
 _ACEOF
-                                                                                                case "$host_os" in
-              aix*) gl_absname_cpp="$ac_cpp -C" ;;
-              *)    gl_absname_cpp="$ac_cpp" ;;
-            esac
-                                                gl_cv_next_unistd_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-               sed -n '\#/unistd.h#{
-                 s#.*"\(.*/unistd.h\)".*#\1#
-                 s#^/[^/]#//&#
-                 p
-                 q
-               }'`'"'
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+                                                            gl_cv_next_unistd_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                  sed -n '\#/unistd.h#{
+                    s#.*"\(.*/unistd.h\)".*#\1#
+                    s#^/[^/]#//&#
+                    p
+                    q
+                  }'`'"'
           else
-            gl_cv_next_unistd_h='<'unistd.h'>'
-          fi
+               gl_cv_next_unistd_h='<'unistd.h'>'
+             fi
+
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_unistd_h" >&5
@@ -15233,7 +15227,6 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
        gl_next_as_first_directive=$gl_cv_next_unistd_h
      fi
      NEXT_AS_FIRST_DIRECTIVE_UNISTD_H=$gl_next_as_first_directive
-
 
 
 

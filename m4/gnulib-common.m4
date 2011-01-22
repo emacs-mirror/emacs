@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 21
+# gnulib-common.m4 serial 22
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -100,6 +100,16 @@ AC_DEFUN([gl_MODULE_INDICATOR_FOR_TESTS],
       [abcdefghijklmnopqrstuvwxyz./-],
       [ABCDEFGHIJKLMNOPQRSTUVWXYZ___]), [1],
     [Define to 1 when the gnulib module $1 should be tested.])
+])
+
+# gl_ASSERT_NO_GNULIB_TESTS
+# asserts that there will be no gnulib tests in the scope of the configure.ac
+# and thereby enables an optimization of config.h.
+# Used by Emacs.
+AC_DEFUN([gl_ASSERT_NO_GNULIB_TESTS],
+[
+  dnl Override gl_MODULE_INDICATOR_FOR_TESTS.
+  AC_DEFUN([gl_MODULE_INDICATOR_FOR_TESTS], [])
 ])
 
 # Test whether <features.h> exists.

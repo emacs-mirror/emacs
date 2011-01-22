@@ -877,11 +877,11 @@ case "$opsys" in
    # emacs, instead of the generic ELF dump code found in unexelf.c.
    # The resulting binary has a complete symbol table, and is better
    # for debugging and other observability tools (debuggers, pstack, etc).
-   # 
+   #
    # If you encounter a problem using dldump(), please consider sending
    # a message to the OpenSolaris tools-linking mailing list:
    #      http://mail.opensolaris.org/mailman/listinfo/tools-linking
-   # 
+   #
    # It is likely that dldump() works with older Solaris too, but this has
    # not been tested, so for now this change is for Solaris 10 or newer.
    UNEXEC_OBJ=unexsol.o
@@ -948,7 +948,7 @@ if test "$machine" = "alpha"; then
       AC_MSG_ERROR([What gives?  Fix me if DEC Unix supports ELF now.])
     fi
   else
-    UNEXEC_OBJ=unexalpha.o 
+    UNEXEC_OBJ=unexalpha.o
   fi
 fi
 AC_SUBST(C_SWITCH_MACHINE)
@@ -1130,7 +1130,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
 
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux and the free BSDs.
-  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h, 
+  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h,
     have_sound_header=yes)
   # Emulation library used on NetBSD.
   AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
@@ -1817,7 +1817,7 @@ if test "${HAVE_X11}" = "yes"; then
     PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, HAVE_IMAGEMAGICK=yes, :)
     AC_SUBST(IMAGEMAGICK_CFLAGS)
     AC_SUBST(IMAGEMAGICK_LIBS)
-  
+
     if test $HAVE_IMAGEMAGICK = yes; then
       AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
       CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
@@ -2670,6 +2670,7 @@ AC_FUNC_FSEEKO
 AC_FUNC_GETPGRP
 
 # Configure gnulib.
+gl_ASSERT_NO_GNULIB_TESTS
 gl_INIT
 
 AC_FUNC_STRFTIME
@@ -3241,7 +3242,7 @@ fi
 
 if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
   OLDXMENU_TARGET=
-  OLDXMENU=nothing  
+  OLDXMENU=nothing
   LIBXMENU=
   OLDXMENU_DEPS=
 fi
@@ -3305,7 +3306,7 @@ case "$opsys" in
      headerpad_extra=690
    fi
    LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
- 
+
    ## This is here because src/Makefile.in did some extra fiddling around
    ## with LD_SWITCH_SYSTEM.  The cpp logic was:
    ##   #ifndef LD_SWITCH_SYSTEM

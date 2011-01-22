@@ -1,4 +1,4 @@
-# unistd_h.m4 serial 52
+# unistd_h.m4 serial 53
 dnl Copyright (C) 2006-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -14,8 +14,6 @@ AC_DEFUN([gl_UNISTD_H],
   AC_REQUIRE([AC_C_INLINE])
 
   gl_CHECK_NEXT_HEADERS([unistd.h])
-
-  AC_CHECK_HEADERS_ONCE([unistd.h])
   if test $ac_cv_header_unistd_h = yes; then
     HAVE_UNISTD_H=1
   else
