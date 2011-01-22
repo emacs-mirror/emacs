@@ -327,6 +327,8 @@ prompts for a number to count from and for a format string.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** The Landmark game is now invoked with `landmark', not `lm'.
+
 ** Prolog mode has been completely revamped, with lots of additional
 functionality such as more intelligent indentation, electricty, support for
 more variants, including Mercury, and a lot more.

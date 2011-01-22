@@ -1,3 +1,9 @@
+2011-01-22  Jari Aalto  <jari.aalto@cante.net>
+
+	* play/landmark.el: Change `lm-' prefix to `landmark-' (Bug#7672).
+	(lm): Rename to landmark.
+	(lm-test-run): Rename to landmark-test-run.
+
 2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/re-builder.el (reb-mode-map): Fix logic error in
