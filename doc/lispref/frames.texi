@@ -1715,9 +1715,13 @@ without actually displaying or popping up the menu.
 The argument @var{menu} says what to display in the menu.  It can be a
 keymap or a list of keymaps (@pxref{Menu Keymaps}).  In this case, the
 return value is the list of events corresponding to the user's choice.
-(This list has more than one element if the choice occurred in a
-submenu.)  Note that @code{x-popup-menu} does not actually execute the
-command bound to that sequence of events.
+This list has more than one element if the choice occurred in a
+submenu.  (Note that @code{x-popup-menu} does not actually execute the
+command bound to that sequence of events.)  On toolkits that support
+menu titles, the title is taken from the prompt string of @var{menu}
+if @var{menu} is a keymap, or from the prompt string of the first
+keymap in @var{menu} if it is a list of keymaps (@pxref{Defining
+Menus}).
 
 Alternatively, @var{menu} can have the following form:
 
