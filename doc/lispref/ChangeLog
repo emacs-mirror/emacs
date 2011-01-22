@@ -1,3 +1,7 @@
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Making Buttons): Mention limitation of text buttons.
+
 2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.texi (Directory Names): Move directory-abbrev-alist doc to
@@ -8681,5 +8685,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: 985ae0ce-df29-475b-b3f8-4bbcbf6f7fda

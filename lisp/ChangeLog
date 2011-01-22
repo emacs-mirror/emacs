@@ -1,3 +1,7 @@
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* button.el (make-text-button): Doc fix.  (See bug#7881)
+
 2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-visual): Doc fix (Bug#7594).
