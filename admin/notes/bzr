@@ -92,6 +92,11 @@ If you have run bzrmerge enough times, the "pending merge tip" in bzr
 status should be the last revision from the emacs-23 branch, and
 bzr status -v should show all the revisions you expect to merge.
 
+(Note that it will also show "skipped" revisions.  This is expected,
+and is due to a technical limitation of bzr.  The log data for those
+revisions gets merged, the actual changes themselves do not.
+http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00609.html )
+
 Note that ChangeLog entries are automatically merged to the top with
 today's date, but you still might want to check them to see that too
 much is not being included, or whitespace between entries is not missing.
