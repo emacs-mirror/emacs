@@ -1,3 +1,8 @@
+2011-01-22  Keitaro Miyazaki  <keitaro.miyazaki@gmail.com>
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Set case-fold-search in
+	the correct buffer (Bug#7650).
+
 2011-01-22  Glenn Morris  <rgm@gnu.org>
 
 	* button.el (make-text-button): Doc fix.  (See bug#7881)
