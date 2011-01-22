@@ -1,3 +1,12 @@
+2011-01-22  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-preferred-alternative-precedence): Don't bug out on
+	nested related parts.
+
+	* nnfolder.el (nnfolder-request-expire-articles): Return the list of
+	unexpired articles.  This fixes the regression that led expiry marks to
+	disappear from nnfolder groups.
+
 2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-art.el (gnus-button-alist, gnus-button-handle-info-keystrokes):
