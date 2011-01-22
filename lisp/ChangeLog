@@ -1,3 +1,8 @@
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Fix logic error in
+	"Case sensitive" menu item.
+
 2011-01-21  Roland McGrath  <roland@frob.com>
 
 	* comint.el (comint-replace-by-expanded-history-before-point): Fix
