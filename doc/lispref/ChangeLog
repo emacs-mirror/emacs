@@ -1,4 +1,10 @@
 2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+            Richard Kim  <emacs18@gmail.com>
+
+	* loading.texi (Library Search): Document list-load-path-shadows
+	(Bug#7757).
+
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* searching.texi (Regexp Special): Remove outdated discussion of
 	character sets (Bug#7780).
