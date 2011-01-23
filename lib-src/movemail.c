@@ -488,7 +488,8 @@ main (int argc, char **argv)
 #ifdef MAIL_USE_SYSTEM_LOCK
       if (! preserve_mail)
 	{
-	  ftruncate (indesc, 0L);
+	  if (ftruncate (indesc, 0L) != 0)
+	    pfatal_with_name (inname);
 	}
 #endif /* MAIL_USE_SYSTEM_LOCK */
 

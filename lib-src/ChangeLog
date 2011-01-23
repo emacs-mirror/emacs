@@ -1,3 +1,11 @@
+2011-01-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check return values of some library calls.
+	* hexl.c (main): Check fread result.
+	* make-docfile.c (main): Check chdir result.
+	(scan_c_file): Check fscanf result.
+	* movemail.c (main): Check ftruncate result.
+
 2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Include <unistd.h> unilaterally.

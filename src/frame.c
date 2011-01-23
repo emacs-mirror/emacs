@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <setjmp.h>
 #include "lisp.h"
 #include "character.h"
@@ -2149,10 +2151,13 @@ frame_name_fnn_p (char *str, EMACS_INT len)
   if (len > 1 && str[0] == 'F')
     {
       char *end_ptr;
+      long int n;
+      errno = 0;
+      n = strtol (str + 1, &end_ptr, 10);
 
-      strtol (str + 1, &end_ptr, 10);
-
-      if (end_ptr == str + len)
+      if (end_ptr == str + len
+	  && INT_MIN <= n && n <= INT_MAX
+	  && ((LONG_MIN < n && n < LONG_MAX) || errno != ERANGE))
 	return 1;
     }
   return 0;
