@@ -1,3 +1,8 @@
+2011-01-23  Werner Meisner  <weme24@gmx.net>
+
+	* lwlib-Xm.c (xm_update_menu): Avoid a NULL pointer dereference
+	(Bug#7690).
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.
