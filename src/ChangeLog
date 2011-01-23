@@ -1,5 +1,10 @@
 2011-01-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Check return values of some library calls.
+	* emacs.c (main): Check dup result.
+	* frame.c: Include <limits.h>, for INT_MIN and INT_MAX.
+	(frame_name_fnn_p): Check strtol result.
+
 	* image.c (x_create_bitmap_from_xpm_data): Add cast to fix type	clash
 	when calling XpmCreatePixmapFromData.
 

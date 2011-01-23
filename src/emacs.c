@@ -912,13 +912,12 @@ main (int argc, char **argv)
 	  emacs_close (0);
 	  emacs_close (1);
 	  result = emacs_open (term, O_RDWR, 0);
-	  if (result < 0)
+	  if (result < 0 || dup (0) < 0)
 	    {
 	      char *errstring = strerror (errno);
 	      fprintf (stderr, "%s: %s: %s\n", argv[0], term, errstring);
 	      exit (1);
 	    }
-	  dup (0);
 	  if (! isatty (0))
 	    {
 	      fprintf (stderr, "%s: %s: not a tty\n", argv[0], term);
