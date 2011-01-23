@@ -1,3 +1,10 @@
+2011-01-23  Julien Danjou  <julien@danjou.info>
+
+	* mm-decode.el (mm-inline-media-tests): Change text/org to text/x-org.
+
+	* mm-uu.el (mm-uu-org-src-code-block-extract): Change text/org to
+	text/x-org.
+
 2011-01-22  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-summary-move-article): Protect against backends

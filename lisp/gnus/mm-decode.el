@@ -241,7 +241,7 @@ before the external MIME handler is invoked."
     ("application/x-sh" mm-display-shell-script-inline identity)
     ("text/x-sh" mm-display-shell-script-inline identity)
     ("text/dns" mm-display-dns-inline identity)
-    ("text/org" mm-display-org-inline identity)
+    ("text/x-org" mm-display-org-inline identity)
     ("text/html"
      mm-inline-text-html
      (lambda (handle)
@@ -318,7 +318,7 @@ when selecting a different article."
     "application/pkcs7-mime"
     ;; Mutt still uses this even though it has already been withdrawn.
     "application/pgp\\'"
-     "text/org")
+     "text/x-org")
   "A list of MIME types to be displayed automatically."
   :type '(repeat regexp)
   :group 'mime-display)
