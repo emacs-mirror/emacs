@@ -1,3 +1,9 @@
+2011-01-23  Werner Lemberg  <wl@gnu.org>
+
+	* Makefile.in (MAKEINFO): Now controlled by `configure'.
+	(MAKEINFO_OPTS): New variable.  Use it where appropriate.
+	(ENVADD): Updated.
+
 2011-01-18  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi, emacs.texi (Acknowledgments): Update for ERT addition.

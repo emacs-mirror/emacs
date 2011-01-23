@@ -39,14 +39,16 @@ texinfodir = $(srcdir)/../misc
 
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
-MAKEINFO = makeinfo --force -I $(srcdir)
+MAKEINFO = @MAKEINFO@
+MAKEINFO_OPTS = --force -I $(srcdir)
 
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
 
 
-ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
+ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" \
+         MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
 
 EMACS_XTRA= \
@@ -129,7 +131,7 @@ ps: emacs.ps
 
 $(infodir)/emacs: ${EMACSSOURCES}
 	$(mkinfodir)
-	$(MAKEINFO) -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ $<
 
 emacs.dvi: ${EMACSSOURCES}
 	$(ENVADD) $(TEXI2DVI) $<
@@ -141,7 +143,7 @@ emacs.pdf: ${EMACSSOURCES}
 	$(ENVADD) $(TEXI2PDF) $<
 
 emacs.html: ${EMACSSOURCES}
-	$(MAKEINFO) --html -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ $<
 
 emacs-xtra.dvi: $(EMACS_XTRA)
 	$(ENVADD) $(TEXI2DVI) $<
