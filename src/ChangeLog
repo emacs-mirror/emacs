@@ -1,5 +1,8 @@
 2011-01-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c (x_create_bitmap_from_xpm_data): Add cast to fix type	clash
+	when calling XpmCreatePixmapFromData.
+
 	Promote SSDATA macro from gtkutil.c and xsmfns.c to lisp.h.
 	* lisp.h (SSDATA): New macro.
 	All uses of (char *) SDATA (x) replaced with SSDATA (x),
