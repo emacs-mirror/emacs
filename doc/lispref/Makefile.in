@@ -32,10 +32,14 @@ texinfodir = $(srcdir)/../misc
 # Directory with emacsver.texi.
 emacsdir =  $(srcdir)/../emacs
 
-MAKEINFO = makeinfo --force -I $(emacsdir) -I $(srcdir)
+MAKEINFO = @MAKEINFO@
+MAKEINFO_OPTS = --force -I $(emacsdir) -I $(srcdir)
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
+
+ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" \
+         MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
 # List of all the texinfo files in the manual:
 
@@ -106,19 +110,19 @@ ps: elisp.ps
 
 $(infodir)/elisp: $(srcs)
 	$(mkinfodir)
-	$(MAKEINFO) -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ $<
 
 elisp.dvi: $(srcs)
-	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) -I $(emacsdir) $<
+	$(ENVADD) $(TEXI2DVI) $<
 
 elisp.html: $(srcs)
-	$(MAKEINFO) --html -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ $<
 
 elisp.ps: elisp.dvi
 	$(DVIPS) -o $@ $<
 
 elisp.pdf: $(srcs)
-	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) -I $(emacsdir) $<
+	$(ENVADD) $(TEXI2PDF) $<
 
 .PHONY: mostlyclean clean distclean maintainer-clean infoclean
 
