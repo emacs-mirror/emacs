@@ -1509,7 +1509,7 @@ If SCAN, request a scan of that group as well."
 			      (gnus-info-group info)))))
       (gnus-activate-group (gnus-info-group info) nil t))
 
-    ;; Allow backends to update marks, 
+    ;; Allow backends to update marks,
     (when gnus-use-backend-marks
       (let ((method (inline (gnus-find-method-for-group
 			     (gnus-info-group info)))))

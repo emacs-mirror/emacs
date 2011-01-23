@@ -9836,7 +9836,8 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	    (unless (member to-group to-groups)
 	      (push to-group to-groups))
 
-	    (unless (memq article gnus-newsgroup-unreads)
+	    (when (and (not (memq article gnus-newsgroup-unreads))
+		       (cdr art-group))
 	      (push 'read to-marks)
 	      (gnus-info-set-read
 	       info (gnus-add-to-range (gnus-info-read info)
@@ -9853,14 +9854,16 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 
 	      ;; Enter the article into the cache in the new group,
 	      ;; if that is required.
-	      (when gnus-use-cache
+	      (when (and to-article
+			 gnus-use-cache)
 		(gnus-cache-possibly-enter-article
 		 to-group to-article
 		 (memq article gnus-newsgroup-marked)
 		 (memq article gnus-newsgroup-dormant)
 		 (memq article gnus-newsgroup-unreads)))
 
-	      (when gnus-preserve-marks
+	      (when (and gnus-preserve-marks
+			 to-article)
 		;; Copy any marks over to the new group.
 		(when (and (equal to-group gnus-newsgroup-name)
 			   (not (memq article gnus-newsgroup-unreads)))

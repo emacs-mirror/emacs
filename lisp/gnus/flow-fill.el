@@ -124,8 +124,6 @@ RFC 2646 suggests 66 characters for readability."
       (forward-line 1))
     (goto-char (point-min))
     (while (re-search-forward " $" nil t)
-      (when delete-space
-	(delete-char -1))
       (when (save-excursion
 	      (beginning-of-line)
 	      (looking-at "^\\(>*\\)\\( ?\\)"))
@@ -153,6 +151,8 @@ RFC 2646 suggests 66 characters for readability."
 	      (replace-match (if (string= (match-string 2) " ")
 				 "" "\\2")))
 	    (backward-delete-char -1)
+	    (when delete-space
+	      (delete-char -1))
 	    (end-of-line))
 	  (unless sig
 	    (condition-case nil

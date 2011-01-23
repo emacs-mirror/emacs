@@ -1678,6 +1678,13 @@ and ends at END."
           " "))
     " "))
 
+
+(defun gnus-group-refresh-group (group)
+  (gnus-activate-group group)
+  (gnus-get-unread-articles-in-group (gnus-get-info group)
+				     (gnus-active group))
+  (gnus-group-update-group group t))
+
 (defun gnus-group-update-group (group &optional visible-only)
   "Update all lines where GROUP appear.
 If VISIBLE-ONLY is non-nil, the group won't be displayed if it isn't

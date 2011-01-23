@@ -4128,7 +4128,6 @@ not have PROP."
     (nreverse regions)))
 
 (defcustom message-bogus-addresses
-  ;; '("noreply" "nospam" "invalid")
   '("noreply" "nospam" "invalid" "@@" "[^[:ascii:]].*@" "[ \t]")
   "List of regexps of potentially bogus mail addresses.
 See `message-check-recipients' how to setup checking.
@@ -4294,7 +4293,17 @@ This function could be useful in `message-setup-hook'."
 	    (and bog
 		 (not (y-or-n-p
 		       (format
-			"Address `%s' might be bogus.  Continue? " bog)))
+			"Address `%s'%s might be bogus.  Continue? "
+			bog
+			;; If the encoded version of the email address
+			;; is different from the unencoded version,
+			;; then we likely have invisible characters or
+			;; the like.  Display the encoded version,
+			;; too.
+			(let ((encoded (rfc2047-encode-string bog)))
+			  (if (string= encoded bog)
+			      ""
+			    (format " (%s)" encoded))))))
 		 (error "Bogus address"))))))))
 
 (custom-add-option 'message-setup-hook 'message-check-recipients)

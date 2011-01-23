@@ -1,5 +1,36 @@
 2011-01-22  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-sum.el (gnus-summary-move-article): Protect against backends
+	(i.e., nnimap) returning nil as the article number.
+
+2011-01-22  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>
+
+	* flow-fill.el (fill-flowed): Make `delete-space' option correspond to
+	"DelSp" parameter in RFC3676.
+
+2011-01-22  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-check-recipients): Display the encoded version of
+	the bogus address if they differ.
+
+	* gnus-draft.el (gnus-group-send-queue): Really refresh the queue group
+	after sending.
+
+	* gnus-agent.el (gnus-agent-send-mail): Ditto.
+
+	* gnus-group.el (gnus-group-refresh-group): New convenience function.
+
+	* gnus-draft.el (gnus-group-send-queue): Update the queue group in the
+	group buffer after sending the queue.
+
+	* gnus-agent.el (gnus-agent-send-mail): Ditto.
+
+2011-01-22  Julien Danjou  <julien@danjou.info>
+
+	* mailcap.el (mailcap-mime-extensions): Rename text/org to text/x-org.
+
+2011-01-22  Lars Ingebrigtsen  <larsi@gnus.org>
+
 	* mm-decode.el (mm-preferred-alternative-precedence): Don't bug out on
 	nested related parts.
 

@@ -221,7 +221,8 @@ Obeys the standard process/prefix convention."
 	    (let ((message-sending-message
 		   (format "Sending message %d of %d..."
 			   (- total (length articles)) total)))
-	      (gnus-draft-send article))))))))
+	      (gnus-draft-send article))))))
+    (gnus-group-refresh-group "nndraft:queue")))
 
 ;;;###autoload
 (defun gnus-draft-reminder ()
