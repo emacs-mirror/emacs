@@ -1397,7 +1397,7 @@ const char *
 get_system_name (void)
 {
   if (STRINGP (Vsystem_name))
-    return (const char *) SDATA (Vsystem_name);
+    return SSDATA (Vsystem_name);
   else
     return "";
 }
@@ -1406,7 +1406,7 @@ const char *
 get_operating_system_release (void)
 {
   if (STRINGP (Voperating_system_release))
-    return (char *) SDATA (Voperating_system_release);
+    return SSDATA (Voperating_system_release);
   else
     return "";
 }
@@ -1814,7 +1814,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
       if (EQ (zone, Qt))
 	tzstring = "UTC0";
       else if (STRINGP (zone))
-	tzstring = (char *) SDATA (zone);
+	tzstring = SSDATA (zone);
       else if (INTEGERP (zone))
 	{
 	  int abszone = eabs (XINT (zone));
@@ -2003,7 +2003,7 @@ If TZ is t, use Universal Time.  */)
   else
     {
       CHECK_STRING (tz);
-      tzstring = (char *) SDATA (tz);
+      tzstring = SSDATA (tz);
     }
 
   set_time_zone_rule (tzstring);
@@ -4677,4 +4677,3 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Ssave_restriction);
   defsubr (&Stranspose_regions);
 }
-

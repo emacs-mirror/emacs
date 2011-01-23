@@ -8177,8 +8177,8 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       /* Try to make one from caption and key.  */
       Lisp_Object key = PROP (TOOL_BAR_ITEM_KEY);
       Lisp_Object capt = PROP (TOOL_BAR_ITEM_CAPTION);
-      const char *label = SYMBOLP (key) ? (char *) SDATA (SYMBOL_NAME (key)) : "";
-      const char *caption = STRINGP (capt) ? (char *) SDATA (capt) : "";
+      const char *label = SYMBOLP (key) ? SSDATA (SYMBOL_NAME (key)) : "";
+      const char *caption = STRINGP (capt) ? SSDATA (capt) : "";
       EMACS_INT max_lbl = 2 * tool_bar_max_label_size;
       char *buf = (char *) xmalloc (max_lbl + 1);
       Lisp_Object new_lbl;
@@ -12298,4 +12298,3 @@ mark_kboards (void)
       }
   }
 }
-

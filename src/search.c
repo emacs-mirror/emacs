@@ -153,7 +153,7 @@ compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object tra
   else
     re_set_whitespace_regexp (NULL);
 
-  val = (char *) re_compile_pattern ((char *) SDATA (pattern),
+  val = (char *) re_compile_pattern (SSDATA (pattern),
 				     SBYTES (pattern), &cp->buf);
 
   /* If the compiled pattern hard codes some of the contents of the
@@ -414,7 +414,7 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start, int p
   immediate_quit = 1;
   re_match_object = string;
 
-  val = re_search (bufp, (char *) SDATA (string),
+  val = re_search (bufp, SSDATA (string),
 		   SBYTES (string), pos_byte,
 		   SBYTES (string) - pos_byte,
 		   (NILP (Vinhibit_changing_match_data)
@@ -485,7 +485,7 @@ fast_string_match (Lisp_Object regexp, Lisp_Object string)
   immediate_quit = 1;
   re_match_object = string;
 
-  val = re_search (bufp, (char *) SDATA (string),
+  val = re_search (bufp, SSDATA (string),
 		   SBYTES (string), 0,
 		   SBYTES (string), 0);
   immediate_quit = 0;
@@ -528,7 +528,7 @@ fast_string_match_ignore_case (Lisp_Object regexp, Lisp_Object string)
   immediate_quit = 1;
   re_match_object = string;
 
-  val = re_search (bufp, (char *) SDATA (string),
+  val = re_search (bufp, SSDATA (string),
 		   SBYTES (string), 0,
 		   SBYTES (string), 0);
   immediate_quit = 0;
@@ -1268,7 +1268,7 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
 
       if (multibyte == STRING_MULTIBYTE (string))
 	{
-	  raw_pattern = (unsigned char *) SDATA (string);
+	  raw_pattern = SDATA (string);
 	  raw_pattern_size = SCHARS (string);
 	  raw_pattern_size_byte = SBYTES (string);
 	}
@@ -3254,4 +3254,3 @@ is to bind it with `let' around a small expression.  */);
   defsubr (&Sset_match_data);
   defsubr (&Sregexp_quote);
 }
-

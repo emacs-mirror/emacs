@@ -194,7 +194,7 @@ report_file_error (const char *string, Lisp_Object data)
 	  {
 	    int c;
 
-	    str = (char *) SDATA (errstring);
+	    str = SSDATA (errstring);
 	    c = STRING_CHAR (str);
 	    Faset (errstring, make_number (0), make_number (DOWNCASE (c)));
 	  }
@@ -2558,7 +2558,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
     return Qnil;
   return (statbuf.st_mode & S_IFMT) == S_IFDIR ? Qt : Qnil;
 #else
-  return (check_writable (!NILP (dir) ? (char *) SDATA (dir) : "")
+  return (check_writable (!NILP (dir) ? SSDATA (dir) : "")
 	  ? Qt : Qnil);
 #endif
 }

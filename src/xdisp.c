@@ -11035,7 +11035,7 @@ debug_method_add (w, fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9)
 	     w,
 	     ((BUFFERP (w->buffer)
 	       && STRINGP (XBUFFER (w->buffer)->name))
-	      ? (char *) SDATA (XBUFFER (w->buffer)->name)
+	      ? SSDATA (XBUFFER (w->buffer)->name)
 	      : "no buffer"),
 	     buffer);
 }
@@ -19298,9 +19298,9 @@ decode_mode_spec (struct window *w, register int c, int field_width,
     case 'F':
       /* %F displays the frame name.  */
       if (!NILP (f->title))
-	return (char *) SDATA (f->title);
+	return SSDATA (f->title);
       if (f->explicit_name || ! FRAME_WINDOW_P (f))
-	return (char *) SDATA (f->name);
+	return SSDATA (f->name);
       return "Emacs";
 
     case 'f':
@@ -19583,7 +19583,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
   if (STRINGP (obj))
     {
       *string = obj;
-      return (char *) SDATA (obj);
+      return SSDATA (obj);
     }
   else
     return "";
@@ -22230,7 +22230,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	{
 	  if (! STRINGP (acronym) && CHAR_TABLE_P (Vglyphless_char_display))
 	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
-	  str = STRINGP (acronym) ? (char *) SDATA (acronym) : "";
+	  str = STRINGP (acronym) ? SSDATA (acronym) : "";
 	}
       else
 	{
@@ -22266,7 +22266,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	  else
 	    upper_xoff = (width - metrics_upper.width) / 2;
 	}
-  
+
       /* +5 is for horizontal bars of a box plus 1-pixel spaces at
 	 top, bottom, and between upper and lower strings.  */
       height = (metrics_upper.ascent + metrics_upper.descent
@@ -26991,4 +26991,3 @@ cancel_hourglass (void)
 #endif
 }
 #endif /* ! WINDOWSNT  */
-

@@ -126,7 +126,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
     }
   else
     {
-      name = (char *) SDATA (file);
+      name = SSDATA (file);
     }
 
   fd = emacs_open (name, O_RDONLY, 0);
@@ -891,7 +891,7 @@ a new string, without any text properties, is returned.  */)
 	    bufp += length_byte;
 	    nchars += length;
 	    /* Check STRING again in case gc relocated it.  */
-	    strp = (unsigned char *) SDATA (string) + idx;
+	    strp = SDATA (string) + idx;
 	  }
 	}
       else if (! multibyte)		/* just copy other chars */
@@ -938,4 +938,3 @@ syms_of_doc (void)
   defsubr (&Ssnarf_documentation);
   defsubr (&Ssubstitute_command_keys);
 }
-

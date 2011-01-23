@@ -39,9 +39,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termopts.h"
 #include "xterm.h"
 
-/* Avoid "differ in sign" warnings */
-#define SSDATA(x)  ((char *) SDATA (x))
-
 /* This is the event used when SAVE_SESSION_EVENT occurs.  */
 
 static struct input_event emacs_event;
@@ -232,7 +229,7 @@ smc_save_yourself_CB (SmcConn smcConn,
   props[props_idx]->vals[2].value = NOSPLASH_OPT;
 
   cwd = get_current_dir_name ();
-  if (cwd) 
+  if (cwd)
     {
       chdir_opt = xmalloc (strlen (CHDIR_OPT) + strlen (cwd) + 1);
       strcpy (chdir_opt, CHDIR_OPT);
@@ -394,8 +391,8 @@ create_client_leader_window (struct x_display_info *dpyinfo, char *client_id)
                            -1, -1, 1, 1,
                            CopyFromParent, CopyFromParent, CopyFromParent);
 
-  class_hints.res_name = (char *) SDATA (Vx_resource_name);
-  class_hints.res_class = (char *) SDATA (Vx_resource_class);
+  class_hints.res_name = SSDATA (Vx_resource_name);
+  class_hints.res_class = SSDATA (Vx_resource_class);
   XSetClassHint (dpyinfo->display, w, &class_hints);
   XStoreName (dpyinfo->display, w, class_hints.res_name);
 
@@ -537,10 +534,10 @@ Do not call this function yourself. */)
       SmcCloseConnection (smc_conn, 0, 0);
       ice_connection_closed ();
     }
-  
+
   return Qnil;
 }
-  
+
 
 
 /***********************************************************************
@@ -584,4 +581,3 @@ See also `emacs-save-session-functions', `emacs-session-save' and
 }
 
 #endif /* HAVE_X_SM */
-

@@ -46,9 +46,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FRAME_TOTAL_PIXEL_WIDTH(f) \
   (FRAME_PIXEL_WIDTH (f) + FRAME_TOOLBAR_WIDTH (f))
 
-/* Avoid "differ in sign" warnings */
-#define SSDATA(x)  ((char *) SDATA (x))
-
 #ifndef HAVE_GTK_WIDGET_SET_HAS_WINDOW
 #define gtk_widget_set_has_window(w, b) \
   (gtk_fixed_set_has_window (GTK_FIXED (w), b))
@@ -4565,4 +4562,3 @@ xg_initialize (void)
 }
 
 #endif /* USE_GTK */
-

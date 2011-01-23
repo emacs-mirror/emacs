@@ -411,7 +411,7 @@ delete_write_fd (int fd)
               max_input_desc = fd;
               break;
             }
-      
+
     }
 }
 
@@ -498,7 +498,7 @@ status_message (struct Lisp_Process *p)
 	  if (! NILP (Vlocale_coding_system))
 	    string = (code_convert_string_norecord
 		      (string, Vlocale_coding_system, 0));
-	  c1 = STRING_CHAR ((char *) SDATA (string));
+	  c1 = STRING_CHAR (SSDATA (string));
 	  c2 = DOWNCASE (c1);
 	  if (c1 != c2)
 	    Faset (string, make_number (0), make_number (c2));
@@ -1420,7 +1420,7 @@ list_processes_1 (Lisp_Object query_only)
 	    port = Fformat_network_address (Fplist_get (p->childp, QClocal), Qnil);
 	  sprintf (tembuf, "(network %s server on %s)\n",
 		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
-		   (STRINGP (port) ? (char *)SDATA (port) : "?"));
+		   (STRINGP (port) ? SSDATA (port) : "?"));
 	  insert_string (tembuf);
 	}
       else if (NETCONN1_P (p))
@@ -1438,7 +1438,7 @@ list_processes_1 (Lisp_Object query_only)
 	    host = Fformat_network_address (Fplist_get (p->childp, QCremote), Qnil);
 	  sprintf (tembuf, "(network %s connection to %s)\n",
 		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
-		   (STRINGP (host) ? (char *)SDATA (host) : "?"));
+		   (STRINGP (host) ? SSDATA (host) : "?"));
 	  insert_string (tembuf);
 	}
       else if (SERIALCONN1_P (p))
@@ -2517,7 +2517,7 @@ set_socket_option (int s, Lisp_Object opt, Lisp_Object val)
 
   CHECK_SYMBOL (opt);
 
-  name = (char *) SDATA (SYMBOL_NAME (opt));
+  name = SSDATA (SYMBOL_NAME (opt));
   for (sopt = socket_options; sopt->name; sopt++)
     if (strcmp (name, sopt->name) == 0)
       break;
@@ -2556,7 +2556,7 @@ set_socket_option (int s, Lisp_Object opt, Lisp_Object val)
 	memset (devname, 0, sizeof devname);
 	if (STRINGP (val))
 	  {
-	    char *arg = (char *) SDATA (val);
+	    char *arg = SSDATA (val);
 	    int len = min (strlen (arg), IFNAMSIZ);
 	    memcpy (devname, arg, len);
 	  }
@@ -2841,7 +2841,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   record_unwind_protect (make_serial_process_unwind, proc);
   p = XPROCESS (proc);
 
-  fd = serial_open ((char*) SDATA (port));
+  fd = serial_open (SSDATA (port));
   p->infd = fd;
   p->outfd = fd;
   if (fd > max_process_desc)
@@ -3377,7 +3377,7 @@ usage: (make-network-process &rest ARGS)  */)
 	/* Attempt to interpret host as numeric inet address */
 	{
 	  unsigned long numeric_addr;
-	  numeric_addr = inet_addr ((char *) SDATA (host));
+	  numeric_addr = inet_addr (SSDATA (host));
 	  if (numeric_addr == -1)
 	    error ("Unknown host \"%s\"", SDATA (host));
 
@@ -5645,7 +5645,7 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 #ifdef HAVE_GNUTLS
 		  if (XPROCESS (proc)->gnutls_p)
 		    rv = emacs_gnutls_write (outfd,
-					     XPROCESS (proc), 
+					     XPROCESS (proc),
 					     (char *) buf, this);
 		  else
 #endif
@@ -7727,4 +7727,3 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Slist_system_processes);
   defsubr (&Sprocess_attributes);
 }
-

@@ -635,6 +635,9 @@ extern Lisp_Object make_number (EMACS_INT);
 #define SCHARS(string)		(XSTRING (string)->size + 0)
 #define SBYTES(string)		(STRING_BYTES (XSTRING (string)) + 0)
 
+/* Avoid "differ in sign" warnings.  */
+#define SSDATA(x)  ((char *) SDATA (x))
+
 #define STRING_SET_CHARS(string, newsize) \
     (XSTRING (string)->size = (newsize))
 
@@ -1844,7 +1847,7 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd *, const char *, int);
 
 /* Macros we use to define forwarded Lisp variables.
    These are used in the syms_of_FILENAME functions.
-   
+
    An ordinary (not in buffer_defaults, per-buffer, or per-keyboard)
    lisp variable is actually a field in `struct emacs_globals'.  The
    field's name begins with "f_", which is a convention enforced by

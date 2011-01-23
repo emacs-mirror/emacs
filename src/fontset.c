@@ -1049,7 +1049,7 @@ make_fontset_for_ascii_face (FRAME_PTR f, int base_fontset_id, struct face *face
    the corresponding regular expression.  */
 static Lisp_Object Vcached_fontset_data;
 
-#define CACHED_FONTSET_NAME ((char *) SDATA (XCAR (Vcached_fontset_data)))
+#define CACHED_FONTSET_NAME SSDATA (XCAR (Vcached_fontset_data))
 #define CACHED_FONTSET_REGEX (XCDR (Vcached_fontset_data))
 
 /* If fontset name PATTERN contains any wild card, return regular
@@ -1058,13 +1058,13 @@ static Lisp_Object Vcached_fontset_data;
 static Lisp_Object
 fontset_pattern_regexp (Lisp_Object pattern)
 {
-  if (!strchr ((char *) SDATA (pattern), '*')
-      && !strchr ((char *) SDATA (pattern), '?'))
+  if (!strchr (SSDATA (pattern), '*')
+      && !strchr (SSDATA (pattern), '?'))
     /* PATTERN does not contain any wild cards.  */
     return Qnil;
 
   if (!CONSP (Vcached_fontset_data)
-      || strcmp ((char *) SDATA (pattern), CACHED_FONTSET_NAME))
+      || strcmp (SSDATA (pattern), CACHED_FONTSET_NAME))
     {
       /* We must at first update the cached data.  */
       unsigned char *regex, *p0, *p1;
@@ -1115,7 +1115,7 @@ fontset_pattern_regexp (Lisp_Object pattern)
       *p1++ = '$';
       *p1++ = 0;
 
-      Vcached_fontset_data = Fcons (build_string ((char *) SDATA (pattern)),
+      Vcached_fontset_data = Fcons (build_string (SSDATA (pattern)),
 				    build_string ((char *) regex));
     }
 
@@ -1225,7 +1225,7 @@ list_fontsets (FRAME_PTR f, Lisp_Object pattern, int size)
 
       if (STRINGP (regexp)
 	  ? (fast_string_match (regexp, name) < 0)
-	  : strcmp ((char *) SDATA (pattern), (char *) SDATA (name)))
+	  : strcmp (SSDATA (pattern), SSDATA (name)))
 	continue;
 
       val = Fcons (Fcopy_sequence (FONTSET_NAME (fontset)), val);
@@ -1651,10 +1651,10 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       char xlfd[256];
       int len;
 
-      if (font_parse_xlfd ((char *) SDATA (name), font_spec) < 0)
+      if (font_parse_xlfd (SSDATA (name), font_spec) < 0)
 	error ("Fontset name must be in XLFD format");
       short_name = AREF (font_spec, FONT_REGISTRY_INDEX);
-      if (strncmp ((char *) SDATA (SYMBOL_NAME (short_name)), "fontset-", 8)
+      if (strncmp (SSDATA (SYMBOL_NAME (short_name)), "fontset-", 8)
 	  || SBYTES (SYMBOL_NAME (short_name)) < 9)
 	error ("Registry field of fontset name must be \"fontset-*\"");
       Vfontset_alias_alist = Fcons (Fcons (name, SYMBOL_NAME (short_name)),

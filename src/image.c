@@ -350,7 +350,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
     {
       if (dpyinfo->bitmaps[id].refcount
 	  && dpyinfo->bitmaps[id].file
-	  && !strcmp (dpyinfo->bitmaps[id].file, (char *) SDATA (file)))
+	  && !strcmp (dpyinfo->bitmaps[id].file, SSDATA (file)))
 	{
 	  ++dpyinfo->bitmaps[id].refcount;
 	  return id + 1;
@@ -363,7 +363,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
     return -1;
   emacs_close (fd);
 
-  filename = (char *) SDATA (found);
+  filename = SSDATA (found);
 
   result = XReadBitmapFile (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    filename, &width, &height, &bitmap, &xhot, &yhot);
@@ -8883,4 +8883,3 @@ void
 init_image (void)
 {
 }
-

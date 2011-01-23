@@ -1278,7 +1278,7 @@ getenv_internal_1 (const char *var, int varlen, char **value, int *valuelen,
 	{
 	  if (SBYTES (entry) > varlen && SREF (entry, varlen) == '=')
 	    {
-	      *value = (char *) SDATA (entry) + (varlen + 1);
+	      *value = SSDATA (entry) + (varlen + 1);
 	      *valuelen = SBYTES (entry) - (varlen + 1);
 	      return 1;
 	    }
@@ -1310,7 +1310,7 @@ getenv_internal (const char *var, int varlen, char **value, int *valuelen,
 	= Fframe_parameter (NILP (frame) ? selected_frame : frame, Qdisplay);
       if (STRINGP (display))
 	{
-	  *value    = (char *) SDATA (display);
+	  *value    = SSDATA (display);
 	  *valuelen = SBYTES (display);
 	  return 1;
 	}
@@ -1594,4 +1594,3 @@ See `setenv' and `getenv'.  */);
   defsubr (&Sgetenv_internal);
   defsubr (&Scall_process_region);
 }
-

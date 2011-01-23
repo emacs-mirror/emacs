@@ -882,7 +882,7 @@ static void
 apply_systemfont_to_dialog (Widget w)
 {
   const char *fn = xsettings_get_system_normal_font ();
-  if (fn) 
+  if (fn)
     {
       XrmDatabase db = XtDatabase (XtDisplay (w));
       if (db)
@@ -1106,7 +1106,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 	  string = XVECTOR (items)->contents[i + 1];
 	  if (NILP (string))
             break;
-          wv->name = (char *) SDATA (string);
+          wv->name = SSDATA (string);
           update_submenu_strings (wv->contents);
           wv = wv->next;
 	}
@@ -1135,7 +1135,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 	    break;
 
 	  wv = xmalloc_widget_value ();
-	  wv->name = (char *) SDATA (string);
+	  wv->name = SSDATA (string);
 	  wv->value = 0;
 	  wv->enabled = 1;
 	  wv->button_type = BUTTON_TYPE_NONE;
@@ -1680,7 +1680,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) SDATA (pane_name));
+			 ? "" : SSDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -1745,9 +1745,9 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	    prev_wv->next = wv;
 	  else
 	    save_wv->contents = wv;
-	  wv->name = (char *) SDATA (item_name);
+	  wv->name = SSDATA (item_name);
 	  if (!NILP (descrip))
-	    wv->key = (char *) SDATA (descrip);
+	    wv->key = SSDATA (descrip);
 	  wv->value = 0;
 	  /* If this item has a null value,
 	     make the call_data null so that it won't display a box
@@ -1798,7 +1798,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	title = ENCODE_MENU_STRING (title);
 #endif
 
-      wv_title->name = (char *) SDATA (title);
+      wv_title->name = SSDATA (title);
       wv_title->enabled = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->help = Qnil;
@@ -2019,7 +2019,7 @@ xdialog_show (FRAME_PTR f,
     pane_name = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_NAME];
     prefix = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_PREFIX];
     pane_string = (NILP (pane_name)
-		   ? "" : (char *) SDATA (pane_name));
+		   ? "" : SSDATA (pane_name));
     prev_wv = xmalloc_widget_value ();
     prev_wv->value = pane_string;
     if (keymaps && !NILP (prefix))
@@ -2066,8 +2066,8 @@ xdialog_show (FRAME_PTR f,
 	prev_wv->next = wv;
 	wv->name = (char *) button_names[nb_buttons];
 	if (!NILP (descrip))
-	  wv->key = (char *) SDATA (descrip);
-	wv->value = (char *) SDATA (item_name);
+	  wv->key = SSDATA (descrip);
+	wv->value = SSDATA (item_name);
 	wv->call_data = (void *) &XVECTOR (menu_items)->contents[i];
 	wv->enabled = !NILP (enable);
 	wv->help = Qnil;
@@ -2317,7 +2317,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
 	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) SDATA (pane_name));
+			 ? "" : SSDATA (pane_name));
 	  if (keymaps && !NILP (prefix))
 	    pane_string++;
 
@@ -2582,4 +2582,3 @@ syms_of_xmenu (void)
   defsubr (&Sx_popup_dialog);
 #endif
 }
-
