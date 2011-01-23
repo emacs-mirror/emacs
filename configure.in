@@ -493,6 +493,10 @@ dnl see the `changequote' comment above.
     CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
   ;;
 
+  ia64*-hp-hpux1[1-9]* )
+    machine=hp800 opsys=hpux11
+  ;;
+
   hppa*-*-linux-gnu* )
     machine=hp800 opsys=gnu-linux
   ;;

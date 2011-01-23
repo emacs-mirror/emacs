@@ -1,3 +1,6 @@
+2011-01-23  Peter O'Gorman  <bug-gnu-emacs@mlists.thewrittenword.com>  (tiny change)
+	* s/hpux11.h: Set CANNOT_DUMP on IA64 (Bug#6811).
+
 2011-01-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (select_window): New function.
