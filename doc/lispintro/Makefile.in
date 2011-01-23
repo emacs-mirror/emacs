@@ -28,10 +28,14 @@ infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
-MAKEINFO = makeinfo --force -I $(srcdir)
+MAKEINFO = @MAKEINFO@
+MAKEINFO_OPTS = --force -I $(srcdir)
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
+
+ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" \
+         MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
 mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
@@ -48,19 +52,19 @@ ps: emacs-lisp-intro.ps
 # -NN extensions to fit into DOS 8+3 limits without clashing.
 ${infodir}/eintr: ${srcdir}/emacs-lisp-intro.texi
 	$(mkinfodir)
-	$(MAKEINFO) -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ $<
 
 emacs-lisp-intro.dvi: ${srcdir}/emacs-lisp-intro.texi
-	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $<
+	$(ENVADD) $(TEXI2DVI) $<
 
 emacs-lisp-intro.ps: emacs-lisp-intro.dvi
 	$(DVIPS) -o $@ $<
 
 emacs-lisp-intro.pdf: ${srcdir}/emacs-lisp-intro.texi
-	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $<
+	$(ENVADD) $(TEXI2PDF) $<
 
 emacs-lisp-intro.html: ${srcdir}/emacs-lisp-intro.texi
-	$(MAKEINFO) --html -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ $<
 
 .PHONY: mostlyclean clean distclean maintainer-clean infoclean
 

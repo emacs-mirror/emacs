@@ -1,3 +1,9 @@
+2011-01-23  Werner Lemberg  <wl@gnu.org>
+
+	* Makefile.in (MAKEINFO): Now controlled by `configure'.
+	(MAKEINFO_OPTS): New variable.  Use it where appropriate.
+	(ENVADD): New variable to control texi2dvi and texi2pdf.
+
 2010-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi: Rename the `count-words-region' example,
