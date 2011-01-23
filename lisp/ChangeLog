@@ -10,7 +10,7 @@
 	(ruby-font-lock-syntactic-keywords): Highlight regexp after open
 	bracket.
 
-2011-01-22  Keitaro Miyazaki  <keitaro.miyazaki@gmail.com>
+2011-01-22  Keitaro Miyazaki  <keitaro.miyazaki@gmail.com>  (tiny change)
 
 	* emacs-lisp/re-builder.el (reb-mode-map): Set case-fold-search in
 	the correct buffer (Bug#7650).
