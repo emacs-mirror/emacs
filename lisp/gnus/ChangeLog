@@ -3,7 +3,7 @@
 	* gnus-sum.el (gnus-summary-move-article): Protect against backends
 	(i.e., nnimap) returning nil as the article number.
 
-2011-01-22  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>
+2011-01-22  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
 	* flow-fill.el (fill-flowed): Make `delete-space' option correspond to
 	"DelSp" parameter in RFC3676.
