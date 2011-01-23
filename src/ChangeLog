@@ -1,4 +1,10 @@
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* lisp.h (XPNTR): Obey DATA_SEG_BITS in all non-USE_LSB_TAG cases.
+	Remove unused HAVE_SHM branch (Bug#6811).
+
 2011-01-23  Peter O'Gorman  <bug-gnu-emacs@mlists.thewrittenword.com>  (tiny change)
+
 	* s/hpux11.h: Set CANNOT_DUMP on IA64 (Bug#6811).
 
 2011-01-22  Martin Rudalics  <rudalics@gmx.at>
