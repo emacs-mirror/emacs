@@ -1379,9 +1379,10 @@ Use CMD as the process."
 	(setq handles (nconc (delete handle handles) (list handle))))))
   ;; Remove empty parts.
   (dolist (handle (copy-sequence handles))
-    (unless (with-current-buffer (mm-handle-buffer handle)
-	      (goto-char (point-min))
-	      (re-search-forward "[^ \t\n]" nil t))
+    (when (and (bufferp (mm-handle-buffer handle))
+	       (not (with-current-buffer (mm-handle-buffer handle)
+		      (goto-char (point-min))
+		      (re-search-forward "[^ \t\n]" nil t))))
       (setq handles (nconc (delete handle handles) (list handle)))))
   (mapcar #'mm-handle-media-type handles))
 

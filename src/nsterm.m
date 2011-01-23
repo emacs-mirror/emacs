@@ -5063,7 +5063,6 @@ ns_term_shutdown (int sig)
 
   NSTRACE (windowDidBecomeKey);
 
-  emacsframe->output_data.ns->dont_constrain = 1;
   if (emacsframe != old_focus)
     dpyinfo->x_focus_frame = emacsframe;
 
@@ -5678,6 +5677,7 @@ ns_term_shutdown (int sig)
   if (f->output_data.ns->dont_constrain)
     return frameRect;
 
+  f->output_data.ns->dont_constrain = 1;
   return [super constrainFrameRect:frameRect toScreen:screen];
 }
 
@@ -5685,8 +5685,6 @@ ns_term_shutdown (int sig)
 /* called only on resize clicks by special case in EmacsApp-sendEvent */
 - (void)mouseDown: (NSEvent *)theEvent
 {
-  struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
-  f->output_data.ns->dont_constrain = 1;
   if (ns_in_resize)
     {
       NSSize size = [[theEvent window] frame].size;

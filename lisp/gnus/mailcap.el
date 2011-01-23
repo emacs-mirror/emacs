@@ -911,7 +911,7 @@ If NO-DECODE is non-nil, don't decode STRING."
     (".ai"    . "application/postscript")
     (".jpe"   . "image/jpeg")
     (".jpeg"  . "image/jpeg")
-    (".org"   . "text/org"))
+    (".org"   . "text/x-org"))
   "An alist of file extensions and corresponding MIME content-types.
 This exists for you to customize the information in Lisp.  It is
 merged with values from mailcap files by `mailcap-parse-mimetypes'.")

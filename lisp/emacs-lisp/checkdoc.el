@@ -1798,7 +1798,9 @@ Replace with \"%s\"? " original replace)
        (let ((found nil) (start (point)) (msg nil) (ms nil))
 	 (while (and (not msg)
 		     (re-search-forward
-		      "[^-([`':a-zA-Z]\\(\\w+[:-]\\(\\w\\|\\s_\\)+\\)[^]']"
+		      ;; Ignore manual page refereces like
+		      ;; git-config(1).
+		      "[^-([`':a-zA-Z]\\(\\w+[:-]\\(\\w\\|\\s_\\)+\\)[^](']"
 		      e t))
 	   (setq ms (match-string 1))
 	   ;; A . is a \s_ char, so we must remove periods from

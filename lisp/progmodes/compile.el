@@ -508,10 +508,8 @@ matched by the whole REGEXP becomes the hyperlink.
 
 Additional HIGHLIGHTs as described under `font-lock-keywords' can
 be added."
-  :type `(set :menu-tag "Pick"
-	      ,@(mapcar (lambda (elt)
-			  (list 'const (car elt)))
-			compilation-error-regexp-alist-alist))
+  :type '(repeat (choice (symbol :tag "Predefined symbol")
+			 (sexp :tag "Error specification")))
   :link `(file-link :tag "example file"
 		    ,(expand-file-name "compilation.txt" data-directory))
   :group 'compilation)

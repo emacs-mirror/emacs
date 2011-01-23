@@ -488,8 +488,8 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
       (nnfolder-save-buffer)
       (nnfolder-adjust-min-active newsgroup)
       (nnfolder-save-active nnfolder-group-alist nnfolder-active-file)
-      (gnus-sorted-difference articles (nreverse deleted-articles)))
-    (nnfolder-save-all-buffers)))
+      (nnfolder-save-all-buffers)
+      (gnus-sorted-difference articles (nreverse deleted-articles)))))
 
 (deffoo nnfolder-request-move-article (article group server accept-form
 					       &optional last move-is-internal)

@@ -79,12 +79,13 @@ static Lisp_Object next_window (Lisp_Object, Lisp_Object,
 static void decode_next_window_args (Lisp_Object *, Lisp_Object *,
                                      Lisp_Object *);
 static void foreach_window (struct frame *,
-                            int (* fn) (struct window *, void *),
+				 int (* fn) (struct window *, void *),
                             void *);
 static int foreach_window_1 (struct window *,
                              int (* fn) (struct window *, void *),
                              void *);
 static Lisp_Object window_list_1 (Lisp_Object, Lisp_Object, Lisp_Object);
+static Lisp_Object select_window (Lisp_Object, Lisp_Object, int);
 
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
@@ -125,11 +126,6 @@ static int sequence_number;
 /* Nonzero after init_window_once has finished.  */
 
 static int window_initialized;
-
-/* Set in `set-window-configuration' to prevent "swapping out point"
-   in the old selected window.  */
-
-static int inhibit_point_swap;
 
 /* Hook to run when window config changes.  */
 
@@ -3497,20 +3493,14 @@ This function runs `window-scroll-functions' before running
   return Qnil;
 }
 
-/* Note that selected_window can be nil when this is called from
-   Fset_window_configuration.  */
+/* If select_window is called with inhibit_point_swap non-zero it will
+   not store point of the old selected window's buffer back into that
+   window's pointm slot.  This is needed by Fset_window_configuration to
+   avoid that the display routine is called with selected_window set to
+   Qnil causing a subsequent crash.  */
 
-DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
-       doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
-If WINDOW is not already selected, make WINDOW's buffer current
-and make WINDOW the frame's selected window.  Return WINDOW.
-Optional second arg NORECORD non-nil means do not put this buffer
-at the front of the list of recently selected ones and do not
-make this window the most recently selected one.
-
-Note that the main editor command loop selects the buffer of the
-selected window before each command.  */)
-  (register Lisp_Object window, Lisp_Object norecord)
+static Lisp_Object
+select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
 {
   register struct window *w;
   register struct window *ow;
@@ -3550,9 +3540,7 @@ selected window before each command.  */)
   /* Store the current buffer's actual point into the
      old selected window.  It belongs to that window,
      and when the window is not selected, must be in the window.  */
-  if (inhibit_point_swap)
-    inhibit_point_swap = 0;
-  else
+  if (!inhibit_point_swap)
     {
       ow = XWINDOW (selected_window);
       if (! NILP (ow->buffer))
@@ -3584,6 +3572,25 @@ selected window before each command.  */)
 
   windows_or_buffers_changed++;
   return window;
+}
+
+
+/* Note that selected_window can be nil when this is called from
+   Fset_window_configuration.  */
+
+DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
+       doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
+If WINDOW is not already selected, make WINDOW's buffer current
+and make WINDOW the frame's selected window.  Return WINDOW.
+Optional second arg NORECORD non-nil means do not put this buffer
+at the front of the list of recently selected ones and do not
+make this window the most recently selected one.
+
+Note that the main editor command loop selects the buffer of the
+selected window before each command.  */)
+     (register Lisp_Object window, Lisp_Object norecord)
+{
+  select_window (window, norecord, 0);
 }
 
 static Lisp_Object
@@ -6114,8 +6121,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	 out point" in the old selected window using the buffer that
 	 has been restored into it.  We already swapped out that point
 	 from that window's old buffer.  */
-      inhibit_point_swap = 1;
-      Fselect_window (data->current_window, Qnil);
+      select_window (data->current_window, Qnil, 1);
       XBUFFER (XWINDOW (selected_window)->buffer)->last_selected_window
 	= selected_window;
 
@@ -7045,8 +7051,6 @@ syms_of_window (void)
   window_scroll_pixel_based_preserve_y = -1;
   window_scroll_preserve_hpos = -1;
   window_scroll_preserve_vpos = -1;
-
-  inhibit_point_swap = 0;
 
   DEFVAR_LISP ("temp-buffer-show-function", Vtemp_buffer_show_function,
 	       doc: /* Non-nil means call as function to display a help buffer.
