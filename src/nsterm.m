@@ -1071,8 +1071,8 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
         ? [screen visibleFrame].size.width + f->left_pos - FRAME_PIXEL_WIDTH (f)
         : f->left_pos;
       /* We use visibleFrame here to take menu bar into account.
-	 Ideally we should also adjust left/top with visibleFrame.offset.  */
-	 
+	 Ideally we should also adjust left/top with visibleFrame.origin.  */
+      
       f->top_pos = f->size_hint_flags & YNegative
         ? ([screen visibleFrame].size.height + f->top_pos
            - FRAME_PIXEL_HEIGHT (f) - FRAME_NS_TITLEBAR_HEIGHT (f)
@@ -1082,6 +1082,9 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
       if (f->left_pos < 100)
         f->left_pos = 100;  /* don't overlap menu */
 #endif
+      /* Constrain the setFrameTopLeftPoint so we don't move behind the
+         menu bar.  */
+      f->output_data.ns->dont_constrain = 0;
       [[view window] setFrameTopLeftPoint:
                        NSMakePoint (SCREENMAXBOUND (f->left_pos),
                                     SCREENMAXBOUND ([fscreen frame].size.height
