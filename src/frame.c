@@ -4037,7 +4037,7 @@ On Nextstep, this just calls `ns-parse-geometry'.  */)
 
   CHECK_STRING (string);
 
-  geometry = XParseGeometry ((char *) SDATA (string),
+  geometry = XParseGeometry (SSDATA (string),
 			     &x, &y, &width, &height);
   result = Qnil;
   if (geometry & XValue)
@@ -4637,4 +4637,3 @@ automatically.  See also `mouse-autoselect-window'.  */);
 #endif
 
 }
-

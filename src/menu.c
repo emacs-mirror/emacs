@@ -695,7 +695,7 @@ digest_single_submenu (int start, int end, int top_level_items)
 #endif
 
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) SDATA (pane_name));
+			 ? "" : SSDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -847,7 +847,7 @@ update_submenu_strings (widget_value *first_wv)
     {
       if (STRINGP (wv->lname))
         {
-          wv->name = (char *) SDATA (wv->lname);
+          wv->name = SSDATA (wv->lname);
 
           /* Ignore the @ that means "separate pane".
              This is a kludge, but this isn't worth more time.  */
@@ -860,7 +860,7 @@ update_submenu_strings (widget_value *first_wv)
         }
 
       if (STRINGP (wv->lkey))
-        wv->key = (char *) SDATA (wv->lkey);
+        wv->key = SSDATA (wv->lkey);
 
       if (wv->contents)
         update_submenu_strings (wv->contents);
@@ -1353,4 +1353,3 @@ syms_of_menu (void)
 
   defsubr (&Sx_popup_menu);
 }
-

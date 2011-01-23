@@ -1,3 +1,12 @@
+2011-01-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Promote SSDATA macro from gtkutil.c and xsmfns.c to lisp.h.
+	* lisp.h (SSDATA): New macro.
+	All uses of (char *) SDATA (x) replaced with SSDATA (x),
+	and all uses of (unsigned char *) SDATA (x) replaced with SDATA (x).
+	* gtkutil.c (SSDATA): Remove, as lisp.h now defines this.
+	* xsmfns.c (SSDATA): Likewise.
+
 2011-01-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (select_window): New function.

@@ -1190,7 +1190,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 	  if (SYMBOLP (val))
 	    val = SYMBOL_NAME (val);
 	  if (j == XLFD_REGISTRY_INDEX
-	      && ! strchr ((char *) SDATA (val), '-'))
+	      && ! strchr (SSDATA (val), '-'))
 	    {
 	      /* Change "jisx0208*" and "jisx0208" to "jisx0208*-*".  */
 	      if (SDATA (val)[SBYTES (val) - 1] == '*')
@@ -1207,7 +1207,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 		}
 	    }
 	  else
-	    f[j] = (char *) SDATA (val), len += SBYTES (val) + 1;
+	    f[j] = SSDATA (val), len += SBYTES (val) + 1;
 	}
     }
 
@@ -1220,7 +1220,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
       else
 	{
 	  val = SYMBOL_NAME (val);
-	  f[j] = (char *) SDATA (val), len += SBYTES (val) + 1;
+	  f[j] = SSDATA (val), len += SBYTES (val) + 1;
 	}
     }
 
@@ -1703,7 +1703,7 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
     {
       CHECK_STRING (family);
       len = SBYTES (family);
-      p0 = (char *) SDATA (family);
+      p0 = SSDATA (family);
       p1 = strchr (p0, '-');
       if (p1)
 	{
@@ -1722,7 +1722,7 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
       /* Convert "XXX" and "XXX*" to "XXX*-*".  */
       CHECK_STRING (registry);
       len = SBYTES (registry);
-      p0 = (char *) SDATA (registry);
+      p0 = SSDATA (registry);
       p1 = strchr (p0, '-');
       if (! p1)
 	{
@@ -1855,7 +1855,7 @@ otf_open (file)
     otf = XSAVE_VALUE (XCDR (val))->pointer;
   else
     {
-      otf = STRINGP (file) ? OTF_open ((char *) SDATA (file)) : NULL;
+      otf = STRINGP (file) ? OTF_open (SSDATA (file)) : NULL;
       val = make_save_value (otf, 0);
       otf_list = Fcons (Fcons (file, val), otf_list);
     }
@@ -3000,7 +3000,7 @@ font_spec_from_name (Lisp_Object font_name)
   Lisp_Object spec = Ffont_spec (0, NULL);
 
   CHECK_STRING (font_name);
-  if (font_parse_name ((char *) SDATA (font_name), spec) == -1)
+  if (font_parse_name (SSDATA (font_name), spec) == -1)
     return Qnil;
   font_put_extra (spec, QCname, font_name);
   font_put_extra (spec, QCuser_spec, font_name);
@@ -3158,7 +3158,7 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
   else if (STRINGP (attrs[LFACE_FOUNDRY_INDEX]))
     {
       val = attrs[LFACE_FOUNDRY_INDEX];
-      foundry[0] = font_intern_prop ((char *) SDATA (val), SBYTES (val), 1);
+      foundry[0] = font_intern_prop (SSDATA (val), SBYTES (val), 1);
       foundry[1] = Qnil;
       foundry[2] = null_vector;
     }
@@ -3189,7 +3189,7 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
   if (NILP (val) && STRINGP (attrs[LFACE_FAMILY_INDEX]))
     {
       val = attrs[LFACE_FAMILY_INDEX];
-      val = font_intern_prop ((char *) SDATA (val), SBYTES (val), 1);
+      val = font_intern_prop (SSDATA (val), SBYTES (val), 1);
     }
   if (NILP (val))
     {
@@ -3620,7 +3620,7 @@ font_filter_properties (Lisp_Object font,
         if (strcmp (boolean_properties[i], keystr) == 0)
           {
             const char *str = INTEGERP (val) ? (XINT (val) ? "true" : "false")
-	      : SYMBOLP (val) ? (const char *) SDATA (SYMBOL_NAME (val))
+	      : SYMBOLP (val) ? SSDATA (SYMBOL_NAME (val))
 	      : "true";
 
             if (strcmp ("false", str) == 0 || strcmp ("False", str) == 0
@@ -3890,7 +3890,7 @@ usage: (font-spec ARGS...)  */)
       if (EQ (key, QCname))
 	{
 	  CHECK_STRING (val);
-	  font_parse_name ((char *) SDATA (val), spec);
+	  font_parse_name (SSDATA (val), spec);
 	  font_put_extra (spec, key, val);
 	}
       else
@@ -4250,7 +4250,7 @@ the consecutive wildcards are folded to one.  */)
 	{
 	  if (NILP (fold_wildcards))
 	    return font_name;
-	  strcpy (name, (char *) SDATA (font_name));
+	  strcpy (name, SSDATA (font_name));
 	  goto done;
 	}
       pixel_size = XFONT_OBJECT (font)->pixel_size;
@@ -4913,7 +4913,7 @@ If the named font is not yet loaded, return nil.  */)
 
       if (fontset >= 0)
 	name = fontset_ascii (fontset);
-      font_object = font_open_by_name (f, (char *) SDATA (name));
+      font_object = font_open_by_name (f, SSDATA (name));
     }
   else if (FONT_OBJECT_P (name))
     font_object = name;
@@ -4991,7 +4991,7 @@ font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
     return;
   if (STRINGP (AREF (Vfont_log_deferred, 0)))
     {
-      char *str = (char *) SDATA (AREF (Vfont_log_deferred, 0));
+      char *str = SSDATA (AREF (Vfont_log_deferred, 0));
 
       ASET (Vfont_log_deferred, 0, Qnil);
       font_add_log (str, AREF (Vfont_log_deferred, 1),
@@ -5269,4 +5269,3 @@ init_font (void)
 {
   Vfont_log = egetenv ("EMACS_FONT_LOG") ? Qnil : Qt;
 }
-

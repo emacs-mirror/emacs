@@ -312,7 +312,7 @@ add_window_display_history (struct window *w, char *msg, int paused_p)
 	   w,
 	   ((BUFFERP (w->buffer)
 	     && STRINGP (XBUFFER (w->buffer)->name))
-	    ? (char *) SDATA (XBUFFER (w->buffer)->name)
+	    ? SSDATA (XBUFFER (w->buffer)->name)
 	    : "???"),
 	   paused_p ? " ***paused***" : "");
   strcat (buf, msg);
@@ -6592,4 +6592,3 @@ If nil, never pre-empt redisplay.  */);
       Vwindow_system_version = Qnil;
     }
 }
-

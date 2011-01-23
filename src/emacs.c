@@ -2205,7 +2205,7 @@ synchronize_locale (int category, Lisp_Object *plocale, Lisp_Object desired_loca
     {
       *plocale = desired_locale;
       setlocale (category, (STRINGP (desired_locale)
-			    ? (char *) SDATA (desired_locale)
+			    ? SSDATA (desired_locale)
 			    : ""));
     }
 }
@@ -2490,4 +2490,3 @@ libraries; only those already known by Emacs will be loaded.  */);
   /* Make sure IS_DAEMON starts up as false.  */
   daemon_pipe[1] = 0;
 }
-

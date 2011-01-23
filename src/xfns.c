@@ -723,7 +723,7 @@ xg_set_icon (FRAME_PTR f, Lisp_Object file)
     {
       GdkPixbuf *pixbuf;
       GError *err = NULL;
-      char *filename = (char *) SDATA (found);
+      char *filename = SSDATA (found);
       BLOCK_INPUT;
 
       pixbuf = gdk_pixbuf_new_from_file (filename, &err);
@@ -1161,9 +1161,9 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   BLOCK_INPUT;
   if (NILP (arg))
     result = x_text_icon (f,
-			  (char *) SDATA ((!NILP (f->icon_name)
-					     ? f->icon_name
-					     : f->name)));
+			  SSDATA ((!NILP (f->icon_name)
+				   ? f->icon_name
+				   : f->name)));
   else
     result = x_bitmap_icon (f, arg);
 
@@ -1198,11 +1198,11 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   BLOCK_INPUT;
 
   result = x_text_icon (f,
-			(char *) SDATA ((!NILP (f->icon_name)
-					 ? f->icon_name
-					 : !NILP (f->title)
-					 ? f->title
-					 : f->name)));
+			SSDATA ((!NILP (f->icon_name)
+				 ? f->icon_name
+				 : !NILP (f->title)
+				 ? f->title
+				 : f->name)));
 
   if (result)
     {
@@ -1598,14 +1598,14 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 
 #ifdef USE_GTK
         gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              (char *) SDATA (encoded_name));
+                              SSDATA (encoded_name));
 #else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
 	XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 			 FRAME_X_DISPLAY_INFO (f)->Xatom_net_wm_name,
 			 FRAME_X_DISPLAY_INFO (f)->Xatom_UTF8_STRING,
 			 8, PropModeReplace,
-			 (char *) SDATA (encoded_name),
+			 SSDATA (encoded_name),
 			 SBYTES (encoded_name));
 #endif /* not USE_GTK */
 
@@ -1614,7 +1614,7 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 			 FRAME_X_DISPLAY_INFO (f)->Xatom_net_wm_icon_name,
 			 FRAME_X_DISPLAY_INFO (f)->Xatom_UTF8_STRING,
 			 8, PropModeReplace,
-			 (char *) SDATA (encoded_icon_name),
+			 SSDATA (encoded_icon_name),
 			 SBYTES (encoded_icon_name));
 
 	if (do_free_icon_value)
@@ -2397,7 +2397,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
      Elsewhere we specify the window name for the window manager.  */
 
   {
-    char *str = (char *) SDATA (Vx_resource_name);
+    char *str = SSDATA (Vx_resource_name);
     f->namebuf = (char *) xmalloc (strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
@@ -2546,8 +2546,8 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   validate_x_resource_name ();
 
-  class_hints.res_name = (char *) SDATA (Vx_resource_name);
-  class_hints.res_class = (char *) SDATA (Vx_resource_class);
+  class_hints.res_name = SSDATA (Vx_resource_name);
+  class_hints.res_class = SSDATA (Vx_resource_class);
   XSetClassHint (FRAME_X_DISPLAY (f), XtWindow (shell_widget), &class_hints);
 
 #ifdef HAVE_X_I18N
@@ -2711,8 +2711,8 @@ x_window (struct frame *f)
 
   validate_x_resource_name ();
 
-  class_hints.res_name = (char *) SDATA (Vx_resource_name);
-  class_hints.res_class = (char *) SDATA (Vx_resource_class);
+  class_hints.res_name = SSDATA (Vx_resource_name);
+  class_hints.res_class = SSDATA (Vx_resource_class);
   XSetClassHint (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &class_hints);
 
   /* The menubar is part of the ordinary display;
@@ -2824,9 +2824,9 @@ x_icon (struct frame *f, Lisp_Object parms)
 	 : NormalState));
 #endif
 
-  x_text_icon (f, (char *) SDATA ((!NILP (f->icon_name)
-				     ? f->icon_name
-				     : f->name)));
+  x_text_icon (f, SSDATA ((!NILP (f->icon_name)
+			   ? f->icon_name
+			   : f->name)));
 
   UNBLOCK_INPUT;
 }
@@ -4047,7 +4047,7 @@ x_display_info_for_name (Lisp_Object name)
   validate_x_resource_name ();
 
   dpyinfo = x_term_init (name, (char *)0,
-			 (char *) SDATA (Vx_resource_name));
+			 SSDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
     error ("Cannot connect to X server %s", SDATA (name));
@@ -4082,7 +4082,7 @@ terminate Emacs if we can't open the connection.
 #endif
 
   if (! NILP (xrm_string))
-    xrm_option = (unsigned char *) SDATA (xrm_string);
+    xrm_option = SDATA (xrm_string);
   else
     xrm_option = (unsigned char *) 0;
 
@@ -4091,7 +4091,7 @@ terminate Emacs if we can't open the connection.
   /* This is what opens the connection and sets x_current_display.
      This also initializes many symbols, such as those used for input.  */
   dpyinfo = x_term_init (display, xrm_option,
-			 (char *) SDATA (Vx_resource_name));
+			 SSDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
     {

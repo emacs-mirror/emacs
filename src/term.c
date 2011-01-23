@@ -1949,7 +1949,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	  if (! STRINGP (acronym) && CHAR_TABLE_P (Vglyphless_char_display))
 	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
 	  buf[0] = '[';
-	  str = STRINGP (acronym) ? (char *) SDATA (acronym) : "";
+	  str = STRINGP (acronym) ? SSDATA (acronym) : "";
 	  for (len = 0; len < 6 && str[len] && ASCII_BYTE_P (str[len]); len++)
 	    buf[1 + len] = str[len];
 	  buf[1 + len] = ']';
@@ -3157,7 +3157,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   tty->mouse_highlight.mouse_face_window = Qnil;
 #endif
 
-  
+
 #ifndef DOS_NT
   set_tty_hooks (terminal);
 
@@ -3800,4 +3800,3 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   encode_terminal_src = NULL;
   encode_terminal_dst = NULL;
 }
-

@@ -646,7 +646,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  if (next_event >= key_count)
 	    error ("%s must be bound to an event with parameters",
 		   (SYMBOLP (function)
-		    ? (char *) SDATA (SYMBOL_NAME (function))
+		    ? SSDATA (SYMBOL_NAME (function))
 		    : "command"));
 	  args[i] = AREF (keys, next_event);
 	  next_event++;
@@ -974,4 +974,3 @@ a way to turn themselves off when a mouse command switches windows.  */);
   defsubr (&Scall_interactively);
   defsubr (&Sprefix_numeric_value);
 }
-

@@ -358,11 +358,11 @@ lock_file_1 (char *lfname, int force)
   boot_time = get_boot_time ();
 
   if (STRINGP (Fuser_login_name (Qnil)))
-    user_name = (char *)SDATA (Fuser_login_name (Qnil));
+    user_name = SSDATA (Fuser_login_name (Qnil));
   else
     user_name = "";
   if (STRINGP (Fsystem_name ()))
-    host_name = (char *)SDATA (Fsystem_name ());
+    host_name = SSDATA (Fsystem_name ());
   else
     host_name = "";
   lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
@@ -738,4 +738,3 @@ syms_of_filelock (void)
   defsubr (&Sfile_locked_p);
 #endif
 }
-
