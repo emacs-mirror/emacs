@@ -1,3 +1,15 @@
+2011-01-23  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-here-doc-beg-match): Fix for
+	here-doc which ends with an underscore.
+	(ruby-mode-set-encoding): Skip shebang line always.
+	(ruby-mode-map): Bind C-c C-c to comment-region.
+	(ruby-expr-beg, ruby-font-lock-keywords): Highlight literal hash
+	key labels as symbols.
+	(ruby-forward-sexp): Stop after literal hash key labels.
+	(ruby-font-lock-syntactic-keywords): Highlight regexp after open
+	bracket.
+
 2011-01-22  Keitaro Miyazaki  <keitaro.miyazaki@gmail.com>
 
 	* emacs-lisp/re-builder.el (reb-mode-map): Set case-fold-search in
