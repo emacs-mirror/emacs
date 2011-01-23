@@ -1,3 +1,7 @@
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-revert): Doc fix (Bug#7758).
+
 2011-01-23  Nobuyoshi Nakada  <nobu@ruby-lang.org>
 
 	* progmodes/ruby-mode.el (ruby-here-doc-beg-match): Fix for
