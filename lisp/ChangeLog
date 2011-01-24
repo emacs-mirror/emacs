@@ -14,6 +14,11 @@
 	* calc/calc-ext.el (calc-init-extensions): Autoload new units
 	functions. Add keybindings for new units functions.
 
+2011-01-22  Giorgos Keramidas  <keramida@ceid.upatras.gr>
+
+	* net/rcirc.el (rcirc-kill-buffer-hook): Flush logs when killing
+	rcirc buffers.
+
 2011-01-22  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-find-copyright): New function,
