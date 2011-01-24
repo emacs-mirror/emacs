@@ -360,7 +360,8 @@ The expansion is entirely correct because it uses the C preprocessor."
      (t
       ;; This is regexp like quote thingy.
       (setq char (char-after (nth 8 state)))
-      (let ((twoargs (save-excursion
+      (let ((startpos (point))
+            (twoargs (save-excursion
                        (goto-char (nth 8 state))
                        (skip-syntax-backward " ")
                        (skip-syntax-backward "w")
@@ -384,7 +385,8 @@ The expansion is entirely correct because it uses the C preprocessor."
 			  (goto-char (1+ (nth 8 state)))
 			  (up-list 1)
 			  t)
-		      (scan-error nil))
+                      ;; In case of error, make sure we don't move backward.
+		      (scan-error (goto-char startpos) nil))
 		  (not (or (nth 8 (parse-partial-sexp
 				   (point) limit nil nil state 'syntax-table))
 			   ;; If we have a self-paired opener and a twoargs

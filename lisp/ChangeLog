@@ -1,5 +1,8 @@
 2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/perl-mode.el (perl-syntax-propertize-special-constructs):
+	Don't move backward, so as not to fall in an inf-loop (bug#7736).
+
 	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): (bug#7735)
 	Handle ?" and friends differently (e.g. don't use backrefs).
 
