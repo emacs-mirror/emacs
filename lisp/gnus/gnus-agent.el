@@ -203,8 +203,7 @@ queue.  Otherwise, queue if and only if unplugged."
 		(const :format "When unplugged" t)))
 
 (defcustom gnus-agent-prompt-send-queue nil
-  "If non-nil, `gnus-group-send-queue' will prompt if called when
-unplugged."
+  "If non-nil, `gnus-group-send-queue' will prompt if called when unplugged."
   :version "22.1"
   :group 'gnus-agent
   :type 'boolean)

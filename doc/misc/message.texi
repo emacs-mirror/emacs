@@ -886,6 +886,10 @@ Manual}).
 @cindex internationalized domain names
 @cindex non-ascii domain names
 
+@acronym{IDNA} is a standard way to encode non-@acronym{ASCII} domain
+names into a readable @acronym{ASCII} string.  The details can be
+found in RFC 3490.
+
 Message is a @acronym{IDNA}-compliant posting agent.  The user
 generally doesn't have to do anything to make the @acronym{IDNA}
 happen---Message will encode non-@acronym{ASCII} domain names in @code{From},

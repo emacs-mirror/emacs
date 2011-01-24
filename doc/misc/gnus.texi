@@ -704,6 +704,7 @@ Other Sources
 * Anything Groups::             Dired?  Who needs dired?
 * Document Groups::             Single files can be the basis of a group.
 * Mail-To-News Gateways::       Posting articles via mail-to-news gateways.
+* The Empty Backend::           The backend that never has any news.
 
 Document Groups
 
@@ -17127,6 +17128,7 @@ newsgroups.
 * Anything Groups::             Dired?  Who needs dired?
 * Document Groups::             Single files can be the basis of a group.
 * Mail-To-News Gateways::       Posting articles via mail-to-news gateways.
+* The Empty Backend::           The backend that never has any news.
 @end menu
 
 
@@ -17573,6 +17575,22 @@ So, to use this, simply say something like:
 (setq gnus-post-method '(nngateway "GATEWAY.ADDRESS"))
 @end lisp
 
+
+@node The Empty Backend
+@subsection The Empty Backend
+@cindex nnnil
+
+@code{nnnil} is a backend that can be used as a placeholder if you
+have to specify a backend somewhere, but don't really want to.  The
+classical example is if you don't want to have a primary select
+methods, but want to only use secondary ones:
+
+@lisp
+(setq gnus-select-method '(nnnil ""))
+(setq gnus-secondary-select-methods
+      '((nnimap "foo")
+        (nnml "")))
+@end lisp
 
 
 @node Combined Groups

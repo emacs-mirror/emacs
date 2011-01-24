@@ -1,3 +1,11 @@
+2011-01-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.texi (IDNA): Explain what it is.
+
+2011-01-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (The Empty Backend): Document nnnil (bug #7653).
+
 2011-01-23  Werner Lemberg  <wl@gnu.org>
 
 	* Makefile.in (MAKEINFO): Now controlled by `configure'.

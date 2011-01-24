@@ -1,5 +1,22 @@
 2011-01-24  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* shr.el (shr-expand-newlines): Proof of concept implemantation of boxy
+	backgrounds.
+	(shr-expand-newlines): Switch to using overlays to enable kill'n'yank
+	in a more sensible manner.
+
+2011-01-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mml-smime.el (mml-smime-use): Make it a defcustom and default to 'epg
+	if EPG is loaded.
+
+2011-01-24  Julien Danjou  <julien@danjou.info>
+
+	* shr.el: Use defface to create shr-tag-h[1-6] faces to fontify h[1-6]
+	tags.
+
+2011-01-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
 	* gnus-art.el (gnus-article-read-summary-keys): Don't call disabled
 	commands.
 

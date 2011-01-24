@@ -37,7 +37,12 @@
 (autoload 'message-narrow-to-headers "message")
 (autoload 'message-fetch-field "message")
 
-(defvar mml-smime-use 'openssl)
+(defcustom mml-smime-use (if (featurep 'epg) 'epg 'openssl)
+  "Whether to use OpenSSL or EPG to decrypt S/MIME messages.
+Defaults to EPG if it's loaded."
+  :group 'mime-security
+  :type '(choice (const :tag "EPG" epg)
+                 (const :tag "OpenSSL" openssl)))
 
 (defvar mml-smime-function-alist
   '((openssl mml-smime-openssl-sign
