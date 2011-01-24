@@ -1121,14 +1121,13 @@ See `add-log-current-defun-function'."
          (syntax-propertize-rules
           ;; #{ }, #$hoge, #@foo are not comments
           ("\\(#\\)[{$@]" (1 "."))
-          ;; the last $', $", $` in the respective string is not variable
-          ;; the last ?', ?", ?` in the respective string is not ascii code
-          ("\\(^\\|[\[ \t\n<+\(,=]\\)\\(['\"`]\\)\\(\\\\.\\|\\2\\|[^'\"`\n\\\\]\\)*?\\\\?[?$]\\(\\2\\)"
-           (2 "\"")
-           (4 "\""))
           ;; $' $" $` .... are variables
           ;; ?' ?" ?` are ascii codes
-          ("\\(^\\|[^\\\\]\\)\\(\\\\\\\\\\)*[?$]\\([#\"'`]\\)" (3 "."))
+          ("\\([?$]\\)[#\"'`]"
+           (1 (unless (save-excursion
+                        ;; Not within a string.
+                        (nth 3 (syntax-ppss (match-beginning 0))))
+                (string-to-syntax "\\"))))
           ;; regexps
           ("\\(^\\|[=(,~?:;<>]\\|\\(^\\|\\s \\)\\(if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)\\s *\\(/\\)[^/\n\\\\]*\\(\\\\.[^/\n\\\\]*\\)*\\(/\\)"
            (4 "\"/")

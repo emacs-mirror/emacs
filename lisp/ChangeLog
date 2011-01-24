@@ -1,3 +1,8 @@
+2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): (bug#7735)
+	Handle ?" and friends differently (e.g. don't use backrefs).
+
 2011-01-24  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-default-power-reference-level)
@@ -6,8 +11,8 @@
 	(math-logunits): New variable.
 	(math-extract-logunits, math-logcombine, calcFunc-luplus)
 	(calcFunc-luminus, calc-luplus, calc-luminus, math-logunit-level)
-	(calcFunc-fieldlevel, calcFunc-powerlevel, calc-level): New
-	functions.
+	(calcFunc-fieldlevel, calcFunc-powerlevel, calc-level):
+	New functions.
 	(math-find-base-units-rec): Add entry for ln(10).
 	* calc/calc-help.el (calc-u-prefix-help): Add logarithmic help.
 	(calc-ul-prefix-help): New function.
