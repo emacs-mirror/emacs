@@ -1,3 +1,8 @@
+2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (handle_fontified_prop): Be careful with font-lock changing
+	the buffer's point-max (bug#7876).
+
 2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* lisp.h (XPNTR): Obey DATA_SEG_BITS in all non-USE_LSB_TAG cases.

@@ -3337,6 +3337,8 @@ handle_fontified_prop (it)
       val = Vfontification_functions;
       specbind (Qfontification_functions, Qnil);
 
+      xassert (it->end_charpos == ZV);
+      
       if (!CONSP (val) || EQ (XCAR (val), Qlambda))
 	safe_call1 (val, pos);
       else
@@ -3376,6 +3378,13 @@ handle_fontified_prop (it)
 
       unbind_to (count, Qnil);
 
+      /* The fontification code may have added/removed text.
+	 It could do even a lot worse, but let's at least protect against
+	 the most obvious case where only the text past `pos' gets changed',
+	 as is/was done in grep.el where some escapes sequences are turned
+	 into face properties (bug#7876).  */
+      it->end_charpos = ZV;
+      
       /* Return HANDLED_RECOMPUTE_PROPS only if function fontified
 	 something.  This avoids an endless loop if they failed to
 	 fontify the text for which reason ever.  */
