@@ -1,3 +1,31 @@
+2011-01-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-read-summary-keys): Don't call disabled
+	commands.
+
+	* gnus-gravatar.el (gnus-gravatar-insert): Don't move point around
+	in the article buffer.
+	(gnus-gravatar-insert): Use blank space from the current buffer to
+	avoid breaking text properties.  This makes X-Sent updating work again.
+
+	* gravatar.el (gravatar-retrieve): Be silent when retrieving.
+
+2011-01-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-image-fetched): Kill the buffer anyway, and
+	fix the bug in url-http.el instead.
+
+	* shr.el (shr-image-fetched): Ditto.
+
+	* shr.el (shr-image-fetched): Avoid having point move in the article
+	buffer.
+
+	* gnus-html.el (gnus-html-image-fetched): Don't kill the temporary
+	buffer after being called.  It's apparently being killed by url.el, and
+	killing it made point move to end-of-buffer in a random buffer.
+
+	* shr.el (shr-image-fetched): Ditto.
+
 2011-01-23  Julien Danjou  <julien@danjou.info>
 
 	* mm-decode.el (mm-inline-media-tests): Change text/org to text/x-org.

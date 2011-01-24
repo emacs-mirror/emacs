@@ -6432,6 +6432,8 @@ not have a face in `gnus-article-boring-faces'."
 	    (ding)
 	  (unless (member keys nosave-in-article)
 	    (set-buffer gnus-article-current-summary))
+	  (when (get func 'disabled)
+	    (error "Function %s disabled" func))
 	  (call-interactively func)
 	  (setq new-sum-point (point)))
 	(when (member keys nosave-but-article)
@@ -6460,8 +6462,11 @@ not have a face in `gnus-article-boring-faces'."
 		 (select-window win))))
 	(setq in-buffer (current-buffer))
 	;; We disable the pick minor mode commands.
-	(if (and (setq func (let (gnus-pick-mode)
-			      (key-binding keys t)))
+	(setq func (let (gnus-pick-mode)
+		     (key-binding keys t)))
+	(when (get func 'disabled)
+	  (error "Function %s disabled" func))
+	(if (and func
 		 (functionp func)
 		 (condition-case code
 		     (progn

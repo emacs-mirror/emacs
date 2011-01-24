@@ -462,11 +462,12 @@ redirects somewhere else."
 	      (search-forward "\r\n\r\n" nil t))
       (let ((data (buffer-substring (point) (point-max))))
         (with-current-buffer buffer
-          (let ((alt (buffer-substring start end))
-		(inhibit-read-only t))
-	    (delete-region start end)
-	    (goto-char start)
-	    (shr-put-image data alt))))))
+	  (save-excursion
+	    (let ((alt (buffer-substring start end))
+		  (inhibit-read-only t))
+	      (delete-region start end)
+	      (goto-char start)
+	      (shr-put-image data alt)))))))
   (kill-buffer (current-buffer)))
 
 (defun shr-put-image (data alt)
