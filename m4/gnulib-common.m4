@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 22
+# gnulib-common.m4 serial 23
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -100,6 +100,16 @@ AC_DEFUN([gl_MODULE_INDICATOR_FOR_TESTS],
       [abcdefghijklmnopqrstuvwxyz./-],
       [ABCDEFGHIJKLMNOPQRSTUVWXYZ___]), [1],
     [Define to 1 when the gnulib module $1 should be tested.])
+])
+
+# gl_ASSERT_NO_GNULIB_POSIXCHECK
+# asserts that there will never be a need to #define GNULIB_POSIXCHECK.
+# and thereby enables an optimization of configure and config.h.
+# Used by Emacs.
+AC_DEFUN([gl_ASSERT_NO_GNULIB_POSIXCHECK],
+[
+  dnl Override gl_WARN_ON_USE_PREPARE.
+  AC_DEFUN([gl_WARN_ON_USE_PREPARE], [])
 ])
 
 # gl_ASSERT_NO_GNULIB_TESTS

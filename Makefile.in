@@ -335,6 +335,7 @@ GNULIB_TOOL_FLAGS = \
 sync-from-gnulib: $(gnulib_srcdir)
 	cd $(srcdir) && \
 	  $(gnulib_srcdir)/gnulib-tool $(GNULIB_TOOL_FLAGS) $(GNULIB_MODULES)
+	rm $(srcdir)/m4/warn-on-use.m4
 	cp $(gnulib_srcdir)/build-aux/texinfo.tex $(srcdir)/doc/misc
 	cp \
 	  $(gnulib_srcdir)/build-aux/config.sub \
