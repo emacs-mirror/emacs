@@ -1,3 +1,19 @@
+2011-01-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-default-power-reference-level)
+	(calc-default-field-reference-level): New variables.
+	* calc/calc-units.el (math-standard-units):  Add dB and Np.
+	(math-logunits): New variable.
+	(math-extract-logunits, math-logcombine, calcFunc-luplus)
+	(calcFunc-luminus, calc-luplus, calc-luminus, math-logunit-level)
+	(calcFunc-fieldlevel, calcFunc-powerlevel, calc-level): New
+	functions.
+	(math-find-base-units-rec): Add entry for ln(10).
+	* calc/calc-help.el (calc-u-prefix-help): Add logarithmic help.
+	(calc-ul-prefix-help): New function.
+	* calc/calc-ext.el (calc-init-extensions): Autoload new units
+	functions. Add keybindings for new units functions.
+
 2011-01-22  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-find-copyright): New function,

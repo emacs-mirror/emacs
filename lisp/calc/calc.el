@@ -435,6 +435,19 @@ by displaying the sub-formula in `calc-selected-face'."
   :group 'calc
   :type 'boolean)
 
+(defcustom calc-default-field-reference-level
+  "20 uPa"
+  "The default reference level for logarithmic units (field)."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-default-power-reference-level
+  "mW"
+  "The default reference level for logarithmic units (power)."
+  :group 'calc
+  :type '(string))
+
+
 (defface calc-nonselected-face
   '((t :inherit shadow       
        :slant italic))
