@@ -37,7 +37,7 @@ Files: splash.png, splash.svg
 
 Files: checked.xpm, unchecked.xpm
   Author: Chong Yidong <cyd@stupidchicken.com>
-  Copyright (C) 2010 Free Software Foundation, Inc.
+  Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
 
 * The following icons are from GTK+ 2.x. They are not part of Emacs, but
