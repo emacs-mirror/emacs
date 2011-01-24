@@ -139,17 +139,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    */
 #undef HAVE_DECL_GETENV
 
-/* Define to 1 if you have the declaration of `getopt_clip', and to 0 if you
-   don't. */
-#undef HAVE_DECL_GETOPT_CLIP
-
 /* Define to 1 if you have the declaration of `localtime_r', and to 0 if you
    don't. */
 #undef HAVE_DECL_LOCALTIME_R
-
-/* Define to 1 if you have the declaration of `optreset', and to 0 if you
-   don't. */
-#undef HAVE_DECL_OPTRESET
 
 /* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
    don't. */
@@ -564,123 +556,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
-
-/* Define to 1 if chown is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_CHOWN
-
-/* Define to 1 if dup2 is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_DUP2
-
-/* Define to 1 if dup3 is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_DUP3
-
-/* Define to 1 if endusershell is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_ENDUSERSHELL
-
-/* Define to 1 if environ is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_ENVIRON
-
-/* Define to 1 if euidaccess is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_EUIDACCESS
-
-/* Define to 1 if faccessat is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_FACCESSAT
-
-/* Define to 1 if fchdir is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_FCHDIR
-
-/* Define to 1 if fchownat is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_FCHOWNAT
-
-/* Define to 1 if fsync is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_FSYNC
-
-/* Define to 1 if ftruncate is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_FTRUNCATE
-
-/* Define to 1 if getcwd is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_GETCWD
-
-/* Define to 1 if getdomainname is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_GETDOMAINNAME
-
-/* Define to 1 if getdtablesize is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_GETDTABLESIZE
-
-/* Define to 1 if getgroups is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_GETGROUPS
-
-/* Define to 1 if gethostname is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_GETHOSTNAME
-
-/* Define to 1 if getlogin is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_GETLOGIN
-
-/* Define to 1 if getlogin_r is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_GETLOGIN_R
-
-/* Define to 1 if getpagesize is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_GETPAGESIZE
-
-/* Define to 1 if getusershell is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_GETUSERSHELL
-
-/* Define to 1 if lchown is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_LCHOWN
-
-/* Define to 1 if link is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_LINK
-
-/* Define to 1 if linkat is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_LINKAT
-
-/* Define to 1 if lseek is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_LSEEK
-
-/* Define to 1 if pipe is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_PIPE
-
-/* Define to 1 if pipe2 is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_PIPE2
-
-/* Define to 1 if pread is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_PREAD
-
-/* Define to 1 if pwrite is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_PWRITE
-
-/* Define to 1 if readlink is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_READLINK
-
-/* Define to 1 if readlinkat is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_READLINKAT
-
-/* Define to 1 if rmdir is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_RMDIR
-
-/* Define to 1 if setusershell is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_SETUSERSHELL
-
-/* Define to 1 if sleep is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_SLEEP
-
-/* Define to 1 if symlink is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_SYMLINK
-
-/* Define to 1 if symlinkat is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_SYMLINKAT
-
-/* Define to 1 if ttyname_r is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_TTYNAME_R
-
-/* Define to 1 if unlink is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_UNLINK
-
-/* Define to 1 if unlinkat is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_UNLINKAT
-
-/* Define to 1 if usleep is declared even after undefining macros. */
-#undef HAVE_RAW_DECL_USLEEP
 
 /* Define to 1 if you have the `recvfrom' function. */
 #undef HAVE_RECVFROM

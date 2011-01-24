@@ -1,3 +1,18 @@
+2011-01-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove HAVE_RAW_DECL_CHOWN etc. from config.h
+	* Makefile.in (sync-from-gnulib): Remove m4/warn-on-use.m4,
+	as it is no longer needed.
+	* aclocal.m4, configure, lib/Makefile.in, src/config.in: Regenerate.
+	* configure.in: Invoke the new gnulib macro
+	gl_ASSERT_NO_GNULIB_POSIXCHECK, which removes the need for
+	warn-on-use.m4 and for the HAVE_RAW_DECL_* symbols in config.h.
+	* m4/getopt.m4: Sync from gnulib; this removes the need for
+	HAVE_DECL_OPTRESET and HAVE_DECL_GETOPT_CLIP from config.h.
+	* m4/gnulib-common.m4 (gl_ASSERT_NO_GNULIB_POSIXCHECK):
+	New macro, synced from gnulib.
+	* m4/warn-on-use.m4: Remove.
+
 2011-01-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	aclocal.m4: put this file back into repository
