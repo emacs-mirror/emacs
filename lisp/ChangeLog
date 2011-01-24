@@ -1,3 +1,8 @@
+2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (file-name-non-special): Only change buffer-file-name after
+	insert-file-contents if it's `visit'ing the file (bug#7854).
+
 2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-revert): Doc fix (Bug#7758).
