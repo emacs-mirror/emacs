@@ -648,6 +648,15 @@ ones, in case fg and bg are nil."
 
 (defun shr-expand-newlines (start end color)
   (save-restriction
+    ;; Skip past all white space at the start and ends.
+    (goto-char start)
+    (skip-chars-forward " \t\n")
+    (beginning-of-line)
+    (setq start (point))
+    (goto-char end)
+    (skip-chars-backward " \t\n")
+    (forward-line 1)
+    (setq end (point))
     (narrow-to-region start end)
     (let ((width (shr-natural-width))
 	  column)
@@ -655,12 +664,35 @@ ones, in case fg and bg are nil."
       (while (not (eobp))
 	(end-of-line)
 	(when (and (< (setq current-column (current-column)) width)
-		   (not (overlays-at (point))))
+		   (< (setq current-column (shr-previous-newline-padding-width
+					    current-column))
+		      width))
 	  (let ((overlay (make-overlay (point) (1+ (point)))))
 	    (overlay-put overlay 'before-string
-			 (propertize (make-string (- width current-column) ? )
-				     'face (list :background color)))))
+			 (concat
+			  (mapconcat
+			   (lambda (overlay)
+			     (let ((string (getf (overlay-properties overlay) 'before-string)))
+			       (if (not string)
+				   ""
+				 (overlay-put overlay 'before-string "")
+				 string)))
+			   (overlays-at (point))
+			   "")
+			  (propertize (make-string (- width current-column) ? )
+				      'face (list :background color))))))
 	(forward-line 1)))))
+
+(defun shr-previous-newline-padding-width (width)
+  (let ((overlays (overlays-at (point)))
+	(previous-width 0))
+    (if (null overlays)
+	width
+      (dolist (overlay overlays)
+	(setq previous-width
+	      (+ previous-width
+		 (length (getf (overlay-properties overlay) 'before-string)))))
+      (+ width previous-width))))
 
 (defun shr-put-color-1 (start end type color)
   (let* ((old-props (get-text-property start 'face))
