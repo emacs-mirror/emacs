@@ -1,3 +1,22 @@
+2011-01-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection-1): Store the actual stream type
+	used.
+	(nnimap-login): Prefer plain LOGIN if it's enabled (since it requires
+	fewer round trips than CRAM-MD5, and it's less likely to be buggy), and
+	we're using an encrypted connection.
+
+	* proto-stream.el: Alter the interface functions to also return the
+	actual stream type used: network or tls.
+
+2011-01-25  Julien Danjou  <julien@danjou.info>
+
+	* mm-view.el (mm-display-shell-script-inline): Fix typo in docstring.
+	(mm-display-javascript-inline): New function.
+
+	* mm-decode.el (mm-inline-media-tests): Add application/javascript
+	viewing function.
+
 2011-01-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-expand-newlines): Fix variable name.

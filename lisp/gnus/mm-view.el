@@ -636,8 +636,12 @@
   (mm-display-inline-fontify handle 'org-mode))
 
 (defun mm-display-shell-script-inline (handle)
-  "Show an shell script from HANDLE inline."
+  "Show a shell script from HANDLE inline."
   (mm-display-inline-fontify handle 'shell-script-mode))
+
+(defun mm-display-javascript-inline (handle)
+  "Show JavsScript code from HANDLE inline."
+  (mm-display-inline-fontify handle 'javascript-mode))
 
 ;;      id-signedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
 ;;          us(840) rsadsi(113549) pkcs(1) pkcs7(7) 2 }

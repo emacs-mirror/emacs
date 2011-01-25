@@ -124,7 +124,7 @@ textual parts.")
 
 (defstruct nnimap
   group process commands capabilities select-result newlinep server
-  last-command-time greeting examined)
+  last-command-time greeting examined stream-type)
 
 (defvar nnimap-object nil)
 
@@ -350,7 +350,7 @@ textual parts.")
            login-result credentials)
       (when nnimap-server-port
 	(setq ports (append ports (list nnimap-server-port))))
-      (destructuring-bind (stream greeting capabilities)
+      (destructuring-bind (stream greeting capabilities stream-type)
 	  (open-protocol-stream
 	   "*nnimap*" (current-buffer) nnimap-address (car (last ports))
 	   :type nnimap-stream
@@ -362,6 +362,7 @@ textual parts.")
 	     (when (gnus-string-match-p "STARTTLS" capabilities)
 	       "1 STARTTLS\r\n")))
 	(setf (nnimap-process nnimap-object) stream)
+	(setf (nnimap-stream-type nnimap-object) stream-type)
 	(if (not stream)
 	    (progn
 	      (nnheader-report 'nnimap "Unable to contact %s:%s via %s"
@@ -411,6 +412,12 @@ textual parts.")
 
 (defun nnimap-login (user password)
   (cond
+   ;; Prefer plain LOGIN if it's enabled (since it requires fewer
+   ;; round trips than CRAM-MD5, and it's less likely to be buggy),
+   ;; and we're using an encrypted connection.
+   ((and (not (nnimap-capability "LOGINDISABLED"))
+	 (eq (nnimap-stream-type nnimap-object) 'tls))
+    (nnimap-command "LOGIN %S %S" user password))
    ((nnimap-capability "AUTH=CRAM-MD5")
     (erase-buffer)
     (let ((sequence (nnimap-send-command "AUTHENTICATE CRAM-MD5"))

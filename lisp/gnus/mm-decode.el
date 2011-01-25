@@ -239,6 +239,7 @@ before the external MIME handler is invoked."
     ("application/x-shellscript" mm-display-shell-script-inline identity)
     ("application/x-sh" mm-display-shell-script-inline identity)
     ("text/x-sh" mm-display-shell-script-inline identity)
+    ("application/javascript" mm-display-javascript-inline identity)
     ("text/dns" mm-display-dns-inline identity)
     ("text/x-org" mm-display-org-inline identity)
     ("text/html"
