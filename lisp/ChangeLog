@@ -1,3 +1,17 @@
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-at-end-flag)
+	(copyright-names-regexp): Add safety properties.
+	(copyright-year-ranges): New option.
+	(copyright-find-end): New function, split from copyright-update-year.
+	(copyright-update-year): Use copyright-find-end.
+	(copyright-fix-years): Optionally, convert years to ranges.
+	Handle years continued over comment lines.
+	Do not mess with the fill-prefix.
+	Do not call copyright-update.
+	(copyright-update-directory): Optionally, fix years rather than update.
+	Skip directories.  Find files literally, with only safe local vars.
+
 2011-01-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (file-name-non-special): Only change buffer-file-name after

@@ -607,6 +607,11 @@ means to prompt the user for command specifics, e.g. a merge location.
 
 **** Currently supported by Bzr.
 
+** Miscellaneous
+
+---
+*** `copyright-fix-years' can optionally convert consecutive years to ranges.
+
 
 * New Modes and Packages in Emacs 24.1
 
