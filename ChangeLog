@@ -1,3 +1,7 @@
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Set CANNOT_DUMP on ia64 hpux (port from emacs-23).
+
 2011-01-25  Peter O'Gorman  <bug-gnu-emacs@mlists.thewrittenword.com>  (tiny change)
 
 	* configure.in: Add HP-UX on IA64 (Bug#6811).
