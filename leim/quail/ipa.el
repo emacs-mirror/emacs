@@ -5,7 +5,7 @@
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, input method, IPA
 

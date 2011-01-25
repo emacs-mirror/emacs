@@ -1,7 +1,6 @@
 /* This file is the configuration file for Linux-based GNU systems
 
-Copyright (C) 1985, 1986, 1992, 1994, 1996, 1999, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010, 2011
+Copyright (C) 1985-1986, 1992, 1994, 1996, 1999, 2001-2011
   Free Software Foundation, Inc.
 
 This file was put together by Michael K. Johnson and Rik Faith.
@@ -160,4 +159,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   } while (0)
 #endif
 #endif
-

@@ -1,7 +1,6 @@
 ;;; expand.el --- make abbreviations more usable
 
-;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Frederic Lepied <Frederic.Lepied@sugix.frmug.org>
 ;; Maintainer: Frederic Lepied <Frederic.Lepied@sugix.frmug.org>

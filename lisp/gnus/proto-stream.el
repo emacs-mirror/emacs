@@ -1,6 +1,6 @@
 ;;; proto-stream.el --- negotiating TLS, STARTTLS and other connections
 
-;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network

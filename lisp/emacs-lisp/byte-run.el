@@ -1,7 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>

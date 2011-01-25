@@ -1,6 +1,6 @@
 ;;; epa.el --- the EasyPG Assistant
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 2006-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
