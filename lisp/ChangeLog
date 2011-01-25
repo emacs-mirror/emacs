@@ -15,7 +15,7 @@
 	Do not mess with the fill-prefix.
 	Do not call copyright-update.
 	(copyright-update-directory): Optionally, fix years rather than update.
-	Skip directories.  Find files literally, with only safe local vars.
+	Skip directories.  Find files with only safe local vars.
 
 2011-01-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 

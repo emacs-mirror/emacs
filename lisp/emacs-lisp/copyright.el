@@ -363,7 +363,7 @@ If FIX is non-nil, run `copyright-fix-years' instead."
   (dolist (file (directory-files directory t match nil))
     (unless (file-directory-p file)
       (message "Updating file `%s'" file)
-      (find-file-literally file)
+      (find-file file)
       (let ((inhibit-read-only t)
 	    (enable-local-variables :safe)
 	    copyright-query)
