@@ -603,8 +603,9 @@ mode, Shell mode, etc.  This can be done by setting the hooks
 and `comint-get-old-input' to appropriate functions, and the variable
 `comint-prompt-regexp' to the appropriate regular expression.
 
-An input history is maintained of size `comint-input-ring-size', and
-can be accessed with the commands \\[comint-next-input], \\[comint-previous-input], and \\[comint-dynamic-list-input-ring].
+The mode maintains an input history of size `comint-input-ring-size'.
+You can access this with the commands \\[comint-next-input],
+\\[comint-previous-input], and \\[comint-dynamic-list-input-ring].
 Input ring history expansion can be achieved with the commands
 \\[comint-replace-by-expanded-history] or \\[comint-magic-space].
 Input ring expansion is controlled by the variable `comint-input-autoexpand',
@@ -3748,5 +3749,4 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 
 (provide 'comint)
 
-;; arch-tag: 1793314c-09db-40be-9549-9aeae3e75164
 ;;; comint.el ends here

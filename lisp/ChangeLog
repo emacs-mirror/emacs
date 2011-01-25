@@ -1,3 +1,7 @@
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (comint-mode): Doc fix.  (Bug#7897)
+
 2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (file-name-non-special): Only change buffer-file-name after
