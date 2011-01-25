@@ -1,3 +1,8 @@
+2011-01-25  Sam Steingold  <sds@gnu.org>
+
+	* vc/vc-svn.el (vc-svn-diff): Use `diff-command' instead of the
+	literal "diff" (important for windows-nt).
+
 2011-01-25  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-at-end-flag)
