@@ -27,6 +27,11 @@
 (eval-when-compile
   (require 'cl))                        ; assert
 
+(defvar bzrmerge-skip-regexp
+  "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version"
+  "Regexp matching logs of revisions that might be skipped.
+`bzrmerge-missing' will ask you if it should skip any matches.")
+
 (defun bzrmerge-merges ()
   "Return the list of already merged (not yet committed) revisions.
 The list returned is sorted by oldest-first."
@@ -91,6 +96,7 @@ The list returned is sorted by oldest-first."
 (defun bzrmerge-missing (from merges)
   "Return the list of revisions that need to be merged.
 MERGES is the revisions already merged but not yet committed.
+Asks about skipping revisions with logs matching `bzrmerge-skip-regexp'.
 The result is of the form (TOMERGE . TOSKIP) where TOMERGE and TOSKIP
 are both lists of revnos, in oldest-first order."
   (with-current-buffer (get-buffer-create "*bzrmerge*")
@@ -114,8 +120,7 @@ are both lists of revnos, in oldest-first order."
                 (setq revno (string-to-number revno)))
               (re-search-forward "^message:\n")
               (while (and (not skip)
-                          (re-search-forward
-                           "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version" nil t))
+                          (re-search-forward bzrmerge-skip-regexp nil t))
                 (let ((str (buffer-substring (line-beginning-position)
                                              (line-end-position))))
                   (when (string-match "\\` *" str)
