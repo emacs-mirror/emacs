@@ -5012,8 +5012,9 @@ and returns it.
 button actually part of the text instead of being a property of the
 buffer.  Buttons using text properties do not create markers into the
 buffer, which is important for speed when you use extremely large
-numbers of buttons.  Both functions return the position of the start
-of the new button:
+numbers of buttons.  (However, if there is an existing face text
+property at the site of the button, the button face may not be visible.)
+Both functions return the position of the start of the new button:
 
 @defun make-text-button beg end &rest properties
 This makes a button from @var{beg} to @var{end} in the current buffer, using

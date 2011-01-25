@@ -1,3 +1,7 @@
+2011-01-25  Peter O'Gorman  <bug-gnu-emacs@mlists.thewrittenword.com>  (tiny change)
+
+	* configure.in: Add HP-UX on IA64 (Bug#6811).
+
 2011-01-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove HAVE_RAW_DECL_CHOWN etc. from config.h

@@ -386,15 +386,6 @@ matches both @samp{]} and @samp{-}.
 To include @samp{^} in a character alternative, put it anywhere but at
 the beginning.
 
-The beginning and end of a range of multibyte characters must be in
-the same character set (@pxref{Character Sets}).  Thus,
-@code{"[\x8e0-\x97c]"} is invalid because character 0x8e0 (@samp{a}
-with grave accent) is in the Emacs character set for Latin-1 but the
-character 0x97c (@samp{u} with diaeresis) is in the Emacs character
-set for Latin-2.  (We use Lisp string syntax to write that example,
-and a few others in the next few paragraphs, in order to include hex
-escape sequences in them.)
-
 If a range starts with a unibyte character @var{c} and ends with a
 multibyte character @var{c2}, the range is divided into two parts: one
 is @samp{@var{c}..?\377}, the other is @samp{@var{c1}..@var{c2}}, where

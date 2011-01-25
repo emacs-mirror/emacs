@@ -1,3 +1,8 @@
+2011-01-25  Werner Meisner  <weme24@gmx.net>
+
+	* lwlib-Xm.c (xm_update_menu): Avoid a NULL pointer dereference
+	(Bug#7690).
+
 2010-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Use const for some pointer arguments.

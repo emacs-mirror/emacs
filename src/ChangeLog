@@ -1,3 +1,13 @@
+2011-01-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (handle_fontified_prop): Be careful with font-lock changing
+	the buffer's point-max (bug#7876).
+
+2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* lisp.h (XPNTR): Obey DATA_SEG_BITS in all non-USE_LSB_TAG cases.
+	Remove unused case (Bug#6811).
+
 2011-01-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (x_set_offset): Set dont_constrain to 0 so the call to

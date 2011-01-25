@@ -1,3 +1,8 @@
+2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* movemail.c (main): Use setregid instead of setegid, which is
+	missing on older systems.  Suggested by Peter O'Gorman (Bug#6811).
+
 2011-01-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Check return values of some library calls.

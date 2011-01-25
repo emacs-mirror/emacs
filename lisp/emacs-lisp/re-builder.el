@@ -243,7 +243,9 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 		  :help "Quit the RE Builder mode"))
     (define-key menu-map [rt]
       '(menu-item "Case sensitive" reb-toggle-case
-		  :button (:toggle . (null case-fold-search))
+		  :button (:toggle . (with-current-buffer
+					 reb-target-buffer
+				       (null case-fold-search)))
 		  :help "Toggle case sensitivity of searches for RE Builder target buffer"))
     (define-key menu-map [rb]
       '(menu-item "Change target buffer..." reb-change-target-buffer
