@@ -663,23 +663,23 @@ ones, in case fg and bg are nil."
       (goto-char (point-min))
       (while (not (eobp))
 	(end-of-line)
-	(when (and (< (setq current-column (current-column)) width)
-		   (< (setq current-column (shr-previous-newline-padding-width
-					    current-column))
+	(when (and (< (setq column (current-column)) width)
+		   (< (setq column (shr-previous-newline-padding-width column))
 		      width))
 	  (let ((overlay (make-overlay (point) (1+ (point)))))
 	    (overlay-put overlay 'before-string
 			 (concat
 			  (mapconcat
 			   (lambda (overlay)
-			     (let ((string (getf (overlay-properties overlay) 'before-string)))
+			     (let ((string (getf (overlay-properties overlay)
+						 'before-string)))
 			       (if (not string)
 				   ""
 				 (overlay-put overlay 'before-string "")
 				 string)))
 			   (overlays-at (point))
 			   "")
-			  (propertize (make-string (- width current-column) ? )
+			  (propertize (make-string (- width column) ? )
 				      'face (list :background color))))))
 	(forward-line 1)))))
 
