@@ -90,6 +90,14 @@ of the standard distribution of the OS.  The platform-specific README
 files and installation instructions should list the required tools.
 
 
+NOTE ON COPYRIGHT YEARS
+
+In copyright notices where the copyright holder is the Free Software
+Foundation, then where a range of years appears, this is an inclusive
+range that applies to every year in the range.  For example: 2005-2008
+represents the years 2005, 2006, 2007, and 2008.
+
+
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
