@@ -1,6 +1,7 @@
 ;;; internal.el --- support for PC internal terminal
 
-;; Copyright (C) 1993-1994, 1998-1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1998-1999, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 

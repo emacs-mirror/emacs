@@ -1,7 +1,6 @@
 ;;; mh-speed.el --- MH-E speedbar support
 
-;; Copyright (C) 2002-2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

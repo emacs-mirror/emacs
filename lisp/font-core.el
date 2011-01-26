@@ -1,7 +1,6 @@
 ;;; font-core.el --- Core interface to font-lock
 
-;; Copyright (C) 1992-2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: languages, faces

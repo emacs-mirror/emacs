@@ -1,7 +1,6 @@
 ;;; eieio-custom.el -- eieio object customization
 
-;; Copyright (C) 1999-2001, 2005, 2007-2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999-2001, 2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2

@@ -1081,7 +1081,8 @@ la dosiero verkita de Stuart Cracraft por la originala Emakso.
 kopirajton, kaj venas kun permeso por disdoni kopiojn se certaj
 kondiæoj estas observataj:
 
-   Copyright (C) 1985, 1999, 2001-2002, 2005, 2007-2011 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1999, 2001-2002, 2005, 2007-2011
+     Free Software Foundation, Inc.
 
    Æi tiu dosiero estas parto de "GNU Emacs".
  
@@ -1113,4 +1114,3 @@ kaj kompletigis Sergio B. Pokrovskij.
 ;;; Local Variables:
 ;;;   coding: latin-3
 ;;; End:
-

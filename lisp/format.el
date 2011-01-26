@@ -1,6 +1,7 @@
 ;;; format.el --- read and save files in multiple formats
 
-;; Copyright (C) 1994-1995, 1997, 1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997, 1999, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Package: emacs

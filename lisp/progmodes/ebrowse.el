@@ -1,7 +1,6 @@
 ;;; ebrowse.el --- Emacs C++ class browser & tags facility
 
-;; Copyright (C) 1992-2011
-;; Free Software Foundation Inc.
+;; Copyright (C) 1992-2011  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
