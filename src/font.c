@@ -1603,7 +1603,7 @@ font_parse_fcname (name, font)
 	  else if (PROP_MATCH ("Italic", 6))
 	    {
 	      prop_found = 1;
-	      prop = font_intern_prop ("italic", 4, 1);
+	      prop = font_intern_prop ("italic", 6, 1);
 	      FONT_SET_STYLE (font, FONT_SLANT_INDEX, prop);
 	    }
 	  else if (PROP_MATCH ("Oblique", 7))

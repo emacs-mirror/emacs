@@ -1,3 +1,7 @@
+2011-01-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Fix typo in string length.
+
 2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (handle_fontified_prop): Be careful with font-lock changing
