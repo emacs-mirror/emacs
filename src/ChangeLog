@@ -1,3 +1,15 @@
+2011-01-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Let the debugger continue to the normal handler (bug#7825).
+	* eval.c (maybe_call_debugger): Declare before new use.
+	(find_handler_clause): Don't call debugger any more.
+	Ignore Vstack_trace_on_error.
+	Use XCAR/XCDR.
+	(syms_of_eval): Remove Vstack_trace_on_error.
+	(Fsignal): Only modify handlerlist when we know we need to do it.
+	Call the debugger when necessary.
+	* globals.h (Vstack_trace_on_error): Remove.
+
 2011-01-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_parse_fcname): Rewrite GTK font name parser.

@@ -166,12 +166,6 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (max-mini-window-height limits
 				     (choice (const :tag "quarter screen" nil)
 					     number) "23.1")
-	     (stack-trace-on-error debug
-				   (choice (const :tag "off")
-					   (repeat :menu-tag "When"
-						   :value (nil)
-						   (symbol :format "%v"))
-					   (const :tag "always" t)))
 	     (debug-on-error debug
 			     (choice (const :tag "off")
 				     (repeat :menu-tag "When"
