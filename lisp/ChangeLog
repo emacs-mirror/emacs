@@ -1,3 +1,8 @@
+2011-01-26  Roy Liu <carsomyr@gmail.com> (tiny change)
+
+	* term/ns-win.el (ns-find-file): Expand ns-input-file with
+	command-line-default-directory (Bug#7872).
+
 2011-01-25  Glenn Morris  <rgm@gnu.org>
 
 	* comint.el (comint-mode): Doc fix.  (Bug#7897)
