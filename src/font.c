@@ -1448,109 +1448,83 @@ font_parse_fcname (char *name, Lisp_Object font)
       /* Either a fontconfig-style name with no size and property
 	 data, or a GTK-style name.  */
       Lisp_Object prop;
-      int word_len, prop_found = 0;
+      Lisp_Object weight = Qnil, slant = Qnil;
+      Lisp_Object width  = Qnil, size  = Qnil;
+      char *word_start;
+      int word_len;
+      int size_found = 0;
 
-      for (p = name; *p; p = *q ? q + 1 : q)
+      /* Scan backwards from the end, looking for a size.  */
+      for (p = name + len - 1; p >= name; p--)
+	if (!isdigit (*p))
+	  break;
+
+      if ((p < name + len - 1) && ((p + 1 == name) || *p == ' '))
+	/* Found a font size.  */
+	size = make_float (strtod (p + 1, NULL));
+      else
+	p = name + len;
+
+      /* Now P points to the termination of the string, sans size.
+	 Scan backwards, looking for font properties.  */
+      for (; p > name; p = q)
 	{
-	  if (isdigit (*p))
+	  for (q = p - 1; q >= name; q--)
 	    {
-	      int size_found = 1;
-
-	      for (q = p + 1; *q && *q != ' '; q++)
-		if (! isdigit (*q) && *q != '.')
-		  {
-		    size_found = 0;
-		    break;
-		  }
-	      if (size_found)
-		{
-		  double point_size = strtod (p, &q);
-		  ASET (font, FONT_SIZE_INDEX, make_float (point_size));
-		  continue;
-		}
+	      if (q > name && *(q-1) == '\\')
+		--q;   /* Skip quoting backslashes.  */
+	      else if (*q == ' ')
+		break;
 	    }
 
-	  for (q = p + 1; *q && *q != ' '; q++)
-	    if (*q == '\\' && q[1])
-	      q++;
-	  word_len = q - p;
+	  word_start = q + 1;
+	  word_len = p - word_start;
 
-#define PROP_MATCH(STR,N) ((word_len == N) && memcmp (p, STR, N) == 0)
+#define PROP_MATCH(STR,N) \
+	  ((word_len == N) && memcmp (word_start, STR, N) == 0)
+#define PROP_SAVE(VAR,STR,N)			\
+	  (VAR = NILP (VAR) ? font_intern_prop (STR, N, 1) : VAR)
 
 	  if (PROP_MATCH ("Ultra-Light", 11))
-	    {
-	      prop_found = 1;
-	      prop = font_intern_prop ("ultra-light", 11, 1);
-	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
-	    }
+	    PROP_SAVE (weight, "ultra-light", 11);
 	  else if (PROP_MATCH ("Light", 5))
-	    {
-	      prop_found = 1;
-	      prop = font_intern_prop ("light", 5, 1);
-	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
-	    }
+	    PROP_SAVE (weight, "light", 5);
 	  else if (PROP_MATCH ("Book", 4))
-	    {
-	      prop_found = 1;
-	      prop = font_intern_prop ("book", 4, 1);
-	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
-	    }
+	    PROP_SAVE (weight, "book", 4);
 	  else if (PROP_MATCH ("Medium", 6))
-	    {
-	      prop_found = 1;
-	      prop = font_intern_prop ("medium", 6, 1);
-	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
-	    }
+	    PROP_SAVE (weight, "medium", 6);
 	  else if (PROP_MATCH ("Semi-Bold", 9))
-	    {
-	      prop_found = 1;
-	      prop = font_intern_prop ("semi-bold", 9, 1);
-	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
-	    }
+	    PROP_SAVE (weight, "semi-bold", 9);
 	  else if (PROP_MATCH ("Bold", 4))
-	    {
-	      prop_found = 1;
-	      prop = font_intern_prop ("bold", 4, 1);
-	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
-	    }
+	    PROP_SAVE (weight, "bold", 4);
 	  else if (PROP_MATCH ("Italic", 6))
-	    {
-	      prop_found = 1;
-	      prop = font_intern_prop ("italic", 4, 1);
-	      FONT_SET_STYLE (font, FONT_SLANT_INDEX, prop);
-	    }
+	    PROP_SAVE (slant, "italic", 6);
 	  else if (PROP_MATCH ("Oblique", 7))
-	    {
-	      prop_found = 1;
-	      prop = font_intern_prop ("oblique", 7, 1);
-	      FONT_SET_STYLE (font, FONT_SLANT_INDEX, prop);
-	    }
+	    PROP_SAVE (slant, "oblique", 7);
 	  else if (PROP_MATCH ("Semi-Condensed", 14))
-	    {
-	      prop_found = 1;
-	      prop = font_intern_prop ("semi-condensed", 14, 1);
-	      FONT_SET_STYLE (font, FONT_WIDTH_INDEX, prop);
-	    }
+	    PROP_SAVE (width, "semi-condensed", 14);
 	  else if (PROP_MATCH ("Condensed", 9))
+	    PROP_SAVE (width, "condensed", 9);
+	  /* An unknown word must be part of the font name.  */
+	  else
 	    {
-	      prop_found = 1;
-	      prop = font_intern_prop ("condensed", 9, 1);
-	      FONT_SET_STYLE (font, FONT_WIDTH_INDEX, prop);
+	      family_end = p;
+	      break;
 	    }
-	  else {
-	    if (prop_found)
-	      return -1; /* Unknown property in GTK-style font name.  */
-	    family_end = q;
-	  }
 	}
 #undef PROP_MATCH
 
       if (family_end)
-	{
-	  Lisp_Object family;
-	  family = font_intern_prop (name, family_end - name, 1);
-	  ASET (font, FONT_FAMILY_INDEX, family);
-	}
+	ASET (font, FONT_FAMILY_INDEX,
+	      font_intern_prop (name, family_end - name, 1));
+      if (!NILP (size))
+	ASET (font, FONT_SIZE_INDEX, size);
+      if (!NILP (weight))
+	FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, weight);
+      if (!NILP (slant))
+	FONT_SET_STYLE (font, FONT_SLANT_INDEX, slant);
+      if (!NILP (width))
+	FONT_SET_STYLE (font, FONT_WIDTH_INDEX, width);
     }
 
   return 0;
