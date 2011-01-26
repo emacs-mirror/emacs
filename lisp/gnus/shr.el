@@ -82,30 +82,6 @@ used."
 		 (const   :tag "Use the width of the window" nil))
   :group 'shr)
 
-(defface shr-tag-h1 '((t (:bold t :height 2.2)))
-  "Face used for H1 tags."
-  :group 'shr)
-
-(defface shr-tag-h2 '((t (:bold t :height 2.0)))
-  "Face used for H2 tags."
-  :group 'shr)
-
-(defface shr-tag-h3 '((t (:bold t :height 1.8)))
-  "Face used for H3 tags."
-  :group 'shr)
-
-(defface shr-tag-h4 '((t (:bold t :height 1.6)))
-  "Face used for H4 tags."
-  :group 'shr)
-
-(defface shr-tag-h5 '((t (:bold t :height 1.4)))
-  "Face used for H5 tags."
-  :group 'shr)
-
-(defface shr-tag-h6 '((t (:bold t :height 1.2)))
-  "Face used for H6 tags."
-  :group 'shr)
-
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
@@ -906,22 +882,22 @@ ones, in case fg and bg are nil."
   (shr-generic cont))
 
 (defun shr-tag-h1 (cont)
-  (shr-heading cont 'shr-tag-h1))
+  (shr-heading cont 'bold 'underline))
 
 (defun shr-tag-h2 (cont)
-  (shr-heading cont 'shr-tag-h2))
+  (shr-heading cont 'bold))
 
 (defun shr-tag-h3 (cont)
-  (shr-heading cont 'shr-tag-h3))
+  (shr-heading cont 'italic))
 
 (defun shr-tag-h4 (cont)
-  (shr-heading cont 'shr-tag-h4))
+  (shr-heading cont))
 
 (defun shr-tag-h5 (cont)
-  (shr-heading cont 'shr-tag-h5))
+  (shr-heading cont))
 
 (defun shr-tag-h6 (cont)
-  (shr-heading cont 'shr-tag-h6))
+  (shr-heading cont))
 
 (defun shr-tag-hr (cont)
   (shr-ensure-newline)

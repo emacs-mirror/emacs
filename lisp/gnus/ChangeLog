@@ -1,3 +1,9 @@
+2011-01-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el: Revert change that made headings use different-sized faces.
+	The Emacs display engine isn't advanced enough that, for instance,
+	tables can comfortably use differntly-sized faces.
+
 2011-01-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-open-connection-1): Store the actual stream type
