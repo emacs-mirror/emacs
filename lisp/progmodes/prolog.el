@@ -1,6 +1,7 @@
 ;;; prolog.el --- major mode for editing and running Prolog (and Mercury) code
 
-;; Copyright (C) 1986, 1987, 1997, 1998, 1999, 2002, 2003, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1986-1987, 1997-1999, 2002-2003, 2011
+;;   Free Software Foundation, Inc.
 
 ;; Authors: Emil Åström <emil_astrom(at)hotmail(dot)com>
 ;;          Milan Zamazal <pdm(at)freesoft(dot)cz>

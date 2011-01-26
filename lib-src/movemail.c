@@ -1,7 +1,6 @@
 /* movemail foo bar -- move file foo to file bar,
    locking file foo the way /bin/mail respects.
-   Copyright (C) 1986, 1992, 1993, 1994, 1996, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 1986, 1992-1994, 1996, 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -354,7 +353,7 @@ main (int argc, char **argv)
       time_t touched_lock, now;
 #endif
 
-      if (setuid (getuid ()) < 0 || setegid (real_gid) < 0)
+      if (setuid (getuid ()) < 0 || setregid (-1, real_gid) < 0)
 	fatal ("Failed to drop privileges", 0, 0);
 
 #ifndef MAIL_USE_MMDF
@@ -381,7 +380,7 @@ main (int argc, char **argv)
       if (outdesc < 0)
 	pfatal_with_name (outname);
 
-      if (setegid (priv_gid) < 0)
+      if (setregid (-1, priv_gid) < 0)
 	fatal ("Failed to regain privileges", 0, 0);
 
       /* This label exists so we can retry locking
@@ -478,7 +477,7 @@ main (int argc, char **argv)
 #endif
 
       /* Prevent symlink attacks truncating other users' mailboxes */
-      if (setegid (real_gid) < 0)
+      if (setregid (-1, real_gid) < 0)
 	fatal ("Failed to drop privileges", 0, 0);
 
       /* Check to make sure no errors before we zap the inbox.  */
@@ -514,7 +513,7 @@ main (int argc, char **argv)
 #endif /* not MAIL_USE_SYSTEM_LOCK */
 
       /* End of mailbox truncation */
-      if (setegid (priv_gid) < 0)
+      if (setregid (-1, priv_gid) < 0)
 	fatal ("Failed to regain privileges", 0, 0);
 
 #ifdef MAIL_USE_MAILLOCK

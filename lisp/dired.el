@@ -1,7 +1,6 @@
 ;;; dired.el --- directory-browsing commands
 
-;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -1146,7 +1145,10 @@ If HDR is non-nil, insert a header line with the directory name."
   "Reread the dired buffer.
 Must also be called after `dired-actual-switches' have changed.
 Should not fail even on completely garbaged buffers.
-Preserves old cursor, marks/flags, hidden-p."
+Preserves old cursor, marks/flags, hidden-p.
+
+Dired sets `revert-buffer-function' to this function.  The args
+ARG and NOCONFIRM, passed from `revert-buffer', are ignored."
   (widen)				; just in case user narrowed
   (let ((modflag (buffer-modified-p))
 	(positions (dired-save-positions))

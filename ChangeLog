@@ -1,3 +1,13 @@
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* README: Add a note about ranges in copyright years.
+
+	* configure.in: Set CANNOT_DUMP on ia64 hpux (port from emacs-23).
+
+2011-01-25  Peter O'Gorman  <bug-gnu-emacs@mlists.thewrittenword.com>  (tiny change)
+
+	* configure.in: Add HP-UX on IA64 (Bug#6811).
+
 2011-01-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove HAVE_RAW_DECL_CHOWN etc. from config.h
@@ -8908,8 +8918,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+  Copyright (C) 1993-1999, 2001-2011
     Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.

@@ -1,3 +1,86 @@
+2011-01-25  Sam Steingold  <sds@gnu.org>
+
+	* vc/vc-svn.el (vc-svn-diff): Use `diff-command' instead of the
+	literal "diff" (important for windows-nt).
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-at-end-flag)
+	(copyright-names-regexp): Add safety properties.
+	(copyright-year-ranges): New option.
+	(copyright-find-end): New function, split from copyright-update-year.
+	(copyright-update-year): Use copyright-find-end.
+	(copyright-fix-years): Optionally, convert years to ranges.
+	Handle years continued over comment lines.
+	Do not mess with the fill-prefix.
+	Do not call copyright-update.
+	(copyright-update-directory): Optionally, fix years rather than update.
+	Skip directories.  Find files with only safe local vars.
+
+2011-01-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (file-name-non-special): Only change buffer-file-name after
+	insert-file-contents if it's `visit'ing the file (bug#7854).
+
+2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-revert): Doc fix (Bug#7758).
+
+	* simple.el (line-move-visual): Doc fix (Bug#7594).
+
+2011-01-25  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-here-doc-beg-match): Fix for
+	here-doc which ends with an underscore.
+	(ruby-mode-set-encoding): Skip shebang line always.
+	(ruby-mode-map): Bind C-c C-c to comment-region.
+	(ruby-font-lock-keywords): Highlight literal hash key labels as symbols.
+	(ruby-forward-sexp): Stop after literal hash key labels.
+	(ruby-font-lock-syntactic-keywords): Highlight regexp after open
+	bracket.
+
+2011-01-25  Keitaro Miyazaki  <keitaro.miyazaki@gmail.com>  (tiny change)
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Set case-fold-search in
+	the correct buffer (Bug#7650).
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (comint-mode): Doc fix.  (Bug#7897)
+
+	* simple.el (do-auto-fill): Give it a doc string.
+
+	* button.el (make-text-button): Doc fix.  (See bug#7881)
+
+2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-special-constructs):
+	Don't move backward, so as not to fall in an inf-loop (bug#7736).
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): (bug#7735)
+	Handle ?" and friends differently (e.g. don't use backrefs).
+
+2011-01-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-default-power-reference-level)
+	(calc-default-field-reference-level): New variables.
+	* calc/calc-units.el (math-standard-units):  Add dB and Np.
+	(math-logunits): New variable.
+	(math-extract-logunits, math-logcombine, calcFunc-luplus)
+	(calcFunc-luminus, calc-luplus, calc-luminus, math-logunit-level)
+	(calcFunc-fieldlevel, calcFunc-powerlevel, calc-level):
+	New functions.
+	(math-find-base-units-rec): Add entry for ln(10).
+	* calc/calc-help.el (calc-u-prefix-help): Add logarithmic help.
+	(calc-ul-prefix-help): New function.
+	* calc/calc-ext.el (calc-init-extensions): Autoload new units
+	functions. Add keybindings for new units functions.
+
+2011-01-22  Giorgos Keramidas  <keramida@ceid.upatras.gr>
+
+	* net/rcirc.el (rcirc-kill-buffer-hook): Flush logs when killing
+	rcirc buffers.
+
 2011-01-22  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-find-copyright): New function,
@@ -21197,7 +21280,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
+  Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

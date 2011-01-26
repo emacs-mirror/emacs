@@ -1,7 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -6432,6 +6431,8 @@ not have a face in `gnus-article-boring-faces'."
 	    (ding)
 	  (unless (member keys nosave-in-article)
 	    (set-buffer gnus-article-current-summary))
+	  (when (get func 'disabled)
+	    (error "Function %s disabled" func))
 	  (call-interactively func)
 	  (setq new-sum-point (point)))
 	(when (member keys nosave-but-article)
@@ -6460,8 +6461,11 @@ not have a face in `gnus-article-boring-faces'."
 		 (select-window win))))
 	(setq in-buffer (current-buffer))
 	;; We disable the pick minor mode commands.
-	(if (and (setq func (let (gnus-pick-mode)
-			      (key-binding keys t)))
+	(setq func (let (gnus-pick-mode)
+		     (key-binding keys t)))
+	(when (get func 'disabled)
+	  (error "Function %s disabled" func))
+	(if (and func
 		 (functionp func)
 		 (condition-case code
 		     (progn

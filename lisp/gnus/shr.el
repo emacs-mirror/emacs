@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer
 
-;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -80,6 +80,30 @@ or nil, meaning that the full width of the window should be
 used."
   :type '(choice (integer :tag "Fixed width in characters")
 		 (const   :tag "Use the width of the window" nil))
+  :group 'shr)
+
+(defface shr-tag-h1 '((t (:bold t :height 2.2)))
+  "Face used for H1 tags."
+  :group 'shr)
+
+(defface shr-tag-h2 '((t (:bold t :height 2.0)))
+  "Face used for H2 tags."
+  :group 'shr)
+
+(defface shr-tag-h3 '((t (:bold t :height 1.8)))
+  "Face used for H3 tags."
+  :group 'shr)
+
+(defface shr-tag-h4 '((t (:bold t :height 1.6)))
+  "Face used for H4 tags."
+  :group 'shr)
+
+(defface shr-tag-h5 '((t (:bold t :height 1.4)))
+  "Face used for H5 tags."
+  :group 'shr)
+
+(defface shr-tag-h6 '((t (:bold t :height 1.2)))
+  "Face used for H6 tags."
   :group 'shr)
 
 (defvar shr-content-function nil
@@ -462,11 +486,12 @@ redirects somewhere else."
 	      (search-forward "\r\n\r\n" nil t))
       (let ((data (buffer-substring (point) (point-max))))
         (with-current-buffer buffer
-          (let ((alt (buffer-substring start end))
-		(inhibit-read-only t))
-	    (delete-region start end)
-	    (goto-char start)
-	    (shr-put-image data alt))))))
+	  (save-excursion
+	    (let ((alt (buffer-substring start end))
+		  (inhibit-read-only t))
+	      (delete-region start end)
+	      (goto-char start)
+	      (shr-put-image data alt)))))))
   (kill-buffer (current-buffer)))
 
 (defun shr-put-image (data alt)
@@ -617,7 +642,57 @@ ones, in case fg and bg are nil."
 	(shr-put-color-1 (point) (min (line-end-position) end) type color))
       (if (< (line-end-position) end)
 	  (forward-line 1)
-	(goto-char end)))))
+	(goto-char end)))
+    (when (eq type :background)
+      (shr-expand-newlines start end color))))
+
+(defun shr-expand-newlines (start end color)
+  (save-restriction
+    ;; Skip past all white space at the start and ends.
+    (goto-char start)
+    (skip-chars-forward " \t\n")
+    (beginning-of-line)
+    (setq start (point))
+    (goto-char end)
+    (skip-chars-backward " \t\n")
+    (forward-line 1)
+    (setq end (point))
+    (narrow-to-region start end)
+    (let ((width (shr-natural-width))
+	  column)
+      (goto-char (point-min))
+      (while (not (eobp))
+	(end-of-line)
+	(when (and (< (setq column (current-column)) width)
+		   (< (setq column (shr-previous-newline-padding-width column))
+		      width))
+	  (let ((overlay (make-overlay (point) (1+ (point)))))
+	    (overlay-put overlay 'before-string
+			 (concat
+			  (mapconcat
+			   (lambda (overlay)
+			     (let ((string (getf (overlay-properties overlay)
+						 'before-string)))
+			       (if (not string)
+				   ""
+				 (overlay-put overlay 'before-string "")
+				 string)))
+			   (overlays-at (point))
+			   "")
+			  (propertize (make-string (- width column) ? )
+				      'face (list :background color))))))
+	(forward-line 1)))))
+
+(defun shr-previous-newline-padding-width (width)
+  (let ((overlays (overlays-at (point)))
+	(previous-width 0))
+    (if (null overlays)
+	width
+      (dolist (overlay overlays)
+	(setq previous-width
+	      (+ previous-width
+		 (length (getf (overlay-properties overlay) 'before-string)))))
+      (+ width previous-width))))
 
 (defun shr-put-color-1 (start end type color)
   (let* ((old-props (get-text-property start 'face))
@@ -831,22 +906,22 @@ ones, in case fg and bg are nil."
   (shr-generic cont))
 
 (defun shr-tag-h1 (cont)
-  (shr-heading cont 'bold 'underline))
+  (shr-heading cont 'shr-tag-h1))
 
 (defun shr-tag-h2 (cont)
-  (shr-heading cont 'bold))
+  (shr-heading cont 'shr-tag-h2))
 
 (defun shr-tag-h3 (cont)
-  (shr-heading cont 'italic))
+  (shr-heading cont 'shr-tag-h3))
 
 (defun shr-tag-h4 (cont)
-  (shr-heading cont))
+  (shr-heading cont 'shr-tag-h4))
 
 (defun shr-tag-h5 (cont)
-  (shr-heading cont))
+  (shr-heading cont 'shr-tag-h5))
 
 (defun shr-tag-h6 (cont)
-  (shr-heading cont))
+  (shr-heading cont 'shr-tag-h6))
 
 (defun shr-tag-hr (cont)
   (shr-ensure-newline)

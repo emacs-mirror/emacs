@@ -1,6 +1,5 @@
 /* The lwlib interface to Motif widgets.
-   Copyright (C) 1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 1994-1997, 1999-2011
                  Free Software Foundation, Inc.
    Copyright (C) 1992 Lucid, Inc.
 
@@ -800,7 +799,7 @@ xm_update_menu (widget_instance* instance,
 
   /* Now replace from scratch all the buttons after the last
      place that the top-level structure changed.  */
-  if (val->contents->change == STRUCTURAL_CHANGE)
+  if (val->contents && val->contents->change == STRUCTURAL_CHANGE)
     {
       destroy_all_children (widget, num_children_to_keep);
       make_menu_in_widget (instance, widget, val->contents,

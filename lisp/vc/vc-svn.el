@@ -1,6 +1,6 @@
 ;;; vc-svn.el --- non-resident support for Subversion version-control
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 2003-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
@@ -72,9 +72,9 @@ If t, use no switches."
   t			   ;`svn' doesn't support common args like -c or -b.
   "String or list of strings specifying extra switches for svn diff under VC.
 If nil, use the value of `vc-diff-switches' (or `diff-switches'),
-together with \"-x --diff-cmd=diff\" (since svn diff does not
-support the default \"-c\" value of `diff-switches').  If you
-want to force an empty list of arguments, use t."
+together with \"-x --diff-cmd=\"`diff-command' (since 'svn diff'
+does not support the default \"-c\" value of `diff-switches').
+If you want to force an empty list of arguments, use t."
   :type '(choice (const :tag "Unspecified" nil)
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
@@ -523,7 +523,7 @@ or svn+ssh://."
   (let* ((switches
 	    (if vc-svn-diff-switches
 		(vc-switches 'SVN 'diff)
-	      (list "--diff-cmd=diff" "-x"
+	      (list (concat "--diff-cmd=" diff-command) "-x"
 		    (mapconcat 'identity (vc-switches nil 'diff) " "))))
 	   (async (and (not vc-disable-async-diff)
                        (vc-stay-local-p files 'SVN)

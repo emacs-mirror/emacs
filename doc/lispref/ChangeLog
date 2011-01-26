@@ -1,3 +1,21 @@
+2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
+            Richard Kim  <emacs18@gmail.com>
+
+	* loading.texi (Library Search): Document list-load-path-shadows
+	(Bug#7757).
+
+2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* searching.texi (Regexp Special): Remove outdated discussion of
+	character sets (Bug#7780).
+
+	* frames.texi (Pop-Up Menus): Document where menu title comes
+	from (Bug#7684).
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Making Buttons): Mention limitation of text buttons.
+
 2011-01-23  Werner Lemberg  <wl@gnu.org>
 
 	* Makefile.in (MAKEINFO): Now controlled by `configure'.
@@ -8903,8 +8921,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-    2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+  Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
