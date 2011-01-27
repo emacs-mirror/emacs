@@ -1,9 +1,14 @@
+2011-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* msb.el (msb-menu-bar-update-buffers): Update for changed
+	argument handling of menu-bar-select-frame.  (Bug#7902)
+
 2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/cc-engine.el (c-forward-<>-arglist-recur): Set a limit
 	to the recursion depth (Bug#7722).
 
-2011-01-26  Roy Liu <carsomyr@gmail.com> (tiny change)
+2011-01-26  Roy Liu  <carsomyr@gmail.com>  (tiny change)
 
 	* term/ns-win.el (ns-find-file): Expand ns-input-file with
 	command-line-default-directory (Bug#7872).

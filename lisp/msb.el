@@ -1112,7 +1112,8 @@ variable `msb-menu-cond'."
 		     (list (frame-parameter frame 'name)
 			   (frame-parameter frame 'name)
 			   (cons nil nil))
-		     'menu-bar-select-frame))
+                     `(lambda ()
+                        (interactive) (menu-bar-select-frame ,frame))))
 		  frames)))))
       (setcdr global-buffers-menu-map
 	      (if (and buffers-menu frames-menu)
