@@ -1,5 +1,8 @@
 2011-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
+	Copy change made to ruby-font-lock-syntactic-keywords.
+
 	* htmlfontify.el: Make it obey the font-lock-face text property.
 	Miscellaneous cleanup such as:
 	- Don't hide expressions after a closing paren.
