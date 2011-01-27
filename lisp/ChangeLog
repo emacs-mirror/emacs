@@ -1,3 +1,8 @@
+2011-01-27  Sam Steingold  <sds@gnu.org>
+
+	* midnight.el (clean-buffer-list-kill-never-buffer-names): Remove
+	"*server*" which is never created by emacs server.
+
 2011-01-27  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* vc/vc-bzr.el (vc-bzr-diff): Don't pass --diff-options unless

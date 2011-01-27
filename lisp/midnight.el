@@ -125,7 +125,7 @@ See also `clean-buffer-list-kill-regexps',
   :group 'midnight)
 
 (defcustom clean-buffer-list-kill-never-buffer-names
-    '("*scratch*" "*Messages*" "*server*")
+    '("*scratch*" "*Messages*")
   "List of buffer names which will never be killed by `clean-buffer-list'.
 See also `clean-buffer-list-kill-never-regexps'.
 Note that this does override `clean-buffer-list-kill-regexps' and
