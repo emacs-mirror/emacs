@@ -1,4 +1,24 @@
+2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-draft.el (gnus-draft-clear-marks): New function to be run as an
+	exit hook to nix out all data on readedness on group exit.
+
+	* gnus-util.el (float-time): If float-time is bound, always use it on
+	all Emacsen.  It's unclear why the subrp check was there.
+	(time-date): Require to make some autoload issues on XEmacs go away.
+
+	* shr.el (shr-put-color): Don't do the box padding in tables, since
+	they're already padded.
+
 2011-01-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-next-page): When the last line of the
+	article is displayed, scroll down once more instead of going to the
+	next article at once.
+	(article-lapsed-string): Refactor out and allow specifying how many
+	segments you want.
+	(gnus-article-setup-buffer): Start updating the lapsed header directly.
+	(gnus-article-update-lapsed-header): New variable.
 
 	* shr.el: Revert change that made headings use different-sized faces.
 	The Emacs display engine isn't advanced enough that, for instance,

@@ -68,7 +68,8 @@
    (gnus-draft-mode
     ;; Set up the menu.
     (when (gnus-visual-p 'draft-menu 'menu)
-      (gnus-draft-make-menu-bar)))))
+      (gnus-draft-make-menu-bar))
+    (add-hook 'gnus-summary-prepare-exit-hook 'gnus-draft-clear-marks t t))))
 
 ;;; Commands
 
@@ -324,6 +325,12 @@ Obeys the standard process/prefix convention."
 	      (gnus-select-frame-set-input-focus frame)
 	    (pop-to-buffer buff t)))
 	(error "The draft %s is under edit" file)))))
+
+(defun gnus-draft-clear-marks ()
+  (setq gnus-newsgroup-reads nil
+	gnus-newsgroup-marked nil
+	gnus-newsgroup-unreads
+	(gnus-uncompress-range (gnus-active gnus-newsgroup-name))))
 
 (provide 'gnus-draft)
 

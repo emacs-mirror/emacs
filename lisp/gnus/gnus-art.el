@@ -1023,6 +1023,15 @@ be added below it (otherwise)."
   :group 'gnus-article-headers
   :type 'boolean)
 
+(defcustom gnus-article-update-lapsed-header 1
+  "How often to update the lapsed date header.
+If nil, don't update it at all."
+  :version "24.1"
+  :group 'gnus-article-headers
+  :type '(choice
+	  (item :tag "Don't update" :value nil)
+	  integer))
+
 (defcustom gnus-article-mime-match-handle-function 'undisplayed-alternative
   "Function called with a MIME handle as the argument.
 This is meant for people who want to view first matched part.
@@ -1283,6 +1292,14 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :type gnus-article-treat-head-custom)
 
 (defcustom gnus-treat-date-lapsed nil
+  "Display the Date header in a way that says how much time has elapsed.
+Valid values are nil, t, `head', `first', `last', an integer or a
+predicate.  See Info node `(gnus)Customizing Articles'."
+  :group 'gnus-article-treat
+  :link '(custom-manual "(gnus)Customizing Articles")
+  :type gnus-article-treat-head-custom)
+
+(defcustom gnus-treat-date-combined-lapsed 'head
   "Display the Date header in a way that says how much time has elapsed.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles'."
@@ -1680,6 +1697,7 @@ regexp."
     (gnus-treat-date-user-defined gnus-article-date-user)
     (gnus-treat-date-iso8601 gnus-article-date-iso8601)
     (gnus-treat-date-lapsed gnus-article-date-lapsed)
+    (gnus-treat-date-combined-lapsed gnus-article-date-combined-lapsed)
     (gnus-treat-display-x-face gnus-article-display-x-face)
     (gnus-treat-display-face gnus-article-display-face)
     (gnus-treat-hide-headers gnus-article-maybe-hide-headers)
@@ -3500,7 +3518,8 @@ should replace the \"Date:\" one, or should be added below it."
 
 (defun article-make-date-line (date type)
   "Return a DATE line of TYPE."
-  (unless (memq type '(local ut original user iso8601 lapsed english))
+  (unless (memq type '(local ut original user iso8601 lapsed english
+			     combined-lapsed))
     (error "Unknown conversion type: %s" type))
   (condition-case ()
       (let ((time (date-to-time date)))
@@ -3548,47 +3567,11 @@ should replace the \"Date:\" one, or should be added below it."
 		     (/ (% (abs tz) 3600) 60)))))
 	 ;; Do an X-Sent lapsed format.
 	 ((eq type 'lapsed)
-	  ;; If the date is seriously mangled, the timezone functions are
-	  ;; liable to bug out, so we ignore all errors.
-	  (let* ((now (current-time))
-		 (real-time (subtract-time now time))
-		 (real-sec (and real-time
-				(+ (* (float (car real-time)) 65536)
-				   (cadr real-time))))
-		 (sec (and real-time (abs real-sec)))
-		 num prev)
-	    (cond
-	     ((null real-time)
-	      "X-Sent: Unknown")
-	     ((zerop sec)
-	      "X-Sent: Now")
-	     (t
-	      (concat
-	       "X-Sent: "
-	       ;; This is a bit convoluted, but basically we go
-	       ;; through the time units for years, weeks, etc,
-	       ;; and divide things to see whether that results
-	       ;; in positive answers.
-	       (mapconcat
-		(lambda (unit)
-		  (if (zerop (setq num (ffloor (/ sec (cdr unit)))))
-		      ;; The (remaining) seconds are too few to
-		      ;; be divided into this time unit.
-		      ""
-		    ;; It's big enough, so we output it.
-		    (setq sec (- sec (* num (cdr unit))))
-		    (prog1
-			(concat (if prev ", " "") (int-to-string
-						   (floor num))
-				" " (symbol-name (car unit))
-				(if (> num 1) "s" ""))
-		      (setq prev t))))
-		article-time-units "")
-	       ;; If dates are odd, then it might appear like the
-	       ;; article was sent in the future.
-	       (if (> real-sec 0)
-		   " ago"
-		 " in the future"))))))
+	  (concat "X-Sent: " (article-lapsed-string time)))
+	 ;; A combined date/lapsed format.
+	 ((eq type 'combined-lapsed)
+	  (concat (article-make-date-line date 'original)
+		  " (" (article-lapsed-string time 3) ")"))
 	 ;; Display the date in proper English
 	 ((eq type 'english)
 	  (let ((dtime (decode-time time)))
@@ -3610,8 +3593,55 @@ should replace the \"Date:\" one, or should be added below it."
 	     (format "%02d" (nth 2 dtime))
 	     ":"
 	     (format "%02d" (nth 1 dtime)))))))
-    (error
+    (foo
      (format "Date: %s (from Gnus)" date))))
+
+(defun article-lapsed-string (time &optional max-segments)
+  ;; If the date is seriously mangled, the timezone functions are
+  ;; liable to bug out, so we ignore all errors.
+  (let* ((now (current-time))
+	 (real-time (subtract-time now time))
+	 (real-sec (and real-time
+			(+ (* (float (car real-time)) 65536)
+			   (cadr real-time))))
+	 (sec (and real-time (abs real-sec)))
+	 (segments 0)
+	 num prev)
+    (unless max-segments
+      (setq max-segments (length article-time-units)))
+    (cond
+     ((null real-time)
+      "Unknown")
+     ((zerop sec)
+      "Now")
+     (t
+      (concat
+       ;; This is a bit convoluted, but basically we go
+       ;; through the time units for years, weeks, etc,
+       ;; and divide things to see whether that results
+       ;; in positive answers.
+       (mapconcat
+	(lambda (unit)
+	  (if (or (zerop (setq num (ffloor (/ sec (cdr unit)))))
+		  (>= segments max-segments))
+	      ;; The (remaining) seconds are too few to
+	      ;; be divided into this time unit.
+	      ""
+	    ;; It's big enough, so we output it.
+	    (setq sec (- sec (* num (cdr unit))))
+	    (prog1
+		(concat (if prev ", " "") (int-to-string
+					   (floor num))
+			" " (symbol-name (car unit))
+			(if (> num 1) "s" ""))
+	      (setq prev t
+		    segments (1+ segments)))))
+	article-time-units "")
+       ;; If dates are odd, then it might appear like the
+       ;; article was sent in the future.
+       (if (> real-sec 0)
+	   " ago"
+	 " in the future"))))))
 
 (defun article-date-local (&optional highlight)
   "Convert the current article date to the local timezone."
@@ -3635,6 +3665,11 @@ function and want to see what the date was before converting."
   (interactive (list t))
   (article-date-ut 'lapsed highlight))
 
+(defun article-date-combined-lapsed (&optional highlight)
+  "Convert the current article date to time lapsed since it was sent."
+  (interactive (list t))
+  (article-date-ut 'combined-lapsed highlight))
+
 (defun article-update-date-lapsed ()
   "Function to be run from a timer to update the lapsed time line."
   (save-match-data
@@ -3647,8 +3682,10 @@ function and want to see what the date was before converting."
 	    (when (eq major-mode 'gnus-article-mode)
 	      (let ((mark (point-marker)))
 		(goto-char (point-min))
-		(when (re-search-forward "^X-Sent:" nil t)
-		  (article-date-lapsed t))
+		(when (re-search-forward "^X-Sent:\\|^Date:" nil t)
+		  (if gnus-treat-date-combined-lapsed
+		      (article-date-combined-lapsed t)
+		    (article-date-lapsed t)))
 		(goto-char (marker-position mark))
 		(move-marker mark nil))))
 	  nil 'visible))))))
@@ -4296,6 +4333,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
      article-decode-encoded-words
      article-date-user
      article-date-lapsed
+     article-date-combined-lapsed
      article-emphasize
      article-treat-dumbquotes
      article-treat-non-ascii
@@ -4492,6 +4530,9 @@ commands:
 	(setq gnus-summary-buffer
 	      (gnus-summary-buffer-name gnus-newsgroup-name))
 	(gnus-summary-set-local-parameters gnus-newsgroup-name)
+	(when (and gnus-article-update-lapsed-header
+		   (not article-lapsed-timer))
+	  (gnus-start-date-timer gnus-article-update-lapsed-header))
 	(current-buffer)))))
 
 ;; Set article window start at LINE, where LINE is the number of lines
@@ -6267,7 +6308,7 @@ Argument LINES specifies lines to be scrolled up."
 	   (save-excursion
 	     (end-of-line)
 	     (and (pos-visible-in-window-p)	;Not continuation line.
-		  (>= (1+ (point)) (point-max))))) ;Allow for trailing newline.
+		  (>= (point) (point-max)))))
       ;; Nothing in this page.
       (if (or (not gnus-page-broken)
 	      (save-excursion

@@ -619,7 +619,8 @@ ones, in case fg and bg are nil."
       (if (< (line-end-position) end)
 	  (forward-line 1)
 	(goto-char end)))
-    (when (eq type :background)
+    (when (and (eq type :background)
+	       (= shr-table-depth 0))
       (shr-expand-newlines start end color))))
 
 (defun shr-expand-newlines (start end color)
