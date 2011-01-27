@@ -1549,7 +1549,8 @@ font_parse_fcname (name, font)
 		    size_found = 0;
 		    break;
 		  }
-	      if (size_found)
+	      /* GTK font sizes must occur at the end.  */
+	      if (size_found && *q == '\0')
 		{
 		  double point_size = strtod (p, &q);
 		  ASET (font, FONT_SIZE_INDEX, make_float (point_size));

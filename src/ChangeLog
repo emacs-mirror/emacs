@@ -1,3 +1,8 @@
+2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Require GTK-style font sizes to
+	occur at the end of the font string (Bug#7853).
+
 2011-01-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_parse_fcname): Fix typo in string length.
