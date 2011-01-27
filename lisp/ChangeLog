@@ -76,10 +76,10 @@
 	* calc/calc-ext.el (calc-init-extensions): Autoload new units
 	functions. Add keybindings for new units functions.
 
-2011-01-22  Giorgos Keramidas  <keramida@ceid.upatras.gr>
+2011-01-22  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* net/rcirc.el (rcirc-kill-buffer-hook): Flush logs when killing
-	rcirc buffers.
+	rcirc buffers.  (Bug#4940)
 
 2011-01-22  Glenn Morris  <rgm@gnu.org>
 
