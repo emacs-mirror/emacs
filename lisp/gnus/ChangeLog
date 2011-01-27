@@ -4,6 +4,9 @@
 
 2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* shr.el (shr-put-color): Special-case background colours: Do put them
+	at the blank parts at the front of the lines.
+
 	* gnus-draft.el (gnus-draft-clear-marks): New function to be run as an
 	exit hook to nix out all data on readedness on group exit.
 

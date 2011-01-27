@@ -612,7 +612,8 @@ ones, in case fg and bg are nil."
   (save-excursion
     (goto-char start)
     (while (< (point) end)
-      (when (bolp)
+      (when (and (bolp)
+		 (not (eq type :background)))
 	(skip-chars-forward " "))
       (when (> (line-end-position) (point))
 	(shr-put-color-1 (point) (min (line-end-position) end) type color))
