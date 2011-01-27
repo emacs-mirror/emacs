@@ -1,3 +1,8 @@
+2011-01-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-expand-newlines, shr-previous-newline-padding-width):
+	Use plist-get instead of the cl function getf.
+
 2011-01-27  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-util.el (float-time): Get rid of compiler warning, again.

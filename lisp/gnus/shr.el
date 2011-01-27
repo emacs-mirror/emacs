@@ -649,8 +649,9 @@ ones, in case fg and bg are nil."
 			 (concat
 			  (mapconcat
 			   (lambda (overlay)
-			     (let ((string (getf (overlay-properties overlay)
-						 'before-string)))
+			     (let ((string (plist-get
+					    (overlay-properties overlay)
+					    'before-string)))
 			       (if (not string)
 				   ""
 				 (overlay-put overlay 'before-string "")
@@ -669,7 +670,8 @@ ones, in case fg and bg are nil."
       (dolist (overlay overlays)
 	(setq previous-width
 	      (+ previous-width
-		 (length (getf (overlay-properties overlay) 'before-string)))))
+		 (length (plist-get (overlay-properties overlay)
+				    'before-string)))))
       (+ width previous-width))))
 
 (defun shr-put-color-1 (start end type color)
