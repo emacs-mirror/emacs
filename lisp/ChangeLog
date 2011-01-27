@@ -1,3 +1,8 @@
+2011-01-27  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* vc/vc-bzr.el (vc-bzr-diff): Don't pass --diff-options unless
+	there are some diff switches.
+
 2011-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
