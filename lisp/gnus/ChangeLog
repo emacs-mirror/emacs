@@ -1,5 +1,8 @@
 2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-sum.el (gnus-summary-read-group-1): Fix the "contains no
+	messages" logic, which was reversed.
+
 	* gnus-art.el (article-update-date-lapsed): Ensure that point stays at
 	the "same place" even if point is on the line being replaced.
 	(article-update-date-lapsed): Allow updating both the combined lapsed
