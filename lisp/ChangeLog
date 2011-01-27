@@ -1,3 +1,8 @@
+2011-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* msb.el (msb-after-load-hooks): Make it an obsolete alias.
+	(msb-after-load-hook): Remove eval-after-load wackiness.
+
 2011-01-25  Sam Steingold  <sds@gnu.org>
 
 	* vc/vc-svn.el (vc-svn-diff): Use `diff-command' instead of the
