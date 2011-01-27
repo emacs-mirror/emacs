@@ -1,7 +1,6 @@
 ;;; swedish.el --- miscellaneous functions for dealing with Swedish
 
-;; Copyright (C) 1988, 2001-2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF

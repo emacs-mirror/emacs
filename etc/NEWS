@@ -692,6 +692,11 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** Removed the stack-trace-on-error variable.
+Also the debugger can now "continue" from an error, which means it will jump
+to the error handler as if the debugger had not been invoked instead of
+jumping all the way to the top-level.
+
 ** New function `read-char-choice' reads a restricted set of characters,
 discarding any inputs not inside the set.
 

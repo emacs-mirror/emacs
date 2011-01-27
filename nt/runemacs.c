@@ -1,5 +1,6 @@
-/* Copyright (C) 2001-2011
-     Free Software Foundation, Inc.
+/* runemacs --- Simple program to start Emacs with its console window hidden.
+
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

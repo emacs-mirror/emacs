@@ -1,5 +1,7 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
-   Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2011  Free Software Foundation, Inc.
+
+Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2011
+  Free Software Foundation, Inc.
 
 Author: Jonathan Kamens <jik@security.ov.com>
 
@@ -1623,4 +1625,3 @@ find_crlf (char *in_string, int len)
 }
 
 #endif /* MAIL_USE_POP */
-

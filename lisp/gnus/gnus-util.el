@@ -38,6 +38,8 @@
 (eval-when-compile
   (require 'cl))
 
+(require 'time-date)
+
 (defcustom gnus-completing-read-function 'gnus-emacs-completing-read
   "Function use to do completing read."
   :version "24.1"
@@ -332,9 +334,7 @@ Symbols are also allowed; their print names are used instead."
 	     (> (nth 1 fdate) (nth 1 date))))))
 
 (eval-and-compile
-  (if (or (featurep 'emacs)
-	  (and (fboundp 'float-time)
-	       (subrp (symbol-function 'float-time))))
+  (if (fboundp 'float-time)
       (defalias 'gnus-float-time 'float-time)
     (defun gnus-float-time (&optional time)
       "Convert time value TIME to a floating point number.
