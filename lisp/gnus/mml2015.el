@@ -120,6 +120,12 @@ Whether the passphrase is cached at all is controlled by
   :group 'mime-security
   :type '(repeat (string :tag "Key ID")))
 
+(defcustom mml2015-sign-with-sender nil
+  "If t, use message sender so find a key to sign with."
+  :group 'mime-security
+  :type 'boolean
+  :version "24.1")
+
 (defcustom mml2015-encrypt-to-self nil
   "If t, add your own key ID to recipient list when encryption."
   :group 'mime-security
@@ -959,7 +965,8 @@ Whether the passphrase is cached at all is controlled by
   (let* ((inhibit-redisplay t)
 	 (context (epg-make-context))
 	 (boundary (mml-compute-boundary cont))
-	 (sender (message-options-get 'message-sender))
+	 (sender (when mml2015-sign-with-sender
+                   message-options-get 'message-sender))
 	 signer-key
 	 (signers
 	  (or (message-options-get 'mml2015-epg-signers)
@@ -1034,7 +1041,8 @@ If no one is selected, default secret key is used.  "
   (let ((inhibit-redisplay t)
 	(context (epg-make-context))
 	(config (epg-configuration))
-	(sender (message-options-get 'message-sender))
+	(sender (when mml2015-sign-with-sender
+                  (message-options-get 'message-sender)))
 	(recipients (message-options-get 'mml2015-epg-recipients))
 	cipher signers
 	(boundary (mml-compute-boundary cont))
