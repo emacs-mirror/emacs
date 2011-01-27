@@ -1,3 +1,18 @@
+2011-01-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	fix two m4/gnulib-*.m4 file names that clashed under MS-DOS
+	* Makefile.in (DOS-gnulib-comp.m4): New macro.
+	(sync-from-gnulib): Rename m4/gnulib-comp.m4 to m4/gl-comp.m4 to avoid
+	problems with MS-DOS 8+3 file name restrictions.
+	Remove m4/gnulib-cache.m4, as we can live without it.  If we kept
+	it, it would also cause problems when extracting Emacs distribution
+	tarballs on MS-DOS hosts.
+	(ACLOCAL_INPUTS): Adjust to file renaming.
+	* aclocal.m4, configure, lib/Makefile.in, src/config.in: Regenerate.
+	* config.guess, config.sub: Sync from gnulib.
+	* m4/gnulib-cache.m4: Remove from repository.
+	* m4/gl-comp.m4: Rename from m4/gnulib-comp.m4.
+
 2011-01-25  Glenn Morris  <rgm@gnu.org>
 
 	* README: Add a note about ranges in copyright years.
