@@ -1,3 +1,9 @@
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (make_lispy_position): For clicks on right fringe or
+	margin, compute text position using the X coordinate relative to
+	the left of the text area (Bug#7839).
+
 2011-01-28  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_spec_pattern): Check each extra property

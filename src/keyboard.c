@@ -5153,8 +5153,12 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  int width2, height2;
 	  /* The pixel X coordinate passed to buffer_posn_from_coords
 	     is the X coordinate relative to the text area for
-	     text-area clicks, zero otherwise.  */
-	  int x2 = (part == ON_TEXT) ? xret : 0;
+	     text-area and right-margin clicks, zero otherwise.  */
+	  int x2
+	    = (part == ON_TEXT) ? x2
+	    : (part == ON_RIGHT_FRINGE || part == ON_RIGHT_MARGIN)
+	    ? (XINT (x) - window_box_left (w, TEXT_AREA))
+	    : 0;
 	  int y2 = wy;
 
 	  string2 = buffer_posn_from_coords (w, &x2, &y2, &p,
