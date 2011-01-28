@@ -2467,7 +2467,7 @@ If PROMPT (the prefix) is a number, use the prompt specified in
 `gnus-group-jump-to-group-prompt'."
   (interactive
    (list (gnus-group-completing-read
-          nil nil (gnus-read-active-file-p)
+          nil nil t
           (if current-prefix-arg
               (cdr (assq current-prefix-arg gnus-group-jump-to-group-prompt))
             (or (and (stringp gnus-group-jump-to-group-prompt)
