@@ -1,3 +1,12 @@
+2011-01-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	improve fix for MS-DOS file name clash
+	* Makefile.in (DOS_gnulib_comp.m4): Renamed from DOS-gnulib-comp.m4,
+	for portability to POSIX make.  Reported by Bruno Haible.
+	(sync-from-gnulib): Copy gl-comp.m4 (if present) back to
+	gnulib-comp.m4 before running gnulib-tool, to prevent old gnulib
+	files from accumulating as garbage.  Also reported by Bruno Haible.
+
 2011-01-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	fix two m4/gnulib-*.m4 file names that clashed under MS-DOS
