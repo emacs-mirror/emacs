@@ -1,3 +1,11 @@
+2011-01-28  Leo  <sdl.web@gmail.com>
+
+	* emacs-lisp/advice.el (ad-make-advised-docstring): Don't apply
+	highlighting to the "this function is advisted" message.
+
+	* help-mode.el (help-mode-finish): Apply highlighting here, to
+	avoid clobbering by substitute-command-keys (Bug#6304).
+
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* woman.el (woman0-roff-buffer): Process roff escape sequences
