@@ -1,7 +1,6 @@
 ;;; minibuf-eldef.el --- Only show defaults in prompts when applicable
 ;;
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -156,5 +155,4 @@ Returns non-nil if the new state is enabled."
 
 (provide 'minibuf-eldef)
 
-;; arch-tag: 7e421fae-c275-4729-b0da-7836af377d3d
 ;;; minibuf-eldef.el ends here

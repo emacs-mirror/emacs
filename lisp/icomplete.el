@@ -1,7 +1,7 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback
 
-;; Copyright (C) 1992, 1993, 1994, 1997, 1999, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1994, 1997, 1999, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@i.am>
 ;; Maintainer: Ken Manheimer <klm@i.am>
@@ -376,5 +376,4 @@ are exhibited within the square braces.)"
 ;;allout-layout: (-2 :)
 ;;End:
 
-;; arch-tag: 339ec25a-0741-4eb6-be63-997532e89b0f
 ;;; icomplete.el ends here

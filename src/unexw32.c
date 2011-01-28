@@ -1,6 +1,5 @@
 /* unexec for GNU Emacs on Windows NT.
-   Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -826,5 +825,3 @@ unexec (const char *new_name, const char *old_name)
 
 /* eof */
 
-/* arch-tag: fe1d3d1c-ef88-4917-ab22-f12ab16b3254
-   (do not change this comment) */

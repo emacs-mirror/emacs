@@ -1,3 +1,24 @@
+2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* automated/font-parse-tests.el: Move from
+	font-parse-testsuite.el.
+
+2011-01-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font-parse-testsuite.el (test-font-parse-data): New file.
+
+2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/prolog.prolog: Add tokenizing tests.
+
+2011-01-13  Christian Ohler  <ohler@gnu.org>
+
+	* automated: New directory for automated tests.
+
+	* automated/ert-tests.el, automated/ert-x-tests.el: New files.
+
+	* automated/Makefile.in: New file.
+
 2010-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent/modula2.mod: New file.
@@ -218,10 +239,9 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -237,5 +257,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: 6f0d1c86-c141-46da-b387-cf17e38c7bf7

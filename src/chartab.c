@@ -1,5 +1,5 @@
 /* chartab.c -- char-table support
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -1013,5 +1013,3 @@ syms_of_chartab (void)
   defsubr (&Smap_char_table);
 }
 
-/* arch-tag: 18b5b560-7ab5-4108-b09e-d5dd65dc6fda
-   (do not change this comment) */

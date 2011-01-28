@@ -1,6 +1,6 @@
 ;;; imap-hash.el --- Hashtable-like interface to an IMAP mailbox
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: mail
@@ -371,4 +371,3 @@ Get only the headers if HEADERS-ONLY is not nil."
 ;;; (imap-hash-fetch iht nil 1 2 3)
 ;;; (imap-hash-fetch iht t 1 2 3)
 
-;; arch-tag: 071410ac-91dc-4e36-b892-18e057d639c5

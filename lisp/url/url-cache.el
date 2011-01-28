@@ -1,7 +1,6 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -211,5 +210,4 @@ If `url-standalone-mode' is non-nil, cached items never expire."
 
 (provide 'url-cache)
 
-;; arch-tag: 95b050a6-8e81-4f23-8e63-191b9d1d657c
 ;;; url-cache.el ends here

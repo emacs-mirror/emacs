@@ -1,6 +1,6 @@
 ;;; nxml-ns.el --- XML namespace processing
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -145,5 +145,4 @@ NS is a symbol or nil."
 
 (provide 'nxml-ns)
 
-;; arch-tag: 5968e4b7-fb37-46ce-8621-c65db9793028
 ;;; nxml-ns.el ends here

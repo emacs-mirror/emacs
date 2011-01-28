@@ -1,10 +1,8 @@
 ;;; latin-pre.el --- Quail packages for inputting various European characters  -*-coding: utf-8;-*-
 
+;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010
+;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -1189,5 +1187,4 @@ of characters from a single Latin-N charset.
  ("~~" ?¸)
 )
 
-;; arch-tag: 83017837-6b84-4366-b183-e0577e3ed838
 ;;; latin-pre.el ends here

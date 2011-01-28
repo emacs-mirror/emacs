@@ -1,7 +1,6 @@
 ;;; semantic/db-file.el --- Save a semanticdb to a cache file.
 
-;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009, 2010
-;;; Free Software Foundation, Inc.
+;;; Copyright (C) 2000-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -452,5 +451,4 @@ Optional NOERROR prevents errors from being displayed."
 ;; generated-autoload-load-name: "semantic/db-file"
 ;; End:
 
-;; arch-tag: f4a0d9de-6c25-4bf3-aff3-a10c58fd575d
 ;;; semantic/db-file.el ends here

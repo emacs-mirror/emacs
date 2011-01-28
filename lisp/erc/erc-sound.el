@@ -1,6 +1,6 @@
 ;;; erc-sound.el --- CTCP SOUND support for ERC
 
-;; Copyright (C) 2002, 2003, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2006-2011 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -147,4 +147,3 @@ See also `play-sound-file'."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 53657d1d-007f-4a20-91c1-588e71cf0cee

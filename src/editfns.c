@@ -1,8 +1,6 @@
 /* Lisp functions pertaining to editing.
 
-Copyright (C) 1985, 1986, 1987, 1989, 1993, 1994, 1995, 1996, 1997,
-  1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1989, 1993-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -29,9 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <pwd.h>
 #endif
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef HAVE_SYS_UTSNAME_H
 #include <sys/utsname.h>
@@ -110,23 +106,8 @@ static Lisp_Object subst_char_in_region_unwind_1 (Lisp_Object);
 static void transpose_markers (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
 			       EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT);
 
-Lisp_Object Vbuffer_access_fontify_functions;
 Lisp_Object Qbuffer_access_fontify_functions;
-Lisp_Object Vbuffer_access_fontified_property;
-
 Lisp_Object Fuser_full_name (Lisp_Object);
-
-/* Non-nil means don't stop at field boundary in text motion commands.  */
-
-Lisp_Object Vinhibit_field_text_motion;
-
-/* Some static data, and a function to initialize it for each run */
-
-Lisp_Object Vsystem_name;
-Lisp_Object Vuser_real_login_name;	/* login name of current user ID */
-Lisp_Object Vuser_full_name;		/* full name of current user */
-Lisp_Object Vuser_login_name;		/* user name from LOGNAME or USER */
-Lisp_Object Voperating_system_release;  /* Operating System Release */
 
 /* Symbol for the text property used to mark fields.  */
 
@@ -1414,7 +1395,7 @@ const char *
 get_system_name (void)
 {
   if (STRINGP (Vsystem_name))
-    return (const char *) SDATA (Vsystem_name);
+    return SSDATA (Vsystem_name);
   else
     return "";
 }
@@ -1423,7 +1404,7 @@ const char *
 get_operating_system_release (void)
 {
   if (STRINGP (Voperating_system_release))
-    return (char *) SDATA (Voperating_system_release);
+    return SSDATA (Voperating_system_release);
   else
     return "";
 }
@@ -1831,7 +1812,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
       if (EQ (zone, Qt))
 	tzstring = "UTC0";
       else if (STRINGP (zone))
-	tzstring = (char *) SDATA (zone);
+	tzstring = SSDATA (zone);
       else if (INTEGERP (zone))
 	{
 	  int abszone = eabs (XINT (zone));
@@ -2020,7 +2001,7 @@ If TZ is t, use Universal Time.  */)
   else
     {
       CHECK_STRING (tz);
-      tzstring = (char *) SDATA (tz);
+      tzstring = SSDATA (tz);
     }
 
   set_time_zone_rule (tzstring);
@@ -4557,12 +4538,12 @@ syms_of_editfns (void)
     = intern_c_string ("buffer-access-fontify-functions");
   staticpro (&Qbuffer_access_fontify_functions);
 
-  DEFVAR_LISP ("inhibit-field-text-motion", &Vinhibit_field_text_motion,
+  DEFVAR_LISP ("inhibit-field-text-motion", Vinhibit_field_text_motion,
 	       doc: /* Non-nil means text motion commands don't notice fields.  */);
   Vinhibit_field_text_motion = Qnil;
 
   DEFVAR_LISP ("buffer-access-fontify-functions",
-	       &Vbuffer_access_fontify_functions,
+	       Vbuffer_access_fontify_functions,
 	       doc: /* List of functions called by `buffer-substring' to fontify if necessary.
 Each function is called with two arguments which specify the range
 of the buffer being accessed.  */);
@@ -4580,25 +4561,25 @@ of the buffer being accessed.  */);
   }
 
   DEFVAR_LISP ("buffer-access-fontified-property",
-	       &Vbuffer_access_fontified_property,
+	       Vbuffer_access_fontified_property,
 	       doc: /* Property which (if non-nil) indicates text has been fontified.
 `buffer-substring' need not call the `buffer-access-fontify-functions'
 functions if all the text being accessed has this property.  */);
   Vbuffer_access_fontified_property = Qnil;
 
-  DEFVAR_LISP ("system-name", &Vsystem_name,
+  DEFVAR_LISP ("system-name", Vsystem_name,
 	       doc: /* The host name of the machine Emacs is running on.  */);
 
-  DEFVAR_LISP ("user-full-name", &Vuser_full_name,
+  DEFVAR_LISP ("user-full-name", Vuser_full_name,
 	       doc: /* The full name of the user logged in.  */);
 
-  DEFVAR_LISP ("user-login-name", &Vuser_login_name,
+  DEFVAR_LISP ("user-login-name", Vuser_login_name,
 	       doc: /* The user's name, taken from environment variables if possible.  */);
 
-  DEFVAR_LISP ("user-real-login-name", &Vuser_real_login_name,
+  DEFVAR_LISP ("user-real-login-name", Vuser_real_login_name,
 	       doc: /* The user's name, based upon the real uid only.  */);
 
-  DEFVAR_LISP ("operating-system-release", &Voperating_system_release,
+  DEFVAR_LISP ("operating-system-release", Voperating_system_release,
 	       doc: /* The release of the operating system Emacs is running on.  */);
 
   defsubr (&Spropertize);
@@ -4694,6 +4675,3 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Ssave_restriction);
   defsubr (&Stranspose_regions);
 }
-
-/* arch-tag: fc3827d8-6f60-4067-b11e-c3218031b018
-   (do not change this comment) */

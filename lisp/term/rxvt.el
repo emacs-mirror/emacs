@@ -1,7 +1,6 @@
 ;;; rxvt.el --- define function key sequences and standard colors for rxvt
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Keywords: terminals
@@ -310,5 +309,4 @@ for the currently selected frame."
 	     (* (apply '+ (car (cddr (nth 15 rxvt-standard-colors)))) 0.6))
 	  (set-terminal-parameter nil 'background-mode 'dark)))))
 
-;; arch-tag: 20cf2fb6-6318-4bab-9dbf-1d15048f2257
 ;;; rxvt.el ends here

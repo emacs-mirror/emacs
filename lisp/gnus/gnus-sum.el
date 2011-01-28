@@ -1,7 +1,6 @@
 ;;; gnus-sum.el --- summary mode commands for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -360,7 +359,7 @@ first subject), `unread' (place point on the subject line of the first
 unread article), `best' (place point on the subject line of the
 higest-scored article), `unseen' (place point on the subject line of
 the first unseen article), `unseen-or-unread' (place point on the subject
-line of the first unseen article or, if all article have been seen, on the
+line of the first unseen article or, if all articles have been seen, on the
 subject line of the first unread article), or a function to be called to
 place point on some subject line."
   :version "24.1"
@@ -3940,11 +3939,9 @@ If NO-DISPLAY, don't generate a summary buffer."
 	      (gnus-group-jump-to-group group)
 	      (gnus-group-next-unread-group 1))
 	  (gnus-handle-ephemeral-exit quit-config)))
-      (let ((grpinfo (gnus-get-info group)))
-	(if (null (gnus-info-read grpinfo))
-	    (gnus-message 3 "Group %s contains no messages"
-			  (gnus-group-decoded-name group))
-	  (gnus-message 3 "Can't select group")))
+      (if (null (gnus-list-of-unread-articles group))
+	  (gnus-message 3 "Group %s contains no messages" group)
+	(gnus-message 3 "Can't select group"))
       nil)
      ;; The user did a `C-g' while prompting for number of articles,
      ;; so we exit this group.
@@ -5603,7 +5600,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 
     (setq gnus-newsgroup-processable nil)
 
-    (gnus-update-read-articles group gnus-newsgroup-unreads)
+    (gnus-update-read-articles group gnus-newsgroup-unreads t)
 
     ;; Adjust and set lists of article marks.
     (when info
@@ -7687,9 +7684,6 @@ If BACKWARD, the previous article is selected instead of the next."
 	   (if (eq gnus-keep-same-level 'best)
 	       (gnus-summary-best-group gnus-newsgroup-name)
 	     (gnus-summary-search-group backward gnus-keep-same-level))))
-      ;; For some reason, the group window gets selected.  We change
-      ;; it back.
-      (select-window (get-buffer-window (current-buffer)))
       ;; Select next unread newsgroup automagically.
       (cond
        ((or (not gnus-auto-select-next)
@@ -9839,7 +9833,8 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	    (unless (member to-group to-groups)
 	      (push to-group to-groups))
 
-	    (unless (memq article gnus-newsgroup-unreads)
+	    (when (and (not (memq article gnus-newsgroup-unreads))
+		       (cdr art-group))
 	      (push 'read to-marks)
 	      (gnus-info-set-read
 	       info (gnus-add-to-range (gnus-info-read info)
@@ -9856,14 +9851,16 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 
 	      ;; Enter the article into the cache in the new group,
 	      ;; if that is required.
-	      (when gnus-use-cache
+	      (when (and to-article
+			 gnus-use-cache)
 		(gnus-cache-possibly-enter-article
 		 to-group to-article
 		 (memq article gnus-newsgroup-marked)
 		 (memq article gnus-newsgroup-dormant)
 		 (memq article gnus-newsgroup-unreads)))
 
-	      (when gnus-preserve-marks
+	      (when (and gnus-preserve-marks
+			 to-article)
 		;; Copy any marks over to the new group.
 		(when (and (equal to-group gnus-newsgroup-name)
 			   (not (memq article gnus-newsgroup-unreads)))

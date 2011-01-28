@@ -10,8 +10,7 @@
 @c  @cindex autotypist
 
 @copying
-Copyright @copyright{} 1994, 1995, 1999, 2001, 2002, 2003, 2004, 2005,
-2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright @copyright{} 1994-1995, 1999, 2001-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -664,7 +663,3 @@ of the expansion possibilities.
 @printindex vr
 
 @bye
-
-@ignore
-   arch-tag: 54001b27-5ef8-4a9d-a199-905d650fafba
-@end ignore

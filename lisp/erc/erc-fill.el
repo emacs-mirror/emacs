@@ -1,7 +1,6 @@
 ;;; erc-fill.el --- Filling IRC messages in various ways
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2006,
-;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2004, 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;;         Mario Lang <mlang@delysid.org>
@@ -193,4 +192,3 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
 ;; indent-tabs-mode: nil
 ;; End:
 
-;; arch-tag: 89224581-c2c2-4e26-92e5-e3a390dc516a

@@ -1,9 +1,8 @@
 ;;; mule-util.el --- utility functions for multilingual environment (mule)
 
-;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
@@ -405,5 +404,4 @@ per-character basis, this may not be accurate."
 ;; coding: iso-2022-7bit
 ;; End:
 
-;; arch-tag: 5bdb52b6-a3a5-4529-b7a0-37d01b0e570b
 ;;; mule-util.el ends here

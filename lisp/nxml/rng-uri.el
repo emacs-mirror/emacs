@@ -1,6 +1,6 @@
 ;;; rng-uri.el --- URI parsing and manipulation
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -352,5 +352,4 @@ Both FULL and BASE must be absolute URIs."
 
 (provide 'rng-uri)
 
-;; arch-tag: c7b7b8b8-61d1-48ec-82bc-7001c70b2e9d
 ;;; rng-uri.el ends here

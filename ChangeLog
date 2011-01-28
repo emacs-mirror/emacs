@@ -1,3 +1,277 @@
+2011-01-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	improve fix for MS-DOS file name clash
+	* Makefile.in (DOS_gnulib_comp.m4): Renamed from DOS-gnulib-comp.m4,
+	for portability to POSIX make.  Reported by Bruno Haible.
+	(sync-from-gnulib): Copy gl-comp.m4 (if present) back to
+	gnulib-comp.m4 before running gnulib-tool, to prevent old gnulib
+	files from accumulating as garbage.  Also reported by Bruno Haible.
+
+2011-01-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	fix two m4/gnulib-*.m4 file names that clashed under MS-DOS
+	* Makefile.in (DOS-gnulib-comp.m4): New macro.
+	(sync-from-gnulib): Rename m4/gnulib-comp.m4 to m4/gl-comp.m4 to avoid
+	problems with MS-DOS 8+3 file name restrictions.
+	Remove m4/gnulib-cache.m4, as we can live without it.  If we kept
+	it, it would also cause problems when extracting Emacs distribution
+	tarballs on MS-DOS hosts.
+	(ACLOCAL_INPUTS): Adjust to file renaming.
+	* aclocal.m4, configure, lib/Makefile.in, src/config.in: Regenerate.
+	* config.guess, config.sub: Sync from gnulib.
+	* m4/gnulib-cache.m4: Remove from repository.
+	* m4/gl-comp.m4: Rename from m4/gnulib-comp.m4.
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* README: Add a note about ranges in copyright years.
+
+	* configure.in: Set CANNOT_DUMP on ia64 hpux (port from emacs-23).
+
+2011-01-25  Peter O'Gorman  <bug-gnu-emacs@mlists.thewrittenword.com>  (tiny change)
+
+	* configure.in: Add HP-UX on IA64 (Bug#6811).
+
+2011-01-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove HAVE_RAW_DECL_CHOWN etc. from config.h
+	* Makefile.in (sync-from-gnulib): Remove m4/warn-on-use.m4,
+	as it is no longer needed.
+	* aclocal.m4, configure, lib/Makefile.in, src/config.in: Regenerate.
+	* configure.in: Invoke the new gnulib macro
+	gl_ASSERT_NO_GNULIB_POSIXCHECK, which removes the need for
+	warn-on-use.m4 and for the HAVE_RAW_DECL_* symbols in config.h.
+	* m4/getopt.m4: Sync from gnulib; this removes the need for
+	HAVE_DECL_OPTRESET and HAVE_DECL_GETOPT_CLIP from config.h.
+	* m4/gnulib-common.m4 (gl_ASSERT_NO_GNULIB_POSIXCHECK):
+	New macro, synced from gnulib.
+	* m4/warn-on-use.m4: Remove.
+
+2011-01-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	aclocal.m4: put this file back into repository
+	This way, we don't have to assume that the maintainer has
+	the automake package installed.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00746.html>.
+	* .bzrignore: Remove aclocal.m4, undoing the previous change.
+	* Makefile.in (top_maintainer_clean): Do not remove aclocal.m4,
+	undoing the previous change.
+	* aclocal.m4: New file (actually, resurrected).
+
+2011-01-22  Miles Bader  <miles@gnu.org>
+
+	* configure.in: Don't zero-out FONTCONFIG_CFLAGS and
+	FONTCONFIG_LIBS when building with XFT (doing so is incorrect, as
+	Emacs directly uses fontconfig, and breaks building when using a
+	strict linker).
+
+2011-01-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	src/config.in: shrink slightly
+	* configure.in: Invoke the new gnulib macro gl_ASSERT_NO_GNULIB_TESTS.
+	This makes src/config.in a bit smaller, by removing identifiers
+	like GNULIB_TEST_MKTIME that Emacs does not need.
+	* m4/getopt.m4, m4/gnulib-common.m4, m4/include_next.m4:
+	* m4/multiarch.m4, m4/stddef_h.m4, m4/time_h.m4, m4/unistd_h.m4:
+	Sync from gnulib.  This removes a few more unnecessary symbols from
+	src/config.in, such as AA_APPLE_UNIVERSAL_BUILD and HAVE_STDDEF_H.
+	* configure, src/config.in: Regenerate.
+
+	aclocal.m4: tweaks to regenerate more conveniently
+	This attempts to act better when the source is in a weird state.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00734.html>.
+	* Makefile.in (am--refresh): Add aclocal.m4, configure, config.in.
+	* .bzrignore: Add aclocal.m4.
+
+2011-01-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	aclocal.m4: omit auto-generated file from repository
+	* Makefile.in (top_maintainer_clean): Remove aclocal.m4; this undoes
+	the most recent change here.
+	* aclocal.m4: Remove from bzr repository.  This file is
+	auto-generated and isn't needed to run 'configure'.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00698.html>.
+
+2011-01-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor Makefile.in tweaks to build from gnulib better.
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00673.html>
+	* Makefile.in (sync-from-gnulib): Also run autoreconf -I m4.
+	(top_maintainer_clean): Don't remove aclocal.m4.
+
+2011-01-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor cleanups for 'bzr status'
+	* .bzrignore: Add emacs-*/, the output of make-dist, and stamp-h1,
+	the output of config.guess.
+	* Makefile.in (top_distclean): Remove stamp-h1 too.
+
+	* configure.in (HAVE_ATTRIBUTE_ALIGNED): Arrange for this to be
+	defined if the compiler supports GCC-style __attribute__
+	((__aligned__ ...)).  IBM AIX and Oracle Solaris Studio support
+	this syntax.
+
+2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Makefile.in: tidy up the building of lib
+	* Makefile.in (am--refresh): Mark as .PHONY.
+	(top_maintainer_clean): Don't remove lib/gnulib.mk m4/gnulib-cache.m4,
+	as they're not rebuilt unless you do a "make sync-from-gnulib"
+	and the former is needed for "configure".
+	(maintainer-clean): Don't recurse into lib, as "make bootstrap-clean"
+	has already removed lib/Makefile.
+
+	* Makefile.in (GNULIB_MODULES): Change ftoastr to dtoastr.
+	This avoids building ftoastr and ldtoastr, which aren't needed.  See
+	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00199.html>.
+
+	* .bzrignore: Add .h files that are host-dependent.
+	Add lib/.deps/, lib/arg-nonnull.h, lib/c++defs.h, lib/getopt.h,
+	lib/time.h, lib/unistd.h, lib/warn-on-use.h.  These are
+	host-dependent and are built as part of an ordinary 'make', and
+	should not be checked in.
+
+	* lib/Makefile.in: Regenerate.
+	* lib/COPYING: New file, a copy of COPYING.
+
+	* configure: Regenerate.
+	* configure.in (AC_USE_SYSTEM_EXTENSIONS): Remove: gnulib does this.
+
+	Regenerate.
+	* lib/getopt.c, lib/getopt.in.h, lib/getopt1.c, lib/getopt_int.h:
+	* lib/gettext.h, lib/unistd.in.h, m4/unistd_h.m4:
+	New files, copied from gnulib by gnulib-tool.
+	* aclocal.m4, configure, lib/Makefile.in, m4/getopt.m4:
+	* m4/gnulib-cache.m4, m4/gnulib-comp.m4, src/config.in:
+	Regenerate.
+
+	Use gnulib's getopt-gnu module.
+	* Makefile.in (GNULIB_MODULES): Add getopt-gnu.
+	(AUTOCONF_INPUTS): Remove getopt.m4; aclocal.m4 is a good-enough
+	representative of the dependencies.
+	* configure.in: Do not configure getopt, as gnulib does that now.
+	* make-dist: Do not worry about lib-src/getopt.h, as gnulib handles
+	getopt now, in lib.
+
+	Regenerate.
+	* arg-nonnull.h, c++defs.h, lib/mktime-internal.h, lib/mktime.c:
+	* lib/stddef.in.h, lib/time.h, lib/time.in.h, lib/time_r.c:
+	* m4/extensions.m4, m4/include_next.m4, m4/mktime.m4:
+	* m4/multiarch.m4, m4/stddef_h.m4, m4/time_h.m4, m4/time_r.m4:
+	* m4/extensions.m4, m4/include_next.m4, m4/mktime.m4, m4/multiarch.m4:
+	* m4/stddef_h.m4, m4/time_h.m4, m4/time_r.m4, m4/warn-on-use.m4:
+	* m4/wchar_t.m4, warn-on-use.h:
+	New files, copied from gnulib by gnulib-tool.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk:
+	* m4/gnulib-cache.m4, m4/gnulib-comp.m4, src/config.in:
+	Regenerate.
+
+	Use gnulib's mktime module.
+	* Makefile.in (GNULIB_MODULES): Add mktime.
+	* configure.in: Remove code no longer needed, as gnulib now does it.
+	(AC_CHECK_FUNCS): Remove mktime.
+	(AC_FUNC_MKTIME, BROKEN_MKTIME): Remove.
+	(__restrict): Remove, as this now gets in the way of the C99
+	support for 'restrict' pulled in by the gnulib mktime module.
+	Code should now use 'restrict' and not '__restrict".
+	(mktime): Remove.
+	* make-dist: Put gnulib-generated files arg-nonnull.h, c++defs.h,
+	and warn-on-use.h into the distribution.
+
+	Regenerate.
+	* lib/dtoastr.c, lib/ftoastr.c, lib/ftoastr.h, lib/intprops.h:
+	* lib/ldtoastr.c, m4/c-strtod.m4:
+	New files, copied from gnulib by gnulib-tool.
+	* lib/dummy.c: Remove.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk:
+	* m4/gnulib-cache.m4, m4/gnulib-comp.m4, src/config.in:
+	Regenerate.
+
+	Use gnulib's ftoastr module.
+	* Makefile.in (GNULIB_MODULES): Add ftoastr.  Remove dummy.
+
+	Regenerate.
+	* aclocal.m4, compile, depcomp, lib/Makefile.in, lib/dummy.c:
+	* lib/gnulib.mk, m4/00gnulib.m4, m4/gnulib-cache.m4:
+	* m4/gnulib-common.m4, m4/gnulib-comp.m4, m4/gnulib-tool.m4, missing:
+	New files, generated automatically, with 'make sync-from-gnulib'
+	followed by 'make'.
+	* configure, lisp/dired.el, src/config.in: Regenerate.
+
+	Automate syncing from gnulib.
+	* INSTALL, README: Document new subdirectory 'lib'.
+	* Makefile.in (SUBDIR): Add lib.
+	(SUBDIR_MAKEFILES): Add lib/Makefile.
+	(lib-src, src, TAGS, tags): Depend on lib.
+	(gnulib_srcdir, GNULIB_MODULES, GNULIB_TOOL_FLAGS): New macros.
+	($(gnulib_srcdir)): New rule.
+	(sync-from-gnulib): New rule, which is .PHONY.
+	(lib): New rule, which is like lib-src.
+	(Makefile): Depend on lib/Makefile.in.
+	(AUTOCONF_INPUTS): Depend on aclocal.m4.
+	(ACLOCAL_INPUTS, AUTOMAKE_INPUTS): New macros.
+	($(srcdir)/aclocal.m4, $(srcdir)/lib/Makefile.in): New rules.
+	(am--refresh): New rule, to pacify Automake.
+	(mostlyclean, clean, distclean, bootstrap-clean, maintainer-clean):
+	Clean lib, too.
+	(top_maintainer_clean): New macro, to remove gnulib-tool and Automake
+	droppings.
+	(maintainer-clean, extraclean): Use it.
+	* configure.in: Initialize for automake and gnulib, by invoking
+	AM_INIT_AUTOMAKE, AM_PROG_CC_C_O, gl_EARLY, and gl_INIT.  Output
+	lib/Makefile, too.  Use automake to build gnulib, as gnulib works
+	more conveniently with automake.
+	* lib/Makefile.am: New file.
+	* make-dist: Also put into the distribution aclocal.m4,
+	compile, depcomp, missing, and the files under lib/.
+
+2011-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (epaths-force): No more arch-tag to edit.
+
+2011-01-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Bump min libxml2 version to 2.6.17 (Bug#7603).
+
+2011-01-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-dist: Distribute test/ files too.
+	Distribute every file under test/ that is under version control,
+	using patterns like *.el to capture files that are added later.
+	Without this change, "configure" would fail, because it would
+	attempt to build from a Makefile.in that was not distributed.
+
+2011-01-13  Christian Ohler  <ohler@gnu.org>
+
+	* Makefile.in (INFO_FILES): Add ERT.
+
+	* Makefile.in (check): Run tests in test/automated.
+
+	* Makefile.in:
+	* configure.in: Add test/automated/Makefile.
+
+2011-01-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* install-sh, mkinstalldirs, move-if-change: Update from master
+	source in gnulib.
+
+	* config.guess, config.sub: Updated from master source.
+
+2011-01-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Check for __builtin_unwind_init.
+
+2011-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_MAKEINFO): New output variable.
+	(MAKEINFO): Reset to "makeinfo" if not found.
+	* Makefile.in (install-arch-indep, info):
+	Replace MAKEINFO = off with HAVE_MAKEINFO = no.
+
+2010-12-29  Ulrich Mueller  <ulm@gentoo.org>
+
+	* configure.in: Make gameuser configurable (Bug#7717).
+
 2010-12-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-dep, uninstall): Remove code relating to the
@@ -8666,11 +8940,9 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-	2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -8686,5 +8958,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: ac61a779-1480-4884-b292-d0c39c127a73

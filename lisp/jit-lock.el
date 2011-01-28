@@ -1,7 +1,6 @@
 ;;; jit-lock.el --- just-in-time fontification
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Keywords: faces files
@@ -591,5 +590,4 @@ will take place when text is fontified stealthily."
 
 (provide 'jit-lock)
 
-;; arch-tag: 56b5de6e-f581-453b-bb97-49c39372ff9e
 ;;; jit-lock.el ends here

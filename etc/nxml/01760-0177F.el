@@ -19,4 +19,3 @@
     ("TAGBANWA VOWEL SIGN U" #x1773)
     ))
 
-;; arch-tag: 7ec84a4f-8077-400f-9b1a-f31b6d75fb65

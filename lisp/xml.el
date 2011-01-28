@@ -1,7 +1,6 @@
 ;;; xml.el --- XML parser
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
@@ -911,5 +910,4 @@ The first line is indented with INDENT-STRING."
 
 (provide 'xml)
 
-;; arch-tag: 5864b283-5a68-4b59-a20d-36a72b353b9b
 ;;; xml.el ends here

@@ -1,7 +1,6 @@
 ;;; iso-acc.el --- minor mode providing electric accent keys
 
-;; Copyright (C) 1993, 1994, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1996, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans
 ;; Maintainer: FSF
@@ -487,5 +486,4 @@ Noninteractively, this operates on text from START to END."
 
 (add-hook 'minibuffer-setup-hook 'iso-acc-minibuf-setup)
 
-;; arch-tag: 149ff409-7c3e-4574-9b5d-ac038939c0a6
 ;;; iso-acc.el ends here

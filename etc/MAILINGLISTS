@@ -318,8 +318,7 @@ mode: outline
 fill-column: 72
 End:
 
-Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-Free Software Foundation, Inc.
+Copyright (C) 1999, 2001-2011  Free Software Foundation, Inc.
 
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this file, to deal in the file without restriction, including
@@ -330,6 +329,3 @@ Free Software Foundation, Inc.
 
     The above copyright notice and this permission notice shall be
     included in all copies or substantial portions of the file.
-
-
-arch-tag: 6e42bba8-7532-4a23-8486-99dbc5770a8e

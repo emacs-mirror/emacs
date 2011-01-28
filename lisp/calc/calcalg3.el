@@ -1,7 +1,6 @@
 ;;; calcalg3.el --- more algebraic functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -1928,5 +1927,4 @@
 
 (provide 'calcalg3)
 
-;; arch-tag: ff9f2920-8111-48b5-b3fa-b0682c3e44a6
 ;;; calcalg3.el ends here

@@ -1,5 +1,6 @@
 /* Replacement nl_types.h file for building GNU Emacs on Windows.
-   Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+
+Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,6 +23,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 typedef int nl_item;
 
 #endif	/* _NL_TYPES_H */
-
-/* arch-tag: 518aa765-b846-4a7a-a862-95fd022928a1
-   (do not change this comment) */

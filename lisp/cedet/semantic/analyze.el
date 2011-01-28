@@ -1,7 +1,6 @@
 ;;; semantic/analyze.el --- Analyze semantic tags against local context
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -795,5 +794,4 @@ CONTEXT's content is described in `semantic-analyze-current-context'."
 ;; generated-autoload-load-name: "semantic/analyze"
 ;; End:
 
-;; arch-tag: 1102143a-1c05-4631-83e8-45aafc6b4a59
 ;;; semantic/analyze.el ends here

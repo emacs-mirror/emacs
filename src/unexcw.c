@@ -1,7 +1,7 @@
 /* unexec() support for Cygwin;
    complete rewrite of xemacs Cygwin unexec() code
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2004-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -300,5 +300,3 @@ unexec (const char *outfile, const char *infile)
   return (0);
 }
 
-/* arch-tag: fc44f6c3-ca0a-45e0-a5a2-58b6101b1e65
-   (do not change this comment) */

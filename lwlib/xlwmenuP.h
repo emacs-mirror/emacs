@@ -1,7 +1,7 @@
 /* Internals of a lightweight menubar widget.
+
+Copyright (C) 2002-2011  Free Software Foundation, Inc.
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -142,5 +142,3 @@ extern XlwMenuClassRec xlwMenuClassRec;
 
 #endif /* _XlwMenuP_h */
 
-/* arch-tag: 18d7fc41-ffa0-47a3-a49f-3469900c7a25
-   (do not change this comment) */

@@ -1,6 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -29,20 +28,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "keymap.h"
 
-Lisp_Object Vcurrent_prefix_arg, Qminus, Qplus;
+Lisp_Object Qminus, Qplus;
 Lisp_Object Qcall_interactively;
-Lisp_Object Vcommand_history;
-
-Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
+Lisp_Object Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
-
-/* Non-nil means treat the mark as active
-   even if mark_active is 0.  */
-Lisp_Object Vmark_even_if_inactive;
 
 Lisp_Object Qhandle_shift_selection;
 
-Lisp_Object Vmouse_leave_buffer_hook, Qmouse_leave_buffer_hook;
+Lisp_Object Qmouse_leave_buffer_hook;
 
 Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn, Qif, Qwhen;
 static Lisp_Object preserved_fns;
@@ -652,7 +645,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  if (next_event >= key_count)
 	    error ("%s must be bound to an event with parameters",
 		   (SYMBOLP (function)
-		    ? (char *) SDATA (SYMBOL_NAME (function))
+		    ? SSDATA (SYMBOL_NAME (function))
 		    : "command"));
 	  args[i] = AREF (keys, next_event);
 	  next_event++;
@@ -940,7 +933,7 @@ normally commands can get this prefix argument with (interactive "P").  */);
 		 doc: /* The value of the prefix argument for the previous editing command.
 See `prefix-arg' for the meaning of the value.  */);
 
-  DEFVAR_LISP ("current-prefix-arg", &Vcurrent_prefix_arg,
+  DEFVAR_LISP ("current-prefix-arg", Vcurrent_prefix_arg,
 	       doc: /* The value of the prefix argument for this editing command.
 It may be a number, or the symbol `-' for just a minus sign as arg,
 or a list whose car is a number for just one or more C-u's
@@ -948,7 +941,7 @@ or nil if no argument has been specified.
 This is what `(interactive \"P\")' returns.  */);
   Vcurrent_prefix_arg = Qnil;
 
-  DEFVAR_LISP ("command-history", &Vcommand_history,
+  DEFVAR_LISP ("command-history", Vcommand_history,
 	       doc: /* List of recent commands that read arguments from terminal.
 Each command is represented as a form to evaluate.
 
@@ -956,13 +949,13 @@ Maximum length of the history list is determined by the value
 of `history-length', which see.  */);
   Vcommand_history = Qnil;
 
-  DEFVAR_LISP ("command-debug-status", &Vcommand_debug_status,
+  DEFVAR_LISP ("command-debug-status", Vcommand_debug_status,
 	       doc: /* Debugging status of current interactive command.
 Bound each time `call-interactively' is called;
 may be set by the debugger as a reminder for itself.  */);
   Vcommand_debug_status = Qnil;
 
-  DEFVAR_LISP ("mark-even-if-inactive", &Vmark_even_if_inactive,
+  DEFVAR_LISP ("mark-even-if-inactive", Vmark_even_if_inactive,
 	       doc: /* *Non-nil means you can use the mark even when inactive.
 This option makes a difference in Transient Mark mode.
 When the option is non-nil, deactivation of the mark
@@ -970,7 +963,7 @@ turns off region highlighting, but commands that use the mark
 behave as if the mark were still active.  */);
   Vmark_even_if_inactive = Qt;
 
-  DEFVAR_LISP ("mouse-leave-buffer-hook", &Vmouse_leave_buffer_hook,
+  DEFVAR_LISP ("mouse-leave-buffer-hook", Vmouse_leave_buffer_hook,
 	       doc: /* Hook to run when about to switch windows with a mouse command.
 Its purpose is to give temporary modes such as Isearch mode
 a way to turn themselves off when a mouse command switches windows.  */);
@@ -980,6 +973,3 @@ a way to turn themselves off when a mouse command switches windows.  */);
   defsubr (&Scall_interactively);
   defsubr (&Sprefix_numeric_value);
 }
-
-/* arch-tag: a3a7cad7-bcac-42ce-916e-1bd2546ebf37
-   (do not change this comment) */

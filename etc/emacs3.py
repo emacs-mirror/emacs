@@ -1,4 +1,4 @@
-# Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+# Copyright (C) 2004-2011  Free Software Foundation, Inc.
 # Author: Dave Love <fx@gnu.org>
 
 # This file is part of GNU Emacs.
@@ -232,4 +232,3 @@ Assumes that MODULE.py and MODULE.pyc are in the same directory."""
 
 # print '_emacs_ok'             # ready for input and can call continuation
 
-# arch-tag: 37bfed38-5f4a-4027-a2bf-d5f41819dd89

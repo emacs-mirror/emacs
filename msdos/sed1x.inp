@@ -2,8 +2,7 @@
 # Extra configuration script for src/makefile for DesqView/X
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-#   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+# Copyright (C) 1994-1997, 1999-2011  Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -31,4 +30,3 @@ s/DOC/DOC-X/g
 /^WINDOW_SUPPORT *=/s!= *!= $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT)!
 /^temacs *:/s!OLDXMENU!LIBXMENU!
 
-# arch-tag: 3e8a78f2-3dec-44f3-81f6-3785a562da19

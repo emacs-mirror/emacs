@@ -1,7 +1,6 @@
 ;;; semantic/bovine/make.el --- Makefile parsing rules.
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2000-2004, 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -238,5 +237,4 @@ Uses default implementation, and also gets a list of filenames."
 ;; generated-autoload-load-name: "semantic/bovine/make"
 ;; End:
 
-;; arch-tag: 8122d1f5-d4b7-4f6e-b909-d61ac65ef118
 ;;; semantic/bovine/make.el ends here

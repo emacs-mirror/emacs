@@ -1,9 +1,8 @@
 ;;; ccl.el --- CCL (Code Conversion Language) compiler
 
-;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -1559,5 +1558,4 @@ See the documentation of `define-ccl-program' for the detail of CCL program."
 
 (provide 'ccl)
 
-;; arch-tag: 836bcd27-63a1-4a56-b232-1145ecf823fb
 ;;; ccl.el ends here

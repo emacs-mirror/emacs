@@ -1,7 +1,6 @@
 ;;; env.el --- functions to manipulate environment variables
 
-;; Copyright (C) 1991, 1994, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: processes, unix
@@ -210,5 +209,4 @@ in the environment list of the selected frame."
 
 (provide 'env)
 
-;; arch-tag: b7d6a8f7-bc81-46db-8e39-8d721d4ed0b8
 ;;; env.el ends here

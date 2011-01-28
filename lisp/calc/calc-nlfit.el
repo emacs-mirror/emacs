@@ -1,6 +1,6 @@
 ;;; calc-nlfit.el --- nonlinear curve fitting for Calc
 
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 
@@ -818,4 +818,3 @@
 
 (provide 'calc-nlfit)
 
-;; arch-tag: 6eba3cd6-f48b-4a84-8174-10c15a024928

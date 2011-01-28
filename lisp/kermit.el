@@ -1,7 +1,6 @@
 ;;; kermit.el --- additions to shell mode for use with kermit
 
-;; Copyright (C) 1988, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Jeff Norden <jeff@colgate.csnet>
 ;; Maintainer: FSF
@@ -148,5 +147,4 @@ command `kermit | tr -d '\\015''."
 
 (provide 'kermit)
 
-;; arch-tag: 6633215d-6c47-4e66-9f27-16fba02a8dce
 ;;; kermit.el ends here

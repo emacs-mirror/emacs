@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Screen, User Input, Acknowledgments, Top
@@ -320,7 +319,3 @@ items, and then you can type @key{RET} to select the item.
 that item; it is usually the initial of some word in the item's name.
 This letter or digit is separated from the item name by @samp{=>}.  You
 can type the item's letter or digit to select the item.
-
-@ignore
-   arch-tag: 104ba40e-d972-4866-a542-a98be94bdf2f
-@end ignore

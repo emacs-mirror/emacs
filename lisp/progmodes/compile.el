@@ -1,7 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
@@ -239,7 +238,9 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (gcc-include
      "^\\(?:In file included \\|                 \\|\t\\)from \
-\\(.+\\):\\([0-9]+\\)\\(?:\\(:\\)\\|\\(,\\|$\\)\\)?" 1 2 nil (3 . 4))
+\\([0-9]*[^0-9\n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\):\
+\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?\\(?:\\(:\\)\\|\\(,\\|$\\)\\)?"
+     1 2 3 (4 . 5))
 
     (gnu
      ;; The first line matches the program name for
@@ -268,12 +269,12 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; The "in \\|from " exception was added to handle messages from Ruby.
      "^\\(?:[[:alpha:]][-[:alnum:].]+: ?\\|[ \t]+\\(?:in \\|from \\)\\)?\
 \\([0-9]*[^0-9\n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\): ?\
-\\([0-9]+\\)\\(?:\\([.:]\\)\\([0-9]+\\)\\)?\
+\\([0-9]+\\)\\(?:[.:]\\([0-9]+\\)\\)?\
 \\(?:-\\([0-9]+\\)?\\(?:\\.\\([0-9]+\\)\\)?\\)?:\
 \\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
  *\\([Ii]nfo\\(?:\\>\\|rmationa?l?\\)\\|I:\\|instantiated from\\|[Nn]ote\\)\\|\
 \[0-9]?\\(?:[^0-9\n]\\|$\\)\\|[0-9][0-9][0-9]\\)"
-     1 (2 . 5) (4 . 6) (7 . 8))
+     1 (2 . 4) (3 . 5) (6 . 7))
 
     (lcc
      "^\\(?:E\\|\\(W\\)\\), \\([^(\n]+\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)"
@@ -506,10 +507,8 @@ matched by the whole REGEXP becomes the hyperlink.
 
 Additional HIGHLIGHTs as described under `font-lock-keywords' can
 be added."
-  :type `(set :menu-tag "Pick"
-	      ,@(mapcar (lambda (elt)
-			  (list 'const (car elt)))
-			compilation-error-regexp-alist-alist))
+  :type '(repeat (choice (symbol :tag "Predefined symbol")
+			 (sexp :tag "Error specification")))
   :link `(file-link :tag "example file"
 		    ,(expand-file-name "compilation.txt" data-directory))
   :group 'compilation)
@@ -1567,9 +1566,11 @@ Returns the compilation buffer created."
 (defvar compilation-mode-tool-bar-map
   ;; When bootstrapping, tool-bar-map is not properly initialized yet,
   ;; so don't do anything.
-  (when (keymapp (butlast tool-bar-map))
-    (let ((map (butlast (copy-keymap tool-bar-map)))
-	  (help (last tool-bar-map))) ;; Keep Help last in tool bar
+  (when (keymapp tool-bar-map)
+    (let ((map (copy-keymap tool-bar-map)))
+      (define-key map [undo] nil)
+      (define-key map [separator-2] nil)
+      (define-key-after map [separator-compile] menu-bar-separator)
       (tool-bar-local-item
        "left-arrow" 'previous-error-no-select 'previous-error-no-select map
        :rtl "right-arrow"
@@ -1586,7 +1587,7 @@ Returns the compilation buffer created."
       (tool-bar-local-item
        "refresh" 'recompile 'recompile map
        :help "Restart compilation")
-      (append map help))))
+      map)))
 
 (put 'compilation-mode 'mode-class 'special)
 
@@ -2427,5 +2428,4 @@ The file-structure looks like this:
 
 (provide 'compile)
 
-;; arch-tag: 12465727-7382-4f72-b234-79855a00dd8c
 ;;; compile.el ends here

@@ -1,6 +1,6 @@
 ;;; image-mode.el --- support for visiting image files
 ;;
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Richard Stallman <rms@gnu.org>
 ;; Keywords: multimedia
@@ -628,5 +628,4 @@ indicates a scaling factor. nil indicates scale to 100%. "
 
 (provide 'image-mode)
 
-;; arch-tag: b5b2b7e6-26a7-4b79-96e3-1546b5c4c6cb
 ;;; image-mode.el ends here

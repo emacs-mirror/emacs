@@ -1,6 +1,5 @@
 /* Simple client interface to DDE servers.
-   Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005,
-      2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1998, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -72,5 +71,3 @@ main (int argc, char *argv[])
   return (0);
 }
 
-/* arch-tag: 360d7a99-2cae-447e-8d06-41ca41987e30
-   (do not change this comment) */

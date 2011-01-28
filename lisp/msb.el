@@ -1,7 +1,6 @@
 ;;; msb.el --- customizable buffer-selection with multiple menus
 
-;; Copyright (C) 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1997-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Lindberg <lars.lindberg@home.se>
 ;; Maintainer: FSF
@@ -364,6 +363,9 @@ This is instead of the groups in `msb-menu-cond'."
   :type 'boolean
   :set 'msb-custom-set
   :group 'msb)
+
+(define-obsolete-variable-alias 'msb-after-load-hooks
+  'msb-after-load-hook "24.1")
 
 (defcustom msb-after-load-hook nil
   "Hook run after the msb package has been loaded."
@@ -1152,7 +1154,6 @@ different buffer menu using the function `msb'."
   nil)
 
 (provide 'msb)
-(eval-after-load "msb" '(run-hooks 'msb-after-load-hook 'msb-after-load-hooks))
+(run-hooks 'msb-after-load-hook)
 
-;; arch-tag: 403f9e82-b92e-4e7a-a797-5d6d9b76da36
 ;;; msb.el ends here

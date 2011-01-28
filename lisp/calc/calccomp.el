@@ -1,7 +1,6 @@
 ;;; calccomp.el --- composition functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -1675,5 +1674,4 @@
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 7c45d10a-a286-4dab-af49-7ae8989fbf78
 ;;; calccomp.el ends here

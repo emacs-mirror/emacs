@@ -1,6 +1,5 @@
 /* Includes for memory limit warnings.
-   Copyright (C) 1990, 1993, 1994, 1995, 1996, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993-1996, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -46,5 +45,3 @@ extern char *start_of_data (void);
 #define EXCEEDS_LISP_PTR(ptr) ((EMACS_UINT) (ptr) >> VALBITS)
 #endif
 
-/* arch-tag: fe39244e-e54f-4208-b7aa-02556f7841c5
-   (do not change this comment) */

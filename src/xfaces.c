@@ -1,8 +1,6 @@
 /* xfaces.c -- "Face" primitives.
 
-Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 1998-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -355,13 +353,6 @@ Lisp_Object Qmode_line_inactive, Qvertical_border;
 
 Lisp_Object Qface_alias;
 
-/* Default stipple pattern used on monochrome displays.  This stipple
-   pattern is used on monochrome displays instead of shades of gray
-   for a face background color.  See `set-face-stipple' for possible
-   values for this variable.  */
-
-Lisp_Object Vface_default_stipple;
-
 /* Alist of alternative font families.  Each element is of the form
    (FAMILY FAMILY1 FAMILY2 ...).  If fonts of FAMILY can't be loaded,
    try FAMILY1, then FAMILY2, ...  */
@@ -380,20 +371,8 @@ Lisp_Object Vface_alternative_font_registry_alist;
    font may be scaled if its name matches a regular expression in the
    list.  */
 
-Lisp_Object Vscalable_fonts_allowed, Qscalable_fonts_allowed;
+Lisp_Object Qscalable_fonts_allowed;
 
-/* List of regular expressions that matches names of fonts to ignore. */
-
-Lisp_Object Vface_ignored_fonts;
-
-/* Alist of font name patterns vs the rescaling factor.  */
-
-Lisp_Object Vface_font_rescale_alist;
-
-/* Maximum number of fonts to consider in font_list.  If not an
-   integer > 0, DEFAULT_FONT_LIST_LIMIT is used instead.  */
-
-Lisp_Object Vfont_list_limit;
 #define DEFAULT_FONT_LIST_LIMIT 100
 
 /* The symbols `foreground-color' and `background-color' which can be
@@ -414,30 +393,6 @@ Lisp_Object Qface_no_inherit;
 
 Lisp_Object Qbitmap_spec_p;
 
-/* Alist of global face definitions.  Each element is of the form
-   (FACE . LFACE) where FACE is a symbol naming a face and LFACE
-   is a Lisp vector of face attributes.  These faces are used
-   to initialize faces for new frames.  */
-
-Lisp_Object Vface_new_frame_defaults;
-
-/* Alist of face remappings.  Each element is of the form:
-   (FACE REPLACEMENT...) which causes display of the face FACE to use
-   REPLACEMENT... instead.  REPLACEMENT... is interpreted the same way
-   the value of a `face' text property is: it may be (1) A face name,
-   (2) A list of face names, (3) A property-list of face attribute/value
-   pairs, or (4) A list of face names intermixed with lists containing
-   face attribute/value pairs.
-
-   Multiple entries in REPLACEMENT... are merged together to form the final
-   result, with faces or attributes earlier in the list taking precedence
-   over those that are later.
-
-   Face-name remapping cycles are suppressed; recursive references use
-   the underlying face instead of the remapped face.  */
-
-Lisp_Object Vface_remapping_alist;
-
 /* The next ID to assign to Lisp faces.  */
 
 static int next_lface_id;
@@ -454,10 +409,6 @@ Lisp_Object Qtty_color_desc, Qtty_color_by_index, Qtty_color_standard_values;
 /* The name of the function used to compute colors on TTYs.  */
 
 Lisp_Object Qtty_color_alist;
-
-/* An alist of defined terminal colors and their RGB values.  */
-
-Lisp_Object Vtty_defined_color_alist;
 
 /* Counter for calls to clear_face_cache.  If this counter reaches
    CLEAR_FONT_TABLE_COUNT, and a frame has more than
@@ -3659,7 +3610,7 @@ x_update_menu_appearance (struct frame *f)
 #if defined HAVE_X_I18N
 	      char *fontsetname = xic_create_fontsetname (SDATA (xlfd), motif);
 #else
-	      char *fontsetname = (char *) SDATA (xlfd);
+	      char *fontsetname = SSDATA (xlfd);
 #endif
 	      sprintf (line, "%s.pane.menubar*font%s: %s",
 		       myname, suffix, fontsetname);
@@ -3668,7 +3619,7 @@ x_update_menu_appearance (struct frame *f)
 		       myname, popup_path, suffix, fontsetname);
 	      XrmPutLineResource (&rdb, line);
 	      changed_p = 1;
-	      if (fontsetname != (char *) SDATA (xlfd))
+	      if (fontsetname != SSDATA (xlfd))
 		xfree (fontsetname);
 	    }
 	}
@@ -6715,29 +6666,29 @@ syms_of_xfaces (void)
   defsubr (&Sdump_colors);
 #endif
 
-  DEFVAR_LISP ("font-list-limit", &Vfont_list_limit,
+  DEFVAR_LISP ("font-list-limit", Vfont_list_limit,
 	       doc: /* *Limit for font matching.
 If an integer > 0, font matching functions won't load more than
 that number of fonts when searching for a matching font.  */);
   Vfont_list_limit = make_number (DEFAULT_FONT_LIST_LIMIT);
 
-  DEFVAR_LISP ("face-new-frame-defaults", &Vface_new_frame_defaults,
+  DEFVAR_LISP ("face-new-frame-defaults", Vface_new_frame_defaults,
     doc: /* List of global face definitions (for internal use only.)  */);
   Vface_new_frame_defaults = Qnil;
 
-  DEFVAR_LISP ("face-default-stipple", &Vface_default_stipple,
+  DEFVAR_LISP ("face-default-stipple", Vface_default_stipple,
     doc: /* *Default stipple pattern used on monochrome displays.
 This stipple pattern is used on monochrome displays
 instead of shades of gray for a face background color.
 See `set-face-stipple' for possible values for this variable.  */);
   Vface_default_stipple = make_pure_c_string ("gray3");
 
-  DEFVAR_LISP ("tty-defined-color-alist", &Vtty_defined_color_alist,
+  DEFVAR_LISP ("tty-defined-color-alist", Vtty_defined_color_alist,
    doc: /* An alist of defined terminal colors and their RGB values.
 See the docstring of `tty-color-alist' for the details.  */);
   Vtty_defined_color_alist = Qnil;
 
-  DEFVAR_LISP ("scalable-fonts-allowed", &Vscalable_fonts_allowed,
+  DEFVAR_LISP ("scalable-fonts-allowed", Vscalable_fonts_allowed,
 	       doc: /* Allowed scalable fonts.
 A value of nil means don't allow any scalable fonts.
 A value of t means allow any scalable font.
@@ -6747,13 +6698,13 @@ Note that if value is nil, a scalable font might still be used, if no
 other font of the appropriate family and registry is available.  */);
   Vscalable_fonts_allowed = Qnil;
 
-  DEFVAR_LISP ("face-ignored-fonts", &Vface_ignored_fonts,
+  DEFVAR_LISP ("face-ignored-fonts", Vface_ignored_fonts,
 	       doc: /* List of ignored fonts.
 Each element is a regular expression that matches names of fonts to
 ignore.  */);
   Vface_ignored_fonts = Qnil;
 
-  DEFVAR_LISP ("face-remapping-alist", &Vface_remapping_alist,
+  DEFVAR_LISP ("face-remapping-alist", Vface_remapping_alist,
 	       doc: /* Alist of face remappings.
 Each element is of the form:
 
@@ -6794,7 +6745,7 @@ buffer contents change, you may need to call `redraw-display' after
 changing this variable for it to take effect.  */);
   Vface_remapping_alist = Qnil;
 
-  DEFVAR_LISP ("face-font-rescale-alist", &Vface_font_rescale_alist,
+  DEFVAR_LISP ("face-font-rescale-alist", Vface_font_rescale_alist,
 	       doc: /* Alist of fonts vs the rescaling factors.
 Each element is a cons (FONT-PATTERN . RESCALE-RATIO), where
 FONT-PATTERN is a font-spec or a regular expression matching a font name, and
@@ -6810,4 +6761,3 @@ a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
   defsubr (&Sx_family_fonts);
 #endif
 }
-

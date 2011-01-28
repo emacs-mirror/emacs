@@ -1,6 +1,5 @@
 # -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-#   2009, 2010  Free Software Foundation, Inc.
+# Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -34,7 +33,7 @@ EMACS = $(THISDIR)/../bin/emacs.exe
 
 # Command line flags for Emacs.
 
-EMACSOPT = -batch --no-init-file --no-site-file
+EMACSOPT = -batch --no-site-file --no-site-lisp
 
 # Extra flags to pass to the byte compiler
 BYTE_COMPILE_EXTRA_FLAGS =

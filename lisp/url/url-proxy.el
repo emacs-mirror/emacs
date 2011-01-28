@@ -1,6 +1,6 @@
 ;;; url-proxy.el --- Proxy server support
 
-;; Copyright (C) 1999, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2011 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -76,5 +76,4 @@
   
 (provide 'url-proxy)
 
-;; arch-tag: 4ff8882e-e498-42b7-abc5-acb449cdbc62
 ;;; url-proxy.el ends here

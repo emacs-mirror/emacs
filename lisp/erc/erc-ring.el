@@ -1,7 +1,6 @@
 ;; erc-ring.el -- Command history handling for erc using ring.el
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2006,
-;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2004, 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Keywords: comm
@@ -144,4 +143,3 @@ containing a password."
 ;; indent-tabs-mode: nil
 ;; End:
 
-;; arch-tag: b77924a8-a80e-489d-84cd-b351761ea5c8

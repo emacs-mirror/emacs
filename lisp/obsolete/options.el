@@ -1,7 +1,6 @@
 ;;; options.el --- edit Options command for Emacs
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -147,5 +146,4 @@ For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph]
 
 (provide 'options)
 
-;; arch-tag: d18211a1-f3fb-48c9-a449-d5acde406a3c
 ;;; options.el ends here

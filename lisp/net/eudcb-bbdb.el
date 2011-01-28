@@ -1,7 +1,6 @@
 ;;; eudcb-bbdb.el --- Emacs Unified Directory Client - BBDB Backend
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -243,5 +242,4 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 
 (provide 'eudcb-bbdb)
 
-;; arch-tag: 38276208-75de-4dbc-ba6f-8db684c32e0a
 ;;; eudcb-bbdb.el ends here

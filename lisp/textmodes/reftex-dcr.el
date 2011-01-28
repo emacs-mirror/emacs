@@ -1,7 +1,6 @@
 ;;; reftex-dcr.el --- viewing cross references and citations with RefTeX
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -482,5 +481,4 @@ Calling this function several times find successive citation locations."
       (move-marker reftex-global-search-marker nil)
       (error "All files processed"))))
 
-;; arch-tag: d2f52b56-744e-44ad-830d-1fc193b90eda
 ;;; reftex-dcr.el ends here

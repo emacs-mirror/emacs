@@ -1,7 +1,6 @@
 ;;; semantic/db-el.el --- Semantic database extensions for Emacs Lisp
 
-;;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;; Free Software Foundation, Inc.
+;;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -343,5 +342,4 @@ Return a list of tags."
 
 (provide 'semantic/db-el)
 
-;; arch-tag: e54f556e-fa3f-4bc5-9b15-744a659a6e65
 ;;; semantic/db-el.el ends here

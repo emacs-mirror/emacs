@@ -1,6 +1,5 @@
 /* systime.h - System-dependent definitions for time manipulations.
-   Copyright (C) 1993, 1994, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2002-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -174,5 +173,3 @@ extern int lisp_time_argument (Lisp_Object, time_t *, int *);
 
 #endif /* EMACS_SYSTIME_H */
 
-/* arch-tag: dcb79915-cf99-4bce-9778-aade71d07651
-   (do not change this comment) */

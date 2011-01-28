@@ -1,6 +1,6 @@
 ;;; nxml-rap.el --- low-level support for random access parsing for nXML mode
 
-;; Copyright (C) 2003, 2004, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -482,5 +482,4 @@ expected `%s'"
 
 (provide 'nxml-rap)
 
-;; arch-tag: cba241ec-4c59-4ef3-aa51-2cf92b3dd24f
 ;;; nxml-rap.el ends here

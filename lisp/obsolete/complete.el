@@ -1,7 +1,6 @@
 ;;; complete.el --- partial completion mechanism plus other goodies
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev convenience
@@ -1120,5 +1119,4 @@ This is only used by "
 
 (provide 'complete)
 
-;; arch-tag: fc7e2768-ff44-4e22-b579-4d825b968458
 ;;; complete.el ends here

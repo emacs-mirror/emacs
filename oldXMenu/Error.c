@@ -28,5 +28,3 @@ XMenuError(void)
     return(message);
 }
 
-/* arch-tag: 5fff4a23-40ca-40d0-8887-c50fc73dea9d
-   (do not change this comment) */

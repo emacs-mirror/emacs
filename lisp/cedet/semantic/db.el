@@ -1,7 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -1040,5 +1039,4 @@ If file does not have tags available, then load the file, and create them."
 ;; generated-autoload-load-name: "semantic/db"
 ;; End:
 
-;; arch-tag: d9f75280-737d-494f-9f70-09a649d27433
 ;;; semantic/db.el ends here

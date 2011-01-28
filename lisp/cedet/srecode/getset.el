@@ -1,6 +1,6 @@
 ;;; srecode/getset.el --- Package for inserting new get/set methods.
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -363,5 +363,4 @@ Base selection on the field related to POINT."
 ;; generated-autoload-load-name: "srecode/getset"
 ;; End:
 
-;; arch-tag: c2098b7a-df7f-4e8a-a9e3-2be8798a7554
 ;;; srecode/getset.el ends here

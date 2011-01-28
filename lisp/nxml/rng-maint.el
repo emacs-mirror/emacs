@@ -1,6 +1,6 @@
 ;;; rng-maint.el --- commands for RELAX NG maintainers
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -275,5 +275,4 @@
   (while (rng-do-some-validation
 	  (lambda () t))))
 
-;; arch-tag: 4b8c6143-daac-4888-9c61-9bea6f935f17
 ;;; rng-maint.el ends here

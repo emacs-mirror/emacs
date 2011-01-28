@@ -1,7 +1,6 @@
 /* System description file for Windows NT.
 
-Copyright (C) 1993, 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -389,5 +388,3 @@ extern void _DebPrint (const char *fmt, ...);
 
 /* ============================================================ */
 
-/* arch-tag: 5d4a3a1c-40dc-4dea-9c7c-38fed9ae0eae
-   (do not change this comment) */

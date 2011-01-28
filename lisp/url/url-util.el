@@ -1,7 +1,6 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001, 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -532,5 +531,4 @@ Creates FILE and its parent directories if they do not exist."
 
 (provide 'url-util)
 
-;; arch-tag: 24352abc-5a5a-412e-90cd-313b26bed5c9
 ;;; url-util.el ends here

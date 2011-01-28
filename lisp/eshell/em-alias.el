@@ -1,7 +1,6 @@
 ;;; em-alias.el --- creation and management of command aliases
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -279,5 +278,4 @@ These are all the command aliases which begin with NAME."
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 8b018fc1-4e07-4ccc-aa73-c0a1ba361f82
 ;;; em-alias.el ends here

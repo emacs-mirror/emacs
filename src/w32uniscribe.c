@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft W32 Uniscribe API.
-   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -965,5 +965,3 @@ syms_of_w32uniscribe (void)
   register_font_driver (&uniscribe_font_driver, NULL);
 }
 
-/* arch-tag: 9530f0e1-7471-47dd-a780-94330af87ea0
-   (do not change this comment) */

@@ -1,7 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002, 2003,
-@c   2004, 2005, 2006, 2007, 2008, 2009, 2010
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1994-1997, 1999-2011  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @node Acknowledgments, Screen, Concept Index, Top
@@ -870,6 +868,10 @@ generating JSON files.
 Kentaro Ohkouchi created the Emacs icons used beginning with Emacs 23.
 
 @item
+Christian Ohler wrote @file{ert.el}, a library for automated regression
+testing.
+
+@item
 Alexandre Oliva wrote @file{gnus-mlspl.el}, a group params-based mail
 splitting mechanism.
 
@@ -1239,12 +1241,12 @@ package, for GnuPG and PGP support.
 @item
 Masanobu Umeda wrote GNUS, a feature-rich reader for Usenet news that
 was the ancestor of the current Gnus package.  He also wrote
-@file{prolog.el}, a mode for editing Prolog code; @file{rmailsort.el}, a
-package for sorting messages in RMAIL folders; @file{metamail.el}, an
-interface to the Metamail program; @file{gnus-kill.el}, the Kill File
-mode for Gnus; @file{gnus-mh.el}, an mh-e interface for Gnus;
-@file{gnus-msg.el}, a mail and post interface for Gnus; and
-@file{timezone.el}, providing functions for dealing with time zones.
+@file{rmailsort.el}, a package for sorting messages in RMAIL folders;
+@file{metamail.el}, an interface to the Metamail program;
+@file{gnus-kill.el}, the Kill File mode for Gnus; @file{gnus-mh.el}, an
+mh-e interface for Gnus; @file{gnus-msg.el}, a mail and post interface
+for Gnus; and @file{timezone.el}, providing functions for dealing with
+time zones.
 
 @item
 Neil W.@: Van Dyke wrote @file{webjump.el}, a ``hot links'' package.

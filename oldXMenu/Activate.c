@@ -3,8 +3,7 @@
 #include "copyright.h"
 
 /*
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -607,6 +606,3 @@ XMenuActivate(
     return(ret_val);
 
 }
-
-/* arch-tag: 6b90b578-ecea-4328-b460-a0c96963f872
-   (do not change this comment) */

@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search, Fixit, Display, Top
@@ -1378,7 +1377,3 @@ it never deletes lines that are only partially contained in the region
 
 If a match is split across lines, this command keeps all those lines.
 @end table
-
-@ignore
-   arch-tag: fd9d8e77-66af-491c-b212-d80999613e3e
-@end ignore

@@ -1,7 +1,6 @@
 ;;; tetris.el --- implementation of Tetris for Emacs
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 2.01
@@ -641,5 +640,4 @@ tetris-mode keybindings:
 
 (provide 'tetris)
 
-;; arch-tag: fb780d53-3ff0-49f0-8e19-f7f13cf2d49e
 ;;; tetris.el ends here

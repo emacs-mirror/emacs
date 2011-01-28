@@ -1,6 +1,6 @@
 ;;; erc-ezbounce.el ---  Handle EZBounce bouncer commands
 
-;; Copyright (C) 2002, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Keywords: comm
@@ -174,5 +174,4 @@ in the alist is `nil', prompt for the appropriate values."
 
 (provide 'erc-ezbounce)
 
-;; arch-tag: e972aa7b-a9f4-4d16-a489-074ec7a1002e
 ;;; erc-ezbounce.el ends here

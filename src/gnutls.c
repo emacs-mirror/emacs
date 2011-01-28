@@ -1,5 +1,5 @@
 /* GnuTLS glue for GNU Emacs.
-   Copyright (C) 2010  Free Software Foundation, Inc.
+   Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -448,7 +448,7 @@ one trustfile (usually a CA bundle).  */)
                 (x509_cred,
                  SDATA (trustfile),
                  file_format);
-              
+
               if (ret < GNUTLS_E_SUCCESS)
                 return gnutls_make_error (ret);
             }
@@ -470,7 +470,7 @@ one trustfile (usually a CA bundle).  */)
                 (x509_cred,
                  SDATA (keyfile),
                  file_format);
-              
+
               if (ret < GNUTLS_E_SUCCESS)
                 return gnutls_make_error (ret);
             }
@@ -497,7 +497,7 @@ one trustfile (usually a CA bundle).  */)
 
   if (STRINGP (priority_string))
     {
-      priority_string_ptr = (char*) SDATA (priority_string);
+      priority_string_ptr = SSDATA (priority_string);
       GNUTLS_LOG2 (1, max_log_level, "got non-default priority string:",
                    priority_string_ptr);
     }
@@ -506,7 +506,7 @@ one trustfile (usually a CA bundle).  */)
       GNUTLS_LOG2 (1, max_log_level, "using default priority string:",
                    priority_string_ptr);
     }
-  
+
   GNUTLS_LOG (1, max_log_level, "setting the priority string");
 
   ret = gnutls_priority_set_direct (state,

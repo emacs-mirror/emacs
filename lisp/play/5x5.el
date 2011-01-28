@@ -1,7 +1,6 @@
 ;;; 5x5.el --- simple little puzzle game
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -512,5 +511,4 @@ in progress because it is an animated attempt."
 
 (provide '5x5)
 
-;; arch-tag: ec4dabd5-572d-41ea-b48c-ec5ce0d68fa9
 ;;; 5x5.el ends here

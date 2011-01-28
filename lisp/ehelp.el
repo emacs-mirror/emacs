@@ -1,7 +1,6 @@
 ;;; ehelp.el --- bindings for electric-help mode
 
-;; Copyright (C) 1986, 1995, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1995, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik
 ;; (according to ack.texi and authors.el)
@@ -426,5 +425,4 @@ will select it.)"
 
 (provide 'ehelp)
 
-;; arch-tag: e0e3037f-42c0-433e-ba18-322c5d951f46
 ;;; ehelp.el ends here

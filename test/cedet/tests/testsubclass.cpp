@@ -1,6 +1,6 @@
 // testsubclass.cpp --- unit test for analyzer and complex C++ inheritance
 
-// Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+// Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 // Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -247,4 +247,3 @@ bool sneaky::bugalope::testAccess() //^9^
     ;
 }
 
-// arch-tag: 20a08c42-9ba6-4c8d-966a-893b37c841ef

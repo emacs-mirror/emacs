@@ -1035,7 +1035,7 @@
 
 	* erc-speak.el 1.1, erc.el 1.1: New file.
 
-    Copyright (C) 2001, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+	Copyright (C) 2001, 2006-2011 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -1056,4 +1056,3 @@
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 306c4b58-f9ae-4f3d-9fd9-db2d743f05a6

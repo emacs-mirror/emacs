@@ -59,4 +59,3 @@
     ("HEBREW LIGATURE ALEF LAMED" #xFB4F)
     ))
 
-;; arch-tag: 06519b44-408f-43f4-89e6-3e5c1d2afe4d

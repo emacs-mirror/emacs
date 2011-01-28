@@ -1,6 +1,6 @@
 ;;; json.el --- JavaScript Object Notation parser / generator
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Edward O'Connor <ted@oconnor.cx>
 ;; Version: 1.2
@@ -526,5 +526,4 @@ Advances point just past JSON object."
 
 (provide 'json)
 
-;; arch-tag: 15f6e4c8-b831-4172-8749-bbc680c50ea1
 ;;; json.el ends here

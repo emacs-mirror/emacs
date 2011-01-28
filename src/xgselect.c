@@ -1,6 +1,6 @@
 /* Function for handling the GLib event loop.
-   Copyright (C) 2009, 2010
-     Free Software Foundation, Inc.
+
+Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -157,5 +157,3 @@ xgselect_initialize (void)
 #endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
 }
 
-/* arch-tag: c5873ee3-d1f6-44f9-9f3b-b14f70fd0e6a
-   (do not change this comment) */

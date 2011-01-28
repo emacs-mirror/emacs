@@ -1,6 +1,5 @@
 /* Terminal hooks for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -72,13 +71,6 @@ static DWORD	prev_console_mode;
 static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
 
-extern Lisp_Object Vtty_defined_color_alist;
-
-/* Determine whether to make frame dimensions match the screen buffer,
-   or the current window size.  The former is desirable when running
-   over telnet, while the latter is more useful when working directly at
-   the console with a large scroll-back buffer.  */
-int w32_use_full_screen_buffer;
 HANDLE  keyboard_handle;
 
 
@@ -747,7 +739,7 @@ void
 syms_of_ntterm (void)
 {
   DEFVAR_BOOL ("w32-use-full-screen-buffer",
-               &w32_use_full_screen_buffer,
+               w32_use_full_screen_buffer,
 	       doc: /* Non-nil means make terminal frames use the full screen buffer dimensions.
 This is desirable when running Emacs over telnet.
 A value of nil means use the current console window dimensions; this
@@ -760,5 +752,3 @@ scroll-back buffer.  */);
   defsubr (&Sset_message_beep);
 }
 
-/* arch-tag: a390a07f-f661-42bc-aeb4-e6d8bf860337
-   (do not change this comment) */

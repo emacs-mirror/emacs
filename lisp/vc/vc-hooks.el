@@ -1,8 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2011  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -1052,5 +1050,4 @@ current, and kill the buffer that visits the link."
 
 (provide 'vc-hooks)
 
-;; arch-tag: 2e5a6fa7-1d30-48e2-8bd0-e3d335f04f32
 ;;; vc-hooks.el ends here

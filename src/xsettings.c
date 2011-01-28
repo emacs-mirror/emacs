@@ -1,6 +1,6 @@
-/* Functions for handle font and other changes dynamically.
-   Copyright (C) 2009, 2010
-                 Free Software Foundation, Inc.
+/* Functions for handling font and other changes dynamically.
+
+Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -44,8 +44,6 @@ static char *current_font;
 static struct x_display_info *first_dpyinfo;
 static Lisp_Object Qmonospace_font_name, Qfont_name, Qfont_render,
   Qtool_bar_style;
-static int use_system_font;
-static Lisp_Object Vxft_settings;
 static Lisp_Object current_tool_bar_style;
 
 #ifdef HAVE_GCONF
@@ -751,14 +749,14 @@ syms_of_xsettings (void)
   defsubr (&Sfont_get_system_font);
   defsubr (&Sfont_get_system_normal_font);
 
-  DEFVAR_BOOL ("font-use-system-font", &use_system_font,
+  DEFVAR_BOOL ("font-use-system-font", use_system_font,
     doc: /* *Non-nil means to apply the system defined font dynamically.
 When this is non-nil and the system defined fixed width font changes, we
 update frames dynamically.
 If this variable is nil, Emacs ignores system font changes.  */);
   use_system_font = 0;
 
-  DEFVAR_LISP ("xft-settings", &Vxft_settings,
+  DEFVAR_LISP ("xft-settings", Vxft_settings,
                doc: /* Font settings applied to Xft.  */);
   Vxft_settings = make_string ("", 0);
 
@@ -777,5 +775,3 @@ If this variable is nil, Emacs ignores system font changes.  */);
   Fprovide (intern_c_string ("dynamic-setting"), Qnil);
 }
 
-/* arch-tag: 541716ed-2e6b-42e1-8212-3197e01ea61d
-   (do not change this comment) */

@@ -1,7 +1,6 @@
 ;;; mailcap.el --- MIME media types configuration
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@aventail.com>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -910,7 +909,8 @@ If NO-DECODE is non-nil, don't decode STRING."
     (".zip"   . "application/zip")
     (".ai"    . "application/postscript")
     (".jpe"   . "image/jpeg")
-    (".jpeg"  . "image/jpeg"))
+    (".jpeg"  . "image/jpeg")
+    (".org"   . "text/x-org"))
   "An alist of file extensions and corresponding MIME content-types.
 This exists for you to customize the information in Lisp.  It is
 merged with values from mailcap files by `mailcap-parse-mimetypes'.")

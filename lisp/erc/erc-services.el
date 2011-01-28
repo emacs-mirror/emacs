@@ -1,6 +1,6 @@
 ;;; erc-services.el --- Identify to NickServ
 
-;; Copyright (C) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2011 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -445,4 +445,3 @@ When called interactively, read the password using `read-passwd'."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: d401c8aa-d938-4255-96a9-3efb64c47e58

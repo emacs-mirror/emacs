@@ -146,5 +146,3 @@ extern void *md5_buffer (const char *buffer, size_t len,
 
 #endif /* md5.h */
 
-/* arch-tag: 7cd389f3-6c40-4950-999d-0b2ebd1d20d7
-   (do not change this comment) */

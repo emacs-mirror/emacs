@@ -1,3 +1,1105 @@
+2011-01-27  Sam Steingold  <sds@gnu.org>
+
+	* midnight.el (clean-buffer-list-kill-never-buffer-names): Remove
+	"*server*" which is never created by emacs server.
+
+2011-01-27  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* vc/vc-bzr.el (vc-bzr-diff): Don't pass --diff-options unless
+	there are some diff switches.
+
+2011-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
+	Copy change made to ruby-font-lock-syntactic-keywords.
+
+	* htmlfontify.el: Make it obey the font-lock-face text property.
+	Miscellaneous cleanup such as:
+	- Don't hide expressions after a closing paren.
+	- Move initial setq into let.
+	- Hoist common parts out of ifs.
+	(hfy-p-to-face, hfy-p-to-face-lennart): Remove.
+	(hfy-face-at): Use get-text-property instead.
+	(hfy-prop-invisible-p): Use invisible-p if available.
+	(htmlfontify-manual): Use \\[...].
+	(hfy-html-quote-regex): Use [...].
+	(hfy-combined-face-spec): Simplify.
+	(hfy-compile-face-map): Don't presume point-min==1.
+	(hfy-css-name, hfy-buffer, htmlfontify-buffer): Use \' rather than $ to
+	match end of string.
+	(hfy-text-p): η-reduce.
+	(hfy-tags-for-file): Receive cache-hash directly.
+	(hfy-mark-tag-names): Adjust call.
+
+2011-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* msb.el (msb-after-load-hooks): Make it an obsolete alias.
+	(msb-after-load-hook): Remove eval-after-load wackiness.
+
+2011-01-25  Sam Steingold  <sds@gnu.org>
+
+	* vc/vc-svn.el (vc-svn-diff): Use `diff-command' instead of the
+	literal "diff" (important for windows-nt).
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-at-end-flag)
+	(copyright-names-regexp): Add safety properties.
+	(copyright-year-ranges): New option.
+	(copyright-find-end): New function, split from copyright-update-year.
+	(copyright-update-year): Use copyright-find-end.
+	(copyright-fix-years): Optionally, convert years to ranges.
+	Handle years continued over comment lines.
+	Do not mess with the fill-prefix.
+	Do not call copyright-update.
+	(copyright-update-directory): Optionally, fix years rather than update.
+	Skip directories.  Find files with only safe local vars.
+
+2011-01-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (file-name-non-special): Only change buffer-file-name after
+	insert-file-contents if it's `visit'ing the file (bug#7854).
+
+2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-revert): Doc fix (Bug#7758).
+
+	* simple.el (line-move-visual): Doc fix (Bug#7594).
+
+2011-01-25  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-here-doc-beg-match): Fix for
+	here-doc which ends with an underscore.
+	(ruby-mode-set-encoding): Skip shebang line always.
+	(ruby-mode-map): Bind C-c C-c to comment-region.
+	(ruby-font-lock-keywords): Highlight literal hash key labels as symbols.
+	(ruby-forward-sexp): Stop after literal hash key labels.
+	(ruby-font-lock-syntactic-keywords): Highlight regexp after open
+	bracket.
+
+2011-01-25  Keitaro Miyazaki  <keitaro.miyazaki@gmail.com>  (tiny change)
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Set case-fold-search in
+	the correct buffer (Bug#7650).
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (comint-mode): Doc fix.  (Bug#7897)
+
+	* simple.el (do-auto-fill): Give it a doc string.
+
+	* button.el (make-text-button): Doc fix.  (See bug#7881)
+
+2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-special-constructs):
+	Don't move backward, so as not to fall in an inf-loop (bug#7736).
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): (bug#7735)
+	Handle ?" and friends differently (e.g. don't use backrefs).
+
+2011-01-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-default-power-reference-level)
+	(calc-default-field-reference-level): New variables.
+	* calc/calc-units.el (math-standard-units):  Add dB and Np.
+	(math-logunits): New variable.
+	(math-extract-logunits, math-logcombine, calcFunc-luplus)
+	(calcFunc-luminus, calc-luplus, calc-luminus, math-logunit-level)
+	(calcFunc-fieldlevel, calcFunc-powerlevel, calc-level):
+	New functions.
+	(math-find-base-units-rec): Add entry for ln(10).
+	* calc/calc-help.el (calc-u-prefix-help): Add logarithmic help.
+	(calc-ul-prefix-help): New function.
+	* calc/calc-ext.el (calc-init-extensions): Autoload new units
+	functions. Add keybindings for new units functions.
+
+2011-01-22  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* net/rcirc.el (rcirc-kill-buffer-hook): Flush logs when killing
+	rcirc buffers.  (Bug#4940)
+
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-find-copyright): New function,
+	split out from copyright-update-year.
+	(copyright-update): Don't mess with the GPL version if we don't own the
+	copyright.  Update license regexp, and remove no longer needed
+	Esperanto stuff.
+	(copyright-fix-years): Use copyright-find-copyright.
+
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/diff.el (diff-sentinel): Doc fix (Bug#7682).
+
+2011-01-22  Jari Aalto  <jari.aalto@cante.net>
+
+	* play/landmark.el: Change `lm-' prefix to `landmark-' (Bug#7672).
+	(lm): Rename to landmark.
+	(lm-test-run): Rename to landmark-test-run.
+
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Fix logic error in
+	"Case sensitive" menu item.
+
+2011-01-22  Roland McGrath  <roland@frob.com>
+
+	* comint.el (comint-replace-by-expanded-history-before-point): Fix
+	expansion of !$ and !!:N syntax to pick the indicated word (bug#7883).
+
+2011-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/js.el (js--regexp-literal): Count backslashes (bug#7882).
+
+2011-01-22  Jari Aalto  <jari.aalto@cante.net>
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Assume foo(bar) is a manpage reference rather than some unquoted
+	symbol (bug#7705).
+
+2011-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (shell-quote-argument): Properly quote \n (bug#7687).
+	Suggested by Flo <sensorflo@gmail.com>.
+
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Fix custom type.  (Bug#7812)
+
+2011-01-22  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-prefixed-keybindings): Bind (prefixed) '#' to
+	allout-number-siblings, in keeping with what obtained due to
+	(now-defunct) allout-keybindings-list.  Ditch repeat binding to
+	(prefixed) ?i.
+	(allout-before-change-handler): Better expose spots affected by
+	undo.
+
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* man.el (Man-highlight-references0): Use make-button (Bug#7881).
+
+2011-01-22  Phil Hagelberg  <phil@evri.com>
+
+	* pcmpl-unix.el (pcmpl-ssh-config-file): New option.
+	(pcmpl-ssh-known-hosts): Rename from pcmpl-ssh-hosts.
+	(pcmpl-ssh-config-hosts): New function.
+	(pcmpl-ssh-hosts): Use pcmpl-ssh-config-hosts in addition to
+	pcmpl-ssh-known-hosts.
+
+2011-01-21  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-undo.el (calc-undo): Autoload it.
+	* calc/calc-ext.el (calc-init-extensions): Remove keybindings
+	and autoload for `calc-undo'.
+	* calc/calc.el (calc-mode-map): Add keybindings for `calc-undo'.
+	* calc/calc-prog.el:
+	* calc/calc-graph.el:
+	* calc/calc-map.el: Change `arglist' to `math-arglist' throughout.
+
+2011-01-21  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* calc/calc-ext.el (calc-init-extensions): Map all `undo'
+	keybindings to `calc-undo'.
+
+2011-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Don't mess with *temp*.
+	* obsolete/spell.el: Move from textmodes/spell.el.
+	(spell-string):
+	* term.el (term-read-input-ring):
+	* startup.el (display-startup-echo-area-message):
+	* progmodes/antlr-mode.el (antlr-directory-dependencies):
+	* comint.el (comint-read-input-ring): Use with-temp-buffer.
+	* international/mule.el (ctext-pre-write-conversion): Don't hardcode
+	point-min==1.
+
+2011-01-20  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: (allout-institute-keymap): Use fset instead of
+	reapplying defalias.
+
+	(allout-hotspot-key-handler): Check for non-control-modified
+	bindings for hotspot characters if there are no control-modified
+	versions.
+
+	* allout.el: Summary - migrate to defining allout mode using
+	define-minor-mode instead of defun.  Significantly clean-up
+	internal keymap provisions, refactoring and, in the process,
+	removing a lot of accumulated cruft.
+
+	allout-mode-map is now a keymap by virtue of being a defalias to
+	allout-mode-map-value, which contains the actual keymap structure.
+
+	(allout-mode): Use define-minor-mode rather than defun.
+	Remove now-unnecessary minor-mode setup activities from the body.
+	Specify :keymap as allout-mode-map so the minor-mode-map-alist
+	entry will be '(allout-mode . allout-mode-map) - see
+	allout-mode-map-value, below.  Adjust docstring to track changes.
+	(allout-minor-mode): Remove this defalias, now that we're using
+	define-minor-mode.
+	(allout-mode-map): Set value to be 'allout-mode-map.  The actual
+	keymap is allout-mode-map-value, via defalias.
+	(allout-mode-map-value): The variable holding the actual mode
+	keymap structure, by virtue of defalias from allout-mode-map.
+	(allout-compose-and-institute-keymap): Rename from
+	allout-bind-keys, and including the binding-composition
+	functionality of the former produce-allout-mode-map and
+	allout-setup-mode-map.
+	(allout-institute-keymap): Take over the "setup" part of the former
+	allout-setup-mode-map.  Reassign allout-mode-map-value value and
+	update the defalias.
+	(allout-command-prefix) (allout-prefixed-keybindings)
+	(allout-unprefixed-keybindings):
+	Use allout-compose-and-institute-keymap to process the bindings.
+	(allout-unprefixed-keybindings): Remove extraneous '?' question
+	marks.
+	(allout-prefixed-keybindings): Elide binding to (prefixed) \C-h -
+	user can customize if they want to use that binding.
+	Bind allout-copy-topic-as-kill to (prefixed) \M-k.
+	Bind allout-up-current-level to (prefixed) \C-u.  (I think i mistakenly
+	elided that, previously, instead of the one for \C-h.)
+	(allout-hotspot-key-handler): Remove attempt to resolve the key
+	through the literal key-string lookup on allout-keybindings-list.
+	That probably hasn't worked for a Long Time, and removal of
+	allout-keybindings-list further simplifies the keybindings
+	situation.
+	(allout-pre-command-business): Use allout-mode-map-value instead
+	of allout-mode-map.
+	(allout-preempt-trailing-ctrl-h): Remove.  The user can customize
+	the bindings if they want to use a keybinding having a trailing
+	\C-h.  No deprecation needed since this feature was never in a
+	release.
+	(allout-keybindings-list): Remove.  It's not been useful for a
+	while.  (See allout-hotspot-key-handler changes, above.)
+	(produce-allout-mode-map): Remove.  Consolidate into
+	allout-compose-and-institute-keymap.
+	(allout-mode-map-adjustments): Remove.  No longer necessary with
+	removal of allout-preempt-trailing-ctrl-h.
+	(allout-setup-mode-map): Remove.  Consolidate into
+	allout-compose-and-institute-keymap and allout-institute-keymap.
+
+2011-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-svn.el (vc-svn-after-dir-status): Tweak previous change.
+
+	* simple.el (read-expression-history): Remove, it's in minibuf.c.
+
+2011-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (y-or-n-p): Revert 2011-01-07 change, removing ARGS.
+
+	* files.el (find-alternate-file, basic-save-buffer)
+	(basic-save-buffer-2, revert-buffer, recover-file)
+	(kill-buffer-ask, abort-if-file-too-large)
+	(set-visited-file-name, write-file, backup-buffer)
+	(basic-save-buffer, save-some-buffers):
+	* dired-aux.el (dired-compress-file): Callers changed.
+
+2011-01-19  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-svn.el (vc-svn-after-dir-status, vc-svn-parse-status):
+	Also check the property status.  (Bug#7861)
+
+2011-01-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-debug-message): Extend function exclude
+	list.  Use `regexp-opt'.
+
+2011-01-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-lock-verb): Make sure \verb
+	highlighting doesn't spill over subsequent lines.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't re-evaluate the
+	keymap expression.  Improve docstring.
+
+	* electric.el (electric-indent-post-self-insert-function):
+	Don't auto-indent for indent-to-left-margin, it's too often
+	counter-productive.
+
+2011-01-16  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* strokes.el (strokes-read-stroke): Re-fill strokes buffer with
+	spaces if the frame was resized, so that the full visible buffer
+	serves as canvas for strokes.
+
+2011-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* info-xref.el (info-xref-docstrings): Replace cl function.
+	Also skip directories.
+
+2011-01-16  Kevin Ryde  <user42@zip.com.au>
+
+	* info-xref.el: Version 3.
+	(info-xref-check, info-xref-check-all): Move commentary details
+	into docstrings for better visibility.
+	Use compilation-mode for the results buffer.
+	(info-xref-output, info-xref-output-error, info-xref-with-output)
+	(info-xref-filename, info-xref-in-progress):
+	New internals for this.
+	(info-xref-check-list, info-xref-check-buffer)
+	(info-xref-check-all-custom): Use those.
+	(info-xref-output-buffer): Rename from info-xref-results-buffer.
+	(info-xref-output-heading): Rename from info-xref-filename-heading.
+	(info-xref-good, info-xref-bad, info-xref-xfile-alist)
+	(info-xref-filename-heading): Move to output managing section.
+	(info-xref-docstrings): New command checking "Info node	`(foo)Bar'"
+	(info-xref-lock-file-p, info-xref-with-file): New helpers for it.
+	(info-xref-subfile-p): Move to generic section with those two.
+	(info-xref-check-node): New function split from
+	info-xref-check-buffer, shared by info-xref-docstrings.
+	(info-xref-goto-node-p): Move to a checking section with that func.
+	(info-xref-unavail): New counter.
+	(info-xref-check-node): Use it.
+	(info-xref-with-output): Show count of unavailables at end of output.
+	(info-xref-all-info-files): Exclude ".*" dotfiles.  Ignore broken
+	symlinks.  Exclude .texi files.	 Exclude Emacs backup files.
+	(info-xref-check-all-custom): Fix quietening viper-mode and
+	gnus-registry-install -- use setq not let so as not to unbind
+	after load.
+
+2011-01-16  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-abort): Don't quit if search has
+	an incomplete regexp (isearch-error is non-nil).  (Bug#7534)
+
+2011-01-15  Mark Diekhans  <markd@soe.ucsc.edu>
+
+	* files.el (backup-buffer): Make last-resort backup file in
+	.emacs.d (Bug#6953).
+
+	* subr.el (locate-user-emacs-file): If .emacs.d does not exist,
+	make it with permission 700.
+
+2011-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-header):
+	Set rmail-mime-coding-system to a cons whose car is the last coding
+	system used to decode the header.
+	(rmail-mime-find-header-encoding): New function.
+	(rmail-mime-insert-decoded-text):
+	Override rmail-mime-coding-system if it is a cons.
+	(rmail-show-mime): If only a header part was decoded, find the
+	coding system while ignoring mm-charset-override-alist.
+
+2011-01-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (event-start, event-end): Doc fix (Bug#7826).
+
+2011-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-next-item)
+	(rmail-mime-previous-item): Delete them.
+	(rmail-mime-shown-mode): Recursively call for children.
+	(rmail-mime-hidden-mode): Delete the 2nd arg TOP.
+	Callers changed.
+	(rmail-mime-raw-mode): Recursively call for children.
+	(rmail-mode-map): Change mapping of tab and backtab to
+	forward-button and backward-button respectively.
+	(rmail-mime-insert-tagline): Always insert "Hide" or "Show"
+	button.
+	(rmail-mime-update-tagline): New function.
+	(rmail-mime-insert-text): Call rmail-mime-update-tagline if the
+	body display is changed.
+	(rmail-mime-toggle-button): Rename from rmail-mime-image.
+	(rmail-mime-image): Delete this button type.
+	(rmail-mime-toggle): New button type.
+	(rmail-mime-insert-bulk): Call rmail-mime-update-tagline if the
+	body display is changed.  Change the save button label to "Save".
+	Don't process show/hide button here.
+	(rmail-mime-insert-multipart): Call rmail-mime-update-tagline if
+	the body display is changed.  Unconditionally call
+	rmail-mime-insert for children.
+	(rmail-mime-handle): Update `display' vector of the just inserted
+	entity.
+	(rmail-mime-process): If mail-header-parse-content-type returns
+	nil, use "text/plain" as the fallback type.
+	(rmail-mime-insert): For raw-mode, recursively call
+	rmail-mim-insert for children.
+	(rmail-mime): Handle the case that the current buffer is not rmail
+	buffer (e.g. in summary buffer).
+
+2011-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-next-item)
+	(rmail-mime-previous-item): Skip the body of a non-multipart
+	entity if a tagline is shown.
+
+2011-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-get-keymap): Skip bindings without labels (bug#7721).
+	(tmm-prompt): Simplify.
+	(tmm-add-prompt): Remove unused var `win'.
+
+	* whitespace.el (global-whitespace-newline-mode): Fix call (bug#7810)
+	to minor mode which used nil accidentally to mean "turn off".
+
+2011-01-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-find-inline-compress)
+	(tramp-get-inline-coding): Quote command after pipe symbol for
+	local calls under W32.  (Bug#6784)
+
+2011-01-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-default-method): Initialize with pscp/plink
+	only when running under W32.
+
+2011-01-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/grep.el (grep-compute-defaults): Quote the program
+	file name after the pipe symbol in Grep templates.  (Bug#6784)
+	* jka-compr.el (jka-compr-partial-uncompress): Likewise.
+
+2011-01-15  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* buff-menu.el (Buffer-menu-buffer-list): New var.
+	(Buffer-menu-revert-function, list-buffers-noselect): Use it, so a
+	restricted buffer list is not lost on revert (Bug#7749).
+
+2011-01-15  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* net/ldap.el (ldap-search-internal): Discard stderr output.
+
+2011-01-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (directory-abbrev-alist): Doc fix.  (Bug#7777)
+
+2011-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-annotate-time): Tweak previous change.
+
+2011-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-bulk): Display an unknown
+	part as a plain text.
+	(rmail-mime-process-multipart): Set the default content-type to
+	nil for unknown multipart subtypes (bug#7651).
+
+2011-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hexl.el (hexl-mode-old-*): Remove.
+	(hexl-mode--old-var-vals): New var to replace them.
+	(hexl-mode--minor-mode-p, hexl-mode--setq-local): New funs.
+	(hexl-mode, hexl-follow-line, hexl-activate-ruler):
+	Use them to set local vars (bug#7846).
+	(hexl-mode-exit): Use hexl-mode--old-var-vals to restore state.
+	(hexl-backward-short, hexl-backward-word, hexl-scroll-down)
+	(hexl-scroll-up, hexl-end-of-1k-page, hexl-end-of-512b-page): Simplify.
+
+	* vc/smerge-mode.el: Resolve comment conflicts more aggressively.
+	(smerge-resolve--normalize-re): New var.
+	(smerge-resolve--extract-comment, smerge-resolve--normalize): New funs.
+	(smerge-resolve): Use them.
+	* newcomment.el (comment-only-p): New function.
+	(comment-or-uncomment-region): Use it.
+
+2011-01-14  Brent Goodrick  <bgoodr@gmail.com>  (tiny change)
+
+	* abbrev.el (prepare-abbrev-list-buffer): If listing local abbrev
+	table, get the value before switching to the output buffer.  (Bug#7733)
+
+2011-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-mode): Don't impose font-lock (bug#3628).
+
+2011-01-14  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--init-keymaps):
+	Remap exchange-point-and-mark in cua-global-keymap.
+
+2011-01-14  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* progmodes/sh-script.el (sh-other-keywords): Add ZSH's foreach
+	loop keyword.
+
+2011-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el: Add :enable (bug#7754), and obey :label.
+	Require CL.
+	(easy-menu-create-menu, easy-menu-convert-item-1):
+	Use :label rather than nil for labels.  Use `case'.
+	Add :enable as alias for :active.
+	(easy-menu-binding): Obey :label.
+
+2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use run-mode-hooks for major mode hooks (bug#513).
+	* textmodes/reftex-toc.el (reftex-toc-mode-map):
+	Rename from reftex-toc-map.
+	(reftex-toc-mode): Use define-derived-mode.
+	* textmodes/reftex-sel.el (reftex-select-shared-map): New map.
+	(reftex-select-label-mode-map, reftex-select-bib-mode-map):
+	Rename from reftex-select-(label|bib)-map.  Move init into declaration.
+	(reftex-select-label-mode, reftex-select-bib-mode):
+	Use define-derived-mode.
+	* textmodes/reftex-index.el (reftex-index-phrases-mode-map)
+	(reftex-index-mode-map): Rename from reftex-index(-phrases)-map.
+	Move init into delcaration.
+	(reftex-index-mode, reftex-index-phrases-mode):
+	Use define-derived-mode.
+	* speedbar.el (speedbar-mode-syntax-table): Renaqme from
+	speedbar-syntax-table.  Move init into declaration.
+	(speedbar-mode-map): Rename from speedbar-key-map.
+	Move init into declaration.
+	(speedbar-file-key-map): Move init into declaration.
+	(speedbar-mode): Use define-derived-mode.
+	* recentf.el (recentf-mode): Don't run hook (or message) redundantly.
+	* net/rcirc.el (rcirc-mode): Use run-mode-hooks.
+	* emacs-lisp/chart.el (chart-mode-map): Rename from chart-map.
+	(chart-face-list): Move initialization into declaration.
+	(chart-mode): Use define-derived-mode.
+	* calculator.el (calculator-mode-map): Move init into declaration.
+	(calculator-mode): Use define-derived-mode.
+
+	* mail/mail-utils.el (mail-strip-quoted-names): Make the regexp code
+	work for nested comments.
+
+	* progmodes/prolog.el: Use syntax-propertize.  Further code cleanup.
+	(prolog-use-prolog-tokenizer-flag): Change default when
+	syntax-propertize can be used.
+	(prolog-syntax-propertize-function): New var.
+	(prolog-mode-variables): Move make-local-variable into `set'.
+	Don't make comment-column local since we don't set it.
+	Set comment-add (as it was in previous prolog.el).  Use dolist.
+	Set syntax-propertize-function.
+	(prolog-mode, prolog-inferior-mode):
+	Call prolog(-inferior)-menu directly, not through the mode-hook.
+	(prolog-buffer-module, prolog-indent-level)
+	(prolog-paren-is-the-first-on-line-p, prolog-paren-balance)
+	(prolog-comment-limits, prolog-goto-comment-column):
+	Use line-(end|beginning)-position.
+	(prolog-build-prolog-command): Tighten up regexp.
+	(prolog-consult-compile): Move make-local-variable into `set'.
+	(prolog-consult-compile-filter, prolog-goto-next-paren)
+	(prolog-help-on-predicate, prolog-clause-info)
+	(prolog-mark-predicate): Don't let+setq.
+	(prolog-indent-line): Use indent-line-to.
+	Only call prolog-goto-comment-column if necessary.
+	(prolog-indent-level): Use bobp.
+	(prolog-first-pos-on-line): Remove, not used any more.
+	(prolog-in-string-or-comment): Use syntax-ppss if available.
+	(prolog-help-on-predicate): Use read-string.
+	(prolog-goto-predicate-info): Simplify.
+	(prolog-read-predicate): Use `default' rather than `initial'.
+	(prolog-temporary-file): Use make-temp-file to close a security hole.
+	(prolog-toggle-sicstus-sd): New command.
+	(prolog-electric-underscore, prolog-variables-to-anonymous):
+	Use dynamic-scoping as it was meant.
+	(prolog-menu): Move menu definitions to top-level.
+	Use a toggle-button for Sicstus's source debugger.
+	Change "Code" to the more usual "Prolog", and hence change "Prolog"
+	to "System".
+	(prolog-inferior-menu): Reuse prolog-menu's help menu.
+	Move other menu definition to top-level.
+
+2011-01-13  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-open-text): Use meaningful text buffer
+	name.  Keep original document's directory as default-directory
+	(bug#6446).
+	(doc-view-initiate-display): Fall back to normal mode when
+	doc-view-mode cannot be enabled, also when extracting the document
+	text into a separate buffer (bug#6446).
+
+	* simple.el (shell-command): Don't error out if shell command
+	buffer contains text with non-nil read-only property when erasing
+	the buffer.
+
+2011-01-13  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-may-cache-directory): Move "too-big" check later.
+	(ido-next-match, ido-prev-match): Fix stray reordering of matching
+	items when cycling through the matches.
+
+2011-01-13  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* dired-x.el (dired-omit-verbose): New defcustom that allows
+	disabling the omit messages.
+	(dired-omit-expunge): Use it.
+
+2011-01-13  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/ert.el, emacs-lisp/ert-x.el: New files.
+
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font-lock.el (font-lock-verbose): Default to nil.
+
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (sendmail-user-agent-compose): Move to sendmail.el.
+	(compose-mail): New arg RETURN-ACTION.
+	(compose-mail-other-window, compose-mail-other-frame): Likewise.
+
+	* mail/sendmail.el (mail-return-action): New var.
+	(mail-mode): Make it buffer-local.
+	(mail-bury): Obey it.  Move special Rmail window handling to
+	rmail-mail-return.
+	(mail, mail-setup): New arg RETURN-ACTION.
+	(sendmail-user-agent-compose): Move from simple.el.
+
+	* mail/rmail.el (rmail-mail-return): New function.
+	(rmail-start-mail): Pass it to compose-mail.
+
+2011-01-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-custom-menu): Tweak Mule and Customize
+	menus.  Add menu item for customize-themes.
+
+	* cus-theme.el (customize-themes):
+	* emacs-lisp/package.el (package--list-packages):
+	Use switch-to-buffer.
+
+2011-01-11  Johan Bockgård  <bojohan@gnu.org>
+
+	* emacs-lisp/unsafep.el (unsafep): Handle backquoted forms.
+
+2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/prolog.el: Fix up coding convention and such.
+	(prolog-indent-width): Use the same default as in
+	previous prolog.el rather than tab-width which depends on which buffer
+	is current when the file is loaded.
+	(prolog-electric-newline-flag): Only enable if electric-indent-mode
+	is not available.
+	(prolog-emacs): Remove.  Use (featurep 'xemacs) instead.
+	(prolog-known-systems): Remove.
+	(prolog-mode-syntax-table, prolog-inferior-mode-map):
+	Move initialization into declaration.
+	(prolog-mode-map): Move initialization into declaration.
+	Remove system-specific mode-map vars, since they referred to the same
+	keymap anyway.
+	(prolog-mode-variables): Obey the user's preference w.r.t
+	adaptive-fill-mode.  Prefer symbol-value to `eval'.
+	(prolog-mode-keybindings-edit): Add compatibility bindings.
+	(prolog-mode): Use define-derived-mode.  Don't handle mercury here.
+	(mercury-mode-map): New var.
+	(mercury-mode, prolog-inferior-mode): Use define-derived-mode.
+	(prolog-ensure-process, prolog-process-insert-string)
+	(prolog-consult-compile): Use with-current-buffer.
+	(prolog-guess-fill-prefix): Simplify data flow.
+	(prolog-replace-in-string): New function to use instead of
+	replace-in-string.
+	(prolog-enable-sicstus-sd): Don't abuse `eval'.
+	(prolog-uncomment-region): Use `uncomment-region' when available.
+	(prolog-electric-colon, prolog-electric-dash): Use `eolp'.
+	(prolog-int-to-char, prolog-char-to-int): New functions to use instead
+	of int-to-char and char-to-int.
+	(prolog-mode-hook, prolog-inferior-mode-hook): Don't force font-lock.
+
+2011-01-11  Stefan Bruda  <stefan@bruda.ca>
+
+	* progmodes/prolog.el: Replace by a whole new file.
+
+2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (eval-after-load): Fix timing for features (bug#7769).
+	(declare-function, undefined, insert-for-yank)
+	(replace-regexp-in-string): Follow checkdoc's recommendations.
+
+2011-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/diary-lib.el (diary-mode): Refresh *Calendar* after
+	refreshing the diary buffer.
+
+2011-01-10  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Add 2011 to the file copyright.
+	(allout-encrypt-string): Prevent encryption from adding an extra
+	newline at the end of the topic body.
+	(allout-version): Increment to 2.3.
+
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-unregister-service): Complete doc.
+	Fix call of dbus-error signal.
+	(dbus-register-property): Use `dont-register' keyword.
+
+2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* net/dbus.el (dbus-unregister-service): Translate returned
+	integer into a symbol.
+	(dbus-register-property): Use `dbus-register-service' to do the
+	name registration.
+
+2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/idlw-help.el (idlwave-help-link): Inherit from link face.
+	Suggested by Joakim Verona.
+
+	* comint.el (comint-highlight-prompt): Inherit minibuffer-prompt.
+
+	* wid-edit.el (visibility): Replace :on-image and :off-image
+	widget properties with :on-glyph and :off-glyph, for consistency
+	with the `visibility' widget.
+	(widget-toggle-value-create, widget-visibility-value-create):
+	Merge into a single function `widget-toggle-value-create'.
+
+	* cus-edit.el (custom-variable-value-create, custom-visibility)
+	(custom-face-edit-value-create, custom-face-value-create):
+	Replace :on-image and :off-image widget properties with :on-glyph and
+	:off-glyph, for consistency with the `visibility' widget.
+
+2011-01-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* net/ldap.el (ldap-search-internal): Don't use eval.
+
+2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (read-char-choice): Use read-key.
+
+	* custom.el (custom-safe-themes): Rename from
+	custom-safe-theme-files.  Add :risky tag.
+	(load-theme, custom-theme-load-confirm): Save sha1 hashes to
+	custom-safe-themes, not filenames.  Suggested by Stefan Monnier.
+
+2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tool-bar.el (tool-bar-setup): Remove Help button.  Remove label
+	from Search and add a label to Undo.
+
+	* vc/vc-dir.el (vc-dir-tool-bar-map): Rearrange, removing
+	inappropriate buttons and adding :vert-only tags.
+
+	* progmodes/compile.el (compilation-mode-tool-bar-map): Adjust to
+	removal of Help tool-bar button.  Remove Undo button for space.
+
+	* info.el (info-tool-bar-map): Add :vert-only tags.
+
+2011-01-08  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode-p): Check for png or imagemagick
+	image backend support.  Either of them is fine.
+
+2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (y-or-n-p): Doc fix.
+
+	* custom.el (custom-safe-theme-files): New defcustom.
+	(custom-theme-load-confirm): New function.
+	(load-theme): Load theme using `load', confirming with
+	custom-theme-load-confirm if necessary.
+
+	* subr.el (read-char-choice): New function, factored out from
+	dired-query and hack-local-variables-confirm.
+
+	* dired-aux.el (dired-query):
+	* files.el (hack-local-variables-confirm): Use it.
+
+	* dired-aux.el (dired-compress-file):
+	* files.el (abort-if-file-too-large, find-alternate-file)
+	(set-visited-file-name, write-file, backup-buffer)
+	(basic-save-buffer, basic-save-buffer-2, save-some-buffers)
+	(delete-directory, revert-buffer, recover-file, kill-buffer-ask):
+	Use new format string args for y-or-n-p and yes-or-no-p.
+
+2011-01-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist)
+	[gcc-include]: Tighten file name match, add match for column
+	number.  (Bug#7806)
+	[gnu]: Remove unused group.
+
+2011-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (EMACSOPT): Add --no-site-lisp.
+
+	* makefile.w32-in (EMACSOPT): -batch implies --no-init-file.
+
+2011-01-07  Sam Steingold  <sds@gnu.org>
+
+	* w32-fns.el (w32-shell-name): Use `shell-file-name' instead of
+	the `explicit-shell-file-name' because that is the
+	non-interactive shell.
+
+2011-01-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (y-or-n-p): Accept format string args.
+
+2011-01-07  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (EMACSOPT): Add --no-site-lisp.
+
+2011-01-06  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-back-to-current-heading): Ensure return to
+	the visible containing topic, rather than a collapsed one.
+	(allout-view-change-hook): Remove hook that was deprecated long ago.
+	(allout-exposure-change-hook): Remove documentation remarks
+	concerning removed allout-view-change-hook.
+	(allout-flag-region): Remove invocation of and documentation
+	remarks concerning allout-view-change-hook.
+
+2011-01-06  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-annotate-command, vc-bzr-annotate-time)
+	(vc-bzr-annotate-extract-revision-at-line):
+	Handle authors with embedded spaces.  (Bug#7792)
+
+2011-01-05  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-image-width): New variable.
+	(doc-view-enlarge, doc-view-insert-image): Prefer imagemagick
+	backend for PNG images, and do dynamic rescaling instead of
+	reconverting the whole doc.
+
+2011-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/rx.el (rx-repeat): Replace CL function.
+
+2011-01-04  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Reconcile with changes in line movement behavior for
+	long text lines that cross more than a single physical window
+	line, ie when truncate-lines is nil.
+	(allout-next-visible-heading): Provide for change in line-move
+	behavior on long lines when truncate-lines is nil.  In that case,
+	line-move can wind up on the same textual line when it moves to
+	the next window line, and moving to the bullet position after the
+	move yields zero advancement.  Add logic to detect and compensate
+	for the lack of progress.
+	(allout-current-topic-collapsed-p): move-end-of-line respect for
+	field boundaries is different when operating with body lines
+	shorter than window width versus ones greater than window width,
+	which can yield false negatives in this function.  Avoid
+	difference by applying move-end-of-line while field-text-motion is
+	inhibited.
+
+2011-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/rst.el (rst-compile-toolsets):
+	Add pdf and s5 to option alist.
+
+2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* net/dbus.el (dbus-register-property): Add optional parameter
+	dont-register-service.  Updated docstring accordingly.
+
+2011-01-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* textmodes/rst.el (rst-compile-pdf-preview)
+	(rst-compile-slides-preview): Remove extra line.
+
+2011-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/rst.el (rst-compile-toolsets): Make it a defcustom.
+	Add `pdf' and `s5' entries.  Use `prog.py' if found, otherwise
+	default to `prog' without a .py extension.
+	(rst-compile-pdf-preview, rst-compile-slides-preview):
+	Use program names from rst-compile-toolsets, rather than hard-coding.
+	(rst-portable-mark-active-p): Fix presumed typo.
+
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (dynamic-library-alist): Set up correctly for
+	libpng versions both before and after 1.4.0.  (Bug#7716)
+
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* time.el (display-time-mode): Mention display-time-interval in
+	the doc string.  (Bug#7713)
+
+2011-01-02  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-parse): Perform parsing in
+	condition-case and return an error message string if something
+	goes wrong.
+	(rmail-show-mime): Adjust for the above change.  Insert the
+	header by rmail-mime-insert-header.
+
+2011-01-02  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el: New key bindings for rmail-mime-next-item,
+	rmail-mime-previous-item, and rmail-mime-toggle-hidden.
+	(rmail-mime-mbox-buffer)
+	(rmail-mime-view-buffer, rmail-mime-coding-system): New variables.
+	(rmail-mime-entity): Argument changed.  All codes handling an
+	entity object are changed.
+	(rmail-mime-entity-header, rmail-mime-entity-body): Adjust for
+	the above change.
+	(rmail-mime-entity-children, rmail-mime-entity-handler)
+	(rmail-mime-entity-tagline): New functions.
+	(rmail-mime-message-p): New function.
+	(rmail-mime-save): Bind rmail-mime-mbox-buffer.
+	(rmail-mime-entity-segment, rmail-mime-next-item)
+	(rmail-mime-previous-item, rmail-mime-shown-mode)
+	(rmail-mime-hidden-mode, rmail-mime-raw-mode)
+	(rmail-mime-toggle-raw, rmail-mime-toggle-hidden)
+	(rmail-mime-insert-tagline, rmail-mime-insert-header):
+	New functions.
+	(rmail-mime-text-handler): Call rmail-mime-insert-text.
+	(rmail-mime-insert-decoded-text): New function.
+	(rmail-mime-insert-text): Call rmail-mime-insert-decoded-text.
+	(rmail-mime-insert-image): Argument changed.  Caller changed.
+	(rmail-mime-image): Call rmail-mime-toggle-hidden.
+	(rmail-mime-set-bulk-data): New funciton.
+	(rmail-mime-insert-bulk): Argument changed.
+	(rmail-mime-multipart-handler): Return t.
+	(rmail-mime-process-multipart): Argument changed.
+	Handle "multipart/alternative" here.
+	(rmail-mime-process): Argument changed.
+	(rmail-mime-parse): Bind rmail-mime-mbox-buffer.
+	(rmail-mime-insert): Argument changed.  Handle raw display mode.
+	(rmail-mime): Argument changed.  Handle toggling of raw display
+	mode.
+	(rmail-show-mime): Bind rmail-mime-mbox-buffer and
+	rmail-mime-view-buffer.
+	(rmail-insert-mime-forwarded-message): Likewise.
+	(rmail-search-mime-message): Likewise.  Don't bind rmail-buffer.
+
+	* mail/rmail.el (rmail-show-message-1): If rmail-enable-mime is
+	non-nil, handle the header in rmail-show-mime-function.
+
+2011-01-02  Leo  <sdl.web@gmail.com>
+
+	* help-fns.el (describe-variable): Fix previous change.
+
+2011-01-02  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-error): New variable.
+	(isearch-lazy-highlight-new-loop): Compare `isearch-error' and
+	`isearch-lazy-highlight-error'.  Set `isearch-lazy-highlight-error'
+	to the current value of `isearch-error' (Bug#7468).
+
+2011-01-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help-fns.el (describe-variable): Don't emit trailing whitespace
+	(Bug#7511).
+
+2011-01-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/rst.el (rst-compile-pdf-preview)
+	(rst-compile-slides-preview): Use make-temp-file (Bug#7646).
+
+2011-01-02  Kevin Gallagher  <Kevin.Gallagher@boeing.com>
+
+	* emulation/edt-mapper.el: Override mapping of function keys so
+	that the later call to read-key-sequence works.
+
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Write queued mail body with
+	Unix EOLs.  (Bug#7589)
+
+2011-01-02  Leo  <sdl.web@gmail.com>
+
+	* eshell/em-hist.el (eshell-previous-matching-input): Signal error
+	if point is not behind eshell-last-output-end (Bug#7585).
+
+2011-01-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (file-local-variables-alist):
+	Make permanent-local (bug#7767).
+
+2011-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-copyright): Set short copyright year to 2011.
+
+2011-01-02  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
+
+	* mail/mail-utils.el (mail-strip-quoted-names): Avoid clobbering
+	an existing temp buffer.  (Bug#7746)
+
+2011-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mail-utils.el (mail-mbox-from): Handle From: headers with
+	multiple addresses.  (Bug#7760)
+
+2011-01-01  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-auto-fill): Do not infinitely recurse - use
+	do-auto-fill if everything points back to allout-auto-fill.
+	(allout-mode-deactivate-hook): Declare obsolete, in favor of
+	standard-formed minor-mode deactivate hook, allout-mode-off-hook.
+
+2010-12-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-methods): Add recursive options to "scpc"
+	and "scpx".
+
+2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-set-doc-type): New function refactored
+	from doc-view-mode.
+	(doc-view-fallback-mode): New function.
+	(doc-view-mode): Use it.
+	(doc-view-mode-maybe): New function that checks if doc-view-mode
+	can be used and falls back to the next best mode otherwise.
+
+	* files.el (auto-mode-alist): Use doc-view-mode-maybe for PDF,
+	DVI, OpenDocument, and MS Office files.
+
+2010-12-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/rx.el (rx-syntax): Fix typo.
+
+2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-toggle-display): Perform rassq-delete-all
+	on a copy of auto-mode-alist, because that deletes with side
+	effects.
+
+2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode, doc-view-toggle-display):
+	Use normal-mode without doc-view-mode bindings in auto-mode-alist as
+	fallback instead of hard coding fundamental mode.
+
+2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-doc->txt): Handle OpenDocument (or MS
+	Office) files also for searching.
+
+2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el: Implement viewing of OpenDocument (and Microsoft
+	Office) files.  Not yet enabled via auto-mode-list.
+	(doc-view-unoconv-program): New custom variable.
+	(doc-view-mode-p): Handle new odf document type.
+	(doc-view-odf->pdf): New conversion function.
+	(doc-view-convert-current-doc): Call it for odf files.
+	(doc-view-mode): Recognize newly supported file extensions.
+
+2010-12-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-default-method-alist)
+	(tramp-default-user-alist)
+	(tramp-local-host-regexp, tramp-prefix-domain-format)
+	(tramp-prefix-domain-regexp): Set tramp-autoload cookie.
+
+	* net/tramp-ftp.el:
+	* net/tramp-gvfs.el:
+	* net/tramp-gw.el:
+	* net/tramp-imap.el:
+	* net/tramp-sh.el:
+	* net/tramp-smb.el: Add tramp-autoload cookie for initialisation
+	code of `tramp-default-method-alist' and `tramp-default-user-alist'.
+
+2010-12-29  Karl Fogel  <kfogel@red-bean.com>
+
+	* saveplace.el (save-place-alist-to-file): Save list sorted and
+	pretty-printed, so that it is mergeable by line-based text merging,
+	as suggested by Iain Dalton <iain.dalton {_AT_} gmail.com>.
+
+2010-12-28  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-v18/19-file-var-hack): Obsolete, remove.
+	(allout-mode): Argument "toggle" => "force".
+	Refine the docstring.
+	Remove special provisions for reactivation, besides the 'force'
+	argument.
+	Consolidate layout provisions coce directly into the activation
+	condition branch, now that we've removed those provisions.
+	(allout-unload-function): Explicitly activate the mode before
+	deactivating, if it's initially deactivated.
+	(allout-set-buffer-multibyte): Properly prevent byte-compiler
+	warnings for version of function used only where
+	set-buffer-multibyte is unavailable.
+
 2010-12-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tool-bar.el (tool-bar-setup): Remove :enable conditions, which
@@ -139,8 +1241,8 @@
 
 2010-12-16  Leo  <sdl.web@gmail.com>
 
-	* eshell/eshell.el (eshell-directory-name): Use
-	locate-user-emacs-file (Bug#7578).
+	* eshell/eshell.el (eshell-directory-name):
+	Use locate-user-emacs-file (Bug#7578).
 
 2010-12-15  Glenn Morris  <rgm@gnu.org>
 
@@ -165,8 +1267,8 @@
 	(tramp-handle-insert-file-contents): Do not set permanent-local
 	property.
 
-	* net/tramp-cache.el (tramp-persistency-file-name): Use
-	`locate-user-emacs-file' if fboundp.
+	* net/tramp-cache.el (tramp-persistency-file-name):
+	Use `locate-user-emacs-file' if fboundp.
 
 	* net/tramp-sh.el (tramp-methods): Add "ksu".
 	(tramp-default-user-alist): Add "ksu".  Use `regexp-opt' for
@@ -20216,7 +21318,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

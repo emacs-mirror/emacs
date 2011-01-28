@@ -1,6 +1,6 @@
 /* Font back-end driver for the NeXT/Open/GNUstep and MacOSX window system.
    See font.h
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -48,10 +48,8 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 
 extern Lisp_Object Qns;
 extern Lisp_Object Qnormal, Qbold, Qitalic, Qcondensed, Qexpanded;
-static Lisp_Object Vns_reg_to_script;
 static Lisp_Object Qapple, Qroman, Qmedium;
 extern Lisp_Object Qappend;
-extern Lisp_Object ns_antialias_text;
 extern float ns_antialias_threshold;
 extern int ns_tmp_flags;
 extern struct nsfont_info *ns_tmp_font;
@@ -1517,8 +1515,7 @@ syms_of_nsfont (void)
   DEFSYM (Qapple, "apple");
   DEFSYM (Qroman, "roman");
   DEFSYM (Qmedium, "medium");
-  DEFVAR_LISP ("ns-reg-to-script", &Vns_reg_to_script,
+  DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
                doc: /* Internal use: maps font registry to unicode script. */);
 }
 
-// arch-tag: d6c3c6f0-62de-4978-8b1e-b7966fe02cae

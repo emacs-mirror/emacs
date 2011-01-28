@@ -1,5 +1,5 @@
 /* testsppreplace.c --- unit test for CPP/SPP Replacement
-   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
    Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -152,5 +152,3 @@ int STARTMACRO () {
 
 /* END */
 
-/* arch-tag: ee9bd650-35f4-468f-82d7-a5f3606c0132
-   (do not change this comment) */

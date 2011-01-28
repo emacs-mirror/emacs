@@ -1,6 +1,7 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
-   Copyright (C) 1988, 1993, 1994, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1988, 1993-1994, 1999, 2001-2011
+  Free Software Foundation, Inc.
 
 Author: Wolfgang Rupprecht
 (according to ack.texi)
@@ -1074,5 +1075,3 @@ syms_of_floatfns (void)
   defsubr (&Struncate);
 }
 
-/* arch-tag: be05bf9d-049e-4e31-91b9-e6153d483ae7
-   (do not change this comment) */

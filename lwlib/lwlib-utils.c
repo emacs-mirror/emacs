@@ -1,7 +1,6 @@
 /* Defines some widget utility functions.
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -175,5 +174,3 @@ XtSafelyDestroyWidget (Widget widget)
 #endif
 }
 
-/* arch-tag: f21f0a1f-2a4e-44e1-8715-7f234fe2d159
-   (do not change this comment) */

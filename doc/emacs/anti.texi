@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 2005-2011 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
 @node Antinews, Mac OS / GNUstep, X Resources, Top
@@ -135,7 +135,3 @@ Support for Sun windows has been added.
 To keep up with decreasing computer memory capacity and disk space, many
 other functions and files have been eliminated in Emacs 22.3.
 @end itemize
-
-@ignore
-   arch-tag: 32932bd9-46f5-41b2-8a0e-fb0cc4caeb29
-@end ignore

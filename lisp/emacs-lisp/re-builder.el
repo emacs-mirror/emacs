@@ -1,7 +1,6 @@
 ;;; re-builder.el --- building Regexps with visual feedback
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools
@@ -243,7 +242,9 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 		  :help "Quit the RE Builder mode"))
     (define-key menu-map [rt]
       '(menu-item "Case sensitive" reb-toggle-case
-		  :button (:toggle . case-fold-search)
+		  :button (:toggle . (with-current-buffer
+					 reb-target-buffer
+				       (null case-fold-search)))
 		  :help "Toggle case sensitivity of searches for RE Builder target buffer"))
     (define-key menu-map [rb]
       '(menu-item "Change target buffer..." reb-change-target-buffer
@@ -713,5 +714,4 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 
 (provide 're-builder)
 
-;; arch-tag: 5c5515ac-4085-4524-a421-033f44f032e7
 ;;; re-builder.el ends here

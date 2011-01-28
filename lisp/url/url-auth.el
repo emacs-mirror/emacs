@@ -1,7 +1,6 @@
 ;;; url-auth.el --- Uniform Resource Locator authorization modules
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -345,5 +344,4 @@ RATING   a rating between 1 and 10 of the strength of the authentication.
 
 (provide 'url-auth)
 
-;; arch-tag: 04058625-616d-44e4-9dbf-4b46b00b2a91
 ;;; url-auth.el ends here

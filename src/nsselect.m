@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep / MacOSX Cocoa selection processing for emacs.
-   Copyright (C) 1993, 1994, 2005, 2006, 2008, 2009, 2010
+   Copyright (C) 1993-1994, 2005-2006, 2008-2011
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -38,11 +38,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #define CUT_BUFFER_SUPPORT
 
 Lisp_Object QCLIPBOARD, QSECONDARY, QTEXT, QFILE_NAME;
-
-static Lisp_Object Vns_sent_selection_hooks;
-static Lisp_Object Vns_lost_selection_hooks;
-static Lisp_Object Vselection_alist;
-static Lisp_Object Vselection_converter_alist;
 
 static Lisp_Object Qforeign_selection;
 
@@ -568,7 +563,7 @@ syms_of_nsselect (void)
   Vselection_alist = Qnil;
   staticpro (&Vselection_alist);
 
-  DEFVAR_LISP ("ns-sent-selection-hooks", &Vns_sent_selection_hooks,
+  DEFVAR_LISP ("ns-sent-selection-hooks", Vns_sent_selection_hooks,
                "A list of functions to be called when Emacs answers a selection request.\n\
 The functions are called with four arguments:\n\
   - the selection name (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');\n\
@@ -582,7 +577,7 @@ This hook doesn't let you change the behavior of Emacs's selection replies,\n\
 it merely informs you that they have happened.");
   Vns_sent_selection_hooks = Qnil;
 
-  DEFVAR_LISP ("selection-converter-alist", &Vselection_converter_alist,
+  DEFVAR_LISP ("selection-converter-alist", Vselection_converter_alist,
                "An alist associating X Windows selection-types with functions.\n\
 These functions are called to convert the selection, with three args:\n\
 the name of the selection (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');\n\
@@ -597,7 +592,7 @@ means that a side-effect was executed,\n\
 and there is no meaningful selection value.");
   Vselection_converter_alist = Qnil;
 
-  DEFVAR_LISP ("ns-lost-selection-hooks", &Vns_lost_selection_hooks,
+  DEFVAR_LISP ("ns-lost-selection-hooks", Vns_lost_selection_hooks,
                "A list of functions to be called when Emacs loses an X selection.\n\
 \(This happens when some other X client makes its own selection\n\
 or when a Lisp program explicitly clears the selection.)\n\
@@ -609,4 +604,3 @@ The functions are called with one argument, the selection type\n\
   staticpro (&Qforeign_selection);
 }
 
-// arch-tag: 39d1dde7-06a6-49ff-95a7-0e7af12d2218

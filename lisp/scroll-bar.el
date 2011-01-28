@@ -1,7 +1,6 @@
 ;;; scroll-bar.el --- window system-independent scroll bar support
 
-;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware
@@ -351,5 +350,4 @@ EVENT should be a scroll bar click."
 
 (provide 'scroll-bar)
 
-;; arch-tag: 6f1d01d0-0b1e-4bf8-86db-d491e0f399f3
 ;;; scroll-bar.el ends here

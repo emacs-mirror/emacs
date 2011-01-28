@@ -1,6 +1,6 @@
 /* Functions for creating and updating GTK widgets.
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-     Free Software Foundation, Inc.
+
+Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -45,9 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define FRAME_TOTAL_PIXEL_WIDTH(f) \
   (FRAME_PIXEL_WIDTH (f) + FRAME_TOOLBAR_WIDTH (f))
-
-/* Avoid "differ in sign" warnings */
-#define SSDATA(x)  ((char *) SDATA (x))
 
 #ifndef HAVE_GTK_WIDGET_SET_HAS_WINDOW
 #define gtk_widget_set_has_window(w, b) \
@@ -1536,7 +1533,6 @@ int
 xg_uses_old_file_dialog (void)
 {
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
-  extern int x_gtk_use_old_file_dialog;
   return x_gtk_use_old_file_dialog;
 #else
   return 0;
@@ -1577,8 +1573,6 @@ xg_toggle_visibility_cb (GtkWidget *widget, gpointer data)
 static void
 xg_toggle_notify_cb (GObject *gobject, GParamSpec *arg1, gpointer user_data)
 {
-  extern int x_gtk_show_hidden_files;
-
   if (strcmp (arg1->name, "show-hidden") == 0)
     {
       GtkWidget *wtoggle = GTK_WIDGET (user_data);
@@ -1626,9 +1620,6 @@ xg_get_file_with_chooser (FRAME_PTR f,
   GtkFileChooserAction action = (mustmatch_p ?
                                  GTK_FILE_CHOOSER_ACTION_OPEN :
                                  GTK_FILE_CHOOSER_ACTION_SAVE);
-  extern int x_gtk_show_hidden_files;
-  extern int x_gtk_file_dialog_help_text;
-
 
   if (only_dir_p)
     action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
@@ -3664,7 +3655,8 @@ xg_get_tool_bar_widgets (GtkWidget *vb, GtkWidget **wimage)
 {
   GList *clist = gtk_container_get_children (GTK_CONTAINER (vb));
   GtkWidget *c1 = (GtkWidget *) clist->data;
-  GtkWidget *c2 = (GtkWidget *) clist->next->data;
+  GtkWidget *c2 = clist->next ? (GtkWidget *) clist->next->data : NULL;
+
   *wimage = GTK_IS_IMAGE (c1) ? c1 : c2;
   g_list_free (clist);
   return GTK_IS_LABEL (c1) ? c1 : c2;
@@ -3793,7 +3785,6 @@ xg_tool_bar_detach_callback (GtkHandleBox *wbox,
                              gpointer client_data)
 {
   FRAME_PTR f = (FRAME_PTR) client_data;
-  extern int x_gtk_whole_detached_tool_bar;
 
   g_object_set (G_OBJECT (w), "show-arrow", !x_gtk_whole_detached_tool_bar,
 		NULL);
@@ -4039,28 +4030,17 @@ xg_make_tool_item (FRAME_PTR f,
                    GtkWidget *wimage,
                    GtkWidget **wbutton,
                    const char *label,
-                   int i,
-                   int vert_only)
+                   int i, int horiz, int text_image)
 {
   GtkToolItem *ti = gtk_tool_item_new ();
-  Lisp_Object style = Ftool_bar_get_system_style ();
-  int both_horiz = EQ (style, Qboth_horiz);
-  int text_image = EQ (style, Qtext_image_horiz);
-
-  GtkWidget *vb = both_horiz || text_image
-    ? gtk_hbox_new (FALSE, 0) : gtk_vbox_new (FALSE, 0);
+  GtkWidget *vb = horiz ? gtk_hbox_new (FALSE, 0) : gtk_vbox_new (FALSE, 0);
   GtkWidget *wb = gtk_button_new ();
   GtkWidget *weventbox = gtk_event_box_new ();
 
-  /* We are not letting Gtk+ alter display on this, we only keep it here
-     so we can get it later in xg_show_toolbar_item.  */
-  gtk_tool_item_set_is_important (ti, !vert_only);
-
-  if (wimage && ! text_image)
+  if (wimage && !text_image)
     gtk_box_pack_start (GTK_BOX (vb), wimage, TRUE, TRUE, 0);
-
-  gtk_box_pack_start (GTK_BOX (vb), gtk_label_new (label), TRUE, TRUE, 0);
-
+  if (label)
+    gtk_box_pack_start (GTK_BOX (vb), gtk_label_new (label), TRUE, TRUE, 0);
   if (wimage && text_image)
     gtk_box_pack_start (GTK_BOX (vb), wimage, TRUE, TRUE, 0);
 
@@ -4121,58 +4101,49 @@ xg_make_tool_item (FRAME_PTR f,
   return ti;
 }
 
-static void
-xg_show_toolbar_item (GtkToolItem *ti)
+static int
+xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
+		      const char *icon_name, const struct image *img,
+		      const char *label, int horiz)
 {
-  Lisp_Object style = Ftool_bar_get_system_style ();
-  int both_horiz = EQ (style, Qboth_horiz);
-  int text_image = EQ (style, Qtext_image_horiz);
-
-  int horiz = both_horiz || text_image;
-  int vert_only = ! gtk_tool_item_get_is_important (ti);
-  int show_label = ! EQ (style, Qimage) && ! (vert_only && horiz);
-  int show_image = ! EQ (style, Qtext);
-
-  GtkWidget *weventbox = XG_BIN_CHILD (ti);
-  GtkWidget *wbutton = XG_BIN_CHILD (weventbox);
-  GtkWidget *vb = XG_BIN_CHILD (wbutton);
+  gpointer old;
   GtkWidget *wimage;
+  GtkWidget *vb = XG_BIN_CHILD (wbutton);
   GtkWidget *wlbl = xg_get_tool_bar_widgets (vb, &wimage);
-  GtkWidget *new_box = NULL;
 
-  if (GTK_IS_VBOX (vb) && horiz)
-    new_box = gtk_hbox_new (FALSE, 0);
-  else if (GTK_IS_HBOX (vb) && !horiz && show_label && show_image)
-    new_box = gtk_vbox_new (FALSE, 0);
-
-  if (!new_box && horiz)
-      gtk_box_reorder_child (GTK_BOX (vb), wlbl, text_image ? 0 : 1);
-  else if (new_box)
+  /* Check if the tool icon matches.  */
+  if (stock_name)
     {
-      g_object_ref (G_OBJECT (wimage));
-      g_object_ref (G_OBJECT (wlbl));
-      gtk_container_remove (GTK_CONTAINER (vb), wimage);
-      gtk_container_remove (GTK_CONTAINER (vb), wlbl);
-      gtk_widget_destroy (GTK_WIDGET (vb));
-      if (! text_image)
-        gtk_box_pack_start (GTK_BOX (new_box), wimage, TRUE, TRUE, 0);
-      gtk_box_pack_start (GTK_BOX (new_box), wlbl, TRUE, TRUE, 0);
-      if (text_image)
-        gtk_box_pack_start (GTK_BOX (new_box), wimage, TRUE, TRUE, 0);
-      gtk_container_add (GTK_CONTAINER (wbutton), new_box);
-      g_object_unref (G_OBJECT (wimage));
-      g_object_unref (G_OBJECT (wlbl));
-      vb = new_box;
+      old = g_object_get_data (G_OBJECT (wimage),
+			       XG_TOOL_BAR_STOCK_NAME);
+      if (!old || strcmp (old, stock_name))
+	return 1;
+    }
+  else if (icon_name)
+    {
+      old = g_object_get_data (G_OBJECT (wimage),
+			       XG_TOOL_BAR_ICON_NAME);
+      if (!old || strcmp (old, icon_name))
+	return 1;
+    }
+  else
+    {
+      Pixmap old_img
+	= (Pixmap) g_object_get_data (G_OBJECT (wimage),
+				      XG_TOOL_BAR_IMAGE_DATA);
+      if (old_img != img->pixmap)
+	return 1;
     }
 
-  if (show_label) gtk_widget_show (wlbl);
-  else gtk_widget_hide (wlbl);
-  if (show_image) gtk_widget_show (wimage);
-  else gtk_widget_hide (wimage);
-  gtk_widget_show (GTK_WIDGET (weventbox));
-  gtk_widget_show (GTK_WIDGET (vb));
-  gtk_widget_show (GTK_WIDGET (wbutton));
-  gtk_widget_show (GTK_WIDGET (ti));
+  /* Check button configuration and label.  */
+  if ((horiz ? GTK_IS_VBOX (vb) : GTK_IS_HBOX (vb))
+      || (label ? (wlbl == NULL) : (wlbl != NULL)))
+    return 1;
+
+  /* Ensure label is correct.  */
+  if (label)
+    gtk_label_set_text (GTK_LABEL (wlbl), label);
+  return 0;
 }
 
 static int
@@ -4225,13 +4196,16 @@ xg_update_tool_bar_sizes (FRAME_PTR f)
 void
 update_frame_tool_bar (FRAME_PTR f)
 {
-  int i;
+  int i, j;
   struct x_output *x = f->output_data.x;
   int hmargin = 0, vmargin = 0;
   GtkToolbar *wtoolbar;
   GtkToolItem *ti;
   GtkTextDirection dir;
   int pack_tool_bar = x->handlebox_widget == NULL;
+
+  Lisp_Object style;
+  int text_image, horiz;
 
   if (! FRAME_GTK_WIDGET (f))
     return;
@@ -4268,7 +4242,11 @@ update_frame_tool_bar (FRAME_PTR f)
   wtoolbar = GTK_TOOLBAR (x->toolbar_widget);
   dir = gtk_widget_get_direction (GTK_WIDGET (wtoolbar));
 
-  for (i = 0; i < f->n_tool_bar_items; ++i)
+  style = Ftool_bar_get_system_style ();
+  text_image = EQ (style, Qtext_image_horiz);
+  horiz = EQ (style, Qboth_horiz) || text_image;
+
+  for (i = j = 0; i < f->n_tool_bar_items; ++i)
     {
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
@@ -4284,11 +4262,14 @@ update_frame_tool_bar (FRAME_PTR f)
       Lisp_Object rtl;
       GtkWidget *wbutton = NULL;
       Lisp_Object specified_file;
-      const char *label = (STRINGP (PROP (TOOL_BAR_ITEM_LABEL))
-                           ? SSDATA (PROP (TOOL_BAR_ITEM_LABEL)) : "");
       int vert_only = ! NILP (PROP (TOOL_BAR_ITEM_VERT_ONLY));
+      const char *label
+	= (EQ (style, Qimage) || (vert_only && horiz)) ? NULL
+	: STRINGP (PROP (TOOL_BAR_ITEM_LABEL))
+	? SSDATA (PROP (TOOL_BAR_ITEM_LABEL))
+	: "";
 
-      ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (wtoolbar), i);
+      ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (wtoolbar), j);
 
       /* If this is a separator, use a gtk separator item.  */
       if (EQ (PROP (TOOL_BAR_ITEM_TYPE), Qt))
@@ -4299,9 +4280,9 @@ update_frame_tool_bar (FRAME_PTR f)
 		gtk_container_remove (GTK_CONTAINER (wtoolbar),
 				      GTK_WIDGET (ti));
 	      ti = gtk_separator_tool_item_new ();
-	      gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, i);
+	      gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, j);
 	    }
-	  gtk_widget_show (GTK_WIDGET (ti));
+	  j++;
 	  continue;
 	}
 
@@ -4313,14 +4294,15 @@ update_frame_tool_bar (FRAME_PTR f)
 	  ti = NULL;
 	}
 
-      if (ti)
-	wbutton = XG_BIN_CHILD (XG_BIN_CHILD (ti));
+      if (ti) wbutton = XG_BIN_CHILD (XG_BIN_CHILD (ti));
 
       /* Ignore invalid image specifications.  */
       image = PROP (TOOL_BAR_ITEM_IMAGES);
       if (!valid_image_p (image))
         {
-          if (wbutton) gtk_widget_hide (wbutton);
+          if (ti)
+	    gtk_container_remove (GTK_CONTAINER (wtoolbar),
+				  GTK_WIDGET (ti));
           continue;
         }
 
@@ -4356,16 +4338,13 @@ update_frame_tool_bar (FRAME_PTR f)
 
       if (stock_name == NULL && icon_name == NULL)
         {
-          /* No stock image, or stock item not known.  Try regular image.  */
-
-          /* If image is a vector, choose the image according to the
+          /* No stock image, or stock item not known.  Try regular
+             image.  If image is a vector, choose it according to the
              button state.  */
           if (dir == GTK_TEXT_DIR_RTL
               && !NILP (rtl = PROP (TOOL_BAR_ITEM_RTL_IMAGE))
               && STRINGP (rtl))
-            {
-              image = find_rtl_image (f, image, rtl);
-            }
+	    image = find_rtl_image (f, image, rtl);
 
           if (VECTORP (image))
             {
@@ -4391,21 +4370,31 @@ update_frame_tool_bar (FRAME_PTR f)
           if (img->load_failed_p || img->pixmap == None)
             {
               if (ti)
-                gtk_widget_hide_all (GTK_WIDGET (ti));
-              else
-                {
-                  /* Insert an empty (non-image) button */
-                  ti = xg_make_tool_item (f, NULL, NULL, "", i, 0);
-                  gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, i);
-                }
+		gtk_container_remove (GTK_CONTAINER (wtoolbar),
+				      GTK_WIDGET (ti));
               continue;
             }
         }
 
+      /* If there is an existing widget, check if it's stale; if so,
+	 remove it and make a new tool item from scratch.  */
+      if (ti && xg_tool_item_stale_p (wbutton, stock_name, icon_name,
+				      img, label, horiz))
+	{
+	  gtk_container_remove (GTK_CONTAINER (wtoolbar),
+				GTK_WIDGET (ti));
+	  ti = NULL;
+	}
+
       if (ti == NULL)
         {
           GtkWidget *w;
-          if (stock_name)
+
+	  /* Save the image so we can see if an update is needed the
+	     next time we call xg_tool_item_match_p.  */
+	  if (EQ (style, Qtext))
+	    w = NULL;
+	  else if (stock_name)
             {
               w = gtk_image_new_from_stock (stock_name, icon_size);
               g_object_set_data_full (G_OBJECT (w), XG_TOOL_BAR_STOCK_NAME,
@@ -4422,93 +4411,34 @@ update_frame_tool_bar (FRAME_PTR f)
           else
             {
               w = xg_get_image_for_pixmap (f, img, x->widget, NULL);
-              /* Save the image so we can see if an update is needed when
-                 this function is called again.  */
               g_object_set_data (G_OBJECT (w), XG_TOOL_BAR_IMAGE_DATA,
                                  (gpointer)img->pixmap);
             }
 
-          gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
-          ti = xg_make_tool_item (f, w, &wbutton, label, i, vert_only);
-          gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, i);
-          gtk_widget_set_sensitive (wbutton, enabled_p);
+	  if (w) gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
+          ti = xg_make_tool_item (f, w, &wbutton, label, i, horiz, text_image);
+          gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, j);
         }
-      else
-        {
-          GtkWidget *vb = XG_BIN_CHILD (wbutton);
-          GtkWidget *wimage;
-          GtkWidget *wlbl = xg_get_tool_bar_widgets (vb, &wimage);
-
-          Pixmap old_img = (Pixmap) g_object_get_data (G_OBJECT (wimage),
-						       XG_TOOL_BAR_IMAGE_DATA);
-          gpointer old_stock_name = g_object_get_data (G_OBJECT (wimage),
-                                                       XG_TOOL_BAR_STOCK_NAME);
-          gpointer old_icon_name = g_object_get_data (G_OBJECT (wimage),
-                                                      XG_TOOL_BAR_ICON_NAME);
-          gtk_label_set_text (GTK_LABEL (wlbl), label);
-          gtk_tool_item_set_is_important (ti, !vert_only);
-          if (stock_name &&
-              (! old_stock_name || strcmp (old_stock_name, stock_name) != 0))
-            {
-              gtk_image_set_from_stock (GTK_IMAGE (wimage),
-                                        stock_name, icon_size);
-              g_object_set_data_full (G_OBJECT (wimage), XG_TOOL_BAR_STOCK_NAME,
-                                      (gpointer) xstrdup (stock_name),
-                                      (GDestroyNotify) xfree);
-              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
-                                 NULL);
-              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_ICON_NAME,
-                                 NULL);
-            }
-          else if (icon_name &&
-                   (! old_icon_name || strcmp (old_icon_name, icon_name) != 0))
-            {
-              gtk_image_set_from_icon_name (GTK_IMAGE (wimage),
-                                            icon_name, icon_size);
-              g_object_set_data_full (G_OBJECT (wimage), XG_TOOL_BAR_ICON_NAME,
-                                      (gpointer) xstrdup (icon_name),
-                                      (GDestroyNotify) xfree);
-              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
-                                 NULL);
-              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_STOCK_NAME,
-                                 NULL);
-            }
-          else if (img && old_img != img->pixmap)
-            {
-              (void) xg_get_image_for_pixmap (f, img, x->widget,
-                                              GTK_IMAGE (wimage));
-              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
-                                 (gpointer)img->pixmap);
-
-              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_STOCK_NAME,
-                                 NULL);
-              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_ICON_NAME,
-                                 NULL);
-            }
-
-          gtk_misc_set_padding (GTK_MISC (wimage), hmargin, vmargin);
-
-          gtk_widget_set_sensitive (wbutton, enabled_p);
-        }
-      xg_show_toolbar_item (ti);
 
 #undef PROP
+
+      gtk_widget_set_sensitive (wbutton, enabled_p);
+      j++;
     }
 
-  /* Remove buttons not longer needed.  We just hide them so they
-     can be reused later on.  */
+  /* Remove buttons not longer needed.  */
   do
     {
-      ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (wtoolbar), i++);
-      if (ti) gtk_widget_hide_all (GTK_WIDGET (ti));
+      ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (wtoolbar), j);
+      if (ti)
+	gtk_container_remove (GTK_CONTAINER (wtoolbar), GTK_WIDGET (ti));
     } while (ti != NULL);
 
   if (f->n_tool_bar_items != 0)
     {
       if (pack_tool_bar)
         xg_pack_tool_bar (f, f->tool_bar_position);
-      gtk_widget_show (x->toolbar_widget);
-      gtk_widget_show (x->handlebox_widget);
+      gtk_widget_show_all (GTK_WIDGET (x->handlebox_widget));
       if (xg_update_tool_bar_sizes (f))
         xg_height_or_width_changed (f);
     }
@@ -4632,6 +4562,3 @@ xg_initialize (void)
 }
 
 #endif /* USE_GTK */
-
-/* arch-tag: fe7104da-bc1e-4aba-9bd1-f349c528f7e3
-   (do not change this comment) */

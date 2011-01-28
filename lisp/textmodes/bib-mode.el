@@ -1,7 +1,6 @@
 ;;; bib-mode.el --- major mode for editing bib files
 
-;; Copyright (C) 1989, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz
 ;; (according to authors.el)
@@ -236,5 +235,4 @@ named by variable `unread-bib-file'."
 
 (provide 'bib-mode)
 
-;; arch-tag: e3a97958-3c2c-487f-9557-fafc3c98452d
 ;;; bib-mode.el ends here

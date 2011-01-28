@@ -1,6 +1,5 @@
 /* Cursor motion subroutines for GNU Emacs.
-   Copyright (C) 1985, 1995, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1995, 2001-2011  Free Software Foundation, Inc.
     based primarily on public domain code written by Chris Torek
 
 This file is part of GNU Emacs.
@@ -462,5 +461,3 @@ Wcm_init (struct tty_display_info *tty)
   return 0;
 }
 
-/* arch-tag: bcf64c02-00f6-44ef-94b6-c56eab5b3dc4
-   (do not change this comment) */

@@ -1,7 +1,6 @@
 ;;; message.el --- composing mail and news messages
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -1120,6 +1119,8 @@ It is a vector of the following headers:
 (defvar message-checksum nil)
 (defvar message-send-actions nil
   "A list of actions to be performed upon successful sending of a message.")
+(defvar message-return-action nil
+  "Action to return to the caller after sending or postphoning a message.")
 (defvar message-exit-actions nil
   "A list of actions to be performed upon exiting after sending a message.")
 (defvar message-kill-actions nil
@@ -1182,14 +1183,11 @@ called and its result is inserted."
   (if (and (string-match "sparc-sun-sunos\\(\\'\\|[^5]\\)"
 			 system-configuration)
 	   (file-readable-p "/etc/sendmail.cf")
-	   (let ((buffer (get-buffer-create " *temp*")))
-	     (unwind-protect
-		 (with-current-buffer buffer
-		   (insert-file-contents "/etc/sendmail.cf")
-		   (goto-char (point-min))
-		   (let ((case-fold-search nil))
-		     (re-search-forward "^OR\\>" nil t)))
-	       (kill-buffer buffer))))
+	   (with-temp-buffer
+             (insert-file-contents "/etc/sendmail.cf")
+             (goto-char (point-min))
+             (let ((case-fold-search nil))
+               (re-search-forward "^OR\\>" nil t))))
       ;; According to RFC822, "The field-name must be composed of printable
       ;; ASCII characters (i. e., characters that have decimal values between
       ;; 33 and 126, except colon)", i. e., any chars except ctl chars,
@@ -2863,6 +2861,7 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (set (make-local-variable 'message-reply-buffer) nil)
   (set (make-local-variable 'message-inserted-headers) nil)
   (set (make-local-variable 'message-send-actions) nil)
+  (set (make-local-variable 'message-return-action) nil)
   (set (make-local-variable 'message-exit-actions) nil)
   (set (make-local-variable 'message-kill-actions) nil)
   (set (make-local-variable 'message-postpone-actions) nil)
@@ -3955,11 +3954,9 @@ The text will also be indented the normal way."
 	(actions message-exit-actions))
     (when (and (message-send arg)
 	       (buffer-name buf))
+      (message-bury buf)
       (if message-kill-buffer-on-exit
-	  (kill-buffer buf)
-	(bury-buffer buf)
-	(when (eq buf (current-buffer))
-	  (message-bury buf)))
+	  (kill-buffer buf))
       (message-do-actions actions)
       t)))
 
@@ -4009,9 +4006,8 @@ Instead, just auto-save the buffer and then bury it."
   "Bury this mail BUFFER."
   (let ((newbuf (other-buffer buffer)))
     (bury-buffer buffer)
-    (if (and (window-dedicated-p (selected-window))
-	     (not (null (delq (selected-frame) (visible-frame-list)))))
-	(delete-frame (selected-frame))
+    (if message-return-action
+	(apply (car message-return-action) (cdr message-return-action))
       (switch-to-buffer newbuf))))
 
 (defun message-send (&optional arg)
@@ -4131,7 +4127,6 @@ not have PROP."
     (nreverse regions)))
 
 (defcustom message-bogus-addresses
-  ;; '("noreply" "nospam" "invalid")
   '("noreply" "nospam" "invalid" "@@" "[^[:ascii:]].*@" "[ \t]")
   "List of regexps of potentially bogus mail addresses.
 See `message-check-recipients' how to setup checking.
@@ -4297,7 +4292,17 @@ This function could be useful in `message-setup-hook'."
 	    (and bog
 		 (not (y-or-n-p
 		       (format
-			"Address `%s' might be bogus.  Continue? " bog)))
+			"Address `%s'%s might be bogus.  Continue? "
+			bog
+			;; If the encoded version of the email address
+			;; is different from the unencoded version,
+			;; then we likely have invisible characters or
+			;; the like.  Display the encoded version,
+			;; too.
+			(let ((encoded (rfc2047-encode-string bog)))
+			  (if (string= encoded bog)
+			      ""
+			    (format " (%s)" encoded))))))
 		 (error "Bogus address"))))))))
 
 (custom-add-option 'message-setup-hook 'message-check-recipients)
@@ -6304,11 +6309,11 @@ between beginning of field and beginning of line."
 ;; YANK-ACTION, if non-nil, can be a buffer or a yank action of the
 ;; form (FUNCTION . ARGS).
 (defun message-setup (headers &optional yank-action actions
-			      continue switch-function)
+			      continue switch-function return-action)
   (let ((mua (message-mail-user-agent))
 	subject to field)
     (if (not (and message-this-is-mail mua))
-	(message-setup-1 headers yank-action actions)
+	(message-setup-1 headers yank-action actions return-action)
       (setq headers (copy-sequence headers))
       (setq field (assq 'Subject headers))
       (when field
@@ -6356,11 +6361,12 @@ are not included."
 	(push header result)))
     (nreverse result)))
 
-(defun message-setup-1 (headers &optional yank-action actions)
+(defun message-setup-1 (headers &optional yank-action actions return-action)
   (dolist (action actions)
     (condition-case nil
 	(add-to-list 'message-send-actions
 		     `(apply ',(car action) ',(cdr action)))))
+  (setq message-return-action return-action)
   (setq message-reply-buffer
 	(if (and (consp yank-action)
 		 (eq (car yank-action) 'insert-buffer))
@@ -6489,9 +6495,9 @@ are not included."
 ;;;
 
 ;;;###autoload
-(defun message-mail (&optional to subject
-			       other-headers continue switch-function
-			       yank-action send-actions)
+(defun message-mail (&optional to subject other-headers continue
+			       switch-function yank-action send-actions
+			       return-action &rest ignored)
   "Start editing a mail message to be sent.
 OTHER-HEADERS is an alist of header/value pairs.  CONTINUE says whether
 to continue editing a message already being composed.  SWITCH-FUNCTION
@@ -6511,8 +6517,15 @@ is a function used to switch to and display the mail buffer."
     (message-setup
      (nconc
       `((To . ,(or to "")) (Subject . ,(or subject "")))
-      (when other-headers other-headers))
-     yank-action send-actions continue switch-function)
+      ;; C-h f compose-mail says that headers should be specified as
+      ;; (string . value); however all the rest of message expects
+      ;; headers to be symbols, not strings (eg message-header-format-alist).
+      ;; http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00337.html
+      ;; We need to convert any string input, eg from rmail-start-mail.
+      (dolist (h other-headers other-headers)
+ 	(if (stringp (car h)) (setcar h (intern (capitalize (car h)))))))
+     yank-action send-actions continue switch-function
+     return-action)
     ;; FIXME: Should return nil if failure.
     t))
 
@@ -7642,24 +7655,22 @@ Pre-defined symbols include `message-tool-bar-gnome' and
 
 (defcustom message-tool-bar-gnome
   '((ispell-message "spell" nil
+		    :vert-only t
 		    :visible (or (not (boundp 'flyspell-mode))
 				 (not flyspell-mode)))
     (flyspell-buffer "spell" t
+		     :vert-only t
 		     :visible (and (boundp 'flyspell-mode)
 				   flyspell-mode)
 		     :help "Flyspell whole buffer")
-    (gmm-ignore "separator")
-    (message-send-and-exit "mail/send")
+    (message-send-and-exit "mail/send" t :label "Send")
     (message-dont-send "mail/save-draft")
-    (message-kill-buffer "close") ;; stock_cancel
-    (mml-attach-file "attach" mml-mode-map)
+    (mml-attach-file "attach" mml-mode-map :vert-only t)
     (mml-preview "mail/preview" mml-mode-map)
     (mml-secure-message-sign-encrypt "lock" mml-mode-map :visible nil)
     (message-insert-importance-high "important" nil :visible nil)
     (message-insert-importance-low "unimportant" nil :visible nil)
-    (message-insert-disposition-notification-to "receipt" nil :visible nil)
-    (gmm-customize-mode "preferences" t :help "Edit mode preferences")
-    (message-info "help" t :help "Message manual"))
+    (message-insert-disposition-notification-to "receipt" nil :visible nil))
   "List of items for the message tool bar (GNOME style).
 
 See `gmm-tool-bar-from-list' for details on the format of the list."

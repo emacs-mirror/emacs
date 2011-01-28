@@ -1,7 +1,6 @@
 ;;;; testcover-ses.el -- Example use of `testcover' to test "SES"
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@engineer.com>
 ;; Maintainer: Jonathan Yavner <jyavner@engineer.com>
@@ -722,5 +721,4 @@ spreadsheet files with invalid formatting."
   ;;Could do this here: (testcover-end "ses.el")
   (message "Done"))
 
-;; arch-tag: 87052ba4-5cf8-46cf-9375-fe245f3360b8
 ;; testcover-ses.el ends here.

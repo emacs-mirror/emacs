@@ -1,7 +1,6 @@
 ;;; czech.el --- support for Czech -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
-;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation.
+;; Copyright (C) 1998, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Pavel Jan,Am(Bk <Pavel@Janik.cz>
@@ -45,5 +44,4 @@ and selects the Czech tutorial."))
 
 (provide 'czech)
 
-;; arch-tag: 45ac0d83-ca13-4b5e-9e82-821e44080c24
 ;;; czech.el ends here

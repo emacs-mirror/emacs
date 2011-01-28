@@ -1,7 +1,6 @@
 ;;; sun.el --- keybinding for standard default sunterm keys
 
-;; Copyright (C) 1987, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Jeff Peck <peck@sun.com>
 ;; Keywords: terminals
@@ -155,5 +154,4 @@
 	(eval (car hooks))
 	(setq hooks (cdr hooks))))))
 
-;; arch-tag: db761d47-fd7d-42b4-aae1-04fa116b6ba6
 ;;; sun.el ends here

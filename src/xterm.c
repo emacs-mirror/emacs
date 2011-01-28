@@ -1,8 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -90,9 +88,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#ifdef HAVE_UNISTD_H
+
 #include <unistd.h>
-#endif
 
 #ifdef USE_GTK
 #include "gtkutil.h"
@@ -148,10 +145,6 @@ int use_xim = 0;  /* configure --without-xim */
 
 
 
-/* Non-nil means Emacs uses toolkit scroll bars.  */
-
-Lisp_Object Vx_toolkit_scroll_bars;
-
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
 
@@ -159,14 +152,6 @@ static int any_help_event_p;
 
 /* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_window;
-
-/* Non-zero means make use of UNDERLINE_POSITION font properties.  */
-
-int x_use_underline_position_properties;
-
-/* Non-zero means to draw the underline at the same place as the descent line.  */
-
-int x_underline_at_descent_line;
 
 /* This is a chain of structures for all the X displays currently in
    use.  */
@@ -207,11 +192,6 @@ static String Xt_default_resources[] = {0};
 /* Non-zero means user is interacting with a toolkit scroll bar.  */
 
 static int toolkit_scroll_bar_interaction;
-
-/* Non-zero means to not move point as a result of clicking on a
-   frame to focus it (when focus-follows-mouse is nil).  */
-
-int x_mouse_click_focus_ignore_position;
 
 /* Non-zero timeout value means ignore next mouse click if it arrives
    before that timeout elapses (i.e. as part of the same sequence of
@@ -283,10 +263,6 @@ static int input_signal_count;
 
 static int x_noop_count;
 
-/* The keysyms to use for the various modifiers.  */
-
-Lisp_Object Vx_alt_keysym, Vx_hyper_keysym, Vx_meta_keysym, Vx_super_keysym;
-Lisp_Object Vx_keysym_table;
 static Lisp_Object Qalt, Qhyper, Qmeta, Qsuper, Qmodifier_value;
 
 static Lisp_Object Qvendor_specific_keysyms;
@@ -1387,7 +1363,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 				     glyph->u.glyphless.ch)
 		   : XCHAR_TABLE (Vglyphless_char_display)->extras[0]);
 	      if (STRINGP (acronym))
-		str = (char *) SDATA (acronym);
+		str = SSDATA (acronym);
 	    }
 	}
       else if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEX_CODE)
@@ -1480,6 +1456,22 @@ x_alloc_nearest_color_for_widget (Widget widget, Colormap cmap, XColor *color)
 {
   struct frame *f = x_frame_of_widget (widget);
   return x_alloc_nearest_color (f, cmap, color);
+}
+
+
+/* Allocate a color which is lighter or darker than *PIXEL by FACTOR
+   or DELTA.  Try a color with RGB values multiplied by FACTOR first.
+   If this produces the same color as PIXEL, try a color where all RGB
+   values have DELTA added.  Return the allocated color in *PIXEL.
+   DISPLAY is the X display, CMAP is the colormap to operate on.
+   Value is non-zero if successful.  */
+
+int
+x_alloc_lighter_color_for_widget (Widget widget, Display *display, Colormap cmap,
+				  unsigned long *pixel, double factor, int delta)
+{
+  struct frame *f = x_frame_of_widget (widget);
+  return x_alloc_lighter_color (f, display, cmap, pixel, factor, delta);
 }
 
 
@@ -8448,7 +8440,7 @@ get_current_wm_state (struct frame *f,
   for (i = 0; i < actual_size; ++i)
     {
       Atom a = ((Atom*)tmp_data)[i];
-      if (a == dpyinfo->Xatom_net_wm_state_maximized_horz) 
+      if (a == dpyinfo->Xatom_net_wm_state_maximized_horz)
         {
           if (*size_state == FULLSCREEN_HEIGHT)
             *size_state = FULLSCREEN_MAXIMIZED;
@@ -8596,9 +8588,13 @@ x_check_fullscreen (struct frame *f)
   if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
     return; /* Only fullscreen without WM or with EWM hints (above). */
 
+  /* Setting fullscreen to nil doesn't do anything.  We could save the
+     last non-fullscreen size and restore it, but it seems like a
+     lot of work for this unusual case (no window manager running).  */
+
   if (f->want_fullscreen != FULLSCREEN_NONE)
     {
-      int width = FRAME_COLS (f), height = FRAME_LINES (f);
+      int width = FRAME_PIXEL_WIDTH (f), height = FRAME_PIXEL_HEIGHT (f);
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
       switch (f->want_fullscreen)
@@ -8616,12 +8612,8 @@ x_check_fullscreen (struct frame *f)
           height = x_display_pixel_height (dpyinfo);
         }
 
-      if (FRAME_COLS (f) != width || FRAME_LINES (f) != height)
-        {
-          change_frame_size (f, height, width, 0, 1, 0);
-          SET_FRAME_GARBAGED (f);
-          cancel_mouse_face (f);
-        }
+      XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+                     width, height);
     }
 }
 
@@ -9900,7 +9892,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       {
         static char display_opt[] = "--display";
         static char name_opt[] = "--name";
-        
+
         for (argc = 0; argc < NUM_ARGV; ++argc)
           argv[argc] = 0;
 
@@ -10758,7 +10750,7 @@ syms_of_xterm (void)
 #endif
 
   DEFVAR_BOOL ("x-use-underline-position-properties",
-	       &x_use_underline_position_properties,
+	       x_use_underline_position_properties,
      doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
 A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
@@ -10768,7 +10760,7 @@ sizes.  */);
   x_use_underline_position_properties = 1;
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
-	       &x_underline_at_descent_line,
+	       x_underline_at_descent_line,
      doc: /* *Non-nil means to draw the underline at the same place as the descent line.
 A value of nil means to draw the underline according to the value of the
 variable `x-use-underline-position-properties', which is usually at the
@@ -10776,7 +10768,7 @@ baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = 0;
 
   DEFVAR_BOOL ("x-mouse-click-focus-ignore-position",
-	       &x_mouse_click_focus_ignore_position,
+	       x_mouse_click_focus_ignore_position,
     doc: /* Non-nil means that a mouse click to focus a frame does not move point.
 This variable is only used when the window manager requires that you
 click on a frame to select it (give it focus).  In that case, a value
@@ -10785,7 +10777,7 @@ reflect the mouse click position, while a non-nil value means that the
 selected window or cursor position is preserved.  */);
   x_mouse_click_focus_ignore_position = 0;
 
-  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
+  DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,
     doc: /* Which toolkit scroll bars Emacs uses, if any.
 A value of nil means Emacs doesn't use toolkit scroll bars.
 With the X Window system, the value is a symbol describing the
@@ -10818,35 +10810,35 @@ With MS Windows, the value is t.  */);
   Qsuper = intern_c_string ("super");
   Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
 
-  DEFVAR_LISP ("x-alt-keysym", &Vx_alt_keysym,
+  DEFVAR_LISP ("x-alt-keysym", Vx_alt_keysym,
     doc: /* Which keys Emacs uses for the alt modifier.
 This should be one of the symbols `alt', `hyper', `meta', `super'.
 For example, `alt' means use the Alt_L and Alt_R keysyms.  The default
 is nil, which is the same as `alt'.  */);
   Vx_alt_keysym = Qnil;
 
-  DEFVAR_LISP ("x-hyper-keysym", &Vx_hyper_keysym,
+  DEFVAR_LISP ("x-hyper-keysym", Vx_hyper_keysym,
     doc: /* Which keys Emacs uses for the hyper modifier.
 This should be one of the symbols `alt', `hyper', `meta', `super'.
 For example, `hyper' means use the Hyper_L and Hyper_R keysyms.  The
 default is nil, which is the same as `hyper'.  */);
   Vx_hyper_keysym = Qnil;
 
-  DEFVAR_LISP ("x-meta-keysym", &Vx_meta_keysym,
+  DEFVAR_LISP ("x-meta-keysym", Vx_meta_keysym,
     doc: /* Which keys Emacs uses for the meta modifier.
 This should be one of the symbols `alt', `hyper', `meta', `super'.
 For example, `meta' means use the Meta_L and Meta_R keysyms.  The
 default is nil, which is the same as `meta'.  */);
   Vx_meta_keysym = Qnil;
 
-  DEFVAR_LISP ("x-super-keysym", &Vx_super_keysym,
+  DEFVAR_LISP ("x-super-keysym", Vx_super_keysym,
     doc: /* Which keys Emacs uses for the super modifier.
 This should be one of the symbols `alt', `hyper', `meta', `super'.
 For example, `super' means use the Super_L and Super_R keysyms.  The
 default is nil, which is the same as `super'.  */);
   Vx_super_keysym = Qnil;
 
-  DEFVAR_LISP ("x-keysym-table", &Vx_keysym_table,
+  DEFVAR_LISP ("x-keysym-table", Vx_keysym_table,
     doc: /* Hash table of character codes indexed by X keysym codes.  */);
   Vx_keysym_table = make_hash_table (Qeql, make_number (900),
 				     make_float (DEFAULT_REHASH_SIZE),
@@ -10855,4 +10847,3 @@ default is nil, which is the same as `super'.  */);
 }
 
 #endif /* HAVE_X_WINDOWS */
-

@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools
@@ -1036,5 +1036,4 @@ Returns nil if not possible."
 
 (provide 'vc-git)
 
-;; arch-tag: bd10664a-0e5b-48f5-a877-6c17b135be12
 ;;; vc-git.el ends here

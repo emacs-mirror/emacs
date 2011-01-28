@@ -355,10 +355,7 @@ extern int errno;
 #  define LDAV_SYMBOL "avenrun"
 # endif
 
-# ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-# endif
-
+# include <unistd.h>
 # include <stdio.h>
 
 /* LOAD_AVE_TYPE should only get defined if we're going to use the
@@ -1038,5 +1035,3 @@ main (argc, argv)
 }
 #endif /* TEST */
 
-/* arch-tag: 2b37a242-6289-41f4-8cd5-0e73fd615db1
-   (do not change this comment) */

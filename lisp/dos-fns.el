@@ -1,7 +1,7 @@
 ;;; dos-fns.el --- MS-Dos specific functions
 
-;; Copyright (C) 1991, 1993, 1995, 1996, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1993, 1995-1996, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: Morten Welinder <terra@diku.dk>
 ;; Keywords: internal
@@ -313,5 +313,4 @@ that your video hardware might not support 50-line mode."
 
 (provide 'dos-fns)
 
-;; arch-tag: 00b03579-8ebb-4a02-8762-5c5a929774ad
 ;;; dos-fns.el ends here

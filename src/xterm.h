@@ -1,6 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993-1994, 1998-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -270,8 +269,8 @@ struct x_display_info
   Atom Xatom_Scrollbar;
 
   /* Atom used in XEmbed client messages.  */
-  Atom Xatom_XEMBED, Xatom_XEMBED_INFO;;
- 
+  Atom Xatom_XEMBED, Xatom_XEMBED_INFO;
+
   /* The frame (if any) which has the X window that has keyboard focus.
      Zero if none.  This is examined by Ffocus_frame in xfns.c.  Note
      that a mere EnterNotify event can set this; if you need to know the
@@ -387,9 +386,6 @@ extern struct x_display_info *x_display_list;
    NAME is the name of the frame.
    FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
 extern Lisp_Object x_display_name_list;
-
-/* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
-extern Lisp_Object Vx_pixel_size_width_font_regexp;
 
 extern struct x_display_info *x_display_info_for_display (Display *);
 extern struct x_display_info *x_display_info_for_name (Lisp_Object);
@@ -974,6 +970,9 @@ extern void x_initialize (void);
 extern unsigned long x_copy_color (struct frame *, unsigned long);
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
+extern int x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
+                                             unsigned long *,
+                                             double, int);
 extern void x_activate_timeout_atimer (void);
 #endif
 extern int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
@@ -1109,6 +1108,3 @@ extern Lisp_Object Qx_gtk_map_stock;
    (nr).y = (ry),					\
    (nr).width = (rwidth),				\
    (nr).height = (rheight))
-
-/* arch-tag: 78a7972a-b18f-4694-861a-0780c4b3090e
-   (do not change this comment) */

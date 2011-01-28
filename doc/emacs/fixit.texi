@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Fixit, Keyboard Macros, Search, Top
 @chapter Commands for Fixing Typos
@@ -423,7 +423,3 @@ that it only checks words in comments and string constants.  This
 feature is useful for editing programs.  Type @kbd{M-x
 flyspell-prog-mode} to enable or disable this mode in the current
 buffer.
-
-@ignore
-   arch-tag: 3359a443-96ed-448f-9f05-c8111ba8eac0
-@end ignore

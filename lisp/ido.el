@@ -1,7 +1,6 @@
 ;;; ido.el --- interactively do things with buffers and files.
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -1289,8 +1288,6 @@ Only used if `ido-use-virtual-buffers' is non-nil.")
 (defun ido-may-cache-directory (&optional dir)
   (setq dir (or dir ido-current-directory))
   (cond
-   ((ido-directory-too-big-p dir)
-    nil)
    ((and (ido-is-root-directory dir)
 	 (or ido-enable-tramp-completion
 	     (memq system-type '(windows-nt ms-dos))))
@@ -1299,6 +1296,8 @@ Only used if `ido-use-virtual-buffers' is non-nil.")
     (ido-cache-unc-valid))
    ((ido-is-ftp-directory dir)
     (ido-cache-ftp-valid))
+   ((ido-directory-too-big-p dir)
+    nil)
    (t t)))
 
 (defun ido-pp (list &optional sep)
@@ -3072,8 +3071,8 @@ If repeated, insert text from buffer instead."
   (if ido-matches
       (let ((next (cadr ido-matches)))
 	(setq ido-cur-list (ido-chop ido-cur-list next))
-	(setq ido-rescan t)
-	(setq ido-rotate t))))
+	(setq ido-matches (ido-chop ido-matches next))
+	(setq ido-rescan nil))))
 
 (defun ido-prev-match ()
   "Put last element of `ido-matches' at the front of the list."
@@ -3081,8 +3080,8 @@ If repeated, insert text from buffer instead."
   (if ido-matches
       (let ((prev (car (last ido-matches))))
 	(setq ido-cur-list (ido-chop ido-cur-list prev))
-	(setq ido-rescan t)
-	(setq ido-rotate t))))
+	(setq ido-matches (ido-chop ido-matches prev))
+	(setq ido-rescan nil))))
 
 (defun ido-next-match-dir ()
   "Find next directory in match list.
@@ -4774,5 +4773,4 @@ DEF, if non-nil, is the default value."
 
 (provide 'ido)
 
-;; arch-tag: b63a3500-1735-41bd-8a01-05373f0864da
 ;;; ido.el ends here

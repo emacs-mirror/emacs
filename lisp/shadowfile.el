@@ -1,7 +1,6 @@
 ;;; shadowfile.el --- automatic file copying
 
-;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: comm files
@@ -832,5 +831,4 @@ look for files that have been changed and need to be copied to other systems."
 
 (provide 'shadowfile)
 
-;; arch-tag: e2f4cdd7-2bab-4def-9130-9e69b412b79e
 ;;; shadowfile.el ends here

@@ -1,7 +1,6 @@
 ;;; tramp-sh.el --- Tramp access functions for (s)sh-like connections
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; (copyright statements below in code to be updated with the above notice)
 
@@ -161,10 +160,11 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-P" "%p") ("%k" "-p") ("-q")
+    (tramp-copy-args            (("-P" "%p") ("%k" "-p") ("-q") ("-r")
 				 ("-o" "ControlPath=%t.%%r@%%h:%%p")
 				 ("-o" "ControlMaster=auto")))
     (tramp-copy-keep-date       t)
+    (tramp-copy-recursive       t)
     (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
 				 ("-o" "UserKnownHostsFile=/dev/null")
 				 ("-o" "StrictHostKeyChecking=no")))
@@ -179,8 +179,9 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("%k" "-p")))
+    (tramp-copy-args            (("-P" "%p") ("%k" "-p") ("-q") ("-r")))
     (tramp-copy-keep-date       t)
+    (tramp-copy-recursive       t)
     (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
 				 ("-o" "UserKnownHostsFile=/dev/null")
 				 ("-o" "StrictHostKeyChecking=no")))
@@ -380,13 +381,16 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-copy-args            (("%k" "-p")))
     (tramp-copy-keep-date       t)))
 
+;;;###tramp-autoload
 (add-to-list 'tramp-default-method-alist
 	     `(,tramp-local-host-regexp "\\`root\\'" "su"))
 
+;;;###tramp-autoload
 (add-to-list 'tramp-default-user-alist
 	     `(,(concat "\\`" (regexp-opt '("su" "sudo" "ksu")) "\\'")
 	       nil "root"))
 ;; Do not add "ssh" based methods, otherwise ~/.ssh/config would be ignored.
+;;;###tramp-autoload
 (add-to-list 'tramp-default-user-alist
 	     `(,(concat
 		 "\\`"
@@ -756,8 +760,7 @@ on the remote host.")
 (defconst tramp-perl-encode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-#   Free Software Foundation, Inc.
+# Copyright (C) 2002-2011 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -798,8 +801,7 @@ This string is passed to `format', so percent characters need to be doubled.")
 (defconst tramp-perl-decode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-#   Free Software Foundation, Inc.
+# Copyright (C) 2002-2011 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -4060,9 +4062,17 @@ Goes through the list `tramp-inline-compress-commands'."
 	   vec 5
 	   "Checking local compress command `%s', `%s' for sanity"
 	   compress decompress)
-	  (unless (zerop (tramp-call-local-coding-command
-			  (format "echo %s | %s | %s"
-				  magic compress decompress) nil nil))
+	  (unless
+	      (zerop
+	       (tramp-call-local-coding-command
+		(format
+		 ;; Windows shells need the program file name after
+		 ;; the pipe symbol be quoted if they use forward
+		 ;; slashes as directory separators.
+		 (if (memq system-type '(windows-nt))
+		     "echo %s | \"%s\" | \"%s\""
+		   "echo %s | %s | %s")
+		 magic compress decompress) nil nil))
 	    (throw 'next nil))
 	  (tramp-message
 	   vec 5
@@ -4956,9 +4966,25 @@ function cell is returned to be applied on a buffer."
 	 ((symbolp coding)
 	  coding)
 	 ((and compress (string-match "decoding" prop))
-	  (format "(%s | %s >%%s)" coding compress))
+	  (format
+	   ;; Windows shells need the program file name after
+	   ;; the pipe symbol be quoted if they use forward
+	   ;; slashes as directory separators.
+	   (if (and (string-match "local" prop)
+		    (memq system-type '(windows-nt)))
+	       "(%s | \"%s\" >%%s)"
+	     "(%s | %s >%%s)")
+	   coding compress))
 	 (compress
-	  (format "(%s <%%s | %s)" compress coding))
+	  (format
+	   ;; Windows shells need the program file name after
+	   ;; the pipe symbol be quoted if they use forward
+	   ;; slashes as directory separators.
+	   (if (and (string-match "local" prop)
+		    (memq system-type '(windows-nt)))
+	       "(%s <%%s | \"%s\")"
+	     "(%s <%%s | %s)")
+	   compress coding))
 	 ((string-match "decoding" prop)
 	  (format "%s >%%s" coding))
 	 (t

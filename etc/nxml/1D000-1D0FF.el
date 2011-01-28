@@ -247,4 +247,3 @@
     ("BYZANTINE MUSICAL SYMBOL GORGON NEO KATO" #x1D0F5)
     ))
 
-;; arch-tag: 2b360fc3-2760-43c9-9d3e-2ef3fd8452b5

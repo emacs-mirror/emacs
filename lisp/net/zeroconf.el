@@ -1,6 +1,6 @@
 ;;; zeroconf.el --- Service browser using Avahi.
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -686,5 +686,4 @@ For the description of arguments, see `zeroconf-resolved-services-hash'."
 
 (provide 'zeroconf)
 
-;; arch-tag: ea578165-7fa8-44f4-90f0-de3940aec69f
 ;;; zeroconf.el ends here

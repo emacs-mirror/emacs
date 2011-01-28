@@ -1,6 +1,6 @@
 ;;; ede/linux.el --- Special project for Linux
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -245,5 +245,4 @@ Knows about how the Linux source tree is organized."
 ;; generated-autoload-load-name: "ede/linux"
 ;; End:
 
-;; arch-tag: 41f310c8-b169-4259-8a2d-0ff4bd0a736d
 ;;; ede/linux.el ends here

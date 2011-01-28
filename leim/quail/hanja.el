@@ -1,9 +1,8 @@
 ;;; hanja.el --- Quail-package for Korean Hanja (KSC5601)  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010
+;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -514,5 +513,4 @@
  ("gml"	"僖凞喜噫囍姬嬉希憙憘戱晞曦熙熹熺犧禧稀羲")
  ("glf"	"詰"))
 
-;; arch-tag: f83c4a34-ee8a-4d7f-95a2-e18816c57182
 ;;; hanja.el ends here

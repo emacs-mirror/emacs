@@ -715,7 +715,3 @@ library, you may consider it more useful to permit linking proprietary
 applications with the library.  If this is what you want to do, use
 the GNU Lesser General Public License instead of this License.  But
 first, please read @url{http://www.gnu.org/philosophy/why-not-lgpl.html}.
-
-@ignore
-   arch-tag: 0c4a2556-f87e-464f-9b1d-efd920fcaf67
-@end ignore

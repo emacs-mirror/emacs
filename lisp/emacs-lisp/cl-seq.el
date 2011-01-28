@@ -1,7 +1,6 @@
 ;;; cl-seq.el --- Common Lisp features, part 3
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -1018,5 +1017,4 @@ Atoms are compared by `eql'; cons cells are compared recursively.
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 
-;; arch-tag: ec1cc072-9006-4225-b6ba-d6b07ed1710c
 ;;; cl-seq.el ends here

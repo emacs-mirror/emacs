@@ -1,8 +1,6 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1712,5 +1710,4 @@ It treats escaped EOLs as whitespace.")
 
 (cc-provide 'cc-vars)
 
-;; arch-tag: d62e9a55-c9fe-409b-b5b6-050b6aa202c9
 ;;; cc-vars.el ends here

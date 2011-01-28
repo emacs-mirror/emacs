@@ -1,6 +1,6 @@
 /* xftfont.c -- XFT font driver.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -778,5 +778,3 @@ syms_of_xftfont (void)
   register_font_driver (&xftfont_driver, NULL);
 }
 
-/* arch-tag: 64ec61bf-7c8e-4fe6-b953-c6a85d5e1605
-   (do not change this comment) */

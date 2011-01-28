@@ -1,7 +1,6 @@
 ;;; term.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 1990, 1992, 1994, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
@@ -1537,29 +1536,24 @@ See also `term-input-ignoredups' and `term-write-input-ring'."
 	     (message "Cannot read history file %s"
 		      term-input-ring-file-name)))
 	(t
-	 (let ((history-buf (get-buffer-create " *temp*"))
-	       (file term-input-ring-file-name)
+	 (let ((file term-input-ring-file-name)
 	       (count 0)
 	       (ring (make-ring term-input-ring-size)))
-	   (unwind-protect
-	       (with-current-buffer history-buf
-		 (widen)
-		 (erase-buffer)
-		 (insert-file-contents file)
-		 ;; Save restriction in case file is already visited...
-		 ;; Watch for those date stamps in history files!
-		 (goto-char (point-max))
-		 (while (and (< count term-input-ring-size)
-			     (re-search-backward "^[ \t]*\\([^#\n].*\\)[ \t]*$"
-						 nil t))
-		   (let ((history (buffer-substring (match-beginning 1)
-						    (match-end 1))))
-		     (when (or (null term-input-ignoredups)
-			       (ring-empty-p ring)
-			       (not (string-equal (ring-ref ring 0) history)))
-			 (ring-insert-at-beginning ring history)))
-		   (setq count (1+ count))))
-	     (kill-buffer history-buf))
+           (with-temp-buffer
+             (insert-file-contents file)
+             ;; Save restriction in case file is already visited...
+             ;; Watch for those date stamps in history files!
+             (goto-char (point-max))
+             (while (and (< count term-input-ring-size)
+                         (re-search-backward "^[ \t]*\\([^#\n].*\\)[ \t]*$"
+                                             nil t))
+               (let ((history (buffer-substring (match-beginning 1)
+                                                (match-end 1))))
+                 (when (or (null term-input-ignoredups)
+                           (ring-empty-p ring)
+                           (not (string-equal (ring-ref ring 0) history)))
+                   (ring-insert-at-beginning ring history)))
+               (setq count (1+ count))))
 	   (setq term-input-ring ring
 		 term-input-ring-index nil)))))
 

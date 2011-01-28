@@ -1,6 +1,5 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1988, 1993, 1994, 1995, 1997, 1998, 1999,
-      2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2011
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -59,9 +58,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef GC_MALLOC_CHECK
 #endif
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#else
+#ifndef HAVE_UNISTD_H
 extern POINTER_TYPE *sbrk ();
 #endif
 
@@ -162,30 +160,16 @@ static __malloc_size_t bytes_used_when_full;
 #define GC_STRING_BYTES(S)	(STRING_BYTES (S))
 #define GC_STRING_CHARS(S)	((S)->size & ~ARRAY_MARK_FLAG)
 
+/* Global variables.  */
+struct emacs_globals globals;
+
 /* Number of bytes of consing done since the last gc.  */
 
 int consing_since_gc;
 
-/* Count the amount of consing of various sorts of space.  */
-
-EMACS_INT cons_cells_consed;
-EMACS_INT floats_consed;
-EMACS_INT vector_cells_consed;
-EMACS_INT symbols_consed;
-EMACS_INT string_chars_consed;
-EMACS_INT misc_objects_consed;
-EMACS_INT intervals_consed;
-EMACS_INT strings_consed;
-
-/* Minimum number of bytes of consing since GC before next GC. */
-
-EMACS_INT gc_cons_threshold;
-
 /* Similar minimum, computed from Vgc_cons_percentage.  */
 
 EMACS_INT gc_relative_threshold;
-
-static Lisp_Object Vgc_cons_percentage;
 
 /* Minimum number of bytes of consing since GC before next GC,
    when memory is full.  */
@@ -201,10 +185,6 @@ int gc_in_progress;
    no GC will happen, so as to verify that assumption.  */
 
 int abort_on_gc;
-
-/* Nonzero means display messages at beginning and end of GC.  */
-
-int garbage_collection_messages;
 
 /* Number of live and free conses etc.  */
 
@@ -225,14 +205,6 @@ static char *spare_memory[7];
 /* Number of extra blocks malloc should get when it needs more core.  */
 
 static int malloc_hysteresis;
-
-/* Non-nil means defun should do purecopy on the function definition.  */
-
-Lisp_Object Vpurify_flag;
-
-/* Non-nil means we are handling a memory-full error.  */
-
-Lisp_Object Vmemory_full;
 
 /* Initialize it to a nonzero value to force it into data space
    (rather than bss space).  That way unexec will remap it into text
@@ -261,10 +233,6 @@ static size_t pure_bytes_used_before_overflow;
       && ((PNTR_COMPARISON_TYPE) (P)				\
 	  >= (PNTR_COMPARISON_TYPE) purebeg))
 
-/* Total number of bytes allocated in pure storage. */
-
-EMACS_INT pure_bytes_used;
-
 /* Index in pure at which next pure Lisp object will be allocated.. */
 
 static EMACS_INT pure_bytes_used_lisp;
@@ -277,10 +245,6 @@ static EMACS_INT pure_bytes_used_non_lisp;
    displayed.  */
 
 const char *pending_malloc_warning;
-
-/* Pre-computed signal argument for use when memory is exhausted.  */
-
-Lisp_Object Vmemory_signal_data;
 
 /* Maximum amount of C stack to save when a GC happens.  */
 
@@ -302,10 +266,7 @@ Lisp_Object Qgc_cons_threshold, Qchar_table_extra_slots;
 
 /* Hook run after GC has finished.  */
 
-Lisp_Object Vpost_gc_hook, Qpost_gc_hook;
-
-Lisp_Object Vgc_elapsed;	/* accumulated elapsed time in GC  */
-EMACS_INT gcs_done;		/* accumulated GCs  */
+Lisp_Object Qpost_gc_hook;
 
 static void mark_buffer (Lisp_Object);
 static void mark_terminals (void);
@@ -4222,7 +4183,7 @@ Please mail the result to <emacs-devel@gnu.org>.\n\
    can prove that.  */
 
 static void
-test_setjmp ()
+test_setjmp (void)
 {
   char buf[10];
   register int x;
@@ -4270,7 +4231,7 @@ test_setjmp ()
 /* Abort if anything GCPRO'd doesn't survive the GC.  */
 
 static void
-check_gcpros ()
+check_gcpros (void)
 {
   struct gcpro *p;
   int i;
@@ -4286,7 +4247,7 @@ check_gcpros ()
 #elif GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
 
 static void
-dump_zombies ()
+dump_zombies (void)
 {
   int i;
 
@@ -4320,6 +4281,11 @@ dump_zombies ()
    to see in a jmp_buf which itself lies on the stack.  This doesn't
    have to be true!  It must be verified for each system, possibly
    by taking a look at the source code of setjmp.
+
+   If __builtin_unwind_init is available (defined by GCC >= 2.8) we
+   can use it as a machine independent method to store all registers
+   to the stack.  In this case the macros described in the previous
+   two paragraphs are not used.
 
    Stack Layout
 
@@ -4359,6 +4325,13 @@ mark_stack (void)
   volatile int stack_grows_down_p = (char *) &j > (char *) stack_base;
   void *end;
 
+#ifdef HAVE___BUILTIN_UNWIND_INIT
+  /* Force callee-saved registers and register windows onto the stack.
+     This is the preferred method if available, obviating the need for
+     machine dependent methods.  */
+  __builtin_unwind_init ();
+  end = &end;
+#else /* not HAVE___BUILTIN_UNWIND_INIT */
   /* This trick flushes the register windows so that all the state of
      the process is contained in the stack.  */
   /* Fixme: Code in the Boehm GC suggests flushing (with `flushrs') is
@@ -4394,6 +4367,7 @@ mark_stack (void)
   setjmp (j.j);
   end = stack_grows_down_p ? (char *) &j + sizeof j : (char *) &j;
 #endif /* not GC_SAVE_REGISTERS_ON_STACK */
+#endif /* not HAVE___BUILTIN_UNWIND_INIT */
 
   /* This assumes that the stack is a contiguous region in memory.  If
      that's not the case, something has to be done here to iterate
@@ -6198,7 +6172,7 @@ init_alloc (void)
 void
 syms_of_alloc (void)
 {
-  DEFVAR_INT ("gc-cons-threshold", &gc_cons_threshold,
+  DEFVAR_INT ("gc-cons-threshold", gc_cons_threshold,
 	      doc: /* *Number of bytes of consing between garbage collections.
 Garbage collection can happen automatically once this many bytes have been
 allocated since the last garbage collection.  All data types count.
@@ -6209,57 +6183,57 @@ By binding this temporarily to a large number, you can effectively
 prevent garbage collection during a part of the program.
 See also `gc-cons-percentage'.  */);
 
-  DEFVAR_LISP ("gc-cons-percentage", &Vgc_cons_percentage,
+  DEFVAR_LISP ("gc-cons-percentage", Vgc_cons_percentage,
 	       doc: /* *Portion of the heap used for allocation.
 Garbage collection can happen automatically once this portion of the heap
 has been allocated since the last garbage collection.
 If this portion is smaller than `gc-cons-threshold', this is ignored.  */);
   Vgc_cons_percentage = make_float (0.1);
 
-  DEFVAR_INT ("pure-bytes-used", &pure_bytes_used,
+  DEFVAR_INT ("pure-bytes-used", pure_bytes_used,
 	      doc: /* Number of bytes of sharable Lisp data allocated so far.  */);
 
-  DEFVAR_INT ("cons-cells-consed", &cons_cells_consed,
+  DEFVAR_INT ("cons-cells-consed", cons_cells_consed,
 	      doc: /* Number of cons cells that have been consed so far.  */);
 
-  DEFVAR_INT ("floats-consed", &floats_consed,
+  DEFVAR_INT ("floats-consed", floats_consed,
 	      doc: /* Number of floats that have been consed so far.  */);
 
-  DEFVAR_INT ("vector-cells-consed", &vector_cells_consed,
+  DEFVAR_INT ("vector-cells-consed", vector_cells_consed,
 	      doc: /* Number of vector cells that have been consed so far.  */);
 
-  DEFVAR_INT ("symbols-consed", &symbols_consed,
+  DEFVAR_INT ("symbols-consed", symbols_consed,
 	      doc: /* Number of symbols that have been consed so far.  */);
 
-  DEFVAR_INT ("string-chars-consed", &string_chars_consed,
+  DEFVAR_INT ("string-chars-consed", string_chars_consed,
 	      doc: /* Number of string characters that have been consed so far.  */);
 
-  DEFVAR_INT ("misc-objects-consed", &misc_objects_consed,
+  DEFVAR_INT ("misc-objects-consed", misc_objects_consed,
 	      doc: /* Number of miscellaneous objects that have been consed so far.  */);
 
-  DEFVAR_INT ("intervals-consed", &intervals_consed,
+  DEFVAR_INT ("intervals-consed", intervals_consed,
 	      doc: /* Number of intervals that have been consed so far.  */);
 
-  DEFVAR_INT ("strings-consed", &strings_consed,
+  DEFVAR_INT ("strings-consed", strings_consed,
 	      doc: /* Number of strings that have been consed so far.  */);
 
-  DEFVAR_LISP ("purify-flag", &Vpurify_flag,
+  DEFVAR_LISP ("purify-flag", Vpurify_flag,
 	       doc: /* Non-nil means loading Lisp code in order to dump an executable.
 This means that certain objects should be allocated in shared (pure) space.
 It can also be set to a hash-table, in which case this table is used to
 do hash-consing of the objects allocated to pure space.  */);
 
-  DEFVAR_BOOL ("garbage-collection-messages", &garbage_collection_messages,
+  DEFVAR_BOOL ("garbage-collection-messages", garbage_collection_messages,
 	       doc: /* Non-nil means display messages at start and end of garbage collection.  */);
   garbage_collection_messages = 0;
 
-  DEFVAR_LISP ("post-gc-hook", &Vpost_gc_hook,
+  DEFVAR_LISP ("post-gc-hook", Vpost_gc_hook,
 	       doc: /* Hook run after garbage collection has finished.  */);
   Vpost_gc_hook = Qnil;
   Qpost_gc_hook = intern_c_string ("post-gc-hook");
   staticpro (&Qpost_gc_hook);
 
-  DEFVAR_LISP ("memory-signal-data", &Vmemory_signal_data,
+  DEFVAR_LISP ("memory-signal-data", Vmemory_signal_data,
 	       doc: /* Precomputed `signal' argument for memory-full error.  */);
   /* We build this in advance because if we wait until we need it, we might
      not be able to allocate the memory to hold it.  */
@@ -6267,7 +6241,7 @@ do hash-consing of the objects allocated to pure space.  */);
     = pure_cons (Qerror,
 		 pure_cons (make_pure_c_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"), Qnil));
 
-  DEFVAR_LISP ("memory-full", &Vmemory_full,
+  DEFVAR_LISP ("memory-full", Vmemory_full,
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);
   Vmemory_full = Qnil;
 
@@ -6277,10 +6251,10 @@ do hash-consing of the objects allocated to pure space.  */);
   staticpro (&Qchar_table_extra_slots);
   Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
 
-  DEFVAR_LISP ("gc-elapsed", &Vgc_elapsed,
+  DEFVAR_LISP ("gc-elapsed", Vgc_elapsed,
 	       doc: /* Accumulated time elapsed in garbage collections.
 The time is in seconds as a floating point value.  */);
-  DEFVAR_INT ("gcs-done", &gcs_done,
+  DEFVAR_INT ("gcs-done", gcs_done,
 	      doc: /* Accumulated number of garbage collections done.  */);
 
   defsubr (&Scons);
@@ -6303,5 +6277,3 @@ The time is in seconds as a floating point value.  */);
 #endif
 }
 
-/* arch-tag: 6695ca10-e3c5-4c2c-8bc3-ed26a7dda857
-   (do not change this comment) */

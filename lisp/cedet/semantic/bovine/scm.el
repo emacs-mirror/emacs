@@ -1,7 +1,6 @@
 ;;; semantic/bovine/scm.el --- Semantic details for Scheme (guile)
 
-;;; Copyright (C) 2001, 2002, 2003, 2004, 2008, 2009, 2010
-;;; Free Software Foundation, Inc.
+;;; Copyright (C) 2001-2004, 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -115,5 +114,4 @@ syntax as specified by the syntax table."
 ;; generated-autoload-load-name: "semantic/bovine/scm"
 ;; End:
 
-;; arch-tag: 4f929838-b817-447d-848c-d47789ff140f
 ;;; semantic/bovine/scm.el ends here

@@ -1,6 +1,6 @@
 ;;; srecode/table.el --- Tables of Semantic Recoders
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -259,4 +259,3 @@ Use PREDICATE is the same as for the `sort' function."
 
 ;;; srecode/table.el ends here
 
-;; arch-tag: 547d2f1d-2694-49b3-ab13-b2cda6b25b4d

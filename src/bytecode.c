@@ -1,6 +1,5 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993, 2000-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -58,9 +57,7 @@ by Hallvard:
 
 #ifdef BYTE_CODE_METER
 
-Lisp_Object Vbyte_code_meter, Qbyte_code_meter;
-int byte_metering_on;
-
+Lisp_Object Qbyte_code_meter;
 #define METER_2(code1, code2) \
   XFASTINT (XVECTOR (XVECTOR (Vbyte_code_meter)->contents[(code1)]) \
 	    ->contents[(code2)])
@@ -1686,7 +1683,7 @@ syms_of_bytecode (void)
 
 #ifdef BYTE_CODE_METER
 
-  DEFVAR_LISP ("byte-code-meter", &Vbyte_code_meter,
+  DEFVAR_LISP ("byte-code-meter", Vbyte_code_meter,
 	       doc: /* A vector of vectors which holds a histogram of byte-code usage.
 \(aref (aref byte-code-meter 0) CODE) indicates how many times the byte
 opcode CODE has been executed.
@@ -1694,7 +1691,7 @@ opcode CODE has been executed.
 indicates how many times the byte opcodes CODE1 and CODE2 have been
 executed in succession.  */);
 
-  DEFVAR_BOOL ("byte-metering-on", &byte_metering_on,
+  DEFVAR_BOOL ("byte-metering-on", byte_metering_on,
 	       doc: /* If non-nil, keep profiling information on byte code usage.
 The variable byte-code-meter indicates how often each byte opcode is used.
 If a symbol has a property named `byte-code-meter' whose value is an
@@ -1713,5 +1710,3 @@ integer, it is incremented each time that symbol's function is called.  */);
 #endif
 }
 
-/* arch-tag: b9803b6f-1ed6-4190-8adf-33fd3a9d10e9
-   (do not change this comment) */

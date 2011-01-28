@@ -1,6 +1,6 @@
 ;;; tramp-gw.el --- Tramp utility functions for HTTP tunnels and SOCKS gateways
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -72,6 +72,7 @@
   (list "Default server" "socks" tramp-gw-default-socks-port 5))
 
 ;; Add a default for `tramp-default-user-alist'.  Default is the local user.
+;;;###tramp-autoload
 (add-to-list
  'tramp-default-user-alist
  (list (concat "\\`"

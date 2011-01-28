@@ -5,4 +5,3 @@ there was a mass-change to remove such from various branches in cvs.  probably
 it's a good idea to avoid adding trailing whitespace in new code/docs and in
 changes.
 
-;;; arch-tag: de441379-c345-4826-a784-352b5413a698

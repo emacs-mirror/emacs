@@ -1,6 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1986, 1993-1995, 1997-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -53,10 +52,6 @@ static void adjust_point (EMACS_INT nchars, EMACS_INT nbytes);
 
 Lisp_Object Fcombine_after_change_execute (void);
 
-/* Non-nil means don't call the after-change-functions right away,
-   just record an element in combine_after_change_list.  */
-Lisp_Object Vcombine_after_change_calls;
-
 /* List of elements of the form (BEG-UNCHANGED END-UNCHANGED CHANGE-AMOUNT)
    describing changes which happened while combine_after_change_calls
    was nonzero.  We use this to decide how to call them
@@ -74,10 +69,6 @@ Lisp_Object combine_after_change_buffer;
 
 Lisp_Object Qinhibit_modification_hooks;
 
-/* Check all markers in the current buffer, looking for something invalid.  */
-
-static int check_markers_debug_flag;
-
 #define CHECK_MARKERS()				\
   if (check_markers_debug_flag)			\
     check_markers ();				\
@@ -2374,14 +2365,14 @@ syms_of_insdel (void)
   combine_after_change_list = Qnil;
   combine_after_change_buffer = Qnil;
 
-  DEFVAR_BOOL ("check-markers-debug-flag", &check_markers_debug_flag,
+  DEFVAR_BOOL ("check-markers-debug-flag", check_markers_debug_flag,
 	       doc: /* Non-nil means enable debugging checks for invalid marker positions.  */);
   check_markers_debug_flag = 0;
-  DEFVAR_LISP ("combine-after-change-calls", &Vcombine_after_change_calls,
+  DEFVAR_LISP ("combine-after-change-calls", Vcombine_after_change_calls,
 	       doc: /* Used internally by the `combine-after-change-calls' macro.  */);
   Vcombine_after_change_calls = Qnil;
 
-  DEFVAR_BOOL ("inhibit-modification-hooks", &inhibit_modification_hooks,
+  DEFVAR_BOOL ("inhibit-modification-hooks", inhibit_modification_hooks,
 	       doc: /* Non-nil means don't run any of the hooks that respond to buffer changes.
 This affects `before-change-functions' and `after-change-functions',
 as well as hooks attached to text properties and overlays.  */);

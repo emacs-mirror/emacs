@@ -1,8 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2011  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski
 ;;	Richard Stallman
@@ -276,13 +274,14 @@ decoration for buffers in C++ mode, and level 1 decoration otherwise."
 				      (integer :tag "level" 1)))))
   :group 'font-lock)
 
-(defcustom font-lock-verbose 0
+(defcustom font-lock-verbose nil
   "If non-nil, means show status messages for buffer fontification.
 If a number, only buffers greater than this size have fontification messages."
   :type '(choice (const :tag "never" nil)
 		 (other :tag "always" t)
 		 (integer :tag "size"))
-  :group 'font-lock)
+  :group 'font-lock
+  :version "24.1")
 
 
 ;; Originally these variable values were face names such as `bold' etc.

@@ -88,5 +88,3 @@ XMenuChangeSelection(Display *display, register XMenu *menu, register int p_num,
     return(s_num);
 }
 
-/* arch-tag: 229732a6-46bf-4a3a-ad90-3d8ed65c0841
-   (do not change this comment) */

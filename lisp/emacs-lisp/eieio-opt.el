@@ -1,7 +1,7 @@
 ;;; eieio-opt.el -- eieio optional functions (debug, printing, speedbar)
 
-;; Copyright (C) 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2005, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998-2003, 2005, 2008-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2
@@ -693,5 +693,4 @@ INDENT is the current indentation level."
 
 (provide 'eieio-opt)
 
-;; arch-tag: 71eab5f5-462f-4fa1-8ed1-f5ca1bf9adb6
 ;;; eieio-opt.el ends here

@@ -1,6 +1,6 @@
 ;;; sinhala.el --- support for Sinhala -*- coding: utf-8; no-byte-compile: t -*-
 
-;; Copyright (C) 2008, 2009, 2010
+;; Copyright (C) 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
@@ -45,5 +45,4 @@
 	 "[\u0D80-\u0DFF]")
 	0 'font-shape-gstring)))
 
-;; arch-tag: 87b9ad3b-5090-422f-b942-eb85b9d52e7c
 ;; sinhala.el ends here

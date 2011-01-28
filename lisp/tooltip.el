@@ -1,7 +1,6 @@
 ;;; tooltip.el --- show tooltip windows
 
-;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
@@ -385,5 +384,4 @@ Value is non-nil if this function handled the tip."
 
 (provide 'tooltip)
 
-;; arch-tag: 3d61135e-4618-4a78-af28-183f6df5636f
 ;;; tooltip.el ends here

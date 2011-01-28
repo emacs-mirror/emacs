@@ -2140,7 +2140,7 @@
 
 See ChangeLog.02 for earlier changes.
 
-    Copyright (C) 2003, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+	Copyright (C) 2003, 2006-2011 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -2161,4 +2161,3 @@ See ChangeLog.02 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 808865e1-3cce-4c5b-9997-95a8b7a9d384

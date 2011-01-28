@@ -1,8 +1,6 @@
 ;;; mh-buffers.el --- MH-E buffer constants and utilities
 
-;; Copyright (C) 1993, 1995, 1997,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -83,5 +81,4 @@ The function returns the size of the final size of the log buffer."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 812e9f29-78b8-4e73-ada9-aa61dc1ceecb
 ;;; mh-buffers.el ends here

@@ -1,6 +1,6 @@
 ;;; erc-networks.el --- IRC networks
 
-;; Copyright (C) 2002, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004-2011 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
 ;; Keywords: comm
@@ -865,4 +865,3 @@ VALUE is the options value.")
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 68cccabd-f66b-456c-9abe-5f993a2dc91c

@@ -9,7 +9,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 2007-2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1243,9 +1243,73 @@ message has been arrived, and @var{handler} is called.  Example:
 @cindex method calls, returning
 @cindex returning method calls
 
-Emacs can also offer own methods, which can be called by other
-applications.  These methods could be an implementation of an
-interface of a well known service, like @samp{org.freedesktop.TextEditor}.
+In order to register methods on the D-Bus, Emacs has to request a well
+known name on the D-Bus under which it will be available for other
+clients.  Names on the D-Bus can be registered and unregistered using
+the following functions:
+
+@defun dbus-register-service bus service &rest flags
+Register the known name @var{service} on D-Bus @var{bus}.
+
+@var{bus} is either the symbol @code{:system} or the symbol
+@code{:session}.
+
+@var{service} is the service name to be registered on the D-Bus.  It
+must be a known name.
+
+@var{flags} is a subset of the following keywords:
+
+@itemize
+@item @code{:allow-replacement}: Allow another service to become the primary
+owner if requested.
+
+@item @code{:replace-existing}: Request to replace the current primary owner.
+
+@item @code{:do-not-queue}: If we can not become the primary owner do not
+place us in the queue.
+@end itemize
+
+One of the following keywords is returned:
+
+@itemize
+
+@item @code{:primary-owner}: We have become the primary owner of the name
+@var{service}.
+
+@item @code{:in-queue}: We could not become the primary owner and
+have been placed in the queue.
+
+@item @code{:exists}: We already are in the queue.
+
+@item @code{:already-owner}: We already are the primary
+owner.
+@end itemize
+@end defun
+
+@defun dbus-unregister-service bus service
+Unregister all objects from D-Bus @var{bus}, registered by Emacs for
+@var{service}.
+
+@var{bus} is either the symbol @code{:system} or the symbol
+@code{:session}.
+
+@var{service} is the D-Bus service name of the D-Bus.  It must be a
+known name.  Emacs releases its association to @var{service} from
+D-Bus.
+
+One of the following keywords is returned:
+
+@itemize
+@item @code{:released}: We successfully released the name @var{service}.
+@item @code{:non-existent}: The name @var{service} does not exist on the bus.
+@item @code{:not-owner}: We are not an owner of the name @var{service}.
+@end itemize
+@end defun
+
+When a name has been chosen, Emacs can offer own methods, which can be
+called by other applications.  These methods could be an
+implementation of an interface of a well known service, like
+@samp{org.freedesktop.TextEditor}.
 
 It could be also an implementation of an own interface.  In this case,
 the service name must be @samp{org.gnu.Emacs}.  The object path shall
@@ -1264,7 +1328,7 @@ paths, used by offered methods or signals, shall start with this
 string.
 @end deffn
 
-@defun dbus-register-method bus service path interface method handler
+@defun dbus-register-method bus service path interface method handler dont-register-service
 With this function, an application registers @var{method} on the D-Bus
 @var{bus}.
 
@@ -1272,10 +1336,11 @@ With this function, an application registers @var{method} on the D-Bus
 @code{:session}.
 
 @var{service} is the D-Bus service name of the D-Bus object
-@var{method} is registered for.  It must be a known name.
+@var{method} is registered for.  It must be a known name (See
+discussion of @var{dont-register-service} below).
 
-@var{path} is the D-Bus object path @var{service} is
-registered.
+@var{path} is the D-Bus object path @var{service} is registered (See
+discussion of @var{dont-register-service} below).
 
 @var{interface} is the interface offered by @var{service}.  It must
 provide @var{method}.
@@ -1293,6 +1358,13 @@ returning a list containing the object.
 
 In case @var{handler} shall return a reply message with an empty
 argument list, @var{handler} must return the symbol @code{:ignore}.
+
+When @var{dont-register-service} is non-@code{nil}, the known name
+@var{service} is not registered.  This means that other D-Bus clients
+have no way of noticing the newly registered method.  When interfaces
+are constructed incrementally by adding single methods or properties
+at a time, @var{dont-register-service} can be used to prevent other
+clients from discovering the still incomplete interface.
 
 The default D-Bus timeout when waiting for a message reply is 25
 seconds.  This value could be even smaller, depending on the calling
@@ -1368,7 +1440,7 @@ The test runs then
 @end example
 @end defun
 
-@defun dbus-register-property bus service path interface property access value &optional emits-signal
+@defun dbus-register-property bus service path interface property access value &optional emits-signal dont-register-service
 With this function, an application declares a @var{property} on the D-Bus
 @var{bus}.
 
@@ -1378,8 +1450,8 @@ With this function, an application declares a @var{property} on the D-Bus
 @var{service} is the D-Bus service name of the D-Bus.  It must be a
 known name.
 
-@var{path} is the D-Bus object path @var{service} is
-registered.
+@var{path} is the D-Bus object path @var{service} is registered (See
+discussion of @var{dont-register-service} below).
 
 @var{interface} is the name of the interface used at @var{path},
 @var{property} is the name of the property of @var{interface}.
@@ -1400,6 +1472,13 @@ The interface @samp{org.freedesktop.DBus.Properties} is added to
 @var{emits-signal} is non-@code{nil}, the signal
 @samp{PropertiesChanged} is sent when the property is changed by
 @code{dbus-set-property}.
+
+When @var{dont-register-service} is non-@code{nil}, the known name
+@var{service} is not registered.  This means that other D-Bus clients
+have no way of noticing the newly registered method.  When interfaces
+are constructed incrementally by adding single methods or properties
+at a time, @var{dont-register-service} can be used to prevent other
+clients from discovering the still incomplete interface.
 
 @noindent Example:
 
@@ -1473,18 +1552,6 @@ unregistered, @code{nil} otherwise.
 When @var{object} identifies the last method or property, which is
 registered for the respective service, Emacs releases its association
 to the service from D-Bus.
-@end defun
-
-@defun dbus-unregister-service bus service
-Unregister all objects from D-Bus @var{bus}, registered by Emacs for
-@var{service}.
-
-@var{bus} is either the symbol @code{:system} or the symbol
-@code{:session}.
-
-@var{service} is the D-Bus service name of the D-Bus.  It must be a
-known name.  Emacs releases its association to @var{service} from
-D-Bus.
 @end defun
 
 
@@ -1772,7 +1839,3 @@ whether a given D-Bus error is related to them.
 @include doclicense.texi
 
 @bye
-
-@ignore
-   arch-tag: 2eeec19d-0caf-44e0-a193-329d7f9951d8
-@end ignore

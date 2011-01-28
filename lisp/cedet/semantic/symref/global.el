@@ -1,6 +1,6 @@
 ;;; semantic/symref/global.el --- Use GNU Global for symbol references
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -70,5 +70,4 @@ Moves cursor to end of the match."
 ;; generated-autoload-load-name: "semantic/symref/global"
 ;; End:
 
-;; arch-tag: 1f061cc0-d8dd-44b1-9de3-3d00cb6e8abe
 ;;; semantic/symref/global.el ends here

@@ -1,6 +1,6 @@
 ;; erc-page.el - CTCP PAGE support for ERC
 
-;; Copyright (C) 2002, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation
+;; Copyright (C) 2002, 2004, 2006-2011 Free Software Foundation
 
 ;; This file is part of GNU Emacs.
 
@@ -109,4 +109,3 @@ receive pages if `erc-page-mode' is on."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 82fd2e0e-6060-4dd2-9788-8c1411e844de

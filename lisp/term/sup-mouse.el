@@ -1,7 +1,6 @@
 ;;; sup-mouse.el --- supdup mouse support for lisp machines
 
-;; Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Wolfgang Rupprecht
 ;; Maintainer: FSF
@@ -195,5 +194,4 @@ X and Y are 0-based character positions on the frame."
   (get-window-with-predicate (lambda (w)
 			       (coordinates-in-window-p (cons x y) w))))
 
-;; arch-tag: ec644ed4-cac4-43b8-b3db-cfe83e9098d7
 ;;; sup-mouse.el ends here

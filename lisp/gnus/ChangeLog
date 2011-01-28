@@ -1,3 +1,363 @@
+2011-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-request-marks): Call *-request-marks instead of the
+	older request-update-info.
+
+	* gnus-art.el (article-make-date-line): Limit the length a bit more.
+
+2011-01-28  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt): Give
+	mml2015-signers higher precedence over mml2015-sign-with-sender.
+
+2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-refresh-group): Refresh even non-visible
+	groups.  This makes the nndraft:queue group pop up if it's not already
+	there.
+
+	* gnus-sum.el (gnus-summary-read-group-1): Fix the "contains no
+	messages" logic, which was reversed.
+
+	* gnus-art.el (article-update-date-lapsed): Ensure that point stays at
+	the "same place" even if point is on the line being replaced.
+	(article-update-date-lapsed): Allow updating both the combined lapsed
+	and the lapsed headers.
+	(article-update-date-lapsed): Skip past all the X-Sent/Date headers.
+	(article-make-date-line): Limit the number of segments dynamically to
+	avoid too-long lines.
+
+2011-01-27  Julien Danjou  <julien@danjou.info>
+
+	* mml2015.el (mml2015-epg-sign): Add and use mml2015-sign-with-sender.
+	(mml2015-epg-encrypt): Use mml2015-sign-with-sender.
+
+2011-01-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-expand-newlines, shr-previous-newline-padding-width):
+	Use plist-get instead of the cl function getf.
+
+2011-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (float-time): Get rid of compiler warning, again.
+
+2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-put-color): Special-case background colours: Do put them
+	at the blank parts at the front of the lines.
+
+	* gnus-draft.el (gnus-draft-clear-marks): New function to be run as an
+	exit hook to nix out all data on readedness on group exit.
+
+	* gnus-util.el (float-time): If float-time is bound, always use it on
+	all Emacsen.  It's unclear why the subrp check was there.
+	(time-date): Require to make some autoload issues on XEmacs go away.
+
+	* shr.el (shr-put-color): Don't do the box padding in tables, since
+	they're already padded.
+
+2011-01-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-next-page): When the last line of the
+	article is displayed, scroll down once more instead of going to the
+	next article at once.
+	(article-lapsed-string): Refactor out and allow specifying how many
+	segments you want.
+	(gnus-article-setup-buffer): Start updating the lapsed header directly.
+	(gnus-article-update-lapsed-header): New variable.
+
+	* shr.el: Revert change that made headings use different-sized faces.
+	The Emacs display engine isn't advanced enough that, for instance,
+	tables can comfortably use differntly-sized faces.
+
+2011-01-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection-1): Store the actual stream type
+	used.
+	(nnimap-login): Prefer plain LOGIN if it's enabled (since it requires
+	fewer round trips than CRAM-MD5, and it's less likely to be buggy), and
+	we're using an encrypted connection.
+
+	* proto-stream.el: Alter the interface functions to also return the
+	actual stream type used: network or tls.
+
+2011-01-25  Julien Danjou  <julien@danjou.info>
+
+	* mm-view.el (mm-display-shell-script-inline): Fix typo in docstring.
+	(mm-display-javascript-inline): New function.
+
+	* mm-decode.el (mm-inline-media-tests): Add application/javascript
+	viewing function.
+
+2011-01-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-expand-newlines): Fix variable name.
+
+2011-01-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-newlines): Make nested boxes work.
+
+2011-01-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-newlines): Proof of concept implemantation of boxy
+	backgrounds.
+	(shr-expand-newlines): Switch to using overlays to enable kill'n'yank
+	in a more sensible manner.
+
+2011-01-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mml-smime.el (mml-smime-use): Make it a defcustom and default to 'epg
+	if EPG is loaded.
+
+2011-01-24  Julien Danjou  <julien@danjou.info>
+
+	* shr.el: Use defface to create shr-tag-h[1-6] faces to fontify h[1-6]
+	tags.
+
+2011-01-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-read-summary-keys): Don't call disabled
+	commands.
+
+	* gnus-gravatar.el (gnus-gravatar-insert): Don't move point around
+	in the article buffer.
+	(gnus-gravatar-insert): Use blank space from the current buffer to
+	avoid breaking text properties.  This makes X-Sent updating work again.
+
+	* gravatar.el (gravatar-retrieve): Be silent when retrieving.
+
+2011-01-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-image-fetched): Kill the buffer anyway, and
+	fix the bug in url-http.el instead.
+
+	* shr.el (shr-image-fetched): Ditto.
+
+	* shr.el (shr-image-fetched): Avoid having point move in the article
+	buffer.
+
+	* gnus-html.el (gnus-html-image-fetched): Don't kill the temporary
+	buffer after being called.  It's apparently being killed by url.el, and
+	killing it made point move to end-of-buffer in a random buffer.
+
+	* shr.el (shr-image-fetched): Ditto.
+
+2011-01-23  Julien Danjou  <julien@danjou.info>
+
+	* mm-decode.el (mm-inline-media-tests): Change text/org to text/x-org.
+
+	* mm-uu.el (mm-uu-org-src-code-block-extract): Change text/org to
+	text/x-org.
+
+2011-01-22  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-move-article): Protect against backends
+	(i.e., nnimap) returning nil as the article number.
+
+2011-01-22  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* flow-fill.el (fill-flowed): Make `delete-space' option correspond to
+	"DelSp" parameter in RFC3676.
+
+2011-01-22  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-check-recipients): Display the encoded version of
+	the bogus address if they differ.
+
+	* gnus-draft.el (gnus-group-send-queue): Really refresh the queue group
+	after sending.
+
+	* gnus-agent.el (gnus-agent-send-mail): Ditto.
+
+	* gnus-group.el (gnus-group-refresh-group): New convenience function.
+
+	* gnus-draft.el (gnus-group-send-queue): Update the queue group in the
+	group buffer after sending the queue.
+
+	* gnus-agent.el (gnus-agent-send-mail): Ditto.
+
+2011-01-22  Julien Danjou  <julien@danjou.info>
+
+	* mailcap.el (mailcap-mime-extensions): Rename text/org to text/x-org.
+
+2011-01-22  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-preferred-alternative-precedence): Don't bug out on
+	nested related parts.
+
+	* nnfolder.el (nnfolder-request-expire-articles): Return the list of
+	unexpired articles.  This fixes the regression that led expiry marks to
+	disappear from nnfolder groups.
+
+2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-art.el (gnus-button-alist, gnus-button-handle-info-keystrokes):
+	Don't confuse the "ret" of "retrograde" with RET.
+
+2011-01-21  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-mime-display-single): Use mm-display-inline rather
+	than mm-insert-inline.
+
+2011-01-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-remove-images, gnus-article-show-images):
+	Widen article buffer.
+
+2011-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-util.el (mm-find-buffer-file-coding-system): Don't forget to kill
+	the temp buffer.
+	* message.el (message-mailer-swallows-blank-line): Use with-temp-buffer.
+
+2011-01-20  Julien Danjou  <julien@danjou.info>
+
+	* mm-decode.el (mm-inline-media-tests): Add text/x-sh.
+
+	* gnus-art.el (gnus-mime-inline-part): Use mm-display-inline rather
+	than mm-insert-inline to insert inline part: this respect
+	mm-inline-media-tests displayers.
+
+	* mm-view.el (mm-display-shell-script-inline): New function.
+
+	* mm-decode.el (mm-inline-media-tests): Add x-shellscript and x-sh.
+
+	* mm-uu.el (mm-uu-type-alist): Add org block.
+	(mm-uu-org-src-code-block-extract): New function.
+
+	* mm-view.el (mm-display-org-inline): New function.
+
+	* mm-decode.el (mm-automatic-display): Add text/org.
+
+	* mailcap.el (mailcap-mime-extensions): Add .org.
+
+2011-01-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-highlight): Remove argument passed to
+	gnus-article-add-buttons.
+
+2011-01-19  Tom Rauchenwald  <sehnsucht.nach.unendlichkeit@quantentunnel.de>  (tiny change)
+
+	* spam.el (spam-spamassassin-register-with-sa-learn): Insert a full
+	From header with a date and "nobody" as the sender.
+
+2011-01-19  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-article-add-buttons): Simplify condition.
+	(gnus-button-push): Remove gnus-button-entry function, it fails heavily
+	if you have the same regexp several times.
+	(gnus-button-push): Fix matching when regexp is symbol.
+
+2011-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-mail): A compose-mail function should
+	accept headers as strings.
+
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-tool-bar-gnome): Tweak tool-bar items.
+	Add :vert-only tags.
+	(message-mail): New arg RETURN-ACTION.
+	(message-return-action): New var.
+	(message-bury): Use it.
+	(message-mode): Make it buffer-local.
+	(message-send-and-exit): Always call message-bury.
+
+	* gnus-msg.el (gnus-msg-mail): New arg RETURN-ACTION.  Pass it to
+	message-mail.
+
+2011-01-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-convert-partial-article): Protect against
+	zero-length body parts.
+
+	* mm-decode.el (mm-preferred-alternative-precedence):
+	Discourage showing empty parts.
+
+	* gnus-int.el (gnus-request-accept-article): Don't try to update marks
+	and stuff if the backend didn't return the article number.  This fixes
+	an Exchange-related nnimap bug.
+
+	* gnus-sum.el (gnus-summary-next-article): Remove hack to reselect
+	group window, because it does the wrong thing when a separate frame
+	displays the group buffer.
+
+	* proto-stream.el (open-protocol-stream): Protect against the low-level
+	transport functions returning nil.
+
+2011-01-07  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (epg-sub-key-fingerprint): Autoload.
+	(mml2015-epg-find-usable-secret-key): New function.
+	(mml2015-epg-sign): Use mml2015-epg-find-usable-secret-key instead of
+	mml2015-epg-find-usable-key (Bug#7797).
+	(mml2015-epg-encrypt): Ditto.
+
+2011-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* flow-fill.el (fill-flowed-encode): Do encoding citation-aware.
+
+2011-01-03  Glenn Morris  <rgm@gnu.org>
+
+	* sieve-manage.el (sieve-manage-open): Correctly set sieve-manage-port.
+
+	* sieve.el (sieve-open-server): Give a more explicit error if
+	sieve-manage-open returns nil.  (Bug#7720)
+
+2011-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* gnus-msg.el (gnus-message-replyencrypt): Default to `t'.
+
+2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-login): Prefer AUTH=CRAM-MD5, if it's available.
+	This avoids sending passwords in plain text over non-encrypted
+	channels.
+
+	* shr.el (shr-rescale-image): Display all GIF images as animated images.
+
+	* nnimap.el (nnimap-login): Refactored out into own function, and
+	implement CRAM-MD5.
+	(nnimap-wait-for-line): Refactored out.
+
+	* mm-view.el (mml-smime): Require.
+
+2010-12-20  David Engster  <deng@eml.cc>
+
+	* mm-view.el (mm-view-pkcs7-decrypt): If mml-smime-use is set to 'epg,
+	use EPG to decrypt S/MIME messages instead of openssl.
+
+2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-group): Avoid double SELECT on `M-g'.
+
+	* gnus-group.el (gnus-group-kill-group): Don't try to update the group
+	status is the group clearly is unreachable.
+
+	* auth-source.el (auth-source-create): Add the optional second
+	parameter to `local-variable-p' to be compatible with XEmacs.
+
+2011-01-02  Wang Diancheng  <dcwang@kingbase.com.cn>  (tiny change)
+
+	* nnml.el (nnml-request-article): Allow requesting by Message-ID to
+	work when using a compressed nnml folder.
+
+2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-select-newsgroup): Don't propagate marks to
+	backends after sanitising on entry, because this never makes sense:
+	If the articles have gone missing, then the data no longer exists on
+	the backend, and if they haven't, then Gnus is wrong, and shouldn't
+	overwrite anything anyway.
+
+	* shr.el (shr-insert-document): Bind shr-width dynamically to
+	window-width if it's nil.
+
+2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* shr.el (shr-width, shr-insert-document): Allow nil as shr-width value
+	with the meaning of using the full emacs window width for rendering.
+
 2010-12-27  Daiki Ueno  <ueno@unixuser.org>
 
 	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt): Take care the
@@ -168,8 +528,8 @@
 
 2010-12-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-sum.el (gnus-summary-enter-digest-group): Mention
-	gnus-auto-select-on-ephemeral-exit.
+	* gnus-sum.el (gnus-summary-enter-digest-group):
+	Mention gnus-auto-select-on-ephemeral-exit.
 
 	* proto-stream.el (proto-stream-open-network-only): Fix the calling
 	convention of the network-only option.
@@ -408,8 +768,8 @@
 	(nnir-mode): Install nnir-specific hooks for updating the registry.
 
 	* gnus-sum.el
-	(gnus-article-original-subject,gnus-newsgroup-original-name): Remove
-	obsolete variables.
+	(gnus-article-original-subject,gnus-newsgroup-original-name):
+	Remove obsolete variables.
 	(gnus-summary-move-article): Remove use of obsolete variables.
 	(gnus-summary-local-variables): Make move and delete hooks local to
 	summary buffers.
@@ -525,7 +885,7 @@
 
 	* nntp.el (nntp-open-connection): Report what the connection error is.
 
-	* proto-stream.el (open-protocol-stream): Renamed from
+	* proto-stream.el (open-protocol-stream): Rename from
 	open-proto-stream.
 
 2010-11-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -806,8 +1166,8 @@
 
 	* shr.el (shr-parse-style): Replace \n with space in style parsing.
 
-	* shr-color.el (shr-color-hsl-to-rgb-fractions): Use
-	shr-color-hue-to-rgb.
+	* shr-color.el (shr-color-hsl-to-rgb-fractions):
+	Use shr-color-hue-to-rgb.
 	(shr-color->hexadecimal): Call shr-color-hsl-to-rgb-fractions.
 
 2010-11-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -18926,8 +19286,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-  Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-    Free Software Foundation, Inc.
+  Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

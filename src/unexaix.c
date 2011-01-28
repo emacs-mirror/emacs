@@ -1,6 +1,5 @@
 /* Dump an executable image.
-   Copyright (C) 1985, 1986, 1987, 1988, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -639,5 +638,3 @@ start_of_text (void)
   return ((char *) 0x10000000);
 }
 
-/* arch-tag: 0783857a-7c2d-456f-a426-58b722d69fd0
-   (do not change this comment) */

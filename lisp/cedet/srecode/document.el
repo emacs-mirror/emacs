@@ -1,6 +1,6 @@
 ;;; srecode/document.el --- Documentation (comment) generation
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -837,5 +837,4 @@ not account for verb parts."
 ;; generated-autoload-load-name: "srecode/document"
 ;; End:
 
-;; arch-tag: 5ce9b30b-7862-4ab8-b3f8-a4df37a2e0fe
 ;;; srecode/document.el ends here

@@ -1,7 +1,6 @@
 ;;; wdired.el --- Rename files editing their names in dired buffers
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Filename: wdired.el
 ;; Author: Juan León Lahoz García <juanleon1@gmail.com>
@@ -841,5 +840,4 @@ Like original function but it skips read-only words."
 ;; byte-compile-dynamic: t
 ;; End:
 
-;; arch-tag: bc00902e-526f-4305-bc7f-8862a559184f
 ;;; wdired.el ends here

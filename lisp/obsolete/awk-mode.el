@@ -1,7 +1,6 @@
 ;;; awk-mode.el --- AWK code editing commands for Emacs
 
-;; Copyright (C) 1988, 1994, 1996, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996, 2000-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: unix, languages
@@ -122,5 +121,4 @@ Turning on AWK mode runs `awk-mode-hook'."
 
 (provide 'awk-mode)
 
-;; arch-tag: 14ebc02a-b3c5-4e76-8034-6ca9ac0af0e6
 ;;; awk-mode.el ends here

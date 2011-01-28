@@ -1,7 +1,6 @@
 ;;; foldout.el --- folding extensions for outline-mode and outline-minor-mode
 
-;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Kevin Broadey <KevinB@bartley.demon.co.uk>
 ;; Maintainer: FSF
@@ -565,5 +564,4 @@ Valid modifiers are shift, control, meta, alt, hyper and super.")
 
 (provide 'foldout)
 
-;; arch-tag: 19d095a2-1f09-42a7-a5ac-e2a3078cfe95
 ;;; foldout.el ends here

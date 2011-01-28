@@ -1,7 +1,6 @@
 ;;; semantic/texi.el --- Semantic details for Texinfo files
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -688,5 +687,4 @@ If TAG is nil, it is derived from the deffn under POINT."
 
 (provide 'semantic/texi)
 
-;; arch-tag: a8649049-46da-407b-a620-d175c1fedca6
 ;;; semantic/texi.el ends here

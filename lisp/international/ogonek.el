@@ -1,7 +1,6 @@
 ;;; ogonek.el --- change the encoding of Polish diacritics
 
-;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: W{\l}odek Bzyl
 ;;	   Ryszard Kubiak
@@ -500,5 +499,4 @@ followed by a non-Polish character, that is one not listed in the
 
 (provide 'ogonek)
 
-;; arch-tag: 672d7744-28ac-412b-965e-06a27e50d1d7
 ;;; ogonek.el ends here

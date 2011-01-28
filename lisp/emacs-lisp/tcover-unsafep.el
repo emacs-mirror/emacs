@@ -1,6 +1,6 @@
 ;;;; testcover-unsafep.el -- Use testcover to test unsafep's code coverage
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@engineer.com>
 ;; Maintainer: Jonathan Yavner <jyavner@engineer.com>
@@ -138,5 +138,4 @@
   (testcover-end "unsafep.el")
   (message "Done"))
 
-;; arch-tag: a7616c27-1998-47ae-9304-76d1439dbf29
 ;; testcover-unsafep.el ends here.

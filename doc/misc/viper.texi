@@ -7,8 +7,7 @@
 @setfilename ../../info/viper
 
 @copying
-Copyright @copyright{} 1995, 1996, 1997, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 1995-1997, 2001-2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -4558,7 +4557,3 @@ zapman@@cc.gatech.edu (Jason Zapman II),
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: f53e866a-15cf-4b1e-aead-77da9da1e864
-@end ignore

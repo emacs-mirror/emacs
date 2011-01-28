@@ -1,7 +1,6 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp
 
-;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
 ;; Maintainer: FSF
@@ -560,5 +559,4 @@ Switches to the buffer `*ielm*', or creates it if it does not exist."
 
 (provide 'ielm)
 
-;; arch-tag: ef60e4c0-9c4f-4bdb-8402-271313329790
 ;;; ielm.el ends here

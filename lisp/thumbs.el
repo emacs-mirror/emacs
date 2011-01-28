@@ -1,6 +1,6 @@
 ;;; thumbs.el --- Thumbnails previewer for images files
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011 Free Software Foundation, Inc.
 
 ;; Author: Jean-Philippe Theberge <jphiltheberge@videotron.ca>
 ;; Maintainer: FSF
@@ -816,5 +816,4 @@ ACTION and ARG should be a valid convert command."
 
 (provide 'thumbs)
 
-;; arch-tag: f9ac1ef8-83fc-42c0-8069-1fae43fd2e5c
 ;;; thumbs.el ends here

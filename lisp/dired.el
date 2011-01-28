@@ -1,7 +1,6 @@
 ;;; dired.el --- directory-browsing commands
 
-;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -1146,7 +1145,10 @@ If HDR is non-nil, insert a header line with the directory name."
   "Reread the dired buffer.
 Must also be called after `dired-actual-switches' have changed.
 Should not fail even on completely garbaged buffers.
-Preserves old cursor, marks/flags, hidden-p."
+Preserves old cursor, marks/flags, hidden-p.
+
+Dired sets `revert-buffer-function' to this function.  The args
+ARG and NOCONFIRM, passed from `revert-buffer', are ignored."
   (widen)				; just in case user narrowed
   (let ((modflag (buffer-modified-p))
 	(positions (dired-save-positions))
@@ -3562,7 +3564,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "2e8658304f56098052e312d01c8763a2")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "b30af1396920c8bf22f3c83746bb73f9")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3723,12 +3725,18 @@ Not documented
 \(fn FILE)" nil nil)
 
 (autoload 'dired-query "dired-aux" "\
-Query user and return nil or t.
-Store answer in symbol VAR (which must initially be bound to nil).
-Format PROMPT with ARGS.
-Binding variable `help-form' will help the user who types the help key.
+Format PROMPT with ARGS, query user, and store the result in SYM.
+The return value is either nil or t.
 
-\(fn QS-VAR QS-PROMPT &rest QS-ARGS)" nil nil)
+The user may type y or SPC to accept once; n or DEL to skip once;
+! to accept this and subsequent queries; or q or ESC to decline
+this and subsequent queries.
+
+If SYM is already bound to a non-nil value, this function may
+return automatically without querying the user.  If SYM is !,
+return t; if SYM is q or ESC, return nil.
+
+\(fn SYM PROMPT &rest ARGS)" nil nil)
 
 (autoload 'dired-do-compress "dired-aux" "\
 Compress or uncompress marked (or next ARG) files.
@@ -4015,7 +4023,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "27c312d6d5d40d8cb4ef8d62e30d5f4a")
+;;;;;;  "6d47e23fbd9236014786c50618e99f09")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

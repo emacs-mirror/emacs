@@ -1,8 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1141,8 +1139,6 @@ in *Help* buffer.  See also the command `describe-char'."
   (define-key m "\M-\t" 'lisp-complete-symbol)
   (set-keymap-parent m minibuffer-local-map)
   (setq read-expression-map m))
-
-(defvar read-expression-history nil)
 
 (defvar minibuffer-completing-symbol nil
   "Non-nil means completing a Lisp symbol in the minibuffer.")
@@ -2341,7 +2337,11 @@ the use of a shell (with its need to quote arguments)."
 		      (error "Shell command in progress")))
 		(with-current-buffer buffer
 		  (setq buffer-read-only nil)
-		  (erase-buffer)
+		  ;; Setting buffer-read-only to nil doesn't suffice
+		  ;; if some text has a non-nil read-only property,
+		  ;; which comint sometimes adds for prompts.
+		  (let ((inhibit-read-only t))
+		    (erase-buffer))
 		  (display-buffer buffer)
 		  (setq default-directory directory)
 		  (setq proc (start-process "Shell" buffer shell-file-name
@@ -4219,9 +4219,11 @@ Outline mode sets this."
   "When non-nil, `line-move' moves point by visual lines.
 This movement is based on where the cursor is displayed on the
 screen, instead of relying on buffer contents alone.  It takes
-into account variable-width characters and line continuation."
+into account variable-width characters and line continuation.
+If nil, `line-move' moves point by logical lines."
   :type 'boolean
-  :group 'editing-basics)
+  :group 'editing-basics
+  :version "23.1")
 
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
@@ -5100,12 +5102,10 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 		 regexp)
   :group 'fill)
 
-;; This function is used as the auto-fill-function of a buffer
-;; when Auto-Fill mode is enabled.
-;; It returns t if it really did any work.
-;; (Actually some major modes use a different auto-fill function,
-;; but this one is the default one.)
 (defun do-auto-fill ()
+  "The default value for `normal-auto-fill-function'.
+This is the default auto-fill function, some major modes use a different one.
+Returns t if it really did any work."
   (let (fc justify give-up
 	   (fill-prefix fill-prefix))
     (if (or (not (setq justify (current-justification)))
@@ -5712,10 +5712,6 @@ appears to have customizations applying to the old default,
   :version "23.2"
   :group 'mail)
 
-(define-mail-user-agent 'sendmail-user-agent
-  'sendmail-user-agent-compose
-  'mail-send-and-exit)
-
 (defun rfc822-goto-eoh ()
   ;; Go to header delimiter line in a mail message, following RFC822 rules
   (goto-char (point-min))
@@ -5723,37 +5719,9 @@ appears to have customizations applying to the old default,
 	 "^\\([:\n]\\|[^: \t\n]+[ \t\n]\\)" nil 'move)
     (goto-char (match-beginning 0))))
 
-(defun sendmail-user-agent-compose (&optional to subject other-headers continue
-					      switch-function yank-action
-					      send-actions)
-  (if switch-function
-      (let ((special-display-buffer-names nil)
-	    (special-display-regexps nil)
-	    (same-window-buffer-names nil)
-	    (same-window-regexps nil))
-	(funcall switch-function "*mail*")))
-  (let ((cc (cdr (assoc-string "cc" other-headers t)))
-	(in-reply-to (cdr (assoc-string "in-reply-to" other-headers t)))
-	(body (cdr (assoc-string "body" other-headers t))))
-    (or (mail continue to subject in-reply-to cc yank-action send-actions)
-	continue
-	(error "Message aborted"))
-    (save-excursion
-      (rfc822-goto-eoh)
-      (while other-headers
-	(unless (member-ignore-case (car (car other-headers))
-				    '("in-reply-to" "cc" "body"))
-	    (insert (car (car other-headers)) ": "
-		    (cdr (car other-headers))
-		    (if use-hard-newlines hard-newline "\n")))
-	(setq other-headers (cdr other-headers)))
-      (when body
-	(forward-line 1)
-	(insert body))
-      t)))
-
 (defun compose-mail (&optional to subject other-headers continue
-			       switch-function yank-action send-actions)
+		     switch-function yank-action send-actions
+		     return-action)
   "Start composing a mail message to send.
 This uses the user's chosen mail composition package
 as selected with the variable `mail-user-agent'.
@@ -5778,7 +5746,12 @@ FUNCTION to ARGS, to insert the raw text of the original message.
 original text has been inserted in this way.)
 
 SEND-ACTIONS is a list of actions to call when the message is sent.
-Each action has the form (FUNCTION . ARGS)."
+Each action has the form (FUNCTION . ARGS).
+
+RETURN-ACTION, if non-nil, is an action for returning to the
+caller.  It has the form (FUNCTION . ARGS).  The function is
+called after the mail has been sent or put aside, and the mail
+buffer buried."
   (interactive
    (list nil nil nil current-prefix-arg))
 
@@ -5808,25 +5781,27 @@ To disable this warning, set `compose-mail-user-agent-warnings' to nil."
 					       warn-vars " "))))))
 
   (let ((function (get mail-user-agent 'composefunc)))
-    (funcall function to subject other-headers continue
-	     switch-function yank-action send-actions)))
+    (funcall function to subject other-headers continue switch-function
+	     yank-action send-actions return-action)))
 
 (defun compose-mail-other-window (&optional to subject other-headers continue
-					    yank-action send-actions)
+					    yank-action send-actions
+					    return-action)
   "Like \\[compose-mail], but edit the outgoing message in another window."
-  (interactive
-   (list nil nil nil current-prefix-arg))
+  (interactive (list nil nil nil current-prefix-arg))
   (compose-mail to subject other-headers continue
-		'switch-to-buffer-other-window yank-action send-actions))
-
+		'switch-to-buffer-other-window yank-action send-actions
+		return-action))
 
 (defun compose-mail-other-frame (&optional to subject other-headers continue
-					    yank-action send-actions)
+					    yank-action send-actions
+					    return-action)
   "Like \\[compose-mail], but edit the outgoing message in another frame."
-  (interactive
-   (list nil nil nil current-prefix-arg))
+  (interactive (list nil nil nil current-prefix-arg))
   (compose-mail to subject other-headers continue
-		'switch-to-buffer-other-frame yank-action send-actions))
+		'switch-to-buffer-other-frame yank-action send-actions
+		return-action))
+
 
 (defvar set-variable-value-history nil
   "History of values entered with `set-variable'.

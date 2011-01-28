@@ -1,6 +1,6 @@
 ;;; rng-parse.el --- parse an XML file and validate it against a schema
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -100,5 +100,4 @@ be signaled in the same way as when it is not well-formed."
 
 (provide 'rng-parse)
 
-;; arch-tag: 8f14f533-b687-4dc0-9cd7-617ead856981
 ;;; rng-parse.el ends here

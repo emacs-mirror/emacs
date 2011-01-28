@@ -8,7 +8,7 @@
 @copying
 This manual is for Remember Mode, version 1.9
 
-Copyright @copyright{} 2001, 2004, 2005, 2007, 2008, 2009, 2010
+Copyright @copyright{} 2001, 2004-2005, 2007-2011
 Free Software Foundation, Inc.
 
 @quotation
@@ -403,7 +403,3 @@ consult @ref{Remember, , , org}.
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: 5b980db0-20cc-4167-b845-52dc11d53b9f
-@end ignore

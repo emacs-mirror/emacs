@@ -1,7 +1,6 @@
 ;;; tq.el --- utility to maintain a transaction queue
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Scott Draves <spot@cs.cmu.edu>
 ;; Maintainer: FSF
@@ -167,5 +166,4 @@ This produces more reliable results with some processes."
 
 (provide 'tq)
 
-;; arch-tag: 65dea08c-4edd-4cde-83a5-e8a15b993b79
 ;;; tq.el ends here

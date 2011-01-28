@@ -1,6 +1,6 @@
 ;;; misearch.el --- isearch extensions for multi-buffer search
 
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Keywords: matching
@@ -378,5 +378,4 @@ whose file names match the specified wildcard."
 
 (provide 'multi-isearch)
 
-;; arch-tag: a6d38ffa-4d14-4e39-8ac6-46af9d6a6773
 ;;; misearch.el ends here

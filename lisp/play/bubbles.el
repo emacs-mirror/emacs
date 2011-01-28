@@ -1,6 +1,6 @@
 ;;; bubbles.el --- Puzzle game for Emacs.
 
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; URL:         http://ulf.epplejasper.de/
@@ -1460,5 +1460,4 @@ Return t if new char is non-empty."
 
 (provide 'bubbles)
 
-;; arch-tag: 2cd7237a-b0ad-400d-a7fd-75f676dceb70
 ;;; bubbles.el ends here

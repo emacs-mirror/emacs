@@ -1,7 +1,6 @@
 ;;; ses.el -- Simple Emacs Spreadsheet  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
@@ -3017,5 +3016,4 @@ current column and continues until the next nonblank column."
 
 (provide 'ses)
 
-;; arch-tag: 88c1ccf0-4293-4824-8c5d-0757b52217f3
 ;;; ses.el ends here

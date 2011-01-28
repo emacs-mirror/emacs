@@ -1,7 +1,6 @@
 /*
 Copyright (C) 1992, 1993 Lucid, Inc.
-Copyright (C) 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1994, 1999-2011  Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -191,5 +190,3 @@ int lw_separator_p (const char *label, enum menu_separator *type,
 
 #endif /* LWLIB_H */
 
-/* arch-tag: 44d818d5-7eb2-4d87-acd7-b992bb0d5d20
-   (do not change this comment) */

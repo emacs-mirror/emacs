@@ -405,7 +405,7 @@
 
 See ChangeLog.07 for earlier changes.
 
-    Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+	Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -427,4 +427,3 @@ See ChangeLog.07 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-;; arch-tag: 15787dfd-e091-4c8c-8b88-747b474e1ac7

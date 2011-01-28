@@ -1,7 +1,6 @@
 ;;; semantic/db-global.el --- Semantic database extensions for GLOBAL
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2006, 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -220,5 +219,4 @@ Like `semanticdb-find-tags-for-completion-method' for global."
 ;; generated-autoload-load-name: "semantic/db-global"
 ;; End:
 
-;; arch-tag: ec0edab2-26c2-438f-a3d2-0d953364f8cc
 ;;; semantic/db-global.el ends here

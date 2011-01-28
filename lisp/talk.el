@@ -1,7 +1,6 @@
 ;;; talk.el --- allow several users to talk to each other through Emacs
 
-;; Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: comm, frames
@@ -120,5 +119,4 @@ Select the first of these windows, displaying the first of the buffers."
 
 (provide 'talk)
 
-;; arch-tag: 7ab0ad88-1788-4886-a44c-ae685e6f8a1a
 ;;; talk.el ends here

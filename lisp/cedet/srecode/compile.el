@@ -1,6 +1,6 @@
 ;;; srecode/compile --- Compilation of srecode template files.
 
-;; Copyright (C) 2005, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
@@ -654,5 +654,4 @@ Argument INDENT specifies the indentation level for the list."
 ;; generated-autoload-load-name: "srecode/compile"
 ;; End:
 
-;; arch-tag: d993ffab-2704-4bb2-bd92-eafe803af3be
 ;;; srecode/compile.el ends here

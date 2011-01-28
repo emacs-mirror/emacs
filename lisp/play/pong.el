@@ -1,7 +1,6 @@
 ;;; pong.el --- classical implementation of pong
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Benjamin Drieu <bdrieu@april.org>
 ;; Keywords: games
@@ -458,5 +457,4 @@ pong-mode keybindings:\\<pong-mode-map>
 
 (provide 'pong)
 
-;; arch-tag: 1fdf0fc5-13e2-4de4-aae4-09bdd5af99f3
 ;;; pong.el ends here

@@ -1,7 +1,6 @@
 ;;; helper.el --- utility help package supporting help in electric modes
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -156,5 +155,4 @@
 
 (provide 'helper)
 
-;; arch-tag: a0984577-d3e9-4124-ae0d-c46fe740f6a9
 ;;; helper.el ends here

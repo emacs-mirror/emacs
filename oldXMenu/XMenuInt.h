@@ -61,5 +61,3 @@ int _XMRefreshPane(register Display *display, register XMenu *menu, register XMP
 #endif
 /* Don't add stuff after this #endif */
 
-/* arch-tag: 00640af1-9386-48b5-a4be-35620b8cd3aa
-   (do not change this comment) */

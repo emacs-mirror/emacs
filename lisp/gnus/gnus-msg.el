@@ -1,7 +1,6 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011  Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -243,10 +242,10 @@ See also the `mml-default-sign-method' variable."
   :group 'gnus-message
   :type 'boolean)
 
-(defcustom gnus-message-replyencrypt
-  nil
+(defcustom gnus-message-replyencrypt t
   "Automatically encrypt replies to encrypted messages.
 See also the `mml-default-encrypt-method' variable."
+  :version "24.1"
   :group 'gnus-message
   :type 'boolean)
 
@@ -476,7 +475,7 @@ Thank you for your help in stamping out bugs.
 
 ;;;###autoload
 (defun gnus-msg-mail (&optional to subject other-headers continue
-				switch-action yank-action send-actions)
+		      switch-action yank-action send-actions return-action)
   "Start editing a mail message to be sent.
 Like `message-mail', but with Gnus paraphernalia, particularly the
 Gcc: header for archiving purposes."
@@ -485,7 +484,7 @@ Gcc: header for archiving purposes."
 	mail-buf)
     (gnus-setup-message 'message
       (message-mail to subject other-headers continue
-		    nil yank-action send-actions))
+		    nil yank-action send-actions return-action))
     (when switch-action
       (setq mail-buf (current-buffer))
       (switch-to-buffer buf)

@@ -1,6 +1,6 @@
 ;;; mb-depth.el --- Indicate minibuffer-depth in prompt
 ;;
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -72,5 +72,4 @@ Returns non-nil if the new state is enabled."
 
 (provide 'mb-depth)
 
-;; arch-tag: 50224089-5bf5-46f8-803d-18f018c5eacf
 ;;; mb-depth.el ends here

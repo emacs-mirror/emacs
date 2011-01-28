@@ -1,6 +1,6 @@
 ;;; nxml-glyph.el --- glyph-handling for nxml-mode
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -415,5 +415,4 @@ Return nil if the face cannot display a glyph for N."
 
 (provide 'nxml-glyph)
 
-;; arch-tag: 50985104-27c6-4241-8625-b11aa5685633
 ;;; nxml-glyph.el ends here

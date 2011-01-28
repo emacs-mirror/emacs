@@ -1477,8 +1477,7 @@ Beachten Sie bitte, dass im Zweifelsfalle das englische Original
 dieser Urheberrechtsnotiz gültig ist (zu finden in der Datei
 TUTORIAL).
 
-   Copyright (C) 1985, 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006,
-     2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1996-1997, 2001-2011 Free Software Foundation, Inc.
 
    Diese Datei ist ein Bestandteil von GNU Emacs.
 
@@ -1506,4 +1505,3 @@ freie Software verwenden, verteilen, oder sogar selber schreiben.
 ;;;   coding: latin-1
 ;;; End:
 
-;;; arch-tag: a8f2fe06-631d-4ae1-887e-446f971b0baa

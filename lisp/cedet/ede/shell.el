@@ -1,6 +1,6 @@
 ;;; ede/shell.el --- A shell controlled by EDE.
 ;;
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -79,5 +79,4 @@ COMMAND is a text string representing the thing to be run."
 ;; generated-autoload-load-name: "ede/shell"
 ;; End:
 
-;; arch-tag: 71bb9dc4-ad1c-4ba3-a95e-531a90500ca9
 ;;; ede/shell.el ends here

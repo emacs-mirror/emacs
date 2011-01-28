@@ -1,6 +1,6 @@
 /* ftxfont.c -- FreeType font driver on X (without using XFT).
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -385,5 +385,3 @@ syms_of_ftxfont (void)
   register_font_driver (&ftxfont_driver, NULL);
 }
 
-/* arch-tag: 59bd3469-5330-413f-b29d-1aa36492abe8
-   (do not change this comment) */

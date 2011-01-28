@@ -1,6 +1,5 @@
 /* Definitions for interface to indent.c
-   Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -76,5 +75,3 @@ void recompute_width_table (struct buffer *buf,
                             struct Lisp_Char_Table *disptab);
 
 
-/* arch-tag: f9feb373-5bff-4f4f-9198-94805d00cfd7
-   (do not change this comment) */

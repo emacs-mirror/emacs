@@ -1,7 +1,6 @@
 ;;; saveplace.el --- automatically save place in files
 
-;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: FSF
@@ -213,7 +212,9 @@ may have changed\) back to `save-place-alist'."
                       (symbol-name coding-system-for-write)))
       (let ((print-length nil)
             (print-level nil))
-        (print save-place-alist (current-buffer)))
+        (pp (sort save-place-alist
+                  (lambda (a b) (string< (car a) (car b))))
+            (current-buffer)))
       (let ((version-control
              (cond
               ((null save-place-version-control) nil)
@@ -305,5 +306,4 @@ may have changed\) back to `save-place-alist'."
 
 (provide 'saveplace) ; why not...
 
-;; arch-tag: 3c2ef47b-0a22-4558-b116-118c9ef454a0
 ;;; saveplace.el ends here

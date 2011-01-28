@@ -1,7 +1,6 @@
 ;;; dired-x.el --- extra Dired functionality
 
-;; Copyright (C) 1993, 1994, 1997, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1997, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
@@ -187,6 +186,12 @@ This only has effect when `dired-omit-mode' is t.  See interactive function
 `dired-omit-extensions'.  The default is to omit  `.', `..', auto-save
 files and lock files."
   :type 'regexp
+  :group 'dired-x)
+
+(defcustom dired-omit-verbose t
+  "When non-nil, show messages when omitting files.
+When nil, don't show messages."
+  :type 'boolean
   :group 'dired-x)
 
 (defcustom dired-find-subdir nil           ; t is pretty near to DWIM...
@@ -613,8 +618,9 @@ This functions works by temporarily binding `dired-marker-char' to
                (not dired-omit-size-limit)
                (< (buffer-size) dired-omit-size-limit)
 	       (progn
-		 (message "Not omitting: directory larger than %d characters."
-			  dired-omit-size-limit)
+		 (when dired-omit-verbose
+		   (message "Not omitting: directory larger than %d characters."
+			    dired-omit-size-limit))
 		 (setq dired-omit-mode nil)
 		 nil)))
       (let ((omit-re (or regexp (dired-omit-regexp)))
@@ -622,12 +628,14 @@ This functions works by temporarily binding `dired-marker-char' to
             count)
         (or (string= omit-re "")
             (let ((dired-marker-char dired-omit-marker-char))
-              (message "Omitting...")
+              (when dired-omit-verbose (message "Omitting..."))
               (if (dired-mark-unmarked-files omit-re nil nil dired-omit-localp)
                   (progn
-                    (setq count (dired-do-kill-lines nil "Omitted %d line%s."))
+                    (setq count (dired-do-kill-lines
+				 nil
+				 (if dired-omit-verbose "Omitted %d line%s." "")))
                     (force-mode-line-update))
-                (message "(Nothing to omit)"))))
+                (when dired-omit-verbose (message "(Nothing to omit)")))))
         ;; Try to preserve modified state of buffer.  So `%*' doesn't appear
         ;; in mode-line of omitted buffers.
         (set-buffer-modified-p (and old-modified-p
@@ -1821,5 +1829,4 @@ variables `dired-x-variable-list' in the message."
 ;; generated-autoload-file: "dired.el"
 ;; End:
 
-;; arch-tag: 71a43ba2-7a00-4793-a028-0613dd7765ae
 ;;; dired-x.el ends here

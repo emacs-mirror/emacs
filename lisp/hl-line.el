@@ -1,7 +1,6 @@
 ;;; hl-line.el --- highlight the current line
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Maintainer: FSF
@@ -219,5 +218,4 @@ the line including the point by OVERLAY."
 
 (provide 'hl-line)
 
-;; arch-tag: ac806940-0876-4959-8c89-947563ee2833
 ;;; hl-line.el ends here

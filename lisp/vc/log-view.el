@@ -1,7 +1,6 @@
 ;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: rcs, sccs, cvs, log, vc, tools
@@ -542,5 +541,4 @@ the changes that affected other files than the currently considered file(s)."
 
 (provide 'log-view)
 
-;; arch-tag: 0d64220b-ce7e-4f62-9c2a-6b04c2f81f4f
 ;;; log-view.el ends here

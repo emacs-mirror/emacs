@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building, Maintaining, Programs, Top
@@ -122,10 +121,10 @@ confirmation before actually killing a compilation that is running.
 You can also kill the compilation process with @kbd{M-x
 kill-compilation}.
 
-  If you want to run two compilations at once, you should start the
-first one, then rename the @samp{*compilation*} buffer (perhaps using
-@code{rename-uniquely}; @pxref{Misc Buffer}), and start the other
-compilation.  That will create a new @samp{*compilation*} buffer.
+  To run two compilations at once, start the first one, then rename
+the @samp{*compilation*} buffer (perhaps using @code{rename-uniquely};
+@pxref{Misc Buffer}), then switch buffers and start the other
+compilation.  This will create a new @samp{*compilation*} buffer.
 
   Emacs does not expect a compiler process to launch asynchronous
 subprocesses; if it does, and they keep running after the main
@@ -1640,8 +1639,3 @@ editing Lisp programs to be run in Emacs; see @pxref{Lisp Eval}): in
 both modes it has the effect of installing the function definition
 that point is in, but the way of doing so is different according to
 where the relevant Lisp environment is found.
-
-
-@ignore
-   arch-tag: 9c3c2f71-b332-4144-8500-3ff9945a50ed
-@end ignore

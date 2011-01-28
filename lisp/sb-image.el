@@ -1,7 +1,6 @@
 ;;; sb-image --- Image management for speedbar
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2003, 2005-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -105,5 +104,4 @@ See `speedbar-expand-image-button-alist' for details."
 
 (provide 'sb-image)
 
-;; arch-tag: 6b05accd-e8b8-4290-8379-f063f3dacabb
 ;;; sb-image.el ends here

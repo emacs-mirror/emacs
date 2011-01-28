@@ -1,6 +1,5 @@
 /* Things for GLYPHS and glyph tables.
-   Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -49,15 +48,8 @@ extern struct Lisp_Char_Table *window_display_table (struct window *);
 /* Defined in indent.c.  */
 extern struct Lisp_Char_Table *buffer_display_table (void);
 
-/* Display table to use for vectors that don't specify their own.  */
-extern Lisp_Object Vstandard_display_table;
-
 /* This is the `purpose' slot of a display table.  */
 extern Lisp_Object Qdisplay_table;
-
-/* Vector of GLYPH definitions.  Indexed by GLYPH number,
-   the contents are a string which is how to output the GLYPH.  */
-extern Lisp_Object Vglyph_table;
 
 /* Return the current length of the GLYPH table,
    or 0 if the table isn't currently valid.  */
@@ -104,5 +96,3 @@ extern Lisp_Object Vglyph_table;
 #define SET_GLYPH_FROM_CHAR(glyph, c) \
   SET_GLYPH (glyph, c, DEFAULT_FACE_ID)
 
-/* arch-tag: d7f792d2-f59c-4904-a91e-91522e3ab349
-   (do not change this comment) */

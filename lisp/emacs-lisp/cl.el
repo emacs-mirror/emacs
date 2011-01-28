@@ -1,7 +1,6 @@
 ;;; cl.el --- Common Lisp extensions for Emacs
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -676,5 +675,4 @@ If ALIST is non-nil, the new pairs are prepended to it."
 ;; byte-compile-warnings: (not cl-functions)
 ;; End:
 
-;; arch-tag: 5f07fa74-f153-4524-9303-21f5be125851
 ;;; cl.el ends here

@@ -1,6 +1,6 @@
 /* Allocate X colors.  Used for testing with dense colormaps.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-     Free Software Foundation, Inc.
+
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -112,5 +112,3 @@ main (int argc, char **argv)
   return 0;
 }
 
-/* arch-tag: f1be90ac-5b70-43c2-835e-5a6432a25145
-   (do not change this comment) */

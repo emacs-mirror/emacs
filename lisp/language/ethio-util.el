@@ -1,9 +1,8 @@
 ;;; ethio-util.el --- utilities for Ethiopic	-*- coding: utf-8; -*-
 
-;; Copyright (C) 1997, 1998, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2002-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010
+;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2005, 2006
@@ -2073,5 +2072,4 @@ mark."
 
 ;;; ethio-util.el ends here
 
-;; arch-tag: c8feb3d6-39bf-4b0a-b6ef-26f03fbc8140
 ;;; ethio-util.el ends here

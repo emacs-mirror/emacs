@@ -1,7 +1,6 @@
 ;;; calc-funcs.el --- well-known functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -1009,5 +1008,4 @@
 
 (provide 'calc-funcs)
 
-;; arch-tag: 421ddb7a-550f-4dda-a31c-06638ebfc43a
 ;;; calc-funcs.el ends here

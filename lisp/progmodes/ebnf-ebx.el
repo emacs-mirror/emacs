@@ -1,7 +1,6 @@
 ;;; ebnf-ebx.el --- parser for EBNF used to specify XML (EBNFX)
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -669,5 +668,4 @@ See documentation for variable `ebnf-ebx-lex'."
 
 (provide 'ebnf-ebx)
 
-;; arch-tag: bfe2f95b-66bc-4dc6-8b7e-b7831e68f5fb
 ;;; ebnf-ebx.el ends here

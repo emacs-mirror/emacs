@@ -1,7 +1,6 @@
 ;;; iso-insert.el --- insert functions for ISO 8859/1  -*- coding: iso-8859-1;-*-
 
-;; Copyright (C) 1987, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -629,5 +628,4 @@
 
 (provide 'iso-insert)
 
-;; arch-tag: eb5f97bd-a034-4851-92ff-ab1f1bf92814
 ;;; iso-insert.el ends here

@@ -1,7 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff vc
@@ -1938,5 +1937,4 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
 ;; use `combine-after-change-calls' to minimize the slowdown of font-lock.
 ;;
 
-;; arch-tag: 2571d7ff-bc28-4cf9-8585-42e21890be66
 ;;; diff-mode.el ends here

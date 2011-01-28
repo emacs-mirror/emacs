@@ -1,7 +1,6 @@
 ;;; semantic/java.el --- Semantic functions for Java
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;; 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 
@@ -459,5 +458,4 @@ removed from the result list."
 
 (provide 'semantic/java)
 
-;; arch-tag: ca14cb88-9343-48a9-9aa0-14d05be8d49f
 ;;; semantic/java.el ends here

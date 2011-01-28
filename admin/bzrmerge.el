@@ -1,22 +1,22 @@
 ;;; bzrmerge.el --- 
 
-;; Copyright (C) 2010  Stefan Monnier
+;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: 
 
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -24,8 +24,16 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl))                        ; assert
+
+(defvar bzrmerge-skip-regexp
+  "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version"
+  "Regexp matching logs of revisions that might be skipped.
+`bzrmerge-missing' will ask you if it should skip any matches.")
+
 (defun bzrmerge-merges ()
-  "Return the list of already merged (not not committed) revisions.
+  "Return the list of already merged (not yet committed) revisions.
 The list returned is sorted by oldest-first."
   (with-current-buffer (get-buffer-create "*bzrmerge*")
     (erase-buffer)
@@ -88,6 +96,7 @@ The list returned is sorted by oldest-first."
 (defun bzrmerge-missing (from merges)
   "Return the list of revisions that need to be merged.
 MERGES is the revisions already merged but not yet committed.
+Asks about skipping revisions with logs matching `bzrmerge-skip-regexp'.
 The result is of the form (TOMERGE . TOSKIP) where TOMERGE and TOSKIP
 are both lists of revnos, in oldest-first order."
   (with-current-buffer (get-buffer-create "*bzrmerge*")
@@ -111,8 +120,7 @@ are both lists of revnos, in oldest-first order."
                 (setq revno (string-to-number revno)))
               (re-search-forward "^message:\n")
               (while (and (not skip)
-                          (re-search-forward
-                           "back[- ]?port\\|merge\\|re-?generate\\|bump version" nil t))
+                          (re-search-forward bzrmerge-skip-regexp nil t))
                 (let ((str (buffer-substring (line-beginning-position)
                                              (line-end-position))))
                   (when (string-match "\\` *" str)
@@ -170,7 +178,8 @@ are both lists of revnos, in oldest-first order."
             ))
           ;; Try to resolve the conflicts.
           (cond
-           ((member file '("configure" "lisp/ldefs-boot.el"))
+           ((member file '("configure" "lisp/ldefs-boot.el"
+                           "lisp/emacs-lisp/cl-loaddefs.el"))
             (call-process "bzr" nil t nil "revert" file)
             (revert-buffer nil 'noconfirm))
            (t
@@ -202,7 +211,7 @@ Does not make other difference."
                   "merge" "-r" (format "%s" endrevno) from)
     (call-process "bzr" nil t nil "revert" ".")
     (call-process "bzr" nil t nil "unshelve")))
-  
+
 (defvar bzrmerge-already-done nil)
 
 (defun bzrmerge-apply (missing from)
@@ -214,6 +223,7 @@ Does not make other difference."
     (setq bzrmerge-already-done nil)
     (let ((merge (car missing))
           (skip (cdr missing))
+          (unsafe nil)
           beg end)
       (when (or merge skip)
         (cond
@@ -245,6 +255,7 @@ Does not make other difference."
                           "--force" "-r" (format "%s..%s" beg end) from)
             ;; The merge did not update the metadata, so force the next time
             ;; around to update it (as a "skip").
+            (setq unsafe t)
             (push end skip))
           (pop-to-buffer (current-buffer))
           (sit-for 1)
@@ -267,6 +278,15 @@ Does not make other difference."
             (when conflicted
               (setq bzrmerge-already-done
                     (list (cons merge skip) from missing))
+              (if unsafe
+                  ;; FIXME: Obviously, we'd rather make it right rather
+                  ;; than output such a warning.  But I don't know how to add
+                  ;; the metadata to bzr's since the technique used in
+                  ;; bzrmerge-add-metadata does not work when there
+                  ;; are conflicts.
+                  (display-warning 'bzrmerge "Resolve conflicts manually.
+¡BEWARE!  Important metadata is kept in this Emacs session!
+Do not commit without re-running `M-x bzrmerge' first!"))
               (error "Resolve conflicts manually")))))
         (cons merge skip)))))
 

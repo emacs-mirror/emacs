@@ -1,7 +1,6 @@
 ;;; semantic/util-modes.el --- Semantic minor modes
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Authors: Eric M. Ludlam <zappo@gnu.org>
 ;;          David Ponce <david@dponce.com>
@@ -1011,5 +1010,4 @@ function was called, move the overlay."
 ;; generated-autoload-load-name: "semantic/util-modes"
 ;; End:
 
-;; arch-tag: 18f5a3d8-1fd7-4c17-b149-a313c126987d
 ;;; semantic/util-modes.el ends here

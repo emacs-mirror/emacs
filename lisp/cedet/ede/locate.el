@@ -1,6 +1,6 @@
 ;;; ede/locate.el --- Locate support
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -348,5 +348,4 @@ that created this EDE locate object."
 ;; generated-autoload-load-name: "ede/locate"
 ;; End:
 
-;; arch-tag: a04cb356-d11c-4f69-bd72-5a8a2aff708c
 ;;; ede/locate.el ends here

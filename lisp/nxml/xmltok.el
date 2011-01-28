@@ -1,6 +1,6 @@
 ;;; xmltok.el --- XML tokenization
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -1920,5 +1920,4 @@ and `xmltok-namespace-attributes'."
 
 (provide 'xmltok)
 
-;; arch-tag: 747e5f3a-6fc3-4f8d-bd96-89f05aa99f5e
 ;;; xmltok.el ends here

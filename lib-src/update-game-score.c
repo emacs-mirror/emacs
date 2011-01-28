@@ -1,7 +1,6 @@
 /* update-game-score.c --- Update a score file
 
-Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 Author: Colin Walters <walters@debian.org>
 
@@ -34,9 +33,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #include <errno.h>
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -498,7 +495,5 @@ unlock_file (const char *filename, void *state)
   return ret;
 }
 
-/* arch-tag: 2bf5c52e-4beb-463a-954e-c58b9c64736b
-   (do not change this comment) */
 
 /* update-game-score.c ends here */

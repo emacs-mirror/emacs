@@ -1,6 +1,6 @@
 ;;; nnimap.el --- IMAP interface for Gnus
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Simon Josefsson <simon@josefsson.org>
@@ -124,7 +124,7 @@ textual parts.")
 
 (defstruct nnimap
   group process commands capabilities select-result newlinep server
-  last-command-time greeting examined)
+  last-command-time greeting examined stream-type)
 
 (defvar nnimap-object nil)
 
@@ -350,7 +350,7 @@ textual parts.")
            login-result credentials)
       (when nnimap-server-port
 	(setq ports (append ports (list nnimap-server-port))))
-      (destructuring-bind (stream greeting capabilities)
+      (destructuring-bind (stream greeting capabilities stream-type)
 	  (open-protocol-stream
 	   "*nnimap*" (current-buffer) nnimap-address (car (last ports))
 	   :type nnimap-stream
@@ -362,6 +362,7 @@ textual parts.")
 	     (when (gnus-string-match-p "STARTTLS" capabilities)
 	       "1 STARTTLS\r\n")))
 	(setf (nnimap-process nnimap-object) stream)
+	(setf (nnimap-stream-type nnimap-object) stream-type)
 	(if (not stream)
 	    (progn
 	      (nnheader-report 'nnimap "Unable to contact %s:%s via %s"
@@ -390,17 +391,7 @@ textual parts.")
 				(nnimap-credentials nnimap-address ports)))))
 		  (setq nnimap-object nil)
 		(setq login-result
-		      (if (and (nnimap-capability "AUTH=PLAIN")
-			       (nnimap-capability "LOGINDISABLED"))
-			  (nnimap-command
-			   "AUTHENTICATE PLAIN %s"
-			   (base64-encode-string
-			    (format "\000%s\000%s"
-				    (nnimap-quote-specials (car credentials))
-				    (nnimap-quote-specials (cadr credentials)))))
-			(nnimap-command "LOGIN %S %S"
-					(car credentials)
-					(cadr credentials))))
+		      (nnimap-login (car credentials) (cadr credentials)))
 		(unless (car login-result)
 		  ;; If the login failed, then forget the credentials
 		  ;; that are now possibly cached.
@@ -416,6 +407,39 @@ textual parts.")
 	      (when (nnimap-capability "QRESYNC")
 		(nnimap-command "ENABLE QRESYNC"))
 	      (nnimap-process nnimap-object))))))))
+
+(autoload 'rfc2104-hash "rfc2104")
+
+(defun nnimap-login (user password)
+  (cond
+   ;; Prefer plain LOGIN if it's enabled (since it requires fewer
+   ;; round trips than CRAM-MD5, and it's less likely to be buggy),
+   ;; and we're using an encrypted connection.
+   ((and (not (nnimap-capability "LOGINDISABLED"))
+	 (eq (nnimap-stream-type nnimap-object) 'tls))
+    (nnimap-command "LOGIN %S %S" user password))
+   ((nnimap-capability "AUTH=CRAM-MD5")
+    (erase-buffer)
+    (let ((sequence (nnimap-send-command "AUTHENTICATE CRAM-MD5"))
+	  (challenge (nnimap-wait-for-line "^\\+\\(.*\\)\n")))
+      (process-send-string
+       (get-buffer-process (current-buffer))
+       (concat
+	(base64-encode-string
+	 (concat user " "
+		 (rfc2104-hash 'md5 64 16 password
+			       (base64-decode-string challenge))))
+	"\r\n"))
+      (nnimap-wait-for-response sequence)))
+   ((not (nnimap-capability "LOGINDISABLED"))
+    (nnimap-command "LOGIN %S %S" user password))
+   ((nnimap-capability "AUTH=PLAIN")
+    (nnimap-command
+     "AUTHENTICATE PLAIN %s"
+     (base64-encode-string
+      (format "\000%s\000%s"
+	      (nnimap-quote-specials user)
+	      (nnimap-quote-specials password)))))))
 
 (defun nnimap-quote-specials (string)
   (with-temp-buffer
@@ -565,7 +589,7 @@ textual parts.")
     ;; Collect all the body parts.
     (while (looking-at ".*BODY\\[\\([.0-9]+\\)\\]")
       (setq id (match-string 1)
-	    bytes (nnimap-get-length))
+	    bytes (or (nnimap-get-length) 0))
       (beginning-of-line)
       (delete-region (point) (progn (forward-line 1) (point)))
       (push (list id (buffer-substring (point) (+ (point) bytes)))
@@ -639,7 +663,7 @@ textual parts.")
   (let ((result (nnimap-possibly-change-group
 		 ;; Don't SELECT the group if we're going to select it
 		 ;; later, anyway.
-		 (if (and dont-check
+		 (if (and (not dont-check)
 			  (assoc group nnimap-current-infos))
 		     nil
 		   group)
@@ -1541,8 +1565,9 @@ textual parts.")
   (nnimap-parse-response))
 
 (defun nnimap-wait-for-connection (&optional regexp)
-  (unless regexp
-    (setq regexp "^[*.] .*\n"))
+  (nnimap-wait-for-line (or regexp "^[*.] .*\n") "[*.] \\([A-Z0-9]+\\)"))
+
+(defun nnimap-wait-for-line (regexp &optional response-regexp)
   (let ((process (get-buffer-process (current-buffer))))
     (goto-char (point-min))
     (while (and (memq (process-status process)
@@ -1551,7 +1576,7 @@ textual parts.")
       (nnheader-accept-process-output process)
       (goto-char (point-min)))
     (forward-line -1)
-    (and (looking-at "[*.] \\([A-Z0-9]+\\)")
+    (and (looking-at (or response-regexp regexp))
 	 (match-string 1))))
 
 (defun nnimap-wait-for-response (sequence &optional messagep)

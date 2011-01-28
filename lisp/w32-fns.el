@@ -1,7 +1,6 @@
 ;;; w32-fns.el --- Lisp routines for Windows NT
 
-;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -57,7 +56,7 @@ That includes all Windows systems except for 9X/Me."
 
 (defun w32-shell-name ()
   "Return the name of the shell being used."
-  (or (bound-and-true-p explicit-shell-file-name)
+  (or (bound-and-true-p shell-file-name)
       (getenv "ESHELL")
       (getenv "SHELL")
       (and (w32-using-nt) "cmd.exe")

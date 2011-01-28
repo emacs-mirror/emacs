@@ -1,7 +1,6 @@
 ;;; case-table.el --- code to extend the character set and support case tables
 
-;; Copyright (C) 1988, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -175,5 +174,4 @@ SYNTAX should be \" \", \"w\", \".\" or \"_\"."
 
 (provide 'case-table)
 
-;; arch-tag: 3c2cf885-2c9a-449a-9972-2e269191896d
 ;;; case-table.el ends here

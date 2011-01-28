@@ -1,6 +1,6 @@
 ;;; erc-pcomplete.el --- Provides programmable completion for ERC
 
-;; Copyright (C) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Sacha Chua <sacha@free.net.ph>
 ;; Keywords: comm, convenience
@@ -279,4 +279,3 @@ up to where point is right now."
 ;; indent-tabs-mode: nil
 ;; End:
 
-;; arch-tag: 32a7703b-be87-45a4-82f3-9eed5a628911

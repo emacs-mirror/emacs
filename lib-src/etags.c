@@ -28,8 +28,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Copyright (C) 1984, 1987, 1988, 1989, 1993, 1994, 1995, 1998, 1999,
-  2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2011
   Free Software Foundation, Inc.
 
 This file is not considered part of GNU Emacs.
@@ -172,9 +171,8 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # endif
 #endif /* !WINDOWSNT */
 
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#else
+#include <unistd.h>
+#ifndef HAVE_UNISTD_H
 # if defined (HAVE_GETCWD) && !defined (WINDOWSNT)
     extern char *getcwd (char *buf, size_t size);
 # endif
@@ -891,7 +889,7 @@ static void
 print_version (void)
 {
   /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
+  char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
 
   printf ("%s (%s %s)\n", (CTAGS) ? "ctags" : "etags", EMACS_NAME, VERSION);
   puts (emacs_copyright);
@@ -6724,8 +6722,5 @@ xrealloc (char *ptr, unsigned int size)
  * c-file-style: "gnu"
  * End:
  */
-
-/* arch-tag: 8a9b748d-390c-4922-99db-2eeefa921051
-   (do not change this comment) */
 
 /* etags.c ends here */

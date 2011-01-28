@@ -1,7 +1,6 @@
 ;;; url-irc.el --- IRC URL interface
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -91,5 +90,4 @@ PASSWORD - What password to use"
 
 (provide 'url-irc)
 
-;; arch-tag: 2e5eecf8-9eb3-436b-9fbd-c26f2fb2bf3e
 ;;; url-irc.el ends here

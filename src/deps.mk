@@ -1,7 +1,6 @@
 ### deps.mk --- src/Makefile fragment for GNU Emacs
 
-## Copyright (C) 1985, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001, 2002,
-##   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2011
 ##   Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
@@ -138,7 +137,6 @@ md5.o: md5.c md5.h $(config_h)
 minibuf.o: minibuf.c syntax.h frame.h window.h keyboard.h systime.h \
    buffer.h commands.h character.h msdos.h $(INTERVALS_H) keymap.h \
    termhooks.h lisp.h $(config_h) coding.h
-mktime.o: mktime.c $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
    termopts.h termchar.h character.h coding.h ccl.h disptab.h window.h \
    keyboard.h $(INTERVALS_H) buffer.h commands.h blockinput.h atimer.h \

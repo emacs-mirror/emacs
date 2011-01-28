@@ -1,7 +1,6 @@
 ;;; eudc-export.el --- functions to export EUDC query results
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -220,5 +219,4 @@ This function can only be called from a directory query result buffer."
        (overlay-get (car (overlays-at (point))) 'eudc-record)
        (eudc-insert-record-at-point-into-bbdb)))
 
-;; arch-tag: 8cbda7dc-3163-47e6-921c-6ec5083df2d7
 ;;; eudc-export.el ends here

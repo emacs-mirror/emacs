@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/minibuf
@@ -2202,7 +2201,3 @@ arrives, whichever comes first.  If @var{args} is non-@code{nil}, the
 actual message is obtained by passing @var{string} and @var{args}
 through @code{format}.  @xref{Formatting Strings}.
 @end defun
-
-@ignore
-   arch-tag: bba7f945-9078-477f-a2ce-18818a6e1218
-@end ignore

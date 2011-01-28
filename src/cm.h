@@ -1,6 +1,5 @@
 /* Cursor motion calculation definitions for GNU Emacs
-   Copyright (C) 1985, 1989, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1989, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -170,5 +169,3 @@ extern void cmgoto (struct tty_display_info *, int, int);
 extern void Wcm_clear (struct tty_display_info *);
 extern int Wcm_init (struct tty_display_info *);
 
-/* arch-tag: acc1535a-7136-49d6-b22d-9bc85702251b
-   (do not change this comment) */

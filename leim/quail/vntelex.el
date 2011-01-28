@@ -1,7 +1,6 @@
 ;;; vntelex.el --- Quail package for Vietnamese by Telex method
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author:   Werner Lemberg <wl@gnu.org>
 ;; Keywords: multilingual, input method, Vietnamese
@@ -426,5 +425,4 @@ and postfix: Eee -> Ee, ajj -> aj, etc.
 ;; coding: iso-2022-7bit
 ;; End:
 
-;; arch-tag: 60db6880-0c9f-4456-b9fe-628de053a5ab
 ;;; vntelex.el ends here

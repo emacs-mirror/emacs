@@ -1,7 +1,6 @@
 ;;; echistory.el --- Electric Command History Mode
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -150,5 +149,4 @@ The Command History listing is recomputed each time this mode is invoked."
 
 (provide 'echistory)
 
-;; arch-tag: 1e5018fe-190f-44a7-9109-a895dcac4c50
 ;;; echistory.el ends here

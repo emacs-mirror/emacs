@@ -1,7 +1,6 @@
 ;;; ebnf-bnf.el --- parser for EBNF
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -605,5 +604,4 @@ See documentation for variable `ebnf-bnf-lex'."
 (provide 'ebnf-bnf)
 
 
-;; arch-tag: 3b1834d3-8367-475b-80d5-8e0bbd00ce50
 ;;; ebnf-bnf.el ends here

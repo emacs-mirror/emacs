@@ -1,6 +1,6 @@
 ;;; nxml-enc.el --- XML encoding auto-detection
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -146,5 +146,4 @@ Applied to any files that `auto-mode-alist' says should be handled by
 
 (provide 'nxml-enc)
 
-;; arch-tag: c2436247-78f3-418c-8069-85dc5335d083
 ;;; nxml-enc.el ends here

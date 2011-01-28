@@ -1,7 +1,6 @@
 ;;; org-src.el --- Source code examples in Org
 ;;
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;	   Bastien Guerry <bzg AT altern DOT org>
@@ -807,5 +806,4 @@ LANG is a string, and the returned major mode is a symbol."
 
 (provide 'org-src)
 
-;; arch-tag: 6a1fc84f-dec7-47be-a416-64be56bea5d8
 ;;; org-src.el ends here

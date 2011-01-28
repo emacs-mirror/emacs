@@ -1,6 +1,6 @@
 ;;; bytecomp-testsuite.el
 
-;; Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 ;; Author:         Shigeru Fukaya <shigeru.fukaya@gmail.com>
 ;; Created:        November 2008
@@ -280,4 +280,3 @@ Subtests signal errors if something goes wrong."
 
 (provide 'byte-opt-testsuite)
 
-;; arch-tag: 01cb2664-5e7f-4213-ace0-91447d70b7dc

@@ -1,6 +1,6 @@
 ;;; longlines.el --- automatically wrap long lines   -*- coding:utf-8 -*-
 
-;; Copyright (C) 2000, 2001, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2011 Free Software Foundation, Inc.
 
 ;; Authors:    Kai Grossjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;;             Alex Schroeder <alex@gnu.org>
@@ -503,5 +503,4 @@ This is called by `window-configuration-change-hook'."
 
 (provide 'longlines)
 
-;; arch-tag: 3489d225-5506-47b9-8659-d8807b77c624
 ;;; longlines.el ends here

@@ -1,7 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader
 
-;; Copyright (C) 1985, 1993, 1994, 1995, 1996, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993-1996, 2000-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -1847,5 +1846,4 @@ the summary is only showing a subset of messages."
 ;; generated-autoload-file: "rmail.el"
 ;; End:
 
-;; arch-tag: 80b0a27a-a50d-4f37-9466-83d32d1e0ca8
 ;;; rmailsum.el ends here

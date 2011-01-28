@@ -1,7 +1,6 @@
 ;;; esh-module.el --- Eshell modules
 
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes
@@ -100,5 +99,4 @@ customization group.  Example: `eshell-cmpl' for that module."
 	  (unload-feature module)
 	  (message "Unloading %s...done" (symbol-name module))))))
 
-;; arch-tag: 97a3fa16-9d08-40e6-bc2c-36bd70986507
 ;;; esh-module.el ends here

@@ -1,7 +1,6 @@
 ;;; page.el --- page motion commands for Emacs
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp convenience
@@ -164,5 +163,4 @@ thus showing a page other than the one point was originally in."
 ;;; Place `provide' at end of file.
 (provide 'page)
 
-;; arch-tag: e8d7a0bd-8655-4b6e-b852-f2ee25316a1d
 ;;; page.el ends here

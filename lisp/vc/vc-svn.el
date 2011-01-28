@@ -1,7 +1,6 @@
 ;;; vc-svn.el --- non-resident support for Subversion version-control
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -72,9 +71,9 @@ If t, use no switches."
   t			   ;`svn' doesn't support common args like -c or -b.
   "String or list of strings specifying extra switches for svn diff under VC.
 If nil, use the value of `vc-diff-switches' (or `diff-switches'),
-together with \"-x --diff-cmd=diff\" (since svn diff does not
-support the default \"-c\" value of `diff-switches').  If you
-want to force an empty list of arguments, use t."
+together with \"-x --diff-cmd=\"`diff-command' (since 'svn diff'
+does not support the default \"-c\" value of `diff-switches').
+If you want to force an empty list of arguments, use t."
   :type '(choice (const :tag "Unspecified" nil)
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
@@ -171,15 +170,19 @@ want to force an empty list of arguments, use t."
                      (?? . unregistered)
                      ;; This is what vc-svn-parse-status does.
                      (?~ . edited)))
-	(re (if remote "^\\(.\\)......? \\([ *]\\) +\\(?:[-0-9]+\\)?   \\(.*\\)$"
-	      ;; Subexp 2 is a dummy in this case, so the numbers match.
-	      "^\\(.\\)....\\(.\\) \\(.*\\)$"))
+	(re (if remote "^\\(.\\)\\(.\\).....? \\([ *]\\) +\\(?:[-0-9]+\\)?   \\(.*\\)$"
+	      ;; Subexp 3 is a dummy in this case, so the numbers match.
+	      "^\\(.\\)\\(.\\)...\\(.\\) \\(.*\\)$"))
        result)
     (goto-char (point-min))
     (while (re-search-forward re nil t)
       (let ((state (cdr (assq (aref (match-string 1) 0) state-map)))
-	    (filename (match-string 3)))
-	(and remote (string-equal (match-string 2) "*")
+            (propstat (cdr (assq (aref (match-string 2) 0) state-map)))
+	    (filename (match-string 4)))
+        (and (memq propstat '(conflict edited))
+             (not (eq state 'conflict)) ; conflict always wins
+             (setq state propstat))
+	(and remote (string-equal (match-string 3) "*")
 	     ;; FIXME are there other possible combinations?
 	     (cond ((eq state 'edited) (setq state 'needs-merge))
 		   ((not state) (setq state 'needs-update))))
@@ -519,7 +522,7 @@ or svn+ssh://."
   (let* ((switches
 	    (if vc-svn-diff-switches
 		(vc-switches 'SVN 'diff)
-	      (list "--diff-cmd=diff" "-x"
+	      (list (concat "--diff-cmd=" diff-command) "-x"
 		    (mapconcat 'identity (vc-switches nil 'diff) " "))))
 	   (async (and (not vc-disable-async-diff)
                        (vc-stay-local-p files 'SVN)
@@ -643,7 +646,7 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
   "Parse output of \"svn status\" command in the current buffer.
 Set file properties accordingly.  Unless FILENAME is non-nil, parse only
 information about FILENAME and return its status."
-  (let (file status)
+  (let (file status propstat)
     (goto-char (point-min))
     (while (re-search-forward
             ;; Ignore the files with status X.
@@ -653,7 +656,9 @@ information about FILENAME and return its status."
       (setq file (or filename
                      (expand-file-name
                       (buffer-substring (point) (line-end-position)))))
-      (setq status (char-after (line-beginning-position)))
+      (setq status (char-after (line-beginning-position))
+            ;; Status of the item's properties ([ MC]).
+            propstat (char-after (1+ (line-beginning-position))))
       (if (eq status ??)
 	  (vc-file-setprop file 'vc-state 'unregistered)
 	;; Use the last-modified revision, so that searching in vc-print-log
@@ -664,7 +669,7 @@ information about FILENAME and return its status."
 	(vc-file-setprop
 	 file 'vc-state
 	 (cond
-	  ((eq status ?\ )
+	  ((and (eq status ?\ ) (eq propstat ?\ ))
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-update
              (vc-file-setprop file 'vc-checkout-time
@@ -675,9 +680,11 @@ information about FILENAME and return its status."
 	   (vc-file-setprop file 'vc-working-revision "0")
 	   (vc-file-setprop file 'vc-checkout-time 0)
 	   'added)
-	  ((eq status ?C)
+	  ;; Conflict in contents or properties.
+	  ((or (eq status ?C) (eq propstat ?C))
 	   (vc-file-setprop file 'vc-state 'conflict))
-	  ((eq status '?M)
+	  ;; Modified contents or properties.
+	  ((or (eq status ?M) (eq propstat ?M))
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-merge
 	     'edited))
@@ -744,5 +751,4 @@ information about FILENAME and return its status."
 
 (provide 'vc-svn)
 
-;; arch-tag: 02f10c68-2b4d-453a-90fc-1eee6cfb268d
 ;;; vc-svn.el ends here

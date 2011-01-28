@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1998, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1993, 1998, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/hooks
 @node Standard Hooks, Index, Standard Keymaps, Top
@@ -343,7 +342,3 @@ Manual}.
 @item write-region-annotate-functions
 @xref{Format Conversion}.
 @end table
-
-@ignore
-   arch-tag: 55fd0296-d906-4551-b300-979d3846aa88
-@end ignore

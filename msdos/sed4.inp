@@ -2,8 +2,7 @@
 # Configuration script for src/paths.h
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005,
-#   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+# Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -21,4 +20,3 @@
 /^#define *PATH_DOC/s/".*"/rootrelativepath ("etc")/
 /^#define *PATH_INFO/s/".*"/rootrelativepath ("info")/
 
-# arch-tag: c84fa640-e434-4408-9e89-16d9e4ebe74e

@@ -1,7 +1,6 @@
 ;;; nnfolder.el --- mail folder access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org> (adding MARKS)
 ;;      ShengHuo Zhu <zsh@cs.rochester.edu> (adding NOV)
@@ -488,8 +487,8 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
       (nnfolder-save-buffer)
       (nnfolder-adjust-min-active newsgroup)
       (nnfolder-save-active nnfolder-group-alist nnfolder-active-file)
-      (gnus-sorted-difference articles (nreverse deleted-articles)))
-    (nnfolder-save-all-buffers)))
+      (nnfolder-save-all-buffers)
+      (gnus-sorted-difference articles (nreverse deleted-articles)))))
 
 (deffoo nnfolder-request-move-article (article group server accept-form
 					       &optional last move-is-internal)

@@ -1,7 +1,6 @@
 ;;; recentf.el --- setup a menu of recently opened files
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: July 19 1999
@@ -1355,11 +1354,7 @@ that were operated on recently."
     (recentf-auto-cleanup)
     (let ((hook-setup (if recentf-mode 'add-hook 'remove-hook)))
       (dolist (hook recentf-used-hooks)
-        (apply hook-setup hook)))
-    (run-hooks 'recentf-mode-hook)
-    (when (called-interactively-p 'interactive)
-      (message "Recentf mode %sabled" (if recentf-mode "en" "dis"))))
-  recentf-mode)
+        (apply hook-setup hook)))))
 
 (defun recentf-unload-function ()
   "Unload the recentf library."
@@ -1371,5 +1366,4 @@ that were operated on recently."
 
 (run-hooks 'recentf-load-hook)
 
-;; arch-tag: 78f1eec9-0d16-4d19-a4eb-2e4529edb62a
 ;;; recentf.el ends here

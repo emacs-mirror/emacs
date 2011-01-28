@@ -1,6 +1,6 @@
 ;;; org-taskjuggler.el --- TaskJuggler exporter for org-mode
 ;;
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-taskjuggler.el

@@ -1,7 +1,6 @@
 ;;; org-remember.el --- Fast note taking in Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -224,8 +223,7 @@ for a Remember buffer.")
 
 (define-minor-mode org-remember-mode
   "Minor mode for special key bindings in a remember buffer."
-  nil " Rem" org-remember-mode-map
-  (run-hooks 'org-remember-mode-hook))
+  nil " Rem" org-remember-mode-map)
 (define-key org-remember-mode-map "\C-c\C-c" 'org-remember-finalize)
 (define-key org-remember-mode-map "\C-c\C-k" 'org-remember-kill)
 
@@ -1149,7 +1147,6 @@ See also the variable `org-reverse-note-order'."
 
 (provide 'org-remember)
 
-;; arch-tag: 497f30d0-4bc3-4097-8622-2d27ac5f2698
 
 ;;; org-remember.el ends here
 

@@ -1,7 +1,6 @@
 ;;; delsel.el --- delete selection if you insert
 
-;; Copyright (C) 1992, 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1997-1998, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
 ;; Maintainer: FSF
@@ -177,5 +176,4 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (provide 'delsel)
 
-;; arch-tag: 1e388890-1b50-4ed0-9347-763b1343b6ed
 ;;; delsel.el ends here

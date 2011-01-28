@@ -23,5 +23,3 @@ XMenuEventHandler(int (*handler) (XEvent*))
     _XMEventHandler = handler;
 }
 
-/* arch-tag: 8d614c8c-94d9-43c8-8e32-c438a3c8a8a3
-   (do not change this comment) */

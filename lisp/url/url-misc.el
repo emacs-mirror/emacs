@@ -1,7 +1,6 @@
 ;;; url-misc.el --- Misc Uniform Resource Locator retrieval code
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2002, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2002, 2004-2011 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -115,5 +114,4 @@
 
 (provide 'url-misc)
 
-;; arch-tag: 8c544e1b-d8bc-40a6-b319-f1f37fef65a0
 ;;; url-misc.el ends here

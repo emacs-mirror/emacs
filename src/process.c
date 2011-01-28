@@ -1,7 +1,7 @@
 /* Asynchronous subprocess control for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
-		 1996, 1998, 1999, 2001, 2002, 2003, 2004,
-		 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,9 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <inttypes.h>
 #endif
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #include <fcntl.h>
 
 /* Only MS-DOS does not define `subprocesses'.  */
@@ -123,9 +121,6 @@ Lisp_Object QCname, QCtype;
 
 static int kbd_is_on_hold;
 
-/* Nonzero means delete a process right away if it exits.  */
-static int delete_exited_processes;
-
 /* Nonzero means don't run process sentinels.  This is used
    when exiting.  */
 int inhibit_sentinels;
@@ -176,10 +171,6 @@ extern void serial_configure (struct Lisp_Process *p, Lisp_Object contact);
 #ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif
-
-/* t means use pty, nil means use a pipe,
-   maybe other values to come.  */
-static Lisp_Object Vprocess_connection_type;
 
 /* These next two vars are non-static since sysdep.c uses them in the
    emulation of `select'.  */
@@ -249,11 +240,6 @@ static int process_output_delay_count;
 
 static int process_output_skip;
 
-/* Non-nil means to delay reading process output to improve buffering.
-   A value of t means that delay is reset after each send, any other
-   non-nil value does not reset the delay.  A value of nil disables
-   adaptive read buffering completely.  */
-static Lisp_Object Vprocess_adaptive_read_buffering;
 #else
 #define process_output_delay_count 0
 #endif
@@ -425,7 +411,7 @@ delete_write_fd (int fd)
               max_input_desc = fd;
               break;
             }
-      
+
     }
 }
 
@@ -512,7 +498,7 @@ status_message (struct Lisp_Process *p)
 	  if (! NILP (Vlocale_coding_system))
 	    string = (code_convert_string_norecord
 		      (string, Vlocale_coding_system, 0));
-	  c1 = STRING_CHAR ((char *) SDATA (string));
+	  c1 = STRING_CHAR (SSDATA (string));
 	  c2 = DOWNCASE (c1);
 	  if (c1 != c2)
 	    Faset (string, make_number (0), make_number (c2));
@@ -1434,7 +1420,7 @@ list_processes_1 (Lisp_Object query_only)
 	    port = Fformat_network_address (Fplist_get (p->childp, QClocal), Qnil);
 	  sprintf (tembuf, "(network %s server on %s)\n",
 		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
-		   (STRINGP (port) ? (char *)SDATA (port) : "?"));
+		   (STRINGP (port) ? SSDATA (port) : "?"));
 	  insert_string (tembuf);
 	}
       else if (NETCONN1_P (p))
@@ -1452,7 +1438,7 @@ list_processes_1 (Lisp_Object query_only)
 	    host = Fformat_network_address (Fplist_get (p->childp, QCremote), Qnil);
 	  sprintf (tembuf, "(network %s connection to %s)\n",
 		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
-		   (STRINGP (host) ? (char *)SDATA (host) : "?"));
+		   (STRINGP (host) ? SSDATA (host) : "?"));
 	  insert_string (tembuf);
 	}
       else if (SERIALCONN1_P (p))
@@ -2531,7 +2517,7 @@ set_socket_option (int s, Lisp_Object opt, Lisp_Object val)
 
   CHECK_SYMBOL (opt);
 
-  name = (char *) SDATA (SYMBOL_NAME (opt));
+  name = SSDATA (SYMBOL_NAME (opt));
   for (sopt = socket_options; sopt->name; sopt++)
     if (strcmp (name, sopt->name) == 0)
       break;
@@ -2570,7 +2556,7 @@ set_socket_option (int s, Lisp_Object opt, Lisp_Object val)
 	memset (devname, 0, sizeof devname);
 	if (STRINGP (val))
 	  {
-	    char *arg = (char *) SDATA (val);
+	    char *arg = SSDATA (val);
 	    int len = min (strlen (arg), IFNAMSIZ);
 	    memcpy (devname, arg, len);
 	  }
@@ -2855,7 +2841,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   record_unwind_protect (make_serial_process_unwind, proc);
   p = XPROCESS (proc);
 
-  fd = serial_open ((char*) SDATA (port));
+  fd = serial_open (SSDATA (port));
   p->infd = fd;
   p->outfd = fd;
   if (fd > max_process_desc)
@@ -3391,7 +3377,7 @@ usage: (make-network-process &rest ARGS)  */)
 	/* Attempt to interpret host as numeric inet address */
 	{
 	  unsigned long numeric_addr;
-	  numeric_addr = inet_addr ((char *) SDATA (host));
+	  numeric_addr = inet_addr (SSDATA (host));
 	  if (numeric_addr == -1)
 	    error ("Unknown host \"%s\"", SDATA (host));
 
@@ -5659,7 +5645,7 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 #ifdef HAVE_GNUTLS
 		  if (XPROCESS (proc)->gnutls_p)
 		    rv = emacs_gnutls_write (outfd,
-					     XPROCESS (proc), 
+					     XPROCESS (proc),
 					     (char *) buf, this);
 		  else
 #endif
@@ -7644,14 +7630,14 @@ syms_of_process (void)
   Qargs = intern_c_string ("args");
   staticpro (&Qargs);
 
-  DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
+  DEFVAR_BOOL ("delete-exited-processes", delete_exited_processes,
 	       doc: /* *Non-nil means delete processes immediately when they exit.
 A value of nil means don't delete them until `list-processes' is run.  */);
 
   delete_exited_processes = 1;
 
 #ifdef subprocesses
-  DEFVAR_LISP ("process-connection-type", &Vprocess_connection_type,
+  DEFVAR_LISP ("process-connection-type", Vprocess_connection_type,
 	       doc: /* Control type of device used to communicate with subprocesses.
 Values are nil to use a pipe, or t or `pty' to use a pty.
 The value has no effect if the system has no ptys or if all ptys are busy:
@@ -7660,7 +7646,7 @@ The value takes effect when `start-process' is called.  */);
   Vprocess_connection_type = Qt;
 
 #ifdef ADAPTIVE_READ_BUFFERING
-  DEFVAR_LISP ("process-adaptive-read-buffering", &Vprocess_adaptive_read_buffering,
+  DEFVAR_LISP ("process-adaptive-read-buffering", Vprocess_adaptive_read_buffering,
 	       doc: /* If non-nil, improve receive buffering by delaying after short reads.
 On some systems, when Emacs reads the output from a subprocess, the output data
 is read in very small blocks, potentially resulting in very poor performance.
@@ -7741,4 +7727,3 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Slist_system_processes);
   defsubr (&Sprocess_attributes);
 }
-

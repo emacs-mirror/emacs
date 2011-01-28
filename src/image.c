@@ -1,7 +1,5 @@
 /* Functions for image support on window system.
-   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1992-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,10 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <math.h>
 #include <ctype.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef HAVE_PNG
 #if defined HAVE_LIBPNG_PNG_H
@@ -94,6 +89,11 @@ typedef struct w32_bitmap_record Bitmap_Record;
    without modifying lots of files).  */
 extern void x_query_colors (struct frame *f, XColor *colors, int ncolors);
 extern void x_query_color (struct frame *f, XColor *color);
+
+/* Version of libpng that we were compiled with, or -1 if no PNG
+   support was compiled in.  This is tested by w32-win.el to correctly
+   set up the alist used to search for PNG libraries.  */
+Lisp_Object Qlibpng_version;
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
@@ -121,10 +121,6 @@ typedef struct ns_bitmap_record Bitmap_Record;
 #define DefaultDepthOfScreen(screen) x_display_list->n_planes
 #endif /* HAVE_NS */
 
-
-/* Search path for bitmap files.  */
-
-Lisp_Object Vx_bitmap_file_path;
 
 /* The symbol `postscript' identifying images of this type.  */
 
@@ -352,7 +348,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
     {
       if (dpyinfo->bitmaps[id].refcount
 	  && dpyinfo->bitmaps[id].file
-	  && !strcmp (dpyinfo->bitmaps[id].file, (char *) SDATA (file)))
+	  && !strcmp (dpyinfo->bitmaps[id].file, SSDATA (file)))
 	{
 	  ++dpyinfo->bitmaps[id].refcount;
 	  return id + 1;
@@ -365,7 +361,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
     return -1;
   emacs_close (fd);
 
-  filename = (char *) SDATA (found);
+  filename = SSDATA (found);
 
   result = XReadBitmapFile (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    filename, &width, &height, &bitmap, &xhot, &yhot);
@@ -563,10 +559,6 @@ x_create_bitmap_mask (struct frame *f, int id)
 
 static struct image_type *image_types;
 
-/* A list of symbols, one for each supported image type.  */
-
-Lisp_Object Vimage_types;
-
 /* Cache for delayed-loading image types.  */
 
 static Lisp_Object Vimage_type_cache;
@@ -584,11 +576,6 @@ Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask, QCgeometry, QCcrop, Q
 /* Other symbols.  */
 
 Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
-
-/* Time in seconds after which images should be removed from the cache
-   if not displayed.  */
-
-Lisp_Object Vimage_cache_eviction_delay;
 
 /* Function prototypes.  */
 
@@ -1001,8 +988,6 @@ static void free_image (struct frame *f, struct image *img);
 static int check_image_size (struct frame *f, int width, int height);
 
 #define MAX_IMAGE_SIZE 6.0
-Lisp_Object Vmax_image_size;
-
 /* Allocate and return a new image structure for image specification
    SPEC.  SPEC has a hash value of HASH.  */
 
@@ -3347,7 +3332,7 @@ x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
   attrs.valuemask |= XpmColormap;
 
   rc = XpmCreatePixmapFromData (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				bits, &bitmap, &mask, &attrs);
+				(char **) bits, &bitmap, &mask, &attrs);
   if (rc != XpmSuccess)
     {
       XpmFreeAttributes (&attrs);
@@ -4404,11 +4389,6 @@ static void x_detect_edges (struct frame *, struct image *, int[9], int);
 #ifdef HAVE_NTGUI
 static void XPutPixel (XImagePtr , int, int, COLORREF);
 #endif /* HAVE_NTGUI */
-
-/* Non-zero means draw a cross on images having `:conversion
-   disabled'.  */
-
-int cross_disabled_images;
 
 /* Edge detection matrices for different edge-detection
    strategies.  */
@@ -5530,6 +5510,8 @@ static void
 my_png_error (png_struct *png_ptr, const char *msg)
 {
   xassert (png_ptr != NULL);
+  /* Avoid compiler warning about deprecated direct access to
+     png_ptr's fields in libpng versions 1.4.x.  */
   image_error ("PNG error: %s", build_string (msg), Qnil);
   longjmp (png_ptr->jmpbuf, 1);
 }
@@ -7376,13 +7358,10 @@ gif_load (struct frame *f, struct image *img)
 				 imagemagick
 ***********************************************************************/
 #if defined (HAVE_IMAGEMAGICK)
-Lisp_Object Vimagemagick_render_type;
 
 /* The symbol `imagemagick' identifying images of this type.  */
 
 Lisp_Object Qimagemagick;
-Lisp_Object Vimagemagick_render_type;
-
 /* Indices of image specification fields in imagemagick_format, below.  */
 
 enum imagemagick_keyword_index
@@ -7514,6 +7493,9 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
      image.  Interface :index is same as for GIF.  First we "ping" the
      image to see how many sub-images it contains. Pinging is faster
      than loading the image to find out things about it.  */
+
+  /* `MagickWandGenesis' initializes the imagemagick environment.  */
+  MagickWandGenesis ();
   image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
   ping_wand = NewMagickWand ();
@@ -7542,6 +7524,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
                     img->data.lisp_val));
 
   DestroyMagickWand (ping_wand);
+
   /* Now, after pinging, we know how many images are inside the
      file. If its not a bundle, just one.  */
 
@@ -7554,16 +7537,23 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       exception = AcquireExceptionInfo ();
 
       im_image = ReadImage (image_info, exception);
-      CatchException (exception);
+      DestroyExceptionInfo (exception);
 
-      image_wand = NewMagickWandFromImage (im_image);
+      if (im_image != NULL)
+	{
+	  image_wand = NewMagickWandFromImage (im_image);
+          DestroyImage(im_image);
+	  status = MagickTrue;
+	}
+      else
+	status = MagickFalse;
     }
   else
     {
       image_wand = NewMagickWand ();
       status = MagickReadImageBlob (image_wand, contents, size);
     }
-  image_error ("im read failed", Qnil, Qnil);
+
   if (status == MagickFalse) goto imagemagick_error;
 
   /* If width and/or height is set in the display spec assume we want
@@ -7659,11 +7649,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
      width, height, and then transfer ownerwship to Emacs.  */
   height = MagickGetImageHeight (image_wand);
   width = MagickGetImageWidth (image_wand);
-  if (status == MagickFalse)
-    {
-      image_error ("Imagemagick image get size failed", Qnil, Qnil);
-      goto imagemagick_error;
-    }
 
   if (! check_image_size (f, width, height))
     {
@@ -7683,6 +7668,9 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       if (!x_create_x_image_and_pixmap (f, width, height, 0,
                                         &ximg, &img->pixmap))
         {
+#ifdef COLOR_TABLE_SUPPORT
+	  free_color_table ();
+#endif
           image_error("Imagemagick X bitmap allocation failure", Qnil, Qnil);
           goto imagemagick_error;
         }
@@ -7695,6 +7683,10 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       iterator = NewPixelIterator (image_wand);
       if (iterator == (PixelIterator *) NULL)
         {
+#ifdef COLOR_TABLE_SUPPORT
+	  free_color_table ();
+#endif
+	  x_destroy_x_image (ximg);
           image_error ("Imagemagick pixel iterator creation failed",
                        Qnil, Qnil);
           goto imagemagick_error;
@@ -7729,6 +7721,9 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       if (!x_create_x_image_and_pixmap (f, width, height, imagedepth,
                                         &ximg, &img->pixmap))
 	{
+#ifdef COLOR_TABLE_SUPPORT
+	  free_color_table ();
+#endif
 	  image_error("Imagemagick X bitmap allocation failure", Qnil, Qnil);
 	  goto imagemagick_error;
 	}
@@ -7787,10 +7782,14 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
 
   /* Final cleanup. image_wand should be the only resource left. */
   DestroyMagickWand (image_wand);
+  /* `MagickWandTerminus' terminates the imagemagick environment.  */
+  MagickWandTerminus ();
 
   return 1;
 
  imagemagick_error:
+  DestroyMagickWand (image_wand);
+  MagickWandTerminus ();
   /* TODO more cleanup.  */
   image_error ("Error parsing IMAGEMAGICK image `%s'", img->spec, Qnil);
   return 0;
@@ -8662,8 +8661,6 @@ of `dynamic-library-alist', which see).  */)
 #if defined (HAVE_IMAGEMAGICK)
   if (EQ (type, Qimagemagick))
     {
-      /* MagickWandGenesis() initializes the imagemagick library.  */
-      MagickWandGenesis ();
       return CHECK_LIB_AVAILABLE (&imagemagick_type, init_imagemagick_functions,
 				  libraries);
     }
@@ -8689,13 +8686,13 @@ syms_of_image (void)
 
   /* Must be defined now becase we're going to update it below, while
      defining the supported image types.  */
-  DEFVAR_LISP ("image-types", &Vimage_types,
+  DEFVAR_LISP ("image-types", Vimage_types,
     doc: /* List of potentially supported image types.
 Each element of the list is a symbol for an image type, like 'jpeg or 'png.
 To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
 
-  DEFVAR_LISP ("max-image-size", &Vmax_image_size,
+  DEFVAR_LISP ("max-image-size", Vmax_image_size,
     doc: /* Maximum size of images.
 Emacs will not load an image into memory if its pixel width or
 pixel height exceeds this limit.
@@ -8776,6 +8773,18 @@ non-numeric, there is no explicit limit on the size of images.  */);
   staticpro (&QCpt_height);
 #endif /* HAVE_GHOSTSCRIPT */
 
+#ifdef HAVE_NTGUI
+  Qlibpng_version = intern_c_string ("libpng-version");
+  staticpro (&Qlibpng_version);
+  Fset (Qlibpng_version,
+#if HAVE_PNG
+	make_number (PNG_LIBPNG_VER)
+#else
+	make_number (-1)
+#endif
+	);
+#endif
+
 #if defined (HAVE_XPM) || defined (HAVE_NS)
   Qxpm = intern_c_string ("xpm");
   staticpro (&Qxpm);
@@ -8842,17 +8851,17 @@ non-numeric, there is no explicit limit on the size of images.  */);
   defsubr (&Slookup_image);
 #endif
 
-  DEFVAR_BOOL ("cross-disabled-images", &cross_disabled_images,
+  DEFVAR_BOOL ("cross-disabled-images", cross_disabled_images,
     doc: /* Non-nil means always draw a cross over disabled images.
 Disabled images are those having a `:conversion disabled' property.
 A cross is always drawn on black & white displays.  */);
   cross_disabled_images = 0;
 
-  DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
+  DEFVAR_LISP ("x-bitmap-file-path", Vx_bitmap_file_path,
     doc: /* List of directories to search for window system bitmap files.  */);
   Vx_bitmap_file_path = decode_env_path ((char *) 0, PATH_BITMAPS);
 
-  DEFVAR_LISP ("image-cache-eviction-delay", &Vimage_cache_eviction_delay,
+  DEFVAR_LISP ("image-cache-eviction-delay", Vimage_cache_eviction_delay,
     doc: /* Maximum time after which images are removed from the cache.
 When an image has not been displayed this many seconds, Emacs
 automatically removes it from the image cache.  If the cache contains
@@ -8862,7 +8871,7 @@ The value can also be nil, meaning the cache is never cleared.
 The function `clear-image-cache' disregards this variable.  */);
   Vimage_cache_eviction_delay = make_number (300);
 #ifdef HAVE_IMAGEMAGICK
-  DEFVAR_LISP ("imagemagick-render-type", &Vimagemagick_render_type,
+  DEFVAR_LISP ("imagemagick-render-type", Vimagemagick_render_type,
                doc: /* Choose between ImageMagick render methods.  */);
 #endif
 
@@ -8872,6 +8881,3 @@ void
 init_image (void)
 {
 }
-
-/* arch-tag: 123c2a5e-14a8-4c53-ab95-af47d7db49b9
-   (do not change this comment) */

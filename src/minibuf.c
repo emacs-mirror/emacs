@@ -1,7 +1,6 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-                 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1993-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -54,47 +53,11 @@ int minibuf_level;
 
 /* The maximum length of a minibuffer history.  */
 
-Lisp_Object Qhistory_length, Vhistory_length;
-
-/* No duplicates in history.  */
-
-int history_delete_duplicates;
-
-/* Non-nil means add new input to history.  */
-
-Lisp_Object Vhistory_add_new_input;
+Lisp_Object Qhistory_length;
 
 /* Fread_minibuffer leaves the input here as a string. */
 
 Lisp_Object last_minibuf_string;
-
-/* Nonzero means let functions called when within a minibuffer
-   invoke recursive minibuffers (to read arguments, or whatever) */
-
-int enable_recursive_minibuffers;
-
-/* Nonzero means don't ignore text properties
-   in Fread_from_minibuffer.  */
-
-int minibuffer_allow_text_properties;
-
-/* help-form is bound to this while in the minibuffer.  */
-
-Lisp_Object Vminibuffer_help_form;
-
-/* Variable which is the history list to add minibuffer values to.  */
-
-Lisp_Object Vminibuffer_history_variable;
-
-/* Current position in the history list (adjusted by M-n and M-p).  */
-
-Lisp_Object Vminibuffer_history_position;
-
-/* Text properties that are added to minibuffer prompts.
-   These are in addition to the basic `field' property, and stickiness
-   properties.  */
-
-Lisp_Object Vminibuffer_prompt_properties;
 
 Lisp_Object Qminibuffer_history, Qbuffer_name_history;
 
@@ -102,35 +65,13 @@ Lisp_Object Qread_file_name_internal;
 
 /* Normal hooks for entry to and exit from minibuffer.  */
 
-Lisp_Object Qminibuffer_setup_hook, Vminibuffer_setup_hook;
-Lisp_Object Qminibuffer_exit_hook, Vminibuffer_exit_hook;
+Lisp_Object Qminibuffer_setup_hook;
+Lisp_Object Qminibuffer_exit_hook;
 
-/* Function to call to read a buffer name.  */
-Lisp_Object Vread_buffer_function;
-
-/* Nonzero means completion ignores case.  */
-
-int completion_ignore_case;
 Lisp_Object Qcompletion_ignore_case;
-int read_buffer_completion_ignore_case;
-
-/* List of regexps that should restrict possible completions.  */
-
-Lisp_Object Vcompletion_regexp_list;
-
-/* Nonzero means raise the minibuffer frame when the minibuffer
-   is entered.  */
-
-int minibuffer_auto_raise;
-
-/* Keymap for reading expressions.  */
-Lisp_Object Vread_expression_map;
-
-Lisp_Object Vminibuffer_completion_table, Qminibuffer_completion_table;
-Lisp_Object Vminibuffer_completion_predicate, Qminibuffer_completion_predicate;
-Lisp_Object Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
-Lisp_Object Vminibuffer_completing_file_name;
-
+Lisp_Object Qminibuffer_completion_table;
+Lisp_Object Qminibuffer_completion_predicate;
+Lisp_Object Qminibuffer_completion_confirm;
 Lisp_Object Quser_variable_p;
 
 Lisp_Object Qminibuffer_default;
@@ -2074,48 +2015,53 @@ syms_of_minibuf (void)
   Qcase_fold_search = intern_c_string ("case-fold-search");
   staticpro (&Qcase_fold_search);
 
+  DEFVAR_LISP ("read-expression-history", Vread_expression_history,
+	       doc: /* A history list for arguments that are Lisp expressions to evaluate.
+For example, `eval-expression' uses this.  */);
+  Vread_expression_history = Qnil;
+
   Qread_expression_history = intern_c_string ("read-expression-history");
   staticpro (&Qread_expression_history);
 
-  DEFVAR_LISP ("read-buffer-function", &Vread_buffer_function,
+  DEFVAR_LISP ("read-buffer-function", Vread_buffer_function,
 	       doc: /* If this is non-nil, `read-buffer' does its work by calling this function.
 The function is called with the arguments passed to `read-buffer'.  */);
   Vread_buffer_function = Qnil;
 
   DEFVAR_BOOL ("read-buffer-completion-ignore-case",
-	       &read_buffer_completion_ignore_case,
+	       read_buffer_completion_ignore_case,
 	       doc: /* *Non-nil means completion ignores case when reading a buffer name.  */);
   read_buffer_completion_ignore_case = 0;
 
-  DEFVAR_LISP ("minibuffer-setup-hook", &Vminibuffer_setup_hook,
+  DEFVAR_LISP ("minibuffer-setup-hook", Vminibuffer_setup_hook,
 	       doc: /* Normal hook run just after entry to minibuffer.  */);
   Vminibuffer_setup_hook = Qnil;
 
-  DEFVAR_LISP ("minibuffer-exit-hook", &Vminibuffer_exit_hook,
+  DEFVAR_LISP ("minibuffer-exit-hook", Vminibuffer_exit_hook,
 	       doc: /* Normal hook run just after exit from minibuffer.  */);
   Vminibuffer_exit_hook = Qnil;
 
-  DEFVAR_LISP ("history-length", &Vhistory_length,
+  DEFVAR_LISP ("history-length", Vhistory_length,
 	       doc: /* *Maximum length for history lists before truncation takes place.
 A number means that length; t means infinite.  Truncation takes place
 just after a new element is inserted.  Setting the `history-length'
 property of a history variable overrides this default.  */);
   XSETFASTINT (Vhistory_length, 30);
 
-  DEFVAR_BOOL ("history-delete-duplicates", &history_delete_duplicates,
+  DEFVAR_BOOL ("history-delete-duplicates", history_delete_duplicates,
 	       doc: /* *Non-nil means to delete duplicates in history.
 If set to t when adding a new history element, all previous identical
 elements are deleted from the history list.  */);
   history_delete_duplicates = 0;
 
-  DEFVAR_LISP ("history-add-new-input", &Vhistory_add_new_input,
+  DEFVAR_LISP ("history-add-new-input", Vhistory_add_new_input,
 	       doc: /* *Non-nil means to add new elements in history.
 If set to nil, minibuffer reading functions don't add new elements to the
 history list, so it is possible to do this afterwards by calling
 `add-to-history' explicitly.  */);
   Vhistory_add_new_input = Qt;
 
-  DEFVAR_BOOL ("completion-ignore-case", &completion_ignore_case,
+  DEFVAR_BOOL ("completion-ignore-case", completion_ignore_case,
 	       doc: /* Non-nil means don't consider case significant in completion.
 For file-name completion, `read-file-name-completion-ignore-case'
 controls the behavior, rather than this variable.
@@ -2123,12 +2069,12 @@ For buffer name completion, `read-buffer-completion-ignore-case'
 controls the behavior, rather than this variable.  */);
   completion_ignore_case = 0;
 
-  DEFVAR_BOOL ("enable-recursive-minibuffers", &enable_recursive_minibuffers,
+  DEFVAR_BOOL ("enable-recursive-minibuffers", enable_recursive_minibuffers,
 	       doc: /* *Non-nil means to allow minibuffer commands while in the minibuffer.
 This variable makes a difference whenever the minibuffer window is active. */);
   enable_recursive_minibuffers = 0;
 
-  DEFVAR_LISP ("minibuffer-completion-table", &Vminibuffer_completion_table,
+  DEFVAR_LISP ("minibuffer-completion-table", Vminibuffer_completion_table,
 	       doc: /* Alist or obarray used for completion in the minibuffer.
 This becomes the ALIST argument to `try-completion' and `all-completions'.
 The value can also be a list of strings or a hash table.
@@ -2143,11 +2089,11 @@ CODE can be nil, t or `lambda':
   lambda -- return t if STRING is a valid completion as it stands.  */);
   Vminibuffer_completion_table = Qnil;
 
-  DEFVAR_LISP ("minibuffer-completion-predicate", &Vminibuffer_completion_predicate,
+  DEFVAR_LISP ("minibuffer-completion-predicate", Vminibuffer_completion_predicate,
 	       doc: /* Within call to `completing-read', this holds the PREDICATE argument.  */);
   Vminibuffer_completion_predicate = Qnil;
 
-  DEFVAR_LISP ("minibuffer-completion-confirm", &Vminibuffer_completion_confirm,
+  DEFVAR_LISP ("minibuffer-completion-confirm", Vminibuffer_completion_confirm,
 	       doc: /* Whether to demand confirmation of completion before exiting minibuffer.
 If nil, confirmation is not required.
 If the value is `confirm', the user may exit with an input that is not
@@ -2159,15 +2105,15 @@ If the value is `confirm-after-completion', the user may exit with an
   Vminibuffer_completion_confirm = Qnil;
 
   DEFVAR_LISP ("minibuffer-completing-file-name",
-	       &Vminibuffer_completing_file_name,
+	       Vminibuffer_completing_file_name,
 	       doc: /* Non-nil means completing file names.  */);
   Vminibuffer_completing_file_name = Qnil;
 
-  DEFVAR_LISP ("minibuffer-help-form", &Vminibuffer_help_form,
+  DEFVAR_LISP ("minibuffer-help-form", Vminibuffer_help_form,
 	       doc: /* Value that `help-form' takes on inside the minibuffer.  */);
   Vminibuffer_help_form = Qnil;
 
-  DEFVAR_LISP ("minibuffer-history-variable", &Vminibuffer_history_variable,
+  DEFVAR_LISP ("minibuffer-history-variable", Vminibuffer_history_variable,
 	       doc: /* History list symbol to add minibuffer values to.
 Each string of minibuffer input, as it appears on exit from the minibuffer,
 is added with
@@ -2175,16 +2121,16 @@ is added with
   (cons STRING (symbol-value minibuffer-history-variable)))  */);
   XSETFASTINT (Vminibuffer_history_variable, 0);
 
-  DEFVAR_LISP ("minibuffer-history-position", &Vminibuffer_history_position,
+  DEFVAR_LISP ("minibuffer-history-position", Vminibuffer_history_position,
 	       doc: /* Current position of redoing in the history list.  */);
   Vminibuffer_history_position = Qnil;
 
-  DEFVAR_BOOL ("minibuffer-auto-raise", &minibuffer_auto_raise,
+  DEFVAR_BOOL ("minibuffer-auto-raise", minibuffer_auto_raise,
 	       doc: /* *Non-nil means entering the minibuffer raises the minibuffer's frame.
 Some uses of the echo area also raise that frame (since they use it too).  */);
   minibuffer_auto_raise = 0;
 
-  DEFVAR_LISP ("completion-regexp-list", &Vcompletion_regexp_list,
+  DEFVAR_LISP ("completion-regexp-list", Vcompletion_regexp_list,
 	       doc: /* List of regexps that should restrict possible completions.
 The basic completion functions only consider a completion acceptable
 if it matches all regular expressions in this list, with
@@ -2194,14 +2140,14 @@ functions.  */);
   Vcompletion_regexp_list = Qnil;
 
   DEFVAR_BOOL ("minibuffer-allow-text-properties",
-	       &minibuffer_allow_text_properties,
+	       minibuffer_allow_text_properties,
 	       doc: /* Non-nil means `read-from-minibuffer' should not discard text properties.
 This also affects `read-string', but it does not affect `read-minibuffer',
 `read-no-blanks-input', or any of the functions that do minibuffer input
 with completion; they always discard text properties.  */);
   minibuffer_allow_text_properties = 0;
 
-  DEFVAR_LISP ("minibuffer-prompt-properties", &Vminibuffer_prompt_properties,
+  DEFVAR_LISP ("minibuffer-prompt-properties", Vminibuffer_prompt_properties,
 	       doc: /* Text properties that are added to minibuffer prompts.
 These are in addition to the basic `field' property, and stickiness
 properties.  */);
@@ -2210,7 +2156,7 @@ properties.  */);
   Vminibuffer_prompt_properties
     = Fcons (intern_c_string ("read-only"), Fcons (Qt, Qnil));
 
-  DEFVAR_LISP ("read-expression-map", &Vread_expression_map,
+  DEFVAR_LISP ("read-expression-map", Vread_expression_map,
 	       doc: /* Minibuffer keymap used for reading Lisp expressions.  */);
   Vread_expression_map = Qnil;
 

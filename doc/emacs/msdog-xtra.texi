@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2011 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -613,7 +613,3 @@ MS-DOS supports only some of the possible options you can mention in
 the @code{dired-listing-switches} variable.  The options that work are
 @samp{-A}, @samp{-a}, @samp{-c}, @samp{-i}, @samp{-r}, @samp{-S},
 @samp{-s}, @samp{-t}, and @samp{-u}.
-
-@ignore
-   arch-tag: 868d50ff-07f8-4a13-a807-dab6f1cdb431
-@end ignore

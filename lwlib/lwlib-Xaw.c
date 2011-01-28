@@ -1,7 +1,6 @@
 /* The lwlib interface to Athena widgets.
 Copyright (C) 1993 Chuck Thompson <cthomp@cs.uiuc.edu>
-Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -835,5 +834,3 @@ xaw_creation_table [] =
   {NULL, NULL}
 };
 
-/* arch-tag: fbbd3589-ae1c-41a0-9142-f628cfee6564
-   (do not change this comment) */

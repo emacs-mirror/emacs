@@ -1,6 +1,6 @@
 /* xfont.c -- X core font driver.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -362,7 +362,7 @@ xfont_list_pattern (Display *display, const char *pattern,
 	  script = Qnil;
 	}
     }
-      
+
   BLOCK_INPUT;
   x_catch_errors (display);
 
@@ -540,7 +540,7 @@ xfont_list (Lisp_Object frame, Lisp_Object spec)
 	    if (STRINGP (XCAR (alter))
 		&& ((r - name) + SBYTES (XCAR (alter))) < 256)
 	      {
-		strcpy (r, (char *) SDATA (XCAR (alter)));
+		strcpy (r, SSDATA (XCAR (alter)));
 		list = xfont_list_pattern (display, name, registry, script);
 		if (! NILP (list))
 		  break;
@@ -797,7 +797,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   ASET (font_object, FONT_TYPE_INDEX, Qx);
   if (STRINGP (fullname))
     {
-      font_parse_xlfd ((char *) SDATA (fullname), font_object);
+      font_parse_xlfd (SSDATA (fullname), font_object);
       ASET (font_object, FONT_NAME_INDEX, fullname);
     }
   else
@@ -1113,6 +1113,3 @@ syms_of_xfont (void)
   xfont_driver.type = Qx;
   register_font_driver (&xfont_driver, NULL);
 }
-
-/* arch-tag: 23c5f366-a5ee-44b7-a3b7-90d6da7fd749
-   (do not change this comment) */

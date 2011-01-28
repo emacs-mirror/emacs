@@ -1,7 +1,6 @@
 ;;; cl-indent.el --- enhanced lisp-indent mode
 
-;; Copyright (C) 1987, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Created: July 1987
@@ -691,5 +690,4 @@ For example, the function `case' has an indent property
 ;(put 'defclass 'common-lisp-indent-function '((&whole 2 &rest (&whole 2 &rest 1) &rest (&whole 2 &rest 1)))
 ;(put 'defgeneric 'common-lisp-indent-function 'defun)
 
-;; arch-tag: 7914d50f-92ec-4476-93fc-0f043a380e03
 ;;; cl-indent.el ends here

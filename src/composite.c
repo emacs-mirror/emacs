@@ -1,7 +1,6 @@
 /* Composite sequence support.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
    Copyright (C) 2003, 2006
@@ -153,15 +152,8 @@ int n_compositions;
    COMPOSITION-ID.  */
 Lisp_Object composition_hash_table;
 
-/* Function to call to adjust composition.  */
-Lisp_Object Vcompose_chars_after_function;
-
 Lisp_Object Qauto_composed;
-Lisp_Object Vauto_composition_mode;
-Lisp_Object Vauto_composition_function;
 Lisp_Object Qauto_composition_function;
-Lisp_Object Vcomposition_function_table;
-
 /* Maximum number of characters to look back for
    auto-compositions.  */
 #define MAX_AUTO_COMPOSITION_LOOKBACK 3
@@ -1964,7 +1956,7 @@ syms_of_composite (void)
   Vtext_property_default_nonsticky
     = Fcons (Fcons (Qcomposition, Qt), Vtext_property_default_nonsticky);
 
-  DEFVAR_LISP ("compose-chars-after-function", &Vcompose_chars_after_function,
+  DEFVAR_LISP ("compose-chars-after-function", Vcompose_chars_after_function,
 	       doc: /* Function to adjust composition of buffer text.
 
 This function is called with three arguments: FROM, TO, and OBJECT.
@@ -1984,12 +1976,12 @@ The default value is the function `compose-chars-after'.  */);
   Qauto_composition_function = intern_c_string ("auto-composition-function");
   staticpro (&Qauto_composition_function);
 
-  DEFVAR_LISP ("auto-composition-mode", &Vauto_composition_mode,
+  DEFVAR_LISP ("auto-composition-mode", Vauto_composition_mode,
 	       doc: /* Non-nil if Auto-Composition mode is enabled.
 Use the command `auto-composition-mode' to change this variable. */);
   Vauto_composition_mode = Qt;
 
-  DEFVAR_LISP ("auto-composition-function", &Vauto_composition_function,
+  DEFVAR_LISP ("auto-composition-function", Vauto_composition_function,
 	       doc: /* Function to call to compose characters automatically.
 This function is called from the display routine with four arguments:
 FROM, TO, WINDOW, and STRING.
@@ -2002,7 +1994,7 @@ string.  In this case, the function must compose characters in the
 string.  */);
   Vauto_composition_function = Qnil;
 
-  DEFVAR_LISP ("composition-function-table", &Vcomposition_function_table,
+  DEFVAR_LISP ("composition-function-table", Vcomposition_function_table,
 	       doc: /* Char-table of functions for automatic character composition.
 For each character that has to be composed automatically with
 preceding and/or following characters, this char-table contains
@@ -2041,5 +2033,3 @@ See also the documentation of `auto-composition-mode'.  */);
   defsubr (&Scomposition_get_gstring);
 }
 
-/* arch-tag: 79cefaf8-ca48-4eed-97e5-d5afb290d272
-   (do not change this comment) */

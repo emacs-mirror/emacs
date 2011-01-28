@@ -1,7 +1,6 @@
 ;;; edt-user.el --- Sample user customizations for Emacs EDT emulation
 
-;; Copyright (C) 1986, 1992, 1993, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1992-1993, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kgallagh@@spd.dsccc.com>
 ;; Maintainer: Kevin Gallagher <kgallagh@@spd.dsccc.com>
@@ -166,5 +165,4 @@ G-C-\\: Split Window
   (interactive)
   (describe-function 'edt-user-keypad-help))
 
-;; arch-tag: a4671ca7-34b7-43a5-844c-2b2a89134ff4
 ;;; edt-user.el ends here

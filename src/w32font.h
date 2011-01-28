@@ -1,5 +1,5 @@
 /* Shared GDI and Uniscribe Font backend declarations for the W32 API.
-   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -85,5 +85,3 @@ Lisp_Object intern_font_name (char *);
 
 #endif
 
-/* arch-tag: ef9d9675-a2a5-4d01-9526-815e9a3da7cb
-   (do not change this comment) */

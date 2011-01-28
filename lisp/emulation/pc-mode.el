@@ -1,7 +1,6 @@
 ;;; pc-mode.el --- emulate certain key bindings used on PCs
 
-;; Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: emulations
@@ -53,5 +52,4 @@ C-Escape does list-buffers."
 
 (provide 'pc-mode)
 
-;; arch-tag: df007c05-f885-4cd0-8c1e-487d0f8dd9c9
 ;;; pc-mode.el ends here

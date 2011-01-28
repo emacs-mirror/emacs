@@ -1,7 +1,6 @@
 ;;; find-gc.el --- detect functions that call the garbage collector
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -159,5 +158,4 @@ Also store it in `find-gc-unsafe'."
 
 (provide 'find-gc)
 
-;; arch-tag: 4a26a538-a008-40d9-a1ef-23bb6dbecef4
 ;;; find-gc.el ends here

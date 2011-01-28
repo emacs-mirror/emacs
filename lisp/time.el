@@ -1,7 +1,7 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs -*-coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1996, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -463,7 +463,9 @@ update which can wait for the next redisplay."
   "Toggle display of time, load level, and mail flag in mode lines.
 With a numeric arg, enable this display if arg is positive.
 
-When this display is enabled, it updates automatically every minute.
+When this display is enabled, it updates automatically every minute
+\(you can control the number of seconds between updates by
+customizing `display-time-interval').
 If `display-time-day-and-date' is non-nil, the current day and date
 are displayed as well.
 This runs the normal hook `display-time-hook' after each update."
@@ -574,5 +576,4 @@ For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
 
 (provide 'time)
 
-;; arch-tag: b9c1623f-b5cb-48e4-b650-482a4d23c5a6
 ;;; time.el ends here

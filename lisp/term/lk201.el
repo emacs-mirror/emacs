@@ -79,5 +79,4 @@
     (set-keymap-parent m (keymap-parent input-decode-map))
     (set-keymap-parent input-decode-map m)))
 
-;; arch-tag: 7ffb4444-6a23-43e1-b457-43cf4f673c0d
 ;;; lk201.el ends here

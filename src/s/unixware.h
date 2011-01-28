@@ -1,7 +1,6 @@
 /* s/ file for Unixware.
 
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-  2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -61,5 +60,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define	PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)
 
-/* arch-tag: d82e92e7-9443-4a60-a581-7f293cbae8a3
-   (do not change this comment) */

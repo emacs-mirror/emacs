@@ -1,7 +1,6 @@
 /* MS-DOS specific Lisp utilities.  Coded by Manabu Higashida, 1991.
    Major changes May-July 1993 Morten Welinder (only 10% original code left)
-   Copyright (C) 1991, 1993, 1996, 1997, 1998, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1991, 1993, 1996-1998, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -227,12 +226,6 @@ Return nil if startup screen is not available.  */)
   return Qt;
 }
 
-/* country info */
-EMACS_INT dos_country_code;
-EMACS_INT dos_codepage;
-EMACS_INT dos_timezone_offset;
-EMACS_INT dos_decimal_point;
-EMACS_INT dos_keyboard_layout;
 unsigned char dos_country_info[DOS_COUNTRY_INFO];
 static unsigned char usa_country_info[DOS_COUNTRY_INFO] = {
   0, 0,				/* date format */
@@ -249,17 +242,8 @@ static unsigned char usa_country_info[DOS_COUNTRY_INFO] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0	/* reserved */
 };
 
-EMACS_INT dos_hyper_key;
-EMACS_INT dos_super_key;
-EMACS_INT dos_keypad_mode;
-
-Lisp_Object Vdos_version;
-Lisp_Object Vdos_display_scancodes;
-
 #ifndef HAVE_X_WINDOWS
 static unsigned dos_windows_version;
-Lisp_Object Vdos_windows_version;
-
 char parent_vm_title[50];	/* Ralf Brown says 30 is enough */
 int w95_set_virtual_machine_title (const char *);
 
@@ -697,11 +681,11 @@ syms_of_dosfns (void)
   defsubr (&Smsdos_mouse_p);
 #endif
 
-  DEFVAR_INT ("dos-country-code", &dos_country_code,
+  DEFVAR_INT ("dos-country-code", dos_country_code,
 	      doc: /* The country code returned by Dos when Emacs was started.
 Usually this is the international telephone prefix.  */);
 
-  DEFVAR_INT ("dos-codepage", &dos_codepage,
+  DEFVAR_INT ("dos-codepage", dos_codepage,
 	      doc: /* The codepage active when Emacs was started.
 The following are known:
 	437	United States
@@ -713,19 +697,19 @@ The following are known:
 	863	Canada (French)
 	865	Norway/Denmark  */);
 
-  DEFVAR_INT ("dos-timezone-offset", &dos_timezone_offset,
+  DEFVAR_INT ("dos-timezone-offset", dos_timezone_offset,
 	      doc: /* The current timezone offset to UTC in minutes.
 Implicitly modified when the TZ variable is changed.  */);
 
-  DEFVAR_LISP ("dos-version", &Vdos_version,
+  DEFVAR_LISP ("dos-version", Vdos_version,
 	       doc: /* The (MAJOR . MINOR) Dos version (subject to modification with setver).  */);
 
 #ifndef HAVE_X_WINDOWS
-  DEFVAR_LISP ("dos-windows-version", &Vdos_windows_version,
+  DEFVAR_LISP ("dos-windows-version", Vdos_windows_version,
 	       doc: /* The (MAJOR . MINOR) Windows version for DOS session on MS-Windows.  */);
 #endif
 
-  DEFVAR_LISP ("dos-display-scancodes", &Vdos_display_scancodes,
+  DEFVAR_LISP ("dos-display-scancodes", Vdos_display_scancodes,
 	       doc: /* *Controls whether DOS raw keyboard events are displayed as you type.
 When non-nil, the keyboard scan-codes are displayed at the bottom right
 corner of the display (typically at the end of the mode line).
@@ -733,17 +717,17 @@ The output format is: scan code:char code*modifiers.  */);
 
   Vdos_display_scancodes = Qnil;
 
-  DEFVAR_INT ("dos-hyper-key", &dos_hyper_key,
+  DEFVAR_INT ("dos-hyper-key", dos_hyper_key,
 	      doc: /* *If set to 1, use right ALT key as hyper key.
 If set to 2, use right CTRL key as hyper key.  */);
   dos_hyper_key = 0;
 
-  DEFVAR_INT ("dos-super-key", &dos_super_key,
+  DEFVAR_INT ("dos-super-key", dos_super_key,
 	      doc: /* *If set to 1, use right ALT key as super key.
 If set to 2, use right CTRL key as super key.  */);
   dos_super_key = 0;
 
-  DEFVAR_INT ("dos-keypad-mode", &dos_keypad_mode,
+  DEFVAR_INT ("dos-keypad-mode", dos_keypad_mode,
 	      doc: /* *Controls what key code is returned by a key in the numeric keypad.
 The `numlock ON' action is only taken if no modifier keys are pressed.
 The value is an integer constructed by adding the following bits together:
@@ -767,12 +751,12 @@ The value is an integer constructed by adding the following bits together:
   0x200	ALT-0..ALT-9 in top-row produces shifted codes.  */);
   dos_keypad_mode = 0x75;
 
-  DEFVAR_INT ("dos-keyboard-layout", &dos_keyboard_layout,
+  DEFVAR_INT ("dos-keyboard-layout", dos_keyboard_layout,
 	      doc: /* Contains the country code for the current keyboard layout.
 Use msdos-set-keyboard to select another keyboard layout.  */);
   dos_keyboard_layout = 1;	/* US */
 
-  DEFVAR_INT ("dos-decimal-point", &dos_decimal_point,
+  DEFVAR_INT ("dos-decimal-point", dos_decimal_point,
 	      doc: /* The character to produce when kp-decimal key is pressed.
 If non-zero, this variable contains the character to be returned when the
 decimal point key in the numeric keypad is pressed when Num Lock is on.
@@ -781,5 +765,3 @@ If zero, the decimal point key returns the country code specific value.  */);
 }
 #endif /* MSDOS */
 
-/* arch-tag: f5ea8847-a014-42c9-83f5-7738ad640b17
-   (do not change this comment) */

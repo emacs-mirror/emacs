@@ -27,5 +27,3 @@ unexec (const char *new_name, const char *old_name)
 	   Fcons (build_string ("Cannot unexec"), Fcons (errstring, data)));
 }
 
-/* arch-tag: d8ff72b3-8198-4011-8ef5-011b12027f59
-   (do not change this comment) */

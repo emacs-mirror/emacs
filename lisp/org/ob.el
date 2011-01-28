@@ -1,6 +1,6 @@
 ;;; ob.el --- working with code blocks in org-mode
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte, Dan Davison
 ;; Keywords: literate programming, reproducible research
@@ -1963,6 +1963,5 @@ of `org-babel-temporary-directory'."
 
 (provide 'ob)
 
-;; arch-tag: 01a7ebee-06c5-4ee4-a709-e660d28c0af1
 
 ;;; ob.el ends here

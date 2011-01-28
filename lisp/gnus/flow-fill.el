@@ -1,7 +1,6 @@
 ;;; flow-fill.el --- interpret RFC2646 "flowed" text
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;; Keywords: mail
@@ -82,18 +81,37 @@ RFC 2646 suggests 66 characters for readability."
 	;; Go through each paragraph, filling it and adding SPC
 	;; as the last character on each line.
 	(while (setq end (text-property-any start (point-max) 'hard 't))
-	  (let ((fill-column (eval fill-flowed-encode-column)))
-	    (fill-region start end t 'nosqueeze 'to-eop))
-	  (goto-char start)
-	  ;; `fill-region' probably distorted end.
-	  (setq end (text-property-any start (point-max) 'hard 't))
-	  (while (and (< (point) end)
-		      (re-search-forward "$" (1- end) t))
-	    (insert " ")
-	    (setq end (1+ end))
-	    (forward-char))
-	  (goto-char (setq start (1+ end)))))
+	  (save-restriction
+	    (narrow-to-region start end)
+	    (let ((fill-column (eval fill-flowed-encode-column)))
+	      (fill-flowed-fill-buffer))
+	    (goto-char (point-min))
+	    (while (re-search-forward "\n" nil t)
+	      (replace-match " \n" t t))
+	    (goto-char (setq start (1+ (point-max)))))))
       t)))
+
+(defun fill-flowed-fill-buffer ()
+  (let ((prefix nil)
+	(prev-prefix nil)
+	(start (point-min)))
+    (goto-char (point-min))
+    (while (not (eobp))
+      (setq prefix (and (looking-at "[> ]+")
+			(match-string 0)))
+      (if (equal prefix prev-prefix)
+	  (forward-line 1)
+	(save-restriction
+	  (narrow-to-region start (point))
+	  (let ((fill-prefix prev-prefix))
+	    (fill-region (point-min) (point-max) t 'nosqueeze 'to-eop))
+	  (goto-char (point-max)))
+	(setq prev-prefix prefix
+	      start (point))))
+    (save-restriction
+      (narrow-to-region start (point))
+      (let ((fill-prefix prev-prefix))
+	(fill-region (point-min) (point-max) t 'nosqueeze 'to-eop)))))
 
 ;;;###autoload
 (defun fill-flowed (&optional buffer delete-space)
@@ -105,8 +123,6 @@ RFC 2646 suggests 66 characters for readability."
       (forward-line 1))
     (goto-char (point-min))
     (while (re-search-forward " $" nil t)
-      (when delete-space
-	(delete-char -1))
       (when (save-excursion
 	      (beginning-of-line)
 	      (looking-at "^\\(>*\\)\\( ?\\)"))
@@ -134,6 +150,8 @@ RFC 2646 suggests 66 characters for readability."
 	      (replace-match (if (string= (match-string 2) " ")
 				 "" "\\2")))
 	    (backward-delete-char -1)
+	    (when delete-space
+	      (delete-char -1))
 	    (end-of-line))
 	  (unless sig
 	    (condition-case nil

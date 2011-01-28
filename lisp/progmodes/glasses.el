@@ -1,7 +1,6 @@
 ;;; glasses.el --- make cantReadThis readable
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Milan Zamazal <pdm@zamazal.org>
@@ -329,5 +328,4 @@ at places they belong to."
 (provide 'glasses)
 
 
-;; arch-tag: a3515167-c89e-484f-90a1-d85143e52b12
 ;;; glasses.el ends here

@@ -1,8 +1,7 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000,
-  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-1995, 1997-2011
+                 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -901,19 +900,10 @@ EXFUN (Fnext_overlay_change, 1);
 EXFUN (Fdelete_overlay, 1);
 EXFUN (Fbuffer_local_value, 2);
 
-/* Functions to call before and after each text change.  */
-extern Lisp_Object Vbefore_change_functions;
-extern Lisp_Object Vafter_change_functions;
-extern Lisp_Object Vfirst_change_hook;
 extern Lisp_Object Qbefore_change_functions;
 extern Lisp_Object Qafter_change_functions;
 extern Lisp_Object Qfirst_change_hook;
 
-/* If nonzero, all modification hooks are suppressed.  */
-extern int inhibit_modification_hooks;
-
-extern Lisp_Object Vdeactivate_mark;
-extern Lisp_Object Vtransient_mark_mode;
 
 /* Overlays */
 

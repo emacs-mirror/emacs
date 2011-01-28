@@ -1,6 +1,6 @@
 ;;; tree-widget.el --- Tree widget
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -818,5 +818,4 @@ That is, if TREE :args is nil."
 
 (provide 'tree-widget)
 
-;; arch-tag: c3a1ada2-1663-41dc-9d16-2479ed8320e8
 ;;; tree-widget.el ends here

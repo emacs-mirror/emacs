@@ -1,6 +1,6 @@
 ;;; semantic-utest.el --- Miscellaneous Semantic tests.
 
-;;; Copyright (C) 2003, 2004, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2003-2004, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -388,4 +388,3 @@ gcc version 2.95.2 19991024 (release)"
     (semantic-gcc-test-output-parser))
   )
 
-;; arch-tag: 91686489-4ab3-4392-8277-b3831269ddbb

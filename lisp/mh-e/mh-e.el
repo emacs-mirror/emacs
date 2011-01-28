@@ -1,8 +1,6 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;; Copyright (C) 1985, 1986, 1987, 1988,
-;;   1990, 1992, 1993, 1994, 1995, 1997, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -3727,5 +3725,4 @@ The background and foreground are used in the image."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: cce884de-bd37-4104-9963-e4439d5ed22b
 ;;; mh-e.el ends here

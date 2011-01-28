@@ -1,6 +1,5 @@
 /* Emulate getpagesize on systems that lack it.
-   Copyright (C) 1986, 1992, 1995, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1992, 1995, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,9 +18,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef HAVE_GETPAGESIZE
 
-# ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-# endif
+# include <unistd.h>
 
 # ifdef _SC_PAGESIZE
 #  define getpagesize() sysconf(_SC_PAGESIZE)
@@ -49,5 +46,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #endif /* no HAVE_GETPAGESIZE */
 
-/* arch-tag: ff6206e3-97e2-4763-923a-e84bf28eabbc
-   (do not change this comment) */

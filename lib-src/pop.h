@@ -1,6 +1,5 @@
 /* pop.h: Header file for the "pop.c" client POP3 protocol.
-   Copyright (C) 1991, 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1991, 1993, 2001-2011  Free Software Foundation, Inc.
 
 Author:  Jonathan Kamens <jik@security.ov.com>
 
@@ -75,5 +74,3 @@ extern int pop_reset (popserver server);
 extern int pop_quit (popserver server);
 extern void pop_close (popserver);
 
-/* arch-tag: 76cc5f58-8e86-48fa-bc72-a7c6cb1c4f1c
-   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; ede/srecode.el --- EDE utilities on top of SRecoder
 
-;; Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -91,5 +91,4 @@ Note: Just like `srecode-insert', but templates found in 'ede app."
 
 (provide 'ede/srecode)
 
-;; arch-tag: 75bec542-7cc8-41a4-b5a0-8fb247609f03
 ;;; ede/srecode.el ends here

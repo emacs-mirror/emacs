@@ -1,6 +1,6 @@
 ;;; semantic/wisent/javat-wy.el --- Generated parser support file
 
-;; Copyright (C) 2002, 2007, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2007, 2009-2011  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -679,5 +679,4 @@ It ignores whitespaces, newlines and comments."
 
 (provide 'semantic/wisent/javat-wy)
 
-;; arch-tag: b035ba00-e014-4c71-9bc7-a9dbf3d5b911
 ;;; semantic/wisent/javat-wy.el ends here

@@ -1,6 +1,6 @@
 ;;; semantic/tag-write.el --- Write tags to a text stream
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -175,5 +175,4 @@ The VALUE is a list of tags."
 ;; generated-autoload-load-name: "semantic/tag-write"
 ;; End:
 
-;; arch-tag: aa2301b3-f0c5-4d73-b456-43eaba5b2198
 ;;; semantic/tag-write.el ends here

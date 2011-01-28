@@ -1,7 +1,6 @@
 ;;; semantic/decorate/mode.el --- Minor mode for decorating tags
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -520,5 +519,4 @@ Use a primary decoration."
 ;; generated-autoload-load-name: "semantic/decorate/mode"
 ;; End:
 
-;; arch-tag: c1ac7888-e323-4467-96d6-18eb2820ed58
 ;;; semantic/decorate/mode.el ends here

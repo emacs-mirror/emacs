@@ -1,6 +1,6 @@
 /* ftfont.c -- FreeType font driver.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -392,7 +392,7 @@ ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
   if (cache_for == FTFONT_CACHE_FOR_FACE
       ? ! cache_data->ft_face : ! cache_data->fc_charset)
     {
-      char *filename = (char *) SDATA (XCAR (key));
+      char *filename = SSDATA (XCAR (key));
       int index = XINT (XCDR (key));
 
       if (cache_for == FTFONT_CACHE_FOR_FACE)
@@ -555,7 +555,7 @@ ftfont_get_cache (FRAME_PTR f)
 static int
 ftfont_get_charset (Lisp_Object registry)
 {
-  char *str = (char *) SDATA (SYMBOL_NAME (registry));
+  char *str = SSDATA (SYMBOL_NAME (registry));
   char *re = alloca (SBYTES (SYMBOL_NAME (registry)) * 2 + 1);
   Lisp_Object regexp;
   int i, j;
@@ -2453,7 +2453,7 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       flt_font_ft.flt_font.family = Mnil;
     else
       flt_font_ft.flt_font.family
-	= msymbol ((char *) SDATA (Fdowncase (SYMBOL_NAME (family))));
+	= msymbol (SSDATA (Fdowncase (SYMBOL_NAME (family))));
   }
   flt_font_ft.flt_font.x_ppem = ft_face->size->metrics.x_ppem;
   flt_font_ft.flt_font.y_ppem = ft_face->size->metrics.y_ppem;
@@ -2675,6 +2675,3 @@ syms_of_ftfont (void)
   ftfont_driver.type = Qfreetype;
   register_font_driver (&ftfont_driver, NULL);
 }
-
-/* arch-tag: 7cfa432c-33a6-4988-83d2-a82ed8604aca
-   (do not change this comment) */

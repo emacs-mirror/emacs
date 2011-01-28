@@ -1,6 +1,6 @@
 ;;; ob-R.el --- org-babel functions for R code evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte, Dan Davison
 ;; Keywords: literate programming, reproducible research, R, statistics
@@ -298,6 +298,5 @@ Insert hline if column names in output have been requested."
 
 (provide 'ob-R)
 
-;; arch-tag: cd4c7298-503b-450f-a3c2-f3e74b630237
 
 ;;; ob-R.el ends here

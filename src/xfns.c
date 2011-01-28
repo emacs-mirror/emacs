@@ -1,8 +1,6 @@
 /* Functions for the X window system.
 
-Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-  2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,10 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <setjmp.h>
 #include <ctype.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 /* This makes the fields of a Display accessible, in Xlib header files.  */
 
@@ -122,19 +117,11 @@ extern double atof ();
 
 #ifdef USE_MOTIF
 
-/* LessTif/Motif version info.  */
-
-static Lisp_Object Vmotif_version_string;
-
 #endif /* USE_MOTIF */
 
 #endif /* USE_X_TOOLKIT */
 
 #ifdef USE_GTK
-
-/* GTK+ version info */
-
-static Lisp_Object Vgtk_version_string;
 
 #endif /* USE_GTK */
 
@@ -148,56 +135,9 @@ int gray_bitmap_width = gray_width;
 int gray_bitmap_height = gray_height;
 char *gray_bitmap_bits = gray_bits;
 
-/* Non-zero means prompt with the old GTK file selection dialog.  */
-
-int x_gtk_use_old_file_dialog;
-
-/* If non-zero, by default show hidden files in the GTK file chooser.  */
-
-int x_gtk_show_hidden_files;
-
-/* If non-zero, don't show additional help text in the GTK file chooser.  */
-
-int x_gtk_file_dialog_help_text;
-
-/* If non-zero, don't collapse to tool bar when it is detached.  */
-
-int x_gtk_whole_detached_tool_bar;
-
-/* If non-zero, use Gtk+ tooltips.  */
-
-static int x_gtk_use_system_tooltips;
-
-/* The background and shape of the mouse pointer, and shape when not
-   over text or in the modeline.  */
-
-Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
-Lisp_Object Vx_hourglass_pointer_shape;
-
-/* The shape when over mouse-sensitive text.  */
-
-Lisp_Object Vx_sensitive_text_pointer_shape;
-
-/* If non-nil, the pointer shape to indicate that windows can be
-   dragged horizontally.  */
-
-Lisp_Object Vx_window_horizontal_drag_shape;
-
-/* Color of chars displayed in cursor box.  */
-
-Lisp_Object Vx_cursor_fore_pixel;
-
 /* Nonzero if using X.  */
 
 static int x_in_use;
-
-/* Non nil if no window manager is in use.  */
-
-Lisp_Object Vx_no_window_manager;
-
-/* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
-
-Lisp_Object Vx_pixel_size_width_font_regexp;
 
 Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
@@ -629,7 +569,7 @@ x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
       if (rc == Success && actual_type == target_type && !x_had_errors_p (dpy)
           && actual_size == 4 && actual_format == 32)
         {
-          int ign;
+          unsigned int ign;
           Window rootw;
           long *fe = (long *)tmp_data;
 
@@ -759,7 +699,7 @@ x_set_tool_bar_position (struct frame *f,
   if (EQ (new_value, old_value)) return;
 
 #ifdef USE_GTK
-  if (xg_change_toolbar_position (f, new_value)) 
+  if (xg_change_toolbar_position (f, new_value))
     f->tool_bar_position = new_value;
 #endif
 }
@@ -781,7 +721,7 @@ xg_set_icon (FRAME_PTR f, Lisp_Object file)
     {
       GdkPixbuf *pixbuf;
       GError *err = NULL;
-      char *filename = (char *) SDATA (found);
+      char *filename = SSDATA (found);
       BLOCK_INPUT;
 
       pixbuf = gdk_pixbuf_new_from_file (filename, &err);
@@ -1219,9 +1159,9 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   BLOCK_INPUT;
   if (NILP (arg))
     result = x_text_icon (f,
-			  (char *) SDATA ((!NILP (f->icon_name)
-					     ? f->icon_name
-					     : f->name)));
+			  SSDATA ((!NILP (f->icon_name)
+				   ? f->icon_name
+				   : f->name)));
   else
     result = x_bitmap_icon (f, arg);
 
@@ -1256,11 +1196,11 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   BLOCK_INPUT;
 
   result = x_text_icon (f,
-			(char *) SDATA ((!NILP (f->icon_name)
-					 ? f->icon_name
-					 : !NILP (f->title)
-					 ? f->title
-					 : f->name)));
+			SSDATA ((!NILP (f->icon_name)
+				 ? f->icon_name
+				 : !NILP (f->title)
+				 ? f->title
+				 : f->name)));
 
   if (result)
     {
@@ -1656,14 +1596,14 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 
 #ifdef USE_GTK
         gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              (char *) SDATA (encoded_name));
+                              SSDATA (encoded_name));
 #else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
 	XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 			 FRAME_X_DISPLAY_INFO (f)->Xatom_net_wm_name,
 			 FRAME_X_DISPLAY_INFO (f)->Xatom_UTF8_STRING,
 			 8, PropModeReplace,
-			 (char *) SDATA (encoded_name),
+			 SSDATA (encoded_name),
 			 SBYTES (encoded_name));
 #endif /* not USE_GTK */
 
@@ -1672,7 +1612,7 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 			 FRAME_X_DISPLAY_INFO (f)->Xatom_net_wm_icon_name,
 			 FRAME_X_DISPLAY_INFO (f)->Xatom_UTF8_STRING,
 			 8, PropModeReplace,
-			 (char *) SDATA (encoded_icon_name),
+			 SSDATA (encoded_icon_name),
 			 SBYTES (encoded_icon_name));
 
 	if (do_free_icon_value)
@@ -2455,7 +2395,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
      Elsewhere we specify the window name for the window manager.  */
 
   {
-    char *str = (char *) SDATA (Vx_resource_name);
+    char *str = SSDATA (Vx_resource_name);
     f->namebuf = (char *) xmalloc (strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
@@ -2604,8 +2544,8 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   validate_x_resource_name ();
 
-  class_hints.res_name = (char *) SDATA (Vx_resource_name);
-  class_hints.res_class = (char *) SDATA (Vx_resource_class);
+  class_hints.res_name = SSDATA (Vx_resource_name);
+  class_hints.res_class = SSDATA (Vx_resource_class);
   XSetClassHint (FRAME_X_DISPLAY (f), XtWindow (shell_widget), &class_hints);
 
 #ifdef HAVE_X_I18N
@@ -2769,8 +2709,8 @@ x_window (struct frame *f)
 
   validate_x_resource_name ();
 
-  class_hints.res_name = (char *) SDATA (Vx_resource_name);
-  class_hints.res_class = (char *) SDATA (Vx_resource_class);
+  class_hints.res_name = SSDATA (Vx_resource_name);
+  class_hints.res_class = SSDATA (Vx_resource_class);
   XSetClassHint (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &class_hints);
 
   /* The menubar is part of the ordinary display;
@@ -2882,9 +2822,9 @@ x_icon (struct frame *f, Lisp_Object parms)
 	 : NormalState));
 #endif
 
-  x_text_icon (f, (char *) SDATA ((!NILP (f->icon_name)
-				     ? f->icon_name
-				     : f->name)));
+  x_text_icon (f, SSDATA ((!NILP (f->icon_name)
+			   ? f->icon_name
+			   : f->name)));
 
   UNBLOCK_INPUT;
 }
@@ -3513,7 +3453,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     }
 
   BLOCK_INPUT;
-                       
+
   /* Set machine name and pid for the purpose of window managers.  */
   set_machine_and_pid_properties(f);
 
@@ -4105,7 +4045,7 @@ x_display_info_for_name (Lisp_Object name)
   validate_x_resource_name ();
 
   dpyinfo = x_term_init (name, (char *)0,
-			 (char *) SDATA (Vx_resource_name));
+			 SSDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
     error ("Cannot connect to X server %s", SDATA (name));
@@ -4140,7 +4080,7 @@ terminate Emacs if we can't open the connection.
 #endif
 
   if (! NILP (xrm_string))
-    xrm_option = (unsigned char *) SDATA (xrm_string);
+    xrm_option = SDATA (xrm_string);
   else
     xrm_option = (unsigned char *) 0;
 
@@ -4149,7 +4089,7 @@ terminate Emacs if we can't open the connection.
   /* This is what opens the connection and sets x_current_display.
      This also initializes many symbols, such as those used for input.  */
   dpyinfo = x_term_init (display, xrm_option,
-			 (char *) SDATA (Vx_resource_name));
+			 SSDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
     {
@@ -4604,10 +4544,6 @@ Window tip_window;
    with which x-show-tip was called.  See there.  */
 
 Lisp_Object last_show_tip_args;
-
-/* Maximum size for tooltips; a cons (COLUMNS . ROWS).  */
-
-Lisp_Object Vx_max_tooltip_size;
 
 
 static Lisp_Object
@@ -5068,7 +5004,7 @@ Text larger than the specified size is clipped.  */)
 #ifdef USE_GTK
   if (x_gtk_use_system_tooltips)
     {
-      int ok; 
+      int ok;
 
       /* Hide a previous tip, if any.  */
       Fx_hide_tip ();
@@ -5915,28 +5851,28 @@ syms_of_xfns (void)
   Fput (Qundefined_color, Qerror_message,
 	make_pure_c_string ("Undefined color"));
 
-  DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
+  DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,
     doc: /* The shape of the pointer when over text.
 Changing the value does not affect existing frames
 unless you set the mouse color.  */);
   Vx_pointer_shape = Qnil;
 
 #if 0 /* This doesn't really do anything.  */
-  DEFVAR_LISP ("x-nontext-pointer-shape", &Vx_nontext_pointer_shape,
+  DEFVAR_LISP ("x-nontext-pointer-shape", Vx_nontext_pointer_shape,
     doc: /* The shape of the pointer when not over text.
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
 #endif
   Vx_nontext_pointer_shape = Qnil;
 
-  DEFVAR_LISP ("x-hourglass-pointer-shape", &Vx_hourglass_pointer_shape,
+  DEFVAR_LISP ("x-hourglass-pointer-shape", Vx_hourglass_pointer_shape,
     doc: /* The shape of the pointer when Emacs is busy.
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_hourglass_pointer_shape = Qnil;
 
 #if 0 /* This doesn't really do anything.  */
-  DEFVAR_LISP ("x-mode-pointer-shape", &Vx_mode_pointer_shape,
+  DEFVAR_LISP ("x-mode-pointer-shape", Vx_mode_pointer_shape,
     doc: /* The shape of the pointer when over the mode line.
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
@@ -5944,29 +5880,29 @@ or when you set the mouse color.  */);
   Vx_mode_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-sensitive-text-pointer-shape",
-	      &Vx_sensitive_text_pointer_shape,
+	      Vx_sensitive_text_pointer_shape,
 	       doc: /* The shape of the pointer when over mouse-sensitive text.
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_sensitive_text_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-window-horizontal-drag-cursor",
-	      &Vx_window_horizontal_drag_shape,
+	      Vx_window_horizontal_drag_shape,
   doc: /* Pointer shape to use for indicating a window can be dragged horizontally.
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_window_horizontal_drag_shape = Qnil;
 
-  DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
+  DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
     doc: /* A string indicating the foreground color of the cursor box.  */);
   Vx_cursor_fore_pixel = Qnil;
 
-  DEFVAR_LISP ("x-max-tooltip-size", &Vx_max_tooltip_size,
+  DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
     doc: /* Maximum size for tooltips.
 Value is a pair (COLUMNS . ROWS).  Text larger than this is clipped.  */);
   Vx_max_tooltip_size = Fcons (make_number (80), make_number (40));
 
-  DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
+  DEFVAR_LISP ("x-no-window-manager", Vx_no_window_manager,
     doc: /* Non-nil if no X window manager is in use.
 Emacs doesn't try to figure this out; this is always nil
 unless you set it to something else.  */);
@@ -5975,7 +5911,7 @@ unless you set it to something else.  */);
   Vx_no_window_manager = Qnil;
 
   DEFVAR_LISP ("x-pixel-size-width-font-regexp",
-	       &Vx_pixel_size_width_font_regexp,
+	       Vx_pixel_size_width_font_regexp,
     doc: /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.
 
 Since Emacs gets width of a font matching with this regexp from
@@ -5985,32 +5921,32 @@ Chinese, Japanese, and Korean.  */);
   Vx_pixel_size_width_font_regexp = Qnil;
 
 /* This is not ifdef:ed, so other builds than GTK can customize it.  */
-  DEFVAR_BOOL ("x-gtk-use-old-file-dialog", &x_gtk_use_old_file_dialog,
+  DEFVAR_BOOL ("x-gtk-use-old-file-dialog", x_gtk_use_old_file_dialog,
     doc: /* *Non-nil means prompt with the old GTK file selection dialog.
 If nil or if the file selection dialog is not available, the new GTK file
 chooser is used instead.  To turn off all file dialogs set the
 variable `use-file-dialog'.  */);
   x_gtk_use_old_file_dialog = 0;
 
-  DEFVAR_BOOL ("x-gtk-show-hidden-files", &x_gtk_show_hidden_files,
+  DEFVAR_BOOL ("x-gtk-show-hidden-files", x_gtk_show_hidden_files,
     doc: /* *If non-nil, the GTK file chooser will by default show hidden files.
 Note that this is just the default, there is a toggle button on the file
 chooser to show or not show hidden files on a case by case basis.  */);
   x_gtk_show_hidden_files = 0;
 
-  DEFVAR_BOOL ("x-gtk-file-dialog-help-text", &x_gtk_file_dialog_help_text,
+  DEFVAR_BOOL ("x-gtk-file-dialog-help-text", x_gtk_file_dialog_help_text,
     doc: /* *If non-nil, the GTK file chooser will show additional help text.
 If more space for files in the file chooser dialog is wanted, set this to nil
 to turn the additional text off.  */);
   x_gtk_file_dialog_help_text = 1;
 
-  DEFVAR_BOOL ("x-gtk-whole-detached-tool-bar", &x_gtk_whole_detached_tool_bar,
+  DEFVAR_BOOL ("x-gtk-whole-detached-tool-bar", x_gtk_whole_detached_tool_bar,
     doc: /* *If non-nil, a detached tool bar is shown in full.
 The default is to just show an arrow and pressing on that arrow shows
 the tool bar buttons.  */);
   x_gtk_whole_detached_tool_bar = 0;
 
-  DEFVAR_BOOL ("x-gtk-use-system-tooltips", &x_gtk_use_system_tooltips,
+  DEFVAR_BOOL ("x-gtk-use-system-tooltips", x_gtk_use_system_tooltips,
     doc: /* *If non-nil with a Gtk+ built Emacs, the Gtk+ toolip is used.
 Otherwise use Emacs own tooltip implementation.
 When using Gtk+ tooltips, the tooltip face is not used.  */);
@@ -6023,7 +5959,7 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
 #ifdef USE_MOTIF
   Fprovide (intern_c_string ("motif"), Qnil);
 
-  DEFVAR_LISP ("motif-version-string", &Vmotif_version_string,
+  DEFVAR_LISP ("motif-version-string", Vmotif_version_string,
 	       doc: /* Version info for LessTif/Motif.  */);
   Vmotif_version_string = build_string (XmVERSION_STRING);
 #endif /* USE_MOTIF */
@@ -6038,7 +5974,7 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   Fprovide (intern_c_string ("gtk"), Qnil);
   Fprovide (intern_c_string ("move-toolbar"), Qnil);
 
-  DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,
+  DEFVAR_LISP ("gtk-version-string", Vgtk_version_string,
                doc: /* Version info for GTK+.  */);
   {
     char gtk_version[40];
@@ -6104,4 +6040,3 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
 }
 
 #endif /* HAVE_X_WINDOWS */
-

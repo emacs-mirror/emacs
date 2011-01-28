@@ -1,7 +1,6 @@
 ;;; flow-ctrl.el --- help for lusers on cu(1) or ttys with wired-in ^S/^Q flow control
 
-;; Copyright (C) 1990, 1991, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher
 ;; Maintainer: FSF
@@ -122,5 +121,4 @@ to get the effect of a C-q."
 
 (provide 'flow-ctrl)
 
-;; arch-tag: 0eb7b19e-0d93-4e0b-9ea2-72b574076a56
 ;;; flow-ctrl.el ends here
