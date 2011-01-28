@@ -2187,15 +2187,15 @@ matching tag will be marked in the dired buffer."
 Track this in associated dired buffer if `image-dired-track-movement' is
 non-nil."
   (interactive "e")
-  (let (file)
-    (mouse-set-point event)
-    (goto-char (posn-point (event-end event)))
-    (setq file (image-dired-original-file-name))
-    (if image-dired-track-movement
-        (image-dired-track-original-file))
-    (image-dired-create-display-image-buffer)
-    (display-buffer image-dired-display-image-buffer)
-    (image-dired-display-image file)))
+  (mouse-set-point event)
+  (goto-char (posn-point (event-end event)))
+  (let ((file (image-dired-original-file-name)))
+    (when file
+      (if image-dired-track-movement
+	  (image-dired-track-original-file))
+      (image-dired-create-display-image-buffer)
+      (display-buffer image-dired-display-image-buffer)
+      (image-dired-display-image file))))
 
 (defun image-dired-mouse-select-thumbnail (event)
   "Use mouse EVENT to select thumbnail image.

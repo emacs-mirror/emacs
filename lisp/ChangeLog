@@ -1,5 +1,8 @@
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* image-dired.el (image-dired-mouse-display-image): No-op if no
+	file is found (Bug#7817).
+
 	* mouse.el (mouse-menu-non-singleton): Doc fix (Bug#7801).
 
 2011-01-28  Kenichi Handa  <handa@m17n.org>
