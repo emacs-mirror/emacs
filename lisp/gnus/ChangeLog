@@ -1,5 +1,9 @@
 2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-group.el (gnus-group-refresh-group): Refresh even non-visible
+	groups.  This makes the nndraft:queue group pop up if it's not already
+	there.
+
 	* gnus-sum.el (gnus-summary-read-group-1): Fix the "contains no
 	messages" logic, which was reversed.
 

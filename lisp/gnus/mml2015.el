@@ -966,7 +966,7 @@ Whether the passphrase is cached at all is controlled by
 	 (context (epg-make-context))
 	 (boundary (mml-compute-boundary cont))
 	 (sender (when mml2015-sign-with-sender
-                   message-options-get 'message-sender))
+                   (message-options-get 'message-sender)))
 	 signer-key
 	 (signers
 	  (or (message-options-get 'mml2015-epg-signers)

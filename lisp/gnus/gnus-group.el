@@ -1681,7 +1681,7 @@ and ends at END."
   (gnus-activate-group group)
   (gnus-get-unread-articles-in-group (gnus-get-info group)
 				     (gnus-active group))
-  (gnus-group-update-group group t))
+  (gnus-group-update-group group))
 
 (defun gnus-group-update-group (group &optional visible-only)
   "Update all lines where GROUP appear.
