@@ -325,7 +325,7 @@ $(gnulib_srcdir):
 	git clone git://git.savannah.gnu.org/gnulib.git $@
 
 # A shorter name that satisfies MS-DOS 8+3 constraints.
-DOS-gnulib-comp.m4 = gl-comp.m4
+DOS_gnulib_comp.m4 = gl-comp.m4
 
 # Update modules from gnulib, for maintainers, who should have it in
 # $(gnulib_srcdir) (relative to $(srcdir) and should have build tools
@@ -334,10 +334,11 @@ GNULIB_MODULES = dtoastr getopt-gnu mktime
 GNULIB_TOOL_FLAGS = \
  --import --no-changelog --no-vc-files --makefile-name=gnulib.mk
 sync-from-gnulib: $(gnulib_srcdir)
+	-cd $(srcdir)/m4 && cp $(DOS_gnulib_comp.m4) gnulib-comp.m4
 	cd $(srcdir) && \
 	  $(gnulib_srcdir)/gnulib-tool $(GNULIB_TOOL_FLAGS) $(GNULIB_MODULES)
 	cd $(srcdir)/m4 && rm gnulib-cache.m4 warn-on-use.m4
-	cd $(srcdir)/m4 && mv gnulib-comp.m4 $(DOS-gnulib-comp.m4)
+	cd $(srcdir)/m4 && mv gnulib-comp.m4 $(DOS_gnulib_comp.m4)
 	cp $(gnulib_srcdir)/build-aux/texinfo.tex $(srcdir)/doc/misc
 	cp \
 	  $(gnulib_srcdir)/build-aux/config.sub \
@@ -410,7 +411,7 @@ AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/aclocal.m4
 $(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoconf
 
-ACLOCAL_INPUTS = @MAINT@ $(srcdir)/m4/$(DOS-gnulib-comp.m4)
+ACLOCAL_INPUTS = @MAINT@ $(srcdir)/m4/$(DOS_gnulib_comp.m4)
 $(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
 	cd $(srcdir) && aclocal -I m4
 
