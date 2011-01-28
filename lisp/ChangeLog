@@ -1,3 +1,8 @@
+2011-01-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-keyboard-layout-alist): Remove
+	superfluous SPC for "pc105-uk" (bug#7927).
+
 2011-01-27  Glenn Morris  <rgm@gnu.org>
 
 	* msb.el (msb-menu-bar-update-buffers): Update for changed
