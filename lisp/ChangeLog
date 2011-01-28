@@ -1,3 +1,7 @@
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-menu-non-singleton): Doc fix (Bug#7801).
+
 2011-01-28  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-keyboard-layout-alist): Remove
