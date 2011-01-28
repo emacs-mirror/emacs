@@ -94,6 +94,20 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
     (apply 'vc-do-command (or buffer "*vc*") okstatus vc-bzr-program
            file-or-list bzr-command args)))
 
+(defun vc-bzr-async-command (bzr-command &rest args)
+  "Wrapper round `vc-do-async-command' using `vc-bzr-program' as COMMAND.
+Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
+`LC_MESSAGES=C' to the environment.
+Use the current Bzr root directory as the ROOT argument to
+`vc-do-async-command', and specify an output buffer named
+\"*vc-bzr : ROOT*\"."
+  (let* ((process-environment
+	  (list* "BZR_PROGRESS_BAR=none" "LC_MESSAGES=C"
+		 process-environment))
+	 (root (vc-bzr-root default-directory))
+	 (buffer (format "*vc-bzr : %s*" (expand-file-name root))))
+    (apply 'vc-do-async-command buffer root
+	   vc-bzr-program bzr-command args)))
 
 ;;;###autoload
 (defconst vc-bzr-admin-dirname ".bzr"
@@ -261,31 +275,6 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
     (when rootdir
          (file-relative-name filename* rootdir))))
 
-(defun vc-bzr-async-command (command args)
-  "Run Bzr COMMAND asynchronously with ARGS, displaying the result.
-Send the output to a buffer named \"*vc-bzr : NAME*\", where NAME
-is the root of the current Bzr branch.  Display the buffer in
-some window, but don't select it."
-  ;; TODO: set up hyperlinks.
-  (let* ((dir default-directory)
-	 (root (vc-bzr-root default-directory))
-	 (buffer (get-buffer-create
-		  (format "*vc-bzr : %s*"
-			  (expand-file-name root)))))
-    (with-current-buffer buffer
-      (setq default-directory root)
-      (goto-char (point-max))
-      (unless (eq (point) (point-min))
-	(insert "\n"))
-      (insert "Running \"" vc-bzr-program " " command)
-      (dolist (arg args)
-	(insert " " arg))
-      (insert "\"...\n")
-      ;; Run bzr in the original working directory.
-      (let ((default-directory dir))
-	(apply 'vc-bzr-command command t 'async nil args)))
-    (display-buffer buffer)))
-
 (defun vc-bzr-pull (prompt)
   "Pull changes into the current Bzr branch.
 Normally, this runs \"bzr pull\".  However, if the branch is a
@@ -315,7 +304,7 @@ prompt for the Bzr command to run."
       (setq vc-bzr-program (car  args)
 	    command        (cadr args)
 	    args           (cddr args)))
-    (vc-bzr-async-command command args)))
+    (apply 'vc-bzr-async-command command args)))
 
 (defun vc-bzr-merge-branch ()
   "Merge another Bzr branch into the current one.
@@ -324,8 +313,8 @@ source (an upstream branch or a previous merge source) as a
 default if it is available."
   (let* ((branch-conf (vc-bzr--branch-conf default-directory))
 	 ;; "bzr merge" without an argument defaults to submit_branch,
-	 ;; then parent_location.  We extract the specific location
-	 ;; and add it explicitly to the command line.
+	 ;; then parent_location.  Extract the specific location and
+	 ;; add it explicitly to the command line.
 	 (location
 	  (cond
 	   ((string-match
@@ -347,7 +336,7 @@ default if it is available."
 	 (vc-bzr-program (car  cmd))
 	 (command        (cadr cmd))
 	 (args           (cddr cmd)))
-    (vc-bzr-async-command command args)))
+    (apply 'vc-bzr-async-command command args)))
 
 (defun vc-bzr-status (file)
   "Return FILE status according to Bzr.

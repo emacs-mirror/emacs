@@ -356,6 +356,34 @@ case, and the process object in the asynchronous case."
 			      ',command ',file-or-list ',flags))
 	status))))
 
+(defun vc-do-async-command (buffer root command &rest args)
+  "Run COMMAND asynchronously with ARGS, displaying the result.
+Send the output to BUFFER, which should be a buffer or the name
+of a buffer, which is created.
+ROOT should be the directory in which the command should be run.
+Display the buffer in some window, but don't select it."
+  (let* ((dir default-directory)
+	 window new-window-start)
+    (setq buffer (get-buffer-create buffer))
+    (if (get-buffer-process buffer)
+	(error "Another VC action on %s is running" root))
+    (with-current-buffer buffer
+      (setq default-directory root)
+      (goto-char (point-max))
+      (unless (eq (point) (point-min))
+	(insert "\n"))
+      (setq new-window-start (point))
+      (insert "Running \"" command " ")
+      (dolist (arg args)
+	(insert " " arg))
+      (insert "\"...\n")
+      ;; Run in the original working directory.
+      (let ((default-directory dir))
+	(apply 'vc-do-command t 'async command nil args)))
+    (setq window (display-buffer buffer))
+    (if window
+	(set-window-start window new-window-start))))
+
 ;; These functions are used to ensure that the view the user sees is up to date
 ;; even if the dispatcher client mode has messed with file contents (as in,
 ;; for example, VCS keyword expansion).
