@@ -1,4 +1,13 @@
+2011-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-select-newsgroup): Don't try to alter the active
+	data if the group is unactivated.
+
 2011-01-28  Julien Danjou  <julien@danjou.info>
+
+	* gnus-win.el: Remove dead function gnus-window-configuration-element.
+	(gnus-all-windows-visible-p): Remove old compatibility code.
+	(gnus-window-top-edge): Add docstring.
 
 	* gnus-group.el (gnus-group-jump-to-group): Set must match to t.
 
