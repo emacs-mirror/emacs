@@ -1,3 +1,32 @@
+2011-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Port features from the previous prolog.el to the new one.
+	* progmodes/prolog.el (prolog-system): Add GNU and ECLiPSe options.
+	(prolog-program-name, prolog-program-switches, prolog-consult-string)
+	(prolog-compile-string, prolog-prompt-regexp): Get rid of the <foo>-i
+	variable and use a function to compute the value dynamically.
+	(prolog-prompt-regexp): Add regexp for GNU Prolog.
+	(prolog-continued-prompt-regexp): Remove, unused.
+	(prolog-find-value-by-system): Try and use the value of prolog-system
+	in the *prolog* buffer if it helps.
+	(prolog-mode-keybindings-common): Bind C-c C-z unconditionally...
+	(prolog-zip-on): ..and check prolog-system and version here instead.
+	(prolog-inferior-self-insert-command): New command.
+	(prolog-inferior-mode-map): Use it.
+	(prolog-inferior-error-regexp-alist): New var.
+	(prolog-inferior-mode): Use it, along with compilation-shell-minor-mode.
+	(prolog-input-filter): Use derived-mode-p.
+	(prolog-inferior-guess-flavor): New function.
+	(prolog-ensure-process): Use it.  Use make-comint-in-buffer rather than
+	make-comint to avoid running comint-mode twice.
+	(prolog-inferior-buffer): New fun.
+	(prolog-old-process-region, prolog-old-process-file):
+	Don't call prolog-bsts here...
+	(prolog-build-prolog-command): ...do it here instead.
+	(prolog-old-process-region, prolog-old-process-file):
+	Use compilation-fake-loc and compilation-forget-errors.
+	(prolog-consult-compile-region): Use bolp.
+
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-display-size): Doc fix (Bug#7820).
