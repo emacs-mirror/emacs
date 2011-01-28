@@ -34,12 +34,6 @@
 (require 'tool-bar)
 (require 'comint)
 
-(defvar font-lock-extra-managed-props)
-(defvar font-lock-keywords)
-(defvar font-lock-maximum-size)
-(defvar font-lock-support-mode)
-
-
 (defgroup compilation nil
   "Run compiler as inferior of Emacs, parse error messages."
   :group 'tools
@@ -243,11 +237,15 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "^makepp\\(?:\\(?:: warning\\(:\\).*?\\|\\(: Scanning\\|: [LR]e?l?oading makefile\\|: Imported\\|log:.*?\\) \\|: .*?\\)\
 `\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)['(]\\)"
      4 5 nil (1 . 2) 3
-     ("`\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)['(]" nil nil
-      (2 compilation-info-face)
-      (3 compilation-line-face nil t)
-      (1 (compilation-error-properties 2 3 nil nil nil 0 nil)
-	 append)))
+     (0 (progn (save-match-data
+                 (compilation-parse-errors
+                  (match-end 0) (line-end-position)
+                  `("`\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)['(]"
+                    2 3 nil
+                    ,(cond ((match-end 1) 1) ((match-end 2) 0) (t 2))
+                    1)))
+               (end-of-line)
+               nil)))
 
     ;; This regexp is pathologically slow on long lines (Bug#3441).
     ;; (maven
@@ -332,12 +330,10 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
 
     (gcov-file
      "^ *-: *\\(0\\):Source:\\(.+\\)$"
-     2 1 nil 0 nil
-     (1 compilation-line-face prepend) (2 compilation-info-face prepend))
+     2 1 nil 0 nil)
     (gcov-header
      "^ *-: *\\(0\\):\\(?:Object\\|Graph\\|Data\\|Runs\\|Programs\\):.+$"
-     nil 1 nil 0 nil
-     (1 compilation-line-face prepend))
+     nil 1 nil 0 nil)
     ;; Underlines over all lines of gcov output are too uncomfortable to read.
     ;; However, hyperlinks embedded in the lines are useful.
     ;; So I put default face on the lines; and then put
@@ -346,18 +342,18 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
     (gcov-nomark
      "^ *-: *\\([1-9]\\|[0-9]\\{2,\\}\\):.*$"
      nil 1 nil 0 nil
-     (0 'default t)
-     (1 compilation-line-face prepend))
+     (0 'default)
+     (1 compilation-line-face))
     (gcov-called-line
      "^ *\\([0-9]+\\): *\\([0-9]+\\):.*$"
      nil 2 nil 0 nil
-     (0 'default t)
-     (1 compilation-info-face prepend) (2 compilation-line-face prepend))
+     (0 'default)
+     (1 compilation-info-face) (2 compilation-line-face))
     (gcov-never-called
      "^ *\\(#####\\): *\\([0-9]+\\):.*$"
      nil 2 nil 2 nil
-     (0 'default t)
-     (1 compilation-error-face prepend) (2 compilation-line-face prepend))
+     (0 'default)
+     (1 compilation-error-face) (2 compilation-line-face))
 
     (perl--Pod::Checker
      ;; podchecker error messages, per Pod::Checker.
@@ -469,8 +465,9 @@ What matched the HYPERLINK'th subexpression has `mouse-face' and
 `compilation-message-face' applied.  If this is nil, the text
 matched by the whole REGEXP becomes the hyperlink.
 
-Additional HIGHLIGHTs as described under `font-lock-keywords' can
-be added."
+Additional HIGHLIGHTs take the shape (SUBMATCH FACE), where SUBMATCH is
+the number of a submatch that should be highlighted when it matches,
+and FACE is an expression returning the face to use for that submatch.."
   :type '(repeat (choice (symbol :tag "Predefined symbol")
 			 (sexp :tag "Error specification")))
   :link `(file-link :tag "example file"
@@ -847,13 +844,16 @@ from a different message."
   (let ((dir (previous-single-property-change (point) 'compilation-directory)))
     (setq dir (if dir (or (get-text-property (1- dir) 'compilation-directory)
 			  (get-text-property dir 'compilation-directory))))
-    `(face ,(if leave
-		compilation-leave-directory-face
-	      compilation-enter-directory-face)
+    `(font-lock-face ,(if leave
+                          compilation-leave-directory-face
+                        compilation-enter-directory-face)
       compilation-directory ,(if leave
                                  (or (cdr dir)
                                      '(nil)) ; nil only isn't a property-change
                                (cons (match-string-no-properties idx) dir))
+      ;; Place a `compilation-message' everywhere we change text-properties
+      ;; so compilation--remove-properties can know what to remove.
+      compilation-message ,(compilation--make-message nil 0 nil)
       mouse-face highlight
       keymap compilation-button-map
       help-echo "mouse-2: visit destination directory")))
@@ -1046,12 +1046,8 @@ FMTS is a list of format specs for transforming the file name.
                                               end-marker))))
 
     ;; Must start with face
-    `(face ,compilation-message-face
+    `(font-lock-face ,compilation-message-face
       compilation-message ,(compilation--make-message loc type end-loc)
-      ,@(if compilation-debug
-            `(compilation-debug
-              (,(assoc (with-no-warnings matcher) font-lock-keywords)
-               ,@(match-data))))
       help-echo ,(if col
                      "mouse-2: visit this file, line and column"
                    (if line
@@ -1060,97 +1056,218 @@ FMTS is a list of format specs for transforming the file name.
       keymap compilation-button-map
       mouse-face highlight)))
 
-(defun compilation-mode-font-lock-keywords ()
-  "Return expressions to highlight in Compilation mode."
+(defun compilation--put-prop (matchnum prop val)
+  (when (and (integerp matchnum) (match-beginning matchnum))
+    (put-text-property
+     (match-beginning matchnum) (match-end matchnum)
+     prop val)))
+
+(defun compilation--remove-properties (&optional start end)
+  (with-silent-modifications
+    ;; When compile.el used font-lock directly, we could just remove all
+    ;; our text-properties in one go, but now that we manually place
+    ;; font-lock-face, we have to be careful to only remove the font-lock-face
+    ;; we placed.
+    ;; (remove-list-of-text-properties
+    ;;  (or start (point-min)) (or end (point-max))
+    ;;  '(compilation-debug compilation-directory compilation-message
+    ;;    font-lock-face help-echo mouse-face))
+    (let (next)
+      (unless start (setq start (point-min)))
+      (unless end (setq end (point-max)))
+      (while
+          (progn
+            (setq next (or (next-single-property-change
+                            start 'compilation-message nil end)
+                           end))
+            (when (get-text-property start 'compilation-message)
+              (remove-list-of-text-properties
+               start next
+               '(compilation-debug compilation-directory compilation-message
+                 font-lock-face help-echo mouse-face)))
+            (< next end))
+        (setq start next)))))
+
+(defun compilation--parse-region (start end)
+  (goto-char end)
+  (unless (bolp)
+    ;; We generally don't like to parse partial lines.
+    (assert (eobp))
+    (when (let ((proc (get-buffer-process (current-buffer))))
+            (and proc (memq (process-status proc) '(run open))))
+      (setq end (line-beginning-position))))
+  (compilation--remove-properties start end)
   (if compilation-parse-errors-function
       ;; An old package!  Try the compatibility code.
-      '((compilation--compat-parse-errors))
-    (append
-     ;; make directory tracking
-     (if compilation-directory-matcher
-	 `((,(car compilation-directory-matcher)
-	    ,@(mapcar (lambda (elt)
-			`(,(car elt)
-			  (compilation-directory-properties
-			   ,(car elt) ,(cdr elt))
-			  t t))
-		      (cdr compilation-directory-matcher)))))
+      (progn
+        (goto-char start)
+        (compilation--compat-parse-errors end))
 
-     ;; Compiler warning/error lines.
-     (mapcar
-      (lambda (item)
-	(if (symbolp item)
-	    (setq item (cdr (assq item
-				  compilation-error-regexp-alist-alist))))
-	(let ((file (nth 1 item))
-	      (line (nth 2 item))
-	      (col (nth 3 item))
-	      (type (nth 4 item))
-              (pat (car item))
-	      end-line end-col fmt)
-          ;; omake reports some error indented, so skip the indentation.
-          ;; another solution is to modify (some?) regexps in
-          ;; `compilation-error-regexp-alist'.
-          ;; note that omake usage is not limited to ocaml and C (for stubs).
+    ;; compilation-directory-matcher is the only part that really needs to be
+    ;; parsed sequentially.  So we could split it out, handle directories
+    ;; like syntax-propertize, and the rest as font-lock-keywords.  But since
+    ;; we want to have it work even when font-lock is off, we'd then need to
+    ;; use our own compilation-parsed text-property to keep track of the parts
+    ;; that have already been parsed.
+    (goto-char start)
+    (while (re-search-forward (car compilation-directory-matcher)
+                              end t)
+      (when compilation-debug
+        (font-lock-append-text-property
+         (match-beginning 0) (match-end 0)
+         'compilation-debug
+         (vector 'directory compilation-directory-matcher)))
+      (dolist (elt (cdr compilation-directory-matcher))
+        (add-text-properties (match-beginning (car elt))
+                             (match-end (car elt))
+                             (compilation-directory-properties
+                              (car elt) (cdr elt)))))
 
-          ;; FIXME-omake: Doing it here seems wrong, at least it
-          ;; should depend on whether or not omake's own error
-          ;; messages are recognized.
-          (cond
-           ((not (memq 'omake compilation-error-regexp-alist)) nil)
-           ((string-match "\\`\\([^^]\\|^\\( \\*\\|\\[\\)\\)" pat)
-            nil) ;; Not anchored or anchored but already allows empty spaces.
-           (t (setq pat (concat "^ *" (substring pat 1)))))
+    (compilation-parse-errors start end)))
 
-	  (if (consp file)	(setq fmt (cdr file)	  file (car file)))
-	  (if (consp line)	(setq end-line (cdr line) line (car line)))
-	  (if (consp col)	(setq end-col (cdr col)	  col (car col)))
+(defun compilation-parse-errors (start end &rest rules)
+  "Parse errors between START and END.
+The errors recognized are the ones specified in RULES which default
+to `compilation-error-regexp-alist' if RULES is nil."
+  (message "compilation-parse-errors: %S %S" start end)
+  (dolist (item (or rules compilation-error-regexp-alist))
+    (if (symbolp item)
+        (setq item (cdr (assq item
+                              compilation-error-regexp-alist-alist))))
+    (let ((file (nth 1 item))
+          (line (nth 2 item))
+          (col (nth 3 item))
+          (type (nth 4 item))
+          (pat (car item))
+          end-line end-col fmt
+          props)
 
-	  (if (functionp line)
-	      ;; The old compile.el had here an undocumented hook that
-	      ;; allowed `line' to be a function that computed the actual
-	      ;; error location.  Let's do our best.
-	      `(,pat
-		(0 (save-match-data
-		     (compilation--compat-error-properties
-		      (funcall ',line (cons (match-string ,file)
-					    (cons default-directory
-						  ',(nthcdr 4 item)))
-			       ,(if col `(match-string ,col))))))
-		(,file compilation-error-face t))
+      ;; omake reports some error indented, so skip the indentation.
+      ;; another solution is to modify (some?) regexps in
+      ;; `compilation-error-regexp-alist'.
+      ;; note that omake usage is not limited to ocaml and C (for stubs).
+      ;; FIXME-omake: Doing it here seems wrong, at least it should depend on
+      ;; whether or not omake's own error messages are recognized.
+      (cond
+       ((not (memq 'omake compilation-error-regexp-alist)) nil)
+       ((string-match "\\`\\([^^]\\|^\\( \\*\\|\\[\\)\\)" pat)
+        nil) ;; Not anchored or anchored but already allows empty spaces.
+       (t (setq pat (concat "^ *" (substring pat 1)))))
 
-	    (unless (or (null (nth 5 item)) (integerp (nth 5 item)))
-	      (error "HYPERLINK should be an integer: %s" (nth 5 item)))
+      (if (consp file)	(setq fmt (cdr file)	  file (car file)))
+      (if (consp line)	(setq end-line (cdr line) line (car line)))
+      (if (consp col)	(setq end-col (cdr col)	  col (car col)))
 
-	    `(,pat
+      (if (functionp line)
+          ;; The old compile.el had here an undocumented hook that
+          ;; allowed `line' to be a function that computed the actual
+          ;; error location.  Let's do our best.
+          (progn
+            (goto-char start)
+            (while (re-search-forward pat end t)
+              (save-match-data
+                (when compilation-debug
+                  (font-lock-append-text-property
+                   (match-beginning 0) (match-end 0)
+                   'compilation-debug (vector 'functionp item)))
+                (add-text-properties
+                 (match-beginning 0) (match-end 0)
+                 (compilation--compat-error-properties
+                  (funcall line (cons (match-string file)
+                                      (cons default-directory
+                                            (nthcdr 4 item)))
+                           (if col (match-string col))))))
+              (compilation--put-prop
+               file 'font-lock-face compilation-error-face)))
 
-	      ,@(when (integerp file)
-		  `((,file ,(if (consp type)
-				`(compilation-face ',type)
-			      (aref [compilation-info-face
-				     compilation-warning-face
-				     compilation-error-face]
-				    (or type 2))))))
+        (unless (or (null (nth 5 item)) (integerp (nth 5 item)))
+          (error "HYPERLINK should be an integer: %s" (nth 5 item)))
 
-	      ,@(when line
-		  `((,line compilation-line-face nil t)))
-	      ,@(when end-line
-		  `((,end-line compilation-line-face nil t)))
+        (goto-char start)
+        (while (re-search-forward pat end t)
+              
+          (when (setq props (compilation-error-properties
+                             file line end-line col end-col (or type 2) fmt))
 
-	      ,@(when (integerp col)
-		  `((,col compilation-column-face nil t)))
-	      ,@(when (integerp end-col)
-		  `((,end-col compilation-column-face nil t)))
+            (when (integerp file)
+              (compilation--put-prop
+               file 'font-lock-face
+               (if (consp type)
+                   (compilation-face type)
+                 (symbol-value (aref [compilation-info-face
+                                      compilation-warning-face
+                                      compilation-error-face]
+                                     (or type 2))))))
 
-	      ,@(nthcdr 6 item)
-	      (,(or (nth 5 item) 0)
-	       (compilation-error-properties ',file ,line ,end-line
-					     ,col ,end-col ',(or type 2)
-					     ',fmt)
-	       append)))))		; for compilation-message-face
-      compilation-error-regexp-alist)
+            (compilation--put-prop
+             line 'font-lock-face compilation-line-face)
+            (compilation--put-prop
+             end-line 'font-lock-face compilation-line-face)
 
-     compilation-mode-font-lock-keywords)))
+            (compilation--put-prop
+             col 'font-lock-face compilation-column-face)
+            (compilation--put-prop
+             end-col 'font-lock-face compilation-column-face)
+
+            (dolist (extra-item (nthcdr 6 item))
+              (let ((mn (pop extra-item)))
+                (when (match-beginning mn)
+                  (let ((face (eval (car extra-item))))
+                    (cond
+                     ((null face))
+                     ((symbolp face)
+                      (put-text-property
+                       (match-beginning mn) (match-end mn)
+                       'font-lock-face face))
+                     (t
+                      (error "Don't know how to handle face %S"
+                             face)))))))
+            (let ((mn (or (nth 5 item) 0)))
+              (when compilation-debug
+                (font-lock-append-text-property
+                 (match-beginning 0) (match-end 0)
+                 'compilation-debug (vector 'std item props)))
+              (add-text-properties
+               (match-beginning mn) (match-end mn)
+               (cddr props))
+              (font-lock-append-text-property
+               (match-beginning mn) (match-end mn)
+               'font-lock-face (cadr props)))))))))
+
+(defvar compilation--parsed -1)
+(make-variable-buffer-local 'compilation--parsed)
+
+(defun compilation--ensure-parse (limit)
+  "Make sure the text has been parsed up to LIMIT."
+  (save-excursion
+    (goto-char limit)
+    (setq limit (line-beginning-position 2))
+    (unless (markerp compilation--parsed)
+      ;; We use a marker for compilation--parsed so that users (such as
+      ;; grep.el) don't need to flush-parse when they modify the buffer
+      ;; in a way that impacts buffer positions but does not require
+      ;; re-parsing.
+      (setq compilation--parsed (point-min-marker)))
+    (when (< compilation--parsed limit)
+      (let ((start (max compilation--parsed (point-min))))
+        (move-marker compilation--parsed limit)
+        (goto-char start)
+        (forward-line 0)  ;Not line-beginning-position: ignore (comint) fields.
+        (with-silent-modifications
+          (compilation--parse-region (point) compilation--parsed)))))
+  nil)
+
+(defun compilation--flush-parse (start end)
+  "Mark the region between START and END for re-parsing."
+  (message "compilation--flush-parse: %S %S" start end)
+  (if (markerp compilation--parsed)
+      (move-marker compilation--parsed (min start compilation--parsed))))
+
+(defun compilation-mode-font-lock-keywords ()
+  "Return expressions to highlight in Compilation mode."
+  (append
+   '((compilation--ensure-parse))
+   compilation-mode-font-lock-keywords))
 
 (defun compilation-read-command (command)
   (read-shell-command "Compile command: " command
@@ -1460,10 +1577,6 @@ Returns the compilation buffer created."
 					      (concat status "\n")))
 		    (t
 		     (compilation-handle-exit 'bizarre status status)))))
-	  ;; Without async subprocesses, the buffer is not yet
-	  ;; fontified, so fontify it now.
-	  (let ((font-lock-verbose nil)) ; shut up font-lock messages
-	    (font-lock-fontify-buffer))
 	  (set-buffer-modified-p nil)
 	  (message "Executing `%s'...done" command)))
       ;; Now finally cd to where the shell started make/grep/...
@@ -1733,9 +1846,6 @@ The global commands next/previous/first-error/goto-error use this.")
   "Buffer position of the beginning of the compilation messages.
 If nil, use the beginning of buffer.")
 
-;; A function name can't be a hook, must be something with a value.
-(defconst compilation-turn-on-font-lock 'turn-on-font-lock)
-
 (defun compilation-setup (&optional minor)
   "Prepare the buffer for the compilation parsing commands to work.
 Optional argument MINOR indicates this is called from
@@ -1754,31 +1864,27 @@ Optional argument MINOR indicates this is called from
   (setq next-error-function 'compilation-next-error-function)
   (set (make-local-variable 'comint-file-name-prefix)
        (or (file-remote-p default-directory) ""))
-  (set (make-local-variable 'font-lock-extra-managed-props)
-       '(compilation-directory compilation-message help-echo mouse-face
-         compilation-debug))
   (set (make-local-variable 'compilation-locs)
        (make-hash-table :test 'equal :weakness 'value))
-  ;; lazy-lock would never find the message unless it's scrolled to.
-  ;; jit-lock might fontify some things too late.
-  (set (make-local-variable 'font-lock-support-mode) nil)
-  (set (make-local-variable 'font-lock-maximum-size) nil)
+  ;; It's generally preferable to use after-change-functions since they
+  ;; can be subject to combine-after-change-calls, but if we do that, we risk
+  ;; running our hook after font-lock, resulting in incorrect refontification.
+  (add-hook 'before-change-functions 'compilation--flush-parse nil t)
+  ;; Also for minor mode, since it's not permanent-local.
+  (add-hook 'change-major-mode-hook #'compilation--remove-properties nil t)
   (if minor
-      (let ((fld font-lock-defaults))
+      (progn
 	(font-lock-add-keywords nil (compilation-mode-font-lock-keywords))
 	(if font-lock-mode
-	    (if fld
-		(font-lock-fontify-buffer)
-	      (font-lock-change-mode)
-	      (turn-on-font-lock))
-	  (turn-on-font-lock)))
-    (setq font-lock-defaults '(compilation-mode-font-lock-keywords t))
-    ;; maybe defer font-lock till after derived mode is set up
-    (run-mode-hooks 'compilation-turn-on-font-lock)))
+            (font-lock-fontify-buffer)))
+    (setq font-lock-defaults '(compilation-mode-font-lock-keywords t))))
 
 (defun compilation--unsetup ()
   ;; Only for minor mode.
   (font-lock-remove-keywords nil (compilation-mode-font-lock-keywords))
+  (remove-hook 'before-change-functions 'compilation--flush-parse t)
+  (kill-local-variable 'compilation--parsed)
+  (compilation--remove-properties)
   (if font-lock-mode
       (font-lock-fontify-buffer)))
 
@@ -1948,6 +2054,23 @@ and runs `compilation-filter-hook'."
 	   ;; count this message only if none of the above are true
 	   (setq n (,1+ n))))))
 
+(defun compilation-next-single-property-change (position prop
+                                                &optional object limit)
+  (let (parsed res)
+    (while (progn
+             ;; We parse the buffer here "on-demand" by chunks of 500 chars.
+             ;; But we could also just parse the whole buffer.
+             (compilation--ensure-parse
+              (setq parsed (max compilation--parsed
+                                (min (+ position 500)
+                                     (or limit (point-max))))))
+             (and (or (not (setq res (next-single-property-change
+                                      position prop object limit)))
+                      (eq res limit))
+                  (< position (or limit (point-max)))))
+      (setq position parsed))
+    res))
+
 (defun compilation-next-error (n &optional different-file pt)
   "Move point to the next error in the compilation buffer.
 This function does NOT find the source line like \\[next-error].
@@ -1980,11 +2103,12 @@ looking for the next message."
       (setq last (compilation--loc->file-struct
                   (compilation--message->loc msg)))
       (if (>= n 0)
-	  (compilation-loop > next-single-property-change 1-
+	  (compilation-loop > compilation-next-single-property-change 1-
 			    (if (get-buffer-process (current-buffer))
 				"No more %ss yet"
 			      "Moved past last %s")
 			    (point-max))
+        (compilation--ensure-parse pt)
 	;; Don't move "back" to message at or before point.
 	;; Pass an explicit (point-min) to make sure pt is non-nil.
 	(setq pt (previous-single-property-change
@@ -2032,6 +2156,7 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
   (if event (posn-set-point (event-end event)))
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
+  (compilation--ensure-parse (point))
   (if (get-text-property (point) 'compilation-directory)
       (dired-other-window
        (car (get-text-property (point) 'compilation-directory)))
@@ -2447,9 +2572,7 @@ The file-structure looks like this:
   ;; (MARKER . MARKER).
   (let ((dst (cdr err)))
     (if (markerp dst)
-	;; Must start with a face, for font-lock.
-	`(face nil
-	  compilation-message ,(compilation--make-message
+	`(compilation-message ,(compilation--make-message
                                 (cons nil (compilation--make-cdrloc
                                            nil nil dst))
                                 2 nil)

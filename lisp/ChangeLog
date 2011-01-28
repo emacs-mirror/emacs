@@ -1,5 +1,35 @@
 2011-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/compile.el: Don't use font-lock any more.
+	(compilation-error-regexp-alist-alist): Change handling of makepp
+	so it preserves the warning/error distinction on subsequent files.
+	Simplify various rules.
+	(compilation-directory-properties): Use font-lock-face.
+	Add a compilation-message property.
+	(compilation-internal-error-properties): Use font-lock-face.
+	Don't set the compilation-debug property here.
+	(compilation--put-prop, compilation--remove-properties)
+	(compilation--parse-region, compilation--ensure-parse)
+	(compilation--ensure-parse): New functions.
+	(compilation-parse-errors): New function, largely inspired of
+	compilation-mode-font-lock-keywords.  Set compilation-debug here.
+	(compilation--parsed): New var.
+	(compilation--flush-parse): Use compilation--ensure-parse.
+	(compilation-start): Don't call font-lock.
+	(compilation-turn-on-font-lock): Remove.
+	(compilation-setup): Don't set font-lock-extra-managed-props not change
+	other font-lock settings, other than keywords.
+	Don't activate font-lock-mode.
+	Set change-major-mode-hook and before-change-functions.
+	(compilation--unsetup): Remove properties and hooks.
+	(compilation-next-single-property-change): New function.
+	(compilation-next-error): Use it to parse when needed.
+	(compile-goto-error): Parse buffer as needed.
+	(compilation--compat-error-properties): Don't need a dummy `face'
+	property any more.
+
+2011-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* progmodes/compile.el: Use accessors for clarity and fix omake hack.
 	(compilation-process-setup-function): Fix docstring's false promises.
 	(compilation-error-regexp-alist-alist): Catch omake's continuous
