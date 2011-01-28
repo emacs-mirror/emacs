@@ -39,7 +39,7 @@ unsigned getuid ();
 unsigned getegid ();
 unsigned getgid ();
 int setuid (unsigned uid);
-int setegid (unsigned gid);
+int setregid (unsigned rgid, unsigned gid);
 char * getpass (const char * prompt);
 int fchown (int fd, unsigned uid, unsigned gid);
 
