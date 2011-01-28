@@ -321,6 +321,9 @@ prompts for a number to count from and for a format string.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** The compile.el mode can be used without font-lock-mode.
+`compilation-parse-errors-function' is now obsolete.
+
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
 ** Prolog mode has been completely revamped, with lots of additional
