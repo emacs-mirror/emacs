@@ -1,3 +1,15 @@
+2011-01-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Redo spelling of Makefile variables to conform to POSIX.
+	POSIX does not allow "-" in Makefile variable names.
+	Reported by Bruno Haible in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00990.html>.
+	* refcards/Makefile (DIRED_REFCARDS_PDF): Renamed from
+	DIRED-REFCARDS_PDF.
+	(MISC_REFCARDS_PDF): Renamed from MISC-REFCARDS_PDF.
+	(SURVIVAL_CARDS_PDF): Renamed from SURVIVAL-CARDS_PDF.
+	(VIPER_CARDS_PDF): Renamed from VIPER-CARDS_PDF.
+
 2011-01-18  Glenn Morris  <rgm@gnu.org>
 
 	* PROBLEMS: Add note about svn+ssh.  (Bug#7791)
