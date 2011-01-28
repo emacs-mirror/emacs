@@ -1974,6 +1974,7 @@ feature.
 @cindex defining menus
 @cindex menu prompt string
 @cindex prompt string (of menu)
+@cindex menu item
 
 A keymap acts as a menu if it has an @dfn{overall prompt string},
 which is a string that appears as an element of the keymap.
@@ -2090,6 +2091,7 @@ the item strings themselves, since that is redundant.
 @node Extended Menu Items
 @subsubsection Extended Menu Items
 @kindex menu-item
+@cindex extended menu item
 
   An extended-format menu item is a more flexible and also cleaner
 alternative to the simple format.  You define an event type with a

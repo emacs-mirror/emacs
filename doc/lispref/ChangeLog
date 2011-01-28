@@ -1,3 +1,8 @@
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Defining Menus): Add "menu item" and "extended
+	menu item" concept index entries (Bug#7805).
+
 2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
             Richard Kim  <emacs18@gmail.com>
 
