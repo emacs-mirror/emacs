@@ -1,3 +1,7 @@
+2011-01-28  Julien Danjou  <julien@danjou.info>
+
+	* gnus-group.el (gnus-group-jump-to-group): Set must match to t.
+
 2011-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-int.el (gnus-request-marks): Call *-request-marks instead of the
