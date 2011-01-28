@@ -9503,15 +9503,16 @@ replace it.
 An advantage of using Gnus to read mail is that it converts simple bugs
 into wonderful absurdities.
 
-If you want to have this line updated continually, you can put
+This line is updated continually by default.  If you wish to switch
+that off, say:
 
+@vindex gnus-article-update-lapsed-header
 @lisp
-(gnus-start-date-timer)
+(setq gnus-article-update-lapsed-header nil)
 @end lisp
 
-in your @file{~/.gnus.el} file, or you can run it off of some hook.  If
-you want to stop the timer, you can use the @code{gnus-stop-date-timer}
-command.
+in your @file{~/.gnus.el} file.  If you want to stop the updating
+dynamically, you can use the @code{gnus-stop-date-timer} command.
 
 @item W T o
 @kindex W T o (Summary)

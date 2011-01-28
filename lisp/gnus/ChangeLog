@@ -1,3 +1,7 @@
+2011-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-make-date-line): Limit the length a bit more.
+
 2011-01-28  Daiki Ueno  <ueno@unixuser.org>
 
 	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt): Give

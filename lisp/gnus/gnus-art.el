@@ -3578,7 +3578,7 @@ should replace the \"Date:\" one, or should be added below it."
 			  (concat " (" (article-lapsed-string time segments) ")"))
 		    (> (+ (length date-string)
 			  (length lapsed-string))
-		       (+ fill-column 10))
+		       (+ fill-column 6))
 		    (> segments 0))
 	      (setq segments (1- segments)))
 	    (if (> segments 0)
