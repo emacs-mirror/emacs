@@ -1,5 +1,33 @@
 2011-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/grep.el (grep-regexp-alist): Tighten regexp.
+	(grep-mode-font-lock-keywords): Remove regexp that seems like
+	a left-over from before we used compile.el.
+	(grep-mode-font-lock-keywords): Call syntax-ppss-flush-cache when
+	modifying the buffer within with-silent-modifications.
+
+	* progmodes/compile.el: Cleanup text-properties namespace by using
+	`compilation-message' instead of `message', `compilation-directory'
+	instead of `directory', and `compilation-debug' instead of `debug'.
+	(compilation-last-buffer, compilation-parsing-end)
+	(compilation-error-list, compilation-old-error-list): Move to the
+	compatibility part of the code.
+	(compilation-error-properties): If `file' is a function, let it return
+	a file name.
+	(compilation-mode-font-lock-keywords): Be more conservative with the
+	omake "^ *" pattern prefix, to try and minimize the risk of
+	pathologically slow regexp matching.
+	(compilation-start): Use inhibit-read-only.
+	(compilation--unsetup): New function.
+	(compilation-shell-minor-mode, compilation-minor-mode): Use it.
+	(compilation-filter): Minor tweaks.
+	(compilation-next-error-function): Try and avoid abusing variable names.
+	(compilation--flush-file-structure): New fun.
+	(compilation-fake-loc): Use it for cleaner behavior when file is reused.
+	(debug-ignored-errors): Add "Moved past last ...".
+	(compilation--compat-error-properties)
+	(compilation--compat-parse-errors): Rename by doubling the "-".
+
 	Port features from the previous prolog.el to the new one.
 	* progmodes/prolog.el (prolog-system): Add GNU and ECLiPSe options.
 	(prolog-program-name, prolog-program-switches, prolog-consult-string)
