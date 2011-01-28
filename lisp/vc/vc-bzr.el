@@ -674,18 +674,22 @@ REV non-nil gets an error."
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
-  ;; `bzr diff' exits with code 1 if diff is non-empty.
-  (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*")
-	 (if vc-disable-async-diff 1 'async) files
-         "--diff-options" (mapconcat 'identity
-                                     (vc-switches 'bzr 'diff)
-				     " ")
-         ;; This `when' is just an optimization because bzr-1.2 is *much*
-         ;; faster when the revision argument is not given.
-         (when (or rev1 rev2)
-           (list "-r" (format "%s..%s"
-                              (or rev1 "revno:-1")
-                              (or rev2 ""))))))
+  (let* ((switches (vc-switches 'bzr 'diff))
+         (args
+          (append
+           ;; Only add --diff-options if there are any diff switches.
+           (unless (zerop (length switches))
+             (list "--diff-options" (mapconcat 'identity switches " ")))
+           ;; This `when' is just an optimization because bzr-1.2 is *much*
+           ;; faster when the revision argument is not given.
+           (when (or rev1 rev2)
+             (list "-r" (format "%s..%s"
+                                (or rev1 "revno:-1")
+                                (or rev2 "")))))))
+    ;; `bzr diff' exits with code 1 if diff is non-empty.
+    (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*")
+           (if vc-disable-async-diff 1 'async) files
+           args)))
 
 
 ;; FIXME: vc-{next,previous}-revision need fixing in vc.el to deal with

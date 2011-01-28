@@ -3939,11 +3939,9 @@ If NO-DISPLAY, don't generate a summary buffer."
 	      (gnus-group-jump-to-group group)
 	      (gnus-group-next-unread-group 1))
 	  (gnus-handle-ephemeral-exit quit-config)))
-      (let ((grpinfo (gnus-get-info group)))
-	(if (null (gnus-info-read grpinfo))
-	    (gnus-message 3 "Group %s contains no messages"
-			  (gnus-group-decoded-name group))
-	  (gnus-message 3 "Can't select group")))
+      (if (null (gnus-list-of-unread-articles group))
+	  (gnus-message 3 "Group %s contains no messages" group)
+	(gnus-message 3 "Can't select group"))
       nil)
      ;; The user did a `C-g' while prompting for number of articles,
      ;; so we exit this group.

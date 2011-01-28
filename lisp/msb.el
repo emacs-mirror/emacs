@@ -364,6 +364,9 @@ This is instead of the groups in `msb-menu-cond'."
   :set 'msb-custom-set
   :group 'msb)
 
+(define-obsolete-variable-alias 'msb-after-load-hooks
+  'msb-after-load-hook "24.1")
+
 (defcustom msb-after-load-hook nil
   "Hook run after the msb package has been loaded."
   :type 'hook
@@ -1151,6 +1154,6 @@ different buffer menu using the function `msb'."
   nil)
 
 (provide 'msb)
-(eval-after-load "msb" '(run-hooks 'msb-after-load-hook 'msb-after-load-hooks))
+(run-hooks 'msb-after-load-hook)
 
 ;;; msb.el ends here

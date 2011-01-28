@@ -1,3 +1,8 @@
+2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* automated/font-parse-tests.el: Move from
+	font-parse-testsuite.el.
+
 2011-01-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font-parse-testsuite.el (test-font-parse-data): New file.

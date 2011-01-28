@@ -1513,6 +1513,7 @@ font_parse_fcname (char *name, Lisp_Object font)
 	    }
 	}
 #undef PROP_MATCH
+#undef PROP_SAVE
 
       if (family_end)
 	ASET (font, FONT_FAMILY_INDEX,

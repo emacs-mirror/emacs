@@ -333,8 +333,11 @@ Symbols are also allowed; their print names are used instead."
 	(and (= (car fdate) (car date))
 	     (> (nth 1 fdate) (nth 1 date))))))
 
+;; Every version of Emacs Gnus supports has built-in float-time.
+;; The featurep test silences an irritating compiler warning.
 (eval-and-compile
-  (if (fboundp 'float-time)
+  (if (or (featurep 'emacs)
+	  (fboundp 'float-time))
       (defalias 'gnus-float-time 'float-time)
     (defun gnus-float-time (&optional time)
       "Convert time value TIME to a floating point number.

@@ -1,3 +1,41 @@
+2011-01-27  Sam Steingold  <sds@gnu.org>
+
+	* midnight.el (clean-buffer-list-kill-never-buffer-names): Remove
+	"*server*" which is never created by emacs server.
+
+2011-01-27  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* vc/vc-bzr.el (vc-bzr-diff): Don't pass --diff-options unless
+	there are some diff switches.
+
+2011-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
+	Copy change made to ruby-font-lock-syntactic-keywords.
+
+	* htmlfontify.el: Make it obey the font-lock-face text property.
+	Miscellaneous cleanup such as:
+	- Don't hide expressions after a closing paren.
+	- Move initial setq into let.
+	- Hoist common parts out of ifs.
+	(hfy-p-to-face, hfy-p-to-face-lennart): Remove.
+	(hfy-face-at): Use get-text-property instead.
+	(hfy-prop-invisible-p): Use invisible-p if available.
+	(htmlfontify-manual): Use \\[...].
+	(hfy-html-quote-regex): Use [...].
+	(hfy-combined-face-spec): Simplify.
+	(hfy-compile-face-map): Don't presume point-min==1.
+	(hfy-css-name, hfy-buffer, htmlfontify-buffer): Use \' rather than $ to
+	match end of string.
+	(hfy-text-p): η-reduce.
+	(hfy-tags-for-file): Receive cache-hash directly.
+	(hfy-mark-tag-names): Adjust call.
+
+2011-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* msb.el (msb-after-load-hooks): Make it an obsolete alias.
+	(msb-after-load-hook): Remove eval-after-load wackiness.
+
 2011-01-25  Sam Steingold  <sds@gnu.org>
 
 	* vc/vc-svn.el (vc-svn-diff): Use `diff-command' instead of the

@@ -3570,8 +3570,20 @@ should replace the \"Date:\" one, or should be added below it."
 	  (concat "X-Sent: " (article-lapsed-string time)))
 	 ;; A combined date/lapsed format.
 	 ((eq type 'combined-lapsed)
-	  (concat (article-make-date-line date 'original)
-		  " (" (article-lapsed-string time 3) ")"))
+	  (let ((date-string (article-make-date-line date 'original))
+		(segments 3)
+		lapsed-string)
+	    (while (and
+		    (setq lapsed-string
+			  (concat " (" (article-lapsed-string time segments) ")"))
+		    (> (+ (length date-string)
+			  (length lapsed-string))
+		       (+ fill-column 10))
+		    (> segments 0))
+	      (setq segments (1- segments)))
+	    (if (> segments 0)
+		(concat date-string lapsed-string)
+	      date-string)))
 	 ;; Display the date in proper English
 	 ((eq type 'english)
 	  (let ((dtime (decode-time time)))
@@ -3674,19 +3686,33 @@ function and want to see what the date was before converting."
   "Function to be run from a timer to update the lapsed time line."
   (save-match-data
     (let (deactivate-mark)
-      (save-excursion
+      (save-window-excursion
 	(ignore-errors
 	 (walk-windows
 	  (lambda (w)
 	    (set-buffer (window-buffer w))
 	    (when (eq major-mode 'gnus-article-mode)
-	      (let ((mark (point-marker)))
+	      (let ((mark (point-marker))
+		    (old-point (point)))
 		(goto-char (point-min))
 		(when (re-search-forward "^X-Sent:\\|^Date:" nil t)
-		  (if gnus-treat-date-combined-lapsed
-		      (article-date-combined-lapsed t)
+		  ;; If the point is on the Date line, then use that
+		  ;; absolute position.  Otherwise, use the mark.
+		  ;; This will ensure that point stays at the "same
+		  ;; place".
+		  (when (or (< old-point (match-beginning 0))
+			    (> old-point (progn
+					   (forward-line 1)
+					   (while (and (not (eobp))
+						       (looking-at "X-Sent:\\|Date:"))
+					     (forward-line))
+					   (point))))
+		    (setq old-point nil))
+		  (when gnus-treat-date-combined-lapsed
+		    (article-date-combined-lapsed t))
+		  (when gnus-treat-date-lapsed
 		    (article-date-lapsed t)))
-		(goto-char (marker-position mark))
+		(goto-char (or old-point (marker-position mark)))
 		(move-marker mark nil))))
 	  nil 'visible))))))
 

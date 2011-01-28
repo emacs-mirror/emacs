@@ -1,5 +1,35 @@
 2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-sum.el (gnus-summary-read-group-1): Fix the "contains no
+	messages" logic, which was reversed.
+
+	* gnus-art.el (article-update-date-lapsed): Ensure that point stays at
+	the "same place" even if point is on the line being replaced.
+	(article-update-date-lapsed): Allow updating both the combined lapsed
+	and the lapsed headers.
+	(article-update-date-lapsed): Skip past all the X-Sent/Date headers.
+	(article-make-date-line): Limit the number of segments dynamically to
+	avoid too-long lines.
+
+2011-01-27  Julien Danjou  <julien@danjou.info>
+
+	* mml2015.el (mml2015-epg-sign): Add and use mml2015-sign-with-sender.
+	(mml2015-epg-encrypt): Use mml2015-sign-with-sender.
+
+2011-01-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-expand-newlines, shr-previous-newline-padding-width):
+	Use plist-get instead of the cl function getf.
+
+2011-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (float-time): Get rid of compiler warning, again.
+
+2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-put-color): Special-case background colours: Do put them
+	at the blank parts at the front of the lines.
+
 	* gnus-draft.el (gnus-draft-clear-marks): New function to be run as an
 	exit hook to nix out all data on readedness on group exit.
 
