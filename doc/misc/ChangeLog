@@ -1,3 +1,7 @@
+2011-01-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Date): Document gnus-article-update-lapsed-header.
+
 2011-01-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* message.texi (IDNA): Explain what it is.
