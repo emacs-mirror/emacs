@@ -1,3 +1,8 @@
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* woman.el (woman0-roff-buffer): Process roff escape sequences
+	occurring prior to the first request (Bug#7843).
+
 2011-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Port features from the previous prolog.el to the new one.
