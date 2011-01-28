@@ -1,3 +1,7 @@
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-display-size): Doc fix (Bug#7820).
+
 2011-01-27  Sam Steingold  <sds@gnu.org>
 
 	* midnight.el (clean-buffer-list-kill-never-buffer-names): Remove

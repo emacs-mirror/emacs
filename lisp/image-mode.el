@@ -118,13 +118,16 @@ A winprops object has the shape (WINDOW . ALIST)."
 (declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun image-display-size (spec &optional pixels frame)
-  "Wrapper around `image-size', to handle slice display properties.
-If SPEC is an image display property, call `image-size' with the
-given arguments.
-If SPEC is a list of properties containing `image' and `slice'
-properties, calculate the display size from the slice property.
-If SPEC contains `image' but not `slice', call `image-size' with
-the specified image."
+  "Wrapper around `image-size', handling slice display properties.
+Like `image-size', the return value is (WIDTH . HEIGHT).
+WIDTH and HEIGHT are in canonical character units if PIXELS is
+nil, and in pixel units if PIXELS is non-nil.
+
+If SPEC is an image display property, this function is equivalent
+to `image-size'.  If SPEC is a list of properties containing
+`image' and `slice' properties, return the display size taking
+the slice property into account.  If the list contains `image'
+but not `slice', return the `image-size' of the specified image."
   (if (eq (car spec) 'image)
       (image-size spec pixels frame)
     (let ((image (assoc 'image spec))
