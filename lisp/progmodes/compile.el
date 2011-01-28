@@ -28,45 +28,6 @@
 ;; This package provides the compile facilities documented in the Emacs user's
 ;; manual.
 
-;; This mode uses some complex data-structures:
-
-;;   LOC (or location) is a list of (COLUMN LINE FILE-STRUCTURE)
-
-;; COLUMN and LINE are numbers parsed from an error message.  COLUMN and maybe
-;; LINE will be nil for a message that doesn't contain them.  Then the
-;; location refers to a indented beginning of line or beginning of file.
-;; Once any location in some file has been jumped to, the list is extended to
-;; (COLUMN LINE FILE-STRUCTURE MARKER TIMESTAMP . VISITED)
-;; for all LOCs pertaining to that file.
-;; MARKER initially points to LINE and COLUMN in a buffer visiting that file.
-;; Being a marker it sticks to some text, when the buffer grows or shrinks
-;; before that point.  VISITED is t if we have jumped there, else nil.
-;; TIMESTAMP is necessary because of "incremental compilation": `omake -P'
-;; polls filesystem for changes and recompiles when a file is modified
-;; using the same *compilation* buffer. this necessitates re-parsing markers.
-
-;;   FILE-STRUCTURE is a list of
-;;   ((FILENAME DIRECTORY) FORMATS (LINE LOC ...) ...)
-
-;; FILENAME is a string parsed from an error message.  DIRECTORY is a string
-;; obtained by following directory change messages.  DIRECTORY will be nil for
-;; an absolute filename.  FORMATS is a list of formats to apply to FILENAME if
-;; a file of that name can't be found.
-;; The rest of the list is an alist of elements with LINE as key.  The keys
-;; are either nil or line numbers.  If present, nil comes first, followed by
-;; the numbers in decreasing order.  The LOCs for each line are again an alist
-;; ordered the same way.  Note that the whole file structure is referenced in
-;; every LOC.
-
-;;   MESSAGE is a list of (LOC TYPE END-LOC)
-
-;; TYPE is 0 for info or 1 for warning if the message matcher identified it as
-;; such, 2 otherwise (for a real error).  END-LOC is a LOC pointing to the
-;; other end, if the parsed message contained a range.  If the end of the
-;; range didn't specify a COLUMN, it defaults to -1, meaning end of line.
-;; These are the value of the `message' text-properties in the compilation
-;; buffer.
-
 ;;; Code:
 
 (eval-when-compile (require 'cl))
@@ -122,9 +83,7 @@ in the compilation output, and should return a transformed file name.")
   "*Function to call to customize the compilation process.
 This function is called immediately before the compilation process is
 started.  It can be used to set any variables or functions that are used
-while processing the output of the compilation process.  The function
-is called with variables `compilation-buffer' and `compilation-window'
-bound to the compilation buffer and window, respectively.")
+while processing the output of the compilation process.")
 
 ;;;###autoload
 (defvar compilation-buffer-name-function nil
@@ -311,7 +270,12 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (omake
      ;; "omake -P" reports "file foo changed"
      ;; (useful if you do "cvs up" and want to see what has changed)
-     "omake: file \\(.*\\) changed" 1)
+     "omake: file \\(.*\\) changed" 1 nil nil nil nil
+     ;; FIXME-omake: This tries to prevent reusing pre-existing markers
+     ;; for subsequent messages, since those messages's line numbers
+     ;; are about another version of the file.
+     (0 (progn (compilation--flush-file-structure (match-string 1))
+               nil)))
 
     (oracle
      "^\\(?:Semantic error\\|Error\\|PCC-[0-9]+:\\).* line \\([0-9]+\\)\
@@ -739,6 +703,8 @@ Faces `compilation-error-face', `compilation-warning-face',
 
 ;; Used for compatibility with the old compile.el.
 (defvar compilation-parse-errors-function nil)
+(make-obsolete 'compilation-parse-errors-function
+               'compilation-error-regexp-alist "24.1")
 
 (defcustom compilation-auto-jump-to-first-error nil
   "If non-nil, automatically jump to the first error during compilation."
@@ -750,9 +716,9 @@ Faces `compilation-error-face', `compilation-warning-face',
   "If non-nil, automatically jump to the next error encountered.")
 (make-variable-buffer-local 'compilation-auto-jump-to-next)
 
-(defvar compilation-buffer-modtime nil
-  "The buffer modification time, for buffers not associated with files.")
-(make-variable-buffer-local 'compilation-buffer-modtime)
+;; (defvar compilation-buffer-modtime nil
+;;   "The buffer modification time, for buffers not associated with files.")
+;; (make-variable-buffer-local 'compilation-buffer-modtime)
 
 (defvar compilation-skip-to-next-location t
   "*If non-nil, skip multiple error messages for the same source location.")
@@ -798,9 +764,82 @@ from a different message."
       (and (cdr type) (match-end (cdr type)) compilation-info-face)
       compilation-error-face))
 
+;;   LOC (or location) is a list of (COLUMN LINE FILE-STRUCTURE nil nil)
+
+;; COLUMN and LINE are numbers parsed from an error message.  COLUMN and maybe
+;; LINE will be nil for a message that doesn't contain them.  Then the
+;; location refers to a indented beginning of line or beginning of file.
+;; Once any location in some file has been jumped to, the list is extended to
+;; (COLUMN LINE FILE-STRUCTURE MARKER TIMESTAMP . VISITED)
+;; for all LOCs pertaining to that file.
+;; MARKER initially points to LINE and COLUMN in a buffer visiting that file.
+;; Being a marker it sticks to some text, when the buffer grows or shrinks
+;; before that point.  VISITED is t if we have jumped there, else nil.
+;; FIXME-omake: TIMESTAMP was used to try and handle "incremental compilation":
+;; `omake -P' polls filesystem for changes and recompiles when a file is
+;; modified using the same *compilation* buffer. this necessitates
+;; re-parsing markers.
+
+;; (defstruct (compilation--loc
+;;             (:constructor nil)
+;;             (:copier nil)
+;;             (:constructor compilation--make-loc
+;;                           (file-struct line col marker))
+;;             (:conc-name compilation--loc->))
+;;   col line file-struct marker timestamp visited)
+
+;; FIXME: We don't use a defstruct because of compilation-assq which looks up
+;; and creates part of the LOC (only the first cons cell containing the COL).
+
+(defmacro compilation--make-cdrloc (line file-struct marker)
+  `(list ,line ,file-struct ,marker nil))
+(defmacro compilation--loc->col (loc) `(car ,loc))
+(defmacro compilation--loc->line (loc) `(cadr ,loc))
+(defmacro compilation--loc->file-struct (loc) `(nth 2 ,loc))
+(defmacro compilation--loc->marker (loc) `(nth 3 ,loc))
+;; (defmacro compilation--loc->timestamp (loc) `(nth 4 ,loc))
+(defmacro compilation--loc->visited (loc) `(nthcdr 5 ,loc))
+
+;;   FILE-STRUCTURE is a list of
+;;   ((FILENAME DIRECTORY) FORMATS (LINE LOC ...) ...)
+
+;; FILENAME is a string parsed from an error message.  DIRECTORY is a string
+;; obtained by following directory change messages.  DIRECTORY will be nil for
+;; an absolute filename.  FORMATS is a list of formats to apply to FILENAME if
+;; a file of that name can't be found.
+;; The rest of the list is an alist of elements with LINE as key.  The keys
+;; are either nil or line numbers.  If present, nil comes first, followed by
+;; the numbers in decreasing order.  The LOCs for each line are again an alist
+;; ordered the same way.  Note that the whole file structure is referenced in
+;; every LOC.
+
+(defmacro compilation--make-file-struct (file-spec formats &optional loc-tree)
+  `(cons ,file-spec (cons ,formats ,loc-tree)))
+(defmacro compilation--file-struct->file-spec (fs) `(car ,fs))
+(defmacro compilation--file-struct->formats (fs) `(cadr ,fs))
+;; The FORMATS field plays the role of ANCHOR in the loc-tree.
+(defmacro compilation--file-struct->loc-tree (fs) `(cdr ,fs))
+
+;;   MESSAGE is a list of (LOC TYPE END-LOC)
+
+;; TYPE is 0 for info or 1 for warning if the message matcher identified it as
+;; such, 2 otherwise (for a real error).  END-LOC is a LOC pointing to the
+;; other end, if the parsed message contained a range.  If the end of the
+;; range didn't specify a COLUMN, it defaults to -1, meaning end of line.
+;; These are the value of the `compilation-message' text-properties in the
+;; compilation buffer.
+
+(defstruct (compilation--message
+            (:constructor nil)
+            (:copier nil)
+            ;; (:type list)                ;Old representation.
+            (:constructor compilation--make-message (loc type end-loc))
+            (:conc-name compilation--message->))
+  loc type end-loc)
+
 ;; Internal function for calculating the text properties of a directory
-;; change message.  The directory property is important, because it is
-;; the stack of nested enter-messages.  Relative filenames on the following
+;; change message.  The compilation-directory property is important, because it
+;; is the stack of nested enter-messages.  Relative filenames on the following
 ;; lines are relative to the top of the stack.
 (defun compilation-directory-properties (idx leave)
   (if leave (setq leave (match-end leave)))
@@ -936,22 +975,25 @@ FMTS is a list of format specs for transforming the file name.
   (let* ((file-struct (compilation-get-file-structure file fmts))
 	 ;; Get first already existing marker (if any has one, all have one).
 	 ;; Do this first, as the compilation-assq`s may create new nodes.
-	 (marker-line (car (cddr file-struct)))	; a line structure
-	 (marker (nth 3 (cadr marker-line)))	; its marker
+	 (marker-line	; a line structure
+          (cadr (compilation--file-struct->loc-tree file-struct)))
+	 (marker
+          (if marker-line (compilation--loc->marker (cadr marker-line))))
 	 (compilation-error-screen-columns compilation-error-screen-columns)
 	 end-marker loc end-loc)
     (if (not (and marker (marker-buffer marker)))
 	(setq marker nil)		; no valid marker for this file
       (setq loc (or line 1))		; normalize no linenumber to line 1
       (catch 'marker			; find nearest loc, at least one exists
-	(dolist (x (nthcdr 3 file-struct))	; loop over remaining lines
+	(dolist (x (cddr (compilation--file-struct->loc-tree
+                          file-struct)))	; Loop over remaining lines.
 	  (if (> (car x) loc)		; still bigger
 	      (setq marker-line x)
 	    (if (> (- (or (car marker-line) 1) loc)
 		   (- loc (car x)))	; current line is nearer
 		(setq marker-line x))
 	    (throw 'marker t))))
-      (setq marker (nth 3 (cadr marker-line))
+      (setq marker (compilation--loc->marker (cadr marker-line))
 	    marker-line (or (car marker-line) 1))
       (with-current-buffer (marker-buffer marker)
 	(save-excursion
@@ -964,7 +1006,7 @@ FMTS is a list of format specs for transforming the file name.
 		  (end-of-line)
 		(compilation-move-to-column
 		 end-col compilation-error-screen-columns))
-	      (setq end-marker (list (point-marker))))
+	      (setq end-marker (point-marker)))
 	    (beginning-of-line (if end-line
 				   (- line end-line -1)
 				 (- loc marker-line -1)))
@@ -972,24 +1014,40 @@ FMTS is a list of format specs for transforming the file name.
 		(compilation-move-to-column
 		 col compilation-error-screen-columns)
 	      (forward-to-indentation 0))
-	    (setq marker (list (point-marker)))))))
+	    (setq marker (point-marker))))))
 
-    (setq loc (compilation-assq line (cdr file-struct)))
+    (setq loc (compilation-assq line (compilation--file-struct->loc-tree
+                                      file-struct)))
+    (setq end-loc
     (if end-line
-	(setq end-loc (compilation-assq end-line (cdr file-struct))
-	      end-loc (compilation-assq end-col end-loc))
+              (compilation-assq
+               end-col (compilation-assq
+                        end-line (compilation--file-struct->loc-tree
+                                  file-struct)))
       (if end-col			; use same line element
-	  (setq end-loc (compilation-assq end-col loc))))
+                (compilation-assq end-col loc))))
     (setq loc (compilation-assq col loc))
     ;; If they are new, make the loc(s) reference the file they point to.
-    (or (cdr loc) (setcdr loc `(,line ,file-struct ,@marker)))
+    ;; FIXME-omake: there's a problem with timestamps here: the markers
+    ;; relative to which we computed the current `marker' have a timestamp
+    ;; almost guaranteed to be different from compilation-buffer-modtime, so if
+    ;; we use their timestamp, we'll never use `loc' since the timestamp won't
+    ;; match compilation-buffer-modtime, and if we use
+    ;; compilation-buffer-modtime then we have different timestamps for
+    ;; locations that were computed together, which doesn't make sense either.
+    ;; I think this points to a fundamental problem in our approach to the
+    ;; "omake -P" problem.  --Stef
+    (or (cdr loc)
+        (setcdr loc (compilation--make-cdrloc line file-struct marker)))
     (if end-loc
 	(or (cdr end-loc)
-	    (setcdr end-loc `(,(or end-line line) ,file-struct ,@end-marker))))
+	    (setcdr end-loc
+                    (compilation--make-cdrloc (or end-line line) file-struct
+                                              end-marker))))
 
     ;; Must start with face
     `(face ,compilation-message-face
-      compilation-message (,loc ,type ,end-loc)
+      compilation-message ,(compilation--make-message loc type end-loc)
       ,@(if compilation-debug
             `(compilation-debug
               (,(assoc (with-no-warnings matcher) font-lock-keywords)
@@ -1616,7 +1674,7 @@ Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
 	mode-name (or name-of-mode "Compilation"))
   (set (make-local-variable 'page-delimiter)
        compilation-page-delimiter)
-  (set (make-local-variable 'compilation-buffer-modtime) nil)
+  ;; (set (make-local-variable 'compilation-buffer-modtime) nil)
   (compilation-setup)
   (setq buffer-read-only t)
   (run-mode-hooks 'compilation-mode-hook))
@@ -1839,7 +1897,8 @@ and runs `compilation-filter-hook'."
               (unless comint-inhibit-carriage-motion
                 (comint-carriage-motion (process-mark proc) (point)))
               (set-marker (process-mark proc) (point))
-              (set (make-local-variable 'compilation-buffer-modtime) (current-time))
+              ;; (set (make-local-variable 'compilation-buffer-modtime)
+              ;;      (current-time))
               (run-hooks 'compilation-filter-hook))
 	  (goto-char pos)
           (narrow-to-region min max)
@@ -1876,14 +1935,16 @@ and runs `compilation-filter-hook'."
 	   (if (setq pt (,property-change pt 'compilation-message nil ,limit))
 	       (setq msg (get-text-property pt 'compilation-message)))
 	   (error ,error compilation-error))
-       (or (< (cadr msg) compilation-skip-threshold)
+       (or (< (compilation--message->type msg) compilation-skip-threshold)
 	   (if different-file
-	       (eq (prog1 last (setq last (nth 2 (car msg))))
+	       (eq (prog1 last
+                     (setq last (compilation--loc->file-struct
+                                 (compilation--message->loc msg))))
 		   last))
 	   (if compilation-skip-visited
-	       (nthcdr 5 (car msg)))
+	       (compilation--loc->visited (compilation--message->loc msg)))
 	   (if compilation-skip-to-next-location
-	       (eq (car msg) loc))
+	       (eq (compilation--message->loc msg) loc))
 	   ;; count this message only if none of the above are true
 	   (setq n (,1+ n))))))
 
@@ -1901,8 +1962,8 @@ looking for the next message."
       (error "Not in a compilation buffer"))
   (or pt (setq pt (point)))
   (let* ((msg (get-text-property pt 'compilation-message))
-         ;; `loc' is used by the compilation-loop macro.
-	 (loc (car msg))
+         ;; `loc', `msg', and `last' are used by the compilation-loop macro.
+	 (loc (compilation--message->loc msg))
 	 last)
     (if (zerop n)
 	(unless (or msg			; find message near here
@@ -1916,7 +1977,8 @@ looking for the next message."
 						  (line-end-position)))
 	    (or (setq msg (get-text-property pt 'compilation-message))
 		(setq pt (point)))))
-      (setq last (nth 2 (car msg)))
+      (setq last (compilation--loc->file-struct
+                  (compilation--message->loc msg)))
       (if (>= n 0)
 	  (compilation-loop > next-single-property-change 1-
 			    (if (get-buffer-process (current-buffer))
@@ -2001,8 +2063,8 @@ This is the value of `next-error-function' in Compilation buffers."
 				      (or compilation-current-error
 					  compilation-messages-start
 					  (point-min))))
-         (loc (car msg))
-	 (end-loc (nth 2 msg))
+	 (loc (compilation--message->loc msg))
+	 (end-loc (compilation--message->end-loc msg))
 	 (marker (point-marker)))
     (setq compilation-current-error (point-marker)
 	  overlay-arrow-position
@@ -2011,39 +2073,51 @@ This is the value of `next-error-function' in Compilation buffers."
 	      (copy-marker (line-beginning-position))))
     ;; If loc contains no marker, no error in that file has been visited.
     ;; If the marker is invalid the buffer has been killed.
-    ;; If the file is newer than the timestamp, it has been modified
-    ;; (`omake -P' polls filesystem for changes and recompiles when needed
-    ;;  in the same process and buffer).
     ;; So, recalculate all markers for that file.
-    (unless (and (nth 3 loc) (marker-buffer (nth 3 loc)) (nthcdr 4 loc)
-                 ;; There may be no timestamp info if the loc is a `fake-loc',
-                 ;; but we just checked that the file has been visited before!
-                 (equal (nth 4 loc)
-                        (setq timestamp compilation-buffer-modtime)))
-      (with-current-buffer (compilation-find-file marker (caar (nth 2 loc))
-						  (cadr (car (nth 2 loc))))
+    (unless (and (compilation--loc->marker loc)
+                 (marker-buffer (compilation--loc->marker loc))
+                 ;; FIXME-omake: For "omake -P", which automatically recompiles
+                 ;; when the file is modified, the line numbers of new output
+                 ;; may not be related to line numbers from earlier output
+                 ;; (earlier markers), so we used to try to detect it here and
+                 ;; force a reparse.  But that caused more problems elsewhere,
+                 ;; so instead we now flush the file-structure when we see
+                 ;; omake's message telling it's about to recompile a file.
+                 ;; (or (null (compilation--loc->timestamp loc)) ;A fake-loc
+                 ;;     (equal (compilation--loc->timestamp loc)
+                 ;;            (setq timestamp compilation-buffer-modtime)))
+                 )
+      (with-current-buffer
+          (compilation-find-file
+           marker
+           (caar (compilation--loc->file-struct loc))
+           (cadr (car (compilation--loc->file-struct loc))))
 	(save-restriction
 	  (widen)
 	  (goto-char (point-min))
 	  ;; Treat file's found lines in forward order, 1 by 1.
-	  (dolist (line (reverse (cddr (nth 2 loc))))
+	  (dolist (line (reverse (cddr (compilation--loc->file-struct loc))))
 	    (when (car line)		; else this is a filename w/o a line#
 	      (beginning-of-line (- (car line) last -1))
 	      (setq last (car line)))
 	    ;; Treat line's found columns and store/update a marker for each.
 	    (dolist (col (cdr line))
-	      (if (car col)
-		  (if (eq (car col) -1)	; special case for range end
+	      (if (compilation--loc->col col)
+		  (if (eq (compilation--loc->col col) -1)
+                      ;; Special case for range end.
 		      (end-of-line)
-		    (compilation-move-to-column (car col) columns))
+		    (compilation-move-to-column (compilation--loc->col col)
+                                                columns))
 		(beginning-of-line)
 		(skip-chars-forward " \t"))
-	      (if (nth 3 col)
-		  (set-marker (nth 3 col) (point))
-		(setcdr (nthcdr 2 col) `(,(point-marker)))))))))
-    (compilation-goto-locus marker (nth 3 loc) (nth 3 end-loc))
-    (setcdr (nthcdr 3 loc) (list timestamp))
-    (setcdr (nthcdr 4 loc) t)))		; Set this one as visited.
+	      (if (compilation--loc->marker col)
+                  (set-marker (compilation--loc->marker col) (point))
+		(setf (compilation--loc->marker col) (point-marker)))
+              ;; (setf (compilation--loc->timestamp col) timestamp)
+              )))))
+    (compilation-goto-locus marker (compilation--loc->marker loc)
+                            (compilation--loc->marker end-loc))
+    (setf (compilation--loc->visited loc) t)))
 
 (defvar compilation-gcpro nil
   "Internal variable used to keep some values from being GC'd.")
@@ -2077,9 +2151,8 @@ region and the first line of the next region."
     (push fs compilation-gcpro)
     (let ((loc (compilation-assq (or line 1) (cdr fs))))
       (setq loc (compilation-assq col loc))
-      (if (cdr loc)
-          (setcdr (cddr loc) (list marker))
-        (setcdr loc (list line fs marker)))
+      (assert (null (cdr loc)))
+      (setcdr loc (compilation--make-cdrloc line fs marker))
       loc)))
 
 (defcustom compilation-context-lines nil
@@ -2343,7 +2416,8 @@ The file-structure looks like this:
 		 ;; http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00463.html
 		 (or (gethash (cons filename spec-directory) compilation-locs)
 		     (puthash (cons filename spec-directory)
-			      (list (list filename spec-directory) fmt)
+			      (compilation--make-file-struct
+                               (list filename spec-directory) fmt)
 			      compilation-locs))
 		 compilation-locs))))
 
@@ -2375,7 +2449,10 @@ The file-structure looks like this:
     (if (markerp dst)
 	;; Must start with a face, for font-lock.
 	`(face nil
-	  compilation-message ,(list (list nil nil nil dst) 2)
+	  compilation-message ,(compilation--make-message
+                                (cons nil (compilation--make-cdrloc
+                                           nil nil dst))
+                                2 nil)
 	  help-echo "mouse-2: visit the source location"
 	  keymap compilation-button-map
 	  mouse-face highlight)
@@ -2413,16 +2490,22 @@ The file-structure looks like this:
       (dolist (err (if (listp compilation-error-list) compilation-error-list))
 	(let* ((src (car err))
 	       (dst (cdr err))
-	       (loc (cond ((markerp dst) (list nil nil nil dst))
+	       (loc (cond ((markerp dst)
+                           (cons nil
+                                 (compilation--make-cdrloc nil nil dst)))
 			  ((consp dst)
-			   (list (nth 2 dst) (nth 1 dst)
-				 (cons (cdar dst) (caar dst)))))))
+                           (cons (nth 2 dst)
+                                 (compilation--make-cdrloc
+                                  (nth 1 dst)
+                                  (cons (cdar dst) (caar dst))
+                                  nil))))))
 	  (when loc
 	    (goto-char src)
 	    ;; (put-text-property src (line-end-position)
             ;;                    'font-lock-face 'font-lock-warning-face)
 	    (put-text-property src (line-end-position)
-			       'compilation-message (list loc 2)))))))
+			       'compilation-message
+                               (compilation--make-message loc 2 nil)))))))
   (goto-char limit)
   nil)
 

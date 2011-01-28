@@ -1,5 +1,23 @@
 2011-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/compile.el: Use accessors for clarity and fix omake hack.
+	(compilation-process-setup-function): Fix docstring's false promises.
+	(compilation-error-regexp-alist-alist): Catch omake's continuous
+	recompilation message and avoid reuse of old markers.
+	(compilation-parse-errors-function): Declare obsolete.
+	(compilation-buffer-modtime): Remove.
+	(compilation--make-cdrloc, compilation--loc->col)
+	(compilation--loc->line, compilation--loc->file-struct)
+	(compilation--loc->marker, compilation--loc->visited)
+	(compilation--make-file-struct, compilation--file-struct->file-spec)
+	(compilation--file-struct->formats)
+	(compilation--file-struct->loc-tree): New macros.  Use them.
+	(compilation--message): New defstruct.  Use them.
+	(compilation-next-error-function): Don't mess with timestamps to try
+	and guess when to reparse.
+
+2011-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* textmodes/tex-mode.el: Get rid of compilation-parse-errors-function
 	(tex-old-error-file-name): New function,
 	extracted from tex-compilation-parse-errors.
@@ -28,9 +46,9 @@
 	(compilation--unsetup): New function.
 	(compilation-shell-minor-mode, compilation-minor-mode): Use it.
 	(compilation-filter): Minor tweaks.
-	(compilation-next-error-function): Try and avoid abusing variable names.
+	(compilation-next-error-function): Try and avoid abusing variables.
 	(compilation--flush-file-structure): New fun.
-	(compilation-fake-loc): Use it for cleaner behavior when file is reused.
+	(compilation-fake-loc): Use it to improve behavior when file is reused.
 	(debug-ignored-errors): Add "Moved past last ...".
 	(compilation--compat-error-properties)
 	(compilation--compat-parse-errors): Rename by doubling the "-".
@@ -49,7 +67,7 @@
 	(prolog-inferior-self-insert-command): New command.
 	(prolog-inferior-mode-map): Use it.
 	(prolog-inferior-error-regexp-alist): New var.
-	(prolog-inferior-mode): Use it, along with compilation-shell-minor-mode.
+	(prolog-inferior-mode): Use it, with compilation-shell-minor-mode.
 	(prolog-input-filter): Use derived-mode-p.
 	(prolog-inferior-guess-flavor): New function.
 	(prolog-ensure-process): Use it.  Use make-comint-in-buffer rather than
