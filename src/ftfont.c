@@ -749,7 +749,10 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **ots
 
       key = XCAR (XCAR (extra)), val = XCDR (XCAR (extra));
       if (EQ (key, QCdpi))
-	dpi = XINT (val);
+	{
+	  if (INTEGERP (val))
+	    dpi = XINT (val);
+	}
       else if (EQ (key, QClang))
 	{
 	  if (! langset)
@@ -769,12 +772,15 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **ots
 	}
       else if (EQ (key, QCotf))
 	{
-	  *otspec = ftfont_get_open_type_spec (val);
-	  if (! *otspec)
-	    return NULL;
-	  strcat (otlayout, "otlayout:");
-	  OTF_TAG_STR ((*otspec)->script_tag, otlayout + 9);
-	  script = (*otspec)->script;
+	  if (CONSP (val))
+	    {
+	      *otspec = ftfont_get_open_type_spec (val);
+	      if (! *otspec)
+		return NULL;
+	      strcat (otlayout, "otlayout:");
+	      OTF_TAG_STR ((*otspec)->script_tag, otlayout + 9);
+	      script = (*otspec)->script;
+	    }
 	}
       else if (EQ (key, QCscript))
 	script = val;
