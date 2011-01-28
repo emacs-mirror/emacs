@@ -116,7 +116,8 @@ Whether the passphrase is cached at all is controlled by
   :type 'integer)
 
 (defcustom mml2015-signers nil
-  "A list of your own key ID which will be used to sign a message."
+  "A list of your own key ID which will be used to sign a message.
+If set, it overrides the setting of `mml2015-sign-with-sender'."
   :group 'mime-security
   :type '(repeat (string :tag "Key ID")))
 
@@ -965,8 +966,10 @@ Whether the passphrase is cached at all is controlled by
   (let* ((inhibit-redisplay t)
 	 (context (epg-make-context))
 	 (boundary (mml-compute-boundary cont))
-	 (sender (when mml2015-sign-with-sender
-                   (message-options-get 'message-sender)))
+	 (sender (message-options-get 'message-sender))
+	 (signer-names (or mml2015-signers
+			   (if (and mml2015-sign-with-sender sender)
+			       (list (concat "<" sender ">")))))
 	 signer-key
 	 (signers
 	  (or (message-options-get 'mml2015-epg-signers)
@@ -976,10 +979,7 @@ Whether the passphrase is cached at all is controlled by
 		   (epa-select-keys context "\
 Select keys for signing.
 If no one is selected, default secret key is used.  "
-				    (if sender
-					(cons (concat "<" sender ">")
-					      mml2015-signers)
-				      mml2015-signers)
+				    signer-names
 				    t)
 		 (if (or sender mml2015-signers)
 		     (delq nil
@@ -995,10 +995,7 @@ If no one is selected, default secret key is used.  "
 					    signer)))
 				(error "No secret key for %s" signer))
 			      signer-key)
-			    (if sender
-				(cons (concat "<" sender ">")
-				      mml2015-signers)
-			      mml2015-signers))))))))
+			    signer-names)))))))
 	 signature micalg)
     (epg-context-set-armor context t)
     (epg-context-set-textmode context t)
@@ -1038,15 +1035,18 @@ If no one is selected, default secret key is used.  "
     (goto-char (point-max))))
 
 (defun mml2015-epg-encrypt (cont &optional sign)
-  (let ((inhibit-redisplay t)
-	(context (epg-make-context))
-	(config (epg-configuration))
-	(sender (when mml2015-sign-with-sender
-                  (message-options-get 'message-sender)))
-	(recipients (message-options-get 'mml2015-epg-recipients))
-	cipher signers
-	(boundary (mml-compute-boundary cont))
-	recipient-key signer-key)
+  (let* ((inhibit-redisplay t)
+	 (context (epg-make-context))
+	 (boundary (mml-compute-boundary cont))
+	 (config (epg-configuration))
+	 (recipients (message-options-get 'mml2015-epg-recipients))
+	 cipher
+	 (sender (message-options-get 'message-sender))
+	 (signer-names (or mml2015-signers
+			   (if (and mml2015-sign-with-sender sender)
+			       (list (concat "<" sender ">")))))
+	 signers
+	 recipient-key signer-key)
     (unless recipients
       (setq recipients
 	    (apply #'nconc
@@ -1060,12 +1060,9 @@ If no one is selected, default secret key is used.  "
 					      (read-string "Recipients: ")))
 		     "[ \f\t\n\r\v,]+"))))
       (when mml2015-encrypt-to-self
-	(unless (or sender mml2015-signers)
-	  (error "Message sender and mml2015-signers not set"))
-	(setq recipients (nconc recipients (if sender
-					       (cons (concat "<" sender ">")
-						     mml2015-signers)
-					     mml2015-signers))))
+	(unless signer-names
+	  (error "Neither message sender nor mml2015-signers are set"))
+	(setq recipients (nconc recipients signer-names)))
       (if (eq mm-encrypt-option 'guided)
 	  (setq recipients
 		(epa-select-keys context "\
@@ -1098,10 +1095,7 @@ If no one is selected, symmetric encryption will be performed.  "
 		     (epa-select-keys context "\
 Select keys for signing.
 If no one is selected, default secret key is used.  "
-				      (if sender
-					  (cons (concat "<" sender ">")
-						mml2015-signers)
-					mml2015-signers)
+				      signer-names
 				      t)
 		   (if (or sender mml2015-signers)
 		       (delq nil
@@ -1117,9 +1111,7 @@ If no one is selected, default secret key is used.  "
 					      signer)))
 				  (error "No secret key for %s" signer))
 				signer-key)
-			      (if sender
-				  (cons (concat "<" sender ">") mml2015-signers)
-				mml2015-signers))))))))
+			      signer-names)))))))
       (epg-context-set-signers context signers))
     (epg-context-set-armor context t)
     (epg-context-set-textmode context t)

@@ -1,3 +1,8 @@
+2011-01-28  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt): Give
+	mml2015-signers higher precedence over mml2015-sign-with-sender.
+
 2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-group.el (gnus-group-refresh-group): Refresh even non-visible
