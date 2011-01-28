@@ -1,5 +1,12 @@
 2011-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/tex-mode.el: Get rid of compilation-parse-errors-function
+	(tex-old-error-file-name): New function,
+	extracted from tex-compilation-parse-errors.
+	(tex-compilation-parse-errors): Remove.
+	(tex-error-regexp-alist): New var.
+	(tex-shell): Use it to avoid compilation-parse-errors-function.
+
 	* progmodes/grep.el (grep-regexp-alist): Tighten regexp.
 	(grep-mode-font-lock-keywords): Remove regexp that seems like
 	a left-over from before we used compile.el.
