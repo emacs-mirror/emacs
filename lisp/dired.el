@@ -1131,7 +1131,10 @@ If HDR is non-nil, insert a header line with the directory name."
   "Reread the dired buffer.
 Must also be called after `dired-actual-switches' have changed.
 Should not fail even on completely garbaged buffers.
-Preserves old cursor, marks/flags, hidden-p."
+Preserves old cursor, marks/flags, hidden-p.
+
+Dired sets `revert-buffer-function' to this function.  The args
+ARG and NOCONFIRM, passed from `revert-buffer', are ignored."
   (widen)				; just in case user narrowed
   (let ((modflag (buffer-modified-p))
 	(positions (dired-save-positions))

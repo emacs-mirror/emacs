@@ -1549,7 +1549,8 @@ font_parse_fcname (name, font)
 		    size_found = 0;
 		    break;
 		  }
-	      if (size_found)
+	      /* GTK font sizes must occur at the end.  */
+	      if (size_found && *q == '\0')
 		{
 		  double point_size = strtod (p, &q);
 		  ASET (font, FONT_SIZE_INDEX, make_float (point_size));
@@ -1603,7 +1604,7 @@ font_parse_fcname (name, font)
 	  else if (PROP_MATCH ("Italic", 6))
 	    {
 	      prop_found = 1;
-	      prop = font_intern_prop ("italic", 4, 1);
+	      prop = font_intern_prop ("italic", 6, 1);
 	      FONT_SET_STYLE (font, FONT_SLANT_INDEX, prop);
 	    }
 	  else if (PROP_MATCH ("Oblique", 7))

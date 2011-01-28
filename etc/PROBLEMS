@@ -1745,6 +1745,19 @@ the script:
 exec 2> >(exec cat >&2 2>/dev/null)
 exec ssh "$@"
 
+*** GNU/Linux: Truncated svn annotate output with SSH.
+http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7791
+
+The symptoms are: you are accessing a svn repository over SSH.
+You use vc-annotate on a large (several thousand line) file, and the
+result is truncated around the 1000 line mark.  It works fine with
+other access methods (eg http), or from outside Emacs.
+
+This may be a similar libc/SSH issue to the one mentioned above for CVS.
+A similar workaround seems to be effective: create a script with the
+same contents as the one used above for CVS_RSH, and set the SVN_SSH
+environment variable to point to it.
+
 *** GNU/Linux: On Linux-based GNU systems using libc versions 5.4.19 through
 5.4.22, Emacs crashes at startup with a segmentation fault.
 
@@ -3812,5 +3825,3 @@ Local variables:
 mode: outline
 paragraph-separate: "[  ]*$"
 end:
-
-arch-tag: 49fc0d95-88cb-4715-b21c-f27fb5a4764a

@@ -122,13 +122,16 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
   "Return a regexp to find the beginning of a heredoc.
 
 This should only be called after matching against `ruby-here-doc-end-re'."
-  (let ((contents (regexp-quote (concat (match-string 2) (match-string 3)))))
+  (let ((contents (concat
+		   (regexp-quote (concat (match-string 2) (match-string 3)))
+		   (if (string= (match-string 3) "_") "\\B" "\\b"))))
     (concat "<<"
             (let ((match (match-string 1)))
               (if (and match (> (length match) 0))
                   (concat "\\(?:-\\([\"']?\\)\\|\\([\"']\\)" (match-string 1) "\\)"
-                          contents "\\b\\(\\1\\|\\2\\)")
-                (concat "-?\\([\"']\\|\\)" contents "\\b\\1"))))))
+			  contents "\\(\\1\\|\\2\\)")
+		(concat "-?\\([\"']\\|\\)" contents "\\1"))))))
+
 
 (defconst ruby-delimiter
   (concat "[?$/%(){}#\"'`.:]\\|<<\\|\\[\\|\\]\\|\\<\\("
@@ -170,6 +173,7 @@ This should only be called after matching against `ruby-here-doc-end-re'."
     (define-key map (kbd "C-M-h") 'backward-kill-word)
     (define-key map (kbd "C-j")   'reindent-then-newline-and-indent)
     (define-key map (kbd "C-m")   'newline)
+    (define-key map (kbd "C-c C-c") 'comment-region)
     map)
   "Keymap used in Ruby mode.")
 
@@ -336,7 +340,7 @@ Also ignores spaces after parenthesis when 'space."
                             (cdr (assq coding-system ruby-encoding-map)))
                        coding-system))
                 "ascii-8bit"))
-        (if (looking-at "^#![^\n]*ruby") (beginning-of-line 2))
+        (if (looking-at "^#!") (beginning-of-line 2))
         (cond ((looking-at "\\s *#.*-\*-\\s *\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)\\s *\\(;\\|-\*-\\)")
                (unless (string= (match-string 2) coding-system)
                  (goto-char (match-beginning 2))
@@ -946,6 +950,7 @@ With ARG, do it many times.  Negative ARG means move backward."
       (condition-case nil
           (while (> i 0)
             (skip-syntax-forward " ")
+	    (if (looking-at ",\\s *") (goto-char (match-end 0)))
             (cond ((looking-at "\\?\\(\\\\[CM]-\\)*\\\\?\\S ")
                    (goto-char (match-end 0)))
                   ((progn
@@ -1141,7 +1146,7 @@ See `add-log-current-defun-function'."
     ;; ?' ?" ?` are ascii codes
     ("\\(^\\|[^\\\\]\\)\\(\\\\\\\\\\)*[?$]\\([#\"'`]\\)" 3 (1 . nil))
     ;; regexps
-    ("\\(^\\|[=(,~?:;<>]\\|\\(^\\|\\s \\)\\(if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)\\s *\\(/\\)[^/\n\\\\]*\\(\\\\.[^/\n\\\\]*\\)*\\(/\\)"
+    ("\\(^\\|[[=(,~?:;<>]\\|\\(^\\|\\s \\)\\(if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)\\s *\\(/\\)[^/\n\\\\]*\\(\\\\.[^/\n\\\\]*\\)*\\(/\\)"
      (4 (7 . ?/))
      (6 (7 . ?/)))
     ("^=en\\(d\\)\\_>" 1 "!")
@@ -1364,6 +1369,7 @@ See `font-lock-syntax-table'.")
    ;; symbols
    '("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
      2 font-lock-reference-face)
+   '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-reference-face)
    ;; expression expansion
    '("#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)"
      0 font-lock-variable-name-face t)

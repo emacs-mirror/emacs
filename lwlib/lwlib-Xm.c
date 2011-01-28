@@ -825,7 +825,7 @@ xm_update_menu (instance, widget, val, deep_p)
 
   /* Now replace from scratch all the buttons after the last
      place that the top-level structure changed.  */
-  if (val->contents->change == STRUCTURAL_CHANGE)
+  if (val->contents && val->contents->change == STRUCTURAL_CHANGE)
     {
       destroy_all_children (widget, num_children_to_keep);
       make_menu_in_widget (instance, widget, val->contents,

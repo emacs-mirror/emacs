@@ -1,3 +1,49 @@
+2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Require GTK-style font sizes to
+	occur at the end of the font string (Bug#7853).
+
+2011-01-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Fix typo in string length.
+
+2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (handle_fontified_prop): Be careful with font-lock changing
+	the buffer's point-max (bug#7876).
+
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* lisp.h (XPNTR): Obey DATA_SEG_BITS in all non-USE_LSB_TAG cases.
+	Remove unused HAVE_SHM branch (Bug#6811).
+
+2011-01-23  Peter O'Gorman  <bug-gnu-emacs@mlists.thewrittenword.com>  (tiny change)
+
+	* s/hpux11.h: Set CANNOT_DUMP on IA64 (Bug#6811).
+
+2011-01-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (select_window): New function.
+	(Fselect_window): Call it.
+	(inhibit_point_swap): Variable deleted.
+	(Fset_window_configuration): Call select_window directly.
+
+2011-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image.c (syms_of_image): Don't access XSYMBOL's internals directly.
+
+2011-01-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (syms_of_image): Don't use SET_SYMBOL_VALUE.  (Bug#7848)
+
+2011-01-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (inhibit_point_swap): New variable.
+	(Fselect_window): If inhibit_point_swap is nonzero, avoid swapping
+	point this time.
+	(Fset_window_configuration): Set inhibit_point_swap to 1 instead
+	of setting selected_window to nil (Bug#7728).
+
 2011-01-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* config.in (TERMINFO): New definition.

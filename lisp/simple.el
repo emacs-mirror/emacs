@@ -1,8 +1,8 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010, 2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -4073,9 +4073,11 @@ Outline mode sets this."
   "When non-nil, `line-move' moves point by visual lines.
 This movement is based on where the cursor is displayed on the
 screen, instead of relying on buffer contents alone.  It takes
-into account variable-width characters and line continuation."
+into account variable-width characters and line continuation.
+If nil, `line-move' moves point by logical lines."
   :type 'boolean
-  :group 'editing-basics)
+  :group 'editing-basics
+  :version "23.1")
 
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
@@ -5005,12 +5007,10 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 		 regexp)
   :group 'fill)
 
-;; This function is used as the auto-fill-function of a buffer
-;; when Auto-Fill mode is enabled.
-;; It returns t if it really did any work.
-;; (Actually some major modes use a different auto-fill function,
-;; but this one is the default one.)
 (defun do-auto-fill ()
+  "The default value for `normal-auto-fill-function'.
+This is the default auto-fill function, some major modes use a different one.
+Returns t if it really did any work."
   (let (fc justify give-up
 	   (fill-prefix fill-prefix))
     (if (or (not (setq justify (current-justification)))
@@ -6664,5 +6664,4 @@ warning using STRING as the message.")
 
 (provide 'simple)
 
-;; arch-tag: 24af67c0-2a49-44f6-b3b1-312d8b570dfd
 ;;; simple.el ends here

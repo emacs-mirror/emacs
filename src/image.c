@@ -8463,11 +8463,13 @@ non-numeric, there is no explicit limit on the size of images.  */);
 #ifdef HAVE_NTGUI
   Qlibpng_version = intern_c_string ("libpng-version");
   staticpro (&Qlibpng_version);
+  Fset (Qlibpng_version,
 #if HAVE_PNG
-  SET_SYMBOL_VAL (XSYMBOL (Qlibpng_version), make_number (PNG_LIBPNG_VER));
+	make_number (PNG_LIBPNG_VER)
 #else
-  SET_SYMBOL_VAL (XSYMBOL (Qlibpng_version), make_number (-1));
+	make_number (-1)
 #endif
+	);
 #endif
 
 #if defined (HAVE_XPM) || defined (HAVE_NS)

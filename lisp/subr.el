@@ -2340,11 +2340,16 @@ directory if it does not exist."
        ;; unless we're in batch mode or dumping Emacs
        (or noninteractive
 	   purify-flag
-	   (file-accessible-directory-p (directory-file-name user-emacs-directory))
-	   (make-directory user-emacs-directory))
+	   (file-accessible-directory-p
+	    (directory-file-name user-emacs-directory))
+	   (let ((umask (default-file-modes)))
+	     (unwind-protect
+		 (progn
+		   (set-default-file-modes ?\700)
+		   (make-directory user-emacs-directory))
+	       (set-default-file-modes umask))))
        (abbreviate-file-name
         (expand-file-name new-name user-emacs-directory))))))
-
 
 ;;;; Misc. useful functions.
 
@@ -2421,13 +2426,8 @@ Note: :data and :device are currently not supported on Windows."
         "''"
       ;; Quote everything except POSIX filename characters.
       ;; This should be safe enough even for really weird shells.
-      (let ((result "") (start 0) end)
-        (while (string-match "[^-0-9a-zA-Z_./]" argument start)
-          (setq end (match-beginning 0)
-                result (concat result (substring argument start end)
-                               "\\" (substring argument end (1+ end)))
-                start (1+ end)))
-        (concat result (substring argument start))))))
+      (replace-regexp-in-string "\n" "'\n'"
+       (replace-regexp-in-string "[^-0-9a-zA-Z_./\n]" "\\\\\\&" argument)))))
 
 (defun string-or-null-p (object)
   "Return t if OBJECT is a string or nil.

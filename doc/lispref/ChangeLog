@@ -1,3 +1,23 @@
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+            Richard Kim  <emacs18@gmail.com>
+
+	* loading.texi (Library Search): Document list-load-path-shadows
+	(Bug#7757).
+
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* searching.texi (Regexp Special): Remove outdated discussion of
+	character sets (Bug#7780).
+
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Pop-Up Menus): Document where menu title comes
+	from (Bug#7684).
+
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Making Buttons): Mention limitation of text buttons.
+
 2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.texi (Directory Names): Move directory-abbrev-alist doc to
@@ -8681,5 +8701,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: 985ae0ce-df29-475b-b3f8-4bbcbf6f7fda

@@ -122,10 +122,10 @@ confirmation before actually killing a compilation that is running.
 You can also kill the compilation process with @kbd{M-x
 kill-compilation}.
 
-  If you want to run two compilations at once, you should start the
-first one, then rename the @samp{*compilation*} buffer (perhaps using
-@code{rename-uniquely}; @pxref{Misc Buffer}), and start the other
-compilation.  That will create a new @samp{*compilation*} buffer.
+  To run two compilations at once, start the first one, then rename
+the @samp{*compilation*} buffer (perhaps using @code{rename-uniquely};
+@pxref{Misc Buffer}), then switch buffers and start the other
+compilation.  This will create a new @samp{*compilation*} buffer.
 
   Emacs does not expect a compiler process to launch asynchronous
 subprocesses; if it does, and they keep running after the main

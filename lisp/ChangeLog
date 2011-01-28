@@ -1,11 +1,106 @@
+2011-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* msb.el (msb-menu-bar-update-buffers): Update for changed
+	argument handling of menu-bar-select-frame.  (Bug#7902)
+
+2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cc-engine.el (c-forward-<>-arglist-recur): Set a limit
+	to the recursion depth (Bug#7722).
+
+2011-01-26  Roy Liu  <carsomyr@gmail.com>  (tiny change)
+
+	* term/ns-win.el (ns-find-file): Expand ns-input-file with
+	command-line-default-directory (Bug#7872).
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (comint-mode): Doc fix.  (Bug#7897)
+
+2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (file-name-non-special): Only change buffer-file-name after
+	insert-file-contents if it's `visit'ing the file (bug#7854).
+
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-revert): Doc fix (Bug#7758).
+
+2011-01-23  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-here-doc-beg-match): Fix for
+	here-doc which ends with an underscore.
+	(ruby-mode-set-encoding): Skip shebang line always.
+	(ruby-mode-map): Bind C-c C-c to comment-region.
+	(ruby-font-lock-keywords): Highlight literal hash key labels as symbols.
+	(ruby-forward-sexp): Stop after literal hash key labels.
+	(ruby-font-lock-syntactic-keywords): Highlight regexp after open
+	bracket.
+
+2011-01-22  Keitaro Miyazaki  <keitaro.miyazaki@gmail.com>  (tiny change)
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Set case-fold-search in
+	the correct buffer (Bug#7650).
+
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (do-auto-fill): Give it a doc string.
+
+	* button.el (make-text-button): Doc fix.  (See bug#7881)
+
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-visual): Doc fix (Bug#7594).
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Fix logic error in
+	"Case sensitive" menu item.
+
+2011-01-21  Roland McGrath  <roland@frob.com>
+
+	* comint.el (comint-replace-by-expanded-history-before-point): Fix
+	expansion of !$ and !!:N syntax to pick the indicated word (bug#7883).
+
+2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/js.el (js--regexp-literal): Count backslashes (bug#7882).
+
+2011-01-21  Jari Aalto  <jari.aalto@cante.net>
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Assume foo(bar) is a manpage reference rather than some unquoted
+	symbol (bug#7705).
+
+2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (shell-quote-argument): Properly quote \n (bug#7687).
+	Suggested by Flo <sensorflo@gmail.com>.
+
+2011-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Fix custom type.  (Bug#7812)
+
+2011-01-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't re-evaluate the
+	keymap expression.  Improve docstring.
+
+2011-01-15  Mark Diekhans  <markd@soe.ucsc.edu>
+
+	* files.el (backup-buffer): Make last-resort backup file in
+	.emacs.d (Bug#6953).
+
+	* subr.el (locate-user-emacs-file): If .emacs.d does not exist,
+	make it with permission 700.
+
 2011-01-14  Kenichi Handa  <handa@m17n.org>
 
-	* mail/rmailmm.el (rmail-mime-insert-header): Set
-	rmail-mime-coding-system to a cons whose car is the last coding
+	* mail/rmailmm.el (rmail-mime-insert-header):
+	Set rmail-mime-coding-system to a cons whose car is the last coding
 	system used to decode the header.
 	(rmail-mime-find-header-encoding): New function.
-	(rmail-mime-insert-decoded-text): Override
-	rmail-mime-coding-system if it is a cons.
+	(rmail-mime-insert-decoded-text):
+	Override rmail-mime-coding-system if it is a cons.
 	(rmail-show-mime): If only a header part was decoded, find the
 	coding system while ignoring mm-charset-override-alist.
 
@@ -18,8 +113,8 @@
 	* mail/rmailmm.el (rmail-mime-next-item)
 	(rmail-mime-previous-item): Delete them.
 	(rmail-mime-shown-mode): Recursively call for children.
-	(rmail-mime-hidden-mode): Delete the 2nd arg TOP.  Callers
-	changed.
+	(rmail-mime-hidden-mode): Delete the 2nd arg TOP.
+	Callers changed.
 	(rmail-mime-raw-mode): Recursively call for children.
 	(rmail-mode-map): Change mapping of tab and backtab to
 	forward-button and backward-button respectively.
@@ -28,7 +123,7 @@
 	(rmail-mime-update-tagline): New function.
 	(rmail-mime-insert-text): Call rmail-mime-update-tagline if the
 	body display is changed.
-	(rmail-mime-toggle-button): Renamed from rmail-mime-image.
+	(rmail-mime-toggle-button): Rename from rmail-mime-image.
 	(rmail-mime-image): Delete this button type.
 	(rmail-mime-toggle): New button type.
 	(rmail-mime-insert-bulk): Call rmail-mime-update-tagline if the
@@ -12474,4 +12569,3 @@ See ChangeLog.14 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
