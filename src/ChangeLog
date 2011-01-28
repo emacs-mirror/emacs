@@ -1,3 +1,7 @@
+2011-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (safe_eval_handler): Distinguish symbols and strings.
+
 2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_parse_fcname): Undefine a temporary macro.
