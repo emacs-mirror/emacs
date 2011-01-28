@@ -1,3 +1,7 @@
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* m/intel386.h: Define NO_ARG_ARRAY.  Suggested by Dan Nicolaescu.
+
 2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_parse_fcname): Require GTK-style font sizes to
