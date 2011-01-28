@@ -663,7 +663,7 @@ This layout is almost the same as that of VT100,
                               ")
    '("pc105-uk" . "\
                               \
-`\2541!2\"3\2434$5%6^7&8*9(0)-_=+     \
+`\2541!2\"3\2434$5%6^7&8*9(0)-_=+    \
   qQwWeErRtTyYuUiIoOpP[{]}    \
   aAsSdDfFgGhHjJkKlL;:'@#~    \
 \\|zZxXcCvVbBnNmM,<.>/?        \
