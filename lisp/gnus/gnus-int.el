@@ -638,8 +638,7 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
   (when (gnus-check-backend-function
 	 'request-marks (car gnus-command-method))
     (let ((group (gnus-info-group info)))
-      (and (funcall (gnus-get-function gnus-command-method
-				       'request-update-info)
+      (and (funcall (gnus-get-function gnus-command-method 'request-marks)
 		    (gnus-group-real-name group)
 		    info (nth 1 gnus-command-method))
 	   ;; If the minimum article number is greater than 1, then all

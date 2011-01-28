@@ -1,5 +1,8 @@
 2011-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-int.el (gnus-request-marks): Call *-request-marks instead of the
+	older request-update-info.
+
 	* gnus-art.el (article-make-date-line): Limit the length a bit more.
 
 2011-01-28  Daiki Ueno  <ueno@unixuser.org>
