@@ -2297,7 +2297,7 @@ depending on the underlying version-control system."
 (define-obsolete-function-alias 'vc-revert-buffer 'vc-revert "23.1")
 
 ;;;###autoload
-(defun vc-update (&optional arg)
+(defun vc-pull (&optional arg)
   "Update the current fileset or branch.
 On a distributed version control system, this runs a \"pull\"
 operation to update the current branch, prompting for an argument
@@ -2337,7 +2337,7 @@ tip revision are merged into the working file."
       (error "VC update is unsupported for `%s'" backend)))))
 
 ;;;###autoload
-(defalias 'vc-pull 'vc-update)
+(defalias 'vc-update 'vc-pull)
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.

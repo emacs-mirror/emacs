@@ -1,3 +1,16 @@
+2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc-hg.el (vc-hg-history): New var.
+	(vc-hg-pull): Perform default pull if called via Lisp by vc-pull.
+	(vc-hg-merge-branch): New function.
+
+	* vc/vc.el (vc-pull): Make vc-update an alias for this, instead of
+	the other way around.
+
+	* vc/vc-git.el (vc-git-branches, vc-git-pull)
+	(vc-git-merge-branch): New functions.
+	(vc-git-history): New var.
+
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/vc-dispatcher.el (vc-do-async-command): New function.

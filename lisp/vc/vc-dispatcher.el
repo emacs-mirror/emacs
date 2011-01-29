@@ -373,7 +373,7 @@ Display the buffer in some window, but don't select it."
       (unless (eq (point) (point-min))
 	(insert "\n"))
       (setq new-window-start (point))
-      (insert "Running \"" command " ")
+      (insert "Running \"" command)
       (dolist (arg args)
 	(insert " " arg))
       (insert "\"...\n")

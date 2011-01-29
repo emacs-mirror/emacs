@@ -141,6 +141,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 ;;; Properties of the backend
 
+(defvar vc-hg-history nil)
+
 (defun vc-hg-revision-granularity () 'repository)
 (defun vc-hg-checkout-model (files) 'implicit)
 
@@ -607,16 +609,41 @@ REV is the revision to check out into WORKFILE."
                       (mapcar (lambda (arg) (list "-r" arg)) marked-list)))
       (error "No log entries selected for push"))))
 
-(defun vc-hg-pull ()
-  (interactive)
-  (let ((marked-list (log-view-get-marked)))
-    (if marked-list
-        (apply #'vc-hg-command
-               nil 0 nil
-               "pull"
-               (apply 'nconc
-                      (mapcar (lambda (arg) (list "-r" arg)) marked-list)))
-      (error "No log entries selected for pull"))))
+(defun vc-hg-pull (prompt)
+  (interactive "P")
+  (let (marked-list)
+    (if (and (called-interactively-p 'interactive)
+	     (setq marked-list (log-view-get-marked)))
+	(apply #'vc-hg-command
+	       nil 0 nil
+	       "pull"
+	       (apply 'nconc
+		      (mapcar (lambda (arg) (list "-r" arg))
+			      marked-list)))
+      (let* ((root (vc-hg-root default-directory))
+	     (buffer (format "*vc-hg : %s*" (expand-file-name root)))
+	     (command "pull")
+	     (hg-program "hg")
+	     ;; Todo: maybe check if we're up-to-date before updating
+	     ;; the working copy to the latest state.
+	     (args '("-u")))
+	;; If necessary, prompt for the exact command.
+	(when prompt
+	  (setq args (split-string
+		      (read-shell-command "Run Hg (like this): " "hg -u"
+					  'vc-hg-history)
+		      " " t))
+	  (setq hg-program (car  args)
+		command    (cadr args)
+		args       (cddr args)))
+	(apply 'vc-do-async-command buffer root hg-program
+	       command args)))))
+
+(defun vc-hg-merge-branch ()
+  "Merge incoming changes into the current Mercurial working directory."
+  (let* ((root (vc-hg-root default-directory))
+	 (buffer (format "*vc-hg : %s*" (expand-file-name root))))
+    (apply 'vc-do-async-command buffer root "hg" '("merge"))))
 
 ;;; Internal functions
 

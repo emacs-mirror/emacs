@@ -589,20 +589,20 @@ on a D-Bus without simultaneously registering a property or a method.
 ** VC and related modes
 
 *** Support for pulling on distributed version control systems.
-The vc-update command now runs a "pull" operation, if it is supported.
+The vc-pull command runs a "pull" operation, if it is supported.
 This updates the current branch from upstream.  A prefix argument
-means to prompt the user for command specifics, e.g. a pull location.
+means to prompt the user for specifics, e.g. a pull location.
 
-**** vc-pull is an alias for vc-update.
+**** vc-update is now an alias for vc-update.
 
-**** Currently supported by Bzr.
+**** Currently supported by Bzr, Git, and Mercurial.
 
 *** Support for merging on distributed version control systems.
 The vc-merge command now runs a "merge" operation, if it is supported.
-This merges another branch into the current one.  A prefix argument
-means to prompt the user for command specifics, e.g. a merge location.
+This merges another branch into the current one.  This command prompts
+the user for specifics, e.g. a merge source.
 
-**** Currently supported by Bzr.
+**** Currently supported by Bzr, Git, and Mercurial.
 
 ** Miscellaneous
 
