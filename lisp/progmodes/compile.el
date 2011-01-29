@@ -834,6 +834,39 @@ from a different message."
             (:conc-name compilation--message->))
   loc type end-loc)
 
+(defvar compilation--previous-directory-cache nil)
+(make-variable-buffer-local 'compilation--previous-directory-cache)
+(defun compilation--previous-directory (pos)
+  "Like (previous-single-property-change POS 'compilation-directory), but faster."
+  ;; This avoids an N² behavior when there's no/few compilation-directory
+  ;; entries, in which case each call to previous-single-property-change
+  ;; ends up having to walk very far back to find the last change.
+  (let* ((cache (and compilation--previous-directory-cache
+                     (<= (car compilation--previous-directory-cache) pos)
+                     (car compilation--previous-directory-cache)))
+         (prev
+          (previous-single-property-change
+           pos 'compilation-directory nil cache)))
+    (cond
+     ((null cache)
+      (setq compilation--previous-directory-cache
+            (cons (copy-marker pos) (copy-marker prev)))
+      prev)
+     ((eq prev cache)
+      (if cache
+          (set-marker (car compilation--previous-directory-cache) pos)
+        (setq compilation--previous-directory-cache
+              (cons (copy-marker pos) nil)))
+      (cdr compilation--previous-directory-cache))
+     (t
+      (if cache
+          (progn
+            (set-marker (car compilation--previous-directory-cache) pos)
+            (setcdr compilation--previous-directory-cache (copy-marker prev)))
+        (setq compilation--previous-directory-cache
+              (cons (copy-marker pos) (copy-marker prev))))
+      prev))))
+
 ;; Internal function for calculating the text properties of a directory
 ;; change message.  The compilation-directory property is important, because it
 ;; is the stack of nested enter-messages.  Relative filenames on the following
@@ -841,7 +874,7 @@ from a different message."
 (defun compilation-directory-properties (idx leave)
   (if leave (setq leave (match-end leave)))
   ;; find previous stack, and push onto it, or if `leave' pop it
-  (let ((dir (previous-single-property-change (point) 'compilation-directory)))
+  (let ((dir (compilation--previous-directory (point))))
     (setq dir (if dir (or (get-text-property (1- dir) 'compilation-directory)
 			  (get-text-property dir 'compilation-directory))))
     `(font-lock-face ,(if leave
@@ -900,8 +933,7 @@ from a different message."
                             (match-string-no-properties file))))
 	  (let ((dir
 	    (unless (file-name-absolute-p file)
-                   (let ((pos (previous-single-property-change
-                               (point) 'compilation-directory)))
+                   (let ((pos (compilation--previous-directory (point))))
                      (when pos
                        (or (get-text-property (1- pos) 'compilation-directory)
                            (get-text-property pos 'compilation-directory)))))))
@@ -1064,6 +1096,14 @@ FMTS is a list of format specs for transforming the file name.
 
 (defun compilation--remove-properties (&optional start end)
   (with-silent-modifications
+    (cond
+     ((or (not compilation--previous-directory-cache)
+          (<= (car compilation--previous-directory-cache) start)))
+     ((or (not (cdr compilation--previous-directory-cache))
+          (<= (cdr compilation--previous-directory-cache) start))
+      (set-marker (car compilation--previous-directory-cache) start))
+     (t (setq compilation--previous-directory-cache nil)))
+
     ;; When compile.el used font-lock directly, we could just remove all
     ;; our text-properties in one go, but now that we manually place
     ;; font-lock-face, we have to be careful to only remove the font-lock-face

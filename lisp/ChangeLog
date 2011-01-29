@@ -1,3 +1,12 @@
+2011-01-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el: Avoid an N² behavior in grep.
+	(compilation--previous-directory): New fun.
+	(compilation--previous-directory-cache): New var.
+	(compilation--remove-properties): Flush it.
+	(compilation-directory-properties, compilation-error-properties):
+	Use the new fun to speed up looking for the current directory.
+
 2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/vc-hg.el (vc-hg-history): New var.
@@ -18,8 +27,8 @@
 	* vc/vc-bzr.el (vc-bzr-async-command): Convert into a wrapper for
 	vc-do-async-command.
 
-	* vc/vc-bzr.el (vc-bzr-pull, vc-bzr-merge-branch): Callers
-	changed.
+	* vc/vc-bzr.el (vc-bzr-pull, vc-bzr-merge-branch):
+	Callers changed.
 
 2011-01-28  Leo  <sdl.web@gmail.com>
 
