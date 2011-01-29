@@ -1,3 +1,8 @@
+2011-01-29  Anders Lindgren  <andlind@gmail.com> (tiny change)
+
+        * nsfont.m (nsfont_open): Ensure that fonts with inexact
+        descenders would not become one pixel too tall (Bug#7887).
+
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (make_lispy_position): For clicks on right fringe or
