@@ -5666,14 +5666,14 @@ init_png_functions (Lisp_Object libraries)
 
 
 #if (PNG_LIBPNG_VER < 10500)
-#define PNG_LONGJMP(ptr) (longjmp (ptr->jmpbuf, 1))
+#define PNG_LONGJMP(ptr) (longjmp ((ptr)->jmpbuf, 1))
 #define PNG_JMPBUF(ptr) ((ptr)->jmpbuf)
 #else
 /* In libpng version 1.5, the jmpbuf member is hidden.
    We need the extra cast for PNG_JMPBUF because, for Windows,
    DEF_IMGLIB_FN defines the return value of fn_png_set_longjmp_fn to
    be int (Bug#7908).  */
-#define PNG_LONGJMP(ptr) (fn_png_longjmp (png_ptr, 1))
+#define PNG_LONGJMP(ptr) (fn_png_longjmp ((ptr), 1))
 #define PNG_JMPBUF(ptr) \
   (*(jmp_buf *)(fn_png_set_longjmp_fn((ptr), longjmp, sizeof (jmp_buf))))
 #endif
