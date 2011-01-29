@@ -3692,28 +3692,22 @@ function and want to see what the date was before converting."
 	  (lambda (w)
 	    (set-buffer (window-buffer w))
 	    (when (eq major-mode 'gnus-article-mode)
-	      (let ((mark (point-marker))
-		    (old-point (point)))
+	      (let ((old-line (count-lines (point-min) (point)))
+		    (old-column (current-column)))
 		(goto-char (point-min))
 		(when (re-search-forward "^X-Sent:\\|^Date:" nil t)
-		  ;; If the point is on the Date line, then use that
-		  ;; absolute position.  Otherwise, use the mark.
-		  ;; This will ensure that point stays at the "same
-		  ;; place".
-		  (when (or (< old-point (match-beginning 0))
-			    (> old-point (progn
-					   (forward-line 1)
-					   (while (and (not (eobp))
-						       (looking-at "X-Sent:\\|Date:"))
-					     (forward-line))
-					   (point))))
-		    (setq old-point nil))
 		  (when gnus-treat-date-combined-lapsed
 		    (article-date-combined-lapsed t))
 		  (when gnus-treat-date-lapsed
 		    (article-date-lapsed t)))
-		(goto-char (or old-point (marker-position mark)))
-		(move-marker mark nil))))
+		(goto-char (point-min))
+		(when (> old-column 0)
+		  (setq old-line (1- old-line)))
+		(forward-line old-line)
+		(end-of-line)
+		(when (> (current-column) old-column)
+		  (beginning-of-line)
+		  (forward-char old-column)))))
 	  nil 'visible))))))
 
 (defun gnus-start-date-timer (&optional n)
