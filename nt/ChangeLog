@@ -1,3 +1,20 @@
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (all-other-dirs-nmake, all-other-dirs-gmake)
+	(bootstrap-nmake, bootstrap-gmake, bootstrap-clean-nmake)
+	(bootstrap-clean-gmake, clean-other-dirs-nmake)
+	(clean-other-dirs-gmake, cleanall-other-dirs-nmake)
+	(cleanall-other-dirs-gmake, distclean-other-dirs-nmake)
+	(distclean-other-dirs-gmake, maintainer-clean-other-dirs-nmake)
+	(maintainer-clean-other-dirs-gmake): Recurse into ../lib as well.
+
+	* configure.bat: Create lib/makefile.
+
+	* config.nt (HAVE_MKTIME, BROKEN_MKTIME): Remove.
+	(HAVE_ATTRIBUTE_ALIGNED, HAVE_C99_STRTOLD, HAVE_DECL_GETENV)
+	(HAVE_DECL_LOCALTIME_R, HAVE_WCHAR_T, PACKAGE, VERSION, inline)
+	(_GL_UNUSED, _UNUSED_PARAMETER_): Add definitions, for gnulib.
+
 2011-01-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (HAVE___BUILTIN_UNWIND_INIT) [GCC >= 2.8]: Define.

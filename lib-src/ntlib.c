@@ -143,7 +143,7 @@ setuid (unsigned uid)
 }
 
 int
-setegid (unsigned gid)
+setregid (unsigned rgid, unsigned gid)
 {
   return 0;
 }

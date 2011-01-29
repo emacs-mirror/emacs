@@ -1,3 +1,13 @@
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (HAVE_MKTIME): Remove.
+
+	* makefile.w32-in (LOCAL_FLAGS): Add -I../lib.
+	(GNULIB): New variable.
+	(LIBS): Add $(GNULIB).
+	$(TEMACS): Depend on $(GNULIB).
+	<top-level>: Fix font-lock disrupted by a lone `"'.
+
 2011-01-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsselect.m (ns_string_from_pasteboard): Get length of string

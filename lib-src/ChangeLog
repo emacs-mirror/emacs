@@ -1,3 +1,22 @@
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (LOCAL_FLAGS): Add -I../lib.
+	(GETOPTOBJS, GETOPTDEPS): Remove targets.
+	(MOVEMAILOBJS): Replace $(GETOPTOBJS) with ../lib/$(BLD)/libgnu.$(A).
+	($(BLD)/movemail.exe): Depend on ../lib/getopt.h.
+	(ECLIENTOBJS, ETAGSOBJ, CTAGSOBJ, EBROWSEOBJ): Replace getopt.o
+	and getopt1.o with ../lib/$(BLD)/libgnu.$(A).
+	(clean): Don't remove getopt.h.
+	(getopt.h, $(BLD)/getopt.$(O), $(BLD)/getopt1.$(O)): Remove targets.
+	($(BLD)/ctags.$(O), $(BLD)/etags.$(O)): Replace getopt.h with
+	$(EMACS_ROOT)/lib/getopt.h.
+
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ntlib.c (setregid): New stub, renamed from setegid.
+
+	* ntlib.h: Update prototype.
+
 2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* movemail.c (main): Use setregid instead of setegid, which is
