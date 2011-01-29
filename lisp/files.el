@@ -4756,7 +4756,22 @@ this happens by default."
       ;; Compute target name.
       (setq directory (directory-file-name (expand-file-name directory))
 	    newname   (directory-file-name (expand-file-name newname)))
-      (if (not (file-directory-p newname)) (make-directory newname parents))
+
+      (if (not (file-directory-p newname))
+	  ;; If NEWNAME is not an existing directory, create it; that
+	  ;; is where we will copy the files of DIRECTORY.
+	  (make-directory newname parents)
+	;; If NEWNAME is an existing directory, we will copy into
+	;; NEWNAME/[DIRECTORY-BASENAME].
+	(setq newname (expand-file-name
+		       (file-name-nondirectory
+			(directory-file-name directory))
+		       newname))
+	(if (and (file-exists-p newname)
+		 (not (file-directory-p newname)))
+	    (error "Cannot overwrite non-directory %s with a directory"
+		   newname))
+	(make-directory newname t))
 
       ;; Copy recursively.
       (mapc

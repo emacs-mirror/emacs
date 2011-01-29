@@ -1,3 +1,8 @@
+2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): If destination is an existing
+	directory, copy into a subdirectory there.
+
 2011-01-29  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs-lisp/shadow.el (load-path-shadows-find): Ignore leim-list
