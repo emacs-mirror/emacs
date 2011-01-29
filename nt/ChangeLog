@@ -7,6 +7,7 @@
 	(cleanall-other-dirs-gmake, distclean-other-dirs-nmake)
 	(distclean-other-dirs-gmake, maintainer-clean-other-dirs-nmake)
 	(maintainer-clean-other-dirs-gmake): Recurse into ../lib as well.
+	(bootstrap-nmake, bootstrap-gmake): Fix the bootstrap.
 
 	* configure.bat: Create lib/makefile.
 

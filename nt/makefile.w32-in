@@ -162,7 +162,7 @@ bootstrap-nmake: addsection cmdproxy
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) clean
 	cd ..\lib
-	$(MAKE) $(MFLAGS) clean
+	$(MAKE) $(MFLAGS) clean all
 	cd ..\src
 	$(MAKE) $(MFLAGS) bootstrap
 	$(MAKE) $(MFLAGS) bootstrap-clean
@@ -178,7 +178,7 @@ bootstrap-gmake: addsection cmdproxy
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib clean all
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap-clean
 	$(CP) $(BLD)/cmdproxy.exe ../bin
