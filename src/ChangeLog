@@ -1,3 +1,10 @@
+2011-01-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (DEF_IMGLIB_FN): Add parameter rettype, use it instead
+	of int.  All uses adjusted.
+	(PNG_JMPBUF, png_load, jpeg_load, tiff_load, gif_load)
+	(svg_load_image): Remove casts.
+
 2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (fn_png_longjmp, fn_png_set_longjmp_fn): New png
