@@ -1,3 +1,8 @@
+2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (make_lispy_position): Fix typo in last change
+	(Bug#7935).
+
 2011-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/ms-w32.h (HAVE_MKTIME): Remove.

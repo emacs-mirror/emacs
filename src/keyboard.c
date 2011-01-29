@@ -5155,7 +5155,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	     is the X coordinate relative to the text area for
 	     text-area and right-margin clicks, zero otherwise.  */
 	  int x2
-	    = (part == ON_TEXT) ? x2
+	    = (part == ON_TEXT) ? xret
 	    : (part == ON_RIGHT_FRINGE || part == ON_RIGHT_MARGIN)
 	    ? (XINT (x) - window_box_left (w, TEXT_AREA))
 	    : 0;
