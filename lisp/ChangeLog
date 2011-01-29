@@ -1,3 +1,9 @@
+2011-01-29  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg--status-KEYEXPIRED, epg--status-KEYREVOKED): Don't
+	presume KEYEXPIRED and KEYREVOKED to be a fatal error status
+	(Bug#7931).
+
 2011-01-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el: Avoid an N² behavior in grep.
