@@ -153,8 +153,10 @@ ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
       CHECK_STRING (str);
 
       utfStr = SDATA (str);
-      nsStr = [NSString stringWithUTF8String: utfStr];
-
+      nsStr = [[NSString alloc] initWithBytesNoCopy: utfStr
+                                             length: SBYTES (str)
+                                           encoding: NSUTF8StringEncoding
+                                       freeWhenDone: NO];
       if (gtype == nil)
         {
           [pb declareTypes: ns_send_types owner: nil];
@@ -166,6 +168,7 @@ ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
         {
           [pb setString: nsStr forType: gtype];
         }
+      [nsStr release];
     }
 }
 
@@ -303,6 +306,7 @@ ns_string_from_pasteboard (id pb)
 {
   NSString *type, *str;
   const char *utfStr;
+  int length;
 
   type = [pb availableTypeFromArray: ns_return_types];
   if (type == nil)
@@ -344,17 +348,23 @@ ns_string_from_pasteboard (id pb)
             options: NSLiteralSearch range: NSMakeRange (0, [mstr length])];
 
       utfStr = [mstr UTF8String];
-      if (!utfStr)
-        utfStr = [mstr cString];
+      length = [mstr lengthOfBytesUsingEncoding: NSUTF8StringEncoding];
+
+      if (!utfStr) 
+        {
+          utfStr = [mstr cString];
+          length = strlen (utfStr);
+        }
     }
   NS_HANDLER
     {
       message1 ("ns_string_from_pasteboard: UTF8String failed\n");
       utfStr = [str lossyCString];
+      length = strlen (utfStr);
     }
   NS_ENDHANDLER
 
-  return build_string (utfStr);
+    return make_string (utfStr, length);
 }
 
 

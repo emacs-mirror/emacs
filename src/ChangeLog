@@ -1,3 +1,10 @@
+2011-01-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m (ns_string_from_pasteboard): Get length of string
+	and use make_string instead of build_string (Bug#7934).
+	(ns_string_to_pasteboard_internal): Use initWithBytesNoCopy
+	instead of stringWithUTF8String  (Bug#7934).
+
 2011-01-29  Anders Lindgren  <andlind@gmail.com> (tiny change)
 
         * nsfont.m (nsfont_open): Ensure that fonts with inexact
