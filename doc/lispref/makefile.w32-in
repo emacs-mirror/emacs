@@ -22,20 +22,24 @@
 srcdir = .
 
 infodir = $(srcdir)/../../info
-usermanualdir = $(srcdir)/../emacs
 
 # Directory with emacsver.texi.
 emacsdir = $(srcdir)/../emacs
+# Directory with the (customized) texinfo.tex file.
+texinfodir = $(srcdir)/../misc
 
 # Redefine `TEX' if `tex' does not invoke plain TeX.  For example:
 # TEX=platex
 TEX=tex
 INSTALL_INFO = install-info
-MAKEINFO = makeinfo --force
+MAKEINFO = makeinfo
+MAKEINFO_OPTS = --force  -I$(srcdir) -I$(emacsdir)
 
 # The environment variable and its value to add $(srcdir) to the path
 # searched for TeX input files.
-texinputdir = $(srcdir)\..\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" /C
+texinputdir = $(srcdir)\..\..\nt\envadd.bat \
+		"TEXINPUTS=$(srcdir);$(texinputdir);$(TEXINPUTS)" \
+		"MAKEINFO=$(MAKEINFO) $(MAKEINFO_OPTS)" /C
 
 # The name of the manual:
 VERSION=2.9
@@ -110,12 +114,10 @@ $(infodir)/dir:
 	$(INSTALL_INFO) --info-dir=$(infodir) $(infodir)/elisp
 
 $(infodir)/elisp: $(srcs)
-	$(MAKEINFO) -I. -I$(srcdir) -I$(emacsdir) \
-	  -o $(infodir)/elisp $(srcdir)/elisp.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) -o $(infodir)/elisp $(srcdir)/elisp.texi
 
 elisp.dvi: $(srcs)
-	$(texinputdir) $(TEX) -I $(usermanualdir) -I$(emacsdir) \
-	  $(srcdir)/elisp.texi
+	$(texinputdir) $(TEX) $(srcdir)/elisp.texi
 
 clean:
 	- $(DEL) *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
