@@ -382,7 +382,33 @@ Display the buffer in some window, but don't select it."
 	(apply 'vc-do-command t 'async command nil args)))
     (setq window (display-buffer buffer))
     (if window
-	(set-window-start window new-window-start))))
+	(set-window-start window new-window-start))
+    buffer))
+
+(defun vc-set-async-update (process-buffer)
+  "Set a `vc-exec-after' action appropriate to the current buffer.
+This action will update the current buffer after the current
+asynchronous VC command has completed.  PROCESS-BUFFER is the
+buffer for the asynchronous VC process.
+
+If the current buffer is a VC Dir buffer, call `vc-dir-refresh'.
+If the current buffer is a Dired buffer, revert it."
+  (let* ((buf (current-buffer))
+	 (tick (buffer-modified-tick buf)))
+    (cond
+     ((derived-mode-p 'vc-dir-mode)
+      (with-current-buffer process-buffer
+	(vc-exec-after
+	 `(if (buffer-live-p ,buf)
+	      (with-current-buffer ,buf
+		(vc-dir-refresh))))))
+     ((derived-mode-p 'dired-mode)
+      (with-current-buffer process-buffer
+	(vc-exec-after
+	 `(and (buffer-live-p ,buf)
+	       (= (buffer-modified-tick ,buf) ,tick)
+	       (with-current-buffer ,buf
+		 (revert-buffer)))))))))
 
 ;; These functions are used to ensure that the view the user sees is up to date
 ;; even if the dispatcher client mode has messed with file contents (as in,

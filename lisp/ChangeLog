@@ -1,3 +1,19 @@
+2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc-dispatcher.el (vc-set-async-update): New function for
+	updating Dired or VC-dir buffers after async command completes.
+
+	* vc/vc-bzr.el (vc-bzr-async-command): Return the process buffer.
+	(vc-bzr-pull, vc-bzr-merge-branch): Use vc-set-async-update.
+
+	* vc/vc-git.el (vc-git-merge-branch): Add FETCH_HEAD to branch
+	completions if it exists.  Use vc-set-async-update.
+	(vc-git-pull): Use vc-set-async-update.
+
+	* vc/vc-hg.el (vc-hg-pull): Fix default-contents arg to
+	read-shell-command.  Use vc-set-async-update.
+	(vc-hg-merge-branch): Use vc-set-async-update.
+
 2011-01-29  Daiki Ueno  <ueno@unixuser.org>
 
 	* epg.el (epg--status-KEYEXPIRED, epg--status-KEYREVOKED): Don't

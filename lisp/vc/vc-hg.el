@@ -610,8 +610,18 @@ REV is the revision to check out into WORKFILE."
       (error "No log entries selected for push"))))
 
 (defun vc-hg-pull (prompt)
+  "Issue a Mercurial pull command.
+If called interactively with a set of marked Log View buffers,
+call \"hg pull -r REVS\" to pull in the specified revisions REVS.
+
+With a prefix argument or if PROMPT is non-nil, prompt for a
+specific Mercurial pull command.  The default is \"hg pull -u\",
+which fetches changesets from the default remote repository and
+then attempts to update the working directory."
   (interactive "P")
   (let (marked-list)
+    ;; The `vc-hg-pull' command existed before the `pull' VC action
+    ;; was implemented.  Keep it for backward compatibility.
     (if (and (called-interactively-p 'interactive)
 	     (setq marked-list (log-view-get-marked)))
 	(apply #'vc-hg-command
@@ -624,26 +634,29 @@ REV is the revision to check out into WORKFILE."
 	     (buffer (format "*vc-hg : %s*" (expand-file-name root)))
 	     (command "pull")
 	     (hg-program "hg")
-	     ;; Todo: maybe check if we're up-to-date before updating
-	     ;; the working copy to the latest state.
+	     ;; Fixme: before updating the working copy to the latest
+	     ;; state, should check if it's visiting an old revision.
 	     (args '("-u")))
 	;; If necessary, prompt for the exact command.
 	(when prompt
 	  (setq args (split-string
-		      (read-shell-command "Run Hg (like this): " "hg -u"
+		      (read-shell-command "Run Hg (like this): " "hg pull -u"
 					  'vc-hg-history)
 		      " " t))
 	  (setq hg-program (car  args)
 		command    (cadr args)
 		args       (cddr args)))
 	(apply 'vc-do-async-command buffer root hg-program
-	       command args)))))
+	       command args)
+	(vc-set-async-update buffer)))))
 
 (defun vc-hg-merge-branch ()
-  "Merge incoming changes into the current Mercurial working directory."
+  "Merge incoming changes into the current working directory.
+This runs the command \"hg merge\"."
   (let* ((root (vc-hg-root default-directory))
 	 (buffer (format "*vc-hg : %s*" (expand-file-name root))))
-    (apply 'vc-do-async-command buffer root "hg" '("merge"))))
+    (apply 'vc-do-async-command buffer root "hg" '("merge"))
+    (vc-set-async-update buffer)))
 
 ;;; Internal functions
 

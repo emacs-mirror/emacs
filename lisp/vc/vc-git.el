@@ -607,9 +607,8 @@ The car of the list is the current branch."
 
 (defun vc-git-pull (prompt)
   "Pull changes into the current Git branch.
-Normally, this runs \"git pull\".If there is no default
-location from which to pull or update, or if PROMPT is non-nil,
-prompt for the Git command to run."
+Normally, this runs \"git pull\".  If PROMPT is non-nil, prompt
+for the Git command to run."
   (let* ((root (vc-git-root default-directory))
 	 (buffer (format "*vc-git : %s*" (expand-file-name root)))
 	 (command "pull")
@@ -618,14 +617,15 @@ prompt for the Git command to run."
     ;; If necessary, prompt for the exact command.
     (when prompt
       (setq args (split-string
-		  (read-shell-command "Run Git (like this): "
+		  (read-shell-command "Git pull command: "
 				      "git pull"
 				      'vc-git-history)
 		  " " t))
       (setq git-program (car  args)
 	    command     (cadr args)
 	    args        (cddr args)))
-    (apply 'vc-do-async-command buffer root git-program command args)))
+    (apply 'vc-do-async-command buffer root git-program command args)
+    (vc-set-async-update buffer)))
 
 (defun vc-git-merge-branch ()
   "Merge changes into the current Git branch.
@@ -634,9 +634,17 @@ This prompts for a branch to merge from."
 	 (buffer (format "*vc-git : %s*" (expand-file-name root)))
 	 (branches (cdr (vc-git-branches)))
 	 (merge-source
-	  (completing-read "Merge from branch: " branches nil t)))
+	  (completing-read "Merge from branch: "
+			   (if (or (member "FETCH_HEAD" branches)
+				   (not (file-readable-p
+					 (expand-file-name ".git/FETCH_HEAD"
+							   root))))
+			       branches
+			     (cons "FETCH_HEAD" branches))
+			   nil t)))
     (apply 'vc-do-async-command buffer root "git" "merge"
-	   (list merge-source))))
+	   (list merge-source))
+    (vc-set-async-update buffer)))
 
 ;;; HISTORY FUNCTIONS
 

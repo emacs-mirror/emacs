@@ -100,14 +100,15 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
 `LC_MESSAGES=C' to the environment.
 Use the current Bzr root directory as the ROOT argument to
 `vc-do-async-command', and specify an output buffer named
-\"*vc-bzr : ROOT*\"."
+\"*vc-bzr : ROOT*\".  Return this buffer."
   (let* ((process-environment
 	  (list* "BZR_PROGRESS_BAR=none" "LC_MESSAGES=C"
 		 process-environment))
 	 (root (vc-bzr-root default-directory))
 	 (buffer (format "*vc-bzr : %s*" (expand-file-name root))))
     (apply 'vc-do-async-command buffer root
-	   vc-bzr-program bzr-command args)))
+	   vc-bzr-program bzr-command args)
+    buffer))
 
 ;;;###autoload
 (defconst vc-bzr-admin-dirname ".bzr"
@@ -297,14 +298,15 @@ prompt for the Bzr command to run."
     (when (or prompt (not (or bound parent)))
       (setq args (split-string
 		  (read-shell-command
-		   "Run Bzr (like this): "
+		   "Bzr pull command: "
 		   (concat vc-bzr-program " " command)
 		   'vc-bzr-history)
 		  " " t))
       (setq vc-bzr-program (car  args)
 	    command        (cadr args)
 	    args           (cddr args)))
-    (apply 'vc-bzr-async-command command args)))
+    (vc-set-async-update
+     (apply 'vc-bzr-async-command command args))))
 
 (defun vc-bzr-merge-branch ()
   "Merge another Bzr branch into the current one.
@@ -328,7 +330,7 @@ default if it is available."
 	 (cmd
 	  (split-string
 	   (read-shell-command
-	    "Run Bzr (like this): "
+	    "Bzr merge command: "
 	    (concat vc-bzr-program " merge --pull"
 		    (if location (concat " " location) ""))
 	    'vc-bzr-history)
@@ -336,7 +338,8 @@ default if it is available."
 	 (vc-bzr-program (car  cmd))
 	 (command        (cadr cmd))
 	 (args           (cddr cmd)))
-    (apply 'vc-bzr-async-command command args)))
+    (vc-set-async-update
+     (apply 'vc-bzr-async-command command args))))
 
 (defun vc-bzr-status (file)
   "Return FILE status according to Bzr.
