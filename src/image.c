@@ -5590,6 +5590,11 @@ DEF_IMGLIB_FN (png_read_image);
 DEF_IMGLIB_FN (png_read_end);
 DEF_IMGLIB_FN (png_error);
 
+#if (PNG_LIBPNG_VER >= 10500)
+DEF_IMGLIB_FN (png_longjmp);
+DEF_IMGLIB_FN (png_set_longjmp_fn);
+#endif /* libpng version >= 1.5 */
+
 static int
 init_png_functions (Lisp_Object libraries)
 {
@@ -5620,6 +5625,12 @@ init_png_functions (Lisp_Object libraries)
   LOAD_IMGLIB_FN (library, png_read_image);
   LOAD_IMGLIB_FN (library, png_read_end);
   LOAD_IMGLIB_FN (library, png_error);
+
+#if (PNG_LIBPNG_VER >= 10500)
+  LOAD_IMGLIB_FN (library, png_longjmp);
+  LOAD_IMGLIB_FN (library, png_set_longjmp_fn);
+#endif /* libpng version >= 1.5 */
+
   return 1;
 }
 #else
@@ -5646,7 +5657,26 @@ init_png_functions (Lisp_Object libraries)
 #define fn_png_read_end			png_read_end
 #define fn_png_error			png_error
 
+#if (PNG_LIBPNG_VER >= 10500)
+#define fn_png_longjmp			png_longjmp
+#define fn_png_set_longjmp_fn		png_set_longjmp_fn
+#endif /* libpng version >= 1.5 */
+
 #endif /* HAVE_NTGUI */
+
+
+#if (PNG_LIBPNG_VER < 10500)
+#define PNG_LONGJMP(ptr) (longjmp (ptr->jmpbuf, 1))
+#define PNG_JMPBUF(ptr) ((ptr)->jmpbuf)
+#else
+/* In libpng version 1.5, the jmpbuf member is hidden.
+   We need the extra cast for PNG_JMPBUF because, for Windows,
+   DEF_IMGLIB_FN defines the return value of fn_png_set_longjmp_fn to
+   be int (Bug#7908).  */
+#define PNG_LONGJMP(ptr) (fn_png_longjmp (png_ptr, 1))
+#define PNG_JMPBUF(ptr) \
+  (*(jmp_buf *)(fn_png_set_longjmp_fn((ptr), longjmp, sizeof (jmp_buf))))
+#endif
 
 /* Error and warning handlers installed when the PNG library
    is initialized.  */
@@ -5660,7 +5690,7 @@ my_png_error (png_ptr, msg)
   /* Avoid compiler warning about deprecated direct access to
      png_ptr's fields in libpng versions 1.4.x.  */
   image_error ("PNG error: %s", build_string (msg), Qnil);
-  longjmp (png_ptr->jmpbuf, 1);
+  PNG_LONGJMP (png_ptr);
 }
 
 
@@ -5836,7 +5866,7 @@ png_load (f, img)
 
   /* Set error jump-back.  We come back here when the PNG library
      detects an error.  */
-  if (setjmp (png_ptr->jmpbuf))
+  if (setjmp (PNG_JMPBUF (png_ptr)))
     {
     error:
       if (png_ptr)
