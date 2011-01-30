@@ -1,5 +1,21 @@
 2011-01-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	strftime: import from gnulib
+	* Makefile.in (GNULIB_MODULES): Add strftime.
+	* configure.in (AC_FUNC_STRFTIME, my_strftime): Remove; no longer
+	needed.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4:
+	Regenerate.
+	* lib/strftime.c, lib/strftime.h, lib/stdbool.in.h: New files,
+	imported from gnulib.
+	* m4/strftime.m4, m4/stdbool.m4, m4/tm_gmtoff.m4: Likewise.
+	This incorporates many changes from gnulib, including simpler
+	handling of multibyte formats, porting to mingw32 and other
+	platforms, and support for higher-resolution time stamps.
+	Emacs does not yet use the higher-resolution interface.
+
+2011-01-30  Paul Eggert  <eggert@cs.ucla.edu>
+
 	gnulib: import mktime and move-if-change fixes from gnulib
 
 	* configure: Regenerate from the following.

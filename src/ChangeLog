@@ -1,5 +1,15 @@
 2011-01-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	strftime: import from gnulib
+	* Makefile.in (obj): Remove strftime.o, as gnulib now does this for us.
+	* deps.mk (strftime.o): Remove.
+	* editfns.c: Include <strftime.h>, supplied by gnulib.
+	(emacs_strftimeu): Remove decl.
+	(emacs_memftimeu): Use nstrftime (the gnulib name) rather than
+	emacs_strftimeu.
+	* config.in: Regenerate.
+	* strftime.c: Remove; we now use strftime from gnulib.
+
 	Use SSDATA when the context wants char *.
 	* alloc.c, buffer.c, bytecode.c, callproc.c, dired.c:
 	* dispnew.c, doc.c, editfns.c, emacs.c, fileio.c, filelock.c:

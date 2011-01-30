@@ -517,7 +517,7 @@ case "${canonical}" in
     machine=hp800 opsys=hpux11
     ## FIXME.  Peter O'Gorman reports that dumping using unexelf.o doesn't
     ## work either: http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6811
-    CANNOT_DUMP=yes    
+    CANNOT_DUMP=yes
   ;;
 
   hppa*-*-linux-gnu* )
@@ -2675,8 +2675,6 @@ gl_ASSERT_NO_GNULIB_POSIXCHECK
 gl_ASSERT_NO_GNULIB_TESTS
 gl_INIT
 
-AC_FUNC_STRFTIME
-
 # UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
 
@@ -3527,8 +3525,6 @@ AH_BOTTOM([
 #define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
 #endif
 #endif
-
-#define my_strftime nstrftime	/* for strftime.c */
 
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */

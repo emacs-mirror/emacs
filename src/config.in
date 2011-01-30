@@ -615,6 +615,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if `speed_t' is declared by <termios.h>. */
 #undef HAVE_SPEED_T
 
+/* Define to 1 if stdbool.h conforms to C99. */
+#undef HAVE_STDBOOL_H
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -629,9 +632,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
-
-/* Define to 1 if you have the `strftime' function. */
-#undef HAVE_STRFTIME
 
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
@@ -729,7 +729,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if `struct timeval' is declared by <sys/time.h>. */
 #undef HAVE_TIMEVAL
 
-/* Define to 1 if `tm_gmtoff' is member of `struct tm'. */
+/* Define if struct tm has the tm_gmtoff member. */
 #undef HAVE_TM_GMTOFF
 
 /* Define to 1 if your `struct tm' has `tm_zone'. Deprecated, use
@@ -830,6 +830,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you want to use the X window system. */
 #undef HAVE_X_WINDOWS
+
+/* Define to 1 if the system has the type `_Bool'. */
+#undef HAVE__BOOL
 
 /* Define to 1 if you have the `__builtin_unwind_init' function. */
 #undef HAVE___BUILTIN_UNWIND_INIT
@@ -1092,6 +1095,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to a type if <wchar.h> does not define. */
 #undef mbstate_t
 
+/* Define to the name of the strftime replacement function. */
+#undef my_strftime
+
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
 
@@ -1191,8 +1197,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
 #endif
 #endif
-
-#define my_strftime nstrftime	/* for strftime.c */
 
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
