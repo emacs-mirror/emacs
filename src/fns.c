@@ -908,7 +908,7 @@ string_to_multibyte (Lisp_Object string)
   /* If all the chars are ASCII, they won't need any more bytes once
      converted.  */
   if (nbytes == SBYTES (string))
-    return make_multibyte_string (SDATA (string), nbytes, nbytes);
+    return make_multibyte_string (SSDATA (string), nbytes, nbytes);
 
   SAFE_ALLOCA (buf, unsigned char *, nbytes);
   memcpy (buf, SDATA (string), SBYTES (string));
@@ -1171,7 +1171,7 @@ value is a new vector that contains the elements between index FROM
 
   if (STRINGP (string))
     {
-      res = make_specified_string (SDATA (string) + from_byte,
+      res = make_specified_string (SSDATA (string) + from_byte,
 				   to_char - from_char, to_byte - from_byte,
 				   STRING_MULTIBYTE (string));
       copy_text_properties (make_number (from_char), make_number (to_char),
@@ -1235,7 +1235,7 @@ With one argument, just copy STRING without its properties.  */)
     args_out_of_range_3 (string, make_number (from_char),
 			 make_number (to_char));
 
-  return make_specified_string (SDATA (string) + from_byte,
+  return make_specified_string (SSDATA (string) + from_byte,
 				to_char - from_char, to_byte - from_byte,
 				STRING_MULTIBYTE (string));
 }
@@ -1266,7 +1266,7 @@ substring_both (Lisp_Object string, EMACS_INT from, EMACS_INT from_byte,
 
   if (STRINGP (string))
     {
-      res = make_specified_string (SDATA (string) + from_byte,
+      res = make_specified_string (SSDATA (string) + from_byte,
 				   to - from, to_byte - from_byte,
 				   STRING_MULTIBYTE (string));
       copy_text_properties (make_number (from), make_number (to),
@@ -2496,12 +2496,12 @@ is nil, and `use-dialog-box' is non-nil.  */)
       ans = Fdowncase (Fread_from_minibuffer (prompt, Qnil, Qnil, Qnil,
 					      Qyes_or_no_p_history, Qnil,
 					      Qnil));
-      if (SCHARS (ans) == 3 && !strcmp (SDATA (ans), "yes"))
+      if (SCHARS (ans) == 3 && !strcmp (SSDATA (ans), "yes"))
 	{
 	  UNGCPRO;
 	  return Qt;
 	}
-      if (SCHARS (ans) == 2 && !strcmp (SDATA (ans), "no"))
+      if (SCHARS (ans) == 2 && !strcmp (SSDATA (ans), "no"))
 	{
 	  UNGCPRO;
 	  return Qnil;
@@ -3038,7 +3038,7 @@ into shorter lines.  */)
   /* We need to allocate enough room for decoding the text. */
   SAFE_ALLOCA (encoded, char *, allength);
 
-  encoded_length = base64_encode_1 (SDATA (string),
+  encoded_length = base64_encode_1 (SSDATA (string),
 				    encoded, length, NILP (no_line_break),
 				    STRING_MULTIBYTE (string));
   if (encoded_length > allength)
@@ -3233,7 +3233,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   SAFE_ALLOCA (decoded, char *, length);
 
   /* The decoded result should be unibyte. */
-  decoded_length = base64_decode_1 (SDATA (string), decoded, length,
+  decoded_length = base64_decode_1 (SSDATA (string), decoded, length,
 				    0, NULL);
   if (decoded_length > length)
     abort ();
@@ -4745,7 +4745,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	object = code_convert_string (object, coding_system, Qnil, 1, 0, 0);
     }
 
-  md5_buffer (SDATA (object) + start_byte,
+  md5_buffer (SSDATA (object) + start_byte,
 	      SBYTES (object) - (size_byte - end_byte),
 	      digest);
 
@@ -4936,4 +4936,3 @@ void
 init_fns (void)
 {
 }
-

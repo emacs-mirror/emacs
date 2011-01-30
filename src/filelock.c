@@ -214,9 +214,9 @@ get_boot_time (void)
 
       if (! NILP (filename))
 	{
-	  get_boot_time_1 (SDATA (filename), 1);
+	  get_boot_time_1 (SSDATA (filename), 1);
 	  if (delete_flag)
-	    unlink (SDATA (filename));
+	    unlink (SSDATA (filename));
 	}
     }
 
@@ -315,7 +315,7 @@ fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
   struct stat st;
   int count = 0;
 
-  strcpy (lockfile, SDATA (fn));
+  strcpy (lockfile, SSDATA (fn));
 
   /* Shift the nondirectory part of the file name (including the null)
      right two characters.  Here is one of the places where we'd have to
@@ -475,7 +475,7 @@ current_lock_owner (lock_info_type *owner, char *lfname)
 
   /* On current host?  */
   if (STRINGP (Fsystem_name ())
-      && strcmp (owner->host, SDATA (Fsystem_name ())) == 0)
+      && strcmp (owner->host, SSDATA (Fsystem_name ())) == 0)
     {
       if (owner->pid == getpid ())
         ret = 2; /* We own it.  */

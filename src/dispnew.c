@@ -5849,7 +5849,7 @@ FILE = nil means just close any termscript file currently open.  */)
   if (! NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      tty->termscript = fopen (SDATA (file), "w");
+      tty->termscript = fopen (SSDATA (file), "w");
       if (tty->termscript == 0)
 	report_file_error ("Opening termscript", Fcons (file, Qnil));
     }

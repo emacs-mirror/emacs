@@ -2778,7 +2778,7 @@ init_from_display_pos (struct it *it, struct window *w, struct display_pos *pos)
      to 16 in 22.1 to make this a lesser problem.  */
   for (i = 0; i < it->n_overlay_strings && i < OVERLAY_STRING_CHUNK_SIZE; ++i)
     {
-      const char *s = SDATA (it->overlay_strings[i]);
+      const char *s = SSDATA (it->overlay_strings[i]);
       const char *e = s + SBYTES (it->overlay_strings[i]);
 
       while (s < e && *s != '\n')
@@ -20077,7 +20077,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
     {
       if (SCHARS (SYMBOL_NAME (prop)) == 2)
 	{
-	  char *unit =  SDATA (SYMBOL_NAME (prop));
+	  char *unit = SSDATA (SYMBOL_NAME (prop));
 
 	  if (unit[0] == 'i' && unit[1] == 'n')
 	    pixels = 1.0;

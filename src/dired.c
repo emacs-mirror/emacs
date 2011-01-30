@@ -176,7 +176,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
      which might compile a new regexp until we're done with the loop!  */
 
   BLOCK_INPUT;
-  d = opendir (SDATA (dirfilename));
+  d = opendir (SSDATA (dirfilename));
   UNBLOCK_INPUT;
   if (d == NULL)
     report_file_error ("Opening directory", Fcons (directory, Qnil));
@@ -258,7 +258,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 	  QUIT;
 
 	  if (NILP (match)
-	      || (0 <= re_search (bufp, SDATA (name), len, 0, len, 0)))
+	      || (0 <= re_search (bufp, SSDATA (name), len, 0, len, 0)))
 	    wanted = 1;
 
 	  immediate_quit = 0;
@@ -498,7 +498,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
   encoded_dir = ENCODE_FILE (dirname);
 
   BLOCK_INPUT;
-  d = opendir (SDATA (Fdirectory_file_name (encoded_dir)));
+  d = opendir (SSDATA (Fdirectory_file_name (encoded_dir)));
   UNBLOCK_INPUT;
   if (!d)
     report_file_error ("Opening directory", Fcons (dirname, Qnil));
@@ -970,7 +970,7 @@ so last access time will always be midnight of that day.  */)
   encoded = ENCODE_FILE (filename);
   UNGCPRO;
 
-  if (lstat (SDATA (encoded), &s) < 0)
+  if (lstat (SSDATA (encoded), &s) < 0)
     return Qnil;
 
   switch (s.st_mode & S_IFMT)
@@ -1099,4 +1099,3 @@ It ignores directory names if they match any string in this list which
 ends in a slash.  */);
   Vcompletion_ignored_extensions = Qnil;
 }
-

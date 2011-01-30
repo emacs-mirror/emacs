@@ -120,8 +120,8 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
       if (minsize < 8)
 	minsize = 8;
       name = (char *) alloca (minsize + SCHARS (file) + 8);
-      strcpy (name, SDATA (Vdoc_directory));
-      strcat (name, SDATA (file));
+      strcpy (name, SSDATA (Vdoc_directory));
+      strcat (name, SSDATA (file));
     }
   else
     {
@@ -137,7 +137,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
 	  /* Preparing to dump; DOC file is probably not installed.
 	     So check in ../etc. */
 	  strcpy (name, "../etc/");
-	  strcat (name, SDATA (file));
+	  strcat (name, SSDATA (file));
 
 	  fd = emacs_open (name, O_RDONLY, 0);
 	}
@@ -559,9 +559,9 @@ the same file name is found in the `doc-directory'.  */)
       CHECK_STRING (Vdoc_directory);
       name = (char *) alloca (SCHARS (filename)
 			  + SCHARS (Vdoc_directory) + 1);
-      strcpy (name, SDATA (Vdoc_directory));
+      strcpy (name, SSDATA (Vdoc_directory));
     }
-  strcat (name, SDATA (filename)); 	/*** Add this line ***/
+  strcat (name, SSDATA (filename)); 	/*** Add this line ***/
 
   /* Vbuild_files is nil when temacs is run, and non-nil after that.  */
   if (NILP (Vbuild_files))

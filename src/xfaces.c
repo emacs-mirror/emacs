@@ -979,7 +979,7 @@ load_pixmap (FRAME_PTR f, Lisp_Object name, unsigned int *w_ptr, unsigned int *h
       h = XINT (Fcar (Fcdr (name)));
       bits = Fcar (Fcdr (Fcdr (name)));
 
-      bitmap_id = x_create_bitmap_from_data (f, SDATA (bits),
+      bitmap_id = x_create_bitmap_from_data (f, SSDATA (bits),
 					     w, h);
     }
   else
@@ -1271,7 +1271,7 @@ If FRAME is nil or omitted, use the selected frame.  */)
   else
     CHECK_FRAME (frame);
   f = XFRAME (frame);
-  return face_color_gray_p (f, SDATA (color)) ? Qt : Qnil;
+  return face_color_gray_p (f, SSDATA (color)) ? Qt : Qnil;
 }
 
 
@@ -1292,7 +1292,7 @@ COLOR must be a valid color name.  */)
   else
     CHECK_FRAME (frame);
   f = XFRAME (frame);
-  if (face_color_supported_p (f, SDATA (color), !NILP (background_p)))
+  if (face_color_supported_p (f, SSDATA (color), !NILP (background_p)))
     return Qt;
   return Qnil;
 }
@@ -1322,7 +1322,7 @@ load_color (struct frame *f, struct face *face, Lisp_Object name, enum lface_att
 
   /* if the color map is full, defined_color will return a best match
      to the values in an existing cell. */
-  if (!defined_color (f, SDATA (name), &color, 1))
+  if (!defined_color (f, SSDATA (name), &color, 1))
     {
       add_to_log ("Unable to load color \"%s\"", name, Qnil);
 
@@ -1399,7 +1399,7 @@ load_face_colors (struct frame *f, struct face *face, Lisp_Object *attrs)
      face_color_supported_p is smart enough to know that grays are
      "supported" as background because we are supposed to use stipple
      for them.  */
-  if (!face_color_supported_p (f, SDATA (bg), 0)
+  if (!face_color_supported_p (f, SSDATA (bg), 0)
       && !NILP (Fbitmap_spec_p (Vface_default_stipple)))
     {
       x_destroy_bitmap (f, face->stipple);
@@ -1586,7 +1586,7 @@ compare_fonts_by_sort_order (const void *v1, const void *v2)
       if (idx <= FONT_REGISTRY_INDEX)
 	{
 	  if (STRINGP (val1))
-	    result = STRINGP (val2) ? strcmp (SDATA (val1), SDATA (val2)) : -1;
+	    result = STRINGP (val2) ? strcmp (SSDATA (val1), SSDATA (val2)) : -1;
 	  else
 	    result = STRINGP (val2) ? 1 : 0;
 	}
@@ -2031,7 +2031,7 @@ resolve_face_name (Lisp_Object face_name, int signal_p)
   Lisp_Object tortoise, hare;
 
   if (STRINGP (face_name))
-    face_name = intern (SDATA (face_name));
+    face_name = intern (SSDATA (face_name));
 
   if (NILP (face_name) || !SYMBOLP (face_name))
     return face_name;
@@ -3502,7 +3502,7 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
   else if (EQ (attr, QCbold) || EQ (attr, QCitalic))
     value = face_boolean_x_resource_value (value, 1);
   else if (EQ (attr, QCweight) || EQ (attr, QCslant) || EQ (attr, QCwidth))
-    value = intern (SDATA (value));
+    value = intern (SSDATA (value));
   else if (EQ (attr, QCreverse_video) || EQ (attr, QCinverse_video))
     value = face_boolean_x_resource_value (value, 1);
   else if (EQ (attr, QCunderline)
@@ -3547,7 +3547,7 @@ x_update_menu_appearance (struct frame *f)
       char line[512];
       Lisp_Object lface = lface_from_face_name (f, Qmenu, 1);
       struct face *face = FACE_FROM_ID (f, MENU_FACE_ID);
-      const char *myname = SDATA (Vx_resource_name);
+      const char *myname = SSDATA (Vx_resource_name);
       int changed_p = 0;
 #ifdef USE_MOTIF
       const char *popup_path = "popup_menu";
@@ -3608,7 +3608,7 @@ x_update_menu_appearance (struct frame *f)
 	  if (! NILP (xlfd))
 	    {
 #if defined HAVE_X_I18N
-	      char *fontsetname = xic_create_fontsetname (SDATA (xlfd), motif);
+	      char *fontsetname = xic_create_fontsetname (SSDATA (xlfd), motif);
 #else
 	      char *fontsetname = SSDATA (xlfd);
 #endif
@@ -4204,10 +4204,10 @@ If FRAME is unspecified or nil, the current frame is used.  */)
   f = XFRAME (frame);
 
   if (!(CONSP (color1) && parse_rgb_list (color1, &cdef1))
-      && !(STRINGP (color1) && defined_color (f, SDATA (color1), &cdef1, 0)))
+      && !(STRINGP (color1) && defined_color (f, SSDATA (color1), &cdef1, 0)))
     signal_error ("Invalid color", color1);
   if (!(CONSP (color2) && parse_rgb_list (color2, &cdef2))
-      && !(STRINGP (color2) && defined_color (f, SDATA (color2), &cdef2, 0)))
+      && !(STRINGP (color2) && defined_color (f, SSDATA (color2), &cdef2, 0)))
     signal_error ("Invalid color", color2);
 
   return make_number (color_distance (&cdef1, &cdef2));

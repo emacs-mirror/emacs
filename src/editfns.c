@@ -1345,7 +1345,7 @@ name, or nil if there is no such user.  */)
   else if (STRINGP (uid))
     {
       BLOCK_INPUT;
-      pw = (struct passwd *) getpwnam (SDATA (uid));
+      pw = (struct passwd *) getpwnam (SSDATA (uid));
       UNBLOCK_INPUT;
     }
   else
@@ -1372,7 +1372,7 @@ name, or nil if there is no such user.  */)
       r = (unsigned char *) alloca (strlen (p) + SCHARS (login) + 1);
       memcpy (r, p, q - p);
       r[q - p] = 0;
-      strcat (r, SDATA (login));
+      strcat (r, SSDATA (login));
       r[q - p] = UPCASE (r[q - p]);
       strcat (r, q + 1);
       full = build_string (r);
@@ -1680,7 +1680,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
       buf[0] = '\1';
       BLOCK_INPUT;
-      result = emacs_memftimeu (buf, size, SDATA (format_string),
+      result = emacs_memftimeu (buf, size, SSDATA (format_string),
 				SBYTES (format_string),
 				tm, ut);
       UNBLOCK_INPUT;
@@ -1691,7 +1691,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
       /* If buffer was too small, make it bigger and try again.  */
       BLOCK_INPUT;
       result = emacs_memftimeu (NULL, (size_t) -1,
-				SDATA (format_string),
+				SSDATA (format_string),
 				SBYTES (format_string),
 				tm, ut);
       UNBLOCK_INPUT;

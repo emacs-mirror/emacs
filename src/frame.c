@@ -693,7 +693,7 @@ affects all frames on the same terminal device.  */)
       if (!NILP (tty))
         {
           name = (char *) alloca (SBYTES (tty) + 1);
-          strncpy (name, SDATA (tty), SBYTES (tty));
+          strncpy (name, SSDATA (tty), SBYTES (tty));
           name[SBYTES (tty)] = 0;
         }
 
@@ -704,7 +704,7 @@ affects all frames on the same terminal device.  */)
       if (!NILP (tty_type))
         {
           type = (char *) alloca (SBYTES (tty_type) + 1);
-          strncpy (type, SDATA (tty_type), SBYTES (tty_type));
+          strncpy (type, SSDATA (tty_type), SBYTES (tty_type));
           type[SBYTES (tty_type)] = 0;
         }
 
@@ -2176,7 +2176,7 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
 
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
-      if (frame_name_fnn_p (SDATA (f->name),
+      if (frame_name_fnn_p (SSDATA (f->name),
 			    SBYTES (f->name)))
 	return;
 
@@ -2194,7 +2194,7 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
 
       /* Don't allow the user to set the frame name to F<num>, so it
 	 doesn't clash with the names we generate for terminal frames.  */
-      if (frame_name_fnn_p (SDATA (name), SBYTES (name)))
+      if (frame_name_fnn_p (SSDATA (name), SBYTES (name)))
 	error ("Frame names of the form F<num> are usurped by Emacs");
     }
 
@@ -2321,11 +2321,11 @@ If FRAME is omitted, return information on the currently selected frame.  */)
       elt = Fassq (Qforeground_color, alist);
       if (CONSP (elt) && STRINGP (XCDR (elt)))
 	{
-	  if (strncmp (SDATA (XCDR (elt)),
+	  if (strncmp (SSDATA (XCDR (elt)),
 		       unspecified_bg,
 		       SCHARS (XCDR (elt))) == 0)
 	    store_in_alist (&alist, Qforeground_color, tty_color_name (f, bg));
-	  else if (strncmp (SDATA (XCDR (elt)),
+	  else if (strncmp (SSDATA (XCDR (elt)),
 			    unspecified_fg,
 			    SCHARS (XCDR (elt))) == 0)
 	    store_in_alist (&alist, Qforeground_color, tty_color_name (f, fg));
@@ -2335,11 +2335,11 @@ If FRAME is omitted, return information on the currently selected frame.  */)
       elt = Fassq (Qbackground_color, alist);
       if (CONSP (elt) && STRINGP (XCDR (elt)))
 	{
-	  if (strncmp (SDATA (XCDR (elt)),
+	  if (strncmp (SSDATA (XCDR (elt)),
 		       unspecified_fg,
 		       SCHARS (XCDR (elt))) == 0)
 	    store_in_alist (&alist, Qbackground_color, tty_color_name (f, fg));
-	  else if (strncmp (SDATA (XCDR (elt)),
+	  else if (strncmp (SSDATA (XCDR (elt)),
 			    unspecified_bg,
 			    SCHARS (XCDR (elt))) == 0)
 	    store_in_alist (&alist, Qbackground_color, tty_color_name (f, bg));
@@ -2428,7 +2428,7 @@ If FRAME is nil, describe the currently selected frame.  */)
 
 		  if (EQ (parameter, Qbackground_color))
 		    {
-		      color_name = SDATA (value);
+		      color_name = SSDATA (value);
 		      csz = SCHARS (value);
 		      if (strncmp (color_name, unspecified_bg, csz) == 0)
 			value = tty_color_name (f, FRAME_BACKGROUND_PIXEL (f));
@@ -2437,7 +2437,7 @@ If FRAME is nil, describe the currently selected frame.  */)
 		    }
 		  else if (EQ (parameter, Qforeground_color))
 		    {
-		      color_name = SDATA (value);
+		      color_name = SSDATA (value);
 		      csz = SCHARS (value);
 		      if (strncmp (color_name, unspecified_fg, csz) == 0)
 			value = tty_color_name (f, FRAME_FOREGROUND_PIXEL (f));
@@ -3307,16 +3307,16 @@ x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       fontset = fs_query_fontset (arg, 0);
       if (fontset < 0)
 	{
-	  font_object = font_open_by_name (f, SDATA (arg));
+	  font_object = font_open_by_name (f, SSDATA (arg));
 	  if (NILP (font_object))
-	    error ("Font `%s' is not defined", SDATA (arg));
+	    error ("Font `%s' is not defined", SSDATA (arg));
 	  arg = AREF (font_object, FONT_NAME_INDEX);
 	}
       else if (fontset > 0)
 	{
 	  Lisp_Object ascii_font = fontset_ascii (fontset);
 
-	  font_object = font_open_by_name (f, SDATA (ascii_font));
+	  font_object = font_open_by_name (f, SSDATA (ascii_font));
 	  if (NILP (font_object))
 	    error ("Font `%s' is not defined", SDATA (arg));
 	  arg = AREF (font_object, FONT_NAME_INDEX);
@@ -3394,7 +3394,7 @@ x_set_font_backend (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
       char *p0, *p1;
 
       CHECK_STRING (new_value);
-      p0 = p1 = SDATA (new_value);
+      p0 = p1 = SSDATA (new_value);
       new_value = Qnil;
       while (*p0)
 	{
@@ -3771,23 +3771,23 @@ xrdb_get_resource (XrmDatabase rdb, Lisp_Object attribute, Lisp_Object class, Li
 
   /* Start with emacs.FRAMENAME for the name (the specific one)
      and with `Emacs' for the class key (the general one).  */
-  strcpy (name_key, SDATA (Vx_resource_name));
-  strcpy (class_key, SDATA (Vx_resource_class));
+  strcpy (name_key, SSDATA (Vx_resource_name));
+  strcpy (class_key, SSDATA (Vx_resource_class));
 
   strcat (class_key, ".");
-  strcat (class_key, SDATA (class));
+  strcat (class_key, SSDATA (class));
 
   if (!NILP (component))
     {
       strcat (class_key, ".");
-      strcat (class_key, SDATA (subclass));
+      strcat (class_key, SSDATA (subclass));
 
       strcat (name_key, ".");
-      strcat (name_key, SDATA (component));
+      strcat (name_key, SSDATA (component));
     }
 
   strcat (name_key, ".");
-  strcat (name_key, SDATA (attribute));
+  strcat (name_key, SSDATA (attribute));
 
   value = x_get_string_resource (rdb, name_key, class_key);
 
@@ -3904,25 +3904,25 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
 	  switch (type)
 	    {
 	    case RES_TYPE_NUMBER:
-	      return make_number (atoi (SDATA (tem)));
+	      return make_number (atoi (SSDATA (tem)));
 
 	    case RES_TYPE_BOOLEAN_NUMBER:
-	      if (!strcmp (SDATA (tem), "on")
-		  || !strcmp (SDATA (tem), "true"))
+	      if (!strcmp (SSDATA (tem), "on")
+		  || !strcmp (SSDATA (tem), "true"))
 		return make_number (1);
-	      return make_number (atoi (SDATA (tem)));
+	      return make_number (atoi (SSDATA (tem)));
               break;
 
 	    case RES_TYPE_FLOAT:
-	      return make_float (atof (SDATA (tem)));
+	      return make_float (atof (SSDATA (tem)));
 
 	    case RES_TYPE_BOOLEAN:
 	      tem = Fdowncase (tem);
-	      if (!strcmp (SDATA (tem), "on")
+	      if (!strcmp (SSDATA (tem), "on")
 #ifdef HAVE_NS
-                  || !strcmp(SDATA(tem), "yes")
+                  || !strcmp (SSDATA (tem), "yes")
 #endif
-		  || !strcmp (SDATA (tem), "true"))
+		  || !strcmp (SSDATA (tem), "true"))
 		return Qt;
 	      else
 		return Qnil;
@@ -3936,17 +3936,17 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
 	      {
 		Lisp_Object lower;
 		lower = Fdowncase (tem);
-		if (!strcmp (SDATA (lower), "on")
+		if (!strcmp (SSDATA (lower), "on")
 #ifdef HAVE_NS
-                    || !strcmp(SDATA(lower), "yes")
+                    || !strcmp (SSDATA (lower), "yes")
 #endif
-		    || !strcmp (SDATA (lower), "true"))
+		    || !strcmp (SSDATA (lower), "true"))
 		  return Qt;
-		else if (!strcmp (SDATA (lower), "off")
+		else if (!strcmp (SSDATA (lower), "off")
 #ifdef HAVE_NS
-                      || !strcmp(SDATA(lower), "no")
+                      || !strcmp (SSDATA (lower), "no")
 #endif
-		      || !strcmp (SDATA (lower), "false"))
+		      || !strcmp (SSDATA (lower), "false"))
 		  return Qnil;
 		else
 		  return Fintern (tem, Qnil);
