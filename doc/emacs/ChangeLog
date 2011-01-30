@@ -1,3 +1,11 @@
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (MAKEINFO): Remove options, leave only program name.
+	(MAKEINFO_OPTS): New variable.
+	(ENVADD, $(infodir)/emacs): Use $(MAKEINFO_OPTS).
+	(emacs.html): New target.
+	(clean): Remove emacs.html.
+
 2011-01-23  Werner Lemberg  <wl@gnu.org>
 
 	* Makefile.in (MAKEINFO): Now controlled by `configure'.

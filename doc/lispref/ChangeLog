@@ -1,3 +1,11 @@
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (texinfodir): New variable.
+	(usermanualdir): Remove as redundant with $(emacsdir).
+	(MAKEINFO): Remove options, leave only program name.
+	(MAKEINFO_OPTS): New variable.
+	(texinputdir, $(infodir)/elisp): Use $(MAKEINFO_OPTS).
+
 2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
             Richard Kim  <emacs18@gmail.com>
 

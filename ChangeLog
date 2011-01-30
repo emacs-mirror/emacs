@@ -1,3 +1,8 @@
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in:
+	* lib/getopt_.h: New files.
+
 2011-01-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	improve fix for MS-DOS file name clash

@@ -1380,25 +1380,26 @@ font_parse_fcname (char *name, Lisp_Object font)
 		  word_len = q - p;
 		  val = font_intern_prop (p, q - p, 1);
 
-#define PROP_MATCH(STR,N) ((word_len == N) && memcmp (p, STR, N) == 0)
+#define PROP_MATCH(STR) (word_len == strlen (STR)		\
+			 && memcmp (p, STR, strlen (STR)) == 0)
 
-		  if (PROP_MATCH ("light", 5)
-		      || PROP_MATCH ("medium", 6)
-		      || PROP_MATCH ("demibold", 8)
-		      || PROP_MATCH ("bold", 4)
-		      || PROP_MATCH ("black", 5))
+		  if (PROP_MATCH ("light")
+		      || PROP_MATCH ("medium")
+		      || PROP_MATCH ("demibold")
+		      || PROP_MATCH ("bold")
+		      || PROP_MATCH ("black"))
 		    FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, val);
-		  else if (PROP_MATCH ("roman", 5)
-			   || PROP_MATCH ("italic", 6)
-			   || PROP_MATCH ("oblique", 7))
+		  else if (PROP_MATCH ("roman")
+			   || PROP_MATCH ("italic")
+			   || PROP_MATCH ("oblique"))
 		    FONT_SET_STYLE (font, FONT_SLANT_INDEX, val);
-		  else if (PROP_MATCH ("charcell", 8))
+		  else if (PROP_MATCH ("charcell"))
 		    ASET (font, FONT_SPACING_INDEX,
 			  make_number (FONT_SPACING_CHARCELL));
-		  else if (PROP_MATCH ("mono", 4))
+		  else if (PROP_MATCH ("mono"))
 		    ASET (font, FONT_SPACING_INDEX,
 			  make_number (FONT_SPACING_MONO));
-		  else if (PROP_MATCH ("proportional", 12))
+		  else if (PROP_MATCH ("proportional"))
 		    ASET (font, FONT_SPACING_INDEX,
 			  make_number (FONT_SPACING_PROPORTIONAL));
 #undef PROP_MATCH
@@ -1480,31 +1481,32 @@ font_parse_fcname (char *name, Lisp_Object font)
 	  word_start = q + 1;
 	  word_len = p - word_start;
 
-#define PROP_MATCH(STR,N) \
-	  ((word_len == N) && memcmp (word_start, STR, N) == 0)
-#define PROP_SAVE(VAR,STR,N)			\
-	  (VAR = NILP (VAR) ? font_intern_prop (STR, N, 1) : VAR)
+#define PROP_MATCH(STR)						\
+	  (word_len == strlen (STR)				\
+	   && memcmp (word_start, STR, strlen (STR)) == 0)
+#define PROP_SAVE(VAR, STR)					\
+	  (VAR = NILP (VAR) ? font_intern_prop (STR, strlen (STR), 1) : VAR)
 
-	  if (PROP_MATCH ("Ultra-Light", 11))
-	    PROP_SAVE (weight, "ultra-light", 11);
-	  else if (PROP_MATCH ("Light", 5))
-	    PROP_SAVE (weight, "light", 5);
-	  else if (PROP_MATCH ("Book", 4))
-	    PROP_SAVE (weight, "book", 4);
-	  else if (PROP_MATCH ("Medium", 6))
-	    PROP_SAVE (weight, "medium", 6);
-	  else if (PROP_MATCH ("Semi-Bold", 9))
-	    PROP_SAVE (weight, "semi-bold", 9);
-	  else if (PROP_MATCH ("Bold", 4))
-	    PROP_SAVE (weight, "bold", 4);
-	  else if (PROP_MATCH ("Italic", 6))
-	    PROP_SAVE (slant, "italic", 6);
-	  else if (PROP_MATCH ("Oblique", 7))
-	    PROP_SAVE (slant, "oblique", 7);
-	  else if (PROP_MATCH ("Semi-Condensed", 14))
-	    PROP_SAVE (width, "semi-condensed", 14);
-	  else if (PROP_MATCH ("Condensed", 9))
-	    PROP_SAVE (width, "condensed", 9);
+	  if (PROP_MATCH ("Ultra-Light"))
+	    PROP_SAVE (weight, "ultra-light");
+	  else if (PROP_MATCH ("Light"))
+	    PROP_SAVE (weight, "light");
+	  else if (PROP_MATCH ("Book"))
+	    PROP_SAVE (weight, "book");
+	  else if (PROP_MATCH ("Medium"))
+	    PROP_SAVE (weight, "medium");
+	  else if (PROP_MATCH ("Semi-Bold"))
+	    PROP_SAVE (weight, "semi-bold");
+	  else if (PROP_MATCH ("Bold"))
+	    PROP_SAVE (weight, "bold");
+	  else if (PROP_MATCH ("Italic"))
+	    PROP_SAVE (slant, "italic");
+	  else if (PROP_MATCH ("Oblique"))
+	    PROP_SAVE (slant, "oblique");
+	  else if (PROP_MATCH ("Semi-Condensed"))
+	    PROP_SAVE (width, "semi-condensed");
+	  else if (PROP_MATCH ("Condensed"))
+	    PROP_SAVE (width, "condensed");
 	  /* An unknown word must be part of the font name.  */
 	  else
 	    {

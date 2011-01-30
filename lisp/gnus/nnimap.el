@@ -519,15 +519,17 @@ textual parts.")
     (with-current-buffer (nnimap-buffer)
       (when (stringp article)
 	(setq article (nnimap-find-article-by-message-id group article)))
-      (nnimap-get-whole-article
-       article (format "UID FETCH %%d %s"
-		       (nnimap-header-parameters)))
-      (let ((buffer (current-buffer)))
-	(with-current-buffer (or to-buffer nntp-server-buffer)
-	  (erase-buffer)
-	  (insert-buffer-substring buffer)
-	  (nnheader-ms-strip-cr)
-	  (cons group article))))))
+      (if (null article)
+	  nil
+	(nnimap-get-whole-article
+	 article (format "UID FETCH %%d %s"
+			 (nnimap-header-parameters)))
+	(let ((buffer (current-buffer)))
+	  (with-current-buffer (or to-buffer nntp-server-buffer)
+	    (erase-buffer)
+	    (insert-buffer-substring buffer)
+	    (nnheader-ms-strip-cr)
+	    (cons group article)))))))
 
 (defun nnimap-get-whole-article (article &optional command)
   (let ((result

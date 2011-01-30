@@ -2478,10 +2478,22 @@ Start at FROM and re-scan new text as appropriate."
 	(woman0-search-regex-start woman0-search-regex-start)
 	(woman0-search-regex
 	 (concat woman0-search-regex-start woman0-search-regex-end))
+	processed-first-hunk
 	woman0-rename-alist)
     (set-marker-insertion-type woman0-if-to t)
     (while (re-search-forward woman0-search-regex nil t)
       (setq woman-request (match-string 1))
+
+      ;; Process escape sequences prior to first request (Bug#7843).
+      (unless processed-first-hunk
+	(setq processed-first-hunk t)
+	(let ((process-escapes-to-marker (point-marker)))
+	  (set-marker-insertion-type process-escapes-to-marker t)
+	  (save-match-data
+	    (save-excursion
+	      (goto-char from)
+	      (woman2-process-escapes process-escapes-to-marker)))))
+
       (cond ((string= woman-request "ig") (woman0-ig))
 	    ((string= woman-request "if") (woman0-if "if"))
 	    ((string= woman-request "ie") (woman0-if "ie"))

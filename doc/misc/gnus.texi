@@ -14244,6 +14244,18 @@ The default is @samp{(%Deleted %Seen)}.
 
 @end table
 
+Here's a complete example @code{nnimap} backend with a client-side
+``fancy'' splitting method:
+
+@example
+(nnimap "imap.example.com"
+        (nnimap-inbox "INBOX")
+        (nnimap-split-methods
+         (| ("MailScanner-SpamCheck" "spam" "spam.detected")
+            (to "foo@@bar.com" "foo")
+            "undecided")))
+@end example
+
 
 @node Getting Mail
 @section Getting Mail

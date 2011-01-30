@@ -809,6 +809,14 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     const char *fontName = [[nsfont fontName] UTF8String];
     int len = strlen (fontName);
 
+    /* The values specified by fonts are not always exact. For
+     * example, a 6x8 font could specify that the descender is
+     * -2.00000405... (represented by 0xc000000220000000).  Without
+     * adjustment, the code below would round the descender to -3,
+     * resulting in a font that would be one pixel higher than
+     * intended. */
+    CGFloat adjusted_descender = [sfont descender] + 0.0001;
+
 #ifdef NS_IMPL_GNUSTEP
     font_info->nsfont = sfont;
 #else
@@ -830,7 +838,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
 
     brect =  [sfont boundingRectForFont];
     full_height = brect.size.height;
-    min_height = [sfont ascender] - [sfont descender];
+    min_height = [sfont ascender] - adjusted_descender;
     hd = full_height - min_height;
 
     /* standard height, similar to Carbon. Emacs.app: was 0.5 by default. */
@@ -845,10 +853,10 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     /* max bounds */
     font_info->max_bounds.ascent =
       lrint (hshrink * [sfont ascender] + expand * hd/2);
-    /* [sfont descender] is usually negative.  Use floor to avoid
+    /* Descender is usually negative.  Use floor to avoid
        clipping descenders. */
     font_info->max_bounds.descent =
-      -lrint (floor(hshrink* [sfont descender] - expand*hd/2));
+      -lrint (floor(hshrink* adjusted_descender - expand*hd/2));
     font_info->height =
       font_info->max_bounds.ascent + font_info->max_bounds.descent;
     font_info->max_bounds.width = lrint (font_info->width);
@@ -884,7 +892,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
 
     /* set up metrics portion of font struct */
     font->ascent = lrint([sfont ascender]);
-    font->descent = -lrint(floor([sfont descender]));
+    font->descent = -lrint(floor(adjusted_descender));
     font->min_width = ns_char_width(sfont, '|');
     font->space_width = lrint (ns_char_width (sfont, ' '));
     font->average_width = lrint (font_info->width);

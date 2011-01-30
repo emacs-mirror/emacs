@@ -1,3 +1,31 @@
+2011-01-30  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Client-Side IMAP Splitting): Add a complete nnimap fancy
+	splitting example.
+
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (MAKEINFO): Remove options, leave only program name.
+	(MAKEINFO_OPTS): New variable.
+	(ENVADD, $(infodir)/emacs): Use $(MAKEINFO_OPTS).
+	($(infodir)/info, $(infodir)/ccmode, $(infodir)/ada-mode)
+	($(infodir)/pcl-cvs, $(infodir)/eshell, $(infodir)/cl)
+	($(infodir)/dbus, $(infodir)/dired-x, $(infodir)/ediff)
+	($(infodir)/flymake, $(infodir)/forms, $(infodir)/gnus)
+	($(infodir)/message, $(infodir)/emacs-mime, $(infodir)/sieve)
+	($(infodir)/pgg, $(infodir)/mh-e, $(infodir)/reftex)
+	($(infodir)/remember, $(infodir)/sasl, $(infodir)/sc)
+	($(infodir)/vip, $(infodir)/viper, $(infodir)/widget)
+	($(infodir)/efaq, $(infodir)/autotype, $(infodir)/calc)
+	($(infodir)/idlwave, $(infodir)/eudc, $(infodir)/ebrowse)
+	($(infodir)/woman, $(infodir)/speedbar, $(infodir)/tramp)
+	($(infodir)/ses, $(infodir)/smtpmail, $(infodir)/org)
+	($(infodir)/url, $(infodir)/newsticker, $(infodir)/nxml-mode)
+	($(infodir)/rcirc, $(infodir)/erc, $(infodir)/ert)
+	($(infodir)/epa, $(infodir)/mairix-el, $(infodir)/auth)
+	($(infodir)/eieio, $(infodir)/ede, $(infodir)/semantic)
+	($(infodir)/edt): Use $(MAKEINFO_OPTS).
+
 2011-01-26  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Article Date): Document gnus-article-update-lapsed-header.

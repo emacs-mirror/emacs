@@ -341,7 +341,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 
 ;;;###autoload
 (defconst grep-regexp-alist
-  '(("^\\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
+  '(("^\\(.+?\\)\\(:[ \t]*\\)\\([1-9][0-9]*\\)\\2"
      1 3)
     ;; Rule to match column numbers is commented out since no known grep
     ;; produces them
@@ -384,7 +384,6 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 
 (defvar grep-mode-font-lock-keywords
    '(;; Command output lines.
-     ("^\\([A-Za-z_0-9/\.+-]+\\)[ \t]*:" 1 font-lock-function-name-face)
      (": \\(.+\\): \\(?:Permission denied\\|No such \\(?:file or directory\\|device or address\\)\\)$"
       1 grep-error-face)
      ;; remove match from grep-regexp-alist before fontifying
@@ -399,7 +398,8 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
       (1 grep-error-face)
       (2 grep-error-face nil t))
      ("^.+?-[0-9]+-.*\n" (0 grep-context-face))
-     ;; Highlight grep matches and delete markers
+     ;; Highlight grep matches and delete markers.
+     ;; FIXME: Modifying the buffer text from font-lock is a bad idea!
      ("\\(\033\\[01;31m\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
       ;; Refontification does not work after the markers have been
       ;; deleted.  So we use the font-lock-face property here as Font
@@ -409,12 +409,14 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
        (progn
 	 ;; Delete markers with `replace-match' because it updates
 	 ;; the match-data, whereas `delete-region' would render it obsolete.
+	 (syntax-ppss-flush-cache (match-beginning 0))
 	 (replace-match "" t t nil 3)
 	 (replace-match "" t t nil 1))))
-     ("\\(\033\\[[0-9;]*[mK]\\)"
+     ("\033\\[[0-9;]*[mK]"
       ;; Delete all remaining escape sequences
       ((lambda (bound))
-       (replace-match "" t t nil 1))))
+       (syntax-ppss-flush-cache (match-beginning 0))
+       (replace-match "" t t))))
    "Additional things to highlight in grep output.
 This gets tacked on the end of the generated expressions.")
 
