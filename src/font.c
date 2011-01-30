@@ -3591,7 +3591,7 @@ font_filter_properties (Lisp_Object font,
       {
         Lisp_Object key = XCAR (XCAR (it));
         Lisp_Object val = XCDR (XCAR (it));
-        char *keystr = SDATA (SYMBOL_NAME (key));
+        char *keystr = SSDATA (SYMBOL_NAME (key));
 
         if (strcmp (boolean_properties[i], keystr) == 0)
           {
@@ -3616,7 +3616,7 @@ font_filter_properties (Lisp_Object font,
       {
         Lisp_Object key = XCAR (XCAR (it));
         Lisp_Object val = XCDR (XCAR (it));
-        char *keystr = SDATA (SYMBOL_NAME (key));
+        char *keystr = SSDATA (SYMBOL_NAME (key));
         if (strcmp (non_boolean_properties[i], keystr) == 0)
           Ffont_put (font, key, val);
       }

@@ -349,7 +349,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   display_p = INTERACTIVE && nargs >= 4 && !NILP (args[3]);
 
-  filefd = emacs_open (SDATA (infile), O_RDONLY, 0);
+  filefd = emacs_open (SSDATA (infile), O_RDONLY, 0);
   if (filefd < 0)
     {
       infile = DECODE_FILE (infile);
@@ -465,11 +465,11 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     else if (STRINGP (error_file))
       {
 #ifdef DOS_NT
-	fd_error = emacs_open (SDATA (error_file),
+	fd_error = emacs_open (SSDATA (error_file),
 			       O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
 			       S_IREAD | S_IWRITE);
 #else  /* not DOS_NT */
-	fd_error = creat (SDATA (error_file), 0666);
+	fd_error = creat (SSDATA (error_file), 0666);
 #endif /* not DOS_NT */
       }
 
@@ -1079,7 +1079,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
          CONSP (tem) && STRINGP (XCAR (tem));
          tem = XCDR (tem))
       {
-	if (strncmp (SDATA (XCAR (tem)), "DISPLAY", 7) == 0
+	if (strncmp (SSDATA (XCAR (tem)), "DISPLAY", 7) == 0
 	    && (SDATA (XCAR (tem)) [7] == '\0'
 		|| SDATA (XCAR (tem)) [7] == '='))
 	  /* DISPLAY is specified in process-environment.  */
@@ -1111,10 +1111,10 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
 
     if (STRINGP (display))
       {
-	int vlen = strlen ("DISPLAY=") + strlen (SDATA (display)) + 1;
+	int vlen = strlen ("DISPLAY=") + strlen (SSDATA (display)) + 1;
 	char *vdata = (char *) alloca (vlen);
 	strcpy (vdata, "DISPLAY=");
-	strcat (vdata, SDATA (display));
+	strcat (vdata, SSDATA (display));
 	new_env = add_env (env, new_env, vdata);
       }
 
@@ -1122,7 +1122,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
     for (tem = Vprocess_environment;
 	 CONSP (tem) && STRINGP (XCAR (tem));
 	 tem = XCDR (tem))
-      new_env = add_env (env, new_env, SDATA (XCAR (tem)));
+      new_env = add_env (env, new_env, SSDATA (XCAR (tem)));
 
     *new_env = 0;
 
@@ -1340,13 +1340,13 @@ If optional parameter ENV is a list, then search this list instead of
   CHECK_STRING (variable);
   if (CONSP (env))
     {
-      if (getenv_internal_1 (SDATA (variable), SBYTES (variable),
+      if (getenv_internal_1 (SSDATA (variable), SBYTES (variable),
 			     &value, &valuelen, env))
 	return value ? make_string (value, valuelen) : Qt;
       else
 	return Qnil;
     }
-  else if (getenv_internal (SDATA (variable), SBYTES (variable),
+  else if (getenv_internal (SSDATA (variable), SBYTES (variable),
 			    &value, &valuelen, env))
     return make_string (value, valuelen);
   else
@@ -1459,13 +1459,13 @@ init_callproc (void)
 #endif
     {
       tempdir = Fdirectory_file_name (Vexec_directory);
-      if (access (SDATA (tempdir), 0) < 0)
+      if (access (SSDATA (tempdir), 0) < 0)
 	dir_warning ("Warning: arch-dependent data dir (%s) does not exist.\n",
 		     Vexec_directory);
     }
 
   tempdir = Fdirectory_file_name (Vdata_directory);
-  if (access (SDATA (tempdir), 0) < 0)
+  if (access (SSDATA (tempdir), 0) < 0)
     dir_warning ("Warning: arch-independent data dir (%s) does not exist.\n",
 		 Vdata_directory);
 

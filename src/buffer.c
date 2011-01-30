@@ -1638,7 +1638,7 @@ the current buffer's major mode.  */)
   CHECK_BUFFER (buffer);
 
   if (STRINGP (XBUFFER (buffer)->name)
-      && strcmp (SDATA (XBUFFER (buffer)->name), "*scratch*") == 0)
+      && strcmp (SSDATA (XBUFFER (buffer)->name), "*scratch*") == 0)
     function = find_symbol_value (intern ("initial-major-mode"));
   else
     {
@@ -5229,7 +5229,7 @@ init_buffer (void)
 	 because of the ange-ftp completion handler.
 	 However, it is not necessary to turn / into /:/.
 	 So avoid doing that.  */
-      && strcmp ("/", SDATA (current_buffer->directory)))
+      && strcmp ("/", SSDATA (current_buffer->directory)))
     current_buffer->directory
       = concat2 (build_string ("/:"), current_buffer->directory);
 
@@ -6208,4 +6208,3 @@ keys_of_buffer (void)
      initialized when that function gets called.  */
   Fput (intern_c_string ("erase-buffer"), Qdisabled, Qt);
 }
-
