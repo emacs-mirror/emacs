@@ -635,7 +635,6 @@ alone (may import them from Gnulib again). These are:
     src/gmalloc.c
     src/md5.c
     src/md5.h
-    src/strftime.c
     src/termcap.c
     src/tparam.c
 
