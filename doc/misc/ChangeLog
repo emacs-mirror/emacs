@@ -1,3 +1,8 @@
+2011-01-30  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Client-Side IMAP Splitting): Add a complete nnimap fancy
+	splitting example.
+
 2011-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (MAKEINFO): Remove options, leave only program name.
