@@ -1,3 +1,11 @@
+2011-01-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* mail/emacsbug.el (report-emacs-bug-insert-to-mailer): Check
+	report-emacs-bug-can-use-osx-open and use that if t.
+	(report-emacs-bug-can-use-osx-open): New function.
+	(report-emacs-bug): Rename can-xdg-email to can-insert-mail.
+	Check report-emacs-bug-can-use-osx-open also for can-insert-mail.
+
 2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/vc-dispatcher.el (vc-set-async-update): New function for
