@@ -1,3 +1,102 @@
+2011-01-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	gnulib: import mktime and move-if-change fixes from gnulib
+
+	* configure: Regenerate from the following.
+
+	2011-01-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	mktime: clarify long_int width checking
+	* lib/mktime.c (long_int_is_wide_enough): Move this assertion to
+	the top level, to make it clearer that the assumption about
+	long_int width is being checked.  See
+	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00554.html>.
+
+	2011-01-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	TYPE_MAXIMUM: avoid theoretically undefined behavior
+	* lib/intprops.h (TYPE_MINIMUM, TYPE_MAXIMUM): Do not shift a
+	negative number, which the C Standard says has undefined behavior.
+	In practice this is not a problem, but might as well do it by the book.
+	Reported by Rich Felker and Eric Blake; see
+	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00493.html>.
+	* m4/mktime.m4 (AC_FUNC_MKTIME): Likewise.
+	* lib/mktime.c (TYPE_MAXIMUM): Redo slightly to match the others.
+
+	mktime: #undef mktime before #defining it
+	* lib/mktime.c (mktime) [DEBUG]: #undef mktime before #defining it.
+
+	mktime: systematically normalize tm_isdst comparisons
+	* lib/mktime.c (isdst_differ): New function.
+	(__mktime_internal): Use it systematically for all isdst comparisons.
+	This completes the fix for libc BZ #6723, and removes the need for
+	normalizing tm_isdst.  See
+	<http://sourceware.org/bugzilla/show_bug.cgi?id=6723>
+	(not_equal_tm) [DEBUG]: Use isdst_differ here, too.
+
+	mktime: fix some integer overflow issues and sidestep the rest
+
+	This was prompted by a bug report by Benjamin Lindner for MinGW
+	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00472.html>.
+	His bug is due to signed integer overflow (0 - INT_MIN), and I
+	I scanned through mktime.c looking for other integer overflow
+	problems, fixing all the bugs I found.
+
+	Although the C Standard says the resulting code is still not safe
+	in the presence of integer overflow, in practice it should be good
+	enough for all real-world two's-complement implementations, except
+	for debugging environments that deliberately trap on integer
+	overflow (e.g., gcc -ftrapv).
+
+	* lib/mktime.c (WRAPV): New macro.
+	(SHR): Also check that long_int and time_t shift right in the
+	usual way, before using the fast-but-unportable method.
+	(TYPE_ONES_COMPLEMENT, TYPE_SIGNED_MAGNITUDE): Remove, no longer
+	used.  The code already assumed two's complement, so there's
+	no need to test for alternatives.  All uses removed.
+	(TYPE_MAXIMUM): Don't rely here on overflow behavior not defined by
+	the C standard.  Problem reported by Rich Felker in
+	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00488.html>.
+	(twos_complement_arithmetic): Also check long_int and time_t.
+	(time_t_avg, time_t_add_ok, time_t_int_add_ok): New functions.
+	(guess_time_tm, ranged_convert, __mktime_internal): Use them.
+	(__mktime_internal): Avoid integer overflow with unary subtraction
+	in two instances where -1 - X is an adequate replacement for -X,
+	since the calculations are approximate.
+
+	2011-01-29  Eric Blake  <eblake@redhat.com>
+
+	mktime: avoid infinite loop
+	* m4/mktime.m4 (AC_FUNC_MKTIME): Avoid overflow on possibly-signed
+	type; behavior is still undefined but portable to all known targets.
+	Reported by Rich Felker.
+
+	2011-01-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	mktime: avoid problems on NetBSD 5 / i386
+	* lib/mktime.c (long_int): New type.  This works around a problem
+	on NetBSD 5 / i386, where 'long int' and 'int' are both 32 bits
+	but time_t is 64 bits, and where I expect the existing code is
+	wrong in some cases.
+	(leapyear, ydhms_diff, guess_time_tm, __mktime_internal): Use it.
+	(ydhms_diff): Bring back the compile-time check for wide-enough
+	year and yday.
+
+	mktime: fix misspelling in comment
+	* lib/mktime.c (__mktime_internal): Fix misspelling in comment.
+	This merges all recent glibc changes of importance.
+
+	2011-01-28  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	move-if-change: cope with concurrent mv of identical file.
+	* move-if-change (CMPPROG): Accept environment
+	variable as an override for `cmp'.
+	(usage): Document CMPPROG.
+	Adjust comparison to drop stdout.  Cope with failure of mv if
+	the target file exists and is identical to the source, for
+	parallel builds.
+	Report from H.J. Lu against binutils in PR binutils/12283.
+
 2011-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* lib/makefile.w32-in:
