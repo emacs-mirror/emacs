@@ -25,6 +25,24 @@
 # include <config.h>
 #endif
 
+/* Some of the code in this file assumes that signed integer overflow
+   silently wraps around.  This assumption can't easily be programmed
+   around, nor can it be checked for portably at compile-time or
+   easily eliminated at run-time.
+
+   Define WRAPV to 1 if the assumption is valid.  Otherwise, define it
+   to 0; this forces the use of slower code that, while not guaranteed
+   by the C Standard, works on all production platforms that we know
+   about.  */
+#ifndef WRAPV
+# if (__GNUC__ == 4 && 4 <= __GNUC_MINOR__) || 4 < __GNUC__
+#  pragma GCC optimize ("wrapv")
+#  define WRAPV 1
+# else
+#  define WRAPV 0
+# endif
+#endif
+
 /* Assume that leap seconds are possible, unless told otherwise.
    If the host has a `zic' command with a `-L leapsecondfilename' option,
    then it supports leap seconds; otherwise it probably doesn't.  */
@@ -42,8 +60,20 @@
 # include <stdio.h>
 # include <stdlib.h>
 /* Make it work even if the system's libc has its own mktime routine.  */
+# undef mktime
 # define mktime my_mktime
 #endif /* DEBUG */
+
+/* Verify a requirement at compile-time (unlike assert, which is runtime).  */
+#define verify(name, assertion) struct name { char a[(assertion) ? 1 : -1]; }
+
+/* A signed type that is at least one bit wider than int.  */
+#if INT_MAX <= LONG_MAX / 2
+typedef long int long_int;
+#else
+typedef long long int long_int;
+#endif
+verify (long_int_is_wide_enough, INT_MAX == INT_MAX * (long_int) 2 / 2);
 
 /* Shift A right by B bits portably, by dividing A by 2**B and
    truncating towards minus infinity.  A and B should be free of side
@@ -55,9 +85,11 @@
    implementations (e.g., UNICOS 9.0 on a Cray Y-MP EL) don't shift
    right in the usual way when A < 0, so SHR falls back on division if
    ordinary A >> B doesn't seem to be the usual signed shift.  */
-#define SHR(a, b)       \
-  (-1 >> 1 == -1        \
-   ? (a) >> (b)         \
+#define SHR(a, b)                                               \
+  ((-1 >> 1 == -1                                               \
+    && (long_int) -1 >> 1 == -1                                 \
+    && ((time_t) -1 >> 1 == -1 || ! TYPE_SIGNED (time_t)))      \
+   ? (a) >> (b)                                                 \
    : (a) / (1 << (b)) - ((a) % (1 << (b)) < 0))
 
 /* The extra casts in the following macros work around compiler bugs,
@@ -68,12 +100,8 @@
 #define TYPE_IS_INTEGER(t) ((t) 1.5 == 1)
 
 /* True if negative values of the signed integer type T use two's
-   complement, ones' complement, or signed magnitude representation,
-   respectively.  Much GNU code assumes two's complement, but some
-   people like to be portable to all possible C hosts.  */
+   complement, or if T is an unsigned integer type.  */
 #define TYPE_TWOS_COMPLEMENT(t) ((t) ~ (t) 0 == (t) -1)
-#define TYPE_ONES_COMPLEMENT(t) ((t) ~ (t) 0 == 0)
-#define TYPE_SIGNED_MAGNITUDE(t) ((t) ~ (t) 0 < (t) -1)
 
 /* True if the arithmetic type T is signed.  */
 #define TYPE_SIGNED(t) (! ((t) 0 < (t) -1))
@@ -85,13 +113,11 @@
 #define TYPE_MINIMUM(t) \
   ((t) (! TYPE_SIGNED (t) \
         ? (t) 0 \
-        : TYPE_SIGNED_MAGNITUDE (t) \
-        ? ~ (t) 0 \
-        : ~ (t) 0 << (sizeof (t) * CHAR_BIT - 1)))
+        : ~ TYPE_MAXIMUM (t)))
 #define TYPE_MAXIMUM(t) \
   ((t) (! TYPE_SIGNED (t) \
         ? (t) -1 \
-        : ~ (~ (t) 0 << (sizeof (t) * CHAR_BIT - 1))))
+        : ((((t) 1 << (sizeof (t) * CHAR_BIT - 2)) - 1) * 2 + 1)))
 
 #ifndef TIME_T_MIN
 # define TIME_T_MIN TYPE_MINIMUM (time_t)
@@ -101,14 +127,11 @@
 #endif
 #define TIME_T_MIDPOINT (SHR (TIME_T_MIN + TIME_T_MAX, 1) + 1)
 
-/* Verify a requirement at compile-time (unlike assert, which is runtime).  */
-#define verify(name, assertion) struct name { char a[(assertion) ? 1 : -1]; }
-
 verify (time_t_is_integer, TYPE_IS_INTEGER (time_t));
-verify (twos_complement_arithmetic, TYPE_TWOS_COMPLEMENT (int));
-/* The code also assumes that signed integer overflow silently wraps
-   around, but this assumption can't be stated without causing a
-   diagnostic on some hosts.  */
+verify (twos_complement_arithmetic,
+        (TYPE_TWOS_COMPLEMENT (int)
+         && TYPE_TWOS_COMPLEMENT (long_int)
+         && TYPE_TWOS_COMPLEMENT (time_t)));
 
 #define EPOCH_YEAR 1970
 #define TM_YEAR_BASE 1900
@@ -116,7 +139,7 @@ verify (base_year_is_a_multiple_of_100, TM_YEAR_BASE % 100 == 0);
 
 /* Return 1 if YEAR + TM_YEAR_BASE is a leap year.  */
 static inline int
-leapyear (long int year)
+leapyear (long_int year)
 {
   /* Don't add YEAR to TM_YEAR_BASE, as that might overflow.
      Also, work even if YEAR is negative.  */
@@ -150,6 +173,14 @@ const unsigned short int __mon_yday[2][13] =
 # include "mktime-internal.h"
 #endif
 
+/* Return 1 if the values A and B differ according to the rules for
+   tm_isdst: A and B differ if one is zero and the other positive.  */
+static int
+isdst_differ (int a, int b)
+{
+  return (!a != !b) & (0 <= a) & (0 <= b);
+}
+
 /* Return an integer value measuring (YEAR1-YDAY1 HOUR1:MIN1:SEC1) -
    (YEAR0-YDAY0 HOUR0:MIN0:SEC0) in seconds, assuming that the clocks
    were not adjusted between the time stamps.
@@ -162,15 +193,10 @@ const unsigned short int __mon_yday[2][13] =
    detect overflow.  */
 
 static inline time_t
-ydhms_diff (long int year1, long int yday1, int hour1, int min1, int sec1,
+ydhms_diff (long_int year1, long_int yday1, int hour1, int min1, int sec1,
             int year0, int yday0, int hour0, int min0, int sec0)
 {
   verify (C99_integer_division, -1 / 2 == 0);
-#if 0 /* This assertion fails on 32-bit systems with 64-bit time_t, such as
-         NetBSD 5 on i386.  */
-  verify (long_int_year_and_yday_are_wide_enough,
-          INT_MAX <= LONG_MAX / 2 || TIME_T_MAX <= UINT_MAX);
-#endif
 
   /* Compute intervening leap days correctly even if year is negative.
      Take care to avoid integer overflow here.  */
@@ -193,6 +219,53 @@ ydhms_diff (long int year1, long int yday1, int hour1, int min1, int sec1,
   return seconds;
 }
 
+/* Return the average of A and B, even if A + B would overflow.  */
+static time_t
+time_t_avg (time_t a, time_t b)
+{
+  return SHR (a, 1) + SHR (b, 1) + (a & b & 1);
+}
+
+/* Return 1 if A + B does not overflow.  If time_t is unsigned and if
+   B's top bit is set, assume that the sum represents A - -B, and
+   return 1 if the subtraction does not wrap around.  */
+static int
+time_t_add_ok (time_t a, time_t b)
+{
+  if (! TYPE_SIGNED (time_t))
+    {
+      time_t sum = a + b;
+      return (sum < a) == (TIME_T_MIDPOINT <= b);
+    }
+  else if (WRAPV)
+    {
+      time_t sum = a + b;
+      return (sum < a) == (b < 0);
+    }
+  else
+    {
+      time_t avg = time_t_avg (a, b);
+      return TIME_T_MIN / 2 <= avg && avg <= TIME_T_MAX / 2;
+    }
+}
+
+/* Return 1 if A + B does not overflow.  */
+static int
+time_t_int_add_ok (time_t a, int b)
+{
+  verify (int_no_wider_than_time_t, INT_MAX <= TIME_T_MAX);
+  if (WRAPV)
+    {
+      time_t sum = a + b;
+      return (sum < a) == (b < 0);
+    }
+  else
+    {
+      int a_odd = a & 1;
+      time_t avg = SHR (a, 1) + (SHR (b, 1) + (a_odd & b));
+      return TIME_T_MIN / 2 <= avg && avg <= TIME_T_MAX / 2;
+    }
+}
 
 /* Return a time_t value corresponding to (YEAR-YDAY HOUR:MIN:SEC),
    assuming that *T corresponds to *TP and that no clock adjustments
@@ -201,7 +274,7 @@ ydhms_diff (long int year1, long int yday1, int hour1, int min1, int sec1,
    If overflow occurs, yield the minimal or maximal value, except do not
    yield a value equal to *T.  */
 static time_t
-guess_time_tm (long int year, long int yday, int hour, int min, int sec,
+guess_time_tm (long_int year, long_int yday, int hour, int min, int sec,
                const time_t *t, const struct tm *tp)
 {
   if (tp)
@@ -209,9 +282,8 @@ guess_time_tm (long int year, long int yday, int hour, int min, int sec,
       time_t d = ydhms_diff (year, yday, hour, min, sec,
                              tp->tm_year, tp->tm_yday,
                              tp->tm_hour, tp->tm_min, tp->tm_sec);
-      time_t t1 = *t + d;
-      if ((t1 < *t) == (TYPE_SIGNED (time_t) ? d < 0 : TIME_T_MAX / 2 < d))
-        return t1;
+      if (time_t_add_ok (*t, d))
+        return *t + d;
     }
 
   /* Overflow occurred one way or another.  Return the nearest result
@@ -243,9 +315,7 @@ ranged_convert (struct tm *(*convert) (const time_t *, struct tm *),
          they differ by 1.  */
       while (bad != ok + (bad < 0 ? -1 : 1))
         {
-          time_t mid = *t = (bad < 0
-                             ? bad + ((ok - bad) >> 1)
-                             : ok + ((bad - ok) >> 1));
+          time_t mid = *t = time_t_avg (ok, bad);
           r = convert (t, tp);
           if (r)
             ok = mid;
@@ -294,9 +364,7 @@ __mktime_internal (struct tm *tp,
   int mday = tp->tm_mday;
   int mon = tp->tm_mon;
   int year_requested = tp->tm_year;
-  /* Normalize the value.  */
-  int isdst = ((tp->tm_isdst >> (8 * sizeof (tp->tm_isdst) - 1))
-               | (tp->tm_isdst != 0));
+  int isdst = tp->tm_isdst;
 
   /* 1 if the previous probe was DST.  */
   int dst2;
@@ -305,8 +373,8 @@ __mktime_internal (struct tm *tp,
   int mon_remainder = mon % 12;
   int negative_mon_remainder = mon_remainder < 0;
   int mon_years = mon / 12 - negative_mon_remainder;
-  long int lyear_requested = year_requested;
-  long int year = lyear_requested + mon_years;
+  long_int lyear_requested = year_requested;
+  long_int year = lyear_requested + mon_years;
 
   /* The other values need not be in range:
      the remaining code handles minor overflows correctly,
@@ -318,8 +386,8 @@ __mktime_internal (struct tm *tp,
   int mon_yday = ((__mon_yday[leapyear (year)]
                    [mon_remainder + 12 * negative_mon_remainder])
                   - 1);
-  long int lmday = mday;
-  long int yday = mon_yday + lmday;
+  long_int lmday = mday;
+  long_int yday = mon_yday + lmday;
 
   time_t guessed_offset = *offset;
 
@@ -373,9 +441,9 @@ __mktime_internal (struct tm *tp,
 
       int approx_biennia = SHR (t0, ALOG2_SECONDS_PER_BIENNIUM);
       int diff = approx_biennia - approx_requested_biennia;
-      int abs_diff = diff < 0 ? - diff : diff;
+      int abs_diff = diff < 0 ? -1 - diff : diff;
 
-      /* IRIX 4.0.5 cc miscaculates TIME_T_MIN / 3: it erroneously
+      /* IRIX 4.0.5 cc miscalculates TIME_T_MIN / 3: it erroneously
          gives a positive value of 715827882.  Setting a variable
          first then doing math on it seems to work.
          (ghazi@caip.rutgers.edu) */
@@ -391,7 +459,7 @@ __mktime_internal (struct tm *tp,
           time_t repaired_t0 = -1 - t0;
           approx_biennia = SHR (repaired_t0, ALOG2_SECONDS_PER_BIENNIUM);
           diff = approx_biennia - approx_requested_biennia;
-          abs_diff = diff < 0 ? - diff : diff;
+          abs_diff = diff < 0 ? -1 - diff : diff;
           if (overflow_threshold < abs_diff)
             return -1;
           guessed_offset += repaired_t0 - t0;
@@ -426,7 +494,7 @@ __mktime_internal (struct tm *tp,
 
   /* We have a match.  Check whether tm.tm_isdst has the requested
      value, if any.  */
-  if (isdst != tm.tm_isdst && 0 <= isdst && 0 <= tm.tm_isdst)
+  if (isdst_differ (isdst, tm.tm_isdst))
     {
       /* tm.tm_isdst has the wrong value.  Look for a neighboring
          time with the right value, and use its UTC offset.
@@ -459,22 +527,20 @@ __mktime_internal (struct tm *tp,
 
       for (delta = stride; delta < delta_bound; delta += stride)
         for (direction = -1; direction <= 1; direction += 2)
-          {
-            time_t ot = t + delta * direction;
-            if ((ot < t) == (direction < 0))
-              {
-                struct tm otm;
-                ranged_convert (convert, &ot, &otm);
-                if (otm.tm_isdst == isdst)
-                  {
-                    /* We found the desired tm_isdst.
-                       Extrapolate back to the desired time.  */
-                    t = guess_time_tm (year, yday, hour, min, sec, &ot, &otm);
-                    ranged_convert (convert, &t, &tm);
-                    goto offset_found;
-                  }
-              }
-          }
+          if (time_t_int_add_ok (t, delta * direction))
+            {
+              time_t ot = t + delta * direction;
+              struct tm otm;
+              ranged_convert (convert, &ot, &otm);
+              if (! isdst_differ (isdst, otm.tm_isdst))
+                {
+                  /* We found the desired tm_isdst.
+                     Extrapolate back to the desired time.  */
+                  t = guess_time_tm (year, yday, hour, min, sec, &ot, &otm);
+                  ranged_convert (convert, &t, &tm);
+                  goto offset_found;
+                }
+            }
     }
 
  offset_found:
@@ -485,11 +551,13 @@ __mktime_internal (struct tm *tp,
       /* Adjust time to reflect the tm_sec requested, not the normalized value.
          Also, repair any damage from a false match due to a leap second.  */
       int sec_adjustment = (sec == 0 && tm.tm_sec == 60) - sec;
+      if (! time_t_int_add_ok (t, sec_requested))
+        return -1;
       t1 = t + sec_requested;
+      if (! time_t_int_add_ok (t1, sec_adjustment))
+        return -1;
       t2 = t1 + sec_adjustment;
-      if (((t1 < t) != (sec_requested < 0))
-          | ((t2 < t1) != (sec_adjustment < 0))
-          | ! convert (&t2, &tm))
+      if (! convert (&t2, &tm))
         return -1;
       t = t2;
     }
@@ -540,7 +608,7 @@ not_equal_tm (const struct tm *a, const struct tm *b)
           | (a->tm_mon ^ b->tm_mon)
           | (a->tm_year ^ b->tm_year)
           | (a->tm_yday ^ b->tm_yday)
-          | (a->tm_isdst ^ b->tm_isdst));
+          | isdst_differ (a->tm_isdst, b->tm_isdst));
 }
 
 static void
@@ -664,6 +732,6 @@ main (int argc, char **argv)
 
 /*
 Local Variables:
-compile-command: "gcc -DDEBUG -Wall -W -O -g mktime.c -o mktime"
+compile-command: "gcc -DDEBUG -I. -Wall -W -O2 -g mktime.c -o mktime"
 End:
 */
