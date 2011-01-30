@@ -1,3 +1,8 @@
+2011-01-30  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-head): Protect against not finding the
+	article by Message-ID.
+
 2011-01-29  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-art.el (article-update-date-lapsed): Try a better way to really
