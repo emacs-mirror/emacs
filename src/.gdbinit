@@ -1315,7 +1315,7 @@ show environment DISPLAY
 show environment TERM
 
 # People get bothered when they see messages about non-existent functions...
-xgetptr Vsystem_type
+xgetptr globals.f_Vsystem_type
 # $ptr is NULL in temacs
 if ($ptr != 0)
   set $tem = (struct Lisp_Symbol *) $ptr
@@ -1340,7 +1340,7 @@ end
 tbreak init_sys_modes
 commands
   silent
-  xgetptr Vinitial_window_system
+  xgetptr globals.f_Vinitial_window_system
   set $tem = (struct Lisp_Symbol *) $ptr
   xgetptr $tem->xname
   set $tem = (struct Lisp_String *) $ptr
