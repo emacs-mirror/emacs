@@ -9,6 +9,10 @@
 	Use SSDATA (not SDATA) when the context of the expression wants
 	char * (not unsigned char *).
 
+2011-01-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* .gdbinit: Read global lisp variables as globals.f_V*.
+
 2011-01-30  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* font.c (PROP_MATCH): Remove parameter N and use strlen instead.
