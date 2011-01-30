@@ -2,6 +2,7 @@
 
 	* nnmail.el (nnmail-article-group): Check for a direct fancy split
 	method.
+	(nnmail-article-group): A better test for fanciness.
 
 	* nnimap.el (nnimap-request-head): Protect against not finding the
 	article by Message-ID.

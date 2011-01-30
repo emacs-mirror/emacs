@@ -1148,8 +1148,7 @@ FUNC will be called with the group name to determine the article number."
 	  (setq nnmail-split-trace nil))
 	(if (or (and (symbolp nnmail-split-methods)
 		     (fboundp nnmail-split-methods))
-		(memq (car-safe nnmail-split-methods)
-		      '(| &))
+		(not (consp (car-safe nnmail-split-methods)))
 		(and (listp nnmail-split-methods)
 		     ;; Not a regular split method, so it has to be a
 		     ;; fancy one.
