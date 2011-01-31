@@ -1,5 +1,8 @@
 2011-01-31  Eli Zaretskii  <eliz@gnu.org>
 
+	* config.nt (VERSION): Uncomment definition.
+	(restrict): Define.
+
 	* inc/stdbool.h: New file.
 
 2011-01-29  Eli Zaretskii  <eliz@gnu.org>
