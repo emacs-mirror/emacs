@@ -3479,8 +3479,8 @@ possible values."
 
 (defun article-make-date-line (date type)
   "Return a DATE line of TYPE."
-  (unless (memq type '(local ut original user iso8601 lapsed english
-			     combined-lapsed user-defined))
+  (unless (memq type '(local ut original user-defined iso8601 lapsed english
+			     combined-lapsed))
     (error "Unknown conversion type: %s" type))
   (condition-case ()
       (let ((time (date-to-time date)))
