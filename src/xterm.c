@@ -7949,7 +7949,7 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
       && (FRAME_XIC_STYLE (f) & (XIMPreeditPosition | XIMStatusArea)))
     {
       BLOCK_INPUT;
-      xic_set_xfontset (f, SDATA (fontset_ascii (fontset)));
+      xic_set_xfontset (f, SSDATA (fontset_ascii (fontset)));
       UNBLOCK_INPUT;
     }
 #endif
@@ -9873,7 +9873,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ++x_initialized;
     }
 
-  if (! x_display_ok (SDATA (display_name)))
+  if (! x_display_ok (SSDATA (display_name)))
     error ("Display %s can't be opened", SDATA (display_name));
 
 #ifdef USE_GTK
@@ -9965,7 +9965,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	argv[argc++] = xrm_option;
       }
     turn_on_atimers (0);
-    dpy = XtOpenDisplay (Xt_app_con, SDATA (display_name),
+    dpy = XtOpenDisplay (Xt_app_con, SSDATA (display_name),
 			 resource_name, EMACS_CLASS,
 			 emacs_options, XtNumber (emacs_options),
 			 &argc, argv);
@@ -10004,8 +10004,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
     for (share = x_display_list, tail = x_display_name_list; share;
 	 share = share->next, tail = XCDR (tail))
-      if (same_x_server (SDATA (XCAR (XCAR (tail))),
-			 SDATA (display_name)))
+      if (same_x_server (SSDATA (XCAR (XCAR (tail))),
+			 SSDATA (display_name)))
 	break;
     if (share)
       terminal->kboard = share->terminal->kboard;
@@ -10066,7 +10066,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   /* Set the name of the terminal. */
   terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
-  strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
+  strncpy (terminal->name, SSDATA (display_name), SBYTES (display_name));
   terminal->name[SBYTES (display_name)] = 0;
 
 #if 0
@@ -10157,8 +10157,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 					  build_string ("PrivateColormap"),
 					  Qnil, Qnil);
 	  if (STRINGP (value)
-	      && (!strcmp (SDATA (value), "true")
-		  || !strcmp (SDATA (value), "on")))
+	      && (!strcmp (SSDATA (value), "true")
+		  || !strcmp (SSDATA (value), "on")))
 	    dpyinfo->cmap = XCopyColormapAndFree (dpyinfo->display, dpyinfo->cmap);
 	}
     }
@@ -10355,8 +10355,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 				    build_string ("Synchronous"),
 				    Qnil, Qnil);
     if (STRINGP (value)
-	&& (!strcmp (SDATA (value), "true")
-	    || !strcmp (SDATA (value), "on")))
+	&& (!strcmp (SSDATA (value), "true")
+	    || !strcmp (SSDATA (value), "on")))
       XSynchronize (dpyinfo->display, True);
   }
 
@@ -10368,13 +10368,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 				    Qnil, Qnil);
 #ifdef USE_XIM
     if (STRINGP (value)
-	&& (!strcmp (SDATA (value), "false")
-	    || !strcmp (SDATA (value), "off")))
+	&& (!strcmp (SSDATA (value), "false")
+	    || !strcmp (SSDATA (value), "off")))
       use_xim = 0;
 #else
     if (STRINGP (value)
-	&& (!strcmp (SDATA (value), "true")
-	    || !strcmp (SDATA (value), "on")))
+	&& (!strcmp (SSDATA (value), "true")
+	    || !strcmp (SSDATA (value), "on")))
       use_xim = 1;
 #endif
   }

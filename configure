@@ -682,6 +682,8 @@ NEXT_STDDEF_H
 STDDEF_H
 HAVE_WCHAR_T
 REPLACE_NULL
+HAVE__BOOL
+STDBOOL_H
 APPLE_UNIVERSAL_BUILD
 REPLACE_TIMEGM
 REPLACE_NANOSLEEP
@@ -2658,6 +2660,7 @@ as_fn_append ac_header_list " sys/param.h"
 gl_getopt_required=GNU
 as_fn_append ac_header_list " getopt.h"
 as_fn_append ac_func_list " alarm"
+as_fn_append ac_func_list " tzset"
 as_fn_append ac_header_list " sys/time.h"
 as_fn_append ac_func_list " localtime_r"
 # Check that the precious variables saved in the cache have kept the same
@@ -5827,7 +5830,9 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   # Code from module intprops:
   # Code from module mktime:
   # Code from module multiarch:
+  # Code from module stdbool:
   # Code from module stddef:
+  # Code from module strftime:
   # Code from module time:
   # Code from module time_r:
   # Code from module unistd:
@@ -14400,6 +14405,97 @@ _ACEOF
     ;;
 esac
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for stdbool.h that conforms to C99" >&5
+$as_echo_n "checking for stdbool.h that conforms to C99... " >&6; }
+if ${ac_cv_header_stdbool_h+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+             #include <stdbool.h>
+             #ifndef bool
+              "error: bool is not defined"
+             #endif
+             #ifndef false
+              "error: false is not defined"
+             #endif
+             #if false
+              "error: false is not 0"
+             #endif
+             #ifndef true
+              "error: true is not defined"
+             #endif
+             #if true != 1
+              "error: true is not 1"
+             #endif
+             #ifndef __bool_true_false_are_defined
+              "error: __bool_true_false_are_defined is not defined"
+             #endif
+
+             struct s { _Bool s: 1; _Bool t; } s;
+
+             char a[true == 1 ? 1 : -1];
+             char b[false == 0 ? 1 : -1];
+             char c[__bool_true_false_are_defined == 1 ? 1 : -1];
+             char d[(bool) 0.5 == true ? 1 : -1];
+             /* See body of main program for 'e'.  */
+             char f[(_Bool) 0.0 == false ? 1 : -1];
+             char g[true];
+             char h[sizeof (_Bool)];
+             char i[sizeof s.t];
+             enum { j = false, k = true, l = false * true, m = true * 256 };
+             /* The following fails for
+                HP aC++/ANSI C B3910B A.05.55 [Dec 04 2003]. */
+             _Bool n[m];
+             char o[sizeof n == m * sizeof n[0] ? 1 : -1];
+             char p[-1 - (_Bool) 0 < 0 && -1 - (bool) 0 < 0 ? 1 : -1];
+             /* Catch a bug in an HP-UX C compiler.  See
+                http://gcc.gnu.org/ml/gcc-patches/2003-12/msg02303.html
+                http://lists.gnu.org/archive/html/bug-coreutils/2005-11/msg00161.html
+              */
+             _Bool q = true;
+             _Bool *pq = &q;
+
+int
+main ()
+{
+
+             bool e = &s;
+             *pq |= q;
+             *pq |= ! q;
+             /* Refer to every declared value, to avoid compiler optimizations.  */
+             return (!a + !b + !c + !d + !e + !f + !g + !h + !i + !!j + !k + !!l
+                     + !m + !n + !o + !p + !q + !pq);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_header_stdbool_h=yes
+else
+  ac_cv_header_stdbool_h=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_header_stdbool_h" >&5
+$as_echo "$ac_cv_header_stdbool_h" >&6; }
+   ac_fn_c_check_type "$LINENO" "_Bool" "ac_cv_type__Bool" "$ac_includes_default"
+if test "x$ac_cv_type__Bool" = xyes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE__BOOL 1
+_ACEOF
+
+
+fi
+
+   if test $ac_cv_header_stdbool_h = yes; then
+
+$as_echo "#define HAVE_STDBOOL_H 1" >>confdefs.h
+
+   fi
 
     REPLACE_NULL=0;
   HAVE_WCHAR_T=1;
@@ -14437,6 +14533,18 @@ $as_echo "$gt_cv_c_wchar_t" >&6; }
 $as_echo "#define HAVE_WCHAR_T 1" >>confdefs.h
 
   fi
+
+
+ ac_fn_c_check_member "$LINENO" "struct tm" "tm_gmtoff" "ac_cv_member_struct_tm_tm_gmtoff" "#include <time.h>
+"
+if test "x$ac_cv_member_struct_tm_tm_gmtoff" = xyes; then :
+
+$as_echo "#define HAVE_TM_GMTOFF 1" >>confdefs.h
+
+fi
+
+
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for C/C++ restrict keyword" >&5
 $as_echo_n "checking for C/C++ restrict keyword... " >&6; }
@@ -14906,20 +15014,23 @@ main ()
   int result = 0;
   time_t t, delta;
   int i, j;
+  int time_t_signed_magnitude = (time_t) ~ (time_t) 0 < (time_t) -1;
+  int time_t_signed = ! ((time_t) 0 < (time_t) -1);
 
   /* This test makes some buggy mktime implementations loop.
      Give up after 60 seconds; a mktime slower than that
      isn't worth using anyway.  */
   alarm (60);
 
-  for (;;)
-    {
-      t = (time_t_max << 1) + 1;
-      if (t <= time_t_max)
-        break;
-      time_t_max = t;
-    }
-  time_t_min = - ((time_t) ~ (time_t) 0 == (time_t) -1) - time_t_max;
+  time_t_max = (! time_t_signed
+                ? (time_t) -1
+                : ((((time_t) 1 << (sizeof (time_t) * CHAR_BIT - 2)) - 1)
+                   * 2 + 1));
+  time_t_min = (! time_t_signed
+                ? (time_t) 0
+                : time_t_signed_magnitude
+                ? ~ (time_t) 0
+                : ~ time_t_max);
 
   delta = time_t_max / 997; /* a suitable prime number */
   for (i = 0; i < N_STRINGS; i++)
@@ -14994,6 +15105,26 @@ fi
 
 
   # Code from module multiarch:
+
+  # Code from module stdbool:
+
+
+
+  # Define two additional variables used in the Makefile substitution.
+
+  if test "$ac_cv_header_stdbool_h" = yes; then
+    STDBOOL_H=''
+  else
+    STDBOOL_H='stdbool.h'
+  fi
+
+
+  if test "$ac_cv_type__Bool" = yes; then
+    HAVE__BOOL=1
+  else
+    HAVE__BOOL=0
+  fi
+
 
   # Code from module stddef:
 
@@ -15089,6 +15220,32 @@ $as_echo "$gl_cv_next_stddef_h" >&6; }
 
 
   fi
+
+  # Code from module strftime:
+
+
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS strftime.$ac_objext"
+
+
+ # This defines (or not) HAVE_TZNAME and HAVE_TM_ZONE.
+
+
+
+
+
+
+
+$as_echo "#define my_strftime nstrftime" >>confdefs.h
+
+
 
   # Code from module time:
 
@@ -15287,62 +15444,6 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
 
   LIBGNU_LTLIBDEPS="$gl_ltlibdeps"
 
-
-
-for ac_func in strftime
-do :
-  ac_fn_c_check_func "$LINENO" "strftime" "ac_cv_func_strftime"
-if test "x$ac_cv_func_strftime" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_STRFTIME 1
-_ACEOF
-
-else
-  # strftime is in -lintl on SCO UNIX.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for strftime in -lintl" >&5
-$as_echo_n "checking for strftime in -lintl... " >&6; }
-if ${ac_cv_lib_intl_strftime+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lintl  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char strftime ();
-int
-main ()
-{
-return strftime ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_intl_strftime=yes
-else
-  ac_cv_lib_intl_strftime=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_intl_strftime" >&5
-$as_echo "$ac_cv_lib_intl_strftime" >&6; }
-if test "x$ac_cv_lib_intl_strftime" = xyes; then :
-  $as_echo "#define HAVE_STRFTIME 1" >>confdefs.h
-
-LIBS="-lintl $LIBS"
-fi
-
-fi
-done
 
 
 # UNIX98 PTYs.

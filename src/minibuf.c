@@ -1762,7 +1762,7 @@ the values STRING, PREDICATE and `lambda'.  */)
     {
       /* Bypass intern-soft as that loses for nil.  */
       tem = oblookup (collection,
-		      SDATA (string),
+		      SSDATA (string),
 		      SCHARS (string),
 		      SBYTES (string));
       if (!SYMBOLP (tem))
@@ -1773,7 +1773,7 @@ the values STRING, PREDICATE and `lambda'.  */)
 	    string = Fstring_make_multibyte (string);
 
 	  tem = oblookup (collection,
-			  SDATA (string),
+			  SSDATA (string),
 			  SCHARS (string),
 			  SBYTES (string));
 	}
@@ -2185,4 +2185,3 @@ properties.  */);
   defsubr (&Sassoc_string);
   defsubr (&Scompleting_read);
 }
-

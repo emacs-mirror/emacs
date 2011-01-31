@@ -2046,7 +2046,7 @@ whether or not it is currently displayed in some window.  */)
 	    it_overshoot_expected = 1;
 	  else if (it.method == GET_FROM_STRING)
 	    {
-	      const char *s = SDATA (it.string);
+	      const char *s = SSDATA (it.string);
 	      const char *e = s + SBYTES (it.string);
 	      while (s < e && *s != '\n')
 		++s;
@@ -2164,4 +2164,3 @@ syms_of_indent (void)
   defsubr (&Svertical_motion);
   defsubr (&Scompute_motion);
 }
-

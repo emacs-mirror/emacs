@@ -963,10 +963,10 @@ Return t if the file exists and loads successfully.  */)
 	{
 	  /* Don't insist on adding a suffix if FILE already ends with one.  */
 	  if (size > 3
-	      && !strcmp (SDATA (file) + size - 3, ".el"))
+	      && !strcmp (SSDATA (file) + size - 3, ".el"))
 	    must_suffix = Qnil;
 	  else if (size > 4
-		   && !strcmp (SDATA (file) + size - 4, ".elc"))
+		   && !strcmp (SSDATA (file) + size - 4, ".elc"))
 	    must_suffix = Qnil;
 	  /* Don't insist on adding a suffix
 	     if the argument includes a directory name.  */
@@ -1348,19 +1348,19 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	      && SREF (filename, 0) == '/'
 	      && SREF (filename, 1) == ':')
 	    {
-	      strncpy (fn, SDATA (filename) + 2,
+	      strncpy (fn, SSDATA (filename) + 2,
 		       SBYTES (filename) - 2);
 	      fn[SBYTES (filename) - 2] = 0;
 	    }
 	  else
 	    {
-	      strncpy (fn, SDATA (filename),
+	      strncpy (fn, SSDATA (filename),
 		       SBYTES (filename));
 	      fn[SBYTES (filename)] = 0;
 	    }
 
 	  if (lsuffix != 0)  /* Bug happens on CCI if lsuffix is 0.  */
-	    strncat (fn, SDATA (XCAR (tail)), lsuffix);
+	    strncat (fn, SSDATA (XCAR (tail)), lsuffix);
 
 	  /* Check that the file exists and is not a directory.  */
 	  /* We used to only check for handlers on non-absolute file names:
@@ -1395,7 +1395,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	      const char *pfn;
 
 	      encoded_fn = ENCODE_FILE (string);
-	      pfn = SDATA (encoded_fn);
+	      pfn = SSDATA (encoded_fn);
 	      exists = (stat (pfn, &st) >= 0
 			&& (st.st_mode & S_IFMT) != S_IFDIR);
 	      if (exists)
@@ -3527,7 +3527,7 @@ it defaults to the value of `obarray'.  */)
 
   CHECK_STRING (string);
 
-  tem = oblookup (obarray, SDATA (string),
+  tem = oblookup (obarray, SSDATA (string),
 		  SCHARS (string),
 		  SBYTES (string));
   if (!INTEGERP (tem))
@@ -3580,7 +3580,7 @@ it defaults to the value of `obarray'.  */)
   else
     string = SYMBOL_NAME (name);
 
-  tem = oblookup (obarray, SDATA (string), SCHARS (string), SBYTES (string));
+  tem = oblookup (obarray, SSDATA (string), SCHARS (string), SBYTES (string));
   if (INTEGERP (tem) || (SYMBOLP (name) && !EQ (name, tem)))
     return Qnil;
   else
@@ -3609,7 +3609,7 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
       string = name;
     }
 
-  tem = oblookup (obarray, SDATA (string),
+  tem = oblookup (obarray, SSDATA (string),
 		  SCHARS (string),
 		  SBYTES (string));
   if (INTEGERP (tem))
@@ -4055,7 +4055,7 @@ init_lread (void)
 	  if (STRINGP (dirfile))
 	    {
 	      dirfile = Fdirectory_file_name (dirfile);
-	      if (access (SDATA (dirfile), 0) < 0)
+	      if (access (SSDATA (dirfile), 0) < 0)
 		dir_warning ("Warning: Lisp directory `%s' does not exist.\n",
 			     XCAR (path_tail));
 	    }

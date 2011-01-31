@@ -5542,7 +5542,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	     (mm-decode-coding-string group charset)
 	     (mm-decode-coding-string (gnus-status-message group) charset)))
 
-    (when gnus-agent
+    (when (and gnus-agent
+	       (gnus-active group))
       (gnus-agent-possibly-alter-active group (gnus-active group) info)
 
       (setq gnus-summary-use-undownloaded-faces

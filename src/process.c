@@ -498,7 +498,7 @@ status_message (struct Lisp_Process *p)
 	  if (! NILP (Vlocale_coding_system))
 	    string = (code_convert_string_norecord
 		      (string, Vlocale_coding_system, 0));
-	  c1 = STRING_CHAR (SSDATA (string));
+	  c1 = STRING_CHAR (SDATA (string));
 	  c2 = DOWNCASE (c1);
 	  if (c1 != c2)
 	    Faset (string, make_number (0), make_number (c2));
@@ -1447,7 +1447,7 @@ list_processes_1 (Lisp_Object query_only)
 	  Lisp_Object speed = Fplist_get (p->childp, QCspeed);
 	  insert_string ("(serial port ");
 	  if (STRINGP (port))
-	    insert_string (SDATA (port));
+	    insert_string (SSDATA (port));
 	  else
 	    insert_string ("?");
 	  if (INTEGERP (speed))
@@ -3262,7 +3262,7 @@ usage: (make-network-process &rest ARGS)  */)
       CHECK_STRING (service);
       memset (&address_un, 0, sizeof address_un);
       address_un.sun_family = AF_LOCAL;
-      strncpy (address_un.sun_path, SDATA (service), sizeof address_un.sun_path);
+      strncpy (address_un.sun_path, SSDATA (service), sizeof address_un.sun_path);
       ai.ai_addr = (struct sockaddr *) &address_un;
       ai.ai_addrlen = sizeof address_un;
       goto open_socket;
@@ -3298,7 +3298,7 @@ usage: (make-network-process &rest ARGS)  */)
       else
 	{
 	  CHECK_STRING (service);
-	  portstring = SDATA (service);
+	  portstring = SSDATA (service);
 	}
 
       immediate_quit = 1;
@@ -3313,12 +3313,12 @@ usage: (make-network-process &rest ARGS)  */)
       res_init ();
 #endif
 
-      ret = getaddrinfo (SDATA (host), portstring, &hints, &res);
+      ret = getaddrinfo (SSDATA (host), portstring, &hints, &res);
       if (ret)
 #ifdef HAVE_GAI_STRERROR
-	error ("%s/%s %s", SDATA (host), portstring, gai_strerror (ret));
+	error ("%s/%s %s", SSDATA (host), portstring, gai_strerror (ret));
 #else
-	error ("%s/%s getaddrinfo error %d", SDATA (host), portstring, ret);
+	error ("%s/%s getaddrinfo error %d", SSDATA (host), portstring, ret);
 #endif
       immediate_quit = 0;
 
@@ -3337,7 +3337,7 @@ usage: (make-network-process &rest ARGS)  */)
     {
       struct servent *svc_info;
       CHECK_STRING (service);
-      svc_info = getservbyname (SDATA (service),
+      svc_info = getservbyname (SSDATA (service),
 				(socktype == SOCK_DGRAM ? "udp" : "tcp"));
       if (svc_info == 0)
 	error ("Unknown service: %s", SDATA (service));
@@ -5807,7 +5807,7 @@ emacs_get_tty_pgrp (struct Lisp_Process *p)
       int fd;
       /* Some OS:es (Solaris 8/9) does not allow TIOCGPGRP from the
 	 master side.  Try the slave side.  */
-      fd = emacs_open (SDATA (p->tty_name), O_RDONLY, 0);
+      fd = emacs_open (SSDATA (p->tty_name), O_RDONLY, 0);
 
       if (fd != -1)
 	{

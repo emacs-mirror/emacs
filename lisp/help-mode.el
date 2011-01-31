@@ -325,6 +325,15 @@ Commands:
     ;; View mode's read-only status of existing *Help* buffer is lost
     ;; by with-output-to-temp-buffer.
     (toggle-read-only 1)
+
+    (save-excursion
+      (goto-char (point-min))
+      (let ((inhibit-read-only t))
+	(when (re-search-forward "^This \\w+ is advised.$" nil t)
+	  (put-text-property (match-beginning 0)
+			     (match-end 0)
+			     'face 'font-lock-warning-face))))
+
     (help-make-xrefs (current-buffer))))
 
 ;; Grokking cross-reference information in doc strings and

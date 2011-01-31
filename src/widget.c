@@ -560,7 +560,7 @@ setup_frame_gcs (EmacsFrame ew)
   if (STRINGP (font))
     {
       XFontStruct *xfont = XLoadQueryFont (FRAME_X_DISPLAY_INFO (s)->display,
-					   SDATA (font));
+					   SSDATA (font));
       if (xfont)
 	{
 	  gc_values.font = xfont->fid;
@@ -840,4 +840,3 @@ widget_store_internal_border (Widget widget)
 
   ew->emacs_frame.internal_border_width = f->internal_border_width;
 }
-

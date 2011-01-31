@@ -1,4 +1,4 @@
-# serial 17
+# serial 19
 dnl Copyright (C) 2002-2003, 2005-2007, 2009-2011 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -165,20 +165,23 @@ main ()
   int result = 0;
   time_t t, delta;
   int i, j;
+  int time_t_signed_magnitude = (time_t) ~ (time_t) 0 < (time_t) -1;
+  int time_t_signed = ! ((time_t) 0 < (time_t) -1);
 
   /* This test makes some buggy mktime implementations loop.
      Give up after 60 seconds; a mktime slower than that
      isn't worth using anyway.  */
   alarm (60);
 
-  for (;;)
-    {
-      t = (time_t_max << 1) + 1;
-      if (t <= time_t_max)
-        break;
-      time_t_max = t;
-    }
-  time_t_min = - ((time_t) ~ (time_t) 0 == (time_t) -1) - time_t_max;
+  time_t_max = (! time_t_signed
+                ? (time_t) -1
+                : ((((time_t) 1 << (sizeof (time_t) * CHAR_BIT - 2)) - 1)
+                   * 2 + 1));
+  time_t_min = (! time_t_signed
+                ? (time_t) 0
+                : time_t_signed_magnitude
+                ? ~ (time_t) 0
+                : ~ time_t_max);
 
   delta = time_t_max / 997; /* a suitable prime number */
   for (i = 0; i < N_STRINGS; i++)

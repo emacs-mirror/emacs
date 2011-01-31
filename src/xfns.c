@@ -670,7 +670,7 @@ x_decode_color (FRAME_PTR f, Lisp_Object color_name, int mono_color)
 
   /* x_defined_color is responsible for coping with failures
      by looking for a near-miss.  */
-  if (x_defined_color (f, SDATA (color_name), &cdef, 1))
+  if (x_defined_color (f, SSDATA (color_name), &cdef, 1))
     return cdef.pixel;
 
   signal_error ("Undefined color", color_name);
@@ -1603,7 +1603,7 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 			 FRAME_X_DISPLAY_INFO (f)->Xatom_net_wm_name,
 			 FRAME_X_DISPLAY_INFO (f)->Xatom_UTF8_STRING,
 			 8, PropModeReplace,
-			 SSDATA (encoded_name),
+			 SDATA (encoded_name),
 			 SBYTES (encoded_name));
 #endif /* not USE_GTK */
 
@@ -1612,7 +1612,7 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 			 FRAME_X_DISPLAY_INFO (f)->Xatom_net_wm_icon_name,
 			 FRAME_X_DISPLAY_INFO (f)->Xatom_UTF8_STRING,
 			 8, PropModeReplace,
-			 SSDATA (encoded_icon_name),
+			 SDATA (encoded_icon_name),
 			 SBYTES (encoded_icon_name));
 
 	if (do_free_icon_value)
@@ -1658,7 +1658,7 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
       if (!strcmp (FRAME_X_DISPLAY_INFO (f)->x_id_name,
-		   SDATA (f->name)))
+		   SSDATA (f->name)))
 	return;
       name = build_string (FRAME_X_DISPLAY_INFO (f)->x_id_name);
     }
@@ -3549,7 +3549,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
 
   CHECK_STRING (color);
 
-  if (x_defined_color (f, SDATA (color), &foo, 0))
+  if (x_defined_color (f, SSDATA (color), &foo, 0))
     return Qt;
   else
     return Qnil;
@@ -3564,7 +3564,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 
   CHECK_STRING (color);
 
-  if (x_defined_color (f, SDATA (color), &foo, 0))
+  if (x_defined_color (f, SSDATA (color), &foo, 0))
     return list3 (make_number (foo.red),
 		  make_number (foo.green),
 		  make_number (foo.blue));
@@ -3965,7 +3965,7 @@ select_visual (struct x_display_info *dpyinfo)
       int i, class = -1;
       XVisualInfo vinfo;
 
-      strcpy (s, SDATA (value));
+      strcpy (s, SSDATA (value));
       dash = strchr (s, '-');
       if (dash)
 	{
@@ -4244,11 +4244,11 @@ FRAME.  Default is to change on the edit X window.  */)
     }
 
   BLOCK_INPUT;
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SDATA (prop), False);
+  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
   if (! NILP (type))
     {
       CHECK_STRING (type);
-      target_type = XInternAtom (FRAME_X_DISPLAY (f), SDATA (type), False);
+      target_type = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (type), False);
     }
 
   if (! NILP (outer_p)) w = FRAME_OUTER_WINDOW (f);
@@ -4279,7 +4279,7 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
 
   CHECK_STRING (prop);
   BLOCK_INPUT;
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SDATA (prop), False);
+  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
   XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), prop_atom);
 
   /* Make sure the property is removed when we return.  */
@@ -4343,13 +4343,13 @@ no value of TYPE (always string in the MS Windows case).  */)
   BLOCK_INPUT;
   if (STRINGP (type))
     {
-      if (strcmp ("AnyPropertyType", SDATA (type)) == 0)
+      if (strcmp ("AnyPropertyType", SSDATA (type)) == 0)
         target_type = AnyPropertyType;
       else
-        target_type = XInternAtom (FRAME_X_DISPLAY (f), SDATA (type), False);
+        target_type = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (type), False);
     }
 
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SDATA (prop), False);
+  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
   rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
 			   prop_atom, 0, 0, False, target_type,
 			   &actual_type, &actual_format, &actual_size,

@@ -871,7 +871,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	case Btemp_output_buffer_setup:
 	  BEFORE_POTENTIAL_GC ();
 	  CHECK_STRING (TOP);
-	  temp_output_buffer_setup (SDATA (TOP));
+	  temp_output_buffer_setup (SSDATA (TOP));
 	  AFTER_POTENTIAL_GC ();
 	  TOP = Vstandard_output;
 	  break;
@@ -1709,4 +1709,3 @@ integer, it is incremented each time that symbol's function is called.  */);
   }
 #endif
 }
-

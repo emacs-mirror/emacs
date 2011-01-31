@@ -45,6 +45,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <ctype.h>
+#include <strftime.h>
 
 #include "intervals.h"
 #include "buffer.h"
@@ -81,9 +82,6 @@ extern char **environ;
 # define TM_YEAR_IN_ASCTIME_RANGE(tm_year) \
     (1000 - TM_YEAR_BASE <= (tm_year) && (tm_year) <= 9999 - TM_YEAR_BASE)
 #endif
-
-extern size_t emacs_strftimeu (char *, size_t, const char *,
-                               const struct tm *, int);
 
 #ifdef WINDOWSNT
 extern Lisp_Object w32_get_internal_run_time (void);
@@ -1345,7 +1343,7 @@ name, or nil if there is no such user.  */)
   else if (STRINGP (uid))
     {
       BLOCK_INPUT;
-      pw = (struct passwd *) getpwnam (SDATA (uid));
+      pw = (struct passwd *) getpwnam (SSDATA (uid));
       UNBLOCK_INPUT;
     }
   else
@@ -1372,7 +1370,7 @@ name, or nil if there is no such user.  */)
       r = (unsigned char *) alloca (strlen (p) + SCHARS (login) + 1);
       memcpy (r, p, q - p);
       r[q - p] = 0;
-      strcat (r, SDATA (login));
+      strcat (r, SSDATA (login));
       r[q - p] = UPCASE (r[q - p]);
       strcat (r, q + 1);
       full = build_string (r);
@@ -1556,8 +1554,8 @@ or (if you need time as a string) `format-time-string'.  */)
    determine how many bytes would be written, use NULL for S and
    ((size_t) -1) for MAXSIZE.
 
-   This function behaves like emacs_strftimeu, except it allows null
-   bytes in FORMAT.  */
+   This function behaves like nstrftime, except it allows null
+   bytes in FORMAT and it does not support nanoseconds.  */
 static size_t
 emacs_memftimeu (char *s, size_t maxsize, const char *format, size_t format_len, const struct tm *tp, int ut)
 {
@@ -1566,7 +1564,7 @@ emacs_memftimeu (char *s, size_t maxsize, const char *format, size_t format_len,
   /* Loop through all the null-terminated strings in the format
      argument.  Normally there's just one null-terminated string, but
      there can be arbitrarily many, concatenated together, if the
-     format contains '\0' bytes.  emacs_strftimeu stops at the first
+     format contains '\0' bytes.  nstrftime stops at the first
      '\0' byte so we must invoke it separately for each such string.  */
   for (;;)
     {
@@ -1576,7 +1574,7 @@ emacs_memftimeu (char *s, size_t maxsize, const char *format, size_t format_len,
       if (s)
 	s[0] = '\1';
 
-      result = emacs_strftimeu (s, maxsize, format, tp, ut);
+      result = nstrftime (s, maxsize, format, tp, ut, 0);
 
       if (s)
 	{
@@ -1680,7 +1678,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
       buf[0] = '\1';
       BLOCK_INPUT;
-      result = emacs_memftimeu (buf, size, SDATA (format_string),
+      result = emacs_memftimeu (buf, size, SSDATA (format_string),
 				SBYTES (format_string),
 				tm, ut);
       UNBLOCK_INPUT;
@@ -1691,7 +1689,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
       /* If buffer was too small, make it bigger and try again.  */
       BLOCK_INPUT;
       result = emacs_memftimeu (NULL, (size_t) -1,
-				SDATA (format_string),
+				SSDATA (format_string),
 				SBYTES (format_string),
 				tm, ut);
       UNBLOCK_INPUT;

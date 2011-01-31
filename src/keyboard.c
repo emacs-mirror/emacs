@@ -5153,8 +5153,12 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  int width2, height2;
 	  /* The pixel X coordinate passed to buffer_posn_from_coords
 	     is the X coordinate relative to the text area for
-	     text-area clicks, zero otherwise.  */
-	  int x2 = (part == ON_TEXT) ? xret : 0;
+	     text-area and right-margin clicks, zero otherwise.  */
+	  int x2
+	    = (part == ON_TEXT) ? xret
+	    : (part == ON_RIGHT_FRINGE || part == ON_RIGHT_MARGIN)
+	    ? (XINT (x) - window_box_left (w, TEXT_AREA))
+	    : 0;
 	  int y2 = wy;
 
 	  string2 = buffer_posn_from_coords (w, &x2, &y2, &p,
@@ -6021,7 +6025,7 @@ parse_modifiers_uncached (Lisp_Object symbol, int *modifier_end)
 
 #define MULTI_LETTER_MOD(BIT, NAME, LEN)			\
 	  if (i + LEN + 1 <= SBYTES (name)			\
-	      && ! strncmp (SDATA (name) + i, NAME, LEN))	\
+	      && ! strncmp (SSDATA (name) + i, NAME, LEN))	\
 	    {							\
 	      this_mod_end = i + LEN;				\
 	      this_mod = BIT;					\
@@ -6059,13 +6063,13 @@ parse_modifiers_uncached (Lisp_Object symbol, int *modifier_end)
   if (! (modifiers & (down_modifier | drag_modifier
 		      | double_modifier | triple_modifier))
       && i + 7 == SBYTES (name)
-      && strncmp (SDATA (name) + i, "mouse-", 6) == 0
+      && strncmp (SSDATA (name) + i, "mouse-", 6) == 0
       && ('0' <= SREF (name, i + 6) && SREF (name, i + 6) <= '9'))
     modifiers |= click_modifier;
 
   if (! (modifiers & (double_modifier | triple_modifier))
       && i + 6 < SBYTES (name)
-      && strncmp (SDATA (name) + i, "wheel-", 6) == 0)
+      && strncmp (SSDATA (name) + i, "wheel-", 6) == 0)
     modifiers |= click_modifier;
 
   if (modifier_end)
@@ -6183,7 +6187,7 @@ parse_modifiers (Lisp_Object symbol)
       Lisp_Object unmodified;
       Lisp_Object mask;
 
-      unmodified = Fintern (make_string (SDATA (SYMBOL_NAME (symbol)) + end,
+      unmodified = Fintern (make_string (SSDATA (SYMBOL_NAME (symbol)) + end,
 					 SBYTES (SYMBOL_NAME (symbol)) - end),
 			    Qnil);
 
@@ -6251,7 +6255,7 @@ apply_modifiers (int modifiers, Lisp_Object base)
     {
       /* We have to create the symbol ourselves.  */
       new_symbol = apply_modifiers_uncached (modifiers,
-					     SDATA (SYMBOL_NAME (base)),
+					     SSDATA (SYMBOL_NAME (base)),
 					     SCHARS (SYMBOL_NAME (base)),
 					     SBYTES (SYMBOL_NAME (base)));
 
@@ -8080,7 +8084,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
   item = XCDR (item);
   if (!CONSP (item))
     {
-      if (menu_separator_name_p (SDATA (caption)))
+      if (menu_separator_name_p (SSDATA (caption)))
 	{
 	  PROP (TOOL_BAR_ITEM_TYPE) = Qt;
 #if !defined (USE_GTK) && !defined (HAVE_NS)
@@ -8435,7 +8439,7 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
   menu = read_char_minibuf_menu_text;
 
   /* Prompt string always starts with map's prompt, and a space.  */
-  strcpy (menu, SDATA (name));
+  strcpy (menu, SSDATA (name));
   nlength = SBYTES (name);
   menu[nlength++] = ':';
   menu[nlength++] = ' ';
@@ -10558,7 +10562,7 @@ If FILE is nil, close any open dribble file.  */)
   if (!NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      dribble = fopen (SDATA (file), "w");
+      dribble = fopen (SSDATA (file), "w");
       if (dribble == 0)
 	report_file_error ("Opening dribble", Fcons (file, Qnil));
     }

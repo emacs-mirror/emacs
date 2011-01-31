@@ -1561,14 +1561,14 @@ This function is for internal use only."
 
 (defun epg--status-KEYEXPIRED (context string)
   (epg-context-set-result-for
-   context 'error
+   context 'key
    (cons (list 'key-expired (cons 'expiration-time
 				  (epg--time-from-seconds string)))
 	 (epg-context-result-for context 'error))))
 
 (defun epg--status-KEYREVOKED (context string)
   (epg-context-set-result-for
-   context 'error
+   context 'key
    (cons '(key-revoked)
 	 (epg-context-result-for context 'error))))
 

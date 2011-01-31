@@ -2502,7 +2502,7 @@ are ignored.  */)
   CHECK_STRING (message_type);
   x_send_client_event(display, dest, from,
                       XInternAtom (dpyinfo->display,
-                                   SDATA (message_type),
+                                   SSDATA (message_type),
                                    False),
                       format, values);
 
@@ -2538,9 +2538,9 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from, At
     }
   else if (STRINGP (dest))
     {
-      if (strcmp (SDATA (dest), "PointerWindow") == 0)
+      if (strcmp (SSDATA (dest), "PointerWindow") == 0)
         wdest = PointerWindow;
-      else if (strcmp (SDATA (dest), "InputFocus") == 0)
+      else if (strcmp (SSDATA (dest), "InputFocus") == 0)
         wdest = InputFocus;
       else
         error ("DEST as a string must be one of PointerWindow or InputFocus");

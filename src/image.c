@@ -376,7 +376,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = height;
   dpyinfo->bitmaps[id - 1].width = width;
-  strcpy (dpyinfo->bitmaps[id - 1].file, SDATA (file));
+  strcpy (dpyinfo->bitmaps[id - 1].file, SSDATA (file));
 
   return id;
 #endif /* HAVE_X_WINDOWS */
@@ -770,7 +770,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 
       /* Find key in KEYWORDS.  Error if not found.  */
       for (i = 0; i < nkeywords; ++i)
-	if (strcmp (keywords[i].name, SDATA (SYMBOL_NAME (key))) == 0)
+	if (strcmp (keywords[i].name, SSDATA (SYMBOL_NAME (key))) == 0)
 	  break;
 
       if (i == nkeywords)
@@ -1366,7 +1366,7 @@ x_alloc_image_color (struct frame *f, struct image *img, Lisp_Object color_name,
 
   xassert (STRINGP (color_name));
 
-  if (x_defined_color (f, SDATA (color_name), &color, 1))
+  if (x_defined_color (f, SSDATA (color_name), &color, 1))
     {
       /* This isn't called frequently so we get away with simply
 	 reallocating the color vector to the needed size, here.  */
@@ -2857,7 +2857,7 @@ xbm_load (struct frame *f, struct image *img)
 	  return 0;
 	}
 
-      contents = slurp_file (SDATA (file), &size);
+      contents = slurp_file (SSDATA (file), &size);
       if (contents == NULL)
 	{
 	  image_error ("Error loading XBM image `%s'", img->spec, Qnil);
@@ -2934,7 +2934,7 @@ xbm_load (struct frame *f, struct image *img)
 		}
 	    }
 	  else if (STRINGP (data))
-	    bits = SDATA (data);
+	    bits = SSDATA (data);
 	  else
 	    bits = XBOOL_VECTOR (data)->data;
 
@@ -3441,14 +3441,14 @@ xpm_load (struct frame *f, struct image *img)
 	  if (STRINGP (name))
 	    {
 	      xpm_syms[i].name = (char *) alloca (SCHARS (name) + 1);
-	      strcpy (xpm_syms[i].name, SDATA (name));
+	      strcpy (xpm_syms[i].name, SSDATA (name));
 	    }
 	  else
 	    xpm_syms[i].name = "";
 	  if (STRINGP (color))
 	    {
 	      xpm_syms[i].value = (char *) alloca (SCHARS (color) + 1);
-	      strcpy (xpm_syms[i].value, SDATA (color));
+	      strcpy (xpm_syms[i].value, SSDATA (color));
 	    }
 	  else
 	    xpm_syms[i].value = "";
@@ -3491,7 +3491,7 @@ xpm_load (struct frame *f, struct image *img)
 				  &attrs);
 #else
       rc = XpmReadFileToPixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				SDATA (file), &img->pixmap, &img->mask,
+				SSDATA (file), &img->pixmap, &img->mask,
 				&attrs);
 #endif /* HAVE_NTGUI */
     }
@@ -3514,7 +3514,7 @@ xpm_load (struct frame *f, struct image *img)
 					&attrs);
 #else
       rc = XpmCreatePixmapFromBuffer (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				      SDATA (buffer),
+				      SSDATA (buffer),
 				      &img->pixmap, &img->mask,
 				      &attrs);
 #endif /* HAVE_NTGUI */
@@ -5101,7 +5101,7 @@ pbm_load (struct frame *f, struct image *img)
 	  return 0;
 	}
 
-      contents = slurp_file (SDATA (file), &size);
+      contents = slurp_file (SSDATA (file), &size);
       if (contents == NULL)
 	{
 	  image_error ("Error reading `%s'", file, Qnil);
@@ -5603,7 +5603,7 @@ png_load (struct frame *f, struct image *img)
 	}
 
       /* Open the image file.  */
-      fp = fopen (SDATA (file), "rb");
+      fp = fopen (SSDATA (file), "rb");
       if (!fp)
 	{
 	  image_error ("Cannot open image file `%s'", file, Qnil);
@@ -5740,7 +5740,7 @@ png_load (struct frame *f, struct image *img)
 	/* The user specified `:background', use that.  */
 	{
 	  XColor color;
-	  if (x_defined_color (f, SDATA (specified_bg), &color, 0))
+	  if (x_defined_color (f, SSDATA (specified_bg), &color, 0))
 	    {
 	      png_color_16 user_bg;
 
@@ -6321,7 +6321,7 @@ jpeg_load (struct frame *f, struct image *img)
 	  return 0;
 	}
 
-      fp = fopen (SDATA (file), "rb");
+      fp = fopen (SSDATA (file), "rb");
       if (fp == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -6756,7 +6756,7 @@ tiff_load (struct frame *f, struct image *img)
 
       /* Try to open the image file.  Casting return value avoids a
 	 GCC warning on W32.  */
-      tiff = (TIFF *)fn_TIFFOpen (SDATA (file), "r");
+      tiff = (TIFF *)fn_TIFFOpen (SSDATA (file), "r");
       if (tiff == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);

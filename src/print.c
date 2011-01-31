@@ -411,7 +411,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	}
       else
 	/* No need to copy, since output to print_buffer can't GC.  */
-	strout (SDATA (string),
+	strout (SSDATA (string),
 		chars, SBYTES (string),
 		printcharfun, STRING_MULTIBYTE (string));
     }
@@ -584,7 +584,7 @@ usage: (with-output-to-temp-buffer BUFNAME BODY...)  */)
   GCPRO1(args);
   name = Feval (Fcar (args));
   CHECK_STRING (name);
-  temp_output_buffer_setup (SDATA (name));
+  temp_output_buffer_setup (SSDATA (name));
   buf = Vstandard_output;
   UNGCPRO;
 
@@ -1097,7 +1097,7 @@ float_to_string (unsigned char *buf, double data)
       if (cp[1] != 0)
 	goto lose;
 
-      sprintf (buf, SDATA (Vfloat_output_format), data);
+      sprintf (buf, SSDATA (Vfloat_output_format), data);
     }
 
   /* Make sure there is a decimal point with digit after, or an
@@ -1511,7 +1511,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		  PRINTCHAR ('f');
 		}
 	      else if (multibyte
-		       && (CHAR_BYTE8_P (c) 
+		       && (CHAR_BYTE8_P (c)
 			   || (! ASCII_CHAR_P (c) && print_escape_multibyte)))
 		{
 		  /* When multibyte is disabled,
@@ -1933,7 +1933,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  if (NATNUMP (Vprint_length)
 	      && XFASTINT (Vprint_length) < size)
 	    size = XFASTINT (Vprint_length);
-	  
+
 	  PRINTCHAR ('(');
 	  for (i = 0; i < size; i++)
 	    if (!NILP (HASH_HASH (h, i)))
@@ -2311,4 +2311,3 @@ priorities.  */);
 
   defsubr (&Swith_output_to_temp_buffer);
 }
-

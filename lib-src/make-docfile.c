@@ -873,8 +873,8 @@ scan_lisp_file (const char *filename, const char *mode)
 	  c = getc (infile);
 	  if (c == '@')
 	    {
-	      int length = 0;
-	      int i;
+	      size_t length = 0;
+	      size_t i;
 
 	      /* Read the length.  */
 	      while ((c = getc (infile),
@@ -883,6 +883,12 @@ scan_lisp_file (const char *filename, const char *mode)
 		  length *= 10;
 		  length += c - '0';
 		}
+
+	      if (length <= 1)
+		fatal ("invalid dynamic doc string length", "");
+
+	      if (c != ' ')
+		fatal ("space not found after dynamic doc string length", "");
 
 	      /* The next character is a space that is counted in the length
 		 but not part of the doc string.
@@ -899,7 +905,7 @@ scan_lisp_file (const char *filename, const char *mode)
 		 but it is redundant in DOC.  So get rid of it here.  */
 	      saved_string[length - 1] = 0;
 	      /* Skip the line break.  */
-	      while (c == '\n' && c == '\r')
+	      while (c == '\n' || c == '\r')
 		c = getc (infile);
 	      /* Skip the following line.  */
 	      while (c != '\n' && c != '\r')

@@ -150,7 +150,6 @@ struct sigaction {
 #undef  HAVE_SETSID
 #undef  HAVE_FPATHCONF
 #define HAVE_SELECT 1
-#define HAVE_MKTIME 1
 #undef  HAVE_EUIDACCESS
 #define HAVE_GETPAGESIZE 1
 #define HAVE_TZSET 1
