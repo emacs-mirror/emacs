@@ -1,3 +1,20 @@
+2011-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-date-lapsed-new-header): Removed.
+	(gnus-treat-date-ut): Ditto.
+	(gnus-article-update-date-header): Renamed.
+	(gnus-treat-date-local): Removed.
+	(gnus-treat-date-english): Removed.
+	(gnus-treat-date-lapsed): Removed.
+	(gnus-treat-date-combined-lapsed): Removed.
+	(gnus-treat-date-original): Removed.
+	(gnus-treat-date-iso8601): Removed.
+	(gnus-treat-date-user-defined): Removed.
+	(gnus-article-date-headers): New variable to control all the date
+	header options.
+	(article-date-ut): Rewrite to allow using the new way to format date
+	headers(s).
+
 2011-01-30  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnmail.el (nnmail-article-group): Check for a direct fancy split

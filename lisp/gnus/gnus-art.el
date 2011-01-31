@@ -168,7 +168,7 @@ If `gnus-visible-headers' is non-nil, this variable will be ignored."
   :group 'gnus-article-hiding)
 
 (defcustom gnus-visible-headers
-  "^From:\\|^Newsgroups:\\|^Subject:\\|^Date:\\|^Followup-To:\\|^Reply-To:\\|^Organization:\\|^Summary:\\|^Keywords:\\|^To:\\|^[BGF]?Cc:\\|^Posted-To:\\|^Mail-Copies-To:\\|^Mail-Followup-To:\\|^Apparently-To:\\|^Gnus-Warning:\\|^Resent-From:\\|^X-Sent:"
+  "^From:\\|^Newsgroups:\\|^Subject:\\|^Date:\\|^Followup-To:\\|^Reply-To:\\|^Organization:\\|^Summary:\\|^Keywords:\\|^To:\\|^[BGF]?Cc:\\|^Posted-To:\\|^Mail-Copies-To:\\|^Mail-Followup-To:\\|^Apparently-To:\\|^Gnus-Warning:\\|^Resent-From:"
   "*All headers that do not match this regexp will be hidden.
 This variable can also be a list of regexp of headers to remain visible.
 If this variable is non-nil, `gnus-ignored-headers' will be ignored."
@@ -1014,17 +1014,46 @@ on parts -- for instance, adding Vcard info to a database."
   :group 'gnus-article-mime
   :type '(repeat (cons :format "%v" (string :tag "MIME type") function)))
 
-(defcustom gnus-article-date-lapsed-new-header nil
-  "Whether the X-Sent and Date headers can coexist.
-When using `gnus-treat-date-lapsed', the \"X-Sent:\" header will
-either replace the old \"Date:\" header (if this variable is nil), or
-be added below it (otherwise)."
-  :version "21.1"
-  :group 'gnus-article-headers
-  :type 'boolean)
+(defcustom gnus-article-date-headers
+  (let ((types '(ut local english lapsed combined-lapsed
+		    iso8601 original user-defined))
+	default)
+    (dolist (type types)
+      (let ((variable (intern (format "gnus-treat-date-%s" type))))
+	(when (and (boundp variable)
+		   (symbol-value variable))
+	  (push type default))))
+    (when (and (or (not (boundp (intern "gnus-article-date-lapsed-new-header")))
+		   (not (symbol-value (intern "gnus-article-date-lapsed-new-header"))))
+	       (memq 'lapsed default))
+      (setq default (delq 'lapsed default)))
+    (or default
+	'(combined-lapsed)))
+  "A list of Date header formats to display.
+Valid formats are `ut' (universal time), `local' (local time
+zone), `english' (readable English), `lapsed' (elapsed time),
+`combined-lapsed' (both the original date and the elapsed time),
+`original' (the original date header), `iso8601' (ISO8601
+format), and `user-defined' (a user-defined format defined by the
+`gnus-article-time-format' variable).
 
-(defcustom gnus-article-update-lapsed-header 1
-  "How often to update the lapsed date header.
+You have as many date headers as you want in the article buffer.
+Some of these headers are updated automatically.  See
+`gnus-article-update-date-headers' for details."
+  :version "24.1"
+  :group 'gnus-article-headers
+  :type '(repeat
+	  (item :tag "Universal time (UT)" :value 'ut)
+	  (item :tag "Local time zone" :value 'local)
+	  (item :tag "Readable English" :value 'english)
+	  (item :tag "Elapsed time" :value 'lapsed)
+	  (item :tag "Original and elapsed time" :value 'combined-lapsed)
+	  (item :tag "Original date header" :value 'original)
+	  (item :tag "ISO8601 format" :value 'iso8601)
+	  (item :tag "User-defined" :value 'user-defined)))
+
+(defcustom gnus-article-update-date-headers 1
+  "How often to update the date header.
 If nil, don't update it at all."
   :version "24.1"
   :group 'gnus-article-headers
@@ -1134,6 +1163,15 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-head-custom)
 (put 'gnus-treat-buttonize-head 'highlight t)
+
+(defcustom gnus-treat-date 'head
+  "Display dates according to the `gnus-article-date-headers' variable.
+Valid values are nil, t, `head', `first', `last', an integer or a
+predicate.  See Info node `(gnus)Customizing Articles'."
+  :version "24.1"
+  :group 'gnus-article-treat
+  :link '(custom-manual "(gnus)Customizing Articles")
+  :type gnus-article-treat-head-custom)
 
 (defcustom gnus-treat-emphasize 50000
   "Emphasize text.
@@ -1265,73 +1303,6 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
 (put 'gnus-treat-highlight-citation 'highlight t)
-
-(defcustom gnus-treat-date-ut nil
-  "Display the Date in UT (GMT).
-Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
-  :group 'gnus-article-treat
-  :link '(custom-manual "(gnus)Customizing Articles")
-  :type gnus-article-treat-head-custom)
-
-(defcustom gnus-treat-date-local nil
-  "Display the Date in the local timezone.
-Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
-  :group 'gnus-article-treat
-  :link '(custom-manual "(gnus)Customizing Articles")
-  :type gnus-article-treat-head-custom)
-
-(defcustom gnus-treat-date-english nil
-  "Display the Date in a format that can be read aloud in English.
-Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
-  :version "22.1"
-  :group 'gnus-article-treat
-  :link '(custom-manual "(gnus)Customizing Articles")
-  :type gnus-article-treat-head-custom)
-
-(defcustom gnus-treat-date-lapsed nil
-  "Display the Date header in a way that says how much time has elapsed.
-Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
-  :group 'gnus-article-treat
-  :link '(custom-manual "(gnus)Customizing Articles")
-  :type gnus-article-treat-head-custom)
-
-(defcustom gnus-treat-date-combined-lapsed 'head
-  "Display the Date header in a way that says how much time has elapsed.
-Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
-  :group 'gnus-article-treat
-  :link '(custom-manual "(gnus)Customizing Articles")
-  :type gnus-article-treat-head-custom)
-
-(defcustom gnus-treat-date-original nil
-  "Display the date in the original timezone.
-Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
-  :group 'gnus-article-treat
-  :link '(custom-manual "(gnus)Customizing Articles")
-  :type gnus-article-treat-head-custom)
-
-(defcustom gnus-treat-date-iso8601 nil
-  "Display the date in the ISO8601 format.
-Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
-  :version "21.1"
-  :group 'gnus-article-treat
-  :link '(custom-manual "(gnus)Customizing Articles")
-  :type gnus-article-treat-head-custom)
-
-(defcustom gnus-treat-date-user-defined nil
-  "Display the date in a user-defined format.
-The format is defined by the `gnus-article-time-format' variable.
-Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
-  :group 'gnus-article-treat
-  :link '(custom-manual "(gnus)Customizing Articles")
-  :type gnus-article-treat-head-custom)
 
 (defcustom gnus-treat-strip-headers-in-body t
   "Strip the X-No-Archive header line from the beginning of the body.
@@ -1690,14 +1661,6 @@ regexp."
     (gnus-treat-fill-long-lines gnus-article-fill-cited-long-lines)
     (gnus-treat-strip-cr gnus-article-remove-cr)
     (gnus-treat-unsplit-urls gnus-article-unsplit-urls)
-    (gnus-treat-date-ut gnus-article-date-ut)
-    (gnus-treat-date-local gnus-article-date-local)
-    (gnus-treat-date-english gnus-article-date-english)
-    (gnus-treat-date-original gnus-article-date-original)
-    (gnus-treat-date-user-defined gnus-article-date-user)
-    (gnus-treat-date-iso8601 gnus-article-date-iso8601)
-    (gnus-treat-date-lapsed gnus-article-date-lapsed)
-    (gnus-treat-date-combined-lapsed gnus-article-date-combined-lapsed)
     (gnus-treat-display-x-face gnus-article-display-x-face)
     (gnus-treat-display-face gnus-article-display-face)
     (gnus-treat-hide-headers gnus-article-maybe-hide-headers)
@@ -1709,6 +1672,7 @@ regexp."
     (gnus-treat-mail-picon gnus-treat-mail-picon)
     (gnus-treat-newsgroups-picon gnus-treat-newsgroups-picon)
     (gnus-treat-strip-pem gnus-article-hide-pem)
+    (gnus-treat-date gnus-article-treat-date)
     (gnus-treat-from-gravatar gnus-treat-from-gravatar)
     (gnus-treat-mail-gravatar gnus-treat-mail-gravatar)
     (gnus-treat-highlight-headers gnus-article-highlight-headers)
@@ -3441,25 +3405,18 @@ lines forward."
 	  (forward-line 1)
 	(setq ended t)))))
 
-(defun article-date-ut (&optional type highlight)
-  "Convert DATE date to universal time in the current article.
-If TYPE is `local', convert to local time; if it is `lapsed', output
-how much time has lapsed since DATE.  For `lapsed', the value of
-`gnus-article-date-lapsed-new-header' says whether the \"X-Sent:\" header
-should replace the \"Date:\" one, or should be added below it."
+(defun article-treat-date ()
+  (article-date-ut gnus-article-date-headers t))
+
+(defun article-date-ut (&optional type highlight date-position)
+  "Convert DATE date to TYPE in the current article.
+The default type is `ut'.  See `gnus-article-date-headers' for
+possible values."
   (interactive (list 'ut t))
-  (let* ((tdate-regexp "^Date:[ \t]\\|^X-Sent:[ \t]")
-	 (date-regexp (cond ((not gnus-article-date-lapsed-new-header)
-			     tdate-regexp)
-			    ((eq type 'lapsed)
-			     "^X-Sent:[ \t]")
-			    (article-lapsed-timer
-			     "^Date:[ \t]")
-			    (t
-			     tdate-regexp)))
-	 (case-fold-search t)
+  (let* ((case-fold-search t)
 	 (inhibit-read-only t)
 	 (inhibit-point-motion-hooks t)
+	 (first t)
 	 pos date bface eface)
     (save-excursion
       (save-restriction
@@ -3481,37 +3438,41 @@ should replace the \"Date:\" one, or should be added below it."
 		       (1+ (point))))
 		 (point-max)))
 	  (goto-char (point-min))
-	  (when (re-search-forward tdate-regexp nil t)
+	  (when (re-search-forward "^Date:" nil t)
 	    (setq bface (get-text-property (point-at-bol) 'face)
 		  eface (get-text-property (1- (point-at-eol)) 'face)))
 	  (goto-char (point-min))
-	  (setq pos nil)
 	  ;; Delete any old Date headers.
-	  (while (re-search-forward date-regexp nil t)
-	    (if pos
-		(delete-region (point-at-bol) (progn
-						(gnus-article-forward-header)
-						(point)))
+	  (if date-position
+	      (progn
+		(goto-char date-position)
+		(delete-region (point)
+			       (progn
+				 (gnus-article-forward-header)
+				 (point))))
+	    (while (re-search-forward "^Date:" nil t)
 	      (delete-region (point-at-bol) (progn
 					      (gnus-article-forward-header)
-					      (forward-char -1)
-					      (point)))
-	      (setq pos (point))))
-	  (when (and (not pos)
-		     (re-search-forward tdate-regexp nil t))
-	    (forward-line 1))
-	  (gnus-goto-char pos)
-	  (insert (article-make-date-line date (or type 'ut)))
-	  (unless pos
-	    (insert "\n")
-	    (forward-line -1))
-	  ;; Do highlighting.
-	  (beginning-of-line)
-	  (when (looking-at "\\([^:]+\\): *\\(.*\\)$")
-	    (put-text-property (match-beginning 1) (1+ (match-end 1))
-			       'face bface)
-	    (put-text-property (match-beginning 2) (match-end 2)
-			       'face eface))
+					      (point)))))
+	  (dolist (this-type (cond
+			      ((null type)
+			       (list 'ut))
+			      ((atom type)
+			       (list type))
+			      (t
+			       type)))
+	    (insert (article-make-date-line date (or this-type 'ut)) "\n")
+	    (forward-line -1)
+	    (put-text-property (line-beginning-position)
+			       (1+ (line-beginning-position))
+			       'gnus-date-type this-type)
+	    ;; Do highlighting.
+	    (beginning-of-line)
+	    (when (looking-at "\\([^:]+\\): *\\(.*\\)$")
+	      (put-text-property (match-beginning 1) (1+ (match-end 1))
+				 'face bface)
+	      (put-text-property (match-beginning 2) (match-end 2)
+				 'face eface)))
 	  (put-text-property (point-min) (1- (point-max)) 'original-date date)
 	  (goto-char (point-max))
 	  (widen))))))
@@ -3565,9 +3526,9 @@ should replace the \"Date:\" one, or should be added below it."
 	     (format "%s%02d%02d"
 		     (if (> tz 0) "+" "-") (/ (abs tz) 3600)
 		     (/ (% (abs tz) 3600) 60)))))
-	 ;; Do an X-Sent lapsed format.
+	 ;; Do a lapsed format.
 	 ((eq type 'lapsed)
-	  (concat "X-Sent: " (article-lapsed-string time)))
+	  (concat "Date: " (article-lapsed-string time)))
 	 ;; A combined date/lapsed format.
 	 ((eq type 'combined-lapsed)
 	  (let ((date-string (article-make-date-line date 'original))
@@ -3695,11 +3656,12 @@ function and want to see what the date was before converting."
 	      (let ((old-line (count-lines (point-min) (point)))
 		    (old-column (current-column)))
 		(goto-char (point-min))
-		(when (re-search-forward "^X-Sent:\\|^Date:" nil t)
-		  (when gnus-treat-date-combined-lapsed
-		    (article-date-combined-lapsed t))
-		  (when gnus-treat-date-lapsed
-		    (article-date-lapsed t)))
+		(while (re-search-forward "^Date:" nil t)
+		  (let ((type (get-text-property (match-beginning 0) 'gnus-date-type)))
+		    (when (memq type '(lapsed combined-lapsed user-format))
+		      (save-excursion
+			(article-date-ut type t (match-beginning 0)))
+		      (forward-line 1))))
 		(goto-char (point-min))
 		(when (> old-column 0)
 		  (setq old-line (1- old-line)))
@@ -3711,7 +3673,7 @@ function and want to see what the date was before converting."
 	  nil 'visible))))))
 
 (defun gnus-start-date-timer (&optional n)
-  "Start a timer to update the X-Sent header in the article buffers.
+  "Start a timer to update the Date headers in the article buffers.
 The numerical prefix says how frequently (in seconds) the function
 is to run."
   (interactive "p")
@@ -3722,7 +3684,7 @@ is to run."
 	(run-at-time 1 n 'article-update-date-lapsed)))
 
 (defun gnus-stop-date-timer ()
-  "Stop the X-Sent timer."
+  "Stop the Date timer."
   (interactive)
   (when article-lapsed-timer
     (nnheader-cancel-timer article-lapsed-timer)
@@ -4347,6 +4309,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
      article-date-english
      article-date-iso8601
      article-date-original
+     article-treat-date
      article-date-ut
      article-decode-mime-words
      article-decode-charset
@@ -4550,9 +4513,9 @@ commands:
 	(setq gnus-summary-buffer
 	      (gnus-summary-buffer-name gnus-newsgroup-name))
 	(gnus-summary-set-local-parameters gnus-newsgroup-name)
-	(when (and gnus-article-update-lapsed-header
+	(when (and gnus-article-update-date-headers
 		   (not article-lapsed-timer))
-	  (gnus-start-date-timer gnus-article-update-lapsed-header))
+	  (gnus-start-date-timer gnus-article-update-date-headers))
 	(current-buffer)))))
 
 ;; Set article window start at LINE, where LINE is the number of lines
