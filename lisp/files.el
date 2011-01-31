@@ -4767,26 +4767,24 @@ this happens by default."
 		       (file-name-nondirectory
 			(directory-file-name directory))
 		       newname))
-	(if (and (file-exists-p newname)
-		 (not (file-directory-p newname)))
-	    (error "Cannot overwrite non-directory %s with a directory"
-		   newname))
+	(and (file-exists-p newname)
+	     (not (file-directory-p newname))
+	     (error "Cannot overwrite non-directory %s with a directory"
+		    newname))
 	(make-directory newname t))
 
       ;; Copy recursively.
-      (mapc
-       (lambda (file)
-	 (let ((target (expand-file-name
-			(file-name-nondirectory file) newname))
-	       (attrs (file-attributes file)))
-	   (cond ((file-directory-p file)
-		  (copy-directory file target keep-time parents))
-		 ((stringp (car attrs)) ; Symbolic link
-		  (make-symbolic-link (car attrs) target t))
-		 (t
-		  (copy-file file target t keep-time)))))
-       ;; We do not want to copy "." and "..".
-       (directory-files	directory 'full directory-files-no-dot-files-regexp))
+      (dolist (file
+	       ;; We do not want to copy "." and "..".
+	       (directory-files directory 'full
+				directory-files-no-dot-files-regexp))
+	(if (file-directory-p file)
+	    (copy-directory file newname keep-time parents)
+	  (let ((target (expand-file-name (file-name-nondirectory file) newname))
+		(attrs (file-attributes file)))
+	    (if (stringp (car attrs)) ; Symbolic link
+		(make-symbolic-link (car attrs) target t)
+	      (copy-file file target t keep-time)))))
 
       ;; Set directory attributes.
       (set-file-modes newname (file-modes directory))
