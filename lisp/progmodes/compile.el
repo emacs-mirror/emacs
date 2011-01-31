@@ -858,8 +858,8 @@ POS and RES.")
   ;; ends up having to walk very far back to find the last change.
   (if (and compilation--previous-directory-cache
            (< pos (car compilation--previous-directory-cache))
-           (or (null (cdr compilation--previous-directory-cache)
-                     (< (cdr compilation--previous-directory-cache) pos))))
+           (or (null (cdr compilation--previous-directory-cache))
+               (< (cdr compilation--previous-directory-cache) pos)))
       ;; No need to call previous-single-property-change.
       (cdr compilation--previous-directory-cache)
    
