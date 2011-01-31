@@ -774,6 +774,62 @@ command whose response triggered the error."
 	 (nntp-copy-to-buffer nntp-server-buffer (point-min) (point-max))
          'headers)))))
 
+(deffoo nntp-retrieve-group-data-early (server infos)
+  "Retrieve group info on INFOS."
+  (nntp-with-open-group nil server
+    (when (nntp-find-connection-buffer nntp-server-buffer)
+      ;; The first time this is run, this variable is `try'.  So we
+      ;; try.
+      (when (eq nntp-server-list-active-group 'try)
+	(nntp-try-list-active (gnus-group-real-name (gnus-info-group (car infos)))))
+      (with-current-buffer (nntp-find-connection-buffer nntp-server-buffer)
+	(erase-buffer)
+	(let ((nntp-inhibit-erase t)
+	      (command (if nntp-server-list-active-group
+			   "LIST ACTIVE" "GROUP")))
+	  (dolist (info infos)
+	    (nntp-send-command
+	     nil command (gnus-group-real-name (gnus-info-group info)))))
+	(length infos)))))
+
+(deffoo nntp-finish-retrieve-group-infos (server infos count)
+  (nntp-with-open-group nil server
+    (let ((buf (nntp-find-connection-buffer nntp-server-buffer))
+	  (method (gnus-find-method-for-group
+		   (gnus-info-group (car infos))
+		   (car infos)))
+	  (received 0)
+	  (last-point 1))
+      (when buf
+	(with-current-buffer buf
+	  (while (and (gnus-buffer-live-p buf)
+		      (progn
+			(goto-char last-point)
+			;; Count replies.
+			(while (re-search-forward "^[0-9]" nil t)
+			  (incf received))
+			(setq last-point (point))
+			(< received count)))
+	    (nntp-accept-response))
+	  ;; We now have all the entries.  Remove CRs.
+	  (goto-char (point-min))
+	  (while (search-forward "\r" nil t)
+	    (replace-match "" t t))
+
+	  (if (not nntp-server-list-active-group)
+	      (progn
+		(nntp-copy-to-buffer nntp-server-buffer
+				     (point-min) (point-max))
+		(gnus-groups-to-gnus-format method gnus-active-hashtb t))
+	    ;; We have read active entries, so we just delete the
+	    ;; superfluous gunk.
+	    (goto-char (point-min))
+	    (while (re-search-forward "^[.2-5]" nil t)
+	      (delete-region (match-beginning 0)
+			     (progn (forward-line 1) (point))))
+	    (nntp-copy-to-buffer nntp-server-buffer (point-min) (point-max))
+	    (gnus-active-to-gnus-format method gnus-active-hashtb nil t)))))))
+
 (deffoo nntp-retrieve-groups (groups &optional server)
   "Retrieve group info on GROUPS."
   (nntp-with-open-group
