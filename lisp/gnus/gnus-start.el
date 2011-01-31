@@ -1743,11 +1743,13 @@ If SCAN, request a scan of that group as well."
     (cond
      ((and
        (gnus-check-backend-function 'finish-retrieve-group-infos (car method))
+       infos
        (or (not (gnus-agent-method-p method))
 	   (gnus-online method)))
       (gnus-finish-retrieve-group-infos method infos early-data)
       (gnus-agent-save-active method))
-     ((gnus-check-backend-function 'retrieve-groups (car method))
+     ((and (gnus-check-backend-function 'retrieve-groups (car method))
+	   infos)
       (when (gnus-check-backend-function 'request-scan (car method))
 	(gnus-request-scan nil method))
       (let (groups)
