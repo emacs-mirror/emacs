@@ -1,5 +1,7 @@
 2011-01-31  Eli Zaretskii  <eliz@gnu.org>
 
+	* s/ms-w32.h (HAVE_STRFTIME): Don't define.
+
 	* makefile.w32-in (OBJ2): Remove strftime.$(O).
 	($(BLD)/strftime.$(O)): Remove prerequisites.
 

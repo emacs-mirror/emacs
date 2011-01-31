@@ -159,7 +159,6 @@ struct sigaction {
 #undef  HAVE_SETPGID
 #undef  HAVE_GETCWD
 #define HAVE_SHUTDOWN 1
-#define HAVE_STRFTIME 1
 
 #define LOCALTIME_CACHE
 #define HAVE_INET_SOCKETS 1
