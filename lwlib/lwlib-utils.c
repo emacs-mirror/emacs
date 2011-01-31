@@ -74,7 +74,7 @@ XtApplyToWidgets (Widget w, XtApplyToWidgetsProc proc, XtPointer arg)
 	 the procedure might add/delete elements, which would lose badly.
 	 */
       int nkids = cw->composite.num_children;
-      Widget *kids = (Widget *) malloc (sizeof (Widget) * nkids);
+      Widget *kids = (Widget *) xmalloc (sizeof (Widget) * nkids);
       int i;
       memcpy ((char *) kids, (char *) cw->composite.children,
 	      sizeof (Widget) * nkids);
