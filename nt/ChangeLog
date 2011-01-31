@@ -1,3 +1,7 @@
+2011-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdbool.h: New file.
+
 2011-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (all-other-dirs-nmake, all-other-dirs-gmake)

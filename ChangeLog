@@ -1,3 +1,12 @@
+2011-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/strftime.$(O) and
+	$(BLD)/time_r.$(O).
+	($(BLD)/dtoastr.$(O)): Depend on $(EMACS_ROOT)/src/s/ms-w32.h and
+	$(EMACS_ROOT)/src/m/intel386.h.
+	($(BLD)/strftime.$(O)): 
+	($(BLD)/time_r.$(O)): Define prerequisites.
+
 2011-01-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	src/emacs.c now gets version number from configure.in

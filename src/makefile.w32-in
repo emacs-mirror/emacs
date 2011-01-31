@@ -113,7 +113,6 @@ OBJ2 =  $(BLD)/sysdep.$(O)		\
 	$(BLD)/textprop.$(O)		\
 	$(BLD)/vm-limit.$(O)		\
 	$(BLD)/region-cache.$(O)	\
-	$(BLD)/strftime.$(O)		\
 	$(BLD)/bidi.$(O)		\
 	$(BLD)/charset.$(O)		\
 	$(BLD)/character.$(O)		\
@@ -1362,11 +1361,6 @@ $(BLD)/sound.$(O) : \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \
 	$(SRC)/w32gui.h
-
-$(BLD)/strftime.$(O) : \
-	$(SRC)/strftime.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h
 
 $(BLD)/syntax.$(O) : \
 	$(SRC)/syntax.c \
