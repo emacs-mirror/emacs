@@ -1,3 +1,11 @@
+2011-01-31  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-enable-debug-messages):
+	Add a variable to make the parsing messages introduced in
+	revno:103013 optional.
+	(compilation-parse-errors, compilation--flush-parse): Use it.
+
+
 2011-01-31  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el: Clean log filenames (Bug#7933).

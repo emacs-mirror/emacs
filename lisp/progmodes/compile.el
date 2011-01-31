@@ -732,6 +732,9 @@ info, are considered errors."
   :group 'compilation
   :version "22.1")
 
+(defvar compilation-enable-debug-messages nil
+  "Enable debug messages while parsing the compilation buffer.")
+
 (defun compilation-set-skip-threshold (level)
   "Switch the `compilation-skip-threshold' level."
   (interactive
@@ -1169,7 +1172,8 @@ FMTS is a list of format specs for transforming the file name.
   "Parse errors between START and END.
 The errors recognized are the ones specified in RULES which default
 to `compilation-error-regexp-alist' if RULES is nil."
-  (message "compilation-parse-errors: %S %S" start end)
+  (when compilation-enable-debug-messages
+    (message "compilation-parse-errors: %S %S" start end))
   (dolist (item (or rules compilation-error-regexp-alist))
     (if (symbolp item)
         (setq item (cdr (assq item
@@ -1225,7 +1229,6 @@ to `compilation-error-regexp-alist' if RULES is nil."
 
         (goto-char start)
         (while (re-search-forward pat end t)
-              
           (when (setq props (compilation-error-properties
                              file line end-line col end-col (or type 2) fmt))
 
@@ -1299,7 +1302,8 @@ to `compilation-error-regexp-alist' if RULES is nil."
 
 (defun compilation--flush-parse (start end)
   "Mark the region between START and END for re-parsing."
-  (message "compilation--flush-parse: %S %S" start end)
+  (when compilation-enable-debug-messages
+    (message "compilation--flush-parse: %S %S" start end))
   (if (markerp compilation--parsed)
       (move-marker compilation--parsed (min start compilation--parsed))))
 
