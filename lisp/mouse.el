@@ -198,9 +198,9 @@ items `Turn Off' and `Help'."
     newmap))
 
 (defun mouse-menu-non-singleton (menubar)
-  "Given menu keymap,
-if it defines exactly one submenu, return just that submenu.
-Otherwise return the whole menu."
+  "Return menu keybar MENUBAR, or a lone submenu inside it.
+If MENUBAR defines exactly one submenu, return just that submenu.
+Otherwise, return MENUBAR."
   (if menubar
       (let (submap)
         (map-keymap

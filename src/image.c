@@ -1977,7 +1977,7 @@ mark_image_cache (struct image_cache *c)
 #ifdef HAVE_NTGUI
 
 /* Macro for defining functions that will be loaded from image DLLs.  */
-#define DEF_IMGLIB_FN(func) int (FAR CDECL *fn_##func)()
+#define DEF_IMGLIB_FN(rettype, func) rettype (FAR CDECL *fn_##func)()
 
 /* Macro for loading those image functions from the library.  */
 #define LOAD_IMGLIB_FN(lib,func) {					\
@@ -3387,10 +3387,10 @@ xpm_free_colors (dpy, cmap, pixels, npixels, closure)
 
 /* XPM library details.  */
 
-DEF_IMGLIB_FN (XpmFreeAttributes);
-DEF_IMGLIB_FN (XpmCreateImageFromBuffer);
-DEF_IMGLIB_FN (XpmReadFileToImage);
-DEF_IMGLIB_FN (XImageFree);
+DEF_IMGLIB_FN (void, XpmFreeAttributes);
+DEF_IMGLIB_FN (int, XpmCreateImageFromBuffer);
+DEF_IMGLIB_FN (int, XpmReadFileToImage);
+DEF_IMGLIB_FN (void, XImageFree);
 
 static int
 init_xpm_functions (Lisp_Object libraries)
@@ -5568,27 +5568,32 @@ png_image_p (object)
 #ifdef HAVE_NTGUI
 /* PNG library details.  */
 
-DEF_IMGLIB_FN (png_get_io_ptr);
-DEF_IMGLIB_FN (png_sig_cmp);
-DEF_IMGLIB_FN (png_create_read_struct);
-DEF_IMGLIB_FN (png_create_info_struct);
-DEF_IMGLIB_FN (png_destroy_read_struct);
-DEF_IMGLIB_FN (png_set_read_fn);
-DEF_IMGLIB_FN (png_set_sig_bytes);
-DEF_IMGLIB_FN (png_read_info);
-DEF_IMGLIB_FN (png_get_IHDR);
-DEF_IMGLIB_FN (png_get_valid);
-DEF_IMGLIB_FN (png_set_strip_16);
-DEF_IMGLIB_FN (png_set_expand);
-DEF_IMGLIB_FN (png_set_gray_to_rgb);
-DEF_IMGLIB_FN (png_set_background);
-DEF_IMGLIB_FN (png_get_bKGD);
-DEF_IMGLIB_FN (png_read_update_info);
-DEF_IMGLIB_FN (png_get_channels);
-DEF_IMGLIB_FN (png_get_rowbytes);
-DEF_IMGLIB_FN (png_read_image);
-DEF_IMGLIB_FN (png_read_end);
-DEF_IMGLIB_FN (png_error);
+DEF_IMGLIB_FN (png_voidp, png_get_io_ptr);
+DEF_IMGLIB_FN (int, png_sig_cmp);
+DEF_IMGLIB_FN (png_structp, png_create_read_struct);
+DEF_IMGLIB_FN (png_infop, png_create_info_struct);
+DEF_IMGLIB_FN (void, png_destroy_read_struct);
+DEF_IMGLIB_FN (void, png_set_read_fn);
+DEF_IMGLIB_FN (void, png_set_sig_bytes);
+DEF_IMGLIB_FN (void, png_read_info);
+DEF_IMGLIB_FN (png_uint_32, png_get_IHDR);
+DEF_IMGLIB_FN (png_uint_32, png_get_valid);
+DEF_IMGLIB_FN (void, png_set_strip_16);
+DEF_IMGLIB_FN (void, png_set_expand);
+DEF_IMGLIB_FN (void, png_set_gray_to_rgb);
+DEF_IMGLIB_FN (void, png_set_background);
+DEF_IMGLIB_FN (png_uint_32, png_get_bKGD);
+DEF_IMGLIB_FN (void, png_read_update_info);
+DEF_IMGLIB_FN (png_byte, png_get_channels);
+DEF_IMGLIB_FN (png_size_t, png_get_rowbytes);
+DEF_IMGLIB_FN (void, png_read_image);
+DEF_IMGLIB_FN (void, png_read_end);
+DEF_IMGLIB_FN (void, png_error);
+
+#if (PNG_LIBPNG_VER >= 10500)
+DEF_IMGLIB_FN (void, png_longjmp);
+DEF_IMGLIB_FN (jmp_buf *, png_set_longjmp_fn);
+#endif /* libpng version >= 1.5 */
 
 static int
 init_png_functions (Lisp_Object libraries)
@@ -5620,6 +5625,12 @@ init_png_functions (Lisp_Object libraries)
   LOAD_IMGLIB_FN (library, png_read_image);
   LOAD_IMGLIB_FN (library, png_read_end);
   LOAD_IMGLIB_FN (library, png_error);
+
+#if (PNG_LIBPNG_VER >= 10500)
+  LOAD_IMGLIB_FN (library, png_longjmp);
+  LOAD_IMGLIB_FN (library, png_set_longjmp_fn);
+#endif /* libpng version >= 1.5 */
+
   return 1;
 }
 #else
@@ -5646,7 +5657,23 @@ init_png_functions (Lisp_Object libraries)
 #define fn_png_read_end			png_read_end
 #define fn_png_error			png_error
 
+#if (PNG_LIBPNG_VER >= 10500)
+#define fn_png_longjmp			png_longjmp
+#define fn_png_set_longjmp_fn		png_set_longjmp_fn
+#endif /* libpng version >= 1.5 */
+
 #endif /* HAVE_NTGUI */
+
+
+#if (PNG_LIBPNG_VER < 10500)
+#define PNG_LONGJMP(ptr) (longjmp ((ptr)->jmpbuf, 1))
+#define PNG_JMPBUF(ptr) ((ptr)->jmpbuf)
+#else
+/* In libpng version 1.5, the jmpbuf member is hidden. (Bug#7908)  */
+#define PNG_LONGJMP(ptr) (fn_png_longjmp ((ptr), 1))
+#define PNG_JMPBUF(ptr) \
+  (*fn_png_set_longjmp_fn((ptr), longjmp, sizeof (jmp_buf)))
+#endif
 
 /* Error and warning handlers installed when the PNG library
    is initialized.  */
@@ -5660,7 +5687,7 @@ my_png_error (png_ptr, msg)
   /* Avoid compiler warning about deprecated direct access to
      png_ptr's fields in libpng versions 1.4.x.  */
   image_error ("PNG error: %s", build_string (msg), Qnil);
-  longjmp (png_ptr->jmpbuf, 1);
+  PNG_LONGJMP (png_ptr);
 }
 
 
@@ -5802,11 +5829,10 @@ png_load (f, img)
       tbr.bytes += sizeof (sig);
     }
 
-  /* Initialize read and info structs for PNG lib.  Casting return
-     value avoids a GCC warning on W32.  */
-  png_ptr = (png_structp)fn_png_create_read_struct (PNG_LIBPNG_VER_STRING,
-						    NULL, my_png_error,
-						    my_png_warning);
+  /* Initialize read and info structs for PNG lib.  */
+  png_ptr = fn_png_create_read_struct (PNG_LIBPNG_VER_STRING,
+				       NULL, my_png_error,
+				       my_png_warning);
   if (!png_ptr)
     {
       if (fp) fclose (fp);
@@ -5814,8 +5840,7 @@ png_load (f, img)
       return 0;
     }
 
-  /* Casting return value avoids a GCC warning on W32.  */
-  info_ptr = (png_infop)fn_png_create_info_struct (png_ptr);
+  info_ptr = fn_png_create_info_struct (png_ptr);
   if (!info_ptr)
     {
       fn_png_destroy_read_struct (&png_ptr, NULL, NULL);
@@ -5824,8 +5849,7 @@ png_load (f, img)
       return 0;
     }
 
-  /* Casting return value avoids a GCC warning on W32.  */
-  end_info = (png_infop)fn_png_create_info_struct (png_ptr);
+  end_info = fn_png_create_info_struct (png_ptr);
   if (!end_info)
     {
       fn_png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
@@ -5836,7 +5860,7 @@ png_load (f, img)
 
   /* Set error jump-back.  We come back here when the PNG library
      detects an error.  */
-  if (setjmp (png_ptr->jmpbuf))
+  if (setjmp (PNG_JMPBUF (png_ptr)))
     {
     error:
       if (png_ptr)
@@ -6192,14 +6216,14 @@ jpeg_image_p (object)
 #ifdef HAVE_NTGUI
 
 /* JPEG library details.  */
-DEF_IMGLIB_FN (jpeg_CreateDecompress);
-DEF_IMGLIB_FN (jpeg_start_decompress);
-DEF_IMGLIB_FN (jpeg_finish_decompress);
-DEF_IMGLIB_FN (jpeg_destroy_decompress);
-DEF_IMGLIB_FN (jpeg_read_header);
-DEF_IMGLIB_FN (jpeg_read_scanlines);
-DEF_IMGLIB_FN (jpeg_std_error);
-DEF_IMGLIB_FN (jpeg_resync_to_restart);
+DEF_IMGLIB_FN (void, jpeg_CreateDecompress);
+DEF_IMGLIB_FN (boolean, jpeg_start_decompress);
+DEF_IMGLIB_FN (boolean, jpeg_finish_decompress);
+DEF_IMGLIB_FN (void, jpeg_destroy_decompress);
+DEF_IMGLIB_FN (int, jpeg_read_header);
+DEF_IMGLIB_FN (JDIMENSION, jpeg_read_scanlines);
+DEF_IMGLIB_FN (struct jpeg_error_mgr *, jpeg_std_error);
+DEF_IMGLIB_FN (boolean, jpeg_resync_to_restart);
 
 static int
 init_jpeg_functions (Lisp_Object libraries)
@@ -6517,9 +6541,8 @@ jpeg_load (f, img)
     }
 
   /* Customize libjpeg's error handling to call my_error_exit when an
-     error is detected.  This function will perform a longjmp.
-     Casting return value avoids a GCC warning on W32.  */
-  cinfo.err = (struct jpeg_error_mgr *)fn_jpeg_std_error (&mgr.pub);
+     error is detected.  This function will perform a longjmp.  */
+  cinfo.err = fn_jpeg_std_error (&mgr.pub);
   mgr.pub.error_exit = my_error_exit;
 
   if ((rc = setjmp (mgr.setjmp_buffer)) != 0)
@@ -6747,14 +6770,14 @@ tiff_image_p (object)
 #ifdef HAVE_NTGUI
 
 /* TIFF library details.  */
-DEF_IMGLIB_FN (TIFFSetErrorHandler);
-DEF_IMGLIB_FN (TIFFSetWarningHandler);
-DEF_IMGLIB_FN (TIFFOpen);
-DEF_IMGLIB_FN (TIFFClientOpen);
-DEF_IMGLIB_FN (TIFFGetField);
-DEF_IMGLIB_FN (TIFFReadRGBAImage);
-DEF_IMGLIB_FN (TIFFClose);
-DEF_IMGLIB_FN (TIFFSetDirectory);
+DEF_IMGLIB_FN (TIFFErrorHandler, TIFFSetErrorHandler);
+DEF_IMGLIB_FN (TIFFErrorHandler, TIFFSetWarningHandler);
+DEF_IMGLIB_FN (TIFF *, TIFFOpen);
+DEF_IMGLIB_FN (TIFF *, TIFFClientOpen);
+DEF_IMGLIB_FN (int, TIFFGetField);
+DEF_IMGLIB_FN (int, TIFFReadRGBAImage);
+DEF_IMGLIB_FN (void, TIFFClose);
+DEF_IMGLIB_FN (int, TIFFSetDirectory);
 
 static int
 init_tiff_functions (Lisp_Object libraries)
@@ -6964,9 +6987,8 @@ tiff_load (f, img)
 	  return 0;
 	}
 
-      /* Try to open the image file.  Casting return value avoids a
-	 GCC warning on W32.  */
-      tiff = (TIFF *)fn_TIFFOpen (SDATA (file), "r");
+      /* Try to open the image file.  */
+      tiff = fn_TIFFOpen (SDATA (file), "r");
       if (tiff == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -6981,15 +7003,14 @@ tiff_load (f, img)
       memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
-      /* Casting return value avoids a GCC warning on W32.  */
-      tiff = (TIFF *)fn_TIFFClientOpen ("memory_source", "r", &memsrc,
-					(TIFFReadWriteProc) tiff_read_from_memory,
-					(TIFFReadWriteProc) tiff_write_from_memory,
-					tiff_seek_in_memory,
-					tiff_close_memory,
-					tiff_size_of_memory,
-					tiff_mmap_memory,
-					tiff_unmap_memory);
+      tiff = fn_TIFFClientOpen ("memory_source", "r", &memsrc,
+				(TIFFReadWriteProc) tiff_read_from_memory,
+				(TIFFReadWriteProc) tiff_write_from_memory,
+				tiff_seek_in_memory,
+				tiff_close_memory,
+				tiff_size_of_memory,
+				tiff_mmap_memory,
+				tiff_unmap_memory);
 
       if (!tiff)
 	{
@@ -7227,10 +7248,10 @@ gif_image_p (object)
 #ifdef HAVE_NTGUI
 
 /* GIF library details.  */
-DEF_IMGLIB_FN (DGifCloseFile);
-DEF_IMGLIB_FN (DGifSlurp);
-DEF_IMGLIB_FN (DGifOpen);
-DEF_IMGLIB_FN (DGifOpenFileName);
+DEF_IMGLIB_FN (int, DGifCloseFile);
+DEF_IMGLIB_FN (int, DGifSlurp);
+DEF_IMGLIB_FN (GifFileType *, DGifOpen);
+DEF_IMGLIB_FN (GifFileType *, DGifOpenFileName);
 
 static int
 init_gif_functions (Lisp_Object libraries)
@@ -7328,9 +7349,8 @@ gif_load (f, img)
 	  return 0;
 	}
 
-      /* Open the GIF file.  Casting return value avoids a GCC warning
-	 on W32.  */
-      gif = (GifFileType *)fn_DGifOpenFileName (SDATA (file));
+      /* Open the GIF file.  */
+      gif = fn_DGifOpenFileName (SDATA (file));
       if (gif == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -7346,8 +7366,7 @@ gif_load (f, img)
       memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
-      /* Casting return value avoids a GCC warning on W32.  */
-      gif = (GifFileType *) fn_DGifOpen (&memsrc, gif_read_from_memory);
+      gif = fn_DGifOpen (&memsrc, gif_read_from_memory);
       if (!gif)
 	{
 	  image_error ("Cannot open memory source `%s'", img->spec, Qnil);
@@ -7644,25 +7663,25 @@ svg_image_p (object)
 #ifdef HAVE_NTGUI
 
 /* SVG library functions.  */
-DEF_IMGLIB_FN (rsvg_handle_new);
-DEF_IMGLIB_FN (rsvg_handle_get_dimensions);
-DEF_IMGLIB_FN (rsvg_handle_write);
-DEF_IMGLIB_FN (rsvg_handle_close);
-DEF_IMGLIB_FN (rsvg_handle_get_pixbuf);
-DEF_IMGLIB_FN (rsvg_handle_free);
+DEF_IMGLIB_FN (RsvgHandle *, rsvg_handle_new);
+DEF_IMGLIB_FN (void, rsvg_handle_get_dimensions);
+DEF_IMGLIB_FN (gboolean, rsvg_handle_write);
+DEF_IMGLIB_FN (gboolean, rsvg_handle_close);
+DEF_IMGLIB_FN (GdkPixbuf *, rsvg_handle_get_pixbuf);
+DEF_IMGLIB_FN (void, rsvg_handle_free);
 
-DEF_IMGLIB_FN (gdk_pixbuf_get_width);
-DEF_IMGLIB_FN (gdk_pixbuf_get_height);
-DEF_IMGLIB_FN (gdk_pixbuf_get_pixels);
-DEF_IMGLIB_FN (gdk_pixbuf_get_rowstride);
-DEF_IMGLIB_FN (gdk_pixbuf_get_colorspace);
-DEF_IMGLIB_FN (gdk_pixbuf_get_n_channels);
-DEF_IMGLIB_FN (gdk_pixbuf_get_has_alpha);
-DEF_IMGLIB_FN (gdk_pixbuf_get_bits_per_sample);
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_width);
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_height);
+DEF_IMGLIB_FN (guchar *, gdk_pixbuf_get_pixels);
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_rowstride);
+DEF_IMGLIB_FN (GdkColorspace, gdk_pixbuf_get_colorspace);
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_n_channels);
+DEF_IMGLIB_FN (gboolean, gdk_pixbuf_get_has_alpha);
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_bits_per_sample);
 
-DEF_IMGLIB_FN (g_type_init);
-DEF_IMGLIB_FN (g_object_unref);
-DEF_IMGLIB_FN (g_error_free);
+DEF_IMGLIB_FN (void, g_type_init);
+DEF_IMGLIB_FN (void, g_object_unref);
+DEF_IMGLIB_FN (void, g_error_free);
 
 Lisp_Object Qgdk_pixbuf, Qglib, Qgobject;
 
@@ -7816,7 +7835,7 @@ svg_load_image (f, img, contents, size)
      gnome type library functions.  */
   fn_g_type_init ();
   /* Make a handle to a new rsvg object.  */
-  rsvg_handle = (RsvgHandle *) fn_rsvg_handle_new ();
+  rsvg_handle = fn_rsvg_handle_new ();
 
   /* Parse the contents argument and fill in the rsvg_handle.  */
   fn_rsvg_handle_write (rsvg_handle, contents, size, &error);
@@ -7836,14 +7855,14 @@ svg_load_image (f, img, contents, size)
 
   /* We can now get a valid pixel buffer from the svg file, if all
      went ok.  */
-  pixbuf = (GdkPixbuf *) fn_rsvg_handle_get_pixbuf (rsvg_handle);
+  pixbuf = fn_rsvg_handle_get_pixbuf (rsvg_handle);
   if (!pixbuf) goto rsvg_error;
   fn_g_object_unref (rsvg_handle);
 
   /* Extract some meta data from the svg handle.  */
   width     = fn_gdk_pixbuf_get_width (pixbuf);
   height    = fn_gdk_pixbuf_get_height (pixbuf);
-  pixels    = (const guint8 *) fn_gdk_pixbuf_get_pixels (pixbuf);
+  pixels    = fn_gdk_pixbuf_get_pixels (pixbuf);
   rowstride = fn_gdk_pixbuf_get_rowstride (pixbuf);
 
   /* Validate the svg meta data.  */

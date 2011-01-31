@@ -1,3 +1,11 @@
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.texi (Regexps): Copyedits.  Mention character classes
+	(Bug#7809).
+
+	* files.texi (File Aliases): Restore explanatory text from Eli
+	Zaretskii, accidentally removed in 2011-01-08 commit.
+
 2011-01-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* building.texi (Compilation): Improve instructions for running two

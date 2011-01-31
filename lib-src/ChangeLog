@@ -1,3 +1,9 @@
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ntlib.c (setregid): New stub, renamed from setegid.
+
+	* ntlib.h: Update prototype.
+
 2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* movemail.c (main): Use setregid instead of setegid, which is

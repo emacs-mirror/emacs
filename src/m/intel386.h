@@ -42,7 +42,7 @@ NOTE-END */
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 
-/* #define NO_ARG_ARRAY */
+#define NO_ARG_ARRAY
 
 /* crt0.c, if it is used, should use the i386-bsd style of entry.
    with no extra dummy args.  On USG and XENIX,
