@@ -3,6 +3,8 @@
 	* gnus-art.el (article-transform-date): Rewrite to still work when
 	there are several rfc2822 parts.
 	(article-transform-date): Fix infinite recursion.
+	(article-date-ut): Replace infinitely many Date headers with a single
+	one when called interactively.
 
 	* nnimap.el (nnimap-wait-for-response): Wait for results in a more
 	secure manner.
