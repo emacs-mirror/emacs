@@ -322,6 +322,15 @@ and the cdr part is used for encoding."
   :type 'function
   :group 'rcirc)
 
+(defcustom rcirc-nick-completion-format "%s: "
+  "Format string to use in nick completions.
+
+The format string is only used when completing at the beginning
+of a line.  The string is passed as the first argument to
+`format' with the nickname as the second argument."
+  :type 'string
+  :group 'rcirc)
+
 (defvar rcirc-nick nil)
 
 (defvar rcirc-prompt-start-marker nil)
@@ -827,11 +836,11 @@ IRC command completion is performed only if '/' is the first input char."
     (when completion
       (delete-region rcirc-completion-start (point))
       (insert
-       (concat completion
-	       (cond
-		((= (aref completion 0) ?/) " ")
-		((= rcirc-completion-start rcirc-prompt-end-marker) ": ")
-		(t "")))))))
+       (cond
+        ((= (aref completion 0) ?/) (concat completion " "))
+        ((= rcirc-completion-start rcirc-prompt-end-marker)
+         (format rcirc-nick-completion-format completion))
+        (t completion))))))
 
 (defun set-rcirc-decode-coding-system (coding-system)
   "Set the decode coding system used in this channel."
@@ -1565,8 +1574,11 @@ return the filename, or nil if no logging is desired for this
 session.
 
 If the returned filename is absolute (`file-name-absolute-p'
-returns true), then it is used as-is, otherwise the resulting
-file is put into `rcirc-log-directory'."
+returns t), then it is used as-is, otherwise the resulting file
+is put into `rcirc-log-directory'.
+
+The filename is then cleaned using `convert-standard-filename' to
+guarantee valid filenames for the current OS."
   :group 'rcirc
   :type 'function)
 
@@ -1591,7 +1603,9 @@ file is put into `rcirc-log-directory'."
 Log data is written to `rcirc-log-directory', except for
 log-files with absolute names (see `rcirc-log-filename-function')."
   (dolist (cell rcirc-log-alist)
-    (let ((filename (expand-file-name (car cell) rcirc-log-directory))
+    (let ((filename (convert-standard-filename
+                     (expand-file-name (car cell)
+                                       rcirc-log-directory)))
 	  (coding-system-for-write 'utf-8))
       (make-directory (file-name-directory filename) t)
       (with-temp-buffer

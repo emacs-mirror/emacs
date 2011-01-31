@@ -834,38 +834,61 @@ from a different message."
             (:conc-name compilation--message->))
   loc type end-loc)
 
-(defvar compilation--previous-directory-cache nil)
+(defvar compilation--previous-directory-cache nil
+  "A pair (POS . RES) caching the result of previous directory search.
+Basically, this pair says that calling
+   (previous-single-property-change POS 'compilation-directory)
+returned RES, i.e. there is no change of `compilation-directory' between
+POS and RES.")
 (make-variable-buffer-local 'compilation--previous-directory-cache)
+
+(defun compilation--flush-directory-cache (start end)
+  (cond
+   ((or (not compilation--previous-directory-cache)
+        (<= (car compilation--previous-directory-cache) start)))
+   ((or (not (cdr compilation--previous-directory-cache))
+        (<= (cdr compilation--previous-directory-cache) start))
+    (set-marker (car compilation--previous-directory-cache) start))
+   (t (setq compilation--previous-directory-cache nil))))
+
 (defun compilation--previous-directory (pos)
   "Like (previous-single-property-change POS 'compilation-directory), but faster."
   ;; This avoids an N² behavior when there's no/few compilation-directory
   ;; entries, in which case each call to previous-single-property-change
   ;; ends up having to walk very far back to find the last change.
-  (let* ((cache (and compilation--previous-directory-cache
-                     (<= (car compilation--previous-directory-cache) pos)
-                     (car compilation--previous-directory-cache)))
-         (prev
-          (previous-single-property-change
-           pos 'compilation-directory nil cache)))
-    (cond
-     ((null cache)
-      (setq compilation--previous-directory-cache
-            (cons (copy-marker pos) (copy-marker prev)))
-      prev)
-     ((eq prev cache)
-      (if cache
-          (set-marker (car compilation--previous-directory-cache) pos)
+  (if (and compilation--previous-directory-cache
+           (< pos (car compilation--previous-directory-cache))
+           (or (null (cdr compilation--previous-directory-cache))
+               (< (cdr compilation--previous-directory-cache) pos)))
+      ;; No need to call previous-single-property-change.
+      (cdr compilation--previous-directory-cache)
+   
+    (let* ((cache (and compilation--previous-directory-cache
+                       (<= (car compilation--previous-directory-cache) pos)
+                       (car compilation--previous-directory-cache)))
+           (prev
+            (previous-single-property-change
+             pos 'compilation-directory nil cache)))
+      (cond
+       ((null cache)
         (setq compilation--previous-directory-cache
-              (cons (copy-marker pos) nil)))
-      (cdr compilation--previous-directory-cache))
-     (t
-      (if cache
-          (progn
+              (cons (copy-marker pos) (copy-marker prev)))
+        prev)
+       ((eq prev cache)
+        (if cache
             (set-marker (car compilation--previous-directory-cache) pos)
-            (setcdr compilation--previous-directory-cache (copy-marker prev)))
-        (setq compilation--previous-directory-cache
-              (cons (copy-marker pos) (copy-marker prev))))
-      prev))))
+          (setq compilation--previous-directory-cache
+                (cons (copy-marker pos) nil)))
+        (cdr compilation--previous-directory-cache))
+       (t
+        (if cache
+            (progn
+              (set-marker (car compilation--previous-directory-cache) pos)
+              (setcdr compilation--previous-directory-cache
+                      (copy-marker prev)))
+          (setq compilation--previous-directory-cache
+                (cons (copy-marker pos) (copy-marker prev))))
+        prev)))))
 
 ;; Internal function for calculating the text properties of a directory
 ;; change message.  The compilation-directory property is important, because it
@@ -1096,14 +1119,6 @@ FMTS is a list of format specs for transforming the file name.
 
 (defun compilation--remove-properties (&optional start end)
   (with-silent-modifications
-    (cond
-     ((or (not compilation--previous-directory-cache)
-          (<= (car compilation--previous-directory-cache) start)))
-     ((or (not (cdr compilation--previous-directory-cache))
-          (<= (cdr compilation--previous-directory-cache) start))
-      (set-marker (car compilation--previous-directory-cache) start))
-     (t (setq compilation--previous-directory-cache nil)))
-
     ;; When compile.el used font-lock directly, we could just remove all
     ;; our text-properties in one go, but now that we manually place
     ;; font-lock-face, we have to be careful to only remove the font-lock-face
@@ -1115,6 +1130,7 @@ FMTS is a list of format specs for transforming the file name.
     (let (next)
       (unless start (setq start (point-min)))
       (unless end (setq end (point-max)))
+      (compilation--flush-directory-cache start end)
       (while
           (progn
             (setq next (or (next-single-property-change
@@ -1152,6 +1168,7 @@ FMTS is a list of format specs for transforming the file name.
     (goto-char start)
     (while (re-search-forward (car compilation-directory-matcher)
                               end t)
+      (compilation--flush-directory-cache (match-beginning 0) (match-end 0))
       (when compilation-debug
         (font-lock-append-text-property
          (match-beginning 0) (match-end 0)
@@ -1169,7 +1186,6 @@ FMTS is a list of format specs for transforming the file name.
   "Parse errors between START and END.
 The errors recognized are the ones specified in RULES which default
 to `compilation-error-regexp-alist' if RULES is nil."
-  (message "compilation-parse-errors: %S %S" start end)
   (dolist (item (or rules compilation-error-regexp-alist))
     (if (symbolp item)
         (setq item (cdr (assq item
@@ -1225,7 +1241,6 @@ to `compilation-error-regexp-alist' if RULES is nil."
 
         (goto-char start)
         (while (re-search-forward pat end t)
-              
           (when (setq props (compilation-error-properties
                              file line end-line col end-col (or type 2) fmt))
 
@@ -1299,7 +1314,6 @@ to `compilation-error-regexp-alist' if RULES is nil."
 
 (defun compilation--flush-parse (start end)
   "Mark the region between START and END for re-parsing."
-  (message "compilation--flush-parse: %S %S" start end)
   (if (markerp compilation--parsed)
       (move-marker compilation--parsed (min start compilation--parsed))))
 

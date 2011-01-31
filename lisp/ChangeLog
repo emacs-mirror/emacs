@@ -1,7 +1,36 @@
+2011-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation--flush-directory-cache):
+	New function, extracted from compilation--remove-properties.
+	(compilation--remove-properties, compilation--parse-region): Use it.
+	(compilation--previous-directory): Handle one more case.
+	(compilation-enable-debug-messages): Remove.
+	(compilation-parse-errors, compilation--flush-parse): Just remove the
+	left over debug messages.
+
+2011-01-31  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-enable-debug-messages):
+	Add a variable to make the parsing messages introduced in
+	revno:103013 optional.
+	(compilation-parse-errors, compilation--flush-parse): Use it.
+
+2011-01-31  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el: New customizable nick completion format.
+	(rcirc-nick-completion-format): New defcustom.
+	(rcirc-complete): Use it.
+
+2011-01-31  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el: Clean log filenames (Bug#7933).
+	(rcirc-log-write): Use convert-standard-filename.
+	(rcirc-log-filename-function): Documentation updates.
+
 2011-01-30  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* mail/emacsbug.el (report-emacs-bug-insert-to-mailer): Check
-	report-emacs-bug-can-use-osx-open and use that if t.
+	* mail/emacsbug.el (report-emacs-bug-insert-to-mailer):
+	Check report-emacs-bug-can-use-osx-open and use that if t.
 	(report-emacs-bug-can-use-osx-open): New function.
 	(report-emacs-bug): Rename can-xdg-email to can-insert-mail.
 	Check report-emacs-bug-can-use-osx-open also for can-insert-mail.
@@ -24,8 +53,8 @@
 
 2011-01-29  Daiki Ueno  <ueno@unixuser.org>
 
-	* epg.el (epg--status-KEYEXPIRED, epg--status-KEYREVOKED): Don't
-	presume KEYEXPIRED and KEYREVOKED to be a fatal error status
+	* epg.el (epg--status-KEYEXPIRED, epg--status-KEYREVOKED):
+	Don't presume KEYEXPIRED and KEYREVOKED to be a fatal error status
 	(Bug#7931).
 
 2011-01-29  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -191,8 +220,8 @@
 
 2011-01-27  Sam Steingold  <sds@gnu.org>
 
-	* midnight.el (clean-buffer-list-kill-never-buffer-names): Remove
-	"*server*" which is never created by emacs server.
+	* midnight.el (clean-buffer-list-kill-never-buffer-names):
+	Remove "*server*" which is never created by emacs server.
 
 2011-01-27  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 

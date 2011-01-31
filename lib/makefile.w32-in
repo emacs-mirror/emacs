@@ -23,7 +23,11 @@ ALL = gnulib
 LOCAL_FLAGS	= -DHAVE_CONFIG_H=1 -I. -I../nt/inc -I../src
 LIBS 		=
 
-GNULIBOBJS	= $(BLD)/dtoastr.$(O) $(BLD)/getopt.$(O) $(BLD)/getopt1.$(O)
+GNULIBOBJS = $(BLD)/dtoastr.$(O) \
+	     $(BLD)/getopt.$(O)  \
+	     $(BLD)/getopt1.$(O) \
+	     $(BLD)/strftime.$(O) \
+	     $(BLD)/time_r.$(O)
 
 #
 # Build the library
@@ -54,6 +58,8 @@ $(BLD)/dtoastr.$(O) : \
 	$(SRC)/ftoastr.c \
 	$(SRC)/ftoastr.h \
 	$(SRC)/intprops.h \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/getopt.$(O) : \
@@ -72,10 +78,26 @@ $(BLD)/getopt1.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
+$(BLD)/strftime.$(O) : \
+	$(SRC)/strftime.c \
+	$(SRC)/strftime.h \
+	$(EMACS_ROOT)/nt/inc/stdbool.h \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/src/config.h
+
+$(BLD)/time_r.$(O) : \
+	$(SRC)/time_r.c \
+	$(EMACS_ROOT)/nt/inc/stdbool.h \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/src/config.h
+
 # The following dependencies are for supporting parallel builds, where
 # we must make sure $(BLD) exists before any compilation starts.
 #
 $(BLD)/dtoastr.$(O) $(BLD)/getopt.$(O) $(BLD)/getopt1.$(O): stamp_BLD
+$(BLD)/strftime.$(O) $(BLD)/time_r.$(O): stamp_BLD
 
 #
 # Headers we would preprocess if we could.
