@@ -649,7 +649,6 @@ module, otherwise the keybindings will not do anything useful."
 	   (add-hook 'erc-send-completed-hook 'erc-user-is-active)
 	   (add-hook 'erc-server-001-functions 'erc-user-is-active))
        (erc-track-add-to-mode-line erc-track-position-in-mode-line)
-       (setq erc-modified-channels-object (erc-modified-channels-object nil))
        (erc-update-mode-line)
        (if (featurep 'xemacs)
 	   (defadvice switch-to-buffer (after erc-update (&rest args) activate)
