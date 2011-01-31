@@ -3480,7 +3480,7 @@ possible values."
 (defun article-make-date-line (date type)
   "Return a DATE line of TYPE."
   (unless (memq type '(local ut original user iso8601 lapsed english
-			     combined-lapsed))
+			     combined-lapsed user-defined))
     (error "Unknown conversion type: %s" type))
   (condition-case ()
       (let ((time (date-to-time date)))
@@ -3508,7 +3508,7 @@ possible values."
 			       (substring date 0 (match-beginning 0))
 			     date)))
 	 ;; Let the user define the format.
-	 ((eq type 'user)
+	 ((eq type 'user-defined)
 	  (let ((format (or (condition-case nil
 				(with-current-buffer gnus-summary-buffer
 				  gnus-article-time-format)
