@@ -1,3 +1,8 @@
+2011-01-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	src/emacs.c now gets version number from configure.in
+	* ebrowse.c: Adjust comment to say that.
+
 2011-01-30  Jim Meyering  <meyering@redhat.com>
 
 	make-docfile: don't corrupt heap for an invalid .elc file
