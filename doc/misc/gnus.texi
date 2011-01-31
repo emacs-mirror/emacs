@@ -9492,23 +9492,15 @@ Say how much time has elapsed between the article was posted and now
 (@code{gnus-article-date-lapsed}).  It looks something like:
 
 @example
-X-Sent: 6 weeks, 4 days, 1 hour, 3 minutes, 8 seconds ago
+Date: 6 weeks, 4 days, 1 hour, 3 minutes, 8 seconds ago
 @end example
-
-@vindex gnus-article-date-lapsed-new-header
-The value of @code{gnus-article-date-lapsed-new-header} determines
-whether this header will just be added below the old Date one, or will
-replace it.
-
-An advantage of using Gnus to read mail is that it converts simple bugs
-into wonderful absurdities.
 
 This line is updated continually by default.  If you wish to switch
 that off, say:
 
-@vindex gnus-article-update-lapsed-header
+@vindex gnus-article-update-date-headers
 @lisp
-(setq gnus-article-update-lapsed-header nil)
+(setq gnus-article-update-date-headers nil)
 @end lisp
 
 in your @file{~/.gnus.el} file.  If you want to stop the updating
@@ -11878,13 +11870,7 @@ controlling variable is a predicate list, as described above.
 @vindex gnus-treat-strip-trailing-blank-lines
 @vindex gnus-treat-unsplit-urls
 @vindex gnus-treat-wash-html
-@vindex gnus-treat-date-english
-@vindex gnus-treat-date-iso8601
-@vindex gnus-treat-date-lapsed
-@vindex gnus-treat-date-local
-@vindex gnus-treat-date-original
-@vindex gnus-treat-date-user-defined
-@vindex gnus-treat-date-ut
+@vindex gnus-treat-date
 @vindex gnus-treat-from-picon
 @vindex gnus-treat-mail-picon
 @vindex gnus-treat-newsgroups-picon
@@ -11939,13 +11925,39 @@ possible but those listed are probably sufficient for most people.
 
 @xref{Article Washing}.
 
-@item gnus-treat-date-english (head)
-@item gnus-treat-date-iso8601 (head)
-@item gnus-treat-date-lapsed (head)
-@item gnus-treat-date-local (head)
-@item gnus-treat-date-original (head)
-@item gnus-treat-date-user-defined (head)
-@item gnus-treat-date-ut (head)
+@item gnus-treat-date (head)
+
+This will transform/add date headers according to the
+@code{gnus-article-date-headers} variable.  This is a list of Date
+headers to display.  The formats available are:
+
+@table @code
+@item ut
+Universal time, aka GMT, aka ZULU.
+
+@item local
+The user's local time zone.
+
+@item english
+A semi-readable English sentence.
+
+@item lapsed
+The time elapsed since the message was posted.
+
+@item combined-elapsed
+Both the original date header and a (shortened) elapsed time.
+
+@item original
+The original date header.
+
+@item iso8601
+ISO8601 format, i.e., ``2010-11-23T22:05:21''.
+
+@item user-defined
+A format done according to the @code{gnus-article-time-format}
+variable.
+
+@end table
 
 @xref{Article Date}.
 
