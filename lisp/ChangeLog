@@ -1,3 +1,51 @@
+2011-01-31  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-forward-over-illiterals): Continue
+	parsing if we encounter a naked # (Bug#7595).
+	(c-beginning-of-statement): Avoid loop in locating the beginning
+	of a macro.
+
+2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): Fix arguments to recursive call.
+
+2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): If destination is an existing
+	directory, copy into a subdirectory there.
+
+2011-01-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/shadow.el (load-path-shadows-find): Ignore leim-list
+	files.
+
+2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-dired.el (image-dired-mouse-display-image): No-op if no
+	file is found (Bug#7817).
+
+	* mouse.el (mouse-menu-non-singleton): Doc fix (Bug#7801).
+
+2011-01-31  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-keyboard-layout-alist): Remove
+	superfluous SPC for "pc105-uk" (bug#7927).
+
+2011-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* msb.el (msb-menu-bar-update-buffers): Update for changed
+	argument handling of menu-bar-select-frame.  (Bug#7902)
+
+2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cc-engine.el (c-forward-<>-arglist-recur): Set a limit
+	to the recursion depth (Bug#7722).
+
+2011-01-31  Roy Liu  <carsomyr@gmail.com>  (tiny change)
+
+	* term/ns-win.el (ns-find-file): Expand ns-input-file with
+	command-line-default-directory (Bug#7872).
+
 2011-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation--flush-directory-cache):
