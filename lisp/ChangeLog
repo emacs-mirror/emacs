@@ -17,6 +17,12 @@
 
 2011-01-31  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
+	* net/rcirc.el: New customizable nick completion format.
+	(rcirc-nick-completion-format): New defcustom.
+	(rcirc-complete): Use it.
+
+2011-01-31  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
 	* net/rcirc.el: Clean log filenames (Bug#7933).
 	(rcirc-log-write): Use convert-standard-filename.
 	(rcirc-log-filename-function): Documentation updates.
