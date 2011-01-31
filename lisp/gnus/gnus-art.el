@@ -3440,8 +3440,7 @@ possible values."
 	    (delete-region (point-at-bol) (progn
 					    (gnus-article-forward-header)
 					    (point)))
-	    (article-transform-date date type bface eface)
-	    (forward-line 1)))))))
+	    (article-transform-date date type bface eface)))))))
 
 (defun article-transform-date (date type bface eface)
   (dolist (this-type (cond
@@ -3463,7 +3462,8 @@ possible values."
       (put-text-property (match-beginning 1) (1+ (match-end 1))
 			 'face bface)
       (put-text-property (match-beginning 2) (match-end 2)
-			 'face eface))))
+			 'face eface))
+    (forward-line 1)))
 
 (defun article-make-date-line (date type)
   "Return a DATE line of TYPE."
