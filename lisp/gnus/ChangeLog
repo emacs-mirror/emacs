@@ -1,5 +1,8 @@
 2011-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-art.el (article-transform-date): Rewrite to still work when
+	there are several rfc2822 parts.
+
 	* nnimap.el (nnimap-wait-for-response): Wait for results in a more
 	secure manner.
 

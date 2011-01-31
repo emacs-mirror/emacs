@@ -3420,62 +3420,50 @@ possible values."
 	 pos date bface eface)
     (save-excursion
       (save-restriction
-	(widen)
 	(goto-char (point-min))
-	(while (or (setq date (get-text-property (setq pos (point))
-						 'original-date))
-		   (when (setq pos (next-single-property-change
-				    (point) 'original-date))
-		     (setq date (get-text-property pos 'original-date))
-		     t))
-	  (narrow-to-region
-	   pos (if (setq pos (text-property-any pos (point-max)
-						'original-date nil))
-		   (progn
-		     (goto-char pos)
-		     (if (or (bolp) (eobp))
-			 (point)
-		       (1+ (point))))
-		 (point-max)))
-	  (goto-char (point-min))
-	  (when (re-search-forward "^Date:" nil t)
-	    (setq bface (get-text-property (point-at-bol) 'face)
-		  eface (get-text-property (1- (point-at-eol)) 'face)))
-	  (goto-char (point-min))
-	  ;; Delete any old Date headers.
-	  (if date-position
-	      (progn
-		(goto-char date-position)
-		(delete-region (point)
-			       (progn
-				 (gnus-article-forward-header)
-				 (point))))
-	    (while (re-search-forward "^Date:" nil t)
-	      (delete-region (point-at-bol) (progn
-					      (gnus-article-forward-header)
-					      (point)))))
-	  (dolist (this-type (cond
-			      ((null type)
-			       (list 'ut))
-			      ((atom type)
-			       (list type))
-			      (t
-			       type)))
-	    (insert (article-make-date-line date (or this-type 'ut)) "\n")
-	    (forward-line -1)
-	    (put-text-property (line-beginning-position)
-			       (1+ (line-beginning-position))
-			       'gnus-date-type this-type)
-	    ;; Do highlighting.
-	    (beginning-of-line)
-	    (when (looking-at "\\([^:]+\\): *\\(.*\\)$")
-	      (put-text-property (match-beginning 1) (1+ (match-end 1))
-				 'face bface)
-	      (put-text-property (match-beginning 2) (match-end 2)
-				 'face eface)))
-	  (put-text-property (point-min) (1- (point-max)) 'original-date date)
-	  (goto-char (point-max))
-	  (widen))))))
+	(when (re-search-forward "^Date:" nil t)
+	  (setq bface (get-text-property (point-at-bol) 'face)
+		eface (get-text-property (1- (point-at-eol)) 'face)))
+	(goto-char (point-min))
+	;; Delete any old Date headers.
+	(if date-position
+	    (progn
+	      (goto-char date-position)
+	      (setq date (get-text-property (point) 'original-date))
+	      (delete-region (point)
+			     (progn
+			       (gnus-article-forward-header)
+			       (point)))
+	      (article-transform-date date type bface eface))
+	  (while (re-search-forward "^Date:" nil t)
+	    (setq date (get-text-property (match-beginning 0) 'original-date))
+	    (delete-region (point-at-bol) (progn
+					    (gnus-article-forward-header)
+					    (point)))
+	    (article-transform-date date type bface eface)
+	    (forward-line 1)))))))
+
+(defun article-transform-date (date type bface eface)
+  (dolist (this-type (cond
+		      ((null type)
+		       (list 'ut))
+		      ((atom type)
+		       (list type))
+		      (t
+		       type)))
+    (insert (article-make-date-line date (or this-type 'ut)) "\n")
+    (forward-line -1)
+    (beginning-of-line)
+    (put-text-property (point) (1+ (point))
+		       'original-date date)
+    (put-text-property (point) (1+ (point))
+		       'gnus-date-type this-type)
+    ;; Do highlighting.
+    (when (looking-at "\\([^:]+\\): *\\(.*\\)$")
+      (put-text-property (match-beginning 1) (1+ (match-end 1))
+			 'face bface)
+      (put-text-property (match-beginning 2) (match-end 2)
+			 'face eface))))
 
 (defun article-make-date-line (date type)
   "Return a DATE line of TYPE."

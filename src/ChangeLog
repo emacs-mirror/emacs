@@ -4,6 +4,11 @@
 	* emacs.c (emacs_version): Set to VERSION so that it
 	is determined automatically from ../configure.in.
 
+2011-01-31  Jim Meyering  <meyering@redhat.com>
+
+	* charset.c (load_charset_map): Don't deref NULL on failed malloc.
+	Use xmalloc rather than malloc.
+
 2011-01-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	strftime: import from gnulib
