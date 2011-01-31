@@ -1,3 +1,10 @@
+2011-01-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	src/emacs.c now gets version number from configure.in
+	* admin.el (set-version): Don't update src/emacs.c.
+	* quick-install-emacs (VERSION): Get it from configure.in, not from
+	src/emacs.c.
+
 2011-01-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	strftime: import from gnulib

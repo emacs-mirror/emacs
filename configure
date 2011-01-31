@@ -16986,16 +16986,7 @@ if test "x$GCC" = xyes \
    as_fn_error $? "GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'." "$LINENO" 5
 fi
 
-#### Find out which version of Emacs this is.
-version=`grep 'const char emacs_version' ${srcdir}/src/emacs.c \
-	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
-if test x"${version}" = x; then
-  as_fn_error $? "can't find current emacs version in \`${srcdir}/src/emacs.c'." "$LINENO" 5
-fi
-if test x"${version}" != x"$PACKAGE_VERSION"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: version mismatch between \`${srcdir}/configure.in' and \`${srcdir}/src/emacs.c'." >&5
-$as_echo "$as_me: WARNING: version mismatch between \`${srcdir}/configure.in' and \`${srcdir}/src/emacs.c'." >&2;}
-fi
+version=$PACKAGE_VERSION
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.

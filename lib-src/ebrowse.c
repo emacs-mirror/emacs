@@ -3565,7 +3565,7 @@ usage (int error)
 
 
 /* Display version and copyright info.  The VERSION macro is set
-   from the Makefile and contains the Emacs version.  */
+   from config.h and contains the Emacs version.  */
 
 #ifndef VERSION
 # define VERSION "21"
@@ -3812,7 +3812,7 @@ main (int argc, char **argv)
 	      yyerror ("error getting size of file `%s'", out_filename);
 	      exit (EXIT_FAILURE);
 	    }
-	  
+
 	  else if (rc == 0)
 	    {
 	      yyerror ("file `%s' is empty", out_filename);
