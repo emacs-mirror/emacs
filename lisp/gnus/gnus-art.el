@@ -3646,31 +3646,31 @@ function and want to see what the date was before converting."
 (defun article-update-date-lapsed ()
   "Function to be run from a timer to update the lapsed time line."
   (save-match-data
-    (let (deactivate-mark)
-      (save-window-excursion
-	(ignore-errors
-	 (walk-windows
-	  (lambda (w)
-	    (set-buffer (window-buffer w))
-	    (when (eq major-mode 'gnus-article-mode)
-	      (let ((old-line (count-lines (point-min) (point)))
-		    (old-column (current-column)))
-		(goto-char (point-min))
-		(while (re-search-forward "^Date:" nil t)
-		  (let ((type (get-text-property (match-beginning 0) 'gnus-date-type)))
-		    (when (memq type '(lapsed combined-lapsed user-format))
-		      (save-excursion
-			(article-date-ut type t (match-beginning 0)))
-		      (forward-line 1))))
-		(goto-char (point-min))
-		(when (> old-column 0)
-		  (setq old-line (1- old-line)))
-		(forward-line old-line)
-		(end-of-line)
-		(when (> (current-column) old-column)
-		  (beginning-of-line)
-		  (forward-char old-column)))))
-	  nil 'visible))))))
+    (let ((buffer (current-buffer)))
+      (ignore-errors
+	(walk-windows
+	 (lambda (w)
+	   (set-buffer (window-buffer w))
+	   (when (eq major-mode 'gnus-article-mode)
+	     (let ((old-line (count-lines (point-min) (point)))
+		   (old-column (current-column)))
+	       (goto-char (point-min))
+	       (while (re-search-forward "^Date:" nil t)
+		 (let ((type (get-text-property (match-beginning 0) 'gnus-date-type)))
+		   (when (memq type '(lapsed combined-lapsed user-format))
+		     (save-excursion
+		       (article-date-ut type t (match-beginning 0)))
+		     (forward-line 1))))
+	       (goto-char (point-min))
+	       (when (> old-column 0)
+		 (setq old-line (1- old-line)))
+	       (forward-line old-line)
+	       (end-of-line)
+	       (when (> (current-column) old-column)
+		 (beginning-of-line)
+		 (forward-char old-column)))))
+	 nil 'visible))
+      (set-buffer buffer))))
 
 (defun gnus-start-date-timer (&optional n)
   "Start a timer to update the Date headers in the article buffers.

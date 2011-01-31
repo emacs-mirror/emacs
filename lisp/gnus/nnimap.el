@@ -1589,17 +1589,14 @@ textual parts.")
 	  (goto-char (point-max))
 	  (while (and (setq openp (memq (process-status process)
 					'(open run)))
-		      (not (re-search-backward
-			    (format "^%d .*\n" sequence)
-			    (if nnimap-streaming
-				(max (point-min)
-				     (min
-				      (- (point) 500)
-				      (save-excursion
-					(forward-line -3)
-					(point))))
-			      (point-min))
-			    t)))
+		      (progn
+			;; Skip past any "*" lines that the server has
+			;; output.
+			(while (and (not (bobp))
+				    (progn
+				      (forward-line -1)
+				      (looking-at "\\*"))))
+			(not (looking-at (format "%d " sequence)))))
 	    (when messagep
 	      (nnheader-message 7 "nnimap read %dk" (/ (buffer-size) 1000)))
 	    (nnheader-accept-process-output process)
