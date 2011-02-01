@@ -2140,7 +2140,7 @@ looking for the next message."
   (or pt (setq pt (point)))
   (let* ((msg (get-text-property pt 'compilation-message))
          ;; `loc', `msg', and `last' are used by the compilation-loop macro.
-	 (loc (compilation--message->loc msg))
+	 (loc (and msg (compilation--message->loc msg)))
 	 last)
     (if (zerop n)
 	(unless (or msg			; find message near here
@@ -2154,8 +2154,7 @@ looking for the next message."
 						  (line-end-position)))
 	    (or (setq msg (get-text-property pt 'compilation-message))
 		(setq pt (point)))))
-      (setq last (compilation--loc->file-struct
-                  (compilation--message->loc msg)))
+      (setq last (compilation--loc->file-struct loc))
       (if (>= n 0)
 	  (compilation-loop > compilation-next-single-property-change 1-
 			    (if (get-buffer-process (current-buffer))

@@ -1,3 +1,8 @@
+2011-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-next-error): Check there's
+	a message before using it (bug#7941).
+
 2011-02-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-mtx.el (math-lud-pivot-check): New function.
@@ -6,8 +11,8 @@
 
 2011-01-31  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-cmds.el (c-forward-over-illiterals): Continue
-	parsing if we encounter a naked # (Bug#7595).
+	* progmodes/cc-cmds.el (c-forward-over-illiterals):
+	Continue parsing if we encounter a naked # (Bug#7595).
 	(c-beginning-of-statement): Avoid loop in locating the beginning
 	of a macro.
 
@@ -34,8 +39,8 @@
 
 2011-01-31  Kenichi Handa  <handa@m17n.org>
 
-	* international/quail.el (quail-keyboard-layout-alist): Remove
-	superfluous SPC for "pc105-uk" (bug#7927).
+	* international/quail.el (quail-keyboard-layout-alist):
+	Remove superfluous SPC for "pc105-uk" (bug#7927).
 
 2011-01-31  Glenn Morris  <rgm@gnu.org>
 
