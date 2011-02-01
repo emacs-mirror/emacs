@@ -2961,7 +2961,7 @@ Obsoletes `c-forward-into-nomenclature'.
 ;;;***
 
 ;;;### (autoloads (c-guess-basic-syntax) "cc-engine" "progmodes/cc-engine.el"
-;;;;;;  (19752 41642))
+;;;;;;  (19776 49463))
 ;;; Generated autoloads from progmodes/cc-engine.el
 
 (autoload 'c-guess-basic-syntax "cc-engine" "\
@@ -3493,7 +3493,7 @@ Returns non-nil if any false statements are found.
 ;;;;;;  checkdoc-comments checkdoc-continue checkdoc-start checkdoc-current-buffer
 ;;;;;;  checkdoc-eval-current-buffer checkdoc-message-interactive
 ;;;;;;  checkdoc-interactive checkdoc checkdoc-list-of-strings-p)
-;;;;;;  "checkdoc" "emacs-lisp/checkdoc.el" (19752 41642))
+;;;;;;  "checkdoc" "emacs-lisp/checkdoc.el" (19770 11773))
 ;;; Generated autoloads from emacs-lisp/checkdoc.el
 (put 'checkdoc-force-docstrings-flag 'safe-local-variable 'booleanp)
 (put 'checkdoc-force-history-flag 'safe-local-variable 'booleanp)
@@ -3905,7 +3905,7 @@ is run).
 ;;;### (autoloads (comint-redirect-results-list-from-process comint-redirect-results-list
 ;;;;;;  comint-redirect-send-command-to-process comint-redirect-send-command
 ;;;;;;  comint-run make-comint make-comint-in-buffer) "comint" "comint.el"
-;;;;;;  (19752 41642))
+;;;;;;  (19776 18606))
 ;;; Generated autoloads from comint.el
 
 (defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom comint-watch-for-password-prompt) "\
@@ -4039,8 +4039,8 @@ on third call it again advances points to the next difference and so on.
 ;;;;;;  compilation-shell-minor-mode compilation-mode compilation-start
 ;;;;;;  compile compilation-disable-input compile-command compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-start-hook
-;;;;;;  compilation-mode-hook) "compile" "progmodes/compile.el" (19752
-;;;;;;  41642))
+;;;;;;  compilation-mode-hook) "compile" "progmodes/compile.el" (19770
+;;;;;;  11773))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -6060,7 +6060,7 @@ Optional arguments are passed to `dig-invoke'.
 
 ;;;### (autoloads (dired-mode dired-auto-revert-buffer dired-noselect
 ;;;;;;  dired-other-frame dired-other-window dired dired-trivial-filenames
-;;;;;;  dired-listing-switches) "dired" "dired.el" (19752 41900))
+;;;;;;  dired-listing-switches) "dired" "dired.el" (19772 35352))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches (purecopy "-al") "\
@@ -6518,7 +6518,7 @@ Play sounds in message buffers.
 
 ;;;### (autoloads (easy-mmode-defsyntax easy-mmode-defmap easy-mmode-define-keymap
 ;;;;;;  define-globalized-minor-mode define-minor-mode) "easy-mmode"
-;;;;;;  "emacs-lisp/easy-mmode.el" (19752 41642))
+;;;;;;  "emacs-lisp/easy-mmode.el" (19767 41074))
 ;;; Generated autoloads from emacs-lisp/easy-mmode.el
 
 (defalias 'easy-mmode-define-minor-mode 'define-minor-mode)
@@ -6532,8 +6532,9 @@ Optional INIT-VALUE is the initial value of the mode's variable.
 Optional LIGHTER is displayed in the modeline when the mode is on.
 Optional KEYMAP is the default keymap bound to the mode keymap.
   If non-nil, it should be a variable name (whose value is a keymap),
-  a keymap, or a list of arguments for `easy-mmode-define-keymap'.
-  If KEYMAP is a keymap or list, this also defines the variable MODE-map.
+  or an expression that returns either a keymap or a list of
+  arguments for `easy-mmode-define-keymap'.  If KEYMAP is not a symbol,
+  this also defines the variable MODE-map.
 
 BODY contains code to execute each time the mode is enabled or disabled.
   It is executed after toggling the mode, and before running MODE-hook.
@@ -8732,7 +8733,7 @@ This will add a speedbar major display mode.
 ;;;***
 
 ;;;### (autoloads (erc-track-minor-mode) "erc-track" "erc/erc-track.el"
-;;;;;;  (19752 41642))
+;;;;;;  (19783 2570))
 ;;; Generated autoloads from erc/erc-track.el
 
 (defvar erc-track-minor-mode nil "\
@@ -14160,7 +14161,7 @@ Example:
 ;;;;;;  image-dired-jump-thumbnail-buffer image-dired-delete-tag
 ;;;;;;  image-dired-tag-files image-dired-show-all-from-dir image-dired-display-thumbs
 ;;;;;;  image-dired-dired-with-window-configuration image-dired-dired-insert-marked-thumbs)
-;;;;;;  "image-dired" "image-dired.el" (19752 41642))
+;;;;;;  "image-dired" "image-dired.el" (19779 1536))
 ;;; Generated autoloads from image-dired.el
 
 (autoload 'image-dired-dired-insert-marked-thumbs "image-dired" "\
@@ -15409,7 +15410,7 @@ by `jka-compr-installed'.
 
 ;;;***
 
-;;;### (autoloads (js-mode) "js" "progmodes/js.el" (19752 41642))
+;;;### (autoloads (js-mode) "js" "progmodes/js.el" (19770 11773))
 ;;; Generated autoloads from progmodes/js.el
 
 (autoload 'js-mode "js" "\
@@ -17643,7 +17644,7 @@ Multiplication puzzle with GNU Emacs.
 
 ;;;***
 
-;;;### (autoloads (msb-mode) "msb" "msb.el" (19752 41642))
+;;;### (autoloads (msb-mode) "msb" "msb.el" (19777 41324))
 ;;; Generated autoloads from msb.el
 
 (defvar msb-mode nil "\
@@ -21925,7 +21926,7 @@ them into characters should be done separately.
 ;;;;;;  quail-defrule quail-install-decode-map quail-install-map
 ;;;;;;  quail-define-rules quail-show-keyboard-layout quail-set-keyboard-layout
 ;;;;;;  quail-define-package quail-use-package quail-title) "quail"
-;;;;;;  "international/quail.el" (19752 41642))
+;;;;;;  "international/quail.el" (19778 61528))
 ;;; Generated autoloads from international/quail.el
 
 (autoload 'quail-title "quail" "\
@@ -22229,7 +22230,7 @@ Display `quickurl-list' as a formatted list using `quickurl-list-mode'.
 ;;;***
 
 ;;;### (autoloads (rcirc-track-minor-mode rcirc-connect rcirc) "rcirc"
-;;;;;;  "net/rcirc.el" (19752 41642))
+;;;;;;  "net/rcirc.el" (19783 16707))
 ;;; Generated autoloads from net/rcirc.el
 
 (autoload 'rcirc "rcirc" "\
@@ -22277,7 +22278,7 @@ See \\[compile].
 ;;;***
 
 ;;;### (autoloads (re-builder) "re-builder" "emacs-lisp/re-builder.el"
-;;;;;;  (19752 41642))
+;;;;;;  (19771 17123))
 ;;; Generated autoloads from emacs-lisp/re-builder.el
 
 (defalias 'regexp-builder 're-builder)
@@ -22863,8 +22864,8 @@ variable.
 ;;;;;;  rmail-secondary-file-directory rmail-primary-inbox-list rmail-highlighted-headers
 ;;;;;;  rmail-retry-ignored-headers rmail-displayed-headers rmail-ignored-headers
 ;;;;;;  rmail-dont-reply-to-names rmail-user-mail-address-regexp
-;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (19752
-;;;;;;  41899))
+;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (19761
+;;;;;;  5822))
 ;;; Generated autoloads from mail/rmail.el
 
 (autoload 'rmail-movemail-variant-p "rmail" "\
@@ -23316,7 +23317,7 @@ for modes derived from Text mode, like Mail mode.
 ;;;***
 
 ;;;### (autoloads (ruby-mode) "ruby-mode" "progmodes/ruby-mode.el"
-;;;;;;  (19752 41642))
+;;;;;;  (19771 32139))
 ;;; Generated autoloads from progmodes/ruby-mode.el
 
 (autoload 'ruby-mode "ruby-mode" "\
@@ -24349,7 +24350,7 @@ If BINARY is non-nil, return a string in binary form.
 ;;;***
 
 ;;;### (autoloads (list-load-path-shadows) "shadow" "emacs-lisp/shadow.el"
-;;;;;;  (19752 41642))
+;;;;;;  (19780 34298))
 ;;; Generated autoloads from emacs-lisp/shadow.el
 
 (autoload 'list-load-path-shadows "shadow" "\
@@ -32013,8 +32014,8 @@ Zone out, completely.
 ;;;;;;  "url/url-expand.el" "url/url-ftp.el" "url/url-history.el"
 ;;;;;;  "url/url-imap.el" "url/url-methods.el" "url/url-nfs.el" "url/url-proxy.el"
 ;;;;;;  "url/url-vars.el" "vc-dav.el" "vcursor.el" "vt-control.el"
-;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "x-dnd.el") (19761
-;;;;;;  5801 21534))
+;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "x-dnd.el") (19783
+;;;;;;  30333 273722))
 
 ;;;***
 
