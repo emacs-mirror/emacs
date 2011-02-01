@@ -1,3 +1,7 @@
+2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing Articles): Fix typo.
+
 2011-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Customizing Articles): Document the new way of customizing

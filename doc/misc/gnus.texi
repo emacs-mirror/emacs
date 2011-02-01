@@ -11944,7 +11944,7 @@ A semi-readable English sentence.
 @item lapsed
 The time elapsed since the message was posted.
 
-@item combined-elapsed
+@item combined-lapsed
 Both the original date header and a (shortened) elapsed time.
 
 @item original
