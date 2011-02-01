@@ -92,8 +92,8 @@ static void find_field (Lisp_Object, Lisp_Object, Lisp_Object,
 			EMACS_INT *, Lisp_Object, EMACS_INT *);
 static void update_buffer_properties (EMACS_INT, EMACS_INT);
 static Lisp_Object region_limit (int);
-static size_t emacs_memftimeu (char *, size_t, const char *,
-                               size_t, const struct tm *, int);
+static size_t emacs_nmemftime (char *, size_t, const char *,
+			       size_t, const struct tm *, int, int);
 static void general_insert_function (void (*) (const unsigned char *, EMACS_INT),
 				     void (*) (Lisp_Object, EMACS_INT,
 					       EMACS_INT, EMACS_INT,
@@ -1549,6 +1549,7 @@ or (if you need time as a string) `format-time-string'.  */)
 /* Write information into buffer S of size MAXSIZE, according to the
    FORMAT of length FORMAT_LEN, using time information taken from *TP.
    Default to Universal Time if UT is nonzero, local time otherwise.
+   Use NS as the number of nanoseconds in the %N directive.
    Return the number of bytes written, not including the terminating
    '\0'.  If S is NULL, nothing will be written anywhere; so to
    determine how many bytes would be written, use NULL for S and
@@ -1557,7 +1558,8 @@ or (if you need time as a string) `format-time-string'.  */)
    This function behaves like nstrftime, except it allows null
    bytes in FORMAT and it does not support nanoseconds.  */
 static size_t
-emacs_memftimeu (char *s, size_t maxsize, const char *format, size_t format_len, const struct tm *tp, int ut)
+emacs_nmemftime (char *s, size_t maxsize, const char *format,
+		 size_t format_len, const struct tm *tp, int ut, int ns)
 {
   size_t total = 0;
 
@@ -1574,7 +1576,7 @@ emacs_memftimeu (char *s, size_t maxsize, const char *format, size_t format_len,
       if (s)
 	s[0] = '\1';
 
-      result = nstrftime (s, maxsize, format, tp, ut, 0);
+      result = nstrftime (s, maxsize, format, tp, ut, ns);
 
       if (s)
 	{
@@ -1620,6 +1622,7 @@ by text that describes the specified date and time in TIME:
 %p is the locale's equivalent of either AM or PM.
 %M is the minute.
 %S is the second.
+%N is the nanosecond, %6N the microsecond, %3N the millisecond, etc.
 %Z is the time zone name, %z is the numeric form.
 %s is the number of seconds since 1970-01-01 00:00:00 +0000.
 
@@ -1649,13 +1652,17 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 {
   time_t value;
   int size;
+  int usec;
+  int ns;
   struct tm *tm;
   int ut = ! NILP (universal);
 
   CHECK_STRING (format_string);
 
-  if (! lisp_time_argument (time, &value, NULL))
+  if (! (lisp_time_argument (time, &value, &usec)
+	 && 0 <= usec && usec < 1000000))
     error ("Invalid time specification");
+  ns = usec * 1000;
 
   format_string = code_convert_string_norecord (format_string,
 						Vlocale_coding_system, 1);
@@ -1678,9 +1685,9 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
       buf[0] = '\1';
       BLOCK_INPUT;
-      result = emacs_memftimeu (buf, size, SSDATA (format_string),
+      result = emacs_nmemftime (buf, size, SSDATA (format_string),
 				SBYTES (format_string),
-				tm, ut);
+				tm, ut, ns);
       UNBLOCK_INPUT;
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
 	return code_convert_string_norecord (make_unibyte_string (buf, result),
@@ -1688,10 +1695,10 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
       /* If buffer was too small, make it bigger and try again.  */
       BLOCK_INPUT;
-      result = emacs_memftimeu (NULL, (size_t) -1,
+      result = emacs_nmemftime (NULL, (size_t) -1,
 				SSDATA (format_string),
 				SBYTES (format_string),
-				tm, ut);
+				tm, ut, ns);
       UNBLOCK_INPUT;
       size = result + 1;
     }

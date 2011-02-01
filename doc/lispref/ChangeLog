@@ -1,3 +1,8 @@
+2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	format-time-string now supports subsecond time stamp resolution
+	* os.texi (Time Parsing): Document %N.
+
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vol1.texi (Top):
