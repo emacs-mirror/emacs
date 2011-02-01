@@ -3682,7 +3682,7 @@ selected window before each command.  */)
      (window, norecord)
      register Lisp_Object window, norecord;
 {
-  select_window (window, norecord, 0);
+  return select_window (window, norecord, 0);
 }
 
 static Lisp_Object
