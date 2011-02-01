@@ -169,6 +169,10 @@ get and set the SELinux context of a file.
 *** Tramp offers handlers for file-selinux-context and set-file-selinux-context
 for remote machines which support SELinux.
 
++++
+** The function format-time-string now supports the %N directive, for
+higher-resolution time stamps.
+
 ** The function kill-emacs is now run upon receipt of the signals SIGTERM
 and SIGHUP, and upon SIGINT in batch mode.
 
