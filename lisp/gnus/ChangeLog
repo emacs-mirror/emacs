@@ -1,5 +1,8 @@
 2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-art.el (article-date-ut): Protect against articles with no Date
+	header.
+
 	* gnus-start.el (gnus-read-active-file-1): Remove dead parameter infos.
 
 2011-01-31  Lars Ingebrigtsen  <larsi@gnus.org>

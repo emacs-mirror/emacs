@@ -3443,7 +3443,8 @@ possible values."
 	    (delete-region (point-at-bol) (progn
 					    (gnus-article-forward-header)
 					    (point))))
-	  (article-transform-date date type bface eface))))))
+	  (when date
+	    (article-transform-date date type bface eface)))))))
 
 (defun article-transform-date (date type bface eface)
   (dolist (this-type (cond
