@@ -1,7 +1,7 @@
 ;;; format.el --- read and save files in multiple formats
 
 ;; Copyright (C) 1994, 1995, 1997, 1999, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 
@@ -180,8 +180,7 @@ it should be a Lisp function.  Decoding is done for the given BUFFER."
 	;; We should perhaps go via a temporary buffer and copy it
 	;; back, in case of errors.
 	(if (and (zerop (save-window-excursion
-			  (shell-command-on-region (point-min) (point-max)
-						   method t t
+			  (shell-command-on-region from to method t t
 						   error-buff)))
 		 ;; gzip gives zero exit status with bad args, for instance.
 		 (zerop (with-current-buffer error-buff

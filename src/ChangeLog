@@ -1,3 +1,196 @@
+2011-01-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (DEF_IMGLIB_FN): Add parameter rettype, use it instead
+	of int.  All uses adjusted.
+	(PNG_JMPBUF, png_load, jpeg_load, tiff_load, gif_load)
+	(svg_load_image): Remove casts.
+
+2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (fn_png_longjmp, fn_png_set_longjmp_fn): New png
+	function definitions for compiling with libpng-1.5.
+	(PNG_LONGJMP, PNG_JMPBUF): New macros for libpng-1.5.
+	(my_png_error, png_load): Use them.  Suggested by Thomas Klausner
+	(Bug#7908).
+
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* m/intel386.h: Define NO_ARG_ARRAY.  Suggested by Dan Nicolaescu.
+
+2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Require GTK-style font sizes to
+	occur at the end of the font string (Bug#7853).
+
+2011-01-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Fix typo in string length.
+
+2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (handle_fontified_prop): Be careful with font-lock changing
+	the buffer's point-max (bug#7876).
+
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* lisp.h (XPNTR): Obey DATA_SEG_BITS in all non-USE_LSB_TAG cases.
+	Remove unused HAVE_SHM branch (Bug#6811).
+
+2011-01-23  Peter O'Gorman  <bug-gnu-emacs@mlists.thewrittenword.com>  (tiny change)
+
+	* s/hpux11.h: Set CANNOT_DUMP on IA64 (Bug#6811).
+
+2011-01-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (select_window): New function.
+	(Fselect_window): Call it.
+	(inhibit_point_swap): Variable deleted.
+	(Fset_window_configuration): Call select_window directly.
+
+2011-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image.c (syms_of_image): Don't access XSYMBOL's internals directly.
+
+2011-01-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (syms_of_image): Don't use SET_SYMBOL_VALUE.  (Bug#7848)
+
+2011-01-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (inhibit_point_swap): New variable.
+	(Fselect_window): If inhibit_point_swap is nonzero, avoid swapping
+	point this time.
+	(Fset_window_configuration): Set inhibit_point_swap to 1 instead
+	of setting selected_window to nil (Bug#7728).
+
+2011-01-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* config.in (TERMINFO): New definition.
+
+	* s/netbsd.h: Use it to choose between terminfo and termcap
+	(Bug#7642).
+
+2011-01-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* coding.h (ENCODE_UTF_8): Remove "Used by ..." comment.
+
+	* nsfns.m (ns_set_name_iconic): Remove.
+	(ns_get_screen): Don't assign integer to f.
+	(ns_set_name_internal): New function (Bug#7517).
+	(Vicon_title_format): Extern declare.
+	(ns_set_name): Call ns_set_name_internal.
+	(x_explicitly_set_name): Remove call to ns_set_name_iconic.
+	(x_implicitly_set_name): Ditto.
+	(x_set_title): Remove commet about EXPLICIT.  Call ns_set_name_internal.
+	(ns_set_name_as_filename): Encode name with ENCODE_UTF_8.
+	Always use buffer name for title and buffer filename only for
+	RepresentedFilename. Handle bad UTF-8 in buffer name (Bug#7517).
+
+2011-01-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (png_jmpbuf): Remove definition.
+	(my_png_error, png_load): Don't use png_jmpbuf.
+
+2010-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c <Qlibpng_version>: New variable.
+	(syms_of_image): Intern and staticpro it.  Set its value to the
+	version of PNG library we were compiled with.
+	(my_png_error, png_load): Avoid GCC warnings about direct access
+	to png_ptr->jmpbuf.  (Bug#7716)
+	(png_jmpbuf): New macro.
+	(my_png_error, png_load): Use it instead of #ifdef'ing according
+	to PNG_LIBPNG_VER_MAJOR and PNG_LIBPNG_VER_MINOR.
+
+2010-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .gdbinit (xgetptr): Fix the union+lsb case.
+	(xbacktrace): Fix the union case.
+
+2010-12-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fmove_to_window_line): Avoid abort when called in a buffer
+	different from selected-window's.
+
+2010-12-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (parse_menu_item): Prepend "  " to the key sequence
+	equivalent of a menu item when the key sequence is given by the
+	`:keys' attribute.  (Bug#7662)
+
+	* xdisp.c (Fformat_mode_line): Doc fix: no need to state that only
+	the basic faces are supported.
+
+2010-12-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_check_fullscreen): Fix pixel/character mixup.
+
+2010-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fformat_mode_line): Fix last change.
+
+2010-12-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (Fformat_mode_line): Restrict the FACE argument to basic
+	faces (Bug#7587).
+
+2010-12-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name): One more doc fix.
+
+2010-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name): Doc fix.  (Bug#7617)
+
+2010-12-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fx_show_tip): Call try_window with last argument
+	TRY_WINDOW_IGNORE_FONTS_CHANGE.  Delete the TODO ifdef: problem
+	solved.  Round up the tip height to an integral multiple of the
+	frame's line height.  Add FRAME_COLUMN_WIDTH to the tip width.
+	(Bug#7398)
+
+	* xdisp.c (string_pos_nchars_ahead, c_string_pos)
+	(face_before_or_after_it_pos, next_element_from_string)
+	(next_element_from_c_string, produce_stretch_glyph): Remove unused
+	calculations of maximum string length before calling
+	string_char_and_length and STRING_CHAR_AND_LENGTH.
+	(string_char_and_length): Update commentary: MAXLEN is no longer
+	needed.
+
+2010-12-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (kbd_buffer_get_event): Construct SAVE_SESSION_EVENT
+	as (Qsave_session arg).
+
+	* xsmfns.c (smc_interact_CB): Set arg to Qnil.
+	(smc_die_CB): Make an event with arg Qt.
+	(Fhandle_save_session): If event has Qt as argument,
+	call Fkill_emacs (Bug#7552).
+
+2010-12-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c (smc_die_CB): Call Fkill_emacs (Bug#7552).
+
+2010-12-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispextern.h (struct it): New member overlay_strings_charpos.
+
+	* xdisp.c (next_overlay_string, load_overlay_strings): Record the
+	charpos where we computed n_overlay_strings.
+	(next_overlay_string): Load overlay strings at recorded position,
+	which may not be the same as the iterator's charpos (Bug#7016).
+
+2010-12-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_dumpglyphs_image): If drawing cursor, fill background
+	with cursor color and draw a rectangle around the image (Bug#7412).
+
+2010-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_scrolling): Avoid infloop if the first line is
+	obscured due to a vscroll (Bug#7537).
+
 2010-12-02  Jan Djärv  <jhd@zeplinf.localdomain>
 
 	* nsterm.h (FRAME_NS_TOOLBAR_HEIGHT): Rename to FRAME_TOOLBAR_HEIGHT.
@@ -22439,7 +22632,7 @@ See ChangeLog.10 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+    Copyright (C) 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

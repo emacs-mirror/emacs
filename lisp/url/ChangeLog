@@ -1,3 +1,8 @@
+2010-12-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-cookie.el (url-cookie-retrieve): Handle null LOCALPART.
+	Suggested by Lennart Borgman (Bug#7543).
+
 2010-09-18  Glenn Morris  <rgm@gnu.org>
 
 	* url-cache.el (url-is-cached): Doc fix.
@@ -2230,7 +2235,7 @@
 ;; End:
 
     Copyright (C) 1999, 2001, 2002, 2004, 2005,
-	2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+	2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

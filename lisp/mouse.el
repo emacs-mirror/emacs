@@ -1,7 +1,7 @@
 ;;; mouse.el --- window system-independent mouse support
 
 ;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware, mouse
@@ -181,6 +181,7 @@ items `Turn Off' and `Help'."
     (minor-mode-menu-from-indicator indicator)))
 
 (defun mouse-menu-major-mode-map ()
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (let* (;; Keymap from which to inherit; may be null.
 	 (ancestor (mouse-menu-non-singleton
 		    (and (current-local-map)
@@ -197,9 +198,9 @@ items `Turn Off' and `Help'."
     newmap))
 
 (defun mouse-menu-non-singleton (menubar)
-  "Given menu keymap,
-if it defines exactly one submenu, return just that submenu.
-Otherwise return the whole menu."
+  "Return menu keybar MENUBAR, or a lone submenu inside it.
+If MENUBAR defines exactly one submenu, return just that submenu.
+Otherwise, return MENUBAR."
   (if menubar
       (let (submap)
         (map-keymap
@@ -213,6 +214,7 @@ Otherwise return the whole menu."
   "Return a keymap equivalent to the menu bar.
 The contents are the items that would be in the menu bar whether or
 not it is actually displayed."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (let* ((local-menu (and (current-local-map)
 			  (lookup-key (current-local-map) [menu-bar])))
 	 (global-menu (lookup-key global-map [menu-bar]))
@@ -2607,5 +2609,4 @@ choose a font."
 (make-obsolete 'mldrag-drag-vertical-line 'mouse-drag-vertical-line "21.1")
 (provide 'mldrag)
 
-;; arch-tag: 9a710ce1-914a-4923-9b81-697f7bf82ab3
 ;;; mouse.el ends here

@@ -1,7 +1,7 @@
 ;;; message.el --- composing mail and news messages
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -4023,12 +4023,32 @@ Instead, just auto-save the buffer and then bury it."
 
 (defun message-bury (buffer)
   "Bury this mail BUFFER."
-  (let ((newbuf (other-buffer buffer)))
-    (bury-buffer buffer)
-    (if (and (window-dedicated-p (selected-window))
+  (let ((newbuf (other-buffer (current-buffer))))
+    (bury-buffer (current-buffer))
+    (if (and (window-dedicated-p (frame-selected-window))
 	     (not (null (delq (selected-frame) (visible-frame-list)))))
 	(delete-frame (selected-frame))
-      (switch-to-buffer newbuf))))
+      ;; Temporary hack to make this behave like `mail-bury', when
+      ;; used with Rmail.  Replaced in Emacs 24 with
+      (let (rmail-flag summary-buffer)
+	(and (not (one-window-p))
+	     (with-current-buffer
+                 (window-buffer (next-window (selected-window) 'not))
+	       (setq rmail-flag (eq major-mode 'rmail-mode))
+	       (setq summary-buffer
+		     (and (if (boundp 'mail-bury-selects-summary)
+			      mail-bury-selects-summary
+			    t)
+			  (boundp 'rmail-summary-buffer)
+			  rmail-summary-buffer
+			  (buffer-name rmail-summary-buffer)
+			  (not (get-buffer-window rmail-summary-buffer))
+			  rmail-summary-buffer))))
+	(if rmail-flag
+	    ;; If the Rmail buffer has a summary, show that.
+	    (if summary-buffer (switch-to-buffer summary-buffer)
+	      (delete-window))
+	  (switch-to-buffer newbuf))))))
 
 (defun message-send (&optional arg)
   "Send the message in the current buffer.
@@ -6493,7 +6513,13 @@ is a function used to switch to and display the mail buffer."
     (message-setup
      (nconc
       `((To . ,(or to "")) (Subject . ,(or subject "")))
-      (when other-headers other-headers))
+      ;; C-h f compose-mail says that headers should be specified as
+      ;; (string . value); however all the rest of message expects
+      ;; headers to be symbols, not strings (eg message-header-format-alist).
+      ;; http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00337.html
+      ;; We need to convert any string input, eg from rmail-start-mail.
+      (dolist (h other-headers other-headers)
+ 	(if (stringp (car h)) (setcar h (intern (capitalize (car h)))))))
      yank-action send-actions continue switch-function)
     ;; FIXME: Should return nil if failure.
     t))
@@ -8195,5 +8221,4 @@ Used in `message-simplify-recipients'."
 ;; coding: iso-8859-1
 ;; End:
 
-;; arch-tag: 94b32cac-4504-4b6c-8181-030ebf380ee0
 ;;; message.el ends here

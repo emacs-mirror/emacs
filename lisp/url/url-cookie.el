@@ -1,7 +1,7 @@
 ;;; url-cookie.el --- Netscape Cookie support
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;;   2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -198,7 +198,7 @@ telling Microsoft that."
     (and exp (> (float-time) (float-time (date-to-time exp))))))
 
 (defun url-cookie-retrieve (host &optional localpart secure)
-  "Retrieve all the netscape-style cookies for a specified HOST and LOCALPART."
+  "Retrieve all cookies for a specified HOST and LOCALPART."
   (let ((storage (if secure
 		     (append url-cookie-secure-storage url-cookie-storage)
 		   url-cookie-storage))
@@ -226,7 +226,8 @@ telling Microsoft that."
 	    (setq cur (car cookies)
 		  cookies (cdr cookies)
 		  localpart-match (url-cookie-localpart cur))
-	    (if (and (if (stringp localpart-match)
+	    (if (and (if (and (stringp localpart-match)
+			      (stringp localpart))
 			 (string-match (concat "^" (regexp-quote
 						    localpart-match))
 				       localpart)

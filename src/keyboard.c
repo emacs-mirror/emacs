@@ -1,7 +1,7 @@
 /* Keyboard and mouse input; editor command loop.
    Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
                  1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4305,7 +4305,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 #endif
       else if (event->kind == SAVE_SESSION_EVENT)
         {
-          obj = Fcons (Qsave_session, Qnil);
+          obj = Fcons (Qsave_session, Fcons (event->arg, Qnil));
 	  kbd_fetch_ptr = event + 1;
         }
       /* Just discard these, by returning nil.
@@ -8193,7 +8193,7 @@ parse_menu_item (item, inmenubar)
     /* The previous code preferred :key-sequence to :keys, so we
        preserve this behavior.  */
     if (STRINGP (keyeq) && !CONSP (keyhint))
-      keyeq = Fsubstitute_command_keys (keyeq);
+      keyeq = concat2 (build_string ("  "), Fsubstitute_command_keys (keyeq));
     else
       {
 	Lisp_Object prefix = keyeq;

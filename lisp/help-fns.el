@@ -1,7 +1,7 @@
 ;;; help-fns.el --- Complex help functions
 
 ;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -632,21 +632,17 @@ it is displayed along with the global value."
 		(if valvoid
 		    (princ " is void as a variable.")
 		  (princ "'s "))))
-	    (if valvoid
-		nil
+	    (unless valvoid
 	      (with-current-buffer standard-output
 		(setq val-start-pos (point))
 		(princ "value is ")
-		(terpri)
 		(let ((from (point)))
+		  (terpri)
 		  (pp val)
-		  ;; Hyperlinks in variable's value are quite frequently
-		  ;; inappropriate e.g C-h v <RET> features <RET>
-		  ;; (help-xref-on-pp from (point))
-		  (if (< (point) (+ from 20))
-		      (delete-region (1- from) from)))))
+		  (if (< (point) (+ 68 (line-beginning-position 0)))
+		      (delete-region from (1+ from))
+		    (delete-region (1- from) from)))))
 	    (terpri)
-
 	    (when locus
 	      (if (bufferp locus)
 		  (princ (format "%socal in buffer %s; "

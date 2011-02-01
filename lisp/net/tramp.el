@@ -1,7 +1,7 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; (copyright statements below in code to be updated with the above notice)
 
@@ -553,10 +553,11 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
-	     (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q")
+	     (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q") ("-r")
 					  ("-o" "ControlPath=%t.%%r@%%h:%%p")
 					  ("-o" "ControlMaster=auto")))
 	     (tramp-copy-keep-date       t)
+	     (tramp-copy-recursive       t)
 	     (tramp-password-end-of-line nil)
 	     (tramp-gw-args              (("-o"
 					   "GlobalKnownHostsFile=/dev/null")
@@ -570,8 +571,10 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
-	     (tramp-copy-args            (("-p" "%k")))
+	     (tramp-copy-args            (("-P" "%p") ("-p" "%k")
+					  ("-q") ("-r")))
 	     (tramp-copy-keep-date       t)
+	     (tramp-copy-recursive       t)
 	     (tramp-password-end-of-line nil)
 	     (tramp-gw-args              (("-o"
 					   "GlobalKnownHostsFile=/dev/null")
@@ -640,8 +643,10 @@ detected as prompt when being sent on echoing hosts, therefore.")
 					  ("-ssh") ("%h")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "pscp")
-	     (tramp-copy-args            (("-P" "%p") ("-scp") ("-p" "%k")))
+	     (tramp-copy-args            (("-P" "%p") ("-scp") ("-p" "%k")
+					  ("-r")))
 	     (tramp-copy-keep-date       t)
+	     (tramp-copy-recursive       t)
 	     (tramp-password-end-of-line "xy") ;see docstring for "xy"
 	     (tramp-default-port         22))
     ("psftp" (tramp-login-program        "plink")
@@ -649,8 +654,10 @@ detected as prompt when being sent on echoing hosts, therefore.")
 					  ("-ssh") ("%h")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "pscp")
-	     (tramp-copy-args            (("-P" "%p") ("-sftp") ("-p" "%k")))
+	     (tramp-copy-args            (("-P" "%p") ("-sftp") ("-p" "%k")
+					  ("-r")))
 	     (tramp-copy-keep-date       t)
+	     (tramp-copy-recursive       t)
 	     (tramp-password-end-of-line "xy")) ;see docstring for "xy"
     ("fcp"   (tramp-login-program        "fsh")
              (tramp-login-args           (("%h") ("-l" "%u") ("sh" "-i")))
@@ -773,8 +780,11 @@ shouldn't return t when it isn't."
   ;; password caching.  "scpc" is chosen if we detect that the user is
   ;; running OpenSSH 4.0 or newer.
   (cond
-   ;; PuTTY is installed.
-   ((executable-find "pscp")
+   ;; PuTTY is installed.  We don't take it, if it is installed on a
+   ;; non-windows system, or pscp from the pssh (parallel ssh) package
+   ;; is found.
+   ((and (eq system-type 'windows-nt)
+	 (executable-find "pscp"))
     (if	(or (fboundp 'password-read)
 	    (fboundp 'auth-source-user-or-password)
 	    ;; Pageant is running.
@@ -1897,8 +1907,8 @@ on the remote host.")
 (defconst tramp-perl-encode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-#   Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+#   2011 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -1939,8 +1949,8 @@ This string is passed to `format', so percent characters need to be doubled.")
 (defconst tramp-perl-decode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-#   Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+#   2011 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -4522,60 +4532,65 @@ beginning of local filename are not substituted."
 (defun tramp-handle-start-file-process (name buffer program &rest args)
   "Like `start-file-process' for Tramp files."
   (with-parsed-tramp-file-name default-directory nil
-    (unwind-protect
-	;; When PROGRAM is nil, we just provide a tty.
-	(let ((command
-	       (when (stringp program)
-		 (format "cd %s; exec %s"
-			 (tramp-shell-quote-argument localname)
-			 (mapconcat 'tramp-shell-quote-argument
-				    (cons program args) " "))))
-	      (tramp-process-connection-type
-	       (or (null program) tramp-process-connection-type))
-	      (name1 name)
-	      (i 0))
-	  (unless buffer
-	    ;; BUFFER can be nil.  We use a temporary buffer.
-	    (setq buffer (generate-new-buffer tramp-temp-buffer-name)))
-	  (while (get-process name1)
-	    ;; NAME must be unique as process name.
-	    (setq i (1+ i)
-		  name1 (format "%s<%d>" name i)))
-	  (setq name name1)
-	  ;; Set the new process properties.
-	  (tramp-set-connection-property v "process-name" name)
-	  (tramp-set-connection-property v "process-buffer" buffer)
-	  ;; Activate narrowing in order to save BUFFER contents.
-	  ;; Clear also the modification time; otherwise we might be
-	  ;; interrupted by `verify-visited-file-modtime'.
-	  (with-current-buffer (tramp-get-connection-buffer v)
-	    (clear-visited-file-modtime)
-	    (narrow-to-region (point-max) (point-max)))
-	  (if command
-	      ;; Send the command.
-	      (tramp-send-command v command nil t) ; nooutput
-	    ;; Check, whether a pty is associated.
-	    (tramp-maybe-open-connection v)
-	    (unless (process-get (tramp-get-connection-process v) 'remote-tty)
-	      (tramp-error
-	       v 'file-error "pty association is not supported for `%s'" name)))
-	  (let ((p (tramp-get-connection-process v)))
-	    ;; Set sentinel and query flag for this process.
-	    (tramp-set-connection-property p "vector" v)
-	    (set-process-sentinel p 'tramp-process-sentinel)
-	    (tramp-set-process-query-on-exit-flag p t)
-	    ;; Return process.
-	    p))
-      ;; Save exit.
-      (with-current-buffer (tramp-get-connection-buffer v)
-	(if (string-match tramp-temp-buffer-name (buffer-name))
-	    (progn
-	      (set-process-buffer (tramp-get-connection-process v) nil)
-	      (kill-buffer (current-buffer)))
-	  (widen)
-	  (goto-char (point-max))))
-      (tramp-set-connection-property v "process-name" nil)
-      (tramp-set-connection-property v "process-buffer" nil))))
+    ;; When PROGRAM is nil, we just provide a tty.
+    (let ((command
+	   (when (stringp program)
+	     (format "cd %s; exec %s"
+		     (tramp-shell-quote-argument localname)
+		     (mapconcat 'tramp-shell-quote-argument
+				(cons program args) " "))))
+	  (tramp-process-connection-type
+	   (or (null program) tramp-process-connection-type))
+	  (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
+	  (name1 name)
+	  (i 0))
+      (unwind-protect
+	  (save-excursion
+	    (save-restriction
+	      (unless buffer
+		;; BUFFER can be nil.  We use a temporary buffer.
+		(setq buffer (generate-new-buffer tramp-temp-buffer-name)))
+	      (while (get-process name1)
+		;; NAME must be unique as process name.
+		(setq i (1+ i)
+		      name1 (format "%s<%d>" name i)))
+	      (setq name name1)
+	      ;; Set the new process properties.
+	      (tramp-set-connection-property v "process-name" name)
+	      (tramp-set-connection-property v "process-buffer" buffer)
+	      ;; Activate narrowing in order to save BUFFER contents.
+	      ;; Clear also the modification time; otherwise we might
+	      ;; be interrupted by `verify-visited-file-modtime'.
+	      (with-current-buffer (tramp-get-connection-buffer v)
+		(let ((buffer-undo-list t))
+		  (clear-visited-file-modtime)
+		  (narrow-to-region (point-max) (point-max))
+		  (if command
+		      ;; Send the command.
+		      (tramp-send-command v command nil t) ; nooutput
+		    ;; Check, whether a pty is associated.
+		    (tramp-maybe-open-connection v)
+		    (unless (process-get
+			     (tramp-get-connection-process v) 'remote-tty)
+		      (tramp-error
+		       v 'file-error
+		       "pty association is not supported for `%s'" name)))))
+	      (let ((p (tramp-get-connection-process v)))
+		;; Set sentinel and query flag for this process.
+		(tramp-set-connection-property p "vector" v)
+		(set-process-sentinel p 'tramp-process-sentinel)
+		(tramp-set-process-query-on-exit-flag p t)
+		;; Return process.
+		p)))
+	;; Save exit.
+	(with-current-buffer (tramp-get-connection-buffer v)
+	  (if (string-match tramp-temp-buffer-name (buffer-name))
+	      (progn
+		(set-process-buffer (tramp-get-connection-process v) nil)
+		(kill-buffer (current-buffer)))
+	    (set-buffer-modified-p bmp)))
+	(tramp-set-connection-property v "process-name" nil)
+	(tramp-set-connection-property v "process-buffer" nil)))))
 
 (defun tramp-handle-process-file
   (program &optional infile destination display &rest args)
@@ -6810,26 +6825,27 @@ The terminal type can be configured with `tramp-terminal-type'."
   (with-temp-message ""
     ;; Enable auth-source and password-cache.
     (tramp-set-connection-property vec "first-password-request" t)
-    (let (exit)
-      (while (not exit)
-	(tramp-message proc 3 "Waiting for prompts from remote shell")
-	(setq exit
-	      (catch 'tramp-action
-		(if timeout
-		    (with-timeout (timeout)
-		      (tramp-process-one-action proc vec actions))
-		  (tramp-process-one-action proc vec actions)))))
-      (with-current-buffer (tramp-get-connection-buffer vec)
-	(widen)
-	(tramp-message vec 6 "\n%s" (buffer-string)))
-      (unless (eq exit 'ok)
-	(tramp-clear-passwd vec)
-	(tramp-error-with-buffer
-	 nil vec 'file-error
-	 (cond
-	  ((eq exit 'permission-denied) "Permission denied")
-	  ((eq exit 'process-died) "Process died")
-	  (t "Login failed")))))))
+    (save-restriction
+      (let (exit)
+	(while (not exit)
+	  (tramp-message proc 3 "Waiting for prompts from remote shell")
+	  (setq exit
+		(catch 'tramp-action
+		  (if timeout
+		      (with-timeout (timeout)
+			(tramp-process-one-action proc vec actions))
+		    (tramp-process-one-action proc vec actions)))))
+	(with-current-buffer (tramp-get-connection-buffer vec)
+	  (widen)
+	  (tramp-message vec 6 "\n%s" (buffer-string)))
+	(unless (eq exit 'ok)
+	  (tramp-clear-passwd vec)
+	  (tramp-error-with-buffer
+	   nil vec 'file-error
+	   (cond
+	    ((eq exit 'permission-denied) "Permission denied")
+	    ((eq exit 'process-died) "Process died")
+	    (t "Login failed"))))))))
 
 ;; Utility functions.
 
@@ -7346,9 +7362,17 @@ Goes through the list `tramp-inline-compress-commands'."
 	   vec 5
 	   "Checking local compress command `%s', `%s' for sanity"
 	   compress decompress)
-	  (unless (zerop (tramp-call-local-coding-command
-			  (format "echo %s | %s | %s"
-				  magic compress decompress) nil nil))
+	  (unless
+	      (zerop
+	       (tramp-call-local-coding-command
+		(format
+		 ;; Windows shells need the program file name after
+		 ;; the pipe symbol be quoted if they use forward
+		 ;; slashes as directory separators.
+		 (if (memq system-type '(windows-nt))
+		     "echo %s | \"%s\" | \"%s\""
+		   "echo %s | %s | %s")
+		 magic compress decompress) nil nil))
 	    (throw 'next nil))
 	  (tramp-message
 	   vec 5
@@ -8629,9 +8653,25 @@ function cell is returned to be applied on a buffer."
 	 ((symbolp coding)
 	  coding)
 	 ((and compress (string-match "decoding" prop))
-	  (format "(%s | %s >%%s)" coding compress))
+	  (format
+	   ;; Windows shells need the program file name after
+	   ;; the pipe symbol be quoted if they use forward
+	   ;; slashes as directory separators.
+	   (if (and (string-match "local" prop)
+		    (memq system-type '(windows-nt)))
+	       "(%s | \"%s\" >%%s)"
+	     "(%s | %s >%%s)")
+	   coding compress))
 	 (compress
-	  (format "(%s <%%s | %s)" compress coding))
+	  (format
+	   ;; Windows shells need the program file name after
+	   ;; the pipe symbol be quoted if they use forward
+	   ;; slashes as directory separators.
+	   (if (and (string-match "local" prop)
+		    (memq system-type '(windows-nt)))
+	       "(%s <%%s | \"%s\")"
+	     "(%s <%%s | %s)")
+	   compress coding))
 	 ((string-match "decoding" prop)
 	  (format "%s >%%s" coding))
 	 (t

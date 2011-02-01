@@ -1,7 +1,7 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
@@ -499,10 +499,8 @@ matched by the whole REGEXP becomes the hyperlink.
 
 Additional HIGHLIGHTs as described under `font-lock-keywords' can
 be added."
-  :type `(set :menu-tag "Pick"
-	      ,@(mapcar (lambda (elt)
-			  (list 'const (car elt)))
-			compilation-error-regexp-alist-alist))
+  :type '(repeat (choice (symbol :tag "Predefined symbol")
+			 (sexp :tag "Error specification")))
   :link `(file-link :tag "example file"
 		    ,(expand-file-name "compilation.txt" data-directory))
   :group 'compilation)
@@ -2389,5 +2387,4 @@ The file-structure looks like this:
 
 (provide 'compile)
 
-;; arch-tag: 12465727-7382-4f72-b234-79855a00dd8c
 ;;; compile.el ends here

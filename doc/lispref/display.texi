@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/display
@@ -3657,9 +3657,8 @@ display specifications and what they mean.
 * Replacing Specs::      Display specs that replace the text.
 * Specified Space::      Displaying one space with a specified width.
 * Pixel Specification::  Specifying space width or height in pixels.
-* Other Display Specs::  Displaying an image; magnifying text; moving it
-                          up or down on the page; adjusting the width
-                          of spaces within text.
+* Other Display Specs::     Displaying an image; adjusting the height,
+                              spacing, and other properties of text.
 * Display Margins::     Displaying text or images to the side of the main text.
 @end menu
 
@@ -3889,6 +3888,13 @@ instead of the text that has the display specification, at the same
 position as that text.  It is equivalent to using just @var{string},
 but it is done as a special case of marginal display (@pxref{Display
 Margins}).
+
+@item (left-fringe @var{bitmap} @r{[}@var{face}@r{]})
+@itemx (right-fringe @var{bitmap} @r{[}@var{face}@r{]})
+This display specification on any character of a line of text causes
+the specified @var{bitmap} be displayed in the left or right fringes
+for that line.  The optional @var{face} specifies the colors to be
+used for the bitmap.  @xref{Fringe Bitmaps}, for the details.
 
 @item (space-width @var{factor})
 This display specification affects all the space characters within the
@@ -4955,8 +4961,9 @@ and returns it.
 button actually part of the text instead of being a property of the
 buffer.  Buttons using text properties do not create markers into the
 buffer, which is important for speed when you use extremely large
-numbers of buttons.  Both functions return the position of the start
-of the new button:
+numbers of buttons.  (However, if there is an existing face text
+property at the site of the button, the button face may not be visible.)
+Both functions return the position of the start of the new button:
 
 @defun make-text-button beg end &rest properties
 This makes a button from @var{beg} to @var{end} in the current buffer, using
@@ -5897,7 +5904,3 @@ This hook is used for internal purposes: setting up communication with
 the window system, and creating the initial window.  Users should not
 interfere with it.
 @end defvar
-
-@ignore
-   arch-tag: ffdf5714-7ecf-415b-9023-fbc6b409c2c6
-@end ignore

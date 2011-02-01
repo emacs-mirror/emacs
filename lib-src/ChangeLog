@@ -1,3 +1,20 @@
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ntlib.c (setregid): New stub, renamed from setegid.
+
+	* ntlib.h: Update prototype.
+
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* movemail.c (main): Use setregid instead of setegid, which is
+	missing on older systems.  Suggested by Peter O'Gorman (Bug#6811).
+
+2011-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* ebrowse.c (version) <emacs_copyright>:
+	* etags.c (print_version) <emacs_copyright>:
+	* rcs2log (Copyright): Set short copyright year to 2011.
+
 2010-11-27  Joe Matarazzo  <joe.matarazzo@gmail.com>  (tiny change)
 
 	* ebrowse.c (yylex): If end of input buffer encountered while
@@ -7017,7 +7034,7 @@
 
     Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995,
 	1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
-	2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+	2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

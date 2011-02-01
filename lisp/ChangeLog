@@ -1,3 +1,482 @@
+2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): If destination is an existing
+	directory, copy into a subdirectory there.
+
+2011-01-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/shadow.el (load-path-shadows-find): Ignore leim-list
+	files.
+
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-dired.el (image-dired-mouse-display-image): No-op if no
+	file is found (Bug#7817).
+
+	* mouse.el (mouse-menu-non-singleton): Doc fix (Bug#7801).
+
+2011-01-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-keyboard-layout-alist): Remove
+	superfluous SPC for "pc105-uk" (bug#7927).
+
+2011-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* msb.el (msb-menu-bar-update-buffers): Update for changed
+	argument handling of menu-bar-select-frame.  (Bug#7902)
+
+2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cc-engine.el (c-forward-<>-arglist-recur): Set a limit
+	to the recursion depth (Bug#7722).
+
+2011-01-26  Roy Liu  <carsomyr@gmail.com>  (tiny change)
+
+	* term/ns-win.el (ns-find-file): Expand ns-input-file with
+	command-line-default-directory (Bug#7872).
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (comint-mode): Doc fix.  (Bug#7897)
+
+2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (file-name-non-special): Only change buffer-file-name after
+	insert-file-contents if it's `visit'ing the file (bug#7854).
+
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-revert): Doc fix (Bug#7758).
+
+2011-01-23  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-here-doc-beg-match): Fix for
+	here-doc which ends with an underscore.
+	(ruby-mode-set-encoding): Skip shebang line always.
+	(ruby-mode-map): Bind C-c C-c to comment-region.
+	(ruby-font-lock-keywords): Highlight literal hash key labels as symbols.
+	(ruby-forward-sexp): Stop after literal hash key labels.
+	(ruby-font-lock-syntactic-keywords): Highlight regexp after open
+	bracket.
+
+2011-01-22  Keitaro Miyazaki  <keitaro.miyazaki@gmail.com>  (tiny change)
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Set case-fold-search in
+	the correct buffer (Bug#7650).
+
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (do-auto-fill): Give it a doc string.
+
+	* button.el (make-text-button): Doc fix.  (See bug#7881)
+
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-visual): Doc fix (Bug#7594).
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Fix logic error in
+	"Case sensitive" menu item.
+
+2011-01-21  Roland McGrath  <roland@frob.com>
+
+	* comint.el (comint-replace-by-expanded-history-before-point): Fix
+	expansion of !$ and !!:N syntax to pick the indicated word (bug#7883).
+
+2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/js.el (js--regexp-literal): Count backslashes (bug#7882).
+
+2011-01-21  Jari Aalto  <jari.aalto@cante.net>
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Assume foo(bar) is a manpage reference rather than some unquoted
+	symbol (bug#7705).
+
+2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (shell-quote-argument): Properly quote \n (bug#7687).
+	Suggested by Flo <sensorflo@gmail.com>.
+
+2011-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Fix custom type.  (Bug#7812)
+
+2011-01-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't re-evaluate the
+	keymap expression.  Improve docstring.
+
+2011-01-15  Mark Diekhans  <markd@soe.ucsc.edu>
+
+	* files.el (backup-buffer): Make last-resort backup file in
+	.emacs.d (Bug#6953).
+
+	* subr.el (locate-user-emacs-file): If .emacs.d does not exist,
+	make it with permission 700.
+
+2011-01-14  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-header):
+	Set rmail-mime-coding-system to a cons whose car is the last coding
+	system used to decode the header.
+	(rmail-mime-find-header-encoding): New function.
+	(rmail-mime-insert-decoded-text):
+	Override rmail-mime-coding-system if it is a cons.
+	(rmail-show-mime): If only a header part was decoded, find the
+	coding system while ignoring mm-charset-override-alist.
+
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (event-start, event-end): Doc fix (Bug#7826).
+
+2011-01-12  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-next-item)
+	(rmail-mime-previous-item): Delete them.
+	(rmail-mime-shown-mode): Recursively call for children.
+	(rmail-mime-hidden-mode): Delete the 2nd arg TOP.
+	Callers changed.
+	(rmail-mime-raw-mode): Recursively call for children.
+	(rmail-mode-map): Change mapping of tab and backtab to
+	forward-button and backward-button respectively.
+	(rmail-mime-insert-tagline): Always insert "Hide" or "Show"
+	button.
+	(rmail-mime-update-tagline): New function.
+	(rmail-mime-insert-text): Call rmail-mime-update-tagline if the
+	body display is changed.
+	(rmail-mime-toggle-button): Rename from rmail-mime-image.
+	(rmail-mime-image): Delete this button type.
+	(rmail-mime-toggle): New button type.
+	(rmail-mime-insert-bulk): Call rmail-mime-update-tagline if the
+	body display is changed.  Change the save button label to "Save".
+	Don't process show/hide button here.
+	(rmail-mime-insert-multipart): Call rmail-mime-update-tagline if
+	the body display is changed.  Unconditionally call
+	rmail-mime-insert for children.
+	(rmail-mime-handle): Update `display' vector of the just inserted
+	entity.
+	(rmail-mime-process): If mail-header-parse-content-type returns
+	nil, use "text/plain" as the fallback type.
+	(rmail-mime-insert): For raw-mode, recursively call
+	rmail-mim-insert for children.
+	(rmail-mime): Handle the case that the current buffer is not rmail
+	buffer (e.g. in summary buffer).
+
+2011-01-05  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-next-item)
+	(rmail-mime-previous-item): Skip the body of a non-multipart
+	entity if a tagline is shown.
+
+2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-get-keymap): Skip bindings without labels (bug#7721).
+	(tmm-prompt): Simplify.
+	(tmm-add-prompt): Remove unused var `win'.
+
+	* whitespace.el (global-whitespace-newline-mode): Fix call (bug#7810)
+	to minor mode which used nil accidentally to mean "turn off".
+
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-find-inline-compress)
+	(tramp-get-inline-coding): Quote command after pipe symbol for
+	local calls under W32.  (Bug#6784)
+
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-default-method): Initialize with pscp/plink
+	only when running under W32.
+
+2011-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/grep.el (grep-compute-defaults): Quote the program
+	file name after the pipe symbol in Grep templates.  (Bug#6784)
+	* jka-compr.el (jka-compr-partial-uncompress): Likewise.
+
+2011-01-08  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* buff-menu.el (Buffer-menu-buffer-list): New var.
+	(Buffer-menu-revert-function, list-buffers-noselect): Use it, so a
+	restricted buffer list is not lost on revert (Bug#7749).
+
+2011-01-08  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* net/ldap.el (ldap-search-internal): Discard stderr output.
+
+2011-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (directory-abbrev-alist): Doc fix.  (Bug#7777)
+
+2011-01-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-annotate-command, vc-bzr-annotate-time):
+	Author names can have spaces (bug#7792).
+
+2011-01-04  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-bulk): Display an unknown
+	part as a plain text.
+	(rmail-mime-process-multipart): Set the default content-type to
+	nil for unknown multipart subtypes (bug#7651).
+
+2011-01-03  Brent Goodrick  <bgoodr@gmail.com>  (tiny change)
+
+	* abbrev.el (prepare-abbrev-list-buffer): If listing local abbrev
+	table, get the value before switching to the output buffer.  (Bug#7733)
+
+2011-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-mode): Don't impose font-lock (bug#3628).
+
+2011-01-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (file-local-variables-alist):
+	Make permanent-local (bug#7767).
+
+2011-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-copyright): Set short copyright year to 2011.
+
+2011-01-02  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
+
+	* mail/mail-utils.el (mail-strip-quoted-names): Avoid clobbering
+	an existing temp buffer.  (Bug#7746)
+
+2011-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mail-utils.el (mail-mbox-from): Handle From: headers with
+	multiple addresses.  (Bug#7760)
+
+2010-12-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Add recursive options to "scpc",
+	"scpx", "pscp" and "psftp".
+
+2010-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (image-library-alist): Set up correctly for
+	libpng versions both before and after 1.4.0.  (Bug#7716)
+
+2010-12-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* time.el (display-time-mode): Mention display-time-interval in
+	the doc string.  (Bug#7713)
+
+	* simple.el (select-active-regions): Doc fix.  (Bug#7702)
+
+2010-12-24  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-parse): Perform parsing in
+	condition-case and return an error message string if something
+	goes wrong.
+	(rmail-show-mime): Adjust for the above change.  Insert the
+	header by rmail-mime-insert-header.
+
+2010-12-24  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el: New key bindings for rmail-mime-next-item,
+	rmail-mime-previous-item, and rmail-mime-toggle-hidden.
+	(rmail-mime-mbox-buffer)
+	(rmail-mime-view-buffer, rmail-mime-coding-system): New variables.
+	(rmail-mime-entity): Argument changed.  All codes handling an
+	entity object are changed.
+	(rmail-mime-entity-header, rmail-mime-entity-body): Adjust for
+	the above change.
+	(rmail-mime-entity-children, rmail-mime-entity-handler)
+	(rmail-mime-entity-tagline): New functions.
+	(rmail-mime-message-p): New function.
+	(rmail-mime-save): Bind rmail-mime-mbox-buffer.
+	(rmail-mime-entity-segment, rmail-mime-next-item)
+	(rmail-mime-previous-item, rmail-mime-shown-mode)
+	(rmail-mime-hidden-mode, rmail-mime-raw-mode)
+	(rmail-mime-toggle-raw, rmail-mime-toggle-hidden)
+	(rmail-mime-insert-tagline, rmail-mime-insert-header):
+	New functions.
+	(rmail-mime-text-handler): Call rmail-mime-insert-text.
+	(rmail-mime-insert-decoded-text): New function.
+	(rmail-mime-insert-text): Call rmail-mime-insert-decoded-text.
+	(rmail-mime-insert-image): Argument changed.  Caller changed.
+	(rmail-mime-image): Call rmail-mime-toggle-hidden.
+	(rmail-mime-set-bulk-data): New funciton.
+	(rmail-mime-insert-bulk): Argument changed.
+	(rmail-mime-multipart-handler): Return t.
+	(rmail-mime-process-multipart): Argument changed.
+	Handle "multipart/alternative" here.
+	(rmail-mime-process): Argument changed.
+	(rmail-mime-parse): Bind rmail-mime-mbox-buffer.
+	(rmail-mime-insert): Argument changed.  Handle raw display mode.
+	(rmail-mime): Argument changed.  Handle toggling of raw display
+	mode.
+	(rmail-show-mime): Bind rmail-mime-mbox-buffer and
+	rmail-mime-view-buffer.
+	(rmail-insert-mime-forwarded-message): Likewise.
+	(rmail-search-mime-message): Likewise.  Don't bind rmail-buffer.
+
+	* mail/rmail.el (rmail-show-message-1): If rmail-enable-mime is
+	non-nil, handle the header in rmail-show-mime-function.
+
+2010-12-20  Leo  <sdl.web@gmail.com>
+
+	* help-fns.el (describe-variable): Fix 2010-12-17 change.
+
+2010-12-20  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-error): New variable.
+	(isearch-lazy-highlight-new-loop): Compare `isearch-error' and
+	`isearch-lazy-highlight-error'.  Set `isearch-lazy-highlight-error'
+	to the current value of `isearch-error' (Bug#7468).
+
+2010-12-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help-fns.el (describe-variable): Don't emit trailing whitespace
+	(Bug#7511).
+
+2010-12-17  Leo  <sdl.web@gmail.com>
+
+	* eshell/em-hist.el (eshell-previous-matching-input): Signal error
+	if point is not behind eshell-last-output-end (Bug#7585).
+
+2010-12-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/rst.el (rst-compile-pdf-preview)
+	(rst-compile-slides-preview): Use make-temp-file (Bug#7646).
+
+2010-12-15  Kevin Gallagher  <Kevin.Gallagher@boeing.com>
+
+	* emulation/edt-mapper.el: Override mapping of function keys so
+	that the later call to read-key-sequence works.
+
+2010-12-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Write queued mail body with
+	Unix EOLs.  (Bug#7589)
+
+2010-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (posn-col-row): Evaluate header-line-format in the
+	context of the POSITION window's buffer.
+
+2010-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (member-ignore-case, run-mode-hooks, insert-for-yank-1)
+	(with-silent-modifications): Doc fixes.
+
+2010-12-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-action-password, tramp-process-actions):
+	Revert patch from 2010-12-08.  Use `save-restriction'.
+
+2010-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-frame-for-menubar, menu-bar-positive-p):
+	New functions.
+	(menu-bar-showhide-menu) <menu-bar-mode, showhide-tool-bar>: Use
+	them instead of `nil' and `>', respectively.  (Bug#1077)
+
+2010-12-09  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/diary-lib.el (diary-list-sexp-entries):
+	Handle case of no newline at end of file.  (Bug#7536)
+
+2010-12-09  Glenn Morris  <rgm@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Revert previous change.
+
+2010-12-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-start-file-process):
+	Protect buffer-modified value.  (Bug#7557)
+	(tramp-action-password): Delete region, do not narrow.
+	(tramp-process-actions): Do not widen.
+
+2010-12-08   Jan Moringen  <jmoringe@techfak.uni-bielefeld.de>
+
+	* log-edit.el (log-edit-changelog-entries):
+	Regexp quote filename.  (Bug#7505)
+
+2010-12-08  Tom Breton  <tehom@panix.com>
+
+	* cus-edit.el (custom-save-all):
+	Bind print-length and print-level to nil.  (Bug#7581)
+
+2010-12-08  Glenn Morris  <rgm@gnu.org>
+
+	* mouse.el (mouse-menu-major-mode-map, mouse-menu-bar-map):
+	Run hooks to update menu contents.  (Bug#7586)
+
+	* mail/smtpmail.el (smtpmail-send-it): Avoid colons in the queued
+	file names, for the sake of MS Windows.  (Bug#7588)
+
+2010-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-refine-hunk): Make it work when the hunk contains
+	empty lines without a leading space.
+
+2010-12-06  Leo  <sdl.web@gmail.com>
+
+	* dired-aux.el (dired-do-redisplay): Postpone dired-after-readin-hook
+	while mapping over marks (Bug#6810).
+
+2010-12-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-dired.el (image-dired-db-file)
+	(image-dired-temp-image-file, image-dired-gallery-dir)
+	(image-dired-temp-rotate-image-file): Set default values relative
+	to image-dired-dir (Bug#7518).
+
+2010-12-06  Lawrence Mitchell  <wence@gmx.li>
+
+	* format.el (format-decode-run-method): Pass args FROM and TO, not
+	point-min and point-max, to shell-command-on-region (Bug#7488).
+
+2010-12-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.el (blink-cursor-mode): Make default t for ns.
+
+2010-12-05  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
+
+	* vc-dir.el (vc-dir-query-replace-regexp): Doc fix (Bug#7501).
+
+2010-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* comint.el (comint-dynamic-list-input-ring)
+	(comint-dynamic-complete-filename)
+	(comint-replace-by-expanded-filename)
+	(comint-dynamic-simple-complete)
+	(comint-dynamic-list-filename-completions)
+	(comint-dynamic-list-completions): Doc fix (Bug#7499).
+
+	* subr.el (posn-x-y, posn-object-x-y, posn-object-width-height):
+	Doc fix (Bug#7471).
+
+2010-12-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-pop-to-buffer): Bind pop-up-frames to nil
+	(Bug#7533).
+
+2010-12-04  W. Martin Borgert <debacle@debian.org>  (tiny change)
+
+	* files.el (auto-mode-alist): Handle .dbk (DocBook) with xml-mode.
+	(Bug#7491).
+
+2010-12-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (transient-mark-mode): Doc fix (Bug#7465).
+
+2010-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (file-relative-name): Handle UNC file names on
+	DOS/Windows.  (Bug#4674)
+
+2010-12-03  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg-digest-algorithm-alist): Replace "RMD160" with
+	"RIPEMD160" (Bug#7490).  Reported by Daniel Kahn Gillmor.
+	(epg-context-set-passphrase-callback): Mention that the callback
+	is not called when used with GnuPG 2.x.
+
 2010-12-02  Glenn Morris  <rgm@gnu.org>
 
 	* ps-print.el (ps-line-lengths-internal, ps-nb-pages):
@@ -3373,7 +3852,7 @@
 
 2009-12-25  Kenichi Handa  <handa@m17n.org>
 
-	* language/indian.el (devanagari-composable-pattern): Fixed to
+	* language/indian.el (devanagari-composable-pattern): Fix to
 	handle ZWNJ and ZWJ.  Use it in composition-function-table for
 	Devanagari.
 	(malayalam-composable-pattern): Fix previous change.
@@ -3388,8 +3867,8 @@
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar--convert-tz-offset):
-	Fixed timezone names.
-	(icalendar--convert-tz-offset): Fixed the "last-day-problem".
+	Fix timezone names.
+	(icalendar--convert-tz-offset): Fix the "last-day-problem".
 	(icalendar--add-diary-entry): Remove the trailing blank that
 	diary-make-entry inserts.
 
@@ -3406,7 +3885,7 @@
 	(tramp-advice-file-expand-wildcards): Remove it.
 
 	* net/tramp-compat.el (top): Autoload `tramp-handle-file-remote-p'.
-	(tramp-advice-file-expand-wildcards): Moved from tramp.el.
+	(tramp-advice-file-expand-wildcards): Move from tramp.el.
 	Activate advice for older GNU Emacs versions.  (Bug#5237)
 
 2009-12-17  Juanma Barranquero  <lekktu@gmail.com>
@@ -4010,7 +4489,7 @@
 	(newsticker-treeview-next-new-or-immortal-item): Doc change.
 	(newsticker--treeview-first-feed): Doc change.
 	(newsticker-treeview-list-menu)
-	(newsticker-treeview-item-menu): Added menu entries.
+	(newsticker-treeview-item-menu): Add menu entries.
 	(newsticker-treeview-item-mode): New.
 
 	* net/newst-backend.el (newsticker-customize): Delete other
@@ -9588,7 +10067,7 @@
 	Don't modify last-coding-system-used by accident.
 	(tramp-completion-file-name-handler): Apply the checks here,
 	instead during registration.
-	(tramp-register-file-name-handlers): Renamed from
+	(tramp-register-file-name-handlers): Rename from
 	`tramp-register-file-name-handler'.  Register both
 	`tramp-file-name-handler' and `tramp-completion-file-name-handler'.
 	(tramp-register-completion-file-name-handler): Remove.  (Bug#4260)
@@ -10380,7 +10859,7 @@
 	'update signal.  Instead, update all disassembly buffers only after
 	threads list.
 	(gdb): Send -target-detach when buffer is killed (Bug#3794).
-	(gdb-starting): Moved -data-list-register-names...
+	(gdb-starting): Move -data-list-register-names...
 	(gdb-stopped): ...here so it's sent when first thread stops.
 	(gdb-registers-handler-custom): Do nothing if register names are
 	unknown yet.
@@ -10519,8 +10998,8 @@
 
 	* progmodes/gdb-mi.el (gdb-var-create-regexp): Removed.
 	(gdb-var-create-handler): Rewritten using JSON parser.
-	(gdb-propertize-header): Moved earlier.
-	(gdb-set-header): Removed to avoid duplication.
+	(gdb-propertize-header): Move earlier.
+	(gdb-set-header): Remove to avoid duplication.
 	(gdb-thread-list-handler-custom, gdb-invalidate-disassembly):
 	Refresh disassembly buffers only after threads list have been
 	update.
@@ -10590,7 +11069,7 @@
 	(gdb-locals-handler-custom): Now prints data like in variable
 	declarations.
 	(gdb-jump-to, gdb-file-button, gdb-insert-file-location-button):
-	Removed confusing buttons.
+	Remove confusing buttons.
 	(gdb-invalidate-threads): Append --frame.
 	(gdb-threads-mode-map, gdb-breakpoints-mode-map): TAB to switch
 	between breakpoints/threads buffers.
@@ -10668,7 +11147,7 @@
 	(def-gdb-auto-update-handler): New nopreserve optional argument.
 	(gdb-stack-list-frames-custom): Print stack from top to bottom.
 
-	* progmodes/gdb-mi.el (gdb-pc-address): Removed unused variable.
+	* progmodes/gdb-mi.el (gdb-pc-address): Remove unused variable.
 	(gdb-threads-list, gdb-breakpoints-list): New assoc lists.
 	(gdb-parent-mode): New mode to derive other GDB modes from.
 	(gdb-display-disassembly-for-thread)
@@ -10692,7 +11171,7 @@
 	(gdb-display-registers-for-thread, gdb-frame-stack-for-thread)
 	(gdb-frame-locals-for-thread, gdb-frame-registers-for-thread):
 	New commands which show buffers bound to thread.
-	(gdb-stack-list-locals-regexp): Removed unused regexp.
+	(gdb-stack-list-locals-regexp): Remove unused regexp.
 
 	* progmodes/gdb-mi.el (gdb-breakpoints-buffer-name)
 	(gdb-locals-buffer-name, gdb-registers-buffer-name)
@@ -12096,7 +12575,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -12112,4 +12591,3 @@ See ChangeLog.14 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

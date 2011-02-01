@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
 ;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -56,7 +56,10 @@ when it has unsaved changes."
 A list of elements of the form (FROM . TO), each meaning to replace
 FROM with TO when it appears in a directory name.  This replacement is
 done when setting up the default directory of a newly visited file.
-*Every* FROM string should start with \"\\\\`\".
+
+FROM is matched against directory names anchored at the first
+character, so it should start with a \"\\\\`\", or, if directory
+names cannot have embedded newlines, with a \"^\".
 
 FROM and TO should be equivalent names, which refer to the
 same directory.  Do not use `~' in the TO strings;
@@ -2267,6 +2270,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
      ("\\.oak\\'" . scheme-mode)
      ("\\.sgml?\\'" . sgml-mode)
      ("\\.x[ms]l\\'" . xml-mode)
+     ("\\.dbk\\'" . xml-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.js\\'" . js-mode)		; javascript-mode would be better
@@ -2787,6 +2791,7 @@ is a file-local variable (a symbol) and VALUE is the value
 specified.  The actual value in the buffer may differ from VALUE,
 if it is changed by the major or minor modes, or by the user.")
 (make-variable-buffer-local 'file-local-variables-alist)
+(put 'file-local-variables-alist 'permanent-local t)
 
 (defvar dir-local-variables-alist nil
   "Alist of directory-local variable settings in the current buffer.
@@ -3678,10 +3683,9 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 			(rename-file real-file-name backupname t)
 			(setq setmodes (cons modes backupname)))
 		    (file-error
-		     ;; If trouble writing the backup, write it in ~.
-		     (setq backupname (expand-file-name
-				       (convert-standard-filename
-					"~/%backup%~")))
+		     ;; If trouble writing the backup, write it in
+		     ;; .emacs.d/%backup%.
+		     (setq backupname (locate-user-emacs-file "%backup%~"))
 		     (message "Cannot write backup file; backing up in %s"
 			      backupname)
 		     (sleep-for 1)
@@ -4054,11 +4058,29 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
           (dremote (file-remote-p directory)))
       (if ;; Conditions for separate trees
 	  (or
-	   ;; Test for different drives on DOS/Windows
+	   ;; Test for different filesystems on DOS/Windows
 	   (and
 	    ;; Should `cygwin' really be included here?  --stef
 	    (memq system-type '(ms-dos cygwin windows-nt))
-	    (not (eq t (compare-strings filename 0 2 directory 0 2))))
+	    (or
+	     ;; Test for different drive letters
+	     (not (eq t (compare-strings filename 0 2 directory 0 2)))
+	     ;; Test for UNCs on different servers
+	     (not (eq t (compare-strings
+			 (progn
+			   (if (string-match "\\`//\\([^:/]+\\)/" filename)
+			       (match-string 1 filename)
+			     ;; Windows file names cannot have ? in
+			     ;; them, so use that to detect when
+			     ;; neither FILENAME nor DIRECTORY is a
+			     ;; UNC.
+			     "?"))
+			 0 nil
+			 (progn
+			   (if (string-match "\\`//\\([^:/]+\\)/" directory)
+			       (match-string 1 directory)
+			     "?"))
+			 0 nil t)))))
 	   ;; Test for different remote file system identification
 	   (not (equal fremote dremote)))
 	  filename
@@ -4734,7 +4756,22 @@ this happens by default."
       ;; Compute target name.
       (setq directory (directory-file-name (expand-file-name directory))
 	    newname   (directory-file-name (expand-file-name newname)))
-      (if (not (file-directory-p newname)) (make-directory newname parents))
+
+      (if (not (file-directory-p newname))
+	  ;; If NEWNAME is not an existing directory, create it; that
+	  ;; is where we will copy the files of DIRECTORY.
+	  (make-directory newname parents)
+	;; If NEWNAME is an existing directory, we will copy into
+	;; NEWNAME/[DIRECTORY-BASENAME].
+	(setq newname (expand-file-name
+		       (file-name-nondirectory
+			(directory-file-name directory))
+		       newname))
+	(if (and (file-exists-p newname)
+		 (not (file-directory-p newname)))
+	    (error "Cannot overwrite non-directory %s with a directory"
+		   newname))
+	(make-directory newname t))
 
       ;; Copy recursively.
       (mapc
@@ -6019,8 +6056,7 @@ only these files will be asked to be saved."
 			  (substitute-in-file-name identity)
 			  ;; `add' means add "/:" to the result.
 			  (file-truename add 0)
-			  ;; `quote' means add "/:" to buffer-file-name.
-			  (insert-file-contents quote 0)
+			  (insert-file-contents insert-file-contents 0)
 			  ;; `unquote-then-quote' means set buffer-file-name
 			  ;; temporarily to unquoted filename.
 			  (verify-visited-file-modtime unquote-then-quote)
@@ -6051,20 +6087,18 @@ only these files will be asked to be saved."
 			   "/"
 			 (substring (car pair) 2)))))
 	(setq file-arg-indices (cdr file-arg-indices))))
-    (cond ((eq method 'identity)
-	   (car arguments))
-	  ((eq method 'add)
-	   (concat "/:" (apply operation arguments)))
-	  ((eq method 'quote)
-	   (unwind-protect
+    (case method
+      (identity (car arguments))
+      (add (concat "/:" (apply operation arguments)))
+      (insert-file-contents
+       (let ((visit (nth 1 arguments)))
+         (prog1
 	       (apply operation arguments)
-	     (setq buffer-file-name (concat "/:" buffer-file-name))))
-	  ((eq method 'unquote-then-quote)
-	   (let (res)
-	     (setq buffer-file-name (substring buffer-file-name 2))
-	     (setq res (apply operation arguments))
-	     (setq buffer-file-name (concat "/:" buffer-file-name))
-	     res))
+           (when (and visit buffer-file-name)
+             (setq buffer-file-name (concat "/:" buffer-file-name))))))
+      (unquote-then-quote
+       (let ((buffer-file-name (substring buffer-file-name 2)))
+         (apply operation arguments)))
 	  (t
 	   (apply operation arguments)))))
 

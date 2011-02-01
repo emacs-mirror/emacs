@@ -1,7 +1,7 @@
 ;;; cc-engine.el --- core syntax guessing engine for CC mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Authors:    2001- Alan Mackenzie
@@ -4393,6 +4393,8 @@ comment at the start of cc-engine.el for more info."
       (goto-char safe-pos)
       t)))
 
+(defvar c-forward-<>-arglist-recur-depth)
+
 (defun c-forward-<>-arglist (all-types)
   ;; The point is assumed to be at a "<".  Try to treat it as the open
   ;; paren of an angle bracket arglist and move forward to the
@@ -4418,7 +4420,8 @@ comment at the start of cc-engine.el for more info."
 	;; If `c-record-type-identifiers' is set then activate
 	;; recording of any found types that constitute an argument in
 	;; the arglist.
-	(c-record-found-types (if c-record-type-identifiers t)))
+	(c-record-found-types (if c-record-type-identifiers t))
+	(c-forward-<>-arglist-recur--depth 0))
     (if (catch 'angle-bracket-arglist-escape
 	  (setq c-record-found-types
 		(c-forward-<>-arglist-recur all-types)))
@@ -4434,6 +4437,14 @@ comment at the start of cc-engine.el for more info."
       nil)))
 
 (defun c-forward-<>-arglist-recur (all-types)
+
+  ;; Temporary workaround for Bug#7722.
+  (when (boundp 'c-forward-<>-arglist-recur--depth)
+    (if (> c-forward-<>-arglist-recur--depth 200)
+	(error "Max recursion depth reached in <> arglist")
+      (setq c-forward-<>-arglist-recur--depth
+	    (1+ c-forward-<>-arglist-recur--depth))))
+
   ;; Recursive part of `c-forward-<>-arglist'.
   ;;
   ;; This function might do hidden buffer changes.

@@ -1,8 +1,8 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010, 2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -3528,7 +3528,7 @@ a mistake; see the documentation of `set-mark'."
     (signal 'mark-inactive nil)))
 
 (defcustom select-active-regions nil
-  "If non-nil, an active region automatically becomes the window selection."
+  "If non-nil, an active region automatically sets the primary selection."
   :type 'boolean
   :group 'killing
   :version "23.1")
@@ -3916,15 +3916,17 @@ Non-nil also enables highlighting of the region whenever the mark is active.
 The variable `highlight-nonselected-windows' controls whether to highlight
 all windows or just the selected window.
 
-If the value is `lambda', that enables Transient Mark mode temporarily.
-After any subsequent action that would normally deactivate the mark
-\(such as buffer modification), Transient Mark mode is turned off.
+Lisp programs may give this variable certain special values:
 
-If the value is (only . OLDVAL), that enables Transient Mark mode
-temporarily.  After any subsequent point motion command that is not
-shift-translated, or any other action that would normally deactivate
-the mark (such as buffer modification), the value of
-`transient-mark-mode' is set to OLDVAL.")
+- A value of `lambda' enables Transient Mark mode temporarily.
+  It is disabled again after any subsequent action that would
+  normally deactivate the mark (e.g. buffer modification).
+
+- A value of (only . OLDVAL) enables Transient Mark mode
+  temporarily.  After any subsequent point motion command that is
+  not shift-translated, or any other action that would normally
+  deactivate the mark (e.g. buffer modification), the value of
+  `transient-mark-mode' is set to OLDVAL.")
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.
@@ -4071,9 +4073,11 @@ Outline mode sets this."
   "When non-nil, `line-move' moves point by visual lines.
 This movement is based on where the cursor is displayed on the
 screen, instead of relying on buffer contents alone.  It takes
-into account variable-width characters and line continuation."
+into account variable-width characters and line continuation.
+If nil, `line-move' moves point by logical lines."
   :type 'boolean
-  :group 'editing-basics)
+  :group 'editing-basics
+  :version "23.1")
 
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
@@ -4113,6 +4117,11 @@ into account variable-width characters and line continuation."
 	 ;; When already vscrolled, we vscroll some more if we can,
 	 ;; or clear vscroll and move forward at end of tall image.
 	 ((> (setq vs (window-vscroll nil t)) 0)
+
+	  ;; If we are vscrolling an image at the top of the screen,
+	  ;; we could actually advance point if this yields space
+	  ;; below....
+
 	  (when (> rbot 0)
 	    (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
 	 ;; If cursor just entered the bottom scroll margin, move forward,
@@ -4998,12 +5007,10 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 		 regexp)
   :group 'fill)
 
-;; This function is used as the auto-fill-function of a buffer
-;; when Auto-Fill mode is enabled.
-;; It returns t if it really did any work.
-;; (Actually some major modes use a different auto-fill function,
-;; but this one is the default one.)
 (defun do-auto-fill ()
+  "The default value for `normal-auto-fill-function'.
+This is the default auto-fill function, some major modes use a different one.
+Returns t if it really did any work."
   (let (fc justify give-up
 	   (fill-prefix fill-prefix))
     (if (or (not (setq justify (current-justification)))
@@ -6657,5 +6664,4 @@ warning using STRING as the message.")
 
 (provide 'simple)
 
-;; arch-tag: 24af67c0-2a49-44f6-b3b1-312d8b570dfd
 ;;; simple.el ends here

@@ -1,6 +1,6 @@
 ;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/MacOS X window system
 
-;; Copyright (C) 1993, 1994, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1993, 1994, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Authors: Carl Edman
@@ -787,7 +787,8 @@ unless the current buffer is a scratch buffer."
   "Do a `find-file' with the `ns-input-file' as argument."
   (interactive)
   (let ((f) (file) (bufwin1) (bufwin2))
-    (setq f (file-truename (car ns-input-file)))
+    (setq f (file-truename (expand-file-name (car ns-input-file)
+					     command-line-default-directory)))
     (setq ns-input-file (cdr ns-input-file))
     (setq file (find-file-noselect f))
     (setq bufwin1 (get-buffer-window file 'visible))

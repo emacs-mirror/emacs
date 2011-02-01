@@ -1,3 +1,11 @@
+2010-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (end): Unset environment variables used by this
+	batch file.
+
+	* INSTALL: Update the information about PNG support libraries.
+	(Bug#7716)
+
 2010-08-02  Óscar Fuentes  <ofv@wanadoo.es>
 
 	* cmdproxy.c (main): Use _snprintf instead of wsprintf,
@@ -1757,7 +1765,7 @@
 ;; End:
 
     Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-       2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+       2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

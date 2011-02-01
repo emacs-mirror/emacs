@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
    Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -8764,9 +8764,13 @@ x_check_fullscreen (f)
   if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
     return; /* Only fullscreen without WM or with EWM hints (above). */
 
+  /* Setting fullscreen to nil doesn't do anything.  We could save the
+     last non-fullscreen size and restore it, but it seems like a
+     lot of work for this unusual case (no window manager running).  */
+
   if (f->want_fullscreen != FULLSCREEN_NONE)
     {
-      int width = FRAME_COLS (f), height = FRAME_LINES (f);
+      int width = FRAME_PIXEL_WIDTH (f), height = FRAME_PIXEL_HEIGHT (f);
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
       switch (f->want_fullscreen)
@@ -8783,13 +8787,9 @@ x_check_fullscreen (f)
         case FULLSCREEN_HEIGHT:
           height = x_display_pixel_height (dpyinfo);
         }
-      
-      if (FRAME_COLS (f) != width || FRAME_LINES (f) != height)
-        {
-          change_frame_size (f, height, width, 0, 1, 0);
-          SET_FRAME_GARBAGED (f);
-          cancel_mouse_face (f);
-        }
+
+      XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+                     width, height);
     }
 }
 

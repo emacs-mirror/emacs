@@ -1,3 +1,7 @@
+2011-01-03  Eduard Wiebe  <usenet@pusto.de>
+
+	* nxml-mode.texi (Introduction): Fix file name typos.
+
 2010-12-02  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (For Clauses): Small fixes for frames and windows.
@@ -6714,7 +6718,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-      2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+      2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

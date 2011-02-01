@@ -1,6 +1,6 @@
 /* Interface definitions for display code.
    Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999, 2000, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1988,6 +1988,12 @@ struct it
   /* Total number of overlay strings to process.  This can be >
      OVERLAY_STRING_CHUNK_SIZE.  */
   int n_overlay_strings;
+
+  /* The charpos where n_overlay_strings was calculated.  This should
+     be set at the same time as n_overlay_strings.  It is needed
+     because we show before-strings at the start of invisible text;
+     see handle_invisible_prop in xdisp.c.  */
+  int overlay_strings_charpos;
 
   /* Vector of overlays to process.  Overlay strings are processed
      OVERLAY_STRING_CHUNK_SIZE at a time.  */

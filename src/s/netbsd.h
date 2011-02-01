@@ -1,7 +1,7 @@
 /* s/ file for netbsd system.
 
    Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+                 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -45,8 +45,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_DEBUG
 /* -lutil is not needed for NetBSD >0.9.  */
 /* #define LIBS_SYSTEM -lutil */
-#ifdef HAVE_TERM_H
-#define TERMINFO
+#ifdef TERMINFO
 #define LIBS_TERMCAP -lterminfo
 #else
 #define LIBS_TERMCAP -ltermcap
