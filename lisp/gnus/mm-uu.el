@@ -158,6 +158,12 @@ This can be either \"inline\" or \"attachment\".")
      mm-uu-diff-extract
      nil
      mm-uu-diff-test)
+    (git-format-patch
+     "^diff --git "
+     "^-- "
+     mm-uu-diff-extract
+     nil
+     mm-uu-diff-test)
     (message-marks
      ;; Text enclosed with tags similar to `message-mark-insert-begin' and
      ;; `message-mark-insert-end'.  Don't use those variables to avoid

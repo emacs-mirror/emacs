@@ -1,3 +1,7 @@
+2011-02-01  Julien Danjou  <julien@danjou.info>
+
+	* color.el (color-gradient): Add a color-gradient function.
+
 2011-02-01  Sam Steingold  <sds@gnu.org>
 
 	* simple.el (special-mode-map): Bind "h" to `describe-mode';
