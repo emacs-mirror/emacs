@@ -1,3 +1,8 @@
+2011-02-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (tiff_load): Avoid compiler warning in 2nd arg to
+	TIFFClientOpen.
+
 2011-02-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsmfns.c (ice_connection_closed): Call delete_read_fd.
