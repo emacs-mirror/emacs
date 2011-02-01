@@ -1447,8 +1447,7 @@ Request data types in the order specified by `x-select-request-type'."
 (define-key special-event-map [drag-n-drop] 'x-dnd-handle-drag-n-drop-event)
 
 (defcustom x-gtk-stock-map
-  (mapcar (lambda (arg)
-	    (cons (purecopy (car arg)) (purecopy (cdr arg))))
+  (mapcar 'purecopy-cons
   '(
     ("etc/images/new" . "gtk-new")
     ("etc/images/open" . "gtk-open")

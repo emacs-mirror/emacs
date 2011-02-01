@@ -1,3 +1,16 @@
+2011-02-01  Sam Steingold  <sds@gnu.org>
+
+	* subr.el (purecopy-cons, purecopy-car): Add shortcuts.
+	* faces.el (face-x-resources): Use `purecopy-cons'.
+	* files.el (auto-mode-alist, interpreter-mode-alist): Use
+	`purecopy-car'.
+	* international/fontset.el (font-encoding-alist): Ditto.
+	* international/mule-conf.el (file-coding-system-alist): Ditto.
+	* international/mule.el (auto-coding-alist)
+	(auto-coding-regexp-alist): Ditto.
+	* mouse.el (mouse-buffer-menu-mode-groups): Use `purecopy-cons'.
+	* term/x-win.el (x-gtk-stock-map): Ditto.
+
 2011-02-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.el (load-theme): Define return value.  Drop use of

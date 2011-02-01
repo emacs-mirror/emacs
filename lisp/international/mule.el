@@ -1671,11 +1671,11 @@ in-place."
 (defcustom auto-coding-alist
   ;; .exe and .EXE are added to support archive-mode looking at DOS
   ;; self-extracting exe archives.
-  (mapcar (lambda (arg) (cons (purecopy (car arg)) (cdr arg)))
-	  '(("\\.\\(\
+  (mapcar 'purecopy-car
+   '(("\\.\\(\
 arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|7z\\|\
 ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'"
-     . no-conversion-multibyte)
+      . no-conversion-multibyte)
     ("\\.\\(exe\\|EXE\\)\\'" . no-conversion)
     ("\\.\\(sx[dmicw]\\|odt\\|tar\\|tgz\\)\\'" . no-conversion)
     ("\\.\\(gz\\|Z\\|bz\\|bz2\\|xz\\|gpg\\)\\'" . no-conversion)
@@ -1696,7 +1696,7 @@ and the contents of `file-coding-system-alist'."
 		       (symbol :tag "Coding system"))))
 
 (defcustom auto-coding-regexp-alist
-  (mapcar (lambda (arg) (cons (purecopy (car arg)) (cdr arg)))
+  (mapcar 'purecopy-car
   '(("\\`BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion)
     ("\\`\xFE\xFF" . utf-16be-with-signature)
     ("\\`\xFF\xFE" . utf-16le-with-signature)

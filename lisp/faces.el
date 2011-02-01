@@ -261,8 +261,7 @@ If FRAME is omitted or nil, use the selected frame."
   (mapcar
    (lambda (arg)
      ;; FIXME; can we purecopy some of the conses too?
-     (cons (car arg)
-	   (cons (purecopy (car (cdr arg))) (purecopy (cdr (cdr arg))))))
+     (cons (car arg) (purecopy-cons (cdr arg))))
   '((:family (".attributeFamily" . "Face.AttributeFamily"))
     (:foundry (".attributeFoundry" . "Face.AttributeFoundry"))
     (:width (".attributeWidth" . "Face.AttributeWidth"))

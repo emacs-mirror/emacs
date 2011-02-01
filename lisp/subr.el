@@ -2320,6 +2320,13 @@ BEG and END default respectively to the beginning and end of buffer."
 
 ;;;; Miscellanea.
 
+(defun purecopy-cons (arg)
+  "Purecopy both car and cdr of the pair argument."
+  (cons (purecopy (car arg)) (purecopy (cdr arg))))
+(defun purecopy-car (arg)
+  "Purecopy the car of the pair argument."
+  (cons (purecopy (car arg)) (cdr arg)))
+
 (defvar suspend-hook nil
   "Normal hook run by `suspend-emacs', before suspending.")
 

@@ -1505,7 +1505,7 @@ for decoding and encoding files, process I/O, etc."
 ;; Tar files are not decoded at all, but we treat them as raw bytes.
 
 (setq file-coding-system-alist
-      (mapcar (lambda (arg) (cons (purecopy (car arg)) (cdr arg)))
+      (mapcar 'purecopy-car
       '(("\\.elc\\'" . utf-8-emacs)
 	("\\.utf\\(-8\\)?\\'" . utf-8)
 	("\\.xml\\'" . xml-find-file-coding-system)
