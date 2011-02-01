@@ -1,7 +1,7 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 1986, 1988, 1993, 1994, 1995, 1997,
-                 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -37,48 +37,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"		/* For struct terminal.  */
 #include "font.h"
 
-Lisp_Object Vstandard_output, Qstandard_output;
+Lisp_Object Qstandard_output;
 
 Lisp_Object Qtemp_buffer_setup_hook;
 
 /* These are used to print like we read.  */
 
-Lisp_Object Vfloat_output_format, Qfloat_output_format;
+Lisp_Object Qfloat_output_format;
 
 #include <math.h>
 
 #if STDC_HEADERS
 #include <float.h>
 #endif
+#include <ftoastr.h>
 
 /* Default to values appropriate for IEEE floating point.  */
-#ifndef FLT_RADIX
-#define FLT_RADIX 2
-#endif
-#ifndef DBL_MANT_DIG
-#define DBL_MANT_DIG 53
-#endif
 #ifndef DBL_DIG
 #define DBL_DIG 15
-#endif
-#ifndef DBL_MIN
-#define DBL_MIN 2.2250738585072014e-308
-#endif
-
-#ifdef DBL_MIN_REPLACEMENT
-#undef DBL_MIN
-#define DBL_MIN DBL_MIN_REPLACEMENT
-#endif
-
-/* Define DOUBLE_DIGITS_BOUND, an upper bound on the number of decimal digits
-   needed to express a float without losing information.
-   The general-case formula is valid for the usual case, IEEE floating point,
-   but many compilers can't optimize the formula to an integer constant,
-   so make a special case for it.  */
-#if FLT_RADIX == 2 && DBL_MANT_DIG == 53
-#define DOUBLE_DIGITS_BOUND 17 /* IEEE floating point */
-#else
-#define DOUBLE_DIGITS_BOUND ((int) ceil (log10 (pow (FLT_RADIX, DBL_MANT_DIG))))
 #endif
 
 /* Avoid actual stack overflow in print.  */
@@ -102,64 +78,18 @@ EMACS_INT print_buffer_pos;
 /* Bytes stored in print_buffer.  */
 EMACS_INT print_buffer_pos_byte;
 
-/* Maximum length of list to print in full; noninteger means
-   effectively infinity */
-
-Lisp_Object Vprint_length;
-
-/* Maximum depth of list to print in full; noninteger means
-   effectively infinity.  */
-
-Lisp_Object Vprint_level;
-
-/* Nonzero means print newlines in strings as \n.  */
-
-int print_escape_newlines;
-
-/* Nonzero means to print single-byte non-ascii characters in strings as
-   octal escapes.  */
-
-int print_escape_nonascii;
-
-/* Nonzero means to print multibyte characters in strings as hex escapes.  */
-
-int print_escape_multibyte;
-
 Lisp_Object Qprint_escape_newlines;
 Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
 
-/* Nonzero means print (quote foo) forms as 'foo, etc.  */
-
-int print_quoted;
-
-/* Non-nil means print #: before uninterned symbols.  */
-
-Lisp_Object Vprint_gensym;
-
-/* Non-nil means print recursive structures using #n= and #n# syntax.  */
-
-Lisp_Object Vprint_circle;
-
-/* Non-nil means keep continuous number for #n= and #n# syntax
-   between several print functions.  */
-
-Lisp_Object Vprint_continuous_numbering;
-
-/* Vprint_number_table is a vector like [OBJ1 STAT1 OBJ2 STAT2 ...],
-   where OBJn are objects going to be printed, and STATn are their status,
-   which may be different meanings during process.  See the comments of
-   the functions print and print_preprocess for details.
-   print_number_index keeps the last position the next object should be added,
-   twice of which is the actual vector position in Vprint_number_table.  */
+/* Vprint_number_table is a table, that keeps objects that are going to
+   be printed, to allow use of #n= and #n# to express sharing.
+   For any given object, the table can give the following values:
+     t    the object will be printed only once.
+     -N   the object will be printed several times and will take number N.
+     N    the object has been printed so we can refer to it as #N#.
+   print_number_index holds the largest N already used.
+   N has to be striclty larger than 0 since we need to distinguish -N.  */
 int print_number_index;
-Lisp_Object Vprint_number_table;
-
-/* PRINT_NUMBER_OBJECT returns the I'th object in Vprint_number_table TABLE.
-   PRINT_NUMBER_STATUS returns the status of the I'th object in TABLE.
-   See the comment of the variable Vprint_number_table.  */
-#define PRINT_NUMBER_OBJECT(table,i) XVECTOR ((table))->contents[(i) * 2]
-#define PRINT_NUMBER_STATUS(table,i) XVECTOR ((table))->contents[(i) * 2 + 1]
-
 void print_interval (INTERVAL interval, Lisp_Object printcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
@@ -481,7 +411,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	}
       else
 	/* No need to copy, since output to print_buffer can't GC.  */
-	strout (SDATA (string),
+	strout (SSDATA (string),
 		chars, SBYTES (string),
 		printcharfun, STRING_MULTIBYTE (string));
     }
@@ -544,11 +474,11 @@ write_string (const char *data, int size)
   PRINTFINISH;
 }
 
-/* Used from outside of print.c to print a block of SIZE
-   single-byte chars at DATA on a specified stream PRINTCHARFUN.
+/* Used to print a block of SIZE single-byte chars at DATA on a
+   specified stream PRINTCHARFUN.
    Do not use this on the contents of a Lisp string.  */
 
-void
+static void
 write_string_1 (const char *data, int size, Lisp_Object printcharfun)
 {
   PRINTDECLARE;
@@ -654,7 +584,7 @@ usage: (with-output-to-temp-buffer BUFNAME BODY...)  */)
   GCPRO1(args);
   name = eval_sub (Fcar (args));
   CHECK_STRING (name);
-  temp_output_buffer_setup (SDATA (name));
+  temp_output_buffer_setup (SSDATA (name));
   buf = Vstandard_output;
   UNGCPRO;
 
@@ -1082,6 +1012,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
  * case of -1e307 in 20d float_output_format. What is one to do (short of
  * re-writing _doprnt to be more sane)?
  * 			-wsr
+ * Given the above, the buffer must be least FLOAT_TO_STRING_BUFSIZE bytes.
  */
 
 void
@@ -1128,20 +1059,8 @@ float_to_string (unsigned char *buf, double data)
   lose:
     {
       /* Generate the fewest number of digits that represent the
-	 floating point value without losing information.
-	 The following method is simple but a bit slow.
-	 For ideas about speeding things up, please see:
-
-	 Guy L Steele Jr & Jon L White, How to print floating-point numbers
-	 accurately.  SIGPLAN notices 25, 6 (June 1990), 112-126.
-
-	 Robert G Burger & R Kent Dybvig, Printing floating point numbers
-	 quickly and accurately, SIGPLAN notices 31, 5 (May 1996), 108-116.  */
-
-      width = fabs (data) < DBL_MIN ? 1 : DBL_DIG;
-      do
-	sprintf (buf, "%.*g", width, data);
-      while (width++ < DOUBLE_DIGITS_BOUND && atof (buf) != data);
+	 floating point value without losing information.  */
+      dtoastr (buf, FLOAT_TO_STRING_BUFSIZE, 0, 0, data);
     }
   else			/* oink oink */
     {
@@ -1178,7 +1097,7 @@ float_to_string (unsigned char *buf, double data)
       if (cp[1] != 0)
 	goto lose;
 
-      sprintf (buf, SDATA (Vfloat_output_format), data);
+      sprintf (buf, SSDATA (Vfloat_output_format), data);
     }
 
   /* Make sure there is a decimal point with digit after, or an
@@ -1226,33 +1145,24 @@ print (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag)
   /* Construct Vprint_number_table for print-gensym and print-circle.  */
   if (!NILP (Vprint_gensym) || !NILP (Vprint_circle))
     {
-      int i, start, index;
-      start = index = print_number_index;
       /* Construct Vprint_number_table.
 	 This increments print_number_index for the objects added.  */
       print_depth = 0;
       print_preprocess (obj);
 
-      /* Remove unnecessary objects, which appear only once in OBJ;
-	 that is, whose status is Qnil.  Compactify the necessary objects.  */
-      for (i = start; i < print_number_index; i++)
-	if (!NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
-	  {
-	    PRINT_NUMBER_OBJECT (Vprint_number_table, index)
-	      = PRINT_NUMBER_OBJECT (Vprint_number_table, i);
-	    index++;
-	  }
+      if (HASH_TABLE_P (Vprint_number_table))
+	{ /* Remove unnecessary objects, which appear only once in OBJ;
+	     that is, whose status is Qt.
+	     Maybe a better way to do that is to copy elements to
+	     a new hash table.  */
+	  struct Lisp_Hash_Table *h = XHASH_TABLE (Vprint_number_table);
+	  int i;
 
-      /* Clear out objects outside the active part of the table.  */
-      for (i = index; i < print_number_index; i++)
-	PRINT_NUMBER_OBJECT (Vprint_number_table, i) = Qnil;
-
-      /* Reset the status field for the next print step.  Now this
-	 field means whether the object has already been printed.  */
-      for (i = start; i < print_number_index; i++)
-	PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qnil;
-
-      print_number_index = index;
+	  for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
+	    if (!NILP (HASH_HASH (h, i))
+		&& EQ (HASH_VALUE (h, i), Qt))
+	      Fremhash (HASH_KEY (h, i), Vprint_number_table);
+	}
     }
 
   print_depth = 0;
@@ -1300,48 +1210,40 @@ print_preprocess (Lisp_Object obj)
 	  && SYMBOLP (obj)
 	  && !SYMBOL_INTERNED_P (obj)))
     {
+      if (!HASH_TABLE_P (Vprint_number_table))
+	{
+	  Lisp_Object args[2];
+	  args[0] = QCtest;
+	  args[1] = Qeq;
+	  Vprint_number_table = Fmake_hash_table (2, args);
+	}
+
       /* In case print-circle is nil and print-gensym is t,
 	 add OBJ to Vprint_number_table only when OBJ is a symbol.  */
       if (! NILP (Vprint_circle) || SYMBOLP (obj))
 	{
-	  for (i = 0; i < print_number_index; i++)
-	    if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i), obj))
-	      {
-		/* OBJ appears more than once.	Let's remember that.  */
-		PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
-                print_depth--;
-		return;
-	      }
-
-	  /* OBJ is not yet recorded.  Let's add to the table.  */
-	  if (print_number_index == 0)
-	    {
-	      /* Initialize the table.  */
-	      Vprint_number_table = Fmake_vector (make_number (40), Qnil);
-	    }
-	  else if (XVECTOR (Vprint_number_table)->size == print_number_index * 2)
-	    {
-	      /* Reallocate the table.  */
-	      int i = print_number_index * 4;
-	      Lisp_Object old_table = Vprint_number_table;
-	      Vprint_number_table = Fmake_vector (make_number (i), Qnil);
-	      for (i = 0; i < print_number_index; i++)
+	  Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);
+	  if (!NILP (num)
+	      /* If Vprint_continuous_numbering is non-nil and OBJ is a gensym,
+		 always print the gensym with a number.  This is a special for
+		 the lisp function byte-compile-output-docform.  */
+	      || (!NILP (Vprint_continuous_numbering)
+		  && SYMBOLP (obj)
+		  && !SYMBOL_INTERNED_P (obj)))
+	    { /* OBJ appears more than once.	Let's remember that.  */
+	      if (!INTEGERP (num))
 		{
-		  PRINT_NUMBER_OBJECT (Vprint_number_table, i)
-		    = PRINT_NUMBER_OBJECT (old_table, i);
-		  PRINT_NUMBER_STATUS (Vprint_number_table, i)
-		    = PRINT_NUMBER_STATUS (old_table, i);
+		  print_number_index++;
+		  /* Negative number indicates it hasn't been printed yet.  */
+		  Fputhash (obj, make_number (- print_number_index),
+			    Vprint_number_table);
 		}
+	      print_depth--;
+	      return;
 	    }
-	  PRINT_NUMBER_OBJECT (Vprint_number_table, print_number_index) = obj;
-	  /* If Vprint_continuous_numbering is non-nil and OBJ is a gensym,
-	     always print the gensym with a number.  This is a special for
-	     the lisp function byte-compile-output-docform.  */
-	  if (!NILP (Vprint_continuous_numbering)
-	      && SYMBOLP (obj)
-	      && !SYMBOL_INTERNED_P (obj))
-	    PRINT_NUMBER_STATUS (Vprint_number_table, print_number_index) = Qt;
-	  print_number_index++;
+	  else
+	    /* OBJ is not yet recorded.  Let's add to the table.  */
+	    Fputhash (obj, Qt, Vprint_number_table);
 	}
 
       switch (XTYPE (obj))
@@ -1372,8 +1274,8 @@ print_preprocess (Lisp_Object obj)
 	    print_preprocess (XVECTOR (obj)->contents[i]);
 	  if (HASH_TABLE_P (obj))
 	    { /* For hash tables, the key_and_value slot is past
-	        `size' because it needs to be marked specially in case
-	        the table is weak.  */
+		 `size' because it needs to be marked specially in case
+		 the table is weak.  */
 	      struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
 	      print_preprocess (h->key_and_value);
 	    }
@@ -1391,10 +1293,6 @@ print_preprocess_string (INTERVAL interval, Lisp_Object arg)
 {
   print_preprocess (interval->plist);
 }
-
-/* A flag to control printing of `charset' text property.
-   The default value is Qdefault. */
-Lisp_Object Vprint_charset_text_property;
 
 static void print_check_string_charset_prop (INTERVAL interval, Lisp_Object string);
 
@@ -1510,28 +1408,26 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
       else
 	{
 	  /* With the print-circle feature.  */
-	  int i;
-	  for (i = 0; i < print_number_index; i++)
-	    if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i), obj))
-	      {
-		if (NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
-		  {
-		    /* Add a prefix #n= if OBJ has not yet been printed;
-		       that is, its status field is nil.  */
-		    sprintf (buf, "#%d=", i + 1);
-		    strout (buf, -1, -1, printcharfun, 0);
-		    /* OBJ is going to be printed.  Set the status to t.  */
-		    PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
-		    break;
-		  }
-		else
-		  {
-		    /* Just print #n# if OBJ has already been printed.  */
-		    sprintf (buf, "#%d#", i + 1);
-		    strout (buf, -1, -1, printcharfun, 0);
-		    return;
-		  }
-	      }
+	  Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);
+	  if (INTEGERP (num))
+	    {
+	      int n = XINT (num);
+	      if (n < 0)
+		{ /* Add a prefix #n= if OBJ has not yet been printed;
+		     that is, its status field is nil.  */
+		  sprintf (buf, "#%d=", -n);
+		  strout (buf, -1, -1, printcharfun, 0);
+		  /* OBJ is going to be printed.  Remember that fact.  */
+		  Fputhash (obj, make_number (- n), Vprint_number_table);
+		}
+	      else
+		{
+		  /* Just print #n# if OBJ has already been printed.  */
+		  sprintf (buf, "#%d#", n);
+		  strout (buf, -1, -1, printcharfun, 0);
+		  return;
+		}
+	    }
 	}
     }
 
@@ -1551,7 +1447,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 
     case Lisp_Float:
       {
-	char pigbuf[350];	/* see comments in float_to_string */
+	char pigbuf[FLOAT_TO_STRING_BUFSIZE];
 
 	float_to_string (pigbuf, XFLOAT_DATA (obj));
 	strout (pigbuf, -1, -1, printcharfun, 0);
@@ -1615,7 +1511,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		  PRINTCHAR ('f');
 		}
 	      else if (multibyte
-		       && (CHAR_BYTE8_P (c) 
+		       && (CHAR_BYTE8_P (c)
 			   || (! ASCII_CHAR_P (c) && print_escape_multibyte)))
 		{
 		  /* When multibyte is disabled,
@@ -1834,23 +1730,13 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		    /* With the print-circle feature.  */
 		    if (i != 0)
 		      {
-			int i;
-			for (i = 0; i < print_number_index; i++)
-			  if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i),
-				  obj))
-			    {
-			      if (NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
-				{
-				  strout (" . ", 3, 3, printcharfun, 0);
-				  print_object (obj, printcharfun, escapeflag);
-				}
-			      else
-				{
-				  sprintf (buf, " . #%d#", i + 1);
-				  strout (buf, -1, -1, printcharfun, 0);
-				}
-			      goto end_of_list;
-			    }
+			Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);
+			if (INTEGERP (num))
+			  {
+			    strout (" . ", 3, 3, printcharfun, 0);
+			    print_object (obj, printcharfun, escapeflag);
+			    goto end_of_list;
+			  }
 		      }
 		  }
 
@@ -2047,7 +1933,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  if (NATNUMP (Vprint_length)
 	      && XFASTINT (Vprint_length) < size)
 	    size = XFASTINT (Vprint_length);
-	  
+
 	  PRINTCHAR ('(');
 	  for (i = 0; i < size; i++)
 	    if (!NILP (HASH_HASH (h, i)))
@@ -2275,7 +2161,7 @@ syms_of_print (void)
   Qtemp_buffer_setup_hook = intern_c_string ("temp-buffer-setup-hook");
   staticpro (&Qtemp_buffer_setup_hook);
 
-  DEFVAR_LISP ("standard-output", &Vstandard_output,
+  DEFVAR_LISP ("standard-output", Vstandard_output,
 	       doc: /* Output stream `print' uses by default for outputting a character.
 This may be any function of one argument.
 It may also be a buffer (output is inserted before point)
@@ -2285,7 +2171,7 @@ or the symbol t (output appears in the echo area).  */);
   Qstandard_output = intern_c_string ("standard-output");
   staticpro (&Qstandard_output);
 
-  DEFVAR_LISP ("float-output-format", &Vfloat_output_format,
+  DEFVAR_LISP ("float-output-format", Vfloat_output_format,
 	       doc: /* The format descriptor string used to print floats.
 This is a %-spec like those accepted by `printf' in C,
 but with some restrictions.  It must start with the two characters `%.'.
@@ -2305,22 +2191,22 @@ that represents the number without losing information.  */);
   Qfloat_output_format = intern_c_string ("float-output-format");
   staticpro (&Qfloat_output_format);
 
-  DEFVAR_LISP ("print-length", &Vprint_length,
+  DEFVAR_LISP ("print-length", Vprint_length,
 	       doc: /* Maximum length of list to print before abbreviating.
 A value of nil means no limit.  See also `eval-expression-print-length'.  */);
   Vprint_length = Qnil;
 
-  DEFVAR_LISP ("print-level", &Vprint_level,
+  DEFVAR_LISP ("print-level", Vprint_level,
 	       doc: /* Maximum depth of list nesting to print before abbreviating.
 A value of nil means no limit.  See also `eval-expression-print-level'.  */);
   Vprint_level = Qnil;
 
-  DEFVAR_BOOL ("print-escape-newlines", &print_escape_newlines,
+  DEFVAR_BOOL ("print-escape-newlines", print_escape_newlines,
 	       doc: /* Non-nil means print newlines in strings as `\\n'.
 Also print formfeeds as `\\f'.  */);
   print_escape_newlines = 0;
 
-  DEFVAR_BOOL ("print-escape-nonascii", &print_escape_nonascii,
+  DEFVAR_BOOL ("print-escape-nonascii", print_escape_nonascii,
 	       doc: /* Non-nil means print unibyte non-ASCII chars in strings as \\OOO.
 \(OOO is the octal representation of the character code.)
 Only single-byte characters are affected, and only in `prin1'.
@@ -2328,18 +2214,18 @@ When the output goes in a multibyte buffer, this feature is
 enabled regardless of the value of the variable.  */);
   print_escape_nonascii = 0;
 
-  DEFVAR_BOOL ("print-escape-multibyte", &print_escape_multibyte,
+  DEFVAR_BOOL ("print-escape-multibyte", print_escape_multibyte,
 	       doc: /* Non-nil means print multibyte characters in strings as \\xXXXX.
 \(XXXX is the hex representation of the character code.)
 This affects only `prin1'.  */);
   print_escape_multibyte = 0;
 
-  DEFVAR_BOOL ("print-quoted", &print_quoted,
+  DEFVAR_BOOL ("print-quoted", print_quoted,
 	       doc: /* Non-nil means print quoted forms with reader syntax.
 I.e., (quote foo) prints as 'foo, (function foo) as #'foo.  */);
   print_quoted = 0;
 
-  DEFVAR_LISP ("print-gensym", &Vprint_gensym,
+  DEFVAR_LISP ("print-gensym", Vprint_gensym,
 	       doc: /* Non-nil means print uninterned symbols so they will read as uninterned.
 I.e., the value of (make-symbol \"foobar\") prints as #:foobar.
 When the uninterned symbol appears within a recursive data structure,
@@ -2348,7 +2234,7 @@ constructs as needed, so that multiple references to the same symbol are
 shared once again when the text is read back.  */);
   Vprint_gensym = Qnil;
 
-  DEFVAR_LISP ("print-circle", &Vprint_circle,
+  DEFVAR_LISP ("print-circle", Vprint_circle,
 	       doc: /* *Non-nil means print recursive structures using #N= and #N# syntax.
 If nil, printing proceeds recursively and may lead to
 `max-lisp-eval-depth' being exceeded or an error may occur:
@@ -2360,14 +2246,14 @@ representation) and `#N#' in place of each subsequent occurrence,
 where N is a positive decimal integer.  */);
   Vprint_circle = Qnil;
 
-  DEFVAR_LISP ("print-continuous-numbering", &Vprint_continuous_numbering,
+  DEFVAR_LISP ("print-continuous-numbering", Vprint_continuous_numbering,
 	       doc: /* *Non-nil means number continuously across print calls.
 This affects the numbers printed for #N= labels and #M# references.
 See also `print-circle', `print-gensym', and `print-number-table'.
 This variable should not be set with `setq'; bind it with a `let' instead.  */);
   Vprint_continuous_numbering = Qnil;
 
-  DEFVAR_LISP ("print-number-table", &Vprint_number_table,
+  DEFVAR_LISP ("print-number-table", Vprint_number_table,
 	       doc: /* A vector used internally to produce `#N=' labels and `#N#' references.
 The Lisp printer uses this vector to detect Lisp objects referenced more
 than once.
@@ -2380,7 +2266,7 @@ the printing done so far has not found any shared structure or objects
 that need to be recorded in the table.  */);
   Vprint_number_table = Qnil;
 
-  DEFVAR_LISP ("print-charset-text-property", &Vprint_charset_text_property,
+  DEFVAR_LISP ("print-charset-text-property", Vprint_charset_text_property,
 	       doc: /* A flag to control printing of `charset' text property on printing a string.
 The value must be nil, t, or `default'.
 
@@ -2425,6 +2311,3 @@ priorities.  */);
 
   defsubr (&Swith_output_to_temp_buffer);
 }
-
-/* arch-tag: bc797170-94ae-41de-86e3-75e20f8f7a39
-   (do not change this comment) */

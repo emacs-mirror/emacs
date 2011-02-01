@@ -1,7 +1,6 @@
 ;;; calc-ext.el --- various extension functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -136,8 +135,6 @@
   (define-key calc-mode-map "\C-w" 'calc-kill-region)
   (define-key calc-mode-map "\M-w" 'calc-copy-region-as-kill)
   (define-key calc-mode-map "\M-\C-w" 'kill-ring-save)
-  (define-key calc-mode-map "\C-_" 'calc-undo)
-  (define-key calc-mode-map "\C-xu" 'calc-undo)
   (define-key calc-mode-map "\M-\C-m" 'calc-last-args)
 
   (define-key calc-mode-map "a" nil)
@@ -549,6 +546,10 @@
   (define-key calc-mode-map "ud" 'calc-define-unit)
   (define-key calc-mode-map "ue" 'calc-explain-units)
   (define-key calc-mode-map "ug" 'calc-get-unit-definition)
+  (define-key calc-mode-map "ul+" 'calc-luplus)
+  (define-key calc-mode-map "ul-" 'calc-luminus)
+  (define-key calc-mode-map "ull" 'calc-level)
+  (define-key calc-mode-map "ul?" 'calc-ul-prefix-help)
   (define-key calc-mode-map "up" 'calc-permanent-units)
   (define-key calc-mode-map "ur" 'calc-remove-units)
   (define-key calc-mode-map "us" 'calc-simplify-units)
@@ -932,7 +933,8 @@ calc-store-value calc-var-name)
  ("calc-stuff" calc-explain-why calcFunc-clean
 calcFunc-pclean calcFunc-pfloat calcFunc-pfrac)
 
- ("calc-units" calcFunc-usimplify
+ ("calc-units" calcFunc-usimplify calcFunc-luplus
+calcFunc-luminus calcFunc-fieldlevel calcFunc-powerlevel
 math-build-units-table math-build-units-table-buffer
 math-check-unit-name math-convert-temperature math-convert-units
 math-extract-units math-remove-units math-simplify-units
@@ -1049,7 +1051,8 @@ calc-full-help calc-g-prefix-help calc-help-prefix
 calc-hyperbolic-prefix-help calc-inv-hyp-prefix-help calc-option-prefix-help
 calc-inverse-prefix-help calc-j-prefix-help calc-k-prefix-help
 calc-m-prefix-help calc-r-prefix-help calc-s-prefix-help
-calc-t-prefix-help calc-u-prefix-help calc-v-prefix-help)
+calc-t-prefix-help calc-u-prefix-help calc-ul-prefix-help
+calc-v-prefix-help)
 
  ("calc-incom" calc-begin-complex calc-begin-vector calc-comma
 calc-dots calc-end-complex calc-end-vector calc-semi)
@@ -1156,14 +1159,14 @@ calc-trail-kill calc-trail-last calc-trail-marker calc-trail-next
 calc-trail-out calc-trail-previous calc-trail-scroll-left
 calc-trail-scroll-right calc-trail-yank)
 
- ("calc-undo" calc-last-args calc-redo calc-undo)
+ ("calc-undo" calc-last-args calc-redo)
 
  ("calc-units" calc-autorange-units calc-base-units
 calc-convert-temperature calc-convert-units calc-define-unit
 calc-enter-units-table calc-explain-units calc-extract-units
 calc-get-unit-definition calc-permanent-units calc-quick-units
 calc-remove-units calc-simplify-units calc-undefine-unit
-calc-view-units-table)
+calc-view-units-table calc-luplus calc-luminus calc-level)
 
  ("calc-vec" calc-arrange-vector calc-build-vector calc-cnorm
 calc-conj-transpose calc-cons calc-cross calc-kron calc-diag
@@ -3504,5 +3507,4 @@ A key may contain additional specs for Inverse, Hyperbolic, and Inv+Hyp.")
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 1814ba7f-a390-49dc-9e25-a5adc205e97e
 ;;; calc-ext.el ends here

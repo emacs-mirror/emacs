@@ -1,7 +1,7 @@
 ;;; erc-dcc.el --- CTCP DCC module for ERC
 
-;; Copyright (C) 1993, 1994, 1995, 1998, 2002, 2003, 2004, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
 ;;         Noah Friedman <friedman@prep.ai.mit.edu>
@@ -1098,17 +1098,11 @@ Possible values are: ask, auto, ignore."
     map)
   "Keymap for `erc-dcc-mode'.")
 
-(defun erc-dcc-chat-mode ()
+(define-derived-mode erc-dcc-chat-mode fundamental-mode "DCC-Chat"
   "Major mode for wasting time via DCC chat."
-  (interactive)
-  (kill-all-local-variables)
   (setq mode-line-process '(":%s")
-        mode-name "DCC-Chat"
-        major-mode 'erc-dcc-chat-mode
         erc-send-input-line-function 'erc-dcc-chat-send-input-line
-        erc-default-recipients '(dcc))
-  (use-local-map erc-dcc-chat-mode-map)
-  (run-hooks 'erc-dcc-chat-mode-hook))
+        erc-default-recipients '(dcc)))
 
 (defun erc-dcc-chat-send-input-line (recipient line &optional force)
   "Send LINE to the remote end.
@@ -1257,4 +1251,3 @@ other client."
 ;; indent-tabs-mode: nil
 ;; End:
 
-;; arch-tag: cda5a6b3-c510-4dbe-b699-84cccfa04edb

@@ -1,11 +1,11 @@
 /* Basic character support.
-   Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
-     Licensed to the Free Software Foundation.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-     Free Software Foundation, Inc.
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-     National Institute of Advanced Industrial Science and Technology (AIST)
-     Registration Number H13PRO009
+
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
+  Licensed to the Free Software Foundation.
+Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+  National Institute of Advanced Industrial Science and Technology (AIST)
+  Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -50,43 +50,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qcharacterp;
 
-/* Vector of translation table ever defined.
-   ID of a translation table is used to index this vector.  */
-Lisp_Object Vtranslation_table_vector;
-
-/* A char-table for characters which may invoke auto-filling.  */
-Lisp_Object Vauto_fill_chars;
-
 Lisp_Object Qauto_fill_chars;
 
 /* Char-table of information about which character to unify to which
    Unicode character.  Mainly used by the macro MAYBE_UNIFY_CHAR.  */
 Lisp_Object Vchar_unify_table;
 
-/* A char-table.  An element is non-nil iff the corresponding
-   character has a printable glyph.  */
-Lisp_Object Vprintable_chars;
-
-/* A char-table.  An elemnent is a column-width of the corresponding
-   character.  */
-Lisp_Object Vchar_width_table;
-
-/* A char-table.  An element is a symbol indicating the direction
-   property of corresponding character.  */
-Lisp_Object Vchar_direction_table;
-
 /* Variable used locally in the macro FETCH_MULTIBYTE_CHAR.  */
 unsigned char *_fetch_multibyte_char_p;
 
-/* Char table of scripts.  */
-Lisp_Object Vchar_script_table;
-
-/* Alist of scripts vs representative characters.  */
-Lisp_Object Vscript_representative_chars;
-
 static Lisp_Object Qchar_script_table;
 
-Lisp_Object Vunicode_category_table;
 
 
 /* If character code C has modifier masks, reflect them to the
@@ -1071,14 +1045,14 @@ syms_of_character (void)
   defsubr (&Schar_resolve_modifiers);
   defsubr (&Sget_byte);
 
-  DEFVAR_LISP ("translation-table-vector",  &Vtranslation_table_vector,
+  DEFVAR_LISP ("translation-table-vector",  Vtranslation_table_vector,
 	       doc: /*
 Vector recording all translation tables ever defined.
 Each element is a pair (SYMBOL . TABLE) relating the table to the
 symbol naming it.  The ID of a translation table is an index into this vector.  */);
   Vtranslation_table_vector = Fmake_vector (make_number (16), Qnil);
 
-  DEFVAR_LISP ("auto-fill-chars", &Vauto_fill_chars,
+  DEFVAR_LISP ("auto-fill-chars", Vauto_fill_chars,
 	       doc: /*
 A char-table for characters which invoke auto-filling.
 Such characters have value t in this table.  */);
@@ -1086,7 +1060,7 @@ Such characters have value t in this table.  */);
   CHAR_TABLE_SET (Vauto_fill_chars, ' ', Qt);
   CHAR_TABLE_SET (Vauto_fill_chars, '\n', Qt);
 
-  DEFVAR_LISP ("char-width-table", &Vchar_width_table,
+  DEFVAR_LISP ("char-width-table", Vchar_width_table,
 	       doc: /*
 A char-table for width (columns) of each character.  */);
   Vchar_width_table = Fmake_char_table (Qnil, make_number (1));
@@ -1094,11 +1068,11 @@ A char-table for width (columns) of each character.  */);
   char_table_set_range (Vchar_width_table, MAX_5_BYTE_CHAR + 1, MAX_CHAR,
 			make_number (4));
 
-  DEFVAR_LISP ("char-direction-table", &Vchar_direction_table,
+  DEFVAR_LISP ("char-direction-table", Vchar_direction_table,
 	       doc: /* A char-table for direction of each character.  */);
   Vchar_direction_table = Fmake_char_table (Qnil, make_number (1));
 
-  DEFVAR_LISP ("printable-chars", &Vprintable_chars,
+  DEFVAR_LISP ("printable-chars", Vprintable_chars,
 	       doc: /* A char-table for each printable character.  */);
   Vprintable_chars = Fmake_char_table (Qnil, Qnil);
   Fset_char_table_range (Vprintable_chars,
@@ -1107,7 +1081,7 @@ A char-table for width (columns) of each character.  */);
 			 Fcons (make_number (160),
 				make_number (MAX_5_BYTE_CHAR)), Qt);
 
-  DEFVAR_LISP ("char-script-table", &Vchar_script_table,
+  DEFVAR_LISP ("char-script-table", Vchar_script_table,
 	       doc: /* Char table of script symbols.
 It has one extra slot whose value is a list of script symbols.  */);
 
@@ -1119,7 +1093,7 @@ It has one extra slot whose value is a list of script symbols.  */);
   Fput (Qchar_script_table, Qchar_table_extra_slots, make_number (1));
   Vchar_script_table = Fmake_char_table (Qchar_script_table, Qnil);
 
-  DEFVAR_LISP ("script-representative-chars", &Vscript_representative_chars,
+  DEFVAR_LISP ("script-representative-chars", Vscript_representative_chars,
 	       doc: /* Alist of scripts vs the representative characters.
 Each element is a cons (SCRIPT . CHARS).
 SCRIPT is a symbol representing a script or a subgroup of a script.
@@ -1129,7 +1103,7 @@ If it is a vector, one of the characters in the vector is necessary.
 This variable is used to find a font for a specific script.  */);
   Vscript_representative_chars = Qnil;
 
-  DEFVAR_LISP ("unicode-category-table", &Vunicode_category_table,
+  DEFVAR_LISP ("unicode-category-table", Vunicode_category_table,
 	       doc: /* Char table of Unicode's "General Category".
 All Unicode characters have one of the following values (symbol):
   Lu, Ll, Lt, Lm, Lo, Mn, Mc, Me, Nd, Nl, No, Pc, Pd, Ps, Pe, Pi, Pf, Po,
@@ -1140,6 +1114,3 @@ See The Unicode Standard for the meaning of those values.  */);
 }
 
 #endif /* emacs */
-
-/* arch-tag: b6665960-3c3d-4184-85cd-af4318197999
-   (do not change this comment) */

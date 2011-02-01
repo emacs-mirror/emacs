@@ -1,7 +1,6 @@
 ;;; button.el --- clickable buttons
 ;;
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: extensions
@@ -38,7 +37,9 @@
 ;; the button is represented by a marker or buffer-position pointing
 ;; somewhere in the button.  In the latter case, no markers into the
 ;; buffer are retained, which is important for speed if there are are
-;; extremely large numbers of buttons.
+;; extremely large numbers of buttons.  Note however that if there is
+;; an existing face text-property at the site of the button, the
+;; button face may not be visible.  Using overlays avoids this.
 ;;
 ;; Using `define-button-type' to define default properties for buttons
 ;; is not necessary, but it is is encouraged, since doing so makes the
@@ -290,9 +291,12 @@ button-type from which to inherit other properties; see
 `define-button-type'.
 
 This function is like `make-button', except that the button is actually
-part of the text instead of being a property of the buffer.  Creating
-large numbers of buttons can also be somewhat faster using
-`make-text-button'.
+part of the text instead of being a property of the buffer.  That is,
+this function uses text properties, the other uses overlays.
+Creating large numbers of buttons can also be somewhat faster
+using `make-text-button'.  Note, however, that if there is an existing
+face property at the site of the button, the button face may not be visible.
+You may want to use `make-button' in that case.
 
 BEG can also be a string, in which case it is made into a button.
 
@@ -477,5 +481,4 @@ Returns the button found."
 
 (provide 'button)
 
-;; arch-tag: 5f2c7627-413b-4097-b282-630f89d9c5e9
 ;;; button.el ends here

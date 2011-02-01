@@ -1,6 +1,6 @@
 ;;; semantic/mru-bookmark.el --- Automatic bookmark tracking
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -401,5 +401,4 @@ Useful for debugging mrub problems."
 ;; generated-autoload-load-name: "semantic/mru-bookmark"
 ;; End:
 
-;; arch-tag: 297fa190-2942-460b-941d-f117db4e1fbf
 ;;; semantic/mru-bookmark.el ends here

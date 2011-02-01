@@ -1,9 +1,8 @@
 ;;; japanese.el --- Quail package for inputting Japanese  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010
+;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -550,5 +549,4 @@ qq:	toggle between this input method and the input method `japanese-ascii'.
 			  (vector (japanese-katakana (aref trans 0))))
 			 (t trans)))))
 
-;; arch-tag: 47e0bfd4-6ecc-4d01-89a8-d687c5e01ff7
 ;;; japanese.el ends here

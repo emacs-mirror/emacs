@@ -1,7 +1,6 @@
 ;;; em-prompt.el --- command prompts
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -177,5 +176,4 @@ If this takes us past the end of the current line, don't skip at all."
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 01c1574b-ce70-4e89-bc38-e6619f61e208
 ;;; em-prompt.el ends here

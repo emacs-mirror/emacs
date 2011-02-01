@@ -1,7 +1,6 @@
 ;;; erc-autoaway.el --- Provides autoaway for ERC
 
-;; Copyright (C) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcAutoAway
@@ -286,4 +285,3 @@ activer server buffer available."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 16fc241e-8358-4b56-9fe2-116bdd0ba3bc

@@ -1,7 +1,6 @@
 ;;; calc-prog.el --- user programmability functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -171,17 +170,17 @@
   (interactive)
   (calc-wrapper
    (let* ((form (calc-top 1))
-	  (arglist nil)
+	  (math-arglist nil)
 	  (is-lambda (and (eq (car-safe form) 'calcFunc-lambda)
 			  (>= (length form) 2)))
 	  odef key keyname cmd cmd-base cmd-base-default
           func calc-user-formula-alist is-symb)
      (if is-lambda
-	 (setq arglist (mapcar (function (lambda (x) (nth 1 x)))
+	 (setq math-arglist (mapcar (function (lambda (x) (nth 1 x)))
 			       (nreverse (cdr (reverse (cdr form)))))
 	       form (nth (1- (length form)) form))
        (calc-default-formula-arglist form)
-       (setq arglist (sort arglist 'string-lessp)))
+       (setq math-arglist (sort math-arglist 'string-lessp)))
      (message "Define user key: z-")
      (setq key (read-char))
      (if (= (calc-user-function-classify key) 0)
@@ -267,17 +266,17 @@
 					(format "%05d" (% (random) 10000)))))))
 
      (if is-lambda
-	 (setq calc-user-formula-alist arglist)
+	 (setq calc-user-formula-alist math-arglist)
        (while
 	   (progn
 	     (setq calc-user-formula-alist
                    (read-from-minibuffer "Function argument list: "
-                                         (if arglist
-                                             (prin1-to-string arglist)
+                                         (if math-arglist
+                                             (prin1-to-string math-arglist)
                                            "()")
                                          minibuffer-local-map
                                          t))
-	     (and (not (calc-subsetp calc-user-formula-alist arglist))
+	     (and (not (calc-subsetp calc-user-formula-alist math-arglist))
 		  (not (y-or-n-p
 			"Okay for arguments that don't appear in formula to be ignored? "))))))
      (setq is-symb (and calc-user-formula-alist
@@ -328,14 +327,14 @@
 	     (setcdr kmap (cons (cons key cmd) (cdr kmap)))))))
    (message "")))
 
-(defvar arglist)		    ; dynamically bound in all callers
+(defvar math-arglist)		    ; dynamically bound in all callers
 (defun calc-default-formula-arglist (form)
   (if (consp form)
       (if (eq (car form) 'var)
-	  (if (or (memq (nth 1 form) arglist)
+	  (if (or (memq (nth 1 form) math-arglist)
 		  (math-const-var form))
 	      ()
-	    (setq arglist (cons (nth 1 form) arglist)))
+	    (setq math-arglist (cons (nth 1 form) math-arglist)))
 	(calc-default-formula-arglist-step (cdr form)))))
 
 (defun calc-default-formula-arglist-step (l)
@@ -394,23 +393,23 @@
                                              (intern (concat "calcFunc-" x))))))))
 	  (comps (get func 'math-compose-forms))
 	  entry entry2
-	  (arglist nil)
+	  (math-arglist nil)
 	  (calc-user-formula-alist nil))
      (if (math-zerop comp)
 	 (if (setq entry (assq calc-language comps))
 	     (put func 'math-compose-forms (delq entry comps)))
        (calc-default-formula-arglist comp)
-       (setq arglist (sort arglist 'string-lessp))
+       (setq math-arglist (sort math-arglist 'string-lessp))
        (while
 	   (progn
 	     (setq calc-user-formula-alist
                    (read-from-minibuffer "Composition argument list: "
-                                         (if arglist
-                                             (prin1-to-string arglist)
+                                         (if math-arglist
+                                             (prin1-to-string math-arglist)
                                            "()")
                                          minibuffer-local-map
                                          t))
-	     (and (not (calc-subsetp calc-user-formula-alist arglist))
+	     (and (not (calc-subsetp calc-user-formula-alist math-arglist))
 		  (y-or-n-p
 		   "Okay for arguments that don't appear in formula to be invisible? "))))
        (or (setq entry (assq calc-language comps))
@@ -2365,5 +2364,4 @@ Redefine the corresponding command."
 
 (provide 'calc-prog)
 
-;; arch-tag: 4c5a183b-c9e5-4632-bb3f-e41a764518b0
 ;;; calc-prog.el ends here

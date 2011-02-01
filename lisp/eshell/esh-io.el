@@ -1,7 +1,6 @@
 ;;; esh-io.el --- I/O management
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -516,5 +515,4 @@ Returns what was actually sent, or nil if nothing was sent."
 	(eshell-output-object-to-target object (car target))
 	(setq target (cdr target))))))
 
-;; arch-tag: 9ca2080f-d5e0-4b26-aa0b-d59194a905a2
 ;;; esh-io.el ends here

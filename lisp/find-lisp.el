@@ -4,8 +4,7 @@
 ;; Created: Fri Mar 26 1999
 ;; Keywords: unix
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -356,5 +355,4 @@ It is a function which takes two arguments, the directory and its parent."
 
 (provide 'find-lisp)
 
-;; arch-tag: a711374c-f12a-46f6-aa18-ba7d77b9602a
 ;;; find-lisp.el ends here

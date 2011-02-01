@@ -1,7 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -392,7 +391,14 @@ The list is in preference order.")
 		(make-directory smtpmail-queue-dir t))
 	      (with-current-buffer buffer-data
 		(erase-buffer)
-		(set-buffer-file-coding-system smtpmail-code-conv-from nil t)
+		(set-buffer-file-coding-system
+		 ;; We will be reading the file with no-conversion in
+		 ;; smtpmail-send-queued-mail below, so write it out
+		 ;; with Unix EOLs.
+		 (coding-system-change-eol-conversion
+		  (or smtpmail-code-conv-from 'undecided)
+		  'unix)
+		 nil t)
 		(insert-buffer-substring tembuf)
 		(write-file file-data)
 		(set-buffer buffer-elisp)
@@ -1007,5 +1013,4 @@ many continuation lines."
 
 (provide 'smtpmail)
 
-;; arch-tag: a76992df-6d71-43b7-9e72-4bacc6c05466
 ;;; smtpmail.el ends here

@@ -1,7 +1,6 @@
 ;;; diff.el --- run `diff' in compilation-mode
 
-;; Copyright (C) 1992, 1994, 1996, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Frank Bresz
 ;; (according to authors.el)
@@ -60,7 +59,9 @@
 (defun diff-sentinel (code &optional old-temp-file new-temp-file)
   "Code run when the diff process exits.
 CODE is the exit code of the process.  It should be 0 only if no diffs
-were found."
+were found.
+If optional args OLD-TEMP-FILE and/or NEW-TEMP-FILE are non-nil,
+delete the temporary files so named."
   (if old-temp-file (delete-file old-temp-file))
   (if new-temp-file (delete-file new-temp-file))
   (save-excursion
@@ -110,18 +111,10 @@ specified in `diff-switches' are passed to the diff command."
           tempfile))
     (file-local-copy file-or-buf)))
 
-(defun diff-better-file-name (file)
-  (if (bufferp file) file
-    (let ((rel (file-relative-name file))
-          (abbr (abbreviate-file-name (expand-file-name file))))
-      (if (< (length abbr) (length rel))
-          abbr
-        rel))))
-
 (defun diff-no-select (old new &optional switches no-async buf)
   ;; Noninteractive helper for creating and reverting diff buffers
-  (setq new (diff-better-file-name new)
-	old (diff-better-file-name old))
+  (unless (bufferp new) (setq new (expand-file-name new)))
+  (unless (bufferp old) (setq old (expand-file-name old)))
   (or switches (setq switches diff-switches)) ; If not specified, use default.
   (unless (listp switches) (setq switches (list switches)))
   (or buf (setq buf (get-buffer-create "*Diff*")))

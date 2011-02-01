@@ -1,6 +1,6 @@
 ;;; srecode/insert --- Insert srecode templates to an output stream.
 
-;; Copyright (C) 2005, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -1020,5 +1020,4 @@ template where a ^ inserter occurs."
 ;; generated-autoload-load-name: "srecode/insert"
 ;; End:
 
-;; arch-tag: a5aa3401-924a-4617-8513-2f0f01256872
 ;;; srecode/insert.el ends here

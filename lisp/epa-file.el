@@ -1,5 +1,5 @@
 ;;; epa-file.el --- the EasyPG Assistant, transparent file encryption
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -35,9 +35,16 @@ way."
   :type 'boolean
   :group 'epa-file)
 
-(defcustom epa-file-select-keys nil
-  "If non-nil, always asks user to select recipients."
-  :type 'boolean
+(defcustom epa-file-select-keys 'silent
+  "Control whether or not to pop up the key selection dialog.
+
+If t, always asks user to select recipients.
+If nil, query user only when `epa-file-encrypt-to' is not set.
+If neither t nor nil, doesn't ask user.  In this case, symmetric
+encryption is used."
+  :type '(choice (const :tag "Ask always" t)
+		 (const :tag "Ask when recipients are not set" nil)
+		 (const :tag "Don't ask" silent))
   :group 'epa-file)
 
 (defvar epa-file-passphrase-alist nil)
@@ -218,9 +225,10 @@ way."
 			 end (point-max)))
 		 (epa-file--encode-coding-string (buffer-substring start end)
 						 coding-system))
-	       (if (or epa-file-select-keys
-		       (not (local-variable-p 'epa-file-encrypt-to
-					      (current-buffer))))
+	       (if (or (eq epa-file-select-keys t)
+		       (and (null epa-file-select-keys)
+			    (not (local-variable-p 'epa-file-encrypt-to
+						   (current-buffer)))))
 		   (epa-select-keys
 		    context
 		    "Select recipents for encryption.
@@ -290,5 +298,4 @@ If no one is selected, symmetric encryption will be performed.  "))))
 
 (provide 'epa-file)
 
-;; arch-tag: 5715152f-0eb1-4dbc-9008-07098775314d
 ;;; epa-file.el ends here

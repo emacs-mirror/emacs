@@ -1,7 +1,6 @@
 ;;; rect.el --- rectangle functions for GNU Emacs
 
-;; Copyright (C) 1985, 1999, 2000, 2001, 2002, 2003, 2004
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1999-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: Didier Verna <didier@xemacs.org>
 ;; Keywords: internal
@@ -27,10 +26,8 @@
 ;; This package provides the operations on rectangles that are documented
 ;; in the Emacs manual.
 
-;; ### NOTE: this file has been almost completely rewritten by Didier Verna
-;; <didier@xemacs.org> in July 1999. The purpose of this rewrite is to be less
-;; intrusive and fill lines with whitespaces only when needed. A few functions
-;; are untouched though, as noted above their definition.
+;; ### NOTE: this file was almost completely rewritten by Didier Verna
+;; <didier@xemacs.org> in July 1999.
 
 ;;; Global key bindings
 
@@ -40,26 +37,11 @@
 ;;;###autoload (define-key ctl-x-r-map "y" 'yank-rectangle)
 ;;;###autoload (define-key ctl-x-r-map "o" 'open-rectangle)
 ;;;###autoload (define-key ctl-x-r-map "t" 'string-rectangle)
+;;;###autoload (define-key ctl-x-r-map "N" 'rectangle-number-lines)
 
 ;;; Code:
 
-;;;###autoload
-(defun move-to-column-force (column &optional flag)
-  "If COLUMN is within a multi-column character, replace it by spaces and tab.
-As for `move-to-column', passing anything but nil or t in FLAG will move to
-the desired column only if the line is long enough."
-  (move-to-column column (or flag t)))
-
-;;;###autoload
-(make-obsolete 'move-to-column-force 'move-to-column "21.2")
-
-;; not used any more --dv
-;; extract-rectangle-line stores lines into this list
-;; to accumulate them for extract-rectangle and delete-extract-rectangle.
-(defvar operate-on-rectangle-lines)
-
-;; ### NOTE: this function is untouched, but not used anymore apart from
-;; `delete-whitespace-rectangle'. `apply-on-rectangle' is used instead. --dv
+;; FIXME: this function should be replaced by `apply-on-rectangle'
 (defun operate-on-rectangle (function start end coerce-tabs)
   "Call FUNCTION for each line of rectangle with corners at START, END.
 If COERCE-TABS is non-nil, convert multi-column characters
@@ -107,7 +89,6 @@ Point is at the end of the segment of this line within the rectangle."
        (forward-line 1)))
     (- endcol startcol)))
 
-;; The replacement for `operate-on-rectangle' -- dv
 (defun apply-on-rectangle (function start end &rest args)
   "Call FUNCTION for each line of rectangle with corners at START, END.
 FUNCTION is called with two arguments: the start and end columns of the
@@ -151,9 +132,9 @@ the function is called."
       (setcdr lines (cons (filter-buffer-substring pt (point) t) (cdr lines))))
     ))
 
-;; ### NOTE: this is actually the only function that needs to do complicated
-;; stuff like what's happening in `operate-on-rectangle', because the buffer
-;; might be read-only. --dv
+;; This is actually the only function that needs to do complicated
+;; stuff like what's happening in `operate-on-rectangle', because the
+;; buffer might be read-only.
 (defun extract-rectangle-line (startcol endcol lines)
   (let (start end begextra endextra line)
     (move-to-column startcol)
@@ -186,7 +167,6 @@ the function is called."
 (defconst spaces-strings
   '["" " " "  " "   " "    " "     " "      " "       " "        "])
 
-;; this one is untouched --dv
 (defun spaces-string (n)
   "Return a string with N spaces."
   (if (<= n 8) (aref spaces-strings n)
@@ -253,14 +233,12 @@ even beep.)"
        (barf-if-buffer-read-only)
        (signal 'text-read-only (list (current-buffer)))))))
 
-;; this one is untouched --dv
 ;;;###autoload
 (defun yank-rectangle ()
   "Yank the last killed rectangle with upper left corner at point."
   (interactive "*")
   (insert-rectangle killed-rectangle))
 
-;; this one is untoutched --dv
 ;;;###autoload
 (defun insert-rectangle (rectangle)
   "Insert text of RECTANGLE with upper left corner at point.
@@ -323,10 +301,6 @@ With a prefix (or a FILL) argument, also fill too short lines."
   (interactive "*r\nP")
   (apply-on-rectangle 'delete-whitespace-rectangle-line start end fill))
 
-;; not used any more --dv
-;; string-rectangle uses this variable to pass the string
-;; to string-rectangle-line.
-(defvar string-rectangle-string)
 (defvar string-rectangle-history nil)
 (defun string-rectangle-line (startcol endcol string delete)
   (move-to-column startcol t)
@@ -396,7 +370,45 @@ rectangle which were empty."
 	(delete-region pt (point))
 	(indent-to endcol)))))
 
+;; Line numbers for `rectangle-number-line-callback'.
+(defvar rectangle-number-line-counter)
+
+(defun rectangle-number-line-callback (start end format-string)
+  (move-to-column start t)
+  (insert (format format-string rectangle-number-line-counter))
+  (setq rectangle-number-line-counter
+	(1+ rectangle-number-line-counter)))
+
+(defun rectange--default-line-number-format (start end start-at)
+  (concat "%"
+	  (int-to-string (length (int-to-string (+ (count-lines start end)
+						   start-at))))
+	  "d "))
+
+;;;###autoload
+(defun rectangle-number-lines (start end start-at &optional format)
+  "Insert numbers in front of the region-rectangle.
+
+START-AT, if non-nil, should be a number from which to begin
+counting.  FORMAT, if non-nil, should be a format string to pass
+to `format' along with the line count.  When called interactively
+with a prefix argument, prompt for START-AT and FORMAT."
+  (interactive
+   (if current-prefix-arg
+       (let* ((start (region-beginning))
+	      (end   (region-end))
+	      (start-at (read-number "Number to count from: " 1)))
+	 (list start end start-at
+	       (read-string "Format string: "
+			    (rectange--default-line-number-format
+			     start end start-at))))
+     (list (region-beginning) (region-end) 1 nil)))
+  (unless format
+    (setq format (rectange--default-line-number-format start end start-at)))
+  (let ((rectangle-number-line-counter start-at))
+    (apply-on-rectangle 'rectangle-number-line-callback
+			start end format)))
+
 (provide 'rect)
 
-;; arch-tag: 178847b3-1f50-4b03-83de-a6e911cc1d16
 ;;; rect.el ends here

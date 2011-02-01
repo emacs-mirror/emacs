@@ -1,7 +1,6 @@
 ;;; url-parse.el --- Uniform Resource Locator parser
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -196,5 +195,4 @@ TYPE USER PASSWORD HOST PORTSPEC FILENAME TARGET ATTRIBUTES FULLNESS."
 
 (provide 'url-parse)
 
-;; arch-tag: f338325f-71ab-4bee-93cc-78fb9a03d403
 ;;; url-parse.el ends here

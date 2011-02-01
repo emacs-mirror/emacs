@@ -1,7 +1,6 @@
 ;;; cvs-status.el --- major mode for browsing `cvs status' output -*- coding: utf-8 -*-
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs status tree vc tools
@@ -223,7 +222,6 @@ The tree will be printed no closer than column COLUMN."
   (let* ((eol (save-excursion (end-of-line) (current-column)))
 	 (column (max (+ eol 2) column)))
     (if (null tags) column
-      ;;(move-to-column-force column)
       (let* ((rev (cvs-car tags))
 	     (name (funcall printer (cvs-car rev)))
 	     (rest (append (cvs-cdr name) (cvs-cdr tags)))
@@ -536,5 +534,4 @@ Optional prefix ARG chooses between two representations."
 
 (provide 'cvs-status)
 
-;; arch-tag: db8b5094-d02a-473e-a476-544e89ff5ad0
 ;;; cvs-status.el ends here

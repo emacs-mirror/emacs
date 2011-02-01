@@ -1,7 +1,6 @@
 ;;; em-smart.el --- smart display of output
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -327,5 +326,4 @@ and the end of the buffer are still visible."
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 8c0112c7-379c-4d54-9a1c-204d68786a4b
 ;;; em-smart.el ends here

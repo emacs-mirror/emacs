@@ -1,7 +1,6 @@
 ;;; mml1991.el --- Old PGP message format (RFC 1991) support for MML
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Sascha Lüdecke <sascha@meta-x.de>,
 ;;	Simon Josefsson <simon@josefsson.org> (Mailcrypt interface, Gnus glue)
@@ -167,6 +166,9 @@ Whether the passphrase is cached at all is controlled by
 	(goto-char (point-max))))))
 
 ;; pgg wrapper
+
+(autoload 'pgg-sign-region "pgg")
+(autoload 'pgg-encrypt-region "pgg")
 
 (defvar pgg-default-user-id)
 (defvar pgg-errors-buffer)

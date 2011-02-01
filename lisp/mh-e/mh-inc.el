@@ -1,7 +1,6 @@
 ;;; mh-inc.el --- MH-E "inc" and separate mail spool handling
 
-;; Copyright (C) 2003, 2004, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -90,5 +89,4 @@
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 3713cf2a-6082-4cb4-8ce2-99d9acaba835
 ;;; mh-inc.el ends here

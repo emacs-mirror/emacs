@@ -1,8 +1,6 @@
 ;;; thingatpt.el --- get the `thing' at point
 
-;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1991-1998, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Maintainer: FSF
@@ -472,5 +470,4 @@ Signal an error if the entire string was not used."
   "Return the Lisp list at point, or nil if none is found."
   (form-at-point 'list 'listp))
 
-;; arch-tag: bb65a163-dae2-4055-aedc-fe11f497f698
 ;;; thingatpt.el ends here

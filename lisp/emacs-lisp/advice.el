@@ -1,7 +1,6 @@
 ;;; advice.el --- an overloading mechanism for Emacs Lisp functions
 
-;; Copyright (C) 1993, 1994, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: FSF
@@ -3008,9 +3007,7 @@ in any of these classes."
     (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
     (if origdoc (setq paragraphs (list origdoc)))
     (unless (eq style 'plain)
-      (push (propertize (concat "This " origtype " is advised.")
-			'face 'font-lock-warning-face)
-	    paragraphs))
+      (push (concat "This " origtype " is advised.") paragraphs))
     (ad-dolist (class ad-advice-classes)
       (ad-dolist (advice (ad-get-enabled-advices function class))
 	(setq advice-docstring
@@ -3966,5 +3963,4 @@ Use only in REAL emergencies."
 
 (provide 'advice)
 
-;; arch-tag: 29f8c9a1-8c88-471f-95d7-e28541c6b7c0
 ;;; advice.el ends here

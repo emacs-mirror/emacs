@@ -1,7 +1,6 @@
 ;;; filesets.el --- handle group of files
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <sanobast-emacs@yahoo.de>
 ;; Maintainer: FSF
@@ -2534,5 +2533,4 @@ Set up hooks, load the cache file -- if existing -- and build the menu."
 ;; sentence-end-double-space:t
 ;; End:
 
-;; arch-tag: 2c03f85f-c3df-4cec-b0a3-b46fd5592d70
 ;;; filesets.el ends here

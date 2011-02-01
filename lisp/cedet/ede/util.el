@@ -1,6 +1,6 @@
 ;;; ede/util.el --- EDE utilities
 
-;; Copyright (C) 2000, 2005, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005, 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -101,5 +101,4 @@ If BUFFER isn't specified, use the current buffer."
 ;; generated-autoload-load-name: "ede/util"
 ;; End:
 
-;; arch-tag: 3cddf449-7f6a-4c76-86dd-04142c60eba2
 ;;; ede/util.el ends here

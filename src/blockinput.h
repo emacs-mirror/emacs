@@ -1,6 +1,5 @@
 /* blockinput.h - interface to blocking complicated interrupt-driven input.
-   Copyright (C) 1989, 1993, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -126,5 +125,3 @@ extern void reinvoke_input_signal (void);
 
 #endif /* EMACS_BLOCKINPUT_H */
 
-/* arch-tag: 51a9ec86-945a-4966-8f04-2d1341250e03
-   (do not change this comment) */

@@ -1,7 +1,6 @@
 /* Definitions file for GNU Emacs running on the GNU Hurd.
 
-Copyright (C) 1994, 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-  2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1994-1996, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -45,5 +44,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* !_IO_STDIO_H */
 #endif /* emacs */
 
-/* arch-tag: 577983d9-87a6-4922-b8f8-ff2b563714a4
-   (do not change this comment) */

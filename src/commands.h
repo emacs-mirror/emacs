@@ -1,6 +1,5 @@
 /* Definitions needed by most editing commands.
-   Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,42 +27,6 @@ extern Lisp_Object global_map;
 extern Lisp_Object meta_map;
 extern Lisp_Object control_x_map;
 
-extern Lisp_Object Vminibuffer_local_map;
-
-extern Lisp_Object Vminibuffer_local_ns_map;
-
-/* keymap used for minibuffers when doing completion */
-extern Lisp_Object Vminibuffer_local_completion_map;
-
-/* keymap used for minibuffers when doing completion in filenames*/
-extern Lisp_Object Vminibuffer_local_filename_completion_map;
-
-/* keymap used for minibuffers when doing completion and require a match */
-extern Lisp_Object Vminibuffer_local_must_match_map;
-
-/* keymap used for minibuffers when doing completion in filenames
-   and require a match */
-extern Lisp_Object Vminibuffer_local_filename_must_match_map;
-
-/* Last input event read as a command.  */
-extern Lisp_Object last_command_event;
-
-/* Last input event read as a command, not counting menus
-   reached by the mouse.  */
-extern Lisp_Object last_nonmenu_event;
-
-/* List of command events to be re-read, or Qnil.  */
-extern Lisp_Object Vunread_command_events;
-
-/* Command char event to be re-read, or -1 if none.
-   Setting this is obsolete, but some things should still check it.  */
-extern EMACS_INT unread_command_char;
-
-/* The command being executed by the command loop.
-   Commands may set this, and the value set will be copied into
-   current_kboard->Vlast_command instead of the actual command.  */
-extern Lisp_Object Vthis_command;
-
 /* If not Qnil, this is a switch-frame event which we decided to put
    off until the end of a key sequence.  This should be read as the
    next command input, after any Vunread_command_events.
@@ -85,8 +48,6 @@ extern Lisp_Object last_point_position_window;
 /* Nonzero means ^G can quit instantly */
 extern int immediate_quit;
 
-extern Lisp_Object Vexecuting_kbd_macro;
-
 /* Nonzero if input is coming from the keyboard */
 
 #define INTERACTIVE (NILP (Vexecuting_kbd_macro) && !noninteractive)
@@ -95,10 +56,3 @@ extern Lisp_Object Vexecuting_kbd_macro;
 
 extern int update_mode_lines;
 
-/* Nonzero means reading single-character input with prompt
-   so put cursor on minibuffer after the prompt.  */
-
-extern int cursor_in_echo_area;
-
-/* arch-tag: 4f7ca0b7-6a56-4b20-8bf5-b67a99921d1d
-   (do not change this comment) */

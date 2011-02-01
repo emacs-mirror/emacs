@@ -1,7 +1,7 @@
 ;;; autoinsert.el --- automatic mode-dependent insertion of text into new files
 
-;; Copyright (C) 1985, 1986, 1987, 1994, 1995, 1998, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1994-1995, 1998, 2000-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Charlie Martin <crm@cs.duke.edu>
 ;; Adapted-By: Daniel Pfeiffer <occitan@esperanto.org>
@@ -410,5 +410,4 @@ insert a template for the file depending on the mode of the buffer."
 
 (provide 'autoinsert)
 
-;; arch-tag: 5b6630ac-c735-43cf-b097-b78c622af909
 ;;; autoinsert.el ends here

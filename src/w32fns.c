@@ -1,8 +1,6 @@
 /* Graphical user interface functions for the Microsoft W32 API.
 
-Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -84,116 +82,18 @@ extern int quit_char;
 
 extern const char *const lispy_function_keys[];
 
-/* The colormap for converting color names to RGB values */
-Lisp_Object Vw32_color_map;
-
-/* Non nil if alt key presses are passed on to Windows.  */
-Lisp_Object Vw32_pass_alt_to_system;
-
-/* Non nil if alt key is translated to meta_modifier, nil if it is translated
-   to alt_modifier.  */
-Lisp_Object Vw32_alt_is_meta;
-
-/* If non-zero, the windows virtual key code for an alternative quit key. */
-int w32_quit_key;
-
-/* Non nil if left window key events are passed on to Windows (this only
-   affects whether "tapping" the key opens the Start menu).  */
-Lisp_Object Vw32_pass_lwindow_to_system;
-
-/* Non nil if right window key events are passed on to Windows (this
-   only affects whether "tapping" the key opens the Start menu).  */
-Lisp_Object Vw32_pass_rwindow_to_system;
-
-/* Virtual key code used to generate "phantom" key presses in order
-   to stop system from acting on Windows key events.  */
-Lisp_Object Vw32_phantom_key_code;
-
-/* Modifier associated with the left "Windows" key, or nil to act as a
-   normal key.  */
-Lisp_Object Vw32_lwindow_modifier;
-
-/* Modifier associated with the right "Windows" key, or nil to act as a
-   normal key.  */
-Lisp_Object Vw32_rwindow_modifier;
-
-/* Modifier associated with the "Apps" key, or nil to act as a normal
-   key.  */
-Lisp_Object Vw32_apps_modifier;
-
-/* Value is nil if Num Lock acts as a function key.  */
-Lisp_Object Vw32_enable_num_lock;
-
-/* Value is nil if Caps Lock acts as a function key.  */
-Lisp_Object Vw32_enable_caps_lock;
-
-/* Modifier associated with Scroll Lock, or nil to act as a normal key.  */
-Lisp_Object Vw32_scroll_lock_modifier;
-
-/* Switch to control whether we inhibit requests for synthesized bold
-   and italic versions of fonts.  */
-int w32_enable_synthesized_fonts;
-
-/* Enable palette management. */
-Lisp_Object Vw32_enable_palette;
-
-/* Control how close left/right button down events must be to
-   be converted to a middle button down event. */
-int w32_mouse_button_tolerance;
-
-/* Minimum interval between mouse movement (and scroll bar drag)
-   events that are passed on to the event loop. */
-int w32_mouse_move_interval;
-
-/* Flag to indicate if XBUTTON events should be passed on to Windows.  */
-static int w32_pass_extra_mouse_buttons_to_system;
-
-/* Flag to indicate if media keys should be passed on to Windows.  */
-static int w32_pass_multimedia_buttons_to_system;
-
-/* Non nil if no window manager is in use.  */
-Lisp_Object Vx_no_window_manager;
-
 /* If non-zero, a w32 timer that, when it expires, displays an
    hourglass cursor on all frames.  */
 static unsigned hourglass_timer = 0;
 static HWND hourglass_hwnd = NULL;
 
-#if 0 /* TODO: Mouse cursor customization.  */
-/* The background and shape of the mouse pointer, and shape when not
-   over text or in the modeline.  */
-Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
-Lisp_Object Vx_hourglass_pointer_shape, Vx_window_horizontal_drag_shape;
-
-/* The shape when over mouse-sensitive text.  */
-
-Lisp_Object Vx_sensitive_text_pointer_shape;
-#endif
-
 #ifndef IDC_HAND
 #define IDC_HAND MAKEINTRESOURCE(32649)
 #endif
 
-/* Color of chars displayed in cursor box.  */
-Lisp_Object Vx_cursor_fore_pixel;
-
 /* Nonzero if using Windows.  */
 
 static int w32_in_use;
-
-/* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
-
-Lisp_Object Vx_pixel_size_width_font_regexp;
-
-/* Alist of bdf fonts and the files that define them.  */
-Lisp_Object Vw32_bdf_filename_alist;
-
-/* A flag to control whether fonts are matched strictly or not.  */
-static int w32_strict_fontnames;
-
-/* A flag to control whether we should only repaint if GetUpdateRect
-   indicates there is an update region.  */
-static int w32_strict_painting;
 
 Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
@@ -208,9 +108,6 @@ Lisp_Object Qctrl;
 Lisp_Object Qcontrol;
 Lisp_Object Qshift;
 
-
-/* The ANSI codepage.  */
-int w32_ansi_code_page;
 
 /* Prefix for system colors.  */
 #define SYSTEM_COLOR_PREFIX "System"
@@ -288,14 +185,6 @@ unsigned int msh_mousewheel = 0;
 #define MENU_FREE_DELAY 1000
 static unsigned menu_free_timer = 0;
 
-/* In dispnew.c */
-
-extern Lisp_Object Vwindow_system_version;
-
-/* The below are defined in frame.c.  */
-
-extern Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
-extern Lisp_Object Vwindow_system_version;
 extern Lisp_Object Qtooltip;
 
 #ifdef GLYPH_DEBUG
@@ -303,17 +192,11 @@ int image_cache_refcount, dpyinfo_refcount;
 #endif
 
 
-/* From w32term.c. */
-extern int w32_num_mouse_buttons;
-extern Lisp_Object Vw32_recognize_altgr;
-
 extern HWND w32_system_caret_hwnd;
 
 extern int w32_system_caret_height;
 extern int w32_system_caret_x;
 extern int w32_system_caret_y;
-extern int w32_use_visible_system_caret;
-
 static HWND w32_visible_system_caret_hwnd;
 
 /* From w32menu.c  */
@@ -1622,11 +1505,11 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   BLOCK_INPUT;
 
   result = x_text_icon (f,
-			(char *) SDATA ((!NILP (f->icon_name)
-					 ? f->icon_name
-					 : !NILP (f->title)
-					 ? f->title
-					 : f->name)));
+			SSDATA ((!NILP (f->icon_name)
+				 ? f->icon_name
+				 : !NILP (f->title)
+				 ? f->title
+				 : f->name)));
 
   if (result)
     {
@@ -3992,7 +3875,7 @@ w32_window (struct frame *f, long window_prompting, int minibuffer_only)
      Elsewhere we specify the window name for the window manager.  */
 
   {
-    char *str = (char *) SDATA (Vx_resource_name);
+    char *str = SSDATA (Vx_resource_name);
     f->namebuf = (char *) xmalloc (strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
@@ -4058,9 +3941,9 @@ x_icon (struct frame *f, Lisp_Object parms)
 	 ? IconicState
 	 : NormalState));
 
-  x_text_icon (f, (char *) SDATA ((!NILP (f->icon_name)
-				     ? f->icon_name
-				     : f->name)));
+  x_text_icon (f, SSDATA ((!NILP (f->icon_name)
+			   ? f->icon_name
+			   : f->name)));
 #endif
 
   UNBLOCK_INPUT;
@@ -4838,7 +4721,7 @@ x_display_info_for_name (Lisp_Object name)
   validate_x_resource_name ();
 
   dpyinfo = w32_term_init (name, (unsigned char *)0,
-			     (char *) SDATA (Vx_resource_name));
+			   SSDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
     error ("Cannot connect to server %s", SDATA (name));
@@ -4901,7 +4784,7 @@ terminate Emacs if we can't open the connection.
   add_system_logical_colors_to_map (&Vw32_color_map);
 
   if (! NILP (xrm_string))
-    xrm_option = (unsigned char *) SDATA (xrm_string);
+    xrm_option = SDATA (xrm_string);
   else
     xrm_option = (unsigned char *) 0;
 
@@ -4922,7 +4805,7 @@ terminate Emacs if we can't open the connection.
   /* This is what opens the connection and sets x_current_display.
      This also initializes many symbols, such as those used for input.  */
   dpyinfo = w32_term_init (display, xrm_option,
-			     (char *) SDATA (Vx_resource_name));
+			   SSDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
     {
@@ -5138,8 +5021,6 @@ no value of TYPE (always string in the MS Windows case).  */)
    cursor.  Duplicated from xdisp.c, but cannot use the version there
    due to lack of atimers on w32.  */
 #define DEFAULT_HOURGLASS_DELAY 1
-extern Lisp_Object Vhourglass_delay;
-
 /* Return non-zero if houglass timer has been started or hourglass is shown.  */
 /* PENDING: if W32 can use atimers (atimer.[hc]) then the common impl in
    	    xdisp.c could be used. */
@@ -5270,10 +5151,6 @@ Window tip_window;
    with which x-show-tip was called.  See there.  */
 
 Lisp_Object last_show_tip_args;
-
-/* Maximum size for tooltips; a cons (COLUMNS . ROWS).  */
-
-Lisp_Object Vx_max_tooltip_size;
 
 
 static Lisp_Object
@@ -6309,7 +6186,7 @@ an integer representing a ShowWindow flag:
 	code_convert_string_norecord (make_unibyte_string (errstr,
 							   strlen (errstr)),
 				      Vlocale_coding_system, 0);
-      errstr = (char *)SDATA (decoded);
+      errstr = SSDATA (decoded);
     }
   error ("ShellExecute failed: %s", errstr);
 }
@@ -6931,28 +6808,28 @@ syms_of_w32fns (void)
   staticpro (&w32_grabbed_keys);
   w32_grabbed_keys = Qnil;
 
-  DEFVAR_LISP ("w32-color-map", &Vw32_color_map,
+  DEFVAR_LISP ("w32-color-map", Vw32_color_map,
 	       doc: /* An array of color name mappings for Windows.  */);
   Vw32_color_map = Qnil;
 
-  DEFVAR_LISP ("w32-pass-alt-to-system", &Vw32_pass_alt_to_system,
+  DEFVAR_LISP ("w32-pass-alt-to-system", Vw32_pass_alt_to_system,
 	       doc: /* Non-nil if Alt key presses are passed on to Windows.
 When non-nil, for example, Alt pressed and released and then space will
 open the System menu.  When nil, Emacs processes the Alt key events, and
 then silently swallows them.  */);
   Vw32_pass_alt_to_system = Qnil;
 
-  DEFVAR_LISP ("w32-alt-is-meta", &Vw32_alt_is_meta,
+  DEFVAR_LISP ("w32-alt-is-meta", Vw32_alt_is_meta,
 	       doc: /* Non-nil if the Alt key is to be considered the same as the META key.
 When nil, Emacs will translate the Alt key to the ALT modifier, not to META.  */);
   Vw32_alt_is_meta = Qt;
 
-  DEFVAR_INT ("w32-quit-key", &w32_quit_key,
+  DEFVAR_INT ("w32-quit-key", w32_quit_key,
 	       doc: /* If non-zero, the virtual key code for an alternative quit key.  */);
   w32_quit_key = 0;
 
   DEFVAR_LISP ("w32-pass-lwindow-to-system",
-	       &Vw32_pass_lwindow_to_system,
+	       Vw32_pass_lwindow_to_system,
 	       doc: /* If non-nil, the left \"Windows\" key is passed on to Windows.
 
 When non-nil, the Start menu is opened by tapping the key.
@@ -6967,7 +6844,7 @@ the doc string of `w32-phantom-key-code'.  */);
   Vw32_pass_lwindow_to_system = Qt;
 
   DEFVAR_LISP ("w32-pass-rwindow-to-system",
-	       &Vw32_pass_rwindow_to_system,
+	       Vw32_pass_rwindow_to_system,
 	       doc: /* If non-nil, the right \"Windows\" key is passed on to Windows.
 
 When non-nil, the Start menu is opened by tapping the key.
@@ -6982,7 +6859,7 @@ the doc string of `w32-phantom-key-code'.  */);
   Vw32_pass_rwindow_to_system = Qt;
 
   DEFVAR_LISP ("w32-phantom-key-code",
-	       &Vw32_phantom_key_code,
+	       Vw32_phantom_key_code,
 	       doc: /* Virtual key code used to generate \"phantom\" key presses.
 Value is a number between 0 and 255.
 
@@ -6994,19 +6871,19 @@ acting on \"Windows\" key events when `w32-pass-lwindow-to-system' or
   XSETINT (Vw32_phantom_key_code, 255);
 
   DEFVAR_LISP ("w32-enable-num-lock",
-	       &Vw32_enable_num_lock,
+	       Vw32_enable_num_lock,
 	       doc: /* If non-nil, the Num Lock key acts normally.
 Set to nil to handle Num Lock as the `kp-numlock' key.  */);
   Vw32_enable_num_lock = Qt;
 
   DEFVAR_LISP ("w32-enable-caps-lock",
-	       &Vw32_enable_caps_lock,
+	       Vw32_enable_caps_lock,
 	       doc: /* If non-nil, the Caps Lock key acts normally.
 Set to nil to handle Caps Lock as the `capslock' key.  */);
   Vw32_enable_caps_lock = Qt;
 
   DEFVAR_LISP ("w32-scroll-lock-modifier",
-	       &Vw32_scroll_lock_modifier,
+	       Vw32_scroll_lock_modifier,
 	       doc: /* Modifier to use for the Scroll Lock ON state.
 The value can be hyper, super, meta, alt, control or shift for the
 respective modifier, or nil to handle Scroll Lock as the `scroll' key.
@@ -7014,7 +6891,7 @@ Any other value will cause the Scroll Lock key to be ignored.  */);
   Vw32_scroll_lock_modifier = Qnil;
 
   DEFVAR_LISP ("w32-lwindow-modifier",
-	       &Vw32_lwindow_modifier,
+	       Vw32_lwindow_modifier,
 	       doc: /* Modifier to use for the left \"Windows\" key.
 The value can be hyper, super, meta, alt, control or shift for the
 respective modifier, or nil to appear as the `lwindow' key.
@@ -7022,7 +6899,7 @@ Any other value will cause the key to be ignored.  */);
   Vw32_lwindow_modifier = Qnil;
 
   DEFVAR_LISP ("w32-rwindow-modifier",
-	       &Vw32_rwindow_modifier,
+	       Vw32_rwindow_modifier,
 	       doc: /* Modifier to use for the right \"Windows\" key.
 The value can be hyper, super, meta, alt, control or shift for the
 respective modifier, or nil to appear as the `rwindow' key.
@@ -7030,23 +6907,23 @@ Any other value will cause the key to be ignored.  */);
   Vw32_rwindow_modifier = Qnil;
 
   DEFVAR_LISP ("w32-apps-modifier",
-	       &Vw32_apps_modifier,
+	       Vw32_apps_modifier,
 	       doc: /* Modifier to use for the \"Apps\" key.
 The value can be hyper, super, meta, alt, control or shift for the
 respective modifier, or nil to appear as the `apps' key.
 Any other value will cause the key to be ignored.  */);
   Vw32_apps_modifier = Qnil;
 
-  DEFVAR_BOOL ("w32-enable-synthesized-fonts", &w32_enable_synthesized_fonts,
+  DEFVAR_BOOL ("w32-enable-synthesized-fonts", w32_enable_synthesized_fonts,
 	       doc: /* Non-nil enables selection of artificially italicized and bold fonts.  */);
   w32_enable_synthesized_fonts = 0;
 
-  DEFVAR_LISP ("w32-enable-palette", &Vw32_enable_palette,
+  DEFVAR_LISP ("w32-enable-palette", Vw32_enable_palette,
 	       doc: /* Non-nil enables Windows palette management to map colors exactly.  */);
   Vw32_enable_palette = Qt;
 
   DEFVAR_INT ("w32-mouse-button-tolerance",
-	      &w32_mouse_button_tolerance,
+	      w32_mouse_button_tolerance,
 	      doc: /* Analogue of double click interval for faking middle mouse events.
 The value is the minimum time in milliseconds that must elapse between
 left and right button down events before they are considered distinct events.
@@ -7055,7 +6932,7 @@ button down event is generated instead.  */);
   w32_mouse_button_tolerance = GetDoubleClickTime () / 2;
 
   DEFVAR_INT ("w32-mouse-move-interval",
-	      &w32_mouse_move_interval,
+	      w32_mouse_move_interval,
 	      doc: /* Minimum interval between mouse move events.
 The value is the minimum time in milliseconds that must elapse between
 successive mouse move (or scroll bar drag) events before they are
@@ -7063,7 +6940,7 @@ reported as lisp events.  */);
   w32_mouse_move_interval = 0;
 
   DEFVAR_BOOL ("w32-pass-extra-mouse-buttons-to-system",
-	       &w32_pass_extra_mouse_buttons_to_system,
+	       w32_pass_extra_mouse_buttons_to_system,
 	       doc: /* If non-nil, the fourth and fifth mouse buttons are passed to Windows.
 Recent versions of Windows support mice with up to five buttons.
 Since most applications don't support these extra buttons, most mouse
@@ -7073,7 +6950,7 @@ system to handle them.  */);
   w32_pass_extra_mouse_buttons_to_system = 0;
 
   DEFVAR_BOOL ("w32-pass-multimedia-buttons-to-system",
-               &w32_pass_multimedia_buttons_to_system,
+               w32_pass_multimedia_buttons_to_system,
                doc: /* If non-nil, media buttons are passed to Windows.
 Some modern keyboards contain buttons for controlling media players, web
 browsers and other applications.  Generally these buttons are handled on a
@@ -7096,7 +6973,7 @@ bass-down, bass-boost, bass-up, treble-down, treble-up  */);
   w32_pass_multimedia_buttons_to_system = 1;
 
 #if 0 /* TODO: Mouse cursor customization.  */
-  DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
+  DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,
 	       doc: /* The shape of the pointer when over text.
 Changing the value does not affect existing frames
 unless you set the mouse color.  */);
@@ -7106,37 +6983,37 @@ unless you set the mouse color.  */);
 
   Vx_mode_pointer_shape = Qnil;
 
-  DEFVAR_LISP ("x-hourglass-pointer-shape", &Vx_hourglass_pointer_shape,
+  DEFVAR_LISP ("x-hourglass-pointer-shape", Vx_hourglass_pointer_shape,
 	       doc: /* The shape of the pointer when Emacs is busy.
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_hourglass_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-sensitive-text-pointer-shape",
-	       &Vx_sensitive_text_pointer_shape,
+	       Vx_sensitive_text_pointer_shape,
 	       doc: /* The shape of the pointer when over mouse-sensitive text.
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_sensitive_text_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-window-horizontal-drag-cursor",
-	       &Vx_window_horizontal_drag_shape,
+	       Vx_window_horizontal_drag_shape,
 	       doc: /* Pointer shape to use for indicating a window can be dragged horizontally.
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_window_horizontal_drag_shape = Qnil;
 #endif
 
-  DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
+  DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
 	       doc: /* A string indicating the foreground color of the cursor box.  */);
   Vx_cursor_fore_pixel = Qnil;
 
-  DEFVAR_LISP ("x-max-tooltip-size", &Vx_max_tooltip_size,
+  DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
 	       doc: /* Maximum size for tooltips.
 Value is a pair (COLUMNS . ROWS).  Text larger than this is clipped.  */);
   Vx_max_tooltip_size = Fcons (make_number (80), make_number (40));
 
-  DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
+  DEFVAR_LISP ("x-no-window-manager", Vx_no_window_manager,
 	       doc: /* Non-nil if no window manager is in use.
 Emacs doesn't try to figure this out; this is always nil
 unless you set it to something else.  */);
@@ -7145,7 +7022,7 @@ unless you set it to something else.  */);
   Vx_no_window_manager = Qnil;
 
   DEFVAR_LISP ("x-pixel-size-width-font-regexp",
-	       &Vx_pixel_size_width_font_regexp,
+	       Vx_pixel_size_width_font_regexp,
 	       doc: /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.
 
 Since Emacs gets width of a font matching with this regexp from
@@ -7155,12 +7032,12 @@ Chinese, Japanese, and Korean.  */);
   Vx_pixel_size_width_font_regexp = Qnil;
 
   DEFVAR_LISP ("w32-bdf-filename-alist",
-               &Vw32_bdf_filename_alist,
+               Vw32_bdf_filename_alist,
                doc: /* List of bdf fonts and their corresponding filenames.  */);
   Vw32_bdf_filename_alist = Qnil;
 
   DEFVAR_BOOL ("w32-strict-fontnames",
-               &w32_strict_fontnames,
+               w32_strict_fontnames,
 	       doc: /* Non-nil means only use fonts that are exact matches for those requested.
 Default is nil, which allows old fontnames that are not XLFD compliant,
 and allows third-party CJK display to work by specifying false charset
@@ -7170,7 +7047,7 @@ fontsets are automatically created.  */);
   w32_strict_fontnames = 0;
 
   DEFVAR_BOOL ("w32-strict-painting",
-               &w32_strict_painting,
+               w32_strict_painting,
 	       doc: /* Non-nil means use strict rules for repainting frames.
 Set this to nil to get the old behavior for repainting; this should
 only be necessary if the default setting causes problems.  */);
@@ -7279,7 +7156,7 @@ globals_of_w32fns (void)
       GetProcAddress (imm32_lib, "ImmSetCompositionWindow");
   }
   DEFVAR_INT ("w32-ansi-code-page",
-	      &w32_ansi_code_page,
+	      w32_ansi_code_page,
 	      doc: /* The ANSI code page used by the system.  */);
   w32_ansi_code_page = GetACP ();
 
@@ -7324,4 +7201,3 @@ w32_last_error (void)
 {
   return GetLastError ();
 }
-

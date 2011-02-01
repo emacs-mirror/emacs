@@ -1,6 +1,6 @@
 ;;; newst-treeview.el --- Treeview frontend for newsticker.
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-treeview.el
@@ -2076,5 +2076,4 @@ POS gives the position where EVENT occurred."
 
 (provide 'newst-treeview)
 
-;; arch-tag: 5dbaff48-1f3e-4fc6-8ebd-e966fc90d2d4
 ;;; newst-treeview.el ends here

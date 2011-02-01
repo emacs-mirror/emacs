@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames, International, Windows, Top
@@ -58,10 +57,10 @@ so that you can use many of the features described in this chapter.
 @end menu
 
 @node Cut and Paste
-@section Killing and Yanking on Graphical Displays
+@section Cutting and Pasting on Graphical Displays
 
-  This section describes commands for selecting a region, killing, and
-yanking using the mouse.
+  This section describes commands for selecting a region, cutting, and
+pasting using the mouse.
 
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
@@ -247,6 +246,14 @@ Unlike the Emacs kill ring (@pxref{Kill Ring}), the primary selection
 has no ``memory'': each time you save something in the primary
 selection, either in Emacs or in another X application, the previous
 contents of the primary selection are lost.
+
+@cindex MS-Windows, and primary selection
+  MS-Windows provides no primary selection, but Emacs emulates it
+within a single Emacs session, by storing the selected text
+internally.  Therefore, all the features and commands related to the
+primary selection work on Windows as they do on X, for cutting and
+pasting within the same session, but not across Emacs sessions or with
+other applications.
 
   Whenever you kill some text using a command such as @kbd{C-w}
 (@code{kill-region}), or copy it into the kill ring using a command
@@ -1431,7 +1438,3 @@ again.
 In the console on GNU/Linux, you can use @kbd{M-x gpm-mouse-mode} to
 enable terminal mouse support.  You must have the gpm package
 installed and running on your system in order for this to work.
-
-@ignore
-   arch-tag: 7dcf3a31-a43b-45d4-a900-445b10d77e49
-@end ignore

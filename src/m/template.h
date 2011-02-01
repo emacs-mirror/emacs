@@ -1,7 +1,6 @@
 /* machine description file template.
 
-Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-  2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -48,5 +47,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    you should also check `etc/MACHINES' to make sure its descriptions
    of known problems in that configuration should be updated.  */
 
-/* arch-tag: d7dae0a9-4f99-4939-bef9-5738e1f33955
-   (do not change this comment) */

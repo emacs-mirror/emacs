@@ -1,7 +1,6 @@
 /* Definitions file for GNU Emacs running on Silicon Graphics Irix system 6.5.
 
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-  2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -97,8 +96,4 @@ char *_getpty();
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 
-/* arch-tag: ad0660e0-acf8-46ae-b866-4f3df5b1101b
-   (do not change this comment) */
 
-/* arch-tag: d7ad9ec2-54ad-4b2f-adf2-0070c5c63e83
-   (do not change this comment) */

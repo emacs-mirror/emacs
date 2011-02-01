@@ -1,6 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -98,22 +97,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qsyntax_table_p, Qsyntax_table, Qscan_error;
 
-int words_include_escapes;
-int parse_sexp_lookup_properties;
-
-/* Nonzero means `scan-sexps' treat all multibyte characters as symbol.  */
-int multibyte_syntax_as_symbol;
-
 /* Used as a temporary in SYNTAX_ENTRY and other macros in syntax.h,
    if not compiled with GCC.  No need to mark it, since it is used
    only very temporarily.  */
 Lisp_Object syntax_temp;
-
-/* Non-zero means an open parenthesis in column 0 is always considered
-   to be the start of a defun.  Zero means an open parenthesis in
-   column 0 has no special meaning.  */
-
-int open_paren_in_column_0_is_defun_start;
 
 /* This is the internal form of the parse state used in parse-partial-sexp.  */
 
@@ -167,7 +154,6 @@ int syntax_prefix_flag_p (int c)
 
 struct gl_state_s gl_state;		/* Global state of syntax parser.  */
 
-INTERVAL interval_of (int, Lisp_Object);
 #define INTERVALS_AT_ONCE 10		/* 1 + max-number of intervals
 					   to scan to property-change.  */
 
@@ -1221,12 +1207,6 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
   return syntax;
 }
 
-int parse_sexp_ignore_comments;
-
-/* Char-table of functions that find the next or previous word
-   boundary.  */
-Lisp_Object Vfind_word_boundary_function_table;
-
 /* Return the position across COUNT words from FROM.
    If that many words cannot be found before the end of the buffer, return 0.
    COUNT negative means scan backward and stop at word beginning.  */
@@ -3483,31 +3463,31 @@ syms_of_syntax (void)
   Fput (Qscan_error, Qerror_message,
 	make_pure_c_string ("Scan error"));
 
-  DEFVAR_BOOL ("parse-sexp-ignore-comments", &parse_sexp_ignore_comments,
+  DEFVAR_BOOL ("parse-sexp-ignore-comments", parse_sexp_ignore_comments,
 	       doc: /* Non-nil means `forward-sexp', etc., should treat comments as whitespace.  */);
 
-  DEFVAR_BOOL ("parse-sexp-lookup-properties", &parse_sexp_lookup_properties,
+  DEFVAR_BOOL ("parse-sexp-lookup-properties", parse_sexp_lookup_properties,
 	       doc: /* Non-nil means `forward-sexp', etc., obey `syntax-table' property.
 Otherwise, that text property is simply ignored.
 See the info node `(elisp)Syntax Properties' for a description of the
 `syntax-table' property.  */);
 
   words_include_escapes = 0;
-  DEFVAR_BOOL ("words-include-escapes", &words_include_escapes,
+  DEFVAR_BOOL ("words-include-escapes", words_include_escapes,
 	       doc: /* Non-nil means `forward-word', etc., should treat escape chars part of words.  */);
 
-  DEFVAR_BOOL ("multibyte-syntax-as-symbol", &multibyte_syntax_as_symbol,
+  DEFVAR_BOOL ("multibyte-syntax-as-symbol", multibyte_syntax_as_symbol,
 	       doc: /* Non-nil means `scan-sexps' treats all multibyte characters as symbol.  */);
   multibyte_syntax_as_symbol = 0;
 
   DEFVAR_BOOL ("open-paren-in-column-0-is-defun-start",
-	       &open_paren_in_column_0_is_defun_start,
+	       open_paren_in_column_0_is_defun_start,
 	       doc: /* *Non-nil means an open paren in column 0 denotes the start of a defun.  */);
   open_paren_in_column_0_is_defun_start = 1;
 
 
   DEFVAR_LISP ("find-word-boundary-function-table",
-	       &Vfind_word_boundary_function_table,
+	       Vfind_word_boundary_function_table,
 	       doc: /*
 Char table of functions to search for the word boundary.
 Each function is called with two arguments; POS and LIMIT.
@@ -3549,5 +3529,3 @@ In both cases, LIMIT bounds the search. */);
   defsubr (&Sparse_partial_sexp);
 }
 
-/* arch-tag: 3e297b9f-088e-4b64-8f4c-fb0b3443e412
-   (do not change this comment) */

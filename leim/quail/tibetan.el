@@ -1,9 +1,8 @@
 ;;; tibetan.el --- Quail package for inputting Tibetan characters -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010
+;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -453,5 +452,4 @@
 	     (tibetan-vowel-tibkey-alist . m-state))
     (m-state tibetan-modifier-tibkey-alist))))
 
-;; arch-tag: 828fdb1a-733f-4c7b-b882-a19d2449ac99
 ;;; tibetan.el ends here

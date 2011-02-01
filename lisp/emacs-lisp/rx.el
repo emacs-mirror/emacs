@@ -1,7 +1,6 @@
 ;;; rx.el --- sexp notation for regular expressions
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
@@ -120,19 +119,17 @@
     (nonl		. not-newline)	; SRE
     (anything		. (rx-anything 0 nil))
     (any		. (rx-any 1 nil rx-check-any)) ; inconsistent with SRE
+    (any		. ".")          ; sregex
     (in			. any)
     (char		. any)		; sregex
     (not-char		. (rx-not-char 1 nil rx-check-any)) ; sregex
     (not		. (rx-not 1 1 rx-check-not))
-    ;; Partially consistent with sregex, whose `repeat' is like our
-    ;; `**'.  (`repeat' with optional max arg and multiple sexp forms
-    ;; is ambiguous.)
-    (repeat		. (rx-repeat 2 3))
+    (repeat		. (rx-repeat 2 nil))
     (=			. (rx-= 2 nil))	   ; SRE
     (>=			. (rx->= 2 nil))   ; SRE
     (**			. (rx-** 2 nil))   ; SRE
     (submatch		. (rx-submatch 1 nil)) ; SRE
-    (group		. submatch)
+    (group		. submatch)     ; sregex
     (zero-or-more	. (rx-kleene 1 nil))
     (one-or-more	. (rx-kleene 1 nil))
     (zero-or-one	. (rx-kleene 1 nil))
@@ -175,6 +172,7 @@
     (category		. (rx-category 1 1 rx-check-category))
     (eval		. (rx-eval 1 1))
     (regexp		. (rx-regexp 1 1 stringp))
+    (regex		. regexp)       ; sregex
     (digit		. "[[:digit:]]")
     (numeric		. digit)	; SRE
     (num		. digit)	; SRE
@@ -295,15 +293,27 @@ regular expression strings.")
 `zero-or-more', and `one-or-more'.  Dynamically bound.")
 
 
-(defun rx-info (op)
+(defun rx-info (op head)
   "Return parsing/code generation info for OP.
 If OP is the space character ASCII 32, return info for the symbol `?'.
 If OP is the character `?', return info for the symbol `??'.
-See also `rx-constituents'."
+See also `rx-constituents'.
+If HEAD is non-nil, then OP is the head of a sexp, otherwise it's
+a standalone symbol."
   (cond ((eq op ? ) (setq op '\?))
 	((eq op ??) (setq op '\??)))
-  (while (and (not (null op)) (symbolp op))
-    (setq op (cdr (assq op rx-constituents))))
+  (let (old-op)
+    (while (and (not (null op)) (symbolp op))
+      (setq old-op op)
+      (setq op (cdr (assq op rx-constituents)))
+      (when (if head (stringp op) (consp op))
+        ;; We found something but of the wrong kind.  Let's look for an
+        ;; alternate definition for the other case.
+        (let ((new-op
+               (cdr (assq old-op (cdr (memq (assq old-op rx-constituents)
+                                            rx-constituents))))))
+          (if (and new-op (not (if head (stringp new-op) (consp new-op))))
+              (setq op new-op))))))
   op)
 
 
@@ -311,7 +321,7 @@ See also `rx-constituents'."
   "Check FORM according to its car's parsing info."
   (unless (listp form)
     (error "rx `%s' needs argument(s)" form))
-  (let* ((rx (rx-info (car form)))
+  (let* ((rx (rx-info (car form) 'head))
 	 (nargs (1- (length form)))
 	 (min-args (nth 1 rx))
 	 (max-args (nth 2 rx))
@@ -401,7 +411,7 @@ Only both edges of each range is checked."
 	(setcdr m (1- char)))))
     ranges))
 
-    
+
 (defun rx-any-condense-range (args)
   "Condense by side effect ARGS as range for Rx `any'."
   (let (str
@@ -564,7 +574,7 @@ ARG is optional."
 				 (condition-case nil
 				     (rx-form arg)
 				   (error ""))))
-	      (eq arg 'word-boundary) 
+	      (eq arg 'word-boundary)
 	      (and (consp arg)
 		   (memq (car arg) '(not any in syntax category))))
     (error "rx `not' syntax error: %s" arg))
@@ -643,14 +653,17 @@ If SKIP is non-nil, allow that number of items after the head, i.e.
 (defun rx-** (form)
   "Parse and produce code from FORM `(** N M ...)'."
   (rx-check form)
-  (setq form (cons 'repeat (cdr (rx-trans-forms form 2))))
-  (rx-form form '*))
+  (rx-form (cons 'repeat (cdr (rx-trans-forms form 2))) '*))
 
 
 (defun rx-repeat (form)
   "Parse and produce code from FORM.
-FORM is either `(repeat N FORM1)' or `(repeat N M FORM1)'."
+FORM is either `(repeat N FORM1)' or `(repeat N M FORMS...)'."
   (rx-check form)
+  (if (> (length form) 4)
+      (setq form (rx-trans-forms form 2)))
+  (if (null (nth 2 form))
+      (setq form (cons (nth 0 form) (cons (nth 1 form) (nthcdr 3 form)))))
   (cond ((= (length form) 3)
 	 (unless (and (integerp (nth 1 form))
 		      (> (nth 1 form) 0))
@@ -749,15 +762,18 @@ of all atomic regexps."
   "Parse and produce code from FORM, which is `(syntax SYMBOL)'."
   (rx-check form)
   (let* ((sym (cadr form))
-	 (syntax (assq sym rx-syntax)))
+	 (syntax (cdr (assq sym rx-syntax))))
     (unless syntax
       ;; Try sregex compatibility.
-      (let ((name (symbol-name sym)))
-	(if (= 1 (length name))
-	    (setq syntax (rassq (aref name 0) rx-syntax))))
+      (cond
+       ((characterp sym) (setq syntax sym))
+       ((symbolp sym)
+        (let ((name (symbol-name sym)))
+          (if (= 1 (length name))
+              (setq syntax (aref name 0))))))
       (unless syntax
-	(error "Unknown rx syntax `%s'" (cadr form))))
-    (format "\\s%c" (cdr syntax))))
+	(error "Unknown rx syntax `%s'" sym)))
+    (format "\\s%c" syntax)))
 
 
 (defun rx-check-category (form)
@@ -811,7 +827,7 @@ shy groups around the result and some more in other functions."
     (cond ((integerp form)
 	   (regexp-quote (char-to-string form)))
 	  ((symbolp form)
-	   (let ((info (rx-info form)))
+	   (let ((info (rx-info form nil)))
 	     (cond ((stringp info)
 		    info)
 		   ((null info)
@@ -819,7 +835,7 @@ shy groups around the result and some more in other functions."
 		   (t
 		    (funcall (nth 0 info) form)))))
 	  ((consp form)
-	   (let ((info (rx-info (car form))))
+	   (let ((info (rx-info (car form) 'head)))
 	     (unless (consp info)
 	       (error "Unknown rx form `%s'" (car form)))
 	     (funcall (nth 0 info) form)))
@@ -1144,5 +1160,4 @@ enclosed in `(and ...)'.
 
 (provide 'rx)
 
-;; arch-tag: 12d01a63-0008-42bb-ab8c-1c7d63be370b
 ;;; rx.el ends here

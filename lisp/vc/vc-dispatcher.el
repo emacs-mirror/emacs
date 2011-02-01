@@ -1,7 +1,6 @@
 ;;; vc-dispatcher.el -- generic command-dispatcher facility.
 
-;; Copyright (C) 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Eric S. Raymond <esr@thyrsus.com>
@@ -357,6 +356,60 @@ case, and the process object in the asynchronous case."
 			      ',command ',file-or-list ',flags))
 	status))))
 
+(defun vc-do-async-command (buffer root command &rest args)
+  "Run COMMAND asynchronously with ARGS, displaying the result.
+Send the output to BUFFER, which should be a buffer or the name
+of a buffer, which is created.
+ROOT should be the directory in which the command should be run.
+Display the buffer in some window, but don't select it."
+  (let* ((dir default-directory)
+	 window new-window-start)
+    (setq buffer (get-buffer-create buffer))
+    (if (get-buffer-process buffer)
+	(error "Another VC action on %s is running" root))
+    (with-current-buffer buffer
+      (setq default-directory root)
+      (goto-char (point-max))
+      (unless (eq (point) (point-min))
+	(insert "\n"))
+      (setq new-window-start (point))
+      (insert "Running \"" command)
+      (dolist (arg args)
+	(insert " " arg))
+      (insert "\"...\n")
+      ;; Run in the original working directory.
+      (let ((default-directory dir))
+	(apply 'vc-do-command t 'async command nil args)))
+    (setq window (display-buffer buffer))
+    (if window
+	(set-window-start window new-window-start))
+    buffer))
+
+(defun vc-set-async-update (process-buffer)
+  "Set a `vc-exec-after' action appropriate to the current buffer.
+This action will update the current buffer after the current
+asynchronous VC command has completed.  PROCESS-BUFFER is the
+buffer for the asynchronous VC process.
+
+If the current buffer is a VC Dir buffer, call `vc-dir-refresh'.
+If the current buffer is a Dired buffer, revert it."
+  (let* ((buf (current-buffer))
+	 (tick (buffer-modified-tick buf)))
+    (cond
+     ((derived-mode-p 'vc-dir-mode)
+      (with-current-buffer process-buffer
+	(vc-exec-after
+	 `(if (buffer-live-p ,buf)
+	      (with-current-buffer ,buf
+		(vc-dir-refresh))))))
+     ((derived-mode-p 'dired-mode)
+      (with-current-buffer process-buffer
+	(vc-exec-after
+	 `(and (buffer-live-p ,buf)
+	       (= (buffer-modified-tick ,buf) ,tick)
+	       (with-current-buffer ,buf
+		 (revert-buffer)))))))))
+
 ;; These functions are used to ensure that the view the user sees is up to date
 ;; even if the dispatcher client mode has messed with file contents (as in,
 ;; for example, VCS keyword expansion).
@@ -692,5 +745,4 @@ the buffer contents as a comment."
 
 (provide 'vc-dispatcher)
 
-;; arch-tag: 7d08b17f-5470-4799-914b-bfb9fcf6a246
 ;;; vc-dispatcher.el ends here

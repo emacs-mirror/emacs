@@ -1,6 +1,6 @@
 ;;; gnutls.el --- Support SSL/TLS connections through GnuTLS
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
@@ -77,7 +77,7 @@ PRIORITY-STRING is as per the GnuTLS docs, default is \"NORMAL\".
 TRUSTFILES is a list of CA bundles.
 KEYFILES is a list of client keys."
   (let* ((type (or type 'gnutls-x509pki))
-         (trusfiles (or trustfiles
+         (trustfiles (or trustfiles
                         '("/etc/ssl/certs/ca-certificates.crt")))
          (priority-string (or priority-string
                               (cond

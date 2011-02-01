@@ -1,8 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/text
 @node Text, Non-ASCII Characters, Markers, Top
@@ -2203,11 +2201,11 @@ The functions in this section return unpredictable values.
 @defvar indent-line-function
 This variable's value is the function to be used by @key{TAB} (and
 various commands) to indent the current line.  The command
-@code{indent-according-to-mode} does no more than call this function.
+@code{indent-according-to-mode} does little more than call this function.
 
 In Lisp mode, the value is the symbol @code{lisp-indent-line}; in C
 mode, @code{c-indent-line}; in Fortran mode, @code{fortran-indent-line}.
-The default value is @code{indent-relative}.
+The default value is @code{indent-relative}.  @xref{Auto-Indentation}.
 @end defvar
 
 @deffn Command indent-according-to-mode

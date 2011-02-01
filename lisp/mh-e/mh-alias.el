@@ -1,8 +1,6 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
 
-;; Copyright (C) 1994, 1995, 1996, 1997,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -670,5 +668,4 @@ show buffer, the message in the show buffer doesn't match."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 49879e46-5aa3-4569-bece-e5a58731d690
 ;;; mh-alias.el ends here

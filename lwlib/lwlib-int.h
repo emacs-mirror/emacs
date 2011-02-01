@@ -1,7 +1,6 @@
 /*
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010 Free Software Foundation, Inc.
+Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -80,5 +79,3 @@ widget_instance * lw_get_widget_instance (Widget);
 
 #endif /* LWLIB_INTERNAL_H */
 
-/* arch-tag: ae02f67d-ef25-421c-b956-b01a4b0aac76
-   (do not change this comment) */

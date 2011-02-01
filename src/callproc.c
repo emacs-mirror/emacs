@@ -1,6 +1,5 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1988, 1993-1995, 1999-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -25,10 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <setjmp.h>
 #include <sys/types.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include <sys/file.h>
 #include <fcntl.h>
@@ -75,16 +71,8 @@ extern char **environ;
 #endif
 #endif
 
-Lisp_Object Vexec_path, Vexec_directory, Vexec_suffixes;
-Lisp_Object Vdata_directory, Vdoc_directory;
-Lisp_Object Vconfigure_info_directory, Vshared_game_score_directory;
-
 /* Pattern used by call-process-region to make temp files.  */
 static Lisp_Object Vtemp_file_name_pattern;
-
-Lisp_Object Vshell_file_name;
-
-Lisp_Object Vprocess_environment, Vinitial_environment;
 
 #ifdef DOS_NT
 Lisp_Object Qbuffer_file_type;
@@ -361,7 +349,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   display_p = INTERACTIVE && nargs >= 4 && !NILP (args[3]);
 
-  filefd = emacs_open (SDATA (infile), O_RDONLY, 0);
+  filefd = emacs_open (SSDATA (infile), O_RDONLY, 0);
   if (filefd < 0)
     {
       infile = DECODE_FILE (infile);
@@ -477,11 +465,11 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     else if (STRINGP (error_file))
       {
 #ifdef DOS_NT
-	fd_error = emacs_open (SDATA (error_file),
+	fd_error = emacs_open (SSDATA (error_file),
 			       O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
 			       S_IREAD | S_IWRITE);
 #else  /* not DOS_NT */
-	fd_error = creat (SDATA (error_file), 0666);
+	fd_error = creat (SSDATA (error_file), 0666);
 #endif /* not DOS_NT */
       }
 
@@ -1091,7 +1079,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
          CONSP (tem) && STRINGP (XCAR (tem));
          tem = XCDR (tem))
       {
-	if (strncmp (SDATA (XCAR (tem)), "DISPLAY", 7) == 0
+	if (strncmp (SSDATA (XCAR (tem)), "DISPLAY", 7) == 0
 	    && (SDATA (XCAR (tem)) [7] == '\0'
 		|| SDATA (XCAR (tem)) [7] == '='))
 	  /* DISPLAY is specified in process-environment.  */
@@ -1123,10 +1111,10 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
 
     if (STRINGP (display))
       {
-	int vlen = strlen ("DISPLAY=") + strlen (SDATA (display)) + 1;
+	int vlen = strlen ("DISPLAY=") + strlen (SSDATA (display)) + 1;
 	char *vdata = (char *) alloca (vlen);
 	strcpy (vdata, "DISPLAY=");
-	strcat (vdata, SDATA (display));
+	strcat (vdata, SSDATA (display));
 	new_env = add_env (env, new_env, vdata);
       }
 
@@ -1134,7 +1122,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
     for (tem = Vprocess_environment;
 	 CONSP (tem) && STRINGP (XCAR (tem));
 	 tem = XCDR (tem))
-      new_env = add_env (env, new_env, SDATA (XCAR (tem)));
+      new_env = add_env (env, new_env, SSDATA (XCAR (tem)));
 
     *new_env = 0;
 
@@ -1289,7 +1277,7 @@ getenv_internal_1 (const char *var, int varlen, char **value, int *valuelen,
 	{
 	  if (SBYTES (entry) > varlen && SREF (entry, varlen) == '=')
 	    {
-	      *value = (char *) SDATA (entry) + (varlen + 1);
+	      *value = SSDATA (entry) + (varlen + 1);
 	      *valuelen = SBYTES (entry) - (varlen + 1);
 	      return 1;
 	    }
@@ -1321,7 +1309,7 @@ getenv_internal (const char *var, int varlen, char **value, int *valuelen,
 	= Fframe_parameter (NILP (frame) ? selected_frame : frame, Qdisplay);
       if (STRINGP (display))
 	{
-	  *value    = (char *) SDATA (display);
+	  *value    = SSDATA (display);
 	  *valuelen = SBYTES (display);
 	  return 1;
 	}
@@ -1352,13 +1340,13 @@ If optional parameter ENV is a list, then search this list instead of
   CHECK_STRING (variable);
   if (CONSP (env))
     {
-      if (getenv_internal_1 (SDATA (variable), SBYTES (variable),
+      if (getenv_internal_1 (SSDATA (variable), SBYTES (variable),
 			     &value, &valuelen, env))
 	return value ? make_string (value, valuelen) : Qt;
       else
 	return Qnil;
     }
-  else if (getenv_internal (SDATA (variable), SBYTES (variable),
+  else if (getenv_internal (SSDATA (variable), SBYTES (variable),
 			    &value, &valuelen, env))
     return make_string (value, valuelen);
   else
@@ -1471,13 +1459,13 @@ init_callproc (void)
 #endif
     {
       tempdir = Fdirectory_file_name (Vexec_directory);
-      if (access (SDATA (tempdir), 0) < 0)
+      if (access (SSDATA (tempdir), 0) < 0)
 	dir_warning ("Warning: arch-dependent data dir (%s) does not exist.\n",
 		     Vexec_directory);
     }
 
   tempdir = Fdirectory_file_name (Vdata_directory);
-  if (access (SDATA (tempdir), 0) < 0)
+  if (access (SSDATA (tempdir), 0) < 0)
     dir_warning ("Warning: arch-independent data dir (%s) does not exist.\n",
 		 Vdata_directory);
 
@@ -1529,41 +1517,41 @@ syms_of_callproc (void)
 #endif
   staticpro (&Vtemp_file_name_pattern);
 
-  DEFVAR_LISP ("shell-file-name", &Vshell_file_name,
+  DEFVAR_LISP ("shell-file-name", Vshell_file_name,
 	       doc: /* *File name to load inferior shells from.
 Initialized from the SHELL environment variable, or to a system-dependent
 default if SHELL is not set.  */);
 
-  DEFVAR_LISP ("exec-path", &Vexec_path,
+  DEFVAR_LISP ("exec-path", Vexec_path,
 	       doc: /* *List of directories to search programs to run in subprocesses.
 Each element is a string (directory name) or nil (try default directory).  */);
 
-  DEFVAR_LISP ("exec-suffixes", &Vexec_suffixes,
+  DEFVAR_LISP ("exec-suffixes", Vexec_suffixes,
 	       doc: /* *List of suffixes to try to find executable file names.
 Each element is a string.  */);
   Vexec_suffixes = Qnil;
 
-  DEFVAR_LISP ("exec-directory", &Vexec_directory,
+  DEFVAR_LISP ("exec-directory", Vexec_directory,
 	       doc: /* Directory for executables for Emacs to invoke.
 More generally, this includes any architecture-dependent files
 that are built and installed from the Emacs distribution.  */);
 
-  DEFVAR_LISP ("data-directory", &Vdata_directory,
+  DEFVAR_LISP ("data-directory", Vdata_directory,
 	       doc: /* Directory of machine-independent files that come with GNU Emacs.
 These are files intended for Emacs to use while it runs.  */);
 
-  DEFVAR_LISP ("doc-directory", &Vdoc_directory,
+  DEFVAR_LISP ("doc-directory", Vdoc_directory,
 	       doc: /* Directory containing the DOC file that comes with GNU Emacs.
 This is usually the same as `data-directory'.  */);
 
-  DEFVAR_LISP ("configure-info-directory", &Vconfigure_info_directory,
+  DEFVAR_LISP ("configure-info-directory", Vconfigure_info_directory,
 	       doc: /* For internal use by the build procedure only.
 This is the name of the directory in which the build procedure installed
 Emacs's info files; the default value for `Info-default-directory-list'
 includes this.  */);
   Vconfigure_info_directory = build_string (PATH_INFO);
 
-  DEFVAR_LISP ("shared-game-score-directory", &Vshared_game_score_directory,
+  DEFVAR_LISP ("shared-game-score-directory", Vshared_game_score_directory,
 	       doc: /* Directory of score files for games which come with GNU Emacs.
 If this variable is nil, then Emacs is unable to use a shared directory.  */);
 #ifdef DOS_NT
@@ -1572,13 +1560,13 @@ If this variable is nil, then Emacs is unable to use a shared directory.  */);
   Vshared_game_score_directory = build_string (PATH_GAME);
 #endif
 
-  DEFVAR_LISP ("initial-environment", &Vinitial_environment,
+  DEFVAR_LISP ("initial-environment", Vinitial_environment,
 	       doc: /* List of environment variables inherited from the parent process.
 Each element should be a string of the form ENVVARNAME=VALUE.
 The elements must normally be decoded (using `locale-coding-system') for use.  */);
   Vinitial_environment = Qnil;
 
-  DEFVAR_LISP ("process-environment", &Vprocess_environment,
+  DEFVAR_LISP ("process-environment", Vprocess_environment,
 	       doc: /* List of overridden environment variables for subprocesses to inherit.
 Each element should be a string of the form ENVVARNAME=VALUE.
 
@@ -1605,4 +1593,3 @@ See `setenv' and `getenv'.  */);
   defsubr (&Sgetenv_internal);
   defsubr (&Scall_process_region);
 }
-

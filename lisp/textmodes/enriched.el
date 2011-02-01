@@ -1,7 +1,6 @@
 ;;; enriched.el --- read and save files in text/enriched format
 
-;; Copyright (C) 1994, 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: wp, faces
@@ -502,5 +501,4 @@ the range of text to assign text property SYMBOL with value VALUE."
       (message "Warning: invalid <x-display> parameter %s" param))
     (list start end 'display prop)))
 
-;; arch-tag: 05cae488-3fea-45cd-ac29-5b02cb64e42b
 ;;; enriched.el ends here

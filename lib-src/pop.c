@@ -1,6 +1,7 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
-   Copyright (C) 1991, 1993, 1996, 1997, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2011
+  Free Software Foundation, Inc.
 
 Author: Jonathan Kamens <jik@security.ov.com>
 
@@ -68,9 +69,7 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 #include <string.h>
 #define index strchr
 #endif
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef KERBEROS
 # ifdef HAVE_KRB5_H
@@ -1626,6 +1625,3 @@ find_crlf (char *in_string, int len)
 }
 
 #endif /* MAIL_USE_POP */
-
-/* arch-tag: ceb37041-b7ad-49a8-a63d-286618b8367d
-   (do not change this comment) */

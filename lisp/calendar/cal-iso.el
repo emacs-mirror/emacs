@@ -1,7 +1,6 @@
 ;;; cal-iso.el --- calendar functions for the ISO calendar
 
-;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -155,5 +154,4 @@ Interactively, goes to the first day of the specified week."
 
 (provide 'cal-iso)
 
-;; arch-tag: 3c0154cc-d30f-4981-9f60-42bdf7a468f6
 ;;; cal-iso.el ends here

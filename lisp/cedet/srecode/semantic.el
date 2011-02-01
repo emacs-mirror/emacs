@@ -1,6 +1,6 @@
 ;;; srecode/semantic.el --- Semantic specific extensions to SRecode.
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -428,5 +428,4 @@ as `function' will leave point where code might be inserted."
 
 (provide 'srecode/semantic)
 
-;; arch-tag: b87ccbd6-bd87-48bc-8182-1043a9052d79
 ;;; srecode/semantic.el ends here

@@ -1,7 +1,6 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001, 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes, hypermedia
@@ -326,5 +325,4 @@ no further processing).  URL is either a string or a parsed URL."
 
 (provide 'url)
 
-;; arch-tag: bc182f1f-d187-4f10-b961-47af2066579a
 ;;; url.el ends here

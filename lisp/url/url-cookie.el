@@ -1,7 +1,6 @@
-;;; url-cookie.el --- Netscape Cookie support
+;;; url-cookie.el --- URL cookie support
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -26,10 +25,8 @@
 
 (require 'url-util)
 (require 'url-parse)
-(eval-when-compile (require 'cl))
 
-;; See http://home.netscape.com/newsref/std/cookie_spec.html for the
-;; 'open standard' defining this crap.
+(eval-when-compile (require 'cl))	; defstruct
 
 (defgroup url-cookie nil
   "URL cookies."
@@ -76,41 +73,23 @@ telling Microsoft that."
   "Whether the cookies list has changed since the last save operation.")
 
 (defun url-cookie-parse-file (&optional fname)
-  (setq fname (or fname url-cookie-file))
-  (condition-case ()
-      (load fname nil t)
-    (error
-     ;; It's completely normal for the cookies file not to exist yet.
-     ;; (message "Could not load cookie file %s" fname)
-     )))
+  "Load FNAME, default `url-cookie-file'."
+  ;; It's completely normal for the cookies file not to exist yet.
+  (load (or fname url-cookie-file) t t))
 
 (declare-function url-cookie-p "url-cookie" t t) ; defstruct
 
 (defun url-cookie-clean-up (&optional secure)
-  (let* (
-	 (var (if secure 'url-cookie-secure-storage 'url-cookie-storage))
-	 (val (symbol-value var))
-	 (cur nil)
-	 (new nil)
-	 (cookies nil)
-	 (cur-cookie nil)
-	 (new-cookies nil)
-	 )
-    (while val
-      (setq cur (car val)
-	    val (cdr val)
-	    new-cookies nil
-	    cookies (cdr cur))
-      (while cookies
-	(setq cur-cookie (car cookies)
-	      cookies (cdr cookies))
-	(if (or (not (url-cookie-p cur-cookie))
-		(url-cookie-expired-p cur-cookie)
-		(null (url-cookie-expires cur-cookie)))
-	    nil
-	  (setq new-cookies (cons cur-cookie new-cookies))))
-      (if (not new-cookies)
-	  nil
+  (let ((var (if secure 'url-cookie-secure-storage 'url-cookie-storage))
+	new new-cookies)
+    (dolist (cur (symbol-value var))
+      (setq new-cookies nil)
+      (dolist (cur-cookie (cdr cur))
+	(or (not (url-cookie-p cur-cookie))
+	    (url-cookie-expired-p cur-cookie)
+	    (null (url-cookie-expires cur-cookie))
+	    (setq new-cookies (cons cur-cookie new-cookies))))
+      (when new-cookies
 	(setcdr cur new-cookies)
 	(setq new (cons cur new))))
     (set var new)))
@@ -143,54 +122,42 @@ telling Microsoft that."
     (setq url-cookies-changed-since-last-save nil))))
 
 (defun url-cookie-store (name value &optional expires domain localpart secure)
-  "Store a netscape-style cookie."
-  (let* ((storage (if secure url-cookie-secure-storage url-cookie-storage))
-	 (tmp storage)
-	 (cur nil)
-	 (found-domain nil))
-
-    ;; First, look for a matching domain
-    (setq found-domain (assoc domain storage))
-
-    (if found-domain
+  "Store a cookie."
+  (let ((storage (if secure url-cookie-secure-storage url-cookie-storage))
+	tmp found-domain)
+    ;; First, look for a matching domain.
+    (if (setq found-domain (assoc domain storage))
 	;; Need to either stick the new cookie in existing domain storage
 	;; or possibly replace an existing cookie if the names match.
-	(progn
-	  (setq storage (cdr found-domain)
-		tmp nil)
-	  (while storage
-	    (setq cur (car storage)
-		  storage (cdr storage))
-	    (if (and (equal localpart (url-cookie-localpart cur))
-		     (equal name (url-cookie-name cur)))
-		(progn
-		  (setf (url-cookie-expires cur) expires)
-		  (setf (url-cookie-value cur) value)
-		  (setq tmp t))))
-	  (if (not tmp)
-	      ;; New cookie
-	      (setcdr found-domain (cons
-				    (url-cookie-create :name name
-						       :value value
-						       :expires expires
-						       :domain domain
-						       :localpart localpart
-						       :secure secure)
-				    (cdr found-domain)))))
-      ;; Need to add a new top-level domain
+	(unless (dolist (cur (setq storage (cdr found-domain)) tmp)
+		  (and (equal localpart (url-cookie-localpart cur))
+		       (equal name (url-cookie-name cur))
+		       (progn
+			 (setf (url-cookie-expires cur) expires)
+			 (setf (url-cookie-value cur) value)
+			 (setq tmp t))))
+	  ;; New cookie.
+	  (setcdr found-domain (cons
+				(url-cookie-create :name name
+						   :value value
+						   :expires expires
+						   :domain domain
+						   :localpart localpart
+						   :secure secure)
+				(cdr found-domain))))
+      ;; Need to add a new top-level domain.
       (setq tmp (url-cookie-create :name name
 				   :value value
 				   :expires expires
 				   :domain domain
 				   :localpart localpart
 				   :secure secure))
-      (cond
-       (storage
-	(setcdr storage (cons (list domain tmp) (cdr storage))))
-       (secure
-	(setq url-cookie-secure-storage (list (list domain tmp))))
-       (t
-	(setq url-cookie-storage (list (list domain tmp))))))))
+      (cond (storage
+	     (setcdr storage (cons (list domain tmp) (cdr storage))))
+	    (secure
+	     (setq url-cookie-secure-storage (list (list domain tmp))))
+	    (t
+	     (setq url-cookie-storage (list (list domain tmp))))))))
 
 (defun url-cookie-expired-p (cookie)
   "Return non-nil if COOKIE is expired."
@@ -198,19 +165,14 @@ telling Microsoft that."
     (and exp (> (float-time) (float-time (date-to-time exp))))))
 
 (defun url-cookie-retrieve (host &optional localpart secure)
-  "Retrieve all the netscape-style cookies for a specified HOST and LOCALPART."
+  "Retrieve all cookies for a specified HOST and LOCALPART."
   (let ((storage (if secure
 		     (append url-cookie-secure-storage url-cookie-storage)
 		   url-cookie-storage))
 	(case-fold-search t)
-	(cookies nil)
-	(cur nil)
-	(retval nil)
-	(localpart-match nil))
-    (while storage
-      (setq cur (car storage)
-	    storage (cdr storage)
-	    cookies (cdr cur))
+	cookies retval localpart-match)
+    (dolist (cur storage)
+      (setq cookies (cdr cur))
       (if (and (car cur)
 	       (string-match
                 (concat "^.*"
@@ -222,35 +184,28 @@ telling Microsoft that."
                            (car cur)))
                         "$") host))
 	  ;; The domains match - a possible hit!
-	  (while cookies
-	    (setq cur (car cookies)
-		  cookies (cdr cookies)
-		  localpart-match (url-cookie-localpart cur))
-	    (if (and (if (stringp localpart-match)
-			 (string-match (concat "^" (regexp-quote
-						    localpart-match))
-				       localpart)
-		       (equal localpart localpart-match))
-		     (not (url-cookie-expired-p cur)))
-		(setq retval (cons cur retval))))))
+	  (dolist (cur cookies)
+	    (and (if (and (stringp
+			   (setq localpart-match (url-cookie-localpart cur)))
+			  (stringp localpart))
+		     (string-match (concat "^" (regexp-quote localpart-match))
+				   localpart)
+		   (equal localpart localpart-match))
+		 (not (url-cookie-expired-p cur))
+		 (setq retval (cons cur retval))))))
     retval))
 
 (defun url-cookie-generate-header-lines (host localpart secure)
-  (let* ((cookies (url-cookie-retrieve host localpart secure))
-	 (retval nil)
-	 (cur nil)
-	 (chunk nil))
-    ;; Have to sort this for sending most specific cookies first
+  (let ((cookies (url-cookie-retrieve host localpart secure))
+	retval chunk)
+    ;; Have to sort this for sending most specific cookies first.
     (setq cookies (and cookies
 		       (sort cookies
-			     (function
-			      (lambda (x y)
-				(> (length (url-cookie-localpart x))
-				   (length (url-cookie-localpart y))))))))
-    (while cookies
-      (setq cur (car cookies)
-	    cookies (cdr cookies)
-	    chunk (format "%s=%s" (url-cookie-name cur) (url-cookie-value cur))
+			     (lambda (x y)
+			       (> (length (url-cookie-localpart x))
+				  (length (url-cookie-localpart y)))))))
+    (dolist (cur cookies)
+      (setq chunk (format "%s=%s" (url-cookie-name cur) (url-cookie-value cur))
 	    retval (if (and url-cookie-multiple-line
 			    (< 80 (+ (length retval) (length chunk) 4)))
 		       (concat retval "\r\nCookie: " chunk)
@@ -320,40 +275,38 @@ telling Microsoft that."
 			(file-name-directory
 			 (url-filename url-current-object))))
 	 (rest nil))
-    (while args
-      (if (not (member (downcase (car (car args)))
-		       '("secure" "domain" "expires" "path")))
-	  (setq rest (cons (car args) rest)))
-      (setq args (cdr args)))
+    (dolist (this args)
+      (or (member (downcase (car this)) '("secure" "domain" "expires" "path"))
+	  (setq rest (cons this rest))))
 
     ;; Sometimes we get dates that the timezone package cannot handle very
     ;; gracefully - take care of this here, instead of in url-cookie-expired-p
     ;; to speed things up.
-    (if (and expires
-	     (string-match
-	      (concat "^[^,]+, +\\(..\\)-\\(...\\)-\\(..\\) +"
-		      "\\(..:..:..\\) +\\[*\\([^\]]+\\)\\]*$")
-	      expires))
-	(setq expires (concat (match-string 1 expires) " "
-			      (match-string 2 expires) " "
-			      (match-string 3 expires) " "
-			      (match-string 4 expires) " ["
-			      (match-string 5 expires) "]")))
+    (and expires
+	 (string-match
+	  (concat "^[^,]+, +\\(..\\)-\\(...\\)-\\(..\\) +"
+		  "\\(..:..:..\\) +\\[*\\([^\]]+\\)\\]*$")
+	  expires)
+	 (setq expires (concat (match-string 1 expires) " "
+			       (match-string 2 expires) " "
+			       (match-string 3 expires) " "
+			       (match-string 4 expires) " ["
+			       (match-string 5 expires) "]")))
 
     ;; This one is for older Emacs/XEmacs variants that don't
     ;; understand this format without tenths of a second in it.
     ;; Wednesday, 30-Dec-2037 16:00:00 GMT
     ;;       - vs -
     ;; Wednesday, 30-Dec-2037 16:00:00.00 GMT
-    (if (and expires
-	     (string-match
-	      "\\([0-9]+\\)-\\([A-Za-z]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)\\(\\.[0-9]+\\)*[ \t]+\\([-+a-zA-Z0-9]+\\)"
-	      expires))
-	(setq expires (concat (match-string 1 expires) "-"	; day
-			      (match-string 2 expires) "-"	; month
-			      (match-string 3 expires) " "	; year
-			      (match-string 4 expires) ".00 " ; hour:minutes:seconds
-			      (match-string 6 expires)))) ":" ; timezone
+    (and expires
+	 (string-match
+	  "\\([0-9]+\\)-\\([A-Za-z]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)\\(\\.[0-9]+\\)*[ \t]+\\([-+a-zA-Z0-9]+\\)"
+	  expires)
+	 (setq expires (concat (match-string 1 expires) "-"	; day
+			       (match-string 2 expires) "-"	; month
+			       (match-string 3 expires) " "	; year
+			       (match-string 4 expires) ".00 " ; hour:minutes:seconds
+			       (match-string 6 expires)))) ":" ; timezone
 
     (while (consp trusted)
       (if (string-match (car trusted) current-url)
@@ -363,42 +316,36 @@ telling Microsoft that."
       (if (string-match (car untrusted) current-url)
 	  (setq untrusted (- (match-end 0) (match-beginning 0)))
 	(pop untrusted)))
-    (if (and trusted untrusted)
-	;; Choose the more specific match
-	(if (> trusted untrusted)
-	    (setq untrusted nil)
-	  (setq trusted nil)))
+    (and trusted untrusted
+	 ;; Choose the more specific match.
+	 (set (if (> trusted untrusted) 'untrusted 'trusted) nil))
     (cond
      (untrusted
-      ;; The site was explicity marked as untrusted by the user
+      ;; The site was explicity marked as untrusted by the user.
       nil)
      ((or (eq url-privacy-level 'paranoid)
 	  (and (listp url-privacy-level) (memq 'cookies url-privacy-level)))
-      ;; user never wants cookies
+      ;; User never wants cookies.
       nil)
      ((and url-cookie-confirmation
 	   (not trusted)
 	   (save-window-excursion
 	     (with-output-to-temp-buffer "*Cookie Warning*"
 	       (mapcar
-		(function
-		 (lambda (x)
-		   (princ (format "%s - %s" (car x) (cdr x))))) rest))
+		(lambda (x)
+		  (princ (format "%s - %s" (car x) (cdr x)))) rest))
 	     (prog1
 		 (not (funcall url-confirmation-func
 			       (format "Allow %s to set these cookies? "
 				       (url-host url-current-object))))
 	       (if (get-buffer "*Cookie Warning*")
 		   (kill-buffer "*Cookie Warning*")))))
-      ;; user wants to be asked, and declined.
+      ;; User wants to be asked, and declined.
       nil)
      ((url-cookie-host-can-set-p (url-host url-current-object) domain)
-      ;; Cookie is accepted by the user, and passes our security checks
-      (let ((cur nil))
-	(while rest
-	  (setq cur (pop rest))
-	  (url-cookie-store (car cur) (cdr cur)
-			    expires domain localpart secure))))
+      ;; Cookie is accepted by the user, and passes our security checks.
+      (dolist (cur rest)
+	(url-cookie-store (car cur) (cdr cur) expires domain localpart secure)))
      (t
       (url-lazy-message "%s tried to set a cookie for domain %s - rejected."
 			(url-host url-current-object) domain)))))
@@ -429,5 +376,4 @@ to run the `url-cookie-setup-save-timer' function manually."
 
 (provide 'url-cookie)
 
-;; arch-tag: 2568751b-6452-4398-aa2d-303edadb54d7
 ;;; url-cookie.el ends here

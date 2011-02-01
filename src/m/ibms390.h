@@ -1,7 +1,6 @@
 /* Machine description file for IBM S390 in 32-bit mode
 
-Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-  2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -33,5 +32,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    numerically.  */
 #define VIRT_ADDR_VARIES
 
-/* arch-tag: d8a0ffa4-a8f0-4736-90d3-7fd7b21b8314
-   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;; icalendar-testsuite.el --- Test suite for icalendar.el
 
-;; Copyright (C) 2005, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2008-2011  Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        March 2005
@@ -1855,5 +1855,4 @@ SUMMARY:and diary-anniversary
 
 (provide 'icalendar-testsuite)
 
-;; arch-tag: 33a98396-90e9-49c8-b0e9-b606386d6e8c
 ;;; icalendar-testsuite.el ends here

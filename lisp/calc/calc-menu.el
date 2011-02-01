@@ -1,6 +1,6 @@
 ;;; calc-menu.el --- a menu for Calc
 
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 
@@ -1461,4 +1461,3 @@
 
 (provide 'calc-menu)
 
-;; arch-tag: 9612c86a-cd4f-4baa-ab0b-40af7344d21f

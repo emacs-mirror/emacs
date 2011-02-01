@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization, Quitting, Amusements, Top
@@ -2234,6 +2233,8 @@ a Meta character, as in @samp{\M-a} for @kbd{Meta-A} or @samp{\M-\C-a} for
 non-@acronym{ASCII} in your init file.
 
 @item Characters:
+@cindex Lisp character syntax
+@cindex character syntax
 Lisp character constant syntax consists of a @samp{?} followed by
 either a character or an escape sequence starting with @samp{\}.
 Examples: @code{?x}, @code{?\n}, @code{?\"}, @code{?\)}.  Note that
@@ -2250,6 +2251,7 @@ keys which send non-@acronym{ASCII} characters.
 @code{nil} stands for `false'.
 
 @item Other Lisp objects:
+@cindex Lisp object syntax
 Write a single-quote (@code{'}) followed by the Lisp object you want.
 @end table
 
@@ -2602,7 +2604,3 @@ stop working.  It is therefore advisable to use one and only one
 coding system, for your init file as well as the files you edit.  For
 example, don't mix the @samp{latin-1} and @samp{latin-9} coding
 systems.
-
-@ignore
-   arch-tag: c68abddb-4410-4fb5-925f-63394e971d93
-@end ignore

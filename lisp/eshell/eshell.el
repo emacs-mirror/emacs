@@ -1,7 +1,6 @@
 ;;; eshell.el --- the Emacs command shell
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -285,7 +284,8 @@ shells such as bash, zsh, rc, 4dos."
   "`eshell-buffer-name' is a member of `same-window-buffer-names'"
   (member eshell-buffer-name same-window-buffer-names))
 
-(defcustom eshell-directory-name (convert-standard-filename "~/.eshell/")
+(defcustom eshell-directory-name
+  (locate-user-emacs-file "eshell/" ".eshell/")
   "The directory where Eshell control files should be kept."
   :type 'directory
   :group 'eshell)
@@ -490,5 +490,4 @@ Emacs."
 
 (provide 'eshell)
 
-;; arch-tag: 9d4d5214-0e4e-4e02-b349-39add640d63f
 ;;; eshell.el ends here

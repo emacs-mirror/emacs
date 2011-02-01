@@ -1,6 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1993-1995, 1997, 1999-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -67,11 +66,6 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
    the o1's cdr.  Otherwise, return zero.  This is handy for
    traversing plists.  */
 #define PLIST_ELT_P(o1, o2) (CONSP (o1) && ((o2)=XCDR (o1), CONSP (o2)))
-
-Lisp_Object Vinhibit_point_motion_hooks;
-Lisp_Object Vdefault_text_properties;
-Lisp_Object Vchar_property_alias_alist;
-Lisp_Object Vtext_property_default_nonsticky;
 
 /* verify_interval_modification saves insertion hooks here
    to be run later by report_interval_modification.  */
@@ -501,8 +495,7 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
    if this changes the interval.  */
 
 static INLINE int
-erase_properties (i)
-     INTERVAL i;
+erase_properties (INTERVAL i)
 {
   if (NILP (i->plist))
     return 0;
@@ -1604,17 +1597,19 @@ Return t if any property was actually removed, nil otherwise.  */)
       if (LENGTH (i) >= len)
 	{
 	  if (! interval_has_some_properties_list (properties, i))
-	    if (modified)
-	      {
-		if (BUFFERP (object))
-		  signal_after_change (XINT (start), XINT (end) - XINT (start),
-				       XINT (end) - XINT (start));
-		return Qt;
-	      }
-	    else
-	      return Qnil;
-
-	  if (LENGTH (i) == len)
+	    {
+	      if (modified)
+		{
+		  if (BUFFERP (object))
+		    signal_after_change (XINT (start),
+					 XINT (end) - XINT (start),
+					 XINT (end) - XINT (start));
+		  return Qt;
+		}
+	      else
+		return Qnil;
+	    }
+	  else if (LENGTH (i) == len)
 	    {
 	      if (!modified && BUFFERP (object))
 		modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
@@ -1624,20 +1619,20 @@ Return t if any property was actually removed, nil otherwise.  */)
 				     XINT (end) - XINT (start));
 	      return Qt;
 	    }
-
-	  /* i has the properties, and goes past the change limit */
-	  unchanged = i;
-	  i = split_interval_left (i, len);
-	  copy_properties (unchanged, i);
-	  if (!modified && BUFFERP (object))
-	    modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
-	  remove_properties (Qnil, properties, i, object);
-	  if (BUFFERP (object))
-	    signal_after_change (XINT (start), XINT (end) - XINT (start),
-				 XINT (end) - XINT (start));
-	  return Qt;
+	  else
+	    { /* i has the properties, and goes past the change limit.  */
+	      unchanged = i;
+	      i = split_interval_left (i, len);
+	      copy_properties (unchanged, i);
+	      if (!modified && BUFFERP (object))
+		modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
+	      remove_properties (Qnil, properties, i, object);
+	      if (BUFFERP (object))
+		signal_after_change (XINT (start), XINT (end) - XINT (start),
+				     XINT (end) - XINT (start));
+	      return Qt;
+	    }
 	}
-
       if (interval_has_some_properties_list (properties, i))
 	{
 	  if (!modified && BUFFERP (object))
@@ -2233,13 +2228,13 @@ report_interval_modification (Lisp_Object start, Lisp_Object end)
 void
 syms_of_textprop (void)
 {
-  DEFVAR_LISP ("default-text-properties", &Vdefault_text_properties,
+  DEFVAR_LISP ("default-text-properties", Vdefault_text_properties,
 	       doc: /* Property-list used as default values.
 The value of a property in this list is seen as the value for every
 character that does not have its own value for that property.  */);
   Vdefault_text_properties = Qnil;
 
-  DEFVAR_LISP ("char-property-alias-alist", &Vchar_property_alias_alist,
+  DEFVAR_LISP ("char-property-alias-alist", Vchar_property_alias_alist,
 	       doc: /* Alist of alternative properties for properties without a value.
 Each element should look like (PROPERTY ALTERNATIVE1 ALTERNATIVE2...).
 If a piece of text has no direct value for a particular property, then
@@ -2248,13 +2243,13 @@ the first non-nil value from the associated alternative properties is
 returned. */);
   Vchar_property_alias_alist = Qnil;
 
-  DEFVAR_LISP ("inhibit-point-motion-hooks", &Vinhibit_point_motion_hooks,
+  DEFVAR_LISP ("inhibit-point-motion-hooks", Vinhibit_point_motion_hooks,
 	       doc: /* If non-nil, don't run `point-left' and `point-entered' text properties.
 This also inhibits the use of the `intangible' text property.  */);
   Vinhibit_point_motion_hooks = Qnil;
 
   DEFVAR_LISP ("text-property-default-nonsticky",
-	       &Vtext_property_default_nonsticky,
+	       Vtext_property_default_nonsticky,
 	       doc: /* Alist of properties vs the corresponding non-stickinesses.
 Each element has the form (PROPERTY . NONSTICKINESS).
 
@@ -2337,5 +2332,3 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
 /*  defsubr (&Scopy_text_properties); */
 }
 
-/* arch-tag: 454cdde8-5f86-4faa-a078-101e3625d479
-   (do not change this comment) */

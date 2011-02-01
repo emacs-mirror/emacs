@@ -1,6 +1,6 @@
 ;;; doc-view.el --- View PDF/PostScript/DVI files in Emacs
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Tassilo Horn <tassilo@member.fsf.org>
 ;; Maintainer: Tassilo Horn <tassilo@member.fsf.org>
@@ -168,6 +168,12 @@ Higher values result in larger images."
   :type 'number
   :group 'doc-view)
 
+(defcustom doc-view-image-width 850
+  "Default image width.
+Has only an effect if imagemagick support is compiled into emacs."
+  :type 'number
+  :group 'doc-view)
+
 (defcustom doc-view-dvipdfm-program (executable-find "dvipdfm")
   "Program to convert DVI files to PDF.
 
@@ -187,6 +193,13 @@ converted to PNG.
 
 If this and `doc-view-dvipdfm-program' are set,
 `doc-view-dvipdf-program' will be preferred."
+  :type 'file
+  :group 'doc-view)
+
+(defcustom doc-view-unoconv-program (executable-find "unoconv")
+  "Program to convert any file type readable by OpenOffice.org to PDF.
+
+Needed for viewing OpenOffice.org (and MS Office) files."
   :type 'file
   :group 'doc-view)
 
@@ -604,10 +617,12 @@ It's a subdirectory of `doc-view-cache-directory'."
 
 ;;;###autoload
 (defun doc-view-mode-p (type)
-  "Return non-nil if image type TYPE is available for `doc-view'.
-Image types are symbols like `dvi', `postscript' or `pdf'."
+  "Return non-nil if document type TYPE is available for `doc-view'.
+Document types are symbols like `dvi', `ps', `pdf', or `odf' (any
+OpenDocument format)."
   (and (display-graphic-p)
-       (image-type-available-p 'png)
+       (or (image-type-available-p 'imagemagick)
+	   (image-type-available-p 'png))
        (cond
 	((eq type 'dvi)
 	 (and (doc-view-mode-p 'pdf)
@@ -619,6 +634,10 @@ Image types are symbols like `dvi', `postscript' or `pdf'."
 	     (eq type 'pdf))
 	 (and doc-view-ghostscript-program
 	      (executable-find doc-view-ghostscript-program)))
+	((eq type 'odf)
+	 (and doc-view-unoconv-program
+	      (executable-find doc-view-unoconv-program)
+	      (doc-view-mode-p 'pdf)))
 	(t ;; unknown image type
 	 nil))))
 
@@ -629,9 +648,17 @@ Image types are symbols like `dvi', `postscript' or `pdf'."
 (defun doc-view-enlarge (factor)
   "Enlarge the document."
   (interactive (list doc-view-shrink-factor))
-  (set (make-local-variable 'doc-view-resolution)
-       (* factor doc-view-resolution))
-  (doc-view-reconvert-doc))
+  (if (eq (plist-get (cdr (doc-view-current-image)) :type)
+	  'imagemagick)
+      ;; ImageMagick supports on-the-fly-rescaling
+      (progn
+	(set (make-local-variable 'doc-view-image-width)
+	     (ceiling (* factor doc-view-image-width)))
+	(doc-view-insert-image (plist-get (cdr (doc-view-current-image)) :file)
+			       :width doc-view-image-width))
+    (set (make-local-variable 'doc-view-resolution)
+	 (ceiling (* factor doc-view-resolution)))
+    (doc-view-reconvert-doc)))
 
 (defun doc-view-shrink (factor)
   "Shrink the document."
@@ -692,6 +719,13 @@ Should be invoked when the cached images aren't up-to-date."
 			    (list "-o" pdf dvi)
 			    callback)))
 
+(defun doc-view-odf->pdf (odf callback)
+  "Convert ODF to PDF asynchronously and call CALLBACK when finished.
+The converted PDF is put into the current cache directory, and it
+is named like ODF with the extension turned to pdf."
+  (doc-view-start-process "odf->pdf" doc-view-unoconv-program
+			  (list "-f" "pdf" "-o" (doc-view-current-cache-dir) odf)
+			  callback))
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
   "Convert PDF-PS to PNG asynchronously."
@@ -794,6 +828,12 @@ Start by converting PAGES, and then the rest."
      (doc-view-pdf->txt (expand-file-name "doc.pdf"
                                           (doc-view-current-cache-dir))
                         txt callback))
+    (odf
+     ;; Doc is some ODF (or MS Office) doc.  This means that a doc.pdf
+     ;; already exists in its cache subdirectory.
+     (doc-view-pdf->txt (expand-file-name "doc.pdf"
+                                          (doc-view-current-cache-dir))
+                        txt callback))
     (t (error "DocView doesn't know what to do"))))
 
 (defun doc-view-ps->pdf (ps pdf callback)
@@ -838,6 +878,24 @@ Those files are saved in the directory given by the function
             (png-file png-file))
          (doc-view-dvi->pdf doc-view-buffer-file-name pdf
                             (lambda () (doc-view-pdf/ps->png pdf png-file)))))
+      (odf
+       ;; ODF files have to be converted to PDF before Ghostscript can
+       ;; process it.
+       (lexical-let
+           ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir))
+	    (opdf (expand-file-name (concat (file-name-sans-extension
+					     (file-name-nondirectory doc-view-buffer-file-name))
+					    ".pdf")
+				    doc-view-current-cache-dir))
+            (png-file png-file))
+	 ;; The unoconv tool only supports a output directory, but no
+	 ;; file name.  It's named like the input file with the
+	 ;; extension replaced by pdf.
+         (doc-view-odf->pdf doc-view-buffer-file-name
+                            (lambda ()
+			      ;; Rename to doc.pdf
+			      (rename-file opdf pdf)
+			      (doc-view-pdf/ps->png pdf png-file)))))
       (pdf
        (let ((pages (doc-view-active-pages)))
          ;; Convert PDF to PNG images starting with the active pages.
@@ -906,7 +964,11 @@ ARGS is a list of image descriptors."
     (setq doc-view-pending-cache-flush nil))
   (let ((ol (doc-view-current-overlay))
         (image (if (and file (file-readable-p file))
-                   (apply 'create-image file 'png nil args)))
+		   (if (not (fboundp 'imagemagick-types))
+		       (apply 'create-image file 'png nil args)
+		     (unless (member :width args)
+		       (setq args (append args (list :width doc-view-image-width))))
+		     (apply 'create-image file 'imagemagick nil args))))
         (slice (doc-view-current-slice)))
     (setf (doc-view-current-image) image)
     (move-overlay ol (point-min) (point-max))
@@ -999,11 +1061,15 @@ For now these keys are useful:
       (message "DocView: please wait till conversion finished.")
     (let ((txt (expand-file-name "doc.txt" (doc-view-current-cache-dir))))
       (if (file-readable-p txt)
-	  (find-file txt)
+	  (let ((name (concat "Text contents of "
+			      (file-name-nondirectory buffer-file-name)))
+		(dir (file-name-directory buffer-file-name)))
+	    (with-current-buffer (find-file txt)
+	      (rename-buffer name)
+	      (setq default-directory dir)))
 	(doc-view-doc->txt txt 'doc-view-open-text)))))
 
 ;;;;; Toggle between editing and viewing
-
 
 (defun doc-view-toggle-display ()
   "Toggle between editing a document as text or viewing it."
@@ -1015,11 +1081,9 @@ For now these keys are useful:
 	(setq buffer-read-only nil)
 	(remove-overlays (point-min) (point-max) 'doc-view t)
 	(set (make-local-variable 'image-mode-winprops-alist) t)
-	;; Switch to the previously used major mode or fall back to fundamental
-	;; mode.
-	(if doc-view-previous-major-mode
-	    (funcall doc-view-previous-major-mode)
-	  (fundamental-mode))
+	;; Switch to the previously used major mode or fall back to
+	;; normal mode.
+	(doc-view-fallback-mode)
 	(doc-view-minor-mode 1))
     ;; Switch to doc-view-mode
     (when (and (buffer-modified-p)
@@ -1179,11 +1243,11 @@ If BACKWARD is non-nil, jump to the previous match."
      (concat "No PNG support is available, or some conversion utility for "
 	     (file-name-extension doc-view-buffer-file-name)
 	     " files is missing."))
-    (if (and (executable-find doc-view-pdftotext-program)
-	     (y-or-n-p
-	      "Unable to render file.  View extracted text instead? "))
-	(doc-view-open-text)
-      (doc-view-toggle-display))))
+    (when (and (executable-find doc-view-pdftotext-program)
+	       (y-or-n-p
+		"Unable to render file.  View extracted text instead? "))
+      (doc-view-open-text))
+    (doc-view-toggle-display)))
 
 (defvar bookmark-make-record-function)
 
@@ -1206,6 +1270,41 @@ If BACKWARD is non-nil, jump to the previous match."
     (dolist (x l1) (if (memq x l2) (push x l)))
     l))
 
+(defun doc-view-set-doc-type ()
+  "Figure out the current document type (`doc-view-doc-type')."
+  (let ((name-types
+	 (when buffer-file-name
+	   (cdr (assoc (file-name-extension buffer-file-name)
+		       '(
+			 ;; DVI
+			 ("dvi" dvi)
+			 ;; PDF
+			 ("pdf" pdf) ("epdf" pdf)
+			 ;; PostScript
+			 ("ps" ps) ("eps" ps)
+			 ;; OpenDocument formats
+			 ("odt" odf) ("ods" odf) ("odp" odf) ("odg" odf)
+			 ("odc" odf) ("odi" odf) ("odm" odf) ("ott" odf)
+			 ("ots" odf) ("otp" odf) ("otg" odf)
+			 ;; Microsoft Office formats (also handled
+			 ;; by the odf conversion chain)
+			 ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf)
+			 ("ppt" odf) ("pptx" odf))))))
+	(content-types
+	 (save-excursion
+	   (goto-char (point-min))
+	   (cond
+	    ((looking-at "%!") '(ps))
+	    ((looking-at "%PDF") '(pdf))
+	    ((looking-at "\367\002") '(dvi))))))
+    (set (make-local-variable 'doc-view-doc-type)
+	 (car (or (doc-view-intersection name-types content-types)
+		  (when (and name-types content-types)
+		    (error "Conflicting types: name says %s but content says %s"
+			   name-types content-types))
+		  name-types content-types
+		  (error "Cannot determine the document type"))))))
+
 ;;;###autoload
 (defun doc-view-mode ()
   "Major mode in DocView buffers.
@@ -1222,39 +1321,19 @@ toggle between displaying the document or editing it as text.
       ;; The doc is empty or doesn't exist at all, so fallback to
       ;; another mode.  We used to also check file-exists-p, but this
       ;; returns nil for tar members.
-      (let ((auto-mode-alist (remq (rassq 'doc-view-mode auto-mode-alist)
-				   auto-mode-alist)))
-	(normal-mode))
+      (doc-view-fallback-mode)
 
     (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
 				doc-view-previous-major-mode
-			      major-mode)))
+			      (when (not (memq major-mode
+					       '(doc-view-mode fundamental-mode)))
+				major-mode))))
       (kill-all-local-variables)
       (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
 
     ;; Figure out the document type.
-    (let ((name-types
-	   (when buffer-file-name
-	     (cdr (assoc (file-name-extension buffer-file-name)
-			 '(("dvi" dvi)
-			   ("pdf" pdf)
-			   ("epdf" pdf)
-			   ("ps" ps)
-			   ("eps" ps))))))
-	  (content-types
-	   (save-excursion
-	     (goto-char (point-min))
-	     (cond
-	      ((looking-at "%!") '(ps))
-	      ((looking-at "%PDF") '(pdf))
-	      ((looking-at "\367\002") '(dvi))))))
-      (set (make-local-variable 'doc-view-doc-type)
-	   (car (or (doc-view-intersection name-types content-types)
-		    (when (and name-types content-types)
-		      (error "Conflicting types: name says %s but content says %s"
-			     name-types content-types))
-		    name-types content-types
-		    (error "Cannot determine the document type")))))
+    (unless doc-view-doc-type
+      (doc-view-set-doc-type))
 
     (doc-view-make-safe-dir doc-view-cache-directory)
     ;; Handle compressed files, remote files, files inside archives
@@ -1322,6 +1401,28 @@ toggle between displaying the document or editing it as text.
     (set (make-local-variable 'view-read-only) nil)
     (run-mode-hooks 'doc-view-mode-hook)))
 
+(defun doc-view-fallback-mode ()
+  "Fallback to the previous or next best major mode."
+  (if doc-view-previous-major-mode
+      (funcall doc-view-previous-major-mode)
+    (let ((auto-mode-alist (rassq-delete-all
+			    'doc-view-mode-maybe
+			    (rassq-delete-all 'doc-view-mode
+					      (copy-alist auto-mode-alist)))))
+      (normal-mode))))
+
+;;;###autoload
+(defun doc-view-mode-maybe ()
+  "Switch to `doc-view-mode' if possible.
+If the required external tools are not available, then fallback
+to the next best mode."
+  (condition-case nil
+      (doc-view-set-doc-type)
+    (error (doc-view-fallback-mode)))
+  (if (doc-view-mode-p doc-view-doc-type)
+      (doc-view-mode)
+    (doc-view-fallback-mode)))
+
 ;;;###autoload
 (define-minor-mode doc-view-minor-mode
   "Toggle Doc view minor mode.
@@ -1380,5 +1481,4 @@ See the command `doc-view-mode' for more information on this mode."
 ;; mode: outline-minor
 ;; End:
 
-;; arch-tag: 5d6e5c5e-095f-489e-b4e4-1ca90a7d79be
 ;;; doc-view.el ends here

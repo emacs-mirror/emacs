@@ -2,8 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -146,5 +145,3 @@ extern int _sys_wait_accept (int fd);
 
 #endif /* EMACS_W32_H */
 
-/* arch-tag: 02c36b00-312b-4c4d-a1d9-f905c5e968f0
-   (do not change this comment) */

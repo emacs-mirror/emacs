@@ -1,7 +1,6 @@
 ;;; soundex.el --- implement Soundex algorithm
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Christian Plaunt <chris@bliss.berkeley.edu>
 ;; Maintainer: FSF
@@ -72,5 +71,4 @@ and Searching\", Addison-Wesley (1973), pp. 391-392."
 
 (provide 'soundex)
 
-;; arch-tag: b2615a98-feb7-430e-a717-171086738953
 ;;; soundex.el ends here

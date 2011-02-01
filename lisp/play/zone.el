@@ -1,7 +1,6 @@
 ;;; zone.el --- idle display hacks
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Victor Zandy <zandy@cs.wisc.edu>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
@@ -684,5 +683,4 @@ If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
 ;;;;;;;;;;;;;;;
 (provide 'zone)
 
-;; arch-tag: 7092503d-74a9-4325-a55c-a026ede58cea
 ;;; zone.el ends here

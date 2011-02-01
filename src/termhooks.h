@@ -1,6 +1,6 @@
 /* Parameters and display hooks for terminal devices.
-   Copyright (C) 1985, 1986, 1993, 1994, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1993-1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -647,7 +647,6 @@ extern struct terminal *terminal_list;
 /* Return true if the terminal device is not suspended. */
 #define TERMINAL_ACTIVE_P(d) (((d)->type != output_termcap && (d)->type !=output_msdos_raw) || (d)->display_info.tty->input)
 
-extern Lisp_Object get_terminal_param (struct terminal *, Lisp_Object);
 extern struct terminal *get_terminal (Lisp_Object terminal, int);
 extern struct terminal *create_terminal (void);
 extern void delete_terminal (struct terminal *);
@@ -659,5 +658,3 @@ extern struct terminal *initial_terminal;
 extern void close_gpm (int gpm_fd);
 #endif
 
-/* arch-tag: 33a00ecc-52b5-4186-a410-8801ac9f087d
-   (do not change this comment) */

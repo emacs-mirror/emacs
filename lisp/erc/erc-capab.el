@@ -1,6 +1,6 @@
 ;;; erc-capab.el --- support for dancer-ircd and hyperion's CAPAB
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -202,5 +202,4 @@ PARSED is an `erc-parsed' response struct."
 
 (provide 'erc-capab)
 
-;; arch-tag: 27b6d668-7ee5-4e47-b9f0-27d7a4362062
 ;;; erc-capab.el ends here

@@ -1,6 +1,6 @@
 ;;; ede-proj-shared.el --- EDE Generic Project shared library support
 
-;;; Copyright (C) 1998, 1999, 2000, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 1998-2000, 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -207,5 +207,4 @@ We need to override -program which has an LDADD element."
 
 (provide 'ede/proj-shared)
 
-;; arch-tag: 05f22c3e-b269-4411-9425-65e8fe4ab74a
 ;;; ede/proj-shared.el ends here

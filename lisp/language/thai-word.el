@@ -1,6 +1,6 @@
 ;;; thai-word.el -- find Thai word boundaries
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -11077,4 +11077,3 @@ With argument, do this that many times."
 
 ;; end of thai-word.el
 
-;; arch-tag: 29927f02-e177-4224-a270-7e67210b038a

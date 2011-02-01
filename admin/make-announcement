@@ -1,7 +1,6 @@
 #! /bin/bash
 
-## Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-##   2010  Free Software Foundation, Inc.
+## Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ## Author: Francesco Potorti` <pot@gnu.org>
 
@@ -86,4 +85,3 @@ make-changelog-diff $oldtag $newtag
 
 echo " announcement created in $outfile" >&2
 
-# arch-tag: 605e00c7-7330-4c45-81e1-2ed53a13c39f

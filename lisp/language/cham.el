@@ -1,6 +1,6 @@
 ;;; cham.el --- support for Cham -*- coding: utf-8; no-byte-compile: t -*-
 
-;; Copyright (C) 2008, 2009, 2010
+;; Copyright (C) 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
@@ -42,4 +42,3 @@
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: a393ea52-445b-4e22-a967-c244afc88cf6

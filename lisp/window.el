@@ -1,7 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C
 
-;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985, 1989, 1992-1994, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -2039,5 +2038,4 @@ Otherwise, consult the value of `truncate-partial-width-windows'
 (define-key ctl-x-map "+" 'balance-windows)
 (define-key ctl-x-4-map "0" 'kill-buffer-and-window)
 
-;; arch-tag: b508dfcc-c353-4c37-89fa-e773fe10cea9
 ;;; window.el ends here

@@ -1,7 +1,6 @@
 ;;; informat.el --- info support functions package for Emacs
 
-;; Copyright (C) 1986, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -511,5 +510,4 @@ For example, invoke \"emacs -batch -f batch-info-validate $info/ ~/*.info\""
 
 (provide 'informat)
 
-;; arch-tag: 581c440e-5be1-4f31-b005-2d5824bbf569
 ;;; informat.el ends here

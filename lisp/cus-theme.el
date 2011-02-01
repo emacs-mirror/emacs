@@ -1,7 +1,6 @@
 ;;; cus-theme.el -- custom theme creation user interface
 ;;
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: FSF
@@ -541,7 +540,7 @@ Do not call this mode function yourself.  It is meant for internal use."
 When called from Lisp, BUFFER should be the buffer to use; if
 omitted, a buffer named *Custom Themes* is used."
   (interactive)
-  (pop-to-buffer (get-buffer-create (or buffer "*Custom Themes*")))
+  (switch-to-buffer (get-buffer-create (or buffer "*Custom Themes*")))
   (let ((inhibit-read-only t))
     (erase-buffer))
   (custom-theme-choose-mode)
@@ -663,5 +662,4 @@ Theme files are named *-theme.el in `"))
   (widget-toggle-action widget event)
   (setq custom-theme-allow-multiple-selections (widget-value widget)))
 
-;; arch-tag: cd6919bc-63af-410e-bae2-b6702e762344
 ;;; cus-theme.el ends here

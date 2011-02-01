@@ -1,7 +1,6 @@
 ;;; uniquify.el --- unique buffer names dependent on file name
 
-;; Copyright (C) 1989, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1995-1997, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Dick King <king@reasoning.com>
 ;; Maintainer: FSF
@@ -508,5 +507,4 @@ For use on `kill-buffer-hook'."
 
 (provide 'uniquify)
 
-;; arch-tag: e763faa3-56c9-4903-8eb8-26e1c45a0065
 ;;; uniquify.el ends here

@@ -1,7 +1,6 @@
 ;;; rot13.el --- display a buffer in ROT13
 
-;; Copyright (C) 1988, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -109,5 +108,4 @@ See also `toggle-rot13-mode'."
 
 (provide 'rot13)
 
-;; arch-tag: ad5b9ca8-946c-4414-996f-e9b1bf9ec79f
 ;;; rot13.el ends here

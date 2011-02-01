@@ -1,7 +1,6 @@
 ;;; imenu.el --- framework for mode-specific buffer indexes
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
@@ -1066,5 +1065,4 @@ for more information."
 
 (provide 'imenu)
 
-;; arch-tag: 98a2f5f5-4b91-4704-b18c-3aacf77d77a7
 ;;; imenu.el ends here

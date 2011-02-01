@@ -1,6 +1,5 @@
 /* sysselect.h - System-dependent definitions for the select function.
-   Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -54,5 +53,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define select sys_select
 #endif
 
-/* arch-tag: 36d05500-8cf6-4847-8e78-6721f18c06ef
-   (do not change this comment) */

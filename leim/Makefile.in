@@ -1,9 +1,8 @@
 # Makefile for leim subdirectory in GNU Emacs.
+
+# Copyright (C) 1997-2011  Free Software Foundation, Inc.
 # Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-#   2006, 2007, 2008, 2009, 2010
-#   Free Software Foundation, Inc.
-# Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-#   2006, 2007, 2008, 2009, 2010
+#   2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
 #   Registration Number H14PRO021
 
@@ -42,20 +41,20 @@ GZIP_PROG = @GZIP_PROG@
 
 # Which Emacs to use to convert TIT files to Emacs Lisp files,
 # byte-compile Emacs Lisp files, and generate the file leim-list.el.
-BUILT-EMACS = ../src/emacs
+BUILT_EMACS = ../src/emacs
 
 buildlisppath=${srcdir}/../lisp
 
 # How to run Emacs.
-RUN-EMACS = EMACSLOADPATH=$(buildlisppath) LC_ALL=C \
-	${BUILT-EMACS} -batch --no-init-file --no-site-file
+RUN_EMACS = EMACSLOADPATH=$(buildlisppath) LC_ALL=C \
+	${BUILT_EMACS} -batch --no-site-file --no-site-lisp
 
 # Subdirectories to be made if ${srcdir} is different from the current
 # directory.
 SUBDIRS=quail
 
 # Files generated from TIT dictionaries for Chinese GB character set.
-TIT-GB=\
+TIT_GB=\
 	quail/CCDOSPY.elc	\
 	quail/Punct.elc		\
 	quail/QJ.elc		\
@@ -73,17 +72,17 @@ TIT-BIG5=\
 	quail/QJ-b5.elc		\
 	quail/ZOZY.elc
 
-CHINESE-TIT=${TIT-GB} ${TIT-BIG5}
+CHINESE_TIT=${TIT_GB} ${TIT_BIG5}
 
-NON-TIT-GB=${srcdir}/quail/py-punct.elc
+NON_TIT_GB=${srcdir}/quail/py-punct.elc
 
-NON-TIT-BIG5=${srcdir}/quail/pypunct-b5.elc
+NON_TIT_BIG5=${srcdir}/quail/pypunct-b5.elc
 
-CHINESE-NON-TIT=${NON-TIT-GB} ${NON-TIT-BIG5}
+CHINESE_NON_TIT=${NON_TIT_GB} ${NON_TIT_BIG5}
 
-CHINESE-GB=${TIT-GB} ${NON-TIT-GB}
+CHINESE_GB=${TIT_GB} ${NON_TIT_GB}
 
-CHINESE-BIG5=${TIT-BIG5} ${NON-TIT-BIG5}
+CHINESE_BIG5=${TIT_BIG5} ${NON_TIT_BIG5}
 
 JAPANESE=${srcdir}/quail/japanese.elc ${srcdir}/ja-dic/ja-dic.elc
 
@@ -139,22 +138,22 @@ MISC= \
 	quail/CTLau.elc		\
 	quail/CTLau-b5.elc
 
-CHINESE=${CHINESE-GB} ${CHINESE-BIG5}
+CHINESE=${CHINESE_GB} ${CHINESE_BIG5}
 EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
 ASIA=${EASTASIA} ${THAI} ${VIETNAMESE} ${LAO} ${INDIAN} ${TIBETAN}
 EUROPEAN=${LATIN} ${SLAVIC} ${GREEK} ${RUSSIAN}
 WORLD=${ASIA} ${EUROPEAN} ${OTHERS} ${MISC} ${UNICODE}
 
-TIT-MISC=${CHINESE-TIT} ${MISC}
-NON-TIT-MISC=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${OTHERS}
+TIT_MISC=${CHINESE_TIT} ${MISC}
+NON_TIT_MISC=${CHINESE_NON_TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${OTHERS}
 
 .SUFFIXES: .elc .el
 
 .el.elc:
 	@echo Compiling $<
-	@${RUN-EMACS} -f batch-byte-compile $<
+	@${RUN_EMACS} -f batch-byte-compile $<
 
-all: ${BUILT-EMACS} ${SUBDIRS} leim-list.el ${WORLD}
+all: ${BUILT_EMACS} ${SUBDIRS} leim-list.el ${WORLD}
 
 # To ensure that we can run Emacs.  This target is ignored (never
 # being hit) if a user changes default value of EMACS.
@@ -165,7 +164,7 @@ ${SUBDIRS}:
 	mkdir $@
 	touch stamp-subdir
 
-TIT-SOURCES= \
+TIT_SOURCES= \
 	${srcdir}/CXTERM-DIC/4Corner.tit \
 	${srcdir}/CXTERM-DIC/ARRAY30.tit \
 	${srcdir}/CXTERM-DIC/CCDOSPY.tit \
@@ -180,15 +179,15 @@ TIT-SOURCES= \
 	${srcdir}/CXTERM-DIC/TONEPY.tit \
 	${srcdir}/CXTERM-DIC/ZOZY.tit
 
-${CHINESE-TIT:.elc=.el}: changed.tit
+${CHINESE_TIT:.elc=.el}: changed.tit
 	@true
 
-changed.tit: ${TIT-SOURCES}
-	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
+changed.tit: ${TIT_SOURCES}
+	${RUN_EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	  -f batch-titdic-convert -dir quail ${srcdir}/CXTERM-DIC; \
 	  echo "changed" > $@
 
-MISC-SOURCES= \
+MISC_SOURCES= \
 	${srcdir}/MISC-DIC/CTLau-b5.html \
 	${srcdir}/MISC-DIC/CTLau.html \
 	${srcdir}/MISC-DIC/cangjie-table.b5 \
@@ -199,20 +198,20 @@ MISC-SOURCES= \
 ${MISC:.elc=.el}: changed.misc
 	@true
 
-changed.misc: ${MISC-SOURCES}
-	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
+changed.misc: ${MISC_SOURCES}
+	${RUN_EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	  -f batch-miscdic-convert -dir quail ${srcdir}/MISC-DIC; \
 	  echo "changed" > $@
 
-leim-list.el: ${SUBDIRS} ${TIT-MISC} changed.tit changed.misc ${srcdir}/leim-ext.el
+leim-list.el: ${SUBDIRS} ${TIT_MISC} changed.tit changed.misc ${srcdir}/leim-ext.el
 	rm -f leim-list.el
-	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
-	  -f batch-byte-compile-if-not-done ${TIT-MISC:.elc=.el}
+	${RUN_EMACS}  -l ${buildlisppath}/international/quail \
+	  -f batch-byte-compile-if-not-done ${TIT_MISC:.elc=.el}
 	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
-	  ${RUN-EMACS} -l ${buildlisppath}/international/quail \
+	  ${RUN_EMACS} -l ${buildlisppath}/international/quail \
 	    --eval "(update-leim-list-file \".\")" ; \
 	else \
-	  ${RUN-EMACS} -l ${buildlisppath}/international/quail \
+	  ${RUN_EMACS} -l ${buildlisppath}/international/quail \
 	    --eval "(update-leim-list-file \".\" \"${srcdir}\")" ; \
 	fi
 	sed -n '/^[^;]/ p' < ${srcdir}/leim-ext.el >> $@
@@ -265,7 +264,7 @@ install: all
 	else true ; fi
 
 clean mostlyclean:
-	rm -f ${TIT-MISC} ${TIT-MISC:.elc=.el} \
+	rm -f ${TIT_MISC} ${TIT_MISC:.elc=.el} \
 		leim-list.el changed.tit changed.misc
 
 # The following target is needed because the `clean' target only removes
@@ -288,5 +287,5 @@ extraclean: maintainer-clean
 .PHONY: check-declare
 
 check-declare:
-	$(RUN-EMACS) -l $(buildlisppath)/emacs-lisp/check-declare \
+	$(RUN_EMACS) -l $(buildlisppath)/emacs-lisp/check-declare \
 	  --eval '(check-declare-directory "$(srcdir)")'

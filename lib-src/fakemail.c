@@ -1,6 +1,5 @@
 /* sendmail-like interface to /bin/mail for system V,
-   Copyright (C) 1985, 1994, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 1999, 2001-2011  Free Software Foundation, Inc.
 
 Author: Bill Rozas <jinx@martigny.ai.mit.edu>
 (according to ack.texi)
@@ -62,9 +61,7 @@ main ()
 #include <stdlib.h>
 
 /* This is to declare cuserid.  */
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 /* Type definitions */
 
@@ -738,7 +735,5 @@ main (int argc, char **argv)
 #endif /* not MSDOS */
 #endif /* not BSD 4.2 (or newer) */
 
-/* arch-tag: acb0afa6-315a-4c5b-b9e3-def5725c8783
-   (do not change this comment) */
 
 /* fakemail.c ends here */

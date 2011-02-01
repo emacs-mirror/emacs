@@ -1,7 +1,6 @@
 ;;; pp.el --- pretty printer for Emacs Lisp
 
-;; Copyright (C) 1989, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@stonehenge.com>
 ;; Keywords: lisp
@@ -202,5 +201,4 @@ Ignores leading comment characters."
 
 (provide 'pp)				; so (require 'pp) works
 
-;; arch-tag: b0f7c65b-02c7-42bb-9ee3-508a59b8fbb9
 ;;; pp.el ends here

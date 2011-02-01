@@ -1,7 +1,6 @@
 ;;; gnus-draft.el --- draft message support for Gnus
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -69,7 +68,8 @@
    (gnus-draft-mode
     ;; Set up the menu.
     (when (gnus-visual-p 'draft-menu 'menu)
-      (gnus-draft-make-menu-bar)))))
+      (gnus-draft-make-menu-bar))
+    (add-hook 'gnus-summary-prepare-exit-hook 'gnus-draft-clear-marks t t))))
 
 ;;; Commands
 
@@ -221,7 +221,8 @@ Obeys the standard process/prefix convention."
 	    (let ((message-sending-message
 		   (format "Sending message %d of %d..."
 			   (- total (length articles)) total)))
-	      (gnus-draft-send article))))))))
+	      (gnus-draft-send article))))))
+    (gnus-group-refresh-group "nndraft:queue")))
 
 ;;;###autoload
 (defun gnus-draft-reminder ()
@@ -324,6 +325,12 @@ Obeys the standard process/prefix convention."
 	      (gnus-select-frame-set-input-focus frame)
 	    (pop-to-buffer buff t)))
 	(error "The draft %s is under edit" file)))))
+
+(defun gnus-draft-clear-marks ()
+  (setq gnus-newsgroup-reads nil
+	gnus-newsgroup-marked nil
+	gnus-newsgroup-unreads
+	(gnus-uncompress-range (gnus-active gnus-newsgroup-name))))
 
 (provide 'gnus-draft)
 

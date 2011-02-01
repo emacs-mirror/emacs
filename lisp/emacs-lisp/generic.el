@@ -1,7 +1,6 @@
 ;;; generic.el --- defining simple major modes with comment and font-lock
 ;;
-;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2011 Free Software Foundation, Inc.
 ;;
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Fri Sep 27 1996
@@ -316,5 +315,4 @@ regular expression that can be used as an element of
 
 (provide 'generic)
 
-;; arch-tag: 239c1fc4-1303-48d9-9ac0-657d655669ea
 ;;; generic.el ends here

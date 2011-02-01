@@ -1,7 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1993-1994, 1996-1997, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1545,7 +1544,7 @@ cursor display.  On a text-only terminal, this is not implemented."
   :init-value (not (or noninteractive
 		       no-blinking-cursor
 		       (eq system-type 'ms-dos)
-		       (not (memq window-system '(x w32)))))
+		       (not (memq window-system '(x w32 ns)))))
   :initialize 'custom-initialize-delay
   :group 'cursor
   :global t

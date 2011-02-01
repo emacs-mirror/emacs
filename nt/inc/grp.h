@@ -1,6 +1,6 @@
 /* Replacement grp.h file for building GNU Emacs on Windows.
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009
-     Free Software Foundation, Inc.
+
+Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,5 +32,3 @@ struct group *getgrgid(gid_t);
 
 #endif /* _GRP_H */
 
-/* arch-tag: 82840357-7946-4a87-9c97-c0281b49aca3
-   (do not change this comment) */

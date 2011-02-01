@@ -1,7 +1,7 @@
 /* sys/stat.h supplied with MSVCRT uses too narrow data types for
    inode and user/group id, so we replace them with our own.
 
-   Copyright (C) 2008, 2009  Free Software Foundation, Inc.
+Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -78,5 +78,3 @@ _CRTIMP int __cdecl __MINGW_NOTHROW	stat (const char*, struct stat*);
 
 #endif	/* INC_SYS_STAT_H_ */
 
-/* arch-tag: 17d8fc06-f2e5-4d10-a01e-af819918fe42
-   (do not change this comment) */

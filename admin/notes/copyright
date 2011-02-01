@@ -1,4 +1,4 @@
-Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 2007-2011  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -132,10 +132,18 @@ Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings
 GNUstep/Emacs.base/Resources/Info-gnustep.plist
    `set-copyright' in admin.el will do all the above.
 
-<top-level>/install-sh
-lispintro/install-sh
+aclocal.m4
+configure
+m4/*.m4
+ - copyright FSF, with unlimited permission to copy, distribute and modify
+
+lib/Makefile.in
+ - copyright FSF, with MIT-like license
+
+install-sh
  - this file is copyright MIT, which is OK. Leave the copyright alone.
 
+mkinstalldirs
 src/m/news-r6.h
   public domain, leave alone.
 
@@ -217,9 +225,6 @@ lib-src/etags.c
   distributions - hence the file etc/ETAGS.README. The fact that the
   --version output just says "Copyright <year> FSF" is apparently OK
   from a legal point of view.
-
-lib-src/getopt1.c, getopt_int.h
-  - these are from the GNU C library. Leave the copyrights alone.
 
 lisp/cedet/semantic/imenu.el
   - See http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg00410.html
@@ -328,6 +333,9 @@ msdos/is_exec.c, sigaction.c - these files are copyright DJ Delorie.
 Leave the copyrights alone. Leave the Eli Zaretskii copyright in
 is_exec.c alone. See the msdos/README file for the legal history of
 these files.
+
+msdos/sed*.inp - These files are copyright FSF and distributed under
+an MIT-like license.
 
 
 oldXMenu/
@@ -611,19 +619,24 @@ of writing) GPL >= 2. rms says may as well leave the licenses of these
 alone (may import them from Gnulib again). These are:
 
     Gnulib:
+    arg-nonnull.h
+    c++defs.h
+    compile
+    config.guess
+    config.sub
+    depcomp
+    doc/man/texinfo.tex
+    missing
+    move-if-change
+    warn-on-use.h
+    lib/*.[ch]
+    lib/gnulib.mk
     src/getloadavg.c
     src/gmalloc.c
     src/md5.c
     src/md5.h
-    src/mktime.c
-    src/strftime.c
     src/termcap.c
     src/tparam.c
-
-    Others:
-    config.guess
-    config.sub
-    doc/man/texinfo.tex
 
 Note _not_ included in the above are src/regex.{c,h} (rms: "That
 forked version is only in Emacs, so definitely relicense that."), and

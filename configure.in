@@ -4,9 +4,7 @@ dnl 	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004,
-dnl    2005, 2006, 2007, 2008, 2009, 2010
-dnl    Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2011  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -27,6 +25,7 @@ AC_PREREQ(2.65)
 AC_INIT(emacs, 24.0.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
+AM_INIT_AUTOMAKE
 
 dnl Support for --program-prefix, --program-suffix and
 dnl --program-transform-name options
@@ -44,8 +43,6 @@ etcdir='${datadir}/emacs/${version}/etc'
 archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 gamedir='${localstatedir}/games/emacs'
-
-gameuser=games
 
 dnl OPTION_DEFAULT_OFF(NAME, HELP-STRING)
 dnl Create a new --with option that defaults to being disabled.
@@ -202,6 +199,12 @@ AC_ARG_WITH([crt-dir],dnl
 [AS_HELP_STRING([--with-crt-dir=DIR],[directory containing crtn.o etc.
 The default is /usr/lib, or /usr/lib64 on some platforms.])])
 CRT_DIR="${with_crt_dir}"
+
+AC_ARG_WITH(gameuser,dnl
+[AS_HELP_STRING([--with-gameuser=USER],[user for shared game score files])])
+test "X${with_gameuser}" != X && test "${with_gameuser}" != yes \
+  && gameuser="${with_gameuser}"
+test "X$gameuser" = X && gameuser=games
 
 AC_ARG_WITH([gnustep-conf],dnl
 [AS_HELP_STRING([--with-gnustep-conf=PATH],[path to GNUstep.conf; default $GNUSTEP_CONFIG_FILE, or /etc/GNUstep/GNUstep.conf])])
@@ -510,6 +513,17 @@ case "${canonical}" in
     CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
   ;;
 
+  ia64*-hp-hpux1[1-9]* )
+    machine=hp800 opsys=hpux11
+    ## FIXME.  Peter O'Gorman reports that dumping using unexelf.o doesn't
+    ## work either: http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6811
+    CANNOT_DUMP=yes
+  ;;
+
+  hppa*-*-linux-gnu* )
+    machine=hp800 opsys=gnu-linux
+  ;;
+
   ## IBM machines
   rs6000-ibm-aix4.[23]* )
     machine=ibmrs6000 opsys=aix4-2
@@ -634,6 +648,10 @@ SPECIFIED_CFLAGS="$CFLAGS"
 
 dnl Sets GCC=yes if using gcc.
 AC_PROG_CC
+AM_PROG_CC_C_O
+
+# Initialize gnulib right after verifying that the C compiler works.
+gl_EARLY
 
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
@@ -680,9 +698,6 @@ if test x$GCC = xyes; then
 else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
-
-dnl checks for Unix variants
-AC_USE_SYSTEM_EXTENSIONS
 
 ### Use -Wno-pointer-sign if the compiler supports it
 AC_MSG_CHECKING([whether gcc understands -Wno-pointer-sign])
@@ -787,9 +802,12 @@ fi
 ## should test for it as it does for any other build requirement.
 ## We use the presence of $srcdir/info/emacs to distinguish a release,
 ## with pre-built manuals, from a Bazaar checkout.
+HAVE_MAKEINFO=yes
+
 if test "$MAKEINFO" = "no"; then
+  MAKEINFO=makeinfo
   if test "x${with_makeinfo}" = "xno"; then
-    MAKEINFO=off
+    HAVE_MAKEINFO=no
   elif test ! -e $srcdir/info/emacs; then
     AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.6, and your
 source tree does not seem to have pre-built manuals in the `info' directory.
@@ -797,6 +815,7 @@ Either install a suitable version of makeinfo, or re-run configure
 with the `--without-makeinfo' option to build without the manuals.] )
   fi
 fi
+AC_SUBST(HAVE_MAKEINFO)
 
 dnl Add our options to ac_link now, after it is set up.
 
@@ -833,16 +852,16 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
 CPP=`eval "echo $CPP"`
 
 
-dnl Not used by any currently supported platform.
 dnl The function dump-emacs will not be defined and temacs will do
 dnl (load "loadup") automatically unless told otherwise.
-CANNOT_DUMP=no
+test "x$CANNOT_DUMP" = "x" && CANNOT_DUMP=no
 case "$opsys" in
-  your-opsys-here)
-   CANNOT_DUMP=yes
-   AC_DEFINE(CANNOT_DUMP, 1, [Define if Emacs cannot be dumped on your system.])
-  ;;
+  your-opsys-here) CANNOT_DUMP=yes ;;
 esac
+
+test "$CANNOT_DUMP" = "yes" && \
+  AC_DEFINE(CANNOT_DUMP, 1, [Define if Emacs cannot be dumped on your system.])
+
 AC_SUBST(CANNOT_DUMP)
 
 
@@ -867,11 +886,11 @@ case "$opsys" in
    # emacs, instead of the generic ELF dump code found in unexelf.c.
    # The resulting binary has a complete symbol table, and is better
    # for debugging and other observability tools (debuggers, pstack, etc).
-   # 
+   #
    # If you encounter a problem using dldump(), please consider sending
    # a message to the OpenSolaris tools-linking mailing list:
    #      http://mail.opensolaris.org/mailman/listinfo/tools-linking
-   # 
+   #
    # It is likely that dldump() works with older Solaris too, but this has
    # not been tested, so for now this change is for Solaris 10 or newer.
    UNEXEC_OBJ=unexsol.o
@@ -938,7 +957,7 @@ if test "$machine" = "alpha"; then
       AC_MSG_ERROR([What gives?  Fix me if DEC Unix supports ELF now.])
     fi
   else
-    UNEXEC_OBJ=unexalpha.o 
+    UNEXEC_OBJ=unexalpha.o
   fi
 fi
 AC_SUBST(C_SWITCH_MACHINE)
@@ -1120,7 +1139,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
 
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux and the free BSDs.
-  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h, 
+  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h,
     have_sound_header=yes)
   # Emulation library used on NetBSD.
   AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
@@ -1312,6 +1331,19 @@ AH_TEMPLATE(POINTER_TYPE,
 
 dnl Check for endianess
 AC_C_BIGENDIAN
+
+AC_CACHE_CHECK([for  __attribute__ ((__aligned__ (expr)))],
+  [emacs_cv_attribute_aligned],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM(
+	[[char __attribute__ ((__aligned__ (1 << 3))) c;]],
+	[[]])],
+     [emacs_cv_attribute_aligned=yes],
+     [emacs_cv_attribute_aligned=no])])
+if test $emacs_cv_attribute_aligned = yes; then
+  AC_DEFINE([HAVE_ATTRIBUTE_ALIGNED], 1,
+    [Define to 1 if GCC-style __attribute__ ((__aligned__ (expr))) works.])
+fi
 
 dnl check for Make feature
 AC_PROG_MAKE_SET
@@ -1794,7 +1826,7 @@ if test "${HAVE_X11}" = "yes"; then
     PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, HAVE_IMAGEMAGICK=yes, :)
     AC_SUBST(IMAGEMAGICK_CFLAGS)
     AC_SUBST(IMAGEMAGICK_LIBS)
-  
+
     if test $HAVE_IMAGEMAGICK = yes; then
       AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
       CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
@@ -2229,17 +2261,9 @@ if test "${HAVE_X11}" = "yes"; then
        HAVE_XFT=no
     fi
 
-
-    HAVE_FREETYPE=no
     ## We used to allow building with FreeType and without Xft.
     ## However, the ftx font backend driver is not in good shape.
-    if test "${HAVE_XFT}" = "yes"; then
-      dnl As we use Xft, we anyway use freetype.
-      dnl There's no need for additional CFLAGS and LIBS.
-      HAVE_FREETYPE=yes
-      FONTCONFIG_CFLAGS=
-      FONTCONFIG_LIBS=
-    fi
+    HAVE_FREETYPE=$HAVE_XFT
 
     HAVE_LIBOTF=no
     if test "${HAVE_FREETYPE}" = "yes"; then
@@ -2502,7 +2526,7 @@ AC_SUBST(LIBXSM)
 ### Use libxml (-lxml2) if available
 if test "${with_xml2}" != "no"; then
   ### I'm not sure what the version number should be, so I just guessed.
-  PKG_CHECK_MODULES(LIBXML2, libxml-2.0 > 2.2.0, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
+  PKG_CHECK_MODULES(LIBXML2, libxml-2.0 > 2.6.17, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
   if test "${HAVE_LIBXML2}" = "yes"; then
     LIBS="$LIBXML2_LIBS $LIBS"
     AC_CHECK_LIB(xml2, htmlReadMemory, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
@@ -2619,7 +2643,7 @@ AC_SUBST(BLESSMAIL_TARGET)
 AC_CHECK_FUNCS(gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt ftime setsid \
-strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
+strerror fpathconf select euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm strchr strrchr \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
@@ -2627,29 +2651,29 @@ gai_strerror mkstemp getline getdelim mremap memmove fsync sync \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
 cfmakeraw cfsetspeed isnan copysign __executable_start)
 
-AC_CHECK_HEADERS(sys/un.h)
-
-AC_FUNC_MKTIME
-if test "$ac_cv_func_working_mktime" = no; then
-  AC_DEFINE(BROKEN_MKTIME, 1, [Define to 1 if the mktime function is broken.])
+dnl Cannot use AC_CHECK_FUNCS
+AC_CACHE_CHECK([for __builtin_unwind_init],
+	       emacs_cv_func___builtin_unwind_init,
+[AC_LINK_IFELSE([AC_LANG_PROGRAM([], [__builtin_unwind_init ();])],
+		emacs_cv_func___builtin_unwind_init=yes,
+		emacs_cv_func___builtin_unwind_init=no)])
+if test $emacs_cv_func___builtin_unwind_init = yes; then
+  AC_DEFINE(HAVE___BUILTIN_UNWIND_INIT, 1,
+	    [Define to 1 if you have the `__builtin_unwind_init' function.])
 fi
+
+AC_CHECK_HEADERS(sys/un.h)
 
 AC_FUNC_GETLOADAVG
 
 AC_FUNC_FSEEKO
 
-# Configure getopt.
-m4_include([m4/getopt.m4])
-gl_GETOPT_IFELSE([
-  gl_GETOPT_SUBSTITUTE_HEADER
-  gl_PREREQ_GETOPT
-  GETOPTOBJS='getopt.o getopt1.o'
-])
-AC_SUBST(GETOPTOBJS)
-
 AC_FUNC_GETPGRP
 
-AC_FUNC_STRFTIME
+# Configure gnulib.
+gl_ASSERT_NO_GNULIB_POSIXCHECK
+gl_ASSERT_NO_GNULIB_TESTS
+gl_INIT
 
 # UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
@@ -3012,24 +3036,6 @@ AC_CHECK_TYPES(size_t)
 
 AC_TYPE_MBSTATE_T
 
-dnl Restrict could probably be used effectively other than in regex.c.
-AC_CACHE_CHECK([for C restrict keyword], emacs_cv_c_restrict,
-  [AC_TRY_COMPILE([void fred (int *restrict x);], [],
-                  emacs_cv_c_restrict=yes,
-                  [AC_TRY_COMPILE([void fred (int *__restrict x);], [],
-                                  emacs_cv_c_restrict=__restrict,
-				  emacs_cv_c_restrict=no)])])
-case "$emacs_cv_c_restrict" in
-  yes) emacs_restrict=restrict;;
-  no) emacs_restrict="";;
-  *) emacs_restrict="$emacs_cv_c_restrict";;
-esac
-if test "$emacs_restrict" != __restrict; then
-  AC_DEFINE_UNQUOTED(__restrict, $emacs_restrict,
-    [Define to compiler's equivalent of C99 restrict keyword.
-     Don't define if equivalent is `__restrict'.])
-fi
-
 AC_CACHE_CHECK([for C restricted array declarations], emacs_cv_c_restrict_arr,
   [AC_TRY_COMPILE([void fred (int x[__restrict]);], [],
                   emacs_cv_c_restrict_arr=yes, emacs_cv_c_restrict_arr=no)])
@@ -3064,15 +3070,7 @@ if test "x$GCC" = xyes \
    AC_MSG_ERROR([GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'.])
 fi
 
-#### Find out which version of Emacs this is.
-[version=`grep 'const char emacs_version' ${srcdir}/src/emacs.c \
-	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`]
-if test x"${version}" = x; then
-  AC_MSG_ERROR([can't find current emacs version in `${srcdir}/src/emacs.c'.])
-fi
-if test x"${version}" != x"$PACKAGE_VERSION"; then
-  AC_MSG_WARN([version mismatch between `${srcdir}/configure.in' and `${srcdir}/src/emacs.c'.])
-fi
+version=$PACKAGE_VERSION
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
@@ -3236,7 +3234,7 @@ fi
 
 if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
   OLDXMENU_TARGET=
-  OLDXMENU=nothing  
+  OLDXMENU=nothing
   LIBXMENU=
   OLDXMENU_DEPS=
 fi
@@ -3300,7 +3298,7 @@ case "$opsys" in
      headerpad_extra=690
    fi
    LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
- 
+
    ## This is here because src/Makefile.in did some extra fiddling around
    ## with LD_SWITCH_SYSTEM.  The cpp logic was:
    ##   #ifndef LD_SWITCH_SYSTEM
@@ -3436,8 +3434,9 @@ AC_SUBST(WINDOW_SUPPORT)
 
 
 AH_TOP([/* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005,
-     2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3518,13 +3517,6 @@ AH_BOTTOM([
 #define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
 #endif
 #endif
-
-/* Avoid link-time collision with system mktime if we will use our own.  */
-#if ! HAVE_MKTIME || BROKEN_MKTIME
-#define mktime emacs_mktime
-#endif
-
-#define my_strftime nstrftime	/* for strftime.c */
 
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
@@ -3728,10 +3720,10 @@ dnl Secondly, the GNU Coding standards require that one should be able
 dnl to run `make prefix=/some/where/else' and override the values set
 dnl by configure.  This also explains the `move-if-change' test and
 dnl the use of force in the `epaths-force' rule in Makefile.in.
-AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile \
+AC_OUTPUT(Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile \
 	doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
 	doc/lispref/Makefile src/Makefile \
-	lwlib/Makefile lisp/Makefile leim/Makefile, [
+	lwlib/Makefile lisp/Makefile leim/Makefile test/automated/Makefile, [
 
 ### Make the necessary directories, if they don't exist.
 for dir in etc lisp ; do
@@ -3747,4 +3739,3 @@ if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
 fi
 
 ], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPPFLAGS="$CPPFLAGS"])
-

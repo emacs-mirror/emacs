@@ -1,7 +1,7 @@
 /* testvarnames.cpp
    Test variable and function names, lists of variables on one line, etc.
 
-   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
    Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -89,5 +89,3 @@ int test_1(int var_arg1) {
     ; // #11# ( "named_3" "named_4")
 }
 
-/* arch-tag: ca9f23e9-0c66-4a5e-b233-3fdc841d3a63
-   (do not change this comment) */

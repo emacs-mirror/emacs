@@ -1,6 +1,6 @@
 ;;; xesam.el --- Xesam interface to search engines.
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: tools, hypermedia
@@ -918,5 +918,4 @@ Example:
 ;;     yahoo, ebay, ...
 ;;   - Construct complex queries via widgets, like in mairix.el.
 
-;; arch-tag: 7fb9fc6c-c2ff-4bc7-bb42-bacb80cce2b2
 ;;; xesam.el ends here

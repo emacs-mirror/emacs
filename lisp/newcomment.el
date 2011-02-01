@@ -1,7 +1,6 @@
 ;;; newcomment.el --- (un)comment regions of buffers
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -1185,6 +1184,12 @@ end- comment markers additionally to what `comment-add' already specifies."
 			   'box-multi 'box)))
     (comment-region beg end (+ comment-add arg))))
 
+(defun comment-only-p (beg end)
+  "Return non-nil if the text between BEG and END is all comments."
+  (save-excursion
+    (goto-char beg)
+    (comment-forward (point-max))
+    (<= end (point))))
 
 ;;;###autoload
 (defun comment-or-uncomment-region (beg end &optional arg)
@@ -1193,10 +1198,7 @@ in which case call `uncomment-region'.  If a prefix arg is given, it
 is passed on to the respective function."
   (interactive "*r\nP")
   (comment-normalize-vars)
-  (funcall (if (save-excursion ;; check for already commented region
-		 (goto-char beg)
-		 (comment-forward (point-max))
-		 (<= end (point)))
+  (funcall (if (comment-only-p beg end)
 	       'uncomment-region 'comment-region)
 	   beg end arg))
 
@@ -1387,5 +1389,4 @@ unless optional argument SOFT is non-nil."
 
 (provide 'newcomment)
 
-;; arch-tag: 01e3320a-00c8-44ea-a696-8f8e7354c858
 ;;; newcomment.el ends here

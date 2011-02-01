@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Help, Mark, M-x, Top
@@ -677,7 +676,3 @@ help text for active buffer text using the keyboard.  @kbd{C-h .}
 character after point, using the echo area.  To display help text
 automatically whenever it is available on the character after point, set
 the variable @code{help-at-pt-display-when-idle} to @code{t}.
-
-@ignore
-   arch-tag: 6f33ab62-bc75-4367-8057-fd67cc15c3a1
-@end ignore

@@ -1,7 +1,6 @@
 ;;; semantic/fw.el --- Framework for Semantic
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;; 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -395,5 +394,4 @@ FILE, NOWARN, RAWFILE, and WILDCARDS are passed into `find-file-noselect'"
 
 (provide 'semantic/fw)
 
-;; arch-tag: e7eeffbf-112b-4665-92fc-5f69479ca2c4
 ;;; semantic/fw.el ends here

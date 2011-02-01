@@ -1,7 +1,6 @@
 ;;; org-install.el --- Outline-based notes management and organizer
 ;; Carstens outline-mode for keeping track of everything.
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -35,5 +34,4 @@
 
 (provide 'org-install)
 
-;; arch-tag: 0614acb4-47a3-4e7b-918a-aa3149792bcc
 ;;; org-install.el ends here

@@ -1,3 +1,7 @@
+2011-01-02  Jari Aalto  <jari.aalto@cante.net>  (tiny change)
+
+	* emacsclient.1: Arrange options alphabetically (Bug#7620).
+
 2010-10-12  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.1: Small fixes.
@@ -106,7 +110,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+    Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -123,4 +127,3 @@
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;; arch-tag: 2bd1112e-157f-4884-b0ca-0fb1057972d7

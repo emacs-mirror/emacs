@@ -1,7 +1,6 @@
 ;;; ledit.el --- Emacs side of ledit interface
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: languages
@@ -154,5 +153,4 @@ do (setq lisp-mode-hook 'ledit-from-lisp-mode)"
 
 (provide 'ledit)
 
-;; arch-tag: f0f1ca13-8d31-478c-ae1b-b448c55a8faf
 ;;; ledit.el ends here

@@ -1,7 +1,7 @@
 ;;; ja-dic-cnv.el --- convert a Japanese dictionary (SKK-JISYO.L) to Emacs Lisp
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -545,5 +545,4 @@ To get complete usage, invoke:
 ;; coding: iso-2022-7bit
 ;; End:
 
-;; arch-tag: dec06fb0-8118-45b1-80d7-dc360b6fd3b2
 ;;; ja-dic-cnv.el ends here

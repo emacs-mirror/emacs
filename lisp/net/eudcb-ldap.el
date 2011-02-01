@@ -1,7 +1,6 @@
 ;;; eudcb-ldap.el --- Emacs Unified Directory Client - LDAP Backend
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -208,5 +207,4 @@ attribute names are returned. Default to `person'"
 
 (provide 'eudcb-ldap)
 
-;; arch-tag: 0f254dc0-7378-4fd4-ae26-18666184e96b
 ;;; eudcb-ldap.el ends here

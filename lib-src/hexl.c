@@ -1,6 +1,5 @@
 /* Convert files for Emacs Hexl mode.
-   Copyright (C) 1989, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-                 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1989, 2001-2011  Free Software Foundation, Inc.
 
 Author: Keith Gabryelski
 (according to authors.el)
@@ -179,7 +178,9 @@ main (int argc, char **argv)
 
 #define hexchar(x) (isdigit (x) ? x - '0' : x - 'a' + 10)
 
-	      fread (buf, 1, 10, fp); /* skip 10 bytes */
+	      /* Skip 10 bytes.  */
+	      if (fread (buf, 1, 10, fp) != 10)
+		break;
 
 	      for (i=0; i < 16; ++i)
 		{
@@ -207,7 +208,9 @@ main (int argc, char **argv)
 		  if (i < 16)
 		    break;
 
-		  fread (buf, 1, 18, fp); /* skip 18 bytes */
+		  /* Skip 18 bytes.  */
+		  if (fread (buf, 1, 18, fp) != 18)
+		    break;
 		}
 	    }
 	}
@@ -282,7 +285,5 @@ usage (void)
   exit (EXIT_FAILURE);
 }
 
-/* arch-tag: 20e04fb7-926e-4e48-be86-64fe869ecdaa
-   (do not change this comment) */
 
 /* hexl.c ends here */

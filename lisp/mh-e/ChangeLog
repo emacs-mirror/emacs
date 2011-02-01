@@ -1,3 +1,7 @@
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mh-comp.el (mh-user-agent-compose): New arg RETURN-ACTION.
+
 2010-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* mh-seq.el (mh-read-msg-list): Use point-at-eol.
@@ -3270,7 +3274,7 @@
 	* ChangeLog.1: New file.  Contains old ChangeLog.
 
 
-  Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+	Copyright (C) 2005-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -3293,4 +3297,3 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-;;; arch-tag: 87324964-69b6-4925-a3c2-9c1df53d7d51

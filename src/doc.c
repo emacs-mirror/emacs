@@ -1,6 +1,5 @@
 /* Record indices of function doc strings stored in a file.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1986, 1993-1995, 1997-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -26,10 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <setjmp.h>
 #include <fcntl.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include "lisp.h"
 #include "buffer.h"
@@ -38,12 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "buildobj.h"
 
-Lisp_Object Vdoc_file_name;
-
 Lisp_Object Qfunction_documentation;
-
-/* A list of files used to build this Emacs binary.  */
-static Lisp_Object Vbuild_files;
 
 extern Lisp_Object Qclosure;
 /* Buffer used for reading from documentation file.  */
@@ -130,12 +121,12 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
       if (minsize < 8)
 	minsize = 8;
       name = (char *) alloca (minsize + SCHARS (file) + 8);
-      strcpy (name, SDATA (Vdoc_directory));
-      strcat (name, SDATA (file));
+      strcpy (name, SSDATA (Vdoc_directory));
+      strcat (name, SSDATA (file));
     }
   else
     {
-      name = (char *) SDATA (file);
+      name = SSDATA (file);
     }
 
   fd = emacs_open (name, O_RDONLY, 0);
@@ -147,7 +138,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
 	  /* Preparing to dump; DOC file is probably not installed.
 	     So check in ../etc. */
 	  strcpy (name, "../etc/");
-	  strcat (name, SDATA (file));
+	  strcat (name, SSDATA (file));
 
 	  fd = emacs_open (name, O_RDONLY, 0);
 	}
@@ -578,9 +569,9 @@ the same file name is found in the `doc-directory'.  */)
       CHECK_STRING (Vdoc_directory);
       name = (char *) alloca (SCHARS (filename)
 			  + SCHARS (Vdoc_directory) + 1);
-      strcpy (name, SDATA (Vdoc_directory));
+      strcpy (name, SSDATA (Vdoc_directory));
     }
-  strcat (name, SDATA (filename)); 	/*** Add this line ***/
+  strcat (name, SSDATA (filename)); 	/*** Add this line ***/
 
   /* Vbuild_files is nil when temacs is run, and non-nil after that.  */
   if (NILP (Vbuild_files))
@@ -909,7 +900,7 @@ a new string, without any text properties, is returned.  */)
 	    bufp += length_byte;
 	    nchars += length;
 	    /* Check STRING again in case gc relocated it.  */
-	    strp = (unsigned char *) SDATA (string) + idx;
+	    strp = SDATA (string) + idx;
 	  }
 	}
       else if (! multibyte)		/* just copy other chars */
@@ -943,11 +934,11 @@ syms_of_doc (void)
   Qfunction_documentation = intern_c_string ("function-documentation");
   staticpro (&Qfunction_documentation);
 
-  DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,
+  DEFVAR_LISP ("internal-doc-file-name", Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
   Vdoc_file_name = Qnil;
 
-  DEFVAR_LISP ("build-files", &Vbuild_files,
+  DEFVAR_LISP ("build-files", Vbuild_files,
                doc: /* A list of files used to build this Emacs binary.  */);
   Vbuild_files = Qnil;
 
@@ -956,6 +947,3 @@ syms_of_doc (void)
   defsubr (&Ssnarf_documentation);
   defsubr (&Ssubstitute_command_keys);
 }
-
-/* arch-tag: 56281d4d-6949-43e2-be2e-f6517de744ba
-   (do not change this comment) */

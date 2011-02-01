@@ -1,7 +1,6 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
-;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1997, 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
@@ -166,8 +165,11 @@ to keep: LEN chars starting BEG chars from the beginning."
 	  (unwind-protect
 	      (or (memq (call-process
 			 jka-compr-shell infile t nil "-c"
+			 ;; Windows shells need the program file name
+			 ;; after the pipe symbol be quoted if they use
+			 ;; forward slashes as directory separators.
 			 (format
-			  "%s %s 2> %s | %s bs=%d skip=%d %s 2> %s"
+			  "%s %s 2> %s | \"%s\" bs=%d skip=%d %s 2> %s"
 			  prog
 			  (mapconcat 'identity args " ")
 			  err-file
@@ -701,5 +703,4 @@ by `jka-compr-installed'."
 
 (provide 'jka-compr)
 
-;; arch-tag: 3f15b630-e9a7-46c4-a22a-94afdde86ebc
 ;;; jka-compr.el ends here

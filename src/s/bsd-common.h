@@ -1,7 +1,6 @@
 /* Definitions file for GNU Emacs running on bsd 4.3
 
-Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-  2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -82,5 +81,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Send signals to subprocesses by "typing" special chars at them.  */
 #define SIGNALS_VIA_CHARACTERS
 
-/* arch-tag: 0c367245-bde3-492e-9029-3ff6898beb95
-   (do not change this comment) */

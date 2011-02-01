@@ -1,7 +1,6 @@
 ;;; semantic/bovine/el.el --- Semantic details for Emacs Lisp
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -963,5 +962,4 @@ ELisp variables can be pretty long, so track this one too.")
 
 (provide 'semantic/bovine/el)
 
-;; arch-tag: d634cbab-9610-4510-9fce-048ae1eb7aa6
 ;;; semantic/bovine/el.el ends here

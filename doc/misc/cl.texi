@@ -5,8 +5,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -2494,15 +2493,18 @@ term restricts the search to just the specified property.  The
 @code{of} term may specify either a buffer or a string.
 
 @item for @var{var} being the frames
-This clause iterates over all frames, i.e., X window system windows
-open on Emacs files.  The
-clause @code{screens} is a synonym for @code{frames}.  The frames
-are visited in @code{next-frame} order starting from
-@code{selected-frame}.
+This clause iterates over all Emacs frames. The clause @code{screens} is
+a synonym for @code{frames}.  The frames are visited in
+@code{next-frame} order starting from @code{selected-frame}.
 
 @item for @var{var} being the windows [of @var{frame}]
 This clause iterates over the windows (in the Emacs sense) of
-the current frame, or of the specified @var{frame}.
+the current frame, or of the specified @var{frame}.  It visits windows
+in @code{next-window} order starting from @code{selected-window}
+(or @code{frame-selected-window} if you specify @var{frame}).
+This clause treats the minibuffer window in the same way as
+@code{next-window} does.  For greater flexibility, consider using
+@code{walk-windows} instead.
 
 @item for @var{var} being the buffers
 This clause iterates over all buffers in Emacs.  It is equivalent
@@ -5322,6 +5324,3 @@ recursion.
 
 @bye
 
-@ignore
-   arch-tag: b61e7200-3bfa-4a70-a9d3-095e152696f8
-@end ignore

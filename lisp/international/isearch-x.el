@@ -1,9 +1,8 @@
 ;;; isearch-x.el --- extended isearch handling commands
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -141,5 +140,4 @@
 	  (isearch-update)))
     (isearch-process-search-char last-char)))
 
-;; arch-tag: 1a90a6cf-2cb2-477a-814a-9ff895852822
 ;;; isearch-x.el ends here

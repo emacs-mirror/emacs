@@ -1,7 +1,6 @@
 ;;; tool-bar.el --- setting up the tool bar
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: mouse frames
@@ -139,6 +138,26 @@ Use this function only to make bindings in the global value of `tool-bar-map'.
 To define items in any other map, use `tool-bar-local-item'."
   (apply 'tool-bar-local-item icon def key tool-bar-map props))
 
+(defun tool-bar--image-expression (icon)
+  "Return an expression that evaluates to an image spec for ICON."
+  (let* ((fg (face-attribute 'tool-bar :foreground))
+	 (bg (face-attribute 'tool-bar :background))
+	 (colors (nconc (if (eq fg 'unspecified) nil (list :foreground fg))
+			(if (eq bg 'unspecified) nil (list :background bg))))
+	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
+	 (xpm-lo-spec (list :type 'xpm :file
+			    (concat "low-color/" icon ".xpm")))
+	 (pbm-spec (append (list :type 'pbm :file
+                                 (concat icon ".pbm")) colors))
+	 (xbm-spec (append (list :type 'xbm :file
+                                 (concat icon ".xbm")) colors)))
+    `(find-image (cond ((not (display-color-p))
+			',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))
+		       ((< (display-color-cells) 256)
+			',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec))
+		       (t
+			',(list xpm-spec pbm-spec xbm-spec))))))
+
 ;;;###autoload
 (defun tool-bar-local-item (icon def key map &rest props)
   "Add an item to the tool bar in map MAP.
@@ -151,24 +170,7 @@ ICON is the base name of a file containing the image to use.  The
 function will first try to use low-color/ICON.xpm if `display-color-cells'
 is less or equal to 256, then ICON.xpm, then ICON.pbm, and finally
 ICON.xbm, using `find-image'."
-  (let* ((fg (face-attribute 'tool-bar :foreground))
-	 (bg (face-attribute 'tool-bar :background))
-	 (colors (nconc (if (eq fg 'unspecified) nil (list :foreground fg))
-			(if (eq bg 'unspecified) nil (list :background bg))))
-	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
-	 (xpm-lo-spec (list :type 'xpm :file
-			    (concat "low-color/" icon ".xpm")))
-	 (pbm-spec (append (list :type 'pbm :file
-                                 (concat icon ".pbm")) colors))
-	 (xbm-spec (append (list :type 'xbm :file
-                                 (concat icon ".xbm")) colors))
-	 (image-exp `(find-image
-		      (cond ((not (display-color-p))
-			     ',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))
-			    ((< (display-color-cells) 256)
-			     ',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec))
-			    (t
-			     ',(list xpm-spec pbm-spec xbm-spec))))))
+  (let* ((image-exp (tool-bar--image-expression icon)))
     (define-key-after map (vector key)
       `(menu-item ,(symbol-name key) ,def :image ,image-exp ,@props))))
 
@@ -203,24 +205,7 @@ holds a keymap."
     (setq from-map global-map))
   (let* ((menu-bar-map (lookup-key from-map [menu-bar]))
 	 (keys (where-is-internal command menu-bar-map))
-	 (fg (face-attribute 'tool-bar :foreground))
-	 (bg (face-attribute 'tool-bar :background))
-	 (colors (nconc (if (eq fg 'unspecified) nil (list :foreground fg))
-			(if (eq bg 'unspecified) nil (list :background bg))))
-	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
-	 (xpm-lo-spec (list :type 'xpm :file
-			    (concat "low-color/" icon ".xpm")))
-	 (pbm-spec (append (list :type 'pbm :file
-                                 (concat icon ".pbm")) colors))
-	 (xbm-spec (append (list :type 'xbm :file
-                                 (concat icon ".xbm")) colors))
-	 (image-exp `(find-image
-		      (cond ((not (display-color-p))
-			     ',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))
-			    ((< (display-color-cells) 256)
-			     ',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec))
-			    (t
-			     ',(list xpm-spec pbm-spec xbm-spec)))))
+	 (image-exp (tool-bar--image-expression icon))
 	 submap key)
     ;; We'll pick up the last valid entry in the list of keys if
     ;; there's more than one.
@@ -257,52 +242,42 @@ holds a keymap."
 ;;; Set up some global items.  Additions/deletions up for grabs.
 
 (defun tool-bar-setup ()
-  ;; People say it's bad to have EXIT on the tool bar, since users
-  ;; might inadvertently click that button.
-  ;;(tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
+  (setq tool-bar-separator-image-expression
+	(tool-bar--image-expression "separator"))
   (tool-bar-add-item-from-menu 'find-file "new" nil :label "New File"
 			       :vert-only t)
   (tool-bar-add-item-from-menu 'menu-find-file-existing "open" nil
-			       :vert-only t)
+			       :label "Open" :vert-only t)
   (tool-bar-add-item-from-menu 'dired "diropen" nil :vert-only t)
   (tool-bar-add-item-from-menu 'kill-this-buffer "close" nil :vert-only t)
-  (tool-bar-add-item-from-menu 'save-buffer "save" nil :vert-only t
-			       :visible '(or buffer-file-name
-					     (not (eq 'special
-						      (get major-mode
-							   'mode-class)))))
-  (tool-bar-add-item-from-menu 'undo "undo" nil :vert-only t
-			       :visible '(not (eq 'special (get major-mode
-								'mode-class))))
+  (tool-bar-add-item-from-menu 'save-buffer "save" nil
+			       :label "Save")
+  (define-key-after (default-value 'tool-bar-map) [separator-1] menu-bar-separator)
+  (tool-bar-add-item-from-menu 'undo "undo" nil)
+  (define-key-after (default-value 'tool-bar-map) [separator-2] menu-bar-separator)
   (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [cut])
-			       "cut" nil :vert-only t
-			       :visible '(not (eq 'special (get major-mode
-								'mode-class))))
+			       "cut" nil :vert-only t)
   (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [copy])
 			       "copy" nil :vert-only t)
   (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [paste])
-			       "paste" nil :vert-only t
-			       :visible '(not (eq 'special (get major-mode
-								'mode-class))))
-  (tool-bar-add-item-from-menu 'nonincremental-search-forward "search"
-			       nil :label "Search")
+			       "paste" nil :vert-only t)
+  (define-key-after (default-value 'tool-bar-map) [separator-3] menu-bar-separator)
+  (tool-bar-add-item-from-menu 'isearch-forward "search"
+			       nil :label "Search" :vert-only t)
   ;;(tool-bar-add-item-from-menu 'ispell-buffer "spell")
 
   ;; There's no icon appropriate for News and we need a command rather
   ;; than a lambda for Read Mail.
   ;;(tool-bar-add-item-from-menu 'compose-mail "mail/compose")
 
-
-  ;; tool-bar-add-item-from-menu itself operates on
-  ;; (default-value 'tool-bar-map), but when we don't use that function,
-  ;; we must explicitly operate on the default value.
-
-  (let ((tool-bar-map (default-value 'tool-bar-map)))
-    (tool-bar-add-item "help" (lambda ()
-				(interactive)
-				(popup-menu menu-bar-help-menu))
-		       'help
-		       :help "Pop up the Help menu")))
+  ;; Help button on a tool bar is rather non-standard...
+  ;; (let ((tool-bar-map (default-value 'tool-bar-map)))
+  ;;   (tool-bar-add-item "help" (lambda ()
+  ;; 				(interactive)
+  ;; 				(popup-menu menu-bar-help-menu))
+  ;; 		       'help
+  ;; 		       :help "Pop up the Help menu"))
+)
 
 (if (featurep 'move-toolbar)
     (defcustom tool-bar-position 'top

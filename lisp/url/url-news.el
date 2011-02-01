@@ -1,7 +1,6 @@
 ;;; url-news.el --- News Uniform Resource Locator retrieval code
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -130,5 +129,4 @@
 
 (provide 'url-news)
 
-;; arch-tag: 8975be13-04e8-4d38-bfff-47918e3ad311
 ;;; url-news.el ends here

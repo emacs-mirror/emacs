@@ -1,6 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1998, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -37,11 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "intervals.h"
 #include "dispextern.h"
 #include "region-cache.h"
-
-/* Indentation can insert tabs if this is non-zero;
-   otherwise always uses spaces.  */
-
-static int indent_tabs_mode;
 
 #define CR 015
 
@@ -2052,7 +2046,7 @@ whether or not it is currently displayed in some window.  */)
 	    it_overshoot_expected = 1;
 	  else if (it.method == GET_FROM_STRING)
 	    {
-	      const char *s = SDATA (it.string);
+	      const char *s = SSDATA (it.string);
 	      const char *e = s + SBYTES (it.string);
 	      while (s < e && *s != '\n')
 		++s;
@@ -2159,7 +2153,7 @@ whether or not it is currently displayed in some window.  */)
 void
 syms_of_indent (void)
 {
-  DEFVAR_BOOL ("indent-tabs-mode", &indent_tabs_mode,
+  DEFVAR_BOOL ("indent-tabs-mode", indent_tabs_mode,
 	       doc: /* *Indentation can insert tabs if this is non-nil.  */);
   indent_tabs_mode = 1;
 
@@ -2170,6 +2164,3 @@ syms_of_indent (void)
   defsubr (&Svertical_motion);
   defsubr (&Scompute_motion);
 }
-
-/* arch-tag: 9adfea44-71f7-4988-8ee3-96da15c502cc
-   (do not change this comment) */

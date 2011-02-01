@@ -1,7 +1,6 @@
 ;;; elide-head.el --- hide headers in files
 
-;; Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: outlines tools
@@ -119,5 +118,4 @@ This is suitable as an entry on `find-file-hook' or appropriate mode hooks."
 
 (provide 'elide-head)
 
-;; arch-tag: a00e6b5b-6aeb-45b1-b734-63e23df80928
 ;;; elide-head.el ends here

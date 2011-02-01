@@ -1,3 +1,16 @@
+2011-01-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xm.c (make_destroyed_instance):
+	* lwlib-utils.c (XtApplyToWidgets):
+	* lwlib.c (safe_strdup, malloc_widget_value)
+	(allocate_widget_info, allocate_widget_instance): Use xmalloc
+	instead of malloc.
+
+2011-01-25  Werner Meisner  <weme24@gmx.net>
+
+	* lwlib-Xm.c (xm_update_menu): Avoid a NULL pointer dereference
+	(Bug#7690).
+
 2010-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Use const for some pointer arguments.
@@ -1640,11 +1653,9 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-	2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 1995-1999, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -1660,5 +1671,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: 0cd8ab87-d764-40d9-b86d-d00c71887a9e

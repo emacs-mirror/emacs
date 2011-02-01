@@ -1,8 +1,6 @@
 ;;; nnmail.el --- mail support functions for the Gnus mail backends
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -1150,6 +1148,7 @@ FUNC will be called with the group name to determine the article number."
 	  (setq nnmail-split-trace nil))
 	(if (or (and (symbolp nnmail-split-methods)
 		     (fboundp nnmail-split-methods))
+		(not (consp (car-safe nnmail-split-methods)))
 		(and (listp nnmail-split-methods)
 		     ;; Not a regular split method, so it has to be a
 		     ;; fancy one.
@@ -1915,7 +1914,7 @@ If TIME is nil, then return the cutoff time for oldness instead."
     (unless (eq target 'delete)
       (when (or (gnus-request-group target)
 		(gnus-request-create-group target))
-	(let ((group-art (gnus-request-accept-article target nil t t)))
+	(let ((group-art (gnus-request-accept-article target nil nil t)))
 	  (when (and (consp group-art)
 		     (cdr group-art))
 	    (gnus-group-mark-article-read target (cdr group-art))))))))

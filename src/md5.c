@@ -428,5 +428,3 @@ md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
   ctx->D = D;
 }
 
-/* arch-tag: 60084f04-b434-42cb-9d2b-e91df01f4325
-   (do not change this comment) */

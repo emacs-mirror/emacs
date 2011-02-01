@@ -1,6 +1,6 @@
 ;;; hangul.el --- Korean Hangul input method
 
-;; Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Jihyun Cho <jihyun.jo@gmail.com>
 ;; Keywords: multilingual, input method, Korean, Hangul
@@ -539,5 +539,4 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'."
 
 (provide 'hangul)
 
-;; arch-tag: 26bc93fc-64ee-4fb1-b26d-22220d132dbe
 ;;; hangul.el ends here

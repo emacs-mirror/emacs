@@ -1,6 +1,6 @@
 ;;; semantic/html.el --- Semantic details for html files
 
-;; Copyright (C) 2004, 2005, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -262,5 +262,4 @@ tag with greater section value than LEVEL is found."
 ;; generated-autoload-load-name: "semantic/html"
 ;; End:
 
-;; arch-tag: 2a088b99-4585-46d5-bce8-3a5a8ec5eb2e
 ;;; semantic/html.el ends here

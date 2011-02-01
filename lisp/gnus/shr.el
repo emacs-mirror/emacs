@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -74,8 +74,12 @@ fit these criteria."
   :type 'character)
 
 (defcustom shr-width fill-column
-  "Frame width to use for rendering."
-  :type 'integer
+  "Frame width to use for rendering.
+May either be an integer specifying a fixed width in characters,
+or nil, meaning that the full width of the window should be
+used."
+  :type '(choice (integer :tag "Fixed width in characters")
+		 (const   :tag "Use the width of the window" nil))
   :group 'shr)
 
 (defvar shr-content-function nil
@@ -113,7 +117,8 @@ cid: URL as the argument.")
 (defun shr-insert-document (dom)
   (setq shr-content-cache nil)
   (let ((shr-state nil)
-	(shr-start nil))
+	(shr-start nil)
+	(shr-width (or shr-width (window-width))))
     (shr-descend (shr-transform-dom dom))))
 
 (defun shr-copy-url ()
@@ -253,16 +258,12 @@ redirects somewhere else."
       (when (and (bolp)
 		 (> shr-indentation 0))
 	(shr-indent))
-      ;; The shr-start is a special variable that is used to pass
-      ;; upwards the first point in the buffer where the text really
-      ;; starts.
-      (unless shr-start
-	(setq shr-start (point)))
       ;; No space is needed behind a wide character categorized as
       ;; kinsoku-bol, between characters both categorized as nospace,
       ;; or at the beginning of a line.
       (let (prev)
-	(when (and (eq (preceding-char) ? )
+	(when (and (> (current-column) shr-indentation)
+		   (eq (preceding-char) ? )
 		   (or (= (line-beginning-position) (1- (point)))
 		       (and (shr-char-breakable-p
 			     (setq prev (char-after (- (point) 2))))
@@ -270,6 +271,11 @@ redirects somewhere else."
 		       (and (shr-char-nospace-p prev)
 			    (shr-char-nospace-p (aref elem 0)))))
 	  (delete-char -1)))
+      ;; The shr-start is a special variable that is used to pass
+      ;; upwards the first point in the buffer where the text really
+      ;; starts.
+      (unless shr-start
+	(setq shr-start (point)))
       (insert elem)
       (let (found)
 	(while (and (> (current-column) shr-width)
@@ -456,11 +462,12 @@ redirects somewhere else."
 	      (search-forward "\r\n\r\n" nil t))
       (let ((data (buffer-substring (point) (point-max))))
         (with-current-buffer buffer
-          (let ((alt (buffer-substring start end))
-		(inhibit-read-only t))
-	    (delete-region start end)
-	    (goto-char start)
-	    (shr-put-image data alt))))))
+	  (save-excursion
+	    (let ((alt (buffer-substring start end))
+		  (inhibit-read-only t))
+	      (delete-region start end)
+	      (goto-char start)
+	      (shr-put-image data alt)))))))
   (kill-buffer (current-buffer)))
 
 (defun shr-put-image (data alt)
@@ -501,6 +508,9 @@ redirects somewhere else."
 		     (create-image data 'imagemagick t
 				   :width window-width)
 		     image)))
+      (when (and (fboundp 'create-animated-image)
+		 (eq (image-type data nil t) 'gif))
+	(setq image (create-animated-image data 'gif t)))
       image)))
 
 ;; url-cache-extract autoloads url-cache.
@@ -602,13 +612,67 @@ ones, in case fg and bg are nil."
   (save-excursion
     (goto-char start)
     (while (< (point) end)
-      (when (bolp)
+      (when (and (bolp)
+		 (not (eq type :background)))
 	(skip-chars-forward " "))
       (when (> (line-end-position) (point))
 	(shr-put-color-1 (point) (min (line-end-position) end) type color))
       (if (< (line-end-position) end)
 	  (forward-line 1)
-	(goto-char end)))))
+	(goto-char end)))
+    (when (and (eq type :background)
+	       (= shr-table-depth 0))
+      (shr-expand-newlines start end color))))
+
+(defun shr-expand-newlines (start end color)
+  (save-restriction
+    ;; Skip past all white space at the start and ends.
+    (goto-char start)
+    (skip-chars-forward " \t\n")
+    (beginning-of-line)
+    (setq start (point))
+    (goto-char end)
+    (skip-chars-backward " \t\n")
+    (forward-line 1)
+    (setq end (point))
+    (narrow-to-region start end)
+    (let ((width (shr-natural-width))
+	  column)
+      (goto-char (point-min))
+      (while (not (eobp))
+	(end-of-line)
+	(when (and (< (setq column (current-column)) width)
+		   (< (setq column (shr-previous-newline-padding-width column))
+		      width))
+	  (let ((overlay (make-overlay (point) (1+ (point)))))
+	    (overlay-put overlay 'before-string
+			 (concat
+			  (mapconcat
+			   (lambda (overlay)
+			     (let ((string (plist-get
+					    (overlay-properties overlay)
+					    'before-string)))
+			       (if (not string)
+				   ""
+				 (overlay-put overlay 'before-string "")
+				 string)))
+			   (overlays-at (point))
+			   "")
+			  (propertize (make-string (- width column) ? )
+				      'face (list :background color))))))
+	(forward-line 1)))))
+
+(defun shr-previous-newline-padding-width (width)
+  (let ((overlays (overlays-at (point)))
+	(previous-width 0))
+    (if (null overlays)
+	width
+      (dolist (overlay overlays)
+	(setq previous-width
+	      (+ previous-width
+		 (length (plist-get (overlay-properties overlay)
+				    'before-string)))))
+      (+ width previous-width))))
 
 (defun shr-put-color-1 (start end type color)
   (let* ((old-props (get-text-property start 'face))

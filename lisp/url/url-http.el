@@ -1,7 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -1453,5 +1452,4 @@ p3p
 
 (provide 'url-http)
 
-;; arch-tag: ba7c59ae-c0f4-4a31-9617-d85f221732ee
 ;;; url-http.el ends here

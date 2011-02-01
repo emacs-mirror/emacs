@@ -1,7 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
@@ -2177,9 +2176,9 @@ list that represents a doc string reference.
                         ;; to objects already output
                         ;; (for instance, gensyms in the arg list).
                         (let (non-nil)
-                          (dotimes (i (length print-number-table))
-                            (if (aref print-number-table i)
-                                (setq non-nil t)))
+                          (when (hash-table-p print-number-table)
+                            (maphash (lambda (k v) (if v (setq non-nil t)))
+                                     print-number-table))
                           (not non-nil)))
                    ;; Output the byte code and constants specially
                    ;; for lazy dynamic loading.

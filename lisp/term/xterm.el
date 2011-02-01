@@ -1,7 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm
 
-;; Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -682,5 +681,4 @@ versions of xterm."
     (set-terminal-parameter nil 'background-mode 'dark)
     t))
 
-;; arch-tag: 12e7ebdd-1e6c-4b25-b0f9-35ace25e855a
 ;;; xterm.el ends here

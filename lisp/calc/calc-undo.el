@@ -1,7 +1,6 @@
 ;;; calc-undo.el --- undo functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -32,6 +31,7 @@
 
 ;;; Undo.
 
+;;;###autoload
 (defun calc-undo (n)
   (interactive "p")
   (when calc-executing-macro
@@ -148,5 +148,4 @@
 
 (provide 'calc-undo)
 
-;; arch-tag: eeb485d2-fb3d-454a-9d79-450af1f50d6c
 ;;; calc-undo.el ends here

@@ -1,7 +1,6 @@
 ;;; benchmark.el --- support for benchmarking code
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Love  <fx@gnu.org>
 ;; Keywords: lisp, extensions
@@ -116,5 +115,4 @@ For non-interactive use see also `benchmark-run' and
 
 (provide 'benchmark)
 
-;; arch-tag: be570e24-4b51-4784-adf3-fa2b56c31946
 ;;; benchmark.el ends here

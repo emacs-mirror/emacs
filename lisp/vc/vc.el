@@ -1,8 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992-1998, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -2299,7 +2297,7 @@ depending on the underlying version-control system."
 (define-obsolete-function-alias 'vc-revert-buffer 'vc-revert "23.1")
 
 ;;;###autoload
-(defun vc-update (&optional arg)
+(defun vc-pull (&optional arg)
   "Update the current fileset or branch.
 On a distributed version control system, this runs a \"pull\"
 operation to update the current branch, prompting for an argument
@@ -2339,7 +2337,7 @@ tip revision are merged into the working file."
       (error "VC update is unsupported for `%s'" backend)))))
 
 ;;;###autoload
-(defalias 'vc-pull 'vc-update)
+(defalias 'vc-update 'vc-pull)
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
@@ -2775,5 +2773,4 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
 
 (provide 'vc)
 
-;; arch-tag: ca82c1de-3091-4e26-af92-460abc6213a6
 ;;; vc.el ends here

@@ -1,7 +1,6 @@
 ;;; s-region.el --- set region using shift key
 
-;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: terminals
@@ -121,5 +120,4 @@ to global keymap."
 
 (provide 's-region)
 
-;; arch-tag: a471e912-18d7-4247-a29b-2100bca180ff
 ;;; s-region.el ends here

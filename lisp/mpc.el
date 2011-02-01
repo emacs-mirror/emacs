@@ -1,6 +1,6 @@
 ;;; mpc.el --- A client for the Music Player Daemon   -*- coding: utf-8 -*-
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: multimedia
@@ -2611,5 +2611,4 @@ This is used so that they can be compared with `eq', which is needed for
 
 (provide 'mpc)
 
-;; arch-tag: 4794b2f5-59e6-4f26-b695-650b3e002f37
 ;;; mpc.el ends here

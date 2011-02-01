@@ -1,6 +1,5 @@
 /* Markers: examining, setting and deleting.
-   Copyright (C) 1985, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1997-1998, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -33,10 +32,6 @@ static struct buffer *cached_buffer;
 static int cached_modiff;
 
 static void byte_char_debug_check (struct buffer *, EMACS_INT, EMACS_INT);
-
-/* Nonzero means enable debugging checks on byte/char correspondences.  */
-
-static int byte_debug_flag;
 
 void
 clear_charpos_cache (struct buffer *b)
@@ -897,10 +892,8 @@ syms_of_marker (void)
   defsubr (&Sset_marker_insertion_type);
   defsubr (&Sbuffer_has_markers_at);
 
-  DEFVAR_BOOL ("byte-debug-flag", &byte_debug_flag,
+  DEFVAR_BOOL ("byte-debug-flag", byte_debug_flag,
 	       doc: /* Non-nil enables debugging checks in byte/char position conversions.  */);
   byte_debug_flag = 0;
 }
 
-/* arch-tag: 50aa418f-cdd0-4838-b64b-94aa4b2a3b74
-   (do not change this comment) */

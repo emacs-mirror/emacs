@@ -103,5 +103,3 @@ XMenuRecompute(Display *display, register XMenu *menu)
     return(XM_SUCCESS);
 }
 
-/* arch-tag: 1fe99b82-3873-4aab-b2b3-f277c93e00d9
-   (do not change this comment) */

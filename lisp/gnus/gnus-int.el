@@ -1,7 +1,6 @@
 ;;; gnus-int.el --- backend interface functions for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -473,6 +472,18 @@ If FETCH-OLD, retrieve all headers (or some subset thereof) in the group."
       (funcall (gnus-get-function gnus-command-method 'request-type)
 	       (gnus-group-real-name group) article))))
 
+(defun gnus-request-update-group-status (group status)
+  "Change the status of a group.
+Valid statuses include `subscribe' and `unsubscribe'."
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (if (not (gnus-check-backend-function
+	      'request-update-group-status (car gnus-command-method)))
+	nil
+      (funcall
+       (gnus-get-function gnus-command-method 'request-update-group-status)
+       (gnus-group-real-name group) status
+       (nth 1 gnus-command-method)))))
+
 (defun gnus-request-set-mark (group action)
   "Set marks on articles in the back end."
   (let ((gnus-command-method (gnus-find-method-for-group group)))
@@ -627,8 +638,7 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
   (when (gnus-check-backend-function
 	 'request-marks (car gnus-command-method))
     (let ((group (gnus-info-group info)))
-      (and (funcall (gnus-get-function gnus-command-method
-				       'request-update-info)
+      (and (funcall (gnus-get-function gnus-command-method 'request-marks)
 		    (gnus-group-real-name group)
 		    info (nth 1 gnus-command-method))
 	   ;; If the minimum article number is greater than 1, then all
@@ -699,7 +709,9 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	  (if (stringp group) (gnus-group-real-name group) group)
 	  (cadr gnus-command-method)
 	  last)))
-    (when (and gnus-agent (gnus-agent-method-p gnus-command-method))
+    (when (and gnus-agent
+	       (gnus-agent-method-p gnus-command-method)
+	       (cdr result))
       (gnus-agent-regenerate-group group (list (cdr result))))
     result))
 

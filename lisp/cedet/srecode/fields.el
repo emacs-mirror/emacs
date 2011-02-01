@@ -1,6 +1,6 @@
 ;;; srecode/fields.el --- Handling type-in fields in a buffer.
 ;;
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -447,5 +447,4 @@ PRE-LEN is used in the after mode for the length of the changed text."
 
 (provide 'srecode/fields)
 
-;; arch-tag: 00cea6f0-42ac-4b15-b778-46e6db0bfcb5
 ;;; srecode/fields.el ends here

@@ -1,7 +1,6 @@
 ;;; cus-dep.el --- find customization dependencies
 ;;
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -172,5 +171,4 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 
 
 
-;; arch-tag: b7b6421a-bf7a-44fd-a382-6f44976bdf68
 ;;; cus-dep.el ends here

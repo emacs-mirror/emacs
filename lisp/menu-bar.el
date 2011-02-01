@@ -1,7 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -479,8 +478,7 @@
 (define-key menu-bar-edit-menu [clear]
   `(menu-item ,(purecopy "Clear") delete-region
 	      :enable (and mark-active
-			   (not buffer-read-only)
-			   (not (mouse-region-match)))
+			   (not buffer-read-only))
 	      :help
 	      ,(purecopy "Delete the text in region between mark and current position")))
 (defvar yank-menu (cons (purecopy "Select Yank") nil))
@@ -510,7 +508,7 @@
   ;; under X (for GNUstep).
   `(menu-item ,(purecopy "Copy") ,(if (featurep 'ns)
                                       'ns-copy-including-secondary
-                                    'menu-bar-kill-ring-save)
+                                    'kill-ring-save)
               :enable mark-active
               :help ,(purecopy "Copy text in region between mark and current position")
               :keys ,(purecopy (if (featurep 'ns)
@@ -523,7 +521,8 @@
 	      ,(purecopy "Cut (kill) text in region between mark and current position")))
 ;; ns-win.el said: Separate undo from cut/paste section.
 (if (featurep 'ns)
-    (define-key menu-bar-edit-menu [separator-undo] `(,(purecopy "--"))))
+    (define-key menu-bar-edit-menu [separator-undo] menu-bar-separator))
+
 (define-key menu-bar-edit-menu [undo]
   `(menu-item ,(purecopy "Undo") undo
 	      :enable (and (not buffer-read-only)
@@ -533,11 +532,8 @@
 			     (consp buffer-undo-list)))
 	      :help ,(purecopy "Undo last operation")))
 
-(defun menu-bar-kill-ring-save (beg end)
-  (interactive "r")
-  (if (mouse-region-match)
-      (message "Selecting a region with the mouse does `copy' automatically")
-    (kill-ring-save beg end)))
+(define-obsolete-function-alias
+  'menu-bar-kill-ring-save 'kill-ring-save "24.1")
 
 ;; These are alternative definitions for the cut, paste and copy
 ;; menu items.  Use them if your system expects these to use the clipboard.
@@ -587,18 +583,15 @@ Do the same for the keys of the same name."
 
 (defvar menu-bar-custom-menu (make-sparse-keymap "Customize"))
 
-(define-key menu-bar-custom-menu [customize-apropos-groups]
-  `(menu-item ,(purecopy "Groups Matching Regexp...") customize-apropos-groups
-	      :help ,(purecopy "Browse groups whose names match regexp")))
 (define-key menu-bar-custom-menu [customize-apropos-faces]
-  `(menu-item ,(purecopy "Faces Matching Regexp...") customize-apropos-faces
-	      :help ,(purecopy "Browse faces whose names match regexp")))
+  `(menu-item ,(purecopy "Faces Matching...") customize-apropos-faces
+	      :help ,(purecopy "Browse faces matching a regexp or word list")))
 (define-key menu-bar-custom-menu [customize-apropos-options]
-  `(menu-item ,(purecopy "Options Matching Regexp...") customize-apropos-options
-	      :help ,(purecopy "Browse options whose names match regexp")))
+  `(menu-item ,(purecopy "Options Matching...") customize-apropos-options
+	      :help ,(purecopy "Browse options matching a regexp or word list")))
 (define-key menu-bar-custom-menu [customize-apropos]
-  `(menu-item ,(purecopy "Settings Matching Regexp...") customize-apropos
-	      :help ,(purecopy "Browse customizable settings whose names match regexp")))
+  `(menu-item ,(purecopy "All Settings Matching...") customize-apropos
+	      :help ,(purecopy "Browse customizable settings matching a regexp or word list")))
 (define-key menu-bar-custom-menu [separator-1]
   menu-bar-separator)
 (define-key menu-bar-custom-menu [customize-group]
@@ -626,6 +619,9 @@ Do the same for the keys of the same name."
 (define-key menu-bar-custom-menu [customize]
   `(menu-item ,(purecopy "Top-level Customization Group") customize
 	      :help ,(purecopy "The master group called `Emacs'")))
+(define-key menu-bar-custom-menu [customize-themes]
+  `(menu-item ,(purecopy "Custom Themes") customize-themes
+	      :help ,(purecopy "Choose a pre-defined customization theme")))
 
 ;(defvar menu-bar-preferences-menu (make-sparse-keymap "Preferences"))
 
@@ -1147,7 +1143,7 @@ mail status in mode line"))
   ;; It is better not to use backquote here,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
-  `(menu-item ,(purecopy "Mule (Multilingual Environment)") ,mule-menu-keymap
+  `(menu-item ,(purecopy "Multilingual Environment") ,mule-menu-keymap
 ;; Most of the MULE menu actually does make sense in unibyte mode,
 ;; e.g. language selection.
 ;;;	:visible '(default-value 'enable-multibyte-characters)

@@ -1,6 +1,6 @@
 ;;; ob-ref.el --- org-babel functions for referencing external data
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte, Dan Davison
 ;; Keywords: literate programming, reproducible research
@@ -224,6 +224,5 @@ Supported reference types are tables and source blocks."
 
 (provide 'ob-ref)
 
-;; arch-tag: ace4a4f4-ea38-4dac-8fe6-6f52fcc43b6d
 
 ;;; ob-ref.el ends here

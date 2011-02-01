@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/searching
@@ -385,15 +384,6 @@ matches both @samp{]} and @samp{-}.
 
 To include @samp{^} in a character alternative, put it anywhere but at
 the beginning.
-
-The beginning and end of a range of multibyte characters must be in
-the same character set (@pxref{Character Sets}).  Thus,
-@code{"[\x8e0-\x97c]"} is invalid because character 0x8e0 (@samp{a}
-with grave accent) is in the Emacs character set for Latin-1 but the
-character 0x97c (@samp{u} with diaeresis) is in the Emacs character
-set for Latin-2.  (We use Lisp string syntax to write that example,
-and a few others in the next few paragraphs, in order to include hex
-escape sequences in them.)
 
 If a range starts with a unibyte character @var{c} and ends with a
 multibyte character @var{c2}, the range is divided into two parts: one
@@ -1831,7 +1821,3 @@ values of the variables @code{sentence-end-double-space}
 @code{sentence-end-without-period} and
 @code{sentence-end-without-space}.
 @end defun
-
-@ignore
-   arch-tag: c2573ca2-18aa-4839-93b8-924043ef831f
-@end ignore

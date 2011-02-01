@@ -1,6 +1,5 @@
 /* Definitions and global variables for intervals.
-   Copyright (C) 1993, 1994, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2000-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -283,6 +282,7 @@ extern INTERVAL update_interval (INTERVAL, EMACS_INT);
 extern void set_intervals_multibyte (int);
 extern INTERVAL validate_interval_range (Lisp_Object, Lisp_Object *,
                                          Lisp_Object *, int);
+extern INTERVAL interval_of (int, Lisp_Object);
 
 /* Defined in xdisp.c */
 extern int invisible_p (Lisp_Object, Lisp_Object);
@@ -303,16 +303,10 @@ extern Lisp_Object Qkeymap;
 extern Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
 extern Lisp_Object Qinvisible, Qintangible, Qread_only;
 
-extern Lisp_Object Vinhibit_point_motion_hooks;
-extern Lisp_Object Vdefault_text_properties;
-extern Lisp_Object Vchar_property_alias_alist;
-extern Lisp_Object Vtext_property_default_nonsticky;
-
 /* Sticky properties */
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
 EXFUN (Fget_char_property, 3);
-EXFUN (Fget_char_property_and_overlay, 3);
 EXFUN (Fget_text_property, 3);
 EXFUN (Ftext_properties_at, 2);
 EXFUN (Fnext_property_change, 3);
@@ -321,7 +315,6 @@ EXFUN (Fadd_text_properties, 4);
 EXFUN (Fset_text_properties, 4);
 EXFUN (Fremove_text_properties, 4);
 EXFUN (Ftext_property_any, 5);
-EXFUN (Ftext_property_not_all, 5);
 EXFUN (Fprevious_single_char_property_change, 4);
 extern Lisp_Object copy_text_properties (Lisp_Object, Lisp_Object,
                                          Lisp_Object, Lisp_Object,
@@ -347,5 +340,3 @@ extern void syms_of_textprop (void);
 
 #include "composite.h"
 
-/* arch-tag: f0bc16c0-b084-498d-9de4-21cc8f077795
-   (do not change this comment) */

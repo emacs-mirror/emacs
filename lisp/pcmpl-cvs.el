@@ -1,7 +1,6 @@
 ;;; pcmpl-cvs.el --- functions for dealing with cvs completions
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Package: pcomplete
@@ -185,5 +184,4 @@ operation character applies, as displayed by 'cvs -n update'."
     (setq pcomplete-stub nondir)
     (pcomplete-uniqify-list entries)))
 
-;; arch-tag: d2aeac43-4bf5-4509-a496-74b863c6642b
 ;;; pcmpl-cvs.el ends here

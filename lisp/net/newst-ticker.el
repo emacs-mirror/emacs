@@ -1,7 +1,6 @@
 ;; newst-ticker.el --- modeline ticker for newsticker.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-ticker.el
@@ -290,5 +289,4 @@ running already."
 
 (provide 'newst-ticker)
 
-;; arch-tag: faee3ebb-749b-4935-9835-7f36d4b700f0
 ;;; newst-ticker.el ends here

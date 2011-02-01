@@ -4,8 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: mouse gpm linux
 
-;; Copyright (C) 1994, 1995, 1998, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1998, 2006-2011  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -84,5 +83,4 @@ It relies on the `gpm' daemon being activated."
 
 (provide 't-mouse)
 
-;; arch-tag: a63163b3-bfbe-4eb2-ab4f-201cd164b05d
 ;;; t-mouse.el ends here

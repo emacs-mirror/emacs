@@ -1,7 +1,6 @@
 ;;; newst-backend.el --- Retrieval backend for newsticker.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-backend.el
@@ -2353,5 +2352,4 @@ This function is suited for adding it to `newsticker-new-item-functions'."
 
 (provide 'newst-backend)
 
-;; arch-tag: 0e37b658-56e9-49ab-90f9-f2df57e1a659
 ;;; newst-backend.el ends here

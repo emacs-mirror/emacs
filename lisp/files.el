@@ -1,8 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
-;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Package: emacs
@@ -57,7 +55,10 @@ when it has unsaved changes."
 A list of elements of the form (FROM . TO), each meaning to replace
 FROM with TO when it appears in a directory name.  This replacement is
 done when setting up the default directory of a newly visited file.
-*Every* FROM string should start with \"\\\\`\".
+
+FROM is matched against directory names anchored at the first
+character, so it should start with a \"\\\\`\", or, if directory
+names cannot have embedded newlines, with a \"^\".
 
 FROM and TO should be equivalent names, which refer to the
 same directory.  Do not use `~' in the TO strings;
@@ -1556,7 +1557,7 @@ killed."
     (error "Aborted"))
   (when (and (buffer-modified-p) buffer-file-name)
     (if (yes-or-no-p (format "Buffer %s is modified; save it first? "
-                             (buffer-name)))
+			     (buffer-name)))
         (save-buffer)
       (unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
         (error "Aborted"))))
@@ -1758,12 +1759,11 @@ When nil, never request confirmation."
   "If file SIZE larger than `large-file-warning-threshold', allow user to abort.
 OP-TYPE specifies the file operation being performed (for message to user)."
   (when (and large-file-warning-threshold size
-	   (> size large-file-warning-threshold)
-	   (not (y-or-n-p
-		 (format "File %s is large (%dMB), really %s? "
-			 (file-name-nondirectory filename)
-			 (/ size 1048576) op-type))))
-	  (error "Aborted")))
+	     (> size large-file-warning-threshold)
+	     (not (y-or-n-p (format "File %s is large (%dMB), really %s? "
+				    (file-name-nondirectory filename)
+				    (/ size 1048576) op-type))))
+    (error "Aborted")))
 
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
   "Read file FILENAME into a buffer and return the buffer.
@@ -2337,6 +2337,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.oak\\'" . scheme-mode)
      ("\\.sgml?\\'" . sgml-mode)
      ("\\.x[ms]l\\'" . xml-mode)
+     ("\\.dbk\\'" . xml-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.js\\'" . js-mode)		; javascript-mode would be better
@@ -2371,7 +2372,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
      ("\\.\\(dif\\|pat\\)\\'" . diff-mode) ; for MSDOG
      ("\\.[eE]?[pP][sS]\\'" . ps-mode)
-     ("\\.\\(?:PDF\\|DVI\\|pdf\\|dvi\\)\\'" . doc-view-mode)
+     ("\\.\\(?:PDF\\|DVI\\|OD[FGPST]\\|DOCX?\\|XLSX?\\|PPTX?\\|pdf\\|dvi\\|od[fgpst]\\|docx?\\|xlsx?\\|pptx?\\)\\'" . doc-view-mode-maybe)
      ("configure\\.\\(ac\\|in\\)\\'" . autoconf-mode)
      ("\\.s\\(v\\|iv\\|ieve\\)\\'" . sieve-mode)
      ("BROWSE\\'" . ebrowse-tree-mode)
@@ -2875,6 +2876,7 @@ is a file-local variable (a symbol) and VALUE is the value
 specified.  The actual value in the buffer may differ from VALUE,
 if it is changed by the major or minor modes, or by the user.")
 (make-variable-buffer-local 'file-local-variables-alist)
+(put 'file-local-variables-alist 'permanent-local t)
 
 (defvar dir-local-variables-alist nil
   "Alist of directory-local variable settings in the current buffer.
@@ -2904,91 +2906,80 @@ DIR-NAME is a directory name if these settings come from
 directory-local variables, or nil otherwise."
   (if noninteractive
       nil
-    (let ((name (or dir-name
-		    (if buffer-file-name
-			(file-name-nondirectory buffer-file-name)
-		      (concat "buffer " (buffer-name)))))
-	  (offer-save (and (eq enable-local-variables t) unsafe-vars))
-	  prompt char)
-      (save-window-excursion
-	(let ((buf (get-buffer-create "*Local Variables*")))
-	  (pop-to-buffer buf)
-	  (set (make-local-variable 'cursor-type) nil)
-	  (erase-buffer)
-	  (if unsafe-vars
-	      (insert "The local variables list in " name
-		      "\ncontains values that may not be safe (*)"
-		      (if risky-vars
-			  ", and variables that are risky (**)."
-			"."))
-	    (if risky-vars
-		(insert "The local variables list in " name
-			"\ncontains variables that are risky (**).")
-	      (insert "A local variables list is specified in " name ".")))
-	  (insert "\n\nDo you want to apply it?  You can type
+    (save-window-excursion
+      (let* ((name (or dir-name
+		       (if buffer-file-name
+			   (file-name-nondirectory buffer-file-name)
+			 (concat "buffer " (buffer-name)))))
+	     (offer-save (and (eq enable-local-variables t)
+			      unsafe-vars))
+	     (exit-chars
+	      (if offer-save '(?! ?y ?n ?\s ?\C-g) '(?y ?n ?\s ?\C-g)))
+	     (buf (pop-to-buffer "*Local Variables*"))
+	     prompt char)
+	(set (make-local-variable 'cursor-type) nil)
+	(erase-buffer)
+	(cond
+	 (unsafe-vars
+	  (insert "The local variables list in " name
+		  "\ncontains values that may not be safe (*)"
+		  (if risky-vars
+		      ", and variables that are risky (**)."
+		    ".")))
+	 (risky-vars
+	  (insert "The local variables list in " name
+		  "\ncontains variables that are risky (**)."))
+	 (t
+	  (insert "A local variables list is specified in " name ".")))
+	(insert "\n\nDo you want to apply it?  You can type
 y  -- to apply the local variables list.
 n  -- to ignore the local variables list.")
-	  (if offer-save
-	      (insert "
+	(if offer-save
+	    (insert "
 !  -- to apply the local variables list, and permanently mark these
       values (*) as safe (in the future, they will be set automatically.)\n\n")
-	    (insert "\n\n"))
-	  (dolist (elt all-vars)
-	    (cond ((member elt unsafe-vars)
-		   (insert "  * "))
-		  ((member elt risky-vars)
-		   (insert " ** "))
-		  (t
-		   (insert "    ")))
-	    (princ (car elt) buf)
-	    (insert " : ")
-            ;; Make strings with embedded whitespace easier to read.
-            (let ((print-escape-newlines t))
-              (prin1 (cdr elt) buf))
-	    (insert "\n"))
-	  (setq prompt
-		(format "Please type %s%s: "
-			(if offer-save "y, n, or !" "y or n")
-			(if (< (line-number-at-pos) (window-body-height))
-			    ""
-			  ", or C-v to scroll")))
-	  (goto-char (point-min))
-	  (let ((cursor-in-echo-area t)
-		(executing-kbd-macro executing-kbd-macro)
-		(exit-chars
-		 (if offer-save '(?! ?y ?n ?\s ?\C-g) '(?y ?n ?\s ?\C-g)))
-		done)
-	    (while (not done)
-	      (message "%s" prompt)
-	      (setq char (read-event))
-	      (if (numberp char)
-		  (cond ((eq char ?\C-v)
-			 (condition-case nil
-			     (scroll-up)
-			   (error (goto-char (point-min)))))
-			;; read-event returns -1 if we are in a kbd
-			;; macro and there are no more events in the
-			;; macro.  In that case, attempt to get an
-			;; event interactively.
-			((and executing-kbd-macro (= char -1))
-			 (setq executing-kbd-macro nil))
-			(t (setq done (memq (downcase char) exit-chars)))))))
-	  (setq char (downcase char))
-	  (when (and offer-save (= char ?!) unsafe-vars)
-	    (dolist (elt unsafe-vars)
-	      (add-to-list 'safe-local-variable-values elt))
-	    ;; When this is called from desktop-restore-file-buffer,
-	    ;; coding-system-for-read may be non-nil.  Reset it before
-	    ;; writing to .emacs.
-	    (if (or custom-file user-init-file)
-		(let ((coding-system-for-read nil))
-		  (customize-save-variable
-		   'safe-local-variable-values
-		   safe-local-variable-values))))
-	  (kill-buffer buf)
-	  (or (= char ?!)
-	      (= char ?\s)
-	      (= char ?y)))))))
+	  (insert "\n\n"))
+	(dolist (elt all-vars)
+	  (cond ((member elt unsafe-vars)
+		 (insert "  * "))
+		((member elt risky-vars)
+		 (insert " ** "))
+		(t
+		 (insert "    ")))
+	  (princ (car elt) buf)
+	  (insert " : ")
+	  ;; Make strings with embedded whitespace easier to read.
+	  (let ((print-escape-newlines t))
+	    (prin1 (cdr elt) buf))
+	  (insert "\n"))
+	(setq prompt
+	      (format "Please type %s%s: "
+		      (if offer-save "y, n, or !" "y or n")
+		      (if (< (line-number-at-pos) (window-body-height))
+			  ""
+			(push ?\C-v exit-chars)
+			", or C-v to scroll")))
+	(goto-char (point-min))
+	(while (null char)
+	  (setq char (read-char-choice prompt exit-chars t))
+	  (when (eq char ?\C-v)
+	    (condition-case nil
+		(scroll-up)
+	      (error (goto-char (point-min))))
+	    (setq char nil)))
+	(kill-buffer buf)
+	(when (and offer-save (= char ?!) unsafe-vars)
+	  (dolist (elt unsafe-vars)
+	    (add-to-list 'safe-local-variable-values elt))
+	  ;; When this is called from desktop-restore-file-buffer,
+	  ;; coding-system-for-read may be non-nil.  Reset it before
+	  ;; writing to .emacs.
+	  (if (or custom-file user-init-file)
+	      (let ((coding-system-for-read nil))
+		(customize-save-variable
+		 'safe-local-variable-values
+		 safe-local-variable-values))))
+	(memq char '(?! ?\s ?y))))))
 
 (defun hack-local-variables-prop-line (&optional mode-only)
   "Return local variables specified in the -*- line.
@@ -3592,7 +3583,7 @@ the old visited file has been renamed to the new name FILENAME."
       (and buffer (not (eq buffer (current-buffer)))
 	   (not no-query)
 	   (not (y-or-n-p (format "A buffer is visiting %s; proceed? "
-                                  filename)))
+				  filename)))
 	   (error "Aborted")))
     (or (equal filename buffer-file-name)
 	(progn
@@ -3785,10 +3776,9 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 			(rename-file real-file-name backupname t)
 			(setq setmodes (list modes context backupname)))
 		    (file-error
-		     ;; If trouble writing the backup, write it in ~.
-		     (setq backupname (expand-file-name
-				       (convert-standard-filename
-					"~/%backup%~")))
+		     ;; If trouble writing the backup, write it in
+		     ;; .emacs.d/%backup%.
+		     (setq backupname (locate-user-emacs-file "%backup%~"))
 		     (message "Cannot write backup file; backing up in %s"
 			      backupname)
 		     (sleep-for 1)
@@ -4167,11 +4157,29 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
           (dremote (file-remote-p directory)))
       (if ;; Conditions for separate trees
 	  (or
-	   ;; Test for different drives on DOS/Windows
+	   ;; Test for different filesystems on DOS/Windows
 	   (and
 	    ;; Should `cygwin' really be included here?  --stef
 	    (memq system-type '(ms-dos cygwin windows-nt))
-	    (not (eq t (compare-strings filename 0 2 directory 0 2))))
+	    (or
+	     ;; Test for different drive letters
+	     (not (eq t (compare-strings filename 0 2 directory 0 2)))
+	     ;; Test for UNCs on different servers
+	     (not (eq t (compare-strings
+			 (progn
+			   (if (string-match "\\`//\\([^:/]+\\)/" filename)
+			       (match-string 1 filename)
+			     ;; Windows file names cannot have ? in
+			     ;; them, so use that to detect when
+			     ;; neither FILENAME nor DIRECTORY is a
+			     ;; UNC.
+			     "?"))
+			 0 nil
+			 (progn
+			   (if (string-match "\\`//\\([^:/]+\\)/" directory)
+			       (match-string 1 directory)
+			     "?"))
+			 0 nil t)))))
 	   ;; Test for different remote file system identification
 	   (not (equal fremote dremote)))
 	  filename
@@ -4328,8 +4336,9 @@ Before and after saving the buffer, this function runs
 	  (or (verify-visited-file-modtime (current-buffer))
 	      (not (file-exists-p buffer-file-name))
 	      (yes-or-no-p
-	       (format "%s has changed since visited or saved.  Save anyway? "
-		       (file-name-nondirectory buffer-file-name)))
+	       (format
+		"%s has changed since visited or saved.  Save anyway? "
+		(file-name-nondirectory buffer-file-name)))
 	      (error "Save not confirmed"))
 	  (save-restriction
 	    (widen)
@@ -4406,9 +4415,10 @@ Before and after saving the buffer, this function runs
 	    (if (not (file-exists-p buffer-file-name))
 		(error "Directory %s write-protected" dir)
 	      (if (yes-or-no-p
-		   (format "File %s is write-protected; try to save anyway? "
-			   (file-name-nondirectory
-			    buffer-file-name)))
+		   (format
+		    "File %s is write-protected; try to save anyway? "
+		    (file-name-nondirectory
+		     buffer-file-name)))
 		  (setq tempsetmodes t)
 		(error "Attempt to save to a file which you aren't allowed to write"))))))
     (or buffer-backed-up
@@ -4599,8 +4609,7 @@ change the additional actions you can take on files."
 	   (progn
 	     (if (or arg
 		     (eq save-abbrevs 'silently)
-		     (y-or-n-p (format "Save abbrevs in %s? "
-				       abbrev-file-name)))
+		     (y-or-n-p (format "Save abbrevs in %s? " abbrev-file-name)))
 		 (write-abbrev-file nil))
 	     ;; Don't keep bothering user if he says no.
 	     (setq abbrevs-changed nil)
@@ -5216,10 +5225,10 @@ This command is used in the special Dired buffer created by
 
 (defun kill-buffer-ask (buffer)
   "Kill BUFFER if confirmed."
-  (when (yes-or-no-p
-         (format "Buffer %s %s.  Kill? " (buffer-name buffer)
-                 (if (buffer-modified-p buffer)
-                     "HAS BEEN EDITED" "is unmodified")))
+  (when (yes-or-no-p (format "Buffer %s %s.  Kill? "
+			     (buffer-name buffer)
+			     (if (buffer-modified-p buffer)
+				 "HAS BEEN EDITED" "is unmodified")))
     (kill-buffer buffer)))
 
 (defun kill-some-buffers (&optional list)
@@ -6107,8 +6116,7 @@ only these files will be asked to be saved."
 			  (substitute-in-file-name identity)
 			  ;; `add' means add "/:" to the result.
 			  (file-truename add 0)
-			  ;; `quote' means add "/:" to buffer-file-name.
-			  (insert-file-contents quote 0)
+			  (insert-file-contents insert-file-contents 0)
 			  ;; `unquote-then-quote' means set buffer-file-name
 			  ;; temporarily to unquoted filename.
 			  (verify-visited-file-modtime unquote-then-quote)
@@ -6139,20 +6147,18 @@ only these files will be asked to be saved."
 			   "/"
 			 (substring (car pair) 2)))))
 	(setq file-arg-indices (cdr file-arg-indices))))
-    (cond ((eq method 'identity)
-	   (car arguments))
-	  ((eq method 'add)
-	   (concat "/:" (apply operation arguments)))
-	  ((eq method 'quote)
-	   (unwind-protect
+    (case method
+      (identity (car arguments))
+      (add (concat "/:" (apply operation arguments)))
+      (insert-file-contents
+       (let ((visit (nth 1 arguments)))
+         (prog1
 	       (apply operation arguments)
-	     (setq buffer-file-name (concat "/:" buffer-file-name))))
-	  ((eq method 'unquote-then-quote)
-	   (let (res)
-	     (setq buffer-file-name (substring buffer-file-name 2))
-	     (setq res (apply operation arguments))
-	     (setq buffer-file-name (concat "/:" buffer-file-name))
-	     res))
+           (when (and visit buffer-file-name)
+             (setq buffer-file-name (concat "/:" buffer-file-name))))))
+      (unquote-then-quote
+       (let ((buffer-file-name (substring buffer-file-name 2)))
+         (apply operation arguments)))
 	  (t
 	   (apply operation arguments)))))
 

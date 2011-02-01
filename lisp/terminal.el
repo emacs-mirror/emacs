@@ -1,7 +1,7 @@
 ;;; terminal.el --- terminal emulator for GNU Emacs
 
-;; Copyright (C) 1986, 1987, 1988, 1989, 1993, 1994, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1986-1989, 1993-1994, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Maintainer: FSF
@@ -1335,5 +1335,4 @@ in the directory specified by `te-terminfo-directory'."
 
 (provide 'terminal)
 
-;; arch-tag: 0ae1d7d7-90ef-4566-a531-6e7ff8c79b2f
 ;;; terminal.el ends here

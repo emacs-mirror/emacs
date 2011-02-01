@@ -1,6 +1,5 @@
 /* Input routines for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,5 +29,3 @@ extern void w32_console_mouse_position (FRAME_PTR *f, int insist,
 
 #endif /* EMACS_W32INEVT_H */
 
-/* arch-tag: 7641bd54-199f-4552-8e8a-6a2f5340ef13
-   (do not change this comment) */

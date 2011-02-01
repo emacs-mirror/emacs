@@ -1,6 +1,6 @@
 ;;; sisheng.el --- sisheng input method for Chinese pinyin transliteration
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Werner LEMBERG <wl@gnu.org>
 
@@ -290,5 +290,4 @@ Example:  nve5    -> nüe
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 1fa6ba5f-6747-44bc-bf12-30628ad3e8ad
 ;;; sisheng.el ends here

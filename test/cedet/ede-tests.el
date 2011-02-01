@@ -1,6 +1,6 @@
 ;;; ede-tests.el --- Some tests for the Emacs Development Environment
 
-;; Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -84,5 +84,4 @@ The search is done with the current EDE root."
     (data-debug-insert-object-slots loc "]"))
   )
 
-;; arch-tag: 79fae12e-652f-4544-a20e-b24d87b4917d
 ;;; ede-test.el ends here

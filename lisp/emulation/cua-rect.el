@@ -1,7 +1,6 @@
 ;;; cua-rect.el --- CUA unified rectangle support
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
@@ -1492,5 +1491,4 @@ With prefix arg, indent to that column."
 
 (provide 'cua-rect)
 
-;; arch-tag: b730df53-17b9-4a89-bd63-4a71ec196731
 ;;; cua-rect.el ends here

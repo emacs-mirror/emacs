@@ -1,8 +1,6 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-              2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-              Free Software Foundation, Inc.
+Copyright (C) 1992-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,7 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-#include "getopt.h"
+#include <getopt.h>
 
 /* The SunOS compiler doesn't have SEEK_END.  */
 #ifndef SEEK_END
@@ -3567,7 +3565,7 @@ usage (int error)
 
 
 /* Display version and copyright info.  The VERSION macro is set
-   from the Makefile and contains the Emacs version.  */
+   from config.h and contains the Emacs version.  */
 
 #ifndef VERSION
 # define VERSION "21"
@@ -3577,7 +3575,7 @@ void
 version (void)
 {
   /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
+  char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
 
   printf ("ebrowse %s\n", VERSION);
   puts (emacs_copyright);
@@ -3814,7 +3812,7 @@ main (int argc, char **argv)
 	      yyerror ("error getting size of file `%s'", out_filename);
 	      exit (EXIT_FAILURE);
 	    }
-	  
+
 	  else if (rc == 0)
 	    {
 	      yyerror ("file `%s' is empty", out_filename);
@@ -3876,8 +3874,5 @@ main (int argc, char **argv)
 
   return EXIT_SUCCESS;
 }
-
-/* arch-tag: fc03b4bc-91a9-4c3d-b3b9-12a77fa86dd8
-   (do not change this comment) */
 
 /* ebrowse.c ends here */

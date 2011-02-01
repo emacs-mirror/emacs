@@ -1,11 +1,11 @@
 ;;; ipa.el --- Quail package for inputting IPA characters  -*-coding: utf-8;-*-
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010
+;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, input method, IPA
 
@@ -516,5 +516,4 @@ displays them, incorrectly, as separate from the modified glyphs.")
   (quail-defrule (format "%s_" implosive-x-sampa)
 		 'ipa-x-sampa-underscore-implosive))
 
-;; arch-tag: cf2614cc-ecce-4ef5-ba51-37faeed41691
 ;;; ipa.el ends here

@@ -1,6 +1,6 @@
 # emacs-buffer.gdb --- gdb macros for recovering buffers from emacs coredumps
 
-# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2005-2011 Free Software Foundation, Inc.
 
 # Maintainer: Noah Friedman <friedman@splode.com>
 # Status: Works with Emacs 22.0.51.1 (prerelease) as of 2006-01-12.
@@ -268,4 +268,3 @@ end
 # mode: gdb-script
 # end:
 
-# arch-tag: 02087f62-2663-4868-977a-1fbb2fc2e7ef

@@ -1,6 +1,6 @@
 ;;; check-declare.el --- Check declare-function statements
 
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Glenn Morris <rgm@gnu.org>
 ;; Keywords: lisp, tools, maint
@@ -314,5 +314,4 @@ Returns non-nil if any false statements are found."
 
 (provide 'check-declare)
 
-;; arch-tag: a4d6cdc4-deb7-4502-b327-0e4ef3d82d96
 ;;; check-declare.el ends here.

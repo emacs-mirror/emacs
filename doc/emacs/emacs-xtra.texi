@@ -11,7 +11,7 @@
 @copying
 This manual describes specialized features of Emacs.
 
-Copyright @copyright{} 2004, 2005, 2006, 2007, 2008, 2009, 2010
+Copyright @copyright{} 2004-2011
 Free Software Foundation, Inc.
 
 @quotation
@@ -136,7 +136,3 @@ the Emacs manual.
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: 75c33f13-32c6-41b6-9537-847a312e2e49
-@end ignore

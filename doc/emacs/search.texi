@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search, Fixit, Display, Top
@@ -459,11 +458,13 @@ for a forward search, or @kbd{M-s w C-r @key{RET}} for a backward search.
 These run the commands @code{word-search-forward} and
 @code{word-search-backward} respectively.
 
-  A nonincremental word search differs slightly from the incremental
-version in the way it finds a match: the last word in the search
-string must be an exact match for a whole word.  In an incremental
-word search, the last word in the search string can match part of a
-word; this allows the matching to proceed incrementally as you type.
+  Incremental and nonincremental word searches differ slightly in the
+way they find a match.  In a nonincremental word search, the last word
+in the search string must exactly match a whole word.  In an
+incremental word search, the matching is more lax: the last word in
+the search string can match part of a word, so that the matching
+proceeds incrementally as you type.  This additional laxity does not
+apply to the lazy highlight, which always matches whole words.
 
 @node Regexp Search
 @section Regular Expression Search
@@ -1376,7 +1377,3 @@ it never deletes lines that are only partially contained in the region
 
 If a match is split across lines, this command keeps all those lines.
 @end table
-
-@ignore
-   arch-tag: fd9d8e77-66af-491c-b212-d80999613e3e
-@end ignore

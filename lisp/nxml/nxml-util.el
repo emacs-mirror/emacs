@@ -1,6 +1,6 @@
 ;;; nxml-util.el --- utility functions for nxml-*.el
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -132,5 +132,4 @@ modifications to the buffer."
 
 (provide 'nxml-util)
 
-;; arch-tag: 7d3b3af4-de2b-4410-bf67-94d64824324b
 ;;; nxml-util.el ends here

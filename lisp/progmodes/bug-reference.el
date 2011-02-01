@@ -1,6 +1,6 @@
 ;; bug-reference.el --- buttonize bug references
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 21 Mar 2007
@@ -151,5 +151,4 @@ so that it is considered safe, see `enable-local-variables'.")
       (widen)
       (bug-reference-unfontify (point-min) (point-max)))))
 
-;; arch-tag: b138abce-e5c3-475e-bd58-7afba40387ea
 ;;; bug-reference.el ends here

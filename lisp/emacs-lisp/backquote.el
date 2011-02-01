@@ -1,7 +1,6 @@
 ;;; backquote.el --- implement the ` Lisp construct
 
-;; Copyright (C) 1990, 1992, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1992, 1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Rick Sladkey <jrs@world.std.com>
 ;; Maintainer: FSF
@@ -241,5 +240,4 @@ LEVEL is only used internally and indicates the nesting level:
 	tail))
      (t (cons 'list heads)))))
 
-;; arch-tag: 1a26206a-6b5e-4c56-8e24-2eef0f7e0e7a
 ;;; backquote.el ends here

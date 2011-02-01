@@ -1,7 +1,7 @@
 ;;; internal.el --- support for PC internal terminal
 
-;; Copyright (C) 1993, 1994, 1998, 1999, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1998-1999, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 
@@ -604,5 +604,4 @@ list.  You can (and should) also run it if and when the value of
     (run-hooks 'dos-codepage-setup-hook)
     ))
 
-;; arch-tag: eea04c06-7311-4b5a-b531-3c1be1b070af
 ;;; internal.el ends here

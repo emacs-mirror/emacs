@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2010 Free Software Foundation, Inc.
+Copyright (C) 2010-2011  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -58,6 +58,9 @@ automatically select it.
 ** The --unibyte, --multibyte, --no-multibyte, and --no-unibyte
 command line arguments, and the EMACS_UNIBYTE environment variable, no
 longer have any effect.  (They were declared obsolete in Emacs 23.)
+
+** New command line option `--no-site-lisp' removes site-lisp directories
+from load-path.  -Q now implies this.
 
 
 * Changes in Emacs 24.1
@@ -207,6 +210,10 @@ automatically when Emacs starts up.  To disable this, set
 `package-enable-at-startup' to nil.  To change which packages are
 loaded, customize `package-load-list'.
 
+** An Emacs Lisp testing tool is now included.
+Emacs Lisp developers can use this tool to write automated tests for
+their code.  See the ERT info manual for details.
+
 ** Custom Themes
 
 *** `M-x customize-themes' lists Custom themes which can be enabled.
@@ -216,11 +223,18 @@ Emacs no longer looks for custom themes in `load-path'.  The default
 is to search in `custom-theme-directory', followed by a built-in theme
 directory named "themes/" in `data-directory'.
 
+*** New option `custom-safe-themes' records known-safe theme files.
+If a theme is not in this list, Emacs queries before loading it, and
+offers to save the theme to `custom-safe-themes' automatically.  By
+default, all themes included in Emacs are treated as safe.
+
 ** The user option `remote-file-name-inhibit-cache' controls whether
 the remote file-name cache is used for read access.
 
 ** The standalone programs lib-src/digest-doc and sorted-doc have been
 replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
+
+** The variable `focus-follows-mouse' now always defaults to nil.
 
 
 * Editing Changes in Emacs 24.1
@@ -231,6 +245,9 @@ replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 ** completion-at-point now handles tags and semantic completion.
 
 ** The default value of `backup-by-copying-when-mismatch' is now t.
+
+** The command `just-one-space' (C-SPC), if given a negative argument,
+also deletes newlines around point.
 
 ** Deletion changes
 
@@ -252,59 +269,66 @@ should use delete-char with a negative argument instead.
 
 ** Selection changes.
 
-The default handling of clipboard and primary selections has been
-changed to conform with other X applications.  The exact changes are
-described below; in short, mouse commands to select and paste text now
-use the primary selection, while all other commands for killing and
-yanking text now use the clipboard.
+The default handling of clipboard and primary selections was changed
+to conform with modern X applications.  In short, most commands for
+killing and yanking text now use the clipboard, while mouse commands
+use the primary selection.
 
-*** Merely selecting text (e.g. with drag-mouse-1) does not add it to
-the kill-ring.  On systems with a primary selection separate from the
-clipboard (such as X), the selected text is put in the primary
-selection.
+In the following, we provide a list of these changes, followed by a
+list of steps to get the old behavior back if you prefer that.
 
-*** mouse-2 is now bound to `mouse-yank-primary', which pastes from
-the primary selection regardless of the contents of the kill-ring.
+*** `mouse-drag-copy-region' now defaults to nil.
+*** `select-active-regions' now defaults to t.
+Merely selecting text (e.g. with drag-mouse-1) no longer puts it in
+the kill-ring.  The selected text is put in the primary selection, if
+the system possesses a separate primary selection facility (e.g. X).
 
-*** Commands that kill text or copy it to the kill-ring (M-w, C-w,
-C-k, etc.) also put the killed text into the clipboard.  This change
-also means that the "Copy", "Cut", and "Paste" items in the "Edit"
-menu are now exactly equivalent to, respectively M-w, C-w, and C-y.
+**** `select-active-regions' also accepts a new value, `only'.
+This means to only set the primary selection for temporarily active
+regions (usually made by mouse-dragging or shift-selection);
+"ordinary" active regions, such as those made with C-SPC followed by
+point motion, do not alter the primary selection.
 
-*** Yank commands, such as C-y and M-y, retrieve text from the
-clipboard if it is available.
+*** mouse-2 is now bound to `mouse-yank-primary'.
+This pastes from the primary selection, ignoring the kill-ring.
+Previously, mouse-2 was bound to `mouse-yank-at-click'.
 
-*** The above changes are reflected in the following new defaults:
+*** `x-select-enable-clipboard' now defaults to t on all platforms.
+*** `x-select-enable-primary' now defaults to nil.
+Thus, commands that kill text or copy it to the kill-ring (such as
+M-w, C-w, and C-k) also use the clipboard---not the primary selection.
 
-**** `select-active-regions' now defaults to t.
-It also accepts a new value, `only', which means to only set the
-primary selection for temporarily active regions (usually made by
-mouse-dragging or shift-selection).
+**** The "Copy", "Cut", and "Paste" items in the "Edit" menu are now
+exactly equivalent to, respectively M-w, C-w, and C-y.
 
-**** `mouse-2' is now bound to `mouse-yank-primary'.
-Previously, it was bound to `mouse-yank-at-click' (which is now
-unbound by default).
+**** Note that on MS-Windows, `x-select-enable-clipboard' was already
+non-nil by default, as Windows does not support the primary selection
+between applications.
 
-**** `x-select-enable-clipboard' now defaults to t on all platforms.
-Note that this variable was already non-nil by default on MS-Windows,
-which does not support the primary selection between applications.
+*** To return to the previous behavior, do the following:
 
-**** `x-select-enable-primary' now defaults to nil.
-This variable exists only on X; its default value was t in previous
-versions.
-
-**** `mouse-drag-copy-region' now defaults to nil.
-
-*** To return to the previous behavior, where mouse commands use the
-clipboard, change `mouse-drag-copy-region' and (on X only)
-`x-select-enable-primary' to t.  If you don't want Emacs to put the
-text into the clipboard, only to the primary selection, additionally
-set `x-select-enable-clipboard' to nil.
+**** Change `mouse-drag-copy-region' to t.
+**** Change `x-select-enable-primary' to t (on X only).
+**** Change `x-select-enable-clipboard' to nil.
+**** Bind `mouse-yank-at-click' to mouse-2.
 
 *** Support for X cut buffers has been removed.
 
+** New command `rectangle-number-lines', bound to `C-x r N', numbers
+the lines in the current rectangle.  With an prefix argument, this
+prompts for a number to count from and for a format string.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
+
+** The compile.el mode can be used without font-lock-mode.
+`compilation-parse-errors-function' is now obsolete.
+
+** The Landmark game is now invoked with `landmark', not `lm'.
+
+** Prolog mode has been completely revamped, with lots of additional
+functionality such as more intelligent indentation, electricty, support for
+more variants, including Mercury, and a lot more.
 
 ** shell-mode can track your cwd by reading it from your prompt.
 Just set shell-dir-cookie-re to an appropriate regexp.
@@ -332,6 +356,12 @@ after connecting.
 as the server coding system, this variable will then be consulted.
 The default is to decode strings that can be decoded as utf-8 as
 utf-8, and do the normal `undecided' decoding for the rest.
+
+** Eshell changes
+
+*** The default value of eshell-directory-name is a directory named
+"eshell" in `user-emacs-directory'.  If the old "~/.eshell/" directory
+exists, that is used instead.
 
 ** In ido-mode, C-v is no longer bound to ido-toggle-vc.
 The reason is that this interferes with cua-mode.
@@ -526,6 +556,8 @@ listing object name completions when being sent text via
 
 *** An API for manipulating SQL product definitions has been added.
 
+** sregex.el is now obsolete, since rx.el is a strict superset.
+
 ** s-region.el is now declared obsolete, superceded by shift-select-mode
 enabled by default in 23.1.
 
@@ -540,7 +572,16 @@ threads simultaneously.
 *** It is possible now, to access alternative buses than the default
 system or session bus.
 
+*** dbus-register-{service,method,property}
+The -method and -property functions do not automatically register
+names anymore.
+
+The new function dbus-register-service registers a service known name
+on a D-Bus without simultaneously registering a property or a method.
+
 ** Tramp
+
+*** There exists a new inline access method "ksu" (kerberized su).
 
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old" and "fish".
@@ -548,20 +589,25 @@ system or session bus.
 ** VC and related modes
 
 *** Support for pulling on distributed version control systems.
-The vc-update command now runs a "pull" operation, if it is supported.
+The vc-pull command runs a "pull" operation, if it is supported.
 This updates the current branch from upstream.  A prefix argument
-means to prompt the user for command specifics, e.g. a pull location.
+means to prompt the user for specifics, e.g. a pull location.
 
-**** vc-pull is an alias for vc-update.
+**** vc-update is now an alias for vc-update.
 
-**** Currently supported by Bzr.
+**** Currently supported by Bzr, Git, and Mercurial.
 
 *** Support for merging on distributed version control systems.
 The vc-merge command now runs a "merge" operation, if it is supported.
-This merges another branch into the current one.  A prefix argument
-means to prompt the user for command specifics, e.g. a merge location.
+This merges another branch into the current one.  This command prompts
+the user for specifics, e.g. a merge source.
 
-**** Currently supported by Bzr.
+**** Currently supported by Bzr, Git, and Mercurial.
+
+** Miscellaneous
+
+---
+*** `copyright-fix-years' can optionally convert consecutive years to ranges.
 
 
 * New Modes and Packages in Emacs 24.1
@@ -582,6 +628,11 @@ Notifications API.  It requires D-Bus for communication.
 
 
 * Incompatible Lisp Changes in Emacs 24.1
+
+** `compose-mail' now accepts an optional 8th arg, RETURN-ACTION, and
+passes it to the mail user agent function.  This argument specifies an
+action for returning to the caller after finishing with the mail.
+This is currently used by Rmail to delete a mail window.
 
 ** For mouse click input events in the text area, the Y pixel
 coordinate in the POSITION list now counts from the top of the text
@@ -638,6 +689,14 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** Removed the stack-trace-on-error variable.
+Also the debugger can now "continue" from an error, which means it will jump
+to the error handler as if the debugger had not been invoked instead of
+jumping all the way to the top-level.
+
+** New function `read-char-choice' reads a restricted set of characters,
+discarding any inputs not inside the set.
+
 ** `image-library-alist' is renamed to `dynamic-library-alist'.
 The variable is now used to load all kind of supported dynamic libraries,
 not just image libraries.  The previous name is still available as an
@@ -675,6 +734,9 @@ The command `read-color' now requires a match for a color name or RGB
 triplet, instead of signalling an error if the user provides a invalid
 input.
 
+** Tool-bars can display separators.
+Tool-bar separators are handled like menu separators in menu-bar maps,
+i.e. via menu entries of the form `(menu-item "--")'.
 
 ** Image API
 
@@ -691,8 +753,8 @@ by the Graphic Control Extension of the image.
 
 *** If Emacs is compiled with libxml2 support (which is the default),
 two new Emacs Lisp-level functions are defined:
-`xml-parse-html-string-internal' (which will parse "real world" HTML)
-and `xml-parse-string-internal' (which parses XML).  Both return an
+`libxml-parse-html-region' (which will parse "real world" HTML)
+and `libxml-parse-xml-region' (which parses XML).  Both return an
 Emacs Lisp parse tree.
 
 FIXME: These should be front-ended by xml.el.

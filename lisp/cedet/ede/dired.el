@@ -1,7 +1,6 @@
 ;;; ede/dired.el --- EDE extensions to dired.
 
-;; Copyright (C) 1998, 1999, 2000, 2003, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1998-2000, 2003, 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.4
@@ -84,5 +83,4 @@ negative, force off."
 
 (provide 'ede/dired)
 
-;; arch-tag: 95d3e0a7-a8b7-43a9-b7df-ba647e4c56f6
 ;;; ede/dired.el ends here

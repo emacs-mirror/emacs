@@ -1,6 +1,6 @@
 ;;; burmese.el --- support for Burmese -*- coding: utf-8; no-byte-compile: t -*-
 
-;; Copyright (C) 2008, 2009, 2010
+;; Copyright (C) 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
@@ -57,4 +57,3 @@
   (set-char-table-range composition-function-table '(#x1000 . #x107F) elt)
   (set-char-table-range composition-function-table '(#xAA60 . #xAA7B) elt))
 
-;; arch-tag: 8ba5f4cd-ef89-4008-b784-397edd0cb32e

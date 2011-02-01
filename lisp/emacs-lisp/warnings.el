@@ -1,6 +1,6 @@
 ;;; warnings.el --- log and display warnings
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -337,5 +337,4 @@ this is equivalent to `display-warning', using
 
 (provide 'warnings)
 
-;; arch-tag: faaad1c8-7b2a-4161-af38-5ab4afde0496
 ;;; warnings.el ends here

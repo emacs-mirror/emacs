@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/files
@@ -1906,51 +1905,22 @@ Don't try concatenating a slash by hand, as in
 because this is not portable.  Always use
 @code{file-name-as-directory}.
 
-@cindex directory name abbreviation
-  Directory name abbreviations are useful for directories that are
-normally accessed through symbolic links.  Sometimes the users recognize
-primarily the link's name as ``the name'' of the directory, and find it
-annoying to see the directory's ``real'' name.  If you define the link
-name as an abbreviation for the ``real'' name, Emacs shows users the
-abbreviation instead.
-
-@defopt directory-abbrev-alist
-The variable @code{directory-abbrev-alist} contains an alist of
-abbreviations to use for file directories.  Each element has the form
-@code{(@var{from} . @var{to})}, and says to replace @var{from} with
-@var{to} when it appears in a directory name.  The @var{from} string is
-actually a regular expression; it should always start with @samp{\`}.
-The @var{to} string should be an ordinary absolute directory name.  Do
-not use @samp{~} to stand for a home directory in that string.  The
-function @code{abbreviate-file-name} performs these substitutions.
-
-You can set this variable in @file{site-init.el} to describe the
-abbreviations appropriate for your site.
-
-Here's an example, from a system on which file system @file{/home/fsf}
-and so on are normally accessed through symbolic links named @file{/fsf}
-and so on.
-
-@example
-(("\\`/home/fsf" . "/fsf")
- ("\\`/home/gp" . "/gp")
- ("\\`/home/gd" . "/gd"))
-@end example
-@end defopt
-
   To convert a directory name to its abbreviation, use this
 function:
 
 @defun abbreviate-file-name filename
 @anchor{Definition of abbreviate-file-name}
-This function applies abbreviations from @code{directory-abbrev-alist}
-to its argument, and also substitutes @samp{~} for the user's home
-directory if the argument names a file in the home directory or one of
-its subdirectories.  (If the home directory is a root directory, it is
-not replaced with @samp{~}, because this does not make the result
-shorter on many systems.)  You can use it for directory names and for
-file names, because it recognizes abbreviations even as part of the
-name.
+This function returns an abbreviated form of @var{filename}.  It
+applies the abbreviations specified in @code{directory-abbrev-alist}
+(@pxref{File Aliases,,File Aliases, emacs, The GNU Emacs Manual}),
+then substitutes @samp{~} for the user's home directory if the
+argument names a file in the home directory or one of its
+subdirectories.  If the home directory is a root directory, it is not
+replaced with @samp{~}, because this does not make the result shorter
+on many systems.
+
+You can use this function for directory names and for file names,
+because it recognizes abbreviations even as part of the name.
 @end defun
 
 @node File Name Expansion
@@ -3187,7 +3157,3 @@ will produce good, general extensions we can install in Emacs.
 names or values---because a program that general is probably difficult
 to write, and slow.  Instead, choose a set of possible data types that
 are reasonably flexible, and not too hard to encode.
-
-@ignore
-   arch-tag: 141f74ce-6ae3-40dc-a6c4-ef83fc4ec35c
-@end ignore

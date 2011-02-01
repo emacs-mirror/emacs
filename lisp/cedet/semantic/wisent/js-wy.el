@@ -1,6 +1,6 @@
 ;;; semantic/wisent/js-wy.el --- Generated parser support file
 
-;; Copyright (C) 2005, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2009-2011  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -488,5 +488,4 @@
 
 (provide 'semantic/wisent/js-wy)
 
-;; arch-tag: ff9ecf05-18e6-46a6-a3bb-e7f43f04640f
 ;;; semantic/wisent/js-wy.el ends here

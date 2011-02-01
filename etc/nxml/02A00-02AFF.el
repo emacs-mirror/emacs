@@ -257,4 +257,3 @@
     ("N-ARY WHITE VERTICAL BAR" #x2AFF)
     ))
 
-;; arch-tag: 672a8fbf-fb4a-4862-8b8e-2379b799484c

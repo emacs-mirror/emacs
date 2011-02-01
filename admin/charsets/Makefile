@@ -1,5 +1,5 @@
 # Makefile -- Makefile to generate charset maps in etc/charsets.
-# Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+# Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
 #   Registration Number H13PRO009
 #
@@ -307,4 +307,3 @@ install:
 clean:
 	rm -f ${CHARSETS} ${TRANS_TABLE}
 
-# arch-tag: 90b3bf30-1fef-45bf-b30c-665c30c22310

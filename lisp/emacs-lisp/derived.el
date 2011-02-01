@@ -1,8 +1,7 @@
 ;;; derived.el --- allow inheritance of major modes
 ;; (formerly mode-clone.el)
 
-;; Copyright (C) 1993, 1994, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1999, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
 ;; Maintainer: FSF
@@ -457,5 +456,4 @@ Where the new table already has an entry, nothing is copied from the old one."
 
 (provide 'derived)
 
-;; arch-tag: 630be248-47d1-4f02-afa0-8207de0ebea0
 ;;; derived.el ends here

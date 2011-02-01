@@ -20,9 +20,11 @@ conftest*
 core
 DOC
 DOC-*
+emacs-*/
 makefile
 Makefile
 Makefile.c
+stamp-h1
 stamp_BLD
 subdirs.el
 TAGS
@@ -33,6 +35,13 @@ leim/leim-list.el
 leim/quail/*.el
 leim/changed.misc
 leim/changed.tit
+lib/.deps/
+lib/arg-nonnull.h
+lib/c++defs.h
+lib/getopt.h
+lib/time.h
+lib/unistd.h
+lib/warn-on-use.h
 lib-src/stamp-*
 lib-src/b2m
 lib-src/ctags

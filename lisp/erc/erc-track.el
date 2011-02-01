@@ -1,7 +1,6 @@
 ;;; erc-track.el --- Track modified channel buffers
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: comm, faces
@@ -1068,4 +1067,3 @@ switch back to the last non-ERC buffer visited.  Next is defined by
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 11b439f5-e5d7-4c6c-bb3f-eda98f9b0ac1

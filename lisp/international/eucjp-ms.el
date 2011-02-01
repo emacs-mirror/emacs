@@ -2086,4 +2086,3 @@
 	map)
   (define-translation-table 'eucjp-ms-encode map))
 
-;; arch-tag: c4191096-288a-4f13-9b2a-ee7a1f11eb4a

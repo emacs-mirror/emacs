@@ -1,7 +1,6 @@
 ;;; reftex-parse.el --- parser functions for RefTeX
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -1070,5 +1069,4 @@ of master file."
               nrest (- nrest i))))
     string))
 
-;; arch-tag: 6a8168f7-abb9-4576-99dc-fcbc7ba901a3
 ;;; reftex-parse.el ends here

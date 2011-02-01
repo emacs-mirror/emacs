@@ -116,4 +116,3 @@
     ("GREEK REVERSED LUNATE EPSILON SYMBOL" #x03F6)
     ))
 
-;; arch-tag: 033e25a2-6f9c-4e9f-b517-be5ed38829af

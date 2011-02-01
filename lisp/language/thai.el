@@ -1,14 +1,13 @@
 ;;; thai.el --- support for Thai -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
+;; Copyright (C) 1997-1998, 2000-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 ;; Copyright (C) 2005
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
-;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, Thai, i18n
 
@@ -85,5 +84,4 @@ This is the same as `thai-tis620' with the addition of no-break-space."
 
 (provide 'thai)
 
-;; arch-tag: c7eb0e91-4db0-4619-81f8-8762e7d51e15
 ;;; thai.el ends here

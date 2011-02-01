@@ -1,5 +1,5 @@
 ;;; epa-dired.el --- the EasyPG Assistant, dired extension
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -74,5 +74,4 @@ If no one is selected, symmetric encryption will be performed.  "))
 
 (provide 'epa-dired)
 
-;; arch-tag: 2025700b-48d0-4684-bc94-228ad1f8e9ff
 ;;; epa-dired.el ends here

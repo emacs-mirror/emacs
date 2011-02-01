@@ -1,7 +1,6 @@
 ;;; vt100.el --- define VT100 function key sequences in function-key-map
 
-;; Copyright (C) 1989, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -49,5 +48,4 @@ With negative argument, switch to 80-column mode."
   (send-string-to-terminal (if vt100-wide-mode "\e[?3h" "\e[?3l"))
   (set-frame-width terminal-frame (if vt100-wide-mode 132 80)))
 
-;; arch-tag: 9ff41f24-a7c9-4dee-9cf2-fbaa951eb840
 ;;; vt100.el ends here

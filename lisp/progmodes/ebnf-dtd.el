@@ -1,7 +1,6 @@
 ;;; ebnf-dtd.el --- parser for DTD (Data Type Description for XML)
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -1350,5 +1349,4 @@ See documentation for variable `ebnf-dtd-lex'."
 
 (provide 'ebnf-dtd)
 
-;; arch-tag: c21bb640-135f-4afa-8712-fa11d86301c4
 ;;; ebnf-dtd.el ends here

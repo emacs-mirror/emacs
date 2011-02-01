@@ -1,7 +1,6 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -291,8 +290,11 @@ shouldn't return t when it isn't."
   ;; password caching.  "scpc" is chosen if we detect that the user is
   ;; running OpenSSH 4.0 or newer.
   (cond
-   ;; PuTTY is installed.
-   ((executable-find "pscp")
+   ;; PuTTY is installed.  We don't take it, if it is installed on a
+   ;; non-windows system, or pscp from the pssh (parallel ssh) package
+   ;; is found.
+   ((and (eq system-type 'windows-nt)
+	 (executable-find "pscp"))
     (if	(or (fboundp 'password-read)
 	    (fboundp 'auth-source-user-or-password)
 	    ;; Pageant is running.
@@ -318,6 +320,7 @@ Also see `tramp-default-method-alist'."
   :group 'tramp
   :type 'string)
 
+;;;###tramp-autoload
 (defcustom tramp-default-method-alist nil
   "*Default method to use for specific host/user pairs.
 This is an alist of items (HOST USER METHOD).  The first matching item
@@ -344,6 +347,7 @@ This variable is regarded as obsolete, and will be removed soon."
   :group 'tramp
   :type '(choice (const nil) string))
 
+;;;###tramp-autoload
 (defcustom tramp-default-user-alist nil
   "*Default user to use for specific method/host pairs.
 This is an alist of items (METHOD HOST USER).  The first matching item
@@ -384,6 +388,7 @@ interpreted as a regular expression which always matches."
 		       (choice :tag "User regexp" regexp sexp)
 		       (choice :tag " Proxy name" string (const nil)))))
 
+;;;###tramp-autoload
 (defconst tramp-local-host-regexp
   (concat
    "\\`"
@@ -603,6 +608,7 @@ It shall be used in combination with `generate-new-buffer-name'.")
   "File name of a persistent local temporary file.
 Useful for \"rsync\" like methods.")
 (make-variable-buffer-local 'tramp-temp-buffer-file-name)
+(put 'tramp-temp-buffer-file-name 'permanent-local t)
 
 ;; XEmacs is distributed with few Lisp packages.  Further packages are
 ;; installed using EFS.  If we use a unified filename format, then
@@ -665,9 +671,11 @@ Derived from `tramp-postfix-method-format'.")
 (defconst tramp-user-regexp "[^:/ \t]+"
   "*Regexp matching user names.")
 
+;;;###tramp-autoload
 (defconst tramp-prefix-domain-format "%"
   "*String matching delimeter between user and domain names.")
 
+;;;###tramp-autoload
 (defconst tramp-prefix-domain-regexp
   (regexp-quote tramp-prefix-domain-format)
   "*Regexp matching delimeter between user and domain names.
@@ -1284,7 +1292,8 @@ ARGS to actually emit the message (if applicable)."
       (let ((now (current-time)))
         (insert (format-time-string "%T." now))
         (insert (format "%06d " (nth 2 now))))
-      ;; Calling function.
+      ;; Calling Tramp function.  We suppress compat and trace
+      ;; functions from being displayed.
       (let ((btn 1) btf fn)
 	(while (not fn)
 	  (setq btf (nth 1 (backtrace-frame btn)))
@@ -1292,10 +1301,23 @@ ARGS to actually emit the message (if applicable)."
 	      (setq fn "")
 	    (when (symbolp btf)
 	      (setq fn (symbol-name btf))
-	      (unless (and (string-match "^tramp" fn)
-			   (not (string-match
-				 "^tramp\\(-debug\\)?\\(-message\\|-error\\|-compat\\(-funcall\\|-with-temp-message\\)\\)$"
-				 fn)))
+	      (unless
+		  (and
+		   (string-match "^tramp" fn)
+		   (not
+		    (string-match
+		     (concat
+		      "^"
+		      (regexp-opt
+		       '("tramp-compat-funcall"
+			 "tramp-compat-with-temp-message"
+			 "tramp-debug-message"
+			 "tramp-error"
+			 "tramp-error-with-buffer"
+			 "tramp-message")
+		       t)
+		      "$")
+		     fn)))
 		(setq fn nil)))
 	    (setq btn (1+ btn))))
 	;; The following code inserts filename and line number.
@@ -2842,8 +2864,8 @@ User is always nil."
 		       (t (file-local-copy filename)))))
 
 	      ;; When the file is not readable for the owner, it
-	      ;; cannot be inserted, even it is redable for the group
-	      ;; or for everybody.
+	      ;; cannot be inserted, even if it is readable for the
+	      ;; group or for everybody.
 	      (set-file-modes local-copy (tramp-compat-octal-to-decimal "0600"))
 
 	      (when (and (null remote-copy)
@@ -2851,8 +2873,7 @@ User is always nil."
 			  method 'tramp-copy-keep-tmpfile))
 		;; We keep the local file for performance reasons,
 		;; useful for "rsync".
-		(setq tramp-temp-buffer-file-name local-copy)
-		(put 'tramp-temp-buffer-file-name 'permanent-local t))
+		(setq tramp-temp-buffer-file-name local-copy))
 
 	      (with-progress-reporter
 		  v 3 (format "Inserting local temp file `%s'" local-copy)
@@ -3077,26 +3098,27 @@ The terminal type can be configured with `tramp-terminal-type'."
   (tramp-compat-with-temp-message ""
     ;; Enable auth-source and password-cache.
     (tramp-set-connection-property vec "first-password-request" t)
-    (let (exit)
-      (while (not exit)
-	(tramp-message proc 3 "Waiting for prompts from remote shell")
-	(setq exit
-	      (catch 'tramp-action
-		(if timeout
-		    (with-timeout (timeout)
-		      (tramp-process-one-action proc vec actions))
-		  (tramp-process-one-action proc vec actions)))))
-      (with-current-buffer (tramp-get-connection-buffer vec)
-	(widen)
-	(tramp-message vec 6 "\n%s" (buffer-string)))
-      (unless (eq exit 'ok)
-	(tramp-clear-passwd vec)
-	(tramp-error-with-buffer
-	 nil vec 'file-error
-	 (cond
-	  ((eq exit 'permission-denied) "Permission denied")
-	  ((eq exit 'process-died) "Process died")
-	  (t "Login failed")))))))
+    (save-restriction
+      (let (exit)
+	(while (not exit)
+	  (tramp-message proc 3 "Waiting for prompts from remote shell")
+	  (setq exit
+		(catch 'tramp-action
+		  (if timeout
+		      (with-timeout (timeout)
+			(tramp-process-one-action proc vec actions))
+		    (tramp-process-one-action proc vec actions)))))
+	(with-current-buffer (tramp-get-connection-buffer vec)
+	  (widen)
+	  (tramp-message vec 6 "\n%s" (buffer-string)))
+	(unless (eq exit 'ok)
+	  (tramp-clear-passwd vec)
+	  (tramp-error-with-buffer
+	   nil vec 'file-error
+	   (cond
+	    ((eq exit 'permission-denied) "Permission denied")
+	    ((eq exit 'process-died) "Process died")
+	    (t "Login failed"))))))))
 
 :;; Utility functions:
 

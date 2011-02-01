@@ -1,7 +1,6 @@
 ;;; blessmail.el --- decide whether movemail needs special privileges -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -66,5 +65,4 @@
 (write-region (point-min) (point-max) "blessmail")
 (kill-emacs)
 
-;; arch-tag: c3329fe2-f945-41a9-8b00-b4b038ff182f
 ;;; blessmail.el ends here

@@ -95,4 +95,3 @@
     ("LATIN LETTER BIDENTAL PERCUSSIVE" #x02AD)
     ))
 
-;; arch-tag: edc50b43-a94e-48db-91c5-0f9ea113c93c

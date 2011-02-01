@@ -1,7 +1,6 @@
 ;;; url-privacy.el --- Global history tracking for URL package
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -75,5 +74,4 @@
 
 (provide 'url-privacy)
 
-;; arch-tag: fdaf95e4-98f0-4680-94c3-f3eadafabe1d
 ;;; url-privacy.el ends here

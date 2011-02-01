@@ -1,7 +1,6 @@
 ;;; register.el --- register commands for Emacs
 
-;; Copyright (C) 1985, 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993-1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -353,5 +352,4 @@ START and END are buffer positions giving two corners of rectangle."
 		  (extract-rectangle start end))))
 
 (provide 'register)
-;; arch-tag: ce14dd68-8265-475f-9341-5d4ec5a53035
 ;;; register.el ends here

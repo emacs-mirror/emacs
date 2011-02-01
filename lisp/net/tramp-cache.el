@@ -1,7 +1,6 @@
 ;;; tramp-cache.el --- file information caching for Tramp
 
-;; Copyright (C) 2000, 2005, 2006, 2007, 2008, 2009,
-;;   2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005-2011 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -62,6 +61,8 @@
 (defcustom tramp-persistency-file-name
   (cond
    ;; GNU Emacs.
+   ((and (fboundp 'locate-user-emacs-file))
+    (expand-file-name (tramp-compat-funcall 'locate-user-emacs-file "tramp")))
    ((and (boundp 'user-emacs-directory)
 	 (stringp (symbol-value 'user-emacs-directory))
 	 (file-directory-p (symbol-value 'user-emacs-directory)))
@@ -403,5 +404,4 @@ for all methods.  Resulting data are derived from connection history."
 
 (provide 'tramp-cache)
 
-;; arch-tag: ee1739b7-7628-408c-9b96-d11a74b05d26
 ;;; tramp-cache.el ends here

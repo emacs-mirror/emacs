@@ -1,6 +1,6 @@
 ;;; semantic/wisent/javascript.el --- javascript parser support
 
-;; Copyright (C) 2005, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -102,5 +102,4 @@ This function overrides `get-local-variables'."
 ;; generated-autoload-load-name: "semantic/wisent/javascript"
 ;; End:
 
-;; arch-tag: 15416a3a-84ca-4b3b-a13c-e7a1891ec3ea
 ;;; semantic/wisent/javascript-jv.el ends here

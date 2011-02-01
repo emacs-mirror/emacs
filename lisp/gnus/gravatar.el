@@ -1,6 +1,6 @@
 ;;; gravatar.el --- Get Gravatars
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: news
@@ -78,10 +78,11 @@
 
 (defun gravatar-get-data ()
   "Get data from current buffer."
-  (when (string-match "^HTTP/.+ 200 OK$"
-                      (buffer-substring (point-min) (line-end-position)))
-    (when (search-forward "\n\n" nil t)
-      (buffer-substring (point) (point-max)))))
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward "^HTTP/.+ 200 OK$" nil (line-end-position))
+      (when (search-forward "\n\n" nil t)
+        (buffer-substring (point) (point-max))))))
 
 (eval-and-compile
   (cond ((featurep 'xemacs)
@@ -98,7 +99,7 @@
 If no image available, return 'error."
   (let ((data (gravatar-get-data)))
     (if data
-	(gravatar-create-image data  nil t)
+	(gravatar-create-image data nil t)
       'error)))
 
 ;;;###autoload
@@ -107,15 +108,38 @@ If no image available, return 'error."
 You can provide a list of argument to pass to CB in CBARGS."
   (let ((url (gravatar-build-url mail-address)))
     (if (gravatar-cache-expired url)
-        (url-retrieve url
-                      'gravatar-retrieved
-                      (list cb (when cbargs cbargs)))
+	(let ((args (list url
+			  'gravatar-retrieved
+			  (list cb (when cbargs cbargs)))))
+	  (when (> (length (if (featurep 'xemacs)
+			       (cdr (split-string (function-arglist 'url-retrieve)))
+			     (help-function-arglist 'url-retrieve)))
+		   4)
+	    (setq args (nconc args (list t))))
+	  (apply #'url-retrieve args))
       (apply cb
                (with-temp-buffer
                  (mm-disable-multibyte)
                  (url-cache-extract (url-cache-create-filename url))
                  (gravatar-data->image))
                cbargs))))
+
+;;;###autoload
+(defun gravatar-retrieve-synchronously (mail-address)
+  "Retrieve MAIL-ADDRESS gravatar and returns it."
+  (let ((url (gravatar-build-url mail-address)))
+    (if (gravatar-cache-expired url)
+        (with-current-buffer (url-retrieve-synchronously url)
+          (when gravatar-automatic-caching
+            (url-store-in-cache (current-buffer)))
+          (let ((data (gravatar-data->image)))
+            (kill-buffer (current-buffer))
+            data))
+      (with-temp-buffer
+        (mm-disable-multibyte)
+        (url-cache-extract (url-cache-create-filename url))
+        (gravatar-data->image)))))
+
 
 (defun gravatar-retrieved (status cb &optional cbargs)
   "Callback function used by `gravatar-retrieve'."

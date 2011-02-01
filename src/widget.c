@@ -1,6 +1,5 @@
 /* The emacs frame widget.
-   Copyright (C) 1992, 1993, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1992-1993, 2000-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -561,7 +560,7 @@ setup_frame_gcs (EmacsFrame ew)
   if (STRINGP (font))
     {
       XFontStruct *xfont = XLoadQueryFont (FRAME_X_DISPLAY_INFO (s)->display,
-					   SDATA (font));
+					   SSDATA (font));
       if (xfont)
 	{
 	  gc_values.font = xfont->fid;
@@ -841,6 +840,3 @@ widget_store_internal_border (Widget widget)
 
   ew->emacs_frame.internal_border_width = f->internal_border_width;
 }
-
-/* arch-tag: 931d28e5-0d59-405a-8325-7d475d0a13d9
-   (do not change this comment) */

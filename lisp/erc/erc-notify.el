@@ -1,6 +1,6 @@
 ;;; erc-notify.el --- Online status change notification
 
-;; Copyright (C) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
 ;; Keywords: comm
@@ -251,4 +251,3 @@ with args, toggle notify status of people."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 0fb19dd0-1359-458a-89b7-81dc195a588e

@@ -209,4 +209,3 @@
     ("ARABIC SIGN SINDHI POSTPOSITION MEN" #x06FE)
     ))
 
-;; arch-tag: b20189fa-7cdb-4544-a41c-f4e0477d9e5e

@@ -1,6 +1,7 @@
 /* Declarations having to do with GNU Emacs syntax tables.
-   Copyright (C) 1985, 1993, 1994, 1997, 1998, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1993-1994, 1997-1998, 2001-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -298,10 +299,5 @@ struct gl_state_s
 };
 
 extern struct gl_state_s gl_state;
-extern int parse_sexp_lookup_properties;
-extern INTERVAL interval_of (int, Lisp_Object);
-
 extern EMACS_INT scan_words (EMACS_INT, EMACS_INT);
 
-/* arch-tag: 28833cca-cd73-4741-8c85-a3111166a0e0
-   (do not change this comment) */

@@ -1,7 +1,6 @@
 ;;; cust-print.el --- handles print-level and print-circle
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Adapted-By: ESR
@@ -681,5 +680,4 @@ See `custom-format' for the details."
 
 (provide 'cust-print)
 
-;; arch-tag: 3a5a8650-622c-48c4-87d8-e01bf72ec580
 ;;; cust-print.el ends here

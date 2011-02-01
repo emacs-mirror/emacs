@@ -1,6 +1,6 @@
 ;;; makefile-edit.el --- Makefile editing/scanning commands.
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -126,5 +126,4 @@ Return nil if it isn't a variable."
 
 (provide 'ede/makefile-edit)
 
-;; arch-tag: aba26b5f-4306-40d9-b63c-84a9590ac986
 ;;; ede/makefile-edit.el ends here

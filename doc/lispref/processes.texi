@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/processes
@@ -195,10 +194,18 @@ a shell command:
 @end example
 @end defun
 
-@cindex quoting and unquoting shell command line
-  The following two functions are useful for creating shell commands
-from individual argument strings, and taking shell command lines apart
-into individual arguments.
+@cindex quoting and unquoting command-line arguments
+@cindex minibuffer input, and command-line arguments
+@cindex @code{call-process}, command-line arguments from minibuffer
+@cindex @code{start-process}, command-line arguments from minibuffer
+  The following two functions are useful for combining a list of
+individual command-line argument strings into a single string, and
+taking a string apart into a list of individual command-line
+arguments.  These functions are mainly intended to be used for
+converting user input in the minibuffer, a Lisp string, into a list of
+string arguments to be passed to @code{call-process} or
+@code{start-process}, or for the converting such lists of arguments in
+a single Lisp string to be presented in the minibuffer or echo area.
 
 @defun split-string-and-unquote string &optional separators
 This function splits @var{string} into substrings at matches for the
@@ -210,7 +217,7 @@ If @var{separators} is omitted or @code{nil}, it defaults to
 @code{"\\s-+"}, which is a regular expression that matches one or more
 characters with whitespace syntax (@pxref{Syntax Class Table}).
 
-This function performs two types of quoting: enclosing a whole string
+This function supports two types of quoting: enclosing a whole string
 in double quotes @code{"@dots{}"}, and quoting individual characters
 with a backslash escape @samp{\}.  The latter is also used in Lisp
 strings, so this function can handle those as well.
@@ -226,9 +233,8 @@ resulting string.
 The strings in @var{list-of-strings} that need quoting are those that
 include @var{separator} as their substring.  Quoting a string encloses
 it in double quotes @code{"@dots{}"}.  In the simplest case, if you
-are consing a shell command from the individual command-line
-arguments, every argument that includes embedded blanks will be
-quoted.
+are consing a command from the individual command-line arguments,
+every argument that includes embedded blanks will be quoted.
 @end defun
 
 @node Synchronous Processes
@@ -3011,7 +3017,3 @@ Fetching data from this structure:
 (bindat-get-field decoded 'item 1 'id)
      @result{} "BCDEFG"
 @end lisp
-
-@ignore
-   arch-tag: ba9da253-e65f-4e7f-b727-08fba0a1df7a
-@end ignore

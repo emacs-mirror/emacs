@@ -1,8 +1,6 @@
 ;;; mh-letter.el --- MH-Letter mode
 
-;; Copyright (C) 1993, 1995, 1997,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -960,5 +958,4 @@ Otherwise, simply insert MH-INS-STRING before each line."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 0548632c-aadb-4e3b-bb80-bbd62ff90bf3
 ;;; mh-letter.el ends here

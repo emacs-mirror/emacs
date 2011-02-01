@@ -1,7 +1,6 @@
 #### -*- Makefile -*- for the Emacs Manual
 
-# Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-#   Free Software Foundation, Inc.
+# Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -28,7 +27,8 @@ srcdir=.
 infodir = $(srcdir)/../../info
 
 # The makeinfo program is part of the Texinfo distribution.
-MAKEINFO = makeinfo --force
+MAKEINFO = makeinfo
+MAKEINFO_OPTS = --force -I$(srcdir)
 MULTI_INSTALL_INFO = $(srcdir)\..\..\nt\multi-install-info.bat
 INFO_TARGETS = $(infodir)/emacs
 DVI_TARGETS = 	emacs.dvi
@@ -41,7 +41,7 @@ INFOSOURCES = info.texi
 
 TEXI2DVI = texi2dvi
 ENVADD = $(srcdir)\..\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
-	 "MAKEINFO=$(MAKEINFO) -I$(srcdir)" /C
+	 "MAKEINFO=$(MAKEINFO) $(MAKEINFO_OPTS)" /C
 
 EMACS_XTRA=\
 	$(srcdir)/arevert-xtra.texi \
@@ -114,10 +114,13 @@ $(infodir)/dir:
 	$(MULTI_INSTALL_INFO) --info-dir=$(infodir) $(INFO_TARGETS)
 
 $(infodir)/emacs: $(EMACSSOURCES)
-	$(MAKEINFO) emacs.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) emacs.texi
 
 emacs.dvi: $(EMACSSOURCES)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs.texi
+
+emacs.html: $(EMACSSOURCES)
+	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ emacs.texi
 
 emacs-xtra.dvi: emacs-xtra.texi $(EMACS_XTRA)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-xtra.texi
@@ -128,6 +131,7 @@ mostlyclean:
 clean: mostlyclean
 	- $(DEL) *.dvi
 	- $(DEL) $(infodir)/emacs*
+	- $(DEL_TREE) emacs.html
 
 distclean: clean
 	- $(DEL) makefile

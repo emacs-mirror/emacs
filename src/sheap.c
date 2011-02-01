@@ -1,7 +1,7 @@
 /* simulate `sbrk' with an array in .bss, for `unexec' support for Cygwin;
    complete rewrite of xemacs Cygwin `unexec' code
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2004-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -94,5 +94,3 @@ report_sheap_usage (int die_if_pure_storage_exceeded)
   message ("%s", buf);
 }
 
-/* arch-tag: 1bc386e8-71c2-4da4-b8b5-c1674a9cf926
-   (do not change this comment) */

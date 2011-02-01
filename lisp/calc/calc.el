@@ -1,7 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -434,6 +433,19 @@ If `calc-show-selections' is nil, then selected sub-formulas are shown
 by displaying the sub-formula in `calc-selected-face'."
   :group 'calc
   :type 'boolean)
+
+(defcustom calc-default-field-reference-level
+  "20 uPa"
+  "The default reference level for logarithmic units (field)."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-default-power-reference-level
+  "mW"
+  "The default reference level for logarithmic units (power)."
+  :group 'calc
+  :type '(string))
+
 
 (defface calc-nonselected-face
   '((t :inherit shadow       
@@ -1061,6 +1073,7 @@ Used by `calc-user-invocation'.")
     (define-key map "\C-j" 'calc-over)
     (define-key map "\C-y" 'calc-yank)
     (define-key map [mouse-2] 'calc-yank)
+    (define-key map [remap undo] 'calc-undo)
 
     (mapc (lambda (x) (define-key map (char-to-string x) 'undefined))
           "lOW")
@@ -3838,5 +3851,4 @@ See Info node `(calc)Defining Functions'."
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 0c3b170c-4ce6-4eaf-8d9b-5834d1fe938f
 ;;; calc.el ends here

@@ -3,8 +3,7 @@
 #include "copyright.h"
 
 /*
-Copyright (C) 1993, 1996, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1993, 1996, 2001-2011  Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -1015,5 +1014,3 @@ _XMRefreshSelection(register Display *display, register XMenu *menu, register XM
     }
 }
 
-/* arch-tag: 3ac61957-0852-4e72-8b88-7dfab1a5dee9
-   (do not change this comment) */

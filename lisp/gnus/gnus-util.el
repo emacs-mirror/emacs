@@ -1,7 +1,6 @@
 ;;; gnus-util.el --- utility functions for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -38,6 +37,8 @@
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
+
+(require 'time-date)
 
 (defcustom gnus-completing-read-function 'gnus-emacs-completing-read
   "Function use to do completing read."
@@ -332,10 +333,11 @@ Symbols are also allowed; their print names are used instead."
 	(and (= (car fdate) (car date))
 	     (> (nth 1 fdate) (nth 1 date))))))
 
+;; Every version of Emacs Gnus supports has built-in float-time.
+;; The featurep test silences an irritating compiler warning.
 (eval-and-compile
   (if (or (featurep 'emacs)
-	  (and (fboundp 'float-time)
-	       (subrp (symbol-function 'float-time))))
+	  (fboundp 'float-time))
       (defalias 'gnus-float-time 'float-time)
     (defun gnus-float-time (&optional time)
       "Convert time value TIME to a floating point number.

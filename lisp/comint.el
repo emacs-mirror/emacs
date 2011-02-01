@@ -1,8 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 1990, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992-2011  Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -227,9 +225,7 @@ This variable is buffer-local."
   :group 'comint)
 
 (defface comint-highlight-prompt
-  '((((min-colors 88) (background dark)) (:foreground "cyan1"))
-    (((background dark)) (:foreground "cyan"))
-    (t (:foreground "dark blue")))
+  '((t :inherit minibuffer-prompt))
   "Face to use to highlight prompts."
   :group 'comint)
 
@@ -609,8 +605,9 @@ mode, Shell mode, etc.  This can be done by setting the hooks
 and `comint-get-old-input' to appropriate functions, and the variable
 `comint-prompt-regexp' to the appropriate regular expression.
 
-An input history is maintained of size `comint-input-ring-size', and
-can be accessed with the commands \\[comint-next-input], \\[comint-previous-input], and \\[comint-dynamic-list-input-ring].
+The mode maintains an input history of size `comint-input-ring-size'.
+You can access this with the commands \\[comint-next-input],
+\\[comint-previous-input], and \\[comint-dynamic-list-input-ring].
 Input ring history expansion can be achieved with the commands
 \\[comint-replace-by-expanded-history] or \\[comint-magic-space].
 Input ring expansion is controlled by the variable `comint-input-autoexpand',
@@ -920,41 +917,36 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 	     (message "Cannot read history file %s"
 		      comint-input-ring-file-name)))
 	(t
-	 (let* ((history-buf (get-buffer-create " *temp*"))
-		(file comint-input-ring-file-name)
+	 (let* ((file comint-input-ring-file-name)
 		(count 0)
 		(size comint-input-ring-size)
 		(ring (make-ring size)))
-	   (unwind-protect
-	       (with-current-buffer history-buf
-		 (widen)
-		 (erase-buffer)
-		 (insert-file-contents file)
-		 ;; Save restriction in case file is already visited...
-		 ;; Watch for those date stamps in history files!
-		 (goto-char (point-max))
-		 (let (start end history)
-		   (while (and (< count size)
-			       (re-search-backward comint-input-ring-separator
-                                                   nil t)
-			       (setq end (match-beginning 0)))
-		     (setq start
-                           (if (re-search-backward comint-input-ring-separator
-                                                   nil t)
-                               (match-end 0)
-                             (point-min)))
-		     (setq history (buffer-substring start end))
-		     (goto-char start)
-		     (if (and (not (string-match comint-input-history-ignore
-                                                 history))
-			      (or (null comint-input-ignoredups)
-				  (ring-empty-p ring)
-				  (not (string-equal (ring-ref ring 0)
-                                                     history))))
-			 (progn
-			   (ring-insert-at-beginning ring history)
-			   (setq count (1+ count)))))))
-	     (kill-buffer history-buf))
+	   (with-temp-buffer
+             (insert-file-contents file)
+             ;; Save restriction in case file is already visited...
+             ;; Watch for those date stamps in history files!
+             (goto-char (point-max))
+             (let (start end history)
+               (while (and (< count size)
+                           (re-search-backward comint-input-ring-separator
+                                               nil t)
+                           (setq end (match-beginning 0)))
+                 (setq start
+                       (if (re-search-backward comint-input-ring-separator
+                                               nil t)
+                           (match-end 0)
+                         (point-min)))
+                 (setq history (buffer-substring start end))
+                 (goto-char start)
+                 (if (and (not (string-match comint-input-history-ignore
+                                             history))
+                          (or (null comint-input-ignoredups)
+                              (ring-empty-p ring)
+                              (not (string-equal (ring-ref ring 0)
+                                                 history))))
+                     (progn
+                       (ring-insert-at-beginning ring history)
+                       (setq count (1+ count)))))))
 	   (setq comint-input-ring ring
 		 comint-input-ring-index nil)))))
 
@@ -1009,7 +1001,7 @@ See also `comint-read-input-ring'."
     (choose-completion-string completion buffer)))
 
 (defun comint-dynamic-list-input-ring ()
-  "List in help buffer the buffer's input history."
+  "Display a list of recent inputs entered into the current buffer."
   (interactive)
   (if (or (not (ring-p comint-input-ring))
 	  (ring-empty-p comint-input-ring))
@@ -1301,7 +1293,9 @@ than the logical beginning of line."
 		   (message "Relative reference exceeds input history size"))))
 	      ((or (looking-at "!!?:?\\([0-9^$*-]+\\)") (looking-at "!!"))
 	       ;; Just a number of args from the previous input line.
-	       (replace-match (comint-previous-input-string 0) t t)
+	       (replace-match (comint-args (comint-previous-input-string 0)
+					   (match-beginning 1) (match-end 1))
+			      t t)
 	       (message "History item: previous"))
 	      ((looking-at
 		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
@@ -3003,7 +2997,7 @@ Completes if after a filename.  See `comint-match-partial-filename' and
 This function is similar to `comint-replace-by-expanded-filename', except that
 it won't change parts of the filename already entered in the buffer; it just
 adds completion characters to the end of the filename.  A completions listing
-may be shown in a help buffer if completion is ambiguous.
+may be shown in a separate buffer if completion is ambiguous.
 
 Completion is dependent on the value of `comint-completion-addsuffix',
 `comint-completion-recexact' and `comint-completion-fignore', and the timing of
@@ -3090,11 +3084,11 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 
 (defun comint-replace-by-expanded-filename ()
   "Dynamically expand and complete the filename at point.
-Replace the filename with an expanded, canonicalized and completed replacement.
-\"Expanded\" means environment variables (e.g., $HOME) and `~'s are replaced
-with the corresponding directories.  \"Canonicalized\" means `..'  and `.' are
-removed, and the filename is made absolute instead of relative.  For expansion
-see `expand-file-name' and `substitute-in-file-name'.  For completion see
+Replace the filename with an expanded, canonicalized and
+completed replacement, i.e. substituting environment
+variables (e.g. $HOME), `~'s, `..', and `.', and making the
+filename absolute.  For expansion see `expand-file-name' and
+`substitute-in-file-name'.  For completion see
 `comint-dynamic-complete-filename'."
   (interactive)
   (let ((filename (comint-match-partial-filename)))
@@ -3105,15 +3099,16 @@ see `expand-file-name' and `substitute-in-file-name'.  For completion see
 
 (defun comint-dynamic-simple-complete (stub candidates)
   "Dynamically complete STUB from CANDIDATES list.
-This function inserts completion characters at point by completing STUB from
-the strings in CANDIDATES.  A completions listing may be shown in a help buffer
-if completion is ambiguous.
+This function inserts completion characters at point by
+completing STUB from the strings in CANDIDATES.  If completion is
+ambiguous, possibly show a completions listing in a separate
+buffer.
 
-Returns nil if no completion was inserted.
-Returns `sole' if completed with the only completion match.
-Returns `shortest' if completed with the shortest of the completion matches.
-Returns `partial' if completed as far as possible with the completion matches.
-Returns `listed' if a completion listing was shown.
+Return nil if no completion was inserted.
+Return `sole' if completed with the only completion match.
+Return `shortest' if completed with the shortest match.
+Return `partial' if completed as far as possible.
+Return `listed' if a completion listing was shown.
 
 See also `comint-dynamic-complete-filename'."
   (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
@@ -3161,7 +3156,7 @@ See also `comint-dynamic-complete-filename'."
 
 
 (defun comint-dynamic-list-filename-completions ()
-  "List in help buffer possible completions of the filename at point."
+  "Display a list of possible completions for the filename at point."
   (interactive)
   (let* ((completion-ignore-case read-file-name-completion-ignore-case)
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
@@ -3190,9 +3185,9 @@ See also `comint-dynamic-complete-filename'."
 (defvar comint-dynamic-list-completions-config nil)
 
 (defun comint-dynamic-list-completions (completions &optional common-substring)
-  "List in help buffer sorted COMPLETIONS.
+  "Display a list of sorted COMPLETIONS.
 The meaning of COMMON-SUBSTRING is the same as in `display-completion-list'.
-Typing SPC flushes the help buffer."
+Typing SPC flushes the completions buffer."
   (let ((window (get-buffer-window "*Completions*" 0)))
     (setq completions (sort completions 'string-lessp))
     (if (and (eq last-command this-command)

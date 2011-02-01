@@ -1,6 +1,6 @@
 ;;; ede/proj-scheme.el --- EDE Generic Project scheme (guile) support
 
-;; Copyright (C) 1998, 1999, 2000, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2000, 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make, scheme
@@ -46,5 +46,4 @@
 
 (provide 'ede/proj-scheme)
 
-;; arch-tag: 451081e6-0d45-4560-9821-8ee03e8401ab
 ;;; ede/proj-scheme.el ends here

@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dan.colascione@gmail.com>
@@ -47,12 +47,9 @@
 
 
 (require 'cc-mode)
-(require 'font-lock)
 (require 'newcomment)
+(require 'thingatpt)                    ; forward-symbol etc
 (require 'imenu)
-(require 'etags)
-(require 'thingatpt)
-(require 'easymenu)
 (require 'moz nil t)
 (require 'json nil t)
 
@@ -1662,11 +1659,10 @@ This performs fontification according to `js--class-styles'."
 ;; below.
 (eval-and-compile
   (defconst js--regexp-literal
-  "[=(,:]\\(?:\\s-\\|\n\\)*\\(/\\)\\(?:\\\\/\\|[^/*]\\)\\(?:\\\\/\\|[^/]\\)*\\(/\\)"
+    "[=(,:]\\(?:\\s-\\|\n\\)*\\(/\\)\\(?:\\\\.\\|[^/*\\]\\)\\(?:\\\\.\\|[^/\\]\\)*\\(/\\)"
   "Regexp matching a JavaScript regular expression literal.
 Match groups 1 and 2 are the characters forming the beginning and
 end of the literal."))
-
 
 (defconst js-syntax-propertize-function
   (syntax-propertize-rules
@@ -2171,12 +2167,15 @@ marker."
           (setf (car bounds) (point))))
       (buffer-substring (car bounds) (cdr bounds)))))
 
+(defvar find-tag-marker-ring)           ; etags
+
 (defun js-find-symbol (&optional arg)
   "Read a JavaScript symbol and jump to it.
 With a prefix argument, restrict symbols to those from the
 current buffer.  Pushes a mark onto the tag ring just like
 `find-tag'."
   (interactive "P")
+  (require 'etags)
   (let (symbols marker)
     (if (not arg)
         (setq symbols (js--get-all-known-symbols))

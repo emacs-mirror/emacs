@@ -1,7 +1,6 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -43,11 +42,13 @@
 
 ;; Add a default for `tramp-default-method-alist'. Rule: If there is
 ;; a domain in USER, it must be the SMB method.
+;;;###tramp-autoload
 (add-to-list 'tramp-default-method-alist
 	     `(nil ,tramp-prefix-domain-regexp ,tramp-smb-method))
 
 ;; Add a default for `tramp-default-user-alist'. Rule: For the SMB method,
 ;; the anonymous user is chosen.
+;;;###tramp-autoload
 (add-to-list 'tramp-default-user-alist
 	     `(,(concat "\\`" tramp-smb-method "\\'") nil nil))
 

@@ -1,6 +1,6 @@
 ;;; tramp-gvfs.el --- Tramp access functions for GVFS daemon
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -124,6 +124,7 @@
 
 ;; Add a default for `tramp-default-user-alist'.  Rule: For the SYNCE
 ;; method, no user is chosen.
+;;;###tramp-autoload
 (add-to-list 'tramp-default-user-alist '("\\`synce\\'" nil nil))
 
 (defcustom tramp-gvfs-zeroconf-domain "local"

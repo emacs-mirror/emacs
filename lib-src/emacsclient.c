@@ -1,6 +1,5 @@
 /* Client process that communicates with GNU Emacs acting as server.
-   Copyright (C) 1986, 1987, 1994, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1986-1987, 1994, 1999-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -74,10 +73,8 @@ char *w32_getenv (char *);
 #include <stdarg.h>
 #include <ctype.h>
 #include <stdio.h>
-#include "getopt.h"
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <getopt.h>
+#include <unistd.h>
 
 #include <pwd.h>
 #include <sys/stat.h>
@@ -1804,7 +1801,5 @@ strerror (errnum)
 
 #endif /* ! HAVE_STRERROR */
 
-/* arch-tag: f39bb9c4-73eb-477e-896d-50832e2ca9a7
-   (do not change this comment) */
 
 /* emacsclient.c ends here */

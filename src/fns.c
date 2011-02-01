@@ -1,7 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997,
-                 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1987, 1993-1995, 1997-2011
 		 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -21,9 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #include <time.h>
 #include <setjmp.h>
 
@@ -52,14 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef NULL
 #define NULL ((POINTER_TYPE *)0)
 #endif
-
-/* Nonzero enables use of dialog boxes for questions
-   asked by mouse commands.  */
-int use_dialog_box;
-
-/* Nonzero enables use of a file dialog for file name
-   questions asked by mouse commands.  */
-int use_file_dialog;
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
@@ -872,7 +860,7 @@ string_byte_to_char (Lisp_Object string, EMACS_INT byte_index)
 
 /* Convert STRING to a multibyte string.  */
 
-Lisp_Object
+static Lisp_Object
 string_make_multibyte (Lisp_Object string)
 {
   unsigned char *buf;
@@ -920,7 +908,7 @@ string_to_multibyte (Lisp_Object string)
   /* If all the chars are ASCII, they won't need any more bytes once
      converted.  */
   if (nbytes == SBYTES (string))
-    return make_multibyte_string (SDATA (string), nbytes, nbytes);
+    return make_multibyte_string (SSDATA (string), nbytes, nbytes);
 
   SAFE_ALLOCA (buf, unsigned char *, nbytes);
   memcpy (buf, SDATA (string), SBYTES (string));
@@ -1183,7 +1171,7 @@ value is a new vector that contains the elements between index FROM
 
   if (STRINGP (string))
     {
-      res = make_specified_string (SDATA (string) + from_byte,
+      res = make_specified_string (SSDATA (string) + from_byte,
 				   to_char - from_char, to_byte - from_byte,
 				   STRING_MULTIBYTE (string));
       copy_text_properties (make_number (from_char), make_number (to_char),
@@ -1247,7 +1235,7 @@ With one argument, just copy STRING without its properties.  */)
     args_out_of_range_3 (string, make_number (from_char),
 			 make_number (to_char));
 
-  return make_specified_string (SDATA (string) + from_byte,
+  return make_specified_string (SSDATA (string) + from_byte,
 				to_char - from_char, to_byte - from_byte,
 				STRING_MULTIBYTE (string));
 }
@@ -1278,7 +1266,7 @@ substring_both (Lisp_Object string, EMACS_INT from, EMACS_INT from_byte,
 
   if (STRINGP (string))
     {
-      res = make_specified_string (SDATA (string) + from_byte,
+      res = make_specified_string (SSDATA (string) + from_byte,
 				   to - from, to_byte - from_byte,
 				   STRING_MULTIBYTE (string));
       copy_text_properties (make_number (from), make_number (to),
@@ -2465,10 +2453,11 @@ do_yes_or_no_p (Lisp_Object prompt)
 
 DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
        doc: /* Ask user a yes-or-no question.  Return t if answer is yes.
-Takes one argument, which is the string to display to ask the question.
-It should end in a space; `yes-or-no-p' adds `(yes or no) ' to it.
-The user must confirm the answer with RET,
-and can edit it until it has been confirmed.
+PROMPT is the string to display to ask the question.  It should end in
+a space; `yes-or-no-p' adds \"(yes or no) \" to it.
+
+The user must confirm the answer with RET, and can edit it until it
+has been confirmed.
 
 Under a windowing system a dialog box will be used if `last-nonmenu-event'
 is nil, and `use-dialog-box' is non-nil.  */)
@@ -2510,12 +2499,12 @@ is nil, and `use-dialog-box' is non-nil.  */)
       ans = Fdowncase (Fread_from_minibuffer (prompt, Qnil, Qnil, Qnil,
 					      Qyes_or_no_p_history, Qnil,
 					      Qnil));
-      if (SCHARS (ans) == 3 && !strcmp (SDATA (ans), "yes"))
+      if (SCHARS (ans) == 3 && !strcmp (SSDATA (ans), "yes"))
 	{
 	  UNGCPRO;
 	  return Qt;
 	}
-      if (SCHARS (ans) == 2 && !strcmp (SDATA (ans), "no"))
+      if (SCHARS (ans) == 2 && !strcmp (SSDATA (ans), "no"))
 	{
 	  UNGCPRO;
 	  return Qnil;
@@ -2564,7 +2553,7 @@ advisable.  */)
   return ret;
 }
 
-Lisp_Object Vfeatures, Qsubfeatures;
+Lisp_Object Qsubfeatures;
 
 DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 2, 0,
        doc: /* Return t if FEATURE is present in this Emacs.
@@ -3052,7 +3041,7 @@ into shorter lines.  */)
   /* We need to allocate enough room for decoding the text. */
   SAFE_ALLOCA (encoded, char *, allength);
 
-  encoded_length = base64_encode_1 (SDATA (string),
+  encoded_length = base64_encode_1 (SSDATA (string),
 				    encoded, length, NILP (no_line_break),
 				    STRING_MULTIBYTE (string));
   if (encoded_length > allength)
@@ -3247,7 +3236,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   SAFE_ALLOCA (decoded, char *, length);
 
   /* The decoded result should be unibyte. */
-  decoded_length = base64_decode_1 (SDATA (string), decoded, length,
+  decoded_length = base64_decode_1 (SSDATA (string), decoded, length,
 				    0, NULL);
   if (decoded_length > length)
     abort ();
@@ -3704,7 +3693,7 @@ make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
 /* Return a copy of hash table H1.  Keys and values are not copied,
    only the table itself is.  */
 
-Lisp_Object
+static Lisp_Object
 copy_hash_table (struct Lisp_Hash_Table *h1)
 {
   Lisp_Object table;
@@ -3912,7 +3901,7 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
 
 /* Clear hash table H.  */
 
-void
+static void
 hash_clear (struct Lisp_Hash_Table *h)
 {
   if (h->count > 0)
@@ -4759,7 +4748,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	object = code_convert_string (object, coding_system, Qnil, 1, 0, 0);
     }
 
-  md5_buffer (SDATA (object) + start_byte,
+  md5_buffer (SSDATA (object) + start_byte,
 	      SBYTES (object) - (size_byte - end_byte),
 	      digest);
 
@@ -4842,7 +4831,7 @@ syms_of_fns (void)
 
   Fset (Qyes_or_no_p_history, Qnil);
 
-  DEFVAR_LISP ("features", &Vfeatures,
+  DEFVAR_LISP ("features", Vfeatures,
     doc: /* A list of symbols which are the features of the executing Emacs.
 Used by `featurep' and `require', and altered by `provide'.  */);
   Vfeatures = Fcons (intern_c_string ("emacs"), Qnil);
@@ -4860,7 +4849,7 @@ Used by `featurep' and `require', and altered by `provide'.  */);
   staticpro (&Qpaper);
 #endif	/* HAVE_LANGINFO_CODESET */
 
-  DEFVAR_BOOL ("use-dialog-box", &use_dialog_box,
+  DEFVAR_BOOL ("use-dialog-box", use_dialog_box,
     doc: /* *Non-nil means mouse commands use dialog boxes to ask questions.
 This applies to `y-or-n-p' and `yes-or-no-p' questions asked by commands
 invoked by mouse clicks and mouse menu items.
@@ -4869,7 +4858,7 @@ On some platforms, file selection dialogs are also enabled if this is
 non-nil.  */);
   use_dialog_box = 1;
 
-  DEFVAR_BOOL ("use-file-dialog", &use_file_dialog,
+  DEFVAR_BOOL ("use-file-dialog", use_file_dialog,
     doc: /* *Non-nil means mouse commands use a file dialog to ask for files.
 This applies to commands from menus and tool bar buttons even when
 they are initiated from the keyboard.  If `use-dialog-box' is nil,
@@ -4950,6 +4939,3 @@ void
 init_fns (void)
 {
 }
-
-/* arch-tag: 787f8219-5b74-46bd-8469-7e1cc475fa31
-   (do not change this comment) */

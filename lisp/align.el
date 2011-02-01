@@ -1,7 +1,6 @@
 ;;; align.el --- align text to a specific column, by regexp
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: FSF
@@ -1605,5 +1604,4 @@ aligner would have dealt with are."
 
 (run-hooks 'align-load-hook)
 
-;; arch-tag: ef79cccf-1db8-4888-a8a1-d7ce2d1532f7
 ;;; align.el ends here

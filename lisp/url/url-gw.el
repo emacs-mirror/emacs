@@ -1,7 +1,6 @@
 ;;; url-gw.el --- Gateway munging for URL loading
 
-;; Copyright (C) 1997, 1998, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -276,5 +275,4 @@ Might do a non-blocking connection; use `process-status' to check."
 
 (provide 'url-gw)
 
-;; arch-tag: 1c4c0317-6d03-45b8-b3f3-838bd8f9d838
 ;;; url-gw.el ends here

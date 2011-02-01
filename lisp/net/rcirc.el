@@ -1,10 +1,10 @@
 ;;; rcirc.el --- default, simple IRC client.
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2005-2011  Free Software Foundation, Inc.
 
-;; Author: Ryan Yeske
-;; URL: http://www.nongnu.org/rcirc
+;; Author: Ryan Yeske <rcyeske@gmail.com>
+;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
+;;              Deniz Dogan <deniz.a.m.dogan@gmail.com>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -895,6 +895,7 @@ Each element looks like (FILENAME . TEXT).")
 This number is independent of the number of lines in the buffer.")
 
 (defun rcirc-mode (process target)
+  ;; FIXME: Use define-derived-mode.
   "Major mode for IRC channel buffers.
 
 \\{rcirc-mode-map}"
@@ -973,7 +974,7 @@ This number is independent of the number of lines in the buffer.")
   (add-hook 'completion-at-point-functions
             'rcirc-completion-at-point nil 'local)
 
-  (run-hooks 'rcirc-mode-hook))
+  (run-mode-hooks 'rcirc-mode-hook))
 
 (defun rcirc-update-prompt (&optional all)
   "Reset the prompt string in the current buffer.
@@ -1027,6 +1028,9 @@ If ALL is non-nil, update prompts in all IRC buffers."
 (defun rcirc-kill-buffer-hook ()
   "Part the channel when killing an rcirc buffer."
   (when (eq major-mode 'rcirc-mode)
+    (when (and rcirc-log-flag
+               rcirc-log-directory)
+      (rcirc-log-write))
     (rcirc-clean-up-buffer "Killed buffer")))
 
 (defun rcirc-change-major-mode-hook ()
@@ -1561,8 +1565,11 @@ return the filename, or nil if no logging is desired for this
 session.
 
 If the returned filename is absolute (`file-name-absolute-p'
-returns true), then it is used as-is, otherwise the resulting
-file is put into `rcirc-log-directory'."
+returns t), then it is used as-is, otherwise the resulting file
+is put into `rcirc-log-directory'.
+
+The filename is then cleaned using `convert-standard-filename' to
+guarantee valid filenames for the current OS."
   :group 'rcirc
   :type 'function)
 
@@ -1587,7 +1594,9 @@ file is put into `rcirc-log-directory'."
 Log data is written to `rcirc-log-directory', except for
 log-files with absolute names (see `rcirc-log-filename-function')."
   (dolist (cell rcirc-log-alist)
-    (let ((filename (expand-file-name (car cell) rcirc-log-directory))
+    (let ((filename (convert-standard-filename
+                     (expand-file-name (car cell)
+                                       rcirc-log-directory)))
 	  (coding-system-for-write 'utf-8))
       (make-directory (file-name-directory filename) t)
       (with-temp-buffer
@@ -2850,5 +2859,4 @@ Passwords are stored in `rcirc-authinfo' (which see)."
 
 (provide 'rcirc)
 
-;; arch-tag: b471b7e8-6b5a-4399-b2c6-a3c78dfc8ffb
 ;;; rcirc.el ends here

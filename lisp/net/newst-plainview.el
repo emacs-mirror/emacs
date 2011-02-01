@@ -1,7 +1,6 @@
 ;;; newst-plainview.el --- Single buffer frontend for newsticker.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
@@ -1800,5 +1799,4 @@ Take care: end of item is at the end of its last line!"
 
 (provide 'newst-plainview)
 
-;; arch-tag: 4e48b683-d48b-48dd-a13e-fe45baf41184
 ;;; newst-plainview.el ends here

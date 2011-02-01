@@ -1,6 +1,6 @@
 // testsubclass.hh --- unit test for analyzer and complex C++ inheritance
 
-// Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+// Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 // Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -189,4 +189,3 @@ namespace sneaky {
 
 #endif
 
-// arch-tag: e292a1d5-5434-4b4d-8e0e-808101ad84b6

@@ -1,7 +1,6 @@
 ;;; idle.el --- Schedule parsing tasks in idle time
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2006, 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -1315,5 +1314,4 @@ mouse-3: popup context menu"
 ;; generated-autoload-load-name: "semantic/idle"
 ;; End:
 
-;; arch-tag: 4bfd54da-5023-4cc1-91ae-e1fefc1a8d1b
 ;;; semantic-idle.el ends here

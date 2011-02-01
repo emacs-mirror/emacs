@@ -1,7 +1,6 @@
 ;;; widget.el --- a library of user interface components
 ;;
-;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, extensions, faces, hypermedia
@@ -96,5 +95,4 @@ The third argument DOC is a documentation string for the widget."
 
 (provide 'widget)
 
-;; arch-tag: 932c71a3-9aeb-4827-a293-8b88b26d5c58
 ;;; widget.el ends here

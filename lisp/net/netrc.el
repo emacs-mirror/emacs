@@ -1,6 +1,5 @@
 ;;; netrc.el --- .netrc parsing functionality
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -34,18 +33,6 @@
 ;;; .netrc and .authinfo rc parsing
 ;;;
 
-(defalias 'netrc-point-at-eol
-  (if (fboundp 'point-at-eol)
-      'point-at-eol
-    'line-end-position))
-(eval-when-compile
-  ;; This is unnecessary in the compiled version as it is a macro.
-  (if (fboundp 'bound-and-true-p)
-      (defalias 'netrc-bound-and-true-p 'bound-and-true-p)
-    (defmacro netrc-bound-and-true-p (var)
-      "Return the value of symbol VAR if it is bound, else nil."
-      `(and (boundp (quote ,var)) ,var))))
-
 (defgroup netrc nil
  "Netrc configuration."
  :group 'comm)
@@ -58,12 +45,15 @@
 (defvar netrc-services-file "/etc/services"
   "The name of the services file.")
 
+(defvar netrc-cache nil)
+
 (defun netrc-parse (&optional file)
   (interactive "fFile to Parse: ")
   "Parse FILE and return a list of all entries in the file."
   (unless file
     (setq file netrc-file))
   (if (listp file)
+      ;; We got already parsed contents; just return it.
       file
     (when (file-exists-p file)
       (with-temp-buffer
@@ -71,7 +61,16 @@
 			"password" "account" "macdef" "force"
 			"port"))
 	      alist elem result pair)
-          (insert-file-contents file)
+          (if (and netrc-cache
+		   (equal (car netrc-cache) (nth 5 (file-attributes file))))
+	      ;; Store the contents of the file heavily encrypted in memory.
+	      (insert (base64-decode-string (rot13-string (cdr netrc-cache))))
+	    (insert-file-contents file)
+	    (when (string-match "\\.gpg\\'" file)
+	      (setq netrc-cache (cons (nth 5 (file-attributes file))
+				      (rot13-string
+				       (base64-encode-string
+					(buffer-string)))))))
 	  (goto-char (point-min))
 	  ;; Go through the file, line by line.
 	  (while (not (eobp))

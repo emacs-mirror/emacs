@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Minibuffer, M-x, Basic, Top
@@ -654,7 +653,3 @@ password (@pxref{Killing}).  You may type either @key{RET} or
 @key{ESC} to submit the password.  Any other self-inserting character
 key inserts the associated character into the password, and all other
 input is ignored.
-
-@ignore
-   arch-tag: ba913cfd-b70e-400f-b663-22b2c309227f
-@end ignore

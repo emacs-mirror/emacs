@@ -1,7 +1,7 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -325,6 +325,15 @@ Commands:
     ;; View mode's read-only status of existing *Help* buffer is lost
     ;; by with-output-to-temp-buffer.
     (toggle-read-only 1)
+
+    (save-excursion
+      (goto-char (point-min))
+      (let ((inhibit-read-only t))
+	(when (re-search-forward "^This \\w+ is advised.$" nil t)
+	  (put-text-property (match-beginning 0)
+			     (match-end 0)
+			     'face 'font-lock-warning-face))))
+
     (help-make-xrefs (current-buffer))))
 
 ;; Grokking cross-reference information in doc strings and
@@ -829,5 +838,4 @@ help buffer by other means."
 
 (provide 'help-mode)
 
-;; arch-tag: 850954ae-3725-4cb4-8e91-0bf6d52d6b0b
 ;;; help-mode.el ends here

@@ -1,7 +1,6 @@
 ;;; snake.el --- implementation of Snake for Emacs
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Created: 1997-09-10
@@ -412,5 +411,4 @@ Snake mode keybindings:
 
 (provide 'snake)
 
-;; arch-tag: 512ffc92-cfac-4287-9a4e-92890701a5c8
 ;;; snake.el ends here

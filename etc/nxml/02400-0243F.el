@@ -40,4 +40,3 @@
     ("SYMBOL FOR SUBSTITUTE FORM TWO" #x2426)
     ))
 
-;; arch-tag: efc349c9-065d-4033-b261-7cb961c54072

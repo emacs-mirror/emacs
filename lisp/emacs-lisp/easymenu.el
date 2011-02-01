@@ -1,7 +1,6 @@
 ;;; easymenu.el --- support the easymenu interface for defining a menu
 
-;; Copyright (C) 1994, 1996, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1998-2011 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 ;; Author: Richard Stallman <rms@gnu.org>
@@ -29,6 +28,8 @@
 ;; The code was mostly derived from lmenu.el.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (defvar easy-menu-precalculate-equivalent-keybindings nil
   "Determine when equivalent key bindings are computed for easy-menu menus.
@@ -66,8 +67,8 @@ expression has a non-nil value.  `:included' is an alias for `:visible'.
 
    :active ENABLE
 
-ENABLE is an expression; the menu is enabled for selection
-whenever this expression's value is non-nil.
+ENABLE is an expression; the menu is enabled for selection whenever
+this expression's value is non-nil.  `:enable' is an alias for `:active'.
 
 The rest of the elements in MENU, are menu items.
 
@@ -104,8 +105,8 @@ keyboard equivalent.
 
    :active ENABLE
 
-ENABLE is an expression; the item is enabled for selection
-whenever this expression's value is non-nil.
+ENABLE is an expression; the item is enabled for selection whenever
+this expression's value is non-nil.  `:enable' is an alias for `:active'.
 
    :visible INCLUDE
 
@@ -163,10 +164,13 @@ This is expected to be bound to a mouse event."
                    (prog1 (get menu 'menu-prop)
                      (setq menu (symbol-function menu))))))
     (cons 'menu-item
-          (cons (or item-name
-                    (if (keymapp menu)
-                        (keymap-prompt menu))
-                    "")
+          (cons (if (eq :label (car props))
+                    (prog1 (cadr props)
+                      (setq props (cddr props)))
+                  (or item-name
+                      (if (keymapp menu)
+                          (keymap-prompt menu))
+                      ""))
                 (cons menu props)))))
 
 ;;;###autoload
@@ -232,15 +236,14 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 		(keywordp (setq keyword (car menu-items))))
       (setq arg (cadr menu-items))
       (setq menu-items (cddr menu-items))
-      (cond
-       ((eq keyword :filter)
+      (case keyword
+       (:filter
 	(setq filter `(lambda (menu)
 			(easy-menu-filter-return (,arg menu) ,menu-name))))
-       ((eq keyword :active) (setq enable (or arg ''nil)))
-       ((eq keyword :label) (setq label arg))
-       ((eq keyword :help) (setq help arg))
-       ((or (eq keyword :included) (eq keyword :visible))
-	(setq visible (or arg ''nil)))))
+       ((:enable :active) (setq enable (or arg ''nil)))
+       (:label (setq label arg))
+       (:help (setq help arg))
+       ((:included :visible) (setq visible (or arg ''nil)))))
     (if (equal visible ''nil)
 	nil				; Invisible menu entry, return nil.
       (if (and visible (not (easy-menu-always-true-p visible)))
@@ -249,14 +252,14 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 	  (setq prop (cons :enable (cons enable prop))))
       (if filter (setq prop (cons :filter (cons filter prop))))
       (if help (setq prop (cons :help (cons help prop))))
-      (if label (setq prop (cons nil (cons label prop))))
-      (if filter
-	  ;; The filter expects the menu in its XEmacs form and the pre-filter
-	  ;; form will only be passed to the filter anyway, so we'd better
-	  ;; not convert it at all (it will be converted on the fly by
-	  ;; easy-menu-filter-return).
-	  (setq menu menu-items)
-	(setq menu (append menu (mapcar 'easy-menu-convert-item menu-items))))
+      (if label (setq prop (cons :label (cons label prop))))
+      (setq menu (if filter
+                     ;; The filter expects the menu in its XEmacs form and the
+                     ;; pre-filter form will only be passed to the filter
+                     ;; anyway, so we'd better not convert it at all (it will
+                     ;; be converted on the fly by easy-menu-filter-return).
+                     menu-items
+                   (append menu (mapcar 'easy-menu-convert-item menu-items))))
       (when prop
 	(setq menu (easy-menu-make-symbol menu 'noexp))
 	(put menu 'menu-prop prop))
@@ -312,7 +315,7 @@ ITEM defines an item as in `easy-menu-define'."
 	  ;; Invisible menu item. Don't insert into keymap.
 	  (setq remove t)
 	(when (and (symbolp command) (setq prop (get command 'menu-prop)))
-	  (when (null (car prop))
+	  (when (eq :label (car prop))
 	    (setq label (cadr prop))
 	    (setq prop (cddr prop)))
 	  (setq command (symbol-function command)))))
@@ -331,30 +334,28 @@ ITEM defines an item as in `easy-menu-define'."
 		(setq keyword (aref item count))
 		(setq arg (aref item (1+ count)))
 		(setq count (+ 2 count))
-		(cond
-		 ((or (eq keyword :included) (eq keyword :visible))
-		  (setq visible (or arg ''nil)))
-		 ((eq keyword :key-sequence)
-		  (setq cache arg cache-specified t))
-		 ((eq keyword :keys) (setq keys arg no-name nil))
-		 ((eq keyword :label) (setq label arg))
-		 ((eq keyword :active) (setq active (or arg ''nil)))
-		 ((eq keyword :help) (setq prop (cons :help (cons arg prop))))
-		 ((eq keyword :suffix) (setq suffix arg))
-		 ((eq keyword :style) (setq style arg))
-		 ((eq keyword :selected) (setq selected (or arg ''nil)))))
+		(case keyword
+                  ((:included :visible) (setq visible (or arg ''nil)))
+                  (:key-sequence (setq cache arg cache-specified t))
+                  (:keys (setq keys arg no-name nil))
+                  (:label (setq label arg))
+                  ((:active :enable) (setq active (or arg ''nil)))
+                  (:help (setq prop (cons :help (cons arg prop))))
+                  (:suffix (setq suffix arg))
+                  (:style (setq style arg))
+                  (:selected (setq selected (or arg ''nil)))))
 	      (if suffix
 		  (setq label
 			(if (stringp suffix)
 			    (if (stringp label) (concat label " " suffix)
-			      (list 'concat label (concat " " suffix)))
+			      `(concat ,label ,(concat " " suffix)))
 			  (if (stringp label)
-			      (list 'concat (concat label " ") suffix)
-			    (list 'concat label " " suffix)))))
+			      `(concat ,(concat label " ") ,suffix)
+			    `(concat ,label " " ,suffix)))))
 	      (cond
 	       ((eq style 'button)
 		(setq label (if (stringp label) (concat "[" label "]")
-			      (list 'concat "[" label "]"))))
+			      `(concat "[" ,label "]"))))
 	       ((and selected
 		     (setq style (assq style easy-menu-button-prefix)))
 		(setq prop (cons :button
@@ -674,5 +675,4 @@ In some cases we use that to select between the local and global maps."
 
 (provide 'easymenu)
 
-;; arch-tag: 2a04020d-90d2-476d-a7c6-71e072007a4a
 ;;; easymenu.el ends here

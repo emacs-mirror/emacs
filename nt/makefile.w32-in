@@ -1,6 +1,5 @@
 # -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-#    2008, 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2000-2011 Free Software Foundation, Inc.
 #
 # Top level makefile for building GNU Emacs on Windows NT
 #
@@ -93,6 +92,8 @@ $(BLD)/addpm.$(O) $(BLD)/ddeclient.$(O) $(BLD)/runemacs.$(O) $(BLD)/cmdproxy.$(O
 all:	which-sh stamp_BLD $(ALL) $(CLIENTRES) maybe-bootstrap all-other-dirs-$(MAKETYPE)
 
 all-other-dirs-nmake: addsection
+	cd ..\lib
+	$(MAKE) $(MFLAGS) all
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) all
 	cd ..\src
@@ -104,6 +105,7 @@ all-other-dirs-nmake: addsection
 	cd ..\nt
 
 all-other-dirs-gmake: addsection
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib all
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src all
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src all
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp all
@@ -159,6 +161,8 @@ bootstrap-nmake: addsection cmdproxy
 	$(MAKE) $(MFLAGS) clean
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) clean
+	cd ..\lib
+	$(MAKE) $(MFLAGS) clean all
 	cd ..\src
 	$(MAKE) $(MFLAGS) bootstrap
 	$(MAKE) $(MFLAGS) bootstrap-clean
@@ -174,6 +178,7 @@ bootstrap-gmake: addsection cmdproxy
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib clean all
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap-clean
 	$(CP) $(BLD)/cmdproxy.exe ../bin
@@ -185,11 +190,14 @@ bootstrap-clean: bootstrap-clean-$(MAKETYPE)
 bootstrap-clean-nmake:
 	cd ..\src
 	$(MAKE) $(MFLAGS) bootstrap-clean
+	cd ..\lib
+	$(MAKE) $(MFLAGS) clean
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) bootstrap-clean
 
 bootstrap-clean-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap-clean
 
 $(INSTALL_DIR):
@@ -298,6 +306,8 @@ clean:	clean-other-dirs-$(MAKETYPE)
 	- $(DEL) ../etc/DOC ../etc/DOC-X
 
 clean-other-dirs-nmake:
+	cd ..\lib
+	$(MAKE) $(MFLAGS) clean
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) clean
 	cd ..\src
@@ -315,6 +325,7 @@ clean-other-dirs-nmake:
 	cd ..\nt
 
 clean-other-dirs-gmake:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../leim clean
@@ -324,6 +335,8 @@ clean-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispref clean
 
 cleanall-other-dirs-nmake:
+	cd ..\lib
+	$(MAKE) $(MFLAGS) cleanall
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) cleanall
 	cd ..\src
@@ -331,6 +344,7 @@ cleanall-other-dirs-nmake:
 	cd ..\nt
 
 cleanall-other-dirs-gmake:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib cleanall
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src cleanall
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src cleanall
 
@@ -356,6 +370,8 @@ top-distclean:
 distclean: distclean-other-dirs-$(MAKETYPE) top-distclean
 
 distclean-other-dirs-nmake:
+	cd ..\lib
+	$(MAKE) $(MFLAGS) distclean
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) distclean
 	cd ..\src
@@ -375,6 +391,7 @@ distclean-other-dirs-nmake:
 	cd ..\nt
 
 distclean-other-dirs-gmake:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib distclean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src distclean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src distclean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp distclean
@@ -387,6 +404,8 @@ distclean-other-dirs-gmake:
 maintainer-clean: maintainer-clean-other-dirs-$(MAKETYPE) top-distclean
 
 maintainer-clean-other-dirs-nmake:
+	cd ..\lib
+	$(MAKE) $(MFLAGS) maintainer-clean
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) maintainer-clean
 	cd ..\src
@@ -406,6 +425,7 @@ maintainer-clean-other-dirs-nmake:
 	cd ..\nt
 
 maintainer-clean-other-dirs-gmake:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib maintainer-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src maintainer-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src maintainer-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp maintainer-clean
@@ -425,6 +445,7 @@ TAGS-gmake: frc
 	../lib-src/$(BLD)/etags $(CURDIR)/*.c
 	$(MAKE) $(MFLAGS) -C ../src TAGS TAGS-LISP
 	$(MAKE) $(MFLAGS) -C ../lib-src TAGS
+	$(MAKE) $(MFLAGS) -C ../lib TAGS
 
 TAGS-nmake:
 	echo This target is not supported with NMake

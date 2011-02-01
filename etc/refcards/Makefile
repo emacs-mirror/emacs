@@ -1,7 +1,6 @@
 ### Makefile for Emacs refcards
 
-## Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-##   2008, 2009, 2010  Free Software Foundation, Inc.
+## Copyright (C) 1993-1994, 2001-2011  Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 #
@@ -29,24 +28,24 @@ REFCARDS_PDF = refcard.pdf cs-refcard.pdf de-refcard.pdf fr-refcard.pdf \
 refcards_pdf: ${REFCARDS_PDF}
 refcards_ps: ${REFCARDS_PDF:.pdf=.ps}
 
-DIRED-REFCARDS_PDF = dired-ref.pdf cs-dired-ref.pdf fr-dired-ref.pdf \
+DIRED_REFCARDS_PDF = dired-ref.pdf cs-dired-ref.pdf fr-dired-ref.pdf \
 		sk-dired-ref.pdf
-dired-refcards_pdf: ${DIRED-REFCARDS_PDF}
-dired-refcards_ps: ${DIRED-REFCARDS_PDF:.pdf=.ps}
+dired-refcards_pdf: ${DIRED_REFCARDS_PDF}
+dired-refcards_ps: ${DIRED_REFCARDS_PDF:.pdf=.ps}
 
-MISC-REFCARDS_PDF = calccard.pdf gnus-booklet.pdf gnus-refcard.pdf orgcard.pdf
-misc-refcards_pdf: ${MISC-REFCARDS_PDF}
-misc-refcards_ps: ${MISC-REFCARDS_PDF:.pdf=.ps}
+MISC_REFCARDS_PDF = calccard.pdf gnus-booklet.pdf gnus-refcard.pdf orgcard.pdf
+misc-refcards_pdf: ${MISC_REFCARDS_PDF}
+misc-refcards_ps: ${MISC_REFCARDS_PDF:.pdf=.ps}
 
 
 ## The following files are not included with Emacs.
-SURVIVAL-CARDS_PDF = survival.pdf cs-survival.pdf sk-survival.pdf
-survival-cards_pdf: ${SURVIVAL-CARDS_PDF}
-survival-cards_ps: ${SURVIVAL-CARDS_PDF:.pdf=.ps}
+SURVIVAL_CARDS_PDF = survival.pdf cs-survival.pdf sk-survival.pdf
+survival-cards_pdf: ${SURVIVAL_CARDS_PDF}
+survival-cards_ps: ${SURVIVAL_CARDS_PDF:.pdf=.ps}
 
-VIPER-CARDS_PDF = vipcard.pdf viperCard.pdf
-viper-cards_pdf: ${VIPER-CARDS_PDF}
-viper-cards_ps: ${VIPER-CARDS_PDF:.pdf=.ps}
+VIPER_CARDS_PDF = vipcard.pdf viperCard.pdf
+viper-cards_pdf: ${VIPER_CARDS_PDF}
+viper-cards_ps: ${VIPER_CARDS_PDF:.pdf=.ps}
 
 
 ## PDF files.
@@ -75,7 +74,7 @@ ru-refcard.pdf: %.pdf: %.tex
 #gnus-logo.pdf: %.pdf: %.eps
 #	ps2pdf $<
 
-gnus-refcard.pdf: %.pdf: %.tex gnus-logo.pdf 
+gnus-refcard.pdf: %.pdf: %.tex gnus-logo.pdf
 	pdflatex $<
 
 gnus-booklet.pdf: gnus-refcard.tex gnus-logo.pdf

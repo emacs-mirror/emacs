@@ -1,7 +1,6 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -237,7 +236,12 @@ before the external MIME handler is invoked."
      (lambda (handle) (fboundp 'diff-mode)))
     ("application/emacs-lisp" mm-display-elisp-inline identity)
     ("application/x-emacs-lisp" mm-display-elisp-inline identity)
+    ("application/x-shellscript" mm-display-shell-script-inline identity)
+    ("application/x-sh" mm-display-shell-script-inline identity)
+    ("text/x-sh" mm-display-shell-script-inline identity)
+    ("application/javascript" mm-display-javascript-inline identity)
     ("text/dns" mm-display-dns-inline identity)
+    ("text/x-org" mm-display-org-inline identity)
     ("text/html"
      mm-inline-text-html
      (lambda (handle)
@@ -313,7 +317,8 @@ when selecting a different article."
     "application/pkcs7-signature" "application/x-pkcs7-mime"
     "application/pkcs7-mime"
     ;; Mutt still uses this even though it has already been withdrawn.
-    "application/pgp\\'")
+    "application/pgp\\'"
+     "text/x-org")
   "A list of MIME types to be displayed automatically."
   :type '(repeat regexp)
   :group 'mime-display)
@@ -1367,13 +1372,19 @@ Use CMD as the process."
 
 (defun mm-preferred-alternative-precedence (handles)
   "Return the precedence based on HANDLES and `mm-discouraged-alternatives'."
-  (let ((seq (nreverse (mapcar #'mm-handle-media-type
-			       handles))))
-    (dolist (disc (reverse mm-discouraged-alternatives))
-      (dolist (elem (copy-sequence seq))
-	(when (string-match disc elem)
-	  (setq seq (nconc (delete elem seq) (list elem))))))
-    seq))
+  (setq handles (reverse handles))
+  (dolist (disc (reverse mm-discouraged-alternatives))
+    (dolist (handle (copy-sequence handles))
+      (when (string-match disc (mm-handle-media-type handle))
+	(setq handles (nconc (delete handle handles) (list handle))))))
+  ;; Remove empty parts.
+  (dolist (handle (copy-sequence handles))
+    (when (and (bufferp (mm-handle-buffer handle))
+	       (not (with-current-buffer (mm-handle-buffer handle)
+		      (goto-char (point-min))
+		      (re-search-forward "[^ \t\n]" nil t))))
+      (setq handles (nconc (delete handle handles) (list handle)))))
+  (mapcar #'mm-handle-media-type handles))
 
 (defun mm-get-content-id (id)
   "Return the handle(s) referred to by ID."

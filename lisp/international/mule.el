@@ -1,10 +1,8 @@
 ;;; mule.el --- basic commands for multilingual environment
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
@@ -1611,7 +1609,7 @@ in-place."
       (set-buffer (generate-new-buffer " *temp"))
       (set-buffer-multibyte (multibyte-string-p from))
       (insert from)
-      (setq from 1 to (point-max)))
+      (setq from (point-min) to (point-max)))
     (save-restriction
       (narrow-to-region from to)
       (goto-char from)
@@ -2444,5 +2442,4 @@ added by processing software."
 ;;;
 (provide 'mule)
 
-;; arch-tag: 9aebaa6e-0e8a-40a9-b857-cb5d04a39e7c
 ;;; mule.el ends here

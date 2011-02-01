@@ -94,4 +94,3 @@
     ("HIRAGANA DIGRAPH YORI" #x309F)
     ))
 
-;; arch-tag: dc96b2bf-74f6-4885-adbb-4a81bd2884be

@@ -1,6 +1,5 @@
 /* Pre-process emacs.exe for profiling by MSVC.
-   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-     2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -828,5 +827,3 @@ main (int argc, char **argv)
 
 /* eof */
 
-/* arch-tag: 144ca747-168e-43a0-9736-3f4c0ba1657f
-   (do not change this comment) */

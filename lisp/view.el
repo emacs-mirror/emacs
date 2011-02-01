@@ -1,7 +1,7 @@
 ;;; view.el --- peruse file or buffer without editing
 
-;; Copyright (C) 1985, 1989, 1994, 1995, 1997, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: Inge Frick <inge@nada.kth.se>
@@ -1086,5 +1086,4 @@ If TIMES is negative, search backwards."
 
 (provide 'view)
 
-;; arch-tag: 6d0ace36-1d12-4de3-8de3-1fa3231636d7
 ;;; view.el ends here

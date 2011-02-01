@@ -1,6 +1,5 @@
 /* String search routines for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1997, 1998, 1999, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -91,13 +90,6 @@ Lisp_Object Qinvalid_regexp;
 /* Error condition used for failing searches */
 Lisp_Object Qsearch_failed;
 
-Lisp_Object Vsearch_spaces_regexp;
-
-/* If non-nil, the match data will not be changed during call to
-   searching or matching functions.  This variable is for internal use
-   only.  */
-Lisp_Object Vinhibit_changing_match_data;
-
 static void set_search_regs (EMACS_INT, EMACS_INT);
 static void save_search_regs (void);
 static EMACS_INT simple_search (EMACS_INT, unsigned char *, EMACS_INT,
@@ -156,11 +148,11 @@ compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object tra
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
 
   if (STRINGP (Vsearch_spaces_regexp))
-    re_set_whitespace_regexp (SDATA (Vsearch_spaces_regexp));
+    re_set_whitespace_regexp (SSDATA (Vsearch_spaces_regexp));
   else
     re_set_whitespace_regexp (NULL);
 
-  val = (char *) re_compile_pattern ((char *) SDATA (pattern),
+  val = (char *) re_compile_pattern (SSDATA (pattern),
 				     SBYTES (pattern), &cp->buf);
 
   /* If the compiled pattern hard codes some of the contents of the
@@ -421,7 +413,7 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start, int p
   immediate_quit = 1;
   re_match_object = string;
 
-  val = re_search (bufp, (char *) SDATA (string),
+  val = re_search (bufp, SSDATA (string),
 		   SBYTES (string), pos_byte,
 		   SBYTES (string) - pos_byte,
 		   (NILP (Vinhibit_changing_match_data)
@@ -492,7 +484,7 @@ fast_string_match (Lisp_Object regexp, Lisp_Object string)
   immediate_quit = 1;
   re_match_object = string;
 
-  val = re_search (bufp, (char *) SDATA (string),
+  val = re_search (bufp, SSDATA (string),
 		   SBYTES (string), 0,
 		   SBYTES (string), 0);
   immediate_quit = 0;
@@ -535,7 +527,7 @@ fast_string_match_ignore_case (Lisp_Object regexp, Lisp_Object string)
   immediate_quit = 1;
   re_match_object = string;
 
-  val = re_search (bufp, (char *) SDATA (string),
+  val = re_search (bufp, SSDATA (string),
 		   SBYTES (string), 0,
 		   SBYTES (string), 0);
   immediate_quit = 0;
@@ -1275,7 +1267,7 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
 
       if (multibyte == STRING_MULTIBYTE (string))
 	{
-	  raw_pattern = (unsigned char *) SDATA (string);
+	  raw_pattern = SDATA (string);
 	  raw_pattern_size = SCHARS (string);
 	  raw_pattern_size_byte = SBYTES (string);
 	}
@@ -3224,7 +3216,7 @@ syms_of_search (void)
   saved_last_thing_searched = Qnil;
   staticpro (&saved_last_thing_searched);
 
-  DEFVAR_LISP ("search-spaces-regexp", &Vsearch_spaces_regexp,
+  DEFVAR_LISP ("search-spaces-regexp", Vsearch_spaces_regexp,
       doc: /* Regexp to substitute for bunches of spaces in regexp search.
 Some commands use this for user-specified regexps.
 Spaces that occur inside character classes or repetition operators
@@ -3232,7 +3224,7 @@ or other such regexp constructs are not replaced with this.
 A value of nil (which is the normal value) means treat spaces literally.  */);
   Vsearch_spaces_regexp = Qnil;
 
-  DEFVAR_LISP ("inhibit-changing-match-data", &Vinhibit_changing_match_data,
+  DEFVAR_LISP ("inhibit-changing-match-data", Vinhibit_changing_match_data,
       doc: /* Internal use only.
 If non-nil, the primitive searching and matching functions
 such as `looking-at', `string-match', `re-search-forward', etc.,
@@ -3261,6 +3253,3 @@ is to bind it with `let' around a small expression.  */);
   defsubr (&Sset_match_data);
   defsubr (&Sregexp_quote);
 }
-
-/* arch-tag: a6059d79-0552-4f14-a2cb-d379a4e3c78f
-   (do not change this comment) */

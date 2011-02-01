@@ -1,7 +1,6 @@
 ;;; url-history.el --- Global history tracking for URL package
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -184,5 +183,4 @@ user for what type to save as."
 
 (provide 'url-history)
 
-;; arch-tag: fbbbaf63-db36-4e88-bc9f-2939aa93afb2
 ;;; url-history.el ends here

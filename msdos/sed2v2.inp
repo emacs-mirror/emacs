@@ -2,8 +2,7 @@
 # Configuration script for src/config.h under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2000, 2002, 2003,
-#   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 1993-1997, 1999-2000, 2002-2011 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -50,6 +49,7 @@
 /^#undef HAVE_MKSTEMP *$/s/^.*$/#define HAVE_MKSTEMP 1/
 /^#undef HAVE_STRUCT_TM_TM_ZONE *$/s/^.*$/#define HAVE_STRUCT_TM_TM_ZONE 1/
 /^#undef HAVE_SYNC *$/s/^.*$/#define HAVE_SYNC 1/
+/^#undef HAVE___BUILTIN_UNWIND_INIT *$/s/^.*$/#define HAVE___BUILTIN_UNWIND_INIT 1/
 /^#undef ORDINARY_LINK/s/^.*$/#define ORDINARY_LINK 1/
 /^#undef PACKAGE_BUGREPORT/s/^.*$/#define PACKAGE_BUGREPORT ""/
 /^#undef PACKAGE_NAME/s/^.*$/#define PACKAGE_NAME ""/
@@ -90,4 +90,3 @@ s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 /^#undef BSTRING/s|#undef|# undef|
 /^#undef .*$/s|^.*$|/* & */|
 
-# arch-tag: 2acb5571-ff53-4822-9175-95b864b59f7c

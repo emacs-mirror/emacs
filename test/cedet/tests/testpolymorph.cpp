@@ -1,6 +1,6 @@
 /** testpolymorph.cpp --- A sequence of polymorphism examples.
  *
- * Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+ * Copyright (C) 2009-2011  Free Software Foundation, Inc.
  *
  * Author: Eric M. Ludlam <eric@siege-engine.com>
  *
@@ -129,4 +129,3 @@ namespace template_multiple_spec {
 
 // End of polymorphism test file.
 
-// arch-tag: e2c04959-9b3b-4b4f-b9c2-445bf4848aa4

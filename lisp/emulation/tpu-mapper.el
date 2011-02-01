@@ -1,7 +1,6 @@
 ;;; tpu-mapper.el --- create a TPU-edt X-windows keymap file
 
-;; Copyright (C) 1993, 1994, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -350,5 +349,4 @@ your local X guru can try to figure out why the key is being ignored."
 ")
   (goto-char (point-min)))
 
-;; arch-tag: bab5872f-cd3a-4c1c-aedb-047b67646f6c
 ;;; tpu-mapper.el ends here

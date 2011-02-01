@@ -1,6 +1,6 @@
 ;;; erc-log.el --- Logging facilities for ERC.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011 Free Software Foundation, Inc.
 
 ;; Author: Lawrence Mitchell <wence@gmx.li>
 ;; Keywords: IRC, chat, client, Internet, logging
@@ -451,4 +451,3 @@ You can save every individual message by putting this function on
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 54072f99-9f0a-4846-8908-2ccde92221de

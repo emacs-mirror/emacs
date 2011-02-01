@@ -1,6 +1,6 @@
 ;;; semantic/symref/idutils.el --- Symref implementation for idutils
 
-;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -72,5 +72,4 @@ Moves cursor to end of the match."
 ;; generated-autoload-load-name: "semantic/symref/idutils"
 ;; End:
 
-;; arch-tag: 7e872652-cbe2-4083-a4d3-2a7c88c4c65c
 ;;; semantic/symref/idutils.el ends here

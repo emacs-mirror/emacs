@@ -1,8 +1,7 @@
 ;;; iso-cvt.el --- translate ISO 8859-1 from/to various encodings -*- coding: iso-latin-1 -*-
 ;; This file was formerly called gm-lingo.el.
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1998, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Michael Gschwind <mike@vlsivie.tuwien.ac.at>
 ;; Keywords: tex, iso, latin, i18n
@@ -904,5 +903,4 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
 
 (provide 'iso-cvt)
 
-;; arch-tag: 64ae843f-ed0e-43e1-ba50-ffd581b90840
 ;;; iso-cvt.el ends here

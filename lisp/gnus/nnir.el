@@ -1,7 +1,6 @@
 ;;; nnir.el --- search mail with various search engines -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Kai Groﬂjohann <grossjohann@ls6.cs.uni-dortmund.de>
 ;; Swish-e and Swish++ backends by:
@@ -289,7 +288,9 @@ is `(valuefunc member)'."
   (autoload 'nnimap-buffer "nnimap")
   (autoload 'nnimap-command "nnimap")
   (autoload 'nnimap-possibly-change-group "nnimap")
-  (autoload 'gnus-registry-action "gnus-registry"))
+  (autoload 'gnus-registry-action "gnus-registry")
+  (defvar gnus-registry-install))
+
 
 (nnoo-declare nnir)
 (nnoo-define-basics nnir)
@@ -302,13 +303,6 @@ is `(valuefunc member)'."
 (defgroup nnir nil
   "Search groups in Gnus with assorted seach engines."
   :group 'gnus)
-
-(defcustom nnir-method-default-engines
-  '((nnimap . imap)
-    (nntp . gmane))
-  "*Alist of default search engines keyed by server method."
-  :type '(alist)
-  :group 'nnir)
 
 (defcustom nnir-ignored-newsgroups ""
   "*A regexp to match newsgroups in the active file that should
@@ -327,7 +321,7 @@ with three items unique to nnir summary buffers:
 %g    Article original short group name (string)
 
 If nil this will use `gnus-summary-line-format'."
-  :type '(regexp)
+  :type '(string)
   :group 'nnir)
 
 (defcustom nnir-retrieve-headers-override-function nil
@@ -345,7 +339,8 @@ result, `gnus-retrieve-headers' will be called instead."
   "*The default IMAP search key for an nnir search. Must be one of
   the keys in `nnir-imap-search-arguments'. To use raw imap queries
   by default set this to \"Imap\"."
-  :type '(string)
+  :type `(choice ,@(mapcar (lambda (elem) (list 'const (car elem)))
+			   nnir-imap-search-arguments))
   :group 'nnir)
 
 (defcustom nnir-swish++-configuration-file
@@ -544,6 +539,18 @@ needs the variables `nnir-namazu-program',
 
 Add an entry here when adding a new search engine.")
 
+(defcustom nnir-method-default-engines
+  '((nnimap . imap)
+    (nntp . gmane))
+  "*Alist of default search engines keyed by server method."
+  :type `(repeat (cons (choice (const nnimap) (const nttp) (const nnspool)
+			       (const nneething) (const nndir) (const nnmbox)
+			       (const nnml) (const nnmh) (const nndraft)
+			       (const nnfolder) (const nnmaildir))
+		       (choice
+			,@(mapcar (lambda (elem) (list 'const (car elem)))
+				  nnir-engines))))
+  :group 'nnir)
 
 ;; Gnus glue.
 
@@ -804,7 +811,7 @@ details on the language and supported extensions"
 		      (message "Searching %s... %d matches" group arts)))
 		  (message "Searching %s...done" group))
 	      (quit nil))
-	    artlist))
+	    (nreverse artlist)))
 	groups)))))
 
 (defun nnir-imap-make-query (criteria qstring)
@@ -1397,14 +1404,15 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 ;; gmane interface
 (defun nnir-run-gmane (query srv &optional groups)
   "Run a search against a gmane back-end server."
-  (if (gnus-string-match-p  "gmane" srv)
       (let* ((case-fold-search t)
 	     (qstring (cdr (assq 'query query)))
 	     (server (cadr (gnus-server-to-method srv)))
 	     (groupspec (mapconcat
 			 (lambda (x)
-			   (format "group:%s" (gnus-group-short-name x)))
-			 groups " "))
+			   (if (gnus-string-match-p "gmane" x)
+			       (format "group:%s" (gnus-group-short-name x))
+			     (error "Can't search non-gmane groups: %s" x)))
+			   groups " "))
 	     (authorspec
 	      (if (assq 'author query)
 		  (format "author:%s" (cdr (assq 'author query))) ""))
@@ -1439,9 +1447,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 		      (string-to-number (match-string 2 xref)) xscore)
 		     artlist)))))
 	    (forward-line 1)))
-	(apply 'vector (nreverse (mm-delete-duplicates artlist))))
-    (message "Can't search non-gmane nntp groups")
-    nil))
+	(apply 'vector (nreverse (mm-delete-duplicates artlist)))))
 
 ;;; Util Code:
 
@@ -1536,7 +1542,8 @@ server is of form 'backend:name'."
       (let ((cur (current-buffer))
 	    name)
 	(goto-char (point-min))
-	(unless (string= nnir-ignored-newsgroups "")
+	(unless (or (null nnir-ignored-newsgroups)
+		    (string= nnir-ignored-newsgroups ""))
 	  (delete-matching-lines nnir-ignored-newsgroups))
 	(if (eq (car method) 'nntp)
 	    (while (not (eobp))
@@ -1582,12 +1589,14 @@ server is of form 'backend:name'."
   (when (eq (car (gnus-find-method-for-group gnus-newsgroup-name)) 'nnir)
     (setq gnus-summary-line-format
 	  (or nnir-summary-line-format gnus-summary-line-format))
-    (remove-hook 'gnus-summary-article-delete-hook 'gnus-registry-action t)
-    (remove-hook 'gnus-summary-article-move-hook 'gnus-registry-action t)
-    (remove-hook 'gnus-summary-article-expire-hook 'gnus-registry-action t)
-    (add-hook 'gnus-summary-article-delete-hook 'nnir-registry-action t t)
-    (add-hook 'gnus-summary-article-move-hook 'nnir-registry-action t t)
-    (add-hook 'gnus-summary-article-expire-hook 'nnir-registry-action t t)))
+    (when (and (boundp 'gnus-registry-install)
+		       (eq gnus-registry-install t))
+      (remove-hook 'gnus-summary-article-delete-hook 'gnus-registry-action t)
+      (remove-hook 'gnus-summary-article-move-hook 'gnus-registry-action t)
+      (remove-hook 'gnus-summary-article-expire-hook 'gnus-registry-action t)
+      (add-hook 'gnus-summary-article-delete-hook 'nnir-registry-action t t)
+      (add-hook 'gnus-summary-article-move-hook 'nnir-registry-action t t)
+      (add-hook 'gnus-summary-article-expire-hook 'nnir-registry-action t t))))
 
 
 

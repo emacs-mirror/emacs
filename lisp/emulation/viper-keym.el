@@ -1,7 +1,6 @@
 ;;; viper-keym.el --- Viper keymaps
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -673,5 +672,4 @@ form ((key . function) (key . function) ... )."
 ;; End:
 
 
-;; arch-tag: 43af4b2f-0bea-400b-889e-221ebc00acb1
 ;;; viper-keym.el ends here

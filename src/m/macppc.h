@@ -1,7 +1,6 @@
 /* machine description file For the powerpc Macintosh.
 
-Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,5 +29,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-/* arch-tag: 41913e4e-e7d1-4023-aadb-210cc31712ed
-   (do not change this comment) */

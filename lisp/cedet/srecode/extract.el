@@ -1,6 +1,6 @@
 ;;; srecode/extract.el --- Extract content from previously inserted macro.
 
-;; Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -239,5 +239,4 @@ Return nil if nothing was extracted."
 
 (provide 'srecode/extract)
 
-;; arch-tag: 051f5901-46ae-4319-8c84-16daf971e226
 ;;; srecode/extract.el ends here

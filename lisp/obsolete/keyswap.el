@@ -1,7 +1,6 @@
 ;;; keyswap.el --- swap BS and DEL keys -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Keywords: terminals
@@ -39,5 +38,4 @@
   (aset the-table ?\^h ?\177)
   (setq keyboard-translate-table the-table))
 
-;; arch-tag: 67cf7009-e23e-421c-9648-078e7277297c
 ;;; keyswap.el ends here

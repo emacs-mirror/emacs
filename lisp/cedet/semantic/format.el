@@ -1,7 +1,6 @@
 ;;; semantic/format.el --- Routines for formatting tags
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -720,5 +719,4 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 ;; generated-autoload-load-name: "semantic/format"
 ;; End:
 
-;; arch-tag: deae500e-20b6-437e-8856-884f6c46bc3e
 ;;; semantic/format.el ends here

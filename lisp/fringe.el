@@ -1,7 +1,6 @@
 ;;; fringe.el --- fringe setup and control  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Maintainer: FSF
@@ -269,5 +268,4 @@ SIDE must be the symbol `left' or `right'."
 
 (provide 'fringe)
 
-;; arch-tag: 6611ef60-0869-47ed-8b93-587ee7d3ff5d
 ;;; fringe.el ends here

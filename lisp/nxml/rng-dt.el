@@ -1,6 +1,6 @@
 ;;; rng-dt.el --- datatype library interface for RELAX NG
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -61,5 +61,4 @@ a datatype library.")
 
 (provide 'rng-dt)
 
-;; arch-tag: 1dca90f1-8dae-4dd4-b61f-fade4452c014
 ;;; rng-dt.el ends here

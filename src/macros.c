@@ -1,6 +1,6 @@
 /* Keyboard macros.
-   Copyright (C) 1985, 1986, 1993, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1993, 2000-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,14 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 
 Lisp_Object Qexecute_kbd_macro, Qkbd_macro_termination_hook;
-
-/* Kbd macro currently being executed (a string or vector).  */
-
-Lisp_Object Vexecuting_kbd_macro;
-
-/* Index of next character to fetch from that macro.  */
-
-EMACS_INT executing_kbd_macro_index;
 
 /* Number of successful iterations so far
    for innermost keyboard macro.
@@ -369,6 +361,11 @@ syms_of_macros (void)
 {
   Qexecute_kbd_macro = intern_c_string ("execute-kbd-macro");
   staticpro (&Qexecute_kbd_macro);
+
+  DEFVAR_LISP ("kbd-macro-termination-hook", Vkbd_macro_termination_hook,
+               doc: /* Normal hook run whenever a keyboard macro terminates.
+This is run whether the macro ends normally or prematurely due to an error.  */);
+  Vkbd_macro_termination_hook = Qnil;
   Qkbd_macro_termination_hook = intern_c_string ("kbd-macro-termination-hook");
   staticpro (&Qkbd_macro_termination_hook);
 
@@ -384,16 +381,14 @@ syms_of_macros (void)
 The value is the symbol `append' while appending to the definition of
 an existing macro.  */);
 
-  DEFVAR_LISP ("executing-kbd-macro", &Vexecuting_kbd_macro,
+  DEFVAR_LISP ("executing-kbd-macro", Vexecuting_kbd_macro,
 	       doc: /* Currently executing keyboard macro (string or vector).
 This is nil when not executing a keyboard macro.  */);
 
-  DEFVAR_INT ("executing-kbd-macro-index", &executing_kbd_macro_index,
+  DEFVAR_INT ("executing-kbd-macro-index", executing_kbd_macro_index,
 	      doc: /* Index in currently executing keyboard macro; undefined if none executing.  */);
 
   DEFVAR_KBOARD ("last-kbd-macro", Vlast_kbd_macro,
 		 doc: /* Last kbd macro defined, as a string or vector; nil if none defined.  */);
 }
 
-/* arch-tag: d293fcc9-2266-4163-9198-7fa0de12ec9e
-   (do not change this comment) */

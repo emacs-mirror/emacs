@@ -1,7 +1,6 @@
 ;;; calculator.el --- a [not so] simple calculator for Emacs
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,  2005, 2006, 2007,
-;;   2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
@@ -382,10 +381,7 @@ Used for repeating operations in calculator-repR/L.")
 ;;;---------------------------------------------------------------------
 ;;; Key bindings
 
-(defvar calculator-mode-map nil
-  "The calculator key map.")
-
-(or calculator-mode-map
+(defvar calculator-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
     (define-key map "i" nil)
@@ -471,113 +467,114 @@ Used for repeating operations in calculator-repR/L.")
                        ("Binary"      bin "B")
                        ("Octal"       oct "O")
                        ("Hexadecimal" hex "H"))))
-            (op '(lambda (name key)
-                        `[,name (calculator-op ,key) :keys ,key])))
+            (op (lambda (name key)
+                  `[,name (calculator-op ,key) :keys ,key])))
         (easy-menu-define
-         calculator-menu map "Calculator menu."
-         `("Calculator"
-           ["Help"
-            (let ((last-command 'calculator-help)) (calculator-help))
-            :keys "?"]
-           "---"
-           ["Copy"  calculator-copy]
-           ["Paste" calculator-paste]
-           "---"
-           ["Electric mode"
-            (progn (calculator-quit)
-                   (setq calculator-restart-other-mode t)
-                   (run-with-timer 0.1 nil '(lambda () (message nil)))
-                   ;; the message from the menu will be visible,
-                   ;; couldn't make it go away...
-                   (calculator))
-            :active (not calculator-electric-mode)]
-           ["Normal mode"
-            (progn (setq calculator-restart-other-mode t)
-                   (calculator-quit))
-            :active calculator-electric-mode]
-           "---"
-           ("Functions"
-            ,(funcall op "Repeat-right" ">")
-            ,(funcall op "Repeat-left"  "<")
-            "------General------"
-            ,(funcall op "Reciprocal"   ";")
-            ,(funcall op "Log"          "L")
-            ,(funcall op "Square-root"  "Q")
-            ,(funcall op "Factorial"    "!")
-            "------Trigonometric------"
-            ,(funcall op "Sinus"        "S")
-            ,(funcall op "Cosine"       "C")
-            ,(funcall op "Tangent"      "T")
-            ,(funcall op "Inv-Sinus"    "IS")
-            ,(funcall op "Inv-Cosine"   "IC")
-            ,(funcall op "Inv-Tangent"  "IT")
-            "------Bitwise------"
-            ,(funcall op "Or"           "|")
-            ,(funcall op "Xor"          "#")
-            ,(funcall op "And"          "&")
-            ,(funcall op "Not"          "~"))
-           ("Saved List"
-            ["Eval+Save"      calculator-save-on-list]
-            ["Prev number"    calculator-saved-up]
-            ["Next number"    calculator-saved-down]
-            ["Delete current" calculator-clear
-             :active (and calculator-display-fragile
-                          calculator-saved-list
-                          (= (car calculator-stack)
-                             (nth calculator-saved-ptr
-                                  calculator-saved-list)))]
-            ["Delete all" calculator-clear-saved]
+          calculator-menu map "Calculator menu."
+          `("Calculator"
+            ["Help"
+             (let ((last-command 'calculator-help)) (calculator-help))
+             :keys "?"]
             "---"
-            ,(funcall op "List-total"   "l")
-            ,(funcall op "List-average" "v"))
-           ("Registers"
-            ["Get register" calculator-get-register]
-            ["Set register" calculator-set-register])
-           ("Modes"
-            ["Radians"
-             (progn
-               (and (or calculator-input-radix calculator-output-radix)
-                    (calculator-radix-mode "D"))
-               (and calculator-deg (calculator-dec/deg-mode)))
-             :keys "D"
-             :style radio
-             :selected (not (or calculator-input-radix
-                                calculator-output-radix
-                                calculator-deg))]
-            ["Degrees"
-             (progn
-               (and (or calculator-input-radix calculator-output-radix)
-                    (calculator-radix-mode "D"))
-               (or calculator-deg (calculator-dec/deg-mode)))
-             :keys "D"
-             :style radio
-             :selected (and calculator-deg
-                            (not (or calculator-input-radix
-                                     calculator-output-radix)))]
+            ["Copy"  calculator-copy]
+            ["Paste" calculator-paste]
             "---"
-            ,@(mapcar 'car radix-selectors)
-            ("Separate I/O"
-             ,@(mapcar (lambda (x) (nth 1 x)) radix-selectors)
+            ["Electric mode"
+             (progn (calculator-quit)
+                    (setq calculator-restart-other-mode t)
+                    (run-with-timer 0.1 nil '(lambda () (message nil)))
+                    ;; the message from the menu will be visible,
+                    ;; couldn't make it go away...
+                    (calculator))
+             :active (not calculator-electric-mode)]
+            ["Normal mode"
+             (progn (setq calculator-restart-other-mode t)
+                    (calculator-quit))
+             :active calculator-electric-mode]
+            "---"
+            ("Functions"
+             ,(funcall op "Repeat-right" ">")
+             ,(funcall op "Repeat-left"  "<")
+             "------General------"
+             ,(funcall op "Reciprocal"   ";")
+             ,(funcall op "Log"          "L")
+             ,(funcall op "Square-root"  "Q")
+             ,(funcall op "Factorial"    "!")
+             "------Trigonometric------"
+             ,(funcall op "Sinus"        "S")
+             ,(funcall op "Cosine"       "C")
+             ,(funcall op "Tangent"      "T")
+             ,(funcall op "Inv-Sinus"    "IS")
+             ,(funcall op "Inv-Cosine"   "IC")
+             ,(funcall op "Inv-Tangent"  "IT")
+             "------Bitwise------"
+             ,(funcall op "Or"           "|")
+             ,(funcall op "Xor"          "#")
+             ,(funcall op "And"          "&")
+             ,(funcall op "Not"          "~"))
+            ("Saved List"
+             ["Eval+Save"      calculator-save-on-list]
+             ["Prev number"    calculator-saved-up]
+             ["Next number"    calculator-saved-down]
+             ["Delete current" calculator-clear
+              :active (and calculator-display-fragile
+                           calculator-saved-list
+                           (= (car calculator-stack)
+                              (nth calculator-saved-ptr
+                                   calculator-saved-list)))]
+             ["Delete all" calculator-clear-saved]
              "---"
-             ,@(mapcar (lambda (x) (nth 2 x)) radix-selectors)))
-           ("Decimal Display"
-            ,@(mapcar (lambda (d)
-                        (vector (cadr d)
-                                ;; Note: inserts actual object here
-                                `(calculator-rotate-displayer ',d)))
-                      calculator-displayers)
+             ,(funcall op "List-total"   "l")
+             ,(funcall op "List-average" "v"))
+            ("Registers"
+             ["Get register" calculator-get-register]
+             ["Set register" calculator-set-register])
+            ("Modes"
+             ["Radians"
+              (progn
+                (and (or calculator-input-radix calculator-output-radix)
+                     (calculator-radix-mode "D"))
+                (and calculator-deg (calculator-dec/deg-mode)))
+              :keys "D"
+              :style radio
+              :selected (not (or calculator-input-radix
+                                 calculator-output-radix
+                                 calculator-deg))]
+             ["Degrees"
+              (progn
+                (and (or calculator-input-radix calculator-output-radix)
+                     (calculator-radix-mode "D"))
+                (or calculator-deg (calculator-dec/deg-mode)))
+              :keys "D"
+              :style radio
+              :selected (and calculator-deg
+                             (not (or calculator-input-radix
+                                      calculator-output-radix)))]
+             "---"
+             ,@(mapcar 'car radix-selectors)
+             ("Separate I/O"
+              ,@(mapcar (lambda (x) (nth 1 x)) radix-selectors)
+              "---"
+              ,@(mapcar (lambda (x) (nth 2 x)) radix-selectors)))
+            ("Decimal Display"
+             ,@(mapcar (lambda (d)
+                         (vector (cadr d)
+                                 ;; Note: inserts actual object here
+                                 `(calculator-rotate-displayer ',d)))
+                       calculator-displayers)
+             "---"
+             ["Change Prev Display" calculator-displayer-prev]
+             ["Change Next Display" calculator-displayer-next])
             "---"
-            ["Change Prev Display" calculator-displayer-prev]
-            ["Change Next Display" calculator-displayer-next])
-           "---"
-           ["Copy+Quit" calculator-save-and-quit]
-           ["Quit"      calculator-quit]))))
-    (setq calculator-mode-map map)))
+            ["Copy+Quit" calculator-save-and-quit]
+            ["Quit"      calculator-quit]))))
+    map)
+  "The calculator key map.")
 
 ;;;---------------------------------------------------------------------
 ;;; Startup and mode stuff
 
-(defun calculator-mode ()
+(define-derived-mode calculator-mode fundamental-mode "Calculator"
   ;; this help is also used as the major help screen
   "A [not so] simple calculator for Emacs.
 
@@ -671,13 +668,7 @@ Some interesting customization variables are:
 See the documentation for these variables, and \"calculator.el\" for
 more information.
 
-\\{calculator-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'calculator-mode)
-  (setq mode-name "Calculator")
-  (use-local-map calculator-mode-map)
-  (run-mode-hooks 'calculator-mode-hook))
+\\{calculator-mode-map}")
 
 (eval-when-compile (require 'electric) (require 'ehelp))
 
@@ -1832,5 +1823,4 @@ To use this, apply a binary operator (evaluate it), then call this."
 
 (provide 'calculator)
 
-;; arch-tag: a1b9766c-af8a-4a74-b466-65ad8eeb0c73
 ;;; calculator.el ends here

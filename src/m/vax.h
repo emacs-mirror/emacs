@@ -1,7 +1,6 @@
 /* machine description file for vax.
 
-Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-  2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,5 +31,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_FTIME
 
-/* arch-tag: 508bdf7a-01a0-4ce0-8eba-0704d0df55a0
-   (do not change this comment) */

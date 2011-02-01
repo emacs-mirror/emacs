@@ -1,7 +1,5 @@
 /* Fringe handling (split from xdisp.c).
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1997,
-                 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1997-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,19 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
-
-/* Non-nil means that newline may flow into the right fringe.  */
-
-Lisp_Object Voverflow_newline_into_fringe;
-
-/* List of known fringe bitmap symbols.
-
-   The fringe bitmap number is stored in the `fringe' property on
-   those symbols.  Names for the built-in bitmaps are installed by
-   loading fringe.el.
- */
-
-Lisp_Object Vfringe_bitmaps;
 
 /* Fringe bitmaps are represented in three different ways:
 
@@ -1756,7 +1741,7 @@ syms_of_fringe (void)
   defsubr (&Sfringe_bitmaps_at_pos);
   defsubr (&Sset_fringe_bitmap_face);
 
-  DEFVAR_LISP ("overflow-newline-into-fringe", &Voverflow_newline_into_fringe,
+  DEFVAR_LISP ("overflow-newline-into-fringe", Voverflow_newline_into_fringe,
     doc: /* *Non-nil means that newline may flow into the right fringe.
 This means that display lines which are exactly as wide as the window
 (not counting the final newline) will only occupy one screen line, by
@@ -1765,7 +1750,7 @@ is at the final newline, the cursor is shown in the right fringe.
 If nil, also continue lines which are exactly as wide as the window.  */);
   Voverflow_newline_into_fringe = Qt;
 
-  DEFVAR_LISP ("fringe-bitmaps", &Vfringe_bitmaps,
+  DEFVAR_LISP ("fringe-bitmaps", Vfringe_bitmaps,
     doc: /* List of fringe bitmap symbols.  */);
   Vfringe_bitmaps = Qnil;
 }
@@ -1847,5 +1832,3 @@ w32_reset_fringes (void)
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* arch-tag: 04596920-43eb-473d-b319-82712338162d
-   (do not change this comment) */

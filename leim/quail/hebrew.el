@@ -1,7 +1,7 @@
 ;;; hebrew.el --- Quail package for inputting Hebrew characters  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010
+;;   2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -75,5 +75,4 @@ Hebrew letters are assigned to lowercases.
  ("/" ?.)
  ("'" ?,))
 
-;; arch-tag: 771b887d-15af-4a4d-b4ce-a4a86f5ca0cf
 ;;; hebrew.el ends here

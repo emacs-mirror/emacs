@@ -1,6 +1,5 @@
 # -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-#   2008, 2009, 2010  Free Software Foundation, Inc.
+# Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -29,7 +28,7 @@ EMACSLOADPATH=$(CURDIR)/../lisp
 # HAVE_CONFIG_H is required by some generic gnu sources stuck into
 # the emacs source tree.
 #
-LOCAL_FLAGS     = -Demacs=1 -DHAVE_CONFIG_H -I../nt/inc -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
+LOCAL_FLAGS     = -Demacs=1 -DHAVE_CONFIG_H -I../lib -I../nt/inc -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
 
 SRC             = .
 EMACS           = $(BLD)/emacs.exe
@@ -41,6 +40,7 @@ TLIB2           = $(BLD)/temacs2.$(A)
 TOBJ            = $(BLD)/firstfile.$(O)
 TRES		= $(BLD)/emacs.res
 TLASTLIB	= $(BLD)/lastfile.$(A)
+GNULIB		= ../lib/$(BLD)/libgnu.$(A)
 
 DOC		= $(OBJDIR)/etc/DOC-X
 
@@ -141,6 +141,7 @@ LIBS =  $(TLIB0)	\
 	$(TLIB1)	\
 	$(TLIB2)	\
 	$(TLASTLIB)	\
+	$(GNULIB)	\
 	$(WINMM)	\
 	$(ADVAPI32)	\
 	$(GDI32)	\
@@ -165,7 +166,7 @@ all:            $(ALL)
 emacs:          stamp_BLD $(EMACS)
 $(EMACS):       $(DOC) $(TEMACS)
 	"$(THISDIR)/$(BLD)/temacs.exe" -batch -l loadup dump
-	-"$(THISDIR)/$(BLD)/emacs.exe" -q -batch -f list-load-path-shadows
+	-"$(THISDIR)/$(BLD)/emacs.exe" -batch -f list-load-path-shadows
 
 #
 # The undumped executable
@@ -175,7 +176,7 @@ $(EMACS):       $(DOC) $(TEMACS)
 #
 temacs:         stamp_BLD $(TEMACS)
 $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIB2) $(TLASTLIB) $(TOBJ) $(TRES) \
-		  ../nt/$(BLD)/addsection.exe
+		  ../nt/$(BLD)/addsection.exe $(GNULIB)
 	$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
 	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 21
 
@@ -193,6 +194,9 @@ make-buildobj-CMD:
 	echo $(OBJ2)            \>> buildobj.h
 	echo ^">> buildobj.h
 
+# "
+# The above line is here to countermand the single quote
+# on the last "echo" command above, wrt font-lock.
 make-buildobj-SH:
 	echo '#define BUILDOBJ $(DQUOTE)\'  > buildobj.h
 	echo $(OBJ0)                   '\' >> buildobj.h

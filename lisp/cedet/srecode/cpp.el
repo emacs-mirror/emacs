@@ -1,6 +1,6 @@
 ;;; srecode/cpp.el --- C++ specific handlers for Semantic Recoder
 
-;; Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;;         Jan Moringen <scymtym@users.sourceforge.net>
@@ -213,5 +213,4 @@ special behavior for tag of classes include, using and function."
 ;; generated-autoload-load-name: "srecode/cpp"
 ;; End:
 
-;; arch-tag: 4659755c-88b4-405e-818f-bb1f776a8e82
 ;;; srecode/cpp.el ends here

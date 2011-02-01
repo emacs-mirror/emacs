@@ -1,7 +1,6 @@
 ;;; todo-mode.el --- major mode for editing TODO list files
 
-;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <privat@os10000.net>
 ;; Maintainer: Stephen Berman <stephen.berman@gmx.net>
@@ -973,5 +972,4 @@ If INCLUDE-SEP is non-nil, return point after the separator."
 
 (provide 'todo-mode)
 
-;; arch-tag: 6fd91be5-776e-4464-a109-da4ea0e4e497
 ;;; todo-mode.el ends here

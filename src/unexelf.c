@@ -1,5 +1,4 @@
-/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+/* Copyright (C) 1985-1988, 1990, 1992, 1999-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1309,5 +1308,3 @@ temacs:
     fatal ("Can't chmod (%s): errno %d\n", new_name, errno);
 }
 
-/* arch-tag: e02e1512-95e2-4ef0-bba7-b6bce658f1e3
-   (do not change this comment) */

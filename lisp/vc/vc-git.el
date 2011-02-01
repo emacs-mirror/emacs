@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools
@@ -121,6 +121,9 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defvar vc-git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
+
+;; History of Git commands.
+(defvar vc-git-history nil)
 
 ;;; BACKEND PROPERTIES
 
@@ -526,6 +529,21 @@ or an empty string if none."
 		    'help-echo stash-help-echo
 		    'face 'font-lock-variable-name-face))))))
 
+(defun vc-git-branches ()
+  "Return the existing branches, as a list of strings.
+The car of the list is the current branch."
+  (with-temp-buffer
+    (call-process "git" nil t nil "branch")
+    (goto-char (point-min))
+    (let (current-branch branches)
+      (while (not (eobp))
+	(when (looking-at "^\\([ *]\\) \\(.+\\)$")
+	  (if (string-equal (match-string 1) "*")
+	      (setq current-branch (match-string 2))
+	    (push (match-string 2) branches)))
+	(forward-line 1))
+      (cons current-branch (nreverse branches)))))
+
 ;;; STATE-CHANGING FUNCTIONS
 
 (defun vc-git-create-repo ()
@@ -586,6 +604,47 @@ or an empty string if none."
       (vc-git-command nil 0 file "update-index" "--")
     (vc-git-command nil 0 file "reset" "-q" "--")
     (vc-git-command nil nil file "checkout" "-q" "--")))
+
+(defun vc-git-pull (prompt)
+  "Pull changes into the current Git branch.
+Normally, this runs \"git pull\".  If PROMPT is non-nil, prompt
+for the Git command to run."
+  (let* ((root (vc-git-root default-directory))
+	 (buffer (format "*vc-git : %s*" (expand-file-name root)))
+	 (command "pull")
+	 (git-program "git")
+	 args)
+    ;; If necessary, prompt for the exact command.
+    (when prompt
+      (setq args (split-string
+		  (read-shell-command "Git pull command: "
+				      "git pull"
+				      'vc-git-history)
+		  " " t))
+      (setq git-program (car  args)
+	    command     (cadr args)
+	    args        (cddr args)))
+    (apply 'vc-do-async-command buffer root git-program command args)
+    (vc-set-async-update buffer)))
+
+(defun vc-git-merge-branch ()
+  "Merge changes into the current Git branch.
+This prompts for a branch to merge from."
+  (let* ((root (vc-git-root default-directory))
+	 (buffer (format "*vc-git : %s*" (expand-file-name root)))
+	 (branches (cdr (vc-git-branches)))
+	 (merge-source
+	  (completing-read "Merge from branch: "
+			   (if (or (member "FETCH_HEAD" branches)
+				   (not (file-readable-p
+					 (expand-file-name ".git/FETCH_HEAD"
+							   root))))
+			       branches
+			     (cons "FETCH_HEAD" branches))
+			   nil t)))
+    (apply 'vc-do-async-command buffer root "git" "merge"
+	   (list merge-source))
+    (vc-set-async-update buffer)))
 
 ;;; HISTORY FUNCTIONS
 
@@ -1036,5 +1095,4 @@ Returns nil if not possible."
 
 (provide 'vc-git)
 
-;; arch-tag: bd10664a-0e5b-48f5-a877-6c17b135be12
 ;;; vc-git.el ends here

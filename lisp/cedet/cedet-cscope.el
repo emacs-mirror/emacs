@@ -1,6 +1,6 @@
 ;;; cedet-cscope.el --- CScope support for CEDET
 
-;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Package: cedet
@@ -173,5 +173,4 @@ there is already a database in DIR."
 
 (provide 'cedet-cscope)
 
-;; arch-tag: 9973f1ad-f13b-4399-bc67-7f488478d78d
 ;;; cedet-cscope.el ends here

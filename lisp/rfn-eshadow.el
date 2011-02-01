@@ -1,7 +1,6 @@
 ;;; rfn-eshadow.el --- Highlight `shadowed' part of read-file-name input text
 ;;
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience minibuffer
@@ -240,5 +239,4 @@ Returns non-nil if the new state is enabled."
 
 (provide 'rfn-eshadow)
 
-;; arch-tag: dcf70a52-0115-4ec2-b1e3-4f8d3541a888
 ;;; rfn-eshadow.el ends here

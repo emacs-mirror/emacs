@@ -1,7 +1,6 @@
 ;;; gnus-agent.el --- unplugged support for Gnus
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -203,8 +202,7 @@ queue.  Otherwise, queue if and only if unplugged."
 		(const :format "When unplugged" t)))
 
 (defcustom gnus-agent-prompt-send-queue nil
-  "If non-nil, `gnus-group-send-queue' will prompt if called when
-unplugged."
+  "If non-nil, `gnus-group-send-queue' will prompt if called when unplugged."
   :version "22.1"
   :group 'gnus-agent
   :type 'boolean)
@@ -685,7 +683,6 @@ This will modify the `gnus-setup-news-hook', and
 minor mode in all Gnus buffers."
   (interactive)
   (gnus-open-agent)
-  (add-hook 'gnus-setup-news-hook 'gnus-agent-queue-setup)
   (unless gnus-agent-send-mail-function
     (setq gnus-agent-send-mail-function
 	  (or message-send-mail-real-function
@@ -732,7 +729,8 @@ Optional arg GROUP-NAME allows to specify another group."
      (concat "^" (regexp-quote mail-header-separator) "\n"))
     (replace-match "\n")
     (gnus-agent-insert-meta-information 'mail)
-    (gnus-request-accept-article "nndraft:queue" nil t t)))
+    (gnus-request-accept-article "nndraft:queue" nil t t)
+    (gnus-group-refresh-group "nndraft:queue")))
 
 (defun gnus-agent-insert-meta-information (type &optional method)
   "Insert meta-information into the message that says how it's to be posted.
@@ -1514,7 +1512,7 @@ downloaded into the agent."
   "Fetch ARTICLES from GROUP and put them into the Agent."
   (when articles
     (gnus-agent-load-alist group)
-    (let* ((alist   gnus-agent-article-alist)
+    (let* ((alist gnus-agent-article-alist)
            (headers (if (< (length articles) 2) nil gnus-newsgroup-headers))
            (selected-sets (list nil))
            (current-set-size 0)
@@ -1556,9 +1554,9 @@ downloaded into the agent."
                                       ;; 65 char/line.  If the line count
                                       ;; is missing, arbitrarily assume a
                                       ;; size of 1000 characters.
-                                    (max (* 65 (mail-header-lines
-                                                (car headers)))
-                                         1000)
+				      (max (* 65 (mail-header-lines
+						  (car headers)))
+					   1000)
                                     char-size))
 			      0))))
             (setcar selected-sets (nreverse (car selected-sets)))

@@ -1,7 +1,7 @@
 ;;; completion.el --- dynamic word-completion code
 
-;; Copyright (C) 1990, 1993, 1995, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev convenience
@@ -2470,5 +2470,4 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 
 (provide 'completion)
 
-;; arch-tag: 6990dafe-4abd-4a1f-8c42-ffb25e120f5e
 ;;; completion.el ends here

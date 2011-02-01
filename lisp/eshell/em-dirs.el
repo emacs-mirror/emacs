@@ -1,7 +1,6 @@
 ;;; em-dirs.el --- directory navigation commands
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -573,5 +572,4 @@ in the minibuffer:
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 1e9c5a95-f1bd-45f8-ad36-55aac706e787
 ;;; em-dirs.el ends here

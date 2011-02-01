@@ -1,7 +1,6 @@
 ;;; mh-print.el --- MH-E printing support
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author: Jeffrey C Honig <jch@honig.net>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -248,5 +247,4 @@ Consider using \\[mh-ps-print-msg] instead."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 8d84d50b-2a49-4d0d-b51e-ba9c9b6fc679
 ;;; mh-print.el ends here

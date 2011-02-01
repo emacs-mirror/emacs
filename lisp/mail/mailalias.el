@@ -1,7 +1,7 @@
 ;;; mailalias.el --- expand and complete mailing address aliases
 
-;; Copyright (C) 1985, 1987, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1995-1997, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -240,6 +240,11 @@ removed from alias expansions."
 (defun build-mail-aliases (&optional file)
   "Read mail aliases from personal aliases file and set `mail-aliases'.
 By default, this is the file specified by `mail-personal-alias-file'."
+  (interactive
+   (list
+    (read-file-name (format "Read mail alias file (default %s): "
+			    mail-personal-alias-file)
+		    nil mail-personal-alias-file t)))
   (setq file (expand-file-name (or file mail-personal-alias-file)))
   ;; In case mail-aliases is t, make sure define-mail-alias
   ;; does not recursively call build-mail-aliases.
@@ -562,5 +567,4 @@ See `mail-directory-stream'."
 
 (provide 'mailalias)
 
-;; arch-tag: 1d6a0f87-eb34-4d45-8816-60c1b952cf46
 ;;; mailalias.el ends here

@@ -1,7 +1,6 @@
 ;;; mh-junk.el --- MH-E interface to anti-spam measures
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>,
 ;;         Bill Wohler <wohler@newt.com>
@@ -467,5 +466,4 @@ See `mh-spamprobe-blacklist' for more information."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 603335f1-77ff-4306-8828-5d3dad51abe1
 ;;; mh-junk.el ends here

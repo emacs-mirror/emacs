@@ -1,6 +1,6 @@
 ;;; erc-truncate.el --- Functions for truncating ERC buffers
 
-;; Copyright (C) 2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Keywords: IRC, chat, client, Internet, logging
@@ -115,4 +115,3 @@ Meant to be used in hooks, like `erc-insert-post-hook'."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 22a2ea78-871f-4870-8f1e-efe534170311

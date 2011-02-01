@@ -1,6 +1,6 @@
 ;;; rng-xsd.el --- W3C XML Schema datatypes library for RELAX NG
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -856,5 +856,4 @@ MONTHS must be an integer >= 0."
 
 (provide 'rng-xsd)
 
-;; arch-tag: 6b05510e-a5bb-4b99-8618-4660d00d0abb
 ;;; rng-xsd.el ends here

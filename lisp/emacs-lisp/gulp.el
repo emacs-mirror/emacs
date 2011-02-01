@@ -1,7 +1,6 @@
 ;;; gulp.el --- ask for updates for Lisp packages
 
-;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Sam Shteingold <shteingd@math.ucla.edu>
 ;; Maintainer: FSF
@@ -175,5 +174,4 @@ That is a list of elements, each of the form (MAINTAINER PACKAGES...)."
 
 (provide 'gulp)
 
-;; arch-tag: 42750a11-460a-4efc-829f-342d075530e5
 ;;; gulp.el ends here

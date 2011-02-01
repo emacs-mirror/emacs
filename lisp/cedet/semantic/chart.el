@@ -1,6 +1,6 @@
 ;;; semantic/chart.el --- Utilities for use with semantic tag tables
 
-;; Copyright (C) 1999, 2000, 2001, 2003, 2005, 2008, 2009, 2010
+;; Copyright (C) 1999-2001, 2003, 2005, 2008-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -171,5 +171,4 @@ items are charted.  TAGTABLE is passed to
 
 (provide 'semantic/chart)
 
-;; arch-tag: 026573b1-f4f1-4dda-ae77-b6451283ff23
 ;;; semantic/chart.el ends here

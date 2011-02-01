@@ -86,5 +86,3 @@ XMakeAssoc(register Display *dpy, register XAssocTable *table, register XID x_id
 	emacs_insque((struct qelem *)new_entry, (struct qelem *)Entry->prev);
 }
 
-/* arch-tag: d7e3fb8a-f3b3-4c5d-a307-75ca67ec1b49
-   (do not change this comment) */

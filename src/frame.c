@@ -1,8 +1,6 @@
 /* Generic frame functions.
 
-Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 1997, 1999-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,6 +21,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <setjmp.h>
 #include "lisp.h"
 #include "character.h"
@@ -55,23 +55,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 
-/* If we shall make pointer invisible when typing or not.  */
-Lisp_Object Vmake_pointer_invisible;
-
 #ifdef HAVE_WINDOW_SYSTEM
-
-/* The name we're using in resource queries.  Most often "emacs".  */
-
-Lisp_Object Vx_resource_name;
-
-/* The application class we're using in resource queries.
-   Normally "Emacs".  */
-
-Lisp_Object Vx_resource_class;
-
-/* Lower limit value of the frame opacity (alpha transparency).  */
-
-Lisp_Object Vframe_alpha_lower_limit;
 
 #endif
 
@@ -122,7 +106,6 @@ Lisp_Object Qtitle, Qname;
 Lisp_Object Qexplicit_name;
 Lisp_Object Qunsplittable;
 Lisp_Object Qmenu_bar_lines, Qtool_bar_lines, Qtool_bar_position;
-Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
 Lisp_Object Qleft_fringe, Qright_fringe;
 Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
 Lisp_Object Qtty_color_mode;
@@ -135,14 +118,8 @@ Lisp_Object Qalpha;
 
 Lisp_Object Qface_set_after_frame_default;
 
-Lisp_Object Vterminal_frame;
-Lisp_Object Vdefault_frame_alist;
-Lisp_Object Vdefault_frame_scroll_bars;
-Lisp_Object Vmouse_position_function;
-Lisp_Object Vmouse_highlight;
-static Lisp_Object Vdelete_frame_functions, Qdelete_frame_functions;
+static Lisp_Object Qdelete_frame_functions;
 
-int focus_follows_mouse;
 
 static void
 set_menu_bar_lines_1 (Lisp_Object window, int n)
@@ -716,7 +693,7 @@ affects all frames on the same terminal device.  */)
       if (!NILP (tty))
         {
           name = (char *) alloca (SBYTES (tty) + 1);
-          strncpy (name, SDATA (tty), SBYTES (tty));
+          strncpy (name, SSDATA (tty), SBYTES (tty));
           name[SBYTES (tty)] = 0;
         }
 
@@ -727,7 +704,7 @@ affects all frames on the same terminal device.  */)
       if (!NILP (tty_type))
         {
           type = (char *) alloca (SBYTES (tty_type) + 1);
-          strncpy (type, SDATA (tty_type), SBYTES (tty_type));
+          strncpy (type, SSDATA (tty_type), SBYTES (tty_type));
           type[SBYTES (tty_type)] = 0;
         }
 
@@ -2172,10 +2149,13 @@ frame_name_fnn_p (char *str, EMACS_INT len)
   if (len > 1 && str[0] == 'F')
     {
       char *end_ptr;
+      long int n;
+      errno = 0;
+      n = strtol (str + 1, &end_ptr, 10);
 
-      strtol (str + 1, &end_ptr, 10);
-
-      if (end_ptr == str + len)
+      if (end_ptr == str + len
+	  && INT_MIN <= n && n <= INT_MAX
+	  && ((LONG_MIN < n && n < LONG_MAX) || errno != ERANGE))
 	return 1;
     }
   return 0;
@@ -2196,7 +2176,7 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
 
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
-      if (frame_name_fnn_p (SDATA (f->name),
+      if (frame_name_fnn_p (SSDATA (f->name),
 			    SBYTES (f->name)))
 	return;
 
@@ -2214,7 +2194,7 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
 
       /* Don't allow the user to set the frame name to F<num>, so it
 	 doesn't clash with the names we generate for terminal frames.  */
-      if (frame_name_fnn_p (SDATA (name), SBYTES (name)))
+      if (frame_name_fnn_p (SSDATA (name), SBYTES (name)))
 	error ("Frame names of the form F<num> are usurped by Emacs");
     }
 
@@ -2341,11 +2321,11 @@ If FRAME is omitted, return information on the currently selected frame.  */)
       elt = Fassq (Qforeground_color, alist);
       if (CONSP (elt) && STRINGP (XCDR (elt)))
 	{
-	  if (strncmp (SDATA (XCDR (elt)),
+	  if (strncmp (SSDATA (XCDR (elt)),
 		       unspecified_bg,
 		       SCHARS (XCDR (elt))) == 0)
 	    store_in_alist (&alist, Qforeground_color, tty_color_name (f, bg));
-	  else if (strncmp (SDATA (XCDR (elt)),
+	  else if (strncmp (SSDATA (XCDR (elt)),
 			    unspecified_fg,
 			    SCHARS (XCDR (elt))) == 0)
 	    store_in_alist (&alist, Qforeground_color, tty_color_name (f, fg));
@@ -2355,11 +2335,11 @@ If FRAME is omitted, return information on the currently selected frame.  */)
       elt = Fassq (Qbackground_color, alist);
       if (CONSP (elt) && STRINGP (XCDR (elt)))
 	{
-	  if (strncmp (SDATA (XCDR (elt)),
+	  if (strncmp (SSDATA (XCDR (elt)),
 		       unspecified_fg,
 		       SCHARS (XCDR (elt))) == 0)
 	    store_in_alist (&alist, Qbackground_color, tty_color_name (f, fg));
-	  else if (strncmp (SDATA (XCDR (elt)),
+	  else if (strncmp (SSDATA (XCDR (elt)),
 			    unspecified_bg,
 			    SCHARS (XCDR (elt))) == 0)
 	    store_in_alist (&alist, Qbackground_color, tty_color_name (f, bg));
@@ -2448,7 +2428,7 @@ If FRAME is nil, describe the currently selected frame.  */)
 
 		  if (EQ (parameter, Qbackground_color))
 		    {
-		      color_name = SDATA (value);
+		      color_name = SSDATA (value);
 		      csz = SCHARS (value);
 		      if (strncmp (color_name, unspecified_bg, csz) == 0)
 			value = tty_color_name (f, FRAME_BACKGROUND_PIXEL (f));
@@ -2457,7 +2437,7 @@ If FRAME is nil, describe the currently selected frame.  */)
 		    }
 		  else if (EQ (parameter, Qforeground_color))
 		    {
-		      color_name = SDATA (value);
+		      color_name = SSDATA (value);
 		      csz = SCHARS (value);
 		      if (strncmp (color_name, unspecified_fg, csz) == 0)
 			value = tty_color_name (f, FRAME_FOREGROUND_PIXEL (f));
@@ -3327,16 +3307,16 @@ x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       fontset = fs_query_fontset (arg, 0);
       if (fontset < 0)
 	{
-	  font_object = font_open_by_name (f, SDATA (arg));
+	  font_object = font_open_by_name (f, SSDATA (arg));
 	  if (NILP (font_object))
-	    error ("Font `%s' is not defined", SDATA (arg));
+	    error ("Font `%s' is not defined", SSDATA (arg));
 	  arg = AREF (font_object, FONT_NAME_INDEX);
 	}
       else if (fontset > 0)
 	{
 	  Lisp_Object ascii_font = fontset_ascii (fontset);
 
-	  font_object = font_open_by_name (f, SDATA (ascii_font));
+	  font_object = font_open_by_name (f, SSDATA (ascii_font));
 	  if (NILP (font_object))
 	    error ("Font `%s' is not defined", SDATA (arg));
 	  arg = AREF (font_object, FONT_NAME_INDEX);
@@ -3414,7 +3394,7 @@ x_set_font_backend (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
       char *p0, *p1;
 
       CHECK_STRING (new_value);
-      p0 = p1 = SDATA (new_value);
+      p0 = p1 = SSDATA (new_value);
       new_value = Qnil;
       while (*p0)
 	{
@@ -3791,23 +3771,23 @@ xrdb_get_resource (XrmDatabase rdb, Lisp_Object attribute, Lisp_Object class, Li
 
   /* Start with emacs.FRAMENAME for the name (the specific one)
      and with `Emacs' for the class key (the general one).  */
-  strcpy (name_key, SDATA (Vx_resource_name));
-  strcpy (class_key, SDATA (Vx_resource_class));
+  strcpy (name_key, SSDATA (Vx_resource_name));
+  strcpy (class_key, SSDATA (Vx_resource_class));
 
   strcat (class_key, ".");
-  strcat (class_key, SDATA (class));
+  strcat (class_key, SSDATA (class));
 
   if (!NILP (component))
     {
       strcat (class_key, ".");
-      strcat (class_key, SDATA (subclass));
+      strcat (class_key, SSDATA (subclass));
 
       strcat (name_key, ".");
-      strcat (name_key, SDATA (component));
+      strcat (name_key, SSDATA (component));
     }
 
   strcat (name_key, ".");
-  strcat (name_key, SDATA (attribute));
+  strcat (name_key, SSDATA (attribute));
 
   value = x_get_string_resource (rdb, name_key, class_key);
 
@@ -3924,25 +3904,25 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
 	  switch (type)
 	    {
 	    case RES_TYPE_NUMBER:
-	      return make_number (atoi (SDATA (tem)));
+	      return make_number (atoi (SSDATA (tem)));
 
 	    case RES_TYPE_BOOLEAN_NUMBER:
-	      if (!strcmp (SDATA (tem), "on")
-		  || !strcmp (SDATA (tem), "true"))
+	      if (!strcmp (SSDATA (tem), "on")
+		  || !strcmp (SSDATA (tem), "true"))
 		return make_number (1);
-	      return make_number (atoi (SDATA (tem)));
+	      return make_number (atoi (SSDATA (tem)));
               break;
 
 	    case RES_TYPE_FLOAT:
-	      return make_float (atof (SDATA (tem)));
+	      return make_float (atof (SSDATA (tem)));
 
 	    case RES_TYPE_BOOLEAN:
 	      tem = Fdowncase (tem);
-	      if (!strcmp (SDATA (tem), "on")
+	      if (!strcmp (SSDATA (tem), "on")
 #ifdef HAVE_NS
-                  || !strcmp(SDATA(tem), "yes")
+                  || !strcmp (SSDATA (tem), "yes")
 #endif
-		  || !strcmp (SDATA (tem), "true"))
+		  || !strcmp (SSDATA (tem), "true"))
 		return Qt;
 	      else
 		return Qnil;
@@ -3956,17 +3936,17 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
 	      {
 		Lisp_Object lower;
 		lower = Fdowncase (tem);
-		if (!strcmp (SDATA (lower), "on")
+		if (!strcmp (SSDATA (lower), "on")
 #ifdef HAVE_NS
-                    || !strcmp(SDATA(lower), "yes")
+                    || !strcmp (SSDATA (lower), "yes")
 #endif
-		    || !strcmp (SDATA (lower), "true"))
+		    || !strcmp (SSDATA (lower), "true"))
 		  return Qt;
-		else if (!strcmp (SDATA (lower), "off")
+		else if (!strcmp (SSDATA (lower), "off")
 #ifdef HAVE_NS
-                      || !strcmp(SDATA(lower), "no")
+                      || !strcmp (SSDATA (lower), "no")
 #endif
-		      || !strcmp (SDATA (lower), "false"))
+		      || !strcmp (SSDATA (lower), "false"))
 		  return Qnil;
 		else
 		  return Fintern (tem, Qnil);
@@ -3982,7 +3962,7 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
   return Fcdr (tem);
 }
 
-Lisp_Object
+static Lisp_Object
 x_frame_get_arg (struct frame *f, Lisp_Object alist, Lisp_Object param,
 		 const char *attribute, const char *class,
 		 enum resource_types type)
@@ -4060,7 +4040,7 @@ On Nextstep, this just calls `ns-parse-geometry'.  */)
 
   CHECK_STRING (string);
 
-  geometry = XParseGeometry ((char *) SDATA (string),
+  geometry = XParseGeometry (SSDATA (string),
 			     &x, &y, &width, &height);
   result = Qnil;
   if (geometry & XValue)
@@ -4464,7 +4444,7 @@ syms_of_frame (void)
   }
 
 #ifdef HAVE_WINDOW_SYSTEM
-  DEFVAR_LISP ("x-resource-name", &Vx_resource_name,
+  DEFVAR_LISP ("x-resource-name", Vx_resource_name,
     doc: /* The name Emacs uses to look up X resources.
 `x-get-resource' uses this as the first component of the instance name
 when requesting resource values.
@@ -4476,7 +4456,7 @@ It may be useful to bind this variable locally around a call
 to `x-get-resource'.  See also the variable `x-resource-class'.  */);
   Vx_resource_name = Qnil;
 
-  DEFVAR_LISP ("x-resource-class", &Vx_resource_class,
+  DEFVAR_LISP ("x-resource-class", Vx_resource_class,
     doc: /* The class Emacs uses to look up X resources.
 `x-get-resource' uses this as the first component of the instance class
 when requesting resource values.
@@ -4488,7 +4468,7 @@ but binding this variable locally around a call to `x-get-resource'
 is a reasonable practice.  See also the variable `x-resource-name'.  */);
   Vx_resource_class = build_string (EMACS_CLASS);
 
-  DEFVAR_LISP ("frame-alpha-lower-limit", &Vframe_alpha_lower_limit,
+  DEFVAR_LISP ("frame-alpha-lower-limit", Vframe_alpha_lower_limit,
     doc: /* The lower limit of the frame opacity (alpha transparency).
 The value should range from 0 (invisible) to 100 (completely opaque).
 You can also use a floating number between 0.0 and 1.0.
@@ -4496,7 +4476,7 @@ The default is 20.  */);
   Vframe_alpha_lower_limit = make_number (20);
 #endif
 
-  DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
+  DEFVAR_LISP ("default-frame-alist", Vdefault_frame_alist,
 	       doc: /* Alist of default values for frame creation.
 These may be set in your init file, like this:
   (setq default-frame-alist '((width . 80) (height . 55) (menu-bar-lines . 1)))
@@ -4511,7 +4491,7 @@ The `menu-bar-lines' element of the list controls whether new frames
 Setting this variable does not affect existing frames, only new ones.  */);
   Vdefault_frame_alist = Qnil;
 
-  DEFVAR_LISP ("default-frame-scroll-bars", &Vdefault_frame_scroll_bars,
+  DEFVAR_LISP ("default-frame-scroll-bars", Vdefault_frame_scroll_bars,
 	       doc: /* Default position of scroll bars on this window-system.  */);
 #ifdef HAVE_WINDOW_SYSTEM
 #if defined(HAVE_NTGUI) || defined(NS_IMPL_COCOA) || (defined(USE_GTK) && defined(USE_TOOLKIT_SCROLL_BARS))
@@ -4525,10 +4505,10 @@ Setting this variable does not affect existing frames, only new ones.  */);
   Vdefault_frame_scroll_bars = Qnil;
 #endif
 
-  DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
+  DEFVAR_LISP ("terminal-frame", Vterminal_frame,
                doc: /* The initial frame-object, which represents Emacs's stdout.  */);
 
-  DEFVAR_LISP ("mouse-position-function", &Vmouse_position_function,
+  DEFVAR_LISP ("mouse-position-function", Vmouse_position_function,
 	       doc: /* If non-nil, function to transform normal value of `mouse-position'.
 `mouse-position' calls this function, passing its usual return value as
 argument, and returns whatever this function returns.
@@ -4536,7 +4516,7 @@ This abnormal hook exists for the benefit of packages like `xt-mouse.el'
 which need to do mouse handling at the Lisp level.  */);
   Vmouse_position_function = Qnil;
 
-  DEFVAR_LISP ("mouse-highlight", &Vmouse_highlight,
+  DEFVAR_LISP ("mouse-highlight", Vmouse_highlight,
 	       doc: /* If non-nil, clickable text is highlighted when mouse is over it.
 If the value is an integer, highlighting is only shown after moving the
 mouse, while keyboard input turns off the highlight even when the mouse
@@ -4544,12 +4524,12 @@ is over the clickable text.  However, the mouse shape still indicates
 when the mouse is over clickable text.  */);
   Vmouse_highlight = Qt;
 
-  DEFVAR_LISP ("make-pointer-invisible", &Vmake_pointer_invisible,
+  DEFVAR_LISP ("make-pointer-invisible", Vmake_pointer_invisible,
                doc: /* If non-nil, make pointer invisible while typing.
 The pointer becomes visible again when the mouse is moved.  */);
   Vmake_pointer_invisible = Qt;
 
-  DEFVAR_LISP ("delete-frame-functions", &Vdelete_frame_functions,
+  DEFVAR_LISP ("delete-frame-functions", Vdelete_frame_functions,
 	       doc: /* Functions to be run before deleting a frame.
 The functions are run with one arg, the frame to be deleted.
 See `delete-frame'.
@@ -4562,7 +4542,7 @@ recursively).  */);
   Qdelete_frame_functions = intern_c_string ("delete-frame-functions");
   staticpro (&Qdelete_frame_functions);
 
-  DEFVAR_LISP ("menu-bar-mode", &Vmenu_bar_mode,
+  DEFVAR_LISP ("menu-bar-mode", Vmenu_bar_mode,
                doc: /* Non-nil if Menu-Bar mode is enabled.
 See the command `menu-bar-mode' for a description of this minor mode.
 Setting this variable directly does not take effect;
@@ -4570,7 +4550,7 @@ either customize it (see the info node `Easy Customization')
 or call the function `menu-bar-mode'.  */);
   Vmenu_bar_mode = Qt;
 
-  DEFVAR_LISP ("tool-bar-mode", &Vtool_bar_mode,
+  DEFVAR_LISP ("tool-bar-mode", Vtool_bar_mode,
                doc: /* Non-nil if Tool-Bar mode is enabled.
 See the command `tool-bar-mode' for a description of this minor mode.
 Setting this variable directly does not take effect;
@@ -4597,20 +4577,12 @@ displayed.
 
 This variable is local to the current terminal and cannot be buffer-local.  */);
 
-  DEFVAR_BOOL ("focus-follows-mouse", &focus_follows_mouse,
+  DEFVAR_BOOL ("focus-follows-mouse", focus_follows_mouse,
 	       doc: /* Non-nil if window system changes focus when you move the mouse.
 You should set this variable to tell Emacs how your window manager
 handles focus, since there is no way in general for Emacs to find out
 automatically.  See also `mouse-autoselect-window'.  */);
-#ifdef HAVE_WINDOW_SYSTEM
-#if defined(HAVE_NTGUI) || defined(HAVE_NS)
   focus_follows_mouse = 0;
-#else
-  focus_follows_mouse = 1;
-#endif
-#else
-  focus_follows_mouse = 0;
-#endif
 
   staticpro (&Vframe_list);
 
@@ -4668,4 +4640,3 @@ automatically.  See also `mouse-autoselect-window'.  */);
 #endif
 
 }
-

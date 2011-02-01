@@ -1,6 +1,6 @@
 ;;; cedet-idutils.el --- ID Utils support for CEDET.
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;; Version: 0.2
@@ -200,5 +200,4 @@ IDUtils must start from scratch when updating a database."
 
 (provide 'cedet-idutils)
 
-;; arch-tag: 663ca082-5b3d-4384-8710-cc74f990b501
 ;;; cedet-idutils.el ends here

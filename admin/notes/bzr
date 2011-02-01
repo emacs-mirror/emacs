@@ -38,3 +38,84 @@ Or use shelves; or rebase; or do something else.  See the thread for
 yet another fun excursion into the exciting world of version control.
 
 http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00086.html
+
+* Installing changes from gnulib
+Some of the files in Emacs are copied from gnulib.  To synchronize
+these files from the version of gnulib that you have checked out into
+a sibling directory of your branch, type "make sync-from-gnulib"; this
+will check out the latest version of gnulib if there is no sibling
+directory already.  It is a good idea to run "bzr status" afterwards,
+so that if a gnulib module added a file, you can record the new file
+using "bzr add".  After synchronizing from gnulib, do a "make" in the
+usual way.
+
+To change the set of gnulib modules, change the GNULIB_MODULES
+variable in the top-level Makefile.in, and then run:
+
+  ./config.status
+  make sync-from-gnulib
+  bzr status
+
+The last command will mention files that may need to be added using
+"bzr add".  If you remove a gnulib module, or if a gnulib module
+removes a file, then remove the corresponding files by hand.
+
+* How to merge changes from emacs-23 to trunk
+
+The following description uses bound branches, presumably it works in
+a similar way with unbound ones.
+
+1) Get clean, up-to-date copies of the emacs-23 and trunk branches.
+Check for any uncommitted changes with bzr status.
+
+2) M-x cd /path/to/trunk
+
+3) load admin/bzrmerge.el
+
+4) M-x bzrmerge RET /path/to/emacs-23 RET
+
+It will prompt about revisions that should be skipped, based on the
+regexp in bzrmerge-missing.  If there are more revisions that you know
+need skipping, you'll have to do that by hand.
+
+5) It will stop if there are any conflicts.  Resolve them.
+Using smerge-mode, there are menu items to skip to the next conflict,
+and to take either the trunk, branch, or both copies.
+
+6) After resolving all conflicts, you might need to run the bzmerge
+command again if there are more revisions still to merge.
+
+Do not commit (or exit Emacs) until you have run bzrmerge to completion.
+
+Before committing, check bzr status and bzr diff output.
+If you have run bzrmerge enough times, the "pending merge tip" in bzr
+status should be the last revision from the emacs-23 branch, and
+bzr status -v should show all the revisions you expect to merge.
+
+(Note that it will also show "skipped" revisions.  This is expected,
+and is due to a technical limitation of bzr.  The log data for those
+revisions gets merged, the actual changes themselves do not.
+http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00609.html )
+
+Note that ChangeLog entries are automatically merged to the top with
+today's date, but you still might want to check them to see that too
+much is not being included, or whitespace between entries is not missing.
+
+Notes:
+
+1) A lot that was in tramp.el in emacs-23 has moved to tramp-sh.el in
+the trunk.  If you end up with a conflict in tramp.el, the changes may
+need to go to tramp-sh.el instead.  Remember to update the file name in
+the ChangeLog.
+
+2) If a file is modified in emacs-23, and deleted in the trunk, you
+get a "contents conflict".  Assuming the changes don't need to be in
+the trunk at all, use `bzr resolve path/to/file --take-this' to keep the
+trunk version.  Prior to bzr 2.2.3, this may fail.  You can just
+delete the .OTHER etc files by hand and use bzr resolve path/to/file.
+
+3) Conflicts in autoload md5sums in comments.  Strictly speaking, the
+right thing to do is merge everything else, resolve the conflict by
+choosing either the trunk or branch version, then run `make -C lisp
+autoloads' to update the md5sums to the correct trunk value before
+committing.

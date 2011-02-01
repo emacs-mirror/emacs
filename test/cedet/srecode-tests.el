@@ -1,6 +1,6 @@
 ;;; srecode-tests.el --- Some tests for CEDET's srecode
 
-;; Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -293,5 +293,4 @@ Dump out the extracted dictionary."
 	  (princ "\n--------------------------------------------\n")
 	  (srecode-dump extract))))))
 
-;; arch-tag: 7a467849-b415-4bdc-ba2a-284ace156a65
 ;;; srecode-tests.el ends here

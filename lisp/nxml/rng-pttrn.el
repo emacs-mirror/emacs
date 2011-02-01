@@ -1,6 +1,6 @@
 ;;; rng-pttrn.el --- RELAX NG patterns
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -186,5 +186,4 @@
 
 (provide 'rng-pttrn)
 
-;; arch-tag: 9418e269-ddd4-4037-861f-ff903f48f008
 ;;; rng-pttrn.el ends here

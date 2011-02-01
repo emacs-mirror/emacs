@@ -1,7 +1,6 @@
 ;;; windmove.el --- directional window-selection routines
 ;;
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Hovav Shacham (hovav@cs.stanford.edu)
 ;; Created: 17 October 1998
@@ -568,5 +567,4 @@ Default MODIFIER is 'shift."
 
 (provide 'windmove)
 
-;; arch-tag: 56267432-bf1a-4296-a9a0-85c6bd9f2375
 ;;; windmove.el ends here

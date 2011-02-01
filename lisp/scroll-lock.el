@@ -1,6 +1,6 @@
 ;;; scroll-lock.el --- Scroll lock scrolling.
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2011 Free Software Foundation, Inc.
 
 ;; Author: Ralf Angeli <angeli@iwi.uni-sb.de>
 ;; Maintainer: FSF
@@ -123,5 +123,4 @@ during scrolling."
 
 (provide 'scroll-lock)
 
-;; arch-tag: 148fc8e8-67e0-4638-bb34-3291595ab7e1
 ;;; scroll-lock.el ends here

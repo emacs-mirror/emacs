@@ -1,7 +1,6 @@
 ;;; text-mode.el --- text mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 1992, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1992, 1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -182,5 +181,4 @@ The argument NLINES says how many lines to center."
 	   (setq nlines (1+ nlines))
 	   (forward-line -1)))))
 
-;; arch-tag: a07ccaad-da13-4d7b-9c61-cd04f5926aab
 ;;; text-mode.el ends here

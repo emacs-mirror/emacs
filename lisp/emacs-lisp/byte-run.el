@@ -1,7 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -292,5 +291,4 @@ In interpreted code, this is entirely equivalent to `progn'."
 ;;       (file-format emacs19))"
 ;;   nil)
 
-;; arch-tag: 76f8328a-1f66-4df2-9b6d-5c3666dc05e9
 ;;; byte-run.el ends here

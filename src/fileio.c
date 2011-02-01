@@ -1,8 +1,6 @@
 /* File IO for GNU Emacs.
 
-Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997,
-  1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,10 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <setjmp.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #if !defined (S_ISLNK) && defined (S_IFLNK)
 #  define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
@@ -125,17 +120,6 @@ int auto_save_error_occurred;
    auto saving and recovering a file.  */
 Lisp_Object Qauto_save_coding;
 
-/* Coding system for file names, or nil if none.  */
-Lisp_Object Vfile_name_coding_system;
-
-/* Coding system for file names used only when
-   Vfile_name_coding_system is nil.  */
-Lisp_Object Vdefault_file_name_coding_system;
-
-/* Alist of elements (REGEXP . HANDLER) for file names
-   whose I/O is done with a special handler.  */
-Lisp_Object Vfile_name_handler_alist;
-
 /* Property name of a file name handler,
    which gives a list of operations it handles..  */
 Lisp_Object Qoperations;
@@ -143,46 +127,17 @@ Lisp_Object Qoperations;
 /* Lisp functions for translating file formats */
 Lisp_Object Qformat_decode, Qformat_annotate_function;
 
-/* Function to be called to decide a coding system of a reading file.  */
-Lisp_Object Vset_auto_coding_function;
-
-/* Functions to be called to process text properties in inserted file.  */
-Lisp_Object Vafter_insert_file_functions;
-
 /* Lisp function for setting buffer-file-coding-system and the
    multibyteness of the current buffer after inserting a file.  */
 Lisp_Object Qafter_insert_file_set_coding;
 
-/* Functions to be called to create text property annotations for file.  */
-Lisp_Object Vwrite_region_annotate_functions;
 Lisp_Object Qwrite_region_annotate_functions;
-Lisp_Object Vwrite_region_post_annotation_function;
-
-/* During build_annotations, each time an annotation function is called,
-   this holds the annotations made by the previous functions.  */
-Lisp_Object Vwrite_region_annotations_so_far;
-
 /* Each time an annotation function changes the buffer, the new buffer
    is added here.  */
 Lisp_Object Vwrite_region_annotation_buffers;
 
-/* File name in which we write a list of all our auto save files.  */
-Lisp_Object Vauto_save_list_file_name;
-
-/* Whether or not files are auto-saved into themselves.  */
-Lisp_Object Vauto_save_visited_file_name;
-
-/* Whether or not to continue auto-saving after a large deletion.  */
-Lisp_Object Vauto_save_include_big_deletions;
-
 #ifdef HAVE_FSYNC
-/* Nonzero means skip the call to fsync in Fwrite-region.  */
-int write_region_inhibit_fsync;
 #endif
-
-/* Non-zero means call move-file-to-trash in Fdelete_file or
-   Fdelete_directory_internal.  */
-int delete_by_moving_to_trash;
 
 Lisp_Object Qdelete_by_moving_to_trash;
 
@@ -196,18 +151,7 @@ Lisp_Object Qcopy_directory;
 Lisp_Object Qdelete_directory;
 
 #ifdef WINDOWSNT
-extern Lisp_Object Vw32_get_true_file_attributes;
 #endif
-
-/* These variables describe handlers that have "already" had a chance
-   to handle the current operation.
-
-   Vinhibit_file_name_handlers is a list of file name handlers.
-   Vinhibit_file_name_operation is the operation being handled.
-   If we try to handle that operation, we ignore those handlers.  */
-
-static Lisp_Object Vinhibit_file_name_handlers;
-static Lisp_Object Vinhibit_file_name_operation;
 
 Lisp_Object Qfile_error, Qfile_already_exists, Qfile_date_error;
 Lisp_Object Qexcl;
@@ -248,7 +192,7 @@ report_file_error (const char *string, Lisp_Object data)
 	  {
 	    int c;
 
-	    str = (char *) SDATA (errstring);
+	    str = SSDATA (errstring);
 	    c = STRING_CHAR (str);
 	    Faset (errstring, make_number (0), make_number (DOWNCASE (c)));
 	  }
@@ -556,7 +500,7 @@ For a Unix-syntax file name, just appends a slash.  */)
     return call2 (handler, Qfile_name_as_directory, file);
 
   buf = (char *) alloca (SBYTES (file) + 10);
-  file_name_as_directory (buf, SDATA (file));
+  file_name_as_directory (buf, SSDATA (file));
   return make_specified_string (buf, -1, strlen (buf),
 				STRING_MULTIBYTE (file));
 }
@@ -615,7 +559,7 @@ In Unix-syntax, this function just removes the final slash.  */)
     return call2 (handler, Qdirectory_file_name, directory);
 
   buf = (char *) alloca (SBYTES (directory) + 20);
-  directory_file_name (SDATA (directory), buf);
+  directory_file_name (SSDATA (directory), buf);
   return make_specified_string (buf, -1, strlen (buf),
 				STRING_MULTIBYTE (directory));
 }
@@ -740,17 +684,13 @@ make_temp_name (Lisp_Object prefix, int base64_p)
 	       as bad as (and in many cases worse than) throwing the
 	       error, or to ignore the error, which will likely result
 	       in looping through 225307 stat's, which is not only
-	       dog-slow, but also useless since it will fallback to
-	       the errow below, anyway.  */
+	       dog-slow, but also useless since eventually nil would
+	       have to be returned anyway.  */
 	    report_file_error ("Cannot create temporary name for prefix",
 			       Fcons (prefix, Qnil));
 	  /* not reached */
 	}
     }
-
-  error ("Cannot create temporary name for prefix `%s'",
-	 SDATA (prefix));
-  return Qnil;
 }
 
 
@@ -782,10 +722,15 @@ DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
 Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative
 \(does not start with slash or tilde); if DEFAULT-DIRECTORY is nil or missing,
 the current buffer's value of `default-directory' is used.
+NAME should be a string that is a valid file name for the underlying
+filesystem.
 File name components that are `.' are removed, and
 so are file name components followed by `..', along with the `..' itself;
 note that these simplifications are done without checking the resulting
 file names in the file system.
+Multiple consecutive slashes are collapsed into a single slash,
+except at the beginning of the file name when they are significant (e.g.,
+UNC file names on MS-Windows.)
 An initial `~/' expands to your home directory.
 An initial `~USER/' expands to USER's home directory.
 See also the function `substitute-in-file-name'.
@@ -793,7 +738,7 @@ See also the function `substitute-in-file-name'.
 For technical reasons, this function can return correct but
 non-intuitive results for the root directory; for instance,
 \(expand-file-name ".." "/") returns "/..".  For this reason, use
-(directory-file-name (file-name-directory dirname)) to traverse a
+\(directory-file-name (file-name-directory dirname)) to traverse a
 filesystem tree, not (expand-file-name ".."  dirname).  */)
   (Lisp_Object name, Lisp_Object default_directory)
 {
@@ -990,7 +935,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (nm[1]))
 	    {
-	      if (strcmp (nm, SDATA (name)) != 0)
+	      if (strcmp (nm, SSDATA (name)) != 0)
 		name = make_specified_string (nm, -1, strlen (nm), multibyte);
 	    }
 	  else
@@ -1006,7 +951,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	    }
 	  return name;
 #else /* not DOS_NT */
-	  if (strcmp (nm, SDATA (name)) == 0)
+	  if (strcmp (nm, SSDATA (name)) == 0)
 	    return name;
 	  return make_specified_string (nm, -1, strlen (nm), multibyte);
 #endif /* not DOS_NT */
@@ -1740,13 +1685,13 @@ those `/' is discarded.  */)
 	    orig = make_unibyte_string (o, orig_length);
 	    decoded = DECODE_FILE (orig);
 	    decoded_length = SBYTES (decoded);
-	    strncpy (x, SDATA (decoded), decoded_length);
+	    strncpy (x, SSDATA (decoded), decoded_length);
 	    x += decoded_length;
 
 	    /* If environment variable needed decoding, return value
 	       needs to be multibyte.  */
 	    if (decoded_length != orig_length
-		|| strncmp (SDATA (decoded), o, orig_length))
+		|| strncmp (SSDATA (decoded), o, orig_length))
 	      multibyte = 1;
 	  }
       }
@@ -1816,7 +1761,7 @@ barf_or_query_if_file_exists (Lisp_Object absname, const unsigned char *querystr
 
   /* stat is a good way to tell whether the file exists,
      regardless of what access permissions it has.  */
-  if (lstat (SDATA (encoded_filename), &statbuf) >= 0)
+  if (lstat (SSDATA (encoded_filename), &statbuf) >= 0)
     {
       if (! interactive)
 	xsignal2 (Qfile_already_exists,
@@ -1914,7 +1859,7 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "copy to it",
 				  INTEGERP (ok_if_already_exists), &out_st, 0);
-  else if (stat (SDATA (encoded_newname), &out_st) < 0)
+  else if (stat (SSDATA (encoded_newname), &out_st) < 0)
     out_st.st_mode = 0;
 
 #ifdef WINDOWSNT
@@ -1947,7 +1892,7 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
     }
 #else /* not WINDOWSNT */
   immediate_quit = 1;
-  ifd = emacs_open (SDATA (encoded_file), O_RDONLY, 0);
+  ifd = emacs_open (SSDATA (encoded_file), O_RDONLY, 0);
   immediate_quit = 0;
 
   if (ifd < 0)
@@ -1997,7 +1942,7 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 		    | (NILP (ok_if_already_exists) ? O_EXCL : 0),
 		    S_IREAD | S_IWRITE);
 #else  /* not MSDOS */
-  ofd = emacs_open (SDATA (encoded_newname),
+  ofd = emacs_open (SSDATA (encoded_newname),
 		    O_WRONLY | O_TRUNC | O_CREAT
 		    | (NILP (ok_if_already_exists) ? O_EXCL : 0),
 		    0666);
@@ -2048,7 +1993,7 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 	  EMACS_TIME atime, mtime;
 	  EMACS_SET_SECS_USECS (atime, st.st_atime, 0);
 	  EMACS_SET_SECS_USECS (mtime, st.st_mtime, 0);
-	  if (set_file_times (SDATA (encoded_newname),
+	  if (set_file_times (SSDATA (encoded_newname),
 			      atime, mtime))
 	    xsignal2 (Qfile_date_error,
 		      build_string ("Cannot set file date"), newname);
@@ -2164,7 +2109,7 @@ With a prefix argument, TRASH is nil.  */)
 
   encoded_file = ENCODE_FILE (filename);
 
-  if (0 > unlink (SDATA (encoded_file)))
+  if (0 > unlink (SSDATA (encoded_file)))
     report_file_error ("Removing old name", list1 (filename));
   return Qnil;
 }
@@ -2245,7 +2190,7 @@ This is what happens in interactive use with M-x.  */)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "rename to it",
 				  INTEGERP (ok_if_already_exists), 0, 0);
-  if (0 > rename (SDATA (encoded_file), SDATA (encoded_newname)))
+  if (0 > rename (SSDATA (encoded_file), SSDATA (encoded_newname)))
     {
       if (errno == EXDEV)
 	{
@@ -2332,8 +2277,8 @@ This is what happens in interactive use with M-x.  */)
     barf_or_query_if_file_exists (newname, "make it a new name",
 				  INTEGERP (ok_if_already_exists), 0, 0);
 
-  unlink (SDATA (newname));
-  if (0 > link (SDATA (encoded_file), SDATA (encoded_newname)))
+  unlink (SSDATA (newname));
+  if (0 > link (SSDATA (encoded_file), SSDATA (encoded_newname)))
     report_file_error ("Adding new name", list2 (file, newname));
 
   UNGCPRO;
@@ -2391,15 +2336,15 @@ This happens for interactive use with M-x.  */)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (linkname, "make it a link",
 				  INTEGERP (ok_if_already_exists), 0, 0);
-  if (0 > symlink (SDATA (encoded_filename),
-		   SDATA (encoded_linkname)))
+  if (0 > symlink (SSDATA (encoded_filename),
+		   SSDATA (encoded_linkname)))
     {
       /* If we didn't complain already, silently delete existing file.  */
       if (errno == EEXIST)
 	{
-	  unlink (SDATA (encoded_linkname));
-	  if (0 <= symlink (SDATA (encoded_filename),
-			    SDATA (encoded_linkname)))
+	  unlink (SSDATA (encoded_linkname));
+	  if (0 <= symlink (SSDATA (encoded_filename),
+			    SSDATA (encoded_linkname)))
 	    {
 	      UNGCPRO;
 	      return Qnil;
@@ -2499,7 +2444,7 @@ Use `file-symlink-p' to test for such links.  */)
 
   absname = ENCODE_FILE (absname);
 
-  return (stat (SDATA (absname), &statbuf) >= 0) ? Qt : Qnil;
+  return (stat (SSDATA (absname), &statbuf) >= 0) ? Qt : Qnil;
 }
 
 DEFUN ("file-executable-p", Ffile_executable_p, Sfile_executable_p, 1, 1, 0,
@@ -2521,7 +2466,7 @@ For a directory, this means you can access files in that directory.  */)
 
   absname = ENCODE_FILE (absname);
 
-  return (check_executable (SDATA (absname)) ? Qt : Qnil);
+  return (check_executable (SSDATA (absname)) ? Qt : Qnil);
 }
 
 DEFUN ("file-readable-p", Ffile_readable_p, Sfile_readable_p, 1, 1, 0,
@@ -2558,13 +2503,13 @@ See also `file-exists-p' and `file-attributes'.  */)
   /* Opening a fifo without O_NONBLOCK can wait.
      We don't want to wait.  But we don't want to mess wth O_NONBLOCK
      except in the case of a fifo, on a system which handles it.  */
-  desc = stat (SDATA (absname), &statbuf);
+  desc = stat (SSDATA (absname), &statbuf);
   if (desc < 0)
     return Qnil;
   if (S_ISFIFO (statbuf.st_mode))
     flags |= O_NONBLOCK;
 #endif
-  desc = emacs_open (SDATA (absname), flags, 0);
+  desc = emacs_open (SSDATA (absname), flags, 0);
   if (desc < 0)
     return Qnil;
   emacs_close (desc);
@@ -2592,8 +2537,8 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
     return call2 (handler, Qfile_writable_p, absname);
 
   encoded = ENCODE_FILE (absname);
-  if (stat (SDATA (encoded), &statbuf) >= 0)
-    return (check_writable (SDATA (encoded))
+  if (stat (SSDATA (encoded), &statbuf) >= 0)
+    return (check_writable (SSDATA (encoded))
 	    ? Qt : Qnil);
 
   dir = Ffile_name_directory (absname);
@@ -2611,7 +2556,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
     return Qnil;
   return (statbuf.st_mode & S_IFMT) == S_IFDIR ? Qt : Qnil;
 #else
-  return (check_writable (!NILP (dir) ? (char *) SDATA (dir) : "")
+  return (check_writable (!NILP (dir) ? SSDATA (dir) : "")
 	  ? Qt : Qnil);
 #endif
 }
@@ -2638,9 +2583,9 @@ If there is no error, returns nil.  */)
 
   encoded_filename = ENCODE_FILE (absname);
 
-  fd = emacs_open (SDATA (encoded_filename), O_RDONLY, 0);
+  fd = emacs_open (SSDATA (encoded_filename), O_RDONLY, 0);
   if (fd < 0)
-    report_file_error (SDATA (string), Fcons (filename, Qnil));
+    report_file_error (SSDATA (string), Fcons (filename, Qnil));
   emacs_close (fd);
 
   return Qnil;
@@ -2684,7 +2629,7 @@ points to a nonexistent file.  */)
       memset (buf, 0, bufsize);
 
       errno = 0;
-      valsize = readlink (SDATA (filename), buf, bufsize);
+      valsize = readlink (SSDATA (filename), buf, bufsize);
       if (valsize == -1)
 	{
 #ifdef ERANGE
@@ -2733,7 +2678,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
 
   absname = ENCODE_FILE (absname);
 
-  if (stat (SDATA (absname), &st) < 0)
+  if (stat (SSDATA (absname), &st) < 0)
     return Qnil;
   return (st.st_mode & S_IFMT) == S_IFDIR ? Qt : Qnil;
 }
@@ -2801,7 +2746,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
     return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
   }
 #else
-  if (stat (SDATA (absname), &st) < 0)
+  if (stat (SSDATA (absname), &st) < 0)
     return Qnil;
   return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
 #endif
@@ -2958,7 +2903,7 @@ Return nil, if file does not exist or is not accessible.  */)
 
   absname = ENCODE_FILE (absname);
 
-  if (stat (SDATA (absname), &st) < 0)
+  if (stat (SSDATA (absname), &st) < 0)
     return Qnil;
 
   return make_number (st.st_mode & 07777);
@@ -2988,7 +2933,7 @@ symbolic notation, like the `chmod' command from GNU Coreutils.  */)
 
   encoded_absname = ENCODE_FILE (absname);
 
-  if (chmod (SDATA (encoded_absname), XINT (mode)) < 0)
+  if (chmod (SSDATA (encoded_absname), XINT (mode)) < 0)
     report_file_error ("Doing chmod", Fcons (absname, Qnil));
 
   return Qnil;
@@ -3055,7 +3000,7 @@ Use the current time if TIME is nil.  TIME is in the format of
     EMACS_SET_SECS (t, sec);
     EMACS_SET_USECS (t, usec);
 
-    if (set_file_times (SDATA (encoded_absname), t, t))
+    if (set_file_times (SSDATA (encoded_absname), t, t))
       {
 #ifdef DOS_NT
         struct stat st;
@@ -3118,12 +3063,12 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   absname2 = ENCODE_FILE (absname2);
   UNGCPRO;
 
-  if (stat (SDATA (absname1), &st) < 0)
+  if (stat (SSDATA (absname1), &st) < 0)
     return Qnil;
 
   mtime1 = st.st_mtime;
 
-  if (stat (SDATA (absname2), &st) < 0)
+  if (stat (SSDATA (absname2), &st) < 0)
     return Qt;
 
   return (mtime1 > st.st_mtime) ? Qt : Qnil;
@@ -3305,12 +3250,12 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
     /* Tell stat to use expensive method to get accurate info.  */
     Vw32_get_true_file_attributes = Qt;
-    total = stat (SDATA (filename), &st);
+    total = stat (SSDATA (filename), &st);
     Vw32_get_true_file_attributes = tem;
   }
   if (total < 0)
 #else
-  if (stat (SDATA (filename), &st) < 0)
+  if (stat (SSDATA (filename), &st) < 0)
 #endif /* WINDOWSNT */
     {
       if (fd >= 0) emacs_close (fd);
@@ -3342,7 +3287,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 #endif
 
   if (fd < 0)
-    if ((fd = emacs_open (SDATA (filename), O_RDONLY, 0)) < 0)
+    if ((fd = emacs_open (SSDATA (filename), O_RDONLY, 0)) < 0)
       goto badopen;
 
   /* Replacement should preserve point as it preserves markers.  */
@@ -5030,8 +4975,8 @@ e_write (int desc, Lisp_Object string, int start, int end, struct coding_system 
 	  coding->produced -=
 	    emacs_write (desc,
 			 STRINGP (coding->dst_object)
-			 ? SDATA (coding->dst_object)
-			 : BYTE_POS_ADDR (coding->dst_pos_byte),
+			 ? SSDATA (coding->dst_object)
+			 : (char *) BYTE_POS_ADDR (coding->dst_pos_byte),
 			 coding->produced);
 
 	  if (coding->produced)
@@ -5076,7 +5021,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
 
   filename = ENCODE_FILE (b->filename);
 
-  if (stat (SDATA (filename), &st) < 0)
+  if (stat (SSDATA (filename), &st) < 0)
     {
       /* If the file doesn't exist now and didn't exist before,
 	 we say that it isn't modified, provided the error is a tame one.  */
@@ -5153,7 +5098,7 @@ An argument specifies the modification time value to use
 
       filename = ENCODE_FILE (filename);
 
-      if (stat (SDATA (filename), &st) >= 0)
+      if (stat (SSDATA (filename), &st) >= 0)
         {
 	  current_buffer->modtime = st.st_mtime;
           current_buffer->modtime_size = st.st_size;
@@ -5210,7 +5155,7 @@ auto_save_1 (void)
   /* Get visited file's mode to become the auto save file's mode.  */
   if (! NILP (current_buffer->filename))
     {
-      if (stat (SDATA (current_buffer->filename), &st) >= 0)
+      if (stat (SSDATA (current_buffer->filename), &st) >= 0)
 	/* But make sure we can overwrite it later!  */
 	auto_save_mode_bits = st.st_mode | 0600;
       else if ((modes = Ffile_modes (current_buffer->filename),
@@ -5227,7 +5172,7 @@ auto_save_1 (void)
 
 static Lisp_Object
 do_auto_save_unwind (Lisp_Object arg)  /* used as unwind-protect function */
-                     
+
 {
   FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
   auto_saving = 0;
@@ -5242,7 +5187,7 @@ do_auto_save_unwind (Lisp_Object arg)  /* used as unwind-protect function */
 
 static Lisp_Object
 do_auto_save_unwind_1 (Lisp_Object value)  /* used as unwind-protect function */
-                       
+
 {
   minibuffer_auto_raise = XINT (value);
   return Qnil;
@@ -5333,7 +5278,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	  UNGCPRO;
 	}
 
-      stream = fopen (SDATA (listfile), "w");
+      stream = fopen (SSDATA (listfile), "w");
     }
 
   record_unwind_protect (do_auto_save_unwind,
@@ -5640,13 +5585,13 @@ syms_of_fileio (void)
   staticpro (&Qfind_buffer_file_type);
 #endif /* DOS_NT */
 
-  DEFVAR_LISP ("file-name-coding-system", &Vfile_name_coding_system,
+  DEFVAR_LISP ("file-name-coding-system", Vfile_name_coding_system,
 	       doc: /* *Coding system for encoding file names.
 If it is nil, `default-file-name-coding-system' (which see) is used.  */);
   Vfile_name_coding_system = Qnil;
 
   DEFVAR_LISP ("default-file-name-coding-system",
-	       &Vdefault_file_name_coding_system,
+	       Vdefault_file_name_coding_system,
 	       doc: /* Default coding system for encoding file names.
 This variable is used only when `file-name-coding-system' is nil.
 
@@ -5681,7 +5626,7 @@ of file names regardless of the current language environment.  */);
   Fput (Qfile_date_error, Qerror_message,
 	make_pure_c_string ("Cannot set file date"));
 
-  DEFVAR_LISP ("file-name-handler-alist", &Vfile_name_handler_alist,
+  DEFVAR_LISP ("file-name-handler-alist", Vfile_name_handler_alist,
 	       doc: /* *Alist of elements (REGEXP . HANDLER) for file names handled specially.
 If a file name matches REGEXP, then all I/O on that file is done by calling
 HANDLER.
@@ -5697,7 +5642,7 @@ for its argument.  */);
   Vfile_name_handler_alist = Qnil;
 
   DEFVAR_LISP ("set-auto-coding-function",
-	       &Vset_auto_coding_function,
+	       Vset_auto_coding_function,
 	       doc: /* If non-nil, a function to call to decide a coding system of file.
 Two arguments are passed to this function: the file name
 and the length of a file contents following the point.
@@ -5709,7 +5654,7 @@ specified in the heading lines with the format:
 or local variable spec of the tailing lines with `coding:' tag.  */);
   Vset_auto_coding_function = Qnil;
 
-  DEFVAR_LISP ("after-insert-file-functions", &Vafter_insert_file_functions,
+  DEFVAR_LISP ("after-insert-file-functions", Vafter_insert_file_functions,
 	       doc: /* A list of functions to be called at the end of `insert-file-contents'.
 Each is passed one argument, the number of characters inserted,
 with point at the start of the inserted text.  Each function
@@ -5719,7 +5664,7 @@ If `insert-file-contents' is intercepted by a handler from
 functions in `after-insert-file-functions' if appropriate.  */);
   Vafter_insert_file_functions = Qnil;
 
-  DEFVAR_LISP ("write-region-annotate-functions", &Vwrite_region_annotate_functions,
+  DEFVAR_LISP ("write-region-annotate-functions", Vwrite_region_annotate_functions,
 	       doc: /* A list of functions to be called at the start of `write-region'.
 Each is passed two arguments, START and END as for `write-region'.
 These are usually two numbers but not always; see the documentation
@@ -5748,7 +5693,7 @@ buffer current.  */);
     = intern_c_string ("write-region-annotate-functions");
 
   DEFVAR_LISP ("write-region-post-annotation-function",
-	       &Vwrite_region_post_annotation_function,
+	       Vwrite_region_post_annotation_function,
 	       doc: /* Function to call after `write-region' completes.
 The function is called with no arguments.  If one or more of the
 annotation functions in `write-region-annotate-functions' changed the
@@ -5759,34 +5704,34 @@ buffer.  The relevant buffer is current during each function call.  */);
   staticpro (&Vwrite_region_annotation_buffers);
 
   DEFVAR_LISP ("write-region-annotations-so-far",
-	       &Vwrite_region_annotations_so_far,
+	       Vwrite_region_annotations_so_far,
 	       doc: /* When an annotation function is called, this holds the previous annotations.
 These are the annotations made by other annotation functions
 that were already called.  See also `write-region-annotate-functions'.  */);
   Vwrite_region_annotations_so_far = Qnil;
 
-  DEFVAR_LISP ("inhibit-file-name-handlers", &Vinhibit_file_name_handlers,
+  DEFVAR_LISP ("inhibit-file-name-handlers", Vinhibit_file_name_handlers,
 	       doc: /* A list of file name handlers that temporarily should not be used.
 This applies only to the operation `inhibit-file-name-operation'.  */);
   Vinhibit_file_name_handlers = Qnil;
 
-  DEFVAR_LISP ("inhibit-file-name-operation", &Vinhibit_file_name_operation,
+  DEFVAR_LISP ("inhibit-file-name-operation", Vinhibit_file_name_operation,
 	       doc: /* The operation for which `inhibit-file-name-handlers' is applicable.  */);
   Vinhibit_file_name_operation = Qnil;
 
-  DEFVAR_LISP ("auto-save-list-file-name", &Vauto_save_list_file_name,
+  DEFVAR_LISP ("auto-save-list-file-name", Vauto_save_list_file_name,
 	       doc: /* File name in which we write a list of all auto save file names.
 This variable is initialized automatically from `auto-save-list-file-prefix'
 shortly after Emacs reads your `.emacs' file, if you have not yet given it
 a non-nil value.  */);
   Vauto_save_list_file_name = Qnil;
 
-  DEFVAR_LISP ("auto-save-visited-file-name", &Vauto_save_visited_file_name,
+  DEFVAR_LISP ("auto-save-visited-file-name", Vauto_save_visited_file_name,
 	       doc: /* Non-nil says auto-save a buffer in the file it is visiting, when practical.
 Normally auto-save files are written under other names.  */);
   Vauto_save_visited_file_name = Qnil;
 
-  DEFVAR_LISP ("auto-save-include-big-deletions", &Vauto_save_include_big_deletions,
+  DEFVAR_LISP ("auto-save-include-big-deletions", Vauto_save_include_big_deletions,
 	       doc: /* If non-nil, auto-save even if a large part of the text is deleted.
 If nil, deleting a substantial portion of the text disables auto-save
 in the buffer; this is the default behavior, because the auto-save
@@ -5794,14 +5739,14 @@ file is usually more useful if it contains the deleted text.  */);
   Vauto_save_include_big_deletions = Qnil;
 
 #ifdef HAVE_FSYNC
-  DEFVAR_BOOL ("write-region-inhibit-fsync", &write_region_inhibit_fsync,
+  DEFVAR_BOOL ("write-region-inhibit-fsync", write_region_inhibit_fsync,
 	       doc: /* *Non-nil means don't call fsync in `write-region'.
 This variable affects calls to `write-region' as well as save commands.
 A non-nil value may result in data loss!  */);
   write_region_inhibit_fsync = 0;
 #endif
 
-  DEFVAR_BOOL ("delete-by-moving-to-trash", &delete_by_moving_to_trash,
+  DEFVAR_BOOL ("delete-by-moving-to-trash", delete_by_moving_to_trash,
                doc: /* Specifies whether to use the system's trash can.
 When non-nil, certain file deletion commands use the function
 `move-file-to-trash' instead of deleting files outright.
@@ -5868,4 +5813,3 @@ This includes interactive calls to `delete-file' and
   defsubr (&Sunix_sync);
 #endif
 }
-

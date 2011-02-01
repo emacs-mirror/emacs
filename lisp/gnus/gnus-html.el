@@ -1,6 +1,6 @@
 ;;; gnus-html.el --- Render HTML in a buffer.
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html, web
@@ -395,7 +395,7 @@ Use ALT-TEXT for the image string."
 	     4)
       (setq args (nconc args (list t))))
     (ignore-errors
-      (apply #'url-retrieve args))))
+      (push (apply #'url-retrieve args) gnus-buffers))))
 
 (defun gnus-html-image-fetched (status buffer image)
   "Callback function called when image has been fetched."

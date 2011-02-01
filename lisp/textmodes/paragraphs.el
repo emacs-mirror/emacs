@@ -1,7 +1,6 @@
 ;;; paragraphs.el --- paragraph and sentence parsing
 
-;; Copyright (C) 1985, 1986, 1987, 1991, 1994, 1995, 1996, 1997, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -529,5 +528,4 @@ the current sentence with the one containing the mark."
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: e727eb1a-527a-4464-b9d7-9d3ec0d1a575
 ;;; paragraphs.el ends here

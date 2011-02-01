@@ -1,7 +1,6 @@
 ;;; semantic/wisent.el --- Wisent - Semantic gateway
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2007, 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -343,5 +342,4 @@ the standard function `semantic-parse-region'."
 
 (provide 'semantic/wisent)
 
-;; arch-tag: c24ddd69-d41c-4604-8221-29a93fc4fa79
 ;;; semantic/wisent.el ends here

@@ -1,7 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
-                 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1989, 1993-1997, 1999-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -58,10 +57,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "syssignal.h"
 
 #include <sys/types.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
 #include <fcntl.h>
 
 /* This is to get the definitions of the XK_ symbols.  */
@@ -128,9 +124,6 @@ int this_command_key_count_reset;
 Lisp_Object raw_keybuf;
 int raw_keybuf_count;
 
-/* Non-nil if the present key sequence was obtained by shift translation.  */
-Lisp_Object Vthis_command_keys_shift_translated;
-
 #define GROW_RAW_KEYBUF							\
  if (raw_keybuf_count == XVECTOR (raw_keybuf)->size)			\
    raw_keybuf = larger_vector (raw_keybuf, raw_keybuf_count * 2, Qnil)  \
@@ -143,19 +136,6 @@ int this_single_command_key_start;
    before this command was read.  */
 static int before_command_key_count;
 static int before_command_echo_length;
-
-/* If non-nil, the function that implements the display of help.
-   It's called with one argument, the help string to display.  */
-
-Lisp_Object Vshow_help_function;
-
-/* Nonzero means do menu prompting.  */
-
-static int menu_prompting;
-
-/* Character to see next line of menu prompt.  */
-
-static Lisp_Object menu_prompt_more_char;
 
 /* For longjmp to where kbd input is being done.  */
 
@@ -185,42 +165,8 @@ struct kboard *echo_kboard;
 
 Lisp_Object echo_message_buffer;
 
-/* Nonzero means disregard local maps for the menu bar.  */
-static int inhibit_local_menu_bar_menus;
-
 /* Nonzero means C-g should cause immediate error-signal.  */
 int immediate_quit;
-
-/* The user's hook function for outputting an error message.  */
-Lisp_Object Vcommand_error_function;
-
-/* The user's ERASE setting.  */
-Lisp_Object Vtty_erase_char;
-
-/* Character to recognize as the help char.  */
-Lisp_Object Vhelp_char;
-
-/* List of other event types to recognize as meaning "help".  */
-Lisp_Object Vhelp_event_list;
-
-/* Form to execute when help char is typed.  */
-Lisp_Object Vhelp_form;
-
-/* Command to run when the help character follows a prefix key.  */
-Lisp_Object Vprefix_help_command;
-
-/* List of items that should move to the end of the menu bar.  */
-Lisp_Object Vmenu_bar_final_items;
-
-/* Non-nil means show the equivalent key-binding for
-   any M-x command that has one.
-   The value can be a length of time to show the message for.
-   If the value is non-nil and not a number, we wait 2 seconds.  */
-Lisp_Object Vsuggest_key_bindings;
-
-/* How long to display an echo-area message when the minibuffer is active.
-   If the value is not a number, such messages don't time out.  */
-Lisp_Object Vminibuffer_message_timeout;
 
 /* Character that causes a quit.  Normally C-g.
 
@@ -240,45 +186,8 @@ Lisp_Object Vminibuffer_message_timeout;
    ASCII character.  */
 int quit_char;
 
-/* If non-nil, this is a map that overrides all other local maps.  */
-Lisp_Object Voverriding_local_map;
-
-/* If non-nil, Voverriding_local_map applies to the menu bar.  */
-Lisp_Object Voverriding_local_map_menu_flag;
-
-/* Keymap that defines special misc events that should
-   be processed immediately at a low level.  */
-Lisp_Object Vspecial_event_map;
-
 /* Current depth in recursive edits.  */
 int command_loop_level;
-
-/* Total number of times command_loop has read a key sequence.  */
-EMACS_INT num_input_keys;
-
-/* Last input event read as a command.  */
-Lisp_Object last_command_event;
-
-/* Last input character read as a command, not counting menus
-   reached by the mouse.  */
-Lisp_Object last_nonmenu_event;
-
-/* Last input event read for any purpose.  */
-Lisp_Object last_input_event;
-
-/* If not Qnil, a list of objects to be read as subsequent command input.  */
-Lisp_Object Vunread_command_events;
-
-/* If not Qnil, a list of objects to be read as subsequent command input
-   including input method processing.  */
-Lisp_Object Vunread_input_method_events;
-
-/* If not Qnil, a list of objects to be read as subsequent command input
-   but NOT including input method processing.  */
-Lisp_Object Vunread_post_input_method_events;
-
-/* If not -1, an event to be read as subsequent command input.  */
-EMACS_INT unread_command_char;
 
 /* If not Qnil, this is a switch-frame event which we decided to put
    off until the end of a key sequence.  This should be read as the
@@ -289,46 +198,18 @@ EMACS_INT unread_command_char;
    events until a non-ASCII event is acceptable as input.  */
 Lisp_Object unread_switch_frame;
 
-/* A mask of extra modifier bits to put into every keyboard char.  */
-EMACS_INT extra_keyboard_modifiers;
-
-/* Char to use as prefix when a meta character is typed in.
-   This is bound on entry to minibuffer in case ESC is changed there.  */
-
-Lisp_Object meta_prefix_char;
-
 /* Last size recorded for a current buffer which is not a minibuffer.  */
 static EMACS_INT last_non_minibuf_size;
 
-/* Number of idle seconds before an auto-save and garbage collection.  */
-static Lisp_Object Vauto_save_timeout;
-
 /* Total number of times read_char has returned.  */
 int num_input_events;
-
-/* Total number of times read_char has returned, outside of macros.  */
-EMACS_INT num_nonmacro_input_events;
-
-/* Auto-save automatically when this many characters have been typed
-   since the last time.  */
-
-static EMACS_INT auto_save_interval;
 
 /* Value of num_nonmacro_input_events as of last auto save.  */
 
 int last_auto_save;
 
-/* The command being executed by the command loop.
-   Commands may set this, and the value set will be copied into
-   current_kboard->Vlast_command instead of the actual command.  */
-Lisp_Object Vthis_command;
-
 /* This is like Vthis_command, except that commands never set it.  */
 Lisp_Object real_this_command;
-
-/* If the lookup of the command returns a binding, the original
-   command is stored in this-original-command.  It is nil otherwise.  */
-Lisp_Object Vthis_original_command;
 
 /* The value of point when the last command was started.  */
 EMACS_INT last_point_position;
@@ -346,21 +227,9 @@ Lisp_Object last_point_position_window;
    generated by the next character.  */
 Lisp_Object internal_last_event_frame;
 
-/* A user-visible version of the above, intended to allow users to
-   figure out where the last event came from, if the event doesn't
-   carry that information itself (i.e. if it was a character).  */
-Lisp_Object Vlast_event_frame;
-
 /* The timestamp of the last input event we received from the X server.
    X Windows wants this for selection ownership.  */
 unsigned long last_event_timestamp;
-
-/* If non-nil, active regions automatically become the window selection.  */
-Lisp_Object Vselect_active_regions;
-
-/* The text in the active region prior to modifying the buffer.
-   Used by the `select-active-regions' feature.  */
-Lisp_Object Vsaved_region_selection;
 
 Lisp_Object Qx_set_selection, QPRIMARY, Qhandle_switch_frame;
 
@@ -374,48 +243,19 @@ Lisp_Object Qtimer_event_handler;
    key sequence that it reads.  */
 Lisp_Object read_key_sequence_cmd;
 
-/* Echo unfinished commands after this many seconds of pause.  */
-Lisp_Object Vecho_keystrokes;
-
-/* Form to evaluate (if non-nil) when Emacs is started.  */
-Lisp_Object Vtop_level;
-
-/* If non-nil, this implements the current input method.  */
-Lisp_Object Vinput_method_function;
 Lisp_Object Qinput_method_function;
 
-/* When we call Vinput_method_function,
-   this holds the echo area message that was just erased.  */
-Lisp_Object Vinput_method_previous_message;
-
-/* Non-nil means deactivate the mark at end of this command.  */
-Lisp_Object Vdeactivate_mark;
 Lisp_Object Qdeactivate_mark;
 
-/* Menu bar specified in Lucid Emacs fashion.  */
-
-Lisp_Object Vlucid_menu_bar_dirty_flag;
 Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 
 Lisp_Object Qecho_area_clear_hook;
 
 /* Hooks to run before and after each command.  */
-Lisp_Object Qpre_command_hook, Vpre_command_hook;
-Lisp_Object Qpost_command_hook, Vpost_command_hook;
-Lisp_Object Qcommand_hook_internal, Vcommand_hook_internal;
+Lisp_Object Qpre_command_hook;
+Lisp_Object Qpost_command_hook;
+Lisp_Object Qcommand_hook_internal;
 
-/* Parent keymap of terminal-local function-key-map instances.  */
-Lisp_Object Vfunction_key_map;
-
-/* Keymap of key translations that can override keymaps.  */
-Lisp_Object Vkey_translation_map;
-
-/* List of deferred actions to be performed at a later time.
-   The precise format isn't relevant here; we just check whether it is nil.  */
-Lisp_Object Vdeferred_action_list;
-
-/* Function to call to handle deferred actions, when there are any.  */
-Lisp_Object Vdeferred_action_function;
 Lisp_Object Qdeferred_action_function;
 
 Lisp_Object Qinput_method_exit_on_first_char;
@@ -450,11 +290,6 @@ static struct input_event * volatile kbd_store_ptr;
    Why not just have a flag set and cleared by the enqueuing and
    dequeuing functions?  Such a flag could be screwed up by interrupts
    at inopportune times.  */
-
-/* If this flag is non-nil, we check mouse_moved to see when the
-   mouse moves, and motion events will appear in the input stream.
-   Otherwise, mouse motion is ignored.  */
-Lisp_Object do_mouse_tracking;
 
 /* Symbols to head events.  */
 Lisp_Object Qmouse_movement;
@@ -523,12 +358,6 @@ static int echo_length (void);
 
 Lisp_Object Qpolling_period;
 
-/* List of absolute timers.  Appears in order of next scheduled event.  */
-Lisp_Object Vtimer_list;
-
-/* List of idle time timers.  Appears in order of next scheduled event.  */
-Lisp_Object Vtimer_idle_list;
-
 /* Incremented whenever a timer is run.  */
 int timers_run;
 
@@ -562,18 +391,6 @@ int interrupts_deferred;
 #define POLL_FOR_INPUT
 #endif
 
-/* After a command is executed, if point is moved into a region that
-   has specific properties (e.g. composition, display), we adjust
-   point to the boundary of the region.  But, if a command sets this
-   variable to non-nil, we suppress this point adjustment.  This
-   variable is set to nil before reading a command.  */
-
-Lisp_Object Vdisable_point_adjustment;
-
-/* If non-nil, always disable point adjustment.  */
-
-Lisp_Object Vglobal_disable_point_adjustment;
-
 /* The time when Emacs started being idle.  */
 
 static EMACS_TIME timer_idleness_start_time;
@@ -582,11 +399,6 @@ static EMACS_TIME timer_idleness_start_time;
    of timer_idleness_start_time from when it was idle.  */
 
 static EMACS_TIME timer_last_idleness_start_time;
-
-/* If non-nil, events produced by disabled menu items and tool-bar
-   buttons are not ignored.  Help functions bind this to allow help on
-   those items and buttons.  */
-Lisp_Object Venable_disabled_menus_and_buttons;
 
 
 /* Global variable declarations.  */
@@ -633,10 +445,6 @@ static void timer_resume_idle (void);
 static SIGTYPE handle_user_signal (int);
 static char *find_user_signal_name (int);
 static int store_user_signal_events (void);
-
-/* Nonzero means don't try to suspend even if the operating system seems
-   to support it.  */
-static int cannot_suspend;
 
 
 /* Add C to the echo string, if echoing is going on.
@@ -2043,11 +1851,6 @@ safe_run_hooks (Lisp_Object hook)
 }
 
 
-/* Number of seconds between polling for input.  This is a Lisp
-   variable that can be bound.  */
-
-EMACS_INT polling_period;
-
 /* Nonzero means polling for input is temporarily suppressed.  */
 
 int poll_suppress_count;
@@ -3608,11 +3411,7 @@ kbd_buffer_nr_stored (void)
        : ((kbd_buffer + KBD_BUFFER_SIZE) - kbd_fetch_ptr
           + (kbd_store_ptr - kbd_buffer)));
 }
-#endif	/* subprocesses */
-
-Lisp_Object Vthrow_on_input;
-
-/* Store an event obtained at interrupt level into kbd_buffer, fifo */
+#endif	/* Store an event obtained at interrupt level into kbd_buffer, fifo */
 
 void
 kbd_buffer_store_event (register struct input_event *event)
@@ -4102,7 +3901,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
       else if (event->kind == SAVE_SESSION_EVENT)
         {
-          obj = Fcons (Qsave_session, Qnil);
+          obj = Fcons (Qsave_session, Fcons (event->arg, Qnil));
 	  kbd_fetch_ptr = event + 1;
         }
       /* Just discard these, by returning nil.
@@ -5229,16 +5028,6 @@ static int last_mouse_x;
 static int last_mouse_y;
 static unsigned long button_down_time;
 
-/* The maximum time between clicks to make a double-click, or Qnil to
-   disable double-click detection, or Qt for no time limit.  */
-
-Lisp_Object Vdouble_click_time;
-
-/* Maximum number of pixels the mouse may be moved between clicks
-   to make a double-click.  */
-
-EMACS_INT double_click_fuzz;
-
 /* The number of clicks in this multiple-click. */
 
 int double_click_count;
@@ -5364,8 +5153,12 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  int width2, height2;
 	  /* The pixel X coordinate passed to buffer_posn_from_coords
 	     is the X coordinate relative to the text area for
-	     text-area clicks, zero otherwise.  */
-	  int x2 = (part == ON_TEXT) ? xret : 0;
+	     text-area and right-margin clicks, zero otherwise.  */
+	  int x2
+	    = (part == ON_TEXT) ? xret
+	    : (part == ON_RIGHT_FRINGE || part == ON_RIGHT_MARGIN)
+	    ? (XINT (x) - window_box_left (w, TEXT_AREA))
+	    : 0;
 	  int y2 = wy;
 
 	  string2 = buffer_posn_from_coords (w, &x2, &y2, &p,
@@ -6232,7 +6025,7 @@ parse_modifiers_uncached (Lisp_Object symbol, int *modifier_end)
 
 #define MULTI_LETTER_MOD(BIT, NAME, LEN)			\
 	  if (i + LEN + 1 <= SBYTES (name)			\
-	      && ! strncmp (SDATA (name) + i, NAME, LEN))	\
+	      && ! strncmp (SSDATA (name) + i, NAME, LEN))	\
 	    {							\
 	      this_mod_end = i + LEN;				\
 	      this_mod = BIT;					\
@@ -6270,13 +6063,13 @@ parse_modifiers_uncached (Lisp_Object symbol, int *modifier_end)
   if (! (modifiers & (down_modifier | drag_modifier
 		      | double_modifier | triple_modifier))
       && i + 7 == SBYTES (name)
-      && strncmp (SDATA (name) + i, "mouse-", 6) == 0
+      && strncmp (SSDATA (name) + i, "mouse-", 6) == 0
       && ('0' <= SREF (name, i + 6) && SREF (name, i + 6) <= '9'))
     modifiers |= click_modifier;
 
   if (! (modifiers & (double_modifier | triple_modifier))
       && i + 6 < SBYTES (name)
-      && strncmp (SDATA (name) + i, "wheel-", 6) == 0)
+      && strncmp (SSDATA (name) + i, "wheel-", 6) == 0)
     modifiers |= click_modifier;
 
   if (modifier_end)
@@ -6394,7 +6187,7 @@ parse_modifiers (Lisp_Object symbol)
       Lisp_Object unmodified;
       Lisp_Object mask;
 
-      unmodified = Fintern (make_string (SDATA (SYMBOL_NAME (symbol)) + end,
+      unmodified = Fintern (make_string (SSDATA (SYMBOL_NAME (symbol)) + end,
 					 SBYTES (SYMBOL_NAME (symbol)) - end),
 			    Qnil);
 
@@ -6462,7 +6255,7 @@ apply_modifiers (int modifiers, Lisp_Object base)
     {
       /* We have to create the symbol ourselves.  */
       new_symbol = apply_modifiers_uncached (modifiers,
-					     SDATA (SYMBOL_NAME (base)),
+					     SSDATA (SYMBOL_NAME (base)),
 					     SCHARS (SYMBOL_NAME (base)),
 					     SBYTES (SYMBOL_NAME (base)));
 
@@ -7464,6 +7257,54 @@ static Lisp_Object menu_bar_one_keymap_changed_items;
 static Lisp_Object menu_bar_items_vector;
 static int menu_bar_items_index;
 
+
+static const char* separator_names[] = {
+  "space",
+  "no-line",
+  "single-line",
+  "double-line",
+  "single-dashed-line",
+  "double-dashed-line",
+  "shadow-etched-in",
+  "shadow-etched-out",
+  "shadow-etched-in-dash",
+  "shadow-etched-out-dash",
+  "shadow-double-etched-in",
+  "shadow-double-etched-out",
+  "shadow-double-etched-in-dash",
+  "shadow-double-etched-out-dash",
+  0,
+};
+
+/* Return non-zero if LABEL specifies a separator.  */
+
+int
+menu_separator_name_p (const char *label)
+{
+  if (!label)
+    return 0;
+  else if (strlen (label) > 3
+	   && strncmp (label, "--", 2) == 0
+	   && label[2] != '-')
+    {
+      int i;
+      label += 2;
+      for (i = 0; separator_names[i]; ++i)
+	if (strcmp (label, separator_names[i]) == 0)
+          return 1;
+    }
+  else
+    {
+      /* It's a separator if it contains only dashes.  */
+      while (*label == '-')
+	++label;
+      return (*label == 0);
+    }
+
+  return 0;
+}
+
+
 /* Return a vector of menu items for a menu bar, appropriate
    to the current buffer.  Each item has three elements in the vector:
    KEY STRING MAPLIST.
@@ -7920,7 +7761,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
     /* The previous code preferred :key-sequence to :keys, so we
        preserve this behavior.  */
     if (STRINGP (keyeq) && !CONSP (keyhint))
-      keyeq = Fsubstitute_command_keys (keyeq);
+      keyeq = concat2 (build_string ("  "), Fsubstitute_command_keys (keyeq));
     else
       {
 	Lisp_Object prefix = keyeq;
@@ -8207,10 +8048,14 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
      Rule out items that aren't lists, don't start with
      `menu-item' or whose rest following `tool-bar-item' is not a
      list.  */
-  if (!CONSP (item)
-      || !EQ (XCAR (item), Qmenu_item)
-      || (item = XCDR (item),
-	  !CONSP (item)))
+  if (!CONSP (item))
+    return 0;
+
+  /* As an exception, allow old-style menu separators.  */
+  if (STRINGP (XCAR (item)))
+    item = Fcons (XCAR (item), Qnil);
+  else if (!EQ (XCAR (item), Qmenu_item)
+	   || (item = XCDR (item), !CONSP (item)))
     return 0;
 
   /* Create tool_bar_item_properties vector if necessary.  Reset it to
@@ -8240,10 +8085,27 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
     }
   PROP (TOOL_BAR_ITEM_CAPTION) = caption;
 
-  /* Give up if rest following the caption is not a list.  */
+  /* If the rest following the caption is not a list, the menu item is
+     either a separator, or invalid.  */
   item = XCDR (item);
   if (!CONSP (item))
-    return 0;
+    {
+      if (menu_separator_name_p (SSDATA (caption)))
+	{
+	  PROP (TOOL_BAR_ITEM_TYPE) = Qt;
+#if !defined (USE_GTK) && !defined (HAVE_NS)
+	  /* If we use build_desired_tool_bar_string to render the
+	     tool bar, the separator is rendered as an image.  */
+	  PROP (TOOL_BAR_ITEM_IMAGES)
+	    = menu_item_eval_property (Vtool_bar_separator_image_expression);
+	  PROP (TOOL_BAR_ITEM_ENABLED_P) = Qnil;
+	  PROP (TOOL_BAR_ITEM_SELECTED_P) = Qnil;
+	  PROP (TOOL_BAR_ITEM_CAPTION) = Qnil;
+#endif
+	  return 1;
+	}
+      return 0;
+    }
 
   /* Store the binding.  */
   PROP (TOOL_BAR_ITEM_BINDING) = XCAR (item);
@@ -8276,10 +8138,10 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 	  if (NILP (menu_item_eval_property (value)))
 	    return 0;
 	}
-      else if (EQ (key, QChelp)) 
+      else if (EQ (key, QChelp))
         /* `:help HELP-STRING'.  */
         PROP (TOOL_BAR_ITEM_HELP) = value;
-      else if (EQ (key, QCvert_only)) 
+      else if (EQ (key, QCvert_only))
         /* `:vert-only t/nil'.  */
         PROP (TOOL_BAR_ITEM_VERT_ONLY) = value;
       else if (EQ (key, QClabel))
@@ -8324,8 +8186,8 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       /* Try to make one from caption and key.  */
       Lisp_Object key = PROP (TOOL_BAR_ITEM_KEY);
       Lisp_Object capt = PROP (TOOL_BAR_ITEM_CAPTION);
-      const char *label = SYMBOLP (key) ? (char *) SDATA (SYMBOL_NAME (key)) : "";
-      const char *caption = STRINGP (capt) ? (char *) SDATA (capt) : "";
+      const char *label = SYMBOLP (key) ? SSDATA (SYMBOL_NAME (key)) : "";
+      const char *caption = STRINGP (capt) ? SSDATA (capt) : "";
       EMACS_INT max_lbl = 2 * tool_bar_max_label_size;
       char *buf = (char *) xmalloc (max_lbl + 1);
       Lisp_Object new_lbl;
@@ -8583,7 +8445,7 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
   menu = read_char_minibuf_menu_text;
 
   /* Prompt string always starts with map's prompt, and a space.  */
-  strcpy (menu, SDATA (name));
+  strcpy (menu, SSDATA (name));
   nlength = SBYTES (name);
   menu[nlength++] = ':';
   menu[nlength++] = ' ';
@@ -10706,7 +10568,7 @@ If FILE is nil, close any open dribble file.  */)
   if (!NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      dribble = fopen (SDATA (file), "w");
+      dribble = fopen (SSDATA (file), "w");
       if (dribble == 0)
 	report_file_error ("Opening dribble", Fcons (file, Qnil));
     }
@@ -11822,19 +11684,19 @@ syms_of_keyboard (void)
   defsubr (&Sposn_at_point);
   defsubr (&Sposn_at_x_y);
 
-  DEFVAR_LISP ("last-command-event", &last_command_event,
+  DEFVAR_LISP ("last-command-event", last_command_event,
 		     doc: /* Last input event that was part of a command.  */);
 
-  DEFVAR_LISP ("last-nonmenu-event", &last_nonmenu_event,
+  DEFVAR_LISP ("last-nonmenu-event", last_nonmenu_event,
 	       doc: /* Last input event in a command, except for mouse menu events.
 Mouse menus give back keys that don't look like mouse events;
 this variable holds the actual mouse event that led to the menu,
 so that you can determine whether the command was run by mouse or not.  */);
 
-  DEFVAR_LISP ("last-input-event", &last_input_event,
+  DEFVAR_LISP ("last-input-event", last_input_event,
 	       doc: /* Last input event.  */);
 
-  DEFVAR_LISP ("unread-command-events", &Vunread_command_events,
+  DEFVAR_LISP ("unread-command-events", Vunread_command_events,
 	       doc: /* List of events to be read as the command input.
 These events are processed first, before actual keyboard input.
 Events read from this list are not normally added to `this-command-keys',
@@ -11842,16 +11704,16 @@ as they will already have been added once as they were read for the first time.
 An element of the form (t . EVENT) forces EVENT to be added to that list.  */);
   Vunread_command_events = Qnil;
 
-  DEFVAR_INT ("unread-command-char", &unread_command_char,
+  DEFVAR_INT ("unread-command-char", unread_command_char,
 	      doc: /* If not -1, an object to be read as next command input event.  */);
 
-  DEFVAR_LISP ("unread-post-input-method-events", &Vunread_post_input_method_events,
+  DEFVAR_LISP ("unread-post-input-method-events", Vunread_post_input_method_events,
 	       doc: /* List of events to be processed as input by input methods.
 These events are processed before `unread-command-events'
 and actual keyboard input, but are not given to `input-method-function'.  */);
   Vunread_post_input_method_events = Qnil;
 
-  DEFVAR_LISP ("unread-input-method-events", &Vunread_input_method_events,
+  DEFVAR_LISP ("unread-input-method-events", Vunread_input_method_events,
 	       doc: /* List of events to be processed as input by input methods.
 These events are processed after `unread-command-events', but
 before actual keyboard input.
@@ -11859,7 +11721,7 @@ If there's an active input method, the events are given to
 `input-method-function'.  */);
   Vunread_input_method_events = Qnil;
 
-  DEFVAR_LISP ("meta-prefix-char", &meta_prefix_char,
+  DEFVAR_LISP ("meta-prefix-char", meta_prefix_char,
 	       doc: /* Meta-prefix character code.
 Meta-foo as command input turns into this character followed by foo.  */);
   XSETINT (meta_prefix_char, 033);
@@ -11889,59 +11751,59 @@ See Info node `(elisp)Multiple Terminals'.  */);
 The last command executed that was not bound to an input event.
 This is the command `repeat' will try to repeat.  */);
 
-  DEFVAR_LISP ("this-command", &Vthis_command,
+  DEFVAR_LISP ("this-command", Vthis_command,
 	       doc: /* The command now being executed.
 The command can set this variable; whatever is put here
 will be in `last-command' during the following command.  */);
   Vthis_command = Qnil;
 
   DEFVAR_LISP ("this-command-keys-shift-translated",
-	       &Vthis_command_keys_shift_translated,
+	       Vthis_command_keys_shift_translated,
 	       doc: /* Non-nil if the key sequence activating this command was shift-translated.
 Shift-translation occurs when there is no binding for the key sequence
 as entered, but a binding was found by changing an upper-case letter
 to lower-case, or a shifted function key to an unshifted one.  */);
   Vthis_command_keys_shift_translated = Qnil;
 
-  DEFVAR_LISP ("this-original-command", &Vthis_original_command,
+  DEFVAR_LISP ("this-original-command", Vthis_original_command,
 	       doc: /* The command bound to the current key sequence before remapping.
 It equals `this-command' if the original command was not remapped through
 any of the active keymaps.  Otherwise, the value of `this-command' is the
 result of looking up the original command in the active keymaps.  */);
   Vthis_original_command = Qnil;
 
-  DEFVAR_INT ("auto-save-interval", &auto_save_interval,
+  DEFVAR_INT ("auto-save-interval", auto_save_interval,
 	      doc: /* *Number of input events between auto-saves.
 Zero means disable autosaving due to number of characters typed.  */);
   auto_save_interval = 300;
 
-  DEFVAR_LISP ("auto-save-timeout", &Vauto_save_timeout,
+  DEFVAR_LISP ("auto-save-timeout", Vauto_save_timeout,
 	       doc: /* *Number of seconds idle time before auto-save.
 Zero or nil means disable auto-saving due to idleness.
 After auto-saving due to this many seconds of idle time,
 Emacs also does a garbage collection if that seems to be warranted.  */);
   XSETFASTINT (Vauto_save_timeout, 30);
 
-  DEFVAR_LISP ("echo-keystrokes", &Vecho_keystrokes,
+  DEFVAR_LISP ("echo-keystrokes", Vecho_keystrokes,
 	       doc: /* *Nonzero means echo unfinished commands after this many seconds of pause.
 The value may be integer or floating point.  */);
   Vecho_keystrokes = make_number (1);
 
-  DEFVAR_INT ("polling-period", &polling_period,
+  DEFVAR_INT ("polling-period", polling_period,
 	      doc: /* *Interval between polling for input during Lisp execution.
 The reason for polling is to make C-g work to stop a running program.
 Polling is needed only when using X windows and SIGIO does not work.
 Polling is automatically disabled in all other cases.  */);
   polling_period = 2;
 
-  DEFVAR_LISP ("double-click-time", &Vdouble_click_time,
+  DEFVAR_LISP ("double-click-time", Vdouble_click_time,
 	       doc: /* *Maximum time between mouse clicks to make a double-click.
 Measured in milliseconds.  The value nil means disable double-click
 recognition; t means double-clicks have no time limit and are detected
 by position only.  */);
   Vdouble_click_time = make_number (500);
 
-  DEFVAR_INT ("double-click-fuzz", &double_click_fuzz,
+  DEFVAR_INT ("double-click-fuzz", double_click_fuzz,
 	      doc: /* *Maximum mouse movement between clicks to make a double-click.
 On window-system frames, value is the number of pixels the mouse may have
 moved horizontally or vertically between two clicks to make a double-click.
@@ -11952,54 +11814,54 @@ This variable is also the threshold for motion of the mouse
 to count as a drag.  */);
   double_click_fuzz = 3;
 
-  DEFVAR_BOOL ("inhibit-local-menu-bar-menus", &inhibit_local_menu_bar_menus,
+  DEFVAR_BOOL ("inhibit-local-menu-bar-menus", inhibit_local_menu_bar_menus,
 	       doc: /* *Non-nil means inhibit local map menu bar menus.  */);
   inhibit_local_menu_bar_menus = 0;
 
-  DEFVAR_INT ("num-input-keys", &num_input_keys,
+  DEFVAR_INT ("num-input-keys", num_input_keys,
 	      doc: /* Number of complete key sequences read as input so far.
 This includes key sequences read from keyboard macros.
 The number is effectively the number of interactive command invocations.  */);
   num_input_keys = 0;
 
-  DEFVAR_INT ("num-nonmacro-input-events", &num_nonmacro_input_events,
+  DEFVAR_INT ("num-nonmacro-input-events", num_nonmacro_input_events,
 	      doc: /* Number of input events read from the keyboard so far.
 This does not include events generated by keyboard macros.  */);
   num_nonmacro_input_events = 0;
 
-  DEFVAR_LISP ("last-event-frame", &Vlast_event_frame,
+  DEFVAR_LISP ("last-event-frame", Vlast_event_frame,
 	       doc: /* The frame in which the most recently read event occurred.
 If the last event came from a keyboard macro, this is set to `macro'.  */);
   Vlast_event_frame = Qnil;
 
   /* This variable is set up in sysdep.c.  */
-  DEFVAR_LISP ("tty-erase-char", &Vtty_erase_char,
+  DEFVAR_LISP ("tty-erase-char", Vtty_erase_char,
 	       doc: /* The ERASE character as set by the user with stty.  */);
 
-  DEFVAR_LISP ("help-char", &Vhelp_char,
+  DEFVAR_LISP ("help-char", Vhelp_char,
 	       doc: /* Character to recognize as meaning Help.
 When it is read, do `(eval help-form)', and display result if it's a string.
 If the value of `help-form' is nil, this char can be read normally.  */);
   XSETINT (Vhelp_char, Ctl ('H'));
 
-  DEFVAR_LISP ("help-event-list", &Vhelp_event_list,
+  DEFVAR_LISP ("help-event-list", Vhelp_event_list,
 	       doc: /* List of input events to recognize as meaning Help.
 These work just like the value of `help-char' (see that).  */);
   Vhelp_event_list = Qnil;
 
-  DEFVAR_LISP ("help-form", &Vhelp_form,
+  DEFVAR_LISP ("help-form", Vhelp_form,
 	       doc: /* Form to execute when character `help-char' is read.
 If the form returns a string, that string is displayed.
 If `help-form' is nil, the help char is not recognized.  */);
   Vhelp_form = Qnil;
 
-  DEFVAR_LISP ("prefix-help-command", &Vprefix_help_command,
+  DEFVAR_LISP ("prefix-help-command", Vprefix_help_command,
 	       doc: /* Command to run when `help-char' character follows a prefix key.
 This command is used only when there is no actual binding
 for that character after that prefix key.  */);
   Vprefix_help_command = Qnil;
 
-  DEFVAR_LISP ("top-level", &Vtop_level,
+  DEFVAR_LISP ("top-level", Vtop_level,
 	       doc: /* Form to evaluate when Emacs starts up.
 Useful to set before you dump a modified Emacs.  */);
   Vtop_level = Qnil;
@@ -12020,12 +11882,12 @@ output.  See also `translation-table-for-input'.
 This variable has a separate binding for each terminal.
 See Info node `(elisp)Multiple Terminals'.  */);
 
-  DEFVAR_BOOL ("cannot-suspend", &cannot_suspend,
+  DEFVAR_BOOL ("cannot-suspend", cannot_suspend,
 	       doc: /* Non-nil means to always spawn a subshell instead of suspending.
 \(Even if the operating system has support for stopping a process.\)  */);
   cannot_suspend = 0;
 
-  DEFVAR_BOOL ("menu-prompting", &menu_prompting,
+  DEFVAR_BOOL ("menu-prompting", menu_prompting,
 	       doc: /* Non-nil means prompt with menus when appropriate.
 This is done when reading from a keymap that has a prompt string,
 for elements that have prompt strings.
@@ -12035,12 +11897,12 @@ time and the previous event was a mouse click prefix key.
 Otherwise, menu prompting uses the echo area.  */);
   menu_prompting = 1;
 
-  DEFVAR_LISP ("menu-prompt-more-char", &menu_prompt_more_char,
+  DEFVAR_LISP ("menu-prompt-more-char", menu_prompt_more_char,
 	       doc: /* Character to see next line of menu prompt.
 Type this character while in a menu prompt to rotate around the lines of it.  */);
   XSETINT (menu_prompt_more_char, ' ');
 
-  DEFVAR_INT ("extra-keyboard-modifiers", &extra_keyboard_modifiers,
+  DEFVAR_INT ("extra-keyboard-modifiers", extra_keyboard_modifiers,
 	      doc: /* A mask of additional modifier keys to use with every keyboard character.
 Emacs applies the modifiers of the character stored here to each keyboard
 character it reads.  For example, after evaluating the expression
@@ -12053,7 +11915,7 @@ with no modifiers; thus, setting `extra-keyboard-modifiers' to zero
 cancels any modification.  */);
   extra_keyboard_modifiers = 0;
 
-  DEFVAR_LISP ("deactivate-mark", &Vdeactivate_mark,
+  DEFVAR_LISP ("deactivate-mark", Vdeactivate_mark,
 	       doc: /* If an editing command sets this to t, deactivate the mark afterward.
 The command loop sets this to nil before each command,
 and tests the value when the command returns.
@@ -12062,18 +11924,18 @@ Buffer modification stores t in this variable.  */);
   Qdeactivate_mark = intern_c_string ("deactivate-mark");
   staticpro (&Qdeactivate_mark);
 
-  DEFVAR_LISP ("command-hook-internal", &Vcommand_hook_internal,
+  DEFVAR_LISP ("command-hook-internal", Vcommand_hook_internal,
 	       doc: /* Temporary storage of `pre-command-hook' or `post-command-hook'.  */);
   Vcommand_hook_internal = Qnil;
 
-  DEFVAR_LISP ("pre-command-hook", &Vpre_command_hook,
+  DEFVAR_LISP ("pre-command-hook", Vpre_command_hook,
 	       doc: /* Normal hook run before each command is executed.
 If an unhandled error happens in running this hook,
 the hook value is set to nil, since otherwise the error
 might happen repeatedly and make Emacs nonfunctional.  */);
   Vpre_command_hook = Qnil;
 
-  DEFVAR_LISP ("post-command-hook", &Vpost_command_hook,
+  DEFVAR_LISP ("post-command-hook", Vpost_command_hook,
 	       doc: /* Normal hook run after each command is executed.
 If an unhandled error happens in running this hook,
 the hook value is set to nil, since otherwise the error
@@ -12088,14 +11950,20 @@ might happen repeatedly and make Emacs nonfunctional.  */);
   staticpro (&Qecho_area_clear_hook);
   Fset (Qecho_area_clear_hook, Qnil);
 
-  DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
+  DEFVAR_LISP ("lucid-menu-bar-dirty-flag", Vlucid_menu_bar_dirty_flag,
 	       doc: /* Non-nil means menu bar, specified Lucid style, needs to be recomputed.  */);
   Vlucid_menu_bar_dirty_flag = Qnil;
 
-  DEFVAR_LISP ("menu-bar-final-items", &Vmenu_bar_final_items,
+  DEFVAR_LISP ("menu-bar-final-items", Vmenu_bar_final_items,
 	       doc: /* List of menu bar items to move to the end of the menu bar.
 The elements of the list are event types that may have menu bar bindings.  */);
   Vmenu_bar_final_items = Qnil;
+
+  DEFVAR_LISP ("tool-bar-separator-image-expression", Vtool_bar_separator_image_expression,
+    doc: /* Expression evaluating to the image spec for a tool-bar separator.
+This is used internally by graphical displays that do not render
+tool-bar separators natively.  Otherwise it is unused (e.g. on GTK).  */);
+  Vtool_bar_separator_image_expression = Qnil;
 
   DEFVAR_KBOARD ("overriding-terminal-local-map",
 		 Voverriding_terminal_local_map,
@@ -12111,23 +11979,23 @@ set up a different keymap for reading the next command.
 terminal device.
 See Info node `(elisp)Multiple Terminals'.  */);
 
-  DEFVAR_LISP ("overriding-local-map", &Voverriding_local_map,
+  DEFVAR_LISP ("overriding-local-map", Voverriding_local_map,
 	       doc: /* Keymap that overrides all other local keymaps.
 If this variable is non-nil, it is used as a keymap--replacing the
 buffer's local map, the minor mode keymaps, and char property keymaps.  */);
   Voverriding_local_map = Qnil;
 
-  DEFVAR_LISP ("overriding-local-map-menu-flag", &Voverriding_local_map_menu_flag,
+  DEFVAR_LISP ("overriding-local-map-menu-flag", Voverriding_local_map_menu_flag,
 	       doc: /* Non-nil means `overriding-local-map' applies to the menu bar.
 Otherwise, the menu bar continues to reflect the buffer's local map
 and the minor mode maps regardless of `overriding-local-map'.  */);
   Voverriding_local_map_menu_flag = Qnil;
 
-  DEFVAR_LISP ("special-event-map", &Vspecial_event_map,
+  DEFVAR_LISP ("special-event-map", Vspecial_event_map,
 	       doc: /* Keymap defining bindings for special events to execute at low level.  */);
   Vspecial_event_map = Fcons (intern_c_string ("keymap"), Qnil);
 
-  DEFVAR_LISP ("track-mouse", &do_mouse_tracking,
+  DEFVAR_LISP ("track-mouse", do_mouse_tracking,
 	       doc: /* *Non-nil means generate motion events for mouse motion.  */);
 
   DEFVAR_KBOARD ("system-key-alist", Vsystem_key_alist,
@@ -12187,7 +12055,7 @@ themselves looked up in `input-decode-map'.
 
 This variable is keyboard-local.  */);
 
-  DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
+  DEFVAR_LISP ("function-key-map", Vfunction_key_map,
                doc: /* The parent keymap of all `local-function-key-map' instances.
 Function key definitions that apply to all terminal devices should go
 here.  If a mapping is defined in both the current
@@ -12195,39 +12063,39 @@ here.  If a mapping is defined in both the current
 definition will take precendence.  */);
   Vfunction_key_map = Fmake_sparse_keymap (Qnil);
 
-  DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
+  DEFVAR_LISP ("key-translation-map", Vkey_translation_map,
                doc: /* Keymap of key translations that can override keymaps.
 This keymap works like `function-key-map', but comes after that,
 and its non-prefix bindings override ordinary bindings.
 Another difference is that it is global rather than keyboard-local.  */);
   Vkey_translation_map = Fmake_sparse_keymap (Qnil);
 
-  DEFVAR_LISP ("deferred-action-list", &Vdeferred_action_list,
+  DEFVAR_LISP ("deferred-action-list", Vdeferred_action_list,
 	       doc: /* List of deferred actions to be performed at a later time.
 The precise format isn't relevant here; we just check whether it is nil.  */);
   Vdeferred_action_list = Qnil;
 
-  DEFVAR_LISP ("deferred-action-function", &Vdeferred_action_function,
+  DEFVAR_LISP ("deferred-action-function", Vdeferred_action_function,
 	       doc: /* Function to call to handle deferred actions, after each command.
 This function is called with no arguments after each command
 whenever `deferred-action-list' is non-nil.  */);
   Vdeferred_action_function = Qnil;
 
-  DEFVAR_LISP ("suggest-key-bindings", &Vsuggest_key_bindings,
+  DEFVAR_LISP ("suggest-key-bindings", Vsuggest_key_bindings,
 	       doc: /* *Non-nil means show the equivalent key-binding when M-x command has one.
 The value can be a length of time to show the message for.
 If the value is non-nil and not a number, we wait 2 seconds.  */);
   Vsuggest_key_bindings = Qt;
 
-  DEFVAR_LISP ("timer-list", &Vtimer_list,
+  DEFVAR_LISP ("timer-list", Vtimer_list,
 	       doc: /* List of active absolute time timers in order of increasing time.  */);
   Vtimer_list = Qnil;
 
-  DEFVAR_LISP ("timer-idle-list", &Vtimer_idle_list,
+  DEFVAR_LISP ("timer-idle-list", Vtimer_idle_list,
 	       doc: /* List of active idle-time timers in order of increasing time.  */);
   Vtimer_idle_list = Qnil;
 
-  DEFVAR_LISP ("input-method-function", &Vinput_method_function,
+  DEFVAR_LISP ("input-method-function", Vinput_method_function,
 	       doc: /* If non-nil, the function that implements the current input method.
 It's called with one argument, a printing character that was just read.
 \(That means a character with code 040...0176.)
@@ -12249,18 +12117,18 @@ for guidance on what to do.  */);
   Vinput_method_function = Qnil;
 
   DEFVAR_LISP ("input-method-previous-message",
-	       &Vinput_method_previous_message,
+	       Vinput_method_previous_message,
 	       doc: /* When `input-method-function' is called, hold the previous echo area message.
 This variable exists because `read-event' clears the echo area
 before running the input method.  It is nil if there was no message.  */);
   Vinput_method_previous_message = Qnil;
 
-  DEFVAR_LISP ("show-help-function", &Vshow_help_function,
+  DEFVAR_LISP ("show-help-function", Vshow_help_function,
 	       doc: /* If non-nil, the function that implements the display of help.
 It's called with one argument, the help string to display.  */);
   Vshow_help_function = Qnil;
 
-  DEFVAR_LISP ("disable-point-adjustment", &Vdisable_point_adjustment,
+  DEFVAR_LISP ("disable-point-adjustment", Vdisable_point_adjustment,
 	       doc: /* If non-nil, suppress point adjustment after executing a command.
 
 After a command is executed, if point is moved into a region that has
@@ -12273,7 +12141,7 @@ just after executing the command.  */);
   Vdisable_point_adjustment = Qnil;
 
   DEFVAR_LISP ("global-disable-point-adjustment",
-	       &Vglobal_disable_point_adjustment,
+	       Vglobal_disable_point_adjustment,
 	       doc: /* *If non-nil, always suppress point adjustment.
 
 The default value is nil, in which case, point adjustment are
@@ -12281,18 +12149,18 @@ suppressed only after special commands that set
 `disable-point-adjustment' (which see) to non-nil.  */);
   Vglobal_disable_point_adjustment = Qnil;
 
-  DEFVAR_LISP ("minibuffer-message-timeout", &Vminibuffer_message_timeout,
+  DEFVAR_LISP ("minibuffer-message-timeout", Vminibuffer_message_timeout,
 	       doc: /* *How long to display an echo-area message when the minibuffer is active.
 If the value is not a number, such messages don't time out.  */);
   Vminibuffer_message_timeout = make_number (2);
 
-  DEFVAR_LISP ("throw-on-input", &Vthrow_on_input,
+  DEFVAR_LISP ("throw-on-input", Vthrow_on_input,
 	       doc: /* If non-nil, any keyboard input throws to this symbol.
 The value of that variable is passed to `quit-flag' and later causes a
 peculiar kind of quitting.  */);
   Vthrow_on_input = Qnil;
 
-  DEFVAR_LISP ("command-error-function", &Vcommand_error_function,
+  DEFVAR_LISP ("command-error-function", Vcommand_error_function,
 	       doc: /* If non-nil, function to output error messages.
 The arguments are the error data, a list of the form
  (SIGNALED-CONDITIONS . SIGNAL-DATA)
@@ -12302,7 +12170,7 @@ and the Lisp function within which the error was signaled.  */);
   Vcommand_error_function = Qnil;
 
   DEFVAR_LISP ("enable-disabled-menus-and-buttons",
-	       &Venable_disabled_menus_and_buttons,
+	       Venable_disabled_menus_and_buttons,
 	       doc: /* If non-nil, don't ignore events produced by disabled menu items and tool-bar.
 
 Help functions bind this to allow help on disabled menu items
@@ -12310,8 +12178,8 @@ and tool-bar buttons.  */);
   Venable_disabled_menus_and_buttons = Qnil;
 
   DEFVAR_LISP ("select-active-regions",
-	       &Vselect_active_regions,
-	       doc: /* If non-nil, an active region automatically becomes the window selection.
+	       Vselect_active_regions,
+	       doc: /* If non-nil, an active region automatically sets the primary selection.
 If the value is `only', only temporarily active regions (usually made
 by mouse-dragging or shift-selection) set the window selection.
 
@@ -12319,7 +12187,7 @@ This takes effect only when Transient Mark mode is enabled.  */);
   Vselect_active_regions = Qt;
 
   DEFVAR_LISP ("saved-region-selection",
-	       &Vsaved_region_selection,
+	       Vsaved_region_selection,
 	       doc: /* Contents of active region prior to buffer modification.
 If `select-active-regions' is non-nil, Emacs sets this to the
 text in the region before modifying the buffer.  The next
@@ -12439,4 +12307,3 @@ mark_kboards (void)
       }
   }
 }
-

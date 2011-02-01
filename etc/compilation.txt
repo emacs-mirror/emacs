@@ -233,7 +233,7 @@ symbol: gcc-include
 The last file, i.e. the one you are compiling, is the interesting one.
 
 In file included from /usr/include/c++/3.3/backward/warn.h:4,
-                 from /usr/include/c++/3.3/backward/iostream.h:31,
+                 from /usr/include/c++/3.3/backward/iostream.h:31:0,
                  from test_clt.cc:1:
 
 
@@ -548,8 +548,7 @@ Compilation segmentation fault at Thu Jul 13 10:55:49
 Compilation finished at Thu Jul 21 15:02:15
 
 
-Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-Free Software Foundation, Inc.
+Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 

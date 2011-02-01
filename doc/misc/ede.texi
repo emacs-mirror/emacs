@@ -5,8 +5,7 @@
 @copying
 This file describes EDE, the Emacs Development Environment.
 
-Copyright @copyright{} 1998, 1999, 2000, 2001, 2004, 2005, 2008, 2009,
-2010  Free Software Foundation, Inc.
+Copyright @copyright{} 1998-2001, 2004-2005, 2008-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -3791,7 +3790,3 @@ For example, C code uses .o on unix, and Emacs Lisp uses .elc.
 @end table
 
 @bye
-
-@ignore
-   arch-tag: c9bfdc6e-e6e9-4e87-97f7-d8348342fbf4
-@end ignore

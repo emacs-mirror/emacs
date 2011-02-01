@@ -1,7 +1,6 @@
 ;;; vc-bzr.el --- VC backend for the bzr revision control system
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
@@ -95,6 +94,21 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
     (apply 'vc-do-command (or buffer "*vc*") okstatus vc-bzr-program
            file-or-list bzr-command args)))
 
+(defun vc-bzr-async-command (bzr-command &rest args)
+  "Wrapper round `vc-do-async-command' using `vc-bzr-program' as COMMAND.
+Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
+`LC_MESSAGES=C' to the environment.
+Use the current Bzr root directory as the ROOT argument to
+`vc-do-async-command', and specify an output buffer named
+\"*vc-bzr : ROOT*\".  Return this buffer."
+  (let* ((process-environment
+	  (list* "BZR_PROGRESS_BAR=none" "LC_MESSAGES=C"
+		 process-environment))
+	 (root (vc-bzr-root default-directory))
+	 (buffer (format "*vc-bzr : %s*" (expand-file-name root))))
+    (apply 'vc-do-async-command buffer root
+	   vc-bzr-program bzr-command args)
+    buffer))
 
 ;;;###autoload
 (defconst vc-bzr-admin-dirname ".bzr"
@@ -262,31 +276,6 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
     (when rootdir
          (file-relative-name filename* rootdir))))
 
-(defun vc-bzr-async-command (command args)
-  "Run Bzr COMMAND asynchronously with ARGS, displaying the result.
-Send the output to a buffer named \"*vc-bzr : NAME*\", where NAME
-is the root of the current Bzr branch.  Display the buffer in
-some window, but don't select it."
-  ;; TODO: set up hyperlinks.
-  (let* ((dir default-directory)
-	 (root (vc-bzr-root default-directory))
-	 (buffer (get-buffer-create
-		  (format "*vc-bzr : %s*"
-			  (expand-file-name root)))))
-    (with-current-buffer buffer
-      (setq default-directory root)
-      (goto-char (point-max))
-      (unless (eq (point) (point-min))
-	(insert "\n"))
-      (insert "Running \"" vc-bzr-program " " command)
-      (dolist (arg args)
-	(insert " " arg))
-      (insert "\"...\n")
-      ;; Run bzr in the original working directory.
-      (let ((default-directory dir))
-	(apply 'vc-bzr-command command t 'async nil args)))
-    (display-buffer buffer)))
-
 (defun vc-bzr-pull (prompt)
   "Pull changes into the current Bzr branch.
 Normally, this runs \"bzr pull\".  However, if the branch is a
@@ -309,14 +298,15 @@ prompt for the Bzr command to run."
     (when (or prompt (not (or bound parent)))
       (setq args (split-string
 		  (read-shell-command
-		   "Run Bzr (like this): "
+		   "Bzr pull command: "
 		   (concat vc-bzr-program " " command)
 		   'vc-bzr-history)
 		  " " t))
       (setq vc-bzr-program (car  args)
 	    command        (cadr args)
 	    args           (cddr args)))
-    (vc-bzr-async-command command args)))
+    (vc-set-async-update
+     (apply 'vc-bzr-async-command command args))))
 
 (defun vc-bzr-merge-branch ()
   "Merge another Bzr branch into the current one.
@@ -325,8 +315,8 @@ source (an upstream branch or a previous merge source) as a
 default if it is available."
   (let* ((branch-conf (vc-bzr--branch-conf default-directory))
 	 ;; "bzr merge" without an argument defaults to submit_branch,
-	 ;; then parent_location.  We extract the specific location
-	 ;; and add it explicitly to the command line.
+	 ;; then parent_location.  Extract the specific location and
+	 ;; add it explicitly to the command line.
 	 (location
 	  (cond
 	   ((string-match
@@ -340,7 +330,7 @@ default if it is available."
 	 (cmd
 	  (split-string
 	   (read-shell-command
-	    "Run Bzr (like this): "
+	    "Bzr merge command: "
 	    (concat vc-bzr-program " merge --pull"
 		    (if location (concat " " location) ""))
 	    'vc-bzr-history)
@@ -348,7 +338,8 @@ default if it is available."
 	 (vc-bzr-program (car  cmd))
 	 (command        (cadr cmd))
 	 (args           (cddr cmd)))
-    (vc-bzr-async-command command args)))
+    (vc-set-async-update
+     (apply 'vc-bzr-async-command command args))))
 
 (defun vc-bzr-status (file)
   "Return FILE status according to Bzr.
@@ -675,18 +666,22 @@ REV non-nil gets an error."
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
-  ;; `bzr diff' exits with code 1 if diff is non-empty.
-  (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*")
-	 (if vc-disable-async-diff 1 'async) files
-         "--diff-options" (mapconcat 'identity
-                                     (vc-switches 'bzr 'diff)
-				     " ")
-         ;; This `when' is just an optimization because bzr-1.2 is *much*
-         ;; faster when the revision argument is not given.
-         (when (or rev1 rev2)
-           (list "-r" (format "%s..%s"
-                              (or rev1 "revno:-1")
-                              (or rev2 ""))))))
+  (let* ((switches (vc-switches 'bzr 'diff))
+         (args
+          (append
+           ;; Only add --diff-options if there are any diff switches.
+           (unless (zerop (length switches))
+             (list "--diff-options" (mapconcat 'identity switches " ")))
+           ;; This `when' is just an optimization because bzr-1.2 is *much*
+           ;; faster when the revision argument is not given.
+           (when (or rev1 rev2)
+             (list "-r" (format "%s..%s"
+                                (or rev1 "revno:-1")
+                                (or rev2 "")))))))
+    ;; `bzr diff' exits with code 1 if diff is non-empty.
+    (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*")
+           (if vc-disable-async-diff 1 'async) files
+           args)))
 
 
 ;; FIXME: vc-{next,previous}-revision need fixing in vc.el to deal with
@@ -720,7 +715,11 @@ property containing author and date information."
        (when (process-buffer proc)
          (with-current-buffer (process-buffer proc)
            (setq string (concat (process-get proc :vc-left-over) string))
-           (while (string-match "^\\( *[0-9.]+ *\\) \\([^\n ]+\\) +\\([0-9]\\{8\\}\\)\\( |.*\n\\)" string)
+           ;; Eg: 102020      Gnus developers          20101020 | regexp."
+           ;; As of bzr 2.2.2, no email address in whoami (which can
+           ;; lead to spaces in the author field) is allowed but discouraged.
+           ;; See bug#7792.
+           (while (string-match "^\\( *[0-9.]+ *\\) \\(.+?\\) +\\([0-9]\\{8\\}\\)\\( |.*\n\\)" string)
              (let* ((rev (match-string 1 string))
                     (author (match-string 2 string))
                     (date (match-string 3 string))
@@ -747,7 +746,7 @@ property containing author and date information."
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 
 (defun vc-bzr-annotate-time ()
-  (when (re-search-forward "^ *[0-9.]+ +[^\n ]* +|" nil t)
+  (when (re-search-forward "^ *[0-9.]+ +.+? +|" nil t)
     (let ((prop (get-text-property (line-beginning-position) 'help-echo)))
       (string-match "[0-9]+\\'" prop)
       (let ((str (match-string-no-properties 0 prop)))
@@ -762,7 +761,7 @@ property containing author and date information."
 Return nil if current line isn't annotated."
   (save-excursion
     (beginning-of-line)
-    (if (looking-at "^ *\\([0-9.]+\\) +[^\n ]* +|")
+    (if (looking-at "^ *\\([0-9.]+\\) +.* +|")
         (match-string-no-properties 1))))
 
 (defun vc-bzr-command-discarding-stderr (command &rest args)

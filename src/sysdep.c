@@ -1,6 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1988, 1993-1995, 1999-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -30,9 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif /* HAVE_LIMITS_H */
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include "lisp.h"
 #include "sysselect.h"
@@ -1307,11 +1304,6 @@ setup_pty (int fd)
 }
 #endif /* HAVE_PTYS */
 
-/* init_system_name sets up the string for the Lisp function
-   system-name to return. */
-
-extern Lisp_Object Vsystem_name;
-
 #ifdef HAVE_SOCKETS
 #include <sys/socket.h>
 #include <netdb.h>

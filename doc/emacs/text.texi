@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text, Programs, Indentation, Top
@@ -1765,7 +1764,7 @@ variant of SGML mode.
 @kindex C-c C-n @r{(SGML mode)}
 @findex sgml-name-char
 Interactively specify a special character and insert the SGML
-@samp{&}-command for that character.
+@samp{&}-command for that character (@code{sgml-name-char}).
 
 @item C-c C-t
 @kindex C-c C-t @r{(SGML mode)}
@@ -1799,7 +1798,7 @@ A numeric argument acts as a repeat count.
 @findex sgml-skip-tag-backward
 Skip backward across a balanced tag group (which extends from an
 opening tag through its corresponding closing tag)
-(@code{sgml-skip-tag-forward}).  A numeric argument acts as a repeat
+(@code{sgml-skip-tag-backward}).  A numeric argument acts as a repeat
 count.
 
 @item C-c C-d
@@ -1841,7 +1840,7 @@ buffer as SGML (@code{sgml-validate}).
 @kindex C-c TAB @r{(SGML mode)}
 @findex sgml-tags-invisible
 Toggle the visibility of existing tags in the buffer.  This can be
-used as a cheap preview.
+used as a cheap preview (@code{sgml-tags-invisible}).
 @end table
 
 @cindex nXML mode
@@ -2925,7 +2924,3 @@ then inserts the generated table in the proper syntax into the
 destination buffer.  The default destination buffer is
 @code{table.@var{lang}}, where @var{lang} is the language you
 specified.
-
-@ignore
-   arch-tag: 8db54ed8-2036-49ca-b0df-23811d03dc70
-@end ignore

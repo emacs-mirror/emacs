@@ -1,6 +1,7 @@
 /* Platform-independent code for terminal communications.
-   Copyright (C) 1986, 1988, 1993, 1994, 1996, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -695,7 +696,7 @@ digest_single_submenu (int start, int end, int top_level_items)
 #endif
 
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) SDATA (pane_name));
+			 ? "" : SSDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -847,7 +848,7 @@ update_submenu_strings (widget_value *first_wv)
     {
       if (STRINGP (wv->lname))
         {
-          wv->name = (char *) SDATA (wv->lname);
+          wv->name = SSDATA (wv->lname);
 
           /* Ignore the @ that means "separate pane".
              This is a kludge, but this isn't worth more time.  */
@@ -860,7 +861,7 @@ update_submenu_strings (widget_value *first_wv)
         }
 
       if (STRINGP (wv->lkey))
-        wv->key = (char *) SDATA (wv->lkey);
+        wv->key = SSDATA (wv->lkey);
 
       if (wv->contents)
         update_submenu_strings (wv->contents);
@@ -1353,6 +1354,3 @@ syms_of_menu (void)
 
   defsubr (&Sx_popup_menu);
 }
-
-/* arch-tag: 78bbc7cf-8025-4156-aa8a-6c7fd99bf51d
-   (do not change this comment) */

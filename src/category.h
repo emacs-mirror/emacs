@@ -1,6 +1,6 @@
 /* Declarations having to do with Emacs category tables.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009, 2010
+     2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
    Copyright (C) 2003
@@ -116,5 +116,3 @@ extern Lisp_Object _temp_category_set;
 extern int word_boundary_p (int, int);
 extern void set_category_set (Lisp_Object, Lisp_Object, Lisp_Object);
 
-/* arch-tag: 309dfe83-c3e2-4d22-8e81-faae5aece0ff
-   (do not change this comment) */

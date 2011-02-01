@@ -1,6 +1,5 @@
 /* Deal with the X Resource Manager.
-   Copyright (C) 1990, 1993, 1994, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993-1994, 2000-2011 Free Software Foundation, Inc.
 
 Author: Joseph Arceneaux
 Created: 4/90
@@ -22,10 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
 #include <errno.h>
 #include <epaths.h>
 
@@ -76,8 +72,9 @@ char *x_customization_string;
 /* Return the value of the emacs.customization (Emacs.Customization)
    resource, for later use in search path decoding.  If we find no
    such resource, return zero.  */
-char *
-x_get_customization_string (XrmDatabase db, const char *name, const char *class)
+static char *
+x_get_customization_string (XrmDatabase db, const char *name,
+			    const char *class)
 {
   char *full_name
     = (char *) alloca (strlen (name) + sizeof ("customization") + 3);
@@ -609,8 +606,9 @@ x_load_resources (Display *display, const char *xrm_string,
 /* Retrieve the value of the resource specified by NAME with class CLASS
    and of type TYPE from database RDB.  The value is returned in RET_VALUE. */
 
-int
-x_get_resource (XrmDatabase rdb, const char *name, const char *class, XrmRepresentation expected_type, XrmValue *ret_value)
+static int
+x_get_resource (XrmDatabase rdb, const char *name, const char *class,
+		XrmRepresentation expected_type, XrmValue *ret_value)
 {
   XrmValue value;
   XrmName namelist[100];
@@ -765,5 +763,3 @@ main (argc, argv)
 }
 #endif /* TESTRM */
 
-/* arch-tag: 37e6fbab-ed05-4363-9e76-6c4109ed511f
-   (do not change this comment) */

@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Calendar/Diary, Document View, Dired, Top
@@ -1709,7 +1708,3 @@ data in Emacs from the file.
 @ifnottex
 @include cal-xtra.texi
 @end ifnottex
-
-@ignore
-   arch-tag: 4531ef09-9df3-449d-9c52-2b5a4a337f92
-@end ignore

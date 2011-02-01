@@ -1,6 +1,6 @@
 ;;; ede/proj-comp.el --- EDE Generic Project compiler/rule driver
 
-;; Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007, 2009, 2010
+;; Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -355,5 +355,4 @@ compiler it decides to use after inserting in the rule."
 
 (provide 'ede/proj-comp)
 
-;; arch-tag: ade67766-1a5d-467a-826a-93e95594d717
 ;;; ede/proj-comp.el ends here

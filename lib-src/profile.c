@@ -1,6 +1,5 @@
 /* profile.c --- generate periodic events for profiling of Emacs Lisp code.
-   Copyright (C) 1992, 1994, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1994, 1999, 2001-2011  Free Software Foundation, Inc.
 
 Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
 
@@ -102,7 +101,5 @@ main (void)
   exit (EXIT_FAILURE);
 }
 
-/* arch-tag: 8db68f7e-2322-4944-a315-dba349bdbf39
-   (do not change this comment) */
 
 /* profile.c ends here */

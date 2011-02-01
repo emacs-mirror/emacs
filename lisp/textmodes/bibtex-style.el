@@ -1,7 +1,6 @@
 ;;; bibtex-style.el --- Major mode for BibTeX Style files
 
-;; Copyright (C) 2005, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tex
@@ -152,5 +151,4 @@
 
 
 (provide 'bibtex-style)
-;; arch-tag: b20ad41a-fd36-466e-8fd2-cc6137f9c55c
 ;;; bibtex-style.el ends here

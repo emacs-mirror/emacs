@@ -1,7 +1,6 @@
 ;;; dired.el --- directory-browsing commands
 
-;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -26,8 +25,8 @@
 
 ;;; Commentary:
 
-;; This is a major mode for directory browsing and editing.  It is
-;; documented in the Emacs manual.
+;; This is a major mode for directory browsing and editing.
+;; It is documented in the Emacs manual.
 
 ;; Rewritten in 1990/1991 to add tree features, file marking and
 ;; sorting by Sebastian Kremer <sk@thp.uni-koeln.de>.
@@ -62,35 +61,41 @@ some of the `ls' switches are not supported; see the doc string of
   :type 'string
   :group 'dired)
 
-(defvar dired-subdir-switches nil
+(defcustom dired-subdir-switches nil
   "If non-nil, switches passed to `ls' for inserting subdirectories.
-If nil, `dired-listing-switches' is used.")
+If nil, `dired-listing-switches' is used."
+   :group 'dired
+   :type '(choice (const :tag "Use dired-listing-switches" nil)
+                  (string :tag "Switches")))
 
-; Don't use absolute file names as /bin should be in any PATH and people
-; may prefer /usr/local/gnu/bin or whatever.  However, chown is
-; usually not in PATH.
+(defcustom dired-chown-program
+  (purecopy (cond ((executable-find "chown") "chown")
+                  ((file-executable-p "/usr/sbin/chown") "/usr/sbin/chown")
+                  ((file-executable-p "/etc/chown") "/etc/chown")
+                  (t "chown")))
+  "Name of chown command (usually `chown')."
+  :group 'dired
+  :type 'file)
 
-;;;###autoload
-(defvar dired-chown-program
-  (purecopy
-  (if (memq system-type '(hpux usg-unix-v irix gnu/linux cygwin))
-      "chown"
-    (if (file-exists-p "/usr/sbin/chown")
-	"/usr/sbin/chown"
-      "/etc/chown")))
-  "Name of chown command (usually `chown' or `/etc/chown').")
-
-(defvar dired-use-ls-dired 'unspecified
+(defcustom dired-use-ls-dired 'unspecified
   "Non-nil means Dired should use \"ls --dired\".
 The special value of `unspecified' means to check explicitly, and
 save the result in this variable.  This is performed the first
-time `dired-insert-directory' is called.")
+time `dired-insert-directory' is called."
+  :group 'dired
+  :type '(choice (const :tag "Check for --dired support" unspecified)
+                 (const :tag "Do not use --dired" nil)
+                 (other :tag "Use --dired" t)))
 
-(defvar dired-chmod-program "chmod"
-  "Name of chmod command (usually `chmod').")
+(defcustom dired-chmod-program "chmod"
+  "Name of chmod command (usually `chmod')."
+  :group 'dired
+  :type 'file)
 
-(defvar dired-touch-program "touch"
-  "Name of touch command (usually `touch').")
+(defcustom dired-touch-program "touch"
+  "Name of touch command (usually `touch')."
+   :group 'dired
+   :type 'file)
 
 (defcustom dired-ls-F-marks-symlinks nil
   "Informs Dired about how `ls -lF' marks symbolic links.
@@ -108,7 +113,6 @@ always set this variable to t."
   :type 'boolean
   :group 'dired-mark)
 
-;;;###autoload
 (defcustom dired-trivial-filenames (purecopy "^\\.\\.?$\\|^#")
   "Regexp of files to skip when finding first file of a directory.
 A value of nil means move to the subdir line.
@@ -756,7 +760,6 @@ for a remote directory.  This feature is used by Auto Revert Mode."
 	 buffer-read-only
 	 (dired-directory-changed-p dirname))))
 
-;;;###autoload
 (defcustom dired-auto-revert-buffer nil
   "Automatically revert dired buffer on revisiting.
 If t, revisiting an existing dired buffer automatically reverts it.
@@ -1142,7 +1145,10 @@ If HDR is non-nil, insert a header line with the directory name."
   "Reread the dired buffer.
 Must also be called after `dired-actual-switches' have changed.
 Should not fail even on completely garbaged buffers.
-Preserves old cursor, marks/flags, hidden-p."
+Preserves old cursor, marks/flags, hidden-p.
+
+Dired sets `revert-buffer-function' to this function.  The args
+ARG and NOCONFIRM, passed from `revert-buffer', are ignored."
   (widen)				; just in case user narrowed
   (let ((modflag (buffer-modified-p))
 	(positions (dired-save-positions))
@@ -2775,7 +2781,8 @@ name, or the marker and a count of marked files."
 		    ;; that's possible.  (Bug#1806)
 		    (split-window-vertically))
 	       ;; Otherwise, try to split WINDOW sensibly.
-	       (split-window-sensibly window)))))
+	       (split-window-sensibly window))))
+	pop-up-frames)
     (pop-to-buffer (get-buffer-create buf)))
   ;; If dired-shrink-to-fit is t, make its window fit its contents.
   (when dired-shrink-to-fit
@@ -3557,7 +3564,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "1628b7a7d379fb4da8ae4bf29faad4b5")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "9f5fc434fa6c2607b6e66060862c9caf")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3718,12 +3725,18 @@ Not documented
 \(fn FILE)" nil nil)
 
 (autoload 'dired-query "dired-aux" "\
-Query user and return nil or t.
-Store answer in symbol VAR (which must initially be bound to nil).
-Format PROMPT with ARGS.
-Binding variable `help-form' will help the user who types the help key.
+Format PROMPT with ARGS, query user, and store the result in SYM.
+The return value is either nil or t.
 
-\(fn QS-VAR QS-PROMPT &rest QS-ARGS)" nil nil)
+The user may type y or SPC to accept once; n or DEL to skip once;
+! to accept this and subsequent queries; or q or ESC to decline
+this and subsequent queries.
+
+If SYM is already bound to a non-nil value, this function may
+return automatically without querying the user.  If SYM is !,
+return t; if SYM is q or ESC, return nil.
+
+\(fn SYM PROMPT &rest ARGS)" nil nil)
 
 (autoload 'dired-do-compress "dired-aux" "\
 Compress or uncompress marked (or next ARG) files.
@@ -4010,7 +4023,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "27c312d6d5d40d8cb4ef8d62e30d5f4a")
+;;;;;;  "fbac6ae123aaa2b2e9df8bb2cde61ceb")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

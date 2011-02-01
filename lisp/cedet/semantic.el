@@ -1,7 +1,6 @@
 ;;; semantic.el --- Semantic buffer evaluator.
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax tools
@@ -1153,5 +1152,4 @@ minor mode is enabled." t nil)
 
 ;; (require 'semantic/load)
 
-;; arch-tag: 31583e10-6508-41a9-be40-f83d0ae0a4ed
 ;;; semantic.el ends here

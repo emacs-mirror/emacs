@@ -1,7 +1,7 @@
 ;;; misc-lang.el --- support for miscellaneous languages (characters) -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -74,5 +74,4 @@ and Italian.")))
 
 (provide 'misc-lang)
 
-;; arch-tag: 6953585c-1a1a-4c09-be82-a2518afb6074
 ;;; misc-lang.el ends here

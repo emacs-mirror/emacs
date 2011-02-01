@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/macros
 @node Macros, Customization, Functions, Top
@@ -732,7 +731,3 @@ indentation is being computed by @kbd{C-M-q}; if the value is a
 number, @kbd{C-M-q} need not recalculate indentation for the following
 lines until the end of the list.
 @end table
-
-@ignore
-   arch-tag: d4cce66d-1047-45c3-bfde-db6719d6e82b
-@end ignore

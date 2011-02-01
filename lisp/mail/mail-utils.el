@@ -1,7 +1,6 @@
 ;;; mail-utils.el --- utility functions used both by rmail and rnews
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail, news
@@ -27,10 +26,6 @@
 ;; points of header parsing.
 
 ;;; Code:
-
-;;; We require lisp-mode to make sure that lisp-mode-syntax-table has
-;;; been initialized.
-(require 'lisp-mode)
 
 ;;;###autoload
 (defcustom mail-use-rfc822 nil
@@ -186,65 +181,44 @@ Return a modified address list."
 	       (mapconcat 'identity (rfc822-addresses address) ", "))
       (let (pos)
 
-       ;; Detect nested comments.
-       (if (string-match "[ \t]*(\\([^)\\]\\|\\\\.\\|\\\\\n\\)*(" address)
-	   ;; Strip nested comments.
-	   (with-current-buffer (get-buffer-create " *temp*")
-	     (erase-buffer)
-	     (insert address)
-	     (set-syntax-table lisp-mode-syntax-table)
-	     (goto-char 1)
-	     (while (search-forward "(" nil t)
-	       (forward-char -1)
-	       (skip-chars-backward " \t")
-	       (delete-region (point)
-			      (save-excursion
-				(condition-case ()
-				    (forward-sexp 1)
-				  (error (goto-char (point-max))))
-				  (point))))
-	     (setq address (buffer-string))
-	     (erase-buffer))
-	 ;; Strip non-nested comments an easier way.
-	 (while (setq pos (string-match
-			    ;; This doesn't hack rfc822 nested comments
-			    ;;  `(xyzzy (foo) whinge)' properly.  Big deal.
-			    "[ \t]*(\\([^)\\]\\|\\\\.\\|\\\\\n\\)*)"
-			    address))
-	   (setq address (replace-match "" nil nil address 0))))
+        ;; Strip comments.
+        (while (setq pos (string-match
+                          "[ \t]*(\\([^()\\]\\|\\\\.\\|\\\\\n\\)*)"
+                          address))
+          (setq address (replace-match "" nil nil address 0)))
 
-       ;; strip surrounding whitespace
-       (string-match "\\`[ \t\n]*" address)
-       (setq address (substring address
-				(match-end 0)
-				(string-match "[ \t\n]*\\'" address
-					      (match-end 0))))
+        ;; strip surrounding whitespace
+        (string-match "\\`[ \t\n]*" address)
+        (setq address (substring address
+                                 (match-end 0)
+                                 (string-match "[ \t\n]*\\'" address
+                                               (match-end 0))))
 
-       ;; strip `quoted' names (This is supposed to hack `"Foo Bar" <bar@host>')
-       (setq pos 0)
-       (while (setq pos (string-match
+        ;; strip `quoted' names (This is supposed to hack `"Foo Bar" <bar@host>')
+        (setq pos 0)
+        (while (setq pos (string-match
                           "\\([ \t]?\\)\\([ \t]*\"\\([^\"\\]\\|\\\\.\\|\\\\\n\\)*\"[ \t\n]*\\)"
 			  address pos))
-	 ;; If the next thing is "@", we have "foo bar"@host.  Leave it.
-	 (if (and (> (length address) (match-end 0))
-		  (= (aref address (match-end 0)) ?@))
-	     (setq pos (match-end 0))
-	   ;; Otherwise discard the "..." part.
-	   (setq address (replace-match "" nil nil address 2))))
-       ;; If this address contains <...>, replace it with just
-       ;; the part between the <...>.
-       (while (setq pos (string-match "\\(,\\s-*\\|\\`\\)\\([^,]*<\\([^>,:]*\\)>[^,]*\\)\\(\\s-*,\\|\\'\\)"
-				      address))
-	 (setq address (replace-match (match-string 3 address)
-				      nil 'literal address 2)))
-       address))))
+          ;; If the next thing is "@", we have "foo bar"@host.  Leave it.
+          (if (and (> (length address) (match-end 0))
+                   (= (aref address (match-end 0)) ?@))
+              (setq pos (match-end 0))
+            ;; Otherwise discard the "..." part.
+            (setq address (replace-match "" nil nil address 2))))
+        ;; If this address contains <...>, replace it with just
+        ;; the part between the <...>.
+        (while (setq pos (string-match "\\(,\\s-*\\|\\`\\)\\([^,]*<\\([^>,:]*\\)>[^,]*\\)\\(\\s-*,\\|\\'\\)"
+                                       address))
+          (setq address (replace-match (match-string 3 address)
+                                       nil 'literal address 2)))
+        address))))
 
-;;; The following piece of ugliness is legacy code.  The name was an
-;;; unfortunate choice --- a flagrant violation of the Emacs Lisp
-;;; coding conventions.  `mail-dont-reply-to' would have been
-;;; infinitely better.  Also, `rmail-dont-reply-to-names' might have
-;;; been better named `mail-dont-reply-to-names' and sourced from this
-;;; file instead of in rmail.el.  Yuck.  -pmr
+;; The following piece of ugliness is legacy code.  The name was an
+;; unfortunate choice --- a flagrant violation of the Emacs Lisp
+;; coding conventions.  `mail-dont-reply-to' would have been
+;; infinitely better.  Also, `rmail-dont-reply-to-names' might have
+;; been better named `mail-dont-reply-to-names' and sourced from this
+;; file instead of in rmail.el.  Yuck.  -pmr
 (defun rmail-dont-reply-to (destinations)
   "Prune addresses from DESTINATIONS, a list of recipient addresses.
 All addresses matching `rmail-dont-reply-to-names' are removed from
@@ -398,13 +372,19 @@ matches may be returned from the message body."
 (defun mail-mbox-from ()
   "Return an mbox \"From \" line for the current message.
 The buffer should be narrowed to just the header."
-  (let ((from (or (mail-fetch-field "from")
-		  (mail-fetch-field "really-from")
-		  (mail-fetch-field "sender")
-		  (mail-fetch-field "return-path")
-		  "unknown"))
-	(date (mail-fetch-field "date")))
-    (format "From %s %s\n" (mail-strip-quoted-names from)
+  (let* ((from (mail-strip-quoted-names (or (mail-fetch-field "from")
+					    (mail-fetch-field "really-from")
+					    (mail-fetch-field "sender")
+					    (mail-fetch-field "return-path")
+					    "unknown")))
+	 (date (mail-fetch-field "date"))
+	 ;; A From: header can contain multiple addresses, a "From "
+	 ;; line must contain only one.  (Bug#7760)
+	 ;; See eg RFC 5322, 3.6.2. Originator Fields.
+	 (end (string-match "[ \t]*[,\n]" from)))
+    (format "From %s %s\n" (if end
+			       (substring from 0 end)
+			     from)
 	    (or (and date
 		     (ignore-errors
 		      (current-time-string (date-to-time date))))

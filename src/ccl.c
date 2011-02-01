@@ -1,8 +1,7 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2001-2011 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009, 2010
+     2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
    Copyright (C) 2003
@@ -37,12 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qccl, Qcclp;
 
-/* This contains all code conversion map available to CCL.  */
-Lisp_Object Vcode_conversion_map_vector;
-
-/* Alist of fontname patterns vs corresponding CCL program.  */
-Lisp_Object Vfont_ccl_encoder_alist;
-
 /* This symbol is a property which associates with ccl program vector.
    Ex: (get 'ccl-big5-encoder 'ccl-program) returns ccl program vector.  */
 Lisp_Object Qccl_program;
@@ -64,9 +57,6 @@ Lisp_Object Qccl_program_idx;
    or nil) is the flat to tell if the CCL program is updated after it
    was once used.  */
 Lisp_Object Vccl_program_table;
-
-/* Vector of registered hash tables for translation.  */
-Lisp_Object Vtranslation_hash_table_vector;
 
 /* Return a hash table of id number ID.  */
 #define GET_HASH_TABLE(id) \
@@ -2321,11 +2311,11 @@ syms_of_ccl (void)
   Qcode_conversion_map_id = intern_c_string ("code-conversion-map-id");
   staticpro (&Qcode_conversion_map_id);
 
-  DEFVAR_LISP ("code-conversion-map-vector", &Vcode_conversion_map_vector,
+  DEFVAR_LISP ("code-conversion-map-vector", Vcode_conversion_map_vector,
 	       doc: /* Vector of code conversion maps.  */);
   Vcode_conversion_map_vector = Fmake_vector (make_number (16), Qnil);
 
-  DEFVAR_LISP ("font-ccl-encoder-alist", &Vfont_ccl_encoder_alist,
+  DEFVAR_LISP ("font-ccl-encoder-alist", Vfont_ccl_encoder_alist,
 	       doc: /* Alist of fontname patterns vs corresponding CCL program.
 Each element looks like (REGEXP . CCL-CODE),
  where CCL-CODE is a compiled CCL program.
@@ -2338,7 +2328,7 @@ The code point in the font is set in CCL registers R1 and R2
  If the font is single-byte font, the register R2 is not used.  */);
   Vfont_ccl_encoder_alist = Qnil;
 
-  DEFVAR_LISP ("translation-hash-table-vector", &Vtranslation_hash_table_vector,
+  DEFVAR_LISP ("translation-hash-table-vector", Vtranslation_hash_table_vector,
     doc: /* Vector containing all translation hash tables ever defined.
 Comprises pairs (SYMBOL . TABLE) where SYMBOL and TABLE were set up by calls
 to `define-translation-hash-table'.  The vector is indexed by the table id
@@ -2352,5 +2342,3 @@ used by CCL.  */);
   defsubr (&Sregister_code_conversion_map);
 }
 
-/* arch-tag: bb9a37be-68ce-4576-8d3d-15d750e4a860
-   (do not change this comment) */

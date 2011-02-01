@@ -1,7 +1,6 @@
 ;;; re-builder.el --- building Regexps with visual feedback
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools
@@ -60,8 +59,8 @@
 ;; even the auto updates go all the way.  Forcing an update overrides
 ;; this limit allowing an easy way to see all matches.
 
-;; Currently `re-builder' understands five different forms of input,
-;; namely `read', `string', `rx', and `sregex' syntax.  Read
+;; Currently `re-builder' understands three different forms of input,
+;; namely `read', `string', and `rx' syntax.  Read
 ;; syntax and string syntax are both delimited by `"'s and behave
 ;; according to their name.  With the `string' syntax there's no need
 ;; to escape the backslashes and double quotes simplifying the editing
@@ -75,7 +74,7 @@
 ;; When editing a symbolic regular expression, only the first
 ;; expression in the RE Builder buffer is considered, which helps
 ;; limiting the extent of the expression like the `"'s do for the text
-;; modes.  For the `sregex' syntax the function `sregex' is applied to
+;; modes.  For the `rx' syntax the function `rx-to-string' is applied to
 ;; the evaluated expression read.  So you can use quoted arguments
 ;; with something like '("findme") or you can construct arguments to
 ;; your hearts delight with a valid ELisp expression.  (The compiled
@@ -126,11 +125,10 @@
 
 (defcustom reb-re-syntax 'read
   "Syntax for the REs in the RE Builder.
-Can either be `read', `string', `sregex', or `rx'."
+Can either be `read', `string', or `rx'."
   :group 're-builder
   :type '(choice (const :tag "Read syntax" read)
 		 (const :tag "String syntax" string)
-		 (const :tag "`sregex' syntax" sregex)
 		 (const :tag "`rx' syntax" rx)))
 
 (defcustom reb-auto-match-limit 200
@@ -244,7 +242,9 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 		  :help "Quit the RE Builder mode"))
     (define-key menu-map [rt]
       '(menu-item "Case sensitive" reb-toggle-case
-		  :button (:toggle . case-fold-search)
+		  :button (:toggle . (with-current-buffer
+					 reb-target-buffer
+				       (null case-fold-search)))
 		  :help "Toggle case sensitivity of searches for RE Builder target buffer"))
     (define-key menu-map [rb]
       '(menu-item "Change target buffer..." reb-change-target-buffer
@@ -279,10 +279,8 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   emacs-lisp-mode "RE Builder Lisp"
   "Major mode for interactively building symbolic Regular Expressions."
   ;; Pull in packages as needed
-  (cond	((eq reb-re-syntax 'sregex)	; sregex is not autoloaded
-	 (require 'sregex))		; right now..
-	((eq reb-re-syntax 'rx)		; rx-to-string is autoloaded
-	 (require 'rx)))		; require rx anyway
+  (cond	((memq reb-re-syntax '(sregex rx)) ; rx-to-string is autoloaded
+	 (require 'rx)))                   ; require rx anyway
   (reb-mode-common))
 
 ;; Use the same "\C-c" keymap as `reb-mode' and use font-locking from
@@ -612,9 +610,7 @@ optional fourth argument FORCE is non-nil."
 
 (defun reb-cook-regexp (re)
   "Return RE after processing it according to `reb-re-syntax'."
-  (cond ((eq reb-re-syntax 'sregex)
-	 (apply 'sregex (eval (car (read-from-string re)))))
-	((eq reb-re-syntax 'rx)
+  (cond ((memq reb-re-syntax '(sregex rx))
 	 (rx-to-string (eval (car (read-from-string re)))))
 	(t re)))
 
@@ -718,5 +714,4 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 
 (provide 're-builder)
 
-;; arch-tag: 5c5515ac-4085-4524-a421-033f44f032e7
 ;;; re-builder.el ends here

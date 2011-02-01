@@ -1,5 +1,5 @@
 # cp932.awk -- Add sort keys and append user defined area to CP932-2BYTE.map.
-# Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+# Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
 #   Registration Number H13PRO009
 
@@ -114,4 +114,3 @@ END {
     }
 }
 
-# arch-tag: 998dc444-759d-43ef-87e3-2ab205011394

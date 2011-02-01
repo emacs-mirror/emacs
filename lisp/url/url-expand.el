@@ -1,7 +1,6 @@
 ;;; url-expand.el --- expand-file-name for URLs
 
-;; Copyright (C) 1999, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -144,5 +143,4 @@ path components followed by `..' are removed, along with the `..' itself."
 
 (provide 'url-expand)
 
-;; arch-tag: 7b5f744b-b721-49da-be47-484631680a5a
 ;;; url-expand.el ends here

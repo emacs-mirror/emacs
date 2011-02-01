@@ -1,6 +1,5 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985, 1986, 1992, 1993, 1994, 1997, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -78,9 +77,7 @@ void fatal (const char *s1, const char *s2) NO_RETURN;
 #undef chdir
 #endif
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 /* Stdio stream for output to the DOC file.  */
 FILE *outfile;
@@ -160,7 +157,11 @@ main (int argc, char **argv)
     }
   if (argc > i + 1 && !strcmp (argv[i], "-d"))
     {
-      chdir (argv[i + 1]);
+      if (chdir (argv[i + 1]) != 0)
+	{
+	  perror (argv[i + 1]);
+	  return EXIT_FAILURE;
+	}
       i += 2;
     }
 
@@ -650,6 +651,7 @@ scan_c_file (char *filename, const char *mode)
 
 	      if (defunflag && (commas == 1 || commas == 2))
 		{
+		  int scanned = 0;
 		  do
 		    c = getc (infile);
 		  while (c == ' ' || c == '\n' || c == '\r' || c == '\t');
@@ -657,12 +659,14 @@ scan_c_file (char *filename, const char *mode)
 		    goto eof;
 		  ungetc (c, infile);
 		  if (commas == 2) /* pick up minargs */
-		    fscanf (infile, "%d", &minargs);
+		    scanned = fscanf (infile, "%d", &minargs);
 		  else /* pick up maxargs */
 		    if (c == 'M' || c == 'U') /* MANY || UNEVALLED */
 		      maxargs = -1;
 		    else
-		      fscanf (infile, "%d", &maxargs);
+		      scanned = fscanf (infile, "%d", &maxargs);
+		  if (scanned < 0)
+		    goto eof;
 		}
 	    }
 
@@ -869,8 +873,8 @@ scan_lisp_file (const char *filename, const char *mode)
 	  c = getc (infile);
 	  if (c == '@')
 	    {
-	      int length = 0;
-	      int i;
+	      size_t length = 0;
+	      size_t i;
 
 	      /* Read the length.  */
 	      while ((c = getc (infile),
@@ -879,6 +883,12 @@ scan_lisp_file (const char *filename, const char *mode)
 		  length *= 10;
 		  length += c - '0';
 		}
+
+	      if (length <= 1)
+		fatal ("invalid dynamic doc string length", "");
+
+	      if (c != ' ')
+		fatal ("space not found after dynamic doc string length", "");
 
 	      /* The next character is a space that is counted in the length
 		 but not part of the doc string.
@@ -895,7 +905,7 @@ scan_lisp_file (const char *filename, const char *mode)
 		 but it is redundant in DOC.  So get rid of it here.  */
 	      saved_string[length - 1] = 0;
 	      /* Skip the line break.  */
-	      while (c == '\n' && c == '\r')
+	      while (c == '\n' || c == '\r')
 		c = getc (infile);
 	      /* Skip the following line.  */
 	      while (c != '\n' && c != '\r')
@@ -1201,7 +1211,5 @@ scan_lisp_file (const char *filename, const char *mode)
   return 0;
 }
 
-/* arch-tag: f7203aaf-991a-4238-acb5-601db56f2894
-   (do not change this comment) */
 
 /* make-docfile.c ends here */

@@ -1,8 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1997, 1998,
-  1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010  Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-1995, 1997-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -319,9 +317,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define INFINITY 10000000
 
 Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
-Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
-Lisp_Object Qwindow_text_change_functions, Vwindow_text_change_functions;
-Lisp_Object Qredisplay_end_trigger_functions, Vredisplay_end_trigger_functions;
+Lisp_Object Qwindow_scroll_functions;
+Lisp_Object Qwindow_text_change_functions;
+Lisp_Object Qredisplay_end_trigger_functions;
 Lisp_Object Qinhibit_point_motion_hooks;
 Lisp_Object QCeval, QCfile, QCdata, QCpropertize;
 Lisp_Object Qfontified;
@@ -336,96 +334,28 @@ Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
 /* Pointer shapes */
 Lisp_Object Qarrow, Qhand, Qtext;
 
-Lisp_Object Qrisky_local_variable;
-
 /* Holds the list (error).  */
 Lisp_Object list_of_error;
 
-/* Functions called to fontify regions of text.  */
-
-Lisp_Object Vfontification_functions;
 Lisp_Object Qfontification_functions;
 
-/* Non-nil means automatically select any window when the mouse
-   cursor moves into it.  */
-Lisp_Object Vmouse_autoselect_window;
-
-Lisp_Object Vwrap_prefix, Qwrap_prefix;
-Lisp_Object Vline_prefix, Qline_prefix;
-
-/* Non-zero means draw tool bar buttons raised when the mouse moves
-   over them.  */
-
-int auto_raise_tool_bar_buttons_p;
-
-/* Non-zero means to reposition window if cursor line is only partially visible.  */
-
-int make_cursor_line_fully_visible_p;
-
-/* Margin below tool bar in pixels.  0 or nil means no margin.
-   If value is `internal-border-width' or `border-width',
-   the corresponding frame parameter is used.  */
-
-Lisp_Object Vtool_bar_border;
-
-/* Margin around tool bar buttons in pixels.  */
-
-Lisp_Object Vtool_bar_button_margin;
-
-/* Thickness of shadow to draw around tool bar buttons.  */
-
-EMACS_INT tool_bar_button_relief;
-
-/* Non-nil means automatically resize tool-bars so that all tool-bar
-   items are visible, and no blank lines remain.
-
-   If value is `grow-only', only make tool-bar bigger.  */
-
-Lisp_Object Vauto_resize_tool_bars;
-
-/* Type of tool bar.  Can be symbols image, text, both or both-hroiz.  */
-
-Lisp_Object Vtool_bar_style;
-
-/* Maximum number of characters a label can have to be shown.  */
-
-EMACS_INT tool_bar_max_label_size;
-
-/* Non-zero means draw block and hollow cursor as wide as the glyph
-   under it.  For example, if a block cursor is over a tab, it will be
-   drawn as wide as that tab on the display.  */
-
-int x_stretch_cursor_p;
+Lisp_Object Qwrap_prefix;
+Lisp_Object Qline_prefix;
 
 /* Non-nil means don't actually do any redisplay.  */
 
-Lisp_Object Vinhibit_redisplay, Qinhibit_redisplay;
-
-/* Non-zero means Lisp evaluation during redisplay is inhibited.  */
-
-int inhibit_eval_during_redisplay;
+Lisp_Object Qinhibit_redisplay;
 
 /* Names of text properties relevant for redisplay.  */
 
 Lisp_Object Qdisplay;
 
-/* Symbols used in text property values.  */
-
-Lisp_Object Vdisplay_pixels_per_inch;
 Lisp_Object Qspace, QCalign_to, QCrelative_width, QCrelative_height;
 Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
 Lisp_Object Qslice;
 Lisp_Object Qcenter;
 Lisp_Object Qmargin, Qpointer;
 Lisp_Object Qline_height;
-
-/* Non-nil means highlight trailing whitespace.  */
-
-Lisp_Object Vshow_trailing_whitespace;
-
-/* Non-nil means escape non-break space and hyphens.  */
-
-Lisp_Object Vnobreak_char_display;
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -450,12 +380,6 @@ Lisp_Object Vnobreak_char_display;
 
 #define IT_DISPLAYING_WHITESPACE(it)				\
   (it->what == IT_CHARACTER && (it->c == ' ' || it->c == '\t'))
-
-/* Non-nil means show the text cursor in void text areas
-   i.e. in blank areas after eol and eob.  This used to be
-   the default in 21.3.  */
-
-Lisp_Object Vvoid_text_area_pointer;
 
 /* Name of the face used to highlight trailing whitespace.  */
 
@@ -524,37 +448,6 @@ static int this_line_start_x;
 
 static struct buffer *this_line_buffer;
 
-/* Nonzero means truncate lines in all windows less wide than the
-   frame.  */
-
-Lisp_Object Vtruncate_partial_width_windows;
-
-/* A flag to control how to display unibyte 8-bit character.  */
-
-int unibyte_display_via_language_environment;
-
-/* Nonzero means we have more than one non-mini-buffer-only frame.
-   Not guaranteed to be accurate except while parsing
-   frame-title-format.  */
-
-int multiple_frames;
-
-Lisp_Object Vglobal_mode_string;
-
-
-/* List of variables (symbols) which hold markers for overlay arrows.
-   The symbols on this list are examined during redisplay to determine
-   where to display overlay arrows.  */
-
-Lisp_Object Voverlay_arrow_variable_list;
-
-/* Marker for where to display an arrow on top of the buffer text.  */
-
-Lisp_Object Voverlay_arrow_position;
-
-/* String to display for the arrow.  Only used on terminal frames.  */
-
-Lisp_Object Voverlay_arrow_string;
 
 /* Values of those variables at last redisplay are stored as
    properties on `overlay-arrow-position' symbol.  However, if
@@ -568,46 +461,11 @@ Lisp_Object Qlast_arrow_position, Qlast_arrow_string;
 
 Lisp_Object Qoverlay_arrow_string, Qoverlay_arrow_bitmap;
 
-/* Like mode-line-format, but for the title bar on a visible frame.  */
-
-Lisp_Object Vframe_title_format;
-
-/* Like mode-line-format, but for the title bar on an iconified frame.  */
-
-Lisp_Object Vicon_title_format;
-
-/* List of functions to call when a window's size changes.  These
-   functions get one arg, a frame on which one or more windows' sizes
-   have changed.  */
-
-static Lisp_Object Vwindow_size_change_functions;
-
-Lisp_Object Qmenu_bar_update_hook, Vmenu_bar_update_hook;
+Lisp_Object Qmenu_bar_update_hook;
 
 /* Nonzero if an overlay arrow has been displayed in this window.  */
 
 static int overlay_arrow_seen;
-
-/* Nonzero means highlight the region even in nonselected windows.  */
-
-int highlight_nonselected_windows;
-
-/* If cursor motion alone moves point off frame, try scrolling this
-   many lines up or down if that will bring it back.  */
-
-static EMACS_INT scroll_step;
-
-/* Nonzero means scroll just far enough to bring point back on the
-   screen, when appropriate.  */
-
-static EMACS_INT scroll_conservatively;
-
-/* Recenter the window whenever point gets within this many lines of
-   the top or bottom of the window.  This value is translated into a
-   pixel value by multiplying it with FRAME_LINE_HEIGHT, which means
-   that there is really a fixed pixel height scroll margin.  */
-
-EMACS_INT scroll_margin;
 
 /* Number of windows showing the buffer of the selected window (or
    another buffer with the same base buffer).  keyboard.c refers to
@@ -618,14 +476,6 @@ int buffer_shared;
 /* Vector containing glyphs for an ellipsis `...'.  */
 
 static Lisp_Object default_invis_vector[3];
-
-/* Zero means display the mode-line/header-line/menu-bar in the default face
-   (this slightly odd definition is for compatibility with previous versions
-   of emacs), non-zero means display them using their respective faces.
-
-   This variable is deprecated.  */
-
-int mode_line_inverse_video;
 
 /* Prompt to display in front of the mini-buffer contents.  */
 
@@ -672,19 +522,6 @@ int cursor_type_changed;
 
 int line_number_displayed;
 
-/* Maximum buffer size for which to display line numbers.  */
-
-Lisp_Object Vline_number_display_limit;
-
-/* Line width to consider when repositioning for line number display.  */
-
-static EMACS_INT line_number_display_limit_width;
-
-/* Number of lines to keep in the message log buffer.  t means
-   infinite.  nil means don't log at all.  */
-
-Lisp_Object Vmessage_log_max;
-
 /* The name of the *Messages* buffer, a string.  */
 
 static Lisp_Object Vmessages_buffer_name;
@@ -715,32 +552,12 @@ int message_buf_print;
 /* The symbol `inhibit-menubar-update' and its DEFVAR_BOOL variable.  */
 
 Lisp_Object Qinhibit_menubar_update;
-int inhibit_menubar_update;
-
-/* When evaluating expressions from menu bar items (enable conditions,
-   for instance), this is the frame they are being processed for.  */
-
-Lisp_Object Vmenu_updating_frame;
-
-/* Maximum height for resizing mini-windows.  Either a float
-   specifying a fraction of the available height, or an integer
-   specifying a number of lines.  */
-
-Lisp_Object Vmax_mini_window_height;
-
-/* Non-zero means messages should be displayed with truncated
-   lines instead of being continued.  */
-
-int message_truncate_lines;
 Lisp_Object Qmessage_truncate_lines;
 
 /* Set to 1 in clear_message to make redisplay_internal aware
    of an emptied echo area.  */
 
 static int message_cleared_p;
-
-/* How to blink the default frame cursor off.  */
-Lisp_Object Vblink_cursor_alist;
 
 /* A scratch glyph row with contents used for generating truncation
    glyphs.  Also used in direct_output_for_insert.  */
@@ -773,11 +590,6 @@ int current_mode_line_height, current_header_line_height;
 
 #if GLYPH_DEBUG
 
-/* Variables to turn off display optimizations from Lisp.  */
-
-int inhibit_try_window_id, inhibit_try_window_reusing;
-int inhibit_try_cursor_movement;
-
 /* Non-zero means print traces of redisplay if compiled with
    GLYPH_DEBUG != 0.  */
 
@@ -794,39 +606,11 @@ int trace_move;
 #define TRACE_MOVE(x)	(void) 0
 #endif
 
-/* Non-zero means automatically scroll windows horizontally to make
-   point visible.  */
-
-int automatic_hscrolling_p;
 Lisp_Object Qauto_hscroll_mode;
-
-/* How close to the margin can point get before the window is scrolled
-   horizontally.  */
-EMACS_INT hscroll_margin;
-
-/* How much to scroll horizontally when point is inside the above margin.  */
-Lisp_Object Vhscroll_step;
-
-/* The variable `resize-mini-windows'.  If nil, don't resize
-   mini-windows.  If t, always resize them to fit the text they
-   display.  If `grow-only', let mini-windows grow only until they
-   become empty.  */
-
-Lisp_Object Vresize_mini_windows;
 
 /* Buffer being redisplayed -- for redisplay_window_error.  */
 
 struct buffer *displayed_buffer;
-
-/* Space between overline and text. */
-
-EMACS_INT overline_margin;
-
-/* Require underline to be at least this many screen pixels below baseline
-   This to avoid underline "merging" with the base of letters at small
-   font sizes, particularly when x_use_underline_position_properties is on. */
-
-EMACS_INT underline_minimum_offset;
 
 /* Value returned from text property handlers (see below).  */
 
@@ -927,11 +711,6 @@ static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 
 int redisplaying_p;
 
-/* Non-zero means don't free realized faces.  Bound while freeing
-   realized faces is dangerous because glyph matrices might still
-   reference them.  */
-
-int inhibit_free_realized_faces;
 Lisp_Object Qinhibit_free_realized_faces;
 
 /* If a string, XTread_socket generates an event to display that string.
@@ -948,9 +727,6 @@ Lisp_Object previous_help_echo_string;
 
 /* Platform-independent portion of hourglass implementation. */
 
-/* Non-zero means we're allowed to display a hourglass pointer.  */
-int display_hourglass_p;
-
 /* Non-zero means an hourglass cursor is currently shown.  */
 int hourglass_shown_p;
 
@@ -958,14 +734,8 @@ int hourglass_shown_p;
    an hourglass cursor on all frames.  */
 struct atimer *hourglass_atimer;
 
-/* Number of seconds to wait before displaying an hourglass cursor.  */
-Lisp_Object Vhourglass_delay;
-
 /* Name of the face used to display glyphless characters.  */
 Lisp_Object Qglyphless_char;
-
-/* Char-table to control the display of glyphless characters.  */
-Lisp_Object Vglyphless_char_display;
 
 /* Symbol for the purpose of Vglyphless_char_display.  */
 Lisp_Object Qglyphless_char_display;
@@ -1544,11 +1314,10 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 }
 
 
-/* Return the next character from STR which is MAXLEN bytes long.
-   Return in *LEN the length of the character.  This is like
-   STRING_CHAR_AND_LENGTH but never returns an invalid character.  If
-   we find one, we return a `?', but with the length of the invalid
-   character.  */
+/* Return the next character from STR.  Return in *LEN the length of
+   the character.  This is like STRING_CHAR_AND_LENGTH but never
+   returns an invalid character.  If we find one, we return a `?', but
+   with the length of the invalid character.  */
 
 static INLINE int
 string_char_and_length (const unsigned char *str, int *len)
@@ -1577,15 +1346,13 @@ string_pos_nchars_ahead (struct text_pos pos, Lisp_Object string, EMACS_INT ncha
 
   if (STRING_MULTIBYTE (string))
     {
-      EMACS_INT rest = SBYTES (string) - BYTEPOS (pos);
       const unsigned char *p = SDATA (string) + BYTEPOS (pos);
       int len;
 
       while (nchars--)
 	{
 	  string_char_and_length (p, &len);
-	  p += len, rest -= len;
-	  xassert (rest >= 0);
+	  p += len;
 	  CHARPOS (pos) += 1;
 	  BYTEPOS (pos) += len;
 	}
@@ -1625,15 +1392,13 @@ c_string_pos (EMACS_INT charpos, const unsigned char *s, int multibyte_p)
 
   if (multibyte_p)
     {
-      EMACS_INT rest = strlen (s);
       int len;
 
       SET_TEXT_POS (pos, 0, 0);
       while (charpos--)
 	{
 	  string_char_and_length (s, &len);
-	  s += len, rest -= len;
-	  xassert (rest >= 0);
+	  s += len;
 	  CHARPOS (pos) += 1;
 	  BYTEPOS (pos) += len;
 	}
@@ -2406,7 +2171,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 static Lisp_Object
 safe_eval_handler (Lisp_Object arg)
 {
-  add_to_log ("Error during redisplay: %s", arg, Qnil);
+  add_to_log ("Error during redisplay: %S", arg, Qnil);
   return Qnil;
 }
 
@@ -3013,7 +2778,7 @@ init_from_display_pos (struct it *it, struct window *w, struct display_pos *pos)
      to 16 in 22.1 to make this a lesser problem.  */
   for (i = 0; i < it->n_overlay_strings && i < OVERLAY_STRING_CHUNK_SIZE; ++i)
     {
-      const char *s = SDATA (it->overlay_strings[i]);
+      const char *s = SSDATA (it->overlay_strings[i]);
       const char *e = s + SBYTES (it->overlay_strings[i]);
 
       while (s < e && *s != '\n')
@@ -3406,6 +3171,8 @@ handle_fontified_prop (struct it *it)
       val = Vfontification_functions;
       specbind (Qfontification_functions, Qnil);
 
+      xassert (it->end_charpos == ZV);
+      
       if (!CONSP (val) || EQ (XCAR (val), Qlambda))
 	safe_call1 (val, pos);
       else
@@ -3445,6 +3212,13 @@ handle_fontified_prop (struct it *it)
 
       unbind_to (count, Qnil);
 
+      /* The fontification code may have added/removed text.
+	 It could do even a lot worse, but let's at least protect against
+	 the most obvious case where only the text past `pos' gets changed',
+	 as is/was done in grep.el where some escapes sequences are turned
+	 into face properties (bug#7876).  */
+      it->end_charpos = ZV;
+      
       /* Return HANDLED_RECOMPUTE_PROPS only if function fontified
 	 something.  This avoids an endless loop if they failed to
 	 fontify the text for which reason ever.  */
@@ -4823,6 +4597,7 @@ next_overlay_string (struct it *it)
 		   && it->stop_charpos <= it->end_charpos));
       it->current.overlay_string_index = -1;
       it->n_overlay_strings = 0;
+      it->overlay_strings_charpos = -1;
 
       /* If we're at the end of the buffer, record that we have
 	 processed the overlay strings there already, so that
@@ -4835,11 +4610,13 @@ next_overlay_string (struct it *it)
       /* There are more overlay strings to process.  If
 	 IT->current.overlay_string_index has advanced to a position
 	 where we must load IT->overlay_strings with more strings, do
-	 it.  */
+	 it.  We must load at the IT->overlay_strings_charpos where
+	 IT->n_overlay_strings was originally computed; when invisible
+	 text is present, this might not be IT_CHARPOS (Bug#7016).  */
       int i = it->current.overlay_string_index % OVERLAY_STRING_CHUNK_SIZE;
 
       if (it->current.overlay_string_index && i == 0)
-	load_overlay_strings (it, 0);
+	load_overlay_strings (it, it->overlay_strings_charpos);
 
       /* Initialize IT to deliver display elements from the overlay
          string.  */
@@ -5051,8 +4828,9 @@ load_overlay_strings (struct it *it, EMACS_INT charpos)
   if (n > 1)
     qsort (entries, n, sizeof *entries, compare_overlay_entries);
 
-  /* Record the total number of strings to process.  */
+  /* Record number of overlay strings, and where we computed it.  */
   it->n_overlay_strings = n;
+  it->overlay_strings_charpos = charpos;
 
   /* IT->current.overlay_string_index is the number of overlay strings
      that have already been consumed by IT.  Copy some of the
@@ -10492,7 +10270,7 @@ display_tool_bar_line (struct it *it, int height)
 	      row->used[TEXT_AREA] = n_glyphs_before;
 	      *it = it_before;
 	      /* If this is the only glyph on this line, it will never fit on the
-		 toolbar, so skip it.  But ensure there is at least one glyph,
+		 tool-bar, so skip it.  But ensure there is at least one glyph,
 		 so we don't accidentally disable the tool-bar.  */
 	      if (n_glyphs_before == 0
 		  && (it->vpos > 0 || IT_STRING_CHARPOS (*it) < it->end_charpos-1))
@@ -11231,7 +11009,7 @@ EMACS_INT debug_delta, debug_delta_bytes;
 /* Values of window_end_pos and window_end_vpos at the end of
    try_window_id.  */
 
-EMACS_INT debug_end_pos, debug_end_vpos;
+EMACS_INT debug_end_vpos;
 
 /* Append a string to W->desired_matrix->method.  FMT is a printf
    format string.  A1...A9 are a supplement for a variable-length
@@ -11264,7 +11042,7 @@ debug_method_add (w, fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9)
 	     w,
 	     ((BUFFERP (w->buffer)
 	       && STRINGP (XBUFFER (w->buffer)->name))
-	      ? (char *) SDATA (XBUFFER (w->buffer)->name)
+	      ? SSDATA (XBUFFER (w->buffer)->name)
 	      : "no buffer"),
 	     buffer);
 }
@@ -13169,7 +12947,7 @@ cursor_row_fully_visible_p (struct window *w, int force_p, int current_matrix_p)
 
 /* Try scrolling PT into view in window WINDOW.  JUST_THIS_ONE_P
    non-zero means only WINDOW is redisplayed in redisplay_internal.
-   TEMP_SCROLL_STEP has the same meaning as scroll_step, and is used
+   TEMP_SCROLL_STEP has the same meaning as emacs_scroll_step, and is used
    in redisplay_window to bring a partially visible line into view in
    the case that only the cursor has moved.
 
@@ -13194,7 +12972,7 @@ enum
 
 static int
 try_scrolling (Lisp_Object window, int just_this_one_p,
-	       EMACS_INT scroll_conservatively, EMACS_INT scroll_step,
+	       EMACS_INT arg_scroll_conservatively, EMACS_INT scroll_step,
 	       int temp_scroll_step, int last_line_misfit)
 {
   struct window *w = XWINDOW (window);
@@ -13221,20 +12999,20 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
   else
     this_scroll_margin = 0;
 
-  /* Force scroll_conservatively to have a reasonable value, to avoid
+  /* Force arg_scroll_conservatively to have a reasonable value, to avoid
      overflow while computing how much to scroll.  Note that the user
      can supply scroll-conservatively equal to `most-positive-fixnum',
      which can be larger than INT_MAX.  */
-  if (scroll_conservatively > scroll_limit)
+  if (arg_scroll_conservatively > scroll_limit)
     {
-      scroll_conservatively = scroll_limit;
+      arg_scroll_conservatively = scroll_limit;
       scroll_max = INT_MAX;
     }
-  else if (scroll_step || scroll_conservatively || temp_scroll_step)
+  else if (scroll_step || arg_scroll_conservatively || temp_scroll_step)
     /* Compute how much we should try to scroll maximally to bring
        point into view.  */
     scroll_max = (max (scroll_step,
-		       max (scroll_conservatively, temp_scroll_step))
+		       max (arg_scroll_conservatively, temp_scroll_step))
 		  * FRAME_LINE_HEIGHT (f));
   else if (NUMBERP (current_buffer->scroll_down_aggressively)
 	   || NUMBERP (current_buffer->scroll_up_aggressively))
@@ -13265,7 +13043,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  /* Compute how many pixels below window bottom to stop searching
 	     for PT.  This avoids costly search for PT that is far away if
 	     the user limited scrolling by a small number of lines, but
-	     always finds PT if scroll_conservatively is set to a large
+	     always finds PT if arg_scroll_conservatively is set to a large
 	     number, such as most-positive-fixnum.  */
 	  int slack = max (scroll_max, 10 * FRAME_LINE_HEIGHT (f));
 	  int y_to_move =
@@ -13294,10 +13072,10 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	 window start down.  If scrolling conservatively, move it just
 	 enough down to make point visible.  If scroll_step is set,
 	 move it down by scroll_step.  */
-      if (scroll_conservatively)
+      if (arg_scroll_conservatively)
 	amount_to_scroll
 	  = min (max (dy, FRAME_LINE_HEIGHT (f)),
-		 FRAME_LINE_HEIGHT (f) * scroll_conservatively);
+		 FRAME_LINE_HEIGHT (f) * arg_scroll_conservatively);
       else if (scroll_step || temp_scroll_step)
 	amount_to_scroll = scroll_max;
       else
@@ -13378,7 +13156,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  /* Compute new window start.  */
 	  start_display (&it, w, startp);
 
-	  if (scroll_conservatively)
+	  if (arg_scroll_conservatively)
 	    amount_to_scroll
 	      = max (dy, FRAME_LINE_HEIGHT (f) * max (scroll_step, temp_scroll_step));
 	  else if (scroll_step || temp_scroll_step)
@@ -13426,7 +13204,11 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 
       /* If cursor ends up on a partially visible line,
 	 treat that as being off the bottom of the screen.  */
-      if (! cursor_row_fully_visible_p (w, extra_scroll_margin_lines <= 1, 0))
+      if (! cursor_row_fully_visible_p (w, extra_scroll_margin_lines <= 1, 0)
+	  /* It's possible that the cursor is on the first line of the
+	     buffer, which is partially obscured due to a vscroll
+	     (Bug#7537).  In that case, avoid looping forever . */
+	  && extra_scroll_margin_lines < w->desired_matrix->nrows - 1)
 	{
 	  clear_glyph_matrix (w->desired_matrix);
 	  ++extra_scroll_margin_lines;
@@ -14358,7 +14140,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
   /* Try to scroll by specified few lines.  */
   if ((scroll_conservatively
-       || scroll_step
+       || emacs_scroll_step
        || temp_scroll_step
        || NUMBERP (current_buffer->scroll_up_aggressively)
        || NUMBERP (current_buffer->scroll_down_aggressively))
@@ -14370,7 +14152,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	 successful, 0 if not successful.  */
       int rc = try_scrolling (window, just_this_one_p,
 			      scroll_conservatively,
-			      scroll_step,
+			      emacs_scroll_step,
 			      temp_scroll_step, last_line_misfit);
       switch (rc)
 	{
@@ -19065,23 +18847,27 @@ DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
 First arg FORMAT specifies the mode line format (see `mode-line-format'
 for details) to use.
 
-Optional second arg FACE specifies the face property to put
-on all characters for which no face is specified.
-The value t means whatever face the window's mode line currently uses
-\(either `mode-line' or `mode-line-inactive', depending).
-A value of nil means the default is no face property.
-If FACE is an integer, the value string has no text properties.
+By default, the format is evaluated for the currently selected window.
+
+Optional second arg FACE specifies the face property to put on all
+characters for which no face is specified.  The value nil means the
+default face.  The value t means whatever face the window's mode line
+currently uses (either `mode-line' or `mode-line-inactive',
+depending on whether the window is the selected window or not).
+An integer value means the value string has no text
+properties.
 
 Optional third and fourth args WINDOW and BUFFER specify the window
 and buffer to use as the context for the formatting (defaults
-are the selected window and the window's buffer).  */)
-  (Lisp_Object format, Lisp_Object face, Lisp_Object window, Lisp_Object buffer)
+are the selected window and the WINDOW's buffer).  */)
+     (Lisp_Object format, Lisp_Object face,
+      Lisp_Object window, Lisp_Object buffer)
 {
   struct it it;
   int len;
   struct window *w;
   struct buffer *old_buffer = NULL;
-  int face_id = -1;
+  int face_id;
   int no_props = INTEGERP (face);
   int count = SPECPDL_INDEX ();
   Lisp_Object str;
@@ -19104,15 +18890,14 @@ are the selected window and the window's buffer).  */)
   if (no_props)
     face = Qnil;
 
-  if (!NILP (face))
-    {
-      if (EQ (face, Qt))
-	face = (EQ (window, selected_window) ? Qmode_line : Qmode_line_inactive);
-      face_id = lookup_named_face (XFRAME (WINDOW_FRAME (w)), face, 0);
-    }
-
-  if (face_id < 0)
-    face_id = DEFAULT_FACE_ID;
+  face_id = (NILP (face) || EQ (face, Qdefault)) ? DEFAULT_FACE_ID
+    : EQ (face, Qt) ? (EQ (window, selected_window)
+		       ? MODE_LINE_FACE_ID : MODE_LINE_INACTIVE_FACE_ID)
+    : EQ (face, Qmode_line) ? MODE_LINE_FACE_ID
+    : EQ (face, Qmode_line_inactive) ? MODE_LINE_INACTIVE_FACE_ID
+    : EQ (face, Qheader_line) ? HEADER_LINE_FACE_ID
+    : EQ (face, Qtool_bar) ? TOOL_BAR_FACE_ID
+    : DEFAULT_FACE_ID;
 
   if (XBUFFER (buffer) != current_buffer)
     old_buffer = current_buffer;
@@ -19520,9 +19305,9 @@ decode_mode_spec (struct window *w, register int c, int field_width,
     case 'F':
       /* %F displays the frame name.  */
       if (!NILP (f->title))
-	return (char *) SDATA (f->title);
+	return SSDATA (f->title);
       if (f->explicit_name || ! FRAME_WINDOW_P (f))
-	return (char *) SDATA (f->name);
+	return SSDATA (f->name);
       return "Emacs";
 
     case 'f':
@@ -19805,7 +19590,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
   if (STRINGP (obj))
     {
       *string = obj;
-      return (char *) SDATA (obj);
+      return SSDATA (obj);
     }
   else
     return "";
@@ -20292,7 +20077,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
     {
       if (SCHARS (SYMBOL_NAME (prop)) == 2)
 	{
-	  char *unit =  SDATA (SYMBOL_NAME (prop));
+	  char *unit = SSDATA (SYMBOL_NAME (prop));
 
 	  if (unit[0] == 'i' && unit[1] == 'n')
 	    pixels = 1.0;
@@ -22452,7 +22237,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	{
 	  if (! STRINGP (acronym) && CHAR_TABLE_P (Vglyphless_char_display))
 	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
-	  str = STRINGP (acronym) ? (char *) SDATA (acronym) : "";
+	  str = STRINGP (acronym) ? SSDATA (acronym) : "";
 	}
       else
 	{
@@ -22488,7 +22273,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	  else
 	    upper_xoff = (width - metrics_upper.width) / 2;
 	}
-  
+
       /* +5 is for horizontal bars of a box plus 1-pixel spaces at
 	 top, bottom, and between upper and lower strings.  */
       height = (metrics_upper.ascent + metrics_upper.descent
@@ -26575,8 +26360,6 @@ syms_of_xdisp (void)
   staticpro (&Qarrow);
   Qtext = intern_c_string ("text");
   staticpro (&Qtext);
-  Qrisky_local_variable = intern_c_string ("risky-local-variable");
-  staticpro (&Qrisky_local_variable);
   Qinhibit_free_realized_faces = intern_c_string ("inhibit-free-realized-faces");
   staticpro (&Qinhibit_free_realized_faces);
 
@@ -26633,19 +26416,19 @@ syms_of_xdisp (void)
   staticpro (&Qleft_to_right);
 
 #ifdef HAVE_WINDOW_SYSTEM
-  DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
+  DEFVAR_BOOL ("x-stretch-cursor", x_stretch_cursor_p,
     doc: /* *Non-nil means draw block cursor as wide as the glyph under it.
 For example, if a block cursor is over a tab, it will be drawn as
 wide as that tab on the display.  */);
   x_stretch_cursor_p = 0;
 #endif
 
-  DEFVAR_LISP ("show-trailing-whitespace", &Vshow_trailing_whitespace,
+  DEFVAR_LISP ("show-trailing-whitespace", Vshow_trailing_whitespace,
     doc: /* *Non-nil means highlight trailing whitespace.
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
 
-  DEFVAR_LISP ("nobreak-char-display", &Vnobreak_char_display,
+  DEFVAR_LISP ("nobreak-char-display", Vnobreak_char_display,
     doc: /* *Control highlighting of nobreak space and soft hyphen.
 A value of t means highlight the character itself (for nobreak space,
 use face `nobreak-space').
@@ -26654,47 +26437,47 @@ Other values mean display the escape glyph followed by an ordinary
 space or ordinary hyphen.  */);
   Vnobreak_char_display = Qt;
 
-  DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,
+  DEFVAR_LISP ("void-text-area-pointer", Vvoid_text_area_pointer,
     doc: /* *The pointer shape to show in void text areas.
 A value of nil means to show the text pointer.  Other options are `arrow',
 `text', `hand', `vdrag', `hdrag', `modeline', and `hourglass'.  */);
   Vvoid_text_area_pointer = Qarrow;
 
-  DEFVAR_LISP ("inhibit-redisplay", &Vinhibit_redisplay,
+  DEFVAR_LISP ("inhibit-redisplay", Vinhibit_redisplay,
     doc: /* Non-nil means don't actually do any redisplay.
 This is used for internal purposes.  */);
   Vinhibit_redisplay = Qnil;
 
-  DEFVAR_LISP ("global-mode-string", &Vglobal_mode_string,
+  DEFVAR_LISP ("global-mode-string", Vglobal_mode_string,
     doc: /* String (or mode line construct) included (normally) in `mode-line-format'.  */);
   Vglobal_mode_string = Qnil;
 
-  DEFVAR_LISP ("overlay-arrow-position", &Voverlay_arrow_position,
+  DEFVAR_LISP ("overlay-arrow-position", Voverlay_arrow_position,
     doc: /* Marker for where to display an arrow on top of the buffer text.
 This must be the beginning of a line in order to work.
 See also `overlay-arrow-string'.  */);
   Voverlay_arrow_position = Qnil;
 
-  DEFVAR_LISP ("overlay-arrow-string", &Voverlay_arrow_string,
+  DEFVAR_LISP ("overlay-arrow-string", Voverlay_arrow_string,
     doc: /* String to display as an arrow in non-window frames.
 See also `overlay-arrow-position'.  */);
   Voverlay_arrow_string = make_pure_c_string ("=>");
 
-  DEFVAR_LISP ("overlay-arrow-variable-list", &Voverlay_arrow_variable_list,
+  DEFVAR_LISP ("overlay-arrow-variable-list", Voverlay_arrow_variable_list,
     doc: /* List of variables (symbols) which hold markers for overlay arrows.
 The symbols on this list are examined during redisplay to determine
 where to display overlay arrows.  */);
   Voverlay_arrow_variable_list
     = Fcons (intern_c_string ("overlay-arrow-position"), Qnil);
 
-  DEFVAR_INT ("scroll-step", &scroll_step,
+  DEFVAR_INT ("scroll-step", emacs_scroll_step,
     doc: /* *The number of lines to try scrolling a window by when point moves out.
 If that fails to bring point back on frame, point is centered instead.
 If this is zero, point is always centered after it moves off frame.
 If you want scrolling to always be a line at a time, you should set
 `scroll-conservatively' to a large value rather than set this to 1.  */);
 
-  DEFVAR_INT ("scroll-conservatively", &scroll_conservatively,
+  DEFVAR_INT ("scroll-conservatively", scroll_conservatively,
     doc: /* *Scroll up to this many lines, to bring point back on screen.
 If point moves off-screen, redisplay will scroll by up to
 `scroll-conservatively' lines in order to bring point just barely
@@ -26704,23 +26487,23 @@ recenters point as usual.
 A value of zero means always recenter point if it moves off screen.  */);
   scroll_conservatively = 0;
 
-  DEFVAR_INT ("scroll-margin", &scroll_margin,
+  DEFVAR_INT ("scroll-margin", scroll_margin,
     doc: /* *Number of lines of margin at the top and bottom of a window.
 Recenter the window whenever point gets within this many lines
 of the top or bottom of the window.  */);
   scroll_margin = 0;
 
-  DEFVAR_LISP ("display-pixels-per-inch",  &Vdisplay_pixels_per_inch,
+  DEFVAR_LISP ("display-pixels-per-inch",  Vdisplay_pixels_per_inch,
     doc: /* Pixels per inch value for non-window system displays.
 Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
   Vdisplay_pixels_per_inch = make_float (72.0);
 
 #if GLYPH_DEBUG
-  DEFVAR_INT ("debug-end-pos", &debug_end_pos, doc: /* Don't ask.  */);
+  DEFVAR_INT ("debug-end-pos", debug_end_pos, doc: /* Don't ask.  */);
 #endif
 
   DEFVAR_LISP ("truncate-partial-width-windows",
-	       &Vtruncate_partial_width_windows,
+	       Vtruncate_partial_width_windows,
     doc: /* Non-nil means truncate lines in windows narrower than the frame.
 For an integer value, truncate lines in each window narrower than the
 full frame width, provided the window width is less than that integer;
@@ -26734,36 +26517,36 @@ A value of nil means to respect the value of `truncate-lines'.
 If `word-wrap' is enabled, you might want to reduce this.  */);
   Vtruncate_partial_width_windows = make_number (50);
 
-  DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
+  DEFVAR_BOOL ("mode-line-inverse-video", mode_line_inverse_video,
     doc: /* When nil, display the mode-line/header-line/menu-bar in the default face.
 Any other value means to use the appropriate face, `mode-line',
 `header-line', or `menu' respectively.  */);
   mode_line_inverse_video = 1;
 
-  DEFVAR_LISP ("line-number-display-limit", &Vline_number_display_limit,
+  DEFVAR_LISP ("line-number-display-limit", Vline_number_display_limit,
     doc: /* *Maximum buffer size for which line number should be displayed.
 If the buffer is bigger than this, the line number does not appear
 in the mode line.  A value of nil means no limit.  */);
   Vline_number_display_limit = Qnil;
 
   DEFVAR_INT ("line-number-display-limit-width",
-	      &line_number_display_limit_width,
+	      line_number_display_limit_width,
     doc: /* *Maximum line width (in characters) for line number display.
 If the average length of the lines near point is bigger than this, then the
 line number may be omitted from the mode line.  */);
   line_number_display_limit_width = 200;
 
-  DEFVAR_BOOL ("highlight-nonselected-windows", &highlight_nonselected_windows,
+  DEFVAR_BOOL ("highlight-nonselected-windows", highlight_nonselected_windows,
     doc: /* *Non-nil means highlight region even in nonselected windows.  */);
   highlight_nonselected_windows = 0;
 
-  DEFVAR_BOOL ("multiple-frames", &multiple_frames,
+  DEFVAR_BOOL ("multiple-frames", multiple_frames,
     doc: /* Non-nil if more than one frame is visible on this display.
 Minibuffer-only frames don't count, but iconified frames do.
 This variable is not guaranteed to be accurate except while processing
 `frame-title-format' and `icon-title-format'.  */);
 
-  DEFVAR_LISP ("frame-title-format", &Vframe_title_format,
+  DEFVAR_LISP ("frame-title-format", Vframe_title_format,
     doc: /* Template for displaying the title bar of visible frames.
 \(Assuming the window manager supports this feature.)
 
@@ -26771,7 +26554,7 @@ This variable has the same structure as `mode-line-format', except that
 the %c and %l constructs are ignored.  It is used only on frames for
 which no explicit name has been set \(see `modify-frame-parameters').  */);
 
-  DEFVAR_LISP ("icon-title-format", &Vicon_title_format,
+  DEFVAR_LISP ("icon-title-format", Vicon_title_format,
     doc: /* Template for displaying the title bar of an iconified frame.
 \(Assuming the window manager supports this feature.)
 This variable has the same structure as `mode-line-format' (which see),
@@ -26788,13 +26571,13 @@ and is used only on frames for which no explicit name has been set
 										   Qnil)))),
 				       Qnil)));
 
-  DEFVAR_LISP ("message-log-max", &Vmessage_log_max,
+  DEFVAR_LISP ("message-log-max", Vmessage_log_max,
     doc: /* Maximum number of lines to keep in the message log buffer.
 If nil, disable message logging.  If t, log messages but don't truncate
 the buffer when it becomes large.  */);
   Vmessage_log_max = make_number (100);
 
-  DEFVAR_LISP ("window-size-change-functions", &Vwindow_size_change_functions,
+  DEFVAR_LISP ("window-size-change-functions", Vwindow_size_change_functions,
     doc: /* Functions called before redisplay, if window sizes have changed.
 The value should be a list of functions that take one argument.
 Just before redisplay, for each frame, if any of its windows have changed
@@ -26802,7 +26585,7 @@ size since the last redisplay, or have been split or deleted,
 all the functions in the list are called, with the frame as argument.  */);
   Vwindow_size_change_functions = Qnil;
 
-  DEFVAR_LISP ("window-scroll-functions", &Vwindow_scroll_functions,
+  DEFVAR_LISP ("window-scroll-functions", Vwindow_scroll_functions,
     doc: /* List of functions to call before redisplaying a window with scrolling.
 Each function is called with two arguments, the window and its new
 display-start position.  Note that these functions are also called by
@@ -26811,17 +26594,17 @@ valid when these functions are called.  */);
   Vwindow_scroll_functions = Qnil;
 
   DEFVAR_LISP ("window-text-change-functions",
-	       &Vwindow_text_change_functions,
+	       Vwindow_text_change_functions,
     doc: /* Functions to call in redisplay when text in the window might change.  */);
   Vwindow_text_change_functions = Qnil;
 
-  DEFVAR_LISP ("redisplay-end-trigger-functions", &Vredisplay_end_trigger_functions,
+  DEFVAR_LISP ("redisplay-end-trigger-functions", Vredisplay_end_trigger_functions,
     doc: /* Functions called when redisplay of a window reaches the end trigger.
 Each function is called with two arguments, the window and the end trigger value.
 See `set-window-redisplay-end-trigger'.  */);
   Vredisplay_end_trigger_functions = Qnil;
 
-  DEFVAR_LISP ("mouse-autoselect-window", &Vmouse_autoselect_window,
+  DEFVAR_LISP ("mouse-autoselect-window", Vmouse_autoselect_window,
      doc: /* *Non-nil means autoselect window with mouse pointer.
 If nil, do not autoselect windows.
 A positive number means delay autoselection by that many seconds: a
@@ -26841,7 +26624,7 @@ When customizing this variable make sure that the actual value of
 `focus-follows-mouse' matches the behavior of your window manager.  */);
   Vmouse_autoselect_window = Qnil;
 
-  DEFVAR_LISP ("auto-resize-tool-bars", &Vauto_resize_tool_bars,
+  DEFVAR_LISP ("auto-resize-tool-bars", Vauto_resize_tool_bars,
     doc: /* *Non-nil means automatically resize tool-bars.
 This dynamically changes the tool-bar's height to the minimum height
 that is needed to make all tool-bar items visible.
@@ -26849,15 +26632,15 @@ If value is `grow-only', the tool-bar's height is only increased
 automatically; to decrease the tool-bar height, use \\[recenter].  */);
   Vauto_resize_tool_bars = Qt;
 
-  DEFVAR_BOOL ("auto-raise-tool-bar-buttons", &auto_raise_tool_bar_buttons_p,
+  DEFVAR_BOOL ("auto-raise-tool-bar-buttons", auto_raise_tool_bar_buttons_p,
     doc: /* *Non-nil means raise tool-bar buttons when the mouse moves over them.  */);
   auto_raise_tool_bar_buttons_p = 1;
 
-  DEFVAR_BOOL ("make-cursor-line-fully-visible", &make_cursor_line_fully_visible_p,
+  DEFVAR_BOOL ("make-cursor-line-fully-visible", make_cursor_line_fully_visible_p,
     doc: /* *Non-nil means to scroll (recenter) cursor line if it is not fully visible.  */);
   make_cursor_line_fully_visible_p = 1;
 
-  DEFVAR_LISP ("tool-bar-border", &Vtool_bar_border,
+  DEFVAR_LISP ("tool-bar-border", Vtool_bar_border,
     doc: /* *Border below tool-bar in pixels.
 If an integer, use it as the height of the border.
 If it is one of `internal-border-width' or `border-width', use the
@@ -26865,7 +26648,7 @@ value of the corresponding frame parameter.
 Otherwise, no border is added below the tool-bar.  */);
   Vtool_bar_border = Qinternal_border_width;
 
-  DEFVAR_LISP ("tool-bar-button-margin", &Vtool_bar_button_margin,
+  DEFVAR_LISP ("tool-bar-button-margin", Vtool_bar_button_margin,
     doc: /* *Margin around tool-bar buttons in pixels.
 If an integer, use that for both horizontal and vertical margins.
 Otherwise, value should be a pair of integers `(HORZ . VERT)' with
@@ -26873,12 +26656,12 @@ HORZ specifying the horizontal margin, and VERT specifying the
 vertical margin.  */);
   Vtool_bar_button_margin = make_number (DEFAULT_TOOL_BAR_BUTTON_MARGIN);
 
-  DEFVAR_INT ("tool-bar-button-relief", &tool_bar_button_relief,
+  DEFVAR_INT ("tool-bar-button-relief", tool_bar_button_relief,
     doc: /* *Relief thickness of tool-bar buttons.  */);
   tool_bar_button_relief = DEFAULT_TOOL_BAR_BUTTON_RELIEF;
 
-  DEFVAR_LISP ("tool-bar-style", &Vtool_bar_style,
-    doc: /* *Tool bar style to use.
+  DEFVAR_LISP ("tool-bar-style", Vtool_bar_style,
+    doc: /* Tool bar style to use.
 It can be one of
  image            - show images only
  text             - show text only
@@ -26888,13 +26671,13 @@ It can be one of
  any other        - use system default or image if no system default.  */);
   Vtool_bar_style = Qnil;
 
-  DEFVAR_INT ("tool-bar-max-label-size", &tool_bar_max_label_size,
+  DEFVAR_INT ("tool-bar-max-label-size", tool_bar_max_label_size,
     doc: /* *Maximum number of characters a label can have to be shown.
 The tool bar style must also show labels for this to have any effect, see
 `tool-bar-style'.  */);
   tool_bar_max_label_size = DEFAULT_TOOL_BAR_LABEL_SIZE;
 
-  DEFVAR_LISP ("fontification-functions", &Vfontification_functions,
+  DEFVAR_LISP ("fontification-functions", Vfontification_functions,
     doc: /* List of functions to call to fontify regions of text.
 Each function is called with one argument POS.  Functions must
 fontify a region starting at POS in the current buffer, and give
@@ -26903,7 +26686,7 @@ fontified regions the property `fontified'.  */);
   Fmake_variable_buffer_local (Qfontification_functions);
 
   DEFVAR_BOOL ("unibyte-display-via-language-environment",
-               &unibyte_display_via_language_environment,
+               unibyte_display_via_language_environment,
     doc: /* *Non-nil means display unibyte text according to language environment.
 Specifically, this means that raw bytes in the range 160-255 decimal
 are displayed by converting them to the equivalent multibyte characters
@@ -26914,13 +26697,13 @@ Note that this variable affects only how these bytes are displayed,
 but does not change the fact they are interpreted as raw bytes.  */);
   unibyte_display_via_language_environment = 0;
 
-  DEFVAR_LISP ("max-mini-window-height", &Vmax_mini_window_height,
+  DEFVAR_LISP ("max-mini-window-height", Vmax_mini_window_height,
     doc: /* *Maximum height for resizing mini-windows.
 If a float, it specifies a fraction of the mini-window frame's height.
 If an integer, it specifies a number of lines.  */);
   Vmax_mini_window_height = make_float (0.25);
 
-  DEFVAR_LISP ("resize-mini-windows", &Vresize_mini_windows,
+  DEFVAR_LISP ("resize-mini-windows", Vresize_mini_windows,
     doc: /* *How to resize mini-windows.
 A value of nil means don't automatically resize mini-windows.
 A value of t means resize them to fit the text displayed in them.
@@ -26929,7 +26712,7 @@ only, until their display becomes empty, at which point the windows
 go back to their normal size.  */);
   Vresize_mini_windows = Qgrow_only;
 
-  DEFVAR_LISP ("blink-cursor-alist", &Vblink_cursor_alist,
+  DEFVAR_LISP ("blink-cursor-alist", Vblink_cursor_alist,
     doc: /* Alist specifying how to blink the cursor off.
 Each element has the form (ON-STATE . OFF-STATE).  Whenever the
 `cursor-type' frame-parameter or variable equals ON-STATE,
@@ -26941,7 +26724,7 @@ If a frame's ON-STATE has no entry in this list,
 the frame's other specifications determine how to blink the cursor off.  */);
   Vblink_cursor_alist = Qnil;
 
-  DEFVAR_BOOL ("auto-hscroll-mode", &automatic_hscrolling_p,
+  DEFVAR_BOOL ("auto-hscroll-mode", automatic_hscrolling_p,
     doc: /* Allow or disallow automatic horizontal scrolling of windows.
 If non-nil, windows are automatically scrolled horizontally to make
 point visible.  */);
@@ -26949,12 +26732,12 @@ point visible.  */);
   Qauto_hscroll_mode = intern_c_string ("auto-hscroll-mode");
   staticpro (&Qauto_hscroll_mode);
 
-  DEFVAR_INT ("hscroll-margin", &hscroll_margin,
+  DEFVAR_INT ("hscroll-margin", hscroll_margin,
     doc: /* *How many columns away from the window edge point is allowed to get
 before automatic hscrolling will horizontally scroll the window.  */);
   hscroll_margin = 5;
 
-  DEFVAR_LISP ("hscroll-step", &Vhscroll_step,
+  DEFVAR_LISP ("hscroll-step", Vhscroll_step,
     doc: /* *How many columns to scroll the window when point gets too close to the edge.
 When point is less than `hscroll-margin' columns from the window
 edge, automatic hscrolling will scroll the window by the amount of columns
@@ -26972,28 +26755,28 @@ Note that the lower bound for automatic hscrolling specified by `scroll-left'
 and `scroll-right' overrides this variable's effect.  */);
   Vhscroll_step = make_number (0);
 
-  DEFVAR_BOOL ("message-truncate-lines", &message_truncate_lines,
+  DEFVAR_BOOL ("message-truncate-lines", message_truncate_lines,
     doc: /* If non-nil, messages are truncated instead of resizing the echo area.
 Bind this around calls to `message' to let it take effect.  */);
   message_truncate_lines = 0;
 
-  DEFVAR_LISP ("menu-bar-update-hook",  &Vmenu_bar_update_hook,
+  DEFVAR_LISP ("menu-bar-update-hook",  Vmenu_bar_update_hook,
     doc: /* Normal hook run to update the menu bar definitions.
 Redisplay runs this hook before it redisplays the menu bar.
 This is used to update submenus such as Buffers,
 whose contents depend on various data.  */);
   Vmenu_bar_update_hook = Qnil;
 
-  DEFVAR_LISP ("menu-updating-frame", &Vmenu_updating_frame,
+  DEFVAR_LISP ("menu-updating-frame", Vmenu_updating_frame,
 	       doc: /* Frame for which we are updating a menu.
 The enable predicate for a menu binding should check this variable.  */);
   Vmenu_updating_frame = Qnil;
 
-  DEFVAR_BOOL ("inhibit-menubar-update", &inhibit_menubar_update,
+  DEFVAR_BOOL ("inhibit-menubar-update", inhibit_menubar_update,
     doc: /* Non-nil means don't update menu bars.  Internal use only.  */);
   inhibit_menubar_update = 0;
 
-  DEFVAR_LISP ("wrap-prefix", &Vwrap_prefix,
+  DEFVAR_LISP ("wrap-prefix", Vwrap_prefix,
     doc: /* Prefix prepended to all continuation lines at display time.
 The value may be a string, an image, or a stretch-glyph; it is
 interpreted in the same way as the value of a `display' text property.
@@ -27007,7 +26790,7 @@ To add a prefix to non-continuation lines, use `line-prefix'.  */);
   Qwrap_prefix = intern_c_string ("wrap-prefix");
   Fmake_variable_buffer_local (Qwrap_prefix);
 
-  DEFVAR_LISP ("line-prefix", &Vline_prefix,
+  DEFVAR_LISP ("line-prefix", Vline_prefix,
     doc: /* Prefix prepended to all non-continuation lines at display time.
 The value may be a string, an image, or a stretch-glyph; it is
 interpreted in the same way as the value of a `display' text property.
@@ -27021,36 +26804,36 @@ To add a prefix to continuation lines, use `wrap-prefix'.  */);
   Qline_prefix = intern_c_string ("line-prefix");
   Fmake_variable_buffer_local (Qline_prefix);
 
-  DEFVAR_BOOL ("inhibit-eval-during-redisplay", &inhibit_eval_during_redisplay,
+  DEFVAR_BOOL ("inhibit-eval-during-redisplay", inhibit_eval_during_redisplay,
     doc: /* Non-nil means don't eval Lisp during redisplay.  */);
   inhibit_eval_during_redisplay = 0;
 
-  DEFVAR_BOOL ("inhibit-free-realized-faces", &inhibit_free_realized_faces,
+  DEFVAR_BOOL ("inhibit-free-realized-faces", inhibit_free_realized_faces,
     doc: /* Non-nil means don't free realized faces.  Internal use only.  */);
   inhibit_free_realized_faces = 0;
 
 #if GLYPH_DEBUG
-  DEFVAR_BOOL ("inhibit-try-window-id", &inhibit_try_window_id,
+  DEFVAR_BOOL ("inhibit-try-window-id", inhibit_try_window_id,
 	       doc: /* Inhibit try_window_id display optimization.  */);
   inhibit_try_window_id = 0;
 
-  DEFVAR_BOOL ("inhibit-try-window-reusing", &inhibit_try_window_reusing,
+  DEFVAR_BOOL ("inhibit-try-window-reusing", inhibit_try_window_reusing,
 	       doc: /* Inhibit try_window_reusing display optimization.  */);
   inhibit_try_window_reusing = 0;
 
-  DEFVAR_BOOL ("inhibit-try-cursor-movement", &inhibit_try_cursor_movement,
+  DEFVAR_BOOL ("inhibit-try-cursor-movement", inhibit_try_cursor_movement,
 	       doc: /* Inhibit try_cursor_movement display optimization.  */);
   inhibit_try_cursor_movement = 0;
 #endif /* GLYPH_DEBUG */
 
-  DEFVAR_INT ("overline-margin", &overline_margin,
+  DEFVAR_INT ("overline-margin", overline_margin,
 	       doc: /* *Space between overline and text, in pixels.
 The default value is 2: the height of the overline (1 pixel) plus 1 pixel
 margin to the caracter height.  */);
   overline_margin = 2;
 
   DEFVAR_INT ("underline-minimum-offset",
-	       &underline_minimum_offset,
+	       underline_minimum_offset,
      doc: /* Minimum distance between baseline and underline.
 This can improve legibility of underlined text at small font sizes,
 particularly when using variable `x-use-underline-position-properties'
@@ -27058,13 +26841,13 @@ with fonts that specify an UNDERLINE_POSITION relatively close to the
 baseline.  The default value is 1.  */);
   underline_minimum_offset = 1;
 
-  DEFVAR_BOOL ("display-hourglass", &display_hourglass_p,
+  DEFVAR_BOOL ("display-hourglass", display_hourglass_p,
 	       doc: /* Non-nil means show an hourglass pointer, when Emacs is busy.
 This feature only works when on a window system that can change
 cursor shapes.  */);
   display_hourglass_p = 1;
 
-  DEFVAR_LISP ("hourglass-delay", &Vhourglass_delay,
+  DEFVAR_LISP ("hourglass-delay", Vhourglass_delay,
 	       doc: /* *Seconds to wait before displaying an hourglass pointer when Emacs is busy.  */);
   Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
 
@@ -27084,7 +26867,7 @@ cursor shapes.  */);
   Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
   Fput (Qglyphless_char_display, Qchar_table_extra_slots, make_number (1));
 
-  DEFVAR_LISP ("glyphless-char-display", &Vglyphless_char_display,
+  DEFVAR_LISP ("glyphless-char-display", Vglyphless_char_display,
 	       doc: /* Char-table to control displaying of glyphless characters.
 Each element, if non-nil, is an ASCII acronym string (displayed in a box)
 or one of these symbols:
@@ -27215,4 +26998,3 @@ cancel_hourglass (void)
 #endif
 }
 #endif /* ! WINDOWSNT  */
-

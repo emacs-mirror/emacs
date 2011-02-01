@@ -1,7 +1,6 @@
 ;;; semantic/complete.el --- Routines for performing tag completion
 
-;; Copyright (C) 2003, 2004, 2005, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -2159,5 +2158,4 @@ use `semantic-complete-analyze-inline' to complete."
 ;; generated-autoload-load-name: "semantic/complete"
 ;; End:
 
-;; arch-tag: a07c8f71-e53b-416e-9704-3a99ef101b09
 ;;; semantic/complete.el ends here

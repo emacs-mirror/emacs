@@ -1,3 +1,30 @@
+2011-01-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Redo spelling of Makefile variables to conform to POSIX.
+	POSIX does not allow "-" in Makefile variable names.
+	Reported by Bruno Haible in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00990.html>.
+	* Makefile.in (BUILT_EMACS): Renamed from BUILT-EMACS.
+	(TIT_GB): Renamed from TIT-GB.
+	(CHINESE_TIT): Renamed from CHINESE-TIT.
+	(NON_TIT_GB): Renamed from NON-TIT-GB.
+	(NON_TIT_BIG5): Renamed from NON-TIT-BIG5.
+	(CHINESE_NON_TIT): Renamed from CHINESE-NON-TIT.
+	(CHINESE_GB): Renamed from CHINESE-GB.
+	(CHINESE_BIG5): Renamed from CHINESE-BIG5.
+	(TIT_MISC): Renamed from TIT-MISC.
+	(NON_TIT_MISC): Renamed from NON-TIT-MISC.
+	(TIT_SOURCES): Renamed from TIT-SOURCES.
+	(MISC_SOURCES): Renamed from MISC-SOURCES.
+
+2011-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (RUN_EMACS):
+	* Makefile.in (RUN-EMACS): Add --no-site-lisp.
+
+	* makefile.w32-in (RUN_EMACS):
+	* Makefile.in (RUN-EMACS): -batch implies --no-init-file.
+
 2010-08-28  Kenichi Handa  <handa@m17n.org>
 
 	* quail/japanese.el (quail-japanese-update-translation): Fix
@@ -2099,11 +2126,9 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1997, 1998, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
-	2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 1997-1999, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -2119,5 +2144,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: 4b364045-a476-4ff7-92ad-dde58dbd45b4

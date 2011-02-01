@@ -1,5 +1,5 @@
 /* Interface to libxml2.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -96,7 +96,7 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
   if (! NILP (base_url))
     {
       CHECK_STRING (base_url);
-      burl = SDATA (base_url);
+      burl = SSDATA (base_url);
     }
 
   bytes = CHAR_TO_BYTE (iend) - CHAR_TO_BYTE (istart);

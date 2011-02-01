@@ -13,7 +13,7 @@
 This manual is for Newsticker (version @value{VERSION}, @value{UPDATED}).
 
 @noindent
-Copyright @copyright{} 2004, 2005, 2006, 2007, 2008, 2009, 2010
+Copyright @copyright{} 2004-2011
 Free Software Foundation, Inc.
 
 @quotation
@@ -315,7 +315,3 @@ Byte-compiling newsticker.el is recommended.
 @bye
 
 
-
-@ignore
-   arch-tag: 7a4de539-117c-4658-b799-0b9e3d0ccec0
-@end ignore

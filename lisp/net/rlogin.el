@@ -1,7 +1,6 @@
 ;;; rlogin.el --- remote login interface
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1997, 1998, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1992-1995, 1997-1998, 2001-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
@@ -319,5 +318,4 @@ Delete ARG characters forward, or send a C-d to process if at end of buffer."
 
 (provide 'rlogin)
 
-;; arch-tag: 6e20eabf-feda-40fa-ab40-0d156db447e4
 ;;; rlogin.el ends here

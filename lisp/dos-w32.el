@@ -1,7 +1,6 @@
 ;; dos-w32.el --- Functions shared among MS-DOS and W32 (NT/95) platforms
 
-;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -458,5 +457,4 @@ indicates a specific program should be invoked."
 
 (provide 'dos-w32)
 
-;; arch-tag: dcfefdd2-362f-4fbc-9141-9634f5f4d6a7
 ;;; dos-w32.el ends here

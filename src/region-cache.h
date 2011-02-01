@@ -1,6 +1,7 @@
 /* Header file: Caching facts about regions of the buffer, for optimization.
-   Copyright (C) 1985, 1986, 1993, 1995, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1993, 1995, 2001-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -110,5 +111,3 @@ extern int region_cache_backward (struct buffer *BUF,
                                   EMACS_INT POS,
                                   EMACS_INT *NEXT);
 
-/* arch-tag: 70f79125-ef22-4f58-9aec-a48ca2791435
-   (do not change this comment) */

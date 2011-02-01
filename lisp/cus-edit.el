@@ -1,7 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2011  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -2551,9 +2550,9 @@ try matching its doc string against `custom-guess-doc-alist'."
 	   (push (widget-create-child-and-convert
 		  widget 'custom-visibility
 		  :help-echo "Show the value of this option."
-		  :on-image "down"
+		  :on-glyph "down"
 		  :on "Hide"
-		  :off-image "right"
+		  :off-glyph "right"
 		  :off "Show Value"
 		  :action 'custom-toggle-hide-variable
 		  nil)
@@ -2573,8 +2572,8 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  :help-echo "Hide the value of this option."
 		  :on "Hide"
 		  :off "Show"
-		  :on-image "down"
-		  :off-image "right"
+		  :on-glyph "down"
+		  :off-glyph "right"
 		  :action 'custom-toggle-hide-variable
 		  t)
 		 buttons)
@@ -2603,8 +2602,8 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  :help-echo "Hide or show this option."
 		  :on "Hide"
 		  :off "Show"
-		  :on-image "down"
-		  :off-image "right"
+		  :on-glyph "down"
+		  :off-glyph "right"
 		  :action 'custom-toggle-hide-variable
 		  t)
 		 buttons)
@@ -3056,8 +3055,8 @@ to switch between two values."
   :pressed-face 'custom-visibility
   :mouse-face 'highlight
   :pressed-face 'highlight
-  :on-image nil
-  :off-image nil)
+  :on-glyph nil
+  :off-glyph nil)
 
 (defface custom-visibility
   '((t :height 0.8 :inherit link))
@@ -3120,7 +3119,7 @@ face attributes (as specified by a `default' defface entry)."
 	   :pressed-face 'custom-visibility
 	   :mouse-face 'highlight
 	   :on "Hide Unused Attributes"    :off "Show All Attributes"
-	   :on-image nil :off-image nil
+	   :on-glyph nil :off-glyph nil
 	   :always-active t
 	   :action 'custom-face-edit-value-visibility-action
 	   show-all)
@@ -3475,7 +3474,7 @@ the present value is saved to its :shown-value property instead."
 	       widget 'custom-visibility
 	       :help-echo "Hide or show this face."
 	       :on "Hide" :off "Show"
-	       :on-image "down" :off-image "right"
+	       :on-glyph "down" :off-glyph "right"
 	       :action 'custom-toggle-hide-face
 	       (not hiddenp))
 	      buttons)
@@ -4426,7 +4425,9 @@ if only the first line of the docstring is shown."))
 
       (unless (eq major-mode 'emacs-lisp-mode)
 	(emacs-lisp-mode))
-      (let ((inhibit-read-only t))
+      (let ((inhibit-read-only t)
+	    (print-length nil)
+	    (print-level nil))
 	(custom-save-variables)
 	(custom-save-faces))
       (let ((file-precious-flag t))
@@ -4861,5 +4862,4 @@ if that value is non-nil."
 
 (provide 'cus-edit)
 
-;; arch-tag: 64533aa4-1b1a-48c3-8812-f9dc718e8a6f
 ;;; cus-edit.el ends here

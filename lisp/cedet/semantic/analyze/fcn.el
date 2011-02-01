@@ -1,6 +1,6 @@
 ;;; semantic/analyze/fcn.el --- Analyzer support functions.
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -334,5 +334,4 @@ SCOPE is the current scope."
 
 (provide 'semantic/analyze/fcn)
 
-;; arch-tag: 32525305-515e-4b96-ad11-216d3a99f829
 ;;; semantic/analyze/fcn.el ends here

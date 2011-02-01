@@ -1,6 +1,6 @@
 ;;; help-at-pt.el --- local help through the keyboard
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011 Free Software Foundation, Inc.
 
 ;; Author: Luc Teirlinck <teirllm@auburn.edu>
 ;; Keywords: help
@@ -350,5 +350,4 @@ different regions.  With numeric argument ARG, behaves like
 
 (provide 'help-at-pt)
 
-;; arch-tag: d0b8b86d-d23f-45d0-a82d-208d6205a583
 ;;; help-at-pt.el ends here
