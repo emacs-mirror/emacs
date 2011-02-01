@@ -2229,7 +2229,8 @@ since only a single case-insensitive search through the alist is made."
   ;; directives in that file.  That way is discouraged since it
   ;; spreads out the definition of the initial value.
   (mapcar
-   'purecopy-car
+   (lambda (elt)
+     (cons (purecopy (car elt)) (cdr elt)))
    `(;; do this first, so that .html.pl is Polish html, not Perl
      ("\\.[sx]?html?\\(\\.[a-zA-Z_]+\\)?\\'" . html-mode)
      ("\\.svgz?\\'" . image-mode)
@@ -2453,7 +2454,8 @@ and `magic-mode-alist', which determines modes based on file contents.")
   ;; file.  That way is discouraged since it spreads out the
   ;; definition of the initial value.
   (mapcar
-   'purecopy-car
+   (lambda (l)
+     (cons (purecopy (car l)) (cdr l)))
    '(("perl" . perl-mode)
      ("perl5" . perl-mode)
      ("miniperl" . perl-mode)

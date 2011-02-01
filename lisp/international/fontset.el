@@ -33,7 +33,8 @@
 ;; Setup font-encoding-alist for all known encodings.
 
 (setq font-encoding-alist
-      (mapcar 'purecopy-car
+      (mapcar (lambda (arg)
+		(cons (purecopy (car arg)) (cdr arg)))
       '(("iso8859-1$" . iso-8859-1)
 	("iso8859-2$" . iso-8859-2)
 	("iso8859-3$" . iso-8859-3)
