@@ -1213,18 +1213,16 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 ;;;; Package menu mode.
 
 (defvar package-menu-mode-map
-  (let ((map (make-keymap))
+  (let ((map (copy-keymap special-mode-map))
 	(menu-map (make-sparse-keymap "Package")))
     (set-keymap-parent map button-buffer-map)
     (define-key map "\C-m" 'package-menu-describe-package)
-    (define-key map "q" 'quit-window)
     (define-key map "n" 'next-line)
     (define-key map "p" 'previous-line)
     (define-key map "u" 'package-menu-mark-unmark)
     (define-key map "\177" 'package-menu-backup-unmark)
     (define-key map "d" 'package-menu-mark-delete)
     (define-key map "i" 'package-menu-mark-install)
-    (define-key map "g" 'revert-buffer)
     (define-key map "r" 'package-menu-refresh)
     (define-key map "~" 'package-menu-mark-obsolete-for-deletion)
     (define-key map "x" 'package-menu-execute)
@@ -1290,15 +1288,11 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 
 (put 'package-menu-mode 'mode-class 'special)
 
-(defun package-menu-mode ()
+(define-derived-mode package-menu-mode special-mode "Package Menu"
   "Major mode for browsing a list of packages.
 Letters do not insert themselves; instead, they are commands.
 \\<package-menu-mode-map>
 \\{package-menu-mode-map}"
-  (kill-all-local-variables)
-  (use-local-map package-menu-mode-map)
-  (setq major-mode 'package-menu-mode)
-  (setq mode-name "Package Menu")
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (set (make-local-variable 'revert-buffer-function) 'package-menu-revert)
@@ -1326,8 +1320,7 @@ Letters do not insert themselves; instead, they are commands.
 	   (20 . "Version")
 	   (32 . "Status")
 	   (43 . "Description"))
-	 ""))
-  (run-mode-hooks 'package-menu-mode-hook))
+	 "")))
 
 (defun package-menu-refresh ()
   "Download the Emacs Lisp package archive.

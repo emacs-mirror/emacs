@@ -2409,12 +2409,10 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
       (setq end (line-beginning-position 2)))
   (font-lock-default-fontify-region beg end verbose))
 
-(defvar diary-fancy-overriding-map (let ((map (make-sparse-keymap)))
-                                     (define-key map "q" 'quit-window)
-                                     map)
+(defvar diary-fancy-overriding-map (make-sparse-keymap)
   "Keymap overriding minor-mode maps in `diary-fancy-display-mode'.")
 
-(define-derived-mode diary-fancy-display-mode fundamental-mode
+(define-derived-mode diary-fancy-display-mode special-mode
   "Diary"
   "Major mode used while displaying diary entries using Fancy Display."
   (set (make-local-variable 'font-lock-defaults)
@@ -2422,7 +2420,6 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
          t nil nil nil
          (font-lock-fontify-region-function
           . diary-fancy-font-lock-fontify-region-function)))
-  (local-set-key "q" 'quit-window)
   (set (make-local-variable 'minor-mode-overriding-map-alist)
        (list (cons t diary-fancy-overriding-map)))
   (view-mode 1))

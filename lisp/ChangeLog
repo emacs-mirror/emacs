@@ -1,5 +1,38 @@
 2011-02-01  Sam Steingold  <sds@gnu.org>
 
+	* simple.el (special-mode-map): Bind "h" to `describe-mode';
+	bind "z" to `kill-this-buffer'.
+	(completion-list-mode-map): Bind "z" to `kill-this-buffer'.
+	* apropos.el (apropos-mode-map): Inherit from `special-mode-map'.
+	(apropos-mode): Inherit from `special-mode'.
+	* arc-mode.el (archive-mode-map): Inherit from `special-mode-map'.
+	* bookmark.el (bookmark-bmenu-mode): Define using
+	`define-derived-mode' inheriting from `special-mode'.
+	* dired.el (dired-mode-map): Inherit from `special-mode-map'.
+	* image-mode.el (image-mode-map): Ditto.
+	* replace.el (occur-mode): Define using
+	`define-derived-mode' inheriting from `special-mode'.
+	* tar-mode.el (tar-mode): Inherit from `special-mode'.
+	* calendar/diary-lib.el (diary-fancy-display-mode):
+	Inherit from `special-mode-map'.
+	* emacs-lisp/ert.el (ert-simple-view-mode, ert-results-mode):
+	Inherit from `special-mode'.
+	* emacs-lisp/package.el (package-menu-mode-map): Copy from
+	`special-mode-map'.
+	(package-menu-mode): Define using `define-derived-mode'
+	inheriting from `special-mode'.
+	* erc/erc-list.el (erc-list-menu-mode): Inherit from `special-mode'.
+	* net/xesam.el (xesam-mode): Inherit from `special-mode'.
+	(xesam-mode-map): Define separately.
+	* play/solitaire.el (solitaire-mode): Inherit from `special-mode'.
+	* progmodes/compile.el (compilation-minor-mode-map)
+	(compilation-mode-map): Inherit from `special-mode-map'.
+	* vc/diff-mode.el (diff-mode-shared-map):
+	Inherit from `special-mode-map'.
+	* vc/log-view.el (log-view-mode-map): Add a comment.
+
+2011-02-01  Sam Steingold  <sds@gnu.org>
+
 	* subr.el (purecopy-cons, purecopy-car): Add shortcuts.
 	* faces.el (face-x-resources): Use `purecopy-cons'.
 	* files.el (auto-mode-alist, interpreter-mode-alist): Use

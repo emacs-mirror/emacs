@@ -1294,7 +1294,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   ;; This looks ugly when substitute-command-keys uses C-d instead d:
   ;;  (define-key dired-mode-map "\C-d" 'dired-flag-file-deletion)
   (let ((map (make-keymap)))
-    (suppress-keymap map)
+    (set-keymap-parent map special-mode-map)
     (define-key map [mouse-2] 'dired-mouse-find-file-other-window)
     (define-key map [follow-link] 'mouse-face)
     ;; Commands to mark or flag certain categories of files
@@ -1373,7 +1373,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "\C-m" 'dired-find-file)
     (put 'dired-find-file :advertised-binding "\C-m")
     (define-key map "g" 'revert-buffer)
-    (define-key map "h" 'describe-mode)
     (define-key map "i" 'dired-maybe-insert-subdir)
     (define-key map "j" 'dired-goto-file)
     (define-key map "k" 'dired-do-kill-lines)
@@ -1383,7 +1382,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "o" 'dired-find-file-other-window)
     (define-key map "\C-o" 'dired-display-file)
     (define-key map "p" 'dired-previous-line)
-    (define-key map "q" 'quit-window)
     (define-key map "s" 'dired-sort-toggle-or-edit)
     (define-key map "t" 'dired-toggle-marks)
     (define-key map "u" 'dired-unmark)
@@ -2027,7 +2025,7 @@ Otherwise, an error occurs in these cases."
           ;; with quotation marks in their names.
 	  (while (string-match "\\(?:[^\\]\\|\\`\\)\\(\"\\)" file)
 	    (setq file (replace-match "\\\"" nil t file 1)))
-	  
+
 	  (when (eq system-type 'windows-nt)
 	    (save-match-data
 	      (let ((start 0))

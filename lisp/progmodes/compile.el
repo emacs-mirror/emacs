@@ -862,7 +862,7 @@ POS and RES.")
                (< (cdr compilation--previous-directory-cache) pos)))
       ;; No need to call previous-single-property-change.
       (cdr compilation--previous-directory-cache)
-   
+
     (let* ((cache (and compilation--previous-directory-cache
                        (<= (car compilation--previous-directory-cache) pos)
                        (car compilation--previous-directory-cache)))
@@ -1711,6 +1711,7 @@ Returns the compilation buffer created."
 
 (defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map special-mode-map)
     (define-key map [mouse-2] 'compile-goto-error)
     (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-c\C-c" 'compile-goto-error)
@@ -1721,7 +1722,6 @@ Returns the compilation buffer created."
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
     (define-key map "g" 'recompile) ; revert
-    (define-key map "q" 'quit-window)
     ;; Set up the menu-bar
     (define-key map [menu-bar compilation]
       (cons "Errors" compilation-menu-map))
@@ -1755,6 +1755,7 @@ Returns the compilation buffer created."
     ;; Don't inherit from compilation-minor-mode-map,
     ;; because that introduces a menu bar item we don't want.
     ;; That confuses C-down-mouse-3.
+    (set-keymap-parent map special-mode-map)
     (define-key map [mouse-2] 'compile-goto-error)
     (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-c\C-c" 'compile-goto-error)
@@ -1767,10 +1768,7 @@ Returns the compilation buffer created."
     (define-key map "\t" 'compilation-next-error)
     (define-key map [backtab] 'compilation-previous-error)
     (define-key map "g" 'recompile) ; revert
-    (define-key map "q" 'quit-window)
 
-    (define-key map " " 'scroll-up)
-    (define-key map "\^?" 'scroll-down)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
 
     ;; Set up the menu-bar

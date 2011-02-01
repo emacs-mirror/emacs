@@ -1997,19 +1997,12 @@ and how to display message."
 ;;; Simple view mode for auxiliary information like stack traces or
 ;;; messages.  Mainly binds "q" for quit.
 
-(define-derived-mode ert-simple-view-mode fundamental-mode "ERT-View"
+(define-derived-mode ert-simple-view-mode special-mode "ERT-View"
   "Major mode for viewing auxiliary information in ERT.")
-
-(loop for (key binding) in
-      '(("q" quit-window)
-        )
-      do
-      (define-key ert-simple-view-mode-map key binding))
-
 
 ;;; Commands and button actions for the results buffer.
 
-(define-derived-mode ert-results-mode fundamental-mode "ERT-Results"
+(define-derived-mode ert-results-mode special-mode "ERT-Results"
   "Major mode for viewing results of ERT test runs.")
 
 (loop for (key binding) in
@@ -2017,7 +2010,6 @@ and how to display message."
         ("\t" forward-button)
         ([backtab] backward-button)
         ("j" ert-results-jump-between-summary-and-result)
-        ("q" quit-window)
         ("L" ert-results-toggle-printer-limits-for-test-at-point)
         ("n" ert-results-next-test)
         ("p" ert-results-previous-test)

@@ -41,54 +41,10 @@
   :type 'hook
   :group 'solitaire)
 
-(defvar solitaire-mode-map
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map t)
-
-    (define-key map "\C-f" 'solitaire-right)
-    (define-key map "\C-b" 'solitaire-left)
-    (define-key map "\C-p" 'solitaire-up)
-    (define-key map "\C-n" 'solitaire-down)
-    (define-key map "\r" 'solitaire-move)
-    (define-key map [remap undo] 'solitaire-undo)
-    (define-key map " " 'solitaire-do-check)
-    (define-key map "q" 'quit-window)
-
-    (define-key map [right] 'solitaire-right)
-    (define-key map [left] 'solitaire-left)
-    (define-key map [up] 'solitaire-up)
-    (define-key map [down] 'solitaire-down)
-
-    (define-key map [S-right] 'solitaire-move-right)
-    (define-key map [S-left]  'solitaire-move-left)
-    (define-key map [S-up]    'solitaire-move-up)
-    (define-key map [S-down]  'solitaire-move-down)
-
-    (define-key map [kp-6] 'solitaire-right)
-    (define-key map [kp-4] 'solitaire-left)
-    (define-key map [kp-8] 'solitaire-up)
-    (define-key map [kp-2] 'solitaire-down)
-    (define-key map [kp-5] 'solitaire-center-point)
-
-    (define-key map [S-kp-6] 'solitaire-move-right)
-    (define-key map [S-kp-4] 'solitaire-move-left)
-    (define-key map [S-kp-8] 'solitaire-move-up)
-    (define-key map [S-kp-2] 'solitaire-move-down)
-
-    (define-key map [kp-enter] 'solitaire-move)
-    (define-key map [kp-0] 'solitaire-undo)
-
-    ;; spoil it with s ;)
-    (define-key map [?s] 'solitaire-solve)
-
-    ;;  (define-key map [kp-0] 'solitaire-hint) - Not yet provided ;)
-    map)
-  "Keymap for playing Solitaire.")
-
 ;; Solitaire mode is suitable only for specially formatted data.
 (put 'solitaire-mode 'mode-class 'special)
 
-(define-derived-mode solitaire-mode nil "Solitaire"
+(define-derived-mode solitaire-mode special-mode "Solitaire"
   "Major mode for playing Solitaire.
 To learn how to play Solitaire, see the documentation for function
 `solitaire'.
@@ -98,6 +54,41 @@ The usual mnemonic keys move the cursor around the board; in addition,
   (setq truncate-lines t)
   (setq show-trailing-whitespace nil))
 
+(define-key solitaire-mode-map "\C-f" 'solitaire-right)
+(define-key solitaire-mode-map "\C-b" 'solitaire-left)
+(define-key solitaire-mode-map "\C-p" 'solitaire-up)
+(define-key solitaire-mode-map "\C-n" 'solitaire-down)
+(define-key solitaire-mode-map "\r" 'solitaire-move)
+(define-key solitaire-mode-map [remap undo] 'solitaire-undo)
+(define-key solitaire-mode-map " " 'solitaire-do-check)
+
+(define-key solitaire-mode-map [right] 'solitaire-right)
+(define-key solitaire-mode-map [left] 'solitaire-left)
+(define-key solitaire-mode-map [up] 'solitaire-up)
+(define-key solitaire-mode-map [down] 'solitaire-down)
+
+(define-key solitaire-mode-map [S-right] 'solitaire-move-right)
+(define-key solitaire-mode-map [S-left]  'solitaire-move-left)
+(define-key solitaire-mode-map [S-up]    'solitaire-move-up)
+(define-key solitaire-mode-map [S-down]  'solitaire-move-down)
+
+(define-key solitaire-mode-map [kp-6] 'solitaire-right)
+(define-key solitaire-mode-map [kp-4] 'solitaire-left)
+(define-key solitaire-mode-map [kp-8] 'solitaire-up)
+(define-key solitaire-mode-map [kp-2] 'solitaire-down)
+(define-key solitaire-mode-map [kp-5] 'solitaire-center-point)
+
+(define-key solitaire-mode-map [S-kp-6] 'solitaire-move-right)
+(define-key solitaire-mode-map [S-kp-4] 'solitaire-move-left)
+(define-key solitaire-mode-map [S-kp-8] 'solitaire-move-up)
+(define-key solitaire-mode-map [S-kp-2] 'solitaire-move-down)
+
+(define-key solitaire-mode-map [kp-enter] 'solitaire-move)
+(define-key solitaire-mode-map [kp-0] 'solitaire-undo)
+
+;; spoil it with s ;)
+(define-key solitaire-mode-map [?s] 'solitaire-solve)
+;;  (define-key map [kp-0] 'solitaire-hint) - Not yet provided ;)
 (defvar solitaire-stones 0
   "Counter for the stones that are still there.")
 
