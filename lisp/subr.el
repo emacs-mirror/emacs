@@ -2321,10 +2321,10 @@ BEG and END default respectively to the beginning and end of buffer."
 ;;;; Miscellanea.
 
 (defun purecopy-cons (arg)
-  "Purecopy both car and cdr of the pair argument."
+  "Return a copy of ARG from a `purecopy' of the car and cdr of ARG."
   (cons (purecopy (car arg)) (purecopy (cdr arg))))
 (defun purecopy-car (arg)
-  "Purecopy the car of the pair argument."
+  "Return a copy of ARG whose car is a `purecopy' of the car of ARG."
   (cons (purecopy (car arg)) (cdr arg)))
 
 (defvar suspend-hook nil
