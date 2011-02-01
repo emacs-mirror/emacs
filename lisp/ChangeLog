@@ -1,3 +1,13 @@
+2011-02-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (load-theme): Define return value.  Drop use of
+	unsafep; call custom-theme-load-confirm for non-known-safe themes.
+	(custom-theme-load-confirm): Scroll in the correct window.
+	(custom-enabled-themes): Add custom-safe-themes to :set-after.
+
+	* cus-theme.el (custom-theme-checkbox-toggle): Don't activate the
+	checkbox if load-theme fails.
+
 2011-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-next-error): Check there's

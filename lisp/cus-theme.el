@@ -621,7 +621,9 @@ Theme files are named *-theme.el in `"))
   (let ((this-theme (widget-get widget :theme-name)))
     (if (widget-value widget)
 	;; Disable the theme.
-	(disable-theme this-theme)
+	(progn
+	  (disable-theme this-theme)
+	  (widget-toggle-action widget event))
       ;; Enable the theme.
       (unless custom-theme-allow-multiple-selections
 	;; If only one theme is allowed, disable all other themes and
@@ -634,12 +636,11 @@ Theme files are named *-theme.el in `"))
 	  (unless (eq (car theme) this-theme)
 	    (widget-value-set (cdr theme) nil)
 	    (widget-apply (cdr theme) :notify (cdr theme) event))))
-      (load-theme this-theme)))
-  ;; Mark `custom-enabled-themes' as "set for current session".
-  (put 'custom-enabled-themes 'customized-value
-       (list (custom-quote custom-enabled-themes)))
-  ;; Check/uncheck the widget.
-  (widget-toggle-action widget event))
+      (when (load-theme this-theme)
+	(widget-toggle-action widget event)))
+    ;; Mark `custom-enabled-themes' as "set for current session".
+    (put 'custom-enabled-themes 'customized-value
+	 (list (custom-quote custom-enabled-themes)))))
 
 (defun custom-describe-theme ()
   "Describe the Custom theme on the current line."
