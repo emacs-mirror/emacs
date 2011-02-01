@@ -1,3 +1,15 @@
+2011-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-expand-name): Don't trust the return value of
+	bbdb-complete-name.
+	(message-check-news-header-syntax): Remove unused var `start'.
+	(message-idna-to-ascii-rhs-1): Remove unused vars `rhs' and `address'.
+	(message-inhibit-body-encoding): Move to before first use.
+	(mail-abbrev-mode-regexp, Expires, User-Agent, Lines, Distribution)
+	(To, References, In-Reply-To, Newsgroups, Subject, Path, From)
+	(Organization, Message-ID, Date, mh-previous-window-config):
+	Defvar the vars using dynamic scoping.
+
 2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-render-td): Only do colours at the final rendering.
