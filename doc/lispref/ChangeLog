@@ -1,3 +1,14 @@
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vol1.texi (Top):
+	* vol2.texi (Top):
+	* elisp.texi (Top):
+	* display.texi (Display Property): Shorten the menu description of
+	the "Other Display Specs" node (Bug#7816).
+
+	* keymaps.texi (Defining Menus): Add "menu item" and "extended
+	menu item" concept index entries (Bug#7805).
+
 2011-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (texinfodir): New variable.

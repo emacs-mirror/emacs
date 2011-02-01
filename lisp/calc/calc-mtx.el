@@ -232,6 +232,20 @@
 	  (setq math-lud-cache (cons (cons m entry) math-lud-cache)))
 	lud))))
 
+
+(defun math-lud-pivot-check (a)
+  "Determine a useful value for checking the size of potential pivots
+in LUD decomposition."
+  (cond ((eq (car-safe a) 'mod)
+         (if (and (math-integerp (nth 1 a))
+                  (math-integerp (nth 2 a))
+                  (eq (math-gcd (nth 1 a) (nth 2 a)) 1))
+             1
+           0))
+        (t
+         (math-abs-approx a))))
+
+
 ;;; Numerical Recipes section 2.3; implicit pivoting omitted.
 (defun math-do-matrix-lud (m)
   (let* ((lu (math-copy-matrix m))
@@ -261,7 +275,7 @@
 					    (nth j (nth k lu))))
 		k (1+ k)))
 	(setcar (nthcdr j (nth i lu)) sum)
-	(let ((dum (math-abs-approx sum)))
+	(let ((dum (math-lud-pivot-check sum)))
 	  (if (Math-lessp big dum)
 	      (setq big dum
 		    imax i)))

@@ -487,7 +487,9 @@ unless the current buffer is a scratch buffer."
 (defun ns-find-file ()
   "Do a `find-file' with the `ns-input-file' as argument."
   (interactive)
-  (let* ((f (file-truename (pop ns-input-file)))
+  (let* ((f (file-truename
+	     (expand-file-name (pop ns-input-file)
+			       command-line-default-directory)))
          (file (find-file-noselect f))
          (bufwin1 (get-buffer-window file 'visible))
          (bufwin2 (get-buffer-window "*scratch*" 'visibile)))

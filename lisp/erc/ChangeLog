@@ -1,3 +1,8 @@
+2011-01-31  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+
+	* erc-track.el (track): Don't reset erc-modified-channels-object
+	each time erc-track-mode is activated.
+
 2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc.el (erc-mode):
