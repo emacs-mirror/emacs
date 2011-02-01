@@ -1,7 +1,14 @@
 2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* shr.el (shr-render-td): Only do colours at the final rendering.
+	Should be slightly faster.
+	(shr-insert-table): Fix up TD background colours when doing the
+	vertical padding.
+
 	* gnus-art.el (article-date-ut): Protect against articles with no Date
 	header.
+	(article-update-date-lapsed): Don't use current-column to find the
+	horizontal position.  It's fragile in the presence of \003 characters.
 
 	* gnus-start.el (gnus-read-active-file-1): Remove dead parameter infos.
 

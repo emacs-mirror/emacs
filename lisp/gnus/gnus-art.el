@@ -3645,7 +3645,7 @@ function and want to see what the date was before converting."
 	   (set-buffer (window-buffer w))
 	   (when (eq major-mode 'gnus-article-mode)
 	     (let ((old-line (count-lines (point-min) (point)))
-		   (old-column (current-column)))
+		   (old-column (- (point) (line-beginning-position))))
 	       (goto-char (point-min))
 	       (while (re-search-forward "^Date:" nil t)
 		 (let ((type (get-text-property (match-beginning 0) 'gnus-date-type)))
