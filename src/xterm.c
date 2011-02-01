@@ -7036,23 +7036,6 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
 
   ++handling_signal;
 
-#ifdef HAVE_X_SM
-  /* Only check session manager input for the primary display. */
-  if (terminal->id == 1 && x_session_have_connection ())
-    {
-      struct input_event inev;
-      BLOCK_INPUT;
-      /* We don't need to EVENT_INIT (inev) here, as
-         x_session_check_input copies an entire input_event.  */
-      if (x_session_check_input (&inev))
-        {
-          kbd_buffer_store_event_hold (&inev, hold_quit);
-          count++;
-        }
-      UNBLOCK_INPUT;
-    }
-#endif
-
   /* For debugging, this gives a way to fake an I/O error.  */
   if (terminal->display_info.x == XTread_socket_fake_io_error)
     {
@@ -9750,10 +9733,6 @@ static int x_timeout_atimer_activated_flag;
 
 static int x_initialized;
 
-#ifdef HAVE_X_SM
-static int x_session_initialized;
-#endif
-
 /* Test whether two display-name strings agree up to the dot that separates
    the screen number from the server number.  */
 static int
@@ -10672,9 +10651,6 @@ x_initialize (void)
   last_tool_bar_item = -1;
   any_help_event_p = 0;
   ignore_next_mouse_click_timeout = 0;
-#ifdef HAVE_X_SM
-  x_session_initialized = 0;
-#endif
 
 #ifdef USE_GTK
   current_count = -1;
