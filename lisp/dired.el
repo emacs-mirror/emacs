@@ -1052,6 +1052,8 @@ BEG..END is the line where the file info is located."
 	(set-marker file nil)))))
 
 
+(defvar ls-lisp-use-insert-directory-program)
+
 (defun dired-insert-directory (dir switches &optional file-list wildcard hdr)
   "Insert a directory listing of DIR, Dired style.
 Use SWITCHES to make the listings.
@@ -1063,14 +1065,20 @@ If HDR is non-nil, insert a header line with the directory name."
   (let ((opoint (point))
 	(process-environment (copy-sequence process-environment))
 	end)
-    (if (or (if (eq dired-use-ls-dired 'unspecified)
-		;; Check whether "ls --dired" gives exit code 0, and
-		;; save the answer in `dired-use-ls-dired'.
-		(setq dired-use-ls-dired
-		      (eq (call-process insert-directory-program nil nil nil "--dired")
-			  0))
-	      dired-use-ls-dired)
-	    (file-remote-p dir))
+    (if (and
+	 ;; Don't try to invoke `ls' if we are on DOS/Windows where
+	 ;; ls-lisp emulation is used, except if they want to use `ls'
+	 ;; as indicated by `ls-lisp-use-insert-directory-program'.
+	 (not (and (featurep 'ls-lisp)
+		   (null ls-lisp-use-insert-directory-program)))
+	 (or (if (eq dired-use-ls-dired 'unspecified)
+		 ;; Check whether "ls --dired" gives exit code 0, and
+		 ;; save the answer in `dired-use-ls-dired'.
+		 (setq dired-use-ls-dired
+		       (eq (call-process insert-directory-program nil nil nil "--dired")
+			   0))
+	       dired-use-ls-dired)
+	     (file-remote-p dir)))
 	(setq switches (concat "--dired " switches)))
     ;; We used to specify the C locale here, to force English month names;
     ;; but this should not be necessary any more,
