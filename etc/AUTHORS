@@ -216,6 +216,8 @@ Angelo Graziosi: changed sysdep.c term.c
 
 Anna M. Bigatti: wrote cal-html.el
 
+Antoine Levitt: changed erc-track.el
+
 Ari Roponen: changed atimer.c mule.texi startup.el time-date.el
 
 Arisawa Akihiro: changed characters.el coding.c epa-file.el japan-util.el
@@ -439,8 +441,8 @@ Chong Yidong: wrote redisplay-testsuite.el
 and co-wrote longlines.el
 and changed xdisp.c simple.el files.el display.texi files.texi
   frames.texi emacs.texi xterm.c keyboard.c cus-edit.el faces.el
-  Makefile.in xfaces.c misc.texi xfns.c font.c image.c startup.el
-  text.texi compile.el configure.in and 655 other files
+  Makefile.in font.c xfaces.c image.c misc.texi xfns.c startup.el
+  text.texi compile.el configure.in and 660 other files
 
 Chris Chase: co-wrote idlw-shell.el idlwave.el
 
@@ -772,7 +774,7 @@ and changed complete.el
 
 Denis Stünkel: changed ibuf-ext.el
 
-Deniz Dogan: changed window.el
+Deniz Dogan: changed rcirc.el window.el
 
 Dennis Gilmore: changed sparc.h
 
@@ -1148,8 +1150,8 @@ Glenn Morris: wrote check-declare.el
 and changed Makefile.in calendar.el diary-lib.el rmail.el f90.el
   cal-menu.el cal-hebrew.el fortran.el holidays.el configure.in
   calendar.texi cal-islam.el bytecomp.el cal-bahai.el appt.el emacs.texi
-  files.el cal-china.el rmailsum.el cal-tex.el simple.el
-  and 1011 other files
+  files.el cal-china.el rmailsum.el simple.el cal-tex.el
+  and 1012 other files
 
 Glynn Clements: wrote gamegrid.el snake.el tetris.el
 
@@ -1386,8 +1388,8 @@ Jared Finder: changed compile.el
 
 Jari Aalto: changed add-log.el filecache.el grep.el gnus-art.el
   gnus-sum.el gnus.texi ispell.el lisp-mnt.el man.el nnmail.el apropos.el
-  autorevert.el comint.el compile.el cperl-mode.el debug.el desktop.el
-  emacsclient.1 executable.el files.el find-dired.el and 15 other files
+  autorevert.el checkdoc.el comint.el compile.el cperl-mode.el debug.el
+  desktop.el emacsclient.1 executable.el files.el and 16 other files
 
 Jason Baker: changed gnus-art.el
 
@@ -1777,6 +1779,8 @@ Kazushi Marukawa: changed filelock.c hexl.c profile.c unexalpha.c
 Keiichi Suzuki: changed nntp.el
 
 Keisuke Nishida: changed print.c alloc.c bytecomp.el data.c keymap.c
+
+Keitaro Miyazaki: changed re-builder.el
 
 Keith Gabryelski: wrote hexl.c hexl.el
 
@@ -2589,7 +2593,8 @@ Peter Kleiweg: wrote ps-mode.el
 
 Peter Liljenberg: wrote elint.el
 
-Peter O'Gorman: changed configure.in frame.h hpux10-20.h termhooks.h
+Peter O'Gorman: changed configure.in frame.h hpux10-20.h hpux11.h
+  termhooks.h
 
 Peter Povinec: changed term.el
 
@@ -2712,7 +2717,7 @@ Richard G. Bielawski: changed modes.texi paren.el
 Richard Hoskins: changed message.el
 
 Richard Kim: wrote python.el
-and changed python-wy.el
+and changed loading.texi python-wy.el
 
 Richard King: wrote filelock.c uniquify.el userlock.el
 
@@ -2788,7 +2793,7 @@ Roland B. Roberts: changed buffer.h callproc.c dired.c files.el
 Roland McGrath: wrote autoload.el etags.el grep.el map-ynp.el
 and co-wrote compile.el find-dired.el
 and changed add-log.el configure.in files.el Makefile.in vc.el simple.el
-  mailabbrev.el buffer.c comint.el upd-copyr.el etags.c menu-bar.el
+  mailabbrev.el comint.el buffer.c upd-copyr.el etags.c menu-bar.el
   mem-limits.h ralloc.c fileio.c data.c process.c rlogin.el rmail.el
   shell.el vm-limit.c and 137 other files
 
@@ -2813,6 +2818,8 @@ Ron Schnell: wrote dunnet.el
 Ronan Waide: changed smtpmail.el
 
 Ross Patterson: wrote org-protocol.el
+
+Roy Liu: changed ns-win.el
 
 Rui-Tao Dong: changed nnweb.el
 
@@ -2990,7 +2997,7 @@ and co-wrote font-lock.el
 and changed vc.el subr.el lisp.h keyboard.c simple.el files.el pcvs.el
   keymap.c xdisp.c Makefile.in vc-hooks.el alloc.c newcomment.el
   tex-mode.el bytecomp.el compile.el buffer.c info.el fill.el fileio.c
-  window.c and 909 other files
+  window.c and 910 other files
 
 Stefan Reichör: changed gnus-agent.el
 
@@ -3348,6 +3355,8 @@ and changed TUTORIAL.de Makefile.in calc.texi chinese.el czech.el emacs.1
   european.el idlwave.el reftex-vars.el reftex.el reftex.texi slovak.el
   supercite.el .cvsignore advice.el calc-forms.el calc-sel.el calendar.el
   china-util.el cl-macs.el cl.texi and 51 other files
+
+Werner Meisner: changed lwlib-Xm.c
 
 Wes Hardaker: changed gnus-score.el gnus-art.el gnus-sum.el gnus-win.el
 

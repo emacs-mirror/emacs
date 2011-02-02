@@ -4,6 +4,10 @@
 
 	* xftfont.c (xftfont_open): Likewise.
 
+2011-02-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* window.c (Fselect_window): Add missing return value.
+
 2011-01-29  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* image.c (DEF_IMGLIB_FN): Add parameter rettype, use it instead
