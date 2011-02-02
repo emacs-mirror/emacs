@@ -1,3 +1,8 @@
+2011-02-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Major Mode Conventions): Add face guidelines.
+	(Faces for Font Lock): List faces in order of prominence.
+
 2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	format-time-string now supports subsecond time stamp resolution
