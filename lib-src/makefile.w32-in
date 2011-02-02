@@ -114,7 +114,7 @@ $(BLD)/regex.$(O): ../src/regex.c ../src/regex.h ../src/config.h
 		$(CC)  $(CFLAGS) -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
 		../src/regex.c $(CC_OUT)$@
 
-ETAGS_CFLAGS  = -DHAVE_GETCWD
+ETAGS_CFLAGS  = -DHAVE_GETCWD -DVERSION="\"$(VERSION)\"" -DEMACS_NAME="\"GNU Emacs\""
 $(BLD)/etags.$(O): etags.c
 		$(CC) $(CFLAGS) $(ETAGS_CFLAGS) $(CC_OUT)$@ etags.c
 
@@ -131,7 +131,7 @@ ctags.c:	etags.c
 		- $(DEL) ctags.c
 		$(CP) etags.c ctags.c
 
-CTAGS_CFLAGS  = -DCTAGS $(ETAGS_CFLAGS)
+CTAGS_CFLAGS  = -DCTAGS $(ETAGS_CFLAGS) -DVERSION="\"$(VERSION)\"" -DEMACS_NAME="\"GNU Emacs\""
 $(BLD)/ctags.$(O): ctags.c
 		$(CC) $(CFLAGS) $(CTAGS_CFLAGS) $(CC_OUT)$@ ctags.c
 

@@ -1,3 +1,8 @@
+2011-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (ETAGS_CFLAGS, CTAGS_CFLAGS): Add
+	``-DVERSION="\"$(VERSION)\"" -DEMACS_NAME="\"GNU Emacs\""''.
+
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ntlib.c (setregid): New stub, renamed from setegid.
