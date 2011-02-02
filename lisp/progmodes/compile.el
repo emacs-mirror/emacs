@@ -633,34 +633,25 @@ starting the compilation process.")
   :version "22.1")
 
 (defface compilation-warning
-  '((((class color) (min-colors 16)) (:foreground "Orange" :weight bold))
-    (((class color)) (:foreground "cyan" :weight bold))
-    (t (:weight bold)))
+  '((t :inherit font-lock-variable-name-face))
   "Face used to highlight compiler warnings."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-info
-  '((((class color) (min-colors 16) (background light))
-     (:foreground "Green3" :weight bold))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "Green1" :weight bold))
-    (((class color) (min-colors 16) (background dark))
-     (:foreground "Green" :weight bold))
-    (((class color)) (:foreground "green" :weight bold))
-    (t (:weight bold)))
+  '((t :inherit font-lock-type-face))
   "Face used to highlight compiler information."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-line-number
-  '((t :inherit font-lock-variable-name-face))
+  '((t :inherit font-lock-keyword-face))
   "Face for displaying line numbers in compiler messages."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-column-number
-  '((t :inherit font-lock-type-face))
+  '((t :inherit font-lock-doc-face))
   "Face for displaying column numbers in compiler messages."
   :group 'compilation
   :version "22.1")
@@ -693,7 +684,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 (defvar compilation-enter-directory-face 'font-lock-function-name-face
   "Face name to use for entering directory messages.")
 
-(defvar compilation-leave-directory-face 'font-lock-type-face
+(defvar compilation-leave-directory-face 'font-lock-builtin-face
   "Face name to use for leaving directory messages.")
 
 

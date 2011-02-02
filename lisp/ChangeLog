@@ -1,3 +1,13 @@
+2011-02-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el: Make all faces inherit.
+	(compilation-warning): Inherit from font-lock-variable-name-face.
+	(compilation-info): Inherit from font-lock-type-face.
+	(compilation-line-number): Reassign to font-lock-keyword-face.
+	(compilation-column-number): Reassign to font-lock-doc-face.
+	(compilation-leave-directory-face): Reassign to
+	font-lock-builtin-face.
+
 2011-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.el (dired-insert-directory): Don't invoke `ls' when
