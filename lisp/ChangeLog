@@ -1,3 +1,8 @@
+2011-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el (pcomplete-here*): Backport fix for mistaken change
+	(bug#7959) and (bug#5935).
+
 2011-01-31  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el: Clean log filenames (Bug#7933).
@@ -6,8 +11,8 @@
 
 2011-01-31  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-cmds.el (c-forward-over-illiterals): Continue
-	parsing if we encounter a naked # (Bug#7595).
+	* progmodes/cc-cmds.el (c-forward-over-illiterals):
+	Continue parsing if we encounter a naked # (Bug#7595).
 	(c-beginning-of-statement): Avoid loop in locating the beginning
 	of a macro.
 
@@ -17,8 +22,8 @@
 
 2011-01-29  Daiki Ueno  <ueno@unixuser.org>
 
-	* epg.el (epg--status-KEYEXPIRED, epg--status-KEYREVOKED): Don't
-	presume KEYEXPIRED and KEYREVOKED to be a fatal error status
+	* epg.el (epg--status-KEYEXPIRED, epg--status-KEYREVOKED):
+	Don't presume KEYEXPIRED and KEYREVOKED to be a fatal error status
 	(Bug#7931).
 
 2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
@@ -40,8 +45,8 @@
 
 2011-01-28  Kenichi Handa  <handa@m17n.org>
 
-	* international/quail.el (quail-keyboard-layout-alist): Remove
-	superfluous SPC for "pc105-uk" (bug#7927).
+	* international/quail.el (quail-keyboard-layout-alist):
+	Remove superfluous SPC for "pc105-uk" (bug#7927).
 
 2011-01-27  Glenn Morris  <rgm@gnu.org>
 
