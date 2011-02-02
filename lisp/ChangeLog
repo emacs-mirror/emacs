@@ -1,3 +1,15 @@
+2011-02-02  Sam Steingold  <sds@gnu.org>
+
+	* apropos.el (apropos-print): Now that `apropos-mode' inherits
+	from `special-mode', entering it makes the buffer read-only, so
+	call it only when everything has been already inserted.
+	* emacs-lisp/ert.el (ert--setup-results-buffer)
+	(ert-results-pop-to-backtrace-for-test-at-point)
+	(ert-results-pop-to-messages-for-test-at-point)
+	(ert-results-pop-to-timings): Ditto.
+	* emacs-lisp/package.el (package--list-packages): Ditto.
+	* play/solitaire.el (solitaire): Ditto.
+
 2011-02-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/compile.el: Make all faces inherit.

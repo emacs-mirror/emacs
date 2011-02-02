@@ -188,7 +188,6 @@ Pick your favourite shortcuts:
 
   (interactive "P")
   (switch-to-buffer "*Solitaire*")
-  (solitaire-mode)
   (setq buffer-read-only t)
   (setq solitaire-stones 32)
   (solitaire-insert-board)
@@ -196,7 +195,7 @@ Pick your favourite shortcuts:
   (goto-char (point-max))
   (setq solitaire-center (search-backward "."))
   (setq buffer-undo-list (list (point)))
-  (set-buffer-modified-p nil))
+  (solitaire-mode))
 
 (defun solitaire-build-modeline ()
   (setq mode-line-format
