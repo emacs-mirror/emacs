@@ -1,3 +1,8 @@
+2011-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (save_restriction_restore): Don't forget to invalidate the
+	current_column cache (bug#7946).
+
 2011-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_open): Use FC_DUAL only when it is defined.
