@@ -1,3 +1,9 @@
+2011-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_open): Use FC_DUAL only when it is defined.
+
+	* xftfont.c (xftfont_open): Likewise.
+
 2011-02-01  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* window.c (Fselect_window): Add missing return value.
