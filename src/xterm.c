@@ -7694,12 +7694,6 @@ x_connection_closed (Display *dpy, const char *error_message)
   strcpy (error_msg, error_message);
   handling_signal = 0;
 
-  /* Prevent being called recursively because of an error condition
-     below.  Otherwise, we might end up with printing ``can't find per
-     display information'' in the recursive call instead of printing
-     the original message here.  */
-  x_catch_errors (dpy);
-
   /* Inhibit redisplay while frames are being deleted. */
   specbind (Qinhibit_redisplay, Qt);
 
@@ -7742,26 +7736,9 @@ x_connection_closed (Display *dpy, const char *error_message)
      first place, so don't try to close it.  */
   if (dpyinfo)
     {
-#ifdef USE_X_TOOLKIT
-      /* We have to close the display to inform Xt that it doesn't
-	 exist anymore.  If we don't, Xt will continue to wait for
-	 events from the display.  As a consequence, a sequence of
-
-	 M-x make-frame-on-display RET :1 RET
-	 ...kill the new frame, so that we get an IO error...
-	 M-x make-frame-on-display RET :1 RET
-
-	 will indefinitely wait in Xt for events for display `:1',
-	 opened in the first call to make-frame-on-display.
-
-	 Closing the display is reported to lead to a bus error on
-	 OpenWindows in certain situations.  I suspect that is a bug
-	 in OpenWindows.  I don't know how to circumvent it here.  */
-      fatal_error_signal_hook = x_fatal_error_signal;
-      XtCloseDisplay (dpy);
-      fatal_error_signal_hook = NULL;
-#endif /* USE_X_TOOLKIT */
-
+      /* We can not call XtCloseDisplay here because it calls XSync.
+         XSync inside the error handler apparently hangs Emacs.  On
+         current Xt versions, this isn't needed either.  */
 #ifdef USE_GTK
       /* A long-standing GTK bug prevents proper disconnect handling
 	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Once,
@@ -7791,8 +7768,6 @@ For details, see etc/PROBLEMS.\n",
 	Fdelete_terminal (tmp, Qnoelisp);
       }
     }
-
-  x_uncatch_errors ();
 
   if (terminal_list == 0)
     {
