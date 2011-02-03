@@ -780,7 +780,8 @@ The value from `ibuffer-saved-filter-groups' is used."
 (defun ibuffer-filter-disable ()
   "Disable all filters currently in effect in this buffer."
   (interactive)
-  (setq ibuffer-filtering-qualifiers nil)
+  (setq ibuffer-filtering-qualifiers nil
+	ibuffer-filter-groups nil)
   (let ((buf (ibuffer-current-buffer)))
     (ibuffer-update nil t)
     (when buf
