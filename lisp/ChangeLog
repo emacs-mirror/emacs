@@ -1,5 +1,7 @@
 2011-02-03  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-hg.el (vc-hg-command): Doc fix.
+
 	* term/w32-win.el (libpng-version): Declare for compiler.
 
 	* msb.el: No need to load dired while compiling.

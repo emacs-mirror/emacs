@@ -662,8 +662,8 @@ This runs the command \"hg merge\"."
 
 (defun vc-hg-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-hg.el.
-The difference to vc-do-command is that this function always invokes `hg',
-and that it passes `vc-hg-global-switches' to it before FLAGS."
+This function differs from vc-do-command in that it invokes
+`vc-hg-program', and passes `vc-hg-global-switches' to it before FLAGS."
   (apply 'vc-do-command (or buffer "*vc*") okstatus vc-hg-program file-or-list
          (if (stringp vc-hg-global-switches)
              (cons vc-hg-global-switches flags)
