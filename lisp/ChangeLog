@@ -1,5 +1,8 @@
 2011-02-03  Glenn Morris  <rgm@gnu.org>
 
+	* net/rcirc.el (rcirc-nick-completion-format): Add :version tag.
+	(rcirc-log-directory, rcirc-log-flag): Move definitions before use.
+
 	* strokes.el (strokes-fill-current-buffer-with-whitespace):
 	Move definition before use.
 	(strokes-report-bug): Make it obsolete.

@@ -328,6 +328,7 @@ and the cdr part is used for encoding."
 The format string is only used when completing at the beginning
 of a line.  The string is passed as the first argument to
 `format' with the nickname as the second argument."
+  :version "24.1"
   :type 'string
   :group 'rcirc)
 
@@ -1034,6 +1035,17 @@ If ALL is non-nil, update prompts in all IRC buffers."
        (or (eq (aref target 0) ?#)
            (eq (aref target 0) ?&))))
 
+(defcustom rcirc-log-directory "~/.emacs.d/rcirc-log"
+  "Directory to keep IRC logfiles."
+  :type 'directory
+  :group 'rcirc)
+
+(defcustom rcirc-log-flag nil
+  "Non-nil means log IRC activity to disk.
+Logfiles are kept in `rcirc-log-directory'."
+  :type 'boolean
+  :group 'rcirc)
+
 (defun rcirc-kill-buffer-hook ()
   "Part the channel when killing an rcirc buffer."
   (when (eq major-mode 'rcirc-mode)
@@ -1363,17 +1375,6 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 (make-variable-buffer-local 'rcirc-activity-types)
 (defvar rcirc-last-sender nil)
 (make-variable-buffer-local 'rcirc-last-sender)
-
-(defcustom rcirc-log-directory "~/.emacs.d/rcirc-log"
-  "Directory to keep IRC logfiles."
-  :type 'directory
-  :group 'rcirc)
-
-(defcustom rcirc-log-flag nil
-  "Non-nil means log IRC activity to disk.
-Logfiles are kept in `rcirc-log-directory'."
-  :type 'boolean
-  :group 'rcirc)
 
 (defcustom rcirc-omit-threshold 100
   "Number of lines since last activity from a nick before `rcirc-omit-responses' are omitted."
