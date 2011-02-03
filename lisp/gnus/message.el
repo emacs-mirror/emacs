@@ -4345,7 +4345,6 @@ This function could be useful in `message-setup-hook'."
 	(tembuf (message-generate-new-buffer-clone-locals " message temp"))
 	(curbuf (current-buffer))
 	(id (message-make-message-id)) (n 1)
-        required-mail-headers           ;FIXME: Unused, right?  --Stef
         plist total header)
     (while (not (eobp))
       (if (< (point-max) (+ p message-send-mail-partially-limit))
@@ -6776,7 +6775,6 @@ Useful functions to put in this list include:
   (require 'gnus-sum)			; for gnus-list-identifiers
   (let ((cur (current-buffer))
 	from subject date
-        reply-to to cc               ;FIXME: These 3 seem to be unused?  --Stef
 	references message-id follow-to
 	(inhibit-point-motion-hooks t)
 	(message-this-is-mail t)
@@ -7297,11 +7295,9 @@ Optional DIGEST will use digest to forward."
 (defun message-forward-make-body-digest-plain (forward-buffer)
   (insert
    "\n-------------------- Start of forwarded message --------------------\n")
-  (let ((b (point)) e)                  ;FIXME: Not used, right?  --Stef
-    (mml-insert-buffer forward-buffer)
-    (setq e (point))
-    (insert
-     "\n-------------------- End of forwarded message --------------------\n")))
+  (mml-insert-buffer forward-buffer)
+  (insert
+   "\n-------------------- End of forwarded message --------------------\n"))
 
 (defun message-forward-make-body-digest-mime (forward-buffer)
   (insert "\n<#multipart type=digest>\n")

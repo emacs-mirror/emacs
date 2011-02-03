@@ -1,5 +1,8 @@
 2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* message.el (message-forward-make-body-digest-plain)
+	(message-followup, message-reply): Clean up things noted by Stefan.
+
 	* gnus-art.el (gnus-article-setup-buffer): Stop the date timer if
 	gnus-article-update-date-headers is nil.
 	(gnus-article-date-headers): Rip out the old -treat-date-* stuff, since
