@@ -1014,24 +1014,7 @@ on parts -- for instance, adding Vcard info to a database."
   :group 'gnus-article-mime
   :type '(repeat (cons :format "%v" (string :tag "MIME type") function)))
 
-(defcustom gnus-article-date-headers
-  (let ((types '(ut local english lapsed combined-lapsed
-		    iso8601 original user-defined))
-	default)
-    ;; Try to respect the legacy `gnus-treat-date-*' variables, if
-    ;; they're set.
-    (dolist (type types)
-      (let ((variable (intern (format "gnus-treat-date-%s" type))))
-	(when (and (boundp variable)
-		   (symbol-value variable))
-	  (push type default))))
-    (when (and (or (not (boundp (intern "gnus-article-date-lapsed-new-header")))
-		   (not (symbol-value (intern "gnus-article-date-lapsed-new-header"))))
-	       (memq 'lapsed default))
-      (setq default (delq 'lapsed default)))
-    (or default
-	;; If they weren't set, we default to `combined-lapsed'.
-	'(combined-lapsed)))
+(defcustom gnus-article-date-headers '(combined-lapsed)
   "A list of Date header formats to display.
 Valid formats are `ut' (universal time), `local' (local time
 zone), `english' (readable English), `lapsed' (elapsed time),
@@ -3645,14 +3628,25 @@ function and want to see what the date was before converting."
 	   (set-buffer (window-buffer w))
 	   (when (eq major-mode 'gnus-article-mode)
 	     (let ((old-line (count-lines (point-min) (point)))
-		   (old-column (- (point) (line-beginning-position))))
+		   (old-column (- (point) (line-beginning-position)))
+		   (window-start
+		    (window-start (get-buffer-window (current-buffer)))))
 	       (goto-char (point-min))
 	       (while (re-search-forward "^Date:" nil t)
-		 (let ((type (get-text-property (match-beginning 0) 'gnus-date-type)))
+		 (let ((type (get-text-property (match-beginning 0)
+						'gnus-date-type)))
 		   (when (memq type '(lapsed combined-lapsed user-format))
+		     (unless (= window-start
+				(save-excursion
+				  (forward-line 1)
+				  (point)))
+		       (setq window-start nil))
 		     (save-excursion
 		       (article-date-ut type t (match-beginning 0)))
-		     (forward-line 1))))
+		     (forward-line 1)
+		     (when window-start
+		       (set-window-start (get-buffer-window (current-buffer))
+					 (point))))))
 	       (goto-char (point-min))
 	       (when (> old-column 0)
 		 (setq old-line (1- old-line)))

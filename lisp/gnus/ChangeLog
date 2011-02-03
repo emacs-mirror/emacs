@@ -2,6 +2,10 @@
 
 	* gnus-art.el (gnus-article-setup-buffer): Stop the date timer if
 	gnus-article-update-date-headers is nil.
+	(gnus-article-date-headers): Rip out the old -treat-date-* stuff, since
+	it didn't really work with defcustom.
+	(article-update-date-lapsed): Make sure the window start doesn't move,
+	either.
 
 2011-02-01  Julien Danjou  <julien@danjou.info>
 
