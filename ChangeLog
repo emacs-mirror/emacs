@@ -3,6 +3,7 @@
 	allow C code to suppress warnings about ignored return values
 	* Makefile.in (GNULIB_MODULES): Add ignore-value.
 	* configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4: Regenerate.
+	* lib/ignore-value.h: New file.
 
 2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
 
