@@ -9503,8 +9503,7 @@ that off, say:
 (setq gnus-article-update-date-headers nil)
 @end lisp
 
-in your @file{~/.gnus.el} file.  If you want to stop the updating
-dynamically, you can use the @code{gnus-stop-date-timer} command.
+in your @file{~/.gnus.el} file.
 
 @item W T o
 @kindex W T o (Summary)

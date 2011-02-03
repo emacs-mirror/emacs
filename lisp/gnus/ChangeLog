@@ -1,3 +1,8 @@
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-setup-buffer): Stop the date timer if
+	gnus-article-update-date-headers is nil.
+
 2011-02-01  Julien Danjou  <julien@danjou.info>
 
 	* mm-uu.el (mm-uu-type-alist): Add support for git format-patch diff

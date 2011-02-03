@@ -1,3 +1,8 @@
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Date): Remove mention of gnus-stop-date-timer,
+	since it's run automatically.
+
 2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Customizing Articles): Fix typo.

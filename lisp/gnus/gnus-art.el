@@ -4505,9 +4505,13 @@ commands:
 	(setq gnus-summary-buffer
 	      (gnus-summary-buffer-name gnus-newsgroup-name))
 	(gnus-summary-set-local-parameters gnus-newsgroup-name)
-	(when (and gnus-article-update-date-headers
-		   (not article-lapsed-timer))
+	(cond
+	 ((and gnus-article-update-date-headers
+	       (not article-lapsed-timer))
 	  (gnus-start-date-timer gnus-article-update-date-headers))
+	 ((and (not gnus-article-update-date-headers)
+	       article-lapsed-timer)
+	  (gnus-stop-date-timer)))
 	(current-buffer)))))
 
 ;; Set article window start at LINE, where LINE is the number of lines
