@@ -1,3 +1,9 @@
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* nnimap.el (gnus-fetch-headers): Declare.
+
+	* nnheader.el (gnus-range-add, gnus-remove-from-range): Autoload.
+
 2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* message.el (message-forward-make-body-digest-plain)
