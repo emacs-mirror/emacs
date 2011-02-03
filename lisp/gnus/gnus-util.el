@@ -477,51 +477,6 @@ Cache the result as a text property stored in DATE."
 	     (put-text-property 0 1 'gnus-time time d)
 	     time)))))
 
-(defvar gnus-user-date-format-alist
-  '(((gnus-seconds-today) . "%k:%M")
-    (604800 . "%a %k:%M")                   ;;that's one week
-    ((gnus-seconds-month) . "%a %d")
-    ((gnus-seconds-year) . "%b %d")
-    (t . "%b %d '%y"))                      ;;this one is used when no
-					    ;;other does match
-  "Specifies date format depending on age of article.
-This is an alist of items (AGE . FORMAT).  AGE can be a number (of
-seconds) or a Lisp expression evaluating to a number.  When the age of
-the article is less than this number, then use `format-time-string'
-with the corresponding FORMAT for displaying the date of the article.
-If AGE is not a number or a Lisp expression evaluating to a
-non-number, then the corresponding FORMAT is used as a default value.
-
-Note that the list is processed from the beginning, so it should be
-sorted by ascending AGE.  Also note that items following the first
-non-number AGE will be ignored.
-
-You can use the functions `gnus-seconds-today', `gnus-seconds-month'
-and `gnus-seconds-year' in the AGE spec.  They return the number of
-seconds passed since the start of today, of this month, of this year,
-respectively.")
-
-(defun gnus-user-date (messy-date)
-  "Format the messy-date according to gnus-user-date-format-alist.
-Returns \"  ?  \" if there's bad input or if another error occurs.
-Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
-  (condition-case ()
-      (let* ((messy-date (gnus-float-time (gnus-date-get-time messy-date)))
-	     (now (gnus-float-time))
-	     ;;If we don't find something suitable we'll use this one
-	     (my-format "%b %d '%y"))
-	(let* ((difference (- now messy-date))
-	       (templist gnus-user-date-format-alist)
-	       (top (eval (caar templist))))
-	  (while (if (numberp top) (< top difference) (not top))
-	    (progn
-	      (setq templist (cdr templist))
-	      (setq top (eval (caar templist)))))
-	  (if (stringp (cdr (car templist)))
-	      (setq my-format (cdr (car templist)))))
-	(format-time-string (eval my-format) (seconds-to-time messy-date)))
-    (error "  ?   ")))
-
 (defun gnus-dd-mmm (messy-date)
   "Return a string like DD-MMM from a big messy string."
   (condition-case ()

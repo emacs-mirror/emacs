@@ -1395,7 +1395,7 @@ the normal Gnus MIME machinery."
     (?u gnus-tmp-user-defined ?s)
     (?P (gnus-pick-line-number) ?d)
     (?B gnus-tmp-thread-tree-header-string ?s)
-    (user-date (gnus-user-date
+    (user-date (gnus-summary-user-date
 		,(macroexpand '(mail-header-date gnus-tmp-header))) ?s))
   "An alist of format specifications that can appear in summary lines.
 These are paired with what variables they correspond with, along with
@@ -3852,6 +3852,56 @@ This function is intended to be used in
 	  ((< c (* 1000 10000)) (format "%1.1fM" (/ c (* 1024.0 1024))))
 	  (t (format "%dM" (/ c (* 1024.0 1024)))))))
 
+(defcustom gnus-summary-user-date-format-alist
+  '(((gnus-seconds-today) . "Today, %H:%M")
+    ((+ 86400 (gnus-seconds-today)) . "Yesterday, %H:%M")
+    (604800 . "%A %H:%M")               ; That's one week
+    ((gnus-seconds-month) . "%A %d")
+    ((gnus-seconds-year) . "%B %d")
+    (t . "%b %d %Y"))                   ; This one is used when no other
+                                        ; does match
+  "Specifies date format depending on age of article.
+This is an alist of items (AGE . FORMAT).  AGE can be a number (of
+seconds) or a Lisp expression evaluating to a number.  When the age of
+the article is less than this number, then use `format-time-string'
+with the corresponding FORMAT for displaying the date of the article.
+If AGE is not a number or a Lisp expression evaluating to a
+non-number, then the corresponding FORMAT is used as a default value.
+
+Note that the list is processed from the beginning, so it should be
+sorted by ascending AGE.  Also note that items following the first
+non-number AGE will be ignored.
+
+You can use the functions `gnus-seconds-today', `gnus-seconds-month'
+and `gnus-seconds-year' in the AGE spec.  They return the number of
+seconds passed since the start of today, of this month, of this year,
+respectively."
+  :version "24.1"
+  :group 'gnus-summary-format
+  :type '(alist :key-type sexp :value-type string))
+(make-obsolete-variable 'gnus-user-date-format-alist
+                        'gnus-summary-user-date-format-alist "24.1")
+
+(defun gnus-summary-user-date (messy-date)
+  "Format the messy-date according to `gnus-summary-user-date-format-alist'.
+Returns \"  ?  \" if there's bad input or if another error occurs.
+Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
+  (condition-case ()
+      (let* ((messy-date (gnus-float-time (gnus-date-get-time messy-date)))
+	     (now (gnus-float-time))
+	     ;;If we don't find something suitable we'll use this one
+	     (my-format "%b %d '%y"))
+	(let* ((difference (- now messy-date))
+	       (templist gnus-summary-user-date-format-alist)
+	       (top (eval (caar templist))))
+	  (while (if (numberp top) (< top difference) (not top))
+	    (progn
+	      (setq templist (cdr templist))
+	      (setq top (eval (caar templist)))))
+	  (if (stringp (cdr (car templist)))
+	      (setq my-format (cdr (car templist)))))
+	(format-time-string (eval my-format) (seconds-to-time messy-date)))
+    (error "  ?   ")))
 
 (defun gnus-summary-set-local-parameters (group)
   "Go through the local params of GROUP and set all variable specs in that list."

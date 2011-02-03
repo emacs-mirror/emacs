@@ -985,14 +985,19 @@ textual parts.")
 				 "\n"
 			       "\r\n"))
 	(let ((result (nnimap-get-response sequence)))
-	  (if (not (car result))
+	  (if (not (nnimap-ok-p result))
 	      (progn
-		(nnheader-message 7 "%s" (nnheader-get-report-string 'nnimap))
+		(nnheader-report 'nnimap "%s" result)
 		nil)
 	    (cons group
 		  (or (nnimap-find-uid-response "APPENDUID" (car result))
 		      (nnimap-find-article-by-message-id
 		       group message-id)))))))))
+
+(defun nnimap-ok-p (value)
+  (and (consp value)
+       (consp (car value))
+       (equal (caar value) "OK")))
 
 (defun nnimap-find-uid-response (name list)
   (let ((result (car (last (nnimap-find-response-element name list)))))

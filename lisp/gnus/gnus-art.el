@@ -4874,8 +4874,6 @@ General format specifiers can also be used.  See Info node
     (when (zerop parts)
       (error "No such part"))
     (pop-to-buffer gnus-article-buffer)
-    ;; FIXME: why is it necessary?
-    (sit-for 0)
     (or n
 	(setq n (if (= parts 1)
 		    1
@@ -7337,9 +7335,6 @@ as a symbol to FUN."
 	     (intern arg))))
 
 (defvar gnus-button-handle-describe-prefix "^\\(C-h\\|<?[Ff]1>?\\)")
-
-;; FIXME: Maybe we should merge some of the functions that do quite similar
-;; stuff?
 
 (defun gnus-button-handle-describe-function (url)
   "Call `describe-function' when pushing the corresponding URL button."

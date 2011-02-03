@@ -1,3 +1,43 @@
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-accept-article): Give an error message if
+	the APPEND wasn't successful.
+
+2011-02-03  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-start.el (gnus-get-unread-articles): Fix the call to methods
+	that have no groups.
+
+2011-02-03  Julien Danjou  <julien@danjou.info>
+
+	* gnus-draft.el: Remove progn around gnus-draft-setup.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): This function is never
+	called with a nil `infos', so clean that up.
+	(gnus-get-unread-articles): Request active files from primary/secondary
+	methods that have no groups (yet).
+
+2011-02-03  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-setup-1): Always generate References first.
+	(message-mail): Return the return value of message-setup, not always t.
+	(message-setup-1): Insert mail-header-separator with read-only and
+	intangible properties set.
+
+	* gnus.el (gnus-summary-line-format): Add missing semi-colon for
+	user-date in docstring.
+
+	* gnus-art.el (gnus-article-jump-to-part): Remove useless sit-for.
+
+	* gnus.el (gnus-summary-line-format): Mention &user-date format in
+	docstring.
+
+	* gnus.el (gnus-user-date-format-alist): Change default value. Use
+	defcustom, with type and group. Move from gnus-util.el. Rename to
+	gnus-summary-user-date-format-alist.
+
 2011-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* nnimap.el (gnus-fetch-headers): Declare.
