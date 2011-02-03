@@ -34,7 +34,7 @@
 ;;; Code:
 
 
-(eval-and-compile (require 'ps-print))
+(require 'ps-print)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -254,9 +254,8 @@
 (eval-when-compile
   (require 'cl))
 
-(eval-and-compile
-  (require 'printing)
-  (require 'zeroconf))
+(require 'printing)
+(require 'zeroconf)
 
 ;; Add a Postscript printer to the "Postscript printer" menu.
 (defun ps-add-printer (service)

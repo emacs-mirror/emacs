@@ -1,5 +1,8 @@
 2011-02-03  Glenn Morris  <rgm@gnu.org>
 
+	* hi-lock.el, ps-bdf.el, ps-mule.el, ps-print.el, ps-samp.el:
+	`require' is automatically `eval-and-compile'd.
+
 	* net/rcirc.el (rcirc-nick-completion-format): Add :version tag.
 	(rcirc-log-directory, rcirc-log-flag): Move definitions before use.
 
