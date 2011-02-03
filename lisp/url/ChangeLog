@@ -1,3 +1,8 @@
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-wait-for-headers-change-function): Don't
+	move if the callback function has moved point.
+
 2010-12-16  Miles Bader  <Miles Bader <miles@gnu.org>>
 
 	* url-cookie.el: Require 'cl when compiling -- it's necessary for
