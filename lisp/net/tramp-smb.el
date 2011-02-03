@@ -114,6 +114,7 @@ call, letting the SMB client use the default one."
      "NT_STATUS_OBJECT_NAME_NOT_FOUND"
      "NT_STATUS_SHARING_VIOLATION"
      "NT_STATUS_TRUSTED_RELATIONSHIP_FAILURE"
+     "NT_STATUS_UNSUCCESSFUL"
      "NT_STATUS_WRONG_PASSWORD")
    "\\|")
   "Regexp for possible error strings of SMB servers.

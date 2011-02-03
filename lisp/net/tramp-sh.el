@@ -68,7 +68,7 @@ files conditionalize this setup based on the TERM environment variable."
 
 ;; ksh on OpenBSD 4.5 requires, that $PS1 contains a `#' character for
 ;; root users.  It uses the `$' character for other users.  In order
-;; to guarantee a proper prompt, we use "#$" for the prompt.
+;; to guarantee a proper prompt, we use "#$ " for the prompt.
 
 (defvar tramp-end-of-output
   (format
@@ -482,7 +482,9 @@ tilde expansion, all directory names starting with `~' will be ignored.
 `Default Directories' represent the list of directories given by
 the command \"getconf PATH\".  It is recommended to use this
 entry on top of this list, because these are the default
-directories for POSIX compatible commands.
+directories for POSIX compatible commands.  On remote hosts which
+do not offer the getconf command (like cygwin), the value
+\"/bin:/usr/bin\" is used instead of.
 
 `Private Directories' are the settings of the $PATH environment,
 as given in your `~/.profile'."
@@ -4655,11 +4657,12 @@ This is used internally by `tramp-file-mode-from-int'."
 	   (elt2 (memq 'tramp-own-remote-path remote-path))
 	   (default-remote-path
 	     (when elt1
-	       (condition-case nil
-		   (tramp-send-command-and-read
-		    vec "echo \\\"`getconf PATH`\\\"")
-		 ;; Default if "getconf" is not available.
-		 (error
+	       (or
+		(tramp-send-command-and-read
+		 vec
+		 "x=`getconf PATH 2>/dev/null` && echo \\\"$x\\\" || echo nil")
+		;; Default if "getconf" is not available.
+		(progn
 		  (tramp-message
 		   vec 3
 		   "`getconf PATH' not successful, using default value \"%s\"."
@@ -4669,7 +4672,6 @@ This is used internally by `tramp-file-mode-from-int'."
 	     (when elt2
 	       (condition-case nil
 		   (tramp-send-command-and-read vec "echo \\\"$PATH\\\"")
-		 ;; Default if "getconf" is not available.
 		 (error
 		  (tramp-message
 		   vec 3 "$PATH not set, ignoring `tramp-own-remote-path'.")
