@@ -121,15 +121,12 @@ If value is `verbose', the computed score is shown for each match."
 		 (const :tag "show scores" verbose)))
 
 (defvar apropos-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map button-buffer-map)
+  (let ((map (copy-keymap button-buffer-map)))
+    (set-keymap-parent map special-mode-map)
     ;; Use `apropos-follow' instead of just using the button
     ;; definition of RET, so that users can use it anywhere in an
     ;; apropos item, not just on top of a button.
     (define-key map "\C-m" 'apropos-follow)
-    (define-key map " "    'scroll-up)
-    (define-key map "\177" 'scroll-down)
-    (define-key map "q"    'quit-window)
     map)
   "Keymap used in Apropos mode.")
 
@@ -410,7 +407,7 @@ This requires that at least 2 keywords (unless only one was given)."
   "Return t if DOC is really matched by the current keywords."
   (apropos-true-hit doc apropos-all-words))
 
-(define-derived-mode apropos-mode fundamental-mode "Apropos"
+(define-derived-mode apropos-mode special-mode "Apropos"
   "Major mode for following hyperlinks in output of apropos commands.
 
 \\{apropos-mode-map}")
@@ -977,7 +974,6 @@ If non-nil TEXT is a string that will be printed as a heading."
 	    (old-buffer (current-buffer))
 	    symbol item)
 	(set-buffer standard-output)
-	(apropos-mode)
 	(if (display-mouse-p)
 	    (insert
 	     "If moving the mouse over text changes the text's color, "
@@ -1069,7 +1065,7 @@ If non-nil TEXT is a string that will be printed as a heading."
 	  (apropos-print-doc 4 'apropos-plist nil))
         (set (make-local-variable 'truncate-partial-width-windows) t)
         (set (make-local-variable 'truncate-lines) t)
-	(setq buffer-read-only t))))
+        (apropos-mode))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
 

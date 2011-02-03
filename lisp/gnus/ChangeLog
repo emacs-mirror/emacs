@@ -1,3 +1,41 @@
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* nnimap.el (gnus-fetch-headers): Declare.
+
+	* nnheader.el (gnus-range-add, gnus-remove-from-range): Autoload.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-forward-make-body-digest-plain)
+	(message-followup, message-reply): Clean up things noted by Stefan.
+
+	* gnus-art.el (gnus-article-setup-buffer): Stop the date timer if
+	gnus-article-update-date-headers is nil.
+	(gnus-article-date-headers): Rip out the old -treat-date-* stuff, since
+	it didn't really work with defcustom.
+	(article-update-date-lapsed): Make sure the window start doesn't move,
+	either.
+
+2011-02-01  Julien Danjou  <julien@danjou.info>
+
+	* mm-uu.el (mm-uu-type-alist): Add support for git format-patch diff
+	format.
+
+	* mm-decode.el (mm-inline-media-tests): Do not check for diff-mode it's
+	standard in Emacs nowadays.
+
+2011-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-expand-name): Don't trust the return value of
+	bbdb-complete-name.
+	(message-check-news-header-syntax): Remove unused var `start'.
+	(message-idna-to-ascii-rhs-1): Remove unused vars `rhs' and `address'.
+	(message-inhibit-body-encoding): Move to before first use.
+	(mail-abbrev-mode-regexp, Expires, User-Agent, Lines, Distribution)
+	(To, References, In-Reply-To, Newsgroups, Subject, Path, From)
+	(Organization, Message-ID, Date, mh-previous-window-config):
+	Defvar the vars using dynamic scoping.
+
 2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-render-td): Only do colours at the final rendering.

@@ -1076,7 +1076,6 @@ extern void widget_store_internal_border (Widget);
 /* Defined in xsmfns.c */
 #ifdef HAVE_X_SM
 extern void x_session_initialize (struct x_display_info *dpyinfo);
-extern int x_session_check_input (struct input_event *bufp);
 extern int x_session_have_connection (void);
 extern void x_session_close (void);
 #endif

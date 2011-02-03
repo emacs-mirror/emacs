@@ -446,7 +446,12 @@ If there is no registered search engine at all, the function returns `nil'."
 
 ;;; Search buffers.
 
-(define-derived-mode xesam-mode nil "Xesam"
+(defvar xesam-mode-map
+  (let ((map (copy-keymap special-mode-map)))
+    (set-keymap-parent xesam-mode-map widget-keymap)
+    map))
+
+(define-derived-mode xesam-mode special-mode "Xesam"
   "Major mode for presenting search results of a Xesam search.
 In this mode, widgets represent the search results.
 
@@ -455,12 +460,6 @@ Turning on Xesam mode runs the normal hook `xesam-mode-hook'.  It
 can be used to set `xesam-notify-function', which must a search
 engine specific, widget :notify function to visualize xesam:url."
   (set (make-local-variable 'xesam-notify-function) nil)
-
-  ;; Keymap.
-  (setq xesam-mode-map (copy-keymap special-mode-map))
-  (set-keymap-parent xesam-mode-map widget-keymap)
-  (define-key xesam-mode-map "z" 'kill-this-buffer)
-
   ;; Maybe we implement something useful, later on.
   (set (make-local-variable 'revert-buffer-function) 'ignore)
   ;; `xesam-engine', `xesam-search', `xesam-type', `xesam-query', and

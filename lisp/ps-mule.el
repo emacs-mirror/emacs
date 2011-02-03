@@ -88,8 +88,7 @@
 
 ;;; Code:
 
-(eval-and-compile
-  (require 'ps-print))
+(require 'ps-print)
 
 
 ;;;###autoload

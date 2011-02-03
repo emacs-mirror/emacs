@@ -1,3 +1,18 @@
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Contacting the FSF): Mainly just refer to the web-site.
+	(Binding combinations of modifiers and function keys):
+	Let's assume people reading this are not using Emacs 18.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Date): Remove mention of gnus-stop-date-timer,
+	since it's run automatically.
+
+2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing Articles): Fix typo.
+
 2011-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Customizing Articles): Document the new way of customizing

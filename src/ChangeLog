@@ -1,3 +1,29 @@
+2011-02-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_connection_closed): Remove all calls that calls
+	XSync (Bug#7949).
+
+2011-02-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (tiff_load): Avoid compiler warning in 2nd arg to
+	TIFFClientOpen.
+
+2011-02-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c (ice_connection_closed): Call delete_read_fd.
+	(x_session_check_input): Change args and return type so it can be used
+	as argument to add_read_fd.  Make static.  Remove call to select.
+	Call kbd_buffer_store_event for emacs_event.
+	(smc_save_yourself_CB): Also store initial argv to SmRestartCommand.
+	(ice_conn_watch_CB): Call add_read_fd.
+
+	* xterm.c (XTread_socket): Remove HAVE_X_SM block with call to
+	x_session_check_input.
+	(x_session_initialized): Remove definition.
+	(x_initialize): Remove setting of x_session_initialized.
+
+	* xterm.h (x_session_check_input): Remove declaration.
+
 2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	format-time-string now supports subsecond time stamp resolution

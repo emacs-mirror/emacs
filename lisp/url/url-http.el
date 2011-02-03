@@ -1034,10 +1034,11 @@ the end of the document."
 		    url-http-response-status))
   (url-http-debug "url-http-wait-for-headers-change-function (%s)"
 		  (buffer-name))
-  (when (not (bobp))
-    (let ((end-of-headers nil)
-	  (old-http nil)
-	  (content-length nil))
+  (let ((end-of-headers nil)
+	(old-http nil)
+	(process-buffer (current-buffer))
+	(content-length nil))
+    (when (not (bobp))
       (goto-char (point-min))
       (if (and (looking-at ".*\n")	; have one line at least
 	       (not (looking-at "^HTTP/[1-9]\\.[0-9]")))
@@ -1151,8 +1152,9 @@ the end of the document."
 		'url-http-simple-after-change-function)))))
     ;; We are still at the beginning of the buffer... must just be
     ;; waiting for a response.
-    (url-http-debug "Spinning waiting for headers..."))
-  (goto-char (point-max)))
+    (url-http-debug "Spinning waiting for headers...")
+    (when (eq process-buffer (current-buffer))
+      (goto-char (point-max)))))
 
 ;;;###autoload
 (defun url-http (url callback cbargs)

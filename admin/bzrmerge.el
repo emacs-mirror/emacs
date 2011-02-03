@@ -1,4 +1,4 @@
-;;; bzrmerge.el --- 
+;;; bzrmerge.el --- help merge one Emacs bzr branch to another
 
 ;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; 
+;; Some usage notes are in admin/notes/bzr.
 
 ;;; Code:
 
@@ -32,10 +32,13 @@
   "Regexp matching logs of revisions that might be skipped.
 `bzrmerge-missing' will ask you if it should skip any matches.")
 
+(defconst bzrmerge-buffer "*bzrmerge*"
+  "Working buffer for bzrmerge.")
+
 (defun bzrmerge-merges ()
   "Return the list of already merged (not yet committed) revisions.
 The list returned is sorted by oldest-first."
-  (with-current-buffer (get-buffer-create "*bzrmerge*")
+  (with-current-buffer (get-buffer-create bzrmerge-buffer)
     (erase-buffer)
     ;; We generally want to make sure we start with a clean tree, but we also
     ;; want to allow restarts (i.e. with some part of FROM already merged but
@@ -99,7 +102,7 @@ MERGES is the revisions already merged but not yet committed.
 Asks about skipping revisions with logs matching `bzrmerge-skip-regexp'.
 The result is of the form (TOMERGE . TOSKIP) where TOMERGE and TOSKIP
 are both lists of revnos, in oldest-first order."
-  (with-current-buffer (get-buffer-create "*bzrmerge*")
+  (with-current-buffer (get-buffer-create bzrmerge-buffer)
     (erase-buffer)
     (call-process "bzr" nil t nil "missing" "--theirs-only"
                   (expand-file-name from))
@@ -133,7 +136,8 @@ are both lists of revnos, in oldest-first order."
                   (push revno skipped)
                 (push revno revnos)))))
         (delete-region (point) (point-max)))
-      (cons (nreverse revnos) (nreverse skipped)))))
+      (and (or revnos skipped)
+           (cons (nreverse revnos) (nreverse skipped))))))
 
 (defun bzrmerge-resolve (file)
   (unless (file-exists-p file) (error "Bzrmerge-resolve: Can't find %s" file))
@@ -216,7 +220,7 @@ Does not make other difference."
 
 (defun bzrmerge-apply (missing from)
   (setq from (expand-file-name from))
-  (with-current-buffer (get-buffer-create "*bzrmerge*")
+  (with-current-buffer (get-buffer-create bzrmerge-buffer)
     (erase-buffer)
     (when (equal (cdr bzrmerge-already-done) (list from missing))
       (setq missing (car bzrmerge-already-done)))
@@ -285,7 +289,7 @@ Does not make other difference."
                   ;; bzrmerge-add-metadata does not work when there
                   ;; are conflicts.
                   (display-warning 'bzrmerge "Resolve conflicts manually.
-Â¡BEWARE!  Important metadata is kept in this Emacs session!
+¡BEWARE!  Important metadata is kept in this Emacs session!
 Do not commit without re-running `M-x bzrmerge' first!"))
               (error "Resolve conflicts manually")))))
         (cons merge skip)))))
@@ -309,8 +313,11 @@ Do not commit without re-running `M-x bzrmerge' first!"))
     (let* ((merges (bzrmerge-merges))
            ;; OK, we have the status, now check the missing data.
            (missing (bzrmerge-missing from merges)))
-      (while missing
-        (setq missing (bzrmerge-apply missing from))))))
+      (if (not missing)
+          (message "Merging from %s...nothing to merge" from)
+        (while missing
+          (setq missing (bzrmerge-apply missing from)))
+        (message "Merging from %s...done" from)))))
 
 (provide 'bzrmerge)
 ;;; bzrmerge.el ends here

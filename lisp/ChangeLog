@@ -1,3 +1,112 @@
+2011-02-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-path): Add default settings for
+	`tramp-default-remote-path' to the docstring.
+	(tramp-get-remote-path): Suppress error message when `getconf
+	PATH' fails.
+
+	* net/tramp-smb.el (tramp-smb-errors): Add "NT_STATUS_UNSUCCESSFUL".
+
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-hg.el (vc-hg-command): Doc fix.
+
+	* term/w32-win.el (libpng-version): Declare for compiler.
+
+	* msb.el: No need to load dired while compiling.
+
+	* emacs-lisp/elint.el (elint-standard-variables):
+	Remove a couple of built-ins that now have doc-strings.
+
+	* hi-lock.el, ps-bdf.el, ps-mule.el, ps-print.el, ps-samp.el:
+	`require' is automatically `eval-and-compile'd.
+
+	* net/rcirc.el (rcirc-nick-completion-format): Add :version tag.
+	(rcirc-log-directory, rcirc-log-flag): Move definitions before use.
+
+	* strokes.el (strokes-fill-current-buffer-with-whitespace):
+	Move definition before use.
+	(strokes-report-bug): Make it obsolete.
+
+2011-02-02  Sam Steingold  <sds@gnu.org>
+
+	* apropos.el (apropos-print): Now that `apropos-mode' inherits
+	from `special-mode', entering it makes the buffer read-only, so
+	call it only when everything has been already inserted.
+	* emacs-lisp/ert.el (ert--setup-results-buffer)
+	(ert-results-pop-to-backtrace-for-test-at-point)
+	(ert-results-pop-to-messages-for-test-at-point)
+	(ert-results-pop-to-timings): Ditto.
+	* emacs-lisp/package.el (package--list-packages): Ditto.
+	* play/solitaire.el (solitaire): Ditto.
+
+2011-02-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el: Make all faces inherit.
+	(compilation-warning): Inherit from font-lock-variable-name-face.
+	(compilation-info): Inherit from font-lock-type-face.
+	(compilation-line-number): Reassign to font-lock-keyword-face.
+	(compilation-column-number): Reassign to font-lock-doc-face.
+	(compilation-leave-directory-face): Reassign to
+	font-lock-builtin-face.
+
+2011-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.el (dired-insert-directory): Don't invoke `ls' when
+	ls-lisp.el is used to emulate it.
+
+2011-02-01  Julien Danjou  <julien@danjou.info>
+
+	* color.el (color-gradient): Add a color-gradient function.
+
+2011-02-01  Sam Steingold  <sds@gnu.org>
+
+	* simple.el (special-mode-map): Bind "h" to `describe-mode';
+	bind "z" to `kill-this-buffer'.
+	(completion-list-mode-map): Bind "z" to `kill-this-buffer'.
+	* apropos.el (apropos-mode-map): Inherit from `special-mode-map'.
+	(apropos-mode): Inherit from `special-mode'.
+	* arc-mode.el (archive-mode-map): Inherit from `special-mode-map'.
+	* bookmark.el (bookmark-bmenu-mode): Define using
+	`define-derived-mode' inheriting from `special-mode'.
+	* dired.el (dired-mode-map): Inherit from `special-mode-map'.
+	* image-mode.el (image-mode-map): Ditto.
+	* replace.el (occur-mode): Define using
+	`define-derived-mode' inheriting from `special-mode'.
+	* tar-mode.el (tar-mode): Inherit from `special-mode'.
+	* calendar/diary-lib.el (diary-fancy-display-mode):
+	Inherit from `special-mode-map'.
+	* emacs-lisp/ert.el (ert-simple-view-mode, ert-results-mode):
+	Inherit from `special-mode'.
+	* emacs-lisp/package.el (package-menu-mode-map): Copy from
+	`special-mode-map'.
+	(package-menu-mode): Define using `define-derived-mode'
+	inheriting from `special-mode'.
+	* erc/erc-list.el (erc-list-menu-mode): Inherit from `special-mode'.
+	* net/xesam.el (xesam-mode): Inherit from `special-mode'.
+	(xesam-mode-map): Define separately.
+	* play/solitaire.el (solitaire-mode): Inherit from `special-mode'.
+	* progmodes/compile.el (compilation-minor-mode-map)
+	(compilation-mode-map): Inherit from `special-mode-map'.
+	* vc/diff-mode.el (diff-mode-shared-map):
+	Inherit from `special-mode-map'.
+	* vc/log-view.el (log-view-mode-map): Add a comment.
+
+2011-02-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (load-theme): Define return value.  Drop use of
+	unsafep; call custom-theme-load-confirm for non-known-safe themes.
+	(custom-theme-load-confirm): Scroll in the correct window.
+	(custom-enabled-themes): Add custom-safe-themes to :set-after.
+
+	* cus-theme.el (custom-theme-checkbox-toggle): Don't activate the
+	checkbox if load-theme fails.
+
+2011-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-next-error): Check there's
+	a message before using it (bug#7941).
+
 2011-02-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-mtx.el (math-lud-pivot-check): New function.
@@ -6,8 +115,8 @@
 
 2011-01-31  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-cmds.el (c-forward-over-illiterals): Continue
-	parsing if we encounter a naked # (Bug#7595).
+	* progmodes/cc-cmds.el (c-forward-over-illiterals):
+	Continue parsing if we encounter a naked # (Bug#7595).
 	(c-beginning-of-statement): Avoid loop in locating the beginning
 	of a macro.
 
@@ -34,8 +143,8 @@
 
 2011-01-31  Kenichi Handa  <handa@m17n.org>
 
-	* international/quail.el (quail-keyboard-layout-alist): Remove
-	superfluous SPC for "pc105-uk" (bug#7927).
+	* international/quail.el (quail-keyboard-layout-alist):
+	Remove superfluous SPC for "pc105-uk" (bug#7927).
 
 2011-01-31  Glenn Morris  <rgm@gnu.org>
 
@@ -71,7 +180,7 @@
 
 2011-01-31  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
-	* net/rcirc.el: New customizable nick completion format.
+	* net/rcirc.el: New customizable nick completion format. (Bug#6314)
 	(rcirc-nick-completion-format): New defcustom.
 	(rcirc-complete): Use it.
 

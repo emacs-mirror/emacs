@@ -399,8 +399,6 @@ Optional second argument MAXBUF is completely ignored."
     (format "%s%s %s" modified read-only name)))
 
 
-(eval-when-compile (require 'dired))
-
 ;; `dired' can be called with a list of the form (directory file1 file2 ...)
 ;; which causes `dired-directory' to be in the same form.
 (defun msb--dired-directory ()

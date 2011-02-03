@@ -597,7 +597,7 @@ The vc-pull command runs a "pull" operation, if it is supported.
 This updates the current branch from upstream.  A prefix argument
 means to prompt the user for specifics, e.g. a pull location.
 
-**** vc-update is now an alias for vc-update.
+**** `vc-update' is now an alias for `vc-pull'.
 
 **** Currently supported by Bzr, Git, and Mercurial.
 

@@ -186,6 +186,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (error "Suspending an Emacs running under W32 makes no sense"))
 
 (defvar dynamic-library-alist)
+(defvar libpng-version)                 ; image.c #ifdef HAVE_NTGUI
 
 ;;; Set default known names for external libraries
 (setq dynamic-library-alist

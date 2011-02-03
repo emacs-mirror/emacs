@@ -4345,7 +4345,7 @@ This function could be useful in `message-setup-hook'."
 	(tembuf (message-generate-new-buffer-clone-locals " message temp"))
 	(curbuf (current-buffer))
 	(id (message-make-message-id)) (n 1)
-	plist total  header required-mail-headers)
+        plist total header)
     (while (not (eobp))
       (if (< (point-max) (+ p message-send-mail-partially-limit))
 	  (goto-char (point-max))
@@ -4677,6 +4677,8 @@ to find out how to use this."
     ;; should never happen
     (t   (error "qmail-inject reported unknown failure"))))
 
+(defvar mh-previous-window-config)
+
 (defun message-send-mail-with-mh ()
   "Send the prepared message buffer with mh."
   (let ((mh-previous-window-config nil)
@@ -4897,8 +4899,7 @@ Otherwise, generate and save a value for `canlock-password' first."
        t))
    ;; Check long header lines.
    (message-check 'long-header-lines
-     (let ((start (point))
-	   (header nil)
+     (let ((header nil)
 	   (length 0)
 	   found)
        (while (and (not found)
@@ -4907,7 +4908,6 @@ Otherwise, generate and save a value for `canlock-password' first."
 	     (setq found t
 		   length (- (point) (match-beginning 0)))
 	   (setq header (match-string-no-properties 1)))
-	 (setq start (match-beginning 0))
 	 (forward-line 1))
        (if found
 	   (y-or-n-p (format "Your %s header is too long (%d).  Really post? "
@@ -5750,7 +5750,7 @@ subscribed address (and not the additional To and Cc header contents)."
 (defun message-idna-to-ascii-rhs-1 (header)
   "Interactively potentially IDNA encode domain names in HEADER."
   (let ((field (message-fetch-field header))
-	rhs ace  address)
+        ace)
     (when field
       (dolist (rhs
 	       (mm-delete-duplicates
@@ -5798,6 +5798,21 @@ See `message-idna-encode'."
 	(message-idna-to-ascii-rhs-1 "Mail-Reply-To")
 	(message-idna-to-ascii-rhs-1 "Mail-Followup-To")
 	(message-idna-to-ascii-rhs-1 "Cc")))))
+
+(defvar Date)
+(defvar Message-ID)
+(defvar Organization)
+(defvar From)
+(defvar Path)
+(defvar Subject)
+(defvar Newsgroups)
+(defvar In-Reply-To)
+(defvar References)
+(defvar To)
+(defvar Distribution)
+(defvar Lines)
+(defvar User-Agent)
+(defvar Expires)
 
 (defun message-generate-headers (headers)
   "Prepare article HEADERS.
@@ -6759,7 +6774,7 @@ Useful functions to put in this list include:
   (interactive)
   (require 'gnus-sum)			; for gnus-list-identifiers
   (let ((cur (current-buffer))
-	from subject date reply-to to cc
+	from subject date
 	references message-id follow-to
 	(inhibit-point-motion-hooks t)
 	(message-this-is-mail t)
@@ -7280,11 +7295,9 @@ Optional DIGEST will use digest to forward."
 (defun message-forward-make-body-digest-plain (forward-buffer)
   (insert
    "\n-------------------- Start of forwarded message --------------------\n")
-  (let ((b (point)) e)
-    (mml-insert-buffer forward-buffer)
-    (setq e (point))
-    (insert
-     "\n-------------------- End of forwarded message --------------------\n")))
+  (mml-insert-buffer forward-buffer)
+  (insert
+   "\n-------------------- End of forwarded message --------------------\n"))
 
 (defun message-forward-make-body-digest-mime (forward-buffer)
   (insert "\n<#multipart type=digest>\n")
@@ -7403,6 +7416,8 @@ is for the internal use."
   (setq rmail-enable-mime-composing t)
   (setq rmail-insert-mime-forwarded-message-function
 	'message-forward-rmail-make-body))
+
+(defvar message-inhibit-body-encoding nil)
 
 ;;;###autoload
 (defun message-resend (address)
@@ -7790,6 +7805,8 @@ those headers."
                    (lookup-key global-map "\t")
                    'indent-relative)))))
 
+(defvar mail-abbrev-mode-regexp)
+
 (defun message-completion-function ()
   (let ((alist message-completion-alist))
     (while (and alist
@@ -7867,7 +7884,12 @@ those headers."
 	 (eudc-expand-inline))
 	((and (memq 'bbdb message-expand-name-databases)
 	      (fboundp 'bbdb-complete-name))
-	 (bbdb-complete-name))
+         (let ((starttick (buffer-modified-tick)))
+           (or (bbdb-complete-name)
+               ;; Apparently, bbdb-complete-name can return nil even when
+               ;; completion took place.  So let's double check the buffer was
+               ;; not modified.
+               (/= starttick (buffer-modified-tick)))))
 	(t
 	 (expand-abbrev))))
 
@@ -7927,8 +7949,6 @@ regexp VARSTR."
 ;;;
 ;;; MIME functions
 ;;;
-
-(defvar message-inhibit-body-encoding nil)
 
 (defun message-encode-message-body ()
   (unless message-inhibit-body-encoding
