@@ -1,3 +1,7 @@
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* faces.el (set-face-attribute): Doc fix.  (Bug#2659)
+
 2011-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcomplete.el (pcomplete-here*): Backport fix for mistaken change

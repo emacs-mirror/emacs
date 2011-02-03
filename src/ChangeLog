@@ -1,3 +1,8 @@
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute):
+	Try to clarify some error messages.  (Bug#2659)
+
 2011-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* editfns.c (save_restriction_restore): Don't forget to invalidate the
