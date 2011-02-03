@@ -1,3 +1,16 @@
+2011-02-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	allow C code to suppress warnings about ignored return values
+
+	We need to go through the code and for each such warning, either
+	fix the code to pay attention to the returned value, or tell GCC
+	that we really do want to ignore the returned value.  Here is one
+	example of how to do the latter.
+	* sysdep.c: Include <ignore-value.h>.
+	(sys_subshell): Suppress an undesirable warning about not checking
+	the returned value of 'write', as there's nothing useful one can
+	do with that returned value.
+
 2011-02-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_connection_closed): Remove all calls that calls

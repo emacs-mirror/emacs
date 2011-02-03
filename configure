@@ -5826,6 +5826,7 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
   # Code from module gettext-h:
+  # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
   # Code from module mktime:
@@ -10597,7 +10598,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XawScrollbarSetThumb in -lXaw3d" >&5
 $as_echo_n "checking for XawScrollbarSetThumb in -lXaw3d... " >&6; }
-if test "${ac_cv_lib_Xaw3d_XawScrollbarSetThumb+set}" = set; then :
+if ${ac_cv_lib_Xaw3d_XawScrollbarSetThumb+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -10631,7 +10632,7 @@ LIBS=$ac_check_lib_save_LIBS
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xaw3d_XawScrollbarSetThumb" >&5
 $as_echo "$ac_cv_lib_Xaw3d_XawScrollbarSetThumb" >&6; }
-if test "x$ac_cv_lib_Xaw3d_XawScrollbarSetThumb" = x""yes; then :
+if test "x$ac_cv_lib_Xaw3d_XawScrollbarSetThumb" = xyes; then :
   emacs_cv_xaw3d=yes
 else
   emacs_cv_xaw3d=no
@@ -14330,6 +14331,48 @@ $as_echo "#define __GETOPT_PREFIX rpl_" >>confdefs.h
 fi
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inline" >&5
+$as_echo_n "checking for inline... " >&6; }
+if ${ac_cv_c_inline+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_c_inline=no
+for ac_kw in inline __inline__ __inline; do
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifndef __cplusplus
+typedef int foo_t;
+static $ac_kw foo_t static_foo () {return 0; }
+$ac_kw foo_t foo () {return 0; }
+#endif
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_c_inline=$ac_kw
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  test "$ac_cv_c_inline" != no && break
+done
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_c_inline" >&5
+$as_echo "$ac_cv_c_inline" >&6; }
+
+case $ac_cv_c_inline in
+  inline | yes) ;;
+  *)
+    case $ac_cv_c_inline in
+      no) ac_val=;;
+      *) ac_val=$ac_cv_c_inline;;
+    esac
+    cat >>confdefs.h <<_ACEOF
+#ifndef __cplusplus
+#define inline $ac_val
+#endif
+_ACEOF
+    ;;
+esac
+
 
   GNULIB_MKTIME=0;
   GNULIB_NANOSLEEP=0;
@@ -14403,48 +14446,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     APPLE_UNIVERSAL_BUILD=0
   fi
 
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inline" >&5
-$as_echo_n "checking for inline... " >&6; }
-if ${ac_cv_c_inline+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_cv_c_inline=no
-for ac_kw in inline __inline__ __inline; do
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#ifndef __cplusplus
-typedef int foo_t;
-static $ac_kw foo_t static_foo () {return 0; }
-$ac_kw foo_t foo () {return 0; }
-#endif
-
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_c_inline=$ac_kw
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  test "$ac_cv_c_inline" != no && break
-done
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_c_inline" >&5
-$as_echo "$ac_cv_c_inline" >&6; }
-
-case $ac_cv_c_inline in
-  inline | yes) ;;
-  *)
-    case $ac_cv_c_inline in
-      no) ac_val=;;
-      *) ac_val=$ac_cv_c_inline;;
-    esac
-    cat >>confdefs.h <<_ACEOF
-#ifndef __cplusplus
-#define inline $ac_val
-#endif
-_ACEOF
-    ;;
-esac
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for stdbool.h that conforms to C99" >&5
 $as_echo_n "checking for stdbool.h that conforms to C99... " >&6; }
@@ -14887,6 +14888,8 @@ fi
 
   # Code from module gettext-h:
 
+
+  # Code from module ignore-value:
 
   # Code from module include_next:
   # Code from module intprops:

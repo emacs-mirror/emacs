@@ -31,6 +31,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_LIMITS_H */
 #include <unistd.h>
 
+#include <ignore-value.h>
+
 #include "lisp.h"
 #include "sysselect.h"
 #include "blockinput.h"
@@ -263,7 +265,7 @@ void
 init_baud_rate (int fd)
 {
   int emacs_ospeed;
- 
+
   if (noninteractive)
     emacs_ospeed = 0;
   else
@@ -578,7 +580,7 @@ sys_subshell (void)
 	write (1, "Can't execute subshell", 22);
 #else   /* not WINDOWSNT */
       execlp (sh, sh, (char *) 0);
-      write (1, "Can't execute subshell", 22);
+      ignore_value (write (1, "Can't execute subshell", 22));
       _exit (1);
 #endif  /* not WINDOWSNT */
 #endif /* not MSDOS */
@@ -3058,4 +3060,3 @@ system_process_attributes (Lisp_Object pid)
 }
 
 #endif	/* !defined (WINDOWSNT) */
-
