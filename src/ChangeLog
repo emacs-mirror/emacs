@@ -1,3 +1,8 @@
+2011-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (IGNORE_VALUE_H): New variable.
+	($(BLD)/sysdep.$(O)): Depend on $(IGNORE_VALUE_H).
+
 2011-02-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	allow C code to suppress warnings about ignored return values
