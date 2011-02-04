@@ -1,3 +1,7 @@
+2011-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Variables): Fix typo.
+
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* search.texi (Regexps): Copyedits.  Mention character classes
