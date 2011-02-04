@@ -129,6 +129,17 @@
   :group 'message-buffers
   :type '(choice function (const nil)))
 
+(defcustom message-cite-style nil
+  "The overall style to be used when yanking cited text.
+Values are either `traditional' (cited text first),
+`top-post' (cited text at the bottom), or nil (don't override the
+individual message variables)."
+  :version "24.1"
+  :group 'message-various
+  :type '(choice (const :tag "None" :value nil)
+		 (const :tag "Traditional" :value traditional)
+		 (const :tag "Top-post" :value top-post)))
+
 (defcustom message-fcc-handler-function 'message-output
   "*A function called to save outgoing articles.
 This function will be called with the name of the file to store the
@@ -2764,7 +2775,7 @@ message composition doesn't break too bad."
   :link '(custom-manual "(message)Various Message Variables")
   :type 'boolean)
 
-(defconst message-forbidden-properties
+(defvar message-forbidden-properties
   ;; No reason this should be clutter up customize.  We make it a
   ;; property list (rather than a list of property symbols), to be
   ;; directly useful for `remove-text-properties'.
@@ -6402,7 +6413,7 @@ are not included."
     (or (bolp) (insert ?\n)))
   (let ((message-forbidden-properties nil))
     (insert (propertize (concat mail-header-separator "\n")
-                        'read-only t 'rear-nonsticky t 'intangible t)))
+			'read-only t 'rear-nonsticky t 'intangible t)))
   (forward-line -1)
   ;; If a crash happens while replying, the auto-save file would *not* have a
   ;; `References:' header if `message-generate-headers-first' was nil.
@@ -7429,7 +7440,8 @@ is for the internal use."
       ;; We first set up a normal mail buffer.
       (unless (message-mail-user-agent)
 	(set-buffer (get-buffer-create " *message resend*"))
-	(erase-buffer))
+	(let ((inhibit-read-only t))
+	  (erase-buffer)))
       (let ((message-this-is-mail t)
 	    message-generate-hashcash
 	    message-setup-hook)
@@ -7446,7 +7458,8 @@ is for the internal use."
 	(insert "Resent-"))
       (widen)
       (forward-line)
-      (delete-region (point) (point-max))
+      (let ((inhibit-read-only t))
+	(delete-region (point) (point-max)))
       (setq beg (point))
       ;; Insert the message to be resent.
       (insert-buffer-substring cur)
