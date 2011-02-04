@@ -1,5 +1,8 @@
 2011-02-04  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-font-lock-keywords):
+	Tweak diary-time-regexp match.  (Bug#7891)
+
 	* progmodes/f90.el (f90-find-tag-default): New function.  (Bug#7919)
 	(f90-mode): Use it for mode's `find-tag-default-function' property.
 
