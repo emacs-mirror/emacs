@@ -2205,6 +2205,16 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
   (save-excursion
     (nth 1 (f90-beginning-of-subprogram))))
 
+(defun f90-find-tag-default ()
+  "Function to use for `find-tag-default-function' property in F90 mode."
+  (let ((tag (find-tag-default)))
+    (or (and tag
+             ;; See bug#7919. TODO I imagine there are other cases...?
+             (string-match "%\\(.+\\)" tag)
+             (match-string-no-properties 1 tag))
+        tag)))
+
+(put 'f90-mode 'find-tag-default-function 'f90-find-tag-default)
 
 (defun f90-backslash-not-special (&optional all)
   "Make the backslash character (\\) be non-special in the current buffer.

@@ -1,3 +1,8 @@
+2011-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-find-tag-default): New function.  (Bug#7919)
+	(f90-mode): Use it for mode's `find-tag-default-function' property.
+
 2011-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* ibuf-ext.el (ibuffer-filter-disable): Make it work.  (Bug#7969)
