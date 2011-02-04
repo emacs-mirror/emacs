@@ -1,5 +1,8 @@
 2011-02-04  Eli Zaretskii  <eliz@gnu.org>
 
+	* deps.mk: Update for recent changes: gnutls support, gnulib
+	imports, addition of globals.h.
+
 	* makefile.w32-in (IGNORE_VALUE_H): New variable.
 	($(BLD)/sysdep.$(O)): Depend on $(IGNORE_VALUE_H).
 
