@@ -1,10 +1,16 @@
 2011-02-04  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in (LISP_H, PROCESS_H): New variables.
+	Replace all uses of lisp.h with $(LISP_H), and all uses of
+	process.h with $(PROCESS_H).
+	($(BLD)/editfns.$(O)): Depend on ../lib/strftime.h.
+	($(BLD)/print.$(O)): Depend on ../lib/ftoastr.h and ../lib/intprops.h.
+
 	* deps.mk: Update for recent changes: gnutls support, gnulib
 	imports, addition of globals.h.
 
-	* makefile.w32-in (IGNORE_VALUE_H): New variable.
-	($(BLD)/sysdep.$(O)): Depend on $(IGNORE_VALUE_H).
+	* makefile.w32-in ($(BLD)/sysdep.$(O)): Depend on
+	../lib/ignore-value.h.
 
 2011-02-03  Paul Eggert  <eggert@cs.ucla.edu>
 
