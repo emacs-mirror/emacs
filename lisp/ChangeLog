@@ -1,3 +1,7 @@
+2011-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* arc-mode.el (archive-mode-map): Fix a typo in last change.
+
 2011-02-03  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/gdb-mi.el (gdb-breakpoints-list-handler-custom):
