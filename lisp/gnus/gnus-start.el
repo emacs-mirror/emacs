@@ -1705,6 +1705,15 @@ If SCAN, request a scan of that group as well."
 	      (setcar (nthcdr 3 elem)
 		      (gnus-retrieve-group-data-early method infos)))))))
 
+    ;; If we have primary/secondary select methods, but no groups from
+    ;; them, we still want to issue a retrieval request from them.
+    (dolist (method (cons gnus-select-method
+			  gnus-secondary-select-methods))
+      (when (and (not (assoc method type-cache))
+		 (gnus-check-backend-function 'request-list (car method)))
+       (with-current-buffer nntp-server-buffer
+         (gnus-read-active-file-1 method nil))))
+
     ;; Do the rest of the retrieval.
     (dolist (elem type-cache)
       (destructuring-bind (method method-type infos early-data) elem
@@ -1747,14 +1756,12 @@ If SCAN, request a scan of that group as well."
      ;; methods.
      ((and
        (gnus-check-backend-function 'finish-retrieve-group-infos (car method))
-       infos
        (or (not (gnus-agent-method-p method))
 	   (gnus-online method)))
       (gnus-finish-retrieve-group-infos method infos early-data)
       (gnus-agent-save-active method))
      ;; Most backends have -retrieve-groups.
-     ((and (gnus-check-backend-function 'retrieve-groups (car method))
-	   infos)
+     ((gnus-check-backend-function 'retrieve-groups (car method))
       (when (gnus-check-backend-function 'request-scan (car method))
 	(gnus-request-scan nil method))
       (let (groups)

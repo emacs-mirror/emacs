@@ -244,55 +244,49 @@ Obeys the standard process/prefix convention."
   :version "23.1" ;; No Gnus
   :type 'hook)
 
-;;; Utility functions
 
-;;;!!!If this is byte-compiled, it fails miserably.
-;;;!!!This is because `gnus-setup-message' uses uninterned symbols.
-;;;!!!This has been fixed in recent versions of Emacs and XEmacs,
-;;;!!!but for the time being, we'll just run this tiny function uncompiled.
-
-(progn
-  (defun gnus-draft-setup (narticle group &optional restore)
-    (let (ga)
-      (gnus-setup-message 'forward
-	(let ((article narticle))
-	  (message-mail)
-	  (erase-buffer)
-	  (if (not (gnus-request-restore-buffer article group))
-	      (error "Couldn't restore the article")
-	    (when (and restore
-		       (equal group "nndraft:queue"))
-	      (mime-to-mml))
-	    ;; Insert the separator.
-	    (goto-char (point-min))
-	    (search-forward "\n\n")
-	    (forward-char -1)
-	    (save-restriction
-	      (narrow-to-region (point-min) (point))
-	      (setq ga
-		    (message-fetch-field gnus-draft-meta-information-header)))
-	    (insert mail-header-separator)
-	    (forward-line 1)
-	    (message-set-auto-save-file-name))))
-      (gnus-backlog-remove-article group narticle)
-      (when (and ga
-		 (ignore-errors (setq ga (car (read-from-string ga)))))
-	(setq gnus-newsgroup-name
-	      (if (equal (car ga) "") nil (car ga)))
-	(gnus-configure-posting-styles)
-	(setq gnus-message-group-art (cons gnus-newsgroup-name (cadr ga)))
-	(setq message-post-method
-	      `(lambda (arg)
-		 (gnus-post-method arg ,(car ga))))
-	(unless (equal (cadr ga) "")
-	  (dolist (article (cdr ga))
-	    (message-add-action
-	     `(progn
-		(gnus-add-mark ,(car ga) 'replied ,article)
-		(gnus-request-set-mark ,(car ga) (list (list (list ,article)
-							     'add '(reply)))))
-	     'send))))
-      (run-hooks 'gnus-draft-setup-hook))))
+(defun gnus-draft-setup (narticle group &optional restore)
+  (let (ga)
+    (gnus-setup-message 'forward
+      (let ((article narticle))
+        (message-mail)
+        (let ((inhibit-read-only t))
+          (erase-buffer))
+        (if (not (gnus-request-restore-buffer article group))
+            (error "Couldn't restore the article")
+          (when (and restore
+                     (equal group "nndraft:queue"))
+            (mime-to-mml))
+          ;; Insert the separator.
+          (goto-char (point-min))
+          (search-forward "\n\n")
+          (forward-char -1)
+          (save-restriction
+            (narrow-to-region (point-min) (point))
+            (setq ga
+                  (message-fetch-field gnus-draft-meta-information-header)))
+          (insert mail-header-separator)
+          (forward-line 1)
+          (message-set-auto-save-file-name))))
+    (gnus-backlog-remove-article group narticle)
+    (when (and ga
+               (ignore-errors (setq ga (car (read-from-string ga)))))
+      (setq gnus-newsgroup-name
+            (if (equal (car ga) "") nil (car ga)))
+      (gnus-configure-posting-styles)
+      (setq gnus-message-group-art (cons gnus-newsgroup-name (cadr ga)))
+      (setq message-post-method
+            `(lambda (arg)
+               (gnus-post-method arg ,(car ga))))
+      (unless (equal (cadr ga) "")
+        (dolist (article (cdr ga))
+          (message-add-action
+           `(progn
+              (gnus-add-mark ,(car ga) 'replied ,article)
+              (gnus-request-set-mark ,(car ga) (list (list (list ,article)
+                                                           'add '(reply)))))
+           'send))))
+    (run-hooks 'gnus-draft-setup-hook)))
 
 (defun gnus-draft-article-sendable-p (article)
   "Say whether ARTICLE is sendable."
