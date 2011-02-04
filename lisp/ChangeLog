@@ -1,3 +1,7 @@
+2011-02-04  Sam Steingold  <sds@gnu.org>
+
+	* mouse.el (mouse-buffer-menu-mode-groups): Add a "GDB" group.
+
 2011-02-04  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* international/mule-util.el (with-coding-priority): Doc fix.
