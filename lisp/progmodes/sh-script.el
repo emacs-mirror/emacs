@@ -1104,7 +1104,7 @@ subshells can nest."
                  ;; a normal command rather than the real `in' keyword.
                  ;; I.e. we should look back to try and find the
                  ;; corresponding `case'.
-                 (looking-at ";;\\|in"))
+                 (looking-at ";[;&]\\|in"))
       sh-st-punc)))
 
 (defun sh-font-lock-backslash-quote ()
@@ -1659,6 +1659,8 @@ This adds rules for comments and assignments."
      ("esac" sh-handle-this-esac sh-handle-prev-esac)
      (case-label nil sh-handle-after-case-label) ;; ???
      (";;" nil sh-handle-prev-case-alt-end) ;; ???
+     (";;&" nil sh-handle-prev-case-alt-end) ;Like ";;" with diff semantics.
+     (";&" nil sh-handle-prev-case-alt-end) ;Like ";;" with diff semantics.
      ("done" sh-handle-this-done sh-handle-prev-done)
      ("do" sh-handle-this-do sh-handle-prev-do))
 
@@ -2496,7 +2498,7 @@ we go to the end of the previous line and do not check for continuations."
                          (sh-prev-line nil)
                        (line-beginning-position))))
       (skip-chars-backward " \t;" min-point)
-      (if (looking-at "\\s-*;;")
+      (if (looking-at "\\s-*;[;&]")
           ;; (message "Found ;; !")
           ";;"
         (skip-chars-backward "^)}];\"'`({[" min-point)

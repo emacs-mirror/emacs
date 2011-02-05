@@ -1,7 +1,12 @@
+2011-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren, sh-kw, sh-prev-thing):
+	Handle new bashisms ";&" and ";;&" (bug#7947).
+
 2011-02-05  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-smb.el (tramp-smb-errors): Use `regexp-opt'.  Add
-	"NT_STATUS_IO_TIMEOUT" and "NT_STATUS_NO_SUCH_USER".
+	* net/tramp-smb.el (tramp-smb-errors): Use `regexp-opt'.
+	Add "NT_STATUS_IO_TIMEOUT" and "NT_STATUS_NO_SUCH_USER".
 
 2011-02-05  Era Eriksson  <era+tramp@iki.fi>  (tiny change)
 
