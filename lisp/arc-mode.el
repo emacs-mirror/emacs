@@ -339,7 +339,7 @@ be added."
 (defvar archive-local-name nil "Name of local copy of remote archive.")
 (defvar archive-mode-map
   (let ((map (make-keymap)))
-    (set-keymap-parent map 'special-mode-map)
+    (set-keymap-parent map special-mode-map)
     (define-key map " " 'archive-next-line)
     (define-key map "a" 'archive-alternate-display)
     ;;(define-key map "c" 'archive-copy)

@@ -1,4 +1,7 @@
 \input texinfo                  @c -*-texinfo-*-
+
+@include overrides.texi
+
 @setfilename ../../info/pgg
 @settitle PGG @value{VERSION}
 
@@ -30,7 +33,12 @@ developing GNU and promoting software freedom.''
 @end direntry
 
 @titlepage
+@ifset WEBHACKDEVEL
+@title PGG (DEVELOPMENT VERSION)
+@end ifset
+@ifclear WEBHACKDEVEL
 @title PGG
+@end ifclear
 
 @author by Daiki Ueno
 @page

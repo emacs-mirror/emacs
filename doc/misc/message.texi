@@ -1,5 +1,7 @@
 \input texinfo                  @c -*-texinfo-*-
 
+@include overrides.texi
+
 @setfilename ../../info/message
 @settitle Message Manual
 @synindex fn cp
@@ -34,7 +36,12 @@ developing GNU and promoting software freedom.''
 @end iftex
 
 @titlepage
+@ifset WEBHACKDEVEL
+@title Message Manual (DEVELOPMENT VERSION)
+@end ifset
+@ifclear WEBHACKDEVEL
 @title Message Manual
+@end ifclear
 
 @author by Lars Magne Ingebrigtsen
 @page

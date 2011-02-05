@@ -1,3 +1,7 @@
+2011-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (inline) [__GNUC__]: Define (for gnulib).
+
 2011-01-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (VERSION): Uncomment definition.

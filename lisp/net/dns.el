@@ -252,8 +252,8 @@ If TCP-P, the first two bytes of the package with be the length field."
       (nreverse spec))))
 
 (defun dns-read-int32 ()
-  ;; Full 32 bit Integers can't be handled by Emacs.  If we use
-  ;; floats, it works.
+  ;; Full 32 bit Integers can't be handled by 32-bit Emacsen.  If we
+  ;; use floats, it works.
   (format "%.0f" (+ (* (dns-read-bytes 1) 16777216.0)
 		    (dns-read-bytes 3))))
 

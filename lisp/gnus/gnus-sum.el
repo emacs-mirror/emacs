@@ -1395,7 +1395,7 @@ the normal Gnus MIME machinery."
     (?u gnus-tmp-user-defined ?s)
     (?P (gnus-pick-line-number) ?d)
     (?B gnus-tmp-thread-tree-header-string ?s)
-    (user-date (gnus-summary-user-date
+    (user-date (gnus-user-date
 		,(macroexpand '(mail-header-date gnus-tmp-header))) ?s))
   "An alist of format specifications that can appear in summary lines.
 These are paired with what variables they correspond with, along with
@@ -3882,7 +3882,7 @@ respectively."
 (make-obsolete-variable 'gnus-user-date-format-alist
                         'gnus-summary-user-date-format-alist "24.1")
 
-(defun gnus-summary-user-date (messy-date)
+(defun gnus-user-date (messy-date)
   "Format the messy-date according to `gnus-summary-user-date-format-alist'.
 Returns \"  ?  \" if there's bad input or if another error occurs.
 Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
