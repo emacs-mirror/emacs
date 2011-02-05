@@ -1,3 +1,19 @@
+2011-02-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Mention problems with
+	WinSSHD.
+
+	* trampver.texi: Update release number.
+
+2011-02-05  Era Eriksson  <era+tramp@iki.fi>  (tiny change)
+
+	* tramp.texi:
+	Replace "delimet" with "delimit" globally.
+	Replace "explicite" with "explicit" globally.
+	Replace "instead of" with "instead" where there was nothing after "of".
+	Audit use of comma before interrogative pronoun, "that", or "which".
+	Minor word order, spelling, wording changes.
+
 2011-02-04  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* overrides.texi: New file to set or clear WEBHACKDEVEL.
