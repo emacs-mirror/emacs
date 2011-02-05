@@ -265,7 +265,7 @@ of `copy' and `rename'."
 		      filename newname)
 
 	;; We just make a local copy of FILENAME, and write it then to
-	;; NEWNAME.  This must be optimized, when both files are
+	;; NEWNAME.  This must be optimized when both files are
 	;; located on the same IMAP server.
 	(with-temp-buffer
 	  (if (and t1 t2)
