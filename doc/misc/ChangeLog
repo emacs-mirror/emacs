@@ -1,3 +1,10 @@
+2011-02-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* overrides.texi: Remove.
+
+	* sieve.texi, sasl.texi, pgg.texi, message.texi, gnus.texi:
+	* emacs-mime.texi, auth.texi, Makefile.in: Revert last changes.
+
 2011-02-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Frequently Asked Questions): Mention problems with

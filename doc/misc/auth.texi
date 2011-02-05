@@ -1,7 +1,4 @@
 \input texinfo                  @c -*-texinfo-*-
-
-@include overrides.texi
-
 @setfilename ../../info/auth
 @settitle Emacs auth-source Library @value{VERSION}
 
@@ -38,12 +35,7 @@ license to the document, as described in section 6 of the license.
 @end direntry
 
 @titlepage
-@ifset WEBHACKDEVEL
-@title Emacs auth-source Library (DEVELOPMENT VERSION)
-@end ifset
-@ifclear WEBHACKDEVEL
 @title Emacs auth-source Library
-@end ifclear
 @author by Ted Zlatanov
 @page
 @vskip 0pt plus 1filll
