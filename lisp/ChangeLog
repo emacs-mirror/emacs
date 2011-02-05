@@ -1,3 +1,8 @@
+2011-02-05  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-handler-JOIN): Reset mode-line-process
+	(Bug#6386).
+
 2011-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-here-doc-open-re): Don't rely on the
