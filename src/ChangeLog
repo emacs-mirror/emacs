@@ -1,5 +1,10 @@
 2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* regex.c: conform to C89 pointer rules
+	(re_wctype): Add cast, as C89 does not allow assigning between
+	char * and unsigned char *.
+	(regex_compile): Likewise.
+
 	sync from gnulib to remove HAVE_STDBOOL_H
 	* config.in: Regenerate.
 
