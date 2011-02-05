@@ -1,5 +1,13 @@
 2011-02-04  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* message.el (message-setup-1): Remove the read-only stuff, since it
+	doesn't work under XEmacs, for some reason.
+
+	* gnus-sum.el (gnus-user-date): Renamed back from
+	gnus-summary-user-date since user code refers to it.
+
+	* shr.el (shr-render-td): Store the actual background colour used.
+
 	* message.el (message-setup-1): Don't bind the constant
 	-forbidden-properties.
 	(message-setup-1): Revert previous change, since it needs to bind the
