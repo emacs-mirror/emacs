@@ -1,5 +1,13 @@
 2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c: conform to C89 pointer rules
+	(store_mode_line_noprop, display_string, reseat_to_string):
+	(c_string_pos, number_of_chars, message_dolog):
+	(message_log_check_duplicate, set_message_1, store_mode_line_noprop):
+	(display_mode_element, display_string):
+	Switch between char * and unsigned char * to stay compatible wth
+	C89 pointer rules.
+
 	* regex.c: conform to C89 pointer rules
 	(re_wctype): Add cast, as C89 does not allow assigning between
 	char * and unsigned char *.
