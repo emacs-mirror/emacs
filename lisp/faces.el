@@ -588,10 +588,14 @@ It must be one of the symbols `ultra-condensed', `extra-condensed',
 
 `:height'
 
-VALUE must be either an integer specifying the height of the font to use
-in 1/10 pt, a floating point number specifying the amount by which to
-scale any underlying face, or a function, which is called with the old
-height (from the underlying face), and should return the new height.
+VALUE specifies the height of the font, in either absolute or relative
+terms.  An absolute height is an integer, and specifies font height in
+units of 1/10 pt.  A relative height is either a floating point number,
+which specifies a scaling factor for the underlying face height;
+or a function that takes a single argument (the underlying face height)
+and returns the new height.  Note that for the `default' face,
+you can only specify an absolute height (since there is nothing
+for it to be relative to).
 
 `:weight'
 

@@ -35,6 +35,9 @@
 (defconst bzrmerge-buffer "*bzrmerge*"
   "Working buffer for bzrmerge.")
 
+(defconst bzrmerge-warning-buffer "*bzrmerge warnings*"
+  "Buffer where bzrmerge will display any warnings.")
+
 (defun bzrmerge-merges ()
   "Return the list of already merged (not yet committed) revisions.
 The list returned is sorted by oldest-first."
@@ -290,7 +293,8 @@ Does not make other difference."
                   ;; are conflicts.
                   (display-warning 'bzrmerge "Resolve conflicts manually.
 ¡BEWARE!  Important metadata is kept in this Emacs session!
-Do not commit without re-running `M-x bzrmerge' first!"))
+Do not commit without re-running `M-x bzrmerge' first!"
+                                   :warning bzrmerge-warning-buffer))
               (error "Resolve conflicts manually")))))
         (cons merge skip)))))
 
@@ -305,6 +309,10 @@ Do not commit without re-running `M-x bzrmerge' first!"))
              (when (re-search-forward "submit branch: *" nil t)
                (buffer-substring (point) (line-end-position))))))
       (read-file-name "From branch: " nil nil nil def))))
+  ;; Eg we ran bzrmerge once, it stopped with conflicts, we fixed them
+  ;; and are running it again.
+  (if (get-buffer bzrmerge-warning-buffer)
+      (kill-buffer bzrmerge-warning-buffer))
   (message "Merging from %s..." from)
   (require 'vc-bzr)
   (let ((default-directory (or (vc-bzr-root default-directory)

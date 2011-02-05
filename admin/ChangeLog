@@ -1,3 +1,9 @@
+2011-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-warning-buffer): New constant.
+	(bzrmerge-apply): Use it.
+	(bzrmerge): Kill any old warning buffer first.
+
 2011-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* bzrmerge.el (bzrmerge-buffer): New constant.

@@ -1240,7 +1240,11 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
     spacing = XINT (AREF (entity, FONT_SPACING_INDEX));
   else
     spacing = FC_PROPORTIONAL;
-  if (spacing != FC_PROPORTIONAL && spacing != FC_DUAL)
+  if (spacing != FC_PROPORTIONAL
+#ifdef FC_DUAL
+      && spacing != FC_DUAL
+#endif	/* FC_DUAL */
+      )
     font->min_width = font->average_width = font->space_width
       = (scalable ? ft_face->max_advance_width * size / upEM
 	 : ft_face->size->metrics.max_advance >> 6);

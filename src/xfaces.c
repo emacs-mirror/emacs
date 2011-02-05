@@ -2899,7 +2899,7 @@ FRAME 0 means change the face on all frames, and change the default
 	    {
 	      /* The default face must have an absolute size.  */
 	      if (!INTEGERP (value) || XINT (value) <= 0)
-		signal_error ("Invalid default face height", value);
+		signal_error ("Default face height not absolute and positive", value);
 	    }
 	  else
 	    {
@@ -2909,7 +2909,7 @@ FRAME 0 means change the face on all frames, and change the default
 						     make_number (10),
 						     Qnil);
 	      if (!INTEGERP (test) || XINT (test) <= 0)
-		signal_error ("Invalid face height", value);
+		signal_error ("Face height does not produce a positive integer", value);
 	    }
 	}
 
