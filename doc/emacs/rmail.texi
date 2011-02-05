@@ -1143,12 +1143,12 @@ feature, set @code{rmail-highlighted-headers} to @code{nil}.
 
 @cindex MIME messages (Rmail)
 @vindex rmail-enable-mime
-  By default, Rmail automatically decodes @acronym{MIME} (Multipurpose
-Internet Mail Extensions) messages.  If the message contains multiple
-parts (@acronym{MIME} entities), each part is represented by a tagline
-in the Rmail buffer.  The tagline summarizes the part's depth, index,
-and type, and may also contain a button for handling it, e.g. saving
-it to a file or displaying it as an image in the Rmail buffer.
+  If a message is in @acronym{MIME} (Multipurpose Internet Mail
+Extensions) format and contains multiple parts (@acronym{MIME}
+entities), Rmail displays each part with a @dfn{tagline}.  The tagline
+summarizes the part's index, size, and content type.  Depending on the
+content type, it may also contain one or more buttons; these perform
+actions such as saving the part into a file.
 
 @table @kbd
 @findex rmail-mime-toggle-hidden
@@ -1158,7 +1158,7 @@ Hide or show the @acronym{MIME} part at point
 
 @findex rmail-mime-next-item
 @item @key{TAB}
-Move point to the next @acronym{MIME} part
+Move point to the next @acronym{MIME} tagline button.
 (@code{rmail-mime-next-item}).
 
 @findex rmail-mime-previous-item
@@ -1172,6 +1172,16 @@ Move point to the previous @acronym{MIME} part
 Toggle between @acronym{MIME} display and raw message
 (@code{rmail-mime}).
 @end table
+
+  Each plain-text @acronym{MIME} part is initially displayed
+immediately after its tagline, as part of the Rmail buffer, while
+@acronym{MIME} parts of other types are represented only by their
+taglines, with their actual contents hidden.  In either case, you can
+toggle a @acronym{MIME} part between its ``displayed'' and ``hidden''
+states by typing @key{RET} anywhere in the part---or anywhere in its
+tagline, apart from a tagline button for some other action.  Type
+@key{RET} (or click with the mouse) to activate a tagline button, and
+@key{TAB} to cycle point between tagline buttons.
 
   The @kbd{v} (@code{rmail-mime}) command toggles between the default
 @acronym{MIME} display described above, and a ``raw'' display showing

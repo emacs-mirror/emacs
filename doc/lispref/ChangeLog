@@ -1,3 +1,8 @@
+2011-02-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Accessing Mouse): Note that a header line is not
+	included in the row of posn-col-row.
+
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vol1.texi (Top):
