@@ -1,7 +1,31 @@
+2011-02-05  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-handler-JOIN): Reset mode-line-process
+	(Bug#6386).
+
+2011-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-here-doc-open-re): Don't rely on the
+	font-lock-syntax-table remappings.
+	(sh-here-doc-markers, sh-here-doc-re): Remove.
+	(sh-font-lock-close-heredoc): Remove.
+	(sh-syntax-propertize-here-doc): New function.
+	(sh-font-lock-open-heredoc): Set the sh-here-doc-marker property
+	instead of the sh-here-doc-re.
+	(sh-font-lock-paren): Don't do anything in comments or strings.
+	Handle line continuations.  Accept a few more chars.
+	Don't rely on the font-lock-syntax-table remappings.
+	`esac' is not a valid pattern.
+	(sh-syntax-propertize-function): Handle here-docs differently, so we
+	don't bother syntax-propertizing the insides.
+
+	* progmodes/sh-script.el (sh-font-lock-paren, sh-kw, sh-prev-thing):
+	Handle new bashisms ";&" and ";;&" (bug#7947).
+
 2011-02-05  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-smb.el (tramp-smb-errors): Use `regexp-opt'.  Add
-	"NT_STATUS_IO_TIMEOUT" and "NT_STATUS_NO_SUCH_USER".
+	* net/tramp-smb.el (tramp-smb-errors): Use `regexp-opt'.
+	Add "NT_STATUS_IO_TIMEOUT" and "NT_STATUS_NO_SUCH_USER".
 
 2011-02-05  Era Eriksson  <era+tramp@iki.fi>  (tiny change)
 

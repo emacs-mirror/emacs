@@ -1,7 +1,4 @@
 \input texinfo                  @c -*-texinfo-*-
-
-@include overrides.texi
-
 @setfilename ../../info/sasl
 
 @set VERSION 0.2
@@ -40,12 +37,7 @@ license to the document, as described in section 6 of the license.
 
 
 @titlepage
-@ifset WEBHACKDEVEL
-@title Emacs SASL Library @value{VERSION} (DEVELOPMENT VERSION)
-@end ifset
-@ifclear WEBHACKDEVEL
 @title Emacs SASL Library @value{VERSION}
-@end ifclear
 
 @author by Daiki Ueno
 @page

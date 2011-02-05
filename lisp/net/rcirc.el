@@ -2455,7 +2455,10 @@ keywords when no KEYWORD is given."
 				     (rcirc-elapsed-lines process sender channel)))
 				(when (and last-activity-lines
 					   (< last-activity-lines rcirc-omit-threshold))
-				  (rcirc-last-line process sender channel)))))
+                                  (rcirc-last-line process sender channel))))
+      ;; reset mode-line-process in case joining a channel with an
+      ;; already open buffer (after getting kicked e.g.)
+      (setq mode-line-process nil))
 
     (rcirc-print process sender "JOIN" channel "")
 
