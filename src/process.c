@@ -6168,10 +6168,10 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
     ;
   else
     {
-      unsigned char *name;
+      char *name;
 
       CHECK_SYMBOL (sigcode);
-      name = SDATA (SYMBOL_NAME (sigcode));
+      name = SSDATA (SYMBOL_NAME (sigcode));
 
       if (!strncmp (name, "SIG", 3) || !strncmp (name, "sig", 3))
 	name += 3;

@@ -1,5 +1,10 @@
 2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	xstrcasecmp: conform to C89 pointer rules
+	* xfaces.c (xstrcasecmp): Change args from const unsigned char *
+	to const char *, since they're usually low-level C strings, and
+	this stays compatible with C89 pointer rules.  All callers changed.
+
 	* charset.c: conform to C89 pointer rules
 	(define_charset_internal): Switch between char * and unsigned char *.
 

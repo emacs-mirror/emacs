@@ -1022,12 +1022,12 @@ ftfont_list (Lisp_Object frame, Lisp_Object spec)
 
 	  if (! NILP (adstyle)
 	      && (NILP (this_adstyle)
-		  || xstrcasecmp (SDATA (SYMBOL_NAME (adstyle)),
-				  SDATA (SYMBOL_NAME (this_adstyle))) != 0))
+		  || xstrcasecmp (SSDATA (SYMBOL_NAME (adstyle)),
+				  SSDATA (SYMBOL_NAME (this_adstyle))) != 0))
 	    continue;
 	  if (langname
 	      && ! NILP (this_adstyle)
-	      && xstrcasecmp (langname, SDATA (SYMBOL_NAME (this_adstyle))))
+	      && xstrcasecmp (langname, SSDATA (SYMBOL_NAME (this_adstyle))))
 	    continue;
 	}
       entity = ftfont_pattern_entity (fontset->fonts[i],

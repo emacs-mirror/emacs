@@ -3151,7 +3151,7 @@ char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
                         int *);
 int ascii_face_of_lisp_face (struct frame *, int);
 void prepare_face_for_display (struct frame *, struct face *);
-int xstrcasecmp (const unsigned char *, const unsigned char *);
+int xstrcasecmp (const char *, const char *);
 int lookup_named_face (struct frame *, Lisp_Object, int);
 int lookup_basic_face (struct frame *, int);
 int smaller_face (struct frame *, int, int);
@@ -3361,4 +3361,3 @@ extern Lisp_Object x_default_parameter (struct frame *, Lisp_Object,
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #endif /* not DISPEXTERN_H_INCLUDED */
-
