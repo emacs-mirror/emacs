@@ -1,3 +1,8 @@
+2011-02-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-smb.el (tramp-smb-errors): Use `regexp-opt'.  Add
+	"NT_STATUS_IO_TIMEOUT" and "NT_STATUS_NO_SUCH_USER".
+
 2011-02-05  Era Eriksson  <era+tramp@iki.fi>  (tiny change)
 
 	* net/tramp.el (tramp-postfix-method-format)
