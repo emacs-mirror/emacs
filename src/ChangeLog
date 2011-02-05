@@ -1,5 +1,9 @@
 2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xmenu.c: conform to C89 const rules
+	(xmenu_show, xdialog_show): Declare local var as char *, not
+	const char *, to stay compatible with C89 const rules.
+
 	* xdisp.c: conform to C89 pointer rules
 	(store_mode_line_noprop, display_string, reseat_to_string):
 	(c_string_pos, number_of_chars, message_dolog):
