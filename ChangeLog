@@ -1,3 +1,14 @@
+2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	sync from gnulib to remove HAVE_STDBOOL_H
+	* m4/stdbool.m4 (AC_CHECK_HEADER_STDBOOL): Renamed from
+	AC_HEADER_STDBOOL.  All uses changed.  Do not define
+	HAVE_STDBOOL_H, as gnulib does not need this.  This change is
+	imported from the latest Autoconf git.  It was motivated by Emacs,
+	which uses gnulib but does not need HAVE_STDBOOL_H.
+	* configure, src/config.in: Regenerate.
+	* config.guess, config.sub: Sync to 2011-02-02 versions (whitespace)
+
 2011-02-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	allow C code to suppress warnings about ignored return values

@@ -14533,11 +14533,7 @@ _ACEOF
 
 fi
 
-   if test $ac_cv_header_stdbool_h = yes; then
 
-$as_echo "#define HAVE_STDBOOL_H 1" >>confdefs.h
-
-   fi
 
     REPLACE_NULL=0;
   HAVE_WCHAR_T=1;
