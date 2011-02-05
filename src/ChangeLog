@@ -1,3 +1,8 @@
+2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	sync from gnulib to remove HAVE_STDBOOL_H
+	* config.in: Regenerate.
+
 2011-02-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (LISP_H, PROCESS_H): New variables.
