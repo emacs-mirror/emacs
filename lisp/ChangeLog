@@ -1,3 +1,13 @@
+2011-02-05  Era Eriksson  <era+tramp@iki.fi>  (tiny change)
+
+	* net/tramp.el (tramp-postfix-method-format)
+	(tramp-postfix-method-regexp, tramp-prefix-domain-format)
+	(tramp-prefix-domain-regexp, tramp-postfix-user-format)
+	(tramp-postfix-user-regexp, tramp-prefix-port-format)
+	(tramp-prefix-port-regexp, tramp-postfix-host-format)
+	(tramp-postfix-host-regexp, tramp-handle-substitute-in-file-name):
+	Doc fix.
+
 2011-02-04  Sam Steingold  <sds@gnu.org>
 
 	* mouse.el (mouse-buffer-menu-mode-groups): Add a "GDB" group.

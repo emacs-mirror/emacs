@@ -660,12 +660,12 @@ Should always start with \"^\". Derived from `tramp-prefix-format'.")
 	((equal tramp-syntax 'sep) "/")
 	((equal tramp-syntax 'url) "://")
 	(t (error "Wrong `tramp-syntax' defined")))
-  "*String matching delimeter between method and user or host names.
+  "*String matching delimiter between method and user or host names.
 Used in `tramp-make-tramp-file-name'.")
 
 (defconst tramp-postfix-method-regexp
   (regexp-quote tramp-postfix-method-format)
-  "*Regexp matching delimeter between method and user or host names.
+  "*Regexp matching delimiter between method and user or host names.
 Derived from `tramp-postfix-method-format'.")
 
 (defconst tramp-user-regexp "[^:/ \t]+"
@@ -673,12 +673,12 @@ Derived from `tramp-postfix-method-format'.")
 
 ;;;###tramp-autoload
 (defconst tramp-prefix-domain-format "%"
-  "*String matching delimeter between user and domain names.")
+  "*String matching delimiter between user and domain names.")
 
 ;;;###tramp-autoload
 (defconst tramp-prefix-domain-regexp
   (regexp-quote tramp-prefix-domain-format)
-  "*Regexp matching delimeter between user and domain names.
+  "*Regexp matching delimiter between user and domain names.
 Derived from `tramp-prefix-domain-format'.")
 
 (defconst tramp-domain-regexp "[-a-zA-Z0-9_.]+"
@@ -691,12 +691,12 @@ Derived from `tramp-prefix-domain-format'.")
   "*Regexp matching user names with domain names.")
 
 (defconst tramp-postfix-user-format "@"
-  "*String matching delimeter between user and host names.
+  "*String matching delimiter between user and host names.
 Used in `tramp-make-tramp-file-name'.")
 
 (defconst tramp-postfix-user-regexp
   (regexp-quote tramp-postfix-user-format)
-  "*Regexp matching delimeter between user and host names.
+  "*Regexp matching delimiter between user and host names.
 Derived from `tramp-postfix-user-format'.")
 
 (defconst tramp-host-regexp "[a-zA-Z0-9_.-]+"
@@ -740,11 +740,11 @@ Derived from `tramp-postfix-ipv6-format'.")
 	((equal tramp-syntax 'sep) "#")
 	((equal tramp-syntax 'url) ":")
 	(t (error "Wrong `tramp-syntax' defined")))
-  "*String matching delimeter between host names and port numbers.")
+  "*String matching delimiter between host names and port numbers.")
 
 (defconst tramp-prefix-port-regexp
   (regexp-quote tramp-prefix-port-format)
-  "*Regexp matching delimeter between host names and port numbers.
+  "*Regexp matching delimiter between host names and port numbers.
 Derived from `tramp-prefix-port-format'.")
 
 (defconst tramp-port-regexp "[0-9]+"
@@ -761,12 +761,12 @@ Derived from `tramp-prefix-port-format'.")
 	((equal tramp-syntax 'sep) "]")
 	((equal tramp-syntax 'url) "")
 	(t (error "Wrong `tramp-syntax' defined")))
-  "*String matching delimeter between host names and localnames.
+  "*String matching delimiter between host names and localnames.
 Used in `tramp-make-tramp-file-name'.")
 
 (defconst tramp-postfix-host-regexp
   (regexp-quote tramp-postfix-host-format)
-  "*Regexp matching delimeter between host names and localnames.
+  "*Regexp matching delimiter between host names and localnames.
 Derived from `tramp-postfix-host-format'.")
 
 (defconst tramp-localname-regexp ".*$"
@@ -1861,7 +1861,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		(condition-case err
 		    (apply foreign operation args)
 
-		  ;; Trace, that somebody has interrupted the operation.
+		  ;; Trace that somebody has interrupted the operation.
 		  (quit
 		   (let (tramp-message-show-message)
 		     (tramp-message
@@ -2319,7 +2319,7 @@ remote host and localname (filename on remote host)."
 	(vector method user host localname)))))
 
 ;; This function returns all possible method completions, adding the
-;; trailing method delimeter.
+;; trailing method delimiter.
 (defun tramp-get-completion-methods (partial-method)
   "Returns all method completions for PARTIAL-METHOD."
   (mapcar
@@ -2937,7 +2937,7 @@ User is always nil."
 (defun tramp-handle-substitute-in-file-name (filename)
   "Like `substitute-in-file-name' for Tramp files.
 \"//\" and \"/~\" substitute only in the local filename part.
-If the URL Tramp syntax is chosen, \"//\" as method delimeter and \"/~\" at
+If the URL Tramp syntax is chosen, \"//\" as method delimiter and \"/~\" at
 beginning of local filename are not substituted."
   ;; First, we must replace environment variables.
   (setq filename (tramp-replace-environment-variables filename))
