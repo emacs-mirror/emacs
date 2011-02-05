@@ -3906,7 +3906,7 @@ xpm_load_image (struct frame *f,
 
   while (num_colors-- > 0)
     {
-      unsigned char *color, *max_color;
+      char *color, *max_color;
       int key, next_key, max_key = 0;
       Lisp_Object symbol_color = Qnil, color_val;
       XColor cdef;
@@ -3958,7 +3958,7 @@ xpm_load_image (struct frame *f,
 
 	  if (CONSP (specified_color) && STRINGP (XCDR (specified_color)))
 	    {
-	      if (xstrcasecmp (SDATA (XCDR (specified_color)), "None") == 0)
+	      if (xstrcasecmp (SSDATA (XCDR (specified_color)), "None") == 0)
 		color_val = Qt;
 	      else if (x_defined_color (f, SDATA (XCDR (specified_color)),
 					&cdef, 0))
