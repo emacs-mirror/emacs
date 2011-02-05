@@ -209,6 +209,12 @@ mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${i
 
 info: $(INFO_TARGETS)
 
+webhack: clean
+	echo '@set WEBHACKDEVEL' > overrides.texi
+
+nowebhack: clean
+	echo '@clear WEBHACKDEVEL' > overrides.texi
+
 dvi: $(DVI_TARGETS)
 
 pdf: $(PDF_TARGETS)
