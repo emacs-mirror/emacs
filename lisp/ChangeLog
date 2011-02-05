@@ -1,3 +1,17 @@
+2011-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (return-from): Fix doc typo.
+
+	* calendar/diary-lib.el (diary-font-lock-keywords):
+	Tweak diary-time-regexp match.  (Bug#7891)
+
+	* progmodes/f90.el (f90-find-tag-default): New function.  (Bug#7919)
+	(f90-mode): Use it for mode's `find-tag-default-function' property.
+
+	* ibuf-ext.el (ibuffer-filter-disable): Make it work.  (Bug#7969)
+
+	* faces.el (set-face-attribute): Doc fix.  (Bug#2659)
+
 2011-02-05  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el (rcirc-handler-JOIN): Reset mode-line-process

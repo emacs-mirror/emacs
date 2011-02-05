@@ -3589,7 +3589,7 @@ Note that the main editor command loop selects the buffer of the
 selected window before each command.  */)
      (register Lisp_Object window, Lisp_Object norecord)
 {
-  select_window (window, norecord, 0);
+  return select_window (window, norecord, 0);
 }
 
 static Lisp_Object
