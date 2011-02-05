@@ -854,7 +854,7 @@ unquote_argument (char *str)
 
 
 int
-file_name_absolute_p (const unsigned char *filename)
+file_name_absolute_p (const char *filename)
 {
   /* Sanity check, it shouldn't happen.  */
   if (! filename) return FALSE;
@@ -867,7 +867,7 @@ file_name_absolute_p (const unsigned char *filename)
 
 #ifdef WINDOWSNT
   /* X:\xxx is always absolute.  */
-  if (isalpha (filename[0])
+  if (isalpha ((unsigned char) filename[0])
       && filename[1] == ':' && (filename[2] == '\\' || filename[2] == '/'))
     return TRUE;
 
