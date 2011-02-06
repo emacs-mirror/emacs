@@ -23,6 +23,8 @@ EXTRA_libgnu_a_SOURCES =
 
 ## begin gnulib module arg-nonnull
 
+nodist_pkginclude_HEADERS += arg-nonnull.h
+
 # The BUILT_SOURCES created by this Makefile snippet are not used via #include
 # statements but through direct file reference. Therefore this snippet must be
 # present in all Makefile.am that need it. This is ensured by the applicability
@@ -46,6 +48,8 @@ EXTRA_DIST += $(top_srcdir)/./arg-nonnull.h
 ## end   gnulib module arg-nonnull
 
 ## begin gnulib module c++defs
+
+nodist_pkginclude_HEADERS += c++defs.h
 
 # The BUILT_SOURCES created by this Makefile snippet are not used via #include
 # statements but through direct file reference. Therefore this snippet must be
@@ -80,6 +84,9 @@ EXTRA_libgnu_a_SOURCES += ftoastr.c
 ## end   gnulib module dtoastr
 
 ## begin gnulib module getopt-posix
+
+nodist_pkginclude_HEADERS += $(GETOPT_H)
+EXTRA_HEADERS += getopt.h
 
 BUILT_SOURCES += $(GETOPT_H)
 
@@ -135,6 +142,9 @@ EXTRA_libgnu_a_SOURCES += mktime.c
 
 ## begin gnulib module stdbool
 
+nodist_pkginclude_HEADERS += $(STDBOOL_H)
+EXTRA_HEADERS += stdbool.h
+
 BUILT_SOURCES += $(STDBOOL_H)
 
 # We need the following in order to create <stdbool.h> when the system
@@ -152,6 +162,9 @@ EXTRA_DIST += stdbool.in.h
 ## end   gnulib module stdbool
 
 ## begin gnulib module stddef
+
+nodist_pkginclude_HEADERS += $(STDDEF_H)
+EXTRA_HEADERS += stddef.h
 
 BUILT_SOURCES += $(STDDEF_H)
 
@@ -185,6 +198,8 @@ EXTRA_libgnu_a_SOURCES += strftime.c
 ## end   gnulib module strftime
 
 ## begin gnulib module time
+
+nodist_pkginclude_HEADERS += time.h
 
 BUILT_SOURCES += time.h
 
@@ -235,6 +250,8 @@ EXTRA_libgnu_a_SOURCES += time_r.c
 ## end   gnulib module time_r
 
 ## begin gnulib module unistd
+
+nodist_pkginclude_HEADERS += unistd.h
 
 BUILT_SOURCES += unistd.h
 
@@ -366,6 +383,8 @@ EXTRA_DIST += unistd.in.h
 ## end   gnulib module unistd
 
 ## begin gnulib module warn-on-use
+
+nodist_pkginclude_HEADERS += warn-on-use.h
 
 BUILT_SOURCES += warn-on-use.h
 # The warn-on-use.h that gets inserted into generated .h files is the same as

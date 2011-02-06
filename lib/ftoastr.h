@@ -17,7 +17,7 @@
 
 /* Written by Paul Eggert.  */
 
-#ifndef _GL_FTOASTR_H
+#ifndef _gl_GL_FTOASTR_H
 
 #include "intprops.h"
 #include <float.h>
@@ -141,4 +141,4 @@ enum
 #define  DBL_BUFSIZE_BOUND ( DBL_STRLEN_BOUND + 1)
 #define LDBL_BUFSIZE_BOUND (LDBL_STRLEN_BOUND + 1)
 
-#endif /* _GL_FTOASTR_H */
+#endif /* _gl_GL_FTOASTR_H */
