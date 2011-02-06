@@ -421,6 +421,16 @@
   (define-key calc-mode-map "kP" 'calc-utpp)
   (define-key calc-mode-map "kT" 'calc-utpt)
 
+  (define-key calc-mode-map "l" nil)
+  (define-key calc-mode-map "lq" 'calc-logunits-quantity)
+  (define-key calc-mode-map "ld" 'calc-logunits-dblevel)
+  (define-key calc-mode-map "ln" 'calc-logunits-nplevel)
+  (define-key calc-mode-map "l+" 'calc-logunits-plus)
+  (define-key calc-mode-map "l-" 'calc-logunits-minus)
+  (define-key calc-mode-map "l*" 'calc-logunits-times)
+  (define-key calc-mode-map "l/" 'calc-logunits-divide)
+  (define-key calc-mode-map "l?" 'calc-l-prefix-help)
+
   (define-key calc-mode-map "m" nil)
   (define-key calc-mode-map "m?" 'calc-m-prefix-help)
   (define-key calc-mode-map "ma" 'calc-algebraic-mode)
@@ -546,10 +556,6 @@
   (define-key calc-mode-map "ud" 'calc-define-unit)
   (define-key calc-mode-map "ue" 'calc-explain-units)
   (define-key calc-mode-map "ug" 'calc-get-unit-definition)
-  (define-key calc-mode-map "ul+" 'calc-luplus)
-  (define-key calc-mode-map "ul-" 'calc-luminus)
-  (define-key calc-mode-map "ull" 'calc-level)
-  (define-key calc-mode-map "ul?" 'calc-ul-prefix-help)
   (define-key calc-mode-map "up" 'calc-permanent-units)
   (define-key calc-mode-map "ur" 'calc-remove-units)
   (define-key calc-mode-map "us" 'calc-simplify-units)
@@ -933,8 +939,12 @@ calc-store-value calc-var-name)
  ("calc-stuff" calc-explain-why calcFunc-clean
 calcFunc-pclean calcFunc-pfloat calcFunc-pfrac)
 
- ("calc-units" calcFunc-usimplify calcFunc-luplus
-calcFunc-luminus calcFunc-fieldlevel calcFunc-powerlevel
+ ("calc-units" calcFunc-usimplify calcFunc-lufieldplus
+calcFunc-lupowerplus calcFunc-lufieldminus calcFunc-lupowerminus
+calcFunc-lufieldtimes calcFunc-lupowertimes calcFunc-lufielddiv
+calcFunc-lupowerdiv calcFunc-fieldquant calcFunc-powerquant
+calcFunc-dbfieldlevel calcFunc-dbpowerlevel calcFunc-npfieldlevel
+calcFunc-nppowerlevel
 math-build-units-table math-build-units-table-buffer
 math-check-unit-name math-convert-temperature math-convert-units
 math-extract-units math-remove-units math-simplify-units
@@ -1166,7 +1176,9 @@ calc-convert-temperature calc-convert-units calc-define-unit
 calc-enter-units-table calc-explain-units calc-extract-units
 calc-get-unit-definition calc-permanent-units calc-quick-units
 calc-remove-units calc-simplify-units calc-undefine-unit
-calc-view-units-table calc-luplus calc-luminus calc-level)
+calc-view-units-table calc-logunits-quantity calc-logunits-dblevel
+calc-logunits-nplevel calc-logunits-plus calc-logunits-minus
+calc-logunits-times calc-logunits-divide)
 
  ("calc-vec" calc-arrange-vector calc-build-vector calc-cnorm
 calc-conj-transpose calc-cons calc-cross calc-kron calc-diag

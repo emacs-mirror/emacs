@@ -455,6 +455,7 @@ C-w  Describe how there is no warranty for Calc."
 	      calc-h-prefix-help
 	      calc-j-prefix-help
 	      calc-k-prefix-help
+	      calc-l-prefix-help
 	      calc-m-prefix-help
 	      calc-r-prefix-help
 	      calc-s-prefix-help
@@ -662,19 +663,18 @@ C-w  Describe how there is no warranty for Calc."
   (calc-do-prefix-help
    '("Simplify, Convert, Temperature-convert, Base-units"
      "Autorange; Remove, eXtract; Explain; View-table; 0-9"
-     "Define, Undefine, Get-defn, Permanent, Logarithmic"
+     "Define, Undefine, Get-defn, Permanent"
      "SHIFT + View-table-other-window"
      "SHIFT + stat: Mean, G-mean, Std-dev, Covar, maX, miN"
      "SHIFT + stat: + (sum), - (asum), * (prod), # (count)")
    "units/stat" ?u))
 
-(defun calc-ul-prefix-help ()
+(defun calc-l-prefix-help ()
   (interactive)
-  (if (eq this-command last-command)
-      (message "ul-")
-    (message "logarithmic-units: + (logarithmic), - (logarithmic), Level: ul-"))
-  (push ?l unread-command-events)
-  (push ?u unread-command-events))
+  (calc-do-prefix-help
+   '("Quantity, DB level, Np level"
+     "+, -, *, /")
+   "log units" ?l))
 
 (defun calc-v-prefix-help ()
   (interactive)
