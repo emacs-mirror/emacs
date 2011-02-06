@@ -94,7 +94,15 @@ query server for capabilities.  For instance, for IMAP this is
 :starttls-function -- a function that takes one parameter, which
 is the response to the capaibility command.  It should return nil
 if it turns out that the server doesn't support STARTTLS, or the
-command to switch on STARTTLS otherwise."
+command to switch on STARTTLS otherwise.
+
+The return value from this function is a four-element list, where
+the first element is the stream (if connection was successful);
+the second element is the \"greeting\", i. e., the string the
+server sent over on initial contact; the third element is the
+capability string; and the fourth element is either `network' or
+`tls', depending on whether the connection ended up being
+encrypted or not."
   (let ((type (or (cadr (memq :type parameters)) 'network)))
     (cond
      ((eq type 'starttls)
