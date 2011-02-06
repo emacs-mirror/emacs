@@ -1,3 +1,8 @@
+2011-02-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/emacsbug.el (report-emacs-bug-hook): Remove the check for
+	non-ASCII characters (Bug#7925).
+
 2011-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-macs.el (return-from): Fix doc typo.
