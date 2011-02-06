@@ -179,7 +179,7 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 	     = (unsigned char *) alloca (print_buffer_pos + 1);		\
 	   copy_text (print_buffer, temp, print_buffer_pos_byte,	\
 		      1, 0);						\
-	   insert_1_both (temp, print_buffer_pos,			\
+	   insert_1_both ((char *) temp, print_buffer_pos,		\
 			  print_buffer_pos, 0, 1, 0);			\
 	 }								\
        else								\

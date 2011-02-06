@@ -7880,7 +7880,7 @@ encode_coding_object (struct coding_system *coding,
       else if (BUFFERP (src_object))
 	insert_from_buffer (XBUFFER (src_object), from, chars, 0);
       else
-	insert_1_both (coding->source + from, chars, bytes, 0, 0, 0);
+	insert_1_both ((char *) coding->source + from, chars, bytes, 0, 0, 0);
 
       if (EQ (src_object, dst_object))
 	{

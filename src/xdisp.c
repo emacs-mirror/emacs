@@ -7930,7 +7930,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 	{
 	  EMACS_INT i;
 	  int c, char_bytes;
-	  unsigned char work[1];
+	  char work[1];
 
 	  /* Convert a multibyte string to single-byte
 	     for the *Message* buffer.  */
@@ -7956,17 +7956,17 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 	      c = msg[i];
 	      MAKE_CHAR_MULTIBYTE (c);
 	      char_bytes = CHAR_STRING (c, str);
-	      insert_1_both (str, 1, char_bytes, 1, 0, 0);
+	      insert_1_both ((char *) str, 1, char_bytes, 1, 0, 0);
 	    }
 	}
       else if (nbytes)
-	insert_1 (msg, nbytes, 1, 0, 0);
+	insert_1 (m, nbytes, 1, 0, 0);
 
       if (nlflag)
 	{
 	  EMACS_INT this_bol, this_bol_byte, prev_bol, prev_bol_byte;
 	  int dup;
-	  insert_1 ((const unsigned char *) "\n", 1, 1, 0, 0);
+	  insert_1 ("\n", 1, 1, 0, 0);
 
 	  scan_newline (Z, Z_BYTE, BEG, BEG_BYTE, -2, 0);
 	  this_bol = PT;
@@ -7996,7 +7996,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 		      sprintf (dupstr, " [%d times]", dup);
 		      duplen = strlen (dupstr);
 		      TEMP_SET_PT_BOTH (Z - 1, Z_BYTE - 1);
-		      insert_1 ((unsigned char *) dupstr, duplen, 1, 0, 1);
+		      insert_1 (dupstr, duplen, 1, 0, 1);
 		    }
 		}
 	    }
@@ -9193,7 +9193,7 @@ set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multiby
 	  /* Convert from multi-byte to single-byte.  */
 	  EMACS_INT i;
 	  int c, n;
-	  unsigned char work[1];
+	  char work[1];
 
 	  /* Convert a multibyte string to single-byte.  */
 	  for (i = 0; i < nbytes; i += n)
@@ -9219,11 +9219,11 @@ set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multiby
 	      c = msg[i];
 	      MAKE_CHAR_MULTIBYTE (c);
 	      n = CHAR_STRING (c, str);
-	      insert_1_both (str, 1, n, 1, 0, 0);
+	      insert_1_both ((char *) str, 1, n, 1, 0, 0);
 	    }
 	}
       else
-	insert_1 (msg, nbytes, 1, 0, 0);
+	insert_1 (s, nbytes, 1, 0, 0);
     }
 
   return 0;
