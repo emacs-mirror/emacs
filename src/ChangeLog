@@ -19,6 +19,15 @@
 	Likewise.
 	* keymap.c (Ftext_char_description): Likewise.
 	* minibuf.c (Fread_buffer): Likewise.
+	* fileio.c (IS_DRIVE) [defined WINDOWSNT]:
+	(DRIVE_LETTER) [defined DOS_NT]:
+	(report_file_error, Ffile_name_directory, Ffile_name_nondirectory):
+	(make_temp_name, Fexpand_file_name, file_name_absolute_p):
+	(search_embedded_absfilename, Fsubstitute_in_file_name):
+	(barf_or_query_if_file_exists, Fmake_directory_internal):
+	(Fdelete_directory_internal, Ffile_name_absolute_p, read_non_regular):
+	(Finsert_file_contents, Fwrite_region):
+	Likewise.
 	* insdel.c (insert, insert_and_inherit, insert_before_markers):
 	(insert_before_markers_and_inherit, insert_1, insert_1_both):
 	Likewise.  This changes these functions' signatures, which is
