@@ -1,3 +1,9 @@
+2011-02-06  Chong Yidong  <cyd@stupidchicken.com>
+            Thierry Volpiatto <thierry.volpiatto@gmail.com>
+
+	* files.el (copy-directory): New arg COPY-AS-SUBDIR.  If nil,
+	don't copy as a subdirectory.
+
 2011-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-macs.el (return-from): Fix doc typo.
