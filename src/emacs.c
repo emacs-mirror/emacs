@@ -1296,6 +1296,8 @@ main (int argc, char **argv)
 #ifdef NS_IMPL_COCOA
       if (skip_args < argc)
         {
+	  /* FIXME: Do the right thing if getenv returns NULL, or if
+	     chdir fails.  */
           if (!strncmp(argv[skip_args], "-psn", 4))
             {
               skip_args += 1;
