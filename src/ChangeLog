@@ -12,6 +12,8 @@
 	rules about pointer type compatibility.
 	* doc.c (get_doc_string, Fsnarf_documentation):
 	(Fsubstitute_command_keys): Likewise.
+	* xfns.c (Fx_open_connection, Fx_window_property): Likewise.
+	* bitmaps/gray.xbm (gray_bits): Likewise.
 
 2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
 
