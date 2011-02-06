@@ -340,18 +340,6 @@ usually do not have translators to read other languages for them.\n\n")
          (string-equal (buffer-substring-no-properties (point-min) (point))
                        report-emacs-bug-orig-text)
          (error "No text entered in bug report"))
-    ;; Check the buffer contents and reject non-English letters.
-    ;; FIXME message-mode probably does this anyway.
-    (goto-char (point-min))
-    (skip-chars-forward "\0-\177")
-    (unless (eobp)
-      (if (or report-emacs-bug-no-confirmation
-              (y-or-n-p "Convert non-ASCII letters to hexadecimal? "))
-          (while (progn (skip-chars-forward "\0-\177")
-                        (not (eobp)))
-            (let ((ch (following-char)))
-              (delete-char 1)
-              (insert (format "=%02x" ch))))))
 
     ;; The last warning for novice users.
     (unless (or report-emacs-bug-no-confirmation

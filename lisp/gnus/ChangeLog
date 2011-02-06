@@ -1,3 +1,8 @@
+2011-02-06  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-setup-1): Handle message-generate-headers-first
+	set to t.
+
 2011-02-04  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* message.el (message-setup-1): Remove the read-only stuff, since it

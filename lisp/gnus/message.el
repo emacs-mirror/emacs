@@ -6417,7 +6417,9 @@ are not included."
   ;; `References:' header if `message-generate-headers-first' was nil.
   ;; Therefore, always generate it first.
   (let ((message-generate-headers-first
-         (append message-generate-headers-first '(References))))
+         (if (eq message-generate-headers-first t)
+             t
+           (append message-generate-headers-first '(References)))))
     (when (message-news-p)
       (when message-default-news-headers
         (insert message-default-news-headers)
