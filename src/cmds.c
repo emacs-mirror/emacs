@@ -466,15 +466,15 @@ internal_self_insert (int c, EMACS_INT n)
   else if (n > 1)
     {
       USE_SAFE_ALLOCA;
-      unsigned char *strn, *p;
-      SAFE_ALLOCA (strn, unsigned char*, n * len);
+      char *strn, *p;
+      SAFE_ALLOCA (strn, char *, n * len);
       for (p = strn; n > 0; n--, p += len)
 	memcpy (p, str, len);
       insert_and_inherit (strn, p - strn);
       SAFE_FREE ();
     }
   else if (n > 0)
-    insert_and_inherit (str, len);
+    insert_and_inherit ((char *) str, len);
 
   if ((CHAR_TABLE_P (Vauto_fill_chars)
        ? !NILP (CHAR_TABLE_REF (Vauto_fill_chars, c))
@@ -559,4 +559,3 @@ keys_of_cmds (void)
   initial_define_key (global_map, Ctl ('E'), "end-of-line");
   initial_define_key (global_map, Ctl ('F'), "forward-char");
 }
-

@@ -2401,7 +2401,7 @@ current buffer is cleared.  */)
 	      *p = tmp[0];
 	      TEMP_SET_PT_BOTH (pos + 1, pos + 1);
 	      bytes--;
-	      insert_1_both (tmp + 1, bytes, bytes, 1, 0, 0);
+	      insert_1_both ((char *) tmp + 1, bytes, bytes, 1, 0, 0);
 	      /* Now the gap is after the just inserted data.  */
 	      pos = GPT;
 	      p = GAP_END_ADDR;

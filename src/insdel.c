@@ -668,11 +668,11 @@ count_size_as_multibyte (const unsigned char *ptr, EMACS_INT nbytes)
    prepare_to_modify_buffer could relocate the text.  */
 
 void
-insert (const unsigned char *string, EMACS_INT nbytes)
+insert (const char *string, EMACS_INT nbytes)
 {
   if (nbytes > 0)
     {
-      EMACS_INT len = chars_in_text (string, nbytes), opoint;
+      EMACS_INT len = chars_in_text ((unsigned char *) string, nbytes), opoint;
       insert_1_both (string, len, nbytes, 0, 1, 0);
       opoint = PT - len;
       signal_after_change (opoint, 0, len);
@@ -683,11 +683,11 @@ insert (const unsigned char *string, EMACS_INT nbytes)
 /* Likewise, but inherit text properties from neighboring characters.  */
 
 void
-insert_and_inherit (const unsigned char *string, EMACS_INT nbytes)
+insert_and_inherit (const char *string, EMACS_INT nbytes)
 {
   if (nbytes > 0)
     {
-      EMACS_INT len = chars_in_text (string, nbytes), opoint;
+      EMACS_INT len = chars_in_text ((unsigned char *) string, nbytes), opoint;
       insert_1_both (string, len, nbytes, 1, 1, 0);
       opoint = PT - len;
       signal_after_change (opoint, 0, len);
@@ -711,7 +711,7 @@ insert_char (int c)
       str[0] = c;
     }
 
-  insert (str, len);
+  insert ((char *) str, len);
 }
 
 /* Insert the null-terminated string S before point.  */
@@ -728,11 +728,11 @@ insert_string (const char *s)
    since gc could happen and relocate it.  */
 
 void
-insert_before_markers (const unsigned char *string, EMACS_INT nbytes)
+insert_before_markers (const char *string, EMACS_INT nbytes)
 {
   if (nbytes > 0)
     {
-      EMACS_INT len = chars_in_text (string, nbytes), opoint;
+      EMACS_INT len = chars_in_text ((unsigned char *) string, nbytes), opoint;
       insert_1_both (string, len, nbytes, 0, 1, 1);
       opoint = PT - len;
       signal_after_change (opoint, 0, len);
@@ -743,12 +743,12 @@ insert_before_markers (const unsigned char *string, EMACS_INT nbytes)
 /* Likewise, but inherit text properties from neighboring characters.  */
 
 void
-insert_before_markers_and_inherit (const unsigned char *string,
+insert_before_markers_and_inherit (const char *string,
 				   EMACS_INT nbytes)
 {
   if (nbytes > 0)
     {
-      EMACS_INT len = chars_in_text (string, nbytes), opoint;
+      EMACS_INT len = chars_in_text ((unsigned char *) string, nbytes), opoint;
       insert_1_both (string, len, nbytes, 1, 1, 1);
       opoint = PT - len;
       signal_after_change (opoint, 0, len);
@@ -759,11 +759,11 @@ insert_before_markers_and_inherit (const unsigned char *string,
 /* Subroutine used by the insert functions above.  */
 
 void
-insert_1 (const unsigned char *string, EMACS_INT nbytes,
+insert_1 (const char *string, EMACS_INT nbytes,
 	  int inherit, int prepare, int before_markers)
 {
-  insert_1_both (string, chars_in_text (string, nbytes), nbytes,
-		 inherit, prepare, before_markers);
+  insert_1_both (string, chars_in_text ((unsigned char *) string, nbytes),
+		 nbytes, inherit, prepare, before_markers);
 }
 
 
@@ -884,7 +884,7 @@ count_combining_after (const unsigned char *string,
    are the same as in insert_1.  */
 
 void
-insert_1_both (const unsigned char *string,
+insert_1_both (const char *string,
 	       EMACS_INT nchars, EMACS_INT nbytes,
 	       int inherit, int prepare, int before_markers)
 {
@@ -2382,4 +2382,3 @@ as well as hooks attached to text properties and overlays.  */);
 
   defsubr (&Scombine_after_change_execute);
 }
-

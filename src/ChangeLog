@@ -17,6 +17,13 @@
 	* image.c (xbm_read_bitmap_data, xbm_load_image, xbm_load): Likewise.
 	* keyboard.c (echo_char, MULTI_LETTER_MOD, tty_read_avail_input):
 	Likewise.
+	* insdel.c (insert, insert_and_inherit, insert_before_markers):
+	(insert_before_markers_and_inherit, insert_1, insert_1_both):
+	Likewise.  This changes these functions' signatures, which is
+	more convenient since most callers use char *.  All remaining
+	callers changed.
+	* editfns.c (general_insert_function): Change signature to
+	match changes to insert functions' signatures.
 
 2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
 

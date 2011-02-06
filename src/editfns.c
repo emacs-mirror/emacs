@@ -94,7 +94,7 @@ static void update_buffer_properties (EMACS_INT, EMACS_INT);
 static Lisp_Object region_limit (int);
 static size_t emacs_nmemftime (char *, size_t, const char *,
 			       size_t, const struct tm *, int, int);
-static void general_insert_function (void (*) (const unsigned char *, EMACS_INT),
+static void general_insert_function (void (*) (const char *, EMACS_INT),
 				     void (*) (Lisp_Object, EMACS_INT,
 					       EMACS_INT, EMACS_INT,
 					       EMACS_INT, int),
@@ -2118,7 +2118,7 @@ set_time_zone_rule (const char *tzstring)
 
 static void
 general_insert_function (void (*insert_func)
-			      (const unsigned char *, EMACS_INT),
+			      (const char *, EMACS_INT),
 			 void (*insert_from_string_func)
 			      (Lisp_Object, EMACS_INT, EMACS_INT,
 			       EMACS_INT, EMACS_INT, int),
@@ -2144,7 +2144,7 @@ general_insert_function (void (*insert_func)
 			: multibyte_char_to_unibyte (XINT (val), Qnil));
 	      len = 1;
 	    }
-	  (*insert_func) (str, len);
+	  (*insert_func) ((char *) str, len);
 	}
       else if (STRINGP (val))
 	{
@@ -2257,7 +2257,7 @@ The optional third arg INHERIT, if non-nil, says to inherit text properties
 from adjoining text, if those properties are sticky.  */)
   (Lisp_Object character, Lisp_Object count, Lisp_Object inherit)
 {
-  register unsigned char *string;
+  register char *string;
   register EMACS_INT strlen;
   register int i;
   register EMACS_INT n;
@@ -2277,7 +2277,7 @@ from adjoining text, if those properties are sticky.  */)
   if (n <= 0)
     return Qnil;
   strlen = min (n, 256 * len);
-  string = (unsigned char *) alloca (strlen);
+  string = (char *) alloca (strlen);
   for (i = 0; i < strlen; i++)
     string[i] = str[i % len];
   while (n >= strlen)
