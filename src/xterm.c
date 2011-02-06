@@ -797,15 +797,15 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
 
   if (p->which)
     {
-      unsigned char *bits;
+      char *bits;
       Pixmap pixmap, clipmask = (Pixmap) 0;
       int depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
       XGCValues gcv;
 
       if (p->wd > 8)
-	bits = (unsigned char *)(p->bits + p->dh);
+	bits = (char *) (p->bits + p->dh);
       else
-	bits = (unsigned char *)p->bits + p->dh;
+	bits = (char *) p->bits + p->dh;
 
       /* Draw the bitmap.  I believe these small pixmaps can be cached
 	 by the server.  */
@@ -6320,7 +6320,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
 
               coding_system = Vlocale_coding_system;
               nbytes = XmbLookupString (FRAME_XIC (f),
-                                        &event.xkey, copy_bufptr,
+                                        &event.xkey, (char *) copy_bufptr,
                                         copy_bufsiz, &keysym,
                                         &status_return);
               if (status_return == XBufferOverflow)
@@ -6328,7 +6328,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
                   copy_bufsiz = nbytes + 1;
                   copy_bufptr = (unsigned char *) alloca (copy_bufsiz);
                   nbytes = XmbLookupString (FRAME_XIC (f),
-                                            &event.xkey, copy_bufptr,
+                                            &event.xkey, (char *) copy_bufptr,
                                             copy_bufsiz, &keysym,
                                             &status_return);
                 }
@@ -6345,11 +6345,11 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
                 abort ();
             }
           else
-            nbytes = XLookupString (&event.xkey, copy_bufptr,
+            nbytes = XLookupString (&event.xkey, (char *) copy_bufptr,
                                     copy_bufsiz, &keysym,
                                     &compose_status);
 #else
-          nbytes = XLookupString (&event.xkey, copy_bufptr,
+          nbytes = XLookupString (&event.xkey, (char *) copy_bufptr,
                                   copy_bufsiz, &keysym,
                                   &compose_status);
 #endif
@@ -7445,7 +7445,7 @@ x_bitmap_icon (struct frame *f, Lisp_Object file)
 	  /* If all else fails, use the (black and white) xbm image. */
 	  if (rc == -1)
 	    {
-	      rc = x_create_bitmap_from_data (f, gnu_xbm_bits,
+	      rc = x_create_bitmap_from_data (f, (char *) gnu_xbm_bits,
 					      gnu_xbm_width, gnu_xbm_height);
 	      if (rc == -1)
 		return 1;
@@ -9714,7 +9714,7 @@ static int
 same_x_server (const char *name1, const char *name2)
 {
   int seen_colon = 0;
-  const unsigned char *system_name = SDATA (Vsystem_name);
+  const char *system_name = SSDATA (Vsystem_name);
   int system_name_length = strlen (system_name);
   int length_until_period = 0;
 
@@ -9828,7 +9828,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     }
 
   if (! x_display_ok (SSDATA (display_name)))
-    error ("Display %s can't be opened", SDATA (display_name));
+    error ("Display %s can't be opened", SSDATA (display_name));
 
 #ifdef USE_GTK
   {
@@ -9840,7 +9840,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
     if (x_initialized++ > 1)
       {
-        xg_display_open (SDATA (display_name), &dpy);
+        xg_display_open (SSDATA (display_name), &dpy);
       }
     else
       {
@@ -9856,7 +9856,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
         if (! NILP (display_name))
           {
             argv[argc++] = display_opt;
-            argv[argc++] = SDATA (display_name);
+            argv[argc++] = SSDATA (display_name);
           }
 
         argv[argc++] = name_opt;
@@ -9889,7 +9889,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
           abs_file = Fexpand_file_name (s, Qnil);
 
           if (! NILP (abs_file) && !NILP (Ffile_readable_p (abs_file)))
-            gtk_rc_parse (SDATA (abs_file));
+            gtk_rc_parse (SSDATA (abs_file));
         }
 
         XSetErrorHandler (x_error_handler);
@@ -9933,7 +9933,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 #else /* not USE_X_TOOLKIT */
   XSetLocaleModifiers ("");
-  dpy = XOpenDisplay (SDATA (display_name));
+  dpy = XOpenDisplay (SSDATA (display_name));
 #endif /* not USE_X_TOOLKIT */
 #endif /* not USE_GTK*/
 
@@ -10032,7 +10032,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 			+ SBYTES (Vsystem_name)
 			+ 2);
   sprintf (dpyinfo->x_id_name, "%s@%s",
-	   SDATA (Vinvocation_name), SDATA (Vsystem_name));
+	   SSDATA (Vinvocation_name), SSDATA (Vsystem_name));
 
   /* Figure out which modifier bits mean what.  */
   x_find_modifier_meanings (dpyinfo);

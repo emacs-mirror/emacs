@@ -1,9 +1,13 @@
 2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* doc.c: conform to C89 pointer rules
-	(get_doc_string, Fsnarf_documentation, Fsubstitute_command_keys):
+	conform to C89 pointer rules
+
+	* xterm.c (x_draw_fringe_bitmap, handle_one_xevent, x_bitmap_icon):
+	(same_x_server, x_term_init):
 	Change types between char * and unsigned char *, to satisfy C89
 	rules about pointer type compatibility.
+	* doc.c (get_doc_string, Fsnarf_documentation):
+	(Fsubstitute_command_keys): Likewise.
 
 2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
 
