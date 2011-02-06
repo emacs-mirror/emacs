@@ -32,8 +32,8 @@
    "copy.c:233: warning: ignoring return value of 'fchown',
    declared with attribute warn_unused_result".  */
 
-#ifndef _gl_GL_IGNORE_VALUE_H
-# define _gl_GL_IGNORE_VALUE_H
+#ifndef _GL_IGNORE_VALUE_H
+# define _GL_IGNORE_VALUE_H
 
 # ifndef ATTRIBUTE_DEPRECATED
 /* The __attribute__((__deprecated__)) feature

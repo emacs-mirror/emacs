@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
-#ifndef _gl_GL_STDBOOL_H
-#define _gl_GL_STDBOOL_H
+#ifndef _GL_STDBOOL_H
+#define _GL_STDBOOL_H
 
 /* ISO C 99 <stdbool.h> for platforms that lack it.  */
 
@@ -119,4 +119,4 @@ typedef enum { _Bool_must_promote_to_int = -1, false = 0, true = 1 } _Bool;
 #define true 1
 #define __bool_true_false_are_defined 1
 
-#endif /* _gl_GL_STDBOOL_H */
+#endif /* _GL_STDBOOL_H */
