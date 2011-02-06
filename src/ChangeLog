@@ -18,6 +18,7 @@
 	* keyboard.c (echo_char, MULTI_LETTER_MOD, tty_read_avail_input):
 	Likewise.
 	* keymap.c (Ftext_char_description): Likewise.
+	* minibuf.c (Fread_buffer): Likewise.
 	* insdel.c (insert, insert_and_inherit, insert_before_markers):
 	(insert_before_markers_and_inherit, insert_1, insert_1_both):
 	Likewise.  This changes these functions' signatures, which is
