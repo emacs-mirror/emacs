@@ -1,5 +1,9 @@
 2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c (x_alloc_nearest_color_1): Avoid unportable int assumption.
+	Emacs assumes two's complement elsewhere, but the assumption is
+	easy to remove here, and this suppresses a warning with Sun C 5.8.
+
 	conform to C89 pointer rules
 
 	* xterm.c (x_draw_fringe_bitmap, handle_one_xevent, x_bitmap_icon):
