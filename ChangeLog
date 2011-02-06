@@ -1,3 +1,14 @@
+2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	gnulib: adjust to upstream _HEADERS change
+	* lib/Makefile.am (EXTRA_HEADERS, nodist_pkginclude_HEADERS):
+	New empty macros, to accommodate recent changes to gnulib.  See
+	<http://lists.gnu.org/archive/html/bug-gnulib/2011-02/msg00068.html>.
+	* c++defs.h, lib/Makefile.in, lib/ftoastr.h, lib/getopt.in.h:
+	* lib/gnulib.mk, lib/ignore-value.h, lib/stdbool.in.h, lib/stddef.in.h:
+	* lib/time.in.h, lib/unistd.in.h:
+	Regenerate.
+
 2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	sync from gnulib to remove HAVE_STDBOOL_H

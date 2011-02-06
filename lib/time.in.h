@@ -28,13 +28,13 @@
    without adding our own declarations.  */
 #if (defined __need_time_t || defined __need_clock_t \
      || defined __need_timespec \
-     || defined _GL_TIME_H)
+     || defined _gl_GL_TIME_H)
 
 # @INCLUDE_NEXT@ @NEXT_TIME_H@
 
 #else
 
-# define _GL_TIME_H
+# define _gl_GL_TIME_H
 
 # @INCLUDE_NEXT@ @NEXT_TIME_H@
 

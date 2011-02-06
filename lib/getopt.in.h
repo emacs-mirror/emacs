@@ -16,7 +16,7 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef _GL_GETOPT_H
+#ifndef _gl_GL_GETOPT_H
 
 #if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
@@ -32,10 +32,10 @@
 # undef _GL_SYSTEM_GETOPT
 #endif
 
-#ifndef _GL_GETOPT_H
+#ifndef _gl_GL_GETOPT_H
 
 #ifndef __need_getopt
-# define _GL_GETOPT_H 1
+# define _gl_GL_GETOPT_H 1
 #endif
 
 /* Standalone applications should #define __GETOPT_PREFIX to an
