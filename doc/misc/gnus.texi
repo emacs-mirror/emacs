@@ -1,5 +1,7 @@
 \input texinfo
 
+@include gnus-overrides.texi
+
 @setfilename ../../info/gnus
 @settitle Gnus Manual
 @syncodeindex fn cp
@@ -329,7 +331,12 @@ developing GNU and promoting software freedom.''
 
 
 @titlepage
+@ifset WEBHACKDEVEL
+@title Gnus Manual (DEVELOPMENT VERSION)
+@end ifset
+@ifclear WEBHACKDEVEL
 @title Gnus Manual
+@end ifclear
 
 @author by Lars Magne Ingebrigtsen
 @page
