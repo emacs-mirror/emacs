@@ -2226,7 +2226,7 @@ static int xbm_load_image (struct frame *f, struct image *img,
 static int xbm_image_p (Lisp_Object object);
 static int xbm_read_bitmap_data (struct frame *f,
                                  unsigned char *, unsigned char *,
-                                 int *, int *, unsigned char **, int);
+                                 int *, int *, char **, int);
 static int xbm_file_p (Lisp_Object);
 
 
@@ -2614,7 +2614,7 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
 
 static int
 xbm_read_bitmap_data (struct frame *f, unsigned char *contents, unsigned char *end,
-		      int *width, int *height, unsigned char **data,
+		      int *width, int *height, char **data,
 		      int inhibit_image_error)
 {
   unsigned char *s = contents;
@@ -2622,7 +2622,7 @@ xbm_read_bitmap_data (struct frame *f, unsigned char *contents, unsigned char *e
   int padding_p = 0;
   int v10 = 0;
   int bytes_per_line, i, nbytes;
-  unsigned char *p;
+  char *p;
   int value;
   int LA1;
 
@@ -2706,7 +2706,7 @@ xbm_read_bitmap_data (struct frame *f, unsigned char *contents, unsigned char *e
 
   bytes_per_line = (*width + 7) / 8 + padding_p;
   nbytes = bytes_per_line * *height;
-  p = *data = (unsigned char *) xmalloc (nbytes);
+  p = *data = (char *) xmalloc (nbytes);
 
   if (v10)
     {
@@ -2768,7 +2768,7 @@ xbm_load_image (struct frame *f, struct image *img, unsigned char *contents,
 		unsigned char *end)
 {
   int rc;
-  unsigned char *data;
+  char *data;
   int success_p = 0;
 
   rc = xbm_read_bitmap_data (f, contents, end, &img->width, &img->height,
@@ -2936,7 +2936,7 @@ xbm_load (struct frame *f, struct image *img)
 	  else if (STRINGP (data))
 	    bits = SSDATA (data);
 	  else
-	    bits = XBOOL_VECTOR (data)->data;
+	    bits = (char *) XBOOL_VECTOR (data)->data;
 
 #ifdef WINDOWSNT
           {
