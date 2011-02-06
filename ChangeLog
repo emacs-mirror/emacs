@@ -1,5 +1,9 @@
 2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	gnulib: undo previous change
+	The upstream _HEADERS change was backed out of gnulib (see the
+	same thread).  Stay in sync with gnulib.
+
 	gnulib: adjust to upstream _HEADERS change
 	* lib/Makefile.am (EXTRA_HEADERS, nodist_pkginclude_HEADERS):
 	New empty macros, to accommodate recent changes to gnulib.  See

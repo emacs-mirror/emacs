@@ -25,7 +25,7 @@
      but we need to ensure that both the system <unistd.h> and <winsock2.h>
      are completely included before we replace gethostname.  */
 #if @GNULIB_GETHOSTNAME@ && @UNISTD_H_HAVE_WINSOCK2_H@ \
-  && !defined _gl_GL_WINSOCK2_H_WITNESS && defined _WINSOCK2_H
+  && !defined _GL_WINSOCK2_H_WITNESS && defined _WINSOCK2_H
 /* <unistd.h> is being indirectly included for the first time from
    <winsock2.h>; avoid declaring any overrides.  */
 # if @HAVE_UNISTD_H@
@@ -33,10 +33,10 @@
 # else
 #  error unexpected; report this to bug-gnulib@gnu.org
 # endif
-# define _gl_GL_WINSOCK2_H_WITNESS
+# define _GL_WINSOCK2_H_WITNESS
 
 /* Normal invocation.  */
-#elif !defined _gl_GL_UNISTD_H
+#elif !defined _GL_UNISTD_H
 
 /* The include_next requires a split double-inclusion guard.  */
 #if @HAVE_UNISTD_H@
@@ -45,14 +45,14 @@
 
 /* Get all possible declarations of gethostname().  */
 #if @GNULIB_GETHOSTNAME@ && @UNISTD_H_HAVE_WINSOCK2_H@ \
-  && !defined _gl_GL_INCLUDING_WINSOCK2_H
-# define _gl_GL_INCLUDING_WINSOCK2_H
+  && !defined _GL_INCLUDING_WINSOCK2_H
+# define _GL_INCLUDING_WINSOCK2_H
 # include <winsock2.h>
-# undef _gl_GL_INCLUDING_WINSOCK2_H
+# undef _GL_INCLUDING_WINSOCK2_H
 #endif
 
-#if !defined _gl_GL_UNISTD_H && !defined _GL_INCLUDING_WINSOCK2_H
-#define _gl_GL_UNISTD_H
+#if !defined _GL_UNISTD_H && !defined _GL_INCLUDING_WINSOCK2_H
+#define _GL_UNISTD_H
 
 /* NetBSD 5.0 mis-defines NULL.  Also get size_t.  */
 #include <stddef.h>
@@ -119,7 +119,7 @@
 #if @GNULIB_GETHOSTNAME@
 /* Get all possible declarations of gethostname().  */
 # if @UNISTD_H_HAVE_WINSOCK2_H@
-#  if !defined _gl_GL_SYS_SOCKET_H
+#  if !defined _GL_SYS_SOCKET_H
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #    undef socket
 #    define socket              socket_used_without_including_sys_socket_h
@@ -180,7 +180,7 @@
                       "shutdown() used without including <sys/socket.h>");
 #   endif
 #  endif
-#  if !defined _gl_GL_SYS_SELECT_H
+#  if !defined _GL_SYS_SELECT_H
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #    undef select
 #    define select              select_used_without_including_sys_select_h
@@ -1374,5 +1374,5 @@ _GL_CXXALIASWARN (write);
 #endif
 
 
-#endif /* _gl_GL_UNISTD_H */
-#endif /* _gl_GL_UNISTD_H */
+#endif /* _GL_UNISTD_H */
+#endif /* _GL_UNISTD_H */

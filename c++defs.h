@@ -14,8 +14,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef _gl_GL_CXXDEFS_H
-#define _gl_GL_CXXDEFS_H
+#ifndef _GL_CXXDEFS_H
+#define _GL_CXXDEFS_H
 
 /* The three most frequent use cases of these macros are:
 
@@ -268,4 +268,4 @@
     _GL_EXTERN_C int _gl_cxxalias_dummy
 #endif
 
-#endif /* _gl_GL_CXXDEFS_H */
+#endif /* _GL_CXXDEFS_H */
