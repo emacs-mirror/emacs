@@ -1706,7 +1706,7 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 	 a least-squares matching, which is what X uses for closest
 	 color matching with StaticColor visuals.  */
       int nearest, i;
-      unsigned long nearest_delta = ~0;
+      unsigned long nearest_delta = ~ (unsigned long) 0;
       int ncells;
       const XColor *cells = x_color_cells (dpy, &ncells);
 
