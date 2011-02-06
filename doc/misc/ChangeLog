@@ -1,3 +1,10 @@
+2011-02-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-overrides.texi: Renamed from overrides.texi and all the relevant
+	manuals use it now.
+
+	* Makefile.in (nowebhack): Fixed to use -D flag instead of overrides.
+
 2011-02-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* overrides.texi: Remove.

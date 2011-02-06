@@ -1,5 +1,7 @@
 \input texinfo
 
+@include gnus-overrides.texi
+
 @setfilename ../../info/emacs-mime
 @settitle Emacs MIME Manual
 @synindex fn cp
@@ -38,7 +40,12 @@ developing GNU and promoting software freedom.''
 @setchapternewpage odd
 
 @titlepage
+@ifset WEBHACKDEVEL
+@title Emacs MIME Manual (DEVELOPMENT VERSION)
+@end ifset
+@ifclear WEBHACKDEVEL
 @title Emacs MIME Manual
+@end ifclear
 
 @author by Lars Magne Ingebrigtsen
 @page
