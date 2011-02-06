@@ -1,3 +1,14 @@
+2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	don't ignore chdir failure
+	* sysdep.c (sys_subshell) [!defined DOS_NT]: Diagnose chdir
+	failure and exit.
+	(sys_subshell) [defined DOS_NT]: Mark with a FIXME the two
+	remaining unchecked chdir calls in this function; some DOS/NT
+	expert needs to fix them.
+	* emacs.c (main): Mark with a FIXME the unchecked chdir calls
+	in this function; some NextStep expert needs to fix them.
+
 2011-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute):

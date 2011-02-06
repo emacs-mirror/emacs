@@ -548,8 +548,13 @@ sys_subshell (void)
 	sh = "sh";
 
       /* Use our buffer's default directory for the subshell.  */
-      if (str)
-	chdir ((char *) str);
+      if (str && chdir ((char *) str) != 0)
+	{
+#ifndef DOS_NT
+	  ignore_value (write (1, "Can't chdir\n", 12));
+	  _exit (1);
+#endif
+	}
 
       close_process_descs ();	/* Close Emacs's pipes/ptys */
 
@@ -567,7 +572,7 @@ sys_subshell (void)
 	    setenv ("PWD", str, 1);
 	  }
 	st = system (sh);
-	chdir (oldwd);
+	chdir (oldwd);	/* FIXME: Do the right thing on chdir failure.  */
 	if (epwd)
 	  putenv (old_pwd);	/* restore previous value */
       }
@@ -575,7 +580,7 @@ sys_subshell (void)
 #ifdef  WINDOWSNT
       /* Waits for process completion */
       pid = _spawnlp (_P_WAIT, sh, sh, NULL);
-      chdir (oldwd);
+      chdir (oldwd);	/* FIXME: Do the right thing on chdir failure.  */
       if (pid == -1)
 	write (1, "Can't execute subshell", 22);
 #else   /* not WINDOWSNT */
