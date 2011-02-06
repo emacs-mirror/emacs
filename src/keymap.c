@@ -584,7 +584,8 @@ map_keymap_char_table_item (Lisp_Object args, Lisp_Object key, Lisp_Object val)
 {
   if (!NILP (val))
     {
-      map_keymap_function_t fun = XSAVE_VALUE (XCAR (args))->pointer;
+      map_keymap_function_t fun =
+	(map_keymap_function_t) XSAVE_VALUE (XCAR (args))->pointer;
       args = XCDR (args);
       /* If the key is a range, make a copy since map_char_table modifies
 	 it in place.  */
@@ -629,7 +630,7 @@ map_keymap_internal (Lisp_Object map,
       else if (CHAR_TABLE_P (binding))
 	{
 	  map_char_table (map_keymap_char_table_item, Qnil, binding,
-			  Fcons (make_save_value (fun, 0),
+			  Fcons (make_save_value ((void *) fun, 0),
 				 Fcons (make_save_value (data, 0),
 					args)));
 	}
@@ -2474,7 +2475,7 @@ See Info node `(elisp)Describing Characters' for examples.  */)
   (Lisp_Object character)
 {
   /* Currently MAX_MULTIBYTE_LENGTH is 4 (< 6).  */
-  unsigned char str[6];
+  char str[6];
   int c;
 
   CHECK_NUMBER (character);
@@ -2482,7 +2483,7 @@ See Info node `(elisp)Describing Characters' for examples.  */)
   c = XINT (character);
   if (!ASCII_CHAR_P (c))
     {
-      int len = CHAR_STRING (c, str);
+      int len = CHAR_STRING (c, (unsigned char *) str);
 
       return make_multibyte_string (str, 1, len);
     }
@@ -3975,4 +3976,3 @@ keys_of_keymap (void)
   initial_define_key (global_map, 033, "ESC-prefix");
   initial_define_key (global_map, Ctl ('X'), "Control-X-prefix");
 }
-
