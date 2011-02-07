@@ -12,6 +12,9 @@
 	* data.c (Fstring_to_number): Likewise.
 	* print.c (float_to_string, PRINTFINISH, printchar, strout):
 	(print_object): Likewise.
+	* editfns.c (init_editfns, Fchar_to_string, Fbyte_to_string):
+	(Fuser_full_name, Fsubst_char_in_region, Ftranslate_region_internal):
+	(Fformat): Likewise.
 
 2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
 
