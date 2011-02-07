@@ -182,7 +182,7 @@ xfont_decode_coding_xlfd (char *xlfd, int len, char *output)
   while (*p0)
     {
       c = *(unsigned char *) p0++;
-      p1 += CHAR_STRING (c, p1);
+      p1 += CHAR_STRING (c, (unsigned char *) p1);
       if (--len == 0)
 	break;
     }

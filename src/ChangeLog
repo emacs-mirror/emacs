@@ -26,6 +26,7 @@
 	* callproc.c (Fcall_process): Likewise.
 	* doprnt.c (doprnt): Likewise.
 	* indent.c (compute_motion): Likewise.
+	* xfont.c (xfont_decode_coding_xlfd): Likewise.
 	* character.c (strwidth): Make its argument const char *, not const
 	unsigned char *, since more callers prefer it that way.  All callers
 	changed.
