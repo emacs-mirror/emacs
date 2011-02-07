@@ -395,9 +395,9 @@ c_string_width (const unsigned char *str, EMACS_INT len, int precision,
    occupies on the screen.  */
 
 EMACS_INT
-strwidth (const unsigned char *str, EMACS_INT len)
+strwidth (const char *str, EMACS_INT len)
 {
-  return c_string_width (str, len, -1, NULL, NULL);
+  return c_string_width ((const unsigned char *) str, len, -1, NULL, NULL);
 }
 
 /* Return width of Lisp string STRING when displayed in the current
