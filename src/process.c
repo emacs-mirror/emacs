@@ -5287,7 +5287,7 @@ read_process_output (Lisp_Object proc, register int channel)
 	 save the match data in a special nonrecursive fashion.  */
       running_asynch_code = 1;
 
-      decode_coding_c_string (coding, chars, nbytes, Qt);
+      decode_coding_c_string (coding, (unsigned char *) chars, nbytes, Qt);
       text = coding->dst_object;
       Vlast_coding_system_used = CODING_ID_NAME (coding->id);
       /* A new coding system might be found.  */
@@ -5391,7 +5391,7 @@ read_process_output (Lisp_Object proc, register int channel)
       if (! (BEGV <= PT && PT <= ZV))
 	Fwiden ();
 
-      decode_coding_c_string (coding, chars, nbytes, Qt);
+      decode_coding_c_string (coding, (unsigned char *) chars, nbytes, Qt);
       text = coding->dst_object;
       Vlast_coding_system_used = CODING_ID_NAME (coding->id);
       /* A new coding system might be found.  See the comment in the
@@ -5495,7 +5495,7 @@ send_process_trap (int ignore)
    This function can evaluate Lisp code and can garbage collect.  */
 
 static void
-send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
+send_process (volatile Lisp_Object proc, const char *volatile buf,
 	      volatile EMACS_INT len, volatile Lisp_Object object)
 {
   /* Use volatile to protect variables from being clobbered by longjmp.  */
@@ -5573,7 +5573,7 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 	  set_buffer_internal (XBUFFER (object));
 	  save_pt = PT, save_pt_byte = PT_BYTE;
 
-	  from_byte = PTR_BYTE_POS (buf);
+	  from_byte = PTR_BYTE_POS ((unsigned char *) buf);
 	  from = BYTE_TO_CHAR (from_byte);
 	  to = BYTE_TO_CHAR (from_byte + len);
 	  TEMP_SET_PT_BOTH (from, from_byte);
@@ -5595,7 +5595,7 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 
       len = coding->produced;
       object = coding->dst_object;
-      buf = SDATA (object);
+      buf = SSDATA (object);
     }
 
   if (pty_max_bytes == 0)
@@ -5629,7 +5629,7 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 #ifdef DATAGRAM_SOCKETS
 	      if (DATAGRAM_CHAN_P (outfd))
 		{
-		  rv = sendto (outfd, (char *) buf, this,
+		  rv = sendto (outfd, buf, this,
 			       0, datagram_address[outfd].sa,
 			       datagram_address[outfd].len);
 		  if (rv < 0 && errno == EMSGSIZE)
@@ -5646,10 +5646,10 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 		  if (XPROCESS (proc)->gnutls_p)
 		    rv = emacs_gnutls_write (outfd,
 					     XPROCESS (proc),
-					     (char *) buf, this);
+					     buf, this);
 		  else
 #endif
-		    rv = emacs_write (outfd, (char *) buf, this);
+		    rv = emacs_write (outfd, buf, this);
 #ifdef ADAPTIVE_READ_BUFFERING
 		  if (p->read_output_delay > 0
 		      && p->adaptive_read_buffering == 1)
@@ -5706,9 +5706,10 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 		      /* Running filters might relocate buffers or strings.
 			 Arrange to relocate BUF.  */
 		      if (BUFFERP (object))
-			offset = BUF_PTR_BYTE_POS (XBUFFER (object), buf);
+			offset = BUF_PTR_BYTE_POS (XBUFFER (object),
+						   (unsigned char *) buf);
 		      else if (STRINGP (object))
-			offset = buf - SDATA (object);
+			offset = buf - SSDATA (object);
 
 #ifdef EMACS_HAS_USECS
 		      wait_reading_process_output (0, 20000, 0, 0, Qnil, NULL, 0);
@@ -5717,9 +5718,10 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 #endif
 
 		      if (BUFFERP (object))
-			buf = BUF_BYTE_ADDRESS (XBUFFER (object), offset);
+			buf = (char *) BUF_BYTE_ADDRESS (XBUFFER (object),
+							 offset);
 		      else if (STRINGP (object))
-			buf = offset + SDATA (object);
+			buf = offset + SSDATA (object);
 
 		      rv = 0;
 		    }
@@ -5770,7 +5772,7 @@ Output from processes can arrive in between bunches.  */)
 
   start1 = CHAR_TO_BYTE (XINT (start));
   end1 = CHAR_TO_BYTE (XINT (end));
-  send_process (proc, BYTE_POS_ADDR (start1), end1 - start1,
+  send_process (proc, (char *) BYTE_POS_ADDR (start1), end1 - start1,
 		Fcurrent_buffer ());
 
   return Qnil;
@@ -5789,7 +5791,7 @@ Output from processes can arrive in between bunches.  */)
   Lisp_Object proc;
   CHECK_STRING (string);
   proc = get_process (process);
-  send_process (proc, SDATA (string),
+  send_process (proc, SSDATA (string),
 		SBYTES (string), string);
   return Qnil;
 }
