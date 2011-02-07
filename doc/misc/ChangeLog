@@ -1,3 +1,7 @@
+2011-02-07  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Logarithmic Units): New section.
+
 2011-02-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-overrides.texi: Renamed from overrides.texi and all the relevant
