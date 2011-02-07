@@ -425,9 +425,9 @@
   (define-key calc-mode-map "lq" 'calc-logunits-quantity)
   (define-key calc-mode-map "ld" 'calc-logunits-dblevel)
   (define-key calc-mode-map "ln" 'calc-logunits-nplevel)
-  (define-key calc-mode-map "l+" 'calc-logunits-plus)
-  (define-key calc-mode-map "l-" 'calc-logunits-minus)
-  (define-key calc-mode-map "l*" 'calc-logunits-times)
+  (define-key calc-mode-map "l+" 'calc-logunits-add)
+  (define-key calc-mode-map "l-" 'calc-logunits-sub)
+  (define-key calc-mode-map "l*" 'calc-logunits-mul)
   (define-key calc-mode-map "l/" 'calc-logunits-divide)
   (define-key calc-mode-map "l?" 'calc-l-prefix-help)
 
@@ -939,9 +939,9 @@ calc-store-value calc-var-name)
  ("calc-stuff" calc-explain-why calcFunc-clean
 calcFunc-pclean calcFunc-pfloat calcFunc-pfrac)
 
- ("calc-units" calcFunc-usimplify calcFunc-lufieldplus
-calcFunc-lupowerplus calcFunc-lufieldminus calcFunc-lupowerminus
-calcFunc-lufieldtimes calcFunc-lupowertimes calcFunc-lufielddiv
+ ("calc-units" calcFunc-usimplify calcFunc-lufieldadd
+calcFunc-lupoweradd calcFunc-lufieldsub calcFunc-lupowersub
+calcFunc-lufieldmul calcFunc-lupowermul calcFunc-lufielddiv
 calcFunc-lupowerdiv calcFunc-fieldquant calcFunc-powerquant
 calcFunc-dbfieldlevel calcFunc-dbpowerlevel calcFunc-npfieldlevel
 calcFunc-nppowerlevel
@@ -1177,8 +1177,8 @@ calc-enter-units-table calc-explain-units calc-extract-units
 calc-get-unit-definition calc-permanent-units calc-quick-units
 calc-remove-units calc-simplify-units calc-undefine-unit
 calc-view-units-table calc-logunits-quantity calc-logunits-dblevel
-calc-logunits-nplevel calc-logunits-plus calc-logunits-minus
-calc-logunits-times calc-logunits-divide)
+calc-logunits-nplevel calc-logunits-add calc-logunits-sub
+calc-logunits-mul calc-logunits-divide)
 
  ("calc-vec" calc-arrange-vector calc-build-vector calc-cnorm
 calc-conj-transpose calc-cons calc-cross calc-kron calc-diag
