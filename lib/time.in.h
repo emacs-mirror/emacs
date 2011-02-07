@@ -69,13 +69,16 @@
 extern "C" {
 #   endif
 
-#   undef timespec
-#   define timespec rpl_timespec
+#   if !GNULIB_defined_struct_timespec
+#    undef timespec
+#    define timespec rpl_timespec
 struct timespec
 {
   time_t tv_sec;
   long int tv_nsec;
 };
+#    define GNULIB_defined_struct_timespec 1
+#   endif
 
 #   ifdef __cplusplus
 }
@@ -84,6 +87,7 @@ struct timespec
 #  endif
 # endif
 
+# if !GNULIB_defined_struct_time_t_must_be_integral
 /* Per http://austingroupbugs.net/view.php?id=327, POSIX requires
    time_t to be an integer type, even though C99 permits floating
    point.  We don't know of any implementation that uses floating
@@ -92,6 +96,8 @@ struct timespec
 struct __time_t_must_be_integral {
   unsigned int __floating_time_t_unsupported : (time_t) 1;
 };
+#  define GNULIB_defined_struct_time_t_must_be_integral 1
+# endif
 
 /* Sleep for at least RQTP seconds unless interrupted,  If interrupted,
    return -1 and store the remaining time into RMTP.  See
