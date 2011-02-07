@@ -648,7 +648,7 @@ resize_bloc (bloc_ptr bloc, SIZE size)
       else
 	{
 	  memmove (bloc->new_data, bloc->data, old_size);
-	  memset (bloc->new_data + old_size, 0, size - old_size);
+	  memset ((char *) bloc->new_data + old_size, 0, size - old_size);
 	  *bloc->variable = bloc->data = bloc->new_data;
 	}
     }
@@ -1259,4 +1259,3 @@ r_alloc_init (void)
 
   use_relocatable_buffers = 1;
 }
-
