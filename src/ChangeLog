@@ -1,3 +1,11 @@
+2011-02-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	conform to C89 pointer rules
+
+	* dired.c (scmp, file_name_completion):
+	Change types between char * and unsigned char *, to satisfy C89
+	rules about pointer type compatibility.
+
 2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.c (x_alloc_nearest_color_1): Avoid unportable int assumption.
