@@ -28140,8 +28140,7 @@ relative to
 @texline @math{20 \mu{\rm Pa}}
 (the threshhold of human hearing) is 
 @infoline @math{20 log10(60 uPa/ 20 uPa) dB = 20 log10(3) dB},
-@texline  @math{20 \log_{10}(60 \mu{\rm Pa}/20 \mu{\rm Pa}) {\rm dB} =
-20 \log_{10}(3) {\rm dB}},
+@texline  @math{20 \log_{10}(60 \mu{\rm Pa}/20 \mu{\rm Pa}) {\rm dB} = 20 \log_{10}(3) {\rm dB}},
 which is about 
 @infoline @math{9.54 dB}.
 @texline @math{9.54 {\rm dB}}.
