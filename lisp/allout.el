@@ -5406,8 +5406,10 @@ header and body.  The elements of that list are:
       ;; Goto initial topic, and register preceeding stuff, if any:
       (if (> (allout-goto-prefix-doublechecked) start)
 	  ;; First topic follows beginning point -- register preliminary stuff:
-	  (setq result (list (list 0 "" nil
-				   (buffer-substring start (1- (point)))))))
+	  (setq result
+                (list (list 0 "" nil
+                            (buffer-substring-no-properties start
+                                                            (1- (point)))))))
       (while (and (not done)
 		  (not (eobp))		; Loop until we've covered the region.
 		  (not (> (point) end)))
@@ -5426,7 +5428,7 @@ header and body.  The elements of that list are:
 	(setq strings nil)
 	(while (> next (point))		; Get all the exposed text in
 	  (setq strings
-		(cons (buffer-substring
+		(cons (buffer-substring-no-properties
 		       beg
 					;To hidden text or end of line:
 		       (progn
