@@ -13,16 +13,16 @@
 	`math-logunits-level'
 	(math-logunits-plus):  Renamed from math-logcombine.
 	(calcFunc-luplus, calcFunc-luminus calc-luplus, calc-luminus): Remove.
-	(calcFunc-lufieldplus, calcFunc-lupowerplus, calcFunc-lufieldminus)
-	(calcFunc-lufieldminus,calc-logunits-plus calc-logunits-minus):
+	(calcFunc-lufieldadd, calcFunc-lupoweradd, calcFunc-lufieldsub)
+	(calcFunc-lufieldsub,calc-logunits-add calc-logunits-sub):
 	New functions.
 	(calcFunc-fieldquant): Renamed from `calcFunc-fieldlevel'.
 	(calcFunc-powerquant): Renamed from `calcFunc-powerlevel'.
 	(calc-logunits-quantity): Renamed from `calc-level'.
 	(calcFunc-dbfieldlevel, calcFunc-dbpowerlevel, calcFunc-npfieldlevel)
 	(calcFunc-nppowerlevel,calc-logunits-dblevel, calc-logunits-nplevel)
-	(math-logunits-times, calcFunc-lufieldtimes, calcFunc-lupowertimes)
-	(calc-logunits-times, math-logunits-divide, calcFunc-lufielddiv)
+	(math-logunits-mul, calcFunc-lufieldmul, calcFunc-lupowermul)
+	(calc-logunits-mul, math-logunits-divide, calcFunc-lufielddiv)
 	(calcFunc-lupowerdiv,calc-logunits-divide,math-logunits-level):
 	New functions.
 
@@ -32,6 +32,8 @@
 	(calc-full-help): Add reference to `calc-l-prefix-help'.
 
 	* calc/calc-ext.el (calc-init-extensions): Update autoloads.
+
+	* calc/README: Mention logarithmic units.
 
 2011-02-06  Chong Yidong  <cyd@stupidchicken.com>
 

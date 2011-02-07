@@ -1567,7 +1567,7 @@ If EXPR is nil, return nil."
         (list '^ (math-extract-logunits (nth 1 expr)) (nth 2 expr))
       (if (member expr math-logunits) expr 1))))
 
-(defun math-logunits-plus (a b neg power)
+(defun math-logunits-add (a b neg power)
   (let ((aunit (math-simplify (math-extract-logunits a))))
     (if (not (eq (car-safe aunit) 'var))
         (calc-record-why "*Improper logarithmic unit" aunit)
@@ -1607,18 +1607,18 @@ If EXPR is nil, return nil."
              units)))))))
 
 (defun calcFunc-lufieldplus (a b)
-  (math-logunits-plus a b nil nil))
+  (math-logunits-add a b nil nil))
 
 (defun calcFunc-lupowerplus (a b)
-  (math-logunits-plus a b nil t))
+  (math-logunits-add a b nil t))
 
 (defun calcFunc-lufieldminus (a b)
-  (math-logunits-plus a b t nil))
+  (math-logunits-add a b t nil))
 
 (defun calcFunc-lupowerminus (a b)
-  (math-logunits-plus a b t t))
+  (math-logunits-add a b t t))
 
-(defun calc-logunits-plus (arg)
+(defun calc-logunits-add (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
@@ -1629,7 +1629,7 @@ If EXPR is nil, return nil."
          (calc-binary-op "lu+" 'calcFunc-lufieldplus arg)
        (calc-binary-op "lu+" 'calcFunc-lupowerplus arg)))))
 
-(defun calc-logunits-minus (arg)
+(defun calc-logunits-sub (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
@@ -1640,7 +1640,7 @@ If EXPR is nil, return nil."
          (calc-binary-op "lu-" 'calcFunc-lufieldminus arg)
        (calc-binary-op "lu-" 'calcFunc-lupowerminus arg)))))
 
-(defun math-logunits-times (a b power)
+(defun math-logunits-mul (a b power)
   (let (logunit coef units number)
     (cond
      ((and
@@ -1703,12 +1703,12 @@ If EXPR is nil, return nil."
             units)))))))))
 
 (defun calcFunc-lufieldtimes (a b)
-  (math-logunits-times a b nil))
+  (math-logunits-mul a b nil))
 
 (defun calcFunc-lupowertimes (a b)
-  (math-logunits-times a b t))
+  (math-logunits-mul a b t))
 
-(defun calc-logunits-times (arg)
+(defun calc-logunits-mul (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
