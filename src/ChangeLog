@@ -20,6 +20,7 @@
 	(string_make_unibyte, Fstring_as_unibyte, Fstring_to_unibyte):
 	(Fbase64_encode_region, base64_encode_1, Fbase64_decode_region, Fmd5):
 	Likewise.
+	* lread.c (read1, hash_string): Likewise.
 
 2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
 
