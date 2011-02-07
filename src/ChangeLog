@@ -28,6 +28,7 @@
 	* indent.c (compute_motion): Likewise.
 	* xfont.c (xfont_decode_coding_xlfd): Likewise.
 	* ralloc.c (resize_bloc): Likewise.
+	* xml.c (make_dom, parse_region): Likewise.
 	* character.c (strwidth): Make its argument const char *, not const
 	unsigned char *, since more callers prefer it that way.  All callers
 	changed.
