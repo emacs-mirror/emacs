@@ -16,6 +16,10 @@
 	(Fuser_full_name, Fsubst_char_in_region, Ftranslate_region_internal):
 	(Fformat): Likewise.
 	* callint.c (Fcall_interactively): Likewise.
+	* fns.c (string_make_multibyte, string_to_multibyte):
+	(string_make_unibyte, Fstring_as_unibyte, Fstring_to_unibyte):
+	(Fbase64_encode_region, base64_encode_1, Fbase64_decode_region, Fmd5):
+	Likewise.
 
 2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
 
