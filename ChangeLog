@@ -1,5 +1,10 @@
 2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	gnulib: allow multiple gnulib generated replacements to coexist
+	This defines a few preprocessor symbols that should not affect Emacs.
+	* lib/getopt.in.h, lib/time.in.h, lib/unistd.in.h: Regenerate
+	via "make sync-from-gnulib".
+
 	gnulib: undo previous change
 	The upstream _HEADERS change was backed out of gnulib (see the
 	same thread).  Stay in sync with gnulib.

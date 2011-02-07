@@ -796,11 +796,14 @@ _GL_CXXALIAS_RPL (getpagesize, int, (void));
 #    if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #     define getpagesize() _gl_getpagesize ()
 #    else
+#     if !GNULIB_defined_getpagesize_function
 static inline int
 getpagesize ()
 {
   return _gl_getpagesize ();
 }
+#      define GNULIB_defined_getpagesize_function 1
+#     endif
 #    endif
 #   endif
 #  endif
