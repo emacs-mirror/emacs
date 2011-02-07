@@ -257,8 +257,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
   int next_event;
 
   Lisp_Object prefix_arg;
-  unsigned char *string;
-  unsigned char *tem;
+  char *string;
+  char *tem;
 
   /* If varies[i] > 0, the i'th argument shouldn't just have its value
      in this call quoted in the command history.  It should be
@@ -325,8 +325,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
-      string = (unsigned char *) alloca (SBYTES (specs) + 1);
-      memcpy (string, SDATA (specs), SBYTES (specs) + 1);
+      string = (char *) alloca (SBYTES (specs) + 1);
+      memcpy (string, SSDATA (specs), SBYTES (specs) + 1);
     }
   else
     {
@@ -389,7 +389,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    {
 	      if (!NILP (record_flag))
 		{
-		  unsigned char *p = string;
+		  char *p = string;
 		  while (*p)
 		    {
 		      if (! (*p == 'r' || *p == 'p' || *p == 'P'
@@ -449,7 +449,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	j += 2;
       else
 	j++;
-      tem = (unsigned char *) strchr (tem, '\n');
+      tem = strchr (tem, '\n');
       if (tem)
 	++tem;
       else
@@ -780,7 +780,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	case '+':
 	default:
 	  error ("Invalid control letter `%c' (%03o) in interactive calling string",
-		 *tem, *tem);
+		 *tem, (unsigned char) *tem);
 	}
 
       if (varies[i] == 0)
@@ -789,9 +789,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
       if (NILP (visargs[i]) && STRINGP (args[i]))
 	visargs[i] = args[i];
 
-      tem = (unsigned char *) strchr (tem, '\n');
+      tem = strchr (tem, '\n');
       if (tem) tem++;
-      else tem = (unsigned char *) "";
+      else tem = "";
     }
   unbind_to (speccount, Qnil);
 
