@@ -1016,9 +1016,9 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
  */
 
 void
-float_to_string (unsigned char *buf, double data)
+float_to_string (char *buf, double data)
 {
-  unsigned char *cp;
+  char *cp;
   int width;
 
   /* Check for plus infinity in a way that won't lose
@@ -1067,7 +1067,7 @@ float_to_string (unsigned char *buf, double data)
       /* Check that the spec we have is fully valid.
 	 This means not only valid for printf,
 	 but meant for floats, and reasonable.  */
-      cp = SDATA (Vfloat_output_format);
+      cp = SSDATA (Vfloat_output_format);
 
       if (cp[0] != '%')
 	goto lose;

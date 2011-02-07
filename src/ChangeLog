@@ -9,6 +9,8 @@
 	* search.c (Freplace_match, Fregexp_quote): Likewise.
 	* alloc.c (make_string, make_specified_string, make_pure_string):
 	Likewise.
+	* data.c (Fstring_to_number): Likewise.
+	* print.c (float_to_string): Likewise.
 
 2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
 
