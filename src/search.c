@@ -2705,7 +2705,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		    idx = c - '0';
 		}
 	      else if (c == '\\')
-		add_len = 1, add_stuff = "\\";
+		add_len = 1, add_stuff = (unsigned char *) "\\";
 	      else
 		{
 		  xfree (substed);
@@ -2755,10 +2755,11 @@ since only regular expressions have distinguished subexpressions.  */)
 	      EMACS_INT nchars =
 		multibyte_chars_in_text (substed, substed_len);
 
-	      newtext = make_multibyte_string (substed, nchars, substed_len);
+	      newtext = make_multibyte_string ((char *) substed, nchars,
+					       substed_len);
 	    }
 	  else
-	    newtext = make_unibyte_string (substed, substed_len);
+	    newtext = make_unibyte_string ((char *) substed, substed_len);
 	}
       xfree (substed);
     }
@@ -3145,17 +3146,17 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
        doc: /* Return a regexp string which matches exactly STRING and nothing else.  */)
   (Lisp_Object string)
 {
-  register unsigned char *in, *out, *end;
-  register unsigned char *temp;
+  register char *in, *out, *end;
+  register char *temp;
   int backslashes_added = 0;
 
   CHECK_STRING (string);
 
-  temp = (unsigned char *) alloca (SBYTES (string) * 2);
+  temp = (char *) alloca (SBYTES (string) * 2);
 
   /* Now copy the data into the new string, inserting escapes. */
 
-  in = SDATA (string);
+  in = SSDATA (string);
   end = in + SBYTES (string);
   out = temp;
 
