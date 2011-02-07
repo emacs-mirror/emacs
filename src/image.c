@@ -6778,7 +6778,7 @@ tiff_load (struct frame *f, struct image *img)
 	}
 
       /* Try to open the image file.  */
-      tiff = fn_TIFFOpen (SDATA (file), "r");
+      tiff = fn_TIFFOpen (SSDATA (file), "r");
       if (tiff == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
