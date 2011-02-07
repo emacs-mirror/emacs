@@ -781,7 +781,8 @@ command whose response triggered the error."
       ;; The first time this is run, this variable is `try'.  So we
       ;; try.
       (when (eq nntp-server-list-active-group 'try)
-	(nntp-try-list-active (gnus-group-real-name (gnus-info-group (car infos)))))
+	(nntp-try-list-active
+	 (gnus-group-real-name (gnus-info-group (car infos)))))
       (with-current-buffer (nntp-find-connection-buffer nntp-server-buffer)
 	(erase-buffer)
 	(let ((nntp-inhibit-erase t)
@@ -800,7 +801,8 @@ command whose response triggered the error."
 		   (car infos)))
 	  (received 0)
 	  (last-point 1))
-      (when buf
+      (when (and buf
+		 count)
 	(with-current-buffer buf
 	  (while (and (gnus-buffer-live-p buf)
 		      (progn
