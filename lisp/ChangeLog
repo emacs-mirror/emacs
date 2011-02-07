@@ -1,3 +1,7 @@
+2011-02-07  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-listify-exposed): Copy text sans text properties.
+
 2011-02-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-list-activatable-names): Add optional argument
