@@ -10,7 +10,8 @@
 	* alloc.c (make_string, make_specified_string, make_pure_string):
 	Likewise.
 	* data.c (Fstring_to_number): Likewise.
-	* print.c (float_to_string): Likewise.
+	* print.c (float_to_string, PRINTFINISH, printchar, strout):
+	(print_object): Likewise.
 
 2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
 
