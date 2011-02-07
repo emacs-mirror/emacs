@@ -1,3 +1,7 @@
+2011-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (next-error): Doc fix.
+
 2011-02-06  Chong Yidong  <cyd@stupidchicken.com>
             Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
