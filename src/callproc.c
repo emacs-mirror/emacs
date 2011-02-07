@@ -696,8 +696,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		   faithfully reflect inserted text until we
 		   TEMP_SET_PT_BOTH below.  */
 		specbind (Qinhibit_modification_hooks, Qt);
-		decode_coding_c_string (&process_coding, buf, nread,
-					curbuf);
+		decode_coding_c_string (&process_coding, (unsigned char *) buf,
+					nread, curbuf);
 		unbind_to (count1, Qnil);
 		if (display_on_the_fly
 		    && CODING_REQUIRE_DETECTION (&saved_coding)
