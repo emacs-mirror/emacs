@@ -1,3 +1,8 @@
+2011-02-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-list-activatable-names): Add optional argument
+	BUS.
+
 2011-02-07  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el (rcirc-handler-317): New function (Bug#6507).
