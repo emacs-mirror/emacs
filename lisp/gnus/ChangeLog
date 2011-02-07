@@ -1,3 +1,13 @@
+2011-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-update-info): Refactor slightly.
+	(nnimap-update-info): Tell Gnus whether there are any \Recent messages.
+	(nnimap-update-info): Clean up slightly.
+	(nnimap-quirk): Add quirk for Gmail IMAP which bugs out on NUL
+	characters.
+	(nnimap-process-quirk): Renamed function to avoid collision.
+	(nnimap-update-info): Fix macrology bug-out.
+
 2011-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nntp.el (nntp-finish-retrieve-group-infos): Protect against the first

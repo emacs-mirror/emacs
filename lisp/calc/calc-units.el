@@ -1737,26 +1737,28 @@ If EXPR is nil, return nil."
        (calc-binary-op "lu/" 'calcFunc-lupowerdiv arg)))))
 
 (defun math-logunits-quant (val ref power)
-  (let ((lunit (math-simplify (math-extract-logunits val))))
+  (let* ((units (math-simplify (math-extract-units val)))
+         (lunit (math-simplify (math-extract-logunits units))))
     (if (not (eq (car-safe lunit) 'var))
         (calc-record-why "*Improper logarithmic unit" lunit)
-      (if (not (eq 1 (math-simplify (math-extract-units (math-div val lunit)))))
-          (calc-record-why "*Inappropriate units" nil)
-        (let ((coeff (math-simplify (math-div val lunit))))
-          (if (equal lunit '(var dB var-dB))
-              (math-mul 
-               ref
-               (math-pow 
-                10
-                (math-div
-                 coeff
-                 (if power 10 20))))
-            (math-mul 
-             ref
-             (calcFunc-exp
-              (if power 
-                  (math-mul 2 coeff)
-                coeff)))))))))
+      (let ((runits (math-simplify (math-div units lunit)))
+            (coeff (math-simplify (math-div val units))))
+        (math-mul
+         (if (equal lunit '(var dB var-dB))
+             (math-mul 
+              ref
+              (math-pow 
+               10
+               (math-div
+                coeff
+                (if power 10 20))))
+           (math-mul 
+            ref
+            (calcFunc-exp
+             (if power 
+                 (math-mul 2 coeff)
+               coeff))))
+         runits)))))
 
 (defvar calc-logunits-field-reference)
 (defvar calc-logunits-power-reference)

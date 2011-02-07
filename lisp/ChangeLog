@@ -1,3 +1,28 @@
+2011-02-07  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-logunits-quant): Add support for
+	non-logarithmic units.
+
+2011-02-07  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-after-copy-or-kill-hook): New hook for
+	extension-specific processing of killed text.
+	(allout-mode): Include new allout-after-copy-or-kill-hook among
+	mentioned hooks.
+	(allout-kill-line) (allout-kill-topic): Ensure that processing
+	after kill happens even if barf-if-buffer-read-only is raised.
+	Include new allout-after-copy-or-kill-hook among that subsequent
+	processing.
+	(allout-deannotate-hidden): Actually remove the annotation text
+	properties.
+
+	* allout.el (allout-listify-exposed): Copy text sans text properties.
+
+2011-02-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-list-activatable-names): Add optional argument
+	BUS.
+
 2011-02-07  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el (rcirc-handler-317): New function (Bug#6507).
