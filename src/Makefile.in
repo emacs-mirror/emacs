@@ -247,6 +247,7 @@ ns_appdir=@ns_appdir@
 ns_appbindir=@ns_appbindir@
 ns_appsrc=@ns_appsrc@
 NS_OBJ=@NS_OBJ@
+NS_OBJC_OBJ=@NS_OBJC_OBJ@
 NS_SUPPORT=@NS_SUPPORT@
 ## Only set if NS_IMPL_GNUSTEP.
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
@@ -341,7 +342,7 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 
 ## lastfile must follow all files whose initialized data areas should
 ## be dumped as pure by dump-emacs.
-obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
+base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o bidi.o \
 	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
@@ -355,6 +356,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o intervals.o textprop.o composite.o md5.o xml.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)
+obj = $(base_obj) $(NS_OBJC_OBJ)
 
 ## Object files used on some machine or other.
 ## These go in the DOC file on all machines in case they are needed.
@@ -644,6 +646,18 @@ $(libsrc)/make-docfile$(EXEEXT):
 
 buildobj.h: Makefile
 	echo "#define BUILDOBJ \"$(obj) $(otherobj) " "\"" > buildobj.h
+
+globals.h: gl-stamp
+	cp gl-stamp globals.h
+
+GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
+
+gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
+	@rm -f gl-tmp
+	$(libsrc)/make-docfile -d $(srcdir) -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
+	$(srcdir)/../move-if-change gl-tmp gl-stamp
+
+$(obj): globals.h
 
 $(lib)/libgnu.a: $(config_h)
 	cd $(lib) && $(MAKE) libgnu.a
