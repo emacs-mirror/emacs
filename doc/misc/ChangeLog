@@ -1,3 +1,87 @@
+2011-02-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Bus names): Adapt descriptions for
+	dbus-list-activatable-names and dbus-list-known-names.
+
+2011-02-07  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Logarithmic Units): New section.
+
+2011-02-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-overrides.texi: Renamed from overrides.texi and all the relevant
+	manuals use it now.
+
+	* Makefile.in (nowebhack): Fixed to use -D flag instead of overrides.
+
+2011-02-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* overrides.texi: Remove.
+
+	* sieve.texi, sasl.texi, pgg.texi, message.texi, gnus.texi:
+	* emacs-mime.texi, auth.texi, Makefile.in: Revert last changes.
+
+2011-02-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Mention problems with
+	WinSSHD.
+
+	* trampver.texi: Update release number.
+
+2011-02-05  Era Eriksson  <era+tramp@iki.fi>  (tiny change)
+
+	* tramp.texi:
+	Replace "delimet" with "delimit" globally.
+	Replace "explicite" with "explicit" globally.
+	Replace "instead of" with "instead" where there was nothing after "of".
+	Audit use of comma before interrogative pronoun, "that", or "which".
+	Minor word order, spelling, wording changes.
+
+2011-02-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* overrides.texi: New file to set or clear WEBHACKDEVEL.
+
+	* sieve.texi: Use WEBHACKDEVEL.
+
+	* sasl.texi: Use WEBHACKDEVEL.
+
+	* pgg.texi: Use WEBHACKDEVEL.
+
+	* message.texi: Use WEBHACKDEVEL.
+
+	* gnus.texi: Use WEBHACKDEVEL.
+
+	* emacs-mime.texi: Use WEBHACKDEVEL.
+
+	* auth.texi: Use WEBHACKDEVEL.
+
+	* Makefile.in (webhack, nowebhack): Hacks to produce for-the-web
+	manuals.
+
+2011-02-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi: Add DEVEL header (suggested by Andreas Schwab).
+
+2011-02-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update to version 2011-02-01.10 from gnulib,
+	which in turn is copied from ftp://tug.org/tex/.
+
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Contacting the FSF): Mainly just refer to the web-site.
+	(Binding combinations of modifiers and function keys):
+	Let's assume people reading this are not using Emacs 18.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Date): Remove mention of gnus-stop-date-timer,
+	since it's run automatically.
+
+2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing Articles): Fix typo.
+
 2011-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Customizing Articles): Document the new way of customizing

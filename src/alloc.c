@@ -2281,7 +2281,8 @@ make_string (const char *contents, EMACS_INT nbytes)
   register Lisp_Object val;
   EMACS_INT nchars, multibyte_nbytes;
 
-  parse_str_as_multibyte (contents, nbytes, &nchars, &multibyte_nbytes);
+  parse_str_as_multibyte ((const unsigned char *) contents, nbytes,
+			  &nchars, &multibyte_nbytes);
   if (nbytes == nchars || nbytes != multibyte_nbytes)
     /* CONTENTS contains no multibyte sequences or contains an invalid
        multibyte sequence.  We must make unibyte string.  */
@@ -2349,7 +2350,8 @@ make_specified_string (const char *contents,
   if (nchars < 0)
     {
       if (multibyte)
-	nchars = multibyte_chars_in_text (contents, nbytes);
+	nchars = multibyte_chars_in_text ((const unsigned char *) contents,
+					  nbytes);
       else
 	nchars = nbytes;
     }
@@ -4650,7 +4652,7 @@ make_pure_string (const char *data,
   struct Lisp_String *s;
 
   s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
-  s->data = find_string_data_in_pure (data, nbytes);
+  s->data = (unsigned char *) find_string_data_in_pure (data, nbytes);
   if (s->data == NULL)
     {
       s->data = (unsigned char *) pure_alloc (nbytes + 1, -1);

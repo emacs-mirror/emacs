@@ -5826,6 +5826,7 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
   # Code from module gettext-h:
+  # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
   # Code from module mktime:
@@ -10595,7 +10596,48 @@ main ()
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XawScrollbarSetThumb in -lXaw3d" >&5
+$as_echo_n "checking for XawScrollbarSetThumb in -lXaw3d... " >&6; }
+if ${ac_cv_lib_Xaw3d_XawScrollbarSetThumb+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXaw3d  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XawScrollbarSetThumb ();
+int
+main ()
+{
+return XawScrollbarSetThumb ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_Xaw3d_XawScrollbarSetThumb=yes
+else
+  ac_cv_lib_Xaw3d_XawScrollbarSetThumb=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xaw3d_XawScrollbarSetThumb" >&5
+$as_echo "$ac_cv_lib_Xaw3d_XawScrollbarSetThumb" >&6; }
+if test "x$ac_cv_lib_Xaw3d_XawScrollbarSetThumb" = xyes; then :
   emacs_cv_xaw3d=yes
+else
+  emacs_cv_xaw3d=no
+fi
+
 else
   emacs_cv_xaw3d=no
 fi
@@ -14289,6 +14331,48 @@ $as_echo "#define __GETOPT_PREFIX rpl_" >>confdefs.h
 fi
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inline" >&5
+$as_echo_n "checking for inline... " >&6; }
+if ${ac_cv_c_inline+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_c_inline=no
+for ac_kw in inline __inline__ __inline; do
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifndef __cplusplus
+typedef int foo_t;
+static $ac_kw foo_t static_foo () {return 0; }
+$ac_kw foo_t foo () {return 0; }
+#endif
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_c_inline=$ac_kw
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  test "$ac_cv_c_inline" != no && break
+done
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_c_inline" >&5
+$as_echo "$ac_cv_c_inline" >&6; }
+
+case $ac_cv_c_inline in
+  inline | yes) ;;
+  *)
+    case $ac_cv_c_inline in
+      no) ac_val=;;
+      *) ac_val=$ac_cv_c_inline;;
+    esac
+    cat >>confdefs.h <<_ACEOF
+#ifndef __cplusplus
+#define inline $ac_val
+#endif
+_ACEOF
+    ;;
+esac
+
 
   GNULIB_MKTIME=0;
   GNULIB_NANOSLEEP=0;
@@ -14362,48 +14446,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     APPLE_UNIVERSAL_BUILD=0
   fi
 
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inline" >&5
-$as_echo_n "checking for inline... " >&6; }
-if ${ac_cv_c_inline+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_cv_c_inline=no
-for ac_kw in inline __inline__ __inline; do
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#ifndef __cplusplus
-typedef int foo_t;
-static $ac_kw foo_t static_foo () {return 0; }
-$ac_kw foo_t foo () {return 0; }
-#endif
-
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_c_inline=$ac_kw
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  test "$ac_cv_c_inline" != no && break
-done
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_c_inline" >&5
-$as_echo "$ac_cv_c_inline" >&6; }
-
-case $ac_cv_c_inline in
-  inline | yes) ;;
-  *)
-    case $ac_cv_c_inline in
-      no) ac_val=;;
-      *) ac_val=$ac_cv_c_inline;;
-    esac
-    cat >>confdefs.h <<_ACEOF
-#ifndef __cplusplus
-#define inline $ac_val
-#endif
-_ACEOF
-    ;;
-esac
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for stdbool.h that conforms to C99" >&5
 $as_echo_n "checking for stdbool.h that conforms to C99... " >&6; }
@@ -14491,11 +14533,7 @@ _ACEOF
 
 fi
 
-   if test $ac_cv_header_stdbool_h = yes; then
 
-$as_echo "#define HAVE_STDBOOL_H 1" >>confdefs.h
-
-   fi
 
     REPLACE_NULL=0;
   HAVE_WCHAR_T=1;
@@ -14846,6 +14884,8 @@ fi
 
   # Code from module gettext-h:
 
+
+  # Code from module ignore-value:
 
   # Code from module include_next:
   # Code from module intprops:
@@ -16986,16 +17026,7 @@ if test "x$GCC" = xyes \
    as_fn_error $? "GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'." "$LINENO" 5
 fi
 
-#### Find out which version of Emacs this is.
-version=`grep 'const char emacs_version' ${srcdir}/src/emacs.c \
-	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
-if test x"${version}" = x; then
-  as_fn_error $? "can't find current emacs version in \`${srcdir}/src/emacs.c'." "$LINENO" 5
-fi
-if test x"${version}" != x"$PACKAGE_VERSION"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: version mismatch between \`${srcdir}/configure.in' and \`${srcdir}/src/emacs.c'." >&5
-$as_echo "$as_me: WARNING: version mismatch between \`${srcdir}/configure.in' and \`${srcdir}/src/emacs.c'." >&2;}
-fi
+version=$PACKAGE_VERSION
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.

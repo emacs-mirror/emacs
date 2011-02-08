@@ -633,34 +633,25 @@ starting the compilation process.")
   :version "22.1")
 
 (defface compilation-warning
-  '((((class color) (min-colors 16)) (:foreground "Orange" :weight bold))
-    (((class color)) (:foreground "cyan" :weight bold))
-    (t (:weight bold)))
+  '((t :inherit font-lock-variable-name-face))
   "Face used to highlight compiler warnings."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-info
-  '((((class color) (min-colors 16) (background light))
-     (:foreground "Green3" :weight bold))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "Green1" :weight bold))
-    (((class color) (min-colors 16) (background dark))
-     (:foreground "Green" :weight bold))
-    (((class color)) (:foreground "green" :weight bold))
-    (t (:weight bold)))
+  '((t :inherit font-lock-type-face))
   "Face used to highlight compiler information."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-line-number
-  '((t :inherit font-lock-variable-name-face))
+  '((t :inherit font-lock-keyword-face))
   "Face for displaying line numbers in compiler messages."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-column-number
-  '((t :inherit font-lock-type-face))
+  '((t :inherit font-lock-doc-face))
   "Face for displaying column numbers in compiler messages."
   :group 'compilation
   :version "22.1")
@@ -693,7 +684,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 (defvar compilation-enter-directory-face 'font-lock-function-name-face
   "Face name to use for entering directory messages.")
 
-(defvar compilation-leave-directory-face 'font-lock-type-face
+(defvar compilation-leave-directory-face 'font-lock-builtin-face
   "Face name to use for leaving directory messages.")
 
 
@@ -834,38 +825,61 @@ from a different message."
             (:conc-name compilation--message->))
   loc type end-loc)
 
-(defvar compilation--previous-directory-cache nil)
+(defvar compilation--previous-directory-cache nil
+  "A pair (POS . RES) caching the result of previous directory search.
+Basically, this pair says that calling
+   (previous-single-property-change POS 'compilation-directory)
+returned RES, i.e. there is no change of `compilation-directory' between
+POS and RES.")
 (make-variable-buffer-local 'compilation--previous-directory-cache)
+
+(defun compilation--flush-directory-cache (start end)
+  (cond
+   ((or (not compilation--previous-directory-cache)
+        (<= (car compilation--previous-directory-cache) start)))
+   ((or (not (cdr compilation--previous-directory-cache))
+        (<= (cdr compilation--previous-directory-cache) start))
+    (set-marker (car compilation--previous-directory-cache) start))
+   (t (setq compilation--previous-directory-cache nil))))
+
 (defun compilation--previous-directory (pos)
   "Like (previous-single-property-change POS 'compilation-directory), but faster."
   ;; This avoids an N² behavior when there's no/few compilation-directory
   ;; entries, in which case each call to previous-single-property-change
   ;; ends up having to walk very far back to find the last change.
-  (let* ((cache (and compilation--previous-directory-cache
-                     (<= (car compilation--previous-directory-cache) pos)
-                     (car compilation--previous-directory-cache)))
-         (prev
-          (previous-single-property-change
-           pos 'compilation-directory nil cache)))
-    (cond
-     ((null cache)
-      (setq compilation--previous-directory-cache
-            (cons (copy-marker pos) (copy-marker prev)))
-      prev)
-     ((eq prev cache)
-      (if cache
-          (set-marker (car compilation--previous-directory-cache) pos)
+  (if (and compilation--previous-directory-cache
+           (< pos (car compilation--previous-directory-cache))
+           (or (null (cdr compilation--previous-directory-cache))
+               (< (cdr compilation--previous-directory-cache) pos)))
+      ;; No need to call previous-single-property-change.
+      (cdr compilation--previous-directory-cache)
+
+    (let* ((cache (and compilation--previous-directory-cache
+                       (<= (car compilation--previous-directory-cache) pos)
+                       (car compilation--previous-directory-cache)))
+           (prev
+            (previous-single-property-change
+             pos 'compilation-directory nil cache)))
+      (cond
+       ((null cache)
         (setq compilation--previous-directory-cache
-              (cons (copy-marker pos) nil)))
-      (cdr compilation--previous-directory-cache))
-     (t
-      (if cache
-          (progn
+              (cons (copy-marker pos) (copy-marker prev)))
+        prev)
+       ((eq prev cache)
+        (if cache
             (set-marker (car compilation--previous-directory-cache) pos)
-            (setcdr compilation--previous-directory-cache (copy-marker prev)))
-        (setq compilation--previous-directory-cache
-              (cons (copy-marker pos) (copy-marker prev))))
-      prev))))
+          (setq compilation--previous-directory-cache
+                (cons (copy-marker pos) nil)))
+        (cdr compilation--previous-directory-cache))
+       (t
+        (if cache
+            (progn
+              (set-marker (car compilation--previous-directory-cache) pos)
+              (setcdr compilation--previous-directory-cache
+                      (copy-marker prev)))
+          (setq compilation--previous-directory-cache
+                (cons (copy-marker pos) (copy-marker prev))))
+        prev)))))
 
 ;; Internal function for calculating the text properties of a directory
 ;; change message.  The compilation-directory property is important, because it
@@ -1096,14 +1110,6 @@ FMTS is a list of format specs for transforming the file name.
 
 (defun compilation--remove-properties (&optional start end)
   (with-silent-modifications
-    (cond
-     ((or (not compilation--previous-directory-cache)
-          (<= (car compilation--previous-directory-cache) start)))
-     ((or (not (cdr compilation--previous-directory-cache))
-          (<= (cdr compilation--previous-directory-cache) start))
-      (set-marker (car compilation--previous-directory-cache) start))
-     (t (setq compilation--previous-directory-cache nil)))
-
     ;; When compile.el used font-lock directly, we could just remove all
     ;; our text-properties in one go, but now that we manually place
     ;; font-lock-face, we have to be careful to only remove the font-lock-face
@@ -1115,6 +1121,7 @@ FMTS is a list of format specs for transforming the file name.
     (let (next)
       (unless start (setq start (point-min)))
       (unless end (setq end (point-max)))
+      (compilation--flush-directory-cache start end)
       (while
           (progn
             (setq next (or (next-single-property-change
@@ -1152,6 +1159,7 @@ FMTS is a list of format specs for transforming the file name.
     (goto-char start)
     (while (re-search-forward (car compilation-directory-matcher)
                               end t)
+      (compilation--flush-directory-cache (match-beginning 0) (match-end 0))
       (when compilation-debug
         (font-lock-append-text-property
          (match-beginning 0) (match-end 0)
@@ -1169,7 +1177,6 @@ FMTS is a list of format specs for transforming the file name.
   "Parse errors between START and END.
 The errors recognized are the ones specified in RULES which default
 to `compilation-error-regexp-alist' if RULES is nil."
-  (message "compilation-parse-errors: %S %S" start end)
   (dolist (item (or rules compilation-error-regexp-alist))
     (if (symbolp item)
         (setq item (cdr (assq item
@@ -1225,7 +1232,6 @@ to `compilation-error-regexp-alist' if RULES is nil."
 
         (goto-char start)
         (while (re-search-forward pat end t)
-              
           (when (setq props (compilation-error-properties
                              file line end-line col end-col (or type 2) fmt))
 
@@ -1299,7 +1305,6 @@ to `compilation-error-regexp-alist' if RULES is nil."
 
 (defun compilation--flush-parse (start end)
   "Mark the region between START and END for re-parsing."
-  (message "compilation--flush-parse: %S %S" start end)
   (if (markerp compilation--parsed)
       (move-marker compilation--parsed (min start compilation--parsed))))
 
@@ -1697,6 +1702,7 @@ Returns the compilation buffer created."
 
 (defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map special-mode-map)
     (define-key map [mouse-2] 'compile-goto-error)
     (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-c\C-c" 'compile-goto-error)
@@ -1707,7 +1713,6 @@ Returns the compilation buffer created."
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
     (define-key map "g" 'recompile) ; revert
-    (define-key map "q" 'quit-window)
     ;; Set up the menu-bar
     (define-key map [menu-bar compilation]
       (cons "Errors" compilation-menu-map))
@@ -1741,6 +1746,7 @@ Returns the compilation buffer created."
     ;; Don't inherit from compilation-minor-mode-map,
     ;; because that introduces a menu bar item we don't want.
     ;; That confuses C-down-mouse-3.
+    (set-keymap-parent map special-mode-map)
     (define-key map [mouse-2] 'compile-goto-error)
     (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-c\C-c" 'compile-goto-error)
@@ -1753,10 +1759,7 @@ Returns the compilation buffer created."
     (define-key map "\t" 'compilation-next-error)
     (define-key map [backtab] 'compilation-previous-error)
     (define-key map "g" 'recompile) ; revert
-    (define-key map "q" 'quit-window)
 
-    (define-key map " " 'scroll-up)
-    (define-key map "\^?" 'scroll-down)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
 
     ;; Set up the menu-bar
@@ -2126,7 +2129,7 @@ looking for the next message."
   (or pt (setq pt (point)))
   (let* ((msg (get-text-property pt 'compilation-message))
          ;; `loc', `msg', and `last' are used by the compilation-loop macro.
-	 (loc (compilation--message->loc msg))
+	 (loc (and msg (compilation--message->loc msg)))
 	 last)
     (if (zerop n)
 	(unless (or msg			; find message near here
@@ -2140,8 +2143,7 @@ looking for the next message."
 						  (line-end-position)))
 	    (or (setq msg (get-text-property pt 'compilation-message))
 		(setq pt (point)))))
-      (setq last (compilation--loc->file-struct
-                  (compilation--message->loc msg)))
+      (setq last (compilation--loc->file-struct loc))
       (if (>= n 0)
 	  (compilation-loop > compilation-next-single-property-change 1-
 			    (if (get-buffer-process (current-buffer))

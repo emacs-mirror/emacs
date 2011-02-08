@@ -5,6 +5,7 @@
 ;; Maintainer: FSF
 ;; Keywords: wp, unix
 ;; Obsolete-since: 23.1
+;;   (not in obsolete/ directory then, but all functions marked obsolete)
 
 ;; This file is part of GNU Emacs.
 

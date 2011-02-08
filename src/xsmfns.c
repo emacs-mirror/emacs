@@ -38,6 +38,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "termopts.h"
 #include "xterm.h"
+#include "process.h"
+#include "keyboard.h"
 
 /* This is the event used when SAVE_SESSION_EVENT occurs.  */
 
@@ -82,28 +84,20 @@ static void
 ice_connection_closed (void)
 {
   if (ice_fd >= 0)
-    delete_keyboard_wait_descriptor (ice_fd);
+    delete_read_fd (ice_fd);
   ice_fd = -1;
 }
 
 
 /* Handle any messages from the session manager.  If no connection is
-   open to a session manager, just return 0.
-   Otherwise returns 1 if SAVE_SESSION_EVENT is stored in buffer BUFP.  */
+   open to a session manager, just return.  */
 
-int
-x_session_check_input (struct input_event *bufp)
+static void
+x_session_check_input (int fd, void *data, int for_read)
 {
-  SELECT_TYPE read_fds;
-  EMACS_TIME tmout;
   int ret;
 
-  if (ice_fd == -1) return 0;
-  FD_ZERO (&read_fds);
-  FD_SET (ice_fd, &read_fds);
-
-  tmout.tv_sec = 0;
-  tmout.tv_usec = 0;
+  if (ice_fd == -1) return;
 
   /* Reset this so wo can check kind after callbacks have been called by
      IceProcessMessages.  The smc_interact_CB sets the kind to
@@ -111,33 +105,21 @@ x_session_check_input (struct input_event *bufp)
      will be called.  */
   emacs_event.kind = NO_EVENT;
 
-  ret = select (ice_fd+1, &read_fds,
-                (SELECT_TYPE *)0, (SELECT_TYPE *)0, &tmout);
-
-  if (ret < 0)
+  ret = IceProcessMessages (SmcGetIceConnection (smc_conn),
+                            (IceReplyWaitInfo *)0, (Bool *)0);
+  if (ret != IceProcessMessagesSuccess)
     {
+      /* Either IO error or Connection closed.  */
+      if (ret == IceProcessMessagesIOError)
+        IceCloseConnection (SmcGetIceConnection (smc_conn));
+
       ice_connection_closed ();
-    }
-  else if (ret > 0 && FD_ISSET (ice_fd, &read_fds))
-    {
-      ret = IceProcessMessages (SmcGetIceConnection (smc_conn),
-                                (IceReplyWaitInfo *)0, (Bool *)0);
-      if (ret != IceProcessMessagesSuccess)
-        {
-          /* Either IO error or Connection closed.  */
-          if (ret == IceProcessMessagesIOError)
-            IceCloseConnection (SmcGetIceConnection (smc_conn));
-
-          ice_connection_closed ();
-        }
     }
 
   /* Check if smc_interact_CB was called and we shall generate a
      SAVE_SESSION_EVENT.  */
   if (emacs_event.kind != NO_EVENT)
-    memcpy (bufp, &emacs_event, sizeof (struct input_event));
-
-  return emacs_event.kind != NO_EVENT ? 1 : 0;
+    kbd_buffer_store_event (&emacs_event);
 }
 
 /* Return non-zero if we have a connection to a session manager.  */
@@ -181,11 +163,11 @@ smc_save_yourself_CB (SmcConn smcConn,
   SmProp *props[NR_PROPS];
   SmProp prop_ptr[NR_PROPS];
 
-  SmPropValue values[20];
-  int val_idx = 0;
+  SmPropValue values[20], *vp;
+  int val_idx = 0, vp_idx = 0;
   int props_idx = 0;
   int i;
-  char *cwd = NULL;
+  char *cwd = get_current_dir_name ();
   char *smid_opt, *chdir_opt = NULL;
 
   /* How to start a new instance of Emacs.  */
@@ -206,40 +188,6 @@ smc_save_yourself_CB (SmcConn smcConn,
   props[props_idx]->vals = &values[val_idx++];
   props[props_idx]->vals[0].length = strlen (SSDATA (Vinvocation_name));
   props[props_idx]->vals[0].value = SDATA (Vinvocation_name);
-  ++props_idx;
-
-  /* How to restart Emacs.  */
-  props[props_idx] = &prop_ptr[props_idx];
-  props[props_idx]->name = xstrdup (SmRestartCommand);
-  props[props_idx]->type = xstrdup (SmLISTofARRAY8);
-  /* /path/to/emacs, --smid=xxx --no-splash --chdir=dir */
-  props[props_idx]->num_vals = 4;
-  props[props_idx]->vals = &values[val_idx];
-  props[props_idx]->vals[0].length = strlen (emacs_program);
-  props[props_idx]->vals[0].value = emacs_program;
-
-  smid_opt = xmalloc (strlen (SMID_OPT) + strlen (client_id) + 1);
-  strcpy (smid_opt, SMID_OPT);
-  strcat (smid_opt, client_id);
-
-  props[props_idx]->vals[1].length = strlen (smid_opt);
-  props[props_idx]->vals[1].value = smid_opt;
-
-  props[props_idx]->vals[2].length = strlen (NOSPLASH_OPT);
-  props[props_idx]->vals[2].value = NOSPLASH_OPT;
-
-  cwd = get_current_dir_name ();
-  if (cwd)
-    {
-      chdir_opt = xmalloc (strlen (CHDIR_OPT) + strlen (cwd) + 1);
-      strcpy (chdir_opt, CHDIR_OPT);
-      strcat (chdir_opt, cwd);
-
-      props[props_idx]->vals[3].length = strlen (chdir_opt);
-      props[props_idx]->vals[3].value = chdir_opt;
-    }
-
-  val_idx += cwd ? 4 : 3;
   ++props_idx;
 
   /* User id.  */
@@ -266,12 +214,53 @@ smc_save_yourself_CB (SmcConn smcConn,
     }
 
 
+  /* How to restart Emacs.  */
+  props[props_idx] = &prop_ptr[props_idx];
+  props[props_idx]->name = xstrdup (SmRestartCommand);
+  props[props_idx]->type = xstrdup (SmLISTofARRAY8);
+  /* /path/to/emacs, --smid=xxx --no-splash --chdir=dir ... */
+  i = 3 + initial_argc;
+  props[props_idx]->num_vals = i;
+  vp = (SmPropValue *) xmalloc (i * sizeof(*vp));
+  props[props_idx]->vals = vp;
+  props[props_idx]->vals[vp_idx].length = strlen (emacs_program);
+  props[props_idx]->vals[vp_idx++].value = emacs_program;
+
+  smid_opt = xmalloc (strlen (SMID_OPT) + strlen (client_id) + 1);
+  strcpy (smid_opt, SMID_OPT);
+  strcat (smid_opt, client_id);
+
+  props[props_idx]->vals[vp_idx].length = strlen (smid_opt);
+  props[props_idx]->vals[vp_idx++].value = smid_opt;
+
+  props[props_idx]->vals[vp_idx].length = strlen (NOSPLASH_OPT);
+  props[props_idx]->vals[vp_idx++].value = NOSPLASH_OPT;
+
+  if (cwd)
+    {
+      chdir_opt = xmalloc (strlen (CHDIR_OPT) + strlen (cwd) + 1);
+      strcpy (chdir_opt, CHDIR_OPT);
+      strcat (chdir_opt, cwd);
+
+      props[props_idx]->vals[vp_idx].length = strlen (chdir_opt);
+      props[props_idx]->vals[vp_idx++].value = chdir_opt;
+    }
+
+  for (i = 1; i < initial_argc; ++i) 
+    {
+      props[props_idx]->vals[vp_idx].length = strlen (initial_argv[i]);
+      props[props_idx]->vals[vp_idx++].value = initial_argv[i];
+    }
+
+  ++props_idx;
+
   SmcSetProperties (smcConn, props_idx, props);
 
   xfree (smid_opt);
   xfree (chdir_opt);
+  xfree (cwd);
+  xfree (vp);
 
-  free (cwd);
   for (i = 0; i < props_idx; ++i)
     {
       xfree (props[i]->type);
@@ -355,7 +344,8 @@ ice_io_error_handler (IceConn iceConn)
    uses ICE as it transport protocol.  */
 
 static void
-ice_conn_watch_CB (IceConn iceConn, IcePointer clientData, int opening, IcePointer *watchData)
+ice_conn_watch_CB (IceConn iceConn, IcePointer clientData,
+                   int opening, IcePointer *watchData)
 {
   if (! opening)
     {
@@ -364,16 +354,7 @@ ice_conn_watch_CB (IceConn iceConn, IcePointer clientData, int opening, IcePoint
     }
 
   ice_fd = IceConnectionNumber (iceConn);
-#ifdef F_SETOWN
-  fcntl (ice_fd, F_SETOWN, getpid ());
-#endif /* ! defined (F_SETOWN) */
-
-#ifdef SIGIO
-  if (interrupt_input)
-    init_sigio (ice_fd);
-#endif /* ! defined (SIGIO) */
-
-  add_keyboard_wait_descriptor (ice_fd);
+  add_read_fd (ice_fd, x_session_check_input, NULL);
 }
 
 /* Create the client leader window.  */

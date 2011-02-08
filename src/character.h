@@ -612,7 +612,7 @@ extern EMACS_INT str_to_multibyte (unsigned char *, EMACS_INT, EMACS_INT);
 extern EMACS_INT str_as_unibyte (unsigned char *, EMACS_INT);
 extern EMACS_INT str_to_unibyte (const unsigned char *, unsigned char *,
                                  EMACS_INT, int);
-extern EMACS_INT strwidth (const unsigned char *, EMACS_INT);
+extern EMACS_INT strwidth (const char *, EMACS_INT);
 extern EMACS_INT c_string_width (const unsigned char *, EMACS_INT, int,
 				 EMACS_INT *, EMACS_INT *);
 extern EMACS_INT lisp_string_width (Lisp_Object, int,
@@ -630,4 +630,3 @@ extern Lisp_Object string_escape_byte8 (Lisp_Object);
   do { (sym) = intern_c_string ((name)); staticpro (&(sym)); } while (0)
 
 #endif /* EMACS_CHARACTER_H */
-

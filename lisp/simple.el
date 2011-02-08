@@ -411,9 +411,11 @@ Other major modes are defined by comparison with this one."
     (define-key map " " 'scroll-up)
     (define-key map "\C-?" 'scroll-down)
     (define-key map "?" 'describe-mode)
+    (define-key map "h" 'describe-mode)
     (define-key map ">" 'end-of-buffer)
     (define-key map "<" 'beginning-of-buffer)
     (define-key map "g" 'revert-buffer)
+    (define-key map "z" 'kill-this-buffer)
     map))
 
 (put 'special-mode 'mode-class 'special)
@@ -5890,6 +5892,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
     (define-key map [left] 'previous-completion)
     (define-key map [right] 'next-completion)
     (define-key map "q" 'quit-window)
+    (define-key map "z" 'kill-this-buffer)
     map)
   "Local map for completion list buffers.")
 

@@ -1,3 +1,63 @@
+2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	gnulib: allow multiple gnulib generated replacements to coexist
+	This defines a few preprocessor symbols that should not affect Emacs.
+	* lib/getopt.in.h, lib/time.in.h, lib/unistd.in.h: Regenerate
+	via "make sync-from-gnulib".
+
+	gnulib: undo previous change
+	The upstream _HEADERS change was backed out of gnulib (see the
+	same thread).  Stay in sync with gnulib.
+
+	gnulib: adjust to upstream _HEADERS change
+	* lib/Makefile.am (EXTRA_HEADERS, nodist_pkginclude_HEADERS):
+	New empty macros, to accommodate recent changes to gnulib.  See
+	<http://lists.gnu.org/archive/html/bug-gnulib/2011-02/msg00068.html>.
+	* c++defs.h, lib/Makefile.in, lib/ftoastr.h, lib/getopt.in.h:
+	* lib/gnulib.mk, lib/ignore-value.h, lib/stdbool.in.h, lib/stddef.in.h:
+	* lib/time.in.h, lib/unistd.in.h:
+	Regenerate.
+
+2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	sync from gnulib to remove HAVE_STDBOOL_H
+	* m4/stdbool.m4 (AC_CHECK_HEADER_STDBOOL): Renamed from
+	AC_HEADER_STDBOOL.  All uses changed.  Do not define
+	HAVE_STDBOOL_H, as gnulib does not need this.  This change is
+	imported from the latest Autoconf git.  It was motivated by Emacs,
+	which uses gnulib but does not need HAVE_STDBOOL_H.
+	* configure, src/config.in: Regenerate.
+	* config.guess, config.sub: Sync to 2011-02-02 versions (whitespace)
+
+2011-02-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	allow C code to suppress warnings about ignored return values
+	* Makefile.in (GNULIB_MODULES): Add ignore-value.
+	* configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4: Regenerate.
+	* lib/ignore-value.h: New file.
+
+2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Test existence of xaw3d library, not just the
+	header (Bug#7642).
+
+2011-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/strftime.$(O) and
+	$(BLD)/time_r.$(O).
+	($(BLD)/dtoastr.$(O)): Depend on $(EMACS_ROOT)/src/s/ms-w32.h and
+	$(EMACS_ROOT)/src/m/intel386.h.
+	($(BLD)/strftime.$(O)):
+	($(BLD)/time_r.$(O)): Define prerequisites.
+
+2011-01-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	src/emacs.c now gets version number from configure.in
+	* configure.in (version): Set this from $PACKAGE_VERSION,
+	which is set from AC_INIT, rather than scouting through src/emacs.c.
+	* configure: Regenerate.
+	* make-dist (version): Get it from configure.in, not src/emacs.c.
+
 2011-01-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	strftime: import from gnulib

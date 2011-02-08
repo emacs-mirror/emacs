@@ -173,7 +173,7 @@ make_destroyed_instance (char* name,
                          Boolean pop_up_p)
 {
   destroyed_instance* instance =
-    (destroyed_instance*)malloc (sizeof (destroyed_instance));
+    (destroyed_instance*) xmalloc (sizeof (destroyed_instance));
   instance->name = safe_strdup (name);
   instance->type = safe_strdup (type);
   instance->widget = widget;

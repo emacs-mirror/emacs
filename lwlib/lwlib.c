@@ -109,9 +109,7 @@ safe_strdup (const char *s)
 {
   char *result;
   if (! s) return 0;
-  result = (char *) malloc (strlen (s) + 1);
-  if (! result)
-    return 0;
+  result = (char *) xmalloc (strlen (s) + 1);
   strcpy (result, s);
   return result;
 }
@@ -157,7 +155,7 @@ malloc_widget_value (void)
     }
   else
     {
-      wv = (widget_value *) malloc (sizeof (widget_value));
+      wv = (widget_value *) xmalloc (sizeof (widget_value));
       malloc_cpt++;
     }
   memset ((void*) wv, 0, sizeof (widget_value));
@@ -257,7 +255,7 @@ allocate_widget_info (const char* type,
                       lw_callback post_activate_cb,
                       lw_callback highlight_cb)
 {
-  widget_info* info = (widget_info*)malloc (sizeof (widget_info));
+  widget_info* info = (widget_info*) xmalloc (sizeof (widget_info));
   info->type = safe_strdup (type);
   info->name = safe_strdup (name);
   info->id = id;
@@ -299,7 +297,7 @@ static widget_instance *
 allocate_widget_instance (widget_info* info, Widget parent, Boolean pop_up_p)
 {
   widget_instance* instance =
-    (widget_instance*)malloc (sizeof (widget_instance));
+    (widget_instance*) xmalloc (sizeof (widget_instance));
   memset (instance, 0, sizeof *instance);
   instance->parent = parent;
   instance->pop_up_p = pop_up_p;

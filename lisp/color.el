@@ -47,6 +47,20 @@ RED GREEN BLUE must be values between 0 and 1 inclusively."
           (- 1.0 (cadr color))
           (- 1.0 (caddr color)))))
 
+(defun color-gradient (start stop step-number)
+  "Return a list with STEP-NUMBER colors from START to STOP.
+The color list builds a color gradient starting at color START to
+color STOP. It does not include the START and STOP color in the
+resulting list."
+  (loop for i from 1 to step-number
+        with red-step = (/ (- (car stop) (car start)) (1+ step-number))
+        with green-step = (/ (- (cadr stop) (cadr start)) (1+ step-number))
+        with blue-step = (/ (- (caddr stop) (caddr start)) (1+ step-number))
+        collect (list
+                 (+ (car start) (* i red-step))
+                 (+ (cadr start) (* i green-step))
+                 (+ (caddr start) (* i blue-step)))))
+
 (defun color-complement-hex (color)
   "Return the color that is the complement of COLOR, in hexadecimal format."
   (apply 'color-rgb->hex (color-complement color)))

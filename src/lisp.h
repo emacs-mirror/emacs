@@ -2555,10 +2555,10 @@ extern int count_combining_before (const unsigned char *,
 				   EMACS_INT, EMACS_INT, EMACS_INT);
 extern int count_combining_after (const unsigned char *,
 				  EMACS_INT, EMACS_INT, EMACS_INT);
-extern void insert (const unsigned char *, EMACS_INT);
-extern void insert_and_inherit (const unsigned char *, EMACS_INT);
-extern void insert_1 (const unsigned char *, EMACS_INT, int, int, int);
-extern void insert_1_both (const unsigned char *, EMACS_INT, EMACS_INT,
+extern void insert (const char *, EMACS_INT);
+extern void insert_and_inherit (const char *, EMACS_INT);
+extern void insert_1 (const char *, EMACS_INT, int, int, int);
+extern void insert_1_both (const char *, EMACS_INT, EMACS_INT,
 			   int, int, int);
 extern void insert_from_gap (EMACS_INT, EMACS_INT);
 extern void insert_from_string (Lisp_Object, EMACS_INT, EMACS_INT,
@@ -2566,9 +2566,8 @@ extern void insert_from_string (Lisp_Object, EMACS_INT, EMACS_INT,
 extern void insert_from_buffer (struct buffer *, EMACS_INT, EMACS_INT, int);
 extern void insert_char (int);
 extern void insert_string (const char *);
-extern void insert_before_markers (const unsigned char *, EMACS_INT);
-extern void insert_before_markers_and_inherit (const unsigned char *,
-					       EMACS_INT);
+extern void insert_before_markers (const char *, EMACS_INT);
+extern void insert_before_markers_and_inherit (const char *, EMACS_INT);
 extern void insert_from_string_before_markers (Lisp_Object, EMACS_INT,
 					       EMACS_INT, EMACS_INT,
 					       EMACS_INT, int);
@@ -2788,7 +2787,7 @@ extern void print_error_message (Lisp_Object, Lisp_Object, const char *,
 extern Lisp_Object internal_with_output_to_temp_buffer
         (const char *, Lisp_Object (*) (Lisp_Object), Lisp_Object);
 #define FLOAT_TO_STRING_BUFSIZE 350
-extern void float_to_string (unsigned char *, double);
+extern void float_to_string (char *, double);
 extern void syms_of_print (void);
 
 /* Defined in doprnt.c */

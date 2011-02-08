@@ -223,17 +223,9 @@ before the external MIME handler is invoked."
     ("text/plain" mm-inline-text identity)
     ("text/enriched" mm-inline-text identity)
     ("text/richtext" mm-inline-text identity)
-    ("text/x-patch" mm-display-patch-inline
-     (lambda (handle)
-       ;; If the diff-mode.el package is installed, the function is
-       ;; autoloaded.  Checking (locate-library "diff-mode") would be trying
-       ;; to cater to broken installations.  OTOH checking the function
-       ;; makes it possible to install another package which provides an
-       ;; alternative implementation of diff-mode.  --Stef
-       (fboundp 'diff-mode)))
+    ("text/x-patch" mm-display-patch-inline identity)
     ;; In case mime.types uses x-diff (as does Debian's mime-support-3.40).
-    ("text/x-diff" mm-display-patch-inline
-     (lambda (handle) (fboundp 'diff-mode)))
+    ("text/x-diff" mm-display-patch-inline identity)
     ("application/emacs-lisp" mm-display-elisp-inline identity)
     ("application/x-emacs-lisp" mm-display-elisp-inline identity)
     ("application/x-shellscript" mm-display-shell-script-inline identity)

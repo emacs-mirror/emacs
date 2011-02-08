@@ -2347,7 +2347,8 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
 	    (bindat-get-field breakpoint 'what)
 	  (or pending at
 	      (concat "in "
-		      (propertize func 'font-lock-face font-lock-function-name-face)
+		      (propertize (or func "unknown")
+                                  'font-lock-face font-lock-function-name-face)
 		      (gdb-frame-location breakpoint)))))
        ;; Add clickable properties only for breakpoints with file:line
        ;; information

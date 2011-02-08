@@ -1,3 +1,11 @@
+2011-01-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xm.c (make_destroyed_instance):
+	* lwlib-utils.c (XtApplyToWidgets):
+	* lwlib.c (safe_strdup, malloc_widget_value)
+	(allocate_widget_info, allocate_widget_instance): Use xmalloc
+	instead of malloc.
+
 2011-01-25  Werner Meisner  <weme24@gmx.net>
 
 	* lwlib-Xm.c (xm_update_menu): Avoid a NULL pointer dereference

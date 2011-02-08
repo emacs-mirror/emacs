@@ -43,6 +43,8 @@
 (require 'mail-utils)
 (require 'mm-util)
 (require 'gnus-util)
+(autoload 'gnus-range-add "gnus-range")
+(autoload 'gnus-remove-from-range "gnus-range")
 ;; FIXME none of these are used explicitly in this file.
 (autoload 'gnus-sorted-intersection "gnus-range")
 (autoload 'gnus-intersection "gnus-range")

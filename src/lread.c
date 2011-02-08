@@ -2771,7 +2771,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  ;
 	else if (force_singlebyte)
 	  {
-	    nchars = str_as_unibyte (read_buffer, p - read_buffer);
+	    nchars = str_as_unibyte ((unsigned char *) read_buffer,
+				     p - read_buffer);
 	    p = read_buffer + nchars;
 	  }
 	else
@@ -2841,7 +2842,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		}
 
 	      if (multibyte)
-		p += CHAR_STRING (c, p);
+		p += CHAR_STRING (c, (unsigned char *) p);
 	      else
 		*p++ = c;
 	      c = READCHAR;
@@ -2950,7 +2951,9 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  Lisp_Object name, result;
 	  EMACS_INT nbytes = p - read_buffer;
 	  EMACS_INT nchars
-	    = (multibyte ? multibyte_chars_in_text (read_buffer, nbytes)
+	    = (multibyte
+	       ? multibyte_chars_in_text ((unsigned char *) read_buffer,
+					  nbytes)
 	       : nbytes);
 
 	  if (uninterned_symbol && ! NILP (Vpurify_flag))
@@ -3442,7 +3445,7 @@ Lisp_Object initial_obarray;
 
 int oblookup_last_bucket_number;
 
-static int hash_string (const unsigned char *ptr, int len);
+static int hash_string (const char *ptr, int len);
 
 /* Get an error if OBARRAY is not an obarray.
    If it is one, return it.  */
@@ -3700,10 +3703,10 @@ oblookup (Lisp_Object obarray, register const char *ptr, EMACS_INT size, EMACS_I
 }
 
 static int
-hash_string (const unsigned char *ptr, int len)
+hash_string (const char *ptr, int len)
 {
-  register const unsigned char *p = ptr;
-  register const unsigned char *end = p + len;
+  register const char *p = ptr;
+  register const char *end = p + len;
   register unsigned char c;
   register int hash = 0;
 

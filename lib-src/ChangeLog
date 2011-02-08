@@ -1,3 +1,26 @@
+2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacsclient.c: conform to C89 pointer rules
+	(file_name_absolute_p): Accept const char *, not const unsigned
+	char *, to satisfy C89 rules.
+
+2011-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (ETAGS_CFLAGS, CTAGS_CFLAGS): Add
+	``-DEMACS_NAME="\"GNU Emacs\""''.
+	(obj): Remove strftime.o.
+
+2011-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (VERSION): Don't define, defined on nt/config.nt.
+	(ECLIENT_CFLAGS): Remove -DVERSION.
+	($(BLD)/emacsclient.$(O)): Don't depend on makefile.w32-in.
+
+2011-01-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	src/emacs.c now gets version number from configure.in
+	* ebrowse.c: Adjust comment to say that.
+
 2011-01-30  Jim Meyering  <meyering@redhat.com>
 
 	make-docfile: don't corrupt heap for an invalid .elc file

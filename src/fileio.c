@@ -79,12 +79,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DRIVE(x) ((x) >= 'A' && (x) <= 'z')
 #endif
 #ifdef WINDOWSNT
-#define IS_DRIVE(x) isalpha (x)
+#define IS_DRIVE(x) isalpha ((unsigned char) (x))
 #endif
 /* Need to lower-case the drive letter, or else expanded
    filenames will sometimes compare inequal, because
    `expand-file-name' doesn't always down-case the drive letter.  */
-#define DRIVE_LETTER(x) (tolower (x))
+#define DRIVE_LETTER(x) (tolower ((unsigned char) (x)))
 #endif
 
 #include "systime.h"
@@ -193,7 +193,7 @@ report_file_error (const char *string, Lisp_Object data)
 	    int c;
 
 	    str = SSDATA (errstring);
-	    c = STRING_CHAR (str);
+	    c = STRING_CHAR ((unsigned char *) str);
 	    Faset (errstring, make_number (0), make_number (DOWNCASE (c)));
 	  }
 
@@ -324,11 +324,11 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
   (Lisp_Object filename)
 {
 #ifndef DOS_NT
-  register const unsigned char *beg;
+  register const char *beg;
 #else
-  register unsigned char *beg;
+  register char *beg;
 #endif
-  register const unsigned char *p;
+  register const char *p;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
@@ -341,10 +341,10 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 
   filename = FILE_SYSTEM_CASE (filename);
 #ifdef DOS_NT
-  beg = (unsigned char *) alloca (SBYTES (filename) + 1);
-  memcpy (beg, SDATA (filename), SBYTES (filename) + 1);
+  beg = (char *) alloca (SBYTES (filename) + 1);
+  memcpy (beg, SSDATA (filename), SBYTES (filename) + 1);
 #else
-  beg = SDATA (filename);
+  beg = SSDATA (filename);
 #endif
   p = beg + SBYTES (filename);
 
@@ -365,8 +365,8 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
   if (p[-1] == ':')
     {
       /* MAXPATHLEN+1 is guaranteed to be enough space for getdefdir.  */
-      unsigned char *res = alloca (MAXPATHLEN + 1);
-      unsigned char *r = res;
+      char *res = alloca (MAXPATHLEN + 1);
+      char *r = res;
 
       if (p == beg + 4 && IS_DIRECTORY_SEP (*beg) && beg[1] == ':')
 	{
@@ -375,7 +375,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 	  r += 2;
 	}
 
-      if (getdefdir (toupper (*beg) - 'A' + 1, r))
+      if (getdefdir (toupper ((unsigned char) *beg) - 'A' + 1, r))
 	{
 	  if (!IS_DIRECTORY_SEP (res[strlen (res) - 1]))
 	    strcat (res, "/");
@@ -397,7 +397,7 @@ this is everything after the last slash,
 or the entire name if it contains no slash.  */)
   (Lisp_Object filename)
 {
-  register const unsigned char *beg, *p, *end;
+  register const char *beg, *p, *end;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
@@ -408,7 +408,7 @@ or the entire name if it contains no slash.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_name_nondirectory, filename);
 
-  beg = SDATA (filename);
+  beg = SSDATA (filename);
   end = p = beg + SBYTES (filename);
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
@@ -600,7 +600,7 @@ make_temp_name (Lisp_Object prefix, int base64_p)
   Lisp_Object val;
   int len, clen;
   int pid;
-  unsigned char *p, *data;
+  char *p, *data;
   char pidbuf[20];
   int pidlen;
 
@@ -637,8 +637,8 @@ make_temp_name (Lisp_Object prefix, int base64_p)
   val = make_uninit_multibyte_string (clen + 3 + pidlen, len + 3 + pidlen);
   if (!STRING_MULTIBYTE (prefix))
     STRING_SET_UNIBYTE (val);
-  data = SDATA (val);
-  memcpy (data, SDATA (prefix), len);
+  data = SSDATA (val);
+  memcpy (data, SSDATA (prefix), len);
   p = data + len;
 
   memcpy (p, pidbuf, pidlen);
@@ -744,9 +744,9 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 {
   /* These point to SDATA and need to be careful with string-relocation
      during GC (via DECODE_FILE).  */
-  unsigned char *nm, *newdir;
+  char *nm, *newdir;
   /* This should only point to alloca'd data.  */
-  unsigned char *target;
+  char *target;
 
   int tlen;
   struct passwd *pw;
@@ -796,7 +796,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
     }
 
   {
-    unsigned char *o = SDATA (default_directory);
+    char *o = SSDATA (default_directory);
 
     /* Make sure DEFAULT_DIRECTORY is properly expanded.
        It would be better to do this down below where we actually use
@@ -848,8 +848,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
     }
 
   /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below. */
-  nm = (unsigned char *) alloca (SBYTES (name) + 1);
-  memcpy (nm, SDATA (name), SBYTES (name) + 1);
+  nm = (char *) alloca (SBYTES (name) + 1);
+  memcpy (nm, SSDATA (name), SBYTES (name) + 1);
 
 #ifdef DOS_NT
   /* Note if special escape prefix is present, but remove for now.  */
@@ -864,7 +864,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
      drive specifier at the beginning.  */
   if (IS_DRIVE (nm[0]) && IS_DEVICE_SEP (nm[1]))
     {
-      drive = nm[0];
+      drive = (unsigned char) nm[0];
       nm += 2;
     }
 
@@ -903,7 +903,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	 non-zero value, that means we've discovered that we can't do
 	 that cool trick.  */
       int lose = 0;
-      unsigned char *p = nm;
+      char *p = nm;
 
       while (*p)
 	{
@@ -941,7 +941,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  else
 #endif
 	  /* drive must be set, so this is okay */
-	  if (strcmp (nm - 2, SDATA (name)) != 0)
+	  if (strcmp (nm - 2, SSDATA (name)) != 0)
 	    {
 	      char temp[] = " :";
 
@@ -983,8 +983,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	{
 	  Lisp_Object tem;
 
-	  if (!(newdir = (unsigned char *) egetenv ("HOME")))
-	    newdir = (unsigned char *) "";
+	  if (!(newdir = egetenv ("HOME")))
+	    newdir = "";
 	  nm++;
 	  /* egetenv may return a unibyte string, which will bite us since
 	     we expect the directory to be multibyte.  */
@@ -992,7 +992,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  if (!STRING_MULTIBYTE (tem))
 	    {
 	      hdir = DECODE_FILE (tem);
-	      newdir = SDATA (hdir);
+	      newdir = SSDATA (hdir);
 	    }
 #ifdef DOS_NT
 	  collapse_newdir = 0;
@@ -1000,7 +1000,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	}
       else			/* ~user/filename */
 	{
-	  unsigned char *o, *p;
+	  char *o, *p;
 	  for (p = nm; *p && (!IS_DIRECTORY_SEP (*p)); p++);
 	  o = alloca (p - nm + 1);
 	  memcpy (o, nm, p - nm);
@@ -1011,7 +1011,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  UNBLOCK_INPUT;
 	  if (pw)
 	    {
-	      newdir = (unsigned char *) pw -> pw_dir;
+	      newdir = pw->pw_dir;
 	      nm = p;
 #ifdef DOS_NT
 	      collapse_newdir = 0;
@@ -1060,7 +1060,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #endif
       && !newdir)
     {
-      newdir = SDATA (default_directory);
+      newdir = SSDATA (default_directory);
 #ifdef DOS_NT
       /* Note if special escape prefix is present, but remove for now.  */
       if (newdir[0] == '/' && newdir[1] == ':')
@@ -1093,7 +1093,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 
 	  if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
 	    {
-	      drive = newdir[0];
+	      drive = (unsigned char) newdir[0];
 	      newdir += 2;
 	    }
 	  if (!IS_DIRECTORY_SEP (nm[0]))
@@ -1127,7 +1127,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1]))
 	    {
-	      unsigned char *p;
+	      char *p;
 	      newdir = strcpy (alloca (strlen (newdir) + 1), newdir);
 	      p = newdir + 2;
 	      while (*p && !IS_DIRECTORY_SEP (*p)) p++;
@@ -1153,7 +1153,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #endif
 	  )
 	{
-	  unsigned char *temp = (unsigned char *) alloca (length);
+	  char *temp = (char *) alloca (length);
 	  memcpy (temp, newdir, length - 1);
 	  temp[length - 1] = 0;
 	  newdir = temp;
@@ -1169,10 +1169,10 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   /* Reserve space for drive specifier and escape prefix, since either
      or both may need to be inserted.  (The Microsoft x86 compiler
      produces incorrect code if the following two lines are combined.)  */
-  target = (unsigned char *) alloca (tlen + 4);
+  target = (char *) alloca (tlen + 4);
   target += 4;
 #else  /* not DOS_NT */
-  target = (unsigned char *) alloca (tlen);
+  target = (char *) alloca (tlen);
 #endif /* not DOS_NT */
   *target = 0;
 
@@ -1200,8 +1200,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   /* Now canonicalize by removing `//', `/.' and `/foo/..' if they
      appear.  */
   {
-    unsigned char *p = target;
-    unsigned char *o = target;
+    char *p = target;
+    char *o = target;
 
     while (*p)
       {
@@ -1233,7 +1233,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 		 && (IS_DIRECTORY_SEP (p[3]) || p[3] == 0))
 	  {
 #ifdef WINDOWSNT
-	    unsigned char *prev_o = o;
+	    char *prev_o = o;
 #endif
 	    while (o != target && (--o) && !IS_DIRECTORY_SEP (*o))
 	      ;
@@ -1460,7 +1460,7 @@ See also the function `substitute-in-file-name'.")
 
 /* If /~ or // appears, discard everything through first slash.  */
 static int
-file_name_absolute_p (const unsigned char *filename)
+file_name_absolute_p (const char *filename)
 {
   return
     (IS_DIRECTORY_SEP (*filename) || *filename == '~'
@@ -1471,10 +1471,10 @@ file_name_absolute_p (const unsigned char *filename)
      );
 }
 
-static unsigned char *
-search_embedded_absfilename (unsigned char *nm, unsigned char *endp)
+static char *
+search_embedded_absfilename (char *nm, char *endp)
 {
-  unsigned char *p, *s;
+  char *p, *s;
 
   for (p = nm + 1; p < endp; p++)
     {
@@ -1491,7 +1491,7 @@ search_embedded_absfilename (unsigned char *nm, unsigned char *endp)
 	  for (s = p; *s && (!IS_DIRECTORY_SEP (*s)); s++);
 	  if (p[0] == '~' && s > p + 1)	/* we've got "/~something/" */
 	    {
-	      unsigned char *o = alloca (s - p + 1);
+	      char *o = alloca (s - p + 1);
 	      struct passwd *pw;
 	      memcpy (o, p, s - p);
 	      o [s - p] = 0;
@@ -1525,14 +1525,14 @@ If `//' appears, everything up to and including the first of
 those `/' is discarded.  */)
   (Lisp_Object filename)
 {
-  unsigned char *nm;
+  char *nm;
 
-  register unsigned char *s, *p, *o, *x, *endp;
-  unsigned char *target = NULL;
+  register char *s, *p, *o, *x, *endp;
+  char *target = NULL;
   int total = 0;
   int substituted = 0;
   int multibyte;
-  unsigned char *xnm;
+  char *xnm;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
@@ -1548,7 +1548,7 @@ those `/' is discarded.  */)
   /* Always work on a copy of the string, in case GC happens during
      decode of environment variables, causing the original Lisp_String
      data to be relocated.  */
-  nm = (unsigned char *) alloca (SBYTES (filename) + 1);
+  nm = (char *) alloca (SBYTES (filename) + 1);
   memcpy (nm, SDATA (filename), SBYTES (filename) + 1);
 
 #ifdef DOS_NT
@@ -1600,7 +1600,7 @@ those `/' is discarded.  */)
 	  }
 
 	/* Copy out the variable name */
-	target = (unsigned char *) alloca (s - o + 1);
+	target = (char *) alloca (s - o + 1);
 	strncpy (target, o, s - o);
 	target[s - o] = 0;
 #ifdef DOS_NT
@@ -1608,7 +1608,7 @@ those `/' is discarded.  */)
 #endif /* DOS_NT */
 
 	/* Get variable value */
-	o = (unsigned char *) egetenv (target);
+	o = egetenv (target);
 	if (o)
 	  {
 	    /* Don't try to guess a maximum length - UTF8 can use up to
@@ -1631,7 +1631,7 @@ those `/' is discarded.  */)
 
   /* If substitution required, recopy the string and do it */
   /* Make space in stack frame for the new copy */
-  xnm = (unsigned char *) alloca (SBYTES (filename) + total + 1);
+  xnm = (char *) alloca (SBYTES (filename) + total + 1);
   x = xnm;
 
   /* Copy the rest of the name through, replacing $ constructs with values */
@@ -1663,7 +1663,7 @@ those `/' is discarded.  */)
 	  }
 
 	/* Copy out the variable name */
-	target = (unsigned char *) alloca (s - o + 1);
+	target = (char *) alloca (s - o + 1);
 	strncpy (target, o, s - o);
 	target[s - o] = 0;
 #ifdef DOS_NT
@@ -1671,7 +1671,7 @@ those `/' is discarded.  */)
 #endif /* DOS_NT */
 
 	/* Get variable value */
-	o = (unsigned char *) egetenv (target);
+	o = egetenv (target);
 	if (!o)
 	  {
 	    *x++ = '$';
@@ -1751,7 +1751,8 @@ expand_and_dir_to_file (Lisp_Object filename, Lisp_Object defdir)
    If QUICK is nonzero, we ask for y or n, not yes or no.  */
 
 void
-barf_or_query_if_file_exists (Lisp_Object absname, const unsigned char *querystring, int interactive, struct stat *statptr, int quick)
+barf_or_query_if_file_exists (Lisp_Object absname, const char *querystring,
+			      int interactive, struct stat *statptr, int quick)
 {
   register Lisp_Object tem, encoded_filename;
   struct stat statbuf;
@@ -2027,7 +2028,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
        doc: /* Create a new directory named DIRECTORY.  */)
   (Lisp_Object directory)
 {
-  const unsigned char *dir;
+  const char *dir;
   Lisp_Object handler;
   Lisp_Object encoded_dir;
 
@@ -2040,7 +2041,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 
   encoded_dir = ENCODE_FILE (directory);
 
-  dir = SDATA (encoded_dir);
+  dir = SSDATA (encoded_dir);
 
 #ifdef WINDOWSNT
   if (mkdir (dir) != 0)
@@ -2057,14 +2058,14 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
        doc: /* Delete the directory named DIRECTORY.  Does not follow symlinks.  */)
   (Lisp_Object directory)
 {
-  const unsigned char *dir;
+  const char *dir;
   Lisp_Object handler;
   Lisp_Object encoded_dir;
 
   CHECK_STRING (directory);
   directory = Fdirectory_file_name (Fexpand_file_name (directory, Qnil));
   encoded_dir = ENCODE_FILE (directory);
-  dir = SDATA (encoded_dir);
+  dir = SSDATA (encoded_dir);
 
   if (rmdir (dir) != 0)
     report_file_error ("Removing directory", list1 (directory));
@@ -2371,7 +2372,7 @@ On Unix, this is a name starting with a `/' or a `~'.  */)
   (Lisp_Object filename)
 {
   CHECK_STRING (filename);
-  return file_name_absolute_p (SDATA (filename)) ? Qt : Qnil;
+  return file_name_absolute_p (SSDATA (filename)) ? Qt : Qnil;
 }
 
 /* Return nonzero if file FILENAME exists and can be executed.  */
@@ -3142,7 +3143,8 @@ read_non_regular (Lisp_Object ignore)
   immediate_quit = 1;
   QUIT;
   nbytes = emacs_read (non_regular_fd,
-		       BEG_ADDR + PT_BYTE - BEG_BYTE + non_regular_inserted,
+		       ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
+			+ non_regular_inserted),
 		       non_regular_nbytes);
   immediate_quit = 0;
   return make_number (nbytes);
@@ -3196,9 +3198,9 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   Lisp_Object p;
   EMACS_INT total = 0;
   int not_regular = 0;
-  unsigned char read_buf[READ_BUF_SIZE];
+  char read_buf[READ_BUF_SIZE];
   struct coding_system coding;
-  unsigned char buffer[1 << 14];
+  char buffer[1 << 14];
   int replace_handled = 0;
   int set_coding_system = 0;
   Lisp_Object coding_system;
@@ -3412,7 +3414,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 		  Ferase_buffer ();
 		  buf->enable_multibyte_characters = Qnil;
 
-		  insert_1_both (read_buf, nread, nread, 0, 0, 0);
+		  insert_1_both ((char *) read_buf, nread, nread, 0, 0, 0);
 		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 		  coding_system = call2 (Vset_auto_coding_function,
 					 filename, make_number (nread));
@@ -3506,13 +3508,14 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  nread = emacs_read (fd, buffer, sizeof buffer);
 	  if (nread < 0)
 	    error ("IO error reading %s: %s",
-		   SDATA (orig_filename), emacs_strerror (errno));
+		   SSDATA (orig_filename), emacs_strerror (errno));
 	  else if (nread == 0)
 	    break;
 
 	  if (CODING_REQUIRE_DETECTION (&coding))
 	    {
-	      coding_system = detect_coding_system (buffer, nread, nread, 1, 0,
+	      coding_system = detect_coding_system ((unsigned char *) buffer,
+						    nread, nread, 1, 0,
 						    coding_system);
 	      setup_coding_system (coding_system, &coding);
 	    }
@@ -3714,8 +3717,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
 	  BUF_TEMP_SET_PT (XBUFFER (conversion_buffer),
 			   BUF_Z (XBUFFER (conversion_buffer)));
-	  decode_coding_c_string (&coding, read_buf, unprocessed + this,
-				  conversion_buffer);
+	  decode_coding_c_string (&coding, (unsigned char *) read_buf,
+				  unprocessed + this, conversion_buffer);
 	  unprocessed = coding.carryover_bytes;
 	  if (coding.carryover_bytes > 0)
 	    memcpy (read_buf, coding.carryover, unprocessed);
@@ -3738,8 +3741,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       if (unprocessed > 0)
 	{
 	  coding.mode |= CODING_MODE_LAST_BLOCK;
-	  decode_coding_c_string (&coding, read_buf, unprocessed,
-				  conversion_buffer);
+	  decode_coding_c_string (&coding, (unsigned char *) read_buf,
+				  unprocessed, conversion_buffer);
 	  coding.mode &= ~CODING_MODE_LAST_BLOCK;
 	}
 
@@ -3941,7 +3944,10 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	       here doesn't do any harm.  */
 	    immediate_quit = 1;
 	    QUIT;
-	    this = emacs_read (fd, BEG_ADDR + PT_BYTE - BEG_BYTE + inserted, trytry);
+	    this = emacs_read (fd,
+			       ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
+				+ inserted),
+			       trytry);
 	    immediate_quit = 0;
 	  }
 
@@ -4466,7 +4472,7 @@ This calls `write-region-annotate-functions' at the start, and
   register int desc;
   int failure;
   int save_errno = 0;
-  const unsigned char *fn;
+  const char *fn;
   struct stat st;
   int count = SPECPDL_INDEX ();
   int count1;
@@ -4586,7 +4592,7 @@ This calls `write-region-annotate-functions' at the start, and
 
   encoded_filename = ENCODE_FILE (filename);
 
-  fn = SDATA (encoded_filename);
+  fn = SSDATA (encoded_filename);
   desc = -1;
   if (!NILP (append))
 #ifdef DOS_NT

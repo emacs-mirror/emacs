@@ -1,3 +1,24 @@
+2011-02-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* rmail.texi (Rmail Display): Document Rmail MIME support more
+	accurately.
+
+	* maintaining.texi (VC Change Log): Document vc-log-incoming and
+	vc-log-outgoing.
+	(Merging): Document vc-find-conflicted-file.
+
+2011-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Variables): Fix typo.
+
+2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.texi (Regexps): Copyedits.  Mention character classes
+	(Bug#7809).
+
+	* files.texi (File Aliases): Restore explanatory text from Eli
+	Zaretskii, accidentally removed in 2011-01-08 commit.
+
 2011-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (MAKEINFO): Remove options, leave only program name.

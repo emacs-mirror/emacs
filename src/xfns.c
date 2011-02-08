@@ -4067,7 +4067,7 @@ terminate Emacs if we can't open the connection.
 \(In the Nextstep version, the last two arguments are currently ignored.)  */)
   (Lisp_Object display, Lisp_Object xrm_string, Lisp_Object must_succeed)
 {
-  unsigned char *xrm_option;
+  char *xrm_option;
   struct x_display_info *dpyinfo;
 
   CHECK_STRING (display);
@@ -4080,9 +4080,9 @@ terminate Emacs if we can't open the connection.
 #endif
 
   if (! NILP (xrm_string))
-    xrm_option = SDATA (xrm_string);
+    xrm_option = SSDATA (xrm_string);
   else
-    xrm_option = (unsigned char *) 0;
+    xrm_option = (char *) 0;
 
   validate_x_resource_name ();
 
@@ -4394,7 +4394,7 @@ no value of TYPE (always string in the MS Windows case).  */)
             }
 
           if (NILP (vector_ret_p))
-            prop_value = make_string (tmp_data, size);
+            prop_value = make_string ((char *) tmp_data, size);
           else
             prop_value = x_property_data_to_lisp (f,
                                                   tmp_data,

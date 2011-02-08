@@ -209,6 +209,10 @@ mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${i
 
 info: $(INFO_TARGETS)
 
+# please modify this for all the web manual targets
+webhack: clean
+	$(MAKE) pdf MAKEINFO_OPTS="-DWEBHACKDEVEL $(MAKEINFO_OPTS)"
+
 dvi: $(DVI_TARGETS)
 
 pdf: $(PDF_TARGETS)

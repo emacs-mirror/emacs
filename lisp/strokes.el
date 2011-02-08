@@ -718,6 +718,14 @@ Returns the corresponding match as (COMMAND . SCORE)."
 	  nil))
     nil))
 
+(defsubst strokes-fill-current-buffer-with-whitespace ()
+  "Erase the contents of the current buffer and fill it with whitespace."
+  (erase-buffer)
+  (loop repeat (frame-height) do
+	(insert-char ?\s (1- (frame-width)))
+	(newline))
+  (goto-char (point-min)))
+
 ;;;###autoload
 (defun strokes-read-stroke (&optional prompt event)
   "Read a simple stroke (interactively) and return the stroke.
@@ -1034,15 +1042,7 @@ o Strokes are a bit computer-dependent in that they depend somewhat on
     (help-mode)
     (help-print-return-message)))
 
-(defalias 'strokes-report-bug 'report-emacs-bug)
-
-(defsubst strokes-fill-current-buffer-with-whitespace ()
-  "Erase the contents of the current buffer and fill it with whitespace."
-  (erase-buffer)
-  (loop repeat (frame-height) do
-	(insert-char ?\s (1- (frame-width)))
-	(newline))
-  (goto-char (point-min)))
+(define-obsolete-function-alias 'strokes-report-bug 'report-emacs-bug "24.1")
 
 (defun strokes-window-configuration-changed-p ()
   "Non-nil if the `strokes-window-configuration' frame properties changed.

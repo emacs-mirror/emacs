@@ -87,8 +87,7 @@
 
 ;;; Code:
 
-(eval-and-compile
-  (require 'font-lock))
+(require 'font-lock)
 
 (defgroup hi-lock nil
   "Interactively add and remove font-lock patterns for highlighting text."

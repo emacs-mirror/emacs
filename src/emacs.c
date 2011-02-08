@@ -88,9 +88,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-/* If you change the following line, remember to update
-   msdos/mainmake.v2 which gleans the Emacs version from it!  */
-static const char emacs_version[] = "24.0.50";
+static const char emacs_version[] = VERSION;
 static const char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
 
 /* Make these values available in GDB, which doesn't see macros.  */
@@ -1298,6 +1296,8 @@ main (int argc, char **argv)
 #ifdef NS_IMPL_COCOA
       if (skip_args < argc)
         {
+	  /* FIXME: Do the right thing if getenv returns NULL, or if
+	     chdir fails.  */
           if (!strncmp(argv[skip_args], "-psn", 4))
             {
               skip_args += 1;

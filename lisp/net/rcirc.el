@@ -322,6 +322,16 @@ and the cdr part is used for encoding."
   :type 'function
   :group 'rcirc)
 
+(defcustom rcirc-nick-completion-format "%s: "
+  "Format string to use in nick completions.
+
+The format string is only used when completing at the beginning
+of a line.  The string is passed as the first argument to
+`format' with the nickname as the second argument."
+  :version "24.1"
+  :type 'string
+  :group 'rcirc)
+
 (defvar rcirc-nick nil)
 
 (defvar rcirc-prompt-start-marker nil)
@@ -827,11 +837,11 @@ IRC command completion is performed only if '/' is the first input char."
     (when completion
       (delete-region rcirc-completion-start (point))
       (insert
-       (concat completion
-	       (cond
-		((= (aref completion 0) ?/) " ")
-		((= rcirc-completion-start rcirc-prompt-end-marker) ": ")
-		(t "")))))))
+       (cond
+        ((= (aref completion 0) ?/) (concat completion " "))
+        ((= rcirc-completion-start rcirc-prompt-end-marker)
+         (format rcirc-nick-completion-format completion))
+        (t completion))))))
 
 (defun set-rcirc-decode-coding-system (coding-system)
   "Set the decode coding system used in this channel."
@@ -1024,6 +1034,17 @@ If ALL is non-nil, update prompts in all IRC buffers."
        (not (zerop (length target)))
        (or (eq (aref target 0) ?#)
            (eq (aref target 0) ?&))))
+
+(defcustom rcirc-log-directory "~/.emacs.d/rcirc-log"
+  "Directory to keep IRC logfiles."
+  :type 'directory
+  :group 'rcirc)
+
+(defcustom rcirc-log-flag nil
+  "Non-nil means log IRC activity to disk.
+Logfiles are kept in `rcirc-log-directory'."
+  :type 'boolean
+  :group 'rcirc)
 
 (defun rcirc-kill-buffer-hook ()
   "Part the channel when killing an rcirc buffer."
@@ -1355,17 +1376,6 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 (defvar rcirc-last-sender nil)
 (make-variable-buffer-local 'rcirc-last-sender)
 
-(defcustom rcirc-log-directory "~/.emacs.d/rcirc-log"
-  "Directory to keep IRC logfiles."
-  :type 'directory
-  :group 'rcirc)
-
-(defcustom rcirc-log-flag nil
-  "Non-nil means log IRC activity to disk.
-Logfiles are kept in `rcirc-log-directory'."
-  :type 'boolean
-  :group 'rcirc)
-
 (defcustom rcirc-omit-threshold 100
   "Number of lines since last activity from a nick before `rcirc-omit-responses' are omitted."
   :type 'integer
@@ -1565,8 +1575,11 @@ return the filename, or nil if no logging is desired for this
 session.
 
 If the returned filename is absolute (`file-name-absolute-p'
-returns true), then it is used as-is, otherwise the resulting
-file is put into `rcirc-log-directory'."
+returns t), then it is used as-is, otherwise the resulting file
+is put into `rcirc-log-directory'.
+
+The filename is then cleaned using `convert-standard-filename' to
+guarantee valid filenames for the current OS."
   :group 'rcirc
   :type 'function)
 
@@ -1591,7 +1604,9 @@ file is put into `rcirc-log-directory'."
 Log data is written to `rcirc-log-directory', except for
 log-files with absolute names (see `rcirc-log-filename-function')."
   (dolist (cell rcirc-log-alist)
-    (let ((filename (expand-file-name (car cell) rcirc-log-directory))
+    (let ((filename (convert-standard-filename
+                     (expand-file-name (car cell)
+                                       rcirc-log-directory)))
 	  (coding-system-for-write 'utf-8))
       (make-directory (file-name-directory filename) t)
       (with-temp-buffer
@@ -2440,7 +2455,10 @@ keywords when no KEYWORD is given."
 				     (rcirc-elapsed-lines process sender channel)))
 				(when (and last-activity-lines
 					   (< last-activity-lines rcirc-omit-threshold))
-				  (rcirc-last-line process sender channel)))))
+                                  (rcirc-last-line process sender channel))))
+      ;; reset mode-line-process in case joining a channel with an
+      ;; already open buffer (after getting kicked e.g.)
+      (setq mode-line-process nil))
 
     (rcirc-print process sender "JOIN" channel "")
 
@@ -2573,6 +2591,20 @@ keywords when no KEYWORD is given."
 	  (setcdr rec away-message)
 	(setq rcirc-nick-away-alist (cons (cons nick away-message)
 					  rcirc-nick-away-alist))))))
+
+(defun rcirc-handler-317 (process sender args text)
+  "RPL_WHOISIDLE"
+  (let* ((nick (nth 1 args))
+         (idle-secs (string-to-number (nth 2 args)))
+         (idle-string
+          (if (< idle-secs most-positive-fixnum)
+              (format-seconds "%yy %dd %hh %mm %z%ss" idle-secs)
+            "a very long time"))
+         (signon-time (seconds-to-time (string-to-number (nth 3 args))))
+         (signon-string (format-time-string "%c" signon-time))
+         (message (format "%s idle for %s, signed on %s"
+                          nick idle-string signon-string)))
+    (rcirc-print process sender "317" nil message t)))
 
 (defun rcirc-handler-332 (process sender args text)
   "RPL_TOPIC"

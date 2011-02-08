@@ -925,65 +925,16 @@ See `sh-feature'.")
 (defconst sh-st-punc (string-to-syntax "."))
 (defconst sh-here-doc-syntax (string-to-syntax "|")) ;; generic string
 
-(defconst sh-escaped-line-re
-  ;; Should match until the real end-of-continued-line, but if that is not
-  ;; possible (because we bump into EOB or the search bound), then we should
-  ;; match until the search bound.
-  "\\(?:\\(?:.*[^\\\n]\\)?\\(?:\\\\\\\\\\)*\\\\\n\\)*.*")
+(eval-and-compile
+  (defconst sh-escaped-line-re
+    ;; Should match until the real end-of-continued-line, but if that is not
+    ;; possible (because we bump into EOB or the search bound), then we should
+    ;; match until the search bound.
+    "\\(?:\\(?:.*[^\\\n]\\)?\\(?:\\\\\\\\\\)*\\\\\n\\)*.*")
 
-(defconst sh-here-doc-open-re
-  (concat "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\)+\\)"
-          sh-escaped-line-re "\\(\n\\)"))
-
-(defvar sh-here-doc-markers nil)
-(make-variable-buffer-local 'sh-here-doc-markers)
-(defvar sh-here-doc-re sh-here-doc-open-re)
-(make-variable-buffer-local 'sh-here-doc-re)
-
-(defun sh-font-lock-close-heredoc (bol eof indented eol)
-  "Determine the syntax of the \\n after an EOF.
-If non-nil INDENTED indicates that the EOF was indented."
-  (let* ((eof-re (if eof (regexp-quote eof) ""))
-         ;; A rough regexp that should find the opening <<EOF back.
-	 (sre (concat "<<\\(-?\\)\\s-*['\"\\]?"
-		      ;; Use \s| to cheaply check it's an open-heredoc.
-		      eof-re "['\"]?\\([ \t|;&)<>]"
-                      sh-escaped-line-re
-                      "\\)?\\s|"))
-	 ;; A regexp that will find other EOFs.
-	 (ere (concat "^" (if indented "[ \t]*") eof-re "\n"))
-	 (start (save-excursion
-		  (goto-char bol)
-                  ;; FIXME: will incorrectly find a <<EOF embedded inside
-                  ;; the heredoc.
-		  (re-search-backward (concat sre "\\|" ere) nil t))))
-    ;; If subgroup 1 matched, we found an open-heredoc, otherwise we first
-    ;; found a close-heredoc which makes the current close-heredoc inoperant.
-    (cond
-     ((when (and start (match-end 1)
-		 (not (and indented (= (match-beginning 1) (match-end 1))))
-		 (not (sh-in-comment-or-string (match-beginning 0))))
-	;; Make sure our `<<' is not the EOF1 of a `cat <<EOF1 <<EOF2'.
-	(save-excursion
-	  (goto-char start)
-	  (setq start (line-beginning-position 2))
-	  (while
-	      (progn
-		(re-search-forward "<<") ; Skip ourselves.
-		(and (re-search-forward sh-here-doc-open-re start 'move)
-		     (goto-char (match-beginning 0))
-		     (sh-in-comment-or-string (point)))))
-	  ;; No <<EOF2 found after our <<.
-	  (= (point) start)))
-      (put-text-property eol (1+ eol) 'syntax-table sh-here-doc-syntax))
-     ((not (or start (save-excursion (re-search-forward sre nil t))))
-      ;; There's no <<EOF either before or after us,
-      ;; so we should remove ourselves from font-lock's keywords.
-      (setq sh-here-doc-markers (delete eof sh-here-doc-markers))
-      (setq sh-here-doc-re
-	    (concat sh-here-doc-open-re "\\|^\\([ \t]*\\)"
-		    (regexp-opt sh-here-doc-markers t) "\\(\n\\)"))
-      nil))))
+  (defconst sh-here-doc-open-re
+    (concat "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\|[-/~._]\\)+\\)"
+            sh-escaped-line-re "\\(\n\\)")))
 
 (defun sh-font-lock-open-heredoc (start string eol)
   "Determine the syntax of the \\n after a <<EOF.
@@ -996,27 +947,35 @@ Point is at the beginning of the next line."
 	      (sh-in-comment-or-string start))
     ;; We're looking at <<STRING, so we add "^STRING$" to the syntactic
     ;; font-lock keywords to detect the end of this here document.
-    (let ((str (replace-regexp-in-string "['\"]" "" string)))
-      (unless (member str sh-here-doc-markers)
-	(push str sh-here-doc-markers)
-	(setq sh-here-doc-re
-	      (concat sh-here-doc-open-re "\\|^\\([ \t]*\\)"
-		      (regexp-opt sh-here-doc-markers t) "\\(\n\\)"))))
-    (let ((ppss (save-excursion (syntax-ppss (1- (point))))))
+    (let ((str (replace-regexp-in-string "['\"]" "" string))
+          (ppss (save-excursion (syntax-ppss (1- (point))))))
       (if (nth 4 ppss)
           ;; The \n not only starts the heredoc but also closes a comment.
           ;; Let's close the comment just before the \n.
           (put-text-property (1- (point)) (point) 'syntax-table '(12))) ;">"
       (if (or (nth 5 ppss) (> (count-lines start (point)) 1))
-          ;; If the sh-escaped-line-re part of sh-here-doc-re has matched
+          ;; If the sh-escaped-line-re part of sh-here-doc-open-re has matched
           ;; several lines, make sure we refontify them together.
           ;; Furthermore, if (nth 5 ppss) is non-nil (i.e. the \n is
           ;; escaped), it means the right \n is actually further down.
           ;; Don't bother fixing it now, but place a multiline property so
           ;; that when jit-lock-context-* refontifies the rest of the
           ;; buffer, it also refontifies the current line with it.
-          (put-text-property start (point) 'syntax-multiline t)))
-    (put-text-property eol (1+ eol) 'syntax-table sh-here-doc-syntax)))
+          (put-text-property start (point) 'syntax-multiline t))
+      (put-text-property eol (1+ eol) 'sh-here-doc-marker str)
+      (prog1 sh-here-doc-syntax
+        (goto-char (+ 2 start))))))
+
+(defun sh-syntax-propertize-here-doc (end)
+  (let ((ppss (syntax-ppss)))
+    (when (eq t (nth 3 ppss))
+      (let ((key (get-text-property (nth 8 ppss) 'sh-here-doc-marker)))
+        (when (re-search-forward
+               (concat "^\\([ \t]*\\)" (regexp-quote key) "\\(\n\\)")
+               end 'move)
+          (let ((eol (match-beginning 2)))
+            (put-text-property eol (1+ eol)
+                               'syntax-table sh-here-doc-syntax)))))))
 
 (defun sh-font-lock-quoted-subshell (limit)
   "Search for a subshell embedded in a string.
@@ -1068,19 +1027,25 @@ subshells can nest."
        (not (sh-is-quoted-p (1- pos)))))
 
 (defun sh-font-lock-paren (start)
+  (unless (nth 8 (syntax-ppss))
   (save-excursion
     (goto-char start)
     ;; Skip through all patterns
     (while
 	(progn
+            (while
+                (progn
 	  (forward-comment (- (point-max)))
+                  (when (and (eolp) (sh-is-quoted-p (point)))
+                    (forward-char -1)
+                    t)))
 	  ;; Skip through one pattern
 	  (while
 	      (or (/= 0 (skip-syntax-backward "w_"))
-		  (/= 0 (skip-chars-backward "?[]*@/\\"))
+                    (/= 0 (skip-chars-backward "-$=?[]*@/\\\\"))
 		  (and (sh-is-quoted-p (1- (point)))
 		       (goto-char (- (point) 2)))
-		  (when (memq (char-before) '(?\" ?\'))
+                    (when (memq (char-before) '(?\" ?\' ?\}))
 		    (condition-case nil (progn (backward-sexp 1) t)
 		      (error nil)))))
 	  ;; Patterns can be preceded by an open-paren (Bug#1320).
@@ -1093,9 +1058,6 @@ subshells can nest."
             (backward-char 1))
 	  (when (eq (char-before) ?|)
 	    (backward-char 1) t)))
-    ;; FIXME: ";; esac )" is a case that looks like a case-pattern but it's
-    ;; really just a close paren after a case statement.  I.e. if we skipped
-    ;; over `esac' just now, we're not looking at a case-pattern.
     (when (progn (backward-char 2)
                  (if (> start (line-end-position))
                      (put-text-property (point) (1+ start)
@@ -1104,8 +1066,13 @@ subshells can nest."
                  ;; a normal command rather than the real `in' keyword.
                  ;; I.e. we should look back to try and find the
                  ;; corresponding `case'.
-                 (looking-at ";;\\|in"))
-      sh-st-punc)))
+                   (and (looking-at ";[;&]\\|in")
+                        ;; ";; esac )" is a case that looks like a case-pattern
+                        ;; but it's really just a close paren after a case
+                        ;; statement.  I.e. if we skipped over `esac' just now,
+                        ;; we're not looking at a case-pattern.
+                        (not (looking-at "..[ \t\n]+esac[^[:word:]_]"))))
+        sh-st-punc))))
 
 (defun sh-font-lock-backslash-quote ()
   (if (eq (save-excursion (nth 3 (syntax-ppss (match-beginning 0)))) ?\')
@@ -1115,12 +1082,13 @@ subshells can nest."
 
 (defun sh-syntax-propertize-function (start end)
   (goto-char start)
-  (while (prog1
-             (re-search-forward sh-here-doc-re end 'move)
-           (save-excursion
-             (save-match-data
+  (sh-syntax-propertize-here-doc end)
                (funcall
                 (syntax-propertize-rules
+    (sh-here-doc-open-re
+     (2 (sh-font-lock-open-heredoc
+         (match-beginning 0) (match-string 1) (match-beginning 2))))
+    ("\\s|" (0 (prog1 nil (sh-syntax-propertize-here-doc end))))
                  ;; A `#' begins a comment when it is unquoted and at the
                  ;; beginning of a word.  In the shell, words are separated by
                  ;; metacharacters.  The list of special chars is taken from
@@ -1135,22 +1103,15 @@ subshells can nest."
                  (")" (0 (sh-font-lock-paren (match-beginning 0))))
                  ;; Highlight (possibly nested) subshells inside "" quoted
                  ;; regions correctly.
-                 ("\"\\(?:\\(?:.\\|\n\\)*?[^\\]\\(?:\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)"
+    ("\"\\(?:\\(?:[^\\\"]\\|\\)*?[^\\]\\(?:\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)"
                   (1 (ignore
                       ;; Save excursion because we want to also apply other
                       ;; syntax-propertize rules within the affected region.
+         (if (nth 8 (syntax-ppss))
+             (goto-char (1+ (match-beginning 0)))
                       (save-excursion
-                        (sh-font-lock-quoted-subshell end))))))
-                (prog1 start (setq start (point))) (point)))))
-    (if (match-beginning 2)
-        ;; FIXME: actually, once we see an heredoc opener, we should just
-        ;; search for its ender without propertizing anything in it.
-        (sh-font-lock-open-heredoc
-	 (match-beginning 0) (match-string 1) (match-beginning 2))
-      (sh-font-lock-close-heredoc
-       (match-beginning 0) (match-string 4)
-       (and (match-beginning 3) (/= (match-beginning 3) (match-end 3)))
-       (match-beginning 5)))))
+             (sh-font-lock-quoted-subshell end)))))))
+   (point) end))
 
 (defun sh-font-lock-syntactic-face-function (state)
   (let ((q (nth 3 state)))
@@ -1659,6 +1620,8 @@ This adds rules for comments and assignments."
      ("esac" sh-handle-this-esac sh-handle-prev-esac)
      (case-label nil sh-handle-after-case-label) ;; ???
      (";;" nil sh-handle-prev-case-alt-end) ;; ???
+     (";;&" nil sh-handle-prev-case-alt-end) ;Like ";;" with diff semantics.
+     (";&" nil sh-handle-prev-case-alt-end) ;Like ";;" with diff semantics.
      ("done" sh-handle-this-done sh-handle-prev-done)
      ("do" sh-handle-this-do sh-handle-prev-do))
 
@@ -2496,7 +2459,7 @@ we go to the end of the previous line and do not check for continuations."
                          (sh-prev-line nil)
                        (line-beginning-position))))
       (skip-chars-backward " \t;" min-point)
-      (if (looking-at "\\s-*;;")
+      (if (looking-at "\\s-*;[;&]")
           ;; (message "Found ;; !")
           ";;"
         (skip-chars-backward "^)}];\"'`({[" min-point)

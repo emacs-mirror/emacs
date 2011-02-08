@@ -1437,6 +1437,13 @@ Some edits that shift items can be missed by this hook: specifically edits
 that native allout routines do not control.
 
 This hook might be invoked multiple times by a single command.")
+;;;_   = allout-after-copy-or-kill-hook
+(defvar allout-after-copy-or-kill-hook nil
+  "*Hook that's run after copying outline text.
+
+Functions on the hook should take two arguments:
+
+  START, END -- integers indicating the span containing the copied text.")
 ;;;_   = allout-outside-normal-auto-fill-function
 (defvar allout-outside-normal-auto-fill-function nil
   "Value of normal-auto-fill-function outside of allout mode.
@@ -1908,6 +1915,7 @@ without changes to the allout core.  Here are key ones:
 `allout-structure-added-hook'
 `allout-structure-deleted-hook'
 `allout-structure-shifted-hook'
+`allout-after-copy-or-kill-hook'
 
                             Terminology
 
@@ -4382,17 +4390,19 @@ subtopics into siblings of the item."
            (depth (allout-depth)))
 
       (allout-annotate-hidden beg end)
-      (if (and (not beg-hidden) (not end-hidden))
-          (allout-unprotected (kill-line arg))
-        (kill-line arg))
-      (allout-deannotate-hidden beg end)
+      (unwind-protect
+          (if (and (not beg-hidden) (not end-hidden))
+              (allout-unprotected (kill-line arg))
+            (kill-line arg))
+        (run-hook-with-args 'allout-after-copy-or-kill-hook beg end)
+        (allout-deannotate-hidden beg end)
 
-      (if allout-numbered-bullet
-          (save-excursion               ; Renumber subsequent topics if needed:
-            (if (not (save-match-data (looking-at allout-regexp)))
-                (allout-next-heading))
-            (allout-renumber-to-depth depth)))
-      (run-hook-with-args 'allout-structure-deleted-hook depth (point)))))
+        (if allout-numbered-bullet
+            (save-excursion         ; Renumber subsequent topics if needed:
+              (if (not (save-match-data (looking-at allout-regexp)))
+                  (allout-next-heading))
+              (allout-renumber-to-depth depth)))
+        (run-hook-with-args 'allout-structure-deleted-hook depth (point))))))
 ;;;_    > allout-copy-line-as-kill ()
 (defun allout-copy-line-as-kill ()
   "Like allout-kill-topic, but save to kill ring instead of deleting."
@@ -4433,15 +4443,14 @@ Topic exposure is marked with text-properties, to be used by
 	    (forward-char 1)))
 
     (allout-annotate-hidden beg (setq end (point)))
-    (unwind-protect
+    (unwind-protect                     ; for possible barf-if-buffer-read-only.
         (allout-unprotected (kill-region beg end))
-      (if buffer-read-only
-          ;; eg, during copy-as-kill.
-          (allout-deannotate-hidden beg end)))
+      (allout-deannotate-hidden beg end)
+      (run-hook-with-args 'allout-after-copy-or-kill-hook beg end)
 
-    (save-excursion
-      (allout-renumber-to-depth depth))
-    (run-hook-with-args 'allout-structure-deleted-hook depth (point))))
+      (save-excursion
+        (allout-renumber-to-depth depth))
+      (run-hook-with-args 'allout-structure-deleted-hook depth (point)))))
 ;;;_    > allout-copy-topic-as-kill ()
 (defun allout-copy-topic-as-kill ()
   "Like `allout-kill-topic', but save to kill ring instead of deleting."
@@ -4494,8 +4503,7 @@ Topic exposure is marked with text-properties, to be used by
   (allout-unprotected
    (let ((inhibit-read-only t)
          (buffer-undo-list t))
-     ;(remove-text-properties begin end '(allout-was-hidden t))
-     )))
+     (remove-text-properties begin end '(allout-was-hidden t)))))
 ;;;_    > allout-hide-by-annotation (begin end)
 (defun allout-hide-by-annotation (begin end)
   "Translate text properties indicating exposure status into actual exposure."
@@ -5406,8 +5414,10 @@ header and body.  The elements of that list are:
       ;; Goto initial topic, and register preceeding stuff, if any:
       (if (> (allout-goto-prefix-doublechecked) start)
 	  ;; First topic follows beginning point -- register preliminary stuff:
-	  (setq result (list (list 0 "" nil
-				   (buffer-substring start (1- (point)))))))
+	  (setq result
+                (list (list 0 "" nil
+                            (buffer-substring-no-properties start
+                                                            (1- (point)))))))
       (while (and (not done)
 		  (not (eobp))		; Loop until we've covered the region.
 		  (not (> (point) end)))
@@ -5426,7 +5436,7 @@ header and body.  The elements of that list are:
 	(setq strings nil)
 	(while (> next (point))		; Get all the exposed text in
 	  (setq strings
-		(cons (buffer-substring
+		(cons (buffer-substring-no-properties
 		       beg
 					;To hidden text or end of line:
 		       (progn

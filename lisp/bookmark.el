@@ -1058,7 +1058,7 @@ compatibility only."
 (defun bookmark-handle-bookmark (bookmark-name-or-record)
   "Call BOOKMARK-NAME-OR-RECORD's handler or `bookmark-default-handler'
 if it has none.  This changes current buffer and point and returns nil,
-or signals a `file-error'. 
+or signals a `file-error'.
 
 If BOOKMARK-NAME-OR-RECORD has no file, this is a no-op.  If
 BOOKMARK-NAME-OR-RECORD has a file, but that file no longer exists,
@@ -1473,45 +1473,6 @@ method buffers use to resolve name collisions."
 (defvar bookmark-bmenu-hidden-bookmarks ())
 
 
-(defvar bookmark-bmenu-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map t)
-    (define-key map "q" 'quit-window)
-    (define-key map "v" 'bookmark-bmenu-select)
-    (define-key map "w" 'bookmark-bmenu-locate)
-    (define-key map "2" 'bookmark-bmenu-2-window)
-    (define-key map "1" 'bookmark-bmenu-1-window)
-    (define-key map "j" 'bookmark-bmenu-this-window)
-    (define-key map "\C-c\C-c" 'bookmark-bmenu-this-window)
-    (define-key map "f" 'bookmark-bmenu-this-window)
-    (define-key map "\C-m" 'bookmark-bmenu-this-window)
-    (define-key map "o" 'bookmark-bmenu-other-window)
-    (define-key map "\C-o" 'bookmark-bmenu-switch-other-window)
-    (define-key map "s" 'bookmark-bmenu-save)
-    (define-key map "k" 'bookmark-bmenu-delete)
-    (define-key map "\C-d" 'bookmark-bmenu-delete-backwards)
-    (define-key map "x" 'bookmark-bmenu-execute-deletions)
-    (define-key map "d" 'bookmark-bmenu-delete)
-    (define-key map " " 'next-line)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-    (define-key map "\177" 'bookmark-bmenu-backup-unmark)
-    (define-key map "?" 'describe-mode)
-    (define-key map "u" 'bookmark-bmenu-unmark)
-    (define-key map "m" 'bookmark-bmenu-mark)
-    (define-key map "l" 'bookmark-bmenu-load)
-    (define-key map "r" 'bookmark-bmenu-rename)
-    (define-key map "R" 'bookmark-bmenu-relocate)
-    (define-key map "t" 'bookmark-bmenu-toggle-filenames)
-    (define-key map "a" 'bookmark-bmenu-show-annotation)
-    (define-key map "A" 'bookmark-bmenu-show-all-annotations)
-    (define-key map "e" 'bookmark-bmenu-edit-annotation)
-    ;; The original binding of M-g hides the M-g prefix map.
-    ;; If someone has a better idea than M-g s, I'm open to suggestions.
-    (define-key map [?\M-g ?s] 'bookmark-bmenu-search)
-    (define-key map [mouse-2] 'bookmark-bmenu-other-window-with-mouse)
-    map))
-
 ;; Bookmark Buffer Menu mode is suitable only for specially formatted
 ;; data.
 (put 'bookmark-bmenu-mode 'mode-class 'special)
@@ -1586,7 +1547,7 @@ deletion, or > if it is flagged for displaying."
 
 
 
-(defun bookmark-bmenu-mode ()
+(define-derived-mode bookmark-bmenu-mode special-mode "Bookmark Menu"
   "Major mode for editing a list of bookmarks.
 Each line describes one of the bookmarks in Emacs.
 Letters do not insert themselves; instead, they are commands.
@@ -1619,14 +1580,42 @@ Bookmark names preceded by a \"*\" have annotations.
   in another buffer.
 \\[bookmark-bmenu-show-all-annotations] -- show the annotations of all bookmarks in another buffer.
 \\[bookmark-bmenu-edit-annotation] -- edit the annotation for the current bookmark."
-  (kill-all-local-variables)
-  (use-local-map bookmark-bmenu-mode-map)
   (setq truncate-lines t)
-  (setq buffer-read-only t)
-  (setq major-mode 'bookmark-bmenu-mode)
-  (setq mode-name "Bookmark Menu")
-  (run-mode-hooks 'bookmark-bmenu-mode-hook))
+  (setq buffer-read-only t))
 
+(define-key bookmark-bmenu-mode-map "q" 'quit-window)
+(define-key bookmark-bmenu-mode-map "v" 'bookmark-bmenu-select)
+(define-key bookmark-bmenu-mode-map "w" 'bookmark-bmenu-locate)
+(define-key bookmark-bmenu-mode-map "2" 'bookmark-bmenu-2-window)
+(define-key bookmark-bmenu-mode-map "1" 'bookmark-bmenu-1-window)
+(define-key bookmark-bmenu-mode-map "j" 'bookmark-bmenu-this-window)
+(define-key bookmark-bmenu-mode-map "\C-c\C-c" 'bookmark-bmenu-this-window)
+(define-key bookmark-bmenu-mode-map "f" 'bookmark-bmenu-this-window)
+(define-key bookmark-bmenu-mode-map "\C-m" 'bookmark-bmenu-this-window)
+(define-key bookmark-bmenu-mode-map "o" 'bookmark-bmenu-other-window)
+(define-key bookmark-bmenu-mode-map "\C-o" 'bookmark-bmenu-switch-other-window)
+(define-key bookmark-bmenu-mode-map "s" 'bookmark-bmenu-save)
+(define-key bookmark-bmenu-mode-map "k" 'bookmark-bmenu-delete)
+(define-key bookmark-bmenu-mode-map "\C-d" 'bookmark-bmenu-delete-backwards)
+(define-key bookmark-bmenu-mode-map "x" 'bookmark-bmenu-execute-deletions)
+(define-key bookmark-bmenu-mode-map "d" 'bookmark-bmenu-delete)
+(define-key bookmark-bmenu-mode-map " " 'next-line)
+(define-key bookmark-bmenu-mode-map "n" 'next-line)
+(define-key bookmark-bmenu-mode-map "p" 'previous-line)
+(define-key bookmark-bmenu-mode-map "\177" 'bookmark-bmenu-backup-unmark)
+(define-key bookmark-bmenu-mode-map "?" 'describe-mode)
+(define-key bookmark-bmenu-mode-map "u" 'bookmark-bmenu-unmark)
+(define-key bookmark-bmenu-mode-map "m" 'bookmark-bmenu-mark)
+(define-key bookmark-bmenu-mode-map "l" 'bookmark-bmenu-load)
+(define-key bookmark-bmenu-mode-map "r" 'bookmark-bmenu-rename)
+(define-key bookmark-bmenu-mode-map "R" 'bookmark-bmenu-relocate)
+(define-key bookmark-bmenu-mode-map "t" 'bookmark-bmenu-toggle-filenames)
+(define-key bookmark-bmenu-mode-map "a" 'bookmark-bmenu-show-annotation)
+(define-key bookmark-bmenu-mode-map "A" 'bookmark-bmenu-show-all-annotations)
+(define-key bookmark-bmenu-mode-map "e" 'bookmark-bmenu-edit-annotation)
+;; The original binding of M-g hides the M-g prefix map.
+;; If someone has a better idea than M-g s, I'm open to suggestions.
+(define-key bookmark-bmenu-mode-map [?\M-g ?s] 'bookmark-bmenu-search)(define-key bookmark-bmenu-mode-map [mouse-2] 'bookmark-bmenu-other-window-with-mouse)
 
 (defun bookmark-bmenu-toggle-filenames (&optional show)
   "Toggle whether filenames are shown in the bookmark list.

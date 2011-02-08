@@ -2118,7 +2118,7 @@ struct range_table_work_area
 re_wctype_t
 re_wctype (const re_char *str)
 {
-  const char *string = str;
+  const char *string = (const char *) str;
   if      (STREQ (string, "alnum"))	return RECC_ALNUM;
   else if (STREQ (string, "alpha"))	return RECC_ALPHA;
   else if (STREQ (string, "word"))	return RECC_WORD;
@@ -2700,7 +2700,7 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 	    main_pend = pend;
 	    main_pattern = pattern;
 	    p = pattern = whitespace_regexp;
-	    pend = p + strlen (p);
+	    pend = p + strlen ((const char *) p);
 	    break;
 	  }
 

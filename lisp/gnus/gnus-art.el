@@ -1014,21 +1014,7 @@ on parts -- for instance, adding Vcard info to a database."
   :group 'gnus-article-mime
   :type '(repeat (cons :format "%v" (string :tag "MIME type") function)))
 
-(defcustom gnus-article-date-headers
-  (let ((types '(ut local english lapsed combined-lapsed
-		    iso8601 original user-defined))
-	default)
-    (dolist (type types)
-      (let ((variable (intern (format "gnus-treat-date-%s" type))))
-	(when (and (boundp variable)
-		   (symbol-value variable))
-	  (push type default))))
-    (when (and (or (not (boundp (intern "gnus-article-date-lapsed-new-header")))
-		   (not (symbol-value (intern "gnus-article-date-lapsed-new-header"))))
-	       (memq 'lapsed default))
-      (setq default (delq 'lapsed default)))
-    (or default
-	'(combined-lapsed)))
+(defcustom gnus-article-date-headers '(combined-lapsed)
   "A list of Date header formats to display.
 Valid formats are `ut' (universal time), `local' (local time
 zone), `english' (readable English), `lapsed' (elapsed time),
@@ -3420,66 +3406,55 @@ possible values."
 	 pos date bface eface)
     (save-excursion
       (save-restriction
-	(widen)
 	(goto-char (point-min))
-	(while (or (setq date (get-text-property (setq pos (point))
-						 'original-date))
-		   (when (setq pos (next-single-property-change
-				    (point) 'original-date))
-		     (setq date (get-text-property pos 'original-date))
-		     t))
-	  (narrow-to-region
-	   pos (if (setq pos (text-property-any pos (point-max)
-						'original-date nil))
-		   (progn
-		     (goto-char pos)
-		     (if (or (bolp) (eobp))
-			 (point)
-		       (1+ (point))))
-		 (point-max)))
-	  (goto-char (point-min))
-	  (when (re-search-forward "^Date:" nil t)
-	    (setq bface (get-text-property (point-at-bol) 'face)
-		  eface (get-text-property (1- (point-at-eol)) 'face)))
-	  (goto-char (point-min))
-	  ;; Delete any old Date headers.
-	  (if date-position
-	      (progn
-		(goto-char date-position)
-		(delete-region (point)
-			       (progn
-				 (gnus-article-forward-header)
-				 (point))))
-	    (while (re-search-forward "^Date:" nil t)
-	      (delete-region (point-at-bol) (progn
-					      (gnus-article-forward-header)
-					      (point)))))
-	  (dolist (this-type (cond
-			      ((null type)
-			       (list 'ut))
-			      ((atom type)
-			       (list type))
-			      (t
-			       type)))
-	    (insert (article-make-date-line date (or this-type 'ut)) "\n")
-	    (forward-line -1)
-	    (put-text-property (line-beginning-position)
-			       (1+ (line-beginning-position))
-			       'gnus-date-type this-type)
-	    ;; Do highlighting.
-	    (beginning-of-line)
-	    (when (looking-at "\\([^:]+\\): *\\(.*\\)$")
-	      (put-text-property (match-beginning 1) (1+ (match-end 1))
-				 'face bface)
-	      (put-text-property (match-beginning 2) (match-end 2)
-				 'face eface)))
-	  (put-text-property (point-min) (1- (point-max)) 'original-date date)
-	  (goto-char (point-max))
-	  (widen))))))
+	(when (re-search-forward "^Date:" nil t)
+	  (setq bface (get-text-property (point-at-bol) 'face)
+		eface (get-text-property (1- (point-at-eol)) 'face)))
+	(goto-char (point-min))
+	;; Delete any old Date headers.
+	(if date-position
+	    (progn
+	      (goto-char date-position)
+	      (setq date (get-text-property (point) 'original-date))
+	      (delete-region (point)
+			     (progn
+			       (gnus-article-forward-header)
+			       (point)))
+	      (article-transform-date date type bface eface))
+	  (while (re-search-forward "^Date:" nil t)
+	    (setq date (get-text-property (match-beginning 0) 'original-date))
+	    (delete-region (point-at-bol) (progn
+					    (gnus-article-forward-header)
+					    (point))))
+	  (when date
+	    (article-transform-date date type bface eface)))))))
+
+(defun article-transform-date (date type bface eface)
+  (dolist (this-type (cond
+		      ((null type)
+		       (list 'ut))
+		      ((atom type)
+		       (list type))
+		      (t
+		       type)))
+    (insert (article-make-date-line date (or this-type 'ut)) "\n")
+    (forward-line -1)
+    (beginning-of-line)
+    (put-text-property (point) (1+ (point))
+		       'original-date date)
+    (put-text-property (point) (1+ (point))
+		       'gnus-date-type this-type)
+    ;; Do highlighting.
+    (when (looking-at "\\([^:]+\\): *\\(.*\\)$")
+      (put-text-property (match-beginning 1) (1+ (match-end 1))
+			 'face bface)
+      (put-text-property (match-beginning 2) (match-end 2)
+			 'face eface))
+    (forward-line 1)))
 
 (defun article-make-date-line (date type)
   "Return a DATE line of TYPE."
-  (unless (memq type '(local ut original user iso8601 lapsed english
+  (unless (memq type '(local ut original user-defined iso8601 lapsed english
 			     combined-lapsed))
     (error "Unknown conversion type: %s" type))
   (condition-case ()
@@ -3508,7 +3483,7 @@ possible values."
 			       (substring date 0 (match-beginning 0))
 			     date)))
 	 ;; Let the user define the format.
-	 ((eq type 'user)
+	 ((eq type 'user-defined)
 	  (let ((format (or (condition-case nil
 				(with-current-buffer gnus-summary-buffer
 				  gnus-article-time-format)
@@ -3646,31 +3621,42 @@ function and want to see what the date was before converting."
 (defun article-update-date-lapsed ()
   "Function to be run from a timer to update the lapsed time line."
   (save-match-data
-    (let (deactivate-mark)
-      (save-window-excursion
-	(ignore-errors
-	 (walk-windows
-	  (lambda (w)
-	    (set-buffer (window-buffer w))
-	    (when (eq major-mode 'gnus-article-mode)
-	      (let ((old-line (count-lines (point-min) (point)))
-		    (old-column (current-column)))
-		(goto-char (point-min))
-		(while (re-search-forward "^Date:" nil t)
-		  (let ((type (get-text-property (match-beginning 0) 'gnus-date-type)))
-		    (when (memq type '(lapsed combined-lapsed user-format))
-		      (save-excursion
-			(article-date-ut type t (match-beginning 0)))
-		      (forward-line 1))))
-		(goto-char (point-min))
-		(when (> old-column 0)
-		  (setq old-line (1- old-line)))
-		(forward-line old-line)
-		(end-of-line)
-		(when (> (current-column) old-column)
-		  (beginning-of-line)
-		  (forward-char old-column)))))
-	  nil 'visible))))))
+    (let ((buffer (current-buffer)))
+      (ignore-errors
+	(walk-windows
+	 (lambda (w)
+	   (set-buffer (window-buffer w))
+	   (when (eq major-mode 'gnus-article-mode)
+	     (let ((old-line (count-lines (point-min) (point)))
+		   (old-column (- (point) (line-beginning-position)))
+		   (window-start
+		    (window-start (get-buffer-window (current-buffer)))))
+	       (goto-char (point-min))
+	       (while (re-search-forward "^Date:" nil t)
+		 (let ((type (get-text-property (match-beginning 0)
+						'gnus-date-type)))
+		   (when (memq type '(lapsed combined-lapsed user-format))
+		     (unless (= window-start
+				(save-excursion
+				  (forward-line 1)
+				  (point)))
+		       (setq window-start nil))
+		     (save-excursion
+		       (article-date-ut type t (match-beginning 0)))
+		     (forward-line 1)
+		     (when window-start
+		       (set-window-start (get-buffer-window (current-buffer))
+					 (point))))))
+	       (goto-char (point-min))
+	       (when (> old-column 0)
+		 (setq old-line (1- old-line)))
+	       (forward-line old-line)
+	       (end-of-line)
+	       (when (> (current-column) old-column)
+		 (beginning-of-line)
+		 (forward-char old-column)))))
+	 nil 'visible))
+      (set-buffer buffer))))
 
 (defun gnus-start-date-timer (&optional n)
   "Start a timer to update the Date headers in the article buffers.
@@ -4513,9 +4499,13 @@ commands:
 	(setq gnus-summary-buffer
 	      (gnus-summary-buffer-name gnus-newsgroup-name))
 	(gnus-summary-set-local-parameters gnus-newsgroup-name)
-	(when (and gnus-article-update-date-headers
-		   (not article-lapsed-timer))
+	(cond
+	 ((and gnus-article-update-date-headers
+	       (not article-lapsed-timer))
 	  (gnus-start-date-timer gnus-article-update-date-headers))
+	 ((and (not gnus-article-update-date-headers)
+	       article-lapsed-timer)
+	  (gnus-stop-date-timer)))
 	(current-buffer)))))
 
 ;; Set article window start at LINE, where LINE is the number of lines
@@ -4884,8 +4874,6 @@ General format specifiers can also be used.  See Info node
     (when (zerop parts)
       (error "No such part"))
     (pop-to-buffer gnus-article-buffer)
-    ;; FIXME: why is it necessary?
-    (sit-for 0)
     (or n
 	(setq n (if (= parts 1)
 		    1
@@ -7347,9 +7335,6 @@ as a symbol to FUN."
 	     (intern arg))))
 
 (defvar gnus-button-handle-describe-prefix "^\\(C-h\\|<?[Ff]1>?\\)")
-
-;; FIXME: Maybe we should merge some of the functions that do quite similar
-;; stuff?
 
 (defun gnus-button-handle-describe-function (url)
   "Call `describe-function' when pushing the corresponding URL button."
