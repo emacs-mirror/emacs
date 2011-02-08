@@ -562,9 +562,9 @@ listing object name completions when being sent text via
 
 ** sregex.el is now obsolete, since rx.el is a strict superset.
 
-** s-region.el is now declared obsolete, superceded by shift-select-mode
-enabled by default in 23.1.
-
+** s-region.el and pc-select are now declared obsolete,
+superceded by shift-select-mode enabled by default in 23.1.
+** pc-mode.el is also declared obsolete.
 ** gdb-mi
 
 *** GDB User Interface migrated to GDB Machine Interface and now
