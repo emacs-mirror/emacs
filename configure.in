@@ -984,7 +984,7 @@ case "$opsys" in
 
   hpux*) LIBS_SYSTEM="-l:libdld.sl" ;;
 
-  sol2*) LIBS_SYSTEM="-lsocket -lnsl -lkstat" ;;
+  sol2*) LIBS_SYSTEM="-lsocket -lnsl" ;;
 
   ## Motif needs -lgen.
   unixware) LIBS_SYSTEM="-lsocket -lnsl -lelf -lgen" ;;
@@ -999,9 +999,6 @@ if test x"${OVERRIDE_CPPFLAGS}" != x; then
 else
   CPPFLAGS="$C_SWITCH_SYSTEM $C_SWITCH_MACHINE $CPPFLAGS"
 fi
-
-dnl For AC_FUNC_GETLOADAVG, at least:
-AC_CONFIG_LIBOBJ_DIR(src)
 
 dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
@@ -2665,8 +2662,6 @@ fi
 
 AC_CHECK_HEADERS(sys/un.h)
 
-AC_FUNC_GETLOADAVG
-
 AC_FUNC_FSEEKO
 
 AC_FUNC_GETPGRP
@@ -3115,7 +3110,6 @@ fi
 S_FILE="\$(srcdir)/${opsysfile}"
 AC_SUBST(M_FILE)
 AC_SUBST(S_FILE)
-AC_SUBST(GETLOADAVG_LIBS)
 AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
 AC_SUBST(ns_appresdir)

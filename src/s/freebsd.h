@@ -25,8 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
-#define HAVE_GETLOADAVG 1
-
 /* This silences a few compilation warnings.  */
 #undef BSD_SYSTEM
 #if __FreeBSD__ == 1

@@ -599,7 +599,6 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_config_libobj_dir=src
 ac_header_list=
 gl_getopt_required=POSIX
 gl_getopt_required=POSIX
@@ -611,6 +610,7 @@ gl_LIBOBJS
 am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
+LIBOBJS
 WINDOW_SUPPORT
 TOOLTIP_SUPPORT
 MOUSE_SUPPORT
@@ -677,6 +677,9 @@ SYS_TIME_H_DEFINES_STRUCT_TIMESPEC
 TIME_H_DEFINES_STRUCT_TIMESPEC
 NEXT_AS_FIRST_DIRECTIVE_TIME_H
 NEXT_TIME_H
+HAVE_RANDOM_H
+NEXT_AS_FIRST_DIRECTIVE_STDLIB_H
+NEXT_STDLIB_H
 NEXT_AS_FIRST_DIRECTIVE_STDDEF_H
 NEXT_STDDEF_H
 STDDEF_H
@@ -813,12 +816,71 @@ GNULIB_DUP3
 GNULIB_DUP2
 GNULIB_CLOSE
 GNULIB_CHOWN
-GL_COND_LIBTOOL_FALSE
-GL_COND_LIBTOOL_TRUE
 GETLOADAVG_LIBS
 KMEM_GROUP
 NEED_SETGID
-LIBOBJS
+REPLACE_UNSETENV
+REPLACE_STRTOD
+REPLACE_SETENV
+REPLACE_REALPATH
+REPLACE_REALLOC
+REPLACE_PUTENV
+REPLACE_MKSTEMP
+REPLACE_MALLOC
+REPLACE_CANONICALIZE_FILE_NAME
+REPLACE_CALLOC
+HAVE_DECL_UNSETENV
+HAVE_UNLOCKPT
+HAVE_SYS_LOADAVG_H
+HAVE_STRUCT_RANDOM_DATA
+HAVE_STRTOULL
+HAVE_STRTOLL
+HAVE_STRTOD
+HAVE_DECL_SETENV
+HAVE_SETENV
+HAVE_RPMATCH
+HAVE_REALPATH
+HAVE_RANDOM_R
+HAVE_PTSNAME
+HAVE_MKSTEMPS
+HAVE_MKSTEMP
+HAVE_MKOSTEMPS
+HAVE_MKOSTEMP
+HAVE_MKDTEMP
+HAVE_GRANTPT
+HAVE_GETSUBOPT
+HAVE_DECL_GETLOADAVG
+HAVE_CANONICALIZE_FILE_NAME
+HAVE_ATOLL
+HAVE__EXIT
+GNULIB_UNSETENV
+GNULIB_UNLOCKPT
+GNULIB_SYSTEM_POSIX
+GNULIB_STRTOULL
+GNULIB_STRTOLL
+GNULIB_STRTOD
+GNULIB_SETENV
+GNULIB_RPMATCH
+GNULIB_REALPATH
+GNULIB_REALLOC_POSIX
+GNULIB_RANDOM_R
+GNULIB_PUTENV
+GNULIB_PTSNAME
+GNULIB_MKSTEMPS
+GNULIB_MKSTEMP
+GNULIB_MKOSTEMPS
+GNULIB_MKOSTEMP
+GNULIB_MKDTEMP
+GNULIB_MALLOC_POSIX
+GNULIB_GRANTPT
+GNULIB_GETSUBOPT
+GNULIB_GETLOADAVG
+GNULIB_CANONICALIZE_FILE_NAME
+GNULIB_CALLOC_POSIX
+GNULIB_ATOLL
+GNULIB__EXIT
+GL_COND_LIBTOOL_FALSE
+GL_COND_LIBTOOL_TRUE
 BLESSMAIL_TARGET
 LIBS_MAIL
 liblockfile
@@ -5823,6 +5885,7 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   # Code from module dtoastr:
   # Code from module extensions:
 
+  # Code from module getloadavg:
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
   # Code from module gettext-h:
@@ -5833,6 +5896,7 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   # Code from module multiarch:
   # Code from module stdbool:
   # Code from module stddef:
+  # Code from module stdlib:
   # Code from module strftime:
   # Code from module time:
   # Code from module time_r:
@@ -6705,7 +6769,7 @@ case "$opsys" in
 
   hpux*) LIBS_SYSTEM="-l:libdld.sl" ;;
 
-  sol2*) LIBS_SYSTEM="-lsocket -lnsl -lkstat" ;;
+  sol2*) LIBS_SYSTEM="-lsocket -lnsl" ;;
 
   ## Motif needs -lgen.
   unixware) LIBS_SYSTEM="-lsocket -lnsl -lelf -lgen" ;;
@@ -6720,8 +6784,6 @@ if test x"${OVERRIDE_CPPFLAGS}" != x; then
 else
   CPPFLAGS="$C_SWITCH_SYSTEM $C_SWITCH_MACHINE $CPPFLAGS"
 fi
-
-
 
 # Check whether --enable-largefile was given.
 if test "${enable_largefile+set}" = set; then :
@@ -13019,500 +13081,6 @@ fi
 done
 
 
-ac_have_func=no # yes means we've found a way to get the load average.
-
-# Make sure getloadavg.c is where it belongs, at configure-time.
-test -f "$srcdir/$ac_config_libobj_dir/getloadavg.c" ||
-  as_fn_error $? "$srcdir/$ac_config_libobj_dir/getloadavg.c is missing" "$LINENO" 5
-
-ac_save_LIBS=$LIBS
-
-# Check for getloadavg, but be sure not to touch the cache variable.
-(ac_fn_c_check_func "$LINENO" "getloadavg" "ac_cv_func_getloadavg"
-if test "x$ac_cv_func_getloadavg" = xyes; then :
-  exit 0
-else
-  exit 1
-fi
-) && ac_have_func=yes
-
-# On HPUX9, an unprivileged user can get load averages through this function.
-for ac_func in pstat_getdynamic
-do :
-  ac_fn_c_check_func "$LINENO" "pstat_getdynamic" "ac_cv_func_pstat_getdynamic"
-if test "x$ac_cv_func_pstat_getdynamic" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_PSTAT_GETDYNAMIC 1
-_ACEOF
-
-fi
-done
-
-
-# Solaris has libkstat which does not require root.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for kstat_open in -lkstat" >&5
-$as_echo_n "checking for kstat_open in -lkstat... " >&6; }
-if ${ac_cv_lib_kstat_kstat_open+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lkstat  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char kstat_open ();
-int
-main ()
-{
-return kstat_open ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_kstat_kstat_open=yes
-else
-  ac_cv_lib_kstat_kstat_open=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_kstat_kstat_open" >&5
-$as_echo "$ac_cv_lib_kstat_kstat_open" >&6; }
-if test "x$ac_cv_lib_kstat_kstat_open" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBKSTAT 1
-_ACEOF
-
-  LIBS="-lkstat $LIBS"
-
-fi
-
-test $ac_cv_lib_kstat_kstat_open = yes && ac_have_func=yes
-
-# Some systems with -lutil have (and need) -lkvm as well, some do not.
-# On Solaris, -lkvm requires nlist from -lelf, so check that first
-# to get the right answer into the cache.
-# For kstat on solaris, we need libelf to force the definition of SVR4 below.
-if test $ac_have_func = no; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for elf_begin in -lelf" >&5
-$as_echo_n "checking for elf_begin in -lelf... " >&6; }
-if ${ac_cv_lib_elf_elf_begin+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lelf  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char elf_begin ();
-int
-main ()
-{
-return elf_begin ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_elf_elf_begin=yes
-else
-  ac_cv_lib_elf_elf_begin=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_elf_elf_begin" >&5
-$as_echo "$ac_cv_lib_elf_elf_begin" >&6; }
-if test "x$ac_cv_lib_elf_elf_begin" = xyes; then :
-  LIBS="-lelf $LIBS"
-fi
-
-fi
-if test $ac_have_func = no; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for kvm_open in -lkvm" >&5
-$as_echo_n "checking for kvm_open in -lkvm... " >&6; }
-if ${ac_cv_lib_kvm_kvm_open+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lkvm  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char kvm_open ();
-int
-main ()
-{
-return kvm_open ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_kvm_kvm_open=yes
-else
-  ac_cv_lib_kvm_kvm_open=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_kvm_kvm_open" >&5
-$as_echo "$ac_cv_lib_kvm_kvm_open" >&6; }
-if test "x$ac_cv_lib_kvm_kvm_open" = xyes; then :
-  LIBS="-lkvm $LIBS"
-fi
-
-  # Check for the 4.4BSD definition of getloadavg.
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getloadavg in -lutil" >&5
-$as_echo_n "checking for getloadavg in -lutil... " >&6; }
-if ${ac_cv_lib_util_getloadavg+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lutil  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char getloadavg ();
-int
-main ()
-{
-return getloadavg ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_util_getloadavg=yes
-else
-  ac_cv_lib_util_getloadavg=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_util_getloadavg" >&5
-$as_echo "$ac_cv_lib_util_getloadavg" >&6; }
-if test "x$ac_cv_lib_util_getloadavg" = xyes; then :
-  LIBS="-lutil $LIBS" ac_have_func=yes ac_cv_func_getloadavg_setgid=yes
-fi
-
-fi
-
-if test $ac_have_func = no; then
-  # There is a commonly available library for RS/6000 AIX.
-  # Since it is not a standard part of AIX, it might be installed locally.
-  ac_getloadavg_LIBS=$LIBS
-  LIBS="-L/usr/local/lib $LIBS"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getloadavg in -lgetloadavg" >&5
-$as_echo_n "checking for getloadavg in -lgetloadavg... " >&6; }
-if ${ac_cv_lib_getloadavg_getloadavg+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgetloadavg  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char getloadavg ();
-int
-main ()
-{
-return getloadavg ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_getloadavg_getloadavg=yes
-else
-  ac_cv_lib_getloadavg_getloadavg=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_getloadavg_getloadavg" >&5
-$as_echo "$ac_cv_lib_getloadavg_getloadavg" >&6; }
-if test "x$ac_cv_lib_getloadavg_getloadavg" = xyes; then :
-  LIBS="-lgetloadavg $LIBS"
-else
-  LIBS=$ac_getloadavg_LIBS
-fi
-
-fi
-
-# Make sure it is really in the library, if we think we found it,
-# otherwise set up the replacement function.
-for ac_func in getloadavg
-do :
-  ac_fn_c_check_func "$LINENO" "getloadavg" "ac_cv_func_getloadavg"
-if test "x$ac_cv_func_getloadavg" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GETLOADAVG 1
-_ACEOF
-
-else
-  case " $LIBOBJS " in
-  *" getloadavg.$ac_objext "* ) ;;
-  *) LIBOBJS="$LIBOBJS getloadavg.$ac_objext"
- ;;
-esac
-
-
-$as_echo "#define C_GETLOADAVG 1" >>confdefs.h
-
-# Figure out what our getloadavg.c needs.
-ac_have_func=no
-ac_fn_c_check_header_mongrel "$LINENO" "sys/dg_sys_info.h" "ac_cv_header_sys_dg_sys_info_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_dg_sys_info_h" = xyes; then :
-  ac_have_func=yes
-
-$as_echo "#define DGUX 1" >>confdefs.h
-
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dg_sys_info in -ldgc" >&5
-$as_echo_n "checking for dg_sys_info in -ldgc... " >&6; }
-if ${ac_cv_lib_dgc_dg_sys_info+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldgc  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char dg_sys_info ();
-int
-main ()
-{
-return dg_sys_info ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_dgc_dg_sys_info=yes
-else
-  ac_cv_lib_dgc_dg_sys_info=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dgc_dg_sys_info" >&5
-$as_echo "$ac_cv_lib_dgc_dg_sys_info" >&6; }
-if test "x$ac_cv_lib_dgc_dg_sys_info" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBDGC 1
-_ACEOF
-
-  LIBS="-ldgc $LIBS"
-
-fi
-
-fi
-
-
-
-ac_fn_c_check_header_mongrel "$LINENO" "locale.h" "ac_cv_header_locale_h" "$ac_includes_default"
-if test "x$ac_cv_header_locale_h" = xyes; then :
-
-fi
-
-
-for ac_func in setlocale
-do :
-  ac_fn_c_check_func "$LINENO" "setlocale" "ac_cv_func_setlocale"
-if test "x$ac_cv_func_setlocale" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SETLOCALE 1
-_ACEOF
-
-fi
-done
-
-
-# We cannot check for <dwarf.h>, because Solaris 2 does not use dwarf (it
-# uses stabs), but it is still SVR4.  We cannot check for <elf.h> because
-# Irix 4.0.5F has the header but not the library.
-if test $ac_have_func = no && test "$ac_cv_lib_elf_elf_begin" = yes \
-    && test "$ac_cv_lib_kvm_kvm_open" = yes; then
-  ac_have_func=yes
-
-$as_echo "#define SVR4 1" >>confdefs.h
-
-fi
-
-if test $ac_have_func = no; then
-  ac_fn_c_check_header_mongrel "$LINENO" "inq_stats/cpustats.h" "ac_cv_header_inq_stats_cpustats_h" "$ac_includes_default"
-if test "x$ac_cv_header_inq_stats_cpustats_h" = xyes; then :
-  ac_have_func=yes
-
-$as_echo "#define UMAX 1" >>confdefs.h
-
-
-$as_echo "#define UMAX4_3 1" >>confdefs.h
-
-fi
-
-
-fi
-
-if test $ac_have_func = no; then
-  ac_fn_c_check_header_mongrel "$LINENO" "sys/cpustats.h" "ac_cv_header_sys_cpustats_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_cpustats_h" = xyes; then :
-  ac_have_func=yes; $as_echo "#define UMAX 1" >>confdefs.h
-
-fi
-
-
-fi
-
-if test $ac_have_func = no; then
-  for ac_header in mach/mach.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "mach/mach.h" "ac_cv_header_mach_mach_h" "$ac_includes_default"
-if test "x$ac_cv_header_mach_mach_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_MACH_MACH_H 1
-_ACEOF
-
-fi
-
-done
-
-fi
-
-for ac_header in nlist.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "nlist.h" "ac_cv_header_nlist_h" "$ac_includes_default"
-if test "x$ac_cv_header_nlist_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_NLIST_H 1
-_ACEOF
- ac_fn_c_check_member "$LINENO" "struct nlist" "n_un.n_name" "ac_cv_member_struct_nlist_n_un_n_name" "#include <nlist.h>
-"
-if test "x$ac_cv_member_struct_nlist_n_un_n_name" = xyes; then :
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_STRUCT_NLIST_N_UN_N_NAME 1
-_ACEOF
-
-
-$as_echo "#define NLIST_NAME_UNION 1" >>confdefs.h
-
-fi
-
-
-fi
-
-done
-
-fi
-done
-
-
-# Some definitions of getloadavg require that the program be installed setgid.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether getloadavg requires setgid" >&5
-$as_echo_n "checking whether getloadavg requires setgid... " >&6; }
-if ${ac_cv_func_getloadavg_setgid+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include "$srcdir/$ac_config_libobj_dir/getloadavg.c"
-#ifdef LDAV_PRIVILEGED
-Yowza Am I SETGID yet
-#endif
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "Yowza Am I SETGID yet" >/dev/null 2>&1; then :
-  ac_cv_func_getloadavg_setgid=yes
-else
-  ac_cv_func_getloadavg_setgid=no
-fi
-rm -f conftest*
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_func_getloadavg_setgid" >&5
-$as_echo "$ac_cv_func_getloadavg_setgid" >&6; }
-if test $ac_cv_func_getloadavg_setgid = yes; then
-  NEED_SETGID=true
-
-$as_echo "#define GETLOADAVG_PRIVILEGED 1" >>confdefs.h
-
-else
-  NEED_SETGID=false
-fi
-
-if test $ac_cv_func_getloadavg_setgid = yes; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking group of /dev/kmem" >&5
-$as_echo_n "checking group of /dev/kmem... " >&6; }
-if ${ac_cv_group_kmem+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-   # On Solaris, /dev/kmem is a symlink.  Get info on the real file.
-  ac_ls_output=`ls -lgL /dev/kmem 2>/dev/null`
-  # If we got an error (system does not support symlinks), try without -L.
-  test -z "$ac_ls_output" && ac_ls_output=`ls -lg /dev/kmem`
-  ac_cv_group_kmem=`$as_echo "$ac_ls_output" \
-    | sed -ne 's/[	 ][	 ]*/ /g;
-	       s/^.[sSrwx-]* *[0-9]* *\([^0-9]*\)  *.*/\1/;
-	       / /s/.* //;p;'`
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_group_kmem" >&5
-$as_echo "$ac_cv_group_kmem" >&6; }
-  KMEM_GROUP=$ac_cv_group_kmem
-fi
-if test "x$ac_save_LIBS" = x; then
-  GETLOADAVG_LIBS=$LIBS
-else
-  GETLOADAVG_LIBS=`$as_echo "$LIBS" | sed "s|$ac_save_LIBS||"`
-fi
-LIBS=$ac_save_LIBS
-
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for _LARGEFILE_SOURCE value needed for large files" >&5
 $as_echo_n "checking for _LARGEFILE_SOURCE value needed for large files... " >&6; }
 if ${ac_cv_sys_largefile_source+:} false; then :
@@ -13673,6 +13241,68 @@ $as_echo "$gl_cv_func_c99_strtold" >&6; }
 $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
 
   fi
+
+
+  GNULIB__EXIT=0;
+  GNULIB_ATOLL=0;
+  GNULIB_CALLOC_POSIX=0;
+  GNULIB_CANONICALIZE_FILE_NAME=0;
+  GNULIB_GETLOADAVG=0;
+  GNULIB_GETSUBOPT=0;
+  GNULIB_GRANTPT=0;
+  GNULIB_MALLOC_POSIX=0;
+  GNULIB_MKDTEMP=0;
+  GNULIB_MKOSTEMP=0;
+  GNULIB_MKOSTEMPS=0;
+  GNULIB_MKSTEMP=0;
+  GNULIB_MKSTEMPS=0;
+  GNULIB_PTSNAME=0;
+  GNULIB_PUTENV=0;
+  GNULIB_RANDOM_R=0;
+  GNULIB_REALLOC_POSIX=0;
+  GNULIB_REALPATH=0;
+  GNULIB_RPMATCH=0;
+  GNULIB_SETENV=0;
+  GNULIB_STRTOD=0;
+  GNULIB_STRTOLL=0;
+  GNULIB_STRTOULL=0;
+  GNULIB_SYSTEM_POSIX=0;
+  GNULIB_UNLOCKPT=0;
+  GNULIB_UNSETENV=0;
+    HAVE__EXIT=1;
+  HAVE_ATOLL=1;
+  HAVE_CANONICALIZE_FILE_NAME=1;
+  HAVE_DECL_GETLOADAVG=1;
+  HAVE_GETSUBOPT=1;
+  HAVE_GRANTPT=1;
+  HAVE_MKDTEMP=1;
+  HAVE_MKOSTEMP=1;
+  HAVE_MKOSTEMPS=1;
+  HAVE_MKSTEMP=1;
+  HAVE_MKSTEMPS=1;
+  HAVE_PTSNAME=1;
+  HAVE_RANDOM_R=1;
+  HAVE_REALPATH=1;
+  HAVE_RPMATCH=1;
+  HAVE_SETENV=1;
+  HAVE_DECL_SETENV=1;
+  HAVE_STRTOD=1;
+  HAVE_STRTOLL=1;
+  HAVE_STRTOULL=1;
+  HAVE_STRUCT_RANDOM_DATA=1;
+  HAVE_SYS_LOADAVG_H=0;
+  HAVE_UNLOCKPT=1;
+  HAVE_DECL_UNSETENV=1;
+  REPLACE_CALLOC=0;
+  REPLACE_CANONICALIZE_FILE_NAME=0;
+  REPLACE_MALLOC=0;
+  REPLACE_MKSTEMP=0;
+  REPLACE_PUTENV=0;
+  REPLACE_REALLOC=0;
+  REPLACE_REALPATH=0;
+  REPLACE_SETENV=0;
+  REPLACE_STRTOD=0;
+  REPLACE_UNSETENV=0;
 
 
   GNULIB_CHOWN=0;
@@ -14830,6 +14460,601 @@ fi
   # Code from module dtoastr:
 
   # Code from module extensions:
+  # Code from module getloadavg:
+
+
+# Persuade glibc <stdlib.h> to declare getloadavg().
+
+
+gl_have_func=no # yes means we've found a way to get the load average.
+
+# Make sure getloadavg.c is where it belongs, at configure-time.
+test -f "$srcdir/$gl_source_base/getloadavg.c" ||
+  as_fn_error $? "$srcdir/$gl_source_base/getloadavg.c is missing" "$LINENO" 5
+
+gl_save_LIBS=$LIBS
+
+# Check for getloadavg, but be sure not to touch the cache variable.
+(ac_fn_c_check_func "$LINENO" "getloadavg" "ac_cv_func_getloadavg"
+if test "x$ac_cv_func_getloadavg" = xyes; then :
+  exit 0
+else
+  exit 1
+fi
+) && gl_have_func=yes
+
+# On HPUX9, an unprivileged user can get load averages through this function.
+for ac_func in pstat_getdynamic
+do :
+  ac_fn_c_check_func "$LINENO" "pstat_getdynamic" "ac_cv_func_pstat_getdynamic"
+if test "x$ac_cv_func_pstat_getdynamic" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_PSTAT_GETDYNAMIC 1
+_ACEOF
+
+fi
+done
+
+
+# Solaris has libkstat which does not require root.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for kstat_open in -lkstat" >&5
+$as_echo_n "checking for kstat_open in -lkstat... " >&6; }
+if ${ac_cv_lib_kstat_kstat_open+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lkstat  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char kstat_open ();
+int
+main ()
+{
+return kstat_open ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_kstat_kstat_open=yes
+else
+  ac_cv_lib_kstat_kstat_open=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_kstat_kstat_open" >&5
+$as_echo "$ac_cv_lib_kstat_kstat_open" >&6; }
+if test "x$ac_cv_lib_kstat_kstat_open" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBKSTAT 1
+_ACEOF
+
+  LIBS="-lkstat $LIBS"
+
+fi
+
+test $ac_cv_lib_kstat_kstat_open = yes && gl_have_func=yes
+
+# AIX has libperfstat which does not require root
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for perfstat_cpu_total in -lperfstat" >&5
+$as_echo_n "checking for perfstat_cpu_total in -lperfstat... " >&6; }
+if ${ac_cv_lib_perfstat_perfstat_cpu_total+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lperfstat  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char perfstat_cpu_total ();
+int
+main ()
+{
+return perfstat_cpu_total ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_perfstat_perfstat_cpu_total=yes
+else
+  ac_cv_lib_perfstat_perfstat_cpu_total=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_perfstat_perfstat_cpu_total" >&5
+$as_echo "$ac_cv_lib_perfstat_perfstat_cpu_total" >&6; }
+if test "x$ac_cv_lib_perfstat_perfstat_cpu_total" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBPERFSTAT 1
+_ACEOF
+
+  LIBS="-lperfstat $LIBS"
+
+fi
+
+test $ac_cv_lib_perfstat_perfstat_cpu_total = yes && gl_have_func=yes
+
+# Some systems with -lutil have (and need) -lkvm as well, some do not.
+# On Solaris, -lkvm requires nlist from -lelf, so check that first
+# to get the right answer into the cache.
+# For kstat on solaris, we need to test for libelf and libkvm to force the
+# definition of SVR4 below.
+if test $gl_have_func = no; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for elf_begin in -lelf" >&5
+$as_echo_n "checking for elf_begin in -lelf... " >&6; }
+if ${ac_cv_lib_elf_elf_begin+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lelf  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char elf_begin ();
+int
+main ()
+{
+return elf_begin ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_elf_elf_begin=yes
+else
+  ac_cv_lib_elf_elf_begin=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_elf_elf_begin" >&5
+$as_echo "$ac_cv_lib_elf_elf_begin" >&6; }
+if test "x$ac_cv_lib_elf_elf_begin" = xyes; then :
+  LIBS="-lelf $LIBS"
+fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for kvm_open in -lkvm" >&5
+$as_echo_n "checking for kvm_open in -lkvm... " >&6; }
+if ${ac_cv_lib_kvm_kvm_open+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lkvm  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char kvm_open ();
+int
+main ()
+{
+return kvm_open ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_kvm_kvm_open=yes
+else
+  ac_cv_lib_kvm_kvm_open=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_kvm_kvm_open" >&5
+$as_echo "$ac_cv_lib_kvm_kvm_open" >&6; }
+if test "x$ac_cv_lib_kvm_kvm_open" = xyes; then :
+  LIBS="-lkvm $LIBS"
+fi
+
+  # Check for the 4.4BSD definition of getloadavg.
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getloadavg in -lutil" >&5
+$as_echo_n "checking for getloadavg in -lutil... " >&6; }
+if ${ac_cv_lib_util_getloadavg+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lutil  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char getloadavg ();
+int
+main ()
+{
+return getloadavg ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_util_getloadavg=yes
+else
+  ac_cv_lib_util_getloadavg=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_util_getloadavg" >&5
+$as_echo "$ac_cv_lib_util_getloadavg" >&6; }
+if test "x$ac_cv_lib_util_getloadavg" = xyes; then :
+  LIBS="-lutil $LIBS" gl_have_func=yes gl_cv_func_getloadavg_setgid=yes
+fi
+
+fi
+
+if test $gl_have_func = no; then
+  # There is a commonly available library for RS/6000 AIX.
+  # Since it is not a standard part of AIX, it might be installed locally.
+  gl_getloadavg_LIBS=$LIBS
+  LIBS="-L/usr/local/lib $LIBS"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getloadavg in -lgetloadavg" >&5
+$as_echo_n "checking for getloadavg in -lgetloadavg... " >&6; }
+if ${ac_cv_lib_getloadavg_getloadavg+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgetloadavg  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char getloadavg ();
+int
+main ()
+{
+return getloadavg ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_getloadavg_getloadavg=yes
+else
+  ac_cv_lib_getloadavg_getloadavg=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_getloadavg_getloadavg" >&5
+$as_echo "$ac_cv_lib_getloadavg_getloadavg" >&6; }
+if test "x$ac_cv_lib_getloadavg_getloadavg" = xyes; then :
+  LIBS="-lgetloadavg $LIBS"
+else
+  LIBS=$gl_getloadavg_LIBS
+fi
+
+fi
+
+# Make sure it is really in the library, if we think we found it,
+# otherwise set up the replacement function.
+for ac_func in getloadavg
+do :
+  ac_fn_c_check_func "$LINENO" "getloadavg" "ac_cv_func_getloadavg"
+if test "x$ac_cv_func_getloadavg" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETLOADAVG 1
+_ACEOF
+
+else
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS getloadavg.$ac_objext"
+
+
+$as_echo "#define C_GETLOADAVG 1" >>confdefs.h
+
+# Figure out what our getloadavg.c needs.
+gl_have_func=no
+ac_fn_c_check_header_mongrel "$LINENO" "sys/dg_sys_info.h" "ac_cv_header_sys_dg_sys_info_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_dg_sys_info_h" = xyes; then :
+  gl_have_func=yes
+
+$as_echo "#define DGUX 1" >>confdefs.h
+
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dg_sys_info in -ldgc" >&5
+$as_echo_n "checking for dg_sys_info in -ldgc... " >&6; }
+if ${ac_cv_lib_dgc_dg_sys_info+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldgc  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dg_sys_info ();
+int
+main ()
+{
+return dg_sys_info ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_dgc_dg_sys_info=yes
+else
+  ac_cv_lib_dgc_dg_sys_info=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dgc_dg_sys_info" >&5
+$as_echo "$ac_cv_lib_dgc_dg_sys_info" >&6; }
+if test "x$ac_cv_lib_dgc_dg_sys_info" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBDGC 1
+_ACEOF
+
+  LIBS="-ldgc $LIBS"
+
+fi
+
+fi
+
+
+
+# We cannot check for <dwarf.h>, because Solaris 2 does not use dwarf (it
+# uses stabs), but it is still SVR4.  We cannot check for <elf.h> because
+# Irix 4.0.5F has the header but not the library.
+if test $gl_have_func = no && test "$ac_cv_lib_elf_elf_begin" = yes \
+    && test "$ac_cv_lib_kvm_kvm_open" = yes; then
+  gl_have_func=yes
+
+$as_echo "#define SVR4 1" >>confdefs.h
+
+fi
+
+if test $gl_have_func = no; then
+  ac_fn_c_check_header_mongrel "$LINENO" "inq_stats/cpustats.h" "ac_cv_header_inq_stats_cpustats_h" "$ac_includes_default"
+if test "x$ac_cv_header_inq_stats_cpustats_h" = xyes; then :
+  gl_have_func=yes
+
+$as_echo "#define UMAX 1" >>confdefs.h
+
+
+$as_echo "#define UMAX4_3 1" >>confdefs.h
+
+fi
+
+
+fi
+
+if test $gl_have_func = no; then
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/cpustats.h" "ac_cv_header_sys_cpustats_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_cpustats_h" = xyes; then :
+  gl_have_func=yes; $as_echo "#define UMAX 1" >>confdefs.h
+
+fi
+
+
+fi
+
+if test $gl_have_func = no; then
+  for ac_header in mach/mach.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "mach/mach.h" "ac_cv_header_mach_mach_h" "$ac_includes_default"
+if test "x$ac_cv_header_mach_mach_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MACH_MACH_H 1
+_ACEOF
+
+fi
+
+done
+
+fi
+
+for ac_header in nlist.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "nlist.h" "ac_cv_header_nlist_h" "$ac_includes_default"
+if test "x$ac_cv_header_nlist_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_NLIST_H 1
+_ACEOF
+ ac_fn_c_check_member "$LINENO" "struct nlist" "n_un.n_name" "ac_cv_member_struct_nlist_n_un_n_name" "#include <nlist.h>
+"
+if test "x$ac_cv_member_struct_nlist_n_un_n_name" = xyes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_NLIST_N_UN_N_NAME 1
+_ACEOF
+
+
+$as_echo "#define NLIST_NAME_UNION 1" >>confdefs.h
+
+fi
+
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <nlist.h>
+int
+main ()
+{
+struct nlist x;
+                    #ifdef HAVE_STRUCT_NLIST_N_UN_N_NAME
+                    x.n_un.n_name = "";
+                    #else
+                    x.n_name = "";
+                    #endif
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+
+$as_echo "#define N_NAME_POINTER 1" >>confdefs.h
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+
+done
+
+fi
+done
+
+
+# Some definitions of getloadavg require that the program be installed setgid.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether getloadavg requires setgid" >&5
+$as_echo_n "checking whether getloadavg requires setgid... " >&6; }
+if ${gl_cv_func_getloadavg_setgid+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#define CONFIGURING_GETLOADAVG
+#include "$srcdir/$gl_source_base/getloadavg.c"
+#ifdef LDAV_PRIVILEGED
+Yowza Am I SETGID yet
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "Yowza Am I SETGID yet" >/dev/null 2>&1; then :
+  gl_cv_func_getloadavg_setgid=yes
+else
+  gl_cv_func_getloadavg_setgid=no
+fi
+rm -f conftest*
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_getloadavg_setgid" >&5
+$as_echo "$gl_cv_func_getloadavg_setgid" >&6; }
+if test $gl_cv_func_getloadavg_setgid = yes; then
+  NEED_SETGID=true
+
+$as_echo "#define GETLOADAVG_PRIVILEGED 1" >>confdefs.h
+
+else
+  NEED_SETGID=false
+fi
+
+if test $gl_cv_func_getloadavg_setgid = yes; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking group of /dev/kmem" >&5
+$as_echo_n "checking group of /dev/kmem... " >&6; }
+if ${gl_cv_group_kmem+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+   # On Solaris, /dev/kmem is a symlink.  Get info on the real file.
+  ac_ls_output=`ls -lgL /dev/kmem 2>/dev/null`
+  # If we got an error (system does not support symlinks), try without -L.
+  test -z "$ac_ls_output" && ac_ls_output=`ls -lg /dev/kmem`
+  gl_cv_group_kmem=`echo $ac_ls_output \
+    | sed -ne 's/[	 ][	 ]*/ /g
+               s/^.[sSrwx-]* *[0-9]* *\([^0-9]*\)  *.*/\1/
+               / /s/.* //;p'`
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_group_kmem" >&5
+$as_echo "$gl_cv_group_kmem" >&6; }
+  KMEM_GROUP=$gl_cv_group_kmem
+fi
+if test "x$gl_save_LIBS" = x; then
+  GETLOADAVG_LIBS=$LIBS
+else
+  GETLOADAVG_LIBS=`echo "$LIBS" | sed "s!$gl_save_LIBS!!"`
+fi
+LIBS=$gl_save_LIBS
+
+
+# Test whether the system declares getloadavg. Solaris has the function
+# but declares it in <sys/loadavg.h>, not <stdlib.h>.
+for ac_header in sys/loadavg.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/loadavg.h" "ac_cv_header_sys_loadavg_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_loadavg_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_LOADAVG_H 1
+_ACEOF
+
+fi
+
+done
+
+if test $ac_cv_header_sys_loadavg_h = yes; then
+  HAVE_SYS_LOADAVG_H=1
+else
+  HAVE_SYS_LOADAVG_H=0
+fi
+ac_fn_c_check_decl "$LINENO" "getloadavg" "ac_cv_have_decl_getloadavg" "#if HAVE_SYS_LOADAVG_H
+   # include <sys/loadavg.h>
+   #endif
+   #include <stdlib.h>
+"
+if test "x$ac_cv_have_decl_getloadavg" = xyes; then :
+
+else
+  HAVE_DECL_GETLOADAVG=0
+fi
+
+
+
+
+
+  GNULIB_GETLOADAVG=1
+
+
+
   # Code from module getopt-gnu:
 
 
@@ -15260,6 +15485,84 @@ $as_echo "$gl_cv_next_stddef_h" >&6; }
 
 
   fi
+
+  # Code from module stdlib:
+
+
+
+
+
+
+
+
+
+
+     if test $gl_cv_have_include_next = yes; then
+       gl_cv_next_stdlib_h='<'stdlib.h'>'
+     else
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute name of <stdlib.h>" >&5
+$as_echo_n "checking absolute name of <stdlib.h>... " >&6; }
+if ${gl_cv_next_stdlib_h+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdlib.h>
+
+_ACEOF
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+                                                            gl_cv_next_stdlib_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                  sed -n '\#/stdlib.h#{
+                    s#.*"\(.*/stdlib.h\)".*#\1#
+                    s#^/[^/]#//&#
+                    p
+                    q
+                  }'`'"'
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_stdlib_h" >&5
+$as_echo "$gl_cv_next_stdlib_h" >&6; }
+     fi
+     NEXT_STDLIB_H=$gl_cv_next_stdlib_h
+
+     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
+       gl_next_as_first_directive='<'stdlib.h'>'
+     else
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
+       gl_next_as_first_directive=$gl_cv_next_stdlib_h
+     fi
+     NEXT_AS_FIRST_DIRECTIVE_STDLIB_H=$gl_next_as_first_directive
+
+
+
+
+  for ac_header in random.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "random.h" "ac_cv_header_random_h" "$ac_includes_default
+"
+if test "x$ac_cv_header_random_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_RANDOM_H 1
+_ACEOF
+
+fi
+
+done
+
+  if test $ac_cv_header_random_h = yes; then
+    HAVE_RANDOM_H=1
+  else
+    HAVE_RANDOM_H=0
+  fi
+
+
+
 
   # Code from module strftime:
 
@@ -17068,7 +17371,6 @@ else
   M_FILE=
 fi
 S_FILE="\$(srcdir)/${opsysfile}"
-
 
 
 

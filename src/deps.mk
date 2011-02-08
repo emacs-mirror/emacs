@@ -115,7 +115,6 @@ fringe.o: fringe.c dispextern.h nsgui.h frame.h window.h buffer.h termhooks.h \
 ftfont.o: ftfont.c dispextern.h frame.h character.h charset.h composite.h \
    font.h lisp.h $(config_h) blockinput.h atimer.h systime.h coding.h \
    fontset.h ccl.h ftfont.h globals.h
-getloadavg.o: getloadavg.c $(config_h)
 gnutls.o: gnutls.c gnutls.h process.h ../lib/unistd.h \
    lisp.h globals.h $(config_h)
 gtkutil.o: gtkutil.c gtkutil.h xterm.h lisp.h frame.h lisp.h $(config_h) \

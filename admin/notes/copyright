@@ -631,7 +631,6 @@ alone (may import them from Gnulib again). These are:
     warn-on-use.h
     lib/*.[ch]
     lib/gnulib.mk
-    src/getloadavg.c
     src/gmalloc.c
     src/md5.c
     src/md5.h

@@ -408,6 +408,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using libotf. */
 #undef HAVE_LIBOTF
 
+/* Define to 1 if you have the `perfstat' library (-lperfstat). */
+#undef HAVE_LIBPERFSTAT
+
 /* Define to 1 if you have the <libpng/png.h> header file. */
 #undef HAVE_LIBPNG_PNG_H
 
@@ -558,6 +561,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
 
+/* Define to 1 if you have the <random.h> header file. */
+#undef HAVE_RANDOM_H
+
 /* Define to 1 if you have the `recvfrom' function. */
 #undef HAVE_RECVFROM
 
@@ -671,6 +677,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `sysinfo' function. */
 #undef HAVE_SYSINFO
+
+/* Define to 1 if you have the <sys/loadavg.h> header file. */
+#undef HAVE_SYS_LOADAVG_H
 
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #undef HAVE_SYS_MMAN_H
@@ -888,6 +897,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you are using NS windowing under GNUstep. */
 #undef NS_IMPL_GNUSTEP
+
+/* Define to 1 if the nlist n_name member is a pointer */
+#undef N_NAME_POINTER
 
 /* Define if the C compiler is the linker. */
 #undef ORDINARY_LINK

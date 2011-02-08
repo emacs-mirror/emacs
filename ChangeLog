@@ -1,3 +1,24 @@
+2011-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import getloadavg module from gnulib.
+	* .bzrignore: Add lib/stdlib.h.
+	* Makefile.in (GNULIB_MODULES): Add getloadavg.
+	* admin/notes/copyright: Remove src/getloadavg.c as a special case.
+	* configure.in (LIBS_SYSTEM): Omit -lkstat on sol2*; gnulib does this.
+	(AC_CONFIG_LIBOBJ_DIR, AC_FUNC_GETLOADAVG, GETLOADAVG_FILES):
+	Remove; gnulib does this now.
+	* lib/getloadavg.c: Rename from src/getloadavg.c, and sync
+	from gnulib.  This adds support for several other systems, such
+	as Tru64 4.0D, QNX, AIX perfstat, etc.  It also fixes a potential
+	buffer overrun on Linux hosts under very high load, and on hosts
+	that maintain a channel to the load average file it makes sure
+	the file descriptor is close-on-exec (on hosts that support this)
+	and is not stdin, stdout, or stderr.
+	* lib/stdlib.in.h, m4/getloadavg.m4, m4/stdlib_h.m4: New files,
+	from gnulib.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4:
+	* src/config.in: Regenerate.
+
 2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	gnulib: allow multiple gnulib generated replacements to coexist

@@ -3407,11 +3407,6 @@ EXFUN (Fclear_face_cache, 1);
 EXFUN (Fx_load_color_file, 1);
 extern void syms_of_xfaces (void);
 
-#ifndef HAVE_GETLOADAVG
-/* Defined in getloadavg.c */
-extern int getloadavg (double *, int);
-#endif
-
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */
 extern void syms_of_xfns (void);

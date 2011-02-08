@@ -1,3 +1,13 @@
+2011-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import getloadavg module from gnulib.
+	* deps.mk (getloadavg.o): Remove; gnulib now does this.
+	* lisp.h (getloadavg) [!defined HAVE_GETLOADAVG]: Remove; gnulib
+	now does this.
+	* src/s/freebsd.h (HAVE_GETLOADAVG): Remove; gnulib now does this.
+	* src/s/netbsd.h (HAVE_GETLOADAVG): Likewise.
+	* config.in: Regenerate.
+
 2011-02-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	conform to C89 pointer rules
