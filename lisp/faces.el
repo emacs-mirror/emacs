@@ -1605,13 +1605,25 @@ Optional parameter FRAME is the frame whose definition of FACE
 is used.  If nil or omitted, use the selected frame."
   (unless frame
     (setq frame (selected-frame)))
-  (let ((list face-attribute-name-alist)
-	(match t))
+  (let* ((list face-attribute-name-alist)
+	 (match t)
+	 (bold (and (plist-member attrs :bold)
+		    (not (plist-member attrs :weight))))
+	 (italic (and (plist-member attrs :italic)
+		      (not (plist-member attrs :slant))))
+	 (plist (if (or bold italic)
+		    (copy-sequence attrs)
+		  attrs)))
+    ;; Handle the Emacs 20 :bold and :italic properties.
+    (if bold
+	(plist-put plist :weight (if bold 'bold 'normal)))
+    (if italic
+	(plist-put plist :slant (if italic 'italic 'normal)))
     (while (and match (not (null list)))
       (let* ((attr (car (car list)))
 	     (specified-value
-	      (if (plist-member attrs attr)
-		  (plist-get attrs attr)
+	      (if (plist-member plist attr)
+		  (plist-get plist attr)
 		'unspecified))
 	     (value-now (face-attribute face attr frame)))
 	(setq match (equal specified-value value-now))

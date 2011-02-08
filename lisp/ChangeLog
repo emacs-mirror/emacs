@@ -1,3 +1,8 @@
+2011-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* faces.el (face-attr-match-p): Handle the obsolete :bold and
+	:italic props, so that frame-set-background-mode works.  (Bug#7966)
+
 2011-02-07  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (next-error): Doc fix.
