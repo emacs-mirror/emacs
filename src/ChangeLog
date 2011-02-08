@@ -1,3 +1,7 @@
+2011-02-08  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Ffont_get): Do not cache :otf value.
+
 2011-02-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	conform to C89 pointer rules

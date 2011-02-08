@@ -2638,7 +2638,7 @@ will be inserted before the group at point."
 ;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
 ;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
 ;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "f163e17664a89a6f0aa2b15bfaaa65a4")
+;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "eb3de21aef70e4ca75f611f1c3c56aa1")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\
