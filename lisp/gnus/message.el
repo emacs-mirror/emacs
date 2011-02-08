@@ -1814,6 +1814,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 
 (defvar	message-options nil
   "Some saved answers when sending message.")
+(make-local-variable 'message-options)
 
 (defvar message-send-mail-real-function nil
   "Internal send mail function.")

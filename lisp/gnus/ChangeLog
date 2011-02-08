@@ -1,3 +1,7 @@
+2011-02-08  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-options): Make message-options a local variable.
+
 2011-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-update-info): Refactor slightly.
