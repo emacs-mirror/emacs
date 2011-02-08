@@ -1,3 +1,8 @@
+2011-02-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (setFrame, initFrame): Make sure pixel_height doesn't become
+	zero (Bug#7348).
+
 2011-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute):

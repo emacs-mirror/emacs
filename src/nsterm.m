@@ -5721,6 +5721,7 @@ ns_term_shutdown (int sig)
   win = nwin;
   condemned = NO;
   pixel_height = NSHeight (r);
+  if (pixel_height == 0) pixel_height = 1;
   min_portion = 20 / pixel_height;
 
   frame = XFRAME (XWINDOW (win)->frame);
@@ -5750,6 +5751,7 @@ ns_term_shutdown (int sig)
   NSTRACE (EmacsScroller_setFrame);
 /*  BLOCK_INPUT; */
   pixel_height = NSHeight (newRect);
+  if (pixel_height == 0) pixel_height = 1;
   min_portion = 20 / pixel_height;
   [super setFrame: newRect];
   [self display];
