@@ -1,3 +1,13 @@
+2011-02-07  Julien Danjou  <julien@danjou.info>
+
+	* erc-track.el (erc-window-configuration-change): New function.
+	This will allow to track buffer visibility when a command is
+	finished to executed.  Idea stolen from rcirc.
+	(track): Put erc-window-configuration-change in
+	window-configuration-change-hook.
+	(erc-modified-channels-update): Remove
+	erc-modified-channels-update from post-command-hook after update.
+
 2011-01-31  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
 
 	* erc-track.el (track): Don't reset erc-modified-channels-object
