@@ -558,7 +558,7 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 /* The types of globals.  */
 enum global_type
 {
-  EMACS_INT,
+  EMACS_INTEGER,
   BOOLEAN,
   LISP_OBJECT,
   INVALID
@@ -621,7 +621,7 @@ write_globals (void)
 
       switch (globals[i].type)
 	{
-	case EMACS_INT:
+	case EMACS_INTEGER:
 	  type = "EMACS_INT";
 	  break;
 	case BOOLEAN:
@@ -733,7 +733,7 @@ scan_c_file (char *filename, const char *mode)
 	  if (generate_globals)
 	    {
 	      if (c == 'I')
-		type = EMACS_INT;
+		type = EMACS_INTEGER;
 	      else if (c == 'L')
 		type = LISP_OBJECT;
 	      else if (c == 'B')

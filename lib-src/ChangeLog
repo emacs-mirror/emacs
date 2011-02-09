@@ -1,3 +1,9 @@
+2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (EMACS_INTEGER): Rename from EMACS_INT.
+	This avoids collision with config.h's EMACS_INT on some
+	configurations.  All uses changed.
+
 2011-02-08  Tom Tromey  <tromey@redhat.com>
 
 	* make-docfile.c: Unconditionally include stdlib.h.
