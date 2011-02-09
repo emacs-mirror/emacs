@@ -2185,13 +2185,22 @@ With a prefix arg, prompt for new topic."
 
 (defun rcirc-cmd-ctcp (args &optional process target)
   (if (string-match "^\\([^ ]+\\)\\s-+\\(.+\\)$" args)
-      (let ((target (match-string 1 args))
-            (request (match-string 2 args)))
-        (rcirc-send-string process
-			   (format "PRIVMSG %s \C-a%s\C-a"
-				   target (upcase request))))
+      (let* ((target (match-string 1 args))
+             (request (upcase (match-string 2 args)))
+             (function (intern-soft (concat "rcirc-ctcp-sender-" request))))
+        (if (fboundp function) ;; use special function if available
+            (funcall function process target request)
+          (rcirc-send-string process
+                             (format "PRIVMSG %s :\C-a%s\C-a"
+                                     target request))))
     (rcirc-print process (rcirc-nick process) "ERROR" nil
                  "usage: /ctcp NICK REQUEST")))
+
+(defun rcirc-ctcp-sender-PING (process target request)
+  "Send a CTCP PING message to TARGET."
+  (let ((timestamp (car (split-string (number-to-string (float-time)) "\\."))))
+    (rcirc-send-string process
+                       (format "PRIVMSG %s :\C-aPING %s\C-a" target timestamp))))
 
 (defun rcirc-cmd-me (args &optional process target)
   (rcirc-send-string process (format "PRIVMSG %s :\C-aACTION %s\C-a"

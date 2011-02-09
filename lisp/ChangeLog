@@ -1,3 +1,9 @@
+2011-02-09  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-cmd-ctcp): Use dedicated function when
+	available.
+	(rcirc-ctcp-sender-PING): New function.
+
 2011-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* obsolete/pc-select.el: Rename from emulation/pc-select.el (bug#7940).
