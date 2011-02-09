@@ -1,3 +1,8 @@
+2011-02-09  Reuben Thomas  <rrt@sc3d.org>
+
+	* loading.texi (Hooks for Loading): Remove unnecessary advice
+	about eval-after-load (Bug#7986).
+
 2011-02-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* commands.texi (Accessing Mouse): Note that a header line is not
