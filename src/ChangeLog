@@ -1,3 +1,9 @@
+2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in ($(otherobj)): Depend on globals.h.
+	Otherwise 'make -j10' failed on my host, because the build lacked
+	necessary dependencies, e.g., vm-limit.o depends on globals.h.
+
 2011-02-08  Tom Tromey  <tromey@redhat.com>
 
 	* Makefile.in (NS_OBJC_OBJ): New variable.
