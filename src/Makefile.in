@@ -647,15 +647,15 @@ $(libsrc)/make-docfile$(EXEEXT):
 buildobj.h: Makefile
 	echo "#define BUILDOBJ \"$(obj) $(otherobj) " "\"" > buildobj.h
 
-globals.h: gl-stamp
-	cp gl-stamp globals.h
+globals.h: gl-stamp; @true
 
 GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
 	@rm -f gl-tmp
 	$(libsrc)/make-docfile -d $(srcdir) -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
-	$(srcdir)/../move-if-change gl-tmp gl-stamp
+	$(srcdir)/../move-if-change gl-tmp globals.h
+	echo timestamp > $@
 
 $(obj) $(otherobj): globals.h
 
@@ -713,6 +713,7 @@ mostlyclean:
 	rm -f ../etc/DOC
 	rm -f bootstrap-emacs$(EXEEXT) emacs-$(version)$(EXEEXT)
 	rm -f buildobj.h
+	rm -f globals.h gl-stamp
 clean: mostlyclean
 	rm -f emacs-*.*.*$(EXEEXT) emacs$(EXEEXT)
 	-rm -rf $(DEPDIR)

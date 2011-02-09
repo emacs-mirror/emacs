@@ -1,3 +1,9 @@
+2011-02-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (gl-stamp): Create globals.h here.
+	(globals.h): Don't do it here.
+	(mostlyclean): Clean globals.h and gl-stamp.
+
 2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in ($(otherobj)): Depend on globals.h.
