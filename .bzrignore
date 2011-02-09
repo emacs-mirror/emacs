@@ -83,3 +83,5 @@ src/stamp-oldxmenu
 src/temacs
 test/indent/*.new
 +*
+src/globals.h
+src/gl-stamp

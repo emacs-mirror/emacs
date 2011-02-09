@@ -1,3 +1,7 @@
+2011-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .bzrignore: Ignore globals.h and related stamp.
+
 2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lib/Makefile.in, lib/gnulib.mk: Regenerate.

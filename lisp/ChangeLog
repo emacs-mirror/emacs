@@ -1,3 +1,8 @@
+2011-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-open-heredoc): Fix case
+	of here-doc that immediately follows a comment.
+
 2011-02-09  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el (rcirc-ctcp-sender-PING): Simplifying.
