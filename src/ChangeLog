@@ -1,3 +1,10 @@
+2011-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (GLOBAL_SOURCES, SOME_MACHINE_OBJECTS, obj): New
+	macros.
+	(globals.h, gl-stamp): New targets.
+	(clean): Clean gl-stamp and globals.h.
+
 2011-02-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (gl-stamp): Create globals.h here.
