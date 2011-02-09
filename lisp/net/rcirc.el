@@ -2198,7 +2198,7 @@ With a prefix arg, prompt for new topic."
 
 (defun rcirc-ctcp-sender-PING (process target request)
   "Send a CTCP PING message to TARGET."
-  (let ((timestamp (car (split-string (number-to-string (float-time)) "\\."))))
+  (let ((timestamp (format "%.0f" (float-time))))
     (rcirc-send-string process
                        (format "PRIVMSG %s :\C-aPING %s\C-a" target timestamp))))
 
