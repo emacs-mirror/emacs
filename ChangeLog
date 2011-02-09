@@ -1,3 +1,12 @@
+2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/Makefile.in, lib/gnulib.mk: Regenerate.
+	This merges the following fix from gnulib:
+
+	2011-02-08  Bruno Haible  <bruno@clisp.org>
+
+	Split large sed scripts, for HP-UX sed.
+
 2011-02-08  Tom Tromey  <tromey@redhat.com>
 
 	* configure: Rebuild.
