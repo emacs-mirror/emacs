@@ -1,3 +1,8 @@
+2011-02-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (select_window): Check inhibit_point_swap argument when
+	deciding whether to return immediately.
+
 2011-02-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (setFrame, initFrame): Make sure pixel_height doesn't become
