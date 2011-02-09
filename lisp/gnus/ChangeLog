@@ -1,4 +1,17 @@
+2011-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-retrieve-group-data-early-disabled): Disable the async
+	code for now, since it doesn't work for all users.
+
+2011-02-09  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-options): Make message-options really buffer
+	local.
+
 2011-02-08  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-tag-body): Add support for text attribute in body
+	markups.
 
 	* message.el (message-options): Make message-options a local variable.
 

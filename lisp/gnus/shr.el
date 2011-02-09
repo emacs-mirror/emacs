@@ -696,7 +696,8 @@ ones, in case fg and bg are nil."
 
 (defun shr-tag-body (cont)
   (let* ((start (point))
-	 (fgcolor (cdr (assq :fgcolor cont)))
+	 (fgcolor (cdr (or (assq :fgcolor cont)
+                           (assq :text cont))))
 	 (bgcolor (cdr (assq :bgcolor cont)))
 	 (shr-stylesheet (list (cons 'color fgcolor)
 			       (cons 'background-color bgcolor))))
