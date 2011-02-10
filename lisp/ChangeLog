@@ -1,5 +1,8 @@
 2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/edebug.el (edebug-instrument-function): Check a marker is
+	still valid before using it.
+
 	* progmodes/grep.el (grep-mode-font-lock-keywords): Adjust to
 	`message' -> `compilation-message' rename (bug#8004).
 
