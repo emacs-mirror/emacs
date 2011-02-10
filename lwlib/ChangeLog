@@ -1,3 +1,15 @@
+2011-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* lwlib-Xaw.c, lwlib-Xlw.c, lwlib-Xm.c, lwlib-utils.c, lwlib.c:
+	* xlwmenu.c: Standardize on <> for includes from the ../src directory.
+
+2011-02-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (@SET_MAKE@): New, set by configure.
+	(globals): New variable and rule.
+	(lwlib-utils.o, lwlib.o, lwlib-Xlw.o, lwlib-Xaw.o, lwlib-Xm.o)
+	(xlwmenu.o): Add dependency on src/globals.h.
+
 2011-01-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c (make_destroyed_instance):

@@ -1320,7 +1320,7 @@ No argument or nil as argument means do this for the current buffer.  */)
 }
 
 /*
-  DEFVAR_LISP ("kill-buffer-hook", no_cell, "\
+  DEFVAR_LISP ("kill-buffer-hook", ..., "\
 Hook to be run (by `run-hooks', which see) when a buffer is killed.\n\
 The buffer being killed will be current while the hook is running.\n\
 See `kill-buffer'."

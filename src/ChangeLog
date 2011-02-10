@@ -1,4 +1,4 @@
-2011-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+2011-02-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Import getloadavg module from gnulib.
 	* deps.mk (getloadavg.o): Remove; gnulib now does this.
@@ -7,6 +7,47 @@
 	* src/s/freebsd.h (HAVE_GETLOADAVG): Remove; gnulib now does this.
 	* src/s/netbsd.h (HAVE_GETLOADAVG): Likewise.
 	* config.in: Regenerate.
+
+2011-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (really-lwlib): Depend on globals.h, for parallel builds.
+
+2011-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (GLOBAL_SOURCES, SOME_MACHINE_OBJECTS, obj):
+	New macros.
+	(globals.h, gl-stamp): New targets.
+	(clean): Clean gl-stamp and globals.h.
+
+2011-02-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (gl-stamp): Create globals.h here.
+	(globals.h): Don't do it here.
+	(mostlyclean): Clean globals.h and gl-stamp.
+
+2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in ($(otherobj)): Depend on globals.h.
+	Otherwise 'make -j10' failed on my host, because the build lacked
+	necessary dependencies, e.g., vm-limit.o depends on globals.h.
+
+2011-02-08  Tom Tromey  <tromey@redhat.com>
+
+	* Makefile.in (NS_OBJC_OBJ): New variable.
+	(base_obj): Rename from 'obj'.
+	(obj): New variable.
+	(globals.h, gl-stamp, $(obj)): New targets.
+	(GLOBAL_SOURCES): New variable.
+	* globals.h: Remove.
+	* nsselect.m (Vselection_alist): Define.  Reverts part of
+	r102904.
+	* buffer.c: Don't use "no_cell" for name of kill-buffer-hook's
+	variable.
+	* xselect.c (Vselection_alist): Define.  Reverts part of r102908.
+
+2011-02-08  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Ffont_get): Do not cache :otf value.
 
 2011-02-07  Paul Eggert  <eggert@cs.ucla.edu>
 

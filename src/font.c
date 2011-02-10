@@ -3982,7 +3982,6 @@ Layout tags.  */)
 	val = fontp->driver->otf_capability (fontp);
       else
 	val = Fcons (Qnil, Qnil);
-      font_put_extra (font, QCotf, val);
     }
   else
     val = Fcdr (val);

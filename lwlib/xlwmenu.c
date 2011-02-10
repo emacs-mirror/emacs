@@ -1,4 +1,5 @@
 /* Implements a lightweight menubar widget.
+
 Copyright (C) 1992 Lucid, Inc.
 Copyright (C) 1994-1995, 1997, 1999-2011  Free Software Foundation, Inc.
 
@@ -26,7 +27,7 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 #include <setjmp.h>
-#include "lisp.h"
+#include <lisp.h>
 
 #include <stdio.h>
 #include <ctype.h>
@@ -56,7 +57,7 @@ extern int gray_bitmap_width;
 extern int gray_bitmap_height;
 extern char *gray_bitmap_bits;
 
-#include "xterm.h"
+#include <xterm.h>
 
 #else /* not emacs */
 
@@ -2689,4 +2690,3 @@ pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
   ((XMotionEvent*)event)->is_hint = 0;
   handle_motion_event (mw, (XMotionEvent*)event);
 }
-

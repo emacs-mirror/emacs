@@ -1,3 +1,7 @@
+2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update to version 2011-02-07.16.
+
 2011-02-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Bus names): Adapt descriptions for

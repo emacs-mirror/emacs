@@ -34,7 +34,7 @@ Boston, MA 02110-1301, USA.  */
 #include <X11/CoreP.h>
 #include <X11/CompositeP.h>
 
-#include "../src/lisp.h"
+#include <lisp.h>
 
 #include "lwlib-Xm.h"
 #include "lwlib-utils.h"
@@ -1956,4 +1956,3 @@ xm_manage_resizing (Widget w, Boolean flag)
 {
   XtVaSetValues (w, XtNallowShellResize, flag, NULL);
 }
-

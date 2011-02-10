@@ -24,6 +24,7 @@
 
 srcdir=@srcdir@
 VPATH=@srcdir@
+@SET_MAKE@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 C_SWITCH_X_SYSTEM=@C_SWITCH_X_SYSTEM@
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
@@ -65,16 +66,22 @@ liblw.a: $(OBJS)
 	$(AR) $@ $(OBJS)
 	$(RANLIB) $@
 
+## lisp.h includes this.
+globals = ../src/globals.h
+
+$(globals):
+	cd ../src; $(MAKE) $(MFLAGS) globals.h
+
 # Depend on Makefile so that we recompile if TOOLKIT_DEFINES changes.
 lwlib.o:  $(srcdir)/lwlib.c  Makefile
 	$(CC) -c $(CPPFLAGS) $(TOOLKIT_DEFINES) $(ALL_CFLAGS) $(srcdir)/lwlib.c
 
-lwlib-utils.o: lwlib-utils.c lwlib-utils.h
-lwlib.o:       lwlib.c lwlib.h lwlib-int.h lwlib-Xaw.h lwlib-Xlw.h
-lwlib-Xlw.o:   lwlib-Xlw.c lwlib.h lwlib-int.h lwlib-Xlw.h
-lwlib-Xaw.o:   lwlib-Xaw.c lwlib-Xaw.h lwlib.h lwlib-int.h
-lwlib-Xm.o:    lwlib-Xm.c lwlib-Xm.h lwlib.h lwlib-int.h lwlib-utils.h
-xlwmenu.o: xlwmenu.c xlwmenu.h lwlib.h xlwmenuP.h
+lwlib-utils.o: $(globals) lwlib-utils.c lwlib-utils.h
+lwlib.o:      $(globals) lwlib.c lwlib.h lwlib-int.h lwlib-Xaw.h lwlib-Xlw.h
+lwlib-Xlw.o:  $(globals) lwlib-Xlw.c lwlib.h lwlib-int.h lwlib-Xlw.h
+lwlib-Xaw.o:  $(globals) lwlib-Xaw.c lwlib-Xaw.h lwlib.h lwlib-int.h
+lwlib-Xm.o:   $(globals) lwlib-Xm.c lwlib-Xm.h lwlib.h lwlib-int.h lwlib-utils.h
+xlwmenu.o:    $(globals) xlwmenu.c xlwmenu.h lwlib.h xlwmenuP.h
 
 mostlyclean:
 	$(RM) *.o core liblw.a \#*

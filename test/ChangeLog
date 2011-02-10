@@ -1,3 +1,8 @@
+2011-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/shell.sh:
+	* indent/shell.rc: New files.
+
 2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* automated/font-parse-tests.el: Move from

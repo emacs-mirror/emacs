@@ -1342,13 +1342,11 @@ textual parts.")
 	;; Tell Gnus whether there are any \Recent messages in any of
 	;; the groups.
 	(let ((recent (cdr (assoc '%Recent flags))))
-	  (when (and active recent)
-	    (while recent
-	      (when (> (car recent) (cdr active))
-		(push (list (cons (gnus-group-real-name group) 0))
-		      nnmail-split-history)
-		(setq recent nil))
-	      (pop recent))))
+	  (when (and active
+		     recent
+		     (> (car (last recent)) (cdr active)))
+	    (push (list (cons (gnus-group-real-name group) 0))
+		  nnmail-split-history)))
 	;; Note the active level for the next run-through.
 	(gnus-group-set-parameter info 'active (gnus-active group))
 	(gnus-group-set-parameter info 'uidvalidity uidvalidity)

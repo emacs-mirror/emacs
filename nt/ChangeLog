@@ -1,3 +1,10 @@
+2011-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap-nmake, bootstrap-gmake): Make the
+	"make-docfile" target in lib-src, before bootstrapping the src
+	directory.  Needed since building in src needs to run make-docfile
+	to produce globals.h.
+
 2011-02-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (inline) [__GNUC__]: Define (for gnulib).

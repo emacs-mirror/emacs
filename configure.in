@@ -1516,6 +1516,7 @@ AC_SUBST(TEMACS_LDFLAGS2)
 
 ns_frag=/dev/null
 NS_OBJ=
+NS_OBJC_OBJ=
 NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
   window_system=nextstep
@@ -1527,12 +1528,14 @@ if test "${HAVE_NS}" = yes; then
      prefix=${ns_appresdir}
   fi
   ns_frag=$srcdir/src/ns.mk
-  NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
+  NS_OBJ="fontset.o fringe.o image.o"
+  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
   NS_SUPPORT="\${lispsource}/emacs-lisp/easymenu.elc \${lispsource}/term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
 AC_SUBST(NS_OBJ)
+AC_SUBST(NS_OBJC_OBJ)
 AC_SUBST(NS_SUPPORT)
 AC_SUBST(LIB_STANDARD)
 AC_SUBST_FILE(ns_frag)
