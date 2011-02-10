@@ -3,6 +3,10 @@
 	* message.el (message-bury): Don't pop up a new window when selected
 	window is dedicated.
 
+2011-02-10  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-save-parts): Use read-directory-name.
+
 2011-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nntp.el (nntp-retrieve-group-data-early-disabled): Disable the async
