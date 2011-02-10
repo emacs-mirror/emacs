@@ -677,7 +677,6 @@ SYS_TIME_H_DEFINES_STRUCT_TIMESPEC
 TIME_H_DEFINES_STRUCT_TIMESPEC
 NEXT_AS_FIRST_DIRECTIVE_TIME_H
 NEXT_TIME_H
-HAVE_RANDOM_H
 NEXT_AS_FIRST_DIRECTIVE_STDLIB_H
 NEXT_STDLIB_H
 NEXT_AS_FIRST_DIRECTIVE_STDDEF_H
@@ -841,6 +840,7 @@ HAVE_SETENV
 HAVE_RPMATCH
 HAVE_REALPATH
 HAVE_RANDOM_R
+HAVE_RANDOM_H
 HAVE_PTSNAME
 HAVE_MKSTEMPS
 HAVE_MKSTEMP
@@ -13281,6 +13281,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   HAVE_MKSTEMP=1;
   HAVE_MKSTEMPS=1;
   HAVE_PTSNAME=1;
+  HAVE_RANDOM_H=1;
   HAVE_RANDOM_R=1;
   HAVE_REALPATH=1;
   HAVE_RPMATCH=1;
@@ -15541,25 +15542,6 @@ $as_echo "$gl_cv_next_stdlib_h" >&6; }
 
 
 
-
-  for ac_header in random.h
-do :
-  ac_fn_c_check_header_compile "$LINENO" "random.h" "ac_cv_header_random_h" "$ac_includes_default
-"
-if test "x$ac_cv_header_random_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_RANDOM_H 1
-_ACEOF
-
-fi
-
-done
-
-  if test $ac_cv_header_random_h = yes; then
-    HAVE_RANDOM_H=1
-  else
-    HAVE_RANDOM_H=0
-  fi
 
 
 

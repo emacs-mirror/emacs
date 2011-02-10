@@ -49,20 +49,23 @@
 # include <sys/loadavg.h>
 #endif
 
+#if @GNULIB_RANDOM_R@
+
 /* OSF/1 5.1 declares 'struct random_data' in <random.h>, which is included
-   from <stdlib.h> if _REENTRANT is defined.  Include it always.  */
-#if @HAVE_RANDOM_H@
-# include <random.h>
-#endif
+   from <stdlib.h> if _REENTRANT is defined.  Include it whenever we need
+   'struct random_data'.  */
+# if @HAVE_RANDOM_H@
+#  include <random.h>
+# endif
 
-#if !@HAVE_STRUCT_RANDOM_DATA@ || (@GNULIB_RANDOM_R@ && !@HAVE_RANDOM_R@)
-# include <stdint.h>
-#endif
+# if !@HAVE_STRUCT_RANDOM_DATA@ || !@HAVE_RANDOM_R@
+#  include <stdint.h>
+# endif
 
-#if !@HAVE_STRUCT_RANDOM_DATA@
+# if !@HAVE_STRUCT_RANDOM_DATA@
 /* Define 'struct random_data'.
    But allow multiple gnulib generated <stdlib.h> replacements to coexist.  */
-# if !GNULIB_defined_struct_random_data
+#  if !GNULIB_defined_struct_random_data
 struct random_data
 {
   int32_t *fptr;                /* Front pointer.  */
@@ -73,7 +76,8 @@ struct random_data
   int rand_sep;                 /* Distance between front and rear.  */
   int32_t *end_ptr;             /* Pointer behind state table.  */
 };
-#  define GNULIB_defined_struct_random_data 1
+#   define GNULIB_defined_struct_random_data 1
+#  endif
 # endif
 #endif
 

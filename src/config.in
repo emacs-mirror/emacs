@@ -561,9 +561,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
 
-/* Define to 1 if you have the <random.h> header file. */
-#undef HAVE_RANDOM_H
-
 /* Define to 1 if you have the `recvfrom' function. */
 #undef HAVE_RECVFROM
 
