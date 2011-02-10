@@ -282,7 +282,7 @@ Not documented
 ;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "fd4df570f1dcbf83cde740819ae3734a")
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "75e86ac663887b54bf1778f2dd028463")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -389,7 +389,7 @@ This is equivalent to `(return-from nil RESULT)'.
 
 (autoload 'return-from "cl-macs" "\
 Return from the block named NAME.
-This jump out to the innermost enclosing `(block NAME ...)' form,
+This jumps out to the innermost enclosing `(block NAME ...)' form,
 returning RESULT from that form (or nil if RESULT is omitted).
 This is compatible with Common Lisp, but note that `defun' and
 `defmacro' do not create implicit blocks as they do in Common Lisp.
