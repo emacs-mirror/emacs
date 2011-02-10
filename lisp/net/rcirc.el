@@ -861,40 +861,42 @@ IRC command completion is performed only if '/' is the first input char."
   (interactive "zCoding system for outgoing messages: ")
   (setq rcirc-encode-coding-system coding-system))
 
-(defvar rcirc-mode-map (make-sparse-keymap)
+(defvar rcirc-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") 'rcirc-send-input)
+    (define-key map (kbd "M-p") 'rcirc-insert-prev-input)
+    (define-key map (kbd "M-n") 'rcirc-insert-next-input)
+    (define-key map (kbd "TAB") 'rcirc-complete)
+    (define-key map (kbd "C-c C-b") 'rcirc-browse-url)
+    (define-key map (kbd "C-c C-c") 'rcirc-edit-multiline)
+    (define-key map (kbd "C-c C-j") 'rcirc-cmd-join)
+    (define-key map (kbd "C-c C-k") 'rcirc-cmd-kick)
+    (define-key map (kbd "C-c C-l") 'rcirc-toggle-low-priority)
+    (define-key map (kbd "C-c C-d") 'rcirc-cmd-mode)
+    (define-key map (kbd "C-c C-m") 'rcirc-cmd-msg)
+    (define-key map (kbd "C-c C-r") 'rcirc-cmd-nick) ; rename
+    (define-key map (kbd "C-c C-o") 'rcirc-omit-mode)
+    (define-key map (kbd "M-o") 'rcirc-omit-mode)
+    (define-key map (kbd "C-c C-p") 'rcirc-cmd-part)
+    (define-key map (kbd "C-c C-q") 'rcirc-cmd-query)
+    (define-key map (kbd "C-c C-t") 'rcirc-cmd-topic)
+    (define-key map (kbd "C-c C-n") 'rcirc-cmd-names)
+    (define-key map (kbd "C-c C-w") 'rcirc-cmd-whois)
+    (define-key map (kbd "C-c C-x") 'rcirc-cmd-quit)
+    (define-key map (kbd "C-c TAB") ; C-i
+      'rcirc-toggle-ignore-buffer-activity)
+    (define-key map (kbd "C-c C-s") 'rcirc-switch-to-server-buffer)
+    (define-key map (kbd "C-c C-a") 'rcirc-jump-to-first-unread-line)
+    map)
   "Keymap for rcirc mode.")
 
-(define-key rcirc-mode-map (kbd "RET") 'rcirc-send-input)
-(define-key rcirc-mode-map (kbd "M-p") 'rcirc-insert-prev-input)
-(define-key rcirc-mode-map (kbd "M-n") 'rcirc-insert-next-input)
-(define-key rcirc-mode-map (kbd "TAB") 'rcirc-complete)
-(define-key rcirc-mode-map (kbd "C-c C-b") 'rcirc-browse-url)
-(define-key rcirc-mode-map (kbd "C-c C-c") 'rcirc-edit-multiline)
-(define-key rcirc-mode-map (kbd "C-c C-j") 'rcirc-cmd-join)
-(define-key rcirc-mode-map (kbd "C-c C-k") 'rcirc-cmd-kick)
-(define-key rcirc-mode-map (kbd "C-c C-l") 'rcirc-toggle-low-priority)
-(define-key rcirc-mode-map (kbd "C-c C-d") 'rcirc-cmd-mode)
-(define-key rcirc-mode-map (kbd "C-c C-m") 'rcirc-cmd-msg)
-(define-key rcirc-mode-map (kbd "C-c C-r") 'rcirc-cmd-nick) ; rename
-(define-key rcirc-mode-map (kbd "C-c C-o") 'rcirc-omit-mode)
-(define-key rcirc-mode-map (kbd "M-o") 'rcirc-omit-mode)
-(define-key rcirc-mode-map (kbd "C-c C-p") 'rcirc-cmd-part)
-(define-key rcirc-mode-map (kbd "C-c C-q") 'rcirc-cmd-query)
-(define-key rcirc-mode-map (kbd "C-c C-t") 'rcirc-cmd-topic)
-(define-key rcirc-mode-map (kbd "C-c C-n") 'rcirc-cmd-names)
-(define-key rcirc-mode-map (kbd "C-c C-w") 'rcirc-cmd-whois)
-(define-key rcirc-mode-map (kbd "C-c C-x") 'rcirc-cmd-quit)
-(define-key rcirc-mode-map (kbd "C-c TAB") ; C-i
-  'rcirc-toggle-ignore-buffer-activity)
-(define-key rcirc-mode-map (kbd "C-c C-s") 'rcirc-switch-to-server-buffer)
-(define-key rcirc-mode-map (kbd "C-c C-a") 'rcirc-jump-to-first-unread-line)
-
-(defvar rcirc-browse-url-map (make-sparse-keymap)
+(defvar rcirc-browse-url-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") 'rcirc-browse-url-at-point)
+    (define-key map (kbd "<mouse-2>") 'rcirc-browse-url-at-mouse)
+    (define-key map [follow-link] 'mouse-face)
+    map)
   "Keymap used for browsing URLs in `rcirc-mode'.")
-
-(define-key rcirc-browse-url-map (kbd "RET") 'rcirc-browse-url-at-point)
-(define-key rcirc-browse-url-map (kbd "<mouse-2>") 'rcirc-browse-url-at-mouse)
-(define-key rcirc-browse-url-map [follow-link] 'mouse-face)
 
 (defvar rcirc-short-buffer-name nil
   "Generated abbreviation to use to indicate buffer activity.")
@@ -1216,16 +1218,14 @@ Create the buffer if it doesn't exist."
       (and (> pos 0) (goto-char pos))
       (message "Type C-c C-c to return text to %s, or C-c C-k to cancel" parent))))
 
-(defvar rcirc-multiline-minor-mode-map (make-sparse-keymap)
+(defvar rcirc-multiline-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-c") 'rcirc-multiline-minor-submit)
+    (define-key map (kbd "C-x C-s") 'rcirc-multiline-minor-submit)
+    (define-key map (kbd "C-c C-k") 'rcirc-multiline-minor-cancel)
+    (define-key map (kbd "ESC ESC ESC") 'rcirc-multiline-minor-cancel)
+    map)
   "Keymap for multiline mode in rcirc.")
-(define-key rcirc-multiline-minor-mode-map
-  (kbd "C-c C-c") 'rcirc-multiline-minor-submit)
-(define-key rcirc-multiline-minor-mode-map
-  (kbd "C-x C-s") 'rcirc-multiline-minor-submit)
-(define-key rcirc-multiline-minor-mode-map
-  (kbd "C-c C-k") 'rcirc-multiline-minor-cancel)
-(define-key rcirc-multiline-minor-mode-map
-  (kbd "ESC ESC ESC") 'rcirc-multiline-minor-cancel)
 
 (define-minor-mode rcirc-multiline-minor-mode
   "Minor mode for editing multiple lines in rcirc."
@@ -1742,11 +1742,12 @@ This function does not alter the INPUT string."
     (mapconcat 'identity sorted sep)))
 
 ;;; activity tracking
-(defvar rcirc-track-minor-mode-map (make-sparse-keymap)
+(defvar rcirc-track-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-@") 'rcirc-next-active-buffer)
+    (define-key map (kbd "C-c C-SPC") 'rcirc-next-active-buffer)
+    map)
   "Keymap for rcirc track minor mode.")
-
-(define-key rcirc-track-minor-mode-map (kbd "C-c C-@") 'rcirc-next-active-buffer)
-(define-key rcirc-track-minor-mode-map (kbd "C-c C-SPC") 'rcirc-next-active-buffer)
 
 ;;;###autoload
 (define-minor-mode rcirc-track-minor-mode

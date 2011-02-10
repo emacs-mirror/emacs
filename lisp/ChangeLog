@@ -1,3 +1,44 @@
+2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Move keymap initialization into declaration.
+	* textmodes/enriched.el (enriched-mode-map):
+	* textmodes/bib-mode.el (bib-mode-map):
+	* term/lk201.el (lk201-function-map):
+	* tar-mode.el (tar-mode-map):
+	* replace.el (occur-mode-map):
+	* progmodes/idlwave.el (idlwave-rinfo-mouse-map, idlwave-rinfo-map):
+	* progmodes/idlw-help.el (idlwave-help-mode-map):
+	* progmodes/gdb-mi.el (gdb-memory-format-menu, gdb-memory-unit-menu):
+	* play/solitaire.el (solitaire-mode-map):
+	* play/snake.el (snake-mode-map, snake-null-map):
+	* play/pong.el (pong-mode-map):
+	* play/handwrite.el (menu-bar-handwrite-map):
+	* play/gametree.el (gametree-mode-map):
+	* net/rcirc.el (rcirc-mode-map, rcirc-browse-url-map
+	(rcirc-multiline-minor-mode-map, rcirc-track-minor-mode-map):
+	* net/newst-plainview.el (newsticker-menu, newsticker-mode-map)
+	(newsticker--url-keymap):
+	* net/net-utils.el (nslookup-mode-map, ftp-mode-map):
+	* menu-bar.el (menu-bar-file-menu, menu-bar-i-search-menu)
+	(menu-bar-search-menu, menu-bar-replace-menu, menu-bar-goto-menu)
+	(menu-bar-edit-menu, menu-bar-custom-menu)
+	(menu-bar-showhide-fringe-ind-menu, menu-bar-showhide-fringe-menu)
+	(menu-bar-showhide-scroll-bar-menu, menu-bar-showhide-menu)
+	(menu-bar-line-wrapping-menu, menu-bar-options-menu)
+	(menu-bar-games-menu, menu-bar-encryption-decryption-menu)
+	(menu-bar-tools-menu, menu-bar-describe-menu)
+	(menu-bar-search-documentation-menu, menu-bar-manuals-menu)
+	(menu-bar-help-menu):
+	* mail/rmailsum.el (rmail-summary-mode-map):
+	* kmacro.el (kmacro-step-edit-map):
+	* ibuffer.el (ibuffer-mode-groups-popup, ibuffer-mode-map)
+	(ibuffer-mode-operate-map):
+	* hi-lock.el (hi-lock-menu, hi-lock-map):
+	* emulation/vip.el (vip-mode-map):
+	* emacs-lisp/re-builder.el (reb-lisp-mode-map):
+	* bookmark.el (bookmark-bmenu-mode-map):
+	* help-mode.el (help-mode-map): Move initialization into declaration.
+
 2011-02-10  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el: Add PRIVMSG and CTCP functions.
@@ -70,8 +111,7 @@
 
 2011-02-07  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/dbus.el (dbus-list-activatable-names): Add optional argument
-	BUS.
+	* net/dbus.el (dbus-list-activatable-names): Add optional argument BUS.
 
 2011-02-07  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
@@ -79,21 +119,21 @@
 
 2011-02-06  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc.el (calc-logunits-field-reference) Renamed from
+	* calc/calc.el (calc-logunits-field-reference): Rename from
 	`calc-default-field-reference-level'.
-	(calc-logunits-power-reference): Renamed from
+	(calc-logunits-power-reference): Rename from
 	`calc-default-power-reference-level'
 
-	* calc/calc-units.el (math-logunits-quant):  Renamed from
+	* calc/calc-units.el (math-logunits-quant): Rename from
 	`math-logunits-level'
-	(math-logunits-plus):  Renamed from math-logcombine.
+	(math-logunits-plus): Rename from math-logcombine.
 	(calcFunc-luplus, calcFunc-luminus calc-luplus, calc-luminus): Remove.
 	(calcFunc-lufieldadd, calcFunc-lupoweradd, calcFunc-lufieldsub)
 	(calcFunc-lufieldsub,calc-logunits-add calc-logunits-sub):
 	New functions.
-	(calcFunc-fieldquant): Renamed from `calcFunc-fieldlevel'.
-	(calcFunc-powerquant): Renamed from `calcFunc-powerlevel'.
-	(calc-logunits-quantity): Renamed from `calc-level'.
+	(calcFunc-fieldquant): Rename from `calcFunc-fieldlevel'.
+	(calcFunc-powerquant): Rename from `calcFunc-powerlevel'.
+	(calc-logunits-quantity): Rename from `calc-level'.
 	(calcFunc-dbfieldlevel, calcFunc-dbpowerlevel, calcFunc-npfieldlevel)
 	(calcFunc-nppowerlevel,calc-logunits-dblevel, calc-logunits-nplevel)
 	(math-logunits-mul, calcFunc-lufieldmul, calcFunc-lupowermul)
@@ -101,7 +141,7 @@
 	(calcFunc-lupowerdiv,calc-logunits-divide,math-logunits-level):
 	New functions.
 
-	* calc/calc-help.el (calc-u-prefix-help): Removed "L" reference.
+	* calc/calc-help.el (calc-u-prefix-help): Remove "L" reference.
 	(calc-ul-prefix-help): Remove.
 	(calc-l-prefix-help): New function.
 	(calc-full-help): Add reference to `calc-l-prefix-help'.

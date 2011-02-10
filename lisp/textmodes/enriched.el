@@ -164,6 +164,24 @@ The value is a list of \(VAR VALUE VAR VALUE...).")
 (defvar enriched-rerun-flag nil)
 
 ;;;
+;;; Keybindings
+;;;
+
+(defvar enriched-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap move-beginning-of-line] 'beginning-of-line-text)
+    (define-key map "\C-m" 'reindent-then-newline-and-indent)
+    (define-key map
+      [remap newline-and-indent] 'reindent-then-newline-and-indent)
+    (define-key map "\M-j" 'facemenu-justification-menu)
+    (define-key map "\M-S" 'set-justification-center)
+    (define-key map "\C-x\t" 'increase-left-margin)
+    (define-key map "\C-c[" 'set-left-margin)
+    (define-key map "\C-c]" 'set-right-margin)
+    map)
+  "Keymap for Enriched mode.")
+
+;;;
 ;;; Define the mode
 ;;;
 
@@ -184,6 +202,8 @@ Commands:
   :group 'enriched :lighter " Enriched"
   (cond ((null enriched-mode)
 	 ;; Turn mode off
+         (remove-hook 'change-major-mode-hook
+                      'enriched-before-change-major-mode 'local)
 	 (setq buffer-file-format (delq 'text/enriched buffer-file-format))
 	 ;; restore old variable values
 	 (while enriched-old-bindings
@@ -199,6 +219,8 @@ Commands:
 	 nil)
 
 	(t				; Turn mode on
+         (add-hook 'change-major-mode-hook
+                   'enriched-before-change-major-mode nil 'local)
 	 (add-to-list 'buffer-file-format 'text/enriched)
 	 ;; Save old variable values before we change them.
 	 ;; These will be restored if we exit Enriched mode.
@@ -226,8 +248,6 @@ Commands:
     (while enriched-old-bindings
       (set (pop enriched-old-bindings) (pop enriched-old-bindings)))))
 
-(add-hook 'change-major-mode-hook 'enriched-before-change-major-mode)
-
 (defun enriched-after-change-major-mode ()
   (when enriched-mode
     (let ((enriched-rerun-flag t))
@@ -235,30 +255,8 @@ Commands:
 
 (add-hook 'after-change-major-mode-hook 'enriched-after-change-major-mode)
 
-;;;
-;;; Keybindings
-;;;
 
-(defvar enriched-mode-map nil
-  "Keymap for Enriched mode.")
-
-(if (null enriched-mode-map)
-    (fset 'enriched-mode-map (setq enriched-mode-map (make-sparse-keymap))))
-
-(if (not (assq 'enriched-mode minor-mode-map-alist))
-    (setq minor-mode-map-alist
-	  (cons (cons 'enriched-mode enriched-mode-map)
-		minor-mode-map-alist)))
-
-(define-key enriched-mode-map [remap move-beginning-of-line] 'beginning-of-line-text)
-(define-key enriched-mode-map "\C-m" 'reindent-then-newline-and-indent)
-(define-key enriched-mode-map
-  [remap newline-and-indent] 'reindent-then-newline-and-indent)
-(define-key enriched-mode-map "\M-j" 'facemenu-justification-menu)
-(define-key enriched-mode-map "\M-S" 'set-justification-center)
-(define-key enriched-mode-map "\C-x\t" 'increase-left-margin)
-(define-key enriched-mode-map "\C-c[" 'set-left-margin)
-(define-key enriched-mode-map "\C-c]" 'set-right-margin)
+(fset 'enriched-mode-map enriched-mode-map)
 
 ;;;
 ;;; Some functions dealing with text-properties, especially indentation

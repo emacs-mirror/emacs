@@ -490,6 +490,11 @@ If your system's ping continues until interrupted, you can try setting
 
 (autoload 'comint-mode "comint" nil t)
 
+(defvar nslookup-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\t" 'comint-dynamic-complete)
+    map))
+
 ;; Using a derived mode gives us keymaps, hooks, etc.
 (define-derived-mode nslookup-mode comint-mode "Nslookup"
   "Major mode for interacting with the nslookup program."
@@ -498,8 +503,6 @@ If your system's ping continues until interrupted, you can try setting
    '((nslookup-font-lock-keywords)))
   (setq comint-prompt-regexp nslookup-prompt-regexp)
   (setq comint-input-autoexpand t))
-
-(define-key nslookup-mode-map "\t" 'comint-dynamic-complete)
 
 ;;;###autoload
 (defun dns-lookup-host (host)
@@ -556,6 +559,12 @@ If your system's ping continues until interrupted, you can try setting
 		   (list host)))
     (pop-to-buffer buf)))
 
+(defvar ftp-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Occasionally useful
+    (define-key map "\t" 'comint-dynamic-complete)
+    map))
+
 (define-derived-mode ftp-mode comint-mode "FTP"
   "Major mode for interacting with the ftp program."
   (setq comint-prompt-regexp ftp-prompt-regexp)
@@ -570,9 +579,6 @@ If your system's ping continues until interrupted, you can try setting
 		(default-value 'comint-output-filter-functions))
     (add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt
 	      nil t)))
-
-;; Occasionally useful
-(define-key ftp-mode-map "\t" 'comint-dynamic-complete)
 
 (defun smbclient (host service)
   "Connect to SERVICE on HOST via SMB."

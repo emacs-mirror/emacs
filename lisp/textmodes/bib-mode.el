@@ -47,11 +47,14 @@
    :type 'file
    :group 'bib)
 
-(defvar bib-mode-map (copy-keymap text-mode-map))
-(define-key bib-mode-map "\C-M" 'return-key-bib)
-(define-key bib-mode-map "\C-c\C-u" 'unread-bib)
-(define-key bib-mode-map "\C-c\C-@" 'mark-bib)
-(define-key bib-mode-map "\e`" 'abbrev-mode)
+(defvar bib-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map text-mode-map)
+    (define-key map "\C-M" 'return-key-bib)
+    (define-key map "\C-c\C-u" 'unread-bib)
+    (define-key map "\C-c\C-@" 'mark-bib)
+    (define-key map "\e`" 'abbrev-mode)
+    map))
 
 (defun addbib ()
    "Set up editor to add to troff bibliography file specified
