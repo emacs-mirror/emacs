@@ -1,3 +1,16 @@
+2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cconv.el (cconv-mutated, cconv-captured)
+	(cconv-captured+mutated, cconv-lambda-candidates): Fix up declaration.
+	(cconv-freevars): Minor cleanup.  Fix handling of the error var in
+	condition-case.
+
+	* emacs-lisp/bytecomp.el (byte-compile-catch)
+	(byte-compile-unwind-protect, byte-compile-track-mouse)
+	(byte-compile-condition-case, byte-compile-save-window-excursion):
+	Provide a :fun-body alternative, so that info can be propagated from the
+	surrounding context, as is the case for lexical scoping.
+
 2011-02-10  Igor Kuzmin  <kuzminig@iro.umontreal.ca>
 
 	* emacs-lisp/cconv.el: New file.

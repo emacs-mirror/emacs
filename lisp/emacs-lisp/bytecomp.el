@@ -2706,11 +2706,11 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		 byte-compile-bound-variables))
 	 (bytecomp-body (cdr (cdr bytecomp-fun)))
 	 (bytecomp-doc (if (stringp (car bytecomp-body))
-		  (prog1 (car bytecomp-body)
-		    ;; Discard the doc string
-		    ;; unless it is the last element of the body.
-		    (if (cdr bytecomp-body)
-			(setq bytecomp-body (cdr bytecomp-body))))))
+                           (prog1 (car bytecomp-body)
+                             ;; Discard the doc string
+                             ;; unless it is the last element of the body.
+                             (if (cdr bytecomp-body)
+                                 (setq bytecomp-body (cdr bytecomp-body))))))
 	 (bytecomp-int (assq 'interactive bytecomp-body)))
     ;; Process the interactive spec.
     (when bytecomp-int
@@ -4076,76 +4076,79 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
 
 (defun byte-compile-catch (form)
   (byte-compile-form (car (cdr form)))
-  (byte-compile-push-constant
-    (byte-compile-top-level (cons 'progn (cdr (cdr form))) for-effect))
+  (pcase (cddr form)
+    (`(:fun-body ,f)
+     (byte-compile-form `(list 'funcall ,f)))
+    (body
+     (byte-compile-push-constant
+      (byte-compile-top-level (cons 'progn body) for-effect))))
   (byte-compile-out 'byte-catch 0))
 
 (defun byte-compile-unwind-protect (form)
-  (byte-compile-push-constant
-   (byte-compile-top-level-body (cdr (cdr form)) t))
+  (pcase (cddr form)
+    (`(:fun-body ,f)
+     (byte-compile-form `(list (list 'funcall ,f))))
+    (handlers
+     (byte-compile-push-constant
+      (byte-compile-top-level-body handlers t))))
   (byte-compile-out 'byte-unwind-protect 0)
   (byte-compile-form-do-effect (car (cdr form)))
   (byte-compile-out 'byte-unbind 1))
 
 (defun byte-compile-track-mouse (form)
   (byte-compile-form
-   ;; Use quote rather that #' here, because we don't want to go
-   ;; through the body again, which would lead to an infinite recursion:
-   ;; "byte-compile-track-mouse" (0xbffc98e4)
-   ;; "byte-compile-form" (0xbffc9c54)
-   ;; "byte-compile-top-level" (0xbffc9fd4)
-   ;; "byte-compile-lambda" (0xbffca364)
-   ;; "byte-compile-closure" (0xbffca6d4)
-   ;; "byte-compile-function-form" (0xbffcaa44)
-   ;; "byte-compile-form" (0xbffcadc0)
-   ;; "mapc" (0xbffcaf74)
-   ;; "byte-compile-funcall" (0xbffcb2e4)
-   ;; "byte-compile-form" (0xbffcb654)
-   ;; "byte-compile-track-mouse" (0xbffcb9d4)
-   `(funcall '(lambda nil
-		(track-mouse ,@(byte-compile-top-level-body (cdr form)))))))
+   (pcase form
+     (`(,_ :fun-body ,f) `(eval (list 'track-mouse (list 'funcall ,f))))
+     (_ `(eval '(track-mouse ,@(byte-compile-top-level-body (cdr form))))))))
 
 (defun byte-compile-condition-case (form)
   (let* ((var (nth 1 form))
 	 (byte-compile-bound-variables
 	  (if var (cons var byte-compile-bound-variables)
-	    byte-compile-bound-variables)))
+	    byte-compile-bound-variables))
+         (fun-bodies (eq var :fun-body)))
     (byte-compile-set-symbol-position 'condition-case)
     (unless (symbolp var)
       (byte-compile-warn
        "`%s' is not a variable-name or nil (in condition-case)" var))
+    (if fun-bodies (setq var (make-symbol "err")))
     (byte-compile-push-constant var)
-    (byte-compile-push-constant (byte-compile-top-level
-				 (nth 2 form) for-effect))
-    (let ((clauses (cdr (cdr (cdr form))))
-	  compiled-clauses)
-      (while clauses
-	(let* ((clause (car clauses))
-               (condition (car clause)))
-          (cond ((not (or (symbolp condition)
-			  (and (listp condition)
-			       (let ((syms condition) (ok t))
-				 (while syms
-				   (if (not (symbolp (car syms)))
-				       (setq ok nil))
-				   (setq syms (cdr syms)))
-				 ok))))
-                 (byte-compile-warn
-                   "`%s' is not a condition name or list of such (in condition-case)"
-                   (prin1-to-string condition)))
-;;                ((not (or (eq condition 't)
-;;			  (and (stringp (get condition 'error-message))
-;;			       (consp (get condition 'error-conditions)))))
-;;                 (byte-compile-warn
-;;                   "`%s' is not a known condition name (in condition-case)"
-;;                   condition))
-		)
-          (push (cons condition
-                      (byte-compile-top-level-body
-                       (cdr clause) for-effect))
-                compiled-clauses))
-	(setq clauses (cdr clauses)))
-      (byte-compile-push-constant (nreverse compiled-clauses)))
+    (if fun-bodies
+        (byte-compile-form `(list 'funcall ,(nth 2 form)))
+      (byte-compile-push-constant
+       (byte-compile-top-level (nth 2 form) for-effect)))
+    (let ((compiled-clauses
+           (mapcar
+            (lambda (clause)
+              (let ((condition (car clause)))
+                (cond ((not (or (symbolp condition)
+                                (and (listp condition)
+                                     (let ((ok t))
+                                       (dolist (sym condition)
+                                         (if (not (symbolp sym))
+                                             (setq ok nil)))
+                                       ok))))
+                       (byte-compile-warn
+                        "`%S' is not a condition name or list of such (in condition-case)"
+                        condition))
+                      ;; (not (or (eq condition 't)
+                      ;;         (and (stringp (get condition 'error-message))
+                      ;;              (consp (get condition
+                      ;;                          'error-conditions)))))
+                      ;; (byte-compile-warn
+                      ;;   "`%s' is not a known condition name
+                      ;;   (in condition-case)"
+                      ;;   condition))
+                      )
+                (if fun-bodies
+                    `(list ',condition (list 'funcall ,(cadr clause) ',var))
+                  (cons condition
+                        (byte-compile-top-level-body
+                         (cdr clause) for-effect)))))
+            (cdr (cdr (cdr form))))))
+      (if fun-bodies
+          (byte-compile-form `(list ,@compiled-clauses))
+        (byte-compile-push-constant compiled-clauses)))
     (byte-compile-out 'byte-condition-case 0)))
 
 
@@ -4168,8 +4171,12 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
   (byte-compile-out 'byte-unbind 1))
 
 (defun byte-compile-save-window-excursion (form)
-  (byte-compile-push-constant
-   (byte-compile-top-level-body (cdr form) for-effect))
+  (pcase (cdr form)
+    (`(:fun-body ,f)
+     (byte-compile-form `(list (list 'funcall ,f))))
+    (body
+     (byte-compile-push-constant
+      (byte-compile-top-level-body body for-effect))))
   (byte-compile-out 'byte-save-window-excursion 0))
 
 (defun byte-compile-with-output-to-temp-buffer (form)
