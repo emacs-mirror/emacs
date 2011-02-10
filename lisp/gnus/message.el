@@ -4011,11 +4011,11 @@ Instead, just auto-save the buffer and then bury it."
 
 (defun message-bury (buffer)
   "Bury this mail BUFFER."
-  (let ((newbuf (other-buffer buffer)))
-    (bury-buffer buffer)
-    (if message-return-action
-	(apply (car message-return-action) (cdr message-return-action))
-      (switch-to-buffer newbuf))))
+  (if message-return-action
+      (progn
+        (bury-buffer buffer)
+        (apply (car message-return-action) (cdr message-return-action)))
+    (with-current-buffer buffer (bury-buffer))))
 
 (defun message-send (&optional arg)
   "Send the message in the current buffer.

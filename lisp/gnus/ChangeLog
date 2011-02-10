@@ -1,3 +1,8 @@
+2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-bury): Don't pop up a new window when selected
+	window is dedicated.
+
 2011-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nntp.el (nntp-retrieve-group-data-early-disabled): Disable the async
@@ -22,7 +27,7 @@
 	(nnimap-update-info): Clean up slightly.
 	(nnimap-quirk): Add quirk for Gmail IMAP which bugs out on NUL
 	characters.
-	(nnimap-process-quirk): Renamed function to avoid collision.
+	(nnimap-process-quirk): Rename function to avoid collision.
 	(nnimap-update-info): Fix macrology bug-out.
 	(nnimap-update-info): Simplify split history test.
 
@@ -43,7 +48,7 @@
 	* message.el (message-setup-1): Remove the read-only stuff, since it
 	doesn't work under XEmacs, for some reason.
 
-	* gnus-sum.el (gnus-user-date): Renamed back from
+	* gnus-sum.el (gnus-user-date): Rename back from
 	gnus-summary-user-date since user code refers to it.
 
 	* shr.el (shr-render-td): Store the actual background colour used.
@@ -228,8 +233,8 @@
 
 2011-01-28  Daiki Ueno  <ueno@unixuser.org>
 
-	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt): Give
-	mml2015-signers higher precedence over mml2015-sign-with-sender.
+	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt):
+	Give mml2015-signers higher precedence over mml2015-sign-with-sender.
 
 2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
