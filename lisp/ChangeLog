@@ -1,5 +1,11 @@
 2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el (smie-blink-matching-open): Don't use `pos' in two
+	conflicting ways.
+	(smie-indent--parent): Extend to "parent of arg".
+	(smie-indent-inside-string): New function.
+	(smie-indent-functions): Use it.
+
 	* vc/vc-dir.el (vc-dir-refresh): Reorder operations to try and avoid
 	bzr locking race condition.
 
