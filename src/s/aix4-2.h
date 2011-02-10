@@ -41,12 +41,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 #define HAVE_SOCKETS
-
-/* The file containing the kernel's symbol table is called /unix.  */
-#define KERNEL_FILE "/unix"
-
-/* The kernel symbol where the load average is found is named avenrun.  */
-#define LDAV_SYMBOL "avenrun"
 
 /* Special items needed to make Emacs run on this system.  */
 
@@ -86,4 +80,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Emacs currently calls xrealloc on the results of get_current_dir name,
    to avoid a crash just use the Emacs implementation for that function.  */
 #define BROKEN_GET_CURRENT_DIR_NAME 1
-
