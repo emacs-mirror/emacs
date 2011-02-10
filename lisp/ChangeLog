@@ -1,3 +1,26 @@
+2011-02-10  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Synopsis: Change allout user configuration so
+	auto-activation is controlled solely by customization
+	`allout-auto-activation'.
+
+	(allout-auto-activation-helper) (allout-setup): New autoloads
+	implement new custom set procedure for allout-auto-activation.
+	Also, explicitly invoke
+	(allout-setup) after allout-auto-activation is custom-defined, to
+	effect the settings in emacs sessions besides the few where
+	allout-auto-activation customization is donea.
+	(allout-auto-activation): Use allout-auto-activation-helper to
+	:set.  Revise the docstring.
+	(allout-init): Reduce functionality to just customizing
+	allout-auto-activation, and mark obsolete.
+	(allout-mode): Respect string values for allout-auto-activation.
+	Run allout-after-copy-or-kill-hook without any args.
+	(allout-mode) (allout-layout) (allout-default-layout)
+	(outlineify-sticky): Adjust docstring for new scheme.
+	(allout-after-copy-or-kill-hook): No arguments - hook implementers
+	should concentrate on the kill ring.
+
 2011-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-font-lock-open-heredoc): Fix case
