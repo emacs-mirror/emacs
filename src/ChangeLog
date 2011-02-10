@@ -1,7 +1,11 @@
+2011-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (really-lwlib): Depend on globals.h, for parallel builds.
+
 2011-02-09  Eli Zaretskii  <eliz@gnu.org>
 
-	* makefile.w32-in (GLOBAL_SOURCES, SOME_MACHINE_OBJECTS, obj): New
-	macros.
+	* makefile.w32-in (GLOBAL_SOURCES, SOME_MACHINE_OBJECTS, obj):
+	New macros.
 	(globals.h, gl-stamp): New targets.
 	(clean): Clean gl-stamp and globals.h.
 

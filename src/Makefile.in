@@ -669,7 +669,7 @@ temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj) $(lib)/libgnu.
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them
 ## (provided we take a little care that OLDXMENU is never empty).
-really-lwlib:
+really-lwlib: globals.h
 	cd $(lwlibdir); $(MAKE) $(MFLAGS) \
     CC='$(CC)' CFLAGS='$(CFLAGS)' MAKE='$(MAKE)'
 	@true  # make -t should not create really-lwlib.
