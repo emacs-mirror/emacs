@@ -1,3 +1,10 @@
+2011-02-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* arg-nonnull.h, c++defs.h, warn-on-use.h: Fix licenses.
+	Sync from gnulib, which has been patched to fix the problem
+	with the license notices.  Problem reported by Glenn Morris in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-02/msg00403.html>.
+
 2011-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* .bzrignore: Ignore globals.h and related stamp.
