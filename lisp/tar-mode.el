@@ -520,7 +520,84 @@ MODE should be an integer which is a file mode value."
     (goto-char (point-min))
     (restore-buffer-modified-p modified)))
 
+(defvar tar-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map " " 'tar-next-line)
+    (define-key map "C" 'tar-copy)
+    (define-key map "d" 'tar-flag-deleted)
+    (define-key map "\^D" 'tar-flag-deleted)
+    (define-key map "e" 'tar-extract)
+    (define-key map "f" 'tar-extract)
+    (define-key map "\C-m" 'tar-extract)
+    (define-key map [mouse-2] 'tar-mouse-extract)
+    (define-key map "g" 'revert-buffer)
+    (define-key map "n" 'tar-next-line)
+    (define-key map "\^N" 'tar-next-line)
+    (define-key map [down] 'tar-next-line)
+    (define-key map "o" 'tar-extract-other-window)
+    (define-key map "p" 'tar-previous-line)
+    (define-key map "\^P" 'tar-previous-line)
+    (define-key map [up] 'tar-previous-line)
+    (define-key map "R" 'tar-rename-entry)
+    (define-key map "u" 'tar-unflag)
+    (define-key map "v" 'tar-view)
+    (define-key map "x" 'tar-expunge)
+    (define-key map "\177" 'tar-unflag-backwards)
+    (define-key map "E" 'tar-extract-other-window)
+    (define-key map "M" 'tar-chmod-entry)
+    (define-key map "G" 'tar-chgrp-entry)
+    (define-key map "O" 'tar-chown-entry)
+    ;; Let mouse-1 follow the link.
+    (define-key map [follow-link] 'mouse-face)
 
+    ;; Make menu bar items.
+
+    ;; Get rid of the Edit menu bar item to save space.
+    (define-key map [menu-bar edit] 'undefined)
+
+    (define-key map [menu-bar immediate]
+      (cons "Immediate" (make-sparse-keymap "Immediate")))
+
+    (define-key map [menu-bar immediate view]
+      '("View This File" . tar-view))
+    (define-key map [menu-bar immediate display]
+      '("Display in Other Window" . tar-display-other-window))
+    (define-key map [menu-bar immediate find-file-other-window]
+      '("Find in Other Window" . tar-extract-other-window))
+    (define-key map [menu-bar immediate find-file]
+      '("Find This File" . tar-extract))
+
+    (define-key map [menu-bar mark]
+      (cons "Mark" (make-sparse-keymap "Mark")))
+
+    (define-key map [menu-bar mark unmark-all]
+      '("Unmark All" . tar-clear-modification-flags))
+    (define-key map [menu-bar mark deletion]
+      '("Flag" . tar-flag-deleted))
+    (define-key map [menu-bar mark unmark]
+      '("Unflag" . tar-unflag))
+
+    (define-key map [menu-bar operate]
+      (cons "Operate" (make-sparse-keymap "Operate")))
+
+    (define-key map [menu-bar operate chown]
+      '("Change Owner..." . tar-chown-entry))
+    (define-key map [menu-bar operate chgrp]
+      '("Change Group..." . tar-chgrp-entry))
+    (define-key map [menu-bar operate chmod]
+      '("Change Mode..." . tar-chmod-entry))
+    (define-key map [menu-bar operate rename]
+      '("Rename to..." . tar-rename-entry))
+    (define-key map [menu-bar operate copy]
+      '("Copy to..." . tar-copy))
+    (define-key map [menu-bar operate expunge]
+      '("Expunge Marked Files" . tar-expunge))
+    
+    map)
+  "Local keymap for Tar mode listings.")
+
+
 ;; tar mode is suitable only for specially formatted data.
 (put 'tar-mode 'mode-class 'special)
 (put 'tar-subfile-mode 'mode-class 'special)
@@ -590,77 +667,6 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
      (fundamental-mode)
      (signal (car err) (cdr err)))))
 
-(define-key tar-mode-map " " 'tar-next-line)
-(define-key tar-mode-map "C" 'tar-copy)
-(define-key tar-mode-map "d" 'tar-flag-deleted)
-(define-key tar-mode-map "\^D" 'tar-flag-deleted)
-(define-key tar-mode-map "e" 'tar-extract)
-(define-key tar-mode-map "f" 'tar-extract)
-(define-key tar-mode-map "\C-m" 'tar-extract)
-(define-key tar-mode-map [mouse-2] 'tar-mouse-extract)
-(define-key tar-mode-map "g" 'revert-buffer)
-(define-key tar-mode-map "h" 'describe-mode)
-(define-key tar-mode-map "n" 'tar-next-line)
-(define-key tar-mode-map "\^N" 'tar-next-line)
-(define-key tar-mode-map [down] 'tar-next-line)
-(define-key tar-mode-map "o" 'tar-extract-other-window)
-(define-key tar-mode-map "p" 'tar-previous-line)
-(define-key tar-mode-map "\^P" 'tar-previous-line)
-(define-key tar-mode-map [up] 'tar-previous-line)
-(define-key tar-mode-map "R" 'tar-rename-entry)
-(define-key tar-mode-map "u" 'tar-unflag)
-(define-key tar-mode-map "v" 'tar-view)
-(define-key tar-mode-map "x" 'tar-expunge)
-(define-key tar-mode-map "\177" 'tar-unflag-backwards)
-(define-key tar-mode-map "E" 'tar-extract-other-window)
-(define-key tar-mode-map "M" 'tar-chmod-entry)
-(define-key tar-mode-map "G" 'tar-chgrp-entry)
-(define-key tar-mode-map "O" 'tar-chown-entry)
-;; Let mouse-1 follow the link.
-(define-key tar-mode-map [follow-link] 'mouse-face)
-
-;; Make menu bar items.
-
-;; Get rid of the Edit menu bar item to save space.
-(define-key tar-mode-map [menu-bar edit] 'undefined)
-
-(define-key tar-mode-map [menu-bar immediate]
-  (cons "Immediate" (make-sparse-keymap "Immediate")))
-
-(define-key tar-mode-map [menu-bar immediate view]
-  '("View This File" . tar-view))
-(define-key tar-mode-map [menu-bar immediate display]
-  '("Display in Other Window" . tar-display-other-window))
-(define-key tar-mode-map [menu-bar immediate find-file-other-window]
-  '("Find in Other Window" . tar-extract-other-window))
-(define-key tar-mode-map [menu-bar immediate find-file]
-  '("Find This File" . tar-extract))
-
-(define-key tar-mode-map [menu-bar mark]
-  (cons "Mark" (make-sparse-keymap "Mark")))
-
-(define-key tar-mode-map [menu-bar mark unmark-all]
-  '("Unmark All" . tar-clear-modification-flags))
-(define-key tar-mode-map [menu-bar mark deletion]
-  '("Flag" . tar-flag-deleted))
-(define-key tar-mode-map [menu-bar mark unmark]
-  '("Unflag" . tar-unflag))
-
-(define-key tar-mode-map [menu-bar operate]
-  (cons "Operate" (make-sparse-keymap "Operate")))
-
-(define-key tar-mode-map [menu-bar operate chown]
-  '("Change Owner..." . tar-chown-entry))
-(define-key tar-mode-map [menu-bar operate chgrp]
-  '("Change Group..." . tar-chgrp-entry))
-(define-key tar-mode-map [menu-bar operate chmod]
-  '("Change Mode..." . tar-chmod-entry))
-(define-key tar-mode-map [menu-bar operate rename]
-  '("Rename to..." . tar-rename-entry))
-(define-key tar-mode-map [menu-bar operate copy]
-  '("Copy to..." . tar-copy))
-(define-key tar-mode-map [menu-bar operate expunge]
-  '("Expunge Marked Files" . tar-expunge))
 
 (define-minor-mode tar-subfile-mode
   "Minor mode for editing an element of a tar-file.

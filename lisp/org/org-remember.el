@@ -214,7 +214,11 @@ The remember buffer is still current when this hook runs."
   :group 'org-remember
   :type 'hook)
 
-(defvar org-remember-mode-map (make-sparse-keymap)
+(defvar org-remember-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'org-remember-finalize)
+    (define-key map "\C-c\C-k" 'org-remember-kill)
+    map)
   "Keymap for `org-remember-mode', a minor mode.
 Use this map to set additional keybindings for when Org-mode is used
 for a Remember buffer.")
@@ -224,8 +228,6 @@ for a Remember buffer.")
 (define-minor-mode org-remember-mode
   "Minor mode for special key bindings in a remember buffer."
   nil " Rem" org-remember-mode-map)
-(define-key org-remember-mode-map "\C-c\C-c" 'org-remember-finalize)
-(define-key org-remember-mode-map "\C-c\C-k" 'org-remember-kill)
 
 (defcustom org-remember-clock-out-on-exit 'query
   "Non-nil means stop the clock when exiting a clocking remember buffer.

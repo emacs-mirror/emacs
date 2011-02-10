@@ -190,21 +190,23 @@
 ;;; Initialize maps
 
 (defvar pong-mode-map
-  (make-sparse-keymap 'pong-mode-map) "Modemap for pong-mode.")
+  (let ((map (make-sparse-keymap 'pong-mode-map)))
+    (define-key map [left]	 'pong-move-left)
+    (define-key map [right] 	 'pong-move-right)
+    (define-key map [up]		 'pong-move-up)
+    (define-key map [down]	 'pong-move-down)
+    (define-key map pong-left-key  'pong-move-left)
+    (define-key map pong-right-key 'pong-move-right)
+    (define-key map pong-up-key	 'pong-move-up)
+    (define-key map pong-down-key  'pong-move-down)
+    (define-key map pong-quit-key  'pong-quit)
+    (define-key map pong-pause-key 'pong-pause)
+    map)
+  "Modemap for pong-mode.")
 
 (defvar pong-null-map
   (make-sparse-keymap 'pong-null-map) "Null map for pong-mode.")
 
-(define-key pong-mode-map [left]	 'pong-move-left)
-(define-key pong-mode-map [right] 	 'pong-move-right)
-(define-key pong-mode-map [up]		 'pong-move-up)
-(define-key pong-mode-map [down]	 'pong-move-down)
-(define-key pong-mode-map pong-left-key  'pong-move-left)
-(define-key pong-mode-map pong-right-key 'pong-move-right)
-(define-key pong-mode-map pong-up-key	 'pong-move-up)
-(define-key pong-mode-map pong-down-key  'pong-move-down)
-(define-key pong-mode-map pong-quit-key  'pong-quit)
-(define-key pong-mode-map pong-pause-key 'pong-pause)
 
 
 ;;; Fun stuff -- The code

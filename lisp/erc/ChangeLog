@@ -1,3 +1,8 @@
+2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-list.el (erc-list-menu-mode-map): Move initialization
+	into declaration.
+
 2011-02-07  Julien Danjou  <julien@danjou.info>
 
 	* erc-track.el (erc-window-configuration-change): New function.

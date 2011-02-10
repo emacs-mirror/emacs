@@ -117,6 +117,17 @@
 	  (sort-fields col (point-min) (point-max))
 	(sort-numeric-fields col (point-min) (point-max))))))
 
+(defvar erc-list-menu-mode-map
+  (let ((map (make-keymap)))
+    (set-keymap-parent map special-mode-map)
+    (define-key map "k" 'erc-list-kill)
+    (define-key map "j" 'erc-list-join)
+    (define-key map "g" 'erc-list-revert)
+    (define-key map "n" 'next-line)
+    (define-key map "p" 'previous-line)
+    map)
+  "Local keymap for `erc-list-mode' buffers.")
+
 (defvar erc-list-menu-sort-button-map
   (let ((map (make-sparse-keymap)))
     (define-key map [header-line mouse-1] 'erc-list-menu-sort-by-column)
@@ -145,12 +156,6 @@
   (setq truncate-lines t))
 
 (put 'erc-list-menu-mode 'mode-class 'special)
-
-(define-key erc-list-menu-mode-map "k" 'erc-list-kill)
-(define-key erc-list-menu-mode-map "j" 'erc-list-join)
-(define-key erc-list-menu-mode-map "g" 'erc-list-revert)
-(define-key erc-list-menu-mode-map "n" 'next-line)
-(define-key erc-list-menu-mode-map "p" 'previous-line)
 
 ;; Handle a "322" response.  This response tells us about a single
 ;; channel.

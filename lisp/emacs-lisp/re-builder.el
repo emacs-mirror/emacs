@@ -275,6 +275,13 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (set (make-local-variable 'blink-matching-paren) nil)
   (reb-mode-common))
 
+(defvar reb-lisp-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Use the same "\C-c" keymap as `reb-mode' and use font-locking from
+    ;; `emacs-lisp-mode'
+    (define-key map "\C-c" (lookup-key reb-mode-map "\C-c"))
+    map))
+
 (define-derived-mode reb-lisp-mode
   emacs-lisp-mode "RE Builder Lisp"
   "Major mode for interactively building symbolic Regular Expressions."
@@ -282,11 +289,6 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (cond	((memq reb-re-syntax '(sregex rx)) ; rx-to-string is autoloaded
 	 (require 'rx)))                   ; require rx anyway
   (reb-mode-common))
-
-;; Use the same "\C-c" keymap as `reb-mode' and use font-locking from
-;; `emacs-lisp-mode'
-(define-key reb-lisp-mode-map "\C-c"
-  (lookup-key reb-mode-map "\C-c"))
 
 (defvar reb-subexp-mode-map
   (let ((m (make-keymap)))
