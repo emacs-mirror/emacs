@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; mpc.el --- A client for the Music Player Daemon   -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
@@ -341,9 +342,7 @@ CMD can be a string which is passed as-is to MPD or a list of strings
 which will be concatenated with proper quoting before passing them to MPD."
   (let ((proc (mpc-proc)))
     (if (and callback (not (process-get proc 'ready)))
-        (lexical-let ((old (process-get proc 'callback))
-                      (callback callback)
-                      (cmd cmd))
+        (let ((old (process-get proc 'callback)))
           (process-put proc 'callback
                        (lambda ()
                          (funcall old)
@@ -359,8 +358,7 @@ which will be concatenated with proper quoting before passing them to MPD."
                         (mapconcat 'mpc--proc-quote-string cmd " "))
                       "\n")))
       (if callback
-          (lexical-let ((buf (current-buffer))
-                        (callback callback))
+          (let ((buf (current-buffer)))
             (process-put proc 'callback
                          callback
                          ;; (lambda ()
@@ -402,8 +400,7 @@ which will be concatenated with proper quoting before passing them to MPD."
 
 (defun mpc-proc-cmd-to-alist (cmd &optional callback)
   (if callback
-      (lexical-let ((buf (current-buffer))
-                    (callback callback))
+      (let ((buf (current-buffer)))
         (mpc-proc-cmd cmd (lambda ()
                             (funcall callback (prog1 (mpc-proc-buf-to-alist
                                                       (current-buffer))
@@ -522,7 +519,7 @@ to call FUN for any change whatsoever.")
 
 (defun mpc-status-refresh (&optional callback)
   "Refresh `mpc-status'."
-  (lexical-let ((cb callback))
+  (let ((cb callback))
     (mpc-proc-cmd (mpc-proc-cmd-list '("status" "currentsong"))
                   (lambda ()
                     (mpc--status-callback)
@@ -775,7 +772,7 @@ The songs are returned as alists."
 
 (defun mpc-cmd-pause (&optional arg callback)
   "Pause or resume playback of the queue of songs."
-  (lexical-let ((cb callback))
+  (let ((cb callback))
     (mpc-proc-cmd (list "pause" arg)
                   (lambda () (mpc-status-refresh) (if cb (funcall cb))))
     (unless callback (mpc-proc-sync))))
@@ -839,7 +836,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
         (puthash (cons 'Playlist playlist) nil mpc--find-memoize))))
 
 (defun mpc-cmd-update (&optional arg callback)
-  (lexical-let ((cb callback))
+  (let ((cb callback))
     (mpc-proc-cmd (if arg (list "update" arg) "update")
                   (lambda () (mpc-status-refresh) (if cb (funcall cb))))
     (unless callback (mpc-proc-sync))))
@@ -2351,8 +2348,7 @@ This is used so that they can be compared with `eq', which is needed for
               (mpc-proc-cmd (list "seekid" songid time)
                             'mpc-status-refresh))))
       (let ((status (mpc-cmd-status)))
-        (lexical-let* ((songid (cdr (assq 'songid status)))
-                       (step step)
+        (let* ((songid (cdr (assq 'songid status)))
                        (time (if songid (string-to-number
                                          (cdr (assq 'time status))))))
           (let ((timer (run-with-timer
@@ -2389,13 +2385,12 @@ This is used so that they can be compared with `eq', which is needed for
   (if mpc--faster-toggle-timer
       (mpc--faster-stop)
     (mpc-status-refresh) (mpc-proc-sync)
-    (lexical-let* ((speedup speedup)
-                   songid       ;The ID of the currently ffwd/rewinding song.
-                   songnb       ;The position of that song in the playlist.
-                   songduration ;The duration of that song.
-                   songtime     ;The time of the song last time we ran.
-                   oldtime      ;The timeoftheday last time we ran.
-                   prevsongid)  ;The song we're in the process leaving.
+    (let* (songid       ;The ID of the currently ffwd/rewinding song.
+           songnb       ;The position of that song in the playlist.
+           songduration ;The duration of that song.
+           songtime     ;The time of the song last time we ran.
+           oldtime      ;The timeoftheday last time we ran.
+           prevsongid)  ;The song we're in the process leaving.
       (let ((fun
              (lambda ()
                (let ((newsongid (cdr (assq 'songid mpc-status)))

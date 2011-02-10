@@ -1,3 +1,15 @@
+2011-02-10  Igor Kuzmin  <kuzminig@iro.umontreal.ca>
+
+	* emacs-lisp/cconv.el: New file.
+	* emacs-lisp/bytecomp.el: Use cconv.
+	(byte-compile-file-form, byte-compile):
+	Call cconv-closure-convert-toplevel when requested.
+	* server.el:
+	* mpc.el:
+	* emacs-lisp/pcase.el:
+	* doc-view.el:
+	* dired.el: Use lexical-binding.
+
 2010-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-track-mouse): Don't use #'.

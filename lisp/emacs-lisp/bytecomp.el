@@ -119,6 +119,7 @@
 
 (require 'backquote)
 (require 'macroexp)
+(require 'cconv)
 (eval-when-compile (require 'cl))
 
 (or (fboundp 'defsubst)
@@ -2238,6 +2239,8 @@ list that represents a doc string reference.
   (let ((byte-compile-current-form nil)	; close over this for warnings.
 	bytecomp-handler)
     (setq form (macroexpand-all form byte-compile-macro-environment))
+    (if lexical-binding
+        (setq form (cconv-closure-convert-toplevel form)))
     (cond ((not (consp form))
 	   (byte-compile-keep-pending form))
 	  ((and (symbolp (car form))
@@ -2585,9 +2588,11 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	  (setq fun (cdr fun)))
       (cond ((eq (car-safe fun) 'lambda)
 	     ;; expand macros
-	     (setq fun
-		   (macroexpand-all fun
-				    byte-compile-initial-macro-environment))
+             (setq fun
+                   (macroexpand-all fun
+                                    byte-compile-initial-macro-environment))
+             (if lexical-binding
+                 (setq fun (cconv-closure-convert-toplevel fun)))
 	     ;; get rid of the `function' quote added by the `lambda' macro
 	     (setq fun (cadr fun))
 	     (setq fun (if macro

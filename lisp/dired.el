@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; dired.el --- directory-browsing commands
 
 ;; Copyright (C) 1985-1986, 1992-1997, 2000-2011

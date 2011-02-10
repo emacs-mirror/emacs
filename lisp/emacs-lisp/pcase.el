@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; pcase.el --- ML-style pattern-matching macro for Elisp
 
 ;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
@@ -501,15 +502,14 @@ and otherwise defers to REST which is a list of branches of the form
         ;; `(PAT3 . PAT4)) which the programmer can easily rewrite
         ;; to the more efficient `(,(and PAT1 PAT3) . ,(and PAT2 PAT4))).
         (pcase--u1 `((match ,sym . ,(cadr upat)))
-                   (lexical-let ((rest rest))
-                     ;; FIXME: This codegen is not careful to share its
-                     ;; code if used several times: code blow up is likely.
-                     (lambda (vars)
-                       ;; `vars' will likely contain bindings which are
-                       ;; not always available in other paths to
-                       ;; `rest', so there' no point trying to pass
-                       ;; them down.
-                       (pcase--u rest)))
+                   ;; FIXME: This codegen is not careful to share its
+                   ;; code if used several times: code blow up is likely.
+                   (lambda (vars)
+                     ;; `vars' will likely contain bindings which are
+                     ;; not always available in other paths to
+                     ;; `rest', so there' no point trying to pass
+                     ;; them down.
+                     (pcase--u rest))
                    vars
                    (list `((and . ,matches) ,code . ,vars))))
        (t (error "Unknown upattern `%s'" upat)))))
