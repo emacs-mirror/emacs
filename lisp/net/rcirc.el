@@ -564,13 +564,13 @@ last ping."
       (mapc (lambda (process)
 	      (with-rcirc-process-buffer process
 		(when (not rcirc-connecting)
-		  (rcirc-send-string process
-				     (format "PRIVMSG %s :\C-aKEEPALIVE %f\C-a"
-					     rcirc-nick
-                                             (if (featurep 'xemacs)
-                                                 (time-to-seconds
-                                                  (current-time))
-                                               (float-time)))))))
+                  (rcirc-send-ctcp process
+                                   rcirc-nick
+                                   (format "KEEPALIVE %f"
+                                           (if (featurep 'xemacs)
+                                               (time-to-seconds
+                                                (current-time))
+                                             (float-time)))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
     (cancel-timer rcirc-keepalive-timer)
@@ -713,6 +713,14 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
              (process-name process)))
     (rcirc-debug process string)
     (process-send-string process string)))
+
+(defun rcirc-send-privmsg (process target string)
+  (rcirc-send-string process (format "PRIVMSG %s :%s" target string)))
+
+(defun rcirc-send-ctcp (process target request &optional args)
+  (let ((args (if args (concat " " args) "")))
+    (rcirc-send-privmsg process target
+                        (format "\C-a%s%s\C-a" request args ""))))
 
 (defun rcirc-buffer-process (&optional buffer)
   "Return the process associated with channel BUFFER.
@@ -2190,21 +2198,17 @@ With a prefix arg, prompt for new topic."
              (function (intern-soft (concat "rcirc-ctcp-sender-" request))))
         (if (fboundp function) ;; use special function if available
             (funcall function process target request)
-          (rcirc-send-string process
-                             (format "PRIVMSG %s :\C-a%s\C-a"
-                                     target request))))
+          (rcirc-send-ctcp process target request)))
     (rcirc-print process (rcirc-nick process) "ERROR" nil
                  "usage: /ctcp NICK REQUEST")))
 
 (defun rcirc-ctcp-sender-PING (process target request)
   "Send a CTCP PING message to TARGET."
   (let ((timestamp (format "%.0f" (float-time))))
-    (rcirc-send-string process
-                       (format "PRIVMSG %s :\C-aPING %s\C-a" target timestamp))))
+    (rcirc-send-ctcp process target "PING" timestamp)))
 
 (defun rcirc-cmd-me (args &optional process target)
-  (rcirc-send-string process (format "PRIVMSG %s :\C-aACTION %s\C-a"
-                                     target args)))
+  (rcirc-send-ctcp process target "ACTION" args))
 
 (defun rcirc-add-or-remove (set &rest elements)
   (dolist (elt elements)
@@ -2699,20 +2703,20 @@ Passwords are stored in `rcirc-authinfo' (which see)."
 	(when (and (string-match server rcirc-server)
 		   (string-match nick rcirc-nick))
 	  (cond ((equal method 'nickserv)
-		 (rcirc-send-string
+		 (rcirc-send-privmsg
 		  process
-		  (concat "PRIVMSG " (or (cadr args) "nickserv")
-                          " :identify " (car args))))
+                  (or (cadr args) "NickServ")
+                  (concat "identify " (car args))))
 		((equal method 'chanserv)
-		 (rcirc-send-string
+		 (rcirc-send-privmsg
 		  process
-		  (concat
-		   "PRIVMSG chanserv :identify "
-		   (car args) " " (cadr args))))
+                  "ChanServ"
+                  (format "identify %s %s" (car args) (cadr args))))
 		((equal method 'bitlbee)
-		 (rcirc-send-string
+		 (rcirc-send-privmsg
 		  process
-		  (concat "PRIVMSG &bitlbee :identify " (car args))))
+                  "&bitlbee"
+                  (concat "identify " (car args))))
 		(t
 		 (message "No %S authentication method defined"
 			  method))))))))

@@ -1,3 +1,10 @@
+2011-02-10  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el: Add PRIVMSG and CTCP functions.
+	(rcirc-send-privmsg, rcirc-send-ctcp): New functions.
+	(rcirc-keepalive, rcirc-cmd-ctcp, rcirc-ctcp-sender-PING)
+	(rcirc-cmd-me, rcirc-authenticate): Use them.
+
 2011-02-10  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el: Synopsis: Change allout user configuration so
