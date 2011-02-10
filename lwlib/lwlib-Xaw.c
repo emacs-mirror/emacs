@@ -1,4 +1,5 @@
 /* The lwlib interface to Athena widgets.
+
 Copyright (C) 1993 Chuck Thompson <cthomp@cs.uiuc.edu>
 Copyright (C) 1994, 2001-2011 Free Software Foundation, Inc.
 
@@ -27,7 +28,7 @@ Boston, MA 02110-1301, USA.  */
 #include <setjmp.h>
 #include <ctype.h>
 
-#include "../src/lisp.h"
+#include <lisp.h>
 
 #include "lwlib-Xaw.h"
 
@@ -833,4 +834,3 @@ xaw_creation_table [] =
   {"main",			xaw_create_main},
   {NULL, NULL}
 };
-
