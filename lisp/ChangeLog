@@ -1,5 +1,7 @@
 2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* server.el (server-process-filter): Use pcase.
+
 	* emacs-lisp/smie.el (smie-blink-matching-open): Don't use `pos' in two
 	conflicting ways.
 	(smie-indent--parent): Extend to "parent of arg".
