@@ -87,7 +87,9 @@ Each candidate has the form (VAR INCLOSURE BINDER PARENTFORM).")
 
 (defun cconv-not-lexical-var-p (var)
   (or (not (symbolp var))               ; form is not a list
-      (special-variable-p var)
+      (if (eval-when-compile (fboundp 'special-variable-p))
+          (special-variable-p var)
+        (boundp var))
       ;; byte-compile-bound-variables normally holds both the
       ;; dynamic and lexical vars, but the bytecomp.el should
       ;; only call us at the top-level so there shouldn't be
@@ -192,14 +194,8 @@ Returns a list of free variables."
          (cons form fvrs)))))
 
 ;;;###autoload
-(defun cconv-closure-convert (form &optional toplevel)
-  ;; cconv-closure-convert-rec has a lot of parameters that are
-  ;; whether useless for user, whether they should contain
-  ;; specific data like a list of closure mutables or the list
-  ;; of lambdas suitable for lifting.
-  ;;
-  ;; That's why this function exists.
-  "Main entry point for non-toplevel forms.
+(defun cconv-closure-convert (form)
+  "Main entry point for closure conversion.
 -- FORM is a piece of Elisp code after macroexpansion.
 -- TOPLEVEL(optional) is a boolean variable, true if we are at the root of AST
 
@@ -221,19 +217,21 @@ Returns a form where all lambdas don't have any free variables."
      '()                                ; fvrs initially empty
      '()                                ; envs initially empty
      '()
-     toplevel)))                 ; true if the tree is a toplevel form
+     )))
 
-;;;###autoload
-(defun cconv-closure-convert-toplevel (form)
-  "Entry point for toplevel forms.
--- FORM is a piece of Elisp code after macroexpansion.
+(defun cconv-lookup-let (table var binder form)
+  (let ((res nil))
+    (dolist (elem table)
+      (when (and (eq (nth 2 elem) binder)
+                 (eq (nth 3 elem) form))
+        (assert (eq (car elem) var))
+        (setq res elem)))
+    res))
 
-Returns a form where all lambdas don't have any free variables."
-  ;; we distinguish toplevel forms to treat def(un|var|const) correctly.
-  (cconv-closure-convert form t))
+(defconst cconv--dummy-var (make-symbol "ignored"))
 
 (defun cconv-closure-convert-rec
-  (form emvrs fvrs envs lmenvs defs-are-legal)
+  (form emvrs fvrs envs lmenvs)
   ;; This function actually rewrites the tree.
   "Eliminates all free variables of all lambdas in given forms.
 Arguments:
@@ -245,8 +243,6 @@ within current environment.
 Initially empty.
 -- FVRS is a list of variables to substitute in each context.
 Initially empty.
--- DEFS-ARE-LEGAL is a boolean variable, true if def(un|var|const)
-can be used in this form(e.g. toplevel form)
 
 Returns a form where all lambdas don't have any free variables."
   ;; What's the difference between fvrs and envs?
@@ -261,11 +257,11 @@ Returns a form where all lambdas don't have any free variables."
   ;; so we never touch it(unless we enter to the other closure).
   ;;(if (listp form) (print (car form)) form)
   (pcase form
-    (`(,(and letsym (or `let* `let)) ,varsvalues . ,body-forms)
+    (`(,(and letsym (or `let* `let)) ,binders . ,body-forms)
 
 					; let and let* special forms
      (let ((body-forms-new '())
-           (varsvalues-new '())
+           (binders-new '())
            ;; next for variables needed for delayed push
            ;; because we should process <value(s)>
            ;; before we change any arguments
@@ -274,83 +270,58 @@ Returns a form where all lambdas don't have any free variables."
            (emvr-push)                  ;needed only in case of let*
            (lmenv-push))                ;needed only in case of let*
 
-       (dolist (elm varsvalues)       ;begin of dolist over varsvalues
-         (let (var value elm-new iscandidate ismutated)
-           (if (consp elm)    ; (let (v1) ...) => (let ((v1 nil)) ...)
-               (progn
-                 (setq var (car elm))
-                 (setq value (cadr elm)))
-             (setq var elm))
+       (dolist (binder binders)
+         (let* ((value nil)
+                (var (if (not (consp binder))
+                         binder
+                       (setq value (cadr binder))
+                       (car binder)))
+                (new-val
+                 (cond
+                  ;; Check if var is a candidate for lambda lifting.
+                  ((cconv-lookup-let cconv-lambda-candidates var binder form)
 
-           ;; Check if var is a candidate for lambda lifting
-           (let ((lcandid cconv-lambda-candidates))
-             (while (and lcandid (not iscandidate))
-               (when (and (eq (caar lcandid) var)
-                          (eq (caddar lcandid) elm)
-                          (eq (cadr (cddar lcandid)) form))
-                 (setq iscandidate t))
-               (setq lcandid (cdr lcandid))))
-
-                                    ; declared variable is a candidate
-                                    ; for lambda lifting
-           (if iscandidate
-               (let* ((func (cadr elm)) ; function(lambda) itself
-					; free variables
-                      (fv (delete-dups (cconv-freevars func '())))
-                      (funcvars (append fv (cadadr func))) ;function args
-                      (funcbodies (cddadr func)) ; function bodies
-                      (funcbodies-new '()))
+                   (let* ((fv (delete-dups (cconv-freevars value '())))
+                          (funargs (cadr (cadr value)))
+                          (funcvars (append fv funargs))
+                          (funcbodies (cddadr value)) ; function bodies
+                          (funcbodies-new '()))
 					; lambda lifting condition
-                 (if (or (not fv) (< cconv-liftwhen (length funcvars)))
+                     (if (or (not fv) (< cconv-liftwhen (length funcvars)))
 					; do not lift
-                     (setq
-                      elm-new
-                      `(,var
-                        ,(cconv-closure-convert-rec
-                          func emvrs fvrs envs lmenvs nil)))
+                         (cconv-closure-convert-rec
+                          value emvrs fvrs envs lmenvs)
 					; lift
-                   (progn
-                     (dolist (elm2 funcbodies)
-                       (push            ; convert function bodies
-                        (cconv-closure-convert-rec
-                         elm2 emvrs nil envs lmenvs nil)
-                        funcbodies-new))
-                     (if (eq letsym 'let*)
-                         (setq lmenv-push (cons var fv))
-                       (push (cons var fv) lmenvs-new))
+                       (progn
+                         (dolist (elm2 funcbodies)
+                           (push        ; convert function bodies
+                            (cconv-closure-convert-rec
+                             elm2 emvrs nil envs lmenvs)
+                            funcbodies-new))
+                         (if (eq letsym 'let*)
+                             (setq lmenv-push (cons var fv))
+                           (push (cons var fv) lmenvs-new))
 					; push lifted function
 
-                     (setq elm-new
-                           `(,var
-                             (function .
-                                       ((lambda ,funcvars .
-                                          ,(reverse funcbodies-new)))))))))
+                         `(function .
+                                    ((lambda ,funcvars .
+                                       ,(reverse funcbodies-new))))))))
 
-                                  ;declared variable is not a function
-             (progn
-               ;; Check if var is mutated
-               (let ((lmutated cconv-captured+mutated))
-                 (while (and lmutated (not ismutated))
-                   (when (and (eq (caar lmutated) var)
-                              (eq (caddar lmutated) elm)
-                              (eq (cadr (cddar lmutated)) form))
-                     (setq ismutated t))
-                   (setq lmutated (cdr lmutated))))
-               (if ismutated
-                   (progn               ; declared variable is mutated
-                     (setq elm-new
-                           `(,var (list ,(cconv-closure-convert-rec
-                                          value emvrs
-                                          fvrs envs lmenvs nil))))
+                  ;; Check if it needs to be turned into a "ref-cell".
+                  ((cconv-lookup-let cconv-captured+mutated var binder form)
+                   ;; Declared variable is mutated and captured.
+                   (prog1
+                       `(list ,(cconv-closure-convert-rec
+                                value emvrs
+                                fvrs envs lmenvs))
                      (if (eq letsym 'let*)
                          (setq emvr-push var)
-                       (push var emvrs-new)))
-                 (progn
-                   (setq
-                    elm-new
-                    `(,var              ; else
-                      ,(cconv-closure-convert-rec
-                        value emvrs fvrs envs lmenvs nil)))))))
+                       (push var emvrs-new))))
+
+                  ;; Normal default case.
+                  (t
+                   (cconv-closure-convert-rec
+                    value emvrs fvrs envs lmenvs)))))
 
            ;; this piece of code below letbinds free
            ;; variables  of a lambda lifted function
@@ -384,12 +355,12 @@ Returns a form where all lambdas don't have any free variables."
                (when new-lmenv
                  (setq lmenvs (remq old-lmenv lmenvs))
                  (push new-lmenv lmenvs)
-                 (push `(,closedsym ,var) varsvalues-new))))
+                 (push `(,closedsym ,var) binders-new))))
            ;; we push the element after redefined free variables
            ;; are processes. this is important to avoid the bug
            ;; when free variable and the function have the same
            ;; name
-           (push elm-new varsvalues-new)
+           (push (list var new-val) binders-new)
 
            (when (eq letsym 'let*)      ; update fvrs
              (setq fvrs (remq var fvrs))
@@ -405,23 +376,23 @@ Returns a form where all lambdas don't have any free variables."
              (when lmenv-push
                (push lmenv-push lmenvs)
                (setq lmenv-push nil)))
-           ))                          ; end of dolist over varsvalues
+           ))                          ; end of dolist over binders
        (when (eq letsym 'let)
 
          (let (var fvrs-1 emvrs-1 lmenvs-1)
            ;; Here we update emvrs, fvrs and lmenvs lists
            (dolist (vr fvrs)
 					; safely remove
-             (when (not (assq vr varsvalues-new)) (push vr fvrs-1)))
+             (when (not (assq vr binders-new)) (push vr fvrs-1)))
            (setq fvrs fvrs-1)
            (dolist (vr emvrs)
 					; safely remove
-             (when (not (assq vr varsvalues-new)) (push vr emvrs-1)))
+             (when (not (assq vr binders-new)) (push vr emvrs-1)))
            (setq emvrs emvrs-1)
 					; push new
            (setq emvrs (append emvrs emvrs-new))
            (dolist (vr lmenvs)
-             (when (not (assq (car vr) varsvalues-new))
+             (when (not (assq (car vr) binders-new))
                (push vr lmenvs-1)))
            (setq lmenvs (append lmenvs lmenvs-new)))
 
@@ -432,10 +403,9 @@ Returns a form where all lambdas don't have any free variables."
          (let ((new-lmenv)
                (var nil)
                (closedsym nil)
-               (letbinds '())
-               (fvrs-new))              ; list of (closed-var var)
-           (dolist (elm varsvalues)
-             (setq var (if (consp elm) (car elm) elm))
+               (letbinds '()))
+           (dolist (binder binders)
+             (setq var (if (consp binder) (car binder) binder))
 
              (let ((lmenvs-1 lmenvs))   ; just to avoid manipulating
                (dolist (lmenv lmenvs-1) ; the counter inside the loop
@@ -453,13 +423,13 @@ Returns a form where all lambdas don't have any free variables."
                    (push new-lmenv lmenvs)
                    (push `(,closedsym ,var) letbinds)
                    ))))
-           (setq varsvalues-new (append varsvalues-new letbinds))))
+           (setq binders-new (append binders-new letbinds))))
 
        (dolist (elm body-forms)         ; convert body forms
          (push (cconv-closure-convert-rec
-                elm emvrs fvrs envs lmenvs nil)
+                elm emvrs fvrs envs lmenvs)
                body-forms-new))
-       `(,letsym ,(reverse varsvalues-new) . ,(reverse body-forms-new))))
+       `(,letsym ,(reverse binders-new) . ,(reverse body-forms-new))))
 					;end of let let* forms
 
                                   ; first element is lambda expression
@@ -468,13 +438,12 @@ Returns a form where all lambdas don't have any free variables."
      (let ((other-body-forms-new '()))
        (dolist (elm other-body-forms)
          (push (cconv-closure-convert-rec
-                elm emvrs fvrs envs lmenvs nil)
+                elm emvrs fvrs envs lmenvs)
                other-body-forms-new))
-       (cons
-        (cadr
-         (cconv-closure-convert-rec
-          (list 'function fun) emvrs fvrs envs lmenvs nil))
-        (reverse other-body-forms-new))))
+       `(funcall
+         ,(cconv-closure-convert-rec
+           (list 'function fun) emvrs fvrs envs lmenvs)
+         ,@(nreverse other-body-forms-new))))
 
     (`(cond . ,cond-forms)              ; cond special form
      (let ((cond-forms-new '()))
@@ -483,7 +452,7 @@ Returns a form where all lambdas don't have any free variables."
                  (dolist (elm-2 elm)
                    (push
                     (cconv-closure-convert-rec
-                     elm-2 emvrs fvrs envs lmenvs nil)
+                     elm-2 emvrs fvrs envs lmenvs)
                     elm-new))
                  (reverse elm-new))
                cond-forms-new))
@@ -523,7 +492,7 @@ Returns a form where all lambdas don't have any free variables."
                (dolist (elm fv)
                  (push
                   (cconv-closure-convert-rec
-                   elm (remq elm emvrs) fvrs envs lmenvs nil)
+                   elm (remq elm emvrs) fvrs envs lmenvs)
                   envector))         ; process vars for closure vector
                (setq envector (reverse envector))
                (setq envs fv))
@@ -539,7 +508,7 @@ Returns a form where all lambdas don't have any free variables."
                   (push `(,mv (list ,mv)) letbind))))
        (dolist (elm body-forms)         ; convert function body
          (push (cconv-closure-convert-rec
-                elm emvrs fvrs envs lmenvs nil)
+                elm emvrs fvrs envs lmenvs)
                body-forms-new))
 
        (setq body-forms-new
@@ -566,83 +535,89 @@ Returns a form where all lambdas don't have any free variables."
 					;defconst, defvar
     (`(,(and sym (or `defconst `defvar)) ,definedsymbol . ,body-forms)
 
-     (if defs-are-legal
-         (let ((body-forms-new '()))
-           (dolist (elm body-forms)
-             (push (cconv-closure-convert-rec
-                    elm emvrs fvrs envs lmenvs nil)
-                   body-forms-new))
-           (setq body-forms-new (reverse body-forms-new))
-           `(,sym ,definedsymbol . ,body-forms-new))
-       (error "Invalid form: %s inside a function" sym)))
+     (let ((body-forms-new '()))
+       (dolist (elm body-forms)
+         (push (cconv-closure-convert-rec
+                elm emvrs fvrs envs lmenvs)
+               body-forms-new))
+       (setq body-forms-new (reverse body-forms-new))
+       `(,sym ,definedsymbol . ,body-forms-new)))
 
 					;defun, defmacro
     (`(,(and sym (or `defun `defmacro))
        ,func ,vars . ,body-forms)
-     (if defs-are-legal
-         (let ((body-new '())       ; the whole body
-               (body-forms-new '()) ; body w\o docstring and interactive
-               (letbind '()))
+     (let ((body-new '())           ; the whole body
+           (body-forms-new '())   ; body w\o docstring and interactive
+           (letbind '()))
 					; find mutable arguments
-           (let ((lmutated cconv-captured+mutated) ismutated)
-             (dolist (elm vars)
-               (setq ismutated nil)
-               (while (and lmutated (not ismutated))
-                 (when (and (eq (caar lmutated) elm)
-                            (eq (cadar lmutated) form))
-                   (setq ismutated t))
-                 (setq lmutated (cdr lmutated)))
-               (when ismutated
-                 (push elm letbind)
-                 (push elm emvrs))))
+       (let ((lmutated cconv-captured+mutated) ismutated)
+         (dolist (elm vars)
+           (setq ismutated nil)
+           (while (and lmutated (not ismutated))
+             (when (and (eq (caar lmutated) elm)
+                        (eq (cadar lmutated) form))
+               (setq ismutated t))
+             (setq lmutated (cdr lmutated)))
+           (when ismutated
+             (push elm letbind)
+             (push elm emvrs))))
                                             ;transform body-forms
-           (when (stringp (car body-forms)) ; treat docstring well
-             (push (car body-forms) body-new)
-             (setq body-forms (cdr body-forms)))
-           (when (eq (car-safe (car body-forms)) 'interactive)
-             (push
-              (cconv-closure-convert-rec
-               (car body-forms)
-               emvrs fvrs envs lmenvs nil) body-new)
-             (setq body-forms (cdr body-forms)))
+       (when (stringp (car body-forms))     ; treat docstring well
+         (push (car body-forms) body-new)
+         (setq body-forms (cdr body-forms)))
+       (when (eq (car-safe (car body-forms)) 'interactive)
+         (push (cconv-closure-convert-rec
+                (car body-forms)
+                emvrs fvrs envs lmenvs)
+               body-new)
+         (setq body-forms (cdr body-forms)))
 
-           (dolist (elm body-forms)
-             (push (cconv-closure-convert-rec
-                    elm emvrs fvrs envs lmenvs nil)
-                   body-forms-new))
-           (setq body-forms-new (reverse body-forms-new))
+       (dolist (elm body-forms)
+         (push (cconv-closure-convert-rec
+                elm emvrs fvrs envs lmenvs)
+               body-forms-new))
+       (setq body-forms-new (reverse body-forms-new))
 
-           (if letbind
+       (if letbind
 					; letbind mutable arguments
-               (let ((varsvalues-new '()))
-                 (dolist (elm letbind) (push `(,elm (list ,elm))
-                                             varsvalues-new))
-                 (push `(let ,(reverse varsvalues-new) .
-                             ,body-forms-new) body-new)
-                 (setq body-new (reverse body-new)))
-             (setq body-new (append (reverse body-new) body-forms-new)))
+           (let ((binders-new '()))
+             (dolist (elm letbind) (push `(,elm (list ,elm))
+                                         binders-new))
+             (push `(let ,(reverse binders-new) .
+                         ,body-forms-new) body-new)
+             (setq body-new (reverse body-new)))
+         (setq body-new (append (reverse body-new) body-forms-new)))
 
-           `(,sym ,func ,vars . ,body-new))
+       `(,sym ,func ,vars . ,body-new)))
 
-       (error "Invalid form: defun inside a function")))
 					;condition-case
-    (`(condition-case ,var ,protected-form . ,conditions-bodies)
-     (let ((conditions-bodies-new '()))
+    (`(condition-case ,var ,protected-form . ,handlers)
+     (let ((handlers-new '())
+           (newform (cconv-closure-convert-rec
+                     `(function (lambda () ,protected-form))
+                     emvrs fvrs envs lmenvs)))
        (setq fvrs (remq var fvrs))
-       (dolist (elm conditions-bodies)
-         (push (let ((elm-new '()))
-                 (dolist (elm-2 (cdr elm))
-                   (push
-                    (cconv-closure-convert-rec
-                     elm-2 emvrs fvrs envs lmenvs nil)
-                    elm-new))
-                 (cons (car elm) (reverse elm-new)))
-               conditions-bodies-new))
-       `(condition-case
-            ,var
-            ,(cconv-closure-convert-rec
-              protected-form emvrs fvrs envs lmenvs nil)
-          . ,(reverse conditions-bodies-new))))
+       (dolist (handler handlers)
+         (push (list (car handler)
+                     (cconv-closure-convert-rec
+                      `(function (lambda (,(or var cconv--dummy-var))
+                                   ,@(cdr handler)))
+                      emvrs fvrs envs lmenvs))
+               handlers-new))
+       `(condition-case :fun-body ,newform
+          ,@(nreverse handlers-new))))
+
+    (`(,(and head (or `catch `unwind-protect)) ,form . ,body)
+     `(,head ,(cconv-closure-convert-rec form emvrs fvrs envs lmenvs)
+        :fun-body
+        ,(cconv-closure-convert-rec `(function (lambda () ,@body))
+                                    emvrs fvrs envs lmenvs)))
+
+    (`(,(and head (or `save-window-excursion `track-mouse)) . ,body)
+     `(,head
+        :fun-body
+        ,(cconv-closure-convert-rec `(function (lambda () ,@body))
+                                    emvrs fvrs envs lmenvs)))
 
     (`(setq . ,forms)                   ; setq special form
      (let (prognlist sym sym-new value)
@@ -650,10 +625,10 @@ Returns a form where all lambdas don't have any free variables."
          (setq sym (car forms))
          (setq sym-new (cconv-closure-convert-rec
                         sym
-                        (remq sym emvrs) fvrs envs lmenvs nil))
+                        (remq sym emvrs) fvrs envs lmenvs))
          (setq value
                (cconv-closure-convert-rec
-                (cadr forms) emvrs fvrs envs lmenvs nil))
+                (cadr forms) emvrs fvrs envs lmenvs))
          (if (memq sym emvrs)
              (push `(setcar ,sym-new ,value) prognlist)
            (if (symbolp sym-new)
@@ -678,21 +653,21 @@ Returns a form where all lambdas don't have any free variables."
              (dolist (fvr fv)
                (push (cconv-closure-convert-rec
                       fvr (remq fvr emvrs)
-                      fvrs envs lmenvs nil)
+                      fvrs envs lmenvs)
                      processed-fv))
              (setq processed-fv (reverse processed-fv))
              (dolist (elm args)
                (push (cconv-closure-convert-rec
-                      elm emvrs fvrs envs lmenvs nil)
+                      elm emvrs fvrs envs lmenvs)
                      args-new))
              (setq args-new (append processed-fv (reverse args-new)))
              (setq fun (cconv-closure-convert-rec
-                        fun emvrs fvrs envs lmenvs nil))
+                        fun emvrs fvrs envs lmenvs))
              `(,callsym ,fun . ,args-new))
          (let ((cdr-new '()))
            (dolist (elm (cdr form))
              (push (cconv-closure-convert-rec
-                    elm emvrs fvrs envs lmenvs nil)
+                    elm emvrs fvrs envs lmenvs)
                    cdr-new))
            `(,callsym . ,(reverse cdr-new))))))
 
@@ -703,7 +678,7 @@ Returns a form where all lambdas don't have any free variables."
      (let ((body-forms-new '()))
        (dolist (elm body-forms)
          (push (cconv-closure-convert-rec
-                elm emvrs fvrs envs lmenvs defs-are-legal)
+                elm emvrs fvrs envs lmenvs)
                body-forms-new))
        (setq body-forms-new (reverse body-forms-new))
        `(,func . ,body-forms-new)))

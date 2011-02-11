@@ -1863,7 +1863,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;;
 	      ;; stack-ref-N  -->  dup    ; where N is TOS
 	      ;;
-	      ((and (eq (car lap0) 'byte-stack-ref)
+	      ((and stack-depth (eq (car lap0) 'byte-stack-ref)
 		    (= (cdr lap0) (1- stack-depth)))
 	       (setcar lap0 'byte-dup)
 	       (setcdr lap0 nil)
@@ -2093,7 +2093,8 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	    ;; stack-set-M [discard/discardN ...]  -->  discardN-preserve-tos
 	    ;; stack-set-M [discard/discardN ...]  -->  discardN
 	    ;;
-	    ((and (eq (car lap0) 'byte-stack-set)
+	    ((and stack-depth      ;Make sure we know the stack depth.
+                  (eq (car lap0) 'byte-stack-set)
 		  (memq (car lap1) '(byte-discard byte-discardN))
 		  (progn
 		    ;; See if enough discard operations follow to expose or
@@ -2161,7 +2162,8 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	    ;; dup return  -->  return
 	    ;; stack-set-N return  -->  return     ; where N is TOS-1
 	    ;;
-	    ((and (eq (car lap1) 'byte-return)
+	    ((and stack-depth      ;Make sure we know the stack depth.
+                  (eq (car lap1) 'byte-return)
 		  (or (memq (car lap0) '(byte-discardN-preserve-tos byte-dup))
 		      (and (eq (car lap0) 'byte-stack-set)
 			   (= (cdr lap0) (- stack-depth 2)))))
@@ -2174,7 +2176,8 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	    ;;
 	    ;; dup stack-set-N return  -->  return     ; where N is TOS
 	    ;;
-	    ((and (eq (car lap0) 'byte-dup)
+	    ((and stack-depth      ;Make sure we know the stack depth.
+                  (eq (car lap0) 'byte-dup)
 		  (eq (car lap1) 'byte-stack-set)
 		  (eq (car (car (cdr (cdr rest)))) 'byte-return)
 		  (= (cdr lap1) (1- stack-depth)))

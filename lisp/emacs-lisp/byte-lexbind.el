@@ -585,6 +585,7 @@ proper scope)."
 	    (= nclosures byte-compile-current-num-closures))
 	;; No need to push a heap environment.
 	nil
+      (error "Should have been handled by cconv")
       ;; Have to push one.  A heap environment is really just a vector, so
       ;; we emit bytecodes to create a vector.  However, the size is not
       ;; fixed yet (the vector can grow if subforms use it to store

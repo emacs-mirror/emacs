@@ -134,7 +134,7 @@
 ;; `eval-when-compile' is defined in byte-run.el, so it must come after the
 ;; preceding load expression.
 (provide 'bytecomp-preload)
-(eval-when-compile (require 'byte-lexbind))
+(eval-when-compile (require 'byte-lexbind nil 'noerror))
 
 ;; The feature of compiling in a specific target Emacs version
 ;; has been turned off because compile time options are a bad idea.
@@ -2240,7 +2240,7 @@ list that represents a doc string reference.
 	bytecomp-handler)
     (setq form (macroexpand-all form byte-compile-macro-environment))
     (if lexical-binding
-        (setq form (cconv-closure-convert-toplevel form)))
+        (setq form (cconv-closure-convert form)))
     (cond ((not (consp form))
 	   (byte-compile-keep-pending form))
 	  ((and (symbolp (car form))
@@ -2592,7 +2592,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
                    (macroexpand-all fun
                                     byte-compile-initial-macro-environment))
              (if lexical-binding
-                 (setq fun (cconv-closure-convert-toplevel fun)))
+                 (setq fun (cconv-closure-convert fun)))
 	     ;; get rid of the `function' quote added by the `lambda' macro
 	     (setq fun (cadr fun))
 	     (setq fun (if macro
@@ -2753,7 +2753,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	    ;; containing lexical environment are closed over).
 	    (and lexical-binding
 		 (byte-compile-closure-initial-lexenv-p
-		  byte-compile-lexical-environment)))
+		  byte-compile-lexical-environment)
+                 (error "Should have been handled by cconv")))
 	   (byte-compile-current-heap-environment nil)
 	   (byte-compile-current-num-closures 0)
 	   (compiled
@@ -2791,6 +2792,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (eq (car-safe code) 'closure))
 
 (defun byte-compile-make-closure (code)
+  (error "Should have been handled by cconv")
   ;; A real closure requires that the constant be curried with an
   ;; environment vector to make a closure object.
   (if for-effect

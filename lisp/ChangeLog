@@ -1,5 +1,25 @@
 2011-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cconv.el (cconv-closure-convert): Drop `toplevel' arg.
+	(cconv-closure-convert-toplevel): Remove.
+	(cconv-lookup-let): New fun.
+	(cconv-closure-convert-rec): Don't bother with defs-are-legal.
+	Use :fun-body to handle special forms that require closing their forms.
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form, byte-compile):
+	Use cconv-closure-convert instead of cconv-closure-convert-toplevel.
+	(byte-compile-lambda, byte-compile-make-closure):
+	* emacs-lisp/byte-lexbind.el (byte-compile-maybe-push-heap-environment):
+	Make sure cconv did its job.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-lapcode): Check stack-depth
+	before using it.
+
+	* dired.el (dired-desktop-buffer-misc-data): Don't use a dynamic var as
+	function argument.
+
+2011-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* emacs-lisp/bytecomp.el (byte-compile-lambda): Fix `fun' that was not
 	renamed to `bytecomp-fun'.
 

@@ -1,5 +1,4 @@
-;;; -*- lexical-binding: t -*-
-;;; mpc.el --- A client for the Music Player Daemon   -*- coding: utf-8 -*-
+;;; mpc.el --- A client for the Music Player Daemon   -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
