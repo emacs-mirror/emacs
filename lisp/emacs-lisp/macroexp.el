@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 ;; Bound by the top-level `macroexpand-all', and modified to include any
 ;; macros defined by `defmacro'.
 (defvar macroexpand-all-environment nil)
@@ -164,6 +166,17 @@ Assumes the caller has bound `macroexpand-all-environment'."
                    (cons (macroexpand-all-1
                           (list 'function f))
                          (macroexpand-all-forms args)))))
+      ;; Macro expand compiler macros.
+      ;; FIXME: Don't depend on CL.
+      (`(,(and (pred symbolp) fun
+               (guard (and (eq (get fun 'byte-compile)
+                               'cl-byte-compile-compiler-macro)
+                           (functionp 'compiler-macroexpand))))
+         . ,_)
+       (let ((newform (compiler-macroexpand form)))
+         (if (eq form newform)
+             (macroexpand-all-forms form 1)
+           (macroexpand-all-1 newform))))
       (`(,_ . ,_)
        ;; For every other list, we just expand each argument (for
        ;; setq/setq-default this works alright because the variable names

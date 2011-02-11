@@ -1,4 +1,4 @@
-;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: t -*-
+;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: nil -*-
 
 ;; Copyright (C) 2011  Free Software Foundation, Inc.
 
@@ -82,8 +82,19 @@ is less than this number.")
 (defvar cconv-captured+mutated nil
   "An intersection between cconv-mutated and cconv-captured lists.")
 (defvar cconv-lambda-candidates nil
-  "List of candidates for lambda lifting")
+  "List of candidates for lambda lifting.
+Each candidate has the form (VAR INCLOSURE BINDER PARENTFORM).")
 
+(defun cconv-not-lexical-var-p (var)
+  (or (not (symbolp var))               ; form is not a list
+      (special-variable-p var)
+      ;; byte-compile-bound-variables normally holds both the
+      ;; dynamic and lexical vars, but the bytecomp.el should
+      ;; only call us at the top-level so there shouldn't be
+      ;; any lexical vars in it here.
+      (memq var byte-compile-bound-variables)
+      (memq var '(nil t))
+      (keywordp var)))
 
 (defun cconv-freevars (form &optional fvrs)
   "Find all free variables of given form.
@@ -166,24 +177,17 @@ Returns a list of free variables."
        (append fvrs fvrs-1)))
 
     (`(,(and sym (or `defun `defconst `defvar)) . ,_)
-     ;; we call cconv-freevars only for functions(lambdas)
+     ;; We call cconv-freevars only for functions(lambdas)
      ;; defun, defconst, defvar are not allowed to be inside
-     ;; a function(lambda)
+     ;; a function (lambda).
+     ;; FIXME: should be a byte-compile-report-error!
      (error "Invalid form: %s inside a function" sym))
 
-    (`(,_ . ,body-forms)     ; first element is a function or whatever
+    (`(,_ . ,body-forms)    ; First element is (like) a function.
      (dolist (exp body-forms)
        (setq fvrs (cconv-freevars exp fvrs))) fvrs)
 
-    (_ (if (or (not (symbolp form))     ; form is not a list
-               (special-variable-p form)
-               ;; byte-compile-bound-variables normally holds both the
-               ;; dynamic and lexical vars, but the bytecomp.el should
-               ;; only call us at the top-level so there shouldn't be
-               ;; any lexical vars in it here.
-               (memq form byte-compile-bound-variables)
-               (memq form '(nil t))
-               (keywordp form))
+    (_ (if (cconv-not-lexical-var-p form)
            fvrs
          (cons form fvrs)))))
 
@@ -200,12 +204,13 @@ Returns a list of free variables."
 -- TOPLEVEL(optional) is a boolean variable, true if we are at the root of AST
 
 Returns a form where all lambdas don't have any free variables."
+  (message "Entering cconv-closure-convert...")
   (let ((cconv-mutated '())
 	(cconv-lambda-candidates '())
 	(cconv-captured '())
 	(cconv-captured+mutated '()))
     ;; Analyse form - fill these variables with new information
-    (cconv-analyse-form form '() nil)
+    (cconv-analyse-form form '() 0)
     ;; Calculate an intersection of cconv-mutated and cconv-captured
     (dolist (mvr cconv-mutated)
       (when (memq mvr cconv-captured)   ;
@@ -271,7 +276,7 @@ Returns a form where all lambdas don't have any free variables."
 
        (dolist (elm varsvalues)       ;begin of dolist over varsvalues
          (let (var value elm-new iscandidate ismutated)
-           (if (listp elm)    ; (let (v1) ...) => (let ((v1 nil)) ...)
+           (if (consp elm)    ; (let (v1) ...) => (let ((v1 nil)) ...)
                (progn
                  (setq var (car elm))
                  (setq value (cadr elm)))
@@ -430,9 +435,7 @@ Returns a form where all lambdas don't have any free variables."
                (letbinds '())
                (fvrs-new))              ; list of (closed-var var)
            (dolist (elm varsvalues)
-             (if (listp elm)
-                 (setq var (car elm))
-               (setq var elm))
+             (setq var (if (consp elm) (car elm) elm))
 
              (let ((lmenvs-1 lmenvs))   ; just to avoid manipulating
                (dolist (lmenv lmenvs-1) ; the counter inside the loop
@@ -490,7 +493,7 @@ Returns a form where all lambdas don't have any free variables."
     (`(quote . ,_) form)                ; quote form
 
     (`(function . ((lambda ,vars . ,body-forms))) ; function form
-     (let (fvrs-new)           ; we remove vars from fvrs
+     (let (fvrs-new)      ; we remove vars from fvrs
        (dolist (elm fvrs) ;i use such a tricky way to avoid side effects
          (when (not (memq elm vars))
            (push elm fvrs-new)))
@@ -577,7 +580,7 @@ Returns a form where all lambdas don't have any free variables."
     (`(,(and sym (or `defun `defmacro))
        ,func ,vars . ,body-forms)
      (if defs-are-legal
-         (let ((body-new '())            ; the whole body
+         (let ((body-new '())       ; the whole body
                (body-forms-new '()) ; body w\o docstring and interactive
                (letbind '()))
 					; find mutable arguments
@@ -592,12 +595,11 @@ Returns a form where all lambdas don't have any free variables."
                (when ismutated
                  (push elm letbind)
                  (push elm emvrs))))
-                                                 ;transform body-forms
+                                            ;transform body-forms
            (when (stringp (car body-forms)) ; treat docstring well
              (push (car body-forms) body-new)
              (setq body-forms (cdr body-forms)))
-           (when (and (listp (car body-forms)) ; treat (interactive) well
-                      (eq (caar body-forms) 'interactive))
+           (when (eq (car-safe (car body-forms)) 'interactive)
              (push
               (cconv-closure-convert-rec
                (car body-forms)
@@ -707,201 +709,171 @@ Returns a form where all lambdas don't have any free variables."
        `(,func . ,body-forms-new)))
 
     (_
-     (if (memq form fvrs)               ;form is a free variable
-         (let* ((numero (position form envs))
-                (var '()))
-           (assert numero)
-           (if (null (cdr envs))
-               (setq var 'env)
+     (let ((free (memq form fvrs)))
+       (if free                         ;form is a free variable
+           (let* ((numero (- (length fvrs) (length free)))
+                  (var '()))
+             (assert numero)
+             (if (null (cdr envs))
+                 (setq var 'env)
 					;replace form =>
 					;(aref env #)
-             (setq var `(aref env ,numero)))
-           (if (memq form emvrs) ; form => (car (aref env #)) if mutable
-               `(car ,var)
-             var))
-       (if (memq form emvrs)           ; if form is a mutable variable
-           `(car ,form)                ; replace form => (car form)
-         form)))))
+               (setq var `(aref env ,numero)))
+             (if (memq form emvrs) ; form => (car (aref env #)) if mutable
+                 `(car ,var)
+               var))
+         (if (memq form emvrs)         ; if form is a mutable variable
+             `(car ,form)              ; replace form => (car form)
+           form))))))
 
-(defun cconv-analyse-form (form vars inclosure)
+(defun cconv-analyse-function (args body env parentform inclosure)
+  (dolist (arg args)
+    (cond
+     ((cconv-not-lexical-var-p arg)
+      (byte-compile-report-error
+       (format "Argument %S is not a lexical variable" arg)))
+     ((eq ?& (aref (symbol-name arg) 0)) nil) ;Ignore &rest, &optional, ...
+     (t (push (list arg inclosure parentform) env)))) ;Push vrs to vars.
+  (dolist (form body)                   ;Analyse body forms.
+    (cconv-analyse-form form env inclosure)))
 
+(defun cconv-analyse-form (form env inclosure)
   "Find mutated variables and variables captured by closure.  Analyse
 lambdas if they are suitable for lambda lifting.
 -- FORM is a piece of Elisp code after macroexpansion.
--- MLCVRS is a structure that contains captured and mutated variables.
- (first MLCVRS) is a list of mutated variables, (second MLCVRS) is a
-list of candidates for lambda lifting and (third MLCVRS) is a list of
-variables captured by closure. It should be (nil nil nil) initially.
--- VARS is a list of local variables visible in current environment
- (initially empty).
--- INCLOSURE is a boolean variable, true if we are in closure.
-Initially false"
+-- ENV is a list of variables visible in current lexical environment.
+  Each entry has the form (VAR INCLOSURE BINDER PARENTFORM)
+  for let-bound vars and (VAR INCLOSURE PARENTFORM) for function arguments.
+-- INCLOSURE is the nesting level within lambdas."
   (pcase form
 					; let special form
-    (`(,(and (or `let* `let) letsym) ,varsvalues . ,body-forms)
+    (`(,(and (or `let* `let) letsym) ,binders . ,body-forms)
 
-     (when (eq letsym 'let)
-       (dolist (elm varsvalues)         ; analyse values
-         (when (listp elm)
-           (cconv-analyse-form (cadr elm) vars inclosure))))
-
-     (let ((v nil)
+     (let ((orig-env env)
            (var nil)
-           (value nil)
-           (varstruct nil))
-       (dolist (elm varsvalues)
-         (if (listp elm)
+           (value nil))
+       (dolist (binder binders)
+         (if (not (consp binder))
              (progn
-               (setq var (car elm))
-               (setq value (cadr elm)))
-           (progn
-             (setq var elm)        ; treat the form (let (x) ...) well
-             (setq value nil)))
+               (setq var binder)      ; treat the form (let (x) ...) well
+               (setq value nil))
+           (setq var (car binder))
+           (setq value (cadr binder))
 
-         (when (eq letsym 'let*)        ; analyse value
-           (cconv-analyse-form value vars inclosure))
+           (cconv-analyse-form value (if (eq letsym 'let*) env orig-env)
+                               inclosure))
 
-         (let (vars-new)                ; remove the old var
-           (dolist (vr vars)
-             (when (not (eq (car vr) var))
-               (push vr vars-new)))
-           (setq vars vars-new))
+         (unless (cconv-not-lexical-var-p var)
+           (let ((varstruct (list var inclosure binder form)))
+             (push varstruct env)       ; Push a new one.
 
-         (setq varstruct (list var inclosure elm form))
-         (push varstruct vars)          ; push a new one
+             (pcase value
+               (`(function (lambda . ,_))
+                ;; If var is a function push it to lambda list.
+                (push varstruct cconv-lambda-candidates)))))))
 
-         (when (and (listp value)
-                    (eq (car value) 'function)
-                    (eq (caadr value) 'lambda))
-					; if var is a function
-					; push it to lambda list
-           (push varstruct cconv-lambda-candidates))))
+     (dolist (form body-forms)          ; Analyse body forms.
+       (cconv-analyse-form form env inclosure)))
 
-     (dolist (elm body-forms)           ; analyse body forms
-       (cconv-analyse-form elm vars inclosure))
-     nil)
 					; defun special form
     (`(,(or `defun `defmacro) ,func ,vrs . ,body-forms)
-     (let ((v nil))
-       (dolist (vr vrs)
-         (push (list vr form) vars)))   ;push vrs to vars
-     (dolist (elm body-forms)           ; analyse body forms
-       (cconv-analyse-form elm vars inclosure))
-     nil)
+     (when env
+       (byte-compile-log-warning
+        (format "Function %S will ignore its context %S"
+                func (mapcar #'car env))
+        t :warning))
+     (cconv-analyse-function vrs body-forms nil form 0))
 
-    (`(function . ((lambda ,vrs . ,body-forms)))
-     (if inclosure                      ;we are in closure
-         (setq inclosure (+ inclosure 1))
-       (setq inclosure 1))
-     (let (vars-new)                 ; update vars
-       (dolist (vr vars)             ; we do that in such a tricky way
-         (when (not (memq (car vr) vrs)) ; to avoid side effects
-           (push vr vars-new)))
-       (dolist (vr vrs)
-         (push (list vr inclosure form) vars-new))
-       (setq vars vars-new))
-
-     (dolist (elm body-forms)
-       (cconv-analyse-form elm vars inclosure))
-     nil)
-
-    (`(setq . ,forms)           ; setq
-                                ; if a local variable (member of vars)
-                                ; is modified by setq
-                                ; then it is a mutated variable
+    (`(function (lambda ,vrs . ,body-forms))
+     (cconv-analyse-function vrs body-forms env form (1+ inclosure)))
+     
+    (`(setq . ,forms)
+     ;; If a local variable (member of env) is modified by setq then
+     ;; it is a mutated variable.
      (while forms
-       (let ((v (assq (car forms) vars))) ; v = non nil if visible
+       (let ((v (assq (car forms) env))) ; v = non nil if visible
          (when v
            (push v cconv-mutated)
-           ;; delete from candidate list for lambda lifting
+           ;; Delete from candidate list for lambda lifting.
            (setq cconv-lambda-candidates (delq v cconv-lambda-candidates))
-           (when inclosure
-             ;; test if v is declared as argument for lambda
-             (let* ((thirdv (third v))
-                    (isarg (if (listp thirdv)
-                               (eq (car thirdv) 'function) nil)))
-               (if isarg
-                   (when (> inclosure (cadr v)) ; when we are in closure
-                     (push v cconv-captured)) ; push it to captured vars
-                 ;; FIXME more detailed comments needed
-                 (push v cconv-captured))))))
-       (cconv-analyse-form (cadr forms) vars inclosure)
-       (setq forms (cddr forms)))
-     nil)
+           (unless (eq inclosure (cadr v)) ;Bound in a different closure level.
+             (push v cconv-captured))))
+       (cconv-analyse-form (cadr forms) env inclosure)
+       (setq forms (cddr forms))))
 
-    (`((lambda . ,_) . ,_)        ; first element is lambda expression
+    (`((lambda . ,_) . ,_)             ; first element is lambda expression
      (dolist (exp `((function ,(car form)) . ,(cdr form)))
-       (cconv-analyse-form exp vars inclosure))
-     nil)
+       (cconv-analyse-form exp env inclosure)))
 
     (`(cond . ,cond-forms)              ; cond special form
-     (dolist (exp1 cond-forms)
-       (dolist (exp2 exp1)
-         (cconv-analyse-form exp2 vars inclosure)))
-     nil)
+     (dolist (forms cond-forms)
+       (dolist (form forms)
+         (cconv-analyse-form form env inclosure))))
 
     (`(quote . ,_) nil)                 ; quote form
-
     (`(function . ,_) nil)              ; same as quote
 
-    (`(condition-case ,var ,protected-form . ,conditions-bodies)
-					;condition-case
-     (cconv-analyse-form protected-form vars inclosure)
-     (dolist (exp conditions-bodies)
-       (cconv-analyse-form (cadr exp) vars inclosure))
-     nil)
+    (`(condition-case ,var ,protected-form . ,handlers)
+     ;; FIXME: The bytecode for condition-case forces us to wrap the
+     ;; form and handlers in closures (for handlers, it's probably
+     ;; unavoidable, but not for the protected form).
+     (setq inclosure (1+ inclosure))
+     (cconv-analyse-form protected-form env inclosure)
+     (push (list var inclosure form) env)
+     (dolist (handler handlers)
+       (dolist (form (cdr handler))
+         (cconv-analyse-form form env inclosure))))
 
-    (`(,(or `defconst `defvar) ,value)
-     (cconv-analyse-form value vars inclosure))
+    ;; FIXME: The bytecode for catch forces us to wrap the body.
+    (`(,(or `catch `unwind-protect) ,form . ,body)
+     (cconv-analyse-form form env inclosure)
+     (setq inclosure (1+ inclosure))
+     (dolist (form body)
+       (cconv-analyse-form form env inclosure)))
+
+    ;; FIXME: The bytecode for save-window-excursion and the lack of
+    ;; bytecode for track-mouse forces us to wrap the body.
+    (`(,(or `save-window-excursion `track-mouse) . ,body)
+     (setq inclosure (1+ inclosure))
+     (dolist (form body)
+       (cconv-analyse-form form env inclosure)))
+
+    (`(,(or `defconst `defvar) ,var ,value . ,_)
+     (push var byte-compile-bound-variables)
+     (cconv-analyse-form value env inclosure))
 
     (`(,(or `funcall `apply) ,fun . ,args)
-     ;; Here  we ignore fun because
-     ;; funcall and apply are the only two
-     ;; functions where we can pass a candidate
-     ;; for lambda lifting as argument.
-     ;; So, if we see fun elsewhere, we'll
-     ;; delete it from lambda candidate list.
+     ;; Here we ignore fun because funcall and apply are the only two
+     ;; functions where we can pass a candidate for lambda lifting as
+     ;; argument.  So, if we see fun elsewhere, we'll delete it from
+     ;; lambda candidate list.
+     (if (symbolp fun)
+         (let ((lv (assq fun cconv-lambda-candidates)))
+           (when lv
+             (unless (eq (cadr lv) inclosure)
+               (push lv cconv-captured)
+               ;; If this funcall and the definition of fun are in
+               ;; different closures - we delete fun from candidate
+               ;; list, because it is too complicated to manage free
+               ;; variables in this case.
+               (setq cconv-lambda-candidates
+                     (delq lv cconv-lambda-candidates)))))
+       (cconv-analyse-form fun env inclosure))
+     (dolist (form args)
+       (cconv-analyse-form form env inclosure)))
 
-     ;; If this funcall and the definition of fun
-     ;; are in different closures - we delete fun from
-     ;; canidate list, because it is too complicated
-     ;; to manage free variables in this case.
-     (let ((lv (assq fun cconv-lambda-candidates)))
-       (when lv
-         (when (not (eq (cadr lv) inclosure))
-           (setq cconv-lambda-candidates
-                 (delq lv cconv-lambda-candidates)))))
+    (`(,_ . ,body-forms)    ; First element is a function or whatever.
+     (dolist (form body-forms)
+       (cconv-analyse-form form env inclosure)))
 
-     (dolist (elm args)
-       (cconv-analyse-form elm vars inclosure))
-     nil)
-
-    (`(,_ . ,body-forms)     ; first element is a function or whatever
-     (dolist (exp body-forms)
-       (cconv-analyse-form exp vars inclosure))
-     nil)
-
-    (_
-     (when (and (symbolp form)
-                (not (memq form '(nil t)))
-                (not (keywordp form))
-                (not (special-variable-p form)))
-       (let ((dv (assq form vars)))     ; dv = declared and visible
-         (when dv
-           (when inclosure
-             ;; test if v is declared as argument of lambda
-             (let* ((thirddv (third dv))
-                    (isarg (if (listp thirddv)
-                               (eq (car thirddv) 'function) nil)))
-               (if isarg
-                   ;; FIXME add detailed comments
-                   (when (> inclosure (cadr dv)) ; capturing condition
-                     (push dv cconv-captured))
-                 (push dv cconv-captured))))
-                                              ; delete lambda
-           (setq cconv-lambda-candidates      ; if it is found here
-                 (delq dv cconv-lambda-candidates)))))
-     nil)))
+    ((pred symbolp)
+     (let ((dv (assq form env)))        ; dv = declared and visible
+       (when dv
+         (unless (eq inclosure (cadr dv)) ; capturing condition
+           (push dv cconv-captured))
+         ;; Delete lambda if it is found here, since it escapes.
+         (setq cconv-lambda-candidates
+               (delq dv cconv-lambda-candidates)))))))
 
 (provide 'cconv)
 ;;; cconv.el ends here

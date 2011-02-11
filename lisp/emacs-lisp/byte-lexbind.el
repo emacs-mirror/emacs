@@ -1,6 +1,6 @@
 ;;; byte-lexbind.el --- Lexical binding support for byte-compiler
 ;;
-;; Copyright (C) 2001, 2002, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, lexical binding
@@ -202,24 +202,25 @@ LFORMINFO."
 		       (byte-compile-lvarinfo-note-set vinfo)
 		       (byte-compile-lforminfo-note-closure lforminfo vinfo
 							    closure-flag)))))))
-	    ((eq fun 'catch)
+	    ((and (eq fun 'catch) (not (eq :fun-body (nth 2 form))))
 	     ;; tag
 	     (byte-compile-lforminfo-analyze lforminfo (cadr form)
-					     ignore closure-flag)
+	        			     ignore closure-flag)
 	     ;; `catch' uses a closure for the body
 	     (byte-compile-lforminfo-analyze-forms
 	      lforminfo form 2
 	      ignore
 	      (or closure-flag
-		  (and (not byte-compile-use-downward-closures)
-		       (byte-compile-lforminfo-make-closure-flag)))))
+	          (and (not byte-compile-use-downward-closures)
+	               (byte-compile-lforminfo-make-closure-flag)))))
 	    ((eq fun 'cond)
 	     (byte-compile-lforminfo-analyze-clauses lforminfo (cdr form) 0
 						     ignore closure-flag))
 	    ((eq fun 'condition-case)
 	     ;; `condition-case' separates its body/handlers into
 	     ;; separate closures.
-	     (unless (or closure-flag byte-compile-use-downward-closures)
+	     (unless (or (eq (nth 1 form) :fun-body)
+                         closure-flag byte-compile-use-downward-closures)
 	       ;; condition case is implemented by calling a function
 	       (setq closure-flag (byte-compile-lforminfo-make-closure-flag)))
 	     ;; value form
@@ -281,7 +282,8 @@ LFORMINFO."
 	    ((eq fun 'quote)
 	     ;; do nothing
 	     )
-	    ((eq fun 'save-window-excursion)
+	    ((and (eq fun 'save-window-excursion)
+                  (not (eq :fun-body (nth 1 form))))
 	     ;; `save-window-excursion' currently uses a funny implementation
 	     ;; that requires its body forms be put into a closure (it should
 	     ;; be fixed to work more like `save-excursion' etc., do).
@@ -579,6 +581,7 @@ proper scope)."
   (let ((nclosures
 	 (and lforminfo (byte-compile-lforminfo-num-closures lforminfo))))
     (if (or (null lforminfo)
+            (zerop nclosures)
 	    (= nclosures byte-compile-current-num-closures))
 	;; No need to push a heap environment.
 	nil
@@ -692,5 +695,4 @@ binding slots have been popped."
 
 (provide 'byte-lexbind)
 
-;;; arch-tag: b8f1dff6-9edb-4430-a96f-323d42a681a9
 ;;; byte-lexbind.el ends here

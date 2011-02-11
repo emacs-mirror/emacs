@@ -1,3 +1,25 @@
+2011-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-lambda): Fix `fun' that was not
+	renamed to `bytecomp-fun'.
+
+	* emacs-lisp/byte-lexbind.el (byte-compile-lforminfo-analyze):
+	Understand the :fun-body case for catch, save-window-excursion, and
+	condition-case.
+	(byte-compile-maybe-push-heap-environment): No need when nclosures is
+	zero and byte-compile-current-num-closures is -1.
+
+	* emacs-lisp/cconv.el (cconv-not-lexical-var-p): New function.
+	(cconv-freevars): Use it.
+	(cconv-closure-convert-rec): Avoid `position'.
+	(cconv-analyse-function): New function.
+	(cconv-analyse-form): Use it.  `inclosure' can't be nil any more.
+	Check lexical vars at let-binding time rather than when referenced.
+	For defuns to be in an empty environment and lambdas to take lexical args.
+	Pay attention to the need to build closures in catch, unwind-protect,
+	save-window-excursion, condition-case, and track-mouse.
+	Fix defconst/defvar handling.
+
 2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cconv.el (cconv-mutated, cconv-captured)

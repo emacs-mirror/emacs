@@ -2745,7 +2745,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	    ;; containing the args and any closed-over variables.
 	    (and lexical-binding
 		 (byte-compile-make-lambda-lexenv
-		  fun
+		  bytecomp-fun
 		  byte-compile-lexical-environment))) 
 	   (is-closure
 	    ;; This is true if we should be making a closure instead of
@@ -2804,7 +2804,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (let ((code (byte-compile-lambda form add-lambda)))
     (if (byte-compile-closure-code-p code)
 	(byte-compile-make-closure code)
-      ;; A simple lambda is just a constant
+      ;; A simple lambda is just a constant.
       (byte-compile-constant code))))
 
 (defun byte-compile-constants-vector ()
