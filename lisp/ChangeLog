@@ -1,3 +1,8 @@
+2011-02-11  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* simple.el (delete-trailing-whitespace): New optional buffer
+	bound parameters.
+
 2011-02-11  Bastien Guerry  <bzg@altern.org>
 
 	* files.el (basic-save-buffer): save unmodified buffers when
