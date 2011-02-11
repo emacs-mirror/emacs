@@ -720,7 +720,7 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
 (defun rcirc-send-ctcp (process target request &optional args)
   (let ((args (if args (concat " " args) "")))
     (rcirc-send-privmsg process target
-                        (format "\C-a%s%s\C-a" request args ""))))
+                        (format "\C-a%s%s\C-a" request args))))
 
 (defun rcirc-buffer-process (&optional buffer)
   "Return the process associated with channel BUFFER.
