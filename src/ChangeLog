@@ -1,3 +1,8 @@
+2011-02-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_set_frame_alpha): Access data before it is free:d.
+	Make sure we don't do x_catch_errors twice.
+
 2011-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (really-lwlib): Depend on globals.h, for parallel builds.

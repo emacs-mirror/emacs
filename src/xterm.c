@@ -488,17 +488,16 @@ x_set_frame_alpha (struct frame *f)
 
     if (rc == Success && actual != None)
       {
+        unsigned long value = *(unsigned long *)data;
 	XFree ((void *) data);
-	if (*(unsigned long *)data == opac)
+	if (value == opac)
 	  {
 	    x_uncatch_errors ();
 	    return;
 	  }
       }
-    x_uncatch_errors ();
   }
 
-  x_catch_errors (dpy);
   XChangeProperty (dpy, win, dpyinfo->Xatom_net_wm_window_opacity,
 		   XA_CARDINAL, 32, PropModeReplace,
 		   (unsigned char *) &opac, 1L);
