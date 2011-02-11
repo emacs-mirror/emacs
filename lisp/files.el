@@ -4309,7 +4309,11 @@ Before and after saving the buffer, this function runs
     ;; In an indirect buffer, save its base buffer instead.
     (if (buffer-base-buffer)
 	(set-buffer (buffer-base-buffer)))
-    (if (buffer-modified-p)
+    (if (or (buffer-modified-p)
+	    ;; handle the case when no modification has been made but
+	    ;; the file disappeared since visited
+	    (and buffer-file-name
+		 (not (file-exists-p buffer-file-name))))
 	(let ((recent-save (recent-auto-save-p))
 	      setmodes)
 	  ;; If buffer has no file name, ask user for one.
