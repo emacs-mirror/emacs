@@ -53,11 +53,11 @@ OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 # ../src is needed to find config.h.
 ALL_CFLAGS= $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(C_SWITCH_X_SYSTEM) $(C_SWITCH_MACHINE) \
-  ${C_WARNINGS_SWITCH} ${PROFILING_CFLAGS} $(CFLAGS) \
-  -DHAVE_CONFIG_H -Demacs -I. -I../src -I${srcdir} -I${srcdir}/../src
+  $(C_WARNINGS_SWITCH) $(PROFILING_CFLAGS) $(CFLAGS) \
+  -DHAVE_CONFIG_H -Demacs -I. -I../src -I$(srcdir) -I$(srcdir)/../src
 
 .c.o:
-	$(CC) -c $(CPPFLAGS) ${ALL_CFLAGS} $<
+	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 
 all:: liblw.a
 
