@@ -1061,6 +1061,9 @@ Throw an error if another update process is in progress."
 		  (unless (vc-dir-fileinfo->directory info)
 		    (setf (vc-dir-fileinfo->needs-update info) t) nil))
                 vc-ewoc)
+      ;; Bzr has serious locking problems, so setup the headers first (this is
+      ;; synchronous) rather than doing it while dir-status is running.
+      (ewoc-set-hf vc-ewoc (vc-dir-headers backend def-dir) "")
       (lexical-let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer
           (cd def-dir)
@@ -1081,8 +1084,7 @@ Throw an error if another update process is in progress."
                        (vc-dir-refresh-files
                         (mapcar 'vc-dir-fileinfo->name remaining)
                         'up-to-date)
-                     (setq mode-line-process nil)))))))))
-      (ewoc-set-hf vc-ewoc (vc-dir-headers backend def-dir) ""))))
+                     (setq mode-line-process nil))))))))))))
 
 (defun vc-dir-show-fileentry (file)
   "Insert an entry for a specific file into the current *VC-dir* listing.

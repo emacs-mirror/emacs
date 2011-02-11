@@ -12087,9 +12087,9 @@ If REVERSE, save parts that do not match TYPE."
 			  gnus-summary-save-parts-default-mime)
 		      'gnus-summary-save-parts-type-history)
 	 (setq gnus-summary-save-parts-last-directory
-	       (read-file-name "Save to directory: "
-			       gnus-summary-save-parts-last-directory
-			       nil t))
+	       (read-directory-name "Save to directory: "
+                                    gnus-summary-save-parts-last-directory
+                                    nil t))
 	 current-prefix-arg))
   (gnus-summary-iterate n
     (let ((gnus-display-mime-function nil)
