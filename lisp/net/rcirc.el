@@ -2098,14 +2098,18 @@ activity.  Only run if the buffer is not visible and
     (when (not existing-buffer)
       (rcirc-cmd-whois nick))))
 
-(defun-rcirc-command join (channel)
-  "Join CHANNEL."
-  (interactive "sJoin channel: ")
-  (let ((buffer (rcirc-get-buffer-create process
-                                         (car (split-string channel)))))
-    (rcirc-send-string process (concat "JOIN " channel))
+(defun-rcirc-command join (channels)
+  "Join CHANNELS.
+CHANNELS is a comma- or space-separated string of channel names."
+  (interactive "sJoin channels: ")
+  (let* ((split-channels (split-string channels "[ ,]" t))
+         (buffers (mapcar (lambda (ch)
+                            (rcirc-get-buffer-create process ch))
+                          split-channels)))
+    (rcirc-send-string process (concat "JOIN " channels))
     (when (not (eq (selected-window) (minibuffer-window)))
-      (switch-to-buffer buffer))))
+      (dolist (b buffers) ;; order the new channel buffers in the buffer list
+        (switch-to-buffer b)))))
 
 ;; TODO: /part #channel reason, or consider removing #channel altogether
 (defun-rcirc-command part (channel)

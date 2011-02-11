@@ -1,3 +1,7 @@
+2011-02-11  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (defun-rcirc-join): Accept multiple channels.
+
 2011-02-11  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-specs.el (multiple-value-bind): Fix debug spec.
