@@ -4723,23 +4723,19 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
 		 directory 'full directory-files-no-dot-files-regexp)))
       (delete-directory-internal directory)))))
 
-(defun copy-directory (directory newname &optional keep-time
-				 parents copy-as-subdir)
+(defun copy-directory (directory newname &optional keep-time parents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
 This function always sets the file modes of the output files to match
 the corresponding input file.
 
 The third arg KEEP-TIME non-nil means give the output files the same
 last-modified time as the old ones.  (This works on only some systems.)
+
 A prefix arg makes KEEP-TIME non-nil.
 
-Optional arg PARENTS says whether to create parent directories if
-they don't exist.  When called interactively, PARENTS is t.
-
-When NEWNAME is an existing directory, copy DIRECTORY into a
-subdirectory of NEWNAME if optional arg COPY-AS-SUBDIR is
-non-nil, otherwise copy the contents of DIRECTORY into NEWNAME.
-When called interactively, copy into a subdirectory by default."
+Noninteractively, the last argument PARENTS says whether to
+create parent directories if they don't exist.  Interactively,
+this happens by default."
   (interactive
    (let ((dir (read-directory-name
 	       "Copy directory: " default-directory default-directory t nil)))
@@ -4747,7 +4743,7 @@ When called interactively, copy into a subdirectory by default."
 	   (read-file-name
 	    (format "Copy directory %s to: " dir)
 	    default-directory default-directory nil nil)
-	   current-prefix-arg t t)))
+	   current-prefix-arg t)))
   ;; If default-directory is a remote directory, make sure we find its
   ;; copy-directory handler.
   (let ((handler (or (find-file-name-handler directory 'copy-directory)
@@ -4758,42 +4754,22 @@ When called interactively, copy into a subdirectory by default."
       ;; Compute target name.
       (setq directory (directory-file-name (expand-file-name directory))
 	    newname   (directory-file-name (expand-file-name newname)))
-
-      (unless (file-directory-p directory)
-	(error "%s is not a directory" directory))
-
-      (cond
-       ((not (file-directory-p newname))
-	;; If NEWNAME is not an existing directory, create it;
-	;; that is where we will copy the files of DIRECTORY.
-	(make-directory newname parents))
-       (copy-as-subdir
-	;; If NEWNAME is an existing directory, and we are copying as
-	;; a subdirectory, the target is NEWNAME/[DIRECTORY-BASENAME].
-	(setq newname (expand-file-name
-		       (file-name-nondirectory
-			(directory-file-name directory))
-		       newname))
-	(and (file-exists-p newname)
-	     (not (file-directory-p newname))
-	     (error "Cannot overwrite non-directory %s with a directory"
-		    newname))
-	(make-directory newname t)))
+      (if (not (file-directory-p newname)) (make-directory newname parents))
 
       ;; Copy recursively.
-      (dolist (file
-	       ;; We do not want to copy "." and "..".
-	       (directory-files directory 'full
-				directory-files-no-dot-files-regexp))
-	(let ((target (expand-file-name
-		       (file-name-nondirectory file) newname))
-	      (attrs (file-attributes file)))
-	  (cond ((file-directory-p file)
-		 (copy-directory file target keep-time parents nil))
-		((stringp (car attrs)) ; Symbolic link
-		 (make-symbolic-link (car attrs) target t))
-		(t
-		 (copy-file file target t keep-time)))))
+      (mapc
+       (lambda (file)
+	 (let ((target (expand-file-name
+			(file-name-nondirectory file) newname))
+	       (attrs (file-attributes file)))
+	   (cond ((file-directory-p file)
+		  (copy-directory file target keep-time parents))
+		 ((stringp (car attrs)) ; Symbolic link
+		  (make-symbolic-link (car attrs) target t))
+		 (t
+		  (copy-file file target t keep-time)))))
+       ;; We do not want to copy "." and "..".
+       (directory-files	directory 'full directory-files-no-dot-files-regexp))
 
       ;; Set directory attributes.
       (set-file-modes newname (file-modes directory))
