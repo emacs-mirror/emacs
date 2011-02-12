@@ -1,3 +1,13 @@
+2011-02-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-parse.el (url-bit-for-url, url-user-for-url)
+	(url-password-for-url): Use `auto-source-search' instead of
+	`auto-source-user-or-password'.
+
+	* url-auth.el: Autoload `auto-source-search' instead of
+	`auto-source-user-or-password'.
+	(url-basic-auth, url-digest-auth, url-do-auth-source-search): Use it.
+
 2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* url-http.el (url-http-wait-for-headers-change-function): Don't

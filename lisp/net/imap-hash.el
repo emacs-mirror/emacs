@@ -43,7 +43,7 @@
 (require 'imap)
 (require 'sendmail)			; for mail-header-separator
 (require 'message)
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-search "auth-source")
 
 ;; retrieve these headers
 (defvar imap-hash-headers
@@ -267,13 +267,14 @@ The function is passed the message headers (see `imap-hash-get-headers')."
 			      (imap-hash-password iht))))
 	 ;; this will not be needed if auth-need is t
 	 (auth-info (when auth-need
-		      (auth-source-user-or-password
-		       '("login" "password")
-		       server port)))
+		      (nth 0 (auth-source-search :host server :port port))))
 	 (auth-user (or (imap-hash-user iht)
-			(nth 0 auth-info)))
+			(plist-get auth-info :user)))
 	 (auth-passwd (or (imap-hash-password iht)
-			  (nth 1 auth-info)))
+			  (plist-get auth-info :secret)))
+	 (auth-passwd (if (functionp auth-passwd)
+                          (funcall auth-passwd)
+                        auth-passwd))
 	 (imap-logout-timeout nil))
 
 	;; (debug "opening server: opened+state" (imap-opened) imap-state)

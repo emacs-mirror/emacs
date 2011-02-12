@@ -56,7 +56,7 @@
 (require 'assoc)
 (require 'tramp)
 
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-search "auth-source")
 (autoload 'epg-context-operation "epg")
 (autoload 'epg-context-set-armor "epg")
 (autoload 'epg-context-set-passphrase-callback "epg")
@@ -639,8 +639,14 @@ HANDBACK is just carried through.
 KEY-ID can be 'SYM or 'PIN among others."
   (let* ((server tramp-current-host)
 	 (port "tramp-imap")		; this is NOT the server password!
-	 (auth-passwd
-	  (auth-source-user-or-password "password" server port)))
+	 (auth-passwd (plist-get
+                       (nth 0 (auth-source-search :max 1
+                                                  :host server
+                                                  :port port))
+                       :secret))
+	 (auth-passwd (if (functionp auth-passwd)
+                          (funcall auth-passwd)
+                        auth-passwd)))
     (or
      (copy-sequence auth-passwd)
      ;; If we cache the passphrase and we have one.

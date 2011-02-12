@@ -1,3 +1,22 @@
+2011-02-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/tramp.el (tramp-default-method): Also check if
+	`auth-source-search' is bound.
+	(tramp-read-passwd): Use `auth-source-search' instead of
+	`auto-source-user-or-password'.
+
+	* net/tramp-imap.el: Autoload `auto-source-search' instead of
+	`auto-source-user-or-password.
+	(tramp-imap-passphrase-callback-function): Use it.
+
+	* net/imap-hash.el: Autoload `auto-source-search' instead of
+	`auto-source-user-or-password.
+	(imap-hash-open-connection): Use it.
+
+	* mail/smtpmail.el: Autoload `auto-source-search' instead of
+	`auto-source-user-or-password.
+	(smtpmail-try-auth-methods): Use it.
+
 2011-02-12  Phil Hagelberg  <phil@hagelb.org>
 
 	* emacs-lisp/package.el: Allow packages to be reinstalled.
