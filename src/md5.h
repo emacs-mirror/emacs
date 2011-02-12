@@ -72,9 +72,10 @@ typedef u_int32_t md5_uint32;
 #endif
 
 
-#ifndef __GNUC__
-#define __attribute__(X)
-#define __alignof__(X) 1
+#if HAVE_ATTRIBUTE_ALIGNED
+# define ATTRIBUTE_ALIGNED(N) __attribute__ ((__aligned__ (N)))
+#else
+# define ATTRIBUTE_ALIGNED(N)
 #endif
 
 /* Structure to save state of computation between the single steps.  */
@@ -87,7 +88,7 @@ struct md5_ctx
 
   md5_uint32 total[2];
   md5_uint32 buflen;
-  char buffer[128] __attribute__ ((__aligned__ (__alignof__ (md5_uint32))));
+  char buffer[128] ATTRIBUTE_ALIGNED (__alignof__ (md5_uint32));
 };
 
 /*
@@ -145,4 +146,3 @@ extern void *md5_buffer (const char *buffer, size_t len,
                          void *resblock);
 
 #endif /* md5.h */
-

@@ -26,6 +26,10 @@
 
 2011-02-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Port to Sun C 5.11, which has __attribute__ ((__aligned (N))).
+	* md5.h (ATTRIBUTE_ALIGNED): New macro.
+	(struct md5_ctx): Use it.
+
 	Port to Solaris 10, which doesn't support FC_HINT_STYLE.
 	* xftfont.c (FC_HINT_STYLE): #define to "hintstyle" if not
 	defined.
