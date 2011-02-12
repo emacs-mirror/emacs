@@ -196,6 +196,10 @@ You should give VAR a non-nil `risky-local-variable' property."
           (setq ,var (,fun)))
         ,var))))
 
+(defun completion-table-case-fold (table string pred action)
+  (let ((completion-ignore-case t))
+    (complete-with-action action table string pred)))
+
 (defun completion-table-with-context (prefix table string pred action)
   ;; TODO: add `suffix' maybe?
   ;; Notice that `pred' may not be a function in some abusive cases.

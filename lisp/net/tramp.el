@@ -297,6 +297,7 @@ shouldn't return t when it isn't."
 	 (executable-find "pscp"))
     (if	(or (fboundp 'password-read)
 	    (fboundp 'auth-source-user-or-password)
+	    (fboundp 'auth-source-search)
 	    ;; Pageant is running.
 	    (tramp-compat-process-running-p "Pageant"))
 	"pscp"
@@ -307,6 +308,7 @@ shouldn't return t when it isn't."
      ((tramp-detect-ssh-controlmaster) "scpc")
      ((or (fboundp 'password-read)
 	  (fboundp 'auth-source-user-or-password)
+	  (fboundp 'auth-source-search)
 	  ;; ssh-agent is running.
 	  (getenv "SSH_AUTH_SOCK")
 	  (getenv "SSH_AGENT_PID"))
@@ -3519,7 +3521,8 @@ Invokes `password-read' if available, `read-passwd' else."
 	  (or prompt
 	      (with-current-buffer (process-buffer proc)
 		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
-		(format "%s for %s " (capitalize (match-string 1)) key)))))
+		(format "%s for %s " (capitalize (match-string 1)) key))))
+         auth-info auth-passwd)
     (with-parsed-tramp-file-name key nil
       (prog1
 	  (or
@@ -3527,9 +3530,22 @@ Invokes `password-read' if available, `read-passwd' else."
 	   (and (boundp 'auth-sources)
 		(tramp-get-connection-property v "first-password-request" nil)
 		;; Try with Tramp's current method.
-		(tramp-compat-funcall
-		 'auth-source-user-or-password
-		 "password" tramp-current-host tramp-current-method))
+                (if (fboundp 'auth-source-search)
+                    (progn
+                      (setq auth-info
+                            (tramp-compat-funcall
+                             'auth-source-search
+                             :max 1
+                             :user (or tramp-current-user t)
+                             :host tramp-current-host
+                             :port tramp-current-method))
+                      (setq auth-passwd (plist-get (nth 0 auth-info) :secret))
+                      (setq auth-passwd (if (functionp auth-passwd)
+                                            (funcall auth-passwd)
+                                          auth-passwd)))
+                  (tramp-compat-funcall
+                   'auth-source-user-or-password
+                   "password" tramp-current-host tramp-current-method)))
 	   ;; Try the password cache.
 	   (when (functionp 'password-read)
 	     (unless (tramp-get-connection-property

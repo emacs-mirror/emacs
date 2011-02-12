@@ -4826,10 +4826,8 @@ given.  With a prefix argument, TRASH is nil."
 		 directory 'full directory-files-no-dot-files-regexp)))
       (delete-directory-internal directory)))))
 
-(defun copy-directory (directory newname &optional keep-time parents)
+(defun copy-directory (directory newname &optional keep-time parents copy-contents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
-If NEWNAME names an existing directory, copy DIRECTORY as subdirectory there.
-
 This function always sets the file modes of the output files to match
 the corresponding input file.
 
@@ -4840,7 +4838,12 @@ A prefix arg makes KEEP-TIME non-nil.
 
 Noninteractively, the last argument PARENTS says whether to
 create parent directories if they don't exist.  Interactively,
-this happens by default."
+this happens by default.
+
+If NEWNAME names an existing directory, copy DIRECTORY as a
+subdirectory there.  However, if called from Lisp with a non-nil
+optional argument COPY-CONTENTS, copy the contents of DIRECTORY
+directly into NEWNAME instead."
   (interactive
    (let ((dir (read-directory-name
 	       "Copy directory: " default-directory default-directory t nil)))
@@ -4848,7 +4851,7 @@ this happens by default."
 	   (read-file-name
 	    (format "Copy directory %s to: " dir)
 	    default-directory default-directory nil nil)
-	   current-prefix-arg t)))
+	   current-prefix-arg t nil)))
   ;; If default-directory is a remote directory, make sure we find its
   ;; copy-directory handler.
   (let ((handler (or (find-file-name-handler directory 'copy-directory)
@@ -4860,21 +4863,22 @@ this happens by default."
       (setq directory (directory-file-name (expand-file-name directory))
 	    newname   (directory-file-name (expand-file-name newname)))
 
-      (if (not (file-directory-p newname))
-	  ;; If NEWNAME is not an existing directory, create it; that
-	  ;; is where we will copy the files of DIRECTORY.
-	  (make-directory newname parents)
-	;; If NEWNAME is an existing directory, we will copy into
-	;; NEWNAME/[DIRECTORY-BASENAME].
-	(setq newname (expand-file-name
-		       (file-name-nondirectory
-			(directory-file-name directory))
-		       newname))
-	(and (file-exists-p newname)
-	     (not (file-directory-p newname))
-	     (error "Cannot overwrite non-directory %s with a directory"
-		    newname))
-	(make-directory newname t))
+      (cond ((not (file-directory-p newname))
+	     ;; If NEWNAME is not an existing directory, create it;
+	     ;; that is where we will copy the files of DIRECTORY.
+	     (make-directory newname parents))
+	    ;; If NEWNAME is an existing directory and COPY-CONTENTS
+	    ;; is nil, copy into NEWNAME/[DIRECTORY-BASENAME].
+	    ((not copy-contents)
+	     (setq newname (expand-file-name
+			    (file-name-nondirectory
+			     (directory-file-name directory))
+			    newname))
+	     (and (file-exists-p newname)
+		  (not (file-directory-p newname))
+		  (error "Cannot overwrite non-directory %s with a directory"
+			 newname))
+	     (make-directory newname t)))
 
       ;; Copy recursively.
       (dolist (file

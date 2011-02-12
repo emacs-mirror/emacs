@@ -444,6 +444,12 @@ static int this_line_pixel_height;
 
 static int this_line_start_x;
 
+/* The smallest character position seen by move_it_* functions as they
+   move across display lines.  Used to set MATRIX_ROW_START_CHARPOS of
+   hscrolled lines, see display_line.  */
+
+static struct text_pos this_line_min_pos;
+
 /* Buffer that this_line_.* variables are referring to.  */
 
 static struct buffer *this_line_buffer;
@@ -6909,6 +6915,9 @@ move_it_in_display_line_to (struct it *it,
       && it->current_y < it->last_visible_y)
     handle_line_prefix (it);
 
+  if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
+    SET_TEXT_POS (this_line_min_pos, IT_CHARPOS (*it), IT_BYTEPOS (*it));
+
   while (1)
     {
       int x, i, ascent = 0, descent = 0;
@@ -7013,6 +7022,9 @@ move_it_in_display_line_to (struct it *it,
       if (it->area != TEXT_AREA)
 	{
 	  set_iterator_to_next (it, 1);
+	  if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
+	    SET_TEXT_POS (this_line_min_pos,
+			  IT_CHARPOS (*it), IT_BYTEPOS (*it));
 	  continue;
 	}
 
@@ -7121,6 +7133,9 @@ move_it_in_display_line_to (struct it *it,
 			    }
 
 			  set_iterator_to_next (it, 1);
+			  if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
+			    SET_TEXT_POS (this_line_min_pos,
+					  IT_CHARPOS (*it), IT_BYTEPOS (*it));
 			  /* On graphical terminals, newlines may
 			     "overflow" into the fringe if
 			     overflow-newline-into-fringe is non-nil.
@@ -7219,6 +7234,8 @@ move_it_in_display_line_to (struct it *it,
       /* The current display element has been consumed.  Advance
 	 to the next.  */
       set_iterator_to_next (it, 1);
+      if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
+	SET_TEXT_POS (this_line_min_pos, IT_CHARPOS (*it), IT_BYTEPOS (*it));
 
       /* Stop if lines are truncated and IT's current x-position is
 	 past the right edge of the window now.  */
@@ -17139,17 +17156,14 @@ find_row_edges (struct it *it, struct glyph_row *row,
   if (min_pos <= ZV)
     SET_TEXT_POS (row->minpos, min_pos, min_bpos);
   else
-    {
-      /* We didn't find _any_ valid buffer positions in any of the
-	 glyphs, so we must trust the iterator's computed
-	 positions.  */
+    /* We didn't find _any_ valid buffer positions in any of the
+       glyphs, so we must trust the iterator's computed positions.  */
       row->minpos = row->start.pos;
+  if (max_pos <= 0)
+    {
       max_pos = CHARPOS (it->current.pos);
       max_bpos = BYTEPOS (it->current.pos);
     }
-
-  if (!max_pos)
-    abort ();
 
   /* Here are the various use-cases for ending the row, and the
      corresponding values for ROW->maxpos:
@@ -17263,8 +17277,18 @@ display_line (struct it *it)
      if the first glyph is partially visible or if we hit a line end.  */
   if (it->current_x < it->first_visible_x)
     {
+      SET_TEXT_POS (this_line_min_pos, ZV + 1, ZV_BYTE + 1);
       move_it_in_display_line_to (it, ZV, it->first_visible_x,
 				  MOVE_TO_POS | MOVE_TO_X);
+      /* Record the smallest positions seen while we moved over
+	 display elements that are not visible.  This is needed by
+	 redisplay_internal for optimizing the case where the cursor
+	 stays inside the same line.  The rest of this function only
+	 considers positions that are actually displayed, so
+	 RECORD_MAX_MIN_POS will not otherwise record positions that
+	 are hscrolled to the left of the left edge of the window.  */
+      min_pos = CHARPOS (this_line_min_pos);
+      min_bpos = BYTEPOS (this_line_min_pos);
     }
   else
     {
