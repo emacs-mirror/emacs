@@ -216,7 +216,7 @@ md5_process_bytes (const void *buffer, size_t len, struct md5_ctx *ctx)
       size_t add = 128 - left_over > len ? len : 128 - left_over;
 
       /* Only put full words in the buffer.  */
-      add -= add % __alignof__ (md5_uint32);
+      add -= add % sizeof (md5_uint32);
 
       memcpy (&ctx->buffer[left_over], buffer, add);
       ctx->buflen += add;
@@ -427,4 +427,3 @@ md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
   ctx->C = C;
   ctx->D = D;
 }
-
