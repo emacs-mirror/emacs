@@ -417,7 +417,7 @@ Ediff has inferred that
 are two possible targets for applying the patch.
 Both files seem to be plausible alternatives.
 
-Please advice:
+Please advise:
     Type `y' to use %s as the target;
     Type `n' to use %s as the target.
 "

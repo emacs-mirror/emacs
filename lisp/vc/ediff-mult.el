@@ -306,7 +306,7 @@ buffers."
   (nth 3 elt))
 (defsubst ediff-get-session-objC (elt)
   (nth 4 elt))
-;; Take the "name" component of the object into acount. ObjA/C/B is of the form
+;; Take the "name" component of the object into account. ObjA/C/B is of the form
 ;; (name . equality-indicator)
 (defsubst ediff-get-session-objA-name (elt)
   (car (nth 2 elt)))

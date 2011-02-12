@@ -1080,7 +1080,7 @@ Keywords supported:  :key
 
 (autoload 'union "cl-seq" "\
 Combine LIST1 and LIST2 using a set-union operation.
-The result list contains all items that appear in either LIST1 or LIST2.
+The resulting list contains all items that appear in either LIST1 or LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 
@@ -1090,7 +1090,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'nunion "cl-seq" "\
 Combine LIST1 and LIST2 using a set-union operation.
-The result list contains all items that appear in either LIST1 or LIST2.
+The resulting list contains all items that appear in either LIST1 or LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 
@@ -1100,7 +1100,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'intersection "cl-seq" "\
 Combine LIST1 and LIST2 using a set-intersection operation.
-The result list contains all items that appear in both LIST1 and LIST2.
+The resulting list contains all items that appear in both LIST1 and LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 
@@ -1110,7 +1110,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'nintersection "cl-seq" "\
 Combine LIST1 and LIST2 using a set-intersection operation.
-The result list contains all items that appear in both LIST1 and LIST2.
+The resulting list contains all items that appear in both LIST1 and LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 
@@ -1120,7 +1120,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'set-difference "cl-seq" "\
 Combine LIST1 and LIST2 using a set-difference operation.
-The result list contains all items that appear in LIST1 but not LIST2.
+The resulting list contains all items that appear in LIST1 but not LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 
@@ -1130,7 +1130,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'nset-difference "cl-seq" "\
 Combine LIST1 and LIST2 using a set-difference operation.
-The result list contains all items that appear in LIST1 but not LIST2.
+The resulting list contains all items that appear in LIST1 but not LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 
@@ -1140,7 +1140,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'set-exclusive-or "cl-seq" "\
 Combine LIST1 and LIST2 using a set-exclusive-or operation.
-The result list contains all items that appear in exactly one of LIST1, LIST2.
+The resulting list contains all items appearing in exactly one of LIST1, LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 
@@ -1150,7 +1150,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'nset-exclusive-or "cl-seq" "\
 Combine LIST1 and LIST2 using a set-exclusive-or operation.
-The result list contains all items that appear in exactly one of LIST1, LIST2.
+The resulting list contains all items appearing in exactly one of LIST1, LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 

@@ -386,7 +386,7 @@
 	* srecode/doc-default.srt (section-comment, function-comment)
 	(variable-same-line-comment, group-comment-start, group-comment-end):
 	* srecode/doc-java.srt (function-comment, variable-same-line-comment)
-	(group-comment-start, gropu-comment-end):
+	(group-comment-start, group-comment-end):
 	Fix typos in template docstrings.
 
 2010-01-14  Kenichi Handa  <handa@m17n.org>

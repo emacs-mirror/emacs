@@ -3517,7 +3517,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
       record_buffer (w->buffer);
     }
 
-  if (EQ (window, selected_window))
+  if (EQ (window, selected_window) && !inhibit_point_swap)
     return window;
 
   sf = SELECTED_FRAME ();
