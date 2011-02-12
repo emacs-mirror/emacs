@@ -376,7 +376,7 @@
 	(rmail-mime-insert-text): Call rmail-mime-insert-decoded-text.
 	(rmail-mime-insert-image): Argument changed.  Caller changed.
 	(rmail-mime-image): Call rmail-mime-toggle-hidden.
-	(rmail-mime-set-bulk-data): New funciton.
+	(rmail-mime-set-bulk-data): New function.
 	(rmail-mime-insert-bulk): Argument changed.
 	(rmail-mime-multipart-handler): Return t.
 	(rmail-mime-process-multipart): Argument changed.
@@ -1076,7 +1076,7 @@
 	is indented differently if it is after a begin..end clock.
 	(verilog-in-attribute-p, verilog-skip-backward-comments)
 	(verilog-skip-forward-comment-p): Support proper treatment of
-	attributes by indent code. Reported by Jeff Steele.
+	attributes by indent code.  Reported by Jeff Steele.
 	(verilog-in-directive-p): Fix comment to correctly describe function.
 	(verilog-backward-up-list, verilog-in-struct-region-p)
 	(verilog-backward-token, verilog-in-struct-p)
@@ -1087,9 +1087,9 @@
 	(verilog-property-re, verilog-endcomment-reason-re)
 	(verilog-beg-of-statement, verilog-set-auto-endcomments)
 	(verilog-calc-1 ): Fix for assert a; else b; indentation (new form
-	of if). Reported by Max Bjurling and
+	of if).  Reported by Max Bjurling and
 	(verilog-calc-1): Fix for clocking block in modport
-	declaration. Reported by Brian Hunter.
+	declaration.  Reported by Brian Hunter.
 
 2010-10-23  Wilson Snyder  <wsnyder@wsnyder.org>
 
@@ -1105,7 +1105,7 @@
 	(verilog-read-always-signals-recurse, verilog-read-decls): Fix not
 	treating `elsif similar to `endif inside AUTOSENSE.
 	(verilog-do-indent): Implement correct automatic or static task or
-	function end comment highlight. Reported by Steve Pearlmutter.
+	function end comment highlight.  Reported by Steve Pearlmutter.
 	(verilog-font-lock-keywords-2): Fix highlighting of single
 	character pins, bug264.  Reported by Michael Laajanen.
 	(verilog-auto-inst, verilog-read-decls, verilog-read-sub-decls)
@@ -1116,7 +1116,7 @@
 	Reported by Mark Johnson.
 	(verilog-auto-tieoff, verilog-auto-tieoff-ignore-regexp):
 	Add 'verilog-auto-tieoff-ignore-regexp' for AUTOTIEOFF,
-	bug269. Suggested by Gary Delp.
+	bug269.  Suggested by Gary Delp.
 	(verilog-mode-map, verilog-preprocess, verilog-preprocess-history)
 	(verilog-preprocessor, verilog-set-compile-command):
 	Create verilog-preprocess and verilog-preprocessor to show
@@ -1124,7 +1124,7 @@
 	(verilog-get-beg-of-line, verilog-get-end-of-line)
 	(verilog-modi-file-or-buffer, verilog-modi-name)
 	(verilog-modi-point, verilog-within-string): Move defmacro's
-	before first use to avoid warning. Reported by Steve Pearlmutter.
+	before first use to avoid warning.  Reported by Steve Pearlmutter.
 	(verilog-colorize-buffer, verilog-colorize-include-files-buffer)
 	(verilog-colorize-region, verilog-highlight-buffer)
 	(verilog-highlight-includes, verilog-highlight-modules)
@@ -1156,7 +1156,7 @@
 	(verilog-alw-get-temps, verilog-auto-reset)
 	(verilog-auto-sense-sigs, verilog-read-always-signals)
 	(verilog-read-always-signals-recurse): Fix loop indexes being
-	AUTORESET. AUTORESET now assumes any variables in the
+	AUTORESET.  AUTORESET now assumes any variables in the
 	initialization section of a for() should be ignored.
 	Reported by Dan Dever.
 	(verilog-error-font-lock-keywords)
@@ -3139,7 +3139,7 @@
 2010-02-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el (ange-ftp-insert-directory): Parse directory
-	also in case of (and (not full) (not wildcard)). This is needed,
+	also in case of (and (not full) (not wildcard)).  This is needed,
 	when dired is called with a list of files, which are not in
 	`default-directory'.  (Bug#5478)
 

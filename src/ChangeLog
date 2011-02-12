@@ -114,7 +114,7 @@
 	(x_set_title): Remove commet about EXPLICIT.  Call ns_set_name_internal.
 	(ns_set_name_as_filename): Encode name with ENCODE_UTF_8.
 	Always use buffer name for title and buffer filename only for
-	RepresentedFilename. Handle bad UTF-8 in buffer name (Bug#7517).
+	RepresentedFilename.  Handle bad UTF-8 in buffer name (Bug#7517).
 
 2011-01-03  Eli Zaretskii  <eliz@gnu.org>
 
@@ -264,7 +264,7 @@
 
 	* gtkutil.c (menubar_map_cb): New function (Bug#7425).
 	(xg_update_frame_menubar): Connect signal map to menubar_map_cb.
-	Use 23 as menubar height if 0. (Bug#7425).
+	Use 23 as menubar height if 0.  (Bug#7425).
 
 2010-11-14  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -488,7 +488,7 @@
 	is more portable.
 
 	* keyboard.c (gobble_input): Move call of xd_read_queued_messages ...
-	(kbd_buffer_get_event): ... here. This is needed for cygwin, which
+	(kbd_buffer_get_event): ... here.  This is needed for cygwin, which
 	has not defined SIGIO.
 
 2010-09-27  Michael Albinus  <michael.albinus@gmx.de>
@@ -685,7 +685,7 @@
 	* nsterm.m (ns_draw_fringe_bitmap): Likewise.
 
 	* fringe.c (draw_fringe_bitmap_1): Don't clip bitmap here.
-	Take account of	bitmap offset.
+	Take account of bitmap offset.
 	(draw_window_fringes): Take account of window vscroll.
 	(update_window_fringes): Likewise.  Extend top-aligned top indicator
 	or bottom-aligned bottom indicator to adjacent rows if it doesn't fit
