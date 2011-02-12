@@ -85,19 +85,6 @@ is less than this number.")
   "List of candidates for lambda lifting.
 Each candidate has the form (VAR INCLOSURE BINDER PARENTFORM).")
 
-(defun cconv-not-lexical-var-p (var)
-  (or (not (symbolp var))               ; form is not a list
-      (if (eval-when-compile (fboundp 'special-variable-p))
-          (special-variable-p var)
-        (boundp var))
-      ;; byte-compile-bound-variables normally holds both the
-      ;; dynamic and lexical vars, but the bytecomp.el should
-      ;; only call us at the top-level so there shouldn't be
-      ;; any lexical vars in it here.
-      (memq var byte-compile-bound-variables)
-      (memq var '(nil t))
-      (keywordp var)))
-
 (defun cconv-freevars (form &optional fvrs)
   "Find all free variables of given form.
 Arguments:
@@ -189,7 +176,7 @@ Returns a list of free variables."
      (dolist (exp body-forms)
        (setq fvrs (cconv-freevars exp fvrs))) fvrs)
 
-    (_ (if (cconv-not-lexical-var-p form)
+    (_ (if (byte-compile-not-lexical-var-p form)
            fvrs
          (cons form fvrs)))))
 
@@ -704,7 +691,7 @@ Returns a form where all lambdas don't have any free variables."
 (defun cconv-analyse-function (args body env parentform inclosure)
   (dolist (arg args)
     (cond
-     ((cconv-not-lexical-var-p arg)
+     ((byte-compile-not-lexical-var-p arg)
       (byte-compile-report-error
        (format "Argument %S is not a lexical variable" arg)))
      ((eq ?& (aref (symbol-name arg) 0)) nil) ;Ignore &rest, &optional, ...
@@ -738,7 +725,7 @@ lambdas if they are suitable for lambda lifting.
            (cconv-analyse-form value (if (eq letsym 'let*) env orig-env)
                                inclosure))
 
-         (unless (cconv-not-lexical-var-p var)
+         (unless (byte-compile-not-lexical-var-p var)
            (let ((varstruct (list var inclosure binder form)))
              (push varstruct env)       ; Push a new one.
 

@@ -1483,7 +1483,7 @@
      byte-eqlsign byte-gtr byte-lss byte-leq byte-geq byte-diff byte-negate
      byte-plus byte-max byte-min byte-mult byte-char-after byte-char-syntax
      byte-buffer-substring byte-string= byte-string< byte-nthcdr byte-elt
-     byte-member byte-assq byte-quo byte-rem byte-vec-ref)
+     byte-member byte-assq byte-quo byte-rem)
    byte-compile-side-effect-and-error-free-ops))
 
 ;; This crock is because of the way DEFVAR_BOOL variables work.
@@ -1671,7 +1671,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;;
 	      ((and (eq 'byte-dup (car lap0))
 		    (eq 'byte-discard (car lap2))
-		    (memq (car lap1) '(byte-varset byte-varbind byte-stack-set byte-vec-set)))
+		    (memq (car lap1) '(byte-varset byte-varbind byte-stack-set)))
 	       (byte-compile-log-lap "  dup %s discard\t-->\t%s" lap1 lap1)
 	       (setq keep-going t
 		     rest (cdr rest)

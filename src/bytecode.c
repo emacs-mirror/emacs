@@ -231,8 +231,6 @@ extern Lisp_Object Qand_optional, Qand_rest;
 /* Bstack_ref is code 0.  */
 #define Bstack_set  0262
 #define Bstack_set2 0263
-#define Bvec_ref    0264
-#define Bvec_set    0265
 #define BdiscardN   0266
 
 #define Bconstant 0300
@@ -1721,27 +1719,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  break;
 	case Bstack_set2:
 	  stack.bottom[FETCH2] = POP;
-	  break;
-	case Bvec_ref:
-	case Bvec_set:
-	  /* These byte-codes used mostly for variable references to
-	     lexically bound variables that are in an environment vector
-	     instead of on the byte-interpreter stack (generally those
-	     variables which might be shared with a closure).  */
-	  {
-	    int index = FETCH;
-	    Lisp_Object vec = POP;
-
-	    if (! VECTORP (vec))
-	      wrong_type_argument (Qvectorp, vec);
-	    else if (index < 0 || index >= XVECTOR (vec)->size)
-	      args_out_of_range (vec, make_number (index));
-
-	    if (op == Bvec_ref)
-	      PUSH (XVECTOR (vec)->contents[index]);
-	    else
-	      XVECTOR (vec)->contents[index] = POP;
-	  }
 	  break;
 	case BdiscardN:
 	  op = FETCH;

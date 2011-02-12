@@ -1,3 +1,8 @@
+2011-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bytecode.c (Bvec_ref, Bvec_set): Remove.
+	(exec_byte_code): Don't handle them.
+
 2010-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fdefvar): Record specialness before computing initial value.

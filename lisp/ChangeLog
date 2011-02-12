@@ -1,3 +1,37 @@
+2011-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-lexbind.el: Delete.
+
+	* emacs-lisp/bytecomp.el (byte-compile-current-heap-environment)
+	(byte-compile-current-num-closures): Remove vars.
+	(byte-vec-ref, byte-vec-set): Remove byte codes.
+	(byte-compile-arglist-vars, byte-compile-make-lambda-lexenv): Move from
+	byte-lexbind.el.
+	(byte-compile-lambda): Never build a closure.
+	(byte-compile-closure-code-p, byte-compile-make-closure): Remove.
+	(byte-compile-closure): Simplify.
+	(byte-compile-top-level): Don't mess with heap environments.
+	(byte-compile-dynamic-variable-bind): Always maintain
+	byte-compile-bound-variables.
+	(byte-compile-variable-ref, byte-compile-variable-set): Always just use
+	the stack for lexical vars.
+	(byte-compile-push-binding-init): Simplify.
+	(byte-compile-not-lexical-var-p): New function, moved from cconv.el.
+	(byte-compile-bind, byte-compile-unbind): New functions, moved and
+	simplified from byte-lexbind.el.
+	(byte-compile-let, byte-compile-let*): Simplify.
+	(byte-compile-condition-case): Don't add :fun-body to the bound vars.
+	(byte-compile-defmacro): Simplify.
+
+	* emacs-lisp/cconv.el (cconv-not-lexical-var-p): Remove.
+	(cconv-freevars, cconv-analyse-function, cconv-analyse-form):
+	Use byte-compile-not-lexical-var-p instead.
+
+	* help-fns.el (describe-function-1): Fix paren typo.
+
+	* emacs-lisp/byte-opt.el (byte-compile-side-effect-free-ops)
+	(byte-optimize-lapcode): Remove byte-vec-ref and byte-vec-set.
+
 2011-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cconv.el (cconv-closure-convert): Drop `toplevel' arg.

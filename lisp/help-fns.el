@@ -529,23 +529,23 @@ suitable file is found, return nil."
 		   (high (help-highlight-arguments use doc)))
 	      (let ((fill-begin (point)))
 		(insert (car high) "\n")
-		(fill-region fill-begin (point))))
-            (setq doc (cdr high))))
-	(let* ((obsolete (and
-			  ;; function might be a lambda construct.
-			  (symbolp function)
-			  (get function 'byte-obsolete-info)))
-	       (use (car obsolete)))
-	  (when obsolete
-	    (princ "\nThis function is obsolete")
-	    (when (nth 2 obsolete)
-	      (insert (format " since %s" (nth 2 obsolete))))
-	    (insert (cond ((stringp use) (concat ";\n" use))
-			  (use (format ";\nuse `%s' instead." use))
-			  (t "."))
-		    "\n"))
-	  (insert "\n"
-		  (or doc "Not documented.")))))))
+		(fill-region fill-begin (point)))
+              (setq doc (cdr high))))
+	  (let* ((obsolete (and
+			    ;; function might be a lambda construct.
+			    (symbolp function)
+			    (get function 'byte-obsolete-info)))
+		 (use (car obsolete)))
+	    (when obsolete
+	      (princ "\nThis function is obsolete")
+	      (when (nth 2 obsolete)
+		(insert (format " since %s" (nth 2 obsolete))))
+	      (insert (cond ((stringp use) (concat ";\n" use))
+			    (use (format ";\nuse `%s' instead." use))
+			    (t "."))
+		      "\n"))
+	    (insert "\n"
+		    (or doc "Not documented."))))))))
 
 
 ;; Variables
