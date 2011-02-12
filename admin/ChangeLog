@@ -1,3 +1,7 @@
+2011-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-resolve): Fix bzr revert call.
+
 2011-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* bzrmerge.el (bzrmerge-warning-buffer): New constant.
