@@ -1,3 +1,8 @@
+2011-02-12  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* minibuffer.el (completion-table-case-fold): New function for
+	creating a case-insensitive completion table.
+
 2011-02-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/tramp.el (tramp-default-method): Also check if
