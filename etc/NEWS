@@ -633,6 +633,11 @@ Notifications API.  It requires D-Bus for communication.
 
 * Incompatible Lisp Changes in Emacs 24.1
 
+** `copy-directory' now copies the source directory as a subdirectory
+of the target directory, if the latter is an existing directory.  The
+new optional arg COPY-CONTENTS, if non-nil, makes the function copy
+the contents directly into a pre-existing target directory.
+
 ** `compose-mail' now accepts an optional 8th arg, RETURN-ACTION, and
 passes it to the mail user agent function.  This argument specifies an
 action for returning to the caller after finishing with the mail.
