@@ -1,3 +1,11 @@
+2011-02-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* epg.el (epg-delete-output-file, epg-decrypt-string)
+	(epg-verify-string, epg-sign-string, epg-encrypt-string): Bind
+	delete-by-moving-to-trash to nil.
+
+	* epa-file.el (epa-file-insert-file-contents): Likewise.
+
 2011-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-seq.el (union, nunion, intersection)
