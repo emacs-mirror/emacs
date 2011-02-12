@@ -92,9 +92,9 @@ static void find_field (Lisp_Object, Lisp_Object, Lisp_Object,
 			EMACS_INT *, Lisp_Object, EMACS_INT *);
 static void update_buffer_properties (EMACS_INT, EMACS_INT);
 static Lisp_Object region_limit (int);
-static size_t emacs_memftimeu (char *, size_t, const char *,
-                               size_t, const struct tm *, int);
-static void general_insert_function (void (*) (const unsigned char *, EMACS_INT),
+static size_t emacs_nmemftime (char *, size_t, const char *,
+			       size_t, const struct tm *, int, int);
+static void general_insert_function (void (*) (const char *, EMACS_INT),
 				     void (*) (Lisp_Object, EMACS_INT,
 					       EMACS_INT, EMACS_INT,
 					       EMACS_INT, int),
@@ -120,7 +120,7 @@ void
 init_editfns (void)
 {
   char *user_name;
-  register unsigned char *p;
+  register char *p;
   struct passwd *pw;	/* password entry for the current user */
   Lisp_Object tem;
 
@@ -165,7 +165,7 @@ init_editfns (void)
   Vuser_full_name = Fuser_full_name (NILP (tem)? make_number (geteuid())
 				     : Vuser_login_name);
 
-  p = (unsigned char *) getenv ("NAME");
+  p = getenv ("NAME");
   if (p)
     Vuser_full_name = build_string (p);
   else if (NILP (Vuser_full_name))
@@ -193,7 +193,7 @@ usage: (char-to-string CHAR)  */)
   CHECK_CHARACTER (character);
 
   len = CHAR_STRING (XFASTINT (character), str);
-  return make_string_from_bytes (str, 1, len);
+  return make_string_from_bytes ((char *) str, 1, len);
 }
 
 DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
@@ -205,7 +205,7 @@ DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
   if (XINT (byte) < 0 || XINT (byte) > 255)
     error ("Invalid byte");
   b = XINT (byte);
-  return make_string_from_bytes (&b, 1, 1);
+  return make_string_from_bytes ((char *) &b, 1, 1);
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
@@ -1329,7 +1329,7 @@ name, or nil if there is no such user.  */)
   (Lisp_Object uid)
 {
   struct passwd *pw;
-  register unsigned char *p, *q;
+  register char *p, *q;
   Lisp_Object full;
 
   if (NILP (uid))
@@ -1352,26 +1352,26 @@ name, or nil if there is no such user.  */)
   if (!pw)
     return Qnil;
 
-  p = (unsigned char *) USER_FULL_NAME;
+  p = USER_FULL_NAME;
   /* Chop off everything after the first comma. */
-  q = (unsigned char *) strchr (p, ',');
+  q = strchr (p, ',');
   full = make_string (p, q ? q - p : strlen (p));
 
 #ifdef AMPERSAND_FULL_NAME
-  p = SDATA (full);
-  q = (unsigned char *) strchr (p, '&');
+  p = SSDATA (full);
+  q = strchr (p, '&');
   /* Substitute the login name for the &, upcasing the first character.  */
   if (q)
     {
-      register unsigned char *r;
+      register char *r;
       Lisp_Object login;
 
       login = Fuser_login_name (make_number (pw->pw_uid));
-      r = (unsigned char *) alloca (strlen (p) + SCHARS (login) + 1);
+      r = (char *) alloca (strlen (p) + SCHARS (login) + 1);
       memcpy (r, p, q - p);
       r[q - p] = 0;
       strcat (r, SSDATA (login));
-      r[q - p] = UPCASE (r[q - p]);
+      r[q - p] = UPCASE ((unsigned char) r[q - p]);
       strcat (r, q + 1);
       full = build_string (r);
     }
@@ -1549,6 +1549,7 @@ or (if you need time as a string) `format-time-string'.  */)
 /* Write information into buffer S of size MAXSIZE, according to the
    FORMAT of length FORMAT_LEN, using time information taken from *TP.
    Default to Universal Time if UT is nonzero, local time otherwise.
+   Use NS as the number of nanoseconds in the %N directive.
    Return the number of bytes written, not including the terminating
    '\0'.  If S is NULL, nothing will be written anywhere; so to
    determine how many bytes would be written, use NULL for S and
@@ -1557,7 +1558,8 @@ or (if you need time as a string) `format-time-string'.  */)
    This function behaves like nstrftime, except it allows null
    bytes in FORMAT and it does not support nanoseconds.  */
 static size_t
-emacs_memftimeu (char *s, size_t maxsize, const char *format, size_t format_len, const struct tm *tp, int ut)
+emacs_nmemftime (char *s, size_t maxsize, const char *format,
+		 size_t format_len, const struct tm *tp, int ut, int ns)
 {
   size_t total = 0;
 
@@ -1574,7 +1576,7 @@ emacs_memftimeu (char *s, size_t maxsize, const char *format, size_t format_len,
       if (s)
 	s[0] = '\1';
 
-      result = nstrftime (s, maxsize, format, tp, ut, 0);
+      result = nstrftime (s, maxsize, format, tp, ut, ns);
 
       if (s)
 	{
@@ -1620,6 +1622,7 @@ by text that describes the specified date and time in TIME:
 %p is the locale's equivalent of either AM or PM.
 %M is the minute.
 %S is the second.
+%N is the nanosecond, %6N the microsecond, %3N the millisecond, etc.
 %Z is the time zone name, %z is the numeric form.
 %s is the number of seconds since 1970-01-01 00:00:00 +0000.
 
@@ -1649,13 +1652,17 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 {
   time_t value;
   int size;
+  int usec;
+  int ns;
   struct tm *tm;
   int ut = ! NILP (universal);
 
   CHECK_STRING (format_string);
 
-  if (! lisp_time_argument (time, &value, NULL))
+  if (! (lisp_time_argument (time, &value, &usec)
+	 && 0 <= usec && usec < 1000000))
     error ("Invalid time specification");
+  ns = usec * 1000;
 
   format_string = code_convert_string_norecord (format_string,
 						Vlocale_coding_system, 1);
@@ -1678,9 +1685,9 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
       buf[0] = '\1';
       BLOCK_INPUT;
-      result = emacs_memftimeu (buf, size, SSDATA (format_string),
+      result = emacs_nmemftime (buf, size, SSDATA (format_string),
 				SBYTES (format_string),
-				tm, ut);
+				tm, ut, ns);
       UNBLOCK_INPUT;
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
 	return code_convert_string_norecord (make_unibyte_string (buf, result),
@@ -1688,10 +1695,10 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
       /* If buffer was too small, make it bigger and try again.  */
       BLOCK_INPUT;
-      result = emacs_memftimeu (NULL, (size_t) -1,
+      result = emacs_nmemftime (NULL, (size_t) -1,
 				SSDATA (format_string),
 				SBYTES (format_string),
-				tm, ut);
+				tm, ut, ns);
       UNBLOCK_INPUT;
       size = result + 1;
     }
@@ -2111,7 +2118,7 @@ set_time_zone_rule (const char *tzstring)
 
 static void
 general_insert_function (void (*insert_func)
-			      (const unsigned char *, EMACS_INT),
+			      (const char *, EMACS_INT),
 			 void (*insert_from_string_func)
 			      (Lisp_Object, EMACS_INT, EMACS_INT,
 			       EMACS_INT, EMACS_INT, int),
@@ -2137,7 +2144,7 @@ general_insert_function (void (*insert_func)
 			: multibyte_char_to_unibyte (XINT (val), Qnil));
 	      len = 1;
 	    }
-	  (*insert_func) (str, len);
+	  (*insert_func) ((char *) str, len);
 	}
       else if (STRINGP (val))
 	{
@@ -2250,7 +2257,7 @@ The optional third arg INHERIT, if non-nil, says to inherit text properties
 from adjoining text, if those properties are sticky.  */)
   (Lisp_Object character, Lisp_Object count, Lisp_Object inherit)
 {
-  register unsigned char *string;
+  register char *string;
   register EMACS_INT strlen;
   register int i;
   register EMACS_INT n;
@@ -2270,7 +2277,7 @@ from adjoining text, if those properties are sticky.  */)
   if (n <= 0)
     return Qnil;
   strlen = min (n, 256 * len);
-  string = (unsigned char *) alloca (strlen);
+  string = (char *) alloca (strlen);
   for (i = 0; i < strlen; i++)
     string[i] = str[i % len];
   while (n >= strlen)
@@ -2821,7 +2828,7 @@ Both characters must have the same length of multi-byte form.  */)
 	      GCPRO1 (tem);
 
 	      /* Make a multibyte string containing this single character.  */
-	      string = make_multibyte_string (tostr, 1, len);
+	      string = make_multibyte_string ((char *) tostr, 1, len);
 	      /* replace_range is less efficient, because it moves the gap,
 		 but it handles combining correctly.  */
 	      replace_range (pos, pos + 1, string,
@@ -3035,7 +3042,7 @@ It returns the number of characters changed.  */)
 
 		  /* This is less efficient, because it moves the gap,
 		     but it should handle multibyte characters correctly.  */
-		  string = make_multibyte_string (str, 1, str_len);
+		  string = make_multibyte_string ((char *) str, 1, str_len);
 		  replace_range (pos, pos + 1, string, 1, 0, 1);
 		  len = str_len;
 		}
@@ -3248,6 +3255,9 @@ save_restriction_restore (Lisp_Object data)
 	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
 	}
     }
+
+  /* Changing the buffer bounds invalidates any recorded current column.  */
+  invalidate_current_column ();
 
   if (cur)
     set_buffer_internal (cur);
@@ -3501,7 +3511,7 @@ usage: (format STRING &rest OBJECTS)  */)
   register int n;		/* The number of the next arg to substitute */
   register EMACS_INT total;	/* An estimate of the final length */
   char *buf, *p;
-  register unsigned char *format, *end, *format_start;
+  register char *format, *end, *format_start;
   int nchars;
   /* Nonzero if the output should be a multibyte string,
      which is true if any of the inputs is one.  */
@@ -3511,7 +3521,7 @@ usage: (format STRING &rest OBJECTS)  */)
      multibyte character of the previous string.  This flag tells if we
      must consider such a situation or not.  */
   int maybe_combine_byte;
-  unsigned char *this_format;
+  char *this_format;
   /* Precision for each spec, or -1, a flag value meaning no precision
      was given in that spec.  Element 0, corresonding to the format
      string itself, will not be used.  Element NARGS, corresponding to
@@ -3565,7 +3575,7 @@ usage: (format STRING &rest OBJECTS)  */)
      That can only happen from the first large while loop below.  */
  retry:
 
-  format = SDATA (args[0]);
+  format = SSDATA (args[0]);
   format_start = format;
   end = format + SBYTES (args[0]);
   longest_format = 0;
@@ -3595,7 +3605,7 @@ usage: (format STRING &rest OBJECTS)  */)
       {
 	EMACS_INT thissize = 0;
 	EMACS_INT actual_width = 0;
-	unsigned char *this_format_start = format - 1;
+	char *this_format_start = format - 1;
 	int field_width = 0;
 
 	/* General format specifications look like
@@ -3775,7 +3785,7 @@ usage: (format STRING &rest OBJECTS)  */)
   /* Now we can no longer jump to retry.
      TOTAL and LONGEST_FORMAT are known for certain.  */
 
-  this_format = (unsigned char *) alloca (longest_format + 1);
+  this_format = (char *) alloca (longest_format + 1);
 
   /* Allocate the space for the result.
      Note that TOTAL is an overestimate.  */
@@ -3786,7 +3796,7 @@ usage: (format STRING &rest OBJECTS)  */)
   n = 0;
 
   /* Scan the format and store result in BUF.  */
-  format = SDATA (args[0]);
+  format = SSDATA (args[0]);
   format_start = format;
   end = format + SBYTES (args[0]);
   maybe_combine_byte = 0;
@@ -3796,7 +3806,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	{
 	  int minlen;
 	  int negative = 0;
-	  unsigned char *this_format_start = format;
+	  char *this_format_start = format;
 
 	  discarded[format - format_start] = 1;
 	  format++;
@@ -3877,7 +3887,7 @@ usage: (format STRING &rest OBJECTS)  */)
 		  && !CHAR_HEAD_P (SREF (args[n], 0)))
 		maybe_combine_byte = 1;
 
-	      p += copy_text (SDATA (args[n]), p,
+	      p += copy_text (SDATA (args[n]), (unsigned char *) p,
 			      nbytes,
 			      STRING_MULTIBYTE (args[n]), multibyte);
 
@@ -3945,7 +3955,8 @@ usage: (format STRING &rest OBJECTS)  */)
 		maybe_combine_byte = 1;
 	      this_nchars = strlen (p);
 	      if (multibyte)
-		p += str_to_multibyte (p, buf + total - 1 - p, this_nchars);
+		p += str_to_multibyte ((unsigned char *) p,
+				       buf + total - 1 - p, this_nchars);
 	      else
 		p += this_nchars;
 	      nchars += this_nchars;
@@ -3972,7 +3983,8 @@ usage: (format STRING &rest OBJECTS)  */)
       else if (multibyte)
 	{
 	  /* Convert a single-byte character to multibyte.  */
-	  int len = copy_text (format, p, 1, 0, 1);
+	  int len = copy_text ((unsigned char *) format, (unsigned char *) p,
+			       1, 0, 1);
 
 	  p += len;
 	  format++;
@@ -3986,7 +3998,7 @@ usage: (format STRING &rest OBJECTS)  */)
     abort ();
 
   if (maybe_combine_byte)
-    nchars = multibyte_chars_in_text (buf, p - buf);
+    nchars = multibyte_chars_in_text ((unsigned char *) buf, p - buf);
   val = make_specified_string (buf, nchars, p - buf, multibyte);
 
   /* If we allocated BUF with malloc, free it too.  */

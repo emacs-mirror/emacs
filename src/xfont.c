@@ -164,8 +164,8 @@ xfont_get_cache (FRAME_PTR f)
 static int
 compare_font_names (const void *name1, const void *name2)
 {
-  return xstrcasecmp (*(const unsigned char **) name1,
-		      *(const unsigned char **) name2);
+  return xstrcasecmp (*(const char **) name1,
+		      *(const char **) name2);
 }
 
 /* Decode XLFD as iso-8859-1 into OUTPUT, and return the byte length
@@ -182,7 +182,7 @@ xfont_decode_coding_xlfd (char *xlfd, int len, char *output)
   while (*p0)
     {
       c = *(unsigned char *) p0++;
-      p1 += CHAR_STRING (c, p1);
+      p1 += CHAR_STRING (c, (unsigned char *) p1);
       if (--len == 0)
 	break;
     }

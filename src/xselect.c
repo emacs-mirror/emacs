@@ -126,6 +126,20 @@ static Lisp_Object Qforeign_selection;
 /* Defined in keyboard.c.  */
 extern unsigned long last_event_timestamp;
 
+/* This is an association list whose elements are of the form
+     ( SELECTION-NAME SELECTION-VALUE SELECTION-TIMESTAMP FRAME)
+   SELECTION-NAME is a lisp symbol, whose name is the name of an X Atom.
+   SELECTION-VALUE is the value that emacs owns for that selection.
+     It may be any kind of Lisp object.
+   SELECTION-TIMESTAMP is the time at which emacs began owning this selection,
+     as a cons of two 16-bit numbers (making a 32 bit time.)
+   FRAME is the frame for which we made the selection.
+   If there is an entry in this alist, then it can be assumed that Emacs owns
+    that selection.
+   The only (eq) parts of this list that are visible from Lisp are the
+    selection-values.  */
+static Lisp_Object Vselection_alist;
+
 
 
 /* Define a queue to save up SELECTION_REQUEST_EVENT events for later

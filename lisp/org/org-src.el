@@ -169,8 +169,10 @@ For example, there is no ocaml-mode in Emacs, but the mode to use is
 
 ;;; Editing source examples
 
-(defvar org-src-mode-map (make-sparse-keymap))
-(define-key org-src-mode-map "\C-c'" 'org-edit-src-exit)
+(defvar org-src-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c'" 'org-edit-src-exit)
+    map))
 
 (defvar org-edit-src-force-single-line nil)
 (defvar org-edit-src-from-org-mode nil)

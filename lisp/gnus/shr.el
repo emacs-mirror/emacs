@@ -601,7 +601,8 @@ ones, in case fg and bg are nil."
 	(when fg
 	  (shr-put-color start end :foreground (cadr new-colors)))
 	(when bg
-	  (shr-put-color start end :background (car new-colors)))))))
+	  (shr-put-color start end :background (car new-colors))))
+      new-colors)))
 
 ;; Put a color in the region, but avoid putting colors on on blank
 ;; text at the start of the line, and the newline at the end, to avoid
@@ -695,7 +696,8 @@ ones, in case fg and bg are nil."
 
 (defun shr-tag-body (cont)
   (let* ((start (point))
-	 (fgcolor (cdr (assq :fgcolor cont)))
+	 (fgcolor (cdr (or (assq :fgcolor cont)
+                           (assq :text cont))))
 	 (bgcolor (cdr (assq :bgcolor cont)))
 	 (shr-stylesheet (list (cons 'color fgcolor)
 			       (cons 'background-color bgcolor))))
@@ -1055,8 +1057,11 @@ ones, in case fg and bg are nil."
 	  ;; possibly.
 	  (dotimes (i (- height (length lines)))
 	    (end-of-line)
-	    (insert (make-string (string-width (car lines)) ? )
-		    shr-table-vertical-line)
+	    (let ((start (point)))
+	      (insert (make-string (string-width (car lines)) ? )
+		      shr-table-vertical-line)
+	      (when (nth 4 column)
+		(shr-put-color start (1- (point)) :background (nth 4 column))))
 	    (forward-line 1)))))
     (shr-insert-table-ruler widths)))
 
@@ -1123,7 +1128,7 @@ ones, in case fg and bg are nil."
 	  (fgcolor (cdr (assq :fgcolor cont)))
 	  (style (cdr (assq :style cont)))
 	  (shr-stylesheet shr-stylesheet)
-	  overlays)
+	  overlays actual-colors)
       (when style
 	(setq style (and (string-match "color" style)
 			 (shr-parse-style style))))
@@ -1173,17 +1178,19 @@ ones, in case fg and bg are nil."
 	      (end-of-line)
 	      (when (> (- width (current-column)) 0)
 		(insert (make-string (- width (current-column)) ? )))
-	      (forward-line 1))))
-	(when style
-	  (shr-colorize-region
-	   (point-min) (point-max)
-	   (cdr (assq 'color shr-stylesheet))
-	   (cdr (assq 'background-color shr-stylesheet))))
+	      (forward-line 1)))
+	  (when style
+	    (setq actual-colors
+		  (shr-colorize-region
+		   (point-min) (point-max)
+		   (cdr (assq 'color shr-stylesheet))
+		   (cdr (assq 'background-color shr-stylesheet))))))
 	(if fill
 	    (list max
 		  (count-lines (point-min) (point-max))
 		  (split-string (buffer-string) "\n")
-		  (shr-collect-overlays))
+		  (shr-collect-overlays)
+		  (car actual-colors))
 	  (list max
 		(shr-natural-width)))))))
 

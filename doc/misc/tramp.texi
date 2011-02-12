@@ -956,7 +956,7 @@ anyway.
 @cindex method ftp
 @cindex ftp method
 
-This is not a native @value{tramp} method.  Instead of, it forwards all
+This is not a native @value{tramp} method.  Instead, it forwards all
 requests to @value{ftppackagename}.
 @ifset xemacs
 This works only for unified filenames, see @ref{Issues}.
@@ -971,20 +971,20 @@ This is another not natural @value{tramp} method.  It uses the
 @command{smbclient} command on different Unices in order to connect to
 an SMB server.  An SMB server might be a Samba (or CIFS) server on
 another UNIX host or, more interesting, a host running MS Windows.  So
-far, it is tested towards MS Windows NT, MS Windows 2000, and MS
+far, it is tested against MS Windows NT, MS Windows 2000, and MS
 Windows XP.
 
 The first directory in the localname must be a share name on the remote
-host.  Remember, that the @code{$} character in which default shares
+host.  Remember that the @code{$} character, in which default shares
 usually end, must be written @code{$$} due to environment variable
 substitution in file names.  If no share name is given (i.e. remote
 directory @code{/}), all available shares are listed.
 
-Since authorization is done on share level, you will be prompted
-always for a password if you access another share on the same host.
+Since authorization is done on share level, you will always be
+prompted for a password if you access another share on the same host.
 This can be suppressed by @ref{Password handling}.
 
-MS Windows uses for authorization both a user name and a domain name.
+For authorization, MS Windows uses both a user name and a domain name.
 Because of this, the @value{tramp} syntax has been extended: you can
 specify a user name which looks like @code{user%domain} (the real user
 name, then a percent sign, then the domain name).  So, to connect to
@@ -1008,7 +1008,7 @@ methods, where in such a case the local user name is taken.
 The @option{smb} method supports the @samp{-p} argument.
 
 @strong{Please note:} If @value{emacsname} runs locally under MS
-Windows, this method isn't available.  Instead of, you can use UNC
+Windows, this method isn't available.  Instead, you can use UNC
 file names like @file{//melancholia/daniel$$/.emacs}.  The only
 disadvantage is that there's no possibility to specify another user
 name.
@@ -1022,7 +1022,7 @@ name.
 @cindex imaps method
 
 Accessing an IMAP mailbox is intended to save files there as encrypted
-message.  It could be used in case there are no other remote file
+messages.  It could be used in case there are no other remote file
 storages available.
 
 @value{tramp} supports both @option{imap} and @option{imaps} methods.
@@ -1030,7 +1030,7 @@ The latter one accesses the IMAP server over ssl.
 
 Both methods support the port number specification.
 
-Note, that special handling is needed for declaring a passphrase for
+Note that special handling is needed for declaring a passphrase for
 encryption / decryption of the messages (@pxref{Using an
 authentication file}).
 
@@ -1048,7 +1048,7 @@ authentication file}).
 The connection methods described in this section are based on GVFS
 @uref{http://en.wikipedia.org/wiki/GVFS}.  Via GVFS, the remote
 filesystem is mounted locally through FUSE.  @value{tramp} uses
-internally this local mounted directory.
+this local mounted directory internally.
 
 The communication with GVFS is implemented via D-Bus messages.
 Therefore, your @value{emacsname} must have D-Bus integration,
@@ -1073,7 +1073,7 @@ Both methods support the port number specification as discussed above.
 @cindex obex method
 
 OBEX is an FTP-like access protocol for simple devices, like cell
-phones.  Until now @value{tramp} supports only OBEX over Bluetooth.
+phones.  For the time being, @value{tramp} only supports OBEX over Bluetooth.
 
 
 @item @option{synce}
@@ -1082,11 +1082,11 @@ phones.  Until now @value{tramp} supports only OBEX over Bluetooth.
 
 The @option{synce} method allows communication with Windows Mobile
 devices.  Beside GVFS for mounting remote files and directories via
-FUSE, it needs also the SYNCE-GVFS plugin.
+FUSE, it also needs the SYNCE-GVFS plugin.
 @end table
 
 @defopt tramp-gvfs-methods
-This customer option, a list, defines the external methods, which
+This customer option, a list, defines the external methods which
 shall be used with GVFS.  Per default, these are @option{dav},
 @option{davs}, @option{obex} and @option{synce}.  Other possible
 values are @option{ftp}, @option{sftp} and @option{smb}.
@@ -1105,10 +1105,10 @@ These methods are intended to pass firewalls or proxy servers.
 Therefore, they can be used for proxy host declarations
 (@pxref{Multi-hops}) only.
 
-A gateway method must come always along with a method who supports
+A gateway method must always come along with a method which supports
 port setting.  This is because @value{tramp} targets the accompanied
 method to @file{localhost#random_port}, from where the firewall or
-proxy server is accessed to.
+proxy server is accessed.
 
 Gateway methods support user name and password declarations.  These
 are used to authenticate towards the corresponding firewall or proxy
@@ -1711,7 +1711,7 @@ multiple hops (@pxref{Multi-hops}).
 When @value{tramp} detects a changed operating system version on a
 remote host (via the command @command{uname -sr}), it flushes all
 connection related information for this host, and opens the
-connection, again.
+connection again.
 
 
 @node Remote Programs
@@ -1766,7 +1766,7 @@ as:
 @end lisp
 
 Another possibility is to reuse the path settings of your remote
-account, when you log in.  Usually, these settings are overwritten,
+account when you log in.  Usually, these settings are overwritten,
 because they might not be useful for @value{tramp}.  The place holder
 @code{tramp-own-remote-path} preserves these settings.  You can
 activate it via
@@ -2426,8 +2426,8 @@ If the configuration files (@pxref{Customizing Completion}), which
 @value{tramp} uses for analysis of completion, offer user names, those user
 names will be taken into account as well.
 
-Remote machines, which have been visited in the past and kept
-persistently (@pxref{Connection caching}), will be offered too.
+Remote machines which have been visited in the past and kept
+persistently (@pxref{Connection caching}) will be offered too.
 
 Once the remote machine identification is completed, it comes to
 filename completion on the remote host.  This works pretty much like
@@ -2467,8 +2467,8 @@ Example:
 
 A remote directory might have changed its contents out of
 @value{emacsname} control, for example by creation or deletion of
-files by other processes.  Therefore, during filename completion the
-remote directory contents is reread regularly in order to detect such
+files by other processes.  Therefore, during filename completion, the
+remote directory contents are reread regularly in order to detect such
 changes, which would be invisible otherwise (@pxref{Connection caching}).
 
 @defopt tramp-completion-reread-directory-timeout
@@ -2491,7 +2491,7 @@ remote file names.  It does not work for the @option{ftp} and
 @code{start-file-process}, is not supported.
 
 @code{process-file} and @code{start-file-process} work on the remote
-host, when the variable @code{default-directory} is remote:
+host when the variable @code{default-directory} is remote:
 
 @lisp
 (let ((default-directory "/ssh:remote.host:"))
@@ -2802,7 +2802,7 @@ Use caching.  This is already enabled by default.  Information about
 the remote host as well as the remote files are cached for reuse.  The
 information about remote hosts is kept in the file specified in
 @code{tramp-persistency-file-name}.  Keep this file.  If you are
-confident, that files on remote hosts are not changed out of
+confident that files on remote hosts are not changed out of
 @value{emacsname}' control, set @code{remote-file-name-inhibit-cache}
 to @code{nil}.
 
@@ -2834,7 +2834,7 @@ reasons heading the bug mailing list:
 Unknown characters in the prompt
 
 @value{tramp} needs to recognize the prompt on the remote machine
-after execution any command.  This is not possible, when the prompt
+after execution any command.  This is not possible when the prompt
 contains unknown characters like escape sequences for coloring.  This
 should be avoided on the remote side.  @xref{Remote shell setup}. for
 setting the regular expression detecting the prompt.
@@ -2858,6 +2858,9 @@ the following command:
 @example
 [ $TERM = "dumb" ] && unsetopt zle && PS1='$ '
 @end example
+
+Furthermore it has been reported, that @value{tramp} (like sshfs,
+incidentally) doesn't work with WinSSHD due to strange prompt settings.
 
 @item
 Echoed characters after login
@@ -2906,7 +2909,7 @@ checksum.
 When your network connection is down, @command{ssh} sessions might
 hang.  @value{tramp} cannot detect it safely, because it still sees a
 running @command{ssh} process.  Timeouts cannot be used as well,
-because it cannot be predicted, how long a remote command will last,
+because it cannot be predicted how long a remote command will last,
 for example when copying very large files.
 
 Therefore, you must configure the @command{ssh} process to die
@@ -3116,7 +3119,7 @@ You can define default methods and user names for hosts,
 The file name left to type would be
 @kbd{C-x C-f @trampfn{, , news.my.domain, /opt/news/etc}}.
 
-Note, that there are some useful settings already.  Accessing your
+Note that there are some useful settings already.  Accessing your
 local host as @samp{root} user, is possible just by @kbd{C-x C-f
 @trampfn{su, , ,}}.
 
@@ -3148,7 +3151,7 @@ Lisp:
 @end lisp
 
 Then you need simply to type @kbd{C-x C-f $xy @key{RET}}, and here you
-are.  The disadvantage is, that you cannot edit the file name, because
+are.  The disadvantage is that you cannot edit the file name, because
 environment variables are not expanded during editing in the
 minibuffer.
 
@@ -3320,7 +3323,7 @@ You need to load @file{bbdb}:
 
 Then you can create a BBDB entry via @kbd{M-x bbdb-create-ftp-site}.
 Because BBDB is not prepared for @value{tramp} syntax, you must
-specify a method together with the user name, when needed. Example:
+specify a method together with the user name when needed. Example:
 
 @example
 @kbd{M-x bbdb-create-ftp-site @key{RET}}
@@ -3337,7 +3340,7 @@ pressing the key @key{F}.
 
 @end enumerate
 
-I would like to thank all @value{tramp} users, who have contributed to
+I would like to thank all @value{tramp} users who have contributed to
 the different recipes!
 
 
@@ -3360,7 +3363,7 @@ On the remote host, you start the Emacs Server:
 (server-start)
 @end lisp
 
-Make sure, that the result of @code{(system-name)} can be resolved on
+Make sure that the result of @code{(system-name)} can be resolved on
 your local host; otherwise you might use a hard coded IP address.
 
 The resulting file @file{~/.emacs.d/server/server} must be copied to
@@ -3494,7 +3497,7 @@ its complete cache keeping attributes for all files of the remote host
 it has seen so far.
 
 This is a performance degradation, because the lost file attributes
-must be recomputed, when needed again.  In cases the caller of
+must be recomputed when needed again.  In cases the caller of
 @code{process-file} knows that there are no file attribute changes, it
 shall let-bind the variable @code{process-file-side-effects} to
 @code{nil}.  @value{tramp} wouldn't flush the file attributes cache then.

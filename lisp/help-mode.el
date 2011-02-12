@@ -33,17 +33,18 @@
 (require 'view)
 (eval-when-compile (require 'easymenu))
 
-(defvar help-mode-map (make-sparse-keymap)
+(defvar help-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map button-buffer-map)
+
+    (define-key map [mouse-2] 'help-follow-mouse)
+    (define-key map "\C-c\C-b" 'help-go-back)
+    (define-key map "\C-c\C-f" 'help-go-forward)
+    (define-key map "\C-c\C-c" 'help-follow-symbol)
+    ;; Documentation only, since we use minor-mode-overriding-map-alist.
+    (define-key map "\r" 'help-follow)
+    map)
   "Keymap for help mode.")
-
-(set-keymap-parent help-mode-map button-buffer-map)
-
-(define-key help-mode-map [mouse-2] 'help-follow-mouse)
-(define-key help-mode-map "\C-c\C-b" 'help-go-back)
-(define-key help-mode-map "\C-c\C-f" 'help-go-forward)
-(define-key help-mode-map "\C-c\C-c" 'help-follow-symbol)
-;; Documentation only, since we use minor-mode-overriding-map-alist.
-(define-key help-mode-map "\r" 'help-follow)
 
 (easy-menu-define help-mode-menu help-mode-map
   "Menu for Help Mode."

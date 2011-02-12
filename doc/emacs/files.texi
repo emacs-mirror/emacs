@@ -1183,26 +1183,23 @@ implies the effect of @code{find-file-existing-other-name}.
 @cindex directory name abbreviation
 @vindex directory-abbrev-alist
   Sometimes, a directory is ordinarily accessed through a symbolic
-link, and you may want Emacs to preferentially display its ``linked''
-name instead of its truename.  To do this, customize the variable
-@code{directory-abbrev-alist}.  Each element in this list should have
-the form @code{(@var{from} . @var{to})}, which says to replace
-@var{from} with @var{to} when it appears in a directory name.  For
-this feature to work properly, @var{from} and @var{to} should point to
-the same file.  The @var{from} string is actually a regular expression
-(@pxref{Regexps}); it should always start with @samp{\`}, to avoid
-matching to an incorrect part of the original directory name.  The
-@var{to} string should be an ordinary absolute directory name.  Do not
-use @samp{~} to stand for a home directory in the @var{to} string;
-Emacs performs these substitutions separately.
-
-  Here's an example, from a system on which file system
-@file{/home/fsf} and so on are normally accessed through symbolic
-links named @file{/fsf} and so on.
+link, and you may want Emacs to preferentially show its ``linked''
+name.  To do this, customize @code{directory-abbrev-alist}.  Each
+element in this list should have the form @code{(@var{from}
+. @var{to})}, which means to replace @var{from} with @var{to} whenever
+@var{from} appears in a directory name.  The @var{from} string is a
+regular expression (@pxref{Regexps}).  It is matched against directory
+names anchored at the first character, and should start with @samp{\`}
+(to support directory names with embedded newlines, which would defeat
+@samp{^}).  The @var{to} string should be an ordinary absolute
+directory name pointing to the same directory.  Do not use @samp{~} to
+stand for a home directory in the @var{to} string; Emacs performs
+these substitutions separately.  Here's an example, from a system on
+which @file{/home/fsf} is normally accessed through a symbolic link
+named @file{/fsf}:
 
 @example
-(("\\`/home/fsf" . "/fsf")
- ("\\`/home/gd" . "/gd"))
+(("\\`/home/fsf" . "/fsf"))
 @end example
 
 @node Directories

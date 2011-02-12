@@ -67,7 +67,7 @@
 (def-edebug-spec multiple-value-list (form))
 (def-edebug-spec multiple-value-call (function-form body))
 (def-edebug-spec multiple-value-bind
-  ((&rest symbolp) form cl-declarations body))
+  ((&rest symbolp) form body))
 (def-edebug-spec multiple-value-setq ((&rest symbolp) form))
 (def-edebug-spec multiple-value-prog1 (form body))
 

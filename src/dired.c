@@ -99,7 +99,7 @@ Lisp_Object Qfile_name_all_completions;
 Lisp_Object Qfile_attributes;
 Lisp_Object Qfile_attributes_lessp;
 
-static int scmp (const unsigned char *, const unsigned char *, int);
+static int scmp (const char *, const char *, int);
 
 #ifdef WINDOWSNT
 Lisp_Object
@@ -533,7 +533,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
       QUIT;
       if (! DIRENTRY_NONEMPTY (dp)
 	  || len < SCHARS (encoded_file)
-	  || 0 <= scmp (dp->d_name, SDATA (encoded_file),
+	  || 0 <= scmp (dp->d_name, SSDATA (encoded_file),
 			SCHARS (encoded_file)))
 	continue;
 
@@ -558,7 +558,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 	      && matchcount > 1
 	      && !includeall /* This match may allow includeall to 0.  */
 	      && len >= bestmatchsize
-	      && 0 > scmp (dp->d_name, SDATA (bestmatch), bestmatchsize))
+	      && 0 > scmp (dp->d_name, SSDATA (bestmatch), bestmatchsize))
 	    continue;
 #endif
 
@@ -578,7 +578,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 		     CONSP (tem); tem = XCDR (tem))
 		  {
 		    int elt_len;
-		    unsigned char *p1;
+		    char *p1;
 
 		    elt = XCAR (tem);
 		    if (!STRINGP (elt))
@@ -589,7 +589,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 		    elt_len = SCHARS (elt) - 1; /* -1 for trailing / */
 		    if (elt_len <= 0)
 		      continue;
-		    p1 = SDATA (elt);
+		    p1 = SSDATA (elt);
 		    if (p1[elt_len] != '/')
 		      continue;
 		    skip = len - elt_len;
@@ -619,7 +619,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 		    if (skip < 0) continue;
 
 		    if (0 <= scmp (dp->d_name + skip,
-				   SDATA (elt),
+				   SSDATA (elt),
 				   SCHARS (elt)))
 		      continue;
 		    break;
@@ -796,13 +796,15 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
    else number of chars that match at the beginning.  */
 
 static int
-scmp (const unsigned char *s1, const unsigned char *s2, int len)
+scmp (const char *s1, const char *s2, int len)
 {
   register int l = len;
 
   if (completion_ignore_case)
     {
-      while (l && DOWNCASE (*s1++) == DOWNCASE (*s2++))
+      while (l
+	     && (DOWNCASE ((unsigned char) *s1++)
+		 == DOWNCASE ((unsigned char) *s2++)))
 	l--;
     }
   else

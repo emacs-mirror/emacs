@@ -31,6 +31,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_LIMITS_H */
 #include <unistd.h>
 
+#include <ignore-value.h>
+
 #include "lisp.h"
 #include "sysselect.h"
 #include "blockinput.h"
@@ -263,7 +265,7 @@ void
 init_baud_rate (int fd)
 {
   int emacs_ospeed;
- 
+
   if (noninteractive)
     emacs_ospeed = 0;
   else
@@ -546,8 +548,13 @@ sys_subshell (void)
 	sh = "sh";
 
       /* Use our buffer's default directory for the subshell.  */
-      if (str)
-	chdir ((char *) str);
+      if (str && chdir ((char *) str) != 0)
+	{
+#ifndef DOS_NT
+	  ignore_value (write (1, "Can't chdir\n", 12));
+	  _exit (1);
+#endif
+	}
 
       close_process_descs ();	/* Close Emacs's pipes/ptys */
 
@@ -565,7 +572,7 @@ sys_subshell (void)
 	    setenv ("PWD", str, 1);
 	  }
 	st = system (sh);
-	chdir (oldwd);
+	chdir (oldwd);	/* FIXME: Do the right thing on chdir failure.  */
 	if (epwd)
 	  putenv (old_pwd);	/* restore previous value */
       }
@@ -573,12 +580,12 @@ sys_subshell (void)
 #ifdef  WINDOWSNT
       /* Waits for process completion */
       pid = _spawnlp (_P_WAIT, sh, sh, NULL);
-      chdir (oldwd);
+      chdir (oldwd);	/* FIXME: Do the right thing on chdir failure.  */
       if (pid == -1)
 	write (1, "Can't execute subshell", 22);
 #else   /* not WINDOWSNT */
       execlp (sh, sh, (char *) 0);
-      write (1, "Can't execute subshell", 22);
+      ignore_value (write (1, "Can't execute subshell", 22));
       _exit (1);
 #endif  /* not WINDOWSNT */
 #endif /* not MSDOS */
@@ -3058,4 +3065,3 @@ system_process_attributes (Lisp_Object pid)
 }
 
 #endif	/* !defined (WINDOWSNT) */
-

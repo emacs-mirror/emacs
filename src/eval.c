@@ -136,7 +136,7 @@ init_eval_once (void)
   specpdl = (struct specbinding *) xmalloc (specpdl_size * sizeof (struct specbinding));
   specpdl_ptr = specpdl;
   /* Don't forget to update docs (lispref node "Local Variables").  */
-  max_specpdl_size = 1200; /* 1000 is not enough for CEDET's c-by.el.  */
+  max_specpdl_size = 1300; /* 1000 is not enough for CEDET's c-by.el.  */
   max_lisp_eval_depth = 600;
 
   Vrun_hooks = Qnil;
@@ -3845,8 +3845,8 @@ The value the function returns is not used.  */);
   staticpro (&Qinternal_interpreter_environment);
 #if 0 /* Don't export this variable to Elisp, so noone can mess with it
 	 (Just imagine if someone makes it buffer-local).  */
-  DEFVAR_LISP ("internal-interpreter-environment",
-	       &Vinternal_interpreter_environment,
+  DEFVAR__LISP ("internal-interpreter-environment",
+	       Vinternal_interpreter_environment,
 	       doc: /* If non-nil, the current lexical environment of the lisp interpreter.
 When lexical binding is not being used, this variable is nil.
 A value of `(t)' indicates an empty environment, otherwise it is an

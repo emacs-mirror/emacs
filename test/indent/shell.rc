@@ -1,0 +1,30 @@
+#!/bin/rc
+
+if (foo) {
+    echo 1
+}
+if not {
+    echo 2
+}
+
+if (foo)
+   echo 3			# KNOWN INDENT BUG
+if not
+   echo 4			# KNOWN INDENT BUG
+
+switch ($a) {
+    case 3
+	echo 4
+    case 5
+	echo 7
+	for (i in a b c) {
+            echo $i
+	}
+        for (i in a b c)
+            echo "$i"           # KNOWN INDENT BUG
+        echo titi
+
+    case *
+	echo other
+}
+

@@ -773,7 +773,7 @@ static void reconsider_clip_changes (struct window *, struct buffer *);
 static int text_outside_line_unchanged_p (struct window *,
 					  EMACS_INT, EMACS_INT);
 static void store_mode_line_noprop_char (char);
-static int store_mode_line_noprop (const unsigned char *, int, int);
+static int store_mode_line_noprop (const char *, int, int);
 static void handle_stop (struct it *);
 static void handle_stop_backwards (struct it *, EMACS_INT);
 static int single_display_spec_intangible_p (Lisp_Object);
@@ -831,7 +831,7 @@ static const char *decode_mode_spec (struct window *, int, int, int,
 static void display_menu_bar (struct window *);
 static int display_count_lines (EMACS_INT, EMACS_INT, EMACS_INT, int,
 				EMACS_INT *);
-static int display_string (const unsigned char *, Lisp_Object, Lisp_Object,
+static int display_string (const char *, Lisp_Object, Lisp_Object,
                            EMACS_INT, EMACS_INT, struct it *, int, int, int, int);
 static void compute_line_metrics (struct it *);
 static void run_redisplay_end_trigger_hook (struct it *);
@@ -854,7 +854,7 @@ static int next_element_from_stretch (struct it *);
 static void load_overlay_strings (struct it *, EMACS_INT);
 static int init_from_display_pos (struct it *, struct window *,
                                   struct display_pos *);
-static void reseat_to_string (struct it *, const unsigned char *,
+static void reseat_to_string (struct it *, const char *,
                               Lisp_Object, EMACS_INT, EMACS_INT, int, int);
 static enum move_it_result
        move_it_in_display_line_to (struct it *, EMACS_INT, int,
@@ -869,8 +869,8 @@ static int forward_to_next_line_start (struct it *, int *);
 static struct text_pos string_pos_nchars_ahead (struct text_pos,
                                                 Lisp_Object, EMACS_INT);
 static struct text_pos string_pos (EMACS_INT, Lisp_Object);
-static struct text_pos c_string_pos (EMACS_INT, const unsigned char *, int);
-static EMACS_INT number_of_chars (const unsigned char *, int);
+static struct text_pos c_string_pos (EMACS_INT, const char *, int);
+static EMACS_INT number_of_chars (const char *, int);
 static void compute_stop_pos (struct it *);
 static void compute_string_pos (struct text_pos *, struct text_pos,
                                 Lisp_Object);
@@ -1383,7 +1383,7 @@ string_pos (EMACS_INT charpos, Lisp_Object string)
    means recognize multibyte characters.  */
 
 static struct text_pos
-c_string_pos (EMACS_INT charpos, const unsigned char *s, int multibyte_p)
+c_string_pos (EMACS_INT charpos, const char *s, int multibyte_p)
 {
   struct text_pos pos;
 
@@ -1397,7 +1397,7 @@ c_string_pos (EMACS_INT charpos, const unsigned char *s, int multibyte_p)
       SET_TEXT_POS (pos, 0, 0);
       while (charpos--)
 	{
-	  string_char_and_length (s, &len);
+	  string_char_and_length ((const unsigned char *) s, &len);
 	  s += len;
 	  CHARPOS (pos) += 1;
 	  BYTEPOS (pos) += len;
@@ -1414,7 +1414,7 @@ c_string_pos (EMACS_INT charpos, const unsigned char *s, int multibyte_p)
    non-zero means recognize multibyte characters.  */
 
 static EMACS_INT
-number_of_chars (const unsigned char *s, int multibyte_p)
+number_of_chars (const char *s, int multibyte_p)
 {
   EMACS_INT nchars;
 
@@ -1422,7 +1422,7 @@ number_of_chars (const unsigned char *s, int multibyte_p)
     {
       EMACS_INT rest = strlen (s);
       int len;
-      unsigned char *p = (unsigned char *) s;
+      const unsigned char *p = (const unsigned char *) s;
 
       for (nchars = 0; rest > 0; ++nchars)
 	{
@@ -3172,7 +3172,7 @@ handle_fontified_prop (struct it *it)
       specbind (Qfontification_functions, Qnil);
 
       xassert (it->end_charpos == ZV);
-      
+
       if (!CONSP (val) || EQ (XCAR (val), Qlambda))
 	safe_call1 (val, pos);
       else
@@ -3218,7 +3218,7 @@ handle_fontified_prop (struct it *it)
 	 as is/was done in grep.el where some escapes sequences are turned
 	 into face properties (bug#7876).  */
       it->end_charpos = ZV;
-      
+
       /* Return HANDLED_RECOMPUTE_PROPS only if function fontified
 	 something.  This avoids an endless loop if they failed to
 	 fontify the text for which reason ever.  */
@@ -5442,7 +5442,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
    calling this function.  */
 
 static void
-reseat_to_string (struct it *it, const unsigned char *s, Lisp_Object string,
+reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 		  EMACS_INT charpos, EMACS_INT precision, int field_width,
 		  int multibyte)
 {
@@ -5474,7 +5474,7 @@ reseat_to_string (struct it *it, const unsigned char *s, Lisp_Object string,
     }
   else
     {
-      it->s = s;
+      it->s = (const unsigned char *) s;
       it->string = Qnil;
 
       /* Note that we use IT->current.pos, not it->current.string_pos,
@@ -7884,6 +7884,8 @@ message_log_maybe_newline (void)
 void
 message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 {
+  const unsigned char *msg = (const unsigned char *) m;
+
   if (!NILP (Vmemory_full))
     return;
 
@@ -7928,13 +7930,13 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 	{
 	  EMACS_INT i;
 	  int c, char_bytes;
-	  unsigned char work[1];
+	  char work[1];
 
 	  /* Convert a multibyte string to single-byte
 	     for the *Message* buffer.  */
 	  for (i = 0; i < nbytes; i += char_bytes)
 	    {
-	      c = string_char_and_length (m + i, &char_bytes);
+	      c = string_char_and_length (msg + i, &char_bytes);
 	      work[0] = (ASCII_CHAR_P (c)
 			 ? c
 			 : multibyte_char_to_unibyte (c, Qnil));
@@ -7946,7 +7948,6 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 	{
 	  EMACS_INT i;
 	  int c, char_bytes;
-	  unsigned char *msg = (unsigned char *) m;
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  /* Convert a single-byte string to multibyte
 	     for the *Message* buffer.  */
@@ -7955,7 +7956,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 	      c = msg[i];
 	      MAKE_CHAR_MULTIBYTE (c);
 	      char_bytes = CHAR_STRING (c, str);
-	      insert_1_both (str, 1, char_bytes, 1, 0, 0);
+	      insert_1_both ((char *) str, 1, char_bytes, 1, 0, 0);
 	    }
 	}
       else if (nbytes)
@@ -8079,7 +8080,7 @@ message_log_check_duplicate (EMACS_INT prev_bol, EMACS_INT prev_bol_byte,
       int n = 0;
       while (*p1 >= '0' && *p1 <= '9')
 	n = n * 10 + *p1++ - '0';
-      if (strncmp (p1, " times]\n", 8) == 0)
+      if (strncmp ((char *) p1, " times]\n", 8) == 0)
 	return n+1;
     }
   return 0;
@@ -9154,6 +9155,7 @@ static int
 set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multibyte_p)
 {
   const char *s = (const char *) a1;
+  const unsigned char *msg = (const unsigned char *) s;
   Lisp_Object string = a2;
 
   /* Change multibyteness of the echo buffer appropriately.  */
@@ -9191,12 +9193,12 @@ set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multiby
 	  /* Convert from multi-byte to single-byte.  */
 	  EMACS_INT i;
 	  int c, n;
-	  unsigned char work[1];
+	  char work[1];
 
 	  /* Convert a multibyte string to single-byte.  */
 	  for (i = 0; i < nbytes; i += n)
 	    {
-	      c = string_char_and_length (s + i, &n);
+	      c = string_char_and_length (msg + i, &n);
 	      work[0] = (ASCII_CHAR_P (c)
 			 ? c
 			 : multibyte_char_to_unibyte (c, Qnil));
@@ -9209,7 +9211,6 @@ set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multiby
 	  /* Convert from single-byte to multi-byte.  */
 	  EMACS_INT i;
 	  int c, n;
-	  const unsigned char *msg = (const unsigned char *) s;
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 
 	  /* Convert a single-byte string to multibyte.  */
@@ -9218,7 +9219,7 @@ set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multiby
 	      c = msg[i];
 	      MAKE_CHAR_MULTIBYTE (c);
 	      n = CHAR_STRING (c, str);
-	      insert_1_both (str, 1, n, 1, 0, 0);
+	      insert_1_both ((char *) str, 1, n, 1, 0, 0);
 	    }
 	}
       else
@@ -9517,7 +9518,7 @@ store_mode_line_noprop_char (char c)
 
 
 /* Store part of a frame title in mode_line_noprop_buf, beginning at
-   mode_line_noprop_ptr.  STR is the string to store.  Do not copy
+   mode_line_noprop_ptr.  STRING is the string to store.  Do not copy
    characters that yield more columns than PRECISION; PRECISION <= 0
    means copy the whole string.  Pad with spaces until FIELD_WIDTH
    number of characters have been copied; FIELD_WIDTH <= 0 means don't
@@ -9525,13 +9526,14 @@ store_mode_line_noprop_char (char c)
    frame title.  */
 
 static int
-store_mode_line_noprop (const unsigned char *str, int field_width, int precision)
+store_mode_line_noprop (const char *string, int field_width, int precision)
 {
+  const unsigned char *str = (const unsigned char *) string;
   int n = 0;
   EMACS_INT dummy, nbytes;
 
   /* Copy at most PRECISION chars from STR.  */
-  nbytes = strlen (str);
+  nbytes = strlen (string);
   n += c_string_width (str, nbytes, precision, &dummy, &nbytes);
   while (nbytes--)
     store_mode_line_noprop_char (*str++);
@@ -18396,7 +18398,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 	      {
 	      case MODE_LINE_NOPROP:
 	      case MODE_LINE_TITLE:
-		n += store_mode_line_noprop (SDATA (elt), -1, prec);
+		n += store_mode_line_noprop (SSDATA (elt), -1, prec);
 		break;
 	      case MODE_LINE_STRING:
 		n += store_mode_line_string (NULL, elt, 1, 0, prec, Qnil);
@@ -18440,7 +18442,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		  {
 		  case MODE_LINE_NOPROP:
 		  case MODE_LINE_TITLE:
-		    n += store_mode_line_noprop (SDATA (elt) + last_offset, 0, prec);
+		    n += store_mode_line_noprop (SSDATA (elt) + last_offset, 0, prec);
 		    break;
 		  case MODE_LINE_STRING:
 		    {
@@ -18495,7 +18497,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		  {
 		    int multibyte;
 		    EMACS_INT bytepos, charpos;
-		    const unsigned char *spec;
+		    const char *spec;
 		    Lisp_Object string;
 
 		    bytepos = percent_position;
@@ -19746,7 +19748,7 @@ display_count_lines (EMACS_INT start, EMACS_INT start_byte,
    Value is the number of columns displayed.  */
 
 static int
-display_string (const unsigned char *string, Lisp_Object lisp_string, Lisp_Object face_string,
+display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_string,
 		EMACS_INT face_string_pos, EMACS_INT start, struct it *it,
 		int field_width, int precision, int max_x, int multibyte)
 {

@@ -315,7 +315,7 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val, int noerror
 
   if (SYMBOLP (val))
     {
-      unsigned char *s;
+      char *s;
       Lisp_Object args[2], elt;
 
       /* At first try exact match.  */
@@ -325,12 +325,12 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val, int noerror
 	    return ((XINT (AREF (AREF (table, i), 0)) << 8)
 		    | (i << 4) | (j - 1));
       /* Try also with case-folding match.  */
-      s = SDATA (SYMBOL_NAME (val));
+      s = SSDATA (SYMBOL_NAME (val));
       for (i = 0; i < len; i++)
 	for (j = 1; j < ASIZE (AREF (table, i)); j++)
 	  {
 	    elt = AREF (AREF (table, i), j);
-	    if (xstrcasecmp (s, SDATA (SYMBOL_NAME (elt))) == 0)
+	    if (xstrcasecmp (s, SSDATA (SYMBOL_NAME (elt))) == 0)
 	      return ((XINT (AREF (AREF (table, i), 0)) << 8)
 		      | (i << 4) | (j - 1));
 	  }
@@ -3982,7 +3982,6 @@ Layout tags.  */)
 	val = fontp->driver->otf_capability (fontp);
       else
 	val = Fcons (Qnil, Qnil);
-      font_put_extra (font, QCotf, val);
     }
   else
     val = Fcdr (val);

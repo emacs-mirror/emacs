@@ -305,18 +305,22 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Name of package */
 #define PACKAGE "emacs"
 
-/* FIXME: This is defined by the various makefile.w32-in files for
-   now.  Revisit if/when VERSION from config.h is used by any
-   Makefile.in files.  */
-#if 0
 /* Version number of package */
 #define VERSION "24.0.50"
-#endif
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
 #undef inline
+#endif
+
+/* Define to the equivalent of the C99 'restrict' keyword, or to
+   nothing if this is not supported.  Do not define if restrict is
+   supported directly.  */
+#ifdef __GNUC__
+# define restrict __restrict__
+#else
+# define restrict
 #endif
 
 /* Define as a marker that can be attached to declarations that might not
@@ -336,6 +340,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* If using GNU, then support inline function declarations. */
 #ifdef __GNUC__
 #define INLINE __inline__
+#define inline __inline__
 #else
 #define INLINE
 #endif

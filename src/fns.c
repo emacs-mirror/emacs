@@ -882,7 +882,7 @@ string_make_multibyte (Lisp_Object string)
   copy_text (SDATA (string), buf, SBYTES (string),
 	     0, 1);
 
-  ret = make_multibyte_string (buf, SCHARS (string), nbytes);
+  ret = make_multibyte_string ((char *) buf, SCHARS (string), nbytes);
   SAFE_FREE ();
 
   return ret;
@@ -914,7 +914,7 @@ string_to_multibyte (Lisp_Object string)
   memcpy (buf, SDATA (string), SBYTES (string));
   str_to_multibyte (buf, nbytes, SBYTES (string));
 
-  ret = make_multibyte_string (buf, SCHARS (string), nbytes);
+  ret = make_multibyte_string ((char *) buf, SCHARS (string), nbytes);
   SAFE_FREE ();
 
   return ret;
@@ -940,7 +940,7 @@ string_make_unibyte (Lisp_Object string)
   copy_text (SDATA (string), buf, SBYTES (string),
 	     1, 0);
 
-  ret = make_unibyte_string (buf, nchars);
+  ret = make_unibyte_string ((char *) buf, nchars);
   SAFE_FREE ();
 
   return ret;
@@ -996,7 +996,7 @@ If STRING is multibyte and contains a character of charset
 
       memcpy (str, SDATA (string), bytes);
       bytes = str_as_unibyte (str, bytes);
-      string = make_unibyte_string (str, bytes);
+      string = make_unibyte_string ((char *) str, bytes);
       xfree (str);
     }
   return string;
@@ -1079,7 +1079,7 @@ an error is signaled.  */)
 
       if (converted < chars)
 	error ("Can't convert the %dth character to unibyte", converted);
-      string = make_unibyte_string (str, chars);
+      string = make_unibyte_string ((char *) str, chars);
       xfree (str);
     }
   return string;
@@ -2985,8 +2985,8 @@ into shorter lines.  */)
   allength += allength / MIME_LINE_LENGTH + 1 + 6;
 
   SAFE_ALLOCA (encoded, char *, allength);
-  encoded_length = base64_encode_1 (BYTE_POS_ADDR (ibeg), encoded, length,
-				    NILP (no_line_break),
+  encoded_length = base64_encode_1 ((char *) BYTE_POS_ADDR (ibeg),
+				    encoded, length, NILP (no_line_break),
 				    !NILP (current_buffer->enable_multibyte_characters));
   if (encoded_length > allength)
     abort ();
@@ -3075,7 +3075,7 @@ base64_encode_1 (const char *from, char *to, EMACS_INT length,
     {
       if (multibyte)
 	{
-	  c = STRING_CHAR_AND_LENGTH (from + i, bytes);
+	  c = STRING_CHAR_AND_LENGTH ((unsigned char *) from + i, bytes);
 	  if (CHAR_BYTE8_P (c))
 	    c = CHAR_TO_BYTE8 (c);
 	  else if (c >= 256)
@@ -3115,7 +3115,7 @@ base64_encode_1 (const char *from, char *to, EMACS_INT length,
 
       if (multibyte)
 	{
-	  c = STRING_CHAR_AND_LENGTH (from + i, bytes);
+	  c = STRING_CHAR_AND_LENGTH ((unsigned char *) from + i, bytes);
 	  if (CHAR_BYTE8_P (c))
 	    c = CHAR_TO_BYTE8 (c);
 	  else if (c >= 256)
@@ -3139,7 +3139,7 @@ base64_encode_1 (const char *from, char *to, EMACS_INT length,
 
       if (multibyte)
 	{
-	  c = STRING_CHAR_AND_LENGTH (from + i, bytes);
+	  c = STRING_CHAR_AND_LENGTH ((unsigned char *) from + i, bytes);
 	  if (CHAR_BYTE8_P (c))
 	    c = CHAR_TO_BYTE8 (c);
 	  else if (c >= 256)
@@ -3186,7 +3186,8 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
   SAFE_ALLOCA (decoded, char *, allength);
 
   move_gap_both (XFASTINT (beg), ibeg);
-  decoded_length = base64_decode_1 (BYTE_POS_ADDR (ibeg), decoded, length,
+  decoded_length = base64_decode_1 ((char *) BYTE_POS_ADDR (ibeg),
+				    decoded, length,
 				    multibyte, &inserted_chars);
   if (decoded_length > allength)
     abort ();
@@ -4569,7 +4570,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
   (Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror)
 {
   unsigned char digest[16];
-  unsigned char value[33];
+  char value[33];
   int i;
   EMACS_INT size;
   EMACS_INT size_byte = 0;

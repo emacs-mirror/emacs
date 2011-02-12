@@ -1,3 +1,267 @@
+2011-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (really-lwlib): Depend on globals.h, for parallel builds.
+
+2011-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (GLOBAL_SOURCES, SOME_MACHINE_OBJECTS, obj):
+	New macros.
+	(globals.h, gl-stamp): New targets.
+	(clean): Clean gl-stamp and globals.h.
+
+2011-02-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (gl-stamp): Create globals.h here.
+	(globals.h): Don't do it here.
+	(mostlyclean): Clean globals.h and gl-stamp.
+
+2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in ($(otherobj)): Depend on globals.h.
+	Otherwise 'make -j10' failed on my host, because the build lacked
+	necessary dependencies, e.g., vm-limit.o depends on globals.h.
+
+2011-02-08  Tom Tromey  <tromey@redhat.com>
+
+	* Makefile.in (NS_OBJC_OBJ): New variable.
+	(base_obj): Rename from 'obj'.
+	(obj): New variable.
+	(globals.h, gl-stamp, $(obj)): New targets.
+	(GLOBAL_SOURCES): New variable.
+	* globals.h: Remove.
+	* nsselect.m (Vselection_alist): Define.  Reverts part of
+	r102904.
+	* buffer.c: Don't use "no_cell" for name of kill-buffer-hook's
+	variable.
+	* xselect.c (Vselection_alist): Define.  Reverts part of r102908.
+
+2011-02-08  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Ffont_get): Do not cache :otf value.
+
+2011-02-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	conform to C89 pointer rules
+
+	* dired.c (scmp, file_name_completion):
+	Change types between char * and unsigned char *, to satisfy C89
+	rules about pointer type compatibility.
+	* casefiddle.c (casify_object, casify_region): Likewise.
+	* search.c (Freplace_match, Fregexp_quote): Likewise.
+	* alloc.c (make_string, make_specified_string, make_pure_string):
+	Likewise.
+	* data.c (Fstring_to_number): Likewise.
+	* print.c (float_to_string, PRINTFINISH, printchar, strout):
+	(print_object): Likewise.
+	* editfns.c (init_editfns, Fchar_to_string, Fbyte_to_string):
+	(Fuser_full_name, Fsubst_char_in_region, Ftranslate_region_internal):
+	(Fformat): Likewise.
+	* callint.c (Fcall_interactively): Likewise.
+	* fns.c (string_make_multibyte, string_to_multibyte):
+	(string_make_unibyte, Fstring_as_unibyte, Fstring_to_unibyte):
+	(Fbase64_encode_region, base64_encode_1, Fbase64_decode_region, Fmd5):
+	Likewise.
+	* lread.c (read1, hash_string): Likewise.
+	* process.c (read_process_output, send_process, Fprocess_send_region):
+	Likewise.
+	* callproc.c (Fcall_process): Likewise.
+	* doprnt.c (doprnt): Likewise.
+	* indent.c (compute_motion): Likewise.
+	* xfont.c (xfont_decode_coding_xlfd): Likewise.
+	* ralloc.c (resize_bloc): Likewise.
+	* image.c (tiff_load): Likewise.
+	* xml.c (make_dom, parse_region): Likewise.
+	* character.c (strwidth): Make its argument const char *, not const
+	unsigned char *, since more callers prefer it that way.  All callers
+	changed.
+
+2011-02-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xterm.c (x_alloc_nearest_color_1): Avoid unportable int assumption.
+	Emacs assumes two's complement elsewhere, but the assumption is
+	easy to remove here, and this suppresses a warning with Sun C 5.8.
+
+	conform to C89 pointer rules
+
+	* xterm.c (x_draw_fringe_bitmap, handle_one_xevent, x_bitmap_icon):
+	(same_x_server, x_term_init):
+	Change types between char * and unsigned char *, to satisfy C89
+	rules about pointer type compatibility.
+	* doc.c (get_doc_string, Fsnarf_documentation):
+	(Fsubstitute_command_keys): Likewise.
+	* xfns.c (Fx_open_connection, Fx_window_property): Likewise.
+	* bitmaps/gray.xbm (gray_bits): Likewise.
+	* image.c (xbm_read_bitmap_data, xbm_load_image, xbm_load): Likewise.
+	* keyboard.c (echo_char, MULTI_LETTER_MOD, tty_read_avail_input):
+	Likewise.
+	* keymap.c (Ftext_char_description): Likewise.
+	* minibuf.c (Fread_buffer): Likewise.
+	* fileio.c (IS_DRIVE) [defined WINDOWSNT]:
+	(DRIVE_LETTER) [defined DOS_NT]:
+	(report_file_error, Ffile_name_directory, Ffile_name_nondirectory):
+	(make_temp_name, Fexpand_file_name, file_name_absolute_p):
+	(search_embedded_absfilename, Fsubstitute_in_file_name):
+	(barf_or_query_if_file_exists, Fmake_directory_internal):
+	(Fdelete_directory_internal, Ffile_name_absolute_p, read_non_regular):
+	(Finsert_file_contents, Fwrite_region):
+	Likewise.
+	* insdel.c (insert, insert_and_inherit, insert_before_markers):
+	(insert_before_markers_and_inherit, insert_1, insert_1_both):
+	Likewise.  This changes these functions' signatures, which is
+	more convenient since most callers use char *.  All remaining
+	callers changed.
+	* editfns.c (general_insert_function): Change signature to
+	match changes to insert functions' signatures.
+	* keymap.c (map_keymap_char_table_item, map_keymap_internal): Use
+	explicit cast when converting between void * and function pointer
+	types, as C89 requires this.
+
+2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	don't ignore chdir failure
+	* sysdep.c (sys_subshell) [!defined DOS_NT]: Diagnose chdir
+	failure and exit.
+	(sys_subshell) [defined DOS_NT]: Mark with a FIXME the two
+	remaining unchecked chdir calls in this function; some DOS/NT
+	expert needs to fix them.
+	* emacs.c (main): Mark with a FIXME the unchecked chdir calls
+	in this function; some NextStep expert needs to fix them.
+
+2011-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute):
+	Try to clarify some error messages.  (Bug#2659)
+
+2011-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (save_restriction_restore): Don't forget to invalidate the
+	current_column cache (bug#7946).
+
+2011-02-05  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_open): Use FC_DUAL only when it is defined.
+
+	* xftfont.c (xftfont_open): Likewise.
+
+2011-02-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* window.c (Fselect_window): Add missing return value.
+
+2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	xstrcasecmp: conform to C89 pointer rules
+	* xfaces.c (xstrcasecmp): Change args from const unsigned char *
+	to const char *, since they're usually low-level C strings, and
+	this stays compatible with C89 pointer rules.  All callers changed.
+
+	* charset.c: conform to C89 pointer rules
+	(define_charset_internal): Switch between char * and unsigned char *.
+
+	* xmenu.c: conform to C89 const rules
+	(xmenu_show, xdialog_show): Declare local var as char *, not
+	const char *, to stay compatible with C89 const rules.
+
+	* xdisp.c: conform to C89 pointer rules
+	(store_mode_line_noprop, display_string, reseat_to_string):
+	(c_string_pos, number_of_chars, message_dolog):
+	(message_log_check_duplicate, set_message_1, store_mode_line_noprop):
+	(display_mode_element, display_string):
+	Switch between char * and unsigned char * to stay compatible wth
+	C89 pointer rules.
+
+	* regex.c: conform to C89 pointer rules
+	(re_wctype): Add cast, as C89 does not allow assigning between
+	char * and unsigned char *.
+	(regex_compile): Likewise.
+
+	sync from gnulib to remove HAVE_STDBOOL_H
+	* config.in: Regenerate.
+
+2011-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (LISP_H, PROCESS_H): New variables.
+	Replace all uses of lisp.h with $(LISP_H), and all uses of
+	process.h with $(PROCESS_H).
+	($(BLD)/editfns.$(O)): Depend on ../lib/strftime.h.
+	($(BLD)/print.$(O)): Depend on ../lib/ftoastr.h and ../lib/intprops.h.
+
+	* deps.mk: Update for recent changes: gnutls support, gnulib
+	imports, addition of globals.h.
+
+	* makefile.w32-in ($(BLD)/sysdep.$(O)): Depend on
+	../lib/ignore-value.h.
+
+2011-02-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	allow C code to suppress warnings about ignored return values
+
+	We need to go through the code and for each such warning, either
+	fix the code to pay attention to the returned value, or tell GCC
+	that we really do want to ignore the returned value.  Here is one
+	example of how to do the latter.
+	* sysdep.c: Include <ignore-value.h>.
+	(sys_subshell): Suppress an undesirable warning about not checking
+	the returned value of 'write', as there's nothing useful one can
+	do with that returned value.
+
+2011-02-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_connection_closed): Remove all calls that calls
+	XSync (Bug#7949).
+
+2011-02-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (tiff_load): Avoid compiler warning in 2nd arg to
+	TIFFClientOpen.
+
+2011-02-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c (ice_connection_closed): Call delete_read_fd.
+	(x_session_check_input): Change args and return type so it can be used
+	as argument to add_read_fd.  Make static.  Remove call to select.
+	Call kbd_buffer_store_event for emacs_event.
+	(smc_save_yourself_CB): Also store initial argv to SmRestartCommand.
+	(ice_conn_watch_CB): Call add_read_fd.
+
+	* xterm.c (XTread_socket): Remove HAVE_X_SM block with call to
+	x_session_check_input.
+	(x_session_initialized): Remove definition.
+	(x_initialize): Remove setting of x_session_initialized.
+
+	* xterm.h (x_session_check_input): Remove declaration.
+
+2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	format-time-string now supports subsecond time stamp resolution
+	* editfns.c (emacs_nmemftime): Renamed from emacs_memftimeu,
+	for consistency with its new argument and with gnulib nstrftime.
+	All callers changed.  New argument NS.
+	(Fformat_time_string): Check that the time argument's microseconds
+	component, if any, is in range; this avoids integer overflow and
+	also nstrftime needs this.  Document %N.
+
+2011-01-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (DEF_IMGLIB_FN): Add parameter rettype, use it instead
+	of int.  All uses adjusted.
+	(PNG_JMPBUF, png_load, jpeg_load, tiff_load, gif_load)
+	(svg_load_image): Remove casts.
+
+2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (fn_png_longjmp, fn_png_set_longjmp_fn): New png
+	function definitions for compiling with libpng-1.5.
+	(PNG_LONGJMP, PNG_JMPBUF): New macros for libpng-1.5.
+	(my_png_error, png_load): Use them.  Suggested by Thomas Klausner
+	(Bug#7908).
+
+2011-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (HAVE_STRFTIME): Don't define.
+
+	* makefile.w32-in (OBJ2): Remove strftime.$(O).
+	($(BLD)/strftime.$(O)): Remove prerequisites.
+
 2011-01-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	src/emacs.c now gets version number from configure.in

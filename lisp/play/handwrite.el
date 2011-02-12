@@ -80,8 +80,24 @@
 
 (defvar handwrite-psindex 0
   "The index of the PostScript buffer.")
-(defvar menu-bar-handwrite-map (make-sparse-keymap "Handwrite functions."))
-(fset 'menu-bar-handwrite-map (symbol-value 'menu-bar-handwrite-map))
+(defvar menu-bar-handwrite-map
+  (let ((map (make-sparse-keymap "Handwrite functions.")))
+    (define-key map [numbering]
+      '(menu-item "Page numbering" handwrite-set-pagenumber
+        :button (:toggle . handwrite-pagenumbering)))
+    (define-key map [handwrite-separator2] '("----" . nil))
+    (define-key map [10pt] '(menu-item "10 pt" handwrite-10pt
+                             :button (:radio . (eq handwrite-fontsize 10))))
+    (define-key map [11pt] '(menu-item "11 pt" handwrite-11pt
+                             :button (:radio . (eq handwrite-fontsize 11))))
+    (define-key map [12pt] '(menu-item "12 pt" handwrite-12pt
+                             :button (:radio . (eq handwrite-fontsize 12))))
+    (define-key map [13pt] '(menu-item "13 pt" handwrite-13pt
+                             :button (:radio . (eq handwrite-fontsize 13))))
+    (define-key map [handwrite-separator1] '("----" . nil))
+    (define-key map [handwrite] '("Write by hand" . handwrite))
+    map))
+(fset 'menu-bar-handwrite-map menu-bar-handwrite-map)
 
 
 ;; User definable variables
@@ -135,10 +151,10 @@
 The functions `handwrite-10pt', `handwrite-11pt', `handwrite-12pt'
 and `handwrite-13pt' set up for various sizes of output.
 
-Variables: handwrite-linespace     (default 12)
-           handwrite-fontsize      (default 11)
-           handwrite-numlines      (default 60)
-           handwrite-pagenumbering (default nil)"
+Variables: `handwrite-linespace'     (default 12)
+           `handwrite-fontsize'      (default 11)
+           `handwrite-numlines'      (default 60)
+           `handwrite-pagenumbering' (default nil)"
   (interactive)
   (let
       ((pmin)				; thanks, Havard
@@ -258,7 +274,8 @@ Variables: handwrite-linespace     (default 12)
   "Toggle the value of `handwrite-pagenumbering'."
   (interactive)
   (if handwrite-pagenumbering
-      (handwrite-set-pagenumber-off)(handwrite-set-pagenumber-on)))
+      (handwrite-set-pagenumber-off)
+    (handwrite-set-pagenumber-on)))
 
 (defun handwrite-10pt ()
   "Specify 10-point output for `handwrite.
@@ -268,14 +285,6 @@ values for `handwrite-linespace' and `handwrite-numlines'."
   (setq handwrite-fontsize 10)
   (setq handwrite-linespace 11)
   (setq handwrite-numlines handwrite-10pt-numlines)
-  (define-key menu-bar-handwrite-map [10pt]
-    '("10 pt *" . handwrite-10pt))
-  (define-key menu-bar-handwrite-map [11pt]
-    '("11 pt" . handwrite-11pt))
-  (define-key menu-bar-handwrite-map [12pt]
-    '("12 pt" . handwrite-12pt))
-  (define-key menu-bar-handwrite-map [13pt]
-    '("13 pt" . handwrite-13pt))
   (message "Handwrite output size set to 10 points"))
 
 
@@ -287,14 +296,6 @@ values for `handwrite-linespace' and `handwrite-numlines'."
   (setq handwrite-fontsize 11)
   (setq handwrite-linespace 12)
   (setq handwrite-numlines handwrite-11pt-numlines)
-  (define-key menu-bar-handwrite-map [10pt]
-    '("10 pt" . handwrite-10pt))
-  (define-key menu-bar-handwrite-map [11pt]
-    '("11 pt *" . handwrite-11pt))
-  (define-key menu-bar-handwrite-map [12pt]
-    '("12 pt" . handwrite-12pt))
-  (define-key menu-bar-handwrite-map [13pt]
-    '("13 pt" . handwrite-13pt))
   (message "Handwrite output size set to 11 points"))
 
 (defun handwrite-12pt ()
@@ -305,14 +306,6 @@ values for `handwrite-linespace' and `handwrite-numlines'."
   (setq handwrite-fontsize 12)
   (setq handwrite-linespace 13)
   (setq handwrite-numlines handwrite-12pt-numlines)
-  (define-key menu-bar-handwrite-map [10pt]
-    '("10 pt" . handwrite-10pt))
-  (define-key menu-bar-handwrite-map [11pt]
-    '("11 pt" . handwrite-11pt))
-  (define-key menu-bar-handwrite-map [12pt]
-    '("12 pt *" . handwrite-12pt))
-  (define-key menu-bar-handwrite-map [13pt]
-    '("13 pt" . handwrite-13pt))
   (message "Handwrite output size set to 12 points"))
 
 (defun handwrite-13pt ()
@@ -323,14 +316,6 @@ values for `handwrite-linespace' and `handwrite-numlines'."
   (setq handwrite-fontsize 13)
   (setq handwrite-linespace 14)
   (setq handwrite-numlines handwrite-13pt-numlines)
-  (define-key menu-bar-handwrite-map [10pt]
-    '("10 pt" . handwrite-10pt))
-  (define-key menu-bar-handwrite-map [11pt]
-    '("11 pt" . handwrite-11pt))
-  (define-key menu-bar-handwrite-map [12pt]
-    '("12 pt" . handwrite-12pt))
-  (define-key menu-bar-handwrite-map [13pt]
-    '("13 pt *" . handwrite-13pt))
   (message "Handwrite output size set to 13 points"))
 
 
@@ -1263,61 +1248,23 @@ end
 ;;Sets page numbering off
 (defun handwrite-set-pagenumber-off ()
   (setq handwrite-pagenumbering nil)
-  (define-key menu-bar-handwrite-map
-    [numbering]
-    '("Page numbering Off" . handwrite-set-pagenumber))
   (message "page numbering off"))
 
 ;;Sets page numbering on
 (defun handwrite-set-pagenumber-on ()
   (setq handwrite-pagenumbering t)
-  (define-key menu-bar-handwrite-map
-    [numbering]
-    '("Page numbering On" . handwrite-set-pagenumber))
   (message "page numbering on" ))
 
 
 ;; Key bindings
 
-
-;;; I'd rather not fill up the menu bar menus with
-;;; lots of random miscellaneous features. -- rms.
+;; I'd rather not fill up the menu bar menus with
+;; lots of random miscellaneous features. -- rms.
 ;;;(define-key-after
 ;;;  (lookup-key global-map [menu-bar edit])
 ;;;  [handwrite]
 ;;;  '("Write by hand" . menu-bar-handwrite-map)
 ;;;  'spell)
-
-(define-key menu-bar-handwrite-map [numbering]
-  '("Page numbering Off" . handwrite-set-pagenumber))
-
-(define-key menu-bar-handwrite-map [10pt]
-  '("10 pt" . handwrite-10pt))
-
-(define-key menu-bar-handwrite-map [11pt]
-  '("11 pt *" . handwrite-11pt))
-
-(define-key menu-bar-handwrite-map [12pt]
-  '("12 pt" . handwrite-12pt))
-
-(define-key menu-bar-handwrite-map [13pt]
-  '("13 pt" . handwrite-13pt))
-
-(define-key menu-bar-handwrite-map [handwrite]
-  '("Write by hand" . handwrite))
-
-(define-key-after
-  (lookup-key menu-bar-handwrite-map [ ])
-  [handwrite-separator1]
-  '("----" . nil)
-  'handwrite)
-
-(define-key-after
-  (lookup-key menu-bar-handwrite-map [ ])
-  [handwrite-separator2]
-  '("----" . nil)
-  '10pt)
-
 
 (provide 'handwrite)
 

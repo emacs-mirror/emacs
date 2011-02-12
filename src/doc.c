@@ -261,7 +261,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
      the same way we would read bytes from a file.  */
   if (definition)
     {
-      read_bytecode_pointer = get_doc_string_buffer + offset;
+      read_bytecode_pointer = (unsigned char *) get_doc_string_buffer + offset;
       return Fread (Qlambda);
     }
 
@@ -271,8 +271,10 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
   else
     {
       /* The data determines whether the string is multibyte.  */
-      EMACS_INT nchars = multibyte_chars_in_text (get_doc_string_buffer + offset,
-						  to - (get_doc_string_buffer + offset));
+      EMACS_INT nchars =
+	multibyte_chars_in_text (((unsigned char *) get_doc_string_buffer
+				  + offset),
+				 to - (get_doc_string_buffer + offset));
       return make_string_from_bytes (get_doc_string_buffer + offset,
 				     nchars,
 				     to - (get_doc_string_buffer + offset));
@@ -640,7 +642,8 @@ the same file name is found in the `doc-directory'.  */)
             }
 
 	  sym = oblookup (Vobarray, p + 2,
-			  multibyte_chars_in_text (p + 2, end - p - 2),
+			  multibyte_chars_in_text ((unsigned char *) p + 2,
+						   end - p - 2),
 			  end - p - 2);
 	  /* Check skip_file so that when a function is defined several
 	     times in different files (typically, once in xterm, once in
@@ -695,10 +698,10 @@ Returns original STRING if no substitutions were made.  Otherwise,
 a new string, without any text properties, is returned.  */)
   (Lisp_Object string)
 {
-  unsigned char *buf;
+  char *buf;
   int changed = 0;
   register unsigned char *strp;
-  register unsigned char *bufp;
+  register char *bufp;
   EMACS_INT idx;
   EMACS_INT bsize;
   Lisp_Object tem;
@@ -731,7 +734,7 @@ a new string, without any text properties, is returned.  */)
     keymap = Voverriding_local_map;
 
   bsize = SBYTES (string);
-  bufp = buf = (unsigned char *) xmalloc (bsize);
+  bufp = buf = (char *) xmalloc (bsize);
 
   strp = SDATA (string);
   while (strp < SDATA (string) + SBYTES (string))
@@ -778,7 +781,7 @@ a new string, without any text properties, is returned.  */)
 
 	  /* Save STRP in IDX.  */
 	  idx = strp - SDATA (string);
-	  name = Fintern (make_string (start, length_byte), Qnil);
+	  name = Fintern (make_string ((char *) start, length_byte), Qnil);
 
 	do_remap:
 	  tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qnil);
@@ -800,7 +803,7 @@ a new string, without any text properties, is returned.  */)
 	  if (NILP (tem))	/* but not on any keys */
 	    {
 	      EMACS_INT offset = bufp - buf;
-	      buf = (unsigned char *) xrealloc (buf, bsize += 4);
+	      buf = (char *) xrealloc (buf, bsize += 4);
 	      bufp = buf + offset;
 	      memcpy (bufp, "M-x ", 4);
 	      bufp += 4;
@@ -845,7 +848,7 @@ a new string, without any text properties, is returned.  */)
 	  /* Get the value of the keymap in TEM, or nil if undefined.
 	     Do this while still in the user's current buffer
 	     in case it is a local variable.  */
-	  name = Fintern (make_string (start, length_byte), Qnil);
+	  name = Fintern (make_string ((char *) start, length_byte), Qnil);
 	  tem = Fboundp (name);
 	  if (! NILP (tem))
 	    {
@@ -894,7 +897,7 @@ a new string, without any text properties, is returned.  */)
 	subst:
 	  {
 	    EMACS_INT offset = bufp - buf;
-	    buf = (unsigned char *) xrealloc (buf, bsize += length_byte);
+	    buf = (char *) xrealloc (buf, bsize += length_byte);
 	    bufp = buf + offset;
 	    memcpy (bufp, start, length_byte);
 	    bufp += length_byte;

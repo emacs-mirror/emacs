@@ -1567,7 +1567,7 @@ If EXPR is nil, return nil."
         (list '^ (math-extract-logunits (nth 1 expr)) (nth 2 expr))
       (if (member expr math-logunits) expr 1))))
 
-(defun math-logcombine (a b neg)
+(defun math-logunits-add (a b neg power)
   (let ((aunit (math-simplify (math-extract-logunits a))))
     (if (not (eq (car-safe aunit) 'var))
         (calc-record-why "*Improper logarithmic unit" aunit)
@@ -1583,93 +1583,263 @@ If EXPR is nil, return nil."
               (calc-record-why "*Improper coefficients" nil)
             (math-mul 
              (if (equal aunit '(var dB var-dB))
-                 (math-mul 10
-                           (calcFunc-log10
-                            (if neg
-                                (math-sub
-                                 (math-pow 10 (math-div acoeff 10))
-                                 (math-pow 10 (math-div bcoeff 10)))
-                              (math-add
-                               (math-pow 10 (math-div acoeff 10))
-                               (math-pow 10 (math-div bcoeff 10))))))
-               (calcFunc-ln
-                (if neg
-                    (math-sub
-                     (calcFunc-exp acoeff)
-                     (calcFunc-exp bcoeff))
-                  (math-add
-                   (calcFunc-exp acoeff)
-                   (calcFunc-exp bcoeff)))))
+                 (let ((coef (if power 10 20)))
+                   (math-mul coef
+                             (calcFunc-log10
+                              (if neg
+                                  (math-sub
+                                   (math-pow 10 (math-div acoeff coef))
+                                   (math-pow 10 (math-div bcoeff coef)))
+                                (math-add
+                                 (math-pow 10 (math-div acoeff coef))
+                                 (math-pow 10 (math-div bcoeff coef)))))))
+               (let ((coef (if power 2 1)))
+                 (math-div
+                  (calcFunc-ln
+                   (if neg
+                       (math-sub
+                        (calcFunc-exp (math-mul coef acoeff))
+                        (calcFunc-exp (math-mul coef bcoeff)))
+                     (math-add
+                      (calcFunc-exp (math-mul coef acoeff))
+                      (calcFunc-exp (math-mul coef bcoeff)))))
+                  coef)))
              units)))))))
 
-(defun calcFunc-luplus (a b)
-  (math-logcombine a b nil))
+(defun calcFunc-lufieldplus (a b)
+  (math-logunits-add a b nil nil))
 
-(defun calcFunc-luminus (a b)
-  (math-logcombine a b t))
+(defun calcFunc-lupowerplus (a b)
+  (math-logunits-add a b nil t))
 
-(defun calc-luplus (arg)
+(defun calcFunc-lufieldminus (a b)
+  (math-logunits-add a b t nil))
+
+(defun calcFunc-lupowerminus (a b)
+  (math-logunits-add a b t t))
+
+(defun calc-logunits-add (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
-       (calc-binary-op "lu-" 'calcFunc-luminus arg)
-     (calc-binary-op "lu+" 'calcFunc-luplus arg))))
+       (if (calc-is-hyperbolic)
+           (calc-binary-op "lu-" 'calcFunc-lufieldminus arg)
+         (calc-binary-op "lu-" 'calcFunc-lupowerminus arg))
+     (if (calc-is-hyperbolic)
+         (calc-binary-op "lu+" 'calcFunc-lufieldplus arg)
+       (calc-binary-op "lu+" 'calcFunc-lupowerplus arg)))))
 
-(defun calc-luminus (arg)
+(defun calc-logunits-sub (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
-       (calc-binary-op "lu+" 'calcFunc-luplus arg)
-     (calc-binary-op "lu-" 'calcFunc-luminus arg))))
+       (if (calc-is-hyperbolic)
+           (calc-binary-op "lu+" 'calcFunc-lufieldplus arg)
+         (calc-binary-op "lu+" 'calcFunc-lupowerplus arg))
+     (if (calc-is-hyperbolic)
+         (calc-binary-op "lu-" 'calcFunc-lufieldminus arg)
+       (calc-binary-op "lu-" 'calcFunc-lupowerminus arg)))))
 
-;(defun calcFunc-lmul (a b)
+(defun math-logunits-mul (a b power)
+  (let (logunit coef units number)
+    (cond
+     ((and
+       (setq logunit (math-simplify (math-extract-logunits a)))
+       (eq (car-safe logunit) 'var)
+       (eq (math-simplify (math-extract-units b)) 1))
+      (setq coef (math-simplify (math-remove-units a))
+            units (math-extract-units a)
+            number b))
+     ((and
+       (setq logunit (math-simplify (math-extract-logunits b)))
+       (eq (car-safe logunit) 'var)
+       (eq (math-simplify (math-extract-units a)) 1))
+      (setq coef (math-simplify (math-remove-units b))
+            units (math-extract-units b)
+            number a))
+     (t (setq logunit nil)))
+    (if logunit
+        (cond
+         ((equal logunit '(var dB var-dB))
+          (math-simplify
+           (math-mul
+            (math-add
+             coef 
+             (math-mul (if power 10 20)
+                       (calcFunc-log10 number)))
+            units)))
+         (t
+          (math-simplify
+           (math-mul
+            (math-add
+             coef 
+             (math-div (calcFunc-ln number) (if power 2 1)))
+            units))))
+      (calc-record-why "*Improper units" nil))))
 
+(defun math-logunits-divide (a b power)
+  (let ((logunit (math-simplify (math-extract-logunits a))))
+    (if (not (eq (car-safe logunit) 'var))
+        (calc-record-why "*Improper logarithmic unit" logunit)
+      (if (math-units-in-expr-p b nil)
+          (calc-record-why "*Improper units quantity" b)
+        (let* ((units (math-extract-units a))
+               (coef (math-simplify (math-remove-units a))))
+          (cond
+           ((equal logunit '(var dB var-dB))
+            (math-simplify
+             (math-mul
+              (math-sub
+               coef 
+               (math-mul (if power 10 20)
+                         (calcFunc-log10 b)))
+              units)))
+         (t
+          (math-simplify
+           (math-mul
+            (math-sub
+             coef 
+             (math-div (calcFunc-ln b) (if power 2 1)))
+            units)))))))))
 
-(defun math-logunit-level (val ref power)
-  (let ((lunit (math-simplify (math-extract-logunits val))))
+(defun calcFunc-lufieldtimes (a b)
+  (math-logunits-mul a b nil))
+
+(defun calcFunc-lupowertimes (a b)
+  (math-logunits-mul a b t))
+
+(defun calc-logunits-mul (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-inverse)
+       (if (calc-is-hyperbolic)
+           (calc-binary-op "lu/" 'calcFunc-lufielddiv arg)
+         (calc-binary-op "lu/" 'calcFunc-lupowerdiv arg))
+     (if (calc-is-hyperbolic)
+         (calc-binary-op "lu*" 'calcFunc-lufieldtimes arg)
+       (calc-binary-op "lu*" 'calcFunc-lupowertimes arg)))))
+
+(defun calcFunc-lufielddiv (a b)
+  (math-logunits-divide a b nil))
+
+(defun calcFunc-lupowerdiv (a b)
+  (math-logunits-divide a b t))
+
+(defun calc-logunits-divide (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-inverse)
+       (if (calc-is-hyperbolic)
+           (calc-binary-op "lu*" 'calcFunc-lufieldtimes arg)
+         (calc-binary-op "lu*" 'calcFunc-lupowertimes arg))
+     (if (calc-is-hyperbolic)
+         (calc-binary-op "lu/" 'calcFunc-lufielddiv arg)
+       (calc-binary-op "lu/" 'calcFunc-lupowerdiv arg)))))
+
+(defun math-logunits-quant (val ref power)
+  (let* ((units (math-simplify (math-extract-units val)))
+         (lunit (math-simplify (math-extract-logunits units))))
     (if (not (eq (car-safe lunit) 'var))
         (calc-record-why "*Improper logarithmic unit" lunit)
-      (if (not (eq 1 (math-simplify (math-extract-units (math-div val lunit)))))
-          (calc-record-why "*Inappropriate units" nil)
-        (let ((coeff (math-simplify (math-div val lunit))))
-          (if (equal lunit '(var dB var-dB))
-              (math-mul 
-               ref
-               (math-pow 
-                10
-                (math-div
-                 coeff
-                 (if power 10 20))))
-            (math-mul 
-             ref
-             (calcFunc-exp
-              (if power 
-                  (math-mul 2 coeff)
-                coeff)))))))))
+      (let ((runits (math-simplify (math-div units lunit)))
+            (coeff (math-simplify (math-div val units))))
+        (math-mul
+         (if (equal lunit '(var dB var-dB))
+             (math-mul 
+              ref
+              (math-pow 
+               10
+               (math-div
+                coeff
+                (if power 10 20))))
+           (math-mul 
+            ref
+            (calcFunc-exp
+             (if power 
+                 (math-mul 2 coeff)
+               coeff))))
+         runits)))))
 
-(defvar calc-default-field-reference-level)
-(defvar calc-default-power-reference-level)
+(defvar calc-logunits-field-reference)
+(defvar calc-logunits-power-reference)
 
-(defun calcFunc-fieldlevel (val &optional ref)
+(defun calcFunc-fieldquant (val &optional ref)
   (unless ref
-    (setq ref (math-read-expr calc-default-field-reference-level)))
-  (math-logunit-level val ref nil))
+    (setq ref (math-read-expr calc-logunits-field-reference)))
+  (math-logunits-quant val ref nil))
 
-(defun calcFunc-powerlevel (val &optional ref)
+(defun calcFunc-powerquant (val &optional ref)
   (unless ref
-    (setq ref (math-read-expr calc-default-power-reference-level)))
-  (math-logunit-level val ref t))
+    (setq ref (math-read-expr calc-logunits-power-reference)))
+  (math-logunits-quant val ref t))
 
-(defun calc-level (arg)
+(defun calc-logunits-quantity (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (if (calc-is-option)
-           (calc-binary-op "plvl" 'calcFunc-powerlevel arg)
-         (calc-unary-op "plvl" 'calcFunc-powerlevel arg))
+           (calc-binary-op "lupq" 'calcFunc-fieldquant arg)
+         (calc-unary-op "lupq" 'calcFunc-fieldquant arg))
      (if (calc-is-option)
-         (calc-binary-op "flvl" 'calcFunc-fieldlevel arg)
-       (calc-unary-op "flvl" 'calcFunc-fieldlevel arg)))))
+         (calc-binary-op "lufq" 'calcFunc-powerquant arg)
+       (calc-unary-op "lufq" 'calcFunc-powerquant arg)))))
+
+(defun math-logunits-level (val ref db power)
+  "Compute the value of VAL in decibels or nepers."
+      (let* ((ratio (math-simplify-units (math-div val ref)))
+             (units (math-simplify (math-extract-units ratio))))
+        (math-mul
+         (if db
+             (math-mul
+              (math-mul (if power 10 20)
+                        (calcFunc-log10 ratio))
+              '(var dB var-dB))
+           (math-mul
+            (math-div (calcFunc-ln ratio) (if power 2 1))
+            '(var Np var-Np)))
+         units)))
+
+(defun calcFunc-dbfieldlevel (val &optional ref)
+  (unless ref
+    (setq ref (math-read-expr calc-logunits-field-reference)))
+  (math-logunits-level val ref t nil))
+
+(defun calcFunc-dbpowerlevel (val &optional ref)
+  (unless ref
+    (setq ref (math-read-expr calc-logunits-power-reference)))
+  (math-logunits-level val ref t t))
+
+(defun calcFunc-npfieldlevel (val &optional ref)
+  (unless ref
+    (setq ref (math-read-expr calc-logunits-field-reference)))
+  (math-logunits-level val ref nil nil))
+
+(defun calcFunc-nppowerlevel (val &optional ref)
+  (unless ref
+    (setq ref (math-read-expr calc-logunits-power-reference)))
+  (math-logunits-level val ref nil t))
+
+(defun calc-logunits-dblevel (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-hyperbolic)
+       (if (calc-is-option)
+           (calc-binary-op "ludb" 'calcFunc-dbfieldlevel arg)
+         (calc-unary-op "ludb" 'calcFunc-dbfieldlevel arg))
+     (if (calc-is-option)
+         (calc-binary-op "ludb" 'calcFunc-dbpowerlevel arg)
+       (calc-unary-op "ludb" 'calcFunc-dbpowerlevel arg)))))
+
+(defun calc-logunits-nplevel (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-hyperbolic)
+       (if (calc-is-option)
+           (calc-binary-op "lunp" 'calcFunc-npfieldlevel arg)
+         (calc-unary-op "lunp" 'calcFunc-npfieldlevel arg))
+     (if (calc-is-option)
+         (calc-binary-op "lunp" 'calcFunc-nppowerlevel arg)
+       (calc-unary-op "lunp" 'calcFunc-nppowerlevel arg)))))
 
 (provide 'calc-units)
 

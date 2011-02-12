@@ -142,7 +142,7 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	  o += CHAR_STRING (c, o);
 	}
       eassert (o - dst <= o_size);
-      obj = make_multibyte_string (dst, size, o - dst);
+      obj = make_multibyte_string ((char *) dst, size, o - dst);
       SAFE_FREE ();
       return obj;
     }
@@ -279,7 +279,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 		     keeping text properties the same.  */
 		  replace_range_2 (start, start_byte,
 				   start + 1, start_byte + len,
-				   str, 1, tolen,
+				   (char *) str, 1, tolen,
 				   0);
 		  len = tolen;
 		}
@@ -442,4 +442,3 @@ keys_of_casefiddle (void)
   initial_define_key (meta_map, 'l', "downcase-word");
   initial_define_key (meta_map, 'c', "capitalize-word");
 }
-

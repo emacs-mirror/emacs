@@ -122,7 +122,6 @@ are as follows, and suppress messages about the indicated features:
   ;; FIXME I don't see why they shouldn't just get doc-strings.
   '(vc-mode local-write-file-hooks activate-menubar-hook buffer-name-history
 	    coding-system-history extended-command-history
-	    kbd-macro-termination-hook read-expression-history
 	    yes-or-no-p-history)
   "Standard variables, excluding `elint-builtin-variables'.
 These are variables that we cannot detect automatically for some reason.")

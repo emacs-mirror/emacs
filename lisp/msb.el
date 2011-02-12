@@ -399,8 +399,6 @@ Optional second argument MAXBUF is completely ignored."
     (format "%s%s %s" modified read-only name)))
 
 
-(eval-when-compile (require 'dired))
-
 ;; `dired' can be called with a list of the form (directory file1 file2 ...)
 ;; which causes `dired-directory' to be in the same form.
 (defun msb--dired-directory ()
@@ -1114,7 +1112,8 @@ variable `msb-menu-cond'."
 		     (list (frame-parameter frame 'name)
 			   (frame-parameter frame 'name)
 			   (cons nil nil))
-		     'menu-bar-select-frame))
+                     `(lambda ()
+                        (interactive) (menu-bar-select-frame ,frame))))
 		  frames)))))
       (setcdr global-buffers-menu-map
 	      (if (and buffers-menu frames-menu)

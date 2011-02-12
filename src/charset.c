@@ -1253,12 +1253,13 @@ usage: (define-charset-internal ...)  */)
 static int
 define_charset_internal (Lisp_Object name,
 			 int dimension,
-			 const unsigned char *code_space,
+			 const char *code_space_chars,
 			 unsigned min_code, unsigned max_code,
 			 int iso_final, int iso_revision, int emacs_mule_id,
 			 int ascii_compatible, int supplementary,
 			 int code_offset)
 {
+  const unsigned char *code_space = (const unsigned char *) code_space_chars;
   Lisp_Object args[charset_arg_max];
   Lisp_Object plist[14];
   Lisp_Object val;

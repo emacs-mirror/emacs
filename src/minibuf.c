@@ -1092,7 +1092,7 @@ function, instead of the usual behavior.  */)
   (Lisp_Object prompt, Lisp_Object def, Lisp_Object require_match)
 {
   Lisp_Object args[4], result;
-  unsigned char *s;
+  char *s;
   int len;
   int count = SPECPDL_INDEX ();
 
@@ -1114,7 +1114,7 @@ function, instead of the usual behavior.  */)
 
 	  if (STRINGP (prompt))
 	    {
-	      s = SDATA (prompt);
+	      s = SSDATA (prompt);
 	      len = strlen (s);
 	      if (len >= 2 && s[len - 2] == ':' && s[len - 1] == ' ')
 		len = len - 2;

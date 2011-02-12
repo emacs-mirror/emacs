@@ -34,6 +34,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
   # Code from module gettext-h:
+  # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
   # Code from module mktime:
@@ -76,6 +77,8 @@ AC_DEFUN([gl_INIT],
   # Code from module gettext-h:
   AC_SUBST([LIBINTL])
   AC_SUBST([LTLIBINTL])
+  # Code from module ignore-value:
+  AC_REQUIRE([AC_C_INLINE])
   # Code from module include_next:
   # Code from module intprops:
   # Code from module mktime:
@@ -248,6 +251,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/getopt1.c
   lib/getopt_int.h
   lib/gettext.h
+  lib/ignore-value.h
   lib/intprops.h
   lib/mktime-internal.h
   lib/mktime.c

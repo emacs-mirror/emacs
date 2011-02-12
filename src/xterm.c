@@ -797,15 +797,15 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
 
   if (p->which)
     {
-      unsigned char *bits;
+      char *bits;
       Pixmap pixmap, clipmask = (Pixmap) 0;
       int depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
       XGCValues gcv;
 
       if (p->wd > 8)
-	bits = (unsigned char *)(p->bits + p->dh);
+	bits = (char *) (p->bits + p->dh);
       else
-	bits = (unsigned char *)p->bits + p->dh;
+	bits = (char *) p->bits + p->dh;
 
       /* Draw the bitmap.  I believe these small pixmaps can be cached
 	 by the server.  */
@@ -1706,7 +1706,7 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 	 a least-squares matching, which is what X uses for closest
 	 color matching with StaticColor visuals.  */
       int nearest, i;
-      unsigned long nearest_delta = ~0;
+      unsigned long nearest_delta = ~ (unsigned long) 0;
       int ncells;
       const XColor *cells = x_color_cells (dpy, &ncells);
 
@@ -6320,7 +6320,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
 
               coding_system = Vlocale_coding_system;
               nbytes = XmbLookupString (FRAME_XIC (f),
-                                        &event.xkey, copy_bufptr,
+                                        &event.xkey, (char *) copy_bufptr,
                                         copy_bufsiz, &keysym,
                                         &status_return);
               if (status_return == XBufferOverflow)
@@ -6328,7 +6328,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
                   copy_bufsiz = nbytes + 1;
                   copy_bufptr = (unsigned char *) alloca (copy_bufsiz);
                   nbytes = XmbLookupString (FRAME_XIC (f),
-                                            &event.xkey, copy_bufptr,
+                                            &event.xkey, (char *) copy_bufptr,
                                             copy_bufsiz, &keysym,
                                             &status_return);
                 }
@@ -6345,11 +6345,11 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
                 abort ();
             }
           else
-            nbytes = XLookupString (&event.xkey, copy_bufptr,
+            nbytes = XLookupString (&event.xkey, (char *) copy_bufptr,
                                     copy_bufsiz, &keysym,
                                     &compose_status);
 #else
-          nbytes = XLookupString (&event.xkey, copy_bufptr,
+          nbytes = XLookupString (&event.xkey, (char *) copy_bufptr,
                                   copy_bufsiz, &keysym,
                                   &compose_status);
 #endif
@@ -7036,23 +7036,6 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
 
   ++handling_signal;
 
-#ifdef HAVE_X_SM
-  /* Only check session manager input for the primary display. */
-  if (terminal->id == 1 && x_session_have_connection ())
-    {
-      struct input_event inev;
-      BLOCK_INPUT;
-      /* We don't need to EVENT_INIT (inev) here, as
-         x_session_check_input copies an entire input_event.  */
-      if (x_session_check_input (&inev))
-        {
-          kbd_buffer_store_event_hold (&inev, hold_quit);
-          count++;
-        }
-      UNBLOCK_INPUT;
-    }
-#endif
-
   /* For debugging, this gives a way to fake an I/O error.  */
   if (terminal->display_info.x == XTread_socket_fake_io_error)
     {
@@ -7462,7 +7445,7 @@ x_bitmap_icon (struct frame *f, Lisp_Object file)
 	  /* If all else fails, use the (black and white) xbm image. */
 	  if (rc == -1)
 	    {
-	      rc = x_create_bitmap_from_data (f, gnu_xbm_bits,
+	      rc = x_create_bitmap_from_data (f, (char *) gnu_xbm_bits,
 					      gnu_xbm_width, gnu_xbm_height);
 	      if (rc == -1)
 		return 1;
@@ -7711,12 +7694,6 @@ x_connection_closed (Display *dpy, const char *error_message)
   strcpy (error_msg, error_message);
   handling_signal = 0;
 
-  /* Prevent being called recursively because of an error condition
-     below.  Otherwise, we might end up with printing ``can't find per
-     display information'' in the recursive call instead of printing
-     the original message here.  */
-  x_catch_errors (dpy);
-
   /* Inhibit redisplay while frames are being deleted. */
   specbind (Qinhibit_redisplay, Qt);
 
@@ -7759,26 +7736,9 @@ x_connection_closed (Display *dpy, const char *error_message)
      first place, so don't try to close it.  */
   if (dpyinfo)
     {
-#ifdef USE_X_TOOLKIT
-      /* We have to close the display to inform Xt that it doesn't
-	 exist anymore.  If we don't, Xt will continue to wait for
-	 events from the display.  As a consequence, a sequence of
-
-	 M-x make-frame-on-display RET :1 RET
-	 ...kill the new frame, so that we get an IO error...
-	 M-x make-frame-on-display RET :1 RET
-
-	 will indefinitely wait in Xt for events for display `:1',
-	 opened in the first call to make-frame-on-display.
-
-	 Closing the display is reported to lead to a bus error on
-	 OpenWindows in certain situations.  I suspect that is a bug
-	 in OpenWindows.  I don't know how to circumvent it here.  */
-      fatal_error_signal_hook = x_fatal_error_signal;
-      XtCloseDisplay (dpy);
-      fatal_error_signal_hook = NULL;
-#endif /* USE_X_TOOLKIT */
-
+      /* We can not call XtCloseDisplay here because it calls XSync.
+         XSync inside the error handler apparently hangs Emacs.  On
+         current Xt versions, this isn't needed either.  */
 #ifdef USE_GTK
       /* A long-standing GTK bug prevents proper disconnect handling
 	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Once,
@@ -7808,8 +7768,6 @@ For details, see etc/PROBLEMS.\n",
 	Fdelete_terminal (tmp, Qnoelisp);
       }
     }
-
-  x_uncatch_errors ();
 
   if (terminal_list == 0)
     {
@@ -9750,17 +9708,13 @@ static int x_timeout_atimer_activated_flag;
 
 static int x_initialized;
 
-#ifdef HAVE_X_SM
-static int x_session_initialized;
-#endif
-
 /* Test whether two display-name strings agree up to the dot that separates
    the screen number from the server number.  */
 static int
 same_x_server (const char *name1, const char *name2)
 {
   int seen_colon = 0;
-  const unsigned char *system_name = SDATA (Vsystem_name);
+  const char *system_name = SSDATA (Vsystem_name);
   int system_name_length = strlen (system_name);
   int length_until_period = 0;
 
@@ -9874,7 +9828,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     }
 
   if (! x_display_ok (SSDATA (display_name)))
-    error ("Display %s can't be opened", SDATA (display_name));
+    error ("Display %s can't be opened", SSDATA (display_name));
 
 #ifdef USE_GTK
   {
@@ -9886,7 +9840,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
     if (x_initialized++ > 1)
       {
-        xg_display_open (SDATA (display_name), &dpy);
+        xg_display_open (SSDATA (display_name), &dpy);
       }
     else
       {
@@ -9902,7 +9856,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
         if (! NILP (display_name))
           {
             argv[argc++] = display_opt;
-            argv[argc++] = SDATA (display_name);
+            argv[argc++] = SSDATA (display_name);
           }
 
         argv[argc++] = name_opt;
@@ -9935,7 +9889,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
           abs_file = Fexpand_file_name (s, Qnil);
 
           if (! NILP (abs_file) && !NILP (Ffile_readable_p (abs_file)))
-            gtk_rc_parse (SDATA (abs_file));
+            gtk_rc_parse (SSDATA (abs_file));
         }
 
         XSetErrorHandler (x_error_handler);
@@ -9979,7 +9933,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 #else /* not USE_X_TOOLKIT */
   XSetLocaleModifiers ("");
-  dpy = XOpenDisplay (SDATA (display_name));
+  dpy = XOpenDisplay (SSDATA (display_name));
 #endif /* not USE_X_TOOLKIT */
 #endif /* not USE_GTK*/
 
@@ -10078,7 +10032,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 			+ SBYTES (Vsystem_name)
 			+ 2);
   sprintf (dpyinfo->x_id_name, "%s@%s",
-	   SDATA (Vinvocation_name), SDATA (Vsystem_name));
+	   SSDATA (Vinvocation_name), SSDATA (Vsystem_name));
 
   /* Figure out which modifier bits mean what.  */
   x_find_modifier_meanings (dpyinfo);
@@ -10672,9 +10626,6 @@ x_initialize (void)
   last_tool_bar_item = -1;
   any_help_event_p = 0;
   ignore_next_mouse_click_timeout = 0;
-#ifdef HAVE_X_SM
-  x_session_initialized = 0;
-#endif
 
 #ifdef USE_GTK
   current_count = -1;

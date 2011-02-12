@@ -1250,7 +1250,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 	      unsigned char *ovstr;
 	      EMACS_INT ovlen = overlay_strings (pos, win, &ovstr);
 	      hpos += ((multibyte && ovlen > 0)
-		       ? strwidth (ovstr, ovlen) : ovlen);
+		       ? strwidth ((char *) ovstr, ovlen) : ovlen);
 	    }
 	  did_motion = 0;
 

@@ -1052,6 +1052,8 @@ BEG..END is the line where the file info is located."
 	(set-marker file nil)))))
 
 
+(defvar ls-lisp-use-insert-directory-program)
+
 (defun dired-insert-directory (dir switches &optional file-list wildcard hdr)
   "Insert a directory listing of DIR, Dired style.
 Use SWITCHES to make the listings.
@@ -1063,14 +1065,20 @@ If HDR is non-nil, insert a header line with the directory name."
   (let ((opoint (point))
 	(process-environment (copy-sequence process-environment))
 	end)
-    (if (or (if (eq dired-use-ls-dired 'unspecified)
-		;; Check whether "ls --dired" gives exit code 0, and
-		;; save the answer in `dired-use-ls-dired'.
-		(setq dired-use-ls-dired
-		      (eq (call-process insert-directory-program nil nil nil "--dired")
-			  0))
-	      dired-use-ls-dired)
-	    (file-remote-p dir))
+    (if (and
+	 ;; Don't try to invoke `ls' if we are on DOS/Windows where
+	 ;; ls-lisp emulation is used, except if they want to use `ls'
+	 ;; as indicated by `ls-lisp-use-insert-directory-program'.
+	 (not (and (featurep 'ls-lisp)
+		   (null ls-lisp-use-insert-directory-program)))
+	 (or (if (eq dired-use-ls-dired 'unspecified)
+		 ;; Check whether "ls --dired" gives exit code 0, and
+		 ;; save the answer in `dired-use-ls-dired'.
+		 (setq dired-use-ls-dired
+		       (eq (call-process insert-directory-program nil nil nil "--dired")
+			   0))
+	       dired-use-ls-dired)
+	     (file-remote-p dir)))
 	(setq switches (concat "--dired " switches)))
     ;; We used to specify the C locale here, to force English month names;
     ;; but this should not be necessary any more,
@@ -1294,7 +1302,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   ;; This looks ugly when substitute-command-keys uses C-d instead d:
   ;;  (define-key dired-mode-map "\C-d" 'dired-flag-file-deletion)
   (let ((map (make-keymap)))
-    (suppress-keymap map)
+    (set-keymap-parent map special-mode-map)
     (define-key map [mouse-2] 'dired-mouse-find-file-other-window)
     (define-key map [follow-link] 'mouse-face)
     ;; Commands to mark or flag certain categories of files
@@ -1373,7 +1381,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "\C-m" 'dired-find-file)
     (put 'dired-find-file :advertised-binding "\C-m")
     (define-key map "g" 'revert-buffer)
-    (define-key map "h" 'describe-mode)
     (define-key map "i" 'dired-maybe-insert-subdir)
     (define-key map "j" 'dired-goto-file)
     (define-key map "k" 'dired-do-kill-lines)
@@ -1383,7 +1390,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "o" 'dired-find-file-other-window)
     (define-key map "\C-o" 'dired-display-file)
     (define-key map "p" 'dired-previous-line)
-    (define-key map "q" 'quit-window)
     (define-key map "s" 'dired-sort-toggle-or-edit)
     (define-key map "t" 'dired-toggle-marks)
     (define-key map "u" 'dired-unmark)
@@ -2027,7 +2033,7 @@ Otherwise, an error occurs in these cases."
           ;; with quotation marks in their names.
 	  (while (string-match "\\(?:[^\\]\\|\\`\\)\\(\"\\)" file)
 	    (setq file (replace-match "\\\"" nil t file 1)))
-	  
+
 	  (when (eq system-type 'windows-nt)
 	    (save-match-data
 	      (let ((start 0))

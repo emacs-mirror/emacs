@@ -1,3 +1,8 @@
+2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	format-time-string now supports subsecond time stamp resolution
+	* NEWS: Document this.
+
 2011-01-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Redo spelling of Makefile variables to conform to POSIX.

@@ -774,14 +774,15 @@ command whose response triggered the error."
 	 (nntp-copy-to-buffer nntp-server-buffer (point-min) (point-max))
          'headers)))))
 
-(deffoo nntp-retrieve-group-data-early (server infos)
+(deffoo nntp-retrieve-group-data-early-disabled (server infos)
   "Retrieve group info on INFOS."
   (nntp-with-open-group nil server
     (when (nntp-find-connection-buffer nntp-server-buffer)
       ;; The first time this is run, this variable is `try'.  So we
       ;; try.
       (when (eq nntp-server-list-active-group 'try)
-	(nntp-try-list-active (gnus-group-real-name (gnus-info-group (car infos)))))
+	(nntp-try-list-active
+	 (gnus-group-real-name (gnus-info-group (car infos)))))
       (with-current-buffer (nntp-find-connection-buffer nntp-server-buffer)
 	(erase-buffer)
 	(let ((nntp-inhibit-erase t)
@@ -792,7 +793,7 @@ command whose response triggered the error."
 	     nil command (gnus-group-real-name (gnus-info-group info)))))
 	(length infos)))))
 
-(deffoo nntp-finish-retrieve-group-infos (server infos count)
+(deffoo nntp-finish-retrieve-group-infos-disabled (server infos count)
   (nntp-with-open-group nil server
     (let ((buf (nntp-find-connection-buffer nntp-server-buffer))
 	  (method (gnus-find-method-for-group
@@ -800,7 +801,8 @@ command whose response triggered the error."
 		   (car infos)))
 	  (received 0)
 	  (last-point 1))
-      (when buf
+      (when (and buf
+		 count)
 	(with-current-buffer buf
 	  (while (and (gnus-buffer-live-p buf)
 		      (progn

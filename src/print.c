@@ -177,9 +177,9 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 	 {								\
 	   unsigned char *temp						\
 	     = (unsigned char *) alloca (print_buffer_pos + 1);		\
-	   copy_text (print_buffer, temp, print_buffer_pos_byte,	\
-		      1, 0);						\
-	   insert_1_both (temp, print_buffer_pos,			\
+	   copy_text ((unsigned char *) print_buffer, temp,		\
+		      print_buffer_pos_byte, 1, 0);			\
+	   insert_1_both ((char *) temp, print_buffer_pos,		\
 			  print_buffer_pos, 0, 1, 0);			\
 	 }								\
        else								\
@@ -254,7 +254,7 @@ printchar (unsigned int ch, Lisp_Object fun)
 
 	  setup_echo_area_for_printing (multibyte_p);
 	  insert_char (ch);
-	  message_dolog (str, len, 0, multibyte_p);
+	  message_dolog ((char *) str, len, 0, multibyte_p);
 	}
     }
 }
@@ -317,7 +317,8 @@ strout (const char *ptr, EMACS_INT size, EMACS_INT size_byte,
 	  int len;
 	  for (i = 0; i < size_byte; i += len)
 	    {
-	      int ch = STRING_CHAR_AND_LENGTH (ptr + i, len);
+	      int ch = STRING_CHAR_AND_LENGTH ((const unsigned char *) ptr + i,
+					       len);
 	      insert_char (ch);
 	    }
 	}
@@ -343,7 +344,8 @@ strout (const char *ptr, EMACS_INT size, EMACS_INT size_byte,
 		 corresponding character code before handing it to
 		 PRINTCHAR.  */
 	      int len;
-	      int ch = STRING_CHAR_AND_LENGTH (ptr + i, len);
+	      int ch = STRING_CHAR_AND_LENGTH ((const unsigned char *) ptr + i,
+					       len);
 	      PRINTCHAR (ch);
 	      i += len;
 	    }
@@ -1016,9 +1018,9 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
  */
 
 void
-float_to_string (unsigned char *buf, double data)
+float_to_string (char *buf, double data)
 {
-  unsigned char *cp;
+  char *cp;
   int width;
 
   /* Check for plus infinity in a way that won't lose
@@ -1067,7 +1069,7 @@ float_to_string (unsigned char *buf, double data)
       /* Check that the spec we have is fully valid.
 	 This means not only valid for printf,
 	 but meant for floats, and reasonable.  */
-      cp = SDATA (Vfloat_output_format);
+      cp = SSDATA (Vfloat_output_format);
 
       if (cp[0] != '%')
 	goto lose;
@@ -1519,7 +1521,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		     For a char code that could be in a unibyte string,
 		     when found in a multibyte string, always use a hex escape
 		     so it reads back as multibyte.  */
-		  unsigned char outbuf[50];
+		  char outbuf[50];
 
 		  if (CHAR_BYTE8_P (c))
 		    sprintf (outbuf, "\\%03o", CHAR_TO_BYTE8 (c));
@@ -1538,7 +1540,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		     or when explicitly requested,
 		     print single-byte non-ASCII string chars
 		     using octal escapes.  */
-		  unsigned char outbuf[5];
+		  char outbuf[5];
 		  sprintf (outbuf, "\\%03o", c);
 		  strout (outbuf, -1, -1, printcharfun, 0);
 		}

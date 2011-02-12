@@ -33,7 +33,7 @@
 ;; - localname is NIL.  This are reusable properties.  Examples:
 ;;   "remote-shell" identifies the POSIX shell to be called on the
 ;;   remote host, or "perl" is the command to be called on the remote
-;;   host, when starting a Perl script.  These properties are saved in
+;;   host when starting a Perl script.  These properties are saved in
 ;;   the file `tramp-persistency-file-name'.
 ;;
 ;; - localname is a string.  This are temporary properties, which are

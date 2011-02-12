@@ -2427,7 +2427,7 @@ present, base 10 is used.  BASE must be between 2 and 16 (inclusive).
 If the base used is not 10, STRING is always parsed as integer.  */)
   (register Lisp_Object string, Lisp_Object base)
 {
-  register unsigned char *p;
+  register char *p;
   register int b;
   int sign = 1;
   Lisp_Object val;
@@ -2446,7 +2446,7 @@ If the base used is not 10, STRING is always parsed as integer.  */)
 
   /* Skip any whitespace at the front of the number.  Some versions of
      atoi do this anyway, so we might as well make Emacs lisp consistent.  */
-  p = SDATA (string);
+  p = SSDATA (string);
   while (*p == ' ' || *p == '\t')
     p++;
 
@@ -3347,4 +3347,3 @@ init_data (void)
   signal (SIGEMT, arith_error);
 #endif /* uts */
 }
-

@@ -769,9 +769,6 @@ a previously found match."
     (define-key map "\M-p" 'occur-prev)
     (define-key map "r" 'occur-rename-buffer)
     (define-key map "c" 'clone-buffer)
-    (define-key map "g" 'revert-buffer)
-    (define-key map "q" 'quit-window)
-    (define-key map "z" 'kill-this-buffer)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
     (define-key map [menu-bar] (make-sparse-keymap))
     (define-key map [menu-bar occur]
@@ -837,23 +834,17 @@ for this is to reveal context in an outline-mode when the occurrence is hidden."
   :group 'matching)
 
 (put 'occur-mode 'mode-class 'special)
-(defun occur-mode ()
+(define-derived-mode occur-mode special-mode "Occur"
   "Major mode for output from \\[occur].
 \\<occur-mode-map>Move point to one of the items in this buffer, then use
 \\[occur-mode-goto-occurrence] to go to the occurrence that the item refers to.
 Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 
 \\{occur-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map occur-mode-map)
-  (setq major-mode 'occur-mode)
-  (setq mode-name "Occur")
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
   (make-local-variable 'occur-revert-arguments)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
-  (setq next-error-function 'occur-next-error)
-  (run-mode-hooks 'occur-mode-hook))
+  (setq next-error-function 'occur-next-error))
 
 (defun occur-revert-function (ignore1 ignore2)
   "Handle `revert-buffer' for Occur mode buffers."

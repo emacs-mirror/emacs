@@ -2908,50 +2908,62 @@ gnus-registry.el will populate this if it's loaded.")
 It works along the same lines as a normal formatting string,
 with some simple extensions.
 
-%N   Article number, left padded with spaces (string)
-%S   Subject (string)
-%s   Subject if it is at the root of a thread, and \"\" otherwise (string)
-%n   Name of the poster (string)
-%a   Extracted name of the poster (string)
-%A   Extracted address of the poster (string)
-%F   Contents of the From: header (string)
-%f   Contents of the From: or To: headers (string)
-%x   Contents of the Xref: header (string)
-%D   Date of the article (string)
-%d   Date of the article (string) in DD-MMM format
-%o   Date of the article (string) in YYYYMMDD`T'HHMMSS format
-%M   Message-id of the article (string)
-%r   References of the article (string)
-%c   Number of characters in the article (integer)
-%k   Pretty-printed version of the above (string)
-     For example, \"1.2k\" or \"0.4M\".
-%L   Number of lines in the article (integer)
-%I   Indentation based on thread level (a string of spaces)
-%B   A complex trn-style thread tree (string)
-     The variables `gnus-sum-thread-*' can be used for customization.
-%T   A string with two possible values: 80 spaces if the article
-     is on thread level two or larger and 0 spaces on level one
-%R   \"A\" if this article has been replied to, \" \" otherwise (character)
-%U   Status of this article (character, \"R\", \"K\", \"-\" or \" \")
-%[   Opening bracket (character, \"[\" or \"<\")
-%]   Closing bracket (character, \"]\" or \">\")
-%>   Spaces of length thread-level (string)
-%<   Spaces of length (- 20 thread-level) (string)
-%i   Article score (number)
-%z   Article zcore (character)
-%t   Number of articles under the current thread (number).
-%e   Whether the thread is empty or not (character).
-%V   Total thread score (number).
-%P   The line number (number).
-%O   Download mark (character).
-%*   If present, indicates desired cursor position
-     (instead of after first colon).
-%u   User defined specifier.  The next character in the format string should
-     be a letter.  Gnus will call the function gnus-user-format-function-X,
-     where X is the letter following %u.  The function will be passed the
-     current header as argument.  The function should return a string, which
-     will be inserted into the summary just like information from any other
-     summary specifier.
+%N          Article number, left padded with spaces (string)
+%S          Subject (string)
+%s          Subject if it is at the root of a thread, and \"\"
+            otherwise (string)
+%n          Name of the poster (string)
+%a          Extracted name of the poster (string)
+%A          Extracted address of the poster (string)
+%F          Contents of the From: header (string)
+%f          Contents of the From: or To: headers (string)
+%x          Contents of the Xref: header (string)
+%D          Date of the article (string)
+%d          Date of the article (string) in DD-MMM format
+%o          Date of the article (string) in YYYYMMDD`T'HHMMSS
+            format
+%M          Message-id of the article (string)
+%r          References of the article (string)
+%c          Number of characters in the article (integer)
+%k          Pretty-printed version of the above (string)
+            For example, \"1.2k\" or \"0.4M\".
+%L          Number of lines in the article (integer)
+%I          Indentation based on thread level (a string of
+            spaces)
+%B          A complex trn-style thread tree (string)
+            The variables `gnus-sum-thread-*' can be used for
+            customization.
+%T          A string with two possible values: 80 spaces if the
+            article is on thread level two or larger and 0 spaces
+            on level one
+%R          \"A\" if this article has been replied to, \" \"
+            otherwise (character)
+%U          Status of this article (character, \"R\", \"K\",
+            \"-\" or \" \")
+%[          Opening bracket (character, \"[\" or \"<\")
+%]          Closing bracket (character, \"]\" or \">\")
+%>          Spaces of length thread-level (string)
+%<          Spaces of length (- 20 thread-level) (string)
+%i          Article score (number)
+%z          Article zcore (character)
+%t          Number of articles under the current thread (number).
+%e          Whether the thread is empty or not (character).
+%V          Total thread score (number).
+%P          The line number (number).
+%O          Download mark (character).
+%*          If present, indicates desired cursor position
+            (instead of after first colon).
+%u          User defined specifier. The next character in the
+            format string should be a letter. Gnus will call the
+            function gnus-user-format-function-X, where X is the
+            letter following %u. The function will be passed the
+            current header as argument. The function should
+            return a string, which will be inserted into the
+            summary just like information from any other summary
+            specifier.
+&user-date; Age sensitive date format. Various date format is
+            defined in `gnus-summary-user-date-format-alist'.
+
 
 The %U (status), %R (replied) and %z (zcore) specs have to be handled
 with care.  For reasons of efficiency, Gnus will compute what column

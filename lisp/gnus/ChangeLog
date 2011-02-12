@@ -1,3 +1,160 @@
+2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-bury): Don't pop up a new window when selected
+	window is dedicated.
+
+2011-02-10  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-save-parts): Use read-directory-name.
+
+2011-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-retrieve-group-data-early-disabled): Disable the async
+	code for now, since it doesn't work for all users.
+
+2011-02-09  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-options): Make message-options really buffer
+	local.
+
+2011-02-08  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-tag-body): Add support for text attribute in body
+	markups.
+
+	* message.el (message-options): Make message-options a local variable.
+
+2011-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-update-info): Refactor slightly.
+	(nnimap-update-info): Tell Gnus whether there are any \Recent messages.
+	(nnimap-update-info): Clean up slightly.
+	(nnimap-quirk): Add quirk for Gmail IMAP which bugs out on NUL
+	characters.
+	(nnimap-process-quirk): Rename function to avoid collision.
+	(nnimap-update-info): Fix macrology bug-out.
+	(nnimap-update-info): Simplify split history test.
+
+2011-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-finish-retrieve-group-infos): Protect against the first
+	part not returning any data.
+
+	* proto-stream.el (open-protocol-stream): Document the return value.
+
+2011-02-06  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-setup-1): Handle message-generate-headers-first
+	set to t.
+
+2011-02-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-setup-1): Remove the read-only stuff, since it
+	doesn't work under XEmacs, for some reason.
+
+	* gnus-sum.el (gnus-user-date): Rename back from
+	gnus-summary-user-date since user code refers to it.
+
+	* shr.el (shr-render-td): Store the actual background colour used.
+
+	* message.el (message-setup-1): Don't bind the constant
+	-forbidden-properties.
+	(message-setup-1): Revert previous change, since it needs to bind the
+	props to insert them.
+	(message-resend): Allow removing the read-only separator line.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-accept-article): Give an error message if
+	the APPEND wasn't successful.
+
+2011-02-03  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-start.el (gnus-get-unread-articles): Fix the call to methods
+	that have no groups.
+
+2011-02-03  Julien Danjou  <julien@danjou.info>
+
+	* gnus-draft.el: Remove progn around gnus-draft-setup.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): This function is never
+	called with a nil `infos', so clean that up.
+	(gnus-get-unread-articles): Request active files from primary/secondary
+	methods that have no groups (yet).
+
+2011-02-03  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-setup-1): Always generate References first.
+	(message-mail): Return the return value of message-setup, not always t.
+	(message-setup-1): Insert mail-header-separator with read-only and
+	intangible properties set.
+
+	* gnus.el (gnus-summary-line-format): Add missing semi-colon for
+	user-date in docstring.
+
+	* gnus-art.el (gnus-article-jump-to-part): Remove useless sit-for.
+
+	* gnus.el (gnus-summary-line-format): Mention &user-date format in
+	docstring.
+
+	* gnus.el (gnus-user-date-format-alist): Change default value. Use
+	defcustom, with type and group. Move from gnus-util.el. Rename to
+	gnus-summary-user-date-format-alist.
+
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* nnimap.el (gnus-fetch-headers): Declare.
+
+	* nnheader.el (gnus-range-add, gnus-remove-from-range): Autoload.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-forward-make-body-digest-plain)
+	(message-followup, message-reply): Clean up things noted by Stefan.
+
+	* gnus-art.el (gnus-article-setup-buffer): Stop the date timer if
+	gnus-article-update-date-headers is nil.
+	(gnus-article-date-headers): Rip out the old -treat-date-* stuff, since
+	it didn't really work with defcustom.
+	(article-update-date-lapsed): Make sure the window start doesn't move,
+	either.
+
+2011-02-01  Julien Danjou  <julien@danjou.info>
+
+	* mm-uu.el (mm-uu-type-alist): Add support for git format-patch diff
+	format.
+
+	* mm-decode.el (mm-inline-media-tests): Do not check for diff-mode it's
+	standard in Emacs nowadays.
+
+2011-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-expand-name): Don't trust the return value of
+	bbdb-complete-name.
+	(message-check-news-header-syntax): Remove unused var `start'.
+	(message-idna-to-ascii-rhs-1): Remove unused vars `rhs' and `address'.
+	(message-inhibit-body-encoding): Move to before first use.
+	(mail-abbrev-mode-regexp, Expires, User-Agent, Lines, Distribution)
+	(To, References, In-Reply-To, Newsgroups, Subject, Path, From)
+	(Organization, Message-ID, Date, mh-previous-window-config):
+	Defvar the vars using dynamic scoping.
+
+2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-render-td): Only do colours at the final rendering.
+	Should be slightly faster.
+	(shr-insert-table): Fix up TD background colours when doing the
+	vertical padding.
+
+	* gnus-art.el (article-date-ut): Protect against articles with no Date
+	header.
+	(article-update-date-lapsed): Don't use current-column to find the
+	horizontal position.  It's fragile in the presence of \003 characters.
+
+	* gnus-start.el (gnus-read-active-file-1): Remove dead parameter infos.
+
 2011-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-art.el (article-transform-date): Rewrite to still work when
@@ -80,8 +237,8 @@
 
 2011-01-28  Daiki Ueno  <ueno@unixuser.org>
 
-	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt): Give
-	mml2015-signers higher precedence over mml2015-sign-with-sender.
+	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt):
+	Give mml2015-signers higher precedence over mml2015-sign-with-sender.
 
 2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
 

@@ -1,4 +1,5 @@
 /* Defines some widget utility functions.
+
 Copyright (C) 1992 Lucid, Inc.
 Copyright (C) 1994, 2001-2011 Free Software Foundation, Inc.
 
@@ -31,7 +32,7 @@ Boston, MA 02110-1301, USA.  */
 #undef rindex
 
 #include <setjmp.h>
-#include "../src/lisp.h"
+#include <lisp.h>
 
 #include <X11/Xatom.h>
 #include <X11/IntrinsicP.h>
@@ -173,4 +174,3 @@ XtSafelyDestroyWidget (Widget widget)
   abort ();
 #endif
 }
-

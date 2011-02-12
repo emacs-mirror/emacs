@@ -483,7 +483,7 @@ echo_char (Lisp_Object c)
 	      ptr = buffer + offset;
 	    }
 
-	  ptr += copy_text (SDATA (name), ptr, nbytes,
+	  ptr += copy_text (SDATA (name), (unsigned char *) ptr, nbytes,
 			    STRING_MULTIBYTE (name), 1);
 	}
 
@@ -6518,7 +6518,7 @@ parse_solitary_modifier (Lisp_Object symbol)
 
 #define MULTI_LETTER_MOD(BIT, NAME, LEN)		\
       if (LEN == SBYTES (name)				\
-	  && ! strncmp (SDATA (name), NAME, LEN))	\
+	  && ! strncmp (SSDATA (name), NAME, LEN))	\
 	return BIT;
 
     case 'A':
@@ -6949,7 +6949,7 @@ tty_read_avail_input (struct terminal *terminal,
      NREAD is set to the number of chars read.  */
   do
     {
-      nread = emacs_read (fileno (tty->input), cbuf, n_to_read);
+      nread = emacs_read (fileno (tty->input), (char *) cbuf, n_to_read);
       /* POSIX infers that processes which are not in the session leader's
          process group won't get SIGHUP's at logout time.  BSDI adheres to
          this part standard and returns -1 from read (0) with errno==EIO

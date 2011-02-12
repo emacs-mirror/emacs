@@ -322,6 +322,16 @@ and the cdr part is used for encoding."
   :type 'function
   :group 'rcirc)
 
+(defcustom rcirc-nick-completion-format "%s: "
+  "Format string to use in nick completions.
+
+The format string is only used when completing at the beginning
+of a line.  The string is passed as the first argument to
+`format' with the nickname as the second argument."
+  :version "24.1"
+  :type 'string
+  :group 'rcirc)
+
 (defvar rcirc-nick nil)
 
 (defvar rcirc-prompt-start-marker nil)
@@ -554,13 +564,13 @@ last ping."
       (mapc (lambda (process)
 	      (with-rcirc-process-buffer process
 		(when (not rcirc-connecting)
-		  (rcirc-send-string process
-				     (format "PRIVMSG %s :\C-aKEEPALIVE %f\C-a"
-					     rcirc-nick
-                                             (if (featurep 'xemacs)
-                                                 (time-to-seconds
-                                                  (current-time))
-                                               (float-time)))))))
+                  (rcirc-send-ctcp process
+                                   rcirc-nick
+                                   (format "KEEPALIVE %f"
+                                           (if (featurep 'xemacs)
+                                               (time-to-seconds
+                                                (current-time))
+                                             (float-time)))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
     (cancel-timer rcirc-keepalive-timer)
@@ -704,6 +714,14 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
     (rcirc-debug process string)
     (process-send-string process string)))
 
+(defun rcirc-send-privmsg (process target string)
+  (rcirc-send-string process (format "PRIVMSG %s :%s" target string)))
+
+(defun rcirc-send-ctcp (process target request &optional args)
+  (let ((args (if args (concat " " args) "")))
+    (rcirc-send-privmsg process target
+                        (format "\C-a%s%s\C-a" request args))))
+
 (defun rcirc-buffer-process (&optional buffer)
   "Return the process associated with channel BUFFER.
 With no argument or nil as argument, use the current buffer."
@@ -827,11 +845,11 @@ IRC command completion is performed only if '/' is the first input char."
     (when completion
       (delete-region rcirc-completion-start (point))
       (insert
-       (concat completion
-	       (cond
-		((= (aref completion 0) ?/) " ")
-		((= rcirc-completion-start rcirc-prompt-end-marker) ": ")
-		(t "")))))))
+       (cond
+        ((= (aref completion 0) ?/) (concat completion " "))
+        ((= rcirc-completion-start rcirc-prompt-end-marker)
+         (format rcirc-nick-completion-format completion))
+        (t completion))))))
 
 (defun set-rcirc-decode-coding-system (coding-system)
   "Set the decode coding system used in this channel."
@@ -843,40 +861,42 @@ IRC command completion is performed only if '/' is the first input char."
   (interactive "zCoding system for outgoing messages: ")
   (setq rcirc-encode-coding-system coding-system))
 
-(defvar rcirc-mode-map (make-sparse-keymap)
+(defvar rcirc-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") 'rcirc-send-input)
+    (define-key map (kbd "M-p") 'rcirc-insert-prev-input)
+    (define-key map (kbd "M-n") 'rcirc-insert-next-input)
+    (define-key map (kbd "TAB") 'rcirc-complete)
+    (define-key map (kbd "C-c C-b") 'rcirc-browse-url)
+    (define-key map (kbd "C-c C-c") 'rcirc-edit-multiline)
+    (define-key map (kbd "C-c C-j") 'rcirc-cmd-join)
+    (define-key map (kbd "C-c C-k") 'rcirc-cmd-kick)
+    (define-key map (kbd "C-c C-l") 'rcirc-toggle-low-priority)
+    (define-key map (kbd "C-c C-d") 'rcirc-cmd-mode)
+    (define-key map (kbd "C-c C-m") 'rcirc-cmd-msg)
+    (define-key map (kbd "C-c C-r") 'rcirc-cmd-nick) ; rename
+    (define-key map (kbd "C-c C-o") 'rcirc-omit-mode)
+    (define-key map (kbd "M-o") 'rcirc-omit-mode)
+    (define-key map (kbd "C-c C-p") 'rcirc-cmd-part)
+    (define-key map (kbd "C-c C-q") 'rcirc-cmd-query)
+    (define-key map (kbd "C-c C-t") 'rcirc-cmd-topic)
+    (define-key map (kbd "C-c C-n") 'rcirc-cmd-names)
+    (define-key map (kbd "C-c C-w") 'rcirc-cmd-whois)
+    (define-key map (kbd "C-c C-x") 'rcirc-cmd-quit)
+    (define-key map (kbd "C-c TAB") ; C-i
+      'rcirc-toggle-ignore-buffer-activity)
+    (define-key map (kbd "C-c C-s") 'rcirc-switch-to-server-buffer)
+    (define-key map (kbd "C-c C-a") 'rcirc-jump-to-first-unread-line)
+    map)
   "Keymap for rcirc mode.")
 
-(define-key rcirc-mode-map (kbd "RET") 'rcirc-send-input)
-(define-key rcirc-mode-map (kbd "M-p") 'rcirc-insert-prev-input)
-(define-key rcirc-mode-map (kbd "M-n") 'rcirc-insert-next-input)
-(define-key rcirc-mode-map (kbd "TAB") 'rcirc-complete)
-(define-key rcirc-mode-map (kbd "C-c C-b") 'rcirc-browse-url)
-(define-key rcirc-mode-map (kbd "C-c C-c") 'rcirc-edit-multiline)
-(define-key rcirc-mode-map (kbd "C-c C-j") 'rcirc-cmd-join)
-(define-key rcirc-mode-map (kbd "C-c C-k") 'rcirc-cmd-kick)
-(define-key rcirc-mode-map (kbd "C-c C-l") 'rcirc-toggle-low-priority)
-(define-key rcirc-mode-map (kbd "C-c C-d") 'rcirc-cmd-mode)
-(define-key rcirc-mode-map (kbd "C-c C-m") 'rcirc-cmd-msg)
-(define-key rcirc-mode-map (kbd "C-c C-r") 'rcirc-cmd-nick) ; rename
-(define-key rcirc-mode-map (kbd "C-c C-o") 'rcirc-omit-mode)
-(define-key rcirc-mode-map (kbd "M-o") 'rcirc-omit-mode)
-(define-key rcirc-mode-map (kbd "C-c C-p") 'rcirc-cmd-part)
-(define-key rcirc-mode-map (kbd "C-c C-q") 'rcirc-cmd-query)
-(define-key rcirc-mode-map (kbd "C-c C-t") 'rcirc-cmd-topic)
-(define-key rcirc-mode-map (kbd "C-c C-n") 'rcirc-cmd-names)
-(define-key rcirc-mode-map (kbd "C-c C-w") 'rcirc-cmd-whois)
-(define-key rcirc-mode-map (kbd "C-c C-x") 'rcirc-cmd-quit)
-(define-key rcirc-mode-map (kbd "C-c TAB") ; C-i
-  'rcirc-toggle-ignore-buffer-activity)
-(define-key rcirc-mode-map (kbd "C-c C-s") 'rcirc-switch-to-server-buffer)
-(define-key rcirc-mode-map (kbd "C-c C-a") 'rcirc-jump-to-first-unread-line)
-
-(defvar rcirc-browse-url-map (make-sparse-keymap)
+(defvar rcirc-browse-url-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") 'rcirc-browse-url-at-point)
+    (define-key map (kbd "<mouse-2>") 'rcirc-browse-url-at-mouse)
+    (define-key map [follow-link] 'mouse-face)
+    map)
   "Keymap used for browsing URLs in `rcirc-mode'.")
-
-(define-key rcirc-browse-url-map (kbd "RET") 'rcirc-browse-url-at-point)
-(define-key rcirc-browse-url-map (kbd "<mouse-2>") 'rcirc-browse-url-at-mouse)
-(define-key rcirc-browse-url-map [follow-link] 'mouse-face)
 
 (defvar rcirc-short-buffer-name nil
   "Generated abbreviation to use to indicate buffer activity.")
@@ -1024,6 +1044,17 @@ If ALL is non-nil, update prompts in all IRC buffers."
        (not (zerop (length target)))
        (or (eq (aref target 0) ?#)
            (eq (aref target 0) ?&))))
+
+(defcustom rcirc-log-directory "~/.emacs.d/rcirc-log"
+  "Directory to keep IRC logfiles."
+  :type 'directory
+  :group 'rcirc)
+
+(defcustom rcirc-log-flag nil
+  "Non-nil means log IRC activity to disk.
+Logfiles are kept in `rcirc-log-directory'."
+  :type 'boolean
+  :group 'rcirc)
 
 (defun rcirc-kill-buffer-hook ()
   "Part the channel when killing an rcirc buffer."
@@ -1187,16 +1218,14 @@ Create the buffer if it doesn't exist."
       (and (> pos 0) (goto-char pos))
       (message "Type C-c C-c to return text to %s, or C-c C-k to cancel" parent))))
 
-(defvar rcirc-multiline-minor-mode-map (make-sparse-keymap)
+(defvar rcirc-multiline-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-c") 'rcirc-multiline-minor-submit)
+    (define-key map (kbd "C-x C-s") 'rcirc-multiline-minor-submit)
+    (define-key map (kbd "C-c C-k") 'rcirc-multiline-minor-cancel)
+    (define-key map (kbd "ESC ESC ESC") 'rcirc-multiline-minor-cancel)
+    map)
   "Keymap for multiline mode in rcirc.")
-(define-key rcirc-multiline-minor-mode-map
-  (kbd "C-c C-c") 'rcirc-multiline-minor-submit)
-(define-key rcirc-multiline-minor-mode-map
-  (kbd "C-x C-s") 'rcirc-multiline-minor-submit)
-(define-key rcirc-multiline-minor-mode-map
-  (kbd "C-c C-k") 'rcirc-multiline-minor-cancel)
-(define-key rcirc-multiline-minor-mode-map
-  (kbd "ESC ESC ESC") 'rcirc-multiline-minor-cancel)
 
 (define-minor-mode rcirc-multiline-minor-mode
   "Minor mode for editing multiple lines in rcirc."
@@ -1354,17 +1383,6 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 (make-variable-buffer-local 'rcirc-activity-types)
 (defvar rcirc-last-sender nil)
 (make-variable-buffer-local 'rcirc-last-sender)
-
-(defcustom rcirc-log-directory "~/.emacs.d/rcirc-log"
-  "Directory to keep IRC logfiles."
-  :type 'directory
-  :group 'rcirc)
-
-(defcustom rcirc-log-flag nil
-  "Non-nil means log IRC activity to disk.
-Logfiles are kept in `rcirc-log-directory'."
-  :type 'boolean
-  :group 'rcirc)
 
 (defcustom rcirc-omit-threshold 100
   "Number of lines since last activity from a nick before `rcirc-omit-responses' are omitted."
@@ -1724,11 +1742,12 @@ This function does not alter the INPUT string."
     (mapconcat 'identity sorted sep)))
 
 ;;; activity tracking
-(defvar rcirc-track-minor-mode-map (make-sparse-keymap)
+(defvar rcirc-track-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-@") 'rcirc-next-active-buffer)
+    (define-key map (kbd "C-c C-SPC") 'rcirc-next-active-buffer)
+    map)
   "Keymap for rcirc track minor mode.")
-
-(define-key rcirc-track-minor-mode-map (kbd "C-c C-@") 'rcirc-next-active-buffer)
-(define-key rcirc-track-minor-mode-map (kbd "C-c C-SPC") 'rcirc-next-active-buffer)
 
 ;;;###autoload
 (define-minor-mode rcirc-track-minor-mode
@@ -2079,14 +2098,18 @@ activity.  Only run if the buffer is not visible and
     (when (not existing-buffer)
       (rcirc-cmd-whois nick))))
 
-(defun-rcirc-command join (channel)
-  "Join CHANNEL."
-  (interactive "sJoin channel: ")
-  (let ((buffer (rcirc-get-buffer-create process
-                                         (car (split-string channel)))))
-    (rcirc-send-string process (concat "JOIN " channel))
+(defun-rcirc-command join (channels)
+  "Join CHANNELS.
+CHANNELS is a comma- or space-separated string of channel names."
+  (interactive "sJoin channels: ")
+  (let* ((split-channels (split-string channels "[ ,]" t))
+         (buffers (mapcar (lambda (ch)
+                            (rcirc-get-buffer-create process ch))
+                          split-channels)))
+    (rcirc-send-string process (concat "JOIN " channels))
     (when (not (eq (selected-window) (minibuffer-window)))
-      (switch-to-buffer buffer))))
+      (dolist (b buffers) ;; order the new channel buffers in the buffer list
+        (switch-to-buffer b)))))
 
 ;; TODO: /part #channel reason, or consider removing #channel altogether
 (defun-rcirc-command part (channel)
@@ -2175,17 +2198,22 @@ With a prefix arg, prompt for new topic."
 
 (defun rcirc-cmd-ctcp (args &optional process target)
   (if (string-match "^\\([^ ]+\\)\\s-+\\(.+\\)$" args)
-      (let ((target (match-string 1 args))
-            (request (match-string 2 args)))
-        (rcirc-send-string process
-			   (format "PRIVMSG %s \C-a%s\C-a"
-				   target (upcase request))))
+      (let* ((target (match-string 1 args))
+             (request (upcase (match-string 2 args)))
+             (function (intern-soft (concat "rcirc-ctcp-sender-" request))))
+        (if (fboundp function) ;; use special function if available
+            (funcall function process target request)
+          (rcirc-send-ctcp process target request)))
     (rcirc-print process (rcirc-nick process) "ERROR" nil
                  "usage: /ctcp NICK REQUEST")))
 
+(defun rcirc-ctcp-sender-PING (process target request)
+  "Send a CTCP PING message to TARGET."
+  (let ((timestamp (format "%.0f" (float-time))))
+    (rcirc-send-ctcp process target "PING" timestamp)))
+
 (defun rcirc-cmd-me (args &optional process target)
-  (rcirc-send-string process (format "PRIVMSG %s :\C-aACTION %s\C-a"
-                                     target args)))
+  (rcirc-send-ctcp process target "ACTION" args))
 
 (defun rcirc-add-or-remove (set &rest elements)
   (dolist (elt elements)
@@ -2445,7 +2473,10 @@ keywords when no KEYWORD is given."
 				     (rcirc-elapsed-lines process sender channel)))
 				(when (and last-activity-lines
 					   (< last-activity-lines rcirc-omit-threshold))
-				  (rcirc-last-line process sender channel)))))
+                                  (rcirc-last-line process sender channel))))
+      ;; reset mode-line-process in case joining a channel with an
+      ;; already open buffer (after getting kicked e.g.)
+      (setq mode-line-process nil))
 
     (rcirc-print process sender "JOIN" channel "")
 
@@ -2579,6 +2610,20 @@ keywords when no KEYWORD is given."
 	(setq rcirc-nick-away-alist (cons (cons nick away-message)
 					  rcirc-nick-away-alist))))))
 
+(defun rcirc-handler-317 (process sender args text)
+  "RPL_WHOISIDLE"
+  (let* ((nick (nth 1 args))
+         (idle-secs (string-to-number (nth 2 args)))
+         (idle-string
+          (if (< idle-secs most-positive-fixnum)
+              (format-seconds "%yy %dd %hh %mm %z%ss" idle-secs)
+            "a very long time"))
+         (signon-time (seconds-to-time (string-to-number (nth 3 args))))
+         (signon-string (format-time-string "%c" signon-time))
+         (message (format "%s idle for %s, signed on %s"
+                          nick idle-string signon-string)))
+    (rcirc-print process sender "317" nil message t)))
+
 (defun rcirc-handler-332 (process sender args text)
   "RPL_TOPIC"
   (let ((buffer (or (rcirc-get-buffer process (cadr args))
@@ -2663,20 +2708,20 @@ Passwords are stored in `rcirc-authinfo' (which see)."
 	(when (and (string-match server rcirc-server)
 		   (string-match nick rcirc-nick))
 	  (cond ((equal method 'nickserv)
-		 (rcirc-send-string
+		 (rcirc-send-privmsg
 		  process
-		  (concat "PRIVMSG " (or (cadr args) "nickserv")
-                          " :identify " (car args))))
+                  (or (cadr args) "NickServ")
+                  (concat "identify " (car args))))
 		((equal method 'chanserv)
-		 (rcirc-send-string
+		 (rcirc-send-privmsg
 		  process
-		  (concat
-		   "PRIVMSG chanserv :identify "
-		   (car args) " " (cadr args))))
+                  "ChanServ"
+                  (format "identify %s %s" (car args) (cadr args))))
 		((equal method 'bitlbee)
-		 (rcirc-send-string
+		 (rcirc-send-privmsg
 		  process
-		  (concat "PRIVMSG &bitlbee :identify " (car args))))
+                  "&bitlbee"
+                  (concat "identify " (car args))))
 		(t
 		 (message "No %S authentication method defined"
 			  method))))))))

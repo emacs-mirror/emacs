@@ -1,3 +1,41 @@
+2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (EMACS_INTEGER): Rename from EMACS_INT.
+	This avoids collision with config.h's EMACS_INT on some
+	configurations.  All uses changed.
+
+2011-02-08  Tom Tromey  <tromey@redhat.com>
+
+	* make-docfile.c: Unconditionally include stdlib.h.
+	(generate_globals): New global.
+	(xrealloc): New function.
+	(main): Handle '-g'.  Call start_globals, write_globals.
+	(scan_file): Conditionally call put_filename.
+	(start_globals): New function.
+	(struct global): New.
+	(num_globals, globals): New globals.
+	(add_global, compare_globals, write_globals): New functions.
+	(scan_c_file): Update for "-g".
+	(scan_lisp_file): Fail if "-g".
+
+2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacsclient.c: conform to C89 pointer rules
+	(file_name_absolute_p): Accept const char *, not const unsigned
+	char *, to satisfy C89 rules.
+
+2011-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (ETAGS_CFLAGS, CTAGS_CFLAGS): Add
+	``-DEMACS_NAME="\"GNU Emacs\""''.
+	(obj): Remove strftime.o.
+
+2011-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (VERSION): Don't define, defined on nt/config.nt.
+	(ECLIENT_CFLAGS): Remove -DVERSION.
+	($(BLD)/emacsclient.$(O)): Don't depend on makefile.w32-in.
+
 2011-01-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	src/emacs.c now gets version number from configure.in

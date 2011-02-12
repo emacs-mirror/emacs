@@ -305,8 +305,7 @@ This variable is used to display the current image type in the mode line.")
 
 (defvar image-mode-map
   (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
-    (define-key map "q"         'quit-window)
+    (set-keymap-parent map special-mode-map)
     (define-key map "\C-c\C-c" 'image-toggle-display)
     (define-key map (kbd "SPC")       'image-scroll-up)
     (define-key map (kbd "DEL")       'image-scroll-down)
@@ -385,7 +384,6 @@ to toggle between display as an image and display as text."
      (funcall
       (if (called-interactively-p 'any) 'error 'message)
       "Cannot display image: %s" (cdr err)))))
-
 ;;;###autoload
 (define-minor-mode image-minor-mode
   "Toggle Image minor mode.

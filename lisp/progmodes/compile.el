@@ -633,34 +633,25 @@ starting the compilation process.")
   :version "22.1")
 
 (defface compilation-warning
-  '((((class color) (min-colors 16)) (:foreground "Orange" :weight bold))
-    (((class color)) (:foreground "cyan" :weight bold))
-    (t (:weight bold)))
+  '((t :inherit font-lock-variable-name-face))
   "Face used to highlight compiler warnings."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-info
-  '((((class color) (min-colors 16) (background light))
-     (:foreground "Green3" :weight bold))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "Green1" :weight bold))
-    (((class color) (min-colors 16) (background dark))
-     (:foreground "Green" :weight bold))
-    (((class color)) (:foreground "green" :weight bold))
-    (t (:weight bold)))
+  '((t :inherit font-lock-type-face))
   "Face used to highlight compiler information."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-line-number
-  '((t :inherit font-lock-variable-name-face))
+  '((t :inherit font-lock-keyword-face))
   "Face for displaying line numbers in compiler messages."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-column-number
-  '((t :inherit font-lock-type-face))
+  '((t :inherit font-lock-doc-face))
   "Face for displaying column numbers in compiler messages."
   :group 'compilation
   :version "22.1")
@@ -693,7 +684,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 (defvar compilation-enter-directory-face 'font-lock-function-name-face
   "Face name to use for entering directory messages.")
 
-(defvar compilation-leave-directory-face 'font-lock-type-face
+(defvar compilation-leave-directory-face 'font-lock-builtin-face
   "Face name to use for leaving directory messages.")
 
 
@@ -862,7 +853,7 @@ POS and RES.")
                (< (cdr compilation--previous-directory-cache) pos)))
       ;; No need to call previous-single-property-change.
       (cdr compilation--previous-directory-cache)
-   
+
     (let* ((cache (and compilation--previous-directory-cache
                        (<= (car compilation--previous-directory-cache) pos)
                        (car compilation--previous-directory-cache)))
@@ -1711,6 +1702,7 @@ Returns the compilation buffer created."
 
 (defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map special-mode-map)
     (define-key map [mouse-2] 'compile-goto-error)
     (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-c\C-c" 'compile-goto-error)
@@ -1721,7 +1713,6 @@ Returns the compilation buffer created."
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
     (define-key map "g" 'recompile) ; revert
-    (define-key map "q" 'quit-window)
     ;; Set up the menu-bar
     (define-key map [menu-bar compilation]
       (cons "Errors" compilation-menu-map))
@@ -1755,6 +1746,7 @@ Returns the compilation buffer created."
     ;; Don't inherit from compilation-minor-mode-map,
     ;; because that introduces a menu bar item we don't want.
     ;; That confuses C-down-mouse-3.
+    (set-keymap-parent map special-mode-map)
     (define-key map [mouse-2] 'compile-goto-error)
     (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-c\C-c" 'compile-goto-error)
@@ -1767,10 +1759,7 @@ Returns the compilation buffer created."
     (define-key map "\t" 'compilation-next-error)
     (define-key map [backtab] 'compilation-previous-error)
     (define-key map "g" 'recompile) ; revert
-    (define-key map "q" 'quit-window)
 
-    (define-key map " " 'scroll-up)
-    (define-key map "\^?" 'scroll-down)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
 
     ;; Set up the menu-bar
@@ -2140,7 +2129,7 @@ looking for the next message."
   (or pt (setq pt (point)))
   (let* ((msg (get-text-property pt 'compilation-message))
          ;; `loc', `msg', and `last' are used by the compilation-loop macro.
-	 (loc (compilation--message->loc msg))
+	 (loc (and msg (compilation--message->loc msg)))
 	 last)
     (if (zerop n)
 	(unless (or msg			; find message near here
@@ -2154,8 +2143,7 @@ looking for the next message."
 						  (line-end-position)))
 	    (or (setq msg (get-text-property pt 'compilation-message))
 		(setq pt (point)))))
-      (setq last (compilation--loc->file-struct
-                  (compilation--message->loc msg)))
+      (setq last (compilation--loc->file-struct loc))
       (if (>= n 0)
 	  (compilation-loop > compilation-next-single-property-change 1-
 			    (if (get-buffer-process (current-buffer))

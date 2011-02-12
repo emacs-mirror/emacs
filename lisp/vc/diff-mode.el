@@ -140,9 +140,9 @@ when editing big diffs)."
     ;; Standard M-r is useful, so don't change M-r or M-R.
     ;;("r" . diff-restrict-view)
     ;;("R" . diff-reverse-direction)
-    ("g" . revert-buffer)
-    ("q" . quit-window))
-  "Basic keymap for `diff-mode', bound to various prefix keys.")
+    )
+  "Basic keymap for `diff-mode', bound to various prefix keys."
+  :inherit special-mode-map)
 
 (easy-mmode-defmap diff-mode-map
   `(("\e" . ,diff-mode-shared-map)

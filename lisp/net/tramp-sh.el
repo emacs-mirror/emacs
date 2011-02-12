@@ -66,9 +66,9 @@ files conditionalize this setup based on the TERM environment variable."
   :group 'tramp
   :type 'string)
 
-;; ksh on OpenBSD 4.5 requires, that $PS1 contains a `#' character for
+;; ksh on OpenBSD 4.5 requires that $PS1 contains a `#' character for
 ;; root users.  It uses the `$' character for other users.  In order
-;; to guarantee a proper prompt, we use "#$" for the prompt.
+;; to guarantee a proper prompt, we use "#$ " for the prompt.
 
 (defvar tramp-end-of-output
   (format
@@ -482,7 +482,9 @@ tilde expansion, all directory names starting with `~' will be ignored.
 `Default Directories' represent the list of directories given by
 the command \"getconf PATH\".  It is recommended to use this
 entry on top of this list, because these are the default
-directories for POSIX compatible commands.
+directories for POSIX compatible commands.  On remote hosts which
+do not offer the getconf command (like cygwin), the value
+\"/bin:/usr/bin\" is used instead of.
 
 `Private Directories' are the settings of the $PATH environment,
 as given in your `~/.profile'."
@@ -507,7 +509,7 @@ entry ENVVARNAME= diables the corresponding environment variable,
 which might have been set in the init files like ~/.profile.
 
 Special handling is applied to the PATH environment, which should
-not be set here. Instead of, it should be set via `tramp-remote-path'."
+not be set here. Instead, it should be set via `tramp-remote-path'."
   :group 'tramp
   :type '(repeat string))
 
@@ -2207,7 +2209,7 @@ The method used must be an out-of-band method."
     (with-parsed-tramp-file-name (if t1 filename newname) nil
       (if (and t1 t2)
 
-	  ;; Both are Tramp files.  We shall optimize it, when the
+	  ;; Both are Tramp files.  We shall optimize it when the
 	  ;; methods for filename and newname are the same.
 	  (let* ((dir-flag (file-directory-p filename))
 		 (tmpfile (tramp-compat-make-temp-file localname dir-flag)))
@@ -2403,7 +2405,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
     (tramp-send-command
      v
      (format "rm -rf %s" (tramp-shell-quote-argument localname))
-     ;; Don't read the output, do it explicitely.
+     ;; Don't read the output, do it explicitly.
      nil t)
     ;; Wait for the remote system to return to us...
     ;; This might take a while, allow it plenty of time.
@@ -3148,7 +3150,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	  ;; filename does not exist (eq modes nil) it has been
 	  ;; renamed to the backup file.  This case `save-buffer'
 	  ;; handles permissions.
-	  ;; Ensure, that it is still readable.
+	  ;; Ensure that it is still readable.
 	  (when modes
 	    (set-file-modes
 	     tmpfile
@@ -3294,7 +3296,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	(when (or (eq visit t) (stringp visit))
           (let ((file-attr (file-attributes filename)))
             (set-visited-file-modtime
-             ;; We must pass modtime explicitely, because filename can
+             ;; We must pass modtime explicitly, because filename can
              ;; be different from (buffer-file-name), f.e. if
              ;; `file-precious-flag' is set.
              (nth 5 file-attr))
@@ -3401,7 +3403,7 @@ Fall back to normal file name handler if no Tramp handler exists."
       (with-parsed-tramp-file-name filename nil
 	(cond
 	 ;; That's what we want: file names, for which checks are
-	 ;; applied.  We assume, that VC uses only `file-exists-p' and
+	 ;; applied.  We assume that VC uses only `file-exists-p' and
 	 ;; `file-readable-p' checks; otherwise we must extend the
 	 ;; list.  We do not perform any action, but return nil, in
 	 ;; order to keep `vc-registered' running.
@@ -4301,7 +4303,7 @@ connection if a previous connection has died for some reason."
 		     ;; it is just a prefix for the ControlPath option
 		     ;; of ssh; the real temporary file has another
 		     ;; name, and it is created and protected by ssh.
-		     ;; It is also removed by ssh, when the connection
+		     ;; It is also removed by ssh when the connection
 		     ;; is closed.
 		     (tmpfile
 		      (tramp-set-connection-property
@@ -4655,11 +4657,12 @@ This is used internally by `tramp-file-mode-from-int'."
 	   (elt2 (memq 'tramp-own-remote-path remote-path))
 	   (default-remote-path
 	     (when elt1
-	       (condition-case nil
-		   (tramp-send-command-and-read
-		    vec "echo \\\"`getconf PATH`\\\"")
-		 ;; Default if "getconf" is not available.
-		 (error
+	       (or
+		(tramp-send-command-and-read
+		 vec
+		 "x=`getconf PATH 2>/dev/null` && echo \\\"$x\\\" || echo nil")
+		;; Default if "getconf" is not available.
+		(progn
 		  (tramp-message
 		   vec 3
 		   "`getconf PATH' not successful, using default value \"%s\"."
@@ -4669,7 +4672,6 @@ This is used internally by `tramp-file-mode-from-int'."
 	     (when elt2
 	       (condition-case nil
 		   (tramp-send-command-and-read vec "echo \\\"$PATH\\\"")
-		 ;; Default if "getconf" is not available.
 		 (error
 		  (tramp-message
 		   vec 3 "$PATH not set, ignoring `tramp-own-remote-path'.")
@@ -5072,7 +5074,7 @@ function cell is returned to be applied on a buffer."
 ;; * It makes me wonder if tramp couldn't fall back to ssh when scp
 ;;   isn't on the remote host.  (Mark A. Hershberger)
 ;; * Use lsh instead of ssh.  (Alfred M. Szmidt)
-;; * Optimize out-of-band copying, when both methods are scp-like (not
+;; * Optimize out-of-band copying when both methods are scp-like (not
 ;;   rsync).
 ;; * Keep a second connection open for out-of-band methods like scp or
 ;;   rsync.
