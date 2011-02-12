@@ -1,3 +1,10 @@
+2011-02-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* md5.c (md5_process_bytes): Use sizeof, not __alignof__.
+	The difference doesn't matter here, in practice, and sizeof is
+	more portable to non-GCC compilers.  Also, this makes the code
+	match the already-existing comment.
+
 2011-02-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* process.c (create_process): Reset SIGPIPE handler in the child.
