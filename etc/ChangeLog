@@ -1,3 +1,7 @@
+2011-02-12  Drew Adams  <drew.adams@oracle.com>
+
+	* themes/light-blue-theme.el: New file.
+
 2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	format-time-string now supports subsecond time stamp resolution
