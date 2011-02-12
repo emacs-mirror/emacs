@@ -65,10 +65,25 @@ removes a file, then remove the corresponding files by hand.
 The following description uses bound branches, presumably it works in
 a similar way with unbound ones.
 
+0) (First time only) Get the bzr changelog_merge plugin:
+
+cd ~/.bazaar/plugins
+bzr branch lp:bzr-changelog-merge
+mv bzr-changelog-merge changelog_merge
+
+This will make merging ChangeLogs a lot smoother.  It merges new
+entries to the top of the file, rather than trying to fit them in
+mid-way through.
+
 1) Get clean, up-to-date copies of the emacs-23 and trunk branches.
 Check for any uncommitted changes with bzr status.
 
 2) M-x cd /path/to/trunk
+
+The first time only, do this:
+cd .bzr/branch
+Add the following line to branch.conf:
+changelog_merge_files = ChangeLog
 
 3) load admin/bzrmerge.el
 
