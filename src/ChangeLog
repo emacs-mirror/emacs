@@ -1,3 +1,8 @@
+2011-02-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (create_process): Reset SIGPIPE handler in the child.
+	* callproc.c (Fcall_process): Likewise.  (Bug#5238)
+
 2011-02-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c <this_line_min_pos>: New variable.

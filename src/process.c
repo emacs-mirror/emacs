@@ -1786,6 +1786,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   sigset_t blocked;
   struct sigaction sigint_action;
   struct sigaction sigquit_action;
+  struct sigaction sigpipe_action;
 #ifdef AIX
   struct sigaction sighup_action;
 #endif
@@ -1898,6 +1899,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
      and record the current handlers so they can be restored later.  */
   sigaddset (&blocked, SIGINT );  sigaction (SIGINT , 0, &sigint_action );
   sigaddset (&blocked, SIGQUIT);  sigaction (SIGQUIT, 0, &sigquit_action);
+  sigaddset (&blocked, SIGPIPE);  sigaction (SIGPIPE, 0, &sigpipe_action);
 #ifdef AIX
   sigaddset (&blocked, SIGHUP );  sigaction (SIGHUP , 0, &sighup_action );
 #endif
@@ -2054,6 +2056,9 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
 	signal (SIGINT, SIG_DFL);
 	signal (SIGQUIT, SIG_DFL);
+	/* GTK causes us to ignore SIGPIPE, make sure it is restored
+	   in the child.  */
+	signal (SIGPIPE, SIG_DFL);
 
 	/* Stop blocking signals in the child.  */
 	sigprocmask (SIG_SETMASK, &procmask, 0);
@@ -2142,6 +2147,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   /* Restore the parent's signal handlers.  */
   sigaction (SIGINT, &sigint_action, 0);
   sigaction (SIGQUIT, &sigquit_action, 0);
+  sigaction (SIGPIPE, &sigpipe_action, 0);
 #ifdef AIX
   sigaction (SIGHUP, &sighup_action, 0);
 #endif
