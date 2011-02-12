@@ -1,3 +1,12 @@
+2011-02-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c <this_line_min_pos>: New variable.
+	(move_it_in_display_line_to): Record in this_line_min_pos the
+	smallest position iterated across.
+	(display_line): Use this_line_min_pos to record the smallest
+	position in the line even if it is not displayed due to
+	hscrolling.  (Bug#7939)
+
 2011-02-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to Sun C 5.11, which has __attribute__ ((__aligned (N))).
