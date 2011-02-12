@@ -12,7 +12,6 @@
 \overfullrule=0pt
 %\global\baselineskip 30pt      % for printing in double space
 @end tex
-@dircategory World Wide Web
 @dircategory Emacs
 @direntry
 * URL: (url).                   URL loading package.
