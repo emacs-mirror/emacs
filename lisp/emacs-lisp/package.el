@@ -577,23 +577,22 @@ Otherwise it uses an external `tar' program.
       (let ((load-path (cons pkg-dir load-path)))
 	(byte-recompile-directory pkg-dir 0 t)))))
 
-(defun package--write-file-no-coding (file-name excl)
+(defun package--write-file-no-coding (file-name)
   (let ((buffer-file-coding-system 'no-conversion))
-    (write-region (point-min) (point-max) file-name nil nil nil excl)))
+    (write-region (point-min) (point-max) file-name)))
 
 (defun package-unpack-single (file-name version desc requires)
   "Install the contents of the current buffer as a package."
   ;; Special case "package".
   (if (string= file-name "package")
       (package--write-file-no-coding
-       (expand-file-name (concat file-name ".el") package-user-dir)
-       nil)
+       (expand-file-name (concat file-name ".el") package-user-dir))
     (let* ((pkg-dir  (expand-file-name (concat file-name "-" version)
 				       package-user-dir))
 	   (el-file  (expand-file-name (concat file-name ".el") pkg-dir))
 	   (pkg-file (expand-file-name (concat file-name "-pkg.el") pkg-dir)))
       (make-directory pkg-dir t)
-      (package--write-file-no-coding el-file 'excl)
+      (package--write-file-no-coding el-file)
       (let ((print-level nil)
 	    (print-length nil))
 	(write-region

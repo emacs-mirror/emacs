@@ -1,3 +1,35 @@
+2011-02-12  Phil Hagelberg  <phil@hagelb.org>
+
+	* emacs-lisp/package.el: Allow packages to be reinstalled.
+	(package--write-file-no-coding): Remove EXCL arg.
+	(package-unpack-single): Don't use it.
+
+2011-02-12  Karl Pflästerer  <k@rl.pflaesterer.de>  (tiny change)
+
+	* vc/vc-svn.el: Adapt to Subversion change, with no .svn directory
+	in each sub directory.
+	(vc-svn-registered): Use vc-svn-root.
+	(vc-svn-root): New function.  Make vc-svn-responsible-p an alias.
+	(vc-svn-repository-hostname): Use "svn info".
+
+2011-02-11  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* simple.el (delete-trailing-whitespace): New optional buffer
+	bound parameters.
+
+2011-02-11  Bastien Guerry  <bzg@altern.org>
+
+	* files.el (basic-save-buffer): save unmodified buffers when
+	the file pointed by buffer-file-name doesn't exist.
+
+2011-02-11  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (defun-rcirc-join): Accept multiple channels.
+
+2011-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-specs.el (multiple-value-bind): Fix debug spec.
+
 2011-02-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/rcirc.el (rcirc-send-ctcp): Remove spurious arg to `format'.

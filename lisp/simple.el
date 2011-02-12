@@ -614,22 +614,30 @@ On nonblank line, delete any immediately following blank lines."
     (if (looking-at "^[ \t]*\n\\'")
 	(delete-region (point) (point-max)))))
 
-(defun delete-trailing-whitespace ()
+(defun delete-trailing-whitespace (&optional start end)
   "Delete all the trailing whitespace across the current buffer.
 All whitespace after the last non-whitespace character in a line is deleted.
 This respects narrowing, created by \\[narrow-to-region] and friends.
-A formfeed is not considered whitespace by this function."
-  (interactive "*")
+A formfeed is not considered whitespace by this function.
+If the region is active, only delete whitespace within the region."
+  (interactive (progn
+                 (barf-if-buffer-read-only)
+                 (if (use-region-p)
+                     (list (region-beginning) (region-end))
+                   (list nil nil))))
   (save-match-data
     (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward "\\s-$" nil t)
-	(skip-syntax-backward "-" (save-excursion (forward-line 0) (point)))
-	;; Don't delete formfeeds, even if they are considered whitespace.
-	(save-match-data
-	  (if (looking-at ".*\f")
-	      (goto-char (match-end 0))))
-	(delete-region (point) (match-end 0))))))
+      (let ((end-marker (copy-marker (or end (point-max))))
+            (start (or start (point-min))))
+        (goto-char start)
+        (while (re-search-forward "\\s-$" end-marker t)
+          (skip-syntax-backward "-" (save-excursion (forward-line 0) (point)))
+          ;; Don't delete formfeeds, even if they are considered whitespace.
+          (save-match-data
+            (if (looking-at ".*\f")
+                (goto-char (match-end 0))))
+          (delete-region (point) (match-end 0)))
+        (set-marker end-marker nil)))))
 
 (defun newline-and-indent ()
   "Insert a newline, then indent according to major mode.

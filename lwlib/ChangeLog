@@ -1,3 +1,19 @@
+2011-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (USE_X_TOOLKIT, RM, TOOLKIT_DEFINES): Remove.
+	(ALL_CFLAGS): Remove -I.
+	(config_h, lisp_h, src_h): New variables.
+	(globals_h): Rename from $globals.
+	($(globals_h)): Check cd exit status.
+	(lwlib.o): Remove special rule.
+	(lwlib-utils.o, lwlib.o, lwlib-Xlw.o, lwlib-Xaw.o, lwlib-Xm.o)
+	(xlwmenu.o): Add lisp.h and config.h to prereqs.
+	(lwlib-utils.o): Add lwlib.h to prereqs.
+	(lwlib.o): Add lwlib-utils.h and lwlib-Xm.h to prereqs.
+	(lwlib-Xlw.o): Add xlwmenu.h to prereqs.
+	(xlwmenu.o): Add ../src/xterm.h to prereqs.
+	(mostlyclean): Forget about "core" files.
+
 2011-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* lwlib-Xaw.c, lwlib-Xlw.c, lwlib-Xm.c, lwlib-utils.c, lwlib.c:
