@@ -1,3 +1,11 @@
+2011-02-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to Solaris 10, which doesn't support FC_HINT_STYLE.
+	* xftfont.c (FC_HINT_STYLE): #define to "hintstyle" if not
+	defined.
+	* xsettings.c (parse_settings, apply_xft_settings): Don't assume
+	FC_HINT_STYLE is supported.
+
 2011-02-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_set_frame_alpha): Access data before it is free:d.
