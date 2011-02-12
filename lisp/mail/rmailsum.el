@@ -1796,7 +1796,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order."
   "Sort messages of current Rmail summary by other correspondent.
 This uses either the \"From\", \"Sender\", \"To\", or
 \"Apparently-To\" header, downcased.  Uses the first header not
-excluded by `rmail-dont-reply-to-names'.  If prefix argument
+excluded by `mail-dont-reply-to-names'.  If prefix argument
 REVERSE is non-nil, sorts in reverse order."
   (interactive "P")
   (rmail-sort-from-summary (function rmail-sort-by-correspondent) reverse))

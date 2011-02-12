@@ -191,7 +191,7 @@ please report it with \\[report-emacs-bug].")
   :group 'rmail-retrieve
   :type '(repeat (directory)))
 
-(declare-function rmail-dont-reply-to "mail-utils" (destinations))
+(declare-function mail-dont-reply-to "mail-utils" (destinations))
 (declare-function rmail-update-summary "rmailsum" (&rest ignore))
 
 (defun rmail-probe (prog)
@@ -283,26 +283,16 @@ Setting this variable has an effect only before reading a mail."
   :version "21.1")
 
 ;;;###autoload
-(defcustom rmail-dont-reply-to-names nil
-  "A regexp specifying addresses to prune from a reply message.
-If this is nil, it is set the first time you compose a reply, to
-a value which excludes your own email address, plus whatever is
-specified by `rmail-default-dont-reply-to-names'.
-
-Matching addresses are excluded from the CC field in replies, and
-also the To field, unless this would leave an empty To field."
-  :type '(choice regexp (const :tag "Your Name" nil))
-  :group 'rmail-reply)
+(defvaralias 'rmail-dont-reply-to-names 'mail-dont-reply-to-names)
 
 ;;;###autoload
-(defvar rmail-default-dont-reply-to-names (purecopy "\\`info-")
-  "Regexp specifying part of the default value of `rmail-dont-reply-to-names'.
-This is used when the user does not set `rmail-dont-reply-to-names'
-explicitly.  (The other part of the default value is the user's
-email address and name.)  It is useful to set this variable in
-the site customization file.  The default value is conventionally
-used for large mailing lists to broadcast announcements.")
-;; Is it really useful to set this site-wide?
+(defvar rmail-default-dont-reply-to-names nil
+  "Regexp specifying part of the default value of `mail-dont-reply-to-names'.
+This is used when the user does not set `mail-dont-reply-to-names'
+explicitly.")
+;;;###autoload
+(make-obsolete-variable 'rmail-default-dont-reply-to-names
+                        'mail-dont-reply-to-names "24.1")
 
 ;;;###autoload
 (defcustom rmail-ignored-headers
@@ -3578,15 +3568,14 @@ use \\[mail-yank-original] to yank the original message into it."
      ;; Remove unwanted names from reply-to, since Mail-Followup-To
      ;; header causes all the names in it to wind up in reply-to, not
      ;; in cc.  But if what's left is an empty list, use the original.
-     (let* ((reply-to-list (rmail-dont-reply-to reply-to)))
+     (let* ((reply-to-list (mail-dont-reply-to reply-to)))
        (if (string= reply-to-list "") reply-to reply-to-list))
      subject
      (rmail-make-in-reply-to-field from date message-id)
      (if just-sender
 	 nil
-       ;; mail-strip-quoted-names is NOT necessary for rmail-dont-reply-to
-       ;; to do its job.
-       (let* ((cc-list (rmail-dont-reply-to
+       ;; `mail-dont-reply-to' doesn't need `mail-strip-quoted-names'.
+       (let* ((cc-list (mail-dont-reply-to
 			(mail-strip-quoted-names
 			 (if (null cc) to (concat to ", " cc))))))
 	 (if (string= cc-list "") nil cc-list)))
@@ -4359,7 +4348,7 @@ This applies only to the current session.
 
 ;;;### (autoloads (rmail-sort-by-labels rmail-sort-by-lines rmail-sort-by-correspondent
 ;;;;;;  rmail-sort-by-recipient rmail-sort-by-author rmail-sort-by-subject
-;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "f297fd33c8f7fa74baf16d2da99acb35")
+;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "ad1c98fe868c0e5804cf945d6c980d0b")
 ;;; Generated autoloads from rmailsort.el
 
 (autoload 'rmail-sort-by-date "rmailsort" "\
@@ -4393,7 +4382,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 Sort messages of current Rmail buffer by other correspondent.
 This uses either the \"From\", \"Sender\", \"To\", or
 \"Apparently-To\" header, downcased.  Uses the first header not
-excluded by `rmail-dont-reply-to-names'.  If prefix argument
+excluded by `mail-dont-reply-to-names'.  If prefix argument
 REVERSE is non-nil, sorts in reverse order.
 
 \(fn REVERSE)" t nil)
@@ -4418,7 +4407,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "adad96c9eb13cae4bae0769f731d8784")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "3817e21639db697abe5832d3223ecfc2")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\

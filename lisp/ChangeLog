@@ -1,3 +1,21 @@
+2011-02-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/mail-utils.el (mail-dont-reply-to-names): New variable,
+	from rmail-dont-reply-to-names.  Callers changed.
+	(mail-dont-reply-to): Rename from mail-dont-reply-to.
+	(rmail-dont-reply-to): Make it an obsolete alias.
+
+	* mail/rmail.el (rmail-default-dont-reply-to-names): Default to
+	nil, and make obsolete (Bug#7888).
+	(rmail-dont-reply-to-names): Alias to mail-dont-reply-to-names.
+
+	* mail/rmailsum.el (rmail-summary-sort-by-correspondent): Doc fix.
+
+	* mail/rmailsort.el (rmail-sort-by-correspondent)
+	(rmail-select-correspondent): Doc fix.  Use mail-dont-reply-to.
+
+	* mail/rmail.el (rmail-reply): Use mail-dont-reply-to.
+
 2011-02-12  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* files.el (copy-directory): New argument COPY-CONTENTS for
