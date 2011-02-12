@@ -116,7 +116,7 @@ Whether the passphrase is cached at all is controlled by
   :type 'integer)
 
 (defcustom mml2015-signers nil
-  "A list of your own key ID which will be used to sign a message.
+  "A list of your own key ID(s) which will be used to sign a message.
 If set, it overrides the setting of `mml2015-sign-with-sender'."
   :group 'mime-security
   :type '(repeat (string :tag "Key ID")))
