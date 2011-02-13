@@ -1,5 +1,7 @@
 2011-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
+	* net/imap.el: Remove file.  All the functionality is in nnimap.el.
+
 	* net/imap-hash.el: Remove file.
 
 2011-02-13  Michael Albinus  <michael.albinus@gmx.de>

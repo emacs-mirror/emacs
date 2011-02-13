@@ -1,3 +1,8 @@
+2011-02-13  Tassilo Horn  <tassilo@member.fsf.org>  (tiny change)
+
+	* nnimap.el (nnimap-request-accept-article, nnimap-process-quirk): Fix
+	Gcc processing on imap.
+
 2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el (message-bury): Don't pop up a new window when selected
