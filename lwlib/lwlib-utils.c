@@ -24,13 +24,6 @@ Boston, MA 02110-1301, USA.  */
 #include <config.h>
 #endif
 
-/* Definitions of these in config.h can cause
-   declaration conflicts later on between declarations for index
-   and declarations for strchr.  This file doesn't use
-   index and rindex, so cancel them.  */
-#undef index
-#undef rindex
-
 #include <setjmp.h>
 #include <lisp.h>
 
