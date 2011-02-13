@@ -1,3 +1,11 @@
+2011-02-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc.el (vc-print-log-setup-buttons): Instead of using the
+	widget library for buttons, just use button.el.
+
+	* vc/log-view.el (log-view-mode-map): Don't inherit from
+	widget-keymap.
+
 2011-02-12  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-seq.el (union, nunion, intersection)
