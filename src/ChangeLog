@@ -1,3 +1,9 @@
+2011-02-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_internal): Resynchronize `w' if the selected
+	window is changed inside calls to do_pending_window_change.
+	(Bug#8020)
+
 2011-02-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* terminal.c (create_terminal): Use default-keyboard-coding-system
