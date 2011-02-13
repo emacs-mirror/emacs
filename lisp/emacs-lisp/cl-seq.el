@@ -770,7 +770,7 @@ Return the sublist of LIST whose car matches.
 ;;;###autoload
 (defun union (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-union operation.
-The result list contains all items that appear in either LIST1 or LIST2.
+The resulting list contains all items that appear in either LIST1 or LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 \nKeywords supported:  :test :test-not :key
@@ -791,7 +791,7 @@ to avoid corrupting the original LIST1 and LIST2.
 ;;;###autoload
 (defun nunion (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-union operation.
-The result list contains all items that appear in either LIST1 or LIST2.
+The resulting list contains all items that appear in either LIST1 or LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 \nKeywords supported:  :test :test-not :key
@@ -802,7 +802,7 @@ whenever possible.
 ;;;###autoload
 (defun intersection (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-intersection operation.
-The result list contains all items that appear in both LIST1 and LIST2.
+The resulting list contains all items that appear in both LIST1 and LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 \nKeywords supported:  :test :test-not :key
@@ -825,7 +825,7 @@ to avoid corrupting the original LIST1 and LIST2.
 ;;;###autoload
 (defun nintersection (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-intersection operation.
-The result list contains all items that appear in both LIST1 and LIST2.
+The resulting list contains all items that appear in both LIST1 and LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 \nKeywords supported:  :test :test-not :key
@@ -835,7 +835,7 @@ whenever possible.
 ;;;###autoload
 (defun set-difference (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-difference operation.
-The result list contains all items that appear in LIST1 but not LIST2.
+The resulting list contains all items that appear in LIST1 but not LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 \nKeywords supported:  :test :test-not :key
@@ -855,7 +855,7 @@ to avoid corrupting the original LIST1 and LIST2.
 ;;;###autoload
 (defun nset-difference (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-difference operation.
-The result list contains all items that appear in LIST1 but not LIST2.
+The resulting list contains all items that appear in LIST1 but not LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 \nKeywords supported:  :test :test-not :key
@@ -866,7 +866,7 @@ whenever possible.
 ;;;###autoload
 (defun set-exclusive-or (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-exclusive-or operation.
-The result list contains all items that appear in exactly one of LIST1, LIST2.
+The resulting list contains all items appearing in exactly one of LIST1, LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 \nKeywords supported:  :test :test-not :key
@@ -879,7 +879,7 @@ to avoid corrupting the original LIST1 and LIST2.
 ;;;###autoload
 (defun nset-exclusive-or (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-exclusive-or operation.
-The result list contains all items that appear in exactly one of LIST1, LIST2.
+The resulting list contains all items appearing in exactly one of LIST1, LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 \nKeywords supported:  :test :test-not :key
