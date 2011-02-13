@@ -559,9 +559,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
         setpgrp (pid, pid);
 #endif /* USG */
 
-	/* GTK causes us to ignore SIGPIPE, make sure it is restored
+	/* GConf causes us to ignore SIGPIPE, make sure it is restored
 	   in the child.  */
-	signal (SIGPIPE, SIG_DFL);
+	//signal (SIGPIPE, SIG_DFL);
 #ifdef HAVE_WORKING_VFORK
 	sigprocmask (SIG_SETMASK, &procmask, 0);
 #endif

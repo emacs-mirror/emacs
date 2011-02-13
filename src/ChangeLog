@@ -1,3 +1,9 @@
+2011-02-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* callproc.c (Fcall_process):
+	* process.c (create_process): Replace Gtk with GConf in SIGPIPE
+	comment.
+
 2011-02-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (select_window): Check inhibit_point_swap argument when

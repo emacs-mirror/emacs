@@ -2056,7 +2056,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
 	signal (SIGINT, SIG_DFL);
 	signal (SIGQUIT, SIG_DFL);
-	/* GTK causes us to ignore SIGPIPE, make sure it is restored
+	/* GConf causes us to ignore SIGPIPE, make sure it is restored
 	   in the child.  */
 	signal (SIGPIPE, SIG_DFL);
 
