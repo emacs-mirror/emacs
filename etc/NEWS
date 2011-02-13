@@ -588,7 +588,7 @@ on a D-Bus without simultaneously registering a property or a method.
 *** There exists a new inline access method "ksu" (kerberized su).
 
 *** The following access methods are discontinued: "ssh1_old",
-"ssh2_old", "scp1_old", "scp2_old" and "fish".
+"ssh2_old", "scp1_old", "scp2_old", "imap", "imaps" and "fish".
 
 ** VC and related modes
 
