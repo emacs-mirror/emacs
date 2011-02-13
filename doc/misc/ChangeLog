@@ -6,6 +6,11 @@
 
 	* url.texi: Remove duplicate @dircategory (Bug#7942).
 
+2011-02-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Overview, Help for users, Help for developers): Update docs.
+	(Help for users): Talk about spaces.
+
 2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Update to version 2011-02-07.16.

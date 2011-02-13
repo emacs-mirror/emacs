@@ -191,6 +191,11 @@
 	(allout-after-copy-or-kill-hook): No arguments - hook implementers
 	should concentrate on the kill ring.
 
+2011-02-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* password-cache.el (password-cache-remove): Accept secrets that are
+	not strings.
+
 2011-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-font-lock-open-heredoc): Fix case

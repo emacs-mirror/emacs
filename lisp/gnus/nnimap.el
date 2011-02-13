@@ -47,8 +47,8 @@
 (require 'nnmail)
 (require 'proto-stream)
 
-(autoload 'auth-source-forget-user-or-password "auth-source")
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-forget+ "auth-source")
+(autoload 'auth-source-search "auth-source")
 
 (nnoo-declare nnimap)
 
@@ -275,18 +275,18 @@ textual parts.")
     (current-buffer)))
 
 (defun nnimap-credentials (address ports &optional inhibit-create)
-  (let (port credentials)
-    ;; Request the credentials from all ports, but only query on the
-    ;; last port if all the previous ones have failed.
-    (while (and (null credentials)
-		(setq port (pop ports)))
-      (setq credentials
-	    (auth-source-user-or-password
-	     '("login" "password") address port nil
-	     (if inhibit-create
-		 nil
-	       (null ports)))))
-    credentials))
+  (let* ((found (nth 0 (auth-source-search :max 1
+                                           :host address
+                                           :port ports
+                                           :create (if inhibit-create
+                                                       nil
+                                                     (null ports)))))
+         (user (plist-get found :user))
+         (secret (plist-get found :secret))
+         (secret (if (functionp secret) (funcall secret) secret)))
+    (if found
+        (list user secret)
+      nil)))
 
 (defun nnimap-keepalive ()
   (let ((now (current-time)))
@@ -381,14 +381,13 @@ textual parts.")
 			     (if (eq nnimap-authenticator 'anonymous)
 				 (list "anonymous"
 				       (message-make-address))
-			       (or
-				;; First look for the credentials based
-				;; on the virtual server name.
-				(nnimap-credentials
-				 (nnoo-current-server 'nnimap) ports t)
-				;; Then look them up based on the
-				;; physical address.
-				(nnimap-credentials nnimap-address ports)))))
+                               ;; Look for the credentials based on
+                               ;; the virtual server name and the address
+                               (nnimap-credentials
+                                (list
+                                 (nnoo-current-server 'nnimap)
+                                 nnimap-address)
+                                ports t))))
 		  (setq nnimap-object nil)
 		(setq login-result
 		      (nnimap-login (car credentials) (cadr credentials)))
@@ -398,9 +397,7 @@ textual parts.")
 		  (dolist (host (list (nnoo-current-server 'nnimap)
 				      nnimap-address))
 		    (dolist (port ports)
-		      (dolist (element '("login" "password"))
-			(auth-source-forget-user-or-password
-			 element host port))))
+                      (auth-source-forget+ :host host :protocol port)))
 		  (delete-process (nnimap-process nnimap-object))
 		  (setq nnimap-object nil))))
 	    (when nnimap-object

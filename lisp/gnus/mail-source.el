@@ -32,7 +32,7 @@
 (eval-when-compile
   (require 'cl)
   (require 'imap))
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-search "auth-source")
 (autoload 'pop3-movemail "pop3")
 (autoload 'pop3-get-message-count "pop3")
 (autoload 'nnheader-cancel-timer "nnheader")
@@ -332,6 +332,7 @@ Common keywords should be listed here.")
        (:prescript)
        (:prescript-delay)
        (:postscript)
+       ;; note server and port need to come before user and password
        (:server (getenv "MAILHOST"))
        (:port 110)
        (:user (or (user-login-name) (getenv "LOGNAME") (getenv "USER")))
@@ -345,6 +346,7 @@ Common keywords should be listed here.")
        (:subdirs ("cur" "new"))
        (:function))
       (imap
+       ;; note server and port need to come before user and password
        (:server (getenv "MAILHOST"))
        (:port)
        (:stream)
@@ -417,42 +419,66 @@ the `mail-source-keyword-map' variable."
 (put 'mail-source-bind 'lisp-indent-function 1)
 (put 'mail-source-bind 'edebug-form-spec '(sexp body))
 
-;; TODO: use the list format for auth-source-user-or-password modes
 (defun mail-source-set-1 (source)
   (let* ((type (pop source))
-	 (defaults (cdr (assq type mail-source-keyword-map)))
-	 default value keyword auth-info user-auth pass-auth)
+         (defaults (cdr (assq type mail-source-keyword-map)))
+         (search '(:max 1))
+         found default value keyword auth-info user-auth pass-auth)
+
+    ;; append to the search the useful info from the source and the defaults:
+    ;; user, host, and port
+
+    ;; the msname is the mail-source parameter
+    (dolist (msname '(:server :user :port))
+      ;; the asname is the auth-source parameter
+      (let* ((asname (case msname
+                       (:server :host)  ; auth-source uses :host
+                       (t msname)))
+             ;; this is the mail-source default
+             (msdef1 (or (plist-get source msname)
+                         (nth 1 (assoc msname defaults))))
+             ;; ...evaluated
+             (msdef (mail-source-value msdef1)))
+        (setq search (append (list asname
+                                   (if msdef msdef t))
+                             search))))
+    ;; if the port is unknown yet, get it from the mail-source type
+    (unless (plist-get search :port)
+      (setq search (append (list :port (symbol-name type)))))
+
     (while (setq default (pop defaults))
       ;; for each default :SYMBOL, set SYMBOL to the plist value for :SYMBOL
       ;; using `mail-source-value' to evaluate the plist value
       (set (mail-source-strip-keyword (setq keyword (car default)))
-	   ;; note the following reasons for this structure:
-	   ;; 1) the auth-sources user and password override everything
-	   ;; 2) it avoids macros, so it's cleaner
-	   ;; 3) it falls through to the mail-sources and then default values
-	   (cond
-	    ((and
-	     (eq keyword :user)
-	     (setq user-auth
-		   (nth 0 (auth-source-user-or-password
-			   '("login" "password")
-			   ;; this is "host" in auth-sources
-			   (if (boundp 'server) (symbol-value 'server) "")
-			   type))))
-	     user-auth)
-	    ((and
-	      (eq keyword :password)
-	      (setq pass-auth
-		    (nth 1
-			 (auth-source-user-or-password
-			  '("login" "password")
-			  ;; this is "host" in auth-sources
-			  (if (boundp 'server) (symbol-value 'server) "")
-			  type))))
-	     pass-auth)
-	    (t (if (setq value (plist-get source keyword))
-		 (mail-source-value value)
-	       (mail-source-value (cadr default)))))))))
+           ;; note the following reasons for this structure:
+           ;; 1) the auth-sources user and password override everything
+           ;; 2) it avoids macros, so it's cleaner
+           ;; 3) it falls through to the mail-sources and then default values
+           (cond
+            ((and
+             (eq keyword :user)
+             (setq user-auth (plist-get
+                              ;; cache the search result in `found'
+                              (or found
+                                  (setq found (nth 0 (apply 'auth-source-search
+                                                            search))))
+                              :user)))
+             user-auth)
+            ((and
+              (eq keyword :password)
+              (setq pass-auth (plist-get
+                               ;; cache the search result in `found'
+                               (or found
+                                   (setq found (nth 0 (apply 'auth-source-search
+                                                             search))))
+                               :secret)))
+             ;; maybe set the password to the return of the :secret function
+             (if (functionp pass-auth)
+                 (setq pass-auth (funcall pass-auth))
+               pass-auth))
+            (t (if (setq value (plist-get source keyword))
+                 (mail-source-value value)
+               (mail-source-value (cadr default)))))))))
 
 (eval-and-compile
   (defun mail-source-bind-common-1 ()
