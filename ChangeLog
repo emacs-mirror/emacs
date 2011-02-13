@@ -1,3 +1,7 @@
+2011-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Exclude generated file src/globals.h.
+
 2011-02-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* arg-nonnull.h, c++defs.h, warn-on-use.h: Fix licenses.
