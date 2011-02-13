@@ -1,3 +1,13 @@
+2011-02-13  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-delay.el (gnus-delay-article) Fix number of seconds per day.
+	Improve prompt.
+
+2011-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-mode-line-format): Remove the article
+	washing status from the default format.  It isn't very informative.
+
 2011-02-13  Tassilo Horn  <tassilo@member.fsf.org>  (tiny change)
 
 	* nnimap.el (nnimap-request-accept-article, nnimap-process-quirk): Fix
