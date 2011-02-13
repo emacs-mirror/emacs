@@ -1,3 +1,7 @@
+2011-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/imap-hash.el: Remove file.
+
 2011-02-13  Michael Albinus  <michael.albinus@gmx.de>
 
 	* Makefile.in (TRAMP_SRC): Remove tramp-imap.el.
