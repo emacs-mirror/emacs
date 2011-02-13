@@ -1,3 +1,22 @@
+2011-02-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/log-view.el: New command log-view-toggle-entry-display for
+	toggling log entries between concise and detailed forms.
+	(log-view-toggle-entry-display): New command.
+	(log-view-mode-map): Bind RET to it.
+	(log-view-expanded-log-entry-function): New variable.
+	(log-view-current-entry, log-view-inside-comment-p)
+	(log-view-current-tag): New functions.
+	(log-view-toggle-mark-entry): Use log-view-current-entry and
+	log-view-end-of-defun instead of searching directly with
+	log-view-message-re.
+	(log-view-end-of-defun): Likewise.  Add optional ARG for
+	compatibility with end-of-defun.
+	(log-view-end-of-defun): Ignore comments and VC buttons.
+
+	* vc/vc-bzr.el (vc-bzr-expanded-log-entry): New function.
+	(vc-bzr-log-view-mode): Use log-view-expanded-log-entry-function.
+
 2011-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/imap.el: Remove file.  All the functionality is in nnimap.el.
