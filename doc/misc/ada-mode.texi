@@ -39,6 +39,7 @@ developing GNU and promoting software freedom.''
 @contents
 
 @node Top, Overview, (dir), (dir)
+@top Ada Mode
 
 @ifnottex
 @insertcopying

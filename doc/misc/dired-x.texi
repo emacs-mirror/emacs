@@ -69,6 +69,7 @@ developing GNU and promoting software freedom.''
 @ifnottex
 
 @node Top
+@top Dired Extra
 @comment  node-name,  next,  previous,  up
 
 @noindent

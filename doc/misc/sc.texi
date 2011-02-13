@@ -53,6 +53,7 @@ developing GNU and promoting software freedom.''
 
 @ifnottex
 @node Top, Introduction, (dir), (dir)
+@top Supercite
 @comment  node-name,  next,  previous,  up
 
 @insertcopying 

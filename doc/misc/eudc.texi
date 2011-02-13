@@ -50,6 +50,7 @@ developing GNU and promoting software freedom.''
 
 @ifnottex
 @node     Top, Overview, (dir), (dir)
+@top Emacs Unified Directory Client
 @comment  node-name,  next,         previous, up
 
 @insertcopying

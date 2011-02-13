@@ -79,6 +79,7 @@ developing GNU and promoting software freedom.''
 
 @ifnottex
 @node Top,,,(dir)
+@top RefTeX
 
 @b{Ref@TeX{}} is a package for managing Labels, References,
 Citations and index entries with GNU Emacs.
