@@ -142,6 +142,8 @@ textual parts.")
 (defvar nnimap-quirks
   '(("QRESYNC" "Zimbra" "QRESYNC ")))
 
+(defvar nnimap-inhibit-logging nil)
+
 (defun nnimap-buffer ()
   (nnimap-find-process-buffer nntp-server-buffer))
 
@@ -389,8 +391,9 @@ textual parts.")
                                  nnimap-address)
                                 ports t))))
 		  (setq nnimap-object nil)
-		(setq login-result
-		      (nnimap-login (car credentials) (cadr credentials)))
+		(let ((nnimap-inhibit-logging t))
+		  (setq login-result
+			(nnimap-login (car credentials) (cadr credentials))))
 		(unless (car login-result)
 		  ;; If the login failed, then forget the credentials
 		  ;; that are now possibly cached.
@@ -1565,6 +1568,7 @@ textual parts.")
 (defvar nnimap-sequence 0)
 
 (defun nnimap-send-command (&rest args)
+  (setf (nnimap-last-command-time nnimap-object) (current-time))
   (process-send-string
    (get-buffer-process (current-buffer))
    (nnimap-log-command
@@ -1583,12 +1587,14 @@ textual parts.")
 (defun nnimap-log-command (command)
   (with-current-buffer (get-buffer-create "*imap log*")
     (goto-char (point-max))
-    (insert (format-time-string "%H:%M:%S") " " command))
+    (insert (format-time-string "%H:%M:%S") " "
+	    (if nnimap-inhibit-logging
+		"(inhibited)"
+	      command)))
   command)
 
 (defun nnimap-command (&rest args)
   (erase-buffer)
-  (setf (nnimap-last-command-time nnimap-object) (current-time))
   (let* ((sequence (apply #'nnimap-send-command args))
 	 (response (nnimap-get-response sequence)))
     (if (equal (caar response) "OK")

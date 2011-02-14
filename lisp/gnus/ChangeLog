@@ -1,3 +1,17 @@
+2011-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-inhibit-logging): New variable.
+	(nnimap-log-command): Don't log login commands.
+
+	* auth-source.el (auth-source-netrc-search): The asserts seem to want
+	to have more parameters.
+
+	* nnimap.el (nnimap-send-command): Mark the command time for each
+	command, so that we don't get NOOPs stepping on our toes.
+
+	* gnus-art.el (article-date-ut): Get the date from the Date header on
+	`t'.
+
 2011-02-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* auth-source.el (auth-source-search): Use copy-sequence instead of

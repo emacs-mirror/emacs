@@ -3404,6 +3404,7 @@ possible values."
 	 (inhibit-read-only t)
 	 (inhibit-point-motion-hooks t)
 	 (first t)
+	 (visible-date (mail-fetch-field "Date"))
 	 pos date bface eface)
     (save-excursion
       (save-restriction
@@ -3427,6 +3428,9 @@ possible values."
 	    (delete-region (point-at-bol) (progn
 					    (gnus-article-forward-header)
 					    (point))))
+	  (when (and (not date)
+		     visible-date)
+	    (setq date visible-date))
 	  (when date
 	    (article-transform-date date type bface eface)))))))
 

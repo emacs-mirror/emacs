@@ -483,7 +483,7 @@ must call it to obtain the actual value."
 
       (assert
        (or (eq t create) (listp create)) t
-       "Invalid auth-source :create parameter (must be nil, t, or a list)")
+       "Invalid auth-source :create parameter (must be nil, t, or a list): %s %s")
 
       (setq filtered-backends (copy-sequence backends))
       (dolist (backend backends)
@@ -779,7 +779,7 @@ Note that the MAX parameter is used so we can exit the parse early."
 See `auth-source-search' for details on SPEC."
   ;; just in case, check that the type is correct (null or same as the backend)
   (assert (or (null type) (eq type (oref backend type)))
-          t "Invalid netrc search")
+          t "Invalid netrc search: %s %s")
 
   (let ((results (auth-source-netrc-normalize
                   (auth-source-netrc-parse
