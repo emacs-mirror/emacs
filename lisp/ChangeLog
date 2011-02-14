@@ -1,3 +1,7 @@
+2011-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (TRAMP_SRC): Remove tramp-imap.el.
+
 2011-02-13  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Remove a
@@ -581,7 +585,7 @@
 
 2011-01-31  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
-	* net/rcirc.el: New customizable nick completion format. (Bug#6314)
+	* net/rcirc.el: New customizable nick completion format.  (Bug#6314)
 	(rcirc-nick-completion-format): New defcustom.
 	(rcirc-complete): Use it.
 
@@ -886,7 +890,7 @@
 
 	* calc/calc.el (calc-default-power-reference-level)
 	(calc-default-field-reference-level): New variables.
-	* calc/calc-units.el (math-standard-units):  Add dB and Np.
+	* calc/calc-units.el (math-standard-units): Add dB and Np.
 	(math-logunits): New variable.
 	(math-extract-logunits, math-logcombine, calcFunc-luplus)
 	(calcFunc-luminus, calc-luplus, calc-luminus, math-logunit-level)
@@ -896,7 +900,7 @@
 	* calc/calc-help.el (calc-u-prefix-help): Add logarithmic help.
 	(calc-ul-prefix-help): New function.
 	* calc/calc-ext.el (calc-init-extensions): Autoload new units
-	functions. Add keybindings for new units functions.
+	functions.  Add keybindings for new units functions.
 
 2011-01-22  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
@@ -1002,7 +1006,7 @@
 
 2011-01-20  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el: (allout-institute-keymap): Use fset instead of
+	* allout.el (allout-institute-keymap): Use fset instead of
 	reapplying defalias.
 
 	(allout-hotspot-key-handler): Check for non-control-modified
@@ -1130,7 +1134,7 @@
 	(info-xref-output-heading): Rename from info-xref-filename-heading.
 	(info-xref-good, info-xref-bad, info-xref-xfile-alist)
 	(info-xref-filename-heading): Move to output managing section.
-	(info-xref-docstrings): New command checking "Info node	`(foo)Bar'"
+	(info-xref-docstrings): New command checking "Info node `(foo)Bar'"
 	(info-xref-lock-file-p, info-xref-with-file): New helpers for it.
 	(info-xref-subfile-p): Move to generic section with those two.
 	(info-xref-check-node): New function split from
@@ -1140,7 +1144,7 @@
 	(info-xref-check-node): Use it.
 	(info-xref-with-output): Show count of unavailables at end of output.
 	(info-xref-all-info-files): Exclude ".*" dotfiles.  Ignore broken
-	symlinks.  Exclude .texi files.	 Exclude Emacs backup files.
+	symlinks.  Exclude .texi files.  Exclude Emacs backup files.
 	(info-xref-check-all-custom): Fix quietening viper-mode and
 	gnus-registry-install -- use setq not let so as not to unbind
 	after load.
@@ -1985,7 +1989,7 @@
 	(allout-toggle-subtree-encryption): Adjust docstrings to reflect
 	defaulting policy and other changes.  Change fetch-pass to keymode-cue,
 	for simpler universal argument interpretation.
-	(allout-toggle-subtree-encryption):  Adjust docstring to describe
+	(allout-toggle-subtree-encryption): Adjust docstring to describe
 	changed encryption provisions.  Change fetch-pass to keymode-cue, for
 	simpler universal argument interpretation.  Remove provisions for
 	handling key type and identity - they'll all be within
@@ -2601,8 +2605,8 @@
 	and "psftp".  Exchange "%k" marker with options.
 	(tramp-do-copy-or-rename-file, tramp-sh-handle-file-local-copy):
 	Compute size of link target.
-	(tramp-do-copy-or-rename-file-out-of-band). Move setting of
-	`tramp-current-*' up due to gateway methods.  Optimze computing of
+	(tramp-do-copy-or-rename-file-out-of-band): Move setting of
+	`tramp-current-*' up due to gateway methods.  Optimize computing of
 	copy arguments.  Use `tramp-get-connection-name' and
 	`tramp-get-connection-buffer'.  Improve debug messages.
 	(tramp-compute-multi-hops): Remove port determination.
@@ -3854,7 +3858,7 @@
 
 	* international/characters.el (char-acronym-table): New variable.
 	(glyphless-char-control): New variable.
-	(update-glyphless-char-display): New funciton.
+	(update-glyphless-char-display): New function.
 
 	* faces.el (glyphless-char): New face.
 
@@ -3925,7 +3929,7 @@
 2010-10-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-get-selection-value): New function that gets
-	PRIMARY with type as specified in x-select-request-type. (Bug#6802).
+	PRIMARY with type as specified in x-select-request-type.  (Bug#6802)
 
 2010-10-31  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -5707,7 +5711,7 @@
 	(sql-postgres-login-params): Add user and database defaults.
 	(sql-buffer-live-p): Bug fix.
 	(sql-product-history): New variable.
-	(sql-read-product): New function. Use it.
+	(sql-read-product): New function.  Use it.
 	(sql-set-product, sql-product-interactive): Use it.
 	(sql-connection-history): New variable.
 	(sql-read-connection): New function.  Use it.
