@@ -3677,7 +3677,7 @@ xg_tool_bar_menu_proxy (GtkToolItem *toolitem, gpointer user_data)
   GtkLabel *wlbl = GTK_LABEL (xg_get_tool_bar_widgets (vb, &c1));
   GtkImage *wimage = GTK_IMAGE (c1);
   GtkWidget *wmenuitem = gtk_image_menu_item_new_with_label
-    (gtk_label_get_text (wlbl));
+    (wlbl ? gtk_label_get_text (wlbl) : "");
   GtkWidget *wmenuimage;
 
 

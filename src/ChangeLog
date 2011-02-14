@@ -1,3 +1,8 @@
+2011-02-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_menu_proxy): Handle case when tool bar label
+	is null.
+
 2011-02-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* callproc.c (Fcall_process):
