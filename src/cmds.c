@@ -292,10 +292,10 @@ After insertion, the value of `auto-fill-function' is called if the
     }
 
   if (remove_boundary
-      && CONSP (current_buffer->undo_list)
-      && NILP (XCAR (current_buffer->undo_list)))
+      && CONSP (B_ (current_buffer, undo_list))
+      && NILP (XCAR (B_ (current_buffer, undo_list))))
     /* Remove the undo_boundary that was just pushed.  */
-    current_buffer->undo_list = XCDR (current_buffer->undo_list);
+    B_ (current_buffer, undo_list) = XCDR (B_ (current_buffer, undo_list));
 
   /* Barf if the key that invoked this was not a character.  */
   if (!CHARACTERP (last_command_event))
@@ -335,12 +335,12 @@ internal_self_insert (int c, EMACS_INT n)
   EMACS_INT chars_to_delete = 0;
   EMACS_INT spaces_to_insert = 0;
 
-  overwrite = current_buffer->overwrite_mode;
+  overwrite = B_ (current_buffer, overwrite_mode);
   if (!NILP (Vbefore_change_functions) || !NILP (Vafter_change_functions))
     hairy = 1;
 
   /* At first, get multi-byte form of C in STR.  */
-  if (!NILP (current_buffer->enable_multibyte_characters))
+  if (!NILP (B_ (current_buffer, enable_multibyte_characters)))
     {
       len = CHAR_STRING (c, str);
       if (len == 1)
@@ -416,11 +416,11 @@ internal_self_insert (int c, EMACS_INT n)
 
   synt = SYNTAX (c);
 
-  if (!NILP (current_buffer->abbrev_mode)
+  if (!NILP (B_ (current_buffer, abbrev_mode))
       && synt != Sword
-      && NILP (current_buffer->read_only)
+      && NILP (B_ (current_buffer, read_only))
       && PT > BEGV
-      && (SYNTAX (!NILP (current_buffer->enable_multibyte_characters)
+      && (SYNTAX (!NILP (B_ (current_buffer, enable_multibyte_characters))
 		  ? XFASTINT (Fprevious_char ())
 		  : UNIBYTE_TO_CHAR (XFASTINT (Fprevious_char ())))
 	  == Sword))
@@ -448,7 +448,7 @@ internal_self_insert (int c, EMACS_INT n)
 
   if (chars_to_delete)
     {
-      int mc = ((NILP (current_buffer->enable_multibyte_characters)
+      int mc = ((NILP (B_ (current_buffer, enable_multibyte_characters))
 		 && SINGLE_BYTE_CHAR_P (c))
 		? UNIBYTE_TO_CHAR (c) : c);
       Lisp_Object string = Fmake_string (make_number (n), make_number (mc));
@@ -479,7 +479,7 @@ internal_self_insert (int c, EMACS_INT n)
   if ((CHAR_TABLE_P (Vauto_fill_chars)
        ? !NILP (CHAR_TABLE_REF (Vauto_fill_chars, c))
        : (c == ' ' || c == '\n'))
-      && !NILP (current_buffer->auto_fill_function))
+      && !NILP (B_ (current_buffer, auto_fill_function)))
     {
       Lisp_Object tem;
 
@@ -488,7 +488,7 @@ internal_self_insert (int c, EMACS_INT n)
 	   that.  Must have the newline in place already so filling and
 	   justification, if any, know where the end is going to be.  */
 	SET_PT_BOTH (PT - 1, PT_BYTE - 1);
-      tem = call0 (current_buffer->auto_fill_function);
+      tem = call0 (B_ (current_buffer, auto_fill_function));
       /* Test PT < ZV in case the auto-fill-function is strange.  */
       if (c == '\n' && PT < ZV)
 	SET_PT_BOTH (PT + 1, PT_BYTE + 1);

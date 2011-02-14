@@ -265,7 +265,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   if (nargs >= 2 && ! NILP (args[1]))
     {
-      infile = Fexpand_file_name (args[1], current_buffer->directory);
+      infile = Fexpand_file_name (args[1], B_ (current_buffer, directory));
       CHECK_STRING (infile);
     }
   else
@@ -322,7 +322,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   {
     struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-    current_dir = current_buffer->directory;
+    current_dir = B_ (current_buffer, directory);
 
     GCPRO4 (infile, buffer, current_dir, error_file);
 
@@ -336,7 +336,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
-			 Fcons (current_buffer->directory, Qnil));
+			 Fcons (B_ (current_buffer, directory), Qnil));
 
     if (STRING_MULTIBYTE (infile))
       infile = ENCODE_FILE (infile);
@@ -663,7 +663,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       /* In unibyte mode, character code conversion should not take
 	 place but EOL conversion should.  So, setup raw-text or one
 	 of the subsidiary according to the information just setup.  */
-      if (NILP (current_buffer->enable_multibyte_characters)
+      if (NILP (B_ (current_buffer, enable_multibyte_characters))
 	  && !NILP (val))
 	val = raw_text_coding_system (val);
       setup_coding_system (val, &process_coding);
@@ -713,7 +713,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
 	if (!NILP (buffer))
 	  {
-	    if (NILP (current_buffer->enable_multibyte_characters)
+	    if (NILP (B_ (current_buffer, enable_multibyte_characters))
 		&& ! CODING_MAY_REQUIRE_DECODING (&process_coding))
 	      insert_1_both (buf, nread, nread, 0, 1, 0);
 	    else
@@ -926,7 +926,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   /* Decide coding-system of the contents of the temporary file.  */
   if (!NILP (Vcoding_system_for_write))
     val = Vcoding_system_for_write;
-  else if (NILP (current_buffer->enable_multibyte_characters))
+  else if (NILP (B_ (current_buffer, enable_multibyte_characters)))
     val = Qraw_text;
   else
     {

@@ -1577,7 +1577,7 @@ command_loop_1 (void)
 	  this_single_command_key_start = 0;
 	}
 
-      if (!NILP (current_buffer->mark_active)
+      if (!NILP (B_ (current_buffer, mark_active))
 	  && !NILP (Vrun_hooks))
 	{
 	  /* In Emacs 22, setting transient-mark-mode to `only' was a
@@ -1599,7 +1599,7 @@ command_loop_1 (void)
 	      if (!NILP (Fwindow_system (Qnil))
 		  /* Even if mark_active is non-nil, the actual buffer
 		     marker may not have been set yet (Bug#7044).  */
-		  && XMARKER (current_buffer->mark)->buffer
+		  && XMARKER (B_ (current_buffer, mark))->buffer
 		  && (EQ (Vselect_active_regions, Qonly)
 		      ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
 		      : (!NILP (Vselect_active_regions)
@@ -1607,7 +1607,7 @@ command_loop_1 (void)
 		  && !EQ (Vthis_command, Qhandle_switch_frame))
 		{
 		  EMACS_INT beg =
-		    XINT (Fmarker_position (current_buffer->mark));
+		    XINT (Fmarker_position (B_ (current_buffer, mark)));
 		  EMACS_INT end = PT;
 		  if (beg < end)
 		    call2 (Qx_set_selection, QPRIMARY,
@@ -8608,7 +8608,7 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
 
       /* Prompt with that and read response.  */
       message2_nolog (menu, strlen (menu),
-		      ! NILP (current_buffer->enable_multibyte_characters));
+		      ! NILP (B_ (current_buffer, enable_multibyte_characters)));
 
       /* Make believe its not a keyboard macro in case the help char
 	 is pressed.  Help characters are not recorded because menu prompting
@@ -9870,7 +9870,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	      /* Treat uppercase keys as shifted.  */
 	      || (INTEGERP (key)
 		  && (KEY_TO_CHAR (key)
-		      < XCHAR_TABLE (current_buffer->downcase_table)->size)
+		      < XCHAR_TABLE (B_ (current_buffer, downcase_table))->size)
 		  && UPPERCASEP (KEY_TO_CHAR (key))))
 	    {
 	      Lisp_Object new_key

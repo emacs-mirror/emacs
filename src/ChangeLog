@@ -1,3 +1,140 @@
+2011-02-14  Tom Tromey  <tromey@parfait>
+
+	* composite.c (fill_gstring_header)
+	(composition_compute_stop_pos, composition_adjust_point)
+	(Ffind_composition_internal): Use B_.
+	* intervals.c (set_point_both, get_local_map): Use B_.
+	* callproc.c (Fcall_process, Fcall_process_region): Use B_.
+	* process.c (get_process, list_processes_1, Fstart_process)
+	(Fmake_serial_process, Fmake_network_process)
+	(read_process_output, send_process, exec_sentinel)
+	(status_notify, setup_process_coding_systems): Use B_.
+	* bytecode.c (Fbyte_code): Use B_.
+	* syntax.c (update_syntax_table, dec_bytepos, Fsyntax_table)
+	(Fset_syntax_table, Fmodify_syntax_entry, skip_chars)
+	(skip_syntaxes, scan_lists): Use B_.
+	* lread.c (readchar, unreadchar, openp, readevalloop)
+	(Feval_buffer, Feval_region): Use B_.
+	* print.c (printchar, strout, print_string, PRINTDECLARE)
+	(PRINTPREPARE, PRINTFINISH, temp_output_buffer_setup)
+	(print_object): Use B_.
+	* font.c (font_at): Use B_.
+	* fns.c (Fbase64_encode_region, Fbase64_decode_region, Fmd5): Use
+	B_.
+	* callint.c (check_mark, Fcall_interactively): Use B_.
+	* editfns.c (region_limit, Fmark_marker, save_excursion_save)
+	(save_excursion_restore, Fprevious_char, Fchar_before)
+	(general_insert_function, Finsert_char, Finsert_byte)
+	(make_buffer_string_both, Finsert_buffer_substring)
+	(Fcompare_buffer_substrings, subst_char_in_region_unwind)
+	(subst_char_in_region_unwind_1, Fsubst_char_in_region)
+	(Ftranslate_region_internal, save_restriction_restore)
+	(Fchar_equal): Use B_.
+	* data.c (swap_in_symval_forwarding, set_internal)
+	(Fmake_local_variable, Fkill_local_variable, Flocal_variable_p):
+	Use B_.
+	* undo.c (record_point, record_insert, record_delete)
+	(record_marker_adjustment, record_first_change)
+	(record_property_change, Fundo_boundary, truncate_undo_list)
+	(Fprimitive_undo): Use B_.
+	* search.c (compile_pattern_1, compile_pattern, looking_at_1)
+	(string_match_1, fast_looking_at, newline_cache_on_off)
+	(search_command, search_buffer, simple_search, boyer_moore)
+	(Freplace_match): Use B_.
+	* indent.c (buffer_display_table, recompute_width_table)
+	(width_run_cache_on_off, current_column, scan_for_column)
+	(Findent_to, position_indentation, compute_motion, vmotion): Use
+	B_.
+	* casefiddle.c (casify_object, casify_region): Use B_.
+	* casetab.c (Fcurrent_case_table, set_case_table): Use B_.
+	* cmds.c (Fself_insert_command, internal_self_insert): Use B_.
+	* fileio.c (Fexpand_file_name, Ffile_directory_p)
+	(Ffile_regular_p, Ffile_selinux_context)
+	(Fset_file_selinux_context, Ffile_modes, Fset_file_modes)
+	(Fset_file_times, Ffile_newer_than_file_p, decide_coding_unwind)
+	(Finsert_file_contents, choose_write_coding_system)
+	(Fwrite_region, build_annotations, Fverify_visited_file_modtime)
+	(Fset_visited_file_modtime, auto_save_error, auto_save_1)
+	(Fdo_auto_save, Fset_buffer_auto_saved): Use B_.
+	* minibuf.c (read_minibuf, get_minibuffer, Fread_buffer): Use B_.
+	* marker.c (Fmarker_buffer, Fset_marker, set_marker_restricted)
+	(set_marker_both, set_marker_restricted_both, unchain_marker): Use
+	B_.
+	* insdel.c (check_markers, insert_char, insert_1_both)
+	(insert_from_string_1, insert_from_gap, insert_from_buffer_1)
+	(adjust_after_replace, replace_range, del_range_2)
+	(modify_region, prepare_to_modify_buffer)
+	(Fcombine_after_change_execute): Use B_.
+	* filelock.c (unlock_all_files, Flock_buffer, Funlock_buffer)
+	(unlock_buffer): Use B_.
+	* keymap.c (Flocal_key_binding, Fuse_local_map)
+	(Fcurrent_local_map, push_key_description)
+	(Fdescribe_buffer_bindings): Use B_.
+	* keyboard.c (command_loop_1, read_char_minibuf_menu_prompt)
+	(read_key_sequence): Use B_.
+	* fringe.c (get_logical_cursor_bitmap)
+	(get_logical_fringe_bitmap, update_window_fringes): Use B_.
+	* xfns.c (x_create_tip_frame, Fx_show_tip): Use B_.
+	* xfaces.c (compute_char_face): Use B_.
+	* character.c (chars_in_text, Fget_byte): Use B_.
+	* category.c (check_category_table, Fcategory_table)
+	(Fset_category_table, char_category_set): Use B_.
+	* coding.c (decode_coding, encode_coding)
+	(make_conversion_work_buffer, decode_coding_gap)
+	(decode_coding_object, encode_coding_object)
+	(Fdetect_coding_region, Ffind_coding_systems_region_internal)
+	(Funencodable_char_position, Fcheck_coding_systems_region): Use
+	B_.
+	* charset.c (Ffind_charset_region): Use B_.
+	* window.c (window_display_table, unshow_buffer, window_loop)
+	(window_min_size_2, set_window_buffer, Fset_window_buffer)
+	(select_window, Fforce_window_update, temp_output_buffer_show)
+	(Fset_window_configuration, save_window_save): Use B_.
+	* xdisp.c (pos_visible_p, init_iterator, reseat_1)
+	(message_dolog, update_echo_area, ensure_echo_area_buffers)
+	(with_echo_area_buffer, setup_echo_area_for_printing)
+	(set_message_1, update_menu_bar, update_tool_bar)
+	(text_outside_line_unchanged_p, redisplay_internal)
+	(try_scrolling, try_cursor_movement, redisplay_window)
+	(try_window_reusing_current_matrix, row_containing_pos)
+	(try_window_id, get_overlay_arrow_glyph_row, display_line)
+	(Fcurrent_bidi_paragraph_direction, display_mode_lines)
+	(decode_mode_spec_coding, decode_mode_spec, display_count_lines)
+	(get_window_cursor_type, note_mouse_highlight): Use B_.
+	* frame.c (make_frame_visible_1): Use B_.
+	* dispnew.c (Fframe_or_buffer_changed_p): Use B_.
+	* dispextern.h (WINDOW_WANTS_HEADER_LINE_P)
+	(WINDOW_WANTS_MODELINE_P): Use B_.
+	* syntax.h (Vstandard_syntax_table): Update.
+	(CURRENT_SYNTAX_TABLE, SETUP_BUFFER_SYNTAX_TABLE): Use B_.
+	* intervals.h (TEXT_PROP_MEANS_INVISIBLE): Update.
+	(TEXT_PROP_MEANS_INVISIBLE): Use B_.
+	* character.h (FETCH_CHAR_ADVANCE): Update.
+	(INC_BOTH, ASCII_CHAR_WIDTH, DEC_BOTH): Use B_.
+	* category.h (Vstandard_category_table): Update.
+	* lisp.h (DEFVAR_BUFFER_DEFAULTS): Update for change to field
+	names.
+	(DOWNCASE_TABLE, UPCASE_TABLE): Use B_.
+	* buffer.c (swapfield_): New macro.
+	(Fbuffer_swap_text): Use swapfield_ where appropriate.
+	(Fbuffer_live_p, Fget_file_buffer, get_truename_buffer)
+	(Fget_buffer_create, clone_per_buffer_values)
+	(Fmake_indirect_buffer, reset_buffer)
+	(reset_buffer_local_variables, Fbuffer_name, Fbuffer_file_name)
+	(Fbuffer_local_value, buffer_lisp_local_variables)
+	(Fset_buffer_modified_p, Frestore_buffer_modified_p)
+	(Frename_buffer, Fother_buffer, Fbuffer_enable_undo)
+	(Fkill_buffer, Fset_buffer_major_mode, set_buffer_internal_1)
+	(set_buffer_temp, Fset_buffer, set_buffer_if_live)
+	(Fbarf_if_buffer_read_only, Fbury_buffer, Ferase_buffer)
+	(Fbuffer_swap_text, Fset_buffer_multibyte)
+	(swap_out_buffer_local_variables, record_overlay_string)
+	(overlay_strings, init_buffer_once, init_buffer, syms_of_buffer):
+	Use B_.
+	* buffer.h (struct buffer): Rename all Lisp_Object fields.
+	(BUFFER_INTERNAL_FIELD, B_): New macro.
+	(FETCH_CHAR, FETCH_CHAR_AS_MULTIBYTE): Use B_.
+
 2011-02-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_menu_proxy): Handle case when tool bar label

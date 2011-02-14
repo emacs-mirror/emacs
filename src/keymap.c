@@ -1883,7 +1883,7 @@ bindings; see the description of `lookup-key' for more details about this.  */)
   (Lisp_Object keys, Lisp_Object accept_default)
 {
   register Lisp_Object map;
-  map = current_buffer->keymap;
+  map = B_ (current_buffer, keymap);
   if (NILP (map))
     return Qnil;
   return Flookup_key (map, keys, accept_default);
@@ -1988,7 +1988,7 @@ If KEYMAP is nil, that means no local keymap.  */)
   if (!NILP (keymap))
     keymap = get_keymap (keymap, 1, 1);
 
-  current_buffer->keymap = keymap;
+  B_ (current_buffer, keymap) = keymap;
 
   return Qnil;
 }
@@ -1998,7 +1998,7 @@ DEFUN ("current-local-map", Fcurrent_local_map, Scurrent_local_map, 0, 0, 0,
 Normally the local keymap is set by the major mode with `use-local-map'.  */)
   (void)
 {
-  return current_buffer->keymap;
+  return B_ (current_buffer, keymap);
 }
 
 DEFUN ("current-global-map", Fcurrent_global_map, Scurrent_global_map, 0, 0, 0,
@@ -2379,7 +2379,7 @@ push_key_description (register unsigned int c, register char *p, int force_multi
       *p++ = 'C';
     }
   else if (c < 128
-	   || (NILP (current_buffer->enable_multibyte_characters)
+	   || (NILP (B_ (current_buffer, enable_multibyte_characters))
 	       && SINGLE_BYTE_CHAR_P (c)
 	       && !force_multibyte))
     {
@@ -2388,7 +2388,7 @@ push_key_description (register unsigned int c, register char *p, int force_multi
   else
     {
       /* Now we are sure that C is a valid character code.  */
-      if (NILP (current_buffer->enable_multibyte_characters)
+      if (NILP (B_ (current_buffer, enable_multibyte_characters))
 	  && ! force_multibyte)
 	*p++ = multibyte_char_to_unibyte (c, Qnil);
       else
@@ -3048,7 +3048,7 @@ You type        Translation\n\
 			      XBUFFER (buffer), Qlocal_map);
       if (!NILP (start1))
 	{
-	  if (EQ (start1, XBUFFER (buffer)->keymap))
+	  if (EQ (start1, B_ (XBUFFER (buffer), keymap)))
 	    describe_map_tree (start1, 1, shadow, prefix,
 			       "\f\nMajor Mode Bindings", nomenu, 0, 0, 0);
 	  else
