@@ -2,6 +2,11 @@
 
 	* makefile.w32-in (TRAMP_SRC): Remove tramp-imap.el.
 
+2011-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/imap.el: Bring it back (revert
+	84d800cd31de3064f0ed39617d725709a2f8f42f).
+
 2011-02-13  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Remove a
