@@ -1,3 +1,24 @@
+2011-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc-git.el (vc-git-root-log-format): New option for
+	customizing log format.
+	(vc-git-print-log, vc-git-log-outgoing, vc-git-log-incoming)
+	(vc-git-log-view-mode): Use it.
+	(vc-git-expanded-log-entry): New function.
+	(vc-git-log-view-mode): Use it.  Truncate lines in root log.
+
+	* vc/vc-hg.el (vc-hg-root-log-template): New option for
+	customizing log format.
+	(vc-hg-print-log): Use it.
+	(vc-hg-expanded-log-entry): New function.
+	(vc-hg-log-view-mode): Use vc-hg-root-log-template and
+	vc-hg-expanded-log-entry.  Truncate lines in root log.
+
+	* vc/vc-bzr.el (vc-bzr-log-view-mode): Truncate lines in root log.
+
+	* vc/log-view.el (log-view-mode-menu): Add
+	log-view-toggle-entry-display.
+
 2011-02-14  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el: Don't require man when compiling.

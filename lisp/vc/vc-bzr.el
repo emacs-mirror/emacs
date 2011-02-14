@@ -603,6 +603,7 @@ REV non-nil gets an error."
 	 "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)"))
   ;; Allow expanding short log entries
   (when (eq vc-log-view-type 'short)
+    (setq truncate-lines t)
     (set (make-local-variable 'log-view-expanded-log-entry-function)
 	 'vc-bzr-expanded-log-entry))
   (set (make-local-variable 'log-view-font-lock-keywords)

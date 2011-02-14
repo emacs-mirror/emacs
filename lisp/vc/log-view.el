@@ -168,6 +168,8 @@
      :help "Annotate the version at point"]
     ["Modify Log Comment" log-view-modify-change-comment
      :help "Edit the change comment displayed at point"]
+    ["Toggle Details at Point" log-view-toggle-entry-display
+     :active log-view-expanded-log-entry-function]
     "-----"
     ["Next Log Entry"  log-view-msg-next
      :help "Go to the next count'th log message"]
