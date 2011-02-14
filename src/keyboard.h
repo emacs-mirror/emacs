@@ -19,8 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"		/* for EMACS_TIME */
 #include "coding.h"             /* for ENCODE_UTF_8 and ENCODE_SYSTEM */
 
-/* Length of echobuf field in each KBOARD.  */
-
 /* Each KBOARD represents one logical input stream from which Emacs
    gets input.  If we are using ordinary terminals, it has one KBOARD
    object for each terminal device.

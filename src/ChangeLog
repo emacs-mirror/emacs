@@ -1,3 +1,7 @@
+2011-02-14  Tom Tromey  <tromey@redhat.com>
+
+	* keyboard.h: Remove obsolete comment.
+
 2011-02-14  Tom Tromey  <tromey@parfait>
 
 	* composite.c (fill_gstring_header)
