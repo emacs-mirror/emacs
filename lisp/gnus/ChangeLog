@@ -1,3 +1,8 @@
+2011-02-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el (auth-source-search): Use copy-sequence instead of
+	the cl.el copy-list.
+
 2011-02-13  Adam Sjøgren  <asjo@koldfront.dk>
 
 	* gnus-delay.el (gnus-delay-article) Fix number of seconds per day.

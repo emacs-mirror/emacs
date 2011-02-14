@@ -485,7 +485,7 @@ must call it to obtain the actual value."
        (or (eq t create) (listp create)) t
        "Invalid auth-source :create parameter (must be nil, t, or a list)")
 
-      (setq filtered-backends (copy-list backends))
+      (setq filtered-backends (copy-sequence backends))
       (dolist (backend backends)
         (dolist (key keys)
           ;; ignore invalid slots
