@@ -124,7 +124,8 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
       (if (and process (eq 'run (process-status process)))
 	  (interrupt-process process))
       (condition-case nil
-	  (delete-file errors-file-name)
+	  (let ((delete-by-moving-to-trash nil))
+	    (delete-file errors-file-name))
 	(file-error nil)))))
 
 (defun pgg-pgp5-lookup-key (string &optional type)
@@ -219,8 +220,11 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
       (copy-file signature (setq signature (concat orig-file ".asc")))
       (setq args (append args (list signature))))
     (pgg-pgp5-process-region (point)(point) nil pgg-pgp5-pgpv-program args)
-    (delete-file orig-file)
-    (if signature (delete-file signature))
+    (let ((delete-by-moving-to-trash nil))
+      (delete-file orig-file))
+    (if signature
+	(let ((delete-by-moving-to-trash nil))
+	  (delete-file signature)))
     (with-current-buffer pgg-errors-buffer
       (goto-char (point-min))
       (if (re-search-forward "^Good signature" nil t)
@@ -249,7 +253,8 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
     (let ((coding-system-for-write 'raw-text-dos))
       (write-region start end key-file))
     (pgg-pgp5-process-region start end nil pgg-pgp5-pgpk-program args)
-    (delete-file key-file)
+    (let ((delete-by-moving-to-trash nil))
+      (delete-file key-file))
     (pgg-process-when-success nil)))
 
 (provide 'pgg-pgp5)

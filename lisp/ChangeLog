@@ -1,3 +1,13 @@
+2011-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pgg-gpg.el (pgg-gpg-process-region): Bind
+	delete-by-moving-to-trash to nil.
+
+	* pgg-pgp.el (pgg-pgp-process-region, pgg-pgp-verify-region)
+	(pgg-pgp-snarf-keys-region):
+	* pgg-pgp5.el (pgg-pgp5-process-region, pgg-pgp5-verify-region)
+	(pgg-pgp5-snarf-keys-region): Likewise.
+
 2011-02-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (copy-directory): Revert to pre-2011-01-29 version.
