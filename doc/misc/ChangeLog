@@ -1,3 +1,11 @@
+2011-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi: Drop meaningless version number.
+	(Introduction): Remove old info.
+	(Optional Installation Dired Jump): Autoload from dired-x.
+	Remove incorrect info about loaddefs.el.
+	(Bugs): Just refer to M-x report-emacs-bug.
+
 2011-02-12  Glenn Morris  <rgm@gnu.org>
 
 	* sc.texi (Getting Connected): Remove old index entries.
