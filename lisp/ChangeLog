@@ -1,3 +1,13 @@
+2011-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el: Don't require man when compiling.
+	(dired-omit-extensions, dired-local-variables-file)
+	(dired-x-hands-off-my-keys): Make them defcustoms.
+	(Man-support-local-filenames, Man-getpage-in-background): Declare.
+	(vm-visit-folder): Declare rather than defining.
+	(dired-x-help-address, dired-x-variable-list): Remove.
+	(dired-x-submit-report): Make it an obsolete alias.
+
 2011-02-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (TRAMP_SRC): Remove tramp-imap.el.
