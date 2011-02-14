@@ -5041,7 +5041,7 @@ init_buffer_once (void)
   B_ (&buffer_defaults, cursor_in_non_selected_windows) = Qt;
 
 #ifdef DOS_NT
-  buffer_defaults.buffer_file_type = Qnil; /* TEXT */
+  B_ (&buffer_defaults, buffer_file_type) = Qnil; /* TEXT */
 #endif
   B_ (&buffer_defaults, enable_multibyte_characters) = Qt;
   B_ (&buffer_defaults, buffer_file_coding_system) = Qnil;
@@ -5113,7 +5113,7 @@ init_buffer_once (void)
   XSETFASTINT (B_ (&buffer_local_flags, abbrev_table), idx); ++idx;
   XSETFASTINT (B_ (&buffer_local_flags, display_table), idx); ++idx;
 #ifdef DOS_NT
-  XSETFASTINT (buffer_local_flags.buffer_file_type, idx);
+  XSETFASTINT (B_ (&buffer_local_flags, buffer_file_type), idx);
   /* Make this one a permanent local.  */
   buffer_permanent_local_flags[idx++] = 1;
 #endif
@@ -5674,7 +5674,7 @@ word-wrapping, you might want to reduce the value of
 in narrower windows.  */);
 
 #ifdef DOS_NT
-  DEFVAR_PER_BUFFER ("buffer-file-type", &current_buffer->buffer_file_type,
+  DEFVAR_PER_BUFFER ("buffer-file-type", &B_ (current_buffer, buffer_file_type),
 		     Qnil,
 		     doc: /* Non-nil if the visited file is a binary file.
 This variable is meaningful on MS-DOG and Windows NT.

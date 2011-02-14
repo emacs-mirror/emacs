@@ -2029,12 +2029,12 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
     lock_file (B_ (base_buffer, file_truename));
 #else
   /* At least warn if this file has changed on disk since it was visited.  */
-  if (!NILP (base_buffer->filename)
+  if (!NILP (B_ (base_buffer, filename))
       && SAVE_MODIFF >= MODIFF
       && NILP (Fverify_visited_file_modtime (Fcurrent_buffer ()))
-      && !NILP (Ffile_exists_p (base_buffer->filename)))
+      && !NILP (Ffile_exists_p (B_ (base_buffer, filename))))
     call1 (intern ("ask-user-about-supersession-threat"),
-	   base_buffer->filename);
+	   B_ (base_buffer,filename));
 #endif /* not CLASH_DETECTION */
 
   /* If `select-active-regions' is non-nil, save the region text.  */

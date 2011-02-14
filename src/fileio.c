@@ -4110,9 +4110,9 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   if ((VECTORP (CODING_ID_EOL_TYPE (coding.id))
        || EQ (CODING_ID_EOL_TYPE (coding.id), Qunix))
       && ! CODING_REQUIRE_DECODING (&coding))
-    current_buffer->buffer_file_type = Qt;
+    B_ (current_buffer, buffer_file_type) = Qt;
   else
-    current_buffer->buffer_file_type = Qnil;
+    B_ (current_buffer, buffer_file_type) = Qnil;
 #endif
 
  handled:

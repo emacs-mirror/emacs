@@ -158,7 +158,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 # ifdef WINDOWSNT
       /* Windows users want case-insensitive wildcards.  */
       bufp = compile_pattern (match, 0,
-			      buffer_defaults.case_canon_table, 0, 1);
+			      B_ (&buffer_defaults, case_canon_table), 0, 1);
 # else	/* !WINDOWSNT */
       bufp = compile_pattern (match, 0, Qnil, 0, 1);
 # endif	 /* !WINDOWSNT */

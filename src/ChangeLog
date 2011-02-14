@@ -1,3 +1,13 @@
+2011-02-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (directory_files_internal):
+	* fileio.c (Finsert_file_contents):
+	* insdel.c (prepare_to_modify_buffer):
+	* xdisp.c (pos_visible_p):
+	* s/ms-w32.h (MODE_LINE_BINARY_TEXT):
+	* w32fns.c (Fw32_shell_execute, Fx_show_tip, x_create_tip_frame):
+	Use B_ for the MS-Windows build.
+
 2011-02-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xrdb.c (x_load_resources): For LUCID and XFT, don't put a
@@ -10,6 +20,8 @@
 	apply_systemfont_to_menu before lw_create_widget.
 
 2011-02-14  Tom Tromey  <tromey@redhat.com>
+
+	* buffer.c (init_buffer_once, syms_of_buffer): Use B_ in DOS_NT case.
 
 	* keyboard.h: Remove obsolete comment.
 
