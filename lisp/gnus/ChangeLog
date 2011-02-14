@@ -1,3 +1,9 @@
+2011-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-backend-parse-parameters): Don't rely on
+	`plist-get' to accept non-list parameters (XEmacs issue).  Fix
+	docstring.
+
 2011-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-inhibit-logging): New variable.

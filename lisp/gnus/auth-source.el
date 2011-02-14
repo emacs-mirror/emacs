@@ -331,9 +331,11 @@ If the value is not a list, symmetric encryption will be used."
 (defun auth-source-backend-parse-parameters (entry backend)
   "Fills in the extra auth-source-backend parameters of ENTRY.
 Using the plist ENTRY, get the :host, :protocol, and :user search
-parameters.  Accepts :port as an alias to :protocol.  Sets all
-the parameters to t if they are missing."
-  (let (val)
+parameters.  Accepts :port as an alias to :protocol."
+  (let ((entry (if (stringp entry)
+                   nil
+                 entry))
+        val)
     (when (setq val (plist-get entry :host))
       (oset backend host val))
     (when (setq val (plist-get entry :user))
