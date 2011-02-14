@@ -1,3 +1,14 @@
+2011-02-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xrdb.c (x_load_resources): For LUCID and XFT, don't put a
+	resource that specifies helvetica for menus and dialogs.
+
+	* xmenu.c (apply_systemfont_to_dialog): Apply to *dialog.font.
+	(apply_systemfont_to_menu): Set resources *menubar*font and
+	*popup*font.  Remove defflt.
+	(set_frame_menubar, create_and_show_popup_menu): Call
+	apply_systemfont_to_menu before lw_create_widget.
+
 2011-02-14  Tom Tromey  <tromey@redhat.com>
 
 	* keyboard.h: Remove obsolete comment.

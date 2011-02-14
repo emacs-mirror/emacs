@@ -428,29 +428,20 @@ and has its own resources.  The resource specifications start with
 @end iftex
 
 @example
-Emacs.pane.menubar.faceName:  Courier-12
+Emacs.pane.menubar.font:  Courier-12
 @end example
 
 @noindent
-To specify a font, use fontconfig font names as values to the @code{faceName}
-resource.
-
-If Emacs is not built with the Xft library, Lucid menus and dialogs
-can only display old style fonts.  If Emacs is built with Xft and you
-prefer the old fonts, you have to specify @samp{none} to
-@code{faceName}:
-
-@example
-Emacs.pane.menubar.faceName:    none
-Emacs.pane.dialog.faceName:     none
-@end example
-
-@noindent
-To specify a non-Xft font, use @code{font}.  For example:
+To specify a font, use fontconfig font names as values to the @code{font}
+resource, or old style names:
 
 @example
 Emacs.pane.menubar.font: lucidasanstypewriter-10
 @end example
+
+@noindent
+Emacs first tries to open the font as an old style font, and if that fails
+as an fontconfig font.  In rare cases, Emacs might do the wrong thing.
 
 @noindent
 The Lucid menus can display multilingual text in your locale with old style
@@ -480,7 +471,7 @@ Emacs.menu*.font:       8x16
 For dialog boxes, use @samp{dialog*}:
 
 @example
-Emacs.dialog*.faceName: Sans-12
+Emacs.dialog*.font: Sans-12
 @end example
 
 @noindent
@@ -495,8 +486,6 @@ approach should work on both kinds of systems.
   Here is a list of the specific resources for menu bars and pop-up menus:
 
 @table @code
-@item faceName
-Xft font for menu item text.
 @item font
 Font for menu item text.
 @item fontSet
