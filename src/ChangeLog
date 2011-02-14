@@ -1,5 +1,8 @@
 2011-02-14  Eli Zaretskii  <eliz@gnu.org>
 
+	* msdos.c (IT_frame_up_to_date): 
+	* s/msdos.h (MODE_LINE_BINARY_TEXT): Use B_ for the MS-DOS build.
+
 	* dired.c (directory_files_internal):
 	* fileio.c (Finsert_file_contents):
 	* insdel.c (prepare_to_modify_buffer):
