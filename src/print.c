@@ -1062,7 +1062,10 @@ float_to_string (char *buf, double data)
     {
       /* Generate the fewest number of digits that represent the
 	 floating point value without losing information.  */
-      dtoastr (buf, FLOAT_TO_STRING_BUFSIZE, 0, 0, data);
+      dtoastr (buf, FLOAT_TO_STRING_BUFSIZE - 2, 0, 0, data);
+      /* The decimal point must be printed, or the byte compiler can
+	 get confused (Bug#8033). */
+      width = 1;
     }
   else			/* oink oink */
     {
@@ -1117,8 +1120,7 @@ float_to_string (char *buf, double data)
 	  cp[1] = '0';
 	  cp[2] = 0;
 	}
-
-      if (*cp == 0)
+      else if (*cp == 0)
 	{
 	  *cp++ = '.';
 	  *cp++ = '0';

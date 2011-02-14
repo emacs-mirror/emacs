@@ -1,3 +1,8 @@
+2011-02-14  Michael Welsh Duggan  <md5i@md5i.com>
+
+	* print.c (float_to_string): Ensure that a decimal point is
+	printed if using dtoastr (Bug#8033).
+
 2011-02-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (IT_frame_up_to_date): 
