@@ -1797,7 +1797,7 @@ Replace with \"%s\"? " original replace)
        (let ((found nil) (start (point)) (msg nil) (ms nil))
 	 (while (and (not msg)
 		     (re-search-forward
-		      ;; Ignore manual page refereces like
+		      ;; Ignore manual page references like
 		      ;; git-config(1).
 		      "[^-([`':a-zA-Z]\\(\\w+[:-]\\(\\w\\|\\s_\\)+\\)[^](']"
 		      e t))

@@ -1,3 +1,36 @@
+2011-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* texinfo.tex: Update to version 2011-02-14.11.
+
+2011-02-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (History): Remove IMAP support.
+	(External methods, Frequently Asked Questions): Remove `imap' and
+	`imaps' methods.
+	(Password handling): Remove IMAP entries for ~/.authinfo.gpg.
+
+	* trampver.texi: Remove default value of `emacsimap'.
+
+2011-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* ada-mode.texi, dired-x.texi, ebrowse.texi, ediff.texi, eudc.texi:
+	* idlwave.texi, reftex.texi, sc.texi, speedbar.texi: Add @top.
+
+2011-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* sc.texi (Getting Connected): Remove old index entries.
+
+2011-02-12  Ulrich Mueller <ulm@gentoo.org>
+
+	* url.texi: Remove duplicate @dircategory (Bug#7942).
+
+2011-02-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Overview, Help for users, Help for developers):
+	Update docs.
+	(Help for users): Talk about spaces.
+
 2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Update to version 2011-02-07.16.

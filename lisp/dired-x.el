@@ -25,90 +25,46 @@
 
 ;;; Commentary:
 
-;; This is Sebastian Kremer's excellent dired-x.el (Dired Extra), version
-;; 1.191, hacked up for GNU Emacs.  Redundant or conflicting material has
-;; been removed or renamed in order to work properly with dired of GNU
-;; Emacs.  All suggestions or comments are most welcomed.
+;; This is based on Sebastian Kremer's excellent dired-x.el (Dired Extra),
+;; version 1.191, adapted for GNU Emacs.  See the `dired-x' info pages.
 
-;;
-;; Please, PLEASE, *PLEASE* see the info pages.
-;;
-
-;; BUGS: Type M-x dired-x-submit-report and a report will be generated.
-
-;; INSTALLATION: In your ~/.emacs,
+;; USAGE: In your ~/.emacs,
 ;;
 ;; (add-hook 'dired-load-hook
-;;           (function (lambda ()
-;;                       (load "dired-x")
+;;           (lambda ()
+;;                       (require 'dired-x)
 ;;                       ;; Set global variables here.  For example:
 ;;                       ;; (setq dired-guess-shell-gnutar "gtar")
-;;                       )))
+;;                       ))
 ;; (add-hook 'dired-mode-hook
-;;           (function (lambda ()
+;;           (lambda ()
 ;;                       ;; Set buffer-local variables here.  For example:
 ;;                       ;; (dired-omit-mode 1)
-;;                       )))
+;;                       ))
 ;;
 ;; At load time dired-x.el will install itself, redefine some functions, and
-;; bind some dired keys.  *Please* see the info pages for more details.
+;; bind some dired keys.
 
-;; *Please* see the info pages for more details.
+;; User customization: M-x customize-group RET dired-x RET.
 
-;; User defined variables:
-;;
-;;      dired-bind-vm
-;;      dired-vm-read-only-folders
-;;      dired-bind-jump
-;;      dired-bind-info
-;;      dired-bind-man
-;;      dired-x-hands-off-my-keys
-;;      dired-find-subdir
-;;      dired-enable-local-variables
-;;      dired-local-variables-file
-;;      dired-guess-shell-gnutar
-;;      dired-guess-shell-gzip-quiet
-;;      dired-guess-shell-znew-switches
-;;      dired-guess-shell-alist-user
-;;      dired-clean-up-buffers-too
-;;      dired-omit-mode
-;;      dired-omit-files
-;;      dired-omit-extensions
-;;      dired-omit-size-limit
-;;
-;; To find out more about these variables, load this file, put your cursor at
-;; the end of any of the variable names, and hit C-h v [RET].  *Please* see
-;; the info pages for more details.
+;; When loaded this code redefines the following functions of GNU Emacs:
+;; From dired.el: dired-clean-up-after-deletion, dired-find-buffer-nocreate,
+;; and dired-initial-position.
+;; From dired-aux.el: dired-add-entry and dired-read-shell-command.
 
-;; When loaded this code redefines the following functions of GNU Emacs
-;;
-;;   Function                         Found in this file of GNU Emacs
-;;   --------                         -------------------------------
-;;   dired-clean-up-after-deletion    ../lisp/dired.el
-;;   dired-find-buffer-nocreate       ../lisp/dired.el
-;;   dired-initial-position           ../lisp/dired.el
-;;
-;;   dired-add-entry                  ../lisp/dired-aux.el
-;;   dired-read-shell-command         ../lisp/dired-aux.el
+;; *Please* see the `dired-x' info pages for more details.
 
 
 ;;; Code:
 
 ;; LOAD.
 
-;; This is a no-op if dired-x is being loaded via `dired-load-hook'.  It is
-;; here in case the user has autoloaded dired-x via the dired-jump key binding
-;; (instead of autoloading to dired as is suggested in the info-pages).
-
+;; This is a no-op if dired-x is being loaded via `dired-load-hook',
+;; but maybe not if a dired-x function is being autoloaded.
 (require 'dired)
 
-;; We will redefine some functions and also need some macros so we need to
-;; load dired stuff of GNU Emacs.
-
+;; We will redefine some functions and also need some macros.
 (require 'dired-aux)
-
-(defvar vm-folder-directory)
-(eval-when-compile (require 'man))
 
 ;;; User-defined variables.
 
@@ -340,10 +296,9 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
       'dashes)))
 
 ;;; GLOBAL BINDING.
-(if dired-bind-jump
-    (progn
-      (define-key global-map "\C-x\C-j" 'dired-jump)
-      (define-key global-map "\C-x4\C-j" 'dired-jump-other-window)))
+(when dired-bind-jump
+  (define-key global-map "\C-x\C-j" 'dired-jump)
+  (define-key global-map "\C-x4\C-j" 'dired-jump-other-window))
 
 
 ;; Install into appropriate hooks.
@@ -589,7 +544,7 @@ Should never be used as marker by the user or other packages.")
   (let ((dired-omit-mode nil)) (revert-buffer)) ;; Show omitted files
   (dired-mark-unmarked-files (dired-omit-regexp) nil nil dired-omit-localp))
 
-(defvar dired-omit-extensions
+(defcustom dired-omit-extensions
   (append completion-ignored-extensions
           dired-latex-unclean-extensions
           dired-bibtex-unclean-extensions
@@ -600,7 +555,9 @@ Defaults to elements of `completion-ignored-extensions',
 `dired-texinfo-unclean-extensions'.
 
 See interactive function `dired-omit-mode' \(\\[dired-omit-mode]\) and
-variables `dired-omit-mode' and `dired-omit-files'.")
+variables `dired-omit-mode' and `dired-omit-files'."
+  :type '(repeat string)
+  :group 'dired-x)
 
 (defun dired-omit-expunge (&optional regexp)
   "Erases all unmarked files matching REGEXP.
@@ -896,12 +853,15 @@ Knows about the special cases in variable `default-directory-alist'."
 ;;;   `dired-enable-local-variables' and run `hack-local-variables' on the
 ;;;   Dired Buffer.
 
-(defvar dired-local-variables-file (convert-standard-filename ".dired")
+;; FIXME do standard dir-locals obsolete this?
+(defcustom dired-local-variables-file (convert-standard-filename ".dired")
   "Filename, as string, containing local dired buffer variables to be hacked.
 If this file found in current directory, then it will be inserted into dired
 buffer and `hack-local-variables' will be run.  See Info node
 `(emacs)File Variables' for more information on local variables.
-See also `dired-enable-local-variables'.")
+See also `dired-enable-local-variables'."
+  :type 'file
+  :group 'dired)
 
 (defun dired-hack-local-variables ()
   "Evaluate local variables in `dired-local-variables-file' for dired buffer."
@@ -979,6 +939,8 @@ dired."
 
 ;; NOTE: Use `gunzip -c' instead of `zcat' on `.gz' files.  Some do not
 ;; install GNU zip's version of zcat.
+
+(declare-function Man-support-local-filenames "man" ())
 
 (defvar dired-guess-shell-alist-default
   (list
@@ -1429,6 +1391,8 @@ NOSELECT the files are merely found but not selected."
 
 ;; Run man on files.
 
+(declare-function Man-getpage-in-background "man" (topic))
+
 (defun dired-man ()
   "Run man on this file.  Display old buffer if buffer name matches filename.
 Uses `man.el' of \\[manual-entry] fame."
@@ -1449,11 +1413,8 @@ Uses `man.el' of \\[manual-entry] fame."
 
 ;; Run mail on mail folders.
 
-;; Avoid compiler warning.
-(eval-when-compile
-  (when (not (fboundp 'vm-visit-folder))
-    (defun vm-visit-folder (file &optional arg)
-      nil)))
+(declare-function vm-visit-folder "ext:vm" (folder &optional read-only))
+(defvar vm-folder-directory)
 
 (defun dired-vm (&optional read-only)
   "Run VM on this file.
@@ -1659,11 +1620,17 @@ to mark all zero length files."
 
 ;;; FIND FILE AT POINT.
 
-(defvar dired-x-hands-off-my-keys t
-  "*Non-nil means don't bind `dired-x-find-file' over `find-file' on keyboard.
+(defcustom dired-x-hands-off-my-keys t
+  "Non-nil means don't bind `dired-x-find-file' over `find-file' on keyboard.
 Similarly for `dired-x-find-file-other-window' over `find-file-other-window'.
-If you change this variable after `dired-x.el' is loaded then do
-\\[dired-x-bind-find-file].")
+If you change this variable without using \\[customize] after `dired-x.el'
+is loaded then call \\[dired-x-bind-find-file]."
+  :type 'boolean
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set sym val)
+         (dired-x-bind-find-file))
+  :group 'dired-x)
 
 ;; Bind `dired-x-find-file{-other-window}' over wherever
 ;; `find-file{-other-window}' is bound?
@@ -1777,48 +1744,7 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
 
 ;;; BUG REPORTS
 
-;; Fixme: get rid of this later.
-
-;; This section is provided for reports.  It uses Barry A. Warsaw's
-;; reporter.el which is bundled with GNU Emacs v19.
-
-(defconst dired-x-help-address "bug-gnu-emacs@gnu.org"
-  "Address(es) accepting submission of reports on dired-x.el.")
-
-(defconst dired-x-variable-list
-  (list
-   'dired-bind-vm
-   'dired-vm-read-only-folders
-   'dired-bind-jump
-   'dired-bind-info
-   'dired-bind-man
-   'dired-find-subdir
-   'dired-enable-local-variables
-   'dired-local-variables-file
-   'dired-guess-shell-gnutar
-   'dired-guess-shell-gzip-quiet
-   'dired-guess-shell-znew-switches
-   'dired-guess-shell-alist-user
-   'dired-clean-up-buffers-too
-   'dired-omit-mode
-   'dired-omit-files
-   'dired-omit-extensions
-   )
-  "List of variables to be appended to reports sent by `dired-x-submit-report'.")
-
-(defun dired-x-submit-report ()
-  "Submit via `reporter.el' a bug report on program.
-Send report on `dired-x-file' version `dired-x-version', to
-`dired-x-maintainer' at address `dired-x-help-address' listing
-variables `dired-x-variable-list' in the message."
-  (interactive)
-
-  (reporter-submit-bug-report
-   dired-x-help-address			; address
-   "dired-x"				; pkgname
-   dired-x-variable-list		; varlist
-   nil nil				; pre-/post-hooks
-   ""))
+(define-obsolete-function-alias 'dired-x-submit-report 'report-emacs-bug "24.1")
 
 
 ;; As Barry Warsaw would say: "This might be useful..."

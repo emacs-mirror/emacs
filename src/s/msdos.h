@@ -92,7 +92,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 
 /* Mode line description of a buffer's type.  */
-#define MODE_LINE_BINARY_TEXT(buf) (NILP(buf->buffer_file_type) ? "T" : "B")
+#define MODE_LINE_BINARY_TEXT(buf) (NILP(B_(buf,buffer_file_type)) ? "T" : "B")
 
 /* We have (the code to control) a mouse.  */
 #define HAVE_MOUSE

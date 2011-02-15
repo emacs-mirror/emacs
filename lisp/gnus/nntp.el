@@ -40,7 +40,7 @@
 
 (eval-when-compile (require 'cl))
 
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-search "auth-source")
 
 (defgroup nntp nil
   "NNTP access for Gnus."
@@ -1231,10 +1231,16 @@ If SEND-IF-FORCE, only send authinfo to the server if the
   (let* ((list (netrc-parse nntp-authinfo-file))
 	 (alist (netrc-machine list nntp-address "nntp"))
 	 (force (or (netrc-get alist "force") nntp-authinfo-force))
-	 (auth-info
-	  (auth-source-user-or-password '("login" "password") nntp-address "nntp"))
-	 (auth-user (nth 0 auth-info))
-	 (auth-passwd (nth 1 auth-info))
+         (auth-info
+          (nth 0 (auth-source-search :max 1
+                                     ;; TODO: allow the virtual server name too
+                                     :host nntp-address
+                                     :port '("119" "nntp"))))
+         (auth-user (plist-get auth-info :user))
+         (auth-passwd (plist-get auth-info :secret))
+         (auth-passwd (if (functionp auth-passwd)
+                          (funcall auth-passwd)
+                        auth-passwd))
 	 (user (or
 		;; this is preferred to netrc-*
 		auth-user

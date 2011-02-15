@@ -887,31 +887,26 @@ apply_systemfont_to_dialog (Widget w)
     {
       XrmDatabase db = XtDatabase (XtDisplay (w));
       if (db)
-        XrmPutStringResource (&db, "*dialog.faceName", fn);
+        XrmPutStringResource (&db, "*dialog.font", fn);
     }
 }
 
 static void
-apply_systemfont_to_menu (Widget w)
+apply_systemfont_to_menu (struct frame *f, Widget w)
 {
   const char *fn = xsettings_get_system_normal_font ();
-  int defflt;
 
-  if (!fn) return;
-
-  if (XtIsShell (w)) /* popup menu */
+  if (fn)
     {
-      Widget *childs = NULL;
-
-      XtVaGetValues (w, XtNchildren, &childs, NULL);
-      if (*childs) w = *childs;
+      XrmDatabase db = XtDatabase (XtDisplay (w));
+      if (db)
+        {
+          XrmPutStringResource (&db, "*menubar*font", fn);
+          XrmPutStringResource (&db, "*popup*font", fn);
+        }
     }
-
-  /* Only use system font if the default is used for the menu.  */
-  XtVaGetValues (w, XtNdefaultFace, &defflt, NULL);
-  if (defflt)
-    XtVaSetValues (w, XtNfaceName, fn, NULL);
 }
+
 #endif
 
 /* Set the contents of the menubar widgets of frame F.
@@ -1210,7 +1205,11 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       char menuOverride[] = "Ctrl<KeyPress>g: MenuGadgetEscape()";
       XtTranslations  override = XtParseTranslationTable (menuOverride);
 
-      menubar_widget = lw_create_widget ("menubar", "menubar", id, first_wv,
+#ifdef USE_LUCID
+      apply_systemfont_to_menu (f, f->output_data.x->column_widget);
+#endif
+      menubar_widget = lw_create_widget ("menubar", "menubar", id,
+                                         first_wv,
 					 f->output_data.x->column_widget,
 					 0,
 					 popup_activate_callback,
@@ -1221,9 +1220,6 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       /* Make menu pop down on C-g.  */
       XtOverrideTranslations (menubar_widget, override);
-#ifdef USE_LUCID
-      apply_systemfont_to_menu (menubar_widget);
-#endif
     }
 
   {
@@ -1542,16 +1538,16 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
   if (! FRAME_X_P (f))
     abort ();
 
+#ifdef USE_LUCID
+  apply_systemfont_to_menu (f, f->output_data.x->widget);
+#endif
+
   menu_id = widget_id_tick++;
   menu = lw_create_widget ("popup", first_wv->name, menu_id, first_wv,
                            f->output_data.x->widget, 1, 0,
                            popup_selection_callback,
                            popup_deactivate_callback,
                            menu_highlight_callback);
-
-#ifdef USE_LUCID
-  apply_systemfont_to_menu (menu);
-#endif
 
   dummy.type = ButtonPress;
   dummy.serial = 0;

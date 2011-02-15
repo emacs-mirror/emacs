@@ -443,9 +443,6 @@ Support of gateways exists since April 2007.
 @ifset emacsgvfs
 GVFS integration started in February 2009.
 @end ifset
-@ifset emacsimap
-Storing files into IMAP mailboxes has been added in September 2009.
-@end ifset
 
 In December 2001, @value{tramp} has been added to the XEmacs package
 repository.  Being part of the GNU Emacs repository happened in June
@@ -1012,29 +1009,6 @@ Windows, this method isn't available.  Instead, you can use UNC
 file names like @file{//melancholia/daniel$$/.emacs}.  The only
 disadvantage is that there's no possibility to specify another user
 name.
-
-
-@ifset emacsimap
-@item @option{imap}
-@cindex method imap
-@cindex method imaps
-@cindex imap method
-@cindex imaps method
-
-Accessing an IMAP mailbox is intended to save files there as encrypted
-messages.  It could be used in case there are no other remote file
-storages available.
-
-@value{tramp} supports both @option{imap} and @option{imaps} methods.
-The latter one accesses the IMAP server over ssl.
-
-Both methods support the port number specification.
-
-Note that special handling is needed for declaring a passphrase for
-encryption / decryption of the messages (@pxref{Using an
-authentication file}).
-
-@end ifset
 @end table
 
 
@@ -1624,18 +1598,6 @@ machine melancholia port scp login daniel password geheim
 The port can be any @value{tramp} method (@pxref{Inline methods},
 @pxref{External methods}), to match only this method.  When you omit
 the port, you match all @value{tramp} methods.
-
-@ifset emacsimap
-A special case are @option{imap}-like methods.  Authentication with
-the IMAP server is performed via @file{imap.el}, there is no special
-need from @value{tramp} point of view.  An additional passphrase, used
-for symmetric encryption and decryption of the stored messages, should
-be given with the special port indication @option{tramp-imap}:
-
-@example
-machine melancholia port tramp-imap login daniel password ultrageheim
-@end example
-@end ifset
 
 @anchor{Caching passwords}
 @subsection Caching passwords
@@ -2782,9 +2744,9 @@ The package has been used successfully on GNU Emacs 22, GNU Emacs 23,
 XEmacs 21 (starting with 21.4), and SXEmacs 22.
 
 The package was intended to work on Unix, and it really expects a
-Unix-like system on the remote end (except the @option{smb} and
-@option{imap} methods), but some people seemed to have some success
-getting it to work on MS Windows XP/Vista/7 @value{emacsname}.
+Unix-like system on the remote end (except the @option{smb} method),
+but some people seemed to have some success getting it to work on MS
+Windows XP/Vista/7 @value{emacsname}.
 
 
 @item

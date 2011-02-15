@@ -1,3 +1,11 @@
+2011-02-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Tramp methods "imap" and "imaps" are discontinued.
+
+2011-02-12  Drew Adams  <drew.adams@oracle.com>
+
+	* themes/light-blue-theme.el: New file.
+
 2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	format-time-string now supports subsecond time stamp resolution
@@ -382,7 +390,7 @@
 	* srecode/doc-default.srt (section-comment, function-comment)
 	(variable-same-line-comment, group-comment-start, group-comment-end):
 	* srecode/doc-java.srt (function-comment, variable-same-line-comment)
-	(group-comment-start, gropu-comment-end):
+	(group-comment-start, group-comment-end):
 	Fix typos in template docstrings.
 
 2010-01-14  Kenichi Handa  <handa@m17n.org>

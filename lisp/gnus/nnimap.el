@@ -47,8 +47,8 @@
 (require 'nnmail)
 (require 'proto-stream)
 
-(autoload 'auth-source-forget-user-or-password "auth-source")
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-forget+ "auth-source")
+(autoload 'auth-source-search "auth-source")
 
 (nnoo-declare nnimap)
 
@@ -141,6 +141,8 @@ textual parts.")
 
 (defvar nnimap-quirks
   '(("QRESYNC" "Zimbra" "QRESYNC ")))
+
+(defvar nnimap-inhibit-logging nil)
 
 (defun nnimap-buffer ()
   (nnimap-find-process-buffer nntp-server-buffer))
@@ -275,18 +277,18 @@ textual parts.")
     (current-buffer)))
 
 (defun nnimap-credentials (address ports &optional inhibit-create)
-  (let (port credentials)
-    ;; Request the credentials from all ports, but only query on the
-    ;; last port if all the previous ones have failed.
-    (while (and (null credentials)
-		(setq port (pop ports)))
-      (setq credentials
-	    (auth-source-user-or-password
-	     '("login" "password") address port nil
-	     (if inhibit-create
-		 nil
-	       (null ports)))))
-    credentials))
+  (let* ((found (nth 0 (auth-source-search :max 1
+                                           :host address
+                                           :port ports
+                                           :create (if inhibit-create
+                                                       nil
+                                                     (null ports)))))
+         (user (plist-get found :user))
+         (secret (plist-get found :secret))
+         (secret (if (functionp secret) (funcall secret) secret)))
+    (if found
+        (list user secret)
+      nil)))
 
 (defun nnimap-keepalive ()
   (let ((now (current-time)))
@@ -381,26 +383,24 @@ textual parts.")
 			     (if (eq nnimap-authenticator 'anonymous)
 				 (list "anonymous"
 				       (message-make-address))
-			       (or
-				;; First look for the credentials based
-				;; on the virtual server name.
-				(nnimap-credentials
-				 (nnoo-current-server 'nnimap) ports t)
-				;; Then look them up based on the
-				;; physical address.
-				(nnimap-credentials nnimap-address ports)))))
+                               ;; Look for the credentials based on
+                               ;; the virtual server name and the address
+                               (nnimap-credentials
+                                (list
+                                 (nnoo-current-server 'nnimap)
+                                 nnimap-address)
+                                ports t))))
 		  (setq nnimap-object nil)
-		(setq login-result
-		      (nnimap-login (car credentials) (cadr credentials)))
+		(let ((nnimap-inhibit-logging t))
+		  (setq login-result
+			(nnimap-login (car credentials) (cadr credentials))))
 		(unless (car login-result)
 		  ;; If the login failed, then forget the credentials
 		  ;; that are now possibly cached.
 		  (dolist (host (list (nnoo-current-server 'nnimap)
 				      nnimap-address))
 		    (dolist (port ports)
-		      (dolist (element '("login" "password"))
-			(auth-source-forget-user-or-password
-			 element host port))))
+                      (auth-source-forget+ :host host :protocol port)))
 		  (delete-process (nnimap-process nnimap-object))
 		  (setq nnimap-object nil))))
 	    (when nnimap-object
@@ -969,7 +969,8 @@ textual parts.")
       (nnimap-add-cr)
       (setq message (buffer-substring-no-properties (point-min) (point-max)))
       (with-current-buffer (nnimap-buffer)
-	(when (setq message (nnimap-process-quirk "OK Gimap " 'append message))
+	(when (setq message (or (nnimap-process-quirk "OK Gimap " 'append message)
+				message))
 	  ;; If we have this group open read-only, then unselect it
 	  ;; before appending to it.
 	  (when (equal (nnimap-examined nnimap-object) group)
@@ -997,7 +998,7 @@ textual parts.")
 
 (defun nnimap-process-quirk (greeting-match type data)
   (when (and (nnimap-greeting nnimap-object)
-	     (string-match "OK Gimap " (nnimap-greeting nnimap-object))
+	     (string-match greeting-match (nnimap-greeting nnimap-object))
 	     (eq type 'append)
 	     (string-match "\000" data))
     (let ((choice (gnus-multiple-choice
@@ -1567,6 +1568,7 @@ textual parts.")
 (defvar nnimap-sequence 0)
 
 (defun nnimap-send-command (&rest args)
+  (setf (nnimap-last-command-time nnimap-object) (current-time))
   (process-send-string
    (get-buffer-process (current-buffer))
    (nnimap-log-command
@@ -1585,12 +1587,14 @@ textual parts.")
 (defun nnimap-log-command (command)
   (with-current-buffer (get-buffer-create "*imap log*")
     (goto-char (point-max))
-    (insert (format-time-string "%H:%M:%S") " " command))
+    (insert (format-time-string "%H:%M:%S") " "
+	    (if nnimap-inhibit-logging
+		"(inhibited)"
+	      command)))
   command)
 
 (defun nnimap-command (&rest args)
   (erase-buffer)
-  (setf (nnimap-last-command-time nnimap-object) (current-time))
   (let* ((sequence (apply #'nnimap-send-command args))
 	 (response (nnimap-get-response sequence)))
     (if (equal (caar response) "OK")

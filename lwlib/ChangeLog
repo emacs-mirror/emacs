@@ -1,3 +1,36 @@
+2011-02-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.h: Remove Xt[CN]faceName and Xt[NC]defaultFace.
+
+	* xlwmenuP.h (_XlwMenu_part): Remove faceName.  Add fontName.
+
+	* xlwmenu.c (xlwmenu_default_font): Remove, does not work for
+	multi-display.
+	(xlwMenuResources): Remove XtNfaceName and XtNdefaultFace.
+	Make XtNFont a String resource.
+	(make_windows_if_needed): Call XFlush so later changes are seen by the
+	X server.
+	(remap_menubar): Use XtMoveWidget and then
+	XtResizeWidget/XtResizeWindow after XtPopup.  Works better with
+	Compiz.
+	(make_drawing_gcs): Check if mw->menu.font is set.
+	(getDefaultXftFont): New function.
+	(openXftFont): faceName is now fontName.  Try XLoadQueryFont first
+	and then XftFontOpenName.
+	(XlwMenuInitialize): Initialize mw->menu.font with XLoadQueryFont.
+	(XlwMenuClassInitialize): Remove initialization of
+	xlwmenu_default_font.
+	(fontname_changed): Renamed from facename_changed.
+	(XlwMenuSetValues): Use facename_changed.
+
+	* lwlib-Xaw.c (make_dialog): Use *font even for Xft fonts.  Try
+	XLoadQueryFont first and then Xft fonts.
+
+2011-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* lwlib-utils.c (index, rindex): Don't undef (neither used in lwlib/,
+	nor set in config.h).
+
 2011-02-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (USE_X_TOOLKIT, RM, TOOLKIT_DEFINES): Remove.

@@ -119,6 +119,27 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "23.1"
   :group 'vc)
 
+(defcustom vc-git-root-log-format
+  '("%d%h..: %an %ad %s"
+    ;; The first shy group matches the characters drawn by --graph.
+    ;; We use numbered groups because `log-view-message-re' wants the
+    ;; revision number to be group 1.
+    "^\\(?:[*/\\| ]+ \\)?\\(?2: ([^)]+)\\)?\\(?1:[0-9a-z]+\\)..: \
+\\(?3:.*?\\)[ \t]+\\(?4:[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)"
+    ((1 'log-view-message-face)
+     (2 'change-log-list nil lax)
+     (3 'change-log-name)
+     (4 'change-log-date)))
+  "Git log format for `vc-print-root-log'.
+This should be a list (FORMAT REGEXP KEYWORDS), where FORMAT is a
+format string (which is passed to \"git log\" via the argument
+\"--pretty=tformat:FORMAT\"), REGEXP is a regular expression
+matching the resulting Git log output, and KEYWORDS is a list of
+`font-lock-keywords' for highlighting the Log View buffer."
+  :type '(list string string (repeat sexp))
+  :group 'vc
+  :version "24.1")
+
 (defvar vc-git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
 
@@ -666,8 +687,10 @@ for the --graph option."
 	       (append
 		'("log" "--no-color")
 		(when shortlog
-		  '("--graph" "--decorate" "--date=short"
-                    "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"))
+		  `("--graph" "--decorate" "--date=short"
+                    ,(format "--pretty=tformat:%s"
+			     (car vc-git-root-log-format))
+		    "--abbrev-commit"))
 		(when limit (list "-n" (format "%s" limit)))
 		(when start-revision (list start-revision))
 		'("--")))))))
@@ -678,7 +701,8 @@ for the --graph option."
    buffer 0 nil
    "log"
    "--no-color" "--graph" "--decorate" "--date=short"
-   "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"
+   (format "--pretty=tformat:%s" (car vc-git-root-log-format))
+   "--abbrev-commit"
    (concat (if (string= remote-location "")
 	       "@{upstream}"
 	     remote-location)
@@ -689,9 +713,10 @@ for the --graph option."
   (vc-git-command nil 0 nil "fetch")
   (vc-git-command
    buffer 0 nil
-   "log" 
+   "log"
    "--no-color" "--graph" "--decorate" "--date=short"
-   "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"
+   (format "--pretty=tformat:%s" (car vc-git-root-log-format))
+   "--abbrev-commit"
    (concat "HEAD.." (if (string= remote-location "")
 			"@{upstream}"
 		      remote-location))))
@@ -700,6 +725,7 @@ for the --graph option."
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
 (defvar log-view-per-file-logs)
+(defvar log-view-expanded-log-entry-function)
 
 (define-derived-mode vc-git-log-view-mode log-view-mode "Git-Log-View"
   (require 'add-log) ;; We need the faces add-log.
@@ -708,37 +734,37 @@ for the --graph option."
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
        (if (not (eq vc-log-view-type 'long))
-	   "^\\(?:[*/\\| ]+ \\)?\\(?: ([^)]+)\\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
+	   (cadr vc-git-root-log-format)
 	 "^commit *\\([0-9a-z]+\\)"))
+  ;; Allow expanding short log entries
+  (when (eq vc-log-view-type 'short)
+    (setq truncate-lines t)
+    (set (make-local-variable 'log-view-expanded-log-entry-function)
+	 'vc-git-expanded-log-entry))
   (set (make-local-variable 'log-view-font-lock-keywords)
        (if (not (eq vc-log-view-type 'long))
-	   '(
-	     ;; Same as log-view-message-re, except that we don't
-	     ;; want the shy group for the tag name.
-	     ("^\\(?:[*/\\| ]+ \\)?\\( ([^)]+)\\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
-	      (1 'highlight nil lax)
-	      (2 'change-log-acknowledgement)
-	      (3 'change-log-date)))
-       (append
-        `((,log-view-message-re (1 'change-log-acknowledgement)))
-        ;; Handle the case:
-        ;; user: foo@bar
-        '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
-           (1 'change-log-email))
-          ;; Handle the case:
-          ;; user: FirstName LastName <foo@bar>
-          ("^Author:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
-           (1 'change-log-name)
-           (2 'change-log-email))
-          ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
-           (1 'change-log-name))
-          ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
-           (1 'change-log-name)
-           (2 'change-log-email))
-          ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
-           (1 'change-log-acknowledgement)
-           (2 'change-log-acknowledgement))
-          ("^Date:   \\(.+\\)" (1 'change-log-date))
+	   (list (cons (nth 1 vc-git-root-log-format)
+		       (nth 2 vc-git-root-log-format)))
+	 (append
+	  `((,log-view-message-re (1 'change-log-acknowledgement)))
+	  ;; Handle the case:
+	  ;; user: foo@bar
+	  '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+	     (1 'change-log-email))
+	    ;; Handle the case:
+	    ;; user: FirstName LastName <foo@bar>
+	    ("^Author:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+	     (1 'change-log-name)
+	     (2 'change-log-email))
+	    ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+	     (1 'change-log-name))
+	    ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+	     (1 'change-log-name)
+	     (2 'change-log-email))
+	    ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
+	     (1 'change-log-acknowledgement)
+	     (2 'change-log-acknowledgement))
+	    ("^Date:   \\(.+\\)" (1 'change-log-date))
 	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
 
@@ -757,6 +783,15 @@ or BRANCH^ (where \"^\" can be repeated)."
                 (1+ (length (match-string 0 revision))))
                (t nil))))
     (beginning-of-line)))
+
+(defun vc-git-expanded-log-entry (revision)
+  (with-temp-buffer
+    (apply 'vc-git-command t nil nil (list "log" revision "-1"))
+    (goto-char (point-min))
+    (unless (eobp)
+      ;; Indent the expanded log entry.
+      (indent-region (point-min) (point-max) 2)
+      (buffer-string))))
 
 (defun vc-git-diff (files &optional rev1 rev2 buffer)
   "Get a difference report using Git between two revisions of FILES."

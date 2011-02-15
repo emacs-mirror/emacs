@@ -1383,6 +1383,10 @@ ESC or `q' to not overwrite any of the remaining files,
                   (cond  ((integerp marker-char) marker-char)
                          (marker-char (dired-file-marker from)) ; slow
                          (t nil))))
+	    (when (and (file-directory-p from)
+		       (file-directory-p to)
+		       (eq file-creator 'dired-copy-file))
+	      (setq to (file-name-directory to)))
             (condition-case err
                 (progn
                   (funcall file-creator from to dired-overwrite-confirmed)

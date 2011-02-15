@@ -1317,12 +1317,12 @@ IT_frame_up_to_date (struct frame *f)
     {
       struct buffer *b = XBUFFER (sw->buffer);
 
-      if (EQ (b->cursor_type, Qt))
+      if (EQ (B_ (b,cursor_type), Qt))
 	new_cursor = frame_desired_cursor;
-      else if (NILP (b->cursor_type)) /* nil means no cursor */
+      else if (NILP (B_ (b, cursor_type))) /* nil means no cursor */
 	new_cursor = Fcons (Qbar, make_number (0));
       else
-	new_cursor = b->cursor_type;
+	new_cursor = B_ (b, cursor_type);
     }
 
   IT_set_cursor_type (f, new_cursor);

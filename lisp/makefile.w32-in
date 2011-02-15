@@ -443,9 +443,9 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 TRAMP_SRC = $(lisp)/net/tramp.el  $(lisp)/net/tramp-cache.el  \
 	$(lisp)/net/tramp-cmds.el $(lisp)/net/tramp-compat.el \
 	$(lisp)/net/tramp-ftp.el  $(lisp)/net/tramp-gvfs.el   \
-	$(lisp)/net/tramp-gw.el   $(lisp)/net/tramp-imap.el   \
-	$(lisp)/net/tramp-sh.el   $(lisp)/net/tramp-smb.el    \
-	$(lisp)/net/tramp-uu.el   $(lisp)/net/trampver.el
+	$(lisp)/net/tramp-gw.el   $(lisp)/net/tramp-sh.el     \
+	$(lisp)/net/tramp-smb.el  $(lisp)/net/tramp-uu.el     \
+	$(lisp)/net/trampver.el
 
 $(lisp)/net/tramp-loaddefs.el: $(TRAMP_SRC)
 	"$(EMACS)" $(EMACSOPT) \

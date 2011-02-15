@@ -137,9 +137,8 @@ theme when Emacs is built with GTK.
 off by customizing x-gtk-use-system-tooltips.
 
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
-with Xft.  To change font, use X resource faceName, for example:
-Emacs.pane.menubar.faceName:  Courier-12
-Set faceName to none and use font to use the old X fonts.
+with Xft.  To change font, use the X resource font, for example:
+Emacs.pane.menubar.font:  Courier-12
 
 +++
 ** Enhanced support for characters that have no glyphs in available fonts
@@ -588,7 +587,7 @@ on a D-Bus without simultaneously registering a property or a method.
 *** There exists a new inline access method "ksu" (kerberized su).
 
 *** The following access methods are discontinued: "ssh1_old",
-"ssh2_old", "scp1_old", "scp2_old" and "fish".
+"ssh2_old", "scp1_old", "scp2_old", "imap", "imaps" and "fish".
 
 ** VC and related modes
 
@@ -606,7 +605,17 @@ The vc-merge command now runs a "merge" operation, if it is supported.
 This merges another branch into the current one.  This command prompts
 the user for specifics, e.g. a merge source.
 
-**** Currently supported by Bzr, Git, and Mercurial.
+**** Currently supported for Bzr, Git, and Mercurial.
+
+*** Log entries in some Log View buffers can be toggled to display a
+longer description by typing RET (log-view-toggle-entry-display).
+In the Log View buffers made by `C-x v L' (vc-print-root-log), you can
+use this to display the full log entry for the revision at point.
+
+**** Currently supported for Bzr, Git, and Mercurial.
+
+**** Packages using Log View mode can enable this functionality by
+binding `log-view-expanded-log-entry-function' to a suitable function.
 
 ** Miscellaneous
 

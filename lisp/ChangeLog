@@ -1,3 +1,111 @@
+2011-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc-git.el (vc-git-root-log-format): New option for
+	customizing log format.
+	(vc-git-print-log, vc-git-log-outgoing, vc-git-log-incoming)
+	(vc-git-log-view-mode): Use it.
+	(vc-git-expanded-log-entry): New function.
+	(vc-git-log-view-mode): Use it.  Truncate lines in root log.
+
+	* vc/vc-hg.el (vc-hg-root-log-template): New option for
+	customizing log format.
+	(vc-hg-print-log): Use it.
+	(vc-hg-expanded-log-entry): New function.
+	(vc-hg-log-view-mode): Use vc-hg-root-log-template and
+	vc-hg-expanded-log-entry.  Truncate lines in root log.
+
+	* vc/vc-bzr.el (vc-bzr-log-view-mode): Truncate lines in root log.
+
+	* vc/log-view.el (log-view-mode-menu): Add
+	log-view-toggle-entry-display.
+
+2011-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el: Don't require man when compiling.
+	(dired-omit-extensions, dired-local-variables-file)
+	(dired-x-hands-off-my-keys): Make them defcustoms.
+	(Man-support-local-filenames, Man-getpage-in-background): Declare.
+	(vm-visit-folder): Declare rather than defining.
+	(dired-x-help-address, dired-x-variable-list): Remove.
+	(dired-x-submit-report): Make it an obsolete alias.
+
+2011-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (TRAMP_SRC): Remove tramp-imap.el.
+
+2011-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/imap.el: Bring it back.
+
+2011-02-13  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Remove a
+	narrow-to-region call that cuts context off the end (Bug#7722).
+
+	* progmodes/cc-engine.el (c-forward-<>-arglist-recur): Refactor
+	nested if-forms with a simple cond.
+	(c-forward-<>-arglist): Revert 2011-01-31 change.
+
+2011-02-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/log-view.el: New command log-view-toggle-entry-display for
+	toggling log entries between concise and detailed forms.
+	(log-view-toggle-entry-display): New command.
+	(log-view-mode-map): Bind RET to it.
+	(log-view-expanded-log-entry-function): New variable.
+	(log-view-current-entry, log-view-inside-comment-p)
+	(log-view-current-tag): New functions.
+	(log-view-toggle-mark-entry): Use log-view-current-entry and
+	log-view-end-of-defun instead of searching directly with
+	log-view-message-re.
+	(log-view-end-of-defun): Likewise.  Add optional ARG for
+	compatibility with end-of-defun.
+	(log-view-end-of-defun): Ignore comments and VC buttons.
+
+	* vc/vc-bzr.el (vc-bzr-expanded-log-entry): New function.
+	(vc-bzr-log-view-mode): Use log-view-expanded-log-entry-function.
+
+2011-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/imap.el: Remove file.  All the functionality is in nnimap.el.
+
+	* net/imap-hash.el: Remove file.
+
+2011-02-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* Makefile.in (TRAMP_SRC): Remove tramp-imap.el.
+
+	* net/tramp.el (tramp-read-passwd): Simplify `auth-source-search'
+	call.
+
+	* net/tramp-imap.el: Remove file.
+
+2011-02-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc.el (vc-print-log-setup-buttons): Instead of using the
+	widget library for buttons, just use button.el.
+
+	* vc/log-view.el (log-view-mode-map): Don't inherit from
+	widget-keymap.
+
+2011-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-seq.el (union, nunion, intersection)
+	(nintersection, set-difference, nset-difference)
+	(set-exclusive-or, nset-exclusive-or): Doc fix.
+
+	* ediff-ptch.el (ediff-fixup-patch-map): Doc fix.
+
+	* faces.el (face-attr-match-p): Handle the obsolete :bold and
+	:italic props, so that frame-set-background-mode works.  (Bug#7966)
+
+	* simple.el (next-error): Doc fix.
+
+2011-02-12  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* dired-aux.el (dired-create-files): Adapt destination name to
+	match the new behavior of copy-directory.
+
 2011-02-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/mail-utils.el (mail-dont-reply-to-names): New variable,
@@ -168,6 +276,11 @@
 	(outlineify-sticky): Adjust docstring for new scheme.
 	(allout-after-copy-or-kill-hook): No arguments - hook implementers
 	should concentrate on the kill ring.
+
+2011-02-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* password-cache.el (password-cache-remove): Accept secrets that are
+	not strings.
 
 2011-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -507,7 +620,7 @@
 
 2011-01-31  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
-	* net/rcirc.el: New customizable nick completion format. (Bug#6314)
+	* net/rcirc.el: New customizable nick completion format.  (Bug#6314)
 	(rcirc-nick-completion-format): New defcustom.
 	(rcirc-complete): Use it.
 
@@ -812,7 +925,7 @@
 
 	* calc/calc.el (calc-default-power-reference-level)
 	(calc-default-field-reference-level): New variables.
-	* calc/calc-units.el (math-standard-units):  Add dB and Np.
+	* calc/calc-units.el (math-standard-units): Add dB and Np.
 	(math-logunits): New variable.
 	(math-extract-logunits, math-logcombine, calcFunc-luplus)
 	(calcFunc-luminus, calc-luplus, calc-luminus, math-logunit-level)
@@ -822,7 +935,7 @@
 	* calc/calc-help.el (calc-u-prefix-help): Add logarithmic help.
 	(calc-ul-prefix-help): New function.
 	* calc/calc-ext.el (calc-init-extensions): Autoload new units
-	functions. Add keybindings for new units functions.
+	functions.  Add keybindings for new units functions.
 
 2011-01-22  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
@@ -928,7 +1041,7 @@
 
 2011-01-20  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el: (allout-institute-keymap): Use fset instead of
+	* allout.el (allout-institute-keymap): Use fset instead of
 	reapplying defalias.
 
 	(allout-hotspot-key-handler): Check for non-control-modified
@@ -1056,7 +1169,7 @@
 	(info-xref-output-heading): Rename from info-xref-filename-heading.
 	(info-xref-good, info-xref-bad, info-xref-xfile-alist)
 	(info-xref-filename-heading): Move to output managing section.
-	(info-xref-docstrings): New command checking "Info node	`(foo)Bar'"
+	(info-xref-docstrings): New command checking "Info node `(foo)Bar'"
 	(info-xref-lock-file-p, info-xref-with-file): New helpers for it.
 	(info-xref-subfile-p): Move to generic section with those two.
 	(info-xref-check-node): New function split from
@@ -1066,7 +1179,7 @@
 	(info-xref-check-node): Use it.
 	(info-xref-with-output): Show count of unavailables at end of output.
 	(info-xref-all-info-files): Exclude ".*" dotfiles.  Ignore broken
-	symlinks.  Exclude .texi files.	 Exclude Emacs backup files.
+	symlinks.  Exclude .texi files.  Exclude Emacs backup files.
 	(info-xref-check-all-custom): Fix quietening viper-mode and
 	gnus-registry-install -- use setq not let so as not to unbind
 	after load.
@@ -1646,7 +1759,7 @@
 	(rmail-mime-insert-text): Call rmail-mime-insert-decoded-text.
 	(rmail-mime-insert-image): Argument changed.  Caller changed.
 	(rmail-mime-image): Call rmail-mime-toggle-hidden.
-	(rmail-mime-set-bulk-data): New funciton.
+	(rmail-mime-set-bulk-data): New function.
 	(rmail-mime-insert-bulk): Argument changed.
 	(rmail-mime-multipart-handler): Return t.
 	(rmail-mime-process-multipart): Argument changed.
@@ -1911,7 +2024,7 @@
 	(allout-toggle-subtree-encryption): Adjust docstrings to reflect
 	defaulting policy and other changes.  Change fetch-pass to keymode-cue,
 	for simpler universal argument interpretation.
-	(allout-toggle-subtree-encryption):  Adjust docstring to describe
+	(allout-toggle-subtree-encryption): Adjust docstring to describe
 	changed encryption provisions.  Change fetch-pass to keymode-cue, for
 	simpler universal argument interpretation.  Remove provisions for
 	handling key type and identity - they'll all be within
@@ -2527,8 +2640,8 @@
 	and "psftp".  Exchange "%k" marker with options.
 	(tramp-do-copy-or-rename-file, tramp-sh-handle-file-local-copy):
 	Compute size of link target.
-	(tramp-do-copy-or-rename-file-out-of-band). Move setting of
-	`tramp-current-*' up due to gateway methods.  Optimze computing of
+	(tramp-do-copy-or-rename-file-out-of-band): Move setting of
+	`tramp-current-*' up due to gateway methods.  Optimize computing of
 	copy arguments.  Use `tramp-get-connection-name' and
 	`tramp-get-connection-buffer'.  Improve debug messages.
 	(tramp-compute-multi-hops): Remove port determination.
@@ -3780,7 +3893,7 @@
 
 	* international/characters.el (char-acronym-table): New variable.
 	(glyphless-char-control): New variable.
-	(update-glyphless-char-display): New funciton.
+	(update-glyphless-char-display): New function.
 
 	* faces.el (glyphless-char): New face.
 
@@ -3851,7 +3964,7 @@
 2010-10-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-get-selection-value): New function that gets
-	PRIMARY with type as specified in x-select-request-type. (Bug#6802).
+	PRIMARY with type as specified in x-select-request-type.  (Bug#6802)
 
 2010-10-31  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -4140,7 +4253,7 @@
 	is indented differently if it is after a begin..end clock.
 	(verilog-in-attribute-p, verilog-skip-backward-comments)
 	(verilog-skip-forward-comment-p): Support proper treatment of
-	attributes by indent code. Reported by Jeff Steele.
+	attributes by indent code.  Reported by Jeff Steele.
 	(verilog-in-directive-p): Fix comment to correctly describe function.
 	(verilog-backward-up-list, verilog-in-struct-region-p)
 	(verilog-backward-token, verilog-in-struct-p)
@@ -4151,9 +4264,9 @@
 	(verilog-property-re, verilog-endcomment-reason-re)
 	(verilog-beg-of-statement, verilog-set-auto-endcomments)
 	(verilog-calc-1 ): Fix for assert a; else b; indentation (new form
-	of if). Reported by Max Bjurling and
+	of if).  Reported by Max Bjurling and
 	(verilog-calc-1): Fix for clocking block in modport
-	declaration. Reported by Brian Hunter.
+	declaration.  Reported by Brian Hunter.
 
 2010-10-24  Wilson Snyder  <wsnyder@wsnyder.org>
 
@@ -4169,7 +4282,7 @@
 	(verilog-read-always-signals-recurse, verilog-read-decls): Fix not
 	treating `elsif similar to `endif inside AUTOSENSE.
 	(verilog-do-indent): Implement correct automatic or static task or
-	function end comment highlight. Reported by Steve Pearlmutter.
+	function end comment highlight.  Reported by Steve Pearlmutter.
 	(verilog-font-lock-keywords-2): Fix highlighting of single
 	character pins, bug264.  Reported by Michael Laajanen.
 	(verilog-auto-inst, verilog-read-decls, verilog-read-sub-decls)
@@ -4180,7 +4293,7 @@
 	Reported by Mark Johnson.
 	(verilog-auto-tieoff, verilog-auto-tieoff-ignore-regexp):
 	Add 'verilog-auto-tieoff-ignore-regexp' for AUTOTIEOFF,
-	bug269. Suggested by Gary Delp.
+	bug269.  Suggested by Gary Delp.
 	(verilog-mode-map, verilog-preprocess, verilog-preprocess-history)
 	(verilog-preprocessor, verilog-set-compile-command):
 	Create verilog-preprocess and verilog-preprocessor to show
@@ -4188,7 +4301,7 @@
 	(verilog-get-beg-of-line, verilog-get-end-of-line)
 	(verilog-modi-file-or-buffer, verilog-modi-name)
 	(verilog-modi-point, verilog-within-string): Move defmacro's
-	before first use to avoid warning. Reported by Steve Pearlmutter.
+	before first use to avoid warning.  Reported by Steve Pearlmutter.
 	(verilog-colorize-buffer, verilog-colorize-include-files-buffer)
 	(verilog-colorize-region, verilog-highlight-buffer)
 	(verilog-highlight-includes, verilog-highlight-modules)
@@ -4220,7 +4333,7 @@
 	(verilog-alw-get-temps, verilog-auto-reset)
 	(verilog-auto-sense-sigs, verilog-read-always-signals)
 	(verilog-read-always-signals-recurse): Fix loop indexes being
-	AUTORESET. AUTORESET now assumes any variables in the
+	AUTORESET.  AUTORESET now assumes any variables in the
 	initialization section of a for() should be ignored.
 	Reported by Dan Dever.
 	(verilog-error-font-lock-keywords)
@@ -5633,7 +5746,7 @@
 	(sql-postgres-login-params): Add user and database defaults.
 	(sql-buffer-live-p): Bug fix.
 	(sql-product-history): New variable.
-	(sql-read-product): New function. Use it.
+	(sql-read-product): New function.  Use it.
 	(sql-set-product, sql-product-interactive): Use it.
 	(sql-connection-history): New variable.
 	(sql-read-connection): New function.  Use it.

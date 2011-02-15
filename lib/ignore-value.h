@@ -35,13 +35,13 @@
 #ifndef _GL_IGNORE_VALUE_H
 # define _GL_IGNORE_VALUE_H
 
-# ifndef ATTRIBUTE_DEPRECATED
+# ifndef _GL_ATTRIBUTE_DEPRECATED
 /* The __attribute__((__deprecated__)) feature
    is available in gcc versions 3.1 and newer.  */
 #  if __GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 1)
-#   define ATTRIBUTE_DEPRECATED /* empty */
+#   define _GL_ATTRIBUTE_DEPRECATED /* empty */
 #  else
-#   define ATTRIBUTE_DEPRECATED __attribute__ ((__deprecated__))
+#   define _GL_ATTRIBUTE_DEPRECATED __attribute__ ((__deprecated__))
 #  endif
 # endif
 
@@ -56,7 +56,7 @@
 
 /* ignore_value works for scalars, pointers and aggregates;
    deprecate ignore_ptr.  */
-static inline void ATTRIBUTE_DEPRECATED
+static inline void _GL_ATTRIBUTE_DEPRECATED
 ignore_ptr (void *p) { (void) p; } /* deprecated: use ignore_value */
 
 #endif

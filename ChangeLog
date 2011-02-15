@@ -1,3 +1,23 @@
+2011-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+
+	2011-02-13  Bruno Haible  <bruno@clisp.org>
+
+	Consistent macro naming for macros that use GCC __attribute__.
+	* lib/ignore-value.h (_GL_ATTRIBUTE_DEPRECATED): Renamed from
+	ATTRIBUTE_DEPRECATED.
+
+	2011-02-12  Bruno Haible  <bruno@clisp.org>
+
+	setlocale: Prefer gnulib's override over libintl's override.
+	* lib/gettext.h (setlocale): Redefine to rpl_setlocale if
+	GNULIB_defined_setlocale is set.
+
+2011-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Exclude generated file src/globals.h.
+
 2011-02-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Import getloadavg module from gnulib.

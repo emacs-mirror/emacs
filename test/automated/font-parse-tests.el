@@ -25,8 +25,6 @@
 
 ;; Type M-x test-font-parse RET to generate the test buffer.
 
-;; TODO: Convert to ERT format.
-
 ;;; Code:
 
 (require 'ert)

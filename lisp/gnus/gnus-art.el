@@ -683,7 +683,7 @@ beginning of a line."
   :type 'regexp
   :group 'gnus-article-various)
 
-(defcustom gnus-article-mode-line-format "Gnus: %g [%w] %S%m"
+(defcustom gnus-article-mode-line-format "Gnus: %g %S%m"
   "*The format specification for the article mode line.
 See `gnus-summary-mode-line-format' for a closer description.
 
@@ -691,6 +691,7 @@ The following additional specs are available:
 
 %w  The article washing status.
 %m  The number of MIME parts in the article."
+  :version "24.1"
   :type 'string
   :group 'gnus-article-various)
 
@@ -3403,6 +3404,7 @@ possible values."
 	 (inhibit-read-only t)
 	 (inhibit-point-motion-hooks t)
 	 (first t)
+	 (visible-date (mail-fetch-field "Date"))
 	 pos date bface eface)
     (save-excursion
       (save-restriction
@@ -3426,6 +3428,9 @@ possible values."
 	    (delete-region (point-at-bol) (progn
 					    (gnus-article-forward-header)
 					    (point))))
+	  (when (and (not date)
+		     visible-date)
+	    (setq date visible-date))
 	  (when date
 	    (article-transform-date date type bface eface)))))))
 
