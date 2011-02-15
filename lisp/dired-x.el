@@ -231,69 +231,44 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 
 ;;; MENU BINDINGS
 
-(let ((menu-bar (lookup-key dired-mode-map [menu-bar])))
-  (let ((menu (lookup-key menu-bar [operate])))
-    (define-key-after
-      menu
-      [find-files]
-      '(menu-item
-        "Find files"
-        dired-do-find-marked-files
-        :help "Find current or marked files")
-      'delete)
-    (define-key-after
-      menu
-      [relsymlink]
-      '(menu-item
-        "Relative symlink to..."
-        dired-do-relsymlink
-        :visible (fboundp 'make-symbolic-link)
-        :help "Make relative symbolic links for current or marked files")
-      'symlink))
-  (let ((menu (lookup-key menu-bar [mark])))
-    (define-key-after
-      menu
-      [flag-extension]
-      '(menu-item
-        "Flag extension..."
-        dired-flag-extension
-        :help "Flag files with a certain extension for deletion")
-      'garbage-files)
-    (define-key-after
-      menu
-      [mark-extension]
-      '(menu-item
-        "Mark extension..."
-        dired-mark-extension
-        :help "Mark files with a certain extension")
-      'symlinks)
-    (define-key-after
-      menu
-      [mark-omitted]
-      '(menu-item
-        "Mark omitted"
-        dired-mark-omitted
-        :help "Mark files matching `dired-omit-files' and `dired-omit-extensions'")
-      'mark-extension))
-  (let ((menu (lookup-key menu-bar [regexp])))
-    (define-key-after
-      menu
-      [relsymlink-regexp]
-      '(menu-item
-        "Relative symlink..."
-        dired-do-relsymlink-regexp
-        :visible (fboundp 'make-symbolic-link)
-        :help "Make relative symbolic links for files matching regexp")
-      'symlink))
-  (let ((menu (lookup-key menu-bar [immediate])))
-    (define-key-after
-      menu
-      [omit-mode]
-      '(menu-item
-        "Omit mode" dired-omit-mode
-        :button (:toggle . dired-omit-mode)
-        :help "Enable or disable omitting \"uninteresting\" files")
-      'dashes)))
+(require 'easymenu)
+
+(let ((menu (lookup-key dired-mode-map [menu-bar])))
+  (easy-menu-add-item menu '("Operate")
+                      ["Find Files" dired-do-find-marked-files
+                       :help "Find current or marked files"]
+                      "Shell Command...")
+  (easy-menu-add-item menu '("Operate")
+                      ["Relative Symlink to..." dired-do-relsymlink
+                       :visible (fboundp 'make-symbolic-link)
+                       :help "Make relative symbolic links for current or \
+marked files"]
+                      "Hardlink to...")
+  (easy-menu-add-item menu '("Mark")
+                      ["Flag Extension..." dired-flag-extension
+                       :help "Flag files with a certain extension for deletion"]
+                      "Mark Executables")
+  (easy-menu-add-item menu '("Mark")
+                      ["Mark Extension..." dired-mark-extension
+                       :help "Mark files with a certain extension"]
+                      "Unmark All")
+  (easy-menu-add-item menu '("Mark")
+                      ["Mark Omitted" dired-mark-omitted
+                       :help "Mark files matching `dired-omit-files' \
+and `dired-omit-extensions'"]
+                      "Unmark All")
+  (easy-menu-add-item menu '("Regexp")
+                      ["Relative Symlink..." dired-do-relsymlink-regexp
+                       :visible (fboundp 'make-symbolic-link)
+                       :help "Make relative symbolic links for files \
+matching regexp"]
+                      "Hardlink...")
+  (easy-menu-add-item menu '("Immediate")
+                      ["Omit Mode" dired-omit-mode
+                       :style toggle :selected dired-omit-mode
+                       :help "Enable or disable omitting \"uninteresting\" \
+files"]
+                      "Refresh"))
 
 ;;; GLOBAL BINDING.
 (when dired-bind-jump
