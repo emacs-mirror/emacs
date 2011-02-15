@@ -94,11 +94,6 @@
 #include <errno.h>
 #include <stdio.h>
 
-/* Exclude all the code except the test program at the end
-   if the system has its own `getloadavg' function.  */
-
-#ifndef HAVE_GETLOADAVG
-
 # include <sys/types.h>
 
 /* Both the Emacs and non-Emacs sections want this.  Some
@@ -1032,44 +1027,3 @@ getloadavg (double loadavg[], int nelem)
 # endif
   return elem;
 }
-
-#endif /* ! HAVE_GETLOADAVG */
-
-#ifdef TEST
-int
-main (int argc, char **argv)
-{
-  int naptime = 0;
-
-  if (argc > 1)
-    naptime = atoi (argv[1]);
-
-  while (1)
-    {
-      double avg[3];
-      int loads;
-
-      errno = 0;                /* Don't be misled if it doesn't set errno.  */
-      loads = getloadavg (avg, 3);
-      if (loads == -1)
-        {
-          perror ("Error getting load average");
-          return EXIT_FAILURE;
-        }
-      if (loads > 0)
-        printf ("1-minute: %f  ", avg[0]);
-      if (loads > 1)
-        printf ("5-minute: %f  ", avg[1]);
-      if (loads > 2)
-        printf ("15-minute: %f  ", avg[2]);
-      if (loads > 0)
-        putchar ('\n');
-
-      if (naptime == 0)
-        break;
-      sleep (naptime);
-    }
-
-  return EXIT_SUCCESS;
-}
-#endif /* TEST */

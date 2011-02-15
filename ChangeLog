@@ -1,5 +1,13 @@
 2011-02-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Merge from proposed getloadavg simplifications in gnulib.
+
+	* configure, lib/Makefile.in, src/config.in: Regenerate.
+	* lib/getloadavg.c, lib/stdlib.in.h, m4/getloadavg.m4: New
+	versions from gnulib.
+
+2011-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Merge from gnulib.
 
 	2011-02-13  Bruno Haible  <bruno@clisp.org>
