@@ -173,7 +173,7 @@ can get pretty complex."
                  (choice
                   (string :tag "Just a file")
                   (const :tag "Default Secrets API Collection" 'default)
-                  (const :tag "Login Secrets API Collection" "secrets:login")
+                  (const :tag "Login Secrets API Collection" "secrets:Login")
                   (const :tag "Temp Secrets API Collection" "secrets:session")
                   (list :tag "Source definition"
                         (const :format "" :value :source)
@@ -185,7 +185,7 @@ can get pretty complex."
                                  (choice :tag "Collection to use"
                                          (string :tag "Collection name")
                                          (const :tag "Default" 'default)
-                                         (const :tag "Login" "login")
+                                         (const :tag "Login" "Login")
                                          (const
                                           :tag "Temporary" "session"))))
                         (repeat :tag "Extra Parameters" :inline t
@@ -252,19 +252,19 @@ If the value is not a list, symmetric encryption will be used."
 ;; (auth-source-pick t :host "any" :protocol 'imap :user "joe")
 ;; (setq auth-sources '((:source (:secrets default) :host t :protocol t :user "joe")
 ;;                   (:source (:secrets "session") :host t :protocol t :user "joe")
-;;                   (:source (:secrets "login") :host t :protocol t)
+;;                   (:source (:secrets "Login") :host t :protocol t)
 ;;                   (:source "~/.authinfo.gpg" :host t :protocol t)))
 
 ;; (setq auth-sources '((:source (:secrets default) :host t :protocol t :user "joe")
 ;;                   (:source (:secrets "session") :host t :protocol t :user "joe")
-;;                   (:source (:secrets "login") :host t :protocol t)
+;;                   (:source (:secrets "Login") :host t :protocol t)
 ;;                   ))
 
 ;; (setq auth-sources '((:source "~/.authinfo.gpg" :host t :protocol t)))
 
 ;; (auth-source-backend-parse "myfile.gpg")
 ;; (auth-source-backend-parse 'default)
-;; (auth-source-backend-parse "secrets:login")
+;; (auth-source-backend-parse "secrets:Login")
 
 (defun auth-source-backend-parse (entry)
   "Creates an auth-source-backend from an ENTRY in `auth-sources'."
@@ -307,10 +307,10 @@ If the value is not a list, symmetric encryption will be used."
                        "session")))
 
        ;; if the source is a symbol, we look for the alias named so,
-       ;; and if that alias is missing, we use "login"
+       ;; and if that alias is missing, we use "Login"
        (when (symbolp source)
          (setq source (or (secrets-get-alias (symbol-name source))
-                          "login")))
+                          "Login")))
 
        (auth-source-backend
         (format "Secrets API (%s)" source)
@@ -938,8 +938,8 @@ See `auth-source-search' for details on SPEC."
 ;;; (let ((auth-sources '(default))) (auth-source-search :max 1 :delete t))
 ;;; (let ((auth-sources '(default))) (auth-source-search :max 1))
 ;;; (let ((auth-sources '(default))) (auth-source-search))
-;;; (let ((auth-sources '("secrets:login"))) (auth-source-search :max 1))
-;;; (let ((auth-sources '("secrets:login"))) (auth-source-search :max 1 :signon_realm "https://git.gnus.org/Git"))
+;;; (let ((auth-sources '("secrets:Login"))) (auth-source-search :max 1))
+;;; (let ((auth-sources '("secrets:Login"))) (auth-source-search :max 1 :signon_realm "https://git.gnus.org/Git"))
 
 (defun* auth-source-secrets-search (&rest
                                     spec
@@ -957,23 +957,23 @@ matching, do a wider search and narrow it down yourself.
 
 You'll get back all the properties of the token as a plist.
 
-Here's an example that looks for the first item in the 'login'
+Here's an example that looks for the first item in the 'Login'
 Secrets collection:
 
- \(let ((auth-sources '(\"secrets:login\")))
+ \(let ((auth-sources '(\"secrets:Login\")))
     (auth-source-search :max 1)
 
-Here's another that looks for the first item in the 'login'
+Here's another that looks for the first item in the 'Login'
 Secrets collection whose label contains 'gnus':
 
- \(let ((auth-sources '(\"secrets:login\")))
+ \(let ((auth-sources '(\"secrets:Login\")))
     (auth-source-search :max 1 :label \"gnus\")
 
-And this one looks for the first item in the 'login' Secrets
+And this one looks for the first item in the 'Login' Secrets
 collection that's a Google Chrome entry for the git.gnus.org site
-login:
+authentication tokens:
 
- \(let ((auth-sources '(\"secrets:login\")))
+ \(let ((auth-sources '(\"secrets:Login\")))
     (auth-source-search :max 1 :signon_realm \"https://git.gnus.org/Git\"))
 "
 
@@ -993,21 +993,23 @@ login:
                             collect (nth i spec)))
          ;; build a search spec without the ignored keys
          ;; if a search key is nil or t (match anything), we skip it
-         (search-spec (mapcan (lambda (k) (if (or (null (plist-get spec k))
-                                             (eq t (plist-get spec k)))
-                                         nil
-                                       (list k (plist-get spec k))))
-                              search-keys))
+         (search-spec (apply 'append (mapcar
+                                      (lambda (k)
+                                        (if (or (null (plist-get spec k))
+                                                (eq t (plist-get spec k)))
+                                            nil
+                                          (list k (plist-get spec k))))
+                              search-keys)))
          ;; needed keys (always including host, login, protocol, and secret)
-         (returned-keys (remove-duplicates (append
-                                            '(:host :login :protocol :secret)
-                                            search-keys)))
+         (returned-keys (delete-dups (append
+                                      '(:host :login :protocol :secret)
+                                      search-keys)))
          (items (loop for item in (apply 'secrets-search-items coll search-spec)
                       unless (and (stringp label)
                                   (not (string-match label item)))
                       collect item))
          ;; TODO: respect max in `secrets-search-items', not after the fact
-         (items (subseq items 0 (min (length items) max)))
+         (items (butlast items (- (length items) max)))
          ;; convert the item name to a full plist
          (items (mapcar (lambda (item)
                           (append
@@ -1017,18 +1019,20 @@ login:
                             (lexical-let ((v (secrets-get-secret coll item)))
                               (lambda () v)))
                            ;; rewrite the entry from ((k1 v1) (k2 v2)) to plist
-                           (mapcan (lambda (entry)
-                                     (list (car entry) (cdr entry)))
-                                   (secrets-get-attributes coll item))))
+                           (apply 'append
+                                  (mapcar (lambda (entry)
+                                            (list (car entry) (cdr entry)))
+                                          (secrets-get-attributes coll item)))))
                         items))
          ;; ensure each item has each key in `returned-keys'
          (items (mapcar (lambda (plist)
                           (append
-                           (mapcan (lambda (req)
-                                     (if (plist-get plist req)
-                                         nil
-                                       (list req nil)))
-                                   returned-keys)
+                           (apply 'append
+                                  (mapcar (lambda (req)
+                                            (if (plist-get plist req)
+                                                nil
+                                              (list req nil)))
+                                          returned-keys))
                            plist))
                         items)))
     items))

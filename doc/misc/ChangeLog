@@ -3,6 +3,10 @@
 	Merge from gnulib.
 	* texinfo.tex: Update to version 2011-02-14.11.
 
+2011-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users): Login collection is "Login" and not "login".
+
 2011-02-13  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (History): Remove IMAP support.
@@ -21,7 +25,7 @@
 
 	* sc.texi (Getting Connected): Remove old index entries.
 
-2011-02-12  Ulrich Mueller <ulm@gentoo.org>
+2011-02-12  Ulrich Mueller  <ulm@gentoo.org>
 
 	* url.texi: Remove duplicate @dircategory (Bug#7942).
 

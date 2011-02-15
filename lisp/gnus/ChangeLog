@@ -1,10 +1,38 @@
+2011-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-propagate-marks): Default to nil.
+	(gnus-summary-exit): Kill the correct article buffer on exit from a
+	`C-d' group.
+
+	* gnus-start.el (gnus-use-backend-marks): Removed, since it duplicates
+	gnus-propagate-marks.
+
+	* gnus-sum.el (gnus-summary-exit-no-update): Restore the group conf
+	before killing the buffers so that a non-full window conf gets handled
+	correctly.
+	(gnus-summary-exit): Ditto.
+	(gnus-summary-read-group-1): Ditto.
+
+	* nntp.el (nntp-retrieve-group-data-early): Reinstate the two-part
+	async code again so that we can debug it properly.
+
+	* message.el (message-reply): Take an optional switch-buffer parameter
+	so that Gnus window confs are respected better.
+
 2011-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-backend-parse-parameters): Don't rely on
 	`plist-get' to accept non-list parameters (XEmacs issue).  Fix
 	docstring.
+	(auth-source-secrets-search): Use `delete-dups', `append mapcar', and
+	`butlast' instead of `remove-duplicates', `mapcan', and `subseq'.
+	(auth-sources, auth-source-backend-parse, auth-source-secrets-search):
+	Login collection is "Login" and not "login".
 
 2011-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-update-date-lapsed): Don't bug out when updating
+	multiple headers.
 
 	* nnimap.el (nnimap-inhibit-logging): New variable.
 	(nnimap-log-command): Don't log login commands.

@@ -380,13 +380,6 @@ disc."
   :group 'gnus-newsrc
   :type 'boolean)
 
-(defcustom gnus-use-backend-marks nil
-  "If non-nil, Gnus will store and retrieve marks from the backends.
-This means that marks will be stored both in .newsrc.eld and in
-the backend, and will slow operation down somewhat."
-  :group 'gnus-newsrc
-  :type 'boolean)
-
 (defcustom gnus-check-bogus-groups-hook nil
   "A hook run after removing bogus groups."
   :group 'gnus-start-server
@@ -1509,7 +1502,7 @@ If SCAN, request a scan of that group as well."
       (gnus-activate-group (gnus-info-group info) nil t))
 
     ;; Allow backends to update marks,
-    (when gnus-use-backend-marks
+    (when gnus-propagate-marks
       (let ((method (inline (gnus-find-method-for-group
 			     (gnus-info-group info)))))
 	(when (gnus-check-backend-function 'request-marks (car method))
