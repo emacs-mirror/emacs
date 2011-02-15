@@ -1,3 +1,7 @@
+2011-02-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* nsfns.m (ns_set_name_as_filename, Fns_read_file_name): Use B_.
+
 2011-02-14  Michael Welsh Duggan  <md5i@md5i.com>
 
 	* print.c (float_to_string): Ensure that a decimal point is
