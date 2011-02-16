@@ -662,12 +662,6 @@ struct buffer
   Lisp_Object BUFFER_INTERNAL_FIELD (left_margin);
   /* Function to call when insert space past fill column.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (auto_fill_function);
-  /* nil: text, t: binary.
-     This value is meaningful only on certain operating systems.  */
-  /* Actually, we don't need this flag any more because end-of-line
-     is handled correctly according to the buffer-file-coding-system
-     of the buffer.  Just keeping it for backward compatibility.  */
-  Lisp_Object BUFFER_INTERNAL_FIELD (buffer_file_type);
 
   /* Case table for case-conversion in this buffer.
      This char-table maps each char into its lower-case version.  */

@@ -715,9 +715,6 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
   BVAR (b, case_canon_table) = XCHAR_TABLE (Vascii_downcase_table)->extras[1];
   BVAR (b, case_eqv_table) = XCHAR_TABLE (Vascii_downcase_table)->extras[2];
   BVAR (b, invisibility_spec) = Qt;
-#ifndef DOS_NT
-  BVAR (b, buffer_file_type) = Qnil;
-#endif
 
   /* Reset all (or most) per-buffer variables to their defaults.  */
   if (permanent_too)
@@ -5040,9 +5037,6 @@ init_buffer_once (void)
   BVAR (&buffer_defaults, extra_line_spacing) = Qnil;
   BVAR (&buffer_defaults, cursor_in_non_selected_windows) = Qt;
 
-#ifdef DOS_NT
-  BVAR (&buffer_defaults, buffer_file_type) = Qnil; /* TEXT */
-#endif
   BVAR (&buffer_defaults, enable_multibyte_characters) = Qt;
   BVAR (&buffer_defaults, buffer_file_coding_system) = Qnil;
   XSETFASTINT (BVAR (&buffer_defaults, fill_column), 70);
@@ -5112,11 +5106,6 @@ init_buffer_once (void)
   XSETFASTINT (BVAR (&buffer_local_flags, left_margin), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, abbrev_table), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, display_table), idx); ++idx;
-#ifdef DOS_NT
-  XSETFASTINT (BVAR (&buffer_local_flags, buffer_file_type), idx);
-  /* Make this one a permanent local.  */
-  buffer_permanent_local_flags[idx++] = 1;
-#endif
   XSETFASTINT (BVAR (&buffer_local_flags, syntax_table), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, cache_long_line_scans), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, category_table), idx); ++idx;
@@ -5415,14 +5404,6 @@ This is the same as (default-value 'tab-width).  */);
 			  doc: /* Default value of `case-fold-search' for buffers that don't override it.
 This is the same as (default-value 'case-fold-search).  */);
 
-#ifdef DOS_NT
-  DEFVAR_BUFFER_DEFAULTS ("default-buffer-file-type",
-			  buffer_file_type,
-			  doc: /* Default file type for buffers that do not override it.
-This is the same as (default-value 'buffer-file-type).
-The file type is nil for text, t for binary.  */);
-#endif
-
   DEFVAR_BUFFER_DEFAULTS ("default-left-margin-width",
 			  left_margin_cols,
 			  doc: /* Default value of `left-margin-width' for buffers that don't override it.
@@ -5672,15 +5653,6 @@ This variable has no effect if long lines are truncated (see
 word-wrapping, you might want to reduce the value of
 `truncate-partial-width-windows', since wrapping can make text readable
 in narrower windows.  */);
-
-#ifdef DOS_NT
-  DEFVAR_PER_BUFFER ("buffer-file-type", &BVAR (current_buffer, buffer_file_type),
-		     Qnil,
-		     doc: /* Non-nil if the visited file is a binary file.
-This variable is meaningful on MS-DOG and Windows NT.
-On those systems, it is automatically local in every buffer.
-On other systems, this variable is normally always nil.  */);
-#endif
 
   DEFVAR_PER_BUFFER ("default-directory", &BVAR (current_buffer, directory),
 		     make_number (Lisp_String),

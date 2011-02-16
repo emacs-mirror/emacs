@@ -1,3 +1,28 @@
+2011-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fx_create_frame): Use KVAR.
+
+	* w32term.c (w32_create_terminal): Use KVAR.
+
+	* s/ms-w32.h (MODE_LINE_BINARY_TEXT): Remove.
+
+	* xdisp.c (decode_mode_spec): Don't use MODE_LINE_BINARY_TEXT.
+
+	* fileio.c (Finsert_file_contents, Fwrite_region): Remove
+	references to buffer_file_type.
+	(syms_of_fileio): Don't intern and staticpro
+	find-buffer-file-type.
+
+	* callproc.c (syms_of_callproc): Remove references to
+	buffer_file_type.
+
+	* buffer.c (reset_buffer_local_variables): Don't set
+	buffer_file_type.
+	(init_buffer_once): Likewise.
+	(syms_of_buffer): Don't define buffer-file-type.
+
+	* buffer.h (struct buffer): Remove buffer_file_type.
+
 2011-02-16  Tom Tromey  <tromey@parfait>
 
 	* callint.c (Fcall_interactively): Update.

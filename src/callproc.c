@@ -74,10 +74,6 @@ extern char **environ;
 /* Pattern used by call-process-region to make temp files.  */
 static Lisp_Object Vtemp_file_name_pattern;
 
-#ifdef DOS_NT
-Lisp_Object Qbuffer_file_type;
-#endif /* DOS_NT */
-
 /* True if we are about to fork off a synchronous process or if we
    are waiting for it.  */
 int synch_process_alive;
@@ -1535,11 +1531,6 @@ set_initial_environment (void)
 void
 syms_of_callproc (void)
 {
-#ifdef DOS_NT
-  Qbuffer_file_type = intern_c_string ("buffer-file-type");
-  staticpro (&Qbuffer_file_type);
-#endif /* DOS_NT */
-
 #ifndef DOS_NT
   Vtemp_file_name_pattern = build_string ("emacsXXXXXX");
 #elif defined (WINDOWSNT)

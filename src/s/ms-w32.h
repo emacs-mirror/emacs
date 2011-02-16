@@ -181,8 +181,6 @@ struct sigaction {
 #define HAVE_MENUS 1
 #endif
 
-#define MODE_LINE_BINARY_TEXT(_b_) (NILP (B_(_b_,buffer_file_type)) ? "T" : "B")
-
 /* Get some redefinitions in place.  */
 
 #ifdef emacs

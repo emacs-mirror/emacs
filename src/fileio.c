@@ -3075,10 +3075,6 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   return (mtime1 > st.st_mtime) ? Qt : Qnil;
 }
 
-#ifdef DOS_NT
-Lisp_Object Qfind_buffer_file_type;
-#endif /* DOS_NT */
-
 #ifndef READ_BUF_SIZE
 #define READ_BUF_SIZE (64 << 10)
 #endif
@@ -4103,18 +4099,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
   /* Now INSERTED is measured in characters.  */
 
-#ifdef DOS_NT
-  /* Use the conversion type to determine buffer-file-type
-     (find-buffer-file-type is now used to help determine the
-     conversion).  */
-  if ((VECTORP (CODING_ID_EOL_TYPE (coding.id))
-       || EQ (CODING_ID_EOL_TYPE (coding.id), Qunix))
-      && ! CODING_REQUIRE_DECODING (&coding))
-    BVAR (current_buffer, buffer_file_type) = Qt;
-  else
-    BVAR (current_buffer, buffer_file_type) = Qnil;
-#endif
-
  handled:
 
   if (deferred_remove_unwind_protect)
@@ -4484,9 +4468,6 @@ This calls `write-region-annotate-functions' at the start, and
   int quietly = !NILP (visit);
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   struct buffer *given_buffer;
-#ifdef DOS_NT
-  int buffer_file_type = O_BINARY;
-#endif /* DOS_NT */
   struct coding_system coding;
 
   if (current_buffer->base_buffer && visiting)
@@ -4596,7 +4577,7 @@ This calls `write-region-annotate-functions' at the start, and
   desc = -1;
   if (!NILP (append))
 #ifdef DOS_NT
-    desc = emacs_open (fn, O_WRONLY | buffer_file_type, 0);
+    desc = emacs_open (fn, O_WRONLY | O_BINARY, 0);
 #else  /* not DOS_NT */
     desc = emacs_open (fn, O_WRONLY, 0);
 #endif /* not DOS_NT */
@@ -4604,7 +4585,7 @@ This calls `write-region-annotate-functions' at the start, and
   if (desc < 0 && (NILP (append) || errno == ENOENT))
 #ifdef DOS_NT
   desc = emacs_open (fn,
-		     O_WRONLY | O_CREAT | buffer_file_type
+		     O_WRONLY | O_CREAT | O_BINARY
 		     | (EQ (mustbenew, Qexcl) ? O_EXCL : O_TRUNC),
 		     S_IREAD | S_IWRITE);
 #else  /* not DOS_NT */
@@ -5585,11 +5566,6 @@ syms_of_fileio (void)
   staticpro (&Qfile_date_error);
   Qexcl = intern_c_string ("excl");
   staticpro (&Qexcl);
-
-#ifdef DOS_NT
-  Qfind_buffer_file_type = intern_c_string ("find-buffer-file-type");
-  staticpro (&Qfind_buffer_file_type);
-#endif /* DOS_NT */
 
   DEFVAR_LISP ("file-name-coding-system", Vfile_name_coding_system,
 	       doc: /* *Coding system for encoding file names.

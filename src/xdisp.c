@@ -19585,11 +19585,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       }
 
     case 't':			/* indicate TEXT or BINARY */
-#ifdef MODE_LINE_BINARY_TEXT
-      return MODE_LINE_BINARY_TEXT (b);
-#else
       return "T";
-#endif
 
     case 'z':
       /* coding-system (not including end-of-line format) */
