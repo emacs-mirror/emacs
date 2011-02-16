@@ -1,5 +1,7 @@
 2011-02-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* msdos.c (internal_terminal_init): Use KVAR.
+
 	* w32fns.c (Fx_create_frame): Use KVAR.
 
 	* w32term.c (w32_create_terminal): Use KVAR.
