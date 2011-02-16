@@ -245,7 +245,6 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 (define-key dired-mode-map "*(" 'dired-mark-sexp)
 (define-key dired-mode-map "*." 'dired-mark-extension)
 (define-key dired-mode-map "\M-!" 'dired-smart-shell-command)
-(define-key dired-mode-map "w" 'dired-copy-filename-as-kill)
 (define-key dired-mode-map "\M-G" 'dired-goto-subdir)
 (define-key dired-mode-map "F" 'dired-do-find-marked-files)
 (define-key dired-mode-map "Y"  'dired-do-relsymlink)
@@ -308,8 +307,6 @@ files"]
   \\[dired-do-find-marked-files]\t-- visit all marked files simultaneously
   \\[dired-omit-mode]\t-- toggle omitting of files
   \\[dired-mark-sexp]\t-- mark by Lisp expression
-  \\[dired-copy-filename-as-kill]\t-- copy the file or subdir names into the kill ring;
-  \t   you can feed it to other commands using \\[yank]
 
 To see the options you can set, use M-x customize-group RET dired-x RET.
 See also the functions:

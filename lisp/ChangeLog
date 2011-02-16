@@ -1,3 +1,8 @@
+2011-02-16  Leo  <sdl.web@gmail.com>
+
+	* dired-x.el (dired-mode-map, dired-extra-startup):
+	Remove dired-copy-filename-as-kill since it's already in dired.el.
+
 2011-02-16  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el (dired-bind-jump, dired-bind-man, dired-bind-info):
