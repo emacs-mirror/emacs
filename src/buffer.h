@@ -321,7 +321,7 @@ while (0)
 /* Return character at byte position POS.  */
 
 #define FETCH_CHAR(pos)				      	\
-  (!NILP (B_ (current_buffer, enable_multibyte_characters))	\
+  (!NILP (BVAR (current_buffer, enable_multibyte_characters))	\
    ? FETCH_MULTIBYTE_CHAR ((pos))		      	\
    : FETCH_BYTE ((pos)))
 
@@ -346,7 +346,7 @@ extern unsigned char *_fetch_multibyte_char_p;
    multibyte.  */
 
 #define FETCH_CHAR_AS_MULTIBYTE(pos)			\
-  (!NILP (B_ (current_buffer, enable_multibyte_characters))	\
+  (!NILP (BVAR (current_buffer, enable_multibyte_characters))	\
    ? FETCH_MULTIBYTE_CHAR ((pos))			\
    : UNIBYTE_TO_CHAR (FETCH_BYTE ((pos))))
 
@@ -465,13 +465,13 @@ struct buffer_text
   };
 
 /* Lisp fields in struct buffer are hidden from most code and accessed
-   via the B_ macro, below.  Only select pieces of code, like the GC,
+   via the BVAR macro, below.  Only select pieces of code, like the GC,
    are allowed to use BUFFER_INTERNAL_FIELD.  */
 #define BUFFER_INTERNAL_FIELD(field) field ## _
 
 /* Most code should use this macro to access Lisp fields in struct
    buffer.  */
-#define B_(buf, field) ((buf)->BUFFER_INTERNAL_FIELD (field))
+#define BVAR(buf, field) ((buf)->BUFFER_INTERNAL_FIELD (field))
 
 /* This is the structure that the buffer Lisp object points to.  */
 

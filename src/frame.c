@@ -1817,7 +1817,7 @@ make_frame_visible_1 (Lisp_Object window)
       w = XWINDOW (window);
 
       if (!NILP (w->buffer))
-	B_ (XBUFFER (w->buffer), display_time) = Fcurrent_time ();
+	BVAR (XBUFFER (w->buffer), display_time) = Fcurrent_time ();
 
       if (!NILP (w->vchild))
 	make_frame_visible_1 (w->vchild);

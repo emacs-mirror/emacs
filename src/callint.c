@@ -149,12 +149,12 @@ static void
 check_mark (int for_region)
 {
   Lisp_Object tem;
-  tem = Fmarker_buffer (B_ (current_buffer, mark));
+  tem = Fmarker_buffer (BVAR (current_buffer, mark));
   if (NILP (tem) || (XBUFFER (tem) != current_buffer))
     error (for_region ? "The mark is not set now, so there is no region"
 	   : "The mark is not set now");
   if (!NILP (Vtransient_mark_mode) && NILP (Vmark_even_if_inactive)
-      && NILP (B_ (current_buffer, mark_active)))
+      && NILP (BVAR (current_buffer, mark_active)))
     xsignal0 (Qmark_inactive);
 }
 
@@ -385,7 +385,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       else if (*string == '*')
 	{
 	  string++;
-	  if (!NILP (B_ (current_buffer, read_only)))
+	  if (!NILP (BVAR (current_buffer, read_only)))
 	    {
 	      if (!NILP (record_flag))
 		{
@@ -543,7 +543,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
 	case 'D':		/* Directory name. */
 	  args[i] = Fread_file_name (callint_message, Qnil,
-				     B_ (current_buffer, directory), Qlambda, Qnil,
+				     BVAR (current_buffer, directory), Qlambda, Qnil,
 				     Qfile_directory_p);
 	  break;
 
@@ -661,7 +661,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	case 'm':		/* Value of mark.  Does not do I/O.  */
 	  check_mark (0);
 	  /* visargs[i] = Qnil; */
-	  args[i] = B_ (current_buffer, mark);
+	  args[i] = BVAR (current_buffer, mark);
 	  varies[i] = 2;
 	  break;
 
@@ -717,11 +717,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  check_mark (1);
 	  set_marker_both (point_marker, Qnil, PT, PT_BYTE);
 	  /* visargs[i+1] = Qnil; */
-	  foo = marker_position (B_ (current_buffer, mark));
+	  foo = marker_position (BVAR (current_buffer, mark));
 	  /* visargs[i] = Qnil; */
-	  args[i] = PT < foo ? point_marker : B_ (current_buffer, mark);
+	  args[i] = PT < foo ? point_marker : BVAR (current_buffer, mark);
 	  varies[i] = 3;
-	  args[++i] = PT > foo ? point_marker : B_ (current_buffer, mark);
+	  args[++i] = PT > foo ? point_marker : BVAR (current_buffer, mark);
 	  varies[i] = 4;
 	  break;
 

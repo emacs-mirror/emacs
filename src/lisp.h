@@ -2047,11 +2047,11 @@ extern Lisp_Object case_temp2;
 
 /* Current buffer's map from characters to lower-case characters.  */
 
-#define DOWNCASE_TABLE B_ (current_buffer, downcase_table)
+#define DOWNCASE_TABLE BVAR (current_buffer, downcase_table)
 
 /* Current buffer's map from characters to upper-case characters.  */
 
-#define UPCASE_TABLE B_ (current_buffer, upcase_table)
+#define UPCASE_TABLE BVAR (current_buffer, upcase_table)
 
 /* Downcase a character, or make no change if that cannot be done.  */
 
