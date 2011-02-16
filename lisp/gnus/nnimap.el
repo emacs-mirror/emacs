@@ -276,13 +276,11 @@ textual parts.")
     (push (current-buffer) nnimap-process-buffers)
     (current-buffer)))
 
-(defun nnimap-credentials (address ports &optional inhibit-create)
+(defun nnimap-credentials (address ports)
   (let* ((found (nth 0 (auth-source-search :max 1
                                            :host address
                                            :port ports
-                                           :create (if inhibit-create
-                                                       nil
-                                                     (null ports)))))
+                                           :create t)))
          (user (plist-get found :user))
          (secret (plist-get found :secret))
          (secret (if (functionp secret) (funcall secret) secret)))
@@ -389,7 +387,7 @@ textual parts.")
                                 (list
                                  (nnoo-current-server 'nnimap)
                                  nnimap-address)
-                                ports t))))
+                                ports))))
 		  (setq nnimap-object nil)
 		(let ((nnimap-inhibit-logging t))
 		  (setq login-result

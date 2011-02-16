@@ -1,3 +1,22 @@
+2011-02-16  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-propagate-marks): Change default to t again, since
+	nil means that nnimap doesn't get updated.
+
+2011-02-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-create): Return a synthetic search
+	result when the user doesn't want to write to the file.
+	(auth-source-netrc-search): Expect a synthetic result and proceed
+	accordingly.
+	(auth-source-cache-expiry): New variable to override
+	`password-cache-expiry'.
+	(auth-source-remember): Use it.
+
+	* nnimap.el (nnimap-credentials): Remove the `inhibit-create'
+	parameter.  Create entry if necessary by using :create t.
+	(nnimap-open-connection-1): Don't pass `inhibit-create'.
+
 2011-02-15  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-debug): Enable by default and don't
