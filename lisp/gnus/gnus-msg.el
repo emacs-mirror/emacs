@@ -1081,14 +1081,14 @@ If VERY-WIDE, make a very wide reply."
 	      (gnus-summary-work-articles 1))))
   ;; Allow user to require confirmation before replying by mail to the
   ;; author of a news article (or mail message).
-  (when (or
-	    (not (or (gnus-news-group-p gnus-newsgroup-name)
+  (when (or (not (or (gnus-news-group-p gnus-newsgroup-name)
 		     gnus-confirm-treat-mail-like-news))
 	    (not (cond ((stringp gnus-confirm-mail-reply-to-news)
 			(string-match gnus-confirm-mail-reply-to-news
 				      gnus-newsgroup-name))
 		       ((functionp gnus-confirm-mail-reply-to-news)
-			(funcall gnus-confirm-mail-reply-to-news gnus-newsgroup-name))
+			(funcall gnus-confirm-mail-reply-to-news
+				 gnus-newsgroup-name))
 		       (t gnus-confirm-mail-reply-to-news)))
 	    (if (or wide very-wide)
 		t ;; Ignore gnus-confirm-mail-reply-to-news for wide and very
@@ -1123,7 +1123,7 @@ If VERY-WIDE, make a very wide reply."
 	    (insert headers))
 	  (goto-char (point-max)))
 	(mml-quote-region (point) (point-max))
-	(message-reply nil wide)
+	(message-reply nil wide 'switch-to-buffer)
 	(when yank
 	  (gnus-inews-yank-articles yank))
 	(gnus-summary-handle-replysign)))))

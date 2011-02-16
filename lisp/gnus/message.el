@@ -6779,7 +6779,7 @@ Useful functions to put in this list include:
   subject)
 
 ;;;###autoload
-(defun message-reply (&optional to-address wide)
+(defun message-reply (&optional to-address wide switch-function)
   "Start editing a reply to the article in the current buffer."
   (interactive)
   (require 'gnus-sum)			; for gnus-list-identifiers
@@ -6822,7 +6822,8 @@ Useful functions to put in this list include:
       (message-pop-to-buffer
        (message-buffer-name
 	(if wide "wide reply" "reply") from
-	(if wide to-address nil))))
+	(if wide to-address nil))
+       switch-function))
 
     (setq message-reply-headers
 	  (vector 0 subject from date message-id references 0 0 ""))

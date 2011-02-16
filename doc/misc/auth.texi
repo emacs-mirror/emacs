@@ -161,8 +161,8 @@ and simplest configuration is:
 (setq auth-sources '((:source "~/.authinfo.gpg")))
 ;;; even shorter and the @emph{default}:
 (setq auth-sources '("~/.authinfo.gpg" "~/.authinfo"))
-;;; use the Secrets API @var{login} collection (@pxref{Secret Service API})
-(setq auth-sources '("secrets:login"))
+;;; use the Secrets API @var{Login} collection (@pxref{Secret Service API})
+(setq auth-sources '("secrets:Login"))
 @end lisp
 
 By adding multiple entries to @code{auth-sources} with a particular

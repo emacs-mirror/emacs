@@ -1234,9 +1234,11 @@ For example: ((1 . cn-gb-2312) (2 . big5))."
   :type 'boolean
   :group 'gnus-summary-marks)
 
-(defcustom gnus-propagate-marks t
-  "If non-nil, do not propagate marks to the backends."
-  :version "23.1" ;; No Gnus
+(defcustom gnus-propagate-marks nil
+  "If non-nil, Gnus will store and retrieve marks from the backends.
+This means that marks will be stored both in .newsrc.eld and in
+the backend, and will slow operation down somewhat."
+  :version "24.1"
   :type 'boolean
   :group 'gnus-summary-marks)
 
@@ -4067,6 +4069,7 @@ If NO-DISPLAY, don't generate a summary buffer."
 	;; gnus-summary-prepare-hook since kill processing may not
 	;; work with hidden articles.
 	(gnus-summary-maybe-hide-threads)
+	(gnus-configure-windows 'summary)
 	(when kill-buffer
 	  (gnus-kill-or-deaden-summary kill-buffer))
 	(gnus-summary-auto-select-subject)
@@ -4076,7 +4079,6 @@ If NO-DISPLAY, don't generate a summary buffer."
 		 gnus-newsgroup-unreads
 		 gnus-auto-select-first)
 	    (progn
-	      (gnus-configure-windows 'summary)
 	      (let ((art (gnus-summary-article-number)))
 		(unless (and (not gnus-plugged)
 			     (or (memq art gnus-newsgroup-undownloaded)
@@ -7168,6 +7170,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
   (let* ((group gnus-newsgroup-name)
 	 (quit-config (gnus-group-quit-config gnus-newsgroup-name))
 	 (gnus-group-is-exiting-p t)
+	 (article-buffer gnus-article-buffer)
 	 (mode major-mode)
 	 (group-point nil)
 	 (buf (current-buffer)))
@@ -7220,16 +7223,6 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	(when (eq mode 'gnus-summary-mode)
 	  (gnus-kill-buffer buf)))
 
-      ;; If we have several article buffers, we kill them at exit.
-      (unless gnus-single-article-buffer
-	(when (gnus-buffer-live-p gnus-article-buffer)
-	  (with-current-buffer gnus-article-buffer
-	    ;; Don't kill sticky article buffers
-	    (unless (eq major-mode 'gnus-sticky-article-mode)
-	      (gnus-kill-buffer gnus-article-buffer)
-	      (setq gnus-article-current nil))))
-	(gnus-kill-buffer gnus-original-article-buffer))
-
       (setq gnus-current-select-method gnus-select-method)
       (set-buffer gnus-group-buffer)
       (if quit-config
@@ -7241,6 +7234,17 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	  (if win (set-window-point win (point))))
 	(unless leave-hidden
 	  (gnus-configure-windows 'group 'force)))
+
+      ;; If we have several article buffers, we kill them at exit.
+      (unless gnus-single-article-buffer
+	(when (gnus-buffer-live-p article-buffer)
+	  (with-current-buffer article-buffer
+	    ;; Don't kill sticky article buffers
+	    (unless (eq major-mode 'gnus-sticky-article-mode)
+	      (gnus-kill-buffer article-buffer)
+	      (setq gnus-article-current nil))))
+	(gnus-kill-buffer gnus-original-article-buffer))
+
       ;; Clear the current group name.
       (unless quit-config
 	(setq gnus-newsgroup-name nil)))))
@@ -7269,6 +7273,8 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	(gnus-kill-buffer gnus-article-buffer)
 	(gnus-kill-buffer gnus-original-article-buffer)
 	(setq gnus-article-current nil))
+      ;; Return to the group buffer.
+      (gnus-configure-windows 'group 'force)
       (if (not gnus-kill-summary-on-exit)
 	  (gnus-deaden-summary)
 	(gnus-close-group group)
@@ -7280,8 +7286,6 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (gnus-async-prefetch-remove-group group)
       (when (get-buffer gnus-article-buffer)
 	(bury-buffer gnus-article-buffer))
-      ;; Return to the group buffer.
-      (gnus-configure-windows 'group 'force)
       ;; Clear the current group name.
       (setq gnus-newsgroup-name nil)
       (unless (gnus-ephemeral-group-p group)

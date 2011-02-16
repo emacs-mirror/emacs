@@ -3641,10 +3641,11 @@ function and want to see what the date was before converting."
 		 (let ((type (get-text-property (match-beginning 0)
 						'gnus-date-type)))
 		   (when (memq type '(lapsed combined-lapsed user-format))
-		     (unless (= window-start
-				(save-excursion
-				  (forward-line 1)
-				  (point)))
+		     (when (and window-start
+				(not (= window-start
+					(save-excursion
+					  (forward-line 1)
+					  (point)))))
 		       (setq window-start nil))
 		     (save-excursion
 		       (article-date-ut type t (match-beginning 0)))

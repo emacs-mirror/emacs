@@ -1,3 +1,7 @@
+2011-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el: Use easymenu for menu items.  Fix item capitalization.
+
 2011-02-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/vc-git.el (vc-git-root-log-format): New option for
