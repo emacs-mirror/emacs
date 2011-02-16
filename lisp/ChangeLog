@@ -1,3 +1,19 @@
+2011-02-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Include PGP and GnuPG in Keywords, and other
+	commentary refinements.
+	(allout-abbreviate-flattened-numbering): Rename to
+	allout-flattened-numbering-abbreviation, and
+	define-obsolete-variable-alias the old name.
+	(allout-flattened-numbering-abbreviation): Rename from
+	allout-abbreviate-flattened-numbering.
+	(allout-mode-p): Include among autoloads, for use by other modes
+	with impunity.
+	(allout-listify-exposed): Use
+	allout-flattened-numbering-abbreviation.
+	(allout-encrypt-string): Use set-buffer-multibyte directly.
+	(allout-set-buffer-multibyte): Remove.
+
 2011-02-16  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* simple.el (just-one-space): Remove useless `or' call.
