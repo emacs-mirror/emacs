@@ -1,3 +1,32 @@
+2011-02-16  Tom Tromey  <tromey@parfait>
+
+	* callint.c (Fcall_interactively): Update.
+	* doc.c (Fsubstitute_command_keys): Update.
+	* cmds.c (Fself_insert_command): Update.
+	* keymap.c (Fcurrent_active_maps, Fkey_binding)
+	(Fdescribe_buffer_bindings): Update.
+	* macros.c (Fstart_kbd_macro, end_kbd_macro, Fend_kbd_macro)
+	(store_kbd_macro_char, Fcall_last_kbd_macro, Fexecute_kbd_macro):
+	Update.
+	* keyboard.c (echo_char, echo_dash, echo_now, cancel_echoing)
+	(echo_length, echo_truncate, cmd_error, command_loop_1)
+	(read_char, kbd_buffer_store_event_hold, make_lispy_event)
+	(menu_bar_items, tool_bar_items, read_char_minibuf_menu_prompt)
+	(read_key_sequence, Fcommand_execute, Fexecute_extended_command)
+	(Fdiscard_input, init_kboard, init_keyboard, mark_kboards):
+	Update.
+	* xfns.c (Fx_create_frame): Update.
+	* xterm.c (x_connection_closed, x_term_init): Update.
+	* term.c (term_get_fkeys_1, CONDITIONAL_REASSIGN, init_tty):
+	Update.
+	* window.c (window_scroll_pixel_based, window_scroll_line_based):
+	Update.
+	* frame.c (make_frame_without_minibuffer, Fhandle_switch_frame)
+	(delete_frame): Update.
+	* lisp.h (DEFVAR_KBOARD): Update for change to field names.
+	* keyboard.h (struct kboard): Rename all Lisp_Object fields.
+	(KBOARD_INTERNAL_FIELD, KVAR): New macros.
+
 2011-02-16  Tom Tromey  <tromey@redhat.com>
 
 	* lisp.h (DEFVAR_BUFFER_DEFAULTS): Use BVAR.

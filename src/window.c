@@ -4834,8 +4834,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	 possibility of point becoming "stuck" on a tall line when
 	 scrolling by one line.  */
       if (window_scroll_pixel_based_preserve_y < 0
-	  || !SYMBOLP (current_kboard->Vlast_command)
-	  || NILP (Fget (current_kboard->Vlast_command, Qscroll_command)))
+	  || !SYMBOLP (KVAR (current_kboard, Vlast_command))
+	  || NILP (Fget (KVAR (current_kboard, Vlast_command), Qscroll_command)))
 	{
 	  start_display (&it, w, start);
 	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
@@ -5091,8 +5091,8 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
   if (!NILP (Vscroll_preserve_screen_position))
     {
       if (window_scroll_preserve_vpos <= 0
-	  || !SYMBOLP (current_kboard->Vlast_command)
-	  || NILP (Fget (current_kboard->Vlast_command, Qscroll_command)))
+	  || !SYMBOLP (KVAR (current_kboard, Vlast_command))
+	  || NILP (Fget (KVAR (current_kboard, Vlast_command), Qscroll_command)))
 	{
 	  struct position posit
 	    = *compute_motion (startpos, 0, 0, 0,

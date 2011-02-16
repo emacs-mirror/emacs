@@ -280,7 +280,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   save_this_command = Vthis_command;
   save_this_original_command = Vthis_original_command;
   save_real_this_command = real_this_command;
-  save_last_command = current_kboard->Vlast_command;
+  save_last_command = KVAR (current_kboard, Vlast_command);
 
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;
@@ -363,7 +363,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       Vthis_command = save_this_command;
       Vthis_original_command = save_this_original_command;
       real_this_command= save_real_this_command;
-      current_kboard->Vlast_command = save_last_command;
+      KVAR (current_kboard, Vlast_command) = save_last_command;
 
       temporarily_switch_to_single_kboard (NULL);
       return unbind_to (speccount, apply1 (function, specs));
@@ -832,7 +832,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   Vthis_command = save_this_command;
   Vthis_original_command = save_this_original_command;
   real_this_command= save_real_this_command;
-  current_kboard->Vlast_command = save_last_command;
+  KVAR (current_kboard, Vlast_command) = save_last_command;
 
   {
     Lisp_Object val;

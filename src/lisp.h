@@ -1890,7 +1890,7 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd *, const char *, int);
     static struct Lisp_Kboard_Objfwd ko_fwd;			\
     defvar_kboard (&ko_fwd,					\
 		   lname,					\
-		   (int)((char *)(&current_kboard->vname)	\
+		   (int)((char *)(&current_kboard->vname ## _)	\
 			 - (char *)current_kboard));		\
   } while (0)
 

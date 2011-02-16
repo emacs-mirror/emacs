@@ -277,7 +277,7 @@ After insertion, the value of `auto-fill-function' is called if the
   int remove_boundary = 1;
   CHECK_NATNUM (n);
 
-  if (!EQ (Vthis_command, current_kboard->Vlast_command))
+  if (!EQ (Vthis_command, KVAR (current_kboard, Vlast_command)))
     nonundocount = 0;
 
   if (NILP (Vexecuting_kbd_macro)
