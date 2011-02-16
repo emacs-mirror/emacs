@@ -1,5 +1,11 @@
 2011-02-16  Glenn Morris  <rgm@gnu.org>
 
+	* dired-x.texi: Drop meaningless version number.
+	(Introduction): Remove old info.
+	(Optional Installation Dired Jump): Autoload from dired-x.
+	Remove incorrect info about loaddefs.el.
+	(Bugs): Just refer to M-x report-emacs-bug.
+
 	* dired-x.texi (Multiple Dired Directories): Update for rename of
 	default-directory-alist.
 	(Miscellaneous Commands): No longer mention very old VM version 4.
