@@ -639,6 +639,9 @@ secrets.
 ** notifications.el provides an implementation of the Desktop
 Notifications API.  It requires D-Bus for communication.
 
+** soap-client.el supports access to SOAP web services from Emacs.
+soap-inspect.el is an interactive inspector for SOAP WSDL structures.
+
 
 * Incompatible Lisp Changes in Emacs 24.1
 
