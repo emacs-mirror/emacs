@@ -10,6 +10,8 @@
 
 	Merge from gnulib.
 
+	* install-sh: Update to scriptversion 2011-01-19.21.
+
 	2011-02-13  Bruno Haible  <bruno@clisp.org>
 
 	Consistent macro naming for macros that use GCC __attribute__.
