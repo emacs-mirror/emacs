@@ -1,5 +1,9 @@
 2011-02-16  Ken Manheimer  <ken.manheimer@gmail.com>
 
+	* allout-widgets.el: New allout extension that shows allout
+	outline structure with graphical widgets.  'allout-widgets'
+	customize group is an 'allout' subgroup, for easy discovery.
+
 	* allout.el: Include PGP and GnuPG in Keywords, and other
 	commentary refinements.
 	(allout-abbreviate-flattened-numbering): Rename to

@@ -1,3 +1,12 @@
+2011-02-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* etc/images/icons/allout-widgets-dark-bg,
+	etc/images/icons/allout-widgets-light-bg: Icons for new
+	allout-widgets.el.
+
+	* etc/images/icons/README: Include coypright and GPL 3 license for
+	new icons.
+
 2011-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Add soap-client.el and soap-inspect.el.
