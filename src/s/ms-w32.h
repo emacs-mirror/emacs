@@ -346,6 +346,8 @@ extern char *get_emacs_configuration_options (void);
 #endif
 #include <string.h>
 
+extern int getloadavg (double *, int);
+
 /* We need a little extra space, see ../../lisp/loadup.el.  */
 #define SYSTEM_PURESIZE_EXTRA 50000
 

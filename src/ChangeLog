@@ -5,6 +5,7 @@
 	* w32term.c (w32_create_terminal): Use KVAR.
 
 	* s/ms-w32.h (MODE_LINE_BINARY_TEXT): Remove.
+	(getloadavg): Declare prototype which was removed from lisp.h.
 
 	* xdisp.c (decode_mode_spec): Don't use MODE_LINE_BINARY_TEXT.
 
