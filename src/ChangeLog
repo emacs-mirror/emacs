@@ -1,3 +1,29 @@
+2011-02-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer needed getloadavg symbols.
+	* m/alpha.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/amdx86-64.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/ia64.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/ibms390.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/macppc.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/sparc.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/template.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/vax.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* s/aix4-2.h (KERNEL_FILE, LDAV_SYMBOL): Remove.
+	* s/bsd-common.h (KERNEL_FILE, LDAV_SYMBOL): Remove #undef.
+	* s/hpux10-20.h (KERNEL_FILE, LOAD_AVE_TYPE, LOAD_AVE_CVT):
+	(LDAV_SYMBOL): Remove.
+	* s/unixware.h (LOAD_AVE_TYPE, LOAD_AVE_CVT, FSCALE): Remove.
+	* s/usg5-4-common.h (KERNEL_FILE, LDAV_SYMBOL): Remove.
+
+	Import getloadavg module from gnulib.
+	* deps.mk (getloadavg.o): Remove; gnulib now does this.
+	* lisp.h (getloadavg) [!defined HAVE_GETLOADAVG]: Remove; gnulib
+	now does this.
+	* src/s/freebsd.h (HAVE_GETLOADAVG): Remove; gnulib now does this.
+	* src/s/netbsd.h (HAVE_GETLOADAVG): Likewise.
+	* config.in: Regenerate.
+
 2011-02-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* nsfns.m (ns_set_name_as_filename, Fns_read_file_name): Use B_.
@@ -9,7 +35,7 @@
 
 2011-02-14  Eli Zaretskii  <eliz@gnu.org>
 
-	* msdos.c (IT_frame_up_to_date): 
+	* msdos.c (IT_frame_up_to_date):
 	* s/msdos.h (MODE_LINE_BINARY_TEXT): Use B_ for the MS-DOS build.
 
 	* dired.c (directory_files_internal):

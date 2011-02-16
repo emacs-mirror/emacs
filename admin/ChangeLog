@@ -1,4 +1,4 @@
-2011-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+2011-02-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove no-longer needed getloadavg symbols.
 	* CPP-DEFINES (LOAD_AVE_CVT, LOAD_AVE_TYPE, FSCALE, KERNEL_FILE):
