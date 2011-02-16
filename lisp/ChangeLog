@@ -1,3 +1,8 @@
+2011-02-16  Bastien Guerry  <bzg@altern.org>
+
+	* play/doctor.el (doctor-mode): Bugfix: escape the "," character
+	in a `doctor-type' argument.
+
 2011-02-16  Alex Harsanyi  <AlexHarsanyi@gmail.com>
 
 	* net/soap-client.el:
