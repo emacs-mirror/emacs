@@ -1,3 +1,10 @@
+2011-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/soap-client.el: Add "comm" and "hypermedia" to the
+	keywords.  Reflow too long lines.
+
+	* net/soap-inspect.el: Ditto.  Require 'cl.
+
 2011-02-16  Bastien Guerry  <bzg@altern.org>
 
 	* play/doctor.el (doctor-mode): Bugfix: escape the "," character

@@ -1,4 +1,4 @@
-;;;; soap.el -- Access SOAP web services from Emacs
+;;;; soap-client.el -- Access SOAP web services from Emacs
 
 ;; Copyright (C) 2009-2011  Alex Harsanyi <AlexHarsanyi@gmail.com>
 
@@ -17,12 +17,12 @@
 
 ;; Author: Alexandru Harsanyi (AlexHarsanyi@gmail.com)
 ;; Created: December, 2009
-;; Keywords: soap, web-services
+;; Keywords: soap, web-services, comm, hypermedia
 ;; Homepage: http://code.google.com/p/emacs-soap-client
 ;;
 
 ;;; Commentary:
-;; 
+;;
 ;; To use the SOAP client, you first need to load the WSDL document for the
 ;; service you want to access, using `soap-load-wsdl-from-url'.  A WSDL
 ;; document describes the available operations of the SOAP service, how their
@@ -157,14 +157,13 @@ namespace of LOCAL-NAME."
                 nil)))
         ;; if no namespace is defined, just return the unqualified name
         name)))
-        
+
 
 (defun soap-l2fq (local-name &optional use-tns)
   "Convert LOCAL-NAME into a fully qualified name.
 A fully qualified name is a cons of the namespace name and the
 name of the element itself.  For example \"xsd:string\" is
-converted to \(\"http://www.w3.org/2001/XMLSchema\" . \"string\"
-\).
+converted to \(\"http://www.w3.org/2001/XMLSchema\" . \"string\"\).
 
 The USE-TNS argument specifies what to do when LOCAL-NAME has no
 namespace tag.  If USE-TNS is non-nil, the `*soap-target-xmlns*'
@@ -201,14 +200,15 @@ different namespace aliases for the same element."
                (setq default-ns value))
               ((string-match "^xmlns:\\(.*\\)$" name)
                (push (cons (match-string 1 name) value) xmlns)))))
-    
+
     (let ((tns (assoc "tns" xmlns)))
       (cond ((and tns target-ns)
-             ;; If a tns alias is defined for this node, it must match the target
-             ;; namespace.
+             ;; If a tns alias is defined for this node, it must match
+             ;; the target namespace.
              (unless (equal target-ns (cdr tns))
-               (soap-warning "soap-extract-xmlns(%s): tns alias and targetNamespace mismatch"
-                             (xml-node-name node))))
+               (soap-warning
+		"soap-extract-xmlns(%s): tns alias and targetNamespace mismatch"
+		(xml-node-name node))))
             ((and tns (not target-ns))
              (setq target-ns (cdr tns)))
             ((and (not tns) target-ns)
@@ -217,7 +217,7 @@ different namespace aliases for the same element."
              ;; that we might override an existing tns alias in XMLNS-TABLE,
              ;; but that is intended.
              (push (cons "tns" target-ns) xmlns))))
-          
+
     (list default-ns target-ns (append xmlns xmlns-table))))
 
 (defmacro soap-with-local-xmlns (node &rest body)
@@ -248,7 +248,8 @@ namespace tag."
                    ;; We use `ignore-errors' here because we want to silently
                    ;; skip nodes for which we cannot convert them to a
                    ;; well-known name.
-                   (eq (ignore-errors (soap-l2wk (xml-node-name c))) child-name)))
+                   (eq (ignore-errors (soap-l2wk (xml-node-name c)))
+		       child-name)))
         (push c result)))
     (nreverse result)))
 
@@ -346,7 +347,9 @@ binding) but the same name."
                  (throw 'found e)))))
           ((= (length elements) 1) (car elements))
           ((> (length elements) 1)
-           (error "Soap-namespace-get(%s): multiple elements, discriminant needed" name))
+           (error
+	    "Soap-namespace-get(%s): multiple elements, discriminant needed"
+	    name))
           (t
            nil))))
 
@@ -389,7 +392,8 @@ binding) but the same name."
 (defstruct soap-bound-operation
   operation                             ; SOAP-OPERATION
   soap-action                           ; value for SOAPAction HTTP header
-  use                                   ; 'literal or 'encoded, see http://www.w3.org/TR/wsdl#_soap:body
+  use                                   ; 'literal or 'encoded, see
+					; http://www.w3.org/TR/wsdl#_soap:body
   )
 
 (defstruct (soap-binding (:include soap-element))
@@ -412,7 +416,8 @@ binding) but the same name."
 
 (defun soap-default-soapenc-types ()
   "Return a namespace containing some of the SOAPEnc types."
-  (let ((ns (make-soap-namespace :name "http://schemas.xmlsoap.org/soap/encoding/")))
+  (let ((ns (make-soap-namespace
+	     :name "http://schemas.xmlsoap.org/soap/encoding/")))
     (dolist (type '("string" "dateTime" "boolean" "long" "int" "float"
                     "base64Binary" "anyType" "Array" "byte[]"))
       (soap-namespace-put
@@ -425,7 +430,7 @@ binding) but the same name."
   (or (soap-basic-type-p element)
       (soap-sequence-type-p element)
       (soap-array-type-p element)))
-      
+
 
 ;;;;; The WSDL document
 
@@ -482,7 +487,7 @@ used to resolve the namespace alias."
 
     (when use-local-alias-table
       (setq alias-table (append *soap-local-xmlns* alias-table)))
-    
+
     (cond ((consp name) ; a fully qualified name, as returned by `soap-l2fq'
            (setq element-name (cdr name))
            (when (symbolp element-name)
@@ -490,19 +495,21 @@ used to resolve the namespace alias."
            (setq namespace (soap-wsdl-find-namespace (car name) wsdl))
            (unless namespace
              (error "Soap-wsdl-get(%s): unknown namespace: %s" name namespace)))
-          
+
           ((string-match "^\\(.*\\):\\(.*\\)$" name)
            (setq element-name (match-string 2 name))
 
            (let* ((ns-alias (match-string 1 name))
                   (ns-name (cdr (assoc ns-alias alias-table))))
              (unless ns-name
-               (error "Soap-wsdl-get(%s): cannot find namespace alias %s" name ns-alias))
-             
+               (error "Soap-wsdl-get(%s): cannot find namespace alias %s"
+		      name ns-alias))
+
              (setq namespace (soap-wsdl-find-namespace ns-name wsdl))
              (unless namespace
-               (error "Soap-wsdl-get(%s): unknown namespace %s, referenced by alias %s"
-                      name ns-name ns-alias))))
+               (error
+		"Soap-wsdl-get(%s): unknown namespace %s, referenced by alias %s"
+		name ns-name ns-alias))))
           (t
            (error "Soap-wsdl-get(%s): bad name" name)))
 
@@ -513,10 +520,10 @@ used to resolve the namespace alias."
                          (or (funcall 'soap-namespace-link-p e)
                              (funcall predicate e)))
                        nil)))
-    
+
     (unless element
       (error "Soap-wsdl-get(%s): cannot find element" name))
-    
+
     (if (soap-namespace-link-p element)
         ;; NOTE: don't use the local alias table here
         (soap-wsdl-get (soap-namespace-link-target element) wsdl predicate)
@@ -597,7 +604,8 @@ See also `soap-resolve-references-for-element' and
         (setq name (format "in%d" (incf counter))))
       (when (or (consp message) (stringp message))
         (setf (soap-operation-input operation)
-              (cons (intern name) (soap-wsdl-get message wsdl 'soap-message-p))))))
+              (cons (intern name)
+		    (soap-wsdl-get message wsdl 'soap-message-p))))))
 
   (let ((output (soap-operation-output operation))
         (counter 0))
@@ -607,7 +615,8 @@ See also `soap-resolve-references-for-element' and
         (setq name (format "out%d" (incf counter))))
       (when (or (consp message) (stringp message))
         (setf (soap-operation-output operation)
-              (cons (intern name) (soap-wsdl-get message wsdl 'soap-message-p))))))
+              (cons (intern name)
+		    (soap-wsdl-get message wsdl 'soap-message-p))))))
 
   (let ((resolved-faults nil)
         (counter 0))
@@ -617,7 +626,8 @@ See also `soap-resolve-references-for-element' and
         (when (or (null name) (equal name ""))
           (setq name (format "fault%d" (incf counter))))
         (if (or (consp message) (stringp message))
-            (push (cons (intern name) (soap-wsdl-get message wsdl 'soap-message-p))
+            (push (cons (intern name)
+			(soap-wsdl-get message wsdl 'soap-message-p))
                   resolved-faults)
             (push fault resolved-faults))))
     (setf (soap-operation-faults operation) resolved-faults))
@@ -626,7 +636,7 @@ See also `soap-resolve-references-for-element' and
     (setf (soap-operation-parameter-order operation)
           (mapcar 'car (soap-message-parts
                         (cdr (soap-operation-input operation))))))
-  
+
   (setf (soap-operation-parameter-order operation)
         (mapcar (lambda (p)
                   (if (stringp p)
@@ -641,7 +651,8 @@ See also `soap-resolve-references-for-element' and
   (when (or (consp (soap-binding-port-type binding))
             (stringp (soap-binding-port-type binding)))
     (setf (soap-binding-port-type binding)
-          (soap-wsdl-get (soap-binding-port-type binding) wsdl 'soap-port-type-p)))
+          (soap-wsdl-get (soap-binding-port-type binding)
+			 wsdl 'soap-port-type-p)))
 
   (let ((port-ops (soap-port-type-operations (soap-binding-port-type binding))))
     (maphash (lambda (k v)
@@ -801,7 +812,8 @@ calls."
         (dolist (node (soap-xml-get-children1 node 'wsdl:portType))
           (let ((port-type (soap-parse-port-type node)))
             (soap-namespace-put port-type ns)
-            (soap-wsdl-add-namespace (soap-port-type-operations port-type) wsdl)))
+            (soap-wsdl-add-namespace
+	     (soap-port-type-operations port-type) wsdl)))
 
         (dolist (node (soap-xml-get-children1 node 'wsdl:binding))
           (soap-namespace-put (soap-parse-binding node) ns))
@@ -810,10 +822,12 @@ calls."
           (dolist (node (soap-xml-get-children1 node 'wsdl:port))
             (let ((name (xml-get-attribute node 'name))
                   (binding (xml-get-attribute node 'binding))
-                  (url (let ((n (car (soap-xml-get-children1 node 'wsdlsoap:address))))
+                  (url (let ((n (car (soap-xml-get-children1
+				      node 'wsdlsoap:address))))
                          (xml-get-attribute n 'location))))
               (let ((port (make-soap-port
-                           :name name :binding (soap-l2fq binding 'tns) :service-url url)))
+                           :name name :binding (soap-l2fq binding 'tns)
+			   :service-url url)))
                 (soap-namespace-put port ns)
                 (push port (soap-wsdl-ports wsdl))))))
 
@@ -854,7 +868,8 @@ Return a SOAP-NAMESPACE containing the elements."
     ;; construct the actual complex type for it.
     (let ((type-node (soap-xml-get-children1 node 'xsd:complexType)))
       (when (> (length type-node) 0)
-        (assert (= (length type-node) 1)) ; only one complex type definition per element
+        (assert (= (length type-node) 1)) ; only one complex type
+					  ; definition per element
         (setq type (soap-parse-complex-type (car type-node)))))
     (setf (soap-element-name type) name)
     type))
@@ -919,7 +934,8 @@ A list of these types is returned."
                 (setq type (soap-parse-complex-type (car type-node))))))
 
         (push (make-soap-sequence-element
-               :name (intern name) :type type :nillable? nillable? :multiple? multiple?)
+               :name (intern name) :type type :nillable? nillable?
+	       :multiple? multiple?)
               elements)))
     (nreverse elements)))
 
@@ -938,12 +954,14 @@ contents."
           (soap-l2wk (xml-node-name node)))
   (let (array? parent elements)
     (let ((extension (car-safe (soap-xml-get-children1 node 'xsd:extension)))
-          (restriction (car-safe (soap-xml-get-children1 node 'xsd:restriction))))
+          (restriction (car-safe
+			(soap-xml-get-children1 node 'xsd:restriction))))
       ;; a complex content node is either an extension or a restriction
       (cond (extension
              (setq parent (xml-get-attribute-or-nil extension 'base))
              (setq elements (soap-parse-sequence
-                             (car (soap-xml-get-children1 extension 'xsd:sequence)))))
+                             (car (soap-xml-get-children1
+				   extension 'xsd:sequence)))))
             (restriction
              (let ((base (xml-get-attribute-or-nil restriction 'base)))
                (assert (equal base "soapenc:Array")
@@ -951,8 +969,10 @@ contents."
                        "restrictions supported only for soapenc:Array types, this is a %s"
                        base))
              (setq array? t)
-             (let ((attribute (car (soap-xml-get-children1 restriction 'xsd:attribute))))
-               (let ((array-type (soap-xml-get-attribute-or-nil1 attribute 'wsdl:arrayType)))
+             (let ((attribute (car (soap-xml-get-children1
+				    restriction 'xsd:attribute))))
+               (let ((array-type (soap-xml-get-attribute-or-nil1
+				  attribute 'wsdl:arrayType)))
                  (when (string-match "^\\(.*\\)\\[\\]$" array-type)
                    (setq parent (match-string 1 array-type))))))
 
@@ -961,7 +981,7 @@ contents."
 
     (if parent
         (setq parent (soap-l2fq parent 'tns)))
-    
+
     (if array?
         (make-soap-array-type :element-type parent)
         (make-soap-sequence-type :parent parent :elements elements))))
@@ -999,11 +1019,13 @@ contents."
     (dolist (node (soap-xml-get-children1 node 'wsdl:operation))
       (let ((o (soap-parse-operation node)))
 
-        (let ((other-operation (soap-namespace-get (soap-element-name o) ns 'soap-operation-p)))
+        (let ((other-operation (soap-namespace-get
+				(soap-element-name o) ns 'soap-operation-p)))
           (if other-operation
               ;; Unfortunately, the Confluence WSDL defines two operations
               ;; named "search" which differ only in parameter names...
-              (soap-warning "Discarding duplicate operation: %s" (soap-element-name o))
+              (soap-warning "Discarding duplicate operation: %s"
+			    (soap-element-name o))
 
               (progn
                 (soap-namespace-put o ns)
@@ -1032,7 +1054,8 @@ contents."
           "soap-parse-operation: expecting wsdl:operation node, got %s"
           (soap-l2wk (xml-node-name node)))
   (let ((name (xml-get-attribute node 'name))
-        (parameter-order (split-string (xml-get-attribute node 'parameterOrder)))
+        (parameter-order (split-string
+			  (xml-get-attribute node 'parameterOrder)))
         input output faults)
     (dolist (n (xml-node-children node))
       (when (consp n)                 ; skip string nodes which are whitespace
@@ -1065,7 +1088,8 @@ contents."
           (soap-l2wk (xml-node-name node)))
   (let ((name (xml-get-attribute node 'name))
         (type (xml-get-attribute node 'type)))
-    (let ((binding (make-soap-binding :name name :port-type (soap-l2fq type 'tns))))
+    (let ((binding (make-soap-binding :name name
+				      :port-type (soap-l2fq type 'tns))))
       (dolist (wo (soap-xml-get-children1 node 'wsdl:operation))
         (let ((name (xml-get-attribute wo 'name))
               soap-action
@@ -1144,7 +1168,8 @@ decode function to perform the actual decoding."
              (if (equal (soap-xml-get-attribute-or-nil1 node 'xsi:nil) "true")
                  nil
                  (let ((decoder (get (aref type 0) 'soap-decoder)))
-                   (assert decoder nil "no soap-decoder for %s type" (aref type 0))
+                   (assert decoder nil "no soap-decoder for %s type"
+			   (aref type 0))
                    (funcall decoder type node))))))))
 
 (defun soap-decode-any-type (node)
@@ -1282,9 +1307,11 @@ WSDL is used to decode the NODE"
 
       (let ((fault (car (soap-xml-get-children1 body 'soap:Fault))))
         (when fault
-          (let ((fault-code (let ((n (car (xml-get-children fault 'faultcode))))
+          (let ((fault-code (let ((n (car (xml-get-children
+					   fault 'faultcode))))
                               (car-safe (xml-node-children n))))
-                (fault-string (let ((n (car (xml-get-children fault 'faultstring))))
+                (fault-string (let ((n (car (xml-get-children
+					     fault 'faultstring))))
                                 (car-safe (xml-node-children n)))))
           (while t
             (signal 'soap-error (list fault-code fault-string))))))
@@ -1319,7 +1346,8 @@ reference multiRef parts which are external to RESPONSE-NODE."
 
       (when (eq use 'encoded)
         (let* ((received-message-name (soap-l2fq (xml-node-name response-node)))
-               (received-message (soap-wsdl-get received-message-name wsdl 'soap-message-p)))
+               (received-message (soap-wsdl-get
+				  received-message-name wsdl 'soap-message-p)))
           (unless (eq received-message message)
             (error "Unexpected message: got %s, expecting %s"
                    received-message-name
@@ -1342,12 +1370,15 @@ reference multiRef parts which are external to RESPONSE-NODE."
                     ((eq use 'literal)
                      (catch 'found
                        (let* ((ns-aliases (soap-wsdl-alias-table wsdl))
-                              (ns-name (cdr (assoc (soap-element-namespace-tag type) ns-aliases)))
+                              (ns-name (cdr (assoc
+					     (soap-element-namespace-tag type)
+					     ns-aliases)))
                               (fqname (cons ns-name (soap-element-name type))))
                          (dolist (c (xml-node-children response-node))
                            (when (consp c)
                              (soap-with-local-xmlns c
-                               (when (equal (soap-l2fq (xml-node-name c)) fqname)
+                               (when (equal (soap-l2fq (xml-node-name c))
+					    fqname)
                                  (throw 'found c))))))))))
 
             (unless node
@@ -1402,8 +1433,9 @@ instead."
             ((memq value '(t nil))
              (setq xsi-type "xsd:boolean" basic-type 'boolean))
             (t
-             (error "Soap-encode-basic-type(%s, %s, %s): cannot classify anyType value"
-                    xml-tag value xsi-type))))
+             (error
+	      "Soap-encode-basic-type(%s, %s, %s): cannot classify anyType value"
+	      xml-tag value xsi-type))))
 
     (insert "<" xml-tag " xsi:type=\"" xsi-type "\"")
 
@@ -1425,13 +1457,15 @@ instead."
                          (>= (length value) 2)
                          (numberp (nth 0 value))
                          (numberp (nth 1 value)))
-                    ;; Value is a (current-time) style value, convert to a string
+                    ;; Value is a (current-time) style value, convert
+                    ;; to a string
                     (insert (format-time-string "%Y-%m-%dT%H:%M:%S" value)))
                    ((stringp value)
                     (insert (url-insert-entities-in-string value)))
                    (t
-                    (error "Soap-encode-basic-type(%s, %s, %s): not a dateTime value"
-                           xml-tag value xsi-type))))
+                    (error
+		     "Soap-encode-basic-type(%s, %s, %s): not a dateTime value"
+		     xml-tag value xsi-type))))
 
             (boolean
              (unless (memq value '(t nil))
@@ -1444,7 +1478,7 @@ instead."
                (error "Soap-encode-basic-type(%s, %s, %s): not an integer value"
                       xml-tag value xsi-type))
              (insert (number-to-string value)))
-            
+
             (base64Binary
              (unless (stringp value)
                (error "Soap-encode-basic-type(%s, %s, %s): not a string value"
@@ -1452,9 +1486,10 @@ instead."
              (insert (base64-encode-string value)))
 
             (otherwise
-             (error "Soap-encode-basic-type(%s, %s, %s): don't know how to encode"
-                    xml-tag value xsi-type))))
-        
+             (error
+	      "Soap-encode-basic-type(%s, %s, %s): don't know how to encode"
+	      xml-tag value xsi-type))))
+
         (insert " xsi:nil=\"true\">"))
     (insert "</" xml-tag ">\n")))
 
@@ -1487,12 +1522,14 @@ instead."
                   ;; Do some sanity checking
                   (cond ((and (= instance-count 0)
                               (not (soap-sequence-element-nillable? element)))
-                         (soap-warning "While encoding %s: missing non-nillable slot %s"
-                                       (soap-element-name type) e-name))
+                         (soap-warning
+			  "While encoding %s: missing non-nillable slot %s"
+			  (soap-element-name type) e-name))
                         ((and (> instance-count 1)
                               (not (soap-sequence-element-multiple? element)))
-                         (soap-warning "While encoding %s: multiple slots named %s"
-                                       (soap-element-name type) e-name))))))))
+                         (soap-warning
+			  "While encoding %s: multiple slots named %s"
+			  (soap-element-name type) e-name))))))))
         (insert " xsi:nil=\"true\">"))
     (insert "</" xml-tag ">\n")))
 
@@ -1563,7 +1600,8 @@ document."
               (goto-char start-pos)
               (when (re-search-forward " ")
                 (let* ((ns (soap-element-namespace-tag type))
-                       (namespace (cdr (assoc ns (soap-wsdl-alias-table wsdl)))))
+                       (namespace (cdr (assoc ns
+					      (soap-wsdl-alias-table wsdl)))))
                   (when namespace
                     (insert "xmlns=\"" namespace "\" ")))))))))
 
@@ -1632,7 +1670,8 @@ operations in a WSDL document."
       (error "Unknown SOAP service: %s" service))
 
     (let* ((binding (soap-port-binding port))
-           (operation (gethash operation-name (soap-binding-operations binding))))
+           (operation (gethash operation-name
+			       (soap-binding-operations binding))))
       (unless operation
         (error "No operation %s for SOAP service %s" operation-name service))
 
@@ -1645,9 +1684,13 @@ operations in a WSDL document."
             (url-request-coding-system 'utf-8)
             (url-http-attempt-keepalives t)
             (url-request-extra-headers (list
-                                        (cons "SOAPAction" (soap-bound-operation-soap-action operation))
-                                        (cons "Content-Type" "text/xml; charset=utf-8"))))
-        (let ((buffer (url-retrieve-synchronously (soap-port-service-url port))))
+                                        (cons "SOAPAction"
+					      (soap-bound-operation-soap-action
+					       operation))
+                                        (cons "Content-Type"
+					      "text/xml; charset=utf-8"))))
+        (let ((buffer (url-retrieve-synchronously
+		       (soap-port-service-url port))))
           (condition-case err
               (with-current-buffer buffer
                 (declare (special url-http-response-status))
@@ -1657,9 +1700,12 @@ operations in a WSDL document."
                     ;; This is a warning because some SOAP errors come
                     ;; back with a HTTP response 500 (internal server
                     ;; error)
-                    (warn "Error in SOAP response: HTTP code %s" url-http-response-status))
+                    (warn "Error in SOAP response: HTTP code %s"
+			  url-http-response-status))
                                  (when (> (buffer-size) 1000000)
-                                   (soap-warning "Received large message: %s bytes" (buffer-size)))
+                                   (soap-warning
+				    "Received large message: %s bytes"
+				    (buffer-size)))
                 (let ((mime-part (mm-dissect-buffer t t)))
                   (unless mime-part
                     (error "Failed to decode response from server"))
@@ -1667,7 +1713,8 @@ operations in a WSDL document."
                     (error "Server response is not an XML document"))
                   (with-temp-buffer
                     (mm-insert-part mime-part)
-                    (let ((response (car (xml-parse-region (point-min) (point-max)))))
+                    (let ((response (car (xml-parse-region
+					  (point-min) (point-max)))))
                       (prog1
                           (soap-parse-envelope response operation wsdl)
                         (kill-buffer buffer)
