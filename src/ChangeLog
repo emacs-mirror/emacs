@@ -1,3 +1,7 @@
+2011-02-16  Tom Tromey  <tromey@redhat.com>
+
+	* lisp.h (DEFVAR_BUFFER_DEFAULTS): Use BVAR.
+
 2011-02-16  Tom Tromey  <tromey@parfait>
 
 	* xfns.c (x_create_tip_frame, Fx_show_tip): Replace B_ with BVAR.
