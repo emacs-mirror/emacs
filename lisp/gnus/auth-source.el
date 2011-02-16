@@ -135,14 +135,15 @@
   :version "23.2" ;; No Gnus
   :type `boolean)
 
-(defcustom auth-source-debug nil
+(defcustom auth-source-debug t
   "Whether auth-source should log debug messages.
-Also see `auth-source-hide-passwords'.
 
 If the value is nil, debug messages are not logged.
-If the value is t, debug messages are logged with `message'.
- In that case, your authentication data will be in the
- clear (except for passwords, which are always stripped out).
+
+If the value is t, debug messages are logged with `message'.  In
+that case, your authentication data will be in the clear (except
+for passwords).
+
 If the value is a function, debug messages are logged by calling
  that function using the same arguments as `message'."
   :group 'auth-source
@@ -235,18 +236,22 @@ If the value is not a list, symmetric encryption will be used."
 ;; (auth-source-user-or-password-imap "password" "imap.myhost.com")
 ;; (auth-source-protocol-defaults 'imap)
 
-;; (let ((auth-source-debug 'debug)) (auth-source-debug "hello"))
-;; (let ((auth-source-debug t)) (auth-source-debug "hello"))
-;; (let ((auth-source-debug nil)) (auth-source-debug "hello"))
+;; (let ((auth-source-debug 'debug)) (auth-source-do-debug "hello"))
+;; (let ((auth-source-debug t)) (auth-source-do-debug "hello"))
+;; (let ((auth-source-debug nil)) (auth-source-do-debug "hello"))
 (defun auth-source-do-debug (&rest msg)
-  ;; set logger to either the function in auth-source-debug or 'message
-  ;; note that it will be 'message if auth-source-debug is nil, so
-  ;; we also check the value
   (when auth-source-debug
-    (let ((logger (if (functionp auth-source-debug)
-                      auth-source-debug
-                    'message)))
-      (apply logger msg))))
+    (apply 'auth-source-do-warn msg)))
+
+(defun auth-source-do-warn (&rest msg)
+  (apply
+    ;; set logger to either the function in auth-source-debug or 'message
+    ;; note that it will be 'message if auth-source-debug is nil
+   (if (functionp auth-source-debug)
+       auth-source-debug
+     'message)
+   msg))
+
 
 ;; (auth-source-pick nil :host "any" :protocol 'imap :user "joe")
 ;; (auth-source-pick t :host "any" :protocol 'imap :user "joe")
@@ -312,16 +317,23 @@ If the value is not a list, symmetric encryption will be used."
          (setq source (or (secrets-get-alias (symbol-name source))
                           "Login")))
 
-       (auth-source-backend
-        (format "Secrets API (%s)" source)
-        :source source
-        :type 'secrets
-        :search-function 'auth-source-secrets-search
-        :create-function 'auth-source-secrets-create)))
+       (if (featurep 'secrets)
+           (auth-source-backend
+            (format "Secrets API (%s)" source)
+            :source source
+            :type 'secrets
+            :search-function 'auth-source-secrets-search
+            :create-function 'auth-source-secrets-create)
+         (auth-source-do-warn
+          "auth-source-backend-parse: no Secrets API, ignoring spec: %S" entry)
+         (auth-source-backend
+          (format "Ignored Secrets API (%s)" source)
+          :source ""
+          :type 'ignore))))
 
     ;; none of them
     (t
-     (auth-source-do-debug
+     (auth-source-do-warn
       "auth-source-backend-parse: invalid backend spec: %S" entry)
      (auth-source-backend
       "Empty"

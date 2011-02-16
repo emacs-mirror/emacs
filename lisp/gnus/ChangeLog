@@ -1,3 +1,13 @@
+2011-02-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-debug): Enable by default and don't
+	mention the obsolete `auth-source-hide-passwords'.
+	(auth-source-do-warn): New function to debug unconditionally.
+	(auth-source-do-debug): Use it.
+	(auth-source-backend-parse): Use it for invalid `auth-sources' entries
+	and for Secrets API entries when the secrets.el library is not
+	available.
+
 2011-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-propagate-marks): Default to nil.
