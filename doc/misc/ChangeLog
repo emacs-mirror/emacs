@@ -1,5 +1,9 @@
 2011-02-16  Glenn Morris  <rgm@gnu.org>
 
+	* dired-x.texi: Use emacsver.texi to get Emacs version.
+	* Makefile.in ($(infodir)/dired-x, dired-x.dvi, dired-x.pdf):
+	Depend on emacsver.texi.
+
 	* dired-x.texi: Drop meaningless version number.
 	(Introduction): Remove old info.
 	(Optional Installation Dired Jump): Autoload from dired-x.
