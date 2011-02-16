@@ -32,7 +32,7 @@
 ;;
 ;; (add-hook 'dired-load-hook
 ;;           (lambda ()
-;;                       (require 'dired-x)
+;;                       (load "dired-x")
 ;;                       ;; Set global variables here.  For example:
 ;;                       ;; (setq dired-guess-shell-gnutar "gtar")
 ;;                       ))
@@ -79,7 +79,6 @@
 
 (defcustom dired-bind-vm nil
   "Non-nil means \"V\" runs `dired-vm', otherwise \"V\" runs `dired-rmail'.
-
 RMAIL files in the old Babyl format (used before before Emacs 23.1)
 contain \"-*- rmail -*-\" at the top, so `dired-find-file'
 will run `rmail' on these files.  New RMAIL files use the standard
@@ -88,26 +87,49 @@ mbox format, and so cannot be distinguished in this way."
   :group 'dired-keys)
 
 (defcustom dired-bind-jump t
-  "Non-nil means bind `dired-jump' to C-x C-j, otherwise do not."
+  "Non-nil means bind `dired-jump' to C-x C-j, otherwise do not.
+Setting this variable directly after dired-x is loaded has no effect -
+use \\[customize]."
   :type 'boolean
+  :set (lambda (sym val)
+         (if (set sym val)
+             (progn
+               (define-key global-map "\C-x\C-j" 'dired-jump)
+               (define-key global-map "\C-x4\C-j" 'dired-jump-other-window))
+           (if (eq 'dired-jump (lookup-key global-map "\C-x\C-j"))
+               (define-key global-map "\C-x\C-j" nil))
+           (if (eq 'dired-jump-other-window (lookup-key global-map "\C-x4\C-j"))
+               (define-key global-map "\C-x4\C-j" nil))))
   :group 'dired-keys)
 
 (defcustom dired-bind-man t
-  "Non-nil means bind `dired-man' to \"N\" in dired-mode, otherwise do not."
+  "Non-nil means bind `dired-man' to \"N\" in dired-mode, otherwise do not.
+Setting this variable directly after dired-x is loaded has no effect -
+use \\[customize]."
   :type 'boolean
+  :set (lambda (sym val)
+         (if (set sym val)
+             (define-key dired-mode-map "N" 'dired-man)
+           (if (eq 'dired-man (lookup-key dired-mode-map "N"))
+               (define-key dired-mode-map "N" nil))))
   :group 'dired-keys)
 
 (defcustom dired-bind-info t
-  "Non-nil means bind `dired-info' to \"I\" in dired-mode, otherwise do not."
+  "Non-nil means bind `dired-info' to \"I\" in dired-mode, otherwise do not.
+Setting this variable directly after dired-x is loaded has no effect -
+use \\[customize]."
   :type 'boolean
+  :set (lambda (sym val)
+         (if (set sym val)
+             (define-key dired-mode-map "I" 'dired-info)
+           (if (eq 'dired-info (lookup-key dired-mode-map "I"))
+               (define-key dired-mode-map "I" nil))))
   :group 'dired-keys)
 
 (defcustom dired-vm-read-only-folders nil
   "If non-nil, \\[dired-vm] will visit all folders read-only.
 If neither nil nor t, e.g. the symbol `if-file-read-only', only
-files not writable by you are visited read-only.
-
-Read-only folders only work in VM 5, not in VM 4."
+files not writable by you are visited read-only."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
 		 (other :tag "non-writable only" if-file-read-only))
@@ -181,13 +203,20 @@ listing a directory.  See also `dired-local-variables-file'."
   :type 'boolean
   :group 'dired-x)
 
-(defcustom dired-guess-shell-gnutar (when (or (eq system-type 'gnu)
-					      (eq system-type 'gnu/linux))
-				      "tar")
+(defcustom dired-guess-shell-gnutar
+  (catch 'found
+    (dolist (exe '("tar" "gtar"))
+      (if (with-temp-buffer
+            (ignore-errors (call-process exe nil t nil "--version"))
+            (and (re-search-backward "GNU tar" nil t) t))
+          (throw 'found exe))))
   "If non-nil, name of GNU tar executable.
 \(E.g., \"tar\" or \"gtar\").  The `z' switch will be used with it for
 compressed or gzip'ed tar files.  If you don't have GNU tar, set this
 to nil: a pipe using `zcat' or `gunzip -c' will be used."
+  ;; Changed from system-type test to testing --version output.
+  ;; Maybe test --help for -z instead?
+  :version "24.1"
   :type '(choice (const :tag "Not GNU tar" nil)
 		 (string :tag "Command name"))
   :group 'dired-x)
@@ -222,12 +251,6 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 (define-key dired-mode-map "Y"  'dired-do-relsymlink)
 (define-key dired-mode-map "%Y" 'dired-do-relsymlink-regexp)
 (define-key dired-mode-map "V" 'dired-do-run-mail)
-
-(if dired-bind-man
-    (define-key dired-mode-map "N" 'dired-man))
-
-(if dired-bind-info
-    (define-key dired-mode-map "I" 'dired-info))
 
 ;;; MENU BINDINGS
 
@@ -270,11 +293,6 @@ matching regexp"]
 files"]
                       "Refresh"))
 
-;;; GLOBAL BINDING.
-(when dired-bind-jump
-  (define-key global-map "\C-x\C-j" 'dired-jump)
-  (define-key global-map "\C-x4\C-j" 'dired-jump-other-window))
-
 
 ;; Install into appropriate hooks.
 
@@ -293,28 +311,8 @@ files"]
   \\[dired-copy-filename-as-kill]\t-- copy the file or subdir names into the kill ring;
   \t   you can feed it to other commands using \\[yank]
 
-For more features, see variables
-
-  `dired-bind-vm'
-  `dired-bind-jump'
-  `dired-bind-info'
-  `dired-bind-man'
-  `dired-vm-read-only-folders'
-  `dired-omit-mode'
-  `dired-omit-files'
-  `dired-omit-extensions'
-  `dired-omit-size-limit'
-  `dired-find-subdir'
-  `dired-enable-local-variables'
-  `dired-local-variables-file'
-  `dired-guess-shell-gnutar'
-  `dired-guess-shell-gzip-quiet'
-  `dired-guess-shell-znew-switches'
-  `dired-guess-shell-alist-user'
-  `dired-clean-up-buffers-too'
-
-See also functions
-
+To see the options you can set, use M-x customize-group RET dired-x RET.
+See also the functions:
   `dired-flag-extension'
   `dired-virtual'
   `dired-jump'
@@ -339,26 +337,22 @@ Remove expanded subdir of deleted dir, if any."
   (save-excursion (and (cdr dired-subdir-alist)
                        (dired-goto-subdir fn)
                        (dired-kill-subdir)))
-
   ;; Offer to kill buffer of deleted file FN.
-  (if dired-clean-up-buffers-too
-      (progn
-        (let ((buf (get-file-buffer fn)))
-          (and buf
-               (funcall (function y-or-n-p)
-                        (format "Kill buffer of %s, too? "
-                                (file-name-nondirectory fn)))
-               (save-excursion ; you never know where kill-buffer leaves you
-                 (kill-buffer buf))))
-        (let ((buf-list (dired-buffers-for-dir (expand-file-name fn)))
-              (buf nil))
-          (and buf-list
-               (y-or-n-p (format "Kill dired buffer%s of %s, too? "
-                                 (dired-plural-s (length buf-list))
-                                 (file-name-nondirectory fn)))
-               (while buf-list
-                 (save-excursion (kill-buffer (car buf-list)))
-                 (setq buf-list (cdr buf-list)))))))
+  (when dired-clean-up-buffers-too
+    (let ((buf (get-file-buffer fn)))
+      (and buf
+           (funcall (function y-or-n-p)
+                    (format "Kill buffer of %s, too? "
+                            (file-name-nondirectory fn)))
+           (save-excursion ; you never know where kill-buffer leaves you
+             (kill-buffer buf))))
+    (let ((buf-list (dired-buffers-for-dir (expand-file-name fn))))
+      (and buf-list
+           (y-or-n-p (format "Kill dired buffer%s of %s, too? "
+                             (dired-plural-s (length buf-list))
+                             (file-name-nondirectory fn)))
+           (dolist (buf buf-list)
+             (save-excursion (kill-buffer buf))))))
   ;; Anything else?
   )
 
@@ -460,11 +454,10 @@ move to its line in dired."
         (progn
           (setq dir (dired-current-directory))
           (dired-up-directory other-window)
-          (or (dired-goto-file dir)
+          (unless (dired-goto-file dir)
               ;; refresh and try again
-              (progn
-                (dired-insert-subdir (file-name-directory dir))
-                (dired-goto-file dir))))
+            (dired-insert-subdir (file-name-directory dir))
+            (dired-goto-file dir)))
       (if other-window
           (dired-other-window dir)
         (dired dir))
@@ -475,10 +468,9 @@ move to its line in dired."
                 (dired-insert-subdir (file-name-directory file))
                 (dired-goto-file file))
               ;; Toggle omitting, if it is on, and try again.
-	      (if dired-omit-mode
-		  (progn
-		    (dired-omit-mode)
-		    (dired-goto-file file))))))))
+	      (when dired-omit-mode
+                (dired-omit-mode)
+                (dired-goto-file file)))))))
 
 (defun dired-jump-other-window (&optional file-name)
   "Like \\[dired-jump] (`dired-jump') but in other window."
@@ -695,7 +687,7 @@ you can relist single subdirs using \\[dired-do-redisplay]."
                     (forward-line 1)
                     (and (looking-at "^  wildcard ")
                          (buffer-substring (match-end 0)
-                                           (progn (end-of-line) (point)))))))
+                                           (line-end-position))))))
   (if wildcard
         (setq dirname (expand-file-name wildcard default-directory))))
   ;; If raw ls listing (not a saved old dired buffer), give it a
@@ -777,9 +769,12 @@ Also useful for `auto-mode-alist' like this:
 ;; mechanism is provided for special handling of the working directory in
 ;; special major modes.
 
+(define-obsolete-variable-alias 'default-directory-alist
+  'dired-default-directory-alist "24.1")
+
 ;; It's easier to add to this alist than redefine function
 ;; default-directory while keeping the old information.
-(defconst default-directory-alist
+(defconst dired-default-directory-alist
   '((dired-mode . (if (fboundp 'dired-current-directory)
                       (dired-current-directory)
                     default-directory)))
@@ -789,8 +784,8 @@ nil is ignored in favor of `default-directory'.")
 
 (defun dired-default-directory ()
   "Usage like variable `default-directory'.
-Knows about the special cases in variable `default-directory-alist'."
-  (or (eval (cdr (assq major-mode default-directory-alist)))
+Knows about the special cases in variable `dired-default-directory-alist'."
+  (or (eval (cdr (assq major-mode dired-default-directory-alist)))
       default-directory))
 
 (defun dired-smart-shell-command (command &optional output-buffer error-buffer)
@@ -1369,8 +1364,9 @@ NOSELECT the files are merely found but not selected."
 (declare-function Man-getpage-in-background "man" (topic))
 
 (defun dired-man ()
-  "Run man on this file.  Display old buffer if buffer name matches filename.
-Uses `man.el' of \\[manual-entry] fame."
+  "Run `man' on this file."
+;; Used also to say: "Display old buffer if buffer name matches filename."
+;; but I have no idea what that means.
   (interactive)
   (require 'man)
   (let* ((file (dired-get-filename))
@@ -1382,7 +1378,7 @@ Uses `man.el' of \\[manual-entry] fame."
 ;; Run Info on files.
 
 (defun dired-info ()
-  "Run info on this file."
+  "Run `info' on this file."
   (interactive)
   (info (dired-get-filename)))
 
@@ -1393,17 +1389,16 @@ Uses `man.el' of \\[manual-entry] fame."
 
 (defun dired-vm (&optional read-only)
   "Run VM on this file.
-With prefix arg, visit folder read-only (this requires at least VM 5).
-See also variable `dired-vm-read-only-folders'."
+With optional prefix argument, visits the folder read-only.
+Otherwise obeys the value of `dired-vm-read-only-folders'."
   (interactive "P")
   (let ((dir (dired-current-directory))
         (fil (dired-get-filename)))
-    ;; take care to supply 2nd arg only if requested - may still run VM 4!
-    (cond (read-only (vm-visit-folder fil t))
-          ((eq t dired-vm-read-only-folders) (vm-visit-folder fil t))
-          ((null dired-vm-read-only-folders) (vm-visit-folder fil))
-          (t (vm-visit-folder fil (not (file-writable-p fil)))))
-    ;; so that pressing `v' inside VM does prompt within current directory:
+    (vm-visit-folder fil (or read-only
+                             (eq t dired-vm-read-only-folders)
+                             (and dired-vm-read-only-folders
+                                  (not (file-writable-p fil)))))
+    ;; So that pressing `v' inside VM does prompt within current directory:
     (set (make-local-variable 'vm-folder-directory) dir)))
 
 (defun dired-rmail ()
@@ -1450,16 +1445,11 @@ See also variable `dired-vm-read-only-folders'."
 
 ;; This should be a builtin
 (defun dired-buffer-more-recently-used-p (buffer1 buffer2)
-  "Return t if BUFFER1 is more recently used than BUFFER2."
-  (if (equal buffer1 buffer2)
-      nil
-    (let ((more-recent nil)
-          (list (buffer-list)))
-      (while (and list
-                  (not (setq more-recent (equal buffer1 (car list))))
-                  (not (equal buffer2 (car list))))
-        (setq list (cdr list)))
-      more-recent)))
+  "Return t if BUFFER1 is more recently used than BUFFER2.
+Considers buffers closer to the car of `buffer-list' to be more recent."
+  (and (not (equal buffer1 buffer2))
+       (memq buffer1 (buffer-list))
+       (not (memq buffer1 (memq buffer2 (buffer-list))))))
 
 ;; Same thing as `dired-buffers-for-dir' of dired.el? - lrd 11/23/93
 ;; (defun dired-buffers-for-dir-exact (dir)
@@ -1559,7 +1549,7 @@ to mark all zero length files."
               (forward-char mode-len)
               (setq nlink (read (current-buffer)))
               ;; Karsten Wenger <kw@cis.uni-muenchen.de> fixed uid.
-              (setq uid (buffer-substring (+ (point) 1)
+              (setq uid (buffer-substring (1+ (point))
 					  (progn (forward-word 1) (point))))
               (re-search-forward directory-listing-before-filename-regexp)
               (goto-char (match-beginning 1))
@@ -1649,7 +1639,7 @@ Identical to `find-file' except when called interactively, with a prefix arg
 \(e.g., \\[universal-argument]\), in which case it guesses filename near point.
 Useful for editing file mentioned in buffer you are viewing,
 or to test if that file exists.  Use minibuffer after snatching filename."
-  (interactive (list (read-filename-at-point "Find file: ")))
+  (interactive (list (dired-x-read-filename-at-point "Find file: ")))
   (find-file (expand-file-name filename)))
 
 (defun dired-x-find-file-other-window (filename)
@@ -1661,7 +1651,7 @@ Identical to `find-file-other-window' except when called interactively, with
 a prefix arg \(e.g., \\[universal-argument]\), in which case it guesses filename near point.
 Useful for editing file mentioned in buffer you are viewing,
 or to test if that file exists.  Use minibuffer after snatching filename."
-  (interactive (list (read-filename-at-point "Find file: ")))
+  (interactive (list (dired-x-read-filename-at-point "Find file: ")))
   (find-file-other-window (expand-file-name filename)))
 
 ;;; Internal functions.
@@ -1677,13 +1667,10 @@ Not perfect - point must be in middle of or end of filename."
 
     (save-excursion
       ;; First see if just past a filename.
-      (if (not (eobp))
-          (if (looking-at "[] \t\n[{}()]") ; whitespace or some parens
-              (progn
-                (skip-chars-backward " \n\t\r({[]})")
-                (if (not (bobp))
-                    (backward-char 1)))))
-
+      (or (eobp)
+          (when (looking-at "[] \t\n[{}()]") ; whitespace or some parens
+            (skip-chars-backward " \n\t\r({[]})")
+            (or (bobp) (backward-char 1))))
       (if (string-match (concat "[" filename-chars "]")
                         (char-to-string (following-char)))
           (progn
@@ -1706,7 +1693,7 @@ Not perfect - point must be in middle of or end of filename."
       ;; Return string.
       (expand-file-name (concat prefix (buffer-substring start (point)))))))
 
-(defun read-filename-at-point (prompt)
+(defun dired-x-read-filename-at-point (prompt)
   "Return filename prompting with PROMPT with completion.
 If `current-prefix-arg' is non-nil, uses name at point as guess."
   (if current-prefix-arg
@@ -1716,6 +1703,9 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
                         guess
                         nil (file-name-nondirectory guess)))
     (read-file-name prompt default-directory)))
+
+(define-obsolete-function-alias 'read-filename-at-point
+  'dired-x-read-filename-at-point "24.1") ; is this even needed?
 
 ;;; BUG REPORTS
 

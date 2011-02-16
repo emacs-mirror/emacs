@@ -1,3 +1,9 @@
+2011-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Multiple Dired Directories): Update for rename of
+	default-directory-alist.
+	(Miscellaneous Commands): No longer mention very old VM version 4.
+
 2011-02-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib.
@@ -5,7 +11,8 @@
 
 2011-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* auth.texi (Help for users): Login collection is "Login" and not "login".
+	* auth.texi (Help for users):
+	Login collection is "Login" and not "login".
 
 2011-02-13  Michael Albinus  <michael.albinus@gmx.de>
 

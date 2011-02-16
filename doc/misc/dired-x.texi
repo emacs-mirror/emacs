@@ -978,8 +978,8 @@ A general mechanism is provided for special handling of the working
 directory in special major modes:
 
 @table @code
-@item default-directory-alist
-@vindex default-directory-alist
+@item dired-default-directory-alist
+@vindex dired-default-directory-alist
 Default: @code{((dired-mode . (dired-current-directory)))}
 
 Alist of major modes and their notion of @code{default-directory}, as a
@@ -990,7 +990,7 @@ in favor of @code{default-directory}.
 @findex dired-default-directory
 Use this function like you would use the variable
 @code{default-directory}, except that @code{dired-default-directory}
-also consults the variable @code{default-directory-alist}.
+also consults the variable @code{dired-default-directory-alist}.
 @end table
 
 @node Find File At Point, Miscellaneous Commands, Multiple Dired Directories, Top
@@ -1141,13 +1141,12 @@ file (assumed to be a UNIX mail folder).
 
 @vindex dired-vm-read-only-folders
 If you give this command a prefix argument, it will visit the folder
-read-only.  This only works in VM 5, not VM 4.
+read-only.
 
 If the variable @code{dired-vm-read-only-folders} is @code{t},
-@code{dired-vm} will
-visit all folders read-only.  If it is neither @code{nil} nor @code{t}, e.g.,
-the symbol @code{if-file-read-only}, only files not writable by you are
-visited read-only.  This is the recommended value if you run VM 5.
+@code{dired-vm} will visit all folders read-only.  If it is neither
+@code{nil} nor @code{t}, e.g., the symbol @code{if-file-read-only}, only
+files not writable by you are visited read-only.
 
 @vindex dired-bind-vm
 If the variable @code{dired-bind-vm} is @code{t}, @code{dired-vm} will be bound

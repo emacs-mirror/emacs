@@ -1,3 +1,21 @@
+2011-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-bind-jump, dired-bind-man, dired-bind-info):
+	Doc fixes.  Add :set property, replacing top-level calls.
+	(dired-vm-read-only-folders, dired-vm): Doc fix (drop v. old VM 4).
+	(dired-guess-shell-gnutar): Test tar version rather than system-type.
+	(dired-extra-startup, dired-man, dired-info): Doc fixes.
+	(dired-clean-up-after-deletion): Use when and dolist.
+	(dired-jump): Use unless and when.
+	(dired-virtual): Use line-end-position.
+	(dired-default-directory-alist): Rename from default-directory-alist.
+	(dired-default-directory): Update for above name change.
+	(dired-vm): Drop VM < 5 and simplify.
+	(dired-buffer-more-recently-used-p): Rewrite.
+	(dired-filename-at-point): Use when and or.
+	(dired-x-read-filename-at-point): Rename from read-filename-at-point.
+	Update callers.
+
 2011-02-15  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el: Use easymenu for menu items.  Fix item capitalization.
