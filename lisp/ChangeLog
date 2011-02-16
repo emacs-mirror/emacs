@@ -1,3 +1,10 @@
+2011-02-16  Alex Harsanyi  <AlexHarsanyi@gmail.com>
+
+	* soap-client.el (soap-well-known-xmlns, soap-local-xmlns)
+	(soap-default-xmlns, soap-target-xmlns, soap-multi-refs)
+	(soap-decoded-multi-refs, soap-current-wsdl)
+	(soap-encoded-namespaces): Rename CL-style *...* variables.
+
 2011-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/soap-client.el: Add "comm" and "hypermedia" to the

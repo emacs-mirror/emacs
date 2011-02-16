@@ -63,7 +63,7 @@
 ;; "well known" namespace tag and the local namespace tag in the document
 ;; being parsed.
 
-(defconst *soap-well-known-xmlns*
+(defconst soap-well-known-xmlns
   '(("apachesoap" . "http://xml.apache.org/xml-soap")
     ("soapenc" . "http://schemas.xmlsoap.org/soap/encoding/")
     ("wsdl" . "http://schemas.xmlsoap.org/wsdl/")
@@ -76,18 +76,18 @@
     ("mime" . "http://schemas.xmlsoap.org/wsdl/mime/"))
   "A list of well known xml namespaces and their aliases.")
 
-(defvar *soap-local-xmlns* nil
+(defvar soap-local-xmlns nil
   "A list of local namespace aliases.
 This is a dynamically bound variable, controlled by
 `soap-with-local-xmlns'.")
 
-(defvar *soap-default-xmlns* nil
+(defvar soap-default-xmlns nil
   "The default XML namespaces.
 Names in this namespace will be unqualified.  This is a
 dynamically bound variable, controlled by
 `soap-with-local-xmlns'")
 
-(defvar *soap-target-xmlns* nil
+(defvar soap-target-xmlns nil
   "The target XML namespace.
 New XSD elements will be defined in this namespace, unless they
 are fully qualified for a different namespace.  This is a
@@ -97,9 +97,9 @@ dynamically bound variable, controlled by
 (defun soap-wk2l (well-known-name)
   "Return local variant of WELL-KNOWN-NAME.
 This is done by looking up the namespace in the
-`*soap-well-known-xmlns*' table and resolving the namespace to
+`soap-well-known-xmlns' table and resolving the namespace to
 the local name based on the current local translation table
-`*soap-local-xmlns*'.  See also `soap-with-local-xmlns'."
+`soap-local-xmlns'.  See also `soap-with-local-xmlns'."
   (let ((wk-name-1 (if (symbolp well-known-name)
                        (symbol-name well-known-name)
                        well-known-name)))
@@ -107,14 +107,14 @@ the local name based on the current local translation table
       ((string-match "^\\(.*\\):\\(.*\\)$" wk-name-1)
        (let ((ns (match-string 1 wk-name-1))
              (name (match-string 2 wk-name-1)))
-         (let ((namespace (cdr (assoc ns *soap-well-known-xmlns*))))
-           (cond ((equal namespace *soap-default-xmlns*)
+         (let ((namespace (cdr (assoc ns soap-well-known-xmlns))))
+           (cond ((equal namespace soap-default-xmlns)
                   ;; Name is unqualified in the default namespace
                   (if (symbolp well-known-name)
                       (intern name)
                       name))
                  (t
-                  (let* ((local-ns (car (rassoc namespace *soap-local-xmlns*)))
+                  (let* ((local-ns (car (rassoc namespace soap-local-xmlns)))
                          (local-name (concat local-ns ":" name)))
                     (if (symbolp well-known-name)
                         (intern local-name)
@@ -124,7 +124,7 @@ the local name based on the current local translation table
 (defun soap-l2wk (local-name)
   "Convert LOCAL-NAME into a well known name.
 The namespace of LOCAL-NAME is looked up in the
-`*soap-well-known-xmlns*' table and a well known namespace tag is
+`soap-well-known-xmlns' table and a well known namespace tag is
 used in the name.
 
 nil is returned if there is no well-known namespace for the
@@ -137,15 +137,15 @@ namespace of LOCAL-NAME."
       ((string-match "^\\(.*\\):\\(.*\\)$" l-name-1)
        (setq name (match-string 2 l-name-1))
        (let ((ns (match-string 1 l-name-1)))
-         (setq namespace (cdr (assoc ns *soap-local-xmlns*)))
+         (setq namespace (cdr (assoc ns soap-local-xmlns)))
          (unless namespace
            (error "Soap-l2wk(%s): no namespace for alias %s" local-name ns))))
       (t
        (setq name l-name-1)
-       (setq namespace *soap-default-xmlns*)))
+       (setq namespace soap-default-xmlns)))
 
     (if namespace
-        (let ((well-known-ns (car (rassoc namespace *soap-well-known-xmlns*))))
+        (let ((well-known-ns (car (rassoc namespace soap-well-known-xmlns))))
           (if well-known-ns
               (let ((well-known-name (concat well-known-ns ":" name)))
                 (if (symbol-name local-name)
@@ -166,9 +166,9 @@ name of the element itself.  For example \"xsd:string\" is
 converted to \(\"http://www.w3.org/2001/XMLSchema\" . \"string\"\).
 
 The USE-TNS argument specifies what to do when LOCAL-NAME has no
-namespace tag.  If USE-TNS is non-nil, the `*soap-target-xmlns*'
+namespace tag.  If USE-TNS is non-nil, the `soap-target-xmlns'
 will be used as the element's namespace, otherwise
-`*soap-default-xmlns*' will be used.
+`soap-default-xmlns' will be used.
 
 This is needed because different parts of a WSDL document can use
 different namespace aliases for the same element."
@@ -178,14 +178,14 @@ different namespace aliases for the same element."
     (cond ((string-match "^\\(.*\\):\\(.*\\)$" local-name-1)
            (let ((ns (match-string 1 local-name-1))
                  (name (match-string 2 local-name-1)))
-             (let ((namespace (cdr (assoc ns *soap-local-xmlns*))))
+             (let ((namespace (cdr (assoc ns soap-local-xmlns))))
                (if namespace
                    (cons namespace name)
                    (error "Soap-l2fq(%s): unknown alias %s" local-name ns)))))
           (t
            (cons (if use-tns
-                     *soap-target-xmlns*
-                     *soap-default-xmlns*)
+                     soap-target-xmlns
+                     soap-default-xmlns)
                  local-name)))))
 
 (defun soap-extract-xmlns (node &optional xmlns-table)
@@ -224,18 +224,18 @@ different namespace aliases for the same element."
   "Install a local alias table from NODE and execute BODY."
   (declare (debug (form &rest form)) (indent 1))
   (let ((xmlns (make-symbol "xmlns")))
-    `(let ((,xmlns (soap-extract-xmlns ,node *soap-local-xmlns*)))
-       (let ((*soap-default-xmlns* (or (nth 0 ,xmlns) *soap-default-xmlns*))
-             (*soap-target-xmlns* (or (nth 1 ,xmlns) *soap-target-xmlns*))
-             (*soap-local-xmlns* (nth 2 ,xmlns)))
+    `(let ((,xmlns (soap-extract-xmlns ,node soap-local-xmlns)))
+       (let ((soap-default-xmlns (or (nth 0 ,xmlns) soap-default-xmlns))
+             (soap-target-xmlns (or (nth 1 ,xmlns) soap-target-xmlns))
+             (soap-local-xmlns (nth 2 ,xmlns)))
          ,@body))))
 
 (defun soap-get-target-namespace (node)
   "Return the target namespace of NODE.
 This is the namespace in which new elements will be defined."
   (or (xml-get-attribute-or-nil node 'targetNamespace)
-      (cdr (assoc "tns"  *soap-local-xmlns*))
-      *soap-target-xmlns*))
+      (cdr (assoc "tns"  soap-local-xmlns))
+      soap-target-xmlns))
 
 (defun soap-xml-get-children1 (node child-name)
   "Return the children of NODE named CHILD-NAME.
@@ -477,7 +477,7 @@ elements named \"foo\" exist in the WSDL you could use:
 
   (soap-wsdl-get \"foo\" WSDL 'soap-message-p)
 
-If USE-LOCAL-ALIAS-TABLE is not nil, `*soap-local-xmlns*` will be
+If USE-LOCAL-ALIAS-TABLE is not nil, `soap-local-xmlns` will be
 used to resolve the namespace alias."
   (let ((alias-table (soap-wsdl-alias-table wsdl))
         namespace element-name element)
@@ -486,7 +486,7 @@ used to resolve the namespace alias."
       (setq name (symbol-name name)))
 
     (when use-local-alias-table
-      (setq alias-table (append *soap-local-xmlns* alias-table)))
+      (setq alias-table (append soap-local-xmlns alias-table)))
 
     (cond ((consp name) ; a fully qualified name, as returned by `soap-l2fq'
            (setq element-name (cdr name))
@@ -780,7 +780,7 @@ calls."
 
       ;; Add the local alias table to the wsdl document -- it will be used for
       ;; all types in this document even after we finish parsing it.
-      (setf (soap-wsdl-alias-table wsdl) *soap-local-xmlns*)
+      (setf (soap-wsdl-alias-table wsdl) soap-local-xmlns)
 
       ;; Add the XSD types to the wsdl document
       (let ((ns (soap-default-xsd-types)))
@@ -1121,17 +1121,17 @@ contents."
 
 ;;;; SOAP type decoding
 
-(defvar *soap-multi-refs* nil
+(defvar soap-multi-refs nil
   "The list of multi-ref nodes in the current SOAP response.
 This is a dynamically bound variable used during decoding the
 SOAP response.")
 
-(defvar *soap-decoded-multi-refs* nil
+(defvar soap-decoded-multi-refs nil
   "List of decoded multi-ref nodes in the current SOAP response.
 This is a dynamically bound variable used during decoding the
 SOAP response.")
 
-(defvar *soap-current-wsdl* nil
+(defvar soap-current-wsdl nil
   "The current WSDL document used when decoding the SOAP response.
 This is a dynamically bound variable.")
 
@@ -1148,19 +1148,19 @@ decode function to perform the actual decoding."
              ;; NODE is actually a HREF, find the target and decode that.
              ;; Check first if we already decoded this multiref.
 
-             (let ((decoded (cdr (assoc href *soap-decoded-multi-refs*))))
+             (let ((decoded (cdr (assoc href soap-decoded-multi-refs))))
                (when decoded
                  (throw 'done decoded)))
 
              (string-match "^#\\(.*\\)$" href) ; TODO: check that it matched
 
              (let ((id (match-string 1 href)))
-               (dolist (mr *soap-multi-refs*)
+               (dolist (mr soap-multi-refs)
                  (let ((mrid (xml-get-attribute mr 'id)))
                    (when (equal id mrid)
                      ;; recurse here, in case there are multiple HREF's
                      (let ((decoded (soap-decode-type type mr)))
-                       (push (cons href decoded) *soap-decoded-multi-refs*)
+                       (push (cons href decoded) soap-decoded-multi-refs)
                        (throw 'done decoded)))))
                (error "Cannot find href %s" href))))
           (t
@@ -1177,7 +1177,7 @@ decode function to perform the actual decoding."
   ;; If the NODE has type information, we use that...
   (let ((type (soap-xml-get-attribute-or-nil1 node 'xsi:type)))
     (if type
-        (let ((wtype (soap-wsdl-get type *soap-current-wsdl* 'soap-type-p)))
+        (let ((wtype (soap-wsdl-get type soap-current-wsdl 'soap-type-p)))
           (if wtype
               (soap-decode-type wtype node)
               ;; The node has type info encoded in it, but we don't know how
@@ -1210,7 +1210,7 @@ decode function to perform the actual decoding."
         ;; Type is in the format "someType[NUM]" where NUM is the number of
         ;; elements in the array.  We discard the [NUM] part.
         (setq type (replace-regexp-in-string "\\[[0-9]+\\]\\'" "" type))
-        (setq wtype (soap-wsdl-get type *soap-current-wsdl* 'soap-type-p))
+        (setq wtype (soap-wsdl-get type soap-current-wsdl 'soap-type-p))
         (unless wtype
           ;; The node has type info encoded in it, but we don't know how to
           ;; decode it...
@@ -1337,7 +1337,7 @@ WSDL is used to decode the NODE.
 SOAP-BODY is the body of the SOAP envelope (of which
 RESPONSE-NODE is a sub-node).  It is used in case RESPONSE-NODE
 reference multiRef parts which are external to RESPONSE-NODE."
-  (let* ((*soap-current-wsdl* wsdl)
+  (let* ((soap-current-wsdl wsdl)
          (op (soap-bound-operation-operation operation))
          (use (soap-bound-operation-use operation))
          (message (cdr (soap-operation-output op))))
@@ -1354,8 +1354,8 @@ reference multiRef parts which are external to RESPONSE-NODE."
                    (soap-element-name message)))))
 
       (let ((decoded-parts nil)
-            (*soap-multi-refs* (xml-get-children soap-body 'multiRef))
-            (*soap-decoded-multi-refs* nil))
+            (soap-multi-refs (xml-get-children soap-body 'multiRef))
+            (soap-decoded-multi-refs nil))
 
         (dolist (part (soap-message-parts message))
           (let ((tag (car part))
@@ -1390,7 +1390,7 @@ reference multiRef parts which are external to RESPONSE-NODE."
 
 ;;;; SOAP type encoding
 
-(defvar *soap-encoded-namespaces* nil
+(defvar soap-encoded-namespaces nil
   "A list of namespace tags used during encoding a message.
 This list is populated by `soap-encode-value' and used by
 `soap-create-envelope' to add aliases for these namespace to the
@@ -1414,7 +1414,7 @@ work."
     (when (symbolp xml-tag)
       (setq xml-tag (symbol-name xml-tag)))
     (funcall encoder xml-tag value type))
-  (add-to-list '*soap-encoded-namespaces* (soap-element-namespace-tag type)))
+  (add-to-list 'soap-encoded-namespaces (soap-element-namespace-tag type)))
 
 (defun soap-encode-basic-type (xml-tag value type)
   "Encode inside XML-TAG the LISP VALUE according to TYPE.
@@ -1577,7 +1577,7 @@ document."
 
     (insert "<soap:Body>\n")
     (when (eq use 'encoded)
-      (add-to-list '*soap-encoded-namespaces* (soap-element-namespace-tag op))
+      (add-to-list 'soap-encoded-namespaces (soap-element-namespace-tag op))
       (insert "<" (soap-element-fq-name op) ">\n"))
 
     (let ((param-table (loop for formal in parameter-order
@@ -1613,7 +1613,7 @@ document."
   "Create a SOAP request envelope for OPERATION using PARAMETERS.
 WSDL is the wsdl document used to encode the PARAMETERS."
   (with-temp-buffer
-    (let ((*soap-encoded-namespaces* '("xsi" "soap" "soapenc"))
+    (let ((soap-encoded-namespaces '("xsi" "soap" "soapenc"))
           (use (soap-bound-operation-use operation)))
 
       ;; Create the request body
@@ -1624,9 +1624,9 @@ WSDL is the wsdl document used to encode the PARAMETERS."
       (insert "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soap:Envelope\n")
       (when (eq use 'encoded)
         (insert "    soapenc:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"\n"))
-      (dolist (nstag *soap-encoded-namespaces*)
+      (dolist (nstag soap-encoded-namespaces)
         (insert "    xmlns:" nstag "=\"")
-        (let ((nsname (cdr (assoc nstag *soap-well-known-xmlns*))))
+        (let ((nsname (cdr (assoc nstag soap-well-known-xmlns))))
           (unless nsname
             (setq nsname (cdr (assoc nstag (soap-wsdl-alias-table wsdl)))))
           (insert nsname)
