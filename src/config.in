@@ -42,9 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
-/* Define to 1 if using `getloadavg.c'. */
-#undef C_GETLOADAVG
-
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
 
@@ -73,10 +70,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define this to check for short string overrun. */
 #undef GC_CHECK_STRING_OVERRUN
-
-/* Define to 1 if the `getloadavg' function needs to be run setuid or setgid.
-   */
-#undef GETLOADAVG_PRIVILEGED
 
 /* Define to 1 if the `getpgrp' function requires zero arguments. */
 #undef GETPGRP_VOID
@@ -224,9 +217,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `getline' function. */
 #undef HAVE_GETLINE
-
-/* Define to 1 if you have the `getloadavg' function. */
-#undef HAVE_GETLOADAVG
 
 /* Define to 1 if you have the <getopt.h> header file. */
 #undef HAVE_GETOPT_H
@@ -407,6 +397,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using libotf. */
 #undef HAVE_LIBOTF
+
+/* Define to 1 if you have the `perfstat' library (-lperfstat). */
+#undef HAVE_LIBPERFSTAT
 
 /* Define to 1 if you have the <libpng/png.h> header file. */
 #undef HAVE_LIBPNG_PNG_H
@@ -672,6 +665,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `sysinfo' function. */
 #undef HAVE_SYSINFO
 
+/* Define to 1 if you have the <sys/loadavg.h> header file. */
+#undef HAVE_SYS_LOADAVG_H
+
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #undef HAVE_SYS_MMAN_H
 
@@ -870,10 +866,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to support POP mail retrieval. */
 #undef MAIL_USE_POP
 
-/* Define to 1 if your `struct nlist' has an `n_un' member. Obsolete, depend
-   on `HAVE_STRUCT_NLIST_N_UN_N_NAME */
-#undef NLIST_NAME_UNION
-
 /* Define to 1 if you don't have struct exception in math.h. */
 #undef NO_MATHERR
 
@@ -888,6 +880,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you are using NS windowing under GNUstep. */
 #undef NS_IMPL_GNUSTEP
+
+/* Define to 1 if the nlist n_name member is a pointer */
+#undef N_NAME_POINTER
 
 /* Define if the C compiler is the linker. */
 #undef ORDINARY_LINK
