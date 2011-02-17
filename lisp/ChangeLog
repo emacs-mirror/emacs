@@ -1,3 +1,9 @@
+2011-02-17  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-float-time): New function.
+	(rcirc-keepalive, rcirc-handler-ctcp-KEEPALIVE)
+	(rcirc-ctcp-sender-PING): Use it.
+
 2011-02-17  Glenn Morris  <rgm@gnu.org>
 
 	* speedbar.el (speedbar-ignored-modes, speedbar-file-unshown-regexp)
