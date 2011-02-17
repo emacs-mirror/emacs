@@ -1,3 +1,16 @@
+2011-02-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* rmail.texi (Rmail Display): Document Rmail MIME support more
+	accurately.
+
+	* maintaining.texi (VC Change Log): Document vc-log-incoming and
+	vc-log-outgoing.
+	(Merging): Document vc-find-conflicted-file.
+
+2011-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Variables): Fix typo.
+
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* search.texi (Regexps): Copyedits.  Mention character classes

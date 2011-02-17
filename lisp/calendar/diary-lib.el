@@ -2312,9 +2312,19 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
                          t))
      '(1 font-lock-reference-face))
     '(diary-font-lock-sexps . font-lock-keyword-face)
+    ;; Don't need to worry about space around "-" because the first
+    ;; match takes care of that.  It does mean the "-" itself may or
+    ;; may not be fontified though.
+    ;; diary-date-forms often include a final character that is not
+    ;; part of the date (eg a non-digit to mark the end of the year).
+    ;; This can use up the only space char between a date and time (b#7891).
+    ;; Hence we use OVERRIDE, which can only override whitespace.
+    ;; FIXME it's probably better to tighten up the diary-time-regexp
+    ;; and drop the whitespace requirement below.
     `(,(format "\\(^\\|\\s-\\)%s\\(-%s\\)?" diary-time-regexp
                diary-time-regexp)
-      . 'diary-time))))
+      . (0 'diary-time t)))))
+;      . 'diary-time))))
 
 (defvar diary-font-lock-keywords (diary-font-lock-keywords)
   "Forms to highlight in `diary-mode'.")

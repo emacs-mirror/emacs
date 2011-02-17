@@ -622,7 +622,7 @@ This is equivalent to `(return-from nil RESULT)'."
 ;;;###autoload
 (defmacro return-from (name &optional result)
   "Return from the block named NAME.
-This jump out to the innermost enclosing `(block NAME ...)' form,
+This jumps out to the innermost enclosing `(block NAME ...)' form,
 returning RESULT from that form (or nil if RESULT is omitted).
 This is compatible with Common Lisp, but note that `defun' and
 `defmacro' do not create implicit blocks as they do in Common Lisp."

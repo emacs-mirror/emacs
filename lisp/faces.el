@@ -616,10 +616,14 @@ It must be one of the symbols `ultra-condensed', `extra-condensed',
 
 `:height'
 
-VALUE must be either an integer specifying the height of the font to use
-in 1/10 pt, a floating point number specifying the amount by which to
-scale any underlying face, or a function, which is called with the old
-height (from the underlying face), and should return the new height.
+VALUE specifies the height of the font, in either absolute or relative
+terms.  An absolute height is an integer, and specifies font height in
+units of 1/10 pt.  A relative height is either a floating point number,
+which specifies a scaling factor for the underlying face height;
+or a function that takes a single argument (the underlying face height)
+and returns the new height.  Note that for the `default' face,
+you can only specify an absolute height (since there is nothing
+for it to be relative to).
 
 `:weight'
 
@@ -1601,13 +1605,25 @@ Optional parameter FRAME is the frame whose definition of FACE
 is used.  If nil or omitted, use the selected frame."
   (unless frame
     (setq frame (selected-frame)))
-  (let ((list face-attribute-name-alist)
-	(match t))
+  (let* ((list face-attribute-name-alist)
+	 (match t)
+	 (bold (and (plist-member attrs :bold)
+		    (not (plist-member attrs :weight))))
+	 (italic (and (plist-member attrs :italic)
+		      (not (plist-member attrs :slant))))
+	 (plist (if (or bold italic)
+		    (copy-sequence attrs)
+		  attrs)))
+    ;; Handle the Emacs 20 :bold and :italic properties.
+    (if bold
+	(plist-put plist :weight (if bold 'bold 'normal)))
+    (if italic
+	(plist-put plist :slant (if italic 'italic 'normal)))
     (while (and match (not (null list)))
       (let* ((attr (car (car list)))
 	     (specified-value
-	      (if (plist-member attrs attr)
-		  (plist-get attrs attr)
+	      (if (plist-member plist attr)
+		  (plist-get plist attr)
 		'unspecified))
 	     (value-now (face-attribute face attr frame)))
 	(setq match (equal specified-value value-now))

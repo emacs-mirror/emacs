@@ -4725,8 +4725,6 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
 
 (defun copy-directory (directory newname &optional keep-time parents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
-If NEWNAME names an existing directory, copy DIRECTORY as subdirectory there.
-
 This function always sets the file modes of the output files to match
 the corresponding input file.
 
@@ -4756,22 +4754,7 @@ this happens by default."
       ;; Compute target name.
       (setq directory (directory-file-name (expand-file-name directory))
 	    newname   (directory-file-name (expand-file-name newname)))
-
-      (if (not (file-directory-p newname))
-	  ;; If NEWNAME is not an existing directory, create it; that
-	  ;; is where we will copy the files of DIRECTORY.
-	  (make-directory newname parents)
-	;; If NEWNAME is an existing directory, we will copy into
-	;; NEWNAME/[DIRECTORY-BASENAME].
-	(setq newname (expand-file-name
-		       (file-name-nondirectory
-			(directory-file-name directory))
-		       newname))
-	(if (and (file-exists-p newname)
-		 (not (file-directory-p newname)))
-	    (error "Cannot overwrite non-directory %s with a directory"
-		   newname))
-	(make-directory newname t))
+      (if (not (file-directory-p newname)) (make-directory newname parents))
 
       ;; Copy recursively.
       (mapc

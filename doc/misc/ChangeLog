@@ -1,3 +1,24 @@
+2011-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi: Drop meaningless version number.
+	(Introduction): Remove old info.
+	(Optional Installation Dired Jump): Autoload from dired-x.
+	Remove incorrect info about loaddefs.el.
+	(Bugs): Just refer to M-x report-emacs-bug.
+
+2011-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* sc.texi (Getting Connected): Remove old index entries.
+
+2011-02-12  Ulrich Mueller <ulm@gentoo.org>
+
+	* url.texi: Remove duplicate @dircategory (Bug#7942).
+
+2011-02-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Mention problems with
+	WinSSHD.
+
 2011-01-03  Eduard Wiebe  <usenet@pusto.de>
 
 	* nxml-mode.texi (Introduction): Fix file name typos.

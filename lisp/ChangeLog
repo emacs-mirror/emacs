@@ -1,3 +1,94 @@
+2011-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pgg-gpg.el (pgg-gpg-process-region): Bind
+	delete-by-moving-to-trash to nil.
+
+	* pgg-pgp.el (pgg-pgp-process-region, pgg-pgp-verify-region)
+	(pgg-pgp-snarf-keys-region):
+	* pgg-pgp5.el (pgg-pgp5-process-region, pgg-pgp5-verify-region)
+	(pgg-pgp5-snarf-keys-region): Likewise.
+
+2011-02-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): Revert to pre-2011-01-29 version.
+
+2011-02-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* epg.el (epg-delete-output-file, epg-decrypt-string)
+	(epg-verify-string, epg-sign-string, epg-encrypt-string): Bind
+	delete-by-moving-to-trash to nil.
+
+	* epa-file.el (epa-file-insert-file-contents): Likewise.
+
+2011-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-seq.el (union, nunion, intersection)
+	(nintersection, set-difference, nset-difference)
+	(set-exclusive-or, nset-exclusive-or): Doc fix.
+
+	* ediff-ptch.el (ediff-fixup-patch-map): Doc fix.
+
+2011-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* faces.el (face-attr-match-p): Handle the obsolete :bold and
+	:italic props, so that frame-set-background-mode works.  (Bug#7966)
+
+2011-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (next-error): Doc fix.
+
+2011-02-06  Chong Yidong  <cyd@stupidchicken.com>
+            Thierry Volpiatto <thierry.volpiatto@gmail.com>
+
+	* files.el (copy-directory): New arg COPY-AS-SUBDIR.  If nil,
+	don't copy as a subdirectory.
+
+2011-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (return-from): Fix doc typo.
+
+2011-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-font-lock-keywords):
+	Tweak diary-time-regexp match.  (Bug#7891)
+
+	* progmodes/f90.el (f90-find-tag-default): New function.  (Bug#7919)
+	(f90-mode): Use it for mode's `find-tag-default-function' property.
+
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* ibuf-ext.el (ibuffer-filter-disable): Make it work.  (Bug#7969)
+
+	* faces.el (set-face-attribute): Doc fix.  (Bug#2659)
+
+2011-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el (pcomplete-here*): Backport fix for mistaken change
+	(bug#7959) and (bug#5935).
+
+2011-01-31  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el: Clean log filenames (Bug#7933).
+	(rcirc-log-write): Use convert-standard-filename.
+	(rcirc-log-filename-function): Documentation updates.
+
+2011-01-31  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-forward-over-illiterals):
+	Continue parsing if we encounter a naked # (Bug#7595).
+	(c-beginning-of-statement): Avoid loop in locating the beginning
+	of a macro.
+
+2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): Fix arguments to recursive call.
+
+2011-01-29  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg--status-KEYEXPIRED, epg--status-KEYREVOKED):
+	Don't presume KEYEXPIRED and KEYREVOKED to be a fatal error status
+	(Bug#7931).
+
 2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (copy-directory): If destination is an existing
@@ -17,8 +108,8 @@
 
 2011-01-28  Kenichi Handa  <handa@m17n.org>
 
-	* international/quail.el (quail-keyboard-layout-alist): Remove
-	superfluous SPC for "pc105-uk" (bug#7927).
+	* international/quail.el (quail-keyboard-layout-alist):
+	Remove superfluous SPC for "pc105-uk" (bug#7927).
 
 2011-01-27  Glenn Morris  <rgm@gnu.org>
 
@@ -299,7 +390,7 @@
 	(rmail-mime-insert-text): Call rmail-mime-insert-decoded-text.
 	(rmail-mime-insert-image): Argument changed.  Caller changed.
 	(rmail-mime-image): Call rmail-mime-toggle-hidden.
-	(rmail-mime-set-bulk-data): New funciton.
+	(rmail-mime-set-bulk-data): New function.
 	(rmail-mime-insert-bulk): Argument changed.
 	(rmail-mime-multipart-handler): Return t.
 	(rmail-mime-process-multipart): Argument changed.
@@ -999,7 +1090,7 @@
 	is indented differently if it is after a begin..end clock.
 	(verilog-in-attribute-p, verilog-skip-backward-comments)
 	(verilog-skip-forward-comment-p): Support proper treatment of
-	attributes by indent code. Reported by Jeff Steele.
+	attributes by indent code.  Reported by Jeff Steele.
 	(verilog-in-directive-p): Fix comment to correctly describe function.
 	(verilog-backward-up-list, verilog-in-struct-region-p)
 	(verilog-backward-token, verilog-in-struct-p)
@@ -1010,9 +1101,9 @@
 	(verilog-property-re, verilog-endcomment-reason-re)
 	(verilog-beg-of-statement, verilog-set-auto-endcomments)
 	(verilog-calc-1 ): Fix for assert a; else b; indentation (new form
-	of if). Reported by Max Bjurling and
+	of if).  Reported by Max Bjurling and
 	(verilog-calc-1): Fix for clocking block in modport
-	declaration. Reported by Brian Hunter.
+	declaration.  Reported by Brian Hunter.
 
 2010-10-23  Wilson Snyder  <wsnyder@wsnyder.org>
 
@@ -1028,7 +1119,7 @@
 	(verilog-read-always-signals-recurse, verilog-read-decls): Fix not
 	treating `elsif similar to `endif inside AUTOSENSE.
 	(verilog-do-indent): Implement correct automatic or static task or
-	function end comment highlight. Reported by Steve Pearlmutter.
+	function end comment highlight.  Reported by Steve Pearlmutter.
 	(verilog-font-lock-keywords-2): Fix highlighting of single
 	character pins, bug264.  Reported by Michael Laajanen.
 	(verilog-auto-inst, verilog-read-decls, verilog-read-sub-decls)
@@ -1039,7 +1130,7 @@
 	Reported by Mark Johnson.
 	(verilog-auto-tieoff, verilog-auto-tieoff-ignore-regexp):
 	Add 'verilog-auto-tieoff-ignore-regexp' for AUTOTIEOFF,
-	bug269. Suggested by Gary Delp.
+	bug269.  Suggested by Gary Delp.
 	(verilog-mode-map, verilog-preprocess, verilog-preprocess-history)
 	(verilog-preprocessor, verilog-set-compile-command):
 	Create verilog-preprocess and verilog-preprocessor to show
@@ -1047,7 +1138,7 @@
 	(verilog-get-beg-of-line, verilog-get-end-of-line)
 	(verilog-modi-file-or-buffer, verilog-modi-name)
 	(verilog-modi-point, verilog-within-string): Move defmacro's
-	before first use to avoid warning. Reported by Steve Pearlmutter.
+	before first use to avoid warning.  Reported by Steve Pearlmutter.
 	(verilog-colorize-buffer, verilog-colorize-include-files-buffer)
 	(verilog-colorize-region, verilog-highlight-buffer)
 	(verilog-highlight-includes, verilog-highlight-modules)
@@ -1079,7 +1170,7 @@
 	(verilog-alw-get-temps, verilog-auto-reset)
 	(verilog-auto-sense-sigs, verilog-read-always-signals)
 	(verilog-read-always-signals-recurse): Fix loop indexes being
-	AUTORESET. AUTORESET now assumes any variables in the
+	AUTORESET.  AUTORESET now assumes any variables in the
 	initialization section of a for() should be ignored.
 	Reported by Dan Dever.
 	(verilog-error-font-lock-keywords)
@@ -3062,7 +3153,7 @@
 2010-02-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el (ange-ftp-insert-directory): Parse directory
-	also in case of (and (not full) (not wildcard)). This is needed,
+	also in case of (and (not full) (not wildcard)).  This is needed,
 	when dired is called with a list of files, which are not in
 	`default-directory'.  (Bug#5478)
 

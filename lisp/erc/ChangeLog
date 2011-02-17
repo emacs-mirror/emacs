@@ -1,3 +1,8 @@
+2011-01-31  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+
+	* erc-track.el (track): Don't reset erc-modified-channels-object
+	each time erc-track-mode is activated.
+
 2010-10-23  Julien Danjou  <julien@danjou.info>
 
 	* erc-backend.el (erc-server-JOIN): Set the correct target list on join.

@@ -247,7 +247,7 @@
 ;; [C-d] Moves (i.e. deletes and inserts) a single character to the
 ;;       global mark.
 ;; [backspace] deletes the character before the global mark, while
-;; [delete] deltes the character after the global mark.
+;; [delete] deletes the character after the global mark.
 
 ;; [S-C-space] Jumps to and cancels the global mark.
 ;; [C-u S-C-space] Cancels the global mark (stays in current buffer).
