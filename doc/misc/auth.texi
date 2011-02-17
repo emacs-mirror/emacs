@@ -105,8 +105,7 @@ It's known as @var{:host} in @code{auth-source-search} queries.  You
 can also use @code{host}.
 
 The @code{port} is the connection port or protocol.  It's known as
-@var{:port} in @code{auth-source-search} queries.  You can also use
-@code{protocol}.
+@var{:port} in @code{auth-source-search} queries.
 
 The @code{user} is the user name.  It's known as @var{:user} in
 @code{auth-source-search} queries.  You can also use @code{login} and
@@ -155,8 +154,8 @@ particular host and protocol.  While you can get fancy, the default
 and simplest configuration is:
 
 @lisp
-;;; old default: required :host and :protocol, not needed anymore
-(setq auth-sources '((:source "~/.authinfo.gpg" :host t :protocol t)))
+;;; old default: required :host and :port, not needed anymore
+(setq auth-sources '((:source "~/.authinfo.gpg" :host t :port t)))
 ;;; mostly equivalent (see below about fallbacks) but shorter:
 (setq auth-sources '((:source "~/.authinfo.gpg")))
 ;;; even shorter and the @emph{default}:

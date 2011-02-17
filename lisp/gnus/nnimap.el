@@ -277,7 +277,8 @@ textual parts.")
     (current-buffer)))
 
 (defun nnimap-credentials (address ports)
-  (let* ((found (nth 0 (auth-source-search :max 1
+  (let* ((auth-source-creation-defaults `((port . ,(nth 0 ports))))
+         (found (nth 0 (auth-source-search :max 1
                                            :host address
                                            :port ports
                                            :create t)))
@@ -398,7 +399,7 @@ textual parts.")
 		  (dolist (host (list (nnoo-current-server 'nnimap)
 				      nnimap-address))
 		    (dolist (port ports)
-                      (auth-source-forget+ :host host :protocol port)))
+                      (auth-source-forget+ :host host :port port)))
 		  (delete-process (nnimap-process nnimap-object))
 		  (setq nnimap-object nil))))
 	    (when nnimap-object

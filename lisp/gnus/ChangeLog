@@ -1,3 +1,18 @@
+2011-02-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-parse): Use :port instead of
+	:protocol and accept a missing user, host, or port as a wildcard match.
+
+	(auth-source-netrc-search, auth-source-netrc-create)
+	(auth-source-secrets-search, auth-source-secrets-create)
+	(auth-source-user-or-password, auth-source-backend, auth-sources)
+	(auth-source-backend-parse-parameters, auth-source-search): Use :port
+	instead of :protocol.
+
+	* nnimap.el (nnimap-credentials): Pass a port default to
+	`auth-source-search' in case an entry needs to be created.
+	(nnimap-open-connection-1): Use :port instead of :protocol.
+
 2011-02-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* auth-source.el (auth-source-secrets-search): Use mm-delete-duplicates
