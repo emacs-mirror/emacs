@@ -2,6 +2,7 @@
 
 	* auth-source.el (auth-source-netrc-parse): Use :port instead of
 	:protocol and accept a missing user, host, or port as a wildcard match.
+	(auth-source-debug): Default to off.
 
 	(auth-source-netrc-search, auth-source-netrc-create)
 	(auth-source-secrets-search, auth-source-secrets-create)

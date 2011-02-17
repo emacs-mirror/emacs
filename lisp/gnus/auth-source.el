@@ -148,7 +148,7 @@ let-binding."
   :version "23.2" ;; No Gnus
   :type `boolean)
 
-(defcustom auth-source-debug t
+(defcustom auth-source-debug nil
   "Whether auth-source should log debug messages.
 
 If the value is nil, debug messages are not logged.
