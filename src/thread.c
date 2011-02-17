@@ -356,7 +356,7 @@ DEFUN ("make-mutex", Fmake_mutex, Smake_mutex, 0, 1, 0,
   struct Lisp_Mutex *mutex = allocate_mutex ();
   mutex->owner = 0;
   mutex->rec_counter = 0;
-  mutex->recursive = ! NILP (recursive);
+  mutex->recursive = recursive;
   XSETMUTEX (ret, mutex);
   return ret;
 }
@@ -370,7 +370,7 @@ DEFUN ("mutex-lock", Fmutex_lock, Smutex_lock, 1, 1, 0,
   while (1)
     {
       if (mutex->owner == 0
-          || (mutex->recursive && mutex->owner == pthread_self ()))
+          || (!NILP (mutex->recursive) && mutex->owner == pthread_self ()))
         {
           mutex->owner = pthread_self ();
           mutex->rec_counter++;
@@ -462,7 +462,7 @@ init_threads_once (void)
   primary_thread.func = Qnil;
   primary_thread.initial_specpdl = Qnil;
   XSETPVECTYPE (&primary_thread, PVEC_THREAD);
-  minibuffer_mutex = Fmake_mutex (Qnil);
+  minibuffer_mutex = Fmake_mutex (Qt);
 }
 
 void
