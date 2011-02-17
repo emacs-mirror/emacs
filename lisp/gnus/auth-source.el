@@ -500,7 +500,7 @@ must call it to obtain the actual value."
                      unless (memq (nth i spec) ignored-keys)
                      collect (nth i spec)))
          (found (auth-source-recall spec))
-         filtered-backends accessor-key found-here goal)
+         filtered-backends accessor-key found-here goal matches)
 
     (if (and found auth-source-do-cache)
         (auth-source-do-debug
@@ -529,38 +529,57 @@ must call it to obtain the actual value."
 
       ;; (debug spec "filtered" filtered-backends)
       (setq goal max)
-      (dolist (backend filtered-backends)
-        (setq found-here (apply
-                          (slot-value backend 'search-function)
-                          :backend backend
-                          :create create
-                          :delete delete
-                          spec))
+      ;; First go through all the backends without :create, so we can
+      ;; query them all.
+      (let ((uspec (copy-sequence spec)))
+	(plist-put uspec :create nil)
+	(dolist (backend filtered-backends)
+	  (let ((match (apply
+			(slot-value backend 'search-function)
+			:backend backend
+			uspec)))
+	    (when match
+	      (push (list backend match) matches)))))
+      ;; If we didn't find anything, then we allow the backend(s) to
+      ;; create the entries.
+      (unless matches
+	(let ((match (apply
+		      (slot-value backend 'search-function)
+		      :backend backend
+		      :create create
+		      :delete delete
+		      spec)))
+	  (when match
+	    (push (list backend match) matches))))
 
-        ;; if max is 0, as soon as we find something, return it
-        (when (and (zerop max) (> 0 (length found-here)))
-          (return t))
+      (setq backend (caar matches)
+	    found-here (cadar matches))
 
-        ;; decrement the goal by the number of new results
-        (decf goal (length found-here))
-        ;; and append the new results to the full list
-        (setq found (append found found-here))
+      (block nil
+	;; if max is 0, as soon as we find something, return it
+	(when (and (zerop max) (> 0 (length found-here)))
+	  (return t))
 
-        (auth-source-do-debug
-         "auth-source-search: found %d results (max %d/%d) in %S matching %S"
-         (length found-here) max goal backend spec)
+	;; decrement the goal by the number of new results
+	(decf goal (length found-here))
+	;; and append the new results to the full list
+	(setq found (append found found-here))
 
-        ;; return full list if the goal is 0 or negative
-        (when (zerop (max 0 goal))
-          (return found))
+	(auth-source-do-debug
+	 "auth-source-search: found %d results (max %d/%d) in %S matching %S"
+	 (length found-here) max goal backend spec)
 
-        ;; change the :max parameter in the spec to the goal
-        (setq spec (plist-put spec :max goal)))
+	;; return full list if the goal is 0 or negative
+	(when (zerop (max 0 goal))
+	  (return found))
 
-      (when (and found auth-source-do-cache)
-        (auth-source-remember spec found)))
+	;; change the :max parameter in the spec to the goal
+	(setq spec (plist-put spec :max goal))
 
-      found))
+	(when (and found auth-source-do-cache)
+	  (auth-source-remember spec found))))
+
+    found))
 
 ;;; (auth-source-search :max 1)
 ;;; (funcall (plist-get (nth 0 (auth-source-search :max 1)) :secret))
