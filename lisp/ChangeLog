@@ -1,5 +1,8 @@
 2011-02-17  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc.el (vc-default-previous-version):
+	Remove alias that points nowhere.  (Bug#4496)
+
 	* dired-x.el (dired-clean-up-after-deletion):
 	kill-buffer does not need save-excursion.
 	(dired-do-run-mail): Doc fix.

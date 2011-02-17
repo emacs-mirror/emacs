@@ -2614,9 +2614,6 @@ log entries should be gathered."
     (when index
       (substring rev 0 index))))
 
-(define-obsolete-function-alias
-  'vc-default-previous-version 'vc-default-previous-revision "23.1")
-
 (defun vc-default-responsible-p (backend file)
   "Indicate whether BACKEND is reponsible for FILE.
 The default is to return nil always."
