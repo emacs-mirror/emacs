@@ -6086,9 +6086,14 @@ signal."
 
     (setq result-text
           (if decrypt
-              (epg-decrypt-string epg-context
-                                  (encode-coding-string massaged-text
-                                                        (or encoding 'utf-8)))
+              (condition-case err
+                  (epg-decrypt-string epg-context
+                                      (encode-coding-string massaged-text
+                                                            (or encoding 'utf-8)))
+                (epg-error
+                 (signal 'egp-error
+                         (cons (concat (cadr err) " - gpg version problem?")
+                               (cddr err)))))
             (replace-regexp-in-string "\n$" ""
              (epg-encrypt-string epg-context
                                  (encode-coding-string massaged-text
