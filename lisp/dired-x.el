@@ -1678,7 +1678,7 @@ Not perfect - point must be in middle of or end of filename."
 	    (setq prefix
 		  (and (string-match
 			"^\\w+@"
-			(buffer-substring start (line-beginning-position)))
+			(buffer-substring start (line-end-position)))
 		       "/"))
             (goto-char start)
             (if (string-match "[/~]" (char-to-string (preceding-char)))
