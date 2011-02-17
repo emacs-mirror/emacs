@@ -1,5 +1,7 @@
 2011-02-17  Glenn Morris  <rgm@gnu.org>
 
+	* shell.el (shell-delimiter-argument-list): Set it to nil.  (Bug#8027)
+
 	* vc/vc.el (vc-default-previous-version):
 	Remove alias that points nowhere.  (Bug#4496)
 
