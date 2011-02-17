@@ -319,7 +319,6 @@ See also the functions:
   `dired-info'
   `dired-do-find-marked-files'"
   (interactive)
-
   ;; These must be done in each new dired buffer.
   (dired-hack-local-variables)
   (dired-omit-startup))
@@ -341,17 +340,14 @@ Remove expanded subdir of deleted dir, if any."
            (funcall (function y-or-n-p)
                     (format "Kill buffer of %s, too? "
                             (file-name-nondirectory fn)))
-           (save-excursion ; you never know where kill-buffer leaves you
-             (kill-buffer buf))))
+           (kill-buffer buf)))
     (let ((buf-list (dired-buffers-for-dir (expand-file-name fn))))
       (and buf-list
            (y-or-n-p (format "Kill dired buffer%s of %s, too? "
                              (dired-plural-s (length buf-list))
                              (file-name-nondirectory fn)))
            (dolist (buf buf-list)
-             (save-excursion (kill-buffer buf))))))
-  ;; Anything else?
-  )
+             (kill-buffer buf))))))
 
 
 ;;; EXTENSION MARKING FUNCTIONS.
@@ -1404,7 +1400,7 @@ Otherwise obeys the value of `dired-vm-read-only-folders'."
   (rmail (dired-get-filename)))
 
 (defun dired-do-run-mail ()
-  "If `dired-bind-vm' is t, then function `dired-vm', otherwise `dired-rmail'."
+  "If `dired-bind-vm' is non-nil, call `dired-vm', else call `dired-rmail'."
   (interactive)
   (if dired-bind-vm
       ;; Read mail folder using vm.
@@ -1655,38 +1651,32 @@ or to test if that file exists.  Use minibuffer after snatching filename."
 
 ;; Fixme: This should probably use `thing-at-point'.  -- fx
 (defun dired-filename-at-point ()
-  "Get the filename closest to point, but do not change position.
-Has a preference for looking backward when not directly on a symbol.
-Not perfect - point must be in middle of or end of filename."
-
+  "Return the filename closest to point, expanded.
+Point should be in or after a filename."
   (let ((filename-chars "-.[:alnum:]_/:$+@")
         start end filename prefix)
-
     (save-excursion
       ;; First see if just past a filename.
-      (or (eobp)
+      (or (eobp)                             ; why?
           (when (looking-at "[] \t\n[{}()]") ; whitespace or some parens
             (skip-chars-backward " \n\t\r({[]})")
             (or (bobp) (backward-char 1))))
-      (if (string-match (concat "[" filename-chars "]")
-                        (char-to-string (following-char)))
+      (if (looking-at (format "[%s]" filename-chars))
           (progn
-            (if (re-search-backward (concat "[^" filename-chars "]") nil t)
-		(forward-char)
-	      (goto-char (point-min)))
-            (setq start (point))
-	    (setq prefix
+            (skip-chars-backward filename-chars)
+            (setq start (point)
+                  prefix
+                  ;; This is something to do with ange-ftp filenames.
+                  ;; It convert foo@bar to /foo@bar.
+                  ;; But when does the former occur in dired buffers?
 		  (and (string-match
 			"^\\w+@"
 			(buffer-substring start (line-end-position)))
 		       "/"))
-            (goto-char start)
             (if (string-match "[/~]" (char-to-string (preceding-char)))
                 (setq start (1- start)))
-            (re-search-forward (concat "\\=[" filename-chars "]*") nil t))
-
+            (skip-chars-forward filename-chars))
         (error "No file found around point!"))
-
       ;; Return string.
       (expand-file-name (concat prefix (buffer-substring start (point)))))))
 

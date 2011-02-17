@@ -1,5 +1,11 @@
 2011-02-17  Glenn Morris  <rgm@gnu.org>
 
+	* dired-x.el (dired-clean-up-after-deletion):
+	kill-buffer does not need save-excursion.
+	(dired-do-run-mail): Doc fix.
+	(dired-filename-at-point): Doc fix.
+	Use looking-at, and skip-chars rather than re search.
+
 	* dired-x.el (dired-filename-at-point): Fix 8-year old typo.
 
 2011-02-16  Ken Manheimer  <ken.manheimer@gmail.com>
