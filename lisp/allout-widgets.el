@@ -154,12 +154,12 @@ See `allout-widgets-mode' for allout widgets mode features."
 ;; (make-variable-buffer-local 'allout-widgets-allow-unruly-edits)
 ;;;_  = allout-widgets-auto-activation - below, for eval-order dependencies
 ;;;_  = allout-widgets-icons-dark-subdir
-(defcustom allout-widgets-icons-dark-subdir "icons/allout-widgets-dark-bg/"
+(defcustom allout-widgets-icons-dark-subdir "icons/allout-widgets/dark-bg/"
   "Directory on `image-load-path' holding allout icons for dark backgrounds."
   :type 'string
   :group 'allout-widgets)
 ;;;_  = allout-widgets-icons-light-subdir
-(defcustom allout-widgets-icons-light-subdir "icons/allout-widgets-light-bg/"
+(defcustom allout-widgets-icons-light-subdir "icons/allout-widgets/light-bg/"
   "Directory on `image-load-path' holding allout icons for light backgrounds."
   :type 'string
   :group 'allout-widgets)
@@ -1923,8 +1923,8 @@ reapplying this method will rectify the glyphs."
 
         (setq icon-state
               (cond (does-encrypt (if is-encrypted
-                                      'encrypted-locked
-                                    'encrypted-unlocked))
+                                      'locked-encrypted
+                                    'unlocked-encrypted))
                     (expanded 'opened)
                     (has-subitems 'closed)
                     (t 'empty)))

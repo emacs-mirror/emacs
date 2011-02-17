@@ -39,11 +39,9 @@
 ;;    emacs local file variables need to be enabled when the
 ;;    file was visited -- see `enable-local-variables'.)
 ;;  - Configurable per-file initial exposure settings
-;;  - Symmetric-key and key-pair topic encryption, plus symmetric passphrase
-;;    mnemonic support, with verification against an established passphrase
-;;    (using a stashed encrypted dummy string) and user-supplied hint
-;;    maintenance.  Encryption is via the Emacs 'epg' library.  See
-;;    allout-toggle-current-subtree-encryption docstring.
+;;  - Symmetric-key and key-pair topic encryption.  Encryption is via the
+;;    Emacs 'epg' library.  See allout-toggle-current-subtree-encryption
+;;    docstring.
 ;;  - Automatic topic-number maintenance
 ;;  - "Hot-spot" operation, for single-keystroke maneuvering and
 ;;    exposure control (see the allout-mode docstring)

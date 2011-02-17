@@ -1,3 +1,11 @@
+2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* etc/images/icons/allout-widgets/dark-bg,
+	etc/images/icons/allout-widgets/light-bg,
+	encrypted-locked.{xpm,png}, unlocked-encrypted.{xpm,png}:
+	Reorganize icon directories and files to reconcile against windows
+	short-filename clashes.
+
 2011-02-16  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* etc/images/icons/allout-widgets-dark-bg,
