@@ -1,4 +1,28 @@
+2011-02-17  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection-1): Delete duplicate server names
+	when getting credentials.
+
+	* gnus-util.el (gnus-delete-duplicates): New function.
+
 2011-02-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-credentials): Instead of picking the first port as
+	a creation default, pass the whole port list down.  It will be
+	completed.
+
+	* auth-source.el (auth-source-search): Updated docs to talk about
+	multiple creation choices.
+	(auth-source-netrc-create): Accept a list as a value (from the search
+	parameters) and do completion on that list.  Keep a separate netrc line
+	with the password obscured for showing the user.
+
+	* nnimap.el (nnimap-open-connection-1): Make the `nnimap-address' the
+	first choice to `auth-source-search' so it will be used for entry
+	creation instead of the server's Gnus-specific name.
+	(nnimap-credentials): Rely on the auth-source library to select which
+	port is actually wanted in the new netrc entry, so don't override
+	`auth-source-creation-defaults'.
 
 	* auth-source.el (auth-source-netrc-parse): Use :port instead of
 	:protocol and accept a missing user, host, or port as a wildcard match.

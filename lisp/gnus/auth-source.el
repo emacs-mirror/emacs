@@ -453,8 +453,8 @@ which says:
  search to find only entries that have P set to 'pppp'.\"
 
 When multiple values are specified in the search parameter, the
-first one is used for creation.  So :host (X Y Z) would create a
-token for host X, for instance.
+user is prompted for which one.  So :host (X Y Z) would ask the
+user to choose between X, Y, and Z.
 
 This creation can fail if the search was not specific enough to
 create a new token (it's up to the backend to decide that).  You
@@ -851,6 +851,7 @@ See `auth-source-search' for details on SPEC."
          (required (append base-required create-extra))
          (file (oref backend source))
          (add "")
+         (show "")
          ;; `valist' is an alist
          valist
          ;; `artificial' will be returned if no creation is needed
@@ -858,12 +859,16 @@ See `auth-source-search' for details on SPEC."
 
     ;; only for base required elements (defined as function parameters):
     ;; fill in the valist with whatever data we may have from the search
-    ;; we take the first value if it's a list, the whole value otherwise
+    ;; we complete the first value if it's a list and use the value otherwise
     (dolist (br base-required)
       (when (symbol-value br)
-        (aput 'valist br (if (listp (symbol-value br))
-                             (nth 0 (symbol-value br))
-                           (symbol-value br)))))
+        (let ((br-choice (cond
+                          ;; all-accepting choice (predicate is t)
+                          ((eq t (symbol-value br)) nil)
+                          ;; just the value otherwise
+                          (t (symbol-value br)))))
+          (when br-choice
+            (aput 'valist br br-choice)))))
 
     ;; for extra required elements, see if the spec includes a value for them
     (dolist (er create-extra)
@@ -894,6 +899,8 @@ See `auth-source-search' for details on SPEC."
              (user-value (aget valist 'user))
              (host-value (aget valist 'host))
              (port-value (aget valist 'port))
+             ;; note this handles lists by just printing them
+             ;; later we allow the user to use completing-read to pick
              (info-so-far (concat (if user-value
                                       (format "%s@" user-value)
                                     "[USER?]")
@@ -921,6 +928,16 @@ See `auth-source-search' for details on SPEC."
                        (format "Enter %s for %s%s: "
                                r info-so-far default-string)
                        nil nil default))
+                     ((listp data)
+                      (completing-read
+                       (format "Enter %s for %s (TAB to see the choices): "
+                               r info-so-far)
+                       data
+                       nil              ; no predicate
+                       t                ; require a match
+                       ;; note the default is nil, but if the user
+                       ;; hits RET we'll get "", which is handled OK later
+                       nil))
                      (t data))))
 
         (when data
@@ -934,20 +951,25 @@ See `auth-source-search' for details on SPEC."
         ;; when r is not an empty string...
         (when (and (stringp data)
                    (< 0 (length data)))
-          ;; append the key (the symbol name of r) and the value in r
-          (setq add (concat add
-                            (format "%s%s %S"
-                                    ;; prepend a space
-                                    (if (zerop (length add)) "" " ")
-                                    ;; remap auth-source tokens to netrc
-                                    (case r
+          (let ((printer (lambda (hide)
+                           ;; append the key (the symbol name of r)
+                           ;; and the value in r
+                           (format "%s%s %S"
+                                   ;; prepend a space
+                                   (if (zerop (length add)) "" " ")
+                                   ;; remap auth-source tokens to netrc
+                                   (case r
                                      ('user "login")
                                      ('host "machine")
                                      ('secret "password")
                                      ('port "port") ; redundant but clearer
                                      (t (symbol-name r)))
-                                    ;; the value will be printed in %S format
-                                    data))))))
+                                   ;; the value will be printed in %S format
+                                   (if (and hide (eq r 'secret))
+                                       "HIDDEN_SECRET"
+                                     data)))))
+            (setq add (concat add (funcall printer nil)))
+            (setq show (concat show (funcall printer t)))))))
 
     (with-temp-buffer
       (when (file-exists-p file)
@@ -964,7 +986,7 @@ See `auth-source-search' for details on SPEC."
       (goto-char (point-max))
 
       ;; ask AFTER we've successfully opened the file
-      (if (y-or-n-p (format "Add to file %s: line [%s]" file add))
+      (if (y-or-n-p (format "Add to file %s: line [%s]" file show))
           (progn
             (unless (bolp)
               (insert "\n"))

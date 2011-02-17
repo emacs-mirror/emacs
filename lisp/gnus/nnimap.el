@@ -277,8 +277,7 @@ textual parts.")
     (current-buffer)))
 
 (defun nnimap-credentials (address ports)
-  (let* ((auth-source-creation-defaults `((port . ,(nth 0 ports))))
-         (found (nth 0 (auth-source-search :max 1
+  (let* ((found (nth 0 (auth-source-search :max 1
                                            :host address
                                            :port ports
                                            :create t)))
@@ -385,9 +384,10 @@ textual parts.")
                                ;; Look for the credentials based on
                                ;; the virtual server name and the address
                                (nnimap-credentials
-                                (list
-                                 (nnoo-current-server 'nnimap)
-                                 nnimap-address)
+				(gnus-delete-duplicates
+				 (list
+				  nnimap-address
+				  (nnoo-current-server 'nnimap)))
                                 ports))))
 		  (setq nnimap-object nil)
 		(let ((nnimap-inhibit-logging t))

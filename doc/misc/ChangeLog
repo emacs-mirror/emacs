@@ -2,6 +2,8 @@
 
 	* auth.texi (Help for users): Use :port instead of :protocol for all
 	auth-source docs.
+	(GnuPG and EasyPG Assistant Configuration): Mention the default now is
+	to have two files in `auth-sources'.
 
 2011-02-16  Glenn Morris  <rgm@gnu.org>
 

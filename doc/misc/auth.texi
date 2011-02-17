@@ -262,7 +262,9 @@ TODO: how to include docstring?
 @appendix GnuPG and EasyPG Assistant Configuration
 
 If you don't customize @code{auth-sources}, the auth-source library
-reads @code{~/.authinfo.gpg}, which is a GnuPG encrypted file.
+reads @code{~/.authinfo.gpg}, which is a GnuPG encrypted file.  Then
+it will check @code{~/.authinfo} but it's not recommended to use such
+an unencrypted file.
 
 In Emacs 23 or later there is an option @code{auto-encryption-mode} to
 automatically decrypt @code{*.gpg} files.  It is enabled by default.
