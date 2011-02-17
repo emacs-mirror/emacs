@@ -602,7 +602,13 @@ called from BODY."
 
 (put 'cl-block-wrapper 'byte-compile 'cl-byte-compile-block)
 (defun cl-byte-compile-block (cl-form)
-  (if (fboundp 'byte-compile-form-do-effect)  ; Check for optimizing compiler
+  ;; Here we try to determine if a catch tag is used or not, so as to get rid
+  ;; of the catch when it's not used.
+  (if (and (fboundp 'byte-compile-form-do-effect) ; Optimizing compiler?
+           ;; FIXME: byte-compile-top-level can only be used for code that is
+           ;; closed (as the name implies), so for lexical scoping we should
+           ;; implement this optimization differently.
+           (not lexical-binding))
       (progn
 	(let* ((cl-entry (cons (nth 1 (nth 1 (nth 1 cl-form))) nil))
 	       (cl-active-block-names (cons cl-entry cl-active-block-names))

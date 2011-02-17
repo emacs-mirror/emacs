@@ -1,3 +1,34 @@
+2011-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (lexical-binding): Add a safe-local-variable property.
+
+	* emacs-lisp/cl-macs.el (cl-byte-compile-block): Disable optimization
+	in lexbind, because it needs a different implementation.
+
+	* emacs-lisp/cconv.el (cconv--set-diff, cconv--set-diff-map)
+	(cconv--map-diff, cconv--map-diff-elem, cconv--map-diff-set): New funs.
+	(cconv--env-var): New constant.
+	(cconv-closure-convert-rec): Use it and use them.  Fix a typo that
+	ended up forgetting to remove entries from lmenvs in `let'.
+	For `lambda' use the outer `fvrs' when building the closure and don't
+	forget to remove `vars' from the `emvrs' and `lmenvs' of the body.
+
+	* emacs-lisp/bytecomp.el (byte-compile-arglist-warn):
+	Correctly extract arglist from `closure's.
+	(byte-compile-cl-warn): Compiler-macros are run earlier now.
+	(byte-compile-top-level): Bind byte-compile-lexical-environment to nil,
+	except for lambdas.
+	(byte-compile-form): Don't run the compiler-macro expander here.
+	(byte-compile-let): Merge with byte-compile-let*.
+	Don't preserve-body-value if the body's value was discarded.
+
+	* emacs-lisp/byte-opt.el (byte-inline-lapcode): Check how many elements
+	are added to the stack.
+	(byte-compile-splice-in-already-compiled-code): Don't touch lexical nor
+	byte-compile-depth now that byte-inline-lapcode does it for us.
+	(byte-compile-inline-expand): Don't inline dynbind byte code into
+	lexbind code, since it has to be done differently.
+
 2011-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/byte-lexbind.el: Delete.

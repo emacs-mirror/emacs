@@ -1,3 +1,13 @@
+2011-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Vinternal_interpreter_environment): Remove.
+	(syms_of_eval): Do declare Vinternal_interpreter_environment as
+	a global lisp var, but unintern it to hide it.
+	(Fcommandp):
+	* data.c (Finteractive_form): Understand `closure's.
+
+	* bytecode.c (exec_byte_code): Fix handling of &rest.
+
 2011-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bytecode.c (Bvec_ref, Bvec_set): Remove.

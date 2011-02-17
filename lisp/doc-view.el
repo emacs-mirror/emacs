@@ -1,5 +1,5 @@
-;;; -*- lexical-binding: t -*-
-;;; doc-view.el --- View PDF/PostScript/DVI files in Emacs
+;;; doc-view.el --- View PDF/PostScript/DVI files in Emacs -*- lexical-binding: t -*-
+
 
 ;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 ;;

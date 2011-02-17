@@ -755,6 +755,8 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
   else if (CONSP (fun))
     {
       Lisp_Object funcar = XCAR (fun);
+      if (EQ (funcar, Qclosure))
+	fun = Fcdr (XCDR (fun)), funcar = Fcar (fun);
       if (EQ (funcar, Qlambda))
 	return Fassq (Qinteractive, Fcdr (XCDR (fun)));
       else if (EQ (funcar, Qautoload))

@@ -530,7 +530,7 @@ suitable file is found, return nil."
 	      (let ((fill-begin (point)))
 		(insert (car high) "\n")
 		(fill-region fill-begin (point)))
-              (setq doc (cdr high))))
+	      (setq doc (cdr high))))
 	  (let* ((obsolete (and
 			    ;; function might be a lambda construct.
 			    (symbolp function)

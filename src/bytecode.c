@@ -500,7 +500,9 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  optional = 1;
 	else if (EQ (XCAR (at), Qand_rest))
 	  {
-	    PUSH (Flist (nargs, args));
+	    PUSH (pushed < nargs
+		  ? Flist (nargs - pushed, args)
+		  : Qnil);
 	    pushed = nargs;
 	    at = Qnil;
 	    break;

@@ -78,16 +78,6 @@ Lisp_Object Vrun_hooks;
 
 Lisp_Object Vautoload_queue;
 
-/* When lexical binding is being used, this is non-nil, and contains an
-   alist of lexically-bound variable, or (t), indicating an empty
-   environment.  The lisp name of this variable is
-   `internal-interpreter-environment'.  Every element of this list
-   can be either a cons (VAR . VAL) specifying a lexical binding,
-   or a single symbol VAR indicating that this variable should use
-   dynamic scoping.  */
-
-Lisp_Object Vinternal_interpreter_environment;
-
 /* Current number of specbindings allocated in specpdl.  */
 
 EMACS_INT specpdl_size;
@@ -2092,9 +2082,11 @@ then strings and vectors are not accepted.  */)
   if (!CONSP (fun))
     return Qnil;
   funcar = XCAR (fun);
+  if (EQ (funcar, Qclosure))
+    fun = Fcdr (XCDR (fun)), funcar = Fcar (fun);
   if (EQ (funcar, Qlambda))
     return !NILP (Fassq (Qinteractive, Fcdr (XCDR (fun)))) ? Qt : if_prop;
-  if (EQ (funcar, Qautoload))
+  else if (EQ (funcar, Qautoload))
     return !NILP (Fcar (Fcdr (Fcdr (XCDR (fun))))) ? Qt : if_prop;
   else
     return Qnil;
@@ -3695,6 +3687,8 @@ mark_backtrace (void)
     }
 }
 
+EXFUN (Funintern, 2);
+
 void
 syms_of_eval (void)
 {
@@ -3840,19 +3834,27 @@ DECL is a list `(declare ...)' containing the declarations.
 The value the function returns is not used.  */);
   Vmacro_declaration_function = Qnil;
 
+  /* When lexical binding is being used,
+   vinternal_interpreter_environment is non-nil, and contains an alist
+   of lexically-bound variable, or (t), indicating an empty
+   environment.  The lisp name of this variable would be
+   `internal-interpreter-environment' if it weren't hidden.
+   Every element of this list can be either a cons (VAR . VAL)
+   specifying a lexical binding, or a single symbol VAR indicating
+   that this variable should use dynamic scoping.  */
   Qinternal_interpreter_environment
     = intern_c_string ("internal-interpreter-environment");
   staticpro (&Qinternal_interpreter_environment);
-#if 0 /* Don't export this variable to Elisp, so noone can mess with it
-	 (Just imagine if someone makes it buffer-local).  */
-  DEFVAR__LISP ("internal-interpreter-environment",
-	       Vinternal_interpreter_environment,
+  DEFVAR_LISP ("internal-interpreter-environment",
+		Vinternal_interpreter_environment,
 	       doc: /* If non-nil, the current lexical environment of the lisp interpreter.
 When lexical binding is not being used, this variable is nil.
 A value of `(t)' indicates an empty environment, otherwise it is an
 alist of active lexical bindings.  */);
-#endif
   Vinternal_interpreter_environment = Qnil;
+  /* Don't export this variable to Elisp, so noone can mess with it
+     (Just imagine if someone makes it buffer-local).  */
+  Funintern (Qinternal_interpreter_environment, Qnil);
 
   Vrun_hooks = intern_c_string ("run-hooks");
   staticpro (&Vrun_hooks);

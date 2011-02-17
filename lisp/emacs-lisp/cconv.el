@@ -70,6 +70,15 @@
 ;;
 ;;; Code:
 
+;;; TODO:
+;; - Use abstract `make-closure' and `closure-ref' expressions, which bytecomp
+;;   should turn into building corresponding byte-code function.
+;; - don't use `curry', instead build a new compiled-byte-code object
+;;   (merge the closure env into the static constants pool).
+;; - use relative addresses for byte-code-stack-ref.
+;; - warn about unused lexical vars.
+;; - clean up cconv-closure-convert-rec, especially the `let' binding part.
+
 (eval-when-compile (require 'cl))
 
 (defconst cconv-liftwhen 3
@@ -187,14 +196,14 @@ Returns a list of free variables."
 -- TOPLEVEL(optional) is a boolean variable, true if we are at the root of AST
 
 Returns a form where all lambdas don't have any free variables."
-  (message "Entering cconv-closure-convert...")
+  ;; (message "Entering cconv-closure-convert...")
   (let ((cconv-mutated '())
 	(cconv-lambda-candidates '())
 	(cconv-captured '())
 	(cconv-captured+mutated '()))
-    ;; Analyse form - fill these variables with new information
+    ;; Analyse form - fill these variables with new information.
     (cconv-analyse-form form '() 0)
-    ;; Calculate an intersection of cconv-mutated and cconv-captured
+    ;; Calculate an intersection of cconv-mutated and cconv-captured.
     (dolist (mvr cconv-mutated)
       (when (memq mvr cconv-captured)   ;
         (push mvr cconv-captured+mutated)))
@@ -216,14 +225,51 @@ Returns a form where all lambdas don't have any free variables."
     res))
 
 (defconst cconv--dummy-var (make-symbol "ignored"))
+(defconst cconv--env-var (make-symbol "env"))
 
-(defun cconv-closure-convert-rec
-  (form emvrs fvrs envs lmenvs)
+(defun cconv--set-diff (s1 s2)
+  "Return elements of set S1 that are not in set S2."
+  (let ((res '()))
+    (dolist (x s1)
+      (unless (memq x s2) (push x res)))
+    (nreverse res)))
+
+(defun cconv--set-diff-map (s m)
+  "Return elements of set S that are not in Dom(M)."
+  (let ((res '()))
+    (dolist (x s)
+      (unless (assq x m) (push x res)))
+    (nreverse res)))
+
+(defun cconv--map-diff (m1 m2)
+  "Return the submap of map M1 that has Dom(M2) removed."
+  (let ((res '()))
+    (dolist (x m1)
+      (unless (assq (car x) m2) (push x res)))
+    (nreverse res)))
+
+(defun cconv--map-diff-elem (m x)
+  "Return the map M minus any mapping for X."
+  ;; Here we assume that X appears at most once in M.
+  (let* ((b (assq x m))
+         (res (if b (remq b m) m)))
+    (assert (null (assq x res))) ;; Check the assumption was warranted.
+    res))
+
+(defun cconv--map-diff-set (m s)
+  "Return the map M minus any mapping for elements of S."
+  ;; Here we assume that X appears at most once in M.
+  (let ((res '()))
+    (dolist (b m)
+      (unless (memq (car b) s) (push b res)))
+    (nreverse res)))
+
+(defun cconv-closure-convert-rec (form emvrs fvrs envs lmenvs)
   ;; This function actually rewrites the tree.
   "Eliminates all free variables of all lambdas in given forms.
 Arguments:
 -- FORM is a piece of Elisp code after macroexpansion.
--- LMENVS is a list of environments used for lambda-lifting. Initially empty.
+-- LMENVS is a list of environments used for lambda-lifting.  Initially empty.
 -- EMVRS is a list that contains mutated variables that are visible
 within current environment.
 -- ENVS is an environment(list of free variables) of current closure.
@@ -343,10 +389,9 @@ Returns a form where all lambdas don't have any free variables."
                  (setq lmenvs (remq old-lmenv lmenvs))
                  (push new-lmenv lmenvs)
                  (push `(,closedsym ,var) binders-new))))
-           ;; we push the element after redefined free variables
-           ;; are processes. this is important to avoid the bug
-           ;; when free variable and the function have the same
-           ;; name
+           ;; We push the element after redefined free variables are
+           ;; processed.  This is important to avoid the bug when free
+           ;; variable and the function have the same name.
            (push (list var new-val) binders-new)
 
            (when (eq letsym 'let*)      ; update fvrs
@@ -355,11 +400,7 @@ Returns a form where all lambdas don't have any free variables."
              (when emvr-push
                (push emvr-push emvrs)
                (setq emvr-push nil))
-             (let (lmenvs-1)     ; remove var from lmenvs if redefined
-               (dolist (iter lmenvs)
-                 (when (not (assq var lmenvs))
-                   (push iter lmenvs-1)))
-               (setq lmenvs lmenvs-1))
+             (setq lmenvs (cconv--map-diff-elem lmenvs var))
              (when lmenv-push
                (push lmenv-push lmenvs)
                (setq lmenv-push nil)))
@@ -368,19 +409,10 @@ Returns a form where all lambdas don't have any free variables."
 
          (let (var fvrs-1 emvrs-1 lmenvs-1)
            ;; Here we update emvrs, fvrs and lmenvs lists
-           (dolist (vr fvrs)
-					; safely remove
-             (when (not (assq vr binders-new)) (push vr fvrs-1)))
-           (setq fvrs fvrs-1)
-           (dolist (vr emvrs)
-					; safely remove
-             (when (not (assq vr binders-new)) (push vr emvrs-1)))
-           (setq emvrs emvrs-1)
-					; push new
+           (setq fvrs (cconv--set-diff-map fvrs binders-new))
+           (setq emvrs (cconv--set-diff-map emvrs binders-new))
            (setq emvrs (append emvrs emvrs-new))
-           (dolist (vr lmenvs)
-             (when (not (assq (car vr) binders-new))
-               (push vr lmenvs-1)))
+           (setq lmenvs (cconv--set-diff-map lmenvs binders-new))
            (setq lmenvs (append lmenvs lmenvs-new)))
 
          ;; Here we do the same letbinding as for let* above
@@ -402,9 +434,9 @@ Returns a form where all lambdas don't have any free variables."
                                             (symbol-name var))))
 
                    (setq new-lmenv (list (car lmenv)))
-                   (dolist (frv (cdr lmenv)) (if (eq frv var)
-                                                 (push closedsym new-lmenv)
-                                               (push frv new-lmenv)))
+                   (dolist (frv (cdr lmenv))
+                     (push (if (eq frv var) closedsym frv)
+                           new-lmenv))
                    (setq new-lmenv (reverse new-lmenv))
                    (setq lmenvs (remq lmenv lmenvs))
                    (push new-lmenv lmenvs)
@@ -449,13 +481,9 @@ Returns a form where all lambdas don't have any free variables."
     (`(quote . ,_) form)                ; quote form
 
     (`(function . ((lambda ,vars . ,body-forms))) ; function form
-     (let (fvrs-new)      ; we remove vars from fvrs
-       (dolist (elm fvrs) ;i use such a tricky way to avoid side effects
-         (when (not (memq elm vars))
-           (push elm fvrs-new)))
-       (setq fvrs fvrs-new))
-     (let* ((fv (delete-dups (cconv-freevars form '())))
-            (leave fvrs) ; leave = non nil if we should leave env unchanged
+     (let* ((fvrs-new (cconv--set-diff fvrs vars)) ; Remove vars from fvrs.
+	    (fv (delete-dups (cconv-freevars form '())))
+            (leave fvrs-new) ; leave=non-nil if we should leave env unchanged.
             (body-forms-new '())
             (letbind '())
             (mv nil)
@@ -470,7 +498,7 @@ Returns a form where all lambdas don't have any free variables."
          (if (eq (length envs) (length fv))
              (let ((fv-temp fv))
                (while (and fv-temp leave)
-                 (when (not (memq (car fv-temp) fvrs)) (setq leave nil))
+                 (when (not (memq (car fv-temp) fvrs-new)) (setq leave nil))
                  (setq fv-temp (cdr fv-temp))))
            (setq leave nil))
 
@@ -479,23 +507,30 @@ Returns a form where all lambdas don't have any free variables."
                (dolist (elm fv)
                  (push
                   (cconv-closure-convert-rec
+                   ;; Remove `elm' from `emvrs' for this call because in case
+                   ;; `elm' is a variable that's wrapped in a cons-cell, we
+                   ;; want to put the cons-cell itself in the closure, rather
+                   ;; than just a copy of its current content.
                    elm (remq elm emvrs) fvrs envs lmenvs)
-                  envector))         ; process vars for closure vector
+                  envector))         ; Process vars for closure vector.
                (setq envector (reverse envector))
                (setq envs fv))
-           (setq envector `(env)))	; leave unchanged
-         (setq fvrs fv))                ; update substitution list
+           (setq envector `(,cconv--env-var))) ; Leave unchanged.
+         (setq fvrs-new fv))                ; Update substitution list.
 
-       ;; the difference between envs and fvrs is explained
-       ;; in comment in the beginning of the function
-       (dolist (elm cconv-captured+mutated) ; find mutated arguments
-         (setq mv (car elm))                ; used in inner closures
+       (setq emvrs (cconv--set-diff emvrs vars))
+       (setq lmenvs (cconv--map-diff-set lmenvs vars))
+       
+       ;; The difference between envs and fvrs is explained
+       ;; in comment in the beginning of the function.
+       (dolist (elm cconv-captured+mutated) ; Find mutated arguments
+         (setq mv (car elm))                ; used in inner closures.
          (when (and (memq mv vars) (eq form (caddr elm)))
            (progn (push mv emvrs)
                   (push `(,mv (list ,mv)) letbind))))
        (dolist (elm body-forms)         ; convert function body
          (push (cconv-closure-convert-rec
-                elm emvrs fvrs envs lmenvs)
+                elm emvrs fvrs-new envs lmenvs)
                body-forms-new))
 
        (setq body-forms-new
@@ -509,12 +544,12 @@ Returns a form where all lambdas don't have any free variables."
                                ; 1 free variable - do not build vector
         ((null (cdr envector))
          `(curry
-           (function (lambda (env . ,vars) . ,body-forms-new))
+           (function (lambda (,cconv--env-var . ,vars) . ,body-forms-new))
            ,(car envector)))
                                    ; >=2 free variables - build vector
         (t
          `(curry
-           (function (lambda (env . ,vars) . ,body-forms-new))
+           (function (lambda (,cconv--env-var . ,vars) . ,body-forms-new))
            (vector . ,envector))))))
 
     (`(function . ,_) form)             ; same as quote
@@ -674,13 +709,10 @@ Returns a form where all lambdas don't have any free variables."
      (let ((free (memq form fvrs)))
        (if free                         ;form is a free variable
            (let* ((numero (- (length fvrs) (length free)))
-                  (var '()))
-             (assert numero)
-             (if (null (cdr envs))
-                 (setq var 'env)
-					;replace form =>
-					;(aref env #)
-               (setq var `(aref env ,numero)))
+                  (var (if (null (cdr envs))
+                           cconv--env-var
+                         ;; Replace form => (aref env #)
+                         `(aref ,cconv--env-var ,numero))))
              (if (memq form emvrs) ; form => (car (aref env #)) if mutable
                  `(car ,var)
                var))
