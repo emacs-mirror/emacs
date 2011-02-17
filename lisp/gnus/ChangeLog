@@ -1,3 +1,8 @@
+2011-02-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el (auth-source-secrets-search): Use mm-delete-duplicates
+	instead of delete-dups that is not available in XEmacs 21.4.
+
 2011-02-16  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-propagate-marks): Change default to t again, since

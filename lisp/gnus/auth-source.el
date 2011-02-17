@@ -40,6 +40,7 @@
 ;;; Code:
 
 (require 'password-cache)
+(require 'mm-util)
 (require 'gnus-util)
 (require 'netrc)
 (require 'assoc)
@@ -1042,9 +1043,9 @@ authentication tokens:
                                           (list k (plist-get spec k))))
                               search-keys)))
          ;; needed keys (always including host, login, protocol, and secret)
-         (returned-keys (delete-dups (append
-                                      '(:host :login :protocol :secret)
-                                      search-keys)))
+         (returned-keys (mm-delete-duplicates (append
+					       '(:host :login :protocol :secret)
+					       search-keys)))
          (items (loop for item in (apply 'secrets-search-items coll search-spec)
                       unless (and (stringp label)
                                   (not (string-match label item)))
