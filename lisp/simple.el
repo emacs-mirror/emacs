@@ -5585,7 +5585,10 @@ appears to have customizations applying to the old default,
   'mail-send-and-exit)
 
 (defun rfc822-goto-eoh ()
-  ;; Go to header delimiter line in a mail message, following RFC822 rules
+  "If the buffer starts with a mail header, move point to the header's end.
+Otherwise, moves to `point-min'.
+The end of the header is the start of the next line, if there is one,
+else the end of the last line.  This function obeys RFC822."
   (goto-char (point-min))
   (when (re-search-forward
 	 "^\\([:\n]\\|[^: \t\n]+[ \t\n]\\)" nil 'move)
