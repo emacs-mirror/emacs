@@ -1167,20 +1167,28 @@ pasted text.")
   :group 'killing
   :version "24.1")
 
-(defvar x-select-request-type nil
-  "*Data type request for X selection.
+(defcustom x-select-request-type nil
+  "Data type request for X selection.
 The value is one of the following data types, a list of them, or nil:
   `COMPOUND_TEXT', `UTF8_STRING', `STRING', `TEXT'
 
-If the value is one of the above symbols, try only the specified
-type.
+If the value is one of the above symbols, try only the specified type.
 
 If the value is a list of them, try each of them in the specified
 order until succeed.
 
-The value nil is the same as this list:
-  \(UTF8_STRING COMPOUND_TEXT STRING)
-")
+The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
+  :type '(choice (const :tag "Default" nil)
+		 (const COMPOUND_TEXT)
+		 (const UTF8_STRING)
+		 (const STRING)
+		 (const TEXT)
+		 (set :tag "List of values"
+		      (const COMPOUND_TEXT)
+		      (const UTF8_STRING)
+		      (const STRING)
+		      (const TEXT)))
+  :group 'killing)
 
 ;; Get a selection value of type TYPE by calling x-get-selection with
 ;; an appropriate DATA-TYPE argument decided by `x-select-request-type'.

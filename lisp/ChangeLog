@@ -1,5 +1,15 @@
 2011-02-17  Glenn Morris  <rgm@gnu.org>
 
+	* speedbar.el (speedbar-ignored-modes, speedbar-file-unshown-regexp)
+	(speedbar-update-flag, speedbar-fetch-etags-command)
+	(speedbar-fetch-etags-arguments):
+	* term.el (term-buffer-maximum-size, term-input-chunk-size)
+	(term-completion-autolist, term-completion-addsuffix)
+	(term-completion-recexact, term-completion-fignore):
+	* term/sup-mouse.el (sup-mouse-fast-select-window):
+	* term/x-win.el (x-select-request-type):
+	Convert some defvars with "*" to defcustoms.
+
 	* shell.el (shell-delimiter-argument-list): Set it to nil.  (Bug#8027)
 
 	* vc/vc.el (vc-default-previous-version):

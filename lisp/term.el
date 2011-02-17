@@ -762,11 +762,13 @@ Buffer local variable.")
    "magenta3" "cyan3" "white"])
 
 ;; Inspiration came from comint.el -mm
-(defvar term-buffer-maximum-size 2048
-  "*The maximum size in lines for term buffers.
+(defcustom term-buffer-maximum-size 2048
+  "The maximum size in lines for term buffers.
 Term buffers are truncated from the top to be no greater than this number.
 Notice that a setting of 0 means \"don't truncate anything\".  This variable
-is buffer-local.")
+is buffer-local."
+  :group 'term
+  :type 'integer)
 
 (when (featurep 'xemacs)
   (defvar term-terminal-menu
@@ -2209,9 +2211,11 @@ Security bug: your string can still be temporarily recovered with
 
 ;;; Low-level process communication
 
-(defvar term-input-chunk-size 512
-  "*Long inputs send to term processes are broken up into chunks of this size.
-If your process is choking on big inputs, try lowering the value.")
+(defcustom term-input-chunk-size 512
+  "Long inputs send to term processes are broken up into chunks of this size.
+If your process is choking on big inputs, try lowering the value."
+  :group 'term
+  :type 'integer)
 
 (defun term-send-string (proc str)
   "Send to PROC the contents of STR as input.
@@ -3909,27 +3913,38 @@ This is a good place to put keybindings.")
 ;; Commands like this are fine things to put in load hooks if you
 ;; want them present in specific modes.
 
-(defvar term-completion-autolist nil
-  "*If non-nil, automatically list possibilities on partial completion.
-This mirrors the optional behavior of tcsh.")
+(defcustom term-completion-autolist nil
+  "If non-nil, automatically list possibilities on partial completion.
+This mirrors the optional behavior of tcsh."
+  :group 'term
+  :type 'boolean)
 
-(defvar term-completion-addsuffix t
-  "*If non-nil, add a `/' to completed directories, ` ' to file names.
+(defcustom term-completion-addsuffix t
+  "If non-nil, add a `/' to completed directories, ` ' to file names.
 If a cons pair, it should be of the form (DIRSUFFIX . FILESUFFIX) where
 DIRSUFFIX and FILESUFFIX are strings added on unambiguous or exact
-completion.  This mirrors the optional behavior of tcsh.")
+completion.  This mirrors the optional behavior of tcsh."
+  :group 'term
+  :type '(choice (const :tag "No suffix" nil)
+                 (cons (string :tag "dirsuffix") (string :tag "filesuffix"))
+                 (other :tag "Suffix" t)))
 
-(defvar term-completion-recexact nil
-  "*If non-nil, use shortest completion if characters cannot be added.
+(defcustom term-completion-recexact nil
+  "If non-nil, use shortest completion if characters cannot be added.
 This mirrors the optional behavior of tcsh.
 
-A non-nil value is useful if `term-completion-autolist' is non-nil too.")
+A non-nil value is useful if `term-completion-autolist' is non-nil too."
+  :group 'term
+  :type 'boolean)
 
-(defvar term-completion-fignore nil
-  "*List of suffixes to be disregarded during file completion.
+(defcustom term-completion-fignore nil
+  "List of suffixes to be disregarded during file completion.
 This mirrors the optional behavior of bash and tcsh.
 
-Note that this applies to `term-dynamic-complete-filename' only.")
+Note that this applies to `term-dynamic-complete-filename' only."
+  :group 'term
+  :type '(choice (const nil)
+                 (repeat :tag "List of suffixes" string)))
 
 (defvar term-file-name-prefix ""
   "Prefix prepended to absolute file names taken from process input.
