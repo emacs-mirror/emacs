@@ -5,8 +5,9 @@
 
 ;; Authors: Emil Åström <emil_astrom(at)hotmail(dot)com>
 ;;          Milan Zamazal <pdm(at)freesoft(dot)cz>
-;;          Stefan Bruda <stefan(at)bruda(dot)ca>  (current maintainer)
+;;          Stefan Bruda <stefan(at)bruda(dot)ca>
 ;;          * See below for more details
+;; Maintainer: Stefan Bruda <stefan(at)bruda(dot)ca>
 ;; Keywords: prolog major mode sicstus swi mercury
 
 (defvar prolog-mode-version "1.22"
