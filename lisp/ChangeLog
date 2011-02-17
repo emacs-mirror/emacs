@@ -1,3 +1,8 @@
+2011-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* log-edit.el (log-edit-insert-changelog):
+	Fix `log-edit-strip-single-file-name' functionality.  (Bug#8057)
+
 2011-02-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pgg-gpg.el (pgg-gpg-process-region): Bind
