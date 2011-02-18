@@ -24,7 +24,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs misc features
 @direntry
-* EDE: (ede).                   Project management for Emacs.
+* EDE: (ede).                   The Emacs Development Environment.
 @end direntry
 
 @titlepage

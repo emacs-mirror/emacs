@@ -29,7 +29,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs misc features
 @direntry
-* EIEIO: (eieio).               Objects for Emacs.
+* EIEIO: (eieio).               An objects system for Emacs Lisp.
 @end direntry
 
 @titlepage
