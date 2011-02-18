@@ -2301,7 +2301,6 @@ make_unibyte_string (const char *contents, EMACS_INT length)
   register Lisp_Object val;
   val = make_uninit_string (length);
   memcpy (SDATA (val), contents, length);
-  STRING_SET_UNIBYTE (val);
   return val;
 }
 
