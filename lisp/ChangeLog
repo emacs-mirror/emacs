@@ -1,5 +1,9 @@
 2011-02-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* image-mode.el (image-toggle-display-image): Disable
+	require-final-newline in buffers visiting binary image files.
+	(Bug#8047)
+
 	* international/mule-cmds.el (read-char-by-name, ucs-insert):
 	Document completion with asterisk and a substring.
 
