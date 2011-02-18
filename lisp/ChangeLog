@@ -1,5 +1,11 @@
 2011-02-18  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/prolog.el: Don't require compile when compiling.
+	(compilation-shell-minor-mode, compilation-error-regexp-alist)
+	(compilation-forget-errors, compilation-fake-loc)
+	(compilation-parse-errors-function, compilation-error-list): Declare.
+	(prolog-inferior-mode): Require 'compile.
+
 	* emulation/cua-base.el (pc-selection-mode): Declare.
 
 	* emacs-lisp/eieio-custom.el: Set generated-autoload-file.
