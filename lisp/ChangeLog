@@ -1,5 +1,7 @@
 2011-02-18  Glenn Morris  <rgm@gnu.org>
 
+	* emulation/cua-base.el (pc-selection-mode): Declare.
+
 	* emacs-lisp/eieio-custom.el: Set generated-autoload-file.
 	(customize-object): Add autoload cookie.
 	* emacs-lisp/eieio-opt.el: Set generated-autoload-file.

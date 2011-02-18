@@ -1518,6 +1518,9 @@ If ARG is the atom `-', scroll upward by nearly full screen."
    c-beginning-of-statement c-end-of-statement))
   (put cmd 'CUA 'move))
 
+;; Only called if pc-selection-mode is t, which means pc-select is loaded.
+(declare-function pc-selection-mode "pc-select" (&optional arg))
+
 ;; State prior to enabling cua-mode
 ;; Value is a list with the following elements:
 ;;   transient-mark-mode
