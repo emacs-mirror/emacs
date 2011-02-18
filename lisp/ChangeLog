@@ -1,3 +1,19 @@
+2011-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-clean-up-after-deletion, dired-do-relsymlink)
+	(dired-do-relsymlink-regexp, dired-find-buffer-nocreate): Use #'.
+	(dired-hack-local-variables): Use inhibit-read-only.
+	(dired-guess-default): Simplify.
+	(dired-make-relative-symlink): Use dotimes.
+	(dired-simultaneous-find-file): Use dolist.
+	(dired-mark-sexp): Remove unneeded `if'.  Use line-end-position.
+	(dired-x-hands-off-my-keys): Doc fix.
+	(dired-x-bind-find-file): Doc fix.  Use remapping.
+	(after-init-hook): No need to add dired-x-bind-find-file.
+	(dired-x-find-file, dired-x-find-file-other-window): Doc fixes.
+	No need to call expand-file-name.
+	(dired-filename-at-point): Remove unused locals `end', `filename'.
+
 2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase--u1): Understand non-linear patterns.
