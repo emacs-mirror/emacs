@@ -1,7 +1,12 @@
+2011-02-18  Lawrence Mitchell  <wence@gmx.li>
+
+	* progmodes/sh-script.el (sh-syntax-propertize-here-doc): (bug#8053)
+	Bind case-fold-search to nil when looking for end of here-doc.
+
 2011-02-18  Eli Zaretskii  <eliz@gnu.org>
 
-	* image-mode.el (image-toggle-display-image): Set
-	find-file-literally non-nil in buffers visiting binary image
+	* image-mode.el (image-toggle-display-image):
+	Set find-file-literally non-nil in buffers visiting binary image
 	files.  (Bug#8047)
 
 2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -111,8 +116,8 @@
 	allout-abbreviate-flattened-numbering.
 	(allout-mode-p): Include among autoloads, for use by other modes
 	with impunity.
-	(allout-listify-exposed): Use
-	allout-flattened-numbering-abbreviation.
+	(allout-listify-exposed):
+	Use allout-flattened-numbering-abbreviation.
 	(allout-encrypt-string): Use set-buffer-multibyte directly.
 	(allout-set-buffer-multibyte): Remove.
 
@@ -189,8 +194,8 @@
 
 	* vc/vc-bzr.el (vc-bzr-log-view-mode): Truncate lines in root log.
 
-	* vc/log-view.el (log-view-mode-menu): Add
-	log-view-toggle-entry-display.
+	* vc/log-view.el (log-view-mode-menu):
+	Add log-view-toggle-entry-display.
 
 2011-02-14  Glenn Morris  <rgm@gnu.org>
 
@@ -215,8 +220,8 @@
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Remove a
 	narrow-to-region call that cuts context off the end (Bug#7722).
 
-	* progmodes/cc-engine.el (c-forward-<>-arglist-recur): Refactor
-	nested if-forms with a simple cond.
+	* progmodes/cc-engine.el (c-forward-<>-arglist-recur):
+	Refactor nested if-forms with a simple cond.
 	(c-forward-<>-arglist): Revert 2011-01-31 change.
 
 2011-02-13  Chong Yidong  <cyd@stupidchicken.com>
