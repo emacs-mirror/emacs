@@ -1,3 +1,8 @@
+2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--expand, pcase--u, pcase--u1, pcase--q1):
+	Avoid destructuring-bind which results in poorer code.
+
 2011-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (lexical-binding): Add a safe-local-variable property.

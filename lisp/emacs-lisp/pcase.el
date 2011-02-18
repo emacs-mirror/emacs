@@ -37,8 +37,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;; Macro-expansion of pcase is reasonably fast, so it's not a problem
 ;; when byte-compiling a file, but when interpreting the code, if the pcase
 ;; is in a loop, the repeated macro-expansion becomes terribly costly, so we
@@ -155,7 +153,9 @@ of the form (UPAT EXP)."
                 ;; to a separate function if that number is too high.
                 ;;
                 ;; We've already used this branch.  So it is shared.
-                (destructuring-bind (code prevvars res) prev
+                (let* ((code (car prev))         (cdrprev (cdr prev))
+                       (prevvars (car cdrprev))  (cddrprev (cdr cdrprev))
+                       (res (car cddrprev)))
                   (unless (symbolp res)
                     ;; This is the first repeat, so we have to move
                     ;; the branch to a separate function.
@@ -256,15 +256,18 @@ MATCH is the pattern that needs to be matched, of the form:
   (and MATCH ...)
   (or MATCH ...)"
   (when (setq branches (delq nil branches))
-    (destructuring-bind (match code &rest vars) (car branches)
+    (let* ((carbranch (car branches))
+           (match (car carbranch)) (cdarbranch (cdr carbranch))
+           (code (car cdarbranch))
+           (vars (cdr cdarbranch)))
       (pcase--u1 (list match) code vars (cdr branches)))))
 
 (defun pcase--and (match matches)
   (if matches `(and ,match ,@matches) match))
 
 (defun pcase--split-match (sym splitter match)
-  (case (car match)
-    ((match)
+  (cond
+    ((eq (car match) 'match)
      (if (not (eq sym (cadr match)))
          (cons match match)
        (let ((pat (cddr match)))
@@ -278,7 +281,7 @@ MATCH is the pattern that needs to be matched, of the form:
                                              (cdr pat)))))
           (t (let ((res (funcall splitter (cddr match))))
                (cons (or (car res) match) (or (cdr res) match))))))))
-    ((or and)
+    ((memq (car match) '(or and))
      (let ((then-alts '())
            (else-alts '())
            (neutral-elem (if (eq 'or (car match))
@@ -408,32 +411,37 @@ and otherwise defers to REST which is a list of branches of the form
         (pcase--u1 (cons `(match ,var or . ,(nreverse simples)) (cdr matches))
                    code vars
                    (if (null others) rest
-                     (cons (list*
+                     (cons (cons
                             (pcase--and (if (cdr others)
                                             (cons 'or (nreverse others))
                                           (car others))
                                         (cdr matches))
-                            code vars)
+                            (cons code vars))
                            rest))))
        (t
         (pcase--u1 (cons (pop alts) (cdr matches)) code vars
                    (if (null alts) (progn (error "Please avoid it") rest)
-                     (cons (list*
+                     (cons (cons
                             (pcase--and (if (cdr alts)
                                             (cons 'or alts) (car alts))
                                         (cdr matches))
-                            code vars)
+                            (cons code vars))
                            rest)))))))
    ((eq 'match (caar matches))
-    (destructuring-bind (op sym &rest upat) (pop matches)
+    (let* ((popmatches (pop matches))
+           (op (car popmatches))       (cdrpopmatches (cdr popmatches))
+           (sym (car cdrpopmatches))
+           (upat (cdr cdrpopmatches)))
       (cond
        ((memq upat '(t _)) (pcase--u1 matches code vars rest))
        ((eq upat 'dontcare) :pcase--dontcare)
        ((functionp upat)  (error "Feature removed, use (pred %s)" upat))
        ((memq (car-safe upat) '(guard pred))
-        (destructuring-bind (then-rest &rest else-rest)
-            (pcase--split-rest
-             sym (apply-partially #'pcase--split-pred upat) rest)
+        (let* ((splitrest
+                (pcase--split-rest
+                 sym (apply-partially #'pcase--split-pred upat) rest))
+               (then-rest (car splitrest))
+               (else-rest (cdr splitrest)))
           (pcase--if (if (and (eq (car upat) 'pred) (symbolp (cadr upat)))
                          `(,(cadr upat) ,sym)
                        (let* ((exp (cadr upat))
@@ -472,13 +480,15 @@ and otherwise defers to REST which is a list of branches of the form
                 (setq all nil))))
           (if all
               ;; Use memq for (or `a `b `c `d) rather than a big tree.
-              (let ((elems (mapcar 'cadr (cdr upat))))
-                (destructuring-bind (then-rest &rest else-rest)
-                    (pcase--split-rest
-                     sym (apply-partially #'pcase--split-member elems) rest)
-                  (pcase--if `(,(if memq-fine #'memq #'member) ,sym ',elems)
-                             (pcase--u1 matches code vars then-rest)
-                             (pcase--u else-rest))))
+              (let* ((elems (mapcar 'cadr (cdr upat)))
+                     (splitrest
+                      (pcase--split-rest
+                       sym (apply-partially #'pcase--split-member elems) rest))
+                     (then-rest (car splitrest))
+                     (else-rest (cdr splitrest)))
+                (pcase--if `(,(if memq-fine #'memq #'member) ,sym ',elems)
+                           (pcase--u1 matches code vars then-rest)
+                           (pcase--u else-rest)))
             (pcase--u1 (cons `(match ,sym ,@(cadr upat)) matches) code vars
                        (append (mapcar (lambda (upat)
                                          `((and (match ,sym . ,upat) ,@matches)
@@ -527,10 +537,12 @@ and if not, defers to REST which is a list of branches of the form
    ((consp qpat)
     (let ((syma (make-symbol "xcar"))
           (symd (make-symbol "xcdr")))
-      (destructuring-bind (then-rest &rest else-rest)
-          (pcase--split-rest sym
-                             (apply-partially #'pcase--split-consp syma symd)
-                             rest)
+      (let* ((splitrest (pcase--split-rest
+                         sym
+                         (apply-partially #'pcase--split-consp syma symd)
+                         rest))
+             (then-rest (car splitrest))
+             (else-rest (cdr splitrest)))
         (pcase--if `(consp ,sym)
                    `(let ((,syma (car ,sym))
                           (,symd (cdr ,sym)))
@@ -540,8 +552,10 @@ and if not, defers to REST which is a list of branches of the form
                                   code vars then-rest))
                    (pcase--u else-rest)))))
    ((or (integerp qpat) (symbolp qpat) (stringp qpat))
-    (destructuring-bind (then-rest &rest else-rest)
-        (pcase--split-rest sym (apply-partially 'pcase--split-equal qpat) rest)
+      (let* ((splitrest (pcase--split-rest
+                         sym (apply-partially 'pcase--split-equal qpat) rest))
+             (then-rest (car splitrest))
+             (else-rest (cdr splitrest)))
       (pcase--if `(,(if (stringp qpat) #'equal #'eq) ,sym ',qpat)
                  (pcase--u1 matches code vars then-rest)
                  (pcase--u else-rest))))
