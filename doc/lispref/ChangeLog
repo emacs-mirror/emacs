@@ -1,3 +1,7 @@
+2011-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* keymaps.texi (Remapping Commands): Mention how to undo it.
+
 2011-02-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* commands.texi (Accessing Mouse): Note that a header line is not
