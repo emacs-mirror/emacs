@@ -1657,10 +1657,10 @@ list; the default is to display everything in `package-alist'."
   (require 'finder-inf nil t)
   (let ((buf (get-buffer-create "*Packages*")))
     (with-current-buffer buf
+      (package-menu-mode)
       (set (make-local-variable 'package-menu-package-list) packages)
       (set (make-local-variable 'package-menu-sort-key) nil)
-      (package--generate-package-list)
-      (package-menu-mode))
+      (package--generate-package-list))
     ;; The package menu buffer has keybindings.  If the user types
     ;; `M-x list-packages', that suggests it should become current.
     (switch-to-buffer buf)))

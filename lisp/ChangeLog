@@ -1,3 +1,16 @@
+2011-02-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	Fix 2011-02-02 changes.
+
+	* apropos.el (apropos-print): Call apropos-mode before setting up
+	buffer variables.  Use inhibit-read-only.
+
+	* emacs-lisp/package.el (package--list-packages): Call
+	package-menu-mode before setting up buffer variables.
+
+	* play/solitaire.el (solitaire): Call solitaire-mode before
+	setting up buffer variables.  Use inhibit-read-only.
+
 2011-02-18  Lawrence Mitchell  <wence@gmx.li>
 
 	* progmodes/sh-script.el (sh-syntax-propertize-here-doc): (bug#8053)
