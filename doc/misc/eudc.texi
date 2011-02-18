@@ -29,7 +29,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * EUDC: (eudc).                 Emacs client for directory servers (LDAP, PH).
 @end direntry

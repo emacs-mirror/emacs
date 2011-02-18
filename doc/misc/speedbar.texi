@@ -21,7 +21,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * Speedbar: (speedbar).         File/Tag summarizing utility.
 @end direntry

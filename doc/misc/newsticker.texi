@@ -30,7 +30,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * Newsticker: (newsticker).     A Newsticker for Emacs.
 @end direntry
