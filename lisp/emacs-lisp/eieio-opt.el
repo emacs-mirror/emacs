@@ -32,6 +32,7 @@
 (require 'eieio)
 
 ;;; Code:
+;;;###autoload
 (defun eieio-browse (&optional root-class)
   "Create an object browser window to show all objects.
 If optional ROOT-CLASS, then start with that, otherwise start with
@@ -71,8 +72,10 @@ Argument CH-PREFIX is another character prefix to display."
 
 ;;; CLASS COMPLETION / DOCUMENTATION
 
+;;;###autoload
 (defalias 'describe-class 'eieio-describe-class)
 
+;;;###autoload
 (defun eieio-describe-class (class &optional headerfcn)
   "Describe a CLASS defined by a string or symbol.
 If CLASS is actually an object, then also display current values of that object.
@@ -238,6 +241,7 @@ Outputs to the standard output."
 	    prot (cdr prot)
 	    i (1+ i)))))
 
+;;;###autoload
 (defun eieio-describe-constructor (fcn)
   "Describe the constructor function FCN.
 Uses `eieio-describe-class' to describe the class being constructed."
@@ -301,9 +305,11 @@ are not abstract."
 ;;; METHOD COMPLETION / DOC
 
 (defalias 'describe-method 'eieio-describe-generic)
+;;;###autoload
 (defalias 'describe-generic 'eieio-describe-generic)
 (defalias 'eieio-describe-method 'eieio-describe-generic)
 
+;;;###autoload
 (defun eieio-describe-generic (generic)
   "Describe the generic function GENERIC.
 Also extracts information about all methods specific to this generic."
@@ -550,6 +556,7 @@ Optional argument HISTORYVAR is the variable to use as history."
 
 ;;; HELP AUGMENTATION
 ;;
+;;;###autoload
 (defun eieio-help-mode-augmentation-maybee (&rest unused)
   "For buffers thrown into help mode, augment for EIEIO.
 Arguments UNUSED are not used."
@@ -692,5 +699,9 @@ INDENT is the current indentation level."
   (speedbar-maybee-jump-to-attached-frame))
 
 (provide 'eieio-opt)
+
+;; Local variables:
+;; generated-autoload-file: "eieio.el"
+;; End:
 
 ;;; eieio-opt.el ends here

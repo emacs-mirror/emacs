@@ -326,6 +326,7 @@ User made commands should also call this method when applying changes.
 Argument OBJ is the object that has been customized."
   nil)
 
+;;;###autoload
 (defun customize-object (obj &optional group)
   "Customize OBJ in a custom buffer.
 Optional argument GROUP is the sub-group of slots to display."
@@ -459,5 +460,9 @@ Return the symbol for the group, or nil"
 	    g)))))
 
 (provide 'eieio-custom)
+
+;; Local variables:
+;; generated-autoload-file: "eieio.el"
+;; End:
 
 ;;; eieio-custom.el ends here

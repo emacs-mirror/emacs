@@ -1,5 +1,14 @@
 2011-02-18  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/eieio-custom.el: Set generated-autoload-file.
+	(customize-object): Add autoload cookie.
+	* emacs-lisp/eieio-opt.el: Set generated-autoload-file.
+	(eieio-browse, describe-class, eieio-describe-class)
+	(eieio-describe-constructor, describe-generic, eieio-describe-generic)
+	(eieio-help-mode-augmentation-maybee): Add autoload cookies.
+	* emacs-lisp/eieio.el: Regenerate with automatic autoloads.
+	* Makefile.in (autoloads): Make eieio.el writable.
+
 	* dired-x.el (dired-clean-up-after-deletion, dired-do-relsymlink)
 	(dired-do-relsymlink-regexp, dired-find-buffer-nocreate): Use #'.
 	(dired-hack-local-variables): Use inhibit-read-only.
