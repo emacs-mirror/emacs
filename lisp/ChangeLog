@@ -1,3 +1,13 @@
+2011-02-18  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/ert.el (ert--setup-results-buffer)
+	(ert-results-pop-to-backtrace-for-test-at-point)
+	(ert-results-pop-to-messages-for-test-at-point)
+	(ert-results-pop-to-should-forms-for-test-at-point)
+	(ert-results-pop-to-timings): Revert parts of change 103083 that
+	were incorrect and unnecessary.  This should make `make check'
+	pass again.
+
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* lisp/allout-widgets.el: (allout-widgets-icons-light-subdir)
