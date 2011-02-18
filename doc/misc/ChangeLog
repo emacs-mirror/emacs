@@ -1,3 +1,7 @@
+2011-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Optional Installation File At Point): Simplify.
+
 2011-02-17  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth.texi (Help for users): Use :port instead of :protocol for all
