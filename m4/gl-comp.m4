@@ -28,6 +28,7 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([AC_PROG_RANLIB])
   # Code from module arg-nonnull:
   # Code from module c++defs:
+  # Code from module crypto/md5:
   # Code from module dtoastr:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
@@ -68,6 +69,8 @@ AC_DEFUN([gl_INIT],
   gl_source_base='lib'
   # Code from module arg-nonnull:
   # Code from module c++defs:
+  # Code from module crypto/md5:
+  gl_MD5
   # Code from module dtoastr:
   AC_REQUIRE([gl_C99_STRTOLD])
   # Code from module extensions:
@@ -261,6 +264,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/gettext.h
   lib/ignore-value.h
   lib/intprops.h
+  lib/md5.c
+  lib/md5.h
   lib/mktime-internal.h
   lib/mktime.c
   lib/stdbool.in.h
@@ -278,6 +283,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/getopt.m4
   m4/gnulib-common.m4
   m4/include_next.m4
+  m4/md5.m4
   m4/mktime.m4
   m4/multiarch.m4
   m4/stdbool.m4
