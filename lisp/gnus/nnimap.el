@@ -277,15 +277,16 @@ textual parts.")
     (current-buffer)))
 
 (defun nnimap-credentials (address ports)
-  (let* ((found (nth 0 (auth-source-search :max 1
-                                           :host address
-                                           :port ports
-                                           :create t)))
-         (user (plist-get found :user))
-         (secret (plist-get found :secret))
-         (secret (if (functionp secret) (funcall secret) secret)))
+  (let ((found (nth 0 (auth-source-search :max 1
+					  :host address
+					  :port ports
+					  :create t))))
     (if found
-        (list user secret)
+        (list (plist-get found :user)
+	      (let ((secret (plist-get found :secret)))
+		(if (functionp secret)
+		    (funcall secret)
+		  secret)))
       nil)))
 
 (defun nnimap-keepalive ()
@@ -1074,60 +1075,62 @@ textual parts.")
     (nreverse groups)))
 
 (deffoo nnimap-request-list (&optional server)
-  (nnimap-possibly-change-group nil server)
-  (with-current-buffer nntp-server-buffer
-    (erase-buffer)
-    (let ((groups
-	   (with-current-buffer (nnimap-buffer)
-	     (nnimap-get-groups)))
-	  sequences responses)
-      (when groups
-	(with-current-buffer (nnimap-buffer)
-	  (setf (nnimap-group nnimap-object) nil)
-	  (dolist (group groups)
-	    (setf (nnimap-examined nnimap-object) group)
-	    (push (list (nnimap-send-command "EXAMINE %S" (utf7-encode group t))
-			group)
-		  sequences))
-	  (nnimap-wait-for-response (caar sequences))
-	  (setq responses
-		(nnimap-get-responses (mapcar #'car sequences))))
-	(dolist (response responses)
-	  (let* ((sequence (car response))
-		 (response (cadr response))
-		 (group (cadr (assoc sequence sequences))))
-	    (when (and group
-		       (equal (caar response) "OK"))
-	      (let ((uidnext (nnimap-find-parameter "UIDNEXT" response))
-		    highest exists)
-		(dolist (elem response)
-		  (when (equal (cadr elem) "EXISTS")
-		    (setq exists (string-to-number (car elem)))))
-		(when uidnext
-		  (setq highest (1- (string-to-number (car uidnext)))))
-		(cond
-		 ((null highest)
-		  (insert (format "%S 0 1 y\n" (utf7-decode group t))))
-		 ((zerop exists)
-		  ;; Empty group.
-		  (insert (format "%S %d %d y\n"
-				  (utf7-decode group t) highest (1+ highest))))
-		 (t
-		  ;; Return the widest possible range.
-		  (insert (format "%S %d 1 y\n" (utf7-decode group t)
-				  (or highest exists)))))))))
-	t))))
+  (when (nnimap-possibly-change-group nil server)
+    (with-current-buffer nntp-server-buffer
+      (erase-buffer)
+      (let ((groups
+	     (with-current-buffer (nnimap-buffer)
+	       (nnimap-get-groups)))
+	    sequences responses)
+	(when groups
+	  (with-current-buffer (nnimap-buffer)
+	    (setf (nnimap-group nnimap-object) nil)
+	    (dolist (group groups)
+	      (setf (nnimap-examined nnimap-object) group)
+	      (push (list (nnimap-send-command "EXAMINE %S"
+					       (utf7-encode group t))
+			  group)
+		    sequences))
+	    (nnimap-wait-for-response (caar sequences))
+	    (setq responses
+		  (nnimap-get-responses (mapcar #'car sequences))))
+	  (dolist (response responses)
+	    (let* ((sequence (car response))
+		   (response (cadr response))
+		   (group (cadr (assoc sequence sequences))))
+	      (when (and group
+			 (equal (caar response) "OK"))
+		(let ((uidnext (nnimap-find-parameter "UIDNEXT" response))
+		      highest exists)
+		  (dolist (elem response)
+		    (when (equal (cadr elem) "EXISTS")
+		      (setq exists (string-to-number (car elem)))))
+		  (when uidnext
+		    (setq highest (1- (string-to-number (car uidnext)))))
+		  (cond
+		   ((null highest)
+		    (insert (format "%S 0 1 y\n" (utf7-decode group t))))
+		   ((zerop exists)
+		    ;; Empty group.
+		    (insert (format "%S %d %d y\n"
+				    (utf7-decode group t)
+				    highest (1+ highest))))
+		   (t
+		    ;; Return the widest possible range.
+		    (insert (format "%S %d 1 y\n" (utf7-decode group t)
+				    (or highest exists)))))))))
+	  t)))))
 
 (deffoo nnimap-request-newgroups (date &optional server)
-  (nnimap-possibly-change-group nil server)
-  (with-current-buffer nntp-server-buffer
-    (erase-buffer)
-    (dolist (group (with-current-buffer (nnimap-buffer)
-		     (nnimap-get-groups)))
-      (unless (assoc group nnimap-current-infos)
-	;; Insert dummy numbers here -- they don't matter.
-	(insert (format "%S 0 1 y\n" group))))
-    t))
+  (when (nnimap-possibly-change-group nil server)
+    (with-current-buffer nntp-server-buffer
+      (erase-buffer)
+      (dolist (group (with-current-buffer (nnimap-buffer)
+		       (nnimap-get-groups)))
+	(unless (assoc group nnimap-current-infos)
+	  ;; Insert dummy numbers here -- they don't matter.
+	  (insert (format "%S 0 1 y\n" group))))
+      t)))
 
 (deffoo nnimap-retrieve-group-data-early (server infos)
   (when (nnimap-possibly-change-group nil server)
@@ -1588,7 +1591,7 @@ textual parts.")
     (goto-char (point-max))
     (insert (format-time-string "%H:%M:%S") " "
 	    (if nnimap-inhibit-logging
-		"(inhibited)"
+		"(inhibited)\n"
 	      command)))
   command)
 
