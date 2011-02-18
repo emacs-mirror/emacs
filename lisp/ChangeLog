@@ -1,3 +1,8 @@
+2011-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (read-char-by-name, ucs-insert):
+	Document completion with asterisk and a substring.
+
 2011-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (find-file-literally): Doc fix.
