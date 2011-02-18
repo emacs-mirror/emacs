@@ -1,5 +1,7 @@
 2011-02-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* elisp.texi: Sync @dircategory with ../../info/dir.
+
 	* files.texi (Visiting Functions): Document find-file-literally,
 	both the command and the variable.
 
