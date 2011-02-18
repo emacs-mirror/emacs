@@ -1,3 +1,7 @@
+2011-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.el (gnus-meta): Doc fix.
+
 2011-02-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nnfolder.el (nnfolder-save-buffer): Don't let-bind copyright-update,
