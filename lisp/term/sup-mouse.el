@@ -30,8 +30,11 @@
 
 ;;;  User customization option:
 
-(defvar sup-mouse-fast-select-window nil
-  "*Non-nil for mouse hits to select new window, then execute; else just select.")
+(defcustom sup-mouse-fast-select-window nil
+  "Non-nil means mouse hits select new window, then execute.
+Otherwise just select."
+  :type 'boolean
+  :group 'mouse)
 
 (defconst mouse-left 0)
 (defconst mouse-center 1)

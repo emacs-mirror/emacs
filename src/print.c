@@ -111,7 +111,7 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
    EMACS_INT old_point_byte = -1, start_point_byte = -1;		\
    int specpdl_count = SPECPDL_INDEX ();				\
    int free_print_buffer = 0;						\
-   int multibyte = !NILP (B_ (current_buffer, enable_multibyte_characters));	\
+   int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));	\
    Lisp_Object original
 
 #define PRINTPREPARE							\
@@ -144,10 +144,10 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
    if (NILP (printcharfun))						\
      {									\
        Lisp_Object string;						\
-       if (NILP (B_ (current_buffer, enable_multibyte_characters))		\
+       if (NILP (BVAR (current_buffer, enable_multibyte_characters))		\
 	   && ! print_escape_multibyte)					\
          specbind (Qprint_escape_multibyte, Qt);			\
-       if (! NILP (B_ (current_buffer, enable_multibyte_characters))		\
+       if (! NILP (BVAR (current_buffer, enable_multibyte_characters))		\
 	   && ! print_escape_nonascii)					\
          specbind (Qprint_escape_nonascii, Qt);				\
        if (print_buffer != 0)						\
@@ -173,7 +173,7 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
    if (NILP (printcharfun))						\
      {									\
        if (print_buffer_pos != print_buffer_pos_byte			\
-	   && NILP (B_ (current_buffer, enable_multibyte_characters)))	\
+	   && NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
 	 {								\
 	   unsigned char *temp						\
 	     = (unsigned char *) alloca (print_buffer_pos + 1);		\
@@ -250,7 +250,7 @@ printchar (unsigned int ch, Lisp_Object fun)
       else
 	{
 	  int multibyte_p
-	    = !NILP (B_ (current_buffer, enable_multibyte_characters));
+	    = !NILP (BVAR (current_buffer, enable_multibyte_characters));
 
 	  setup_echo_area_for_printing (multibyte_p);
 	  insert_char (ch);
@@ -302,7 +302,7 @@ strout (const char *ptr, EMACS_INT size, EMACS_INT size_byte,
 	 job.  */
       int i;
       int multibyte_p
-	= !NILP (B_ (current_buffer, enable_multibyte_characters));
+	= !NILP (BVAR (current_buffer, enable_multibyte_characters));
 
       setup_echo_area_for_printing (multibyte_p);
       message_dolog (ptr, size_byte, 0, multibyte_p);
@@ -371,8 +371,8 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	chars = SCHARS (string);
       else if (! print_escape_nonascii
 	       && (EQ (printcharfun, Qt)
-		   ? ! NILP (B_ (&buffer_defaults, enable_multibyte_characters))
-		   : ! NILP (B_ (current_buffer, enable_multibyte_characters))))
+		   ? ! NILP (BVAR (&buffer_defaults, enable_multibyte_characters))
+		   : ! NILP (BVAR (current_buffer, enable_multibyte_characters))))
 	{
 	  /* If unibyte string STRING contains 8-bit codes, we must
 	     convert STRING to a multibyte string containing the same
@@ -504,14 +504,14 @@ temp_output_buffer_setup (const char *bufname)
 
   Fkill_all_local_variables ();
   delete_all_overlays (current_buffer);
-  B_ (current_buffer, directory) = B_ (old, directory);
-  B_ (current_buffer, read_only) = Qnil;
-  B_ (current_buffer, filename) = Qnil;
-  B_ (current_buffer, undo_list) = Qt;
+  BVAR (current_buffer, directory) = BVAR (old, directory);
+  BVAR (current_buffer, read_only) = Qnil;
+  BVAR (current_buffer, filename) = Qnil;
+  BVAR (current_buffer, undo_list) = Qt;
   eassert (current_buffer->overlays_before == NULL);
   eassert (current_buffer->overlays_after == NULL);
-  B_ (current_buffer, enable_multibyte_characters)
-    = B_ (&buffer_defaults, enable_multibyte_characters);
+  BVAR (current_buffer, enable_multibyte_characters)
+    = BVAR (&buffer_defaults, enable_multibyte_characters);
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
@@ -1856,7 +1856,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  if (!NILP (XWINDOW (obj)->buffer))
 	    {
 	      strout (" on ", -1, -1, printcharfun, 0);
-	      print_string (B_ (XBUFFER (XWINDOW (obj)->buffer), name), printcharfun);
+	      print_string (BVAR (XBUFFER (XWINDOW (obj)->buffer), name), printcharfun);
 	    }
 	  PRINTCHAR ('>');
 	}
@@ -1957,16 +1957,16 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	}
       else if (BUFFERP (obj))
 	{
-	  if (NILP (B_ (XBUFFER (obj), name)))
+	  if (NILP (BVAR (XBUFFER (obj), name)))
 	    strout ("#<killed buffer>", -1, -1, printcharfun, 0);
 	  else if (escapeflag)
 	    {
 	      strout ("#<buffer ", -1, -1, printcharfun, 0);
-	      print_string (B_ (XBUFFER (obj), name), printcharfun);
+	      print_string (BVAR (XBUFFER (obj), name), printcharfun);
 	      PRINTCHAR ('>');
 	    }
 	  else
-	    print_string (B_ (XBUFFER (obj), name), printcharfun);
+	    print_string (BVAR (XBUFFER (obj), name), printcharfun);
 	}
       else if (WINDOW_CONFIGURATIONP (obj))
 	{
@@ -2078,7 +2078,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	      sprintf (buf, "at %ld", (long)marker_position (obj));
 	      strout (buf, -1, -1, printcharfun, 0);
 	      strout (" in ", -1, -1, printcharfun, 0);
-	      print_string (B_ (XMARKER (obj)->buffer, name), printcharfun);
+	      print_string (BVAR (XMARKER (obj)->buffer, name), printcharfun);
 	    }
 	  PRINTCHAR ('>');
 	  break;
@@ -2093,7 +2093,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		       (long)marker_position (OVERLAY_START (obj)),
 		       (long)marker_position (OVERLAY_END   (obj)));
 	      strout (buf, -1, -1, printcharfun, 0);
-	      print_string (B_ (XMARKER (OVERLAY_START (obj))->buffer, name),
+	      print_string (BVAR (XMARKER (OVERLAY_START (obj))->buffer, name),
 			    printcharfun);
 	    }
 	  PRINTCHAR ('>');

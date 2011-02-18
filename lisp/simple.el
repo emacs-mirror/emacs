@@ -778,7 +778,7 @@ If N is negative, delete newlines as well."
         (n (abs n)))
     (skip-chars-backward skip-characters)
     (constrain-to-field nil orig-pos)
-    (dotimes (i (or n 1))
+    (dotimes (i n)
       (if (= (following-char) ?\s)
 	  (forward-char 1)
 	(insert ?\s)))

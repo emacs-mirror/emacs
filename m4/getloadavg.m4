@@ -26,6 +26,8 @@ test -f "$srcdir/$1/getloadavg.c" ||
 
 gl_save_LIBS=$LIBS
 
+# getloadvg is present in libc on glibc >= 2.2, MacOS X, FreeBSD >= 2.0,
+# NetBSD >= 0.9, OpenBSD >= 2.0, Solaris >= 7.
 AC_CHECK_FUNC([getloadavg], [],
   [gl_have_func=no
 

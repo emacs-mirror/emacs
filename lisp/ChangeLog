@@ -1,3 +1,129 @@
+2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--u1): Understand non-linear patterns.
+
+2011-02-18  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/ert.el (ert--setup-results-buffer)
+	(ert-results-pop-to-backtrace-for-test-at-point)
+	(ert-results-pop-to-messages-for-test-at-point)
+	(ert-results-pop-to-should-forms-for-test-at-point)
+	(ert-results-pop-to-timings): Revert parts of change 103083 that
+	were incorrect and unnecessary.  This should make `make check'
+	pass again.
+
+2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* lisp/allout-widgets.el: (allout-widgets-icons-light-subdir)
+	(allout-widgets-icons-dark-subdir): Track relocations of icons
+	* lisp/allout.el: Remove commentary about remove encryption
+	passphrase mnemonic support and verification.
+	(allout-encrypt-string): (allout-encrypt-string): Recognize epg
+	failure to decrypt gpg2 armored text using gpg1, and indicate that
+	the gpg version *might* be the problem in the error message.
+
+2011-02-17  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-float-time): New function.
+	(rcirc-keepalive, rcirc-handler-ctcp-KEEPALIVE)
+	(rcirc-ctcp-sender-PING): Use it.
+
+2011-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* speedbar.el (speedbar-ignored-modes, speedbar-file-unshown-regexp)
+	(speedbar-update-flag, speedbar-fetch-etags-command)
+	(speedbar-fetch-etags-arguments):
+	* term.el (term-buffer-maximum-size, term-input-chunk-size)
+	(term-completion-autolist, term-completion-addsuffix)
+	(term-completion-recexact, term-completion-fignore):
+	* term/sup-mouse.el (sup-mouse-fast-select-window):
+	* term/x-win.el (x-select-request-type):
+	Convert some defvars with "*" to defcustoms.
+
+	* shell.el (shell-delimiter-argument-list): Set it to nil.  (Bug#8027)
+
+	* vc/vc.el (vc-default-previous-version):
+	Remove alias that points nowhere.  (Bug#4496)
+
+	* dired-x.el (dired-clean-up-after-deletion):
+	kill-buffer does not need save-excursion.
+	(dired-do-run-mail): Doc fix.
+	(dired-filename-at-point): Doc fix.
+	Use looking-at, and skip-chars rather than re search.
+
+	* dired-x.el (dired-filename-at-point): Fix 8-year old typo.
+
+2011-02-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout-widgets.el: New allout extension that shows allout
+	outline structure with graphical widgets.  'allout-widgets'
+	customize group is an 'allout' subgroup, for easy discovery.
+
+	* allout.el: Include PGP and GnuPG in Keywords, and other
+	commentary refinements.
+	(allout-abbreviate-flattened-numbering): Rename to
+	allout-flattened-numbering-abbreviation, and
+	define-obsolete-variable-alias the old name.
+	(allout-flattened-numbering-abbreviation): Rename from
+	allout-abbreviate-flattened-numbering.
+	(allout-mode-p): Include among autoloads, for use by other modes
+	with impunity.
+	(allout-listify-exposed): Use
+	allout-flattened-numbering-abbreviation.
+	(allout-encrypt-string): Use set-buffer-multibyte directly.
+	(allout-set-buffer-multibyte): Remove.
+
+2011-02-16  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* simple.el (just-one-space): Remove useless `or' call.
+
+2011-02-16  Alex Harsanyi  <AlexHarsanyi@gmail.com>
+
+	* soap-client.el (soap-well-known-xmlns, soap-local-xmlns)
+	(soap-default-xmlns, soap-target-xmlns, soap-multi-refs)
+	(soap-decoded-multi-refs, soap-current-wsdl)
+	(soap-encoded-namespaces): Rename CL-style *...* variables.
+
+2011-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/soap-client.el: Add "comm" and "hypermedia" to the
+	keywords.  Reflow too long lines.
+
+	* net/soap-inspect.el: Ditto.  Require 'cl.
+
+2011-02-16  Bastien Guerry  <bzg@altern.org>
+
+	* play/doctor.el (doctor-mode): Bugfix: escape the "," character
+	in a `doctor-type' argument.
+
+2011-02-16  Alex Harsanyi  <AlexHarsanyi@gmail.com>
+
+	* net/soap-client.el:
+	* net/soap-inspect.el: New files.
+
+2011-02-16  Leo  <sdl.web@gmail.com>
+
+	* dired-x.el (dired-mode-map, dired-extra-startup):
+	Remove dired-copy-filename-as-kill since it's already in dired.el.
+
+2011-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-bind-jump, dired-bind-man, dired-bind-info):
+	Doc fixes.  Add :set property, replacing top-level calls.
+	(dired-vm-read-only-folders, dired-vm): Doc fix (drop v. old VM 4).
+	(dired-guess-shell-gnutar): Test tar version rather than system-type.
+	(dired-extra-startup, dired-man, dired-info): Doc fixes.
+	(dired-clean-up-after-deletion): Use when and dolist.
+	(dired-jump): Use unless and when.
+	(dired-virtual): Use line-end-position.
+	(dired-default-directory-alist): Rename from default-directory-alist.
+	(dired-default-directory): Update for above name change.
+	(dired-vm): Drop VM < 5 and simplify.
+	(dired-buffer-more-recently-used-p): Rewrite.
+	(dired-filename-at-point): Use when and or.
+	(dired-x-read-filename-at-point): Rename from read-filename-at-point.
+	Update callers.
+
 2011-02-15  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el: Use easymenu for menu items.  Fix item capitalization.

@@ -1877,6 +1877,7 @@ BUFFER-NAME, if non-nil, is the buffer name to use."
       (let ((inhibit-read-only t))
         (buffer-disable-undo)
         (erase-buffer)
+        (ert-results-mode)
         ;; Erase buffer again in case switching out of the previous
         ;; mode inserted anything.  (This happens e.g. when switching
         ;; from ert-results-mode to ert-results-mode when
@@ -1895,9 +1896,8 @@ BUFFER-NAME, if non-nil, is the buffer name to use."
                 (ewoc-enter-last ewoc
                                  (make-ert--ewoc-entry :test test :hidden-p t)))
           (ert--results-update-ewoc-hf ert--results-ewoc ert--results-stats)
-          (goto-char (1- (point-max)))))
-      (ert-results-mode)
-      buffer)))
+          (goto-char (1- (point-max)))
+          buffer)))))
 
 
 (defvar ert--selector-history nil
@@ -2343,6 +2343,7 @@ To be used in the ERT results buffer."
          (let ((inhibit-read-only t))
            (buffer-disable-undo)
            (erase-buffer)
+           (ert-simple-view-mode)
            ;; Use unibyte because `debugger-setup-buffer' also does so.
            (set-buffer-multibyte nil)
            (setq truncate-lines t)
@@ -2351,8 +2352,7 @@ To be used in the ERT results buffer."
            (goto-char (point-min))
            (insert "Backtrace for test `")
            (ert-insert-test-name-button (ert-test-name test))
-           (insert "':\n")
-           (ert-simple-view-mode)))))))
+           (insert "':\n")))))))
 
 (defun ert-results-pop-to-messages-for-test-at-point ()
   "Display the part of the *Messages* buffer generated during the test at point.
@@ -2368,12 +2368,12 @@ To be used in the ERT results buffer."
       (let ((inhibit-read-only t))
         (buffer-disable-undo)
         (erase-buffer)
+        (ert-simple-view-mode)
         (insert (ert-test-result-messages result))
         (goto-char (point-min))
         (insert "Messages for test `")
         (ert-insert-test-name-button (ert-test-name test))
-        (insert "':\n")
-        (ert-simple-view-mode)))))
+        (insert "':\n")))))
 
 (defun ert-results-pop-to-should-forms-for-test-at-point ()
   "Display the list of `should' forms executed during the test at point.
@@ -2389,6 +2389,7 @@ To be used in the ERT results buffer."
       (let ((inhibit-read-only t))
         (buffer-disable-undo)
         (erase-buffer)
+        (ert-simple-view-mode)
         (if (null (ert-test-result-should-forms result))
             (insert "\n(No should forms during this test.)\n")
           (loop for form-description in (ert-test-result-should-forms result)
@@ -2406,8 +2407,7 @@ To be used in the ERT results buffer."
         (insert (concat "(Values are shallow copies and may have "
                         "looked different during the test if they\n"
                         "have been modified destructively.)\n"))
-        (forward-line 1)
-        (ert-simple-view-mode)))))
+        (forward-line 1)))))
 
 (defun ert-results-toggle-printer-limits-for-test-at-point ()
   "Toggle how much of the condition to print for the test at point.
@@ -2442,6 +2442,7 @@ To be used in the ERT results buffer."
     (let ((inhibit-read-only t))
       (buffer-disable-undo)
       (erase-buffer)
+      (ert-simple-view-mode)
       (if (null data)
           (insert "(No data)\n")
         (insert (format "%-3s  %8s %8s\n" "" "time" "cumul"))
@@ -2454,8 +2455,7 @@ To be used in the ERT results buffer."
                 (insert "\n"))))
       (goto-char (point-min))
       (insert "Tests by run time (seconds):\n\n")
-      (forward-line 1)
-      (ert-simple-view-mode))))
+      (forward-line 1))))
 
 ;;;###autoload
 (defun ert-describe-test (test-or-test-name)

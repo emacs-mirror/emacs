@@ -14475,6 +14475,8 @@ test -f "$srcdir/$gl_source_base/getloadavg.c" ||
 
 gl_save_LIBS=$LIBS
 
+# getloadvg is present in libc on glibc >= 2.2, MacOS X, FreeBSD >= 2.0,
+# NetBSD >= 0.9, OpenBSD >= 2.0, Solaris >= 7.
 ac_fn_c_check_func "$LINENO" "getloadavg" "ac_cv_func_getloadavg"
 if test "x$ac_cv_func_getloadavg" = xyes; then :
 

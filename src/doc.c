@@ -719,7 +719,7 @@ a new string, without any text properties, is returned.  */)
      or a specified local map (which means search just that and the
      global map).  If non-nil, it might come from Voverriding_local_map,
      or from a \\<mapname> construct in STRING itself..  */
-  keymap = current_kboard->Voverriding_terminal_local_map;
+  keymap = KVAR (current_kboard, Voverriding_terminal_local_map);
   if (NILP (keymap))
     keymap = Voverriding_local_map;
 

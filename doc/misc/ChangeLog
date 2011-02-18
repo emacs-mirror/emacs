@@ -1,3 +1,26 @@
+2011-02-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users): Use :port instead of :protocol for all
+	auth-source docs.
+	(GnuPG and EasyPG Assistant Configuration): Mention the default now is
+	to have two files in `auth-sources'.
+
+2011-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi: Use emacsver.texi to get Emacs version.
+	* Makefile.in ($(infodir)/dired-x, dired-x.dvi, dired-x.pdf):
+	Depend on emacsver.texi.
+
+	* dired-x.texi: Drop meaningless version number.
+	(Introduction): Remove old info.
+	(Optional Installation Dired Jump): Autoload from dired-x.
+	Remove incorrect info about loaddefs.el.
+	(Bugs): Just refer to M-x report-emacs-bug.
+
+	* dired-x.texi (Multiple Dired Directories): Update for rename of
+	default-directory-alist.
+	(Miscellaneous Commands): No longer mention very old VM version 4.
+
 2011-02-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib.
@@ -5,7 +28,8 @@
 
 2011-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* auth.texi (Help for users): Login collection is "Login" and not "login".
+	* auth.texi (Help for users):
+	Login collection is "Login" and not "login".
 
 2011-02-13  Michael Albinus  <michael.albinus@gmx.de>
 

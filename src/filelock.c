@@ -637,9 +637,9 @@ unlock_all_files (void)
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {
       b = XBUFFER (XCDR (XCAR (tail)));
-      if (STRINGP (B_ (b, file_truename)) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
+      if (STRINGP (BVAR (b, file_truename)) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
 	{
-	  unlock_file(B_ (b, file_truename));
+	  unlock_file(BVAR (b, file_truename));
 	}
     }
 }
@@ -652,7 +652,7 @@ or else nothing is done if current buffer isn't visiting a file.  */)
   (Lisp_Object file)
 {
   if (NILP (file))
-    file = B_ (current_buffer, file_truename);
+    file = BVAR (current_buffer, file_truename);
   else
     CHECK_STRING (file);
   if (SAVE_MODIFF < MODIFF
@@ -669,8 +669,8 @@ should not be locked in that case.  */)
   (void)
 {
   if (SAVE_MODIFF < MODIFF
-      && STRINGP (B_ (current_buffer, file_truename)))
-    unlock_file (B_ (current_buffer, file_truename));
+      && STRINGP (BVAR (current_buffer, file_truename)))
+    unlock_file (BVAR (current_buffer, file_truename));
   return Qnil;
 }
 
@@ -680,8 +680,8 @@ void
 unlock_buffer (struct buffer *buffer)
 {
   if (BUF_SAVE_MODIFF (buffer) < BUF_MODIFF (buffer)
-      && STRINGP (B_ (buffer, file_truename)))
-    unlock_file (B_ (buffer, file_truename));
+      && STRINGP (BVAR (buffer, file_truename)))
+    unlock_file (BVAR (buffer, file_truename));
 }
 
 DEFUN ("file-locked-p", Ffile_locked_p, Sfile_locked_p, 1, 1, 0,

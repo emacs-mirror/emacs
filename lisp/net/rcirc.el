@@ -556,6 +556,11 @@ If ARG is non-nil, instead prompt for connection parameters."
   `(with-current-buffer rcirc-server-buffer
      ,@body))
 
+(defun rcirc-float-time ()
+  (if (featurep 'xemacs)
+      (time-to-seconds (current-time))
+    (float-time)))
+
 (defun rcirc-keepalive ()
   "Send keep alive pings to active rcirc processes.
 Kill processes that have not received a server message since the
@@ -567,10 +572,7 @@ last ping."
                   (rcirc-send-ctcp process
                                    rcirc-nick
                                    (format "KEEPALIVE %f"
-                                           (if (featurep 'xemacs)
-                                               (time-to-seconds
-                                                (current-time))
-                                             (float-time)))))))
+                                           (rcirc-float-time))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
     (cancel-timer rcirc-keepalive-timer)
@@ -578,10 +580,7 @@ last ping."
 
 (defun rcirc-handler-ctcp-KEEPALIVE (process target sender message)
   (with-rcirc-process-buffer process
-    (setq header-line-format (format "%f" (- (if (featurep 'xemacs)
-                                                 (time-to-seconds
-                                                  (current-time))
-                                               (float-time))
+    (setq header-line-format (format "%f" (- (rcirc-float-time)
 					     (string-to-number message))))))
 
 (defvar rcirc-debug-buffer " *rcirc debug*")
@@ -2209,7 +2208,7 @@ With a prefix arg, prompt for new topic."
 
 (defun rcirc-ctcp-sender-PING (process target request)
   "Send a CTCP PING message to TARGET."
-  (let ((timestamp (format "%.0f" (float-time))))
+  (let ((timestamp (format "%.0f" (rcirc-float-time))))
     (rcirc-send-ctcp process target "PING" timestamp)))
 
 (defun rcirc-cmd-me (args &optional process target)

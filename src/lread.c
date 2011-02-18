@@ -210,7 +210,7 @@ readchar (Lisp_Object readcharfun, int *multibyte)
       if (pt_byte >= BUF_ZV_BYTE (inbuffer))
 	return -1;
 
-      if (! NILP (B_ (inbuffer, enable_multibyte_characters)))
+      if (! NILP (BVAR (inbuffer, enable_multibyte_characters)))
 	{
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, pt_byte);
@@ -239,7 +239,7 @@ readchar (Lisp_Object readcharfun, int *multibyte)
       if (bytepos >= BUF_ZV_BYTE (inbuffer))
 	return -1;
 
-      if (! NILP (B_ (inbuffer, enable_multibyte_characters)))
+      if (! NILP (BVAR (inbuffer, enable_multibyte_characters)))
 	{
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, bytepos);
@@ -371,7 +371,7 @@ unreadchar (Lisp_Object readcharfun, int c)
       EMACS_INT bytepos = BUF_PT_BYTE (b);
 
       BUF_PT (b)--;
-      if (! NILP (B_ (b, enable_multibyte_characters)))
+      if (! NILP (BVAR (b, enable_multibyte_characters)))
 	BUF_DEC_POS (b, bytepos);
       else
 	bytepos--;
@@ -384,7 +384,7 @@ unreadchar (Lisp_Object readcharfun, int c)
       EMACS_INT bytepos = XMARKER (readcharfun)->bytepos;
 
       XMARKER (readcharfun)->charpos--;
-      if (! NILP (B_ (b, enable_multibyte_characters)))
+      if (! NILP (BVAR (b, enable_multibyte_characters)))
 	BUF_DEC_POS (b, bytepos);
       else
 	bytepos--;
@@ -1322,7 +1322,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	/* Of course, this could conceivably lose if luser sets
 	   default-directory to be something non-absolute... */
 	{
-	  filename = Fexpand_file_name (filename, B_ (current_buffer, directory));
+	  filename = Fexpand_file_name (filename, BVAR (current_buffer, directory));
 	  if (!complete_filename_p (filename))
 	    /* Give up on this path element! */
 	    continue;
@@ -1581,7 +1581,7 @@ readevalloop (Lisp_Object readcharfun,
     {
       int count1 = SPECPDL_INDEX ();
 
-      if (b != 0 && NILP (B_ (b, name)))
+      if (b != 0 && NILP (BVAR (b, name)))
 	error ("Reading from killed buffer");
 
       if (!NILP (start))
@@ -1721,7 +1721,7 @@ This function preserves the position of point.  */)
     tem = printflag;
 
   if (NILP (filename))
-    filename = B_ (XBUFFER (buf), filename);
+    filename = BVAR (XBUFFER (buf), filename);
 
   specbind (Qeval_buffer_list, Fcons (buf, Veval_buffer_list));
   specbind (Qstandard_output, tem);
@@ -1761,7 +1761,7 @@ This function does not move point.  */)
   specbind (Qeval_buffer_list, Fcons (cbuf, Veval_buffer_list));
 
   /* readevalloop calls functions which check the type of start and end.  */
-  readevalloop (cbuf, 0, B_ (XBUFFER (cbuf), filename), Feval,
+  readevalloop (cbuf, 0, BVAR (XBUFFER (cbuf), filename), Feval,
 		!NILP (printflag), Qnil, read_function,
 		start, end);
 
