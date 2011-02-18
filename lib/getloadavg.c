@@ -508,7 +508,7 @@ getloadavg (double loadavg[], int nelem)
   elem = -1;
 # endif
 
-# if !defined (LDAV_DONE) && defined (HAVE_LIBKSTAT)
+# if !defined (LDAV_DONE) && defined (HAVE_LIBKSTAT)       /* Solaris <= 2.6 */
 /* Use libkstat because we don't have to be root.  */
 #  define LDAV_DONE
   kstat_ctl_t *kc;
@@ -559,6 +559,7 @@ getloadavg (double loadavg[], int nelem)
 # endif /* HAVE_LIBKSTAT */
 
 # if !defined (LDAV_DONE) && defined (hpux) && defined (HAVE_PSTAT_GETDYNAMIC)
+                                                           /* HP-UX */
 /* Use pstat_getdynamic() because we don't have to be root.  */
 #  define LDAV_DONE
 #  undef LOAD_AVE_TYPE
@@ -575,7 +576,7 @@ getloadavg (double loadavg[], int nelem)
 
 # endif /* hpux && HAVE_PSTAT_GETDYNAMIC */
 
-# if ! defined LDAV_DONE && defined HAVE_LIBPERFSTAT
+# if ! defined LDAV_DONE && defined HAVE_LIBPERFSTAT       /* AIX */
 #  define LDAV_DONE
 #  undef LOAD_AVE_TYPE
 /* Use perfstat_cpu_total because we don't have to be root. */
@@ -592,6 +593,7 @@ getloadavg (double loadavg[], int nelem)
 # endif
 
 # if !defined (LDAV_DONE) && (defined (__linux__) || defined (__CYGWIN__))
+                                              /* Linux without glibc, Cygwin */
 #  define LDAV_DONE
 #  undef LOAD_AVE_TYPE
 
@@ -648,7 +650,7 @@ getloadavg (double loadavg[], int nelem)
 
 # endif /* __linux__ || __CYGWIN__ */
 
-# if !defined (LDAV_DONE) && defined (__NetBSD__)
+# if !defined (LDAV_DONE) && defined (__NetBSD__)          /* NetBSD < 0.9 */
 #  define LDAV_DONE
 #  undef LOAD_AVE_TYPE
 
@@ -680,7 +682,7 @@ getloadavg (double loadavg[], int nelem)
 
 # endif /* __NetBSD__ */
 
-# if !defined (LDAV_DONE) && defined (NeXT)
+# if !defined (LDAV_DONE) && defined (NeXT)                /* NeXTStep */
 #  define LDAV_DONE
   /* The NeXT code was adapted from iscreen 3.2.  */
 
@@ -842,6 +844,7 @@ getloadavg (double loadavg[], int nelem)
 # endif /* OSF_MIPS */
 
 # if !defined (LDAV_DONE) && (defined (__MSDOS__) || defined (WINDOWS32))
+                                                           /* DJGPP */
 #  define LDAV_DONE
 
   /* A faithful emulation is going to have to be saved for a rainy day.  */
@@ -851,7 +854,7 @@ getloadavg (double loadavg[], int nelem)
     }
 # endif  /* __MSDOS__ || WINDOWS32 */
 
-# if !defined (LDAV_DONE) && defined (OSF_ALPHA)
+# if !defined (LDAV_DONE) && defined (OSF_ALPHA)           /* OSF/1 */
 #  define LDAV_DONE
 
   struct tbl_loadavg load_ave;
@@ -863,7 +866,7 @@ getloadavg (double loadavg[], int nelem)
          : (load_ave.tl_avenrun.l[elem] / (double) load_ave.tl_lscale));
 # endif /* OSF_ALPHA */
 
-# if ! defined LDAV_DONE && defined __VMS
+# if ! defined LDAV_DONE && defined __VMS                  /* VMS */
   /* VMS specific code -- read from the Load Ave driver.  */
 
   LOAD_AVE_TYPE load_ave[3];
@@ -907,6 +910,7 @@ getloadavg (double loadavg[], int nelem)
 # endif /* ! defined LDAV_DONE && defined __VMS */
 
 # if ! defined LDAV_DONE && defined LOAD_AVE_TYPE && ! defined __VMS
+                                                  /* IRIX, other old systems */
 
   /* UNIX-specific code -- read the average from /dev/kmem.  */
 
@@ -948,9 +952,7 @@ getloadavg (double loadavg[], int nelem)
           }
 #   endif /* !SUNOS_5 */
 #  else  /* sgi */
-      int ldav_off;
-
-      ldav_off = sysmp (MP_KERNADDR, MPKA_AVENRUN);
+      ptrdiff_t ldav_off = sysmp (MP_KERNADDR, MPKA_AVENRUN);
       if (ldav_off != -1)
         offset = (long int) ldav_off & 0x7fffffff;
 #  endif /* sgi */
