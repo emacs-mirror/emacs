@@ -112,10 +112,7 @@ static void vfatal (const char *str, va_list ap) NO_RETURN;
 #define OUTPUT_IF(tty, a)                                               \
   do {                                                                  \
     if (a)                                                              \
-      emacs_tputs ((tty), a,                                            \
-                   (int) (FRAME_LINES (XFRAME (selected_frame))         \
-                          - curY (tty) ),                               \
-                   cmputc);                                             \
+      OUTPUT (tty, a);							\
   } while (0)
 
 #define OUTPUT1_IF(tty, a) do { if (a) emacs_tputs ((tty), a, 1, cmputc); } while (0)

@@ -2145,6 +2145,11 @@ struct gcpro
 #define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE
 #endif
 
+/* Whether we do the stack marking manually.  */
+#define BYTE_MARK_STACK !(GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS		\
+			  || GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS)
+
+
 #if GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS
 
 /* Do something silly with gcproN vars just so gcc shuts up.  */
@@ -3253,7 +3258,9 @@ extern Lisp_Object Qbytecode;
 EXFUN (Fbyte_code, 3);
 extern void syms_of_bytecode (void);
 extern struct byte_stack *byte_stack_list;
+#ifdef BYTE_MARK_STACK
 extern void mark_byte_stack (void);
+#endif
 extern void unmark_byte_stack (void);
 
 /* Defined in macros.c */

@@ -4842,8 +4842,6 @@ returns nil, because real GC can't be done.  */)
   (void)
 {
   register struct specbinding *bind;
-  struct catchtag *catch;
-  struct handler *handler;
   char stack_top_variable;
   register int i;
   int message_p;
@@ -4972,9 +4970,11 @@ returns nil, because real GC can't be done.  */)
       for (i = 0; i < tail->nvars; i++)
 	mark_object (tail->var[i]);
   }
-#endif
-
   mark_byte_stack ();
+  {
+    struct catchtag *catch;
+    struct handler *handler;
+
   for (catch = catchlist; catch; catch = catch->next)
     {
       mark_object (catch->tag);
@@ -4985,7 +4985,9 @@ returns nil, because real GC can't be done.  */)
       mark_object (handler->handler);
       mark_object (handler->var);
     }
+  }
   mark_backtrace ();
+#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
   mark_fringe_data ();

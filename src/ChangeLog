@@ -1,3 +1,20 @@
+2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (BYTE_MARK_STACK): New macro.
+	(mark_byte_stack): Only declare if BYTE_MARK_STACK is set.
+
+	* bytecode.c (BYTE_MAINTAIN_TOP): New macros.
+	(struct byte_stack): Only define `top' and `bottom' if used.
+	(mark_byte_stack): Only define if used.
+	(BEFORE_POTENTIAL_GC, AFTER_POTENTIAL_GC): Nullify if BYTE_MAINTAIN_TOP
+	is not set.
+	(Fbyte_code): Don't set `bottom' unless BYTE_MAINTAIN_TOP is set.
+
+	* term.c (OUTPUT_IF): Use OUTPUT.
+
+	* alloc.c (Fgarbage_collect): When using stack scanning, don't
+	redundantly scan byte-code stacks, catchlist, and handlerlist.
+
 2011-02-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (Fx_create_frame, ns_set_name_as_filename)
@@ -18,8 +35,8 @@
 
 	* xdisp.c (decode_mode_spec): Don't use MODE_LINE_BINARY_TEXT.
 
-	* fileio.c (Finsert_file_contents, Fwrite_region): Remove
-	references to buffer_file_type.
+	* fileio.c (Finsert_file_contents, Fwrite_region):
+	Remove references to buffer_file_type.
 	(syms_of_fileio): Don't intern and staticpro
 	find-buffer-file-type.
 
@@ -112,8 +129,8 @@
 	(strout, print_string, temp_output_buffer_setup, print_object):
 	Replace B_ with BVAR.
 	* msdos.c (IT_frame_up_to_date): Replace B_ with BVAR.
-	* minibuf.c (read_minibuf, get_minibuffer, Fread_buffer): Replace
-	B_ with BVAR.
+	* minibuf.c (read_minibuf, get_minibuffer, Fread_buffer):
+	Replace B_ with BVAR.
 	* marker.c (Fmarker_buffer, Fset_marker, set_marker_restricted)
 	(set_marker_both, set_marker_restricted_both, unchain_marker):
 	Replace B_ with BVAR.
@@ -275,8 +292,8 @@
 	* xmenu.c (apply_systemfont_to_dialog): Apply to *dialog.font.
 	(apply_systemfont_to_menu): Set resources *menubar*font and
 	*popup*font.  Remove defflt.
-	(set_frame_menubar, create_and_show_popup_menu): Call
-	apply_systemfont_to_menu before lw_create_widget.
+	(set_frame_menubar, create_and_show_popup_menu):
+	Call apply_systemfont_to_menu before lw_create_widget.
 
 2011-02-14  Tom Tromey  <tromey@redhat.com>
 
@@ -305,8 +322,8 @@
 	(PRINTPREPARE, PRINTFINISH, temp_output_buffer_setup)
 	(print_object): Use B_.
 	* font.c (font_at): Use B_.
-	* fns.c (Fbase64_encode_region, Fbase64_decode_region, Fmd5): Use
-	B_.
+	* fns.c (Fbase64_encode_region, Fbase64_decode_region, Fmd5):
+	Use B_.
 	* callint.c (check_mark, Fcall_interactively): Use B_.
 	* editfns.c (region_limit, Fmark_marker, save_excursion_save)
 	(save_excursion_restore, Fprevious_char, Fchar_before)
@@ -329,8 +346,8 @@
 	(Freplace_match): Use B_.
 	* indent.c (buffer_display_table, recompute_width_table)
 	(width_run_cache_on_off, current_column, scan_for_column)
-	(Findent_to, position_indentation, compute_motion, vmotion): Use
-	B_.
+	(Findent_to, position_indentation, compute_motion, vmotion):
+	Use B_.
 	* casefiddle.c (casify_object, casify_region): Use B_.
 	* casetab.c (Fcurrent_case_table, set_case_table): Use B_.
 	* cmds.c (Fself_insert_command, internal_self_insert): Use B_.
@@ -344,8 +361,8 @@
 	(Fdo_auto_save, Fset_buffer_auto_saved): Use B_.
 	* minibuf.c (read_minibuf, get_minibuffer, Fread_buffer): Use B_.
 	* marker.c (Fmarker_buffer, Fset_marker, set_marker_restricted)
-	(set_marker_both, set_marker_restricted_both, unchain_marker): Use
-	B_.
+	(set_marker_both, set_marker_restricted_both, unchain_marker):
+	Use B_.
 	* insdel.c (check_markers, insert_char, insert_1_both)
 	(insert_from_string_1, insert_from_gap, insert_from_buffer_1)
 	(adjust_after_replace, replace_range, del_range_2)
@@ -369,8 +386,8 @@
 	(make_conversion_work_buffer, decode_coding_gap)
 	(decode_coding_object, encode_coding_object)
 	(Fdetect_coding_region, Ffind_coding_systems_region_internal)
-	(Funencodable_char_position, Fcheck_coding_systems_region): Use
-	B_.
+	(Funencodable_char_position, Fcheck_coding_systems_region):
+	Use B_.
 	* charset.c (Ffind_charset_region): Use B_.
 	* window.c (window_display_table, unshow_buffer, window_loop)
 	(window_min_size_2, set_window_buffer, Fset_window_buffer)
@@ -601,8 +618,8 @@
 	callers changed.
 	* editfns.c (general_insert_function): Change signature to
 	match changes to insert functions' signatures.
-	* keymap.c (map_keymap_char_table_item, map_keymap_internal): Use
-	explicit cast when converting between void * and function pointer
+	* keymap.c (map_keymap_char_table_item, map_keymap_internal):
+	Use explicit cast when converting between void * and function pointer
 	types, as C89 requires this.
 
 2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
@@ -722,7 +739,7 @@
 2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	format-time-string now supports subsecond time stamp resolution
-	* editfns.c (emacs_nmemftime): Renamed from emacs_memftimeu,
+	* editfns.c (emacs_nmemftime): Rename from emacs_memftimeu,
 	for consistency with its new argument and with gnulib nstrftime.
 	All callers changed.  New argument NS.
 	(Fformat_time_string): Check that the time argument's microseconds
@@ -1052,11 +1069,11 @@
 	(history_delete_duplicates, inhibit_x_resources)
 	(last_nonmenu_event, load_in_progress, max_specpdl_size)
 	(minibuffer_auto_raise, print_escape_newlines, scroll_margin)
-	(use_dialog_box, use_file_dialog): Remove declaration.  Include
-	globals.h.
+	(use_dialog_box, use_file_dialog): Remove declaration.
+	Include globals.h.
 	* keymap.h (Voverriding_local_map)
-	(Voverriding_local_map_menu_flag, meta_prefix_char): Remove
-	declaration.
+	(Voverriding_local_map_menu_flag, meta_prefix_char):
+	Remove declaration.
 	* keyboard.h (Vdouble_click_time, Vfunction_key_map)
 	(Vinput_method_function, Vkey_translation_map)
 	(Vlucid_menu_bar_dirty_flag, Vthis_original_command)
@@ -1074,16 +1091,16 @@
 	(focus_follows_mouse): Remove declaration.
 	* fontset.h (Valternate_fontname_alist, Vfontset_alias_alist)
 	(Vignore_relative_composition, Votf_script_alist)
-	(Vuse_default_ascent, Vvertical_centering_font_regexp): Remove
-	declaration.
+	(Vuse_default_ascent, Vvertical_centering_font_regexp):
+	Remove declaration.
 	* font.h (Vfont_log): Remove declaration.
 	* dosfns.h (Vdos_display_scancodes, Vdos_version)
 	(Vdos_windows_version, dos_codepage, dos_country_code)
 	(dos_decimal_point, dos_hyper_key, dos_keyboard_layout)
-	(dos_keypad_mode, dos_super_key, dos_timezone_offset): Remove
-	declaration.
-	* disptab.h (Vglyph_table, Vstandard_display_table): Remove
-	declaration.
+	(dos_keypad_mode, dos_super_key, dos_timezone_offset):
+	Remove declaration.
+	* disptab.h (Vglyph_table, Vstandard_display_table):
+	Remove declaration.
 	* dispextern.h (Vface_remapping_alist, Vglyphless_char_display)
 	(Vmouse_autoselect_window, Voverflow_newline_into_fringe)
 	(Vshow_trailing_whitespace, Vtool_bar_button_margin)
@@ -1111,10 +1128,10 @@
 	(Vselect_safe_coding_system_function)
 	(Vtranslation_table_for_input, coding_system_require_warning)
 	(eol_mnemonic_dos, eol_mnemonic_mac, eol_mnemonic_undecided)
-	(eol_mnemonic_unix, inherit_process_coding_system): Remove
-	declaration.
-	* charset.h (Vcharset_list, Vcurrent_iso639_language): Remove
-	declaration.
+	(eol_mnemonic_unix, inherit_process_coding_system):
+	Remove declaration.
+	* charset.h (Vcharset_list, Vcurrent_iso639_language):
+	Remove declaration.
 	* character.h (Vauto_fill_chars, Vchar_direction_table)
 	(Vchar_script_table, Vchar_width_table, Vprintable_chars)
 	(Vscript_representative_chars, Vtranslation_table_vector)
@@ -1229,8 +1246,8 @@
 	(w32_strict_fontnames, w32_strict_painting): Remove.
 	(Vhourglass_delay, Vmenu_bar_mode, Vtool_bar_mode)
 	(Vw32_recognize_altgr, Vwindow_system_version)
-	(w32_num_mouse_buttons, w32_use_visible_system_caret): Remove
-	declaration.
+	(w32_num_mouse_buttons, w32_use_visible_system_caret):
+	Remove declaration.
 	* w32console.c (syms_of_ntterm): Update.
 	(w32_use_full_screen_buffer): Remove.
 	(Vtty_defined_color_alist): Remove declaration.
