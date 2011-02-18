@@ -1,3 +1,9 @@
+2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (Qdir_ok): New constant.
+	(syms_of_lread): Initialize it.
+	(openp): Don't ignore directories if the predicate returns dir-ok.
+
 2011-02-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_line): Fix the change made for bug#7939.

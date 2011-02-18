@@ -1250,7 +1250,9 @@ If SUFFIXES is non-nil, it should be a list of suffixes to append to
 file name when searching.
 If non-nil, PREDICATE is used instead of `file-readable-p'.
 PREDICATE can also be an integer to pass to the access(2) function,
-in which case file-name-handlers are ignored.  */)
+in which case file-name-handlers are ignored.
+This function will normally skip directories, so if you want it to find
+directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
   (Lisp_Object filename, Lisp_Object path, Lisp_Object suffixes, Lisp_Object predicate)
 {
   Lisp_Object file;
@@ -1260,6 +1262,7 @@ in which case file-name-handlers are ignored.  */)
   return file;
 }
 
+static Lisp_Object Qdir_ok;
 
 /* Search for a file whose name is STR, looking in directories
    in the Lisp list PATH, and trying suffixes from SUFFIX.
@@ -1377,9 +1380,12 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	      if (NILP (predicate))
 		exists = !NILP (Ffile_readable_p (string));
 	      else
-		exists = !NILP (call1 (predicate, string));
-	      if (exists && !NILP (Ffile_directory_p (string)))
-		exists = 0;
+		{
+		  Lisp_Object tmp = call1 (predicate, string);
+		  exists = !NILP (tmp)
+		    && (EQ (tmp, Qdir_ok)
+			|| !NILP (Ffile_directory_p (string)));
+		}
 
 	      if (exists)
 		{
@@ -4377,6 +4383,9 @@ to load.  See also `load-dangerous-libraries'.  */);
   Qfile_truename = intern_c_string ("file-truename");
   staticpro (&Qfile_truename) ;
 
+  Qdir_ok = intern_c_string ("dir-ok");
+  staticpro (&Qdir_ok);
+  
   Qdo_after_load_evaluation = intern_c_string ("do-after-load-evaluation");
   staticpro (&Qdo_after_load_evaluation) ;
 
