@@ -1,3 +1,9 @@
+2011-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* image-mode.el (image-toggle-display-image): Set
+	find-file-literally non-nil in buffers visiting binary image
+	files.  (Bug#8047)
+
 2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (cd): Make completion obey cd-path (bug#7924).
