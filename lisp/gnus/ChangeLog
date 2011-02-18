@@ -1,5 +1,8 @@
 2011-02-18  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* auth-source.el (auth-source-search): Don't try to create credentials
+	if the caller doesn't want that.
+
 	* nnimap.el (nnimap-log-command): Add a newline to the inhibited
 	logging.
 	(nnimap-credentials): Protect against auth-source-search returning nil.

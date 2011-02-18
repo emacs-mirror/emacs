@@ -542,7 +542,8 @@ must call it to obtain the actual value."
 	      (push (list backend match) matches)))))
       ;; If we didn't find anything, then we allow the backend(s) to
       ;; create the entries.
-      (unless matches
+      (when (and create
+		 (not matches))
 	(let ((match (apply
 		      (slot-value backend 'search-function)
 		      :backend backend
