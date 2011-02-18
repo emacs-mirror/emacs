@@ -1,5 +1,7 @@
 2011-02-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (display_line): Fix the change made for bug#7939.
+
 	* terminal.c (create_terminal): Use default-keyboard-coding-system
 	and default-terminal-coding-system to initialize coding systems of
 	the new terminal.  (Bug#7840)

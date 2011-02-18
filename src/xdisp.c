@@ -17294,7 +17294,7 @@ display_line (struct it *it)
      if the first glyph is partially visible or if we hit a line end.  */
   if (it->current_x < it->first_visible_x)
     {
-      SET_TEXT_POS (this_line_min_pos, ZV + 1, ZV_BYTE + 1);
+      this_line_min_pos = row->start.pos;
       move_it_in_display_line_to (it, ZV, it->first_visible_x,
 				  MOVE_TO_POS | MOVE_TO_X);
       /* Record the smallest positions seen while we moved over
