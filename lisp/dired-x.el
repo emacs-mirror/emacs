@@ -42,12 +42,11 @@
 ;;                       ;; (dired-omit-mode 1)
 ;;                       ))
 ;;
-;; At load time dired-x.el will install itself, redefine some functions, and
-;; bind some dired keys.
+;; At load time dired-x.el will install itself and bind some dired keys.
+;; Some dired.el and dired-aux.el functions have extra features if
+;; dired-x is loaded.
 
 ;; User customization: M-x customize-group RET dired-x RET.
-
-;; When loaded this code redefines dired.el's dired-find-buffer-nocreate.
 
 ;; *Please* see the `dired-x' info pages for more details.
 
@@ -1305,31 +1304,6 @@ Otherwise obeys the value of `dired-vm-read-only-folders'."
 
 
 ;;; MISCELLANEOUS INTERNAL FUNCTIONS.
-
-(declare-function dired-old-find-buffer-nocreate "dired-x")
-
-(or (fboundp 'dired-old-find-buffer-nocreate)
-    (fset 'dired-old-find-buffer-nocreate
-          (symbol-function 'dired-find-buffer-nocreate)))
-
-;; REDEFINE.
-;; Redefines dired.el's version of `dired-find-buffer-nocreate'
-(defun dired-find-buffer-nocreate (dirname &optional mode)
-  (if (and dired-find-subdir
-	   ;; don't try to find a wildcard as a subdirectory
-	   (string-equal dirname (file-name-directory dirname)))
-      (let* ((cur-buf (current-buffer))
-	     (buffers (nreverse
-		       (dired-buffers-for-dir (expand-file-name dirname))))
-	     (cur-buf-matches (and (memq cur-buf buffers)
-				   ;; wildcards must match, too:
-				   (equal dired-directory dirname))))
-	;; We don't want to switch to the same buffer---
-	(setq buffers (delq cur-buf buffers));;need setq with delq
-	(or (car (sort buffers #'dired-buffer-more-recently-used-p))
-	    ;; ---unless it's the only possibility:
-	    (and cur-buf-matches cur-buf)))
-    (dired-old-find-buffer-nocreate dirname mode)))
 
 ;; This should be a builtin
 (defun dired-buffer-more-recently-used-p (buffer1 buffer2)
