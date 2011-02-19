@@ -22,6 +22,10 @@
 
 2011-02-19  Glenn Morris  <rgm@gnu.org>
 
+	* dired-x.el: Don't require dired-aux.
+	(dired-do-create-files, dired-mark-read-regexp)
+	(dired-do-create-files-regexp): Autoload from dired-aux.
+
 	* dired-x.el (dired-find-buffer-nocreate): Merge into dired.el.
 	* dired.el (dired-find-buffer-nocreate): Merge dired-x version.
 

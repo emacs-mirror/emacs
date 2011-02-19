@@ -53,14 +53,9 @@
 
 ;;; Code:
 
-;; LOAD.
-
 ;; This is a no-op if dired-x is being loaded via `dired-load-hook',
 ;; but maybe not if a dired-x function is being autoloaded.
 (require 'dired)
-
-;; We will redefine some functions and also need some macros.
-(require 'dired-aux)
 
 ;;; User-defined variables.
 
@@ -1149,6 +1144,8 @@ results in
                                         ; (trailing slash!)
      name2 ok-if-already-exists)))
 
+(autoload 'dired-do-create-files "dired-aux")
+
 ;;;###autoload
 (defun dired-do-relsymlink (&optional arg)
    "Relative symlink all marked (or next ARG) files into a directory.
@@ -1165,6 +1162,9 @@ For absolute symlinks, use \\[dired-do-symlink]."
   (interactive "P")
   (dired-do-create-files 'relsymlink #'dired-make-relative-symlink
                            "RelSymLink" arg dired-keep-marker-relsymlink))
+
+(autoload 'dired-mark-read-regexp "dired-aux")
+(autoload 'dired-do-create-files-regexp "dired-aux")
 
 (defun dired-do-relsymlink-regexp (regexp newname &optional arg whole-name)
   "RelSymlink all marked files containing REGEXP to NEWNAME.
