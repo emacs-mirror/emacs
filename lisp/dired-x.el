@@ -47,9 +47,7 @@
 
 ;; User customization: M-x customize-group RET dired-x RET.
 
-;; When loaded this code redefines the following functions of GNU Emacs:
-;; From dired.el: dired-find-buffer-nocreate.
-;; From dired-aux.el: dired-read-shell-command.
+;; When loaded this code redefines dired.el's dired-find-buffer-nocreate.
 
 ;; *Please* see the `dired-x' info pages for more details.
 
@@ -804,10 +802,10 @@ dired."
 
 ;; Brief Description:
 ;;;
-;; `dired-do-shell-command' is bound to `!' by dired.el.
+;; * `dired-do-shell-command' is bound to `!' by dired.el.
 ;;;
-;; * Redefine `dired-read-shell-command' so it calls
-;;;   `dired-guess-shell-command'.
+;; * `dired-guess-shell-command' provides smarter defaults for
+;;;    dired-aux.el's `dired-read-shell-command'.
 ;;;
 ;; * `dired-guess-shell-command' calls `dired-guess-default' with list of
 ;;;    marked files.
@@ -1093,23 +1091,6 @@ See `dired-guess-shell-alist-user'."
                                     default-list))
       ;; If we got a return, then return default.
       (if (equal val "") default val))))
-
-;; REDEFINE.
-;; Redefine dired-aux.el's version:
-(defun dired-read-shell-command (prompt arg files)
-  "Read a dired shell command prompting with PROMPT (using `read-shell-command').
-ARG is the prefix arg and may be used to indicate in the prompt which
-FILES are affected.
-This is an extra function so that you can redefine it."
-  (minibuffer-with-setup-hook
-      (lambda ()
-        (set (make-local-variable 'minibuffer-default-add-function)
-             'minibuffer-default-add-dired-shell-commands))
-    (dired-mark-pop-up
-     nil 'shell files
-     'dired-guess-shell-command
-     (format prompt (dired-mark-prompt arg files)) ; PROMPT
-     files)))                                      ; FILES
 
 
 ;;; RELATIVE SYMBOLIC LINKS.

@@ -1,5 +1,8 @@
 2011-02-19  Glenn Morris  <rgm@gnu.org>
 
+	* dired-x.el (dired-read-shell-command): Merge into dired-aux's version.
+	* dired-aux.el (dired-read-shell-command): Merge dired-x's version.
+
 	* dired-x.el (dired-clean-up-after-deletion): Merge into dired.el.
 	* dired.el (dired-clean-up-after-deletion): Merge dired-x's version.
 	(dired-clean-up-buffers-too): Declare.

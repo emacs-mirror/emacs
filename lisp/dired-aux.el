@@ -509,18 +509,22 @@ to the end of the list of defaults just after the default value."
 
 ;; This is an extra function so that you can redefine it, e.g., to use gmhist.
 (defun dired-read-shell-command (prompt arg files)
-  "Read a dired shell command prompting with PROMPT (using `read-shell-command').
-ARG is the prefix arg and may be used to indicate in the prompt which
-FILES are affected."
+  "Read a dired shell command prompting with PROMPT.
+Passes the prefix argument ARG to `dired-mark-prompt', so that it
+can be used in the prompt to indicate which FILES are affected.
+Normally reads the command with `read-shell-command', but if the
+`dired-x' packages is loaded, uses `dired-guess-shell-command' to offer
+a smarter default choice of shell command."
   (minibuffer-with-setup-hook
       (lambda ()
 	(set (make-local-variable 'minibuffer-default-add-function)
 	     'minibuffer-default-add-dired-shell-commands))
-    (dired-mark-pop-up
-     nil 'shell files
-     #'read-shell-command
-     (format prompt (dired-mark-prompt arg files))
-     nil nil)))
+    (setq prompt (format prompt (dired-mark-prompt arg files)))
+    (if (featurep 'dired-x)
+	(dired-mark-pop-up nil 'shell files
+			   #'dired-guess-shell-command prompt files)
+      (dired-mark-pop-up nil 'shell files
+			 #'read-shell-command prompt nil nil))))
 
 ;;;###autoload
 (defun dired-do-async-shell-command (command &optional arg file-list)

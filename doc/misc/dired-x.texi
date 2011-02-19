@@ -177,15 +177,16 @@ Point}).
 @cindex Redefined functions
 @cindex @file{dired-aux.el}
 
-When loaded this code @emph{redefines} some standard Dired functions.
-From @file{dired.el}, the function @code{dired-find-buffer-nocreate}; 
-and from @file{dired-aux.el} the function @code{dired-read-shell-command}.
-In addition, once @file{dired-x.el} is loaded, the following Dired
-functions offer additional features.  @code{dired-add-entry} obeys Dired
-Omit mode (@pxref{Omitting Files in Dired}), if it is active.
+When loaded this code @emph{redefines} the standard @file{dired.el}
+function @code{dired-find-buffer-nocreate}.  In addition, once
+@file{dired-x.el} is loaded, the following Dired functions offer
+additional features.  @code{dired-add-entry} obeys Dired Omit mode
+(@pxref{Omitting Files in Dired}), if it is active.
 @code{dired-initial-position} obeys @code{dired-find-subdir}
 (@pxref{Miscellaneous Commands}).  @code{dired-clean-up-after-deletion}
 respects the value of @code{dired-clean-up-buffers-too}.
+@code{dired-read-shell-command} uses @code{dired-guess-shell-command}
+(@pxref{Shell Command Guessing}) to offer a smarter default command.
 
 @node Installation, Omitting Files in Dired, Introduction, Top
 @chapter Installation
