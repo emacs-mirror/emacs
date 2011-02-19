@@ -4637,6 +4637,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 	      (forward-line -1))
 	    (set-window-point (get-buffer-window (current-buffer)) (point))
 	    (gnus-configure-windows 'article)
+	    (gnus-run-hooks 'gnus-article-prepare-hook)
 	    t))))))
 
 ;;;###autoload
@@ -4654,8 +4655,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 	  gnus-article-image-alist nil)
     (gnus-run-hooks 'gnus-tmp-internal-hook)
     (when gnus-display-mime-function
-      (funcall gnus-display-mime-function))
-    (gnus-run-hooks 'gnus-article-prepare-hook)))
+      (funcall gnus-display-mime-function))))
 
 ;;;
 ;;; Gnus Sticky Article Mode
