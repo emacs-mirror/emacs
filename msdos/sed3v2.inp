@@ -18,7 +18,7 @@
 /^# DIST: /d
 /^SHELL *=/s/^/# /
 /^CC *=/s/=.*$/=gcc/
-/-DVERSION=/s/@version@/\${version}/
+s/-DVERSION[^ ]* //
 /^configname *=/s/=.*$/=msdos/
 /^archlibdir *=/s!=.*$!=/emacs/bin!
 /^bindir *=/s!=.*$!=/emacs/bin!
@@ -40,7 +40,6 @@
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
 /^C_WARNINGS_SWITCH *=/s/@C_WARNINGS_SWITCH@//
 /^PROFILING_CFLAGS *=/s/@PROFILING_CFLAGS@//
-/^LOADLIBES *=/s!=.*$!=!
 /^ALLOCA *=/s!@ALLOCA@!!
 /^EXEEXT *=/s!@EXEEXT@!!
 /^GETOPT_H *=/s!@GETOPT_H@!getopt.h!

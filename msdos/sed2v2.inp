@@ -34,6 +34,8 @@
 /^#undef HAVE_FREXP *$/s/^.*$/#define HAVE_FREXP 1/
 /^#undef HAVE_FMOD *$/s/^.*$/#define HAVE_FMOD 1/
 /^#undef HAVE_RINT *$/s/^.*$/#define HAVE_RINT 1/
+/^#undef HAVE_ATTRIBUTE_ALIGNED *$/s/^.*$/#define HAVE_ATTRIBUTE_ALIGNED 1/
+/^#undef HAVE_C99_STRTOLD *$/s/^.*$/#define HAVE_C99_STRTOLD 1/
 /^#undef HAVE_CBRT *$/s/^.*$/#define HAVE_CBRT 1/
 /^#undef HAVE_DIFFTIME *$/s/^.*$/#define HAVE_DIFFTIME 1/
 /^#undef HAVE_FPATHCONF *$/s/^.*$/#define HAVE_FPATHCONF 1/
@@ -56,8 +58,14 @@
 /^#undef PACKAGE_STRING/s/^.*$/#define PACKAGE_STRING ""/
 /^#undef PACKAGE_TARNAME/s/^.*$/#define PACKAGE_TARNAME ""/
 /^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION ""/
+/^#undef VERSION/s/^.*$/#define VERSION "24.0.50"/
+/^#undef HAVE_DECL_GETENV/s/^.*$/#define HAVE_DECL_GETENV 1/
 /^#undef SYS_SIGLIST_DECLARED/s/^.*$/#define SYS_SIGLIST_DECLARED 1/
 /^#undef HAVE_DIRENT_H/s/^.*$/#define HAVE_DIRENT_H 1/
+/^#undef HAVE__BOOL/s/^.*$/#define HAVE__BOOL 1/
+/^#undef inline/s/^.*$/#define inline __inline__/
+/^#undef my_strftime/s/^.*$/#define my_strftime nstrftime/
+/^#undef restrict/s/^.*$/#define restrict __restrict/
 
 /^#undef GNU_MALLOC *$/s/^.*$/#define GNU_MALLOC 1/
 /^#undef REL_ALLOC *$/s/^.*$/#define REL_ALLOC 1/
@@ -69,15 +77,6 @@ s!^#undef config_opsysfile *$!#define config_opsysfile "s/msdos.h"!
 s!^#undef config_machfile *$!#define config_machfile "m/intel386.h"!
 s/^#undef PROTOTYPES *$/#define PROTOTYPES 1/
 s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
-# ------------------------------------------------------------
-# Without this ifndef, gcc -E -traditional barfs with GCC 3.0
-# on the line which says if ! HAVE_MKTIME...
-# ------------------------------------------------------------
-/^#if ! HAVE_MKTIME || BROKEN_MKTIME/i\
-#ifndef __DJGPP__
-/^#define mktime emacs_mktime/a\
-#endif
-
 /^#undef HAVE_STDINT_H/c\
 #if __DJGPP__ > 2 || __DJGPP_MINOR__ > 3\
 #define HAVE_STDINT_H 1\
