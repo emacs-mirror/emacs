@@ -1,3 +1,10 @@
+2011-02-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Use consistently "Emacs" (instead of "GNU Emacs") and
+	"Debian GNU/Linux".
+
+	* trampver.texi [xemacs]: Set emacsothername to "Emacs".
+
 2011-02-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* ada-mode.texi: Sync @dircategory with ../../info/dir.
