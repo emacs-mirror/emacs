@@ -1660,9 +1660,9 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   }
 
 
-  XPROCESS (proc)->decoding_buf = make_uninit_string (0);
+  XPROCESS (proc)->decoding_buf = empty_unibyte_string;
   XPROCESS (proc)->decoding_carryover = 0;
-  XPROCESS (proc)->encoding_buf = make_uninit_string (0);
+  XPROCESS (proc)->encoding_buf = empty_unibyte_string;
 
   XPROCESS (proc)->inherit_coding_system_flag
     = !(NILP (buffer) || !inherit_process_coding_system);
@@ -2918,9 +2918,9 @@ usage:  (make-serial-process &rest ARGS)  */)
   p->encode_coding_system = val;
 
   setup_process_coding_systems (proc);
-  p->decoding_buf = make_uninit_string (0);
+  p->decoding_buf = empty_unibyte_string;
   p->decoding_carryover = 0;
-  p->encoding_buf = make_uninit_string (0);
+  p->encoding_buf = empty_unibyte_string;
   p->inherit_coding_system_flag
     = !(!NILP (tem) || NILP (buffer) || !inherit_process_coding_system);
 
@@ -3787,9 +3787,9 @@ usage: (make-network-process &rest ARGS)  */)
   }
   setup_process_coding_systems (proc);
 
-  p->decoding_buf = make_uninit_string (0);
+  p->decoding_buf = empty_unibyte_string;
   p->decoding_carryover = 0;
-  p->encoding_buf = make_uninit_string (0);
+  p->encoding_buf = empty_unibyte_string;
 
   p->inherit_coding_system_flag
     = !(!NILP (tem) || NILP (buffer) || !inherit_process_coding_system);
@@ -4364,9 +4364,9 @@ server_accept_connection (Lisp_Object server, int channel)
   p->encode_coding_system = ps->encode_coding_system;
   setup_process_coding_systems (proc);
 
-  p->decoding_buf = make_uninit_string (0);
+  p->decoding_buf = empty_unibyte_string;
   p->decoding_carryover = 0;
-  p->encoding_buf = make_uninit_string (0);
+  p->encoding_buf = empty_unibyte_string;
 
   p->inherit_coding_system_flag
     = (NILP (buffer) ? 0 : ps->inherit_coding_system_flag);

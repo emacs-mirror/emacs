@@ -48,9 +48,8 @@
 ;; User customization: M-x customize-group RET dired-x RET.
 
 ;; When loaded this code redefines the following functions of GNU Emacs:
-;; From dired.el: dired-clean-up-after-deletion, dired-find-buffer-nocreate,
-;; and dired-initial-position.
-;; From dired-aux.el: dired-add-entry and dired-read-shell-command.
+;; From dired.el: dired-clean-up-after-deletion, dired-find-buffer-nocreate.
+;; From dired-aux.el: dired-read-shell-command.
 
 ;; *Please* see the `dired-x' info pages for more details.
 
@@ -337,7 +336,7 @@ Remove expanded subdir of deleted dir, if any."
   (when dired-clean-up-buffers-too
     (let ((buf (get-file-buffer fn)))
       (and buf
-           (funcall (function y-or-n-p)
+           (funcall #'y-or-n-p
                     (format "Kill buffer of %s, too? "
                             (file-name-nondirectory fn)))
            (kill-buffer buf)))
@@ -589,45 +588,6 @@ Optional fourth argument LOCALP is as in `dired-get-filename'."
         (and fn (string-match regexp fn))))
      msg)))
 
-;; Compiler does not get fset.
-(declare-function dired-omit-old-add-entry "dired-x")
-
-;; REDEFINE.
-;; Redefine dired-aux.el's version of `dired-add-entry'
-;; Save old defun if not already done:
-(or (fboundp 'dired-omit-old-add-entry)
-    (fset 'dired-omit-old-add-entry (symbol-function 'dired-add-entry)))
-
-;; REDEFINE.
-(defun dired-omit-new-add-entry (filename &optional marker-char relative)
-  ;; This redefines dired-aux.el's dired-add-entry to avoid calling ls for
-  ;; files that are going to be omitted anyway.
-  (if dired-omit-mode
-      ;; perhaps return t without calling ls
-      (let ((omit-re (dired-omit-regexp)))
-        (if (or (string= omit-re "")
-                (not
-                 (string-match omit-re
-                               (cond
-                                ((eq 'no-dir dired-omit-localp)
-                                 filename)
-                                ((eq t dired-omit-localp)
-                                 (dired-make-relative filename))
-                                (t
-                                 (dired-make-absolute
-                                  filename
-                                  (file-name-directory filename)))))))
-            ;; if it didn't match, go ahead and add the entry
-            (dired-omit-old-add-entry filename marker-char relative)
-          ;; dired-add-entry returns t for success, perhaps we should
-          ;; return file-exists-p
-          t))
-    ;; omitting is not turned on at all
-    (dired-omit-old-add-entry filename marker-char relative)))
-
-;; Redefine it.
-(fset 'dired-add-entry 'dired-omit-new-add-entry)
-
 
 ;;; VIRTUAL DIRED MODE.
 
@@ -828,26 +788,25 @@ See also `dired-enable-local-variables'."
 
 (defun dired-hack-local-variables ()
   "Evaluate local variables in `dired-local-variables-file' for dired buffer."
-  (if (and dired-local-variables-file
-           (stringp dired-local-variables-file)
-           (file-exists-p dired-local-variables-file))
-      (let ((opoint (point-max))
-            buffer-read-only
-            ;; In case user has `enable-local-variables' set to nil we
-            ;; override it locally with dired's variable.
-            (enable-local-variables dired-enable-local-variables))
-        ;; Insert 'em.
-        (save-excursion
-          (goto-char opoint)
-          (insert "\^L\n")
-          (insert-file-contents dired-local-variables-file))
-        ;; Hack 'em.
-        (let ((buffer-file-name dired-local-variables-file))
-          (hack-local-variables))
-        ;; Make sure that the modeline shows the proper information.
-        (dired-sort-set-modeline)
-        ;; Delete this stuff: `eobp' is used to find last subdir by dired.el.
-        (delete-region opoint (point-max)))))
+  (and (stringp dired-local-variables-file)
+       (file-exists-p dired-local-variables-file)
+       (let ((opoint (point-max))
+             (inhibit-read-only t)
+             ;; In case user has `enable-local-variables' set to nil we
+             ;; override it locally with dired's variable.
+             (enable-local-variables dired-enable-local-variables))
+         ;; Insert 'em.
+         (save-excursion
+           (goto-char opoint)
+           (insert "\^L\n")
+           (insert-file-contents dired-local-variables-file))
+         ;; Hack 'em.
+         (let ((buffer-file-name dired-local-variables-file))
+           (hack-local-variables))
+         ;; Make sure that the modeline shows the proper information.
+         (dired-sort-set-modeline)
+         ;; Delete this stuff: `eobp' is used to find last subdir by dired.el.
+         (delete-region opoint (point-max)))))
 
 (defun dired-omit-here-always ()
   "Create `dired-local-variables-file' for omitting and reverts directory.
@@ -856,14 +815,12 @@ dired."
   (interactive)
   (if (file-exists-p dired-local-variables-file)
       (message "File `./%s' already exists." dired-local-variables-file)
-
     ;; Create `dired-local-variables-file'.
     (with-current-buffer (get-buffer-create " *dot-dired*")
       (erase-buffer)
       (insert "Local Variables:\ndired-omit-mode: t\nEnd:\n")
       (write-file dired-local-variables-file)
-      (kill-buffer (current-buffer)))
-
+      (kill-buffer))
     ;; Run extra-hooks and revert directory.
     (dired-extra-startup)
     (dired-revert)))
@@ -1134,10 +1091,9 @@ See `dired-guess-shell-alist-user'."
 
     ;; Return commands or nil if flist is still non-nil.
     ;; Evaluate the commands in order that any logical testing will be done.
-    (cond ((not (cdr cmds))
-           (eval (car cmds))) ; single command
-          (t
-           (mapcar (function eval) cmds)))))
+    (if (cdr cmds)
+        (mapcar #'eval cmds)
+      (eval (car cmds))))) ; single command
 
 (defun dired-guess-shell-command (prompt files)
   "Ask user with PROMPT for a shell command, guessing a default from FILES."
@@ -1207,8 +1163,7 @@ results in
     ;; Find common initial file name components:
     (let (next)
       (while (and (setq next (string-match "/" file1 index))
-                  (setq next (1+ next))
-                  (< next (min len1 len2))
+                  (< (setq next (1+ next)) (min len1 len2))
                   ;; For the comparison, both substrings must end in
                   ;; `/', so NEXT is *one plus* the result of the
                   ;; string-match.
@@ -1233,9 +1188,8 @@ results in
           (setq count (1+ count)
                 start (1+ start)))
         ;; ... and prepend a "../" for each slash found:
-        (while (> count 0)
-          (setq count (1- count)
-                name1 (concat "../" name1)))))
+        (dotimes (n count)
+          (setq name1 (concat "../" name1)))))
     (make-symbolic-link
      (directory-file-name name1)        ; must not link to foo/
                                         ; (trailing slash!)
@@ -1255,7 +1209,7 @@ not absolute ones like
 
 For absolute symlinks, use \\[dired-do-symlink]."
   (interactive "P")
-  (dired-do-create-files 'relsymlink (function dired-make-relative-symlink)
+  (dired-do-create-files 'relsymlink #'dired-make-relative-symlink
                            "RelSymLink" arg dired-keep-marker-relsymlink))
 
 (defun dired-do-relsymlink-regexp (regexp newname &optional arg whole-name)
@@ -1264,7 +1218,7 @@ See functions `dired-do-rename-regexp' and `dired-do-relsymlink'
 for more info."
   (interactive (dired-mark-read-regexp "RelSymLink"))
   (dired-do-create-files-regexp
-   (function dired-make-relative-symlink)
+   #'dired-make-relative-symlink
    "RelSymLink" arg regexp newname whole-name dired-keep-marker-relsymlink))
 
 
@@ -1304,50 +1258,36 @@ displayed this way is restricted by the height of the current window and
 
 To keep dired buffer displayed, type \\[split-window-vertically] first.
 To display just marked files, type \\[delete-other-windows] first."
-
   (interactive "P")
   (dired-simultaneous-find-file (dired-get-marked-files) noselect))
 
 (defun dired-simultaneous-find-file (file-list noselect)
-
   "Visit all files in FILE-LIST and display them simultaneously.
 The current window is split across all files in FILE-LIST, as evenly as
 possible.  Remaining lines go to the bottom-most window.  The number of
 files that can be displayed this way is restricted by the height of the
 current window and the variable `window-min-height'.  With non-nil
 NOSELECT the files are merely found but not selected."
-
   ;; We don't make this function interactive because it is usually too clumsy
   ;; to specify FILE-LIST interactively unless via dired.
-
   (let (size)
-
     (if noselect
         ;; Do not select the buffer.
         (find-file-noselect (car file-list))
-
       ;; We will have to select the buffer.  Calculate and check window size.
       (setq size (/ (window-height) (length file-list)))
       (or (<= window-min-height size)
           (error "Too many files to visit simultaneously.  Try C-u prefix"))
       (find-file (car file-list)))
-
     ;; Decrement.
-    (setq file-list (cdr file-list))
-
-    (while file-list
-
+    (dolist (file (cdr file-list))
       (if noselect
           ;; Do not select the buffer.
-          (find-file-noselect (car file-list))
-
+          (find-file-noselect file)
         ;; Vertically split off a window of desired size.  Upper window will
         ;; have SIZE lines.  Select lower (larger) window.  We split it again.
         (select-window (split-window nil size))
-        (find-file (car file-list)))
-
-      ;; Decrement.
-      (setq file-list (cdr file-list)))))
+        (find-file file)))))
 
 
 ;;; MISCELLANEOUS COMMANDS.
@@ -1431,7 +1371,7 @@ Otherwise obeys the value of `dired-vm-read-only-folders'."
 				   (equal dired-directory dirname))))
 	;; We don't want to switch to the same buffer---
 	(setq buffers (delq cur-buf buffers));;need setq with delq
-	(or (car (sort buffers (function dired-buffer-more-recently-used-p)))
+	(or (car (sort buffers #'dired-buffer-more-recently-used-p))
 	    ;; ---unless it's the only possibility:
 	    (and cur-buf-matches cur-buf)))
     (dired-old-find-buffer-nocreate dirname mode)))
@@ -1466,16 +1406,6 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
 ;;           ;; else buffer is killed - clean up:
 ;;           (setq dired-buffers (delq elt dired-buffers)))))
 ;;     result))
-
-;; REDEFINE.
-;; Redefines dired.el's version of `dired-initial-position'
-(defun dired-initial-position (dirname)
-  "Where point should go in a new listing of DIRNAME.
-Point assumed at beginning of new subdir line.
-You may redefine this function as you wish, e.g. like in `dired-x.el'."
-  (end-of-line)
-  (if dired-find-subdir (dired-goto-subdir dirname)) ; new
-  (if dired-trivial-filenames (dired-goto-next-nontrivial-file)))
 
 
 ;; Does anyone use this? - lrd 6/29/93.
@@ -1522,65 +1452,65 @@ to mark all zero length files."
         ;; there is no file line.  Upon success, all variables are set, either
         ;; to nil or the appropriate value, so they need not be initialized.
         ;; Moves point within the current line.
-        (if (dired-move-to-filename)
-            (let (pos
-                  (mode-len 10) ; length of mode string
-                  ;; like in dired.el, but with subexpressions \1=inode, \2=s:
-                  (dired-re-inode-size "\\s *\\([0-9]*\\)\\s *\\([0-9]*\\) ?"))
-              (beginning-of-line)
-              (forward-char 2)
-              (if (looking-at dired-re-inode-size)
-                  (progn
-                    (goto-char (match-end 0))
-                    (setq inode (string-to-number (buffer-substring (match-beginning 1)
-                                                                    (match-end 1)))
-                          s (string-to-number (buffer-substring (match-beginning 2)
-                                                                (match-end 2)))))
-                (setq inode nil
-                      s nil))
-              (setq mode (buffer-substring (point) (+ mode-len (point))))
-              (forward-char mode-len)
-              (setq nlink (read (current-buffer)))
-              ;; Karsten Wenger <kw@cis.uni-muenchen.de> fixed uid.
-              (setq uid (buffer-substring (1+ (point))
-					  (progn (forward-word 1) (point))))
-              (re-search-forward directory-listing-before-filename-regexp)
-              (goto-char (match-beginning 1))
-              (forward-char -1)
-              (setq size (string-to-number (buffer-substring (save-excursion
-                                                               (backward-word 1)
-                                                               (setq pos (point)))
-                                                             (point))))
-              (goto-char pos)
-              (backward-word 1)
-              ;; if no gid is displayed, gid will be set to uid
-              ;; but user will then not reference it anyway in PREDICATE.
-              (setq gid (buffer-substring (save-excursion
-					    (forward-word 1) (point))
-                                          (point))
-                    time (buffer-substring (match-beginning 1)
-                                           (1- (dired-move-to-filename)))
-                    name (buffer-substring (point)
-                                           (or
-					    (dired-move-to-end-of-filename t)
-					    (point)))
-                    sym  (progn
-                           (if (looking-at " -> ")
-                               (buffer-substring
-				(progn (forward-char 4) (point))
-				(progn (end-of-line) (point)))
-                             "")))
-              t)
-          nil)
-                      (eval predicate)))
+        (dired-move-to-filename)
+        (let (pos
+              (mode-len 10) ; length of mode string
+              ;; like in dired.el, but with subexpressions \1=inode, \2=s:
+              (dired-re-inode-size "\\s *\\([0-9]*\\)\\s *\\([0-9]*\\) ?"))
+          (beginning-of-line)
+          (forward-char 2)
+          (if (looking-at dired-re-inode-size)
+              (progn
+                (goto-char (match-end 0))
+                (setq inode (string-to-number
+                             (buffer-substring (match-beginning 1)
+                                               (match-end 1)))
+                      s (string-to-number
+                         (buffer-substring (match-beginning 2)
+                                           (match-end 2)))))
+            (setq inode nil
+                  s nil))
+          (setq mode (buffer-substring (point) (+ mode-len (point))))
+          (forward-char mode-len)
+          (setq nlink (read (current-buffer)))
+          ;; Karsten Wenger <kw@cis.uni-muenchen.de> fixed uid.
+          (setq uid (buffer-substring (1+ (point))
+                                      (progn (forward-word 1) (point))))
+          (re-search-forward directory-listing-before-filename-regexp)
+          (goto-char (match-beginning 1))
+          (forward-char -1)
+          (setq size (string-to-number
+                      (buffer-substring (save-excursion
+                                          (backward-word 1)
+                                          (setq pos (point)))
+                                        (point))))
+          (goto-char pos)
+          (backward-word 1)
+          ;; if no gid is displayed, gid will be set to uid
+          ;; but user will then not reference it anyway in PREDICATE.
+          (setq gid (buffer-substring (save-excursion
+                                        (forward-word 1) (point))
+                                      (point))
+                time (buffer-substring (match-beginning 1)
+                                       (1- (dired-move-to-filename)))
+                name (buffer-substring (point)
+                                       (or
+                                        (dired-move-to-end-of-filename t)
+                                        (point)))
+                sym (if (looking-at " -> ")
+                        (buffer-substring (progn (forward-char 4) (point))
+                                          (line-end-position))
+                      ""))
+          t)
+        (eval predicate)))
      (format "'%s file" predicate))))
 
 
 ;;; FIND FILE AT POINT.
 
 (defcustom dired-x-hands-off-my-keys t
-  "Non-nil means don't bind `dired-x-find-file' over `find-file' on keyboard.
-Similarly for `dired-x-find-file-other-window' over `find-file-other-window'.
+  "Non-nil means don't remap `find-file' to `dired-x-find-file'.
+Similarly for `find-file-other-window' and `dired-x-find-file-other-window'.
 If you change this variable without using \\[customize] after `dired-x.el'
 is loaded then call \\[dired-x-bind-find-file]."
   :type 'boolean
@@ -1590,62 +1520,37 @@ is loaded then call \\[dired-x-bind-find-file]."
          (dired-x-bind-find-file))
   :group 'dired-x)
 
-;; Bind `dired-x-find-file{-other-window}' over wherever
-;; `find-file{-other-window}' is bound?
 (defun dired-x-bind-find-file ()
-  "Bind `dired-x-find-file' in place of `find-file' \(or reverse\).
+  "Bind `dired-x-find-file' in place of `find-file' (or vice-versa).
 Similarly for `dired-x-find-file-other-window' and `find-file-other-window'.
-Binding direction based on `dired-x-hands-off-my-keys'.
-This function is part of `after-init-hook'."
+Binding direction based on `dired-x-hands-off-my-keys'."
   (interactive)
   (if (called-interactively-p 'interactive)
       (setq dired-x-hands-off-my-keys
             (not (y-or-n-p "Bind dired-x-find-file over find-file? "))))
-  (cond ((not dired-x-hands-off-my-keys)
-         (substitute-key-definition 'find-file
-                                    'dired-x-find-file
-                                    (current-global-map))
-         (substitute-key-definition 'find-file-other-window
-                                    'dired-x-find-file-other-window
-                                    (current-global-map)))
-        (t
-         (substitute-key-definition 'dired-x-find-file
-                                    'find-file
-                                    (current-global-map))
-         (substitute-key-definition 'dired-x-find-file-other-window
-                                    'find-file-other-window
-                                    (current-global-map))))
-  ;; Clear mini-buffer.
-  (message nil))
+  (define-key (current-global-map) [remap find-file]
+    (if (not dired-x-hands-off-my-keys) 'dired-x-find-file))
+  (define-key (current-global-map) [remap find-file-other-window]
+    (if (not dired-x-hands-off-my-keys) 'dired-x-find-file-other-window)))
 
-;; Now call it so binding is correct and put on `after-init-hook' in case
-;; user changes binding.
+;; Now call it so binding is correct.  This could go in the :initialize
+;; slot, but then dired-x-bind-find-file has to be defined before the
+;; defcustom, and we get free variable warnings.
 (dired-x-bind-find-file)
-(add-hook 'after-init-hook 'dired-x-bind-find-file)
 
 (defun dired-x-find-file (filename)
   "Edit file FILENAME.
-May create a new window, or reuse an existing one.
-See the function `display-buffer'.
-
-Identical to `find-file' except when called interactively, with a prefix arg
-\(e.g., \\[universal-argument]\), in which case it guesses filename near point.
-Useful for editing file mentioned in buffer you are viewing,
-or to test if that file exists.  Use minibuffer after snatching filename."
+Like `find-file', except that when called interactively with a
+prefix argument, it offers the filename near point as a default."
   (interactive (list (dired-x-read-filename-at-point "Find file: ")))
-  (find-file (expand-file-name filename)))
+  (find-file filename))
 
 (defun dired-x-find-file-other-window (filename)
   "Edit file FILENAME, in another window.
-May create a new window, or reuse an existing one.
-See the function `display-buffer'.
-
-Identical to `find-file-other-window' except when called interactively, with
-a prefix arg \(e.g., \\[universal-argument]\), in which case it guesses filename near point.
-Useful for editing file mentioned in buffer you are viewing,
-or to test if that file exists.  Use minibuffer after snatching filename."
+Like `find-file-other-window', except that when called interactively with
+a prefix argument, when it offers the filename near point as a default."
   (interactive (list (dired-x-read-filename-at-point "Find file: ")))
-  (find-file-other-window (expand-file-name filename)))
+  (find-file-other-window filename))
 
 ;;; Internal functions.
 
@@ -1653,14 +1558,14 @@ or to test if that file exists.  Use minibuffer after snatching filename."
 (defun dired-filename-at-point ()
   "Return the filename closest to point, expanded.
 Point should be in or after a filename."
-  (let ((filename-chars "-.[:alnum:]_/:$+@")
-        start end filename prefix)
-    (save-excursion
-      ;; First see if just past a filename.
-      (or (eobp)                             ; why?
-          (when (looking-at "[] \t\n[{}()]") ; whitespace or some parens
-            (skip-chars-backward " \n\t\r({[]})")
-            (or (bobp) (backward-char 1))))
+  (save-excursion
+    ;; First see if just past a filename.
+    (or (eobp)                             ; why?
+        (when (looking-at "[] \t\n[{}()]") ; whitespace or some parens
+          (skip-chars-backward " \n\t\r({[]})")
+          (or (bobp) (backward-char 1))))
+    (let ((filename-chars "-.[:alnum:]_/:$+@")
+          start prefix)
       (if (looking-at (format "[%s]" filename-chars))
           (progn
             (skip-chars-backward filename-chars)

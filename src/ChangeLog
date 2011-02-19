@@ -1,5 +1,25 @@
 2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* process.c (Fstart_process, Fmake_serial_process)
+	(Fmake_network_process, server_accept_connection):
+	Use empty_unibyte_string.
+
+	* alloc.c (make_unibyte_string): Don't SET_UNIBYTE redundantly.
+
+	* lread.c (Qdir_ok): New constant.
+	(syms_of_lread): Initialize it.
+	(openp): Don't ignore directories if the predicate returns dir-ok.
+
+2011-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Fix the change made for bug#7939.
+
+	* terminal.c (create_terminal): Use default-keyboard-coding-system
+	and default-terminal-coding-system to initialize coding systems of
+	the new terminal.  (Bug#7840)
+
+2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* lisp.h (BYTE_MARK_STACK): New macro.
 	(mark_byte_stack): Only declare if BYTE_MARK_STACK is set.
 

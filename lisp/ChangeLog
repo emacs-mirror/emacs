@@ -1,3 +1,78 @@
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-initial-position): Merge into dired.el's version.
+	* dired.el (dired-initial-position): Merge dired-x's version here.
+	(dired-find-subdir): Declare.
+
+	* dired-x.el (dired-omit-new-add-entry): Merge into dired-add-entry.
+	* dired-aux.el (dired-add-entry): Give it a doc-string.
+	Merge dired-x's dired-omit handling here.
+	(dired-omit-mode, dired-omit-regexp, dired-omit-localp): Declare.
+
+	* international/mule-diag.el (list-input-methods-1):
+	Indent all lines of multi-line doc-strings.  (Bug#8066)
+
+2011-02-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	Fix 2011-02-02 changes.
+
+	* apropos.el (apropos-print): Call apropos-mode before setting up
+	buffer variables.  Use inhibit-read-only.
+
+	* emacs-lisp/package.el (package--list-packages): Call
+	package-menu-mode before setting up buffer variables.
+
+	* play/solitaire.el (solitaire): Call solitaire-mode before
+	setting up buffer variables.  Use inhibit-read-only.
+
+2011-02-18  Lawrence Mitchell  <wence@gmx.li>
+
+	* progmodes/sh-script.el (sh-syntax-propertize-here-doc): (bug#8053)
+	Bind case-fold-search to nil when looking for end of here-doc.
+
+2011-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* image-mode.el (image-toggle-display-image):
+	Set find-file-literally non-nil in buffers visiting binary image
+	files.  (Bug#8047)
+
+2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (cd): Make completion obey cd-path (bug#7924).
+
+2011-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/prolog.el: Don't require compile when compiling.
+	(compilation-shell-minor-mode, compilation-error-regexp-alist)
+	(compilation-forget-errors, compilation-fake-loc)
+	(compilation-parse-errors-function, compilation-error-list): Declare.
+	(prolog-inferior-mode): Require 'compile.
+
+	* emulation/cua-base.el (pc-selection-mode): Declare.
+
+	* emacs-lisp/eieio-custom.el: Set generated-autoload-file.
+	(customize-object): Add autoload cookie.
+	* emacs-lisp/eieio-opt.el: Set generated-autoload-file.
+	(eieio-browse, describe-class, eieio-describe-class)
+	(eieio-describe-constructor, describe-generic, eieio-describe-generic)
+	(eieio-help-mode-augmentation-maybee): Add autoload cookies.
+	* emacs-lisp/eieio.el: Regenerate with automatic autoloads.
+	* Makefile.in (autoloads): Make eieio.el writable.
+
+	* dired-x.el (dired-clean-up-after-deletion, dired-do-relsymlink)
+	(dired-do-relsymlink-regexp, dired-find-buffer-nocreate): Use #'.
+	(dired-hack-local-variables): Use inhibit-read-only.
+	(dired-guess-default): Simplify.
+	(dired-make-relative-symlink): Use dotimes.
+	(dired-simultaneous-find-file): Use dolist.
+	(dired-mark-sexp): Remove unneeded `if'.  Use line-end-position.
+	(dired-x-hands-off-my-keys): Doc fix.
+	(dired-x-bind-find-file): Doc fix.  Use remapping.
+	(after-init-hook): No need to add dired-x-bind-find-file.
+	(dired-x-find-file, dired-x-find-file-other-window): Doc fixes.
+	No need to call expand-file-name.
+	(dired-filename-at-point): Remove unused locals `end', `filename'.
+
 2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase--u1): Understand non-linear patterns.
@@ -68,8 +143,8 @@
 	allout-abbreviate-flattened-numbering.
 	(allout-mode-p): Include among autoloads, for use by other modes
 	with impunity.
-	(allout-listify-exposed): Use
-	allout-flattened-numbering-abbreviation.
+	(allout-listify-exposed):
+	Use allout-flattened-numbering-abbreviation.
 	(allout-encrypt-string): Use set-buffer-multibyte directly.
 	(allout-set-buffer-multibyte): Remove.
 
@@ -146,8 +221,8 @@
 
 	* vc/vc-bzr.el (vc-bzr-log-view-mode): Truncate lines in root log.
 
-	* vc/log-view.el (log-view-mode-menu): Add
-	log-view-toggle-entry-display.
+	* vc/log-view.el (log-view-mode-menu):
+	Add log-view-toggle-entry-display.
 
 2011-02-14  Glenn Morris  <rgm@gnu.org>
 
@@ -172,8 +247,8 @@
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Remove a
 	narrow-to-region call that cuts context off the end (Bug#7722).
 
-	* progmodes/cc-engine.el (c-forward-<>-arglist-recur): Refactor
-	nested if-forms with a simple cond.
+	* progmodes/cc-engine.el (c-forward-<>-arglist-recur):
+	Refactor nested if-forms with a simple cond.
 	(c-forward-<>-arglist): Revert 2011-01-31 change.
 
 2011-02-13  Chong Yidong  <cyd@stupidchicken.com>

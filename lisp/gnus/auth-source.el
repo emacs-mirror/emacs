@@ -544,14 +544,16 @@ must call it to obtain the actual value."
       ;; create the entries.
       (when (and create
 		 (not matches))
-	(let ((match (apply
-		      (slot-value backend 'search-function)
-		      :backend backend
-		      :create create
-		      :delete delete
-		      spec)))
-	  (when match
-	    (push (list backend match) matches))))
+	(dolist (backend filtered-backends)
+	  (unless matches
+	    (let ((match (apply
+			  (slot-value backend 'search-function)
+			  :backend backend
+			  :create create
+			  :delete delete
+			  spec)))
+	      (when match
+		(push (list backend match) matches))))))
 
       (setq backend (caar matches)
 	    found-here (cadar matches))
