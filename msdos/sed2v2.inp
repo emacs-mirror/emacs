@@ -64,6 +64,7 @@
 /^#undef HAVE_DIRENT_H/s/^.*$/#define HAVE_DIRENT_H 1/
 /^#undef HAVE__BOOL/s/^.*$/#define HAVE__BOOL 1/
 /^#undef inline/s/^.*$/#define inline __inline__/
+/^#undef my_strftime/s/^.*$/#define my_strftime nstrftime/
 /^#undef restrict/s/^.*$/#define restrict __restrict/
 
 /^#undef GNU_MALLOC *$/s/^.*$/#define GNU_MALLOC 1/

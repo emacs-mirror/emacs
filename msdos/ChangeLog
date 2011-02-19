@@ -1,5 +1,23 @@
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* sedlibmk.inp (gl_LIBOBJS): Add getloadavg.o.
+
+	* sedleim.inp (RUN_EMACS): Rename from RUN-EMACS.
+	(BUILT_EMACS): Rename from BUILT-EMACS.
+
+	* sed6.inp (MAKEINFO): Edit to "makeinfo".
+	(ENVADD): Adjust to MAKEINFO_OPTS.
+	(texinputdir): Don't edit.
+
+	* sed2v2.inp (my_strftime): Edit to nstrftime.
+
+	* sed1v2.inp (LIBOBJS): Edit to empty.
+	($(libsrc)/make-docfile): Two new edits, one each for every
+	invocation of make-docfile.
+	(move-if-change): Fix edit.
+	Remove some unused switches from $(ALL_CFLAGS), to make the GCC
+	command line shorter.
+
 	* sed3v2.inp (-DVERSION): Edit out.
 	(LOADLIBES): Don't edit to empty.
 

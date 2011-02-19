@@ -1,5 +1,7 @@
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* termcap.c (tputs): Don't declare baud_rate.
+
 	* s/msdos.h (strtold): Define to _strtold.
 
 2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
