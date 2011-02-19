@@ -1,3 +1,7 @@
+2011-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (prefix-args${EXEEXT}): Compile with ALL_CFLAGS.
+
 2011-02-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_internal): Resynchronize `w' if the selected
