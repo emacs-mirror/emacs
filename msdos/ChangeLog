@@ -1,5 +1,11 @@
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* sed3v2.inp (-DVERSION): Edit out.
+	(LOADLIBES): Don't edit to empty.
+
+	* mainmake.v2 (lib, lib-src, src): Specify "all" as an explicit
+	target.
+
 	* sedlibmk.inp (CONFIG_CLEAN_VPATH_FILES): Fix editing of *-clean
 	rules.
 	(HAVE_GETOPT_H, PRAGMA_SYSTEM_HEADER, PRAGMA_COLUMNS): Fix

@@ -83,12 +83,12 @@ all:	lib lib-src src emacs misc lispref lispintro
 
 lib: FRC
 	cd lib
-	$(MAKE) top_srcdir=${top_srcdir} version=${version}
+	$(MAKE) top_srcdir=${top_srcdir} all
 	cd ..
 
 lib-src: lib FRC
 	cd lib-src
-	$(MAKE) top_srcdir=${top_srcdir} version=${version}
+	$(MAKE) top_srcdir=${top_srcdir} all
 	cd ..
 
 # Pass to src/Makefile.in an additional BOOTSTRAPEMACS variable which
@@ -102,7 +102,7 @@ lib-src: lib FRC
 # is not wrong, but is overkill in 99.99% of the cases.
 src: lib lib-src FRC
 	cd src
-	$(MAKE) top_srcdir=${top_srcdir} BOOTSTRAPEMACS="${boot}"
+	$(MAKE) top_srcdir=${top_srcdir} BOOTSTRAPEMACS="${boot}" all
 	djecho -s '/-geometry/s,^.*,set environment HOME $(top_srcdir),' \
 	          '/environment *TERM/s/^.*/set environment TERM internal/' \
 	       >gdb.sed
