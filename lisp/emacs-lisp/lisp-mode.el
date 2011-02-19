@@ -1209,7 +1209,6 @@ This function also returns nil meaning don't specify the indentation."
 (put 'prog1 'lisp-indent-function 1)
 (put 'prog2 'lisp-indent-function 2)
 (put 'save-excursion 'lisp-indent-function 0)
-(put 'save-window-excursion 'lisp-indent-function 0)
 (put 'save-restriction 'lisp-indent-function 0)
 (put 'save-match-data 'lisp-indent-function 0)
 (put 'save-current-buffer 'lisp-indent-function 0)

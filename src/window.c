@@ -6400,28 +6400,6 @@ redirection (see `redirect-frame-focus').  */)
   return (tem);
 }
 
-DEFUN ("save-window-excursion", Fsave_window_excursion, Ssave_window_excursion,
-       0, UNEVALLED, 0,
-       doc: /* Execute BODY, preserving window sizes and contents.
-Return the value of the last form in BODY.
-Restore which buffer appears in which window, where display starts,
-and the value of point and mark for each window.
-Also restore the choice of selected window.
-Also restore which buffer is current.
-Does not restore the value of point in current buffer.
-usage: (save-window-excursion BODY...)  */)
-  (Lisp_Object args)
-{
-  register Lisp_Object val;
-  register int count = SPECPDL_INDEX ();
-
-  record_unwind_protect (Fset_window_configuration,
-			 Fcurrent_window_configuration (Qnil));
-  val = Fprogn (args);
-  return unbind_to (count, val);
-}
-
-
 
 /***********************************************************************
 			    Window Split Tree
@@ -7195,7 +7173,6 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Swindow_configuration_frame);
   defsubr (&Sset_window_configuration);
   defsubr (&Scurrent_window_configuration);
-  defsubr (&Ssave_window_excursion);
   defsubr (&Swindow_tree);
   defsubr (&Sset_window_margins);
   defsubr (&Swindow_margins);

@@ -1,3 +1,10 @@
+2011-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fsave_window_excursion): Remove.  Moved to Lisp.
+	(syms_of_window): Don't defsubr it.
+	* window.h (Fsave_window_excursion): Don't declare it.
+	* bytecode.c (exec_byte_code): Inline Fsave_window_excursion.
+
 2011-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Vinternal_interpreter_environment): Remove.

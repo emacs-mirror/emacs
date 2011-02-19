@@ -1,3 +1,16 @@
+2011-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (save-window-excursion): New macro, moved from C.
+	* emacs-lisp/lisp-mode.el (save-window-excursion): Don't touch.
+	* emacs-lisp/cconv.el (cconv-closure-convert-rec, cconv-analyse-form):
+	Don't handle save-window-excursion any more.
+	* emacs-lisp/bytecomp.el (interactive-p, save-window-excursion):
+	Don't use the byte-code any more.
+	(byte-compile-form): Check macro expansion was done.
+	(byte-compile-save-window-excursion): Remove.
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Ignore save-window-excursion.  Don't macroepand any more.
+
 2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase--expand, pcase--u, pcase--u1, pcase--q1):

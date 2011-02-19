@@ -635,8 +635,8 @@ Returns a form where all lambdas don't have any free variables."
         ,(cconv-closure-convert-rec `(function (lambda () ,@body))
                                     emvrs fvrs envs lmenvs)))
 
-    (`(,(and head (or `save-window-excursion `track-mouse)) . ,body)
-     `(,head
+    (`(track-mouse . ,body)
+     `(track-mouse
         :fun-body
         ,(cconv-closure-convert-rec `(function (lambda () ,@body))
                                     emvrs fvrs envs lmenvs)))
@@ -827,7 +827,7 @@ lambdas if they are suitable for lambda lifting.
 
     ;; FIXME: The bytecode for save-window-excursion and the lack of
     ;; bytecode for track-mouse forces us to wrap the body.
-    (`(,(or `save-window-excursion `track-mouse) . ,body)
+    (`(track-mouse . ,body)
      (setq inclosure (1+ inclosure))
      (dolist (form body)
        (cconv-analyse-form form env inclosure)))

@@ -498,8 +498,7 @@
 			      (prin1-to-string form))
 	   nil)
 
-	  ((memq fn '(defun defmacro function
-		      condition-case save-window-excursion))
+	  ((memq fn '(defun defmacro function condition-case))
 	   ;; These forms are compiled as constants or by breaking out
 	   ;; all the subexpressions and compiling them separately.
 	   form)
@@ -529,24 +528,6 @@
 	   ;; that might occur if they were treated that way.
 	   ;; However, don't actually bother calling `ignore'.
 	   `(prog1 nil . ,(mapcar 'byte-optimize-form (cdr form))))
-
-	  ;; If optimization is on, this is the only place that macros are
-	  ;; expanded.  If optimization is off, then macroexpansion happens
-	  ;; in byte-compile-form.  Otherwise, the macros are already expanded
-	  ;; by the time that is reached.
-	  ((not (eq form
-		    (setq form (macroexpand form
-					    byte-compile-macro-environment))))
-	   (byte-optimize-form form for-effect))
-
-	  ;; Support compiler macros as in cl.el.
-	  ((and (fboundp 'compiler-macroexpand)
-		(symbolp (car-safe form))
-		(get (car-safe form) 'cl-compiler-macro)
-	        (not (eq form
-			 (with-no-warnings
-			  (setq form (compiler-macroexpand form))))))
-	   (byte-optimize-form form for-effect))
 
 	  ((not (symbolp fn))
 	   (byte-compile-warn "`%s' is a malformed function"

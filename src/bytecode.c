@@ -138,7 +138,7 @@ extern Lisp_Object Qand_optional, Qand_rest;
 
 #define Bpoint 0140
 /* Was Bmark in v17.  */
-#define Bsave_current_buffer 0141
+#define Bsave_current_buffer 0141 /* Obsolete.  */
 #define Bgoto_char 0142
 #define Binsert 0143
 #define Bpoint_max 0144
@@ -158,7 +158,7 @@ extern Lisp_Object Qand_optional, Qand_rest;
 #define Bsave_current_buffer_1 0162 /* Replacing Bsave_current_buffer.  */
 #define Bread_char 0162 /* No longer generated as of v19 */
 #define Bset_mark 0163 /* this loser is no longer generated as of v18 */
-#define Binteractive_p 0164 /* Needed since interactive-p takes unevalled args */
+#define Binteractive_p 0164 /* Obsolete.  */
 
 #define Bforward_char 0165
 #define Bforward_word 0166
@@ -183,7 +183,7 @@ extern Lisp_Object Qand_optional, Qand_rest;
 #define Bdup 0211
 
 #define Bsave_excursion 0212
-#define Bsave_window_excursion 0213
+#define Bsave_window_excursion 0213 /* Obsolete.  */
 #define Bsave_restriction 0214
 #define Bcatch 0215
 
@@ -192,7 +192,7 @@ extern Lisp_Object Qand_optional, Qand_rest;
 #define Btemp_output_buffer_setup 0220
 #define Btemp_output_buffer_show 0221
 
-#define Bunbind_all 0222
+#define Bunbind_all 0222	/* Obsolete.  */
 
 #define Bset_marker 0223
 #define Bmatch_beginning 0224
@@ -763,7 +763,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  AFTER_POTENTIAL_GC ();
 	  break;
 
-	case Bunbind_all:
+	case Bunbind_all:	/* Obsolete.  */
 	  /* To unbind back to the beginning of this frame.  Not used yet,
 	     but will be needed for tail-recursion elimination.  */
 	  BEFORE_POTENTIAL_GC ();
@@ -891,16 +891,24 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 				 save_excursion_save ());
 	  break;
 
-	case Bsave_current_buffer:
+	case Bsave_current_buffer: /* Obsolete.  */
 	case Bsave_current_buffer_1:
 	  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
 	  break;
 
-	case Bsave_window_excursion:
-	  BEFORE_POTENTIAL_GC ();
-	  TOP = Fsave_window_excursion (TOP); /* FIXME: lexbind */
-	  AFTER_POTENTIAL_GC ();
-	  break;
+	case Bsave_window_excursion: /* Obsolete.  */
+	  {
+	    register Lisp_Object val;
+	    register int count = SPECPDL_INDEX ();
+
+	    record_unwind_protect (Fset_window_configuration,
+				   Fcurrent_window_configuration (Qnil));
+	    BEFORE_POTENTIAL_GC ();
+	    TOP = Fprogn (TOP);
+	    unbind_to (count, TOP);
+	    AFTER_POTENTIAL_GC ();
+	    break;
+	  }
 
 	case Bsave_restriction:
 	  record_unwind_protect (save_restriction_restore,
@@ -1412,7 +1420,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  AFTER_POTENTIAL_GC ();
 	  break;
 
-	case Binteractive_p:
+	case Binteractive_p:	/* Obsolete.  */
 	  PUSH (Finteractive_p ());
 	  break;
 

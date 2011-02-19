@@ -2767,6 +2767,25 @@ nor the buffer list."
 	 (when (buffer-live-p ,old-buffer)
 	   (set-buffer ,old-buffer))))))
 
+(defmacro save-window-excursion (&rest body)
+  "Execute BODY, preserving window sizes and contents.
+Return the value of the last form in BODY.
+Restore which buffer appears in which window, where display starts,
+and the value of point and mark for each window.
+Also restore the choice of selected window.
+Also restore which buffer is current.
+Does not restore the value of point in current buffer.
+
+BEWARE: Most uses of this macro introduce bugs.
+E.g. it should not be used to try and prevent some code from opening
+a new window, since that window may sometimes appear in another frame,
+in which case `save-window-excursion' cannot help."
+  (declare (indent 0) (debug t))
+  (let ((c (make-symbol "wconfig")))
+    `(let ((,c (current-window-configuration)))
+       (unwind-protect (progn ,@body)
+         (set-window-configuration ,c)))))
+
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
 The value returned is the value of the last form in BODY.

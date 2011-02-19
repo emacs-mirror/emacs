@@ -586,7 +586,6 @@ Each element is (INDEX . VALUE)")
 (byte-defop 114  0 byte-save-current-buffer
   "To make a binding to record the current buffer")
 (byte-defop 115  0 byte-set-mark-OBSOLETE)
-(byte-defop 116  1 byte-interactive-p)
 
 ;; These ops are new to v19
 (byte-defop 117  0 byte-forward-char)
@@ -622,8 +621,6 @@ otherwise pop it")
 
 (byte-defop 138  0 byte-save-excursion
   "to make a binding to record the buffer, point and mark")
-(byte-defop 139  0 byte-save-window-excursion
-  "to make a binding to record entire window configuration")
 (byte-defop 140  0 byte-save-restriction
   "to make a binding to record the current buffer clipping restrictions")
 (byte-defop 141 -1 byte-catch
@@ -2955,6 +2952,10 @@ That command is designed for interactive use only" bytecomp-fn))
 					      custom-declare-face))
                  (byte-compile-nogroup-warn form))
 	     (byte-compile-callargs-warn form))
+           (if (and (fboundp (car form))
+                    (eq (car-safe (indirect-function (car form))) 'macro))
+               (byte-compile-report-error
+                (format "Forgot to expand macro %s" (car form))))
 	   (if (and bytecomp-handler
                     ;; Make sure that function exists.  This is important
                     ;; for CL compiler macros since the symbol may be
@@ -3167,7 +3168,6 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (byte-defop-compiler bobp		0)
 (byte-defop-compiler current-buffer	0)
 ;;(byte-defop-compiler read-char	0) ;; obsolete
-(byte-defop-compiler interactive-p	0)
 (byte-defop-compiler widen		0)
 (byte-defop-compiler end-of-line    0-1)
 (byte-defop-compiler forward-char   0-1)
@@ -3946,7 +3946,6 @@ binding slots have been popped."
 (byte-defop-compiler-1 save-excursion)
 (byte-defop-compiler-1 save-current-buffer)
 (byte-defop-compiler-1 save-restriction)
-(byte-defop-compiler-1 save-window-excursion)
 (byte-defop-compiler-1 with-output-to-temp-buffer)
 (byte-defop-compiler-1 track-mouse)
 
@@ -4046,15 +4045,6 @@ binding slots have been popped."
   (byte-compile-out 'byte-save-current-buffer 0)
   (byte-compile-body-do-effect (cdr form))
   (byte-compile-out 'byte-unbind 1))
-
-(defun byte-compile-save-window-excursion (form)
-  (pcase (cdr form)
-    (`(:fun-body ,f)
-     (byte-compile-form `(list (list 'funcall ,f))))
-    (body
-     (byte-compile-push-constant
-      (byte-compile-top-level-body body for-effect))))
-  (byte-compile-out 'byte-save-window-excursion 0))
 
 (defun byte-compile-with-output-to-temp-buffer (form)
   (byte-compile-form (car (cdr form)))
