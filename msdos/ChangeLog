@@ -1,5 +1,7 @@
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* sed1v2.inp: Delete gl-tmp after updating globals.h
+
 	* sedlibmk.inp (gl_LIBOBJS): Add getloadavg.o.
 
 	* sedleim.inp (RUN_EMACS): Rename from RUN-EMACS.
