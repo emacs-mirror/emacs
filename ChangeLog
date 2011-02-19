@@ -1,3 +1,15 @@
+2011-02-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import simpler crypto/md5 module from gnulib, plus stdint module.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4:
+	* src/config.in: Regenerate.
+	* lib/md5.c, lib/md5.h: Regenerate with simpler version, which
+	assumes C99-style <stdint.h>, supplied by the stdint module.
+	* lib/stdint.in.h, m4/longlong.m4, m4/stdint.m4: New files,
+	generated from gnulib.
+	* src/deps.mk (fns.o): Do not depend on md5.h, fixing a typo in
+	the earlier patch.
+
 2011-02-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Import crypto/md5 module from gnulib.

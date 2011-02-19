@@ -22,6 +22,7 @@
 #define _MD5_H 1
 
 #include <stdio.h>
+#include <stdint.h>
 
 #define MD5_DIGEST_SIZE 16
 #define MD5_BLOCK_SIZE 64
@@ -57,53 +58,17 @@
 extern "C" {
 # endif
 
-/* The following contortions are an attempt to use the C preprocessor
-   to determine an unsigned integral type that is 32 bits wide.  An
-   alternative approach is to use autoconf's AC_CHECK_SIZEOF macro, but
-   doing that would require that the configure script compile and *run*
-   the resulting executable.  Locally running cross-compiled executables
-   is usually not possible.  */
-
-#if defined _LIBC
-# include <stdint.h>
-typedef uint32_t md5_uint32;
-#else
-# if defined __STDC__ && __STDC__
-#  define UINT_MAX_32_BITS 4294967295U
-# else
-#  define UINT_MAX_32_BITS 0xFFFFFFFF
-# endif
-
-# include <limits.h>
-
-# if UINT_MAX == UINT_MAX_32_BITS
-   typedef unsigned int md5_uint32;
-# else
-#  if USHRT_MAX == UINT_MAX_32_BITS
-    typedef unsigned short md5_uint32;
-#  else
-#   if ULONG_MAX == UINT_MAX_32_BITS
-     typedef unsigned long md5_uint32;
-#   else
-     /* A machine this weird should have <stdint.h>.  */
-#    include <stdint.h>
-     typedef uint32_t md5_uint32;
-#   endif
-#  endif
-# endif
-#endif
-
 /* Structure to save state of computation between the single steps.  */
 struct md5_ctx
 {
-  md5_uint32 A;
-  md5_uint32 B;
-  md5_uint32 C;
-  md5_uint32 D;
+  uint32_t A;
+  uint32_t B;
+  uint32_t C;
+  uint32_t D;
 
-  md5_uint32 total[2];
-  md5_uint32 buflen;
-  md5_uint32 buffer[32];
+  uint32_t total[2];
+  uint32_t buflen;
+  uint32_t buffer[32];
 };
 
 /*

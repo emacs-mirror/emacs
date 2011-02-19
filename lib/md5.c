@@ -82,9 +82,9 @@ md5_init_ctx (struct md5_ctx *ctx)
 
 /* Copy the 4 byte value from v into the memory location pointed to by *cp,
    If your architecture allows unaligned access this is equivalent to
-   * (md5_uint32 *) cp = v  */
+   * (uint32_t *) cp = v  */
 static inline void
-set_uint32 (char *cp, md5_uint32 v)
+set_uint32 (char *cp, uint32_t v)
 {
   memcpy (cp, &v, sizeof v);
 }
@@ -109,7 +109,7 @@ void *
 md5_finish_ctx (struct md5_ctx *ctx, void *resbuf)
 {
   /* Take yet unprocessed bytes into account.  */
-  md5_uint32 bytes = ctx->buflen;
+  uint32_t bytes = ctx->buflen;
   size_t size = (bytes < 56) ? 64 / 4 : 64 * 2 / 4;
 
   /* Now count remaining bytes.  */
@@ -255,7 +255,7 @@ md5_process_bytes (const void *buffer, size_t len, struct md5_ctx *ctx)
     {
 #if !_STRING_ARCH_unaligned
 # define alignof(type) offsetof (struct { char c; type x; }, x)
-# define UNALIGNED_P(p) (((size_t) p) % alignof (md5_uint32) != 0)
+# define UNALIGNED_P(p) (((size_t) p) % alignof (uint32_t) != 0)
       if (UNALIGNED_P (buffer))
         while (len > 64)
           {
@@ -305,14 +305,14 @@ md5_process_bytes (const void *buffer, size_t len, struct md5_ctx *ctx)
 void
 md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
 {
-  md5_uint32 correct_words[16];
-  const md5_uint32 *words = buffer;
-  size_t nwords = len / sizeof (md5_uint32);
-  const md5_uint32 *endp = words + nwords;
-  md5_uint32 A = ctx->A;
-  md5_uint32 B = ctx->B;
-  md5_uint32 C = ctx->C;
-  md5_uint32 D = ctx->D;
+  uint32_t correct_words[16];
+  const uint32_t *words = buffer;
+  size_t nwords = len / sizeof (uint32_t);
+  const uint32_t *endp = words + nwords;
+  uint32_t A = ctx->A;
+  uint32_t B = ctx->B;
+  uint32_t C = ctx->C;
+  uint32_t D = ctx->D;
 
   /* First increment the byte count.  RFC 1321 specifies the possible
      length of the file up to 2^64 bits.  Here we only compute the
@@ -325,11 +325,11 @@ md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
      the loop.  */
   while (words < endp)
     {
-      md5_uint32 *cwp = correct_words;
-      md5_uint32 A_save = A;
-      md5_uint32 B_save = B;
-      md5_uint32 C_save = C;
-      md5_uint32 D_save = D;
+      uint32_t *cwp = correct_words;
+      uint32_t A_save = A;
+      uint32_t B_save = B;
+      uint32_t C_save = C;
+      uint32_t D_save = D;
 
       /* First round: using the given function, the context and a constant
          the next context is computed.  Because the algorithms processing
