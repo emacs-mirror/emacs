@@ -1,3 +1,25 @@
+2011-02-19  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-find-header-encoding): Be sure to
+	get the header copy into the temporary buffer.
+	(rmail-mime-insert-decoded-text): Ignore us-ascii.
+	(rmail-show-mime): When rmail-mime-coding-system is nil, set
+	buffer-file-coding-system to undecided.
+
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (read-char-by-name, ucs-insert):
+	Document completion with asterisk and a substring.
+
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (find-file-literally): Doc fix.
+
+	* simple.el (rfc822-goto-eoh): Give it a doc-string.
+
+	* log-edit.el (log-edit-insert-changelog):
+	Fix `log-edit-strip-single-file-name' functionality.  (Bug#8057)
+
 2011-02-19  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el (dired-read-shell-command): Merge into dired-aux's version.

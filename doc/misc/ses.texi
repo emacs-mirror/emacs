@@ -27,7 +27,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * SES: (ses).                   Simple Emacs Spreadsheet.
 @end direntry

@@ -621,14 +621,18 @@ regardless of user name or time."
           (delete-region start end)
           (rfc822-goto-eoh)
           (insert "Fixes: " fixes "\n" (if (looking-at "\n") "" "\n")))))
-    (goto-char (point-min))
-    (when (and log-edit-strip-single-file-name (looking-at "\\*\\s-+"))
-      (forward-line 1)
-      (when (not (re-search-forward "^\\*\\s-+" nil t))
-        (goto-char (point-min))
-        (skip-chars-forward "^():")
-        (skip-chars-forward ": ")
-        (delete-region (point-min) (point))))))
+    (and log-edit-strip-single-file-name
+         (progn (rfc822-goto-eoh)
+                (if (looking-at "\n") (forward-char 1))
+                (looking-at "\\*\\s-+"))
+         (let ((start (point)))
+           (forward-line 1)
+           (when (not (re-search-forward "^\\*\\s-+" nil t))
+             (goto-char start)
+             (skip-chars-forward "^():")
+             (skip-chars-forward ": ")
+             (delete-region start (point)))))
+    (goto-char (point-min))))
 
 ;;;;
 ;;;; functions for getting commit message from ChangeLog a file...

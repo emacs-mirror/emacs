@@ -26,7 +26,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * Message: (message).           Mail and news composition mode that
                                   goes with Gnus.

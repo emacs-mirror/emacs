@@ -35,7 +35,7 @@ developing GNU and promoting software freedom.''
 @finalout
 @contents
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * VIP: (vip).                   An older VI-emulation for Emacs.
 @end direntry

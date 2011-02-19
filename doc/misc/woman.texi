@@ -34,7 +34,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * WoMan: (woman).               Browse UN*X Manual Pages "W.O. (without) Man".
 @end direntry

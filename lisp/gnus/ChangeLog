@@ -1,3 +1,12 @@
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.el (gnus-meta): Doc fix.
+
+2011-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nnfolder.el (nnfolder-save-buffer): Don't let-bind copyright-update,
+	in case it's not yet loaded.
+
 2011-02-19  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-parse-copied-articles): Allow for "<foo> OK"

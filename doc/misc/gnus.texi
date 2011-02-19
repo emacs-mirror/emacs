@@ -321,7 +321,7 @@ developing GNU and promoting software freedom.''
 @end iflatex
 @end iftex
 
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * Gnus: (gnus).                 The newsreader Gnus.
 @end direntry

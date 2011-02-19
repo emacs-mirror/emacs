@@ -28,7 +28,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * Flymake: (flymake).           A universal on-the-fly syntax checker.
 @end direntry

@@ -31,7 +31,7 @@ license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * EasyPG Assistant: (epa).      An Emacs user interface to GNU Privacy Guard.
 @end direntry

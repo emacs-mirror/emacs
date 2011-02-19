@@ -38,7 +38,7 @@
 
 @c Emacs values.
 @ifset emacs
-@set emacsname          GNU Emacs
+@set emacsname          Emacs
 @set emacsdir           emacs
 @set ftppackagename     Ange-FTP
 @set prefix             /

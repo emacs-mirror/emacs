@@ -22,7 +22,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * EDT: (edt).                   An Emacs emulation of the EDT editor.
 @end direntry

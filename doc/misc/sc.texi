@@ -32,7 +32,7 @@ developing GNU and promoting software freedom.''
 
 @c      @smallbook
 
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * SC: (sc).                     Supercite lets you cite parts of messages
                                   you're replying to, in flexible ways.

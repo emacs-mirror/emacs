@@ -54,7 +54,7 @@ supports it in developing GNU and promoting software freedom.''
 @end copying
 
 @c Entries for @command{install-info} to use
-@dircategory @value{emacsname}
+@dircategory @value{emacsname} network features
 @direntry
 * TRAMP: (tramp).               Transparent Remote Access, Multiple Protocol
                                 @value{emacsname} remote file access via rsh and rcp.

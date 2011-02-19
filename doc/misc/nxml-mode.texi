@@ -31,7 +31,7 @@ license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs editing modes
 @direntry
 * nXML Mode: (nxml-mode).       XML editing mode with RELAX NG support.
 @end direntry

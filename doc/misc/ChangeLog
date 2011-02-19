@@ -1,3 +1,53 @@
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* ada-mode.texi: Sync @dircategory with ../../info/dir.
+	* auth.texi: Sync @dircategory with ../../info/dir.
+	* autotype.texi: Sync @dircategory with ../../info/dir.
+	* calc.texi: Sync @dircategory with ../../info/dir.
+	* cc-mode.texi: Sync @dircategory with ../../info/dir.
+	* cl.texi: Sync @dircategory with ../../info/dir.
+	* dbus.texi: Sync @dircategory with ../../info/dir.
+	* dired-x.texi: Sync @dircategory with ../../info/dir.
+	* ebrowse.texi: Sync @dircategory with ../../info/dir.
+	* ede.texi: Sync @dircategory with ../../info/dir.
+	* ediff.texi: Sync @dircategory with ../../info/dir.
+	* edt.texi: Sync @dircategory with ../../info/dir.
+	* eieio.texi: Sync @dircategory with ../../info/dir.
+	* emacs-mime.texi: Sync @dircategory with ../../info/dir.
+	* epa.texi: Sync @dircategory with ../../info/dir.
+	* erc.texi: Sync @dircategory with ../../info/dir.
+	* eshell.texi: Sync @dircategory with ../../info/dir.
+	* eudc.texi: Sync @dircategory with ../../info/dir.
+	* flymake.texi: Sync @dircategory with ../../info/dir.
+	* forms.texi: Sync @dircategory with ../../info/dir.
+	* gnus.texi: Sync @dircategory with ../../info/dir.
+	* idlwave.texi: Sync @dircategory with ../../info/dir.
+	* mairix-el.texi: Sync @dircategory with ../../info/dir.
+	* message.texi: Sync @dircategory with ../../info/dir.
+	* mh-e.texi: Sync @dircategory with ../../info/dir.
+	* newsticker.texi: Sync @dircategory with ../../info/dir.
+	* nxml-mode.texi: Sync @dircategory with ../../info/dir.
+	* org.texi: Sync @dircategory with ../../info/dir.
+	* pcl-cvs.texi: Sync @dircategory with ../../info/dir.
+	* pgg.texi: Sync @dircategory with ../../info/dir.
+	* rcirc.texi: Sync @dircategory with ../../info/dir.
+	* reftex.texi: Sync @dircategory with ../../info/dir.
+	* remember.texi: Sync @dircategory with ../../info/dir.
+	* sasl.texi: Sync @dircategory with ../../info/dir.
+	* sc.texi: Sync @dircategory with ../../info/dir.
+	* semantic.texi: Sync @dircategory with ../../info/dir.
+	* ses.texi: Sync @dircategory with ../../info/dir.
+	* sieve.texi: Sync @dircategory with ../../info/dir.
+	* smtpmail.texi: Sync @dircategory with ../../info/dir.
+	* speedbar.texi: Sync @dircategory with ../../info/dir.
+	* trampver.texi [emacs]: Set emacsname to "Emacs".
+	* tramp.texi: Sync @dircategory with ../../info/dir.
+	* url.texi: Sync @dircategory with ../../info/dir.
+	* vip.texi: Sync @dircategory with ../../info/dir.
+	* viper.texi: Sync @dircategory with ../../info/dir.
+	* widget.texi: Sync @dircategory with ../../info/dir.
+	* woman.texi: Sync @dircategory with ../../info/dir.
+
 2011-02-19  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.texi (Technical Details): No longer redefines dired-add-entry,

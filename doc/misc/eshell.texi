@@ -24,7 +24,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * Eshell: (eshell).             A command shell implemented in Emacs Lisp.
 @end direntry

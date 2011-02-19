@@ -23,7 +23,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * PCL-CVS: (pcl-cvs).           Emacs front-end to CVS.
 @end direntry
