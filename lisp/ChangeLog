@@ -1,3 +1,20 @@
+2011-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc-bzr.el (vc-bzr--branch-conf): Function deleted.
+	(vc-bzr-branch-conf): New function, similar to vc-bzr--branch-conf
+	but returning an alist.  Ignore comments in bzr conffile.
+	(vc-bzr-pull, vc-bzr-merge-branch): Use vc-bzr-branch-conf.
+	(vc-bzr-error-regex-alist): New var.
+	(vc-bzr-merge-branch): Use it to highlight the pull/merge buffer.
+
+	* vc/vc-dispatcher.el (vc-do-async-command): Bind
+	inhibit-read-only to t.
+
+	* progmodes/compile.el (compilation--flush-directory-cache):
+	Handle the case where cdr of compilation--flush-directory-cache
+	points to no buffer, which can occur if we previously switched to
+	compilation-mode in a pregenerated buffer.
+
 2011-02-19  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmailmm.el (rmail-mime-find-header-encoding): Be sure to

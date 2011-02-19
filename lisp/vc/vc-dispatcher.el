@@ -363,6 +363,7 @@ of a buffer, which is created.
 ROOT should be the directory in which the command should be run.
 Display the buffer in some window, but don't select it."
   (let* ((dir default-directory)
+	 (inhibit-read-only t)
 	 window new-window-start)
     (setq buffer (get-buffer-create buffer))
     (if (get-buffer-process buffer)
