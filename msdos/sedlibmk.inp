@@ -40,6 +40,7 @@ am__cd = cd
 /^C_SWITCH_X_SYSTEM *=/s/@C_SWITCH_X_SYSTEM@//
 /^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
 /^C_WARNINGS_SWITCH *=/s/@C_WARNINGS_SWITCH@//
+/^DEFS *=/s/@[^@\n]*@/-DHAVE_CONFIG_H/
 /^DEPDIR *=/s/@[^@\n]*@/deps/
 /^DEPFLAGS *=/s/@[^@\n]*@/-MMD -MF ${DEPDIR}\/$*.d/
 /^ECHO_N *=/s/@[^@\n]*@/-n/
@@ -148,7 +149,7 @@ am__cd = cd
 /^HAVE_GETGROUPS *=/s/@HAVE_GETGROUPS@/0/
 /^HAVE_GETHOSTNAME *=/s/@HAVE_GETHOSTNAME@/1/
 /^HAVE_GETLOGIN *=/s/@HAVE_GETLOGIN@/1/
-/^HAVE_GETOPT_H *=/s/@HAVE_GETOPT_H@/1/
+/^HAVE_GETOPT_H *=/s/@HAVE_GETOPT_H@/0/
 /^HAVE_GETPAGESIZE *=/s/@HAVE_GETPAGESIZE@/1/
 /^HAVE_GETSUBOPT *=/s/@HAVE_GETSUBOPT@/0/
 /^HAVE_GRANTPT *=/s/@HAVE_GRANTPT@/0/
@@ -212,7 +213,7 @@ am__cd = cd
 /^NEXT_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
 /^OBJEXT *=/s/@[^@\n]*@/o/
 /^PRAGMA_COLUMNS *=/s/@[^@\n]*@//
-/^PRAGMA_SYSTEM_HEADER *=/s/@[^@\n]*@/\#pragma GCC system_header/
+/^PRAGMA_SYSTEM_HEADER *=/s/@[^@\n]*@/\\\#pragma GCC system_header/
 /^PTHREAD_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
 /^RANLIB *=/s/@[^@\n]*@/ranlib/
 /^REPLACE_CALLOC *=/s/@REPLACE_CALLOC@/0/
@@ -264,10 +265,13 @@ am__cd = cd
 /^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o strftime.o time_r.o/
 /^srcdir *=/s/@[^@\n]*@/./
 /^top_srcdir *=/s/@[^@\n]*@/../
+/^top_builddir *=/s/@[^@\n]*@/../
+s/@PRAGMA_SYSTEM_HEADER@/\#pragma GCC system_header/
+s/@PRAGMA_COLUMNS@//
 #
 # Delete the recipes we don't want to get in our way.
 /^\$(srcdir)\/Makefile\.in:/,/^[ 	][ 	]*\$(AUTOMAKE)/d
-/^\$(srcdir)\/Makefile:/,/^[ 	][ 	]esac/d
+/^Makefile:/,/^[ 	][ 	]*esac/d
 /^\$(top_srcdir)\/configure:/,/^\$(ACLOCAL_M4)/d
 #
 # Fix the include-dependency lines
@@ -295,8 +299,9 @@ arg-nonnull.h: $(top_srcdir)/./arg-nonnull.h\
 /^cxxdefs\.h:/,/^[ 	][ 	]*mv /c\
 cxxdefs.h: $(top_srcdir)/./cxxdefs.h\
 	sed -n -e '/_GL_CXXDEFS/,$$p' < $(top_srcdir)/./cxxdefs.h > $@
-s/ \&\& \\ *$//
 s/^	[ 	]*{ echo \(.*\); \\/	 djecho \1 > $@-t/
+s/^	[ 	]*{ echo \(.*\) && \\/	 djecho \1 > $@-t/
+s/ \&\& \\ *$//
 s/\.in-h\;  *\\$/.in-h >> $@-t/
 /^	[ 	]*} /d
 /^stdlib\.h:/,/^	[ 	]*mv /{

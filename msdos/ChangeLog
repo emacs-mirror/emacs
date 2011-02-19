@@ -2,6 +2,10 @@
 
 	* sedlibmk.inp (CONFIG_CLEAN_VPATH_FILES): Fix editing of *-clean
 	rules.
+	(HAVE_GETOPT_H, PRAGMA_SYSTEM_HEADER, PRAGMA_COLUMNS): Fix
+	editing.
+	(DEFS): Edit to -DHAVE_CONFIG_H.
+	(Makefile, &&): Fix removal.
 
 	* depfiles.bat: New file.
 
