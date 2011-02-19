@@ -48,8 +48,7 @@
 ;; User customization: M-x customize-group RET dired-x RET.
 
 ;; When loaded this code redefines the following functions of GNU Emacs:
-;; From dired.el: dired-clean-up-after-deletion, dired-find-buffer-nocreate,
-;; and dired-initial-position.
+;; From dired.el: dired-clean-up-after-deletion, dired-find-buffer-nocreate.
 ;; From dired-aux.el: dired-read-shell-command.
 
 ;; *Please* see the `dired-x' info pages for more details.
@@ -1407,16 +1406,6 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
 ;;           ;; else buffer is killed - clean up:
 ;;           (setq dired-buffers (delq elt dired-buffers)))))
 ;;     result))
-
-;; REDEFINE.
-;; Redefines dired.el's version of `dired-initial-position'
-(defun dired-initial-position (dirname)
-  "Where point should go in a new listing of DIRNAME.
-Point assumed at beginning of new subdir line.
-You may redefine this function as you wish, e.g. like in `dired-x.el'."
-  (end-of-line)
-  (if dired-find-subdir (dired-goto-subdir dirname)) ; new
-  (if dired-trivial-filenames (dired-goto-next-nontrivial-file)))
 
 
 ;; Does anyone use this? - lrd 6/29/93.

@@ -2544,11 +2544,15 @@ instead of `dired-actual-switches'."
 	 ;; return value of point (i.e., FOUND):
 	 (goto-char found))))
 
+(defvar dired-find-subdir)
+
+;; FIXME document whatever dired-x is doing.
 (defun dired-initial-position (dirname)
-  ;; Where point should go in a new listing of DIRNAME.
-  ;; Point assumed at beginning of new subdir line.
-  ;; You may redefine this function as you wish, e.g. like in dired-x.el.
+  "Where point should go in a new listing of DIRNAME.
+Point assumed at beginning of new subdir line."
   (end-of-line)
+  (and (featurep 'dired-x) dired-find-subdir
+       (dired-goto-subdir dirname))
   (if dired-trivial-filenames (dired-goto-next-nontrivial-file)))
 
 ;; These are hooks which make tree dired work.

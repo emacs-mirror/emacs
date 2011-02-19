@@ -185,14 +185,14 @@ from @file{dired.el}
 @code{dired-clean-up-after-deletion}
 @item
 @code{dired-find-buffer-nocreate}
-@item
-@code{dired-initial-position}
 @end itemize
 
 @noindent
 and from @file{dired-aux.el} the function @code{dired-read-shell-command}.
 In addition, once @file{dired.el} is loaded, @code{dired-add-entry}
 obeys Dired Omit mode (@pxref{Omitting Files in Dired}), if it is active.
+Similarly, @code{dired-initial-position} obeys @code{dired-find-subdir}
+(@pxref{Miscellaneous Commands}).
 
 @node Installation, Omitting Files in Dired, Introduction, Top
 @chapter Installation
