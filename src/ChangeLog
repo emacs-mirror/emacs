@@ -1,3 +1,7 @@
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/msdos.h (strtold): Define to _strtold.
+
 2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (Fstart_process, Fmake_serial_process)

@@ -98,6 +98,7 @@ s/\.h\.in/.h-in/
 /^ns_appbindir *=/s/@ns_appbindir@//
 /^ns_appsrc *=/s/@ns_appsrc@//
 /^NS_OBJ *=/s/@NS_OBJ@//
+/^NS_OBJC_OBJ *=/s/@NS_OBJC_OBJ@//
 /^NS_SUPPORT *=/s/@NS_SUPPORT@//
 /^GNU_OBJC_CFLAGS*=/s/@GNU_OBJC_CFLAGS@//
 /^LIBRESOLV *=/s/@LIBRESOLV@//
@@ -145,6 +146,11 @@ s/\.h\.in/.h-in/
 	stubedit emacs.exe minstack=2048k
 s/ || exit 1\; \\$//
 s/ || true\; \\$//
+s/ @true *$/ @rem/
+s/^	[^ 	]*move-if-change /update /
+/^	echo[ 	][ 	]*timestamp/s/echo /djecho /
+/^	cd \$(lib) && \$(MAKE)/c\
+	$(MAKE) $(MFLAGS) -C $(lib) libgnu.a
 /^RUN_TEMACS *=/s|`/bin/pwd`|.|
 /^	 *@\$(MKDEPDIR) *$/d
 /^	mv \.\/\.gdbinit/d

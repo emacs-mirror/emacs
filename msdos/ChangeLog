@@ -1,3 +1,30 @@
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp: New file.
+
+	* sedlibcf.inp: New file.
+
+	* sed1v2.inp (NS_OBJC_OBJ): Edit to empty.
+	(@true): Edit to "@rem".
+	(move-if-change): Edit to "update".
+	(echo): Edit to "djecho".
+	(cd $(lib) && ...): Edit to "$(MAKE) -C ...".
+
+	* mainmake.v2 (version): Remove, no longer needed (config.in
+	defines VERSION).
+	(all): Add lib.
+	(lib): New target and recipe.
+	(lib-src): Depend on lib.
+	(src): Depend on lib and lib-src.
+	(clean, mostlyclean, distclean, maintainer-clean, extraclean)
+	(bootstrap-clean): Recurse into lib.
+
+	* sed2v2.inp: Remove workaround for the "#if ! HAVE_MKTIME ||
+	BROKEN_MKTIME" stuff -- it's no longer in src/config.in.
+	(HAVE_ATTRIBUTE_ALIGNED, HAVE_C99_STRTOLD, HAVE_DECL_GETENV)
+	(HAVE__BOOL): Edit to 1.
+	(VERSION, inline, restrict): Edit for DJGPP.
+
 2011-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* sedleim.inp (RUN-EMACS): -batch implies --no-init-file.
