@@ -1,3 +1,8 @@
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* edt.texi, erc.texi, gnus.texi, idlwave.texi, mh-e.texi:
+	Standardize some Emacs/XEmacs terminology.
+
 2011-02-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi: Use consistently "Emacs" (instead of "GNU Emacs") and
