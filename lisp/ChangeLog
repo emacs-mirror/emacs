@@ -1,3 +1,8 @@
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule-diag.el (list-input-methods-1):
+	Indent all lines of multi-line doc-strings.  (Bug#8066)
+
 2011-02-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	Fix 2011-02-02 changes.
