@@ -1,5 +1,10 @@
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* sedlibmk.inp (CONFIG_CLEAN_VPATH_FILES): Fix editing of *-clean
+	rules.
+
+	* depfiles.bat: New file.
+
 	* sedlibmk.inp: New file.
 
 	* sedlibcf.inp: New file.

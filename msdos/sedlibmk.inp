@@ -285,7 +285,7 @@ s/^@am__fastdepCC_FALSE/\#/
 CONFIG_CLEAN_FILES = xyzzy
 /^CONFIG_CLEAN_VPATH_FILES *= *$/c\
 CONFIG_CLEAN_VPATH_FILES = xyzzy
-s/^	-*test -z.*|| rm/ -rm/
+s/^	-*test -z.*|| rm/	 -rm/
 s/@echo /@djecho/
 #
 # Fix the recipes for header files

@@ -288,6 +288,9 @@ If Exist unistd.in.h update unistd.in.h unistd.in-h
 sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp
 sed -f ../msdos/sedlibmk.inp < makefile.tmp > Makefile
 rm -f makefile.tmp
+If Not Exist deps\stamp mkdir deps
+If Not Exist deps\stamp for %%f in (*.c) do @call ..\msdos\depfiles.bat %%f
+If Not Exist deps\stamp echo deps-stamp > deps\stamp
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the lisp directory...

@@ -37,6 +37,7 @@ leim/quail/*.el
 leim/changed.misc
 leim/changed.tit
 lib/.deps/
+lib/deps/
 lib/arg-nonnull.h
 lib/c++defs.h
 lib/getopt.h

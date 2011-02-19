@@ -1,8 +1,10 @@
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* .bzrignore: Ignore cxxdefs.h and lib/*.in-h files.
+	Add lib/deps/.
 
 	* config.bat: Configure in `lib'.
+	Generate *.Po files in lib/deps.
 
 2011-02-18  Paul Eggert  <eggert@cs.ucla.edu>
 
