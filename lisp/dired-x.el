@@ -48,7 +48,7 @@
 ;; User customization: M-x customize-group RET dired-x RET.
 
 ;; When loaded this code redefines the following functions of GNU Emacs:
-;; From dired.el: dired-clean-up-after-deletion, dired-find-buffer-nocreate.
+;; From dired.el: dired-find-buffer-nocreate.
 ;; From dired-aux.el: dired-read-shell-command.
 
 ;; *Please* see the `dired-x' info pages for more details.
@@ -321,32 +321,6 @@ See also the functions:
   ;; These must be done in each new dired buffer.
   (dired-hack-local-variables)
   (dired-omit-startup))
-
-
-;;; BUFFER CLEANING.
-
-;; REDEFINE.
-(defun dired-clean-up-after-deletion (fn)
-  "Clean up after a deleted file or directory FN.
-Remove expanded subdir of deleted dir, if any."
-  (save-excursion (and (cdr dired-subdir-alist)
-                       (dired-goto-subdir fn)
-                       (dired-kill-subdir)))
-  ;; Offer to kill buffer of deleted file FN.
-  (when dired-clean-up-buffers-too
-    (let ((buf (get-file-buffer fn)))
-      (and buf
-           (funcall #'y-or-n-p
-                    (format "Kill buffer of %s, too? "
-                            (file-name-nondirectory fn)))
-           (kill-buffer buf)))
-    (let ((buf-list (dired-buffers-for-dir (expand-file-name fn))))
-      (and buf-list
-           (y-or-n-p (format "Kill dired buffer%s of %s, too? "
-                             (dired-plural-s (length buf-list))
-                             (file-name-nondirectory fn)))
-           (dolist (buf buf-list)
-             (kill-buffer buf))))))
 
 
 ;;; EXTENSION MARKING FUNCTIONS.

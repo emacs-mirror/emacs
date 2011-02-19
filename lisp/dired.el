@@ -2749,12 +2749,32 @@ non-empty directories is allowed."
 			  (save-excursion (forward-line 1) (point))))))
   (dired-clean-up-after-deletion file))
 
-;; This is a separate function for the sake of dired-x.el.
+(defvar dired-clean-up-buffers-too)
+
 (defun dired-clean-up-after-deletion (fn)
-  ;; Clean up after a deleted file or directory FN.
+  "Clean up after a deleted file or directory FN.
+Removes any expanded subdirectory of deleted directory.
+If `dired-x' is loaded and `dired-clean-up-buffers-too' is non-nil,
+also offers to kill buffers visiting deleted files and directories."
   (save-excursion (and (cdr dired-subdir-alist)
 		       (dired-goto-subdir fn)
-		       (dired-kill-subdir))))
+		       (dired-kill-subdir)))
+  ;; Offer to kill buffer of deleted file FN.
+  (when (and (featurep 'dired-x) dired-clean-up-buffers-too)
+    (let ((buf (get-file-buffer fn)))
+      (and buf
+           (funcall #'y-or-n-p
+                    (format "Kill buffer of %s, too? "
+                            (file-name-nondirectory fn)))
+           (kill-buffer buf)))
+    (let ((buf-list (dired-buffers-for-dir (expand-file-name fn))))
+      (and buf-list
+           (y-or-n-p (format "Kill dired buffer%s of %s, too? "
+                             (dired-plural-s (length buf-list))
+                             (file-name-nondirectory fn)))
+           (dolist (buf buf-list)
+             (kill-buffer buf))))))
+
 
 ;; Confirmation
 

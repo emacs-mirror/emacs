@@ -1,7 +1,7 @@
 2011-02-19  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.texi (Technical Details): No longer redefines dired-add-entry,
-	or dired-initial-position.
+	dired-initial-position, or dired-clean-up-after-deletion.
 
 2011-02-18  Glenn Morris  <rgm@gnu.org>
 

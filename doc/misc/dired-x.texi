@@ -177,22 +177,15 @@ Point}).
 @cindex Redefined functions
 @cindex @file{dired-aux.el}
 
-When loaded this code @emph{redefines} the following functions of GNU Emacs
-from @file{dired.el}
-
-@itemize @bullet
-@item
-@code{dired-clean-up-after-deletion}
-@item
-@code{dired-find-buffer-nocreate}
-@end itemize
-
-@noindent
+When loaded this code @emph{redefines} some standard Dired functions.
+From @file{dired.el}, the function @code{dired-find-buffer-nocreate}; 
 and from @file{dired-aux.el} the function @code{dired-read-shell-command}.
-In addition, once @file{dired.el} is loaded, @code{dired-add-entry}
-obeys Dired Omit mode (@pxref{Omitting Files in Dired}), if it is active.
-Similarly, @code{dired-initial-position} obeys @code{dired-find-subdir}
-(@pxref{Miscellaneous Commands}).
+In addition, once @file{dired-x.el} is loaded, the following Dired
+functions offer additional features.  @code{dired-add-entry} obeys Dired
+Omit mode (@pxref{Omitting Files in Dired}), if it is active.
+@code{dired-initial-position} obeys @code{dired-find-subdir}
+(@pxref{Miscellaneous Commands}).  @code{dired-clean-up-after-deletion}
+respects the value of @code{dired-clean-up-buffers-too}.
 
 @node Installation, Omitting Files in Dired, Introduction, Top
 @chapter Installation

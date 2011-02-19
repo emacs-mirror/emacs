@@ -1,5 +1,9 @@
 2011-02-19  Glenn Morris  <rgm@gnu.org>
 
+	* dired-x.el (dired-clean-up-after-deletion): Merge into dired.el.
+	* dired.el (dired-clean-up-after-deletion): Merge dired-x's version.
+	(dired-clean-up-buffers-too): Declare.
+
 	* dired-x.el (dired-initial-position): Merge into dired.el's version.
 	* dired.el (dired-initial-position): Merge dired-x's version here.
 	(dired-find-subdir): Declare.
