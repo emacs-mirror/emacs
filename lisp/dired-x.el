@@ -50,7 +50,7 @@
 ;; When loaded this code redefines the following functions of GNU Emacs:
 ;; From dired.el: dired-clean-up-after-deletion, dired-find-buffer-nocreate,
 ;; and dired-initial-position.
-;; From dired-aux.el: dired-add-entry and dired-read-shell-command.
+;; From dired-aux.el: dired-read-shell-command.
 
 ;; *Please* see the `dired-x' info pages for more details.
 
@@ -588,45 +588,6 @@ Optional fourth argument LOCALP is as in `dired-get-filename'."
       (let ((fn (dired-get-filename localp t)))
         (and fn (string-match regexp fn))))
      msg)))
-
-;; Compiler does not get fset.
-(declare-function dired-omit-old-add-entry "dired-x")
-
-;; REDEFINE.
-;; Redefine dired-aux.el's version of `dired-add-entry'
-;; Save old defun if not already done:
-(or (fboundp 'dired-omit-old-add-entry)
-    (fset 'dired-omit-old-add-entry (symbol-function 'dired-add-entry)))
-
-;; REDEFINE.
-(defun dired-omit-new-add-entry (filename &optional marker-char relative)
-  ;; This redefines dired-aux.el's dired-add-entry to avoid calling ls for
-  ;; files that are going to be omitted anyway.
-  (if dired-omit-mode
-      ;; perhaps return t without calling ls
-      (let ((omit-re (dired-omit-regexp)))
-        (if (or (string= omit-re "")
-                (not
-                 (string-match omit-re
-                               (cond
-                                ((eq 'no-dir dired-omit-localp)
-                                 filename)
-                                ((eq t dired-omit-localp)
-                                 (dired-make-relative filename))
-                                (t
-                                 (dired-make-absolute
-                                  filename
-                                  (file-name-directory filename)))))))
-            ;; if it didn't match, go ahead and add the entry
-            (dired-omit-old-add-entry filename marker-char relative)
-          ;; dired-add-entry returns t for success, perhaps we should
-          ;; return file-exists-p
-          t))
-    ;; omitting is not turned on at all
-    (dired-omit-old-add-entry filename marker-char relative)))
-
-;; Redefine it.
-(fset 'dired-add-entry 'dired-omit-new-add-entry)
 
 
 ;;; VIRTUAL DIRED MODE.

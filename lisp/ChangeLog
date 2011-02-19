@@ -1,5 +1,10 @@
 2011-02-19  Glenn Morris  <rgm@gnu.org>
 
+	* dired-x.el (dired-omit-new-add-entry): Merge into dired-add-entry.
+	* dired-aux.el (dired-add-entry): Give it a doc-string.
+	Merge dired-x's dired-omit handling here.
+	(dired-omit-mode, dired-omit-regexp, dired-omit-localp): Declare.
+
 	* international/mule-diag.el (list-input-methods-1):
 	Indent all lines of multi-line doc-strings.  (Bug#8066)
 

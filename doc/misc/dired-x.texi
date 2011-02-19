@@ -190,14 +190,9 @@ from @file{dired.el}
 @end itemize
 
 @noindent
-and the following functions from @file{dired-aux.el}
-
-@itemize @bullet
-@item
-@code{dired-add-entry}
-@item
-@code{dired-read-shell-command}
-@end itemize
+and from @file{dired-aux.el} the function @code{dired-read-shell-command}.
+In addition, once @file{dired.el} is loaded, @code{dired-add-entry}
+obeys Dired Omit mode (@pxref{Omitting Files in Dired}), if it is active.
 
 @node Installation, Omitting Files in Dired, Introduction, Top
 @chapter Installation

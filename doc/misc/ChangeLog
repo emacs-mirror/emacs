@@ -1,3 +1,7 @@
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Technical Details): No longer redefines dired-add-entry.
+
 2011-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.texi (Optional Installation File At Point): Simplify.
