@@ -1,6 +1,6 @@
 /* xftfont.c -- XFT font driver.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -430,7 +430,11 @@ xftfont_open (f, entity, pixel_size)
 	ascii_printable[i] = ' ' + i;
     }
   BLOCK_INPUT;
-  if (spacing != FC_PROPORTIONAL && spacing != FC_DUAL)
+  if (spacing != FC_PROPORTIONAL
+#ifdef FC_DUAL
+      && spacing != FC_DUAL
+#endif	/* FC_DUAL */
+      )
     {
       font->min_width = font->average_width = font->space_width
 	= xftfont->max_advance_width;

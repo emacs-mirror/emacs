@@ -1,7 +1,7 @@
 ;;; grep.el --- run Grep as inferior of Emacs, parse match messages
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -561,7 +561,10 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 	(unless grep-find-command
 	  (setq grep-find-command
 		(cond ((eq grep-find-use-xargs 'gnu)
-		       (format "%s . -type f -print0 | %s -0 -e %s"
+		       ;; Windows shells need the program file name
+		       ;; after the pipe symbol be quoted if they use
+		       ;; forward slashes as directory separators.
+		       (format "%s . -type f -print0 | \"%s\" -0 -e %s"
 			       find-program xargs-program grep-command))
 		      ((eq grep-find-use-xargs 'exec)
 		       (let ((cmd0 (format "%s . -type f -exec %s"
@@ -572,21 +575,21 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 				  (shell-quote-argument ";"))
 			  (1+ (length cmd0)))))
 		      (t
-		       (format "%s . -type f -print | %s %s"
+		       (format "%s . -type f -print | \"%s\" %s"
 			       find-program xargs-program grep-command)))))
 	(unless grep-find-template
 	  (setq grep-find-template
 		(let ((gcmd (format "%s <C> %s <R>"
 				    grep-program grep-options)))
 		  (cond ((eq grep-find-use-xargs 'gnu)
-			 (format "%s . <X> -type f <F> -print0 | %s -0 -e %s"
+			 (format "%s . <X> -type f <F> -print0 | \"%s\" -0 -e %s"
 				 find-program xargs-program gcmd))
 			((eq grep-find-use-xargs 'exec)
 			 (format "%s . <X> -type f <F> -exec %s {} %s %s"
 				 find-program gcmd null-device
 				 (shell-quote-argument ";")))
 			(t
-			 (format "%s . <X> -type f <F> -print | %s %s"
+			 (format "%s . <X> -type f <F> -print | \"%s\" %s"
 				 find-program xargs-program gcmd))))))))
     (when (eq grep-highlight-matches 'auto-detect)
       (setq grep-highlight-matches

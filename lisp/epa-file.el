@@ -1,5 +1,5 @@
 ;;; epa-file.el --- the EasyPG Assistant, transparent file encryption
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -149,7 +149,8 @@ way."
 		(set-visited-file-modtime))))
       (if (and local-copy
 	       (file-exists-p local-copy))
-	  (delete-file local-copy)))
+	  (let ((delete-by-moving-to-trash nil))
+	    (delete-file local-copy))))
     (list file length)))
 (put 'insert-file-contents 'epa-file 'epa-file-insert-file-contents)
 

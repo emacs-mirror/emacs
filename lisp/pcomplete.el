@@ -1,7 +1,7 @@
 ;;; pcomplete.el --- programmable completion
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes abbrev
@@ -1113,7 +1113,7 @@ generate the completions list.  This means that the hook
 (defmacro pcomplete-here* (&optional form stub form-only)
   "An alternate form which does not participate in argument paring."
   (declare (debug t))
-  `(pcomplete-here (lambda () ,form) ,stub t ,form-only))
+  `(pcomplete-here ,form ,stub t ,form-only))
 
 ;; display support
 

@@ -1,7 +1,7 @@
 ;;; diary-lib.el --- diary functions
 
 ;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1995, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -2312,9 +2312,19 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
                          t))
      '(1 font-lock-reference-face))
     '(diary-font-lock-sexps . font-lock-keyword-face)
+    ;; Don't need to worry about space around "-" because the first
+    ;; match takes care of that.  It does mean the "-" itself may or
+    ;; may not be fontified though.
+    ;; diary-date-forms often include a final character that is not
+    ;; part of the date (eg a non-digit to mark the end of the year).
+    ;; This can use up the only space char between a date and time (b#7891).
+    ;; Hence we use OVERRIDE, which can only override whitespace.
+    ;; FIXME it's probably better to tighten up the diary-time-regexp
+    ;; and drop the whitespace requirement below.
     `(,(format "\\(^\\|\\s-\\)%s\\(-%s\\)?" diary-time-regexp
                diary-time-regexp)
-      . 'diary-time))))
+      . (0 'diary-time t)))))
+;      . 'diary-time))))
 
 (defvar diary-font-lock-keywords (diary-font-lock-keywords)
   "Forms to highlight in `diary-mode'.")

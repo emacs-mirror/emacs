@@ -1,3 +1,63 @@
+2011-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi: Sync @dircategory with ../../info/dir.
+
+	* files.texi (Visiting Functions): Document find-file-literally,
+	both the command and the variable.
+
+	* variables.texi (Creating Buffer-Local): Explain the meaning of
+	permanent local variables.
+
+2011-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* keymaps.texi (Remapping Commands): Mention how to undo it.
+
+2011-02-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Accessing Mouse): Note that a header line is not
+	included in the row of posn-col-row.
+
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vol1.texi (Top):
+	* vol2.texi (Top):
+	* elisp.texi (Top):
+	* display.texi (Display Property): Shorten the menu description of
+	the "Other Display Specs" node (Bug#7816).
+
+	* keymaps.texi (Defining Menus): Add "menu item" and "extended
+	menu item" concept index entries (Bug#7805).
+
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+            Richard Kim  <emacs18@gmail.com>
+
+	* loading.texi (Library Search): Document list-load-path-shadows
+	(Bug#7757).
+
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* searching.texi (Regexp Special): Remove outdated discussion of
+	character sets (Bug#7780).
+
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Pop-Up Menus): Document where menu title comes
+	from (Bug#7684).
+
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Making Buttons): Mention limitation of text buttons.
+
+2011-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (Directory Names): Move directory-abbrev-alist doc to
+	Emacs manual.
+
+2011-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Directory Names): Explain why FROM in
+	directory-abbrev-alist should begin with \`.  (Bug#7777)
+
 2010-12-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* modes.texi (Emulating Mode Line): Fix last change.
@@ -8655,7 +8715,7 @@
 ;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-      2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+      2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -8671,5 +8731,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: 985ae0ce-df29-475b-b3f8-4bbcbf6f7fda

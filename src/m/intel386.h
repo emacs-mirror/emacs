@@ -1,6 +1,6 @@
 /* Machine description file for intel 386.
    Copyright (C) 1987, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+                 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -42,7 +42,7 @@ NOTE-END */
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 
-/* #define NO_ARG_ARRAY */
+#define NO_ARG_ARRAY
 
 /* crt0.c, if it is used, should use the i386-bsd style of entry.
    with no extra dummy args.  On USG and XENIX,

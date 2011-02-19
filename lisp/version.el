@@ -32,7 +32,7 @@
 (defconst emacs-copyright "Copyright (C) 2011 Free Software Foundation, Inc." "\
 Short copyright string for this version of Emacs.")
 
-(defconst emacs-version "23.2.91" "\
+(defconst emacs-version "23.2.94" "\
 Version numbers of this version of Emacs.")
 
 (defconst emacs-major-version (progn (string-match "^[0-9]+" emacs-version) (string-to-number (match-string 0 emacs-version))) "\

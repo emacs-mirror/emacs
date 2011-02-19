@@ -16,7 +16,7 @@
 
 @include trampver.texi
 
-@c Macro for formatting a filename according to the repective syntax.
+@c Macro for formatting a filename according to the respective syntax.
 @c xxx and yyy are auxiliary macros in order to omit leading and
 @c trailing whitespace.  Not very elegant, but I don't know it better.
 
@@ -37,8 +37,8 @@
 @end macro
 
 @copying
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -55,7 +55,7 @@ supports it in developing GNU and promoting software freedom.''
 @end copying
 
 @c Entries for @command{install-info} to use
-@dircategory @value{emacsname}
+@dircategory @value{emacsname} network features
 @direntry
 * TRAMP: (tramp).               Transparent Remote Access, Multiple Protocol
                                 @value{emacsname} remote file access via rsh and rcp.
@@ -2834,6 +2834,9 @@ the following command:
 @example
 [ $TERM = "dumb" ] && unsetopt zle && PS1='$ '
 @end example
+
+Furthermore it has been reported, that @value{tramp} (like sshfs,
+incidentally) doesn't work with WinSSHD due to strange prompt settings.
 
 @item
 Echoed characters after login

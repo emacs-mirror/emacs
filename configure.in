@@ -4,7 +4,7 @@ dnl 	autoconf
 dnl in the directory containing this script.
 dnl
 dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003,
-dnl    2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+dnl    2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -22,7 +22,7 @@ dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.62)
-AC_INIT(emacs, 23.2.91)
+AC_INIT(emacs, 23.2.94)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 
@@ -491,6 +491,10 @@ dnl see the `changequote' comment above.
   hppa*-hp-hpux1[1-9]* )
     machine=hp800 opsys=hpux11
     CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
+  ;;
+
+  ia64*-hp-hpux1[1-9]* )
+    machine=hp800 opsys=hpux11
   ;;
 
   hppa*-*-linux-gnu* )
@@ -1792,7 +1796,8 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
 #include <X11/Intrinsic.h>
 #include <X11/Xaw3d/Simple.h>],
       [],
-      emacs_cv_xaw3d=yes,
+      [AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb,
+                    emacs_cv_xaw3d=yes, emacs_cv_xaw3d=no)],
       emacs_cv_xaw3d=no)])
   else
     emacs_cv_xaw3d=no
@@ -2372,6 +2377,15 @@ AC_CHECK_FUNCS(getpt)
 # than to expect to find it in ncurses.
 AC_CHECK_LIB(ncurses, tparm)
 
+case "$opsys" in
+  netbsd)
+    AC_SEARCH_LIBS(tputs, [ncurses terminfo termcap])
+    if test $ac_cv_search_tputs = -lterminfo; then
+      AC_DEFINE(TERMINFO, 1, [Define to 1 if you use terminfo instead of termcap.])
+    fi
+    ;;
+esac
+
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
 
 resolv=no
@@ -2743,7 +2757,7 @@ fi
 
 AH_TOP([/* GNU Emacs site configuration template file.
    Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005,
-     2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+     2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

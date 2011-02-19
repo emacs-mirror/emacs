@@ -1,7 +1,7 @@
 ;;; pgg-gpg.el --- GnuPG support for PGG.
 
 ;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Symmetric encryption and gpg-agent support added by: 
@@ -130,7 +130,8 @@
       (if (and process (eq 'run (process-status process)))
 	  (interrupt-process process))
       (if (file-exists-p output-file-name)
-	  (delete-file output-file-name))
+	  (let ((delete-by-moving-to-trash nil))
+	    (delete-file output-file-name)))
       (set-default-file-modes orig-mode))))
 
 (defun pgg-gpg-possibly-cache-passphrase (passphrase &optional key notruncate)

@@ -1,7 +1,7 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; (copyright statements below in code to be updated with the above notice)
 
@@ -780,8 +780,11 @@ shouldn't return t when it isn't."
   ;; password caching.  "scpc" is chosen if we detect that the user is
   ;; running OpenSSH 4.0 or newer.
   (cond
-   ;; PuTTY is installed.
-   ((executable-find "pscp")
+   ;; PuTTY is installed.  We don't take it, if it is installed on a
+   ;; non-windows system, or pscp from the pssh (parallel ssh) package
+   ;; is found.
+   ((and (eq system-type 'windows-nt)
+	 (executable-find "pscp"))
     (if	(or (fboundp 'password-read)
 	    (fboundp 'auth-source-user-or-password)
 	    ;; Pageant is running.
@@ -1904,8 +1907,8 @@ on the remote host.")
 (defconst tramp-perl-encode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-#   Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+#   2011 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -1946,8 +1949,8 @@ This string is passed to `format', so percent characters need to be doubled.")
 (defconst tramp-perl-decode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-#   Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+#   2011 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -7359,9 +7362,17 @@ Goes through the list `tramp-inline-compress-commands'."
 	   vec 5
 	   "Checking local compress command `%s', `%s' for sanity"
 	   compress decompress)
-	  (unless (zerop (tramp-call-local-coding-command
-			  (format "echo %s | %s | %s"
-				  magic compress decompress) nil nil))
+	  (unless
+	      (zerop
+	       (tramp-call-local-coding-command
+		(format
+		 ;; Windows shells need the program file name after
+		 ;; the pipe symbol be quoted if they use forward
+		 ;; slashes as directory separators.
+		 (if (memq system-type '(windows-nt))
+		     "echo %s | \"%s\" | \"%s\""
+		   "echo %s | %s | %s")
+		 magic compress decompress) nil nil))
 	    (throw 'next nil))
 	  (tramp-message
 	   vec 5
@@ -8642,9 +8653,25 @@ function cell is returned to be applied on a buffer."
 	 ((symbolp coding)
 	  coding)
 	 ((and compress (string-match "decoding" prop))
-	  (format "(%s | %s >%%s)" coding compress))
+	  (format
+	   ;; Windows shells need the program file name after
+	   ;; the pipe symbol be quoted if they use forward
+	   ;; slashes as directory separators.
+	   (if (and (string-match "local" prop)
+		    (memq system-type '(windows-nt)))
+	       "(%s | \"%s\" >%%s)"
+	     "(%s | %s >%%s)")
+	   coding compress))
 	 (compress
-	  (format "(%s <%%s | %s)" compress coding))
+	  (format
+	   ;; Windows shells need the program file name after
+	   ;; the pipe symbol be quoted if they use forward
+	   ;; slashes as directory separators.
+	   (if (and (string-match "local" prop)
+		    (memq system-type '(windows-nt)))
+	       "(%s <%%s | \"%s\")"
+	     "(%s <%%s | %s)")
+	   compress coding))
 	 ((string-match "decoding" prop)
 	  (format "%s >%%s" coding))
 	 (t

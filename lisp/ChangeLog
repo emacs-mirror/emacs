@@ -1,12 +1,350 @@
+2011-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* image-mode.el (image-toggle-display-image): Disable
+	require-final-newline in buffers visiting binary image files.
+	(Bug#8047)
+
+	* international/mule-cmds.el (read-char-by-name, ucs-insert):
+	Document completion with asterisk and a substring.
+
+2011-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (find-file-literally): Doc fix.
+
+2011-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (rfc822-goto-eoh): Give it a doc-string.
+
+	* log-edit.el (log-edit-insert-changelog):
+	Fix `log-edit-strip-single-file-name' functionality.  (Bug#8057)
+
+2011-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pgg-gpg.el (pgg-gpg-process-region): Bind
+	delete-by-moving-to-trash to nil.
+
+	* pgg-pgp.el (pgg-pgp-process-region, pgg-pgp-verify-region)
+	(pgg-pgp-snarf-keys-region):
+	* pgg-pgp5.el (pgg-pgp5-process-region, pgg-pgp5-verify-region)
+	(pgg-pgp5-snarf-keys-region): Likewise.
+
+2011-02-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): Revert to pre-2011-01-29 version.
+
+2011-02-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* epg.el (epg-delete-output-file, epg-decrypt-string)
+	(epg-verify-string, epg-sign-string, epg-encrypt-string): Bind
+	delete-by-moving-to-trash to nil.
+
+	* epa-file.el (epa-file-insert-file-contents): Likewise.
+
+2011-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-seq.el (union, nunion, intersection)
+	(nintersection, set-difference, nset-difference)
+	(set-exclusive-or, nset-exclusive-or): Doc fix.
+
+	* ediff-ptch.el (ediff-fixup-patch-map): Doc fix.
+
+2011-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* faces.el (face-attr-match-p): Handle the obsolete :bold and
+	:italic props, so that frame-set-background-mode works.  (Bug#7966)
+
+2011-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (next-error): Doc fix.
+
+2011-02-06  Chong Yidong  <cyd@stupidchicken.com>
+            Thierry Volpiatto <thierry.volpiatto@gmail.com>
+
+	* files.el (copy-directory): New arg COPY-AS-SUBDIR.  If nil,
+	don't copy as a subdirectory.
+
+2011-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (return-from): Fix doc typo.
+
+2011-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-font-lock-keywords):
+	Tweak diary-time-regexp match.  (Bug#7891)
+
+	* progmodes/f90.el (f90-find-tag-default): New function.  (Bug#7919)
+	(f90-mode): Use it for mode's `find-tag-default-function' property.
+
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* ibuf-ext.el (ibuffer-filter-disable): Make it work.  (Bug#7969)
+
+	* faces.el (set-face-attribute): Doc fix.  (Bug#2659)
+
+2011-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el (pcomplete-here*): Backport fix for mistaken change
+	(bug#7959) and (bug#5935).
+
+2011-01-31  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el: Clean log filenames (Bug#7933).
+	(rcirc-log-write): Use convert-standard-filename.
+	(rcirc-log-filename-function): Documentation updates.
+
+2011-01-31  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-forward-over-illiterals):
+	Continue parsing if we encounter a naked # (Bug#7595).
+	(c-beginning-of-statement): Avoid loop in locating the beginning
+	of a macro.
+
+2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): Fix arguments to recursive call.
+
+2011-01-29  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg--status-KEYEXPIRED, epg--status-KEYREVOKED):
+	Don't presume KEYEXPIRED and KEYREVOKED to be a fatal error status
+	(Bug#7931).
+
+2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): If destination is an existing
+	directory, copy into a subdirectory there.
+
+2011-01-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/shadow.el (load-path-shadows-find): Ignore leim-list
+	files.
+
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-dired.el (image-dired-mouse-display-image): No-op if no
+	file is found (Bug#7817).
+
+	* mouse.el (mouse-menu-non-singleton): Doc fix (Bug#7801).
+
+2011-01-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-keyboard-layout-alist):
+	Remove superfluous SPC for "pc105-uk" (bug#7927).
+
+2011-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* msb.el (msb-menu-bar-update-buffers): Update for changed
+	argument handling of menu-bar-select-frame.  (Bug#7902)
+
+2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cc-engine.el (c-forward-<>-arglist-recur): Set a limit
+	to the recursion depth (Bug#7722).
+
+2011-01-26  Roy Liu  <carsomyr@gmail.com>  (tiny change)
+
+	* term/ns-win.el (ns-find-file): Expand ns-input-file with
+	command-line-default-directory (Bug#7872).
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (comint-mode): Doc fix.  (Bug#7897)
+
+2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (file-name-non-special): Only change buffer-file-name after
+	insert-file-contents if it's `visit'ing the file (bug#7854).
+
+2011-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-revert): Doc fix (Bug#7758).
+
+2011-01-23  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-here-doc-beg-match): Fix for
+	here-doc which ends with an underscore.
+	(ruby-mode-set-encoding): Skip shebang line always.
+	(ruby-mode-map): Bind C-c C-c to comment-region.
+	(ruby-font-lock-keywords): Highlight literal hash key labels as symbols.
+	(ruby-forward-sexp): Stop after literal hash key labels.
+	(ruby-font-lock-syntactic-keywords): Highlight regexp after open
+	bracket.
+
+2011-01-22  Keitaro Miyazaki  <keitaro.miyazaki@gmail.com>  (tiny change)
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Set case-fold-search in
+	the correct buffer (Bug#7650).
+
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (do-auto-fill): Give it a doc string.
+
+	* button.el (make-text-button): Doc fix.  (See bug#7881)
+
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-visual): Doc fix (Bug#7594).
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Fix logic error in
+	"Case sensitive" menu item.
+
+2011-01-21  Roland McGrath  <roland@frob.com>
+
+	* comint.el (comint-replace-by-expanded-history-before-point): Fix
+	expansion of !$ and !!:N syntax to pick the indicated word (bug#7883).
+
+2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/js.el (js--regexp-literal): Count backslashes (bug#7882).
+
+2011-01-21  Jari Aalto  <jari.aalto@cante.net>
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Assume foo(bar) is a manpage reference rather than some unquoted
+	symbol (bug#7705).
+
+2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (shell-quote-argument): Properly quote \n (bug#7687).
+	Suggested by Flo <sensorflo@gmail.com>.
+
+2011-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Fix custom type.  (Bug#7812)
+
+2011-01-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't re-evaluate the
+	keymap expression.  Improve docstring.
+
+2011-01-15  Mark Diekhans  <markd@soe.ucsc.edu>
+
+	* files.el (backup-buffer): Make last-resort backup file in
+	.emacs.d (Bug#6953).
+
+	* subr.el (locate-user-emacs-file): If .emacs.d does not exist,
+	make it with permission 700.
+
+2011-01-14  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-header):
+	Set rmail-mime-coding-system to a cons whose car is the last coding
+	system used to decode the header.
+	(rmail-mime-find-header-encoding): New function.
+	(rmail-mime-insert-decoded-text):
+	Override rmail-mime-coding-system if it is a cons.
+	(rmail-show-mime): If only a header part was decoded, find the
+	coding system while ignoring mm-charset-override-alist.
+
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (event-start, event-end): Doc fix (Bug#7826).
+
+2011-01-12  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-next-item)
+	(rmail-mime-previous-item): Delete them.
+	(rmail-mime-shown-mode): Recursively call for children.
+	(rmail-mime-hidden-mode): Delete the 2nd arg TOP.
+	Callers changed.
+	(rmail-mime-raw-mode): Recursively call for children.
+	(rmail-mode-map): Change mapping of tab and backtab to
+	forward-button and backward-button respectively.
+	(rmail-mime-insert-tagline): Always insert "Hide" or "Show"
+	button.
+	(rmail-mime-update-tagline): New function.
+	(rmail-mime-insert-text): Call rmail-mime-update-tagline if the
+	body display is changed.
+	(rmail-mime-toggle-button): Rename from rmail-mime-image.
+	(rmail-mime-image): Delete this button type.
+	(rmail-mime-toggle): New button type.
+	(rmail-mime-insert-bulk): Call rmail-mime-update-tagline if the
+	body display is changed.  Change the save button label to "Save".
+	Don't process show/hide button here.
+	(rmail-mime-insert-multipart): Call rmail-mime-update-tagline if
+	the body display is changed.  Unconditionally call
+	rmail-mime-insert for children.
+	(rmail-mime-handle): Update `display' vector of the just inserted
+	entity.
+	(rmail-mime-process): If mail-header-parse-content-type returns
+	nil, use "text/plain" as the fallback type.
+	(rmail-mime-insert): For raw-mode, recursively call
+	rmail-mim-insert for children.
+	(rmail-mime): Handle the case that the current buffer is not rmail
+	buffer (e.g. in summary buffer).
+
+2011-01-05  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-next-item)
+	(rmail-mime-previous-item): Skip the body of a non-multipart
+	entity if a tagline is shown.
+
+2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-get-keymap): Skip bindings without labels (bug#7721).
+	(tmm-prompt): Simplify.
+	(tmm-add-prompt): Remove unused var `win'.
+
+	* whitespace.el (global-whitespace-newline-mode): Fix call (bug#7810)
+	to minor mode which used nil accidentally to mean "turn off".
+
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-find-inline-compress)
+	(tramp-get-inline-coding): Quote command after pipe symbol for
+	local calls under W32.  (Bug#6784)
+
+2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-default-method): Initialize with pscp/plink
+	only when running under W32.
+
+2011-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/grep.el (grep-compute-defaults): Quote the program
+	file name after the pipe symbol in Grep templates.  (Bug#6784)
+	* jka-compr.el (jka-compr-partial-uncompress): Likewise.
+
+2011-01-08  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* buff-menu.el (Buffer-menu-buffer-list): New var.
+	(Buffer-menu-revert-function, list-buffers-noselect): Use it, so a
+	restricted buffer list is not lost on revert (Bug#7749).
+
+2011-01-08  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* net/ldap.el (ldap-search-internal): Discard stderr output.
+
+2011-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (directory-abbrev-alist): Doc fix.  (Bug#7777)
+
+2011-01-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-annotate-command, vc-bzr-annotate-time):
+	Author names can have spaces (bug#7792).
+
+2011-01-04  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-bulk): Display an unknown
+	part as a plain text.
+	(rmail-mime-process-multipart): Set the default content-type to
+	nil for unknown multipart subtypes (bug#7651).
+
+2011-01-03  Brent Goodrick  <bgoodr@gmail.com>  (tiny change)
+
+	* abbrev.el (prepare-abbrev-list-buffer): If listing local abbrev
+	table, get the value before switching to the output buffer.  (Bug#7733)
+
+2011-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-mode): Don't impose font-lock (bug#3628).
+
 2011-01-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (file-local-variables-alist):
 	Make permanent-local (bug#7767).
-
-2011-01-02  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
-
-	* mail/mail-utils.el (mail-strip-quoted-names): Don't modify the
-	" *temp*" buffer (bug#7746).
 
 2011-01-02  Glenn Morris  <rgm@gnu.org>
 
@@ -72,7 +410,7 @@
 	(rmail-mime-insert-text): Call rmail-mime-insert-decoded-text.
 	(rmail-mime-insert-image): Argument changed.  Caller changed.
 	(rmail-mime-image): Call rmail-mime-toggle-hidden.
-	(rmail-mime-set-bulk-data): New funciton.
+	(rmail-mime-set-bulk-data): New function.
 	(rmail-mime-insert-bulk): Argument changed.
 	(rmail-mime-multipart-handler): Return t.
 	(rmail-mime-process-multipart): Argument changed.
@@ -772,7 +1110,7 @@
 	is indented differently if it is after a begin..end clock.
 	(verilog-in-attribute-p, verilog-skip-backward-comments)
 	(verilog-skip-forward-comment-p): Support proper treatment of
-	attributes by indent code. Reported by Jeff Steele.
+	attributes by indent code.  Reported by Jeff Steele.
 	(verilog-in-directive-p): Fix comment to correctly describe function.
 	(verilog-backward-up-list, verilog-in-struct-region-p)
 	(verilog-backward-token, verilog-in-struct-p)
@@ -783,9 +1121,9 @@
 	(verilog-property-re, verilog-endcomment-reason-re)
 	(verilog-beg-of-statement, verilog-set-auto-endcomments)
 	(verilog-calc-1 ): Fix for assert a; else b; indentation (new form
-	of if). Reported by Max Bjurling and
+	of if).  Reported by Max Bjurling and
 	(verilog-calc-1): Fix for clocking block in modport
-	declaration. Reported by Brian Hunter.
+	declaration.  Reported by Brian Hunter.
 
 2010-10-23  Wilson Snyder  <wsnyder@wsnyder.org>
 
@@ -801,7 +1139,7 @@
 	(verilog-read-always-signals-recurse, verilog-read-decls): Fix not
 	treating `elsif similar to `endif inside AUTOSENSE.
 	(verilog-do-indent): Implement correct automatic or static task or
-	function end comment highlight. Reported by Steve Pearlmutter.
+	function end comment highlight.  Reported by Steve Pearlmutter.
 	(verilog-font-lock-keywords-2): Fix highlighting of single
 	character pins, bug264.  Reported by Michael Laajanen.
 	(verilog-auto-inst, verilog-read-decls, verilog-read-sub-decls)
@@ -812,7 +1150,7 @@
 	Reported by Mark Johnson.
 	(verilog-auto-tieoff, verilog-auto-tieoff-ignore-regexp):
 	Add 'verilog-auto-tieoff-ignore-regexp' for AUTOTIEOFF,
-	bug269. Suggested by Gary Delp.
+	bug269.  Suggested by Gary Delp.
 	(verilog-mode-map, verilog-preprocess, verilog-preprocess-history)
 	(verilog-preprocessor, verilog-set-compile-command):
 	Create verilog-preprocess and verilog-preprocessor to show
@@ -820,7 +1158,7 @@
 	(verilog-get-beg-of-line, verilog-get-end-of-line)
 	(verilog-modi-file-or-buffer, verilog-modi-name)
 	(verilog-modi-point, verilog-within-string): Move defmacro's
-	before first use to avoid warning. Reported by Steve Pearlmutter.
+	before first use to avoid warning.  Reported by Steve Pearlmutter.
 	(verilog-colorize-buffer, verilog-colorize-include-files-buffer)
 	(verilog-colorize-region, verilog-highlight-buffer)
 	(verilog-highlight-includes, verilog-highlight-modules)
@@ -852,7 +1190,7 @@
 	(verilog-alw-get-temps, verilog-auto-reset)
 	(verilog-auto-sense-sigs, verilog-read-always-signals)
 	(verilog-read-always-signals-recurse): Fix loop indexes being
-	AUTORESET. AUTORESET now assumes any variables in the
+	AUTORESET.  AUTORESET now assumes any variables in the
 	initialization section of a for() should be ignored.
 	Reported by Dan Dever.
 	(verilog-error-font-lock-keywords)
@@ -2835,7 +3173,7 @@
 2010-02-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el (ange-ftp-insert-directory): Parse directory
-	also in case of (and (not full) (not wildcard)). This is needed,
+	also in case of (and (not full) (not wildcard)).  This is needed,
 	when dired is called with a list of files, which are not in
 	`default-directory'.  (Bug#5478)
 
@@ -12364,4 +12702,3 @@ See ChangeLog.14 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

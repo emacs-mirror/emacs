@@ -1,7 +1,7 @@
 ;;; mouse.el --- window system-independent mouse support
 
 ;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware, mouse
@@ -198,9 +198,9 @@ items `Turn Off' and `Help'."
     newmap))
 
 (defun mouse-menu-non-singleton (menubar)
-  "Given menu keymap,
-if it defines exactly one submenu, return just that submenu.
-Otherwise return the whole menu."
+  "Return menu keybar MENUBAR, or a lone submenu inside it.
+If MENUBAR defines exactly one submenu, return just that submenu.
+Otherwise, return MENUBAR."
   (if menubar
       (let (submap)
         (map-keymap

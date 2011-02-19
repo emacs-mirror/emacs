@@ -1,7 +1,7 @@
 /* Display generation from window structure and buffer text.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3337,6 +3337,8 @@ handle_fontified_prop (it)
       val = Vfontification_functions;
       specbind (Qfontification_functions, Qnil);
 
+      xassert (it->end_charpos == ZV);
+      
       if (!CONSP (val) || EQ (XCAR (val), Qlambda))
 	safe_call1 (val, pos);
       else
@@ -3376,6 +3378,13 @@ handle_fontified_prop (it)
 
       unbind_to (count, Qnil);
 
+      /* The fontification code may have added/removed text.
+	 It could do even a lot worse, but let's at least protect against
+	 the most obvious case where only the text past `pos' gets changed',
+	 as is/was done in grep.el where some escapes sequences are turned
+	 into face properties (bug#7876).  */
+      it->end_charpos = ZV;
+      
       /* Return HANDLED_RECOMPUTE_PROPS only if function fontified
 	 something.  This avoids an endless loop if they failed to
 	 fontify the text for which reason ever.  */
@@ -11252,6 +11261,7 @@ redisplay_internal (preserve_echo_area)
      int preserve_echo_area;
 {
   struct window *w = XWINDOW (selected_window);
+  struct window *sw;
   struct frame *f;
   int pause;
   int must_finish = 0;
@@ -11322,6 +11332,9 @@ redisplay_internal (preserve_echo_area)
   }
 
  retry:
+  /* Remember the currently selected window.  */
+  sw = w;
+
   if (!EQ (old_frame, selected_frame)
       && FRAME_LIVE_P (XFRAME (old_frame)))
     /* When running redisplay, we play a bit fast-and-loose and allow e.g.
@@ -11386,6 +11399,14 @@ redisplay_internal (preserve_echo_area)
 
   /* Notice any pending interrupt request to change frame size.  */
   do_pending_window_change (1);
+
+  /* do_pending_window_change could change the selected_window due to
+     frame resizing which makes the selected window too small.  */
+  if (WINDOWP (selected_window) && (w = XWINDOW (selected_window)) != sw)
+    {
+      sw = w;
+      reconsider_clip_changes (w, current_buffer);
+    }
 
   /* Clear frames marked as garbaged.  */
   if (frame_garbaged)
@@ -11656,6 +11677,10 @@ redisplay_internal (preserve_echo_area)
 	  if (!must_finish)
 	    {
 	      do_pending_window_change (1);
+	      /* If selected_window changed, redisplay again.  */
+	      if (WINDOWP (selected_window)
+		  && (w = XWINDOW (selected_window)) != sw)
+		goto retry;
 
 	      /* We used to always goto end_of_redisplay here, but this
 		 isn't enough if we have a blinking cursor.  */
@@ -11950,8 +11975,9 @@ redisplay_internal (preserve_echo_area)
   do_pending_window_change (1);
 
   /* If we just did a pending size change, or have additional
-     visible frames, redisplay again.  */
-  if (windows_or_buffers_changed && !pause)
+     visible frames, or selected_window changed, redisplay again.  */
+  if ((windows_or_buffers_changed && !pause)
+      || (WINDOWP (selected_window) && (w = XWINDOW (selected_window)) != sw))
     goto retry;
 
   /* Clear the face cache eventually.  */

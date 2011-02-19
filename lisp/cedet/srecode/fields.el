@@ -1,6 +1,6 @@
 ;;; srecode/fields.el --- Handling type-in fields in a buffer.
 ;;
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -198,7 +198,7 @@ If SET-TO is a string, then replace the text of OLAID wit SET-TO."
   (oset ir fields srecode-field-archive)
   (setq srecode-field-archive nil)
 
-  ;; Initailize myself first.
+  ;; Initialize myself first.
   (call-next-method)
   )
 

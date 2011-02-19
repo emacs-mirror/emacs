@@ -1,5 +1,5 @@
 /* Functions related to terminal devices.
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -226,6 +226,7 @@ struct terminal *
 create_terminal (void)
 {
   struct terminal *terminal = allocate_terminal ();
+  Lisp_Object terminal_coding, keyboard_coding;
 
   terminal->name = NULL;
   terminal->next_terminal = terminal_list;
@@ -238,8 +239,22 @@ create_terminal (void)
   terminal->terminal_coding =
     (struct coding_system *) xmalloc (sizeof (struct coding_system));
 
-  setup_coding_system (Qno_conversion, terminal->keyboard_coding);
-  setup_coding_system (Qundecided, terminal->terminal_coding);
+  /* If default coding systems for the terminal and the keyboard are
+     already defined, use them in preference to the defaults.  This is
+     needed when Emacs runs in daemon mode.  */
+  keyboard_coding = SYMBOL_VALUE (intern ("default-keyboard-coding-system"));
+  if (NILP (keyboard_coding)
+      || EQ (keyboard_coding, Qunbound)
+      || NILP (Fcoding_system_p (keyboard_coding)))
+    keyboard_coding = Qno_conversion;
+  terminal_coding = SYMBOL_VALUE (intern ("default-terminal-coding-system"));
+  if (NILP (terminal_coding)
+      || EQ (terminal_coding, Qunbound)
+      || NILP (Fcoding_system_p (terminal_coding)))
+    terminal_coding = Qundecided;
+
+  setup_coding_system (keyboard_coding, terminal->keyboard_coding);
+  setup_coding_system (terminal_coding, terminal->terminal_coding);
 
   terminal->param_alist = Qnil;
   return terminal;

@@ -1,6 +1,6 @@
 ;;; image-mode.el --- support for visiting image files
 ;;
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Richard Stallman <rms@gnu.org>
 ;; Keywords: multimedia
@@ -507,6 +507,11 @@ was inserted."
     ;; This just makes the arrow displayed in the right fringe
     ;; area look correct when the image is wider than the window.
     (setq truncate-lines t)
+    ;; Disable adding a newline at the end of the image file when it
+    ;; is written with, e.g., C-x C-w.
+    (if (coding-system-equal (coding-system-base buffer-file-coding-system)
+			     'no-conversion)
+	(set (make-local-variable 'require-final-newline) nil))
     ;; Allow navigation of large images
     (set (make-local-variable 'auto-hscroll-mode) nil)
     (setq image-type type)

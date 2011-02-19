@@ -1,7 +1,7 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
 ;; Copyright (C) 1988, 1990, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -603,8 +603,9 @@ mode, Shell mode, etc.  This can be done by setting the hooks
 and `comint-get-old-input' to appropriate functions, and the variable
 `comint-prompt-regexp' to the appropriate regular expression.
 
-An input history is maintained of size `comint-input-ring-size', and
-can be accessed with the commands \\[comint-next-input], \\[comint-previous-input], and \\[comint-dynamic-list-input-ring].
+The mode maintains an input history of size `comint-input-ring-size'.
+You can access this with the commands \\[comint-next-input],
+\\[comint-previous-input], and \\[comint-dynamic-list-input-ring].
 Input ring history expansion can be achieved with the commands
 \\[comint-replace-by-expanded-history] or \\[comint-magic-space].
 Input ring expansion is controlled by the variable `comint-input-autoexpand',
@@ -1292,7 +1293,9 @@ than the logical beginning of line."
 		   (message "Relative reference exceeds input history size"))))
 	      ((or (looking-at "!!?:?\\([0-9^$*-]+\\)") (looking-at "!!"))
 	       ;; Just a number of args from the previous input line.
-	       (replace-match (comint-previous-input-string 0) t t)
+	       (replace-match (comint-args (comint-previous-input-string 0)
+					   (match-beginning 1) (match-end 1))
+			      t t)
 	       (message "History item: previous"))
 	      ((looking-at
 		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
@@ -3746,5 +3749,4 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 
 (provide 'comint)
 
-;; arch-tag: 1793314c-09db-40be-9549-9aeae3e75164
 ;;; comint.el ends here
