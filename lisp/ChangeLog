@@ -1,3 +1,15 @@
+2011-02-19  Dmitry Bolshakov <dmitry.bolshakov@bridge-quest.com>
+            Dima Kogan <dkogan@cds.caltech.edu>  (tiny change)
+
+	* progmodes/hideshow.el (hs-find-block-beginning)
+	(hs-hide-level-recursive): Ignore comments when parsing braces
+	(Bug#8036).
+
+2011-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc-bzr.el (vc-bzr-bound-branch-p): New function.
+	(vc-bzr-pull): Use it.
+
 2011-02-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/vc-bzr.el (vc-bzr--branch-conf): Function deleted.
