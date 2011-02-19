@@ -1,3 +1,11 @@
+2011-02-19  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-find-header-encoding): Be sure to
+	get the header copy into the temporary buffer.
+	(rmail-mime-insert-decoded-text): Ignore us-ascii.
+	(rmail-show-mime): When rmail-mime-coding-system is nil, set
+	buffer-file-coding-system to undecided.
+
 2011-02-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* image-mode.el (image-toggle-display-image): Disable
