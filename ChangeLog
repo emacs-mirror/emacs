@@ -1,3 +1,8 @@
+2011-02-20  Christoph Scholtes <cschol2112@gmail.com>
+
+	* lib/makefile.w32-in ($(BLD)/md5.$(O)): New recipe, moved from
+	src/makefile.w32-in.
+
 2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Import crypto/md5 and stdint modules from gnulib.

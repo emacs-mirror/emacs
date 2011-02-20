@@ -81,7 +81,6 @@ OBJ1 =  $(BLD)/alloc.$(O)		\
 	$(BLD)/lread.$(O)		\
 	$(BLD)/macros.$(O)		\
 	$(BLD)/marker.$(O)		\
-	$(BLD)/md5.$(O)                 \
 	$(BLD)/minibuf.$(O)		\
 	$(BLD)/w32.$(O)			\
 	$(BLD)/w32heap.$(O)		\
@@ -221,7 +220,7 @@ GLOBAL_SOURCES =   dosfns.c msdos.c \
 	syntax.c bytecode.c \
 	process.c callproc.c unexw32.c \
 	region-cache.c sound.c atimer.c \
-	doprnt.c intervals.c textprop.c composite.c md5.c
+	doprnt.c intervals.c textprop.c composite.c
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o dbusbind.o
 obj = $(GLOBAL_SOURCES:.c=.o)
@@ -843,6 +842,7 @@ $(BLD)/fns.$(O) : \
 	$(EMACS_ROOT)/nt/inc/nl_types.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(EMACS_ROOT)/lib/md5.h \
 	$(LISP_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
@@ -856,7 +856,6 @@ $(BLD)/fns.$(O) : \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
-	$(SRC)/md5.h \
 	$(SRC)/systime.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
@@ -1134,11 +1133,6 @@ $(BLD)/marker.$(O) : \
 	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h
-
-$(BLD)/md5.$(O) : \
-	$(SRC)/md5.c \
-	$(CONFIG_H) \
-	$(SRC)/md5.h
 
 $(BLD)/menu.$(O) : \
 	$(SRC)/menu.c \
