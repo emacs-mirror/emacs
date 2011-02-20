@@ -99,7 +99,6 @@ $(BLD)/md5.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/lib/md5.h
 
 # The following dependencies are for supporting parallel builds, where
