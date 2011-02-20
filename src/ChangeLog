@@ -1,3 +1,14 @@
+2011-02-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/fns.$(O)): Depend on
+	$(EMACS_ROOT)/lib/md5.h and on stamp_BLD.
+
+2011-02-20  Christoph Scholtes <cschol2112@gmail.com>
+
+	* makefile.w32-in: Remove md5.$(O).
+	($(BLD)/md5.$(O)): Remove prerequisites, moved to
+	lib/makefile.w32-in.
+
 2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Import filemode module from gnulib.

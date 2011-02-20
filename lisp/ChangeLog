@@ -1,3 +1,8 @@
+2011-02-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-beginning-of-statement): Avoid loop in
+	locating the beginning of a macro.  (Bug#7595)
+
 2011-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* edmacro.el (edmacro-eight-bits): Make it a defcustom.
@@ -836,7 +841,7 @@
 	* progmodes/cc-cmds.el (c-forward-over-illiterals):
 	Continue parsing if we encounter a naked # (Bug#7595).
 	(c-beginning-of-statement): Avoid loop in locating the beginning
-	of a macro.
+	of a macro.  (Not actually committed until 2011-02-20, see above).
 
 2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
 
