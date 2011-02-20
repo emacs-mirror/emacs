@@ -1,3 +1,13 @@
+2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (C_WARNINGS_SWITCH): Do not prepend -Wno-pointer-sign.
+	This undoes the 2006-01-02 change.  The -Wno-pointer-sign option
+	is no longer needed, due to the recent SSDATA and related changes.
+	Perhaps -Wno-pointer-sign should also be removed from
+	nextstep/Cocoa/Emacs.xcodeproj/project.pbxproj but I have no easy
+	way to test this so I left it alone.
+	* configure: Regenerate.
+
 2011-02-20  Christoph Scholtes <cschol2112@gmail.com>
 
 	* lib/makefile.w32-in ($(BLD)/md5.$(O)): New recipe, moved from
