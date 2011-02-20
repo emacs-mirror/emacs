@@ -1,5 +1,8 @@
 2011-02-20  Glenn Morris  <rgm@gnu.org>
 
+	* edmacro.el (edmacro-eight-bits): Make it a defcustom.
+	Don't autoload it.
+
 	* autorevert.el (auto-revert-mode, auto-revert-tail-mode)
 	(global-auto-revert-ignore-buffer): Remove leading "*" from docs.
 
