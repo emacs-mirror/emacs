@@ -6322,7 +6322,8 @@ specifies."
 
 (defun gnus-article-next-page-1 (lines)
   (condition-case ()
-      (let ((scroll-in-place nil))
+      (let ((scroll-in-place nil)
+	    (auto-window-vscroll nil))
 	(scroll-up lines))
     (end-of-buffer
      ;; Long lines may cause an end-of-buffer error.

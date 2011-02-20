@@ -1641,7 +1641,7 @@ textual parts.")
 				    (progn
 				      (forward-line -1)
 				      (looking-at "\\*"))))
-			(not (looking-at (format "%d " sequence)))))
+			(not (looking-at (format "%d .*\n" sequence)))))
 	    (when messagep
 	      (nnheader-message 7 "nnimap read %dk" (/ (buffer-size) 1000)))
 	    (nnheader-accept-process-output process)
