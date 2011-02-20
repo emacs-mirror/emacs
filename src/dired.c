@@ -54,14 +54,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/dir.h>
 #include <sys/stat.h>
 
-#include <filemode.h>
-
 #define DIRENTRY struct direct
 
 extern DIR *opendir (char *);
 extern struct direct *readdir (DIR *);
 
 #endif /* HAVE_DIRENT_H */
+
+#include <filemode.h>
 
 #ifdef MSDOS
 #define DIRENTRY_NONEMPTY(p) ((p)->d_name[0] != 0)
