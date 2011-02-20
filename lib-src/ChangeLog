@@ -1,3 +1,7 @@
+2011-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (obj): Remove md5.o.
+
 2011-02-18  Karl Chen  <Karl.Chen@quarl.org>
 
 	* emacsclient.c (main): Loop while `recv' return EINTR.
