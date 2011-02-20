@@ -1,5 +1,20 @@
 2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Import filemode module from gnulib.
+	* .bzrignore: Add lib/sys/.
+	* Makefile.in (GNULIB_MODULES): Add filemode.
+	* lib/Makefile.am (MOSTLYCLEANDIRS): New macro.
+	* lib/filemode.c: Renamed from src/filemode.c and regenerated
+	from gnulib.  This adds support for some more file types, e.g.,
+	Cray DMF migrated files.
+	* lisp/emacs-lisp/find-gc.el (find-gc-source-files): Remove filemode.c.
+	* lib/filemode.h, lib/sys_stat.in.h, m4/filemode.m4, m4/st_dm_mode.m4:
+	* m4/sys_stat_h.m4: New files, generated from gnulib.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4:
+	Regenerate.
+
+2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Import crypto/md5 and stdint modules from gnulib.
 	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4:
 	Regenerate.

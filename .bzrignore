@@ -42,6 +42,7 @@ lib/arg-nonnull.h
 lib/c++defs.h
 lib/getopt.h
 lib/stdlib.h
+lib/sys/
 lib/time.h
 lib/unistd.h
 lib/warn-on-use.h

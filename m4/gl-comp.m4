@@ -32,6 +32,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module dtoastr:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
+  # Code from module filemode:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
@@ -46,6 +47,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module stdint:
   # Code from module stdlib:
   # Code from module strftime:
+  # Code from module sys_stat:
   # Code from module time:
   # Code from module time_r:
   # Code from module unistd:
@@ -75,6 +77,8 @@ AC_DEFUN([gl_INIT],
   # Code from module dtoastr:
   AC_REQUIRE([gl_C99_STRTOLD])
   # Code from module extensions:
+  # Code from module filemode:
+  gl_FILEMODE
   # Code from module getloadavg:
   gl_GETLOADAVG([$gl_source_base])
   gl_STDLIB_MODULE_INDICATOR([getloadavg])
@@ -105,6 +109,9 @@ AC_DEFUN([gl_INIT],
   gl_STDLIB_H
   # Code from module strftime:
   gl_FUNC_GNU_STRFTIME
+  # Code from module sys_stat:
+  gl_HEADER_SYS_STAT_H
+  AC_PROG_MKDIR_P
   # Code from module time:
   gl_HEADER_TIME_H
   # Code from module time_r:
@@ -257,6 +264,8 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/c++defs.h
   build-aux/warn-on-use.h
   lib/dtoastr.c
+  lib/filemode.c
+  lib/filemode.h
   lib/ftoastr.c
   lib/ftoastr.h
   lib/getloadavg.c
@@ -277,12 +286,14 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdlib.in.h
   lib/strftime.c
   lib/strftime.h
+  lib/sys_stat.in.h
   lib/time.in.h
   lib/time_r.c
   lib/unistd.in.h
   m4/00gnulib.m4
   m4/c-strtod.m4
   m4/extensions.m4
+  m4/filemode.m4
   m4/getloadavg.m4
   m4/getopt.m4
   m4/gnulib-common.m4
@@ -291,11 +302,13 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/md5.m4
   m4/mktime.m4
   m4/multiarch.m4
+  m4/st_dm_mode.m4
   m4/stdbool.m4
   m4/stddef_h.m4
   m4/stdint.m4
   m4/stdlib_h.m4
   m4/strftime.m4
+  m4/sys_stat_h.m4
   m4/time_h.m4
   m4/time_r.m4
   m4/tm_gmtoff.m4
