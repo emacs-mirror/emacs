@@ -1,3 +1,13 @@
+2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import crypto/md5 and stdint modules from gnulib.
+	* Makefile.in (base_obj): Remove md5.o, since this file
+	is in lib now.
+	* config.in: Regenerate.
+	* md5.h, md5.h: Move to ../lib.
+	* deps.mk (md5.o): Remove.
+	(fns.o): Depend on ../lib/md5.h, not md5.h.
+
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* termcap.c (tputs): Don't declare baud_rate.

@@ -28,6 +28,7 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([AC_PROG_RANLIB])
   # Code from module arg-nonnull:
   # Code from module c++defs:
+  # Code from module crypto/md5:
   # Code from module dtoastr:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
@@ -42,6 +43,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module multiarch:
   # Code from module stdbool:
   # Code from module stddef:
+  # Code from module stdint:
   # Code from module stdlib:
   # Code from module strftime:
   # Code from module time:
@@ -68,6 +70,8 @@ AC_DEFUN([gl_INIT],
   gl_source_base='lib'
   # Code from module arg-nonnull:
   # Code from module c++defs:
+  # Code from module crypto/md5:
+  gl_MD5
   # Code from module dtoastr:
   AC_REQUIRE([gl_C99_STRTOLD])
   # Code from module extensions:
@@ -95,6 +99,8 @@ AC_DEFUN([gl_INIT],
   AM_STDBOOL_H
   # Code from module stddef:
   gl_STDDEF_H
+  # Code from module stdint:
+  gl_STDINT_H
   # Code from module stdlib:
   gl_STDLIB_H
   # Code from module strftime:
@@ -261,10 +267,13 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/gettext.h
   lib/ignore-value.h
   lib/intprops.h
+  lib/md5.c
+  lib/md5.h
   lib/mktime-internal.h
   lib/mktime.c
   lib/stdbool.in.h
   lib/stddef.in.h
+  lib/stdint.in.h
   lib/stdlib.in.h
   lib/strftime.c
   lib/strftime.h
@@ -278,10 +287,13 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/getopt.m4
   m4/gnulib-common.m4
   m4/include_next.m4
+  m4/longlong.m4
+  m4/md5.m4
   m4/mktime.m4
   m4/multiarch.m4
   m4/stdbool.m4
   m4/stddef_h.m4
+  m4/stdint.m4
   m4/stdlib_h.m4
   m4/strftime.m4
   m4/time_h.m4

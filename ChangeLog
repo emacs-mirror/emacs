@@ -1,3 +1,17 @@
+2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import crypto/md5 and stdint modules from gnulib.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4:
+	Regenerate.
+	* lib/md5.c, lib/md5.h: Rename from src/md5.h and lib/md5.h.
+	Import the new versions from gnulib; they assume a C99-style
+	<stdint.h>, supplied by the stdint module.
+	* lib/stdint.in.h, m4/longlong.m4, m4/stdint.m4, m4/md5.m4: New files,
+	imported from gnulib.
+	* Makefile.in (MAKEFILE_MODULES): Add crypto/md5.
+	* admin/notes/copyright: Remove src/md5.c and src/md5.h as
+	special cases.
+
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* .bzrignore: Ignore cxxdefs.h and lib/*.in-h files.
