@@ -1,5 +1,15 @@
 2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Import filemode module from gnulib.
+	* Makefile.in (base_obj): Remove filemode.o, as it's now in ../lib.
+	* deps.mk (dired.o): Depend on ../lib/filemode.h, too.
+	(filemode.o): Remove; this is now in ../lib.
+	* dired.c: Include <filemode.h>.
+	(filemodestring): Remove now-redundant decl.
+	* config.in: Regenerate.
+
+2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Import crypto/md5 and stdint modules from gnulib.
 	* Makefile.in (base_obj): Remove md5.o, since this file
 	is in lib now.

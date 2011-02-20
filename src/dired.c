@@ -54,6 +54,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/dir.h>
 #include <sys/stat.h>
 
+#include <filemode.h>
+
 #define DIRENTRY struct direct
 
 extern DIR *opendir (char *);
@@ -81,9 +83,6 @@ extern struct direct *readdir (DIR *);
 extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
 						  struct re_registers *,
 						  Lisp_Object, int, int);
-
-/* From filemode.c.  Can't go in Lisp.h because of `stat'.  */
-extern void filemodestring (struct stat *, char *);
 
 /* if system does not have symbolic links, it does not have lstat.
    In that case, use ordinary stat instead.  */
