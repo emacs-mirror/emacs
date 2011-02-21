@@ -1,3 +1,11 @@
+2011-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/filemode.$(O)): Move recipe to
+	lib/makefilw.w32-in.
+	($(BLD)/dired.$(O)): Depend on $(EMACS_ROOT)/lib/filemode.h.
+	(GLOBAL_SOURCES): Remove filemode.c.
+	(OBJ1): Remove $(BLD)/filemode.$(O).
+
 2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Import filemode module from gnulib.

@@ -1,3 +1,9 @@
+2011-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/filemode.$(O)): Move from
+	src/makefile.w32-in and adapt.  Depend on stamp_BLD.
+	(GNULIBOBJS): Add $(BLD)/filemode.$(O).
+
 2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Import filemode module from gnulib.
