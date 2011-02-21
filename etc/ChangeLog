@@ -1,3 +1,8 @@
+2011-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/tango-dark-theme.el: Tweak background on low-color
+	terminals.
+
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* etc/images/icons/allout-widgets/dark-bg,
