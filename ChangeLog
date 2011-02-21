@@ -2,6 +2,17 @@
 
 	* lib/min-max.h: New file, for "min" and "max".
 
+2011-02-21  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* lib/makefile.w32-in: ($(BLD)/md5.$(O)): Added dependency on
+	$(EMACS_ROOT)/nt/inc/stdint.h.
+
+2011-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/filemode.$(O)): Move from
+	src/makefile.w32-in and adapt.  Depend on stamp_BLD.
+	(GNULIBOBJS): Add $(BLD)/filemode.$(O).
+
 2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Import filemode module from gnulib.

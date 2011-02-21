@@ -1,3 +1,16 @@
+2011-02-21  Alan Mackenzie  <acm@muc.de>
+
+	Fix bug #7930.
+	* progmodes/cc-engine.el (c-state-literal-at): Prevent positions
+	in macros finding their way into c-state-nonlit-pos-cache.
+	Strengthen the comments.
+	(c-state-dump): New commented out diagnostic routine.
+
+2011-02-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-rfn-eshadow-setup-minibuffer): Do not use
+	`field' property of `rfn-eshadow-overlay'.
+
 2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* net/netrc.el (netrc-parse): Comment fix.
@@ -264,7 +277,7 @@
 
 2011-02-16  Alex Harsanyi  <AlexHarsanyi@gmail.com>
 
-	* soap-client.el (soap-well-known-xmlns, soap-local-xmlns)
+	* net/soap-client.el (soap-well-known-xmlns, soap-local-xmlns)
 	(soap-default-xmlns, soap-target-xmlns, soap-multi-refs)
 	(soap-decoded-multi-refs, soap-current-wsdl)
 	(soap-encoded-namespaces): Rename CL-style *...* variables.

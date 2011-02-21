@@ -56,6 +56,31 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define	S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)
 #define	S_ISFIFO(m)	(((m) & S_IFMT) == S_IFIFO)
 
+/* These don't exist on Windows, but lib/filemode.c wants them.  */
+#define S_ISUID 0
+#define S_ISGID 0
+#define S_ISVTX 0
+#define S_IRGRP (S_IRUSR >> 3)
+#define S_IROTH (S_IRUSR >> 6)
+#define S_IWGRP (S_IWUSR >> 3)
+#define S_IWOTH (S_IWUSR >> 6)
+#define S_IXGRP (S_IXUSR >> 3)
+#define S_IXOTH (S_IXUSR >> 6)
+
+#define S_ISSOCK(m)    0
+#define S_ISLNK(m)     0
+#define S_ISCTG(p)     0
+#define S_ISDOOR(m)    0
+#define S_ISMPB(m)     0
+#define S_ISMPC(m)     0
+#define S_ISNWK(m)     0
+#define S_ISPORT(m)    0
+#define S_ISWHT(m)     0
+#define S_TYPEISMQ(p)  0
+#define S_TYPEISSEM(p) 0
+#define S_TYPEISSHM(p) 0
+#define S_TYPEISTMO(p) 0
+
 struct stat {
   unsigned __int64 st_ino;	/* ino_t in sys/types.h is too narrow */
   dev_t st_dev;
@@ -75,6 +100,9 @@ struct stat {
 _CRTIMP int __cdecl __MINGW_NOTHROW	fstat (int, struct stat*);
 _CRTIMP int __cdecl __MINGW_NOTHROW	chmod (const char*, int);
 _CRTIMP int __cdecl __MINGW_NOTHROW	stat (const char*, struct stat*);
+
+/* fileio.c and dired.c want lstat.  */
+#define lstat stat
 
 #endif	/* INC_SYS_STAT_H_ */
 

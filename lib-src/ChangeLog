@@ -25,6 +25,12 @@
 	Declare non-'main' functions and variables to be static.
 	* ebrowse.c: Omit redundant function prototypes.
 
+2011-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/ctags.$(O), $(BLD)/emacsclient.$(O))
+	($(BLD)/etags.$(O), $(BLD)/movemail.$(O), $(BLD)/ntlib.$(O)):
+	Depend on $(EMACS_ROOT)/nt/inc/sys/stat.h.
+
 2011-02-21  Ben Key  <bkey76@gmail.com>  (tiny change)
 
 	* make-docfile.c (scan_c_file): Adapt DEFVAR_PER_BUFFER case to

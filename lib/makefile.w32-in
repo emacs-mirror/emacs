@@ -28,7 +28,8 @@ GNULIBOBJS = $(BLD)/dtoastr.$(O) \
 	     $(BLD)/getopt1.$(O) \
 	     $(BLD)/strftime.$(O) \
 	     $(BLD)/time_r.$(O) \
-	     $(BLD)/md5.$(O)
+	     $(BLD)/md5.$(O) \
+	     $(BLD)/filemode.$(O)
 
 #
 # Build the library
@@ -95,17 +96,27 @@ $(BLD)/time_r.$(O) : \
 	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/md5.$(O) : \
-	$(EMACS_ROOT)/lib/md5.c \
+	$(SRC)/md5.c \
+	$(SRC)/md5.h \
+	$(EMACS_ROOT)/nt/inc/stdint.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(EMACS_ROOT)/lib/md5.h
+	$(EMACS_ROOT)/src/config.h
+
+$(BLD)/filemode.$(O) : \
+	$(SRC)/filemode.c \
+	$(SRC)/filemode.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/src/config.h
 
 # The following dependencies are for supporting parallel builds, where
 # we must make sure $(BLD) exists before any compilation starts.
 #
 $(BLD)/dtoastr.$(O) $(BLD)/getopt.$(O) $(BLD)/getopt1.$(O): stamp_BLD
 $(BLD)/strftime.$(O) $(BLD)/time_r.$(O) $(BLD)/md5.$(O): stamp_BLD
+$(BLD)/filemode.$(O): stamp_BLD
 
 #
 # Headers we would preprocess if we could.
