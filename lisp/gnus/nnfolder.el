@@ -1083,6 +1083,8 @@ This command does not work if you use short group names."
 	 (or nnfolder-nov-directory nnfolder-directory)))
     (concat (nnfolder-group-pathname group) nnfolder-nov-file-suffix)))
 
+(defvar copyright-update)
+
 (defun nnfolder-save-buffer ()
   "Save the buffer."
   (when (buffer-modified-p)

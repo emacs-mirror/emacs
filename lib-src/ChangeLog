@@ -14,6 +14,11 @@
 	Declare non-'main' functions and variables to be static.
 	* ebrowse.c: Omit redundant function prototypes.
 
+2011-02-21  Ben Key  <bkey76@gmail.com>  (tiny change)
+
+	* make-docfile.c (scan_c_file): Adapt DEFVAR_PER_BUFFER case to
+	the new BVAR macro.
+
 2011-02-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (obj): Remove md5.o.

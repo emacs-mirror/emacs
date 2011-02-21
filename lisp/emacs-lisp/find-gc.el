@@ -55,7 +55,7 @@ Each entry has the form (FUNCTION . FUNCTIONS-IT-CALLS).")
     "term.c" "cm.c" "emacs.c" "keyboard.c" "macros.c"
     "keymap.c" "sysdep.c" "buffer.c" "filelock.c"
     "insdel.c" "marker.c" "minibuf.c" "fileio.c"
-    "dired.c" "filemode.c" "cmds.c" "casefiddle.c"
+    "dired.c" "cmds.c" "casefiddle.c"
     "indent.c" "search.c" "regex.c" "undo.c"
     "alloc.c" "data.c" "doc.c" "editfns.c"
     "callint.c" "eval.c" "fns.c" "print.c" "lread.c"

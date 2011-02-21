@@ -4,6 +4,30 @@
 	color-rgb-to-hex, color-name-to-rgb, color-srgb-to-lab, and
 	color-lab-to-srgb.
 
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-finish-retrieve-group-infos): Add a kludge to use the
+	given method as in the group name if we're using an extended method.
+	(nntp-finish-retrieve-group-infos): Wait for the end of the LIST ACTIVE
+	command, if we're using that, instead of waiting for the beginning.
+
+	* gnus-start.el (gnus-get-unread-articles): Extend the methods so that
+	we're sure to get unique server names, and we don't output two async
+	commands in the same buffer.  This fixes an NNTP hang for some users.
+
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-next-article): Add a kludge to reselect the
+	summary buffer before reading going to the next buffer.  This avoids
+	putting the point in the group buffer if you `C-g' the command.
+
+	* auth-source.el (auth-source-netrc-parse): Add an in-memory netrc
+	cache (for now) to make ~/.authinfo.gpg files usable.
+
+	* nnfolder.el (copyright-update): Define for the compiler.
+
+	* auth-source.el (auth-source-search): Fix unbound variable.
+
 2011-02-19  Glenn Morris  <rgm@gnu.org>
 
 	* gnus.el (gnus-meta): Doc fix.

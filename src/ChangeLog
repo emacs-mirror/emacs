@@ -1,3 +1,13 @@
+2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import filemode module from gnulib.
+	* Makefile.in (base_obj): Remove filemode.o, as it's now in ../lib.
+	* deps.mk (dired.o): Depend on ../lib/filemode.h, too.
+	(filemode.o): Remove; this is now in ../lib.
+	* dired.c: Include <filemode.h>.
+	(filemodestring): Remove now-redundant decl.
+	* config.in: Regenerate.
+
 2011-02-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/fns.$(O)): Depend on

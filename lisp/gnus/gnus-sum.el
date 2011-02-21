@@ -7734,6 +7734,7 @@ If BACKWARD, the previous article is selected instead of the next."
 	  (point
 	   (with-current-buffer gnus-group-buffer
 	     (point)))
+	  (current-summary (current-buffer))
 	  (group
 	   (if (eq gnus-keep-same-level 'best)
 	       (gnus-summary-best-group gnus-newsgroup-name)
@@ -7758,6 +7759,10 @@ If BACKWARD, the previous article is selected instead of the next."
 	  (gnus-summary-next-group nil group backward)))
        (t
 	(when (gnus-key-press-event-p last-input-event)
+	  ;; Somehow or other, we may now have selected a different
+	  ;; window.  Make point go back to the summary buffer.
+	  (when (eq current-summary (current-buffer))
+	    (select-window (get-buffer-window current-summary)))
 	  (gnus-summary-walk-group-buffer
 	   gnus-newsgroup-name cmd unread backward point))))))))
 

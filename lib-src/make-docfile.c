@@ -815,7 +815,7 @@ scan_c_file (char *filename, const char *mode)
       if (defunflag)
 	commas = 5;
       else if (defvarperbufferflag)
-	commas = 2;
+	commas = 3;
       else if (defvarflag)
 	commas = 1;
       else  /* For DEFSIMPLE and DEFPRED */

@@ -61,6 +61,8 @@ extern struct direct *readdir (DIR *);
 
 #endif /* HAVE_DIRENT_H */
 
+#include <filemode.h>
+
 #ifdef MSDOS
 #define DIRENTRY_NONEMPTY(p) ((p)->d_name[0] != 0)
 #else
@@ -81,9 +83,6 @@ extern struct direct *readdir (DIR *);
 extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
 						  struct re_registers *,
 						  Lisp_Object, int, int);
-
-/* From filemode.c.  Can't go in Lisp.h because of `stat'.  */
-extern void filemodestring (struct stat *, char *);
 
 /* if system does not have symbolic links, it does not have lstat.
    In that case, use ordinary stat instead.  */

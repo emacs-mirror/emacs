@@ -1675,7 +1675,20 @@ If SCAN, request a scan of that group as well."
 		(lambda (c1 c2)
 		  (< (gnus-method-rank (cadr c1) (car c1))
 		     (gnus-method-rank (cadr c2) (car c2))))))
-
+    ;; Go through the list of servers and possibly extend methods that
+    ;; aren't equal (and that need extension; i.e., they are async).
+    (let ((methods nil))
+      (dolist (elem type-cache)
+	(destructuring-bind (method method-type infos dummy) elem
+	  (let ((gnus-opened-servers methods))
+	    (when (and (gnus-similar-server-opened method)
+		       (gnus-check-backend-function
+			'retrieve-group-data-early (car method)))
+	      (setq method (gnus-server-extend-method
+			    (gnus-info-group (car infos))
+			    method))
+	      (setcar elem method))
+	    (push (list method 'ok) methods)))))
     ;; Start early async retrieval of data.
     (dolist (elem type-cache)
       (destructuring-bind (method method-type infos dummy) elem

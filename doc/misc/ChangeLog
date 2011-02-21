@@ -1,3 +1,7 @@
+2011-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Window Layout): Document layout names.
+
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* ada-mode.texi: Sync @dircategory with ../../info/dir.
