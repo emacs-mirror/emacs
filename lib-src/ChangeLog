@@ -1,5 +1,7 @@
 2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* movemail.c (main, pop_retr): Rename locals to avoid shadowing.
+
 	Declare file-scope functions and variables static if not exported.
 	This is more consistent, and is nicer with gcc -Wstrict-prototypes.
 	* ebrowse.c, emacsclient.c, fakemail.c, make-docfile.c, movemail.c:

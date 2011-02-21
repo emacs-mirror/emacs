@@ -169,7 +169,7 @@ main (int argc, char **argv)
   char *inname, *outname;
   int indesc, outdesc;
   ssize_t nread;
-  int status;
+  int wait_status;
   int c, preserve_mail = 0;
 
 #ifndef MAIL_USE_SYSTEM_LOCK
@@ -527,11 +527,11 @@ main (int argc, char **argv)
       exit (EXIT_SUCCESS);
     }
 
-  wait (&status);
-  if (!WIFEXITED (status))
+  wait (&wait_status);
+  if (!WIFEXITED (wait_status))
     exit (EXIT_FAILURE);
-  else if (WRETCODE (status) != 0)
-    exit (WRETCODE (status));
+  else if (WRETCODE (wait_status) != 0)
+    exit (WRETCODE (wait_status));
 
 #if !defined (MAIL_USE_MMDF) && !defined (MAIL_USE_SYSTEM_LOCK)
 #ifdef MAIL_USE_MAILLOCK
@@ -828,10 +828,10 @@ pop_retr (popserver server, int msgno, FILE *arg)
 
   if (pop_retrieve_first (server, msgno, &line))
     {
-      char *error = concat ("Error from POP server: ", pop_error, "");
-      strncpy (Errmsg, error, sizeof (Errmsg));
+      char *msg = concat ("Error from POP server: ", pop_error, "");
+      strncpy (Errmsg, msg, sizeof (Errmsg));
       Errmsg[sizeof (Errmsg)-1] = '\0';
-      free(error);
+      free (msg);
       return (NOTOK);
     }
 
@@ -850,10 +850,10 @@ pop_retr (popserver server, int msgno, FILE *arg)
 
   if (ret)
     {
-      char *error = concat ("Error from POP server: ", pop_error, "");
-      strncpy (Errmsg, error, sizeof (Errmsg));
+      char *msg = concat ("Error from POP server: ", pop_error, "");
+      strncpy (Errmsg, msg, sizeof (Errmsg));
       Errmsg[sizeof (Errmsg)-1] = '\0';
-      free(error);
+      free (msg);
       return (NOTOK);
     }
 
