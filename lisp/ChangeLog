@@ -1,3 +1,11 @@
+2011-02-21  Alan Mackenzie  <acm@muc.de>
+
+	Fix bug #7930.
+	* progmodes/cc-engine.el (c-state-literal-at): Prevent positions
+	in macros finding their way into c-state-nonlit-pos-cache.
+	Strengthen the comments.
+	(c-state-dump): New commented out diagnostic routine.
+
 2011-02-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-rfn-eshadow-setup-minibuffer): Do not use
