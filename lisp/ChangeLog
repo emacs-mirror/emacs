@@ -1,3 +1,42 @@
+2011-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (with-output-to-temp-buffer): New macro.
+
+	* simple.el (count-words-region): Don't use interactive-p.
+
+	* minibuffer.el: Use lexical-binding.  Replace all uses of lexical-let.
+
+	* emacs-lisp/eieio.el (eieio-defgeneric-form-primary-only-one):
+	Call byte-compile rather than byte-compile-lambda.
+
+	* emacs-lisp/eieio-comp.el (eieio-byte-compile-file-form-defmethod):
+	Rename from byte-compile-file-form-defmethod.
+	Don't byte-compile-lambda.
+	(eieio-byte-compile-defmethod-param-convert): Rename from
+	byte-compile-defmethod-param-convert.
+
+	* emacs-lisp/cl-extra.el (cl-macroexpand-all): Don't assume that the
+	value of (function (lambda ...)) is self-quoting.
+
+	* emacs-lisp/cconv.el: Use lexical-binding.
+	(cconv--lookup-let): Rename from cconv-lookup-let.
+	(cconv-closure-convert-rec): Fix handling of captured+mutated
+	arguments in defun/defmacro.
+
+	* emacs-lisp/bytecomp.el (byte-compile-lapcode):
+	Turn stack-ref-0 into dup.
+	(byte-compile-form): Don't indirect-function since it can signal
+	errors.
+	(byte-compile-stack-ref, byte-compile-stack-set): Adjust to stack-refs
+	being relative to top rather than to bottom in the byte-code.
+	(with-output-to-temp-buffer): Remove.
+	(byte-compile-with-output-to-temp-buffer): Remove.
+
+	* emacs-lisp/byte-opt.el (byte-compile-side-effect-and-error-free-ops):
+	Remove interactive-p.
+	(byte-optimize-lapcode): Update optimizations now that stack-refs are
+	relative to the top rather than to the bottom.
+
 2011-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (save-window-excursion): New macro, moved from C.

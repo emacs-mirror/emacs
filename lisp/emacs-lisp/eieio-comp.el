@@ -45,9 +45,9 @@
   )
 
 ;; This teaches the byte compiler how to do this sort of thing.
-(put 'defmethod 'byte-hunk-handler 'byte-compile-file-form-defmethod)
+(put 'defmethod 'byte-hunk-handler 'eieio-byte-compile-file-form-defmethod)
 
-(defun byte-compile-file-form-defmethod (form)
+(defun eieio-byte-compile-file-form-defmethod (form)
   "Mumble about the method we are compiling.
 This function is mostly ripped from `byte-compile-file-form-defun',
 but it's been modified to handle the special syntax of the `defmethod'
@@ -74,7 +74,7 @@ that is called but rarely.  Argument FORM is the body of the method."
 			    ":static ")
 			   (t ""))))
 	 (params (car form))
-	 (lamparams (byte-compile-defmethod-param-convert params))
+	 (lamparams (eieio-byte-compile-defmethod-param-convert params))
 	 (arg1 (car params))
 	 (class (if (listp arg1) (nth 1 arg1) nil))
 	 (my-outbuffer (if (eval-when-compile (featurep 'xemacs))
@@ -98,6 +98,9 @@ that is called but rarely.  Argument FORM is the body of the method."
     ;; Byte compile the body.  For the byte compiled forms, add the
     ;; rest arguments, which will get ignored by the engine which will
     ;; add them later (I hope)
+    ;; FIXME: This relies on compiler's internal.  Make sure it still
+    ;; works with lexical-binding code.  Maybe calling `byte-compile'
+    ;; would be preferable.
     (let* ((new-one (byte-compile-lambda
 		     (append (list 'lambda lamparams)
 			     (cdr form))))
@@ -125,7 +128,7 @@ that is called but rarely.  Argument FORM is the body of the method."
     ;; nil prevents cruft from appearing in the output buffer.
     nil))
 
-(defun byte-compile-defmethod-param-convert (paramlist)
+(defun eieio-byte-compile-defmethod-param-convert (paramlist)
   "Convert method params into the params used by the `defmethod' thingy.
 Argument PARAMLIST is the parameter list to convert."
   (let ((argfix nil))

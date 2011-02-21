@@ -1,3 +1,10 @@
+2011-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bytecode.c (exec_byte_code): Change stack_ref and stack_set to use
+	offsets relative to top rather than to bottom.
+
+	* alloc.c (Fgarbage_collect): Don't mark the byte-stack redundantly.
+
 2011-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Fsave_window_excursion): Remove.  Moved to Lisp.

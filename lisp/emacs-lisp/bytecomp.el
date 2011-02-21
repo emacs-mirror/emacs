@@ -636,13 +636,13 @@ otherwise pop it")
 ;; Takes, on stack, the buffer name.
 ;; Binds standard-output and does some other things.
 ;; Returns with temp buffer on the stack in place of buffer name.
-(byte-defop 144  0 byte-temp-output-buffer-setup)
+;; (byte-defop 144  0 byte-temp-output-buffer-setup)
 
 ;; For exit from with-output-to-temp-buffer.
 ;; Expects the temp buffer on the stack underneath value to return.
 ;; Pops them both, then pushes the value back on.
 ;; Unbinds standard-output and makes the temp buffer visible.
-(byte-defop 145 -1 byte-temp-output-buffer-show)
+;; (byte-defop 145 -1 byte-temp-output-buffer-show)
 
 ;; these ops are new to v19
 
@@ -826,6 +826,10 @@ CONST2 may be evaulated multiple times."
               ((null off)
                ;; opcode that doesn't use OFF
                (byte-compile-push-bytecodes opcode bytes pc))
+              ((and (eq opcode byte-stack-ref) (eq off 0))
+               ;; (stack-ref 0) is really just another name for `dup'.
+               (debug)                 ;FIXME: When would this happen?
+               (byte-compile-push-bytecodes byte-dup bytes pc))
               ;; The following three cases are for the special
               ;; insns that encode their operand into 0, 1, or 2
               ;; extra bytes depending on its magnitude.
@@ -2530,13 +2534,13 @@ If FORM is a lambda or a macro, byte-compile it as a function."
       (if macro
 	  (setq fun (cdr fun)))
       (cond ((eq (car-safe fun) 'lambda)
-	     ;; expand macros
+	     ;; Expand macros.
              (setq fun
                    (macroexpand-all fun
                                     byte-compile-initial-macro-environment))
              (if lexical-binding
                  (setq fun (cconv-closure-convert fun)))
-	     ;; get rid of the `function' quote added by the `lambda' macro
+	     ;; Get rid of the `function' quote added by the `lambda' macro.
 	     (setq fun (cadr fun))
 	     (setq fun (if macro
 			   (cons 'macro (byte-compile-lambda fun))
@@ -2953,7 +2957,7 @@ That command is designed for interactive use only" bytecomp-fn))
                  (byte-compile-nogroup-warn form))
 	     (byte-compile-callargs-warn form))
            (if (and (fboundp (car form))
-                    (eq (car-safe (indirect-function (car form))) 'macro))
+                    (eq (car-safe (symbol-function (car form))) 'macro))
                (byte-compile-report-error
                 (format "Forgot to expand macro %s" (car form))))
 	   (if (and bytecomp-handler
@@ -3324,15 +3328,16 @@ discarding."
 
 (defun byte-compile-stack-ref (stack-pos)
   "Output byte codes to push the value at position STACK-POS in the stack, on the top of the stack."
-  (if (= byte-compile-depth (1+ stack-pos))
-      ;; A simple optimization
-      (byte-compile-out 'byte-dup)
-    ;; normal case
-    (byte-compile-out 'byte-stack-ref stack-pos)))
+  (let ((dist (- byte-compile-depth (1+ stack-pos))))
+    (if (zerop dist)
+        ;; A simple optimization
+        (byte-compile-out 'byte-dup)
+      ;; normal case
+      (byte-compile-out 'byte-stack-ref dist))))
 
 (defun byte-compile-stack-set (stack-pos)
   "Output byte codes to store the top-of-stack value at position STACK-POS in the stack."
-  (byte-compile-out 'byte-stack-set stack-pos))
+  (byte-compile-out 'byte-stack-set (- byte-compile-depth (1+ stack-pos))))
 
 
 ;; Compile a function that accepts one or more args and is right-associative.
@@ -3946,7 +3951,6 @@ binding slots have been popped."
 (byte-defop-compiler-1 save-excursion)
 (byte-defop-compiler-1 save-current-buffer)
 (byte-defop-compiler-1 save-restriction)
-(byte-defop-compiler-1 with-output-to-temp-buffer)
 (byte-defop-compiler-1 track-mouse)
 
 (defun byte-compile-catch (form)
@@ -4045,12 +4049,6 @@ binding slots have been popped."
   (byte-compile-out 'byte-save-current-buffer 0)
   (byte-compile-body-do-effect (cdr form))
   (byte-compile-out 'byte-unbind 1))
-
-(defun byte-compile-with-output-to-temp-buffer (form)
-  (byte-compile-form (car (cdr form)))
-  (byte-compile-out 'byte-temp-output-buffer-setup 0)
-  (byte-compile-body (cdr (cdr form)))
-  (byte-compile-out 'byte-temp-output-buffer-show 0))
 
 ;;; top-level forms elsewhere
 

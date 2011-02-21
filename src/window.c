@@ -3655,7 +3655,6 @@ displaying that buffer.  */)
   return Qnil;
 }
 
-
 void
 temp_output_buffer_show (register Lisp_Object buf)
 {
@@ -3714,6 +3713,16 @@ temp_output_buffer_show (register Lisp_Object buf)
 	  unbind_to (count, Qnil);
 	}
     }
+}
+
+DEFUN ("internal-temp-output-buffer-show",
+       Ftemp_output_buffer_show, Stemp_output_buffer_show,
+       1, 1, 0,
+       doc: /* Internal function for `with-output-to-temp-buffer''.  */)
+     (Lisp_Object buf)
+{
+  temp_output_buffer_show (buf);
+  return Qnil;
 }
 
 static void
@@ -7155,6 +7164,7 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Sset_window_buffer);
   defsubr (&Sselect_window);
   defsubr (&Sforce_window_update);
+  defsubr (&Stemp_output_buffer_show);
   defsubr (&Ssplit_window);
   defsubr (&Senlarge_window);
   defsubr (&Sshrink_window);

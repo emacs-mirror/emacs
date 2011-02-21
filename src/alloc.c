@@ -5029,9 +5029,9 @@ returns nil, because real GC can't be done.  */)
       for (i = 0; i < tail->nvars; i++)
 	mark_object (tail->var[i]);
   }
+  mark_byte_stack ();
 #endif
 
-  mark_byte_stack ();
   for (catch = catchlist; catch; catch = catch->next)
     {
       mark_object (catch->tag);

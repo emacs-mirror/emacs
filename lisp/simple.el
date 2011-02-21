@@ -990,7 +990,7 @@ When called interactively, the word count is printed in echo area."
         (goto-char (point-min))
         (while (forward-word 1)
           (setq count (1+ count)))))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
         (message "Region has %d words" count))
     count))
 
@@ -6641,6 +6641,7 @@ saving the value of `buffer-invisibility-spec' and setting it to nil."
 
 ;; Partial application of functions (similar to "currying").
 ;; This function is here rather than in subr.el because it uses CL.
+;; (defalias 'apply-partially #'curry)
 (defun apply-partially (fun &rest args)
   "Return a function that is a partial application of FUN to ARGS.
 ARGS is a list of the first N arguments to pass to FUN.

@@ -426,12 +426,6 @@ Non-strings in LIST are ignored."
     (setq list (cdr list)))
   list)
 
-;; Remove this since we don't know how to handle it in the byte-compiler yet.
-;; (defmacro with-lexical-binding (&rest body)
-;;   "Execute the statements in BODY using lexical binding."
-;;   `(let ((internal-interpreter-environment '(t)))
-;;      ,@body))
-
 (defun assq-delete-all (key alist)
   "Delete from ALIST all elements whose car is `eq' to KEY.
 Return the modified alist.
@@ -2785,6 +2779,51 @@ in which case `save-window-excursion' cannot help."
     `(let ((,c (current-window-configuration)))
        (unwind-protect (progn ,@body)
          (set-window-configuration ,c)))))
+
+(defmacro with-output-to-temp-buffer (bufname &rest body)
+  "Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer.
+
+This construct makes buffer BUFNAME empty before running BODY.
+It does not make the buffer current for BODY.
+Instead it binds `standard-output' to that buffer, so that output
+generated with `prin1' and similar functions in BODY goes into
+the buffer.
+
+At the end of BODY, this marks buffer BUFNAME unmodifed and displays
+it in a window, but does not select it.  The normal way to do this is
+by calling `display-buffer', then running `temp-buffer-show-hook'.
+However, if `temp-buffer-show-function' is non-nil, it calls that
+function instead (and does not run `temp-buffer-show-hook').  The
+function gets one argument, the buffer to display.
+
+The return value of `with-output-to-temp-buffer' is the value of the
+last form in BODY.  If BODY does not finish normally, the buffer
+BUFNAME is not displayed.
+
+This runs the hook `temp-buffer-setup-hook' before BODY,
+with the buffer BUFNAME temporarily current.  It runs the hook
+`temp-buffer-show-hook' after displaying buffer BUFNAME, with that
+buffer temporarily current, and the window that was used to display it
+temporarily selected.  But it doesn't run `temp-buffer-show-hook'
+if it uses `temp-buffer-show-function'."
+  (let ((old-dir (make-symbol "old-dir"))
+        (buf (make-symbol "buf")))
+    `(let ((,old-dir default-directory))
+       (with-current-buffer (get-buffer-create ,bufname)
+         (kill-all-local-variables)
+         ;; FIXME: delete_all_overlays
+         (setq default-directory ,old-dir)
+         (setq buffer-read-only nil)
+         (setq buffer-file-name nil)
+         (setq buffer-undo-list t)
+         (let ((,buf (current-buffer)))
+           (let ((inhibit-read-only t)
+                 (inhibit-modification-hooks t))
+             (erase-buffer)
+             (run-hooks 'temp-buffer-setup-hook))
+           (let ((standard-output ,buf))
+             (prog1 (progn ,@body)
+               (internal-temp-output-buffer-show ,buf))))))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.

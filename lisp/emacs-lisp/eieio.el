@@ -182,9 +182,9 @@ Stored outright without modifications or stripping.")
 	))
 
 ;; How to specialty compile stuff.
-(autoload 'byte-compile-file-form-defmethod "eieio-comp"
+(autoload 'eieio-byte-compile-file-form-defmethod "eieio-comp"
   "This function is used to byte compile methods in a nice way.")
-(put 'defmethod 'byte-hunk-handler 'byte-compile-file-form-defmethod)
+(put 'defmethod 'byte-hunk-handler 'eieio-byte-compile-file-form-defmethod)
 
 ;;; Important macros used in eieio.
 ;;
@@ -1192,10 +1192,8 @@ IMPL is the symbol holding the method implementation."
   ;; is faster to execute this for not byte-compiled.  ie, install this,
   ;; then measure calls going through here.  I wonder why.
   (require 'bytecomp)
-  (let ((byte-compile-free-references nil)
-	(byte-compile-warnings nil)
-	)
-    (byte-compile-lambda
+  (let ((byte-compile-warnings nil))
+    (byte-compile
      `(lambda (&rest local-args)
 	,doc-string
 	;; This is a cool cheat.  Usually we need to look up in the
@@ -1205,7 +1203,8 @@ IMPL is the symbol holding the method implementation."
 	;; of that one implementation, then clearly, there is no method def.
 	(if (not (eieio-object-p (car local-args)))
 	    ;; Not an object.  Just signal.
-	    (signal 'no-method-definition (list ,(list 'quote method) local-args))
+	    (signal 'no-method-definition
+                    (list ,(list 'quote method) local-args))
 
 	  ;; We do have an object.  Make sure it is the right type.
 	  (if ,(if (eq class eieio-default-superclass)
@@ -1228,9 +1227,7 @@ IMPL is the symbol holding the method implementation."
 		  )
 	      (apply ,(list 'quote impl) local-args)
 	      ;(,impl local-args)
-	      ))))
-     )
-  ))
+	      )))))))
 
 (defsubst eieio-defgeneric-reset-generic-form-primary-only-one (method)
   "Setup METHOD to call the generic form."

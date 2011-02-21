@@ -1470,7 +1470,7 @@
     byte-cdr-safe byte-cons byte-list1 byte-list2 byte-point byte-point-max
     byte-point-min byte-following-char byte-preceding-char
     byte-current-column byte-eolp byte-eobp byte-bolp byte-bobp
-    byte-current-buffer byte-interactive-p byte-stack-ref))
+    byte-current-buffer byte-stack-ref))
 
 (defconst byte-compile-side-effect-free-ops
   (nconc
@@ -1628,14 +1628,15 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;; const/dup varbind-X varref-X --> const/dup varbind-X const/dup
 	      ;; The latter two can enable other optimizations.
 	      ;;
-	      ((or (and (eq 'byte-varref (car lap2))
-			(eq (cdr lap1) (cdr lap2))
-			(memq (car lap1) '(byte-varset byte-varbind)))
-		   (and (eq (car lap2) 'byte-stack-ref)
-			(eq (car lap1) 'byte-stack-set)
-			(eq (cdr lap1) (cdr lap2))))
-	       (if (and (eq 'byte-varref (car lap2))
-			(setq tmp (memq (car (cdr lap2)) byte-boolean-vars))
+              ;; For lexical variables, we could do the same
+              ;;   stack-set-X+1 stack-ref-X  -->  dup stack-set-X+2
+              ;; but this is a very minor gain, since dup is stack-ref-0,
+              ;; i.e. it's only better if X>5, and even then it comes
+              ;; at the cost cost of an extra stack slot.  Let's not bother.
+	      ((and (eq 'byte-varref (car lap2))
+                    (eq (cdr lap1) (cdr lap2))
+                    (memq (car lap1) '(byte-varset byte-varbind)))
+	       (if (and (setq tmp (memq (car (cdr lap2)) byte-boolean-vars))
 			(not (eq (car lap0) 'byte-constant)))
 		   nil
 		 (setq keep-going t)
@@ -1663,15 +1664,18 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;;
 	      ;; dup varset-X discard  -->  varset-X
 	      ;; dup varbind-X discard  -->  varbind-X
+              ;; dup stack-set-X discard  -->  stack-set-X-1
 	      ;; (the varbind variant can emerge from other optimizations)
 	      ;;
 	      ((and (eq 'byte-dup (car lap0))
 		    (eq 'byte-discard (car lap2))
-		    (memq (car lap1) '(byte-varset byte-varbind byte-stack-set)))
+		    (memq (car lap1) '(byte-varset byte-varbind
+                                       byte-stack-set)))
 	       (byte-compile-log-lap "  dup %s discard\t-->\t%s" lap1 lap1)
 	       (setq keep-going t
 		     rest (cdr rest)
 		     stack-adjust -1)
+               (if (eq 'byte-stack-set (car lap1)) (decf (cdr lap1)))
 	       (setq lap (delq lap0 (delq lap2 lap))))
 	      ;;
 	      ;; not goto-X-if-nil              -->  goto-X-if-non-nil
@@ -1739,18 +1743,24 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;;
 	      ;; varref-X varref-X  -->  varref-X dup
 	      ;; varref-X [dup ...] varref-X  -->  varref-X [dup ...] dup
+	      ;; stackref-X [dup ...] stackref-X+N  -->  stackref-X [dup ...] dup
 	      ;; We don't optimize the const-X variations on this here,
 	      ;; because that would inhibit some goto optimizations; we
 	      ;; optimize the const-X case after all other optimizations.
 	      ;;
 	      ((and (memq (car lap0) '(byte-varref byte-stack-ref))
 		    (progn
-		      (setq tmp (cdr rest) tmp2 0)
+		      (setq tmp (cdr rest))
+                      (setq tmp2 0)
 		      (while (eq (car (car tmp)) 'byte-dup)
-			(setq tmp (cdr tmp) tmp2 (1+ tmp2)))
+			(setq tmp2 (1+ tmp2))
+                        (setq tmp (cdr tmp)))
 		      t)
-		    (eq (car lap0) (car (car tmp)))
-		    (eq (cdr lap0) (cdr (car tmp))))
+		    (eq (if (eq 'byte-stack-ref (car lap0))
+                            (+ tmp2 1 (cdr lap0))
+                          (cdr lap0))
+                        (cdr (car tmp)))
+		    (eq (car lap0) (car (car tmp))))
 	       (if (memq byte-optimize-log '(t byte))
 		   (let ((str ""))
 		     (setq tmp2 (cdr rest))
@@ -1857,14 +1867,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		   ""))
 	       (setq keep-going t))
 	      ;;
-	      ;; stack-ref-N  -->  dup    ; where N is TOS
-	      ;;
-	      ((and stack-depth (eq (car lap0) 'byte-stack-ref)
-		    (= (cdr lap0) (1- stack-depth)))
-	       (setcar lap0 'byte-dup)
-	       (setcdr lap0 nil)
-	       (setq keep-going t))
-	      ;;
 	      ;; goto*-X ... X: goto-Y  --> goto*-Y
 	      ;; goto-X ...  X: return  --> return
 	      ;;
@@ -1948,12 +1950,19 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;; X: varref-Y Z: ... dup varset-Y goto-Z
 	      ;; (varset-X goto-BACK, BACK: varref-X --> copy the varref down.)
 	      ;; (This is so usual for while loops that it is worth handling).
+              ;;
+              ;; Here again, we could do it for stack-ref/stack-set, but
+	      ;; that's replacing a stack-ref-Y with a stack-ref-0, which
+              ;; is a very minor improvement (if any), at the cost of
+	      ;; more stack use and more byte-code.  Let's not do it.
 	      ;;
-	      ((and (memq (car lap1) '(byte-varset byte-stack-set))
+	      ((and (eq (car lap1) 'byte-varset)
 		    (eq (car lap2) 'byte-goto)
 		    (not (memq (cdr lap2) rest)) ;Backwards jump
 		    (eq (car (car (setq tmp (cdr (memq (cdr lap2) lap)))))
-			(if (eq (car lap1) 'byte-varset) 'byte-varref 'byte-stack-ref))
+			(if (eq (car lap1) 'byte-varset) 'byte-varref
+                          ;; 'byte-stack-ref
+                          ))
 		    (eq (cdr (car tmp)) (cdr lap1))
 		    (not (and (eq (car lap1) 'byte-varref)
 			      (memq (car (cdr lap1)) byte-boolean-vars))))
@@ -2026,7 +2035,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
     ;; Rebuild byte-compile-constants / byte-compile-variables.
     ;; Simple optimizations that would inhibit other optimizations if they
     ;; were done in the optimizing loop, and optimizations which there is no
-    ;;  need to do more than once.
+    ;; need to do more than once.
     (setq byte-compile-constants nil
 	  byte-compile-variables nil)
     (setq rest lap
@@ -2089,38 +2098,38 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	    ;; stack-set-M [discard/discardN ...]  -->  discardN-preserve-tos
 	    ;; stack-set-M [discard/discardN ...]  -->  discardN
 	    ;;
-	    ((and stack-depth      ;Make sure we know the stack depth.
-                  (eq (car lap0) 'byte-stack-set)
-		  (memq (car lap1) '(byte-discard byte-discardN))
-		  (progn
-		    ;; See if enough discard operations follow to expose or
-		    ;; destroy the value stored by the stack-set.
-		    (setq tmp (cdr rest))
-		    (setq tmp2 (- stack-depth 2 (cdr lap0)))
-		    (setq tmp3 0)
-		    (while (memq (car (car tmp)) '(byte-discard byte-discardN))
-		      (if (eq (car (car tmp)) 'byte-discard)
-			  (setq tmp3 (1+ tmp3))
-			(setq tmp3 (+ tmp3 (cdr (car tmp)))))
-		      (setq tmp (cdr tmp)))
-		    (>= tmp3 tmp2)))
-	     ;; Do the optimization
+	    ((and (eq (car lap0) 'byte-stack-set)
+	          (memq (car lap1) '(byte-discard byte-discardN))
+	          (progn
+	            ;; See if enough discard operations follow to expose or
+	            ;; destroy the value stored by the stack-set.
+	            (setq tmp (cdr rest))
+	            (setq tmp2 (1- (cdr lap0)))
+	            (setq tmp3 0)
+	            (while (memq (car (car tmp)) '(byte-discard byte-discardN))
+	              (setq tmp3
+                            (+ tmp3 (if (eq (car (car tmp)) 'byte-discard)
+                                        1
+                                      (cdr (car tmp)))))
+	              (setq tmp (cdr tmp)))
+	            (>= tmp3 tmp2)))
+	     ;; Do the optimization.
 	     (setq lap (delq lap0 lap))
-	     (cond ((= tmp2 tmp3)
-		    ;; The value stored is the new TOS, so pop one more value
-		    ;; (to get rid of the old value) using the TOS-preserving
-		    ;; discard operator.
-		    (setcar lap1 'byte-discardN-preserve-tos)
-		    (setcdr lap1 (1+ tmp3)))
-		   (t
-		    ;; Otherwise, the value stored is lost, so just use a
-		    ;; normal discard.
-		    (setcar lap1 'byte-discardN)
-		    (setcdr lap1 tmp3)))
+             (setcar lap1
+                     (if (= tmp2 tmp3)
+                         ;; The value stored is the new TOS, so pop
+                         ;; one more value (to get rid of the old
+                         ;; value) using the TOS-preserving
+                         ;; discard operator.
+                         'byte-discardN-preserve-tos
+                       ;; Otherwise, the value stored is lost, so just use a
+                       ;; normal discard.
+                       'byte-discardN))
+             (setcdr lap1 (1+ tmp3))
 	     (setcdr (cdr rest) tmp)
 	     (setq stack-adjust 0)
 	     (byte-compile-log-lap "  %s [discard/discardN]...\t-->\t%s"
-				   lap0 lap1))
+	        		   lap0 lap1))
 
 	    ;;
 	    ;; discard/discardN/discardN-preserve-tos-X discard/discardN-Y  -->
@@ -2158,30 +2167,16 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	    ;; dup return  -->  return
 	    ;; stack-set-N return  -->  return     ; where N is TOS-1
 	    ;;
-	    ((and stack-depth      ;Make sure we know the stack depth.
-                  (eq (car lap1) 'byte-return)
-		  (or (memq (car lap0) '(byte-discardN-preserve-tos byte-dup))
-		      (and (eq (car lap0) 'byte-stack-set)
-			   (= (cdr lap0) (- stack-depth 2)))))
-	     ;; the byte-code interpreter will pop the stack for us, so
-	     ;; we can just leave stuff on it
+	    ((and (eq (car lap1) 'byte-return)
+	          (or (memq (car lap0) '(byte-discardN-preserve-tos byte-dup))
+	              (and (eq (car lap0) 'byte-stack-set)
+	        	   (= (cdr lap0) 1))))
+	     ;; The byte-code interpreter will pop the stack for us, so
+	     ;; we can just leave stuff on it.
 	     (setq lap (delq lap0 lap))
 	     (setq stack-adjust 0)
 	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 lap1))
-
-	    ;;
-	    ;; dup stack-set-N return  -->  return     ; where N is TOS
-	    ;;
-	    ((and stack-depth      ;Make sure we know the stack depth.
-                  (eq (car lap0) 'byte-dup)
-		  (eq (car lap1) 'byte-stack-set)
-		  (eq (car (car (cdr (cdr rest)))) 'byte-return)
-		  (= (cdr lap1) (1- stack-depth)))
-	     (setq lap (delq lap0 (delq lap1 lap)))
-	     (setq rest (cdr rest))
-	     (setq stack-adjust 0)
-	     (byte-compile-log-lap "  dup %s return\t-->\treturn" lap1))
-	    )
+            )
 
       (setq stack-depth 
 	    (and stack-depth stack-adjust (+ stack-depth stack-adjust)))

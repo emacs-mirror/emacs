@@ -51,7 +51,7 @@ by Hallvard:
  *
  * define BYTE_CODE_METER to enable generation of a byte-op usage histogram.
  */
-/* #define BYTE_CODE_SAFE */
+#define BYTE_CODE_SAFE
 /* #define BYTE_CODE_METER */
 
 
@@ -88,7 +88,7 @@ extern Lisp_Object Qand_optional, Qand_rest;
 
 /*  Byte codes: */
 
-#define Bstack_ref 0
+#define Bstack_ref 0 /* Actually, Bstack_ref+0 is not implemented: use dup.  */
 #define Bvarref 010
 #define Bvarset 020
 #define Bvarbind 030
@@ -189,8 +189,8 @@ extern Lisp_Object Qand_optional, Qand_rest;
 
 #define Bunwind_protect 0216
 #define Bcondition_case 0217
-#define Btemp_output_buffer_setup 0220
-#define Btemp_output_buffer_show 0221
+#define Btemp_output_buffer_setup 0220 /* Obsolete.  */
+#define Btemp_output_buffer_show 0221  /* Obsolete.  */
 
 #define Bunbind_all 0222	/* Obsolete.  */
 
@@ -898,9 +898,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	case Bsave_window_excursion: /* Obsolete.  */
 	  {
-	    register Lisp_Object val;
 	    register int count = SPECPDL_INDEX ();
-
 	    record_unwind_protect (Fset_window_configuration,
 				   Fcurrent_window_configuration (Qnil));
 	    BEFORE_POTENTIAL_GC ();
@@ -940,7 +938,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    break;
 	  }
 
-	case Btemp_output_buffer_setup:
+	case Btemp_output_buffer_setup: /* Obsolete.  */
 	  BEFORE_POTENTIAL_GC ();
 	  CHECK_STRING (TOP);
 	  temp_output_buffer_setup (SSDATA (TOP));
@@ -948,7 +946,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  TOP = Vstandard_output;
 	  break;
 
-	case Btemp_output_buffer_show:
+	case Btemp_output_buffer_show: /* Obsolete.  */
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
@@ -1710,26 +1708,42 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 #endif
 
 	  /* Handy byte-codes for lexical binding.  */
-	case Bstack_ref:
+	  /* case Bstack_ref: */  /* Use `dup' instead.  */
 	case Bstack_ref+1:
 	case Bstack_ref+2:
 	case Bstack_ref+3:
 	case Bstack_ref+4:
 	case Bstack_ref+5:
-	  PUSH (stack.bottom[op - Bstack_ref]);
-	  break;
+	  {
+	    Lisp_Object *ptr = top - (op - Bstack_ref);
+	    PUSH (*ptr);
+	    break;
+	  }
 	case Bstack_ref+6:
-	  PUSH (stack.bottom[FETCH]);
-	  break;
+	  {
+	    Lisp_Object *ptr = top - (FETCH);
+	    PUSH (*ptr);
+	    break;
+	  }
 	case Bstack_ref+7:
-	  PUSH (stack.bottom[FETCH2]);
-	  break;
+	  {
+	    Lisp_Object *ptr = top - (FETCH2);
+	    PUSH (*ptr);
+	    break;
+	  }
+	  /* stack-set-0 = discard; stack-set-1 = discard-1-preserve-tos.  */
 	case Bstack_set:
-	  stack.bottom[FETCH] = POP;
-	  break;
+	  {
+	    Lisp_Object *ptr = top - (FETCH);
+	    *ptr = POP;
+	    break;
+	  }
 	case Bstack_set2:
-	  stack.bottom[FETCH2] = POP;
-	  break;
+	  {
+	    Lisp_Object *ptr = top - (FETCH2);
+	    *ptr = POP;
+	    break;
+	  }
 	case BdiscardN:
 	  op = FETCH;
 	  if (op & 0x80)

@@ -1,4 +1,4 @@
-;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: nil -*-
+;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011  Free Software Foundation, Inc.
 
@@ -71,13 +71,17 @@
 ;;; Code:
 
 ;;; TODO:
+;; - Change new byte-code representation, so it directly gives the
+;;   number of mandatory and optional arguments as well as whether or
+;;   not there's a &rest arg.
 ;; - Use abstract `make-closure' and `closure-ref' expressions, which bytecomp
 ;;   should turn into building corresponding byte-code function.
 ;; - don't use `curry', instead build a new compiled-byte-code object
 ;;   (merge the closure env into the static constants pool).
-;; - use relative addresses for byte-code-stack-ref.
 ;; - warn about unused lexical vars.
 ;; - clean up cconv-closure-convert-rec, especially the `let' binding part.
+;; - new byte codes for unwind-protect, catch, and condition-case so that
+;;   closures aren't needed at all.
 
 (eval-when-compile (require 'cl))
 
@@ -215,7 +219,7 @@ Returns a form where all lambdas don't have any free variables."
      '()
      )))
 
-(defun cconv-lookup-let (table var binder form)
+(defun cconv--lookup-let (table var binder form)
   (let ((res nil))
     (dolist (elem table)
       (when (and (eq (nth 2 elem) binder)
@@ -312,7 +316,7 @@ Returns a form where all lambdas don't have any free variables."
                 (new-val
                  (cond
                   ;; Check if var is a candidate for lambda lifting.
-                  ((cconv-lookup-let cconv-lambda-candidates var binder form)
+                  ((cconv--lookup-let cconv-lambda-candidates var binder form)
 
                    (let* ((fv (delete-dups (cconv-freevars value '())))
                           (funargs (cadr (cadr value)))
@@ -341,7 +345,7 @@ Returns a form where all lambdas don't have any free variables."
                                        ,(reverse funcbodies-new))))))))
 
                   ;; Check if it needs to be turned into a "ref-cell".
-                  ((cconv-lookup-let cconv-captured+mutated var binder form)
+                  ((cconv--lookup-let cconv-captured+mutated var binder form)
                    ;; Declared variable is mutated and captured.
                    (prog1
                        `(list ,(cconv-closure-convert-rec
@@ -478,9 +482,9 @@ Returns a form where all lambdas don't have any free variables."
        (cons 'cond
              (reverse cond-forms-new))))
 
-    (`(quote . ,_) form)                ; quote form
+    (`(quote . ,_) form)
 
-    (`(function . ((lambda ,vars . ,body-forms))) ; function form
+    (`(function (lambda ,vars . ,body-forms)) ; function form
      (let* ((fvrs-new (cconv--set-diff fvrs vars)) ; Remove vars from fvrs.
 	    (fv (delete-dups (cconv-freevars form '())))
             (leave fvrs-new) ; leave=non-nil if we should leave env unchanged.
@@ -493,8 +497,8 @@ Returns a form where all lambdas don't have any free variables."
          ;; If outer closure contains all
          ;; free variables of this function(and nothing else)
          ;; then we use the same environment vector as for outer closure,
-         ;; i.e. we leave the environment vector unchanged
-         ;; otherwise we build a new environmet vector
+         ;; i.e. we leave the environment vector unchanged,
+         ;; otherwise we build a new environment vector.
          (if (eq (length envs) (length fv))
              (let ((fv-temp fv))
                (while (and fv-temp leave)
@@ -552,7 +556,7 @@ Returns a form where all lambdas don't have any free variables."
            (function (lambda (,cconv--env-var . ,vars) . ,body-forms-new))
            (vector . ,envector))))))
 
-    (`(function . ,_) form)             ; same as quote
+    (`(function . ,_) form)             ; Same as quote.
 
 					;defconst, defvar
     (`(,(and sym (or `defconst `defvar)) ,definedsymbol . ,body-forms)
@@ -568,23 +572,23 @@ Returns a form where all lambdas don't have any free variables."
 					;defun, defmacro
     (`(,(and sym (or `defun `defmacro))
        ,func ,vars . ,body-forms)
-     (let ((body-new '())           ; the whole body
-           (body-forms-new '())   ; body w\o docstring and interactive
+     (let ((body-new '())	  ; The whole body.
+           (body-forms-new '())   ; Body w\o docstring and interactive.
            (letbind '()))
-					; find mutable arguments
-       (let ((lmutated cconv-captured+mutated) ismutated)
-         (dolist (elm vars)
-           (setq ismutated nil)
+					; Find mutable arguments.
+       (dolist (elm vars)
+         (let ((lmutated cconv-captured+mutated)
+	       (ismutated nil))
            (while (and lmutated (not ismutated))
              (when (and (eq (caar lmutated) elm)
-                        (eq (cadar lmutated) form))
+                        (eq (caddar lmutated) form))
                (setq ismutated t))
              (setq lmutated (cdr lmutated)))
            (when ismutated
              (push elm letbind)
              (push elm emvrs))))
-                                            ;transform body-forms
-       (when (stringp (car body-forms))     ; treat docstring well
+                                            ;Transform body-forms.
+       (when (stringp (car body-forms))     ; Treat docstring well.
          (push (car body-forms) body-new)
          (setq body-forms (cdr body-forms)))
        (when (eq (car-safe (car body-forms)) 'interactive)
@@ -601,7 +605,7 @@ Returns a form where all lambdas don't have any free variables."
        (setq body-forms-new (reverse body-forms-new))
 
        (if letbind
-					; letbind mutable arguments
+					; Letbind mutable arguments.
            (let ((binders-new '()))
              (dolist (elm letbind) (push `(,elm (list ,elm))
                                          binders-new))
@@ -655,6 +659,7 @@ Returns a form where all lambdas don't have any free variables."
              (push `(setcar ,sym-new ,value) prognlist)
            (if (symbolp sym-new)
                (push `(setq ,sym-new ,value) prognlist)
+	     (debug)		       ;FIXME: When can this be right?
              (push `(set ,sym-new ,value) prognlist)))
          (setq forms (cddr forms)))
        (if (cdr prognlist)
