@@ -1,5 +1,14 @@
 2011-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cconv.el (cconv-closure-convert-rec): Let the byte
+	compiler choose the representation of closures.
+	(cconv--env-var): Remove.
+	* emacs-lisp/bytecomp.el (byte-compile--env-var): New var.
+	(byte-compile-make-closure, byte-compile-get-closed-var):
+	New functions.
+
+2011-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* subr.el (with-output-to-temp-buffer): New macro.
 
 	* simple.el (count-words-region): Don't use interactive-p.

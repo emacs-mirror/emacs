@@ -3339,6 +3339,24 @@ discarding."
   "Output byte codes to store the top-of-stack value at position STACK-POS in the stack."
   (byte-compile-out 'byte-stack-set (- byte-compile-depth (1+ stack-pos))))
 
+(byte-defop-compiler-1 internal-make-closure byte-compile-make-closure)
+(byte-defop-compiler-1 internal-get-closed-var byte-compile-get-closed-var)
+
+(defconst byte-compile--env-var (make-symbol "env"))
+
+(defun byte-compile-make-closure (form)
+  ;; FIXME: don't use `curry'!
+  (byte-compile-form
+   (unless for-effect
+     `(curry (function (lambda (,byte-compile--env-var . ,(nth 1 form))
+                         . ,(nthcdr 3 form)))
+             (vector . ,(nth 2 form))))
+   for-effect))
+
+(defun byte-compile-get-closed-var (form)
+  (byte-compile-form (unless for-effect
+                       `(aref ,byte-compile--env-var ,(nth 1 form)))
+                     for-effect))
 
 ;; Compile a function that accepts one or more args and is right-associative.
 ;; We do it by left-associativity so that the operations

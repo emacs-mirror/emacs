@@ -71,6 +71,8 @@
 ;;; Code:
 
 ;;; TODO:
+;; - canonize code in macro-expand so we don't have to handle (let (var) body)
+;;   and other oddities.
 ;; - Change new byte-code representation, so it directly gives the
 ;;   number of mandatory and optional arguments as well as whether or
 ;;   not there's a &rest arg.
@@ -229,7 +231,6 @@ Returns a form where all lambdas don't have any free variables."
     res))
 
 (defconst cconv--dummy-var (make-symbol "ignored"))
-(defconst cconv--env-var (make-symbol "env"))
 
 (defun cconv--set-diff (s1 s2)
   "Return elements of set S1 that are not in set S2."
@@ -494,32 +495,18 @@ Returns a form where all lambdas don't have any free variables."
             (envector nil))
        (when fv
          ;; Here we form our environment vector.
-         ;; If outer closure contains all
-         ;; free variables of this function(and nothing else)
-         ;; then we use the same environment vector as for outer closure,
-         ;; i.e. we leave the environment vector unchanged,
-         ;; otherwise we build a new environment vector.
-         (if (eq (length envs) (length fv))
-             (let ((fv-temp fv))
-               (while (and fv-temp leave)
-                 (when (not (memq (car fv-temp) fvrs-new)) (setq leave nil))
-                 (setq fv-temp (cdr fv-temp))))
-           (setq leave nil))
 
-         (if (not leave)
-             (progn
-               (dolist (elm fv)
-                 (push
-                  (cconv-closure-convert-rec
-                   ;; Remove `elm' from `emvrs' for this call because in case
-                   ;; `elm' is a variable that's wrapped in a cons-cell, we
-                   ;; want to put the cons-cell itself in the closure, rather
-                   ;; than just a copy of its current content.
-                   elm (remq elm emvrs) fvrs envs lmenvs)
-                  envector))         ; Process vars for closure vector.
-               (setq envector (reverse envector))
-               (setq envs fv))
-           (setq envector `(,cconv--env-var))) ; Leave unchanged.
+         (dolist (elm fv)
+           (push
+            (cconv-closure-convert-rec
+             ;; Remove `elm' from `emvrs' for this call because in case
+             ;; `elm' is a variable that's wrapped in a cons-cell, we
+             ;; want to put the cons-cell itself in the closure, rather
+             ;; than just a copy of its current content.
+             elm (remq elm emvrs) fvrs envs lmenvs)
+            envector))              ; Process vars for closure vector.
+         (setq envector (reverse envector))
+         (setq envs fv)
          (setq fvrs-new fv))                ; Update substitution list.
 
        (setq emvrs (cconv--set-diff emvrs vars))
@@ -546,15 +533,9 @@ Returns a form where all lambdas don't have any free variables."
         ((null envector)
          `(function (lambda ,vars . ,body-forms-new)))
                                ; 1 free variable - do not build vector
-        ((null (cdr envector))
-         `(curry
-           (function (lambda (,cconv--env-var . ,vars) . ,body-forms-new))
-           ,(car envector)))
-                                   ; >=2 free variables - build vector
         (t
-         `(curry
-           (function (lambda (,cconv--env-var . ,vars) . ,body-forms-new))
-           (vector . ,envector))))))
+         `(internal-make-closure
+           ,vars ,envector . ,body-forms-new)))))
 
     (`(function . ,_) form)             ; Same as quote.
 
@@ -714,10 +695,8 @@ Returns a form where all lambdas don't have any free variables."
      (let ((free (memq form fvrs)))
        (if free                         ;form is a free variable
            (let* ((numero (- (length fvrs) (length free)))
-                  (var (if (null (cdr envs))
-                           cconv--env-var
-                         ;; Replace form => (aref env #)
-                         `(aref ,cconv--env-var ,numero))))
+                  ;; Replace form => (aref env #)
+                  (var `(internal-get-closed-var ,numero)))
              (if (memq form emvrs) ; form => (car (aref env #)) if mutable
                  `(car ,var)
                var))
