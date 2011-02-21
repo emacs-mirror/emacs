@@ -255,7 +255,7 @@ start_globals (void)
   fprintf (outfile, "struct emacs_globals {\n");
 }
 
-static char buf[128];
+static char input_buffer[128];
 
 /* Some state during the execution of `read_c_string_or_comment'.  */
 struct rcsoc_state
@@ -395,7 +395,7 @@ read_c_string_or_comment (FILE *infile, int printflag, int comment, int *saw_usa
   struct rcsoc_state state;
 
   state.in_file = infile;
-  state.buf_ptr = (printflag < 0 ? buf : 0);
+  state.buf_ptr = (printflag < 0 ? input_buffer : 0);
   state.out_file = (printflag > 0 ? outfile : 0);
   state.pending_spaces = 0;
   state.pending_newlines = 0;
@@ -795,15 +795,15 @@ scan_c_file (char *filename, const char *mode)
 	  /* Read in the identifier.  */
 	  do
 	    {
-	      buf[i++] = c;
+	      input_buffer[i++] = c;
 	      c = getc (infile);
 	    }
 	  while (! (c == ',' || c == ' ' || c == '\t' ||
 		    c == '\n' || c == '\r'));
-	  buf[i] = '\0';
+	  input_buffer[i] = '\0';
 
 	  name = xmalloc (i + 1);
-	  memcpy (name, buf, i + 1);
+	  memcpy (name, input_buffer, i + 1);
 	  add_global (type, name);
 	  continue;
 	}
@@ -888,7 +888,7 @@ scan_c_file (char *filename, const char *mode)
 
 	  putc (037, outfile);
 	  putc (defvarflag ? 'V' : 'F', outfile);
-	  fprintf (outfile, "%s\n", buf);
+	  fprintf (outfile, "%s\n", input_buffer);
 
 	  if (comment)
 	    getc (infile); 	/* Skip past `*' */
@@ -931,11 +931,12 @@ scan_c_file (char *filename, const char *mode)
 	      *p = '\0';
 	      /* Output them.  */
 	      fprintf (outfile, "\n\n");
-	      write_c_args (outfile, buf, argbuf, minargs, maxargs);
+	      write_c_args (outfile, input_buffer, argbuf, minargs, maxargs);
 	    }
 	  else if (defunflag && maxargs == -1 && !saw_usage)
 	    /* The DOC should provide the usage form.  */
-	    fprintf (stderr, "Missing `usage' for function `%s'.\n", buf);
+	    fprintf (stderr, "Missing `usage' for function `%s'.\n",
+		     input_buffer);
 	}
     }
  eof:
