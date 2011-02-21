@@ -1,3 +1,7 @@
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/netrc.el (netrc-parse): Comment fix.
+
 2011-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* color.el (color-name-to-rgb): Rename from color-rgb->normalize.

@@ -22823,6 +22823,81 @@ window is displayed vertically next to another window, you may also want
 to fiddle with @code{gnus-tree-minimize-window} to avoid having the
 windows resized.
 
+@subsection Window Configuration Names
+
+Here's a list of most of the currently known window configurations,
+and when they're used:
+
+@itemize @code
+@item group
+The group buffer.
+
+@item summary
+Entering a group and showing only the summary.
+
+@item article
+Selecting an article.
+
+@item server
+The server buffer.
+
+@item browse
+Browsing groups from the server buffer.
+
+@item message
+Composing a (new) message.
+
+@item only-article
+Showing only the article buffer.
+
+@item edit-article
+Editing an article.
+
+@item edit-form
+Editing group parameters and the like.
+
+@item edit-score
+Editing a server definition.
+
+@item post
+Composing a news message.
+
+@item reply
+Replying or following up an article without yanking the text.
+
+@item forward
+Forwarding a message.
+
+@item reply-yank
+Replying or following up an article with yanking the text.
+
+@item mail-bound
+Bouncing a message.
+
+@item pipe
+Sending an article to an external process.
+
+@item bug
+Sending a bug report.
+
+@item score-trace
+Displaying the score trace.
+
+@item score-words
+Displaying the score words.
+
+@item split-trace
+Displaying the split trace.
+
+@item compose-bounce
+Composing a bounce message.
+
+@item mml-preview
+Previewing a @acronym{MIME} part.
+
+@end itemize
+
+
 @subsection Example Window Configurations
 
 @itemize @bullet

@@ -808,7 +808,11 @@ command whose response triggered the error."
 		      (progn
 			(goto-char last-point)
 			;; Count replies.
-			(while (re-search-forward "^[0-9]" nil t)
+			(while (re-search-forward
+				(if nntp-server-list-active-group
+				    "^[.]"
+				  "^[0-9]")
+				nil t)
 			  (incf received))
 			(setq last-point (point))
 			(< received count)))
@@ -828,8 +832,13 @@ command whose response triggered the error."
 			     (progn (forward-line 1) (point))))
 	    (nntp-copy-to-buffer nntp-server-buffer (point-min) (point-max))
 	    (with-current-buffer nntp-server-buffer
-	      (gnus-active-to-gnus-format method gnus-active-hashtb
-					  nil t))))))))
+	      (gnus-active-to-gnus-format
+	       ;; Kludge to use the extended method name if you have
+	       ;; an extended one.
+	       (if (consp (gnus-info-method (car infos)))
+		   (gnus-info-method (car infos))
+		 method)
+	       gnus-active-hashtb nil t))))))))
 
 (deffoo nntp-retrieve-groups (groups &optional server)
   "Retrieve group info on GROUPS."

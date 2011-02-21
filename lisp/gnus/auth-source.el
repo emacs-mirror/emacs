@@ -500,7 +500,7 @@ must call it to obtain the actual value."
                      unless (memq (nth i spec) ignored-keys)
                      collect (nth i spec)))
          (found (auth-source-recall spec))
-         filtered-backends accessor-key found-here goal matches)
+         filtered-backends accessor-key found-here goal matches backend)
 
     (if (and found auth-source-do-cache)
         (auth-source-do-debug
@@ -680,6 +680,8 @@ while \(:host t) would find all host entries."
 
 ;;; Backend specific parsing: netrc/authinfo backend
 
+(defvar auth-source-netrc-cache nil)
+
 ;;; (auth-source-netrc-parse "~/.authinfo.gpg")
 (defun* auth-source-netrc-parse (&rest
                                  spec
@@ -698,7 +700,19 @@ Note that the MAX parameter is used so we can exit the parse early."
               (max (or max 5000))       ; sanity check: default to stop at 5K
               (modified 0)
               alist elem result pair)
-          (insert-file-contents file)
+	  (if (and auth-source-netrc-cache
+		   (equal (car auth-source-netrc-cache)
+			  (nth 5 (file-attributes file))))
+	      (insert (base64-decode-string
+		       (rot13-string (cdr auth-source-netrc-cache))))
+	    (insert-file-contents file)
+	    (when (string-match "\\.gpg\\'" file)
+	      ;; Store the contents of the file heavily encrypted in memory.
+	      (setq auth-source-netrc-cache
+		    (cons (nth 5 (file-attributes file))
+			  (rot13-string
+			   (base64-encode-string
+			    (buffer-string)))))))
           (goto-char (point-min))
           ;; Go through the file, line by line.
           (while (and (not (eobp))
